@@ -17,18 +17,22 @@ package cluster
 import (
 	"encoding/base64"
 	"fmt"
+	"net"
+	"net/url"
 	"os"
 	"strings"
 	"time"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
+	"emperror.dev/errors"
+	"k8s.io/client-go/tools/clientcmd"
+	logrusadapter "logur.dev/adapter/logrus"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	pkeAzureAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
@@ -143,13 +147,13 @@ func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.SecretI
 	if c.sshSecret == nil {
 		s, err := getSecret(cluster.GetOrganizationId(), cluster.GetSshSecretId())
 		if err != nil {
-			return nil, emperror.With(err, "cluster", cluster.GetName())
+			return nil, errors.WithDetails(err, "cluster", cluster.GetName())
 		}
 		c.sshSecret = s
 
 		err = c.sshSecret.ValidateSecretType(secrettype.SSHSecretType)
 		if err != nil {
-			return nil, emperror.With(err, "cluster", cluster.GetName())
+			return nil, errors.WithDetails(err, "cluster", cluster.GetName())
 		}
 	}
 
@@ -181,7 +185,54 @@ func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 // StoreKubernetesConfig stores the given K8S config in vault
 func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 
-	encodedConfig := utils.EncodeStringToBase64(string(config))
+	var configYaml string
+
+	if azurePKEClusterGetter, ok := cluster.(interface {
+		GetPKEOnAzureCluster() pke.PKEOnAzureCluster
+	}); ok {
+		azurePKECluster := azurePKEClusterGetter.GetPKEOnAzureCluster()
+
+		var apiServerAccessPointAddress string
+		if azurePKECluster.APIServerAccessPoints.Exists("public") {
+			apiServerAccessPointAddress = azurePKECluster.AccessPoints.Get("public").Address
+		} else if azurePKECluster.APIServerAccessPoints.Exists("private") {
+			apiServerAccessPointAddress = azurePKECluster.AccessPoints.Get("private").Address
+		} else {
+			return errors.New("missing api server access point")
+		}
+
+		apiConfig, err := clientcmd.Load(config)
+		if err != nil {
+			return errors.WrapIf(err, "failed to load kubernetes API config")
+		}
+
+		ctx := apiConfig.Contexts[apiConfig.CurrentContext]
+		cluster := apiConfig.Clusters[ctx.Cluster]
+
+		apiServerUrl, err := url.Parse(cluster.Server)
+		if err != nil {
+			return errors.WrapIf(err, "couldn't parse API server url from config")
+		}
+
+		// replace host in api server url with the selected api server access point
+		_, p, err := net.SplitHostPort(apiServerUrl.Host)
+		if err != nil {
+			return errors.WrapIf(err, "couldn't parse API server host and port from config")
+		}
+
+		apiServerUrl.Host = net.JoinHostPort(apiServerAccessPointAddress, p)
+		cluster.Server = apiServerUrl.String()
+
+		raw, err := clientcmd.Write(*apiConfig)
+		if err != nil {
+			return errors.WrapIf(err, "couldn't serialize API config yaml")
+		}
+		configYaml = string(raw)
+	} else {
+		configYaml = string(config)
+	}
+
+	encodedConfig := utils.EncodeStringToBase64(configYaml)
 
 	organizationID := cluster.GetOrganizationId()
 	clusterUidTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())
@@ -264,11 +315,12 @@ func getScaleOptionsFromModel(scaleOptions model.ScaleOptions) *pkgCluster.Scale
 // GetCommonClusterFromModel extracts CommonCluster from a ClusterModel
 func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster, error) {
 
-	db := config.DB()
+	db := global.DB()
 
 	if modelCluster.Distribution == pkgCluster.PKE && modelCluster.Cloud == pkgCluster.Azure {
-		logrus.Debugf("azure adapter stuff")
-		return pkeAzureAdapter.MakeCommonClusterGetter(secret.Store, adapter.NewGORMAzurePKEClusterStore(db)).GetByID(modelCluster.ID)
+		logger := commonadapter.NewLogger(logrusadapter.New(log))
+		logger.Debug("azure adapter stuff")
+		return pkeAzureAdapter.MakeCommonClusterGetter(secret.Store, adapter.NewGORMAzurePKEClusterStore(db, logger)).GetByID(modelCluster.ID)
 	} else if modelCluster.Distribution == pkgCluster.PKE {
 		return createCommonClusterWithDistributionFromModel(modelCluster)
 	}
@@ -561,7 +613,7 @@ func getNodePoolsFromUpdateRequest(updateRequest *pkgCluster.UpdateClusterReques
 
 // CleanHelmFolder deletes helm path
 func CleanHelmFolder(organizationName string) error {
-	helmPath := config.GetHelmPath(organizationName)
+	helmPath := global.GetHelmPath(organizationName)
 	return os.RemoveAll(helmPath)
 }
 

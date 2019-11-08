@@ -19,11 +19,9 @@ import (
 	"strings"
 
 	"emperror.dev/emperror"
-	"github.com/spf13/viper"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // ExternalDnsChartValues describes external-dns helm chart values (https://hub.helm.sh/charts/stable/external-dns)
@@ -34,8 +32,6 @@ type ExternalDnsChartValues struct {
 	DomainFilters []string                      `json:"domainFilters,omitempty" yaml:"domainFilters,omitempty"`
 	Policy        string                        `json:"policy,omitempty" yaml:"policy,omitempty"`
 	TxtOwnerId    string                        `json:"txtOwnerId,omitempty" yaml:"txtOwnerId,omitempty"`
-	Affinity      *v1.Affinity                  `json:"affinity,omitempty" yaml:"affinity,omitempty"`
-	Tolerations   []v1.Toleration               `json:"tolerations,omitempty" yaml:"tolerations,omitempty"`
 	ExtraArgs     map[string]string             `json:"extraArgs,omitempty" yaml:"extraArgs,omitempty"`
 	TxtPrefix     string                        `json:"txtPrefix,omitempty" yaml:"txtPrefix,omitempty"`
 	Crd           *ExternalDnsCrdSourceSettings `json:"crd,omitempty" yaml:"crd,omitempty"`
@@ -78,7 +74,7 @@ type ExternalDnsAwsCredentials struct {
 // GetBaseDomain returns the DNS base domain from [dns.domain] config. Changes the read domain to lowercase
 // to ensure it's DNS-1123 compliant
 func GetBaseDomain() (string, error) {
-	baseDomain := strings.ToLower(viper.GetString(config.DNSBaseDomain))
+	baseDomain := strings.ToLower(global.Config.Cluster.DNS.BaseDomain)
 
 	err := ValidateSubdomain(baseDomain)
 	if err != nil {

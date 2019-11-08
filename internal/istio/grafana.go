@@ -22,13 +22,12 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
 
@@ -41,7 +40,7 @@ const (
 )
 
 func DeleteGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) error {
-	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 
 	cms, err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).List(metav1.ListOptions{
 		LabelSelector: createdByLabel + "=pipeline," + appLabel + "=grafana",
@@ -62,7 +61,7 @@ func DeleteGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface
 }
 
 func AddGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) error {
-	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 
 	for _, dashboard := range []string{"galley", "istio-mesh", "istio-performance", "istio-service", "istio-workload", "mixer", "pilot"} {
 		dashboardJson, err := getDashboardJson(log, dashboard)
@@ -96,7 +95,7 @@ func AddGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) e
 }
 
 func getDashboardJson(log logrus.FieldLogger, name string) (string, error) {
-	templatePath := viper.GetString(config.IstioGrafanaDashboardLocation) + "/" + name + "-dashboard.json"
+	templatePath := global.Config.Cluster.Backyards.Istio.GrafanaDashboardLocation + "/" + name + "-dashboard.json"
 	log.Infof("Getting Istio dashboard from %s", templatePath)
 	u, err := url.Parse(templatePath)
 	if err != nil {

@@ -43,7 +43,7 @@ MGA_VERSION = 0.0.10
 GOLANG_VERSION = 1.13
 
 .PHONY: up
-up: etc/config/dex.yml config/ui/feature-set.json start config/config.toml ## Set up the development environment
+up: etc/config/dex.yml config/ui/feature-set.json start config/config.yaml ## Set up the development environment
 
 .PHONY: down
 down: clean ## Destroy the development environment
@@ -71,8 +71,8 @@ start: docker-compose.override.yml ## Start docker development environment
 stop: ## Stop docker development environment
 	docker-compose stop
 
-config/config.toml:
-	cp config/config.toml.dist config/config.toml
+config/config.yaml:
+	cp config/config.dev.yaml config/config.yaml
 
 config/ui/feature-set.json:
 	mv config/ui/feature-set.json{,~} || true && cp config/ui/feature-set.json.dist config/ui/feature-set.json

@@ -34,8 +34,8 @@ import (
 	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/auth/authdriver"
 	"github.com/banzaicloud/pipeline/cluster"
-	conf "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
@@ -50,6 +50,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns/dnsadapter"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan/securityscanadapter"
@@ -110,14 +111,28 @@ func main() {
 		emperror.Panic(errors.Wrap(err, "failed to read configuration"))
 	}
 
-	registerAliases(v)
-
 	var config configuration
 	err = v.Unmarshal(&config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
+	err = config.Process()
+	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
+
+	err = v.Unmarshal(&global.Config)
+	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
+
+	err = global.Config.Process()
+	emperror.Panic(errors.WithMessage(err, "failed to process global configuration"))
+
 	// Create logger (first thing after configuration loading)
 	logger := log.NewLogger(config.Log)
+
+	// Legacy logger instance
+	logrusLogger := log.NewLogrusLogger(log.Config{
+		Level:  config.Log.Level,
+		Format: config.Log.Format,
+	})
+	global.SetLogrusLogger(logrusLogger)
 
 	// Provide some basic context to all log lines
 	logger = log.WithFields(logger, map[string]interface{}{"environment": config.Environment, "application": appName})
@@ -136,8 +151,15 @@ func main() {
 		os.Exit(3)
 	}
 
+	err = global.Config.Validate()
+	if err != nil {
+		logger.Error(err.Error(), map[string]interface{}{"config": "global"})
+
+		os.Exit(3)
+	}
+
 	// Configure error handler
-	errorHandler, err := errorhandler.New(config.ErrorHandler, logger)
+	errorHandler, err := errorhandler.New(config.Errors, logger)
 	if err != nil {
 		logger.Error(err.Error())
 
@@ -151,12 +173,7 @@ func main() {
 
 	logger.Info("starting application", buildInfo.Fields())
 
-	switch v.GetString(conf.DNSBaseDomain) {
-	case "", "example.com", "example.org":
-		global.AutoDNSEnabled = false
-	default:
-		global.AutoDNSEnabled = true
-	}
+	anchore.Init()
 
 	var group run.Group
 
@@ -170,6 +187,7 @@ func main() {
 		if err != nil {
 			emperror.Panic(err)
 		}
+		global.SetDB(db)
 
 		clusterManager := cluster.NewManager(
 			intCluster.NewClusters(db),
@@ -178,7 +196,7 @@ func main() {
 			nil,
 			nil,
 			nil,
-			conf.Logger(),
+			logrusLogger,
 			errorHandler,
 		)
 		tokenStore := bauth.NewVaultTokenStore("pipeline")
@@ -203,13 +221,13 @@ func main() {
 		clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
 		emperror.Panic(errors.Wrap(err, "failed to create DexClusterAuthService"))
 
-		scmProvider := v.GetString("cicd.scm")
+		scmProvider := global.Config.CICD.SCM
 		var scmToken string
 		switch scmProvider {
 		case "github":
-			scmToken = v.GetString("github.token")
+			scmToken = global.Config.Github.Token
 		case "gitlab":
-			scmToken = v.GetString("gitlab.token")
+			scmToken = global.Config.Gitlab.Token
 		default:
 			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
 		}
@@ -262,7 +280,7 @@ func main() {
 		// Register amazon specific workflows and activities
 		registerAwsWorkflows(clusters, tokenGenerator)
 
-		azurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db)
+		azurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db, commonadapter.NewLogger(logger))
 
 		{
 			passwordSecrets := intpkeworkflowadapter.NewPasswordSecretStore(commonSecretStore)
@@ -295,16 +313,16 @@ func main() {
 
 		k8sConfigGetter := intSecret.MakeKubeSecretStore(secret.Store)
 
-		deleteHelmDeploymentsActivity := intClusterWorkflow.MakeDeleteHelmDeploymentsActivity(k8sConfigGetter, conf.Logger())
+		deleteHelmDeploymentsActivity := intClusterWorkflow.MakeDeleteHelmDeploymentsActivity(k8sConfigGetter, logrusLogger)
 		activity.RegisterWithOptions(deleteHelmDeploymentsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteHelmDeploymentsActivityName})
 
-		deleteUserNamespacesActivity := intClusterWorkflow.MakeDeleteUserNamespacesActivity(intClusterK8s.MakeUserNamespaceDeleter(conf.Logger()), k8sConfigGetter)
+		deleteUserNamespacesActivity := intClusterWorkflow.MakeDeleteUserNamespacesActivity(intClusterK8s.MakeUserNamespaceDeleter(logrusLogger), k8sConfigGetter)
 		activity.RegisterWithOptions(deleteUserNamespacesActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteUserNamespacesActivityName})
 
-		deleteNamespaceResourcesActivity := intClusterWorkflow.MakeDeleteNamespaceResourcesActivity(intClusterK8s.MakeNamespaceResourcesDeleter(conf.Logger()), k8sConfigGetter)
+		deleteNamespaceResourcesActivity := intClusterWorkflow.MakeDeleteNamespaceResourcesActivity(intClusterK8s.MakeNamespaceResourcesDeleter(logrusLogger), k8sConfigGetter)
 		activity.RegisterWithOptions(deleteNamespaceResourcesActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteNamespaceResourcesActivityName})
 
-		deleteNamespaceServicesActivity := intClusterWorkflow.MakeDeleteNamespaceServicesActivity(intClusterK8s.MakeNamespaceServicesDeleter(conf.Logger()), k8sConfigGetter)
+		deleteNamespaceServicesActivity := intClusterWorkflow.MakeDeleteNamespaceServicesActivity(intClusterK8s.MakeNamespaceServicesDeleter(logrusLogger), k8sConfigGetter)
 		activity.RegisterWithOptions(deleteNamespaceServicesActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteNamespaceServicesActivityName})
 
 		clusterDNSRecordsDeleter, err := intClusterDNS.MakeDefaultRecordsDeleter()
@@ -313,7 +331,7 @@ func main() {
 		deleteClusterDNSRecordsActivity := intClusterWorkflow.MakeDeleteClusterDNSRecordsActivity(clusterDNSRecordsDeleter)
 		activity.RegisterWithOptions(deleteClusterDNSRecordsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteClusterDNSRecordsActivityName})
 
-		waitPersistentVolumesDeletionActivity := intClusterWorkflow.MakeWaitPersistentVolumesDeletionActivity(k8sConfigGetter, conf.Logger())
+		waitPersistentVolumesDeletionActivity := intClusterWorkflow.MakeWaitPersistentVolumesDeletionActivity(k8sConfigGetter, logrusLogger)
 		activity.RegisterWithOptions(waitPersistentVolumesDeletionActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.WaitPersistentVolumesDeletionActivityName})
 
 		{
@@ -328,14 +346,21 @@ func main() {
 				logger.Info("External DNS service functionality is not enabled")
 			}
 
+			orgGetter := authdriver.NewOrganizationGetter(db)
+
 			logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 			featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 			helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
 			kubernetesService := kubernetes.NewKubernetesService(helmadapter.NewClusterService(clusterManager), logger)
 
 			clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
-			clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
-			orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
+			clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
+			orgDomainService := dnsadapter.NewOrgDomainService(
+				config.Cluster.DNS.BaseDomain,
+				dnsSvc,
+				dnsadapter.NewClusterOrgGetter(clusterManager, orgGetter),
+				logger,
+			)
 
 			customAnchoreConfigProvider := securityscan.NewCustomAnchoreConfigProvider(
 				featureRepository,
@@ -359,9 +384,16 @@ func main() {
 			featureAnchoreService := securityscan.NewFeatureAnchoreService(anchoreUserService, logger)
 			featureWhitelistService := securityscan.NewFeatureWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
 
-			monitorConfiguration := featureMonitoring.NewFeatureConfiguration()
 			featureOperatorRegistry := clusterfeature.MakeFeatureOperatorRegistry([]clusterfeature.FeatureOperator{
-				featureDns.MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, commonSecretStore),
+				featureDns.MakeFeatureOperator(
+					clusterGetter,
+					clusterService,
+					helmService,
+					logger,
+					orgDomainService,
+					commonSecretStore,
+					config.Cluster.DNS.Config,
+				),
 				securityscan.MakeFeatureOperator(
 					config.Cluster.SecurityScan.Anchore.Enabled,
 					config.Cluster.SecurityScan.Anchore.Endpoint,
@@ -374,7 +406,15 @@ func main() {
 					logger,
 				),
 				featureVault.MakeFeatureOperator(clusterGetter, clusterService, helmService, kubernetesService, commonSecretStore, logger),
-				featureMonitoring.MakeFeatureOperator(clusterGetter, clusterService, helmService, monitorConfiguration, logger, commonSecretStore),
+				featureMonitoring.MakeFeatureOperator(
+					clusterGetter,
+					clusterService,
+					helmService,
+					kubernetesService,
+					config.Cluster.Monitoring.Config,
+					logger,
+					commonSecretStore,
+				),
 			})
 
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)

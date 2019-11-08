@@ -23,7 +23,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/antihax/optional"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
@@ -175,7 +174,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		var changes workflow.VirtualMachineScaleSetChanges
 
 		if !np.Autoscaling {
-			changes.InstanceCount = optional.NewUint(uint(np.Count))
+			changes.InstanceCount = workflow.NewUint(uint(np.Count))
 		}
 
 		if changes != (workflow.VirtualMachineScaleSetChanges{}) {
@@ -227,7 +226,6 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		ClusterID:           cluster.ID,
 		ClusterName:         cluster.Name,
 		ResourceGroupName:   cluster.ResourceGroup.Name,
-		LoadBalancerName:    pke.GetLoadBalancerName(cluster.Name),
 		PublicIPAddressName: pke.GetPublicIPAddressName(cluster.Name),
 		RouteTableName:      routeTableName,
 		VirtualNetworkName:  cluster.VirtualNetwork.Name,
@@ -239,7 +237,9 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		VMSSToDelete:    toDeleteVMSSNames,
 		VMSSToUpdate:    toUpdateVMSSChanges,
 
-		Labels: labels,
+		Labels:                labels,
+		AccessPoints:          cluster.AccessPoints,
+		APIServerAccessPoints: cluster.APIServerAccessPoints,
 	}
 
 	if err := cu.store.SetStatus(cluster.ID, pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {

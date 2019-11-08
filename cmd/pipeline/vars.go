@@ -25,5 +25,5 @@ const (
 	friendlyAppName = "Pipeline"
 
 	// envPrefix is prepended to environment variables when processing configuration.
-	// envPrefix = "pipeline"
+	envPrefix = "pipeline"
 )

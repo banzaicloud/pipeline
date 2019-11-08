@@ -15,9 +15,9 @@
 package monitoring
 
 type prometheusOperatorValues struct {
-	Grafana          grafanaValues          `json:"grafana"`
-	Alertmanager     alertmanagerValues     `json:"alertmanager"`
-	Prometheus       prometheusValues       `json:"prometheus"`
+	Grafana          *grafanaValues         `json:"grafana"`
+	Alertmanager     *alertmanagerValues    `json:"alertmanager"`
+	Prometheus       *prometheusValues      `json:"prometheus"`
 	KubeStateMetrics kubeStateMetricsValues `json:"kubeStateMetrics"`
 	NodeExporter     nodeExporterValues     `json:"nodeExporter"`
 }
@@ -25,6 +25,9 @@ type prometheusOperatorValues struct {
 type prometheusPushgatewayValues struct {
 	affinityValues
 	tolerationValues
+
+	Annotations map[string]interface{} `json:"annotations"`
+	Ingress     ingressValues          `json:"ingress"`
 }
 
 type baseValues struct {
@@ -37,9 +40,10 @@ type grafanaValues struct {
 	affinityValues
 	tolerationValues
 
-	AdminUser     string           `json:"adminUser"`
-	AdminPassword string           `json:"adminPassword"`
-	GrafanaIni    grafanaIniValues `json:"grafana.ini"`
+	AdminUser                string           `json:"adminUser"`
+	AdminPassword            string           `json:"adminPassword"`
+	GrafanaIni               grafanaIniValues `json:"grafana.ini"`
+	DefaultDashboardsEnabled bool             `json:"defaultDashboardsEnabled"`
 }
 
 type grafanaIniValues struct {
@@ -53,34 +57,29 @@ type grafanaIniServerValues struct {
 
 type alertmanagerValues struct {
 	baseValues
-	Spec   SpecValues   `json:"alertmanagerSpec"`
-	Config configValues `json:"config"`
+	Spec   SpecValues    `json:"alertmanagerSpec"`
+	Config *configValues `json:"config"`
 }
 
 type configValues struct {
-	Global configGlobalValues `json:"global"`
+	Receivers []receiverItemValues `json:"receivers"`
+	Route     routeValues          `json:"route"`
 }
 
-type configGlobalValues struct {
-	Receivers []receiverItemValues `json:"receivers"`
+type routeValues struct {
+	Receiver string        `json:"receiver"`
+	Routes   []interface{} `json:"routes"`
 }
 
 type receiverItemValues struct {
 	Name             string                  `json:"name"`
-	SlackConfigs     []slackConfigValues     `json:"slack_configs"`
-	EmailConfigs     []emailConfigValues     `json:"email_config"`
-	PagerdutyConfigs []pagerdutyConfigValues `json:"pagerduty_config"`
+	SlackConfigs     []slackConfigValues     `json:"slack_configs,omitempty"`
+	PagerdutyConfigs []pagerdutyConfigValues `json:"pagerduty_config,omitempty"`
 }
 
 type slackConfigValues struct {
 	ApiUrl       string `json:"api_url"`
 	Channel      string `json:"channel"`
-	SendResolved bool   `json:"send_resolved"`
-}
-
-type emailConfigValues struct {
-	To           string `json:"to"`
-	From         string `json:"from"`
 	SendResolved bool   `json:"send_resolved"`
 }
 
@@ -94,7 +93,11 @@ type pagerdutyConfigValues struct {
 type SpecValues struct {
 	tolerationValues
 	affinityValues
-	RoutePrefix string `json:"routePrefix"`
+
+	RoutePrefix   string                 `json:"routePrefix"`
+	RetentionSize string                 `json:"retentionSize"`
+	Retention     string                 `json:"retention"`
+	StorageSpec   map[string]interface{} `json:"storageSpec"`
 }
 
 type prometheusValues struct {
@@ -121,8 +124,9 @@ type tolerationValues struct {
 }
 
 type ingressValues struct {
-	Enabled bool     `json:"enabled"`
-	Hosts   []string `json:"hosts"`
-	Path    string   `json:"path,omitempty"`
-	Paths   []string `json:"paths,omitempty"`
+	Enabled     bool                   `json:"enabled"`
+	Hosts       []string               `json:"hosts"`
+	Path        string                 `json:"path,omitempty"`
+	Paths       []string               `json:"paths,omitempty"`
+	Annotations map[string]interface{} `json:"annotations,omitempty"`
 }

@@ -24,7 +24,6 @@ import (
 	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	apiv1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/rbac/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -36,7 +35,7 @@ import (
 	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/repo"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/backoff"
 	phelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -190,7 +189,7 @@ func CreateEnvSettings(helmRepoHome string) helmEnv.EnvSettings {
 
 // GenerateHelmRepoEnv Generate helm path based on orgName
 func GenerateHelmRepoEnv(orgName string) (env helmEnv.EnvSettings) {
-	var helmPath = config.GetHelmPath(orgName)
+	var helmPath = global.GetHelmPath(orgName)
 	env = CreateEnvSettings(fmt.Sprintf("%s/%s", helmPath, phelm.HelmPostFix))
 
 	// check local helm
@@ -272,15 +271,15 @@ func ensureDefaultRepos(env helmEnv.EnvSettings) error {
 	}{
 		{
 			name: phelm.StableRepository,
-			url:  viper.GetString(config.HelmStableRepositoryKey),
+			url:  global.Config.Helm.Repositories[phelm.StableRepository],
 		},
 		{
 			name: phelm.BanzaiRepository,
-			url:  viper.GetString(config.HelmBanzaiRepositoryKey),
+			url:  global.Config.Helm.Repositories[phelm.BanzaiRepository],
 		},
 		{
 			name: phelm.LokiRepository,
-			url:  viper.GetString(config.HelmLokiRepositoryKey),
+			url:  global.Config.Helm.Repositories[phelm.LokiRepository],
 		},
 	}
 

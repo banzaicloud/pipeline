@@ -19,13 +19,15 @@ type outputPrometheus struct {
 }
 
 func newPrometheusOutputHelper(
+	kubeConfig []byte,
 	spec featureSpec,
 ) outputPrometheus {
 	return outputPrometheus{
 		baseOutput: baseOutput{
-			ingress:  spec.Prometheus.Public,
-			secretID: spec.Prometheus.SecretId,
-			enabled:  spec.Prometheus.Enabled,
+			ingress:   spec.Prometheus.Ingress.baseIngressSpec,
+			secretID:  spec.Prometheus.Ingress.SecretID,
+			enabled:   spec.Prometheus.Enabled,
+			k8sConfig: kubeConfig,
 		},
 	}
 }
@@ -44,4 +46,8 @@ func (outputPrometheus) getDeploymentValueParentKey() string {
 
 func (outputPrometheus) getGeneratedSecretName(clusterID uint) string {
 	return getPrometheusSecretName(clusterID)
+}
+
+func (outputPrometheus) getServiceName() string {
+	return "monitor-prometheus-operato-prometheus"
 }

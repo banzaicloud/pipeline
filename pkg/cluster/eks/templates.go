@@ -20,9 +20,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/spf13/viper"
-
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 const (
@@ -36,7 +34,7 @@ const (
 func getEksCloudFormationTemplate(name string) (string, error) {
 
 	// location to retrieve the Cloud Formation template from
-	templatePath := viper.GetString(config.EksTemplateLocation) + "/" + name
+	templatePath := global.Config.Distribution.EKS.TemplateLocation + "/" + name
 
 	log.Infof("getting CloudFormation template from %q", templatePath)
 

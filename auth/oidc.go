@@ -34,15 +34,16 @@ import (
 
 // OIDCProvider provide login with OIDC auth method
 type OIDCProvider struct {
-	*OIDCConfig
-	provider *oidc.Provider
-	verifier *oidc.IDTokenVerifier
+	*OIDCProviderConfig
+	httpClient *http.Client
+	provider   *oidc.Provider
+	verifier   *oidc.IDTokenVerifier
 }
 
 type AuthorizeHandler func(*auth.Context) (*claims.Claims, error)
 
-// OIDCConfig holds the oidc configuration parameters
-type OIDCConfig struct {
+// OIDCProviderConfig holds the oidc configuration parameters
+type OIDCProviderConfig struct {
 	PublicClientID     string
 	ClientID           string
 	ClientSecret       string
@@ -54,20 +55,21 @@ type OIDCConfig struct {
 }
 
 type IDTokenClaims struct {
-	Subject         string            `json:"sub"`
-	Name            string            `json:"name"`
-	Email           string            `json:"email"`
-	Verified        bool              `json:"email_verified"`
-	Groups          []string          `json:"groups"`
-	FederatedClaims map[string]string `json:"federated_claims"`
+	Subject           string            `json:"sub"`
+	Name              string            `json:"name"`
+	PreferredUsername string            `json:"preferred_username"`
+	Email             string            `json:"email"`
+	Verified          bool              `json:"email_verified"`
+	Groups            []string          `json:"groups"`
+	FederatedClaims   map[string]string `json:"federated_claims"`
 }
 
-func newOIDCProvider(config *OIDCConfig, refreshTokenStore RefreshTokenStore) *OIDCProvider {
+func newOIDCProvider(config *OIDCProviderConfig, refreshTokenStore RefreshTokenStore) *OIDCProvider {
 	if config == nil {
-		config = &OIDCConfig{}
+		config = &OIDCProviderConfig{}
 	}
 
-	provider := &OIDCProvider{OIDCConfig: config}
+	provider := &OIDCProvider{OIDCProviderConfig: config}
 
 	if config.ClientID == "" {
 		panic(errors.New("OIDC's ClientID can't be blank"))
@@ -85,7 +87,7 @@ func newOIDCProvider(config *OIDCConfig, refreshTokenStore RefreshTokenStore) *O
 		config.Scopes = []string{oidc.ScopeOpenID, "profile", "email", "groups", "federated:id", oidc.ScopeOfflineAccess}
 	}
 
-	httpClient := http.Client{
+	provider.httpClient = &http.Client{
 		Timeout: time.Second * 10,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -93,7 +95,8 @@ func newOIDCProvider(config *OIDCConfig, refreshTokenStore RefreshTokenStore) *O
 			},
 		},
 	}
-	ctx := oidc.ClientContext(gocontext.Background(), &httpClient)
+
+	ctx := oidc.ClientContext(gocontext.Background(), provider.httpClient)
 	oidcProvider, err := oidc.NewProvider(ctx, provider.IssuerURL)
 	if err != nil {
 		panic(fmt.Errorf("Failed to query provider %q: %s", provider.IssuerURL, err.Error()))
@@ -118,7 +121,7 @@ func newOIDCProvider(config *OIDCConfig, refreshTokenStore RefreshTokenStore) *O
 			)
 
 			verifier := provider.verifier
-			ctx := oidc.ClientContext(req.Context(), &httpClient)
+			ctx := oidc.ClientContext(req.Context(), provider.httpClient)
 			oauth2Config := provider.OAuthConfig(context)
 
 			switch req.Method {
@@ -295,7 +298,7 @@ func (provider OIDCProvider) ConfigAuth(*auth.Auth) {
 // OAuthConfig return oauth config based on configuration
 func (provider OIDCProvider) OAuthConfig(context *auth.Context) *oauth2.Config {
 	var (
-		config = provider.OIDCConfig
+		config = provider.OIDCProviderConfig
 		req    = context.Request
 		scheme = req.URL.Scheme
 	)
@@ -330,7 +333,10 @@ func (provider OIDCProvider) Login(context *auth.Context) {
 // RedeemRefreshToken plays an OAuth redeem refresh token flow
 // https://www.oauth.com/oauth2-servers/access-tokens/refreshing-access-tokens/
 func (provider OIDCProvider) RedeemRefreshToken(context *auth.Context, refreshToken string) (*IDTokenClaims, *oauth2.Token, error) {
-	token, err := provider.OAuthConfig(context).TokenSource(gocontext.Background(), &oauth2.Token{RefreshToken: refreshToken}).Token()
+
+	ctx := oidc.ClientContext(gocontext.Background(), provider.httpClient)
+
+	token, err := provider.OAuthConfig(context).TokenSource(ctx, &oauth2.Token{RefreshToken: refreshToken}).Token()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -341,7 +347,7 @@ func (provider OIDCProvider) RedeemRefreshToken(context *auth.Context, refreshTo
 	}
 
 	var claims IDTokenClaims
-	idToken, err := provider.verifier.Verify(gocontext.Background(), rawIDToken)
+	idToken, err := provider.verifier.Verify(ctx, rawIDToken)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to verify ID token: %s", err.Error())
 	}

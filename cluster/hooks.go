@@ -27,7 +27,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -38,12 +37,12 @@ import (
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 
 	"github.com/banzaicloud/pipeline/auth"
-	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/dns/route53"
 	"github.com/banzaicloud/pipeline/helm"
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
 	arkPosthook "github.com/banzaicloud/pipeline/internal/ark/posthook"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/hollowtrees"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
@@ -74,52 +73,6 @@ func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (er
 	err = json.Unmarshal(bytes, &output)
 
 	return
-}
-
-func GetHeadNodeAffinity(cluster interface {
-	NodePoolExists(nodePoolName string) bool
-}) v1.Affinity {
-	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
-	if len(headNodePoolName) == 0 {
-		return v1.Affinity{}
-	}
-	if !cluster.NodePoolExists(headNodePoolName) {
-		return v1.Affinity{}
-	}
-	return v1.Affinity{
-		NodeAffinity: &v1.NodeAffinity{
-			PreferredDuringSchedulingIgnoredDuringExecution: []v1.PreferredSchedulingTerm{
-				{
-					Weight: 100,
-					Preference: v1.NodeSelectorTerm{
-						MatchExpressions: []v1.NodeSelectorRequirement{
-							{
-								Key:      pkgCommon.LabelKey,
-								Operator: v1.NodeSelectorOpIn,
-								Values: []string{
-									headNodePoolName,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-func GetHeadNodeTolerations() []v1.Toleration {
-	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
-	if len(headNodePoolName) == 0 {
-		return []v1.Toleration{}
-	}
-	return []v1.Toleration{
-		{
-			Key:      pkgCommon.NodePoolNameTaintKey,
-			Operator: v1.TolerationOpEqual,
-			Value:    headNodePoolName,
-		},
-	}
 }
 
 func installDeployment(cluster CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, chartVersion string, wait bool) error {
@@ -182,7 +135,7 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 
 func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 
-	k8sDashboardNameSpace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	k8sDashboardNameSpace := global.Config.Cluster.Namespace
 	k8sDashboardReleaseName := "dashboard"
 	var valuesJson []byte
 
@@ -279,8 +232,6 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 				"create": false,
 				"name":   serviceAccount.Name,
 			},
-			"affinity":    GetHeadNodeAffinity(cluster),
-			"tolerations": GetHeadNodeTolerations(),
 		}
 
 		valuesJson, err = yaml.Marshal(values)
@@ -355,20 +306,17 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 
 // InstallHorizontalPodAutoscalerPostHook
 func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
-	promServiceName := viper.GetString(pipConfig.PrometheusServiceName)
-	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
-	serviceContext := viper.GetString(pipConfig.PrometheusServiceContext)
-	chartVersion := viper.GetString(pipConfig.AutoscaleHpaOperatorChartVersion)
+	promServiceName := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceName
+	infraNamespace := global.Config.Cluster.Autoscale.Namespace
+	serviceContext := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceContext
+	chartName := global.Config.Cluster.Autoscale.Charts.HPAOperator.Chart
+	chartVersion := global.Config.Cluster.Autoscale.Charts.HPAOperator.Version
 
 	values := map[string]interface{}{
-		"affinity":    GetHeadNodeAffinity(cluster),
-		"tolerations": GetHeadNodeTolerations(),
 		"kube-metrics-adapter": map[string]interface{}{
 			"prometheus": map[string]interface{}{
 				"url": fmt.Sprintf("http://%s.%s.svc/%s", promServiceName, infraNamespace, serviceContext),
 			},
-			"affinity":    GetHeadNodeAffinity(cluster),
-			"tolerations": GetHeadNodeTolerations(),
 		},
 	}
 
@@ -381,9 +329,7 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 				"enabled": true,
 			}
 			values["metrics-server"] = map[string]interface{}{
-				"rbac":        map[string]interface{}{"create": true},
-				"affinity":    GetHeadNodeAffinity(cluster),
-				"tolerations": GetHeadNodeTolerations(),
+				"rbac": map[string]interface{}{"create": true},
 			}
 		} else {
 			log.Infof("Metrics Server is already installed")
@@ -395,18 +341,15 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 		return err
 	}
 
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator",
+	return installDeployment(cluster, infraNamespace, chartName,
 		"hpa-operator", valuesOverride, chartVersion, false)
 }
 
 // InstallPVCOperatorPostHook installs the PVC operator
 func InstallPVCOperatorPostHook(cluster CommonCluster) error {
-	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	infraNamespace := global.Config.Cluster.Namespace
 
-	values := map[string]interface{}{
-		"affinity":    GetHeadNodeAffinity(cluster),
-		"tolerations": GetHeadNodeTolerations(),
-	}
+	values := map[string]interface{}{}
 	valuesOverride, err := yaml.Marshal(values)
 	if err != nil {
 		return err
@@ -443,7 +386,7 @@ func InstallAnchoreImageValidator(cluster CommonCluster, param pkgCluster.PostHo
 	}
 	anchorePassword := anchoreUserSecret.Values["password"]
 
-	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	infraNamespace := global.Config.Cluster.Namespace
 
 	values := map[string]interface{}{
 		"externalAnchore": map[string]string{
@@ -451,8 +394,6 @@ func InstallAnchoreImageValidator(cluster CommonCluster, param pkgCluster.PostHo
 			"anchoreUser": anchoreUserName,
 			"anchorePass": anchorePassword,
 		},
-		"affinity":    GetHeadNodeAffinity(cluster),
-		"tolerations": GetHeadNodeTolerations(),
 	}
 	marshalledValues, err := yaml.Marshal(values)
 	if err != nil {
@@ -546,7 +487,7 @@ func CreatePipelineNamespacePostHook(cluster CommonCluster) error {
 		return err
 	}
 
-	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 	err = k8sutil.EnsureNamespaceWithLabelWithRetry(client, pipelineSystemNamespace, map[string]string{"scan": "noscan"})
 	if err != nil {
 		return err
@@ -560,7 +501,7 @@ func InstallHelmPostHook(cluster CommonCluster) error {
 	helmInstall := &pkgHelm.Install{
 		Namespace:      "kube-system",
 		ServiceAccount: "tiller",
-		ImageSpec:      fmt.Sprintf("gcr.io/kubernetes-helm/tiller:%s", viper.GetString("helm.tillerVersion")),
+		ImageSpec:      fmt.Sprintf("gcr.io/kubernetes-helm/tiller:%s", global.Config.Helm.Tiller.Version),
 		Upgrade:        true,
 		ForceUpgrade:   true,
 	}
@@ -601,17 +542,8 @@ func InstallHelmPostHook(cluster CommonCluster) error {
 				},
 			},
 		}
-	} else {
-		headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
-		if headNodePoolName != "" {
-			if cluster.NodePoolExists(headNodePoolName) {
-				helmInstall.Tolerations = GetHeadNodeTolerations()                   // add toleration for system node
-				helmInstall.NodeAffinity = GetHeadNodeAffinity(cluster).NodeAffinity // try to schedule to system node
-			} else {
-				log.Warnf("head node pool %q not found, tiller deployment is not targeted to any node pool.", headNodePoolName)
-			}
-		}
 	}
+
 	kubeconfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		return err
@@ -664,9 +596,7 @@ func SetupPrivileges(cluster CommonCluster) error {
 // RegisterDomainPostHook registers a subdomain using the name of the current organization
 // in external Dns service. It ensures that only one domain is registered per organization.
 func RegisterDomainPostHook(commonCluster CommonCluster) error {
-
-	domainHookEnabled := viper.GetBool(pipConfig.DomainHookEnabled)
-	if !domainHookEnabled {
+	if global.Config.Hooks.DomainHookDisabled {
 		log.Info("domain hook disabled, exiting ...")
 
 		return nil
@@ -677,7 +607,7 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 		return err
 	}
 
-	route53SecretNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	route53SecretNamespace := global.Config.Cluster.Namespace
 
 	orgId := commonCluster.GetOrganizationId()
 
@@ -729,14 +659,14 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 
 	log.Info("route53 secret successfully installed into cluster.")
 
-	hnAffinity := GetHeadNodeAffinity(commonCluster)
 	externalDnsValues := dns.ExternalDnsChartValues{
 		Rbac: &dns.ExternalDnsRbacSettings{
 			Create: commonCluster.RbacEnabled() == true,
 		},
 		Sources: []string{"service", "ingress"},
 		Image: &dns.ExternalDnsImageSettings{
-			Tag: viper.GetString(pipConfig.DNSExternalDnsImageVersion),
+			Repository: global.Config.Cluster.DNS.Charts.ExternalDNS.Values.Image.Repository,
+			Tag:        global.Config.Cluster.DNS.Charts.ExternalDNS.Values.Image.Tag,
 		},
 		Aws: &dns.ExternalDnsAwsSettings{
 			Credentials: &dns.ExternalDnsAwsCredentials{
@@ -748,17 +678,15 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 		DomainFilters: []string{domain},
 		Policy:        "sync",
 		TxtOwnerId:    commonCluster.GetUID(),
-		Affinity:      &hnAffinity,
-		Tolerations:   GetHeadNodeTolerations(),
 	}
 
 	values, err := yaml.Marshal(externalDnsValues)
 	if err != nil {
 		return emperror.Wrap(err, "Json Convert Failed")
 	}
-	chartVersion := viper.GetString(pipConfig.DNSExternalDnsChartVersion)
-	chartName := viper.GetString(pipConfig.DNSExternalDnsChartName)
-	releaseName := viper.GetString(pipConfig.DNSExternalDnsReleaseName)
+	chartVersion := global.Config.Cluster.DNS.Charts.ExternalDNS.Version
+	chartName := global.Config.Cluster.DNS.Charts.ExternalDNS.Chart
+	const releaseName = "dns"
 
 	return installDeployment(commonCluster, route53SecretNamespace, chartName, releaseName, values, chartVersion, false)
 }
@@ -823,121 +751,6 @@ func addLabelsToNode(client *kubernetes.Clientset, nodeName string, labels map[s
 	return
 }
 
-const headNodeTaintRetryAttempt = 30
-const headNodeTaintRetrySleep = 5 * time.Second
-
-// TaintHeadNodes add taints to the given node in nodepool
-func TaintHeadNodes(commonCluster CommonCluster) error {
-	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
-	if len(headNodePoolName) == 0 {
-		log.Infof("headNodePoolName not specified")
-		return nil
-	}
-
-	if commonCluster.GetCloud() == pkgCluster.Azure && commonCluster.GetDistribution() == pkgCluster.PKE {
-		log.Info("head node already tainted")
-		return nil
-	}
-
-	if !commonCluster.NodePoolExists(headNodePoolName) {
-		log.Warnf("head node pool %v not found, no taints added to any node.", headNodePoolName)
-		return nil
-	}
-
-	log.Infof("taint nodes in pool: %v", headNodePoolName)
-
-	log.Debug("get K8S config")
-	kubeConfig, err := commonCluster.GetK8sConfig()
-	if err != nil {
-		return err
-	}
-
-	log.Debug("get K8S connection")
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		return err
-	}
-
-	clusterStatus, err := commonCluster.GetStatus()
-	if err != nil {
-		return err
-	}
-
-	nodePoolDetails, isOk := clusterStatus.NodePools[headNodePoolName]
-	if !isOk {
-		return errors.Errorf("Wrong pool name: %v, configured as head node pool", headNodePoolName)
-	}
-
-	nodes, err := getHeadNodes(client, viper.GetString(pipConfig.PipelineHeadNodePoolName))
-	if err != nil {
-		return err
-	}
-
-	for i := 0; i <= headNodeTaintRetryAttempt && len(nodes.Items) != nodePoolDetails.Count; i++ {
-		log.Infof("Waiting for head pool nodes: %d up out of %d, retry: %d/%d", len(nodes.Items), nodePoolDetails.Count, i, headNodeTaintRetryAttempt)
-		time.Sleep(headNodeTaintRetrySleep)
-
-		nodes, err = getHeadNodes(client, headNodePoolName)
-		if err != nil {
-			return err
-		}
-	}
-
-	err = taintNodes(commonCluster, client, headNodePoolName, nodes)
-	if err != nil {
-		return err
-	}
-	if len(nodes.Items) != nodePoolDetails.Count {
-		log.Errorf("Head node pool configured size (%v) and tainted nodes count (%v) is different, some head pool nodes are not come up / tainted", nodePoolDetails.Count, len(nodes.Items))
-	}
-	log.Infof("tainting %d nodes from pool: %v, finished.", len(nodes.Items), headNodePoolName)
-
-	return nil
-}
-
-func getHeadNodes(client *kubernetes.Clientset, nodePoolName string) (*v1.NodeList, error) {
-	selector := fmt.Sprintf("%s=%s", pkgCommon.LabelKey, nodePoolName)
-	return client.CoreV1().Nodes().List(metav1.ListOptions{
-		LabelSelector: selector,
-	})
-}
-
-func taintNodes(commonCluster CommonCluster, client *kubernetes.Clientset, nodePoolName string, nodes *v1.NodeList) error {
-
-	for _, node := range nodes.Items {
-		taints := make([]v1.Taint, 0)
-		// in case of Azure if we go with TaintEffectNoSchedule & TaintEffectNoExecute
-		// kube-proxy & kube-svc-redirect are not deployed on head nodes, until this issue will be fixed
-		// https://github.com/Azure/AKS/issues/363
-		if commonCluster.GetCloud() == pkgCluster.Azure {
-			taints = append(taints, v1.Taint{
-				Key:    pkgCommon.NodePoolNameTaintKey,
-				Value:  nodePoolName,
-				Effect: v1.TaintEffectPreferNoSchedule,
-			})
-		} else {
-			taints = append(taints, v1.Taint{
-				Key:    pkgCommon.NodePoolNameTaintKey,
-				Value:  nodePoolName,
-				Effect: v1.TaintEffectNoSchedule,
-			})
-		}
-
-		marshalledTaints, err := json.Marshal(taints)
-		if err != nil {
-			return err
-		}
-
-		patch := fmt.Sprintf(`{"spec":{"taints":%v}}`, string(marshalledTaints))
-		_, err = client.CoreV1().Nodes().Patch(node.Name, types.MergePatchType, []byte(patch))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // RestoreFromBackup restores an ARK backup
 func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) error {
 
@@ -947,7 +760,7 @@ func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) er
 		return err
 	}
 
-	return arkPosthook.RestoreFromBackup(params, cluster, pipConfig.DB(), log, errorHandler, viper.GetDuration(pipConfig.ARKRestoreWaitTimeout))
+	return arkPosthook.RestoreFromBackup(params, cluster, global.DB(), log, errorHandler, global.Config.Cluster.DisasterRecovery.Ark.RestoreWaitTimeout)
 }
 
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
@@ -963,7 +776,7 @@ func InitSpotConfig(cluster CommonCluster) error {
 		return nil
 	}
 
-	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
@@ -980,10 +793,7 @@ func InitSpotConfig(cluster CommonCluster) error {
 		return emperror.Wrap(err, "failed to initialize spot ConfigMap")
 	}
 
-	values := map[string]interface{}{
-		"affinity":    GetHeadNodeAffinity(cluster),
-		"tolerations": GetHeadNodeTolerations(),
-	}
+	values := map[string]interface{}{}
 	marshalledValues, err := yaml.Marshal(values)
 	if err != nil {
 		return emperror.Wrap(err, "failed to marshal yaml values")
@@ -1008,7 +818,7 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 		return nil
 	}
 
-	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 
 	values := map[string]interface{}{
 		"tolerations": []v1.Toleration{
@@ -1023,14 +833,18 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 
 	scaleOptions := cluster.GetScaleOptions()
 	if scaleOptions != nil && scaleOptions.Enabled == true {
-		tokenSigningKey := viper.GetString(pipConfig.HollowtreesTokenSigningKey)
+		tokenSigningKey := global.Config.Hollowtrees.TokenSigningKey
 		if tokenSigningKey == "" {
 			err := errors.New("no Hollowtrees token signkey specified")
 			errorHandler.Handle(err)
 			return err
 		}
 
-		generator := hollowtrees.NewTokenGenerator(viper.GetString("auth.jwtissuer"), viper.GetString("auth.jwtaudience"), viper.GetString(pipConfig.HollowtreesTokenSigningKey))
+		generator := hollowtrees.NewTokenGenerator(
+			global.Config.Auth.Token.Issuer,
+			global.Config.Auth.Token.Audience,
+			global.Config.Hollowtrees.TokenSigningKey,
+		)
 		_, token, err := generator.Generate(cluster.GetID(), cluster.GetOrganizationId(), nil)
 		if err != nil {
 			err = emperror.Wrap(err, "could not generate JWT token for instance termination handler")
@@ -1040,7 +854,7 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 
 		values["hollowtreesNotifier"] = map[string]interface{}{
 			"enabled":        true,
-			"URL":            viper.GetString(pipConfig.HollowtreesExternalURL) + viper.GetString(pipConfig.HollowtreesAlertsEndpoint),
+			"URL":            global.Config.Hollowtrees.Endpoint + "/alerts",
 			"organizationID": cluster.GetOrganizationId(),
 			"clusterID":      cluster.GetID(),
 			"clusterName":    cluster.GetName(),

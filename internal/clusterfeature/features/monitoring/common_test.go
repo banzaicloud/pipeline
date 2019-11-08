@@ -17,6 +17,11 @@ package monitoring
 import (
 	"context"
 
+	"emperror.dev/errors"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	k8srest "k8s.io/client-go/rest"
+
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/secret"
@@ -31,14 +36,22 @@ const (
 	prometheusPath     = "/prometheus"
 	grafanaURL         = "http://monitoring.io/grafana"
 	prometheusURL      = "http://monitoring.io/prometheus"
+	serviceUrl         = "dummyServiceUrl:9090"
 )
 
 type dummyClusterGetter struct {
-	Clusters map[uint]clusterfeatureadapter.Cluster
+	Clusters map[uint]dummyCluster
 }
 
 func (d dummyClusterGetter) GetClusterByIDOnly(ctx context.Context, clusterID uint) (clusterfeatureadapter.Cluster, error) {
 	return d.Clusters[clusterID], nil
+}
+
+func (d dummyClusterGetter) GetClusterStatus(ctx context.Context, clusterID uint) (string, error) {
+	if c, ok := d.Clusters[clusterID]; ok {
+		return c.Status, nil
+	}
+	return "", errors.New("cluster not found")
 }
 
 type dummyCluster struct {
@@ -47,9 +60,9 @@ type dummyCluster struct {
 	OrgID     uint
 	ID        uint
 	UID       string
-	Ready     bool
 	NodePools map[string]bool
 	Rbac      bool
+	Status    string
 }
 
 func (d dummyCluster) GetK8sConfig() ([]byte, error) {
@@ -70,10 +83,6 @@ func (d dummyCluster) GetUID() string {
 
 func (d dummyCluster) GetID() uint {
 	return d.ID
-}
-
-func (d dummyCluster) IsReady() (bool, error) {
-	return d.Ready, nil
 }
 
 func (d dummyCluster) NodePoolExists(nodePoolName string) bool {
@@ -138,6 +147,10 @@ func (dummyEndpointService) List(kubeConfig []byte, releaseName string) ([]*helm
 	}, nil
 }
 
+func (dummyEndpointService) GetServiceURL(kubeConfig []byte, serviceName string, namespace string) (string, error) {
+	return "dummyServiceUrl:9090", nil
+}
+
 type dummyHelmService struct{}
 
 func (d dummyHelmService) ApplyDeployment(
@@ -160,4 +173,39 @@ func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, rel
 	return &helm.GetDeploymentResponse{
 		ReleaseName: releaseName,
 	}, nil
+}
+
+type dummyKubernetesService struct {
+}
+
+// GetKubeConfig gets a kube config for a specific cluster.
+func (s *dummyKubernetesService) GetKubeConfig(ctx context.Context, clusterID uint) (*k8srest.Config, error) {
+	return &k8srest.Config{
+		Host:            "https://127.0.0.1:6443",
+		TLSClientConfig: k8srest.TLSClientConfig{CAData: []byte("BLABLA")},
+	}, nil
+}
+
+// GetObject gets an Object from a specific cluster.
+func (s *dummyKubernetesService) GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, o runtime.Object) error {
+	return nil
+}
+
+// DeleteObject deletes an Object from a specific cluster.
+func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+	return nil
+}
+
+// EnsureObject makes sure that a given Object is on the cluster and returns it.
+func (s *dummyKubernetesService) EnsureObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+	switch v := o.(type) {
+	case *corev1.ServiceAccount:
+		v.Secrets = []corev1.ObjectReference{{Name: "some-token-1234", Namespace: "default"}}
+	}
+
+	return nil
+}
+
+func (s *dummyKubernetesService) List(ctx context.Context, clusterID uint, o runtime.Object) error {
+	return nil
 }

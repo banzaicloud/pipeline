@@ -21,10 +21,9 @@ import (
 	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/.gen/cloudinfo"
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 type VMKey struct {
@@ -69,9 +68,9 @@ func (im *InstanceTypeMap) setMachines(cloud string, service string, region stri
 var instanceTypeMap = NewInstanceTypeMap()
 
 func fetchMachineTypes(logger logrus.FieldLogger, cloud string, service string, region string) error {
-	cloudInfoEndPoint := viper.GetString(config.CloudInfoEndPoint)
+	cloudInfoEndPoint := global.Config.Cloudinfo.Endpoint
 	if len(cloudInfoEndPoint) == 0 {
-		return emperror.With(errors.New("missing config"), "cloudInfoEndPoint", config.CloudInfoEndPoint)
+		return errors.New("missing cloudinfo config")
 	}
 
 	log := logger.WithFields(logrus.Fields{"cloudInfoEndPoint": cloudInfoEndPoint, "cloud": cloud, "region": region, "service": service})

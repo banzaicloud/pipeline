@@ -17,20 +17,49 @@ package main
 
 import (
 	"io/ioutil"
+	"os"
 
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
-
+	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	"github.com/banzaicloud/pipeline/internal/platform/database"
 )
 
+const version = "automigrate"
+
 func main() {
-	db := config.DB()
+	v, p := viper.GetViper(), pflag.NewFlagSet(friendlyAppName, pflag.ExitOnError)
+
+	configure(v, p)
+
+	_ = v.ReadInConfig()
+
+	var config configuration
+	err := viper.Unmarshal(&config)
+	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
+
+	err = config.Process()
+	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
 
 	logger := logrus.New()
 	logger.SetOutput(ioutil.Discard)
 
-	err := Migrate(db, logger, commonadapter.NewNoopLogger())
+	err = config.Validate()
+	if err != nil {
+		logger.Error(err.Error())
+
+		os.Exit(3)
+	}
+
+	// Connect to database
+	db, err := database.Connect(config.Database.Config)
+	emperror.Panic(errors.WithMessage(err, "failed to initialize db"))
+
+	err = Migrate(db, logger, commonadapter.NewNoopLogger())
 	if err != nil {
 		panic(err)
 	}

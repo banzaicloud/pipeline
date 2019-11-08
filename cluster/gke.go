@@ -43,7 +43,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd/api"
 
-	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
@@ -85,7 +84,7 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 	}
 
 	var err error
-	c.repository, err = NewDBGKEClusterRepository(pipConfig.DB())
+	c.repository, err = NewDBGKEClusterRepository(global.DB())
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create GKE cluster repository")
 	}
@@ -892,7 +891,7 @@ func generateClusterCreateRequest(cc googleCluster) *gke.CreateClusterRequest {
 
 // pipelineTags returns resource tags based on the pipeline uuid if available
 func pipelineTags() map[string]string {
-	value := global.PipelineUUID()
+	value := global.Config.Pipeline.UUID
 
 	tags := map[string]string{
 		global.ManagedByPipelineTag: global.ManagedByPipelineValue,
@@ -1368,7 +1367,7 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 
 // CreateGKEClusterFromModel creates ClusterModel struct from model
 func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, error) {
-	db := pipConfig.DB()
+	db := global.DB()
 
 	m := google.GKEClusterModel{
 		ClusterID: clusterModel.ID,
@@ -1443,7 +1442,7 @@ func (c *GKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 			if i == len(c.model.NodePools) {
 				// node pool not found in db; set count to default value
 				nodePoolData.Count = pkgCommon.DefaultNodeMinCount
-				log.Warnf("Node count for node pool %s set to default value: ", name, nodePoolData.Count)
+				log.Warnf("Node count for node pool %s set to default value: %d", name, nodePoolData.Count)
 			}
 		}
 	}

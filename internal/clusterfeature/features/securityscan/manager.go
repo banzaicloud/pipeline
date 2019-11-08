@@ -22,6 +22,8 @@ import (
 )
 
 type FeatureManager struct {
+	clusterfeature.PassthroughFeatureSpecPreparer
+
 	logger common.Logger
 }
 
@@ -68,8 +70,4 @@ func (f FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 	}
 
 	return out, nil
-}
-
-func (f FeatureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
-	return spec, nil
 }

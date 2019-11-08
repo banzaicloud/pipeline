@@ -53,7 +53,10 @@ spec:
       - name: pipeline
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args: ["/pipeline", "--addr=0.0.0.0:{{ .Values.service.internalPort }}", "--telemetry-addr=0.0.0.0:9900"]
         env:
+        - name: PIPELINE_TELEMETRY_ENABLED
+          value: {{ .Values.metrics.enabled | quote }}
         - name: PIPELINE_CONFIG_DIR
           value: /config
         # Kubernetes environment variables
@@ -68,7 +71,7 @@ spec:
           value: {{ include "pipeline.database.port" . | quote }}
         - name: PIPELINE_DATABASE_TLS
           value: {{ include "pipeline.database.tls" . | quote }}
-        - name: PIPELINE_DATABASE_DBNAME
+        - name: PIPELINE_DATABASE_NAME
           value: {{ include "pipeline.database.name" . }}
         - name: PIPELINE_DATABASE_USER
           value: {{ include "pipeline.database.username" . }}
@@ -80,18 +83,34 @@ spec:
               name: {{ include "pipeline.database.secretName" .}}
               key: {{ include "pipeline.database.secretKey" .}}
 
+        - name: PIPELINE_CICD_DATABASE_HOST
+          value: {{ include "pipeline.database.host" . }}
+        - name: PIPELINE_CICD_DATABASE_PORT
+          value: {{ include "pipeline.database.port" . | quote }}
+        - name: PIPELINE_CICD_DATABASE_TLS
+          value: {{ include "pipeline.database.tls" . | quote }}
+        - name: PIPELINE_CICD_DATABASE_USER
+          value: {{ include "pipeline.database.username" . }}
+        - name : PIPELINE_CICD_DATABASE_DIALECT
+          value: {{ include "pipeline.database.driver" . }}
+        - name: PIPELINE_CICD_DATABASE_PASSWORD
+          valueFrom:
+              secretKeyRef:
+                  name: {{ include "pipeline.database.secretName" .}}
+                  key: {{ include "pipeline.database.secretKey" .}}
+
         # Authentication configuration
-        - name: PIPELINE_AUTH_CLIENTID
+        - name: PIPELINE_AUTH_OIDC_CLIENTID
           valueFrom:
             secretKeyRef:
               name: {{ include "pipeline.fullname" . }}
               key: githubClientId
-        - name: PIPELINE_AUTH_CLIENTSECRET
+        - name: PIPELINE_AUTH_OIDC_CLIENTSECRET
           valueFrom:
             secretKeyRef:
               name: {{ include "pipeline.fullname" . }}
               key: githubClientSecret
-        - name: PIPELINE_AUTH_TOKENSIGNINGKEY
+        - name: PIPELINE_AUTH_TOKEN_SIGNINGKEY
           valueFrom:
             secretKeyRef:
               name: {{ include "pipeline.fullname" . }}
@@ -113,15 +132,13 @@ spec:
         {{- end }}
 
         # Pipeline service and TLS
-        - name: PIPELINE_PIPELINE_BINDADDR
-          value: ":{{ .Values.service.internalPort }}"
         {{- if .Values.service.tls }}
         - name: PIPELINE_PIPELINE_CERTFILE
           value: /tls/server.crt
         - name: PIPELINE_PIPELINE_KEYFILE
           value: /tls/server.key
         - name: PIPELINECTL_API_URL
-          value: https://127.0.0.1:{{ .Values.service.internalPort }}
+          value: "https://127.0.0.1:{{ .Values.service.internalPort }}"
         - name: PIPELINECTL_API_VERIFY
           value: "false"
         {{ end }}
@@ -140,13 +157,14 @@ spec:
         {{ end }}
 
         ports:
-        {{- if .Values.configuration.metrics.enabled }}
-        - containerPort: {{ .Values.configuration.metrics.port }}
+        {{- if .Values.metrics.enabled }}
+        - name: metrics
+          containerPort: 9900
         {{- end }}
         - containerPort: {{ .Values.service.internalPort }}
         livenessProbe:
           httpGet:
-            path: {{ .Values.configuration.pipelineBasepath }}/api
+            path: {{ .Values.configuration.pipeline.basePath }}/api
             port: {{ .Values.service.internalPort }}
           {{- if .Values.service.tls }}
             scheme: HTTPS
@@ -154,7 +172,7 @@ spec:
           initialDelaySeconds: 15
         readinessProbe:
           httpGet:
-            path: {{ .Values.configuration.pipelineBasepath }}/api
+            path: {{ .Values.configuration.pipeline.basePath }}/api
             port: {{ .Values.service.internalPort }}
           {{- if .Values.service.tls }}
             scheme: HTTPS
@@ -178,9 +196,9 @@ spec:
         - name: pipeline-tls
           mountPath: /tls
       {{ end }}
-      {{- if eq .Values.configuration.cert.source "file" }}
+      {{- if eq .Values.configuration.cluster.ingress.cert.source "file" }}
         - name: sign-ca
-          mountPath: {{ .Values.configuration.cert.path }}
+          mountPath: {{ .Values.configuration.cluster.ingress.cert.path }}
       {{ end }}
       volumes:
       - name: config-volume
@@ -205,7 +223,7 @@ spec:
         secret:
           secretName: {{ include "pipeline.fullname" . }}-tls
       {{ end }}
-      {{- if eq .Values.configuration.cert.source "file" }}
+      {{- if eq .Values.configuration.cluster.ingress.cert.source "file" }}
       - name: sign-ca
         secret:
           secretName: {{ include "pipeline.fullname" . }}-sign-ca

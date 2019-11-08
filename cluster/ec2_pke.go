@@ -34,11 +34,10 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"go.uber.org/cadence/client"
 
-	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/global"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
@@ -203,7 +202,7 @@ func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId string) error {
 }
 
 func (c *EC2ClusterPKE) GetConfigSecretId() string {
-	clusters := cluster.NewClusters(pipConfig.DB()) // TODO get it from non-global context
+	clusters := cluster.NewClusters(global.DB()) // TODO get it from non-global context
 	id, err := clusters.GetConfigSecretIDByClusterID(c.GetOrganizationId(), c.GetID())
 	if err == nil {
 		c.model.Cluster.ConfigSecretID = id
@@ -965,15 +964,13 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		)
 
 		if c.model.Cluster.OidcEnabled {
-			// TODO this should be configurable as well
-			oidcIssuerURL := viper.GetString(pipConfig.OIDCIssuerURL)
 			oidcClientID := c.GetUID()
 
 			command = fmt.Sprintf("%s "+
 				"--kubernetes-oidc-issuer-url=%q "+
 				"--kubernetes-oidc-client-id=%q",
 				command,
-				oidcIssuerURL,
+				global.Config.Auth.OIDC.Issuer, // TODO this should be configurable as well
 				oidcClientID,
 			)
 		}
@@ -1073,7 +1070,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 		log: log.WithField("cluster", request.Name).WithField("organization", orgId),
 	}
 
-	c.db = pipConfig.DB()
+	c.db = global.DB()
 
 	var (
 		network    = createEC2PKENetworkFromRequest(request.Properties.CreateClusterPKE.Network, userId)
@@ -1115,7 +1112,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 func CreateEC2ClusterPKEFromModel(modelCluster *model.ClusterModel) (*EC2ClusterPKE, error) {
 	log := log.WithField("cluster", modelCluster.Name).WithField("organization", modelCluster.OrganizationId)
 
-	db := pipConfig.DB()
+	db := global.DB()
 
 	m := internalPke.EC2PKEClusterModel{
 		ClusterID: modelCluster.ID,

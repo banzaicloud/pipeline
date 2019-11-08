@@ -18,13 +18,13 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/api/ark/common"
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // AddRoutes adds ARK backups related API routes
 func AddRoutes(group *gin.RouterGroup) {
 
-	group.Use(common.ARKMiddleware(config.DB(), common.Log))
+	group.Use(common.ARKMiddleware(global.DB(), common.Log))
 	group.HEAD("/status", StatusDeprecated)
 	group.GET("/status", Status)
 	group.POST("/enable", Enable)

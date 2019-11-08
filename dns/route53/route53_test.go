@@ -28,10 +28,15 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 )
+
+func init() {
+	global.Config.Cluster.DNS.BaseDomain = "example.org"
+}
 
 const (
 	testOrgId                uint = 1
@@ -913,7 +918,7 @@ func TestAwsRoute53_UnregisterDomain(t *testing.T) {
 		t.Error("Record resource sets of the hosted zone should be deleted")
 	}
 
-	//reset mock call count
+	// reset mock call count
 	route53Svc.reset()
 	iamSvc.reset()
 
@@ -1021,7 +1026,7 @@ func TestAwsRoute53_Cleanup(t *testing.T) {
 				t.Errorf(tc.deleteUserCallMsg)
 			}
 
-			//reset mock call count
+			// reset mock call count
 			route53Svc.reset()
 			iamSvc.reset()
 

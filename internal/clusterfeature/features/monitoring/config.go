@@ -15,43 +15,67 @@
 package monitoring
 
 import (
-	"github.com/spf13/viper"
-
-	"github.com/banzaicloud/pipeline/config"
+	"emperror.dev/errors"
 )
 
-type Configuration struct {
-	pipelineSystemNamespace string
-	grafanaAdminUsername    string
-	headNodepoolName        string
-	operator                struct {
-		chartName    string
-		chartVersion string
-	}
-	pushgateway struct {
-		chartName    string
-		chartVersion string
-	}
+// Config contains configuration for the monitoring feature.
+type Config struct {
+	Namespace string
+	Grafana   GrafanaConfig
+	Charts    ChartsConfig
 }
 
-func NewFeatureConfiguration() Configuration {
-	return Configuration{
-		pipelineSystemNamespace: viper.GetString(config.PipelineSystemNamespace),
-		grafanaAdminUsername:    viper.GetString(config.MonitorGrafanaAdminUserNameKey),
-		headNodepoolName:        viper.GetString(config.PipelineHeadNodePoolName),
-		operator: struct {
-			chartName    string
-			chartVersion string
-		}{
-			chartName:    viper.GetString(config.PrometheusOperatorChartKey),
-			chartVersion: viper.GetString(config.PrometheusOperatorVersionKey),
-		},
-		pushgateway: struct {
-			chartName    string
-			chartVersion string
-		}{
-			chartName:    viper.GetString(config.PrometheusPushgatewayChartKey),
-			chartVersion: viper.GetString(config.PrometheusPushgatewayVersionKey),
-		},
+func (c Config) Validate() error {
+	if c.Namespace == "" {
+		return errors.New("monitoring namespace is required")
 	}
+
+	if err := c.Grafana.Validate(); err != nil {
+		return err
+	}
+
+	if err := c.Charts.Operator.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation Prometheus operator config")
+	}
+
+	if err := c.Charts.Pushgateway.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation Pushgateway config")
+	}
+
+	return nil
+}
+
+type GrafanaConfig struct {
+	AdminUser string
+}
+
+func (c GrafanaConfig) Validate() error {
+	if c.AdminUser == "" {
+		return errors.New("monitoring grafana username is required")
+	}
+
+	return nil
+}
+
+type ChartsConfig struct {
+	Operator    ChartConfig
+	Pushgateway ChartConfig
+}
+
+type ChartConfig struct {
+	Chart   string
+	Version string
+	Values  map[string]interface{}
+}
+
+func (c ChartConfig) Validate() error {
+	if c.Chart == "" {
+		return errors.New("chart is required")
+	}
+
+	if c.Version == "" {
+		return errors.New("chart version is required")
+	}
+
+	return nil
 }

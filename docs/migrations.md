@@ -71,7 +71,7 @@ bin/migrate create  -ext sql -dir database/migrations/mysql -format "unix" "$tit
 ```
 
 Write your migration scripts in the generated files.
-Disable auto-migrate in Pipeline's `config.toml` file.
+Disable auto-migrate in Pipeline's `config.yaml` file.
 
 To apply your new migration script on the database, run the `up` command (1 means moving up one version):
 ```

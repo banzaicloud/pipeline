@@ -16,11 +16,17 @@ package scm
 
 import (
 	"fmt"
+	"net/http"
+	"time"
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	"github.com/google/go-github/github"
+	"github.com/xanzy/go-gitlab"
+	"golang.org/x/oauth2"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 const InitialCommitMessage = "initial Banzai Cloud Pipeline commit"
@@ -90,8 +96,18 @@ type GitHubSCMFactory struct {
 	scmTokenStore  auth.SCMTokenStore
 }
 
+func (f GitHubSCMFactory) newClient(accessToken string) *github.Client {
+	httpClient := oauth2.NewClient(
+		oauth2.NoContext,
+		oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}),
+	)
+	httpClient.Timeout = time.Second * 10
+
+	return github.NewClient(httpClient)
+}
+
 func (f GitHubSCMFactory) CreateSharedSCM() (SCM, error) {
-	githubClient := auth.NewGithubClient(f.sharedSCMToken)
+	githubClient := f.newClient(f.sharedSCMToken)
 	return NewGitHubSCM(githubClient), nil
 }
 
@@ -105,7 +121,7 @@ func (f GitHubSCMFactory) CreateUserSCM(userID uint) (SCM, error) {
 		return nil, errors.New("user's github token is not set")
 	}
 
-	return NewGitHubSCM(auth.NewGithubClient(scmToken)), nil
+	return NewGitHubSCM(f.newClient(scmToken)), nil
 }
 
 type GitLabSCMFactory struct {
@@ -113,8 +129,23 @@ type GitLabSCMFactory struct {
 	scmTokenStore  auth.SCMTokenStore
 }
 
+func (f GitLabSCMFactory) newClient(accessToken string) (*gitlab.Client, error) {
+	httpClient := &http.Client{
+		Timeout: time.Second * 10,
+	}
+	gitlabClient := gitlab.NewClient(httpClient, accessToken)
+
+	gitlabURL := global.Config.Gitlab.URL
+	err := gitlabClient.SetBaseURL(gitlabURL)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "gitlabBaseURL", gitlabURL)
+	}
+
+	return gitlabClient, nil
+}
+
 func (f GitLabSCMFactory) CreateSharedSCM() (SCM, error) {
-	gitlabClient, err := auth.NewGitlabClient(f.sharedSCMToken)
+	gitlabClient, err := f.newClient(f.sharedSCMToken)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create GitLab client")
 	}
@@ -132,7 +163,7 @@ func (f GitLabSCMFactory) CreateUserSCM(userID uint) (SCM, error) {
 		return nil, errors.New("user's gitlab token is not set")
 	}
 
-	gitlabClient, err := auth.NewGitlabClient(scmToken)
+	gitlabClient, err := f.newClient(scmToken)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to create GitLab client")
 	}

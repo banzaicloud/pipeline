@@ -140,7 +140,15 @@ func (InvalidFeatureSpecError) InputValidationError() bool {
 type FeatureSpecPreparer interface {
 	// PrepareSpec makes certain preparations to the spec before it's sent to be applied.
 	// For example it rewrites the secret ID to it's internal representation, fills in defaults, etc.
-	PrepareSpec(ctx context.Context, spec FeatureSpec) (FeatureSpec, error)
+	PrepareSpec(ctx context.Context, clusterID uint, spec FeatureSpec) (FeatureSpec, error)
+}
+
+// PassthroughFeatureSpecPreparer implements FeatureSpecPreparer by making no modifications to the feature spec
+type PassthroughFeatureSpecPreparer struct{}
+
+// PrepareSpec returns the provided spec without any modifications
+func (PassthroughFeatureSpecPreparer) PrepareSpec(_ context.Context, _ uint, spec FeatureSpec) (FeatureSpec, error) {
+	return spec, nil
 }
 
 // FeatureOperationDispatcher dispatches cluster feature operations asynchronously.

@@ -15,34 +15,32 @@
 package istiofeature
 
 import (
-	"github.com/spf13/viper"
-
-	pConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 func (config Config) init() Config {
 	config.internalConfig.canary = canaryOperatorConfiguration{
-		chartVersion:    viper.GetString(pConfig.CanaryOperatorChartVersion),
-		chartName:       viper.GetString(pConfig.CanaryOperatorChartName),
-		imageRepository: viper.GetString(pConfig.CanaryOperatorImageRepository),
-		imageTag:        viper.GetString(pConfig.CanaryOperatorImageTag),
+		chartVersion:    global.Config.Cluster.Backyards.Charts.CanaryOperator.Version,
+		chartName:       global.Config.Cluster.Backyards.Charts.CanaryOperator.Chart,
+		imageRepository: global.Config.Cluster.Backyards.Charts.CanaryOperator.Values.Operator.Image.Repository,
+		imageTag:        global.Config.Cluster.Backyards.Charts.CanaryOperator.Values.Operator.Image.Tag,
 	}
 
 	config.internalConfig.backyards = backyardsConfiguration{
-		chartVersion:    viper.GetString(pConfig.BackyardsChartVersion),
-		chartName:       viper.GetString(pConfig.BackyardsChartName),
-		imageRepository: viper.GetString(pConfig.BackyardsImageRepository),
-		imageTag:        viper.GetString(pConfig.BackyardsImageTag),
-		webImageTag:     viper.GetString(pConfig.BackyardsWebImageTag),
+		chartVersion:    global.Config.Cluster.Backyards.Charts.Backyards.Version,
+		chartName:       global.Config.Cluster.Backyards.Charts.Backyards.Chart,
+		imageRepository: global.Config.Cluster.Backyards.Charts.Backyards.Values.Application.Image.Repository,
+		imageTag:        global.Config.Cluster.Backyards.Charts.Backyards.Values.Application.Image.Tag,
+		webImageTag:     global.Config.Cluster.Backyards.Charts.Backyards.Values.Web.Image.Tag,
 	}
 
 	config.internalConfig.istioOperator = istioOperatorConfiguration{
-		chartVersion:    viper.GetString(pConfig.IstioOperatorChartVersion),
-		chartName:       viper.GetString(pConfig.IstioOperatorChartName),
-		imageRepository: viper.GetString(pConfig.IstioOperatorImageRepository),
-		imageTag:        viper.GetString(pConfig.IstioOperatorImageTag),
-		pilotImage:      viper.GetString(pConfig.IstioPilotImage),
-		mixerImage:      viper.GetString(pConfig.IstioMixerImage),
+		chartVersion:    global.Config.Cluster.Backyards.Charts.IstioOperator.Version,
+		chartName:       global.Config.Cluster.Backyards.Charts.IstioOperator.Chart,
+		imageRepository: global.Config.Cluster.Backyards.Charts.IstioOperator.Values.Operator.Image.Repository,
+		imageTag:        global.Config.Cluster.Backyards.Charts.IstioOperator.Values.Operator.Image.Tag,
+		pilotImage:      global.Config.Cluster.Backyards.Istio.PilotImage,
+		mixerImage:      global.Config.Cluster.Backyards.Istio.MixerImage,
 	}
 
 	return config

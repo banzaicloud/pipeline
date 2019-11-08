@@ -20,7 +20,6 @@ import (
 	"net/url"
 
 	"emperror.dev/emperror"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	k8sClient "k8s.io/client-go/tools/clientcmd"
@@ -28,6 +27,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/.gen/dex"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
 )
@@ -104,12 +104,12 @@ type dexClusterAuthService struct {
 }
 
 func NewDexClusterAuthService(secretStore *clustersecret.Store) (ClusterAuthService, error) {
-	client, err := newDexClient(viper.GetString("auth.dexGrpcAddress"), viper.GetString("auth.dexGrpcCaCert"))
+	client, err := newDexClient(global.Config.Dex.APIAddr, global.Config.Dex.APICa)
 	if err != nil {
 		return nil, emperror.Wrapf(err, "failed to create dex auth service")
 	}
 
-	pipelineExternalURL, err := url.Parse(viper.GetString("pipeline.externalURL"))
+	pipelineExternalURL, err := url.Parse(global.Config.Pipeline.External.URL)
 	if err != nil {
 		return nil, emperror.Wrapf(err, "failed to parse pipeline externalURL")
 	}

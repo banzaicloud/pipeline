@@ -17,8 +17,8 @@ package route53
 import (
 	"fmt"
 
-	"github.com/banzaicloud/pipeline/config"
 	route53model "github.com/banzaicloud/pipeline/dns/route53/model"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -28,7 +28,7 @@ type awsRoute53DatabaseStateStore struct{}
 
 // create persists the given domain state to database
 func (stateStore *awsRoute53DatabaseStateStore) create(state *domainState) error {
-	db := config.DB()
+	db := global.DB()
 
 	rec := createRoute53Domain(state)
 
@@ -37,7 +37,7 @@ func (stateStore *awsRoute53DatabaseStateStore) create(state *domainState) error
 
 // update persists the changes of given domain state to database
 func (stateStore *awsRoute53DatabaseStateStore) update(state *domainState) error {
-	db := config.DB()
+	db := global.DB()
 
 	dbRec := &route53model.Route53Domain{}
 	err := db.Where(&route53model.Route53Domain{OrganizationId: state.organisationId, Domain: state.domain}).First(dbRec).Error
@@ -58,7 +58,7 @@ func (stateStore *awsRoute53DatabaseStateStore) update(state *domainState) error
 // find looks up in the database the domain state identified by origId and domain. The found data is passed back
 // through stateOut
 func (stateStore *awsRoute53DatabaseStateStore) find(orgId uint, domain string, stateOut *domainState) (bool, error) {
-	db := config.DB()
+	db := global.DB()
 
 	dbRec := &route53model.Route53Domain{}
 	res := db.Where(&route53model.Route53Domain{OrganizationId: orgId, Domain: domain}).First(dbRec)
@@ -79,7 +79,7 @@ func (stateStore *awsRoute53DatabaseStateStore) find(orgId uint, domain string, 
 // listUnused returns all the domain state entries from database that belong to organizations with no live clusters
 // thus the DNS domain entries earlier created for these domain are not used any more
 func (stateStore *awsRoute53DatabaseStateStore) listUnused() ([]domainState, error) {
-	db := config.DB()
+	db := global.DB()
 	var dbRecs []route53model.Route53Domain
 
 	sqlFilter := fmt.Sprintf("organization_id NOT IN (SELECT organization_id FROM clusters WHERE deleted_at is NULL AND status<>'%s')", cluster.Error)
@@ -103,7 +103,7 @@ func (stateStore *awsRoute53DatabaseStateStore) listUnused() ([]domainState, err
 
 // delete deletes domain state from database
 func (stateStore *awsRoute53DatabaseStateStore) delete(state *domainState) error {
-	db := config.DB()
+	db := global.DB()
 
 	crit := &route53model.Route53Domain{OrganizationId: state.organisationId, Domain: state.domain}
 
@@ -112,7 +112,7 @@ func (stateStore *awsRoute53DatabaseStateStore) delete(state *domainState) error
 
 // findByStatus returns all the domain state entries from database that are in the specified status
 func (stateStore *awsRoute53DatabaseStateStore) findByStatus(status string) ([]domainState, error) {
-	db := config.DB()
+	db := global.DB()
 	var dbRecs []route53model.Route53Domain
 
 	crit := &route53model.Route53Domain{Status: status}
@@ -135,7 +135,7 @@ func (stateStore *awsRoute53DatabaseStateStore) findByStatus(status string) ([]d
 // findByOrgId looks up in the database the domain state identified by origId. The found data is passed back
 // through stateOut
 func (stateStore *awsRoute53DatabaseStateStore) findByOrgId(orgId uint, stateOut *domainState) (bool, error) {
-	db := config.DB()
+	db := global.DB()
 	dbRec := &route53model.Route53Domain{}
 
 	crit := &route53model.Route53Domain{OrganizationId: orgId}

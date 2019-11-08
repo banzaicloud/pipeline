@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package global
+package ingresscert
 
 import (
 	"path/filepath"
 	"sync"
 
-	"github.com/spf13/viper"
-
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/crypto/cert"
 	"github.com/banzaicloud/pipeline/secret"
 )
@@ -33,15 +32,15 @@ var certGeneratorOnce sync.Once
 func newCertGenerator() *cert.Generator {
 	var caLoader cert.CALoader
 
-	switch viper.GetString("cert.source") {
+	switch global.Config.Cluster.Ingress.Cert.Source {
 	case "file":
 		caLoader = cert.NewFileCALoader(
-			filepath.Join(viper.GetString("cert.path"), "ca.crt.pem"),
-			filepath.Join(viper.GetString("cert.path"), "ca.key.pem"),
+			filepath.Join(global.Config.Cluster.Ingress.Cert.Path, "ca.crt.pem"),
+			filepath.Join(global.Config.Cluster.Ingress.Cert.Path, "ca.key.pem"),
 		)
 
 	case "vault":
-		caLoader = cert.NewVaultCALoader(secret.Store.Logical, viper.GetString("cert.path"))
+		caLoader = cert.NewVaultCALoader(secret.Store.Logical, global.Config.Cluster.Ingress.Cert.Path)
 	}
 
 	generator := cert.NewGenerator(cert.NewCACache(caLoader))

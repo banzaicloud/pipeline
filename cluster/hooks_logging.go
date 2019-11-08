@@ -20,9 +20,8 @@ import (
 	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
-	"github.com/spf13/viper"
 
-	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -32,9 +31,11 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 )
 
+const loggingReleaseName = "logging-operator"
+
 // InstallLogging to install logging deployment
 func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error {
-	var releaseTag = fmt.Sprintf("release:%s", pipConfig.LoggingReleaseName)
+	var releaseTag = fmt.Sprintf("release:%s", loggingReleaseName)
 
 	var loggingParam pkgCluster.LoggingParam
 	err := castToPostHookParam(&param, &loggingParam)
@@ -45,7 +46,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 	// if !checkIfTLSRelatedValuesArePresent(&loggingParam.GenTLSForLogging) {
 	// 	return errors.Errorf("TLS related parameter is missing from request!")
 	// }
-	namespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	namespace := global.Config.Cluster.Namespace
 	loggingParam.GenTLSForLogging.TLSEnabled = true
 	// Set TLS default values (default True)
 	if loggingParam.SecretId == "" {
@@ -95,22 +96,22 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 	}
 	operatorValues := map[string]interface{}{
 		"image": imageValues{
-			Tag: viper.GetString(pipConfig.LoggingOperatorImageTag),
+			Repository: global.Config.Cluster.Logging.Charts.Operator.Values.Image.Repository,
+			Tag:        global.Config.Cluster.Logging.Charts.Operator.Values.Image.Tag,
 		},
 		"tls": map[string]interface{}{
 			"enabled":    "true",
 			"secretName": loggingParam.GenTLSForLogging.GenTLSSecretName,
 		},
-		"affinity":    GetHeadNodeAffinity(cluster),
-		"tolerations": GetHeadNodeTolerations(),
 	}
 	operatorYamlValues, err := yaml.Marshal(operatorValues)
 	if err != nil {
 		return err
 	}
 
-	chartVersion := viper.GetString(pipConfig.LoggingOperatorChartVersion)
-	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator", pipConfig.LoggingReleaseName, operatorYamlValues, chartVersion, true)
+	chartName := global.Config.Cluster.Logging.Charts.Operator.Chart
+	chartVersion := global.Config.Cluster.Logging.Charts.Operator.Version
+	err = installDeployment(cluster, namespace, chartName, loggingReleaseName, operatorYamlValues, chartVersion, true)
 	if err != nil {
 		return emperror.Wrap(err, "install logging-operator failed")
 	}
@@ -125,7 +126,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 	if err != nil {
 		return err
 	}
-	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator-fluent", pipConfig.LoggingReleaseName+"-fluent", operatorFluentYamlValues, chartVersion, true)
+	err = installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/logging-operator-fluent", loggingReleaseName+"-fluent", operatorFluentYamlValues, chartVersion, true)
 	if err != nil {
 		return emperror.Wrap(err, "install logging-operator-fluent failed")
 	}

@@ -20,10 +20,8 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
-	corev1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
@@ -173,7 +171,11 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 	}
 
 	if err := op.namespaceService.RemoveLabels(ctx, clusterID, boundSpec.WebhookConfig.Namespaces, []string{"scan"}); err != nil {
-		return errors.WrapIf(err, "failed to delete namespace labels")
+
+		// if the operation fails for some reason (eg. non-existent namespaces) we notice that and let the deactivation succeed
+		op.logger.Warn("failed to delete namespace labels", map[string]interface{}{"clusterID": clusterID})
+		return nil
+
 	}
 
 	if err := op.setSecurityScan(ctx, clusterID, false); err != nil {
@@ -182,7 +184,9 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 
 	if !boundSpec.CustomAnchore.Enabled {
 		if err = op.anchoreService.DeleteUser(ctx, cl.GetOrganizationId(), clusterID); err != nil {
-			return errors.WrapIf(err, "failed to delete anchore user")
+			// deactivation succeeds even in case the generated anchore user is not deleted!
+			op.logger.Warn("failed to delete the anchore user generated for the cluster", map[string]interface{}{"clusterID": clusterID})
+			return nil
 		}
 	}
 
@@ -214,35 +218,10 @@ func (op FeatureOperator) createAnchoreUserForCluster(ctx context.Context, clust
 	return userName, nil
 }
 
-func (op FeatureOperator) getDefaultValues(ctx context.Context, clusterID uint) (*SecurityScanChartValues, error) {
-
-	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to get cluster")
-	}
-
-	return getDefaultValues(cl), nil
-}
-
-func getDefaultValues(cl clusterfeatureadapter.Cluster) *SecurityScanChartValues {
-	chartValues := new(SecurityScanChartValues)
-
-	if headNodeAffinity := cluster.GetHeadNodeAffinity(cl); headNodeAffinity != (corev1.Affinity{}) {
-		chartValues.Affinity = &headNodeAffinity
-	}
-
-	chartValues.Tolerations = cluster.GetHeadNodeTolerations()
-
-	return chartValues
-}
-
 func (op FeatureOperator) processChartValues(ctx context.Context, clusterID uint, anchoreValues AnchoreValues) ([]byte, error) {
-	securityScanValues, err := op.getDefaultValues(ctx, clusterID)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to get defaults for chart values")
+	securityScanValues := SecurityScanChartValues{
+		Anchore: anchoreValues,
 	}
-
-	securityScanValues.Anchore = anchoreValues
 
 	values, err := json.Marshal(securityScanValues)
 	if err != nil {

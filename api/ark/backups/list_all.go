@@ -23,8 +23,8 @@ import (
 	"github.com/banzaicloud/pipeline/api/ark/common"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/ark"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 )
 
@@ -37,7 +37,7 @@ func (b *orgBackups) List(c *gin.Context) {
 	logger := correlationid.Logger(common.Log, c)
 	logger.Info("getting backups")
 
-	backups, err := ark.BackupsServiceFactory(auth.GetCurrentOrganization(c.Request), config.DB(), logger).List()
+	backups, err := ark.BackupsServiceFactory(auth.GetCurrentOrganization(c.Request), global.DB(), logger).List()
 	if err != nil {
 		err = emperror.Wrap(err, "could not get backups")
 		common.ErrorHandler.Handle(err)

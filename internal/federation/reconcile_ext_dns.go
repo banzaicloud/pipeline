@@ -20,13 +20,12 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
-	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/internal/global"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
@@ -34,9 +33,9 @@ func (m *FederationReconciler) ReconcileExternalDNSController(desiredState Desir
 	m.logger.Debug("start reconciling ExternalDNS controller")
 	defer m.logger.Debug("finished reconciling ExternalDNS controller")
 
-	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
-	chartName := viper.GetString(pipConfig.DNSExternalDnsChartName)
-	releaseName := viper.GetString(pipConfig.DNSExternalDnsReleaseName)
+	infraNamespace := global.Config.Cluster.DNS.Namespace
+	chartName := global.Config.Cluster.DNS.Charts.ExternalDNS.Chart
+	const releaseName = "dns"
 
 	err := m.ensureCRDSourceForExtDNS(m.Host, infraNamespace, chartName, releaseName, desiredState)
 	if err != nil {

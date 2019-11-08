@@ -16,10 +16,13 @@ package auth
 
 import (
 	"context"
+	"crypto/md5"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	"emperror.dev/emperror"
@@ -31,10 +34,9 @@ import (
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/qor/utils"
-	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 const (
@@ -171,13 +173,13 @@ func SetCurrentOrganizationID(ctx context.Context, orgID uint) context.Context {
 
 // NewCICDClient creates an authenticated CICD client for the user specified by the JWT in the HTTP request
 func NewCICDClient(apiToken string) cicd.Client {
-	cicdURL := viper.GetString("cicd.url")
+	cicdURL := global.Config.CICD.URL
 	config := new(oauth2.Config)
 	httpClient := http.Client{
 		Timeout: time.Second * 10,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: viper.GetBool("cicd.insecure"),
+				InsecureSkipVerify: global.Config.CICD.Insecure,
 			},
 		},
 	}
@@ -234,34 +236,21 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		return nil, "", err
 	}
 
-	// Until https://github.com/dexidp/dex/issues/1076 gets resolved we need to use a manual
-	// GitHub API query to get the user login and image to retain compatibility for now
-
-	switch schema.Provider {
-	case ProviderDexGithub:
-		githubUserMeta, err := getGithubUserMeta(schema)
-		if err != nil {
-			return nil, "", emperror.Wrap(err, "failed to query github login name")
-		}
-		currentUser.Login = githubUserMeta.Login
-		currentUser.Image = githubUserMeta.AvatarURL
-
-	case ProviderDexGitlab:
-
-		gitlabUserMeta, err := getGitlabUserMeta(schema)
-		if err != nil {
-			return nil, "", emperror.Wrap(err, "failed to query gitlab login name")
-		}
-		currentUser.Login = gitlabUserMeta.Username
-		currentUser.Image = gitlabUserMeta.AvatarURL
-
-	default:
-		// Login will be derived from the email for new users coming from an other provider than GitHub and GitLab
+	// According to the OIDC Core spec this might not always be unique,
+	// but we will always use providers that are either known to provide unique usernames here,
+	// or providers that we require to do that (eg. LDAP).
+	currentUser.Login = schema.RawInfo.(*IDTokenClaims).PreferredUsername
+	if currentUser.Login == "" {
+		// When the provider does not include the preferred_username claim in the ID token,
+		// fallback to generating one from the email address.
 		currentUser.Login = emailToLoginName(schema.Email)
 	}
 
+	// TODO: leave this to the UI?
+	currentUser.Image = checkGravatarImage(currentUser.Email)
+
 	// TODO we should call the Drone API instead and insert the token later on manually by the user
-	if viper.GetBool("cicd.enabled") && (schema.Provider == ProviderDexGithub || schema.Provider == ProviderDexGitlab) {
+	if global.Config.CICD.Enabled && (schema.Provider == ProviderDexGithub || schema.Provider == ProviderDexGitlab) {
 		err = bus.createUserInCICDDB(currentUser)
 		if err != nil {
 			return nil, "", emperror.Wrap(err, "failed to create user in CICD database")
@@ -276,6 +265,32 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	err = bus.orgSyncer.SyncOrganizations(authCtx.Request.Context(), *currentUser, schema.RawInfo.(*IDTokenClaims))
 
 	return currentUser, fmt.Sprint(bus.db.NewScope(currentUser).PrimaryKeyValue()), err
+}
+
+func checkGravatarImage(email string) string {
+	h := md5.New()
+	_, _ = io.WriteString(h, strings.ToLower(email))
+
+	imageUrl := fmt.Sprintf("https://www.gravatar.com/avatar/%x?s=200", h.Sum(nil))
+
+	imageReq, err := http.NewRequest(http.MethodHead, imageUrl, nil)
+	if err != nil {
+		return ""
+	}
+
+	query := imageReq.URL.Query()
+	query.Set("d", "404")
+
+	resp, err := http.DefaultClient.Do(imageReq)
+	if err != nil {
+		return ""
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return ""
+	}
+
+	return imageUrl
 }
 
 // Update updates the user's group mmeberships from the OIDC ID token at every login
@@ -328,7 +343,7 @@ func synchronizeCICDRepos(login string) {
 
 // GetOrganizationById returns an organization from database by ID
 func GetOrganizationById(orgID uint) (*Organization, error) {
-	db := config.DB()
+	db := global.DB()
 	var org Organization
 	err := db.Find(&org, Organization{ID: orgID}).Error
 	return &org, err
@@ -336,7 +351,7 @@ func GetOrganizationById(orgID uint) (*Organization, error) {
 
 // GetUserById returns user
 func GetUserById(userId uint) (*User, error) {
-	db := config.DB()
+	db := global.DB()
 	var user User
 	err := db.Find(&user, User{ID: userId}).Error
 	return &user, err

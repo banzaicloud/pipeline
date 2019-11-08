@@ -22,6 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/pke"
+	azurePke "github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
@@ -117,7 +118,9 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 					Oidc:    pipeline.CreatePkeClusterKubernetesOidc{Enabled: true},
 					Version: Version,
 				},
-				Network: Azurenetwork,
+				Network:               Azurenetwork,
+				AccessPoints:          []string{"private", "public"},
+				ApiServerAccessPoints: []string{"private", "public"},
 			},
 			out: driver.AzurePKEClusterCreationParams{
 				CreatedBy: userID,
@@ -172,8 +175,10 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 					Excludes:            scaleOptions.Excludes,
 					KeepDesiredCapacity: scaleOptions.KeepDesiredCapacity,
 				},
-				SecretID:    SecretID,
-				SSHSecretID: SSHSecretID,
+				SecretID:              SecretID,
+				SSHSecretID:           SSHSecretID,
+				AccessPoints:          azurePke.AccessPoints{{Name: "private"}, {Name: "public"}},
+				APIServerAccessPoints: azurePke.APIServerAccessPoints{"private", "public"},
 			},
 		},
 	}

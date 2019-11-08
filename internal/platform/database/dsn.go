@@ -37,7 +37,7 @@ func GetDSN(c Config) (string, error) {
 				return "", err
 			}
 		} else {
-			dsn = fmt.Sprintf("%s:%s%s", c.User, c.Pass, dsn)
+			dsn = fmt.Sprintf("%s:%s%s", c.User, c.Password, dsn)
 		}
 
 	case "postgres":
@@ -51,7 +51,7 @@ func GetDSN(c Config) (string, error) {
 				return "", err
 			}
 		} else {
-			dsn = fmt.Sprintf("postgresql://%s:%s%s", c.User, c.Pass, dsn)
+			dsn = fmt.Sprintf("postgresql://%s:%s%s", c.User, c.Password, dsn)
 		}
 
 	default:

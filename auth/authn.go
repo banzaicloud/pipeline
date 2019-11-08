@@ -37,9 +37,8 @@ import (
 	"github.com/qor/session"
 	"github.com/qor/session/gorilla"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 )
 
@@ -75,8 +74,6 @@ const (
 // Init authorization
 // nolint: gochecknoglobals
 var (
-	log *logrus.Logger
-
 	cicdDB *gorm.DB
 
 	Auth *auth.Auth
@@ -95,9 +92,15 @@ var (
 	oidcProvider *OIDCProvider
 )
 
-// Simple init for logging
+// nolint: gochecknoglobals
+var log logrus.FieldLogger
+
 func init() {
-	log = config.Logger()
+	log = global.LogrusLogger()
+
+	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
+		log = l
+	})
 }
 
 // CICDClaims struct to store the cicd claim related things
@@ -116,22 +119,25 @@ func (c cookieExtractor) ExtractToken(r *http.Request) (string, error) {
 }
 
 type redirector struct {
+	uiUrl              string
+	signupRedirectPath string
 }
 
-func (redirector) Redirect(w http.ResponseWriter, req *http.Request, action string) {
+func (r redirector) Redirect(w http.ResponseWriter, req *http.Request, action string) {
 	var url string
 	if req.Context().Value(SignUp) != nil {
-		url = viper.GetString("pipeline.signupRedirectPath")
+		url = r.signupRedirectPath
 	} else {
-		url = viper.GetString("pipeline.uipath")
+		url = r.uiUrl
 	}
 	http.Redirect(w, req, url, http.StatusSeeOther)
 }
 
 // Init initializes the auth
-func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenManager TokenManager, orgSyncer OIDCOrganizationSyncer) {
-	CookieDomain = viper.GetString("auth.cookieDomain")
+func Init(db *gorm.DB, cdb *gorm.DB, config Config, uiUrl string, signupRedirectPath string, tokenStore bauth.TokenStore, tokenManager TokenManager, orgSyncer OIDCOrganizationSyncer) {
+	CookieDomain = config.Cookie.Domain
 
+	signingKey := config.Token.SigningKey
 	signingKeyBytes := []byte(signingKey)
 	signingKeyBase32 = base32.StdEncoding.EncodeToString(signingKeyBytes)
 
@@ -141,14 +147,14 @@ func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenMana
 	cookieStore := sessions.NewCookieStore(cookieAuthenticationKey, cookieEncryptionKey)
 	cookieStore.Options.MaxAge = SessionCookieMaxAge
 	cookieStore.Options.HttpOnly = SessionCookieHTTPOnly
-	cookieStore.Options.Secure = viper.GetBool("auth.secureCookie")
-	if viper.GetBool(config.SetCookieDomain) && CookieDomain != "" {
+	cookieStore.Options.Secure = config.Cookie.Secure
+	if config.Cookie.SetDomain && CookieDomain != "" {
 		cookieStore.Options.Domain = CookieDomain
 	}
 
 	SessionManager = gorilla.New(PipelineSessionCookie, cookieStore)
 
-	cicdDB = db
+	cicdDB = cdb
 
 	sessionStorer := &BanzaiSessionStorer{
 		SessionStorer: auth.SessionStorer{
@@ -162,15 +168,18 @@ func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenMana
 
 	// Initialize Auth with configuration
 	Auth = auth.New(&auth.Config{
-		DB:                config.DB(),
-		Redirector:        redirector{},
+		DB: db,
+		Redirector: redirector{
+			uiUrl:              uiUrl,
+			signupRedirectPath: signupRedirectPath,
+		},
 		AuthIdentityModel: AuthIdentity{},
 		UserModel:         User{},
 		ViewPaths:         []string{"views"},
 		SessionStorer:     sessionStorer,
 		UserStorer: BanzaiUserStorer{
 			signingKeyBase32: signingKeyBase32,
-			db:               config.DB(),
+			db:               db,
 			cicdDB:           cicdDB,
 			orgSyncer:        orgSyncer,
 		},
@@ -180,12 +189,12 @@ func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenMana
 		DeregisterHandler: NewBanzaiDeregisterHandler(tokenStore),
 	})
 
-	oidcProvider = newOIDCProvider(&OIDCConfig{
-		PublicClientID:     viper.GetString("auth.publicclientid"),
-		ClientID:           viper.GetString("auth.clientid"),
-		ClientSecret:       viper.GetString("auth.clientsecret"),
-		IssuerURL:          viper.GetString(config.OIDCIssuerURL),
-		InsecureSkipVerify: viper.GetBool(config.OIDCIssuerInsecure),
+	oidcProvider = newOIDCProvider(&OIDCProviderConfig{
+		PublicClientID:     config.CLI.ClientID,
+		ClientID:           config.OIDC.ClientID,
+		ClientSecret:       config.OIDC.ClientSecret,
+		IssuerURL:          config.OIDC.Issuer,
+		InsecureSkipVerify: config.OIDC.Insecure,
 	}, NewRefreshTokenStore(tokenStore))
 	Auth.RegisterProvider(oidcProvider)
 
@@ -399,7 +408,7 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 		return
 	}
 
-	if viper.GetBool("cicd.enabled") {
+	if global.Config.CICD.Enabled {
 		cicdUser := CICDUser{Login: user.Login}
 		// We need to pass cicdUser as well as the where clause, because Delete() filters by primary
 		// key by default: http://doc.gorm.io/crud.html#delete but here we need to delete by the Login

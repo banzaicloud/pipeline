@@ -21,11 +21,10 @@ import (
 	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // DomainAPI implements the Domain API actions
@@ -66,7 +65,7 @@ func (a *DomainAPI) GetDomain(c *gin.Context) {
 		// TODO implement cluster based domain separation
 	}
 	// TODO implement org based domain separation
-	baseDomain = strings.ToLower(viper.GetString(pipConfig.DNSBaseDomain))
+	baseDomain = strings.ToLower(global.Config.Cluster.DNS.BaseDomain)
 
 	c.JSON(http.StatusOK, GetDomainResponse{DomainName: baseDomain})
 }

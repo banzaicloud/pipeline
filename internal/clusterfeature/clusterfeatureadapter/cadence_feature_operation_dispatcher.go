@@ -65,7 +65,7 @@ func (d CadenceFeatureOperationDispatcher) dispatchOperation(ctx context.Context
 	}
 	options := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
-		ExecutionStartToCloseTimeout: 40 * time.Minute,
+		ExecutionStartToCloseTimeout: 3 * time.Hour,
 		WorkflowIDReusePolicy:        client.WorkflowIDReusePolicyAllowDuplicate,
 	}
 	workflowInput := workflow.ClusterFeatureJobWorkflowInput{

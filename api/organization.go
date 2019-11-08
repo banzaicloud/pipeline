@@ -24,7 +24,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/pkg/common"
 )
@@ -47,7 +47,7 @@ func OrganizationMiddleware(c *gin.Context) {
 
 	organization := &auth.Organization{ID: uint(orgid)}
 
-	db := config.DB()
+	db := global.DB()
 	err = db.Where(organization).Find(organization).Error
 	if err != nil {
 		message := "error fetching organizations: " + err.Error()
@@ -101,7 +101,7 @@ func (a *OrganizationAPI) GetOrganizations(c *gin.Context) {
 	var organization = auth.Organization{ID: uint(id)}
 	var organizations []auth.Organization
 
-	db := config.DB()
+	db := global.DB()
 
 	// Virtual users can list only the organization they are belonging to
 	if user.Virtual {
@@ -212,7 +212,7 @@ func (a *OrganizationAPI) DeleteOrganization(c *gin.Context) {
 }
 
 func deleteOrgFromDB(organization *auth.Organization, user *auth.User) error {
-	tx := config.DB().Begin()
+	tx := global.DB().Begin()
 	err := tx.Error
 	if err != nil {
 		tx.Rollback()

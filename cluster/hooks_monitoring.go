@@ -20,10 +20,8 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
-	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"
-	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
@@ -31,16 +29,18 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 )
 
+const MonitorReleaseName = "monitor"
+
 // InstallMonitoring installs monitoring tools (Prometheus, Grafana) to a cluster.
 func InstallMonitoring(cluster CommonCluster) error {
-	monitoringNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	monitoringNamespace := global.Config.Cluster.Namespace
 
 	clusterNameSecretTag := fmt.Sprintf("cluster:%s", cluster.GetName())
 	clusterUidSecretTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())
-	releaseSecretTag := fmt.Sprintf("release:%s", pipConfig.MonitorReleaseName)
+	releaseSecretTag := fmt.Sprintf("release:%s", MonitorReleaseName)
 
 	// Generating Grafana credentials
-	grafanaAdminUsername := viper.GetString("monitor.grafanaAdminUsername")
+	grafanaAdminUsername := global.Config.Cluster.Monitoring.Grafana.AdminUser
 	grafanaAdminPass, err := secret.RandomString("randAlphaNum", 12)
 	if err != nil {
 		return emperror.Wrap(err, "failed to generate Grafana admin user password")
@@ -129,7 +129,7 @@ func InstallMonitoring(cluster CommonCluster) error {
 
 	var host string
 
-	if global.AutoDNSEnabled {
+	if global.Config.Cluster.DNS.BaseDomain != "" {
 		baseDomain, err := dns.GetBaseDomain()
 		if err != nil {
 			return emperror.Wrap(err, "failed to get base domain")
@@ -149,24 +149,9 @@ func InstallMonitoring(cluster CommonCluster) error {
 			"adminUser":     grafanaAdminUsername,
 			"adminPassword": grafanaAdminPass,
 			"ingress":       map[string][]string{"hosts": {host}},
-			"affinity":      GetHeadNodeAffinity(cluster),
-			"tolerations":   GetHeadNodeTolerations(),
 		},
 		"prometheus": map[string]interface{}{
-			"alertmanager": map[string]interface{}{
-				"affinity":    GetHeadNodeAffinity(cluster),
-				"tolerations": GetHeadNodeTolerations(),
-			},
-			"kubeStateMetrics": map[string]interface{}{
-				"affinity":    GetHeadNodeAffinity(cluster),
-				"tolerations": GetHeadNodeTolerations(),
-			},
-			"nodeExporter": map[string]interface{}{
-				"tolerations": GetHeadNodeTolerations(),
-			},
 			"server": map[string]interface{}{
-				"affinity":    GetHeadNodeAffinity(cluster),
-				"tolerations": GetHeadNodeTolerations(),
 				"ingress": map[string]interface{}{
 					"enabled": true,
 					"annotations": map[string]string{
@@ -177,10 +162,6 @@ func InstallMonitoring(cluster CommonCluster) error {
 						host + "/prometheus",
 					},
 				},
-			},
-			"pushgateway": map[string]interface{}{
-				"affinity":    GetHeadNodeAffinity(cluster),
-				"tolerations": GetHeadNodeTolerations(),
 			},
 		},
 	}
@@ -194,7 +175,7 @@ func InstallMonitoring(cluster CommonCluster) error {
 		cluster,
 		monitoringNamespace,
 		pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor",
-		pipConfig.MonitorReleaseName,
+		MonitorReleaseName,
 		valuesJSON,
 		"",
 		false,

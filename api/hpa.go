@@ -27,7 +27,6 @@ import (
 	promapi "github.com/prometheus/client_golang/api"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
-	"github.com/spf13/viper"
 	"k8s.io/api/autoscaling/v2beta1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -35,7 +34,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
-	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/hpa"
@@ -162,9 +161,9 @@ func PutHpaResource(c *gin.Context) {
 }
 
 func runPrometheusQuery(config *rest.Config, client *kubernetes.Clientset, query string) (model.Value, error) {
-	prometheusEndpointPort := viper.GetInt(pipConfig.PrometheusLocalPort)
-	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
-	serviceContext := viper.GetString(pipConfig.PrometheusServiceContext)
+	prometheusEndpointPort := global.Config.Cluster.Autoscale.HPA.Prometheus.LocalPort
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
+	serviceContext := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceContext
 	promethuesPodLabels := labels.Set{"app": "prometheus", "component": "server"}
 
 	log.Debugf("create kubernetes tunnel for %v", promethuesPodLabels)

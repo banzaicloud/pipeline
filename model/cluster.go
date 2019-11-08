@@ -25,7 +25,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 )
@@ -276,7 +276,7 @@ func (cs *ClusterModel) AfterFind() error {
 
 // Save the cluster to DB
 func (cs *ClusterModel) Save() error {
-	db := config.DB()
+	db := global.DB()
 	err := db.Save(&cs).Error
 	if err != nil {
 		return err
@@ -286,7 +286,7 @@ func (cs *ClusterModel) Save() error {
 
 // Delete cluster from DB
 func (cs *ClusterModel) Delete() error {
-	db := config.DB()
+	db := global.DB()
 	return db.Delete(&cs).Error
 }
 
@@ -436,7 +436,7 @@ func (cs *ClusterModel) UpdateStatus(status, statusMessage string) error {
 			ToStatusMessage:   statusMessage,
 		}
 
-		if err := config.DB().Save(&statusHistory).Error; err != nil {
+		if err := global.DB().Save(&statusHistory).Error; err != nil {
 			return errors.Wrap(err, "failed to record cluster status change to history")
 		}
 	}

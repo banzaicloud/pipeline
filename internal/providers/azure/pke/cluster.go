@@ -47,6 +47,48 @@ type NodePool struct {
 	Zones        []string
 }
 
+type AccessPoint struct {
+	Name    string
+	Address string
+}
+
+type AccessPoints []AccessPoint
+
+func (a AccessPoints) Exists(name string) bool {
+	for _, ap := range a {
+		if ap.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func (a AccessPoints) Get(name string) *AccessPoint {
+	for i := range a {
+		if a[i].Name == name {
+			return &a[i]
+		}
+	}
+	return nil
+}
+
+type APIServerAccessPoint string
+
+func (a APIServerAccessPoint) GetName() string {
+	return string(a)
+}
+
+type APIServerAccessPoints []APIServerAccessPoint
+
+func (a APIServerAccessPoints) Exists(name string) bool {
+	for _, ap := range a {
+		if ap.GetName() == name {
+			return true
+		}
+	}
+	return false
+}
+
 // PKEOnAzureCluster defines fields for PKE-on-Azure clusters
 type PKEOnAzureCluster struct {
 	intCluster.ClusterBase
@@ -63,6 +105,9 @@ type PKEOnAzureCluster struct {
 	Logging      bool
 	SecurityScan bool
 	TtlMinutes   uint
+
+	AccessPoints          AccessPoints
+	APIServerAccessPoints APIServerAccessPoints
 }
 
 func (c PKEOnAzureCluster) HasActiveWorkflow() bool {
@@ -93,6 +138,19 @@ func GetLoadBalancerName(clusterName string) string {
 	return clusterName // LB name must match the value passed to pke install master --kubernetes-cluster-name
 }
 
+func GetInternalLoadBalancerName(clusterName string) string {
+	// internal LB name must match the value passed to `pke install master --kubernetes-cluster-name` with a "-internal" suffix
+	return clusterName + "-internal"
+}
+
 func GetPublicIPAddressName(clusterName string) string {
 	return clusterName + "-pip-in"
+}
+
+func GetFrontEndIPConfigName() string {
+	return "frontend-ip-config"
+}
+
+func GetApiServerLBRuleName() string {
+	return "api-server-rule"
 }

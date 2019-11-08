@@ -15,16 +15,15 @@
 package main
 
 import (
-	"github.com/spf13/viper"
-
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/cap"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // mapCapabilities maps configuration to capabilities.
 func mapCapabilities(config configuration) cap.Capabilities {
 	return cap.Capabilities{
 		"cicd": cap.Cap{
-			"enabled": viper.GetBool("cicd.enabled"),
+			"enabled": global.Config.CICD.Enabled,
 		},
 		"issue": cap.Cap{
 			"enabled": config.Frontend.Issue.Enabled,
@@ -36,6 +35,13 @@ func mapCapabilities(config configuration) cap.Capabilities {
 			},
 			"monitoring": cap.Cap{
 				"enabled": config.Cluster.Monitoring.Enabled,
+			},
+			"logging": cap.Cap{
+				"enabled": config.Cluster.Logging.Enabled,
+			},
+			"dns": cap.Cap{
+				"enabled":    config.Cluster.DNS.Enabled,
+				"baseDomain": config.Cluster.DNS.BaseDomain,
 			},
 			"securityScan": cap.Cap{
 				"enabled": config.Cluster.SecurityScan.Enabled,

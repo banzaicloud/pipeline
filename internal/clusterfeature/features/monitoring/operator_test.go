@@ -25,11 +25,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
 func TestFeatureOperator_Name(t *testing.T) {
-	op := MakeFeatureOperator(nil, nil, nil, NewFeatureConfiguration(), nil, nil)
+	op := MakeFeatureOperator(nil, nil, nil, nil, Config{}, nil, nil)
 
 	assert.Equal(t, "monitoring", op.Name())
 }
@@ -39,7 +40,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 	orgID := uint(13)
 
 	clusterGetter := dummyClusterGetter{
-		Clusters: map[uint]clusterfeatureadapter.Cluster{},
+		Clusters: map[uint]dummyCluster{},
 	}
 	clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
 	helmService := dummyHelmService{}
@@ -69,19 +70,20 @@ func TestFeatureOperator_Apply(t *testing.T) {
 
 	logger := commonadapter.NewNoopLogger()
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, Configuration{}, logger, secretStore)
+	kubernetesService := dummyKubernetesService{}
+	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, Config{}, logger, secretStore)
 
 	cases := map[string]struct {
 		Spec    clusterfeature.FeatureSpec
-		Cluster clusterfeatureadapter.Cluster
+		Cluster dummyCluster
 		Error   interface{}
 	}{
 		"cluster not ready": {
 			Spec: clusterfeature.FeatureSpec{},
 			Cluster: dummyCluster{
-				OrgID: orgID,
-				Ready: false,
-				ID:    clusterID,
+				OrgID:  orgID,
+				Status: pkgCluster.Creating,
+				ID:     clusterID,
 			},
 			Error: clusterfeature.ClusterIsNotReadyError{
 				ClusterID: clusterID,
@@ -106,9 +108,9 @@ func TestFeatureOperator_Apply(t *testing.T) {
 				},
 			},
 			Cluster: dummyCluster{
-				OrgID: orgID,
-				Ready: true,
-				ID:    clusterID,
+				OrgID:  orgID,
+				Status: pkgCluster.Running,
+				ID:     clusterID,
 			},
 			Error: false,
 		},
@@ -137,10 +139,10 @@ func TestFeatureOperator_Deactivate(t *testing.T) {
 	orgID := uint(13)
 
 	clusterGetter := dummyClusterGetter{
-		Clusters: map[uint]clusterfeatureadapter.Cluster{
-			clusterID: dummyCluster{
-				Ready: true,
-				ID:    clusterID,
+		Clusters: map[uint]dummyCluster{
+			clusterID: {
+				Status: pkgCluster.Running,
+				ID:     clusterID,
 			},
 		},
 	}
@@ -153,7 +155,8 @@ func TestFeatureOperator_Deactivate(t *testing.T) {
 	}
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	logger := commonadapter.NewNoopLogger()
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, Configuration{}, logger, secretStore)
+	kubernetesService := dummyKubernetesService{}
+	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, Config{}, logger, secretStore)
 
 	ctx := context.Background()
 

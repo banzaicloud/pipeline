@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
@@ -42,4 +43,38 @@ func TestFillClusterFromClusterModel(t *testing.T) {
 			assert.Equal(t, tc.expected, result)
 		})
 	}
+}
+
+func TestAccessPointsModel_Serialization(t *testing.T) {
+	m := accessPointsModel{
+		{
+			Name:    "ap-name-1",
+			Address: "ap-address-1",
+		},
+		{
+			Name:    "ap-name-2",
+			Address: "ap-address-2",
+		},
+	}
+
+	v, err := m.Value()
+	require.NoError(t, err)
+
+	var n accessPointsModel
+	require.NoError(t, n.Scan(v))
+	assert.Equal(t, m, n)
+}
+
+func TestAPIServerAccessPointsModel_Serialization(t *testing.T) {
+	m := apiServerAccessPointsModel{
+		"ap-name-1",
+		"ap-name-2",
+	}
+
+	v, err := m.Value()
+	require.NoError(t, err)
+
+	var n apiServerAccessPointsModel
+	require.NoError(t, n.Scan(v))
+	assert.Equal(t, m, n)
 }

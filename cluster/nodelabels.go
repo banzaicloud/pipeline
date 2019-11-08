@@ -24,11 +24,9 @@ import (
 	"github.com/banzaicloud/nodepool-labels-operator/pkg/npls"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/pipeline/config"
-	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
+	"github.com/banzaicloud/pipeline/internal/global"
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
@@ -42,7 +40,7 @@ const labelFormatRegexp = "[^-A-Za-z0-9_.]"
 // noReturnIfNoUserLabels = true, means if there are no labels specified in NodePoolStatus, no labels are returned for that node pool
 // is not returned, to avoid overriding user specified labels.
 func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, nodePools map[string]*pkgCluster.NodePoolStatus, noReturnIfNoUserLabels bool) (map[string]map[string]string, error) {
-	logger := pipelineContext.LoggerWithCorrelationID(ctx, config.Logger()).WithFields(logrus.Fields{
+	logger := pipelineContext.LoggerWithCorrelationID(ctx, log).WithFields(logrus.Fields{
 		"organization": cluster.GetOrganizationId(),
 		"cluster":      cluster.GetID(),
 	})
@@ -56,10 +54,9 @@ func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, node
 	if len(nodePools) == 0 {
 		nodePools = clusterStatus.NodePools
 	}
-	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
 
 	for name, nodePool := range nodePools {
-		labelsMap := getDesiredNodePoolLabels(logger, clusterStatus, name, nodePool, headNodePoolName, noReturnIfNoUserLabels)
+		labelsMap := getDesiredNodePoolLabels(logger, clusterStatus, name, nodePool, noReturnIfNoUserLabels)
 		if len(labelsMap) > 0 {
 			desiredLabels[name] = labelsMap
 		}
@@ -85,7 +82,7 @@ func formatValue(value string) string {
 }
 
 func getDesiredNodePoolLabels(logger logrus.FieldLogger, clusterStatus *pkgCluster.GetClusterStatusResponse, nodePoolName string,
-	nodePool *pkgCluster.NodePoolStatus, headNodePoolName string, noReturnIfNoUserLabels bool) map[string]string {
+	nodePool *pkgCluster.NodePoolStatus, noReturnIfNoUserLabels bool) map[string]string {
 
 	desiredLabels := make(map[string]string)
 	if len(nodePool.Labels) == 0 && noReturnIfNoUserLabels {
@@ -93,9 +90,6 @@ func getDesiredNodePoolLabels(logger logrus.FieldLogger, clusterStatus *pkgClust
 	}
 
 	desiredLabels[common.LabelKey] = nodePoolName
-	if nodePoolName == headNodePoolName {
-		desiredLabels[common.HeadNodeLabelKey] = "true"
-	}
 	desiredLabels[common.OnDemandLabelKey] = getOnDemandLabel(nodePool)
 
 	// copy user labels unless they are not reserved keys
@@ -134,12 +128,12 @@ func getDesiredNodePoolLabels(logger logrus.FieldLogger, clusterStatus *pkgClust
 }
 
 func IsReservedDomainKey(labelKey string) bool {
-	pipelineLabelDomain := viper.GetString(pipConfig.PipelineLabelDomain)
+	pipelineLabelDomain := global.Config.Cluster.Labels.Domain
 	if strings.Contains(labelKey, pipelineLabelDomain) {
 		return true
 	}
 
-	reservedNodeLabelDomains := viper.GetStringSlice(pipConfig.ForbiddenLabelDomains)
+	reservedNodeLabelDomains := global.Config.Cluster.Labels.ForbiddenDomains
 	for _, reservedDomain := range reservedNodeLabelDomains {
 		if strings.Contains(labelKey, reservedDomain) {
 			return true
@@ -161,7 +155,7 @@ func getOnDemandLabel(nodePool *pkgCluster.NodePoolStatus) string {
 // DeployNodePoolLabelsSet deploys NodePoolLabelSet resources for each node pool.
 func DeployNodePoolLabelsSet(cluster CommonCluster, nodePoolLabels map[string]map[string]string) error {
 
-	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 
 	k8sConfig, err := cluster.GetK8sConfig()
 	if err != nil {

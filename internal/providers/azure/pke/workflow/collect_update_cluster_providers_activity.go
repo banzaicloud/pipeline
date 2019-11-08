@@ -38,20 +38,19 @@ type CollectUpdateClusterProvidersActivityInput struct {
 	OrganizationID uint
 	SecretID       string
 
+	ClusterName         string
 	ResourceGroupName   string
-	LoadBalancerName    string
 	PublicIPAddressName string
 	RouteTableName      string
 	VirtualNetworkName  string
 }
 
 type CollectUpdateClusterProvidersActivityOutput struct {
-	BackendAddressPoolIDProvider MapResourceIDByNameProvider
-	InboundNATPoolIDProvider     MapResourceIDByNameProvider
-	PublicIPAddressProvider      ConstantIPAddressProvider
-	RouteTableIDProvider         MapResourceIDByNameProvider
-	SecurityGroupIDProvider      MapResourceIDByNameProvider
-	SubnetIDProvider             MapResourceIDByNameProvider
+	BackendAddressPoolIDProviders []MapResourceIDByNameProvider
+	InboundNATPoolIDProviders     []MapResourceIDByNameProvider
+	RouteTableIDProvider          MapResourceIDByNameProvider
+	SecurityGroupIDProvider       MapResourceIDByNameProvider
+	SubnetIDProvider              MapResourceIDByNameProvider
 }
 
 func (a CollectUpdateClusterProvidersActivity) Execute(ctx context.Context, input CollectUpdateClusterProvidersActivityInput) (output CollectUpdateClusterProvidersActivityOutput, err error) {
@@ -61,30 +60,49 @@ func (a CollectUpdateClusterProvidersActivity) Execute(ctx context.Context, inpu
 		return
 	}
 
-	lb, err := cc.GetLoadBalancersClient().Get(ctx, input.ResourceGroupName, input.LoadBalancerName, "")
-	if err = errors.WrapIf(err, "failed to get load balancer"); err != nil {
+	lbs, err := cc.GetLoadBalancersClient().List(ctx, input.ResourceGroupName)
+	if err = errors.WrapIf(err, "failed to list load balancers in resource group"); err != nil {
 		return
 	}
 
-	if lb.BackendAddressPools != nil {
-		output.BackendAddressPoolIDProvider = make(MapResourceIDByNameProvider, len(*lb.BackendAddressPools))
-		for _, bap := range *lb.BackendAddressPools {
-			output.BackendAddressPoolIDProvider[to.String(bap.Name)] = to.String(bap.ID)
+	var backendAddressPoolProviders, inboundNATPoolProviders []MapResourceIDByNameProvider
+
+	for lbs.NotDone() {
+		for _, lb := range lbs.Values() {
+			if !HasOwnedTag(input.ClusterName, to.StringMap(lb.Tags)) && !HasSharedTag(input.ClusterName, to.StringMap(lb.Tags)) {
+				continue
+			}
+
+			if len(*lb.BackendAddressPools) > 0 {
+				resourceIDProvider := make(MapResourceIDByNameProvider)
+				for _, bap := range *lb.BackendAddressPools {
+					resourceIDProvider[to.String(bap.Name)] = to.String(bap.ID)
+				}
+				backendAddressPoolProviders = append(backendAddressPoolProviders, resourceIDProvider)
+			}
+
+			if len(*lb.InboundNatPools) > 0 {
+				resourceIDProvider := make(MapResourceIDByNameProvider)
+				for _, inp := range *lb.InboundNatPools {
+					resourceIDProvider[to.String(inp.Name)] = to.String(inp.ID)
+				}
+				inboundNATPoolProviders = append(inboundNATPoolProviders, resourceIDProvider)
+			}
+		}
+
+		err = lbs.NextWithContext(ctx)
+		if err = errors.WrapIf(err, "retrieving load balancers failed"); err != nil {
+			return
 		}
 	}
 
-	if lb.InboundNatPools != nil {
-		output.InboundNATPoolIDProvider = make(MapResourceIDByNameProvider, len(*lb.InboundNatPools))
-		for _, inp := range *lb.InboundNatPools {
-			output.InboundNATPoolIDProvider[to.String(inp.Name)] = to.String(inp.ID)
-		}
+	if len(backendAddressPoolProviders) > 0 {
+		output.BackendAddressPoolIDProviders = backendAddressPoolProviders
 	}
 
-	pip, err := cc.GetPublicIPAddressesClient().Get(ctx, input.ResourceGroupName, input.PublicIPAddressName, "")
-	if err = errors.WrapIf(err, "failed to get public IP address"); err != nil {
-		return
+	if len(inboundNATPoolProviders) > 0 {
+		output.InboundNATPoolIDProviders = inboundNATPoolProviders
 	}
-	output.PublicIPAddressProvider = ConstantIPAddressProvider(to.String(pip.ID))
 
 	rt, err := cc.GetRouteTablesClient().Get(ctx, input.ResourceGroupName, input.RouteTableName, "")
 	if err = errors.WrapIf(err, "failed to get route table"); err != nil {

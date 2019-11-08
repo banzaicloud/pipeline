@@ -27,7 +27,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	storageUtil "k8s.io/kubernetes/pkg/apis/storage/util"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -158,7 +158,7 @@ func (c *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 	if len(c.modelCluster.Location) == 0 {
 		c.log.Debug("Empty location.. reload from db")
 		// reload from db
-		db := config.DB()
+		db := global.DB()
 		db.Find(&c.modelCluster, model.ClusterModel{ID: c.GetID()})
 	}
 

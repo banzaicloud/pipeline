@@ -49,7 +49,7 @@ spec:
           value: {{ include "pipeline.database.port" . | quote }}
         - name: PIPELINE_DATABASE_TLS
           value: {{ include "pipeline.database.tls" . | quote }}
-        - name: PIPELINE_DATABASE_DBNAME
+        - name: PIPELINE_DATABASE_NAME
           value: {{ include "pipeline.database.name" . }}
         - name: PIPELINE_DATABASE_USER
           value: {{ include "pipeline.database.username" . }}
@@ -61,21 +61,21 @@ spec:
               name: {{ include "pipeline.database.secretName" .}}
               key: {{ include "pipeline.database.secretKey" .}}
         # Authentication configuration
-        - name: PIPELINE_AUTH_CLIENTID
+        - name: PIPELINE_AUTH_OIDC_CLIENTID
           valueFrom:
-            secretKeyRef:
-              name: {{ include "pipeline.fullname" . }}
-              key: githubClientId
-        - name: PIPELINE_AUTH_CLIENTSECRET
+              secretKeyRef:
+                  name: {{ include "pipeline.fullname" . }}
+                  key: githubClientId
+        - name: PIPELINE_AUTH_OIDC_CLIENTSECRET
           valueFrom:
-            secretKeyRef:
-              name: {{ include "pipeline.fullname" . }}
-              key: githubClientSecret
-        - name: PIPELINE_AUTH_TOKENSIGNINGKEY
+              secretKeyRef:
+                  name: {{ include "pipeline.fullname" . }}
+                  key: githubClientSecret
+        - name: PIPELINE_AUTH_TOKEN_SIGNINGKEY
           valueFrom:
-            secretKeyRef:
-              name: {{ include "pipeline.fullname" . }}
-              key: tokenSigningKey
+              secretKeyRef:
+                  name: {{ include "pipeline.fullname" . }}
+                  key: tokenSigningKey
         - name: PIPELINE_GITHUB_TOKEN
           valueFrom:
             secretKeyRef:
@@ -119,9 +119,9 @@ spec:
         - name: pipeline-tls
           mountPath: /tls
       {{ end }}
-      {{- if eq .Values.configuration.cert.source "file" }}
+      {{- if eq .Values.configuration.cluster.ingress.cert.source "file" }}
         - name: sign-ca
-          mountPath: {{ .Values.configuration.cert.path }}
+          mountPath: {{ .Values.configuration.cluster.ingress.cert.path }}
       {{ end }}
       volumes:
       - name: config-volume
@@ -138,7 +138,7 @@ spec:
         secret:
           secretName: {{ include "pipeline.fullname" . }}-tls
       {{ end }}
-      {{- if eq .Values.configuration.cert.source "file" }}
+      {{- if eq .Values.configuration.cluster.ingress.cert.source "file" }}
       - name: sign-ca
         secret:
           secretName: {{ include "pipeline.fullname" . }}-sign-ca

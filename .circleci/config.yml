@@ -95,7 +95,7 @@ jobs:
                 run:
                     name: Run tests
                     command: |
-                        make config/config.toml
+                        make config/config.yaml
                         PIPELINE_CONFIG_DIR=$PWD/config GOARGS="-p=2" make test
                     environment:
                         VAULT_ADDR: http://localhost:8200
@@ -105,7 +105,7 @@ jobs:
                 run:
                     name: Run integration tests
                     command: |
-                        make config/config.toml
+                        make config/config.yaml
                         PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=2" test-integration
                     environment:
                         VAULT_ADDR: http://localhost:8200
@@ -128,13 +128,13 @@ jobs:
             -
                 run:
                     name: Test MySQL database auto migrations
-                    command: go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/migrate.go
+                    command: go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/config.go ./cmd/pipeline/migrate.go ./cmd/pipeline/vars.go
                     environment:
                         PIPELINE_DATABASE_HOST: 127.0.0.1
                         PIPELINE_DATABASE_USER: root
                         PIPELINE_DATABASE_PASSWORD: ""
                         PIPELINE_DATABASE_ROLE: ""
-                        PIPELINE_DATABASE_DBNAME: pipeline_automigrate
+                        PIPELINE_DATABASE_NAME: pipeline_automigrate
                         VAULT_ADDR: http://localhost:8200
                         VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
@@ -173,7 +173,7 @@ jobs:
             -
                 run:
                     name: Test PostgreSQL database auto migrations
-                    command: go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/migrate.go
+                    command: go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/config.go ./cmd/pipeline/migrate.go ./cmd/pipeline/vars.go
                     environment:
                         PIPELINE_DATABASE_DIALECT: postgres
                         PIPELINE_DATABASE_HOST: 127.0.0.1
@@ -182,7 +182,7 @@ jobs:
                         PIPELINE_DATABASE_USER: postgres
                         PIPELINE_DATABASE_PASSWORD: postgres
                         PIPELINE_DATABASE_ROLE: ""
-                        PIPELINE_DATABASE_DBNAME: pipeline_automigrate
+                        PIPELINE_DATABASE_NAME: pipeline_automigrate
                         VAULT_ADDR: http://localhost:8200
                         VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 

@@ -30,11 +30,13 @@ import (
 
 // FeatureManager implements the Monitoring feature manager
 type FeatureManager struct {
+	clusterfeature.PassthroughFeatureSpecPreparer
+
 	clusterGetter    clusterfeatureadapter.ClusterGetter
 	secretStore      features.SecretStore
 	endpointsService endpoints.EndpointService
 	helmService      features.HelmService
-	config           Configuration
+	config           Config
 	logger           common.Logger
 }
 
@@ -43,7 +45,7 @@ func MakeFeatureManager(
 	secretStore features.SecretStore,
 	endpointsService endpoints.EndpointService,
 	helmService features.HelmService,
-	config Configuration,
+	config Config,
 	logger common.Logger,
 ) FeatureManager {
 	return FeatureManager{
@@ -106,14 +108,13 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 		pushgatewayValues = pushgatewayDeployment.Values
 	}
 
-	chartVersion := m.config.operator.chartVersion
 	out := clusterfeature.FeatureOutput{
-		"grafana":      m.getComponentOutput(ctx, clusterID, newGrafanaOutputHelper(boundSpec), endpoints, operatorValues),
-		"prometheus":   m.getComponentOutput(ctx, clusterID, newPrometheusOutputHelper(boundSpec), endpoints, operatorValues),
-		"alertmanager": m.getComponentOutput(ctx, clusterID, newAlertmanagerOutputHelper(boundSpec), endpoints, operatorValues),
-		"pushgateway":  m.getPushgatewayOutput(ctx, pushgatewayValues),
+		"grafana":      m.getComponentOutput(ctx, clusterID, newGrafanaOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues),
+		"prometheus":   m.getComponentOutput(ctx, clusterID, newPrometheusOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues),
+		"alertmanager": m.getComponentOutput(ctx, clusterID, newAlertmanagerOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues),
+		"pushgateway":  m.getComponentOutput(ctx, clusterID, newPushgatewayOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusPushgatewayReleaseName, pushgatewayValues),
 		"prometheusOperator": map[string]interface{}{
-			"version": chartVersion,
+			"version": m.config.Charts.Operator.Version,
 		},
 	}
 
@@ -140,16 +141,13 @@ func (FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Feat
 	return nil
 }
 
-// PrepareSpec makes certain preparations to the spec before it's sent to be applied
-func (FeatureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
-	return spec, nil
-}
-
 func (m FeatureManager) getComponentOutput(
 	ctx context.Context,
 	clusterID uint,
 	helper outputHelper,
 	endpoints []*pkgHelm.EndpointItem,
+	pipelineSystemNamespace string,
+	releaseName string,
 	deploymentValues map[string]interface{},
 ) map[string]interface{} {
 	var out = make(map[string]interface{})
@@ -161,22 +159,11 @@ func (m FeatureManager) getComponentOutput(
 	}
 
 	writeSecretID(ctx, o, clusterID, out)
-	writeUrl(o, endpoints, out)
+	writeURL(o, endpoints, releaseName, out)
 	writeVersion(o, deploymentValues, out)
+	if err := writeServiceURL(o, m.endpointsService, pipelineSystemNamespace, out); err != nil {
+		m.logger.Warn(fmt.Sprintf("failed to get service url: %s", err.Error()))
+	}
 
 	return out
-}
-
-func (FeatureManager) getPushgatewayOutput(
-	ctx context.Context,
-	deploymentValues map[string]interface{},
-) map[string]interface{} {
-	var output = make(map[string]interface{})
-	if deploymentValues != nil {
-		// set Pushgateway version
-		if image, ok := deploymentValues["image"].(map[string]interface{}); ok {
-			output["version"] = image["tag"]
-		}
-	}
-	return output
 }

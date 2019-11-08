@@ -1332,7 +1332,7 @@ paths:
                     in: path
                     schema:
                         type: string
-                    required: True
+                    required: true
                 -
                     name: detail
                     in: query
@@ -1375,7 +1375,7 @@ paths:
                     in: path
                     schema:
                         type: string
-                    required: True
+                    required: true
             requestBody:
                 required: true
                 content:
@@ -3364,6 +3364,43 @@ paths:
                 401:
                     $ref: '#/components/responses/Unauthorized'
 
+    '/api/v1/capabilities':
+        get:
+            tags:
+                - pipeline
+            summary: Lists configured Pipeline capabilities
+            operationId: ListCapabilities
+            description: Retrieve Pipeline capabilities
+            responses:
+                '200':
+                    description: "capabilities successfully returned"
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties:
+                                    type: object
+                                example: {
+                                    "cicd": {
+                                        "enabled": false
+                                    },
+                                    "features": {
+                                        "monitoring": {
+                                            "enabled": true
+                                        },
+                                        "securityScan": {
+                                            "enabled": true,
+                                            "managed": true
+                                        },
+                                        "vault": {
+                                            "enabled": true,
+                                            "managed": false
+                                        }
+                                    },
+                                    "issue": {
+                                        "enabled": false
+                                    }
+                                }
     '/api/v1/orgs/{orgId}/azure/resourcegroups':
         get:
             security:
@@ -6798,6 +6835,18 @@ components:
                             example: "my-resource-group-1"
                         network:
                             $ref: '#/components/schemas/PKEOnAzureClusterNetwork'
+                        accessPoints:
+                            type: array
+                            items:
+                                type: string
+                                enum: [private, public]
+                            description: List of access points (i.e. load balancers, floating IPs) to be created for the cluster. Access points are implemented using cloud provider specific resources.
+                        apiServerAccessPoints:
+                            type: array
+                            items:
+                                type: string
+                                enum: [private, public]
+                            description: List of access point references for the API server; currently, public and private are the only valid values
                         nodepools:
                             type: array
                             items:
@@ -8869,7 +8918,7 @@ components:
                 instanceType:
                     type: string
                     example: "m4.xlarge"
-                spot_price:
+                spotPrice:
                     type: string
                     example: "0.2"
                 autoscaling:

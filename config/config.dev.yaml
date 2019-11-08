@@ -1,0 +1,82 @@
+# This is the example configuration for Pipeline
+
+# Pipeline logging configuration
+log:
+    level: "debug"
+
+pipeline:
+    # URL base path
+    # Default is "/pipeline" in the development environment to allow using the UI locally
+    basePath: "/pipeline"
+
+    external:
+        # Base URL where the end users can reach this pipeline instance
+        url: "https://example.com/pipeline"
+
+ui:
+    url: "http://localhost:4200/ui"
+    signupRedirectUrl: "http://localhost:4200/ui"
+
+database:
+    dialect: "mysql"
+    host: "localhost"
+    port: 3306
+    tls: "false"
+    user: "sparky"
+    role: ""
+    password: "sparky123"
+    name: "pipeline"
+
+    # Turn this to true to see all queries in the log
+    queryLog: false
+
+    autoMigrate: true
+
+cadence:
+    host: "127.0.0.1"
+    createNonexistentDomain: true
+
+cors:
+    allowAllOrigins: false
+    allowOrigins: ["http://localhost:4200"]
+
+auth:
+    oidc:
+        issuer: "http://127.0.0.1:5556/dex"
+        #        insecure: false
+        clientId: "pipeline"
+        clientSecret: "ZXhhbXBsZS1hcHAtc2VjcmV0"
+
+    cookie:
+        secure: false
+
+    token:
+        signingKey: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
+        issuer: "https://banzaicloud.com/"
+        audience: "https://pipeline.banzaicloud.com"
+
+dex:
+    apiAddr: "127.0.0.1:5557"
+
+cloudinfo:
+    endpoint: "https://beta.banzaicloud.io/cloudinfo/api/v1"
+
+hollowtrees:
+    endpoint: "https://beta.banzaicloud.io/hollowtrees-alerts/api/v1"
+    tokenSigningKey: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
+
+cicd:
+    database:
+        dialect: "mysql"
+        host: "localhost"
+        port: 3306
+        tls: "false"
+        user: "sparky"
+        password: "sparky123"
+        name: "cicd"
+
+        # Turn this to true to see all queries in the log
+        queryLog: false
+
+hooks:
+    domainHookDisabled: true

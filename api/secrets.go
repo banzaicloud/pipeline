@@ -27,8 +27,8 @@ import (
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/config"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -545,7 +545,7 @@ func IsValidSecretType(secretType string) error {
 func checkClustersBeforeDelete(orgId uint, secretId string) error {
 	// TODO: move these to a struct and create them only once upon application init
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler)
+	clusterManager := cluster.NewManager(intCluster.NewClusters(global.DB()), secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler)
 
 	clusters, err := clusterManager.GetClustersBySecretID(context.Background(), orgId, secretId)
 	if err != nil {

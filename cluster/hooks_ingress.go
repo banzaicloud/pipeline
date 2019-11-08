@@ -24,13 +24,11 @@ import (
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/tls"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
-	"github.com/spf13/viper"
-	v1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/auth"
-	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/global/ingresscert"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/secret"
@@ -41,9 +39,7 @@ type ingressControllerValues struct {
 }
 
 type traefikValues struct {
-	SSL         sslTraefikValues `json:"ssl"`
-	Affinity    v1.Affinity      `json:"affinity"`
-	Tolerations []v1.Toleration  `json:"tolerations"`
+	SSL sslTraefikValues `json:"ssl"`
 }
 
 type sslTraefikValues struct {
@@ -61,7 +57,7 @@ const DefaultCertSecretName = "default-ingress-cert"
 func InstallIngressControllerPostHook(cluster CommonCluster) error {
 	defaultCertSecret, err := secret.Store.GetByName(cluster.GetOrganizationId(), DefaultCertSecretName)
 	if err == secret.ErrSecretNotExists {
-		certGenerator := global.GetCertGenerator()
+		certGenerator := ingresscert.GetCertGenerator()
 
 		orgID := cluster.GetOrganizationId()
 		organization, err := auth.GetOrganizationById(orgID)
@@ -69,28 +65,33 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 			return emperror.WrapWith(err, "failed to get organization", "organizationId", orgID)
 		}
 
-		baseDomain, err := dns.GetBaseDomain()
-		if err != nil {
-			return emperror.Wrap(err, "failed to get base domain")
-		}
-
-		orgDomainName := strings.ToLower(fmt.Sprintf("%s.%s", organization.Name, baseDomain))
-		err = dns.ValidateSubdomain(orgDomainName)
-		if err != nil {
-			return emperror.Wrap(err, "invalid domain for TLS cert")
-		}
-
-		wildcardOrgDomainName := fmt.Sprintf("*.%s", orgDomainName)
-		err = dns.ValidateWildcardSubdomain(wildcardOrgDomainName)
-		if err != nil {
-			return emperror.Wrap(err, "invalid wildcard domain for TLS cert")
-		}
+		baseDomain := strings.ToLower(global.Config.Cluster.DNS.BaseDomain)
 
 		certRequest := tls.ServerCertificateRequest{
 			Subject: pkix.Name{
-				CommonName: wildcardOrgDomainName,
+				CommonName: "banzaicloud.io",
 			},
-			DNSNames: []string{orgDomainName, wildcardOrgDomainName},
+		}
+
+		if baseDomain != "" {
+			orgDomainName := strings.ToLower(fmt.Sprintf("%s.%s", organization.Name, baseDomain))
+			err = dns.ValidateSubdomain(orgDomainName)
+			if err != nil {
+				return emperror.Wrap(err, "invalid domain for TLS cert")
+			}
+
+			wildcardOrgDomainName := fmt.Sprintf("*.%s", orgDomainName)
+			err = dns.ValidateWildcardSubdomain(wildcardOrgDomainName)
+			if err != nil {
+				return emperror.Wrap(err, "invalid wildcard domain for TLS cert")
+			}
+
+			certRequest = tls.ServerCertificateRequest{
+				Subject: pkix.Name{
+					CommonName: wildcardOrgDomainName,
+				},
+				DNSNames: []string{orgDomainName, wildcardOrgDomainName},
+			}
 		}
 
 		rootCA, cert, key, err := certGenerator.GenerateServerCertificate(certRequest)
@@ -131,8 +132,6 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 				DefaultCert: base64.StdEncoding.EncodeToString([]byte(defaultCertSecret.Values[secrettype.ServerCert])),
 				DefaultKey:  base64.StdEncoding.EncodeToString([]byte(defaultCertSecret.Values[secrettype.ServerKey])),
 			},
-			Affinity:    GetHeadNodeAffinity(cluster),
-			Tolerations: GetHeadNodeTolerations(),
 		},
 	}
 
@@ -141,7 +140,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 		return emperror.Wrap(err, "converting ingress config to json failed")
 	}
 
-	namespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	namespace := global.Config.Cluster.Namespace
 
 	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "ingress", ingressValuesJson, "", false)
 }

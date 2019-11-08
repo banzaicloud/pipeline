@@ -23,10 +23,13 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // FeatureManager implements the Vault feature manager
 type FeatureManager struct {
+	clusterfeature.PassthroughFeatureSpecPreparer
+
 	clusterGetter    clusterfeatureadapter.ClusterGetter
 	secretStore      features.SecretStore
 	isManagedEnabled bool
@@ -87,7 +90,7 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 
 	defer vaultManager.close()
 
-	chartVersion := getChartVersion()
+	chartVersion := global.Config.Cluster.Vault.Charts.Webhook.Version
 
 	vaultOutput, err := getVaultOutput(*vaultManager, orgID, clusterID)
 	if err != nil {
@@ -145,9 +148,4 @@ func (m FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Fe
 	}
 
 	return nil
-}
-
-// PrepareSpec makes certain preparations to the spec before it's sent to be applied
-func (m FeatureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
-	return spec, nil
 }

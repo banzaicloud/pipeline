@@ -18,21 +18,26 @@ import (
 	"context"
 	"fmt"
 
+	"emperror.dev/errors"
+
+	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 const (
-	urlKey      = "url"
-	secretIDKey = "secretId"
-	versionKey  = "version"
+	urlKey        = "url"
+	secretIDKey   = "secretId"
+	versionKey    = "version"
+	serviceURLKey = "serviceUrl"
 )
 
 type baseOutput struct {
-	ingress  ingressSpec
-	secretID string
-	enabled  bool
+	ingress   baseIngressSpec
+	secretID  string
+	enabled   bool
+	k8sConfig []byte
 }
 
 func (o baseOutput) getSecretID() string {
@@ -43,8 +48,12 @@ func (o baseOutput) isEnabled() bool {
 	return o.enabled
 }
 
-func (o baseOutput) getIngress() ingressSpec {
+func (o baseOutput) getIngress() baseIngressSpec {
 	return o.ingress
+}
+
+func (o baseOutput) getK8SConfig() []byte {
+	return o.k8sConfig
 }
 
 type outputHelper interface {
@@ -52,9 +61,11 @@ type outputHelper interface {
 	getDeploymentValueParentKey() string
 	getTopLevelDeploymentKey() string
 	getGeneratedSecretName(clusterID uint) string
-	getIngress() ingressSpec
+	getIngress() baseIngressSpec
 	isEnabled() bool
 	getSecretID() string
+	getServiceName() string
+	getK8SConfig() []byte
 }
 
 type outputManager struct {
@@ -75,13 +86,25 @@ func writeVersion(m outputManager, deploymentValues map[string]interface{}, outp
 	}
 }
 
-func writeUrl(m outputManager, endpoints []*pkgHelm.EndpointItem, output map[string]interface{}) {
+func writeURL(m outputManager, endpoints []*pkgHelm.EndpointItem, releaseName string, output map[string]interface{}) {
 	if m.isEnabled() {
 		ingress := m.getIngress()
 		if ingress.Enabled && endpoints != nil {
-			output[urlKey] = getEndpointUrl(endpoints, ingress.Path)
+			output[urlKey] = getEndpointUrl(endpoints, ingress.Path, releaseName)
 		}
 	}
+}
+
+func writeServiceURL(m outputManager, service endpoints.EndpointService, pipelineSystemNamespace string, output map[string]interface{}) error {
+	if m.isEnabled() {
+		url, err := service.GetServiceURL(m.getK8SConfig(), m.getServiceName(), pipelineSystemNamespace)
+		if err != nil {
+			return errors.WrapIf(err, "failed to get service")
+		}
+		output[serviceURLKey] = url
+	}
+
+	return nil
 }
 
 func writeSecretID(ctx context.Context, m outputManager, clusterID uint, output map[string]interface{}) {
@@ -100,7 +123,13 @@ func writeSecretID(ctx context.Context, m outputManager, clusterID uint, output 
 }
 
 func (m *outputManager) getVersionFromValues(values map[string]interface{}) string {
-	if specValues, ok := values[m.getDeploymentValueParentKey()].(map[string]interface{}); ok {
+	var specValues = values
+	var parentKey = m.getDeploymentValueParentKey()
+	var ok = true
+	if parentKey != "" {
+		specValues, ok = values[parentKey].(map[string]interface{})
+	}
+	if ok {
 		if image, ok := specValues["image"].(map[string]interface{}); ok {
 			return image["tag"].(string)
 		}
@@ -108,10 +137,10 @@ func (m *outputManager) getVersionFromValues(values map[string]interface{}) stri
 	return ""
 }
 
-func getEndpointUrl(endpoints []*pkgHelm.EndpointItem, path string) string {
+func getEndpointUrl(endpoints []*pkgHelm.EndpointItem, path, releaseName string) string {
 	for _, ep := range endpoints {
 		for _, url := range ep.EndPointURLs {
-			if url.Path == path {
+			if url.Path == path && url.ReleaseName == releaseName {
 				return url.URL
 			}
 		}

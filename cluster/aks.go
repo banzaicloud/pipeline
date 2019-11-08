@@ -32,7 +32,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	internalAzure "github.com/banzaicloud/pipeline/internal/providers/azure"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -429,7 +429,7 @@ func (c *AKSCluster) GetResourceGroupName() string {
 }
 
 func (c *AKSCluster) loadAKSClusterModelFromDB() {
-	database := config.DB()
+	database := global.DB()
 	database.Where(model.AKSClusterModel{ID: c.GetID()}).First(&c.modelCluster.AKS)
 }
 

@@ -25,7 +25,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"go.uber.org/cadence/client"
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,11 +32,11 @@ import (
 	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	intClusterGroup "github.com/banzaicloud/pipeline/internal/clustergroup"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -112,7 +111,7 @@ func NewClusterAPI(
 // Deprecated: use internal.clusterGetter instead
 func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	// TODO: move these to a struct and create them only once upon application init
-	clusters := intCluster.NewClusters(config.DB())
+	clusters := intCluster.NewClusters(global.DB())
 	secretValidator := providers.NewSecretValidator(secret.Store)
 	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler)
 	clusterGetter := common.NewClusterGetter(clusterManager, log, errorHandler)
@@ -364,12 +363,7 @@ func GetNodePools(c *gin.Context) {
 			return
 		}
 
-		headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
 		for nodePoolName, nodePool := range clusterStatus.NodePools {
-			if nodePoolName == headNodePoolName {
-				continue
-			}
-
 			nodePoolStatus[nodePoolName] = &pkgCluster.ActualNodePoolStatus{
 				NodePoolStatus: *nodePool,
 				ActualCount:    nodePoolCounts[nodePoolName],

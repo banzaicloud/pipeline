@@ -23,11 +23,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/spf13/viper"
 )
-
-// nolint: gochecknoglobals
-var basePath = viper.GetString("pipeline.basepath")
 
 // DrainModeMiddleware prevents write operations from succeeding.
 type DrainModeMiddleware struct {
@@ -35,12 +31,15 @@ type DrainModeMiddleware struct {
 	mu              sync.RWMutex
 	drainModeMetric prometheus.Gauge
 
+	basePath string
+
 	errorHandler emperror.Handler
 }
 
 // NewDrainModeMiddleware returns a new DrainModeMiddleware instance.
-func NewDrainModeMiddleware(drainModeMetric prometheus.Gauge, errorHandler emperror.Handler) *DrainModeMiddleware {
+func NewDrainModeMiddleware(basePath string, drainModeMetric prometheus.Gauge, errorHandler emperror.Handler) *DrainModeMiddleware {
 	return &DrainModeMiddleware{
+		basePath:        basePath,
 		drainModeMetric: drainModeMetric,
 		errorHandler:    errorHandler,
 	}
@@ -89,7 +88,7 @@ func (m *DrainModeMiddleware) Middleware(c *gin.Context) {
 
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	if m.enabled && isWriteOperation(c) && !isException(c) {
+	if m.enabled && isWriteOperation(c) && !isException(c, m.basePath) {
 		c.AbortWithStatusJSON(
 			http.StatusServiceUnavailable,
 			map[string]string{
@@ -111,7 +110,7 @@ func isWriteOperation(c *gin.Context) bool {
 		c.Request.Method == http.MethodDelete
 }
 
-func isException(c *gin.Context) bool {
+func isException(c *gin.Context, basePath string) bool {
 	if c.Request.URL.Path == basePath+"/api/v1/tokens" {
 		return true
 	}

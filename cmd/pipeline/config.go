@@ -15,19 +15,22 @@
 package main
 
 import (
-	"net/url"
+	"fmt"
 	"os"
+	"strings"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
+	"github.com/banzaicloud/pipeline/internal/cmd"
+	"github.com/banzaicloud/pipeline/internal/platform/cadence"
+	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
-	"github.com/banzaicloud/pipeline/pkg/viperx"
 )
 
 // configuration holds any kind of configuration that comes from the outside world and
@@ -36,26 +39,97 @@ type configuration struct {
 	// Log configuration
 	Log log.Config
 
-	// ErrorHandler configuration
-	ErrorHandler errorhandler.Config
+	// Error handling configuration
+	Errors errorhandler.Config
+
+	// Telemetry configuration
+	Telemetry telemetryConfig
+
+	Pipeline struct {
+		Addr         string
+		InternalAddr string
+		BasePath     string
+		CertFile     string
+		KeyFile      string
+	}
 
 	// Auth configuration
-	Auth authConfig
+	Auth auth.Config
+
+	// Database configuration
+	Database struct {
+		database.Config `mapstructure:",squash"`
+
+		AutoMigrate bool
+	}
+
+	// Cadence configuration
+	Cadence cadence.Config
+
+	CORS struct {
+		AllowAllOrigins    bool
+		AllowOrigins       []string
+		AllowOriginsRegexp string
+	}
 
 	// Frontend configuration
 	Frontend frontend.Config
 
 	// Cluster configuration
-	Cluster clusterConfig
+	Cluster cmd.ClusterConfig
+
+	Cloudinfo struct {
+		Endpoint string
+	}
+
+	CICD struct {
+		Enabled  bool
+		Database database.Config
+	}
+
+	Github struct {
+		Token string
+	}
+
+	SpotMetrics struct {
+		Enabled            bool
+		CollectionInterval time.Duration
+	}
+
+	Audit struct {
+		Enabled   bool
+		Headers   []string
+		SkipPaths []string
+	}
+
+	UI struct {
+		URL                string
+		SignupRedirectPath string
+	}
 }
 
 // Validate validates the configuration.
 func (c configuration) Validate() error {
-	if err := c.ErrorHandler.Validate(); err != nil {
+	if err := c.Errors.Validate(); err != nil {
 		return err
 	}
 
+	if err := c.Telemetry.Validate(); err != nil {
+		return err
+	}
+
+	if c.Pipeline.Addr == "" {
+		return errors.New("pipeline address is required")
+	}
+	if c.Pipeline.InternalAddr == "" {
+		return errors.New("pipeline internal address is required")
+	}
+
 	if err := c.Auth.Validate(); err != nil {
+		return err
+	}
+
+	if err := c.Cadence.Validate(); err != nil {
 		return err
 	}
 
@@ -63,197 +137,127 @@ func (c configuration) Validate() error {
 		return err
 	}
 
-	return nil
-}
-
-// authConfig contains auth configuration.
-type authConfig struct {
-	Token authTokenConfig
-	Role  authRoleConfig
-}
-
-// Validate validates the configuration.
-func (c authConfig) Validate() error {
-	if err := c.Token.Validate(); err != nil {
+	if err := c.Cluster.Validate(); err != nil {
 		return err
 	}
 
-	if err := c.Role.Validate(); err != nil {
+	if c.Cloudinfo.Endpoint == "" {
+		return errors.New("cloudinfo endpoint is required")
+	}
+
+	// if c.CICD.Enabled {
+	if err := c.CICD.Database.Validate(); err != nil {
+		return err
+	}
+	// }
+
+	return nil
+}
+
+// Process post-processes the configuration after loading (before validation).
+func (c *configuration) Process() error {
+	if err := c.Cluster.Process(); err != nil {
 		return err
 	}
 
+	if c.Frontend.Issue.Github.Token == "" {
+		c.Frontend.Issue.Github.Token = c.Github.Token
+	}
+
 	return nil
 }
 
-// authRoleConfig contains role based authorization configuration.
-type authRoleConfig struct {
-	Default string
-	Binding map[string]string
+// telemetryConfig contains telemetry configuration.
+type telemetryConfig struct {
+	Enabled bool
+	Addr    string
+	Debug   bool
 }
 
 // Validate validates the configuration.
-func (c authRoleConfig) Validate() error {
-	if c.Default == "" {
-		return errors.New("auth role default is required")
+func (c telemetryConfig) Validate() error {
+	if !c.Enabled {
+		return nil
 	}
 
-	return nil
-}
-
-// authTokenConfig contains auth configuration.
-type authTokenConfig struct {
-	SigningKey string
-	Issuer     string
-	Audience   string
-}
-
-// Validate validates the configuration.
-func (c authTokenConfig) Validate() error {
-	if c.SigningKey == "" {
-		return errors.New("auth token signing key is required")
-	}
-
-	if len(c.SigningKey) < 32 {
-		return errors.New("auth token signing key must be at least 32 characters")
-	}
-
-	return nil
-}
-
-// clusterConfig contains cluster configuration.
-type clusterConfig struct {
-	Vault        clusterVaultConfig
-	Monitoring   clusterMonitorConfig
-	SecurityScan clusterSecurityScanConfig
-}
-
-// Validate validates the configuration.
-func (c clusterConfig) Validate() error {
-	if c.SecurityScan.Enabled {
-		if err := c.SecurityScan.Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// clusterVaultConfig contains cluster vault configuration.
-type clusterVaultConfig struct {
-	Enabled bool
-	Managed clusterVaultManagedConfig
-}
-
-// clusterVaultManagedConfig contains cluster vault configuration.
-type clusterVaultManagedConfig struct {
-	Enabled bool
-}
-
-// clusterMonitorConfig contains cluster vault configuration.
-type clusterMonitorConfig struct {
-	Enabled bool
-}
-
-// clusterSecurityScanConfig contains cluster security scan configuration.
-type clusterSecurityScanConfig struct {
-	Enabled bool
-	Anchore clusterSecurityScanAnchoreConfig
-}
-
-func (c clusterSecurityScanConfig) Validate() error {
-	if c.Anchore.Enabled {
-		if err := c.Anchore.Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// clusterSecurityScanAnchoreConfig contains cluster security scan anchore configuration.
-type clusterSecurityScanAnchoreConfig struct {
-	Enabled bool
-
-	anchore.Config `mapstructure:",squash"`
-}
-
-func (c clusterSecurityScanAnchoreConfig) Validate() error {
-	if c.Enabled {
-		if _, err := url.Parse(c.Endpoint); err != nil {
-			return errors.Wrap(err, "anchore endpoint must be a valid URL")
-		}
-
-		if c.User == "" {
-			return errors.New("anchore user is required")
-		}
-
-		if c.Password == "" {
-			return errors.New("anchore password is required")
-		}
+	if c.Addr == "" {
+		return errors.New("telemetry http server address is required")
 	}
 
 	return nil
 }
 
 // configure configures some defaults in the Viper instance.
-func configure(v *viper.Viper, _ *pflag.FlagSet) {
-	// Application constants
-	v.Set("appName", appName)
-	v.Set("appVersion", version)
-
-	if _, ok := os.LookupEnv("NO_COLOR"); ok {
-		v.SetDefault("no_color", true)
+func configure(v *viper.Viper, p *pflag.FlagSet) {
+	v.AllowEmptyEnv(true)
+	v.AddConfigPath(".")
+	v.AddConfigPath("./config")
+	v.AddConfigPath(fmt.Sprintf("$%s_CONFIG_DIR/", strings.ToUpper(envPrefix)))
+	p.Init(friendlyAppName, pflag.ExitOnError)
+	pflag.Usage = func() {
+		_, _ = fmt.Fprintf(os.Stderr, "Usage of %s:\n", friendlyAppName)
+		pflag.PrintDefaults()
 	}
+	_ = v.BindPFlags(p)
 
-	// Log configuration
-	v.SetDefault("logging.logformat", "text")
-	v.SetDefault("logging.loglevel", "debug")
-	v.RegisterAlias("log.format", "logging.logformat") // TODO: deprecate the above
-	v.RegisterAlias("log.level", "logging.loglevel")
-	v.RegisterAlias("log.noColor", "no_color")
+	v.SetEnvPrefix(envPrefix)
+	v.SetEnvKeyReplacer(strings.NewReplacer("::", "_", ".", "_", "-", "_"))
+	v.AutomaticEnv()
+
+	v.SetKeyDelimiter("::")
+
+	// Load common configuration
+	cmd.Configure(v, p)
 
 	// ErrorHandler configuration
-	v.RegisterAlias("errorHandler.serviceName", "appName")
-	v.RegisterAlias("errorHandler.serviceVersion", "appVersion")
+	v.Set("errors::serviceName", appName)
+	v.Set("errors::serviceVersion", version)
+
+	// Telemetry configuration
+	v.SetDefault("telemetry::enabled", false)
+	p.String("telemetry-addr", "127.0.0.1:9900", "Telemetry HTTP server address")
+	_ = v.BindPFlag("telemetry::addr", p.Lookup("telemetry-addr"))
+	v.SetDefault("telemetry::addr", "127.0.0.1:9900")
+	v.SetDefault("telemetry::debug", true)
+
+	// Pipeline configuration
+	p.String("addr", "127.0.0.1:9090", "Pipeline HTTP server address")
+	_ = v.BindPFlag("pipeline::addr", p.Lookup("addr"))
+	v.SetDefault("pipeline::addr", "127.0.0.1:9090")
+	v.SetDefault("pipeline::internalAddr", "127.0.0.1:9091")
+	v.SetDefault("pipeline::basePath", "")
+	v.SetDefault("pipeline::certFile", "")
+	v.SetDefault("pipeline::keyFile", "")
 
 	// Auth configuration
-	v.SetDefault("auth.token.issuer", "https://banzaicloud.com/")
-	v.SetDefault("auth.token.audience", "https://pipeline.banzaicloud.com")
-
-	v.SetDefault("auth.role.default", auth.RoleAdmin)
-	v.SetDefault("auth.role.binding", map[string]string{
+	v.SetDefault("auth::role::default", auth.RoleAdmin)
+	v.SetDefault("auth::role::binding", map[string]string{
 		auth.RoleAdmin:  ".*",
 		auth.RoleMember: "",
 	})
 
-	v.SetDefault("frontend.issue.enabled", false)
-	v.SetDefault("frontend.issue.driver", "github")
-	v.SetDefault("frontend.issue.labels", []string{"community"})
+	// Database config
+	v.SetDefault("database::autoMigrate", false)
 
-	v.RegisterAlias("frontend.issue.github.token", "github.token")
-	v.SetDefault("frontend.issue.github.owner", "banzaicloud")
-	v.SetDefault("frontend.issue.github.repository", "pipeline-issues")
+	v.SetDefault("cors::allowAllOrigins", true)
+	v.SetDefault("cors::allowOrigins", []string{})
+	v.SetDefault("cors::allowOriginsRegexp", "")
 
-	v.SetDefault("cluster.vault.enabled", true)
-	v.SetDefault("cluster.vault.managed.enabled", false)
-	v.SetDefault("cluster.monitoring.enabled", true)
-	v.SetDefault("cluster.securityScan.enabled", true)
-	v.SetDefault("cluster.securityScan.anchore.enabled", false)
-	v.SetDefault("cluster.securityScan.anchore.endpoint", "")
-	v.SetDefault("cluster.securityScan.anchore.user", "")
-	v.SetDefault("cluster.securityScan.anchore.password", "")
-}
+	v.SetDefault("frontend::issue::enabled", false)
+	v.SetDefault("frontend::issue::driver", "github")
+	v.SetDefault("frontend::issue::labels", []string{"community"})
 
-func registerAliases(v *viper.Viper) {
-	// Auth configuration
-	viperx.RegisterAlias(v, "auth.tokensigningkey", "auth.token.signingKey")
-	viperx.RegisterAlias(v, "auth.jwtissuer", "auth.token.issuer")
-	viperx.RegisterAlias(v, "auth.jwtaudience", "auth.token.audience")
+	v.SetDefault("frontend::issue::github::token", "")
+	v.SetDefault("frontend::issue::github::owner", "banzaicloud")
+	v.SetDefault("frontend::issue::github::repository", "pipeline-issues")
 
-	// Frontend configuration
-	viperx.RegisterAlias(v, "issue.type", "frontend.issue.driver")
-	viperx.RegisterAlias(v, "issue.githubLabels", "frontend.issue.labels")
+	v.SetDefault("spotmetrics::enabled", false)
+	v.SetDefault("spotmetrics::collectionInterval", 30*time.Second)
 
-	viperx.RegisterAlias(v, "issue.githubOwner", "frontend.issue.github.owner")
-	viperx.RegisterAlias(v, "issue.githubRepository", "frontend.issue.github.repository")
+	v.SetDefault("audit::enabled", true)
+	v.SetDefault("audit::headers", []string{"secretId"})
+	v.SetDefault("audit::skipPaths", []string{"/auth/dex/callback", "/pipeline/api"})
+
+	v.SetDefault("pipeline::ui::url", "/ui")
+	v.SetDefault("pipeline::ui::signupRedirectPath", "/ui")
 }

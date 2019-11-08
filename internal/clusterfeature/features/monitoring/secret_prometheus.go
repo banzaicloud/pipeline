@@ -12,8 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package global
+package monitoring
 
-// AutoDNSEnabled tells the rest of the platform whether auto DNS registration is enabled.
-// nolint: gochecknoglobals
-var AutoDNSEnabled bool
+type prometheusSecretInfoer struct{ baseSecretInfoer }
+
+func (prometheusSecretInfoer) name() string {
+	return "Prometheus"
+}
+
+func (i prometheusSecretInfoer) generatedSecretName() string {
+	return getPrometheusSecretName(i.clusterID)
+}

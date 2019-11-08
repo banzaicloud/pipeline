@@ -22,7 +22,7 @@ import (
 	"net/url"
 	"os"
 	"path"
-	"strings"
+	"regexp"
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
@@ -46,6 +46,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/api"
@@ -63,7 +64,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth/authdriver"
 	"github.com/banzaicloud/pipeline/auth/authgen"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
@@ -90,6 +90,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeaturedriver"
 	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns/dnsadapter"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan/securityscanadapter"
@@ -107,6 +108,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	"github.com/banzaicloud/pipeline/internal/platform/appkit"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
+	"github.com/banzaicloud/pipeline/internal/platform/cadence"
+	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
@@ -114,7 +117,6 @@ import (
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
-	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/internal/platform/watermill"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
@@ -144,6 +146,7 @@ func main() {
 
 	configure(v, p)
 
+	p.String("config", "", "Configuration file")
 	p.Bool("version", false, "Show version information")
 
 	_ = p.Parse(os.Args[1:])
@@ -154,17 +157,38 @@ func main() {
 		os.Exit(0)
 	}
 
-	registerAliases(v)
+	if c, _ := p.GetString("config"); c != "" {
+		v.SetConfigFile(c)
+	}
 
-	var conf configuration
-	err := viper.Unmarshal(&conf)
+	err := v.ReadInConfig()
+	_, configFileNotFound := err.(viper.ConfigFileNotFoundError)
+	if !configFileNotFound {
+		emperror.Panic(errors.Wrap(err, "failed to read configuration"))
+	}
+
+	var config configuration
+	err = viper.Unmarshal(&config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
+	err = config.Process()
+	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
+
+	err = viper.Unmarshal(&global.Config)
+	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
+
+	err = global.Config.Process()
+	emperror.Panic(errors.WithMessage(err, "failed to process global configuration"))
+
 	// Create logger (first thing after configuration loading)
-	logger := log.NewLogger(conf.Log)
+	logger := log.NewLogger(config.Log)
 
 	// Legacy logger instance
-	logrusLogger := config.Logger()
+	logrusLogger := log.NewLogrusLogger(log.Config{
+		Level:  config.Log.Level,
+		Format: config.Log.Format,
+	})
+	global.SetLogrusLogger(logrusLogger)
 
 	// Provide some basic context to all log lines
 	logger = log.WithFields(logger, map[string]interface{}{"application": appName})
@@ -172,14 +196,25 @@ func main() {
 	log.SetStandardLogger(logger)
 	log.SetK8sLogger(logger)
 
-	err = conf.Validate()
+	if configFileNotFound {
+		logger.Warn("configuration file not found")
+	}
+
+	err = config.Validate()
 	if err != nil {
 		logger.Error(err.Error())
 
 		os.Exit(3)
 	}
 
-	errorHandler, err := errorhandler.New(conf.ErrorHandler, logger)
+	err = global.Config.Validate()
+	if err != nil {
+		logger.Error(err.Error(), map[string]interface{}{"config": "global"})
+
+		os.Exit(3)
+	}
+
+	errorHandler, err := errorhandler.New(config.Errors, logger)
 	if err != nil {
 		logger.Error(err.Error())
 
@@ -194,13 +229,15 @@ func main() {
 	logger.Info("starting application", buildInfo.Fields())
 
 	// Connect to database
-	db := config.DB()
-	cicdDB, err := config.CICDDB()
-	emperror.Panic(err)
+	db, err := database.Connect(config.Database.Config)
+	emperror.Panic(errors.WithMessage(err, "failed to initialize db"))
+	global.SetDB(db)
+
+	// TODO: make this optional when CICD is disabled
+	cicdDB, err := database.Connect(config.CICD.Database)
+	emperror.Panic(errors.WithMessage(err, "failed to initialize CICD db"))
 
 	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor{})
-
-	basePath := viper.GetString("pipeline.basepath")
 
 	publisher, subscriber := watermill.NewPubSub(logger)
 	defer publisher.Close()
@@ -235,7 +272,7 @@ func main() {
 		)
 		eventDispatcher := authgen.NewOrganizationEventDispatcher(eventBus)
 
-		roleBinder, err := auth.NewRoleBinder(conf.Auth.Role.Default, conf.Auth.Role.Binding)
+		roleBinder, err := auth.NewRoleBinder(config.Auth.Role.Default, config.Auth.Role.Binding)
 		emperror.Panic(err)
 
 		organizationSyncer = auth.NewOIDCOrganizationSyncer(
@@ -251,14 +288,14 @@ func main() {
 	// Initialize auth
 	tokenStore := bauth.NewVaultTokenStore("pipeline")
 	tokenGenerator := pkgAuth.NewJWTTokenGenerator(
-		conf.Auth.Token.Issuer,
-		conf.Auth.Token.Audience,
-		base32.StdEncoding.EncodeToString([]byte(conf.Auth.Token.SigningKey)),
+		config.Auth.Token.Issuer,
+		config.Auth.Token.Audience,
+		base32.StdEncoding.EncodeToString([]byte(config.Auth.Token.SigningKey)),
 	)
 	tokenManager := pkgAuth.NewTokenManager(tokenGenerator, tokenStore)
-	auth.Init(cicdDB, conf.Auth.Token.SigningKey, tokenStore, tokenManager, organizationSyncer)
+	auth.Init(db, cicdDB, config.Auth, config.UI.URL, config.UI.SignupRedirectPath, tokenStore, tokenManager, organizationSyncer)
 
-	if viper.GetBool(config.DBAutoMigrateEnabled) {
+	if config.Database.AutoMigrate {
 		logger.Info("running automatic schema migrations")
 
 		err = Migrate(db, logrusLogger, commonLogger)
@@ -276,6 +313,8 @@ func main() {
 	if dnsSvc == nil {
 		logger.Info("external dns service functionality is not enabled")
 	}
+
+	anchore.Init()
 
 	prometheus.MustRegister(cluster.NewExporter())
 
@@ -312,19 +351,17 @@ func main() {
 	}
 	prometheus.MustRegister(statusChangeDurationMetric, clusterTotalMetric)
 
-	externalBaseURL := viper.GetString("pipeline.externalURL")
+	externalBaseURL := global.Config.Pipeline.External.URL
 	if externalBaseURL == "" {
-		externalBaseURL = "http://" + viper.GetString("pipeline.bindaddr")
+		externalBaseURL = "http://" + config.Pipeline.Addr
 		logger.Warn("no pipeline.external_url set, falling back to bind address", map[string]interface{}{
 			"fallback": externalBaseURL,
 		})
 	}
 
-	externalURLInsecure := viper.GetBool(config.PipelineExternalURLInsecure)
+	externalURLInsecure := global.Config.Pipeline.External.Insecure
 
-	oidcIssuerURL := viper.GetString(config.OIDCIssuerURL)
-
-	workflowClient, err := config.CadenceClient()
+	workflowClient, err := cadence.NewClient(config.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
 	if err != nil {
 		errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
 	}
@@ -337,7 +374,7 @@ func main() {
 	err = clusterTTLController.Start()
 	emperror.Panic(err)
 
-	if viper.GetBool(config.MonitorEnabled) {
+	if config.Cluster.Monitoring.Monitor.Enabled {
 		client, err := k8sclient.NewInClusterClient()
 		if err != nil {
 			errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
@@ -352,12 +389,12 @@ func main() {
 				clusterManager,
 				db,
 				dnsBaseDomain,
-				viper.GetString(config.ControlPlaneNamespace),
-				viper.GetString(config.PipelineSystemNamespace),
-				viper.GetString(config.MonitorConfigMap),
-				viper.GetString(config.MonitorConfigMapPrometheusKey),
-				viper.GetString(config.MonitorCertSecret),
-				viper.GetString(config.MonitorCertMountPath),
+				global.Config.Kubernetes.Namespace,
+				global.Config.Cluster.Namespace,
+				config.Cluster.Monitoring.Monitor.ConfigMap,
+				config.Cluster.Monitoring.Monitor.ConfigMapPrometheusKey,
+				config.Cluster.Monitoring.Monitor.CertSecret,
+				config.Cluster.Monitoring.Monitor.MountPath,
 				errorHandler,
 			)
 			monitorClusterSubscriber.Init()
@@ -365,22 +402,21 @@ func main() {
 		}
 	}
 
-	if viper.GetBool(config.SpotMetricsEnabled) {
-		go monitor.NewSpotMetricsExporter(context.Background(), clusterManager, logrusLogger.WithField("subsystem", "spot-metrics-exporter")).Run(viper.GetDuration(config.SpotMetricsCollectionInterval))
+	if config.SpotMetrics.Enabled {
+		go monitor.NewSpotMetricsExporter(
+			context.Background(),
+			clusterManager,
+			logrusLogger.WithField("subsystem", "spot-metrics-exporter"),
+		).Run(config.SpotMetrics.CollectionInterval)
 	}
 
-	cloudInfoEndPoint := viper.GetString(config.CloudInfoEndPoint)
-	if cloudInfoEndPoint == "" {
-		errorHandler.Handle(errors.New("missing CloudInfo endpoint"))
-		return
-	}
-	cloudInfoClient := cloudinfo.NewClient(cloudInfoEndPoint, logrusLogger)
+	cloudInfoClient := cloudinfo.NewClient(config.Cloudinfo.Endpoint, logrusLogger)
 
-	gormAzurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db)
+	gormAzurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db, commonLogger)
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterCreator(
 			azurePKEDriver.ClusterCreatorConfig{
-				OIDCIssuerURL:               oidcIssuerURL,
+				OIDCIssuerURL:               config.Auth.OIDC.Issuer,
 				PipelineExternalURL:         externalBaseURL,
 				PipelineExternalURLInsecure: externalURLInsecure,
 			},
@@ -405,8 +441,7 @@ func main() {
 
 	cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
 	clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
-	infraNamespace := viper.GetString(config.PipelineSystemNamespace)
-	federationHandler := federation.NewFederationHandler(cgroupAdapter, infraNamespace, logrusLogger, errorHandler)
+	federationHandler := federation.NewFederationHandler(cgroupAdapter, global.Config.Cluster.Namespace, logrusLogger, errorHandler)
 	deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler)
 	serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler)
 	clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)
@@ -434,14 +469,14 @@ func main() {
 	router.Use(ocmux.Middleware())
 
 	// These two paths can contain sensitive information, so it is advised not to log them out.
-	skipPaths := viper.GetStringSlice("audit.skippaths")
+	skipPaths := config.Audit.SkipPaths
 	engine.Use(correlationid.Middleware())
 	engine.Use(ginlog.Middleware(logrusLogger, skipPaths...))
 
 	// Add prometheus metric endpoint
-	if viper.GetBool(config.MetricsEnabled) {
+	if config.Telemetry.Enabled {
 		p := ginprometheus.NewPrometheus("pipeline", []string{})
-		p.SetListenAddress(viper.GetString(config.MetricsAddress) + ":" + viper.GetString(config.MetricsPort))
+		p.SetListenAddress(config.Telemetry.Addr)
 		p.Use(engine, "/metrics")
 	}
 
@@ -452,18 +487,43 @@ func main() {
 		Help:      "read only mode is on/off",
 	})
 	prometheus.MustRegister(drainModeMetric)
-	engine.Use(ginternal.NewDrainModeMiddleware(drainModeMetric, errorHandler).Middleware)
-	engine.Use(cors.New(config.GetCORS()))
-	if viper.GetBool("audit.enabled") {
+	engine.Use(ginternal.NewDrainModeMiddleware(config.Pipeline.BasePath, drainModeMetric, errorHandler).Middleware)
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, "Authorization", "secretId", "Banzai-Cloud-Pipeline-UUID")
+	corsConfig.AllowCredentials = true
+	corsConfig.AllowMethods = []string{"PUT", "DELETE", "GET", "POST", "OPTIONS", "PATCH"}
+	corsConfig.ExposeHeaders = []string{"Content-Length"}
+
+	corsConfig.AllowAllOrigins = config.CORS.AllowAllOrigins
+	if !corsConfig.AllowAllOrigins {
+		allowOriginsRegexp := config.CORS.AllowOriginsRegexp
+		if allowOriginsRegexp != "" {
+			originsRegexp, err := regexp.Compile(fmt.Sprintf("^(%s)$", allowOriginsRegexp))
+			if err == nil {
+				corsConfig.AllowOriginFunc = func(origin string) bool {
+					return originsRegexp.Match([]byte(origin))
+				}
+			}
+		} else if allowOrigins := config.CORS.AllowOrigins; len(allowOrigins) > 0 {
+			corsConfig.AllowOrigins = allowOrigins
+		}
+	}
+
+	engine.Use(cors.New(corsConfig))
+
+	if config.Audit.Enabled {
 		logger.Info("Audit enabled, installing Gin audit middleware")
-		engine.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, logrusLogger))
+		engine.Use(audit.LogWriter(skipPaths, config.Audit.Headers, db, logrusLogger))
 	}
 	engine.Use(func(c *gin.Context) { // TODO: move to middleware
 		c.Request = c.Request.WithContext(ctxutil.WithParams(c.Request.Context(), ginutils.ParamsToMap(c.Params)))
 	})
 
-	router.Path("/").Methods(http.MethodGet).Handler(http.RedirectHandler(viper.GetString("pipeline.uipath"), http.StatusTemporaryRedirect))
+	router.Path("/").Methods(http.MethodGet).Handler(http.RedirectHandler(config.UI.URL, http.StatusTemporaryRedirect))
 	engine.GET("/", gin.WrapH(router))
+
+	basePath := config.Pipeline.BasePath
 
 	base := engine.Group(basePath)
 	router = router.PathPrefix(basePath).Subrouter()
@@ -471,9 +531,8 @@ func main() {
 	// Frontend service
 	{
 		err := frontend.RegisterApp(
-			// router.PathPrefix("/frontend").Subrouter(),
-			router, // TODO: remove after compatibility routes are removed
-			conf.Frontend,
+			router.PathPrefix("/frontend").Subrouter(),
+			config.Frontend,
 			db,
 			buildInfo,
 			auth.UserExtractor{},
@@ -484,12 +543,10 @@ func main() {
 
 		// TODO: refactor authentication middleware
 		base.Any("frontend/notifications", gin.WrapH(router))
-		base.GET("notifications", gin.WrapH(router)) // Compatibility routes
 
 		// TODO: return 422 unprocessable entity instead of 404
-		if conf.Frontend.Issue.Enabled {
+		if config.Frontend.Issue.Enabled {
 			base.Any("frontend/issues", auth.Handler, gin.WrapH(router))
-			base.POST("issues", auth.Handler, gin.WrapH(router)) // Compatibility routes
 		}
 	}
 
@@ -515,35 +572,27 @@ func main() {
 		dcGroup.GET("", dashboardAPI.GetClusterDashboard)
 	}
 
-	scmTokenStore := auth.NewSCMTokenStore(tokenStore, viper.GetBool("cicd.enabled"))
+	scmTokenStore := auth.NewSCMTokenStore(tokenStore, global.Config.CICD.Enabled)
 
 	domainAPI := api.NewDomainAPI(clusterManager, logrusLogger, errorHandler)
 	organizationAPI := api.NewOrganizationAPI(organizationSyncer, auth.NewRefreshTokenStore(tokenStore))
 	userAPI := api.NewUserAPI(db, scmTokenStore, logrusLogger, errorHandler)
 	networkAPI := api.NewNetworkAPI(logrusLogger)
 
-	switch viper.GetString(config.DNSBaseDomain) {
-	case "", "example.com", "example.org":
-		global.AutoDNSEnabled = false
-	default:
-		global.AutoDNSEnabled = true
-	}
-
 	var spotguideAPI *api.SpotguideAPI
 
-	if viper.GetBool("cicd.enabled") {
-
+	if global.Config.CICD.Enabled {
 		spotguidePlatformData := spotguide.PlatformData{
-			AutoDNSEnabled: global.AutoDNSEnabled,
+			AutoDNSEnabled: global.Config.Cluster.DNS.BaseDomain != "",
 		}
 
-		scmProvider := viper.GetString("cicd.scm")
+		scmProvider := global.Config.CICD.SCM
 		var scmToken string
 		switch scmProvider {
 		case "github":
-			scmToken = viper.GetString("github.token")
+			scmToken = global.Config.Github.Token
 		case "gitlab":
-			scmToken = viper.GetString("gitlab.token")
+			scmToken = global.Config.Gitlab.Token
 		default:
 			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
 		}
@@ -551,13 +600,17 @@ func main() {
 		scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken, scmTokenStore)
 		emperror.Panic(errors.WrapIf(err, "failed to create SCMFactory"))
 
-		sharedSpotguideOrg, err := spotguide.EnsureSharedSpotguideOrganization(config.DB(), scmProvider, viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
+		sharedSpotguideOrg, err := spotguide.EnsureSharedSpotguideOrganization(
+			db,
+			scmProvider,
+			global.Config.Spotguide.SharedLibraryGitHubOrganization,
+		)
 		if err != nil {
 			errorHandler.Handle(errors.WrapIf(err, "failed to create shared Spotguide organization"))
 		}
 
 		spotguideManager := spotguide.NewSpotguideManager(
-			config.DB(),
+			db,
 			version,
 			scmFactory,
 			sharedSpotguideOrg,
@@ -579,7 +632,7 @@ func main() {
 		apiRouter.MethodNotAllowedHandler = problems.StatusProblemHandler(problems.NewStatusProblem(http.StatusMethodNotAllowed))
 
 		v1.Use(auth.Handler)
-		capdriver.RegisterHTTPHandler(mapCapabilities(conf), emperror.MakeContextAware(errorHandler), v1)
+		capdriver.RegisterHTTPHandler(mapCapabilities(config), emperror.MakeContextAware(errorHandler), v1)
 		v1.GET("/securityscan", api.SecurityScanEnabled)
 		v1.GET("/me", userAPI.GetCurrentUser)
 		v1.PATCH("/me", userAPI.UpdateCurrentUser)
@@ -600,7 +653,7 @@ func main() {
 			orgs.Use(api.OrganizationMiddleware)
 			orgs.Use(authorizationMiddleware)
 
-			if viper.GetBool("cicd.enabled") {
+			if global.Config.CICD.Enabled {
 				spotguides := orgs.Group("/:orgid/spotguides")
 				spotguideAPI.Install(spotguides)
 			}
@@ -662,25 +715,34 @@ func main() {
 				logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 				clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
-				orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
+				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
 				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 				featureManagers := []clusterfeature.FeatureManager{
-					featureDns.MakeFeatureManager(clusterGetter, logger, orgDomainService),
 					securityscan.MakeFeatureManager(logger),
 				}
 
-				if conf.Cluster.Vault.Enabled {
-					featureManagers = append(featureManagers, featureVault.MakeFeatureManager(clusterGetter, secretStore, conf.Cluster.Vault.Managed.Enabled, logger))
+				if config.Cluster.DNS.Enabled {
+					featureManagers = append(featureManagers, featureDns.NewFeatureManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
 				}
 
-				if conf.Cluster.Monitoring.Enabled {
+				if config.Cluster.Vault.Enabled {
+					featureManagers = append(featureManagers, featureVault.MakeFeatureManager(clusterGetter, secretStore, config.Cluster.Vault.Managed.Enabled, logger))
+				}
+
+				if config.Cluster.Monitoring.Enabled {
 					endpointManager := endpoints.NewEndpointManager(logger)
 					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
-					monitoringConfig := featureMonitoring.NewFeatureConfiguration()
-					featureManagers = append(featureManagers, featureMonitoring.MakeFeatureManager(clusterGetter, secretStore, endpointManager, helmService, monitoringConfig, logger))
+					featureManagers = append(featureManagers, featureMonitoring.MakeFeatureManager(
+						clusterGetter,
+						secretStore,
+						endpointManager,
+						helmService,
+						config.Cluster.Monitoring.Config,
+						logger,
+					))
 				}
 
-				if conf.Cluster.SecurityScan.Enabled {
+				if config.Cluster.SecurityScan.Enabled {
 					customAnchoreConfigProvider := securityscan.NewCustomAnchoreConfigProvider(
 						featureRepository,
 						secretStore,
@@ -689,9 +751,9 @@ func main() {
 
 					configProvider := anchore2.ConfigProviderChain{customAnchoreConfigProvider}
 
-					if conf.Cluster.SecurityScan.Anchore.Enabled {
+					if config.Cluster.SecurityScan.Anchore.Enabled {
 						configProvider = append(configProvider, securityscan.NewClusterAnchoreConfigProvider(
-							conf.Cluster.SecurityScan.Anchore.Endpoint,
+							config.Cluster.SecurityScan.Anchore.Endpoint,
 							securityscanadapter.NewUserNameGenerator(securityscanadapter.NewClusterService(clusterManager)),
 							securityscanadapter.NewUserSecretStore(secretStore),
 						))
@@ -703,9 +765,10 @@ func main() {
 					policySvc := anchore.NewPolicyService(configProvider, logger)
 					policyHandler := api.NewPolicyHandler(commonClusterGetter, policySvc, logger)
 
-					securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, logger)
+					secErrorHandler := emperror.MakeContextAware(errorHandler)
+					securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, secErrorHandler, logger)
 
-					anchoreProxy := api.NewAnchoreProxy(basePath, configProvider, emperror.MakeContextAware(errorHandler), logger)
+					anchoreProxy := api.NewAnchoreProxy(basePath, configProvider, secErrorHandler, logger)
 					proxyHandler := anchoreProxy.Proxy()
 
 					// forthcoming endpoint for all requests proxied to Anchore
@@ -787,9 +850,9 @@ func main() {
 			clusterAuthAPI, err := api.NewClusterAuthAPI(
 				commonClusterGetter,
 				clusterAuthService,
-				conf.Auth.Token.SigningKey,
-				oidcIssuerURL,
-				viper.GetBool(config.OIDCIssuerInsecure),
+				config.Auth.Token.SigningKey,
+				config.Auth.OIDC.Issuer,
+				config.Auth.OIDC.Insecure,
 				pipelineExternalURL.String(),
 			)
 			emperror.Panic(errors.WrapIf(err, "failed to create ClusterAuthAPI"))
@@ -935,41 +998,29 @@ func main() {
 		backups.AddOrgRoutes(orgs.Group("/:orgid/backups"), clusterManager)
 	}
 
-	arkEvents.NewClusterEventHandler(arkEvents.NewClusterEvents(clusterEventBus), config.DB(), logrusLogger)
-	if viper.GetBool(config.ARKSyncEnabled) {
+	arkEvents.NewClusterEventHandler(arkEvents.NewClusterEvents(clusterEventBus), db, logrusLogger)
+	if global.Config.Cluster.DisasterRecovery.Ark.SyncEnabled {
 		go arkSync.RunSyncServices(
 			context.Background(),
-			config.DB(),
+			db,
 			arkClusterManager.New(clusterManager),
-			platformlog.NewLogrusLogger(platformlog.Config{
-				Level:  viper.GetString(config.ARKLogLevel),
-				Format: viper.GetString(conf.Log.Format),
-			}).WithField("subsystem", "ark"),
+			logrusLogger.WithField("subsystem", "ark"),
 			errorHandler,
-			viper.GetDuration(config.ARKBucketSyncInterval),
-			viper.GetDuration(config.ARKRestoreSyncInterval),
-			viper.GetDuration(config.ARKBackupSyncInterval),
+			global.Config.Cluster.DisasterRecovery.Ark.BucketSyncInterval,
+			global.Config.Cluster.DisasterRecovery.Ark.RestoreSyncInterval,
+			global.Config.Cluster.DisasterRecovery.Ark.BackupSyncInterval,
 		)
 	}
 
 	base.GET("api", api.MetaHandler(engine, basePath+"/api"))
 
-	internalBindAddr := viper.GetString("pipeline.internalBindAddr")
+	internalBindAddr := config.Pipeline.InternalAddr
 	logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})
 
-	go createInternalAPIRouter(skipPaths, db, basePath, clusterAPI, logger, logrusLogger).Run(internalBindAddr) // nolint: errcheck
+	go createInternalAPIRouter(config, db, basePath, clusterAPI, logger, logrusLogger).Run(internalBindAddr) // nolint: errcheck
 
-	bindAddr := viper.GetString("pipeline.bindaddr")
-	if port := viper.GetInt("pipeline.listenport"); port != 0 { // TODO: remove deprecated option
-		host := strings.Split(bindAddr, ":")[0]
-		bindAddr = fmt.Sprintf("%s:%d", host, port)
-		logger.Warn(fmt.Sprintf(
-			"pipeline.listenport=%d setting is deprecated! Falling back to pipeline.bindaddr=%s",
-			port,
-			bindAddr,
-		))
-	}
-	certFile, keyFile := viper.GetString("pipeline.certfile"), viper.GetString("pipeline.keyfile")
+	bindAddr := config.Pipeline.Addr
+	certFile, keyFile := config.Pipeline.CertFile, config.Pipeline.KeyFile
 	if certFile != "" && keyFile != "" {
 		logger.Info("Pipeline API listening", map[string]interface{}{"address": "https://" + bindAddr})
 		_ = engine.RunTLS(bindAddr, certFile, keyFile)
@@ -979,15 +1030,15 @@ func main() {
 	}
 }
 
-func createInternalAPIRouter(skipPaths []string, db *gorm.DB, basePath string, clusterAPI *api.ClusterAPI, logger logur.Logger, logrusLogger logrus.FieldLogger) *gin.Engine {
+func createInternalAPIRouter(conf configuration, db *gorm.DB, basePath string, clusterAPI *api.ClusterAPI, logger logur.Logger, logrusLogger logrus.FieldLogger) *gin.Engine {
 	// Initialise Gin router for Internal API
 	internalRouter := gin.New()
 	internalRouter.Use(correlationid.Middleware())
-	internalRouter.Use(ginlog.Middleware(logrusLogger, skipPaths...))
+	internalRouter.Use(ginlog.Middleware(logrusLogger, conf.Audit.SkipPaths...))
 	internalRouter.Use(gin.Recovery())
-	if viper.GetBool("audit.enabled") {
+	if conf.Audit.Enabled {
 		logger.Info("Audit enabled, installing Gin audit middleware to internal router")
-		internalRouter.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, logrusLogger))
+		internalRouter.Use(audit.LogWriter(conf.Audit.SkipPaths, conf.Audit.Headers, db, logrusLogger))
 	}
 	internalGroup := internalRouter.Group(path.Join(basePath, "api", "v1/", "orgs"))
 	internalGroup.Use(auth.InternalUserHandler)

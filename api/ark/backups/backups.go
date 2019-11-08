@@ -19,7 +19,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/api/ark/common"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 const (
@@ -37,7 +37,7 @@ func AddOrgRoutes(group *gin.RouterGroup, clusterManager *cluster.Manager) {
 // AddRoutes adds ARK backups related API routes
 func AddRoutes(group *gin.RouterGroup) {
 
-	group.Use(common.ARKMiddleware(config.DB(), common.Log))
+	group.Use(common.ARKMiddleware(global.DB(), common.Log))
 	group.GET("", List)
 	group.POST("", Create)
 	group.PUT("/sync", Sync)

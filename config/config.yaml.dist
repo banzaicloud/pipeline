@@ -1,0 +1,417 @@
+# This is the example configuration for Pipeline
+
+# Pipeline logging configuration
+#log:
+#    level: "info"
+#    format: "logfmt"
+
+# Pipeline error handling configuration
+#errors:
+#    stackdriver:
+#        enabled: false
+#        projectId: ""
+
+#telemetry:
+#    enabled: false
+#    addr: "127.0.0.1:9900"
+#
+#    # if true, some metrics have unique labels
+#    debug: true
+
+pipeline:
+    # An UUID that identifies the specific installation (deployment) of the platform.
+    # If a good UUID is not available, do not generate one automatically, because no UUID is better than one that always changes.
+    # uuid: ""
+
+#    addr: "127.0.0.1:9090"
+
+    # Bind address for Internal API
+#    internalAddr: "127.0.0.1:9091"
+
+    # URL base path
+#    basePath: ""
+
+    certFile: ""
+    keyFile: ""
+
+    external:
+        # Base URL where the end users can reach this pipeline instance
+        url: ""
+#        insecure: false
+
+#ui:
+#    url: "/ui"
+#    signupRedirectUrl: "/ui"
+
+database:
+    # dialect: "postgres"
+    dialect: "mysql"
+    host: "localhost"
+    # port: 5432
+    port: 3306
+    # tls: "disable"
+    tls: "false"
+    user: ""
+    # role: ""
+    password: ""
+    name: "pipeline"
+
+    # Turn this to true to see all queries in the log
+#    queryLog: false
+
+#    autoMigrate: false
+
+cadence:
+    host: ""
+#    port: 7933
+#    domain: "pipeline"
+#    createNonexistentDomain: false
+#    workflowExecutionRetentionPeriodInDays: 3
+
+#cors:
+#    # Note: this should be disabled in production!
+#    # TODO: disable all orgins by default?
+#    allowAllOrigins: true
+#    allowOrigins: []
+#    allowOriginsRegexp: ""
+
+auth:
+    oidc:
+        issuer: ""
+#        insecure: false
+        clientId: ""
+        clientSecret: ""
+
+#    cli:
+#        clientId: "banzai-cli"
+
+#    cookie:
+#        secure: true
+#        domain: ""
+#        setDomain: false
+
+#        role:
+#            default: "admin"
+#            binding:
+#                admin: ".*"
+#                member: ""
+
+    token:
+        signingKey: ""
+        issuer: ""
+        audience: ""
+
+dex:
+    apiAddr: ""
+    # apiCa: ""
+
+#kubernetes:
+#    # Namespace where Pipeline currently runs
+#    namespace: "default"
+#
+#    client:
+#        # Deny connecting to API servers other than ones listening on globally routable IPv4 addresses
+#        # This will be refactored according to https://github.com/banzaicloud/pipeline/issues/2263
+#        forceGlobal: false
+
+#frontend:
+#    issue:
+#        enabled: false
+#        driver: "github"
+#
+#        github:
+#            owner: "banzaicloud"
+#            repository: "pipeline-issues"
+
+#cluster:
+#    # An initial Kubernetes manifest to be installed on clusters.
+#    # It accepts a file path with valid YAML templates inside.
+#    manifest: ""
+#
+#    # Namespace to install components to
+#    namespace: "pipeline-system"
+#
+#    ingress:
+#        # Certificate CA for signing default ingress certs
+#        cert:
+#            source: "file"
+#            path: "config/certs"
+#
+#    labels:
+#        # Inherited from cluster.namespace when empty
+#        namespace: ""
+#
+#        domain: banzaicloud.io
+#        forbiddenDomains: [
+#            "k8s.io",
+#            "kubernetes.io",
+#            "google.com"
+#        ]
+#
+#        charts:
+#            nodepoolLabelOperator:
+#                chart: "banzaicloud-stable/nodepool-labels-operator"
+#                version: "0.0.3"
+#
+#                # See https://github.com/banzaicloud/banzai-charts/tree/master/nodepool-labels-operator for details
+#                values: {}
+#
+#    vault:
+#        enabled: true
+#
+#        # Inherited from cluster.namespace when empty
+#        namespace: ""
+#
+#        managed:
+#            enabled: false
+#
+#        charts:
+#            webhook:
+#                chart: "banzaicloud-stable/vault-secrets-webhook"
+#                version: "0.5.2"
+#
+#                # See https://github.com/banzaicloud/bank-vaults/tree/master/charts/vault-secrets-webhook for details
+#                values: {}
+#
+#    monitoring:
+#        enabled: true
+#
+#        # Inherited from cluster.namespace when empty
+#        namespace: ""
+#
+#        grafana:
+#            adminUser: admin
+#
+#        # Cluster monitoring configuration
+#        monitor:
+#            enabled: false
+#            configMap: ""
+#            configMapPrometheusKey: "prometheus.yml"
+#            certSecret: ""
+#            mountPath: ""
+#
+#        charts:
+#            operator:
+#                chart: "stable/prometheus-operator"
+#                version: "7.2.0"
+#
+#                # See https://github.com/helm/charts/tree/master/stable/prometheus-operator for details
+#                values: {}
+#
+#            pushgateway:
+#                chart: "stable/prometheus-pushgateway"
+#                version: "1.0.1"
+#
+#                # See https://github.com/helm/charts/tree/master/stable/prometheus-pushgateway for details
+#                values: {}
+#
+#    logging:
+#        enabled: true
+#
+#        # Inherited from cluster.namespace when empty
+#        namespace: ""
+#
+#        charts:
+#            operator:
+#                chart: "banzaicloud-stable/logging-operator"
+#                version: "0.3.3"
+#
+#                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-operator for details
+#                values: {}
+#
+#            loki:
+#                chart: "loki/loki"
+#                version: "0.17.1"
+#
+#                # See https://github.com/grafana/loki/tree/master/production/helm/loki for details
+#                values: {}
+#
+#    dns:
+#        enabled: true
+#
+#        # Inherited from cluster.namespace when empty
+#        namespace: ""
+#
+#        # Base domain used for Pipeline DNS provider
+#        baseDomain: ""
+#
+#        # Vault secret path (API v1) of the credentials to be used for Banzai DNS
+#        providerSecret: "secret/data/banzaicloud/aws"
+#
+#        charts:
+#            externalDns:
+#                chart: "stable/external-dns"
+#                version: "2.2.3"
+#
+#                # See https://github.com/helm/charts/tree/master/stable/external-dns for details
+#                values: {}
+#
+#    securityScan:
+#        enabled: true
+#        anchore:
+#            enabled: false
+#            endpoint: ""
+#            user: ""
+#            password: ""
+#
+#    autoscale:
+#        # Inherited from cluster.namespace when empty
+#        namespace: ""
+#
+#        hpa:
+#            # TODO: this should use monitoring feature (if installed)
+#            prometheus:
+#                serviceName: monitor-prometheus-server
+#                serviceContext: prometheus
+#                localPort: 9090
+#
+#        charts:
+#            clusterAutoscaler:
+#                chart: "banzaicloud-stable/cluster-autoscaler"
+#                version: "0.12.3"
+#
+#                # See https://github.com/banzaicloud/banzai-charts/tree/master/cluster-autoscaler for details
+#                values: {}
+#
+#            hpaOperator:
+#                chart: "banzaicloud-stable/hpa-operator"
+#                version: "0.0.14"
+#
+#                # See https://github.com/banzaicloud/banzai-charts/tree/master/hpa-operator for details
+#                values: {}
+#
+#    disasterRecovery:
+#        enabled: true
+#
+#        # Inherited from cluster.namespace when empty
+#        namespace: ""
+#
+#        ark:
+#            syncEnabled: true
+#            bucketSyncInterval: "10m"
+#            restoreSyncInterval: "20s"
+#            backupSyncInterval: "20s"
+#            restoreWaitTimeout: "5m"
+#
+#        charts:
+#            ark:
+#                chart: "banzaicloud-stable/ark"
+#                version: "1.2.2"
+#
+#                # See https://github.com/banzaicloud/banzai-charts/tree/master/ark for details
+#                values: {}
+#
+#    backyards:
+#        enabled: true
+#
+#        istio:
+#            # TODO: improve this
+#            # See https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/istio/deps/grafana/dashboards
+#            grafanaDashboardLocation: ./etc/dashboards/istio
+#
+#            pilotImage: "banzaicloud/istio-pilot:1.1.8-bzc.1"
+#            mixerImage: "banzaicloud/istio-mixer:1.1.8-bzc.1"
+#
+#        charts:
+#            istioOperator:
+#                chart: "banzaicloud-stable/istio-operator"
+#                version: "0.0.14"
+#
+#                # See https://github.com/banzaicloud/istio-operator/tree/release-1.3/deploy/charts/istio-operator for details
+#                values: {}
+#
+#            backyards:
+#                chart: "banzaicloud-stable/backyards"
+#                version: "0.1.4"
+#
+#                values: {}
+#
+#            canaryOperator:
+#                chart: "banzaicloud-stable/canary-operator"
+#                version: "0.1.2"
+#
+#                values: {}
+#
+#    federation:
+#        charts:
+#            kubefed:
+#                chart: "kubefed-charts/kubefed"
+#                version: "0.1.0-rc5"
+#
+#                # See https://github.com/kubernetes-sigs/kubefed/tree/master/charts/kubefed for details
+#                values: {}
+
+#helm:
+#    home: "./var/cache"
+#    tiller:
+#        version: "v2.14.2"
+#    repositories:
+#        stable: "https://kubernetes-charts.storage.googleapis.com"
+#        banzaicloud-stable: "https://kubernetes-charts.banzaicloud.com"
+#        loki: "https://grafana.github.io/loki/charts"
+
+#cloud:
+#    amazon:
+#        # Default Amazon region
+#        defaultRegion: "us-west-1"
+#
+#    alibaba:
+#        # Default Alibaba region
+#        defaultRegion: "eu-central-1"
+
+#distribution:
+#    eks:
+#        # EKS Cloud Formation template location
+#        templateLocation: ./templates/eks
+
+cloudinfo:
+    # Format: {baseUrl}/api/v1
+    endpoint: ""
+
+hollowtrees:
+    # Format: {baseUrl}/api/v1
+    endpoint: ""
+    tokenSigningKey: ""
+
+cicd:
+#    enabled: false
+#    url: "http://localhost:8000"
+#    insecure: false
+#    scm: "github"
+
+    database:
+        # dialect: "postgres"
+        dialect: "mysql"
+        host: "localhost"
+        # port: 5432
+        port: 3306
+        # tls: "disable"
+        tls: "false"
+        user: ""
+        # role: ""
+        password: ""
+        name: "cicd"
+
+        # Turn this to true to see all queries in the log
+#        queryLog: false
+
+#github:
+#    token: "YourPersonalAccessToken"
+
+#gitlab:
+#    url: "https://gitlab.com/"
+#    token: "YourPersonalAccessToken"
+
+#spotguide:
+#    allowPrereleases: false
+#    allowPrivateRepos: false
+#    syncInterval: "5m"
+#    sharedLibraryGitHubOrganization: "spotguides"
+
+#spotmetrics:
+#    enabled: false
+#    collectionInterval: "30s"
+
+#secret:
+#    tls:
+#        defaultValidity: 8760h # 1 year

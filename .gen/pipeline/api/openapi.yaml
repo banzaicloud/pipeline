@@ -4122,6 +4122,36 @@ paths:
       summary: Update current user's settings
       tags:
       - users
+  /api/v1/capabilities:
+    get:
+      description: Retrieve Pipeline capabilities
+      operationId: ListCapabilities
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: object
+                example:
+                  cicd:
+                    enabled: false
+                  features:
+                    monitoring:
+                      enabled: true
+                    securityScan:
+                      enabled: true
+                      managed: true
+                    vault:
+                      enabled: true
+                      managed: false
+                  issue:
+                    enabled: false
+                type: object
+          description: capabilities successfully returned
+      summary: Lists configured Pipeline capabilities
+      tags:
+      - pipeline
   /api/v1/orgs/{orgId}/azure/resourcegroups:
     get:
       description: Get all resource groups
@@ -11493,7 +11523,7 @@ components:
         instanceType:
           example: m4.xlarge
           type: string
-        spot_price:
+        spotPrice:
           example: "0.2"
           type: string
         autoscaling:
@@ -14488,6 +14518,25 @@ components:
           type: string
         network:
           $ref: '#/components/schemas/PKEOnAzureClusterNetwork'
+        accessPoints:
+          description: List of access points (i.e. load balancers, floating IPs) to
+            be created for the cluster. Access points are implemented using cloud
+            provider specific resources.
+          items:
+            enum:
+            - private
+            - public
+            type: string
+          type: array
+        apiServerAccessPoints:
+          description: List of access point references for the API server; currently,
+            public and private are the only valid values
+          items:
+            enum:
+            - private
+            - public
+            type: string
+          type: array
         nodepools:
           items:
             $ref: '#/components/schemas/PKEOnAzureNodePool'

@@ -17,6 +17,8 @@ package dns
 import (
 	"context"
 
+	"emperror.dev/errors"
+
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/secret"
@@ -26,11 +28,18 @@ type arr = []interface{}
 type obj = map[string]interface{}
 
 type dummyClusterGetter struct {
-	Clusters map[uint]clusterfeatureadapter.Cluster
+	Clusters map[uint]dummyCluster
 }
 
 func (d dummyClusterGetter) GetClusterByIDOnly(ctx context.Context, clusterID uint) (clusterfeatureadapter.Cluster, error) {
 	return d.Clusters[clusterID], nil
+}
+
+func (d dummyClusterGetter) GetClusterStatus(ctx context.Context, clusterID uint) (string, error) {
+	if c, ok := d.Clusters[clusterID]; ok {
+		return c.Status, nil
+	}
+	return "", errors.New("cluster not found")
 }
 
 type dummyCluster struct {
@@ -39,9 +48,9 @@ type dummyCluster struct {
 	OrgID     uint
 	ID        uint
 	UID       string
-	Ready     bool
 	NodePools map[string]bool
 	Rbac      bool
+	Status    string
 }
 
 func (d dummyCluster) SetSecurityScan(scan bool) {
@@ -66,10 +75,6 @@ func (d dummyCluster) GetUID() string {
 
 func (d dummyCluster) GetID() uint {
 	return d.ID
-}
-
-func (d dummyCluster) IsReady() (bool, error) {
-	return d.Ready, nil
 }
 
 func (d dummyCluster) NodePoolExists(nodePoolName string) bool {

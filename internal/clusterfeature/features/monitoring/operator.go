@@ -20,7 +20,9 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
+	"github.com/mitchellh/mapstructure"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/storage/v1beta1"
 
 	"github.com/banzaicloud/pipeline/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/cluster"
@@ -29,18 +31,25 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
 // FeatureOperator implements the Monitoring feature operator
 type FeatureOperator struct {
-	clusterGetter  clusterfeatureadapter.ClusterGetter
-	clusterService clusterfeature.ClusterService
-	helmService    features.HelmService
-	config         Configuration
-	logger         common.Logger
-	secretStore    features.SecretStore
+	clusterGetter     clusterfeatureadapter.ClusterGetter
+	clusterService    clusterfeature.ClusterService
+	helmService       features.HelmService
+	kubernetesService features.KubernetesService
+	config            Config
+	logger            common.Logger
+	secretStore       features.SecretStore
+}
+
+type chartValuesManager struct {
+	operator         FeatureOperator
+	clusterID        uint
+	headNodeAffinity v1.Affinity
+	tolerations      []v1.Toleration
 }
 
 // MakeFeatureOperator returns a Monitoring feature operator
@@ -48,17 +57,19 @@ func MakeFeatureOperator(
 	clusterGetter clusterfeatureadapter.ClusterGetter,
 	clusterService clusterfeature.ClusterService,
 	helmService features.HelmService,
-	config Configuration,
+	kubernetesService features.KubernetesService,
+	config Config,
 	logger common.Logger,
 	secretStore features.SecretStore,
 ) FeatureOperator {
 	return FeatureOperator{
-		clusterGetter:  clusterGetter,
-		clusterService: clusterService,
-		helmService:    helmService,
-		config:         config,
-		logger:         logger,
-		secretStore:    secretStore,
+		clusterGetter:     clusterGetter,
+		clusterService:    clusterService,
+		helmService:       helmService,
+		kubernetesService: kubernetesService,
+		config:            config,
+		logger:            logger,
+		secretStore:       secretStore,
 	}
 }
 
@@ -102,26 +113,67 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		}
 	}
 
-	if boundSpec.Prometheus.Enabled {
-		// get Prometheus secret from spec or generate
-		prometheusSecretName, err := op.getPrometheusSecret(ctx, cluster, boundSpec, logger)
-		if err != nil {
-			return errors.WrapIf(err, "failed to get Prometheus secret")
-		}
+	baseSecretInfoer := baseSecretInfoer{
+		clusterID: clusterID,
+	}
 
-		// install Prometheus secret
-		if err := op.installPrometheusSecret(ctx, clusterID, prometheusSecretName); err != nil {
-			return errors.WrapIfWithDetails(err, "failed to install Prometheus secret to cluster", "clusterID", clusterID)
+	// Prometheus
+	var prometheusSecretName string
+	if boundSpec.Prometheus.Enabled && boundSpec.Prometheus.Ingress.Enabled {
+		// get Prometheus secret from spec or generate
+		var manager = secretManager{
+			operator: op,
+			cluster:  cluster,
+			tags:     []string{prometheusSecretTag},
+			infoer:   prometheusSecretInfoer{baseSecretInfoer: baseSecretInfoer},
+		}
+		prometheusSecretName, err = generateAndInstallSecret(ctx, boundSpec.Prometheus.Ingress, manager, logger)
+		if err != nil {
+			return errors.WrapIf(err, "failed to setup Prometheus ingress")
 		}
 	}
 
-	// install Prometheus Pushgateway
-	if err := op.installPrometheusPushGateway(ctx, cluster, logger); err != nil {
-		return errors.WrapIf(err, "failed to install Prometheus Pushgateway")
+	// Alertmanager
+	var alertmanagerSecretName string
+	if boundSpec.Alertmanager.Enabled && boundSpec.Alertmanager.Ingress.Enabled {
+		// get Alertmanager secret from spec or generate
+		var manager = secretManager{
+			operator: op,
+			cluster:  cluster,
+			tags:     []string{alertmanagerSecretTag},
+			infoer:   alertmanagerSecretInfoer{baseSecretInfoer: baseSecretInfoer},
+		}
+		alertmanagerSecretName, err = generateAndInstallSecret(ctx, boundSpec.Alertmanager.Ingress, manager, logger)
+		if err != nil {
+			return errors.WrapIf(err, "failed to setup Alertmanager ingress")
+		}
+	}
+
+	// Pushgateway
+	var pushgatewaySecretName string
+	if boundSpec.Pushgateway.Enabled {
+		if boundSpec.Pushgateway.Ingress.Enabled {
+			var manager = secretManager{
+				operator: op,
+				cluster:  cluster,
+				tags:     []string{pushgatewaySecretTag},
+				infoer:   pushgatewaySecretInfoer{baseSecretInfoer: baseSecretInfoer},
+			}
+
+			pushgatewaySecretName, err = generateAndInstallSecret(ctx, boundSpec.Pushgateway.Ingress, manager, logger)
+			if err != nil {
+				return errors.WrapIf(err, "failed to setup Pushgateway ingress")
+			}
+		}
+
+		// install Prometheus Pushgateway
+		if err := op.installPrometheusPushGateway(ctx, cluster, boundSpec.Pushgateway, pushgatewaySecretName, logger); err != nil {
+			return errors.WrapIf(err, "failed to install Prometheus Pushgateway")
+		}
 	}
 
 	// install Prometheus Operator
-	if err := op.installPrometheusOperator(ctx, cluster, logger, boundSpec, grafanaSecretID); err != nil {
+	if err := op.installPrometheusOperator(ctx, cluster, logger, boundSpec, grafanaSecretID, prometheusSecretName, alertmanagerSecretName); err != nil {
 		return errors.WrapIf(err, "failed to install Prometheus operator")
 	}
 
@@ -154,7 +206,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		}
 	}
 
-	if boundSpec.Prometheus.SecretId == "" {
+	if boundSpec.Prometheus.Ingress.SecretID == "" {
 		// Prometheus secret generated in activation flow, delete it
 		if err := op.deletePrometheusSecret(ctx, clusterID); err != nil && !isSecretNotFoundError(err) {
 			return errors.WrapIf(err, "failed to delete Prometheus secret")
@@ -174,37 +226,26 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 	return nil
 }
 
-func (op FeatureOperator) installPrometheusSecret(ctx context.Context, clusterID uint, prometheusSecretName string) error {
-	pipelineSystemNamespace := op.config.pipelineSystemNamespace
-
-	installPromSecretRequest := pkgCluster.InstallSecretRequest{
-		SourceSecretName: prometheusSecretName,
-		Namespace:        pipelineSystemNamespace,
-		Spec: map[string]pkgCluster.InstallSecretRequestSpecItem{
-			"auth": {Source: secrettype.HtpasswdFile},
-		},
-		Update: true,
-	}
-
-	if _, err := op.installSecret(ctx, clusterID, prometheusSecretName, installPromSecretRequest); err != nil {
-		return errors.WrapIfWithDetails(err, "failed to install Prometheus secret to cluster", "clusterID", clusterID)
-	}
-
-	return nil
-}
-
 func (op FeatureOperator) installPrometheusPushGateway(
 	ctx context.Context,
 	cluster clusterfeatureadapter.Cluster,
+	spec pushgatewaySpec,
+	secretName string,
 	logger common.Logger,
 ) error {
-	headNodeAffinity := GetHeadNodeAffinity(cluster, op.config)
-	tolerations := GetHeadNodeTolerations(op.config)
+	var annotations map[string]interface{}
+	if spec.Ingress.Enabled {
+		annotations = generateAnnotations(secretName)
+	}
 
-	pipelineSystemNamespace := op.config.pipelineSystemNamespace
+	pipelineSystemNamespace := op.config.Namespace
 	var chartValues = &prometheusPushgatewayValues{
-		affinityValues:   affinityValues{Affinity: headNodeAffinity},
-		tolerationValues: tolerationValues{Tolerations: tolerations},
+		Ingress: ingressValues{
+			Enabled: spec.Ingress.Enabled,
+			Hosts:   []string{spec.Ingress.Domain},
+			Paths:   []string{spec.Ingress.Path},
+		},
+		Annotations: annotations,
 	}
 
 	valuesBytes, err := json.Marshal(chartValues)
@@ -213,17 +254,14 @@ func (op FeatureOperator) installPrometheusPushGateway(
 		return errors.WrapIf(err, "failed to decode chartValues")
 	}
 
-	chartName := op.config.pushgateway.chartName
-	chartVersion := op.config.pushgateway.chartVersion
-
 	return op.helmService.ApplyDeployment(
 		ctx,
 		cluster.GetID(),
 		pipelineSystemNamespace,
-		chartName,
+		op.config.Charts.Pushgateway.Chart,
 		prometheusPushgatewayReleaseName,
 		valuesBytes,
-		chartVersion,
+		op.config.Charts.Pushgateway.Version,
 	)
 }
 
@@ -233,6 +271,8 @@ func (op FeatureOperator) installPrometheusOperator(
 	logger common.Logger,
 	spec featureSpec,
 	grafanaSecretID string,
+	prometheusSecretName string,
+	alertmanagerSecretName string,
 ) error {
 	var grafanaUser string
 	var grafanaPass string
@@ -245,75 +285,26 @@ func (op FeatureOperator) installPrometheusOperator(
 		grafanaPass = grafanaSecret[secrettype.Password]
 	}
 
-	headNodeAffinity := GetHeadNodeAffinity(cluster, op.config)
-	tolerations := GetHeadNodeTolerations(op.config)
+	var valuesManager = chartValuesManager{
+		operator:  op,
+		clusterID: cluster.GetID(),
+	}
+
+	alertmanagerValues, err := valuesManager.generateAlertmanagerChartValues(ctx, spec.Alertmanager, alertmanagerSecretName)
+	if err != nil {
+		return errors.WrapIf(err, "failed to generate Alertmanager chart values")
+	}
 
 	// create chart values
-	pipelineSystemNamespace := op.config.pipelineSystemNamespace
 	var chartValues = &prometheusOperatorValues{
-		Grafana: grafanaValues{
-			baseValues: baseValues{
-				Enabled: spec.Grafana.Enabled,
-				Ingress: ingressValues{
-					Enabled: spec.Grafana.Public.Enabled,
-					Hosts:   []string{spec.Grafana.Public.Domain},
-					Path:    spec.Grafana.Public.Path,
-				},
-			},
-			affinityValues:   affinityValues{Affinity: headNodeAffinity},
-			tolerationValues: tolerationValues{Tolerations: tolerations},
-			AdminUser:        grafanaUser,
-			AdminPassword:    grafanaPass,
-			GrafanaIni: grafanaIniValues{Server: grafanaIniServerValues{
-				RootUrl:          fmt.Sprintf("http://0.0.0.0:3000%s/", spec.Grafana.Public.Path),
-				ServeFromSubPath: true,
-			}},
-		},
-		Alertmanager: alertmanagerValues{
-			baseValues: baseValues{
-				Enabled: spec.Alertmanager.Enabled,
-				Ingress: ingressValues{
-					Enabled: spec.Alertmanager.Public.Enabled,
-					Hosts:   []string{spec.Alertmanager.Public.Domain},
-					Paths:   []string{spec.Alertmanager.Public.Path},
-				},
-			},
-			Spec: SpecValues{
-				affinityValues:   affinityValues{Affinity: headNodeAffinity},
-				tolerationValues: tolerationValues{Tolerations: tolerations},
-				RoutePrefix:      spec.Alertmanager.Public.Path,
-			},
-			Config: op.generateAlertManagerProvidersConfig(spec.Alertmanager.Provider),
-		},
-		Prometheus: prometheusValues{
-			baseValues: baseValues{
-				Enabled: spec.Prometheus.Enabled,
-				Ingress: ingressValues{
-					Enabled: spec.Prometheus.Public.Enabled,
-					Hosts:   []string{spec.Prometheus.Public.Domain},
-					Paths:   []string{spec.Prometheus.Public.Path},
-				},
-			},
-			Spec: SpecValues{
-				affinityValues:   affinityValues{Affinity: headNodeAffinity},
-				tolerationValues: tolerationValues{Tolerations: tolerations},
-				RoutePrefix:      spec.Prometheus.Public.Path,
-			},
-			Annotations: map[string]interface{}{
-				"traefik.ingress.kubernetes.io/auth-type":   "basic",
-				"traefik.ingress.kubernetes.io/auth-secret": kubePrometheusSecretName,
-			},
-		},
-		KubeStateMetrics: kubeStateMetricsValues{
-			Enabled: true,
-			SpecValues: SpecValues{
-				affinityValues:   affinityValues{Affinity: headNodeAffinity},
-				tolerationValues: tolerationValues{Tolerations: tolerations},
-			},
-		},
-		NodeExporter: nodeExporterValues{
-			Enabled: true,
-		},
+		Grafana:      valuesManager.generateGrafanaChartValues(spec.Grafana, grafanaUser, grafanaPass),
+		Alertmanager: alertmanagerValues,
+		Prometheus:   valuesManager.generatePrometheusChartValues(ctx, spec.Prometheus, prometheusSecretName),
+	}
+
+	if spec.Exporters.Enabled {
+		chartValues.KubeStateMetrics = valuesManager.generateKubeStateMetricsChartValues(spec.Exporters.KubeStateMetrics)
+		chartValues.NodeExporter = valuesManager.generateNodeExporterChartValues(spec.Exporters.NodeExporter)
 	}
 
 	valuesBytes, err := json.Marshal(chartValues)
@@ -322,17 +313,14 @@ func (op FeatureOperator) installPrometheusOperator(
 		return errors.WrapIf(err, "failed to decode chartValues")
 	}
 
-	chartName := op.config.operator.chartName
-	chartVersion := op.config.operator.chartVersion
-
 	return op.helmService.ApplyDeployment(
 		ctx,
 		cluster.GetID(),
-		pipelineSystemNamespace,
-		chartName,
+		op.config.Namespace,
+		op.config.Charts.Operator.Chart,
 		prometheusOperatorReleaseName,
 		valuesBytes,
-		chartVersion,
+		op.config.Charts.Operator.Version,
 	)
 }
 
@@ -343,11 +331,11 @@ func (op FeatureOperator) generateGrafanaSecret(
 ) (string, error) {
 
 	clusterNameSecretTag := getClusterNameSecretTag(cluster.GetName())
-	clusterUidSecretTag := getClusterUIDSecretTag(cluster.GetUID())
+	clusterUIDSecretTag := getClusterUIDSecretTag(cluster.GetUID())
 	releaseSecretTag := getReleaseSecretTag()
 
 	// Generating Grafana credentials
-	username := op.config.grafanaAdminUsername
+	username := op.config.Grafana.AdminUser
 	password, err := secret.RandomString("randAlphaNum", 12)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to generate Grafana admin user password")
@@ -362,8 +350,7 @@ func (op FeatureOperator) generateGrafanaSecret(
 		},
 		Tags: []string{
 			clusterNameSecretTag,
-			clusterUidSecretTag,
-			secret.TagBanzaiReadonly,
+			clusterUIDSecretTag,
 			releaseSecretTag,
 			grafanaSecretTag,
 		},
@@ -391,40 +378,6 @@ func (op FeatureOperator) deletePrometheusSecret(ctx context.Context, clusterID 
 		return errors.WrapIf(err, "failed to get Prometheus secret")
 	}
 	return op.secretStore.Delete(ctx, secretID)
-}
-
-func (op FeatureOperator) generatePrometheusSecret(ctx context.Context, cluster clusterfeatureadapter.Cluster) (string, error) {
-
-	clusterNameSecretTag := getClusterNameSecretTag(cluster.GetName())
-	clusterUidSecretTag := getClusterUIDSecretTag(cluster.GetUID())
-	releaseSecretTag := getReleaseSecretTag()
-	prometheusSecretName := getPrometheusSecretName(cluster.GetID())
-
-	prometheusAdminPass, err := secret.RandomString("randAlphaNum", 12)
-	if err != nil {
-		return "", errors.WrapIf(err, "Prometheus password generation failed")
-	}
-
-	prometheusSecretRequest := &secret.CreateSecretRequest{
-		Name: prometheusSecretName,
-		Type: secrettype.HtpasswdSecretType,
-		Values: map[string]string{
-			secrettype.Username: prometheusSecretUserName,
-			secrettype.Password: prometheusAdminPass,
-		},
-		Tags: []string{
-			clusterNameSecretTag,
-			clusterUidSecretTag,
-			secret.TagBanzaiReadonly,
-			releaseSecretTag,
-		},
-	}
-	_, err = secret.Store.CreateOrUpdate(cluster.GetOrganizationId(), prometheusSecretRequest)
-	if err != nil {
-		return "", errors.WrapIf(err, "failed to store Prometheus secret")
-	}
-
-	return prometheusSecretName, nil
 }
 
 func (op FeatureOperator) installSecret(ctx context.Context, clusterID uint, secretName string, secretRequest pkgCluster.InstallSecretRequest) (*secret.K8SSourceMeta, error) {
@@ -468,39 +421,6 @@ func (op FeatureOperator) getGrafanaSecret(
 	return secretID, nil
 }
 
-func (op FeatureOperator) getPrometheusSecret(
-	ctx context.Context,
-	cluster clusterfeatureadapter.Cluster,
-	spec featureSpec,
-	logger common.Logger,
-) (string, error) {
-	var secretName string
-	if spec.Prometheus.SecretId == "" {
-		// generate Prometheus secret
-		var prometheusSecretName = getPrometheusSecretName(cluster.GetID())
-		existingSecretID, err := op.secretStore.GetIDByName(ctx, prometheusSecretName)
-		if existingSecretID != "" {
-			logger.Debug("Prometheus secret already exists")
-			return prometheusSecretName, nil
-		} else if isSecretNotFoundError(err) {
-			// generate and store Prometheus secret
-			secretName, err = op.generatePrometheusSecret(ctx, cluster)
-			if err != nil {
-				return "", errors.WrapIf(err, "failed to generate Prometheus secret")
-			}
-		} else {
-			return "", errors.WrapIf(err, "error during getting Prometheus secret")
-		}
-	} else {
-		var err error
-		secretName, err = op.secretStore.GetNameByID(ctx, spec.Prometheus.SecretId)
-		if err != nil {
-			return "", errors.WrapIfWithDetails(err, "failed to get Prometheus secret", "secretID", spec.Prometheus.SecretId)
-		}
-	}
-	return secretName, nil
-}
-
 func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
 	if _, ok := auth.GetCurrentOrganizationID(ctx); !ok {
 		cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
@@ -512,62 +432,111 @@ func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID ui
 	return ctx, nil
 }
 
-func (op FeatureOperator) generateAlertManagerProvidersConfig(spec providerSpec) configValues {
-	return configValues{
-		Global: configGlobalValues{
-			Receivers: []receiverItemValues{
-				{
-					Name:             alertManagerProviderConfigName,
-					SlackConfigs:     op.generateSlackConfig(spec.Slack),
-					EmailConfigs:     op.generateEmailConfig(spec.Email),
-					PagerdutyConfigs: op.generatePagerdutyConfig(spec.Pagerduty),
-				},
+func (op FeatureOperator) generateAlertManagerProvidersConfig(ctx context.Context, spec map[string]interface{}) (*configValues, error) {
+	var err error
+	var hasProvider bool
+
+	// generate Slack configs
+	var slackConfigs []slackConfigValues
+	if slackProv, ok := spec[alertmanagerProviderSlack]; ok {
+		var slack slackSpec
+		if err := mapstructure.Decode(slackProv, &slack); err != nil {
+			return nil, errors.WrapIf(err, "failed to bind Slack config")
+		}
+		if slack.Enabled {
+			hasProvider = true
+			slackConfigs, err = op.generateSlackConfig(ctx, slack)
+			if err != nil {
+				return nil, errors.WrapIf(err, "failed to generate Slack config")
+			}
+		}
+	}
+
+	// generate PagerDuty configs
+	var pageDutyConfigs []pagerdutyConfigValues
+	if pdProv, ok := spec[alertmanagerProviderPagerDuty]; ok {
+		var pd pagerDutySpec
+		if err := mapstructure.Decode(pdProv, &pd); err != nil {
+			return nil, errors.WrapIf(err, "failed to bind PagerDuty config")
+		}
+		if pd.Enabled {
+			hasProvider = true
+			pageDutyConfigs, err = op.generatePagerdutyConfig(ctx, pd)
+			if err != nil {
+				return nil, errors.WrapIf(err, "failed to generate PagerDuty config")
+			}
+		}
+	}
+
+	var receiverName = alertManagerNullReceiverName
+	if hasProvider {
+		receiverName = alertManagerProviderConfigName
+	}
+	var result = &configValues{
+		Receivers: []receiverItemValues{
+			{
+				Name: receiverName,
 			},
 		},
+		Route: routeValues{
+			Receiver: receiverName,
+			Routes:   []interface{}{},
+		},
 	}
+
+	if slackConfigs != nil {
+		result.Receivers[0].SlackConfigs = slackConfigs
+	}
+
+	if pageDutyConfigs != nil {
+		result.Receivers[0].PagerdutyConfigs = pageDutyConfigs
+	}
+
+	return result, nil
 }
 
-func (op FeatureOperator) generateSlackConfig(config slackPropertiesSpec) []slackConfigValues {
+func (op FeatureOperator) generateSlackConfig(ctx context.Context, config slackSpec) ([]slackConfigValues, error) {
 	if config.Enabled {
+		slackSecret, err := op.secretStore.GetSecretValues(ctx, config.SecretID)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to get Slack secret")
+		}
+
 		return []slackConfigValues{
 			{
-				ApiUrl:       config.ApiUrl,
+				ApiUrl:       slackSecret[secrettype.SlackApiUrl],
 				Channel:      config.Channel,
 				SendResolved: config.SendResolved,
 			},
-		}
+		}, nil
 	}
 
-	return nil
+	return nil, nil
 }
 
-func (op FeatureOperator) generateEmailConfig(config emailPropertiesSpec) []emailConfigValues {
+func (op FeatureOperator) generatePagerdutyConfig(ctx context.Context, config pagerDutySpec) ([]pagerdutyConfigValues, error) {
 	if config.Enabled {
-		return []emailConfigValues{
-			{
-				To:           config.To,
-				From:         config.From,
-				SendResolved: config.SendResolved,
-			},
+		pdSecret, err := op.secretStore.GetSecretValues(ctx, config.SecretID)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to get PagerDuty secret")
 		}
+
+		var pdConfig = pagerdutyConfigValues{
+			Url:          config.URL,
+			SendResolved: config.SendResolved,
+		}
+
+		var integrationKey = pdSecret[secrettype.PagerDutyIntegrationKey]
+		if config.IntegrationType == pagerDutyIntegrationEventApiV2 {
+			pdConfig.RoutingKey = integrationKey
+		} else {
+			pdConfig.ServiceKey = integrationKey
+		}
+
+		return []pagerdutyConfigValues{pdConfig}, nil
 	}
 
-	return nil
-}
-
-func (op FeatureOperator) generatePagerdutyConfig(config pagerdutyPropertiesSpec) []pagerdutyConfigValues {
-	if config.Enabled {
-		return []pagerdutyConfigValues{
-			{
-				RoutingKey:   config.RoutingKey,
-				ServiceKey:   config.ServiceKey,
-				Url:          config.Url,
-				SendResolved: config.SendResolved,
-			},
-		}
-	}
-
-	return nil
+	return nil, nil
 }
 
 func isSecretNotFoundError(err error) bool {
@@ -578,48 +547,169 @@ func isSecretNotFoundError(err error) bool {
 	return false
 }
 
-func GetHeadNodeAffinity(cluster interface {
-	NodePoolExists(nodePoolName string) bool
-}, config Configuration) v1.Affinity {
-	headNodePoolName := config.headNodepoolName
-	if headNodePoolName == "" {
-		return v1.Affinity{}
+func (m chartValuesManager) generateGrafanaChartValues(
+	spec grafanaSpec,
+	username string,
+	password string,
+) *grafanaValues {
+	if spec.Enabled {
+		return &grafanaValues{
+			baseValues: baseValues{
+				Enabled: spec.Enabled,
+				Ingress: ingressValues{
+					Enabled: spec.Ingress.Enabled,
+					Hosts:   []string{spec.Ingress.Domain},
+					Path:    spec.Ingress.Path,
+				},
+			},
+			affinityValues:   affinityValues{Affinity: m.headNodeAffinity},
+			tolerationValues: tolerationValues{Tolerations: m.tolerations},
+			AdminUser:        username,
+			AdminPassword:    password,
+			GrafanaIni: grafanaIniValues{Server: grafanaIniServerValues{
+				RootUrl:          fmt.Sprintf("http://0.0.0.0:3000%s/", spec.Ingress.Path),
+				ServeFromSubPath: true,
+			}},
+			DefaultDashboardsEnabled: spec.Dashboards,
+		}
 	}
-	if !cluster.NodePoolExists(headNodePoolName) {
-		return v1.Affinity{}
+
+	return &grafanaValues{
+		baseValues: baseValues{
+			Enabled: false,
+		},
 	}
-	return v1.Affinity{
-		NodeAffinity: &v1.NodeAffinity{
-			PreferredDuringSchedulingIgnoredDuringExecution: []v1.PreferredSchedulingTerm{
-				{
-					Weight: 100,
-					Preference: v1.NodeSelectorTerm{
-						MatchExpressions: []v1.NodeSelectorRequirement{
-							{
-								Key:      pkgCommon.LabelKey,
-								Operator: v1.NodeSelectorOpIn,
-								Values: []string{
-									headNodePoolName,
+}
+
+func (m chartValuesManager) generateAlertmanagerChartValues(ctx context.Context, spec alertmanagerSpec, secretName string) (*alertmanagerValues, error) {
+	if spec.Enabled {
+
+		var annotations map[string]interface{}
+		if spec.Ingress.Enabled {
+			annotations = generateAnnotations(secretName)
+		}
+
+		alertmanagerConfig, err := m.operator.generateAlertManagerProvidersConfig(ctx, spec.Provider)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to generate Alertmanager Provider config")
+		}
+
+		return &alertmanagerValues{
+			baseValues: baseValues{
+				Enabled: spec.Enabled,
+				Ingress: ingressValues{
+					Enabled:     spec.Ingress.Enabled,
+					Hosts:       []string{spec.Ingress.Domain},
+					Paths:       []string{spec.Ingress.Path},
+					Annotations: annotations,
+				},
+			},
+			Spec: SpecValues{
+				affinityValues:   affinityValues{Affinity: m.headNodeAffinity},
+				tolerationValues: tolerationValues{Tolerations: m.tolerations},
+				RoutePrefix:      spec.Ingress.Path,
+			},
+			Config: alertmanagerConfig,
+		}, nil
+	}
+
+	return &alertmanagerValues{
+		baseValues: baseValues{
+			Enabled: false,
+		},
+	}, nil
+}
+
+func (m chartValuesManager) generatePrometheusChartValues(ctx context.Context, spec prometheusSpec, secretName string) *prometheusValues {
+	if spec.Enabled {
+
+		var defaultStorageClassName = spec.Storage.Class
+		if defaultStorageClassName == "" {
+			var err error
+			defaultStorageClassName, err = m.operator.getDefaultStorageClassName(ctx, m.clusterID)
+			if err != nil {
+				m.operator.logger.Warn("failed to get default storage class")
+			}
+		}
+
+		var annotations map[string]interface{}
+		if spec.Ingress.Enabled {
+			annotations = generateAnnotations(secretName)
+		}
+
+		return &prometheusValues{
+			baseValues: baseValues{
+				Enabled: spec.Enabled,
+				Ingress: ingressValues{
+					Enabled: spec.Ingress.Enabled,
+					Hosts:   []string{spec.Ingress.Domain},
+					Paths:   []string{spec.Ingress.Path},
+				},
+			},
+			Spec: SpecValues{
+				tolerationValues: tolerationValues{Tolerations: m.tolerations},
+				affinityValues:   affinityValues{Affinity: m.headNodeAffinity},
+				RoutePrefix:      spec.Ingress.Path,
+				RetentionSize:    fmt.Sprintf("%.2fGiB", float64(spec.Storage.Size)*0.95),
+				Retention:        spec.Storage.Retention,
+				StorageSpec: map[string]interface{}{
+					"volumeClaimTemplate": map[string]interface{}{
+						"spec": map[string]interface{}{
+							"storageClassName": defaultStorageClassName,
+							"accessModes":      []string{"ReadWriteOnce"},
+							"resources": map[string]interface{}{
+								"requests": map[string]interface{}{
+									"storage": fmt.Sprintf("%dGi", spec.Storage.Size),
 								},
 							},
 						},
 					},
 				},
 			},
+			Annotations: annotations,
+		}
+	}
+
+	return &prometheusValues{
+		baseValues: baseValues{
+			Enabled: false,
 		},
 	}
 }
 
-func GetHeadNodeTolerations(config Configuration) []v1.Toleration {
-	headNodePoolName := config.headNodepoolName
-	if headNodePoolName == "" {
-		return []v1.Toleration{}
+func (m chartValuesManager) generateKubeStateMetricsChartValues(spec exporterBaseSpec) kubeStateMetricsValues {
+	var result = kubeStateMetricsValues{
+		Enabled: spec.Enabled,
 	}
-	return []v1.Toleration{
-		{
-			Key:      pkgCommon.NodePoolNameTaintKey,
-			Operator: v1.TolerationOpEqual,
-			Value:    headNodePoolName,
-		},
+	if spec.Enabled {
+		result.SpecValues = SpecValues{
+			affinityValues:   affinityValues{Affinity: m.headNodeAffinity},
+			tolerationValues: tolerationValues{Tolerations: m.tolerations},
+		}
 	}
+
+	return result
+}
+
+func (m chartValuesManager) generateNodeExporterChartValues(spec exporterBaseSpec) nodeExporterValues {
+	return nodeExporterValues{
+		Enabled: spec.Enabled,
+	}
+}
+
+func (op FeatureOperator) getDefaultStorageClassName(ctx context.Context, clusterID uint) (string, error) {
+	var storageClass v1beta1.StorageClassList
+	if err := op.kubernetesService.List(ctx, clusterID, &storageClass); err != nil {
+		return "", errors.WrapIf(err, "failed to list storage classes")
+	}
+
+	var defaultStorageClassName string
+	for _, sc := range storageClass.Items {
+		for key, value := range sc.Annotations {
+			if key == "storageclass.kubernetes.io/is-default-class" && value == "true" {
+				defaultStorageClassName = sc.ObjectMeta.Name
+			}
+		}
+	}
+	return defaultStorageClassName, nil
 }

@@ -57,7 +57,7 @@ services:
             - $HOME:/root
 
     ui:
-        image: banzaicloud/pipeline-web:0.7.0
+        image: banzaicloud/pipeline-web:0.19.0
         environment:
             TAG: local
 
@@ -70,7 +70,7 @@ services:
             RECOMMENDER_URL: https://beta.banzaicloud.io/recommender
 
     dex:
-        image: banzaicloud/dex-shim:0.3.13
+        image: banzaicloud/dex-shim:0.4.1
         command: serve /dex.yml
         restart: on-failure
         volumes:
@@ -88,7 +88,7 @@ services:
             - mysql
 
     cadence-web:
-        image: ubercadence/web:3.3.2
+        image: ubercadence/web:3.4.1
         environment:
             CADENCE_TCHANNEL_PEERS: cadence:7933
         depends_on:

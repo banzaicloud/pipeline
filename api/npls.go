@@ -23,11 +23,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/cluster"
-	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -95,7 +94,7 @@ func (n *NodepoolManagerAPI) GetNodepoolLabelSets(c *gin.Context) {
 		return
 	}
 
-	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 	m, err := npls.NewNPLSManager(k8sClientConfig, pipelineSystemNamespace)
 	if err != nil {
 		errorHandler.Handle(err)

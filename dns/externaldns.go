@@ -20,10 +20,9 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/spf13/cast"
-	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns/route53"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
 )
@@ -73,11 +72,16 @@ func newExternalDnsServiceClientInstance() {
 	dnsServiceClient = nil
 	errCreate = nil
 
-	gcInterval := time.Duration(viper.GetInt(config.DNSGcIntervalMinute)) * time.Minute
+	if !global.Config.Cluster.DNS.Enabled {
+		log.Infoln("DNS is not enabled")
+		return
+	}
+
+	const gcInterval = time.Minute
 
 	// This is how the secrets are expected to be written in Vault:
 	// vault kv put secret/banzaicloud/aws AWS_REGION=... AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=...
-	awsCredentialsPath := viper.GetString(config.AwsCredentialPath)
+	awsCredentialsPath := global.Config.Cluster.DNS.ProviderSecret
 
 	secret, err := secret.Store.Logical.Read(awsCredentialsPath)
 	if err != nil {
@@ -98,6 +102,11 @@ func newExternalDnsServiceClientInstance() {
 
 	if len(region) == 0 || len(awsSecretId) == 0 || len(awsSecretKey) == 0 {
 		log.Infoln("No AWS credentials for Route53 provided in Vault")
+		return
+	}
+
+	if global.Config.Cluster.DNS.BaseDomain == "" {
+		log.Infoln("No base domain for Banzai DNS")
 		return
 	}
 

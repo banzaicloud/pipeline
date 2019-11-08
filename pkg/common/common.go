@@ -84,7 +84,6 @@ const (
 	LabelKey                = "nodepool.banzaicloud.io/name"
 	OnDemandLabelKey        = "node.banzaicloud.io/ondemand"
 	CloudInfoLabelKeyPrefix = "node.banzaicloud.io/"
-	HeadNodeLabelKey        = "nodepool.banzaicloud.io/head"
 )
 
 // Constant for tainting head node

@@ -32,7 +32,7 @@ import (
 )
 
 func TestFeatureOperator_Name(t *testing.T) {
-	op := MakeFeatureOperator(nil, nil, nil, nil, nil, nil)
+	op := MakeFeatureOperator(nil, nil, nil, nil, nil, nil, Config{})
 
 	assert.Equal(t, "dns", op.Name())
 }
@@ -70,7 +70,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 		},
 	}
 	clusterGetter := dummyClusterGetter{
-		Clusters: map[uint]clusterfeatureadapter.Cluster{},
+		Clusters: map[uint]dummyCluster{},
 	}
 	clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
 	helmService := dummyHelmService{}
@@ -80,42 +80,17 @@ func TestFeatureOperator_Apply(t *testing.T) {
 		OrgID:  orgID,
 	}
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, secretStore)
+	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, secretStore, Config{})
 
 	cases := map[string]struct {
 		Spec    clusterfeature.FeatureSpec
-		Cluster clusterfeatureadapter.Cluster
+		Cluster dummyCluster
 		Error   interface{}
 	}{
-		"auto DNS, cluster ready": {
+		"cluster ready": {
 			Spec: clusterfeature.FeatureSpec{
-				"autoDns": obj{
-					"enabled": true,
-				},
-			},
-			Cluster: dummyCluster{
-				OrgID: orgID,
-				Ready: true,
-			},
-		},
-		"auto DNS, cluster not ready": {
-			Spec: clusterfeature.FeatureSpec{
-				"autoDns": obj{
-					"enabled": true,
-				},
-			},
-			Cluster: dummyCluster{
-				OrgID: orgID,
-				Ready: false,
-			},
-			Error: clusterfeature.ClusterIsNotReadyError{
-				ClusterID: clusterID,
-			},
-		},
-		"custom DNS, cluster ready": {
-			Spec: clusterfeature.FeatureSpec{
-				"customDns": obj{
-					"enabled": true,
+				"clusterDomain": "cluster.org.the.domain",
+				"externalDns": obj{
 					"domainFilters": arr{
 						"",
 					},
@@ -127,17 +102,44 @@ func TestFeatureOperator_Apply(t *testing.T) {
 							"batchSize": 10,
 						},
 					},
+					"txtOwnerId": "my-owner-id",
 				},
 			},
 			Cluster: dummyCluster{
-				OrgID: orgID,
-				Ready: true,
+				OrgID:  orgID,
+				Status: pkgCluster.Running,
 			},
 		},
-		"custom DNS, cluster ready, with BRN": {
+		"cluster not ready": {
 			Spec: clusterfeature.FeatureSpec{
-				"customDns": obj{
-					"enabled": true,
+				"clusterDomain": "cluster.org.the.domain",
+				"externalDns": obj{
+					"domainFilters": arr{
+						"",
+					},
+					"provider": obj{
+						"name":     "route53",
+						"secretId": providerSecretID,
+						"options": obj{
+							"region":    "test-reg",
+							"batchSize": 10,
+						},
+					},
+					"txtOwnerId": "my-owner-id",
+				},
+			},
+			Cluster: dummyCluster{
+				OrgID:  orgID,
+				Status: pkgCluster.Creating,
+			},
+			Error: clusterfeature.ClusterIsNotReadyError{
+				ClusterID: clusterID,
+			},
+		},
+		"cluster ready, spec with BRN": {
+			Spec: clusterfeature.FeatureSpec{
+				"clusterDomain": "cluster.org.the.domain",
+				"externalDns": obj{
 					"domainFilters": arr{
 						"",
 					},
@@ -154,21 +156,21 @@ func TestFeatureOperator_Apply(t *testing.T) {
 							"batchSize": 10,
 						},
 					},
+					"txtOwnerId": "my-owner-id",
 				},
 			},
 			Cluster: dummyCluster{
-				OrgID: orgID,
-				Ready: true,
+				OrgID:  orgID,
+				Status: pkgCluster.Running,
 			},
 		},
 	}
 	for name, tc := range cases {
+		tc := tc
 		t.Run(name, func(t *testing.T) {
 			clusterGetter.Clusters[clusterID] = tc.Cluster
 
-			ctx := context.Background()
-
-			err := op.Apply(ctx, clusterID, tc.Spec)
+			err := op.Apply(context.Background(), clusterID, tc.Spec)
 			switch tc.Error {
 			case nil, false:
 				assert.NoError(t, err)
@@ -185,16 +187,16 @@ func TestFeatureOperator_Deactivate(t *testing.T) {
 	clusterID := uint(42)
 
 	clusterGetter := dummyClusterGetter{
-		Clusters: map[uint]clusterfeatureadapter.Cluster{
-			clusterID: dummyCluster{
-				Ready: true,
+		Clusters: map[uint]dummyCluster{
+			clusterID: {
+				Status: pkgCluster.Running,
 			},
 		},
 	}
 	clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
 	helmService := dummyHelmService{}
 	logger := commonadapter.NewNoopLogger()
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, nil, nil)
+	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, nil, nil, Config{})
 
 	ctx := context.Background()
 

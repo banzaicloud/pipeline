@@ -24,13 +24,13 @@ import (
 	"github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	clientV1alpha1 "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 
 	apiCommon "github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/helm"
 	internalCommon "github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/global"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
@@ -199,8 +199,7 @@ func GetReleaseScanLog(c *gin.Context) (map[string]bool, bool) {
 
 // SecurityScanEnabled checks if security scan is enabled in pipeline
 func SecurityScanEnabled(c *gin.Context) {
-
-	if viper.GetBool("cluster.securityScan.anchore.enabled") {
+	if global.Config.Cluster.SecurityScan.Anchore.Enabled {
 		c.JSON(http.StatusOK, gin.H{
 			"enabled": true,
 		})
@@ -230,19 +229,22 @@ type ScanLogHandler interface {
 }
 
 type securityHandlers struct {
-	logger          internalCommon.Logger
 	clusterGetter   apiCommon.ClusterGetter
 	resourceService anchore.SecurityResourceService
+	errorHandler    internalCommon.ErrorHandler
+	logger          internalCommon.Logger
 }
 
 func NewSecurityApiHandlers(
 	clusterGetter apiCommon.ClusterGetter,
+	errorHandler internalCommon.ErrorHandler,
 	logger internalCommon.Logger) SecurityHandler {
 
 	wlSvc := anchore.NewSecurityResourceService(logger)
 	return securityHandlers{
 		clusterGetter:   clusterGetter,
 		resourceService: wlSvc,
+		errorHandler:    errorHandler,
 		logger:          logger,
 	}
 }
@@ -258,6 +260,8 @@ func (s securityHandlers) GetWhiteLists(c *gin.Context) {
 
 	whitelist, err := s.resourceService.GetWhitelists(c.Request.Context(), cluster)
 	if err != nil {
+		s.errorHandler.Handle(c.Request.Context(), err)
+
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error while retrieving whitelists",
@@ -289,7 +293,8 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 
 	var whiteListItem *security.ReleaseWhiteListItem
 	if err := c.BindJSON(&whiteListItem); err != nil {
-		err := errors.WrapIf(err, "failed to bind the request body")
+		s.errorHandler.Handle(c.Request.Context(), err)
+
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
@@ -298,8 +303,9 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 		return
 	}
 
-	_, err := s.resourceService.CreateWhitelist(c.Request.Context(), cluster, *whiteListItem)
-	if err != nil {
+	if _, err := s.resourceService.CreateWhitelist(c.Request.Context(), cluster, *whiteListItem); err != nil {
+		s.errorHandler.Handle(c.Request.Context(), err)
+
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error while creating whitelist",
@@ -332,6 +338,8 @@ func (s securityHandlers) DeleteWhiteList(c *gin.Context) {
 	}
 
 	if err := s.resourceService.DeleteWhitelist(c.Request.Context(), cluster, whitelisItemtName); err != nil {
+		s.errorHandler.Handle(c.Request.Context(), err)
+
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error while deleting whitelist",
@@ -353,9 +361,11 @@ func (s securityHandlers) ListScanLogs(c *gin.Context) {
 
 	scanlogs, err := s.resourceService.ListScanLogs(c.Request.Context(), cluster)
 	if err != nil {
+		s.errorHandler.Handle(c.Request.Context(), err)
+
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
-			Message: "failed to retrieve scan logs",
+			Message: "failed to list scan logs",
 			Error:   errors.Cause(err).Error(),
 		})
 		return
@@ -376,6 +386,8 @@ func (s securityHandlers) GetScanLogs(c *gin.Context) {
 
 	scanlogs, err := s.resourceService.GetScanLogs(c.Request.Context(), cluster, releaseName)
 	if err != nil {
+		s.errorHandler.Handle(c.Request.Context(), err)
+
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "failed to retrieve scan logs",

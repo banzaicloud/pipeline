@@ -20,14 +20,12 @@ import (
 	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
-	v1 "k8s.io/api/core/v1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/pkg/backoff"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 type monitoringConfig struct {
@@ -155,8 +153,6 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 	}
 
 	type Values struct {
-		Affinity    v1.Affinity          `json:"affinity,omitempty"`
-		Tolerations []v1.Toleration      `json:"tolerations,omitempty"`
 		Istio       istio                `json:"istio,omitempty"`
 		Application application          `json:"application,omitempty"`
 		Prometheus  prometheusChartValue `json:"prometheus,omitempty"`
@@ -174,8 +170,6 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 	}
 
 	values := Values{
-		Affinity:    cluster.GetHeadNodeAffinity(c),
-		Tolerations: cluster.GetHeadNodeTolerations(),
 		Application: application{
 			Image: imageChartValue{},
 			Env: map[string]string{
@@ -220,7 +214,7 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 	err = installOrUpgradeDeployment(
 		c,
 		backyardsNamespace,
-		pkgHelm.BanzaiRepository+"/"+m.Configuration.internalConfig.backyards.chartName,
+		m.Configuration.internalConfig.backyards.chartName,
 		backyardsReleaseName,
 		valuesOverride,
 		m.Configuration.internalConfig.backyards.chartVersion,

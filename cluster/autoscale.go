@@ -19,14 +19,12 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
-	"github.com/spf13/viper"
-	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sHelm "k8s.io/helm/pkg/helm"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -35,7 +33,6 @@ import (
 
 const cloudProviderAzure = "azure"
 const cloudProviderAws = "aws"
-const autoScalerChart = "banzaicloud-stable/cluster-autoscaler"
 const expanderStrategy = "least-waste"
 const logLevel = "5"
 const AzureVirtualMachineScaleSet = "vmss"
@@ -82,14 +79,11 @@ type autoscalingInfo struct {
 	AutoDiscovery     autoDiscovery     `json:"autoDiscovery"`
 	SslCertPath       *string           `json:"sslCertPath,omitempty"`
 	SslCertHostPath   *string           `json:"sslCertHostPath,omitempty"`
-	Affinity          v1.Affinity       `json:"affinity,omitempty"`
-	Tolerations       []v1.Toleration   `json:"tolerations,omitempty"`
 }
 
 func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 	var nodeGroups []nodeGroup
 
-	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
 	scaleOptions := cluster.GetScaleOptions()
 	scaleEnabled := scaleOptions != nil && scaleOptions.Enabled
 
@@ -102,7 +96,7 @@ func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 
 		for _, nodePool := range nodePools {
 			// if ScaleOptions is enabled on cluster, ClusterAutoscaler is disabled on all node pools (except head) on Amazon
-			if nodePool.Autoscaling && (nodePool.Name == headNodePoolName || !scaleEnabled) {
+			if nodePool.Autoscaling && !scaleEnabled {
 				nodeGroups = append(nodeGroups, nodeGroup{
 					Name:    cluster.GetName() + ".node." + nodePool.Name,
 					MinSize: nodePool.NodeMinCount,
@@ -117,7 +111,7 @@ func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 		}
 		nodePools := pke.GetNodePools()
 		for _, nodePool := range nodePools {
-			if nodePool.Autoscaling && (nodePool.Name == headNodePoolName || !scaleEnabled) {
+			if nodePool.Autoscaling && !scaleEnabled {
 				nodeGroups = append(nodeGroups, nodeGroup{
 					Name:    cluster.GetName() + ".node." + nodePool.Name,
 					MinSize: nodePool.MinCount,
@@ -186,8 +180,6 @@ func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autosca
 			ClusterName: cluster.GetName(),
 		},
 		SslCertPath: &eksCertPath,
-		Affinity:    GetHeadNodeAffinity(cluster),
-		Tolerations: GetHeadNodeTolerations(),
 	}
 }
 
@@ -241,8 +233,6 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 			TenantID:       clusterSecret.Values[secrettype.AzureTenantID],
 			ClusterName:    cluster.GetName(),
 		},
-		Affinity:    GetHeadNodeAffinity(cluster),
-		Tolerations: GetHeadNodeTolerations(),
 	}
 
 	switch cluster.GetDistribution() {
@@ -314,7 +304,7 @@ func DeployClusterAutoscaler(cluster CommonCluster) error {
 			// delete
 			err := helm.DeleteDeployment(releaseName, kubeConfig)
 			if err != nil {
-				log.Errorf("DeleteDeployment '%s' failed due to: %s", autoScalerChart, err.Error())
+				log.Errorf("DeleteDeployment '%s' failed due to: %s", global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.Chart, err.Error())
 				return err
 			}
 		} else {
@@ -337,7 +327,7 @@ func DeployClusterAutoscaler(cluster CommonCluster) error {
 func isAutoscalerDeployedAlready(releaseName string, kubeConfig []byte) bool {
 	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
 	if err != nil {
-		log.Errorf("ListDeployments for '%s' failed due to: %s", autoScalerChart, err.Error())
+		log.Errorf("ListDeployments for '%s' failed due to: %s", global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.Chart, err.Error())
 		return false
 	}
 	for _, release := range deployments.GetReleases() {
@@ -381,22 +371,23 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 		return err
 	}
 
-	chartVersion := viper.GetString(config.AutoscaleClusterAutoscalerChartVersion)
+	chartName := global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.Chart
+	chartVersion := global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.Version
 
 	switch action {
 	case install:
-		_, err = helm.CreateDeployment(autoScalerChart, chartVersion, nil, helm.SystemNamespace, releaseName, false, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), k8sHelm.ValueOverrides(yamlValues))
+		_, err = helm.CreateDeployment(chartName, chartVersion, nil, helm.SystemNamespace, releaseName, false, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), k8sHelm.ValueOverrides(yamlValues))
 	case upgrade:
-		_, err = helm.UpgradeDeployment(releaseName, autoScalerChart, chartVersion, nil, yamlValues, false, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
+		_, err = helm.UpgradeDeployment(releaseName, chartName, chartVersion, nil, yamlValues, false, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
 	default:
 		return err
 	}
 
 	if err != nil {
-		log.Errorf("%s of chart '%s' failed due to: %s", action, autoScalerChart, err.Error())
+		log.Errorf("%s of chart '%s' failed due to: %s", action, chartName, err.Error())
 		return err
 	}
 
-	log.Infof("'%s' %sed", autoScalerChart, action)
+	log.Infof("'%s' %sed", chartName, action)
 	return nil
 }

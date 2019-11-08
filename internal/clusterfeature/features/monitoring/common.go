@@ -23,13 +23,24 @@ const (
 	prometheusOperatorReleaseName    = "monitor"
 	prometheusPushgatewayReleaseName = "pushgateway"
 	grafanaSecretTag                 = "app:grafana"
-	kubePrometheusSecretName         = "prometheus-basic-auth"
-	prometheusSecretUserName         = "prometheus"
-	alertManagerProviderConfigName   = "pipeline-monitoring-feature-providers"
+	prometheusSecretTag              = "app:prometheus"
+	alertmanagerSecretTag            = "app:alertmanager"
+	pushgatewaySecretTag             = "app:pushgateway"
+	featureSecretTag                 = "feature:monitoring"
+	generatedSecretUsername          = "admin"
+	alertManagerProviderConfigName   = "default-receiver"
+	alertManagerNullReceiverName     = "null"
 
 	ingressTypeGrafana      = "Grafana"
 	ingressTypePrometheus   = "Prometheus"
 	ingressTypeAlertmanager = "Alertmanager"
+	ingressTypePushgateway  = "Pushgateway"
+
+	pagerDutyIntegrationEventApiV2 = "eventsApiV2"
+	pagerDutyIntegrationPrometheus = "prometheus"
+
+	alertmanagerProviderSlack     = "slack"
+	alertmanagerProviderPagerDuty = "pagerDuty"
 )
 
 func getClusterNameSecretTag(clusterName string) string {
@@ -48,6 +59,21 @@ func getPrometheusSecretName(clusterID uint) string {
 	return fmt.Sprintf("cluster-%d-prometheus", clusterID)
 }
 
+func getAlertmanagerSecretName(clusterID uint) string {
+	return fmt.Sprintf("cluster-%d-alertmanager", clusterID)
+}
+
+func getPushgatewaySecretName(clusterID uint) string {
+	return fmt.Sprintf("cluster-%d-pushgateway", clusterID)
+}
+
 func getGrafanaSecretName(clusterID uint) string {
 	return fmt.Sprintf("cluster-%d-grafana", clusterID)
+}
+
+func generateAnnotations(secretName string) map[string]interface{} {
+	return map[string]interface{}{
+		"traefik.ingress.kubernetes.io/auth-type":   "basic",
+		"traefik.ingress.kubernetes.io/auth-secret": secretName,
+	}
 }
