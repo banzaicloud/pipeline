@@ -253,7 +253,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	}
 
 	v.SetDefault("log::format", "logfmt")
-	v.SetDefault("log::level", "debug")
+	v.SetDefault("log::level", "info")
 	v.RegisterAlias("log::noColor", "no_color")
 
 	// ErrorHandler configuration
@@ -278,8 +278,8 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("auth::cookie::setDomain", false)
 
 	v.SetDefault("auth::token::signingKey", "")
-	v.SetDefault("auth::token::issuer", "https://banzaicloud.com/")
-	v.SetDefault("auth::token::audience", "https://pipeline.banzaicloud.com")
+	v.SetDefault("auth::token::issuer", "")
+	v.SetDefault("auth::token::audience", "")
 
 	// Dex configuration
 	v.SetDefault("dex::apiAddr", "")
