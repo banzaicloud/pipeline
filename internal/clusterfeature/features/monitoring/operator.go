@@ -351,7 +351,6 @@ func (op FeatureOperator) generateGrafanaSecret(
 		Tags: []string{
 			clusterNameSecretTag,
 			clusterUIDSecretTag,
-			secret.TagBanzaiReadonly,
 			releaseSecretTag,
 			grafanaSecretTag,
 		},

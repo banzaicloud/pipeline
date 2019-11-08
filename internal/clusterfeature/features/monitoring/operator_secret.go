@@ -48,7 +48,6 @@ func (m secretManager) generateHTPasswordSecret(ctx context.Context) error {
 		clusterNameSecretTag,
 		clusterUIDSecretTag,
 		releaseSecretTag,
-		secret.TagBanzaiReadonly,
 		featureSecretTag,
 	}
 
