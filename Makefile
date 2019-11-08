@@ -72,7 +72,7 @@ stop: ## Stop docker development environment
 	docker-compose stop
 
 config/config.yaml:
-	cp config/config.yaml.dist config/config.yaml
+	cp config/config.dev.yaml config/config.yaml
 
 config/ui/feature-set.json:
 	mv config/ui/feature-set.json{,~} || true && cp config/ui/feature-set.json.dist config/ui/feature-set.json
