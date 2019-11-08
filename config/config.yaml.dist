@@ -69,6 +69,8 @@ cadence:
 #    workflowExecutionRetentionPeriodInDays: 3
 
 #cors:
+#    # Note: this should be disabled in production!
+#    # TODO: disable all orgins by default?
 #    allowAllOrigins: true
 #    allowOrigins: []
 #    allowOriginsRegexp: ""
