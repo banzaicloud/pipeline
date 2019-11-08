@@ -296,7 +296,6 @@ func (op FeatureOperator) installOrUpdateWebhook(
 func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
-
 		return err
 	}
 
@@ -347,12 +346,6 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		}
 
 		defer vaultManager.close()
-
-		// delete role
-		if _, err := vaultManager.deleteRole(); err != nil {
-			return errors.WrapIf(err, "failed to delete role")
-		}
-		logger.Info("role deleted successfully")
 
 		// disable auth method
 		if err := vaultManager.disableAuth(getAuthMethodPath(orgID, clusterID)); err != nil {
