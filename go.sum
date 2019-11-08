@@ -118,8 +118,8 @@ github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419 h1:s
 github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419/go.mod h1:1eXhK1Ld1vRFbNpqi8Eu1ktCCk5LARA1Tbdl8EsAfgE=
 github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182 h1:U3i2pc5I/dwlXqcTgPSHBP1k9ISjnyMlXh6Opi94pf8=
 github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182/go.mod h1:OeOXKxwBf3IGkKdrjisjo3pb+RlQNRMXpaGgiDdyRfA=
-github.com/banzaicloud/istio-operator v0.0.0-20190430142744-7f4bf475ff8f h1:51U6NGVl3M6Da4BhC+dzK1diR4FkqMoGhtb/E4xS3oA=
-github.com/banzaicloud/istio-operator v0.0.0-20190430142744-7f4bf475ff8f/go.mod h1:ZsHnkYOQmq/OhsTX/apqgSoT2Jt5qkr15zuoVcj48Xk=
+github.com/banzaicloud/istio-operator v0.0.0-20191104140059-90d1290d7342 h1:1thVJJgjxerPRgtHftg/fIX9pvZw9cfH+8zUG/voj6I=
+github.com/banzaicloud/istio-operator v0.0.0-20191104140059-90d1290d7342/go.mod h1:ZsHnkYOQmq/OhsTX/apqgSoT2Jt5qkr15zuoVcj48Xk=
 github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f h1:WeGZeO6I+lI1IG2vm1iXTeMrHLcMUjfoYm+rubBM5c4=
 github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f/go.mod h1:2GxaTh0YYmhQEMQ4wJ8Izr7sBecWZtnXlDzybR1hSO8=
 github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190823114332-76c873e3a8cb h1:eq2A3Yrgzy4dGKpAeX5DXKRo1z3GOJvGsQ+WsPMik8Y=
