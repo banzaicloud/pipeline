@@ -108,8 +108,8 @@ github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af6
 github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62/go.mod h1:LpX/aNV3ZYLT0UphkpG88OPi5/vHMrScB7TQtQLrjTs=
 github.com/banzaicloud/auth v0.1.3 h1:EUl1EMnJ2AfRGq6xn/SKdRY39ZULGyFj0XJDImv1aF4=
 github.com/banzaicloud/auth v0.1.3/go.mod h1:oKSmpvPMCqencgRxTNadXspkyZYqpZcQV8yeo0VUxso=
-github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.0 h1:9cNXS+jRQwK9SRYoC6PMkdF5PYY/8BIOaKPctAEWcxo=
-github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.0/go.mod h1:2NYclIV7rF4QT5BE7wE2u/dy148gt8CQZ81Np81Mza0=
+github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.1 h1:yRYSCLzQRQBKfl35Vc+Fp+UU2GjwniSmGmgX1RQfm8I=
+github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.1/go.mod h1:2NYclIV7rF4QT5BE7wE2u/dy148gt8CQZ81Np81Mza0=
 github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677 h1:5q4Sv/DFbmiXNyelLCKwYGCUwulXmT1thgKzgWPMvLU=
 github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677/go.mod h1:ND5gChfnQKdrvWBqMdN0sUkYLpR5P9AccDam/hDdbmA=
 github.com/banzaicloud/gin-utilz v0.1.0 h1:YZVZAXmo4Hn0U/NAgwpEgZnIQtoiqmCnyNAMY706m/o=
