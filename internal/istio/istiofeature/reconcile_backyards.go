@@ -43,7 +43,7 @@ func (m *MeshReconciler) ReconcileBackyards(desiredState DesiredState) error {
 			return emperror.Wrap(err, "could not get api extension client")
 		}
 
-		err = m.waitForMetricCRD("metrics.config.istio.io", apiextclient)
+		err = m.waitForCRD("instances.config.istio.io", apiextclient)
 		if err != nil {
 			return emperror.Wrap(err, "error while waiting for metric CRD")
 		}
@@ -104,9 +104,9 @@ func (m *MeshReconciler) waitForSidecarInjectorPod(client *kubernetes.Clientset)
 	return err
 }
 
-// waitForMetricCRD waits for Metric CRD to be present in the cluster
-func (m *MeshReconciler) waitForMetricCRD(name string, client *apiextensionsclient.Clientset) error {
-	m.logger.WithField("name", name).Debug("waiting for metric CRD")
+// waitForCRD waits for CRD to be present in the cluster
+func (m *MeshReconciler) waitForCRD(name string, client *apiextensionsclient.Clientset) error {
+	m.logger.WithField("name", name).Debug("waiting for CRD")
 
 	var backoffConfig = backoff.ConstantBackoffConfig{
 		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
@@ -117,7 +117,7 @@ func (m *MeshReconciler) waitForMetricCRD(name string, client *apiextensionsclie
 	err := backoff.Retry(func() error {
 		_, err := client.ApiextensionsV1beta1().CustomResourceDefinitions().Get(name, metav1.GetOptions{})
 		if err != nil {
-			return emperror.Wrap(err, "could not get metric CRD")
+			return emperror.Wrap(err, "could not get CRD")
 		}
 
 		return nil
@@ -167,6 +167,13 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 		Autoscaling struct {
 			Enabled bool `json:"enabled"`
 		} `json:"autoscaling,omitempty"`
+		Grafana struct {
+			Enabled  bool `json:"enabled"`
+			Security struct {
+				Enabled bool `json:"enabled"`
+			} `json:"security"`
+			ExternalURL string `json:"externalUrl"`
+		} `json:"grafana"`
 	}
 
 	values := Values{
@@ -181,9 +188,7 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 			Namespace: istioOperatorNamespace,
 		},
 		Prometheus: prometheusChartValue{
-			Enabled:  true,
-			URL:      monitoring.url,
-			Hostname: monitoring.hostname,
+			Enabled: true,
 		},
 	}
 
@@ -191,6 +196,9 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 	values.Prometheus.ExternalURL = prometheusExternalURL
 	values.Ingress.Enabled = false
 	values.Web.Enabled = true
+	values.Grafana.Enabled = true
+	values.Grafana.ExternalURL = "/grafana"
+	values.Grafana.Security.Enabled = false
 	values.Web.Env = map[string]string{
 		"API_URL": "api",
 	}

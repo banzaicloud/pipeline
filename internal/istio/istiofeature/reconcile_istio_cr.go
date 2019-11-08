@@ -108,6 +108,8 @@ func (m *MeshReconciler) waitForIstioCRToBeDeleted(client *istiooperatorclientse
 
 // configureIstioCR configures istio-operator specific CR based on the given params
 func (m *MeshReconciler) configureIstioCR(istio *v1beta1.Istio, config Config) *v1beta1.Istio {
+	enabled := true
+
 	labels := istio.GetLabels()
 	if labels == nil {
 		labels = make(map[string]string, 0)
@@ -132,9 +134,10 @@ func (m *MeshReconciler) configureIstioCR(istio *v1beta1.Istio, config Config) *
 		MaxReplicas: 1,
 	}
 	istio.Spec.SidecarInjector.RewriteAppHTTPProbe = true
+	istio.Spec.Tracing.Enabled = &enabled
+	istio.Spec.Tracing.Zipkin.Address = zipkinAddress
 
 	if len(m.Remotes) > 0 {
-		enabled := true
 		istio.Spec.UseMCP = enabled
 		istio.Spec.MTLS = enabled
 		istio.Spec.MeshExpansion = &enabled
