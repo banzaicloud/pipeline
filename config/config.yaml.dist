@@ -309,26 +309,26 @@ dex:
 #            # See https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/istio/deps/grafana/dashboards
 #            grafanaDashboardLocation: ./etc/dashboards/istio
 #
-#            pilotImage: "banzaicloud/istio-pilot:1.1.8-bzc.1"
-#            mixerImage: "banzaicloud/istio-mixer:1.1.8-bzc.1"
+#            pilotImage: "banzaicloud/istio-pilot:1.3.4-bzc"
+#            mixerImage: "banzaicloud/istio-mixer:1.3.4-bzc"
 #
 #        charts:
 #            istioOperator:
 #                chart: "banzaicloud-stable/istio-operator"
-#                version: "0.0.14"
+#                version: "0.0.24"
 #
 #                # See https://github.com/banzaicloud/istio-operator/tree/release-1.3/deploy/charts/istio-operator for details
 #                values: {}
 #
 #            backyards:
 #                chart: "banzaicloud-stable/backyards"
-#                version: "0.1.4"
+#                version: "1.0.3"
 #
 #                values: {}
 #
 #            canaryOperator:
 #                chart: "banzaicloud-stable/canary-operator"
-#                version: "0.1.2"
+#                version: "0.1.5"
 #
 #                values: {}
 #
