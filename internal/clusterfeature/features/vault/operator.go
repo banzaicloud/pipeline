@@ -349,13 +349,13 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 
 		// disable auth method
 		if err := vaultManager.disableAuth(getAuthMethodPath(orgID, clusterID)); err != nil {
-			return errors.WrapIf(err, fmt.Sprintf("failed to disabling %s auth method for vault", authMethodType))
+			logger.Warn(fmt.Sprintf("failed to disable %q auth method in vault: %v", authMethodType, err))
 		}
-		logger.Info(fmt.Sprintf("auth method %q for vault deactivated successfully", authMethodType))
+		logger.Info(fmt.Sprintf("auth method %q in vault deactivated successfully", authMethodType))
 
 		// delete policy
 		if err := vaultManager.deletePolicy(); err != nil {
-			return errors.WrapIf(err, fmt.Sprintf("failed to delete policy"))
+			logger.Warn(fmt.Sprintf("failed to delete policy in vault: %v", err))
 		}
 		logger.Info("policy deleted successfully")
 
