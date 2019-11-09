@@ -363,14 +363,16 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		// disable auth method
 		if err := vaultManager.disableAuth(getAuthMethodPath(orgID, clusterID)); err != nil {
 			logger.Warn(fmt.Sprintf("failed to disable %q auth method in vault: %v", authMethodType, err))
+		} else {
+			logger.Info(fmt.Sprintf("auth method %q in vault deactivated successfully", authMethodType))
 		}
-		logger.Info(fmt.Sprintf("auth method %q in vault deactivated successfully", authMethodType))
 
 		// delete policy
 		if err := vaultManager.deletePolicy(); err != nil {
 			logger.Warn(fmt.Sprintf("failed to delete policy in vault: %v", err))
+		} else {
+			logger.Info("vault policy deleted successfully")
 		}
-		logger.Info("policy deleted successfully")
 
 		// delete kubernetes service account
 		pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace
