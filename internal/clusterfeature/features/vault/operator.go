@@ -122,8 +122,10 @@ func (op FeatureOperator) configureClusterTokenReviewer(
 	ctx context.Context,
 	logger common.Logger,
 	clusterID uint) (string, error) {
-	// Prepare cluster first with the proper token reviewer SA
+
 	pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace
+
+	// Prepare cluster first with the proper token reviewer SA
 	serviceAccount := corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      vaultTokenReviewer,
@@ -136,14 +138,25 @@ func (op FeatureOperator) configureClusterTokenReviewer(
 		return "", errors.WrapIf(err, "failed to create token reviewer ServiceAccount")
 	}
 
-	saTokenSecretRef := serviceAccount.Secrets[0]
-	saTokenSecretRef.Namespace = serviceAccount.Namespace
+	// Prepare a custom ServiceAccountToken for the above SA in a controlled way, since the creation of
+	// SA tokens is async and naming is random, so we can't control when it gets created and with what name.
+	// See:
+	// https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/#token-controller
+	// https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#manually-create-a-service-account-api-token
+	serviceAccountToken := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      vaultTokenReviewer,
+			Namespace: pipelineSystemNamespace,
+			Annotations: map[string]string{
+				corev1.ServiceAccountNameKey: vaultTokenReviewer,
+			},
+		},
+		Type: corev1.SecretTypeServiceAccountToken,
+	}
 
-	var saTokenSecret corev1.Secret
-
-	err = op.kubernetesService.GetObject(ctx, clusterID, saTokenSecretRef, &saTokenSecret)
+	err = op.kubernetesService.EnsureObject(ctx, clusterID, &serviceAccountToken)
 	if err != nil {
-		return "", errors.WrapIf(err, "failed to find token reviewer ServiceAccount's Secret")
+		return "", errors.WrapIf(err, "failed to create token reviewer ServiceAccountToken")
 	}
 
 	tokenReviewerRoleBinding := rbacv1.ClusterRoleBinding{
@@ -169,7 +182,7 @@ func (op FeatureOperator) configureClusterTokenReviewer(
 		return "", errors.WrapIf(err, "failed to create token reviewer cluster role binding")
 	}
 
-	tokenReviewerJWT := string(saTokenSecret.Data["token"])
+	tokenReviewerJWT := string(serviceAccountToken.Data[corev1.ServiceAccountTokenKey])
 
 	return tokenReviewerJWT, nil
 }
