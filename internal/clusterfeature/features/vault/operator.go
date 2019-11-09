@@ -98,19 +98,19 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		return errors.WrapIf(err, "failed to deploy helm chart for feature")
 	}
 
-	// get kubeconfig for cluster
-	kubeConfig, err := op.kubernetesService.GetKubeConfig(ctx, clusterID)
-	if err != nil {
-		return errors.WrapIf(err, "failed to get cluster kube config")
-	}
-
 	// create the token reviwer service account
 	tokenReviewerJWT, err := op.configureClusterTokenReviewer(ctx, logger, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to configure Cluster with token reviewer service account")
 	}
 
-	// configure the target Vault instance if needed
+	// get kubeconfig for cluster
+	kubeConfig, err := op.kubernetesService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get cluster kube config")
+	}
+
+	// configure the target Vault instance if needed, with the k8s auth info of the cluster
 	if err := op.configureVault(ctx, logger, orgID, clusterID, boundSpec, tokenReviewerJWT, kubeConfig); err != nil {
 		return errors.WrapIf(err, "failed to configure Vault")
 	}
