@@ -18,6 +18,8 @@ WORKDIR /build
 COPY go.* /build/
 RUN go mod download
 
+ARG VERSION
+
 COPY . /build
 RUN make build-release
 

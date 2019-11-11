@@ -315,16 +315,12 @@ jobs:
             -
                 checkout
             -
-                run:
-                    name: Create version tag
-                    command: |
-                        git tag << pipeline.parameters.snapshot_version >>
-            -
                 docker/check
             -
                 docker/build:
                     image: $IMAGE
                     tag: <<pipeline.parameters.snapshot_version>>
+                    extra_build_args: '--build-arg "VERSION=<<pipeline.parameters.snapshot_version>>"'
             -
                 docker/push:
                     image: $IMAGE
