@@ -164,6 +164,7 @@ dex:
 #
 #        managed:
 #            enabled: false
+#            endpoint: ""
 #
 #        charts:
 #            webhook:
