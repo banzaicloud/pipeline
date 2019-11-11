@@ -248,6 +248,10 @@ func (op FeatureOperator) installPrometheusPushGateway(
 			Paths:   []string{spec.Ingress.Path},
 		},
 		Annotations: annotations,
+		Image: imageValues{
+			Repository: op.config.Images.Pushgateway.Repository,
+			Tag:        op.config.Images.Pushgateway.Tag,
+		},
 	}
 
 	pushgatewayConfigValues, err := copystructure.Copy(op.config.Charts.Pushgateway.Values)
@@ -295,21 +299,40 @@ func (op FeatureOperator) installPrometheusOperator(
 		clusterID: cluster.GetID(),
 	}
 
-	alertmanagerValues, err := valuesManager.generateAlertmanagerChartValues(ctx, spec.Alertmanager, alertmanagerSecretName)
+	alertmanagerValues, err := valuesManager.generateAlertmanagerChartValues(ctx, spec.Alertmanager, alertmanagerSecretName, op.config.Images.Alertmanager)
 	if err != nil {
 		return errors.WrapIf(err, "failed to generate Alertmanager chart values")
 	}
 
 	// create chart values
 	var chartValues = &prometheusOperatorValues{
-		Grafana:      valuesManager.generateGrafanaChartValues(spec.Grafana, grafanaUser, grafanaPass),
+		PrometheusOperator: operatorSpecValues{
+			Image: imageValues{
+				Repository: op.config.Images.Operator.Repository,
+				Tag:        op.config.Images.Operator.Tag,
+			},
+		},
+		Grafana:      valuesManager.generateGrafanaChartValues(spec.Grafana, grafanaUser, grafanaPass, op.config.Images.Grafana),
 		Alertmanager: alertmanagerValues,
-		Prometheus:   valuesManager.generatePrometheusChartValues(ctx, spec.Prometheus, prometheusSecretName),
+		Prometheus:   valuesManager.generatePrometheusChartValues(ctx, spec.Prometheus, prometheusSecretName, op.config.Images.Prometheus),
 	}
 
 	if spec.Exporters.Enabled {
 		chartValues.KubeStateMetrics = valuesManager.generateKubeStateMetricsChartValues(spec.Exporters.KubeStateMetrics)
+		if spec.Exporters.KubeStateMetrics.Enabled {
+			chartValues.KsmValues = &ksmValues{Image: imageValues{
+				Repository: op.config.Images.Kubestatemetrics.Repository,
+				Tag:        op.config.Images.Kubestatemetrics.Tag,
+			}}
+		}
+
 		chartValues.NodeExporter = valuesManager.generateNodeExporterChartValues(spec.Exporters.NodeExporter)
+		if spec.Exporters.NodeExporter.Enabled {
+			chartValues.NeValues = &neValues{Image: imageValues{
+				Repository: op.config.Images.Nodeexporter.Repository,
+				Tag:        op.config.Images.Nodeexporter.Tag,
+			}}
+		}
 	}
 
 	operatorConfigValues, err := copystructure.Copy(op.config.Charts.Operator.Values)
@@ -574,6 +597,7 @@ func (m chartValuesManager) generateGrafanaChartValues(
 	spec grafanaSpec,
 	username string,
 	password string,
+	config ImageConfig,
 ) *grafanaValues {
 	if spec.Enabled {
 		return &grafanaValues{
@@ -594,6 +618,10 @@ func (m chartValuesManager) generateGrafanaChartValues(
 				ServeFromSubPath: true,
 			}},
 			DefaultDashboardsEnabled: spec.Dashboards,
+			Image: imageValues{
+				Repository: config.Repository,
+				Tag:        config.Tag,
+			},
 		}
 	}
 
@@ -604,7 +632,12 @@ func (m chartValuesManager) generateGrafanaChartValues(
 	}
 }
 
-func (m chartValuesManager) generateAlertmanagerChartValues(ctx context.Context, spec alertmanagerSpec, secretName string) (*alertmanagerValues, error) {
+func (m chartValuesManager) generateAlertmanagerChartValues(
+	ctx context.Context,
+	spec alertmanagerSpec,
+	secretName string,
+	config ImageConfig,
+) (*alertmanagerValues, error) {
 	if spec.Enabled {
 
 		var annotations map[string]interface{}
@@ -631,6 +664,10 @@ func (m chartValuesManager) generateAlertmanagerChartValues(ctx context.Context,
 				affinityValues:   affinityValues{Affinity: m.headNodeAffinity},
 				tolerationValues: tolerationValues{Tolerations: m.tolerations},
 				RoutePrefix:      spec.Ingress.Path,
+				Image: imageValues{
+					Repository: config.Repository,
+					Tag:        config.Tag,
+				},
 			},
 			Config: alertmanagerConfig,
 		}, nil
@@ -643,7 +680,12 @@ func (m chartValuesManager) generateAlertmanagerChartValues(ctx context.Context,
 	}, nil
 }
 
-func (m chartValuesManager) generatePrometheusChartValues(ctx context.Context, spec prometheusSpec, secretName string) *prometheusValues {
+func (m chartValuesManager) generatePrometheusChartValues(
+	ctx context.Context,
+	spec prometheusSpec,
+	secretName string,
+	config ImageConfig,
+) *prometheusValues {
 	if spec.Enabled {
 
 		var defaultStorageClassName = spec.Storage.Class
@@ -675,6 +717,10 @@ func (m chartValuesManager) generatePrometheusChartValues(ctx context.Context, s
 				RoutePrefix:      spec.Ingress.Path,
 				RetentionSize:    fmt.Sprintf("%.2fGiB", float64(spec.Storage.Size)*0.95),
 				Retention:        spec.Storage.Retention,
+				Image: imageValues{
+					Repository: config.Repository,
+					Tag:        config.Tag,
+				},
 				StorageSpec: map[string]interface{}{
 					"volumeClaimTemplate": map[string]interface{}{
 						"spec": map[string]interface{}{

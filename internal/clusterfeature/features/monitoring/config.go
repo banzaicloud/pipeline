@@ -23,6 +23,7 @@ type Config struct {
 	Namespace string
 	Grafana   GrafanaConfig
 	Charts    ChartsConfig
+	Images    ImagesConfig
 }
 
 func (c Config) Validate() error {
@@ -40,6 +41,34 @@ func (c Config) Validate() error {
 
 	if err := c.Charts.Pushgateway.Validate(); err != nil {
 		return errors.WrapIf(err, "error during validation Pushgateway config")
+	}
+
+	if err := c.Images.Prometheus.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validate Prometheus images config")
+	}
+
+	if err := c.Images.Alertmanager.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validate Alertmanager images config")
+	}
+
+	if err := c.Images.Grafana.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validate Grafana images config")
+	}
+
+	if err := c.Images.Nodeexporter.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validate NodeExporter images config")
+	}
+
+	if err := c.Images.Kubestatemetrics.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validate KubeStateMetrics images config")
+	}
+
+	if err := c.Images.Operator.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validate Operator images config")
+	}
+
+	if err := c.Images.Pushgateway.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validate Pushgateway images config")
 	}
 
 	return nil
@@ -75,6 +104,33 @@ func (c ChartConfig) Validate() error {
 
 	if c.Version == "" {
 		return errors.New("chart version is required")
+	}
+
+	return nil
+}
+
+type ImagesConfig struct {
+	Operator         ImageConfig
+	Prometheus       ImageConfig
+	Alertmanager     ImageConfig
+	Grafana          ImageConfig
+	Kubestatemetrics ImageConfig
+	Nodeexporter     ImageConfig
+	Pushgateway      ImageConfig
+}
+
+type ImageConfig struct {
+	Repository string
+	Tag        string
+}
+
+func (c ImageConfig) Validate() error {
+	if c.Repository == "" {
+		return errors.New("repository is required")
+	}
+
+	if c.Tag == "" {
+		return errors.New("tag is required")
 	}
 
 	return nil
