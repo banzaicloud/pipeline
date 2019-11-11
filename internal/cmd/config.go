@@ -349,19 +349,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::monitoring::charts::operator::chart", "stable/prometheus-operator")
 	v.SetDefault("cluster::monitoring::charts::operator::version", "7.2.0")
 	v.SetDefault("cluster::monitoring::charts::operator::values", map[string]interface{}{
-		"prometheusOperator": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "quay.io/coreos/prometheus-operator",
-				"tag":        "v0.32.0",
-			},
-		},
 		"prometheus": map[string]interface{}{
-			"prometheusSpec": map[string]interface{}{
-				"image": map[string]interface{}{
-					"repository": "quay.io/prometheus/prometheus",
-					"tag":        "v2.12.0",
-				},
-			},
 			"ingress": map[string]interface{}{
 				"annotations": map[string]interface{}{
 					"traefik.frontend.rule.type":                 "PathPrefix",
@@ -370,12 +358,6 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 			},
 		},
 		"alertmanager": map[string]interface{}{
-			"alertmanagerSpec": map[string]interface{}{
-				"image": map[string]interface{}{
-					"repository": "quay.io/prometheus/alertmanager",
-					"tag":        "v0.19.0",
-				},
-			},
 			"ingress": map[string]interface{}{
 				"annotations": map[string]interface{}{
 					"traefik.frontend.rule.type":                 "PathPrefix",
@@ -384,10 +366,6 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 			},
 		},
 		"grafana": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "grafana/grafana",
-				"tag":        "6.4.2",
-			},
 			"ingress": map[string]interface{}{
 				"annotations": map[string]interface{}{
 					"traefik.frontend.rule.type":                         "PathPrefixStrip",
@@ -397,26 +375,23 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 				},
 			},
 		},
-		"kube-state-metrics": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "quay.io/coreos/kube-state-metrics",
-				"tag":        "v1.8.0",
-			},
-		},
-		"prometheus-node-exporter": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "quay.io/prometheus/node-exporter",
-				"tag":        "v0.18.0",
-			},
-		},
 	})
+	v.SetDefault("cluster::monitoring::images::operator::repository", "quay.io/coreos/prometheus-operator")
+	v.SetDefault("cluster::monitoring::images::operator::tag", "v0.32.0")
+	v.SetDefault("cluster::monitoring::images::prometheus::repository", "quay.io/prometheus/prometheus")
+	v.SetDefault("cluster::monitoring::images::prometheus::tag", "v2.12.0")
+	v.SetDefault("cluster::monitoring::images::alertmanager::repository", "quay.io/prometheus/alertmanager")
+	v.SetDefault("cluster::monitoring::images::alertmanager::tag", "v0.19.0")
+	v.SetDefault("cluster::monitoring::images::grafana::repository", "grafana/grafana")
+	v.SetDefault("cluster::monitoring::images::grafana::tag", "6.4.2")
+	v.SetDefault("cluster::monitoring::images::kubestatemetrics::repository", "quay.io/coreos/kube-state-metrics")
+	v.SetDefault("cluster::monitoring::images::kubestatemetrics::tag", "v1.8.0")
+	v.SetDefault("cluster::monitoring::images::nodeexporter::repository", "quay.io/prometheus/node-exporter")
+	v.SetDefault("cluster::monitoring::images::nodeexporter::tag", "v0.18.0")
+
 	v.SetDefault("cluster::monitoring::charts::pushgateway::chart", "stable/prometheus-pushgateway")
 	v.SetDefault("cluster::monitoring::charts::pushgateway::version", "1.0.1")
 	v.SetDefault("cluster::monitoring::charts::pushgateway::values", map[string]interface{}{
-		"image": map[string]interface{}{
-			"repository": "prom/pushgateway",
-			"tag":        "v1.0.0",
-		},
 		"ingress": map[string]interface{}{
 			"annotations": map[string]interface{}{
 				"traefik.frontend.rule.type":                 "PathPrefix",
@@ -424,6 +399,8 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 			},
 		},
 	})
+	v.SetDefault("cluster::monitoring::images::pushgateway::repository", "prom/pushgateway")
+	v.SetDefault("cluster::monitoring::images::pushgateway::tag", "v1.0.0")
 
 	v.SetDefault("cluster::logging::enabled", true)
 	v.SetDefault("cluster::logging::namespace", "")
