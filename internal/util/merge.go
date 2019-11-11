@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package spotguide
+package util
 
 import (
 	"reflect"
@@ -28,7 +28,7 @@ func min(x, y int) int {
 	return y
 }
 
-func merge(dst, src interface{}) (interface{}, error) {
+func Merge(dst, src interface{}) (interface{}, error) {
 	if reflect.DeepEqual(dst, src) {
 		return dst, nil
 	}
@@ -65,7 +65,7 @@ func merge(dst, src interface{}) (interface{}, error) {
 			}
 
 			for key := range srcV {
-				val, err := merge(dstV[key], srcV[key])
+				val, err := Merge(dstV[key], srcV[key])
 				if err != nil {
 					return dst, err
 				}
@@ -88,7 +88,7 @@ func merge(dst, src interface{}) (interface{}, error) {
 			// merge elements at common indices
 			length := min(len(dstV), len(srcV))
 			for i := 0; i < length; i++ {
-				val, err := merge(dstV[i], srcV[i])
+				val, err := Merge(dstV[i], srcV[i])
 				if err != nil {
 					return dst, err
 				}

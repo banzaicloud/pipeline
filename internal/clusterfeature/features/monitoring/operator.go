@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/pipeline/internal/util"
 	"github.com/mitchellh/copystructure"
 	"github.com/mitchellh/mapstructure"
 	v1 "k8s.io/api/core/v1"
@@ -342,7 +343,7 @@ func mergeOperatorValuesWithConfig(chartValues interface{}, configValues interfa
 		return nil, errors.WrapIf(err, "failed to unmarshal operator values")
 	}
 
-	result, err := merge(configValues, out)
+	result, err := util.Merge(configValues, out)
 	return json.Marshal(result)
 }
 

@@ -31,6 +31,7 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/cicd-go/cicd"
+	"github.com/banzaicloud/pipeline/internal/util"
 	yaml2 "github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
 	"github.com/jinzhu/gorm"
@@ -695,7 +696,7 @@ func cicdRepoConfigPipeline(request *LaunchRequest, repoConfig *cicdRepoConfig) 
 				return err
 			}
 
-			merged, err := merge(pipelineStep, stepToMergeIn)
+			merged, err := util.Merge(pipelineStep, stepToMergeIn)
 			if err != nil {
 				return err
 			}

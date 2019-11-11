@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package spotguide
+package util
 
 import (
 	"testing"
@@ -128,7 +128,7 @@ func TestMerge(t *testing.T) {
 	for name, testCase := range testCases {
 		testCase := testCase
 		t.Run(name, func(t *testing.T) {
-			res, err := merge(testCase.Dst, testCase.Src)
+			res, err := Merge(testCase.Dst, testCase.Src)
 			switch testCase.Err {
 			case nil, false:
 				require.NoError(t, err)
