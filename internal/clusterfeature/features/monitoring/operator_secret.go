@@ -48,7 +48,6 @@ func (m secretManager) generateHTPasswordSecret(ctx context.Context) error {
 		clusterNameSecretTag,
 		clusterUIDSecretTag,
 		releaseSecretTag,
-		secret.TagBanzaiReadonly,
 		featureSecretTag,
 	}
 
@@ -84,7 +83,7 @@ func (m secretManager) getComponentSecret(
 	var secretName string
 	if ingress.SecretID == "" {
 		// get secret by name, this necessary in case of feature update
-		var secretName = m.infoer.generatedSecretName()
+		secretName = m.infoer.generatedSecretName()
 		existingSecretID, err := m.operator.secretStore.GetIDByName(ctx, secretName)
 		if existingSecretID != "" {
 			logger.Debug(fmt.Sprintf("%s secret already exists", m.infoer.name()))

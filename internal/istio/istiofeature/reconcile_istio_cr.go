@@ -108,6 +108,9 @@ func (m *MeshReconciler) waitForIstioCRToBeDeleted(client *istiooperatorclientse
 
 // configureIstioCR configures istio-operator specific CR based on the given params
 func (m *MeshReconciler) configureIstioCR(istio *v1beta1.Istio, config Config) *v1beta1.Istio {
+	enabled := true
+	maxReplicas := int32(1)
+
 	labels := istio.GetLabels()
 	if labels == nil {
 		labels = make(map[string]string, 0)
@@ -125,17 +128,21 @@ func (m *MeshReconciler) configureIstioCR(istio *v1beta1.Istio, config Config) *
 	istio.Spec.Gateways.EgressConfig.MaxReplicas = 1
 	istio.Spec.Pilot = v1beta1.PilotConfiguration{
 		Image:       m.Configuration.internalConfig.istioOperator.pilotImage,
-		MaxReplicas: 1,
+		MaxReplicas: maxReplicas,
 	}
 	istio.Spec.Mixer = v1beta1.MixerConfiguration{
-		Image:       m.Configuration.internalConfig.istioOperator.mixerImage,
-		MaxReplicas: 1,
+		K8sResourceConfiguration: v1beta1.K8sResourceConfiguration{
+			Image:       &m.Configuration.internalConfig.istioOperator.mixerImage,
+			MaxReplicas: &maxReplicas,
+		},
 	}
 	istio.Spec.SidecarInjector.RewriteAppHTTPProbe = true
+	istio.Spec.Tracing.Enabled = &enabled
+	istio.Spec.Tracing.Zipkin.Address = zipkinAddress
+	istio.Spec.Mixer.MultiClusterSupport = &enabled
 
 	if len(m.Remotes) > 0 {
-		enabled := true
-		istio.Spec.UseMCP = enabled
+		istio.Spec.UseMCP = &enabled
 		istio.Spec.MTLS = enabled
 		istio.Spec.MeshExpansion = &enabled
 		istio.Spec.ControlPlaneSecurityEnabled = enabled

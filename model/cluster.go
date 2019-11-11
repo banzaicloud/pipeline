@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"time"
 
-	"emperror.dev/emperror"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -147,23 +146,6 @@ type AmazonNodePoolsModel struct {
 	NodeInstanceType string
 	Labels           map[string]string `gorm:"-"`
 	Delete           bool              `gorm:"-"`
-}
-
-// BeforeDelete deletes all nodepool labels that belongs to this AmazonNodePoolsModel
-func (m *AmazonNodePoolsModel) BeforeDelete(tx *gorm.DB) error {
-	for _, label := range m.Labels {
-		err := tx.Model(m).Association("Labels").Delete(label).Error
-		if err != nil {
-			return emperror.WrapWith(err, "failed to unlink labels from node pool", "clusterId", m.ClusterID, "nodePoolName", m.Name)
-		}
-
-		err = tx.Delete(label).Error
-		if err != nil {
-			return emperror.WrapWith(err, "failed to delete nodepool label", "clusterId", m.ClusterID, "nodePoolName", m.Name)
-		}
-	}
-
-	return nil
 }
 
 // EKSSubnetModel describes the model of subnets used for creating an EKS cluster

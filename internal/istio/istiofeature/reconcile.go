@@ -24,13 +24,12 @@ func (m *MeshReconciler) Reconcile() error {
 
 	var reconcilers []Reconciler
 
+	// TODO - integrate with monitoring feature
+
 	switch desiredState {
 	case DesiredStatePresent:
 		reconcilers = []Reconciler{
 			m.ReconcileIstioOperatorNamespace,
-			m.ReconcileMonitoring,
-			m.ReconcilePrometheusScrapeConfig,
-			m.ReconcileGrafanaDashboards,
 			m.ReconcileIstioOperator,
 			m.ReconcileIstio,
 			m.ReconcileRemoteIstios,
@@ -41,8 +40,6 @@ func (m *MeshReconciler) Reconcile() error {
 		}
 	case DesiredStateAbsent:
 		reconcilers = []Reconciler{
-			m.ReconcilePrometheusScrapeConfig,
-			m.ReconcileGrafanaDashboards,
 			m.ReconcileRemoteIstios,
 			m.ReconcileIstio,
 			m.ReconcileIstioOperator,

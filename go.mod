@@ -30,11 +30,11 @@ require (
 	github.com/aws/aws-sdk-go v1.23.18
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
-	github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.0
+	github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.1
 	github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677
 	github.com/banzaicloud/gin-utilz v0.1.0
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
-	github.com/banzaicloud/istio-operator v0.0.0-20190430142744-7f4bf475ff8f
+	github.com/banzaicloud/istio-operator v0.0.0-20191104140059-90d1290d7342
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
 	github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190823114332-76c873e3a8cb
 	github.com/banzaicloud/prometheus-config v0.0.0-20181214142820-fc6ae4756a29

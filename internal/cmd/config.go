@@ -78,7 +78,7 @@ func (c AuthTokenConfig) Validate() error {
 	}
 
 	if c.Audience == "" {
-		return errors.New("auth token issuer is required")
+		return errors.New("auth token audience is required")
 	}
 
 	return nil
@@ -253,7 +253,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	}
 
 	v.SetDefault("log::format", "logfmt")
-	v.SetDefault("log::level", "debug")
+	v.SetDefault("log::level", "info")
 	v.RegisterAlias("log::noColor", "no_color")
 
 	// ErrorHandler configuration
@@ -278,8 +278,8 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("auth::cookie::setDomain", false)
 
 	v.SetDefault("auth::token::signingKey", "")
-	v.SetDefault("auth::token::issuer", "https://banzaicloud.com/")
-	v.SetDefault("auth::token::audience", "https://pipeline.banzaicloud.com")
+	v.SetDefault("auth::token::issuer", "")
+	v.SetDefault("auth::token::audience", "")
 
 	// Dex configuration
 	v.SetDefault("dex::apiAddr", "")
@@ -495,42 +495,30 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 
 	v.SetDefault("cluster::backyards::enabled", true)
 	v.SetDefault("cluster::backyards::istio::grafanaDashboardLocation", "./etc/dashboards/istio")
-	v.SetDefault("cluster::backyards::istio::pilotImage", "banzaicloud/istio-pilot:1.1.8-bzc.1")
-	v.SetDefault("cluster::backyards::istio::mixerImage", "banzaicloud/istio-mixer:1.1.8-bzc.1")
+	v.SetDefault("cluster::backyards::istio::pilotImage", "banzaicloud/istio-pilot:1.3.4-bzc")
+	v.SetDefault("cluster::backyards::istio::mixerImage", "banzaicloud/istio-mixer:1.3.4-bzc")
 	v.SetDefault("cluster::backyards::charts::istioOperator::chart", "banzaicloud-stable/istio-operator")
-	v.SetDefault("cluster::backyards::charts::istioOperator::version", "0.0.14")
+	v.SetDefault("cluster::backyards::charts::istioOperator::version", "0.0.24")
 	v.SetDefault("cluster::backyards::charts::istioOperator::values", map[string]interface{}{
-		"operator": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "",
-				"tag":        "",
-			},
+		"image": map[string]interface{}{
+			"repository": "banzaicloud/istio-operator",
+			"tag":        "0.3.5",
 		},
 	})
 	v.SetDefault("cluster::backyards::charts::backyards::chart", "banzaicloud-stable/backyards")
-	v.SetDefault("cluster::backyards::charts::backyards::version", "0.1.4")
+	v.SetDefault("cluster::backyards::charts::backyards::version", "1.0.3")
 	v.SetDefault("cluster::backyards::charts::backyards::values", map[string]interface{}{
-		"application": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "banzaicloud/backyards",
-				"tag":        "0.1.3",
-			},
-		},
-		"web": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "banzaicloud/backyards",
-				"tag":        "web-0.1.3",
-			},
+		"image": map[string]interface{}{
+			"repository": "banzaicloud/backyards",
+			"tag":        "1.0.3",
 		},
 	})
 	v.SetDefault("cluster::backyards::charts::canaryOperator::chart", "banzaicloud-stable/canary-operator")
-	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.2")
+	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.6")
 	v.SetDefault("cluster::backyards::charts::canaryOperator::values", map[string]interface{}{
-		"operator": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "banzaicloud/canary-operator",
-				"tag":        "0.1.0",
-			},
+		"image": map[string]interface{}{
+			"repository": "banzaicloud/istio-operator",
+			"tag":        "0.1.4",
 		},
 	})
 

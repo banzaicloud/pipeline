@@ -2,8 +2,8 @@
 
 # Pipeline logging configuration
 #log:
-#    format: "text"
-#    level: "debug"
+#    level: "info"
+#    format: "logfmt"
 
 # Pipeline error handling configuration
 #errors:
@@ -23,28 +23,25 @@ pipeline:
     # If a good UUID is not available, do not generate one automatically, because no UUID is better than one that always changes.
     # uuid: ""
 
-    addr: "127.0.0.1:9090"
+#    addr: "127.0.0.1:9090"
 
     # Bind address for Internal API
-    internalAddr: "127.0.0.1:9091"
+#    internalAddr: "127.0.0.1:9091"
 
     # URL base path
-    # Default is "/pipeline" in the development environment to allow using the UI locally
-    basePath: "/pipeline"
+#    basePath: ""
 
     certFile: ""
     keyFile: ""
 
     external:
         # Base URL where the end users can reach this pipeline instance
-        url: "https://example.com/pipeline"
-        insecure: false
+        url: ""
+#        insecure: false
 
-ui:
-    url: "http://localhost:4200/ui"
-
-    # Original: pipeline.signupRedirectPath
-    signupRedirectUrl: "http://localhost:4200/ui"
+#ui:
+#    url: "/ui"
+#    signupRedirectUrl: "/ui"
 
 database:
     # dialect: "postgres"
@@ -54,39 +51,42 @@ database:
     port: 3306
     # tls: "disable"
     tls: "false"
-    user: "sparky"
-    role: ""
-    password: "sparky123"
+    user: ""
+    # role: ""
+    password: ""
     name: "pipeline"
 
     # Turn this to true to see all queries in the log
-    queryLog: false
+#    queryLog: false
 
-    autoMigrate: true
+#    autoMigrate: false
 
 cadence:
-    host: "127.0.0.1"
+    host: ""
 #    port: 7933
 #    domain: "pipeline"
-    createNonexistentDomain: true
+#    createNonexistentDomain: false
 #    workflowExecutionRetentionPeriodInDays: 3
 
-cors:
-    allowAllOrigins: false
-    allowOrigins: ["http://localhost:4200"]
+#cors:
+#    # Note: this should be disabled in production!
+#    # TODO: disable all orgins by default?
+#    allowAllOrigins: true
+#    allowOrigins: []
+#    allowOriginsRegexp: ""
 
 auth:
     oidc:
-        issuer: "http://127.0.0.1:5556/dex"
+        issuer: ""
 #        insecure: false
-        clientId: "pipeline"
-        clientSecret: "ZXhhbXBsZS1hcHAtc2VjcmV0"
+        clientId: ""
+        clientSecret: ""
 
 #    cli:
 #        clientId: "banzai-cli"
 
-    cookie:
-        secure: false
+#    cookie:
+#        secure: true
 #        domain: ""
 #        setDomain: false
 
@@ -97,12 +97,12 @@ auth:
 #                member: ""
 
     token:
-        signingKey: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
-#        issuer: "https://banzaicloud.com/"
-#        audience: "https://pipeline.banzaicloud.com"
+        signingKey: ""
+        issuer: ""
+        audience: ""
 
 dex:
-    apiAddr: "127.0.0.1:5557"
+    apiAddr: ""
     # apiCa: ""
 
 #kubernetes:
@@ -316,26 +316,26 @@ dex:
 #            # See https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/istio/deps/grafana/dashboards
 #            grafanaDashboardLocation: ./etc/dashboards/istio
 #
-#            pilotImage: "banzaicloud/istio-pilot:1.1.8-bzc.1"
-#            mixerImage: "banzaicloud/istio-mixer:1.1.8-bzc.1"
+#            pilotImage: "banzaicloud/istio-pilot:1.3.4-bzc"
+#            mixerImage: "banzaicloud/istio-mixer:1.3.4-bzc"
 #
 #        charts:
 #            istioOperator:
 #                chart: "banzaicloud-stable/istio-operator"
-#                version: "0.0.14"
+#                version: "0.0.24"
 #
 #                # See https://github.com/banzaicloud/istio-operator/tree/release-1.3/deploy/charts/istio-operator for details
 #                values: {}
 #
 #            backyards:
 #                chart: "banzaicloud-stable/backyards"
-#                version: "0.1.4"
+#                version: "1.0.3"
 #
 #                values: {}
 #
 #            canaryOperator:
 #                chart: "banzaicloud-stable/canary-operator"
-#                version: "0.1.2"
+#                version: "0.1.6"
 #
 #                values: {}
 #
@@ -372,11 +372,13 @@ dex:
 #        templateLocation: ./templates/eks
 
 cloudinfo:
-    endpoint: "https://beta.banzaicloud.io/cloudinfo/api/v1"
+    # Format: {baseUrl}/api/v1
+    endpoint: ""
 
 hollowtrees:
-    endpoint: "/hollowtrees-alerts/api/v1"
-    tokenSigningKey: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
+    # Format: {baseUrl}/api/v1
+    endpoint: ""
+    tokenSigningKey: ""
 
 cicd:
 #    enabled: false
@@ -392,13 +394,13 @@ cicd:
         port: 3306
         # tls: "disable"
         tls: "false"
-        user: "sparky"
-        role: ""
-        password: "sparky123"
+        user: ""
+        # role: ""
+        password: ""
         name: "cicd"
 
         # Turn this to true to see all queries in the log
-        queryLog: false
+#        queryLog: false
 
 #github:
 #    token: "YourPersonalAccessToken"
@@ -420,6 +422,3 @@ cicd:
 #secret:
 #    tls:
 #        defaultValidity: 8760h # 1 year
-
-hooks:
-    domainHookDisabled: true
