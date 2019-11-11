@@ -78,7 +78,7 @@ func (c AuthTokenConfig) Validate() error {
 	}
 
 	if c.Audience == "" {
-		return errors.New("auth token issuer is required")
+		return errors.New("auth token audience is required")
 	}
 
 	return nil
