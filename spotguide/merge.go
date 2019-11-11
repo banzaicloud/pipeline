@@ -18,44 +18,12 @@ import (
 	"reflect"
 )
 
-func max(x, y int) int {
-	if x > y {
+func min(x, y int) int {
+	if x < y {
 		return x
 	}
 
 	return y
-}
-
-func elementOrNil(arr []interface{}, i int) interface{} {
-	if i < len(arr) {
-		return arr[i]
-	}
-
-	return nil
-}
-
-func getKeys(obj map[string]interface{}) []string {
-	keys := []string{}
-	for key := range obj {
-		keys = append(keys, key)
-	}
-
-	return keys
-}
-
-func mergeKeys(a, b []string) []string {
-	keys := append(a, b...)
-
-	seen := make(map[string]bool)
-	uniqKeys := []string{}
-	for _, entry := range keys {
-		if _, value := seen[entry]; !value {
-			seen[entry] = true
-			uniqKeys = append(uniqKeys, entry)
-		}
-	}
-
-	return uniqKeys
 }
 
 func merge(dst, src interface{}) (interface{}, error) {
@@ -100,7 +68,7 @@ func merge(dst, src interface{}) (interface{}, error) {
 
 		switch srcV := src.(type) {
 		case map[string]interface{}:
-			for _, key := range mergeKeys(getKeys(dstV), getKeys(srcV)) {
+			for key := range srcV {
 				val, err := merge(dstV[key], srcV[key])
 				if err != nil {
 					return dst, err
@@ -123,15 +91,19 @@ func merge(dst, src interface{}) (interface{}, error) {
 
 		switch srcV := src.(type) {
 		case []interface{}:
-			length := max(len(dstV), len(srcV))
+			// merge elements at common indices
+			length := min(len(dstV), len(srcV))
 			for i := 0; i < length; i++ {
-				val, err := merge(elementOrNil(dstV, i), elementOrNil(srcV, i))
+				val, err := merge(dstV[i], srcV[i])
 				if err != nil {
 					return dst, err
 				}
 
 				dstV[i] = val
 			}
+
+			// append surplus from src (if any)
+			dstV = append(dstV, srcV[length:]...)
 
 			return dstV, nil
 		default:
