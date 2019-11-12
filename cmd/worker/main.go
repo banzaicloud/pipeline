@@ -403,6 +403,7 @@ func main() {
 					commonSecretStore,
 					featureAnchoreService,
 					featureWhitelistService,
+					emperror.MakeContextAware(errorHandler),
 					logger,
 				),
 				featureVault.MakeFeatureOperator(clusterGetter,
