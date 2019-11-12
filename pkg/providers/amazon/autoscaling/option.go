@@ -15,7 +15,7 @@
 package autoscaling
 
 import (
-	"github.com/sirupsen/logrus"
+	"logur.dev/logur"
 )
 
 // Option sets configuration on the Manager
@@ -32,9 +32,9 @@ func (o MetricsEnabled) apply(m *Manager) {
 
 // Logger sets an initialised outside logger
 type Logger struct {
-	logrus.FieldLogger
+	logur.Logger
 }
 
 func (o Logger) apply(m *Manager) {
-	m.logger = o.FieldLogger
+	m.logger = o.Logger
 }

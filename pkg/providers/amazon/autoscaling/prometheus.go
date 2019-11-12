@@ -16,7 +16,6 @@ package autoscaling
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 )
@@ -64,7 +63,7 @@ func (m *Manager) StartMetricTimer(instance *Instance) *prometheus.Timer {
 		return timers[key]
 	}
 
-	m.logger.WithField("instance-id", *instance.InstanceId).Debug("start metric timer")
+	m.logger.Debug("start metric timer", map[string]interface{}{"instance-id": *instance.InstanceId})
 
 	instanceDetails, err := instance.Describe()
 	if err == nil {
@@ -101,7 +100,9 @@ func (m *Manager) StopMetricTimer(instance *Instance) bool {
 		return false
 	}
 
-	m.logger.WithField("instance-id", key).Debug("stop metric timer")
+	m.logger.Debug("stop metric timer", map[string]interface{}{
+		"instance-id": key,
+	})
 	timers[key].ObserveDuration()
 	timers[key] = nil
 
@@ -136,10 +137,10 @@ func (m *Manager) RegisterSpotFulfillmentDuration(instance *Instance, group *Gro
 	if err == nil {
 		for _, sr := range spotRequests {
 			if sr.InstanceId != nil && sr.CreateTime != nil && *sr.InstanceId == *instance.InstanceId && sr.IsFulfilled() {
-				m.logger.WithFields(logrus.Fields{
-					"instance-id": *instance.InstanceId,
-					"seconds":     sr.Status.UpdateTime.Sub(*sr.CreateTime).Seconds(),
-				}).Debug("register fulfillment duration")
+				m.logger.Debug("register fulfillment duration",
+					map[string]interface{}{
+						"instance-id": *instance.InstanceId,
+						"seconds":     sr.Status.UpdateTime.Sub(*sr.CreateTime).Seconds()})
 				ec2SpotInstanceFulfillmentDuration.WithLabelValues(amazon.Provider, region, availabilityZone, instanceType).Observe(sr.Status.UpdateTime.Sub(*sr.CreateTime).Seconds())
 				break
 			}

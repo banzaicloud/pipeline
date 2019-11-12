@@ -25,13 +25,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
+	"logur.dev/logur"
 )
 
 // Manager is for quering auto scaling groups
 type Manager struct {
 	metricsEnabled bool
-	logger         logrus.FieldLogger
+	logger         logur.Logger
 	session        *session.Session
 
 	asSvc  *autoscaling.AutoScaling
@@ -43,10 +43,9 @@ type Manager struct {
 func NewManager(session *session.Session, opts ...Option) *Manager {
 	m := &Manager{
 		session: session,
-
-		asSvc:  autoscaling.New(session),
-		cfSvc:  cloudformation.New(session),
-		ec2Svc: ec2.New(session),
+		asSvc:   autoscaling.New(session),
+		cfSvc:   cloudformation.New(session),
+		ec2Svc:  ec2.New(session),
 	}
 
 	for _, o := range opts {
@@ -54,7 +53,7 @@ func NewManager(session *session.Session, opts ...Option) *Manager {
 	}
 
 	if m.logger == nil {
-		m.logger = logrus.New()
+		//m.logger = logrus.New()
 	}
 
 	return m

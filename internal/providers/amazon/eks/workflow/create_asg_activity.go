@@ -29,6 +29,8 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/zap"
 
+	zapadapter "logur.dev/adapter/zap"
+
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
@@ -255,9 +257,8 @@ func (a *CreateAsgActivity) waitForASGToBeFulfilled(
 	logger = logger.With("stackName", stackName)
 	logger.Info("wait for ASG to be fulfilled")
 
-	// TODO convert logger
 	m := autoscaling.NewManager(awsSession, autoscaling.MetricsEnabled(true), autoscaling.Logger{
-		//FieldLogger: loggger,
+		Logger: zapadapter.New(logger.Desugar()),
 	})
 
 	ticker := time.NewTicker(a.asgFulfillmentWaitInterval)

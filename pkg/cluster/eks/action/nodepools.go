@@ -29,6 +29,8 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/sirupsen/logrus"
 
+	logrusadapter "logur.dev/adapter/logrus"
+
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
@@ -100,8 +102,9 @@ func WaitForASGToBeFulfilled(
 	waitAttempts int,
 	waitInterval time.Duration) error {
 
+	logurLogger := logrusadapter.New(logrus.New())
 	m := autoscaling.NewManager(awsSession, autoscaling.MetricsEnabled(true), autoscaling.Logger{
-		FieldLogger: logger,
+		Logger: logurLogger,
 	})
 	asgName := GenerateNodePoolStackName(clusterName, nodePoolName)
 	log := logger.WithField("asg-name", asgName)

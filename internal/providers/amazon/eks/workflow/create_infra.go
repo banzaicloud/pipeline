@@ -263,7 +263,6 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 		}
 	}
 
-	// TODO may be move out to cluster workflow but make sure to run in parallel with asg creation
 	// initial setup of K8s cluster
 	var bootstrapActivityFeature workflow.Future
 	{
