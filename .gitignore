@@ -13,6 +13,7 @@ config/config.yaml
 etc/config/dex.yml
 config/ui/feature-set.json
 config/ui/*~
+*.bak
 *.swp
 *.pem
 !config/certs/*.pem
