@@ -488,7 +488,11 @@ func CreatePipelineNamespacePostHook(cluster CommonCluster) error {
 	}
 
 	pipelineSystemNamespace := global.Config.Cluster.Namespace
-	err = k8sutil.EnsureNamespaceWithLabelWithRetry(client, pipelineSystemNamespace, map[string]string{"scan": "noscan"})
+	err = k8sutil.EnsureNamespaceWithLabelWithRetry(client, pipelineSystemNamespace,
+		map[string]string{
+			"scan": "noscan",
+			"name": pipelineSystemNamespace,
+		})
 	if err != nil {
 		return err
 	}
