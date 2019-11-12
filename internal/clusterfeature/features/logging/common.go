@@ -14,6 +14,10 @@
 
 package logging
 
+import (
+	"fmt"
+)
+
 const (
 	featureName = "logging"
 
@@ -22,7 +26,11 @@ const (
 	providerAlibabaOSS = "oss"
 	providerAzure      = "azure"
 
-	loggingOperatorReleaseName        = "logging-operator"
-	lokiReleaseName                   = "loki"
-	lokiServiceName                   = "loki"
+	loggingOperatorReleaseName = "logging-operator"
+	lokiReleaseName            = "loki"
+	lokiServiceName            = "loki"
 )
+
+func getLokiSecretName(clusterID uint) string {
+	return fmt.Sprintf("cluster-%d-loki", clusterID)
+}
