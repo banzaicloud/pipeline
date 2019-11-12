@@ -79,7 +79,7 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 		return nil, errors.WrapIf(err, "failed to get K8S config")
 	}
 
-	endpoints, err := m.endpointsService.List(kubeConfig, loggingOperatorReleaseName)
+	endpoints, err := m.endpointsService.List(kubeConfig, lokiReleaseName)
 	if err != nil {
 		m.logger.Warn(fmt.Sprintf("failed to list endpoints: %s", err.Error()))
 	}

@@ -26,9 +26,8 @@ const (
 	providerAlibabaOSS = "oss"
 	providerAzure      = "azure"
 
-	loggingOperatorReleaseName = "logging-operator"
-	lokiReleaseName            = "loki"
-	lokiServiceName            = "loki"
+	lokiReleaseName = "loki"
+	lokiServiceName = "loki"
 )
 
 func getLokiSecretName(clusterID uint) string {
