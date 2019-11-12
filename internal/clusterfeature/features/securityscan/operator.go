@@ -175,10 +175,11 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 			"clusterID", clusterID)
 	}
 
-	if err := op.namespaceService.RemoveLabels(ctx, clusterID, boundSpec.WebhookConfig.Namespaces, []string{"scan"}); err != nil {
-
+	if err := op.namespaceService.CleanupLabels(ctx, clusterID, []string{"scan"}); err != nil {
 		// if the operation fails for some reason (eg. non-existent namespaces) we notice that and let the deactivation succeed
 		op.logger.Warn("failed to delete namespace labels", map[string]interface{}{"clusterID": clusterID})
+		op.errorHandler.Handle(ctx, err)
+
 		return nil
 
 	}
@@ -317,6 +318,11 @@ func (op *FeatureOperator) configureWebHook(ctx context.Context, clusterID uint,
 	securityScanLabels := map[string]string{
 		selectorInclude: "scan",
 		selectorExclude: "noscan",
+	}
+
+	if err := op.namespaceService.CleanupLabels(ctx, clusterID, []string{"scan"}); err != nil {
+		// log the error and continue!
+		op.errorHandler.Handle(ctx, err)
 	}
 
 	// these namespaces must always be excluded
