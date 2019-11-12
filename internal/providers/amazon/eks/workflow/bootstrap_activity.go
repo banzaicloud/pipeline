@@ -79,12 +79,6 @@ func NewBootstrapActivity(awsSessionFactory *AWSSessionFactory) *BootstrapActivi
 
 func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivityInput) (*BootstrapActivityOutput, error) {
 
-	//logger := activity.GetLogger(ctx).Sugar().With(
-	//	"organization", input.OrganizationID,
-	//	"cluster", input.ClusterName,
-	//	"version", input.KubernetesVersion,
-	//)
-
 	session, err := a.awsSessionFactory.New(input.OrganizationID, input.SecretID, input.Region)
 	if err = errors.WrapIf(err, "failed to create AWS session"); err != nil {
 		return nil, err
@@ -197,7 +191,6 @@ func (a *BootstrapActivity) getKubeClient(eksSvc *eks.EKS, input BootstrapActivi
 
 // CreateDefaultStorageClass creates a default storage class as some clusters are not created with
 // any storage classes or with default one
-// TODO moved here because we can not import from cluster package
 func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provisioner string, volumeBindingMode storagev1.VolumeBindingMode, parameters map[string]string) error {
 	defaultStorageClass := storagev1.StorageClass{
 		ObjectMeta: metav1.ObjectMeta{

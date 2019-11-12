@@ -186,21 +186,7 @@ func createSubnetMappingFromRequest(eksRequest *pkgEks.CreateClusterEKS) map[str
 	return subnetMapping
 }
 
-// TODO this has to removed later
-func getNodePoolsForSubnetToBeRemoved(subnetMapping map[string][]*pkgEks.Subnet, eksSubnet *action.EksSubnet) []string {
-	var nodePools []string
-	for np, subnets := range subnetMapping {
-		for _, subnet := range subnets {
-			if (subnet.SubnetId != "" && eksSubnet.SubnetID == subnet.SubnetId) ||
-				(subnet.Cidr != "" && eksSubnet.Cidr == subnet.Cidr) {
-				nodePools = append(nodePools, np)
-			}
-		}
-	}
-	return nodePools
-}
-
-func getNodePoolsForSubnet(subnetMapping map[string][]*pkgEks.Subnet, eksSubnet workflow.Subnet) []string {
+func getNodePoolsForSubnet(subnetMapping map[string][]*pkgEks.Subnet, eksSubnet eksworkflow.Subnet) []string {
 	var nodePools []string
 	for np, subnets := range subnetMapping {
 		for _, subnet := range subnets {
