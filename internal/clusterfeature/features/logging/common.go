@@ -15,8 +15,14 @@
 package logging
 
 const (
+	featureName = "logging"
+
 	providerAmazonS3   = "s3"
 	providerGoogleGCS  = "gcs"
 	providerAlibabaOSS = "oss"
 	providerAzure      = "azure"
+
+	loggingOperatorReleaseName        = "logging-operator"
+	lokiReleaseName                   = "loki"
+	lokiServiceName                   = "loki"
 )
