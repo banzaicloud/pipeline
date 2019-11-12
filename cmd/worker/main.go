@@ -51,6 +51,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns/dnsadapter"
+	featureLogging "github.com/banzaicloud/pipeline/internal/clusterfeature/features/logging"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan/securityscanadapter"
@@ -420,6 +421,15 @@ func main() {
 					helmService,
 					kubernetesService,
 					config.Cluster.Monitoring.Config,
+					logger,
+					commonSecretStore,
+				),
+				featureLogging.MakeFeatureOperator(
+					clusterGetter,
+					clusterService,
+					helmService,
+					kubernetesService,
+					config.Cluster.Logging.Config,
 					logger,
 					commonSecretStore,
 				),
