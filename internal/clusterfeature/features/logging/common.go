@@ -26,8 +26,16 @@ const (
 	providerAlibabaOSS = "oss"
 	providerAzure      = "azure"
 
-	lokiReleaseName = "loki"
-	lokiServiceName = "loki"
+	lokiReleaseName                              = "loki"
+	lokiServiceName                              = "loki"
+	loggingOperatorReleaseName                   = "logging-operator"
+	outputDefinitionSecretKeyOSSAccessKeyID      = "accessKeyId"
+	outputDefinitionSecretKeyOSSAccessKey        = "accessKeySecret"
+	outputDefinitionSecretKeyS3AccessKeyID       = "awsAccessKeyId"
+	outputDefinitionSecretKeyS3AccessKey         = "awsSecretAccessKey"
+	outputDefinitionSecretKeyGCS                 = "credentials.json"
+	outputDefinitionSecretKeyAzureStorageAccount = "azureStorageAccount"
+	outputDefinitionSecretKeyAzureStorageAccess  = "azureStorageAccessKey"
 )
 
 func getLokiSecretName(clusterID uint) string {
