@@ -279,6 +279,7 @@ func (op FeatureOperator) installOrUpdateWebhook(
 		Env: map[string]string{
 			vaultAddressEnvKey: vaultExternalAddress,
 			vaultPathEnvKey:    getAuthMethodPath(orgID, clusterID),
+			vaultRoleEnvKey:    getRoleName(spec.CustomVault.Enabled),
 		},
 		NamespaceSelector: namespaceSelector{
 			MatchExpressions: []matchExpressions{
