@@ -200,6 +200,7 @@ func (nss *namespaceService) LabelNamespaces(ctx context.Context, clusterID uint
 	return combinedErr
 }
 
+// mergeLabels processes the labels the given namespace should have (required not to lose any namespace on update)
 func (nss *namespaceService) mergeLabels(currentLabels map[string]string, newLabels map[string]string) map[string]string {
 	mergedLabels := currentLabels
 	if mergedLabels == nil {

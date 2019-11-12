@@ -26,6 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -300,14 +301,40 @@ func (op *FeatureOperator) setSecurityScan(ctx context.Context, clusterID uint, 
 	return nil
 }
 
+// performs namespace labeling based on the provided input
 func (op *FeatureOperator) configureWebHook(ctx context.Context, clusterID uint, whConfig webHookConfigSpec) error {
 
-	const labelKey = "scan"
+	// the label key on the namespaces that is watched by the webhook
+	const (
+		labelKey = "scan"
+
+		allStar         = "*"
+		selectorInclude = "include"
+		selectorExclude = "exclude"
+	)
+
+	// possible label values that are used to make decisions by the webhook
 	securityScanLabels := map[string]string{
-		"include": "scan",
-		"exclude": "noscan",
+		selectorInclude: "scan",
+		selectorExclude: "noscan",
 	}
 
+	// these namespaces must always be excluded
+	excludedNamespaces := []string{global.Config.Cluster.Namespace, "kube-system"}
+	defaultExclusionMap := map[string]string{labelKey: securityScanLabels[selectorExclude]}
+
+	if err := op.namespaceService.LabelNamespaces(ctx, clusterID, excludedNamespaces, defaultExclusionMap); err != nil {
+		// log the error and continue!
+		op.errorHandler.Handle(ctx, err)
+	}
+
+	if whConfig.Selector == selectorInclude && len(whConfig.Namespaces) == 1 && whConfig.Namespaces[0] == allStar {
+		// this setup corresponds to the default configuration, do nothing
+		op.logger.Info("all namespaces are subject for security scan")
+		return nil
+	}
+
+	// select the labels to be applied
 	labeMap := map[string]string{labelKey: securityScanLabels[whConfig.Selector]}
 
 	if err := op.namespaceService.LabelNamespaces(ctx, clusterID, whConfig.Namespaces, labeMap); err != nil {
