@@ -22,47 +22,105 @@ import (
 )
 
 func TestMerge(t *testing.T) {
+	type (
+		arr    = []interface{}
+		obj    = map[string]interface{}
+		number = float64
+	)
+
+	var null interface{} = nil
+
 	testCases := map[string]struct {
 		Dst interface{}
 		Src interface{}
 		Res interface{}
 		Err interface{}
 	}{
-		"shorter dst array, longer src array": {
-			Dst: []interface{}{
-				1, 2, 3,
+		"null dst, null src": {
+			Dst: null,
+			Src: null,
+			Res: null,
+		},
+		"null dst, array src": {
+			Dst: null,
+			Src: arr{},
+			Res: arr{},
+		},
+		"null dst, boolean src": {
+			Dst: null,
+			Src: true,
+			Res: true,
+		},
+		"null dst, number src": {
+			Dst: null,
+			Src: number(42),
+			Res: number(42),
+		},
+		"null dst, object src": {
+			Dst: null,
+			Src: obj{},
+			Res: obj{},
+		},
+		"shorter array dst, longer array src": {
+			Dst: arr{
+				false,
+				false,
+				false,
 			},
-			Src: []interface{}{
-				4, 5, 6, 7,
+			Src: arr{
+				true,
+				true,
+				true,
+				true,
 			},
-			Res: []interface{}{
-				4, 5, 6, 7,
+			Res: arr{
+				true,
+				true,
+				true,
+				true,
 			},
 		},
-		"longer dst array, shorter src array": {
-			Dst: []interface{}{
-				1, 2, 3, 4,
+		"longer array dst, shorter array src": {
+			Dst: arr{
+				false,
+				false,
+				false,
+				false,
 			},
-			Src: []interface{}{
-				5, 6, 7,
+			Src: arr{
+				true,
+				true,
+				true,
 			},
-			Res: []interface{}{
-				5, 6, 7, 4,
+			Res: arr{
+				true,
+				true,
+				true,
+				false,
 			},
 		},
 		"object dst, object src": {
-			Dst: map[string]interface{}{
-				"foo": 1,
-				"bar": 2,
+			Dst: obj{
+				"foo": false,
+				"bar": false,
 			},
-			Src: map[string]interface{}{
-				"bar": 3,
-				"buz": 4,
+			Src: obj{
+				"bar": true,
+				"buz": true,
 			},
-			Res: map[string]interface{}{
-				"foo": 1,
-				"bar": 3,
-				"buz": 4,
+			Res: obj{
+				"foo": false,
+				"bar": true,
+				"buz": true,
+			},
+		},
+		"nil object dst, object src": {
+			Dst: (obj)(nil),
+			Src: obj{
+				"foo": true,
+			},
+			Res: obj{
+				"foo": true,
 			},
 		},
 	}
