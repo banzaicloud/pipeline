@@ -50,6 +50,7 @@ type FeatureOperator struct {
 	anchoreService   FeatureAnchoreService
 	whiteListService FeatureWhiteListService
 	namespaceService NamespaceService
+	errorHandler     common.ErrorHandler
 	logger           common.Logger
 }
 
@@ -62,6 +63,7 @@ func MakeFeatureOperator(
 	secretStore features.SecretStore,
 	anchoreService FeatureAnchoreService,
 	featureWhitelistService FeatureWhiteListService,
+	errorHandler common.ErrorHandler,
 	logger common.Logger,
 
 ) FeatureOperator {
@@ -75,6 +77,7 @@ func MakeFeatureOperator(
 		anchoreService:   anchoreService,
 		whiteListService: featureWhitelistService,
 		namespaceService: NewNamespacesService(clusterGetter, logger), // wired service
+		errorHandler:     errorHandler,
 		logger:           logger,
 	}
 }
@@ -137,7 +140,8 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 
 	if boundSpec.WebhookConfig.Enabled {
 		if err = op.configureWebHook(ctx, clusterID, boundSpec.WebhookConfig); err != nil {
-			return errors.WrapIf(err, "failed to configure webhook")
+			//  as agreed, we let the feature activation to succeed and log the errors
+			op.errorHandler.Handle(ctx, err)
 		}
 	}
 	return nil
