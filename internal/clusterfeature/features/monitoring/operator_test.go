@@ -71,7 +71,16 @@ func TestFeatureOperator_Apply(t *testing.T) {
 	logger := commonadapter.NewNoopLogger()
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	kubernetesService := dummyKubernetesService{}
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, Config{}, logger, secretStore)
+	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, Config{
+		Charts: ChartsConfig{
+			Operator: ChartConfig{
+				Values: map[string]interface{}{},
+			},
+			Pushgateway: ChartConfig{
+				Values: map[string]interface{}{},
+			},
+		},
+	}, logger, secretStore)
 
 	cases := map[string]struct {
 		Spec    clusterfeature.FeatureSpec
