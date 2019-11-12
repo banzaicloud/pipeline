@@ -53,7 +53,6 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore) {
 	createEksClusterActivity := eksworkflow.NewCreateEksClusterActivity(awsSessionFactory)
 	activity.RegisterWithOptions(createEksClusterActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateEksControlPlaneActivityName})
 
-	// TODO this should come from some config
 	waitAttempts := int(asgFulfillmentTimeout.Seconds() / asgWaitLoopSleepSeconds)
 	waitInterval := asgWaitLoopSleepSeconds * time.Second
 	createAsgActivity := eksworkflow.NewCreateAsgActivity(awsSessionFactory, waitAttempts, waitInterval)
