@@ -31,7 +31,6 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/cicd-go/cicd"
-	"github.com/banzaicloud/pipeline/internal/util"
 	yaml2 "github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
 	"github.com/jinzhu/gorm"
@@ -42,6 +41,7 @@ import (
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/util"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/spotguide/scm"
 )

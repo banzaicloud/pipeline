@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/internal/util"
 	"github.com/mitchellh/copystructure"
 	"github.com/mitchellh/mapstructure"
 	v1 "k8s.io/api/core/v1"
@@ -33,6 +32,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	"github.com/banzaicloud/pipeline/internal/util"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -367,6 +367,10 @@ func mergeOperatorValuesWithConfig(chartValues interface{}, configValues interfa
 	}
 
 	result, err := util.Merge(configValues, out)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to merge values")
+	}
+
 	return json.Marshal(result)
 }
 
