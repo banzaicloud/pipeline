@@ -428,24 +428,18 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::logging::enabled", true)
 	v.SetDefault("cluster::logging::namespace", "")
 	v.SetDefault("cluster::logging::charts::operator::chart", "banzaicloud-stable/logging-operator")
-	v.SetDefault("cluster::logging::charts::operator::version", "0.3.3")
-	v.SetDefault("cluster::logging::charts::operator::values", map[string]interface{}{
-		"image": map[string]interface{}{
-			"repository": "banzaicloud/logging-operator",
-			"tag":        "1.0.0",
-		},
-	})
+	v.SetDefault("cluster::logging::charts::operator::version", "2.5.0")
+	v.SetDefault("cluster::logging::charts::operator::values", map[string]interface{}{})
+	v.SetDefault("cluster::logging::images::operator::repository", "banzaicloud/logging-operator")
+	v.SetDefault("cluster::logging::images::operator::tag", "2.5.0")
 	v.SetDefault("cluster::logging::charts::logging::chart", "banzaicloud-stable/logging-operator-logging")
-	v.SetDefault("cluster::logging::charts::logging::version", "2.4.0")
+	v.SetDefault("cluster::logging::charts::logging::version", "2.5.0")
 	v.SetDefault("cluster::logging::charts::logging::values", map[string]interface{}{})
-	v.SetDefault("cluster::logging::charts::loki::chart", "loki/loki")
-	v.SetDefault("cluster::logging::charts::loki::version", "0.17.1")
-	v.SetDefault("cluster::logging::charts::loki::values", map[string]interface{}{
-		"image": map[string]interface{}{
-			"repository": "grafana/loki",
-			"tag":        "v0.4.0",
-		},
-	})
+	v.SetDefault("cluster::logging::charts::loki::chart", "banzaicloud-stable/loki")
+	v.SetDefault("cluster::logging::charts::loki::version", "0.16.0")
+	v.SetDefault("cluster::logging::charts::loki::values", map[string]interface{}{})
+	v.SetDefault("cluster::logging::images::loki::repository", "grafana/loki")
+	v.SetDefault("cluster::logging::images::loki::tag", "v0.3.0")
 
 	v.SetDefault("cluster::dns::enabled", true)
 	v.SetDefault("cluster::dns::namespace", "")

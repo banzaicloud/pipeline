@@ -22,6 +22,7 @@ import (
 type Config struct {
 	Namespace string
 	Charts    ChartsConfig
+	Images    ImagesConfig
 }
 
 func (c Config) Validate() error {
@@ -39,6 +40,14 @@ func (c Config) Validate() error {
 
 	if err := c.Charts.Loki.Validate(); err != nil {
 		return errors.WrapIf(err, "error during validation loki chart config")
+	}
+
+	if err := c.Images.Operator.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation operator image config")
+	}
+
+	if err := c.Images.Loki.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation loki image config")
 	}
 
 	return nil
@@ -63,6 +72,28 @@ func (c ChartConfig) Validate() error {
 
 	if c.Version == "" {
 		return errors.New("chart version is required")
+	}
+
+	return nil
+}
+
+type ImagesConfig struct {
+	Operator ImageConfig
+	Loki     ImageConfig
+}
+
+type ImageConfig struct {
+	Repository string
+	Tag        string
+}
+
+func (c ImageConfig) Validate() error {
+	if c.Repository == "" {
+		return errors.New("repository is required")
+	}
+
+	if c.Tag == "" {
+		return errors.New("tag is required")
 	}
 
 	return nil
