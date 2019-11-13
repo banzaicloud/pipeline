@@ -269,7 +269,7 @@ func (a *CreateAsgActivity) waitForASGToBeFulfilled(
 		select {
 		case <-ticker.C:
 			if i <= a.asgFulfillmentWaitAttempts {
-				a.asgFulfillmentWaitAttempts++
+				i++
 
 				asGroup, err := m.GetAutoscalingGroupByStackName(stackName)
 				if err != nil {

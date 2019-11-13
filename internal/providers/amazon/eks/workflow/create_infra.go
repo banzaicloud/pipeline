@@ -73,7 +73,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			InitialInterval:          2 * time.Second,
 			BackoffCoefficient:       1.5,
 			MaximumInterval:          30 * time.Second,
-			MaximumAttempts:          30,
+			MaximumAttempts:          5,
 			NonRetriableErrorReasons: []string{"cadenceInternal:Panic"},
 		},
 	}
@@ -253,7 +253,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 				InitialInterval:          2 * time.Second,
 				BackoffCoefficient:       1.5,
 				MaximumInterval:          30 * time.Second,
-				MaximumAttempts:          30,
+				MaximumAttempts:          5,
 				NonRetriableErrorReasons: []string{"cadenceInternal:Panic"},
 			},
 		}
