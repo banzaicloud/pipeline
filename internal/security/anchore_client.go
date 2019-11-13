@@ -145,7 +145,7 @@ func (a anchoreClient) ListPolicies(ctx context.Context) (interface{}, error) {
 	var listPoliciesEndpoint = strings.Join([]string{a.endpoint, "policies"}, "/")
 
 	// authenticate the request
-	r, err := a.authenticatedResty().Get(listPoliciesEndpoint)
+	r, err := a.authenticatedResty().SetQueryParam("detail", "true").Get(listPoliciesEndpoint)
 
 	if err != nil {
 		a.logger.Debug("failed to retrieve policies")
