@@ -19,6 +19,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 //featureSpec security scan cluster feature specific specification
@@ -102,6 +103,13 @@ func (w webHookConfigSpec) Validate() error {
 	if w.Enabled {
 		if w.Selector == "" || len(w.Namespaces) == 0 {
 			return errors.NewPlain("selector and namespaces must be filled")
+		}
+
+		for _, ns := range w.Namespaces {
+			if ns == global.Config.Cluster.Namespace || ns == "kube-system" {
+				return errors.Errorf("the following namespaces may not be modified: %v",
+					[]string{global.Config.Cluster.Namespace, "kube-system"})
+			}
 		}
 	}
 
