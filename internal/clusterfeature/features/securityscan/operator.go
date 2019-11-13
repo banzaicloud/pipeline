@@ -39,6 +39,13 @@ const (
 	securityScanChartName = "banzaicloud-stable/anchore-policy-validator"
 	securityScanNamespace = "pipeline-system"
 	securityScanRelease   = "anchore"
+
+	// the label key on the namespaces that is watched by the webhook
+	labelKey = "scan"
+
+	allStar         = "*"
+	selectorInclude = "include"
+	selectorExclude = "exclude"
 )
 
 type FeatureOperator struct {
@@ -175,13 +182,12 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 			"clusterID", clusterID)
 	}
 
-	if err := op.namespaceService.CleanupLabels(ctx, clusterID, []string{"scan"}); err != nil {
+	if err := op.namespaceService.CleanupLabels(ctx, clusterID, []string{labelKey}); err != nil {
 		// if the operation fails for some reason (eg. non-existent namespaces) we notice that and let the deactivation succeed
 		op.logger.Warn("failed to delete namespace labels", map[string]interface{}{"clusterID": clusterID})
 		op.errorHandler.Handle(ctx, err)
 
 		return nil
-
 	}
 
 	if err := op.setSecurityScan(ctx, clusterID, false); err != nil {
@@ -305,22 +311,13 @@ func (op *FeatureOperator) setSecurityScan(ctx context.Context, clusterID uint, 
 // performs namespace labeling based on the provided input
 func (op *FeatureOperator) configureWebHook(ctx context.Context, clusterID uint, whConfig webHookConfigSpec) error {
 
-	// the label key on the namespaces that is watched by the webhook
-	const (
-		labelKey = "scan"
-
-		allStar         = "*"
-		selectorInclude = "include"
-		selectorExclude = "exclude"
-	)
-
 	// possible label values that are used to make decisions by the webhook
 	securityScanLabels := map[string]string{
 		selectorInclude: "scan",
 		selectorExclude: "noscan",
 	}
 
-	if err := op.namespaceService.CleanupLabels(ctx, clusterID, []string{"scan"}); err != nil {
+	if err := op.namespaceService.CleanupLabels(ctx, clusterID, []string{labelKey}); err != nil {
 		// log the error and continue!
 		op.errorHandler.Handle(ctx, err)
 	}
