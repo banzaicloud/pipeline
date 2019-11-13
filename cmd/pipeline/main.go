@@ -91,6 +91,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeaturedriver"
 	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns/dnsadapter"
+	featureLogging "github.com/banzaicloud/pipeline/internal/clusterfeature/features/logging"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan/securityscanadapter"
@@ -574,7 +575,6 @@ func main() {
 
 	scmTokenStore := auth.NewSCMTokenStore(tokenStore, global.Config.CICD.Enabled)
 
-	domainAPI := api.NewDomainAPI(clusterManager, logrusLogger, errorHandler)
 	organizationAPI := api.NewOrganizationAPI(organizationSyncer, auth.NewRefreshTokenStore(tokenStore))
 	userAPI := api.NewUserAPI(db, scmTokenStore, logrusLogger, errorHandler)
 	networkAPI := api.NewNetworkAPI(logrusLogger)
@@ -658,9 +658,7 @@ func main() {
 				spotguideAPI.Install(spotguides)
 			}
 
-			orgs.GET("/:orgid/domain", domainAPI.GetDomain)
 			orgs.POST("/:orgid/clusters", clusterAPI.CreateCluster)
-			// v1.GET("/status", api.Status)
 			orgs.GET("/:orgid/clusters", clusterAPI.GetClusters)
 
 			// cluster API
@@ -717,6 +715,7 @@ func main() {
 				clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
 				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+				endpointManager := endpoints.NewEndpointManager(logger)
 				featureManagers := []clusterfeature.FeatureManager{
 					securityscan.MakeFeatureManager(logger),
 				}
@@ -730,7 +729,6 @@ func main() {
 				}
 
 				if config.Cluster.Monitoring.Enabled {
-					endpointManager := endpoints.NewEndpointManager(logger)
 					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
 					featureManagers = append(featureManagers, featureMonitoring.MakeFeatureManager(
 						clusterGetter,
@@ -738,6 +736,16 @@ func main() {
 						endpointManager,
 						helmService,
 						config.Cluster.Monitoring.Config,
+						logger,
+					))
+				}
+
+				if config.Cluster.Logging.Enabled {
+					featureManagers = append(featureManagers, featureLogging.MakeFeatureManager(
+						clusterGetter,
+						secretStore,
+						endpointManager,
+						config.Cluster.Logging.Config,
 						logger,
 					))
 				}

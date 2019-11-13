@@ -26,10 +26,43 @@ const (
 	providerAlibabaOSS = "oss"
 	providerAzure      = "azure"
 
-	lokiReleaseName = "loki"
-	lokiServiceName = "loki"
+	tlsSecretName                     = "logging-tls-secret"
+	loggingOperatorReleaseName        = "logging-operator"
+	loggingOperatorLoggingReleaseName = "logging-operator-logging"
+	lokiReleaseName                   = "loki"
+	lokiServiceName                   = "loki"
+	releaseSecretTag                  = "release:logging"
+	featureSecretTag                  = "feature:logging"
+	lokiSecretTag                     = "app:loki"
+	generatedSecretUsername           = "admin"
+
+	outputDefinitionSecretKeyOSSAccessKeyID      = "accessKeyId"
+	outputDefinitionSecretKeyOSSAccessKey        = "accessKeySecret"
+	outputDefinitionSecretKeyS3AccessKeyID       = "awsAccessKeyId"
+	outputDefinitionSecretKeyS3AccessKey         = "awsSecretAccessKey"
+	outputDefinitionSecretKeyGCS                 = "credentials.json"
+	outputDefinitionSecretKeyAzureStorageAccount = "azureStorageAccount"
+	outputDefinitionSecretKeyAzureStorageAccess  = "azureStorageAccessKey"
+
+	fluentbitSecretName = "logging-operator-fluentbit-secret"
+	fluentdSecretName   = "logging-operator-fluentd-secret"
 )
 
 func getLokiSecretName(clusterID uint) string {
 	return fmt.Sprintf("cluster-%d-loki", clusterID)
+}
+
+func generateClusterUIDSecretTag(clusterUID string) string {
+	return fmt.Sprintf("clusterUID:%s", clusterUID)
+}
+
+func generateClusterNameSecretTag(clusterName string) string {
+	return fmt.Sprintf("cluster:%s", clusterName)
+}
+
+func generateAnnotations(secretName string) map[string]interface{} {
+	return map[string]interface{}{
+		"traefik.ingress.kubernetes.io/auth-type":   "basic",
+		"traefik.ingress.kubernetes.io/auth-secret": secretName,
+	}
 }
