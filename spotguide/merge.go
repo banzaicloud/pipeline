@@ -16,6 +16,8 @@ package spotguide
 
 import (
 	"reflect"
+
+	"emperror.dev/errors"
 )
 
 func min(x, y int) int {
@@ -31,43 +33,37 @@ func merge(dst, src interface{}) (interface{}, error) {
 		return dst, nil
 	}
 
+	type (
+		array   = []interface{}
+		boolean = bool
+		number  = float64
+		object  = map[string]interface{}
+	)
+
 	switch dstV := dst.(type) {
-	// string
-	case string:
+	case nil: // null
+		return src, nil
+
+	case boolean, number, string:
 		if src == nil {
 			return dst, nil
 		}
 
 		return src, nil
 
-	// number
-	case float64:
-		if src == nil {
-			return dst, nil
-		}
-
-		return src, nil
-
-	// boolean
-	case bool:
-		if src == nil {
-			return dst, nil
-		}
-
-		return src, nil
-
-	// null
-	case nil:
-		return src, nil
-
-	// object
-	case map[string]interface{}:
-		if src == nil {
-			return dst, nil
-		}
-
+	case object:
 		switch srcV := src.(type) {
-		case map[string]interface{}:
+		case nil: // null
+			return dst, nil
+
+		case array, boolean, number, string:
+			return src, nil
+
+		case object:
+			if dstV == nil { // this is not the same as dst == nil
+				return src, nil
+			}
+
 			for key := range srcV {
 				val, err := merge(dstV[key], srcV[key])
 				if err != nil {
@@ -78,19 +74,17 @@ func merge(dst, src interface{}) (interface{}, error) {
 			}
 
 			return dstV, nil
-
-		default:
-			return src, nil
 		}
 
-	// array
-	case []interface{}:
-		if src == nil {
-			return dst, nil
-		}
-
+	case array:
 		switch srcV := src.(type) {
-		case []interface{}:
+		case nil: // null
+			return dst, nil
+
+		case boolean, number, object, string:
+			return src, nil
+
+		case array:
 			// merge elements at common indices
 			length := min(len(dstV), len(srcV))
 			for i := 0; i < length; i++ {
@@ -106,15 +100,11 @@ func merge(dst, src interface{}) (interface{}, error) {
 			dstV = append(dstV, srcV[length:]...)
 
 			return dstV, nil
-		default:
-			return src, nil
 		}
 
 	default:
-		if src == nil {
-			return dst, nil
-		}
-
-		return src, nil
+		return nil, errors.NewWithDetails("unsupported dst value", "dst", dst)
 	}
+
+	return nil, errors.NewWithDetails("unsupported src value", "src", src)
 }
