@@ -89,7 +89,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	// create IAM roles activity
-	var iamRolesCreateActivityFeature workflow.Future
+	var iamRolesCreateActivityFuture workflow.Future
 	{
 		activityInput := &CreateIamRolesActivityInput{
 			EKSActivityInput:       commonActivityInput,
@@ -99,7 +99,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			ClusterRoleID:          input.ClusterRoleID,
 			NodeInstanceRoleID:     input.NodeInstanceRoleID,
 		}
-		iamRolesCreateActivityFeature = workflow.ExecuteActivity(ctx, CreateIamRolesActivityName, activityInput)
+		iamRolesCreateActivityFuture = workflow.ExecuteActivity(ctx, CreateIamRolesActivityName, activityInput)
 	}
 
 	// create IAM user access key key if not default user and save as secret
@@ -217,7 +217,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 	}
 
 	iamRolesActivityOutput := &CreateIamRolesActivityOutput{}
-	if err := iamRolesCreateActivityFeature.Get(ctx, &iamRolesActivityOutput); err != nil {
+	if err := iamRolesCreateActivityFuture.Get(ctx, &iamRolesActivityOutput); err != nil {
 		return nil, err
 	}
 

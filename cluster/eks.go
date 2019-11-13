@@ -372,7 +372,7 @@ func (c *EKSCluster) CreateCluster() error {
 	ctx := context.Background()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
-		ExecutionStartToCloseTimeout: 1 * 60 * time.Minute,
+		ExecutionStartToCloseTimeout: 1 * 24 * time.Hour,
 	}
 	exec, err := c.WorkflowClient.ExecuteWorkflow(ctx, workflowOptions, eksworkflow.CreateClusterWorkflowName, input)
 	if err != nil {

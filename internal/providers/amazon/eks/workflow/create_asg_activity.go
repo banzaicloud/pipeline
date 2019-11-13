@@ -118,7 +118,7 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		clusterAutoscalerEnabled = true
 	}
 
-	// if ScaleOptions is enabled on cluster, ClusterAutoscaler is disabled on all node pools, except head
+	// if ScaleOptions is enabled on cluster, ClusterAutoscaler is disabled on all node pools
 	if input.ScaleEnabled {
 		clusterAutoscalerEnabled = false
 		terminationDetachEnabled = true
