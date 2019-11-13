@@ -12,20 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package vault
+package logging
+
+import (
+	"fmt"
+)
 
 const (
-	featureName             = "vault"
-	vaultWebhookReleaseName = "vault-secrets-webhook"
-	kubeSysNamespace        = "kube-system"
-	vaultAddressEnvKey      = "VAULT_ADDR"
-	vaultPathEnvKey         = "VAULT_PATH"
-	vaultRoleEnvKey         = "VAULT_ROLE"
-	customRoleName          = "pipeline-webhook"
-	pipelineRoleName        = "pipeline"
-	authMethodType          = "kubernetes"
-	authMethodPathPrefix    = "kubernetes-cluster"
-	policyNamePrefix        = "allow_cluster_secrets"
-	vaultTokenReviewer      = "vault-token-reviewer"
-	vaultTokenKey           = "token"
+	featureName = "logging"
+
+	providerAmazonS3   = "s3"
+	providerGoogleGCS  = "gcs"
+	providerAlibabaOSS = "oss"
+	providerAzure      = "azure"
+
+	lokiReleaseName = "loki"
+	lokiServiceName = "loki"
 )
+
+func getLokiSecretName(clusterID uint) string {
+	return fmt.Sprintf("cluster-%d-loki", clusterID)
+}

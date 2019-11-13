@@ -40,6 +40,7 @@ type FeatureOperator struct {
 	helmService       features.HelmService
 	kubernetesService features.KubernetesService
 	secretStore       features.SecretStore
+	config            Config
 	logger            common.Logger
 }
 
@@ -50,6 +51,7 @@ func MakeFeatureOperator(
 	helmService features.HelmService,
 	kubernetesService features.KubernetesService,
 	secretStore features.SecretStore,
+	config Config,
 	logger common.Logger,
 ) FeatureOperator {
 	return FeatureOperator{
@@ -58,6 +60,7 @@ func MakeFeatureOperator(
 		helmService:       helmService,
 		kubernetesService: kubernetesService,
 		secretStore:       secretStore,
+		config:            config,
 		logger:            logger,
 	}
 }
@@ -266,11 +269,17 @@ func (op FeatureOperator) installOrUpdateWebhook(
 	spec vaultFeatureSpec,
 ) error {
 	// create chart values
+	vaultExternalAddress := op.config.Managed.Endpoint
+	if spec.CustomVault.Enabled {
+		vaultExternalAddress = spec.CustomVault.Address
+	}
+
 	pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace
 	var chartValues = &webhookValues{
 		Env: map[string]string{
-			vaultAddressEnvKey: spec.getVaultAddress(),
+			vaultAddressEnvKey: vaultExternalAddress,
 			vaultPathEnvKey:    getAuthMethodPath(orgID, clusterID),
+			vaultRoleEnvKey:    getRoleName(spec.CustomVault.Enabled),
 		},
 		NamespaceSelector: namespaceSelector{
 			MatchExpressions: []matchExpressions{

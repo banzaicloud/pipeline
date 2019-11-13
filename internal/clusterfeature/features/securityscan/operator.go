@@ -26,6 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -38,6 +39,13 @@ const (
 	securityScanChartName = "banzaicloud-stable/anchore-policy-validator"
 	securityScanNamespace = "pipeline-system"
 	securityScanRelease   = "anchore"
+
+	// the label key on the namespaces that is watched by the webhook
+	labelKey = "scan"
+
+	allStar         = "*"
+	selectorInclude = "include"
+	selectorExclude = "exclude"
 )
 
 type FeatureOperator struct {
@@ -50,6 +58,7 @@ type FeatureOperator struct {
 	anchoreService   FeatureAnchoreService
 	whiteListService FeatureWhiteListService
 	namespaceService NamespaceService
+	errorHandler     common.ErrorHandler
 	logger           common.Logger
 }
 
@@ -62,6 +71,7 @@ func MakeFeatureOperator(
 	secretStore features.SecretStore,
 	anchoreService FeatureAnchoreService,
 	featureWhitelistService FeatureWhiteListService,
+	errorHandler common.ErrorHandler,
 	logger common.Logger,
 
 ) FeatureOperator {
@@ -75,6 +85,7 @@ func MakeFeatureOperator(
 		anchoreService:   anchoreService,
 		whiteListService: featureWhitelistService,
 		namespaceService: NewNamespacesService(clusterGetter, logger), // wired service
+		errorHandler:     errorHandler,
 		logger:           logger,
 	}
 }
@@ -137,7 +148,8 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 
 	if boundSpec.WebhookConfig.Enabled {
 		if err = op.configureWebHook(ctx, clusterID, boundSpec.WebhookConfig); err != nil {
-			return errors.WrapIf(err, "failed to configure webhook")
+			//  as agreed, we let the feature activation to succeed and log the errors
+			op.errorHandler.Handle(ctx, err)
 		}
 	}
 	return nil
@@ -170,12 +182,12 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 			"clusterID", clusterID)
 	}
 
-	if err := op.namespaceService.RemoveLabels(ctx, clusterID, boundSpec.WebhookConfig.Namespaces, []string{"scan"}); err != nil {
-
+	if err := op.namespaceService.CleanupLabels(ctx, clusterID, []string{labelKey}); err != nil {
 		// if the operation fails for some reason (eg. non-existent namespaces) we notice that and let the deactivation succeed
 		op.logger.Warn("failed to delete namespace labels", map[string]interface{}{"clusterID": clusterID})
-		return nil
+		op.errorHandler.Handle(ctx, err)
 
+		return nil
 	}
 
 	if err := op.setSecurityScan(ctx, clusterID, false); err != nil {
@@ -296,14 +308,36 @@ func (op *FeatureOperator) setSecurityScan(ctx context.Context, clusterID uint, 
 	return nil
 }
 
+// performs namespace labeling based on the provided input
 func (op *FeatureOperator) configureWebHook(ctx context.Context, clusterID uint, whConfig webHookConfigSpec) error {
 
-	const labelKey = "scan"
+	// possible label values that are used to make decisions by the webhook
 	securityScanLabels := map[string]string{
-		"include": "scan",
-		"exclude": "noscan",
+		selectorInclude: "scan",
+		selectorExclude: "noscan",
 	}
 
+	if err := op.namespaceService.CleanupLabels(ctx, clusterID, []string{labelKey}); err != nil {
+		// log the error and continue!
+		op.errorHandler.Handle(ctx, err)
+	}
+
+	// these namespaces must always be excluded
+	excludedNamespaces := []string{global.Config.Cluster.Namespace, "kube-system"}
+	defaultExclusionMap := map[string]string{labelKey: securityScanLabels[selectorExclude]}
+
+	if err := op.namespaceService.LabelNamespaces(ctx, clusterID, excludedNamespaces, defaultExclusionMap); err != nil {
+		// log the error and continue!
+		op.errorHandler.Handle(ctx, err)
+	}
+
+	if whConfig.Selector == selectorInclude && len(whConfig.Namespaces) == 1 && whConfig.Namespaces[0] == allStar {
+		// this setup corresponds to the default configuration, do nothing
+		op.logger.Info("all namespaces are subject for security scan")
+		return nil
+	}
+
+	// select the labels to be applied
 	labeMap := map[string]string{labelKey: securityScanLabels[whConfig.Selector]}
 
 	if err := op.namespaceService.LabelNamespaces(ctx, clusterID, whConfig.Namespaces, labeMap); err != nil {

@@ -164,6 +164,7 @@ dex:
 #
 #        managed:
 #            enabled: false
+#            endpoint: ""
 #
 #        charts:
 #            webhook:
@@ -214,21 +215,21 @@ dex:
 #        charts:
 #            operator:
 #                chart: "banzaicloud-stable/logging-operator"
-#                version: "0.3.3"
+#                version: "2.5.0"
 #
 #                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-operator for details
 #                values: {}
 #
 #            loki:
-#                chart: "loki/loki"
-#                version: "0.17.1"
+#                chart: "banzaicloud-stable/loki"
+#                version: "0.16.0"
 #
-#                # See https://github.com/grafana/loki/tree/master/production/helm/loki for details
+#                # See https://github.com/banzaicloud/banzai-charts/tree/master/loki for details
 #                values: {}
 #
 #            logging:
 #                chart: "banzaicloud-stable/logging-operator-logging"
-#                version: "2.4.0"
+#                version: "2.5.0"
 #
 #                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-operator-logging for details
 #                values: {}

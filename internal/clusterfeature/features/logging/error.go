@@ -12,20 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package vault
+package logging
 
-const (
-	featureName             = "vault"
-	vaultWebhookReleaseName = "vault-secrets-webhook"
-	kubeSysNamespace        = "kube-system"
-	vaultAddressEnvKey      = "VAULT_ADDR"
-	vaultPathEnvKey         = "VAULT_PATH"
-	vaultRoleEnvKey         = "VAULT_ROLE"
-	customRoleName          = "pipeline-webhook"
-	pipelineRoleName        = "pipeline"
-	authMethodType          = "kubernetes"
-	authMethodPathPrefix    = "kubernetes-cluster"
-	policyNamePrefix        = "allow_cluster_secrets"
-	vaultTokenReviewer      = "vault-token-reviewer"
-	vaultTokenKey           = "token"
-)
+import "fmt"
+
+type requiredFieldError struct {
+	name string
+}
+
+func (e requiredFieldError) Error() string {
+	return fmt.Sprintf("%q cannot be empty", e.name)
+}

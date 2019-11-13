@@ -27,7 +27,8 @@ type Config struct {
 
 // ManagedConfig contains cluster managed vault configuration.
 type ManagedConfig struct {
-	Enabled bool
+	Enabled  bool
+	Endpoint string
 }
 
 func (c Config) Validate() error {
@@ -35,7 +36,9 @@ func (c Config) Validate() error {
 		return errors.New("vault namespace is required")
 	}
 
-	// TODO: validate chart config: image and tag are not empty!
+	if c.Managed.Enabled && c.Managed.Endpoint == "" {
+		return errors.New("vault endpoint (external address) is required in case of managed vault")
+	}
 
 	return nil
 }
