@@ -35,4 +35,5 @@ func NewAPI(clusterGetter common.ClusterGetter, errorHandler emperror.Handler) *
 
 func (a *API) RegisterRoutes(r gin.IRouter) {
 	r.DELETE("", a.Delete)
+	r.GET("", a.List)
 }
