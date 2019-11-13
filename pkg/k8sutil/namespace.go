@@ -101,7 +101,7 @@ func EnsureLabelsOnNamespace(client kubernetes.Interface, namespace string, labe
 	}
 
 	_, err = client.CoreV1().Namespaces().Update(namespaceObj)
-	if err != nil && k8sapierrors.IsAlreadyExists(err) {
+	if err != nil {
 		return emperror.Wrap(err, "failed to update namespace")
 	}
 
