@@ -35,7 +35,7 @@ type CreateClusterWorkflowOutput struct {
 // CreateClusterWorkflow executes the Cadence workflow responsible for creating and configuring an EKS cluster
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) (*CreateClusterWorkflowOutput, error) {
 	cwo := workflow.ChildWorkflowOptions{
-		ExecutionStartToCloseTimeout: 40 * time.Minute,
+		ExecutionStartToCloseTimeout: 1 * time.Hour,
 		TaskStartToCloseTimeout:      5 * time.Minute,
 	}
 	ctx = workflow.WithChildOptions(ctx, cwo)
