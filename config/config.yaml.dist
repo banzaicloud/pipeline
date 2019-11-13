@@ -169,7 +169,7 @@ dex:
 #        charts:
 #            webhook:
 #                chart: "banzaicloud-stable/vault-secrets-webhook"
-#                version: "0.5.2"
+#                version: "0.6.0"
 #
 #                # See https://github.com/banzaicloud/bank-vaults/tree/master/charts/vault-secrets-webhook for details
 #                values: {}
