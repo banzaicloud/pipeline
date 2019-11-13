@@ -24,7 +24,7 @@ import (
 )
 
 const asgWaitLoopSleepSeconds = 5
-const asgFulfillmentTimeout = 4 * time.Minute
+const asgFulfillmentTimeout = 2 * time.Minute
 
 func registerEKSWorkflows(secretStore eksworkflow.SecretStore) {
 	workflow.RegisterWithOptions(eksworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: eksworkflow.CreateClusterWorkflowName})
