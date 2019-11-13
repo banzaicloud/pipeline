@@ -270,7 +270,7 @@ func (nss *namespaceService) CleanupLabels(ctx context.Context, clusterID uint, 
 		namespaces[i] = nsEntry.Name
 	}
 
-	if err := nss.RemoveLabels(ctx, clusterID, namespaces, []string{"scan"}); err != nil {
+	if err := nss.RemoveLabels(ctx, clusterID, namespaces, labelsIn); err != nil {
 		return errors.WrapIf(err, "failed to remove security scan labels from namespaces ")
 	}
 
