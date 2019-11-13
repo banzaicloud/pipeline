@@ -444,42 +444,46 @@ func (op FeatureOperator) installLoggingOperator(ctx context.Context, clusterID 
 }
 
 func (op FeatureOperator) createOutputDefinition(ctx context.Context, spec clusterOutputSpec, cl clusterfeatureadapter.Cluster) error {
-	// install secrets to cluster
-	sourceSecretName, err := op.secretStore.GetNameByID(ctx, spec.Provider.SecretID)
-	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to get secret name", "secretID", spec.Provider.SecretID)
-	}
-
-	if err := op.installSecretForOutput(ctx, spec, sourceSecretName, cl); err != nil {
-		return errors.WrapIf(err, "failed to install secret to cluster for cluster output")
-	}
-
-	// create output definition manager
-	manager, err := newOutputDefinitionManager(spec.Provider.Name, sourceSecretName)
-	if err != nil {
-		return errors.WrapIf(err, "failed to create output definition manager")
-	}
-
-	// generate output definition
-	outputDefinition, err := generateOutputDefinition(ctx, manager, op.secretStore, spec, op.config.Namespace, cl.GetOrganizationId())
-	if err != nil {
-		return errors.WrapIf(err, "failed to generate output definition")
-	}
-
-	// remove old output definitions
-	var outputList v1beta1.OutputList
-	if err := op.kubernetesService.List(ctx, cl.GetID(), &outputList); err != nil {
-		return errors.WrapIf(err, "failed to list output definitions")
-	}
-
-	for _, item := range outputList.Items {
-		if err := op.kubernetesService.DeleteObject(ctx, cl.GetID(), &item); err != nil {
-			return errors.WrapIfWithDetails(err, "failed to delete output definition", "name", item.Name)
+	if spec.Enabled {
+		// install secrets to cluster
+		sourceSecretName, err := op.secretStore.GetNameByID(ctx, spec.Provider.SecretID)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to get secret name", "secretID", spec.Provider.SecretID)
 		}
+
+		if err := op.installSecretForOutput(ctx, spec, sourceSecretName, cl); err != nil {
+			return errors.WrapIf(err, "failed to install secret to cluster for cluster output")
+		}
+
+		// create output definition manager
+		manager, err := newOutputDefinitionManager(spec.Provider.Name, sourceSecretName)
+		if err != nil {
+			return errors.WrapIf(err, "failed to create output definition manager")
+		}
+
+		// generate output definition
+		outputDefinition, err := generateOutputDefinition(ctx, manager, op.secretStore, spec, op.config.Namespace, cl.GetOrganizationId())
+		if err != nil {
+			return errors.WrapIf(err, "failed to generate output definition")
+		}
+
+		// remove old output definitions
+		var outputList v1beta1.OutputList
+		if err := op.kubernetesService.List(ctx, cl.GetID(), &outputList); err != nil {
+			return errors.WrapIf(err, "failed to list output definitions")
+		}
+
+		for _, item := range outputList.Items {
+			if err := op.kubernetesService.DeleteObject(ctx, cl.GetID(), &item); err != nil {
+				return errors.WrapIfWithDetails(err, "failed to delete output definition", "name", item.Name)
+			}
+		}
+
+		// create new output definition
+		return op.kubernetesService.EnsureObject(ctx, cl.GetID(), outputDefinition)
 	}
 
-	// create new output definition
-	return op.kubernetesService.EnsureObject(ctx, cl.GetID(), outputDefinition)
+	return nil
 }
 
 func (op FeatureOperator) installSecretForOutput(ctx context.Context, spec clusterOutputSpec, sourceSecretName string, cl clusterfeatureadapter.Cluster) error {
