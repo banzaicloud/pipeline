@@ -18,6 +18,9 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	k8srest "k8s.io/client-go/rest"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
@@ -27,10 +30,12 @@ import (
 type obj = map[string]interface{}
 
 const (
-	lokiPath       = "/loki"
-	lokiURL        = "http://logging.io/loki"
-	lokiServiceUrl = "dummyServiceUrl:9090"
-	lokiSecretID   = "lokiSecretID"
+	lokiPath          = "/loki"
+	lokiURL           = "http://logging.io/loki"
+	lokiServiceUrl    = "dummyServiceUrl:9090"
+	lokiSecretID      = "lokiSecretID"
+	alibabaSecretID   = "alibabaSecretID"
+	alibabaSecretName = "alibabaSecretName"
 )
 
 type dummyClusterGetter struct {
@@ -138,4 +143,58 @@ func (dummyEndpointService) List(kubeConfig []byte, releaseName string) ([]*helm
 
 func (dummyEndpointService) GetServiceURL(kubeConfig []byte, serviceName string, namespace string) (string, error) {
 	return lokiServiceUrl, nil
+}
+
+type dummyHelmService struct{}
+
+func (d dummyHelmService) ApplyDeployment(
+	ctx context.Context,
+	clusterID uint,
+	namespace string,
+	deploymentName string,
+	releaseName string,
+	values []byte,
+	chartVersion string,
+) error {
+	return nil
+}
+
+func (d dummyHelmService) DeleteDeployment(ctx context.Context, clusterID uint, releaseName string) error {
+	return nil
+}
+
+func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, releaseName string) (*helm.GetDeploymentResponse, error) {
+	return &helm.GetDeploymentResponse{
+		ReleaseName: releaseName,
+	}, nil
+}
+
+type dummyKubernetesService struct {
+}
+
+// GetKubeConfig gets a kube config for a specific cluster.
+func (s *dummyKubernetesService) GetKubeConfig(ctx context.Context, clusterID uint) (*k8srest.Config, error) {
+	return &k8srest.Config{
+		Host:            "https://127.0.0.1:6443",
+		TLSClientConfig: k8srest.TLSClientConfig{CAData: []byte("BLABLA")},
+	}, nil
+}
+
+// GetObject gets an Object from a specific cluster.
+func (s *dummyKubernetesService) GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, o runtime.Object) error {
+	return nil
+}
+
+// DeleteObject deletes an Object from a specific cluster.
+func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+	return nil
+}
+
+// EnsureObject makes sure that a given Object is on the cluster and returns it.
+func (s *dummyKubernetesService) EnsureObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+	return nil
+}
+
+func (s *dummyKubernetesService) List(ctx context.Context, clusterID uint, o runtime.Object) error {
+	return nil
 }

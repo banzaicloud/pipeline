@@ -39,14 +39,15 @@ type ClusterService interface {
 // KubernetesService provides an interface for using clieng-go on a specific cluster.
 type KubernetesService struct {
 	clusters ClusterService
-
-	logger common.Logger
+	scheme   *runtime.Scheme
+	logger   common.Logger
 }
 
 // NewKubernetesService returns a new NewKubernetesService.
 func NewKubernetesService(clusters ClusterService, logger common.Logger) *KubernetesService {
 	return &KubernetesService{
 		clusters: clusters,
+		scheme:   getScheme(),
 
 		logger: logger.WithFields(map[string]interface{}{"component": "kubernetes"}),
 	}
@@ -122,7 +123,9 @@ func (s *KubernetesService) newClientForCluster(ctx context.Context, clusterID u
 		return nil, err
 	}
 
-	kubeClient, err := client.New(kubeConfig, client.Options{})
+	kubeClient, err := client.New(kubeConfig, client.Options{
+		Scheme: s.scheme,
+	})
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to create Kubernetes client")
 	}
