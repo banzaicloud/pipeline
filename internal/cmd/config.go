@@ -419,8 +419,8 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::logging::images::loki::tag", "v0.3.0")
 	v.SetDefault("cluster::logging::images::fluentbit::repository", "fluent/fluent-bit")
 	v.SetDefault("cluster::logging::images::fluentbit::tag", "1.3.2")
-	v.SetDefault("cluster::logging::images::fluentd::repository", "v1.7.4-alpine-5")
-	v.SetDefault("cluster::logging::images::fluentd::tag", "banzaicloud/fluentd")
+	v.SetDefault("cluster::logging::images::fluentd::repository", "banzaicloud/fluentd")
+	v.SetDefault("cluster::logging::images::fluentd::tag", "v1.7.4-alpine-5")
 
 	v.SetDefault("cluster::dns::enabled", true)
 	v.SetDefault("cluster::dns::namespace", "")
