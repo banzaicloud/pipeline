@@ -17,14 +17,14 @@ package any
 // Transformation can transform a value to another
 type Transformation interface {
 	// Transform performs the transformation
-	Transform(interface{}) (interface{}, error)
+	Transform(Value) (Value, error)
 }
 
 // TransformationFunc wraps a function that implements the transformation
-type TransformationFunc func(interface{}) (interface{}, error)
+type TransformationFunc func(Value) (Value, error)
 
 // Transform implements the transformation by delegating to the wrapped function
-func (f TransformationFunc) Transform(src interface{}) (interface{}, error) {
+func (f TransformationFunc) Transform(src Value) (Value, error) {
 	return f(src)
 }
 
@@ -34,13 +34,13 @@ const Identity identityTransformation = false
 // The underlying type must be one of the scalar types to allow for defining a const instance
 type identityTransformation bool
 
-func (identityTransformation) Transform(src interface{}) (interface{}, error) {
+func (identityTransformation) Transform(src Value) (Value, error) {
 	return src, nil
 }
 
 // Compose returns the composition of the specified transformations performed in order
 func Compose(transformations ...Transformation) Transformation {
-	return TransformationFunc(func(o interface{}) (interface{}, error) {
+	return TransformationFunc(func(o Value) (Value, error) {
 		var err error
 		for _, t := range transformations {
 			o, err = t.Transform(o)
