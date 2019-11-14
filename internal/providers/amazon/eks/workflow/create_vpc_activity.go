@@ -30,15 +30,14 @@ const CreateVpcActivityName = "eks-create-vpc"
 // CreateVpcActivity responsible for setting up a VPC for an EKS cluster
 type CreateVpcActivity struct {
 	awsSessionFactory *AWSSessionFactory
+	// body of the cloud formation template for setting up the VPC
+	cloudFormationTemplate string
 }
 
 // CreateVpcActivityInput holds data needed for setting up
 // VPC for EKS cluster
 type CreateVpcActivityInput struct {
 	EKSActivityInput
-
-	// body of the cloud formation template for setting up the VPC
-	CloudFormationTemplate string
 
 	// name of the cloud formation template stack
 	StackName string
@@ -62,9 +61,10 @@ type CreateVpcActivityOutput struct {
 }
 
 // NewCreateVPCActivity instantiates a new CreateVpcActivity
-func NewCreateVPCActivity(awsSessionFactory *AWSSessionFactory) *CreateVpcActivity {
+func NewCreateVPCActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *CreateVpcActivity {
 	return &CreateVpcActivity{
-		awsSessionFactory: awsSessionFactory,
+		awsSessionFactory:      awsSessionFactory,
+		cloudFormationTemplate: cloudFormationTemplate,
 	}
 }
 
@@ -123,7 +123,7 @@ func (a *CreateVpcActivity) Execute(ctx context.Context, input CreateVpcActivity
 		StackName:          aws.String(input.StackName),
 		Parameters:         stackParams,
 		Tags:               getVPCStackTags(input.ClusterName),
-		TemplateBody:       aws.String(input.CloudFormationTemplate),
+		TemplateBody:       aws.String(a.cloudFormationTemplate),
 		TimeoutInMinutes:   aws.Int64(10),
 	}
 	_, err = cloudformationClient.CreateStack(createStackInput)

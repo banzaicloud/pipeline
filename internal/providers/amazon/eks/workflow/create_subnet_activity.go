@@ -30,6 +30,8 @@ const CreateSubnetActivityName = "eks-create-subnet"
 // CreateSubnetActivity responsible for setting up a Subnet for an EKS cluster
 type CreateSubnetActivity struct {
 	awsSessionFactory *AWSSessionFactory
+	// body of the cloud formation template for setting up the Subnet
+	cloudFormationTemplate string
 }
 
 // CreateSubnetActivityInput holds data needed for setting up
@@ -54,9 +56,6 @@ type CreateSubnetActivityInput struct {
 
 	// name of the cloud formation template stack
 	StackName string
-
-	// body of the cloud formation template for setting up the Subnet
-	CloudFormationTemplate string
 }
 
 // CreateSubnetActivityOutput holds the output data of the CreateSubnetActivity
@@ -67,9 +66,10 @@ type CreateSubnetActivityOutput struct {
 }
 
 // NewCreateSubnetActivity instantiates a new CreateSubnetActivity
-func NewCreateSubnetActivity(awsSessionFactory *AWSSessionFactory) *CreateSubnetActivity {
+func NewCreateSubnetActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *CreateSubnetActivity {
 	return &CreateSubnetActivity{
-		awsSessionFactory: awsSessionFactory,
+		awsSessionFactory:      awsSessionFactory,
+		cloudFormationTemplate: cloudFormationTemplate,
 	}
 }
 
@@ -121,7 +121,7 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 			StackName:          aws.String(input.StackName),
 			Parameters:         stackParams,
 			Tags:               getSubnetStackTags(input.ClusterName),
-			TemplateBody:       aws.String(input.CloudFormationTemplate),
+			TemplateBody:       aws.String(a.cloudFormationTemplate),
 			TimeoutInMinutes:   aws.Int64(10),
 		}
 

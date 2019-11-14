@@ -40,7 +40,9 @@ const CreateAsgActivityName = "eks-create-asg"
 
 // CreateAsgActivity responsible for creating IAM roles
 type CreateAsgActivity struct {
-	awsSessionFactory          *AWSSessionFactory
+	awsSessionFactory *AWSSessionFactory
+	// body of the cloud formation template for setting up the VPC
+	cloudFormationTemplate     string
 	asgFulfillmentWaitAttempts int
 	asgFulfillmentWaitInterval time.Duration
 }
@@ -49,8 +51,6 @@ type CreateAsgActivity struct {
 type CreateAsgActivityInput struct {
 	EKSActivityInput
 
-	// body of the cloud formation template for setting up the VPC
-	CloudFormationTemplate string
 	// name of the cloud formation template stack
 	StackName string
 
@@ -79,9 +79,10 @@ type CreateAsgActivityOutput struct {
 }
 
 // CreateAsgActivity instantiates a new CreateAsgActivity
-func NewCreateAsgActivity(awsSessionFactory *AWSSessionFactory, asgFulfillmentWaitAttempts int, asgFulfillmentWaitInterval time.Duration) *CreateAsgActivity {
+func NewCreateAsgActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string, asgFulfillmentWaitAttempts int, asgFulfillmentWaitInterval time.Duration) *CreateAsgActivity {
 	return &CreateAsgActivity{
 		awsSessionFactory:          awsSessionFactory,
+		cloudFormationTemplate:     cloudFormationTemplate,
 		asgFulfillmentWaitAttempts: asgFulfillmentWaitAttempts,
 		asgFulfillmentWaitInterval: asgFulfillmentWaitInterval,
 	}
@@ -219,7 +220,7 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
 		Parameters:         stackParams,
 		Tags:               tags,
-		TemplateBody:       aws.String(input.CloudFormationTemplate),
+		TemplateBody:       aws.String(a.cloudFormationTemplate),
 		TimeoutInMinutes:   aws.Int64(10),
 	}
 	_, err = cloudformationClient.CreateStack(createStackInput)
