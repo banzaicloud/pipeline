@@ -16,7 +16,6 @@ package namespace
 
 import (
 	"emperror.dev/emperror"
-	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/api/common"
 )
@@ -31,9 +30,4 @@ func NewAPI(clusterGetter common.ClusterGetter, errorHandler emperror.Handler) *
 		clusterGetter: clusterGetter,
 		errorHandler:  errorHandler,
 	}
-}
-
-func (a *API) RegisterRoutes(r gin.IRouter) {
-	r.DELETE("", a.Delete)
-	r.GET("", a.List)
 }
