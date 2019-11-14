@@ -74,6 +74,7 @@ const (
 const (
 	SetupPrivileges                        = "SetupPrivileges"
 	CreatePipelineNamespacePostHook        = "CreatePipelineNamespacePostHook"
+	LabelKubeSystemNamespacePostHook       = "LabelKubeSystemNamespacePostHook"
 	InstallHelmPostHook                    = "InstallHelmPostHook"
 	InstallIngressControllerPostHook       = "InstallIngressControllerPostHook"
 	InstallKubernetesDashboardPostHook     = "InstallKubernetesDashboardPostHook"

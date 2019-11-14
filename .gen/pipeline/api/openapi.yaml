@@ -38,8 +38,6 @@ tags:
   name: hpa
 - description: Google projects related operations
   name: projects
-- description: Domain related information
-  name: domain
 - description: ARK service related functions
   name: ark
 - description: 'ARK: buckets related functions'
@@ -63,37 +61,6 @@ paths:
           description: Version info
       tags:
       - common
-  /api/v1/orgs/{orgId}/domain:
-    get:
-      description: Return the base domain
-      operationId: GetDomain
-      parameters:
-      - description: Organization identification
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          type: integer
-        style: simple
-      - description: Cluster ID bounded domain name
-        explode: true
-        in: query
-        name: clusterid
-        required: false
-        schema:
-          default: "false"
-          type: string
-        style: form
-      responses:
-        200:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetDomainResponse'
-          description: GetDomainResponse
-      tags:
-      - domain
   /api/v1/orgs/{orgId}/spotguides:
     get:
       description: List all available spotguides
@@ -9211,16 +9178,6 @@ components:
       items:
         $ref: '#/components/schemas/SpotguideDetailsResponse'
       type: array
-    GetDomainResponse:
-      description: GetDomainResponse Api object to be mapped to Get domain request
-      example:
-        domainName: domainName
-      properties:
-        domainName:
-          type: string
-          x-go-name: DomainName
-      type: object
-      x-go-package: github.com/banzaicloud/pipeline/internal/domain
     RequestedResources:
       example:
         onDemandPct: 10

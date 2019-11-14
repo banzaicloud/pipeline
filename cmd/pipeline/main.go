@@ -575,7 +575,6 @@ func main() {
 
 	scmTokenStore := auth.NewSCMTokenStore(tokenStore, global.Config.CICD.Enabled)
 
-	domainAPI := api.NewDomainAPI(clusterManager, logrusLogger, errorHandler)
 	organizationAPI := api.NewOrganizationAPI(organizationSyncer, auth.NewRefreshTokenStore(tokenStore))
 	userAPI := api.NewUserAPI(db, scmTokenStore, logrusLogger, errorHandler)
 	networkAPI := api.NewNetworkAPI(logrusLogger)
@@ -659,9 +658,7 @@ func main() {
 				spotguideAPI.Install(spotguides)
 			}
 
-			orgs.GET("/:orgid/domain", domainAPI.GetDomain)
 			orgs.POST("/:orgid/clusters", clusterAPI.CreateCluster)
-			// v1.GET("/status", api.Status)
 			orgs.GET("/:orgid/clusters", clusterAPI.GetClusters)
 
 			// cluster API

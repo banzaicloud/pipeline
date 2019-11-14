@@ -488,22 +488,34 @@ func CreatePipelineNamespacePostHook(cluster CommonCluster) error {
 	}
 
 	pipelineSystemNamespace := global.Config.Cluster.Namespace
-	err = k8sutil.EnsureNamespaceWithLabelWithRetry(client, pipelineSystemNamespace,
+	return k8sutil.EnsureNamespaceWithLabelWithRetry(client, pipelineSystemNamespace,
 		map[string]string{
 			"scan": "noscan",
 			"name": pipelineSystemNamespace,
 		})
+}
+
+func LabelKubeSystemNamespacePostHook(cluster CommonCluster) error {
+	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
+		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
 		return err
 	}
-	return nil
+
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		log.Errorf("Could not get kubernetes client: %s", err)
+		return err
+	}
+
+	return k8sutil.EnsureLabelsOnNamespace(client, k8sutil.KubeSystemNamespace, map[string]string{"name": k8sutil.KubeSystemNamespace})
 }
 
 // InstallHelmPostHook this posthook installs the helm related things
 func InstallHelmPostHook(cluster CommonCluster) error {
 	log := log.WithFields(logrus.Fields{"cluster": cluster.GetName(), "clusterID": cluster.GetID()})
 	helmInstall := &pkgHelm.Install{
-		Namespace:      "kube-system",
+		Namespace:      k8sutil.KubeSystemNamespace,
 		ServiceAccount: "tiller",
 		ImageSpec:      fmt.Sprintf("gcr.io/kubernetes-helm/tiller:%s", global.Config.Helm.Tiller.Version),
 		Upgrade:        true,
