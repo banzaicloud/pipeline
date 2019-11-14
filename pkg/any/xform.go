@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package opaque
+package any
 
-// Transformation can transform an opaque value to another
+// Transformation can transform a value to another
 type Transformation interface {
 	// Transform performs the transformation
 	Transform(interface{}) (interface{}, error)

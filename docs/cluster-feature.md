@@ -13,7 +13,7 @@ The two feature operations, `Apply` and `Deactivate` perform their tasks synchro
 They should return a `ClusterNotReadyError`—or an error implementing the `ShouldRetry() bool` behavior—when the cluster's not (yet) ready for the operation.
 The `Apply` method receives its specification run through `PrepareSpec`.
 
-We suggest using the `Transformation`s in `pkg/opaque` when implementing specification transformations in `PrepareSpec`. When frequently used generic patterns arise, please consider factoring them out into the `opaque` package for reuse (or the `internal/clusterfeature/features` package for more specific patterns).
+We suggest using the `Transformation`s in `pkg/any` when implementing specification transformations in `PrepareSpec`. When frequently used generic patterns arise, please consider factoring them out into the `any` package for reuse (or the `internal/clusterfeature/features` package for more specific patterns).
 
 If the original specification provided by the user is considered valid by `ValidateSpec` the prepared specification should be too.
 
