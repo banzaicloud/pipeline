@@ -292,7 +292,10 @@ func main() {
 		registerAzureWorkflows(secretStore, tokenGenerator, azurePKEClusterStore)
 
 		// Register EKS specific workflows
-		registerEKSWorkflows(secret.Store)
+		err = registerEKSWorkflows(secret.Store)
+		if err != nil {
+			emperror.Panic(errors.WrapIf(err, "failed to register EKS workflows"))
+		}
 
 		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterSecretStore)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})

@@ -30,14 +30,14 @@ const CreateIamRolesActivityName = "eks-create-iam-roles"
 // CreateIamRolesActivity responsible for creating IAM roles
 type CreateIamRolesActivity struct {
 	awsSessionFactory *AWSSessionFactory
+	// body of the cloud formation template for setting up the VPC
+	cloudFormationTemplate string
 }
 
 // CreateIamRolesActivityInput holds data needed for setting up IAM roles
 type CreateIamRolesActivityInput struct {
 	EKSActivityInput
 
-	// body of the cloud formation template for setting up the VPC
-	CloudFormationTemplate string
 	// name of the cloud formation template stack
 	StackName string
 
@@ -55,9 +55,10 @@ type CreateIamRolesActivityOutput struct {
 }
 
 // CreateIamRolesActivity instantiates a new CreateIamRolesActivity
-func NewCreateIamRolesActivity(awsSessionFactory *AWSSessionFactory) *CreateIamRolesActivity {
+func NewCreateIamRolesActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *CreateIamRolesActivity {
 	return &CreateIamRolesActivity{
-		awsSessionFactory: awsSessionFactory,
+		awsSessionFactory:      awsSessionFactory,
+		cloudFormationTemplate: cloudFormationTemplate,
 	}
 }
 
@@ -111,7 +112,7 @@ func (a *CreateIamRolesActivity) Execute(ctx context.Context, input CreateIamRol
 		StackName:        aws.String(input.StackName),
 		Parameters:       stackParams,
 		Tags:             getVPCStackTags(input.ClusterName),
-		TemplateBody:     aws.String(input.CloudFormationTemplate),
+		TemplateBody:     aws.String(a.cloudFormationTemplate),
 		TimeoutInMinutes: aws.Int64(10),
 	}
 	_, err = cloudformationClient.CreateStack(createStackInput)

@@ -276,47 +276,23 @@ func (c *EKSCluster) SetCurrentWorkflowID(workflowID string) error {
 func (c *EKSCluster) CreateCluster() error {
 	c.log.Info("start creating EKS cluster")
 
-	vpcTemplate, err := pkgEks.GetVPCTemplate()
-	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to get CloudFormation template for VPC", "cluster", c.modelCluster.Name)
-	}
-
-	subnetTemplate, err := pkgEks.GetSubnetTemplate()
-	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to get CloudFormation template for Subnet", "cluster", c.modelCluster.Name)
-	}
-
-	iamRolesTemplate, err := pkgEks.GetIAMTemplate()
-	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to get CloudFormation template for IAM roles", "cluster", c.modelCluster.Name)
-	}
-
-	nodePoolTemplate, err := pkgEks.GetNodePoolTemplate()
-	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to get CloudFormation template for node pools", "cluster", c.modelCluster.Name)
-	}
-
 	input := workflow.CreateClusterWorkflowInput{
 		CreateInfrastructureWorkflowInput: workflow.CreateInfrastructureWorkflowInput{
-			Region:                         c.modelCluster.Location,
-			OrganizationID:                 c.GetOrganizationId(),
-			SecretID:                       c.GetSecretId(),
-			SSHSecretID:                    c.GetSshSecretId(),
-			ClusterUID:                     c.GetUID(),
-			ClusterName:                    c.GetName(),
-			VpcID:                          aws.StringValue(c.modelCluster.EKS.VpcId),
-			RouteTableID:                   aws.StringValue(c.modelCluster.EKS.RouteTableId),
-			VpcCidr:                        aws.StringValue(c.modelCluster.EKS.VpcCidr),
-			ScaleEnabled:                   c.GetScaleOptions() != nil && c.GetScaleOptions().Enabled,
-			VpcCloudFormationTemplate:      vpcTemplate,
-			SubnetCloudFormationTemplate:   subnetTemplate,
-			IAMRolesCloudFormationTemplate: iamRolesTemplate,
-			ASGCloudFormationTemplate:      nodePoolTemplate,
-			DefaultUser:                    c.modelCluster.EKS.DefaultUser,
-			ClusterRoleID:                  c.modelCluster.EKS.ClusterRoleId,
-			NodeInstanceRoleID:             c.modelCluster.EKS.NodeInstanceRoleId,
-			KubernetesVersion:              c.modelCluster.EKS.Version,
-			LogTypes:                       c.modelCluster.EKS.LogTypes,
+			Region:             c.modelCluster.Location,
+			OrganizationID:     c.GetOrganizationId(),
+			SecretID:           c.GetSecretId(),
+			SSHSecretID:        c.GetSshSecretId(),
+			ClusterUID:         c.GetUID(),
+			ClusterName:        c.GetName(),
+			VpcID:              aws.StringValue(c.modelCluster.EKS.VpcId),
+			RouteTableID:       aws.StringValue(c.modelCluster.EKS.RouteTableId),
+			VpcCidr:            aws.StringValue(c.modelCluster.EKS.VpcCidr),
+			ScaleEnabled:       c.GetScaleOptions() != nil && c.GetScaleOptions().Enabled,
+			DefaultUser:        c.modelCluster.EKS.DefaultUser,
+			ClusterRoleID:      c.modelCluster.EKS.ClusterRoleId,
+			NodeInstanceRoleID: c.modelCluster.EKS.NodeInstanceRoleId,
+			KubernetesVersion:  c.modelCluster.EKS.Version,
+			LogTypes:           c.modelCluster.EKS.LogTypes,
 		},
 		ClusterID: c.GetID(),
 	}

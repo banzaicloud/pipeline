@@ -31,30 +31,26 @@ type CreateInfrastructureWorkflowInput struct {
 	SecretID       string
 	SSHSecretID    string
 
-	ClusterUID                string
-	ClusterName               string
-	VpcID                     string
-	RouteTableID              string
-	VpcCidr                   string
-	VpcCloudFormationTemplate string
-	ScaleEnabled              bool
+	ClusterUID   string
+	ClusterName  string
+	VpcID        string
+	RouteTableID string
+	VpcCidr      string
+	ScaleEnabled bool
 
-	Subnets                      []Subnet
-	ASGSubnetMapping             map[string][]Subnet
-	SubnetCloudFormationTemplate string
+	Subnets          []Subnet
+	ASGSubnetMapping map[string][]Subnet
 
-	IAMRolesCloudFormationTemplate string
-	DefaultUser                    bool
-	ClusterRoleID                  string
-	NodeInstanceRoleID             string
+	DefaultUser        bool
+	ClusterRoleID      string
+	NodeInstanceRoleID string
 
 	KubernetesVersion     string
 	EndpointPrivateAccess bool
 	EndpointPublicAccess  bool
 
-	LogTypes                  []string
-	ASGCloudFormationTemplate string
-	AsgList                   []AutoscaleGroup
+	LogTypes []string
+	AsgList  []AutoscaleGroup
 }
 
 type CreateInfrastructureWorkflowOutput struct {
@@ -92,12 +88,11 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 	var iamRolesCreateActivityFuture workflow.Future
 	{
 		activityInput := &CreateIamRolesActivityInput{
-			EKSActivityInput:       commonActivityInput,
-			CloudFormationTemplate: input.IAMRolesCloudFormationTemplate,
-			StackName:              generateStackNameForIam(input.ClusterName),
-			DefaultUser:            input.DefaultUser,
-			ClusterRoleID:          input.ClusterRoleID,
-			NodeInstanceRoleID:     input.NodeInstanceRoleID,
+			EKSActivityInput:   commonActivityInput,
+			StackName:          generateStackNameForIam(input.ClusterName),
+			DefaultUser:        input.DefaultUser,
+			ClusterRoleID:      input.ClusterRoleID,
+			NodeInstanceRoleID: input.NodeInstanceRoleID,
 		}
 		iamRolesCreateActivityFuture = workflow.ExecuteActivity(ctx, CreateIamRolesActivityName, activityInput)
 	}
@@ -129,12 +124,11 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 	var vpcActivityOutput CreateVpcActivityOutput
 	{
 		activityInput := &CreateVpcActivityInput{
-			EKSActivityInput:       commonActivityInput,
-			VpcID:                  input.VpcID,
-			RouteTableID:           input.RouteTableID,
-			VpcCidr:                input.VpcCidr,
-			CloudFormationTemplate: input.VpcCloudFormationTemplate,
-			StackName:              generateStackNameForCluster(input.ClusterName),
+			EKSActivityInput: commonActivityInput,
+			VpcID:            input.VpcID,
+			RouteTableID:     input.RouteTableID,
+			VpcCidr:          input.VpcCidr,
+			StackName:        generateStackNameForCluster(input.ClusterName),
 		}
 		if err := workflow.ExecuteActivity(ctx, CreateVpcActivityName, activityInput).Get(ctx, &vpcActivityOutput); err != nil {
 			return nil, err
@@ -152,14 +146,13 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			if subnet.SubnetID == "" && subnet.Cidr != "" {
 				// create new subnet
 				activityInput := &CreateSubnetActivityInput{
-					EKSActivityInput:       commonActivityInput,
-					VpcID:                  vpcActivityOutput.VpcID,
-					RouteTableID:           vpcActivityOutput.RouteTableID,
-					SubnetID:               subnet.SubnetID,
-					Cidr:                   subnet.Cidr,
-					AvailabilityZone:       subnet.AvailabilityZone,
-					CloudFormationTemplate: input.SubnetCloudFormationTemplate,
-					StackName:              generateStackNameForSubnet(input.ClusterName, subnet.Cidr),
+					EKSActivityInput: commonActivityInput,
+					VpcID:            vpcActivityOutput.VpcID,
+					RouteTableID:     vpcActivityOutput.RouteTableID,
+					SubnetID:         subnet.SubnetID,
+					Cidr:             subnet.Cidr,
+					AvailabilityZone: subnet.AvailabilityZone,
+					StackName:        generateStackNameForSubnet(input.ClusterName, subnet.Cidr),
 				}
 
 				createSubnetFutures = append(createSubnetFutures, workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput))
@@ -292,9 +285,8 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 		}
 
 		activityInput := CreateAsgActivityInput{
-			EKSActivityInput:       commonActivityInput,
-			CloudFormationTemplate: input.ASGCloudFormationTemplate,
-			StackName:              generateNodePoolStackName(input.ClusterName, asg.Name),
+			EKSActivityInput: commonActivityInput,
+			StackName:        generateNodePoolStackName(input.ClusterName, asg.Name),
 
 			ScaleEnabled: input.ScaleEnabled,
 			SSHKeyName:   sshKeyName,
