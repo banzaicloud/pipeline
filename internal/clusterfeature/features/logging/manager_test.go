@@ -77,6 +77,12 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 			Loki: ImageConfig{
 				Tag: "v2.0.0",
 			},
+			Fluentbit: ImageConfig{
+				Tag: "v3.0.1",
+			},
+			Fluentd: ImageConfig{
+				Tag: "v3.0.2",
+			},
 		},
 	}
 
@@ -108,7 +114,9 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 
 	assert.Equal(t, clusterfeature.FeatureOutput{
 		"logging": obj{
-			"operatorVersion": "1.0.0",
+			"operatorVersion":  "1.0.0",
+			"fluentdVersion":   "v3.0.2",
+			"fluentbitVersion": "v3.0.1",
 		},
 		"loki": obj{
 			"secretId":   "",
