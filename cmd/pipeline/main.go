@@ -830,8 +830,7 @@ func main() {
 			cRouter.POST("/nodepools/labels", nplsApi.SetNodepoolLabelSets)
 
 			namespaceAPI := namespace.NewAPI(commonClusterGetter, errorHandler)
-			cRouter.DELETE("/namespaces/:namespace", namespaceAPI.Delete)
-			cRouter.GET("/namespaces", namespaceAPI.List)
+			namespaceAPI.RegisterRoutes(cRouter.Group("/namespaces"))
 
 			pkeGroup := cRouter.Group("/pke")
 
