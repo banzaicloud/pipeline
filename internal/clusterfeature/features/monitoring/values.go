@@ -36,9 +36,6 @@ type imageValues struct {
 }
 
 type prometheusPushgatewayValues struct {
-	affinityValues
-	tolerationValues
-
 	Annotations map[string]interface{} `json:"annotations"`
 	Ingress     ingressValues          `json:"ingress"`
 	Image       imageValues            `json:"image"`
@@ -51,8 +48,6 @@ type baseValues struct {
 
 type grafanaValues struct {
 	baseValues
-	affinityValues
-	tolerationValues
 
 	AdminUser                string            `json:"adminUser"`
 	AdminPassword            string            `json:"adminPassword"`
@@ -111,9 +106,6 @@ type pagerdutyConfigValues struct {
 }
 
 type SpecValues struct {
-	tolerationValues
-	affinityValues
-
 	RoutePrefix   string                 `json:"routePrefix"`
 	RetentionSize string                 `json:"retentionSize"`
 	Retention     string                 `json:"retention"`
@@ -142,14 +134,6 @@ type neValues struct {
 
 type nodeExporterValues struct {
 	Enabled bool `json:"enabled"`
-}
-
-type affinityValues struct {
-	Affinity interface{} `json:"affinity"`
-}
-
-type tolerationValues struct {
-	Tolerations interface{} `json:"tolerations"`
 }
 
 type ingressValues struct {

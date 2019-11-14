@@ -22,7 +22,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/mitchellh/copystructure"
 	"github.com/mitchellh/mapstructure"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/storage/v1beta1"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -48,10 +47,8 @@ type FeatureOperator struct {
 }
 
 type chartValuesManager struct {
-	operator         FeatureOperator
-	clusterID        uint
-	headNodeAffinity v1.Affinity
-	tolerations      []v1.Toleration
+	operator  FeatureOperator
+	clusterID uint
 }
 
 // MakeFeatureOperator returns a Monitoring feature operator
@@ -614,10 +611,8 @@ func (m chartValuesManager) generateGrafanaChartValues(
 					Path:    spec.Ingress.Path,
 				},
 			},
-			affinityValues:   affinityValues{Affinity: m.headNodeAffinity},
-			tolerationValues: tolerationValues{Tolerations: m.tolerations},
-			AdminUser:        username,
-			AdminPassword:    password,
+			AdminUser:     username,
+			AdminPassword: password,
 			GrafanaIni: grafanaIniValues{Server: grafanaIniServerValues{
 				RootUrl:          fmt.Sprintf("http://0.0.0.0:3000%s/", spec.Ingress.Path),
 				ServeFromSubPath: true,
@@ -669,9 +664,7 @@ func (m chartValuesManager) generateAlertmanagerChartValues(
 				},
 			},
 			Spec: SpecValues{
-				affinityValues:   affinityValues{Affinity: m.headNodeAffinity},
-				tolerationValues: tolerationValues{Tolerations: m.tolerations},
-				RoutePrefix:      spec.Ingress.Path,
+				RoutePrefix: spec.Ingress.Path,
 				Image: imageValues{
 					Repository: config.Repository,
 					Tag:        config.Tag,
@@ -720,11 +713,9 @@ func (m chartValuesManager) generatePrometheusChartValues(
 				},
 			},
 			Spec: SpecValues{
-				tolerationValues: tolerationValues{Tolerations: m.tolerations},
-				affinityValues:   affinityValues{Affinity: m.headNodeAffinity},
-				RoutePrefix:      spec.Ingress.Path,
-				RetentionSize:    fmt.Sprintf("%.2fGiB", float64(spec.Storage.Size)*0.95),
-				Retention:        spec.Storage.Retention,
+				RoutePrefix:   spec.Ingress.Path,
+				RetentionSize: fmt.Sprintf("%.2fGiB", float64(spec.Storage.Size)*0.95),
+				Retention:     spec.Storage.Retention,
 				Image: imageValues{
 					Repository: config.Repository,
 					Tag:        config.Tag,
@@ -755,17 +746,9 @@ func (m chartValuesManager) generatePrometheusChartValues(
 }
 
 func (m chartValuesManager) generateKubeStateMetricsChartValues(spec exporterBaseSpec) kubeStateMetricsValues {
-	var result = kubeStateMetricsValues{
+	return kubeStateMetricsValues{
 		Enabled: spec.Enabled,
 	}
-	if spec.Enabled {
-		result.SpecValues = SpecValues{
-			affinityValues:   affinityValues{Affinity: m.headNodeAffinity},
-			tolerationValues: tolerationValues{Tolerations: m.tolerations},
-		}
-	}
-
-	return result
 }
 
 func (m chartValuesManager) generateNodeExporterChartValues(spec exporterBaseSpec) nodeExporterValues {
