@@ -19,7 +19,10 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
@@ -132,9 +135,19 @@ func (a *CreateVpcActivity) Execute(ctx context.Context, input CreateVpcActivity
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-	err = cloudformationClient.WaitUntilStackCreateComplete(describeStacksInput)
+	err = cloudformationClient.WaitUntilStackCreateCompleteWithContext(ctx, describeStacksInput)
 	if err != nil {
-		return nil, pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient)
+		var awsErr awserr.Error
+		if errors.As(err, &awsErr) {
+			if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
+				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient)
+				if pkgCloudformation.IsErrorFinal(err) {
+					return nil, cadence.NewCustomError(ErrReasonStackFailed, err.Error())
+				}
+				return nil, err
+			}
+		}
+		return nil, err
 	}
 
 	describeStacksOutput, err := cloudformationClient.DescribeStacks(describeStacksInput)

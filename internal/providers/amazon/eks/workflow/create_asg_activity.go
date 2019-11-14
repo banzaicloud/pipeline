@@ -24,8 +24,10 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/zap"
 
@@ -230,10 +232,20 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
 
-	err = errors.WrapIff(cloudformationClient.WaitUntilStackCreateComplete(describeStacksInput),
-		"waiting for %q CF stack create operation to complete failed", input.StackName)
-	err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient)
+	err = cloudformationClient.WaitUntilStackCreateComplete(describeStacksInput)
 	if err != nil {
+		var awsErr awserr.Error
+		if errors.As(err, &awsErr) {
+			if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
+				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient)
+				err = errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
+				if pkgCloudformation.IsErrorFinal(err) {
+					return nil, cadence.NewCustomError(ErrReasonStackFailed, err.Error())
+				}
+				return nil, errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
+			}
+		}
+
 		return nil, err
 	}
 
