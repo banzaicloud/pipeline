@@ -53,11 +53,16 @@ type grafanaValues struct {
 	affinityValues
 	tolerationValues
 
-	AdminUser                string           `json:"adminUser"`
-	AdminPassword            string           `json:"adminPassword"`
-	GrafanaIni               grafanaIniValues `json:"grafana.ini"`
-	DefaultDashboardsEnabled bool             `json:"defaultDashboardsEnabled"`
-	Image                    imageValues      `json:"image"`
+	AdminUser                string            `json:"adminUser"`
+	AdminPassword            string            `json:"adminPassword"`
+	GrafanaIni               grafanaIniValues  `json:"grafana.ini"`
+	DefaultDashboardsEnabled bool              `json:"defaultDashboardsEnabled"`
+	Image                    imageValues       `json:"image"`
+	Persistence              persistenceValues `json:"persistence"`
+}
+
+type persistenceValues struct {
+	Enabled bool `json:"enabled"`
 }
 
 type grafanaIniValues struct {

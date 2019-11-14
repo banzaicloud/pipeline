@@ -626,6 +626,9 @@ func (m chartValuesManager) generateGrafanaChartValues(
 				Repository: config.Repository,
 				Tag:        config.Tag,
 			},
+			Persistence: persistenceValues{
+				Enabled: true,
+			},
 		}
 	}
 
