@@ -121,6 +121,20 @@ func (op FeatureOperator) installLoggingOperatorLogging(ctx context.Context, clu
 		Tls: tlsValues{
 			Enabled: tlsEnabled,
 		},
+		Fluentbit: fluentValues{
+			Enabled: true,
+			Image: imageValues{
+				Repository: op.config.Images.Fluentbit.Repository,
+				Tag:        op.config.Images.Fluentbit.Tag,
+			},
+		},
+		Fluentd: fluentValues{
+			Enabled: true,
+			Image: imageValues{
+				Repository: op.config.Images.Fluentd.Repository,
+				Tag:        op.config.Images.Fluentd.Tag,
+			},
+		},
 	}
 
 	if tlsEnabled {
