@@ -50,6 +50,14 @@ func (c Config) Validate() error {
 		return errors.WrapIf(err, "error during validation loki image config")
 	}
 
+	if err := c.Images.Fluentbit.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation fluentbit image config")
+	}
+
+	if err := c.Images.Fluentd.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation fluentd image config")
+	}
+
 	return nil
 }
 
@@ -78,8 +86,10 @@ func (c ChartConfig) Validate() error {
 }
 
 type ImagesConfig struct {
-	Operator ImageConfig
-	Loki     ImageConfig
+	Operator  ImageConfig
+	Loki      ImageConfig
+	Fluentbit ImageConfig
+	Fluentd   ImageConfig
 }
 
 type ImageConfig struct {
