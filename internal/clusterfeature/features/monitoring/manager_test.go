@@ -79,6 +79,29 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 				Version: "1.0.0",
 			},
 		},
+		Images: ImagesConfig{
+			Operator: ImageConfig{
+				Tag: "v0.1.1",
+			},
+			Prometheus: ImageConfig{
+				Tag: "v0.1.2",
+			},
+			Alertmanager: ImageConfig{
+				Tag: "v0.1.3",
+			},
+			Grafana: ImageConfig{
+				Tag: "v0.1.4",
+			},
+			Kubestatemetrics: ImageConfig{
+				Tag: "v0.1.5",
+			},
+			Nodeexporter: ImageConfig{
+				Tag: "v0.1.6",
+			},
+			Pushgateway: ImageConfig{
+				Tag: "v0.1.7",
+			},
+		},
 	}
 
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
@@ -120,18 +143,23 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 		"grafana": obj{
 			"serviceUrl": serviceUrl,
 			"url":        grafanaURL,
+			"version":    "v0.1.4",
 		},
 		"prometheus": obj{
 			"serviceUrl": serviceUrl,
 			"url":        prometheusURL,
+			"version":    "v0.1.2",
 		},
 		"prometheusOperator": obj{
 			"version": config.Charts.Operator.Version,
 		},
 		"alertmanager": obj{
 			"serviceUrl": serviceUrl,
+			"version":    "v0.1.3",
 		},
-		"pushgateway": obj{},
+		"pushgateway": obj{
+			"version": "v0.1.7",
+		},
 	}, output)
 }
 
