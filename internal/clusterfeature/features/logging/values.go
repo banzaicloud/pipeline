@@ -21,6 +21,7 @@ type loggingOperatorValues struct {
 type imageValues struct {
 	Repository string `json:"repository" mapstructure:"repository"`
 	Tag        string `json:"tag" mapstructure:"tag"`
+	PullPolicy string `json:"pullPolicy" mapstructure:"pullPolicy"`
 }
 
 type loggingOperatorLoggingValues struct {

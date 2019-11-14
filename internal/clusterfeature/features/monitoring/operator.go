@@ -311,6 +311,7 @@ func (op FeatureOperator) installPrometheusOperator(
 				Repository: op.config.Images.Operator.Repository,
 				Tag:        op.config.Images.Operator.Tag,
 			},
+			CleanupCustomResource: true,
 		},
 		Grafana:      valuesManager.generateGrafanaChartValues(spec.Grafana, grafanaUser, grafanaPass, op.config.Images.Grafana),
 		Alertmanager: alertmanagerValues,
