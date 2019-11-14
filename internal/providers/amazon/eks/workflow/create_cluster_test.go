@@ -34,12 +34,6 @@ type CreateClusterWorkflowTestSuite struct {
 }
 
 func TestCreateClusterWorkflowTestSuite(t *testing.T) {
-	suite.Run(t, new(CreateClusterWorkflowTestSuite))
-}
-
-func (s *CreateClusterWorkflowTestSuite) SetupTest() {
-	s.env = s.NewTestWorkflowEnvironment()
-
 	workflow.RegisterWithOptions(CreateClusterWorkflow, workflow.RegisterOptions{Name: CreateClusterWorkflowName})
 	workflow.RegisterWithOptions(CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: CreateInfraWorkflowName})
 
@@ -72,6 +66,12 @@ func (s *CreateClusterWorkflowTestSuite) SetupTest() {
 
 	bootstrapActivity := NewBootstrapActivity(nil)
 	activity.RegisterWithOptions(bootstrapActivity.Execute, activity.RegisterOptions{Name: BootstrapActivityName})
+
+	suite.Run(t, new(CreateClusterWorkflowTestSuite))
+}
+
+func (s *CreateClusterWorkflowTestSuite) SetupTest() {
+	s.env = s.NewTestWorkflowEnvironment()
 }
 
 func (s *CreateClusterWorkflowTestSuite) AfterTest(suiteName, testName string) {
