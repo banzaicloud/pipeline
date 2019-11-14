@@ -86,7 +86,9 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 
 	return clusterfeature.FeatureOutput{
 		"logging": map[string]interface{}{
-			"operatorVersion": m.config.Charts.Operator.Version,
+			"operatorVersion":  m.config.Charts.Operator.Version,
+			"fluentdVersion":   m.config.Images.Fluentd.Tag,
+			"fluentbitVersion": m.config.Images.Fluentbit.Tag,
 		},
 		"loki": m.getLokiOutput(ctx, boundSpec, endpoints, kubeConfig, clusterID),
 	}, nil
