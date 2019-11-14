@@ -15,15 +15,12 @@
 package kubernetes
 
 import (
-	pkgLogging "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
-	"github.com/prometheus/common/log"
-	"k8s.io/apimachinery/pkg/runtime"
+	loggingV1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
+	"k8s.io/client-go/kubernetes/scheme"
 )
 
-func getScheme() *runtime.Scheme {
-	var s = runtime.NewScheme()
-	if err := pkgLogging.AddToScheme(s); err != nil {
-		log.Warn("failed to add logging scheme")
+func init() {
+	if err := loggingV1beta1.AddToScheme(scheme.Scheme); err != nil {
+		panic("failed to add logging scheme: " + err.Error())
 	}
-	return s
 }

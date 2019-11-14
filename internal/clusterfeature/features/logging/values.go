@@ -15,16 +15,23 @@
 package logging
 
 type loggingOperatorValues struct {
-	Image imageValues `json:"image"`
+	Image imageValues `json:"image" mapstructure:"image"`
 }
 
 type imageValues struct {
-	Repository string `json:"repository"`
-	Tag        string `json:"tag"`
+	Repository string `json:"repository" mapstructure:"repository"`
+	Tag        string `json:"tag" mapstructure:"tag"`
 }
 
 type loggingOperatorLoggingValues struct {
-	Tls tlsValues `json:"tls" mapstructure:"tls"`
+	Tls       tlsValues    `json:"tls" mapstructure:"tls"`
+	Fluentbit fluentValues `json:"fluentbit" mapstructure:"fluentbit"`
+	Fluentd   fluentValues `json:"fluentd" mapstructure:"fluentd"`
+}
+
+type fluentValues struct {
+	Enabled bool        `json:"enabled" mapstructure:"enabled"`
+	Image   imageValues `json:"image" mapstructure:"image"`
 }
 
 type tlsValues struct {
