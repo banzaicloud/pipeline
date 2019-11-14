@@ -4496,6 +4496,56 @@ paths:
                 500:
                     $ref: '#/components/responses/InternalServerError'
 
+    '/api/v1/orgs/{orgId}/clusters/{id}/namespaces':
+        get:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - clusters
+            summary: Lists namespaces for a cluster
+            description: Lists namespaces for a cluster
+            operationId: ListNamespaces
+            parameters:
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    description: Selected cluster identification (number)
+                    required: true
+                    schema:
+                        type: integer
+            responses:
+                '200':
+                    description: Namespaces listed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/NamespaceListResponse'
+
+                '400':
+                    description: Error during deleting namespace
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClientError'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    description: Cluster not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClusterNotFound'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
+
     '/api/v1/orgs/{orgId}/clusters/{id}/namespaces/{namespace}':
         delete:
             security:
@@ -10918,3 +10968,20 @@ components:
                     type: string
                 reserved:
                     type: boolean
+
+        NamespaceListResponse:
+            type: object
+            properties:
+                namespaces:
+                    $ref: "#/components/schemas/NamespaceList"
+
+        NamespaceList:
+            type: array
+            items:
+                $ref: "#/components/schemas/NamespaceItem"
+
+        NamespaceItem:
+            type: object
+            properties:
+                name:
+                    type: string
