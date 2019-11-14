@@ -69,9 +69,13 @@ func (a *API) List(c *gin.Context) {
 		return
 	}
 
-	var namespaces = make([]string, len(nsList.Items))
-	for i, ns := range nsList.Items {
-		namespaces[i] = ns.Name
+	type nsItem struct {
+		Name string
+	}
+
+	var namespaces = make([]nsItem, 0, len(nsList.Items))
+	for _, ns := range nsList.Items {
+		namespaces = append(namespaces, nsItem{Name: ns.Name})
 	}
 
 	c.JSON(http.StatusOK, namespaces)

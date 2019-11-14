@@ -4527,9 +4527,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                type: array
-                                items:
-                                    type: string
+                                $ref: '#/components/schemas/NamespaceList'
 
                 '400':
                     description: Error during deleting namespace
@@ -10970,3 +10968,14 @@ components:
                     type: string
                 reserved:
                     type: boolean
+
+        NamespaceList:
+            type: array
+            items:
+                $ref: "#/components/schemas/NamespaceItem"
+
+        NamespaceItem:
+            type: object
+            properties:
+                name:
+                    type: string
