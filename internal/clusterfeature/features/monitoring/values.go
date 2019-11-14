@@ -15,11 +15,23 @@
 package monitoring
 
 type prometheusOperatorValues struct {
-	Grafana          *grafanaValues         `json:"grafana"`
-	Alertmanager     *alertmanagerValues    `json:"alertmanager"`
-	Prometheus       *prometheusValues      `json:"prometheus"`
-	KubeStateMetrics kubeStateMetricsValues `json:"kubeStateMetrics"`
-	NodeExporter     nodeExporterValues     `json:"nodeExporter"`
+	PrometheusOperator operatorSpecValues     `json:"prometheusOperator"`
+	Grafana            *grafanaValues         `json:"grafana"`
+	Alertmanager       *alertmanagerValues    `json:"alertmanager"`
+	Prometheus         *prometheusValues      `json:"prometheus"`
+	KubeStateMetrics   kubeStateMetricsValues `json:"kubeStateMetrics"`
+	NodeExporter       nodeExporterValues     `json:"nodeExporter"`
+	KsmValues          *ksmValues             `json:"kube-state-metrics"`
+	NeValues           *neValues              `json:"prometheus-node-exporter"`
+}
+
+type operatorSpecValues struct {
+	Image imageValues `json:"image"`
+}
+
+type imageValues struct {
+	Repository string `json:"repository"`
+	Tag        string `json:"tag"`
 }
 
 type prometheusPushgatewayValues struct {
@@ -28,6 +40,7 @@ type prometheusPushgatewayValues struct {
 
 	Annotations map[string]interface{} `json:"annotations"`
 	Ingress     ingressValues          `json:"ingress"`
+	Image       imageValues            `json:"image"`
 }
 
 type baseValues struct {
@@ -44,6 +57,7 @@ type grafanaValues struct {
 	AdminPassword            string           `json:"adminPassword"`
 	GrafanaIni               grafanaIniValues `json:"grafana.ini"`
 	DefaultDashboardsEnabled bool             `json:"defaultDashboardsEnabled"`
+	Image                    imageValues      `json:"image"`
 }
 
 type grafanaIniValues struct {
@@ -98,6 +112,7 @@ type SpecValues struct {
 	RetentionSize string                 `json:"retentionSize"`
 	Retention     string                 `json:"retention"`
 	StorageSpec   map[string]interface{} `json:"storageSpec"`
+	Image         imageValues            `json:"image"`
 }
 
 type prometheusValues struct {
@@ -109,6 +124,14 @@ type prometheusValues struct {
 type kubeStateMetricsValues struct {
 	Enabled bool `json:"enabled"`
 	SpecValues
+}
+
+type ksmValues struct {
+	Image imageValues `json:"image"`
+}
+
+type neValues struct {
+	Image imageValues `json:"image"`
 }
 
 type nodeExporterValues struct {

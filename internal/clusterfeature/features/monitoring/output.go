@@ -74,17 +74,17 @@ type outputManager struct {
 	logger      common.Logger
 }
 
-func writeVersion(m outputManager, deploymentValues map[string]interface{}, output map[string]interface{}) {
-	if m.isEnabled() && deploymentValues != nil {
-		var ok = true
-		if m.getTopLevelDeploymentKey() != "" {
-			deploymentValues, ok = deploymentValues[m.getTopLevelDeploymentKey()].(map[string]interface{})
-		}
-		if ok {
-			output[versionKey] = m.getVersionFromValues(deploymentValues)
-		}
-	}
-}
+//func writeVersion(m outputManager, deploymentValues map[string]interface{}, output map[string]interface{}) {
+//	if m.isEnabled() && deploymentValues != nil {
+//		var ok = true
+//		if m.getTopLevelDeploymentKey() != "" {
+//			deploymentValues, ok = deploymentValues[m.getTopLevelDeploymentKey()].(map[string]interface{})
+//		}
+//		if ok {
+//			output[versionKey] = m.getVersionFromValues(deploymentValues)
+//		}
+//	}
+//}
 
 func writeURL(m outputManager, endpoints []*pkgHelm.EndpointItem, releaseName string, output map[string]interface{}) {
 	if m.isEnabled() {

@@ -41,6 +41,7 @@ import (
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/util"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/spotguide/scm"
 )
@@ -695,7 +696,7 @@ func cicdRepoConfigPipeline(request *LaunchRequest, repoConfig *cicdRepoConfig) 
 				return err
 			}
 
-			merged, err := merge(pipelineStep, stepToMergeIn)
+			merged, err := util.Merge(pipelineStep, stepToMergeIn)
 			if err != nil {
 				return err
 			}
