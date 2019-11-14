@@ -20,6 +20,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
+	"github.com/mitchellh/copystructure"
 
 	"github.com/banzaicloud/pipeline/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/cluster"
@@ -28,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	"github.com/banzaicloud/pipeline/internal/util"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -128,9 +130,13 @@ func (op FeatureOperator) installLoggingOperatorLogging(ctx context.Context, clu
 		chartValues.Tls.FluentbitSecretName = fluentbitSecretName
 	}
 
-	valuesBytes, err := json.Marshal(chartValues)
+	loggingConfigValues, err := copystructure.Copy(op.config.Charts.Logging.Values)
 	if err != nil {
-		return errors.WrapIf(err, "failed to decode chartValues")
+		return errors.WrapIf(err, "failed to copy logging values")
+	}
+	valuesBytes, err := mergeValuesWithConfig(chartValues, loggingConfigValues)
+	if err != nil {
+		return errors.WrapIf(err, "failed to merge logging values with config")
 	}
 
 	var chartName = op.config.Charts.Logging.Chart
@@ -331,9 +337,13 @@ func (op FeatureOperator) processLoki(ctx context.Context, spec lokiSpec, cl clu
 			},
 		}
 
-		valuesBytes, err := json.Marshal(chartValues)
+		lokiConfigValues, err := copystructure.Copy(op.config.Charts.Loki.Values)
 		if err != nil {
-			return errors.WrapIf(err, "failed to decode chartValues")
+			return errors.WrapIf(err, "failed to copy loki values")
+		}
+		valuesBytes, err := mergeValuesWithConfig(chartValues, lokiConfigValues)
+		if err != nil {
+			return errors.WrapIf(err, "failed to merge loki values with config")
 		}
 
 		return op.helmService.ApplyDeployment(
@@ -351,7 +361,6 @@ func (op FeatureOperator) processLoki(ctx context.Context, spec lokiSpec, cl clu
 }
 
 func (op FeatureOperator) installLokiSecret(ctx context.Context, secretName string, cl clusterfeatureadapter.Cluster) error {
-	// todo (colin): merge with config values
 	installSecretRequest := pkgCluster.InstallSecretRequest{
 		SourceSecretName: secretName,
 		Namespace:        op.config.Namespace,
@@ -419,7 +428,6 @@ func (op FeatureOperator) installSecret(ctx context.Context, cl clusterfeaturead
 }
 
 func (op FeatureOperator) installLoggingOperator(ctx context.Context, clusterID uint) error {
-	// todo (colin): merge with config values
 	var chartValues = loggingOperatorValues{
 		Image: imageValues{
 			Repository: op.config.Images.Operator.Repository,
@@ -427,9 +435,13 @@ func (op FeatureOperator) installLoggingOperator(ctx context.Context, clusterID 
 		},
 	}
 
-	valuesBytes, err := json.Marshal(chartValues)
+	operatorConfigValues, err := copystructure.Copy(op.config.Charts.Operator.Values)
 	if err != nil {
-		return errors.WrapIf(err, "failed to decode chartValues")
+		return errors.WrapIf(err, "failed to copy operator values")
+	}
+	valuesBytes, err := mergeValuesWithConfig(chartValues, operatorConfigValues)
+	if err != nil {
+		return errors.WrapIf(err, "failed to merge operator values with config")
 	}
 
 	return op.helmService.ApplyDeployment(
@@ -507,4 +519,23 @@ func (op FeatureOperator) installSecretForOutput(ctx context.Context, spec clust
 	}
 
 	return nil
+}
+
+func mergeValuesWithConfig(chartValues interface{}, configValues interface{}) ([]byte, error) {
+	valuesBytes, err := json.Marshal(chartValues)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode chartValues")
+	}
+
+	var out map[string]interface{}
+	if err := json.Unmarshal(valuesBytes, &out); err != nil {
+		return nil, errors.WrapIf(err, "failed to unmarshal values")
+	}
+
+	result, err := util.Merge(configValues, out)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to merge values")
+	}
+
+	return json.Marshal(result)
 }
