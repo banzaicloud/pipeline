@@ -70,7 +70,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			BackoffCoefficient:       1.5,
 			MaximumInterval:          30 * time.Second,
 			MaximumAttempts:          5,
-			NonRetriableErrorReasons: []string{"cadenceInternal:Panic"},
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", ErrReasonStackFailed},
 		},
 	}
 

@@ -27,6 +27,9 @@ import (
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 )
 
+// ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure
+const ErrReasonStackFailed = "CLOUDFORMATION_STACK_FAILED"
+
 // getStackTags returns the tags that are placed onto CF template stacks.
 // These tags  are propagated onto the resources created by the CF template.
 func getStackTags(clusterName, stackType string) []*cloudformation.Tag {

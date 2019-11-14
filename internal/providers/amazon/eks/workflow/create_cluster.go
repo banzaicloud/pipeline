@@ -17,6 +17,8 @@ package workflow
 import (
 	"time"
 
+	"emperror.dev/errors"
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 )
 
@@ -66,6 +68,17 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	infraOutput := CreateInfrastructureWorkflowOutput{}
 	err := workflow.ExecuteChildWorkflow(ctx, CreateInfraWorkflowName, infraInput).Get(ctx, &infraOutput)
 	if err != nil {
+		if cadence.IsCustomError(err) {
+			cerr := err.(*cadence.CustomError)
+			if cerr.HasDetails() {
+				var errDetails string
+				if err = errors.WrapIf(cerr.Details(&errDetails), "couldn't get error details that caused cluster create workflow to fail"); err != nil {
+					return nil, err
+				}
+
+				return nil, errors.New(errDetails)
+			}
+		}
 		return nil, err
 	}
 

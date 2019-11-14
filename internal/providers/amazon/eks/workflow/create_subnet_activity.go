@@ -19,7 +19,10 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
@@ -132,8 +135,21 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 
 		describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
 		err = cloudformationClient.WaitUntilStackCreateComplete(describeStacksInput)
+
 		if err != nil {
-			return nil, errors.WrapIff(pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient), "failed to create subnet with cidr %q", input.Cidr)
+			var awsErr awserr.Error
+			if errors.As(err, &awsErr) {
+				if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
+					err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient)
+					err = errors.WrapIff(err, "failed to create subnet with cidr %q", input.Cidr)
+
+					if pkgCloudformation.IsErrorFinal(err) {
+						return nil, cadence.NewCustomError(ErrReasonStackFailed, err.Error())
+					}
+					return nil, err
+				}
+			}
+			return nil, errors.WrapIff(err, "failed to create subnet with cidr %q", input.Cidr)
 		}
 
 		describeStacksOutput, err := cloudformationClient.DescribeStacks(describeStacksInput)
