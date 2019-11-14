@@ -70,7 +70,11 @@ func (a *API) List(c *gin.Context) {
 	}
 
 	type nsItem struct {
-		Name string
+		Name string `json:"name"`
+	}
+
+	type nsListResponse struct {
+		Namespaces []nsItem `json:"namespaces"`
 	}
 
 	var namespaces = make([]nsItem, 0, len(nsList.Items))
@@ -78,5 +82,5 @@ func (a *API) List(c *gin.Context) {
 		namespaces = append(namespaces, nsItem{Name: ns.Name})
 	}
 
-	c.JSON(http.StatusOK, namespaces)
+	c.JSON(http.StatusOK, nsListResponse{Namespaces: namespaces})
 }
