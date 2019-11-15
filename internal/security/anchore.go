@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"path"
 
@@ -38,9 +37,7 @@ var AnchoreAdminUser string // nolint: gochecknoglobals
 var AnchoreAdminPass string // nolint: gochecknoglobals
 
 const (
-	anchoreEmail                  string = "banzai@banzaicloud.com"
-	accountPath                   string = "accounts"
-	SecurityScanNotEnabledMessage string = "security scan isn't enabled"
+	accountPath string = "accounts"
 )
 
 // AnchoreError
@@ -66,16 +63,6 @@ type User struct {
 	Password string
 }
 
-type anchoreAccountPostBody struct {
-	Name  string `json:"name,omitempty"`
-	Email string `json:"email,omitempty"`
-}
-
-type anchoreUserPostBody struct {
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
-}
-
 // AnchoreRequest anchore API request
 type AnchoreRequest struct {
 	OrgID     uint
@@ -84,43 +71,6 @@ type AnchoreRequest struct {
 	URL       string
 	Body      interface{}
 	AdminUser bool
-}
-
-func createAnchoreAccount(name string, email string) error {
-	anchoreAccount := anchoreAccountPostBody{
-		Name:  name,
-		Email: email,
-	}
-	anchoreRequest := AnchoreRequest{
-		AdminUser: true,
-		Method:    http.MethodPost,
-		URL:       accountPath,
-		Body:      anchoreAccount,
-	}
-	_, err := DoAnchoreRequest(anchoreRequest)
-	if err != nil {
-		return emperror.Wrap(err, "account create AnchoreRequest failed")
-	}
-	return nil
-}
-
-func createAnchoreUser(username string, password string) error {
-	anchoreUser := anchoreUserPostBody{
-		Username: username,
-		Password: password,
-	}
-	endPoint := path.Join(accountPath, username, "users")
-	anchoreRequest := AnchoreRequest{
-		AdminUser: true,
-		Method:    http.MethodPost,
-		URL:       endPoint,
-		Body:      anchoreUser,
-	}
-	_, err := DoAnchoreRequest(anchoreRequest)
-	if err != nil {
-		return emperror.Wrap(err, "user create AnchoreRequest failed")
-	}
-	return nil
 }
 
 func checkAnchoreUser(username string, method string) int {
@@ -173,98 +123,8 @@ func deleteAnchoreAccount(account string) int {
 	return response.StatusCode
 }
 
-func getAnchoreUserCredentials(username string) (string, int) {
-	type userCred struct {
-		Type      string `json:"type"`
-		Value     string `json:"value"`
-		CreatedAt string `json:"created_at"`
-	}
-
-	endPoint := path.Join(anchoreUserEndPoint(username), "credentials")
-	anchoreRequest := AnchoreRequest{
-		AdminUser: true,
-		Method:    http.MethodGet,
-		URL:       endPoint,
-	}
-	response, err := DoAnchoreRequest(anchoreRequest)
-	if err != nil {
-		logger.Error(err)
-		return "", http.StatusInternalServerError
-	}
-	defer response.Body.Close()
-	var usercreds userCred
-	respBody, _ := ioutil.ReadAll(response.Body)
-	json.Unmarshal(respBody, &usercreds) // nolint: errcheck
-	userPass := usercreds.Value
-
-	return userPass, response.StatusCode
-}
-
 func anchoreUserEndPoint(username string) string {
 	return path.Join(accountPath, username, "users", username)
-}
-
-// SetupAnchoreUser sets up a new user in Anchore Postgres DB & creates / updates a secret containng user name /password.
-func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
-	anchoreUserName := fmt.Sprintf("%v-anchore-user", clusterId)
-	var user User
-	if checkAnchoreUser(anchoreUserName, http.MethodGet) != http.StatusOK {
-		logger.Infof("Anchore user %v not found, creating", anchoreUserName)
-
-		secretRequest := secret.CreateSecretRequest{
-			Name: anchoreUserName,
-			Type: "password",
-			Values: map[string]string{
-				"username": anchoreUserName,
-				"password": "",
-			},
-			Tags: []string{
-				secret.TagBanzaiHidden,
-			},
-		}
-		secretId, err := secret.Store.CreateOrUpdate(orgId, &secretRequest)
-		if err != nil {
-			return nil, emperror.Wrap(err, "failed to create/update Anchore user secret")
-		}
-		// retrieve crated secret to read generated password
-		secretItem, err := secret.Store.Get(orgId, secretId)
-		if err != nil {
-			return nil, emperror.Wrap(err, "failed to retrieve Anchore user secret")
-		}
-		userPassword := secretItem.Values["password"]
-
-		if createAnchoreAccount(anchoreUserName, anchoreEmail) != nil {
-			return nil, emperror.Wrap(err, "error creating Anchor account")
-		}
-		if createAnchoreUser(anchoreUserName, userPassword) != nil {
-			return nil, emperror.Wrap(err, "error creating Anchor user")
-		}
-		user.Password = userPassword
-		user.UserId = anchoreUserName
-	} else {
-		logger.Infof("Anchore user %v found", anchoreUserName)
-		userPassword, status := getAnchoreUserCredentials(anchoreUserName)
-		if status != http.StatusOK {
-			var err error
-			return nil, emperror.Wrap(err, "failed to get Anchore user secret")
-		}
-		secretRequest := secret.CreateSecretRequest{
-			Name: anchoreUserName,
-			Type: "password",
-			Values: map[string]string{
-				"username": anchoreUserName,
-				"password": userPassword,
-			},
-		}
-		if _, err := secret.Store.CreateOrUpdate(orgId, &secretRequest); err != nil {
-			return nil, emperror.Wrap(err, "failed to create/update Anchore user secret")
-		}
-
-		user.UserId = anchoreUserName
-		user.Password = userPassword
-	}
-
-	return &user, nil
 }
 
 func RemoveAnchoreUser(orgId uint, clusterId string) {
