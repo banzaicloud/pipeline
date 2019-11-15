@@ -378,8 +378,6 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 			switch f.Kind {
 			case "InstallLogging":
 				model.Cluster.Logging = true
-			case "InstallMonitoring":
-				model.Cluster.Monitoring = true
 			}
 		}
 	}
