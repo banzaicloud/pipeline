@@ -126,10 +126,6 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		}
 	}
 
-	if err := op.setSecurityScan(ctx, clusterID, true); err != nil {
-		return errors.WrapIf(err, "failed to set security scan flag on cluster")
-	}
-
 	values, err := op.processChartValues(ctx, clusterID, *anchoreValues)
 	if err != nil {
 		return errors.WrapIf(err, "failed to assemble chart values")
@@ -188,10 +184,6 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		op.errorHandler.Handle(ctx, err)
 
 		return nil
-	}
-
-	if err := op.setSecurityScan(ctx, clusterID, false); err != nil {
-		return errors.WrapIf(err, "failed to set security scan flag to false")
 	}
 
 	if !boundSpec.CustomAnchore.Enabled {
@@ -289,23 +281,6 @@ func (op FeatureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID
 	anchoreValues.Host = op.anchoreEndpoint
 
 	return &anchoreValues, nil
-}
-
-// setSecurityScan temporary workaround for signaling the security scan enablement
-func (op *FeatureOperator) setSecurityScan(ctx context.Context, clusterID uint, enabled bool) error {
-	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
-	if err != nil {
-		return errors.WrapIf(err, "failed to get cluster")
-	}
-
-	type securityScanFlagAwareCluster interface {
-		SetSecurityScan(scan bool)
-	}
-
-	securityCluster := cl.(securityScanFlagAwareCluster)
-	securityCluster.SetSecurityScan(enabled)
-
-	return nil
 }
 
 // performs namespace labeling based on the provided input
