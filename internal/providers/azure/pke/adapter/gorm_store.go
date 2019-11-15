@@ -372,16 +372,6 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 	model.AccessPoints.fromEntity(params.AccessPoints)
 	model.ApiServerAccessPoints.fromEntity(params.APIServerAccessPoints)
 
-	{
-		// Adapting to legacy format. TODO: Please remove this as soon as possible.
-		for _, f := range params.Features {
-			switch f.Kind {
-			case "InstallLogging":
-				model.Cluster.Logging = true
-			}
-		}
-	}
-
 	if err = getError(s.db.Preload("Cluster").Preload("NodePools").Create(&model), "failed to create cluster model"); err != nil {
 		return
 	}

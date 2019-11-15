@@ -122,21 +122,6 @@ type Configuration struct {
 			}
 		}
 
-		Logging struct {
-			Charts struct {
-				Operator struct {
-					Chart   string
-					Version string
-					Values  struct {
-						Image struct {
-							Repository string
-							Tag        string
-						}
-					}
-				}
-			}
-		}
-
 		DNS struct {
 			Enabled        bool
 			Namespace      string
