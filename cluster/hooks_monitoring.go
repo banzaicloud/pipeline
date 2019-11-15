@@ -32,6 +32,7 @@ import (
 const MonitorReleaseName = "monitor"
 
 // InstallMonitoring installs monitoring tools (Prometheus, Grafana) to a cluster.
+// Deprecated: use monitoring feature instead.
 func InstallMonitoring(cluster CommonCluster) error {
 	monitoringNamespace := global.Config.Cluster.Namespace
 
