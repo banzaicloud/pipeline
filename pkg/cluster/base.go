@@ -80,7 +80,6 @@ const (
 	InstallKubernetesDashboardPostHook     = "InstallKubernetesDashboardPostHook"
 	InstallClusterAutoscalerPostHook       = "InstallClusterAutoscalerPostHook"
 	InstallHorizontalPodAutoscalerPostHook = "InstallHorizontalPodAutoscalerPostHook"
-	InstallMonitoring                      = "InstallMonitoring"
 	InstallLogging                         = "InstallLogging"
 	LabelNodesWithNodePoolName             = "LabelNodesWithNodePoolName"
 	InstallPVCOperator                     = "InstallPVCOperator"

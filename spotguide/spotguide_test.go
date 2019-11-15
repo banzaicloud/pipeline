@@ -34,7 +34,6 @@ pipeline:
         InstallLogging:
           bucketName: johndoe-spark-cluster-logs
           secretId: d316a5c2c3a107aa47f0bda16cdc70020895a01d5d23847014013780bb52a7d9
-        InstallMonitoring: {}
       profileName: ""
       properties:
         gke:
@@ -168,7 +167,6 @@ pipeline:
         InstallLogging:
           bucketName: johndoe-spark-cluster-logs
           secretId: b6d88b1c21908689d80f4c5a0c32d86666e1bfd90e14602d1fd6eccd6c232281
-        InstallMonitoring: {}
       profileName: ""
       properties:
         gke:
@@ -321,8 +319,7 @@ var testLaunchRequestJSON = `{
           "InstallLogging": {
               "secretId": "b6d88b1c21908689d80f4c5a0c32d86666e1bfd90e14602d1fd6eccd6c232281",
               "bucketName": "johndoe-spark-cluster-logs"
-          },
-          "InstallMonitoring": {}
+          }
       }
   },
   "secrets": [
@@ -435,7 +432,6 @@ cluster:
     InstallLogging:
       bucketName: johndoe-spark-cluster-logs
       secretId: d316a5c2c3a107aa47f0bda16cdc70020895a01d5d23847014013780bb52a7d9
-    InstallMonitoring: {}
   profileName: ""
   properties:
     gke:
@@ -466,7 +462,6 @@ cluster:
     InstallLogging:
       bucketName: johndoe-spark-cluster-logs
       secretId: b6d88b1c21908689d80f4c5a0c32d86666e1bfd90e14602d1fd6eccd6c232281
-    InstallMonitoring: {}
   profileName: ""
   properties:
     gke:
