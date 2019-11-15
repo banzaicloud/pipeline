@@ -65,10 +65,6 @@ var HookMap = map[string]PostFunctioner{
 		f:            InstallLogging,
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.RegisterDomainPostHook: &BasePostFunction{
-		f:            RegisterDomainPostHook,
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.LabelNodesWithNodePoolName: &BasePostFunction{
 		f:            LabelNodesWithNodePoolName,
 		ErrorHandler: ErrorHandler{},
@@ -118,7 +114,6 @@ var BasePostHookFunctions = []string{
 	pkgCluster.InstallHelmPostHook,
 	pkgCluster.InstallNodePoolLabelSetOperator,
 	pkgCluster.SetupNodePoolLabelsSet,
-	pkgCluster.RegisterDomainPostHook,
 	pkgCluster.InstallIngressControllerPostHook,
 	pkgCluster.InstallKubernetesDashboardPostHook,
 	pkgCluster.InstallClusterAutoscalerPostHook,
