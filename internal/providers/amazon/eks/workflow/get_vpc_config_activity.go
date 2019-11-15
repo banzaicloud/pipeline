@@ -39,6 +39,7 @@ type GetVpcConfigActivityInput struct {
 
 // GetVpcConfigActivityOutput holds the output data of the GetVpcConfigActivityOutput
 type GetVpcConfigActivityOutput struct {
+	VpcID               string
 	SecurityGroupID     string
 	NodeSecurityGroupID string
 }
@@ -59,32 +60,24 @@ func (a *GetVpcConfigActivity) Execute(ctx context.Context, input GetVpcConfigAc
 
 	cloudformationClient := cloudformation.New(session)
 
-	describeStackResourcesInput := &cloudformation.DescribeStackResourcesInput{
-		StackName: aws.String(input.StackName),
-	}
-
-	stackResources, err := cloudformationClient.DescribeStackResources(describeStackResourcesInput)
+	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
+	describeStacksOutput, err := cloudformationClient.DescribeStacksWithContext(ctx, describeStacksInput)
 	if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to get stack resources", "stack", input.StackName)
+		return nil, errors.WrapIfWithDetails(err, "failed to describe stack", "stack", input.StackName)
 	}
 
-	stackResourceMap := make(map[string]cloudformation.StackResource)
-	for _, res := range stackResources.StackResources {
-		stackResourceMap[*res.LogicalResourceId] = *res
-	}
+	var output GetVpcConfigActivityOutput
 
-	securityGroupResource, found := stackResourceMap["ControlPlaneSecurityGroup"]
-	if !found {
-		return nil, errors.New("unable to find ControlPlaneSecurityGroup resource")
+	for _, outputPrm := range describeStacksOutput.Stacks[0].Outputs {
+		switch aws.StringValue(outputPrm.OutputKey) {
+		case "VpcId":
+			output.VpcID = aws.StringValue(outputPrm.OutputValue)
+		case "SecurityGroups":
+			output.SecurityGroupID = aws.StringValue(outputPrm.OutputValue)
+		case "NodeSecurityGroup":
+			output.NodeSecurityGroupID = aws.StringValue(outputPrm.OutputValue)
+		}
 	}
-	nodeSecurityGroup, found := stackResourceMap["NodeSecurityGroup"]
-	if !found {
-		return nil, errors.New("unable to find NodeSecurityGroup resource")
-	}
-
-	output := GetVpcConfigActivityOutput{}
-	output.SecurityGroupID = aws.StringValue(securityGroupResource.PhysicalResourceId)
-	output.NodeSecurityGroupID = aws.StringValue(nodeSecurityGroup.PhysicalResourceId)
 
 	return &output, nil
 }

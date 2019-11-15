@@ -87,5 +87,15 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore) error {
 	bootstrapActivity := eksworkflow.NewBootstrapActivity(awsSessionFactory)
 	activity.RegisterWithOptions(bootstrapActivity.Execute, activity.RegisterOptions{Name: eksworkflow.BootstrapActivityName})
 
+	// delete cluster workflow
+	workflow.RegisterWithOptions(eksworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: eksworkflow.DeleteClusterWorkflowName})
+	workflow.RegisterWithOptions(eksworkflow.DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: eksworkflow.DeleteInfraWorkflowName})
+
+	getOwnedELBsActivity := eksworkflow.NewGetOwnedELBsActivity(awsSessionFactory)
+	activity.RegisterWithOptions(getOwnedELBsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetOwnedELBsActivityName})
+
+	waitELBsDeletionActivity := eksworkflow.NewWaitELBsDeletionActivity(awsSessionFactory)
+	activity.RegisterWithOptions(waitELBsDeletionActivity.Execute, activity.RegisterOptions{Name: eksworkflow.WaitELBsDeletionActivityName})
+
 	return nil
 }
