@@ -46,12 +46,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 )
 
-type imageValues struct {
-	Repository string `json:"repository,omitempty"`
-	Tag        string `json:"tag,omitempty"`
-	PullPolicy string `json:"pullPolicy,omitempty"`
-}
-
 func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (err error) {
 
 	var bytes []byte

@@ -57,10 +57,6 @@ var HookMap = map[string]PostFunctioner{
 		f:            InstallHorizontalPodAutoscalerPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.InstallLogging: &PostFunctionWithParam{
-		f:            InstallLogging,
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.LabelNodesWithNodePoolName: &BasePostFunction{
 		f:            LabelNodesWithNodePoolName,
 		ErrorHandler: ErrorHandler{},
