@@ -84,7 +84,6 @@ const (
 	InstallLogging                         = "InstallLogging"
 	LabelNodesWithNodePoolName             = "LabelNodesWithNodePoolName"
 	InstallPVCOperator                     = "InstallPVCOperator"
-	InstallAnchoreImageValidator           = "InstallAnchoreImageValidator"
 	RestoreFromBackup                      = "RestoreFromBackup"
 	InitSpotConfig                         = "InitSpotConfig"
 	DeployInstanceTerminationHandler       = "DeployInstanceTerminationHandler"
@@ -169,11 +168,6 @@ type LoggingParam struct {
 	SecretId         string           `json:"secretId"`
 	SecretName       string           `json:"secretName"`
 	GenTLSForLogging GenTLSForLogging `json:"tls" binding:"required"`
-}
-
-// AnchoreParam describes the anchore posthook params
-type AnchoreParam struct {
-	AllowAll string `json:"allowAll"`
 }
 
 func (p LoggingParam) String() string {

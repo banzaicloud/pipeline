@@ -380,8 +380,6 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 				model.Cluster.Logging = true
 			case "InstallMonitoring":
 				model.Cluster.Monitoring = true
-			case "InstallAnchoreImageValidator":
-				model.Cluster.SecurityScan = true
 			}
 		}
 	}
