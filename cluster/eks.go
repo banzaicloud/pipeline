@@ -368,6 +368,7 @@ func (c *EKSCluster) CreateCluster() error {
 	}
 
 	c.modelCluster.EKS.NodeInstanceRoleId = output.NodeInstanceRoleID
+	c.modelCluster.EKS.VpcId = aws.String(output.VpcID)
 
 	// persist the id of the newly created subnets
 	for _, subnet := range output.Subnets {

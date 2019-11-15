@@ -54,6 +54,7 @@ type CreateInfrastructureWorkflowInput struct {
 }
 
 type CreateInfrastructureWorkflowOutput struct {
+	VpcID              string
 	NodeInstanceRoleID string
 	Subnets            []Subnet
 }
@@ -329,6 +330,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 	}
 
 	output := CreateInfrastructureWorkflowOutput{
+		VpcID:              vpcActivityOutput.VpcID,
 		NodeInstanceRoleID: iamRolesActivityOutput.NodeInstanceRoleID,
 		Subnets:            existingAndNewSubnets,
 	}

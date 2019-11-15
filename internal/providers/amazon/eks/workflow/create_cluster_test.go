@@ -178,13 +178,20 @@ func (s *CreateClusterWorkflowTestSuite) Test_Successful_Create() {
 	s.env.OnActivity(CreateVpcActivityName, mock.Anything, CreateVpcActivityInput{
 		EKSActivityInput: eksActivity,
 		StackName:        "pipeline-eks-test-cluster-name",
-	}).Return(&CreateVpcActivityOutput{}, nil)
+	}).Return(&CreateVpcActivityOutput{
+		VpcID:               "new-vpc-id",
+		RouteTableID:        "new-route-table-id",
+		SecurityGroupID:     "test-eks-controlplane-security-group-id",
+		NodeSecurityGroupID: "test-node-securitygroup-id",
+	}, nil)
 
 	s.env.OnActivity(CreateSubnetActivityName, mock.Anything, CreateSubnetActivityInput{
 		EKSActivityInput: eksActivity,
 		Cidr:             "cidr1",
 		AvailabilityZone: "az1",
 		StackName:        "pipeline-eks-subnet-test-cluster-name-cidr1",
+		VpcID:            "new-vpc-id",
+		RouteTableID:     "new-route-table-id",
 	}).Return(&CreateSubnetActivityOutput{
 		SubnetID:         "subnet1",
 		Cidr:             "cidr1",
@@ -196,6 +203,8 @@ func (s *CreateClusterWorkflowTestSuite) Test_Successful_Create() {
 		Cidr:             "cidr2",
 		AvailabilityZone: "az2",
 		StackName:        "pipeline-eks-subnet-test-cluster-name-cidr2",
+		VpcID:            "new-vpc-id",
+		RouteTableID:     "new-route-table-id",
 	}).Return(&CreateSubnetActivityOutput{
 		SubnetID:         "subnet2",
 		Cidr:             "cidr2",
@@ -225,7 +234,7 @@ func (s *CreateClusterWorkflowTestSuite) Test_Successful_Create() {
 		EndpointPrivateAccess: true,
 		EndpointPublicAccess:  true,
 		ClusterRoleArn:        "cluster-role-arn",
-		SecurityGroupID:       "",
+		SecurityGroupID:       "test-eks-controlplane-security-group-id",
 		LogTypes: []string{
 			"test-log-type",
 		},
@@ -249,18 +258,21 @@ func (s *CreateClusterWorkflowTestSuite) Test_Successful_Create() {
 	}).Return(&CreateEksControlPlaneActivityOutput{}, nil)
 
 	s.env.OnActivity(CreateAsgActivityName, mock.Anything, CreateAsgActivityInput{
-		EKSActivityInput:   eksActivity,
-		StackName:          "pipeline-eks-nodepool-test-cluster-name-pool1",
-		NodeInstanceRoleID: "node-instance-role-id",
-		SSHKeyName:         "pipeline-eks-ssh-test-cluster-name",
-		Name:               "pool1",
-		NodeSpotPrice:      "0.2",
-		Autoscaling:        true,
-		NodeMinCount:       2,
-		NodeMaxCount:       3,
-		Count:              2,
-		NodeImage:          "ami-test1",
-		NodeInstanceType:   "vm-type1-test",
+		EKSActivityInput:    eksActivity,
+		StackName:           "pipeline-eks-nodepool-test-cluster-name-pool1",
+		VpcID:               "new-vpc-id",
+		SecurityGroupID:     "test-eks-controlplane-security-group-id",
+		NodeSecurityGroupID: "test-node-securitygroup-id",
+		NodeInstanceRoleID:  "node-instance-role-id",
+		SSHKeyName:          "pipeline-eks-ssh-test-cluster-name",
+		Name:                "pool1",
+		NodeSpotPrice:       "0.2",
+		Autoscaling:         true,
+		NodeMinCount:        2,
+		NodeMaxCount:        3,
+		Count:               2,
+		NodeImage:           "ami-test1",
+		NodeInstanceType:    "vm-type1-test",
 		Labels: map[string]string{
 			"test-label1":         "test-value1",
 			"test-label2.io/name": "test-value2",
@@ -280,18 +292,21 @@ func (s *CreateClusterWorkflowTestSuite) Test_Successful_Create() {
 	}).Return(&CreateAsgActivityOutput{}, nil).Once()
 
 	s.env.OnActivity(CreateAsgActivityName, mock.Anything, CreateAsgActivityInput{
-		EKSActivityInput:   eksActivity,
-		StackName:          "pipeline-eks-nodepool-test-cluster-name-pool2",
-		NodeInstanceRoleID: "node-instance-role-id",
-		SSHKeyName:         "pipeline-eks-ssh-test-cluster-name",
-		Name:               "pool2",
-		NodeSpotPrice:      "0.0",
-		Autoscaling:        false,
-		NodeMinCount:       3,
-		NodeMaxCount:       3,
-		Count:              3,
-		NodeImage:          "ami-test2",
-		NodeInstanceType:   "vm-type2-test",
+		EKSActivityInput:    eksActivity,
+		StackName:           "pipeline-eks-nodepool-test-cluster-name-pool2",
+		VpcID:               "new-vpc-id",
+		SecurityGroupID:     "test-eks-controlplane-security-group-id",
+		NodeSecurityGroupID: "test-node-securitygroup-id",
+		NodeInstanceRoleID:  "node-instance-role-id",
+		SSHKeyName:          "pipeline-eks-ssh-test-cluster-name",
+		Name:                "pool2",
+		NodeSpotPrice:       "0.0",
+		Autoscaling:         false,
+		NodeMinCount:        3,
+		NodeMaxCount:        3,
+		Count:               3,
+		NodeImage:           "ami-test2",
+		NodeInstanceType:    "vm-type2-test",
 		Subnets: []Subnet{
 			{
 				SubnetID:         "subnet3",
@@ -312,6 +327,22 @@ func (s *CreateClusterWorkflowTestSuite) Test_Successful_Create() {
 
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())
+
+	var workflowOutput CreateClusterWorkflowOutput
+	s.env.GetWorkflowResult(&workflowOutput) //nolint: errcheck
+
+	expectedWorkflowOutput := CreateClusterWorkflowOutput{
+		CreateInfrastructureWorkflowOutput{
+			VpcID:              "new-vpc-id",
+			NodeInstanceRoleID: "node-instance-role-id",
+			Subnets: []Subnet{
+				{SubnetID: "subnet1", Cidr: "cidr1", AvailabilityZone: "az1"},
+				{SubnetID: "subnet2", Cidr: "cidr2", AvailabilityZone: "az2"},
+				{SubnetID: "subnet3", Cidr: "cidr3", AvailabilityZone: "az3"},
+			},
+		},
+	}
+	s.Equal(expectedWorkflowOutput, workflowOutput)
 }
 
 func (s *CreateClusterWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
