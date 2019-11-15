@@ -17,6 +17,7 @@ package logging
 import (
 	"context"
 	"encoding/json"
+	"path"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
@@ -340,11 +341,15 @@ func (op FeatureOperator) processLoki(ctx context.Context, spec lokiSpec, cl clu
 			annotations = generateAnnotations(secretName)
 		}
 
+		var domain = spec.Ingress.Domain
+		if domain == "" {
+			domain = "/"
+		}
+
 		var chartValues = &lokiValues{
 			Ingress: ingressValues{
 				Enabled: spec.Ingress.Enabled,
-				Hosts:   []string{spec.Ingress.Domain},
-				Path:    spec.Ingress.Path,
+				Hosts:   []string{path.Join(domain, spec.Ingress.Path)},
 			},
 			Annotations: annotations,
 			Image: imageValues{
