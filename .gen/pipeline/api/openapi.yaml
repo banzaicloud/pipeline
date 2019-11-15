@@ -5699,6 +5699,75 @@ paths:
       summary: List bootstrap commands for namespaces
       tags:
       - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/namespaces:
+    get:
+      description: Lists namespaces for a cluster
+      operationId: ListNamespaces
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamespaceListResponse'
+          description: Namespaces listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientError'
+          description: Error during deleting namespace
+        401:
+          content:
+            application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
+              schema:
+                $ref: '#/components/schemas/CommonError'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+        500:
+          content:
+            application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Lists namespaces for a cluster
+      tags:
+      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/namespaces/{namespace}:
     delete:
       description: Delete namespace from a cluster
@@ -9045,10 +9114,7 @@ components:
           secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
           location: us-central1-a
           postHooks:
-            InstallLogging:
-              bucketName: mybucketname
-              region: region
-              secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
+            InstallIngressController: null
           properties:
             gke:
               master:
@@ -9242,10 +9308,7 @@ components:
         secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
         location: us-central1-a
         postHooks:
-          InstallLogging:
-            bucketName: mybucketname
-            region: region
-            secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
+          InstallIngressController: null
         properties:
           gke:
             master:
@@ -9287,10 +9350,7 @@ components:
           type: string
         postHooks:
           example:
-            InstallLogging:
-              bucketName: mybucketname
-              region: region
-              secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
+            InstallIngressController: null
           type: object
         scaleOptions:
           $ref: '#/components/schemas/ScaleOptions'
@@ -12018,43 +12078,12 @@ components:
         PostHookFunctionName:
           type: object
       type: object
-    LoggingPostHook:
-      properties:
-        InstallLogging:
-          $ref: '#/components/schemas/LoggingPostHook_InstallLogging'
-      type: object
     PostHooks:
       oneOf:
-      - $ref: '#/components/schemas/LoggingPostHook'
       - $ref: '#/components/schemas/BasePostHook'
     ReRunPostHook:
       example:
-        InstallLogging:
-          bucketName: mybucketname
-          region: region
-          secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
-          tls:
-            tlsEnabled: true
-            genTlsSecretName: loggingSecret
-            namespace: default
-            tlsHost: fluent
-      type: object
-    GenTLSForLogging:
-      properties:
-        tlsEnabled:
-          example: true
-          type: boolean
-        genTlsSecretName:
-          example: loggingSecret
-          type: string
-        namespace:
-          example: default
-          type: string
-        tlsHost:
-          example: fluent
-          type: string
-      required:
-      - tlsEnabled
+        InstallIngressController: null
       type: object
     CreateResourceGroup:
       example:
@@ -14442,6 +14471,28 @@ components:
         reserved:
           type: boolean
       type: object
+    NamespaceListResponse:
+      example:
+        namespaces:
+        - name: name
+        - name: name
+      properties:
+        namespaces:
+          items:
+            $ref: '#/components/schemas/NamespaceItem'
+          type: array
+      type: object
+    NamespaceList:
+      items:
+        $ref: '#/components/schemas/NamespaceItem'
+      type: array
+    NamespaceItem:
+      example:
+        name: name
+      properties:
+        name:
+          type: string
+      type: object
     CreatePKEClusterKubernetes_oidc:
       properties:
         enabled:
@@ -15205,32 +15256,6 @@ components:
         release:
           example: pipeline
           type: string
-    LoggingPostHook_InstallLogging:
-      properties:
-        bucketName:
-          example: mybucketname
-          type: string
-        region:
-          example: region
-          type: string
-        resourceGroup:
-          example: myResourceGroup
-          type: string
-        storageAccount:
-          example: myStorageAccount
-          type: string
-        secretId:
-          example: 62bc3c75-91fb-4670-bad4-24b401a9deac
-          type: string
-        secretName:
-          example: my-aws-secret
-          type: string
-        tls:
-          $ref: '#/components/schemas/GenTLSForLogging'
-      required:
-      - bucketName
-      - secretId
-      - tls
     PolicyRule_params:
       example:
         name: name

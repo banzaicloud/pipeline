@@ -10,19 +10,7 @@
 
 package pipeline
 
-type LoggingPostHookInstallLogging struct {
+type NamespaceItem struct {
 
-	BucketName string `json:"bucketName"`
-
-	Region string `json:"region,omitempty"`
-
-	ResourceGroup string `json:"resourceGroup,omitempty"`
-
-	StorageAccount string `json:"storageAccount,omitempty"`
-
-	SecretId string `json:"secretId"`
-
-	SecretName string `json:"secretName,omitempty"`
-
-	Tls GenTlsForLogging `json:"tls"`
+	Name string `json:"name,omitempty"`
 }
