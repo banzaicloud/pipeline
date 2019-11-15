@@ -18,8 +18,8 @@ import (
 	"reflect"
 	"testing"
 
+	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/eks/action"
 )
 
 func TestCreateSubnetMappingFromRequest(t *testing.T) {
@@ -86,26 +86,26 @@ func TestGetNodePoolsForSubnet(t *testing.T) {
 
 	testCases := []struct {
 		name              string
-		subnet            *action.EksSubnet
+		subnet            eksworkflow.Subnet
 		expectedNodePools []string
 	}{
 		{
 			name: "get node pools by subnet cidr",
-			subnet: &action.EksSubnet{
+			subnet: eksworkflow.Subnet{
 				Cidr: "192.168.64.0/20",
 			},
 			expectedNodePools: []string{"default", "pool1"},
 		},
 		{
 			name: "get node pools by subnet subnet id",
-			subnet: &action.EksSubnet{
+			subnet: eksworkflow.Subnet{
 				SubnetID: "subnet0",
 			},
 			expectedNodePools: []string{"default", "pool3"},
 		},
 		{
 			name: "no matching subnet mapping",
-			subnet: &action.EksSubnet{
+			subnet: eksworkflow.Subnet{
 				SubnetID: "subnetx",
 			},
 			expectedNodePools: nil,

@@ -224,7 +224,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 
 	err = cfClient.WaitUntilStackCreateCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)})
 	if err != nil {
-		return "", emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, stackName, cfClient), "waiting for stack creation")
+		return "", emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, stackName, "", cfClient), "waiting for stack creation")
 	}
 
 	if output.StackId != nil {

@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
@@ -70,17 +71,18 @@ type TokenGenerator interface {
 // NewClusterCreator returns a new PKE or Common cluster creator instance depending on the cluster.
 func NewClusterCreator(request *pkgCluster.CreateClusterRequest, cluster CommonCluster, workflowClient client.Client) clusterCreator {
 	common := NewCommonClusterCreator(request, cluster)
-	if _, ok := cluster.(createPKEClusterer); !ok {
-		return common
+
+	if strings.HasPrefix(cluster.GetDistribution(), pkgCluster.PKE) && cluster.GetCloud() == pkgCluster.Amazon {
+		return &pkeCreator{
+			workflowClient: workflowClient,
+
+			commonCreator: *common,
+
+			oidcEnabled: request.Properties.CreateClusterPKE.Kubernetes.OIDC.Enabled,
+		}
 	}
 
-	return &pkeCreator{
-		workflowClient: workflowClient,
-
-		commonCreator: *common,
-
-		oidcEnabled: request.Properties.CreateClusterPKE.Kubernetes.OIDC.Enabled,
-	}
+	return common
 }
 
 type createPKEClusterer interface {
