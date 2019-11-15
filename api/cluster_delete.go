@@ -21,7 +21,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
-	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
@@ -67,10 +66,6 @@ func (a *ClusterAPI) DeleteCluster(c *gin.Context) {
 		}
 	default:
 		_ = a.clusterManager.DeleteCluster(ctx, commonCluster, force)
-	}
-
-	if anchore.AnchoreEnabled && commonCluster.GetSecurityScan() {
-		anchore.RemoveAnchoreUser(commonCluster.GetOrganizationId(), commonCluster.GetUID())
 	}
 
 	c.JSON(http.StatusAccepted, DeleteClusterResponse{

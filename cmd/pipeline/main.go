@@ -315,8 +315,6 @@ func main() {
 		logger.Info("external dns service functionality is not enabled")
 	}
 
-	anchore.Init()
-
 	prometheus.MustRegister(cluster.NewExporter())
 
 	clusterEventBus := evbus.New()
