@@ -77,6 +77,3 @@ cicd:
 
         # Turn this to true to see all queries in the log
         queryLog: false
-
-hooks:
-    domainHookDisabled: true

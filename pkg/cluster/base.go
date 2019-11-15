@@ -82,7 +82,6 @@ const (
 	InstallHorizontalPodAutoscalerPostHook = "InstallHorizontalPodAutoscalerPostHook"
 	InstallMonitoring                      = "InstallMonitoring"
 	InstallLogging                         = "InstallLogging"
-	RegisterDomainPostHook                 = "RegisterDomainPostHook"
 	LabelNodesWithNodePoolName             = "LabelNodesWithNodePoolName"
 	InstallPVCOperator                     = "InstallPVCOperator"
 	InstallAnchoreImageValidator           = "InstallAnchoreImageValidator"

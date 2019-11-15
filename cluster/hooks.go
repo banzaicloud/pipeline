@@ -37,14 +37,11 @@ import (
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/dns"
-	"github.com/banzaicloud/pipeline/dns/route53"
 	"github.com/banzaicloud/pipeline/helm"
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
 	arkPosthook "github.com/banzaicloud/pipeline/internal/ark/posthook"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/hollowtrees"
-	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/backoff"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -607,104 +604,6 @@ func SetupPrivileges(cluster CommonCluster) error {
 	}
 
 	return nil
-}
-
-// RegisterDomainPostHook registers a subdomain using the name of the current organization
-// in external Dns service. It ensures that only one domain is registered per organization.
-func RegisterDomainPostHook(commonCluster CommonCluster) error {
-	if global.Config.Hooks.DomainHookDisabled {
-		log.Info("domain hook disabled, exiting ...")
-
-		return nil
-	}
-
-	domainBase, err := dns.GetBaseDomain()
-	if err != nil {
-		return err
-	}
-
-	route53SecretNamespace := global.Config.Cluster.Namespace
-
-	orgId := commonCluster.GetOrganizationId()
-
-	dnsSvc, err := dns.GetExternalDnsServiceClient()
-	if err != nil {
-		return emperror.Wrap(err, "Getting external dns service client failed")
-	}
-
-	if dnsSvc == nil {
-		log.Info("Exiting as external dns service functionality is not enabled")
-		return nil
-	}
-
-	org, err := auth.GetOrganizationById(orgId)
-	if err != nil {
-		return emperror.Wrapf(err, "Retrieving organization with id %d failed", orgId)
-	}
-
-	domain := strings.ToLower(fmt.Sprintf("%s.%s", org.Name, domainBase))
-
-	registered, err := dnsSvc.IsDomainRegistered(orgId, domain)
-	if err != nil {
-		return emperror.Wrapf(err, "Checking if domain '%s' is already registered failed", domain)
-	}
-
-	if !registered {
-		if err = dnsSvc.RegisterDomain(orgId, domain); err != nil {
-			return emperror.Wrapf(err, "Registering domain '%s' failed", domain)
-		}
-	} else {
-		log.Infof("Domain '%s' already registered", domain)
-	}
-
-	route53Secret, err := secret.Store.GetByName(orgId, route53.IAMUserAccessKeySecretName)
-	if err != nil {
-		return emperror.Wrap(err, "Failed to install route53 secret into cluster")
-	}
-	_, err = InstallSecrets(
-		commonCluster,
-		&secret.ListSecretsQuery{
-			Type: pkgCluster.Amazon,
-			IDs:  []string{route53Secret.ID},
-		},
-		route53SecretNamespace,
-	)
-	if err != nil {
-		return emperror.Wrap(err, "Failed to install route53 secret into cluster")
-	}
-
-	log.Info("route53 secret successfully installed into cluster.")
-
-	externalDnsValues := dns.ExternalDnsChartValues{
-		Rbac: &dns.ExternalDnsRbacSettings{
-			Create: commonCluster.RbacEnabled() == true,
-		},
-		Sources: []string{"service", "ingress"},
-		Image: &dns.ExternalDnsImageSettings{
-			Repository: global.Config.Cluster.DNS.Charts.ExternalDNS.Values.Image.Repository,
-			Tag:        global.Config.Cluster.DNS.Charts.ExternalDNS.Values.Image.Tag,
-		},
-		Aws: &dns.ExternalDnsAwsSettings{
-			Credentials: &dns.ExternalDnsAwsCredentials{
-				SecretKey: route53Secret.Values[secrettype.AwsSecretAccessKey],
-				AccessKey: route53Secret.Values[secrettype.AwsAccessKeyId],
-			},
-			Region: route53Secret.Values[secrettype.AwsRegion],
-		},
-		DomainFilters: []string{domain},
-		Policy:        "sync",
-		TxtOwnerId:    commonCluster.GetUID(),
-	}
-
-	values, err := yaml.Marshal(externalDnsValues)
-	if err != nil {
-		return emperror.Wrap(err, "Json Convert Failed")
-	}
-	chartVersion := global.Config.Cluster.DNS.Charts.ExternalDNS.Version
-	chartName := global.Config.Cluster.DNS.Charts.ExternalDNS.Chart
-	const releaseName = "dns"
-
-	return installDeployment(commonCluster, route53SecretNamespace, chartName, releaseName, values, chartVersion, false)
 }
 
 // LabelNodesWithNodePoolName add node pool name labels for all nodes.
