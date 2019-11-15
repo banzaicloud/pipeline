@@ -24,7 +24,6 @@ import (
 	yamlv2 "gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/utils"
@@ -35,10 +34,12 @@ const (
 	promCmName      = "-prometheus-server"
 )
 
+const MonitorReleaseName = "monitor"
+
 func RemovePrometheusTargets(log logrus.FieldLogger, client kubernetes.Interface) error {
 	pipelineSystemNamespace := global.Config.Cluster.Namespace
 
-	currPromConfStr, err := k8sutil.GetConfigMapEntry(client, pipelineSystemNamespace, cluster.MonitorReleaseName+promCmName, promConfigEntry)
+	currPromConfStr, err := k8sutil.GetConfigMapEntry(client, pipelineSystemNamespace, MonitorReleaseName+promCmName, promConfigEntry)
 	if err != nil {
 		return emperror.Wrap(err, "failed to get Prometheus config")
 	}
@@ -68,7 +69,7 @@ func RemovePrometheusTargets(log logrus.FieldLogger, client kubernetes.Interface
 		return emperror.Wrap(err, "failed to patch Prometheus config")
 	}
 
-	err = k8sutil.PatchConfigMapDataEntry(log, client, pipelineSystemNamespace, cluster.MonitorReleaseName+promCmName, promConfigEntry, string(newPromConfStr))
+	err = k8sutil.PatchConfigMapDataEntry(log, client, pipelineSystemNamespace, MonitorReleaseName+promCmName, promConfigEntry, string(newPromConfStr))
 	if err != nil {
 		return emperror.Wrap(err, "failed to patch Prometheus config")
 	}
@@ -78,7 +79,7 @@ func RemovePrometheusTargets(log logrus.FieldLogger, client kubernetes.Interface
 func AddPrometheusTargets(log logrus.FieldLogger, client kubernetes.Interface) error {
 	pipelineSystemNamespace := global.Config.Cluster.Namespace
 
-	currPromConfStr, err := k8sutil.GetConfigMapEntry(client, pipelineSystemNamespace, cluster.MonitorReleaseName+promCmName, promConfigEntry)
+	currPromConfStr, err := k8sutil.GetConfigMapEntry(client, pipelineSystemNamespace, MonitorReleaseName+promCmName, promConfigEntry)
 	if err != nil {
 		return emperror.Wrap(err, "failed to get Prometheus config")
 	}
@@ -115,7 +116,7 @@ func AddPrometheusTargets(log logrus.FieldLogger, client kubernetes.Interface) e
 		return emperror.Wrap(err, "failed to patch Prometheus config")
 	}
 
-	err = k8sutil.PatchConfigMapDataEntry(log, client, pipelineSystemNamespace, cluster.MonitorReleaseName+promCmName, promConfigEntry, string(newPromConfStr))
+	err = k8sutil.PatchConfigMapDataEntry(log, client, pipelineSystemNamespace, MonitorReleaseName+promCmName, promConfigEntry, string(newPromConfStr))
 	if err != nil {
 		return emperror.Wrap(err, "failed to patch Prometheus config")
 	}
