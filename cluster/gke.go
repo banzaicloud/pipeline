@@ -23,11 +23,11 @@ import (
 	"strings"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
+	"github.com/Masterminds/semver"
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	googleAuth "golang.org/x/oauth2/google"
@@ -86,7 +86,7 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 	var err error
 	c.repository, err = NewDBGKEClusterRepository(global.DB())
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create GKE cluster repository")
+		return nil, errors.WrapIf(err, "failed to create GKE cluster repository")
 	}
 
 	nodePools, err := createNodePoolsModelFromRequest(request.Properties.CreateClusterGKE.NodePools, userID)
@@ -252,7 +252,7 @@ func (c *GKECluster) CreateCluster() error {
 
 	secretItem, err := c.GetSecretWithValidation()
 	if err != nil {
-		return emperror.Wrap(err, "failed to retrieve cluster credential secret")
+		return errors.WrapIf(err, "failed to retrieve cluster credential secret")
 	}
 
 	if c.model.ProjectId == "" {
@@ -271,14 +271,14 @@ func (c *GKECluster) CreateCluster() error {
 	c.log.Info("Get Google Service Client")
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
-		return emperror.Wrap(err, "getting gke service client failed")
+		return errors.WrapIf(err, "getting gke service client failed")
 	}
 
 	c.log.Info("Get Google Service Client succeeded")
 
 	nodePools, err := createNodePoolsFromClusterModel(c.model)
 	if err != nil {
-		return emperror.Wrap(err, "create node pools from model failed")
+		return errors.WrapIf(err, "create node pools from model failed")
 	}
 
 	cc := googleCluster{
@@ -310,7 +310,7 @@ func (c *GKECluster) CreateCluster() error {
 		c.log.Info("Waiting for cluster...")
 
 		if err := waitForOperation(newContainerOperation(svc, c.model.ProjectId, c.model.Cluster.Location), createCall.Name, c.log); err != nil {
-			return emperror.Wrap(err, "waiting for cluster creation to complete failed")
+			return errors.WrapIf(err, "waiting for cluster creation to complete failed")
 		}
 	} else {
 		c.log.Info("Cluster %s already exists.", c.model.Cluster.Name)
@@ -344,7 +344,7 @@ func (c *GKECluster) updateCurrentVersions(gkeCluster *gke.Cluster) {
 
 // Persist save the cluster model
 func (c *GKECluster) Persist() error {
-	return emperror.Wrap(c.repository.SaveModel(c.model), "failed to persist cluster")
+	return errors.WrapIf(c.repository.SaveModel(c.model), "failed to persist cluster")
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
@@ -352,7 +352,7 @@ func (c *GKECluster) DownloadK8sConfig() ([]byte, error) {
 
 	config, err := c.getGoogleKubernetesConfig()
 	if err != nil {
-		return nil, emperror.Wrap(err, "retrieving kubernetes config failed")
+		return nil, errors.WrapIf(err, "retrieving kubernetes config failed")
 	}
 	// get config succeeded
 	c.log.Info("Get k8s config succeeded")
@@ -626,12 +626,12 @@ func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
-		return emperror.Wrap(err, "Unable to retrieve GoogleServiceClient")
+		return errors.WrapIf(err, "Unable to retrieve GoogleServiceClient")
 	}
 
 	secretItem, err := c.GetSecretWithValidation()
 	if err != nil {
-		return emperror.Wrap(err, "Unable to retrieve secret")
+		return errors.WrapIf(err, "Unable to retrieve secret")
 	}
 
 	projectId := secretItem.GetValue(secrettype.ProjectId)
@@ -644,11 +644,11 @@ func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 			NodeCount: int64(nodePool.Count),
 		}).Context(context.Background()).Do()
 		if err != nil {
-			return emperror.Wrap(err, "Updating nodepool size failed")
+			return errors.WrapIf(err, "Updating nodepool size failed")
 		}
 
 		if err = waitForOperation(newContainerOperation(svc, projectId, c.model.Cluster.Location), updateCall.Name, log); err != nil {
-			return emperror.Wrap(err, "Error while waiting for nodepool size update")
+			return errors.WrapIf(err, "Error while waiting for nodepool size update")
 		}
 
 		log.Infof("Node pool %s size change is called for project %s, zone %s and cluster %s. Status Code %v", poolName, projectId, c.model.Cluster.Location, c.GetName(), updateCall.HTTPStatusCode)
@@ -803,7 +803,7 @@ func (c *GKECluster) getGoogleServiceClient() (*gke.Service, error) {
 
 	client, err := c.newClientFromCredentials()
 	if err != nil {
-		return nil, emperror.Wrap(err, "retrieving cluster credentials secret failed")
+		return nil, errors.WrapIf(err, "retrieving cluster credentials secret failed")
 	}
 
 	// New client from credentials
@@ -935,14 +935,14 @@ func getClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, error) 
 func (c *GKECluster) callDeleteCluster(cc *googleCluster) error {
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
-		return emperror.Wrap(err, "creating google service client failed")
+		return errors.WrapIf(err, "creating google service client failed")
 	}
 	c.log.Info("Get Google Service Client succeeded")
 
 	c.log.Infof("Removing cluster %v from project %v, zone %v", cc.Name, cc.ProjectID, cc.Zone)
 	deleteCall, err := svc.Projects.Zones.Clusters.Delete(cc.ProjectID, cc.Zone, cc.Name).Context(context.Background()).Do()
 	if err != nil && !strings.Contains(err.Error(), "notFound") {
-		return emperror.Wrap(err, "initiating cluster deletion failed")
+		return errors.WrapIf(err, "initiating cluster deletion failed")
 	} else if err == nil {
 		c.log.Infof("Cluster %v delete is called. Status Code %v", cc.Name, deleteCall.HTTPStatusCode)
 
@@ -950,7 +950,7 @@ func (c *GKECluster) callDeleteCluster(cc *googleCluster) error {
 			c.log.Info("Waiting for cluster...")
 
 			if err := waitForOperation(newContainerOperation(svc, c.model.ProjectId, c.model.Cluster.Location), deleteCall.Name, c.log); err != nil {
-				return emperror.Wrap(err, "waiting for cluster deletion to complete failed")
+				return errors.WrapIf(err, "waiting for cluster deletion to complete failed")
 			}
 		}
 	} else {
@@ -970,7 +970,21 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 		return nil, err
 	}
 
-	if cc.MasterVersion != "" && cc.MasterVersion != updatedCluster.CurrentMasterVersion {
+	// master version reported by GCP
+	currentMasterVersion, err := semver.NewVersion(updatedCluster.CurrentMasterVersion)
+	if err != nil {
+		return nil, errors.WrapIf(err, "couldn't parse current master version")
+	}
+
+	var desiredMasterVersion *semver.Version
+	if cc.MasterVersion != "" {
+		desiredMasterVersion, err = semver.NewVersion(cc.MasterVersion)
+		if err != nil {
+			return nil, errors.WrapIf(err, "couldn't parse desired master version")
+		}
+	}
+
+	if desiredMasterVersion != nil && desiredMasterVersion.GreaterThan(currentMasterVersion) {
 		log.Infof("Updating master to %v version", cc.MasterVersion)
 		updateCall, err := svc.Projects.Zones.Clusters.Update(cc.ProjectID, cc.Zone, cc.Name, &gke.UpdateClusterRequest{
 			Update: &gke.ClusterUpdate{
@@ -1027,8 +1041,19 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 	for _, nodePool := range cc.NodePools {
 		for i := 0; i < len(updatedCluster.NodePools); i++ {
 			if updatedCluster.NodePools[i].Name == nodePool.Name {
+				var desiredNodePoolVersion *semver.Version
+				if nodePool.Version != "" {
+					desiredNodePoolVersion, err = semver.NewVersion(nodePool.Version)
+					if err != nil {
+						return nil, errors.WrapIfWithDetails(err, "couldn't parse desired node pool version", "node pool", nodePool.Name)
+					}
+				}
+				currentNodePoolVersion, err := semver.NewVersion(updatedCluster.NodePools[i].Version)
+				if err != nil {
+					return nil, errors.WrapIfWithDetails(err, "couldn't parse current node pool version", "node pool", nodePool.Name)
+				}
 
-				if nodePool.Version != "" && nodePool.Version != updatedCluster.NodePools[i].Version {
+				if desiredNodePoolVersion != nil && desiredNodePoolVersion.GreaterThan(currentNodePoolVersion) {
 					log.Infof("Updating node pool %s to %v version", nodePool.Name, nodePool.Version)
 					updateCall, err := svc.Projects.Zones.Clusters.NodePools.Update(cc.ProjectID, cc.Zone, cc.Name, nodePool.Name, &gke.UpdateNodePoolRequest{
 						NodeVersion: nodePool.Version,
@@ -1176,13 +1201,13 @@ func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 	c.log.Info("Get Google Service Client")
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
-		return nil, emperror.Wrap(err, "creating google service client failed")
+		return nil, errors.WrapIf(err, "creating google service client failed")
 	}
 	c.log.Info("Get Google Service Client succeeded")
 
 	secretItem, err := c.GetSecretWithValidation()
 	if err != nil {
-		return nil, emperror.Wrap(err, "retrieving cluster credentials secret failed")
+		return nil, errors.WrapIf(err, "retrieving cluster credentials secret failed")
 	}
 
 	c.log.Infof("Get gke cluster with name %s", c.model.Cluster.Name)
@@ -1193,13 +1218,13 @@ func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 	})
 
 	if err != nil {
-		return nil, emperror.Wrap(err, "retrieving GKE cluster provider failed")
+		return nil, errors.WrapIf(err, "retrieving GKE cluster provider failed")
 	}
 
 	c.log.Info("Generate Service Account token")
 	serviceAccountToken, err := c.generateServiceAccountTokenForGke(cl)
 	if err != nil {
-		return nil, emperror.Wrap(err, "getting service account for GKE cluster failed")
+		return nil, errors.WrapIf(err, "getting service account for GKE cluster failed")
 	}
 
 	finalCl := pkgCluster.KubernetesCluster{
@@ -1221,7 +1246,7 @@ func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 
 	config, err := pkgCluster.StoreConfig(&finalCl)
 	if err != nil {
-		return nil, emperror.Wrap(err, "storing kubernetes config failed")
+		return nil, errors.WrapIf(err, "storing kubernetes config failed")
 	}
 	return config, nil
 }
@@ -1229,7 +1254,7 @@ func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 func (c *GKECluster) generateServiceAccountTokenForGke(cluster *gke.Cluster) (string, error) {
 	capem, err := base64.StdEncoding.DecodeString(cluster.MasterAuth.ClusterCaCertificate)
 	if err != nil {
-		return "", emperror.Wrap(err, "base64 decode of ca certificate failed")
+		return "", errors.WrapIf(err, "base64 decode of ca certificate failed")
 	}
 
 	host := cluster.Endpoint
@@ -1241,18 +1266,18 @@ func (c *GKECluster) generateServiceAccountTokenForGke(cluster *gke.Cluster) (st
 	ctx := context.Background()
 	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
-		return "", emperror.Wrap(err, "retrieving cluster credentials secret failed")
+		return "", errors.WrapIf(err, "retrieving cluster credentials secret failed")
 	}
 
 	serviceAccount := verify.CreateServiceAccount(clusterSecret.Values)
 	jsonConfig, err := json.Marshal(serviceAccount)
 	if err != nil {
-		return "", emperror.Wrap(err, "marshaling cluster credentials secret to json format failed")
+		return "", errors.WrapIf(err, "marshaling cluster credentials secret to json format failed")
 	}
 
 	googleCredentials, err := googleAuth.CredentialsFromJSON(ctx, jsonConfig, gke.CloudPlatformScope)
 	if err != nil {
-		return "", emperror.Wrap(err, "creating Google credentials failed")
+		return "", errors.WrapIf(err, "creating Google credentials failed")
 	}
 
 	iamSvc := pkgProviderGoogle.NewIamSvc(googleCredentials)
@@ -1264,7 +1289,7 @@ func (c *GKECluster) generateServiceAccountTokenForGke(cluster *gke.Cluster) (st
 			Seconds: 600, // token expires after 10 mins
 		})
 	if err != nil {
-		return "", emperror.Wrap(err, "getting access token failed")
+		return "", errors.WrapIf(err, "getting access token failed")
 	}
 
 	tokenExpiry := time.Unix(tokenResp.GetExpireTime().GetSeconds(), int64(tokenResp.GetExpireTime().GetNanos()))
@@ -1286,7 +1311,7 @@ func (c *GKECluster) generateServiceAccountTokenForGke(cluster *gke.Cluster) (st
 	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return "", emperror.Wrap(err, "creating kubernetes clientset failed")
+		return "", errors.WrapIf(err, "creating kubernetes clientset failed")
 	}
 
 	return generateServiceAccountToken(clientset)
@@ -1301,7 +1326,7 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 
 	_, err := clientset.CoreV1().ServiceAccounts(defaultNamespace).Create(serviceAccount)
 	if err != nil && !k8sErrors.IsAlreadyExists(err) {
-		return "", emperror.WrapWith(err, "creating service account failed", "namespace", defaultNamespace, "service account", serviceAccount)
+		return "", errors.WrapIfWithDetails(err, "creating service account failed", "namespace", defaultNamespace, "service account", serviceAccount)
 	}
 
 	adminRole := &rbacv1.ClusterRole{
@@ -1324,7 +1349,7 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 	if err != nil {
 		clusterAdminRole, err = clientset.RbacV1().ClusterRoles().Create(adminRole)
 		if err != nil {
-			return "", emperror.WrapWith(err, "creating cluster role failed", "cluster role", adminRole.Name)
+			return "", errors.WrapIfWithDetails(err, "creating cluster role failed", "cluster role", adminRole.Name)
 		}
 	}
 
@@ -1345,18 +1370,18 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 		},
 	}
 	if _, err = clientset.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding); err != nil && !k8sErrors.IsAlreadyExists(err) {
-		return "", emperror.WrapWith(err, "creating cluster role binding failed", "cluster role", clusterAdminRole.Name, "service account", serviceAccount.Name)
+		return "", errors.WrapIfWithDetails(err, "creating cluster role binding failed", "cluster role", clusterAdminRole.Name, "service account", serviceAccount.Name)
 	}
 
 	if serviceAccount, err = clientset.CoreV1().ServiceAccounts(defaultNamespace).Get(serviceAccount.Name, metav1.GetOptions{}); err != nil {
-		return "", emperror.WrapWith(err, "retrieving service account failed", "namespace", defaultNamespace, "service account", serviceAccount.Name)
+		return "", errors.WrapIfWithDetails(err, "retrieving service account failed", "namespace", defaultNamespace, "service account", serviceAccount.Name)
 	}
 
 	if len(serviceAccount.Secrets) > 0 {
 		secret := serviceAccount.Secrets[0]
 		secretObj, err := clientset.CoreV1().Secrets(defaultNamespace).Get(secret.Name, metav1.GetOptions{})
 		if err != nil {
-			return "", emperror.WrapWith(err, "retrieving kubernetes secret found", "namespace", defaultNamespace, "secret", secret.Name)
+			return "", errors.WrapIfWithDetails(err, "retrieving kubernetes secret found", "namespace", defaultNamespace, "secret", secret.Name)
 		}
 		if token, ok := secretObj.Data["token"]; ok {
 			return string(token), nil
@@ -1383,7 +1408,7 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 
 	repository, err := NewDBGKEClusterRepository(db)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create DB GKE cluster repository")
+		return nil, errors.WrapIf(err, "failed to create DB GKE cluster repository")
 	}
 
 	gkeCluster := GKECluster{
@@ -1641,11 +1666,11 @@ func (c *GKECluster) getComputeService() (*gkeCompute.Service, error) {
 	// New client from credentials
 	client, err := c.newClientFromCredentials()
 	if err != nil {
-		return nil, emperror.Wrap(err, "creating http client failed")
+		return nil, errors.WrapIf(err, "creating http client failed")
 	}
 	service, err := gkeCompute.New(client)
 	if err != nil {
-		return nil, emperror.Wrap(err, "instantiating google compute service failed")
+		return nil, errors.WrapIf(err, "instantiating google compute service failed")
 	}
 	return service, nil
 }
@@ -1655,7 +1680,7 @@ func (c *GKECluster) newClientFromCredentials() (*http.Client, error) {
 	// Get Secret from Vault
 	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
-		return nil, emperror.Wrap(err, "retrieving cluster credentials secret failed")
+		return nil, errors.WrapIf(err, "retrieving cluster credentials secret failed")
 	}
 
 	// TODO https://github.com/mitchellh/mapstructure
@@ -1826,22 +1851,22 @@ func (c *GKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 func (c *GKECluster) validateVPCAndSubnet(VPCName string, subnetName string) error {
 	project, err := c.GetProjectId()
 	if err != nil {
-		return emperror.Wrap(err, "could not get project id")
+		return errors.WrapIf(err, "could not get project id")
 	}
 
 	svc, err := c.getComputeService()
 	if err != nil {
-		return emperror.Wrap(err, "could not get compute service")
+		return errors.WrapIf(err, "could not get compute service")
 	}
 
 	network, err := svc.Networks.Get(project, VPCName).Context(context.Background()).Do()
 	if err != nil {
 		if googleErr, ok := errors.Cause(err).(*googleapi.Error); ok {
 			if googleErr.Code == http.StatusNotFound {
-				return emperror.With(errors.New("VPC not found"), "vpc", VPCName)
+				return errors.WithDetails(errors.New("VPC not found"), "vpc", VPCName)
 			}
 		}
-		return emperror.WrapWith(err, "could not get VPC", "vpc", VPCName)
+		return errors.WrapIfWithDetails(err, "could not get VPC", "vpc", VPCName)
 	}
 
 	if subnetName == "" {
@@ -1851,21 +1876,21 @@ func (c *GKECluster) validateVPCAndSubnet(VPCName string, subnetName string) err
 	zone := c.GetLocation()
 	region, err := findRegionByZone(svc, project, zone)
 	if err != nil {
-		return emperror.WrapWith(err, "could not find region by zone", "project", project, "zone", zone)
+		return errors.WrapIfWithDetails(err, "could not find region by zone", "project", project, "zone", zone)
 	}
 
 	subnet, err := svc.Subnetworks.Get(project, region.Name, subnetName).Context(context.Background()).Do()
 	if err != nil {
 		if googleErr, ok := errors.Cause(err).(*googleapi.Error); ok {
 			if googleErr.Code == http.StatusNotFound {
-				return emperror.With(errors.New("subnet not found"), "project", project, "subnet", subnetName, "region", region.Name)
+				return errors.WithDetails(errors.New("subnet not found"), "project", project, "subnet", subnetName, "region", region.Name)
 			}
 		}
 		return err
 	}
 
 	if network.SelfLink != subnet.Network {
-		return emperror.With(errors.New("subnet is in a different VPC"), "project", project, "vpc", network.Name, "subnet", subnet.Name)
+		return errors.WithDetails(errors.New("subnet is in a different VPC"), "project", project, "vpc", network.Name, "subnet", subnet.Name)
 	}
 
 	return nil
@@ -1970,7 +1995,7 @@ func (c *GKECluster) GetConfigSecretId() string {
 func (c *GKECluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
 	cluster, err := c.GetGoogleCluster()
 	if err != nil {
-		return nil, emperror.Wrap(err, "couldn't get GKE cluster")
+		return nil, errors.WrapIf(err, "couldn't get GKE cluster")
 	}
 	return &pkgCluster.Ipv4Cidrs{
 		ServiceClusterIPRanges: []string{cluster.ServicesIpv4Cidr},
@@ -1996,7 +2021,7 @@ func waitForOperation(getter operationInfoer, operationName string, logger logru
 
 		operationStatus, operationType, err = getter.getInfo(operationName)
 		if err != nil {
-			return emperror.Wrap(err, "retrieving operation status failed")
+			return errors.WrapIf(err, "retrieving operation status failed")
 		}
 
 		log.Infof("Operation[%s] status: %s", operationType, operationStatus)
