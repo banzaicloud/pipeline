@@ -174,8 +174,6 @@ func main() {
 
 	logger.Info("starting application", buildInfo.Fields())
 
-	anchore.Init()
-
 	var group run.Group
 
 	// Configure Cadence worker
