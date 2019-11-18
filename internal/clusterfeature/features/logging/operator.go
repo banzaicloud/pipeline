@@ -130,6 +130,9 @@ func (op FeatureOperator) installLoggingOperatorLogging(ctx context.Context, clu
 				Tag:        op.config.Images.Fluentbit.Tag,
 				PullPolicy: "IfNotPresent",
 			},
+			Metrics: metricsValues{
+				ServiceMonitor: spec.Logging.Metrics,
+			},
 		},
 		Fluentd: fluentValues{
 			Enabled: true,
@@ -137,6 +140,9 @@ func (op FeatureOperator) installLoggingOperatorLogging(ctx context.Context, clu
 				Repository: op.config.Images.Fluentd.Repository,
 				Tag:        op.config.Images.Fluentd.Tag,
 				PullPolicy: "IfNotPresent",
+			},
+			Metrics: metricsValues{
+				ServiceMonitor: spec.Logging.Metrics,
 			},
 		},
 	}
