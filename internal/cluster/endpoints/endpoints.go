@@ -89,7 +89,7 @@ func (m *EndpointManager) GetServiceURL(kubeConfig []byte, serviceName string, n
 		return "", errors.WrapIf(err, "failed to list services")
 	}
 
-	return fmt.Sprintf("%s:%d", service.Spec.ClusterIP, service.Spec.Ports[0].Port), nil
+	return fmt.Sprintf("http://%s:%d", service.Spec.ClusterIP, service.Spec.Ports[0].Port), nil
 }
 
 func deploymentHasOwnLoadBalancer(serviceList *v1.ServiceList, releaseName string) bool {
