@@ -24,26 +24,29 @@ type outputDefinitionManagerGCS struct {
 	baseOutputManager
 }
 
-func (outputDefinitionManagerGCS) getName() string {
+func (outputDefinitionManagerGCS) getOutputName() string {
 	return "gcs-output"
 }
 
-func (m outputDefinitionManagerGCS) getOutputSpec(spec clusterOutputSpec, op bucketOptions) v1beta1.OutputSpec {
-	return v1beta1.OutputSpec{
-		GCSOutput: &output.GCSOutput{
-			Project: op.gcs.project,
-			Keyfile: "",
-			CredentialsJson: &loggingSecret.Secret{
-				ValueFrom: &loggingSecret.ValueFrom{
-					SecretKeyRef: &loggingSecret.KubernetesSecret{
-						Name: m.sourceSecretName,
-						Key:  outputDefinitionSecretKeyGCS,
+
+func (m outputDefinitionManagerGCS) getOutputSpec(spec clusterOutputSpec, op bucketOptions) v1beta1.ClusterOutputSpec {
+	return v1beta1.ClusterOutputSpec{
+		OutputSpec: v1beta1.OutputSpec{
+			GCSOutput: &output.GCSOutput{
+				Project: op.gcs.project,
+				Keyfile: "",
+				CredentialsJson: &loggingSecret.Secret{
+					ValueFrom: &loggingSecret.ValueFrom{
+						SecretKeyRef: &loggingSecret.KubernetesSecret{
+							Name: m.sourceSecretName,
+							Key:  outputDefinitionSecretKeyGCS,
+						},
 					},
 				},
+				Bucket: spec.Provider.Bucket.Name,
+				Path:   m.getPathSpec(),
+				Buffer: m.getBufferSpec(),
 			},
-			Bucket: spec.Provider.Bucket.Name,
-			Path:   m.getPathSpec(),
-			Buffer: m.getBufferSpec(),
 		},
 	}
 }
