@@ -28,6 +28,9 @@ func (outputDefinitionManagerS3) getOutputName() string {
 	return "s3-output"
 }
 
+func (outputDefinitionManagerS3) getFlowName() string {
+	return "s3-flow"
+}
 
 func (m outputDefinitionManagerS3) getOutputSpec(spec clusterOutputSpec, op bucketOptions) v1beta1.ClusterOutputSpec {
 	return v1beta1.ClusterOutputSpec{

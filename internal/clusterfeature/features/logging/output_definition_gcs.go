@@ -28,6 +28,9 @@ func (outputDefinitionManagerGCS) getOutputName() string {
 	return "gcs-output"
 }
 
+func (outputDefinitionManagerGCS) getFlowName() string {
+	return "gcs-flow"
+}
 
 func (m outputDefinitionManagerGCS) getOutputSpec(spec clusterOutputSpec, op bucketOptions) v1beta1.ClusterOutputSpec {
 	return v1beta1.ClusterOutputSpec{

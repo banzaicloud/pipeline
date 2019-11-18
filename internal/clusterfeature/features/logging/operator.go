@@ -21,6 +21,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	"github.com/mitchellh/copystructure"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/cluster"
@@ -110,8 +111,9 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		return errors.WrapIf(err, "failed to install logging-operator-logging")
 	}
 
-	if err := op.createOutputDefinition(ctx, boundSpec.ClusterOutput, cl); err != nil {
-		return errors.WrapIf(err, "failed to create output definition")
+	if err := op.processClusterOutput(ctx, boundSpec.ClusterOutput, cl); err != nil {
+		return errors.WrapIf(err, "failed to create output definition and flow resource")
+	}
 	}
 
 	return nil
@@ -477,47 +479,47 @@ func (op FeatureOperator) installLoggingOperator(ctx context.Context, clusterID 
 	)
 }
 
-func (op FeatureOperator) createOutputDefinition(ctx context.Context, spec clusterOutputSpec, cl clusterfeatureadapter.Cluster) error {
-	if spec.Enabled {
-		// install secrets to cluster
-		sourceSecretName, err := op.secretStore.GetNameByID(ctx, spec.Provider.SecretID)
-		if err != nil {
-			return errors.WrapIfWithDetails(err, "failed to get secret name", "secretID", spec.Provider.SecretID)
-		}
+func (op FeatureOperator) createOutputDefinition(ctx context.Context, spec clusterOutputSpec, cl clusterfeatureadapter.Cluster) (outputDefinitionManager, error) {
+	// install secrets to cluster
+	sourceSecretName, err := op.secretStore.GetNameByID(ctx, spec.Provider.SecretID)
+	if err != nil {
+		return nil, errors.WrapIfWithDetails(err, "failed to get secret name", "secretID", spec.Provider.SecretID)
+	}
 
-		if err := op.installSecretForOutput(ctx, spec, sourceSecretName, cl); err != nil {
-			return errors.WrapIf(err, "failed to install secret to cluster for cluster output")
-		}
+	if err := op.installSecretForOutput(ctx, spec, sourceSecretName, cl); err != nil {
+		return nil, errors.WrapIf(err, "failed to install secret to cluster for cluster output")
+	}
 
-		// create output definition manager
-		manager, err := newOutputDefinitionManager(spec.Provider.Name, sourceSecretName)
-		if err != nil {
-			return errors.WrapIf(err, "failed to create output definition manager")
-		}
+	// create output definition manager
+	manager, err := newOutputDefinitionManager(spec.Provider.Name, sourceSecretName)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to create output definition manager")
+	}
 
-		// generate output definition
-		outputDefinition, err := generateOutputDefinition(ctx, manager, op.secretStore, spec, op.config.Namespace, cl.GetOrganizationId())
-		if err != nil {
-			return errors.WrapIf(err, "failed to generate output definition")
-		}
+	// generate output definition
+	outputDefinition, err := generateOutputDefinition(ctx, manager, op.secretStore, spec, op.config.Namespace, cl.GetOrganizationId())
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to generate output definition")
+	}
 
-		// remove old output definitions
-		var outputList v1beta1.OutputList
-		if err := op.kubernetesService.List(ctx, cl.GetID(), &outputList); err != nil {
-			return errors.WrapIf(err, "failed to list output definitions")
-		}
+	// remove old output definitions
+	var outputList v1beta1.ClusterOutputList
+	if err := op.kubernetesService.List(ctx, cl.GetID(), &outputList); err != nil {
+		return nil, errors.WrapIf(err, "failed to list output definitions")
+	}
 
-		for _, item := range outputList.Items {
+	for _, item := range outputList.Items {
 			if err := op.kubernetesService.DeleteObject(ctx, cl.GetID(), &item); err != nil {
-				return errors.WrapIfWithDetails(err, "failed to delete output definition", "name", item.Name)
+				return nil, errors.WrapIfWithDetails(err, "failed to delete output definition", "name", item.Name)
 			}
 		}
 
-		// create new output definition
-		return op.kubernetesService.EnsureObject(ctx, cl.GetID(), outputDefinition)
+	// create new output definition
+	if err := op.kubernetesService.EnsureObject(ctx, cl.GetID(), outputDefinition); err != nil {
+		return nil, errors.WrapIf(err, "failed to create output definition")
 	}
 
-	return nil
+	return manager, nil
 }
 
 func (op FeatureOperator) installSecretForOutput(ctx context.Context, spec clusterOutputSpec, sourceSecretName string, cl clusterfeatureadapter.Cluster) error {
@@ -541,6 +543,59 @@ func (op FeatureOperator) installSecretForOutput(ctx context.Context, spec clust
 	}
 
 	return nil
+}
+
+func (op FeatureOperator) processClusterOutput(ctx context.Context, spec clusterOutputSpec, cl clusterfeatureadapter.Cluster) error {
+	if spec.Enabled {
+		// create output definitions
+		outputDefinition, err := op.createOutputDefinition(ctx, spec, cl)
+		if err != nil {
+			return errors.WrapIf(err, "failed to create output definition")
+		}
+
+		// create flow resource
+		if err := op.createFlowResource(ctx, outputDefinition, cl.GetID()); err != nil {
+			return errors.WrapIf(err, "failed to create flow resource")
+		}
+	}
+
+	return nil
+}
+
+func (op FeatureOperator) createFlowResource(ctx context.Context, outputDefinition outputDefinitionManager, clusterID uint) error {
+	var flowResource = op.generateFlowResource(outputDefinition)
+
+	// remove old flow resources
+	var flowList v1beta1.ClusterFlowList
+	if err := op.kubernetesService.List(ctx, clusterID, &flowList); err != nil {
+		return errors.WrapIf(err, "failed to list flow resources")
+	}
+
+	for _, item := range flowList.Items {
+			if err := op.kubernetesService.DeleteObject(ctx, clusterID, &item); err != nil {
+				return errors.WrapIfWithDetails(err, "failed to delete flow resource", "name", item.Name)
+			}
+	}
+
+	// create new flow resource
+	return op.kubernetesService.EnsureObject(ctx, clusterID, flowResource)
+}
+
+func (op FeatureOperator) generateFlowResource(outputDefinition outputDefinitionManager) *v1beta1.ClusterFlow {
+	return &v1beta1.ClusterFlow{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       loggingOperatorKindClusterFlow,
+			APIVersion: loggingOperatorAPIVersion,
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      outputDefinition.getFlowName(),
+			Namespace: op.config.Namespace,
+		},
+		Spec: v1beta1.FlowSpec{
+			Selectors:  map[string]string{},
+			OutputRefs: []string{outputDefinition.getOutputName()},
+		},
+	}
 }
 
 func mergeValuesWithConfig(chartValues interface{}, configValues interface{}) ([]byte, error) {

@@ -37,6 +37,7 @@ const (
 	generatedSecretUsername           = "admin"
 	loggingOperatorAPIVersion         = "logging.banzaicloud.io/v1beta1"
 	loggingOperatorKindClusterOutput  = "ClusterOutput"
+	loggingOperatorKindClusterFlow    = "ClusterFlow"
 
 	outputDefinitionSecretKeyOSSAccessKeyID      = "accessKeyId"
 	outputDefinitionSecretKeyOSSAccessKey        = "accessKeySecret"
