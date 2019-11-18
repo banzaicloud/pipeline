@@ -20,11 +20,13 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
+	"github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
 	"github.com/mitchellh/copystructure"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
@@ -40,6 +42,7 @@ type FeatureOperator struct {
 	clusterService    clusterfeature.ClusterService
 	helmService       features.HelmService
 	kubernetesService features.KubernetesService
+	endpointsService  endpoints.EndpointService
 	config            Config
 	logger            common.Logger
 	secretStore       features.SecretStore
@@ -51,6 +54,7 @@ func MakeFeatureOperator(
 	clusterService clusterfeature.ClusterService,
 	helmService features.HelmService,
 	kubernetesService features.KubernetesService,
+	endpointsService endpoints.EndpointService,
 	config Config,
 	logger common.Logger,
 	secretStore features.SecretStore,
@@ -60,6 +64,7 @@ func MakeFeatureOperator(
 		clusterService:    clusterService,
 		helmService:       helmService,
 		kubernetesService: kubernetesService,
+		endpointsService:  endpointsService,
 		config:            config,
 		logger:            logger,
 		secretStore:       secretStore,
@@ -99,10 +104,6 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		return errors.WrapIf(err, "failed to generate and install TLS secret to the cluster")
 	}
 
-	if err := op.processLoki(ctx, boundSpec.Loki, cl); err != nil {
-		return errors.WrapIf(err, "failed to install Loki")
-	}
-
 	if err := op.installLoggingOperator(ctx, cl.GetID()); err != nil {
 		return errors.WrapIf(err, "failed to install logging-operator")
 	}
@@ -114,6 +115,9 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 	if err := op.processClusterOutput(ctx, boundSpec.ClusterOutput, cl); err != nil {
 		return errors.WrapIf(err, "failed to create output definition and flow resource")
 	}
+
+	if err := op.processLoki(ctx, boundSpec.Loki, cl); err != nil {
+		return errors.WrapIf(err, "failed to install Loki")
 	}
 
 	return nil
@@ -370,7 +374,7 @@ func (op FeatureOperator) processLoki(ctx context.Context, spec lokiSpec, cl clu
 			return errors.WrapIf(err, "failed to merge loki values with config")
 		}
 
-		return op.helmService.ApplyDeployment(
+		if err := op.helmService.ApplyDeployment(
 			ctx,
 			cl.GetID(),
 			op.config.Namespace,
@@ -378,10 +382,98 @@ func (op FeatureOperator) processLoki(ctx context.Context, spec lokiSpec, cl clu
 			lokiReleaseName,
 			valuesBytes,
 			chartVersion,
-		)
+		); err != nil {
+			return errors.WrapIf(err, "failed to apply Loki deployment")
+		}
+
+		if err := op.createLokiOutputDefinition(ctx, cl); err != nil {
+			return errors.WrapIf(err, "failed to create output definition for Loki")
+		}
+
+		if err := op.createLokiFlowResource(ctx, cl.GetID()); err != nil {
+			return errors.WrapIf(err, "failed to create flow resource for Loki")
+		}
 	}
 
 	return nil
+}
+
+func (op FeatureOperator) createLokiOutputDefinition(ctx context.Context, cl clusterfeatureadapter.Cluster) error {
+	k8sConfig, err := cl.GetK8sConfig()
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to get kubeconfig", "cluster", cl.GetID())
+	}
+
+	serviceURL, err := op.endpointsService.GetServiceURL(k8sConfig, lokiServiceName, op.config.Namespace)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get Loki service url")
+	}
+
+	// delete former Loki outputs
+	var formerOutputs v1beta1.ClusterOutputList
+	if err := op.kubernetesService.List(ctx, cl.GetID(), &formerOutputs); err != nil {
+		return errors.WrapIf(err, "failed to list cluster outputs")
+	}
+	for _, item := range formerOutputs.Items {
+		if item.Name == lokiOutputDefinitionName {
+			if err := op.kubernetesService.DeleteObject(ctx, cl.GetID(), &item); err != nil {
+				return errors.WrapIf(err, "failed to delete Loki cluster outputs")
+			}
+		}
+	}
+
+	var outputDef = &v1beta1.ClusterOutput{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       loggingOperatorKindClusterOutput,
+			APIVersion: loggingOperatorAPIVersion,
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      lokiOutputDefinitionName,
+			Namespace: op.config.Namespace,
+		},
+		Spec: v1beta1.ClusterOutputSpec{
+			OutputSpec: v1beta1.OutputSpec{
+				LokiOutput: &output.LokiOutput{
+					Url:                       serviceURL,
+					ConfigureKubernetesLabels: true,
+				},
+			},
+		},
+	}
+
+	return op.kubernetesService.EnsureObject(ctx, cl.GetID(), outputDef)
+}
+
+func (op FeatureOperator) createLokiFlowResource(ctx context.Context, clusterID uint) error {
+	var flowRes = &v1beta1.ClusterFlow{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       loggingOperatorKindClusterFlow,
+			APIVersion: loggingOperatorAPIVersion,
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      lokiFlowResourceName,
+			Namespace: op.config.Namespace,
+		},
+		Spec: v1beta1.FlowSpec{
+			Selectors:  map[string]string{},
+			OutputRefs: []string{lokiOutputDefinitionName},
+		},
+	}
+
+	// delete former Loki cluster flows
+	var formerFlowRes v1beta1.ClusterFlowList
+	if err := op.kubernetesService.List(ctx, clusterID, &formerFlowRes); err != nil {
+		return errors.WrapIf(err, "failed to list cluster flows")
+	}
+	for _, item := range formerFlowRes.Items {
+		if item.Name == lokiFlowResourceName {
+			if err := op.kubernetesService.DeleteObject(ctx, clusterID, &item); err != nil {
+				return errors.WrapIf(err, "failed to delete Loki cluster flow")
+			}
+		}
+	}
+
+	return op.kubernetesService.EnsureObject(ctx, clusterID, flowRes)
 }
 
 func (op FeatureOperator) installLokiSecret(ctx context.Context, secretName string, cl clusterfeatureadapter.Cluster) error {
@@ -509,10 +601,12 @@ func (op FeatureOperator) createOutputDefinition(ctx context.Context, spec clust
 	}
 
 	for _, item := range outputList.Items {
+		if item.Name != lokiOutputDefinitionName {
 			if err := op.kubernetesService.DeleteObject(ctx, cl.GetID(), &item); err != nil {
 				return nil, errors.WrapIfWithDetails(err, "failed to delete output definition", "name", item.Name)
 			}
 		}
+	}
 
 	// create new output definition
 	if err := op.kubernetesService.EnsureObject(ctx, cl.GetID(), outputDefinition); err != nil {
@@ -572,9 +666,11 @@ func (op FeatureOperator) createFlowResource(ctx context.Context, outputDefiniti
 	}
 
 	for _, item := range flowList.Items {
+		if item.Name != lokiFlowResourceName {
 			if err := op.kubernetesService.DeleteObject(ctx, clusterID, &item); err != nil {
 				return errors.WrapIfWithDetails(err, "failed to delete flow resource", "name", item.Name)
 			}
+		}
 	}
 
 	// create new flow resource

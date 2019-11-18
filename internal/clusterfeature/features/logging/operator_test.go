@@ -30,7 +30,7 @@ import (
 )
 
 func TestFeatureOperator_Name(t *testing.T) {
-	op := MakeFeatureOperator(nil, nil, nil, nil, Config{}, nil, nil)
+	op := MakeFeatureOperator(nil, nil, nil, nil, nil, Config{}, nil, nil)
 
 	assert.Equal(t, "logging", op.Name())
 }
@@ -71,7 +71,8 @@ func TestFeatureOperator_Apply(t *testing.T) {
 	logger := commonadapter.NewNoopLogger()
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	kubernetesService := dummyKubernetesService{}
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, Config{}, logger, secretStore)
+	endpointService := dummyEndpointService{}
+	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, endpointService, Config{}, logger, secretStore)
 
 	cases := map[string]struct {
 		Spec    clusterfeature.FeatureSpec
@@ -146,6 +147,7 @@ func TestFeatureOperator_Deactivate(t *testing.T) {
 	}
 	clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
 	helmService := dummyHelmService{}
+	endpointService := dummyEndpointService{}
 	orgSecretStore := dummyOrganizationalSecretStore{
 		Secrets: map[uint]map[string]*secret.SecretItemResponse{
 			orgID: nil,
@@ -154,7 +156,7 @@ func TestFeatureOperator_Deactivate(t *testing.T) {
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	logger := commonadapter.NewNoopLogger()
 	kubernetesService := dummyKubernetesService{}
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, Config{}, logger, secretStore)
+	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, endpointService, Config{}, logger, secretStore)
 
 	ctx := context.Background()
 
