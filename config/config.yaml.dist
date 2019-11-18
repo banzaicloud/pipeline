@@ -330,7 +330,7 @@ dex:
 #
 #            backyards:
 #                chart: "banzaicloud-stable/backyards"
-#                version: "1.0.3"
+#                version: "1.0.4"
 #
 #                values: {}
 #
