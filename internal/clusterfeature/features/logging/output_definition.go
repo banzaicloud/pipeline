@@ -34,8 +34,8 @@ type baseOutputManager struct {
 }
 
 type outputDefinitionManager interface {
-	getOutputSpec(clusterOutputSpec, bucketOptions) v1beta1.OutputSpec
-	getName() string
+	getOutputSpec(clusterOutputSpec, bucketOptions) v1beta1.ClusterOutputSpec
+	getOutputName() string
 }
 
 func newOutputDefinitionManager(providerName, sourceSecretName string) (outputDefinitionManager, error) {
@@ -84,7 +84,7 @@ func generateOutputDefinition(
 	spec clusterOutputSpec,
 	namespace string,
 	orgID uint,
-) (*v1beta1.Output, error) {
+) (*v1beta1.ClusterOutput, error) {
 	secretValues, err := secretStore.GetSecretValues(ctx, spec.Provider.SecretID)
 	if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "failed to get secret", "secretID", spec.Provider.SecretID)
@@ -95,13 +95,13 @@ func generateOutputDefinition(
 		return nil, errors.WrapIf(err, "failed to generate bucket options")
 	}
 
-	return &v1beta1.Output{
+	return &v1beta1.ClusterOutput{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "Output",
-			APIVersion: "logging.banzaicloud.io/v1beta1",
+			Kind:       loggingOperatorKindClusterOutput,
+			APIVersion: loggingOperatorAPIVersion,
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      m.getName(),
+			Name:      m.getOutputName(),
 			Namespace: namespace,
 		},
 		Spec: m.getOutputSpec(spec, *bucketOptions),

@@ -24,35 +24,38 @@ type outputDefinitionManagerS3 struct {
 	baseOutputManager
 }
 
-func (outputDefinitionManagerS3) getName() string {
+func (outputDefinitionManagerS3) getOutputName() string {
 	return "s3-output"
 }
 
-func (m outputDefinitionManagerS3) getOutputSpec(spec clusterOutputSpec, op bucketOptions) v1beta1.OutputSpec {
-	return v1beta1.OutputSpec{
-		S3OutputConfig: &output.S3OutputConfig{
-			AwsAccessKey: &loggingSecret.Secret{
-				ValueFrom: &loggingSecret.ValueFrom{
-					SecretKeyRef: &loggingSecret.KubernetesSecret{
-						Name: m.sourceSecretName,
-						Key:  outputDefinitionSecretKeyS3AccessKeyID,
+
+func (m outputDefinitionManagerS3) getOutputSpec(spec clusterOutputSpec, op bucketOptions) v1beta1.ClusterOutputSpec {
+	return v1beta1.ClusterOutputSpec{
+		OutputSpec: v1beta1.OutputSpec{
+			S3OutputConfig: &output.S3OutputConfig{
+				AwsAccessKey: &loggingSecret.Secret{
+					ValueFrom: &loggingSecret.ValueFrom{
+						SecretKeyRef: &loggingSecret.KubernetesSecret{
+							Name: m.sourceSecretName,
+							Key:  outputDefinitionSecretKeyS3AccessKeyID,
+						},
 					},
 				},
-			},
-			AwsSecretKey: &loggingSecret.Secret{
-				ValueFrom: &loggingSecret.ValueFrom{
-					SecretKeyRef: &loggingSecret.KubernetesSecret{
-						Name: m.sourceSecretName,
-						Key:  outputDefinitionSecretKeyS3AccessKey,
+				AwsSecretKey: &loggingSecret.Secret{
+					ValueFrom: &loggingSecret.ValueFrom{
+						SecretKeyRef: &loggingSecret.KubernetesSecret{
+							Name: m.sourceSecretName,
+							Key:  outputDefinitionSecretKeyS3AccessKey,
+						},
 					},
 				},
-			},
-			Path:     m.getPathSpec(),
-			S3Region: op.s3.region,
-			S3Bucket: spec.Provider.Bucket.Name,
-			Buffer:   m.getBufferSpec(),
-			Format: &output.Format{
-				Type: "json",
+				Path:     m.getPathSpec(),
+				S3Region: op.s3.region,
+				S3Bucket: spec.Provider.Bucket.Name,
+				Buffer:   m.getBufferSpec(),
+				Format: &output.Format{
+					Type: "json",
+				},
 			},
 		},
 	}
