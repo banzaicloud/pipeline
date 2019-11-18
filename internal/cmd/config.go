@@ -493,7 +493,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.7")
 	v.SetDefault("cluster::backyards::charts::canaryOperator::values", map[string]interface{}{
 		"image": map[string]interface{}{
-			"repository": "banzaicloud/istio-operator",
+			"repository": "banzaicloud/canary-operator",
 			"tag":        "0.1.5",
 		},
 	})
