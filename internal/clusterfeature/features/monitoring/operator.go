@@ -733,6 +733,7 @@ func (m chartValuesManager) generatePrometheusChartValues(
 						},
 					},
 				},
+				ServiceMonitorSelectorNilUsesHelmValues: false,
 			},
 			Annotations: annotations,
 		}
