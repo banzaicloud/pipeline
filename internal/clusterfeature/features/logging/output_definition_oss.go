@@ -28,6 +28,9 @@ func (outputDefinitionManagerOSS) getOutputName() string {
 	return "oss-output"
 }
 
+func (outputDefinitionManagerOSS) getFlowName() string {
+	return "oss-flow"
+}
 
 func (m outputDefinitionManagerOSS) getOutputSpec(spec clusterOutputSpec, op bucketOptions) v1beta1.ClusterOutputSpec {
 	return v1beta1.ClusterOutputSpec{

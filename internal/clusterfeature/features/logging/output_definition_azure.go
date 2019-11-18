@@ -28,6 +28,9 @@ func (outputDefinitionManagerAzure) getOutputName() string {
 	return "azure-output"
 }
 
+func (outputDefinitionManagerAzure) getFlowName() string {
+	return "azure-flow"
+}
 
 func (m outputDefinitionManagerAzure) getOutputSpec(spec clusterOutputSpec, _ bucketOptions) v1beta1.ClusterOutputSpec {
 	return v1beta1.ClusterOutputSpec{

@@ -36,6 +36,7 @@ type baseOutputManager struct {
 type outputDefinitionManager interface {
 	getOutputSpec(clusterOutputSpec, bucketOptions) v1beta1.ClusterOutputSpec
 	getOutputName() string
+	getFlowName() string
 }
 
 func newOutputDefinitionManager(providerName, sourceSecretName string) (outputDefinitionManager, error) {
