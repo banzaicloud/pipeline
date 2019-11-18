@@ -31,8 +31,13 @@ type loggingOperatorLoggingValues struct {
 }
 
 type fluentValues struct {
-	Enabled bool        `json:"enabled" mapstructure:"enabled"`
-	Image   imageValues `json:"image" mapstructure:"image"`
+	Enabled bool          `json:"enabled" mapstructure:"enabled"`
+	Image   imageValues   `json:"image" mapstructure:"image"`
+	Metrics metricsValues `json:"metrics" mapstructure:"metrics"`
+}
+
+type metricsValues struct {
+	ServiceMonitor bool `json:"serviceMonitor" mapstructure:"serviceMonitor"`
 }
 
 type tlsValues struct {
