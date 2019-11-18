@@ -423,10 +423,6 @@ func (op FeatureOperator) createLokiOutputDefinition(ctx context.Context, cl clu
 	}
 
 	var outputDef = &v1beta1.ClusterOutput{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       loggingOperatorKindClusterOutput,
-			APIVersion: loggingOperatorAPIVersion,
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      lokiOutputDefinitionName,
 			Namespace: op.config.Namespace,
@@ -446,10 +442,6 @@ func (op FeatureOperator) createLokiOutputDefinition(ctx context.Context, cl clu
 
 func (op FeatureOperator) createLokiFlowResource(ctx context.Context, clusterID uint) error {
 	var flowRes = &v1beta1.ClusterFlow{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       loggingOperatorKindClusterFlow,
-			APIVersion: loggingOperatorAPIVersion,
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      lokiFlowResourceName,
 			Namespace: op.config.Namespace,
@@ -679,10 +671,6 @@ func (op FeatureOperator) createFlowResource(ctx context.Context, outputDefiniti
 
 func (op FeatureOperator) generateFlowResource(outputDefinition outputDefinitionManager) *v1beta1.ClusterFlow {
 	return &v1beta1.ClusterFlow{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       loggingOperatorKindClusterFlow,
-			APIVersion: loggingOperatorAPIVersion,
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      outputDefinition.getFlowName(),
 			Namespace: op.config.Namespace,

@@ -97,10 +97,6 @@ func generateOutputDefinition(
 	}
 
 	return &v1beta1.ClusterOutput{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       loggingOperatorKindClusterOutput,
-			APIVersion: loggingOperatorAPIVersion,
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      m.getOutputName(),
 			Namespace: namespace,
