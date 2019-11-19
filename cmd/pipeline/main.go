@@ -667,6 +667,8 @@ func main() {
 
 				cRouter.Use(cluster.NewClusterCheckMiddleware(clusterManager, errorHandler))
 
+				hpaApi := api.NewHPAAPI()
+
 				cRouter.GET("", clusterAPI.GetCluster)
 				cRouter.GET("/pods", api.GetPodDetails)
 				cRouter.GET("/bootstrap", clusterAPI.GetBootstrapInfo)
@@ -688,9 +690,9 @@ func main() {
 				cRouter.POST("/deployments", api.CreateDeployment)
 				cRouter.GET("/deployments/:name", api.GetDeployment)
 				cRouter.GET("/deployments/:name/resources", api.GetDeploymentResources)
-				cRouter.GET("/hpa", api.GetHpaResource)
-				cRouter.PUT("/hpa", api.PutHpaResource)
-				cRouter.DELETE("/hpa", api.DeleteHpaResource)
+				cRouter.GET("/hpa", hpaApi.GetHpaResource)
+				cRouter.PUT("/hpa", hpaApi.PutHpaResource)
+				cRouter.DELETE("/hpa", hpaApi.DeleteHpaResource)
 				cRouter.HEAD("/deployments", api.GetTillerStatus)
 				cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
 				cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
