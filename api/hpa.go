@@ -22,8 +22,8 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	promapi "github.com/prometheus/client_golang/api"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
@@ -34,6 +34,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/global"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
@@ -53,11 +54,14 @@ func (e *scaleTargetNotFoundError) Error() string {
 }
 
 type HPAAPI struct {
+	featureService clusterfeature.Service
 }
 
 // NewHPAAPI returns a new HPAAPI.
-func NewHPAAPI() HPAAPI {
-	return HPAAPI{}
+func NewHPAAPI(featureService clusterfeature.Service) HPAAPI {
+	return HPAAPI{
+		featureService: featureService,
+	}
 }
 
 // PutHpaResource create/updates a Hpa resource annotations on scaleTarget - a K8s deployment/statefulset
@@ -118,7 +122,20 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 	// validate custom metrics query
 	if len(scalingRequest.CustomMetrics) > 0 {
 		cluster, _ := getClusterFromRequest(c)
-		if !cluster.GetMonitoring() {
+		ok, err := a.isMonitoringEnabled(c.Request.Context(), cluster.GetID())
+		if err != nil {
+			err := errors.WithDetails(
+				errors.WithMessage(err, "could not determine monitoring status"),
+				"clusterId", cluster.GetID(),
+			)
+			log.Error(err.Error())
+			c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
+				Code: http.StatusInternalServerError,
+			})
+			return
+		}
+
+		if !ok {
 			err := errors.New("Monitoring should be enabled on cluster to be able to setup custom metrics")
 			log.Error(err.Error())
 			c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -165,6 +182,19 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 	}
 
 	c.Status(http.StatusCreated)
+}
+
+// NOTE: this is a temporary solution. At some point this functionality should be extracted.
+func (a HPAAPI) isMonitoringEnabled(ctx context.Context, clusterID uint) (bool, error) {
+	_, err := a.featureService.Details(ctx, clusterID, "monitoring")
+	if clusterfeature.IsFeatureNotFoundError(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func runPrometheusQuery(config *rest.Config, client *kubernetes.Clientset, query string) (model.Value, error) {
