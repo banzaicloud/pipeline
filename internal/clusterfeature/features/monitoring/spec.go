@@ -81,7 +81,6 @@ type alertmanagerSpec struct {
 
 type pushgatewaySpec struct {
 	Enabled bool                  `json:"enabled" mapstructure:"enabled"`
-	Ingress ingressSpecWithSecret `json:"ingress" mapstructure:"ingress"`
 }
 
 type pagerDutySpec struct {
@@ -112,11 +111,6 @@ func (s featureSpec) Validate() error {
 
 	// Alertmanager validation
 	if err := s.Alertmanager.Validate(); err != nil {
-		return err
-	}
-
-	// Pushgateway validation
-	if err := s.Pushgateway.Validate(); err != nil {
 		return err
 	}
 
@@ -269,16 +263,6 @@ func (s pagerDutySpec) Validate() error {
 
 		if s.IntegrationType != pagerDutyIntegrationEventApiV2 && s.IntegrationType != pagerDutyIntegrationPrometheus {
 			return errors.New(fmt.Sprintf("integration type should be only just: %s or %s", pagerDutyIntegrationEventApiV2, pagerDutyIntegrationPrometheus))
-		}
-	}
-
-	return nil
-}
-
-func (s pushgatewaySpec) Validate() error {
-	if s.Enabled {
-		if err := s.Ingress.Validate(ingressTypePushgateway); err != nil {
-			return err
 		}
 	}
 
