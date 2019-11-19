@@ -46,6 +46,9 @@ const (
 
 	fluentbitSecretName = "logging-operator-fluentbit-secret"
 	fluentdSecretName   = "logging-operator-fluentd-secret"
+
+	lokiOutputDefinitionName = "loki-output"
+	lokiFlowResourceName     = "loki-flow"
 )
 
 func getLokiSecretName(clusterID uint) string {

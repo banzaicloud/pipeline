@@ -24,32 +24,38 @@ type outputDefinitionManagerAzure struct {
 	baseOutputManager
 }
 
-func (outputDefinitionManagerAzure) getName() string {
+func (outputDefinitionManagerAzure) getOutputName() string {
 	return "azure-output"
 }
 
-func (m outputDefinitionManagerAzure) getOutputSpec(spec clusterOutputSpec, _ bucketOptions) v1beta1.OutputSpec {
-	return v1beta1.OutputSpec{
-		AzureStorage: &output.AzureStorage{
-			Path: m.getPathSpec(),
-			AzureStorageAccount: &loggingSecret.Secret{
-				ValueFrom: &loggingSecret.ValueFrom{
-					SecretKeyRef: &loggingSecret.KubernetesSecret{
-						Name: m.sourceSecretName,
-						Key:  outputDefinitionSecretKeyAzureStorageAccount,
+func (outputDefinitionManagerAzure) getFlowName() string {
+	return "azure-flow"
+}
+
+func (m outputDefinitionManagerAzure) getOutputSpec(spec clusterOutputSpec, _ bucketOptions) v1beta1.ClusterOutputSpec {
+	return v1beta1.ClusterOutputSpec{
+		OutputSpec: v1beta1.OutputSpec{
+			AzureStorage: &output.AzureStorage{
+				Path: m.getPathSpec(),
+				AzureStorageAccount: &loggingSecret.Secret{
+					ValueFrom: &loggingSecret.ValueFrom{
+						SecretKeyRef: &loggingSecret.KubernetesSecret{
+							Name: m.sourceSecretName,
+							Key:  outputDefinitionSecretKeyAzureStorageAccount,
+						},
 					},
 				},
-			},
-			AzureStorageAccessKey: &loggingSecret.Secret{
-				ValueFrom: &loggingSecret.ValueFrom{
-					SecretKeyRef: &loggingSecret.KubernetesSecret{
-						Name: m.sourceSecretName,
-						Key:  outputDefinitionSecretKeyAzureStorageAccess,
+				AzureStorageAccessKey: &loggingSecret.Secret{
+					ValueFrom: &loggingSecret.ValueFrom{
+						SecretKeyRef: &loggingSecret.KubernetesSecret{
+							Name: m.sourceSecretName,
+							Key:  outputDefinitionSecretKeyAzureStorageAccess,
+						},
 					},
 				},
+				AzureContainer: spec.Provider.Bucket.Name,
+				Buffer:         m.getBufferSpec(),
 			},
-			AzureContainer: spec.Provider.Bucket.Name,
-			Buffer:         m.getBufferSpec(),
 		},
 	}
 }

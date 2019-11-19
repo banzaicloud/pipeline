@@ -45,6 +45,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
+	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
@@ -360,6 +361,7 @@ func main() {
 
 			clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 			clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
+			endpointManager := endpoints.NewEndpointManager(logger)
 			orgDomainService := dnsadapter.NewOrgDomainService(
 				config.Cluster.DNS.BaseDomain,
 				dnsSvc,
@@ -433,6 +435,7 @@ func main() {
 					clusterService,
 					helmService,
 					kubernetesService,
+					endpointManager,
 					config.Cluster.Logging.Config,
 					logger,
 					commonSecretStore,
