@@ -170,9 +170,6 @@ func (c *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 		Cloud:             pkgCluster.Kubernetes,
 		Distribution:      c.modelCluster.Distribution,
 		ResourceID:        c.modelCluster.ID,
-		Logging:           c.GetLogging(),
-		Monitoring:        c.GetMonitoring(),
-		SecurityScan:      c.GetSecurityScan(),
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nil,
 		Region:            c.modelCluster.Location,
@@ -334,36 +331,6 @@ func (c *KubeCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error)
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *KubeCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
-}
-
-// SecurityScan returns true if security scan enabled on the cluster
-func (c *KubeCluster) GetSecurityScan() bool {
-	return c.modelCluster.SecurityScan
-}
-
-// SetSecurityScan returns true if security scan enabled on the cluster
-func (c *KubeCluster) SetSecurityScan(scan bool) {
-	c.modelCluster.SecurityScan = scan
-}
-
-// GetLogging returns true if logging enabled on the cluster
-func (c *KubeCluster) GetLogging() bool {
-	return c.modelCluster.Logging
-}
-
-// SetLogging returns true if logging enabled on the cluster
-func (c *KubeCluster) SetLogging(l bool) {
-	c.modelCluster.Logging = l
-}
-
-// GetMonitoring returns true if momnitoring enabled on the cluster
-func (c *KubeCluster) GetMonitoring() bool {
-	return c.modelCluster.Monitoring
-}
-
-// SetMonitoring returns true if monitoring enabled on the cluster
-func (c *KubeCluster) SetMonitoring(l bool) {
-	c.modelCluster.Monitoring = l
 }
 
 // getScaleOptionsFromModelV1 returns scale options for the cluster

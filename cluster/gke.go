@@ -411,9 +411,6 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Distribution:      c.model.Cluster.Distribution,
 		Spot:              hasSpotNodePool,
 		ResourceID:        c.model.Cluster.ID,
-		Logging:           c.GetLogging(),
-		Monitoring:        c.GetMonitoring(),
-		SecurityScan:      c.GetSecurityScan(),
 		Version:           c.model.MasterVersion,
 		NodePools:         nodePools,
 		CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),
@@ -2040,36 +2037,6 @@ func (c *GKECluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) 
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *GKECluster) RbacEnabled() bool {
 	return c.model.Cluster.RbacEnabled
-}
-
-// SecurityScan returns true if security scan enabled on the cluster
-func (c *GKECluster) GetSecurityScan() bool {
-	return c.model.Cluster.SecurityScan
-}
-
-// SetSecurityScan returns true if security scan enabled on the cluster
-func (c *GKECluster) SetSecurityScan(scan bool) {
-	c.model.Cluster.SecurityScan = scan
-}
-
-// GetLogging returns true if logging enabled on the cluster
-func (c *GKECluster) GetLogging() bool {
-	return c.model.Cluster.Logging
-}
-
-// SetLogging returns true if logging enabled on the cluster
-func (c *GKECluster) SetLogging(l bool) {
-	c.model.Cluster.Logging = l
-}
-
-// GetMonitoring returns true if momnitoring enabled on the cluster
-func (c *GKECluster) GetMonitoring() bool {
-	return c.model.Cluster.Monitoring
-}
-
-// SetMonitoring returns true if monitoring enabled on the cluster
-func (c *GKECluster) SetMonitoring(l bool) {
-	c.model.Cluster.Monitoring = l
 }
 
 // GetScaleOptions returns scale options for the cluster

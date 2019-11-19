@@ -1071,9 +1071,6 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Distribution:      c.modelCluster.Distribution,
 		Spot:              hasSpotNodePool,
 		ResourceID:        c.modelCluster.ID,
-		Logging:           c.GetLogging(),
-		Monitoring:        c.GetMonitoring(),
-		SecurityScan:      c.GetSecurityScan(),
 		NodePools:         nodePools,
 		Version:           c.modelCluster.EKS.Version,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
@@ -1463,36 +1460,6 @@ func ListEksImages(version, region string) (string, error) {
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *EKSCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
-}
-
-// GetSecurityScan returns true if security scan enabled on the cluster
-func (c *EKSCluster) GetSecurityScan() bool {
-	return c.modelCluster.SecurityScan
-}
-
-// SetSecurityScan returns true if security scan enabled on the cluster
-func (c *EKSCluster) SetSecurityScan(scan bool) {
-	c.modelCluster.SecurityScan = scan
-}
-
-// GetLogging returns true if logging enabled on the cluster
-func (c *EKSCluster) GetLogging() bool {
-	return c.modelCluster.Logging
-}
-
-// SetLogging returns true if logging enabled on the cluster
-func (c *EKSCluster) SetLogging(l bool) {
-	c.modelCluster.Logging = l
-}
-
-// GetMonitoring returns true if momnitoring enabled on the cluster
-func (c *EKSCluster) GetMonitoring() bool {
-	return c.modelCluster.Monitoring
-}
-
-// SetMonitoring returns true if monitoring enabled on the cluster
-func (c *EKSCluster) SetMonitoring(l bool) {
-	c.modelCluster.Monitoring = l
 }
 
 // GetScaleOptions returns scale options for the cluster
