@@ -52,9 +52,16 @@ func (e *scaleTargetNotFoundError) Error() string {
 	return fmt.Sprintf("scaleTarget: %v not found!", e.scaleTargetRef)
 }
 
-// PutHpaResource create/updates a Hpa resource annotations on scaleTarget - a K8s deployment/statefulset
-func PutHpaResource(c *gin.Context) {
+type HPAAPI struct {
+}
 
+// NewHPAAPI returns a new HPAAPI.
+func NewHPAAPI() HPAAPI {
+	return HPAAPI{}
+}
+
+// PutHpaResource create/updates a Hpa resource annotations on scaleTarget - a K8s deployment/statefulset
+func (a HPAAPI) PutHpaResource(c *gin.Context) {
 	kubeConfig, ok := GetK8sConfig(c)
 	if !ok {
 		return
@@ -213,7 +220,7 @@ func runPrometheusQuery(config *rest.Config, client *kubernetes.Clientset, query
 }
 
 // DeleteHpaResource deletes a Hpa resource annotations from scaleTarget - K8s deployment/statefulset
-func DeleteHpaResource(c *gin.Context) {
+func (a HPAAPI) DeleteHpaResource(c *gin.Context) {
 
 	scaleTarget, ok := ginutils.RequiredQueryOrAbort(c, "scaleTarget")
 	if !ok {
@@ -248,7 +255,7 @@ func DeleteHpaResource(c *gin.Context) {
 }
 
 // GetHpaResource returns a Hpa resource bound to a K8s deployment/statefulset
-func GetHpaResource(c *gin.Context) {
+func (a HPAAPI) GetHpaResource(c *gin.Context) {
 	scaleTarget, ok := ginutils.RequiredQueryOrAbort(c, "scaleTarget")
 	if !ok {
 		return
