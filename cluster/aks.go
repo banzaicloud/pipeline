@@ -502,9 +502,6 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Distribution:      c.modelCluster.Distribution,
 		Version:           c.modelCluster.AKS.KubernetesVersion,
 		ResourceID:        c.modelCluster.ID,
-		Logging:           c.GetLogging(),
-		Monitoring:        c.GetMonitoring(),
-		SecurityScan:      c.GetSecurityScan(),
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nodePools,
 		Region:            c.modelCluster.Location,
@@ -993,36 +990,6 @@ func (c *AKSCluster) ListNodeNames() (labels pkgCommon.NodeNames, err error) {
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *AKSCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
-}
-
-// GetSecurityScan returns true if security scan enabled on the cluster
-func (c *AKSCluster) GetSecurityScan() bool {
-	return c.modelCluster.SecurityScan
-}
-
-// SetSecurityScan returns true if security scan enabled on the cluster
-func (c *AKSCluster) SetSecurityScan(scan bool) {
-	c.modelCluster.SecurityScan = scan
-}
-
-// GetLogging returns true if logging enabled on the cluster
-func (c *AKSCluster) GetLogging() bool {
-	return c.modelCluster.Logging
-}
-
-// SetLogging returns true if logging enabled on the cluster
-func (c *AKSCluster) SetLogging(l bool) {
-	c.modelCluster.Logging = l
-}
-
-// GetMonitoring returns true if momnitoring enabled on the cluster
-func (c *AKSCluster) GetMonitoring() bool {
-	return c.modelCluster.Monitoring
-}
-
-// SetMonitoring returns true if monitoring enabled on the cluster
-func (c *AKSCluster) SetMonitoring(l bool) {
-	c.modelCluster.Monitoring = l
 }
 
 // GetScaleOptions returns scale options for the cluster

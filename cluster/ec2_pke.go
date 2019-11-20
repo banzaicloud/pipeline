@@ -64,46 +64,6 @@ type EC2ClusterPKE struct {
 	CommonClusterBase
 }
 
-func (c *EC2ClusterPKE) GetSecurityScan() bool {
-	return c.model.Cluster.SecurityScan
-}
-
-func (c *EC2ClusterPKE) SetSecurityScan(scan bool) {
-	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"security_scan": scan}).Error
-	if err != nil {
-		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
-	} else {
-		c.model.Cluster.SecurityScan = scan
-	}
-}
-
-func (c *EC2ClusterPKE) GetLogging() bool {
-	return c.model.Cluster.Logging
-}
-
-func (c *EC2ClusterPKE) SetLogging(l bool) {
-	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"logging": l}).Error
-	if err != nil {
-		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
-	} else {
-		c.model.Cluster.Logging = l
-	}
-
-}
-
-func (c *EC2ClusterPKE) GetMonitoring() bool {
-	return c.model.Cluster.Monitoring
-}
-
-func (c *EC2ClusterPKE) SetMonitoring(m bool) {
-	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"monitoring": m}).Error
-	if err != nil {
-		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
-	} else {
-		c.model.Cluster.Monitoring = m
-	}
-}
-
 // GetScaleOptions returns scale options for the cluster
 func (c *EC2ClusterPKE) GetScaleOptions() *pkgCluster.ScaleOptions {
 	return getScaleOptionsFromModel(c.model.Cluster.ScaleOptions)
@@ -709,9 +669,6 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 		Distribution:      c.model.Cluster.Distribution,
 		Spot:              hasSpotNodePool,
 		ResourceID:        c.model.Cluster.ID,
-		Logging:           c.GetLogging(),
-		Monitoring:        c.GetMonitoring(),
-		SecurityScan:      c.GetSecurityScan(),
 		NodePools:         nodePools,
 		Version:           c.model.Kubernetes.Version,
 		CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),
