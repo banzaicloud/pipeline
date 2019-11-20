@@ -25,7 +25,6 @@ const (
 	grafanaSecretTag                 = "app:grafana"
 	prometheusSecretTag              = "app:prometheus"
 	alertmanagerSecretTag            = "app:alertmanager"
-	pushgatewaySecretTag             = "app:pushgateway"
 	featureSecretTag                 = "feature:monitoring"
 	generatedSecretUsername          = "admin"
 	alertManagerProviderConfigName   = "default-receiver"
@@ -34,7 +33,6 @@ const (
 	ingressTypeGrafana      = "Grafana"
 	ingressTypePrometheus   = "Prometheus"
 	ingressTypeAlertmanager = "Alertmanager"
-	ingressTypePushgateway  = "Pushgateway"
 
 	pagerDutyIntegrationEventApiV2 = "eventsApiV2"
 	pagerDutyIntegrationPrometheus = "prometheus"
