@@ -151,13 +151,6 @@ func (a *UpdateClusterGoogle) Validate() error {
 	return nil
 }
 
-// ClusterProfileGKE describes an Amazon profile
-type ClusterProfileGKE struct {
-	Master      *Master              `json:"master,omitempty"`
-	NodeVersion string               `json:"nodeVersion,omitempty"`
-	NodePools   map[string]*NodePool `json:"nodePools,omitempty"`
-}
-
 // isValidVersion validates the given K8S version
 func isValidVersion(version string) bool {
 	if len(version) == 0 {
