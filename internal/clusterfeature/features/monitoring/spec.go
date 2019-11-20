@@ -80,7 +80,7 @@ type alertmanagerSpec struct {
 }
 
 type pushgatewaySpec struct {
-	Enabled bool                  `json:"enabled" mapstructure:"enabled"`
+	Enabled bool `json:"enabled" mapstructure:"enabled"`
 }
 
 type pagerDutySpec struct {
