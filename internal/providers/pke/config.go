@@ -17,9 +17,8 @@ package pke
 import (
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 
-	"github.com/spf13/cast"
+	"github.com/banzaicloud/pipeline/internal/database/sql/json"
 )
 
 type Config map[string]interface{}
@@ -28,20 +27,12 @@ var _ driver.Valuer = (*Config)(nil)
 
 // Value implements the driver.Valuer interface
 func (n Config) Value() (driver.Value, error) {
-	r, err := json.Marshal(n)
-	if err != nil {
-		return "", err
-	}
-	return string(r), nil
+	return json.Value(n)
 }
 
 var _ sql.Scanner = (*Config)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *Config) Scan(src interface{}) error {
-	value, err := cast.ToStringE(src)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal([]byte(value), &n)
+	return json.Scan(src, n)
 }
