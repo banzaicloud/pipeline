@@ -36,7 +36,7 @@ type imageValues struct {
 }
 
 type prometheusPushgatewayValues struct {
-	Image       imageValues            `json:"image"`
+	Image imageValues `json:"image"`
 }
 
 type baseValues struct {
