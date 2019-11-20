@@ -106,11 +106,12 @@ type pagerdutyConfigValues struct {
 }
 
 type SpecValues struct {
-	RoutePrefix   string                 `json:"routePrefix"`
-	RetentionSize string                 `json:"retentionSize"`
-	Retention     string                 `json:"retention"`
-	StorageSpec   map[string]interface{} `json:"storageSpec"`
-	Image         imageValues            `json:"image"`
+	RoutePrefix                             string                 `json:"routePrefix"`
+	RetentionSize                           string                 `json:"retentionSize"`
+	Retention                               string                 `json:"retention"`
+	StorageSpec                             map[string]interface{} `json:"storageSpec"`
+	ServiceMonitorSelectorNilUsesHelmValues bool                   `json:"serviceMonitorSelectorNilUsesHelmValues"`
+	Image                                   imageValues            `json:"image"`
 }
 
 type prometheusValues struct {

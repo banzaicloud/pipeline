@@ -101,10 +101,7 @@ type PKEOnAzureCluster struct {
 	ActiveWorkflowID string
 	HTTPProxy        intPKE.HTTPProxy
 
-	Monitoring   bool
-	Logging      bool
-	SecurityScan bool
-	TtlMinutes   uint
+	TtlMinutes uint
 
 	AccessPoints          AccessPoints
 	APIServerAccessPoints APIServerAccessPoints

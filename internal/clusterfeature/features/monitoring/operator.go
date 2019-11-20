@@ -733,6 +733,7 @@ func (m chartValuesManager) generatePrometheusChartValues(
 						},
 					},
 				},
+				ServiceMonitorSelectorNilUsesHelmValues: false,
 			},
 			Annotations: annotations,
 		}
@@ -759,7 +760,7 @@ func (m chartValuesManager) generateNodeExporterChartValues(spec exporterBaseSpe
 
 func (op FeatureOperator) getDefaultStorageClassName(ctx context.Context, clusterID uint) (string, error) {
 	var storageClass v1beta1.StorageClassList
-	if err := op.kubernetesService.List(ctx, clusterID, &storageClass); err != nil {
+	if err := op.kubernetesService.List(ctx, clusterID, nil, &storageClass); err != nil {
 		return "", errors.WrapIf(err, "failed to list storage classes")
 	}
 

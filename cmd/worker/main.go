@@ -45,6 +45,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
+	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
@@ -174,8 +175,6 @@ func main() {
 
 	logger.Info("starting application", buildInfo.Fields())
 
-	anchore.Init()
-
 	var group run.Group
 
 	// Configure Cadence worker
@@ -270,6 +269,9 @@ func main() {
 		downloadK8sConfigActivity := cluster.NewDownloadK8sConfigActivity(clusterManager)
 		activity.RegisterWithOptions(downloadK8sConfigActivity.Execute, activity.RegisterOptions{Name: cluster.DownloadK8sConfigActivityName})
 
+		setupPrivilegesActivity := cluster.NewSetupPrivilegesActivity(clusteradapter.NewClientFactory(commonSecretStore), clusterManager)
+		activity.RegisterWithOptions(setupPrivilegesActivity.Execute, activity.RegisterOptions{Name: cluster.SetupPrivilegesActivityName})
+
 		workflow.RegisterWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
 
 		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager)
@@ -362,6 +364,7 @@ func main() {
 
 			clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 			clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
+			endpointManager := endpoints.NewEndpointManager(logger)
 			orgDomainService := dnsadapter.NewOrgDomainService(
 				config.Cluster.DNS.BaseDomain,
 				dnsSvc,
@@ -435,6 +438,7 @@ func main() {
 					clusterService,
 					helmService,
 					kubernetesService,
+					endpointManager,
 					config.Cluster.Logging.Config,
 					logger,
 					commonSecretStore,

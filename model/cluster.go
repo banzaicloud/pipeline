@@ -66,10 +66,7 @@ type ClusterModel struct {
 	SshSecretId    string
 	Status         string
 	RbacEnabled    bool
-	Monitoring     bool
-	Logging        bool
-	ScaleOptions   ScaleOptions `gorm:"foreignkey:ClusterID"`
-	SecurityScan   bool
+	ScaleOptions   ScaleOptions           `gorm:"foreignkey:ClusterID"`
 	StatusMessage  string                 `sql:"type:text;"`
 	ACK            ACKClusterModel        `gorm:"foreignkey:ID"`
 	AKS            AKSClusterModel        `gorm:"foreignkey:ID"`
