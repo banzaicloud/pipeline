@@ -411,7 +411,7 @@ func (op FeatureOperator) createLokiOutputDefinition(ctx context.Context, cl clu
 
 	// delete former Loki outputs
 	var formerOutputs v1beta1.ClusterOutputList
-	if err := op.kubernetesService.List(ctx, cl.GetID(), &formerOutputs); err != nil {
+	if err := op.kubernetesService.List(ctx, cl.GetID(), nil, &formerOutputs); err != nil {
 		return errors.WrapIf(err, "failed to list cluster outputs")
 	}
 	for _, item := range formerOutputs.Items {
@@ -454,7 +454,7 @@ func (op FeatureOperator) createLokiFlowResource(ctx context.Context, clusterID 
 
 	// delete former Loki cluster flows
 	var formerFlowRes v1beta1.ClusterFlowList
-	if err := op.kubernetesService.List(ctx, clusterID, &formerFlowRes); err != nil {
+	if err := op.kubernetesService.List(ctx, clusterID, nil, &formerFlowRes); err != nil {
 		return errors.WrapIf(err, "failed to list cluster flows")
 	}
 	for _, item := range formerFlowRes.Items {
@@ -588,7 +588,7 @@ func (op FeatureOperator) createOutputDefinition(ctx context.Context, spec clust
 
 	// remove old output definitions
 	var outputList v1beta1.ClusterOutputList
-	if err := op.kubernetesService.List(ctx, cl.GetID(), &outputList); err != nil {
+	if err := op.kubernetesService.List(ctx, cl.GetID(), nil, &outputList); err != nil {
 		return nil, errors.WrapIf(err, "failed to list output definitions")
 	}
 
@@ -653,7 +653,7 @@ func (op FeatureOperator) createFlowResource(ctx context.Context, outputDefiniti
 
 	// remove old flow resources
 	var flowList v1beta1.ClusterFlowList
-	if err := op.kubernetesService.List(ctx, clusterID, &flowList); err != nil {
+	if err := op.kubernetesService.List(ctx, clusterID, nil, &flowList); err != nil {
 		return errors.WrapIf(err, "failed to list flow resources")
 	}
 
