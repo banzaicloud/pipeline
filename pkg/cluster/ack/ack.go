@@ -113,10 +113,3 @@ func (c *UpdateClusterACK) Validate() error {
 
 	return ValidateNodePools(c.NodePools)
 }
-
-// ClusterProfileACK describes an Alibaba CS profile
-type ClusterProfileACK struct {
-	RegionID  string               `json:"regionId"`
-	ZoneID    string               `json:"zoneId"`
-	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
-}
