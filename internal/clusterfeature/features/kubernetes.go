@@ -37,5 +37,5 @@ type KubernetesService interface {
 	DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error
 
 	// List lists Objects on specific cluster.
-	List(ctx context.Context, clusterID uint, o runtime.Object) error
+	List(ctx context.Context, clusterID uint, labels map[string]string, o runtime.Object) error
 }
