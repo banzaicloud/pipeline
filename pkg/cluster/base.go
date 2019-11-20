@@ -106,9 +106,7 @@ type CreateClusterRequest struct {
 
 // CreateClusterProperties contains the cluster flavor specific properties.
 type CreateClusterProperties struct {
-	// TODO (colin): Deprecated
-	CreateClusterACSK *ack.CreateClusterACK `json:"acsk,omitempty" yaml:"acsk,omitempty"`
-	CreateClusterACK  *ack.CreateClusterACK `json:"ack,omitempty" yaml:"ack,omitempty"`
+	CreateClusterACK *ack.CreateClusterACK `json:"ack,omitempty" yaml:"ack,omitempty"`
 
 	CreateClusterEKS        *eks.CreateClusterEKS               `json:"eks,omitempty" yaml:"eks,omitempty"`
 	CreateClusterAKS        *aks.CreateClusterAKS               `json:"aks,omitempty" yaml:"aks,omitempty"`
@@ -244,10 +242,7 @@ type Ipv4Cidrs struct {
 
 // UpdateProperties describes Pipeline's UpdateCluster request properties
 type UpdateProperties struct {
-	// TODO (colin): Deprecated
-	ACSK *ack.UpdateClusterACK `json:"acsk,omitempty"`
-	ACK  *ack.UpdateClusterACK `json:"ack,omitempty"`
-
+	ACK   *ack.UpdateClusterACK       `json:"ack,omitempty"`
 	EKS   *eks.UpdateClusterAmazonEKS `json:"eks,omitempty"`
 	AKS   *aks.UpdateClusterAzure     `json:"aks,omitempty"`
 	GKE   *gke.UpdateClusterGoogle    `json:"gke,omitempty"`
@@ -469,10 +464,7 @@ type ClusterProfileRequest struct {
 }
 
 type ClusterProfileProperties struct {
-	// TODO (colin): Deprecated
-	ACSK *ack.ClusterProfileACK `json:"acsk,omitempty"`
-	ACK  *ack.ClusterProfileACK `json:"ack,omitempty"`
-
+	ACK *ack.ClusterProfileACK `json:"ack,omitempty"`
 	EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
 	AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
 	GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
