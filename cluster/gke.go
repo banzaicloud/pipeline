@@ -2092,11 +2092,6 @@ func (c *GKECluster) GetKubernetesUserName() (string, error) {
 	return "", nil
 }
 
-// GetCreatedBy returns cluster create userID.
-func (c *GKECluster) GetCreatedBy() uint {
-	return c.model.Cluster.CreatedBy
-}
-
 // GetTTL retrieves the TTL of the cluster
 func (c *GKECluster) GetTTL() time.Duration {
 	return time.Duration(c.model.Cluster.TtlMinutes) * time.Minute

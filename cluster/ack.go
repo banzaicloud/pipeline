@@ -1187,8 +1187,3 @@ func createAlibabaVPCClient(auth *credentials.AccessKeyCredential, regionID stri
 	client.SetReadTimeout(ack.ACKRequestReadTimeout)
 	return client, emperror.Wrap(err, "could not create Alibaba VPCClient")
 }
-
-// GetCreatedBy returns cluster create userID.
-func (c *ACKCluster) GetCreatedBy() uint {
-	return c.modelCluster.CreatedBy
-}

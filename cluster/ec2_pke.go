@@ -142,10 +142,6 @@ func (c *EC2ClusterPKE) GetLocation() string {
 	return c.model.Cluster.Location
 }
 
-func (c *EC2ClusterPKE) GetCreatedBy() uint {
-	return c.model.Cluster.CreatedBy
-}
-
 func (c *EC2ClusterPKE) GetSecretId() string {
 	return c.model.Cluster.SecretID
 }
