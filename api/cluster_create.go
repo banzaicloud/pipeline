@@ -220,11 +220,6 @@ func (a *ClusterAPI) createCluster(
 
 	logger.Infof("Creating new entry with cloud type: %s", createClusterRequest.Cloud)
 
-	// TODO (colin): remove this after we deleted the deprecated 'acsk' property from cluster create request
-	if createClusterRequest.Properties.CreateClusterACSK != nil {
-		createClusterRequest.Properties.CreateClusterACK = createClusterRequest.Properties.CreateClusterACSK
-	}
-
 	// TODO check validation
 	// This is the common part of cluster flow
 	commonCluster, err := cluster.CreateCommonClusterFromRequest(createClusterRequest, organizationID, userID)
