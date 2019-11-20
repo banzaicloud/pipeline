@@ -376,11 +376,6 @@ func (c *KubeCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
 }
 
-// GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
-func (c *KubeCluster) GetKubernetesUserName() (string, error) {
-	return "", nil
-}
-
 // GetTTL retrieves the TTL of the cluster
 func (c *KubeCluster) GetTTL() time.Duration {
 	return time.Duration(c.modelCluster.TtlMinutes) * time.Minute
