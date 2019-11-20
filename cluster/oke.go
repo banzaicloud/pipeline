@@ -634,11 +634,6 @@ func (o *OKECluster) GetKubernetesUserName() (string, error) {
 
 }
 
-// GetCreatedBy returns cluster create userID.
-func (o *OKECluster) GetCreatedBy() uint {
-	return o.modelCluster.CreatedBy
-}
-
 func (o *OKECluster) getSSHPubKey() (string, error) {
 
 	sshSecret, err := o.getSshSecret(o)

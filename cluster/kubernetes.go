@@ -381,11 +381,6 @@ func (c *KubeCluster) GetKubernetesUserName() (string, error) {
 	return "", nil
 }
 
-// GetCreatedBy returns cluster create userID.
-func (c *KubeCluster) GetCreatedBy() uint {
-	return c.modelCluster.CreatedBy
-}
-
 // GetTTL retrieves the TTL of the cluster
 func (c *KubeCluster) GetTTL() time.Duration {
 	return time.Duration(c.modelCluster.TtlMinutes) * time.Minute

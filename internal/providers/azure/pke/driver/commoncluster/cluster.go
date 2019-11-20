@@ -102,10 +102,6 @@ func (a *AzurePkeCluster) GetLocation() string {
 	return a.model.Location
 }
 
-func (a *AzurePkeCluster) GetCreatedBy() uint {
-	return a.model.CreatedBy
-}
-
 func (a *AzurePkeCluster) GetSecretId() string {
 	return a.model.SecretID
 }

@@ -1106,11 +1106,6 @@ func (c *AKSCluster) GetKubernetesUserName() (string, error) {
 	return "", nil
 }
 
-// GetCreatedBy returns cluster create userID.
-func (c *AKSCluster) GetCreatedBy() uint {
-	return c.modelCluster.CreatedBy
-}
-
 func (c *AKSCluster) onClusterCreateFailure(createError error, operationStartTime time.Time) error {
 	// collect error details from activity log
 
