@@ -85,8 +85,9 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 			NodeInstanceRoleId:    request.Properties.CreateClusterEKS.IAM.NodeInstanceRoleID,
 			APIServerAccessPoints: createAPIServerAccesPointsFromRequest(request),
 		},
-		CreatedBy:  userId,
-		TtlMinutes: request.TtlMinutes,
+		RbacEnabled: true,
+		CreatedBy:   userId,
+		TtlMinutes:  request.TtlMinutes,
 	}
 
 	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
