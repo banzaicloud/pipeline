@@ -627,11 +627,6 @@ func (o *OKECluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&o.modelCluster.ScaleOptions, scaleOptions)
 }
 
-// NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
-func (o *OKECluster) NeedAdminRights() bool {
-	return true
-}
-
 // GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
 func (o *OKECluster) GetKubernetesUserName() (string, error) {
 

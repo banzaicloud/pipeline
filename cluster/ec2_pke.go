@@ -675,10 +675,6 @@ func (c *EC2ClusterPKE) RbacEnabled() bool {
 	return c.model.Kubernetes.RBACEnabled
 }
 
-func (c *EC2ClusterPKE) NeedAdminRights() bool {
-	return false
-}
-
 func (c *EC2ClusterPKE) GetKubernetesUserName() (string, error) {
 	return "", nil
 }
