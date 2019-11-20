@@ -19,6 +19,8 @@ import (
 	"encoding/json"
 
 	"emperror.dev/errors"
+	"github.com/mitchellh/copystructure"
+
 	"github.com/banzaicloud/pipeline/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
@@ -29,7 +31,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/internal/util"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/mitchellh/copystructure"
 )
 
 // FeatureOperator implements the Logging feature operator
