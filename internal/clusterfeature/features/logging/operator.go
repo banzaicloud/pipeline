@@ -31,6 +31,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/internal/util"
+	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -493,14 +494,9 @@ func (op FeatureOperator) installLoggingOperator(ctx context.Context, clusterID 
 }
 
 func mergeValuesWithConfig(chartValues interface{}, configValues interface{}) ([]byte, error) {
-	valuesBytes, err := json.Marshal(chartValues)
+	out, err := jsonstructure.Encode(chartValues)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to decode chartValues")
-	}
-
-	var out map[string]interface{}
-	if err := json.Unmarshal(valuesBytes, &out); err != nil {
-		return nil, errors.WrapIf(err, "failed to unmarshal values")
+		return nil, errors.WrapIf(err, "failed to encode chart values")
 	}
 
 	result, err := util.Merge(configValues, out)
