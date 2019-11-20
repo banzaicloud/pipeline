@@ -17,17 +17,16 @@ package clusterfeatureadapter
 import (
 	"context"
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
 	"time"
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/spf13/cast"
 	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/database/sql/json"
 )
 
 // TableName constants
@@ -38,19 +37,11 @@ const (
 type featureSpec map[string]interface{}
 
 func (fs *featureSpec) Scan(src interface{}) error {
-	value, err := cast.ToStringE(src)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal([]byte(value), fs)
+	return json.Scan(src, fs)
 }
 
 func (fs featureSpec) Value() (driver.Value, error) {
-	v, err := json.Marshal(fs)
-	if err != nil {
-		return "", err
-	}
-	return v, nil
+	return json.Value(fs)
 }
 
 // clusterFeatureModel describes the cluster group model.
