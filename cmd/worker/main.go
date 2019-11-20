@@ -269,6 +269,9 @@ func main() {
 		downloadK8sConfigActivity := cluster.NewDownloadK8sConfigActivity(clusterManager)
 		activity.RegisterWithOptions(downloadK8sConfigActivity.Execute, activity.RegisterOptions{Name: cluster.DownloadK8sConfigActivityName})
 
+		setupPrivilegesActivity := cluster.NewSetupPrivilegesActivity(clusteradapter.NewClientFactory(commonSecretStore), clusterManager)
+		activity.RegisterWithOptions(setupPrivilegesActivity.Execute, activity.RegisterOptions{Name: cluster.SetupPrivilegesActivityName})
+
 		workflow.RegisterWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
 
 		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager)
