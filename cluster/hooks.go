@@ -15,12 +15,12 @@
 package cluster
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
 	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
@@ -46,17 +46,8 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 )
 
-func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (err error) {
-
-	var bytes []byte
-	bytes, err = json.Marshal(data)
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(bytes, &output)
-
-	return
+func castToPostHookParam(data pkgCluster.PostHookParam, output interface{}) error {
+	return mapstructure.Decode(data, output)
 }
 
 func installDeployment(cluster CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, chartVersion string, wait bool) error {
@@ -449,7 +440,7 @@ func addLabelsToNode(client *kubernetes.Clientset, nodeName string, labels map[s
 func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) error {
 
 	var params arkAPI.RestoreFromBackupParams
-	err := castToPostHookParam(&param, &params)
+	err := castToPostHookParam(param, &params)
 	if err != nil {
 		return err
 	}
