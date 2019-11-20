@@ -2036,16 +2036,6 @@ func (c *GKECluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.model.Cluster.ScaleOptions, scaleOptions)
 }
 
-// NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
-func (c *GKECluster) NeedAdminRights() bool {
-	return false
-}
-
-// GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
-func (c *GKECluster) GetKubernetesUserName() (string, error) {
-	return "", nil
-}
-
 // GetTTL retrieves the TTL of the cluster
 func (c *GKECluster) GetTTL() time.Duration {
 	return time.Duration(c.model.Cluster.TtlMinutes) * time.Minute

@@ -210,14 +210,6 @@ func (a *AzurePkeCluster) RbacEnabled() bool {
 	return a.model.Kubernetes.RBAC
 }
 
-func (a *AzurePkeCluster) NeedAdminRights() bool {
-	return false
-}
-
-func (a *AzurePkeCluster) GetKubernetesUserName() (string, error) {
-	return "", errors.New("AzurePkeCluster.GetKubernetesUserName is not implemented")
-}
-
 func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range a.model.NodePools {

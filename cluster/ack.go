@@ -1078,16 +1078,6 @@ func (c *ACKCluster) createAlibabaCredentialsFromSecret() (*credentials.AccessKe
 	return verify.CreateAlibabaCredentials(clusterSecret.Values), nil
 }
 
-// NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
-func (c *ACKCluster) NeedAdminRights() bool {
-	return false
-}
-
-// GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
-func (c *ACKCluster) GetKubernetesUserName() (string, error) {
-	return "", nil
-}
-
 func createAlibabaConfig() *sdk.Config {
 	return sdk.NewConfig().
 		WithAutoRetry(true).

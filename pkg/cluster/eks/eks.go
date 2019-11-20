@@ -301,12 +301,6 @@ type CertificateAuthority struct {
 	Data string `json:"data,omitempty"`
 }
 
-// ClusterProfileEKS describes an Amazon EKS profile
-type ClusterProfileEKS struct {
-	Version   string               `json:"version,omitempty"`
-	NodePools map[string]*NodePool `json:"nodePools,omitempty"`
-}
-
 // CreateAmazonEksObjectStoreBucketProperties describes the properties of
 // S3 bucket creation request
 type CreateAmazonEksObjectStoreBucketProperties struct {
