@@ -87,23 +87,7 @@ const (
 	DeployInstanceTerminationHandler       = "DeployInstanceTerminationHandler"
 	InstallNodePoolLabelSetOperator        = "InstallNodePoolLabelSetOperator"
 	SetupNodePoolLabelsSet                 = "SetupNodePoolLabelsSet"
-	CreateDefaultStorageclass              = "CreateDefaultStorageclass"
 	CreateClusterRoles                     = "CreateClusterRoles"
-)
-
-// Provider name regexp
-const (
-	RegexpAWSName = `^[A-z0-9-_]{1,255}$`
-	RegexpAKSName = `^[a-z0-9_]{0,31}[a-z0-9]$`
-	RegexpGKEName = `^[a-z]$|^[a-z][a-z0-9-]{0,38}[a-z0-9]$`
-)
-
-// ### [ Keywords ] ###
-const (
-	KeyWordLocation          = "location"
-	KeyWordInstanceType      = "instanceType"
-	KeyWordKubernetesVersion = "k8sVersion"
-	KeyWordImage             = "image"
 )
 
 // CreateClusterRequest describes a create cluster request
