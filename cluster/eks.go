@@ -1421,24 +1421,6 @@ func (c *EKSCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
-// GetK8sIpv4Cidrs returns possible IP ranges for pods and services in the cluster
-// On EKS the services IP range is chosen from two possible ranges
-// source: https://forums.aws.amazon.com/thread.jspa?messageID=859958
-// On EKS the pods IP range is coming from the CIDR's of the subnets
-func (c *EKSCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	eksServiceClusterIPRanges := []string{"172.20.0.0/16", "10.100.0.0/16"}
-
-	var eksPodIPRanges []string
-	for _, subnet := range c.GetModel().EKS.Subnets {
-		eksPodIPRanges = append(eksPodIPRanges, *subnet.Cidr)
-	}
-
-	return &pkgCluster.Ipv4Cidrs{
-		ServiceClusterIPRanges: eksServiceClusterIPRanges,
-		PodIPRanges:            eksPodIPRanges,
-	}, nil
-}
-
 // GetK8sConfig returns the Kubernetes config
 func (c *EKSCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)

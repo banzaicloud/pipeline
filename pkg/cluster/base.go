@@ -255,12 +255,6 @@ type UpdateClusterRequest struct {
 	TtlMinutes       uint          `json:"ttlMinutes,omitempty" yaml:"ttlMinutes,omitempty"`
 }
 
-// Ipv4Cidrs describes the service and pod IPv4 ranges
-type Ipv4Cidrs struct {
-	ServiceClusterIPRanges []string
-	PodIPRanges            []string
-}
-
 // UpdateProperties describes Pipeline's UpdateCluster request properties
 type UpdateProperties struct {
 	// TODO (colin): Deprecated
