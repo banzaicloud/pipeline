@@ -81,7 +81,7 @@ type NodePoolLabelParam struct {
 // SetupNodePoolLabelsSet deploys NodePoolLabelSet resources for each nodepool.
 func SetupNodePoolLabelsSet(cluster CommonCluster, param pkgCluster.PostHookParam) error {
 	var nodePoolParam NodePoolLabelParam
-	err := castToPostHookParam(&param, &nodePoolParam)
+	err := castToPostHookParam(param, &nodePoolParam)
 	if err != nil {
 		return emperror.Wrap(err, "posthook param failed")
 	}
