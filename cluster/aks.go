@@ -1077,11 +1077,6 @@ func GetAKSResourceGroup(cluster CommonCluster) (string, error) {
 	return akscluster.modelCluster.AKS.ResourceGroup, nil
 }
 
-// GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
-func (c *AKSCluster) GetKubernetesUserName() (string, error) {
-	return "", nil
-}
-
 func (c *AKSCluster) onClusterCreateFailure(createError error, operationStartTime time.Time) error {
 	// collect error details from activity log
 
