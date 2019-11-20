@@ -247,9 +247,6 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Distribution:      o.modelCluster.Distribution,
 		Version:           o.modelCluster.OKE.Version,
 		ResourceID:        o.GetID(),
-		Logging:           o.GetLogging(),
-		Monitoring:        o.GetMonitoring(),
-		SecurityScan:      o.GetSecurityScan(),
 		CreatorBaseFields: *NewCreatorBaseFields(o.modelCluster.CreatedAt, o.modelCluster.CreatedBy),
 		NodePools:         nodePools,
 		Region:            o.modelCluster.Location,
@@ -408,20 +405,6 @@ func (o *OKECluster) SaveConfigSecretId(configSecretId string) error {
 // GetConfigSecretId return config secret id
 func (o *OKECluster) GetConfigSecretId() string {
 	return o.modelCluster.ConfigSecretId
-}
-
-// GetK8sIpv4Cidrs returns possible IP ranges for pods and services in the cluster
-// On OKE the services and pods IP ranges can be fetched from Oracle
-func (o *OKECluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	cluster, err := o.GetCluster()
-	if err != nil {
-		return nil, err
-	}
-
-	return &pkgCluster.Ipv4Cidrs{
-		ServiceClusterIPRanges: []string{*cluster.Options.KubernetesNetworkConfig.ServicesCidr},
-		PodIPRanges:            []string{*cluster.Options.KubernetesNetworkConfig.PodsCidr},
-	}, nil
 }
 
 // GetK8sConfig returns the Kubernetes config
@@ -587,36 +570,6 @@ func (o *OKECluster) RbacEnabled() bool {
 	return true
 }
 
-// SecurityScan returns true if security scan enabled on the cluster
-func (o *OKECluster) GetSecurityScan() bool {
-	return o.modelCluster.SecurityScan
-}
-
-// SetSecurityScan returns true if security scan enabled on the cluster
-func (o *OKECluster) SetSecurityScan(scan bool) {
-	o.modelCluster.SecurityScan = scan
-}
-
-// GetLogging returns true if logging enabled on the cluster
-func (o *OKECluster) GetLogging() bool {
-	return o.modelCluster.Logging
-}
-
-// SetLogging returns true if logging enabled on the cluster
-func (o *OKECluster) SetLogging(l bool) {
-	o.modelCluster.Logging = l
-}
-
-// GetMonitoring returns true if momnitoring enabled on the cluster
-func (o *OKECluster) GetMonitoring() bool {
-	return o.modelCluster.Monitoring
-}
-
-// SetMonitoring returns true if monitoring enabled on the cluster
-func (o *OKECluster) SetMonitoring(l bool) {
-	o.modelCluster.Monitoring = l
-}
-
 // getScaleOptionsFromModelV1 returns scale options for the cluster
 func (o *OKECluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 	return getScaleOptionsFromModel(o.modelCluster.ScaleOptions)
@@ -625,11 +578,6 @@ func (o *OKECluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 // SetScaleOptions sets scale options for the cluster
 func (o *OKECluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&o.modelCluster.ScaleOptions, scaleOptions)
-}
-
-// NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
-func (o *OKECluster) NeedAdminRights() bool {
-	return true
 }
 
 // GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user

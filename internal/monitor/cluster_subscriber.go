@@ -38,6 +38,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	pipCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/dns"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pipSecret "github.com/banzaicloud/pipeline/secret"
 )
@@ -55,6 +56,8 @@ type clusterSubscriber struct {
 	certSecret             string
 	certMountPath          string
 
+	featureService clusterfeature.Service
+
 	// TODO: find a better way to avoid config race condition (eg. occasional flush)
 	mu           sync.Mutex
 	errorHandler emperror.Handler
@@ -71,6 +74,7 @@ func NewClusterSubscriber(
 	configMapPrometheusKey string,
 	certSecret string,
 	certMountPath string,
+	featureService clusterfeature.Service,
 	errorHandler emperror.Handler,
 ) *clusterSubscriber {
 	return &clusterSubscriber{
@@ -84,6 +88,8 @@ func NewClusterSubscriber(
 		configMapPrometheusKey: configMapPrometheusKey,
 		certSecret:             certSecret,
 		certMountPath:          certMountPath,
+
+		featureService: featureService,
 
 		errorHandler: errorHandler,
 	}
@@ -107,13 +113,14 @@ func (s *clusterSubscriber) Init() {
 	}
 	prometheusConfig.ScrapeConfigs = []*promconfig.ScrapeConfig{}
 	for _, c := range clusters {
-		clusterStatus, err := c.GetStatus()
+		ok, err := s.isMonitoringEnabled(context.Background(), c.GetID())
 		if err != nil {
 			s.errorHandler.Handle(err)
 
 			return
 		}
-		if clusterStatus.Monitoring {
+
+		if ok {
 			org, err := s.getOrganization(c.GetOrganizationId())
 			if err != nil {
 				s.errorHandler.Handle(err)
@@ -170,6 +177,19 @@ func (s *clusterSubscriber) Init() {
 
 		return
 	}
+}
+
+// NOTE: this is a temporary solution. At some point this functionality should be extracted.
+func (s *clusterSubscriber) isMonitoringEnabled(ctx context.Context, clusterID uint) (bool, error) {
+	_, err := s.featureService.Details(ctx, clusterID, "monitoring")
+	if clusterfeature.IsFeatureNotFoundError(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (s *clusterSubscriber) Register(events clusterEvents) {

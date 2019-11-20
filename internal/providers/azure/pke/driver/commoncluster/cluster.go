@@ -187,20 +187,6 @@ func (a *AzurePkeCluster) GetAPIEndpoint() (string, error) {
 	return pkgCluster.GetAPIEndpointFromKubeconfig(config)
 }
 
-func (a *AzurePkeCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	return &pkgCluster.Ipv4Cidrs{
-		ServiceClusterIPRanges: []string{"10.10.0.0/16"},
-		PodIPRanges:            []string{"10.20.0.0/16"},
-	}, nil
-	// TODO: use model values once stored/used
-	/*
-		return &pkgCluster.Ipv4Cidrs{
-			ServiceClusterIPRanges: []string{a.model.Kubernetes.Network.ServiceCIDR},
-			PodIPRanges:            []string{a.model.Kubernetes.Network.PodCIDR},
-		}, nil
-	*/
-}
-
 func (a *AzurePkeCluster) GetK8sConfig() ([]byte, error) {
 	if a.model.K8sSecretID == "" {
 		return nil, errors.New("there is no K8s config for the cluster")
@@ -224,14 +210,6 @@ func (a *AzurePkeCluster) RbacEnabled() bool {
 	return a.model.Kubernetes.RBAC
 }
 
-func (a *AzurePkeCluster) NeedAdminRights() bool {
-	return false
-}
-
-func (a *AzurePkeCluster) GetKubernetesUserName() (string, error) {
-	return "", errors.New("AzurePkeCluster.GetKubernetesUserName is not implemented")
-}
-
 func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range a.model.NodePools {
@@ -253,9 +231,6 @@ func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, err
 		Cloud:         a.GetCloud(),
 		Distribution:  a.GetDistribution(),
 		ResourceID:    a.model.ID,
-		Logging:       a.GetLogging(),
-		Monitoring:    a.GetMonitoring(),
-		SecurityScan:  a.GetSecurityScan(),
 		Version:       a.model.Kubernetes.Version,
 		NodePools:     nodePools,
 		CreatorBaseFields: pkgCommon.CreatorBaseFields{
@@ -281,33 +256,6 @@ func (a *AzurePkeCluster) NodePoolExists(nodePoolName string) bool {
 		}
 	}
 	return false
-}
-
-func (a *AzurePkeCluster) GetSecurityScan() bool {
-	return a.model.SecurityScan
-}
-
-func (a *AzurePkeCluster) SetSecurityScan(scan bool) {
-	a.model.SecurityScan = scan
-	a.store.SetFeature(a.model.ID, "SecurityScan", scan) // nolint: errcheck
-}
-
-func (a *AzurePkeCluster) GetLogging() bool {
-	return a.model.Logging
-}
-
-func (a *AzurePkeCluster) SetLogging(l bool) {
-	a.model.Logging = l
-	a.store.SetFeature(a.model.ID, "Logging", l) // nolint: errcheck
-}
-
-func (a *AzurePkeCluster) GetMonitoring() bool {
-	return a.model.Monitoring
-}
-
-func (a *AzurePkeCluster) SetMonitoring(m bool) {
-	a.model.Monitoring = m
-	a.store.SetFeature(a.model.ID, "Monitoring", m) // nolint: errcheck
 }
 
 func (a *AzurePkeCluster) SetStatus(status string, statusMessage string) error {

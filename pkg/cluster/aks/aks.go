@@ -160,9 +160,3 @@ func (a *UpdateClusterAzure) Validate() error {
 
 	return nil
 }
-
-// ClusterProfileAKS describes an Azure profile
-type ClusterProfileAKS struct {
-	KubernetesVersion string                     `json:"kubernetesVersion"`
-	NodePools         map[string]*NodePoolCreate `json:"nodePools,omitempty"`
-}

@@ -66,36 +66,6 @@ func (c *ACKCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
 }
 
-// GetSecurityScan returns true if security scan enabled on the cluster
-func (c *ACKCluster) GetSecurityScan() bool {
-	return c.modelCluster.SecurityScan
-}
-
-// SetSecurityScan returns true if security scan enabled on the cluster
-func (c *ACKCluster) SetSecurityScan(scan bool) {
-	c.modelCluster.SecurityScan = scan
-}
-
-// GetLogging returns true if logging enabled on the cluster
-func (c *ACKCluster) GetLogging() bool {
-	return c.modelCluster.Logging
-}
-
-// SetLogging returns true if logging enabled on the cluster
-func (c *ACKCluster) SetLogging(l bool) {
-	c.modelCluster.Logging = l
-}
-
-// GetMonitoring returns true if momnitoring enabled on the cluster
-func (c *ACKCluster) GetMonitoring() bool {
-	return c.modelCluster.Monitoring
-}
-
-// SetMonitoring returns true if monitoring enabled on the cluster
-func (c *ACKCluster) SetMonitoring(l bool) {
-	c.modelCluster.Monitoring = l
-}
-
 // getScaleOptionsFromModelV1 returns scale options for the cluster
 func (c *ACKCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 	return getScaleOptionsFromModel(c.modelCluster.ScaleOptions)
@@ -633,9 +603,6 @@ func (c *ACKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Cloud:             c.modelCluster.Cloud,
 		Distribution:      c.modelCluster.Distribution,
 		ResourceID:        c.modelCluster.ID,
-		Logging:           c.GetLogging(),
-		Monitoring:        c.GetMonitoring(),
-		SecurityScan:      c.GetSecurityScan(),
 		NodePools:         nodePools,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		Region:            c.modelCluster.ACK.RegionID,
@@ -1099,25 +1066,6 @@ func (c *ACKCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
-// GetK8sIpv4Cidrs returns possible IP ranges for pods and services in the cluster
-// On ACK the services and pods IP ranges can be fetched from Alibaba
-func (c *ACKCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	client, err := c.GetAlibabaCSClient(nil)
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get alibaba CS client")
-	}
-
-	cluster, err := action.GetClusterDetails(client, c.modelCluster.ACK.ProviderClusterID)
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get cluster details")
-	}
-
-	return &pkgCluster.Ipv4Cidrs{
-		ServiceClusterIPRanges: []string{cluster.Parameters.ServiceCIDR},
-		PodIPRanges:            []string{cluster.SubnetCIDR},
-	}, nil
-}
-
 func (c *ACKCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
 }
@@ -1128,16 +1076,6 @@ func (c *ACKCluster) createAlibabaCredentialsFromSecret() (*credentials.AccessKe
 		return nil, emperror.WrapWith(err, "failed to create alibaba creds from secret", "cluster", c.modelCluster.Name)
 	}
 	return verify.CreateAlibabaCredentials(clusterSecret.Values), nil
-}
-
-// NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
-func (c *ACKCluster) NeedAdminRights() bool {
-	return false
-}
-
-// GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
-func (c *ACKCluster) GetKubernetesUserName() (string, error) {
-	return "", nil
 }
 
 func createAlibabaConfig() *sdk.Config {

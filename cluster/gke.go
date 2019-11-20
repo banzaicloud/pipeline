@@ -411,9 +411,6 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Distribution:      c.model.Cluster.Distribution,
 		Spot:              hasSpotNodePool,
 		ResourceID:        c.model.Cluster.ID,
-		Logging:           c.GetLogging(),
-		Monitoring:        c.GetMonitoring(),
-		SecurityScan:      c.GetSecurityScan(),
 		Version:           c.model.MasterVersion,
 		NodePools:         nodePools,
 		CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),
@@ -1990,19 +1987,6 @@ func (c *GKECluster) GetConfigSecretId() string {
 	return c.model.Cluster.ConfigSecretID
 }
 
-// GetK8sIpv4Cidrs returns possible IP ranges for pods and services in the cluster
-// On GKE the services and pods IP ranges can be fetched from Google
-func (c *GKECluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	cluster, err := c.GetGoogleCluster()
-	if err != nil {
-		return nil, errors.WrapIf(err, "couldn't get GKE cluster")
-	}
-	return &pkgCluster.Ipv4Cidrs{
-		ServiceClusterIPRanges: []string{cluster.ServicesIpv4Cidr},
-		PodIPRanges:            []string{cluster.ClusterIpv4Cidr},
-	}, nil
-}
-
 // GetK8sConfig returns the Kubernetes config
 func (c *GKECluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
@@ -2042,36 +2026,6 @@ func (c *GKECluster) RbacEnabled() bool {
 	return c.model.Cluster.RbacEnabled
 }
 
-// SecurityScan returns true if security scan enabled on the cluster
-func (c *GKECluster) GetSecurityScan() bool {
-	return c.model.Cluster.SecurityScan
-}
-
-// SetSecurityScan returns true if security scan enabled on the cluster
-func (c *GKECluster) SetSecurityScan(scan bool) {
-	c.model.Cluster.SecurityScan = scan
-}
-
-// GetLogging returns true if logging enabled on the cluster
-func (c *GKECluster) GetLogging() bool {
-	return c.model.Cluster.Logging
-}
-
-// SetLogging returns true if logging enabled on the cluster
-func (c *GKECluster) SetLogging(l bool) {
-	c.model.Cluster.Logging = l
-}
-
-// GetMonitoring returns true if momnitoring enabled on the cluster
-func (c *GKECluster) GetMonitoring() bool {
-	return c.model.Cluster.Monitoring
-}
-
-// SetMonitoring returns true if monitoring enabled on the cluster
-func (c *GKECluster) SetMonitoring(l bool) {
-	c.model.Cluster.Monitoring = l
-}
-
 // GetScaleOptions returns scale options for the cluster
 func (c *GKECluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 	return getScaleOptionsFromModel(c.model.Cluster.ScaleOptions)
@@ -2080,16 +2034,6 @@ func (c *GKECluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 // SetScaleOptions sets scale options for the cluster
 func (c *GKECluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.model.Cluster.ScaleOptions, scaleOptions)
-}
-
-// NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
-func (c *GKECluster) NeedAdminRights() bool {
-	return false
-}
-
-// GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
-func (c *GKECluster) GetKubernetesUserName() (string, error) {
-	return "", nil
 }
 
 // GetTTL retrieves the TTL of the cluster

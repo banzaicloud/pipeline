@@ -54,10 +54,7 @@ type ClusterModel struct {
 	SSHSecretID    string
 	Status         string
 	RbacEnabled    bool
-	OidcEnabled    bool `gorm:"default:false;not null"`
-	Monitoring     bool
-	Logging        bool
-	SecurityScan   bool
+	OidcEnabled    bool               `gorm:"default:false;not null"`
 	StatusMessage  string             `sql:"type:text;"`
 	ScaleOptions   model.ScaleOptions `gorm:"foreignkey:ClusterID"`
 	TtlMinutes     uint               `gorm:"default:0"`

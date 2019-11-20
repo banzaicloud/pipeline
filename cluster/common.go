@@ -83,26 +83,15 @@ type CommonCluster interface {
 
 	// Kubernetes
 	GetAPIEndpoint() (string, error)
-	GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error)
 	GetK8sConfig() ([]byte, error)
 	RequiresSshPublicKey() bool
 	RbacEnabled() bool
-	NeedAdminRights() bool
-	GetKubernetesUserName() (string, error)
 
 	// Cluster info
 	GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
 	IsReady() (bool, error)
 	ListNodeNames() (pkgCommon.NodeNames, error)
 	NodePoolExists(nodePoolName string) bool
-
-	// Set Get flags
-	GetSecurityScan() bool
-	SetSecurityScan(scan bool)
-	GetLogging() bool
-	SetLogging(l bool)
-	GetMonitoring() bool
-	SetMonitoring(m bool)
 
 	SetStatus(status, statusMessage string) error
 }

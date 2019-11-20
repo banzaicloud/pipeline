@@ -1072,9 +1072,6 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Distribution:      c.modelCluster.Distribution,
 		Spot:              hasSpotNodePool,
 		ResourceID:        c.modelCluster.ID,
-		Logging:           c.GetLogging(),
-		Monitoring:        c.GetMonitoring(),
-		SecurityScan:      c.GetSecurityScan(),
 		NodePools:         nodePools,
 		Version:           c.modelCluster.EKS.Version,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
@@ -1421,24 +1418,6 @@ func (c *EKSCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
-// GetK8sIpv4Cidrs returns possible IP ranges for pods and services in the cluster
-// On EKS the services IP range is chosen from two possible ranges
-// source: https://forums.aws.amazon.com/thread.jspa?messageID=859958
-// On EKS the pods IP range is coming from the CIDR's of the subnets
-func (c *EKSCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	eksServiceClusterIPRanges := []string{"172.20.0.0/16", "10.100.0.0/16"}
-
-	var eksPodIPRanges []string
-	for _, subnet := range c.GetModel().EKS.Subnets {
-		eksPodIPRanges = append(eksPodIPRanges, *subnet.Cidr)
-	}
-
-	return &pkgCluster.Ipv4Cidrs{
-		ServiceClusterIPRanges: eksServiceClusterIPRanges,
-		PodIPRanges:            eksPodIPRanges,
-	}, nil
-}
-
 // GetK8sConfig returns the Kubernetes config
 func (c *EKSCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
@@ -1464,36 +1443,6 @@ func ListEksImages(version, region string) (string, error) {
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *EKSCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
-}
-
-// GetSecurityScan returns true if security scan enabled on the cluster
-func (c *EKSCluster) GetSecurityScan() bool {
-	return c.modelCluster.SecurityScan
-}
-
-// SetSecurityScan returns true if security scan enabled on the cluster
-func (c *EKSCluster) SetSecurityScan(scan bool) {
-	c.modelCluster.SecurityScan = scan
-}
-
-// GetLogging returns true if logging enabled on the cluster
-func (c *EKSCluster) GetLogging() bool {
-	return c.modelCluster.Logging
-}
-
-// SetLogging returns true if logging enabled on the cluster
-func (c *EKSCluster) SetLogging(l bool) {
-	c.modelCluster.Logging = l
-}
-
-// GetMonitoring returns true if momnitoring enabled on the cluster
-func (c *EKSCluster) GetMonitoring() bool {
-	return c.modelCluster.Monitoring
-}
-
-// SetMonitoring returns true if monitoring enabled on the cluster
-func (c *EKSCluster) SetMonitoring(l bool) {
-	c.modelCluster.Monitoring = l
 }
 
 // GetScaleOptions returns scale options for the cluster
@@ -1566,14 +1515,4 @@ func (c *EKSCluster) loadClusterUserCredentials(context *action.EksClusterCreate
 	}
 
 	return nil
-}
-
-// NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
-func (c *EKSCluster) NeedAdminRights() bool {
-	return false
-}
-
-// GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
-func (c *EKSCluster) GetKubernetesUserName() (string, error) {
-	return "", nil
 }

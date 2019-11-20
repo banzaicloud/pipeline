@@ -15,7 +15,6 @@
 package cluster
 
 import (
-	"errors"
 	"time"
 
 	"emperror.dev/emperror"
@@ -96,9 +95,6 @@ func (c *DummyCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
 		Cloud:             pkgCluster.Dummy,
 		Distribution:      pkgCluster.Dummy,
 		ResourceID:        c.GetID(),
-		Logging:           c.GetLogging(),
-		Monitoring:        c.GetMonitoring(),
-		SecurityScan:      c.GetSecurityScan(),
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nil,
 		Region:            c.modelCluster.Location,
@@ -235,10 +231,6 @@ func (c *DummyCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
-func (c *DummyCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	return nil, errors.New("not implemented")
-}
-
 // GetK8sConfig returns the Kubernetes config
 func (c *DummyCluster) GetK8sConfig() ([]byte, error) {
 	return c.DownloadK8sConfig()
@@ -254,36 +246,6 @@ func (c *DummyCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
 }
 
-// GetSecurityScan returns true if security scan enabled on the cluster
-func (c *DummyCluster) GetSecurityScan() bool {
-	return c.modelCluster.SecurityScan
-}
-
-// SetSecurityScan returns true if security scan enabled on the cluster
-func (c *DummyCluster) SetSecurityScan(scan bool) {
-	c.modelCluster.SecurityScan = scan
-}
-
-// GetLogging returns true if logging enabled on the cluster
-func (c *DummyCluster) GetLogging() bool {
-	return c.modelCluster.Logging
-}
-
-// SetLogging returns true if logging enabled on the cluster
-func (c *DummyCluster) SetLogging(l bool) {
-	c.modelCluster.Logging = l
-}
-
-// GetMonitoring returns true if momnitoring enabled on the cluster
-func (c *DummyCluster) GetMonitoring() bool {
-	return c.modelCluster.Monitoring
-}
-
-// SetMonitoring returns true if monitoring enabled on the cluster
-func (c *DummyCluster) SetMonitoring(l bool) {
-	c.modelCluster.Monitoring = l
-}
-
 // getScaleOptionsFromModelV1 returns scale options for the cluster
 func (c *DummyCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 	return getScaleOptionsFromModel(c.modelCluster.ScaleOptions)
@@ -292,16 +254,6 @@ func (c *DummyCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 // SetScaleOptions sets scale options for the cluster
 func (c *DummyCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
-}
-
-// NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
-func (c *DummyCluster) NeedAdminRights() bool {
-	return false
-}
-
-// GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
-func (c *DummyCluster) GetKubernetesUserName() (string, error) {
-	return "", nil
 }
 
 // GetTTL retrieves the TTL of the cluster

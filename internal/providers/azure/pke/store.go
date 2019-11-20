@@ -53,7 +53,6 @@ type AzurePKEClusterStore interface {
 	SetActiveWorkflowID(clusterID uint, workflowID string) error
 	SetConfigSecretID(clusterID uint, secretID string) error
 	SetSSHSecretID(clusterID uint, sshSecretID string) error
-	SetFeature(clusterID uint, feature string, state bool) error
 	SetNodePoolSizes(clusterID uint, nodePoolName string, min, max, desiredCount uint, autoscaling bool) error
 	UpdateClusterAccessPoints(clusterID uint, accessPoints AccessPoints) error
 }

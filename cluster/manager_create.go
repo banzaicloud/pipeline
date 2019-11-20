@@ -224,6 +224,7 @@ func (m *Manager) createCluster(
 			ClusterName:      cluster.GetName(),
 			OrganizationID:   cluster.GetOrganizationId(),
 			OrganizationName: org.Name,
+			Distribution:     cluster.GetDistribution(),
 		}
 
 		workflowOptions := client.StartWorkflowOptions{
