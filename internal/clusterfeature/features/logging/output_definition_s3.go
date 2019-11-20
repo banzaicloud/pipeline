@@ -24,15 +24,11 @@ type outputDefinitionManagerS3 struct {
 	baseOutputManager
 }
 
-func (outputDefinitionManagerS3) getOutputName() string {
+func (outputDefinitionManagerS3) getName() string {
 	return "s3-output"
 }
 
-func (outputDefinitionManagerS3) getFlowName() string {
-	return "s3-flow"
-}
-
-func (m outputDefinitionManagerS3) getOutputSpec(spec clusterOutputSpec, op bucketOptions) v1beta1.ClusterOutputSpec {
+func (m outputDefinitionManagerS3) getOutputSpec(spec bucketSpec, op bucketOptions) v1beta1.ClusterOutputSpec {
 	return v1beta1.ClusterOutputSpec{
 		OutputSpec: v1beta1.OutputSpec{
 			S3OutputConfig: &output.S3OutputConfig{
@@ -54,7 +50,7 @@ func (m outputDefinitionManagerS3) getOutputSpec(spec clusterOutputSpec, op buck
 				},
 				Path:     m.getPathSpec(),
 				S3Region: op.s3.region,
-				S3Bucket: spec.Provider.Bucket.Name,
+				S3Bucket: spec.Name,
 				Buffer:   m.getBufferSpec(),
 				Format: &output.Format{
 					Type: "json",

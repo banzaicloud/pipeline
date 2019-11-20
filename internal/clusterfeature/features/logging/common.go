@@ -25,6 +25,7 @@ const (
 	providerGoogleGCS  = "gcs"
 	providerAlibabaOSS = "oss"
 	providerAzure      = "azure"
+	providerLoki       = "loki"
 
 	tlsSecretName                     = "logging-tls-secret"
 	loggingOperatorReleaseName        = "logging-operator"
@@ -48,7 +49,7 @@ const (
 	fluentdSecretName   = "logging-operator-fluentd-secret"
 
 	lokiOutputDefinitionName = "loki-output"
-	lokiFlowResourceName     = "loki-flow"
+	flowResourceName         = "banzai-logging-flow"
 )
 
 func getLokiSecretName(clusterID uint) string {
