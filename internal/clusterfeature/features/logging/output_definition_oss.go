@@ -24,20 +24,16 @@ type outputDefinitionManagerOSS struct {
 	baseOutputManager
 }
 
-func (outputDefinitionManagerOSS) getOutputName() string {
+func (outputDefinitionManagerOSS) getName() string {
 	return "oss-output"
 }
 
-func (outputDefinitionManagerOSS) getFlowName() string {
-	return "oss-flow"
-}
-
-func (m outputDefinitionManagerOSS) getOutputSpec(spec clusterOutputSpec, op bucketOptions) v1beta1.ClusterOutputSpec {
+func (m outputDefinitionManagerOSS) getOutputSpec(spec bucketSpec, op bucketOptions) v1beta1.ClusterOutputSpec {
 	return v1beta1.ClusterOutputSpec{
 		OutputSpec: v1beta1.OutputSpec{
 			OSSOutput: &output.OSSOutput{
 				Endpoint: "",
-				Bucket:   spec.Provider.Bucket.Name,
+				Bucket:   spec.Name,
 				AccessKeyId: &loggingSecret.Secret{
 					ValueFrom: &loggingSecret.ValueFrom{
 						SecretKeyRef: &loggingSecret.KubernetesSecret{
