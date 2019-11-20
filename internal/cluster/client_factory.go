@@ -16,7 +16,16 @@ package cluster
 
 import (
 	"context"
+
+	"k8s.io/client-go/kubernetes"
 )
+
+// ClientFactory returns a Kubernetes client.
+//go:generate mockery -name ClientFactory -inpkg
+type ClientFactory interface {
+	// FromSecret creates a Kubernetes client for a cluster from a secret.
+	FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error)
+}
 
 // DynamicFileClient interacts with a cluster with file manifests.
 //go:generate mockery -name DynamicFileClient -inpkg
