@@ -304,11 +304,6 @@ func (c *DummyCluster) GetKubernetesUserName() (string, error) {
 	return "", nil
 }
 
-// GetCreatedBy returns cluster create userID.
-func (c *DummyCluster) GetCreatedBy() uint {
-	return c.modelCluster.CreatedBy
-}
-
 // GetTTL retrieves the TTL of the cluster
 func (c *DummyCluster) GetTTL() time.Duration {
 	return time.Duration(c.modelCluster.TtlMinutes) * time.Minute
