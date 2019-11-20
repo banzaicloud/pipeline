@@ -247,9 +247,6 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Distribution:      o.modelCluster.Distribution,
 		Version:           o.modelCluster.OKE.Version,
 		ResourceID:        o.GetID(),
-		Logging:           o.GetLogging(),
-		Monitoring:        o.GetMonitoring(),
-		SecurityScan:      o.GetSecurityScan(),
 		CreatorBaseFields: *NewCreatorBaseFields(o.modelCluster.CreatedAt, o.modelCluster.CreatedBy),
 		NodePools:         nodePools,
 		Region:            o.modelCluster.Location,
@@ -585,36 +582,6 @@ func (o *OKECluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) 
 // RbacEnabled returns true if rbac enabled on the cluster
 func (o *OKECluster) RbacEnabled() bool {
 	return true
-}
-
-// SecurityScan returns true if security scan enabled on the cluster
-func (o *OKECluster) GetSecurityScan() bool {
-	return o.modelCluster.SecurityScan
-}
-
-// SetSecurityScan returns true if security scan enabled on the cluster
-func (o *OKECluster) SetSecurityScan(scan bool) {
-	o.modelCluster.SecurityScan = scan
-}
-
-// GetLogging returns true if logging enabled on the cluster
-func (o *OKECluster) GetLogging() bool {
-	return o.modelCluster.Logging
-}
-
-// SetLogging returns true if logging enabled on the cluster
-func (o *OKECluster) SetLogging(l bool) {
-	o.modelCluster.Logging = l
-}
-
-// GetMonitoring returns true if momnitoring enabled on the cluster
-func (o *OKECluster) GetMonitoring() bool {
-	return o.modelCluster.Monitoring
-}
-
-// SetMonitoring returns true if monitoring enabled on the cluster
-func (o *OKECluster) SetMonitoring(l bool) {
-	o.modelCluster.Monitoring = l
 }
 
 // getScaleOptionsFromModelV1 returns scale options for the cluster

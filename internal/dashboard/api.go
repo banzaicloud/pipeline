@@ -199,10 +199,6 @@ func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonClust
 	clusterInfo.Location = clusterStatus.Location
 	clusterInfo.MasterVersion = clusterStatus.Version
 
-	clusterInfo.Logging = clusterStatus.Logging
-	clusterInfo.Monitoring = clusterStatus.Monitoring
-	clusterInfo.SecurityScan = clusterStatus.SecurityScan
-
 	endPoint, err := commonCluster.GetAPIEndpoint()
 	if err != nil {
 		d.logger.Warn(err.Error())
