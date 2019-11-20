@@ -950,20 +950,6 @@ func (c *AKSCluster) SaveSshSecretId(sshSecretID string) error {
 	return c.modelCluster.UpdateSshSecret(sshSecretID)
 }
 
-// GetK8sIpv4Cidrs returns possible IP ranges for pods and services in the cluster
-// On AKS the services and pods IP ranges can be fetched from Azure
-func (c *AKSCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	cluster, err := c.getAzureCluster()
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to retrieve AKS cluster")
-	}
-
-	return &pkgCluster.Ipv4Cidrs{
-		ServiceClusterIPRanges: []string{*cluster.NetworkProfile.ServiceCidr},
-		PodIPRanges:            []string{*cluster.NetworkProfile.PodCidr},
-	}, nil
-}
-
 // GetK8sConfig returns the Kubernetes config
 func (c *AKSCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)

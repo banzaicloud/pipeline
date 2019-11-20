@@ -313,11 +313,6 @@ func (c *KubeCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
-func (c *KubeCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	// can't use apiserver to return service CIDR as it's not exposed: https://github.com/kubernetes/kubernetes/issues/46508
-	return nil, errors.New("not implemented")
-}
-
 // GetK8sConfig returns the Kubernetes config
 func (c *KubeCluster) GetK8sConfig() ([]byte, error) {
 	return c.DownloadK8sConfig()

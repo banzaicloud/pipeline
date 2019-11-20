@@ -407,20 +407,6 @@ func (o *OKECluster) GetConfigSecretId() string {
 	return o.modelCluster.ConfigSecretId
 }
 
-// GetK8sIpv4Cidrs returns possible IP ranges for pods and services in the cluster
-// On OKE the services and pods IP ranges can be fetched from Oracle
-func (o *OKECluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	cluster, err := o.GetCluster()
-	if err != nil {
-		return nil, err
-	}
-
-	return &pkgCluster.Ipv4Cidrs{
-		ServiceClusterIPRanges: []string{*cluster.Options.KubernetesNetworkConfig.ServicesCidr},
-		PodIPRanges:            []string{*cluster.Options.KubernetesNetworkConfig.PodsCidr},
-	}, nil
-}
-
 // GetK8sConfig returns the Kubernetes config
 func (o *OKECluster) GetK8sConfig() ([]byte, error) {
 	return o.CommonClusterBase.getConfig(o)

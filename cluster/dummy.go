@@ -15,7 +15,6 @@
 package cluster
 
 import (
-	"errors"
 	"time"
 
 	"emperror.dev/emperror"
@@ -230,10 +229,6 @@ func (c *DummyCluster) SaveConfigSecretId(configSecretId string) error {
 // GetConfigSecretId return config secret id
 func (c *DummyCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
-}
-
-func (c *DummyCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	return nil, errors.New("not implemented")
 }
 
 // GetK8sConfig returns the Kubernetes config
