@@ -94,14 +94,6 @@ type CommonCluster interface {
 	ListNodeNames() (pkgCommon.NodeNames, error)
 	NodePoolExists(nodePoolName string) bool
 
-	// Set Get flags
-	GetSecurityScan() bool
-	SetSecurityScan(scan bool)
-	GetLogging() bool
-	SetLogging(l bool)
-	GetMonitoring() bool
-	SetMonitoring(m bool)
-
 	SetStatus(status, statusMessage string) error
 }
 

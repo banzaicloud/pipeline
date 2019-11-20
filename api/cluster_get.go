@@ -80,9 +80,6 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 		Distribution: clusterStatus.Distribution,
 		Spot:         clusterStatus.Spot,
 
-		Logging:      clusterStatus.Logging,
-		Monitoring:   clusterStatus.Monitoring,
-		SecurityScan: clusterStatus.SecurityScan,
 		ScaleOptions: commonCluster.GetScaleOptions(),
 		TtlMinutes:   clusterStatus.TtlMinutes,
 

@@ -66,36 +66,6 @@ func (c *ACKCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
 }
 
-// GetSecurityScan returns true if security scan enabled on the cluster
-func (c *ACKCluster) GetSecurityScan() bool {
-	return c.modelCluster.SecurityScan
-}
-
-// SetSecurityScan returns true if security scan enabled on the cluster
-func (c *ACKCluster) SetSecurityScan(scan bool) {
-	c.modelCluster.SecurityScan = scan
-}
-
-// GetLogging returns true if logging enabled on the cluster
-func (c *ACKCluster) GetLogging() bool {
-	return c.modelCluster.Logging
-}
-
-// SetLogging returns true if logging enabled on the cluster
-func (c *ACKCluster) SetLogging(l bool) {
-	c.modelCluster.Logging = l
-}
-
-// GetMonitoring returns true if momnitoring enabled on the cluster
-func (c *ACKCluster) GetMonitoring() bool {
-	return c.modelCluster.Monitoring
-}
-
-// SetMonitoring returns true if monitoring enabled on the cluster
-func (c *ACKCluster) SetMonitoring(l bool) {
-	c.modelCluster.Monitoring = l
-}
-
 // getScaleOptionsFromModelV1 returns scale options for the cluster
 func (c *ACKCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 	return getScaleOptionsFromModel(c.modelCluster.ScaleOptions)
@@ -633,9 +603,6 @@ func (c *ACKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Cloud:             c.modelCluster.Cloud,
 		Distribution:      c.modelCluster.Distribution,
 		ResourceID:        c.modelCluster.ID,
-		Logging:           c.GetLogging(),
-		Monitoring:        c.GetMonitoring(),
-		SecurityScan:      c.GetSecurityScan(),
 		NodePools:         nodePools,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		Region:            c.modelCluster.ACK.RegionID,

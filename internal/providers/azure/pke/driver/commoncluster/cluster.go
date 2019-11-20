@@ -245,9 +245,6 @@ func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, err
 		Cloud:         a.GetCloud(),
 		Distribution:  a.GetDistribution(),
 		ResourceID:    a.model.ID,
-		Logging:       a.GetLogging(),
-		Monitoring:    a.GetMonitoring(),
-		SecurityScan:  a.GetSecurityScan(),
 		Version:       a.model.Kubernetes.Version,
 		NodePools:     nodePools,
 		CreatorBaseFields: pkgCommon.CreatorBaseFields{
@@ -273,33 +270,6 @@ func (a *AzurePkeCluster) NodePoolExists(nodePoolName string) bool {
 		}
 	}
 	return false
-}
-
-func (a *AzurePkeCluster) GetSecurityScan() bool {
-	return a.model.SecurityScan
-}
-
-func (a *AzurePkeCluster) SetSecurityScan(scan bool) {
-	a.model.SecurityScan = scan
-	a.store.SetFeature(a.model.ID, "SecurityScan", scan) // nolint: errcheck
-}
-
-func (a *AzurePkeCluster) GetLogging() bool {
-	return a.model.Logging
-}
-
-func (a *AzurePkeCluster) SetLogging(l bool) {
-	a.model.Logging = l
-	a.store.SetFeature(a.model.ID, "Logging", l) // nolint: errcheck
-}
-
-func (a *AzurePkeCluster) GetMonitoring() bool {
-	return a.model.Monitoring
-}
-
-func (a *AzurePkeCluster) SetMonitoring(m bool) {
-	a.model.Monitoring = m
-	a.store.SetFeature(a.model.ID, "Monitoring", m) // nolint: errcheck
 }
 
 func (a *AzurePkeCluster) SetStatus(status string, statusMessage string) error {
