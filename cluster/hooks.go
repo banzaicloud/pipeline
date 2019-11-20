@@ -229,34 +229,6 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 
 }
 
-func setAdminRights(client *kubernetes.Clientset, userName string) (err error) {
-
-	name := "cluster-creator-admin-right"
-
-	log := log.WithFields(logrus.Fields{"name": name, "user": userName})
-
-	log.Info("cluster role creating")
-
-	_, err = client.RbacV1().ClusterRoleBindings().Create(
-		&rbacv1.ClusterRoleBinding{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: name,
-			},
-			Subjects: []rbacv1.Subject{
-				{
-					Kind: "User",
-					Name: userName,
-				},
-			},
-			RoleRef: rbacv1.RoleRef{
-				Kind: "ClusterRole",
-				Name: "cluster-admin",
-			},
-		})
-
-	return
-}
-
 // InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
 func InstallClusterAutoscalerPostHook(cluster CommonCluster) error {
 	return DeployClusterAutoscaler(cluster)
@@ -444,36 +416,6 @@ func InstallHelmPostHook(cluster CommonCluster) error {
 	} else {
 		log.Errorf("Error during retry helm install: %s", err.Error())
 	}
-	return nil
-}
-
-// SetupPrivileges setups privileges
-func SetupPrivileges(cluster CommonCluster) error {
-
-	// set admin rights (if needed)
-	if cluster.NeedAdminRights() {
-
-		kubeConfig, err := cluster.GetK8sConfig()
-		if err != nil {
-			return err
-		}
-
-		client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-		if err != nil {
-			return err
-		}
-
-		userName, err := cluster.GetKubernetesUserName()
-		if err != nil {
-			return err
-		}
-
-		if err := setAdminRights(client, userName); err != nil {
-			return err
-		}
-
-	}
-
 	return nil
 }
 

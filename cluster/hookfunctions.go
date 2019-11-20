@@ -25,10 +25,6 @@ import (
 // HookMap for api hook endpoints
 // nolint: gochecknoglobals
 var HookMap = map[string]PostFunctioner{
-	pkgCluster.SetupPrivileges: &BasePostFunction{
-		f:            SetupPrivileges,
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.CreatePipelineNamespacePostHook: &BasePostFunction{
 		f:            CreatePipelineNamespacePostHook,
 		ErrorHandler: ErrorHandler{},
@@ -94,7 +90,6 @@ var HookMap = map[string]PostFunctioner{
 // BasePostHookFunctions default posthook functions after cluster create
 // nolint: gochecknoglobals
 var BasePostHookFunctions = []string{
-	pkgCluster.SetupPrivileges,
 	pkgCluster.LabelNodesWithNodePoolName,
 	pkgCluster.CreatePipelineNamespacePostHook,
 	pkgCluster.LabelKubeSystemNamespacePostHook,
