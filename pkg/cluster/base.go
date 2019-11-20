@@ -445,32 +445,6 @@ func (r *UpdateClusterRequest) preValidate() {
 	}
 }
 
-// ClusterProfileResponse describes Pipeline's ClusterProfile API responses
-type ClusterProfileResponse struct {
-	Name       string                    `json:"name" binding:"required"`
-	Location   string                    `json:"location" binding:"required"`
-	Cloud      string                    `json:"cloud" binding:"required"`
-	TtlMinutes uint                      `json:"ttlMinutes,omitempty" yaml:"ttlMinutes,omitempty"`
-	Properties *ClusterProfileProperties `json:"properties" binding:"required"`
-}
-
-// ClusterProfileRequest describes CreateClusterProfile request
-type ClusterProfileRequest struct {
-	Name       string                    `json:"name" binding:"required"`
-	Location   string                    `json:"location" binding:"required"`
-	Cloud      string                    `json:"cloud" binding:"required"`
-	TtlMinutes uint                      `json:"ttlMinutes,omitempty" yaml:"ttlMinutes,omitempty"`
-	Properties *ClusterProfileProperties `json:"properties" binding:"required"`
-}
-
-type ClusterProfileProperties struct {
-	ACK *ack.ClusterProfileACK `json:"ack,omitempty"`
-	EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
-	AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
-	GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
-	OKE *oke.Cluster           `json:"oke,omitempty"`
-}
-
 // CloudInfoRequest describes Cloud info requests
 type CloudInfoRequest struct {
 	OrganizationId uint             `json:"-"`
