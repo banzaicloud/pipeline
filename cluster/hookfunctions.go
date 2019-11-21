@@ -53,10 +53,6 @@ var HookMap = map[string]PostFunctioner{
 		f:            LabelNodesWithNodePoolName,
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.InstallPVCOperator: &BasePostFunction{
-		f:            InstallPVCOperatorPostHook,
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.RestoreFromBackup: &PostFunctionWithParam{
 		f:            RestoreFromBackup,
 		ErrorHandler: ErrorHandler{},
@@ -95,7 +91,6 @@ var BasePostHookFunctions = []string{
 	pkgCluster.InstallKubernetesDashboardPostHook,
 	pkgCluster.InstallClusterAutoscalerPostHook,
 	pkgCluster.InstallHorizontalPodAutoscalerPostHook,
-	pkgCluster.InstallPVCOperator,
 	pkgCluster.InitSpotConfig,
 	pkgCluster.DeployInstanceTerminationHandler,
 	pkgCluster.CreateClusterRoles,
