@@ -107,10 +107,6 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		return errors.WrapIf(err, "failed to install logging-operator")
 	}
 
-	if err := op.installLoggingOperatorLogging(ctx, cl.GetID(), boundSpec); err != nil {
-		return errors.WrapIf(err, "failed to install logging-operator-logging")
-	}
-
 	if err := op.processLoki(ctx, boundSpec.Loki, cl); err != nil {
 		return errors.WrapIf(err, "failed to install Loki")
 	}
@@ -125,63 +121,6 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 	}
 
 	return nil
-}
-
-func (op FeatureOperator) installLoggingOperatorLogging(ctx context.Context, clusterID uint, spec featureSpec) error {
-	var tlsEnabled = spec.Logging.TLS
-	var chartValues = loggingOperatorLoggingValues{
-		Tls: tlsValues{
-			Enabled: tlsEnabled,
-		},
-		Fluentbit: fluentValues{
-			Enabled: true,
-			Image: imageValues{
-				Repository: op.config.Images.Fluentbit.Repository,
-				Tag:        op.config.Images.Fluentbit.Tag,
-				PullPolicy: "IfNotPresent",
-			},
-			Metrics: metricsValues{
-				ServiceMonitor: spec.Logging.Metrics,
-			},
-		},
-		Fluentd: fluentValues{
-			Enabled: true,
-			Image: imageValues{
-				Repository: op.config.Images.Fluentd.Repository,
-				Tag:        op.config.Images.Fluentd.Tag,
-				PullPolicy: "IfNotPresent",
-			},
-			Metrics: metricsValues{
-				ServiceMonitor: spec.Logging.Metrics,
-			},
-		},
-	}
-
-	if tlsEnabled {
-		chartValues.Tls.FluentdSecretName = fluentdSecretName
-		chartValues.Tls.FluentbitSecretName = fluentbitSecretName
-	}
-
-	loggingConfigValues, err := copystructure.Copy(op.config.Charts.Logging.Values)
-	if err != nil {
-		return errors.WrapIf(err, "failed to copy logging values")
-	}
-	valuesBytes, err := mergeValuesWithConfig(chartValues, loggingConfigValues)
-	if err != nil {
-		return errors.WrapIf(err, "failed to merge logging values with config")
-	}
-
-	var chartName = op.config.Charts.Logging.Chart
-	var chartVersion = op.config.Charts.Logging.Version
-	return op.helmService.ApplyDeployment(
-		ctx,
-		clusterID,
-		op.config.Namespace,
-		chartName,
-		loggingOperatorLoggingReleaseName,
-		valuesBytes,
-		chartVersion,
-	)
 }
 
 // Deactivate deactivates the cluster feature
@@ -203,11 +142,6 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 	// delete Logging-operator deployment
 	if err := op.helmService.DeleteDeployment(ctx, clusterID, loggingOperatorReleaseName); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to delete deployment", "release", loggingOperatorReleaseName)
-	}
-
-	// delete Logging-operator-logging deployment
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, loggingOperatorLoggingReleaseName); err != nil {
-		return errors.WrapIfWithDetails(err, "failed to delete deployment", "release", loggingOperatorLoggingReleaseName)
 	}
 
 	return nil
