@@ -17,35 +17,27 @@ package logging
 import (
 	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	"github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
-	loggingSecret "github.com/banzaicloud/logging-operator/pkg/sdk/model/secret"
 )
 
-type outputDefinitionManagerGCS struct {
-	baseOutputManager
+type outputDefinitionManagerLoki struct {
+	serviceURL string
 }
 
-func (outputDefinitionManagerGCS) getName() string {
-	return "gcs-output"
-}
-
-func (m outputDefinitionManagerGCS) getOutputSpec(spec bucketSpec, op bucketOptions) v1beta1.ClusterOutputSpec {
+func (o outputDefinitionManagerLoki) getOutputSpec(_ bucketSpec, _ bucketOptions) v1beta1.ClusterOutputSpec {
 	return v1beta1.ClusterOutputSpec{
 		OutputSpec: v1beta1.OutputSpec{
-			GCSOutput: &output.GCSOutput{
-				Project: op.gcs.project,
-				Keyfile: "",
-				CredentialsJson: &loggingSecret.Secret{
-					ValueFrom: &loggingSecret.ValueFrom{
-						SecretKeyRef: &loggingSecret.KubernetesSecret{
-							Name: m.sourceSecretName,
-							Key:  outputDefinitionSecretKeyGCS,
-						},
-					},
-				},
-				Bucket: spec.Name,
-				Path:   m.getPathSpec(),
-				Buffer: m.getBufferSpec(),
+			LokiOutput: &output.LokiOutput{
+				Url:                       o.serviceURL,
+				ConfigureKubernetesLabels: true,
 			},
 		},
 	}
+}
+
+func (outputDefinitionManagerLoki) getName() string {
+	return lokiOutputDefinitionName
+}
+
+func (outputDefinitionManagerLoki) getProviderSpec() providerSpec {
+	return providerSpec{}
 }

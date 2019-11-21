@@ -24,15 +24,11 @@ type outputDefinitionManagerAzure struct {
 	baseOutputManager
 }
 
-func (outputDefinitionManagerAzure) getOutputName() string {
+func (outputDefinitionManagerAzure) getName() string {
 	return "azure-output"
 }
 
-func (outputDefinitionManagerAzure) getFlowName() string {
-	return "azure-flow"
-}
-
-func (m outputDefinitionManagerAzure) getOutputSpec(spec clusterOutputSpec, _ bucketOptions) v1beta1.ClusterOutputSpec {
+func (m outputDefinitionManagerAzure) getOutputSpec(spec bucketSpec, _ bucketOptions) v1beta1.ClusterOutputSpec {
 	return v1beta1.ClusterOutputSpec{
 		OutputSpec: v1beta1.OutputSpec{
 			AzureStorage: &output.AzureStorage{
@@ -53,7 +49,7 @@ func (m outputDefinitionManagerAzure) getOutputSpec(spec clusterOutputSpec, _ bu
 						},
 					},
 				},
-				AzureContainer: spec.Provider.Bucket.Name,
+				AzureContainer: spec.Name,
 				Buffer:         m.getBufferSpec(),
 			},
 		},
