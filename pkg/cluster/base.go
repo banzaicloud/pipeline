@@ -79,7 +79,6 @@ const (
 	InstallClusterAutoscalerPostHook       = "InstallClusterAutoscalerPostHook"
 	InstallHorizontalPodAutoscalerPostHook = "InstallHorizontalPodAutoscalerPostHook"
 	LabelNodesWithNodePoolName             = "LabelNodesWithNodePoolName"
-	InstallPVCOperator                     = "InstallPVCOperator"
 	RestoreFromBackup                      = "RestoreFromBackup"
 	InitSpotConfig                         = "InitSpotConfig"
 	DeployInstanceTerminationHandler       = "DeployInstanceTerminationHandler"

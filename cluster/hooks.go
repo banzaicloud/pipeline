@@ -301,19 +301,6 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 		"hpa-operator", valuesOverride, chartVersion, false)
 }
 
-// InstallPVCOperatorPostHook installs the PVC operator
-func InstallPVCOperatorPostHook(cluster CommonCluster) error {
-	infraNamespace := global.Config.Cluster.Namespace
-
-	values := map[string]interface{}{}
-	valuesOverride, err := yaml.Marshal(values)
-	if err != nil {
-		return err
-	}
-
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/pvc-operator", "pvc-operator", valuesOverride, "", false)
-}
-
 func LabelKubeSystemNamespacePostHook(cluster CommonCluster) error {
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
