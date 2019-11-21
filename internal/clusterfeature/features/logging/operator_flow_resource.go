@@ -28,6 +28,7 @@ func (op FeatureOperator) createClusterFlowResource(ctx context.Context, manager
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      flowResourceName,
 			Namespace: op.config.Namespace,
+			Labels:    map[string]string{resourceLabelKey: featureName},
 		},
 	}); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to delete flow resource")
@@ -48,6 +49,7 @@ func (op FeatureOperator) generateFlowResource(definitions []outputDefinitionMan
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      flowResourceName,
 			Namespace: op.config.Namespace,
+			Labels:    map[string]string{resourceLabelKey: featureName},
 		},
 		Spec: v1beta1.FlowSpec{
 			Selectors:  map[string]string{},

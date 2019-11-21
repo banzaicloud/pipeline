@@ -56,9 +56,9 @@ func (op FeatureOperator) createClusterOutputDefinitions(ctx context.Context, sp
 		})
 	}
 
-	// remove old output definitions
+	// remove old output definitions with feature labels
 	var outputList v1beta1.ClusterOutputList
-	if err := op.kubernetesService.List(ctx, cl.GetID(), nil, &outputList); err != nil {
+	if err := op.kubernetesService.List(ctx, cl.GetID(), map[string]string{resourceLabelKey: featureName}, &outputList); err != nil {
 		return nil, errors.WrapIf(err, "failed to list output definitions")
 	}
 
