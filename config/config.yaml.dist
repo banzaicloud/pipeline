@@ -227,13 +227,6 @@ dex:
 #                # See https://github.com/banzaicloud/banzai-charts/tree/master/loki for details
 #                values: {}
 #
-#            logging:
-#                chart: "banzaicloud-stable/logging-operator-logging"
-#                version: "2.5.0"
-#
-#                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-operator-logging for details
-#                values: {}
-#
 #    dns:
 #        enabled: true
 #
