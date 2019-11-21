@@ -72,7 +72,6 @@ const (
 
 // constants for posthooks
 const (
-	CreatePipelineNamespacePostHook        = "CreatePipelineNamespacePostHook"
 	LabelKubeSystemNamespacePostHook       = "LabelKubeSystemNamespacePostHook"
 	InstallHelmPostHook                    = "InstallHelmPostHook"
 	InstallIngressControllerPostHook       = "InstallIngressControllerPostHook"
