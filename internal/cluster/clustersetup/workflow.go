@@ -82,5 +82,16 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 		}
 	}
 
+	{
+		activityInput := CreatePipelineNamespaceActivityInput{
+			ConfigSecretID: input.ConfigSecretID,
+		}
+
+		err := workflow.ExecuteActivity(ctx, CreatePipelineNamespaceActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
