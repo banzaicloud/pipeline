@@ -20,7 +20,9 @@ import (
 	"path"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	"github.com/mitchellh/copystructure"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
@@ -109,6 +111,10 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 
 	if err := op.processLoki(ctx, boundSpec.Loki, cl); err != nil {
 		return errors.WrapIf(err, "failed to install Loki")
+	}
+
+	if err := op.createLoggingResource(ctx, clusterID, boundSpec); err != nil {
+		return errors.WrapIf(err, "failed to create logging resource")
 	}
 
 	outputManagers, err := op.createClusterOutputDefinitions(ctx, boundSpec, cl)
@@ -439,4 +445,51 @@ func mergeValuesWithConfig(chartValues interface{}, configValues interface{}) ([
 	}
 
 	return json.Marshal(result)
+}
+
+func (op FeatureOperator) createLoggingResource(ctx context.Context, clusterID uint, spec featureSpec) error {
+	// TODO (colin): add labels
+	var tlsEnabled = spec.Logging.TLS
+	var loggingResource = &v1beta1.Logging{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      loggingResourceName,
+			Namespace: op.config.Namespace,
+		},
+		Spec: v1beta1.LoggingSpec{
+			FluentbitSpec: &v1beta1.FluentbitSpec{
+				Image: v1beta1.ImageSpec{
+					Repository: op.config.Images.Fluentbit.Repository,
+					Tag:        op.config.Images.Fluentbit.Tag,
+					PullPolicy: "IfNotPresent",
+				},
+				TLS: v1beta1.FluentbitTLS{
+					Enabled: tlsEnabled,
+				},
+				Metrics: &v1beta1.Metrics{
+					ServiceMonitor: spec.Logging.Metrics,
+				},
+			},
+			FluentdSpec: &v1beta1.FluentdSpec{
+				TLS: v1beta1.FluentdTLS{
+					Enabled: tlsEnabled,
+				},
+				Image: v1beta1.ImageSpec{
+					Repository: op.config.Images.Fluentd.Repository,
+					Tag:        op.config.Images.Fluentd.Tag,
+					PullPolicy: "IfNotPresent",
+				},
+				Metrics: &v1beta1.Metrics{
+					ServiceMonitor: spec.Logging.Metrics,
+				},
+			},
+			ControlNamespace: op.config.Namespace,
+		},
+	}
+
+	if tlsEnabled {
+		loggingResource.Spec.FluentdSpec.TLS.SecretName = fluentdSecretName
+		loggingResource.Spec.FluentbitSpec.TLS.SecretName = fluentbitSecretName
+	}
+
+	return op.kubernetesService.EnsureObject(ctx, clusterID, loggingResource)
 }
