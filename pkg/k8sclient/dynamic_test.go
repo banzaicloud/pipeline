@@ -35,7 +35,7 @@ type DynamicFileClientTestSuite struct {
 }
 
 func testDynamicFileClient(t *testing.T) {
-	if os.Getenv("TEST_ASSET_KUBE_APISERVER") == "" || os.Getenv("TEST_ASSET_ETCD") != "" {
+	if os.Getenv("TEST_ASSET_KUBE_APISERVER") == "" || os.Getenv("TEST_ASSET_ETCD") == "" {
 		t.Skip("control plane binaries are missing")
 	}
 
