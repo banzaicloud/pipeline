@@ -59,6 +59,12 @@ func (s *WorkflowTestSuite) Test_Success() {
 	wf := Workflow{}
 	workflow.RegisterWithOptions(wf.Execute, workflow.RegisterOptions{Name: s.T().Name()})
 
+	s.env.OnActivity(
+		CreatePipelineNamespaceActivityName,
+		mock.Anything,
+		CreatePipelineNamespaceActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
 	workflowInput := WorkflowInput{
 		ConfigSecretID: "secret",
 		Cluster:        testCluster,
@@ -81,6 +87,12 @@ func (s *WorkflowTestSuite) Test_Success_InstallInitManifest() {
 		InitManifestActivityName,
 		mock.Anything,
 		InitManifestActivityInput{ConfigSecretID: "secret", Cluster: testCluster, Organization: testOrganization},
+	).Return(nil)
+
+	s.env.OnActivity(
+		CreatePipelineNamespaceActivityName,
+		mock.Anything,
+		CreatePipelineNamespaceActivityInput{ConfigSecretID: "secret"},
 	).Return(nil)
 
 	workflowInput := WorkflowInput{
