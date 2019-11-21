@@ -12,14 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package monitoring
+package logging
 
-type pushgatewaySecretInfoer struct{ baseSecretInfoer }
+import "github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
 
-func (pushgatewaySecretInfoer) name() string {
-	return "Pushgateway"
+type baseOutputManager struct {
+	sourceSecretName string
+	providerSpec     providerSpec
 }
 
-func (i pushgatewaySecretInfoer) generatedSecretName() string {
-	return getPushgatewaySecretName(i.clusterID)
+func (baseOutputManager) getBufferSpec() *output.Buffer {
+	return &output.Buffer{
+		Timekey:       "1m",
+		TimekeyWait:   "10s",
+		TimekeyUseUtc: true,
+	}
+}
+
+func (baseOutputManager) getPathSpec() string {
+	return "logs/${tag}/%Y/%m/%d/"
+}
+
+func (b baseOutputManager) getProviderSpec() providerSpec {
+	return b.providerSpec
 }

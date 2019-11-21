@@ -292,40 +292,6 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 		"hpa-operator", valuesOverride, chartVersion, false)
 }
 
-// InstallPVCOperatorPostHook installs the PVC operator
-func InstallPVCOperatorPostHook(cluster CommonCluster) error {
-	infraNamespace := global.Config.Cluster.Namespace
-
-	values := map[string]interface{}{}
-	valuesOverride, err := yaml.Marshal(values)
-	if err != nil {
-		return err
-	}
-
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/pvc-operator", "pvc-operator", valuesOverride, "", false)
-}
-
-func CreatePipelineNamespacePostHook(cluster CommonCluster) error {
-	kubeConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
-		return err
-	}
-
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		log.Errorf("Could not get kubernetes client: %s", err)
-		return err
-	}
-
-	pipelineSystemNamespace := global.Config.Cluster.Namespace
-	return k8sutil.EnsureNamespaceWithLabelWithRetry(client, pipelineSystemNamespace,
-		map[string]string{
-			"scan": "noscan",
-			"name": pipelineSystemNamespace,
-		})
-}
-
 func LabelKubeSystemNamespacePostHook(cluster CommonCluster) error {
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {

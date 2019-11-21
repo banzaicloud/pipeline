@@ -262,6 +262,12 @@ func main() {
 				clusteradapter.NewDynamicFileClientFactory(commonSecretStore),
 			)
 			activity.RegisterWithOptions(initManifestActivity.Execute, activity.RegisterOptions{Name: clustersetup.InitManifestActivityName})
+
+			createPipelineNamespaceActivity := clustersetup.NewCreatePipelineNamespaceActivity(
+				config.Cluster.Namespace,
+				clusteradapter.NewClientFactory(commonSecretStore),
+			)
+			activity.RegisterWithOptions(createPipelineNamespaceActivity.Execute, activity.RegisterOptions{Name: clustersetup.CreatePipelineNamespaceActivityName})
 		}
 
 		workflow.RegisterWithOptions(cluster.CreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.CreateClusterWorkflowName})

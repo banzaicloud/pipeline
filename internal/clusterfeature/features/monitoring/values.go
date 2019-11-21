@@ -36,9 +36,7 @@ type imageValues struct {
 }
 
 type prometheusPushgatewayValues struct {
-	Annotations map[string]interface{} `json:"annotations"`
-	Ingress     ingressValues          `json:"ingress"`
-	Image       imageValues            `json:"image"`
+	Image imageValues `json:"image"`
 }
 
 type baseValues struct {

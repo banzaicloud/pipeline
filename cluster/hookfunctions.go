@@ -25,10 +25,6 @@ import (
 // HookMap for api hook endpoints
 // nolint: gochecknoglobals
 var HookMap = map[string]PostFunctioner{
-	pkgCluster.CreatePipelineNamespacePostHook: &BasePostFunction{
-		f:            CreatePipelineNamespacePostHook,
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.LabelKubeSystemNamespacePostHook: &BasePostFunction{
 		f:            LabelKubeSystemNamespacePostHook,
 		ErrorHandler: ErrorHandler{},
@@ -55,10 +51,6 @@ var HookMap = map[string]PostFunctioner{
 	},
 	pkgCluster.LabelNodesWithNodePoolName: &BasePostFunction{
 		f:            LabelNodesWithNodePoolName,
-		ErrorHandler: ErrorHandler{},
-	},
-	pkgCluster.InstallPVCOperator: &BasePostFunction{
-		f:            InstallPVCOperatorPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
 	pkgCluster.RestoreFromBackup: &PostFunctionWithParam{
@@ -91,7 +83,6 @@ var HookMap = map[string]PostFunctioner{
 // nolint: gochecknoglobals
 var BasePostHookFunctions = []string{
 	pkgCluster.LabelNodesWithNodePoolName,
-	pkgCluster.CreatePipelineNamespacePostHook,
 	pkgCluster.LabelKubeSystemNamespacePostHook,
 	pkgCluster.InstallHelmPostHook,
 	pkgCluster.InstallNodePoolLabelSetOperator,
@@ -100,7 +91,6 @@ var BasePostHookFunctions = []string{
 	pkgCluster.InstallKubernetesDashboardPostHook,
 	pkgCluster.InstallClusterAutoscalerPostHook,
 	pkgCluster.InstallHorizontalPodAutoscalerPostHook,
-	pkgCluster.InstallPVCOperator,
 	pkgCluster.InitSpotConfig,
 	pkgCluster.DeployInstanceTerminationHandler,
 	pkgCluster.CreateClusterRoles,
