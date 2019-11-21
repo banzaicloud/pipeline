@@ -19,6 +19,7 @@ import (
 	"encoding/base64"
 
 	"emperror.dev/errors"
+	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -26,6 +27,39 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
+
+// ClientFactory returns a Kubernetes client.
+type ClientFactory struct {
+	secretStore common.SecretStore
+}
+
+// NewClientFactory returns a new ClientFactory.
+func NewClientFactory(secretStore common.SecretStore) ClientFactory {
+	return ClientFactory{
+		secretStore: secretStore,
+	}
+}
+
+// FromSecret creates a Kubernetes client for a cluster from a secret.
+func (f ClientFactory) FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error) {
+	values, err := f.secretStore.GetSecretValues(ctx, secretID)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: better secret parsing?
+	kubeConfig, err := base64.StdEncoding.DecodeString(values[secrettype.K8SConfig])
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot decode Kubernetes config")
+	}
+
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
 
 // DynamicFileClientFactory returns a DynamicFileClient.
 type DynamicFileClientFactory struct {

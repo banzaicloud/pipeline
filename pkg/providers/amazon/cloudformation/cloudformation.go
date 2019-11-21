@@ -64,6 +64,7 @@ type awsStackFailedError struct {
 	awsStackError   error
 	stackName       string
 	failedEventsMsg []string
+	isFinal         bool
 }
 
 func (e awsStackFailedError) Error() string {
@@ -79,35 +80,58 @@ func (e awsStackFailedError) Cause() error {
 	return e.awsStackError
 }
 
-func NewAwsStackFailure(awsStackError error, stackName string, cloudformationSrv *cloudformation.CloudFormation) error {
+// IsErrorFinal returns true if the error indicates that it
+// originates from a stack that is in CREATE_FAILED, DELETE_FAILED, ROLLBACK_FAILED, UPDATE_ROLLBACK_FAILED state
+func IsErrorFinal(err error) bool {
+	var awsStackErr awsStackFailedError
+
+	if errors.As(err, &awsStackErr) {
+		return awsStackErr.isFinal
+	}
+
+	return false
+}
+
+func NewAwsStackFailure(awsStackError error, stackName, clientRequestToken string, cloudformationSrv *cloudformation.CloudFormation) error {
 	if awsStackError == nil {
 		return nil
 	}
 
-	failedStackEvents, err := collectFailedStackEvents(stackName, cloudformationSrv)
+	stacksOutput, err := cloudformationSrv.DescribeStacks(&cloudformation.DescribeStacksInput{StackName: aws.String(stackName)})
+	if err != nil {
+		return errors.Combine(awsStackError, errors.WrapIf(err, "could not describe stack"))
+	}
+
+	isFinalErr := false
+
+	switch aws.StringValue(stacksOutput.Stacks[0].StackStatus) {
+	case cloudformation.StackStatusCreateFailed, cloudformation.StackStatusDeleteFailed, cloudformation.StackStatusRollbackFailed, cloudformation.StackStatusUpdateRollbackFailed:
+		isFinalErr = true
+	}
+
+	failedStackEvents, err := collectFailedStackEvents(stackName, clientRequestToken, cloudformationSrv)
 	if err != nil {
 		return errors.Append(awsStackError, errors.WrapIf(err, "could not retrieve stack events with 'FAILED' state"))
 	}
 
+	var failedEventsMsg []string
 	if len(failedStackEvents) > 0 {
-		var failedEventsMsg []string
-
 		for _, event := range failedStackEvents {
 			msg := fmt.Sprintf("%v %v %v", aws.StringValue(event.LogicalResourceId), aws.StringValue(event.ResourceStatus), aws.StringValue(event.ResourceStatusReason))
 			failedEventsMsg = append(failedEventsMsg, msg)
 		}
-
-		return awsStackFailedError{
-			awsStackError:   awsStackError,
-			stackName:       stackName,
-			failedEventsMsg: failedEventsMsg,
-		}
 	}
 
-	return awsStackError
+	return awsStackFailedError{
+		awsStackError:   awsStackError,
+		stackName:       stackName,
+		failedEventsMsg: failedEventsMsg,
+		isFinal:         isFinalErr,
+	}
+
 }
 
-func collectFailedStackEvents(stackName string, cloudformationSrv *cloudformation.CloudFormation) ([]*cloudformation.StackEvent, error) {
+func collectFailedStackEvents(stackName, clientRequestToken string, cloudformationSrv *cloudformation.CloudFormation) ([]*cloudformation.StackEvent, error) {
 	var failedStackEvents []*cloudformation.StackEvent
 
 	describeStackEventsInput := &cloudformation.DescribeStackEventsInput{StackName: aws.String(stackName)}
@@ -115,7 +139,11 @@ func collectFailedStackEvents(stackName string, cloudformationSrv *cloudformatio
 		func(page *cloudformation.DescribeStackEventsOutput, lastPage bool) bool {
 
 			for _, event := range page.StackEvents {
-				if strings.HasSuffix(*event.ResourceStatus, "FAILED") {
+				if clientRequestToken != "" && aws.StringValue(event.ClientRequestToken) != clientRequestToken {
+					continue
+				}
+
+				if strings.HasSuffix(aws.StringValue(event.ResourceStatus), "FAILED") {
 					failedStackEvents = append(failedStackEvents, event)
 				}
 			}

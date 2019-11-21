@@ -91,6 +91,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeaturedriver"
 	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns/dnsadapter"
+	featureLogging "github.com/banzaicloud/pipeline/internal/clusterfeature/features/logging"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan/securityscanadapter"
@@ -314,8 +315,6 @@ func main() {
 		logger.Info("external dns service functionality is not enabled")
 	}
 
-	anchore.Init()
-
 	prometheus.MustRegister(cluster.NewExporter())
 
 	clusterEventBus := evbus.New()
@@ -373,34 +372,6 @@ func main() {
 	defer clusterTTLController.Stop()
 	err = clusterTTLController.Start()
 	emperror.Panic(err)
-
-	if config.Cluster.Monitoring.Monitor.Enabled {
-		client, err := k8sclient.NewInClusterClient()
-		if err != nil {
-			errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
-		} else {
-			dnsBaseDomain, err := dns.GetBaseDomain()
-			if err != nil {
-				errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
-			}
-
-			monitorClusterSubscriber := monitor.NewClusterSubscriber(
-				client,
-				clusterManager,
-				db,
-				dnsBaseDomain,
-				global.Config.Kubernetes.Namespace,
-				global.Config.Cluster.Namespace,
-				config.Cluster.Monitoring.Monitor.ConfigMap,
-				config.Cluster.Monitoring.Monitor.ConfigMapPrometheusKey,
-				config.Cluster.Monitoring.Monitor.CertSecret,
-				config.Cluster.Monitoring.Monitor.MountPath,
-				errorHandler,
-			)
-			monitorClusterSubscriber.Init()
-			monitorClusterSubscriber.Register(monitor.NewClusterEvents(clusterEventBus))
-		}
-	}
 
 	if config.SpotMetrics.Enabled {
 		go monitor.NewSpotMetricsExporter(
@@ -574,7 +545,6 @@ func main() {
 
 	scmTokenStore := auth.NewSCMTokenStore(tokenStore, global.Config.CICD.Enabled)
 
-	domainAPI := api.NewDomainAPI(clusterManager, logrusLogger, errorHandler)
 	organizationAPI := api.NewOrganizationAPI(organizationSyncer, auth.NewRefreshTokenStore(tokenStore))
 	userAPI := api.NewUserAPI(db, scmTokenStore, logrusLogger, errorHandler)
 	networkAPI := api.NewNetworkAPI(logrusLogger)
@@ -658,9 +628,7 @@ func main() {
 				spotguideAPI.Install(spotguides)
 			}
 
-			orgs.GET("/:orgid/domain", domainAPI.GetDomain)
 			orgs.POST("/:orgid/clusters", clusterAPI.CreateCluster)
-			// v1.GET("/status", api.Status)
 			orgs.GET("/:orgid/clusters", clusterAPI.GetClusters)
 
 			// cluster API
@@ -692,9 +660,6 @@ func main() {
 				cRouter.POST("/deployments", api.CreateDeployment)
 				cRouter.GET("/deployments/:name", api.GetDeployment)
 				cRouter.GET("/deployments/:name/resources", api.GetDeploymentResources)
-				cRouter.GET("/hpa", api.GetHpaResource)
-				cRouter.PUT("/hpa", api.PutHpaResource)
-				cRouter.DELETE("/hpa", api.DeleteHpaResource)
 				cRouter.HEAD("/deployments", api.GetTillerStatus)
 				cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
 				cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
@@ -711,12 +676,14 @@ func main() {
 			)
 
 			// Cluster Feature API
+			var featureService clusterfeature.Service
 			{
 				logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 				clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
 				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+				endpointManager := endpoints.NewEndpointManager(logger)
 				featureManagers := []clusterfeature.FeatureManager{
 					securityscan.MakeFeatureManager(logger),
 				}
@@ -726,11 +693,10 @@ func main() {
 				}
 
 				if config.Cluster.Vault.Enabled {
-					featureManagers = append(featureManagers, featureVault.MakeFeatureManager(clusterGetter, secretStore, config.Cluster.Vault.Managed.Enabled, logger))
+					featureManagers = append(featureManagers, featureVault.MakeFeatureManager(clusterGetter, secretStore, config.Cluster.Vault.Config, logger))
 				}
 
 				if config.Cluster.Monitoring.Enabled {
-					endpointManager := endpoints.NewEndpointManager(logger)
 					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
 					featureManagers = append(featureManagers, featureMonitoring.MakeFeatureManager(
 						clusterGetter,
@@ -738,6 +704,16 @@ func main() {
 						endpointManager,
 						helmService,
 						config.Cluster.Monitoring.Config,
+						logger,
+					))
+				}
+
+				if config.Cluster.Logging.Enabled {
+					featureManagers = append(featureManagers, featureLogging.MakeFeatureManager(
+						clusterGetter,
+						secretStore,
+						endpointManager,
+						config.Cluster.Logging.Config,
 						logger,
 					))
 				}
@@ -795,9 +771,9 @@ func main() {
 
 				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry(featureManagers)
 				featureOperationDispatcher := clusterfeatureadapter.MakeCadenceFeatureOperationDispatcher(workflowClient, logger)
-				service := clusterfeature.MakeFeatureService(featureOperationDispatcher, featureManagerRegistry, featureRepository, logger)
+				featureService = clusterfeature.MakeFeatureService(featureOperationDispatcher, featureManagerRegistry, featureRepository, logger)
 				endpoints := clusterfeaturedriver.MakeEndpoints(
-					service,
+					featureService,
 					kitxendpoint.Chain(endpointMiddleware...),
 					appkit.EndpointLogger(commonLogger),
 				)
@@ -814,6 +790,40 @@ func main() {
 				cRouter.Any("/features/:featureName", gin.WrapH(router))
 			}
 
+			hpaApi := api.NewHPAAPI(featureService)
+			cRouter.GET("/hpa", hpaApi.GetHpaResource)
+			cRouter.PUT("/hpa", hpaApi.PutHpaResource)
+			cRouter.DELETE("/hpa", hpaApi.DeleteHpaResource)
+
+			if config.Cluster.Monitoring.Monitor.Enabled {
+				client, err := k8sclient.NewInClusterClient()
+				if err != nil {
+					errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
+				} else {
+					dnsBaseDomain, err := dns.GetBaseDomain()
+					if err != nil {
+						errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
+					}
+
+					monitorClusterSubscriber := monitor.NewClusterSubscriber(
+						client,
+						clusterManager,
+						db,
+						dnsBaseDomain,
+						global.Config.Kubernetes.Namespace,
+						global.Config.Cluster.Namespace,
+						config.Cluster.Monitoring.Monitor.ConfigMap,
+						config.Cluster.Monitoring.Monitor.ConfigMapPrometheusKey,
+						config.Cluster.Monitoring.Monitor.CertSecret,
+						config.Cluster.Monitoring.Monitor.MountPath,
+						featureService,
+						errorHandler,
+					)
+					monitorClusterSubscriber.Init()
+					monitorClusterSubscriber.Register(monitor.NewClusterEvents(clusterEventBus))
+				}
+			}
+
 			// ClusterGroupAPI
 			cgroupsAPI := cgroupAPI.NewAPI(clusterGroupManager, deploymentManager, logrusLogger, errorHandler)
 			cgroupsAPI.AddRoutes(orgs.Group("/:orgid/clustergroups"))
@@ -822,7 +832,7 @@ func main() {
 			cRouter.POST("/nodepools/labels", nplsApi.SetNodepoolLabelSets)
 
 			namespaceAPI := namespace.NewAPI(commonClusterGetter, errorHandler)
-			namespaceAPI.RegisterRoutes(cRouter.Group("/namespaces/:namespace"))
+			namespaceAPI.RegisterRoutes(cRouter.Group("/namespaces"))
 
 			pkeGroup := cRouter.Group("/pke")
 

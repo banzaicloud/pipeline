@@ -15,19 +15,28 @@
 package monitoring
 
 type prometheusOperatorValues struct {
-	Grafana          *grafanaValues         `json:"grafana"`
-	Alertmanager     *alertmanagerValues    `json:"alertmanager"`
-	Prometheus       *prometheusValues      `json:"prometheus"`
-	KubeStateMetrics kubeStateMetricsValues `json:"kubeStateMetrics"`
-	NodeExporter     nodeExporterValues     `json:"nodeExporter"`
+	PrometheusOperator operatorSpecValues     `json:"prometheusOperator"`
+	Grafana            *grafanaValues         `json:"grafana"`
+	Alertmanager       *alertmanagerValues    `json:"alertmanager"`
+	Prometheus         *prometheusValues      `json:"prometheus"`
+	KubeStateMetrics   kubeStateMetricsValues `json:"kubeStateMetrics"`
+	NodeExporter       nodeExporterValues     `json:"nodeExporter"`
+	KsmValues          *ksmValues             `json:"kube-state-metrics"`
+	NeValues           *neValues              `json:"prometheus-node-exporter"`
+}
+
+type operatorSpecValues struct {
+	Image                 imageValues `json:"image"`
+	CleanupCustomResource bool        `json:"cleanupCustomResource"`
+}
+
+type imageValues struct {
+	Repository string `json:"repository"`
+	Tag        string `json:"tag"`
 }
 
 type prometheusPushgatewayValues struct {
-	affinityValues
-	tolerationValues
-
-	Annotations map[string]interface{} `json:"annotations"`
-	Ingress     ingressValues          `json:"ingress"`
+	Image imageValues `json:"image"`
 }
 
 type baseValues struct {
@@ -37,13 +46,17 @@ type baseValues struct {
 
 type grafanaValues struct {
 	baseValues
-	affinityValues
-	tolerationValues
 
-	AdminUser                string           `json:"adminUser"`
-	AdminPassword            string           `json:"adminPassword"`
-	GrafanaIni               grafanaIniValues `json:"grafana.ini"`
-	DefaultDashboardsEnabled bool             `json:"defaultDashboardsEnabled"`
+	AdminUser                string            `json:"adminUser"`
+	AdminPassword            string            `json:"adminPassword"`
+	GrafanaIni               grafanaIniValues  `json:"grafana.ini"`
+	DefaultDashboardsEnabled bool              `json:"defaultDashboardsEnabled"`
+	Image                    imageValues       `json:"image"`
+	Persistence              persistenceValues `json:"persistence"`
+}
+
+type persistenceValues struct {
+	Enabled bool `json:"enabled"`
 }
 
 type grafanaIniValues struct {
@@ -91,13 +104,12 @@ type pagerdutyConfigValues struct {
 }
 
 type SpecValues struct {
-	tolerationValues
-	affinityValues
-
-	RoutePrefix   string                 `json:"routePrefix"`
-	RetentionSize string                 `json:"retentionSize"`
-	Retention     string                 `json:"retention"`
-	StorageSpec   map[string]interface{} `json:"storageSpec"`
+	RoutePrefix                             string                 `json:"routePrefix"`
+	RetentionSize                           string                 `json:"retentionSize"`
+	Retention                               string                 `json:"retention"`
+	StorageSpec                             map[string]interface{} `json:"storageSpec"`
+	ServiceMonitorSelectorNilUsesHelmValues bool                   `json:"serviceMonitorSelectorNilUsesHelmValues"`
+	Image                                   imageValues            `json:"image"`
 }
 
 type prometheusValues struct {
@@ -111,16 +123,16 @@ type kubeStateMetricsValues struct {
 	SpecValues
 }
 
+type ksmValues struct {
+	Image imageValues `json:"image"`
+}
+
+type neValues struct {
+	Image imageValues `json:"image"`
+}
+
 type nodeExporterValues struct {
 	Enabled bool `json:"enabled"`
-}
-
-type affinityValues struct {
-	Affinity interface{} `json:"affinity"`
-}
-
-type tolerationValues struct {
-	Tolerations interface{} `json:"tolerations"`
 }
 
 type ingressValues struct {

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package monitoring
+package logging
 
-type pushgatewaySecretInfoer struct{ baseSecretInfoer }
+import "fmt"
 
-func (pushgatewaySecretInfoer) name() string {
-	return "Pushgateway"
+type requiredFieldError struct {
+	name string
 }
 
-func (i pushgatewaySecretInfoer) generatedSecretName() string {
-	return getPushgatewaySecretName(i.clusterID)
+func (e requiredFieldError) Error() string {
+	return fmt.Sprintf("%q cannot be empty", e.name)
 }

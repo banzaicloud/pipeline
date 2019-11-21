@@ -78,7 +78,7 @@ func (c AuthTokenConfig) Validate() error {
 	}
 
 	if c.Audience == "" {
-		return errors.New("auth token issuer is required")
+		return errors.New("auth token audience is required")
 	}
 
 	return nil
@@ -253,7 +253,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	}
 
 	v.SetDefault("log::format", "logfmt")
-	v.SetDefault("log::level", "debug")
+	v.SetDefault("log::level", "info")
 	v.RegisterAlias("log::noColor", "no_color")
 
 	// ErrorHandler configuration
@@ -278,8 +278,8 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("auth::cookie::setDomain", false)
 
 	v.SetDefault("auth::token::signingKey", "")
-	v.SetDefault("auth::token::issuer", "https://banzaicloud.com/")
-	v.SetDefault("auth::token::audience", "https://pipeline.banzaicloud.com")
+	v.SetDefault("auth::token::issuer", "")
+	v.SetDefault("auth::token::audience", "")
 
 	// Dex configuration
 	v.SetDefault("dex::apiAddr", "")
@@ -328,12 +328,13 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::vault::enabled", true)
 	v.SetDefault("cluster::vault::namespace", "")
 	v.SetDefault("cluster::vault::managed::enabled", false)
+	v.SetDefault("cluster::vault::managed::endpoint", "")
 	v.SetDefault("cluster::vault::charts::webhook::chart", "banzaicloud-stable/vault-secrets-webhook")
-	v.SetDefault("cluster::vault::charts::webhook::version", "0.5.2")
+	v.SetDefault("cluster::vault::charts::webhook::version", "0.6.0")
 	v.SetDefault("cluster::vault::charts::webhook::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"repository": "banzaicloud/vault-secrets-webhook",
-			"tag":        "0.5.1",
+			"tag":        "0.6.0",
 		},
 	})
 
@@ -348,19 +349,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::monitoring::charts::operator::chart", "stable/prometheus-operator")
 	v.SetDefault("cluster::monitoring::charts::operator::version", "7.2.0")
 	v.SetDefault("cluster::monitoring::charts::operator::values", map[string]interface{}{
-		"prometheusOperator": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "quay.io/coreos/prometheus-operator",
-				"tag":        "v0.32.0",
-			},
-		},
 		"prometheus": map[string]interface{}{
-			"prometheusSpec": map[string]interface{}{
-				"image": map[string]interface{}{
-					"repository": "quay.io/prometheus/prometheus",
-					"tag":        "v2.12.0",
-				},
-			},
 			"ingress": map[string]interface{}{
 				"annotations": map[string]interface{}{
 					"traefik.frontend.rule.type":                 "PathPrefix",
@@ -369,12 +358,6 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 			},
 		},
 		"alertmanager": map[string]interface{}{
-			"alertmanagerSpec": map[string]interface{}{
-				"image": map[string]interface{}{
-					"repository": "quay.io/prometheus/alertmanager",
-					"tag":        "v0.19.0",
-				},
-			},
 			"ingress": map[string]interface{}{
 				"annotations": map[string]interface{}{
 					"traefik.frontend.rule.type":                 "PathPrefix",
@@ -383,10 +366,6 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 			},
 		},
 		"grafana": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "grafana/grafana",
-				"tag":        "6.4.2",
-			},
 			"ingress": map[string]interface{}{
 				"annotations": map[string]interface{}{
 					"traefik.frontend.rule.type":                         "PathPrefixStrip",
@@ -396,52 +375,45 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 				},
 			},
 		},
-		"kube-state-metrics": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "quay.io/coreos/kube-state-metrics",
-				"tag":        "v1.8.0",
-			},
-		},
-		"prometheus-node-exporter": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "quay.io/prometheus/node-exporter",
-				"tag":        "v0.18.0",
-			},
-		},
 	})
+	v.SetDefault("cluster::monitoring::images::operator::repository", "quay.io/coreos/prometheus-operator")
+	v.SetDefault("cluster::monitoring::images::operator::tag", "v0.32.0")
+	v.SetDefault("cluster::monitoring::images::prometheus::repository", "quay.io/prometheus/prometheus")
+	v.SetDefault("cluster::monitoring::images::prometheus::tag", "v2.12.0")
+	v.SetDefault("cluster::monitoring::images::alertmanager::repository", "quay.io/prometheus/alertmanager")
+	v.SetDefault("cluster::monitoring::images::alertmanager::tag", "v0.19.0")
+	v.SetDefault("cluster::monitoring::images::grafana::repository", "grafana/grafana")
+	v.SetDefault("cluster::monitoring::images::grafana::tag", "6.4.2")
+	v.SetDefault("cluster::monitoring::images::kubestatemetrics::repository", "quay.io/coreos/kube-state-metrics")
+	v.SetDefault("cluster::monitoring::images::kubestatemetrics::tag", "v1.8.0")
+	v.SetDefault("cluster::monitoring::images::nodeexporter::repository", "quay.io/prometheus/node-exporter")
+	v.SetDefault("cluster::monitoring::images::nodeexporter::tag", "v0.18.0")
+
 	v.SetDefault("cluster::monitoring::charts::pushgateway::chart", "stable/prometheus-pushgateway")
 	v.SetDefault("cluster::monitoring::charts::pushgateway::version", "1.0.1")
-	v.SetDefault("cluster::monitoring::charts::pushgateway::values", map[string]interface{}{
-		"image": map[string]interface{}{
-			"repository": "prom/pushgateway",
-			"tag":        "v1.0.0",
-		},
-		"ingress": map[string]interface{}{
-			"annotations": map[string]interface{}{
-				"traefik.frontend.rule.type":                 "PathPrefix",
-				"traefik.ingress.kubernetes.io/ssl-redirect": "true",
-			},
-		},
-	})
+	v.SetDefault("cluster::monitoring::charts::pushgateway::values", map[string]interface{}{})
+	v.SetDefault("cluster::monitoring::images::pushgateway::repository", "prom/pushgateway")
+	v.SetDefault("cluster::monitoring::images::pushgateway::tag", "v1.0.0")
 
 	v.SetDefault("cluster::logging::enabled", true)
 	v.SetDefault("cluster::logging::namespace", "")
 	v.SetDefault("cluster::logging::charts::operator::chart", "banzaicloud-stable/logging-operator")
-	v.SetDefault("cluster::logging::charts::operator::version", "0.3.3")
-	v.SetDefault("cluster::logging::charts::operator::values", map[string]interface{}{
-		"image": map[string]interface{}{
-			"repository": "banzaicloud/logging-operator",
-			"tag":        "1.0.0",
-		},
-	})
-	v.SetDefault("cluster::logging::charts::loki::chart", "loki/loki")
-	v.SetDefault("cluster::logging::charts::loki::version", "0.17.1")
-	v.SetDefault("cluster::logging::charts::loki::values", map[string]interface{}{
-		"image": map[string]interface{}{
-			"repository": "grafana/loki",
-			"tag":        "v0.4.0",
-		},
-	})
+	v.SetDefault("cluster::logging::charts::operator::version", "2.5.0")
+	v.SetDefault("cluster::logging::charts::operator::values", map[string]interface{}{})
+	v.SetDefault("cluster::logging::images::operator::repository", "banzaicloud/logging-operator")
+	v.SetDefault("cluster::logging::images::operator::tag", "2.5.0")
+	v.SetDefault("cluster::logging::charts::logging::chart", "banzaicloud-stable/logging-operator-logging")
+	v.SetDefault("cluster::logging::charts::logging::version", "2.5.0")
+	v.SetDefault("cluster::logging::charts::logging::values", map[string]interface{}{})
+	v.SetDefault("cluster::logging::charts::loki::chart", "banzaicloud-stable/loki")
+	v.SetDefault("cluster::logging::charts::loki::version", "0.16.0")
+	v.SetDefault("cluster::logging::charts::loki::values", map[string]interface{}{})
+	v.SetDefault("cluster::logging::images::loki::repository", "grafana/loki")
+	v.SetDefault("cluster::logging::images::loki::tag", "v0.3.0")
+	v.SetDefault("cluster::logging::images::fluentbit::repository", "fluent/fluent-bit")
+	v.SetDefault("cluster::logging::images::fluentbit::tag", "1.3.2")
+	v.SetDefault("cluster::logging::images::fluentd::repository", "banzaicloud/fluentd")
+	v.SetDefault("cluster::logging::images::fluentd::tag", "v1.7.4-alpine-5")
 
 	v.SetDefault("cluster::dns::enabled", true)
 	v.SetDefault("cluster::dns::namespace", "")
@@ -492,42 +464,30 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 
 	v.SetDefault("cluster::backyards::enabled", true)
 	v.SetDefault("cluster::backyards::istio::grafanaDashboardLocation", "./etc/dashboards/istio")
-	v.SetDefault("cluster::backyards::istio::pilotImage", "banzaicloud/istio-pilot:1.1.8-bzc.1")
-	v.SetDefault("cluster::backyards::istio::mixerImage", "banzaicloud/istio-mixer:1.1.8-bzc.1")
+	v.SetDefault("cluster::backyards::istio::pilotImage", "banzaicloud/istio-pilot:1.3.4-bzc")
+	v.SetDefault("cluster::backyards::istio::mixerImage", "banzaicloud/istio-mixer:1.3.4-bzc")
 	v.SetDefault("cluster::backyards::charts::istioOperator::chart", "banzaicloud-stable/istio-operator")
-	v.SetDefault("cluster::backyards::charts::istioOperator::version", "0.0.14")
+	v.SetDefault("cluster::backyards::charts::istioOperator::version", "0.0.24")
 	v.SetDefault("cluster::backyards::charts::istioOperator::values", map[string]interface{}{
-		"operator": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "",
-				"tag":        "",
-			},
+		"image": map[string]interface{}{
+			"repository": "banzaicloud/istio-operator",
+			"tag":        "0.3.5",
 		},
 	})
 	v.SetDefault("cluster::backyards::charts::backyards::chart", "banzaicloud-stable/backyards")
-	v.SetDefault("cluster::backyards::charts::backyards::version", "0.1.4")
+	v.SetDefault("cluster::backyards::charts::backyards::version", "1.0.3")
 	v.SetDefault("cluster::backyards::charts::backyards::values", map[string]interface{}{
-		"application": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "banzaicloud/backyards",
-				"tag":        "0.1.3",
-			},
-		},
-		"web": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "banzaicloud/backyards",
-				"tag":        "web-0.1.3",
-			},
+		"image": map[string]interface{}{
+			"repository": "banzaicloud/backyards",
+			"tag":        "1.0.3",
 		},
 	})
 	v.SetDefault("cluster::backyards::charts::canaryOperator::chart", "banzaicloud-stable/canary-operator")
-	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.2")
+	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.6")
 	v.SetDefault("cluster::backyards::charts::canaryOperator::values", map[string]interface{}{
-		"operator": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "banzaicloud/canary-operator",
-				"tag":        "0.1.0",
-			},
+		"image": map[string]interface{}{
+			"repository": "banzaicloud/istio-operator",
+			"tag":        "0.1.4",
 		},
 	})
 

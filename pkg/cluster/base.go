@@ -72,41 +72,21 @@ const (
 
 // constants for posthooks
 const (
-	SetupPrivileges                        = "SetupPrivileges"
 	CreatePipelineNamespacePostHook        = "CreatePipelineNamespacePostHook"
+	LabelKubeSystemNamespacePostHook       = "LabelKubeSystemNamespacePostHook"
 	InstallHelmPostHook                    = "InstallHelmPostHook"
 	InstallIngressControllerPostHook       = "InstallIngressControllerPostHook"
 	InstallKubernetesDashboardPostHook     = "InstallKubernetesDashboardPostHook"
 	InstallClusterAutoscalerPostHook       = "InstallClusterAutoscalerPostHook"
 	InstallHorizontalPodAutoscalerPostHook = "InstallHorizontalPodAutoscalerPostHook"
-	InstallMonitoring                      = "InstallMonitoring"
-	InstallLogging                         = "InstallLogging"
-	RegisterDomainPostHook                 = "RegisterDomainPostHook"
 	LabelNodesWithNodePoolName             = "LabelNodesWithNodePoolName"
 	InstallPVCOperator                     = "InstallPVCOperator"
-	InstallAnchoreImageValidator           = "InstallAnchoreImageValidator"
 	RestoreFromBackup                      = "RestoreFromBackup"
 	InitSpotConfig                         = "InitSpotConfig"
 	DeployInstanceTerminationHandler       = "DeployInstanceTerminationHandler"
 	InstallNodePoolLabelSetOperator        = "InstallNodePoolLabelSetOperator"
 	SetupNodePoolLabelsSet                 = "SetupNodePoolLabelsSet"
-	CreateDefaultStorageclass              = "CreateDefaultStorageclass"
 	CreateClusterRoles                     = "CreateClusterRoles"
-)
-
-// Provider name regexp
-const (
-	RegexpAWSName = `^[A-z0-9-_]{1,255}$`
-	RegexpAKSName = `^[a-z0-9_]{0,31}[a-z0-9]$`
-	RegexpGKEName = `^[a-z]$|^[a-z][a-z0-9-]{0,38}[a-z0-9]$`
-)
-
-// ### [ Keywords ] ###
-const (
-	KeyWordLocation          = "location"
-	KeyWordInstanceType      = "instanceType"
-	KeyWordKubernetesVersion = "k8sVersion"
-	KeyWordImage             = "image"
 )
 
 // CreateClusterRequest describes a create cluster request
@@ -125,9 +105,7 @@ type CreateClusterRequest struct {
 
 // CreateClusterProperties contains the cluster flavor specific properties.
 type CreateClusterProperties struct {
-	// TODO (colin): Deprecated
-	CreateClusterACSK *ack.CreateClusterACK `json:"acsk,omitempty" yaml:"acsk,omitempty"`
-	CreateClusterACK  *ack.CreateClusterACK `json:"ack,omitempty" yaml:"ack,omitempty"`
+	CreateClusterACK *ack.CreateClusterACK `json:"ack,omitempty" yaml:"ack,omitempty"`
 
 	CreateClusterEKS        *eks.CreateClusterEKS               `json:"eks,omitempty" yaml:"eks,omitempty"`
 	CreateClusterAKS        *aks.CreateClusterAKS               `json:"aks,omitempty" yaml:"aks,omitempty"`
@@ -171,11 +149,6 @@ type LoggingParam struct {
 	GenTLSForLogging GenTLSForLogging `json:"tls" binding:"required"`
 }
 
-// AnchoreParam describes the anchore posthook params
-type AnchoreParam struct {
-	AllowAll string `json:"allowAll"`
-}
-
 func (p LoggingParam) String() string {
 	return fmt.Sprintf("bucketName: %s, region: %s, secretId: %s", p.BucketName, p.Region, p.SecretId)
 }
@@ -192,9 +165,6 @@ type GetClusterStatusResponse struct {
 	Cloud         string                     `json:"cloud"`
 	Distribution  string                     `json:"distribution"`
 	Spot          bool                       `json:"spot,omitempty"`
-	Logging       bool                       `json:"logging"`
-	Monitoring    bool                       `json:"monitoring"`
-	SecurityScan  bool                       `json:"securityscan"`
 	Version       string                     `json:"version,omitempty"`
 	ResourceID    uint                       `json:"id"`
 	NodePools     map[string]*NodePoolStatus `json:"nodePools"`
@@ -263,18 +233,9 @@ type UpdateClusterRequest struct {
 	TtlMinutes       uint          `json:"ttlMinutes,omitempty" yaml:"ttlMinutes,omitempty"`
 }
 
-// Ipv4Cidrs describes the service and pod IPv4 ranges
-type Ipv4Cidrs struct {
-	ServiceClusterIPRanges []string
-	PodIPRanges            []string
-}
-
 // UpdateProperties describes Pipeline's UpdateCluster request properties
 type UpdateProperties struct {
-	// TODO (colin): Deprecated
-	ACSK *ack.UpdateClusterACK `json:"acsk,omitempty"`
-	ACK  *ack.UpdateClusterACK `json:"ack,omitempty"`
-
+	ACK   *ack.UpdateClusterACK       `json:"ack,omitempty"`
 	EKS   *eks.UpdateClusterAmazonEKS `json:"eks,omitempty"`
 	AKS   *aks.UpdateClusterAzure     `json:"aks,omitempty"`
 	GKE   *gke.UpdateClusterGoogle    `json:"gke,omitempty"`
@@ -475,35 +436,6 @@ func (r *UpdateClusterRequest) preValidate() {
 		r.GKE = nil
 		r.EKS = nil
 	}
-}
-
-// ClusterProfileResponse describes Pipeline's ClusterProfile API responses
-type ClusterProfileResponse struct {
-	Name       string                    `json:"name" binding:"required"`
-	Location   string                    `json:"location" binding:"required"`
-	Cloud      string                    `json:"cloud" binding:"required"`
-	TtlMinutes uint                      `json:"ttlMinutes,omitempty" yaml:"ttlMinutes,omitempty"`
-	Properties *ClusterProfileProperties `json:"properties" binding:"required"`
-}
-
-// ClusterProfileRequest describes CreateClusterProfile request
-type ClusterProfileRequest struct {
-	Name       string                    `json:"name" binding:"required"`
-	Location   string                    `json:"location" binding:"required"`
-	Cloud      string                    `json:"cloud" binding:"required"`
-	TtlMinutes uint                      `json:"ttlMinutes,omitempty" yaml:"ttlMinutes,omitempty"`
-	Properties *ClusterProfileProperties `json:"properties" binding:"required"`
-}
-
-type ClusterProfileProperties struct {
-	// TODO (colin): Deprecated
-	ACSK *ack.ClusterProfileACK `json:"acsk,omitempty"`
-	ACK  *ack.ClusterProfileACK `json:"ack,omitempty"`
-
-	EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
-	AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
-	GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
-	OKE *oke.Cluster           `json:"oke,omitempty"`
 }
 
 // CloudInfoRequest describes Cloud info requests

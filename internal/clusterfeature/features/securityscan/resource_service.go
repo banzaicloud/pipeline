@@ -16,6 +16,7 @@ package securityscan
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -151,6 +152,9 @@ type NamespaceService interface {
 
 	// RemoveLabels removes the labels from the slice of namespaces
 	RemoveLabels(ctx context.Context, clusterID uint, namespaces []string, labels []string) error
+
+	// removes all the passed in labels from all the namespaces in the cluster
+	CleanupLabels(ctx context.Context, clusterID uint, labels []string) error
 }
 
 type namespaceService struct {
@@ -200,6 +204,7 @@ func (nss *namespaceService) LabelNamespaces(ctx context.Context, clusterID uint
 	return combinedErr
 }
 
+// mergeLabels processes the labels the given namespace should have (required not to lose any namespace on update)
 func (nss *namespaceService) mergeLabels(currentLabels map[string]string, newLabels map[string]string) map[string]string {
 	mergedLabels := currentLabels
 	if mergedLabels == nil {
@@ -246,6 +251,30 @@ func (nss *namespaceService) RemoveLabels(ctx context.Context, clusterID uint, n
 	}
 	nss.logger.Info("removed labels from namespaces", map[string]interface{}{"namespaces": namespaces, "labels": labels})
 	return combinedErr
+}
+
+func (nss *namespaceService) CleanupLabels(ctx context.Context, clusterID uint, labelsIn []string) error {
+	namespacesCli, err := nss.getNamespacesCli(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get namespaces client")
+	}
+
+	// selects all namespaces labeled with the passed in labels (label Exists)
+	nsListPtr, err := namespacesCli.List(metav1.ListOptions{LabelSelector: strings.Join(labelsIn, ",")})
+	if err != nil {
+		return errors.WrapIf(err, "failed to retrieve labeled namespaces")
+	}
+
+	namespaces := make([]string, len(nsListPtr.Items))
+	for i, nsEntry := range nsListPtr.Items {
+		namespaces[i] = nsEntry.Name
+	}
+
+	if err := nss.RemoveLabels(ctx, clusterID, namespaces, labelsIn); err != nil {
+		return errors.WrapIf(err, "failed to remove security scan labels from namespaces ")
+	}
+
+	return nil
 }
 
 func (nss *namespaceService) getNamespacesCli(ctx context.Context, clusterID uint) (v1.NamespaceInterface, error) {

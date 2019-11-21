@@ -31,7 +31,7 @@ import (
 )
 
 func TestFeatureManager_Name(t *testing.T) {
-	mng := MakeFeatureManager(nil, nil, true, nil)
+	mng := MakeFeatureManager(nil, nil, Config{}, nil)
 
 	assert.Equal(t, "vault", mng.Name())
 }
@@ -68,7 +68,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
-	mng := MakeFeatureManager(clusterGetter, secretStore, true, nil)
+	mng := MakeFeatureManager(clusterGetter, secretStore, Config{}, nil)
 	ctx := auth.SetCurrentOrganizationID(context.Background(), orgID)
 
 	vm, err := newVaultManager(vaultFeatureSpec{}, orgID, clusterID, "TODOTOKEN")
@@ -195,7 +195,7 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			ctx := context.Background()
 
-			mng := MakeFeatureManager(nil, nil, tc.IsManagedEnabled, nil)
+			mng := MakeFeatureManager(nil, nil, Config{Managed: ManagedConfig{Enabled: tc.IsManagedEnabled}}, nil)
 			err := mng.ValidateSpec(ctx, tc.Spec)
 			switch tc.Error {
 			case true:

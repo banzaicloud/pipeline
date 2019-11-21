@@ -25,12 +25,12 @@ import (
 // HookMap for api hook endpoints
 // nolint: gochecknoglobals
 var HookMap = map[string]PostFunctioner{
-	pkgCluster.SetupPrivileges: &BasePostFunction{
-		f:            SetupPrivileges,
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.CreatePipelineNamespacePostHook: &BasePostFunction{
 		f:            CreatePipelineNamespacePostHook,
+		ErrorHandler: ErrorHandler{},
+	},
+	pkgCluster.LabelKubeSystemNamespacePostHook: &BasePostFunction{
+		f:            LabelKubeSystemNamespacePostHook,
 		ErrorHandler: ErrorHandler{},
 	},
 	pkgCluster.InstallHelmPostHook: &BasePostFunction{
@@ -53,29 +53,12 @@ var HookMap = map[string]PostFunctioner{
 		f:            InstallHorizontalPodAutoscalerPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.InstallMonitoring: &BasePostFunction{
-		f:            InstallMonitoring,
-		ErrorHandler: ErrorHandler{},
-	},
-	pkgCluster.InstallLogging: &PostFunctionWithParam{
-		f:            InstallLogging,
-		ErrorHandler: ErrorHandler{},
-	},
-	pkgCluster.RegisterDomainPostHook: &BasePostFunction{
-		f:            RegisterDomainPostHook,
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.LabelNodesWithNodePoolName: &BasePostFunction{
 		f:            LabelNodesWithNodePoolName,
 		ErrorHandler: ErrorHandler{},
 	},
 	pkgCluster.InstallPVCOperator: &BasePostFunction{
 		f:            InstallPVCOperatorPostHook,
-		ErrorHandler: ErrorHandler{},
-	},
-	pkgCluster.InstallAnchoreImageValidator: &PostFunctionWithParam{
-		f:            InstallAnchoreImageValidator,
-		Priority:     Priority{20},
 		ErrorHandler: ErrorHandler{},
 	},
 	pkgCluster.RestoreFromBackup: &PostFunctionWithParam{
@@ -107,13 +90,12 @@ var HookMap = map[string]PostFunctioner{
 // BasePostHookFunctions default posthook functions after cluster create
 // nolint: gochecknoglobals
 var BasePostHookFunctions = []string{
-	pkgCluster.SetupPrivileges,
 	pkgCluster.LabelNodesWithNodePoolName,
 	pkgCluster.CreatePipelineNamespacePostHook,
+	pkgCluster.LabelKubeSystemNamespacePostHook,
 	pkgCluster.InstallHelmPostHook,
 	pkgCluster.InstallNodePoolLabelSetOperator,
 	pkgCluster.SetupNodePoolLabelsSet,
-	pkgCluster.RegisterDomainPostHook,
 	pkgCluster.InstallIngressControllerPostHook,
 	pkgCluster.InstallKubernetesDashboardPostHook,
 	pkgCluster.InstallClusterAutoscalerPostHook,

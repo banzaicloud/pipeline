@@ -17,13 +17,11 @@ package cluster
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"net"
 	"strings"
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/Masterminds/semver"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -33,11 +31,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/ghodss/yaml"
 	"github.com/sirupsen/logrus"
-	v1 "k8s.io/api/core/v1"
-	storagev1 "k8s.io/api/storage/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
+
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
+
+	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
+
+	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -47,26 +47,12 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/action"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
 )
-
-const mapRolesTemplate = `- rolearn: %s
-  username: system:node:{{EC2PrivateDNSName}}
-  groups:
-  - system:bootstrappers
-  - system:nodes
-`
-
-const mapUsersTemplate = `- userarn: %s
-  username: %s
-  groups:
-  - system:masters
-`
 
 const asgWaitLoopSleepSeconds = 5
 const asgFulfillmentTimeout = 10 * time.Minute
@@ -99,8 +85,9 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 			NodeInstanceRoleId:    request.Properties.CreateClusterEKS.IAM.NodeInstanceRoleID,
 			APIServerAccessPoints: createAPIServerAccesPointsFromRequest(request),
 		},
-		CreatedBy:  userId,
-		TtlMinutes: request.TtlMinutes,
+		RbacEnabled: true,
+		CreatedBy:   userId,
+		TtlMinutes:  request.TtlMinutes,
 	}
 
 	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
@@ -200,7 +187,7 @@ func createSubnetMappingFromRequest(eksRequest *pkgEks.CreateClusterEKS) map[str
 	return subnetMapping
 }
 
-func getNodePoolsForSubnet(subnetMapping map[string][]*pkgEks.Subnet, eksSubnet *action.EksSubnet) []string {
+func getNodePoolsForSubnet(subnetMapping map[string][]*pkgEks.Subnet, eksSubnet eksworkflow.Subnet) []string {
 	var nodePools []string
 	for np, subnets := range subnetMapping {
 		for _, subnet := range subnets {
@@ -218,6 +205,7 @@ type EKSCluster struct {
 	modelCluster    *model.ClusterModel
 	APIEndpoint     string
 	CloudInfoClient *cloudinfo.Client
+	WorkflowClient  client.Client
 	// maps node pools to subnets. The subnets identified by the "default" key represent the subnets provided in
 	// request.Properties.CreateClusterEKS.Subnets
 	SubnetMapping            map[string][]*pkgEks.Subnet
@@ -274,65 +262,60 @@ func (c *EKSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials,
 	return verify.CreateAWSCredentials(clusterSecret.Values), nil
 }
 
+func (c *EKSCluster) SetCurrentWorkflowID(workflowID string) error {
+	c.modelCluster.EKS.CurrentWorkflowID = workflowID
+
+	err := c.modelCluster.Save()
+	if err != nil {
+		return errors.WrapIf(err, "failed to persist cluster to database")
+	}
+
+	return nil
+}
+
 // CreateCluster creates an EKS cluster with cloudformation templates.
 func (c *EKSCluster) CreateCluster() error {
 	c.log.Info("start creating EKS cluster")
 
-	awsCred, err := c.createAWSCredentialsFromSecret()
-	if err != nil {
-		return errors.WrapIf(err, "failed to retrieve AWS credentials from secret")
+	input := workflow.CreateClusterWorkflowInput{
+		CreateInfrastructureWorkflowInput: workflow.CreateInfrastructureWorkflowInput{
+			Region:             c.modelCluster.Location,
+			OrganizationID:     c.GetOrganizationId(),
+			SecretID:           c.GetSecretId(),
+			SSHSecretID:        c.GetSshSecretId(),
+			ClusterUID:         c.GetUID(),
+			ClusterName:        c.GetName(),
+			VpcID:              aws.StringValue(c.modelCluster.EKS.VpcId),
+			RouteTableID:       aws.StringValue(c.modelCluster.EKS.RouteTableId),
+			VpcCidr:            aws.StringValue(c.modelCluster.EKS.VpcCidr),
+			ScaleEnabled:       c.GetScaleOptions() != nil && c.GetScaleOptions().Enabled,
+			DefaultUser:        c.modelCluster.EKS.DefaultUser,
+			ClusterRoleID:      c.modelCluster.EKS.ClusterRoleId,
+			NodeInstanceRoleID: c.modelCluster.EKS.NodeInstanceRoleId,
+			KubernetesVersion:  c.modelCluster.EKS.Version,
+			LogTypes:           c.modelCluster.EKS.LogTypes,
+		},
+		ClusterID: c.GetID(),
 	}
 
-	awsSession, err := session.NewSession(&aws.Config{
-		Region:      aws.String(c.modelCluster.Location),
-		Credentials: awsCred,
-	})
-	if err != nil {
-		return errors.WrapIf(err, "failed to create AWS awsSession")
+	for _, mode := range c.modelCluster.EKS.APIServerAccessPoints {
+		switch mode {
+		case "public":
+			input.EndpointPublicAccess = true
+		case "private":
+			input.EndpointPrivateAccess = true
+		}
 	}
 
-	// role that controls access to resources for creating an EKS cluster
-	eksStackName := c.generateStackNameForCluster()
-	iamStackName := c.generateStackNameForIAM()
-	sshKeyName := c.generateSSHKeyNameForCluster()
-
-	c.modelCluster.RbacEnabled = true
-
-	c.log.Info("getting CloudFormation template for creating node pools for EKS cluster")
-	nodePoolTemplate, err := pkgEks.GetNodePoolTemplate()
-	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to get CloudFormation template for node pools", "cluster", c.modelCluster.Name)
-	}
-
-	c.log.Info("getting CloudFormation template for creating a eksSubnetModel")
-
-	subnetTemplate, err := pkgEks.GetSubnetTemplate()
-	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to get CloudFormation template for Subnet", "cluster", c.modelCluster.Name)
-	}
-
-	creationContext := action.NewEksClusterCreationContext(
-		awsSession,
-		c.modelCluster.Name,
-		sshKeyName,
-	)
-
-	sshSecret, err := c.getSshSecret(c)
-	if err != nil {
-		return errors.WrapIf(err, "failed to get ssh secret")
-	}
-
-	creationContext.VpcID = c.modelCluster.EKS.VpcId
-	creationContext.RouteTableID = c.modelCluster.EKS.RouteTableId
-	subnetMapping := make(map[string][]*action.EksSubnet)
-
+	subnets := make([]workflow.Subnet, 0)
+	subnetMapping := make(map[string][]workflow.Subnet)
 	for _, eksSubnetModel := range c.modelCluster.EKS.Subnets {
-		subnet := &action.EksSubnet{
+		subnet := workflow.Subnet{
 			SubnetID:         aws.StringValue(eksSubnetModel.SubnetId),
 			Cidr:             aws.StringValue(eksSubnetModel.Cidr),
 			AvailabilityZone: aws.StringValue(eksSubnetModel.AvailabilityZone)}
 
-		creationContext.Subnets = append(creationContext.Subnets, subnet)
+		subnets = append(subnets, subnet)
 
 		nodePools := getNodePoolsForSubnet(c.SubnetMapping, subnet)
 		c.log.Debugf("node pools mapped to subnet %s: %v", subnet.SubnetID, nodePools)
@@ -342,66 +325,52 @@ func (c *EKSCluster) CreateCluster() error {
 		}
 	}
 
-	creationContext.ScaleEnabled = c.GetScaleOptions() != nil && c.GetScaleOptions().Enabled
-	ASGWaitLoopCount := int(asgFulfillmentTimeout.Seconds() / asgWaitLoopSleepSeconds)
+	input.Subnets = subnets
+	input.ASGSubnetMapping = subnetMapping
 
-	// IAM parameters
-	creationContext.DefaultUser = c.modelCluster.EKS.DefaultUser
-	creationContext.ClusterRoleID = c.modelCluster.EKS.ClusterRoleId
-	creationContext.NodeInstanceRoleID = c.modelCluster.EKS.NodeInstanceRoleId
-
-	creationContext.LogTypes = c.modelCluster.EKS.LogTypes
-
-	for _, mode := range c.modelCluster.EKS.APIServerAccessPoints {
-		switch mode {
-		case "public":
-			creationContext.EndpointPublicAccess = true
-		case "private":
-			creationContext.EndpointPrivateAccess = true
+	asgList := make([]workflow.AutoscaleGroup, 0)
+	for _, np := range c.modelCluster.EKS.NodePools {
+		asg := workflow.AutoscaleGroup{
+			Name:             np.Name,
+			NodeSpotPrice:    np.NodeSpotPrice,
+			Autoscaling:      np.Autoscaling,
+			NodeMinCount:     np.NodeMinCount,
+			NodeMaxCount:     np.NodeMaxCount,
+			Count:            np.Count,
+			NodeImage:        np.NodeImage,
+			NodeInstanceType: np.NodeInstanceType,
+			Labels:           np.Labels,
 		}
+		asgList = append(asgList, asg)
 	}
 
-	actions := []utils.Action{
-		action.NewCreateVPCAction(c.log, creationContext, eksStackName),
-		action.NewCreateSubnetsAction(NewLogurLogger(c.log), creationContext, subnetTemplate),
-		action.NewCreateIAMRolesAction(c.log, creationContext, iamStackName),
-		action.NewUploadSSHKeyAction(c.log, creationContext, sshSecret),
-		action.NewGenerateVPCConfigRequestAction(c.log, creationContext, eksStackName, c.GetOrganizationId()),
-		action.NewCreateEksClusterAction(c.log, creationContext, c.modelCluster.EKS.Version),
-		action.NewCreateUpdateNodePoolStackAction(c.log, true, creationContext, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second, nodePoolTemplate, subnetMapping, c.modelCluster.EKS.NodePools...),
+	input.AsgList = asgList
+
+	ctx := context.Background()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 1 * 24 * time.Hour,
 	}
-
-	if creationContext.DefaultUser {
-		values, err := awsCred.Get()
-		if err != nil {
-			return errors.WrapIf(err, "failed to extract EKS cluster secret values")
-		}
-
-		creationContext.ClusterUserAccessKeyId = values.AccessKeyID
-		creationContext.ClusterUserSecretAccessKey = values.SecretAccessKey
-
-	} else {
-		actions = append(actions, action.NewCreateClusterUserAccessKeyAction(c.log, creationContext))
-	}
-
-	actions = append(actions, action.NewPersistClusterUserAccessKeyAction(c.log, creationContext, c.GetOrganizationId()))
-
-	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
+	exec, err := c.WorkflowClient.ExecuteWorkflow(ctx, workflowOptions, eksworkflow.CreateClusterWorkflowName, input)
 	if err != nil {
-		return errors.WrapIf(err, "failed to create EKS cluster")
+		return err
 	}
 
-	c.APIEndpoint = aws.StringValue(creationContext.APIEndpoint)
-	c.CertificateAuthorityData, err = base64.StdEncoding.DecodeString(aws.StringValue(creationContext.CertificateAuthorityData))
-
+	err = c.SetCurrentWorkflowID(exec.GetID())
 	if err != nil {
-		return errors.WrapIf(err, "failed to base64 decode EKS K8S certificate authority data")
+		return err
 	}
 
-	c.modelCluster.EKS.NodeInstanceRoleId = creationContext.NodeInstanceRoleID
+	output := &workflow.CreateClusterWorkflowOutput{}
+	err = exec.Get(ctx, output)
+	if err != nil {
+		return err
+	}
+
+	c.modelCluster.EKS.NodeInstanceRoleId = output.NodeInstanceRoleID
 
 	// persist the id of the newly created subnets
-	for _, subnet := range creationContext.Subnets {
+	for _, subnet := range output.Subnets {
 		for _, subnetModel := range c.modelCluster.EKS.Subnets {
 			if (aws.StringValue(subnetModel.SubnetId) != "" && aws.StringValue(subnetModel.SubnetId) == subnet.SubnetID) ||
 				(aws.StringValue(subnetModel.SubnetId) == "" && aws.StringValue(subnetModel.Cidr) != "" && aws.StringValue(subnetModel.Cidr) == subnet.Cidr) {
@@ -411,76 +380,6 @@ func (c *EKSCluster) CreateCluster() error {
 				break
 			}
 		}
-	}
-
-	// Create the aws-auth ConfigMap for letting other nodes join, and users access the API
-	// See: https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
-	bootstrapCredentials, _ := awsCred.Get()
-	c.awsAccessKeyID = bootstrapCredentials.AccessKeyID
-	c.awsSecretAccessKey = bootstrapCredentials.SecretAccessKey
-
-	defer func() {
-		c.awsAccessKeyID = creationContext.ClusterUserAccessKeyId
-		c.awsSecretAccessKey = creationContext.ClusterUserSecretAccessKey
-		// AWS needs some time to distribute the access key to every service
-		time.Sleep(15 * time.Second)
-	}()
-
-	kubeConfig, err := c.DownloadK8sConfig()
-	if err != nil {
-		return errors.WrapIf(err, "failed to retrieve K8S config")
-	}
-
-	restKubeConfig, err := k8sclient.NewClientConfig(kubeConfig)
-	if err != nil {
-		return errors.WrapIf(err, "failed to create K8S config object")
-	}
-
-	kubeClient, err := kubernetes.NewForConfig(restKubeConfig)
-	if err != nil {
-		return errors.WrapIf(err, "failed to create K8S client")
-	}
-
-	constraint, err := semver.NewConstraint(">= 1.12")
-	if err != nil {
-		return errors.WrapIf(err, "could not set  1.12 constraint for semver")
-	}
-	kubeVersion, err := semver.NewVersion(c.modelCluster.EKS.Version)
-	if err != nil {
-		return errors.WrapIf(err, "could not set eks version for semver check")
-	}
-	var volumeBindingMode storagev1.VolumeBindingMode
-	if constraint.Check(kubeVersion) {
-		volumeBindingMode = storagev1.VolumeBindingWaitForFirstConsumer
-	} else {
-		volumeBindingMode = storagev1.VolumeBindingImmediate
-	}
-
-	storageClassConstraint, err := semver.NewConstraint("< 1.11")
-	if err != nil {
-		return errors.WrapIf(err, "could not set  1.11 constraint for semver")
-	}
-
-	if storageClassConstraint.Check(kubeVersion) {
-		// create default storage class
-		err = createDefaultStorageClass(kubeClient, "kubernetes.io/aws-ebs", volumeBindingMode, nil)
-		if err != nil {
-			return errors.WrapIfWithDetails(err, "failed to create default storage class",
-				"provisioner", "kubernetes.io/aws-ebs",
-				"bindingMode", volumeBindingMode)
-		}
-	}
-
-	awsAuthConfigMap := v1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{Name: "aws-auth"},
-		Data: map[string]string{
-			"mapRoles": fmt.Sprintf(mapRolesTemplate, creationContext.NodeInstanceRoleArn),
-			"mapUsers": fmt.Sprintf(mapUsersTemplate, creationContext.ClusterUserArn, creationContext.ClusterName),
-		},
-	}
-	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(&awsAuthConfigMap)
-	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to create config map", "configmap", awsAuthConfigMap.Name)
 	}
 
 	err = c.modelCluster.Save()
@@ -1173,9 +1072,6 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Distribution:      c.modelCluster.Distribution,
 		Spot:              hasSpotNodePool,
 		ResourceID:        c.modelCluster.ID,
-		Logging:           c.GetLogging(),
-		Monitoring:        c.GetMonitoring(),
-		SecurityScan:      c.GetSecurityScan(),
 		NodePools:         nodePools,
 		Version:           c.modelCluster.EKS.Version,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
@@ -1522,24 +1418,6 @@ func (c *EKSCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
-// GetK8sIpv4Cidrs returns possible IP ranges for pods and services in the cluster
-// On EKS the services IP range is chosen from two possible ranges
-// source: https://forums.aws.amazon.com/thread.jspa?messageID=859958
-// On EKS the pods IP range is coming from the CIDR's of the subnets
-func (c *EKSCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	eksServiceClusterIPRanges := []string{"172.20.0.0/16", "10.100.0.0/16"}
-
-	var eksPodIPRanges []string
-	for _, subnet := range c.GetModel().EKS.Subnets {
-		eksPodIPRanges = append(eksPodIPRanges, *subnet.Cidr)
-	}
-
-	return &pkgCluster.Ipv4Cidrs{
-		ServiceClusterIPRanges: eksServiceClusterIPRanges,
-		PodIPRanges:            eksPodIPRanges,
-	}, nil
-}
-
 // GetK8sConfig returns the Kubernetes config
 func (c *EKSCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
@@ -1565,36 +1443,6 @@ func ListEksImages(version, region string) (string, error) {
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *EKSCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
-}
-
-// GetSecurityScan returns true if security scan enabled on the cluster
-func (c *EKSCluster) GetSecurityScan() bool {
-	return c.modelCluster.SecurityScan
-}
-
-// SetSecurityScan returns true if security scan enabled on the cluster
-func (c *EKSCluster) SetSecurityScan(scan bool) {
-	c.modelCluster.SecurityScan = scan
-}
-
-// GetLogging returns true if logging enabled on the cluster
-func (c *EKSCluster) GetLogging() bool {
-	return c.modelCluster.Logging
-}
-
-// SetLogging returns true if logging enabled on the cluster
-func (c *EKSCluster) SetLogging(l bool) {
-	c.modelCluster.Logging = l
-}
-
-// GetMonitoring returns true if momnitoring enabled on the cluster
-func (c *EKSCluster) GetMonitoring() bool {
-	return c.modelCluster.Monitoring
-}
-
-// SetMonitoring returns true if monitoring enabled on the cluster
-func (c *EKSCluster) SetMonitoring(l bool) {
-	c.modelCluster.Monitoring = l
 }
 
 // GetScaleOptions returns scale options for the cluster
@@ -1667,19 +1515,4 @@ func (c *EKSCluster) loadClusterUserCredentials(context *action.EksClusterCreate
 	}
 
 	return nil
-}
-
-// NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
-func (c *EKSCluster) NeedAdminRights() bool {
-	return false
-}
-
-// GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
-func (c *EKSCluster) GetKubernetesUserName() (string, error) {
-	return "", nil
-}
-
-// GetCreatedBy returns cluster create userID.
-func (c *EKSCluster) GetCreatedBy() uint {
-	return c.modelCluster.CreatedBy
 }

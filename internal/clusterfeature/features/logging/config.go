@@ -22,6 +22,7 @@ import (
 type Config struct {
 	Namespace string
 	Charts    ChartsConfig
+	Images    ImagesConfig
 }
 
 func (c Config) Validate() error {
@@ -33,8 +34,28 @@ func (c Config) Validate() error {
 		return errors.WrapIf(err, "error during validation logging operator config")
 	}
 
+	if err := c.Charts.Logging.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation logging-operator-logging config")
+	}
+
 	if err := c.Charts.Loki.Validate(); err != nil {
 		return errors.WrapIf(err, "error during validation loki chart config")
+	}
+
+	if err := c.Images.Operator.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation operator image config")
+	}
+
+	if err := c.Images.Loki.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation loki image config")
+	}
+
+	if err := c.Images.Fluentbit.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation fluentbit image config")
+	}
+
+	if err := c.Images.Fluentd.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation fluentd image config")
 	}
 
 	return nil
@@ -42,6 +63,7 @@ func (c Config) Validate() error {
 
 type ChartsConfig struct {
 	Operator ChartConfig
+	Logging  ChartConfig
 	Loki     ChartConfig
 }
 
@@ -58,6 +80,30 @@ func (c ChartConfig) Validate() error {
 
 	if c.Version == "" {
 		return errors.New("chart version is required")
+	}
+
+	return nil
+}
+
+type ImagesConfig struct {
+	Operator  ImageConfig
+	Loki      ImageConfig
+	Fluentbit ImageConfig
+	Fluentd   ImageConfig
+}
+
+type ImageConfig struct {
+	Repository string
+	Tag        string
+}
+
+func (c ImageConfig) Validate() error {
+	if c.Repository == "" {
+		return errors.New("repository is required")
+	}
+
+	if c.Tag == "" {
+		return errors.New("tag is required")
 	}
 
 	return nil

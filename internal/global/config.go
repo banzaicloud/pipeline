@@ -122,21 +122,6 @@ type Configuration struct {
 			}
 		}
 
-		Logging struct {
-			Charts struct {
-				Operator struct {
-					Chart   string
-					Version string
-					Values  struct {
-						Image struct {
-							Repository string
-							Tag        string
-						}
-					}
-				}
-			}
-		}
-
 		DNS struct {
 			Enabled        bool
 			Namespace      string
@@ -145,14 +130,7 @@ type Configuration struct {
 
 			Charts struct {
 				ExternalDNS struct {
-					Chart   string
-					Version string
-					Values  struct {
-						Image struct {
-							Repository string
-							Tag        string
-						}
-					}
+					Chart string
 				}
 			}
 		}
@@ -320,10 +298,6 @@ type Configuration struct {
 	Hollowtrees struct {
 		Endpoint        string
 		TokenSigningKey string
-	}
-
-	Hooks struct {
-		DomainHookDisabled bool
 	}
 
 	CICD struct {

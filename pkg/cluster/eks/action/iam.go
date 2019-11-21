@@ -94,8 +94,9 @@ func (a *CreateIAMRolesAction) ExecuteAction(input interface{}) (interface{}, er
 
 	cloudformationSrv := cloudformation.New(a.context.Session)
 
+	clientRequestToken := uuid.Must(uuid.NewV4()).String()
 	createStackInput := &cloudformation.CreateStackInput{
-		ClientRequestToken: aws.String(uuid.Must(uuid.NewV4()).String()),
+		ClientRequestToken: aws.String(clientRequestToken),
 		DisableRollback:    aws.Bool(true),
 		Capabilities: []*string{
 			aws.String(cloudformation.CapabilityCapabilityIam),
@@ -115,7 +116,7 @@ func (a *CreateIAMRolesAction) ExecuteAction(input interface{}) (interface{}, er
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(a.stackName)}
 	err = cloudformationSrv.WaitUntilStackCreateComplete(describeStacksInput)
 	if err != nil {
-		return nil, pkgCloudformation.NewAwsStackFailure(err, a.stackName, cloudformationSrv)
+		return nil, pkgCloudformation.NewAwsStackFailure(err, a.stackName, clientRequestToken, cloudformationSrv)
 	}
 
 	describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)

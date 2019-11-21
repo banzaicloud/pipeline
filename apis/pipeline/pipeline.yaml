@@ -51,9 +51,6 @@ tags:
     -
         name: projects
         description: Google projects related operations
-    -
-        name: domain
-        description: Domain related information
 
     -
         name: ark
@@ -84,35 +81,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/VersionResponse'
-
-    '/api/v1/orgs/{orgId}/domain':
-        get:
-            description: Return the base domain
-            tags:
-                - domain
-            operationId: GetDomain
-            parameters:
-                -
-                    name: orgId
-                    in: path
-                    required: true
-                    description: Organization identification
-                    schema:
-                        type: integer
-                -
-                    name: clusterid
-                    in: query
-                    description: Cluster ID bounded domain name
-                    schema:
-                        type: string
-                        default: false
-            responses:
-                '200':
-                    description: GetDomainResponse
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/GetDomainResponse'
 
     '/api/v1/orgs/{orgId}/spotguides':
         get:
@@ -4528,6 +4496,56 @@ paths:
                 500:
                     $ref: '#/components/responses/InternalServerError'
 
+    '/api/v1/orgs/{orgId}/clusters/{id}/namespaces':
+        get:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - clusters
+            summary: Lists namespaces for a cluster
+            description: Lists namespaces for a cluster
+            operationId: ListNamespaces
+            parameters:
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    description: Selected cluster identification (number)
+                    required: true
+                    schema:
+                        type: integer
+            responses:
+                '200':
+                    description: Namespaces listed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/NamespaceListResponse'
+
+                '400':
+                    description: Error during deleting namespace
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClientError'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    description: Cluster not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClusterNotFound'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
+
     '/api/v1/orgs/{orgId}/clusters/{id}/namespaces/{namespace}':
         delete:
             security:
@@ -6541,15 +6559,6 @@ components:
             items:
                 $ref: '#/components/schemas/SpotguideDetailsResponse'
 
-        GetDomainResponse:
-            description: GetDomainResponse Api object to be mapped to Get domain request
-            type: object
-            properties:
-                domainName:
-                    type: string
-                    x-go-name: DomainName
-            x-go-package: github.com/banzaicloud/pipeline/internal/domain
-
         RequestedResources:
             type: object
             properties:
@@ -6620,14 +6629,9 @@ components:
                     # additionalProperties:
                         # oneOf:
                         #     -
-                        #         $ref: '#/components/schemas/LoggingPostHook'
-                        #     -
                         #         $ref: '#/components/schemas/BasePostHook'
                     example:
-                        InstallLogging:
-                            bucketName: "mybucketname"
-                            region: "region"
-                            secretId: "62bc3c75-91fb-4670-bad4-24b401a9deac"
+                        InstallIngressController:
 
                 scaleOptions:
                     $ref: '#/components/schemas/ScaleOptions'
@@ -9367,76 +9371,15 @@ components:
                 PostHookFunctionName:
                     type: object
 
-        LoggingPostHook:
-            type: object
-            properties:
-                InstallLogging:
-                    type: object
-                    required:
-                        - bucketName
-                        - secretId
-                        - tls
-                    properties:
-                        bucketName:
-                            type: string
-                            example: "mybucketname"
-                        region:
-                            type: string
-                            example: "region"
-                        resourceGroup:
-                            type: string
-                            example: "myResourceGroup"
-                        storageAccount:
-                            type: string
-                            example: "myStorageAccount"
-                        secretId:
-                            type: string
-                            example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
-                        secretName:
-                            type: string
-                            example: "my-aws-secret"
-                        tls:
-                            $ref: '#/components/schemas/GenTLSForLogging'
-
         PostHooks:
             oneOf:
-                -
-                    $ref: '#/components/schemas/LoggingPostHook'
                 -
                     $ref: '#/components/schemas/BasePostHook'
 
         ReRunPostHook:
             type: object
             example:
-                InstallLogging:
-                    bucketName: "mybucketname"
-                    region: "region"
-                    secretId: "62bc3c75-91fb-4670-bad4-24b401a9deac"
-                    tls:
-                        tlsEnabled: true
-                        genTlsSecretName: "loggingSecret"
-                        namespace: "default"
-                        tlsHost: "fluent"
-
-
-        GenTLSForLogging:
-            type: object
-            required:
-                - tlsEnabled
-            properties:
-                tlsEnabled:
-                    type: boolean
-                    example: true
-                genTlsSecretName:
-                    type: string
-                    example: "loggingSecret"
-                namespace:
-                    type: string
-                    example: "default"
-                tlsHost:
-                    type: string
-                    example: "fluent"
-
+                InstallIngressController:
 
         CreateResourceGroup:
             type: object
@@ -10959,3 +10902,20 @@ components:
                     type: string
                 reserved:
                     type: boolean
+
+        NamespaceListResponse:
+            type: object
+            properties:
+                namespaces:
+                    $ref: "#/components/schemas/NamespaceList"
+
+        NamespaceList:
+            type: array
+            items:
+                $ref: "#/components/schemas/NamespaceItem"
+
+        NamespaceItem:
+            type: object
+            properties:
+                name:
+                    type: string

@@ -20,8 +20,8 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
+	"github.com/mitchellh/copystructure"
 	"github.com/mitchellh/mapstructure"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/storage/v1beta1"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -31,6 +31,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	"github.com/banzaicloud/pipeline/internal/util"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -46,10 +47,8 @@ type FeatureOperator struct {
 }
 
 type chartValuesManager struct {
-	operator         FeatureOperator
-	clusterID        uint
-	headNodeAffinity v1.Affinity
-	tolerations      []v1.Toleration
+	operator  FeatureOperator
+	clusterID uint
 }
 
 // MakeFeatureOperator returns a Monitoring feature operator
@@ -150,24 +149,9 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 	}
 
 	// Pushgateway
-	var pushgatewaySecretName string
 	if boundSpec.Pushgateway.Enabled {
-		if boundSpec.Pushgateway.Ingress.Enabled {
-			var manager = secretManager{
-				operator: op,
-				cluster:  cluster,
-				tags:     []string{pushgatewaySecretTag},
-				infoer:   pushgatewaySecretInfoer{baseSecretInfoer: baseSecretInfoer},
-			}
-
-			pushgatewaySecretName, err = generateAndInstallSecret(ctx, boundSpec.Pushgateway.Ingress, manager, logger)
-			if err != nil {
-				return errors.WrapIf(err, "failed to setup Pushgateway ingress")
-			}
-		}
-
 		// install Prometheus Pushgateway
-		if err := op.installPrometheusPushGateway(ctx, cluster, boundSpec.Pushgateway, pushgatewaySecretName, logger); err != nil {
+		if err := op.installPrometheusPushGateway(ctx, cluster, boundSpec.Pushgateway, logger); err != nil {
 			return errors.WrapIf(err, "failed to install Prometheus Pushgateway")
 		}
 	}
@@ -230,34 +214,28 @@ func (op FeatureOperator) installPrometheusPushGateway(
 	ctx context.Context,
 	cluster clusterfeatureadapter.Cluster,
 	spec pushgatewaySpec,
-	secretName string,
 	logger common.Logger,
 ) error {
-	var annotations map[string]interface{}
-	if spec.Ingress.Enabled {
-		annotations = generateAnnotations(secretName)
-	}
-
-	pipelineSystemNamespace := op.config.Namespace
 	var chartValues = &prometheusPushgatewayValues{
-		Ingress: ingressValues{
-			Enabled: spec.Ingress.Enabled,
-			Hosts:   []string{spec.Ingress.Domain},
-			Paths:   []string{spec.Ingress.Path},
+		Image: imageValues{
+			Repository: op.config.Images.Pushgateway.Repository,
+			Tag:        op.config.Images.Pushgateway.Tag,
 		},
-		Annotations: annotations,
 	}
 
-	valuesBytes, err := json.Marshal(chartValues)
+	pushgatewayConfigValues, err := copystructure.Copy(op.config.Charts.Pushgateway.Values)
 	if err != nil {
-		logger.Debug("failed to marshal chartValues")
-		return errors.WrapIf(err, "failed to decode chartValues")
+		return errors.WrapIf(err, "failed to copy pushgateway values")
+	}
+	valuesBytes, err := mergeOperatorValuesWithConfig(*chartValues, pushgatewayConfigValues)
+	if err != nil {
+		return errors.WrapIf(err, "failed to merge pushgateway values with config")
 	}
 
 	return op.helmService.ApplyDeployment(
 		ctx,
 		cluster.GetID(),
-		pipelineSystemNamespace,
+		op.config.Namespace,
 		op.config.Charts.Pushgateway.Chart,
 		prometheusPushgatewayReleaseName,
 		valuesBytes,
@@ -290,27 +268,50 @@ func (op FeatureOperator) installPrometheusOperator(
 		clusterID: cluster.GetID(),
 	}
 
-	alertmanagerValues, err := valuesManager.generateAlertmanagerChartValues(ctx, spec.Alertmanager, alertmanagerSecretName)
+	alertmanagerValues, err := valuesManager.generateAlertmanagerChartValues(ctx, spec.Alertmanager, alertmanagerSecretName, op.config.Images.Alertmanager)
 	if err != nil {
 		return errors.WrapIf(err, "failed to generate Alertmanager chart values")
 	}
 
 	// create chart values
 	var chartValues = &prometheusOperatorValues{
-		Grafana:      valuesManager.generateGrafanaChartValues(spec.Grafana, grafanaUser, grafanaPass),
+		PrometheusOperator: operatorSpecValues{
+			Image: imageValues{
+				Repository: op.config.Images.Operator.Repository,
+				Tag:        op.config.Images.Operator.Tag,
+			},
+			CleanupCustomResource: true,
+		},
+		Grafana:      valuesManager.generateGrafanaChartValues(spec.Grafana, grafanaUser, grafanaPass, op.config.Images.Grafana),
 		Alertmanager: alertmanagerValues,
-		Prometheus:   valuesManager.generatePrometheusChartValues(ctx, spec.Prometheus, prometheusSecretName),
+		Prometheus:   valuesManager.generatePrometheusChartValues(ctx, spec.Prometheus, prometheusSecretName, op.config.Images.Prometheus),
 	}
 
 	if spec.Exporters.Enabled {
 		chartValues.KubeStateMetrics = valuesManager.generateKubeStateMetricsChartValues(spec.Exporters.KubeStateMetrics)
+		if spec.Exporters.KubeStateMetrics.Enabled {
+			chartValues.KsmValues = &ksmValues{Image: imageValues{
+				Repository: op.config.Images.Kubestatemetrics.Repository,
+				Tag:        op.config.Images.Kubestatemetrics.Tag,
+			}}
+		}
+
 		chartValues.NodeExporter = valuesManager.generateNodeExporterChartValues(spec.Exporters.NodeExporter)
+		if spec.Exporters.NodeExporter.Enabled {
+			chartValues.NeValues = &neValues{Image: imageValues{
+				Repository: op.config.Images.Nodeexporter.Repository,
+				Tag:        op.config.Images.Nodeexporter.Tag,
+			}}
+		}
 	}
 
-	valuesBytes, err := json.Marshal(chartValues)
+	operatorConfigValues, err := copystructure.Copy(op.config.Charts.Operator.Values)
 	if err != nil {
-		logger.Debug("failed to marshal chartValues")
-		return errors.WrapIf(err, "failed to decode chartValues")
+		return errors.WrapIf(err, "failed to copy operator values")
+	}
+	valuesBytes, err := mergeOperatorValuesWithConfig(*chartValues, operatorConfigValues)
+	if err != nil {
+		return errors.WrapIf(err, "failed to merge operator values with config")
 	}
 
 	return op.helmService.ApplyDeployment(
@@ -322,6 +323,25 @@ func (op FeatureOperator) installPrometheusOperator(
 		valuesBytes,
 		op.config.Charts.Operator.Version,
 	)
+}
+
+func mergeOperatorValuesWithConfig(chartValues interface{}, configValues interface{}) ([]byte, error) {
+	valuesBytes, err := json.Marshal(chartValues)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode chartValues")
+	}
+
+	var out map[string]interface{}
+	if err := json.Unmarshal(valuesBytes, &out); err != nil {
+		return nil, errors.WrapIf(err, "failed to unmarshal operator values")
+	}
+
+	result, err := util.Merge(configValues, out)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to merge values")
+	}
+
+	return json.Marshal(result)
 }
 
 func (op FeatureOperator) generateGrafanaSecret(
@@ -351,7 +371,6 @@ func (op FeatureOperator) generateGrafanaSecret(
 		Tags: []string{
 			clusterNameSecretTag,
 			clusterUIDSecretTag,
-			secret.TagBanzaiReadonly,
 			releaseSecretTag,
 			grafanaSecretTag,
 		},
@@ -552,6 +571,7 @@ func (m chartValuesManager) generateGrafanaChartValues(
 	spec grafanaSpec,
 	username string,
 	password string,
+	config ImageConfig,
 ) *grafanaValues {
 	if spec.Enabled {
 		return &grafanaValues{
@@ -563,15 +583,20 @@ func (m chartValuesManager) generateGrafanaChartValues(
 					Path:    spec.Ingress.Path,
 				},
 			},
-			affinityValues:   affinityValues{Affinity: m.headNodeAffinity},
-			tolerationValues: tolerationValues{Tolerations: m.tolerations},
-			AdminUser:        username,
-			AdminPassword:    password,
+			AdminUser:     username,
+			AdminPassword: password,
 			GrafanaIni: grafanaIniValues{Server: grafanaIniServerValues{
 				RootUrl:          fmt.Sprintf("http://0.0.0.0:3000%s/", spec.Ingress.Path),
 				ServeFromSubPath: true,
 			}},
 			DefaultDashboardsEnabled: spec.Dashboards,
+			Image: imageValues{
+				Repository: config.Repository,
+				Tag:        config.Tag,
+			},
+			Persistence: persistenceValues{
+				Enabled: true,
+			},
 		}
 	}
 
@@ -582,7 +607,12 @@ func (m chartValuesManager) generateGrafanaChartValues(
 	}
 }
 
-func (m chartValuesManager) generateAlertmanagerChartValues(ctx context.Context, spec alertmanagerSpec, secretName string) (*alertmanagerValues, error) {
+func (m chartValuesManager) generateAlertmanagerChartValues(
+	ctx context.Context,
+	spec alertmanagerSpec,
+	secretName string,
+	config ImageConfig,
+) (*alertmanagerValues, error) {
 	if spec.Enabled {
 
 		var annotations map[string]interface{}
@@ -606,9 +636,11 @@ func (m chartValuesManager) generateAlertmanagerChartValues(ctx context.Context,
 				},
 			},
 			Spec: SpecValues{
-				affinityValues:   affinityValues{Affinity: m.headNodeAffinity},
-				tolerationValues: tolerationValues{Tolerations: m.tolerations},
-				RoutePrefix:      spec.Ingress.Path,
+				RoutePrefix: spec.Ingress.Path,
+				Image: imageValues{
+					Repository: config.Repository,
+					Tag:        config.Tag,
+				},
 			},
 			Config: alertmanagerConfig,
 		}, nil
@@ -621,7 +653,12 @@ func (m chartValuesManager) generateAlertmanagerChartValues(ctx context.Context,
 	}, nil
 }
 
-func (m chartValuesManager) generatePrometheusChartValues(ctx context.Context, spec prometheusSpec, secretName string) *prometheusValues {
+func (m chartValuesManager) generatePrometheusChartValues(
+	ctx context.Context,
+	spec prometheusSpec,
+	secretName string,
+	config ImageConfig,
+) *prometheusValues {
 	if spec.Enabled {
 
 		var defaultStorageClassName = spec.Storage.Class
@@ -648,11 +685,13 @@ func (m chartValuesManager) generatePrometheusChartValues(ctx context.Context, s
 				},
 			},
 			Spec: SpecValues{
-				tolerationValues: tolerationValues{Tolerations: m.tolerations},
-				affinityValues:   affinityValues{Affinity: m.headNodeAffinity},
-				RoutePrefix:      spec.Ingress.Path,
-				RetentionSize:    fmt.Sprintf("%.2fGiB", float64(spec.Storage.Size)*0.95),
-				Retention:        spec.Storage.Retention,
+				RoutePrefix:   spec.Ingress.Path,
+				RetentionSize: fmt.Sprintf("%.2fGiB", float64(spec.Storage.Size)*0.95),
+				Retention:     spec.Storage.Retention,
+				Image: imageValues{
+					Repository: config.Repository,
+					Tag:        config.Tag,
+				},
 				StorageSpec: map[string]interface{}{
 					"volumeClaimTemplate": map[string]interface{}{
 						"spec": map[string]interface{}{
@@ -666,6 +705,7 @@ func (m chartValuesManager) generatePrometheusChartValues(ctx context.Context, s
 						},
 					},
 				},
+				ServiceMonitorSelectorNilUsesHelmValues: false,
 			},
 			Annotations: annotations,
 		}
@@ -679,17 +719,9 @@ func (m chartValuesManager) generatePrometheusChartValues(ctx context.Context, s
 }
 
 func (m chartValuesManager) generateKubeStateMetricsChartValues(spec exporterBaseSpec) kubeStateMetricsValues {
-	var result = kubeStateMetricsValues{
+	return kubeStateMetricsValues{
 		Enabled: spec.Enabled,
 	}
-	if spec.Enabled {
-		result.SpecValues = SpecValues{
-			affinityValues:   affinityValues{Affinity: m.headNodeAffinity},
-			tolerationValues: tolerationValues{Tolerations: m.tolerations},
-		}
-	}
-
-	return result
 }
 
 func (m chartValuesManager) generateNodeExporterChartValues(spec exporterBaseSpec) nodeExporterValues {
@@ -700,7 +732,7 @@ func (m chartValuesManager) generateNodeExporterChartValues(spec exporterBaseSpe
 
 func (op FeatureOperator) getDefaultStorageClassName(ctx context.Context, clusterID uint) (string, error) {
 	var storageClass v1beta1.StorageClassList
-	if err := op.kubernetesService.List(ctx, clusterID, &storageClass); err != nil {
+	if err := op.kubernetesService.List(ctx, clusterID, nil, &storageClass); err != nil {
 		return "", errors.WrapIf(err, "failed to list storage classes")
 	}
 

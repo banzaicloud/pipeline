@@ -10,13 +10,7 @@
 
 package pipeline
 
-type GenTlsForLogging struct {
+type NamespaceItem struct {
 
-	TlsEnabled bool `json:"tlsEnabled"`
-
-	GenTlsSecretName string `json:"genTlsSecretName,omitempty"`
-
-	Namespace string `json:"namespace,omitempty"`
-
-	TlsHost string `json:"tlsHost,omitempty"`
+	Name string `json:"name,omitempty"`
 }

@@ -17,7 +17,6 @@ require (
 	github.com/Azure/go-autorest/autorest/azure/auth v0.3.0
 	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/Azure/go-autorest/autorest/validation v0.2.0
-	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
 	github.com/Masterminds/semver v1.4.2
 	github.com/Masterminds/sprig v2.15.0+incompatible
 	github.com/ThreeDotsLabs/watermill v1.0.0-rc.3
@@ -30,11 +29,12 @@ require (
 	github.com/aws/aws-sdk-go v1.23.18
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
-	github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.0
+	github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.1
 	github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677
 	github.com/banzaicloud/gin-utilz v0.1.0
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
-	github.com/banzaicloud/istio-operator v0.0.0-20190430142744-7f4bf475ff8f
+	github.com/banzaicloud/istio-operator v0.0.0-20191104140059-90d1290d7342
+	github.com/banzaicloud/logging-operator/pkg/sdk v0.0.0-20191108130836-0e04f356a099
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
 	github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190823114332-76c873e3a8cb
 	github.com/banzaicloud/prometheus-config v0.0.0-20181214142820-fc6ae4756a29
@@ -55,7 +55,7 @@ require (
 	github.com/docker/spdystream v0.0.0-20170912183627-bc6354cbbc29 // indirect
 	github.com/elazarl/goproxy v0.0.0-20181111060418-2ce16c963a8a // indirect
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
-	github.com/evanphx/json-patch v4.0.0+incompatible // indirect
+	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
@@ -65,7 +65,6 @@ require (
 	github.com/gin-contrib/cors v0.0.0-20170318125340-cf4846e6a636
 	github.com/gin-gonic/gin v1.4.0
 	github.com/go-kit/kit v0.9.0
-	github.com/go-logr/zapr v0.1.1 // indirect
 	github.com/go-openapi/spec v0.19.0 // indirect
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
@@ -92,6 +91,7 @@ require (
 	github.com/lib/pq v0.0.0-20181016162627-9eb73efc1fcc // indirect
 	github.com/mattn/go-sqlite3 v0.0.0-20160907162043-3fb7a0e792ed // indirect
 	github.com/microcosm-cc/bluemonday v1.0.2
+	github.com/mitchellh/copystructure v1.0.0
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/moogar0880/problems v0.1.1
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
@@ -145,9 +145,8 @@ require (
 	go.uber.org/goleak v0.10.0 // indirect
 	go.uber.org/net/metrics v1.0.1 // indirect
 	go.uber.org/thriftrw v1.16.1 // indirect
-	go.uber.org/tools v0.0.0-20170523140223-ce2550dad714 // indirect
 	go.uber.org/yarpc v1.36.1
-	go.uber.org/zap v1.10.0
+	go.uber.org/zap v1.12.0
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	golang.org/x/net v0.0.0-20190812203447-cdfb69ac37fc
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
@@ -158,11 +157,11 @@ require (
 	gopkg.in/gomail.v2 v2.0.0-20150902115704-41f357289737 // indirect
 	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/yaml.v2 v2.2.4
-	k8s.io/api v0.0.0-20190820101039-d651a1528133
-	k8s.io/apiextensions-apiserver v0.0.0-20190308081736-3a66ae4d2f93
+	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
+	k8s.io/apiextensions-apiserver v0.0.0-20190918201827-3de75813f604
 	k8s.io/apimachinery v0.0.0-20190823012420-8ca64af22337
 	k8s.io/cli-runtime v0.0.0-20190404071300-cbd7455f4bce // indirect
-	k8s.io/client-go v11.0.0+incompatible
+	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/cluster-bootstrap v0.0.0-20190404071559-03c28a85c7b7
 	k8s.io/helm v2.12.2+incompatible
 	k8s.io/kube-openapi v0.0.0-20190228160746-b3a7cee44a30 // indirect
@@ -173,7 +172,7 @@ require (
 	logur.dev/integration/watermill v0.2.1
 	logur.dev/integration/zap v0.2.0
 	logur.dev/logur v0.15.0
-	sigs.k8s.io/controller-runtime v0.1.10
+	sigs.k8s.io/controller-runtime v0.2.0
 	sigs.k8s.io/kubefed v0.1.0-rc5
 	sigs.k8s.io/testing_frameworks v0.1.1
 	vbom.ml/util v0.0.0-20170409195630-256737ac55c4 // indirect
@@ -199,5 +198,6 @@ replace (
 	k8s.io/cli-runtime => k8s.io/cli-runtime v0.0.0-20190325194458-f2b4781c3ae1
 	k8s.io/client-go => k8s.io/client-go v10.0.0+incompatible
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20180509051136-39cb288412c4
+	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.1.10
 	sigs.k8s.io/kubefed => sigs.k8s.io/kubefed v0.1.0-rc5
 )

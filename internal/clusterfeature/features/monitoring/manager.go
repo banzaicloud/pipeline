@@ -88,31 +88,14 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 		m.logger.Warn(fmt.Sprintf("failed to list endpoints: %s", err.Error()))
 	}
 
-	pushgatewayDeployment, err := m.helmService.GetDeployment(ctx, clusterID, prometheusPushgatewayReleaseName)
-	if err != nil {
-		m.logger.Warn(fmt.Sprintf("failed to get pushgateway details: %s", err.Error()))
-	}
-
-	operatorDeployment, err := m.helmService.GetDeployment(ctx, clusterID, prometheusOperatorReleaseName)
-	if err != nil {
-		m.logger.Warn(fmt.Sprintf("failed to get deployment details: %s", err.Error()))
-	}
-
-	var operatorValues map[string]interface{}
-	if operatorDeployment != nil {
-		operatorValues = operatorDeployment.Values
-	}
-
-	var pushgatewayValues map[string]interface{}
-	if pushgatewayDeployment != nil {
-		pushgatewayValues = pushgatewayDeployment.Values
-	}
+	var operatorValues = m.config.Charts.Operator.Values
+	var pushgatewayValues = m.config.Charts.Pushgateway.Values
 
 	out := clusterfeature.FeatureOutput{
-		"grafana":      m.getComponentOutput(ctx, clusterID, newGrafanaOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues),
-		"prometheus":   m.getComponentOutput(ctx, clusterID, newPrometheusOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues),
-		"alertmanager": m.getComponentOutput(ctx, clusterID, newAlertmanagerOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues),
-		"pushgateway":  m.getComponentOutput(ctx, clusterID, newPushgatewayOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusPushgatewayReleaseName, pushgatewayValues),
+		"grafana":      m.getComponentOutput(ctx, clusterID, newGrafanaOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues, m.config.Images.Grafana),
+		"prometheus":   m.getComponentOutput(ctx, clusterID, newPrometheusOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues, m.config.Images.Prometheus),
+		"alertmanager": m.getComponentOutput(ctx, clusterID, newAlertmanagerOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues, m.config.Images.Alertmanager),
+		"pushgateway":  m.getComponentOutput(ctx, clusterID, newPushgatewayOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusPushgatewayReleaseName, pushgatewayValues, m.config.Images.Pushgateway),
 		"prometheusOperator": map[string]interface{}{
 			"version": m.config.Charts.Operator.Version,
 		},
@@ -148,7 +131,8 @@ func (m FeatureManager) getComponentOutput(
 	endpoints []*pkgHelm.EndpointItem,
 	pipelineSystemNamespace string,
 	releaseName string,
-	deploymentValues map[string]interface{},
+	values map[string]interface{},
+	config ImageConfig,
 ) map[string]interface{} {
 	var out = make(map[string]interface{})
 
@@ -160,7 +144,9 @@ func (m FeatureManager) getComponentOutput(
 
 	writeSecretID(ctx, o, clusterID, out)
 	writeURL(o, endpoints, releaseName, out)
-	writeVersion(o, deploymentValues, out)
+	// TODO (colin): put back after the values can came from config
+	// writeVersion(o, values, out)
+	out[versionKey] = config.Tag
 	if err := writeServiceURL(o, m.endpointsService, pipelineSystemNamespace, out); err != nil {
 		m.logger.Warn(fmt.Sprintf("failed to get service url: %s", err.Error()))
 	}

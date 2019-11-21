@@ -40,6 +40,7 @@ type FeatureOperator struct {
 	helmService       features.HelmService
 	kubernetesService features.KubernetesService
 	secretStore       features.SecretStore
+	config            Config
 	logger            common.Logger
 }
 
@@ -50,6 +51,7 @@ func MakeFeatureOperator(
 	helmService features.HelmService,
 	kubernetesService features.KubernetesService,
 	secretStore features.SecretStore,
+	config Config,
 	logger common.Logger,
 ) FeatureOperator {
 	return FeatureOperator{
@@ -58,6 +60,7 @@ func MakeFeatureOperator(
 		helmService:       helmService,
 		kubernetesService: kubernetesService,
 		secretStore:       secretStore,
+		config:            config,
 		logger:            logger,
 	}
 }
@@ -98,19 +101,19 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		return errors.WrapIf(err, "failed to deploy helm chart for feature")
 	}
 
-	// get kubeconfig for cluster
-	kubeConfig, err := op.kubernetesService.GetKubeConfig(ctx, clusterID)
-	if err != nil {
-		return errors.WrapIf(err, "failed to get cluster kube config")
-	}
-
 	// create the token reviwer service account
 	tokenReviewerJWT, err := op.configureClusterTokenReviewer(ctx, logger, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to configure Cluster with token reviewer service account")
 	}
 
-	// configure the target Vault instance if needed
+	// get kubeconfig for cluster
+	kubeConfig, err := op.kubernetesService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get cluster kube config")
+	}
+
+	// configure the target Vault instance if needed, with the k8s auth info of the cluster
 	if err := op.configureVault(ctx, logger, orgID, clusterID, boundSpec, tokenReviewerJWT, kubeConfig); err != nil {
 		return errors.WrapIf(err, "failed to configure Vault")
 	}
@@ -122,8 +125,10 @@ func (op FeatureOperator) configureClusterTokenReviewer(
 	ctx context.Context,
 	logger common.Logger,
 	clusterID uint) (string, error) {
-	// Prepare cluster first with the proper token reviewer SA
+
 	pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace
+
+	// Prepare cluster first with the proper token reviewer SA
 	serviceAccount := corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      vaultTokenReviewer,
@@ -136,14 +141,25 @@ func (op FeatureOperator) configureClusterTokenReviewer(
 		return "", errors.WrapIf(err, "failed to create token reviewer ServiceAccount")
 	}
 
-	saTokenSecretRef := serviceAccount.Secrets[0]
-	saTokenSecretRef.Namespace = serviceAccount.Namespace
+	// Prepare a custom ServiceAccountToken for the above SA in a controlled way, since the creation of
+	// SA tokens is async and naming is random, so we can't control when it gets created and with what name.
+	// See:
+	// https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/#token-controller
+	// https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#manually-create-a-service-account-api-token
+	serviceAccountToken := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      vaultTokenReviewer,
+			Namespace: pipelineSystemNamespace,
+			Annotations: map[string]string{
+				corev1.ServiceAccountNameKey: vaultTokenReviewer,
+			},
+		},
+		Type: corev1.SecretTypeServiceAccountToken,
+	}
 
-	var saTokenSecret corev1.Secret
-
-	err = op.kubernetesService.GetObject(ctx, clusterID, saTokenSecretRef, &saTokenSecret)
+	err = op.kubernetesService.EnsureObject(ctx, clusterID, &serviceAccountToken)
 	if err != nil {
-		return "", errors.WrapIf(err, "failed to find token reviewer ServiceAccount's Secret")
+		return "", errors.WrapIf(err, "failed to create token reviewer ServiceAccountToken")
 	}
 
 	tokenReviewerRoleBinding := rbacv1.ClusterRoleBinding{
@@ -169,7 +185,7 @@ func (op FeatureOperator) configureClusterTokenReviewer(
 		return "", errors.WrapIf(err, "failed to create token reviewer cluster role binding")
 	}
 
-	tokenReviewerJWT := string(saTokenSecret.Data["token"])
+	tokenReviewerJWT := string(serviceAccountToken.Data[corev1.ServiceAccountTokenKey])
 
 	return tokenReviewerJWT, nil
 }
@@ -253,11 +269,17 @@ func (op FeatureOperator) installOrUpdateWebhook(
 	spec vaultFeatureSpec,
 ) error {
 	// create chart values
+	vaultExternalAddress := op.config.Managed.Endpoint
+	if spec.CustomVault.Enabled {
+		vaultExternalAddress = spec.CustomVault.Address
+	}
+
 	pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace
 	var chartValues = &webhookValues{
 		Env: map[string]string{
-			vaultAddressEnvKey: spec.getVaultAddress(),
+			vaultAddressEnvKey: vaultExternalAddress,
 			vaultPathEnvKey:    getAuthMethodPath(orgID, clusterID),
+			vaultRoleEnvKey:    getRoleName(spec.CustomVault.Enabled),
 		},
 		NamespaceSelector: namespaceSelector{
 			MatchExpressions: []matchExpressions{
@@ -296,7 +318,6 @@ func (op FeatureOperator) installOrUpdateWebhook(
 func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
-
 		return err
 	}
 
@@ -348,23 +369,19 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 
 		defer vaultManager.close()
 
-		// delete role
-		if _, err := vaultManager.deleteRole(); err != nil {
-			return errors.WrapIf(err, "failed to delete role")
-		}
-		logger.Info("role deleted successfully")
-
 		// disable auth method
 		if err := vaultManager.disableAuth(getAuthMethodPath(orgID, clusterID)); err != nil {
-			return errors.WrapIf(err, fmt.Sprintf("failed to disabling %s auth method for vault", authMethodType))
+			logger.Warn(fmt.Sprintf("failed to disable %q auth method in vault: %v", authMethodType, err))
+		} else {
+			logger.Info(fmt.Sprintf("auth method %q in vault deactivated successfully", authMethodType))
 		}
-		logger.Info(fmt.Sprintf("auth method %q for vault deactivated successfully", authMethodType))
 
 		// delete policy
 		if err := vaultManager.deletePolicy(); err != nil {
-			return errors.WrapIf(err, fmt.Sprintf("failed to delete policy"))
+			logger.Warn(fmt.Sprintf("failed to delete policy in vault: %v", err))
+		} else {
+			logger.Info("vault policy deleted successfully")
 		}
-		logger.Info("policy deleted successfully")
 
 		// delete kubernetes service account
 		pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace

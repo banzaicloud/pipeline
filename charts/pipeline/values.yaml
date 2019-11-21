@@ -16,7 +16,7 @@ hostAliases: []
 
 image:
   repository: banzaicloud/pipeline
-  tag: 0.27.2
+  tag: 0.32.0
   pullPolicy: IfNotPresent
 
 resources:
@@ -39,7 +39,7 @@ worker:
   # Image configuration is taken from the root level if not specified otherwise
   image: {}
     # repository: banzaicloud/pipeline
-    # tag: 0.18.2
+    # tag: 0.32.0
     # pullPolicy: IfNotPresent
 
   resources:

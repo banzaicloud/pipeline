@@ -30,24 +30,24 @@ import (
 type FeatureManager struct {
 	clusterfeature.PassthroughFeatureSpecPreparer
 
-	clusterGetter    clusterfeatureadapter.ClusterGetter
-	secretStore      features.SecretStore
-	isManagedEnabled bool
-	logger           common.Logger
+	clusterGetter clusterfeatureadapter.ClusterGetter
+	secretStore   features.SecretStore
+	config        Config
+	logger        common.Logger
 }
 
 // NewVaultFeatureManager builds a new feature manager component
 func MakeFeatureManager(
 	clusterGetter clusterfeatureadapter.ClusterGetter,
 	secretStore features.SecretStore,
-	isManagedEnabled bool,
+	config Config,
 	logger common.Logger,
 ) FeatureManager {
 	return FeatureManager{
-		clusterGetter:    clusterGetter,
-		secretStore:      secretStore,
-		isManagedEnabled: isManagedEnabled,
-		logger:           logger,
+		clusterGetter: clusterGetter,
+		secretStore:   secretStore,
+		config:        config,
+		logger:        logger,
 	}
 }
 
@@ -133,7 +133,7 @@ func (m FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Fe
 		return err
 	}
 
-	if !m.isManagedEnabled && !vaultSpec.CustomVault.Enabled {
+	if !m.config.Managed.Enabled && !vaultSpec.CustomVault.Enabled {
 		return clusterfeature.InvalidFeatureSpecError{
 			FeatureName: featureName,
 			Problem:     "Pipeline's managed Vault service is not available, configure a custom Vault instance",

@@ -293,7 +293,7 @@ func (a anchoreService) storeCredentialsSecret(ctx context.Context, orgID uint, 
 	}
 
 	// todo remove this global reference
-	secretID, err := secret.Store.Store(orgID, &secretRequest)
+	secretID, err := secret.Store.CreateOrUpdate(orgID, &secretRequest)
 	if err != nil {
 		a.logger.Debug("failed to store user credentials as a secret")
 

@@ -18,9 +18,9 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-
 	corev1 "k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
+	k8slabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	k8srest "k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -39,16 +39,14 @@ type ClusterService interface {
 // KubernetesService provides an interface for using clieng-go on a specific cluster.
 type KubernetesService struct {
 	clusters ClusterService
-
-	logger common.Logger
+	logger   common.Logger
 }
 
 // NewKubernetesService returns a new NewKubernetesService.
 func NewKubernetesService(clusters ClusterService, logger common.Logger) *KubernetesService {
 	return &KubernetesService{
 		clusters: clusters,
-
-		logger: logger.WithFields(map[string]interface{}{"component": "kubernetes"}),
+		logger:   logger.WithFields(map[string]interface{}{"component": "kubernetes"}),
 	}
 }
 
@@ -131,12 +129,13 @@ func (s *KubernetesService) newClientForCluster(ctx context.Context, clusterID u
 }
 
 // List lists Objects a specific cluster.
-func (s *KubernetesService) List(ctx context.Context, clusterID uint, obj runtime.Object) error {
+func (s *KubernetesService) List(ctx context.Context, clusterID uint, labels map[string]string, obj runtime.Object) error {
 
 	kubeClient, err := s.newClientForCluster(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to create Kubernetes client")
 	}
-
-	return kubeClient.List(ctx, &client.ListOptions{}, obj)
+	return kubeClient.List(ctx, &client.ListOptions{
+		LabelSelector: k8slabels.SelectorFromSet(labels),
+	}, obj)
 }

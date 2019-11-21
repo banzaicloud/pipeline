@@ -251,8 +251,10 @@ func (a *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}
 	for _, stackName := range a.StackNames {
 		go func(stackName string) {
 			cloudformationSrv := cloudformation.New(a.context.Session)
+			clientRequestToken := uuid.Must(uuid.NewV4()).String()
+
 			deleteStackInput := &cloudformation.DeleteStackInput{
-				ClientRequestToken: aws.String(uuid.Must(uuid.NewV4()).String()),
+				ClientRequestToken: aws.String(clientRequestToken),
 				StackName:          aws.String(stackName),
 			}
 			_, err = cloudformationSrv.DeleteStack(deleteStackInput)
@@ -270,7 +272,7 @@ func (a *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}
 			describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)}
 			err = cloudformationSrv.WaitUntilStackDeleteComplete(describeStacksInput)
 			if err != nil {
-				errorChan <- pkgCloudformation.NewAwsStackFailure(err, stackName, cloudformationSrv)
+				errorChan <- pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cloudformationSrv)
 				return
 			}
 

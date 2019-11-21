@@ -120,10 +120,6 @@ func (m vaultManager) createRole(serviceAccounts, namespaces []string) (*vaultap
 	return m.vaultClient.RawClient().Logical().Write(getRolePath(m.orgID, m.clusterID, getRoleName(m.customVault)), roleData)
 }
 
-func (m vaultManager) deleteRole() (*vaultapi.Secret, error) {
-	return m.vaultClient.RawClient().Logical().Delete(getRolePath(m.orgID, m.clusterID, getRoleName(m.customVault)))
-}
-
 func (m vaultManager) createPolicy(policy string) error {
 	return m.vaultClient.RawClient().Sys().PutPolicy(getPolicyName(m.orgID, m.clusterID), policy)
 }

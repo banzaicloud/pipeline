@@ -10,8 +10,7 @@
 
 package pipeline
 
-// GetDomainResponse - GetDomainResponse Api object to be mapped to Get domain request
-type GetDomainResponse struct {
+type NamespaceListResponse struct {
 
-	DomainName string `json:"domainName,omitempty"`
+	Namespaces []NamespaceItem `json:"namespaces,omitempty"`
 }

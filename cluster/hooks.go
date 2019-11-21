@@ -17,13 +17,9 @@ package cluster
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
-	"time"
 
 	"emperror.dev/emperror"
-	securityV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
-	securityClientV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -37,30 +33,18 @@ import (
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/dns"
-	"github.com/banzaicloud/pipeline/dns/route53"
 	"github.com/banzaicloud/pipeline/helm"
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
 	arkPosthook "github.com/banzaicloud/pipeline/internal/ark/posthook"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/hollowtrees"
-	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	anchore "github.com/banzaicloud/pipeline/internal/security"
-	"github.com/banzaicloud/pipeline/pkg/backoff"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
-	"github.com/banzaicloud/pipeline/secret"
 )
-
-type imageValues struct {
-	Repository string `json:"repository,omitempty"`
-	Tag        string `json:"tag,omitempty"`
-	PullPolicy string `json:"pullPolicy,omitempty"`
-}
 
 func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (err error) {
 
@@ -245,34 +229,6 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 
 }
 
-func setAdminRights(client *kubernetes.Clientset, userName string) (err error) {
-
-	name := "cluster-creator-admin-right"
-
-	log := log.WithFields(logrus.Fields{"name": name, "user": userName})
-
-	log.Info("cluster role creating")
-
-	_, err = client.RbacV1().ClusterRoleBindings().Create(
-		&rbacv1.ClusterRoleBinding{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: name,
-			},
-			Subjects: []rbacv1.Subject{
-				{
-					Kind: "User",
-					Name: userName,
-				},
-			},
-			RoleRef: rbacv1.RoleRef{
-				Kind: "ClusterRole",
-				Name: "cluster-admin",
-			},
-		})
-
-	return
-}
-
 // InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
 func InstallClusterAutoscalerPostHook(cluster CommonCluster) error {
 	return DeployClusterAutoscaler(cluster)
@@ -358,122 +314,6 @@ func InstallPVCOperatorPostHook(cluster CommonCluster) error {
 	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/pvc-operator", "pvc-operator", valuesOverride, "", false)
 }
 
-// InstallAnchoreImageValidator installs Anchore image validator
-func InstallAnchoreImageValidator(cluster CommonCluster, param pkgCluster.PostHookParam) error {
-
-	if !anchore.AnchoreEnabled {
-		log.Infof("Anchore integration is not enabled.")
-		return nil
-	}
-
-	var anchoreParam pkgCluster.AnchoreParam
-	err := castToPostHookParam(&param, &anchoreParam)
-	if err != nil {
-		return emperror.Wrap(err, "posthook param failed")
-	}
-
-	anchoreUserName := fmt.Sprintf("%v-anchore-user", cluster.GetUID())
-
-	_, err = anchore.SetupAnchoreUser(cluster.GetOrganizationId(), cluster.GetUID())
-	if err != nil {
-		return emperror.WrapWith(err, "error creating anchore user", "organization", cluster.GetOrganizationId(), "anchoreuser", anchoreUserName)
-	}
-	cluster.SetSecurityScan(true)
-
-	anchoreUserSecret, err := secret.Store.GetByName(cluster.GetOrganizationId(), anchoreUserName)
-	if err != nil {
-		return emperror.WrapWith(err, "failed to get anchore secret", "user", anchoreUserName)
-	}
-	anchorePassword := anchoreUserSecret.Values["password"]
-
-	infraNamespace := global.Config.Cluster.Namespace
-
-	values := map[string]interface{}{
-		"externalAnchore": map[string]string{
-			"anchoreHost": anchore.AnchoreEndpoint,
-			"anchoreUser": anchoreUserName,
-			"anchorePass": anchorePassword,
-		},
-	}
-	marshalledValues, err := yaml.Marshal(values)
-	if err != nil {
-		return emperror.Wrap(err, "marshaling failed")
-	}
-
-	err = installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/anchore-policy-validator", "anchore", marshalledValues, "", true)
-	if err != nil {
-		return emperror.Wrap(err, "install anchore-policy-validator failed")
-	}
-
-	// parse string as true-default boolean
-	allowAll := true
-	if anchoreParam.AllowAll != "" {
-		allowAll, err = strconv.ParseBool(anchoreParam.AllowAll)
-		if err != nil {
-			return emperror.Wrap(err, "InstallAnchoreImageValidator.AllowAll")
-		}
-	}
-
-	if allowAll {
-		if err := installAllowAllWhitelist(cluster); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func installAllowAllWhitelist(cluster CommonCluster) error {
-	kubeConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
-		return err
-	}
-
-	config, err := k8sclient.NewClientConfig(kubeConfig)
-	if err != nil {
-		return emperror.Wrap(err, "get k8s config")
-	}
-
-	securityClientSet, err := securityClientV1Alpha.SecurityConfig(config)
-	if err != nil {
-		return emperror.Wrap(err, "get SecurityClient")
-	}
-
-	whitelist := securityV1Alpha.WhiteListItem{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "WhiteListItem",
-			APIVersion: fmt.Sprintf("%v/%v", securityV1Alpha.GroupName, securityV1Alpha.GroupVersion),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "allow-all",
-		},
-		Spec: securityV1Alpha.WhiteListSpec{
-			Creator: "pipeline",
-			Reason:  "cluster-wide default",
-			Regexp:  ".*",
-		},
-	}
-
-	// it may take some time until the WhiteListItem CRD is created, thus the first attempt to create
-	// a whitelist cr may fail. Retry the whitelist creation in case of failure
-	var backoffConfig = backoff.ConstantBackoffConfig{
-		Delay:      time.Duration(5) * time.Second,
-		MaxRetries: 3,
-	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
-
-	err = backoff.Retry(func() error {
-		_, err = securityClientSet.Whitelists().Create(&whitelist)
-		if err != nil {
-			return emperror.Wrap(err, "create whitelist")
-		}
-		return nil
-
-	}, backoffPolicy)
-
-	return err
-}
-
 func CreatePipelineNamespacePostHook(cluster CommonCluster) error {
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
@@ -488,18 +328,34 @@ func CreatePipelineNamespacePostHook(cluster CommonCluster) error {
 	}
 
 	pipelineSystemNamespace := global.Config.Cluster.Namespace
-	err = k8sutil.EnsureNamespaceWithLabelWithRetry(client, pipelineSystemNamespace, map[string]string{"scan": "noscan"})
+	return k8sutil.EnsureNamespaceWithLabelWithRetry(client, pipelineSystemNamespace,
+		map[string]string{
+			"scan": "noscan",
+			"name": pipelineSystemNamespace,
+		})
+}
+
+func LabelKubeSystemNamespacePostHook(cluster CommonCluster) error {
+	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
+		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
 		return err
 	}
-	return nil
+
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		log.Errorf("Could not get kubernetes client: %s", err)
+		return err
+	}
+
+	return k8sutil.EnsureLabelsOnNamespace(client, k8sutil.KubeSystemNamespace, map[string]string{"name": k8sutil.KubeSystemNamespace})
 }
 
 // InstallHelmPostHook this posthook installs the helm related things
 func InstallHelmPostHook(cluster CommonCluster) error {
 	log := log.WithFields(logrus.Fields{"cluster": cluster.GetName(), "clusterID": cluster.GetID()})
 	helmInstall := &pkgHelm.Install{
-		Namespace:      "kube-system",
+		Namespace:      k8sutil.KubeSystemNamespace,
 		ServiceAccount: "tiller",
 		ImageSpec:      fmt.Sprintf("gcr.io/kubernetes-helm/tiller:%s", global.Config.Helm.Tiller.Version),
 		Upgrade:        true,
@@ -561,134 +417,6 @@ func InstallHelmPostHook(cluster CommonCluster) error {
 		log.Errorf("Error during retry helm install: %s", err.Error())
 	}
 	return nil
-}
-
-// SetupPrivileges setups privileges
-func SetupPrivileges(cluster CommonCluster) error {
-
-	// set admin rights (if needed)
-	if cluster.NeedAdminRights() {
-
-		kubeConfig, err := cluster.GetK8sConfig()
-		if err != nil {
-			return err
-		}
-
-		client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-		if err != nil {
-			return err
-		}
-
-		userName, err := cluster.GetKubernetesUserName()
-		if err != nil {
-			return err
-		}
-
-		if err := setAdminRights(client, userName); err != nil {
-			return err
-		}
-
-	}
-
-	return nil
-}
-
-// RegisterDomainPostHook registers a subdomain using the name of the current organization
-// in external Dns service. It ensures that only one domain is registered per organization.
-func RegisterDomainPostHook(commonCluster CommonCluster) error {
-	if global.Config.Hooks.DomainHookDisabled {
-		log.Info("domain hook disabled, exiting ...")
-
-		return nil
-	}
-
-	domainBase, err := dns.GetBaseDomain()
-	if err != nil {
-		return err
-	}
-
-	route53SecretNamespace := global.Config.Cluster.Namespace
-
-	orgId := commonCluster.GetOrganizationId()
-
-	dnsSvc, err := dns.GetExternalDnsServiceClient()
-	if err != nil {
-		return emperror.Wrap(err, "Getting external dns service client failed")
-	}
-
-	if dnsSvc == nil {
-		log.Info("Exiting as external dns service functionality is not enabled")
-		return nil
-	}
-
-	org, err := auth.GetOrganizationById(orgId)
-	if err != nil {
-		return emperror.Wrapf(err, "Retrieving organization with id %d failed", orgId)
-	}
-
-	domain := strings.ToLower(fmt.Sprintf("%s.%s", org.Name, domainBase))
-
-	registered, err := dnsSvc.IsDomainRegistered(orgId, domain)
-	if err != nil {
-		return emperror.Wrapf(err, "Checking if domain '%s' is already registered failed", domain)
-	}
-
-	if !registered {
-		if err = dnsSvc.RegisterDomain(orgId, domain); err != nil {
-			return emperror.Wrapf(err, "Registering domain '%s' failed", domain)
-		}
-	} else {
-		log.Infof("Domain '%s' already registered", domain)
-	}
-
-	route53Secret, err := secret.Store.GetByName(orgId, route53.IAMUserAccessKeySecretName)
-	if err != nil {
-		return emperror.Wrap(err, "Failed to install route53 secret into cluster")
-	}
-	_, err = InstallSecrets(
-		commonCluster,
-		&secret.ListSecretsQuery{
-			Type: pkgCluster.Amazon,
-			IDs:  []string{route53Secret.ID},
-		},
-		route53SecretNamespace,
-	)
-	if err != nil {
-		return emperror.Wrap(err, "Failed to install route53 secret into cluster")
-	}
-
-	log.Info("route53 secret successfully installed into cluster.")
-
-	externalDnsValues := dns.ExternalDnsChartValues{
-		Rbac: &dns.ExternalDnsRbacSettings{
-			Create: commonCluster.RbacEnabled() == true,
-		},
-		Sources: []string{"service", "ingress"},
-		Image: &dns.ExternalDnsImageSettings{
-			Repository: global.Config.Cluster.DNS.Charts.ExternalDNS.Values.Image.Repository,
-			Tag:        global.Config.Cluster.DNS.Charts.ExternalDNS.Values.Image.Tag,
-		},
-		Aws: &dns.ExternalDnsAwsSettings{
-			Credentials: &dns.ExternalDnsAwsCredentials{
-				SecretKey: route53Secret.Values[secrettype.AwsSecretAccessKey],
-				AccessKey: route53Secret.Values[secrettype.AwsAccessKeyId],
-			},
-			Region: route53Secret.Values[secrettype.AwsRegion],
-		},
-		DomainFilters: []string{domain},
-		Policy:        "sync",
-		TxtOwnerId:    commonCluster.GetUID(),
-	}
-
-	values, err := yaml.Marshal(externalDnsValues)
-	if err != nil {
-		return emperror.Wrap(err, "Json Convert Failed")
-	}
-	chartVersion := global.Config.Cluster.DNS.Charts.ExternalDNS.Version
-	chartName := global.Config.Cluster.DNS.Charts.ExternalDNS.Chart
-	const releaseName = "dns"
-
-	return installDeployment(commonCluster, route53SecretNamespace, chartName, releaseName, values, chartVersion, false)
 }
 
 // LabelNodesWithNodePoolName add node pool name labels for all nodes.

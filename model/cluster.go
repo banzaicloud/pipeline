@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"time"
 
-	"emperror.dev/emperror"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -67,10 +66,7 @@ type ClusterModel struct {
 	SshSecretId    string
 	Status         string
 	RbacEnabled    bool
-	Monitoring     bool
-	Logging        bool
-	ScaleOptions   ScaleOptions `gorm:"foreignkey:ClusterID"`
-	SecurityScan   bool
+	ScaleOptions   ScaleOptions           `gorm:"foreignkey:ClusterID"`
 	StatusMessage  string                 `sql:"type:text;"`
 	ACK            ACKClusterModel        `gorm:"foreignkey:ID"`
 	AKS            AKSClusterModel        `gorm:"foreignkey:ID"`
@@ -149,23 +145,6 @@ type AmazonNodePoolsModel struct {
 	Delete           bool              `gorm:"-"`
 }
 
-// BeforeDelete deletes all nodepool labels that belongs to this AmazonNodePoolsModel
-func (m *AmazonNodePoolsModel) BeforeDelete(tx *gorm.DB) error {
-	for _, label := range m.Labels {
-		err := tx.Model(m).Association("Labels").Delete(label).Error
-		if err != nil {
-			return emperror.WrapWith(err, "failed to unlink labels from node pool", "clusterId", m.ClusterID, "nodePoolName", m.Name)
-		}
-
-		err = tx.Delete(label).Error
-		if err != nil {
-			return emperror.WrapWith(err, "failed to delete nodepool label", "clusterId", m.ClusterID, "nodePoolName", m.Name)
-		}
-	}
-
-	return nil
-}
-
 // EKSSubnetModel describes the model of subnets used for creating an EKS cluster
 type EKSSubnetModel struct {
 	ID               uint `gorm:"primary_key"`
@@ -197,6 +176,8 @@ type EKSClusterModel struct {
 	LogTypes EKSLogTypes `sql:"type:json"`
 
 	APIServerAccessPoints EKSAPIServerAccessPoints `sql:"type:json"`
+
+	CurrentWorkflowID string
 }
 
 type EKSLogTypes = JSONStringArray
