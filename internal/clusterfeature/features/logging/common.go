@@ -50,6 +50,7 @@ const (
 
 	lokiOutputDefinitionName = "loki-output"
 	flowResourceName         = "banzai-logging-flow"
+	resourceLabelKey         = "service"
 )
 
 func getLokiSecretName(clusterID uint) string {
