@@ -73,7 +73,7 @@ func (s *CreatePipelineNamespaceActivityTestSuite) SetupSuite() {
 }
 
 func (s *CreatePipelineNamespaceActivityTestSuite) TearDownSuite() {
-	s.controlPlane.Stop()
+	_ = s.controlPlane.Stop()
 }
 
 func (s *CreatePipelineNamespaceActivityTestSuite) SetupTest() {
