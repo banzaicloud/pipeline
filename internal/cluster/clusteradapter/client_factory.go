@@ -17,14 +17,18 @@ package clusteradapter
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 
 	"emperror.dev/errors"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/helm/pkg/helm"
+	"k8s.io/helm/pkg/helm/portforwarder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	banzaihelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
@@ -59,6 +63,59 @@ func (f ClientFactory) FromSecret(ctx context.Context, secretID string) (kuberne
 	}
 
 	return client, nil
+}
+
+// HelmClientFactory returns a Kubernetes client.
+type HelmClientFactory struct {
+	secretStore common.SecretStore
+
+	logger common.Logger
+}
+
+// NewHelmClientFactory returns a new HelmClientFactory.
+func NewHelmClientFactory(secretStore common.SecretStore, logger common.Logger) HelmClientFactory {
+	return HelmClientFactory{
+		secretStore: secretStore,
+
+		logger: logger,
+	}
+}
+
+// FromSecret creates a Kubernetes client for a cluster from a secret.
+func (f HelmClientFactory) FromSecret(ctx context.Context, secretID string) (*banzaihelm.Client, error) {
+	values, err := f.secretStore.GetSecretValues(ctx, secretID)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: better secret parsing?
+	kubeConfig, err := base64.StdEncoding.DecodeString(values[secrettype.K8SConfig])
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot decode Kubernetes config")
+	}
+
+	config, err := k8sclient.NewClientConfig(kubeConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := k8sclient.NewClientFromConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	f.logger.Debug("create kubernetes tunnel")
+	tillerTunnel, err := portforwarder.New("kube-system", client, config)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to create kubernetes tunnel")
+	}
+
+	tillerTunnelAddress := fmt.Sprintf("localhost:%d", tillerTunnel.Local)
+	f.logger.Debug("created kubernetes tunnel on address", map[string]interface{}{"address": tillerTunnelAddress})
+
+	hClient := helm.NewClient(helm.Host(tillerTunnelAddress))
+
+	return &banzaihelm.Client{Tunnel: tillerTunnel, Client: hClient}, nil
 }
 
 // DynamicFileClientFactory returns a DynamicFileClient.

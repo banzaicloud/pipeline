@@ -60,6 +60,12 @@ type configuration struct {
 
 	// Cadence configuration
 	Cadence cadence.Config
+
+	Helm struct {
+		Tiller struct {
+			Version string
+		}
+	}
 }
 
 // Validate validates the configuration.
