@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,19 +15,17 @@
 package pke
 
 import (
+	"database/sql"
 	"database/sql/driver"
+	"testing"
 
-	"github.com/banzaicloud/pipeline/internal/database/sql/json"
+	"github.com/stretchr/testify/require"
 )
 
-type Config map[string]interface{}
-
-// Value implements the driver.Valuer interface
-func (n Config) Value() (driver.Value, error) {
-	return json.Value(n)
+func TestConfigImplementsScanner(t *testing.T) {
+	require.Implements(t, (*sql.Scanner)(nil), new(Config))
 }
 
-// Scan implements the sql.Scanner interface
-func (n *Config) Scan(src interface{}) error {
-	return json.Scan(src, n)
+func TestConfigImplementsValuer(t *testing.T) {
+	require.Implements(t, (*driver.Valuer)(nil), new(Config))
 }
