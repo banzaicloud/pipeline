@@ -42,9 +42,10 @@ type WorkflowInput struct {
 
 // Cluster represents a Kubernetes cluster.
 type Cluster struct {
-	ID   uint
-	UID  string
-	Name string
+	ID           uint
+	UID          string
+	Name         string
+	Distribution string
 }
 
 // Organization contains information about the organization a cluster belongs to.
@@ -56,7 +57,7 @@ type Organization struct {
 // Execute executes the cluster setup workflow.
 func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 	// Default timeouts and retries
-	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+	activityOptions := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 20 * time.Minute,
 		StartToCloseTimeout:    30 * time.Minute,
 		WaitForCancellation:    true,
@@ -66,7 +67,8 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 			MaximumInterval:    30 * time.Second,
 			MaximumAttempts:    30,
 		},
-	})
+	}
+	ctx = workflow.WithActivityOptions(ctx, activityOptions)
 
 	// Install the cluster manifest to the cluster (if configured)
 	if w.InstallInitManifest {
@@ -88,6 +90,33 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 		}
 
 		err := workflow.ExecuteActivity(ctx, CreatePipelineNamespaceActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+		activityInput := InstallTillerActivityInput{
+			ConfigSecretID: input.ConfigSecretID,
+			Distribution:   input.Cluster.Distribution,
+		}
+
+		err := workflow.ExecuteActivity(ctx, InstallTillerActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+		activityInput := InstallTillerWaitActivityInput{
+			ConfigSecretID: input.ConfigSecretID,
+		}
+
+		aop := activityOptions
+		aop.HeartbeatTimeout = 1 * time.Minute
+		ctx := workflow.WithActivityOptions(ctx, aop)
+
+		err := workflow.ExecuteActivity(ctx, InstallTillerWaitActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
 			return err
 		}

@@ -268,6 +268,18 @@ func main() {
 				clusteradapter.NewClientFactory(commonSecretStore),
 			)
 			activity.RegisterWithOptions(createPipelineNamespaceActivity.Execute, activity.RegisterOptions{Name: clustersetup.CreatePipelineNamespaceActivityName})
+
+			installTillerActivity := clustersetup.NewInstallTillerActivity(
+				config.Helm.Tiller.Version,
+				clusteradapter.NewClientFactory(commonSecretStore),
+			)
+			activity.RegisterWithOptions(installTillerActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerActivityName})
+
+			installTillerWaitActivity := clustersetup.NewInstallTillerWaitActivity(
+				config.Helm.Tiller.Version,
+				clusteradapter.NewHelmClientFactory(commonSecretStore, commonadapter.NewLogger(logger)),
+			)
+			activity.RegisterWithOptions(installTillerWaitActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerWaitActivityName})
 		}
 
 		workflow.RegisterWithOptions(cluster.CreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.CreateClusterWorkflowName})
