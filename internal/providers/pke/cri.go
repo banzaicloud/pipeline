@@ -15,7 +15,6 @@
 package pke
 
 import (
-	"database/sql"
 	"database/sql/driver"
 	"fmt"
 
@@ -54,14 +53,10 @@ const (
 	CRIContainerd Runtime = "containerd"
 )
 
-var _ driver.Valuer = (*Runtime)(nil)
-
 // Value implements the driver.Valuer interface
 func (n Runtime) Value() (driver.Value, error) {
 	return string(n), nil
 }
-
-var _ sql.Scanner = (*Runtime)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *Runtime) Scan(src interface{}) error {
