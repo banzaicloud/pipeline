@@ -16,9 +16,11 @@ package workflow
 
 import (
 	"context"
+	"fmt"
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 )
 
@@ -51,7 +53,10 @@ func NewGetVpcConfigActivity(awsSessionFactory *AWSSessionFactory) *GetVpcConfig
 	}
 }
 
+// return with empty output fields in case VPC stack doesn't exists anymore
 func (a *GetVpcConfigActivity) Execute(ctx context.Context, input GetVpcConfigActivityInput) (*GetVpcConfigActivityOutput, error) {
+
+	output := GetVpcConfigActivityOutput{}
 
 	session, err := a.awsSessionFactory.New(input.OrganizationID, input.SecretID, input.Region)
 	if err = errors.WrapIf(err, "failed to create AWS session"); err != nil {
@@ -63,10 +68,14 @@ func (a *GetVpcConfigActivity) Execute(ctx context.Context, input GetVpcConfigAc
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
 	describeStacksOutput, err := cloudformationClient.DescribeStacksWithContext(ctx, describeStacksInput)
 	if err != nil {
+		if awsErr, ok := err.(awserr.Error); ok {
+			stackDoesntExistsEmssage := fmt.Sprintf("Stack with id %v does not exist", input.StackName)
+			if awsErr.Message() == stackDoesntExistsEmssage {
+				return &output, nil
+			}
+		}
 		return nil, errors.WrapIfWithDetails(err, "failed to describe stack", "stack", input.StackName)
 	}
-
-	var output GetVpcConfigActivityOutput
 
 	for _, outputPrm := range describeStacksOutput.Stacks[0].Outputs {
 		switch aws.StringValue(outputPrm.OutputKey) {

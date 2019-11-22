@@ -33,12 +33,9 @@ type GetOwnedELBsActivity struct {
 // GetOwnedELBsActivityInput holds fields needed to retrieve all ELBs provisioned by
 // an EKS cluster
 type GetOwnedELBsActivityInput struct {
-	OrganizationID uint
-	SecretID       string
-	Region         string
+	EKSActivityInput
 
-	VpcID       string
-	ClusterName string
+	VpcID string
 }
 
 type GetOwnedELBsActivityOutput struct {
