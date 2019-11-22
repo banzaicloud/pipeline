@@ -21,7 +21,6 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/common"
@@ -590,7 +589,7 @@ func (s gormAzurePKEClusterStore) SetNodePoolSizes(clusterID uint, nodePoolName 
 }
 
 // Migrate executes the table migrations for the provider.
-func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
+func Migrate(db *gorm.DB, logger common.Logger) error {
 	tables := []interface{}{
 		&gormAzurePKENodePoolModel{},
 		&gormAzurePKEClusterModel{},
@@ -601,7 +600,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
 	}
 
-	logger.WithFields(logrus.Fields{
+	logger.WithFields(map[string]interface{}{
 		"provider":    pke.PKEOnAzure,
 		"table_names": strings.TrimSpace(tableNames),
 	}).Info("migrating provider tables")

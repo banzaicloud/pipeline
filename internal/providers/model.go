@@ -17,7 +17,9 @@ package providers
 import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+	logrusadapter "logur.dev/adapter/logrus"
 
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/alibaba"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/providers/azure"
@@ -53,7 +55,15 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		return err
 	}
 
-	if err := adapter.Migrate(db, logger); err != nil {
+	var logurLogger *logrusadapter.Logger
+	switch l := logger.(type) {
+	case *logrus.Logger:
+		logurLogger = logrusadapter.New(l)
+	case *logrus.Entry:
+		logurLogger = logrusadapter.NewFromEntry(l)
+	}
+
+	if err := adapter.Migrate(db, commonadapter.NewLogger(logurLogger)); err != nil {
 		return err
 	}
 
