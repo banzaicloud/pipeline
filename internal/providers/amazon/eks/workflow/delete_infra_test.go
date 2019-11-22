@@ -43,6 +43,30 @@ func TestDeleteClusterInfraWorkflowTestSuite(t *testing.T) {
 	waitELBsDeletionActivity := NewWaitELBsDeletionActivity(nil)
 	activity.RegisterWithOptions(waitELBsDeletionActivity.Execute, activity.RegisterOptions{Name: WaitELBsDeletionActivityName})
 
+	getNodepoolStacksActivity := NewGetNodepoolStacksActivity(nil)
+	activity.RegisterWithOptions(getNodepoolStacksActivity.Execute, activity.RegisterOptions{Name: GetNodepoolStacksActivityName})
+
+	deleteStackActivity := NewDeleteStackActivity(nil, "")
+	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: DeleteStackActivityName})
+
+	deleteControlPlaneActivity := NewDeleteControlPlaneActivity(nil)
+	activity.RegisterWithOptions(deleteControlPlaneActivity.Execute, activity.RegisterOptions{Name: DeleteControlPlaneActivityName})
+
+	deleteSshKeyActivity := NewDeleteSshKeyActivity(nil)
+	activity.RegisterWithOptions(deleteSshKeyActivity.Execute, activity.RegisterOptions{Name: DeleteSshKeyActivityName})
+
+	deleteClusterUserAccessKeyActivity := NewDeleteClusterUserAccessKeyActivity(nil)
+	activity.RegisterWithOptions(deleteClusterUserAccessKeyActivity.Execute, activity.RegisterOptions{Name: DeleteClusterUserAccessKeyActivityName})
+
+	getOrphanNicsActivity := NewGetOrphanNICsActivity(nil)
+	activity.RegisterWithOptions(getOrphanNicsActivity.Execute, activity.RegisterOptions{Name: GetOrphanNICsActivityName})
+
+	deleteOrphanNicActivity := NewDeleteOrphanNICActivity(nil)
+	activity.RegisterWithOptions(deleteOrphanNicActivity.Execute, activity.RegisterOptions{Name: DeleteOrphanNICActivityName})
+
+	getSubnetStacksActivity := NewGetSubnetStacksActivity(nil)
+	activity.RegisterWithOptions(getSubnetStacksActivity.Execute, activity.RegisterOptions{Name: GetSubnetStacksActivityName})
+
 	suite.Run(t, new(DeleteClusterInfraWorkflowTestSuite))
 }
 
@@ -55,11 +79,13 @@ func (s *DeleteClusterInfraWorkflowTestSuite) AfterTest(suiteName, testName stri
 }
 
 func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
+
 	workflowInput := DeleteInfrastructureWorkflowInput{
 		Region:         "us-west-1",
 		OrganizationID: 1,
 		SecretID:       "my-secret-id",
 		ClusterName:    "test-cluster-name",
+		NodePoolNames:  []string{"pool1", "pool2"},
 	}
 
 	eksActivityInput := EKSActivityInput{
@@ -79,22 +105,86 @@ func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
 	}, nil)
 
 	s.env.OnActivity(GetOwnedELBsActivityName, mock.Anything, GetOwnedELBsActivityInput{
-		OrganizationID: 1,
-		SecretID:       "my-secret-id",
-		Region:         "us-west-1",
-		VpcID:          "test-vpc-id",
-		ClusterName:    workflowInput.ClusterName,
+		EKSActivityInput: eksActivityInput,
+		VpcID:            "test-vpc-id",
 	}).Return(&GetOwnedELBsActivityOutput{
 		LoadBalancerNames: []string{"test-lb-1", "test-lb-2"},
 	}, nil)
 
 	s.env.OnActivity(WaitELBsDeletionActivityName, mock.Anything, WaitELBsDeletionActivityActivityInput{
-		OrganizationID:    1,
-		SecretID:          "my-secret-id",
-		Region:            "us-west-1",
-		ClusterName:       workflowInput.ClusterName,
+		EKSActivityInput:  eksActivityInput,
 		LoadBalancerNames: []string{"test-lb-1", "test-lb-2"},
 	}).Return(nil)
+
+	s.env.OnActivity(GetNodepoolStacksActivityName, mock.Anything, GetNodepoolStacksActivityInput{
+		EKSActivityInput: eksActivityInput,
+		NodePoolNames:    []string{"pool1", "pool2"},
+	}).Return(&GetNodepoolStacksActivityOutput{
+		StackNames: []string{
+			generateNodePoolStackName(eksActivityInput.ClusterName, "pool1"),
+			generateNodePoolStackName(eksActivityInput.ClusterName, "pool2"),
+		},
+	}, nil).Once()
+
+	s.env.OnActivity(DeleteStackActivityName, mock.Anything, DeleteStackActivityInput{
+		EKSActivityInput: eksActivityInput,
+		StackName:        generateNodePoolStackName(eksActivityInput.ClusterName, "pool1"),
+	}).Return(nil).Once()
+	s.env.OnActivity(DeleteStackActivityName, mock.Anything, DeleteStackActivityInput{
+		EKSActivityInput: eksActivityInput,
+		StackName:        generateNodePoolStackName(eksActivityInput.ClusterName, "pool2"),
+	}).Return(nil).Once()
+
+	s.env.OnActivity(DeleteControlPlaneActivityName, mock.Anything, DeleteControlPlaneActivityInput{
+		EKSActivityInput: eksActivityInput,
+	}).Return(nil).Once()
+
+	s.env.OnActivity(DeleteSshKeyActivityName, mock.Anything, DeleteSshKeyActivityInput{
+		EKSActivityInput: eksActivityInput,
+		SSHKeyName:       generateSSHKeyNameForCluster(eksActivityInput.ClusterName),
+	}).Return(nil).Once()
+
+	s.env.OnActivity(GetOrphanNICsActivityName, mock.Anything, GetOrphanNICsActivityInput{
+		EKSActivityInput: eksActivityInput,
+		VpcID:            "test-vpc-id",
+		SecurityGroupIDs: []string{"test-node-sg-id", "test-control-plane-sg-id"},
+	}).Return(&GetOrphanNICsActivityOutput{
+		NicList: []string{
+			"nic1",
+		},
+	}, nil).Once()
+
+	s.env.OnActivity(DeleteOrphanNICActivityName, mock.Anything, DeleteOrphanNICActivityInput{
+		EKSActivityInput: eksActivityInput,
+		NicID:            "nic1",
+	}).Return(nil).Once()
+
+	s.env.OnActivity(GetSubnetStacksActivityName, mock.Anything, GetSubnetStacksActivityInput{
+		EKSActivityInput: eksActivityInput,
+	}).Return(&GetSubnetStacksActivityOutput{
+		StackNames: []string{
+			"subnetStackName",
+		},
+	}, nil).Once()
+
+	s.env.OnActivity(DeleteStackActivityName, mock.Anything, DeleteStackActivityInput{
+		EKSActivityInput: eksActivityInput,
+		StackName:        "subnetStackName",
+	}).Return(nil).Once()
+
+	s.env.OnActivity(DeleteStackActivityName, mock.Anything, DeleteStackActivityInput{
+		EKSActivityInput: eksActivityInput,
+		StackName:        generateStackNameForCluster(eksActivityInput.ClusterName),
+	}).Return(nil).Once()
+
+	s.env.OnActivity(DeleteStackActivityName, mock.Anything, DeleteStackActivityInput{
+		EKSActivityInput: eksActivityInput,
+		StackName:        generateStackNameForIam(eksActivityInput.ClusterName),
+	}).Return(nil).Once()
+
+	s.env.OnActivity(DeleteClusterUserAccessKeyActivityName, mock.Anything, DeleteClusterUserAccessKeyActivityInput{
+		EKSActivityInput: eksActivityInput,
+	}).Return(nil).Once()
 
 	s.env.ExecuteWorkflow(DeleteInfraWorkflowName, workflowInput)
 

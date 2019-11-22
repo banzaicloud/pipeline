@@ -32,7 +32,8 @@ type DeleteClusterWorkflowInput struct {
 	SecretID       string
 	Region         string
 
-	ClusterName string
+	ClusterName   string
+	NodePoolNames []string
 
 	ClusterID  uint
 	ClusterUID string
@@ -130,7 +131,9 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			OrganizationID: input.OrganizationID,
 			SecretID:       input.SecretID,
 			Region:         input.Region,
+			ClusterUID:     input.ClusterUID,
 			ClusterName:    input.ClusterName,
+			NodePoolNames:  input.NodePoolNames,
 		}
 
 		err := workflow.ExecuteChildWorkflow(ctx, DeleteInfraWorkflowName, infraInput).Get(ctx, nil)

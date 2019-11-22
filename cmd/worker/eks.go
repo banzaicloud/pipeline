@@ -81,11 +81,17 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore) error {
 	createAsgActivity := eksworkflow.NewCreateAsgActivity(awsSessionFactory, nodePoolTemplate, waitAttempts, waitInterval)
 	activity.RegisterWithOptions(createAsgActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateAsgActivityName})
 
+	updateAsgActivity := eksworkflow.NewUpdateAsgActivity(awsSessionFactory, nodePoolTemplate, waitAttempts, waitInterval)
+	activity.RegisterWithOptions(updateAsgActivity.Execute, activity.RegisterOptions{Name: eksworkflow.UpdateAsgActivityName})
+
 	createUserAccessKeyActivity := eksworkflow.NewCreateClusterUserAccessKeyActivity(awsSessionFactory)
 	activity.RegisterWithOptions(createUserAccessKeyActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateClusterUserAccessKeyActivityName})
 
 	bootstrapActivity := eksworkflow.NewBootstrapActivity(awsSessionFactory)
 	activity.RegisterWithOptions(bootstrapActivity.Execute, activity.RegisterOptions{Name: eksworkflow.BootstrapActivityName})
+
+	// update cluster workflow
+	workflow.RegisterWithOptions(eksworkflow.UpdateClusterWorkflow, workflow.RegisterOptions{Name: eksworkflow.UpdateClusterWorkflowName})
 
 	// delete cluster workflow
 	workflow.RegisterWithOptions(eksworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: eksworkflow.DeleteClusterWorkflowName})
@@ -96,6 +102,30 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore) error {
 
 	waitELBsDeletionActivity := eksworkflow.NewWaitELBsDeletionActivity(awsSessionFactory)
 	activity.RegisterWithOptions(waitELBsDeletionActivity.Execute, activity.RegisterOptions{Name: eksworkflow.WaitELBsDeletionActivityName})
+
+	getNodepoolStacksActivity := eksworkflow.NewGetNodepoolStacksActivity(awsSessionFactory)
+	activity.RegisterWithOptions(getNodepoolStacksActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetNodepoolStacksActivityName})
+
+	deleteStackActivity := eksworkflow.NewDeleteStackActivity(awsSessionFactory, nodePoolTemplate)
+	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteStackActivityName})
+
+	deleteControlPlaneActivity := eksworkflow.NewDeleteControlPlaneActivity(awsSessionFactory)
+	activity.RegisterWithOptions(deleteControlPlaneActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteControlPlaneActivityName})
+
+	deleteSshKeyActivity := eksworkflow.NewDeleteSshKeyActivity(awsSessionFactory)
+	activity.RegisterWithOptions(deleteSshKeyActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteSshKeyActivityName})
+
+	deleteClusterUserAccessKeyActivity := eksworkflow.NewDeleteClusterUserAccessKeyActivity(awsSessionFactory)
+	activity.RegisterWithOptions(deleteClusterUserAccessKeyActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteClusterUserAccessKeyActivityName})
+
+	getOrphanNicsActivity := eksworkflow.NewGetOrphanNICsActivity(awsSessionFactory)
+	activity.RegisterWithOptions(getOrphanNicsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetOrphanNICsActivityName})
+
+	deleteOrphanNicActivity := eksworkflow.NewDeleteOrphanNICActivity(awsSessionFactory)
+	activity.RegisterWithOptions(deleteOrphanNicActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteOrphanNICActivityName})
+
+	getSubnetStacksActivity := eksworkflow.NewGetSubnetStacksActivity(awsSessionFactory)
+	activity.RegisterWithOptions(getSubnetStacksActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetSubnetStacksActivityName})
 
 	return nil
 }

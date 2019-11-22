@@ -17,7 +17,6 @@ package workflow
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
@@ -168,7 +167,7 @@ func (a *CreateClusterUserAccessKeyActivity) Execute(ctx context.Context, input 
 		ver := int(clusterUserAccessKeySecret.Version)
 		secretRequest.Version = &ver
 
-		if err = secret.Store.Update(input.OrganizationID, clusterUserAccessKeySecret.ID, &secretRequest); err != nil {
+		if err = a.awsSessionFactory.GetSecretStore().Update(input.OrganizationID, clusterUserAccessKeySecret.ID, &secretRequest); err != nil {
 			return nil, errors.WrapIff(err, "failed to update secret: %s", secretName)
 		}
 		secretID = clusterUserAccessKeySecret.ID
@@ -182,9 +181,4 @@ func (a *CreateClusterUserAccessKeyActivity) Execute(ctx context.Context, input 
 	return &CreateClusterUserAccessKeyActivityOutput{
 		SecretID: secretID,
 	}, nil
-}
-
-// getSecretName returns the name that identifies the  cluster user access key in Vault
-func getSecretName(userName string) string {
-	return fmt.Sprintf("%s-key", strings.ToLower(userName))
 }
