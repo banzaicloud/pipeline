@@ -22,7 +22,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +38,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/hollowtrees"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -306,74 +304,6 @@ func LabelKubeSystemNamespacePostHook(cluster CommonCluster) error {
 	}
 
 	return k8sutil.EnsureLabelsOnNamespace(client, k8sutil.KubeSystemNamespace, map[string]string{"name": k8sutil.KubeSystemNamespace})
-}
-
-// InstallHelmPostHook this posthook installs the helm related things
-func InstallHelmPostHook(cluster CommonCluster) error {
-	log := log.WithFields(logrus.Fields{"cluster": cluster.GetName(), "clusterID": cluster.GetID()})
-	helmInstall := &pkgHelm.Install{
-		Namespace:      k8sutil.KubeSystemNamespace,
-		ServiceAccount: "tiller",
-		ImageSpec:      fmt.Sprintf("gcr.io/kubernetes-helm/tiller:%s", global.Config.Helm.Tiller.Version),
-		Upgrade:        true,
-		ForceUpgrade:   true,
-	}
-
-	if cluster.GetDistribution() == pkgCluster.PKE {
-		// add toleration for master node
-		helmInstall.Tolerations = []v1.Toleration{
-			{
-				Key:      pke.TaintKeyMaster,
-				Operator: v1.TolerationOpExists,
-			},
-		}
-
-		// try to schedule to master or master-worker node
-		helmInstall.NodeAffinity = &v1.NodeAffinity{
-			PreferredDuringSchedulingIgnoredDuringExecution: []v1.PreferredSchedulingTerm{
-				{
-					Weight: 100,
-					Preference: v1.NodeSelectorTerm{
-						MatchExpressions: []v1.NodeSelectorRequirement{
-							{
-								Key:      pke.TaintKeyMaster,
-								Operator: v1.NodeSelectorOpExists,
-							},
-						},
-					},
-				},
-				{
-					Weight: 100,
-					Preference: v1.NodeSelectorTerm{
-						MatchExpressions: []v1.NodeSelectorRequirement{
-							{
-								Key:      pke.NodeLabelKeyMasterWorker,
-								Operator: v1.NodeSelectorOpExists,
-							},
-						},
-					},
-				},
-			},
-		}
-	}
-
-	kubeconfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		return err
-	}
-
-	err = helm.RetryHelmInstall(log, helmInstall, kubeconfig)
-	if err == nil {
-		log.Info("Getting K8S Config Succeeded")
-
-		if err := WaitingForTillerComeUp(log, kubeconfig); err != nil {
-			return err
-		}
-
-	} else {
-		log.Errorf("Error during retry helm install: %s", err.Error())
-	}
-	return nil
 }
 
 // LabelNodesWithNodePoolName add node pool name labels for all nodes.
