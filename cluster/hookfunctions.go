@@ -29,10 +29,6 @@ var HookMap = map[string]PostFunctioner{
 		f:            LabelKubeSystemNamespacePostHook,
 		ErrorHandler: ErrorHandler{},
 	},
-	/*	pkgCluster.InstallHelmPostHook: &BasePostFunction{
-		f:            InstallHelmPostHook,
-		ErrorHandler: ErrorHandler{},
-	},*/
 	pkgCluster.InstallIngressControllerPostHook: &BasePostFunction{
 		f:            InstallIngressControllerPostHook,
 		ErrorHandler: ErrorHandler{},
@@ -84,7 +80,6 @@ var HookMap = map[string]PostFunctioner{
 var BasePostHookFunctions = []string{
 	pkgCluster.LabelNodesWithNodePoolName,
 	pkgCluster.LabelKubeSystemNamespacePostHook,
-	// pkgCluster.InstallHelmPostHook,
 	pkgCluster.InstallNodePoolLabelSetOperator,
 	pkgCluster.SetupNodePoolLabelsSet,
 	pkgCluster.InstallIngressControllerPostHook,
