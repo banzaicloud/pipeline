@@ -40,6 +40,7 @@ type DeleteClusterWorkflowInput struct {
 
 	// the identifier of the kubeconfig secret of the cluster
 	K8sSecretID string
+	DefaultUser bool
 
 	// force delete
 	Forced bool
@@ -134,6 +135,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			ClusterUID:     input.ClusterUID,
 			ClusterName:    input.ClusterName,
 			NodePoolNames:  input.NodePoolNames,
+			DefaultUser:    input.DefaultUser,
 		}
 
 		err := workflow.ExecuteChildWorkflow(ctx, DeleteInfraWorkflowName, infraInput).Get(ctx, nil)

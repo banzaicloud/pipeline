@@ -33,6 +33,7 @@ type DeleteInfrastructureWorkflowInput struct {
 	ClusterName    string
 	ClusterUID     string
 	NodePoolNames  []string
+	DefaultUser    bool
 }
 
 // DeleteInfrastructureWorkflow executes the Cadence workflow responsible for deleting EKS
@@ -269,6 +270,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	{
 		activityInput := DeleteClusterUserAccessKeyActivityInput{
 			EKSActivityInput: eksActivityInput,
+			DefaultUser:      input.DefaultUser,
 		}
 		deleteClusterUserAccessKeyActivityFeature = workflow.ExecuteActivity(ctx, DeleteClusterUserAccessKeyActivityName, activityInput)
 	}

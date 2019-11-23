@@ -30,14 +30,15 @@ import (
 
 const DeleteClusterUserAccessKeyActivityName = "eks-delete-cluster-user-access-key"
 
-// DeleteClusterUserAccessKeyActivity responsible for deleting cluster user access key &  cluster secret from
-// secret store
+// DeleteClusterUserAccessKeyActivity responsible for deleting cluster user access key in case if not default user
+// &  cluster secret from secret store
 type DeleteClusterUserAccessKeyActivity struct {
 	awsSessionFactory *AWSSessionFactory
 }
 
 type DeleteClusterUserAccessKeyActivityInput struct {
 	EKSActivityInput
+	DefaultUser bool
 }
 
 //   DeleteClusterUserAccessKeyActivityOutput holds the output data of the DeleteStackActivity
@@ -57,47 +58,50 @@ func (a *DeleteClusterUserAccessKeyActivity) Execute(ctx context.Context, input 
 		"cluster", input.ClusterName,
 	)
 
-	awsSession, err := a.awsSessionFactory.New(input.OrganizationID, input.SecretID, input.Region)
-	if err = errors.WrapIf(err, "failed to create AWS session"); err != nil {
-		return err
-	}
-
-	logger.Info("deleting cluster user access key")
-
-	iamSvc := iam.New(awsSession)
-	clusterUserName := aws.String(input.ClusterName)
-
-	awsAccessKeys, err := amazon.GetUserAccessKeys(iamSvc, clusterUserName)
-
-	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == iam.ErrCodeNoSuchEntityException {
-				return nil
-			}
+	// delete access key only if it's created by Pipeline (DefaultUser = false)
+	if !input.DefaultUser {
+		awsSession, err := a.awsSessionFactory.New(input.OrganizationID, input.SecretID, input.Region)
+		if err = errors.WrapIf(err, "failed to create AWS session"); err != nil {
+			return err
 		}
-		logger.Errorf("querying IAM user '%s' access keys failed: %s", *clusterUserName, err)
-		return errors.Wrapf(err, "querying IAM user '%s' access keys failed", *clusterUserName)
-	}
 
-	for _, awsAccessKey := range awsAccessKeys {
-		if err := amazon.DeleteUserAccessKey(iamSvc, awsAccessKey.UserName, awsAccessKey.AccessKeyId); err != nil {
+		logger.Info("deleting cluster user access key")
+
+		iamSvc := iam.New(awsSession)
+		clusterUserName := aws.String(input.ClusterName)
+
+		awsAccessKeys, err := amazon.GetUserAccessKeys(iamSvc, clusterUserName)
+
+		if err != nil {
 			if awsErr, ok := err.(awserr.Error); ok {
 				if awsErr.Code() == iam.ErrCodeNoSuchEntityException {
-					continue
+					return nil
 				}
 			}
+			logger.Errorf("querying IAM user '%s' access keys failed: %s", *clusterUserName, err)
+			return errors.Wrapf(err, "querying IAM user '%s' access keys failed", *clusterUserName)
+		}
 
-			logger.Errorf("deleting Amazon user access key '%s', user '%s' failed: %s",
-				aws.StringValue(awsAccessKey.AccessKeyId),
-				aws.StringValue(awsAccessKey.UserName), err)
+		for _, awsAccessKey := range awsAccessKeys {
+			if err := amazon.DeleteUserAccessKey(iamSvc, awsAccessKey.UserName, awsAccessKey.AccessKeyId); err != nil {
+				if awsErr, ok := err.(awserr.Error); ok {
+					if awsErr.Code() == iam.ErrCodeNoSuchEntityException {
+						continue
+					}
+				}
 
-			return errors.Wrapf(err, "deleting Amazon access key '%s', user '%s' failed",
-				aws.StringValue(awsAccessKey.AccessKeyId),
-				aws.StringValue(awsAccessKey.UserName))
+				logger.Errorf("deleting Amazon user access key '%s', user '%s' failed: %s",
+					aws.StringValue(awsAccessKey.AccessKeyId),
+					aws.StringValue(awsAccessKey.UserName), err)
+
+				return errors.Wrapf(err, "deleting Amazon access key '%s', user '%s' failed",
+					aws.StringValue(awsAccessKey.AccessKeyId),
+					aws.StringValue(awsAccessKey.UserName))
+			}
 		}
 	}
 
-	// delete from secret store
+	// delete secret from  store
 	secretName := getSecretName(input.ClusterName)
 	secretItem, err := a.awsSessionFactory.secretStore.GetByName(input.OrganizationID, secretName)
 

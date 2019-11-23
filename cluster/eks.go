@@ -450,6 +450,7 @@ func (c *EKSCluster) DeleteEKSCluster(ctx context.Context, workflowClient client
 		ClusterName:    c.GetName(),
 		NodePoolNames:  nodePoolNames,
 		K8sSecretID:    c.GetConfigSecretId(),
+		DefaultUser:    c.modelCluster.EKS.DefaultUser,
 		Forced:         force,
 	}
 
