@@ -72,7 +72,6 @@ const (
 
 // constants for posthooks
 const (
-	LabelKubeSystemNamespacePostHook       = "LabelKubeSystemNamespacePostHook"
 	InstallIngressControllerPostHook       = "InstallIngressControllerPostHook"
 	InstallKubernetesDashboardPostHook     = "InstallKubernetesDashboardPostHook"
 	InstallClusterAutoscalerPostHook       = "InstallClusterAutoscalerPostHook"

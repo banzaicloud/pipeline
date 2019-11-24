@@ -83,27 +83,3 @@ func EnsureNamespaceWithLabelWithRetry(client kubernetes.Interface, namespace st
 	}, backoffPolicy)
 	return
 }
-
-// EnsureLabelsOnNamespace adds a set of labels a namespace, overwriting existing label keys
-func EnsureLabelsOnNamespace(client kubernetes.Interface, namespace string, labels map[string]string) error {
-
-	namespaceObj, err := client.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
-	if err != nil {
-		return emperror.Wrap(err, "failed to get namespace")
-	}
-
-	if namespaceObj.Labels == nil {
-		namespaceObj.Labels = make(map[string]string, len(labels))
-	}
-
-	for k, v := range labels {
-		namespaceObj.Labels[k] = v
-	}
-
-	_, err = client.CoreV1().Namespaces().Update(namespaceObj)
-	if err != nil {
-		return emperror.Wrap(err, "failed to update namespace")
-	}
-
-	return nil
-}
