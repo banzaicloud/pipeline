@@ -96,6 +96,17 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 	}
 
 	{
+		activityInput := LabelKubeSystemNamespaceActivityInput{
+			ConfigSecretID: input.ConfigSecretID,
+		}
+
+		err := workflow.ExecuteActivity(ctx, LabelKubeSystemNamespaceActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
 		activityInput := InstallTillerActivityInput{
 			ConfigSecretID: input.ConfigSecretID,
 			Distribution:   input.Cluster.Distribution,
