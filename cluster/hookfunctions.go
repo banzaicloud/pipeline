@@ -25,10 +25,6 @@ import (
 // HookMap for api hook endpoints
 // nolint: gochecknoglobals
 var HookMap = map[string]PostFunctioner{
-	pkgCluster.LabelKubeSystemNamespacePostHook: &BasePostFunction{
-		f:            LabelKubeSystemNamespacePostHook,
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.InstallIngressControllerPostHook: &BasePostFunction{
 		f:            InstallIngressControllerPostHook,
 		ErrorHandler: ErrorHandler{},
@@ -79,7 +75,6 @@ var HookMap = map[string]PostFunctioner{
 // nolint: gochecknoglobals
 var BasePostHookFunctions = []string{
 	pkgCluster.LabelNodesWithNodePoolName,
-	pkgCluster.LabelKubeSystemNamespacePostHook,
 	pkgCluster.InstallNodePoolLabelSetOperator,
 	pkgCluster.SetupNodePoolLabelsSet,
 	pkgCluster.InstallIngressControllerPostHook,
