@@ -574,12 +574,10 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 
 	subnetMapping := make(map[string][]workflow.Subnet)
 	for _, nodePool := range modelNodePools {
-
-		if nodePool.Delete {
+		// set subnets only for node pools to be updated
+		if nodePool.Delete || nodePool.ID != 0 {
 			continue
 		}
-		// set subnets for node pools to be created & updated, however at the moment we don't update subnets for
-		// already existing nodepools
 		for reqNodePoolName, reqNodePool := range updateRequest.EKS.NodePools {
 			if reqNodePoolName == nodePool.Name {
 				if reqNodePool.Subnet == nil {
