@@ -330,13 +330,13 @@ dex:
 #
 #            backyards:
 #                chart: "banzaicloud-stable/backyards"
-#                version: "1.0.3"
+#                version: "1.0.4"
 #
 #                values: {}
 #
 #            canaryOperator:
 #                chart: "banzaicloud-stable/canary-operator"
-#                version: "0.1.6"
+#                version: "0.1.7"
 #
 #                values: {}
 #
