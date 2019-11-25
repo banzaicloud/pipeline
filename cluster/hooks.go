@@ -290,22 +290,6 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 		"hpa-operator", valuesOverride, chartVersion, false)
 }
 
-func LabelKubeSystemNamespacePostHook(cluster CommonCluster) error {
-	kubeConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
-		return err
-	}
-
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		log.Errorf("Could not get kubernetes client: %s", err)
-		return err
-	}
-
-	return k8sutil.EnsureLabelsOnNamespace(client, k8sutil.KubeSystemNamespace, map[string]string{"name": k8sutil.KubeSystemNamespace})
-}
-
 // LabelNodesWithNodePoolName add node pool name labels for all nodes.
 // It's used only used in case of ACK etc. when we're not able to add labels via API.
 func LabelNodesWithNodePoolName(commonCluster CommonCluster) error {

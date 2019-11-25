@@ -26,4 +26,5 @@ func TestIntegration(t *testing.T) {
 	}
 
 	t.Run("CreatePipelineNamespaceActivity", testCreatePipelineNamespaceActivity)
+	t.Run("LabelKubeSystemNamespaceActivity", testLabelKubeSystemNamespaceActivity)
 }

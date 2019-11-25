@@ -67,6 +67,12 @@ func (s *WorkflowTestSuite) Test_Success() {
 	).Return(nil)
 
 	s.env.OnActivity(
+		LabelKubeSystemNamespaceActivityName,
+		mock.Anything,
+		LabelKubeSystemNamespaceActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
+	s.env.OnActivity(
 		InstallTillerActivityName,
 		mock.Anything,
 		InstallTillerActivityInput{ConfigSecretID: "secret", Distribution: testCluster.Distribution},
@@ -106,6 +112,12 @@ func (s *WorkflowTestSuite) Test_Success_InstallInitManifest() {
 		CreatePipelineNamespaceActivityName,
 		mock.Anything,
 		CreatePipelineNamespaceActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
+	s.env.OnActivity(
+		LabelKubeSystemNamespaceActivityName,
+		mock.Anything,
+		LabelKubeSystemNamespaceActivityInput{ConfigSecretID: "secret"},
 	).Return(nil)
 
 	s.env.OnActivity(
