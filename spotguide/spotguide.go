@@ -19,7 +19,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -42,6 +41,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/util"
+	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/spotguide/scm"
 )
@@ -625,7 +625,7 @@ func createCICDRepoConfig(pipelineYAML []byte, request *LaunchRequest, platformD
 
 func cicdRepoConfigCluster(request *LaunchRequest, repoConfig *cicdRepoConfig) error {
 
-	clusterJSON, err := json.Marshal(request.Cluster)
+	clusterJSON, err := jsonstructure.Encode(request.Cluster)
 	if err != nil {
 		return err
 	}
@@ -642,7 +642,7 @@ func cicdRepoConfigCluster(request *LaunchRequest, repoConfig *cicdRepoConfig) e
 			}
 
 			// Merge the cluster from the request into the existing cluster value
-			err = json.Unmarshal(clusterJSON, &clusterStep.Cluster)
+			err = mapstructure.Decode(clusterJSON, &clusterStep.Cluster)
 			if err != nil {
 				return err
 			}
@@ -661,7 +661,7 @@ func cicdRepoConfigCluster(request *LaunchRequest, repoConfig *cicdRepoConfig) e
 	log.Debug("merge cluster info to cluster block")
 
 	// Merge the cluster from the request into the cluster block
-	if err := json.Unmarshal(clusterJSON, &repoConfig.Cluster); err != nil {
+	if err := mapstructure.Decode(clusterJSON, &repoConfig.Cluster); err != nil {
 		return err
 	}
 	return nil

@@ -64,46 +64,6 @@ type EC2ClusterPKE struct {
 	CommonClusterBase
 }
 
-func (c *EC2ClusterPKE) GetSecurityScan() bool {
-	return c.model.Cluster.SecurityScan
-}
-
-func (c *EC2ClusterPKE) SetSecurityScan(scan bool) {
-	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"security_scan": scan}).Error
-	if err != nil {
-		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
-	} else {
-		c.model.Cluster.SecurityScan = scan
-	}
-}
-
-func (c *EC2ClusterPKE) GetLogging() bool {
-	return c.model.Cluster.Logging
-}
-
-func (c *EC2ClusterPKE) SetLogging(l bool) {
-	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"logging": l}).Error
-	if err != nil {
-		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
-	} else {
-		c.model.Cluster.Logging = l
-	}
-
-}
-
-func (c *EC2ClusterPKE) GetMonitoring() bool {
-	return c.model.Cluster.Monitoring
-}
-
-func (c *EC2ClusterPKE) SetMonitoring(m bool) {
-	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"monitoring": m}).Error
-	if err != nil {
-		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
-	} else {
-		c.model.Cluster.Monitoring = m
-	}
-}
-
 // GetScaleOptions returns scale options for the cluster
 func (c *EC2ClusterPKE) GetScaleOptions() *pkgCluster.ScaleOptions {
 	return getScaleOptionsFromModel(c.model.Cluster.ScaleOptions)
@@ -140,10 +100,6 @@ func (c *EC2ClusterPKE) GetDistribution() string {
 
 func (c *EC2ClusterPKE) GetLocation() string {
 	return c.model.Cluster.Location
-}
-
-func (c *EC2ClusterPKE) GetCreatedBy() uint {
-	return c.model.Cluster.CreatedBy
 }
 
 func (c *EC2ClusterPKE) GetSecretId() string {
@@ -662,29 +618,12 @@ func (c *EC2ClusterPKE) GetAPIEndpoint() (string, error) {
 	return pkgCluster.GetAPIEndpointFromKubeconfig(config)
 }
 
-// GetK8sIpv4Cidrs returns possible IP ranges for pods and services in the cluster
-// On PKE the services and pods IP ranges can be fetched from the model of the cluster
-func (c *EC2ClusterPKE) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	return &pkgCluster.Ipv4Cidrs{
-		ServiceClusterIPRanges: []string{c.model.Network.ServiceCIDR},
-		PodIPRanges:            []string{c.model.Network.PodCIDR},
-	}, nil
-}
-
 func (c *EC2ClusterPKE) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
 }
 
 func (c *EC2ClusterPKE) RbacEnabled() bool {
 	return c.model.Kubernetes.RBACEnabled
-}
-
-func (c *EC2ClusterPKE) NeedAdminRights() bool {
-	return false
-}
-
-func (c *EC2ClusterPKE) GetKubernetesUserName() (string, error) {
-	return "", nil
 }
 
 func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
@@ -722,9 +661,6 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 		Distribution:      c.model.Cluster.Distribution,
 		Spot:              hasSpotNodePool,
 		ResourceID:        c.model.Cluster.ID,
-		Logging:           c.GetLogging(),
-		Monitoring:        c.GetMonitoring(),
-		SecurityScan:      c.GetSecurityScan(),
 		NodePools:         nodePools,
 		Version:           c.model.Kubernetes.Version,
 		CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),

@@ -19,145 +19,74 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
-	"github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/providers"
-	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/secret"
 )
 
-type baseOutputManager struct {
+type outputManagerCreator struct {
+	name             string
 	sourceSecretName string
+	serviceURL       string
+	providerSpec     providerSpec
 }
 
 type outputDefinitionManager interface {
-	getOutputSpec(clusterOutputSpec, bucketOptions) v1beta1.OutputSpec
+	getOutputSpec(bucketSpec, bucketOptions) v1beta1.ClusterOutputSpec
+	getProviderSpec() providerSpec
 	getName() string
 }
 
-func newOutputDefinitionManager(providerName, sourceSecretName string) (outputDefinitionManager, error) {
-	switch providerName {
-	case providerAmazonS3:
-		return outputDefinitionManagerS3{baseOutputManager{sourceSecretName: sourceSecretName}}, nil
-	case providerGoogleGCS:
-		return outputDefinitionManagerGCS{baseOutputManager{sourceSecretName: sourceSecretName}}, nil
-	case providerAzure:
-		return outputDefinitionManagerAzure{baseOutputManager{sourceSecretName: sourceSecretName}}, nil
-	case providerAlibabaOSS:
-		return outputDefinitionManagerOSS{baseOutputManager{sourceSecretName: sourceSecretName}}, nil
-	default:
-		return nil, errors.NewWithDetails("unsupported provider", "provider", providerName)
+func newOutputDefinitionManager(creators []outputManagerCreator) (managers []outputDefinitionManager) {
+	for _, creator := range creators {
+		var baseManager = baseOutputManager{
+			sourceSecretName: creator.sourceSecretName,
+			providerSpec:     creator.providerSpec,
+		}
+		switch creator.name {
+		case providerAmazonS3:
+			managers = append(managers, outputDefinitionManagerS3{baseOutputManager: baseManager})
+		case providerGoogleGCS:
+			managers = append(managers, outputDefinitionManagerGCS{baseOutputManager: baseManager})
+		case providerAzure:
+			managers = append(managers, outputDefinitionManagerAzure{baseOutputManager: baseManager})
+		case providerAlibabaOSS:
+			managers = append(managers, outputDefinitionManagerOSS{baseOutputManager: baseManager})
+		case providerLoki:
+			managers = append(managers, outputDefinitionManagerLoki{serviceURL: creator.serviceURL})
+		}
 	}
-}
 
-type bucketOptions struct {
-	s3 *struct {
-		region string
-	}
-	oss *struct {
-		region string
-	}
-	gcs *struct {
-		project string
-	}
-}
-
-func (baseOutputManager) getBufferSpec() *output.Buffer {
-	return &output.Buffer{
-		Timekey:       "1m",
-		TimekeyWait:   "10s",
-		TimekeyUseUtc: true,
-	}
-}
-
-func (baseOutputManager) getPathSpec() string {
-	return "logs/${tag}/%Y/%m/%d/"
+	return
 }
 
 func generateOutputDefinition(
 	ctx context.Context,
 	m outputDefinitionManager,
 	secretStore common.SecretStore,
-	spec clusterOutputSpec,
 	namespace string,
 	orgID uint,
-) (*v1beta1.Output, error) {
-	secretValues, err := secretStore.GetSecretValues(ctx, spec.Provider.SecretID)
-	if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to get secret", "secretID", spec.Provider.SecretID)
+) (*v1beta1.ClusterOutput, error) {
+	var spec = m.getProviderSpec()
+	var bucketOptions = &bucketOptions{}
+	if spec.SecretID != "" {
+		secretValues, err := secretStore.GetSecretValues(ctx, spec.SecretID)
+		if err != nil {
+			return nil, errors.WrapIfWithDetails(err, "failed to get secret", "secretID", spec.SecretID)
+		}
+
+		bucketOptions, err = generateBucketOptions(spec, secretValues, orgID)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to generate bucket options")
+		}
 	}
 
-	bucketOptions, err := generateBucketOptions(spec.Provider, secretValues, orgID)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to generate bucket options")
-	}
-
-	return &v1beta1.Output{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Output",
-			APIVersion: "logging.banzaicloud.io/v1beta1",
-		},
+	return &v1beta1.ClusterOutput{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      m.getName(),
 			Namespace: namespace,
+			Labels:    map[string]string{resourceLabelKey: featureName},
 		},
-		Spec: m.getOutputSpec(spec, *bucketOptions),
+		Spec: m.getOutputSpec(spec.Bucket, *bucketOptions),
 	}, nil
-}
-
-func generateBucketOptions(spec providerSpec, secretValues map[string]string, orgID uint) (*bucketOptions, error) {
-	var secretItems = &secret.SecretItemResponse{
-		Values: secretValues,
-	}
-	switch spec.Name {
-	case providerAmazonS3:
-		return generateS3BucketOptions(spec, secretItems, orgID)
-	case providerGoogleGCS:
-		return generateGCSBucketOptions(secretValues), nil
-	case providerAlibabaOSS:
-		return generateOSSBucketOptions(spec, secretItems, orgID)
-	default:
-		return &bucketOptions{}, nil
-	}
-}
-
-func generateS3BucketOptions(spec providerSpec, secretItems *secret.SecretItemResponse, orgID uint) (*bucketOptions, error) {
-	region, err := providers.GetBucketLocation(pkgCluster.Amazon, secretItems, spec.Bucket.Name, orgID, nil)
-	if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to get S3 bucket region", "bucket", spec.Bucket)
-	}
-	return &bucketOptions{
-		s3: &struct {
-			region string
-		}{
-			region: region,
-		},
-	}, nil
-}
-
-func generateOSSBucketOptions(spec providerSpec, secretItems *secret.SecretItemResponse, orgID uint) (*bucketOptions, error) {
-	region, err := providers.GetBucketLocation(pkgCluster.Alibaba, secretItems, spec.Bucket.Name, orgID, nil)
-	if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to get OSS bucket region", "bucket", spec.Bucket.Name)
-	}
-	return &bucketOptions{
-		oss: &struct {
-			region string
-		}{
-			region: region,
-		},
-	}, nil
-}
-
-func generateGCSBucketOptions(secretValues map[string]string) *bucketOptions {
-	return &bucketOptions{
-		gcs: &struct {
-			project string
-		}{
-			project: secretValues[secrettype.ProjectId],
-		},
-	}
 }

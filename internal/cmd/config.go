@@ -391,14 +391,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 
 	v.SetDefault("cluster::monitoring::charts::pushgateway::chart", "stable/prometheus-pushgateway")
 	v.SetDefault("cluster::monitoring::charts::pushgateway::version", "1.0.1")
-	v.SetDefault("cluster::monitoring::charts::pushgateway::values", map[string]interface{}{
-		"ingress": map[string]interface{}{
-			"annotations": map[string]interface{}{
-				"traefik.frontend.rule.type":                 "PathPrefix",
-				"traefik.ingress.kubernetes.io/ssl-redirect": "true",
-			},
-		},
-	})
+	v.SetDefault("cluster::monitoring::charts::pushgateway::values", map[string]interface{}{})
 	v.SetDefault("cluster::monitoring::images::pushgateway::repository", "prom/pushgateway")
 	v.SetDefault("cluster::monitoring::images::pushgateway::tag", "v1.0.0")
 

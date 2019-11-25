@@ -36,9 +36,7 @@ type imageValues struct {
 }
 
 type prometheusPushgatewayValues struct {
-	Annotations map[string]interface{} `json:"annotations"`
-	Ingress     ingressValues          `json:"ingress"`
-	Image       imageValues            `json:"image"`
+	Image imageValues `json:"image"`
 }
 
 type baseValues struct {
@@ -106,11 +104,12 @@ type pagerdutyConfigValues struct {
 }
 
 type SpecValues struct {
-	RoutePrefix   string                 `json:"routePrefix"`
-	RetentionSize string                 `json:"retentionSize"`
-	Retention     string                 `json:"retention"`
-	StorageSpec   map[string]interface{} `json:"storageSpec"`
-	Image         imageValues            `json:"image"`
+	RoutePrefix                             string                 `json:"routePrefix"`
+	RetentionSize                           string                 `json:"retentionSize"`
+	Retention                               string                 `json:"retention"`
+	StorageSpec                             map[string]interface{} `json:"storageSpec"`
+	ServiceMonitorSelectorNilUsesHelmValues bool                   `json:"serviceMonitorSelectorNilUsesHelmValues"`
+	Image                                   imageValues            `json:"image"`
 }
 
 type prometheusValues struct {

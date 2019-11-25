@@ -32,6 +32,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/internal/util"
+	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -149,24 +150,9 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 	}
 
 	// Pushgateway
-	var pushgatewaySecretName string
 	if boundSpec.Pushgateway.Enabled {
-		if boundSpec.Pushgateway.Ingress.Enabled {
-			var manager = secretManager{
-				operator: op,
-				cluster:  cluster,
-				tags:     []string{pushgatewaySecretTag},
-				infoer:   pushgatewaySecretInfoer{baseSecretInfoer: baseSecretInfoer},
-			}
-
-			pushgatewaySecretName, err = generateAndInstallSecret(ctx, boundSpec.Pushgateway.Ingress, manager, logger)
-			if err != nil {
-				return errors.WrapIf(err, "failed to setup Pushgateway ingress")
-			}
-		}
-
 		// install Prometheus Pushgateway
-		if err := op.installPrometheusPushGateway(ctx, cluster, boundSpec.Pushgateway, pushgatewaySecretName, logger); err != nil {
+		if err := op.installPrometheusPushGateway(ctx, cluster, boundSpec.Pushgateway, logger); err != nil {
 			return errors.WrapIf(err, "failed to install Prometheus Pushgateway")
 		}
 	}
@@ -229,22 +215,9 @@ func (op FeatureOperator) installPrometheusPushGateway(
 	ctx context.Context,
 	cluster clusterfeatureadapter.Cluster,
 	spec pushgatewaySpec,
-	secretName string,
 	logger common.Logger,
 ) error {
-	var annotations map[string]interface{}
-	if spec.Ingress.Enabled {
-		annotations = generateAnnotations(secretName)
-	}
-
-	pipelineSystemNamespace := op.config.Namespace
 	var chartValues = &prometheusPushgatewayValues{
-		Ingress: ingressValues{
-			Enabled: spec.Ingress.Enabled,
-			Hosts:   []string{spec.Ingress.Domain},
-			Paths:   []string{spec.Ingress.Path},
-		},
-		Annotations: annotations,
 		Image: imageValues{
 			Repository: op.config.Images.Pushgateway.Repository,
 			Tag:        op.config.Images.Pushgateway.Tag,
@@ -263,7 +236,7 @@ func (op FeatureOperator) installPrometheusPushGateway(
 	return op.helmService.ApplyDeployment(
 		ctx,
 		cluster.GetID(),
-		pipelineSystemNamespace,
+		op.config.Namespace,
 		op.config.Charts.Pushgateway.Chart,
 		prometheusPushgatewayReleaseName,
 		valuesBytes,
@@ -354,14 +327,9 @@ func (op FeatureOperator) installPrometheusOperator(
 }
 
 func mergeOperatorValuesWithConfig(chartValues interface{}, configValues interface{}) ([]byte, error) {
-	valuesBytes, err := json.Marshal(chartValues)
+	out, err := jsonstructure.Encode(chartValues)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to decode chartValues")
-	}
-
-	var out map[string]interface{}
-	if err := json.Unmarshal(valuesBytes, &out); err != nil {
-		return nil, errors.WrapIf(err, "failed to unmarshal operator values")
+		return nil, errors.WrapIf(err, "failed to encode chart values")
 	}
 
 	result, err := util.Merge(configValues, out)
@@ -733,6 +701,7 @@ func (m chartValuesManager) generatePrometheusChartValues(
 						},
 					},
 				},
+				ServiceMonitorSelectorNilUsesHelmValues: false,
 			},
 			Annotations: annotations,
 		}
@@ -759,7 +728,7 @@ func (m chartValuesManager) generateNodeExporterChartValues(spec exporterBaseSpe
 
 func (op FeatureOperator) getDefaultStorageClassName(ctx context.Context, clusterID uint) (string, error) {
 	var storageClass v1beta1.StorageClassList
-	if err := op.kubernetesService.List(ctx, clusterID, &storageClass); err != nil {
+	if err := op.kubernetesService.List(ctx, clusterID, nil, &storageClass); err != nil {
 		return "", errors.WrapIf(err, "failed to list storage classes")
 	}
 

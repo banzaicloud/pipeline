@@ -16,7 +16,25 @@ package cluster
 
 import (
 	"context"
+
+	"k8s.io/client-go/kubernetes"
+
+	"github.com/banzaicloud/pipeline/pkg/helm"
 )
+
+// ClientFactory returns a Kubernetes client.
+//go:generate mockery -name ClientFactory -inpkg
+type ClientFactory interface {
+	// FromSecret creates a Kubernetes client for a cluster from a secret.
+	FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error)
+}
+
+// HelmClientFactory returns a Kubernetes client.
+//go:generate mockery -name HelmClientFactory -inpkg
+type HelmClientFactory interface {
+	// FromSecret creates a Kubernetes client for a cluster from a secret.
+	FromSecret(ctx context.Context, secretID string) (*helm.Client, error)
+}
 
 // DynamicFileClient interacts with a cluster with file manifests.
 //go:generate mockery -name DynamicFileClient -inpkg

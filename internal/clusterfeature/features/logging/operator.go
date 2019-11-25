@@ -17,19 +17,21 @@ package logging
 import (
 	"context"
 	"encoding/json"
+	"path"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	"github.com/mitchellh/copystructure"
 
 	"github.com/banzaicloud/pipeline/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/internal/util"
+	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -39,6 +41,7 @@ type FeatureOperator struct {
 	clusterService    clusterfeature.ClusterService
 	helmService       features.HelmService
 	kubernetesService features.KubernetesService
+	endpointsService  endpoints.EndpointService
 	config            Config
 	logger            common.Logger
 	secretStore       features.SecretStore
@@ -50,6 +53,7 @@ func MakeFeatureOperator(
 	clusterService clusterfeature.ClusterService,
 	helmService features.HelmService,
 	kubernetesService features.KubernetesService,
+	endpointsService endpoints.EndpointService,
 	config Config,
 	logger common.Logger,
 	secretStore features.SecretStore,
@@ -59,6 +63,7 @@ func MakeFeatureOperator(
 		clusterService:    clusterService,
 		helmService:       helmService,
 		kubernetesService: kubernetesService,
+		endpointsService:  endpointsService,
 		config:            config,
 		logger:            logger,
 		secretStore:       secretStore,
@@ -98,10 +103,6 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		return errors.WrapIf(err, "failed to generate and install TLS secret to the cluster")
 	}
 
-	if err := op.processLoki(ctx, boundSpec.Loki, cl); err != nil {
-		return errors.WrapIf(err, "failed to install Loki")
-	}
-
 	if err := op.installLoggingOperator(ctx, cl.GetID()); err != nil {
 		return errors.WrapIf(err, "failed to install logging-operator")
 	}
@@ -110,8 +111,17 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		return errors.WrapIf(err, "failed to install logging-operator-logging")
 	}
 
-	if err := op.createOutputDefinition(ctx, boundSpec.ClusterOutput, cl); err != nil {
-		return errors.WrapIf(err, "failed to create output definition")
+	if err := op.processLoki(ctx, boundSpec.Loki, cl); err != nil {
+		return errors.WrapIf(err, "failed to install Loki")
+	}
+
+	outputManagers, err := op.createClusterOutputDefinitions(ctx, boundSpec, cl)
+	if err != nil {
+		return errors.WrapIf(err, "failed to create cluster output definitions")
+	}
+
+	if err := op.createClusterFlowResource(ctx, outputManagers, cl.GetID()); err != nil {
+		return errors.WrapIf(err, "failed to create cluster flow resource")
 	}
 
 	return nil
@@ -346,11 +356,15 @@ func (op FeatureOperator) processLoki(ctx context.Context, spec lokiSpec, cl clu
 			annotations = generateAnnotations(secretName)
 		}
 
+		var domain = spec.Ingress.Domain
+		if domain == "" {
+			domain = "/"
+		}
+
 		var chartValues = &lokiValues{
 			Ingress: ingressValues{
 				Enabled: spec.Ingress.Enabled,
-				Hosts:   []string{spec.Ingress.Domain},
-				Path:    spec.Ingress.Path,
+				Hosts:   []string{path.Join(domain, spec.Ingress.Path)},
 			},
 			Annotations: annotations,
 			Image: imageValues{
@@ -368,7 +382,7 @@ func (op FeatureOperator) processLoki(ctx context.Context, spec lokiSpec, cl clu
 			return errors.WrapIf(err, "failed to merge loki values with config")
 		}
 
-		return op.helmService.ApplyDeployment(
+		if err := op.helmService.ApplyDeployment(
 			ctx,
 			cl.GetID(),
 			op.config.Namespace,
@@ -376,7 +390,9 @@ func (op FeatureOperator) processLoki(ctx context.Context, spec lokiSpec, cl clu
 			lokiReleaseName,
 			valuesBytes,
 			chartVersion,
-		)
+		); err != nil {
+			return errors.WrapIf(err, "failed to apply Loki deployment")
+		}
 	}
 
 	return nil
@@ -477,81 +493,10 @@ func (op FeatureOperator) installLoggingOperator(ctx context.Context, clusterID 
 	)
 }
 
-func (op FeatureOperator) createOutputDefinition(ctx context.Context, spec clusterOutputSpec, cl clusterfeatureadapter.Cluster) error {
-	if spec.Enabled {
-		// install secrets to cluster
-		sourceSecretName, err := op.secretStore.GetNameByID(ctx, spec.Provider.SecretID)
-		if err != nil {
-			return errors.WrapIfWithDetails(err, "failed to get secret name", "secretID", spec.Provider.SecretID)
-		}
-
-		if err := op.installSecretForOutput(ctx, spec, sourceSecretName, cl); err != nil {
-			return errors.WrapIf(err, "failed to install secret to cluster for cluster output")
-		}
-
-		// create output definition manager
-		manager, err := newOutputDefinitionManager(spec.Provider.Name, sourceSecretName)
-		if err != nil {
-			return errors.WrapIf(err, "failed to create output definition manager")
-		}
-
-		// generate output definition
-		outputDefinition, err := generateOutputDefinition(ctx, manager, op.secretStore, spec, op.config.Namespace, cl.GetOrganizationId())
-		if err != nil {
-			return errors.WrapIf(err, "failed to generate output definition")
-		}
-
-		// remove old output definitions
-		var outputList v1beta1.OutputList
-		if err := op.kubernetesService.List(ctx, cl.GetID(), &outputList); err != nil {
-			return errors.WrapIf(err, "failed to list output definitions")
-		}
-
-		for _, item := range outputList.Items {
-			if err := op.kubernetesService.DeleteObject(ctx, cl.GetID(), &item); err != nil {
-				return errors.WrapIfWithDetails(err, "failed to delete output definition", "name", item.Name)
-			}
-		}
-
-		// create new output definition
-		return op.kubernetesService.EnsureObject(ctx, cl.GetID(), outputDefinition)
-	}
-
-	return nil
-}
-
-func (op FeatureOperator) installSecretForOutput(ctx context.Context, spec clusterOutputSpec, sourceSecretName string, cl clusterfeatureadapter.Cluster) error {
-	secretManager, err := newOutputSecretInstallManager(spec.Provider.Name, sourceSecretName, op.config.Namespace)
-	if err != nil {
-		return errors.WrapIf(err, "failed to create output secret installer")
-	}
-
-	secretValues, err := op.secretStore.GetSecretValues(ctx, spec.Provider.SecretID)
-	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to get secret values", "secretID", spec.Provider.SecretID)
-	}
-
-	installSecretRequest, err := secretManager.generateSecretRequest(secretValues, spec.Provider.Bucket)
-	if err != nil {
-		return errors.WrapIf(err, "failed to generate install secret request")
-	}
-
-	if _, err := op.installSecret(ctx, cl, sourceSecretName, *installSecretRequest); err != nil {
-		return errors.WrapIf(err, "failed to install secret to cluster")
-	}
-
-	return nil
-}
-
 func mergeValuesWithConfig(chartValues interface{}, configValues interface{}) ([]byte, error) {
-	valuesBytes, err := json.Marshal(chartValues)
+	out, err := jsonstructure.Encode(chartValues)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to decode chartValues")
-	}
-
-	var out map[string]interface{}
-	if err := json.Unmarshal(valuesBytes, &out); err != nil {
-		return nil, errors.WrapIf(err, "failed to unmarshal values")
+		return nil, errors.WrapIf(err, "failed to encode chart values")
 	}
 
 	result, err := util.Merge(configValues, out)

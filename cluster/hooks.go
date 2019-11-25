@@ -15,14 +15,13 @@
 package cluster
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
 	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -39,30 +38,14 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/hollowtrees"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 )
 
-type imageValues struct {
-	Repository string `json:"repository,omitempty"`
-	Tag        string `json:"tag,omitempty"`
-	PullPolicy string `json:"pullPolicy,omitempty"`
-}
-
-func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (err error) {
-
-	var bytes []byte
-	bytes, err = json.Marshal(data)
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(bytes, &output)
-
-	return
+func castToPostHookParam(data pkgCluster.PostHookParam, output interface{}) error {
+	return mapstructure.Decode(data, output)
 }
 
 func installDeployment(cluster CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, chartVersion string, wait bool) error {
@@ -235,34 +218,6 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 
 }
 
-func setAdminRights(client *kubernetes.Clientset, userName string) (err error) {
-
-	name := "cluster-creator-admin-right"
-
-	log := log.WithFields(logrus.Fields{"name": name, "user": userName})
-
-	log.Info("cluster role creating")
-
-	_, err = client.RbacV1().ClusterRoleBindings().Create(
-		&rbacv1.ClusterRoleBinding{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: name,
-			},
-			Subjects: []rbacv1.Subject{
-				{
-					Kind: "User",
-					Name: userName,
-				},
-			},
-			RoleRef: rbacv1.RoleRef{
-				Kind: "ClusterRole",
-				Name: "cluster-admin",
-			},
-		})
-
-	return
-}
-
 // InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
 func InstallClusterAutoscalerPostHook(cluster CommonCluster) error {
 	return DeployClusterAutoscaler(cluster)
@@ -335,154 +290,6 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 		"hpa-operator", valuesOverride, chartVersion, false)
 }
 
-// InstallPVCOperatorPostHook installs the PVC operator
-func InstallPVCOperatorPostHook(cluster CommonCluster) error {
-	infraNamespace := global.Config.Cluster.Namespace
-
-	values := map[string]interface{}{}
-	valuesOverride, err := yaml.Marshal(values)
-	if err != nil {
-		return err
-	}
-
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/pvc-operator", "pvc-operator", valuesOverride, "", false)
-}
-
-func CreatePipelineNamespacePostHook(cluster CommonCluster) error {
-	kubeConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
-		return err
-	}
-
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		log.Errorf("Could not get kubernetes client: %s", err)
-		return err
-	}
-
-	pipelineSystemNamespace := global.Config.Cluster.Namespace
-	return k8sutil.EnsureNamespaceWithLabelWithRetry(client, pipelineSystemNamespace,
-		map[string]string{
-			"scan": "noscan",
-			"name": pipelineSystemNamespace,
-		})
-}
-
-func LabelKubeSystemNamespacePostHook(cluster CommonCluster) error {
-	kubeConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
-		return err
-	}
-
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		log.Errorf("Could not get kubernetes client: %s", err)
-		return err
-	}
-
-	return k8sutil.EnsureLabelsOnNamespace(client, k8sutil.KubeSystemNamespace, map[string]string{"name": k8sutil.KubeSystemNamespace})
-}
-
-// InstallHelmPostHook this posthook installs the helm related things
-func InstallHelmPostHook(cluster CommonCluster) error {
-	log := log.WithFields(logrus.Fields{"cluster": cluster.GetName(), "clusterID": cluster.GetID()})
-	helmInstall := &pkgHelm.Install{
-		Namespace:      k8sutil.KubeSystemNamespace,
-		ServiceAccount: "tiller",
-		ImageSpec:      fmt.Sprintf("gcr.io/kubernetes-helm/tiller:%s", global.Config.Helm.Tiller.Version),
-		Upgrade:        true,
-		ForceUpgrade:   true,
-	}
-
-	if cluster.GetDistribution() == pkgCluster.PKE {
-		// add toleration for master node
-		helmInstall.Tolerations = []v1.Toleration{
-			{
-				Key:      pke.TaintKeyMaster,
-				Operator: v1.TolerationOpExists,
-			},
-		}
-
-		// try to schedule to master or master-worker node
-		helmInstall.NodeAffinity = &v1.NodeAffinity{
-			PreferredDuringSchedulingIgnoredDuringExecution: []v1.PreferredSchedulingTerm{
-				{
-					Weight: 100,
-					Preference: v1.NodeSelectorTerm{
-						MatchExpressions: []v1.NodeSelectorRequirement{
-							{
-								Key:      pke.TaintKeyMaster,
-								Operator: v1.NodeSelectorOpExists,
-							},
-						},
-					},
-				},
-				{
-					Weight: 100,
-					Preference: v1.NodeSelectorTerm{
-						MatchExpressions: []v1.NodeSelectorRequirement{
-							{
-								Key:      pke.NodeLabelKeyMasterWorker,
-								Operator: v1.NodeSelectorOpExists,
-							},
-						},
-					},
-				},
-			},
-		}
-	}
-
-	kubeconfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		return err
-	}
-
-	err = helm.RetryHelmInstall(log, helmInstall, kubeconfig)
-	if err == nil {
-		log.Info("Getting K8S Config Succeeded")
-
-		if err := WaitingForTillerComeUp(log, kubeconfig); err != nil {
-			return err
-		}
-
-	} else {
-		log.Errorf("Error during retry helm install: %s", err.Error())
-	}
-	return nil
-}
-
-// SetupPrivileges setups privileges
-func SetupPrivileges(cluster CommonCluster) error {
-
-	// set admin rights (if needed)
-	if cluster.NeedAdminRights() {
-
-		kubeConfig, err := cluster.GetK8sConfig()
-		if err != nil {
-			return err
-		}
-
-		client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-		if err != nil {
-			return err
-		}
-
-		userName, err := cluster.GetKubernetesUserName()
-		if err != nil {
-			return err
-		}
-
-		if err := setAdminRights(client, userName); err != nil {
-			return err
-		}
-
-	}
-
-	return nil
-}
-
 // LabelNodesWithNodePoolName add node pool name labels for all nodes.
 // It's used only used in case of ACK etc. when we're not able to add labels via API.
 func LabelNodesWithNodePoolName(commonCluster CommonCluster) error {
@@ -547,7 +354,7 @@ func addLabelsToNode(client *kubernetes.Clientset, nodeName string, labels map[s
 func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) error {
 
 	var params arkAPI.RestoreFromBackupParams
-	err := castToPostHookParam(&param, &params)
+	err := castToPostHookParam(param, &params)
 	if err != nil {
 		return err
 	}

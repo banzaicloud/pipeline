@@ -25,9 +25,10 @@ import (
 
 // nolint: gochecknoglobals
 var testCluster = Cluster{
-	ID:   1,
-	UID:  "260e50ee-d817-4b62-85bd-3260f0e019a0",
-	Name: "example-cluster",
+	ID:           1,
+	UID:          "260e50ee-d817-4b62-85bd-3260f0e019a0",
+	Name:         "example-cluster",
+	Distribution: "pke",
 }
 
 // nolint: gochecknoglobals
@@ -59,6 +60,30 @@ func (s *WorkflowTestSuite) Test_Success() {
 	wf := Workflow{}
 	workflow.RegisterWithOptions(wf.Execute, workflow.RegisterOptions{Name: s.T().Name()})
 
+	s.env.OnActivity(
+		CreatePipelineNamespaceActivityName,
+		mock.Anything,
+		CreatePipelineNamespaceActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
+	s.env.OnActivity(
+		LabelKubeSystemNamespaceActivityName,
+		mock.Anything,
+		LabelKubeSystemNamespaceActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
+	s.env.OnActivity(
+		InstallTillerActivityName,
+		mock.Anything,
+		InstallTillerActivityInput{ConfigSecretID: "secret", Distribution: testCluster.Distribution},
+	).Return(nil)
+
+	s.env.OnActivity(
+		InstallTillerWaitActivityName,
+		mock.Anything,
+		InstallTillerWaitActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
 	workflowInput := WorkflowInput{
 		ConfigSecretID: "secret",
 		Cluster:        testCluster,
@@ -81,6 +106,30 @@ func (s *WorkflowTestSuite) Test_Success_InstallInitManifest() {
 		InitManifestActivityName,
 		mock.Anything,
 		InitManifestActivityInput{ConfigSecretID: "secret", Cluster: testCluster, Organization: testOrganization},
+	).Return(nil)
+
+	s.env.OnActivity(
+		CreatePipelineNamespaceActivityName,
+		mock.Anything,
+		CreatePipelineNamespaceActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
+	s.env.OnActivity(
+		LabelKubeSystemNamespaceActivityName,
+		mock.Anything,
+		LabelKubeSystemNamespaceActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
+	s.env.OnActivity(
+		InstallTillerActivityName,
+		mock.Anything,
+		InstallTillerActivityInput{ConfigSecretID: "secret", Distribution: testCluster.Distribution},
+	).Return(nil)
+
+	s.env.OnActivity(
+		InstallTillerWaitActivityName,
+		mock.Anything,
+		InstallTillerWaitActivityInput{ConfigSecretID: "secret"},
 	).Return(nil)
 
 	workflowInput := WorkflowInput{

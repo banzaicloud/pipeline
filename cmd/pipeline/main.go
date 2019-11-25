@@ -373,34 +373,6 @@ func main() {
 	err = clusterTTLController.Start()
 	emperror.Panic(err)
 
-	if config.Cluster.Monitoring.Monitor.Enabled {
-		client, err := k8sclient.NewInClusterClient()
-		if err != nil {
-			errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
-		} else {
-			dnsBaseDomain, err := dns.GetBaseDomain()
-			if err != nil {
-				errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
-			}
-
-			monitorClusterSubscriber := monitor.NewClusterSubscriber(
-				client,
-				clusterManager,
-				db,
-				dnsBaseDomain,
-				global.Config.Kubernetes.Namespace,
-				global.Config.Cluster.Namespace,
-				config.Cluster.Monitoring.Monitor.ConfigMap,
-				config.Cluster.Monitoring.Monitor.ConfigMapPrometheusKey,
-				config.Cluster.Monitoring.Monitor.CertSecret,
-				config.Cluster.Monitoring.Monitor.MountPath,
-				errorHandler,
-			)
-			monitorClusterSubscriber.Init()
-			monitorClusterSubscriber.Register(monitor.NewClusterEvents(clusterEventBus))
-		}
-	}
-
 	if config.SpotMetrics.Enabled {
 		go monitor.NewSpotMetricsExporter(
 			context.Background(),
@@ -688,9 +660,6 @@ func main() {
 				cRouter.POST("/deployments", api.CreateDeployment)
 				cRouter.GET("/deployments/:name", api.GetDeployment)
 				cRouter.GET("/deployments/:name/resources", api.GetDeploymentResources)
-				cRouter.GET("/hpa", api.GetHpaResource)
-				cRouter.PUT("/hpa", api.PutHpaResource)
-				cRouter.DELETE("/hpa", api.DeleteHpaResource)
 				cRouter.HEAD("/deployments", api.GetTillerStatus)
 				cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
 				cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
@@ -707,6 +676,7 @@ func main() {
 			)
 
 			// Cluster Feature API
+			var featureService clusterfeature.Service
 			{
 				logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
@@ -801,9 +771,9 @@ func main() {
 
 				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry(featureManagers)
 				featureOperationDispatcher := clusterfeatureadapter.MakeCadenceFeatureOperationDispatcher(workflowClient, logger)
-				service := clusterfeature.MakeFeatureService(featureOperationDispatcher, featureManagerRegistry, featureRepository, logger)
+				featureService = clusterfeature.MakeFeatureService(featureOperationDispatcher, featureManagerRegistry, featureRepository, logger)
 				endpoints := clusterfeaturedriver.MakeEndpoints(
-					service,
+					featureService,
 					kitxendpoint.Chain(endpointMiddleware...),
 					appkit.EndpointLogger(commonLogger),
 				)
@@ -818,6 +788,40 @@ func main() {
 
 				cRouter.Any("/features", gin.WrapH(router))
 				cRouter.Any("/features/:featureName", gin.WrapH(router))
+			}
+
+			hpaApi := api.NewHPAAPI(featureService)
+			cRouter.GET("/hpa", hpaApi.GetHpaResource)
+			cRouter.PUT("/hpa", hpaApi.PutHpaResource)
+			cRouter.DELETE("/hpa", hpaApi.DeleteHpaResource)
+
+			if config.Cluster.Monitoring.Monitor.Enabled {
+				client, err := k8sclient.NewInClusterClient()
+				if err != nil {
+					errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
+				} else {
+					dnsBaseDomain, err := dns.GetBaseDomain()
+					if err != nil {
+						errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
+					}
+
+					monitorClusterSubscriber := monitor.NewClusterSubscriber(
+						client,
+						clusterManager,
+						db,
+						dnsBaseDomain,
+						global.Config.Kubernetes.Namespace,
+						global.Config.Cluster.Namespace,
+						config.Cluster.Monitoring.Monitor.ConfigMap,
+						config.Cluster.Monitoring.Monitor.ConfigMapPrometheusKey,
+						config.Cluster.Monitoring.Monitor.CertSecret,
+						config.Cluster.Monitoring.Monitor.MountPath,
+						featureService,
+						errorHandler,
+					)
+					monitorClusterSubscriber.Init()
+					monitorClusterSubscriber.Register(monitor.NewClusterEvents(clusterEventBus))
+				}
 			}
 
 			// ClusterGroupAPI

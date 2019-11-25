@@ -502,9 +502,6 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Distribution:      c.modelCluster.Distribution,
 		Version:           c.modelCluster.AKS.KubernetesVersion,
 		ResourceID:        c.modelCluster.ID,
-		Logging:           c.GetLogging(),
-		Monitoring:        c.GetMonitoring(),
-		SecurityScan:      c.GetSecurityScan(),
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nodePools,
 		Region:            c.modelCluster.Location,
@@ -953,20 +950,6 @@ func (c *AKSCluster) SaveSshSecretId(sshSecretID string) error {
 	return c.modelCluster.UpdateSshSecret(sshSecretID)
 }
 
-// GetK8sIpv4Cidrs returns possible IP ranges for pods and services in the cluster
-// On AKS the services and pods IP ranges can be fetched from Azure
-func (c *AKSCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	cluster, err := c.getAzureCluster()
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to retrieve AKS cluster")
-	}
-
-	return &pkgCluster.Ipv4Cidrs{
-		ServiceClusterIPRanges: []string{*cluster.NetworkProfile.ServiceCidr},
-		PodIPRanges:            []string{*cluster.NetworkProfile.PodCidr},
-	}, nil
-}
-
 // GetK8sConfig returns the Kubernetes config
 func (c *AKSCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
@@ -1007,36 +990,6 @@ func (c *AKSCluster) ListNodeNames() (labels pkgCommon.NodeNames, err error) {
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *AKSCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
-}
-
-// GetSecurityScan returns true if security scan enabled on the cluster
-func (c *AKSCluster) GetSecurityScan() bool {
-	return c.modelCluster.SecurityScan
-}
-
-// SetSecurityScan returns true if security scan enabled on the cluster
-func (c *AKSCluster) SetSecurityScan(scan bool) {
-	c.modelCluster.SecurityScan = scan
-}
-
-// GetLogging returns true if logging enabled on the cluster
-func (c *AKSCluster) GetLogging() bool {
-	return c.modelCluster.Logging
-}
-
-// SetLogging returns true if logging enabled on the cluster
-func (c *AKSCluster) SetLogging(l bool) {
-	c.modelCluster.Logging = l
-}
-
-// GetMonitoring returns true if momnitoring enabled on the cluster
-func (c *AKSCluster) GetMonitoring() bool {
-	return c.modelCluster.Monitoring
-}
-
-// SetMonitoring returns true if monitoring enabled on the cluster
-func (c *AKSCluster) SetMonitoring(l bool) {
-	c.modelCluster.Monitoring = l
 }
 
 // GetScaleOptions returns scale options for the cluster
@@ -1108,21 +1061,6 @@ func GetAKSResourceGroup(cluster CommonCluster) (string, error) {
 	}
 
 	return akscluster.modelCluster.AKS.ResourceGroup, nil
-}
-
-// NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
-func (c *AKSCluster) NeedAdminRights() bool {
-	return false
-}
-
-// GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
-func (c *AKSCluster) GetKubernetesUserName() (string, error) {
-	return "", nil
-}
-
-// GetCreatedBy returns cluster create userID.
-func (c *AKSCluster) GetCreatedBy() uint {
-	return c.modelCluster.CreatedBy
 }
 
 func (c *AKSCluster) onClusterCreateFailure(createError error, operationStartTime time.Time) error {

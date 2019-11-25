@@ -12,14 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package monitoring
+package clustersetup
 
-type pushgatewaySecretInfoer struct{ baseSecretInfoer }
+import (
+	"flag"
+	"regexp"
+	"testing"
+)
 
-func (pushgatewaySecretInfoer) name() string {
-	return "Pushgateway"
-}
+func TestIntegration(t *testing.T) {
+	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
+		t.Skip("skipping as execution was not requested explicitly using go test -run")
+	}
 
-func (i pushgatewaySecretInfoer) generatedSecretName() string {
-	return getPushgatewaySecretName(i.clusterID)
+	t.Run("CreatePipelineNamespaceActivity", testCreatePipelineNamespaceActivity)
+	t.Run("LabelKubeSystemNamespaceActivity", testLabelKubeSystemNamespaceActivity)
 }

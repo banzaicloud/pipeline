@@ -170,9 +170,6 @@ func (c *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 		Cloud:             pkgCluster.Kubernetes,
 		Distribution:      c.modelCluster.Distribution,
 		ResourceID:        c.modelCluster.ID,
-		Logging:           c.GetLogging(),
-		Monitoring:        c.GetMonitoring(),
-		SecurityScan:      c.GetSecurityScan(),
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nil,
 		Region:            c.modelCluster.Location,
@@ -316,11 +313,6 @@ func (c *KubeCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
-func (c *KubeCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	// can't use apiserver to return service CIDR as it's not exposed: https://github.com/kubernetes/kubernetes/issues/46508
-	return nil, errors.New("not implemented")
-}
-
 // GetK8sConfig returns the Kubernetes config
 func (c *KubeCluster) GetK8sConfig() ([]byte, error) {
 	return c.DownloadK8sConfig()
@@ -336,36 +328,6 @@ func (c *KubeCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
 }
 
-// SecurityScan returns true if security scan enabled on the cluster
-func (c *KubeCluster) GetSecurityScan() bool {
-	return c.modelCluster.SecurityScan
-}
-
-// SetSecurityScan returns true if security scan enabled on the cluster
-func (c *KubeCluster) SetSecurityScan(scan bool) {
-	c.modelCluster.SecurityScan = scan
-}
-
-// GetLogging returns true if logging enabled on the cluster
-func (c *KubeCluster) GetLogging() bool {
-	return c.modelCluster.Logging
-}
-
-// SetLogging returns true if logging enabled on the cluster
-func (c *KubeCluster) SetLogging(l bool) {
-	c.modelCluster.Logging = l
-}
-
-// GetMonitoring returns true if momnitoring enabled on the cluster
-func (c *KubeCluster) GetMonitoring() bool {
-	return c.modelCluster.Monitoring
-}
-
-// SetMonitoring returns true if monitoring enabled on the cluster
-func (c *KubeCluster) SetMonitoring(l bool) {
-	c.modelCluster.Monitoring = l
-}
-
 // getScaleOptionsFromModelV1 returns scale options for the cluster
 func (c *KubeCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 	return getScaleOptionsFromModel(c.modelCluster.ScaleOptions)
@@ -374,21 +336,6 @@ func (c *KubeCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 // SetScaleOptions sets scale options for the cluster
 func (c *KubeCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
-}
-
-// NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
-func (c *KubeCluster) NeedAdminRights() bool {
-	return false
-}
-
-// GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
-func (c *KubeCluster) GetKubernetesUserName() (string, error) {
-	return "", nil
-}
-
-// GetCreatedBy returns cluster create userID.
-func (c *KubeCluster) GetCreatedBy() uint {
-	return c.modelCluster.CreatedBy
 }
 
 // GetTTL retrieves the TTL of the cluster

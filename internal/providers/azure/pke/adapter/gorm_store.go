@@ -241,9 +241,6 @@ func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model cluster.Cluste
 
 	cl.Kubernetes.RBAC = model.RbacEnabled
 	cl.Kubernetes.OIDC.Enabled = model.OidcEnabled
-	cl.Monitoring = model.Monitoring
-	cl.Logging = model.Logging
-	cl.SecurityScan = model.SecurityScan
 	cl.TtlMinutes = model.TtlMinutes
 }
 
@@ -371,16 +368,6 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 	model.HTTPProxy.fromEntity(params.HTTPProxy)
 	model.AccessPoints.fromEntity(params.AccessPoints)
 	model.ApiServerAccessPoints.fromEntity(params.APIServerAccessPoints)
-
-	{
-		// Adapting to legacy format. TODO: Please remove this as soon as possible.
-		for _, f := range params.Features {
-			switch f.Kind {
-			case "InstallLogging":
-				model.Cluster.Logging = true
-			}
-		}
-	}
 
 	if err = getError(s.db.Preload("Cluster").Preload("NodePools").Create(&model), "failed to create cluster model"); err != nil {
 		return
@@ -565,32 +552,6 @@ func (s gormAzurePKEClusterStore) GetConfigSecretID(clusterID uint) (string, err
 		return "", err
 	}
 	return model.ConfigSecretID, nil
-}
-
-func (s gormAzurePKEClusterStore) SetFeature(clusterID uint, feature string, state bool) error {
-	if err := validateClusterID(clusterID); err != nil {
-		return errors.WrapIf(err, "invalid cluster ID")
-	}
-
-	model := cluster.ClusterModel{
-		ID: clusterID,
-	}
-
-	features := map[string]bool{
-		"SecurityScan": true,
-		"Logging":      true,
-		"Monitoring":   true,
-	}
-
-	if !features[feature] {
-		return fmt.Errorf("unknown feature: %q", feature)
-	}
-
-	fields := map[string]interface{}{
-		feature: state,
-	}
-
-	return getError(s.db.Model(&model).Updates(fields), "failed to update %q feature state", feature)
 }
 
 func (s gormAzurePKEClusterStore) SetNodePoolSizes(clusterID uint, nodePoolName string, min, max, desiredCount uint, autoscaling bool) error {

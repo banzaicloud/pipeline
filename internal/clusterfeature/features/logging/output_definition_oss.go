@@ -28,29 +28,31 @@ func (outputDefinitionManagerOSS) getName() string {
 	return "oss-output"
 }
 
-func (m outputDefinitionManagerOSS) getOutputSpec(spec clusterOutputSpec, op bucketOptions) v1beta1.OutputSpec {
-	return v1beta1.OutputSpec{
-		OSSOutput: &output.OSSOutput{
-			Endpoint: "",
-			Bucket:   spec.Provider.Bucket.Name,
-			AccessKeyId: &loggingSecret.Secret{
-				ValueFrom: &loggingSecret.ValueFrom{
-					SecretKeyRef: &loggingSecret.KubernetesSecret{
-						Name: m.sourceSecretName,
-						Key:  outputDefinitionSecretKeyOSSAccessKeyID,
+func (m outputDefinitionManagerOSS) getOutputSpec(spec bucketSpec, op bucketOptions) v1beta1.ClusterOutputSpec {
+	return v1beta1.ClusterOutputSpec{
+		OutputSpec: v1beta1.OutputSpec{
+			OSSOutput: &output.OSSOutput{
+				Endpoint: "",
+				Bucket:   spec.Name,
+				AccessKeyId: &loggingSecret.Secret{
+					ValueFrom: &loggingSecret.ValueFrom{
+						SecretKeyRef: &loggingSecret.KubernetesSecret{
+							Name: m.sourceSecretName,
+							Key:  outputDefinitionSecretKeyOSSAccessKeyID,
+						},
 					},
 				},
-			},
-			AaccessKeySecret: &loggingSecret.Secret{
-				ValueFrom: &loggingSecret.ValueFrom{
-					SecretKeyRef: &loggingSecret.KubernetesSecret{
-						Name: m.sourceSecretName,
-						Key:  outputDefinitionSecretKeyOSSAccessKey,
+				AaccessKeySecret: &loggingSecret.Secret{
+					ValueFrom: &loggingSecret.ValueFrom{
+						SecretKeyRef: &loggingSecret.KubernetesSecret{
+							Name: m.sourceSecretName,
+							Key:  outputDefinitionSecretKeyOSSAccessKey,
+						},
 					},
 				},
+				Path:   m.getPathSpec(),
+				Buffer: m.getBufferSpec(),
 			},
-			Path:   m.getPathSpec(),
-			Buffer: m.getBufferSpec(),
 		},
 	}
 }

@@ -25,22 +25,6 @@ import (
 // HookMap for api hook endpoints
 // nolint: gochecknoglobals
 var HookMap = map[string]PostFunctioner{
-	pkgCluster.SetupPrivileges: &BasePostFunction{
-		f:            SetupPrivileges,
-		ErrorHandler: ErrorHandler{},
-	},
-	pkgCluster.CreatePipelineNamespacePostHook: &BasePostFunction{
-		f:            CreatePipelineNamespacePostHook,
-		ErrorHandler: ErrorHandler{},
-	},
-	pkgCluster.LabelKubeSystemNamespacePostHook: &BasePostFunction{
-		f:            LabelKubeSystemNamespacePostHook,
-		ErrorHandler: ErrorHandler{},
-	},
-	pkgCluster.InstallHelmPostHook: &BasePostFunction{
-		f:            InstallHelmPostHook,
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.InstallIngressControllerPostHook: &BasePostFunction{
 		f:            InstallIngressControllerPostHook,
 		ErrorHandler: ErrorHandler{},
@@ -57,16 +41,8 @@ var HookMap = map[string]PostFunctioner{
 		f:            InstallHorizontalPodAutoscalerPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.InstallLogging: &PostFunctionWithParam{
-		f:            InstallLogging,
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.LabelNodesWithNodePoolName: &BasePostFunction{
 		f:            LabelNodesWithNodePoolName,
-		ErrorHandler: ErrorHandler{},
-	},
-	pkgCluster.InstallPVCOperator: &BasePostFunction{
-		f:            InstallPVCOperatorPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
 	pkgCluster.RestoreFromBackup: &PostFunctionWithParam{
@@ -98,18 +74,13 @@ var HookMap = map[string]PostFunctioner{
 // BasePostHookFunctions default posthook functions after cluster create
 // nolint: gochecknoglobals
 var BasePostHookFunctions = []string{
-	pkgCluster.SetupPrivileges,
 	pkgCluster.LabelNodesWithNodePoolName,
-	pkgCluster.CreatePipelineNamespacePostHook,
-	pkgCluster.LabelKubeSystemNamespacePostHook,
-	pkgCluster.InstallHelmPostHook,
 	pkgCluster.InstallNodePoolLabelSetOperator,
 	pkgCluster.SetupNodePoolLabelsSet,
 	pkgCluster.InstallIngressControllerPostHook,
 	pkgCluster.InstallKubernetesDashboardPostHook,
 	pkgCluster.InstallClusterAutoscalerPostHook,
 	pkgCluster.InstallHorizontalPodAutoscalerPostHook,
-	pkgCluster.InstallPVCOperator,
 	pkgCluster.InitSpotConfig,
 	pkgCluster.DeployInstanceTerminationHandler,
 	pkgCluster.CreateClusterRoles,

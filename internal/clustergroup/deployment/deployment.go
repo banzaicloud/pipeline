@@ -15,12 +15,13 @@
 package deployment
 
 import (
-	"encoding/json"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
 
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 )
 
 // ClusterGroupDeployment describes a Helm deployment to a Cluster Group
@@ -57,22 +58,15 @@ type DeploymentInfo struct {
 
 func (c *DeploymentInfo) GetValuesForCluster(clusterName string) ([]byte, error) {
 	// copy c.values into a new map before merging
-	values := make(map[string]interface{})
-	if c.Values != nil {
-		m, err := json.Marshal(c.Values)
-		if err != nil {
-			return nil, err
-		}
-		err = json.Unmarshal(m, &values)
-		if err != nil {
-			return nil, err
-		}
+	values, err := jsonstructure.Encode(c.Values)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to encode values")
 	}
 
 	clusterSpecificOverrides, exists := c.ValueOverrides[clusterName]
 	// merge values with overrides for cluster if any
 	if exists {
-		values = helm.MergeValues(values, clusterSpecificOverrides)
+		values = helm.MergeValues(values.(map[string]interface{}), clusterSpecificOverrides)
 	}
 	marshalledValues, err := yaml.Marshal(values)
 	if err != nil {
