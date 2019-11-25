@@ -34,7 +34,7 @@ require (
 	github.com/banzaicloud/gin-utilz v0.1.0
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
 	github.com/banzaicloud/istio-operator v0.0.0-20191104140059-90d1290d7342
-	github.com/banzaicloud/logging-operator/pkg/sdk v0.0.0-20191108130836-0e04f356a099
+	github.com/banzaicloud/logging-operator/pkg/sdk v0.0.0-20191125142640-aa8071e64c9d
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
 	github.com/banzaicloud/nodepool-labels-operator v0.0.6
 	github.com/banzaicloud/prometheus-config v0.0.0-20181214142820-fc6ae4756a29
