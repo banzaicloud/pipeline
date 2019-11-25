@@ -81,7 +81,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		ctx := workflow.WithActivityOptions(ctx, ao)
 
 		activityInput := SetupPrivilegesActivityInput{
-			SecretID:  configSecretID,
+			SecretID:  brn.New(input.OrganizationID, brn.SecretResourceType, configSecretID).String(),
 			ClusterID: input.ClusterID,
 		}
 
