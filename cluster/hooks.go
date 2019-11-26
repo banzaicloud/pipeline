@@ -16,7 +16,6 @@ package cluster
 
 import (
 	"fmt"
-	"strings"
 
 	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
@@ -26,7 +25,6 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
@@ -288,66 +286,6 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 
 	return installDeployment(cluster, infraNamespace, chartName,
 		"hpa-operator", valuesOverride, chartVersion, false)
-}
-
-// LabelNodesWithNodePoolName add node pool name labels for all nodes.
-// It's used only used in case of ACK etc. when we're not able to add labels via API.
-func LabelNodesWithNodePoolName(commonCluster CommonCluster) error {
-
-	switch commonCluster.GetDistribution() {
-	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE, pkgCluster.PKE:
-		log.Infof("nodes are already labelled on : %v", commonCluster.GetDistribution())
-		return nil
-	}
-
-	log.Debug("get K8S config")
-	kubeConfig, err := commonCluster.GetK8sConfig()
-	if err != nil {
-		return err
-	}
-
-	log.Debug("get K8S connection")
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		return err
-	}
-
-	log.Debug("list node names")
-	nodeNames, err := commonCluster.ListNodeNames()
-	if err != nil {
-		return err
-	}
-
-	for poolName, nodes := range nodeNames {
-
-		log.Debugf("nodepool: [%s]", poolName)
-		for _, nodeName := range nodes {
-			log.Infof("add label to node [%s]", nodeName)
-			labels := map[string]string{pkgCommon.LabelKey: poolName}
-
-			if err := addLabelsToNode(client, nodeName, labels); err != nil {
-				log.Warnf("error during adding label to node [%s]: %s", nodeName, err.Error())
-			}
-		}
-	}
-
-	log.Info("add labels finished")
-
-	return nil
-}
-
-// addLabelsToNode add label to the given node
-func addLabelsToNode(client *kubernetes.Clientset, nodeName string, labels map[string]string) (err error) {
-
-	tokens := make([]string, 0, len(labels))
-	for k, v := range labels {
-		tokens = append(tokens, "\""+k+"\":\""+v+"\"")
-	}
-	labelString := "{" + strings.Join(tokens, ",") + "}"
-	patch := fmt.Sprintf(`{"metadata":{"labels":%v}}`, labelString)
-
-	_, err = client.CoreV1().Nodes().Patch(nodeName, types.MergePatchType, []byte(patch))
-	return
 }
 
 // RestoreFromBackup restores an ARK backup
