@@ -210,6 +210,8 @@ func main() {
 		)
 		tokenGenerator := auth.NewClusterTokenGenerator(tokenManager, tokenStore)
 
+		helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
+
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
 		secretStore := pkeworkflowadapter.NewSecretStore(secret.Store)
 
@@ -285,6 +287,12 @@ func main() {
 				clusteradapter.NewHelmClientFactory(commonSecretStore, commonadapter.NewLogger(logger)),
 			)
 			activity.RegisterWithOptions(installTillerWaitActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerWaitActivityName})
+
+			installNodePoolLabelSetOperatorActivity := clustersetup.NewInstallNodePoolLabelSetOperatorActivity(
+				config.Cluster.Labels,
+				helmService,
+			)
+			activity.RegisterWithOptions(installNodePoolLabelSetOperatorActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallNodePoolLabelSetOperatorActivityName})
 		}
 
 		workflow.RegisterWithOptions(cluster.CreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.CreateClusterWorkflowName})
@@ -385,7 +393,6 @@ func main() {
 
 			logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 			featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
-			helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
 			kubernetesService := kubernetes.NewKubernetesService(helmadapter.NewClusterService(clusterManager), logger)
 
 			clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)

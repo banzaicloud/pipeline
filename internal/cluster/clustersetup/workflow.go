@@ -133,5 +133,16 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 		}
 	}
 
+	{
+		activityInput := InstallNodePoolLabelSetOperatorActivityInput{
+			ClusterID: input.Cluster.ID,
+		}
+
+		err := workflow.ExecuteActivity(ctx, InstallNodePoolLabelSetOperatorActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

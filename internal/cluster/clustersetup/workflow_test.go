@@ -84,6 +84,12 @@ func (s *WorkflowTestSuite) Test_Success() {
 		InstallTillerWaitActivityInput{ConfigSecretID: "secret"},
 	).Return(nil)
 
+	s.env.OnActivity(
+		InstallNodePoolLabelSetOperatorActivityName,
+		mock.Anything,
+		InstallNodePoolLabelSetOperatorActivityInput{ClusterID: 1},
+	).Return(nil)
+
 	workflowInput := WorkflowInput{
 		ConfigSecretID: "secret",
 		Cluster:        testCluster,
@@ -130,6 +136,12 @@ func (s *WorkflowTestSuite) Test_Success_InstallInitManifest() {
 		InstallTillerWaitActivityName,
 		mock.Anything,
 		InstallTillerWaitActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
+	s.env.OnActivity(
+		InstallNodePoolLabelSetOperatorActivityName,
+		mock.Anything,
+		InstallNodePoolLabelSetOperatorActivityInput{ClusterID: 1},
 	).Return(nil)
 
 	workflowInput := WorkflowInput{
