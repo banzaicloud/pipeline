@@ -189,6 +189,13 @@ func labelNodesWithNodePoolName(commonCluster CommonCluster) error {
 		return nil
 	}
 
+	nodeNameLister, ok := commonCluster.(nodeNameLister)
+	if !ok {
+		log.Debug("cluster does not expose node names")
+
+		return nil
+	}
+
 	log.Debug("get K8S config")
 	kubeConfig, err := commonCluster.GetK8sConfig()
 	if err != nil {
@@ -199,13 +206,6 @@ func labelNodesWithNodePoolName(commonCluster CommonCluster) error {
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		return err
-	}
-
-	nodeNameLister, ok := commonCluster.(nodeNameLister)
-	if !ok {
-		log.Debug("cluster does not expose node names")
-
-		return nil
 	}
 
 	log.Debug("list node names")
