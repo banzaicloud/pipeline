@@ -922,12 +922,6 @@ func (c *EKSCluster) DeleteFromDatabase() error {
 	return nil
 }
 
-// ListNodeNames returns node names to label them
-func (c *EKSCluster) ListNodeNames() (nodeNames map[string][]string, err error) {
-	// nodes are labeled in create request
-	return
-}
-
 // SetStatus sets the cluster's status
 func (c *EKSCluster) SetStatus(status string, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
