@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/internal/anchore"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusterconfig"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/logging"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
@@ -92,6 +93,8 @@ type ClusterConfig struct {
 	// Namespace to install Pipeline components to
 	Namespace string
 
+	Labels clusterconfig.LabelConfig
+
 	// Features
 	Vault        ClusterVaultConfig
 	Monitoring   ClusterMonitoringConfig
@@ -112,6 +115,10 @@ func (c ClusterConfig) Validate() error {
 
 	if c.Namespace == "" {
 		return errors.New("cluster namespace is required")
+	}
+
+	if err := c.Labels.Validate(); err != nil {
+		return err
 	}
 
 	if c.Vault.Enabled {
@@ -149,6 +156,10 @@ func (c ClusterConfig) Validate() error {
 
 // Process post-processes the configuration after loading (before validation).
 func (c *ClusterConfig) Process() error {
+	if c.Labels.Namespace == "" {
+		c.Labels.Namespace = c.Namespace
+	}
+
 	if c.Vault.Namespace == "" {
 		c.Vault.Namespace = c.Namespace
 	}
