@@ -269,6 +269,11 @@ func main() {
 			)
 			activity.RegisterWithOptions(createPipelineNamespaceActivity.Execute, activity.RegisterOptions{Name: clustersetup.CreatePipelineNamespaceActivityName})
 
+			labelKubeSystemNamespaceActivity := clustersetup.NewLabelKubeSystemNamespaceActivity(
+				clusteradapter.NewClientFactory(commonSecretStore),
+			)
+			activity.RegisterWithOptions(labelKubeSystemNamespaceActivity.Execute, activity.RegisterOptions{Name: clustersetup.LabelKubeSystemNamespaceActivityName})
+
 			installTillerActivity := clustersetup.NewInstallTillerActivity(
 				config.Helm.Tiller.Version,
 				clusteradapter.NewClientFactory(commonSecretStore),
