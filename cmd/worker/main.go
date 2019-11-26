@@ -295,6 +295,9 @@ func main() {
 		setupPrivilegesActivity := cluster.NewSetupPrivilegesActivity(clusteradapter.NewClientFactory(commonSecretStore), clusterManager)
 		activity.RegisterWithOptions(setupPrivilegesActivity.Execute, activity.RegisterOptions{Name: cluster.SetupPrivilegesActivityName})
 
+		labelNodesWithNodepoolNameActivity := cluster.NewLabelNodesWithNodepoolNameActivity(clusteradapter.NewClientFactory(commonSecretStore), clusterManager)
+		activity.RegisterWithOptions(labelNodesWithNodepoolNameActivity.Execute, activity.RegisterOptions{Name: cluster.LabelNodesWithNodepoolNameActivityName})
+
 		workflow.RegisterWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
 
 		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager)

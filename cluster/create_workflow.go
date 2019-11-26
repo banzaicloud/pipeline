@@ -16,6 +16,8 @@ package cluster
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	"go.uber.org/cadence"
@@ -23,11 +25,13 @@ import (
 	"go.uber.org/cadence/workflow"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
 
 const CreateClusterWorkflowName = "create-cluster-legacy"
@@ -86,6 +90,30 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 
 		err := workflow.ExecuteActivity(ctx, SetupPrivilegesActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	if input.Distribution == pkgCluster.ACK || input.Distribution == pkgCluster.AKS {
+		ao := workflow.ActivityOptions{
+			ScheduleToStartTimeout: 10 * time.Minute,
+			StartToCloseTimeout:    20 * time.Minute,
+			WaitForCancellation:    true,
+			RetryPolicy: &cadence.RetryPolicy{
+				InitialInterval:    15 * time.Second,
+				BackoffCoefficient: 1.0,
+				MaximumAttempts:    30,
+			},
+		}
+		ctx := workflow.WithActivityOptions(ctx, ao)
+
+		activityInput := LabelNodesWithNodepoolNameActivityInput{
+			SecretID:  brn.New(input.OrganizationID, brn.SecretResourceType, configSecretID).String(),
+			ClusterID: input.ClusterID,
+		}
+
+		err := workflow.ExecuteActivity(ctx, LabelNodesWithNodepoolNameActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
@@ -261,6 +289,81 @@ func (a SetupPrivilegesActivity) Execute(ctx context.Context, input SetupPrivile
 	})
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+const LabelNodesWithNodepoolNameActivityName = "label-nodes-with-nodepool-name-legacy"
+
+type LabelNodesWithNodepoolNameActivityInput struct {
+	ClusterID uint
+	SecretID  string
+}
+
+type LabelNodesWithNodepoolNameActivity struct {
+	clientFactory cluster.ClientFactory
+	manager       *Manager
+}
+
+func NewLabelNodesWithNodepoolNameActivity(clientFactory cluster.ClientFactory, manager *Manager) LabelNodesWithNodepoolNameActivity {
+	return LabelNodesWithNodepoolNameActivity{
+		clientFactory: clientFactory,
+		manager:       manager,
+	}
+}
+
+type nodeNameLister interface {
+	ListNodeNames() (map[string][]string, error)
+}
+
+func (a LabelNodesWithNodepoolNameActivity) Execute(ctx context.Context, input LabelNodesWithNodepoolNameActivityInput) error {
+	logger := activity.GetLogger(ctx).Sugar().With("clusterId", input.ClusterID)
+
+	cluster, err := a.manager.GetClusterByIDOnly(ctx, input.ClusterID)
+	if err != nil {
+		return err
+	}
+
+	nodeNameLister, ok := cluster.(nodeNameLister)
+	if !ok {
+		logger.Warn("cluster does not expose node lists")
+
+		return nil
+	}
+
+	client, err := a.clientFactory.FromSecret(ctx, input.SecretID)
+	if err != nil {
+		return err
+	}
+
+	nodeNames, err := nodeNameLister.ListNodeNames()
+	if err != nil {
+		return err
+	}
+
+	for poolName, nodes := range nodeNames {
+		logger := logger.With("nodepool", poolName)
+		logger.Debug("labeling nodepool")
+
+		for _, nodeName := range nodes {
+			logger := logger.With("node", nodeName)
+			logger.Debug("labeling node")
+			labels := map[string]string{pkgCommon.LabelKey: poolName}
+
+			tokens := make([]string, 0, len(labels))
+			for k, v := range labels {
+				tokens = append(tokens, "\""+k+"\":\""+v+"\"")
+			}
+			labelString := "{" + strings.Join(tokens, ",") + "}"
+			patch := fmt.Sprintf(`{"metadata":{"labels":%v}}`, labelString)
+
+			_, err = client.CoreV1().Nodes().Patch(nodeName, types.MergePatchType, []byte(patch))
+
+			if err != nil {
+				logger.Warnf("error during adding label to node: %s", err.Error())
+			}
+		}
 	}
 
 	return nil

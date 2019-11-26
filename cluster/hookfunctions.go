@@ -74,7 +74,7 @@ var HookMap = map[string]PostFunctioner{
 // BasePostHookFunctions default posthook functions after cluster create
 // nolint: gochecknoglobals
 var BasePostHookFunctions = []string{
-	pkgCluster.LabelNodesWithNodePoolName,
+	// pkgCluster.LabelNodesWithNodePoolName,
 	pkgCluster.InstallNodePoolLabelSetOperator,
 	pkgCluster.SetupNodePoolLabelsSet,
 	pkgCluster.InstallIngressControllerPostHook,
