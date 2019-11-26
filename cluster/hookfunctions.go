@@ -41,10 +41,6 @@ var HookMap = map[string]PostFunctioner{
 		f:            InstallHorizontalPodAutoscalerPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.LabelNodesWithNodePoolName: &BasePostFunction{
-		f:            LabelNodesWithNodePoolName,
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.RestoreFromBackup: &PostFunctionWithParam{
 		f:            RestoreFromBackup,
 		ErrorHandler: ErrorHandler{},
@@ -74,7 +70,6 @@ var HookMap = map[string]PostFunctioner{
 // BasePostHookFunctions default posthook functions after cluster create
 // nolint: gochecknoglobals
 var BasePostHookFunctions = []string{
-	// pkgCluster.LabelNodesWithNodePoolName,
 	pkgCluster.InstallNodePoolLabelSetOperator,
 	pkgCluster.SetupNodePoolLabelsSet,
 	pkgCluster.InstallIngressControllerPostHook,

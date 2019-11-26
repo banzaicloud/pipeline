@@ -76,7 +76,6 @@ const (
 	InstallKubernetesDashboardPostHook     = "InstallKubernetesDashboardPostHook"
 	InstallClusterAutoscalerPostHook       = "InstallClusterAutoscalerPostHook"
 	InstallHorizontalPodAutoscalerPostHook = "InstallHorizontalPodAutoscalerPostHook"
-	LabelNodesWithNodePoolName             = "LabelNodesWithNodePoolName"
 	RestoreFromBackup                      = "RestoreFromBackup"
 	InitSpotConfig                         = "InitSpotConfig"
 	DeployInstanceTerminationHandler       = "DeployInstanceTerminationHandler"
