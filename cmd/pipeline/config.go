@@ -103,8 +103,8 @@ type configuration struct {
 	}
 
 	UI struct {
-		URL                string
-		SignupRedirectPath string
+		URL               string
+		SignupRedirectUrl string
 	}
 }
 
@@ -259,5 +259,5 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("audit::skipPaths", []string{"/auth/dex/callback", "/pipeline/api"})
 
 	v.SetDefault("ui::url", "/ui")
-	v.SetDefault("ui::signupRedirectPath", "/ui")
+	v.SetDefault("ui::signupRedirectUrl", "/ui")
 }
