@@ -44,7 +44,6 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/action"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	"github.com/banzaicloud/pipeline/secret"
@@ -924,7 +923,7 @@ func (c *EKSCluster) DeleteFromDatabase() error {
 }
 
 // ListNodeNames returns node names to label them
-func (c *EKSCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
+func (c *EKSCluster) ListNodeNames() (nodeNames map[string][]string, err error) {
 	// nodes are labeled in create request
 	return
 }

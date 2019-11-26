@@ -31,7 +31,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
@@ -319,7 +318,7 @@ func (c *KubeCluster) GetK8sConfig() ([]byte, error) {
 }
 
 // ListNodeNames returns node names to label them
-func (c *KubeCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
+func (c *KubeCluster) ListNodeNames() (nodeNames map[string][]string, err error) {
 	return
 }
 

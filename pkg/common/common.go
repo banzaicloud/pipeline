@@ -45,9 +45,6 @@ type CreatorBaseFields struct {
 	CreatorId   uint      `json:"creatorId,omitempty"`
 }
 
-// NodeNames describes node names
-type NodeNames map[string][]string
-
 // Validate checks whether the node pool labels collide with labels
 // set by Pipeline and also if these are valid Kubernetes labels
 func ValidateNodePoolLabels(labels map[string]string) error {

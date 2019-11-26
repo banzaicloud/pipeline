@@ -244,7 +244,7 @@ func (a *AzurePkeCluster) IsReady() (bool, error) {
 	return true, nil
 }
 
-func (a *AzurePkeCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
+func (a *AzurePkeCluster) ListNodeNames() (nodeNames map[string][]string, err error) {
 	// nodes are labeled in create request
 	return
 }

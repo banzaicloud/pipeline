@@ -90,7 +90,7 @@ type CommonCluster interface {
 	// Cluster info
 	GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
 	IsReady() (bool, error)
-	ListNodeNames() (pkgCommon.NodeNames, error)
+	ListNodeNames() (map[string][]string, error)
 	NodePoolExists(nodePoolName string) bool
 
 	SetStatus(status, statusMessage string) error

@@ -43,7 +43,6 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack/action"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers/alibaba"
@@ -90,7 +89,7 @@ func (c *ACKCluster) SetTTL(ttl time.Duration) {
 	c.modelCluster.TtlMinutes = uint(ttl.Minutes())
 }
 
-func (c *ACKCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
+func (c *ACKCluster) ListNodeNames() (map[string][]string, error) {
 	essClient, err := c.GetAlibabaESSClient(nil)
 	if err != nil {
 		return nil, err
@@ -111,7 +110,7 @@ func (c *ACKCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
 	describeInstancesRequest.SetContentType(requests.Json)
 	describeInstancesRequest.RegionId = c.modelCluster.ACK.RegionID
 
-	nodes := make(pkgCommon.NodeNames, 0)
+	nodes := make(map[string][]string, 0)
 	for _, nodepool := range c.modelCluster.ACK.NodePools {
 		request.ScalingGroupId = nodepool.AsgID
 		request.ScalingConfigurationId = nodepool.ScalingConfigID

@@ -44,7 +44,6 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
-	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
@@ -734,7 +733,7 @@ func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
 }
 
 // ListNodeNames returns node names to label them
-func (c *EC2ClusterPKE) ListNodeNames() (common.NodeNames, error) {
+func (c *EC2ClusterPKE) ListNodeNames() (map[string][]string, error) {
 	var nodes = make(map[string][]string)
 	for _, nodepool := range c.model.NodePools {
 		nodes[nodepool.Name] = []string{}

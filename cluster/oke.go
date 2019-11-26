@@ -25,7 +25,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 	oracleClusterManager "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster/manager"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
@@ -560,7 +559,7 @@ func (o *OKECluster) GetPoolQuantityValues(count uint, networkValues network.Net
 }
 
 // ListNodeNames returns node names to label them
-func (o *OKECluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
+func (o *OKECluster) ListNodeNames() (nodeNames map[string][]string, err error) {
 	// nodes are labeled in create request
 	return
 }

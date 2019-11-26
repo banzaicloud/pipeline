@@ -22,7 +22,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -237,7 +236,7 @@ func (c *DummyCluster) GetK8sConfig() ([]byte, error) {
 }
 
 // ListNodeNames returns node names to label them
-func (c *DummyCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
+func (c *DummyCluster) ListNodeNames() (nodeNames map[string][]string, err error) {
 	return
 }
 
