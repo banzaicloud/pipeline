@@ -558,12 +558,6 @@ func (o *OKECluster) GetPoolQuantityValues(count uint, networkValues network.Net
 	return qps, subnetIDS
 }
 
-// ListNodeNames returns node names to label them
-func (o *OKECluster) ListNodeNames() (nodeNames map[string][]string, err error) {
-	// nodes are labeled in create request
-	return
-}
-
 // RbacEnabled returns true if rbac enabled on the cluster
 func (o *OKECluster) RbacEnabled() bool {
 	return true

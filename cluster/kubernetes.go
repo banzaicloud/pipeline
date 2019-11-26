@@ -317,11 +317,6 @@ func (c *KubeCluster) GetK8sConfig() ([]byte, error) {
 	return c.DownloadK8sConfig()
 }
 
-// ListNodeNames returns node names to label them
-func (c *KubeCluster) ListNodeNames() (nodeNames map[string][]string, err error) {
-	return
-}
-
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *KubeCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled

@@ -2015,12 +2015,6 @@ func waitForOperation(getter operationInfoer, operationName string, logger logru
 	return nil
 }
 
-// ListNodeNames returns node names to label them
-func (c *GKECluster) ListNodeNames() (nodeNames map[string][]string, err error) {
-	// nodes are labeled in create request
-	return
-}
-
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *GKECluster) RbacEnabled() bool {
 	return c.model.Cluster.RbacEnabled

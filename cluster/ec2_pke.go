@@ -732,18 +732,6 @@ func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
 	return pools
 }
 
-// ListNodeNames returns node names to label them
-func (c *EC2ClusterPKE) ListNodeNames() (map[string][]string, error) {
-	var nodes = make(map[string][]string)
-	for _, nodepool := range c.model.NodePools {
-		nodes[nodepool.Name] = []string{}
-		for _, host := range nodepool.Hosts {
-			nodes[nodepool.Name] = append(nodes[nodepool.Name], host.Name)
-		}
-	}
-	return nodes, nil
-}
-
 // ListNodePools returns node pool names.
 func (c *EC2ClusterPKE) ListNodePools() ([]string, error) {
 	var nodePools = make([]string, 0, len(c.model.NodePools))

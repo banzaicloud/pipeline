@@ -244,11 +244,6 @@ func (a *AzurePkeCluster) IsReady() (bool, error) {
 	return true, nil
 }
 
-func (a *AzurePkeCluster) ListNodeNames() (nodeNames map[string][]string, err error) {
-	// nodes are labeled in create request
-	return
-}
-
 // ListNodePools returns node pool names.
 func (a *AzurePkeCluster) ListNodePools() ([]string, error) {
 	var nodePools = make([]string, 0, len(a.model.NodePools))
