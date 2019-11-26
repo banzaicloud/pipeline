@@ -86,17 +86,8 @@ type Configuration struct {
 		}
 
 		Labels struct {
-			Namespace string
-
 			Domain           string
 			ForbiddenDomains []string
-
-			Charts struct {
-				NodepoolLabelOperator struct {
-					Chart   string
-					Version string
-				}
-			}
 		}
 
 		Vault struct {
@@ -372,10 +363,6 @@ func (c Configuration) Validate() error {
 }
 
 func (c *Configuration) Process() error {
-	if c.Cluster.Labels.Namespace == "" {
-		c.Cluster.Labels.Namespace = c.Cluster.Namespace
-	}
-
 	if c.Cluster.Vault.Namespace == "" {
 		c.Cluster.Vault.Namespace = c.Cluster.Namespace
 	}

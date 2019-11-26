@@ -16,63 +16,9 @@ package cluster
 
 import (
 	"emperror.dev/emperror"
-	"github.com/ghodss/yaml"
 
-	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
-
-type nodePoolLabelSetOperatorConfig struct {
-	Configuration configuration `json:"configuration,omitempty"`
-}
-
-type configuration struct {
-	// Labeler configuration
-	Labeler labelerConfig `mapstructure:"labeler"`
-}
-
-type labelerConfig struct {
-	// ForbiddenLabelDomains holds the forbidden domain names, the labeler won't set matching labels
-	ForbiddenLabelDomains []string `mapstructure:"forbiddenLabelDomains"`
-}
-
-// InstallNodePoolLabelSetOperator deploys node pool label set operator.
-func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
-	pipelineSystemNamespace := global.Config.Cluster.Labels.Namespace
-	reservedNodeLabelDomains := global.Config.Cluster.Labels.ForbiddenDomains
-
-	chartName := global.Config.Cluster.Labels.Charts.NodepoolLabelOperator.Chart
-	chartVersion := global.Config.Cluster.Labels.Charts.NodepoolLabelOperator.Version
-
-	config := nodePoolLabelSetOperatorConfig{
-		Configuration: configuration{
-			Labeler: labelerConfig{
-				ForbiddenLabelDomains: reservedNodeLabelDomains,
-			},
-		},
-	}
-
-	overrideValues, err := yaml.Marshal(config)
-	if err != nil {
-		return emperror.Wrap(err, "failed to marshal NodePoolLabelSet operator config to yaml values")
-	}
-
-	err = installDeployment(
-		cluster,
-		pipelineSystemNamespace,
-		chartName,
-		"npls",
-		overrideValues,
-		chartVersion,
-		true,
-	)
-
-	if err != nil {
-		return emperror.Wrap(err, "installing NodePoolLabelSet operator failed")
-	}
-
-	return nil
-}
 
 type NodePoolLabelParam struct {
 	Labels map[string]map[string]string `json:"labels"`

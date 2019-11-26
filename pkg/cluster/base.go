@@ -79,7 +79,6 @@ const (
 	RestoreFromBackup                      = "RestoreFromBackup"
 	InitSpotConfig                         = "InitSpotConfig"
 	DeployInstanceTerminationHandler       = "DeployInstanceTerminationHandler"
-	InstallNodePoolLabelSetOperator        = "InstallNodePoolLabelSetOperator"
 	SetupNodePoolLabelsSet                 = "SetupNodePoolLabelsSet"
 	CreateClusterRoles                     = "CreateClusterRoles"
 )
