@@ -37,7 +37,6 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgClusterAzure "github.com/banzaicloud/pipeline/pkg/cluster/aks"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/banzaicloud/pipeline/secret"
@@ -961,7 +960,7 @@ func (c *AKSCluster) RequiresSshPublicKey() bool {
 }
 
 // ListNodeNames returns node names to label them
-func (c *AKSCluster) ListNodeNames() (labels pkgCommon.NodeNames, err error) {
+func (c *AKSCluster) ListNodeNames() (labels map[string][]string, err error) {
 	cc, err := c.getCloudConnection()
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create cloud connection")

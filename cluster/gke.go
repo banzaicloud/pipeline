@@ -2016,7 +2016,7 @@ func waitForOperation(getter operationInfoer, operationName string, logger logru
 }
 
 // ListNodeNames returns node names to label them
-func (c *GKECluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
+func (c *GKECluster) ListNodeNames() (nodeNames map[string][]string, err error) {
 	// nodes are labeled in create request
 	return
 }
