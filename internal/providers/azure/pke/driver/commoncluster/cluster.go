@@ -249,6 +249,17 @@ func (a *AzurePkeCluster) ListNodeNames() (nodeNames map[string][]string, err er
 	return
 }
 
+// ListNodePools returns node pool names.
+func (a *AzurePkeCluster) ListNodePools() ([]string, error) {
+	var nodePools = make([]string, 0, len(a.model.NodePools))
+
+	for _, nodePool := range a.model.NodePools {
+		nodePools = append(nodePools, nodePool.Name)
+	}
+
+	return nodePools, nil
+}
+
 func (a *AzurePkeCluster) NodePoolExists(nodePoolName string) bool {
 	for _, np := range a.model.NodePools {
 		if np.Name == nodePoolName {

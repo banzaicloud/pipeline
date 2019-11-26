@@ -57,17 +57,25 @@ func (a *API) ListCommands(c *gin.Context) {
 
 	commands := map[string]string{}
 
-	nodePools, err := cluster.ListNodeNames()
-	if err != nil {
-		err := emperror.Wrap(err, "can't list nodes")
-		a.errorHandler.Handle(err)
+	var nodePools []string
 
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "internal error",
-			Error:   err.Error(),
-		})
-		return
+	if cl, ok := cluster.(interface {
+		ListNodePools() ([]string, error)
+	}); ok {
+		np, err := cl.ListNodePools()
+		if err != nil {
+			err := emperror.Wrap(err, "can't list nodes")
+			a.errorHandler.Handle(err)
+
+			c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "internal error",
+				Error:   err.Error(),
+			})
+			return
+		}
+
+		nodePools = np
 	}
 
 	token, err := clusterCommander.GetPipelineToken(a.tokenGenerator)
@@ -83,7 +91,7 @@ func (a *API) ListCommands(c *gin.Context) {
 		return
 	}
 
-	for nodePool := range nodePools {
+	for _, nodePool := range nodePools {
 		commands[nodePool], _ = clusterCommander.GetBootstrapCommand(nodePool, a.externalBaseURL, token)
 	}
 
