@@ -294,7 +294,7 @@ func main() {
 		base32.StdEncoding.EncodeToString([]byte(config.Auth.Token.SigningKey)),
 	)
 	tokenManager := pkgAuth.NewTokenManager(tokenGenerator, tokenStore)
-	auth.Init(db, cicdDB, config.Auth, config.UI.URL, config.UI.SignupRedirectPath, tokenStore, tokenManager, organizationSyncer)
+	auth.Init(db, cicdDB, config.Auth, config.UI.URL, config.UI.SignupRedirectUrl, tokenStore, tokenManager, organizationSyncer)
 
 	if config.Database.AutoMigrate {
 		logger.Info("running automatic schema migrations")

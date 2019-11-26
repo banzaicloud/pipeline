@@ -119,14 +119,14 @@ func (c cookieExtractor) ExtractToken(r *http.Request) (string, error) {
 }
 
 type redirector struct {
-	uiUrl              string
-	signupRedirectPath string
+	uiUrl             string
+	signupRedirectUrl string
 }
 
 func (r redirector) Redirect(w http.ResponseWriter, req *http.Request, action string) {
 	var url string
 	if req.Context().Value(SignUp) != nil {
-		url = r.signupRedirectPath
+		url = r.signupRedirectUrl
 	} else {
 		url = r.uiUrl
 	}
@@ -134,7 +134,7 @@ func (r redirector) Redirect(w http.ResponseWriter, req *http.Request, action st
 }
 
 // Init initializes the auth
-func Init(db *gorm.DB, cdb *gorm.DB, config Config, uiUrl string, signupRedirectPath string, tokenStore bauth.TokenStore, tokenManager TokenManager, orgSyncer OIDCOrganizationSyncer) {
+func Init(db *gorm.DB, cdb *gorm.DB, config Config, uiUrl string, signupRedirectUrl string, tokenStore bauth.TokenStore, tokenManager TokenManager, orgSyncer OIDCOrganizationSyncer) {
 	CookieDomain = config.Cookie.Domain
 
 	signingKey := config.Token.SigningKey
@@ -170,8 +170,8 @@ func Init(db *gorm.DB, cdb *gorm.DB, config Config, uiUrl string, signupRedirect
 	Auth = auth.New(&auth.Config{
 		DB: db,
 		Redirector: redirector{
-			uiUrl:              uiUrl,
-			signupRedirectPath: signupRedirectPath,
+			uiUrl:             uiUrl,
+			signupRedirectUrl: signupRedirectUrl,
 		},
 		AuthIdentityModel: AuthIdentity{},
 		UserModel:         User{},
