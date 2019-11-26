@@ -201,8 +201,15 @@ func labelNodesWithNodePoolName(commonCluster CommonCluster) error {
 		return err
 	}
 
+	nodeNameLister, ok := commonCluster.(nodeNameLister)
+	if !ok {
+		log.Debug("cluster does not expose node names")
+
+		return nil
+	}
+
 	log.Debug("list node names")
-	nodeNames, err := commonCluster.ListNodeNames()
+	nodeNames, err := nodeNameLister.ListNodeNames()
 	if err != nil {
 		return err
 	}

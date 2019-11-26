@@ -744,6 +744,17 @@ func (c *EC2ClusterPKE) ListNodeNames() (map[string][]string, error) {
 	return nodes, nil
 }
 
+// ListNodePools returns node pool names.
+func (c *EC2ClusterPKE) ListNodePools() ([]string, error) {
+	var nodePools = make([]string, 0, len(c.model.NodePools))
+
+	for _, nodePool := range c.model.NodePools {
+		nodePools = append(nodePools, nodePool.Name)
+	}
+
+	return nodePools, nil
+}
+
 func (c *EC2ClusterPKE) NodePoolExists(nodePoolName string) bool {
 	for _, np := range c.model.NodePools {
 		if np.Name == nodePoolName {
