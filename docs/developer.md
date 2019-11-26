@@ -175,7 +175,7 @@ K8S_VERSIONS=(
 
 for version in ${K8S_VERSIONS[@]}; do
 	echo "K8S Version:" $version
-	for region in `aws ec2 describe-regions --output text | cut -f4 | sort -V`; do
+	for region in `aws ec2 describe-regions --output text | cut -f3 | sort -V`; do
 	    aws ssm get-parameter --name /aws/service/eks/optimized-ami/${version}/amazon-linux-2/recommended/image_id --region ${region} --query Parameter.Value --output text | xargs -I "{}" echo \"$region\": \"{}\",
 	done
 done
