@@ -258,6 +258,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("audit::headers", []string{"secretId"})
 	v.SetDefault("audit::skipPaths", []string{"/auth/dex/callback", "/pipeline/api"})
 
-	v.SetDefault("pipeline::ui::url", "/ui")
-	v.SetDefault("pipeline::ui::signupRedirectPath", "/ui")
+	v.SetDefault("ui::url", "/ui")
+	v.SetDefault("ui::signupRedirectPath", "/ui")
 }
