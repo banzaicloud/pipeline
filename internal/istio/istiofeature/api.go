@@ -30,7 +30,7 @@ const (
 	backyardsReleaseName      = "backyards"
 	canaryOperatorReleaseName = "canary"
 	prometheusHostname        = "monitor-prometheus-server.pipeline-system.svc.cluster.local"
-	prometheusURL             = "http://monitor-prometheus-server.pipeline-system.svc.cluster.local/prometheus"
+	prometheusURL             = "http://backyards-prometheus.backyards-system:9090/prometheus"
 	prometheusExternalURL     = "/prometheus"
 	labelPrefix               = "cluster.banzaicloud.io"
 	clusterIDLabel            = labelPrefix + "/id"

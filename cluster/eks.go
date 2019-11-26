@@ -40,18 +40,15 @@ import (
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/action"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/banzaicloud/pipeline/utils"
 )
 
 const asgWaitLoopSleepSeconds = 5
@@ -368,15 +365,17 @@ func (c *EKSCluster) CreateCluster() error {
 	}
 
 	c.modelCluster.EKS.NodeInstanceRoleId = output.NodeInstanceRoleID
+	c.modelCluster.EKS.VpcId = aws.String(output.VpcID)
 
 	// persist the id of the newly created subnets
 	for _, subnet := range output.Subnets {
 		for _, subnetModel := range c.modelCluster.EKS.Subnets {
 			if (aws.StringValue(subnetModel.SubnetId) != "" && aws.StringValue(subnetModel.SubnetId) == subnet.SubnetID) ||
 				(aws.StringValue(subnetModel.SubnetId) == "" && aws.StringValue(subnetModel.Cidr) != "" && aws.StringValue(subnetModel.Cidr) == subnet.Cidr) {
-				subnetModel.SubnetId = &subnet.SubnetID
-				subnetModel.Cidr = &subnet.Cidr
-				subnetModel.AvailabilityZone = &subnet.AvailabilityZone
+				sub := subnet
+				subnetModel.SubnetId = &sub.SubnetID
+				subnetModel.Cidr = &sub.Cidr
+				subnetModel.AvailabilityZone = &sub.AvailabilityZone
 				break
 			}
 		}
@@ -429,139 +428,49 @@ func (c *EKSCluster) GetDistribution() string {
 	return c.modelCluster.Distribution
 }
 
-// DeleteCluster deletes cluster from EKS
 func (c *EKSCluster) DeleteCluster() error {
+	panic("not used")
+}
+
+// DeleteCluster deletes cluster from EKS
+func (c *EKSCluster) DeleteEKSCluster(ctx context.Context, workflowClient client.Client, force bool) error {
 	c.log.Info("Start delete EKS cluster")
 
-	awsCred, err := c.createAWSCredentialsFromSecret()
-	if err != nil {
-		return err
-	}
-
-	awsSession, err := session.NewSession(&aws.Config{
-		Region:      aws.String(c.modelCluster.Location),
-		Credentials: awsCred,
-	})
-	if err != nil {
-		return err
-	}
-
-	clusterStackName := c.generateStackNameForCluster()
-	cloudformationSrv := cloudformation.New(awsSession)
-	describeStacksOutput, err := cloudformationSrv.DescribeStacks(&cloudformation.DescribeStacksInput{
-		StackName: aws.String(clusterStackName),
-	})
-	if err != nil {
-		return err
-	}
-
-	var vpcId string
-	var securityGroupIds []string
-	for _, output := range describeStacksOutput.Stacks[0].Outputs {
-		switch aws.StringValue(output.OutputKey) {
-		case "SecurityGroups":
-			securityGroupIds = append(securityGroupIds, aws.StringValue(output.OutputValue))
-		case "NodeSecurityGroup":
-			securityGroupIds = append(securityGroupIds, aws.StringValue(output.OutputValue))
-		case "VpcId":
-			vpcId = aws.StringValue(output.OutputValue)
-		}
-	}
-
-	deleteContext := action.NewEksClusterDeleteContext(
-		awsSession,
-		c.modelCluster.Name,
-		vpcId,
-		securityGroupIds,
-	)
-	var actions []utils.Action
-	actions = append(actions, action.NewWaitResourceDeletionAction(c.log, deleteContext)) // wait for ELBs to be deleted
-
-	nodePoolStackNames := c.getNodepoolStackNamesToDelete(awsSession)
-	deleteNodePoolsAction := action.NewDeleteStacksAction(c.log, deleteContext, nodePoolStackNames...)
-
-	actions = append(actions,
-		deleteNodePoolsAction,
-		action.NewDeleteClusterAction(c.log, deleteContext),
-		action.NewDeleteSSHKeyAction(c.log, deleteContext, c.generateSSHKeyNameForCluster()),
-		action.NewDeleteClusterUserAccessKeySecretAction(c.log, deleteContext, c.GetOrganizationId()),
-		action.NewDeleteOrphanNICsAction(NewLogurLogger(c.log), deleteContext),
-		action.NewDeleteStacksAction(c.log, deleteContext, c.getSubnetStackNamesToDelete(awsSession)...),
-		action.NewDeleteStacksAction(c.log, deleteContext, clusterStackName),
-		action.NewDeleteStacksAction(c.log, deleteContext, c.generateStackNameForIAM()),
-	)
-
-	if !c.modelCluster.EKS.DefaultUser {
-		actions = append(actions, action.NewDeleteClusterUserAccessKeyAction(c.log, deleteContext))
-	}
-
-	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *EKSCluster) getNodepoolStackNamesToDelete(sess *session.Session) []string {
-	stackNames := make([]string, 0)
-	uniqueMap := make(map[string]bool, 0)
-
+	nodePoolNames := make([]string, 0)
 	for _, nodePool := range c.modelCluster.EKS.NodePools {
-		nodePoolStackName := c.generateNodePoolStackName(nodePool)
-		stackNames = append(stackNames, nodePoolStackName)
-		uniqueMap[nodePoolStackName] = true
+		nodePoolNames = append(nodePoolNames, nodePool.Name)
 	}
 
-	c.log.Debugf("stack names from DB: %+v", stackNames)
-
-	oldTags := map[string]string{
-		"pipeline-created":      "true",
-		"pipeline-cluster-name": c.GetName(),
-		"pipeline-stack-type":   "nodepool",
+	input := workflow.DeleteClusterWorkflowInput{
+		OrganizationID: c.GetOrganizationId(),
+		Region:         c.modelCluster.Location,
+		SecretID:       c.GetSecretId(),
+		ClusterID:      c.GetID(),
+		ClusterUID:     c.GetUID(),
+		ClusterName:    c.GetName(),
+		NodePoolNames:  nodePoolNames,
+		K8sSecretID:    c.GetConfigSecretId(),
+		DefaultUser:    c.modelCluster.EKS.DefaultUser,
+		Forced:         force,
 	}
-	tags := map[string]string{
-		global.ManagedByPipelineTag:         global.ManagedByPipelineValue,
-		"banzaicloud-pipeline-cluster-name": c.GetName(),
-		"banzaicloud-pipeline-stack-type":   "nodepool",
-	}
 
-	// for backward compatibility looks for node pool stacks tagged by earlier version of Pipeline
-	cfStackNamesByOldTags, err := pkgCloudformation.GetExistingTaggedStackNames(cloudformation.New(sess), oldTags)
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 1 * 24 * time.Hour,
+	}
+	exec, err := workflowClient.ExecuteWorkflow(ctx, workflowOptions, eksworkflow.DeleteClusterWorkflowName, input)
 	if err != nil {
-		c.log.Error(err)
+		return err
 	}
 
-	cfStackNames, err := pkgCloudformation.GetExistingTaggedStackNames(cloudformation.New(sess), tags)
+	err = c.SetCurrentWorkflowID(exec.GetID())
 	if err != nil {
-		c.log.Error(err)
-	}
-	cfStackNames = append(cfStackNames, cfStackNamesByOldTags...)
-
-	for _, stackName := range cfStackNames {
-		if !uniqueMap[stackName] {
-			stackNames = append(stackNames, stackName)
-		}
+		return err
 	}
 
-	c.log.Debugf("stack names from DB + CF: %+v", stackNames)
-
-	return stackNames
-}
-
-func (c *EKSCluster) getSubnetStackNamesToDelete(sess *session.Session) []string {
-
-	tags := map[string]string{
-		global.ManagedByPipelineTag:         global.ManagedByPipelineValue,
-		"banzaicloud-pipeline-cluster-name": c.GetName(),
-		"banzaicloud-pipeline-stack-type":   "subnet",
-	}
-
-	cfStackNames, err := pkgCloudformation.GetExistingTaggedStackNames(cloudformation.New(sess), tags)
+	err = exec.Get(ctx, nil)
 	if err != nil {
-		c.log.Error(err)
-	} else {
-		return cfStackNames
+		return err
 	}
 
 	return nil
@@ -649,199 +558,101 @@ func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[str
 func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, updatedBy uint) error {
 	c.log.Info("start updating EKS cluster")
 
-	awsCred, err := c.createAWSCredentialsFromSecret()
-	if err != nil {
-		return err
-	}
-
-	awsSession, err := session.NewSession(&aws.Config{
-		Region:      aws.String(c.modelCluster.Location),
-		Credentials: awsCred,
-	})
-	if err != nil {
-		return err
-	}
-
-	var actions []utils.Action
-
-	clusterStackName := c.generateStackNameForCluster()
-	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(clusterStackName)}
-	cloudformationSrv := cloudformation.New(awsSession)
-	autoscalingSrv := autoscaling.New(awsSession)
-	describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
-	if err != nil {
-		return err
-	}
-
-	var vpcId, securityGroupId, nodeSecurityGroupId, nodeInstanceRoleId, clusterUserArn, clusterUserAccessKeyId, clusterUserSecretAccessKey string
-	for _, output := range describeStacksOutput.Stacks[0].Outputs {
-		switch aws.StringValue(output.OutputKey) {
-		case "SecurityGroups":
-			securityGroupId = aws.StringValue(output.OutputValue)
-		case "NodeSecurityGroup":
-			nodeSecurityGroupId = aws.StringValue(output.OutputValue)
-		case "VpcId":
-			vpcId = aws.StringValue(output.OutputValue)
-		case "ClusterUserArn":
-			clusterUserArn = aws.StringValue(output.OutputValue)
-		}
-	}
-
-	nodeInstanceRoleId = c.modelCluster.EKS.NodeInstanceRoleId
-
-	clusterUserAccessKeyId, clusterUserSecretAccessKey, err = action.GetClusterUserAccessKeyIdAndSecretVault(c.GetOrganizationId(), c.GetName())
-	if err != nil {
-		return err
-	}
-
-	if securityGroupId == "" {
-		return errors.Errorf("SecurityGroups output not found on stack: %s", clusterStackName)
-	}
-	if nodeSecurityGroupId == "" {
-		return errors.Errorf("NodeSecurityGroup output not found on stack: %s", clusterStackName)
-	}
-	if vpcId == "" {
-		return errors.Errorf("VpcId output not found on stack: %s", clusterStackName)
-	}
-
-	nodePoolTemplate, err := pkgEks.GetNodePoolTemplate()
-	if err != nil {
-		log.Errorln("getting CloudFormation template for node pools failed: ", err.Error())
-		return err
-	}
-
 	modelNodePools, err := c.createNodePoolsFromUpdateRequest(updateRequest.EKS.NodePools, updatedBy)
 	if err != nil {
 		return err
 	}
 
-	var subnets []*action.EksSubnet
+	subnets := make([]workflow.Subnet, 0)
 	for _, subnet := range c.modelCluster.EKS.Subnets {
-		subnets = append(subnets, &action.EksSubnet{
+		subnets = append(subnets, workflow.Subnet{
 			SubnetID:         aws.StringValue(subnet.SubnetId),
 			Cidr:             aws.StringValue(subnet.Cidr),
 			AvailabilityZone: aws.StringValue(subnet.AvailabilityZone),
 		})
 	}
 
-	createUpdateContext := action.NewEksClusterUpdateContext(
-		awsSession,
-		c.modelCluster.Name,
-		aws.String(securityGroupId),
-		aws.String(nodeSecurityGroupId),
-		subnets,
-		c.generateSSHKeyNameForCluster(),
-		aws.String(vpcId),
-		nodeInstanceRoleId,
-		clusterUserArn,
-		clusterUserAccessKeyId,
-		clusterUserSecretAccessKey,
-	)
-	createUpdateContext.ScaleEnabled = c.GetScaleOptions() != nil && c.GetScaleOptions().Enabled
-
-	deleteContext := action.NewEksClusterDeleteContext(
-		awsSession,
-		c.modelCluster.Name,
-		vpcId,
-		[]string{securityGroupId, nodeSecurityGroupId},
-	)
-
-	subnetMapping := make(map[string][]*action.EksSubnet)
-
-	var nodePoolsToCreate []*model.AmazonNodePoolsModel
-	var nodePoolsToUpdate []*model.AmazonNodePoolsModel
-	var nodePoolsToDelete []string
-
+	subnetMapping := make(map[string][]workflow.Subnet)
 	for _, nodePool := range modelNodePools {
-
-		log := c.log.WithField("nodePool", nodePool.Name)
-		stackName := c.generateNodePoolStackName(nodePool)
-		describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)}
-		describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
-
-		if err == nil {
-			// delete nodePool
-			if nodePool.Delete {
-				log.Info("node pool will be deleted")
-				nodePoolsToDelete = append(nodePoolsToDelete, c.generateNodePoolStackName(nodePool))
-				continue
-			}
-			// update nodePool
-			log.Info("node pool already exists will be updated")
-			// load params which are not updatable from nodeGroup Stack
-			for _, param := range describeStacksOutput.Stacks[0].Parameters {
-				switch *param.ParameterKey {
-				case "NodeImageId":
-					nodePool.NodeImage = aws.StringValue(param.ParameterValue)
-				case "NodeInstanceType":
-					nodePool.NodeInstanceType = aws.StringValue(param.ParameterValue)
-				case "NodeSpotPrice":
-					nodePool.NodeSpotPrice = aws.StringValue(param.ParameterValue)
-				}
-			}
-			// get current Desired count from ASG linked to nodeGroup stack if Autoscaling is enabled, as we don't to override
-			// in this case only min/max counts
-			asg, err := getAutoScalingGroup(cloudformationSrv, autoscalingSrv, stackName)
-			if err != nil {
-				return errors.WrapIff(err, "unable to find ASG for node pool %q", nodePool.Name)
-			}
-
-			// override nodePool.Count with current DesiredCapacity in case of autoscale, as we don't want allow direct
-			// setting of DesiredCapacity via API, however we have to limit it to be between new min, max values.
-			if nodePool.Autoscaling && asg != nil {
-				if asg.DesiredCapacity != nil {
-					nodePool.Count = int(*asg.DesiredCapacity)
-				}
-				if nodePool.Count < nodePool.NodeMinCount {
-					nodePool.Count = nodePool.NodeMinCount
-				}
-				if nodePool.Count > nodePool.NodeMaxCount {
-					nodePool.Count = nodePool.NodeMaxCount
-				}
-				log.Infof("DesiredCapacity for %v will be: %v", aws.StringValue(asg.AutoScalingGroupARN), nodePool.Count)
-			}
-
-			nodePoolsToUpdate = append(nodePoolsToUpdate, nodePool)
-		} else {
-			if nodePool.Delete {
-				log.Warnf("node pool to be deleted doesn't exists: %v", err)
-				continue
-			}
-			// create nodePool
-			log.Info("node pool doesn't exists will be created")
-			nodePoolsToCreate = append(nodePoolsToCreate, nodePool)
-
-			for reqNodePoolName, reqNodePool := range updateRequest.EKS.NodePools {
-				if reqNodePoolName == nodePool.Name {
-					if reqNodePool.Subnet == nil {
-						c.log.WithField("nodePool", nodePool.Name).Info("no subnet specified for node pool in the update request")
-						subnetMapping[nodePool.Name] = append(subnetMapping[nodePool.Name], subnets[0])
-					} else {
-						for _, subnet := range subnets {
-							if (reqNodePool.Subnet.SubnetId != "" && subnet.SubnetID == reqNodePool.Subnet.SubnetId) ||
-								(reqNodePool.Subnet.Cidr != "" && subnet.Cidr == reqNodePool.Subnet.Cidr) {
-								subnetMapping[nodePool.Name] = append(subnetMapping[nodePool.Name], subnet)
-							}
+		// set subnets only for node pools to be updated
+		if nodePool.Delete || nodePool.ID != 0 {
+			continue
+		}
+		for reqNodePoolName, reqNodePool := range updateRequest.EKS.NodePools {
+			if reqNodePoolName == nodePool.Name {
+				if reqNodePool.Subnet == nil {
+					c.log.WithField("nodePool", nodePool.Name).Info("no subnet specified for node pool in the update request")
+					subnetMapping[nodePool.Name] = append(subnetMapping[nodePool.Name], subnets[0])
+				} else {
+					for _, subnet := range subnets {
+						if (reqNodePool.Subnet.SubnetId != "" && subnet.SubnetID == reqNodePool.Subnet.SubnetId) ||
+							(reqNodePool.Subnet.Cidr != "" && subnet.Cidr == reqNodePool.Subnet.Cidr) {
+							subnetMapping[nodePool.Name] = append(subnetMapping[nodePool.Name], subnet)
 						}
 					}
 				}
 			}
 		}
+
 	}
 
-	ASGWaitLoopCount := int(asgFulfillmentTimeout.Seconds() / asgWaitLoopSleepSeconds)
+	input := workflow.UpdateClusterstructureWorkflowInput{
+		Region:             c.modelCluster.Location,
+		OrganizationID:     c.GetOrganizationId(),
+		SecretID:           c.GetSecretId(),
+		ClusterUID:         c.GetUID(),
+		ClusterName:        c.GetName(),
+		ScaleEnabled:       c.GetScaleOptions() != nil && c.GetScaleOptions().Enabled,
+		NodeInstanceRoleID: c.modelCluster.EKS.NodeInstanceRoleId,
+	}
 
-	deleteNodePoolAction := action.NewDeleteStacksAction(c.log, deleteContext, nodePoolsToDelete...)
-	createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, true, createUpdateContext, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second, nodePoolTemplate, subnetMapping, nodePoolsToCreate...)
-	updateNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, false, createUpdateContext, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second, nodePoolTemplate, nil, nodePoolsToUpdate...)
+	input.Subnets = subnets
+	input.ASGSubnetMapping = subnetMapping
 
-	actions = append(actions, createNodePoolAction, updateNodePoolAction, deleteNodePoolAction)
+	asgList := make([]workflow.AutoscaleGroup, 0)
+	for _, np := range modelNodePools {
+		asg := workflow.AutoscaleGroup{
+			Name:             np.Name,
+			NodeSpotPrice:    np.NodeSpotPrice,
+			Autoscaling:      np.Autoscaling,
+			NodeMinCount:     np.NodeMinCount,
+			NodeMaxCount:     np.NodeMaxCount,
+			Count:            np.Count,
+			NodeImage:        np.NodeImage,
+			NodeInstanceType: np.NodeInstanceType,
+			Labels:           np.Labels,
+			Delete:           np.Delete,
+		}
+		if np.ID == 0 {
+			asg.Create = true
+		}
+		asgList = append(asgList, asg)
+	}
 
-	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
+	input.AsgList = asgList
+
+	ctx := context.Background()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 1 * 24 * time.Hour,
+	}
+	exec, err := c.WorkflowClient.ExecuteWorkflow(ctx, workflowOptions, eksworkflow.UpdateClusterWorkflowName, input)
 	if err != nil {
 		return err
 	}
 
+	err = c.SetCurrentWorkflowID(exec.GetID())
+	if err != nil {
+		return err
+	}
+
+	var out interface{}
+	err = exec.Get(ctx, out)
+	if err != nil {
+		return err
+	}
+
+	c.log.Info("EKS cluster updated.")
 	c.modelCluster.EKS.NodePools = modelNodePools
 
 	return nil
@@ -911,40 +722,6 @@ func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 	}
 
 	return errors.Combine(caughtErrors...)
-}
-
-func getAutoScalingGroup(cloudformationSrv *cloudformation.CloudFormation, autoscalingSrv *autoscaling.AutoScaling, stackName string) (*autoscaling.Group, error) {
-	describeStackResourceInput := &cloudformation.DescribeStackResourcesInput{
-		StackName: aws.String(stackName),
-	}
-	stackResources, err := cloudformationSrv.DescribeStackResources(describeStackResourceInput)
-	if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to get stack resources", "stack", stackName)
-	}
-
-	var asgId *string
-	for _, res := range stackResources.StackResources {
-		if aws.StringValue(res.LogicalResourceId) == "NodeGroup" {
-			asgId = res.PhysicalResourceId
-			break
-		}
-	}
-
-	if asgId == nil {
-		return nil, nil
-	}
-
-	describeAutoScalingGroupsInput := autoscaling.DescribeAutoScalingGroupsInput{
-		AutoScalingGroupNames: []*string{
-			asgId,
-		},
-	}
-	describeAutoScalingGroupsOutput, err := autoscalingSrv.DescribeAutoScalingGroups(&describeAutoScalingGroupsInput)
-	if err != nil {
-		return nil, err
-	}
-
-	return describeAutoScalingGroupsOutput.AutoScalingGroups[0], nil
 }
 
 func (c *EKSCluster) getAutoScalingGroupName(cloudformationSrv *cloudformation.CloudFormation, autoscalingSrv *autoscaling.AutoScaling, nodePoolName string) (*string, error) {

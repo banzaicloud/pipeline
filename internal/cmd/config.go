@@ -475,19 +475,19 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 		},
 	})
 	v.SetDefault("cluster::backyards::charts::backyards::chart", "banzaicloud-stable/backyards")
-	v.SetDefault("cluster::backyards::charts::backyards::version", "1.0.3")
+	v.SetDefault("cluster::backyards::charts::backyards::version", "1.0.4")
 	v.SetDefault("cluster::backyards::charts::backyards::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"repository": "banzaicloud/backyards",
-			"tag":        "1.0.3",
+			"tag":        "1.0.4",
 		},
 	})
 	v.SetDefault("cluster::backyards::charts::canaryOperator::chart", "banzaicloud-stable/canary-operator")
-	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.6")
+	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.7")
 	v.SetDefault("cluster::backyards::charts::canaryOperator::values", map[string]interface{}{
 		"image": map[string]interface{}{
-			"repository": "banzaicloud/istio-operator",
-			"tag":        "0.1.4",
+			"repository": "banzaicloud/canary-operator",
+			"tag":        "0.1.5",
 		},
 	})
 

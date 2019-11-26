@@ -79,6 +79,11 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 
 		ctx := ginutils.Context(context.Background(), c)
 
+		switch c := commonCluster.(type) {
+		case *cluster.EKSCluster:
+			c.WorkflowClient = a.workflowClient
+		}
+
 		err = a.clusterManager.UpdateCluster(ctx, updateCtx, updater)
 	}
 	if err != nil {

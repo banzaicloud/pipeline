@@ -60,8 +60,13 @@ func generateSSHKeyNameForCluster(clusterName string) string {
 	return "pipeline-eks-ssh-" + clusterName
 }
 
-func generateNodePoolStackName(clusterName string, asgName string) string {
-	return "pipeline-eks-nodepool-" + clusterName + "-" + asgName
+func generateNodePoolStackName(clusterName string, poolName string) string {
+	return "pipeline-eks-nodepool-" + clusterName + "-" + poolName
+}
+
+// getSecretName returns the name that identifies the  cluster user access key in Vault
+func getSecretName(userName string) string {
+	return fmt.Sprintf("%s-key", strings.ToLower(userName))
 }
 
 func generateK8sConfig(clusterName string, apiEndpoint string, certificateAuthorityData []byte,
@@ -145,10 +150,14 @@ type AutoscaleGroup struct {
 	NodeImage        string
 	NodeInstanceType string
 	Labels           map[string]string
+	Delete           bool
+	Create           bool
 }
 
 type SecretStore interface {
 	Get(orgnaizationID uint, secretID string) (*secret.SecretItemResponse, error)
 	GetByName(orgnaizationID uint, secretID string) (*secret.SecretItemResponse, error)
 	Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
+	Delete(organizationID uint, secretID string) error
+	Update(organizationID uint, secretID string, request *secret.CreateSecretRequest) error
 }

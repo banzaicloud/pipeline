@@ -171,6 +171,14 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	// but in certain cases we want to skip that step
 	deleteResources := true
 
+	eksDeleter, isEksCluster := cluster.(interface {
+		DeleteEKSCluster(context.Context, client.Client, bool) error
+	})
+	if isEksCluster {
+		// in case of EKS delete cluster workflow contains removal of K8s resources
+		deleteResources = false
+	}
+
 	// delete k8s resources from the cluster
 	config, err := cluster.GetK8sConfig()
 	if err == ErrConfigNotExists {
@@ -252,12 +260,12 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		logger.Error(err)
 	}
 
-	// delete cluster
-
 	if deleter, ok := cluster.(interface {
 		DeletePKECluster(context.Context, client.Client) error
 	}); ok {
 		err = deleter.DeletePKECluster(ctx, m.workflowClient)
+	} else if isEksCluster {
+		err = eksDeleter.DeleteEKSCluster(ctx, m.workflowClient, force)
 	} else {
 		err = cluster.DeleteCluster()
 	}
