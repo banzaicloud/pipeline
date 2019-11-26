@@ -215,14 +215,14 @@ dex:
 #        charts:
 #            operator:
 #                chart: "banzaicloud-stable/logging-operator"
-#                version: "2.5.0"
+#                version: "2.6.0"
 #
 #                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-operator for details
 #                values: {}
 #
 #            loki:
 #                chart: "banzaicloud-stable/loki"
-#                version: "0.16.0"
+#                version: "0.16.1"
 #
 #                # See https://github.com/banzaicloud/banzai-charts/tree/master/loki for details
 #                values: {}
