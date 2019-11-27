@@ -260,17 +260,10 @@ func (op FeatureOperator) installTLSSecretsToCluster(ctx context.Context, cl clu
 		},
 	}
 
-	// install fluentbit secret
-	if _, err := op.installSecret(ctx, cl, fluentbitSecretName, installSecretRequest); err != nil {
+	// install TLS shared secret
+	if _, err := op.installSecret(ctx, cl, fluentSharedSecretName, installSecretRequest); err != nil {
 		return errors.WrapIfWithDetails(err,
-			"failed to install fluentbit secret to the cluster",
-			"clusterID", cl.GetID())
-	}
-
-	// install fluentd secret
-	if _, err := op.installSecret(ctx, cl, fluentdSecretName, installSecretRequest); err != nil {
-		return errors.WrapIfWithDetails(err,
-			"failed to install fluentd secret to the cluster",
+			"failed to install fluent shared secret to the cluster",
 			"clusterID", cl.GetID())
 	}
 
@@ -487,8 +480,10 @@ func (op FeatureOperator) createLoggingResource(ctx context.Context, clusterID u
 	}
 
 	if tlsEnabled {
-		loggingResource.Spec.FluentdSpec.TLS.SecretName = fluentdSecretName
-		loggingResource.Spec.FluentbitSpec.TLS.SecretName = fluentbitSecretName
+		loggingResource.Spec.FluentdSpec.TLS.SecretName = fluentSharedSecretName
+		loggingResource.Spec.FluentdSpec.TLS.SharedKey = fluentSharedSecretName
+		loggingResource.Spec.FluentbitSpec.TLS.SecretName = fluentSharedSecretName
+		loggingResource.Spec.FluentbitSpec.TLS.SharedKey = fluentSharedSecretName
 	}
 
 	return op.kubernetesService.EnsureObject(ctx, clusterID, loggingResource)
