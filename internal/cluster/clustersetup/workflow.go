@@ -38,6 +38,8 @@ type WorkflowInput struct {
 	// Cluster information
 	Cluster      Cluster
 	Organization Organization
+
+	NodePoolLabels map[string]map[string]string
 }
 
 // Cluster represents a Kubernetes cluster.
@@ -139,6 +141,18 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 		}
 
 		err := workflow.ExecuteActivity(ctx, InstallNodePoolLabelSetOperatorActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+		activityInput := ConfigureNodePoolLabelsActivityInput{
+			ConfigSecretID: input.ConfigSecretID,
+			Labels:         input.NodePoolLabels,
+		}
+
+		err := workflow.ExecuteActivity(ctx, ConfigureNodePoolLabelsActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
 			return err
 		}

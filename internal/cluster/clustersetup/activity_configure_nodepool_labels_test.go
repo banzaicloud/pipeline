@@ -12,25 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cluster
+package clustersetup
 
 import (
-	"emperror.dev/emperror"
+	"context"
 
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"go.uber.org/cadence/activity"
 )
 
-type NodePoolLabelParam struct {
-	Labels map[string]map[string]string `json:"labels"`
+// nolint: gochecknoglobals
+var configureNodePoolLabelsTestActivity = ConfigureNodePoolLabelsActivity{}
+
+func testConfigureNodePoolLabelsActivityExecute(ctx context.Context, input ConfigureNodePoolLabelsActivityInput) error {
+	return configureNodePoolLabelsTestActivity.Execute(ctx, input)
 }
 
-// SetupNodePoolLabelsSet deploys NodePoolLabelSet resources for each nodepool.
-func SetupNodePoolLabelsSet(cluster CommonCluster, param pkgCluster.PostHookParam) error {
-	var nodePoolParam NodePoolLabelParam
-	err := castToPostHookParam(param, &nodePoolParam)
-	if err != nil {
-		return emperror.Wrap(err, "posthook param failed")
-	}
-
-	return DeployNodePoolLabelsSet(cluster, nodePoolParam.Labels)
+// nolint: gochecknoinits
+func init() {
+	activity.RegisterWithOptions(testConfigureNodePoolLabelsActivityExecute, activity.RegisterOptions{Name: ConfigureNodePoolLabelsActivityName})
 }
