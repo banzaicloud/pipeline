@@ -35,6 +35,7 @@ const (
 	featureSecretTag           = "feature:logging"
 	lokiSecretTag              = "app:loki"
 	generatedSecretUsername    = "admin"
+	fluentSharedSecretName     = "logging-operator-fluent-shared-secret"
 
 	outputDefinitionSecretKeyOSSAccessKeyID      = "accessKeyId"
 	outputDefinitionSecretKeyOSSAccessKey        = "accessKeySecret"
@@ -43,9 +44,6 @@ const (
 	outputDefinitionSecretKeyGCS                 = "credentials.json"
 	outputDefinitionSecretKeyAzureStorageAccount = "azureStorageAccount"
 	outputDefinitionSecretKeyAzureStorageAccess  = "azureStorageAccessKey"
-
-	fluentbitSecretName = "logging-operator-fluentbit-secret"
-	fluentdSecretName   = "logging-operator-fluentd-secret"
 
 	lokiOutputDefinitionName = "loki-output"
 	flowResourceName         = "banzai-logging-flow"
