@@ -113,7 +113,7 @@ func (op FeatureOperator) installSecretForOutput(ctx context.Context, spec clust
 		return errors.WrapIf(err, "failed to generate install secret request")
 	}
 
-	if _, err := op.installSecret(ctx, cl, sourceSecretName, *installSecretRequest); err != nil {
+	if err := op.installSecret(ctx, cl, sourceSecretName, *installSecretRequest); err != nil {
 		return errors.WrapIf(err, "failed to install secret to cluster")
 	}
 

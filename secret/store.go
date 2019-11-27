@@ -104,14 +104,6 @@ type SecretItemResponse struct {
 	UpdatedBy string            `json:"updatedBy,omitempty" mapstructure:"updatedBy"`
 }
 
-// K8SSourceMeta returns the meta information how to use this secret if installed to K8S
-func (s *SecretItemResponse) K8SSourceMeta() K8SSourceMeta {
-	return K8SSourceMeta{
-		Name:     s.Name,
-		Sourcing: EnvVar,
-	}
-}
-
 // GetValue returns the value under key
 func (s *SecretItemResponse) GetValue(key string) string {
 	return s.Values[key]

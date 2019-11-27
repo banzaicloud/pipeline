@@ -321,14 +321,14 @@ func (op FeatureOperator) installTLSSecretsToCluster(ctx context.Context, cl clu
 	}
 
 	// install fluentbit secret
-	if _, err := op.installSecret(ctx, cl, fluentbitSecretName, installSecretRequest); err != nil {
+	if err := op.installSecret(ctx, cl, fluentbitSecretName, installSecretRequest); err != nil {
 		return errors.WrapIfWithDetails(err,
 			"failed to install fluentbit secret to the cluster",
 			"clusterID", cl.GetID())
 	}
 
 	// install fluentd secret
-	if _, err := op.installSecret(ctx, cl, fluentdSecretName, installSecretRequest); err != nil {
+	if err := op.installSecret(ctx, cl, fluentdSecretName, installSecretRequest); err != nil {
 		return errors.WrapIfWithDetails(err,
 			"failed to install fluentd secret to the cluster",
 			"clusterID", cl.GetID())
@@ -408,7 +408,7 @@ func (op FeatureOperator) installLokiSecret(ctx context.Context, secretName stri
 		Update: true,
 	}
 
-	if _, err := op.installSecret(ctx, cl, secretName, installSecretRequest); err != nil {
+	if err := op.installSecret(ctx, cl, secretName, installSecretRequest); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to install Loki secret to cluster")
 	}
 
@@ -456,13 +456,13 @@ func isSecretNotFoundError(err error) bool {
 	return false
 }
 
-func (op FeatureOperator) installSecret(ctx context.Context, cl clusterfeatureadapter.Cluster, secretName string, secretRequest pkgCluster.InstallSecretRequest) (*secret.K8SSourceMeta, error) {
-	k8sSec, err := pkgCluster.InstallSecret(cl, secretName, secretRequest)
+func (op FeatureOperator) installSecret(ctx context.Context, cl clusterfeatureadapter.Cluster, secretName string, secretRequest pkgCluster.InstallSecretRequest) error {
+	err := pkgCluster.InstallSecret(cl, secretName, secretRequest)
 	if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to install secret to the cluster", "clusterID", cl.GetID())
+		return errors.WrapIfWithDetails(err, "failed to install secret to the cluster", "clusterID", cl.GetID())
 	}
 
-	return k8sSec, nil
+	return nil
 }
 
 func (op FeatureOperator) installLoggingOperator(ctx context.Context, clusterID uint) error {

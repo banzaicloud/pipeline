@@ -118,7 +118,7 @@ func (m secretManager) installSecret(ctx context.Context, clusterID uint, secret
 		Update: true,
 	}
 
-	if _, err := m.operator.installSecret(ctx, clusterID, secretName, installSecretRequest); err != nil {
+	if err := m.operator.installSecret(ctx, clusterID, secretName, installSecretRequest); err != nil {
 		return errors.WrapIfWithDetails(err, fmt.Sprintf("failed to install %s secret to cluster", m.infoer.name()), "clusterID", clusterID)
 	}
 

@@ -463,7 +463,7 @@ func InstallSecretsToCluster(c *gin.Context) {
 		return
 	}
 
-	secretSources, err := cluster.InstallSecrets(commonCluster, &request.Query, request.Namespace)
+	err := cluster.InstallSecrets(commonCluster, &request.Query, request.Namespace)
 
 	if err != nil {
 		log.Errorf("Error installing secrets [%v] into cluster [%d]: %s", request.Query, commonCluster.GetID(), err.Error())
@@ -475,7 +475,8 @@ func InstallSecretsToCluster(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, secretSources)
+	// TODO: return nothing
+	c.JSON(http.StatusOK, []interface{}{})
 }
 
 // ProxyToCluster sets up a proxy and forwards all requests to the cluster's API server.
