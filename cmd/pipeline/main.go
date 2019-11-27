@@ -735,9 +735,6 @@ func main() {
 						))
 					}
 
-					imgScanSvc := anchore.NewImageScannerService(configProvider, logger)
-					imageScanHandler := api.NewImageScanHandler(commonClusterGetter, imgScanSvc, logger)
-
 					policySvc := anchore.NewPolicyService(configProvider, logger)
 					policyHandler := api.NewPolicyHandler(commonClusterGetter, policySvc, logger)
 
@@ -763,10 +760,6 @@ func main() {
 					cRouter.POST("/policies", policyHandler.CreatePolicy)
 					cRouter.PUT("/policies/:policyId", policyHandler.UpdatePolicy)
 					cRouter.DELETE("/policies/:policyId", policyHandler.DeletePolicy)
-
-					cRouter.POST("/imagescan", imageScanHandler.ScanImages)
-					cRouter.GET("/imagescan/:imagedigest", imageScanHandler.GetScanResult)
-					cRouter.GET("/imagescan/:imagedigest/vuln", imageScanHandler.GetImageVulnerabilities)
 				}
 
 				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry(featureManagers)
