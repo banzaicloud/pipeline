@@ -123,7 +123,6 @@ import (
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/internal/providers/google/googleadapter"
-	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -735,9 +734,6 @@ func main() {
 						))
 					}
 
-					policySvc := anchore.NewPolicyService(configProvider, logger)
-					policyHandler := api.NewPolicyHandler(commonClusterGetter, policySvc, logger)
-
 					secErrorHandler := emperror.MakeContextAware(errorHandler)
 					securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, secErrorHandler, logger)
 
@@ -754,12 +750,6 @@ func main() {
 					cRouter.GET("/whitelists", securityApiHandler.GetWhiteLists)
 					cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
 					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
-
-					cRouter.GET("/policies", policyHandler.ListPolicies)
-					cRouter.GET("/policies/:policyId", policyHandler.GetPolicy)
-					cRouter.POST("/policies", policyHandler.CreatePolicy)
-					cRouter.PUT("/policies/:policyId", policyHandler.UpdatePolicy)
-					cRouter.DELETE("/policies/:policyId", policyHandler.DeletePolicy)
 				}
 
 				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry(featureManagers)
