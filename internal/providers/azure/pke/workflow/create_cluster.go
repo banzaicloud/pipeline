@@ -50,6 +50,7 @@ type CreateClusterWorkflowInput struct {
 	SecurityGroups                  []SecurityGroup
 	VirtualMachineScaleSetTemplates []VirtualMachineScaleSetTemplate
 	PostHooks                       pkgCluster.PostHooks
+	NodePoolLabels                  map[string]map[string]string
 	HTTPProxy                       intPKE.HTTPProxy
 	AccessPoints                    pke.AccessPoints
 	APIServerAccessPoints           pke.APIServerAccessPoints
@@ -144,6 +145,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 				ID:   input.OrganizationID,
 				Name: input.OrganizationName,
 			},
+			NodePoolLabels: input.NodePoolLabels,
 		}
 
 		future := workflow.ExecuteChildWorkflow(ctx, clustersetup.WorkflowName, workflowInput)

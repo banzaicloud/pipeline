@@ -129,6 +129,10 @@ github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a1856
 github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f/go.mod h1:2GxaTh0YYmhQEMQ4wJ8Izr7sBecWZtnXlDzybR1hSO8=
 github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190823114332-76c873e3a8cb h1:eq2A3Yrgzy4dGKpAeX5DXKRo1z3GOJvGsQ+WsPMik8Y=
 github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190823114332-76c873e3a8cb/go.mod h1:NCrdx8qqnbTgI1bcb49rwA4p/TbZ2e+E5f0ihmE2vJs=
+github.com/banzaicloud/nodepool-labels-operator v0.0.5 h1:f1c5WEh7dV+drQDrYnyCuVSGabW2DByi/i9YJQ58QTs=
+github.com/banzaicloud/nodepool-labels-operator v0.0.5/go.mod h1:FJ82thISztBDMnddAuLM0h9jqLrQMiCdEGk5zucw7CY=
+github.com/banzaicloud/nodepool-labels-operator v0.0.6 h1:8QyfKsUR91lslLc9Cn/gMw1yyHhYEOaXOGFZHTLXDBA=
+github.com/banzaicloud/nodepool-labels-operator v0.0.6/go.mod h1:uyZhBzJbdDzX5Evy0F3x7oozhA1Hf8D2mhlXuEIMIiM=
 github.com/banzaicloud/prometheus-config v0.0.0-20181214142820-fc6ae4756a29 h1:E+lUvPnBa7mkaRg3cy4NnThZeBzN8Hy4uwxB1pn27JA=
 github.com/banzaicloud/prometheus-config v0.0.0-20181214142820-fc6ae4756a29/go.mod h1:yqyOUqqONEQQzgmilQldTuKgJyS9Ahs97wG1K0Onfvo=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 h1:xJ4a3vCFaGF/jqvzLMYoU8P317H5OQ+Via4RmuPwCS0=

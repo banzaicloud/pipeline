@@ -233,6 +233,8 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 
 	tenantID := sir.GetValue(secrettype.AzureTenantID)
 
+	var labelsMap map[string]map[string]string
+
 	postHooks := make(pkgCluster.PostHooks, len(params.Features))
 	for _, f := range params.Features {
 		postHooks[f.Kind] = f.Params
@@ -255,15 +257,11 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				Labels:       np.Labels,
 			}
 		}
-		var labelsMap map[string]map[string]string
+
 		labelsMap, err = cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolStatuses, false)
 		if err != nil {
 			_ = cc.handleError(cl.ID, err)
 			return
-		}
-
-		postHooks[pkgCluster.SetupNodePoolLabelsSet] = cluster.NodePoolLabelParam{
-			Labels: labelsMap,
 		}
 	}
 
@@ -438,6 +436,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		},
 		VirtualMachineScaleSetTemplates: vmssTemplates,
 		PostHooks:                       postHooks,
+		NodePoolLabels:                  labelsMap,
 		HTTPProxy:                       cl.HTTPProxy,
 		AccessPoints:                    params.AccessPoints,
 		APIServerAccessPoints:           params.APIServerAccessPoints,

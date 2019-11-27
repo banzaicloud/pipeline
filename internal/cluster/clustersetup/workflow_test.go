@@ -37,6 +37,13 @@ var testOrganization = Organization{
 	Name: "example-organization",
 }
 
+// nolint: gochecknoglobals
+var testNodePoolLabels = map[string]map[string]string{
+	"pool1": {
+		"key": "value",
+	},
+}
+
 type WorkflowTestSuite struct {
 	suite.Suite
 	testsuite.WorkflowTestSuite
@@ -90,10 +97,20 @@ func (s *WorkflowTestSuite) Test_Success() {
 		InstallNodePoolLabelSetOperatorActivityInput{ClusterID: 1},
 	).Return(nil)
 
+	s.env.OnActivity(
+		ConfigureNodePoolLabelsActivityName,
+		mock.Anything,
+		ConfigureNodePoolLabelsActivityInput{
+			ConfigSecretID: "secret",
+			Labels:         testNodePoolLabels,
+		},
+	).Return(nil)
+
 	workflowInput := WorkflowInput{
 		ConfigSecretID: "secret",
 		Cluster:        testCluster,
 		Organization:   testOrganization,
+		NodePoolLabels: testNodePoolLabels,
 	}
 
 	s.env.ExecuteWorkflow(s.T().Name(), workflowInput)
@@ -144,10 +161,20 @@ func (s *WorkflowTestSuite) Test_Success_InstallInitManifest() {
 		InstallNodePoolLabelSetOperatorActivityInput{ClusterID: 1},
 	).Return(nil)
 
+	s.env.OnActivity(
+		ConfigureNodePoolLabelsActivityName,
+		mock.Anything,
+		ConfigureNodePoolLabelsActivityInput{
+			ConfigSecretID: "secret",
+			Labels:         testNodePoolLabels,
+		},
+	).Return(nil)
+
 	workflowInput := WorkflowInput{
 		ConfigSecretID: "secret",
 		Cluster:        testCluster,
 		Organization:   testOrganization,
+		NodePoolLabels: testNodePoolLabels,
 	}
 
 	s.env.ExecuteWorkflow(s.T().Name(), workflowInput)

@@ -210,6 +210,13 @@ func (m *Manager) createCluster(
 		return emperror.Wrap(err, "failed to update cluster status")
 	}
 
+	labelsMap, err := GetDesiredLabelsForCluster(ctx, cluster, nil, false)
+	if err != nil {
+		_ = cluster.SetStatus(pkgCluster.Error, "failed to get desired labels")
+
+		return err
+	}
+
 	logger.WithField("workflowName", CreateClusterWorkflowName).Info("starting workflow")
 
 	{
@@ -225,6 +232,7 @@ func (m *Manager) createCluster(
 			OrganizationID:   cluster.GetOrganizationId(),
 			OrganizationName: org.Name,
 			Distribution:     cluster.GetDistribution(),
+			NodePoolLabels:   labelsMap,
 		}
 
 		workflowOptions := client.StartWorkflowOptions{
@@ -257,19 +265,8 @@ func (m *Manager) createCluster(
 		}).Info("workflow finished successfully")
 	}
 
-	labelsMap, err := GetDesiredLabelsForCluster(ctx, cluster, nil, false)
-	if err != nil {
-		_ = cluster.SetStatus(pkgCluster.Error, "failed to get desired labels")
-
-		return err
-	}
-
 	if postHooks == nil {
 		postHooks = make(pkgCluster.PostHooks)
-	}
-
-	postHooks[pkgCluster.SetupNodePoolLabelsSet] = NodePoolLabelParam{
-		Labels: labelsMap,
 	}
 
 	logger.WithField("workflowName", RunPostHooksWorkflowName).Info("starting workflow")

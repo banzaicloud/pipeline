@@ -22,7 +22,9 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
+	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -149,23 +151,21 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			return err
 		}
 	}
+
 	// set up node pool labels set
 	{
-		activityInput := cluster.RunPostHookActivityInput{
-			ClusterID: input.ClusterID,
-			HookName:  pkgCluster.SetupNodePoolLabelsSet,
-			HookParam: cluster.NodePoolLabelParam{
-				Labels: input.Labels,
-			},
-			Status: pkgCluster.Updating,
+		activityInput := clustersetup.ConfigureNodePoolLabelsActivityInput{
+			ConfigSecretID: brn.New(input.OrganizationID, brn.SecretResourceType, input.SecretID).String(),
+			Labels:         input.Labels,
 		}
-		err := workflow.ExecuteActivity(ctx, cluster.RunPostHookActivityName, activityInput).Get(ctx, nil)
+		err := workflow.ExecuteActivity(ctx, clustersetup.ConfigureNodePoolLabelsActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			err = errors.WrapIff(err, "%q activity failed", cluster.RunPostHookActivityName)
+			err = errors.WrapIff(err, "%q activity failed", clustersetup.ConfigureNodePoolLabelsActivityName)
 			setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
 			return err
 		}
 	}
+
 	{
 		futures := make([]workflow.Future, len(input.VMSSToUpdate))
 
