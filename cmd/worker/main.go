@@ -293,6 +293,13 @@ func main() {
 				helmService,
 			)
 			activity.RegisterWithOptions(installNodePoolLabelSetOperatorActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallNodePoolLabelSetOperatorActivityName})
+
+			configureNodePoolLabelsActivity := clustersetup.NewConfigureNodePoolLabelsActivity(
+				config.Cluster.Labels.Namespace,
+				commonSecretStore,
+				clusteradapter.NewClientFactory(commonSecretStore),
+			)
+			activity.RegisterWithOptions(configureNodePoolLabelsActivity.Execute, activity.RegisterOptions{Name: clustersetup.ConfigureNodePoolLabelsActivityName})
 		}
 
 		workflow.RegisterWithOptions(cluster.CreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.CreateClusterWorkflowName})

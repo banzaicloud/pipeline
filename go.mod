@@ -36,7 +36,7 @@ require (
 	github.com/banzaicloud/istio-operator v0.0.0-20191104140059-90d1290d7342
 	github.com/banzaicloud/logging-operator/pkg/sdk v0.0.0-20191108130836-0e04f356a099
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
-	github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190823114332-76c873e3a8cb
+	github.com/banzaicloud/nodepool-labels-operator v0.0.6
 	github.com/banzaicloud/prometheus-config v0.0.0-20181214142820-fc6ae4756a29
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
 	github.com/cenkalti/backoff v2.1.1+incompatible // indirect
