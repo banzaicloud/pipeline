@@ -17,7 +17,7 @@ package pkeworkflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 
@@ -53,12 +53,12 @@ func (a *WaitCFCompletionActivity) Execute(ctx context.Context, input WaitCFComp
 
 	err = cfClient.WaitUntilStackCreateCompleteWithContext(ctx, describeStacksInput)
 	if err != nil {
-		return nil, emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, "", input.StackID, cfClient), "error waiting Cloud Formation template")
+		return nil, errors.WrapIf(pkgCloudformation.NewAwsStackFailure(err, input.StackID, "", cfClient), "error waiting Cloud Formation template")
 	}
 
 	output, err := cfClient.DescribeStacks(describeStacksInput)
 	if err != nil {
-		return nil, emperror.Wrap(err, "error fetching Cloud Formation template")
+		return nil, errors.WrapIf(err, "error fetching Cloud Formation template")
 	}
 
 	outputMap := make(map[string]string)
