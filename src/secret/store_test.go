@@ -15,7 +15,6 @@
 package secret_test
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
@@ -23,29 +22,6 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
-
-func TestGetValue(t *testing.T) {
-
-	cases := []struct {
-		name          string
-		secretItem    secret.SecretItemResponse
-		searchedKey   string
-		expectedValue string
-	}{
-		{name: "gke project id", secretItem: secretItem1, searchedKey: secrettype.ProjectId, expectedValue: gkeProjectId},
-		{name: "non", secretItem: secretItem1, searchedKey: secretProjectId2, expectedValue: ""},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			item := tc.secretItem.GetValue(tc.searchedKey)
-			if !reflect.DeepEqual(item, tc.expectedValue) {
-				t.Errorf("Expected value: %s, but got: %s", tc.expectedValue, item)
-			}
-		})
-	}
-
-}
 
 func TestCreateSecretValidate(t *testing.T) {
 
@@ -86,9 +62,7 @@ func TestCreateSecretValidate(t *testing.T) {
 }
 
 const (
-	secretId         = "secretId"
-	secretDesc       = "secretDesc"
-	secretProjectId2 = "testProjectId2"
+	secretDesc = "secretDesc"
 )
 
 const (
@@ -241,18 +215,6 @@ var (
 			secrettype.OracleAPIKey:            secrettype.OracleAPIKey,
 			secrettype.OracleAPIKeyFingerprint: secrettype.OracleAPIKeyFingerprint,
 			secrettype.OracleRegion:            secrettype.OracleRegion,
-		},
-	}
-)
-
-// nolint: gochecknoglobals
-var (
-	secretItem1 = secret.SecretItemResponse{
-		ID:   secretId,
-		Name: secretDesc,
-		Type: pkgCluster.Google,
-		Values: map[string]string{
-			secrettype.ProjectId: gkeProjectId,
 		},
 	}
 )

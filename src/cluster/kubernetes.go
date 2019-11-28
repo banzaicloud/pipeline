@@ -132,7 +132,7 @@ func (c *KubeCluster) DownloadK8sConfig() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.k8sConfig, err = base64.StdEncoding.DecodeString(s.GetValue(secrettype.K8SConfig))
+	c.k8sConfig, err = base64.StdEncoding.DecodeString(s.Values[secrettype.K8SConfig])
 	return c.k8sConfig, err
 }
 
@@ -241,7 +241,7 @@ func (c *KubeCluster) GetAPIEndpoint() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	config, err := base64.StdEncoding.DecodeString(secretItem.GetValue(secrettype.K8SConfig))
+	config, err := base64.StdEncoding.DecodeString(secretItem.Values[secrettype.K8SConfig])
 	if err != nil {
 		return "", err
 	}

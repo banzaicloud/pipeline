@@ -112,11 +112,6 @@ func (s *SecretItemResponse) K8SSourceMeta() K8SSourceMeta {
 	}
 }
 
-// GetValue returns the value under key
-func (s *SecretItemResponse) GetValue(key string) string {
-	return s.Values[key]
-}
-
 // ValidateSecretType validates the secret type
 func (s *SecretItemResponse) ValidateSecretType(validType string) error {
 	if string(s.Type) != validType {

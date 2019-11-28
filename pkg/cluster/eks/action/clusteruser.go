@@ -37,8 +37,8 @@ func GetClusterUserAccessKeyIdAndSecretVault(organizationID uint, userName strin
 	if err != nil {
 		return "", "", errors.WrapWithDetails(err, "failed to get secret from Vault", "secret", secretName)
 	}
-	clusterUserAccessKeyId := secretItem.GetValue(secrettype.AwsAccessKeyId)
-	clusterUserSecretAccessKey := secretItem.GetValue(secrettype.AwsSecretAccessKey)
+	clusterUserAccessKeyId := secretItem.Values[secrettype.AwsAccessKeyId]
+	clusterUserSecretAccessKey := secretItem.Values[secrettype.AwsSecretAccessKey]
 
 	return clusterUserAccessKeyId, clusterUserSecretAccessKey, nil
 }

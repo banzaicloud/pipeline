@@ -104,7 +104,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 	if err != nil {
 		return errors.WrapIf(err, "failed to get cluster secret")
 	}
-	tenantID := sir.GetValue(secrettype.AzureTenantID)
+	tenantID := sir.Values[secrettype.AzureTenantID]
 
 	conn, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(sir.Values))
 	if err = errors.WrapIf(err, "failed to create new Azure cloud connection"); err != nil {

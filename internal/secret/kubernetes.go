@@ -137,7 +137,7 @@ func (s KubeSecretStore) Get(organizationID uint, k8sSecretID string) ([]byte, e
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to get k8s config from secret store")
 	}
-	k8sConfig, err := base64.StdEncoding.DecodeString(sir.GetValue(secrettype.K8SConfig))
+	k8sConfig, err := base64.StdEncoding.DecodeString(sir.Values[secrettype.K8SConfig])
 	if err != nil {
 		return nil, emperror.Wrap(err, "can't decode Kubernetes config")
 	}
