@@ -66,7 +66,7 @@ paths:
       description: List all available spotguides
       operationId: ListSpotguides
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -90,7 +90,7 @@ paths:
       description: Launch a spotguide
       operationId: LaunchSpotguide
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -115,7 +115,7 @@ paths:
     put:
       operationId: UpdateSpotguides
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -136,7 +136,7 @@ paths:
       description: Get details about specific spotguide
       operationId: GetSpotguideDetail
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -176,7 +176,7 @@ paths:
       description: Listing all the K8S clusters from the cloud
       operationId: ListClusters
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -220,7 +220,7 @@ paths:
       description: Create a new K8S cluster in the cloud
       operationId: CreateCluster
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -283,51 +283,12 @@ paths:
       summary: Create cluster
       tags:
       - clusters
-  /api/v1/orgs/{orgId}/clusters/{id}/bootstrap:
-    get:
-      description: Get cluster bootstrap info
-      operationId: GetClusterBootstrap
-      parameters:
-      - description: Organization identification
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          type: integer
-        style: simple
-      - description: Selected cluster identification (number)
-        explode: false
-        in: path
-        name: id
-        required: true
-        schema:
-          type: integer
-        style: simple
-      responses:
-        200:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetClusterBootstrapResponse'
-          description: Getting bootstrap succeeded
-        400:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClientError'
-          description: Error during getting cluster bootstrap
-      security:
-      - bearerAuth: []
-      summary: Get cluster bootstrap info
-      tags:
-      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}:
     delete:
       description: Deleting a K8S cluster
       operationId: DeleteCluster
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -335,7 +296,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -404,7 +365,7 @@ paths:
       description: Getting cluster status
       operationId: GetCluster
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -412,7 +373,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -460,7 +421,7 @@ paths:
       description: Getting the K8S cluster status
       operationId: GetClusterStatus
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -468,7 +429,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -494,7 +455,7 @@ paths:
       description: Updating an existing K8S cluster
       operationId: UpdateCluster
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -502,7 +463,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -553,7 +514,7 @@ paths:
       description: Getting pod details
       operationId: GetPodDetails
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -561,7 +522,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -610,7 +571,7 @@ paths:
       description: Run posthook functions
       operationId: ClusterPostHooks
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -618,7 +579,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -645,7 +606,7 @@ paths:
       description: Getting a K8S cluster config file
       operationId: GetClusterConfig
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -653,7 +614,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -702,7 +663,7 @@ paths:
       description: Getting a K8S cluster config file with OIDC credentials
       operationId: GetOIDCClusterConfig
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -710,7 +671,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -759,7 +720,7 @@ paths:
       description: Get API endpoint
       operationId: GetAPIEndpoint
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -767,7 +728,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -817,7 +778,7 @@ paths:
       description: Update monitoring
       operationId: UpdateMonitoring
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -825,7 +786,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -851,7 +812,7 @@ paths:
       description: List service public endpoints
       operationId: ListClusterEndpoints
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -859,7 +820,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -928,7 +889,7 @@ paths:
       description: List cluser nodes
       operationId: ListNodes
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -936,7 +897,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -997,7 +958,7 @@ paths:
       description: List secrets which belongs to cluster
       operationId: ListClusterSecrets
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1005,7 +966,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -1075,7 +1036,7 @@ paths:
       description: Install secrets into cluster
       operationId: InstallSecrets
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1083,7 +1044,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -1140,7 +1101,7 @@ paths:
       description: Merge a particular secret with an existing one
       operationId: MergeSecret
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1148,7 +1109,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -1210,7 +1171,7 @@ paths:
       description: Install a particular secret into a cluster
       operationId: InstallSecret
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1218,7 +1179,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -1282,12 +1243,20 @@ paths:
       summary: Install a particular secret into a cluster with optional remapping
       tags:
       - clusters
-  /api/v1/orgs/{orgId}/clusters/{id}/scanlog:
+  /api/v1/orgs/{orgId}/clusters/{id}/bootstrap:
     get:
-      description: List scans
-      operationId: ListScans
+      description: Get cluster bootstrap info
+      operationId: GetClusterBootstrap
       parameters:
-      - description: Selected cluster identification (number)
+      - description: Organization identifier
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -1295,10 +1264,41 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Organization identification
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetClusterBootstrapResponse'
+          description: Getting bootstrap succeeded
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientError'
+          description: Error during getting cluster bootstrap
+      security:
+      - bearerAuth: []
+      summary: Get cluster bootstrap info
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/scanlog:
+    get:
+      description: List scans
+      operationId: ListScans
+      parameters:
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Cluster identifier
+        explode: false
+        in: path
+        name: id
         required: true
         schema:
           type: integer
@@ -1320,18 +1320,18 @@ paths:
       description: List scans by release
       operationId: ListScansByRelease
       parameters:
-      - description: Selected cluster identification (number)
+      - description: Organization identifier
         explode: false
         in: path
-        name: id
+        name: orgId
         required: true
         schema:
           type: integer
         style: simple
-      - description: Organization identification
+      - description: Cluster identifier
         explode: false
         in: path
-        name: orgId
+        name: id
         required: true
         schema:
           type: integer
@@ -1361,7 +1361,7 @@ paths:
       description: Listing Helm repositories in the cluster
       operationId: HelmListRepos
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1409,7 +1409,7 @@ paths:
       description: Add new Helm repository
       operationId: HelmReposAdd
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1464,7 +1464,7 @@ paths:
       description: Delete  Helm repository
       operationId: HelmReposDelete
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1520,7 +1520,7 @@ paths:
       description: Modify Helm repository
       operationId: HelmReposModify
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1583,7 +1583,7 @@ paths:
       description: Modify Helm repository
       operationId: HelmReposUpdate
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1635,12 +1635,12 @@ paths:
       summary: Update Repo
       tags:
       - helm
-  /api/v1/orgs/{orgId}/helm/charts/:
+  /api/v1/orgs/{orgId}/helm/charts:
     get:
       description: Get available Helm chart's list
       operationId: HelmChartList
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1712,7 +1712,7 @@ paths:
       description: Get helm chart details
       operationId: HelmChartDetails
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1784,7 +1784,7 @@ paths:
       description: Listing Helm deployments
       operationId: ListDeployments
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1792,7 +1792,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -1848,7 +1848,7 @@ paths:
       description: Checking if tiller ready to accept deployments
       operationId: GetTillerStatus
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1856,7 +1856,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -1882,7 +1882,7 @@ paths:
       description: Creating a Helm deployment
       operationId: CreateDeployment
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1890,7 +1890,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -1945,7 +1945,7 @@ paths:
       description: List Whitelisted deployments
       operationId: ListWhitelists
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1953,7 +1953,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -1977,7 +1977,7 @@ paths:
       description: Create Whitelisted deployment
       operationId: CreateWhitelists
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -1985,7 +1985,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -2012,7 +2012,7 @@ paths:
       description: Delete Whitelisted deployment
       operationId: DeleteWhitelist
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -2020,7 +2020,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -2049,7 +2049,7 @@ paths:
       description: Deleting a Helm deployment
       operationId: DeleteDeployment
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -2057,7 +2057,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -2113,7 +2113,7 @@ paths:
       description: Retrieves the details of a deployment
       operationId: GetDeployment
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -2121,7 +2121,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -2191,7 +2191,7 @@ paths:
       description: Checking the status of a deployment through the Helm client API
       operationId: HelmDeploymentStatus
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -2199,7 +2199,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -2233,7 +2233,7 @@ paths:
       description: Updating a Helm deployment
       operationId: UpdateDeployment
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -2241,7 +2241,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -2304,7 +2304,7 @@ paths:
       description: Retrieves the K8s resources of a deployment
       operationId: GetDeploymentResource
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -2312,7 +2312,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -2383,7 +2383,7 @@ paths:
       description: Retrieves the K8s images of a deployment
       operationId: GetDeploymentImages
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -2391,7 +2391,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -2454,7 +2454,7 @@ paths:
       description: Delete scaling info for a Helm deployment
       operationId: DeleteDeploymentAutoscaling
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -2462,7 +2462,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -2514,7 +2514,7 @@ paths:
       description: Get scaling info for a Helm deployment
       operationId: GetDeploymentAutoscaling
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -2522,7 +2522,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -2584,7 +2584,7 @@ paths:
       description: Create / update scaling info for a Helm deployment
       operationId: UpdateDeploymentAutoscaling
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -2592,7 +2592,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -2776,7 +2776,7 @@ paths:
       description: Listing secrets
       operationId: GetSecrets
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -2856,7 +2856,7 @@ paths:
       description: Adding secrets
       operationId: AddSecrets
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -3094,7 +3094,7 @@ paths:
       description: Deleting secrets
       operationId: DeleteSecrets
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -3146,7 +3146,7 @@ paths:
       description: Get secret
       operationId: GetSecret
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -3214,7 +3214,7 @@ paths:
       description: Update secrets
       operationId: UpdateSecrets
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -3309,7 +3309,7 @@ paths:
       description: Validate secret
       operationId: ValidateSecret
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -3374,7 +3374,7 @@ paths:
       description: Get the tags of a secret
       operationId: GetSecretTags
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -3437,7 +3437,7 @@ paths:
       description: Delete a tag from a secret
       operationId: DeleteSecretTag
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -3509,7 +3509,7 @@ paths:
       description: Add a tag to a secret
       operationId: AddSecretTag
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -3586,7 +3586,7 @@ paths:
       description: Getting organization
       operationId: GetOrg
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -3724,7 +3724,7 @@ paths:
       description: Listing users
       operationId: ListUsers
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -3749,7 +3749,7 @@ paths:
       description: Getting user
       operationId: GetUsers
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -3869,7 +3869,7 @@ paths:
       description: Get all resource groups
       operationId: GetResourceGroups
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -3924,7 +3924,7 @@ paths:
       description: Create resource groups
       operationId: CreateResourceGroup
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -3975,7 +3975,7 @@ paths:
         for all cloud types.
       operationId: ListObjectStoreBuckets
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -4063,7 +4063,7 @@ paths:
         the provided secret.
       operationId: CreateObjectStoreBucket
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -4125,7 +4125,7 @@ paths:
         credentials for deleting the bucket is taken from the provided secret.
       operationId: DeleteObjectStoreBucket
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -4242,7 +4242,7 @@ paths:
       description: Retrieves the details of the object store bucket given its name
       operationId: GetBucket
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -4349,7 +4349,7 @@ paths:
       description: Retrieves the status of the object store bucket given its name
       operationId: GetObjectStoreBucketStatus
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -4443,7 +4443,7 @@ paths:
       description: List VPC networks accessible by the organization.
       operationId: ListVPCNetworks
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -4538,7 +4538,7 @@ paths:
       description: List subnetworks of the given VPC network
       operationId: ListVPCSubnets
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -4643,7 +4643,7 @@ paths:
       description: List route tables of the given VPC network
       operationId: ListRouteTables
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -4748,7 +4748,7 @@ paths:
       description: List Images used in cluster
       operationId: ListImages
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -4756,7 +4756,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -4805,7 +4805,7 @@ paths:
       description: List Deployments by Image
       operationId: ListDeploymentsByImage
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -4813,7 +4813,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -4869,7 +4869,7 @@ paths:
     delete:
       operationId: DeleteLeaderElection
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -4877,7 +4877,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -4926,7 +4926,7 @@ paths:
     get:
       operationId: GetLeaderElection
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -4934,7 +4934,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -4987,7 +4987,7 @@ paths:
     post:
       operationId: PostLeaderElection
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -4995,7 +4995,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -5061,7 +5061,7 @@ paths:
     get:
       operationId: GetReadyPKENode
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5069,7 +5069,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -5122,7 +5122,7 @@ paths:
     post:
       operationId: PostReadyPKENode
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5130,7 +5130,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -5193,7 +5193,7 @@ paths:
         in each nodepool
       operationId: GetPKECommands
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5201,7 +5201,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -5256,7 +5256,7 @@ paths:
       description: Lists namespaces for a cluster
       operationId: ListNamespaces
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5264,7 +5264,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -5325,7 +5325,7 @@ paths:
       description: Delete namespace from a cluster
       operationId: DeleteNamespace
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5333,7 +5333,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -5399,7 +5399,7 @@ paths:
         header from the google cloud
       operationId: ListProjects
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5457,7 +5457,7 @@ paths:
         header from the google cloud
       operationId: GetProjects
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5514,7 +5514,7 @@ paths:
       description: Enable ARK service
       operationId: EnableARK
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5522,7 +5522,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -5577,7 +5577,7 @@ paths:
       description: Disable ARK service
       operationId: DisableARK
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5585,7 +5585,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -5634,7 +5634,7 @@ paths:
       description: Check ARK service status
       operationId: CheckARKStatusGET
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5642,7 +5642,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -5670,7 +5670,7 @@ paths:
       description: Check ARK service status
       operationId: CheckARKStatus
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5678,7 +5678,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -5703,7 +5703,7 @@ paths:
       description: List backup buckets
       operationId: ListBackupBuckets
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5751,7 +5751,7 @@ paths:
       description: Create backup bucket
       operationId: CreateBackupBucket
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5806,7 +5806,7 @@ paths:
       description: Delete backup bucket by ID
       operationId: DeleteBackupBucket
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5862,7 +5862,7 @@ paths:
       description: Get backup bucket by ID
       operationId: GetBackupBucket
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5919,7 +5919,7 @@ paths:
       description: Sync backup buckets
       operationId: SyncBackupBucket
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -5958,7 +5958,7 @@ paths:
       description: List ARK backups of an Organization
       operationId: ListARKBackupsForOrganization
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6007,7 +6007,7 @@ paths:
       description: Sync ARK backups of an Organization
       operationId: SyncOrgBackups
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6046,7 +6046,7 @@ paths:
       description: List ARK backups of a cluster
       operationId: ListARKBackupsOfACluster
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6054,7 +6054,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -6102,7 +6102,7 @@ paths:
       description: Create ARK backup of a cluster
       operationId: CreateARKBackupOfACluster
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6110,7 +6110,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -6165,7 +6165,7 @@ paths:
       description: Sync ARK backups of a cluster
       operationId: SyncARKBackupsOfACluster
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6173,7 +6173,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -6218,7 +6218,7 @@ paths:
       description: Delete ARK backup
       operationId: DeleteARKBackup
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6226,7 +6226,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -6282,7 +6282,7 @@ paths:
       description: Get ARK backup
       operationId: GetARKBackup
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6290,7 +6290,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -6347,7 +6347,7 @@ paths:
       description: Get ARK backup logs
       operationId: GetARKBackupLogs
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6355,7 +6355,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -6416,7 +6416,7 @@ paths:
       description: Download ARK backup contents
       operationId: DownloadARKBackupContents
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6424,7 +6424,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -6482,7 +6482,7 @@ paths:
       description: List ARK schedules
       operationId: ListARKSchedules
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6490,7 +6490,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -6538,7 +6538,7 @@ paths:
       description: Create ARK schedule
       operationId: CreateARKSchedule
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6546,7 +6546,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -6601,7 +6601,7 @@ paths:
       description: Delete ARK schedule
       operationId: DeleteARKSchedule
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6609,7 +6609,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -6665,7 +6665,7 @@ paths:
       description: Get ARK schedule
       operationId: GetARKSchedule
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6673,7 +6673,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -6730,7 +6730,7 @@ paths:
       description: List ARK restores
       operationId: ListARKRestores
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6738,7 +6738,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -6786,7 +6786,7 @@ paths:
       description: Create ARK restore
       operationId: CreateARKRestore
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6794,7 +6794,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -6849,7 +6849,7 @@ paths:
       description: Sync ARK restores of a cluster
       operationId: SyncARKRestoresOfACluster
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6857,7 +6857,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -6902,7 +6902,7 @@ paths:
       description: Delete ARK restore
       operationId: DeleteARKRestore
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6910,7 +6910,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -6966,7 +6966,7 @@ paths:
       description: Get ARK restore
       operationId: GetARKRestore
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -6974,7 +6974,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -7031,7 +7031,7 @@ paths:
       description: Get ARK restore results
       operationId: GetARKRestoreResuts
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -7039,7 +7039,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -7095,10 +7095,10 @@ paths:
     get:
       description: retrieve list of cluster groups of an organization
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -7132,10 +7132,10 @@ paths:
     post:
       description: create a group of clusters, joining clusters together with a name
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -7188,10 +7188,10 @@ paths:
       description: delete a cluster group, disable all enabled features, delete related
         deployments
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -7232,10 +7232,10 @@ paths:
       description: retrieve info about a cluster group, members, status of member
         clusters, features
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -7275,10 +7275,10 @@ paths:
     put:
       description: update name & member clusters for a cluster group
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -7338,10 +7338,10 @@ paths:
     get:
       description: retrieve all deployments from a cluster group
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -7384,10 +7384,10 @@ paths:
       description: creates a new cluster group deployment, installs or upgrades deployment
         on each member cluster accordingly
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -7462,10 +7462,10 @@ paths:
       description: deletes a cluster group deployment, also deleting deployments from
         member clusters
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -7536,10 +7536,10 @@ paths:
       description: retrieve info about a cluster group deployment and it's status
         on each member cluster
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -7588,10 +7588,10 @@ paths:
       description: updates a cluster group deployment, installs or upgrades deployment
         on each member cluster accordingly
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -7674,10 +7674,10 @@ paths:
       description: install / upgrade deployment to target clusters where deployment
         is not found or has wrong
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -7741,10 +7741,10 @@ paths:
       description: retrieve info about a cluster group feature and it's status on
         each member cluster
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -7756,14 +7756,6 @@ paths:
         required: true
         schema:
           type: integer
-        style: simple
-      - description: Name of the future
-        explode: false
-        in: path
-        name: featureName
-        required: true
-        schema:
-          type: string
         style: simple
       responses:
         200:
@@ -7795,10 +7787,10 @@ paths:
     delete:
       description: disable feature on all members of a cluster group
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -7847,10 +7839,10 @@ paths:
       description: retrieve info about a cluster group feature and it's status on
         each member cluster
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -7898,10 +7890,10 @@ paths:
     post:
       description: enable feature on all members of a cluster group
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -7963,10 +7955,10 @@ paths:
     put:
       description: update properties of a feature
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
-        name: orgid
+        name: orgId
         required: true
         schema:
           type: integer
@@ -8029,7 +8021,7 @@ paths:
     get:
       operationId: ListClusterFeatures
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -8037,7 +8029,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Cluster ID
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -8091,7 +8083,7 @@ paths:
     delete:
       operationId: DeactivateClusterFeature
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -8099,7 +8091,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Cluster ID
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -8156,7 +8148,7 @@ paths:
     get:
       operationId: ClusterFeatureDetails
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -8164,7 +8156,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Cluster ID
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -8225,7 +8217,7 @@ paths:
     post:
       operationId: ActivateClusterFeature
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -8233,7 +8225,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Cluster ID
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -8302,7 +8294,7 @@ paths:
     put:
       operationId: UpdateClusterFeature
       parameters:
-      - description: Organization ID
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -8310,7 +8302,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Cluster ID
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -8376,12 +8368,12 @@ paths:
       summary: Update a cluster feature
       tags:
       - cluster features
-  /api/v1/orgs/{orgId}/clusters/{id}/nodepools/labels:
+  /api/v1/orgs/{orgId}/clusters/{id}/nodepool-labels:
     get:
       description: List cluster nodepool labels
       operationId: ListNodepoolLabels
       parameters:
-      - description: Organization identification
+      - description: Organization identifier
         explode: false
         in: path
         name: orgId
@@ -8389,7 +8381,7 @@ paths:
         schema:
           type: integer
         style: simple
-      - description: Selected cluster identification (number)
+      - description: Cluster identifier
         explode: false
         in: path
         name: id
@@ -8446,6 +8438,25 @@ paths:
       tags:
       - clusters
 components:
+  parameters:
+    orgId:
+      description: Organization identifier
+      explode: false
+      in: path
+      name: orgId
+      required: true
+      schema:
+        type: integer
+      style: simple
+    clusterId:
+      description: Cluster identifier
+      explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      style: simple
   requestBodies:
     api.FeatureRequest:
       content:
