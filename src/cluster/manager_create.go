@@ -26,6 +26,7 @@ import (
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	"github.com/banzaicloud/pipeline/internal/secret/ssh"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -179,7 +180,7 @@ func (m *Manager) createCluster(
 	if len(cluster.GetSshSecretId()) == 0 && cluster.RequiresSshPublicKey() {
 		logger.Debug("generating SSH Key for the cluster")
 
-		sshKey, err := secret.GenerateSSHKeyPair()
+		sshKey, err := ssh.NewKeyPairGenerator().Generate()
 		if err != nil {
 			_ = cluster.SetStatus(pkgCluster.Error, "internal error")
 			return emperror.Wrap(err, "failed to generate SSH key")

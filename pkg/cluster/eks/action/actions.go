@@ -21,7 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/src/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/ssh"
 	"github.com/banzaicloud/pipeline/src/utils"
 )
 
@@ -41,7 +41,7 @@ type EksClusterCreateUpdateContext struct {
 	NodeSecurityGroupID        *string
 	Subnets                    []*EksSubnet
 	SSHKeyName                 string
-	SSHKey                     *secret.SSHKeyPair
+	SSHKey                     ssh.KeyPair
 	VpcID                      *string
 	VpcCidr                    *string
 	ProvidedRoleArn            string
