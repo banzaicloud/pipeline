@@ -5626,13 +5626,13 @@ components:
                         instanceType:
                             description: Machine instance type.
                             type: string
-                            example: "m4.xlarge"
+                            example: m4.xlarge
                         image:
                             description: Instance AMI.
                             type: string
-                            example: "ami-06d1667f"
+                            example: ami-06d1667f
                         spotPrice:
-                            description: "The upper limit price for the requested spot instance. If this field is left empty or 0 passed in on-demand instances used instead of spot instances."
+                            description: The upper limit price for the requested spot instance. If this field is left empty or 0 passed in on-demand instances used instead of spot instances.
                             type: string
                             example: "0.2"
                         subnet:
