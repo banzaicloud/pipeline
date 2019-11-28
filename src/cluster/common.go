@@ -158,7 +158,7 @@ func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "can't get config from Vault")
 		}
-		configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(secrettype.K8SConfig))
+		configStr, err := base64.StdEncoding.DecodeString(configSecret.Values[secrettype.K8SConfig])
 		if err != nil {
 			return nil, errors.Wrap(err, "can't decode Kubernetes config")
 		}

@@ -221,7 +221,7 @@ func (c *GKECluster) GetGoogleCluster() (*gke.Cluster, error) {
 
 	cc := googleCluster{
 		Name:      c.model.Cluster.Name,
-		ProjectID: secretItem.GetValue(secrettype.ProjectId),
+		ProjectID: secretItem.Values[secrettype.ProjectId],
 		Zone:      c.model.Cluster.Location,
 	}
 	cluster, err := getClusterGoogle(svc, cc)
@@ -257,7 +257,7 @@ func (c *GKECluster) CreateCluster() error {
 
 	if c.model.ProjectId == "" {
 		// if there's no projectId saved with the cluster take it from the secret
-		c.model.ProjectId = secretItem.GetValue(secrettype.ProjectId)
+		c.model.ProjectId = secretItem.Values[secrettype.ProjectId]
 	}
 
 	// set region
@@ -439,7 +439,7 @@ func (c *GKECluster) DeleteCluster() error {
 		if err != nil {
 			return err
 		}
-		c.model.ProjectId = secretItem.GetValue(secrettype.ProjectId)
+		c.model.ProjectId = secretItem.Values[secrettype.ProjectId]
 	}
 
 	gkec := googleCluster{
@@ -631,7 +631,7 @@ func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 		return errors.WrapIf(err, "Unable to retrieve secret")
 	}
 
-	projectId := secretItem.GetValue(secrettype.ProjectId)
+	projectId := secretItem.Values[secrettype.ProjectId]
 
 	// Update node pools
 	for poolName, nodePool := range request.NodePools {
@@ -687,7 +687,7 @@ func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		return err
 	}
 
-	projectId := secretItem.GetValue(secrettype.ProjectId)
+	projectId := secretItem.Values[secrettype.ProjectId]
 
 	cc := googleCluster{
 		Name:          c.model.Cluster.Name,
@@ -1210,7 +1210,7 @@ func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 	c.log.Infof("Get gke cluster with name %s", c.model.Cluster.Name)
 	cl, err := getClusterGoogle(svc, googleCluster{
 		Name:      c.model.Cluster.Name,
-		ProjectID: secretItem.GetValue(secrettype.ProjectId),
+		ProjectID: secretItem.Values[secrettype.ProjectId],
 		Zone:      c.model.Cluster.Location,
 	})
 
@@ -1718,7 +1718,7 @@ func (c *GKECluster) GetProjectId() (string, error) {
 		return "", err
 	}
 
-	return s.GetValue(secrettype.ProjectId), nil
+	return s.Values[secrettype.ProjectId], nil
 }
 
 // SetStatus sets the cluster's status
@@ -1794,7 +1794,7 @@ func (c *GKECluster) IsReady() (bool, error) {
 	}
 
 	c.log.Debug("Get gke cluster")
-	cl, err := svc.Projects.Zones.Clusters.Get(secretItem.GetValue(secrettype.ProjectId), c.model.Cluster.Location, c.model.Cluster.Name).Context(context.Background()).Do()
+	cl, err := svc.Projects.Zones.Clusters.Get(secretItem.Values[secrettype.ProjectId], c.model.Cluster.Location, c.model.Cluster.Name).Context(context.Background()).Do()
 	if err != nil {
 		apiError := getBanzaiErrorFromError(err)
 		return false, errors.New(apiError.Message)

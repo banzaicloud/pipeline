@@ -231,7 +231,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		return
 	}
 
-	tenantID := sir.GetValue(secrettype.AzureTenantID)
+	tenantID := sir.Values[secrettype.AzureTenantID]
 
 	var labelsMap map[string]map[string]string
 
