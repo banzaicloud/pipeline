@@ -17,7 +17,7 @@ package securityscanadapter
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // CommonClusterGetter defines cluster getter methods that return a CommonCluster

@@ -23,10 +23,10 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // OrganizationMiddleware parses the organization id from the request,

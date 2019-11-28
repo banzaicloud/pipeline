@@ -35,17 +35,16 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
-	pipCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pipSecret "github.com/banzaicloud/pipeline/secret"
+	pipCluster "github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/dns"
 )
 
 type clusterSubscriber struct {
 	client  kubernetes.Interface
-	manager *cluster.Manager
+	manager *pipCluster.Manager
 	db      *gorm.DB
 
 	dnsBaseDomain          string
@@ -65,7 +64,7 @@ type clusterSubscriber struct {
 
 func NewClusterSubscriber(
 	client kubernetes.Interface,
-	manager *cluster.Manager,
+	manager *pipCluster.Manager,
 	db *gorm.DB,
 	dnsBaseDomain string,
 	controlPlaneNamespace string,
@@ -316,7 +315,7 @@ func (s *clusterSubscriber) RemoveClusterFromPrometheusConfig(orgID uint, cluste
 	}
 }
 
-func (s *clusterSubscriber) init(clusterID uint) (cluster.CommonCluster, *auth.Organization, *promconfig.Config, *v1.Secret, error) {
+func (s *clusterSubscriber) init(clusterID uint) (pipCluster.CommonCluster, *auth.Organization, *promconfig.Config, *v1.Secret, error) {
 	c, org, err := s.getClusterAndOrganization(clusterID)
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -327,7 +326,7 @@ func (s *clusterSubscriber) init(clusterID uint) (cluster.CommonCluster, *auth.O
 	return c, org, prometheusConfig, secret, err
 }
 
-func (s *clusterSubscriber) getClusterAndOrganization(clusterID uint) (cluster.CommonCluster, *auth.Organization, error) {
+func (s *clusterSubscriber) getClusterAndOrganization(clusterID uint) (pipCluster.CommonCluster, *auth.Organization, error) {
 	c, err := s.manager.GetClusterByIDOnly(context.Background(), clusterID)
 	if err != nil {
 		return nil, nil, err

@@ -29,12 +29,12 @@ import (
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	clusterAPI "github.com/banzaicloud/pipeline/api/cluster"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 func decodeRequest(input map[string]interface{}, output interface{}) error {

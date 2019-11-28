@@ -21,11 +21,11 @@ import (
 	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 const UpdateClusterWorkflowName = "pke-azure-update-cluster"

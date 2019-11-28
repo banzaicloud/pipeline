@@ -23,9 +23,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // ReRunPostHooks reruns cluster posthooks.

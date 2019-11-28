@@ -20,10 +20,10 @@ import (
 	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // Models copied from generated client package.

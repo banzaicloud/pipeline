@@ -23,10 +23,10 @@ import (
 
 	apicluster "github.com/banzaicloud/pipeline/api/cluster"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // UpdateClusterResponse describes Pipeline's UpdateCluster API response

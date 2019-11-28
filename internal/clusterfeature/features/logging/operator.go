@@ -23,7 +23,6 @@ import (
 	"github.com/mitchellh/copystructure"
 
 	"github.com/banzaicloud/pipeline/auth"
-	pkgCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
@@ -33,6 +32,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/util"
 	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/secret"
+	pkgCluster "github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // FeatureOperator implements the Logging feature operator

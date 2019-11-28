@@ -35,7 +35,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/auth/authdriver"
-	"github.com/banzaicloud/pipeline/cluster"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
@@ -74,6 +73,7 @@ import (
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/dns"
 	"github.com/banzaicloud/pipeline/src/spotguide"
 	"github.com/banzaicloud/pipeline/src/spotguide/scm"

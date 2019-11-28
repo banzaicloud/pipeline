@@ -18,8 +18,8 @@ import (
 	"reflect"
 	"testing"
 
-	pipCluster "github.com/banzaicloud/pipeline/cluster"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pipCluster "github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/model"
 )
 

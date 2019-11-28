@@ -17,8 +17,8 @@ package clustersecretadapter
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // ClusterManagerAdapter provides an adapter for clustersecret.Clusters.

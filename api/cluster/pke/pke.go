@@ -21,7 +21,7 @@ import (
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/api/common"
-	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 type TokenGenerator interface {
