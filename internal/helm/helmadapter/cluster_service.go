@@ -19,8 +19,8 @@ import (
 
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 

@@ -21,7 +21,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/xanzy/go-gitlab"
 
-	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/utils"
 )
 

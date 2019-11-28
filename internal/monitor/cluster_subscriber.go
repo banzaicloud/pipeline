@@ -34,10 +34,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pipSecret "github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/auth"
 	pipCluster "github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/dns"
 )

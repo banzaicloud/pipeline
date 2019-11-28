@@ -20,8 +20,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/banzaicloud/pipeline/auth"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // @Summary Get All Features of Cluster Group

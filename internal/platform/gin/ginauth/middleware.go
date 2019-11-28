@@ -23,7 +23,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
-	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // Enforcer checks if the current user has access to the organization resource under path with method

@@ -29,7 +29,6 @@ import (
 	k8sHelm "k8s.io/helm/pkg/helm"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 
-	"github.com/banzaicloud/pipeline/auth"
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
 	arkPosthook "github.com/banzaicloud/pipeline/internal/ark/posthook"
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -39,6 +38,7 @@ import (
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/helm"
 )
 

@@ -20,7 +20,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 
-	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // GormOrganizationStore implements organization membership persistence using Gorm.

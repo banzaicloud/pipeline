@@ -25,7 +25,7 @@ import (
 	qorauth "github.com/qor/auth"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 type enforcerStub struct {

@@ -20,10 +20,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/banzaicloud/pipeline/auth"
 	pkgDep "github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // @Summary Update Cluster Group Deployment

@@ -27,11 +27,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53/route53iface"
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 func init() {

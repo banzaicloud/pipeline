@@ -19,7 +19,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/model"
 )
 

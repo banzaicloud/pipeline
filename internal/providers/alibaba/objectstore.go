@@ -23,13 +23,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	alibabaObjectstore "github.com/banzaicloud/pipeline/pkg/providers/alibaba/objectstore"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 const (

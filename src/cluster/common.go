@@ -27,7 +27,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	logrusadapter "logur.dev/adapter/logrus"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -41,6 +40,7 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/utils"
 )

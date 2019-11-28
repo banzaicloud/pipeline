@@ -24,7 +24,7 @@ import (
 	"emperror.dev/emperror"
 	"github.com/google/go-github/github"
 
-	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 type gitHubSCM struct {

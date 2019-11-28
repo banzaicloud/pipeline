@@ -26,10 +26,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
 	"github.com/banzaicloud/pipeline/internal/global"
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
+	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/model"
 )
 

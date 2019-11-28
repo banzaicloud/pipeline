@@ -25,7 +25,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
@@ -36,6 +35,7 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgProviders "github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 const (
