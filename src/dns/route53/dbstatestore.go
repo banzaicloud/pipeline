@@ -17,9 +17,9 @@ package route53
 import (
 	"fmt"
 
-	route53model "github.com/banzaicloud/pipeline/dns/route53/model"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
+	route53model "github.com/banzaicloud/pipeline/src/dns/route53/model"
 )
 
 // awsRoute53DatabaseStateStore is a database backed state store for

@@ -21,8 +21,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
+	"github.com/banzaicloud/pipeline/src/dns"
 )
 
 type featureSpec struct {
