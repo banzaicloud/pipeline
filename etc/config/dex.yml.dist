@@ -113,7 +113,7 @@ connectors:
     # # management console.
     # hostName: git.example.com
 
-- type: oidc
+- type: google
   id: google
   name: Google
   config:
@@ -129,7 +129,15 @@ connectors:
 
     # Dex's issuer URL + "/callback"
     redirectURI: http://127.0.0.1:5556/dex/callback
-    loadAllGroups: true
+
+    scopes:
+    - profile
+    - email
+
+    # This file has to be mounted into the Dex container, to this path:
+    serviceAccountFilePath: /etc/google-service-account.json
+    adminEmail: admin@banzaicloud.com
+
 
 - type: ldap
   id: ldap

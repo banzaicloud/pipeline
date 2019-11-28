@@ -405,7 +405,15 @@ func NewOIDCOrganizationSyncer(organizationSyncer OrganizationSyncer, roleBinder
 func (s oidcOrganizationSyncer) SyncOrganizations(ctx gocontext.Context, user User, idTokenClaims *IDTokenClaims) error {
 	organizations := make(map[string][]string)
 
+	provider := idTokenClaims.FederatedClaims["connector_id"]
+
 	for _, group := range idTokenClaims.Groups {
+
+		// In case of Google group names are email addresses
+		if provider == "google" {
+			group = emailToLoginName(group)
+		}
+
 		// get the part before :, that will be the organization name
 		s := strings.SplitN(group, ":", 2)
 		if len(s) < 1 {
@@ -426,7 +434,7 @@ func (s oidcOrganizationSyncer) SyncOrganizations(ctx gocontext.Context, user Us
 		membership := UpstreamOrganizationMembership{
 			Organization: UpstreamOrganization{
 				Name:     org,
-				Provider: idTokenClaims.FederatedClaims["connector_id"],
+				Provider: provider,
 			},
 			Role: s.roleBinder.BindRole(groups),
 		}
