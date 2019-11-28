@@ -10,11 +10,15 @@
 
 package pipeline
 
-type PkeClusterHttpProxy struct {
+// GenericNodePool - Generic node pool object for all cluster distributions.
+type GenericNodePool struct {
 
-	Http PkeClusterHttpProxyOptions `json:"http,omitempty"`
+	// Node pool name.
+	Name string `json:"name"`
 
-	Https PkeClusterHttpProxyOptions `json:"https,omitempty"`
+	// Node pool size.
+	Size int32 `json:"size"`
 
-	Exceptions []string `json:"exceptions,omitempty"`
+	// Node pool labels.
+	Labels map[string]string `json:"labels,omitempty"`
 }

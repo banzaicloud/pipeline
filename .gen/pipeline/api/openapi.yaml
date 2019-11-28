@@ -2993,7 +2993,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                Generic:
                   value:
                     code: 404
                     message: Not found
@@ -7116,7 +7116,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -7158,7 +7158,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -7170,7 +7170,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                Generic:
                   value:
                     code: 404
                     message: Not found
@@ -7215,7 +7215,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -7259,7 +7259,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -7309,7 +7309,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -7321,7 +7321,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                Generic:
                   value:
                     code: 404
                     message: Not found
@@ -7367,7 +7367,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -7432,7 +7432,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -7444,7 +7444,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                Generic:
                   value:
                     code: 404
                     message: Not found
@@ -7519,7 +7519,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -7571,7 +7571,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -7644,7 +7644,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -7656,7 +7656,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                Generic:
                   value:
                     code: 404
                     message: Not found
@@ -7723,7 +7723,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -7770,7 +7770,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -7822,7 +7822,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -7874,7 +7874,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -7927,7 +7927,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -7939,7 +7939,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                Generic:
                   value:
                     code: 404
                     message: Not found
@@ -7992,7 +7992,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                InvalidRequest:
                   value:
                     code: 400
                     message: Invalid request
@@ -8004,7 +8004,7 @@ paths:
           content:
             application/json:
               examples:
-                InvalidToken:
+                Generic:
                   value:
                     code: 404
                     message: Not found
@@ -8368,6 +8368,244 @@ paths:
       summary: Update a cluster feature
       tags:
       - cluster features
+  /api/v1/orgs/{orgId}/clusters/{id}/nodepools:
+    post:
+      description: Add new node pool to a cluster
+      operationId: CreateNodePool
+      parameters:
+      - description: Organization identifier
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Cluster identifier
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NodePool'
+        required: true
+      responses:
+        202:
+          description: Node pool creation in progress
+        default:
+          content:
+            application/json:
+              examples:
+                BadRequest:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: Failed to parse request.
+                Unauthorized:
+                  value:
+                    code: 401
+                    message: Unauthorized
+                    error: Unauthorized
+                OrganizationNotFound:
+                  value:
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                InternalServerError:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+            application/problem+json:
+              examples:
+                BadRequest:
+                  value:
+                    type: about:blank
+                    title: Invalid request
+                    status: 400
+                    detail: Failed to parse request.
+                    instance: ""
+                    code: 400
+                    message: Failed to parse request.
+                    error: Invalid request
+                Unauthorized:
+                  value:
+                    type: about:blank
+                    title: Unauthorized
+                    status: 401
+                    detail: You are unauthorized to access this resource.
+                    instance: ""
+                    code: 401
+                    message: You are unauthorized to access this resource.
+                    error: Unauthorized
+                AccessDenied:
+                  value:
+                    type: about:blank
+                    title: Access denied
+                    status: 403
+                    detail: You are unauthorized to perform this action access this
+                      resource.
+                    instance: ""
+                    code: 403
+                    message: You are unauthorized to perform this action access this
+                      resource.
+                    error: Access denied
+                OrganizationNotFound:
+                  value:
+                    type: about:blank
+                    title: Organization not found
+                    status: 404
+                    detail: Organization not found
+                    instance: ""
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                InternalServerError:
+                  value:
+                    type: about:blank
+                    title: Internal server error
+                    status: 500
+                    detail: Something went wrong
+                    instance: ""
+                    code: 500
+                    message: Something went wrong
+                    error: Internal server error
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Create new node pool
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/nodepools/{name}:
+    delete:
+      description: Delete a node pool from a cluster.
+      operationId: DeleteNodePool
+      parameters:
+      - description: Organization identifier
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Cluster identifier
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Node pool name
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        204:
+          description: Node pool delete in progress
+        default:
+          content:
+            application/json:
+              examples:
+                BadRequest:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: Failed to parse request.
+                Unauthorized:
+                  value:
+                    code: 401
+                    message: Unauthorized
+                    error: Unauthorized
+                OrganizationNotFound:
+                  value:
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                InternalServerError:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+            application/problem+json:
+              examples:
+                BadRequest:
+                  value:
+                    type: about:blank
+                    title: Invalid request
+                    status: 400
+                    detail: Failed to parse request.
+                    instance: ""
+                    code: 400
+                    message: Failed to parse request.
+                    error: Invalid request
+                Unauthorized:
+                  value:
+                    type: about:blank
+                    title: Unauthorized
+                    status: 401
+                    detail: You are unauthorized to access this resource.
+                    instance: ""
+                    code: 401
+                    message: You are unauthorized to access this resource.
+                    error: Unauthorized
+                AccessDenied:
+                  value:
+                    type: about:blank
+                    title: Access denied
+                    status: 403
+                    detail: You are unauthorized to perform this action access this
+                      resource.
+                    instance: ""
+                    code: 403
+                    message: You are unauthorized to perform this action access this
+                      resource.
+                    error: Access denied
+                OrganizationNotFound:
+                  value:
+                    type: about:blank
+                    title: Organization not found
+                    status: 404
+                    detail: Organization not found
+                    instance: ""
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                InternalServerError:
+                  value:
+                    type: about:blank
+                    title: Internal server error
+                    status: 500
+                    detail: Something went wrong
+                    instance: ""
+                    code: 500
+                    message: Something went wrong
+                    error: Internal server error
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Delete a node pool
+      tags:
+      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/nodepool-labels:
     get:
       description: List cluster nodepool labels
@@ -8482,7 +8720,7 @@ components:
       content:
         application/json:
           examples:
-            InvalidToken:
+            InvalidRequest:
               value:
                 code: 400
                 message: Invalid request
@@ -8506,7 +8744,7 @@ components:
       content:
         application/json:
           examples:
-            InvalidToken:
+            Generic:
               value:
                 code: 404
                 message: Not found
@@ -8526,14 +8764,141 @@ components:
           schema:
             $ref: '#/components/schemas/CommonError'
       description: Internal server error
+    Error:
+      content:
+        application/json:
+          examples:
+            BadRequest:
+              value:
+                code: 400
+                message: Invalid request
+                error: Failed to parse request.
+            Unauthorized:
+              value:
+                code: 401
+                message: Unauthorized
+                error: Unauthorized
+            OrganizationNotFound:
+              value:
+                code: 404
+                message: Organization not found
+                error: Organization not found
+            InternalServerError:
+              value:
+                code: 500
+                message: Something went wrong
+                error: Something went wrong
+          schema:
+            $ref: '#/components/schemas/CommonError'
+        application/problem+json:
+          examples:
+            BadRequest:
+              value:
+                type: about:blank
+                title: Invalid request
+                status: 400
+                detail: Failed to parse request.
+                instance: ""
+                code: 400
+                message: Failed to parse request.
+                error: Invalid request
+            Unauthorized:
+              value:
+                type: about:blank
+                title: Unauthorized
+                status: 401
+                detail: You are unauthorized to access this resource.
+                instance: ""
+                code: 401
+                message: You are unauthorized to access this resource.
+                error: Unauthorized
+            AccessDenied:
+              value:
+                type: about:blank
+                title: Access denied
+                status: 403
+                detail: You are unauthorized to perform this action access this resource.
+                instance: ""
+                code: 403
+                message: You are unauthorized to perform this action access this resource.
+                error: Access denied
+            OrganizationNotFound:
+              value:
+                type: about:blank
+                title: Organization not found
+                status: 404
+                detail: Organization not found
+                instance: ""
+                code: 404
+                message: Organization not found
+                error: Organization not found
+            InternalServerError:
+              value:
+                type: about:blank
+                title: Internal server error
+                status: 500
+                detail: Something went wrong
+                instance: ""
+                code: 500
+                message: Something went wrong
+                error: Internal server error
+          schema:
+            $ref: '#/components/schemas/Error'
+      description: Internal server error
   schemas:
-    CommonError:
+    Error:
+      description: Generic error object.
       properties:
+        type:
+          description: A URI reference [RFC3986] that identifies the problem type.
+          example: about:blank
+          format: uri
+          type: string
+        title:
+          description: A short, human-readable summary of the problem type.
+          example: Not found
+          type: string
+        status:
+          description: The HTTP status code ([RFC7231], Section 6) generated by the
+            origin server for this occurrence of the problem.
+          example: 404
+          type: integer
+        detail:
+          description: A human-readable explanation specific to this occurrence of
+            the problem.
+          example: The requested resource cannot be found
+          type: string
+        instance:
+          description: A URI reference that identifies the specific occurrence of
+            the problem.
+          example: /path/to/resource
+          format: uri
+          type: string
         code:
+          deprecated: true
+          description: 'HTTP status code. Deprecated: use status instead.'
           type: integer
         message:
+          deprecated: true
+          description: 'Error message. Deprecated: use detail instead.'
           type: string
         error:
+          deprecated: true
+          description: 'Error message. Deprecated: use title instead.'
+          type: string
+      type: object
+    CommonError:
+      deprecated: true
+      description: 'Generic error object. Deprecated: use Error schema instead.'
+      properties:
+        code:
+          description: HTTP status code
+          type: integer
+        message:
+          description: Error message
+          type: string
+        error:
+          description: Error message
           type: string
       type: object
     ClientError:
@@ -9054,7 +9419,6 @@ components:
         https:
           $ref: '#/components/schemas/PKEClusterHTTPProxyOptions'
         exceptions:
-          description: list of URLs excluded from proxying
           items:
             example: .example.org
             type: string
@@ -9149,6 +9513,35 @@ components:
         propertyName: type
       oneOf:
       - $ref: '#/components/schemas/CreatePKEOnAzureClusterRequest'
+    NodePool:
+      oneOf:
+      - $ref: '#/components/schemas/EksNodePool'
+    GenericNodePool:
+      description: Generic node pool object for all cluster distributions.
+      properties:
+        name:
+          description: Node pool name.
+          type: string
+        size:
+          description: Node pool size.
+          type: integer
+        labels:
+          additionalProperties:
+            type: string
+          description: Node pool labels.
+          example:
+            example.io/label1: value1
+          type: object
+      required:
+      - name
+      - size
+      type: object
+    EksNodePool:
+      allOf:
+      - $ref: '#/components/schemas/GenericNodePool'
+      - $ref: '#/components/schemas/EksNodePool_allOf'
+      description: Node pool object for an EKS cluster.
+      type: object
     EKSNodePool:
       properties:
         instanceType:
@@ -13309,6 +13702,38 @@ components:
             does not need to be specified.
           example: 10.0.0.0/24
           type: string
+    EksNodePool_allOf:
+      properties:
+        autoscaling:
+          description: Enable node pool autoscaling.
+          type: boolean
+        minSize:
+          description: Minimum node pool size.
+          example: 1
+          minimum: 0
+          type: integer
+        maxSize:
+          description: Maximum node pool size.
+          example: 5
+          type: integer
+        instanceType:
+          description: Machine instance type.
+          example: m4.xlarge
+          type: string
+        image:
+          description: Instance AMI.
+          example: ami-06d1667f
+          type: string
+        spotPrice:
+          description: Spot instance price.
+          example: "0.2"
+          type: string
+        subnet:
+          $ref: '#/components/schemas/EKSSubnet'
+      required:
+      - instanceType
+      - maxSize
+      - minSize
     CreateEKSProperties_eks:
       properties:
         version:
@@ -13339,6 +13764,7 @@ components:
             for the workers that belong to a node pool at node pool level.
           items:
             $ref: '#/components/schemas/EKSSubnet'
+          minItems: 2
           type: array
         iam:
           $ref: '#/components/schemas/EKSIam'
