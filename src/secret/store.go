@@ -105,7 +105,7 @@ type SecretItemResponse struct {
 }
 
 // K8SSourceMeta returns the meta information how to use this secret if installed to K8S
-func (s *SecretItemResponse) K8SSourceMeta() K8SSourceMeta {
+func ToK8SSourceMeta(s *SecretItemResponse) K8SSourceMeta {
 	return K8SSourceMeta{
 		Name:     s.Name,
 		Sourcing: EnvVar,

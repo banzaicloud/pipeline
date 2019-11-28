@@ -125,7 +125,7 @@ func InstallSecretsByK8SConfig(kubeConfig []byte, orgID uint, query *secret.List
 			return nil, err
 		}
 
-		secretSources = append(secretSources, s.K8SSourceMeta())
+		secretSources = append(secretSources, secret.ToK8SSourceMeta(s))
 	}
 
 	return secretSources, nil
@@ -191,7 +191,7 @@ func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, 
 		kubeSecretRequest.Type = secretItem.Type
 		kubeSecretRequest.Values = secretItem.Values
 
-		sourceMeta = secretItem.K8SSourceMeta()
+		sourceMeta = secret.ToK8SSourceMeta(secretItem)
 	}
 
 	for key, spec := range req.Spec {
@@ -265,7 +265,7 @@ func MergeSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, re
 		kubeSecretRequest.Type = secretItem.Type
 		kubeSecretRequest.Values = secretItem.Values
 
-		sourceMeta = secretItem.K8SSourceMeta()
+		sourceMeta = secret.ToK8SSourceMeta(secretItem)
 	}
 
 	clusterSecret, err := clusterClient.CoreV1().Secrets(req.Namespace).Get(secretName, metav1.GetOptions{})
