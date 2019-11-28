@@ -20,7 +20,7 @@ type EksNodePoolAllOf struct {
 	// Instance AMI.
 	Image string `json:"image,omitempty"`
 
-	// Spot instance price.
+	// The upper limit price for the requested spot instance. If this field is left empty or 0 passed in on-demand instances used instead of spot instances.
 	SpotPrice string `json:"spotPrice,omitempty"`
 
 	Subnet EksSubnet `json:"subnet,omitempty"`

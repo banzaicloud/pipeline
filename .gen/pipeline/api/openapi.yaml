@@ -13734,7 +13734,9 @@ components:
           example: ami-06d1667f
           type: string
         spotPrice:
-          description: Spot instance price.
+          description: The upper limit price for the requested spot instance. If this
+            field is left empty or 0 passed in on-demand instances used instead of
+            spot instances.
           example: "0.2"
           type: string
         subnet:
