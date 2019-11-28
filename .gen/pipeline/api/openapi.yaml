@@ -5699,6 +5699,75 @@ paths:
       summary: List bootstrap commands for namespaces
       tags:
       - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/namespaces:
+    get:
+      description: Lists namespaces for a cluster
+      operationId: ListNamespaces
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamespaceListResponse'
+          description: Namespaces listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientError'
+          description: Error during deleting namespace
+        401:
+          content:
+            application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
+              schema:
+                $ref: '#/components/schemas/CommonError'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+        500:
+          content:
+            application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Lists namespaces for a cluster
+      tags:
+      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/namespaces/{namespace}:
     delete:
       description: Delete namespace from a cluster
@@ -8756,6 +8825,75 @@ paths:
       tags:
       - cluster features
   /api/v1/orgs/{orgId}/clusters/{id}/nodepools/labels:
+    get:
+      description: List cluster nodepool labels
+      operationId: ListNodepoolLabelsOld
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListNodepoolLabelsResponse'
+          description: Nodepool labels listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientError'
+          description: Error during getting nodepool labels
+        401:
+          content:
+            application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
+              schema:
+                $ref: '#/components/schemas/CommonError'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+        500:
+          content:
+            application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List cluser nodepool labels
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/nodepool-labels:
     get:
       description: List cluster nodepool labels
       operationId: ListNodepoolLabels
@@ -14441,6 +14579,28 @@ components:
           type: string
         reserved:
           type: boolean
+      type: object
+    NamespaceListResponse:
+      example:
+        namespaces:
+        - name: name
+        - name: name
+      properties:
+        namespaces:
+          items:
+            $ref: '#/components/schemas/NamespaceItem'
+          type: array
+      type: object
+    NamespaceList:
+      items:
+        $ref: '#/components/schemas/NamespaceItem'
+      type: array
+    NamespaceItem:
+      example:
+        name: name
+      properties:
+        name:
+          type: string
       type: object
     CreatePKEClusterKubernetes_oidc:
       properties:
