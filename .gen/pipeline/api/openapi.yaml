@@ -9536,6 +9536,25 @@ components:
       - name
       - size
       type: object
+    NodePoolAutoScaling:
+      description: Node pool auto scaling settings.
+      properties:
+        enabled:
+          description: Enable node pool autoscaling.
+          type: boolean
+        minSize:
+          description: Minimum node pool size.
+          example: 1
+          minimum: 0
+          type: integer
+        maxSize:
+          description: Maximum node pool size.
+          example: 5
+          type: integer
+      required:
+      - maxSize
+      - minSize
+      type: object
     EksNodePool:
       allOf:
       - $ref: '#/components/schemas/GenericNodePool'
@@ -13705,17 +13724,7 @@ components:
     EksNodePool_allOf:
       properties:
         autoscaling:
-          description: Enable node pool autoscaling.
-          type: boolean
-        minSize:
-          description: Minimum node pool size.
-          example: 1
-          minimum: 0
-          type: integer
-        maxSize:
-          description: Maximum node pool size.
-          example: 5
-          type: integer
+          $ref: '#/components/schemas/NodePoolAutoScaling'
         instanceType:
           description: Machine instance type.
           example: m4.xlarge
@@ -13732,8 +13741,6 @@ components:
           $ref: '#/components/schemas/EKSSubnet'
       required:
       - instanceType
-      - maxSize
-      - minSize
     CreateEKSProperties_eks:
       properties:
         version:
