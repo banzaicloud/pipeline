@@ -23,9 +23,9 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/cadence/.gen/go/shared"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // GetReady responds to requests with information about the specified cluster's readiness

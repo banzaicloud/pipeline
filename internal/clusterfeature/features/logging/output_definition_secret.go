@@ -17,7 +17,7 @@ package logging
 import (
 	"emperror.dev/errors"
 
-	pkgCluster "github.com/banzaicloud/pipeline/cluster"
+	pkgCluster "github.com/banzaicloud/pipeline/src/cluster"
 )
 
 type outputSecretInstallManager interface {

@@ -19,7 +19,7 @@ import (
 
 	evbus "github.com/asaskevich/EventBus"
 
-	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 func TestClusterCreatedEvent(t *testing.T) {

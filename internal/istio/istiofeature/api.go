@@ -18,8 +18,8 @@ import (
 	"emperror.dev/emperror"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 const (

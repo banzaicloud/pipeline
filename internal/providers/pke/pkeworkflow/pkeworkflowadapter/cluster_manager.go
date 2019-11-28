@@ -21,8 +21,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // ClusterManagerAdapter provides an adapter for pkeworkflow.Clusters.

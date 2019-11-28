@@ -15,8 +15,8 @@
 package logging
 
 import (
-	pkgCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	pkgCluster "github.com/banzaicloud/pipeline/src/cluster"
 )
 
 type outputSecretInstallManagerS3 struct {

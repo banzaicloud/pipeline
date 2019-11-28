@@ -17,9 +17,9 @@ package logging
 import (
 	"emperror.dev/errors"
 
-	pkgCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
+	pkgCluster "github.com/banzaicloud/pipeline/src/cluster"
 )
 
 type outputSecretInstallManagerAzure struct {

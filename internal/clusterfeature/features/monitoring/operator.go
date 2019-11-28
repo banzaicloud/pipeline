@@ -25,7 +25,6 @@ import (
 	"k8s.io/api/storage/v1beta1"
 
 	"github.com/banzaicloud/pipeline/auth"
-	pkgCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
@@ -34,6 +33,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/util"
 	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/secret"
+	pkgCluster "github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // FeatureOperator implements the Monitoring feature operator

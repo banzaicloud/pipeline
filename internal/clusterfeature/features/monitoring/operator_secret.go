@@ -20,11 +20,11 @@ import (
 
 	"emperror.dev/errors"
 
-	pkgCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
+	pkgCluster "github.com/banzaicloud/pipeline/src/cluster"
 )
 
 type secretManager struct {

@@ -17,7 +17,7 @@ package clusterfeatureadapter
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 //go:generate mockery -name ClusterGetter -inpkg
