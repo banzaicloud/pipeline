@@ -122,12 +122,11 @@ func (c *CommonClusterBase) getSecret(cluster CommonCluster) (*secret.SecretItem
 		c.secret = s
 	}
 
-	err := c.secret.ValidateSecretType(cluster.GetCloud())
-	if err != nil {
+	if err := secret.ValidateSecretType(c.secret, cluster.GetCloud()); err != nil {
 		return nil, err
 	}
 
-	return c.secret, err
+	return c.secret, nil
 }
 
 func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.SecretItemResponse, error) {
@@ -138,7 +137,7 @@ func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.SecretI
 		}
 		c.sshSecret = s
 
-		err = c.sshSecret.ValidateSecretType(secrettype.SSHSecretType)
+		err = secret.ValidateSecretType(c.sshSecret, secrettype.SSHSecretType)
 		if err != nil {
 			return nil, errors.WithDetails(err, "cluster", cluster.GetName())
 		}

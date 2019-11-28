@@ -55,5 +55,5 @@ func (s *secretWrapper) GetValues() map[string]string {
 }
 
 func (s *secretWrapper) ValidateSecretType(t string) error {
-	return s.secretItem.ValidateSecretType(t)
+	return secret.ValidateSecretType(s.secretItem, t)
 }
