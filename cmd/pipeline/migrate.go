@@ -30,8 +30,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	"github.com/banzaicloud/pipeline/internal/providers"
-	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/pipeline/spotguide"
+	"github.com/banzaicloud/pipeline/src/model"
+	"github.com/banzaicloud/pipeline/src/spotguide"
 )
 
 // Migrate runs migrations for the application.

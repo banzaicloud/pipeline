@@ -30,7 +30,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
 	"github.com/banzaicloud/pipeline/internal/global"
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 type clusterRepository interface {

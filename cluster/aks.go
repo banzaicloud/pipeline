@@ -34,12 +34,12 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/global"
 	internalAzure "github.com/banzaicloud/pipeline/internal/providers/azure"
-	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgClusterAzure "github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/utils"
 )
 

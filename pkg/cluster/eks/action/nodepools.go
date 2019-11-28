@@ -31,10 +31,10 @@ import (
 
 	logrusadapter "logur.dev/adapter/logrus"
 
-	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
+	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/utils"
 )
 

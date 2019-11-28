@@ -19,8 +19,8 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/model"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // UpdateACKNodePoolAction describes the fields used across ACK cluster update operation

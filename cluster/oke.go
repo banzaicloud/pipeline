@@ -23,7 +23,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 	oracleClusterManager "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster/manager"
@@ -32,6 +31,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	secretOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // OKECluster struct for OKE cluster

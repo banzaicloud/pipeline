@@ -30,10 +30,10 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers/alibaba"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 func deleteCluster(log logrus.FieldLogger, clusterID string, csClient *cs.Client) error {

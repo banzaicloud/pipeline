@@ -129,8 +129,8 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/problems"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/spotguide"
-	"github.com/banzaicloud/pipeline/spotguide/scm"
+	"github.com/banzaicloud/pipeline/src/spotguide"
+	"github.com/banzaicloud/pipeline/src/spotguide/scm"
 )
 
 // Provisioned by ldflags

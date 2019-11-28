@@ -28,7 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/ratelimit"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/spotguide"
+	"github.com/banzaicloud/pipeline/src/spotguide"
 )
 
 type SpotguideAPI struct {

@@ -23,7 +23,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // ClusterBackupRestoresModel describes an ARK restore model
