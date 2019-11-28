@@ -242,7 +242,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 	if configSecret, err := getSecret(organizationID, secretID); err != nil && err != secret.ErrSecretNotExists {
 		return err
 	} else if configSecret != nil {
-		createSecretRequest.Version = &(configSecret.Version)
+		createSecretRequest.Version = configSecret.Version
 	}
 
 	err := secret.Store.Update(organizationID, secretID, &createSecretRequest)

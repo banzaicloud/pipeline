@@ -70,7 +70,7 @@ func ValidateSecret(c *gin.Context) {
 		Type:      secretItem.Type,
 		Values:    secretItem.Values,
 		Tags:      secretItem.Tags,
-		Version:   &version,
+		Version:   version,
 		UpdatedBy: secretItem.UpdatedBy,
 	}, true, false); ok {
 		c.Status(http.StatusOK)
@@ -223,8 +223,8 @@ func UpdateSecrets(c *gin.Context) {
 		return
 	}
 
-	if createSecretRequest.Version == nil {
-		msg := "Error during binding CreateSecretRequest: version can't be empty"
+	if createSecretRequest.Version == 0 {
+		msg := "Error during binding CreateSecretRequest: version can't be 0"
 		log.Error(msg)
 		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -445,7 +445,7 @@ func AddSecretTag(c *gin.Context) {
 		Type:      existingSecret.Type,
 		Values:    existingSecret.Values,
 		Tags:      addElement(existingSecret.Tags, tag),
-		Version:   &existingSecret.Version,
+		Version:   existingSecret.Version,
 		UpdatedBy: auth.GetCurrentUser(c.Request).Login,
 	}
 
@@ -508,7 +508,7 @@ func DeleteSecretTag(c *gin.Context) {
 		Type:      existingSecret.Type,
 		Values:    existingSecret.Values,
 		Tags:      removeElement(existingSecret.Tags, tag),
-		Version:   &existingSecret.Version,
+		Version:   existingSecret.Version,
 		UpdatedBy: auth.GetCurrentUser(c.Request).Login,
 	}
 

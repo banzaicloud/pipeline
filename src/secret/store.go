@@ -78,7 +78,7 @@ type CreateSecretRequest struct {
 	Type      string            `json:"type" binding:"required" mapstructure:"type"`
 	Values    map[string]string `json:"values" binding:"required" mapstructure:"values"`
 	Tags      []string          `json:"tags,omitempty" mapstructure:"tags"`
-	Version   *int              `json:"version,omitempty" mapstructure:"-"`
+	Version   int               `json:"version,omitempty" mapstructure:"-"`
 	UpdatedBy string            `json:"updatedBy,omitempty" mapstructure:"updatedBy"`
 }
 
@@ -335,12 +335,7 @@ func (ss *secretStore) Update(organizationID uint, secretID string, request *Cre
 	sort.Strings(request.Tags)
 
 	// If secret doesn't exists, create it.
-	version := 0
-	if request.Version != nil {
-		version = *request.Version
-	}
-
-	data, err := secretData(version, request)
+	data, err := secretData(request.Version, request)
 	if err != nil {
 		return err
 	}
@@ -382,7 +377,7 @@ func (ss *secretStore) CreateOrUpdate(organizationID uint, value *CreateSecretRe
 		log.Errorf("Error during checking secret: %s", err.Error())
 		return "", err
 	} else if secret != nil {
-		value.Version = &(secret.Version)
+		value.Version = secret.Version
 		err := Store.Update(organizationID, secretID, value)
 		if err != nil {
 			log.Errorf("Error during updating secret: %s", err.Error())
