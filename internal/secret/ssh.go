@@ -17,6 +17,7 @@ package secret
 import (
 	"github.com/banzaicloud/pipeline/internal/secret/ssh"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
+	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshdriver"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
@@ -62,6 +63,6 @@ func CreateSSHKeyPair(secrets interface {
 	if err != nil {
 		return
 	}
-	sshSecretID, err = secret.StoreSSHKeyPair(sshKeyPair, organizationID, clusterID, clusterName, clusterUID) // TODO: refactor StoreSSHKeyPair to use secrets
+	sshSecretID, err = sshdriver.StoreSSHKeyPair(sshKeyPair, organizationID, clusterID, clusterName, clusterUID) // TODO: refactor StoreSSHKeyPair to use secrets
 	return
 }

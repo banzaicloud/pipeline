@@ -27,9 +27,9 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh"
+	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshdriver"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/auth"
-	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // CreationContext represents the data necessary to do generic cluster creation steps/checks.
@@ -186,7 +186,7 @@ func (m *Manager) createCluster(
 			return emperror.Wrap(err, "failed to generate SSH key")
 		}
 
-		sshSecretId, err := secret.StoreSSHKeyPair(sshKey, cluster.GetOrganizationId(), cluster.GetID(), cluster.GetName(), cluster.GetUID())
+		sshSecretId, err := sshdriver.StoreSSHKeyPair(sshKey, cluster.GetOrganizationId(), cluster.GetID(), cluster.GetName(), cluster.GetUID())
 		if err != nil {
 			_ = cluster.SetStatus(pkgCluster.Error, "internal error")
 			return emperror.Wrap(err, "failed to store SSH key")
