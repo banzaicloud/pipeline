@@ -43,7 +43,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/util"
 	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/spotguide/scm"
+	"github.com/banzaicloud/pipeline/src/spotguide/scm"
 )
 
 const SpotguideGithubTopic = "spotguide"
