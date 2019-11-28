@@ -158,12 +158,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/SpotguideDetailsResponse'
-                404:
-                    description: Spotguide not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/SpotguideNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters:
         parameters:
@@ -177,21 +173,6 @@ paths:
             summary: Create cluster
             description: Create a new K8S cluster in the cloud
             operationId: CreateCluster
-            responses:
-                202:
-                    description: Cluster created successfully
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/CreateClusterResponse_202'
-                400:
-                    description: Cluster creation failed
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/CreateClusterResponse_400'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
             requestBody:
                 required: true
                 content:
@@ -222,6 +203,16 @@ paths:
                                     properties:
                                         gke:
                                             $ref: '#/components/schemas/CreateGKEProperties'
+            responses:
+                202:
+                    description: Cluster created successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateClusterResponse_202'
+                default:
+                    $ref: '#/components/responses/Error'
+
         get:
             security:
                 - bearerAuth: []
@@ -239,14 +230,8 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/GetClusterStatusResponse'
-                400:
-                    description: Error during listing clusters
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}:
         parameters:
@@ -268,20 +253,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetClusterStatusResponse'
-                400:
-                    description: Error during getting cluster details
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Cluster not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
         put:
             security:
@@ -291,23 +264,6 @@ paths:
             summary: Update cluster
             description: Updating an existing K8S cluster
             operationId: UpdateCluster
-            responses:
-                202:
-                    description: Cluster update accepted
-                400:
-                    description: Error during updating cluster
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Cluster not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
             requestBody:
                 required: true
                 content:
@@ -318,6 +274,11 @@ paths:
                             #oneOf:
                             #    - $ref: '#/components/schemas/UpdateClusterRequest'
                             #    - $ref: '#/components/schemas/UpdateClusterRequestV2'
+            responses:
+                202:
+                    description: Cluster update accepted
+                default:
+                    $ref: '#/components/responses/Error'
 
         delete:
             security:
@@ -342,22 +303,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClusterDelete_200'
-                400:
-                    description: Error during deleting cluster
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Cluster not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
         head:
             security:
@@ -370,12 +317,8 @@ paths:
             responses:
                 200:
                     description: Cluster exists
-                400:
-                    description: Error during getting cluster status
-                401:
-                    description: Unauthorized
-                404:
-                    description: Cluster not found
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/pods:
         get:
@@ -396,20 +339,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/PodDetailsResponse'
-                400:
-                    description: Error during getting cluster details
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Cluster not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/posthooks:
         put:
@@ -423,15 +354,15 @@ paths:
             parameters:
                 - $ref: '#/components/parameters/orgId'
                 - $ref: '#/components/parameters/clusterId'
-            responses:
-                200:
-                    description: "Posthooks started"
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/ReRunPostHook'
+            responses:
+                200:
+                    description: "Posthooks started"
 
     /api/v1/orgs/{orgId}/clusters/{id}/config:
         get:
@@ -452,20 +383,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClusterConfig'
-                400:
-                    description: "Error during getting config file"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/oidcconfig:
         get:
@@ -486,20 +405,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClusterConfig'
-                400:
-                    description: "Error during getting config file"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/apiendpoint:
         get:
@@ -521,20 +428,8 @@ paths:
                             schema:
                                 type: string
                                 example: "35.195.56.31"
-                400:
-                    description: "Error during getting API endpoint"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/monitoring:
         post:
@@ -583,22 +478,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListEndpointsResponse'
-                400:
-                    description: "Error during getting endpoints"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/nodes:
         get:
@@ -619,22 +500,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListNodesResponse'
-                400:
-                    description: "Error during getting endpoints"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/secrets:
         get:
@@ -664,23 +531,9 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/SecretItem'
+                default:
+                    $ref: '#/components/responses/Error'
 
-                400:
-                    description: "Error during listing secrets"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
         post:
             security:
                 - bearerAuth: []
@@ -692,6 +545,12 @@ paths:
             parameters:
                 - $ref: '#/components/parameters/orgId'
                 - $ref: '#/components/parameters/clusterId'
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/InstallSecretsRequest'
             responses:
                 200:
                     description: "Secrets are installed into cluster"
@@ -701,26 +560,8 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/InstallSecretResponse'
-                400:
-                    description: "Error during getting endpoints"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/InstallSecretsRequest'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName}:
         parameters:
@@ -755,26 +596,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/InstallSecretResponse'
-                400:
-                    description: "invalid request"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "secret not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                409:
-                    description: "secret already exists in the cluster"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
+                default:
+                    $ref: '#/components/responses/Error'
 
         patch:
             security:
@@ -797,20 +620,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/InstallSecretResponse'
-                400:
-                    description: "invalid request"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "secret not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/bootstrap:
         get:
@@ -831,12 +642,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetClusterBootstrapResponse'
-                400:
-                    description: Error during getting cluster bootstrap
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/scanlog:
         get:
@@ -904,20 +711,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/HelmReposListResponse'
-                400:
-                    description: "Error during getting endpoints"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
         post:
             security:
@@ -940,20 +735,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/HelmRepoListItem'
-                400:
-                    description: "Error adding Helm repo"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/helm/repos/{repoName}:
         parameters:
@@ -981,20 +764,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/HelmReposDeleteResponse'
-                400:
-                    description: "error deleting Helm repos"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
         put:
             security:
@@ -1017,20 +788,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/HelmReposUpdateResponse'
-                400:
-                    description: "repo modification failed"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Resource found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/HelmNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/helm/repos/{repoName}/update:
         put:
@@ -1057,20 +816,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/HelmReposUpdateResponse'
-                400:
-                    description: "repo modification failed"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Resource found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/HelmNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/helm/charts:
         get:
@@ -1111,21 +858,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/HelmChartsListResponse'
-                400:
-                    description: "error parsing request"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Resource found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
-
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/helm/chart/{repoName}/{chartName}:
         get:
@@ -1167,20 +901,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/HelmChartDetailsResponse'
-                400:
-                    description: "error parsing request"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Resource found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ChartNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/deployments:
         parameters:
@@ -1209,20 +931,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListDeploymentsResponse'
-                400:
-                    description: "Error during getting endpoints"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
         post:
             security:
@@ -1245,20 +955,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/CreateUpdateDeploymentResponse'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                400:
-                    description: "Error during creating deployment"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
         head:
             security:
@@ -1271,12 +969,8 @@ paths:
             responses:
                 200:
                     description: "Tiller is available"
-                400:
-                    description: "Error during creating deployment"
-                401:
-                    description: "Unauthorized"
-                404:
-                    description: "Cluster not found"
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/whitelists:
         parameters:
@@ -1366,20 +1060,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/DeleteDeploymentResponse'
-                400:
-                    description: "Error during delete deployment"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
         put:
             security:
@@ -1402,20 +1084,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/CreateUpdateDeploymentResponse'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                400:
-                    description: "Error during creating deployment"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
         head:
             security:
@@ -1458,16 +1128,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetDeploymentResponse'
-                400:
-                    description: "Bad request"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/resources:
         get:
@@ -1502,16 +1164,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetDeploymentResourcesResponse'
-                400:
-                    description: "Bad request"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/images:
         get:
@@ -1539,16 +1193,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/DeploymentImageList'
-                400:
-                    description: "Bad request"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/hpa:
         parameters:
@@ -1572,20 +1218,8 @@ paths:
             responses:
                 201:
                     description: "Deployment autoscaling updated successfully"
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                400:
-                    description: "Error during creating deployment"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
         delete:
             security:
@@ -1606,20 +1240,8 @@ paths:
             responses:
                 201:
                     description: "Deployment autoscaling updated successfully"
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                400:
-                    description: "Error during creating deployment"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
         get:
             security:
@@ -1644,16 +1266,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/DeploymentScalingResponse'
-                400:
-                    description: "Bad request"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/tokens:
         get:
@@ -1673,10 +1287,8 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/TokenListResponseItem'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
         post:
             security:
@@ -1699,10 +1311,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/TokenCreateResponse'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/tokens/{tokenId}:
         delete:
@@ -1725,10 +1335,8 @@ paths:
             responses:
                 204:
                     description: Token deleted successfully
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/secrets:
         parameters:
@@ -1777,14 +1385,8 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/SecretItem'
-                400:
-                    description: Error during listing secrets
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
+                default:
+                    $ref: '#/components/responses/Error'
 
         post:
             security:
@@ -1815,16 +1417,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/CreateSecretResponse'
-                400:
-                    description: Error during adding secrets
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/secret-types:
         get:
@@ -1853,8 +1447,8 @@ paths:
                                                 required: false
                                 additionalProperties:
                                     $ref: '#/components/schemas/SecretTypeResponse'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/secret-types/{type}:
         get:
@@ -1880,10 +1474,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/SecretTypeResponse'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    $ref: '#/components/responses/NotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/allowed/secrets:
         get:
@@ -1914,8 +1506,8 @@ paths:
                                         sourcing: volume
                                 additionalProperties:
                                     $ref: '#/components/schemas/AllowedSecretTypeResponse'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/allowed/secrets/{type}:
         get:
@@ -1942,15 +1534,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/AllowedSecretTypeResponse'
-
-                400:
-                    description: Error during listing secret types
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/secrets/{secretId}:
         parameters:
@@ -1978,22 +1563,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/SecretItem'
-                400:
-                    description: Error during getting secret
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Secret not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/SecretsNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
         put:
             security:
                 - bearerAuth: []
@@ -2023,20 +1594,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/CreateSecretResponse'
-                400:
-                    description: Error during updating secrets
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
                 409:
                     description: Conflict
                     content:
@@ -2049,8 +1606,8 @@ paths:
                                         code: 409
                                         message: "Secret with this name already exists"
                                         error: "check-and-set parameter did not match the current version"
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
         delete:
             security:
@@ -2063,20 +1620,8 @@ paths:
             responses:
                 204:
                     description: Secret deleted successfully
-                400:
-                    description: Error during deleting secrets
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Secrets not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/SecretsNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/secrets/{secretId}/validate:
         get:
@@ -2099,23 +1644,8 @@ paths:
             responses:
                 200:
                     description: Valid secret
-
-                400:
-                    description: Error during getting secret
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Secret not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/SecretsNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/secrets/{secretId}/tags:
         get:
@@ -2142,16 +1672,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/SecretTags'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Secret not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/SecretsNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/secrets/{secretId}/tags/{tag}:
         parameters:
@@ -2186,22 +1708,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/SecretTags'
-                400:
-                    description: Bad request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Secret not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/SecretsNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
         delete:
             security:
@@ -2214,22 +1722,8 @@ paths:
             responses:
                 204:
                     description: Secret tag deleted successfully
-                400:
-                    description: Bad request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Secret not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/SecretsNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}:
         get:
@@ -2249,20 +1743,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/OrganizationListItemResponse'
-                400:
-                    description: Error during getting organization
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Organization not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/OrganizationNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs:
         get:
@@ -2282,14 +1764,8 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/OrganizationListItemResponse'
-                400:
-                    description: Error during listing organizations
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
+                default:
+                    $ref: '#/components/responses/Error'
 
         put:
             security:
@@ -2301,11 +1777,8 @@ paths:
             responses:
                 200:
                     description: "Organizations synchronized successfully"
-
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api:
         get:
@@ -2389,8 +1862,9 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/User'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
+                default:
+                    $ref: '#/components/responses/Error'
+
         patch:
             security:
                 - bearerAuth: []
@@ -2408,8 +1882,8 @@ paths:
             responses:
                 204:
                     description: "Modifiying current user's settings succeeded"
-                401:
-                    $ref: '#/components/responses/Unauthorized'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/capabilities:
         get:
@@ -2448,6 +1922,7 @@ paths:
                                         "enabled": false
                                     }
                                 }
+
     /api/v1/orgs/{orgId}/azure/resourcegroups:
         parameters:
             - $ref: '#/components/parameters/orgId'
@@ -2481,14 +1956,8 @@ paths:
                                     "resourceGroup1",
                                     "resourceGroup2",
                                 ]
-                400:
-                    description: Error during listing resource groups
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
+                default:
+                    $ref: '#/components/responses/Error'
 
         post:
             security:
@@ -2511,14 +1980,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ResourceGroupCreated'
-                400:
-                    description: Error during listing resource groups
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/buckets:
         parameters:
@@ -2563,16 +2026,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListStorageBucketsResponse'
-                400:
-                    description: "Bad request"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
         post:
             security:
@@ -2582,6 +2037,12 @@ paths:
             summary: Creates a new object store bucket with the given params
             operationId: CreateObjectStoreBucket
             description: Creates a new object store bucket on the Cloud provider referenced by the given secret. The credentials for creating the bucket is taken from the provided secret.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateObjectStoreBucketRequest'
             responses:
                 202:
                     description: "Storage bucket creation request accepted"
@@ -2589,22 +2050,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/CreateObjectStoreBucketResponse'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                400:
-                    description: Error while creating storage bucket
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/CreateObjectStoreBucketRequest'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/buckets/{name}:
         parameters:
@@ -2669,18 +2116,8 @@ paths:
             responses:
                 200:
                     description: "Storage bucket deleted successfully"
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                400:
-                    description: Error while deleting storage bucket
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                404:
-                    description: Object store bucket not found
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
         head:
             security:
@@ -2732,14 +2169,8 @@ paths:
             responses:
                 200:
                     description: "Object store buckets exists"
-                401:
-                    description: "Unauthorized"
-                400:
-                    description: Error while checking object store bucket status
-                404:
-                    description: Object store bucket not found
-                '500':
-                    description: Internal server error
+                default:
+                    $ref: '#/components/responses/Error'
 
         get:
             security:
@@ -2795,14 +2226,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/BucketInfo'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                400:
-                    description: Error while checking object store bucket status
-                404:
-                    description: Object store bucket not found
-                '500':
-                    description: Internal server error
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/networks:
         get:
@@ -2851,16 +2276,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListVPCNetworksResponse'
-                400:
-                    description: "Bad request"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/networks/{networkId}/subnets:
         get:
@@ -2916,18 +2333,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListVPCSubnetsResponse'
-                400:
-                    description: Bad request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: VPC network not found
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/networks/{networkId}/routeTables:
         get:
@@ -2983,19 +2390,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListRouteTablesResponse'
-                400:
-                    description: Bad request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: VPC network not found
-                500:
-                    $ref: '#/components/responses/InternalServerError'
-
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/images:
         get:
@@ -3016,20 +2412,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClusterImageList'
-                400:
-                    description: Error during getting cluster details
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Cluster not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/images/{imageDigest}/deployments:
         get:
@@ -3057,20 +2441,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListDeploymentsResponse'
-                400:
-                    description: Error during getting cluster details
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Cluster not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/pke/leader:
         parameters:
@@ -3091,16 +2463,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetLeaderElectionResponse'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: No leader found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/LeaderNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
         post:
             security:
@@ -3122,22 +2486,14 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/PostLeaderElectionResponse'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: No such PKE cluster found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
-                '409':
+                409:
                     description: Leader already elected
                     content:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/PostLeaderElectionResponse'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
         delete:
             security:
@@ -3149,16 +2505,8 @@ paths:
             responses:
                 200:
                     description: Leader deletion successful
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: No leader found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/LeaderNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/pke/ready:
         parameters:
@@ -3179,16 +2527,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/PKEClusterReadinessResponse'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: No such PKE cluster found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
         post:
             security:
@@ -3211,16 +2551,8 @@ paths:
                             schema:
                                 type: object
                                 example: {}
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: No such PKE cluster found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/pke/commands:
         get:
@@ -3241,16 +2573,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetPKECommandsResponse'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: No such PKE cluster found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/namespaces:
         get:
@@ -3271,23 +2595,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/NamespaceListResponse'
-
-                400:
-                    description: Error during deleting namespace
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Cluster not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/namespaces/{namespace}:
         delete:
@@ -3311,23 +2620,8 @@ paths:
             responses:
                 202:
                     description: Namespace deletion started
-
-                400:
-                    description: Error during deleting namespace
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Cluster not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/cloud/google/projects:
         get:
@@ -3354,11 +2648,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListProjectsResponse'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
-
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/google/projects:
         get:
@@ -3385,10 +2676,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListProjectsResponse'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/backupservice/enable:
         post:
@@ -3402,24 +2691,18 @@ paths:
             parameters:
                 - $ref: '#/components/parameters/orgId'
                 - $ref: '#/components/parameters/clusterId'
-            responses:
-                200:
-                    description: ARK service deployed successfully
-                    content: { application/json: { schema: { $ref: '#/components/schemas/EnableARKResponse' } } }
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/EnableARKRequest'
+            responses:
+                200:
+                    description: ARK service deployed successfully
+                    content: { application/json: { schema: { $ref: '#/components/schemas/EnableARKResponse' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/backupservice/disable:
         post:
@@ -3440,14 +2723,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/DisableARKResponse'
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/backupservice/status:
         parameters:
@@ -3465,10 +2742,8 @@ paths:
             responses:
                 200:
                     description: ARK service running
-                401:
-                    description: Unauthorized
-                404:
-                    description: ARK service not deployed
+                default:
+                    $ref: '#/components/responses/Error'
 
         get:
             security:
@@ -3485,10 +2760,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/BackupServiceStatusResponse'
-                401:
-                    description: Unauthorized
-                404:
-                    description: ARK service not deployed
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/backupbuckets:
         parameters:
@@ -3502,6 +2775,12 @@ paths:
             summary: Create backup bucket
             description: Create backup bucket
             operationId: CreateBackupBucket
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateBackupBucketRequest'
             responses:
                 200:
                     description: Backup bucket added successfully
@@ -3509,20 +2788,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/CreateBackupBucketResponse'
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/CreateBackupBucketRequest'
+                default:
+                    $ref: '#/components/responses/Error'
 
         get:
             security:
@@ -3539,14 +2806,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListBackupBucketsResponse'
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/backupbuckets/{bucketId}:
         parameters:
@@ -3568,14 +2829,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetBackupBucketResponse'
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
         delete:
             security:
@@ -3592,14 +2847,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/DeleteBackupBucketResponse'
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/backupbuckets/sync:
         put:
@@ -3615,11 +2864,8 @@ paths:
             responses:
                 200:
                     description: Backup buckets synced successfully
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/backups:
         get:
@@ -3639,14 +2885,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListBackupsResponse'
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/backups/sync:
         put:
@@ -3662,11 +2902,8 @@ paths:
             responses:
                 200:
                     description: Backups synced successfully
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/backups:
         parameters:
@@ -3681,6 +2918,12 @@ paths:
             summary: Create ARK backup
             description: Create ARK backup of a cluster
             operationId: CreateARKBackupOfACluster
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateBackupRequest'
             responses:
                 200:
                     description: Backup created successfully
@@ -3688,20 +2931,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/CreateBackupResponse'
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/CreateBackupRequest'
+                default:
+                    $ref: '#/components/responses/Error'
 
         get:
             security:
@@ -3718,14 +2949,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListBackupsResponse'
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/backups/{id}/sync:
         put:
@@ -3742,14 +2967,8 @@ paths:
             responses:
                 200:
                     description: Backups synced successfully
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/backups/{backupId}:
         parameters:
@@ -3772,14 +2991,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetBackupResponse'
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
         delete:
             security:
@@ -3796,14 +3009,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/DeleteBackupResponse'
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/backups/{backupId}/logs:
         get:
@@ -3831,14 +3038,8 @@ paths:
                                     time="2018-09-10T00:23:33Z" level=info msg="Not including resource" groupResource=nodes logSource="pkg/restore/restore.go:124"
 
                                     time="2018-09-10T00:23:33Z" level=info msg="Not including resource"
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/backups/{backupId}/download:
         get:
@@ -3861,14 +3062,8 @@ paths:
                             schema:
                                 type: string
                                 format: file
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/schedules:
         parameters:
@@ -3883,6 +3078,12 @@ paths:
             summary: Create ARK schedule
             description: Create ARK schedule
             operationId: CreateARKSchedule
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateScheduleRequest'
             responses:
                 200:
                     description: Schedule created successfully
@@ -3890,20 +3091,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/CreateScheduleResponse'
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/CreateScheduleRequest'
+                default:
+                    $ref: '#/components/responses/Error'
         get:
             security:
                 - bearerAuth: []
@@ -3916,14 +3105,8 @@ paths:
                 200:
                     description: Schedules listed successfully
                     content: { application/json: { schema: { $ref: '#/components/schemas/ListSchedulesResponse' } } }
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/schedules/{scheduleName}:
         parameters:
@@ -3946,14 +3129,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ScheduleResponse'
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
         delete:
             security:
@@ -3970,14 +3147,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/DeleteScheduleResponse'
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/restores:
         parameters:
@@ -3992,6 +3163,12 @@ paths:
             summary: Create ARK restore
             description: Create ARK restore
             operationId: CreateARKRestore
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateRestoreRequest'
             responses:
                 200:
                     description: Restore created successfully
@@ -3999,20 +3176,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/CreateRestoreResponse'
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/CreateRestoreRequest'
+                default:
+                    $ref: '#/components/responses/Error'
 
         get:
             security:
@@ -4026,14 +3191,8 @@ paths:
                 200:
                     description: Restores listed successfully
                     content: { application/json: { schema: { $ref: '#/components/schemas/ListRestoresResponse' } } }
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/restores/{id}/sync:
         put:
@@ -4050,14 +3209,8 @@ paths:
             responses:
                 200:
                     description: Restores synced successfully
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/restores/{restoreId}:
         parameters:
@@ -4076,14 +3229,8 @@ paths:
                 200:
                     description: Restore retrieved successfully
                     content: { application/json: { schema: { $ref: '#/components/schemas/GetRestoreResponse' } } }
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
         delete:
             security:
@@ -4096,14 +3243,8 @@ paths:
                 200:
                     description: Restore deleted successfully
                     content: { application/json: { schema: { $ref: '#/components/schemas/DeleteRestoreResponse' } } }
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/restores/{restoreId}/results:
         get:
@@ -4121,14 +3262,8 @@ paths:
                 200:
                     description: Restore retrieved successfully
                     content: { application/json: { schema: { $ref: '#/components/schemas/GetRestoreResultsResponse' } } }
-                400:
-                    description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: record not found
-                    content: { application/json: { schema: { $ref: '#/components/schemas/RecordNotFound' } } }
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgid}/clustergroups:
         parameters:
@@ -4150,8 +3285,8 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/api.ClusterGroup"
                                 type: array
-                400:
-                    $ref: "#/components/responses/BadRequest"
+                default:
+                    $ref: '#/components/responses/Error'
 
         post:
             security:
@@ -4174,10 +3309,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/api.CreateResponse"
-                400:
-                    $ref: "#/components/responses/BadRequest"
-                404:
-                    $ref: "#/components/responses/NotFound"
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}:
         parameters:
@@ -4203,8 +3336,8 @@ paths:
                         application/json:
                             schema:
                                 type: string
-                400:
-                    $ref: "#/components/responses/BadRequest"
+                default:
+                    $ref: '#/components/responses/Error'
 
         get:
             security:
@@ -4220,8 +3353,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/api.ClusterGroup"
-                400:
-                    $ref: "#/components/responses/BadRequest"
+                default:
+                    $ref: '#/components/responses/Error'
 
         put:
             security:
@@ -4244,10 +3377,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/api.UpdateResponse"
-                400:
-                    $ref: "#/components/responses/BadRequest"
-                404:
-                    $ref: "#/components/responses/NotFound"
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments:
         parameters:
@@ -4275,8 +3406,8 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/deployment.ListDeploymentResponse"
                                 type: array
-                400:
-                    $ref: "#/components/responses/BadRequest"
+                default:
+                    $ref: '#/components/responses/Error'
 
         post:
             security:
@@ -4301,10 +3432,8 @@ paths:
                                 $ref: "#/components/schemas/deployment.CreateUpdateDeploymentResponse"
                 207:
                     $ref: "#/components/responses/PartialFailure"
-                400:
-                    $ref: "#/components/responses/BadRequest"
-                404:
-                    $ref: "#/components/responses/NotFound"
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments/{deploymentName}:
         parameters:
@@ -4345,8 +3474,8 @@ paths:
                                 $ref: "#/components/schemas/deployment.TargetClusterStatus"
                 207:
                     $ref: "#/components/responses/PartialFailure"
-                400:
-                    $ref: "#/components/responses/BadRequest"
+                default:
+                    $ref: '#/components/responses/Error'
 
         get:
             security:
@@ -4362,8 +3491,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/deployment.DeploymentInfo"
-                400:
-                    $ref: "#/components/responses/BadRequest"
+                default:
+                    $ref: '#/components/responses/Error'
 
         put:
             security:
@@ -4388,13 +3517,16 @@ paths:
                                 $ref: "#/components/schemas/deployment.CreateUpdateDeploymentResponse"
                 207:
                     $ref: "#/components/responses/PartialFailure"
-                400:
-                    $ref: "#/components/responses/BadRequest"
-                404:
-                    $ref: "#/components/responses/NotFound"
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments/{deploymentName}/sync:
         put:
+            security:
+                - bearerAuth: []
+            summary: Synchronize Cluster Group Deployment
+            tags:
+                - clustergroup deployments
             description: install / upgrade deployment to target clusters where deployment is not found or has wrong
             parameters:
                 - $ref: '#/components/parameters/orgId'
@@ -4419,13 +3551,9 @@ paths:
                                 $ref: "#/components/schemas/deployment.TargetClusterStatus"
                 207:
                     $ref: "#/components/responses/PartialFailure"
-                400:
-                    $ref: "#/components/responses/BadRequest"
-            security:
-                - bearerAuth: []
-            summary: Synchronize Cluster Group Deployment
-            tags:
-                - clustergroup deployments
+                default:
+                    $ref: '#/components/responses/Error'
+
     /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/features:
         get:
             security:
@@ -4451,8 +3579,8 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/api.FeatureResponse"
                                 type: array
-                400:
-                    $ref: "#/components/responses/BadRequest"
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/features/{featureName}:
         parameters:
@@ -4484,8 +3612,8 @@ paths:
                         application/json:
                             schema:
                                 type: string
-                400:
-                    $ref: "#/components/responses/BadRequest"
+                default:
+                    $ref: '#/components/responses/Error'
 
         get:
             security:
@@ -4501,8 +3629,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/api.FeatureResponse"
-                400:
-                    $ref: "#/components/responses/BadRequest"
+                default:
+                    $ref: '#/components/responses/Error'
 
         post:
             security:
@@ -4520,10 +3648,8 @@ paths:
                         application/json:
                             schema:
                                 type: string
-                400:
-                    $ref: "#/components/responses/BadRequest"
-                404:
-                    $ref: "#/components/responses/NotFound"
+                default:
+                    $ref: '#/components/responses/Error'
 
         put:
             security:
@@ -4541,10 +3667,8 @@ paths:
                         application/json:
                             schema:
                                 type: string
-                400:
-                    $ref: "#/components/responses/BadRequest"
-                404:
-                    $ref: "#/components/responses/NotFound"
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/features:
         get:
@@ -4564,20 +3688,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ClusterFeatureList"
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Not found
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                ## oneOf not properly supported by generator
-                                #oneOf:
-                                #    - $ref: "#/components/schemas/OrganizationNotFound"
-                                #    - $ref: "#/components/schemas/ClusterNotFound"
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/features/{featureName}:
         parameters:
@@ -4605,21 +3717,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ClusterFeatureDetails"
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Not found
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                ## oneOf not properly supported by generator
-                                #oneOf:
-                                #    - $ref: "#/components/schemas/OrganizationNotFound"
-                                #    - $ref: "#/components/schemas/ClusterNotFound"
-                                #    - $ref: "#/components/schemas/ClusterFeatureNotFound"
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
         post:
             operationId: ActivateClusterFeature
@@ -4637,27 +3736,8 @@ paths:
             responses:
                 202:
                     description: Accepted
-                400:
-                    description: Bad request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ClientError"
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Not found
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                ## oneOf not properly supported by generator
-                                #oneOf:
-                                #    - $ref: "#/components/schemas/OrganizationNotFound"
-                                #    - $ref: "#/components/schemas/ClusterNotFound"
-                                #    - $ref: "#/components/schemas/ClusterFeatureNotFound"
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
         delete:
             operationId: DeactivateClusterFeature
@@ -4669,21 +3749,8 @@ paths:
             responses:
                 204:
                     description: No Content
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Not found
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                ## oneOf not properly supported by generator
-                                #oneOf:
-                                #    - $ref: "#/components/schemas/OrganizationNotFound"
-                                #    - $ref: "#/components/schemas/ClusterNotFound"
-                                #    - $ref: "#/components/schemas/ClusterFeatureNotFound"
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
         put:
             operationId: UpdateClusterFeature
@@ -4701,27 +3768,8 @@ paths:
             responses:
                 202:
                     description: Accepted
-                400:
-                    description: Bad request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ClientError"
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: Not found
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                ## oneOf not properly supported by generator
-                                #oneOf:
-                                #    - $ref: "#/components/schemas/OrganizationNotFound"
-                                #    - $ref: "#/components/schemas/ClusterNotFound"
-                                #    - $ref: "#/components/schemas/ClusterFeatureNotFound"
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters/{id}/nodepools:
         parameters:
@@ -4793,22 +3841,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListNodepoolLabelsResponse'
-                400:
-                    description: "Error during getting nodepool labels"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                404:
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
-                500:
-                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    $ref: '#/components/responses/Error'
 
 components:
     securitySchemes:
@@ -4856,58 +3890,6 @@ components:
                                 message: "Partial failure"
                                 error: "there was as least one failure on one of the target clusters"
 
-        BadRequest:
-            description: Bad request
-            content:
-                application/json:
-                    schema:
-                        $ref: '#/components/schemas/CommonError'
-                    examples:
-                        InvalidRequest:
-                            value:
-                                code: 400
-                                message: "Invalid request"
-                                error: "failed to parse request"
-
-        Unauthorized:
-            description: Unauthorized
-            content:
-                application/json:
-                    schema:
-                        $ref: '#/components/schemas/CommonError'
-                    examples:
-                        InvalidToken:
-                            value:
-                                code: 401
-                                message: "Invalid token"
-                                error: "token contains an invalid number of segments"
-
-        NotFound:
-            description: Not found
-            content:
-                application/json:
-                    schema:
-                        $ref: '#/components/schemas/CommonError'
-                    examples:
-                        Generic:
-                            value:
-                                code: 404
-                                message: "Not found"
-                                error: "resource not found"
-
-        InternalServerError:
-            description: Internal server error
-            content:
-                application/json:
-                    schema:
-                        $ref: '#/components/schemas/CommonError'
-                    examples:
-                        SomethingWentWrong:
-                            value:
-                                code: 500
-                                message: Something went wrong
-                                error: Something went wrong
-
         Error:
             description: Internal server error
             content:
@@ -4930,6 +3912,11 @@ components:
                                 code: 404
                                 message: Organization not found
                                 error: Organization not found
+                        SecretAlreadyExists:
+                            value:
+                                code: 409
+                                message: Secret already exists
+                                error: Secret already exists
                         InternalServerError:
                             value:
                                 code: 500
@@ -4979,6 +3966,16 @@ components:
                                 code: 404
                                 message: Organization not found
                                 error: Organization not found
+                        SecretAlreadyExists:
+                            value:
+                                type: about:blank
+                                title: Secret already exists
+                                status: 409
+                                detail: Secret already exists
+                                instance: ""
+                                code: 409
+                                message: Secret already exists
+                                error: Secret already exists
                         InternalServerError:
                             value:
                                 type: about:blank
@@ -5046,19 +4043,6 @@ components:
                 error:
                     description: Error message
                     type: string
-
-        ClientError:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 400
-                message:
-                    type: string
-                    example: "Error during process"
-                error:
-                    type: string
-                    example: "Error during process"
 
         VersionResponse:
             description: Pipeline build and deployment info
@@ -5179,19 +4163,6 @@ components:
                 key:
                     type: string
                     example: mysql.version
-
-        SpotguideNotFound:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 404
-                message:
-                    type: string
-                    example: spotguide not found
-                error:
-                    type: string
-                    example: spotguide not found
 
         ListSpotguidesResponse:
             type: array
@@ -6140,55 +5111,6 @@ components:
                     type: integer
                     example: 1
 
-        CreateClusterResponse_400:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 400
-                message:
-                    type: string
-                    example: Invalid version
-                error:
-                    type: string
-                    example: Invalid version
-
-        HelmNotFound:
-            oneOf:
-                -
-                    $ref: '#/components/schemas/ClusterNotFound'
-                -
-                    $ref: '#/components/schemas/RepoNotFound'
-
-        ClusterNotFound:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 404
-                message:
-                    type: string
-                    example: "Cluster not found"
-                error:
-                    type: string
-                    example: "record not found"
-
-        RepoNotFound:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 404
-                message:
-                    type: string
-                    example: "repo not found"
-                error:
-                    type: string
-                    example: "repo not found"
-
-        LeaderNotFound:
-            type: object
-
         ClusterConfig:
             type: object
             properties:
@@ -6198,20 +5120,6 @@ components:
                 data:
                     type: string
                     example: "apiVersion: v1\nclusters...."
-
-        ChartNotFound:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 404
-                message:
-                    type: string
-                    example: "Chart Not Found!"
-                error:
-                    type: string
-                    example: "Chart Not Found!"
-
 
         UpdateClusterRequestV2:
             oneOf:
@@ -7428,19 +6336,6 @@ components:
                 any:
                     type: string
 
-        SecretsNotFound:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 404
-                message:
-                    type: string
-                    example: "Secrets not found"
-                error:
-                    type: string
-                    example: "There are no secrets with [1] organization id and [15205947761] secret id"
-
         OrganizationListItemResponse:
             type: object
             properties:
@@ -7487,19 +6382,6 @@ components:
                 gitHubTokenSet:
                     type: boolean
                     example: true
-
-        OrganizationNotFound:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 404
-                message:
-                    type: string
-                    example: "Organization not found"
-                error:
-                    type: string
-                    example: "Organization not found"
 
         SecretTypeResponse:
             type: object
@@ -8940,18 +7822,7 @@ components:
                 includeClusterResources:
                     example: true
                     type: boolean
-        RecordNotFound:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 404
-                message:
-                    type: string
-                    example: "record not found"
-                error:
-                    type: string
-                    example: "record not found"
+
         GetLeaderElectionResponse:
             type: object
             required:
@@ -9203,19 +8074,6 @@ components:
 
         ClusterFeatureSpec:
             type: object
-
-        ClusterFeatureNotFound:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 404
-                message:
-                    type: string
-                    example: "Cluster feature not found"
-                error:
-                    type: string
-                    example: "No cluster feature exists with this name"
 
         ListNodepoolLabelsResponse:
             type: object
