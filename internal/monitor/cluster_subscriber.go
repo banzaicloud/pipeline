@@ -36,10 +36,10 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	pipSecret "github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/src/auth"
 	pipCluster "github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/dns"
+	pipSecret "github.com/banzaicloud/pipeline/src/secret"
 )
 
 type clusterSubscriber struct {

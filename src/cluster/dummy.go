@@ -21,8 +21,8 @@ import (
 	"github.com/ghodss/yaml"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/src/model"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // DummyCluster struct for DC

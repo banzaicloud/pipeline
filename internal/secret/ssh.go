@@ -15,7 +15,7 @@
 package secret
 
 import (
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // GetOrCreateSSHKeyPair gets or creates a SSH key pair in the secret store for the cluster.

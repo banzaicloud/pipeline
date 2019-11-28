@@ -21,7 +21,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // ChartConfig describes an ARK deployment chart config

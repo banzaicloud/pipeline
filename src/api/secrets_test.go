@@ -24,9 +24,9 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	clusterTypes "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/src/api"
+	"github.com/banzaicloud/pipeline/src/secret"
+	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 func TestIsValidSecretType(t *testing.T) {

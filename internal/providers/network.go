@@ -25,7 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/oracle"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // ServiceParams describes all parameters necessary to create cloud provider agnostic VPC network queries

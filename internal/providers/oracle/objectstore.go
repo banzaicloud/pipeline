@@ -28,8 +28,8 @@ import (
 	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	oracleObjectstore "github.com/banzaicloud/pipeline/pkg/providers/oracle/objectstore"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 type bucketNotFoundError struct{}

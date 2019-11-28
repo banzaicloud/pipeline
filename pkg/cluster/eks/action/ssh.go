@@ -21,7 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/utils"
 )
 

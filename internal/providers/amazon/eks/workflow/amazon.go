@@ -22,7 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
 
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 )

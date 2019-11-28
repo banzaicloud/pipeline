@@ -29,9 +29,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global/ingresscert"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/dns"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 type ingressControllerValues struct {
