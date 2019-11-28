@@ -5591,6 +5591,26 @@ components:
                     example:
                         example.io/label1: value1
 
+        NodePoolAutoScaling:
+            description: Node pool auto scaling settings.
+            type: object
+            required:
+                - minSize
+                - maxSize
+            properties:
+                enabled:
+                    description: Enable node pool autoscaling.
+                    type: boolean
+                minSize:
+                    description: Minimum node pool size.
+                    type: integer
+                    minimum: 0
+                    example: 1
+                maxSize:
+                    description: Maximum node pool size.
+                    type: integer
+                    example: 5
+
         EksNodePool:
             description: Node pool object for an EKS cluster.
             type: object
@@ -5600,21 +5620,9 @@ components:
                     type: object
                     required:
                         - instanceType
-                        - minSize
-                        - maxSize
                     properties:
                         autoscaling:
-                            description: Enable node pool autoscaling.
-                            type: boolean
-                        minSize:
-                            description: Minimum node pool size.
-                            type: integer
-                            minimum: 0
-                            example: 1
-                        maxSize:
-                            description: Maximum node pool size.
-                            type: integer
-                            example: 5
+                            $ref: '#/components/schemas/NodePoolAutoScaling'
                         instanceType:
                             description: Machine instance type.
                             type: string
