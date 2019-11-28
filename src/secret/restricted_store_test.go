@@ -83,7 +83,7 @@ var (
 		Tags: []string{
 			secret.TagBanzaiReadonly,
 		},
-		Version:   &version,
+		Version:   version,
 		UpdatedBy: "banzaiuser",
 	}
 
@@ -94,7 +94,7 @@ var (
 			"key": "value",
 		},
 		Tags:      secret.ForbiddenTags,
-		Version:   &version,
+		Version:   version,
 		UpdatedBy: "banzaiuser",
 	}
 )

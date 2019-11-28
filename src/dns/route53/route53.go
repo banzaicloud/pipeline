@@ -808,8 +808,7 @@ func (dns *awsRoute53) storeRoute53Secret(updateSecret *secret.SecretItemRespons
 	var err error
 
 	if updateSecret != nil {
-		ver := int(updateSecret.Version)
-		req.Version = &ver
+		req.Version = updateSecret.Version
 
 		if err = secret.Store.Update(ctx.state.organisationId, updateSecret.ID, req); err != nil {
 			return err
