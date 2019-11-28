@@ -4723,6 +4723,57 @@ paths:
                 500:
                     $ref: '#/components/responses/InternalServerError'
 
+    /api/v1/orgs/{orgId}/clusters/{id}/nodepools:
+        parameters:
+            - $ref: '#/components/parameters/orgId'
+            - $ref: '#/components/parameters/clusterId'
+
+        post:
+            operationId: CreateNodePool
+            summary: Create new node pool
+            description: Add new node pool to a cluster
+            security:
+                 - bearerAuth: []
+            tags:
+                - clusters
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/NodePool'
+            responses:
+                202:
+                    description: Node pool creation in progress
+                default:
+                    $ref: '#/components/responses/Error'
+
+    /api/v1/orgs/{orgId}/clusters/{id}/nodepools/{name}:
+        parameters:
+            - $ref: '#/components/parameters/orgId'
+            - $ref: '#/components/parameters/clusterId'
+            -
+                name: name
+                in: path
+                description: Node pool name
+                required: true
+                schema:
+                    type: string
+
+        delete:
+            operationId: DeleteNodePool
+            summary: Delete a node pool
+            description: Delete a node pool from a cluster.
+            security:
+                - bearerAuth: []
+            tags:
+                - clusters
+            responses:
+                204:
+                    description: Node pool delete in progress
+                default:
+                    $ref: '#/components/responses/Error'
+
     /api/v1/orgs/{orgId}/clusters/{id}/nodepool-labels:
         get:
             security:
@@ -4812,7 +4863,7 @@ components:
                     schema:
                         $ref: '#/components/schemas/CommonError'
                     examples:
-                        InvalidToken:
+                        InvalidRequest:
                             value:
                                 code: 400
                                 message: "Invalid request"
@@ -4838,7 +4889,7 @@ components:
                     schema:
                         $ref: '#/components/schemas/CommonError'
                     examples:
-                        InvalidToken:
+                        Generic:
                             value:
                                 code: 404
                                 message: "Not found"
@@ -4857,15 +4908,143 @@ components:
                                 message: Something went wrong
                                 error: Something went wrong
 
+        Error:
+            description: Internal server error
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/CommonError'
+                    examples:
+                        BadRequest:
+                            value:
+                                code: 400
+                                message: Invalid request
+                                error: Failed to parse request.
+                        Unauthorized:
+                            value:
+                                code: 401
+                                message: Unauthorized
+                                error: Unauthorized
+                        OrganizationNotFound:
+                            value:
+                                code: 404
+                                message: Organization not found
+                                error: Organization not found
+                        InternalServerError:
+                            value:
+                                code: 500
+                                message: Something went wrong
+                                error: Something went wrong
+                application/problem+json:
+                    schema:
+                        $ref: '#/components/schemas/Error'
+                    examples:
+                        BadRequest:
+                            value:
+                                type: about:blank
+                                title: Invalid request
+                                status: 400
+                                detail: Failed to parse request.
+                                instance: ""
+                                code: 400
+                                message: Failed to parse request.
+                                error: Invalid request
+                        Unauthorized:
+                            value:
+                                type: about:blank
+                                title: Unauthorized
+                                status: 401
+                                detail: You are unauthorized to access this resource.
+                                instance: ""
+                                code: 401
+                                message: You are unauthorized to access this resource.
+                                error: Unauthorized
+                        AccessDenied:
+                            value:
+                                type: about:blank
+                                title: Access denied
+                                status: 403
+                                detail: You are unauthorized to perform this action access this resource.
+                                instance: ""
+                                code: 403
+                                message: You are unauthorized to perform this action access this resource.
+                                error: Access denied
+                        OrganizationNotFound:
+                            value:
+                                type: about:blank
+                                title: Organization not found
+                                status: 404
+                                detail: Organization not found
+                                instance: ""
+                                code: 404
+                                message: Organization not found
+                                error: Organization not found
+                        InternalServerError:
+                            value:
+                                type: about:blank
+                                title: Internal server error
+                                status: 500
+                                detail: Something went wrong
+                                instance: ""
+                                code: 500
+                                message: Something went wrong
+                                error: Internal server error
+
     schemas:
-        CommonError:
+        Error:
+            description: Generic error object.
             type: object
             properties:
+                type:
+                    description: A URI reference [RFC3986] that identifies the problem type.
+                    type: string
+                    format: uri
+                    example: about:blank
+                title:
+                    description: A short, human-readable summary of the problem type.
+                    type: string
+                    example: Not found
+                status:
+                    description: The HTTP status code ([RFC7231], Section 6) generated by the origin server for this occurrence of the problem.
+                    type: integer
+                    example: 404
+                detail:
+                    description: A human-readable explanation specific to this occurrence of the problem.
+                    type: string
+                    example: The requested resource cannot be found
+                instance:
+                    description: A URI reference that identifies the specific occurrence of the problem.
+                    type: string
+                    format: uri
+                    example: /path/to/resource
+
+                # Deprecated fields
                 code:
+                    description: "HTTP status code. Deprecated: use status instead."
+                    type: integer
+                    deprecated: true
+                message:
+                    description: "Error message. Deprecated: use detail instead."
+                    type: string
+                    deprecated: true
+                error:
+                    description: "Error message. Deprecated: use title instead."
+                    type: string
+                    deprecated: true
+
+        CommonError:
+            description: "Generic error object. Deprecated: use Error schema instead."
+            type: object
+            deprecated: true
+            properties:
+                code:
+                    description: HTTP status code
                     type: integer
                 message:
+                    description: Error message
                     type: string
                 error:
+                    description: Error message
                     type: string
 
         ClientError:
@@ -5251,13 +5430,10 @@ components:
             type: object
             properties:
                 http:
-                    description: "HTTP proxy options"
                     $ref: '#/components/schemas/PKEClusterHTTPProxyOptions'
                 https:
-                    description: "HTTPS proxy options"
                     $ref: '#/components/schemas/PKEClusterHTTPProxyOptions'
                 exceptions:
-                    description: "list of URLs excluded from proxying"
                     type: array
                     items:
                         type: string
@@ -5390,6 +5566,69 @@ components:
                 mapping:
                     'pke-on-azure': '#/components/schemas/CreatePKEOnAzureClusterRequest'
 
+        NodePool:
+            oneOf:
+                - $ref: '#/components/schemas/EksNodePool'
+
+        GenericNodePool:
+            description: Generic node pool object for all cluster distributions.
+            type: object
+            required:
+                - name
+                - size
+            properties:
+                name:
+                    description: Node pool name.
+                    type: string
+                size:
+                    description: Node pool size.
+                    type: integer
+                labels:
+                    description: Node pool labels.
+                    type: object
+                    additionalProperties:
+                        type: string
+                    example:
+                        example.io/label1: value1
+
+        EksNodePool:
+            description: Node pool object for an EKS cluster.
+            type: object
+            allOf:
+                - $ref: '#/components/schemas/GenericNodePool'
+                -
+                    type: object
+                    required:
+                        - instanceType
+                        - minSize
+                        - maxSize
+                    properties:
+                        autoscaling:
+                            description: Enable node pool autoscaling.
+                            type: boolean
+                        minSize:
+                            description: Minimum node pool size.
+                            type: integer
+                            minimum: 0
+                            example: 1
+                        maxSize:
+                            description: Maximum node pool size.
+                            type: integer
+                            example: 5
+                        instanceType:
+                            description: Machine instance type.
+                            type: string
+                            example: "m4.xlarge"
+                        image:
+                            description: Instance AMI.
+                            type: string
+                            example: "ami-06d1667f"
+                        spotPrice:
+                            description: Spot instance price.
+                            type: string
+                            example: "0.2"
+                        subnet:
+                            $ref: '#/components/schemas/EKSSubnet'
 
         EKSNodePool:
             type: object
@@ -5427,9 +5666,7 @@ components:
                     type: string
                     example: "ami-06d1667f"
                 subnet:
-                    type: object
                     $ref: '#/components/schemas/EKSSubnet'
-                    description: Subnet for worker nodes of this node pool. If not specified than worker nodes are launched in the same subnet in one of the subnets from the list of subnets of the EKS cluster
 
         CreateEKSProperties:
             type: object
@@ -5454,7 +5691,6 @@ components:
                             additionalProperties:
                                 $ref: '#/components/schemas/EKSNodePool'
                         vpc:
-                            type: object
                             $ref: '#/components/schemas/EKSVpc'
                         routeTableId:
                             type: string
@@ -5463,11 +5699,9 @@ components:
                             type: array
                             items:
                                 $ref: '#/components/schemas/EKSSubnet'
-                                minItems: 2
-                            description: Subnets for EKS master and worker nodes. All worker nodes will be launched in the same subnet (the first subnet in the list - which may not coincide with first subnet in the cluster create request payload as
-                                the deserialization may change the order) unless a subnet is specified for the workers that belong to a node pool at node pool level.
+                            minItems: 2
+                            description: Subnets for EKS master and worker nodes. All worker nodes will be launched in the same subnet (the first subnet in the list - which may not coincide with first subnet in the cluster create request payload as the deserialization may change the order) unless a subnet is specified for the workers that belong to a node pool at node pool level.
                         iam:
-                            type: object
                             $ref: '#/components/schemas/EKSIam'
                         apiServerAccessPoints:
                             type: array
@@ -5476,6 +5710,7 @@ components:
                               enum: [private, public]
                             default: ["public"]
                             description: List of access point types for the API server; public and private are the only valid values
+
         CreateACKProperties:
             type: object
             required:
