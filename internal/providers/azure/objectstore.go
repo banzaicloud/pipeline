@@ -28,12 +28,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	pipelineAuth "github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
 	"github.com/banzaicloud/pipeline/secret"
+	pipelineAuth "github.com/banzaicloud/pipeline/src/auth"
 )
 
 // nolint: gochecknoglobals

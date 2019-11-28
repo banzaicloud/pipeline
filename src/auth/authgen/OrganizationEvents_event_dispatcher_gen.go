@@ -3,8 +3,10 @@ package authgen
 
 import (
 	"context"
+
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/auth"
+
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // OrganizationEventBus is a generic event bus.

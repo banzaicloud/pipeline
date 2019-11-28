@@ -23,12 +23,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/common"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	"github.com/banzaicloud/pipeline/internal/providers"
+	"github.com/banzaicloud/pipeline/src/auth"
 	route53model "github.com/banzaicloud/pipeline/src/dns/route53/model"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/spotguide"

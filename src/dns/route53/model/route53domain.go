@@ -17,7 +17,7 @@ package route53model
 import (
 	"time"
 
-	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // TableName constants

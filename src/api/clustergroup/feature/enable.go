@@ -20,11 +20,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupIAPI "github.com/banzaicloud/pipeline/internal/clustergroup/api"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // @Summary Enable Feature of Cluster Group

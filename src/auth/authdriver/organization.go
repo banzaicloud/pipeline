@@ -20,7 +20,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 
-	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // NewOrganizationGetter creates and OrganizationGetter

@@ -32,9 +32,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/kubernetes/pkg/apis/core"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/providers"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // BucketsService is for buckets related ARK functions

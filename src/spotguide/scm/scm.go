@@ -25,8 +25,8 @@ import (
 	"github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 const InitialCommitMessage = "initial Banzai Cloud Pipeline commit"

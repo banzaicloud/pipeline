@@ -25,8 +25,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // UserAPI implements user functions.

@@ -20,13 +20,13 @@ import (
 	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/src/api/ark/common"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // Delete deletes an ARK backup bucket

@@ -24,9 +24,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // createIAMUser creates a Amazon IAM user with the given name and with no login access to console

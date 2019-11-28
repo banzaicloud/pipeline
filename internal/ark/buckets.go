@@ -17,10 +17,10 @@ package ark
 import (
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/providers"
 	pkgProviders "github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // ValidateCreateBucketRequest validates a CreateBucketRequest

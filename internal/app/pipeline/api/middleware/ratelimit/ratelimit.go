@@ -18,7 +18,7 @@ import (
 	"github.com/didip/tollbooth"
 	"github.com/gin-gonic/gin"
 
-	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // NewRateLimiterByOrgID creates a middleware to rate-limit requests by organization ID

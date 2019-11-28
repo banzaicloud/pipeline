@@ -22,8 +22,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 func TestFeatureManager_Name(t *testing.T) {

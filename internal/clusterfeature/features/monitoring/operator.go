@@ -24,7 +24,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"k8s.io/api/storage/v1beta1"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
@@ -33,6 +32,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/util"
 	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/src/cluster"
 )
 

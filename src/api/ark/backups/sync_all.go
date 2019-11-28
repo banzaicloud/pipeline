@@ -20,12 +20,12 @@ import (
 	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
 
-	"github.com/banzaicloud/pipeline/auth"
 	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
 	"github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/src/api/ark/common"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // Sync syncs ARK backups for the organization

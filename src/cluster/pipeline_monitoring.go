@@ -19,9 +19,9 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/banzaicloud/pipeline/auth"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 type pipelineMetrics struct {

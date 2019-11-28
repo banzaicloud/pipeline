@@ -38,11 +38,11 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/util"
 	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/spotguide/scm"
 )
 

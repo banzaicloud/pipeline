@@ -20,8 +20,8 @@ import (
 
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // NewOrgDomainService returns a new OrgDomainService initialized with the specified values

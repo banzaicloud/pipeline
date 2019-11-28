@@ -29,7 +29,6 @@ import (
 	"go.uber.org/cadence/client"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/banzaicloud/pipeline/auth"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
@@ -40,6 +39,7 @@ import (
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
