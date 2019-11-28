@@ -6274,6 +6274,55 @@ paths:
             tags:
                 - clusters
             summary: List cluser nodepool labels
+            operationId: ListNodepoolLabelsOld
+            description: List cluster nodepool labels
+            parameters:
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+            responses:
+                '200':
+                    description: "Nodepool labels listed"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListNodepoolLabelsResponse'
+                '400':
+                    description: "Error during getting nodepool labels"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClientError'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    description: "Cluster not found"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClusterNotFound'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
+
+    '/api/v1/orgs/{orgId}/clusters/{id}/nodepool-labels':
+        get:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - clusters
+            summary: List cluser nodepool labels
             operationId: ListNodepoolLabels
             description: List cluster nodepool labels
             parameters:
