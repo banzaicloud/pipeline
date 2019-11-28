@@ -35,6 +35,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	internalAzure "github.com/banzaicloud/pipeline/internal/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh"
+	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgClusterAzure "github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -179,7 +180,7 @@ func (c *AKSCluster) getNewSSHKeyPair() (ssh.KeyPair, error) {
 	if err != nil {
 		return ssh.KeyPair{}, emperror.Wrap(err, "failed to retrieve SSH secret")
 	}
-	return secret.NewSSHKeyPair(clusterSSHSecret), nil
+	return sshadapter.KeyPairFromSecret(clusterSSHSecret), nil
 }
 
 func isProvisioningSuccessful(cluster *containerservice.ManagedCluster) bool {

@@ -21,18 +21,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/ssh"
 )
 
-// NewSSHKeyPair constructs a SSH Key from the values stored
-// in the given secret
-func NewSSHKeyPair(s *SecretItemResponse) ssh.KeyPair {
-	return ssh.KeyPair{
-		User:                 s.Values[secrettype.User],
-		Identifier:           s.Values[secrettype.Identifier],
-		PublicKeyData:        s.Values[secrettype.PublicKeyData],
-		PublicKeyFingerprint: s.Values[secrettype.PublicKeyFingerprint],
-		PrivateKeyData:       s.Values[secrettype.PrivateKeyData],
-	}
-}
-
 // StoreSSHKeyPair to store SSH Key to Bank Vaults
 func StoreSSHKeyPair(key ssh.KeyPair, organizationID uint, clusterID uint, clusterName string, clusterUID string) (secretID string, err error) {
 	log.Info("Store SSH Key to Bank Vaults")
