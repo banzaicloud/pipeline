@@ -21,10 +21,10 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/spf13/cast"
 
-	"github.com/banzaicloud/pipeline/dns/route53"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/dns/route53"
 )
 
 // nolint: gochecknoglobals
