@@ -10,18 +10,15 @@
 
 package pipeline
 
-type EksNodePoolAllOf struct {
+// NodePoolAutoScaling - Node pool auto scaling settings.
+type NodePoolAutoScaling struct {
 
-	Autoscaling NodePoolAutoScaling `json:"autoscaling,omitempty"`
+	// Enable node pool autoscaling.
+	Enabled bool `json:"enabled,omitempty"`
 
-	// Machine instance type.
-	InstanceType string `json:"instanceType"`
+	// Minimum node pool size.
+	MinSize int32 `json:"minSize"`
 
-	// Instance AMI.
-	Image string `json:"image,omitempty"`
-
-	// Spot instance price.
-	SpotPrice string `json:"spotPrice,omitempty"`
-
-	Subnet EksSubnet `json:"subnet,omitempty"`
+	// Maximum node pool size.
+	MaxSize int32 `json:"maxSize"`
 }

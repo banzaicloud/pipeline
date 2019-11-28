@@ -21,14 +21,7 @@ type NodePool struct {
 	// Node pool labels.
 	Labels map[string]string `json:"labels,omitempty"`
 
-	// Enable node pool autoscaling.
-	Autoscaling bool `json:"autoscaling,omitempty"`
-
-	// Minimum node pool size.
-	MinSize int32 `json:"minSize"`
-
-	// Maximum node pool size.
-	MaxSize int32 `json:"maxSize"`
+	Autoscaling NodePoolAutoScaling `json:"autoscaling,omitempty"`
 
 	// Machine instance type.
 	InstanceType string `json:"instanceType"`
