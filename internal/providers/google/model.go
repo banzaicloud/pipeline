@@ -32,7 +32,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 
 		&GKEClusterModel{},
 		&GKENodePoolModel{},
-		&GKENodePoolLabelModel{},
 	}
 
 	var tableNames string
