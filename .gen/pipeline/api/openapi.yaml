@@ -8368,7 +8368,7 @@ paths:
       summary: Update a cluster feature
       tags:
       - cluster features
-  /api/v1/orgs/{orgId}/clusters/{id}/nodepools/labels:
+  /api/v1/orgs/{orgId}/clusters/{id}/nodepool-labels:
     get:
       description: List cluster nodepool labels
       operationId: ListNodepoolLabels
