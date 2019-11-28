@@ -24,8 +24,8 @@ import (
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/providers"
 	pkgProviders "github.com/banzaicloud/pipeline/pkg/providers"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // NetworkAPI implements network functions

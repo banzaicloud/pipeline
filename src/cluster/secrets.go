@@ -26,7 +26,7 @@ import (
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // InstallSecrets installs or updates secrets that matches the query under the name into namespace of a Kubernetes cluster.

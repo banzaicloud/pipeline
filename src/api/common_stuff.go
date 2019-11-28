@@ -33,7 +33,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // listPods returns list of pods in all namespaces.

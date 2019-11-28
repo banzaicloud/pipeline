@@ -22,8 +22,8 @@ import (
 	"google.golang.org/api/compute/v1"
 
 	"github.com/banzaicloud/pipeline/internal/network"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/secret/verify"
+	"github.com/banzaicloud/pipeline/src/secret"
+	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 type googleNetwork struct {

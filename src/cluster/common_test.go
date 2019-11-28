@@ -27,9 +27,9 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/model"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 const (

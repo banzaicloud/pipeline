@@ -30,8 +30,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/spotguide"
 )
 

@@ -44,9 +44,9 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/src/model"
+	"github.com/banzaicloud/pipeline/src/secret"
+	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 const defaultPKEVersion = "1.12.2"

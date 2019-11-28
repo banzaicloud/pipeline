@@ -16,7 +16,7 @@ package pkeworkflowadapter
 
 import (
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // InternalSecretStore is an interface for the internal secret store.

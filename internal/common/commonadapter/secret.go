@@ -21,7 +21,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/pkg/brn"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // SecretStore implements the common.SecretStore interface and acts as a lightweight wrapper around

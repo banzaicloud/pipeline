@@ -24,7 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // KubeSecretRequest contains details for a Kubernetes Secret creation from pipeline secrets.

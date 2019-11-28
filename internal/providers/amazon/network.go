@@ -19,8 +19,8 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/network"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/secret/verify"
+	"github.com/banzaicloud/pipeline/src/secret"
+	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 type amazonNetwork struct {

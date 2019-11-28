@@ -18,7 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/secret/verify"
+	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 func newEC2Client(orgID uint, secretID string, region string) (*ec2.EC2, error) {

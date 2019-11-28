@@ -19,7 +19,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // GetOrCreateSSHKeyPair creates and saves a new SSH key pair for the cluster or gets the cluster's SSH key pair if it already exists

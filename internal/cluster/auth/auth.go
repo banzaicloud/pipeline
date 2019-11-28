@@ -29,7 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 const authSecretName = "dex-client"

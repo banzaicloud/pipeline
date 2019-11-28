@@ -31,10 +31,10 @@ import (
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/secret"
 	clusterAPI "github.com/banzaicloud/pipeline/src/api/cluster"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 func decodeRequest(input map[string]interface{}, output interface{}) error {

@@ -30,7 +30,7 @@ import (
 
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/utils"
 )
 

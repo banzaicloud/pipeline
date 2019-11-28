@@ -29,8 +29,8 @@ import (
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/src/helm"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // DeleteCluster deletes a cluster.

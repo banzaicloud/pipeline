@@ -39,9 +39,9 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/model"
+	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/utils"
 )
 

@@ -52,9 +52,9 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgProviderGoogle "github.com/banzaicloud/pipeline/pkg/providers/google"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/src/model"
+	"github.com/banzaicloud/pipeline/src/secret"
+	"github.com/banzaicloud/pipeline/src/secret/verify"
 	"github.com/banzaicloud/pipeline/src/utils"
 )
 

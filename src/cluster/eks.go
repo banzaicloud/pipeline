@@ -45,9 +45,9 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/action"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/src/model"
+	"github.com/banzaicloud/pipeline/src/secret"
+	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 const asgWaitLoopSleepSeconds = 5

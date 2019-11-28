@@ -38,8 +38,8 @@ import (
 	pkgClusterAzure "github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/src/model"
+	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/utils"
 )
 

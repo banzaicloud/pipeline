@@ -37,8 +37,8 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 func MakeAzurePKEClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyCache, logger logrus.FieldLogger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.AzurePKEClusterStore, workflowClient client.Client) AzurePKEClusterDeleter {

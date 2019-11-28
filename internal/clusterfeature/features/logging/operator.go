@@ -30,9 +30,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/internal/util"
 	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/src/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // FeatureOperator implements the Logging feature operator

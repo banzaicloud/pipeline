@@ -32,8 +32,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
-	"github.com/banzaicloud/pipeline/secret"
 	pipCluster "github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 type AzurePKEClusterUpdater struct {

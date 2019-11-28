@@ -25,7 +25,7 @@ import (
 
 	intNetwork "github.com/banzaicloud/pipeline/internal/network"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 type azureNetwork struct {

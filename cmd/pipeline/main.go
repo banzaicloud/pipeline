@@ -112,7 +112,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/problems"
 	"github.com/banzaicloud/pipeline/pkg/providers"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/src/api"
 	"github.com/banzaicloud/pipeline/src/api/ark/backups"
 	"github.com/banzaicloud/pipeline/src/api/ark/backupservice"
@@ -129,6 +128,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/auth/authgen"
 	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/dns"
+	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/spotguide"
 	"github.com/banzaicloud/pipeline/src/spotguide/scm"
 )

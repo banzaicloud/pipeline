@@ -22,7 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // Secret describes values for Azure access

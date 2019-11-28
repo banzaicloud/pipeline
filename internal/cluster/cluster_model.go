@@ -22,8 +22,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/src/model"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 const unknownLocation = "unknown"
