@@ -28,7 +28,6 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 
 	apiCommon "github.com/banzaicloud/pipeline/api/common"
-	"github.com/banzaicloud/pipeline/helm"
 	internalCommon "github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
@@ -36,6 +35,7 @@ import (
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/security"
+	"github.com/banzaicloud/pipeline/src/helm"
 )
 
 func init() {

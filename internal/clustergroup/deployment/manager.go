@@ -31,9 +31,9 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	hapi_release5 "k8s.io/helm/pkg/proto/hapi/release"
 
-	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/src/helm"
 )
 
 // CGDeploymentManager
