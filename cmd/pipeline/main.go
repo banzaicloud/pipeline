@@ -811,6 +811,10 @@ func main() {
 			cgroupsAPI := cgroupAPI.NewAPI(clusterGroupManager, deploymentManager, logrusLogger, errorHandler)
 			cgroupsAPI.AddRoutes(orgs.Group("/:orgid/clustergroups"))
 
+			cRouter.GET("/nodepool-labels", nplsApi.GetNodepoolLabelSets)
+			cRouter.POST("/nodepool-labels", nplsApi.SetNodepoolLabelSets)
+
+			// Compatibility routes
 			cRouter.GET("/nodepools/labels", nplsApi.GetNodepoolLabelSets)
 			cRouter.POST("/nodepools/labels", nplsApi.SetNodepoolLabelSets)
 
