@@ -25,12 +25,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 
-	"github.com/banzaicloud/pipeline/helm"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/helm"
 )
 
 // DeleteCluster deletes a cluster.

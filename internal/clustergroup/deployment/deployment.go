@@ -20,8 +20,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
 
-	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
+	"github.com/banzaicloud/pipeline/src/helm"
 )
 
 // ClusterGroupDeployment describes a Helm deployment to a Cluster Group

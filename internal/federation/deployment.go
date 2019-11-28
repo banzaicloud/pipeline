@@ -24,7 +24,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/src/helm"
 )
 
 func DeleteDeployment(c cluster.CommonCluster, releaseName string) error {
