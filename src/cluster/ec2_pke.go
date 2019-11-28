@@ -41,6 +41,7 @@ import (
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
@@ -141,7 +142,7 @@ func (c *EC2ClusterPKE) GetSshPublicKey() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	sshKey := secret.NewSSHKeyPair(sshSecret)
+	sshKey := sshadapter.KeyPairFromSecret(sshSecret)
 	return sshKey.PublicKeyData, nil
 }
 

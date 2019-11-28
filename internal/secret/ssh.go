@@ -16,6 +16,7 @@ package secret
 
 import (
 	"github.com/banzaicloud/pipeline/internal/secret/ssh"
+	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
@@ -49,7 +50,7 @@ func GetSSHKeyPair(secrets interface {
 	if err != nil {
 		return ssh.KeyPair{}, err
 	}
-	return secret.NewSSHKeyPair(sir), nil
+	return sshadapter.KeyPairFromSecret(sir), nil
 }
 
 // CreateSSHKeyPair creates and stores a new SSH key pair for a cluster in the secret store with the specified parameters

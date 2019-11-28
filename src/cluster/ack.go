@@ -39,6 +39,7 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack/action"
@@ -528,7 +529,7 @@ func (c *ACKCluster) DownloadK8sConfig() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	sshKey := secret.NewSSHKeyPair(clusterSshSecret)
+	sshKey := sshadapter.KeyPairFromSecret(clusterSshSecret)
 
 	signer, err := ssh.ParsePrivateKey([]byte(sshKey.PrivateKeyData))
 	if err != nil {

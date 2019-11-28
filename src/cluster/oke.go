@@ -23,6 +23,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 	oracleClusterManager "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster/manager"
@@ -596,7 +597,7 @@ func (o *OKECluster) getSSHPubKey() (string, error) {
 		return "", err
 	}
 
-	sshKey := secret.NewSSHKeyPair(sshSecret)
+	sshKey := sshadapter.KeyPairFromSecret(sshSecret)
 
 	return sshKey.PublicKeyData, nil
 }

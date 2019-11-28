@@ -23,7 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"go.uber.org/cadence/activity"
 
-	"github.com/banzaicloud/pipeline/src/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
 )
 
 const UploadSSHKeyActivityName = "eks-upload-ssh-key"
@@ -72,7 +72,7 @@ func (a *UploadSSHKeyActivity) Execute(ctx context.Context, input UploadSSHKeyAc
 		return nil, err
 	}
 
-	sshKey := secret.NewSSHKeyPair(sshSecret)
+	sshKey := sshadapter.KeyPairFromSecret(sshSecret)
 	ec2srv := ec2.New(session)
 
 	// create and import ssh key pair only if key pair with the same name doesn't exists yet
