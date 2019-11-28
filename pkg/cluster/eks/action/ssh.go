@@ -22,7 +22,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/utils"
+	"github.com/banzaicloud/pipeline/src/utils"
 )
 
 var _ utils.RevocableAction = (*UploadSSHKeyAction)(nil)

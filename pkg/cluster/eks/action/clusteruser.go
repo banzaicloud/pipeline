@@ -28,7 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/utils"
+	"github.com/banzaicloud/pipeline/src/utils"
 )
 
 var _ utils.RevocableAction = (*CreateClusterUserAccessKeyAction)(nil)

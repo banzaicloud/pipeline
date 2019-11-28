@@ -25,7 +25,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
-	"github.com/banzaicloud/pipeline/utils"
+	"github.com/banzaicloud/pipeline/src/utils"
 )
 
 var _ utils.RevocableAction = (*CreateIAMRolesAction)(nil)

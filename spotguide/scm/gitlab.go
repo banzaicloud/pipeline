@@ -22,7 +22,7 @@ import (
 	"github.com/xanzy/go-gitlab"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/utils"
+	"github.com/banzaicloud/pipeline/src/utils"
 )
 
 type gitLabSCM struct {

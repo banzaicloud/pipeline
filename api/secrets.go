@@ -34,7 +34,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/banzaicloud/pipeline/utils"
+	"github.com/banzaicloud/pipeline/src/utils"
 )
 
 // ErrNotSupportedSecretType describe an error if the secret type is not supported

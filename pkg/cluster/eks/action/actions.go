@@ -31,7 +31,7 @@ import (
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/utils"
+	"github.com/banzaicloud/pipeline/src/utils"
 )
 
 const awsNoUpdatesError = "No updates are to be performed."

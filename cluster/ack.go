@@ -48,7 +48,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers/alibaba"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/banzaicloud/pipeline/utils"
+	"github.com/banzaicloud/pipeline/src/utils"
 )
 
 var _ CommonCluster = (*ACKCluster)(nil)
