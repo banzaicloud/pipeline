@@ -30,7 +30,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
-	"github.com/banzaicloud/pipeline/utils"
+	"github.com/banzaicloud/pipeline/src/utils"
 )
 
 // EksSubnet describe the properties of subnet

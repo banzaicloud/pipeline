@@ -21,7 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/utils"
+	"github.com/banzaicloud/pipeline/src/utils"
 )
 
 var _ utils.RevocableAction = (*GenerateVPCConfigRequestAction)(nil)

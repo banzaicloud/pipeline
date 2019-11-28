@@ -40,7 +40,7 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/utils"
+	"github.com/banzaicloud/pipeline/src/utils"
 )
 
 const (
