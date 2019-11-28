@@ -20,9 +20,9 @@ import (
 	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
 
-	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // DummyCluster struct for DC

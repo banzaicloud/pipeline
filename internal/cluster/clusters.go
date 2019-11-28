@@ -19,7 +19,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // Clusters acts as a repository interface for clusters.

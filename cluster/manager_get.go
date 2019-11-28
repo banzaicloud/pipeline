@@ -20,7 +20,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // GetClusters returns the cluster instances for an organization ID.

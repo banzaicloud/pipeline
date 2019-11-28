@@ -30,8 +30,8 @@ import (
 	sqljson "github.com/banzaicloud/pipeline/internal/database/sql/json"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
-	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 const (

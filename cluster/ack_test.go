@@ -19,8 +19,8 @@ import (
 	"testing"
 
 	pipCluster "github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // nolint: gochecknoglobals
