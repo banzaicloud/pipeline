@@ -102,8 +102,7 @@ func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 		return
 	}
 
-	err = sir.ValidateSecretType(provider)
-	if err != nil {
+	if err := secret.ValidateSecretType(sir, provider); err != nil {
 		replyWithError(ctx, err)
 		return
 	}
@@ -169,8 +168,7 @@ func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
 		return
 	}
 
-	err = sir.ValidateSecretType(provider)
-	if err != nil {
+	if err := secret.ValidateSecretType(sir, provider); err != nil {
 		replyWithError(ctx, err)
 		return
 	}
@@ -237,8 +235,7 @@ func (a *NetworkAPI) ListRouteTables(ctx *gin.Context) {
 		return
 	}
 
-	err = sir.ValidateSecretType(provider)
-	if err != nil {
+	if err := secret.ValidateSecretType(sir, provider); err != nil {
 		replyWithError(ctx, err)
 		return
 	}

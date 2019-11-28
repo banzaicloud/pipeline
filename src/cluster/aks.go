@@ -758,8 +758,8 @@ func getAzureCredentials(orgID uint, secretID string) (*pkgAzure.Credentials, er
 	if err != nil {
 		return nil, emperror.WrapWith(err, "failed to retrieve secret", "orgID", orgID, "secretID", secretID)
 	}
-	err = sir.ValidateSecretType(pkgCluster.Azure)
-	if err != nil {
+
+	if err := secret.ValidateSecretType(sir, pkgCluster.Azure); err != nil {
 		return nil, emperror.Wrap(err, "failed to validate secret type")
 	}
 	return pkgAzure.NewCredentials(sir.Values), nil

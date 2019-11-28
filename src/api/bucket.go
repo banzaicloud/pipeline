@@ -543,7 +543,7 @@ func getValidatedSecret(organizationId uint, secretId string, cloudType string) 
 		return nil, err
 	}
 
-	if err := retrievedSecret.ValidateSecretType(cloudType); err != nil {
+	if err := secret.ValidateSecretType(retrievedSecret, cloudType); err != nil {
 		return nil, err
 	}
 

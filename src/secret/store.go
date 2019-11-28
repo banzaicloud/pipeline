@@ -113,7 +113,7 @@ func (s *SecretItemResponse) K8SSourceMeta() K8SSourceMeta {
 }
 
 // ValidateSecretType validates the secret type
-func (s *SecretItemResponse) ValidateSecretType(validType string) error {
+func ValidateSecretType(s *SecretItemResponse, validType string) error {
 	if string(s.Type) != validType {
 
 		return MismatchError{
