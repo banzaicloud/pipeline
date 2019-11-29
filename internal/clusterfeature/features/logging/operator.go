@@ -480,10 +480,11 @@ func (op FeatureOperator) createLoggingResource(ctx context.Context, clusterID u
 	}
 
 	if tlsEnabled {
+		var sharedKey = "fluentSharedKey"
 		loggingResource.Spec.FluentdSpec.TLS.SecretName = fluentSharedSecretName
-		loggingResource.Spec.FluentdSpec.TLS.SharedKey = fluentSharedSecretName
+		loggingResource.Spec.FluentdSpec.TLS.SharedKey = sharedKey
 		loggingResource.Spec.FluentbitSpec.TLS.SecretName = fluentSharedSecretName
-		loggingResource.Spec.FluentbitSpec.TLS.SharedKey = fluentSharedSecretName
+		loggingResource.Spec.FluentbitSpec.TLS.SharedKey = sharedKey
 	}
 
 	return op.kubernetesService.EnsureObject(ctx, clusterID, loggingResource)
