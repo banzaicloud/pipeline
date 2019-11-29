@@ -42,7 +42,7 @@ type FeatureOperator struct {
 	clusterGetter     clusterfeatureadapter.ClusterGetter
 	clusterService    clusterfeature.ClusterService
 	helmService       features.HelmService
-	kubernetesService features.KubernetesService
+	kubernetesService KubernetesService
 	endpointsService  endpoints.EndpointService
 	config            Config
 	logger            common.Logger
@@ -54,7 +54,7 @@ func MakeFeatureOperator(
 	clusterGetter clusterfeatureadapter.ClusterGetter,
 	clusterService clusterfeature.ClusterService,
 	helmService features.HelmService,
-	kubernetesService features.KubernetesService,
+	kubernetesService KubernetesService,
 	endpointsService endpoints.EndpointService,
 	config Config,
 	logger common.Logger,

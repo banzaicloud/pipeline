@@ -18,9 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	k8srest "k8s.io/client-go/rest"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
@@ -170,19 +168,6 @@ func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, rel
 }
 
 type dummyKubernetesService struct {
-}
-
-// GetKubeConfig gets a kube config for a specific cluster.
-func (s *dummyKubernetesService) GetKubeConfig(ctx context.Context, clusterID uint) (*k8srest.Config, error) {
-	return &k8srest.Config{
-		Host:            "https://127.0.0.1:6443",
-		TLSClientConfig: k8srest.TLSClientConfig{CAData: []byte("BLABLA")},
-	}, nil
-}
-
-// GetObject gets an Object from a specific cluster.
-func (s *dummyKubernetesService) GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, o runtime.Object) error {
-	return nil
 }
 
 // DeleteObject deletes an Object from a specific cluster.
