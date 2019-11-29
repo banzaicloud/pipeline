@@ -71,7 +71,7 @@ type secretStore struct {
 	Logical *vaultapi.Logical
 }
 
-// CreateSecretRequest param for Store.Store
+// CreateSecretRequest param for secretStore.Store
 // Only fields with `mapstructure` tag are getting written to Vault
 type CreateSecretRequest struct {
 	Name      string            `json:"name" binding:"required" mapstructure:"name"`
@@ -221,7 +221,7 @@ func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
 	log := log.WithFields(logrus.Fields{"organization": orgID, "clusterUID": clusterUID})
 
 	clusterUIDTag := clusterUIDTag(clusterUID)
-	secrets, err := Store.List(orgID,
+	secrets, err := ss.List(orgID,
 		&ListSecretsQuery{
 			Tags: []string{clusterUIDTag},
 		})
@@ -233,7 +233,7 @@ func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
 
 	for _, s := range secrets {
 		log := log.WithFields(logrus.Fields{"secret": s.ID, "secretName": s.Name})
-		err := Store.Delete(orgID, s.ID)
+		err := ss.Delete(orgID, s.ID)
 		if err != nil {
 			log.Errorf("Error during delete secret: %s", err.Error())
 		}
@@ -352,13 +352,13 @@ func (ss *secretStore) GetOrCreate(organizationID uint, value *CreateSecretReque
 	secretID := GenerateSecretID(value)
 
 	// Try to get the secret version first
-	if secret, err := Store.Get(organizationID, secretID); err != nil && err != ErrSecretNotExists {
+	if secret, err := ss.Get(organizationID, secretID); err != nil && err != ErrSecretNotExists {
 		log.Errorf("Error during checking secret: %s", err.Error())
 		return "", err
 	} else if secret != nil {
 		return secret.ID, nil
 	} else {
-		secretID, err = Store.Store(organizationID, value)
+		secretID, err = ss.Store(organizationID, value)
 		if err != nil {
 			log.Errorf("Error during storing secret: %s", err.Error())
 			return "", err
@@ -373,18 +373,18 @@ func (ss *secretStore) CreateOrUpdate(organizationID uint, value *CreateSecretRe
 	secretID := GenerateSecretID(value)
 
 	// Try to get the secret version first
-	if secret, err := Store.Get(organizationID, secretID); err != nil && err != ErrSecretNotExists {
+	if secret, err := ss.Get(organizationID, secretID); err != nil && err != ErrSecretNotExists {
 		log.Errorf("Error during checking secret: %s", err.Error())
 		return "", err
 	} else if secret != nil {
 		value.Version = secret.Version
-		err := Store.Update(organizationID, secretID, value)
+		err := ss.Update(organizationID, secretID, value)
 		if err != nil {
 			log.Errorf("Error during updating secret: %s", err.Error())
 			return "", err
 		}
 	} else {
-		secretID, err = Store.Store(organizationID, value)
+		secretID, err = ss.Store(organizationID, value)
 		if err != nil {
 			log.Errorf("Error during storing secret: %s", err.Error())
 			return "", err
@@ -448,7 +448,7 @@ func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretItemRes
 func (ss *secretStore) GetByName(organizationID uint, name string) (*SecretItemResponse, error) {
 
 	secretID := GenerateSecretIDFromName(name)
-	secret, err := Store.Get(organizationID, secretID)
+	secret, err := ss.Get(organizationID, secretID)
 	if err == ErrSecretNotExists {
 		return nil, err
 	} else if err != nil {
