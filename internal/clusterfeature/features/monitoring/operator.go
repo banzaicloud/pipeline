@@ -675,9 +675,10 @@ func (m chartValuesManager) generatePrometheusChartValues(
 			baseValues: baseValues{
 				Enabled: spec.Enabled,
 				Ingress: ingressValues{
-					Enabled: spec.Ingress.Enabled,
-					Hosts:   []string{spec.Ingress.Domain},
-					Paths:   []string{spec.Ingress.Path},
+					Enabled:     spec.Ingress.Enabled,
+					Hosts:       []string{spec.Ingress.Domain},
+					Paths:       []string{spec.Ingress.Path},
+					Annotations: annotations,
 				},
 			},
 			Spec: SpecValues{
@@ -703,7 +704,6 @@ func (m chartValuesManager) generatePrometheusChartValues(
 				},
 				ServiceMonitorSelectorNilUsesHelmValues: false,
 			},
-			Annotations: annotations,
 		}
 	}
 
