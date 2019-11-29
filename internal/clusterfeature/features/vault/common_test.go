@@ -149,11 +149,6 @@ func (s *dummyKubernetesService) GetKubeConfig(ctx context.Context, clusterID ui
 	}, nil
 }
 
-// GetObject gets an Object from a specific cluster.
-func (s *dummyKubernetesService) GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, o runtime.Object) error {
-	return nil
-}
-
 // DeleteObject deletes an Object from a specific cluster.
 func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error {
 
@@ -167,9 +162,5 @@ func (s *dummyKubernetesService) EnsureObject(ctx context.Context, clusterID uin
 		v.Secrets = []corev1.ObjectReference{{Name: "some-token-1234", Namespace: "default"}}
 	}
 
-	return nil
-}
-
-func (s *dummyKubernetesService) List(ctx context.Context, clusterID uint, labels map[string]string, o runtime.Object) error {
 	return nil
 }
