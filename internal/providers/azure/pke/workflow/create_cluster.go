@@ -41,6 +41,7 @@ type CreateClusterWorkflowInput struct {
 	OrganizationName                string
 	ResourceGroupName               string
 	SecretID                        string
+	Distribution                    string
 	OIDCEnabled                     bool
 	VirtualNetworkTemplate          VirtualNetworkTemplate
 	LoadBalancerTemplates           []LoadBalancerTemplate
@@ -137,9 +138,10 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		workflowInput := clustersetup.WorkflowInput{
 			ConfigSecretID: brn.New(input.OrganizationID, brn.SecretResourceType, configSecretID).String(),
 			Cluster: clustersetup.Cluster{
-				ID:   input.ClusterID,
-				UID:  input.ClusterUID,
-				Name: input.ClusterName,
+				ID:           input.ClusterID,
+				UID:          input.ClusterUID,
+				Name:         input.ClusterName,
+				Distribution: input.Distribution,
 			},
 			Organization: clustersetup.Organization{
 				ID:   input.OrganizationID,
