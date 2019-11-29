@@ -441,12 +441,12 @@ func mergeValuesWithConfig(chartValues interface{}, configValues interface{}) ([
 }
 
 func (op FeatureOperator) createLoggingResource(ctx context.Context, clusterID uint, spec featureSpec) error {
-	// TODO (colin): add labels
 	var tlsEnabled = spec.Logging.TLS
 	var loggingResource = &v1beta1.Logging{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      loggingResourceName,
 			Namespace: op.config.Namespace,
+			Labels:    map[string]string{resourceLabelKey: featureName},
 		},
 		Spec: v1beta1.LoggingSpec{
 			FluentbitSpec: &v1beta1.FluentbitSpec{
