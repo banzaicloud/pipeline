@@ -23,7 +23,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 	"github.com/banzaicloud/pipeline/pkg/problems"
@@ -69,7 +69,7 @@ func NewClusterCheckMiddleware(manager *Manager, errorHandler emperror.Handler) 
 			err = errors.Wrap(&notSupportedQueryError{field: field}, "invalid 'field' value in query")
 		}
 
-		if err != nil && cluster.IsClusterNotFoundError(err) {
+		if err != nil && clusteradapter.IsClusterNotFoundError(err) {
 			problem := problems.NewDetailedProblem(http.StatusNotFound, err.Error())
 			c.AbortWithStatusJSON(http.StatusNotFound, problem)
 

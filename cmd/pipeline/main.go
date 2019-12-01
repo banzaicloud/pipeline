@@ -64,8 +64,8 @@ import (
 	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
@@ -318,7 +318,7 @@ func main() {
 
 	clusterEventBus := evbus.New()
 	clusterEvents := cluster.NewClusterEvents(clusterEventBus)
-	clusters := intCluster.NewClusters(db)
+	clusters := clusteradapter.NewClusters(db)
 	secretValidator := providers.NewSecretValidator(secret.Store)
 	statusChangeDurationMetric := prometheusMetrics.MakePrometheusClusterStatusChangeDurationMetric()
 	// Initialise cluster total metric

@@ -22,7 +22,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/util/workqueue"
 
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -128,7 +128,7 @@ func (c *TTLController) processNextCluster() bool {
 func (c *TTLController) handleCluster(clusterID uint) error {
 	cluster, err := c.manager.GetClusterByIDOnly(context.Background(), clusterID)
 
-	if err != nil && !intCluster.IsClusterNotFoundError(err) {
+	if err != nil && !clusteradapter.IsClusterNotFoundError(err) {
 		return emperror.WrapWith(err, "failed to retrieve cluster", "clusterID", clusterID)
 	}
 

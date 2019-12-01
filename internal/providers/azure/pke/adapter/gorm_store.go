@@ -25,7 +25,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/common"
 	sqljson "github.com/banzaicloud/pipeline/internal/database/sql/json"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
@@ -83,7 +83,7 @@ type gormAzurePKEClusterModel struct {
 
 	HTTPProxy httpProxyModel `gorm:"type:json"`
 
-	Cluster   cluster.ClusterModel        `gorm:"foreignkey:ClusterID"`
+	Cluster   clusteradapter.ClusterModel `gorm:"foreignkey:ClusterID"`
 	NodePools []gormAzurePKENodePoolModel `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
 
 	AccessPoints          accessPointsModel          `gorm:"type:json"`
@@ -218,7 +218,7 @@ func (m apiServerAccessPointsModel) toEntity() pke.APIServerAccessPoints {
 	return asaps
 }
 
-func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model cluster.ClusterModel) {
+func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model clusteradapter.ClusterModel) {
 	cl.CreatedBy = model.CreatedBy
 	cl.CreationTime = model.CreatedAt
 	cl.ID = model.ID
@@ -335,7 +335,7 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 	}
 
 	model := gormAzurePKEClusterModel{
-		Cluster: cluster.ClusterModel{
+		Cluster: clusteradapter.ClusterModel{
 			CreatedBy:      params.CreatedBy,
 			Name:           params.Name,
 			Location:       params.Location,
@@ -404,7 +404,7 @@ func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := cluster.ClusterModel{
+	model := clusteradapter.ClusterModel{
 		ID: clusterID,
 	}
 	if err := getError(s.db.Where(model).First(&model), "failed to load model from database"); err != nil {
@@ -436,7 +436,7 @@ func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message stri
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := cluster.ClusterModel{
+	model := clusteradapter.ClusterModel{
 		ID: clusterID,
 	}
 	if err := getError(s.db.Where(&model).First(&model), "failed to load cluster model"); err != nil {
@@ -449,7 +449,7 @@ func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message stri
 			"statusMessage": message,
 		}
 
-		statusHistory := cluster.StatusHistoryModel{
+		statusHistory := clusteradapter.StatusHistoryModel{
 			ClusterID:   model.ID,
 			ClusterName: model.Name,
 
@@ -513,7 +513,7 @@ func (s gormAzurePKEClusterStore) SetConfigSecretID(clusterID uint, secretID str
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := cluster.ClusterModel{
+	model := clusteradapter.ClusterModel{
 		ID: clusterID,
 	}
 
@@ -529,7 +529,7 @@ func (s gormAzurePKEClusterStore) SetSSHSecretID(clusterID uint, secretID string
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := cluster.ClusterModel{
+	model := clusteradapter.ClusterModel{
 		ID: clusterID,
 	}
 
@@ -545,7 +545,7 @@ func (s gormAzurePKEClusterStore) GetConfigSecretID(clusterID uint) (string, err
 		return "", errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := cluster.ClusterModel{
+	model := clusteradapter.ClusterModel{
 		ID: clusterID,
 	}
 	if err := getError(s.db.Where(&model).First(&model), "failed to load cluster model"); err != nil {

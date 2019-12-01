@@ -36,7 +36,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
@@ -157,7 +157,7 @@ func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId string) error {
 }
 
 func (c *EC2ClusterPKE) GetConfigSecretId() string {
-	clusters := cluster.NewClusters(global.DB()) // TODO get it from non-global context
+	clusters := clusteradapter.NewClusters(global.DB()) // TODO get it from non-global context
 	id, err := clusters.GetConfigSecretIDByClusterID(c.GetOrganizationId(), c.GetID())
 	if err == nil {
 		c.model.Cluster.ConfigSecretID = id
@@ -182,7 +182,7 @@ func (c *EC2ClusterPKE) SetStatus(status, statusMessage string) error {
 	if c.model.Cluster.ID != 0 {
 		// Record status change to history before modifying the actual status.
 		// If setting/saving the actual status doesn't succeed somehow, at least we can reconstruct it from history (i.e. event sourcing).
-		statusHistory := cluster.StatusHistoryModel{
+		statusHistory := clusteradapter.StatusHistoryModel{
 			ClusterID:   c.model.Cluster.ID,
 			ClusterName: c.model.Cluster.Name,
 
@@ -1020,7 +1020,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 	}
 
 	c.model = &internalPke.EC2PKEClusterModel{
-		Cluster: cluster.ClusterModel{
+		Cluster: clusteradapter.ClusterModel{
 			Name:           request.Name,
 			Location:       request.Location,
 			Cloud:          request.Cloud,

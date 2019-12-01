@@ -34,7 +34,6 @@ import (
 	"logur.dev/logur"
 
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
@@ -190,7 +189,7 @@ func main() {
 		global.SetDB(db)
 
 		clusterManager := cluster.NewManager(
-			intCluster.NewClusters(db),
+			clusteradapter.NewClusters(db),
 			nil,
 			nil,
 			nil,
