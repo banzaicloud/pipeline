@@ -23,7 +23,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/pkg/amazon"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 )
 
 // createHostedZoneRoute53Policy creates an AWS policy that allows listing route53 hosted zones and record  sets in general
