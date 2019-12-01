@@ -26,7 +26,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/pkg/amazon"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 )
 
 // createHostedZone creates a hosted zone on AWS Route53 with the given domain name

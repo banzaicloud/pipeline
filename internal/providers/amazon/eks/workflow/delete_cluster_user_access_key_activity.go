@@ -23,9 +23,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/src/secret"
-
-	"github.com/banzaicloud/pipeline/pkg/amazon"
 )
 
 const DeleteClusterUserAccessKeyActivityName = "eks-delete-cluster-user-access-key"
