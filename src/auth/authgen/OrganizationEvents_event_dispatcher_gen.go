@@ -3,9 +3,7 @@ package authgen
 
 import (
 	"context"
-
 	"emperror.dev/errors"
-
 	"github.com/banzaicloud/pipeline/src/auth"
 )
 
