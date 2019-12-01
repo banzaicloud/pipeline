@@ -27,7 +27,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -151,7 +150,10 @@ func (a *ClusterAPI) CreateCluster(c *gin.Context) {
 		}
 	}
 
-	var cluster intCluster.Cluster
+	var cluster interface {
+		GetID() uint
+		GetName() string
+	}
 
 	switch createClusterRequestBase.Type {
 	case clusterAPI.PKEOnAzure:

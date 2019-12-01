@@ -20,7 +20,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 )
 
 // TableName constants
@@ -31,9 +31,9 @@ const (
 
 // GKEClusterModel is the schema for the DB.
 type GKEClusterModel struct {
-	ID        uint                 `gorm:"primary_key"`
-	Cluster   cluster.ClusterModel `gorm:"foreignkey:ClusterID"`
-	ClusterID uint                 `gorm:"unique_index:idx_gke_cluster_id"`
+	ID        uint                        `gorm:"primary_key"`
+	Cluster   clusteradapter.ClusterModel `gorm:"foreignkey:ClusterID"`
+	ClusterID uint                        `gorm:"unique_index:idx_gke_cluster_id"`
 
 	MasterVersion string
 	NodeVersion   string

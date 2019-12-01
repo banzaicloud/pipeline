@@ -25,7 +25,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/ark"
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
@@ -42,7 +42,7 @@ func ARKMiddleware(db *gorm.DB, logger logrus.FieldLogger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger = logger.WithField("middleware", "ARK")
 
-		clusters := intCluster.NewClusters(db)
+		clusters := clusteradapter.NewClusters(db)
 		clusterID, ok := ginutils.UintParam(c, "id")
 		if !ok {
 			c.Abort()

@@ -17,7 +17,7 @@ package cluster
 import (
 	gke "google.golang.org/api/container/v1"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
@@ -26,7 +26,7 @@ import (
 func GetGkeServerConfig(orgId uint, secretId string, zone string) (*gke.ServerConfig, error) {
 	g := GKECluster{
 		model: &google.GKEClusterModel{
-			Cluster: cluster.ClusterModel{
+			Cluster: clusteradapter.ClusterModel{
 				OrganizationID: orgId,
 				SecretID:       secretId,
 				Cloud:          pkgCluster.Google,
@@ -40,7 +40,7 @@ func GetGkeServerConfig(orgId uint, secretId string, zone string) (*gke.ServerCo
 func GetAllMachineTypesByZone(orgId uint, secretId string, zone string) (map[string]pkgCluster.MachineTypes, error) {
 	g := &GKECluster{
 		model: &google.GKEClusterModel{
-			Cluster: cluster.ClusterModel{
+			Cluster: clusteradapter.ClusterModel{
 				OrganizationID: orgId,
 				SecretID:       secretId,
 				Cloud:          pkgCluster.Google,
@@ -54,7 +54,7 @@ func GetAllMachineTypesByZone(orgId uint, secretId string, zone string) (map[str
 func GetAllMachineTypes(orgId uint, secretId string) (map[string]pkgCluster.MachineTypes, error) {
 	g := &GKECluster{
 		model: &google.GKEClusterModel{
-			Cluster: cluster.ClusterModel{
+			Cluster: clusteradapter.ClusterModel{
 				OrganizationID: orgId,
 				SecretID:       secretId,
 				Cloud:          pkgCluster.Google,
@@ -69,7 +69,7 @@ func GetAllMachineTypes(orgId uint, secretId string) (map[string]pkgCluster.Mach
 func GetZones(orgId uint, secretId string) ([]string, error) {
 	g := &GKECluster{
 		model: &google.GKEClusterModel{
-			Cluster: cluster.ClusterModel{
+			Cluster: clusteradapter.ClusterModel{
 				OrganizationID: orgId,
 				SecretID:       secretId,
 				Cloud:          pkgCluster.Google,
