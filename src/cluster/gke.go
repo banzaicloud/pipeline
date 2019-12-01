@@ -43,7 +43,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd/api"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
@@ -95,7 +95,7 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 	}
 
 	c.model = &google.GKEClusterModel{
-		Cluster: cluster.ClusterModel{
+		Cluster: clusteradapter.ClusterModel{
 			Name:           request.Name,
 			Location:       request.Location,
 			OrganizationID: orgID,
@@ -123,7 +123,7 @@ type dbGKEClusterRepository struct {
 	db *gorm.DB
 }
 
-func (r dbGKEClusterRepository) DeleteClusterModel(model *cluster.ClusterModel) error {
+func (r dbGKEClusterRepository) DeleteClusterModel(model *clusteradapter.ClusterModel) error {
 	return r.db.Delete(model).Error
 }
 
@@ -139,7 +139,7 @@ func (r dbGKEClusterRepository) SaveModel(model *google.GKEClusterModel) error {
 	return r.db.Save(model).Error
 }
 
-func (r dbGKEClusterRepository) SaveStatusHistory(model *cluster.StatusHistoryModel) error {
+func (r dbGKEClusterRepository) SaveStatusHistory(model *clusteradapter.StatusHistoryModel) error {
 	return r.db.Save(model).Error
 }
 
@@ -155,11 +155,11 @@ func NewDBGKEClusterRepository(db *gorm.DB) (GKEClusterRepository, error) {
 
 // GKEClusterRepository describes a GKE cluster's persistent storage repository
 type GKEClusterRepository interface {
-	DeleteClusterModel(model *cluster.ClusterModel) error
+	DeleteClusterModel(model *clusteradapter.ClusterModel) error
 	DeleteModel(model *google.GKEClusterModel) error
 	DeleteNodePool(model *google.GKENodePoolModel) error
 	SaveModel(model *google.GKEClusterModel) error
-	SaveStatusHistory(model *cluster.StatusHistoryModel) error
+	SaveStatusHistory(model *clusteradapter.StatusHistoryModel) error
 }
 
 // GKECluster struct for GKE cluster
@@ -1730,7 +1730,7 @@ func (c *GKECluster) SetStatus(status, statusMessage string) error {
 	if c.model.Cluster.ID != 0 {
 		// Record status change to history before modifying the actual status.
 		// If setting/saving the actual status doesn't succeed somehow, at least we can reconstruct it from history (i.e. event sourcing).
-		statusHistory := cluster.StatusHistoryModel{
+		statusHistory := clusteradapter.StatusHistoryModel{
 			ClusterID:   c.model.Cluster.ID,
 			ClusterName: c.model.Cluster.Name,
 

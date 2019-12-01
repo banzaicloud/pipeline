@@ -30,7 +30,7 @@ import (
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	intClusterGroup "github.com/banzaicloud/pipeline/internal/clustergroup"
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -111,7 +111,7 @@ func NewClusterAPI(
 // Deprecated: use internal.clusterGetter instead
 func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	// TODO: move these to a struct and create them only once upon application init
-	clusters := intCluster.NewClusters(global.DB())
+	clusters := clusteradapter.NewClusters(global.DB())
 	secretValidator := providers.NewSecretValidator(secret.Store)
 	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler)
 	clusterGetter := common.NewClusterGetter(clusterManager, log, errorHandler)

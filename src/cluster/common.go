@@ -27,7 +27,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	logrusadapter "logur.dev/adapter/logrus"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
@@ -270,7 +270,7 @@ func updateScaleOptions(scaleOptions *model.ScaleOptions, requestScaleOptions *p
 	if scaleOptions == nil || requestScaleOptions == nil {
 		return
 	}
-	excludes := strings.Join(requestScaleOptions.Excludes, cluster.InstanceTypeSeparator)
+	excludes := strings.Join(requestScaleOptions.Excludes, clusteradapter.InstanceTypeSeparator)
 	scaleOptions.Enabled = requestScaleOptions.Enabled
 	scaleOptions.DesiredCpu = requestScaleOptions.DesiredCpu
 	scaleOptions.DesiredMem = requestScaleOptions.DesiredMem
@@ -291,7 +291,7 @@ func getScaleOptionsFromModel(scaleOptions model.ScaleOptions) *pkgCluster.Scale
 			KeepDesiredCapacity: scaleOptions.KeepDesiredCapacity,
 		}
 		if len(scaleOptions.Excludes) > 0 {
-			scaleOpt.Excludes = strings.Split(scaleOptions.Excludes, cluster.InstanceTypeSeparator)
+			scaleOpt.Excludes = strings.Split(scaleOptions.Excludes, clusteradapter.InstanceTypeSeparator)
 		}
 		return scaleOpt
 

@@ -19,14 +19,14 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 type pipelineMetrics struct {
 	clusterStatus *prometheus.GaugeVec
-	clusters      *intCluster.Clusters
+	clusters      *clusteradapter.Clusters
 
 	mu sync.Mutex
 }
@@ -48,7 +48,7 @@ func NewExporter() *pipelineMetrics {
 		},
 			[]string{"provider", "location", "status", "orgName", "clusterName"},
 		),
-		clusters: intCluster.NewClusters(global.DB()),
+		clusters: clusteradapter.NewClusters(global.DB()),
 	}
 	return &p
 }
