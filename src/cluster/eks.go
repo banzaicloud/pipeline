@@ -390,22 +390,6 @@ func (c *EKSCluster) CreateCluster() error {
 	return nil
 }
 
-func (c *EKSCluster) generateSSHKeyNameForCluster() string {
-	return "pipeline-eks-ssh-" + c.modelCluster.Name
-}
-
-func (c *EKSCluster) generateNodePoolStackName(nodePool *model.AmazonNodePoolsModel) string {
-	return action.GenerateNodePoolStackName(c.modelCluster.Name, nodePool.Name)
-}
-
-func (c *EKSCluster) generateStackNameForCluster() string {
-	return "pipeline-eks-" + c.modelCluster.Name
-}
-
-func (c *EKSCluster) generateStackNameForIAM() string {
-	return "pipeline-eks-iam-" + c.modelCluster.Name
-}
-
 // Persist saves the cluster model
 // Deprecated: Do not use.
 func (c *EKSCluster) Persist() error {
