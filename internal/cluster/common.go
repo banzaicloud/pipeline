@@ -20,11 +20,6 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
-type Cluster interface {
-	GetID() uint
-	GetName() string
-}
-
 // ClusterBase defines common cluster fields
 type ClusterBase struct {
 	CreatedBy      uint
