@@ -106,7 +106,7 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore) error {
 	getNodepoolStacksActivity := eksworkflow.NewGetNodepoolStacksActivity(awsSessionFactory)
 	activity.RegisterWithOptions(getNodepoolStacksActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetNodepoolStacksActivityName})
 
-	deleteStackActivity := eksworkflow.NewDeleteStackActivity(awsSessionFactory, nodePoolTemplate)
+	deleteStackActivity := eksworkflow.NewDeleteStackActivity(awsSessionFactory)
 	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteStackActivityName})
 
 	deleteControlPlaneActivity := eksworkflow.NewDeleteControlPlaneActivity(awsSessionFactory)

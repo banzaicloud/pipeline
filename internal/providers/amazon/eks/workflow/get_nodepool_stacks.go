@@ -63,7 +63,7 @@ func (a *GetNodepoolStacksActivity) Execute(ctx context.Context, input GetNodepo
 	uniqueMap := make(map[string]bool, 0)
 
 	for _, nodePool := range input.NodePoolNames {
-		nodePoolStackName := generateNodePoolStackName(input.ClusterName, nodePool)
+		nodePoolStackName := GenerateNodePoolStackName(input.ClusterName, nodePool)
 		stackNames = append(stackNames, nodePoolStackName)
 		uniqueMap[nodePoolStackName] = true
 	}

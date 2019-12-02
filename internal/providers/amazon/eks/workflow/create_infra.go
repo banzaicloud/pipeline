@@ -287,7 +287,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 
 		activityInput := CreateAsgActivityInput{
 			EKSActivityInput: commonActivityInput,
-			StackName:        generateNodePoolStackName(input.ClusterName, asg.Name),
+			StackName:        GenerateNodePoolStackName(input.ClusterName, asg.Name),
 
 			ScaleEnabled: input.ScaleEnabled,
 			SSHKeyName:   sshKeyName,

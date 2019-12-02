@@ -12,23 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package common
+package clusterdriver
 
 import (
 	"context"
 
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes"
+	"github.com/go-kit/kit/endpoint"
+	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
+
+	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
-// ClientFactory returns a Kubernetes client.
-type ClientFactory interface {
-	// FromSecret creates a Kubernetes client for a cluster from a secret.
-	FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error)
+type deleteNodePoolRequest struct {
+	ClusterID    uint
+	NodePoolName string
 }
 
-// DynamicClientFactory returns a dynamic Kubernetes client.
-type DynamicClientFactory interface {
-	// FromSecret creates a dynamic Kubernetes client for a cluster from a secret.
-	FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error)
+func MakeDeleteNodePoolEndpoint(service cluster.NodePoolService) endpoint.Endpoint {
+	return kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+		request := req.(deleteNodePoolRequest)
+
+		return service.DeleteNodePool(ctx, request.ClusterID, request.NodePoolName)
+	})
 }

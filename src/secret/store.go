@@ -567,6 +567,10 @@ func (m MismatchError) Error() string {
 	return m.Err.Error()
 }
 
+func (MismatchError) ClientError() bool {
+	return true
+}
+
 // IsCASError detects if the underlying Vault error is caused by a CAS failure
 func IsCASError(err error) bool {
 	return strings.Contains(err.Error(), "check-and-set parameter did not match the current version")

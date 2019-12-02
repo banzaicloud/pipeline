@@ -12,23 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package common
+package clusterworkflow
 
 import (
 	"context"
 
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes"
 )
-
-// ClientFactory returns a Kubernetes client.
-type ClientFactory interface {
-	// FromSecret creates a Kubernetes client for a cluster from a secret.
-	FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error)
-}
 
 // DynamicClientFactory returns a dynamic Kubernetes client.
 type DynamicClientFactory interface {
-	// FromSecret creates a dynamic Kubernetes client for a cluster from a secret.
-	FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error)
+	// FromClusterID creates a dynamic Kubernetes client for a cluster from a cluster ID.
+	FromClusterID(ctx context.Context, clusterID uint) (dynamic.Interface, error)
 }

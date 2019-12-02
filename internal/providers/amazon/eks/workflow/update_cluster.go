@@ -100,7 +100,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterstructureWor
 
 			activityInput := DeleteStackActivityInput{
 				EKSActivityInput: commonActivityInput,
-				StackName:        generateNodePoolStackName(input.ClusterName, nodePool.Name),
+				StackName:        GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
 			}
 			f := workflow.ExecuteActivity(ctx, DeleteStackActivityName, activityInput)
 			asgFutures = append(asgFutures, f)
@@ -123,7 +123,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterstructureWor
 
 			activityInput := CreateAsgActivityInput{
 				EKSActivityInput: commonActivityInput,
-				StackName:        generateNodePoolStackName(input.ClusterName, nodePool.Name),
+				StackName:        GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
 
 				ScaleEnabled: input.ScaleEnabled,
 				SSHKeyName:   sshKeyName,
@@ -153,7 +153,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterstructureWor
 
 			activityInput := UpdateAsgActivityInput{
 				EKSActivityInput: commonActivityInput,
-				StackName:        generateNodePoolStackName(input.ClusterName, nodePool.Name),
+				StackName:        GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
 				ScaleEnabled:     input.ScaleEnabled,
 				Name:             nodePool.Name,
 				NodeSpotPrice:    nodePool.NodeSpotPrice,
