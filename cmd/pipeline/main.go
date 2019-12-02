@@ -90,6 +90,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
+	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	"github.com/banzaicloud/pipeline/internal/platform/appkit"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
@@ -428,9 +429,26 @@ func main() {
 		),
 	}
 
-	clusterAPI := api.NewClusterAPI(clusterManager, commonClusterGetter, workflowClient, cloudInfoClient, clusterGroupManager, logrusLogger, errorHandler, externalBaseURL, externalURLInsecure, clusterCreators, clusterDeleters, clusterUpdaters)
+	configFactory := kubernetes.NewConfigFactory(secretStore)
+	dynamicClientFactory := kubernetes.NewDynamicClientFactory(configFactory)
 
-	nplsApi := api.NewNodepoolManagerAPI(commonClusterGetter, logrusLogger, errorHandler)
+	clusterAPI := api.NewClusterAPI(
+		clusterManager,
+		commonClusterGetter,
+		workflowClient,
+		cloudInfoClient,
+		clusterGroupManager,
+		logrusLogger,
+		errorHandler,
+		externalBaseURL,
+		externalURLInsecure,
+		clusterCreators,
+		clusterDeleters,
+		clusterUpdaters,
+		dynamicClientFactory,
+	)
+
+	nplsApi := api.NewNodepoolManagerAPI(commonClusterGetter, dynamicClientFactory, logrusLogger, errorHandler)
 
 	// Initialise Gin router
 	engine := gin.New()

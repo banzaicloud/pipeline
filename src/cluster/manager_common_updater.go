@@ -23,16 +23,27 @@ import (
 	"emperror.dev/emperror"
 	"go.uber.org/cadence/client"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/pkg/brn"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
 )
+
+// DynamicClientFactory returns a dynamic Kubernetes client.
+type DynamicClientFactory interface {
+	// FromSecret creates a Kubernetes client for a cluster from a secret.
+	FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error)
+}
 
 type commonUpdater struct {
 	request                  *cluster.UpdateClusterRequest
+	clientFactory            DynamicClientFactory
 	cluster                  CommonCluster
 	userID                   uint
 	scaleOptionsChanged      bool
@@ -63,9 +74,18 @@ func (e *commonUpdateValidationError) IsPreconditionFailed() bool {
 }
 
 // NewCommonClusterUpdater returns a new cluster creator instance.
-func NewCommonClusterUpdater(request *cluster.UpdateClusterRequest, cluster CommonCluster, userID uint, workflowClient client.Client, externalBaseURL string, externalBaseURLInsecure bool) *commonUpdater {
+func NewCommonClusterUpdater(
+	request *cluster.UpdateClusterRequest,
+	clientFactory DynamicClientFactory,
+	cluster CommonCluster,
+	userID uint,
+	workflowClient client.Client,
+	externalBaseURL string,
+	externalBaseURLInsecure bool,
+) *commonUpdater {
 	return &commonUpdater{
 		request:                 request,
+		clientFactory:           clientFactory,
 		cluster:                 cluster,
 		userID:                  userID,
 		workflowClient:          workflowClient,
@@ -154,7 +174,16 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if err = DeployNodePoolLabelsSet(c.cluster, labelsMap); err != nil {
+
+	secretID := brn.New(c.cluster.GetOrganizationId(), brn.SecretResourceType, c.cluster.GetConfigSecretId()).String()
+	dclient, err := c.clientFactory.FromSecret(ctx, secretID)
+	if err != nil {
+		return err
+	}
+
+	manager := npls.NewManager(dclient, global.Config.Cluster.Namespace)
+
+	if err = manager.Sync(labelsMap); err != nil {
 		return err
 	}
 
