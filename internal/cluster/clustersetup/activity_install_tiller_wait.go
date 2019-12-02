@@ -23,7 +23,6 @@ import (
 	"github.com/Masterminds/semver"
 	"go.uber.org/cadence/activity"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/pkg/backoff"
 )
 
@@ -32,13 +31,13 @@ const InstallTillerWaitActivityName = "install-tiller-wait"
 type InstallTillerWaitActivity struct {
 	tillerVersion string
 
-	clientFactory cluster.HelmClientFactory
+	clientFactory HelmClientFactory
 }
 
 // NewInstallTillerWaitActivity returns a new InstallTillerWaitActivity.
 func NewInstallTillerWaitActivity(
 	tillerVersion string,
-	clientFactory cluster.HelmClientFactory,
+	clientFactory HelmClientFactory,
 ) InstallTillerWaitActivity {
 	return InstallTillerWaitActivity{
 		tillerVersion: tillerVersion,

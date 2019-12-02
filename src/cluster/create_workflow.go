@@ -26,13 +26,19 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
+
+// ClientFactory returns a Kubernetes client.
+type ClientFactory interface {
+	// FromSecret creates a Kubernetes client for a cluster from a secret.
+	FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error)
+}
 
 const CreateClusterWorkflowName = "create-cluster-legacy"
 
@@ -232,11 +238,11 @@ type SetupPrivilegesActivityInput struct {
 }
 
 type SetupPrivilegesActivity struct {
-	clientFactory cluster.ClientFactory
+	clientFactory ClientFactory
 	manager       *Manager
 }
 
-func NewSetupPrivilegesActivity(clientFactory cluster.ClientFactory, manager *Manager) SetupPrivilegesActivity {
+func NewSetupPrivilegesActivity(clientFactory ClientFactory, manager *Manager) SetupPrivilegesActivity {
 	return SetupPrivilegesActivity{
 		clientFactory: clientFactory,
 		manager:       manager,
@@ -304,11 +310,11 @@ type LabelNodesWithNodepoolNameActivityInput struct {
 }
 
 type LabelNodesWithNodepoolNameActivity struct {
-	clientFactory cluster.ClientFactory
+	clientFactory ClientFactory
 	manager       *Manager
 }
 
-func NewLabelNodesWithNodepoolNameActivity(clientFactory cluster.ClientFactory, manager *Manager) LabelNodesWithNodepoolNameActivity {
+func NewLabelNodesWithNodepoolNameActivity(clientFactory ClientFactory, manager *Manager) LabelNodesWithNodepoolNameActivity {
 	return LabelNodesWithNodepoolNameActivity{
 		clientFactory: clientFactory,
 		manager:       manager,

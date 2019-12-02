@@ -29,7 +29,6 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/testing_frameworks/integration"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
@@ -91,7 +90,7 @@ func (s *LabelKubeSystemNamespaceActivityTestSuite) SetupTest() {
 }
 
 func (s *LabelKubeSystemNamespaceActivityTestSuite) Test_Execute() {
-	clientFactory := new(cluster.MockClientFactory)
+	clientFactory := new(MockClientFactory)
 	clientFactory.On("FromSecret", mock.Anything, "secret").Return(s.client, nil)
 
 	labelKubeSystemNamespaceTestActivity = NewLabelKubeSystemNamespaceActivity(clientFactory)

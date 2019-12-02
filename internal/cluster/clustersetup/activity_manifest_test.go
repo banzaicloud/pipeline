@@ -24,7 +24,7 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/pkg/kubernetes"
 )
 
 // nolint: gochecknoglobals
@@ -59,10 +59,10 @@ organizationName: example-organization
 	tpl, err := template.New("").Parse(rawTpl)
 	require.NoError(t, err)
 
-	client := new(cluster.MockDynamicFileClient)
+	client := new(kubernetes.MockDynamicFileClient)
 	client.On("Create", mock.Anything, []byte(manifest)).Return(nil)
 
-	clientFactory := new(cluster.MockDynamicFileClientFactory)
+	clientFactory := new(MockDynamicFileClientFactory)
 	clientFactory.On("FromSecret", mock.Anything, "secret").Return(client, nil)
 
 	testInitManifestActivity = NewInitManifestActivity(tpl, clientFactory)

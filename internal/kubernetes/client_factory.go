@@ -24,10 +24,10 @@ import (
 	"k8s.io/helm/pkg/helm/portforwarder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/common"
 	banzaihelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	k8s "github.com/banzaicloud/pipeline/pkg/kubernetes"
 )
 
 // ClientFactory returns a Kubernetes client.
@@ -107,7 +107,7 @@ func NewDynamicFileClientFactory(configFactory ConfigFactory) DynamicFileClientF
 }
 
 // FromSecret creates a DynamicFileClient for a cluster from a secret.
-func (f DynamicFileClientFactory) FromSecret(ctx context.Context, secretID string) (cluster.DynamicFileClient, error) {
+func (f DynamicFileClientFactory) FromSecret(ctx context.Context, secretID string) (k8s.DynamicFileClient, error) {
 	config, err := f.configFactory.FromSecret(ctx, secretID)
 	if err != nil {
 		return nil, err
