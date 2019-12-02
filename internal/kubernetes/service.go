@@ -26,19 +26,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/helm"
 )
 
 // ConfigSecretGetter returns a config secret ID for a cluster.
 type ConfigSecretGetter interface {
 	// GetConfigSecretID returns a config secret ID for a cluster.
 	GetConfigSecretID(ctx context.Context, clusterID uint) (string, error)
-}
-
-// ClusterService provides a thin access layer to clusters.
-type ClusterService interface {
-	// GetCluster retrieves the cluster representation based on the cluster identifier.
-	GetCluster(ctx context.Context, clusterID uint) (*helm.Cluster, error)
 }
 
 // Service provides an interface for using clieng-go on a specific cluster.
