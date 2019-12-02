@@ -17,6 +17,7 @@ package clustersetup
 import (
 	"context"
 
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/banzaicloud/pipeline/pkg/helm"
@@ -28,6 +29,13 @@ import (
 type ClientFactory interface {
 	// FromSecret creates a Kubernetes client for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error)
+}
+
+// DynamicClientFactory returns a dynamic Kubernetes client.
+//go:generate mockery -name DynamicClientFactory -inpkg -testonly
+type DynamicClientFactory interface {
+	// FromSecret creates a Kubernetes client for a cluster from a secret.
+	FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error)
 }
 
 // HelmClientFactory returns a Kubernetes client.

@@ -297,8 +297,7 @@ func main() {
 
 			configureNodePoolLabelsActivity := clustersetup.NewConfigureNodePoolLabelsActivity(
 				config.Cluster.Labels.Namespace,
-				commonSecretStore,
-				kubernetes.NewClientFactory(configFactory),
+				kubernetes.NewDynamicClientFactory(configFactory),
 			)
 			activity.RegisterWithOptions(configureNodePoolLabelsActivity.Execute, activity.RegisterOptions{Name: clustersetup.ConfigureNodePoolLabelsActivityName})
 		}

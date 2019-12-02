@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	"emperror.dev/emperror"
-	"github.com/banzaicloud/nodepool-labels-operator/pkg/npls"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -30,7 +29,6 @@ import (
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
 const labelFormatRegexp = "[^-A-Za-z0-9_.]"
@@ -62,17 +60,6 @@ func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, node
 		}
 	}
 	return desiredLabels, nil
-}
-
-func getNodePoolLabelSets(nodePoolLabels map[string]map[string]string) npls.NodepoolLabelSets {
-	desiredLabels := make(npls.NodepoolLabelSets)
-
-	for name, nodePoolLabelMap := range nodePoolLabels {
-		if len(nodePoolLabelMap) > 0 {
-			desiredLabels[name] = nodePoolLabelMap
-		}
-	}
-	return desiredLabels
 }
 
 func formatValue(value string) string {
@@ -150,31 +137,4 @@ func getOnDemandLabel(nodePool *pkgCluster.NodePoolStatus) string {
 		return "false"
 	}
 	return "true"
-}
-
-// DeployNodePoolLabelsSet deploys NodePoolLabelSet resources for each node pool.
-func DeployNodePoolLabelsSet(cluster CommonCluster, nodePoolLabels map[string]map[string]string) error {
-
-	pipelineSystemNamespace := global.Config.Cluster.Namespace
-
-	k8sConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		return emperror.Wrap(err, "failed to set up desired set of labels for cluster")
-	}
-	k8sClientConfig, err := k8sclient.NewClientConfig(k8sConfig)
-	if err != nil {
-		return emperror.Wrap(err, "failed to set up desired set of labels for cluster")
-	}
-	m, err := npls.NewNPLSManager(k8sClientConfig, pipelineSystemNamespace)
-	if err != nil {
-		return emperror.Wrap(err, "failed to set up desired set of labels for cluster")
-	}
-
-	labelSet := getNodePoolLabelSets(nodePoolLabels)
-	err = m.Sync(labelSet)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

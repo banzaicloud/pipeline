@@ -55,6 +55,7 @@ type ClusterAPI struct {
 	externalBaseURLInsecure bool
 	workflowClient          client.Client
 	cloudInfoClient         *cloudinfo.Client
+	clientFactory           DynamicClientFactory
 
 	logger          logrus.FieldLogger
 	errorHandler    emperror.Handler
@@ -89,7 +90,7 @@ func NewClusterAPI(
 	clusterCreators ClusterCreators,
 	clusterDeleters ClusterDeleters,
 	clusterUpdaters ClusterUpdaters,
-
+	clientFactory DynamicClientFactory,
 ) *ClusterAPI {
 	return &ClusterAPI{
 		clusterManager:          clusterManager,
@@ -104,6 +105,7 @@ func NewClusterAPI(
 		clusterCreators:         clusterCreators,
 		clusterDeleters:         clusterDeleters,
 		clusterUpdaters:         clusterUpdaters,
+		clientFactory:           clientFactory,
 	}
 }
 

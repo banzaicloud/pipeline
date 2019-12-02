@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/helm/portforwarder"
@@ -50,6 +51,28 @@ func (f ClientFactory) FromSecret(ctx context.Context, secretID string) (kuberne
 	}
 
 	return k8sclient.NewClientFromConfig(config)
+}
+
+// DynamicClientFactory returns a dynamic Kubernetes client.
+type DynamicClientFactory struct {
+	configFactory ConfigFactory
+}
+
+// NewDynamicClientFactory returns a new DynamicClientFactory.
+func NewDynamicClientFactory(configFactory ConfigFactory) DynamicClientFactory {
+	return DynamicClientFactory{
+		configFactory: configFactory,
+	}
+}
+
+// FromSecret creates a Kubernetes client for a cluster from a secret.
+func (f DynamicClientFactory) FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error) {
+	config, err := f.configFactory.FromSecret(ctx, secretID)
+	if err != nil {
+		return nil, err
+	}
+
+	return dynamic.NewForConfig(config)
 }
 
 // HelmClientFactory returns a Kubernetes client.
