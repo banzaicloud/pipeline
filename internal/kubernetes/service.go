@@ -24,8 +24,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/banzaicloud/pipeline/internal/common"
 )
 
 // ConfigSecretGetter returns a config secret ID for a cluster.
@@ -39,14 +37,14 @@ type Service struct {
 	configSecretGetter ConfigSecretGetter
 	configFactory      ConfigFactory
 
-	logger common.Logger
+	logger Logger
 }
 
 // NewService returns a new NewService.
 func NewService(
 	configSecretGetter ConfigSecretGetter,
 	configFactory ConfigFactory,
-	logger common.Logger,
+	logger Logger,
 ) *Service {
 	return &Service{
 		configSecretGetter: configSecretGetter,
