@@ -57,6 +57,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
+	"github.com/banzaicloud/pipeline/internal/kubernetes/kubernetesadapter"
 	intpkeworkflowadapter "github.com/banzaicloud/pipeline/internal/pke/workflow/adapter"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
@@ -399,7 +400,11 @@ func main() {
 
 			logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 			featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
-			kubernetesService := kubernetes.NewKubernetesService(helmadapter.NewClusterService(clusterManager), logger)
+			kubernetesService := kubernetes.NewKubernetesService(
+				kubernetesadapter.NewConfigSecretGetter(clusteradapter.NewClusters(db)),
+				kubernetes.NewConfigFactory(commonSecretStore),
+				logger,
+			)
 
 			clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 			clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
