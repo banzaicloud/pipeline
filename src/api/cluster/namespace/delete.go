@@ -22,8 +22,8 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
 // Delete deletes a kuberenetes namespace.
@@ -33,22 +33,10 @@ func (a *API) Delete(c *gin.Context) {
 		return
 	}
 
-	// TODO: factor out to a common method
-	kubeConfig, err := cluster.GetK8sConfig()
+	secretID := brn.New(cluster.GetOrganizationId(), brn.SecretResourceType, cluster.GetConfigSecretId()).String()
+	client, err := a.clientFactory.FromSecret(c.Request.Context(), secretID)
 	if err != nil {
-		a.errorHandler.Handle(errors.Wrap(err, "failed to get kube config"))
-
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error getting kubeconfig",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		a.errorHandler.Handle(errors.Wrap(err, "failed to get kube client"))
+		a.errorHandler.Handle(err)
 
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,

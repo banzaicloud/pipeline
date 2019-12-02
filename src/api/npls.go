@@ -37,7 +37,7 @@ import (
 // NodePoolManagerAPI implements the Node pool Label Management API actions.
 type NodepoolManagerAPI struct {
 	clusterGetter common.ClusterGetter
-	clientFactory DynamicClientFactory
+	clientFactory common.DynamicClientFactory
 
 	logger       logrus.FieldLogger
 	errorHandler emperror.Handler
@@ -46,7 +46,7 @@ type NodepoolManagerAPI struct {
 // NewNodepoolManagerAPI returns a new NodepoolManagerAPI instance.
 func NewNodepoolManagerAPI(
 	clusterGetter common.ClusterGetter,
-	clientFactory DynamicClientFactory,
+	clientFactory common.DynamicClientFactory,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
 ) *NodepoolManagerAPI {
