@@ -400,7 +400,7 @@ func main() {
 
 			logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 			featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
-			kubernetesService := kubernetes.NewKubernetesService(
+			kubernetesService := kubernetes.NewService(
 				kubernetesadapter.NewConfigSecretGetter(clusteradapter.NewClusters(db)),
 				kubernetes.NewConfigFactory(commonSecretStore),
 				logger,
