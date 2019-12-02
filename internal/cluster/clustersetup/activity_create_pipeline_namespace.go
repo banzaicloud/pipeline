@@ -21,8 +21,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
 const CreatePipelineNamespaceActivityName = "create-pipeline-namespace"
@@ -30,13 +28,13 @@ const CreatePipelineNamespaceActivityName = "create-pipeline-namespace"
 type CreatePipelineNamespaceActivity struct {
 	namespace string
 
-	clientFactory cluster.ClientFactory
+	clientFactory ClientFactory
 }
 
 // NewCreatePipelineNamespaceActivity returns a new CreatePipelineNamespaceActivity.
 func NewCreatePipelineNamespaceActivity(
 	namespace string,
-	clientFactory cluster.ClientFactory,
+	clientFactory ClientFactory,
 ) CreatePipelineNamespaceActivity {
 	return CreatePipelineNamespaceActivity{
 		namespace:     namespace,

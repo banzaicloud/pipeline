@@ -20,21 +20,19 @@ import (
 	"text/template"
 
 	"go.uber.org/cadence/activity"
-
-	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
 const InitManifestActivityName = "init-manifest"
 
 type InitManifestActivity struct {
 	manifest      *template.Template
-	clientFactory cluster.DynamicFileClientFactory
+	clientFactory DynamicFileClientFactory
 }
 
 // NewInitManifestActivity returns a new InitManifestActivity.
 func NewInitManifestActivity(
 	manifest *template.Template,
-	clientFactory cluster.DynamicFileClientFactory,
+	clientFactory DynamicFileClientFactory,
 ) InitManifestActivity {
 	return InitManifestActivity{
 		manifest:      manifest,

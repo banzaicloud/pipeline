@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cluster
+package clustersetup
 
 import (
 	"context"
@@ -20,32 +20,26 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/banzaicloud/pipeline/pkg/helm"
+	k8s "github.com/banzaicloud/pipeline/pkg/kubernetes"
 )
 
 // ClientFactory returns a Kubernetes client.
-//go:generate mockery -name ClientFactory -inpkg
+//go:generate mockery -name ClientFactory -inpkg -testonly
 type ClientFactory interface {
 	// FromSecret creates a Kubernetes client for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error)
 }
 
 // HelmClientFactory returns a Kubernetes client.
-//go:generate mockery -name HelmClientFactory -inpkg
+//go:generate mockery -name HelmClientFactory -inpkg -testonly
 type HelmClientFactory interface {
 	// FromSecret creates a Kubernetes client for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (*helm.Client, error)
 }
 
-// DynamicFileClient interacts with a cluster with file manifests.
-//go:generate mockery -name DynamicFileClient -inpkg
-type DynamicFileClient interface {
-	// Create iterates a set of YAML documents and calls client.Create on them.
-	Create(ctx context.Context, file []byte) error
-}
-
 // DynamicFileClientFactory returns a DynamicFileClient.
-//go:generate mockery -name DynamicFileClientFactory -inpkg
+//go:generate mockery -name DynamicFileClientFactory -inpkg -testonly
 type DynamicFileClientFactory interface {
 	// FromSecret creates a DynamicFileClient for a cluster from a secret.
-	FromSecret(ctx context.Context, secretID string) (DynamicFileClient, error)
+	FromSecret(ctx context.Context, secretID string) (k8s.DynamicFileClient, error)
 }

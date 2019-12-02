@@ -20,19 +20,18 @@ import (
 	"emperror.dev/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 )
 
 const LabelKubeSystemNamespaceActivityName = "label-kube-system-namespace"
 
 type LabelKubeSystemNamespaceActivity struct {
-	clientFactory cluster.ClientFactory
+	clientFactory ClientFactory
 }
 
 // NewLabelKubeSystemNamespaceActivity returns a new LabelKubeSystemNamespaceActivity.
 func NewLabelKubeSystemNamespaceActivity(
-	clientFactory cluster.ClientFactory,
+	clientFactory ClientFactory,
 ) LabelKubeSystemNamespaceActivity {
 	return LabelKubeSystemNamespaceActivity{
 		clientFactory: clientFactory,

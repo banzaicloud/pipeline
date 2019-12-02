@@ -28,7 +28,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/helm/cmd/helm/installer"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
@@ -39,13 +38,13 @@ const InstallTillerActivityName = "install-tiller"
 type InstallTillerActivity struct {
 	tillerVersion string
 
-	clientFactory cluster.ClientFactory
+	clientFactory ClientFactory
 }
 
 // NewInstallTillerActivity returns a new InstallTillerActivity.
 func NewInstallTillerActivity(
 	tillerVersion string,
-	clientFactory cluster.ClientFactory,
+	clientFactory ClientFactory,
 ) InstallTillerActivity {
 	return InstallTillerActivity{
 		tillerVersion: tillerVersion,

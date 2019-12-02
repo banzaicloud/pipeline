@@ -21,7 +21,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/banzaicloud/nodepool-labels-operator/pkg/npls"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -33,14 +32,14 @@ type ConfigureNodePoolLabelsActivity struct {
 	namespace string
 
 	secretStore   common.SecretStore
-	clientFactory cluster.ClientFactory
+	clientFactory ClientFactory
 }
 
 // NewConfigureNodePoolLabelsActivity returns a new ConfigureNodePoolLabelsActivity.
 func NewConfigureNodePoolLabelsActivity(
 	namespace string,
 	secretStore common.SecretStore,
-	clientFactory cluster.ClientFactory,
+	clientFactory ClientFactory,
 ) ConfigureNodePoolLabelsActivity {
 	return ConfigureNodePoolLabelsActivity{
 		namespace:     namespace,

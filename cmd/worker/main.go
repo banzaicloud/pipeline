@@ -246,6 +246,7 @@ func main() {
 		)
 
 		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+		configFactory := kubernetes.NewConfigFactory(commonSecretStore)
 
 		// Cluster setup
 		{
@@ -261,30 +262,30 @@ func main() {
 
 			initManifestActivity := clustersetup.NewInitManifestActivity(
 				initManifestTemplate,
-				clusteradapter.NewDynamicFileClientFactory(commonSecretStore),
+				kubernetes.NewDynamicFileClientFactory(configFactory),
 			)
 			activity.RegisterWithOptions(initManifestActivity.Execute, activity.RegisterOptions{Name: clustersetup.InitManifestActivityName})
 
 			createPipelineNamespaceActivity := clustersetup.NewCreatePipelineNamespaceActivity(
 				config.Cluster.Namespace,
-				clusteradapter.NewClientFactory(commonSecretStore),
+				kubernetes.NewClientFactory(configFactory),
 			)
 			activity.RegisterWithOptions(createPipelineNamespaceActivity.Execute, activity.RegisterOptions{Name: clustersetup.CreatePipelineNamespaceActivityName})
 
 			labelKubeSystemNamespaceActivity := clustersetup.NewLabelKubeSystemNamespaceActivity(
-				clusteradapter.NewClientFactory(commonSecretStore),
+				kubernetes.NewClientFactory(configFactory),
 			)
 			activity.RegisterWithOptions(labelKubeSystemNamespaceActivity.Execute, activity.RegisterOptions{Name: clustersetup.LabelKubeSystemNamespaceActivityName})
 
 			installTillerActivity := clustersetup.NewInstallTillerActivity(
 				config.Helm.Tiller.Version,
-				clusteradapter.NewClientFactory(commonSecretStore),
+				kubernetes.NewClientFactory(configFactory),
 			)
 			activity.RegisterWithOptions(installTillerActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerActivityName})
 
 			installTillerWaitActivity := clustersetup.NewInstallTillerWaitActivity(
 				config.Helm.Tiller.Version,
-				clusteradapter.NewHelmClientFactory(commonSecretStore, commonadapter.NewLogger(logger)),
+				kubernetes.NewHelmClientFactory(configFactory, commonadapter.NewLogger(logger)),
 			)
 			activity.RegisterWithOptions(installTillerWaitActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerWaitActivityName})
 
@@ -297,7 +298,7 @@ func main() {
 			configureNodePoolLabelsActivity := clustersetup.NewConfigureNodePoolLabelsActivity(
 				config.Cluster.Labels.Namespace,
 				commonSecretStore,
-				clusteradapter.NewClientFactory(commonSecretStore),
+				kubernetes.NewClientFactory(configFactory),
 			)
 			activity.RegisterWithOptions(configureNodePoolLabelsActivity.Execute, activity.RegisterOptions{Name: clustersetup.ConfigureNodePoolLabelsActivityName})
 		}
@@ -307,10 +308,10 @@ func main() {
 		downloadK8sConfigActivity := cluster.NewDownloadK8sConfigActivity(clusterManager)
 		activity.RegisterWithOptions(downloadK8sConfigActivity.Execute, activity.RegisterOptions{Name: cluster.DownloadK8sConfigActivityName})
 
-		setupPrivilegesActivity := cluster.NewSetupPrivilegesActivity(clusteradapter.NewClientFactory(commonSecretStore), clusterManager)
+		setupPrivilegesActivity := cluster.NewSetupPrivilegesActivity(kubernetes.NewClientFactory(configFactory), clusterManager)
 		activity.RegisterWithOptions(setupPrivilegesActivity.Execute, activity.RegisterOptions{Name: cluster.SetupPrivilegesActivityName})
 
-		labelNodesWithNodepoolNameActivity := cluster.NewLabelNodesWithNodepoolNameActivity(clusteradapter.NewClientFactory(commonSecretStore), clusterManager)
+		labelNodesWithNodepoolNameActivity := cluster.NewLabelNodesWithNodepoolNameActivity(kubernetes.NewClientFactory(configFactory), clusterManager)
 		activity.RegisterWithOptions(labelNodesWithNodepoolNameActivity.Execute, activity.RegisterOptions{Name: cluster.LabelNodesWithNodepoolNameActivityName})
 
 		workflow.RegisterWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
