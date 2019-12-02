@@ -12,23 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package common
+package clusterdriver
 
 import (
 	"context"
+	"testing"
 
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes"
+	"github.com/stretchr/testify/require"
+
+	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
-// ClientFactory returns a Kubernetes client.
-type ClientFactory interface {
-	// FromSecret creates a Kubernetes client for a cluster from a secret.
-	FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error)
-}
+func TestMakeNodePoolEndpoints_DeleteNodePool(t *testing.T) {
+	ctx := context.Background()
+	const clusterID = uint(1)
+	const nodePoolName = "pool0"
 
-// DynamicClientFactory returns a dynamic Kubernetes client.
-type DynamicClientFactory interface {
-	// FromSecret creates a dynamic Kubernetes client for a cluster from a secret.
-	FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error)
+	service := new(cluster.MockNodePoolService)
+	service.On("DeleteNodePool", ctx, clusterID, nodePoolName).Return(false, nil)
+
+	e := MakeNodePoolEndpoints(service).DeleteNodePool
+
+	_, err := e(ctx, deleteNodePoolRequest{clusterID, nodePoolName})
+	require.NoError(t, err)
+
+	service.AssertExpectations(t)
 }

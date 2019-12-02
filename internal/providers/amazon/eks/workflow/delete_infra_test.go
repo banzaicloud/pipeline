@@ -46,7 +46,7 @@ func TestDeleteClusterInfraWorkflowTestSuite(t *testing.T) {
 	getNodepoolStacksActivity := NewGetNodepoolStacksActivity(nil)
 	activity.RegisterWithOptions(getNodepoolStacksActivity.Execute, activity.RegisterOptions{Name: GetNodepoolStacksActivityName})
 
-	deleteStackActivity := NewDeleteStackActivity(nil, "")
+	deleteStackActivity := NewDeleteStackActivity(nil)
 	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: DeleteStackActivityName})
 
 	deleteControlPlaneActivity := NewDeleteControlPlaneActivity(nil)
@@ -121,18 +121,18 @@ func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
 		NodePoolNames:    []string{"pool1", "pool2"},
 	}).Return(&GetNodepoolStacksActivityOutput{
 		StackNames: []string{
-			generateNodePoolStackName(eksActivityInput.ClusterName, "pool1"),
-			generateNodePoolStackName(eksActivityInput.ClusterName, "pool2"),
+			GenerateNodePoolStackName(eksActivityInput.ClusterName, "pool1"),
+			GenerateNodePoolStackName(eksActivityInput.ClusterName, "pool2"),
 		},
 	}, nil).Once()
 
 	s.env.OnActivity(DeleteStackActivityName, mock.Anything, DeleteStackActivityInput{
 		EKSActivityInput: eksActivityInput,
-		StackName:        generateNodePoolStackName(eksActivityInput.ClusterName, "pool1"),
+		StackName:        GenerateNodePoolStackName(eksActivityInput.ClusterName, "pool1"),
 	}).Return(nil).Once()
 	s.env.OnActivity(DeleteStackActivityName, mock.Anything, DeleteStackActivityInput{
 		EKSActivityInput: eksActivityInput,
-		StackName:        generateNodePoolStackName(eksActivityInput.ClusterName, "pool2"),
+		StackName:        GenerateNodePoolStackName(eksActivityInput.ClusterName, "pool2"),
 	}).Return(nil).Once()
 
 	s.env.OnActivity(DeleteControlPlaneActivityName, mock.Anything, DeleteControlPlaneActivityInput{

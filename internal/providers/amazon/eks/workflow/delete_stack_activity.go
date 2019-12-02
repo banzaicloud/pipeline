@@ -32,8 +32,7 @@ const DeleteStackActivityName = "eks-delete-stack"
 
 // DeleteStackActivity responsible for deleting asg
 type DeleteStackActivity struct {
-	awsSessionFactory      *AWSSessionFactory
-	cloudFormationTemplate string
+	awsSessionFactory AWSFactory
 }
 
 type DeleteStackActivityInput struct {
@@ -47,11 +46,10 @@ type DeleteStackActivityInput struct {
 type DeleteStackActivityOutput struct {
 }
 
-//   DeleteStackActivity instantiates a new DeleteStackActivity
-func NewDeleteStackActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *DeleteStackActivity {
+// NewDeleteStackActivity instantiates a new DeleteStackActivity
+func NewDeleteStackActivity(awsSessionFactory AWSFactory) *DeleteStackActivity {
 	return &DeleteStackActivity{
-		awsSessionFactory:      awsSessionFactory,
-		cloudFormationTemplate: cloudFormationTemplate,
+		awsSessionFactory: awsSessionFactory,
 	}
 }
 
