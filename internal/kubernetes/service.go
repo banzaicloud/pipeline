@@ -27,8 +27,13 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
+
+// ConfigSecretGetter returns a config secret ID for a cluster.
+type ConfigSecretGetter interface {
+	// GetConfigSecretID returns a config secret ID for a cluster.
+	GetConfigSecretID(ctx context.Context, clusterID uint) (string, error)
+}
 
 // ClusterService provides a thin access layer to clusters.
 type ClusterService interface {
@@ -38,31 +43,39 @@ type ClusterService interface {
 
 // KubernetesService provides an interface for using clieng-go on a specific cluster.
 type KubernetesService struct {
-	clusters ClusterService
-	logger   common.Logger
+	configSecretGetter ConfigSecretGetter
+	configFactory      ConfigFactory
+
+	logger common.Logger
 }
 
 // NewKubernetesService returns a new NewKubernetesService.
-func NewKubernetesService(clusters ClusterService, logger common.Logger) *KubernetesService {
+func NewKubernetesService(
+	configSecretGetter ConfigSecretGetter,
+	configFactory ConfigFactory,
+	logger common.Logger,
+) *KubernetesService {
 	return &KubernetesService{
-		clusters: clusters,
-		logger:   logger.WithFields(map[string]interface{}{"component": "kubernetes"}),
+		configSecretGetter: configSecretGetter,
+		configFactory:      configFactory,
+
+		logger: logger.WithFields(map[string]interface{}{"component": "kubernetes"}),
 	}
 }
 
 // GetKubeConfig gets a kube config for a specific cluster.
 func (s *KubernetesService) GetKubeConfig(ctx context.Context, clusterID uint) (*k8srest.Config, error) {
-	cluster, err := s.clusters.GetCluster(ctx, clusterID)
+	secretID, err := s.configSecretGetter.GetConfigSecretID(ctx, clusterID)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to get cluster Kubernetes config")
+		return nil, err
 	}
 
-	kubeConfig, err := k8sclient.NewClientConfig(cluster.KubeConfig)
+	config, err := s.configFactory.FromSecret(ctx, secretID)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to create cluster Kubernetes config")
+		return nil, err
 	}
 
-	return kubeConfig, nil
+	return config, nil
 }
 
 // GetObject gets an Object from a specific cluster.
