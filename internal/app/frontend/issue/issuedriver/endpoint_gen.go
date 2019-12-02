@@ -15,7 +15,7 @@ type Endpoints struct {
 	ReportIssue endpoint.Endpoint
 }
 
-// MakeEndpoints returns an Endpoints struct where each endpoint invokes
+// MakeEndpoints returns a(n) Endpoints struct where each endpoint invokes
 // the corresponding method on the provided service.
 func MakeEndpoints(service issue.Service, middleware ...endpoint.Middleware) Endpoints {
 	mw := kitxendpoint.Chain(middleware...)
@@ -23,7 +23,7 @@ func MakeEndpoints(service issue.Service, middleware ...endpoint.Middleware) End
 	return Endpoints{ReportIssue: mw(MakeReportIssueEndpoint(service))}
 }
 
-// TraceEndpoints returns an Endpoints struct where each endpoint is wrapped with a tracing middleware.
+// TraceEndpoints returns a(n) Endpoints struct where each endpoint is wrapped with a tracing middleware.
 func TraceEndpoints(endpoints Endpoints) Endpoints {
 	return Endpoints{ReportIssue: kitoc.TraceEndpoint("issue.ReportIssue")(endpoints.ReportIssue)}
 }

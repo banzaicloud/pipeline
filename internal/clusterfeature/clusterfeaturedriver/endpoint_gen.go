@@ -19,7 +19,7 @@ type Endpoints struct {
 	Update     endpoint.Endpoint
 }
 
-// MakeEndpoints returns an Endpoints struct where each endpoint invokes
+// MakeEndpoints returns a(n) Endpoints struct where each endpoint invokes
 // the corresponding method on the provided service.
 func MakeEndpoints(service clusterfeature.Service, middleware ...endpoint.Middleware) Endpoints {
 	mw := kitxendpoint.Chain(middleware...)
@@ -33,7 +33,7 @@ func MakeEndpoints(service clusterfeature.Service, middleware ...endpoint.Middle
 	}
 }
 
-// TraceEndpoints returns an Endpoints struct where each endpoint is wrapped with a tracing middleware.
+// TraceEndpoints returns a(n) Endpoints struct where each endpoint is wrapped with a tracing middleware.
 func TraceEndpoints(endpoints Endpoints) Endpoints {
 	return Endpoints{
 		Activate:   kitoc.TraceEndpoint("clusterfeature.Activate")(endpoints.Activate),
