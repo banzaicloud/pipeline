@@ -281,12 +281,12 @@ func installSecret(
 		},
 	}
 
-	k8sSec, err := cluster.InstallSecret(cl, secretName, req)
+	k8sSecName, err := cluster.InstallSecret(cl, secretName, req)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to install secret to cluster")
 	}
 
-	return k8sSec.Name, nil
+	return k8sSecName, nil
 }
 
 func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
