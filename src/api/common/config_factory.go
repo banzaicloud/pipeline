@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package common
 
 import (
 	"context"
 
-	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/rest"
 )
 
-// DynamicClientFactory returns a dynamic Kubernetes client.
-type DynamicClientFactory interface {
-	// FromSecret creates a Kubernetes client for a cluster from a secret.
-	FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error)
+// ConfigFactory returns a Kubernetes configuration.
+type ConfigFactory interface {
+	// FromSecret returns a config from a secret.
+	FromSecret(ctx context.Context, secretID string) (*rest.Config, error)
 }

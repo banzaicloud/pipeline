@@ -37,10 +37,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/global"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/hpa"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"github.com/banzaicloud/pipeline/src/api/common"
 )
 
 const hpaAnnotationPrefix = "hpa.autoscaling.banzaicloud.io"
@@ -55,18 +57,32 @@ func (e *scaleTargetNotFoundError) Error() string {
 
 type HPAAPI struct {
 	featureService clusterfeature.Service
+	clientFactory  common.ClientFactory
+	configFactory  common.ConfigFactory
+	clusterGetter  common.ClusterGetter
+	errorHandler   emperror.Handler
 }
 
 // NewHPAAPI returns a new HPAAPI.
-func NewHPAAPI(featureService clusterfeature.Service) HPAAPI {
+func NewHPAAPI(
+	featureService clusterfeature.Service,
+	clientFactory common.ClientFactory,
+	configFactory common.ConfigFactory,
+	clusterGetter common.ClusterGetter,
+	errorHandler emperror.Handler,
+) HPAAPI {
 	return HPAAPI{
 		featureService: featureService,
+		clientFactory:  clientFactory,
+		configFactory:  configFactory,
+		clusterGetter:  clusterGetter,
+		errorHandler:   errorHandler,
 	}
 }
 
 // PutHpaResource create/updates a Hpa resource annotations on scaleTarget - a K8s deployment/statefulset
 func (a HPAAPI) PutHpaResource(c *gin.Context) {
-	kubeConfig, ok := GetK8sConfig(c)
+	cluster, ok := a.clusterGetter.GetClusterFromRequest(c)
 	if !ok {
 		return
 	}
@@ -96,24 +112,26 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 		return
 	}
 
-	config, err := k8sclient.NewClientConfig(kubeConfig)
+	secretID := brn.New(cluster.GetOrganizationId(), brn.SecretResourceType, cluster.GetConfigSecretId()).String()
+	client, err := a.clientFactory.FromSecret(c.Request.Context(), secretID)
 	if err != nil {
-		err := errors.Wrap(err, "Error getting K8s cluster config:")
-		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+		a.errorHandler.Handle(err)
+
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error getting K8s cluster config!",
+			Message: "Error getting kube client",
 			Error:   err.Error(),
 		})
 		return
 	}
-	client, err := k8sclient.NewClientFromConfig(config)
+
+	config, err := a.configFactory.FromSecret(c.Request.Context(), secretID)
 	if err != nil {
-		err := errors.Wrap(err, "Error getting K8s cluster client:")
-		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+		a.errorHandler.Handle(err)
+
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error getting K8s cluster client!",
+			Message: "Error getting kube config",
 			Error:   err.Error(),
 		})
 		return
@@ -121,7 +139,6 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 
 	// validate custom metrics query
 	if len(scalingRequest.CustomMetrics) > 0 {
-		cluster, _ := getClusterFromRequest(c)
 		ok, err := a.isMonitoringEnabled(c.Request.Context(), cluster.GetID())
 		if err != nil {
 			err := errors.WithDetails(
@@ -197,7 +214,7 @@ func (a HPAAPI) isMonitoringEnabled(ctx context.Context, clusterID uint) (bool, 
 	return true, nil
 }
 
-func runPrometheusQuery(config *rest.Config, client *kubernetes.Clientset, query string) (model.Value, error) {
+func runPrometheusQuery(config *rest.Config, client kubernetes.Interface, query string) (model.Value, error) {
 	prometheusEndpointPort := global.Config.Cluster.Autoscale.HPA.Prometheus.LocalPort
 	pipelineSystemNamespace := global.Config.Cluster.Namespace
 	serviceContext := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceContext
@@ -251,19 +268,31 @@ func runPrometheusQuery(config *rest.Config, client *kubernetes.Clientset, query
 
 // DeleteHpaResource deletes a Hpa resource annotations from scaleTarget - K8s deployment/statefulset
 func (a HPAAPI) DeleteHpaResource(c *gin.Context) {
-
 	scaleTarget, ok := ginutils.RequiredQueryOrAbort(c, "scaleTarget")
 	if !ok {
 		return
 	}
 	log.Debugf("getting hpa details for scaleTarget: [%s]", scaleTarget)
 
-	kubeConfig, ok := GetK8sConfig(c)
+	cluster, ok := a.clusterGetter.GetClusterFromRequest(c)
 	if !ok {
 		return
 	}
 
-	err := deleteDeploymentAutoscalingInfo(kubeConfig, scaleTarget)
+	secretID := brn.New(cluster.GetOrganizationId(), brn.SecretResourceType, cluster.GetConfigSecretId()).String()
+	client, err := a.clientFactory.FromSecret(c.Request.Context(), secretID)
+	if err != nil {
+		a.errorHandler.Handle(err)
+
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting kube client",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	err = deleteDeploymentAutoscalingInfo(client, scaleTarget)
 	if err != nil {
 
 		httpStatusCode := http.StatusInternalServerError
@@ -292,12 +321,25 @@ func (a HPAAPI) GetHpaResource(c *gin.Context) {
 	}
 	log.Debugf("getting hpa details for scaleTarget: [%s]", scaleTarget)
 
-	kubeConfig, ok := GetK8sConfig(c)
+	cluster, ok := a.clusterGetter.GetClusterFromRequest(c)
 	if !ok {
 		return
 	}
 
-	deploymentResponse, err := getHpaResources(scaleTarget, kubeConfig)
+	secretID := brn.New(cluster.GetOrganizationId(), brn.SecretResourceType, cluster.GetConfigSecretId()).String()
+	client, err := a.clientFactory.FromSecret(c.Request.Context(), secretID)
+	if err != nil {
+		a.errorHandler.Handle(err)
+
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting kube client",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	deploymentResponse, err := getHpaResources(scaleTarget, client)
 	if err != nil {
 
 		httpStatusCode := http.StatusInternalServerError
@@ -319,18 +361,7 @@ func (a HPAAPI) GetHpaResource(c *gin.Context) {
 
 }
 
-func getHpaResources(scaleTargetRef string, kubeConfig []byte) (*hpa.DeploymentScalingInfo, error) {
-	config, err := k8sclient.NewClientConfig(kubeConfig)
-	if err != nil {
-		return nil, errors.WithMessage(err, "failed to create client config")
-	}
-
-	client, err := k8sclient.NewClientFromConfig(config)
-	if err != nil {
-		log.Errorf("Getting K8s client failed: %s", err.Error())
-		return nil, err
-	}
-
+func getHpaResources(scaleTargetRef string, client kubernetes.Interface) (*hpa.DeploymentScalingInfo, error) {
 	listOption := metav1.ListOptions{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "HorizontalPodAutoscaler",
@@ -447,13 +478,7 @@ func hpaBelongsToDeployment(hpa v2beta1.HorizontalPodAutoscaler, scaleTragetRef 
 	return true
 }
 
-func deleteDeploymentAutoscalingInfo(kubeConfig []byte, scaleTarget string) error {
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		log.Errorf("Getting K8s client failed: %s", err.Error())
-		return err
-	}
-
+func deleteDeploymentAutoscalingInfo(client kubernetes.Interface, scaleTarget string) error {
 	// find deployment & update hpa annotations
 	// get doesn't work with metav1.NamespaceAll only if you specify the namespace exactly
 	// deployment, err := client.AppsV1().Deployments(metav1.NamespaceAll).Get(request.Name, metav1.GetOptions{})
@@ -501,7 +526,7 @@ func deleteDeploymentAutoscalingInfo(kubeConfig []byte, scaleTarget string) erro
 	return nil
 }
 
-func setDeploymentAutoscalingInfo(client *kubernetes.Clientset, request hpa.DeploymentScalingRequest) error {
+func setDeploymentAutoscalingInfo(client kubernetes.Interface, request hpa.DeploymentScalingRequest) error {
 	// find deployment & update hpa annotations
 	// get doesn't work with metav1.NamespaceAll only if you specify the namespace exactly
 	// deployment, err := client.AppsV1().Deployments(metav1.NamespaceAll).Get(request.Name, metav1.GetOptions{})

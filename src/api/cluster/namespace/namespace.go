@@ -23,12 +23,18 @@ import (
 
 type API struct {
 	clusterGetter common.ClusterGetter
+	clientFactory common.ClientFactory
 	errorHandler  emperror.Handler
 }
 
-func NewAPI(clusterGetter common.ClusterGetter, errorHandler emperror.Handler) *API {
+func NewAPI(
+	clusterGetter common.ClusterGetter,
+	clientFactory common.ClientFactory,
+	errorHandler emperror.Handler,
+) *API {
 	return &API{
 		clusterGetter: clusterGetter,
+		clientFactory: clientFactory,
 		errorHandler:  errorHandler,
 	}
 }

@@ -430,6 +430,7 @@ func main() {
 	}
 
 	configFactory := kubernetes.NewConfigFactory(secretStore)
+	clientFactory := kubernetes.NewClientFactory(configFactory)
 	dynamicClientFactory := kubernetes.NewDynamicClientFactory(configFactory)
 
 	clusterAPI := api.NewClusterAPI(
@@ -791,7 +792,7 @@ func main() {
 				cRouter.Any("/features/:featureName", gin.WrapH(router))
 			}
 
-			hpaApi := api.NewHPAAPI(featureService)
+			hpaApi := api.NewHPAAPI(featureService, clientFactory, configFactory, commonClusterGetter, errorHandler)
 			cRouter.GET("/hpa", hpaApi.GetHpaResource)
 			cRouter.PUT("/hpa", hpaApi.PutHpaResource)
 			cRouter.DELETE("/hpa", hpaApi.DeleteHpaResource)
@@ -836,7 +837,7 @@ func main() {
 			cRouter.GET("/nodepools/labels", nplsApi.GetNodepoolLabelSets)
 			cRouter.POST("/nodepools/labels", nplsApi.SetNodepoolLabelSets)
 
-			namespaceAPI := namespace.NewAPI(commonClusterGetter, errorHandler)
+			namespaceAPI := namespace.NewAPI(commonClusterGetter, clientFactory, errorHandler)
 			namespaceAPI.RegisterRoutes(cRouter.Group("/namespaces"))
 
 			pkeGroup := cRouter.Group("/pke")
