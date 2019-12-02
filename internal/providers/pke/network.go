@@ -55,9 +55,7 @@ func (n Network) String() string {
 // NetworkProvider is the schema for the DB.
 type NetworkProvider string
 
-const (
-	NPWeave NetworkProvider = "weave" // Weave network provider.
-)
+var _ driver.Valuer = (*NetworkProvider)(nil)
 
 // Value implements the driver.Valuer interface
 func (n NetworkProvider) Value() (driver.Value, error) {

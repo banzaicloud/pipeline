@@ -18973,6 +18973,7 @@ components:
         provider:
           enum:
           - weave
+          - calico
           type: string
         providerConfig:
           type: object
