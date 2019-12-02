@@ -40,6 +40,7 @@ type AWSCluster interface {
 	GetAWSClient() (*session.Session, error)
 	GetBootstrapCommand(string, string, bool, string) (string, error)
 	GetKubernetesVersion() (string, error)
+	GetKubernetesNetworkProvider() (string, error)
 	SaveNetworkCloudProvider(string, string, []string) error
 	SaveNetworkApiServerAddress(string, string) error
 }

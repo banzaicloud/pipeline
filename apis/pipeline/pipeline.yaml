@@ -4381,6 +4381,7 @@ components:
                     type: string
                     enum:
                         - weave
+                        - calico
                 providerConfig:
                     type: object
 
