@@ -55,8 +55,6 @@ func (n Network) String() string {
 // NetworkProvider is the schema for the DB.
 type NetworkProvider string
 
-var _ driver.Valuer = (*NetworkProvider)(nil)
-
 // Value implements the driver.Valuer interface
 func (n NetworkProvider) Value() (driver.Value, error) {
 	return string(n), nil
