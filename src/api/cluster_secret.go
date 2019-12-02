@@ -96,7 +96,7 @@ func InstallSecretToCluster(c *gin.Context) {
 		secretRequest.SourceSecretName = secretName
 	}
 
-	secretSource, err := cluster.InstallSecret(commonCluster, secretName, secretRequest)
+	installedSecretName, err := cluster.InstallSecret(commonCluster, secretName, secretRequest)
 
 	if err == cluster.ErrSecretNotFound {
 		ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
@@ -131,8 +131,8 @@ func InstallSecretToCluster(c *gin.Context) {
 	}
 
 	response := InstallSecretResponse{
-		Name:     secretName,
-		Sourcing: string(secretSource.Sourcing),
+		Name:     installedSecretName,
+		Sourcing: "env", // keep backwards compatibility
 	}
 
 	c.JSON(http.StatusOK, response)
@@ -189,7 +189,7 @@ func MergeSecretInCluster(c *gin.Context) {
 		secretRequest.SourceSecretName = secretName
 	}
 
-	secretSource, err := cluster.MergeSecret(commonCluster, secretName, secretRequest)
+	installedSecretName, err := cluster.MergeSecret(commonCluster, secretName, secretRequest)
 
 	if err == cluster.ErrSecretNotFound {
 		ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
@@ -224,8 +224,8 @@ func MergeSecretInCluster(c *gin.Context) {
 	}
 
 	response := InstallSecretResponse{
-		Name:     secretName,
-		Sourcing: string(secretSource.Sourcing),
+		Name:     installedSecretName,
+		Sourcing: "env", // keep backwards compatibility
 	}
 
 	c.JSON(http.StatusOK, response)

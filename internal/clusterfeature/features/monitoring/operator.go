@@ -396,18 +396,18 @@ func (op FeatureOperator) deletePrometheusSecret(ctx context.Context, clusterID 
 	return op.secretStore.Delete(ctx, secretID)
 }
 
-func (op FeatureOperator) installSecret(ctx context.Context, clusterID uint, secretName string, secretRequest pkgCluster.InstallSecretRequest) (*secret.K8SSourceMeta, error) {
+func (op FeatureOperator) installSecret(ctx context.Context, clusterID uint, secretName string, secretRequest pkgCluster.InstallSecretRequest) (string, error) {
 	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to get cluster", "clusterID", clusterID)
+		return "", errors.WrapIfWithDetails(err, "failed to get cluster", "clusterID", clusterID)
 	}
 
-	k8sSec, err := pkgCluster.InstallSecret(cl, secretName, secretRequest)
+	k8sSecName, err := pkgCluster.InstallSecret(cl, secretName, secretRequest)
 	if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to install secret to the cluster", "clusterID", clusterID)
+		return "", errors.WrapIfWithDetails(err, "failed to install secret to the cluster", "clusterID", clusterID)
 	}
 
-	return k8sSec, nil
+	return k8sSecName, nil
 }
 
 func (op FeatureOperator) getGrafanaSecret(

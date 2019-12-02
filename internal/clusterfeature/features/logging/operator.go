@@ -389,13 +389,13 @@ func isSecretNotFoundError(err error) bool {
 	return false
 }
 
-func (op FeatureOperator) installSecret(ctx context.Context, cl clusterfeatureadapter.Cluster, secretName string, secretRequest pkgCluster.InstallSecretRequest) (*secret.K8SSourceMeta, error) {
-	k8sSec, err := pkgCluster.InstallSecret(cl, secretName, secretRequest)
+func (op FeatureOperator) installSecret(ctx context.Context, cl clusterfeatureadapter.Cluster, secretName string, secretRequest pkgCluster.InstallSecretRequest) (string, error) {
+	k8sSecName, err := pkgCluster.InstallSecret(cl, secretName, secretRequest)
 	if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to install secret to the cluster", "clusterID", cl.GetID())
+		return "", errors.WrapIfWithDetails(err, "failed to install secret to the cluster", "clusterID", cl.GetID())
 	}
 
-	return k8sSec, nil
+	return k8sSecName, nil
 }
 
 func (op FeatureOperator) installLoggingOperator(ctx context.Context, clusterID uint) error {
