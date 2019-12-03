@@ -70,7 +70,7 @@ You can test the REST API, using the Postman collection.
 The easiest to kickstart your Pipeline experience is by trying out our free developer version of the Pipeline platform at: 
 
 <p align="center">
-  <a href="https://beta.banzaicloud.io">
+  <a href="https://try.banzaicloud.io">
   <img src="https://camo.githubusercontent.com/a487fb3128bcd1ef9fc1bf97ead8d6d6a442049a/68747470733a2f2f62616e7a6169636c6f75642e636f6d2f696d672f7472795f706970656c696e655f627574746f6e2e737667">
   </a>
 </p>
