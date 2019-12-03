@@ -53,17 +53,12 @@ const (
 // nolint: gochecknoglobals
 var Store *secretStore
 
-// RestrictedStore object that wraps the main secret store and restricts access to certain items
-// nolint: gochecknoglobals
-var RestrictedStore *restrictedSecretStore
-
 // ErrSecretNotExists denotes 'Not Found' errors for secrets
 // nolint: gochecknoglobals
 var ErrSecretNotExists = fmt.Errorf("There's no secret with this ID")
 
 func init() {
 	Store = newVaultSecretStore()
-	RestrictedStore = &restrictedSecretStore{Store}
 }
 
 type secretStore struct {

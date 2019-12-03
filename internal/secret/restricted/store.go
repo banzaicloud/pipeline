@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,25 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package secret
+package restricted
 
 import (
 	"fmt"
+
+	"github.com/banzaicloud/pipeline/src/secret"
 )
+
+// GlobalSecretStore object that wraps the main secret store and restricts access to certain items
+// nolint: gochecknoglobals
+var GlobalSecretStore = &restrictedSecretStore{
+	secretStore: secret.Store,
+}
 
 // restrictedSecretStore checks whether the user can access a certain secret.
 // For now this only means checking for forbidden tags.
 type restrictedSecretStore struct {
-	*secretStore
+	secretStore
 }
 
-func (s *restrictedSecretStore) List(orgid uint, query *ListSecretsQuery) ([]*SecretItemResponse, error) {
+type secretStore interface {
+	Delete(orgID uint, secretID string) error
+	Get(orgID uint, secretID string) (*secret.SecretItemResponse, error)
+	List(orgID uint, query *secret.ListSecretsQuery) ([]*secret.SecretItemResponse, error)
+	Store(orgID uint, request *secret.CreateSecretRequest) (string, error)
+	Update(orgID uint, secretID string, request *secret.CreateSecretRequest) error
+}
+
+func (s *restrictedSecretStore) List(orgid uint, query *secret.ListSecretsQuery) ([]*secret.SecretItemResponse, error) {
 	responseItems, err := s.secretStore.List(orgid, query)
 	if err != nil {
 		return nil, err
 	}
 
-	newResponseItems := []*SecretItemResponse{}
+	newResponseItems := []*secret.SecretItemResponse{}
 
 	for _, item := range responseItems {
 		if HasForbiddenTag(item.Tags) == nil {
@@ -41,7 +57,7 @@ func (s *restrictedSecretStore) List(orgid uint, query *ListSecretsQuery) ([]*Se
 	return newResponseItems, nil
 }
 
-func (s *restrictedSecretStore) Update(organizationID uint, secretID string, value *CreateSecretRequest) error {
+func (s *restrictedSecretStore) Update(organizationID uint, secretID string, value *secret.CreateSecretRequest) error {
 	if err := s.checkBlockingTags(organizationID, secretID); err != nil {
 		return err
 	}
@@ -86,9 +102,9 @@ func (s *restrictedSecretStore) checkForbiddenTags(organizationID uint, secretID
 	return HasForbiddenTag(secretItem.Tags)
 }
 
-func (s *restrictedSecretStore) isSecretReadOnly(secretItem *SecretItemResponse) error {
+func (s *restrictedSecretStore) isSecretReadOnly(secretItem *secret.SecretItemResponse) error {
 	for _, tag := range secretItem.Tags {
-		if tag == TagBanzaiReadonly {
+		if tag == secret.TagBanzaiReadonly {
 			return ReadOnlyError{
 				SecretID: secretItem.ID,
 			}
@@ -120,7 +136,7 @@ func (f ForbiddenError) Error() string {
 // HasForbiddenTag is looking for forbidden tags
 func HasForbiddenTag(tags []string) error {
 	for _, tag := range tags {
-		for _, forbiddenTag := range ForbiddenTags {
+		for _, forbiddenTag := range secret.ForbiddenTags {
 			if tag == forbiddenTag {
 				return ForbiddenError{
 					ForbiddenTag: tag,
