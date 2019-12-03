@@ -141,3 +141,14 @@ func (m Manager) Sync(labels map[string]map[string]string) error {
 
 	return errors.Combine(errs...)
 }
+
+func (m Manager) Delete(poolName string) error {
+	client := m.client.Resource(labelsetGVR).Namespace(m.namespace)
+
+	err := client.Delete(poolName, nil)
+	if k8serrors.IsNotFound(err) {
+		return nil
+	}
+
+	return errors.WrapWithDetails(err, "failed to delete node pool label set", "poolName", poolName)
+}
