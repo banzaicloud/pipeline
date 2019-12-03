@@ -43,7 +43,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-const pkeVersion = "0.4.14"
+const pkeVersion = "0.4.17"
 const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
 func MakeAzurePKEClusterCreator(
@@ -275,6 +275,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		ClusterID:                   cl.ID,
 		ClusterName:                 cl.Name,
 		KubernetesVersion:           cl.Kubernetes.Version,
+		KubernetesNetworkProvider:   params.Kubernetes.Network.Provider,
 		Location:                    cl.Location,
 		NoProxy:                     strings.Join(cl.HTTPProxy.Exceptions, ","),
 		OrganizationID:              cl.OrganizationID,
@@ -646,6 +647,7 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-advertise-address=$PRIVATE_IP:6443 \
 --kubernetes-api-server={{ .ApiServerAddress }}:6443 \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
+--kubernetes-network-provider={{ .KubernetesNetworkProvider }} \
 --kubernetes-version={{ .KubernetesVersion }} \
 --kubernetes-master-mode={{ .KubernetesMasterMode }} \
 --kubernetes-api-server-cert-sans={{ .ApiServerCertSans }}`

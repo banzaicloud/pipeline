@@ -25,14 +25,13 @@ import (
 	"strconv"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
@@ -131,7 +130,7 @@ func (c *EC2ClusterPKE) SaveSshSecretId(sshSecretId string) error {
 
 	err := c.db.Save(&c.model).Error
 	if err != nil {
-		return emperror.WrapWith(err, "failed to save ssh secret", "secret", sshSecretId)
+		return errors.WrapIfWithDetails(err, "failed to save ssh secret", "secret", sshSecretId)
 	}
 
 	return nil
@@ -171,7 +170,7 @@ func (c *EC2ClusterPKE) GetSecretWithValidation() (*secret.SecretItemResponse, e
 }
 
 func (c *EC2ClusterPKE) Persist() error {
-	return emperror.Wrap(c.db.Save(c.model).Error, "failed to persist cluster")
+	return errors.WrapIf(c.db.Save(c.model).Error, "failed to persist cluster")
 }
 
 // SetStatus sets the cluster's status
@@ -224,7 +223,7 @@ func (c *EC2ClusterPKE) DeleteFromDatabase() error {
 
 	// dependencies are deleted using a GORM hook!
 	if e := c.db.Delete(c.model).Error; e != nil {
-		return emperror.WrapWith(e, "failed to delete EC2BanzaiCloudCluster", "distro", c.model.ID)
+		return errors.WrapIfWithDetails(e, "failed to delete EC2BanzaiCloudCluster", "distro", c.model.ID)
 	}
 
 	return nil
@@ -258,7 +257,7 @@ func (c *EC2ClusterPKE) SetCurrentWorkflowID(workflowID string) error {
 
 	err := c.db.Save(&c.model).Error
 	if err != nil {
-		return emperror.WrapWith(err, "failed to save workflow id", "workflowId", workflowID)
+		return errors.WrapIfWithDetails(err, "failed to save workflow id", "workflowId", workflowID)
 	}
 
 	return nil
@@ -274,7 +273,7 @@ func (c *EC2ClusterPKE) HasK8sConfig() (bool, error) {
 	if err == ErrConfigNotExists {
 		return false, nil
 	}
-	return len(cfg) > 0, emperror.Wrap(err, "failed to check if k8s config is available")
+	return len(cfg) > 0, errors.WrapIf(err, "failed to check if k8s config is available")
 }
 
 // IsMasterReady returns true when the master node has been reported as ready
@@ -302,7 +301,7 @@ func (c *EC2ClusterPKE) RegisterNode(name, nodePoolName, ip string, master, work
 	if err := db.Where(nodePool).Attrs(internalPke.NodePool{
 		Roles: roles,
 	}).FirstOrCreate(&nodePool).Error; err != nil {
-		return emperror.Wrap(err, "failed to register nodepool")
+		return errors.WrapIf(err, "failed to register nodepool")
 	}
 
 	node := internalPke.Host{
@@ -314,7 +313,7 @@ func (c *EC2ClusterPKE) RegisterNode(name, nodePoolName, ip string, master, work
 		Labels:    make(internalPke.Labels),
 		PrivateIP: ip,
 	}).FirstOrCreate(&node).Error; err != nil {
-		return emperror.Wrap(err, "failed to register node")
+		return errors.WrapIf(err, "failed to register node")
 	}
 	c.log.WithField("node", name).Info("node registered")
 	*/
@@ -471,7 +470,7 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 
 			providerConfig := internalPke.NodePoolProviderConfigAmazon{}
 			if err := mapstructure.Decode(np.ProviderConfig, &providerConfig); err != nil {
-				return emperror.Wrapf(err, "decoding nodepool %q config", np.Name)
+				return errors.WrapIff(err, "decoding nodepool %q config", np.Name)
 			}
 			providerConfig.AutoScalingGroup.Size.Min = reqNodePool.MinCount
 			providerConfig.AutoScalingGroup.Size.Max = reqNodePool.MaxCount
@@ -515,7 +514,7 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 
 	c.model.NodePools = newModelNodePools
 	if err := c.db.Save(&c.model).Error; err != nil {
-		return emperror.Wrap(err, "failed to save cluster")
+		return errors.WrapIf(err, "failed to save cluster")
 	}
 
 	for _, np := range deletedModelNodePools {
@@ -525,7 +524,7 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 
 		c.log.WithField("nodepool", np.Name).Info("deleting nodepool")
 		if err := c.db.Delete(&np).Error; err != nil {
-			return emperror.Wrap(err, "failed to delete nodepool")
+			return errors.WrapIf(err, "failed to delete nodepool")
 		}
 	}
 
@@ -612,7 +611,7 @@ func (c *EC2ClusterPKE) GetAPIEndpoint() (string, error) {
 
 	config, err := c.GetK8sConfig()
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to get cluster's Kubeconfig")
+		return "", errors.WrapIf(err, "failed to get cluster's Kubeconfig")
 	}
 
 	return pkgCluster.GetAPIEndpointFromKubeconfig(config)
@@ -634,7 +633,7 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 		providerConfig := internalPke.NodePoolProviderConfigAmazon{}
 		err := mapstructure.Decode(np.ProviderConfig, &providerConfig)
 		if err != nil {
-			return nil, emperror.WrapWith(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
+			return nil, errors.WrapIfWithDetails(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
 		}
 
 		nodePools[np.Name] = &pkgCluster.NodePoolStatus{
@@ -765,7 +764,7 @@ func (c *EC2ClusterPKE) GetCAHash() (string, error) {
 	}
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		return "", emperror.Wrapf(err, "failed to parse certificate")
+		return "", errors.WrapIff(err, "failed to parse certificate")
 	}
 	h := sha256.Sum256(cert.RawSubjectPublicKeyInfo)
 	return fmt.Sprintf("sha256:%s", hex.EncodeToString(h[:])), nil
@@ -809,7 +808,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 	nodePoolAmazonConfig := internalPke.NodePoolProviderConfigAmazon{}
 	err := mapstructure.Decode(np.ProviderConfig, &nodePoolAmazonConfig)
 	if err != nil {
-		return "", emperror.WrapWith(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
+		return "", errors.WrapIfWithDetails(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
 	}
 
 	version := c.model.Kubernetes.Version
@@ -821,6 +820,11 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 	}
 	infrastructureCIDR := ""
 
+	kubernetesNetworkProvider, err := c.GetKubernetesNetworkProvider()
+	if err != nil {
+		return "", errors.WrapIf(err, "couldn't get Kubernetes network provider config")
+	}
+
 	// determine the CIDR of the subnet of the node pool
 	subnetId := ""
 	if len(nodePoolAmazonConfig.AutoScalingGroup.Subnets) > 0 {
@@ -829,7 +833,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		// subnet not provided for nodepool. fall back to global provider network config
 		_, _, subnets, err := c.GetNetworkCloudProvider()
 		if err != nil {
-			return "", emperror.Wrap(err, "couldn't get cloud provider network config")
+			return "", errors.WrapIf(err, "couldn't get cloud provider network config")
 		}
 
 		if len(subnets) > 0 {
@@ -847,12 +851,12 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		netSvc := pkgEC2.NewNetworkSvc(ec2.New(awsClient), NewLogurLogger(c.log))
 		infrastructureCIDR, err = netSvc.GetSubnetCidr(subnetId)
 		if err != nil {
-			return "", emperror.Wrapf(err, "couldn't get CIDR for subnet %q", subnetId)
+			return "", errors.WrapIff(err, "couldn't get CIDR for subnet %q", subnetId)
 		}
 	}
 
 	if infrastructureCIDR == "" {
-		return "", emperror.Wrapf(err, "couldn't get CIDR for subnet %q", subnetId)
+		return "", errors.WrapIff(err, "couldn't get CIDR for subnet %q", subnetId)
 	}
 
 	apiAddress, _, err := c.GetNetworkApiServerAddress()
@@ -876,7 +880,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 			"--pipeline-nodepool=%q "+
 			"--kubernetes-cloud-provider=aws "+
 			"--kubernetes-version=%q "+
-			"--kubernetes-network-provider=weave "+
+			"--kubernetes-network-provider=%q "+
 			"--kubernetes-service-cidr=10.10.0.0/16 "+
 			"--kubernetes-pod-network-cidr=10.20.0.0/16 "+
 			"--kubernetes-infrastructure-cidr=%q "+
@@ -892,6 +896,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 			c.model.Cluster.ID,
 			nodePoolName,
 			version,
+			kubernetesNetworkProvider,
 			infrastructureCIDR,
 			apiAddress,
 			c.GetName(),
@@ -940,6 +945,10 @@ func (c *EC2ClusterPKE) GetKubernetesVersion() (string, error) {
 	return c.model.Kubernetes.Version, nil
 }
 
+func (c *EC2ClusterPKE) GetKubernetesNetworkProvider() (string, error) {
+	return string(c.model.Network.Provider), nil
+}
+
 // GetNetworkCloudProvider return cloud provider specific network information.
 func (c *EC2ClusterPKE) GetNetworkCloudProvider() (cloudProvider, vpcID string, subnets []string, err error) {
 	cp := c.model.Network.CloudProvider
@@ -973,7 +982,7 @@ func (c *EC2ClusterPKE) SaveNetworkCloudProvider(cloudProvider, vpcID string, su
 
 	err := c.db.Save(&c.model).Error
 	if err != nil {
-		return emperror.WrapWith(err, "failed to save network cloud provider", "cloudProvider", cloudProvider)
+		return errors.WrapIfWithDetails(err, "failed to save network cloud provider", "cloudProvider", cloudProvider)
 	}
 
 	return nil
@@ -994,7 +1003,7 @@ func (c *EC2ClusterPKE) SaveNetworkApiServerAddress(host, port string) error {
 
 	err := c.db.Save(&c.model).Error
 	if err != nil {
-		return emperror.WrapWith(err, "failed to save network api server address", "address", c.model.Network.APIServerAddress)
+		return errors.WrapIfWithDetails(err, "failed to save network api server address", "address", c.model.Network.APIServerAddress)
 	}
 
 	return nil

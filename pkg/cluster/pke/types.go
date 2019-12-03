@@ -60,7 +60,7 @@ type Network struct {
 type NetworkProvider string
 
 const (
-	NPWeave NetworkProvider = "weave"
+	NPCalico NetworkProvider = "calico"
 )
 
 type NodePools []NodePool
@@ -141,7 +141,7 @@ func (pke *CreateClusterPKE) AddDefaults() error {
 		pke.Network.ServiceCIDR = "10.32.0.0/24"
 	}
 	if pke.Network.Provider == "" {
-		pke.Network.Provider = NPWeave
+		pke.Network.Provider = NPCalico
 	}
 
 	return nil
