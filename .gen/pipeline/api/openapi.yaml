@@ -20047,19 +20047,12 @@ components:
     InstallSecretResponse:
       example:
         name: my-aws-secret
-        sourcing: env
       properties:
         name:
           example: my-aws-secret
           type: string
-        sourcing:
-          enum:
-          - env
-          - volume
-          type: string
       required:
       - name
-      - sourcing
       type: object
     TokenCreateRequest:
       example:
