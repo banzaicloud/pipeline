@@ -35,6 +35,7 @@ import (
 	intClusterGroup "github.com/banzaicloud/pipeline/internal/clustergroup"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
+	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -543,7 +544,7 @@ func ListClusterSecrets(c *gin.Context) {
 		query.Tags = append(query.Tags, releaseTag)
 	}
 
-	secrets, err := secret.RestrictedStore.List(organizationID, &query)
+	secrets, err := restricted.GlobalSecretStore.List(organizationID, &query)
 	if err != nil {
 		log.Errorf("Error during listing secrets: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
