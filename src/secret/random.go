@@ -15,9 +15,9 @@
 package secret
 
 import (
-	"fmt"
+	"emperror.dev/errors"
 
-	"github.com/aokoli/goutils"
+	"github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 // DefaultPasswordFormat is the format of passwords if not specified otherwise
@@ -25,18 +25,18 @@ const DefaultPasswordFormat = "randAlphaNum,12"
 
 //RandomString creates a random string whose length is the number of characters specified.
 func RandomString(genType string, length int) (res string, err error) {
+	gen := secret.NewCryptoPasswordGenerator()
+
 	switch genType {
 	case "randAlphaNum":
-		res, err = goutils.RandomAlphaNumeric(length)
+		return gen.GenerateAlphanumeric(length)
 	case "randAlpha":
-		res, err = goutils.RandomAlphabetic(length)
+		return gen.GenerateAlphabetic(length)
 	case "randNumeric":
-		res, err = goutils.RandomNumeric(length)
+		return gen.GenerateNumeric(length)
 	case "randAscii":
-		res, err = goutils.RandomAscii(length)
+		return gen.GenerateASCII(length)
 	default:
-		return res, fmt.Errorf("unsupported random type: %s", genType)
+		return "", errors.Errorf("unsupported random type: %s", genType)
 	}
-	return
-
 }
