@@ -5930,14 +5930,10 @@ components:
             type: object
             required:
                 - name
-                - sourcing
             properties:
                 name:
                     type: string
                     example: "my-aws-secret"
-                sourcing:
-                    type: string
-                    enum: [env, volume]
 
         TokenCreateRequest:
             type: object
