@@ -41,8 +41,7 @@ type InstallSecretRequestSpecItem struct {
 }
 
 type InstallSecretResponse struct {
-	Name     string `json:"name"`
-	Sourcing string `json:"sourcing"`
+	Name string `json:"name"`
 }
 
 // InstallSecretToCluster installs a particular secret to a cluster's namespace.
@@ -131,8 +130,7 @@ func InstallSecretToCluster(c *gin.Context) {
 	}
 
 	response := InstallSecretResponse{
-		Name:     installedSecretName,
-		Sourcing: "env", // keep backwards compatibility
+		Name: installedSecretName,
 	}
 
 	c.JSON(http.StatusOK, response)
@@ -224,8 +222,7 @@ func MergeSecretInCluster(c *gin.Context) {
 	}
 
 	response := InstallSecretResponse{
-		Name:     installedSecretName,
-		Sourcing: "env", // keep backwards compatibility
+		Name: installedSecretName,
 	}
 
 	c.JSON(http.StatusOK, response)
