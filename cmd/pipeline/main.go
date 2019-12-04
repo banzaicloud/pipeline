@@ -263,7 +263,7 @@ func main() {
 
 	secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
-	organizationStore := authadapter.NewGormOrganizationStore(db, authadapter.GoutilsRandomStringGenerator{})
+	organizationStore := authadapter.NewGormOrganizationStore(db)
 
 	const organizationTopic = "organization"
 	var organizationSyncer auth.OIDCOrganizationSyncer
