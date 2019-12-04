@@ -20796,8 +20796,9 @@ components:
     OrganizationListItemResponse:
       example:
         createdAt: 2018-03-09T13:24:49+01:00
-        name: myOrgName
+        name: me@example.com
         id: 1
+        normalizedName: me-example-com
         updatedAt: 2018-03-09T13:24:49+01:00
       properties:
         id:
@@ -20810,7 +20811,10 @@ components:
           example: 2018-03-09T13:24:49+01:00
           type: string
         name:
-          example: myOrgName
+          example: me@example.com
+          type: string
+        normalizedName:
+          example: me-example-com
           type: string
       type: object
     User:
