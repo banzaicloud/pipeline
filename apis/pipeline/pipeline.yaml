@@ -6353,7 +6353,10 @@ components:
                     example: "2018-03-09T13:24:49+01:00"
                 name:
                     type: string
-                    example: "myOrgName"
+                    example: "me@example.com"
+                normalizedName:
+                    type: string
+                    example: "me-example-com"
 
         User:
             type: object
