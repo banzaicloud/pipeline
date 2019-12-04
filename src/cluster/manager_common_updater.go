@@ -181,7 +181,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		return err
 	}
 
-	manager := npls.NewManager(dclient, global.Config.Cluster.Namespace)
+	manager := npls.NewManager(dclient, global.Config.Cluster.Labels.Namespace)
 
 	if err = manager.Sync(labelsMap); err != nil {
 		return err
