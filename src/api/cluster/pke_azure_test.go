@@ -20,7 +20,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/pke"
 	azurePke "github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
@@ -95,7 +94,6 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 			out: driver.AzurePKEClusterCreationParams{
 				OrganizationID: orgID,
 				CreatedBy:      userID,
-				Features:       []intCluster.Feature{},
 				NodePools:      []driver.NodePool{},
 			},
 		},
@@ -103,7 +101,6 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 			Name: "FullRequest",
 			in: CreatePKEOnAzureClusterRequest{
 				Name:          Name,
-				Features:      nil,
 				SecretId:      SecretID,
 				SshSecretId:   SSHSecretID,
 				ScaleOptions:  scaleOptions,
@@ -124,7 +121,6 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 			},
 			out: driver.AzurePKEClusterCreationParams{
 				CreatedBy: userID,
-				Features:  []intCluster.Feature{},
 				Kubernetes: pke.Kubernetes{
 					Version: Version,
 					RBAC:    RBAC,
