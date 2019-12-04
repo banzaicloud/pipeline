@@ -55,7 +55,10 @@ func (s NodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name 
 			Preload("NodePools", "name = ?", name).
 			First(&eksCluster).Error
 		if gorm.IsRecordNotFoundError(err) {
-			return false, errors.Wrap(err, "cluster model is inconsistent")
+			return false, errors.WrapWithDetails(
+				err, "cluster model is inconsistent",
+				"clusterId", clusterID,
+			)
 		}
 		if err != nil {
 			return false, errors.WrapWithDetails(
