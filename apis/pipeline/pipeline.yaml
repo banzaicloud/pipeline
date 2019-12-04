@@ -3817,8 +3817,10 @@ paths:
             tags:
                 - clusters
             responses:
-                204:
+                202:
                     description: Node pool delete in progress
+                204:
+                    description: Node pool deleted
                 default:
                     $ref: '#/components/responses/Error'
 
