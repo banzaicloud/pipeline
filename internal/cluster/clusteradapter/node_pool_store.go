@@ -50,7 +50,10 @@ func (s NodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name 
 	case c.Cloud == providers.Amazon && c.Distribution == "eks":
 		var eksCluster model.EKSClusterModel
 
-		err := s.db.Where(model.EKSClusterModel{ClusterID: clusterID}).First(&eksCluster).Error
+		err := s.db.
+			Where(model.EKSClusterModel{ClusterID: clusterID}).
+			Preload("NodePools", "name = ?", name).
+			First(&eksCluster).Error
 		if gorm.IsRecordNotFoundError(err) {
 			return false, errors.Wrap(err, "cluster model is inconsistent")
 		}
@@ -62,18 +65,8 @@ func (s NodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name 
 			)
 		}
 
-		var eksNodePool model.AmazonNodePoolsModel
-
-		err = s.db.Where(model.AmazonNodePoolsModel{ClusterID: eksCluster.ID}).First(&eksNodePool).Error
-		if gorm.IsRecordNotFoundError(err) {
+		if len(eksCluster.NodePools) == 0 {
 			return false, nil
-		}
-		if err != nil {
-			return false, errors.WrapWithDetails(
-				err, "failed to check if node pool exists",
-				"clusterId", clusterID,
-				"nodePoolName", name,
-			)
 		}
 
 	default:
