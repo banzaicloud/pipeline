@@ -40,7 +40,7 @@ func DeleteNodePoolWorkflow(ctx workflow.Context, input DeleteNodePoolWorkflowIn
 			InitialInterval:          15 * time.Second,
 			BackoffCoefficient:       1.0,
 			MaximumAttempts:          30,
-			NonRetriableErrorReasons: []string{_cadence.ClientErrorReason},
+			NonRetriableErrorReasons: []string{_cadence.ClientErrorReason, "cadenceInternal:Panic"},
 		},
 	}
 	_ctx := ctx
