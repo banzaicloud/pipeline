@@ -25,6 +25,8 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/sirupsen/logrus"
 
+	"github.com/banzaicloud/pipeline/pkg/common"
+
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 )
@@ -85,7 +87,7 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 		np := &nodePools[i]
 
 		if err := p.getNodePoolPreparer(i).Prepare(ctx, np); err != nil {
-			return errors.WrapIf(err, "failed to prepare node pool")
+			return errors.WrapIfWithDetails(err, "failed to prepare node pool", map[string]string{"nodePool": np.Name})
 		}
 
 		if cidr := subnets[np.Subnet.Name]; cidr == "" {
@@ -181,6 +183,11 @@ func (p NodePoolPreparer) Prepare(ctx context.Context, nodePool *NodePool) error
 
 	if nodePool.Name == "" {
 		return validationErrorf("%s.Name must be specified", p.namespace)
+	}
+
+	err := common.ValidateNodePoolLabels(nodePool.Labels)
+	if err != nil {
+		return validationErrorf(err.Error())
 	}
 
 	np, err := p.dataProvider.getExistingNodePoolByName(ctx, nodePool.Name)

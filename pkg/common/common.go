@@ -19,9 +19,8 @@ import (
 	"strings"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
@@ -52,13 +51,13 @@ func ValidateNodePoolLabels(labels map[string]string) error {
 		// validate node label name
 		errs := validation.IsQualifiedName(name)
 		if len(errs) > 0 {
-			return emperror.WrapWith(errors.New(strings.Join(errs, "\n")), "invalid node label name", "labelName", name)
+			return errors.WrapIfWithDetails(errors.New(strings.Join(errs, "\n")), "invalid node label name", map[string]string{"labelName": name})
 		}
 
 		// validate node label value
 		errs = validation.IsValidLabelValue(value)
 		if len(errs) > 0 {
-			return emperror.WrapWith(errors.New(strings.Join(errs, "\n")), "invalid node label value", "labelValue", value)
+			return errors.WrapIfWithDetails(errors.New(strings.Join(errs, "\n")), "invalid node label value", map[string]string{"labelValue": value})
 		}
 	}
 

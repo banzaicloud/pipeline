@@ -35,6 +35,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
+	"github.com/banzaicloud/pipeline/pkg/common"
+
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
@@ -49,7 +51,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
-const defaultPKEVersion = "1.12.2"
+const defaultPKEVersion = "1.15.3"
 
 var _ CommonCluster = (*EC2ClusterPKE)(nil)
 
@@ -328,6 +330,13 @@ func CreateMasterCF(formation *cloudformation.CloudFormation) error {
 
 func (c *EC2ClusterPKE) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	// TODO(Ecsy): implement me
+
+	for _, np := range r.Properties.CreateClusterPKE.NodePools {
+		if err := common.ValidateNodePoolLabels(np.Labels); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -644,6 +653,7 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 			InstanceType:      providerConfig.AutoScalingGroup.InstanceType,
 			SpotPrice:         providerConfig.AutoScalingGroup.SpotPrice,
 			CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+			Labels:            np.Labels,
 		}
 
 		if p, err := strconv.ParseFloat(providerConfig.AutoScalingGroup.SpotPrice, 64); err == nil && p > 0.0 {
