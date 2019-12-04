@@ -18,7 +18,6 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	"github.com/aokoli/goutils"
 	"github.com/jinzhu/gorm"
 
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -26,27 +25,13 @@ import (
 
 // GormOrganizationStore implements organization membership persistence using Gorm.
 type GormOrganizationStore struct {
-	db     *gorm.DB
-	strgen RandomStringGenerator
-}
-
-// RandomStringGenerator generates random strings.
-type RandomStringGenerator interface {
-	// RandomAlphabetic creates a random string whose length is the number of characters specified.
-	RandomAlphabetic(count int) (string, error)
-}
-
-type GoutilsRandomStringGenerator struct{}
-
-func (GoutilsRandomStringGenerator) RandomAlphabetic(count int) (string, error) {
-	return goutils.RandomAlphabetic(count)
+	db *gorm.DB
 }
 
 // NewGormOrganizationStore returns a new GormOrganizationStore.
-func NewGormOrganizationStore(db *gorm.DB, strgen RandomStringGenerator) GormOrganizationStore {
+func NewGormOrganizationStore(db *gorm.DB) GormOrganizationStore {
 	return GormOrganizationStore{
-		db:     db,
-		strgen: strgen,
+		db: db,
 	}
 }
 
@@ -59,37 +44,9 @@ func (g GormOrganizationStore) EnsureOrganizationExists(ctx context.Context, nam
 		First(&organization).
 		Error
 	if gorm.IsRecordNotFoundError(err) {
-		normalizedName := NormalizeOrganizationName(name)
-
-		var normalizedNameCount int
-		if err := g.db.Where(auth.Organization{NormalizedName: normalizedName}).Model(auth.Organization{}).Count(&normalizedNameCount).Error; err != nil {
-			return false, 0, errors.WrapIfWithDetails(
-				err,
-				"failed to check organization name",
-				"organizationName", name,
-				"normalizedName", normalizedName,
-			)
-		}
-
-		// Name is already taken
-		if normalizedNameCount > 0 {
-			random, err := g.strgen.RandomAlphabetic(6)
-			if err != nil {
-				return false, 0, errors.WrapIfWithDetails(
-					err,
-					"failed to generate normalized organization name",
-					"organizationName", name,
-					"normalizedName", normalizedName,
-				)
-			}
-
-			normalizedName = normalizedName + "-" + random
-		}
-
 		organization := auth.Organization{
-			Name:           name,
-			NormalizedName: normalizedName,
-			Provider:       provider,
+			Name:     name,
+			Provider: provider,
 		}
 
 		err := g.db.Save(&organization).Error
