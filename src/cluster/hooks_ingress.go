@@ -74,7 +74,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 		}
 
 		if baseDomain != "" {
-			orgDomainName := strings.ToLower(fmt.Sprintf("%s.%s", organization.Name, baseDomain))
+			orgDomainName := strings.ToLower(fmt.Sprintf("%s.%s", organization.NormalizedName, baseDomain))
 			err = dns.ValidateSubdomain(orgDomainName)
 			if err != nil {
 				return emperror.Wrap(err, "invalid domain for TLS cert")
