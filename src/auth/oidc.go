@@ -409,9 +409,14 @@ func (s oidcOrganizationSyncer) SyncOrganizations(ctx gocontext.Context, user Us
 
 	for _, group := range idTokenClaims.Groups {
 
-		// In case of Google group names are email addresses
+		// In case of Google group names are email addresses.
+		// We map the domain to an org and the name to a role/team.
 		if provider == "google" {
-			group = emailToLoginName(group)
+			s := strings.SplitN(group, "@", 2)
+			if len(s) < 1 {
+				return errors.New("invalid google group")
+			}
+			group = s[1] + ":" + s[0]
 		}
 
 		// get the part before :, that will be the organization name
