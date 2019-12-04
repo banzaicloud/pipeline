@@ -461,7 +461,7 @@ func CreateClusterRoles(cluster CommonCluster) error {
 
 	clusterRoleBinding := rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: org.Name + "-cluster-admin",
+			Name: org.NormalizedName + "-cluster-admin",
 		},
 		RoleRef: rbacv1.RoleRef{
 			Kind: "ClusterRole",
