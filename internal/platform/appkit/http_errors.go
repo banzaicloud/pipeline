@@ -12,23 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package common
+package appkit
 
 import (
-	"context"
-
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes"
+	"emperror.dev/errors"
 )
 
-// ClientFactory returns a Kubernetes client.
-type ClientFactory interface {
-	// FromSecret creates a Kubernetes client for a cluster from a secret.
-	FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error)
+func IsNotFoundError(err error) bool {
+	var notFound interface {
+		NotFound() bool
+	}
+
+	if errors.As(err, &notFound) {
+		return notFound.NotFound()
+	}
+
+	return false
 }
 
-// DynamicClientFactory returns a dynamic Kubernetes client.
-type DynamicClientFactory interface {
-	// FromSecret creates a dynamic Kubernetes client for a cluster from a secret.
-	FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error)
+func IsConflictError(err error) bool {
+	var conflict interface {
+		Conflict() bool
+	}
+
+	if errors.As(err, &conflict) {
+		return conflict.Conflict()
+	}
+
+	return false
+}
+
+func IsBadRequestError(err error) bool {
+	var badRequest interface {
+		BadRequest() bool
+	}
+
+	if errors.As(err, &badRequest) {
+		return badRequest.BadRequest()
+	}
+
+	return false
 }

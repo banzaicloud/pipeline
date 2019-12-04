@@ -12,23 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package common
+package cadence
 
 import (
-	"context"
-
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes"
+	"emperror.dev/errors"
+	"go.uber.org/cadence"
 )
 
-// ClientFactory returns a Kubernetes client.
-type ClientFactory interface {
-	// FromSecret creates a Kubernetes client for a cluster from a secret.
-	FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error)
+// Cadence client error reason.
+const ClientErrorReason = "ClientError"
+
+// NewClientError returns a new client error.
+func NewClientError(err error) error {
+	return cadence.NewCustomError(ClientErrorReason, err.Error())
 }
 
-// DynamicClientFactory returns a dynamic Kubernetes client.
-type DynamicClientFactory interface {
-	// FromSecret creates a dynamic Kubernetes client for a cluster from a secret.
-	FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error)
+// WrapClientError wraps an error into a custom cadence error if it's a client error.
+func WrapClientError(err error) error {
+	if err != nil {
+		var clientError interface{ ClientError() bool }
+		if errors.As(err, &clientError) && clientError.ClientError() {
+			return NewClientError(err)
+		}
+	}
+
+	return err
 }

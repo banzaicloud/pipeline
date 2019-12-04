@@ -64,8 +64,10 @@ import (
 	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
+	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusterdriver"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
@@ -833,9 +835,30 @@ func main() {
 			cRouter.GET("/nodepool-labels", nplsApi.GetNodepoolLabelSets)
 			cRouter.POST("/nodepool-labels", nplsApi.SetNodepoolLabelSets)
 
-			// Compatibility routes
-			cRouter.GET("/nodepools/labels", nplsApi.GetNodepoolLabelSets)
-			cRouter.POST("/nodepools/labels", nplsApi.SetNodepoolLabelSets)
+			{
+				clusterStore := clusteradapter.NewStore(db, clusters)
+
+				service := intCluster.NewNodePoolService(
+					clusterStore,
+					clusteradapter.NewNodePoolStore(db, clusterStore),
+					clusteradapter.NewNodePoolManager(workflowClient),
+				)
+				endpoints := clusterdriver.TraceNodePoolEndpoints(clusterdriver.MakeNodePoolEndpoints(
+					service,
+					kitxendpoint.Chain(endpointMiddleware...),
+					appkit.EndpointLogger(commonLogger),
+				))
+
+				clusterdriver.RegisterNodePoolHTTPHandlers(
+					endpoints,
+					clusterRouter.PathPrefix("/nodepools").Subrouter(),
+					kitxhttp.ServerOptions(httpServerOptions),
+					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+				)
+
+				cRouter.Any("/nodepools", gin.WrapH(router))
+				cRouter.Any("/nodepools/:nodePoolName", gin.WrapH(router))
+			}
 
 			namespaceAPI := namespace.NewAPI(commonClusterGetter, clientFactory, errorHandler)
 			namespaceAPI.RegisterRoutes(cRouter.Group("/namespaces"))

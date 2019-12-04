@@ -25,6 +25,10 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
+type AWSFactory interface {
+	New(organizationID uint, secretID string, region string) (*session.Session, error)
+}
+
 type AWSSessionFactory struct {
 	secretStore SecretStore
 }
