@@ -24,13 +24,14 @@ import (
 
 // Organization represents a unit of users and resources.
 type Organization struct {
-	ID        uint      `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Name      string    `gorm:"unique;not null" json:"name"`
-	Provider  string    `gorm:"not null" json:"provider"`
-	Users     []User    `gorm:"many2many:user_organizations" json:"users,omitempty"`
-	Role      string    `json:"-" gorm:"-"` // Used only internally
+	ID             uint      `gorm:"primary_key" json:"id"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+	Name           string    `gorm:"unique;not null" json:"name"`
+	Provider       string    `gorm:"not null" json:"provider"`
+	NormalizedName string    `gorm:"unique" json:"normalizedName"`
+	Users          []User    `gorm:"many2many:user_organizations" json:"users,omitempty"`
+	Role           string    `json:"-" gorm:"-"` // Used only internally
 }
 
 // IDString returns the ID as string.
