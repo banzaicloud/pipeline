@@ -281,6 +281,8 @@ func checkGravatarImage(email string) string {
 	query := imageReq.URL.Query()
 	query.Set("d", "404")
 
+	imageReq.URL.RawQuery = query.Encode()
+
 	resp, err := http.DefaultClient.Do(imageReq)
 	if err != nil {
 		return ""
