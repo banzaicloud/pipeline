@@ -34,7 +34,7 @@ import (
 
 func TestOrganizationSyncer_SyncOrganizations(t *testing.T) {
 	db := setUpDatabase(t)
-	store := NewGormOrganizationStore(db)
+	store := NewGormOrganizationStore(db, GoutilsRandomStringGenerator{})
 	publisher := gochannel.NewGoChannel(gochannel.Config{}, watermill.NopLogger{})
 	const topic = "auth"
 	eventBus, _ := cqrs.NewEventBus(publisher, func(_ string) string { return topic }, &cqrs.JSONMarshaler{})

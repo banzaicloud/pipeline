@@ -42,13 +42,21 @@ func setUpDatabase(t *testing.T) *gorm.DB {
 	return db
 }
 
+type randomStringGeneratorStub struct {
+	str string
+}
+
+func (r randomStringGeneratorStub) RandomAlphabetic(count int) (string, error) {
+	return r.str, nil
+}
+
 func TestGormOrganizationStore_EnsureOrganizationExists(t *testing.T) {
 	// This causes `concurrent map write` issues during tests
 	// t.Parallel()
 
 	t.Run("create", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewGormOrganizationStore(db)
+		store := NewGormOrganizationStore(db, randomStringGeneratorStub{"test"})
 
 		created, id, err := store.EnsureOrganizationExists(context.Background(), "example", "github")
 		require.NoError(t, err)
@@ -63,11 +71,13 @@ func TestGormOrganizationStore_EnsureOrganizationExists(t *testing.T) {
 
 		assert.True(t, created)
 		assert.Equal(t, organization.ID, id)
+		assert.Equal(t, organization.Name, "example")
+		assert.Equal(t, organization.NormalizedName, "example")
 	})
 
 	t.Run("already_exists", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewGormOrganizationStore(db)
+		store := NewGormOrganizationStore(db, randomStringGeneratorStub{"test"})
 
 		organization := auth.Organization{Name: "example", Provider: "github"}
 
@@ -83,7 +93,7 @@ func TestGormOrganizationStore_EnsureOrganizationExists(t *testing.T) {
 
 	t.Run("conflict", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewGormOrganizationStore(db)
+		store := NewGormOrganizationStore(db, randomStringGeneratorStub{"test"})
 
 		organization := auth.Organization{Name: "example", Provider: "github"}
 
@@ -97,11 +107,50 @@ func TestGormOrganizationStore_EnsureOrganizationExists(t *testing.T) {
 		assert.False(t, created)
 		assert.Equal(t, uint(0), id)
 	})
+
+	t.Run("same_normalized_name", func(t *testing.T) {
+		db := setUpDatabase(t)
+		store := NewGormOrganizationStore(db, randomStringGeneratorStub{"test"})
+
+		const name1 = "john.doe@dev.example.com"
+		created1, id1, err := store.EnsureOrganizationExists(context.Background(), name1, "github")
+		require.NoError(t, err)
+
+		const name2 = "john.doe@dev-example.com"
+		created2, id2, err := store.EnsureOrganizationExists(context.Background(), name2, "github")
+		require.NoError(t, err)
+
+		var organization1 auth.Organization
+
+		err = db.
+			Where(auth.Organization{Name: name1}).
+			First(&organization1).
+			Error
+		require.NoError(t, err)
+
+		assert.True(t, created1)
+		assert.Equal(t, organization1.ID, id1)
+		assert.Equal(t, organization1.Name, name1)
+		assert.Equal(t, organization1.NormalizedName, "john-doe-dev-example-com")
+
+		var organization2 auth.Organization
+
+		err = db.
+			Where(auth.Organization{Name: name2}).
+			First(&organization2).
+			Error
+		require.NoError(t, err)
+
+		assert.True(t, created2)
+		assert.Equal(t, organization2.ID, id2)
+		assert.Equal(t, organization2.Name, name2)
+		assert.Equal(t, organization2.NormalizedName, "john-doe-dev-example-com-test")
+	})
 }
 
 func TestGormOrganizationStore_GetOrganizationMembershipsOf(t *testing.T) {
 	db := setUpDatabase(t)
-	store := NewGormOrganizationStore(db)
+	store := NewGormOrganizationStore(db, randomStringGeneratorStub{"test"})
 
 	user := auth.User{
 		Name:  "John Doe",
@@ -128,7 +177,7 @@ func TestGormOrganizationStore_GetOrganizationMembershipsOf(t *testing.T) {
 
 func TestGormOrganizationStore_RemoveUserFromOrganization(t *testing.T) {
 	db := setUpDatabase(t)
-	store := NewGormOrganizationStore(db)
+	store := NewGormOrganizationStore(db, randomStringGeneratorStub{"test"})
 
 	user := auth.User{
 		Name:  "John Doe",
@@ -167,7 +216,7 @@ func TestGormOrganizationStore_ApplyUserMembership(t *testing.T) {
 
 	t.Run("existing", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewGormOrganizationStore(db)
+		store := NewGormOrganizationStore(db, randomStringGeneratorStub{"test"})
 
 		user := auth.User{
 			Name:  "John Doe",
@@ -200,7 +249,7 @@ func TestGormOrganizationStore_ApplyUserMembership(t *testing.T) {
 
 	t.Run("existing_no_change", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewGormOrganizationStore(db)
+		store := NewGormOrganizationStore(db, randomStringGeneratorStub{"test"})
 
 		user := auth.User{
 			Name:  "John Doe",
@@ -233,7 +282,7 @@ func TestGormOrganizationStore_ApplyUserMembership(t *testing.T) {
 
 	t.Run("new", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewGormOrganizationStore(db)
+		store := NewGormOrganizationStore(db, randomStringGeneratorStub{"test"})
 
 		user := auth.User{
 			Name:  "John Doe",
@@ -273,7 +322,7 @@ func TestGormOrganizationStore_FindUserRole(t *testing.T) {
 
 	t.Run("admin", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewGormOrganizationStore(db)
+		store := NewGormOrganizationStore(db, randomStringGeneratorStub{"test"})
 
 		user := auth.User{
 			Name:  "John Doe",
@@ -302,7 +351,7 @@ func TestGormOrganizationStore_FindUserRole(t *testing.T) {
 
 	t.Run("not_a_member", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewGormOrganizationStore(db)
+		store := NewGormOrganizationStore(db, randomStringGeneratorStub{"test"})
 
 		user := auth.User{
 			Name:  "John Doe",
