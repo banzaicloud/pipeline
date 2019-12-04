@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
 
@@ -217,16 +216,6 @@ type BanzaiUserStorer struct {
 	orgSyncer        OIDCOrganizationSyncer
 }
 
-func emailToLoginName(email string) string {
-	filterRegexp := regexp.MustCompile("[^a-zA-Z0-9-]+")
-	replaceRegexp := regexp.MustCompile("[@.]+")
-
-	login := replaceRegexp.ReplaceAllString(email, "-")
-	login = filterRegexp.ReplaceAllString(login, "")
-
-	return login
-}
-
 // Save differs from the default UserStorer.Save() in that it
 // extracts Token and Login and saves to CICD DB as well
 func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (user interface{}, userID string, err error) {
@@ -243,7 +232,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	if currentUser.Login == "" {
 		// When the provider does not include the preferred_username claim in the ID token,
 		// fallback to generating one from the email address.
-		currentUser.Login = emailToLoginName(schema.Email)
+		currentUser.Login = schema.Email
 	}
 
 	// TODO: leave this to the UI?
