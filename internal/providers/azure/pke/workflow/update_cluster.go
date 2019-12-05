@@ -36,6 +36,7 @@ type UpdateClusterWorkflowInput struct {
 	SecretID            string
 	ClusterID           uint
 	ClusterName         string
+	ConfigSecretID      string
 	ResourceGroupName   string
 	PublicIPAddressName string
 	RouteTableName      string
@@ -155,7 +156,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 	// set up node pool labels set
 	{
 		activityInput := clustersetup.ConfigureNodePoolLabelsActivityInput{
-			ConfigSecretID: brn.New(input.OrganizationID, brn.SecretResourceType, input.SecretID).String(),
+			ConfigSecretID: brn.New(input.OrganizationID, brn.SecretResourceType, input.ConfigSecretID).String(),
 			Labels:         input.Labels,
 		}
 		err := workflow.ExecuteActivity(ctx, clustersetup.ConfigureNodePoolLabelsActivityName, activityInput).Get(ctx, nil)

@@ -240,6 +240,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		Labels:                labels,
 		AccessPoints:          cluster.AccessPoints,
 		APIServerAccessPoints: cluster.APIServerAccessPoints,
+		ConfigSecretID:        cluster.K8sSecretID,
 	}
 
 	if err := cu.store.SetStatus(cluster.ID, pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
