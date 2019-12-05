@@ -231,6 +231,12 @@ func TestRbacEnforcer_Enforce(t *testing.T) {
 			method:   "POST",
 			expected: false,
 		},
+		{
+			role:     RoleMember,
+			path:     "/api/v1/orgs/1/clusters/1/config",
+			method:   "GET",
+			expected: false,
+		},
 	}
 
 	for _, test := range tests {
