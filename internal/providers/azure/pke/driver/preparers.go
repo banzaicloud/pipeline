@@ -25,9 +25,8 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/pkg/common"
-
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
+	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 )
 

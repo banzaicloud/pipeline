@@ -35,8 +35,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
-	"github.com/banzaicloud/pipeline/pkg/common"
-
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
@@ -45,6 +43,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
+	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
