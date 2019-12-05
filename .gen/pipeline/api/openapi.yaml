@@ -11050,7 +11050,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListProjectsResponse'
+                $ref: '#/components/schemas/GoogleProjects'
           description: List of projects visible for the user
         default:
           content:
@@ -11155,138 +11155,6 @@ paths:
       summary: Retrieves projects visible for the user identified by the secret id
       tags:
       - google
-  /api/v1/orgs/{orgId}/google/projects:
-    get:
-      description: Retrieves projects visible by the user represented by the secretid
-        header from the google cloud
-      operationId: GetProjects
-      parameters:
-      - description: Organization identifier
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          type: integer
-        style: simple
-      - description: Secret identification.
-        explode: false
-        in: header
-        name: secretId
-        required: true
-        schema:
-          type: string
-        style: simple
-      responses:
-        200:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ListProjectsResponse'
-          description: List of projects visible for the user
-        default:
-          content:
-            application/json:
-              examples:
-                BadRequest:
-                  value:
-                    code: 400
-                    message: Invalid request
-                    error: Failed to parse request.
-                Unauthorized:
-                  value:
-                    code: 401
-                    message: Unauthorized
-                    error: Unauthorized
-                OrganizationNotFound:
-                  value:
-                    code: 404
-                    message: Organization not found
-                    error: Organization not found
-                SecretAlreadyExists:
-                  value:
-                    code: 409
-                    message: Secret already exists
-                    error: Secret already exists
-                InternalServerError:
-                  value:
-                    code: 500
-                    message: Something went wrong
-                    error: Something went wrong
-              schema:
-                $ref: '#/components/schemas/CommonError'
-            application/problem+json:
-              examples:
-                BadRequest:
-                  value:
-                    type: about:blank
-                    title: Invalid request
-                    status: 400
-                    detail: Failed to parse request.
-                    instance: ""
-                    code: 400
-                    message: Failed to parse request.
-                    error: Invalid request
-                Unauthorized:
-                  value:
-                    type: about:blank
-                    title: Unauthorized
-                    status: 401
-                    detail: You are unauthorized to access this resource.
-                    instance: ""
-                    code: 401
-                    message: You are unauthorized to access this resource.
-                    error: Unauthorized
-                AccessDenied:
-                  value:
-                    type: about:blank
-                    title: Access denied
-                    status: 403
-                    detail: You are unauthorized to perform this action access this
-                      resource.
-                    instance: ""
-                    code: 403
-                    message: You are unauthorized to perform this action access this
-                      resource.
-                    error: Access denied
-                OrganizationNotFound:
-                  value:
-                    type: about:blank
-                    title: Organization not found
-                    status: 404
-                    detail: Organization not found
-                    instance: ""
-                    code: 404
-                    message: Organization not found
-                    error: Organization not found
-                SecretAlreadyExists:
-                  value:
-                    type: about:blank
-                    title: Secret already exists
-                    status: 409
-                    detail: Secret already exists
-                    instance: ""
-                    code: 409
-                    message: Secret already exists
-                    error: Secret already exists
-                InternalServerError:
-                  value:
-                    type: about:blank
-                    title: Internal server error
-                    status: 500
-                    detail: Something went wrong
-                    instance: ""
-                    code: 500
-                    message: Something went wrong
-                    error: Internal server error
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      summary: Retrieves projects visible for the user identified by the secret id
-      tags:
-      - projects
   /api/v1/orgs/{orgId}/clusters/{id}/backupservice/enable:
     post:
       description: Enable ARK service
@@ -21855,8 +21723,8 @@ components:
         imageDigest:
           type: string
       type: object
-    ListProjectsResponse:
-      description: wraps a list of project details information
+    GoogleProjects:
+      description: List of Google Cloud projects.
       example:
         projects:
         - lifecycleState: lifecycleState
@@ -21870,11 +21738,11 @@ components:
       properties:
         projects:
           items:
-            $ref: '#/components/schemas/ProjectDetails'
+            $ref: '#/components/schemas/GoogleProject'
           type: array
       type: object
-    ProjectDetails:
-      description: Details of the google project
+    GoogleProject:
+      description: Details of a Google Cloud project.
       example:
         lifecycleState: lifecycleState
         projectNumber: projectNumber

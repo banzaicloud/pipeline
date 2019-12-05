@@ -10,14 +10,8 @@
 
 package pipeline
 
-// ProjectDetails - Details of the google project
-type ProjectDetails struct {
+// GoogleProjects - List of Google Cloud projects.
+type GoogleProjects struct {
 
-	Name string `json:"name,omitempty"`
-
-	ProjectId string `json:"projectId,omitempty"`
-
-	ProjectNumber string `json:"projectNumber,omitempty"`
-
-	LifecycleState string `json:"lifecycleState,omitempty"`
+	Projects []GoogleProject `json:"projects,omitempty"`
 }
