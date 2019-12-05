@@ -730,7 +730,7 @@ func (c *EKSCluster) GenerateK8sConfig() *clientcmdapi.Config {
 			{
 				Name: c.modelCluster.Name,
 				Cluster: clientcmdapi.Cluster{
-					Server: c.APIEndpoint,
+					Server:                   c.APIEndpoint,
 					CertificateAuthorityData: c.CertificateAuthorityData,
 				},
 			},
