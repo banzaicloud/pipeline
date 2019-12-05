@@ -29,7 +29,6 @@ import (
 	"go.uber.org/cadence/client"
 	corev1 "k8s.io/api/core/v1"
 
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
@@ -141,7 +140,6 @@ type Subnet struct {
 // AzurePKEClusterCreationParams defines parameters for PKE-on-Azure cluster creation
 type AzurePKEClusterCreationParams struct {
 	CreatedBy             uint
-	Features              []intCluster.Feature
 	Kubernetes            intPKE.Kubernetes
 	Name                  string
 	Network               VirtualNetwork
@@ -234,11 +232,6 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	tenantID := sir.Values[secrettype.AzureTenantID]
 
 	var labelsMap map[string]map[string]string
-
-	postHooks := make(pkgCluster.PostHooks, len(params.Features))
-	for _, f := range params.Features {
-		postHooks[f.Kind] = f.Params
-	}
 	{
 		var commonCluster cluster.CommonCluster
 		commonCluster, err = commoncluster.MakeCommonClusterGetter(cc.secrets, cc.store).GetByID(cl.ID)
@@ -437,7 +430,6 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			},
 		},
 		VirtualMachineScaleSetTemplates: vmssTemplates,
-		PostHooks:                       postHooks,
 		NodePoolLabels:                  labelsMap,
 		HTTPProxy:                       cl.HTTPProxy,
 		AccessPoints:                    params.AccessPoints,

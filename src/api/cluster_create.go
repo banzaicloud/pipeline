@@ -19,11 +19,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mitchellh/mapstructure"
-
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
+	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
@@ -51,7 +49,7 @@ func decodeRequest(input map[string]interface{}, output interface{}) error {
 
 func (a *ClusterAPI) parseRequest(ctx *gin.Context, body map[string]interface{}, req interface{}) bool {
 	if err := decodeRequest(body, req); err != nil {
-		err = emperror.Wrapf(err, "failed to parse request into %T", req)
+		err = errors.WrapIff(err, "failed to parse request into %T", req)
 
 		a.errorHandler.Handle(err)
 		pkgCommon.ErrorResponseWithStatus(ctx, http.StatusBadRequest, err)
@@ -62,23 +60,18 @@ func (a *ClusterAPI) parseRequest(ctx *gin.Context, body map[string]interface{},
 }
 
 func isInputValidationError(err error) bool {
-	type inputValidationErrorer interface {
+	var e interface {
 		InputValidationError() bool
 	}
 
-	err = errors.Cause(err)
-	if e, ok := err.(inputValidationErrorer); ok {
-		return e.InputValidationError()
-	}
-
-	return false
+	return errors.As(err, &e) && e.InputValidationError()
 }
 
 func (a *ClusterAPI) handleCreationError(ctx *gin.Context, err error) {
 	a.errorHandler.Handle(err)
 
 	status := http.StatusInternalServerError
-	if isInputValidationError(err) {
+	if isInputValidationError(err) || isInvalid(err) {
 		status = http.StatusBadRequest
 	}
 	pkgCommon.ErrorResponseWithStatus(ctx, status, err)
@@ -162,32 +155,9 @@ func (a *ClusterAPI) CreateCluster(c *gin.Context) {
 			return
 		}
 		req.SecretId = secretID
-		{
-			// Adapting legacy format. TODO: Please remove this as soon as possible.
-			if _, ok := requestBody["features"]; !ok {
-				if postHooks, ok := requestBody["postHooks"]; ok {
-					log.Warn("Got post hooks in request. Post hooks are deprecated, please use features instead.")
-					if phs, ok := postHooks.(map[string]interface{}); ok {
-						req.Features = make([]pipeline.Feature, 0, len(phs))
-						for kind, params := range phs {
-							if p, ok := params.(map[string]interface{}); ok {
-								req.Features = append(req.Features, pipeline.Feature{
-									Kind:   kind,
-									Params: p,
-								})
-							} else {
-								log.Warnf("Post hook [%s] params is not an object.", kind)
-							}
-						}
-					} else {
-						log.Warn("Value under postHooks key in request is not an object.")
-					}
-				}
-			}
-		}
 		params := req.ToAzurePKEClusterCreationParams(orgID, userID)
 		azurePKECluster, err := a.clusterCreators.PKEOnAzure.Create(ctx, params)
-		if err = emperror.Wrap(err, "failed to create cluster from request"); err != nil {
+		if err = errors.WrapIf(err, "failed to create cluster from request"); err != nil {
 			a.handleCreationError(c, err)
 			return
 		}
