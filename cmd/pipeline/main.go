@@ -984,19 +984,6 @@ func main() {
 
 			v1.Any("/secret-types", gin.WrapH(router))
 			v1.Any("/secret-types/*path", gin.WrapH(router))
-
-			// Compatibility routes
-			{
-				secrettypedriver.RegisterHTTPHandlers(
-					endpoints,
-					apiRouter.PathPrefix("/allowed/secrets").Subrouter(),
-					kitxhttp.ServerOptions(httpServerOptions),
-					kithttp.ServerErrorHandler(errorHandler),
-				)
-
-				v1.GET("/allowed/secrets", gin.WrapH(router))
-				v1.GET("/allowed/secrets/*path", gin.WrapH(router))
-			}
 		}
 
 		backups.AddRoutes(orgs.Group("/:orgid/clusters/:id/backups"))
