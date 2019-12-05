@@ -183,14 +183,6 @@ dex:
 #        grafana:
 #            adminUser: admin
 #
-#        # Cluster monitoring configuration
-#        monitor:
-#            enabled: false
-#            configMap: ""
-#            configMapPrometheusKey: "prometheus.yml"
-#            certSecret: ""
-#            mountPath: ""
-#
 #        charts:
 #            operator:
 #                chart: "stable/prometheus-operator"

@@ -112,7 +112,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/google/googleadapter"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/problems"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/src/api"
@@ -798,35 +797,6 @@ func main() {
 			cRouter.GET("/hpa", hpaApi.GetHpaResource)
 			cRouter.PUT("/hpa", hpaApi.PutHpaResource)
 			cRouter.DELETE("/hpa", hpaApi.DeleteHpaResource)
-
-			if config.Cluster.Monitoring.Monitor.Enabled {
-				client, err := k8sclient.NewInClusterClient()
-				if err != nil {
-					errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
-				} else {
-					dnsBaseDomain, err := dns.GetBaseDomain()
-					if err != nil {
-						errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
-					}
-
-					monitorClusterSubscriber := monitor.NewClusterSubscriber(
-						client,
-						clusterManager,
-						db,
-						dnsBaseDomain,
-						global.Config.Kubernetes.Namespace,
-						global.Config.Cluster.Namespace,
-						config.Cluster.Monitoring.Monitor.ConfigMap,
-						config.Cluster.Monitoring.Monitor.ConfigMapPrometheusKey,
-						config.Cluster.Monitoring.Monitor.CertSecret,
-						config.Cluster.Monitoring.Monitor.MountPath,
-						featureService,
-						errorHandler,
-					)
-					monitorClusterSubscriber.Init()
-					monitorClusterSubscriber.Register(monitor.NewClusterEvents(clusterEventBus))
-				}
-			}
 
 			// ClusterGroupAPI
 			cgroupsAPI := cgroupAPI.NewAPI(clusterGroupManager, deploymentManager, logrusLogger, errorHandler)
