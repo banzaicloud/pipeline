@@ -79,7 +79,6 @@ const (
 	RestoreFromBackup                      = "RestoreFromBackup"
 	InitSpotConfig                         = "InitSpotConfig"
 	DeployInstanceTerminationHandler       = "DeployInstanceTerminationHandler"
-	CreateClusterRoles                     = "CreateClusterRoles"
 )
 
 // CreateClusterRequest describes a create cluster request
