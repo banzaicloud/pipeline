@@ -20,11 +20,12 @@ import (
 
 // Config contains auth configuration.
 type Config struct {
-	OIDC   OIDCConfig
-	CLI    CLIConfig
-	Cookie CookieConfig
-	Token  TokenConfig
-	Role   RoleConfig
+	OIDC        OIDCConfig
+	CLI         CLIConfig
+	RedirectURL RedirectURLConfig
+	Cookie      CookieConfig
+	Token       TokenConfig
+	Role        RoleConfig
 }
 
 // Validate validates the configuration.
@@ -37,6 +38,10 @@ func (c Config) Validate() error {
 		return err
 	}
 
+	if err := c.RedirectURL.Validate(); err != nil {
+		return err
+	}
+
 	if err := c.Cookie.Validate(); err != nil {
 		return err
 	}
@@ -46,6 +51,15 @@ func (c Config) Validate() error {
 	}
 
 	if err := c.Role.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Process post-processes the configuration after loading (before validation).
+func (c *Config) Process() error {
+	if err := c.RedirectURL.Process(); err != nil {
 		return err
 	}
 
@@ -86,6 +100,34 @@ type CLIConfig struct {
 func (c CLIConfig) Validate() error {
 	if c.ClientID == "" {
 		return errors.New("auth cli client ID is required")
+	}
+
+	return nil
+}
+
+// RedirectURLConfig contains the URLs the user is redirected to after certain authentication events.
+type RedirectURLConfig struct {
+	Login  string
+	Signup string
+}
+
+// Validate validates the configuration.
+func (c RedirectURLConfig) Validate() error {
+	if c.Login == "" {
+		return errors.New("auth login redirect URL is required")
+	}
+
+	if c.Login == "" {
+		return errors.New("auth signup redirect URL is required")
+	}
+
+	return nil
+}
+
+// Process post-processes the configuration after loading (before validation).
+func (c *RedirectURLConfig) Process() error {
+	if c.Signup == "" {
+		c.Signup = c.Login
 	}
 
 	return nil

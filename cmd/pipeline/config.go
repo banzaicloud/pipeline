@@ -101,11 +101,6 @@ type configuration struct {
 		Headers   []string
 		SkipPaths []string
 	}
-
-	UI struct {
-		URL               string
-		SignupRedirectUrl string
-	}
 }
 
 // Validate validates the configuration.
@@ -156,6 +151,10 @@ func (c configuration) Validate() error {
 
 // Process post-processes the configuration after loading (before validation).
 func (c *configuration) Process() error {
+	if err := c.Auth.Process(); err != nil {
+		return err
+	}
+
 	if err := c.Cluster.Process(); err != nil {
 		return err
 	}
@@ -230,6 +229,9 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("pipeline::keyFile", "")
 
 	// Auth configuration
+	v.SetDefault("auth::redirectUrl::login", "/ui")
+	v.SetDefault("auth::redirectUrl::signup", "/ui")
+
 	v.SetDefault("auth::role::default", auth.RoleAdmin)
 	v.SetDefault("auth::role::binding", map[string]string{
 		auth.RoleAdmin:  ".*",
@@ -257,7 +259,4 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("audit::enabled", true)
 	v.SetDefault("audit::headers", []string{"secretId"})
 	v.SetDefault("audit::skipPaths", []string{"/auth/dex/callback", "/pipeline/api"})
-
-	v.SetDefault("ui::url", "/ui")
-	v.SetDefault("ui::signupRedirectUrl", "/ui")
 }
