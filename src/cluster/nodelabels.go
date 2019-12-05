@@ -20,8 +20,7 @@ import (
 	"strconv"
 	"strings"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
@@ -47,7 +46,7 @@ func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, node
 
 	clusterStatus, err := cluster.GetStatus()
 	if err != nil {
-		return desiredLabels, emperror.WrapWith(err, "failed to get cluster status", "cluster", cluster.GetName())
+		return desiredLabels, errors.WrapIfWithDetails(err, "failed to get cluster status", "cluster", cluster.GetName())
 	}
 	if len(nodePools) == 0 {
 		nodePools = clusterStatus.NodePools
@@ -82,9 +81,7 @@ func getDesiredNodePoolLabels(logger logrus.FieldLogger, clusterStatus *pkgClust
 	// copy user labels unless they are not reserved keys
 	for labelKey, labelValue := range nodePool.Labels {
 		if !IsReservedDomainKey(labelKey) {
-			nKey := formatValue(labelKey)
-			nValue := formatValue(labelValue)
-			desiredLabels[nKey] = nValue
+			desiredLabels[labelKey] = labelValue
 		}
 	}
 

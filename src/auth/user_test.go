@@ -42,14 +42,6 @@ func setUpDatabase(t *testing.T) *gorm.DB {
 	return db
 }
 
-func TestEmailToLoginName(t *testing.T) {
-	loginName := emailToLoginName("john.doe@banzaicloud.com")
-
-	if loginName != "john-doe-banzaicloud-com" {
-		t.Error("loginName should be 'johndoe-banzaicloud' but is ", loginName)
-	}
-}
-
 func TestBanzaiUserStorer_Update(t *testing.T) {
 	t.Run("no change", func(t *testing.T) {
 		db := setUpDatabase(t)

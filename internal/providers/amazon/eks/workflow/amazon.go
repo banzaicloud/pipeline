@@ -60,7 +60,7 @@ func generateSSHKeyNameForCluster(clusterName string) string {
 	return "pipeline-eks-ssh-" + clusterName
 }
 
-func generateNodePoolStackName(clusterName string, poolName string) string {
+func GenerateNodePoolStackName(clusterName string, poolName string) string {
 	return "pipeline-eks-nodepool-" + clusterName + "-" + poolName
 }
 

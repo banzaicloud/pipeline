@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"go.uber.org/cadence/client"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
@@ -105,11 +105,11 @@ func (c *commonUpdater) Validate(ctx context.Context) error {
 
 	status, err := c.cluster.GetStatus()
 	if err != nil {
-		return emperror.Wrap(err, "could not get cluster status")
+		return errors.WrapIf(err, "could not get cluster status")
 	}
 
 	if status.Status != cluster.Running && status.Status != cluster.Warning {
-		return emperror.With(
+		return errors.WithDetails(
 			&commonUpdateValidationError{
 				msg:                fmt.Sprintf("cluster is not in %s or %s state yet", cluster.Running, cluster.Warning),
 				preconditionFailed: true,
@@ -181,7 +181,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		return err
 	}
 
-	manager := npls.NewManager(dclient, global.Config.Cluster.Namespace)
+	manager := npls.NewManager(dclient, global.Config.Cluster.Labels.Namespace)
 
 	if err = manager.Sync(labelsMap); err != nil {
 		return err
@@ -199,12 +199,12 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 	}
 
 	if err := DeployClusterAutoscaler(c.cluster); err != nil {
-		return emperror.Wrap(err, "deploying cluster autoscaler failed")
+		return errors.WrapIf(err, "deploying cluster autoscaler failed")
 	}
 
-	// on certain clouds like Alibaba & Ec2_Banzaicloud we still need to add node pool name labels
+	// on certain clouds like Alibaba we still need to add node pool name labels
 	if err := labelNodesWithNodePoolName(c.cluster); err != nil {
-		return emperror.Wrap(err, "adding labels to nodes failed")
+		return errors.WrapIf(err, "adding labels to nodes failed")
 	}
 	return nil
 }

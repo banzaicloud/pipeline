@@ -3817,8 +3817,10 @@ paths:
             tags:
                 - clusters
             responses:
-                204:
+                202:
                     description: Node pool delete in progress
+                204:
+                    description: Node pool deleted
                 default:
                     $ref: '#/components/responses/Error'
 
@@ -5311,6 +5313,13 @@ components:
                         type: string
                     example: ["subnet-0d16a21e9655486af"]
                     description: The subnet to create the node pool into. If this field is omitted than the subnet from the cluster level network configuration is used.
+                labels:
+                    type: object
+                    description: user provided custom node labels to be placed onto the nodes of the node pool
+                    additionalProperties:
+                        type: string
+                        example:
+                            example.io/label1: value1
 
         ClusterDelete_200:
             type: object
@@ -6333,7 +6342,10 @@ components:
                     example: "2018-03-09T13:24:49+01:00"
                 name:
                     type: string
-                    example: "myOrgName"
+                    example: "me@example.com"
+                normalizedName:
+                    type: string
+                    example: "me-example-com"
 
         User:
             type: object

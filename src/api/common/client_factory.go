@@ -29,6 +29,6 @@ type ClientFactory interface {
 
 // DynamicClientFactory returns a dynamic Kubernetes client.
 type DynamicClientFactory interface {
-	// FromSecret creates a Kubernetes client for a cluster from a secret.
+	// FromSecret creates a dynamic Kubernetes client for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error)
 }

@@ -86,6 +86,8 @@ type Configuration struct {
 		}
 
 		Labels struct {
+			Namespace string
+
 			Domain           string
 			ForbiddenDomains []string
 		}
@@ -377,6 +379,10 @@ func (c *Configuration) Process() error {
 
 	if c.Cluster.DisasterRecovery.Namespace == "" {
 		c.Cluster.DisasterRecovery.Namespace = c.Cluster.Namespace
+	}
+
+	if c.Cluster.Labels.Namespace == "" {
+		c.Cluster.Labels.Namespace = c.Cluster.Namespace
 	}
 
 	return nil

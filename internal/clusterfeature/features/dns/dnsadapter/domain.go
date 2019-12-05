@@ -53,7 +53,7 @@ func (s OrgDomainService) EnsureOrgDomain(ctx context.Context, clusterID uint) e
 		return errors.WrapIfWithDetails(err, "failed to get org for cluster", "clusterId", clusterID)
 	}
 
-	orgDomain := fmt.Sprintf("%s.%s", org.Name, s.baseDomain)
+	orgDomain := fmt.Sprintf("%s.%s", org.NormalizedName, s.baseDomain)
 
 	registered, err := s.dnsServiceClient.IsDomainRegistered(org.ID, orgDomain)
 	if err != nil {

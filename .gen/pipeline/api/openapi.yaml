@@ -18065,8 +18065,10 @@ paths:
           type: string
         style: simple
       responses:
-        204:
+        202:
           description: Node pool delete in progress
+        204:
+          description: Node pool deleted
         default:
           content:
             application/json:
@@ -19620,6 +19622,13 @@ components:
           items:
             type: string
           type: array
+        labels:
+          additionalProperties:
+            example: '{"example.io/label1":"value1"}'
+            type: string
+          description: user provided custom node labels to be placed onto the nodes
+            of the node pool
+          type: object
       type: object
     ClusterDelete_200:
       example:
@@ -20777,8 +20786,9 @@ components:
     OrganizationListItemResponse:
       example:
         createdAt: 2018-03-09T13:24:49+01:00
-        name: myOrgName
+        name: me@example.com
         id: 1
+        normalizedName: me-example-com
         updatedAt: 2018-03-09T13:24:49+01:00
       properties:
         id:
@@ -20791,7 +20801,10 @@ components:
           example: 2018-03-09T13:24:49+01:00
           type: string
         name:
-          example: myOrgName
+          example: me@example.com
+          type: string
+        normalizedName:
+          example: me-example-com
           type: string
       type: object
     User:

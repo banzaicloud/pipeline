@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"strings"
 
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
@@ -40,5 +41,26 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		"table_names": strings.TrimSpace(tableNames),
 	}).Info("migrating auth tables")
 
-	return db.AutoMigrate(tables...).Error
+	err := db.AutoMigrate(tables...).Error
+	if err != nil {
+		return err
+	}
+
+	// Migrate Organization normalized names
+	// Unique constraints are not handled here
+	switch db.Dialect().GetName() {
+	case "mysql", "postgres":
+		err = db.Exec("UPDATE organizations SET normalized_name = REPLACE(REPLACE(name, '.', '-'), '@', '-') WHERE normalized_name = '' OR normalized_name IS NULL").Error
+		if err != nil {
+			return err
+		}
+
+	case "sqlite3":
+		// Noop
+
+	default:
+		return errors.New("cannot migrate organization normalized names for this dialect")
+	}
+
+	return nil
 }
