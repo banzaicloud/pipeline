@@ -919,15 +919,6 @@ func main() {
 				)
 
 				orgs.Any("/:orgid/cloud/google/projects", gin.WrapH(router))
-
-				googleprojectdriver.RegisterHTTPHandlers(
-					endpoints,
-					orgRouter.PathPrefix("/google/projects").Subrouter(),
-					kitxhttp.ServerOptions(httpServerOptions),
-					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
-				)
-
-				orgs.Any("/:orgid/google/projects", gin.WrapH(router))
 			}
 
 			orgs.GET("/:orgid", organizationAPI.GetOrganizations)
