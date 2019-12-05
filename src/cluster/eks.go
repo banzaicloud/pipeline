@@ -974,17 +974,6 @@ func (c *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 		return pkgErrors.ErrorNotValidLocation
 	}
 
-	image, err := ListEksImages(r.Properties.CreateClusterEKS.Version, r.Location)
-	if err != nil {
-		return errors.WrapIf(err, "failed to get EKS AMI")
-	}
-
-	for name, nodePool := range r.Properties.CreateClusterEKS.NodePools {
-		if image != nodePool.Image {
-			return errors.WithDetails(pkgErrors.ErrorNotValidNodeImage, "image", nodePool.Image, "nodePool", name, "region", r.Location)
-		}
-	}
-
 	// validate VPC
 	awsCred, err := c.createAWSCredentialsFromSecret()
 	if err != nil {
@@ -1181,17 +1170,6 @@ func (c *EKSCluster) GetK8sConfig() ([]byte, error) {
 // the cluster
 func (c *EKSCluster) RequiresSshPublicKey() bool {
 	return true
-}
-
-// ListEksImages returns AMIs for EKS
-func ListEksImages(version, region string) (string, error) {
-	// TODO: revise this once CloudInfo can provide the correct EKS AMIs dynamically at runtime
-	ami, err := pkgEks.GetDefaultImageID(region, version)
-	if err != nil {
-		return "", errors.WrapIff(err, "couldn't get EKS AMI for Kubernetes version %q in region %q", version, region)
-	}
-
-	return ami, nil
 }
 
 // RbacEnabled returns true if rbac enabled on the cluster
