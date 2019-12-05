@@ -19639,6 +19639,13 @@ components:
           items:
             type: string
           type: array
+        labels:
+          additionalProperties:
+            example: '{"example.io/label1":"value1"}'
+            type: string
+          description: user provided custom node labels to be placed onto the nodes
+            of the node pool
+          type: object
       type: object
     ClusterDelete_200:
       example:

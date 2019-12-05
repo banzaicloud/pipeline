@@ -519,7 +519,7 @@ func getNodePoolsFromUpdateRequest(updateRequest *pkgCluster.UpdateClusterReques
 				MinCount:     np.MinCount,
 				MaxCount:     np.MaxCount,
 				SpotPrice:    np.SpotPrice,
-				// Labels:       np.Labels,
+				Labels:       np.Labels,
 			}
 		}
 		return nodePools
