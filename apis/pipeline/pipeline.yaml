@@ -2647,35 +2647,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/ListProjectsResponse'
-                default:
-                    $ref: '#/components/responses/Error'
-
-    /api/v1/orgs/{orgId}/google/projects:
-        get:
-            security:
-                - bearerAuth: []
-            tags:
-                - projects
-            summary: Retrieves projects visible for the user identified by the secret id
-            operationId: GetProjects
-            description: Retrieves projects visible by the user represented by the secretid header from the google cloud
-            parameters:
-                - $ref: '#/components/parameters/orgId'
-                -
-                    name: secretId
-                    in: header
-                    required: true
-                    description: Secret identification.
-                    schema:
-                        type: string
-            responses:
-                200:
-                    description: "List of projects visible for the user"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ListProjectsResponse'
+                                $ref: '#/components/schemas/GoogleProjects'
                 default:
                     $ref: '#/components/responses/Error'
 
@@ -7240,17 +7212,17 @@ components:
                 imageDigest:
                     type: string
 
-        ListProjectsResponse:
-            description: wraps a list of project details information
+        GoogleProjects:
+            description: List of Google Cloud projects.
             type: object
             properties:
                 projects:
                     type: array
                     items:
-                        $ref: '#/components/schemas/ProjectDetails'
+                        $ref: '#/components/schemas/GoogleProject'
 
-        ProjectDetails:
-            description: Details of the google project
+        GoogleProject:
+            description: Details of a Google Cloud project.
             type: object
             properties:
                 name:
