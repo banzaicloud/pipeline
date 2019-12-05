@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"io/ioutil"
+	"regexp"
 	"testing"
 
 	"github.com/jinzhu/gorm"
@@ -63,6 +64,8 @@ func TestGormOrganizationStore_EnsureOrganizationExists(t *testing.T) {
 
 		assert.True(t, created)
 		assert.Equal(t, organization.ID, id)
+		assert.Equal(t, organization.Name, "example")
+		assert.Equal(t, organization.NormalizedName, "example")
 	})
 
 	t.Run("already_exists", func(t *testing.T) {
@@ -96,6 +99,45 @@ func TestGormOrganizationStore_EnsureOrganizationExists(t *testing.T) {
 		assert.True(t, errors.Is(err, auth.ErrOrganizationConflict))
 		assert.False(t, created)
 		assert.Equal(t, uint(0), id)
+	})
+
+	t.Run("same_normalized_name", func(t *testing.T) {
+		db := setUpDatabase(t)
+		store := NewGormOrganizationStore(db)
+
+		const name1 = "john.doe@dev.example.com"
+		created1, id1, err := store.EnsureOrganizationExists(context.Background(), name1, "github")
+		require.NoError(t, err)
+
+		const name2 = "john.doe@dev-example.com"
+		created2, id2, err := store.EnsureOrganizationExists(context.Background(), name2, "github")
+		require.NoError(t, err)
+
+		var organization1 auth.Organization
+
+		err = db.
+			Where(auth.Organization{Name: name1}).
+			First(&organization1).
+			Error
+		require.NoError(t, err)
+
+		assert.True(t, created1)
+		assert.Equal(t, organization1.ID, id1)
+		assert.Equal(t, organization1.Name, name1)
+		assert.Equal(t, organization1.NormalizedName, "john-doe-dev-example-com")
+
+		var organization2 auth.Organization
+
+		err = db.
+			Where(auth.Organization{Name: name2}).
+			First(&organization2).
+			Error
+		require.NoError(t, err)
+
+		assert.True(t, created2)
+		assert.Equal(t, organization2.ID, id2)
+		assert.Equal(t, organization2.Name, name2)
+		assert.Regexp(t, regexp.MustCompile("john-doe-dev-example-com-[a-zA-Z]{6}"), organization2.NormalizedName)
 	})
 }
 

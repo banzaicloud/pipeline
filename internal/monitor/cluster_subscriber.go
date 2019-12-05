@@ -139,7 +139,7 @@ func (s *clusterSubscriber) Init() {
 				return
 			}
 
-			endPoint := strings.ToLower(fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain))
+			endPoint := strings.ToLower(fmt.Sprintf("%s.%s.%s", c.GetName(), org.NormalizedName, s.dnsBaseDomain))
 			err = dns.ValidateSubdomain(endPoint)
 			if err != nil {
 				s.errorHandler.Handle(emperror.Wrap(err, "invalid endpoint"))
