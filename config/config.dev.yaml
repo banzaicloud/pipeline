@@ -13,10 +13,6 @@ pipeline:
         # Base URL where the end users can reach this pipeline instance
         url: "https://example.com/pipeline"
 
-ui:
-    url: "http://localhost:4200/ui"
-    signupRedirectUrl: "http://localhost:4200/ui"
-
 database:
     dialect: "mysql"
     host: "localhost"
@@ -46,6 +42,10 @@ auth:
         #        insecure: false
         clientId: "pipeline"
         clientSecret: "ZXhhbXBsZS1hcHAtc2VjcmV0"
+
+    redirectUrl:
+        login: "http://localhost:4200/ui"
+        signup: "http://localhost:4200/ui"
 
     cookie:
         secure: false
