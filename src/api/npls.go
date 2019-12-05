@@ -91,7 +91,7 @@ func (n *NodepoolManagerAPI) GetNodepoolLabelSets(c *gin.Context) {
 		return
 	}
 
-	manager := npls.NewManager(client, global.Config.Cluster.Namespace)
+	manager := npls.NewManager(client, global.Config.Cluster.Labels.Namespace)
 
 	sets, err := manager.GetAll()
 	if err != nil {
@@ -175,7 +175,7 @@ func (n *NodepoolManagerAPI) SetNodepoolLabelSets(c *gin.Context) {
 		return
 	}
 
-	manager := npls.NewManager(client, global.Config.Cluster.Namespace)
+	manager := npls.NewManager(client, global.Config.Cluster.Labels.Namespace)
 
 	err = manager.Sync(labelsMap)
 	if err != nil {
