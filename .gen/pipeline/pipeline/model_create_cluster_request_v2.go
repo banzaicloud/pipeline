@@ -14,8 +14,6 @@ type CreateClusterRequestV2 struct {
 
 	Name string `json:"name"`
 
-	Features []Feature `json:"features,omitempty"`
-
 	SecretId string `json:"secretId,omitempty"`
 
 	SecretName string `json:"secretName,omitempty"`

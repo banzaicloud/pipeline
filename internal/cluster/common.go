@@ -43,9 +43,3 @@ func (c ClusterBase) GetID() uint {
 func (c ClusterBase) GetName() string {
 	return c.Name
 }
-
-// Feature defines a cluster feature's properties
-type Feature struct {
-	Kind   string                 `json:"kind"`
-	Params map[string]interface{} `json:"params"`
-}

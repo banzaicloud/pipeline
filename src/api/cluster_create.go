@@ -162,29 +162,6 @@ func (a *ClusterAPI) CreateCluster(c *gin.Context) {
 			return
 		}
 		req.SecretId = secretID
-		{
-			// Adapting legacy format. TODO: Please remove this as soon as possible.
-			if _, ok := requestBody["features"]; !ok {
-				if postHooks, ok := requestBody["postHooks"]; ok {
-					log.Warn("Got post hooks in request. Post hooks are deprecated, please use features instead.")
-					if phs, ok := postHooks.(map[string]interface{}); ok {
-						req.Features = make([]pipeline.Feature, 0, len(phs))
-						for kind, params := range phs {
-							if p, ok := params.(map[string]interface{}); ok {
-								req.Features = append(req.Features, pipeline.Feature{
-									Kind:   kind,
-									Params: p,
-								})
-							} else {
-								log.Warnf("Post hook [%s] params is not an object.", kind)
-							}
-						}
-					} else {
-						log.Warn("Value under postHooks key in request is not an object.")
-					}
-				}
-			}
-		}
 		params := req.ToAzurePKEClusterCreationParams(orgID, userID)
 		azurePKECluster, err := a.clusterCreators.PKEOnAzure.Create(ctx, params)
 		if err = emperror.Wrap(err, "failed to create cluster from request"); err != nil {

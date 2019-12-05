@@ -50,7 +50,6 @@ type CreateClusterWorkflowInput struct {
 	RouteTable                      RouteTable
 	SecurityGroups                  []SecurityGroup
 	VirtualMachineScaleSetTemplates []VirtualMachineScaleSetTemplate
-	PostHooks                       pkgCluster.PostHooks
 	NodePoolLabels                  map[string]map[string]string
 	HTTPProxy                       intPKE.HTTPProxy
 	AccessPoints                    pke.AccessPoints
@@ -159,7 +158,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	postHookWorkflowInput := cluster.RunPostHooksWorkflowInput{
 		ClusterID: input.ClusterID,
-		PostHooks: cluster.BuildWorkflowPostHookFunctions(input.PostHooks, true),
+		PostHooks: cluster.BuildWorkflowPostHookFunctions(nil, true),
 	}
 
 	err = workflow.ExecuteChildWorkflow(ctx, cluster.RunPostHooksWorkflowName, postHookWorkflowInput).Get(ctx, nil)
