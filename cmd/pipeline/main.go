@@ -296,7 +296,7 @@ func main() {
 		base32.StdEncoding.EncodeToString([]byte(config.Auth.Token.SigningKey)),
 	)
 	tokenManager := pkgAuth.NewTokenManager(tokenGenerator, tokenStore)
-	auth.Init(db, cicdDB, config.Auth, config.UI.URL, config.UI.SignupRedirectUrl, tokenStore, tokenManager, organizationSyncer)
+	auth.Init(db, cicdDB, config.Auth, tokenStore, tokenManager, organizationSyncer)
 
 	if config.Database.AutoMigrate {
 		logger.Info("running automatic schema migrations")
@@ -511,7 +511,7 @@ func main() {
 		c.Request = c.Request.WithContext(ctxutil.WithParams(c.Request.Context(), ginutils.ParamsToMap(c.Params)))
 	})
 
-	router.Path("/").Methods(http.MethodGet).Handler(http.RedirectHandler(config.UI.URL, http.StatusTemporaryRedirect))
+	router.Path("/").Methods(http.MethodGet).Handler(http.RedirectHandler(config.Auth.RedirectURL.Login, http.StatusTemporaryRedirect))
 	engine.GET("/", gin.WrapH(router))
 
 	basePath := config.Pipeline.BasePath

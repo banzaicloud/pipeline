@@ -39,10 +39,6 @@ pipeline:
         url: ""
 #        insecure: false
 
-#ui:
-#    url: "/ui"
-#    signupRedirectUrl: "/ui"
-
 database:
     # dialect: "postgres"
     dialect: "mysql"
@@ -84,6 +80,10 @@ auth:
 
 #    cli:
 #        clientId: "banzai-cli"
+
+#    redirectUrl:
+#        login: "/ui"
+#        signup: "/ui"
 
 #    cookie:
 #        secure: true
