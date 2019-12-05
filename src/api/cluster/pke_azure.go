@@ -16,7 +16,6 @@ package api
 
 import (
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
@@ -28,14 +27,6 @@ const PKEOnAzure = pke.PKEOnAzure
 type CreatePKEOnAzureClusterRequest pipeline.CreatePkeOnAzureClusterRequest
 
 func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organizationID, userID uint) driver.AzurePKEClusterCreationParams {
-	features := make([]intCluster.Feature, len(req.Features))
-	for i, f := range req.Features {
-		features[i] = intCluster.Feature{
-			Kind:   f.Kind,
-			Params: f.Params,
-		}
-	}
-
 	var accessPoints pke.AccessPoints
 	for _, apName := range req.AccessPoints {
 		accessPoints = append(accessPoints, pke.AccessPoint{Name: apName})
@@ -87,7 +78,6 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 		NodePools:             requestToClusterNodepools(req.Nodepools, userID),
 		AccessPoints:          accessPoints,
 		APIServerAccessPoints: apiServerAccessPoints,
-		Features:              features,
 		HTTPProxy: intPKE.HTTPProxy{
 			HTTP:       clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(req.Proxy.Http),
 			HTTPS:      clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(req.Proxy.Https),

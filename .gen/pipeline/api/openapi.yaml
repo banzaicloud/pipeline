@@ -18875,10 +18875,6 @@ components:
         name:
           example: my-azure-cluster-123
           type: string
-        features:
-          items:
-            $ref: '#/components/schemas/Feature'
-          type: array
         secretId:
           example: 62bc3c75-91fb-4670-bad4-24b401a9deac
           type: string
@@ -18895,19 +18891,6 @@ components:
       required:
       - name
       - type
-      type: object
-    Feature:
-      example:
-        kind: logging
-        params:
-          enabled: true
-      properties:
-        kind:
-          type: string
-        params:
-          type: object
-      required:
-      - kind
       type: object
     ScaleOptions:
       example:
