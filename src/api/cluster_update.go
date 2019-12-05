@@ -95,7 +95,7 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 		err = a.clusterManager.UpdateCluster(ctx, updateCtx, updater)
 	}
 	if err != nil {
-		if isInvalid(err) {
+		if isInvalid(err) || isInputValidationError(err) {
 			c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 				Code:    http.StatusBadRequest,
 				Message: errors.Cause(err).Error(),
