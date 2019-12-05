@@ -1477,66 +1477,6 @@ paths:
                 default:
                     $ref: '#/components/responses/Error'
 
-    /api/v1/allowed/secrets:
-        get:
-            security:
-                - bearerAuth: []
-            tags:
-                - secrets
-            summary: List allowed secret types
-            deprecated: true
-            operationId: AllowedSecretsTypes
-            description: List allowed secret types and their required keys
-            responses:
-                200:
-                    description: Allowed types listed
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                example:
-                                    tls:
-                                        fields:
-                                            -
-                                                name: hosts
-                                                required: true
-                                            -
-                                                name: validity
-                                                required: false
-                                        sourcing: volume
-                                additionalProperties:
-                                    $ref: '#/components/schemas/AllowedSecretTypeResponse'
-                default:
-                    $ref: '#/components/responses/Error'
-
-    /api/v1/allowed/secrets/{type}:
-        get:
-            security:
-                - bearerAuth: []
-            tags:
-                - secrets
-            summary: List required keys
-            deprecated: true
-            operationId: AllowedSecretsTypesKeys
-            description: List required keys in the given secret type
-            parameters:
-                -
-                    name: type
-                    in: path
-                    required: true
-                    description:  Secret type
-                    schema:
-                        type: string
-            responses:
-                200:
-                    description: Required keys listed
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/AllowedSecretTypeResponse'
-                default:
-                    $ref: '#/components/responses/Error'
-
     /api/v1/orgs/{orgId}/secrets/{secretId}:
         parameters:
             - $ref: '#/components/parameters/orgId'
@@ -6392,24 +6332,6 @@ components:
                                 type: boolean
                             description:
                                 type: string
-
-        AllowedSecretTypeResponse:
-            type: object
-            properties:
-                fields:
-                    type: array
-                    items:
-                        type: object
-                        properties:
-                            name:
-                                type: string
-                            required:
-                                type: boolean
-                            description:
-                                type: string
-                sourcing:
-                    type: string
-                    enum: [env, volume]
 
         ListUserResponse:
             type: array
