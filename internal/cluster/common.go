@@ -20,11 +20,6 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
-type Cluster interface {
-	GetID() uint
-	GetName() string
-}
-
 // ClusterBase defines common cluster fields
 type ClusterBase struct {
 	CreatedBy      uint
@@ -47,10 +42,4 @@ func (c ClusterBase) GetID() uint {
 
 func (c ClusterBase) GetName() string {
 	return c.Name
-}
-
-// Feature defines a cluster feature's properties
-type Feature struct {
-	Kind   string                 `json:"kind"`
-	Params map[string]interface{} `json:"params"`
 }

@@ -24,8 +24,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/pkg/backoff"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 type monitoringConfig struct {

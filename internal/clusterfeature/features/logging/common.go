@@ -27,15 +27,15 @@ const (
 	providerAzure      = "azure"
 	providerLoki       = "loki"
 
-	tlsSecretName                     = "logging-tls-secret"
-	loggingOperatorReleaseName        = "logging-operator"
-	loggingOperatorLoggingReleaseName = "logging-operator-logging"
-	lokiReleaseName                   = "loki"
-	lokiServiceName                   = "loki"
-	releaseSecretTag                  = "release:logging"
-	featureSecretTag                  = "feature:logging"
-	lokiSecretTag                     = "app:loki"
-	generatedSecretUsername           = "admin"
+	tlsSecretName              = "logging-tls-secret"
+	loggingOperatorReleaseName = "logging-operator"
+	lokiReleaseName            = "loki"
+	lokiServiceName            = "loki"
+	releaseSecretTag           = "release:logging"
+	featureSecretTag           = "feature:logging"
+	lokiSecretTag              = "app:loki"
+	generatedSecretUsername    = "admin"
+	fluentSharedSecretName     = "logging-operator-fluent-shared-secret"
 
 	outputDefinitionSecretKeyOSSAccessKeyID      = "accessKeyId"
 	outputDefinitionSecretKeyOSSAccessKey        = "accessKeySecret"
@@ -45,11 +45,10 @@ const (
 	outputDefinitionSecretKeyAzureStorageAccount = "azureStorageAccount"
 	outputDefinitionSecretKeyAzureStorageAccess  = "azureStorageAccessKey"
 
-	fluentbitSecretName = "logging-operator-fluentbit-secret"
-	fluentdSecretName   = "logging-operator-fluentd-secret"
-
 	lokiOutputDefinitionName = "loki-output"
 	flowResourceName         = "banzai-logging-flow"
+	resourceLabelKey         = "banzaicloud.io/service"
+	loggingResourceName      = "banzai-logging"
 )
 
 func getLokiSecretName(clusterID uint) string {

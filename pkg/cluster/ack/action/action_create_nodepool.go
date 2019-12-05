@@ -19,9 +19,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // CreateACKNodePoolAction describes the properties of an Alibaba cluster creation

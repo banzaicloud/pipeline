@@ -21,9 +21,9 @@ import (
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // NewMeshReconciler crates a new mesh feature reconciler

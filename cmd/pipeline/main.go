@@ -49,22 +49,6 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
-	"github.com/banzaicloud/pipeline/api"
-	"github.com/banzaicloud/pipeline/api/ark/backups"
-	"github.com/banzaicloud/pipeline/api/ark/backupservice"
-	"github.com/banzaicloud/pipeline/api/ark/buckets"
-	"github.com/banzaicloud/pipeline/api/ark/restores"
-	"github.com/banzaicloud/pipeline/api/ark/schedules"
-	"github.com/banzaicloud/pipeline/api/cluster/namespace"
-	"github.com/banzaicloud/pipeline/api/cluster/pke"
-	cgroupAPI "github.com/banzaicloud/pipeline/api/clustergroup"
-	"github.com/banzaicloud/pipeline/api/common"
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/auth/authadapter"
-	"github.com/banzaicloud/pipeline/auth/authdriver"
-	"github.com/banzaicloud/pipeline/auth/authgen"
-	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/dns"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
@@ -82,6 +66,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusterdriver"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
@@ -106,6 +92,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
+	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	"github.com/banzaicloud/pipeline/internal/platform/appkit"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
@@ -123,15 +110,29 @@ import (
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/internal/providers/google/googleadapter"
-	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/problems"
 	"github.com/banzaicloud/pipeline/pkg/providers"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/spotguide"
-	"github.com/banzaicloud/pipeline/spotguide/scm"
+	"github.com/banzaicloud/pipeline/src/api"
+	"github.com/banzaicloud/pipeline/src/api/ark/backups"
+	"github.com/banzaicloud/pipeline/src/api/ark/backupservice"
+	"github.com/banzaicloud/pipeline/src/api/ark/buckets"
+	"github.com/banzaicloud/pipeline/src/api/ark/restores"
+	"github.com/banzaicloud/pipeline/src/api/ark/schedules"
+	"github.com/banzaicloud/pipeline/src/api/cluster/namespace"
+	"github.com/banzaicloud/pipeline/src/api/cluster/pke"
+	cgroupAPI "github.com/banzaicloud/pipeline/src/api/clustergroup"
+	"github.com/banzaicloud/pipeline/src/api/common"
+	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/auth/authadapter"
+	"github.com/banzaicloud/pipeline/src/auth/authdriver"
+	"github.com/banzaicloud/pipeline/src/auth/authgen"
+	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/dns"
+	"github.com/banzaicloud/pipeline/src/secret"
+	"github.com/banzaicloud/pipeline/src/spotguide"
+	"github.com/banzaicloud/pipeline/src/spotguide/scm"
 )
 
 // Provisioned by ldflags
@@ -294,7 +295,7 @@ func main() {
 		base32.StdEncoding.EncodeToString([]byte(config.Auth.Token.SigningKey)),
 	)
 	tokenManager := pkgAuth.NewTokenManager(tokenGenerator, tokenStore)
-	auth.Init(db, cicdDB, config.Auth, config.UI.URL, config.UI.SignupRedirectPath, tokenStore, tokenManager, organizationSyncer)
+	auth.Init(db, cicdDB, config.Auth, tokenStore, tokenManager, organizationSyncer)
 
 	if config.Database.AutoMigrate {
 		logger.Info("running automatic schema migrations")
@@ -319,7 +320,7 @@ func main() {
 
 	clusterEventBus := evbus.New()
 	clusterEvents := cluster.NewClusterEvents(clusterEventBus)
-	clusters := intCluster.NewClusters(db)
+	clusters := clusteradapter.NewClusters(db)
 	secretValidator := providers.NewSecretValidator(secret.Store)
 	statusChangeDurationMetric := prometheusMetrics.MakePrometheusClusterStatusChangeDurationMetric()
 	// Initialise cluster total metric
@@ -429,9 +430,27 @@ func main() {
 		),
 	}
 
-	clusterAPI := api.NewClusterAPI(clusterManager, commonClusterGetter, workflowClient, cloudInfoClient, clusterGroupManager, logrusLogger, errorHandler, externalBaseURL, externalURLInsecure, clusterCreators, clusterDeleters, clusterUpdaters)
+	configFactory := kubernetes.NewConfigFactory(secretStore)
+	clientFactory := kubernetes.NewClientFactory(configFactory)
+	dynamicClientFactory := kubernetes.NewDynamicClientFactory(configFactory)
 
-	nplsApi := api.NewNodepoolManagerAPI(commonClusterGetter, logrusLogger, errorHandler)
+	clusterAPI := api.NewClusterAPI(
+		clusterManager,
+		commonClusterGetter,
+		workflowClient,
+		cloudInfoClient,
+		clusterGroupManager,
+		logrusLogger,
+		errorHandler,
+		externalBaseURL,
+		externalURLInsecure,
+		clusterCreators,
+		clusterDeleters,
+		clusterUpdaters,
+		dynamicClientFactory,
+	)
+
+	nplsApi := api.NewNodepoolManagerAPI(commonClusterGetter, dynamicClientFactory, logrusLogger, errorHandler)
 
 	// Initialise Gin router
 	engine := gin.New()
@@ -491,7 +510,7 @@ func main() {
 		c.Request = c.Request.WithContext(ctxutil.WithParams(c.Request.Context(), ginutils.ParamsToMap(c.Params)))
 	})
 
-	router.Path("/").Methods(http.MethodGet).Handler(http.RedirectHandler(config.UI.URL, http.StatusTemporaryRedirect))
+	router.Path("/").Methods(http.MethodGet).Handler(http.RedirectHandler(config.Auth.RedirectURL.Login, http.StatusTemporaryRedirect))
 	engine.GET("/", gin.WrapH(router))
 
 	basePath := config.Pipeline.BasePath
@@ -735,12 +754,6 @@ func main() {
 						))
 					}
 
-					imgScanSvc := anchore.NewImageScannerService(configProvider, logger)
-					imageScanHandler := api.NewImageScanHandler(commonClusterGetter, imgScanSvc, logger)
-
-					policySvc := anchore.NewPolicyService(configProvider, logger)
-					policyHandler := api.NewPolicyHandler(commonClusterGetter, policySvc, logger)
-
 					secErrorHandler := emperror.MakeContextAware(errorHandler)
 					securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, secErrorHandler, logger)
 
@@ -757,16 +770,6 @@ func main() {
 					cRouter.GET("/whitelists", securityApiHandler.GetWhiteLists)
 					cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
 					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
-
-					cRouter.GET("/policies", policyHandler.ListPolicies)
-					cRouter.GET("/policies/:policyId", policyHandler.GetPolicy)
-					cRouter.POST("/policies", policyHandler.CreatePolicy)
-					cRouter.PUT("/policies/:policyId", policyHandler.UpdatePolicy)
-					cRouter.DELETE("/policies/:policyId", policyHandler.DeletePolicy)
-
-					cRouter.POST("/imagescan", imageScanHandler.ScanImages)
-					cRouter.GET("/imagescan/:imagedigest", imageScanHandler.GetScanResult)
-					cRouter.GET("/imagescan/:imagedigest/vuln", imageScanHandler.GetImageVulnerabilities)
 				}
 
 				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry(featureManagers)
@@ -790,48 +793,44 @@ func main() {
 				cRouter.Any("/features/:featureName", gin.WrapH(router))
 			}
 
-			hpaApi := api.NewHPAAPI(featureService)
+			hpaApi := api.NewHPAAPI(featureService, clientFactory, configFactory, commonClusterGetter, errorHandler)
 			cRouter.GET("/hpa", hpaApi.GetHpaResource)
 			cRouter.PUT("/hpa", hpaApi.PutHpaResource)
 			cRouter.DELETE("/hpa", hpaApi.DeleteHpaResource)
-
-			if config.Cluster.Monitoring.Monitor.Enabled {
-				client, err := k8sclient.NewInClusterClient()
-				if err != nil {
-					errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
-				} else {
-					dnsBaseDomain, err := dns.GetBaseDomain()
-					if err != nil {
-						errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
-					}
-
-					monitorClusterSubscriber := monitor.NewClusterSubscriber(
-						client,
-						clusterManager,
-						db,
-						dnsBaseDomain,
-						global.Config.Kubernetes.Namespace,
-						global.Config.Cluster.Namespace,
-						config.Cluster.Monitoring.Monitor.ConfigMap,
-						config.Cluster.Monitoring.Monitor.ConfigMapPrometheusKey,
-						config.Cluster.Monitoring.Monitor.CertSecret,
-						config.Cluster.Monitoring.Monitor.MountPath,
-						featureService,
-						errorHandler,
-					)
-					monitorClusterSubscriber.Init()
-					monitorClusterSubscriber.Register(monitor.NewClusterEvents(clusterEventBus))
-				}
-			}
 
 			// ClusterGroupAPI
 			cgroupsAPI := cgroupAPI.NewAPI(clusterGroupManager, deploymentManager, logrusLogger, errorHandler)
 			cgroupsAPI.AddRoutes(orgs.Group("/:orgid/clustergroups"))
 
-			cRouter.GET("/nodepools/labels", nplsApi.GetNodepoolLabelSets)
-			cRouter.POST("/nodepools/labels", nplsApi.SetNodepoolLabelSets)
+			cRouter.GET("/nodepool-labels", nplsApi.GetNodepoolLabelSets)
+			cRouter.POST("/nodepool-labels", nplsApi.SetNodepoolLabelSets)
 
-			namespaceAPI := namespace.NewAPI(commonClusterGetter, errorHandler)
+			{
+				clusterStore := clusteradapter.NewStore(db, clusters)
+
+				service := intCluster.NewNodePoolService(
+					clusterStore,
+					clusteradapter.NewNodePoolStore(db, clusterStore),
+					clusteradapter.NewNodePoolManager(workflowClient),
+				)
+				endpoints := clusterdriver.TraceNodePoolEndpoints(clusterdriver.MakeNodePoolEndpoints(
+					service,
+					kitxendpoint.Chain(endpointMiddleware...),
+					appkit.EndpointLogger(commonLogger),
+				))
+
+				clusterdriver.RegisterNodePoolHTTPHandlers(
+					endpoints,
+					clusterRouter.PathPrefix("/nodepools").Subrouter(),
+					kitxhttp.ServerOptions(httpServerOptions),
+					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+				)
+
+				cRouter.Any("/nodepools", gin.WrapH(router))
+				cRouter.Any("/nodepools/:nodePoolName", gin.WrapH(router))
+			}
+
+			namespaceAPI := namespace.NewAPI(commonClusterGetter, clientFactory, errorHandler)
 			namespaceAPI.RegisterRoutes(cRouter.Group("/namespaces"))
 
 			pkeGroup := cRouter.Group("/pke")

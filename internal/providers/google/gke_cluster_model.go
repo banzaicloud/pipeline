@@ -20,21 +20,20 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 )
 
 // TableName constants
 const (
 	gkeClusterModelTableName  = "google_gke_clusters"
 	gkeNodePoolModelTableName = "google_gke_node_pools"
-	gkeNodePoolLabelTableName = "google_gke_node_pool_labels"
 )
 
 // GKEClusterModel is the schema for the DB.
 type GKEClusterModel struct {
-	ID        uint                 `gorm:"primary_key"`
-	Cluster   cluster.ClusterModel `gorm:"foreignkey:ClusterID"`
-	ClusterID uint                 `gorm:"unique_index:idx_gke_cluster_id"`
+	ID        uint                        `gorm:"primary_key"`
+	Cluster   clusteradapter.ClusterModel `gorm:"foreignkey:ClusterID"`
+	ClusterID uint                        `gorm:"unique_index:idx_gke_cluster_id"`
 
 	MasterVersion string
 	NodeVersion   string
@@ -149,32 +148,5 @@ func (m GKENodePoolModel) String() string {
 		m.NodeMinCount,
 		m.NodeMaxCount,
 		m.NodeCount,
-	)
-}
-
-// GKENodePoolLabelModel stores labels for node pools
-type GKENodePoolLabelModel struct {
-	ID         uint   `gorm:"primary_key"`
-	Name       string `gorm:"unique_index:idx_gke_node_pool_labels_id_name"`
-	Value      string
-	NodePoolID uint `gorm:"unique_index:idx_gke_node_pool_labels_id_name"`
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-}
-
-// TableName changes the default table name.
-func (GKENodePoolLabelModel) TableName() string {
-	return gkeNodePoolLabelTableName
-}
-
-func (m GKENodePoolLabelModel) String() string {
-	return fmt.Sprintf(
-		"ID: %d, Name: %s, Value: %s, NodePoolID: %d, createdAt: %v, UpdatedAt: %v",
-		m.ID,
-		m.Name,
-		m.Value,
-		m.NodePoolID,
-		m.CreatedAt,
-		m.UpdatedAt,
 	)
 }

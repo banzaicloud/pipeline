@@ -10,11 +10,15 @@
 
 package pipeline
 
+// CommonError - Generic error object. Deprecated: use Error schema instead.
 type CommonError struct {
 
+	// HTTP status code
 	Code int32 `json:"code,omitempty"`
 
+	// Error message
 	Message string `json:"message,omitempty"`
 
+	// Error message
 	Error string `json:"error,omitempty"`
 }

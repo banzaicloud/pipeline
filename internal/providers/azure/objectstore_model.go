@@ -15,7 +15,7 @@
 package azure
 
 import (
-	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // TableName constants

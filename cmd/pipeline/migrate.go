@@ -19,19 +19,19 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend/notification/notificationadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/common"
 
-	"github.com/banzaicloud/pipeline/auth"
-	route53model "github.com/banzaicloud/pipeline/dns/route53/model"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
 	"github.com/banzaicloud/pipeline/internal/ark"
-	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	"github.com/banzaicloud/pipeline/internal/providers"
-	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/pipeline/spotguide"
+	"github.com/banzaicloud/pipeline/src/auth"
+	route53model "github.com/banzaicloud/pipeline/src/dns/route53/model"
+	"github.com/banzaicloud/pipeline/src/model"
+	"github.com/banzaicloud/pipeline/src/spotguide"
 )
 
 // Migrate runs migrations for the application.
@@ -56,7 +56,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger, commonLogger common.Logger)
 		return err
 	}
 
-	if err := cluster.Migrate(db, logger); err != nil {
+	if err := clusteradapter.Migrate(db, logger); err != nil {
 		return err
 	}
 

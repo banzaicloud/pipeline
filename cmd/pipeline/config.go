@@ -24,13 +24,13 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // configuration holds any kind of configuration that comes from the outside world and
@@ -101,11 +101,6 @@ type configuration struct {
 		Headers   []string
 		SkipPaths []string
 	}
-
-	UI struct {
-		URL                string
-		SignupRedirectPath string
-	}
 }
 
 // Validate validates the configuration.
@@ -156,6 +151,10 @@ func (c configuration) Validate() error {
 
 // Process post-processes the configuration after loading (before validation).
 func (c *configuration) Process() error {
+	if err := c.Auth.Process(); err != nil {
+		return err
+	}
+
 	if err := c.Cluster.Process(); err != nil {
 		return err
 	}
@@ -230,6 +229,9 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("pipeline::keyFile", "")
 
 	// Auth configuration
+	v.SetDefault("auth::redirectUrl::login", "/ui")
+	v.SetDefault("auth::redirectUrl::signup", "/ui")
+
 	v.SetDefault("auth::role::default", auth.RoleAdmin)
 	v.SetDefault("auth::role::binding", map[string]string{
 		auth.RoleAdmin:  ".*",
@@ -257,7 +259,4 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("audit::enabled", true)
 	v.SetDefault("audit::headers", []string{"secretId"})
 	v.SetDefault("audit::skipPaths", []string{"/auth/dex/callback", "/pipeline/api"})
-
-	v.SetDefault("pipeline::ui::url", "/ui")
-	v.SetDefault("pipeline::ui::signupRedirectPath", "/ui")
 }

@@ -25,10 +25,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
-	"github.com/banzaicloud/pipeline/secret/verify"
+	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 const metricsNamesapce = "pipeline"

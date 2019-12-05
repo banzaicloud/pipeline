@@ -15,21 +15,19 @@
 package pke
 
 import (
-	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	"github.com/spf13/cast"
+
+	"github.com/banzaicloud/pipeline/internal/database/sql/json"
 )
 
 // KubeADM is the schema for the DB.
 type KubeADM struct {
 	Model
 
-	ExtraArgs   ExtraArgs `yaml:"extraArgs" gorm:"-"`
-	ExtraArgsDB string    `gorm:"column:extra_args;type:varchar(255)"`
+	ExtraArgs ExtraArgs `yaml:"extraArgs" gorm:"type:json"`
 }
 
 // TableName changes the default table name.
@@ -48,61 +46,24 @@ func (k KubeADM) String() string {
 	)
 }
 
-// BeforeCreate marshals fields.
-func (k *KubeADM) BeforeCreate(scope *gorm.Scope) error {
-	var (
-		extraArgs []byte
-		err       error
-	)
-
-	extraArgs, err = json.Marshal(k.ExtraArgs)
-	if err != nil {
-		return err
-	}
-	err = scope.SetColumn("ExtraArgs", string(extraArgs))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// BeforeUpdate marshals fields.
-func (k *KubeADM) BeforeUpdate(scope *gorm.Scope) error {
-	return k.BeforeCreate(scope)
-}
-
-// AfterFind unmarshals fields.
-func (k *KubeADM) AfterFind() error {
-	var (
-		extraArgs ExtraArgs
-		err       error
-	)
-
-	err = json.Unmarshal([]byte(k.ExtraArgsDB), &extraArgs)
-	if err != nil {
-		return err
-	}
-
-	k.ExtraArgs = extraArgs
-
-	return nil
-}
-
 // ExtraArgs is the schema for the DB.
 type ExtraArgs []ExtraArg
 
+func (m *ExtraArgs) Scan(src interface{}) error {
+	return json.Scan(src, m)
+}
+
+func (m ExtraArgs) Value() (driver.Value, error) {
+	return json.Value(m)
+}
+
 // ExtraArg is the schema for the DB.
 type ExtraArg string
-
-var _ driver.Valuer = (*ExtraArg)(nil)
 
 // Value implements the driver.Valuer interface
 func (e ExtraArg) Value() (driver.Value, error) {
 	return string(e), nil
 }
-
-var _ sql.Scanner = (*ExtraArg)(nil)
 
 // Scan implements the sql.Scanner interface
 func (e *ExtraArg) Scan(src interface{}) error {

@@ -15,7 +15,6 @@
 package pke
 
 import (
-	"database/sql"
 	"database/sql/driver"
 	"fmt"
 
@@ -56,18 +55,10 @@ func (n Network) String() string {
 // NetworkProvider is the schema for the DB.
 type NetworkProvider string
 
-const (
-	NPWeave NetworkProvider = "weave" // Weave network provider.
-)
-
-var _ driver.Valuer = (*NetworkProvider)(nil)
-
 // Value implements the driver.Valuer interface
 func (n NetworkProvider) Value() (driver.Value, error) {
 	return string(n), nil
 }
-
-var _ sql.Scanner = (*NetworkProvider)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *NetworkProvider) Scan(src interface{}) error {
@@ -83,14 +74,10 @@ const (
 	CNPAmazon CloudNetworkProvider = "ec2" // Amazon EC2 network provider.
 )
 
-var _ driver.Valuer = (*CloudNetworkProvider)(nil)
-
 // Value implements the driver.Valuer interface
 func (n CloudNetworkProvider) Value() (driver.Value, error) {
 	return string(n), nil
 }
-
-var _ sql.Scanner = (*CloudNetworkProvider)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *CloudNetworkProvider) Scan(src interface{}) error {

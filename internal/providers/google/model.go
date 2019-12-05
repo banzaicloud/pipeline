@@ -21,8 +21,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/providers/google"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // Migrate executes the table migrations for the provider.
@@ -32,7 +32,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 
 		&GKEClusterModel{},
 		&GKENodePoolModel{},
-		&GKENodePoolLabelModel{},
 	}
 
 	var tableNames string

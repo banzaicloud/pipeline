@@ -30,10 +30,10 @@ import (
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
 	ctlutil "sigs.k8s.io/kubefed/pkg/controller/util"
 
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/helm"
 )
 
 type OperatorImage struct {

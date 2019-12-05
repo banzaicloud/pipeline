@@ -21,8 +21,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // ClusterManagerAdapter provides an adapter for pkeworkflow.Clusters.
@@ -65,7 +65,9 @@ func (c *Cluster) GetK8sConfig() ([]byte, error) {
 }
 
 func (c *Cluster) GetNodePools() []pkeworkflow.NodePool {
-	clusterNodePools := c.CommonCluster.(interface{ GetNodePools() []cluster.PKENodePool }).GetNodePools()
+	clusterNodePools := c.CommonCluster.(interface {
+		GetNodePools() []cluster.PKENodePool
+	}).GetNodePools()
 	nodePools := make([]pkeworkflow.NodePool, len(clusterNodePools), len(clusterNodePools))
 	for i, np := range clusterNodePools {
 		nodePools[i] = pkeworkflow.NodePool{
@@ -103,6 +105,13 @@ func (c *Cluster) GetBootstrapCommand(nodePoolName, url string, urlInsecure bool
 func (c *Cluster) GetKubernetesVersion() (string, error) {
 	if awscluster, ok := c.CommonCluster.(pkeworkflow.AWSCluster); ok {
 		return awscluster.GetKubernetesVersion()
+	}
+	return "", errors.New(fmt.Sprintf("failed to cast cluster to AWSCluster, got type: %T", c.CommonCluster))
+}
+
+func (c *Cluster) GetKubernetesNetworkProvider() (string, error) {
+	if awscluster, ok := c.CommonCluster.(pkeworkflow.AWSCluster); ok {
+		return awscluster.GetKubernetesNetworkProvider()
 	}
 	return "", errors.New(fmt.Sprintf("failed to cast cluster to AWSCluster, got type: %T", c.CommonCluster))
 }

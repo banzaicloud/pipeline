@@ -17,26 +17,76 @@ package cluster
 import (
 	"context"
 
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 )
 
-// ClientFactory returns a Kubernetes client.
-//go:generate mockery -name ClientFactory -inpkg
-type ClientFactory interface {
+// KubeClientFactory returns a Kubernetes client.
+type KubeClientFactory interface {
 	// FromSecret creates a Kubernetes client for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error)
 }
 
-// DynamicFileClient interacts with a cluster with file manifests.
-//go:generate mockery -name DynamicFileClient -inpkg
-type DynamicFileClient interface {
-	// Create iterates a set of YAML documents and calls client.Create on them.
-	Create(ctx context.Context, file []byte) error
+// ClientFactory returns a Kubernetes client.
+type ClientFactory struct {
+	clusters          Store
+	kubeClientFactory KubeClientFactory
 }
 
-// DynamicFileClientFactory returns a DynamicFileClient.
-//go:generate mockery -name DynamicFileClientFactory -inpkg
-type DynamicFileClientFactory interface {
-	// FromSecret creates a DynamicFileClient for a cluster from a secret.
-	FromSecret(ctx context.Context, secretID string) (DynamicFileClient, error)
+// NewClientFactory returns a new ClientFactory.
+func NewClientFactory(clusters Store, kubeClientFactory KubeClientFactory) ClientFactory {
+	return ClientFactory{
+		clusters:          clusters,
+		kubeClientFactory: kubeClientFactory,
+	}
+}
+
+// FromClusterID creates a Kubernetes client for a cluster from a cluster ID.
+func (f ClientFactory) FromClusterID(ctx context.Context, clusterID uint) (kubernetes.Interface, error) {
+	cluster, err := f.clusters.GetCluster(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+
+	return f.kubeClientFactory.FromSecret(ctx, cluster.ConfigSecretID.String())
+}
+
+// FromSecret creates a Kubernetes client for a cluster from a secret.
+func (f ClientFactory) FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error) {
+	return f.kubeClientFactory.FromSecret(ctx, secretID)
+}
+
+// DynamicKubeClientFactory returns a dynamic Kubernetes client.
+type DynamicKubeClientFactory interface {
+	// FromSecret creates a dynamic Kubernetes client for a cluster from a secret.
+	FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error)
+}
+
+// DynamicClientFactory returns a Kubernetes client.
+type DynamicClientFactory struct {
+	clusters                 Store
+	dynamicKubeClientFactory DynamicKubeClientFactory
+}
+
+// NewDynamicClientFactory returns a new DynamicClientFactory.
+func NewDynamicClientFactory(clusters Store, dynamicKubeClientFactory DynamicKubeClientFactory) DynamicClientFactory {
+	return DynamicClientFactory{
+		clusters:                 clusters,
+		dynamicKubeClientFactory: dynamicKubeClientFactory,
+	}
+}
+
+// FromClusterID creates a dynamic Kubernetes client for a cluster from a cluster ID.
+func (f DynamicClientFactory) FromClusterID(ctx context.Context, clusterID uint) (dynamic.Interface, error) {
+	cluster, err := f.clusters.GetCluster(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+
+	return f.dynamicKubeClientFactory.FromSecret(ctx, cluster.ConfigSecretID.String())
+}
+
+// FromSecret creates a dynamic Kubernetes client for a cluster from a secret.
+func (f DynamicClientFactory) FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error) {
+	return f.dynamicKubeClientFactory.FromSecret(ctx, secretID)
 }

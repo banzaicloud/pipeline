@@ -21,8 +21,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
-	"github.com/banzaicloud/pipeline/secret/verify"
+	"github.com/banzaicloud/pipeline/src/secret"
+	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
+
+type AWSFactory interface {
+	New(organizationID uint, secretID string, region string) (*session.Session, error)
+}
 
 type AWSSessionFactory struct {
 	secretStore SecretStore
@@ -60,9 +65,7 @@ func (f *AWSSessionFactory) GetAWSCredentials(organizationID uint, secretID stri
 		return nil, errors.WrapIfWithDetails(err, "failed to get AWS secret", keyvals...)
 	}
 
-	err = sir.ValidateSecretType(amazon.Provider)
-
-	if err != nil {
+	if err := secret.ValidateSecretType(sir, amazon.Provider); err != nil {
 		return nil, errors.WithDetails(err, keyvals...)
 	}
 

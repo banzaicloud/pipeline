@@ -21,8 +21,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/labels"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // ClusterBackupsService is for cluster backups related ARK functions

@@ -121,14 +121,6 @@ configuration:
         - storageprofile
         - storagetier
 
-    monitoring:
-      # Pipeline federated monitoring configurations
-      monitor:
-        enabled: false
-        configMap: prometheus-federation
-        certSecret: prometheus-federation-secrets
-        mountPath: /etc/prometheus/secrets
-
     securityScan:
       anchore:
         enabled: false

@@ -113,23 +113,20 @@ connectors:
     # # management console.
     # hostName: git.example.com
 
-- type: oidc
+- type: google
   id: google
   name: Google
   config:
-    # Canonical URL of the provider, also used for configuration discovery.
-    # This value MUST match the value returned in the provider config discovery.
-    #
-    # See: https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig
-    issuer: https://accounts.google.com
-
     # Connector config values starting with a "$" will read from the environment.
     clientID: $GOOGLE_CLIENT_ID
     clientSecret: $GOOGLE_CLIENT_SECRET
 
     # Dex's issuer URL + "/callback"
     redirectURI: http://127.0.0.1:5556/dex/callback
-    loadAllGroups: true
+
+    # This file has to be mounted into the Dex container, to this path:
+    serviceAccountFilePath: /etc/google-service-account.json
+    adminEmail: admin@banzaicloud.com
 
 - type: ldap
   id: ldap

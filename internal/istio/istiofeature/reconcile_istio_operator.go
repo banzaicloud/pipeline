@@ -18,7 +18,7 @@ import (
 	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
 
-	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 func (m *MeshReconciler) ReconcileIstioOperator(desiredState DesiredState) error {

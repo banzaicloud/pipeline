@@ -21,7 +21,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/network"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	secretOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 type oracleNetwork struct {

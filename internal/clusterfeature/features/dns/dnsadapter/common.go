@@ -17,7 +17,7 @@ package dnsadapter
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // CommonClusterGetter can be used to get a cluster by its ID

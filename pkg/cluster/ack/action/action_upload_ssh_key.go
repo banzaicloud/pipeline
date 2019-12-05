@@ -22,7 +22,8 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // UploadSSHKeyAction describes how to upload an SSH key
@@ -54,7 +55,7 @@ func (a *UploadSSHKeyAction) ExecuteAction(input interface{}) (interface{}, erro
 	req := ecs.CreateImportKeyPairRequest()
 	req.SetScheme(requests.HTTPS)
 	req.KeyPairName = a.context.AlibabaClusterCreateParams.Name
-	req.PublicKeyBody = strings.TrimSpace(secret.NewSSHKeyPair(a.sshSecret).PublicKeyData)
+	req.PublicKeyBody = strings.TrimSpace(sshadapter.KeyPairFromSecret(a.sshSecret).PublicKeyData)
 	req.RegionId = a.context.AlibabaClusterCreateParams.RegionID
 
 	resp, err := ecsClient.ImportKeyPair(req)

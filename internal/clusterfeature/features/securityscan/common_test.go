@@ -14,7 +14,7 @@
 
 package securityscan
 
-import "github.com/banzaicloud/pipeline/secret"
+import "github.com/banzaicloud/pipeline/src/secret"
 
 type obj = map[string]interface{}
 

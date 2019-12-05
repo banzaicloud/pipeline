@@ -26,14 +26,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
-	pipCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
-	"github.com/banzaicloud/pipeline/secret"
+	pipCluster "github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 type AzurePKEClusterUpdater struct {
@@ -104,7 +104,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 	if err != nil {
 		return errors.WrapIf(err, "failed to get cluster secret")
 	}
-	tenantID := sir.GetValue(secrettype.AzureTenantID)
+	tenantID := sir.Values[secrettype.AzureTenantID]
 
 	conn, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(sir.Values))
 	if err = errors.WrapIf(err, "failed to create new Azure cloud connection"); err != nil {
@@ -240,6 +240,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		Labels:                labels,
 		AccessPoints:          cluster.AccessPoints,
 		APIServerAccessPoints: cluster.APIServerAccessPoints,
+		ConfigSecretID:        cluster.K8sSecretID,
 	}
 
 	if err := cu.store.SetStatus(cluster.ID, pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {

@@ -54,6 +54,7 @@ type CreateInfrastructureWorkflowInput struct {
 }
 
 type CreateInfrastructureWorkflowOutput struct {
+	VpcID              string
 	NodeInstanceRoleID string
 	Subnets            []Subnet
 }
@@ -286,7 +287,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 
 		activityInput := CreateAsgActivityInput{
 			EKSActivityInput: commonActivityInput,
-			StackName:        generateNodePoolStackName(input.ClusterName, asg.Name),
+			StackName:        GenerateNodePoolStackName(input.ClusterName, asg.Name),
 
 			ScaleEnabled: input.ScaleEnabled,
 			SSHKeyName:   sshKeyName,
@@ -329,6 +330,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 	}
 
 	output := CreateInfrastructureWorkflowOutput{
+		VpcID:              vpcActivityOutput.VpcID,
 		NodeInstanceRoleID: iamRolesActivityOutput.NodeInstanceRoleID,
 		Subnets:            existingAndNewSubnets,
 	}

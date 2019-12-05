@@ -15,13 +15,13 @@
 package pke
 
 import (
-	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/spf13/cast"
+
+	"github.com/banzaicloud/pipeline/internal/database/sql/json"
 )
 
 type NodePools []NodePool
@@ -67,14 +67,10 @@ const (
 	NPPAmazon NodePoolProvider = "amazon"
 )
 
-var _ driver.Valuer = (*NodePoolProvider)(nil)
-
 // Value implements the driver.Valuer interface
 func (n NodePoolProvider) Value() (driver.Value, error) {
 	return string(n), nil
 }
-
-var _ sql.Scanner = (*NodePoolProvider)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *NodePoolProvider) Scan(src interface{}) error {
@@ -92,40 +88,24 @@ const (
 	RolePipelineSystem Role = "pipeline-system"
 )
 
-var _ driver.Valuer = (*Roles)(nil)
-
 // Value implements the driver.Valuer interface
 func (n Roles) Value() (driver.Value, error) {
-	r, err := json.Marshal(n)
-	if err != nil {
-		return "", err
-	}
-	return string(r), nil
+	return json.Value(n)
 }
-
-var _ sql.Scanner = (*Roles)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *Roles) Scan(src interface{}) error {
-	value, err := cast.ToStringE(src)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal([]byte(value), &n)
+	return json.Scan(src, n)
 }
-
-var _ driver.Valuer = (*Role)(nil)
 
 // Value implements the driver.Valuer interface
 func (r Role) Value() (driver.Value, error) {
 	return string(r), nil
 }
 
-var _ sql.Scanner = (*Role)(nil)
-
 // Scan implements the sql.Scanner interface
 func (r *Role) Scan(src interface{}) error {
-	*r = Role(string(src.(string)))
+	*r = Role(src.(string))
 	return nil
 }
 
@@ -169,49 +149,25 @@ func (h Host) String() string {
 
 type Labels map[string]string
 
-var _ driver.Valuer = (*Labels)(nil)
-
 // Value implements the driver.Valuer interface
 func (n Labels) Value() (driver.Value, error) {
-	r, err := json.Marshal(n)
-	if err != nil {
-		return "", err
-	}
-	return string(r), nil
+	return json.Value(n)
 }
-
-var _ sql.Scanner = (*Labels)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *Labels) Scan(src interface{}) error {
-	value, err := cast.ToStringE(src)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal([]byte(value), &n)
+	return json.Scan(src, n)
 }
 
 type Taints []Taint
 type Taint string
 
-var _ driver.Valuer = (*Taints)(nil)
-
 // Value implements the driver.Valuer interface
 func (n Taints) Value() (driver.Value, error) {
-	r, err := json.Marshal(n)
-	if err != nil {
-		return "", err
-	}
-	return string(r), nil
+	return json.Value(n)
 }
-
-var _ sql.Scanner = (*Taints)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *Taints) Scan(src interface{}) error {
-	value, err := cast.ToStringE(src)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal([]byte(value), &n)
+	return json.Scan(src, n)
 }

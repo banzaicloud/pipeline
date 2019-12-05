@@ -30,14 +30,14 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/scheduler/cache"
 
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // DashboardAPI implements the Dashboard API actions.

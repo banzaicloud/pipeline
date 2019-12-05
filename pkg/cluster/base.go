@@ -72,21 +72,13 @@ const (
 
 // constants for posthooks
 const (
-	CreatePipelineNamespacePostHook        = "CreatePipelineNamespacePostHook"
-	LabelKubeSystemNamespacePostHook       = "LabelKubeSystemNamespacePostHook"
-	InstallHelmPostHook                    = "InstallHelmPostHook"
 	InstallIngressControllerPostHook       = "InstallIngressControllerPostHook"
 	InstallKubernetesDashboardPostHook     = "InstallKubernetesDashboardPostHook"
 	InstallClusterAutoscalerPostHook       = "InstallClusterAutoscalerPostHook"
 	InstallHorizontalPodAutoscalerPostHook = "InstallHorizontalPodAutoscalerPostHook"
-	LabelNodesWithNodePoolName             = "LabelNodesWithNodePoolName"
-	InstallPVCOperator                     = "InstallPVCOperator"
 	RestoreFromBackup                      = "RestoreFromBackup"
 	InitSpotConfig                         = "InitSpotConfig"
 	DeployInstanceTerminationHandler       = "DeployInstanceTerminationHandler"
-	InstallNodePoolLabelSetOperator        = "InstallNodePoolLabelSetOperator"
-	SetupNodePoolLabelsSet                 = "SetupNodePoolLabelsSet"
-	CreateClusterRoles                     = "CreateClusterRoles"
 )
 
 // CreateClusterRequest describes a create cluster request

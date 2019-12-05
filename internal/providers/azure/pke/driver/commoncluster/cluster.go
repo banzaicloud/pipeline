@@ -24,12 +24,12 @@ import (
 
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 type AzurePkeCluster struct {
@@ -195,7 +195,7 @@ func (a *AzurePkeCluster) GetK8sConfig() ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "can't get config from Vault")
 	}
-	configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(secrettype.K8SConfig))
+	configStr, err := base64.StdEncoding.DecodeString(configSecret.Values[secrettype.K8SConfig])
 	if err != nil {
 		return nil, errors.Wrap(err, "can't decode Kubernetes config")
 	}
@@ -244,9 +244,15 @@ func (a *AzurePkeCluster) IsReady() (bool, error) {
 	return true, nil
 }
 
-func (a *AzurePkeCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
-	// nodes are labeled in create request
-	return
+// ListNodePools returns node pool names.
+func (a *AzurePkeCluster) ListNodePools() ([]string, error) {
+	var nodePools = make([]string, 0, len(a.model.NodePools))
+
+	for _, nodePool := range a.model.NodePools {
+		nodePools = append(nodePools, nodePool.Name)
+	}
+
+	return nodePools, nil
 }
 
 func (a *AzurePkeCluster) NodePoolExists(nodePoolName string) bool {

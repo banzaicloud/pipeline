@@ -17,7 +17,6 @@ package workflow
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
@@ -25,9 +24,9 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 const CreateClusterUserAccessKeyActivityName = "eks-create-cluster-user-access-key"
@@ -165,10 +164,9 @@ func (a *CreateClusterUserAccessKeyActivity) Execute(ctx context.Context, input 
 
 	var secretID string
 	if clusterUserAccessKeySecret != nil {
-		ver := int(clusterUserAccessKeySecret.Version)
-		secretRequest.Version = &ver
+		secretRequest.Version = clusterUserAccessKeySecret.Version
 
-		if err = secret.Store.Update(input.OrganizationID, clusterUserAccessKeySecret.ID, &secretRequest); err != nil {
+		if err = a.awsSessionFactory.GetSecretStore().Update(input.OrganizationID, clusterUserAccessKeySecret.ID, &secretRequest); err != nil {
 			return nil, errors.WrapIff(err, "failed to update secret: %s", secretName)
 		}
 		secretID = clusterUserAccessKeySecret.ID
@@ -182,9 +180,4 @@ func (a *CreateClusterUserAccessKeyActivity) Execute(ctx context.Context, input 
 	return &CreateClusterUserAccessKeyActivityOutput{
 		SecretID: secretID,
 	}, nil
-}
-
-// getSecretName returns the name that identifies the  cluster user access key in Vault
-func getSecretName(userName string) string {
-	return fmt.Sprintf("%s-key", strings.ToLower(userName))
 }

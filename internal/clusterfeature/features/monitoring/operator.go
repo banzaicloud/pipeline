@@ -24,15 +24,16 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"k8s.io/api/storage/v1beta1"
 
-	"github.com/banzaicloud/pipeline/auth"
-	pkgCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/internal/util"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
+	"github.com/banzaicloud/pipeline/src/auth"
+	pkgCluster "github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // FeatureOperator implements the Monitoring feature operator
@@ -326,14 +327,9 @@ func (op FeatureOperator) installPrometheusOperator(
 }
 
 func mergeOperatorValuesWithConfig(chartValues interface{}, configValues interface{}) ([]byte, error) {
-	valuesBytes, err := json.Marshal(chartValues)
+	out, err := jsonstructure.Encode(chartValues)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to decode chartValues")
-	}
-
-	var out map[string]interface{}
-	if err := json.Unmarshal(valuesBytes, &out); err != nil {
-		return nil, errors.WrapIf(err, "failed to unmarshal operator values")
+		return nil, errors.WrapIf(err, "failed to encode chart values")
 	}
 
 	result, err := util.Merge(configValues, out)
@@ -679,9 +675,10 @@ func (m chartValuesManager) generatePrometheusChartValues(
 			baseValues: baseValues{
 				Enabled: spec.Enabled,
 				Ingress: ingressValues{
-					Enabled: spec.Ingress.Enabled,
-					Hosts:   []string{spec.Ingress.Domain},
-					Paths:   []string{spec.Ingress.Path},
+					Enabled:     spec.Ingress.Enabled,
+					Hosts:       []string{spec.Ingress.Domain},
+					Paths:       []string{spec.Ingress.Path},
+					Annotations: annotations,
 				},
 			},
 			Spec: SpecValues{
@@ -707,7 +704,6 @@ func (m chartValuesManager) generatePrometheusChartValues(
 				},
 				ServiceMonitorSelectorNilUsesHelmValues: false,
 			},
-			Annotations: annotations,
 		}
 	}
 

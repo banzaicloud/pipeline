@@ -19,8 +19,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 type clusterGetter struct {

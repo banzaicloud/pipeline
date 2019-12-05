@@ -20,8 +20,8 @@ import (
 
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // NewOrgDomainService returns a new OrgDomainService initialized with the specified values
@@ -53,7 +53,7 @@ func (s OrgDomainService) EnsureOrgDomain(ctx context.Context, clusterID uint) e
 		return errors.WrapIfWithDetails(err, "failed to get org for cluster", "clusterId", clusterID)
 	}
 
-	orgDomain := fmt.Sprintf("%s.%s", org.Name, s.baseDomain)
+	orgDomain := fmt.Sprintf("%s.%s", org.NormalizedName, s.baseDomain)
 
 	registered, err := s.dnsServiceClient.IsDomainRegistered(org.ID, orgDomain)
 	if err != nil {

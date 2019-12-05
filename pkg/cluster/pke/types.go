@@ -14,7 +14,11 @@
 
 package pke
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/pipeline/pkg/common"
+)
 
 // TODO add required field to KubeADM if applicable
 
@@ -34,19 +38,27 @@ type UpdateClusterPKE struct {
 
 func (a *UpdateClusterPKE) Validate() error {
 	// TODO implement
+
+	for _, np := range a.NodePools {
+		if err := common.ValidateNodePoolLabels(np.Labels); err != nil {
+			return err
+		}
+
+	}
 	return nil
 }
 
 type UpdateNodePools map[string]UpdateNodePool
 
 type UpdateNodePool struct {
-	InstanceType string  `json:"instanceType" yaml:"instanceType"`
-	SpotPrice    string  `json:"spotPrice" yaml:"spotPrice"`
-	Autoscaling  bool    `json:"autoscaling" yaml:"autoscaling"`
-	MinCount     int     `json:"minCount" yaml:"minCount"`
-	MaxCount     int     `json:"maxCount" yaml:"maxCount"`
-	Count        int     `json:"count" yaml:"count"`
-	Subnets      Subnets `json:"subnets,omitempty" yaml:"subnets,omitempty"`
+	InstanceType string            `json:"instanceType" yaml:"instanceType"`
+	SpotPrice    string            `json:"spotPrice" yaml:"spotPrice"`
+	Autoscaling  bool              `json:"autoscaling" yaml:"autoscaling"`
+	MinCount     int               `json:"minCount" yaml:"minCount"`
+	MaxCount     int               `json:"maxCount" yaml:"maxCount"`
+	Count        int               `json:"count" yaml:"count"`
+	Subnets      Subnets           `json:"subnets,omitempty" yaml:"subnets,omitempty"`
+	Labels       map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 }
 
 type Network struct {
@@ -60,7 +72,7 @@ type Network struct {
 type NetworkProvider string
 
 const (
-	NPWeave NetworkProvider = "weave"
+	NPCalico NetworkProvider = "calico"
 )
 
 type NodePools []NodePool
@@ -141,7 +153,7 @@ func (pke *CreateClusterPKE) AddDefaults() error {
 		pke.Network.ServiceCIDR = "10.32.0.0/24"
 	}
 	if pke.Network.Provider == "" {
-		pke.Network.Provider = NPWeave
+		pke.Network.Provider = NPCalico
 	}
 
 	return nil

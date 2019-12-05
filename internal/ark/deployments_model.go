@@ -19,8 +19,8 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // ClusterBackupDeploymentsModel describes an ARK deployment model

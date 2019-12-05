@@ -17,7 +17,6 @@ package providers
 import (
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	"github.com/banzaicloud/pipeline/internal/providers/alibaba"
@@ -27,7 +26,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/oracle"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // ObjectStoreContext describes all parameters necessary to create a cloud provider agnostic object store instance.

@@ -16,8 +16,8 @@ package clustermanager
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 type ClusterManager struct {

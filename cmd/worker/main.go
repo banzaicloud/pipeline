@@ -33,17 +33,14 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/auth/authdriver"
-	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/dns"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	cluster2 "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
@@ -62,21 +59,27 @@ import (
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
+	"github.com/banzaicloud/pipeline/internal/kubernetes/kubernetesadapter"
 	intpkeworkflowadapter "github.com/banzaicloud/pipeline/internal/pke/workflow/adapter"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
+	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/spotguide"
-	"github.com/banzaicloud/pipeline/spotguide/scm"
+	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/auth/authdriver"
+	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/dns"
+	"github.com/banzaicloud/pipeline/src/secret"
+	"github.com/banzaicloud/pipeline/src/spotguide"
+	"github.com/banzaicloud/pipeline/src/spotguide/scm"
 )
 
 // Provisioned by ldflags
@@ -190,7 +193,7 @@ func main() {
 		global.SetDB(db)
 
 		clusterManager := cluster.NewManager(
-			intCluster.NewClusters(db),
+			clusteradapter.NewClusters(db),
 			nil,
 			nil,
 			nil,
@@ -209,6 +212,8 @@ func main() {
 			tokenStore,
 		)
 		tokenGenerator := auth.NewClusterTokenGenerator(tokenManager, tokenStore)
+
+		helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
 		secretStore := pkeworkflowadapter.NewSecretStore(secret.Store)
@@ -244,6 +249,7 @@ func main() {
 		)
 
 		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+		configFactory := kubernetes.NewConfigFactory(commonSecretStore)
 
 		// Cluster setup
 		{
@@ -259,9 +265,44 @@ func main() {
 
 			initManifestActivity := clustersetup.NewInitManifestActivity(
 				initManifestTemplate,
-				clusteradapter.NewDynamicFileClientFactory(commonSecretStore),
+				kubernetes.NewDynamicFileClientFactory(configFactory),
 			)
 			activity.RegisterWithOptions(initManifestActivity.Execute, activity.RegisterOptions{Name: clustersetup.InitManifestActivityName})
+
+			createPipelineNamespaceActivity := clustersetup.NewCreatePipelineNamespaceActivity(
+				config.Cluster.Namespace,
+				kubernetes.NewClientFactory(configFactory),
+			)
+			activity.RegisterWithOptions(createPipelineNamespaceActivity.Execute, activity.RegisterOptions{Name: clustersetup.CreatePipelineNamespaceActivityName})
+
+			labelKubeSystemNamespaceActivity := clustersetup.NewLabelKubeSystemNamespaceActivity(
+				kubernetes.NewClientFactory(configFactory),
+			)
+			activity.RegisterWithOptions(labelKubeSystemNamespaceActivity.Execute, activity.RegisterOptions{Name: clustersetup.LabelKubeSystemNamespaceActivityName})
+
+			installTillerActivity := clustersetup.NewInstallTillerActivity(
+				config.Helm.Tiller.Version,
+				kubernetes.NewClientFactory(configFactory),
+			)
+			activity.RegisterWithOptions(installTillerActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerActivityName})
+
+			installTillerWaitActivity := clustersetup.NewInstallTillerWaitActivity(
+				config.Helm.Tiller.Version,
+				kubernetes.NewHelmClientFactory(configFactory, commonadapter.NewLogger(logger)),
+			)
+			activity.RegisterWithOptions(installTillerWaitActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerWaitActivityName})
+
+			installNodePoolLabelSetOperatorActivity := clustersetup.NewInstallNodePoolLabelSetOperatorActivity(
+				config.Cluster.Labels,
+				helmService,
+			)
+			activity.RegisterWithOptions(installNodePoolLabelSetOperatorActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallNodePoolLabelSetOperatorActivityName})
+
+			configureNodePoolLabelsActivity := clustersetup.NewConfigureNodePoolLabelsActivity(
+				config.Cluster.Labels.Namespace,
+				kubernetes.NewDynamicClientFactory(configFactory),
+			)
+			activity.RegisterWithOptions(configureNodePoolLabelsActivity.Execute, activity.RegisterOptions{Name: clustersetup.ConfigureNodePoolLabelsActivityName})
 		}
 
 		workflow.RegisterWithOptions(cluster.CreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.CreateClusterWorkflowName})
@@ -269,8 +310,11 @@ func main() {
 		downloadK8sConfigActivity := cluster.NewDownloadK8sConfigActivity(clusterManager)
 		activity.RegisterWithOptions(downloadK8sConfigActivity.Execute, activity.RegisterOptions{Name: cluster.DownloadK8sConfigActivityName})
 
-		setupPrivilegesActivity := cluster.NewSetupPrivilegesActivity(clusteradapter.NewClientFactory(commonSecretStore), clusterManager)
+		setupPrivilegesActivity := cluster.NewSetupPrivilegesActivity(kubernetes.NewClientFactory(configFactory), clusterManager)
 		activity.RegisterWithOptions(setupPrivilegesActivity.Execute, activity.RegisterOptions{Name: cluster.SetupPrivilegesActivityName})
+
+		labelNodesWithNodepoolNameActivity := cluster.NewLabelNodesWithNodepoolNameActivity(kubernetes.NewClientFactory(configFactory), clusterManager)
+		activity.RegisterWithOptions(labelNodesWithNodepoolNameActivity.Execute, activity.RegisterOptions{Name: cluster.LabelNodesWithNodepoolNameActivityName})
 
 		workflow.RegisterWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
 
@@ -297,6 +341,28 @@ func main() {
 		err = registerEKSWorkflows(secret.Store)
 		if err != nil {
 			emperror.Panic(errors.WrapIf(err, "failed to register EKS workflows"))
+		}
+
+		clusterStore := clusteradapter.NewStore(db, clusteradapter.NewClusters(db))
+
+		{
+			workflow.RegisterWithOptions(clusterworkflow.DeleteNodePoolWorkflow, workflow.RegisterOptions{Name: clusterworkflow.DeleteNodePoolWorkflowName})
+
+			deleteNodePoolActivity := clusterworkflow.NewDeleteNodePoolActivity(
+				clusterStore,
+				clusteradapter.NewNodePoolStore(db, clusterStore),
+				eksworkflow.NewAWSSessionFactory(secret.Store),
+			)
+			activity.RegisterWithOptions(deleteNodePoolActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.DeleteNodePoolActivityName})
+
+			deleteNodePoolLabelSetActivity := clusterworkflow.NewDeleteNodePoolLabelSetActivity(
+				cluster2.NewDynamicClientFactory(clusterStore, kubernetes.NewDynamicClientFactory(configFactory)),
+				config.Cluster.Labels.Namespace,
+			)
+			activity.RegisterWithOptions(deleteNodePoolLabelSetActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.DeleteNodePoolLabelSetActivityName})
+
+			setClusterStatusActivity := clusterworkflow.NewSetClusterStatusActivity(clusterStore)
+			activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.SetClusterStatusActivityName})
 		}
 
 		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterSecretStore)
@@ -359,8 +425,11 @@ func main() {
 
 			logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 			featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
-			helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
-			kubernetesService := kubernetes.NewKubernetesService(helmadapter.NewClusterService(clusterManager), logger)
+			kubernetesService := kubernetes.NewService(
+				kubernetesadapter.NewConfigSecretGetter(clusteradapter.NewClusters(db)),
+				kubernetes.NewConfigFactory(commonSecretStore),
+				logger,
+			)
 
 			clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 			clusterService := clusterfeatureadapter.NewClusterService(clusterManager)

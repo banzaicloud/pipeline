@@ -21,9 +21,9 @@ import (
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/release"
 
-	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/src/helm"
 )
 
 // ClusterService provides a thin access layer to clusters.

@@ -21,7 +21,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // ACKClusterDeleteContext describes the fields used across ACK cluster delete operation

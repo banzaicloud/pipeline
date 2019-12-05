@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/internal/anchore"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusterconfig"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/logging"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
@@ -92,6 +93,8 @@ type ClusterConfig struct {
 	// Namespace to install Pipeline components to
 	Namespace string
 
+	Labels clusterconfig.LabelConfig
+
 	// Features
 	Vault        ClusterVaultConfig
 	Monitoring   ClusterMonitoringConfig
@@ -112,6 +115,10 @@ func (c ClusterConfig) Validate() error {
 
 	if c.Namespace == "" {
 		return errors.New("cluster namespace is required")
+	}
+
+	if err := c.Labels.Validate(); err != nil {
+		return err
 	}
 
 	if c.Vault.Enabled {
@@ -149,6 +156,10 @@ func (c ClusterConfig) Validate() error {
 
 // Process post-processes the configuration after loading (before validation).
 func (c *ClusterConfig) Process() error {
+	if c.Labels.Namespace == "" {
+		c.Labels.Namespace = c.Namespace
+	}
+
 	if c.Vault.Namespace == "" {
 		c.Vault.Namespace = c.Namespace
 	}
@@ -178,14 +189,6 @@ type ClusterVaultConfig struct {
 // ClusterMonitoringConfig contains cluster monitoring configuration.
 type ClusterMonitoringConfig struct {
 	Enabled bool
-
-	Monitor struct {
-		Enabled                bool
-		ConfigMap              string
-		ConfigMapPrometheusKey string
-		CertSecret             string
-		MountPath              string
-	}
 
 	monitoring.Config `mapstructure:",squash"`
 }
@@ -286,8 +289,6 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("dex::apiCa", "")
 
 	// Kubernetes configuration
-	_ = v.BindEnv("kubernetes::namespace", "KUBERNETES_NAMESPACE")
-	v.SetDefault("kubernetes::namespace", "default")
 	v.SetDefault("kubernetes::client::forceGlobal", false)
 
 	// Database config
@@ -341,11 +342,6 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::monitoring::enabled", true)
 	v.SetDefault("cluster::monitoring::namespace", "")
 	v.SetDefault("cluster::monitoring::grafana::adminUser", "admin")
-	v.SetDefault("cluster::monitoring::monitor::enabled", false)
-	v.SetDefault("cluster::monitoring::monitor::configMap", "")
-	v.SetDefault("cluster::monitoring::monitor::configMapPrometheusKey", "prometheus.yml")
-	v.SetDefault("cluster::monitoring::monitor::certSecret", "")
-	v.SetDefault("cluster::monitoring::monitor::mountPath", "")
 	v.SetDefault("cluster::monitoring::charts::operator::chart", "stable/prometheus-operator")
 	v.SetDefault("cluster::monitoring::charts::operator::version", "7.2.0")
 	v.SetDefault("cluster::monitoring::charts::operator::values", map[string]interface{}{
@@ -398,22 +394,19 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::logging::enabled", true)
 	v.SetDefault("cluster::logging::namespace", "")
 	v.SetDefault("cluster::logging::charts::operator::chart", "banzaicloud-stable/logging-operator")
-	v.SetDefault("cluster::logging::charts::operator::version", "2.5.0")
+	v.SetDefault("cluster::logging::charts::operator::version", "2.6.0")
 	v.SetDefault("cluster::logging::charts::operator::values", map[string]interface{}{})
 	v.SetDefault("cluster::logging::images::operator::repository", "banzaicloud/logging-operator")
 	v.SetDefault("cluster::logging::images::operator::tag", "2.5.0")
-	v.SetDefault("cluster::logging::charts::logging::chart", "banzaicloud-stable/logging-operator-logging")
-	v.SetDefault("cluster::logging::charts::logging::version", "2.5.0")
-	v.SetDefault("cluster::logging::charts::logging::values", map[string]interface{}{})
 	v.SetDefault("cluster::logging::charts::loki::chart", "banzaicloud-stable/loki")
-	v.SetDefault("cluster::logging::charts::loki::version", "0.16.0")
+	v.SetDefault("cluster::logging::charts::loki::version", "0.16.1")
 	v.SetDefault("cluster::logging::charts::loki::values", map[string]interface{}{})
 	v.SetDefault("cluster::logging::images::loki::repository", "grafana/loki")
 	v.SetDefault("cluster::logging::images::loki::tag", "v0.3.0")
 	v.SetDefault("cluster::logging::images::fluentbit::repository", "fluent/fluent-bit")
 	v.SetDefault("cluster::logging::images::fluentbit::tag", "1.3.2")
 	v.SetDefault("cluster::logging::images::fluentd::repository", "banzaicloud/fluentd")
-	v.SetDefault("cluster::logging::images::fluentd::tag", "v1.7.4-alpine-5")
+	v.SetDefault("cluster::logging::images::fluentd::tag", "v1.7.4-alpine-10")
 
 	v.SetDefault("cluster::dns::enabled", true)
 	v.SetDefault("cluster::dns::namespace", "")
@@ -475,19 +468,19 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 		},
 	})
 	v.SetDefault("cluster::backyards::charts::backyards::chart", "banzaicloud-stable/backyards")
-	v.SetDefault("cluster::backyards::charts::backyards::version", "1.0.3")
+	v.SetDefault("cluster::backyards::charts::backyards::version", "1.0.4")
 	v.SetDefault("cluster::backyards::charts::backyards::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"repository": "banzaicloud/backyards",
-			"tag":        "1.0.3",
+			"tag":        "1.0.4",
 		},
 	})
 	v.SetDefault("cluster::backyards::charts::canaryOperator::chart", "banzaicloud-stable/canary-operator")
-	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.6")
+	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.7")
 	v.SetDefault("cluster::backyards::charts::canaryOperator::values", map[string]interface{}{
 		"image": map[string]interface{}{
-			"repository": "banzaicloud/istio-operator",
-			"tag":        "0.1.4",
+			"repository": "banzaicloud/canary-operator",
+			"tag":        "0.1.5",
 		},
 	})
 

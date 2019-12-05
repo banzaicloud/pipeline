@@ -18,7 +18,7 @@ type Endpoints struct {
 	ListTokens  endpoint.Endpoint
 }
 
-// MakeEndpoints returns an Endpoints struct where each endpoint invokes
+// MakeEndpoints returns a(n) Endpoints struct where each endpoint invokes
 // the corresponding method on the provided service.
 func MakeEndpoints(service token.Service, middleware ...endpoint.Middleware) Endpoints {
 	mw := kitxendpoint.Chain(middleware...)
@@ -31,7 +31,7 @@ func MakeEndpoints(service token.Service, middleware ...endpoint.Middleware) End
 	}
 }
 
-// TraceEndpoints returns an Endpoints struct where each endpoint is wrapped with a tracing middleware.
+// TraceEndpoints returns a(n) Endpoints struct where each endpoint is wrapped with a tracing middleware.
 func TraceEndpoints(endpoints Endpoints) Endpoints {
 	return Endpoints{
 		CreateToken: kitoc.TraceEndpoint("token.CreateToken")(endpoints.CreateToken),

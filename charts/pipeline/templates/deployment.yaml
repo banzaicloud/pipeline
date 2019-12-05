@@ -59,11 +59,6 @@ spec:
           value: {{ .Values.metrics.enabled | quote }}
         - name: PIPELINE_CONFIG_DIR
           value: /config
-        # Kubernetes environment variables
-        - name: KUBERNETES_RELEASE_NAME
-          value: {{ .Release.Name | quote }}
-        - name: KUBERNETES_NAMESPACE
-          value: {{ .Release.Namespace | quote }}
         # Database related section
         - name: PIPELINE_DATABASE_HOST
           value: {{ include "pipeline.database.host" . }}

@@ -28,12 +28,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	pipelineAuth "github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
-	"github.com/banzaicloud/pipeline/secret"
+	pipelineAuth "github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // nolint: gochecknoglobals
@@ -397,7 +397,7 @@ func (s *ObjectStore) createStorageAccountAndResourceGroup() error {
 func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	logger := s.logger.WithFields(logrus.Fields{
 		"organization":    s.org.ID,
-		"subscription_id": s.secret.GetValue(secrettype.AzureSubscriptionID),
+		"subscription_id": s.secret.Values[secrettype.AzureSubscriptionID],
 	})
 
 	logger.Info("getting all resource groups for subscription")

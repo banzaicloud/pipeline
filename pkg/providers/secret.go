@@ -17,7 +17,7 @@ package providers
 import (
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 type secretStore interface {
@@ -42,5 +42,5 @@ func (v *secretValidator) ValidateSecretType(organizationID uint, secretID strin
 		return errors.WithMessage(err, "error during secret validation")
 	}
 
-	return s.ValidateSecretType(provider)
+	return secret.ValidateSecretType(s, provider)
 }

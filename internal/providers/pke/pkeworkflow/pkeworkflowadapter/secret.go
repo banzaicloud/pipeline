@@ -16,7 +16,7 @@ package pkeworkflowadapter
 
 import (
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // InternalSecretStore is an interface for the internal secret store.
@@ -55,5 +55,5 @@ func (s *secretWrapper) GetValues() map[string]string {
 }
 
 func (s *secretWrapper) ValidateSecretType(t string) error {
-	return s.secretItem.ValidateSecretType(t)
+	return secret.ValidateSecretType(s.secretItem, t)
 }

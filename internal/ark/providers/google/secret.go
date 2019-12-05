@@ -17,7 +17,7 @@ package google
 import (
 	"encoding/json"
 
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // GetSecret gets formatted secret for ARK

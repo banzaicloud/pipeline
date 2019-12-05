@@ -20,19 +20,19 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 )
 
 func TestFillClusterFromClusterModel(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    cluster.ClusterModel
+		input    clusteradapter.ClusterModel
 		expected pke.PKEOnAzureCluster
 	}{
 		{
 			name:     "empty cluster model",
-			input:    cluster.ClusterModel{},
+			input:    clusteradapter.ClusterModel{},
 			expected: pke.PKEOnAzureCluster{},
 		},
 	}

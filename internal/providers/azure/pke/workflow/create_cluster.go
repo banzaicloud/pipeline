@@ -21,12 +21,13 @@ import (
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
+	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 const CreateClusterWorkflowName = "pke-azure-create-cluster"
@@ -40,6 +41,7 @@ type CreateClusterWorkflowInput struct {
 	OrganizationName                string
 	ResourceGroupName               string
 	SecretID                        string
+	Distribution                    string
 	OIDCEnabled                     bool
 	VirtualNetworkTemplate          VirtualNetworkTemplate
 	LoadBalancerTemplates           []LoadBalancerTemplate
@@ -48,7 +50,7 @@ type CreateClusterWorkflowInput struct {
 	RouteTable                      RouteTable
 	SecurityGroups                  []SecurityGroup
 	VirtualMachineScaleSetTemplates []VirtualMachineScaleSetTemplate
-	PostHooks                       pkgCluster.PostHooks
+	NodePoolLabels                  map[string]map[string]string
 	HTTPProxy                       intPKE.HTTPProxy
 	AccessPoints                    pke.AccessPoints
 	APIServerAccessPoints           pke.APIServerAccessPoints
@@ -133,16 +135,18 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	{
 		workflowInput := clustersetup.WorkflowInput{
-			ConfigSecretID: configSecretID,
+			ConfigSecretID: brn.New(input.OrganizationID, brn.SecretResourceType, configSecretID).String(),
 			Cluster: clustersetup.Cluster{
-				ID:   input.ClusterID,
-				UID:  input.ClusterUID,
-				Name: input.ClusterName,
+				ID:           input.ClusterID,
+				UID:          input.ClusterUID,
+				Name:         input.ClusterName,
+				Distribution: input.Distribution,
 			},
 			Organization: clustersetup.Organization{
 				ID:   input.OrganizationID,
 				Name: input.OrganizationName,
 			},
+			NodePoolLabels: input.NodePoolLabels,
 		}
 
 		future := workflow.ExecuteChildWorkflow(ctx, clustersetup.WorkflowName, workflowInput)
@@ -154,7 +158,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	postHookWorkflowInput := cluster.RunPostHooksWorkflowInput{
 		ClusterID: input.ClusterID,
-		PostHooks: cluster.BuildWorkflowPostHookFunctions(input.PostHooks, true),
+		PostHooks: cluster.BuildWorkflowPostHookFunctions(nil, true),
 	}
 
 	err = workflow.ExecuteChildWorkflow(ctx, cluster.RunPostHooksWorkflowName, postHookWorkflowInput).Get(ctx, nil)

@@ -22,52 +22,55 @@ import (
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	k8slabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	k8srest "k8s.io/client-go/rest"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
-// ClusterService provides a thin access layer to clusters.
-type ClusterService interface {
-	// GetCluster retrieves the cluster representation based on the cluster identifier.
-	GetCluster(ctx context.Context, clusterID uint) (*helm.Cluster, error)
+// ConfigSecretGetter returns a config secret ID for a cluster.
+type ConfigSecretGetter interface {
+	// GetConfigSecretID returns a config secret ID for a cluster.
+	GetConfigSecretID(ctx context.Context, clusterID uint) (string, error)
 }
 
-// KubernetesService provides an interface for using clieng-go on a specific cluster.
-type KubernetesService struct {
-	clusters ClusterService
-	logger   common.Logger
+// Service provides an interface for using clieng-go on a specific cluster.
+type Service struct {
+	configSecretGetter ConfigSecretGetter
+	configFactory      ConfigFactory
+
+	logger Logger
 }
 
-// NewKubernetesService returns a new NewKubernetesService.
-func NewKubernetesService(clusters ClusterService, logger common.Logger) *KubernetesService {
-	return &KubernetesService{
-		clusters: clusters,
-		logger:   logger.WithFields(map[string]interface{}{"component": "kubernetes"}),
+// NewService returns a new NewService.
+func NewService(
+	configSecretGetter ConfigSecretGetter,
+	configFactory ConfigFactory,
+	logger Logger,
+) *Service {
+	return &Service{
+		configSecretGetter: configSecretGetter,
+		configFactory:      configFactory,
+
+		logger: logger.WithFields(map[string]interface{}{"component": "kubernetes"}),
 	}
 }
 
 // GetKubeConfig gets a kube config for a specific cluster.
-func (s *KubernetesService) GetKubeConfig(ctx context.Context, clusterID uint) (*k8srest.Config, error) {
-	cluster, err := s.clusters.GetCluster(ctx, clusterID)
+func (s *Service) GetKubeConfig(ctx context.Context, clusterID uint) (*rest.Config, error) {
+	secretID, err := s.configSecretGetter.GetConfigSecretID(ctx, clusterID)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to get cluster Kubernetes config")
+		return nil, err
 	}
 
-	kubeConfig, err := k8sclient.NewClientConfig(cluster.KubeConfig)
+	config, err := s.configFactory.FromSecret(ctx, secretID)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to create cluster Kubernetes config")
+		return nil, err
 	}
 
-	return kubeConfig, nil
+	return config, nil
 }
 
 // GetObject gets an Object from a specific cluster.
-func (s *KubernetesService) GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, obj runtime.Object) error {
-
+func (s *Service) GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, obj runtime.Object) error {
 	kubeClient, err := s.newClientForCluster(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to create Kubernetes client")
@@ -77,8 +80,7 @@ func (s *KubernetesService) GetObject(ctx context.Context, clusterID uint, objRe
 }
 
 // DeleteObject deletes an Object from a specific cluster.
-func (s *KubernetesService) DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error {
-
+func (s *Service) DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error {
 	kubeClient, err := s.newClientForCluster(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to create Kubernetes client")
@@ -93,8 +95,7 @@ func (s *KubernetesService) DeleteObject(ctx context.Context, clusterID uint, o 
 }
 
 // EnsureObject makes sure that a given Object is on the cluster and returns it.
-func (s *KubernetesService) EnsureObject(ctx context.Context, clusterID uint, o runtime.Object) error {
-
+func (s *Service) EnsureObject(ctx context.Context, clusterID uint, o runtime.Object) error {
 	kubeClient, err := s.newClientForCluster(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to create Kubernetes client")
@@ -113,8 +114,7 @@ func (s *KubernetesService) EnsureObject(ctx context.Context, clusterID uint, o 
 	return kubeClient.Get(ctx, objectKey, o)
 }
 
-func (s *KubernetesService) newClientForCluster(ctx context.Context, clusterID uint) (client.Client, error) {
-
+func (s *Service) newClientForCluster(ctx context.Context, clusterID uint) (client.Client, error) {
 	kubeConfig, err := s.GetKubeConfig(ctx, clusterID)
 	if err != nil {
 		return nil, err
@@ -129,8 +129,7 @@ func (s *KubernetesService) newClientForCluster(ctx context.Context, clusterID u
 }
 
 // List lists Objects a specific cluster.
-func (s *KubernetesService) List(ctx context.Context, clusterID uint, labels map[string]string, obj runtime.Object) error {
-
+func (s *Service) List(ctx context.Context, clusterID uint, labels map[string]string, obj runtime.Object) error {
 	kubeClient, err := s.newClientForCluster(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to create Kubernetes client")

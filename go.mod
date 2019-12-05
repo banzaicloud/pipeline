@@ -19,7 +19,7 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.2.0
 	github.com/Masterminds/semver v1.4.2
 	github.com/Masterminds/sprig v2.15.0+incompatible
-	github.com/ThreeDotsLabs/watermill v1.0.0-rc.3
+	github.com/ThreeDotsLabs/watermill v1.0.2
 	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20191023062623-524ecb019aa6
 	github.com/aliyun/aliyun-oss-go-sdk v2.0.3+incompatible
 	github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239 // indirect
@@ -34,10 +34,8 @@ require (
 	github.com/banzaicloud/gin-utilz v0.1.0
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
 	github.com/banzaicloud/istio-operator v0.0.0-20191104140059-90d1290d7342
-	github.com/banzaicloud/logging-operator/pkg/sdk v0.0.0-20191108130836-0e04f356a099
+	github.com/banzaicloud/logging-operator/pkg/sdk v0.0.0-20191125142640-aa8071e64c9d
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
-	github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190823114332-76c873e3a8cb
-	github.com/banzaicloud/prometheus-config v0.0.0-20181214142820-fc6ae4756a29
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
 	github.com/cenkalti/backoff v2.1.1+incompatible // indirect
 	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1 // indirect
@@ -69,8 +67,10 @@ require (
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
+	github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6 // indirect
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-github v17.0.0+incompatible
+	github.com/googleapis/gnostic v0.2.0 // indirect
 	github.com/gorilla/mux v1.7.0
 	github.com/gorilla/sessions v0.0.0-20181208214519-12bd4761fc66
 	github.com/gosimple/slug v1.7.0 // indirect
@@ -102,6 +102,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pborman/uuid v0.0.0-20180906182336-adf5a7427709 // indirect
 	github.com/pelletier/go-toml v1.2.0
+	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prashantv/protectmem v0.0.0-20171002184600-e20412882b3a // indirect
@@ -136,6 +137,7 @@ require (
 	github.com/uber/jaeger-client-go v2.17.0+incompatible // indirect
 	github.com/uber/jaeger-lib v2.0.0+incompatible // indirect
 	github.com/uber/tchannel-go v1.12.0 // indirect
+	github.com/ugorji/go v1.1.7 // indirect
 	github.com/xanzy/go-gitlab v0.16.2-0.20190325100843-bbb1af7187c8
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	go.opencensus.io v0.22.0
@@ -186,8 +188,6 @@ replace (
 	github.com/qor/auth => github.com/banzaicloud/auth v0.1.3
 	github.com/spf13/viper => github.com/spf13/viper v1.5.1-0.20191106115438-0a1bcd76350b
 
-	// https://github.com/ugorji/go/issues/303#issuecomment-513581953
-	github.com/ugorji/go => github.com/ugorji/go/codec v1.1.7
 	gopkg.in/yaml.v2 => github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182
 
 	// Kubernetes 1.13.5

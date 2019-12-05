@@ -25,15 +25,23 @@ import (
 
 // nolint: gochecknoglobals
 var testCluster = Cluster{
-	ID:   1,
-	UID:  "260e50ee-d817-4b62-85bd-3260f0e019a0",
-	Name: "example-cluster",
+	ID:           1,
+	UID:          "260e50ee-d817-4b62-85bd-3260f0e019a0",
+	Name:         "example-cluster",
+	Distribution: "pke",
 }
 
 // nolint: gochecknoglobals
 var testOrganization = Organization{
 	ID:   1,
 	Name: "example-organization",
+}
+
+// nolint: gochecknoglobals
+var testNodePoolLabels = map[string]map[string]string{
+	"pool1": {
+		"key": "value",
+	},
 }
 
 type WorkflowTestSuite struct {
@@ -59,10 +67,50 @@ func (s *WorkflowTestSuite) Test_Success() {
 	wf := Workflow{}
 	workflow.RegisterWithOptions(wf.Execute, workflow.RegisterOptions{Name: s.T().Name()})
 
+	s.env.OnActivity(
+		CreatePipelineNamespaceActivityName,
+		mock.Anything,
+		CreatePipelineNamespaceActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
+	s.env.OnActivity(
+		LabelKubeSystemNamespaceActivityName,
+		mock.Anything,
+		LabelKubeSystemNamespaceActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
+	s.env.OnActivity(
+		InstallTillerActivityName,
+		mock.Anything,
+		InstallTillerActivityInput{ConfigSecretID: "secret", Distribution: testCluster.Distribution},
+	).Return(nil)
+
+	s.env.OnActivity(
+		InstallTillerWaitActivityName,
+		mock.Anything,
+		InstallTillerWaitActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
+	s.env.OnActivity(
+		InstallNodePoolLabelSetOperatorActivityName,
+		mock.Anything,
+		InstallNodePoolLabelSetOperatorActivityInput{ClusterID: 1},
+	).Return(nil)
+
+	s.env.OnActivity(
+		ConfigureNodePoolLabelsActivityName,
+		mock.Anything,
+		ConfigureNodePoolLabelsActivityInput{
+			ConfigSecretID: "secret",
+			Labels:         testNodePoolLabels,
+		},
+	).Return(nil)
+
 	workflowInput := WorkflowInput{
 		ConfigSecretID: "secret",
 		Cluster:        testCluster,
 		Organization:   testOrganization,
+		NodePoolLabels: testNodePoolLabels,
 	}
 
 	s.env.ExecuteWorkflow(s.T().Name(), workflowInput)
@@ -83,10 +131,50 @@ func (s *WorkflowTestSuite) Test_Success_InstallInitManifest() {
 		InitManifestActivityInput{ConfigSecretID: "secret", Cluster: testCluster, Organization: testOrganization},
 	).Return(nil)
 
+	s.env.OnActivity(
+		CreatePipelineNamespaceActivityName,
+		mock.Anything,
+		CreatePipelineNamespaceActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
+	s.env.OnActivity(
+		LabelKubeSystemNamespaceActivityName,
+		mock.Anything,
+		LabelKubeSystemNamespaceActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
+	s.env.OnActivity(
+		InstallTillerActivityName,
+		mock.Anything,
+		InstallTillerActivityInput{ConfigSecretID: "secret", Distribution: testCluster.Distribution},
+	).Return(nil)
+
+	s.env.OnActivity(
+		InstallTillerWaitActivityName,
+		mock.Anything,
+		InstallTillerWaitActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
+	s.env.OnActivity(
+		InstallNodePoolLabelSetOperatorActivityName,
+		mock.Anything,
+		InstallNodePoolLabelSetOperatorActivityInput{ClusterID: 1},
+	).Return(nil)
+
+	s.env.OnActivity(
+		ConfigureNodePoolLabelsActivityName,
+		mock.Anything,
+		ConfigureNodePoolLabelsActivityInput{
+			ConfigSecretID: "secret",
+			Labels:         testNodePoolLabels,
+		},
+	).Return(nil)
+
 	workflowInput := WorkflowInput{
 		ConfigSecretID: "secret",
 		Cluster:        testCluster,
 		Organization:   testOrganization,
+		NodePoolLabels: testNodePoolLabels,
 	}
 
 	s.env.ExecuteWorkflow(s.T().Name(), workflowInput)

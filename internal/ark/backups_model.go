@@ -22,9 +22,9 @@ import (
 	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	"github.com/jinzhu/gorm"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
-	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // ClusterBackupsModel describes a cluster backup

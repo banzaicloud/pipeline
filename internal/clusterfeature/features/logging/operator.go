@@ -20,10 +20,10 @@ import (
 	"path"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	"github.com/mitchellh/copystructure"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/banzaicloud/pipeline/auth"
-	pkgCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
@@ -31,7 +31,10 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/internal/util"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
+	"github.com/banzaicloud/pipeline/src/auth"
+	pkgCluster "github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // FeatureOperator implements the Logging feature operator
@@ -106,12 +109,12 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		return errors.WrapIf(err, "failed to install logging-operator")
 	}
 
-	if err := op.installLoggingOperatorLogging(ctx, cl.GetID(), boundSpec); err != nil {
-		return errors.WrapIf(err, "failed to install logging-operator-logging")
-	}
-
 	if err := op.processLoki(ctx, boundSpec.Loki, cl); err != nil {
 		return errors.WrapIf(err, "failed to install Loki")
+	}
+
+	if err := op.createLoggingResource(ctx, clusterID, boundSpec); err != nil {
+		return errors.WrapIf(err, "failed to create logging resource")
 	}
 
 	outputManagers, err := op.createClusterOutputDefinitions(ctx, boundSpec, cl)
@@ -124,63 +127,6 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 	}
 
 	return nil
-}
-
-func (op FeatureOperator) installLoggingOperatorLogging(ctx context.Context, clusterID uint, spec featureSpec) error {
-	var tlsEnabled = spec.Logging.TLS
-	var chartValues = loggingOperatorLoggingValues{
-		Tls: tlsValues{
-			Enabled: tlsEnabled,
-		},
-		Fluentbit: fluentValues{
-			Enabled: true,
-			Image: imageValues{
-				Repository: op.config.Images.Fluentbit.Repository,
-				Tag:        op.config.Images.Fluentbit.Tag,
-				PullPolicy: "IfNotPresent",
-			},
-			Metrics: metricsValues{
-				ServiceMonitor: spec.Logging.Metrics,
-			},
-		},
-		Fluentd: fluentValues{
-			Enabled: true,
-			Image: imageValues{
-				Repository: op.config.Images.Fluentd.Repository,
-				Tag:        op.config.Images.Fluentd.Tag,
-				PullPolicy: "IfNotPresent",
-			},
-			Metrics: metricsValues{
-				ServiceMonitor: spec.Logging.Metrics,
-			},
-		},
-	}
-
-	if tlsEnabled {
-		chartValues.Tls.FluentdSecretName = fluentdSecretName
-		chartValues.Tls.FluentbitSecretName = fluentbitSecretName
-	}
-
-	loggingConfigValues, err := copystructure.Copy(op.config.Charts.Logging.Values)
-	if err != nil {
-		return errors.WrapIf(err, "failed to copy logging values")
-	}
-	valuesBytes, err := mergeValuesWithConfig(chartValues, loggingConfigValues)
-	if err != nil {
-		return errors.WrapIf(err, "failed to merge logging values with config")
-	}
-
-	var chartName = op.config.Charts.Logging.Chart
-	var chartVersion = op.config.Charts.Logging.Version
-	return op.helmService.ApplyDeployment(
-		ctx,
-		clusterID,
-		op.config.Namespace,
-		chartName,
-		loggingOperatorLoggingReleaseName,
-		valuesBytes,
-		chartVersion,
-	)
 }
 
 // Deactivate deactivates the cluster feature
@@ -202,11 +148,6 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 	// delete Logging-operator deployment
 	if err := op.helmService.DeleteDeployment(ctx, clusterID, loggingOperatorReleaseName); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to delete deployment", "release", loggingOperatorReleaseName)
-	}
-
-	// delete Logging-operator-logging deployment
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, loggingOperatorLoggingReleaseName); err != nil {
-		return errors.WrapIfWithDetails(err, "failed to delete deployment", "release", loggingOperatorLoggingReleaseName)
 	}
 
 	return nil
@@ -319,17 +260,10 @@ func (op FeatureOperator) installTLSSecretsToCluster(ctx context.Context, cl clu
 		},
 	}
 
-	// install fluentbit secret
-	if _, err := op.installSecret(ctx, cl, fluentbitSecretName, installSecretRequest); err != nil {
+	// install TLS shared secret
+	if _, err := op.installSecret(ctx, cl, fluentSharedSecretName, installSecretRequest); err != nil {
 		return errors.WrapIfWithDetails(err,
-			"failed to install fluentbit secret to the cluster",
-			"clusterID", cl.GetID())
-	}
-
-	// install fluentd secret
-	if _, err := op.installSecret(ctx, cl, fluentdSecretName, installSecretRequest); err != nil {
-		return errors.WrapIfWithDetails(err,
-			"failed to install fluentd secret to the cluster",
+			"failed to install fluent shared secret to the cluster",
 			"clusterID", cl.GetID())
 	}
 
@@ -493,14 +427,9 @@ func (op FeatureOperator) installLoggingOperator(ctx context.Context, clusterID 
 }
 
 func mergeValuesWithConfig(chartValues interface{}, configValues interface{}) ([]byte, error) {
-	valuesBytes, err := json.Marshal(chartValues)
+	out, err := jsonstructure.Encode(chartValues)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to decode chartValues")
-	}
-
-	var out map[string]interface{}
-	if err := json.Unmarshal(valuesBytes, &out); err != nil {
-		return nil, errors.WrapIf(err, "failed to unmarshal values")
+		return nil, errors.WrapIf(err, "failed to encode chart values")
 	}
 
 	result, err := util.Merge(configValues, out)
@@ -509,4 +438,54 @@ func mergeValuesWithConfig(chartValues interface{}, configValues interface{}) ([
 	}
 
 	return json.Marshal(result)
+}
+
+func (op FeatureOperator) createLoggingResource(ctx context.Context, clusterID uint, spec featureSpec) error {
+	var tlsEnabled = spec.Logging.TLS
+	var loggingResource = &v1beta1.Logging{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      loggingResourceName,
+			Namespace: op.config.Namespace,
+			Labels:    map[string]string{resourceLabelKey: featureName},
+		},
+		Spec: v1beta1.LoggingSpec{
+			FluentbitSpec: &v1beta1.FluentbitSpec{
+				Image: v1beta1.ImageSpec{
+					Repository: op.config.Images.Fluentbit.Repository,
+					Tag:        op.config.Images.Fluentbit.Tag,
+					PullPolicy: "IfNotPresent",
+				},
+				TLS: v1beta1.FluentbitTLS{
+					Enabled: tlsEnabled,
+				},
+				Metrics: &v1beta1.Metrics{
+					ServiceMonitor: spec.Logging.Metrics,
+				},
+			},
+			FluentdSpec: &v1beta1.FluentdSpec{
+				TLS: v1beta1.FluentdTLS{
+					Enabled: tlsEnabled,
+				},
+				Image: v1beta1.ImageSpec{
+					Repository: op.config.Images.Fluentd.Repository,
+					Tag:        op.config.Images.Fluentd.Tag,
+					PullPolicy: "IfNotPresent",
+				},
+				Metrics: &v1beta1.Metrics{
+					ServiceMonitor: spec.Logging.Metrics,
+				},
+			},
+			ControlNamespace: op.config.Namespace,
+		},
+	}
+
+	if tlsEnabled {
+		var sharedKey = "fluentSharedKey"
+		loggingResource.Spec.FluentdSpec.TLS.SecretName = fluentSharedSecretName
+		loggingResource.Spec.FluentdSpec.TLS.SharedKey = sharedKey
+		loggingResource.Spec.FluentbitSpec.TLS.SecretName = fluentSharedSecretName
+		loggingResource.Spec.FluentbitSpec.TLS.SharedKey = sharedKey
+	}
+
+	return op.kubernetesService.EnsureObject(ctx, clusterID, loggingResource)
 }

@@ -29,9 +29,6 @@ import (
 	"go.uber.org/cadence/client"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
@@ -40,10 +37,12 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-const pkeVersion = "0.4.14"
+const pkeVersion = "0.4.17"
 const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
 func MakeAzurePKEClusterCreator(
@@ -141,7 +140,6 @@ type Subnet struct {
 // AzurePKEClusterCreationParams defines parameters for PKE-on-Azure cluster creation
 type AzurePKEClusterCreationParams struct {
 	CreatedBy             uint
-	Features              []intCluster.Feature
 	Kubernetes            intPKE.Kubernetes
 	Name                  string
 	Network               VirtualNetwork
@@ -231,12 +229,9 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		return
 	}
 
-	tenantID := sir.GetValue(secrettype.AzureTenantID)
+	tenantID := sir.Values[secrettype.AzureTenantID]
 
-	postHooks := make(pkgCluster.PostHooks, len(params.Features))
-	for _, f := range params.Features {
-		postHooks[f.Kind] = f.Params
-	}
+	var labelsMap map[string]map[string]string
 	{
 		var commonCluster cluster.CommonCluster
 		commonCluster, err = commoncluster.MakeCommonClusterGetter(cc.secrets, cc.store).GetByID(cl.ID)
@@ -255,15 +250,11 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				Labels:       np.Labels,
 			}
 		}
-		var labelsMap map[string]map[string]string
+
 		labelsMap, err = cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolStatuses, false)
 		if err != nil {
 			_ = cc.handleError(cl.ID, err)
 			return
-		}
-
-		postHooks[pkgCluster.SetupNodePoolLabelsSet] = cluster.NodePoolLabelParam{
-			Labels: labelsMap,
 		}
 	}
 
@@ -277,6 +268,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		ClusterID:                   cl.ID,
 		ClusterName:                 cl.Name,
 		KubernetesVersion:           cl.Kubernetes.Version,
+		KubernetesNetworkProvider:   params.Kubernetes.Network.Provider,
 		Location:                    cl.Location,
 		NoProxy:                     strings.Join(cl.HTTPProxy.Exceptions, ","),
 		OrganizationID:              cl.OrganizationID,
@@ -386,6 +378,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		OrganizationName:  org.Name,
 		ResourceGroupName: params.ResourceGroup,
 		SecretID:          params.SecretID,
+		Distribution:      pkgCluster.PKE,
 		OIDCEnabled:       cl.Kubernetes.OIDC.Enabled,
 		VirtualNetworkTemplate: workflow.VirtualNetworkTemplate{
 			Name: params.Network.Name,
@@ -437,7 +430,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			},
 		},
 		VirtualMachineScaleSetTemplates: vmssTemplates,
-		PostHooks:                       postHooks,
+		NodePoolLabels:                  labelsMap,
 		HTTPProxy:                       cl.HTTPProxy,
 		AccessPoints:                    params.AccessPoints,
 		APIServerAccessPoints:           params.APIServerAccessPoints,
@@ -646,6 +639,7 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-advertise-address=$PRIVATE_IP:6443 \
 --kubernetes-api-server={{ .ApiServerAddress }}:6443 \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
+--kubernetes-network-provider={{ .KubernetesNetworkProvider }} \
 --kubernetes-version={{ .KubernetesVersion }} \
 --kubernetes-master-mode={{ .KubernetesMasterMode }} \
 --kubernetes-api-server-cert-sans={{ .ApiServerCertSans }}`

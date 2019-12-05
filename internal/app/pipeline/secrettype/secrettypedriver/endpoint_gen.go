@@ -16,7 +16,7 @@ type Endpoints struct {
 	ListSecretTypes endpoint.Endpoint
 }
 
-// MakeEndpoints returns an Endpoints struct where each endpoint invokes
+// MakeEndpoints returns a(n) Endpoints struct where each endpoint invokes
 // the corresponding method on the provided service.
 func MakeEndpoints(service secrettype.TypeService, middleware ...endpoint.Middleware) Endpoints {
 	mw := kitxendpoint.Chain(middleware...)
@@ -27,7 +27,7 @@ func MakeEndpoints(service secrettype.TypeService, middleware ...endpoint.Middle
 	}
 }
 
-// TraceEndpoints returns an Endpoints struct where each endpoint is wrapped with a tracing middleware.
+// TraceEndpoints returns a(n) Endpoints struct where each endpoint is wrapped with a tracing middleware.
 func TraceEndpoints(endpoints Endpoints) Endpoints {
 	return Endpoints{
 		GetSecretType:   kitoc.TraceEndpoint("secrettype.GetSecretType")(endpoints.GetSecretType),

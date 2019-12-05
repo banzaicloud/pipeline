@@ -19,19 +19,20 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/ssh"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // GetOrCreateSSHKeyPair creates and saves a new SSH key pair for the cluster or gets the cluster's SSH key pair if it already exists
-func GetOrCreateSSHKeyPair(cluster pke.PKEOnAzureCluster, secrets secretStore, store pke.AzurePKEClusterStore) (*secret.SSHKeyPair, error) {
+func GetOrCreateSSHKeyPair(cluster pke.PKEOnAzureCluster, secrets secretStore, store pke.AzurePKEClusterStore) (ssh.KeyPair, error) {
 
 	keyPair, secretID, err := intSecret.GetOrCreateSSHKeyPair(secrets, getOrCreateSSHKeyPairClusterAdapter(cluster))
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to get or create SSH key pair")
+		return keyPair, errors.WrapIf(err, "failed to get or create SSH key pair")
 	}
 	if secretID != cluster.SSHSecretID {
 		if err := store.SetSSHSecretID(cluster.ID, secretID); err != nil {
-			return nil, errors.WrapIf(err, "failed to set cluster SSH secret ID")
+			return keyPair, errors.WrapIf(err, "failed to set cluster SSH secret ID")
 		}
 	}
 	return keyPair, nil

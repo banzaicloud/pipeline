@@ -20,7 +20,7 @@ import (
 	"emperror.dev/emperror"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/src/helm"
 )
 
 const DeleteHelmDeploymentsActivityName = "delete-helm-deployments"

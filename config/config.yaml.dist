@@ -39,10 +39,6 @@ pipeline:
         url: ""
 #        insecure: false
 
-#ui:
-#    url: "/ui"
-#    signupRedirectUrl: "/ui"
-
 database:
     # dialect: "postgres"
     dialect: "mysql"
@@ -84,6 +80,10 @@ auth:
 
 #    cli:
 #        clientId: "banzai-cli"
+
+#    redirectUrl:
+#        login: "/ui"
+#        signup: "/ui"
 
 #    cookie:
 #        secure: true
@@ -183,14 +183,6 @@ dex:
 #        grafana:
 #            adminUser: admin
 #
-#        # Cluster monitoring configuration
-#        monitor:
-#            enabled: false
-#            configMap: ""
-#            configMapPrometheusKey: "prometheus.yml"
-#            certSecret: ""
-#            mountPath: ""
-#
 #        charts:
 #            operator:
 #                chart: "stable/prometheus-operator"
@@ -215,23 +207,16 @@ dex:
 #        charts:
 #            operator:
 #                chart: "banzaicloud-stable/logging-operator"
-#                version: "2.5.0"
+#                version: "2.6.0"
 #
 #                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-operator for details
 #                values: {}
 #
 #            loki:
 #                chart: "banzaicloud-stable/loki"
-#                version: "0.16.0"
+#                version: "0.16.1"
 #
 #                # See https://github.com/banzaicloud/banzai-charts/tree/master/loki for details
-#                values: {}
-#
-#            logging:
-#                chart: "banzaicloud-stable/logging-operator-logging"
-#                version: "2.5.0"
-#
-#                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-operator-logging for details
 #                values: {}
 #
 #    dns:
@@ -330,13 +315,13 @@ dex:
 #
 #            backyards:
 #                chart: "banzaicloud-stable/backyards"
-#                version: "1.0.3"
+#                version: "1.0.4"
 #
 #                values: {}
 #
 #            canaryOperator:
 #                chart: "banzaicloud-stable/canary-operator"
-#                version: "0.1.6"
+#                version: "0.1.7"
 #
 #                values: {}
 #

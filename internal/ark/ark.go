@@ -19,7 +19,7 @@ import (
 
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // IsProviderSupported checks whether the given provider is supported
@@ -39,16 +39,14 @@ func IsProviderSupported(provider string) error {
 
 // GetSecretWithValidation gives back a secret response with validation
 func GetSecretWithValidation(secretID string, orgID uint, provider string) (*secret.SecretItemResponse, error) {
-
-	secret, err := secret.Store.Get(orgID, secretID)
+	s, err := secret.Store.Get(orgID, secretID)
 	if err != nil {
 		return nil, errors.Wrap(err, "error validating create bucket request")
 	}
 
-	err = secret.ValidateSecretType(provider)
-	if err != nil {
+	if err := secret.ValidateSecretType(s, provider); err != nil {
 		return nil, errors.Wrap(err, "error validating create bucket request")
 	}
 
-	return secret, nil
+	return s, nil
 }

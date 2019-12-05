@@ -24,28 +24,6 @@ type imageValues struct {
 	PullPolicy string `json:"pullPolicy" mapstructure:"pullPolicy"`
 }
 
-type loggingOperatorLoggingValues struct {
-	Tls       tlsValues    `json:"tls" mapstructure:"tls"`
-	Fluentbit fluentValues `json:"fluentbit" mapstructure:"fluentbit"`
-	Fluentd   fluentValues `json:"fluentd" mapstructure:"fluentd"`
-}
-
-type fluentValues struct {
-	Enabled bool          `json:"enabled" mapstructure:"enabled"`
-	Image   imageValues   `json:"image" mapstructure:"image"`
-	Metrics metricsValues `json:"metrics" mapstructure:"metrics"`
-}
-
-type metricsValues struct {
-	ServiceMonitor bool `json:"serviceMonitor" mapstructure:"serviceMonitor"`
-}
-
-type tlsValues struct {
-	Enabled             bool   `json:"enabled" mapstructure:"enabled"`
-	FluentdSecretName   string `json:"fluentdSecretName" mapstructure:"fluentdSecretName"`
-	FluentbitSecretName string `json:"fluentbitSecretName" mapstructure:"fluentbitSecretName"`
-}
-
 type lokiValues struct {
 	Ingress     ingressValues          `json:"ingress" mapstructure:"ingress"`
 	Annotations map[string]interface{} `json:"annotations,omitempty" mapstructure:"annotations"`

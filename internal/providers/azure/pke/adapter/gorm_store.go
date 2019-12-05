@@ -16,22 +16,19 @@ package adapter
 
 import (
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
 	"strings"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/common"
-	sqljson "github.com/banzaicloud/pipeline/internal/database/sql/json"
+	"github.com/banzaicloud/pipeline/internal/database/sql/json"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
-	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 const (
@@ -61,10 +58,10 @@ type gormAzurePKENodePoolModel struct {
 	InstanceType string
 	Max          uint
 	Min          uint
-	Name         string `gorm:"unique_index:idx_azure_pke_np_cluster_id_name"`
-	Roles        string
+	Name         string     `gorm:"unique_index:idx_azure_pke_np_cluster_id_name"`
+	Roles        rolesModel `gorm:"type:json"`
 	SubnetName   string
-	Zones        string
+	Zones        zonesModel `gorm:"type:json"`
 }
 
 func (gormAzurePKENodePoolModel) TableName() string {
@@ -83,7 +80,7 @@ type gormAzurePKEClusterModel struct {
 
 	HTTPProxy httpProxyModel `gorm:"type:json"`
 
-	Cluster   cluster.ClusterModel        `gorm:"foreignkey:ClusterID"`
+	Cluster   clusteradapter.ClusterModel `gorm:"foreignkey:ClusterID"`
 	NodePools []gormAzurePKENodePoolModel `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
 
 	AccessPoints          accessPointsModel          `gorm:"type:json"`
@@ -94,6 +91,26 @@ func (gormAzurePKEClusterModel) TableName() string {
 	return GORMAzurePKEClustersTableName
 }
 
+type rolesModel []string
+
+func (m *rolesModel) Scan(v interface{}) error {
+	return json.Scan(v, m)
+}
+
+func (m rolesModel) Value() (driver.Value, error) {
+	return json.Value(m)
+}
+
+type zonesModel []string
+
+func (m *zonesModel) Scan(v interface{}) error {
+	return json.Scan(v, m)
+}
+
+func (m zonesModel) Value() (driver.Value, error) {
+	return json.Value(m)
+}
+
 type httpProxyModel struct {
 	HTTP       httpProxyOptionsModel `json:"http,omitempty"`
 	HTTPS      httpProxyOptionsModel `json:"https,omitempty"`
@@ -101,11 +118,11 @@ type httpProxyModel struct {
 }
 
 func (m *httpProxyModel) Scan(v interface{}) error {
-	return sqljson.Scan(v, m)
+	return json.Scan(v, m)
 }
 
 func (m httpProxyModel) Value() (driver.Value, error) {
-	return sqljson.Value(m)
+	return json.Value(m)
 }
 
 func (m *httpProxyModel) fromEntity(e intPKE.HTTPProxy) {
@@ -162,11 +179,11 @@ func (m accessPointModel) toEntity() pke.AccessPoint {
 type accessPointsModel []accessPointModel
 
 func (m *accessPointsModel) Scan(v interface{}) error {
-	return sqljson.Scan(v, m)
+	return json.Scan(v, m)
 }
 
 func (m accessPointsModel) Value() (driver.Value, error) {
-	return sqljson.Value(m)
+	return json.Value(m)
 }
 
 func (m *accessPointsModel) fromEntity(e pke.AccessPoints) {
@@ -196,11 +213,11 @@ func (m apiServerAccessPointModel) toEntity() pke.APIServerAccessPoint {
 type apiServerAccessPointsModel []apiServerAccessPointModel
 
 func (m *apiServerAccessPointsModel) Scan(v interface{}) error {
-	return sqljson.Scan(v, m)
+	return json.Scan(v, m)
 }
 
 func (m apiServerAccessPointsModel) Value() (driver.Value, error) {
-	return sqljson.Value(m)
+	return json.Value(m)
 }
 
 func (m *apiServerAccessPointsModel) fromEntity(e pke.APIServerAccessPoints) {
@@ -218,7 +235,7 @@ func (m apiServerAccessPointsModel) toEntity() pke.APIServerAccessPoints {
 	return asaps
 }
 
-func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model cluster.ClusterModel) {
+func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model clusteradapter.ClusterModel) {
 	cl.CreatedBy = model.CreatedBy
 	cl.CreationTime = model.CreatedAt
 	cl.ID = model.ID
@@ -235,32 +252,13 @@ func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model cluster.Cluste
 	cl.ScaleOptions.DesiredGpu = model.ScaleOptions.DesiredGpu
 	cl.ScaleOptions.DesiredMem = model.ScaleOptions.DesiredMem
 	cl.ScaleOptions.Enabled = model.ScaleOptions.Enabled
-	cl.ScaleOptions.Excludes = unmarshalStringSlice(model.ScaleOptions.Excludes)
+	_ = json.Scan(model.ScaleOptions.Excludes, &cl.ScaleOptions.Excludes)
 	cl.ScaleOptions.KeepDesiredCapacity = model.ScaleOptions.KeepDesiredCapacity
 	cl.ScaleOptions.OnDemandPct = model.ScaleOptions.OnDemandPct
 
 	cl.Kubernetes.RBAC = model.RbacEnabled
 	cl.Kubernetes.OIDC.Enabled = model.OidcEnabled
 	cl.TtlMinutes = model.TtlMinutes
-}
-
-func marshalStringSlice(s []string) string {
-	data, err := json.Marshal(s)
-	emperror.Panic(errors.WrapIf(err, "failed to marshal string slice"))
-	return string(data)
-}
-
-func unmarshalStringSlice(s string) (result []string) {
-	if s == "" {
-		// empty list in legacy format
-		return nil
-	}
-	err := errors.WrapIf(json.Unmarshal([]byte(s), &result), "failed to unmarshal string slice")
-	if err != nil {
-		// try to parse legacy format
-		result = strings.Split(s, ",")
-	}
-	return
 }
 
 func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model gormAzurePKEClusterModel) error {
@@ -295,9 +293,9 @@ func fillNodePoolFromModel(nodePool *pke.NodePool, model gormAzurePKENodePoolMod
 	nodePool.Max = model.Max
 	nodePool.Min = model.Min
 	nodePool.Name = model.Name
-	nodePool.Roles = unmarshalStringSlice(model.Roles)
+	nodePool.Roles = []string(model.Roles)
 	nodePool.Subnet.Name = model.SubnetName
-	nodePool.Zones = unmarshalStringSlice(model.Zones)
+	nodePool.Zones = []string(model.Zones)
 }
 
 func fillModelFromNodePool(model *gormAzurePKENodePoolModel, nodePool pke.NodePool) {
@@ -308,9 +306,9 @@ func fillModelFromNodePool(model *gormAzurePKENodePoolModel, nodePool pke.NodePo
 	model.Max = nodePool.Max
 	model.Min = nodePool.Min
 	model.Name = nodePool.Name
-	model.Roles = marshalStringSlice(nodePool.Roles)
+	model.Roles = rolesModel(nodePool.Roles)
 	model.SubnetName = nodePool.Subnet.Name
-	model.Zones = marshalStringSlice(nodePool.Zones)
+	model.Zones = zonesModel(nodePool.Zones)
 }
 
 func (s gormAzurePKEClusterStore) nodePools() *gorm.DB {
@@ -334,8 +332,24 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 		fillModelFromNodePool(&nodePools[i], np)
 	}
 
+	excludesValue, err := json.Value(params.ScaleOptions.Excludes)
+	if err != nil {
+		return
+	}
+
+	var excludes string
+	switch e := excludesValue.(type) {
+	case string:
+		excludes = e
+	case []byte:
+		excludes = string(e)
+	default:
+		err = errors.Errorf("cannot convert type %T to string", e)
+		return
+	}
+
 	model := gormAzurePKEClusterModel{
-		Cluster: cluster.ClusterModel{
+		Cluster: clusteradapter.ClusterModel{
 			CreatedBy:      params.CreatedBy,
 			Name:           params.Name,
 			Location:       params.Location,
@@ -354,7 +368,7 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 				DesiredMem:          params.ScaleOptions.DesiredMem,
 				DesiredGpu:          params.ScaleOptions.DesiredGpu,
 				OnDemandPct:         params.ScaleOptions.OnDemandPct,
-				Excludes:            marshalStringSlice(params.ScaleOptions.Excludes),
+				Excludes:            excludes,
 				KeepDesiredCapacity: params.ScaleOptions.KeepDesiredCapacity,
 			},
 		},
@@ -404,7 +418,7 @@ func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := cluster.ClusterModel{
+	model := clusteradapter.ClusterModel{
 		ID: clusterID,
 	}
 	if err := getError(s.db.Where(model).First(&model), "failed to load model from database"); err != nil {
@@ -436,7 +450,7 @@ func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message stri
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := cluster.ClusterModel{
+	model := clusteradapter.ClusterModel{
 		ID: clusterID,
 	}
 	if err := getError(s.db.Where(&model).First(&model), "failed to load cluster model"); err != nil {
@@ -449,7 +463,7 @@ func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message stri
 			"statusMessage": message,
 		}
 
-		statusHistory := cluster.StatusHistoryModel{
+		statusHistory := clusteradapter.StatusHistoryModel{
 			ClusterID:   model.ID,
 			ClusterName: model.Name,
 
@@ -513,7 +527,7 @@ func (s gormAzurePKEClusterStore) SetConfigSecretID(clusterID uint, secretID str
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := cluster.ClusterModel{
+	model := clusteradapter.ClusterModel{
 		ID: clusterID,
 	}
 
@@ -529,7 +543,7 @@ func (s gormAzurePKEClusterStore) SetSSHSecretID(clusterID uint, secretID string
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := cluster.ClusterModel{
+	model := clusteradapter.ClusterModel{
 		ID: clusterID,
 	}
 
@@ -545,7 +559,7 @@ func (s gormAzurePKEClusterStore) GetConfigSecretID(clusterID uint) (string, err
 		return "", errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := cluster.ClusterModel{
+	model := clusteradapter.ClusterModel{
 		ID: clusterID,
 	}
 	if err := getError(s.db.Where(&model).First(&model), "failed to load cluster model"); err != nil {
@@ -575,7 +589,7 @@ func (s gormAzurePKEClusterStore) SetNodePoolSizes(clusterID uint, nodePoolName 
 }
 
 // Migrate executes the table migrations for the provider.
-func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
+func Migrate(db *gorm.DB, logger common.Logger) error {
 	tables := []interface{}{
 		&gormAzurePKENodePoolModel{},
 		&gormAzurePKEClusterModel{},
@@ -586,7 +600,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
 	}
 
-	logger.WithFields(logrus.Fields{
+	logger.WithFields(map[string]interface{}{
 		"provider":    pke.PKEOnAzure,
 		"table_names": strings.TrimSpace(tableNames),
 	}).Info("migrating provider tables")
