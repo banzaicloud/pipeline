@@ -10,8 +10,14 @@
 
 package pipeline
 
-// ListProjectsResponse - wraps a list of project details information
-type ListProjectsResponse struct {
+// GoogleProject - Details of a Google Cloud project.
+type GoogleProject struct {
 
-	Projects []ProjectDetails `json:"projects,omitempty"`
+	Name string `json:"name,omitempty"`
+
+	ProjectId string `json:"projectId,omitempty"`
+
+	ProjectNumber string `json:"projectNumber,omitempty"`
+
+	LifecycleState string `json:"lifecycleState,omitempty"`
 }
