@@ -123,8 +123,6 @@ github.com/banzaicloud/logging-operator/pkg/sdk v0.0.0-20191125142640-aa8071e64c
 github.com/banzaicloud/logging-operator/pkg/sdk v0.0.0-20191125142640-aa8071e64c9d/go.mod h1:QXyuzgUcDB78SkQCFpZvq0VWWoB0be7e74/uHrvbTDU=
 github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f h1:WeGZeO6I+lI1IG2vm1iXTeMrHLcMUjfoYm+rubBM5c4=
 github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f/go.mod h1:2GxaTh0YYmhQEMQ4wJ8Izr7sBecWZtnXlDzybR1hSO8=
-github.com/banzaicloud/prometheus-config v0.0.0-20181214142820-fc6ae4756a29 h1:E+lUvPnBa7mkaRg3cy4NnThZeBzN8Hy4uwxB1pn27JA=
-github.com/banzaicloud/prometheus-config v0.0.0-20181214142820-fc6ae4756a29/go.mod h1:yqyOUqqONEQQzgmilQldTuKgJyS9Ahs97wG1K0Onfvo=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 h1:xJ4a3vCFaGF/jqvzLMYoU8P317H5OQ+Via4RmuPwCS0=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0 h1:HWo1m869IqiPhD389kmkxeTalrjNbbJTC8LXupb+sl0=
