@@ -15,10 +15,10 @@
 package secret
 
 import (
-	"bufio"
 	"bytes"
 	"crypto/rand"
 	"io"
+	"math/big"
 
 	"emperror.dev/errors"
 )
@@ -77,6 +77,6 @@ func (g PasswordGenerator) generate(alphabet []rune, length int) (string, error)
 }
 
 func (g PasswordGenerator) generateIndex(limit int) (int, error) {
-	b, err := bufio.NewReader(g.Random).ReadByte()
-	return int(b) % limit, err
+	idx, err := rand.Int(g.Random, big.NewInt(int64(limit)))
+	return int(idx.Int64()), err
 }
