@@ -114,8 +114,13 @@ func (e RbacEnforcer) Enforce(org *Organization, user *User, path, method string
 			return false, nil
 		}
 
+		// Members cannot download admin kube config
+		if ok, err := regexp.MatchString(`^/api/v1/orgs/\d+/clusters/[^/]+/config$`, path); err != nil || ok {
+			return false, nil
+		}
+
 		// Members cannot access secrets at all
-		if ok, err := regexp.MatchString(`^/api/v1/orgs/.+/secrets(?:/.*)?$`, path); err != nil || ok {
+		if ok, err := regexp.MatchString(`^/api/v1/orgs/\d+/secrets(?:/.*)?$`, path); err != nil || ok {
 			return false, errors.WithStackIf(err)
 		}
 

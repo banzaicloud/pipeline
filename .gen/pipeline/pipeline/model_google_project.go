@@ -10,9 +10,14 @@
 
 package pipeline
 
-type AllowedSecretTypeResponse struct {
+// GoogleProject - Details of a Google Cloud project.
+type GoogleProject struct {
 
-	Fields []SecretTypeResponseFields `json:"fields,omitempty"`
+	Name string `json:"name,omitempty"`
 
-	Sourcing string `json:"sourcing,omitempty"`
+	ProjectId string `json:"projectId,omitempty"`
+
+	ProjectNumber string `json:"projectNumber,omitempty"`
+
+	LifecycleState string `json:"lifecycleState,omitempty"`
 }

@@ -1477,66 +1477,6 @@ paths:
                 default:
                     $ref: '#/components/responses/Error'
 
-    /api/v1/allowed/secrets:
-        get:
-            security:
-                - bearerAuth: []
-            tags:
-                - secrets
-            summary: List allowed secret types
-            deprecated: true
-            operationId: AllowedSecretsTypes
-            description: List allowed secret types and their required keys
-            responses:
-                200:
-                    description: Allowed types listed
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                example:
-                                    tls:
-                                        fields:
-                                            -
-                                                name: hosts
-                                                required: true
-                                            -
-                                                name: validity
-                                                required: false
-                                        sourcing: volume
-                                additionalProperties:
-                                    $ref: '#/components/schemas/AllowedSecretTypeResponse'
-                default:
-                    $ref: '#/components/responses/Error'
-
-    /api/v1/allowed/secrets/{type}:
-        get:
-            security:
-                - bearerAuth: []
-            tags:
-                - secrets
-            summary: List required keys
-            deprecated: true
-            operationId: AllowedSecretsTypesKeys
-            description: List required keys in the given secret type
-            parameters:
-                -
-                    name: type
-                    in: path
-                    required: true
-                    description:  Secret type
-                    schema:
-                        type: string
-            responses:
-                200:
-                    description: Required keys listed
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/AllowedSecretTypeResponse'
-                default:
-                    $ref: '#/components/responses/Error'
-
     /api/v1/orgs/{orgId}/secrets/{secretId}:
         parameters:
             - $ref: '#/components/parameters/orgId'
@@ -2647,35 +2587,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/ListProjectsResponse'
-                default:
-                    $ref: '#/components/responses/Error'
-
-    /api/v1/orgs/{orgId}/google/projects:
-        get:
-            security:
-                - bearerAuth: []
-            tags:
-                - projects
-            summary: Retrieves projects visible for the user identified by the secret id
-            operationId: GetProjects
-            description: Retrieves projects visible by the user represented by the secretid header from the google cloud
-            parameters:
-                - $ref: '#/components/parameters/orgId'
-                -
-                    name: secretId
-                    in: header
-                    required: true
-                    description: Secret identification.
-                    schema:
-                        type: string
-            responses:
-                200:
-                    description: "List of projects visible for the user"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ListProjectsResponse'
+                                $ref: '#/components/schemas/GoogleProjects'
                 default:
                     $ref: '#/components/responses/Error'
 
@@ -6393,24 +6305,6 @@ components:
                             description:
                                 type: string
 
-        AllowedSecretTypeResponse:
-            type: object
-            properties:
-                fields:
-                    type: array
-                    items:
-                        type: object
-                        properties:
-                            name:
-                                type: string
-                            required:
-                                type: boolean
-                            description:
-                                type: string
-                sourcing:
-                    type: string
-                    enum: [env, volume]
-
         ListUserResponse:
             type: array
             items:
@@ -7240,17 +7134,17 @@ components:
                 imageDigest:
                     type: string
 
-        ListProjectsResponse:
-            description: wraps a list of project details information
+        GoogleProjects:
+            description: List of Google Cloud projects.
             type: object
             properties:
                 projects:
                     type: array
                     items:
-                        $ref: '#/components/schemas/ProjectDetails'
+                        $ref: '#/components/schemas/GoogleProject'
 
-        ProjectDetails:
-            description: Details of the google project
+        GoogleProject:
+            description: Details of a Google Cloud project.
             type: object
             properties:
                 name:
