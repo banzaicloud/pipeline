@@ -34,8 +34,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
-	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
@@ -56,7 +56,7 @@ func (e *scaleTargetNotFoundError) Error() string {
 }
 
 type HPAAPI struct {
-	featureService clusterfeature.Service
+	featureService integratedservices.Service
 	clientFactory  common.ClientFactory
 	configFactory  common.ConfigFactory
 	clusterGetter  common.ClusterGetter
@@ -65,7 +65,7 @@ type HPAAPI struct {
 
 // NewHPAAPI returns a new HPAAPI.
 func NewHPAAPI(
-	featureService clusterfeature.Service,
+	featureService integratedservices.Service,
 	clientFactory common.ClientFactory,
 	configFactory common.ConfigFactory,
 	clusterGetter common.ClusterGetter,
@@ -204,7 +204,7 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 // NOTE: this is a temporary solution. At some point this functionality should be extracted.
 func (a HPAAPI) isMonitoringEnabled(ctx context.Context, clusterID uint) (bool, error) {
 	_, err := a.featureService.Details(ctx, clusterID, "monitoring")
-	if clusterfeature.IsFeatureNotFoundError(err) {
+	if integratedservices.IsFeatureNotFoundError(err) {
 		return false, nil
 	}
 	if err != nil {

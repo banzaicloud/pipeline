@@ -18,11 +18,11 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
-	"github.com/banzaicloud/pipeline/internal/clusterfeature"
-	clusterfeatureworkflow "github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter/workflow"
+	"github.com/banzaicloud/pipeline/internal/integratedservices"
+	clusterfeatureworkflow "github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/workflow"
 )
 
-func registerClusterFeatureWorkflows(featureOperatorRegistry clusterfeature.FeatureOperatorRegistry, featureRepository clusterfeature.FeatureRepository) {
+func registerClusterFeatureWorkflows(featureOperatorRegistry integratedservices.FeatureOperatorRegistry, featureRepository integratedservices.FeatureRepository) {
 	workflow.RegisterWithOptions(clusterfeatureworkflow.ClusterFeatureJobWorkflow, workflow.RegisterOptions{Name: clusterfeatureworkflow.ClusterFeatureJobWorkflowName})
 
 	{
