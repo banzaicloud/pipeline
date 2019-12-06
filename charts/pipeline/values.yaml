@@ -4,7 +4,8 @@
 ## Resource definitions for Kubernetes resources
 replicaCount: 1
 # Upgrade strategy
-strategy: {}
+strategy:
+  type: Recreate
 
 ## Additional entries to the hosts
 hostAliases: []
