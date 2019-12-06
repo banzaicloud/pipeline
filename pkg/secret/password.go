@@ -24,12 +24,14 @@ import (
 )
 
 type PasswordGenerator struct {
-	Random io.Reader
+	IndexGenerator IndexGenerator
 }
 
 func NewCryptoPasswordGenerator() PasswordGenerator {
 	return PasswordGenerator{
-		Random: rand.Reader,
+		IndexGenerator: UniformRandomIndexGenerator{
+			Random: rand.Reader,
+		},
 	}
 }
 
@@ -66,7 +68,7 @@ func (g PasswordGenerator) generate(alphabet []rune, length int) (string, error)
 
 	var b bytes.Buffer
 	for i := 0; i < length; i++ {
-		idx, err := g.generateIndex(l)
+		idx, err := g.IndexGenerator.Generate(l)
 		if err != nil {
 			return "", errors.WrapIf(err, "failed to generate index")
 		}
@@ -76,7 +78,15 @@ func (g PasswordGenerator) generate(alphabet []rune, length int) (string, error)
 	return b.String(), nil
 }
 
-func (g PasswordGenerator) generateIndex(limit int) (int, error) {
+type IndexGenerator interface {
+	Generate(limit int) (int, error)
+}
+
+type UniformRandomIndexGenerator struct {
+	Random io.Reader
+}
+
+func (g UniformRandomIndexGenerator) Generate(limit int) (int, error) {
 	idx, err := rand.Int(g.Random, big.NewInt(int64(limit)))
 	return int(idx.Int64()), err
 }
