@@ -30,7 +30,7 @@ func TestAlphabetsAreShort(t *testing.T) {
 
 func TestPasswordGenerator_GenerateAlphabetic(t *testing.T) {
 	gen := PasswordGenerator{
-		Random: &dummyRandomReader{},
+		IndexGenerator: &dummyIndexGenerator{},
 	}
 
 	res, err := gen.GenerateAlphabetic(len(alphabeticRunes))
@@ -40,7 +40,7 @@ func TestPasswordGenerator_GenerateAlphabetic(t *testing.T) {
 
 func TestPasswordGenerator_GenerateAlphanumeric(t *testing.T) {
 	gen := PasswordGenerator{
-		Random: &dummyRandomReader{},
+		IndexGenerator: &dummyIndexGenerator{},
 	}
 
 	res, err := gen.GenerateAlphanumeric(len(alphanumericRunes))
@@ -50,7 +50,7 @@ func TestPasswordGenerator_GenerateAlphanumeric(t *testing.T) {
 
 func TestPasswordGenerator_GenerateASCII(t *testing.T) {
 	gen := PasswordGenerator{
-		Random: &dummyRandomReader{},
+		IndexGenerator: &dummyIndexGenerator{},
 	}
 
 	res, err := gen.GenerateASCII(len(asciiRunes))
@@ -60,7 +60,7 @@ func TestPasswordGenerator_GenerateASCII(t *testing.T) {
 
 func TestPasswordGenerator_GenerateNumeric(t *testing.T) {
 	gen := PasswordGenerator{
-		Random: &dummyRandomReader{},
+		IndexGenerator: &dummyIndexGenerator{},
 	}
 
 	res, err := gen.GenerateAlphanumeric(len(numericRunes))
@@ -68,15 +68,15 @@ func TestPasswordGenerator_GenerateNumeric(t *testing.T) {
 	assert.Equal(t, string(numericRunes), res)
 }
 
-type dummyRandomReader struct {
-	i byte
+type dummyIndexGenerator struct {
+	i int
 }
 
-func (r *dummyRandomReader) Read(p []byte) (n int, err error) {
-	if len(p) == 0 {
-		return 0, nil
+func (g *dummyIndexGenerator) Generate(limit int) (int, error) {
+	if g.i >= limit {
+		g.i = 0
 	}
-	p[0] = r.i
-	r.i++
-	return 1, nil
+	idx := g.i
+	g.i++
+	return idx, nil
 }
