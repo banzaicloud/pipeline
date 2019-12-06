@@ -328,7 +328,7 @@ func main() {
 		activity.RegisterWithOptions(updateClusterStatusActivity.Execute, activity.RegisterOptions{Name: cluster.UpdateClusterStatusActivityName})
 
 		// Register amazon specific workflows and activities
-		registerAwsWorkflows(clusters, tokenGenerator)
+		registerAwsWorkflows(clusters, tokenGenerator, secretStore)
 
 		azurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db, commonadapter.NewLogger(logger))
 

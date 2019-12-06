@@ -24,13 +24,8 @@ import (
 
 // IsProviderSupported checks whether the given provider is supported
 func IsProviderSupported(provider string) error {
-
 	switch provider {
-	case providers.Google:
-		return nil
-	case providers.Amazon:
-		return nil
-	case providers.Azure:
+	case providers.Amazon, providers.Azure, providers.Google:
 		return nil
 	default:
 		return pkgErrors.ErrorNotSupportedCloudType

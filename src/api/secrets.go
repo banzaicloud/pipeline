@@ -27,6 +27,7 @@ import (
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -52,7 +53,7 @@ func ValidateSecret(c *gin.Context) {
 	secretID := getSecretID(c)
 	log.Infof("secret id [%d]", secretID)
 
-	secretItem, err := secret.RestrictedStore.Get(organizationID, secretID)
+	secretItem, err := restricted.GlobalSecretStore.Get(organizationID, secretID)
 	if err != nil {
 		log.Errorf("Error during getting secret: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
@@ -148,7 +149,7 @@ func AddSecrets(c *gin.Context) {
 		return
 	}
 
-	secretID, err := secret.RestrictedStore.Store(organizationID, &createSecretRequest)
+	secretID, err := restricted.GlobalSecretStore.Store(organizationID, &createSecretRequest)
 	if err != nil {
 		statusCode := http.StatusInternalServerError
 		message := "Error during store"
@@ -173,7 +174,7 @@ func AddSecrets(c *gin.Context) {
 		errorMsg = validationError.Error()
 	}
 
-	s, err := secret.RestrictedStore.Get(organizationID, secretID)
+	s, err := restricted.GlobalSecretStore.Get(organizationID, secretID)
 	if err != nil {
 		log.Errorf("error during getting secret: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
@@ -249,7 +250,7 @@ func UpdateSecrets(c *gin.Context) {
 		return
 	}
 
-	if err := secret.RestrictedStore.Update(organizationID, secretID, &createSecretRequest); err != nil {
+	if err := restricted.GlobalSecretStore.Update(organizationID, secretID, &createSecretRequest); err != nil {
 		statusCode := http.StatusInternalServerError
 		if secret.IsCASError(err) {
 			statusCode = http.StatusBadRequest
@@ -265,7 +266,7 @@ func UpdateSecrets(c *gin.Context) {
 
 	log.Debugf("Secret updated at: %s/%s", organizationID, secretID)
 
-	s, err := secret.RestrictedStore.Get(organizationID, secretID)
+	s, err := restricted.GlobalSecretStore.Get(organizationID, secretID)
 	if err != nil {
 		log.Errorf("error during getting secret: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
@@ -320,7 +321,7 @@ func ListSecrets(c *gin.Context) {
 			Error:   err.Error(),
 		})
 	} else {
-		if secrets, err := secret.RestrictedStore.List(organizationID, &query); err != nil {
+		if secrets, err := restricted.GlobalSecretStore.List(organizationID, &query); err != nil {
 			log.Errorf("Error during listing secrets: %s", err.Error())
 			c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 				Code:    http.StatusBadRequest,
@@ -340,7 +341,7 @@ func GetSecret(c *gin.Context) {
 
 	secretID := getSecretID(c)
 
-	if secret, err := secret.RestrictedStore.Get(organizationID, secretID); err != nil {
+	if secret, err := restricted.GlobalSecretStore.Get(organizationID, secretID); err != nil {
 		log.Errorf("Error during getting secret: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -370,7 +371,7 @@ func DeleteSecrets(c *gin.Context) {
 			Message: fmt.Sprintf("Cluster found with this secret[%s]", secretID),
 			Error:   err.Error(),
 		})
-	} else if err := secret.RestrictedStore.Delete(organizationID, secretID); err != nil {
+	} else if err := restricted.GlobalSecretStore.Delete(organizationID, secretID); err != nil {
 		log.Errorf("Error during deleting secrets: %s", err.Error())
 		code := http.StatusInternalServerError
 		resp := common.ErrorResponse{
@@ -391,7 +392,7 @@ func GetSecretTags(c *gin.Context) {
 	secretID := getSecretID(c)
 	log.Debugf("getting secret tags: %d/%s", organizationID, secretID)
 
-	existingSecret, err := secret.RestrictedStore.Get(organizationID, secretID)
+	existingSecret, err := restricted.GlobalSecretStore.Get(organizationID, secretID)
 	if err != nil {
 		log.Errorf("error during getting secret: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusNotFound, common.ErrorResponse{
@@ -429,7 +430,7 @@ func AddSecretTag(c *gin.Context) {
 		return
 	}
 
-	existingSecret, err := secret.RestrictedStore.Get(organizationID, secretID)
+	existingSecret, err := restricted.GlobalSecretStore.Get(organizationID, secretID)
 	if err != nil {
 		log.Errorf("error during getting secret: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusNotFound, common.ErrorResponse{
@@ -449,7 +450,7 @@ func AddSecretTag(c *gin.Context) {
 		UpdatedBy: auth.GetCurrentUser(c.Request).Login,
 	}
 
-	if err := secret.RestrictedStore.Update(organizationID, secretID, &createSecretRequest); err != nil {
+	if err := restricted.GlobalSecretStore.Update(organizationID, secretID, &createSecretRequest); err != nil {
 		statusCode := http.StatusInternalServerError
 		if secret.IsCASError(err) {
 			statusCode = http.StatusBadRequest
@@ -492,7 +493,7 @@ func DeleteSecretTag(c *gin.Context) {
 		return
 	}
 
-	existingSecret, err := secret.RestrictedStore.Get(organizationID, secretID)
+	existingSecret, err := restricted.GlobalSecretStore.Get(organizationID, secretID)
 	if err != nil {
 		log.Errorf("error during getting secret: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusNotFound, common.ErrorResponse{
@@ -512,7 +513,7 @@ func DeleteSecretTag(c *gin.Context) {
 		UpdatedBy: auth.GetCurrentUser(c.Request).Login,
 	}
 
-	if err := secret.RestrictedStore.Update(organizationID, secretID, &createSecretRequest); err != nil {
+	if err := restricted.GlobalSecretStore.Update(organizationID, secretID, &createSecretRequest); err != nil {
 		statusCode := http.StatusInternalServerError
 		if secret.IsCASError(err) {
 			statusCode = http.StatusBadRequest

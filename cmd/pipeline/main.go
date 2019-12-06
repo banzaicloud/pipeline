@@ -704,7 +704,6 @@ func main() {
 				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 				clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
-				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 				endpointManager := endpoints.NewEndpointManager(logger)
 				featureManagers := []clusterfeature.FeatureManager{
 					securityscan.MakeFeatureManager(logger),

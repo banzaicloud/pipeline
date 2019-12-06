@@ -53,17 +53,12 @@ const (
 // nolint: gochecknoglobals
 var Store *secretStore
 
-// RestrictedStore object that wraps the main secret store and restricts access to certain items
-// nolint: gochecknoglobals
-var RestrictedStore *restrictedSecretStore
-
 // ErrSecretNotExists denotes 'Not Found' errors for secrets
 // nolint: gochecknoglobals
 var ErrSecretNotExists = fmt.Errorf("There's no secret with this ID")
 
 func init() {
 	Store = newVaultSecretStore()
-	RestrictedStore = &restrictedSecretStore{Store}
 }
 
 type secretStore struct {
@@ -102,14 +97,6 @@ type SecretItemResponse struct {
 	Version   int               `json:"version"`
 	UpdatedAt time.Time         `json:"updatedAt"`
 	UpdatedBy string            `json:"updatedBy,omitempty" mapstructure:"updatedBy"`
-}
-
-// K8SSourceMeta returns the meta information how to use this secret if installed to K8S
-func ToK8SSourceMeta(s *SecretItemResponse) K8SSourceMeta {
-	return K8SSourceMeta{
-		Name:     s.Name,
-		Sourcing: EnvVar,
-	}
 }
 
 // ValidateSecretType validates the secret type

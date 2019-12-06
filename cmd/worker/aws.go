@@ -20,15 +20,18 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
-	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-func registerAwsWorkflows(clusters *pkeworkflowadapter.ClusterManagerAdapter, tokenGenerator pkeworkflowadapter.TokenGenerator) {
+func registerAwsWorkflows(
+	clusters *pkeworkflowadapter.ClusterManagerAdapter,
+	tokenGenerator pkeworkflowadapter.TokenGenerator,
+	secretStore pkeworkflow.SecretStore,
+) {
 	workflow.RegisterWithOptions(pkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.CreateClusterWorkflowName})
 	workflow.RegisterWithOptions(pkeworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.DeleteClusterWorkflowName})
 	workflow.RegisterWithOptions(pkeworkflow.UpdateClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.UpdateClusterWorkflowName})
 
-	awsClientFactory := pkeworkflow.NewAWSClientFactory(pkeworkflowadapter.NewSecretStore(secret.Store))
+	awsClientFactory := pkeworkflow.NewAWSClientFactory(secretStore)
 
 	createAWSRolesActivity := pkeworkflow.NewCreateAWSRolesActivity(awsClientFactory)
 	activity.RegisterWithOptions(createAWSRolesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateAWSRolesActivityName})
