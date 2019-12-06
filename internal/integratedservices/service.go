@@ -23,7 +23,7 @@ import (
 )
 
 // Service manages features on Kubernetes clusters.
-//go:generate mga gen kit endpoint --outdir clusterfeaturedriver --with-oc Service
+//go:generate mga gen kit endpoint --outdir integratedservicedriver --with-oc Service
 //go:generate mockery -name Service -inpkg
 type Service interface {
 	// List lists the activated features and their details.
