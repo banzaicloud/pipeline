@@ -38,7 +38,7 @@ type IntegratedServicesOperator struct {
 	clusterGetter     integratedserviceadapter.ClusterGetter
 	clusterService    integratedservices.ClusterService
 	helmService       services.HelmService
-	kubernetesService services.KubernetesService
+	kubernetesService KubernetesService
 	secretStore       services.SecretStore
 	config            Config
 	logger            common.Logger
@@ -49,7 +49,7 @@ func MakeIntegratedServicesOperator(
 	clusterGetter integratedserviceadapter.ClusterGetter,
 	clusterService integratedservices.ClusterService,
 	helmService services.HelmService,
-	kubernetesService services.KubernetesService,
+	kubernetesService KubernetesService,
 	secretStore services.SecretStore,
 	config Config,
 	logger common.Logger,
