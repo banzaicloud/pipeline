@@ -10,7 +10,11 @@
 
 package pipeline
 
-type ActivateClusterFeatureRequest struct {
+type IntegratedServiceDetails struct {
 
-	Spec map[string]interface{} `json:"spec"`
+	Output map[string]interface{} `json:"output,omitempty"`
+
+	Spec map[string]interface{} `json:"spec,omitempty"`
+
+	Status string `json:"status"`
 }

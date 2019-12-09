@@ -10,7 +10,7 @@
 
 package pipeline
 
-type UpdateClusterFeatureRequest struct {
+type UpdateIntegratedServiceRequest struct {
 
 	Spec map[string]interface{} `json:"spec"`
 }

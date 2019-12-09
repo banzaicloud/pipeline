@@ -16844,7 +16844,7 @@ paths:
       - clustergroup features
   /api/v1/orgs/{orgId}/clusters/{id}/features:
     get:
-      operationId: ListClusterFeatures
+      operationId: ListIntegratedServices
       parameters:
       - description: Organization identifier
         explode: false
@@ -16867,7 +16867,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClusterFeatureList'
+                $ref: '#/components/schemas/IntegratedServiceList'
           description: Success
         default:
           content:
@@ -16971,10 +16971,10 @@ paths:
       - bearerAuth: []
       summary: List enabled features of a cluster
       tags:
-      - cluster features
+      - integrated services
   /api/v1/orgs/{orgId}/clusters/{id}/features/{featureName}:
     delete:
-      operationId: DeactivateClusterFeature
+      operationId: DeactivateIntegratedService
       parameters:
       - description: Organization identifier
         explode: false
@@ -17103,11 +17103,11 @@ paths:
           description: Internal server error
       security:
       - bearerAuth: []
-      summary: Deactivate a cluster feature
+      summary: Deactivate an integrated service
       tags:
-      - cluster features
+      - integrated services
     get:
-      operationId: ClusterFeatureDetails
+      operationId: IntegratedServiceDetails
       parameters:
       - description: Organization identifier
         explode: false
@@ -17138,7 +17138,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClusterFeatureDetails'
+                $ref: '#/components/schemas/IntegratedServiceDetails'
           description: Success
         default:
           content:
@@ -17240,11 +17240,11 @@ paths:
           description: Internal server error
       security:
       - bearerAuth: []
-      summary: Get details of a cluster feature
+      summary: Get details of an integrated service
       tags:
-      - cluster features
+      - integrated services
     post:
-      operationId: ActivateClusterFeature
+      operationId: ActivateIntegratedService
       parameters:
       - description: Organization identifier
         explode: false
@@ -17274,7 +17274,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ActivateClusterFeatureRequest'
+              $ref: '#/components/schemas/ActivateIntegratedServiceRequest'
         required: true
       responses:
         202:
@@ -17379,11 +17379,11 @@ paths:
           description: Internal server error
       security:
       - bearerAuth: []
-      summary: Activate a cluster feature
+      summary: Activate a integrated service
       tags:
-      - cluster features
+      - integrated services
     put:
-      operationId: UpdateClusterFeature
+      operationId: UpdateIntegratedService
       parameters:
       - description: Organization identifier
         explode: false
@@ -17413,7 +17413,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateClusterFeatureRequest'
+              $ref: '#/components/schemas/UpdateIntegratedServiceRequest'
         required: true
       responses:
         202:
@@ -17518,9 +17518,9 @@ paths:
           description: Internal server error
       security:
       - bearerAuth: []
-      summary: Update a cluster feature
+      summary: Update an integrated service
       tags:
-      - cluster features
+      - integrated services
   /api/v1/orgs/{orgId}/clusters/{id}/nodepools:
     post:
       description: Add new node pool to a cluster
@@ -22626,11 +22626,11 @@ components:
         enabled:
           type: boolean
       type: object
-    ClusterFeatureList:
+    IntegratedServiceList:
       additionalProperties:
-        $ref: '#/components/schemas/ClusterFeatureDetails'
+        $ref: '#/components/schemas/IntegratedServiceDetails'
       type: object
-    ActivateClusterFeatureRequest:
+    ActivateIntegratedServiceRequest:
       example:
         spec: '{}'
       properties:
@@ -22639,7 +22639,7 @@ components:
       required:
       - spec
       type: object
-    ClusterFeatureDetails:
+    IntegratedServiceDetails:
       example:
         output: '{}'
         spec: '{}'
@@ -22659,7 +22659,7 @@ components:
       required:
       - status
       type: object
-    UpdateClusterFeatureRequest:
+    UpdateIntegratedServiceRequest:
       example:
         spec: '{}'
       properties:
@@ -22668,7 +22668,7 @@ components:
       required:
       - spec
       type: object
-    ClusterFeatureSpec:
+    IntegratedServiceSpec:
       type: object
     ListNodepoolLabelsResponse:
       additionalProperties:
