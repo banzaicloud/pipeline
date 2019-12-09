@@ -26,7 +26,9 @@ import (
 func TestConfigure(t *testing.T) {
 	var config configuration
 
-	v := viper.New()
+	v := viper.NewWithOptions(
+		viper.KeyDelimiter("::"),
+	)
 	p := pflag.NewFlagSet("test", pflag.ContinueOnError)
 
 	configure(v, p)

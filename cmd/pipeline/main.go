@@ -144,7 +144,10 @@ var (
 )
 
 func main() {
-	v, p := viper.GetViper(), pflag.NewFlagSet(friendlyAppName, pflag.ExitOnError)
+	v := viper.NewWithOptions(
+		viper.KeyDelimiter("::"),
+	)
+	p := pflag.NewFlagSet(friendlyAppName, pflag.ExitOnError)
 
 	configure(v, p)
 

@@ -137,8 +137,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetEnvKeyReplacer(strings.NewReplacer("::", "_", ".", "_", "-", "_"))
 	v.AutomaticEnv()
 
-	v.SetKeyDelimiter("::")
-
 	// Load common configuration
 	cmd.Configure(v, p)
 

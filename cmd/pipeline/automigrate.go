@@ -32,14 +32,17 @@ import (
 const version = "automigrate"
 
 func main() {
-	v, p := viper.GetViper(), pflag.NewFlagSet(friendlyAppName, pflag.ExitOnError)
+	v := viper.NewWithOptions(
+		viper.KeyDelimiter("::"),
+	)
+	p := pflag.NewFlagSet(friendlyAppName, pflag.ExitOnError)
 
 	configure(v, p)
 
 	_ = v.ReadInConfig()
 
 	var config configuration
-	err := viper.Unmarshal(&config)
+	err := v.Unmarshal(&config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
 	err = config.Process()
