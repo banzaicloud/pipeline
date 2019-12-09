@@ -173,13 +173,13 @@ func main() {
 	}
 
 	var config configuration
-	err = viper.Unmarshal(&config)
+	err = v.Unmarshal(&config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
 	err = config.Process()
 	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
 
-	err = viper.Unmarshal(&global.Config)
+	err = v.Unmarshal(&global.Config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
 
 	err = global.Config.Process()
