@@ -21,27 +21,27 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-const ClusterFeatureDeactivateActivityName = "cluster-feature-deactivate"
+const IntegratedServiceDeactivateActivityName = "integrated-service-deactivate"
 
-type ClusterFeatureDeactivateActivityInput struct {
-	ClusterID     uint
-	FeatureName   string
-	FeatureSpec   integratedservices.FeatureSpec
-	RetryInterval time.Duration
+type IntegratedServiceDeactivateActivityInput struct {
+	ClusterID             uint
+	IntegratedServiceName string
+	IntegratedServiceSpec integratedservices.IntegratedServiceSpec
+	RetryInterval         time.Duration
 }
 
-type ClusterFeatureDeactivateActivity struct {
-	features integratedservices.FeatureOperatorRegistry
+type IntegratedServiceDeactivateActivity struct {
+	integratedServices integratedservices.IntegratedServiceOperatorRegistry
 }
 
-func MakeClusterFeatureDeactivateActivity(features integratedservices.FeatureOperatorRegistry) ClusterFeatureDeactivateActivity {
-	return ClusterFeatureDeactivateActivity{
-		features: features,
+func MakeIntegratedServiceDeactivateActivity(integratedServices integratedservices.IntegratedServiceOperatorRegistry) IntegratedServiceDeactivateActivity {
+	return IntegratedServiceDeactivateActivity{
+		integratedServices: integratedServices,
 	}
 }
 
-func (a ClusterFeatureDeactivateActivity) Execute(ctx context.Context, input ClusterFeatureDeactivateActivityInput) error {
-	f, err := a.features.GetFeatureOperator(input.FeatureName)
+func (a IntegratedServiceDeactivateActivity) Execute(ctx context.Context, input IntegratedServiceDeactivateActivityInput) error {
+	f, err := a.integratedServices.GetIntegratedServiceOperator(input.IntegratedServiceName)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (a ClusterFeatureDeactivateActivity) Execute(ctx context.Context, input Clu
 	defer heartbeat.Stop()
 
 	for {
-		if err := f.Deactivate(ctx, input.ClusterID, input.FeatureSpec); err != nil {
+		if err := f.Deactivate(ctx, input.ClusterID, input.IntegratedServiceSpec); err != nil {
 			if shouldRetry(err) {
 				if err := wait(ctx, input.RetryInterval); err != nil {
 					return err

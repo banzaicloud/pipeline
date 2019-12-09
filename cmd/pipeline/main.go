@@ -697,29 +697,29 @@ func main() {
 				clustersecretadapter.NewSecretStore(secret.Store),
 			)
 
-			// Cluster Feature API
+			// Cluster IntegratedService API
 			var featureService integratedservices.Service
 			{
 				logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
-				featureRepository := integratedserviceadapter.NewGormFeatureRepository(db, logger)
+				featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, logger)
 				clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
 				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
 				endpointManager := endpoints.NewEndpointManager(logger)
-				featureManagers := []integratedservices.FeatureManager{
-					securityscan.MakeFeatureManager(logger),
+				featureManagers := []integratedservices.IntegratedServiceManager{
+					securityscan.MakeIntegratedServiceManager(logger),
 				}
 
 				if config.Cluster.DNS.Enabled {
-					featureManagers = append(featureManagers, featureDns.NewFeatureManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
+					featureManagers = append(featureManagers, featureDns.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
 				}
 
 				if config.Cluster.Vault.Enabled {
-					featureManagers = append(featureManagers, featureVault.MakeFeatureManager(clusterGetter, secretStore, config.Cluster.Vault.Config, logger))
+					featureManagers = append(featureManagers, featureVault.MakeIntegratedServiceManager(clusterGetter, secretStore, config.Cluster.Vault.Config, logger))
 				}
 
 				if config.Cluster.Monitoring.Enabled {
 					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
-					featureManagers = append(featureManagers, featureMonitoring.MakeFeatureManager(
+					featureManagers = append(featureManagers, featureMonitoring.MakeIntegratedServiceManager(
 						clusterGetter,
 						secretStore,
 						endpointManager,
@@ -730,7 +730,7 @@ func main() {
 				}
 
 				if config.Cluster.Logging.Enabled {
-					featureManagers = append(featureManagers, featureLogging.MakeFeatureManager(
+					featureManagers = append(featureManagers, featureLogging.MakeIntegratedServiceManager(
 						clusterGetter,
 						secretStore,
 						endpointManager,
@@ -774,9 +774,9 @@ func main() {
 					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
 				}
 
-				featureManagerRegistry := integratedservices.MakeFeatureManagerRegistry(featureManagers)
-				featureOperationDispatcher := integratedserviceadapter.MakeCadenceFeatureOperationDispatcher(workflowClient, logger)
-				featureService = integratedservices.MakeFeatureService(featureOperationDispatcher, featureManagerRegistry, featureRepository, logger)
+				featureManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(featureManagers)
+				featureOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, logger)
+				featureService = integratedservices.MakeIntegratedServiceService(featureOperationDispatcher, featureManagerRegistry, featureRepository, logger)
 				endpoints := integratedservicedriver.MakeEndpoints(
 					featureService,
 					kitxendpoint.Chain(endpointMiddleware...),

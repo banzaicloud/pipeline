@@ -22,7 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/dns"
 )
 
-type featureSpec struct {
+type integratedServiceSpec struct {
 	Loki          lokiSpec          `json:"loki" mapstructure:"loki"`
 	Logging       loggingSpec       `json:"logging" mapstructure:"logging"`
 	ClusterOutput clusterOutputSpec `json:"clusterOutput" mapstructure:"clusterOutput"`
@@ -62,19 +62,19 @@ type bucketSpec struct {
 	StorageAccount string `json:"storageAccount" mapstructure:"storageAccount"`
 }
 
-func bindFeatureSpec(spec integratedservices.FeatureSpec) (featureSpec, error) {
-	var featureSpec featureSpec
-	if err := mapstructure.Decode(spec, &featureSpec); err != nil {
-		return featureSpec, integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     "failed to bind feature spec",
+func bindIntegratedServiceSpec(spec integratedservices.IntegratedServiceSpec) (integratedServiceSpec, error) {
+	var integratedServiceSpec integratedServiceSpec
+	if err := mapstructure.Decode(spec, &integratedServiceSpec); err != nil {
+		return integratedServiceSpec, integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               "failed to bind integrated service spec",
 		}
 	}
 
-	return featureSpec, nil
+	return integratedServiceSpec, nil
 }
 
-func (s featureSpec) Validate() error {
+func (s integratedServiceSpec) Validate() error {
 	if err := s.Loki.Validate(); err != nil {
 		return err
 	}

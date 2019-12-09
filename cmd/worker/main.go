@@ -427,7 +427,7 @@ func main() {
 			orgGetter := authdriver.NewOrganizationGetter(db)
 
 			logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
-			featureRepository := integratedserviceadapter.NewGormFeatureRepository(db, logger)
+			featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, logger)
 			kubernetesService := kubernetes.NewService(
 				kubernetesadapter.NewConfigSecretGetter(clusteradapter.NewClusters(db)),
 				kubernetes.NewConfigFactory(commonSecretStore),
@@ -463,11 +463,11 @@ func main() {
 				commonSecretStore,
 				logger,
 			)
-			featureAnchoreService := securityscan.NewFeatureAnchoreService(anchoreUserService, logger)
-			featureWhitelistService := securityscan.NewFeatureWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
+			featureAnchoreService := securityscan.NewIntegratedServiceAnchoreService(anchoreUserService, logger)
+			featureWhitelistService := securityscan.NewIntegratedServiceWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
 
-			featureOperatorRegistry := integratedservices.MakeFeatureOperatorRegistry([]integratedservices.FeatureOperator{
-				featureDns.MakeFeatureOperator(
+			featureOperatorRegistry := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
+				featureDns.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
 					helmService,
@@ -476,7 +476,7 @@ func main() {
 					commonSecretStore,
 					config.Cluster.DNS.Config,
 				),
-				securityscan.MakeFeatureOperator(
+				securityscan.MakeIntegratedServiceOperator(
 					config.Cluster.SecurityScan.Anchore.Enabled,
 					config.Cluster.SecurityScan.Anchore.Endpoint,
 					clusterGetter,
@@ -488,7 +488,7 @@ func main() {
 					emperror.MakeContextAware(errorHandler),
 					logger,
 				),
-				featureVault.MakeFeatureOperator(clusterGetter,
+				featureVault.MakeIntegratedServicesOperator(clusterGetter,
 					clusterService,
 					helmService,
 					kubernetesService,
@@ -496,7 +496,7 @@ func main() {
 					config.Cluster.Vault.Config,
 					logger,
 				),
-				featureMonitoring.MakeFeatureOperator(
+				featureMonitoring.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
 					helmService,
@@ -505,7 +505,7 @@ func main() {
 					logger,
 					commonSecretStore,
 				),
-				featureLogging.MakeFeatureOperator(
+				featureLogging.MakeIntegratedServicesOperator(
 					clusterGetter,
 					clusterService,
 					helmService,

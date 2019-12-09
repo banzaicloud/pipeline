@@ -33,8 +33,8 @@ import (
 	"github.com/banzaicloud/pipeline/src/auth"
 )
 
-// FeatureOperator implements the Vault feature operator
-type FeatureOperator struct {
+// IntegratedServiceOperator implements the Vault integrated service operator
+type IntegratedServicesOperator struct {
 	clusterGetter     integratedserviceadapter.ClusterGetter
 	clusterService    integratedservices.ClusterService
 	helmService       services.HelmService
@@ -44,8 +44,8 @@ type FeatureOperator struct {
 	logger            common.Logger
 }
 
-// MakeFeatureOperator returns a Vault feature operator
-func MakeFeatureOperator(
+// MakeIntegratedServicesOperator returns a Vault integrated service operator
+func MakeIntegratedServicesOperator(
 	clusterGetter integratedserviceadapter.ClusterGetter,
 	clusterService integratedservices.ClusterService,
 	helmService services.HelmService,
@@ -53,8 +53,8 @@ func MakeFeatureOperator(
 	secretStore services.SecretStore,
 	config Config,
 	logger common.Logger,
-) FeatureOperator {
-	return FeatureOperator{
+) IntegratedServicesOperator {
+	return IntegratedServicesOperator{
 		clusterGetter:     clusterGetter,
 		clusterService:    clusterService,
 		helmService:       helmService,
@@ -65,13 +65,13 @@ func MakeFeatureOperator(
 	}
 }
 
-// Name returns the name of the Vault feature
-func (op FeatureOperator) Name() string {
-	return featureName
+// Name returns the name of the Vault integrated service
+func (op IntegratedServicesOperator) Name() string {
+	return integratedServiceName
 }
 
-// Apply applies the provided specification to the cluster feature
-func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integratedservices.FeatureSpec) error {
+// Apply applies the provided specification to the cluster integrated service
+func (op IntegratedServicesOperator) Apply(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
 		return err
@@ -81,13 +81,13 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integr
 		return err
 	}
 
-	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": featureName})
+	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "integrated service": integratedServiceName})
 
-	boundSpec, err := bindFeatureSpec(spec)
+	boundSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
-		return integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     err.Error(),
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 
@@ -98,7 +98,7 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integr
 
 	// install vault-secrets-webhook
 	if err := op.installOrUpdateWebhook(ctx, logger, orgID, clusterID, boundSpec); err != nil {
-		return errors.WrapIf(err, "failed to deploy helm chart for feature")
+		return errors.WrapIf(err, "failed to deploy helm chart for integrated service")
 	}
 
 	// create the token reviwer service account
@@ -121,7 +121,7 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integr
 	return nil
 }
 
-func (op FeatureOperator) configureClusterTokenReviewer(
+func (op IntegratedServicesOperator) configureClusterTokenReviewer(
 	ctx context.Context,
 	logger common.Logger,
 	clusterID uint) (string, error) {
@@ -190,12 +190,12 @@ func (op FeatureOperator) configureClusterTokenReviewer(
 	return tokenReviewerJWT, nil
 }
 
-func (op FeatureOperator) configureVault(
+func (op IntegratedServicesOperator) configureVault(
 	ctx context.Context,
 	logger common.Logger,
 	orgID,
 	clusterID uint,
-	boundSpec vaultFeatureSpec,
+	boundSpec vaultIntegratedServiceSpec,
 	tokenReviewerJWT string,
 	kubeConfig *k8srest.Config,
 ) error {
@@ -262,11 +262,11 @@ func getPolicyName(orgID, clusterID uint) string {
 	return fmt.Sprintf("%s_%d_%d", policyNamePrefix, orgID, clusterID)
 }
 
-func (op FeatureOperator) installOrUpdateWebhook(
+func (op IntegratedServicesOperator) installOrUpdateWebhook(
 	ctx context.Context,
 	logger common.Logger,
 	orgID, clusterID uint,
-	spec vaultFeatureSpec,
+	spec vaultIntegratedServiceSpec,
 ) error {
 	// create chart values
 	vaultExternalAddress := op.config.Managed.Endpoint
@@ -314,8 +314,8 @@ func (op FeatureOperator) installOrUpdateWebhook(
 	)
 }
 
-// Deactivate deactivates the cluster feature
-func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec integratedservices.FeatureSpec) error {
+// Deactivate deactivates the cluster integrated service
+func (op IntegratedServicesOperator) Deactivate(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
 		return err
@@ -325,22 +325,22 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec i
 		return err
 	}
 
-	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": featureName})
+	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "integrated service": integratedServiceName})
 
 	// delete deployment
 	if err := op.helmService.DeleteDeployment(ctx, clusterID, vaultWebhookReleaseName); err != nil {
-		logger.Info("failed to delete feature deployment")
+		logger.Info("failed to delete integrated service deployment")
 
-		return errors.WrapIf(err, "failed to uninstall feature")
+		return errors.WrapIf(err, "failed to uninstall integrated service")
 	}
 
 	logger.Info("vault webhook deployment deleted successfully")
 
-	boundSpec, err := bindFeatureSpec(spec)
+	boundSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
-		return integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     err.Error(),
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 
@@ -401,7 +401,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec i
 	return nil
 }
 
-func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
+func (op IntegratedServicesOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
 	if _, ok := auth.GetCurrentOrganizationID(ctx); !ok {
 		cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 		if err != nil {

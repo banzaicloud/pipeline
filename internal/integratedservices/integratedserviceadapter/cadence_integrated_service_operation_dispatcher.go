@@ -27,50 +27,50 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/workflow"
 )
 
-// MakeCadenceFeatureOperationDispatcher returns an Uber Cadence based implementation of FeatureOperationDispatcher
-func MakeCadenceFeatureOperationDispatcher(
+// MakeCadenceIntegratedServiceOperationDispatcher returns an Uber Cadence based implementation of IntegratedServiceOperationDispatcher
+func MakeCadenceIntegratedServiceOperationDispatcher(
 	cadenceClient client.Client,
 	logger common.Logger,
-) CadenceFeatureOperationDispatcher {
-	return CadenceFeatureOperationDispatcher{
+) CadenceIntegratedServiceOperationDispatcher {
+	return CadenceIntegratedServiceOperationDispatcher{
 		cadenceClient: cadenceClient,
 		logger:        logger,
 	}
 }
 
-// CadenceFeatureOperationDispatcher implements a feature operation dispatcher using Uber Cadence
-type CadenceFeatureOperationDispatcher struct {
+// CadenceIntegratedServiceOperationDispatcher implements an integrated service operation dispatcher using Uber Cadence
+type CadenceIntegratedServiceOperationDispatcher struct {
 	cadenceClient client.Client
 	logger        common.Logger
 }
 
-// DispatchApply dispatches an Apply request to a feature manager asynchronously
-func (d CadenceFeatureOperationDispatcher) DispatchApply(ctx context.Context, clusterID uint, featureName string, spec integratedservices.FeatureSpec) error {
-	return d.dispatchOperation(ctx, workflow.OperationApply, clusterID, featureName, spec)
+// DispatchApply dispatches an Apply request to an integrated service manager asynchronously
+func (d CadenceIntegratedServiceOperationDispatcher) DispatchApply(ctx context.Context, clusterID uint, integratedServiceName string, spec integratedservices.IntegratedServiceSpec) error {
+	return d.dispatchOperation(ctx, workflow.OperationApply, clusterID, integratedServiceName, spec)
 }
 
-// DispatchDeactivate dispatches a Deactivate request to a feature manager asynchronously
-func (d CadenceFeatureOperationDispatcher) DispatchDeactivate(ctx context.Context, clusterID uint, featureName string, spec integratedservices.FeatureSpec) error {
-	return d.dispatchOperation(ctx, workflow.OperationDeactivate, clusterID, featureName, spec)
+// DispatchDeactivate dispatches a Deactivate request to an integrated service manager asynchronously
+func (d CadenceIntegratedServiceOperationDispatcher) DispatchDeactivate(ctx context.Context, clusterID uint, integratedServiceName string, spec integratedservices.IntegratedServiceSpec) error {
+	return d.dispatchOperation(ctx, workflow.OperationDeactivate, clusterID, integratedServiceName, spec)
 }
 
-func (d CadenceFeatureOperationDispatcher) dispatchOperation(ctx context.Context, op string, clusterID uint, featureName string, spec integratedservices.FeatureSpec) error {
-	const workflowName = workflow.ClusterFeatureJobWorkflowName
-	workflowID := getWorkflowID(workflowName, clusterID, featureName)
-	const signalName = workflow.ClusterFeatureJobSignalName
-	signalArg := workflow.ClusterFeatureJobSignalInput{
-		Operation:     op,
-		FeatureSpec:   spec,
-		RetryInterval: 1 * time.Minute,
+func (d CadenceIntegratedServiceOperationDispatcher) dispatchOperation(ctx context.Context, op string, clusterID uint, integratedServiceName string, spec integratedservices.IntegratedServiceSpec) error {
+	const workflowName = workflow.IntegratedServiceJobWorkflowName
+	workflowID := getWorkflowID(workflowName, clusterID, integratedServiceName)
+	const signalName = workflow.IntegratedServiceJobSignalName
+	signalArg := workflow.IntegratedServiceJobSignalInput{
+		Operation:              op,
+		IntegratedServiceSpecs: spec,
+		RetryInterval:          1 * time.Minute,
 	}
 	options := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
 		ExecutionStartToCloseTimeout: 3 * time.Hour,
 		WorkflowIDReusePolicy:        client.WorkflowIDReusePolicyAllowDuplicate,
 	}
-	workflowInput := workflow.ClusterFeatureJobWorkflowInput{
-		ClusterID:   clusterID,
-		FeatureName: featureName,
+	workflowInput := workflow.IntegratedServiceJobWorkflowInput{
+		ClusterID:             clusterID,
+		IntegratedServiceName: integratedServiceName,
 	}
 	_, err := d.cadenceClient.SignalWithStartWorkflow(ctx, workflowID, signalName, signalArg, options, workflowName, workflowInput)
 	if err != nil {
@@ -79,6 +79,6 @@ func (d CadenceFeatureOperationDispatcher) dispatchOperation(ctx context.Context
 	return nil
 }
 
-func getWorkflowID(workflowName string, clusterID uint, featureName string) string {
-	return fmt.Sprintf("%s-%d-%s", workflowName, clusterID, featureName)
+func getWorkflowID(workflowName string, clusterID uint, integratedServiceName string) string {
+	return fmt.Sprintf("%s-%d-%s", workflowName, clusterID, integratedServiceName)
 }

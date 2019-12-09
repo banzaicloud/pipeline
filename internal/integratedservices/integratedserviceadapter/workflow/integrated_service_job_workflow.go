@@ -24,63 +24,63 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-// ClusterFeatureJobWorkflowName is the name the ClusterFeatureJobWorkflow is registered under
-const ClusterFeatureJobWorkflowName = "cluster-feature-job"
+// IntegratedServiceJobWorkflowName is the name the IntegratedServiceJobWorkflow is registered under
+const IntegratedServiceJobWorkflowName = "integrated-service-job"
 
-// ClusterFeatureJobSignalName is the name of signal with which jobs can be sent to the workflow
-const ClusterFeatureJobSignalName = "job"
+// IntegratedServiceJobSignalName is the name of signal with which jobs can be sent to the workflow
+const IntegratedServiceJobSignalName = "job"
 
 const (
-	// OperationApply identifies the cluster feature apply operation
+	// OperationApply identifies the integrated service apply operation
 	OperationApply = "apply"
-	// OperationDeactivate identifies the cluster feature deactivation operation
+	// OperationDeactivate identifies the integrated service deactivation operation
 	OperationDeactivate = "deactivate"
 )
 
-// ClusterFeatureJobWorkflowInput defines the fixed inputs of the ClusterFeatureJobWorkflow
-type ClusterFeatureJobWorkflowInput struct {
-	ClusterID   uint
-	FeatureName string
+// IntegratedServiceJobWorkflowInput defines the fixed inputs of the IntegratedServiceJobWorkflow
+type IntegratedServiceJobWorkflowInput struct {
+	ClusterID             uint
+	IntegratedServiceName string
 }
 
-// ClusterFeatureJobSignalInput defines the dynamic inputs of the ClusterFeatureJobWorkflow
-type ClusterFeatureJobSignalInput struct {
-	Operation     string
-	FeatureSpec   integratedservices.FeatureSpec
-	RetryInterval time.Duration
+// IntegratedServiceJobSignalInput defines the dynamic inputs of the IntegratedServiceJobWorkflow
+type IntegratedServiceJobSignalInput struct {
+	Operation              string
+	IntegratedServiceSpecs integratedservices.IntegratedServiceSpec
+	RetryInterval          time.Duration
 }
 
-// ClusterFeatureJobWorkflow executes cluster feature jobs
-func ClusterFeatureJobWorkflow(ctx workflow.Context, input ClusterFeatureJobWorkflowInput) error {
+// IntegratedServiceJobWorkflow executes integrated service jobs
+func IntegratedServiceJobWorkflow(ctx workflow.Context, input IntegratedServiceJobWorkflowInput) error {
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		ScheduleToStartTimeout: 15 * time.Minute,
 		StartToCloseTimeout:    3 * time.Hour,
 		WaitForCancellation:    true,
 	})
 
-	jobsChannel := workflow.GetSignalChannel(ctx, ClusterFeatureJobSignalName)
+	jobsChannel := workflow.GetSignalChannel(ctx, IntegratedServiceJobSignalName)
 
-	var signalInput ClusterFeatureJobSignalInput
+	var signalInput IntegratedServiceJobSignalInput
 	jobsChannel.Receive(ctx, &signalInput) // wait until the first job arrives
 
-	if err := setClusterFeatureStatus(ctx, input, integratedservices.FeatureStatusPending); err != nil {
+	if err := setIntegratedServiceStatus(ctx, input, integratedservices.IntegratedServiceStatusPending); err != nil {
 		return err
 	}
 
 	if err := executeJobs(ctx, input, &signalInput, jobsChannel); err != nil {
-		if err := setClusterFeatureStatus(ctx, input, integratedservices.FeatureStatusError); err != nil {
-			workflow.GetLogger(ctx).Error("failed to set cluster feature status", zap.Error(err))
+		if err := setIntegratedServiceStatus(ctx, input, integratedservices.IntegratedServiceStatusError); err != nil {
+			workflow.GetLogger(ctx).Error("failed to set integrated service status", zap.Error(err))
 		}
 		return err
 	}
 
 	switch op := signalInput.Operation; op {
 	case OperationApply:
-		if err := setClusterFeatureStatus(ctx, input, integratedservices.FeatureStatusActive); err != nil {
+		if err := setIntegratedServiceStatus(ctx, input, integratedservices.IntegratedServiceStatusActive); err != nil {
 			return err
 		}
 	case OperationDeactivate:
-		if err := deleteClusterFeature(ctx, input); err != nil {
+		if err := deleteIntegratedService(ctx, input); err != nil {
 			return err
 		}
 	default:
@@ -90,28 +90,28 @@ func ClusterFeatureJobWorkflow(ctx workflow.Context, input ClusterFeatureJobWork
 	return nil
 }
 
-func getActivity(workflowInput ClusterFeatureJobWorkflowInput, signalInput ClusterFeatureJobSignalInput) (string, interface{}, error) {
+func getActivity(workflowInput IntegratedServiceJobWorkflowInput, signalInput IntegratedServiceJobSignalInput) (string, interface{}, error) {
 	switch op := signalInput.Operation; op {
 	case OperationApply:
-		return ClusterFeatureApplyActivityName, ClusterFeatureApplyActivityInput{
-			ClusterID:     workflowInput.ClusterID,
-			FeatureName:   workflowInput.FeatureName,
-			FeatureSpec:   signalInput.FeatureSpec,
-			RetryInterval: signalInput.RetryInterval,
+		return IntegratedServiceApplyActivityName, IntegratedServiceApplyActivityInput{
+			ClusterID:             workflowInput.ClusterID,
+			IntegratedServiceName: workflowInput.IntegratedServiceName,
+			IntegratedServiceSpec: signalInput.IntegratedServiceSpecs,
+			RetryInterval:         signalInput.RetryInterval,
 		}, nil
 	case OperationDeactivate:
-		return ClusterFeatureDeactivateActivityName, ClusterFeatureDeactivateActivityInput{
-			ClusterID:     workflowInput.ClusterID,
-			FeatureName:   workflowInput.FeatureName,
-			FeatureSpec:   signalInput.FeatureSpec,
-			RetryInterval: signalInput.RetryInterval,
+		return IntegratedServiceDeactivateActivityName, IntegratedServiceDeactivateActivityInput{
+			ClusterID:             workflowInput.ClusterID,
+			IntegratedServiceName: workflowInput.IntegratedServiceName,
+			IntegratedServiceSpec: signalInput.IntegratedServiceSpecs,
+			RetryInterval:         signalInput.RetryInterval,
 		}, nil
 	default:
 		return "", nil, errors.NewWithDetails("unsupported operation", "operation", op)
 	}
 }
 
-func executeJobs(ctx workflow.Context, workflowInput ClusterFeatureJobWorkflowInput, signalInputPtr *ClusterFeatureJobSignalInput, jobsChannel workflow.Channel) error {
+func executeJobs(ctx workflow.Context, workflowInput IntegratedServiceJobWorkflowInput, signalInputPtr *IntegratedServiceJobSignalInput, jobsChannel workflow.Channel) error {
 	for {
 		activityName, activityInput, err := getActivity(workflowInput, *signalInputPtr)
 		if err != nil {
@@ -150,19 +150,19 @@ func getLatestValue(ch workflow.Channel, valuePtr interface{}) bool {
 	return received
 }
 
-func setClusterFeatureStatus(ctx workflow.Context, input ClusterFeatureJobWorkflowInput, status string) error {
-	activityInput := ClusterFeatureSetStatusActivityInput{
-		ClusterID:   input.ClusterID,
-		FeatureName: input.FeatureName,
-		Status:      status,
+func setIntegratedServiceStatus(ctx workflow.Context, input IntegratedServiceJobWorkflowInput, status string) error {
+	activityInput := IntegratedServiceSetStatusActivityInput{
+		ClusterID:             input.ClusterID,
+		IntegratedServiceName: input.IntegratedServiceName,
+		Status:                status,
 	}
-	return workflow.ExecuteActivity(ctx, ClusterFeatureSetStatusActivityName, activityInput).Get(ctx, nil)
+	return workflow.ExecuteActivity(ctx, IntegratedServiceSetStatusActivityName, activityInput).Get(ctx, nil)
 }
 
-func deleteClusterFeature(ctx workflow.Context, input ClusterFeatureJobWorkflowInput) error {
-	activityInput := ClusterFeatureDeleteActivityInput{
-		ClusterID:   input.ClusterID,
-		FeatureName: input.FeatureName,
+func deleteIntegratedService(ctx workflow.Context, input IntegratedServiceJobWorkflowInput) error {
+	activityInput := IntegratedServiceDeleteActivityInput{
+		ClusterID:             input.ClusterID,
+		IntegratedServiceName: input.IntegratedServiceName,
 	}
-	return workflow.ExecuteActivity(ctx, ClusterFeatureDeleteActivityName, activityInput).Get(ctx, nil)
+	return workflow.ExecuteActivity(ctx, IntegratedServiceDeleteActivityName, activityInput).Get(ctx, nil)
 }

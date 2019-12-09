@@ -23,28 +23,28 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-// TestMakeFeatureManager makes sure the constructor always creates an instance that implements the right interface
+// TestMakeIntegratedServiceManager makes sure the constructor always creates an instance that implements the right interface
 // and has the right name
-func TestMakeFeatureManager(t *testing.T) {
-	var securityScanFeatureManager interface{}
-	securityScanFeatureManager = MakeFeatureManager(nil)
+func TestMakeIntegratedServiceManager(t *testing.T) {
+	var securityScanIntegratedServiceManager interface{}
+	securityScanIntegratedServiceManager = MakeIntegratedServiceManager(nil)
 
-	fm, ok := securityScanFeatureManager.(integratedservices.FeatureManager)
+	fm, ok := securityScanIntegratedServiceManager.(integratedservices.IntegratedServiceManager)
 
-	assert.Truef(t, ok, "the instance must implement the 'clusterfeature.FeatureManager' interface")
-	assert.Equal(t, FeatureName, fm.Name(), "the feature manager instance name is invalid")
+	assert.Truef(t, ok, "the instance must implement the 'integratedservices.IntegratedServiceManager' interface")
+	assert.Equal(t, IntegratedServiceName, fm.Name(), "the integrated service manager instance name is invalid")
 }
 
 // todo add test more cases for validating the spec
-func TestFeatureManager_ValidateSpec(t *testing.T) {
+func TestIntegratedServiceManager_ValidateSpec(t *testing.T) {
 	tests := []struct {
 		name    string
-		spec    integratedservices.FeatureSpec
+		spec    integratedservices.IntegratedServiceSpec
 		checker func(err error) bool
 	}{
 		{
 			name: "initial test case",
-			spec: integratedservices.FeatureSpec{
+			spec: integratedservices.IntegratedServiceSpec{
 				"customAnchore": obj{
 					"enabled":  true,
 					"url":      "anchore.example.com", //mandatory
@@ -79,10 +79,10 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	securityScanFeatureManager := MakeFeatureManager(nil)
+	integratedServiceManager := MakeIntegratedServiceManager(nil)
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := securityScanFeatureManager.ValidateSpec(ctx, test.spec)
+			err := integratedServiceManager.ValidateSpec(ctx, test.spec)
 			if err != nil {
 				t.Errorf("test failed with errors: %v", err)
 			}

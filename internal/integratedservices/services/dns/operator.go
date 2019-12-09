@@ -34,8 +34,8 @@ import (
 
 const ReleaseName = "dns"
 
-// FeatureOperator implements the DNS feature operator
-type FeatureOperator struct {
+// IntegratedServiceOperator implements the DNS integrated service operator
+type IntegratedServiceOperator struct {
 	clusterGetter    integratedserviceadapter.ClusterGetter
 	clusterService   integratedservices.ClusterService
 	helmService      services.HelmService
@@ -46,14 +46,14 @@ type FeatureOperator struct {
 }
 
 // OrgDomainService interface for abstracting DNS provider related operations
-// intended to be used in conjunction with the autoDNS feature in pipeline
+// intended to be used in conjunction with the autoDNS integrated service in pipeline
 type OrgDomainService interface {
 	// EnsureClusterDomain checks for the org related hosted zone, triggers the creation of it if required
 	EnsureOrgDomain(ctx context.Context, clusterID uint) error
 }
 
-// MakeFeatureOperator returns a DNS feature operator
-func MakeFeatureOperator(
+// MakeIntegratedServiceOperator returns a DNS integrated service operator
+func MakeIntegratedServiceOperator(
 	clusterGetter integratedserviceadapter.ClusterGetter,
 	clusterService integratedservices.ClusterService,
 	helmService services.HelmService,
@@ -61,8 +61,8 @@ func MakeFeatureOperator(
 	orgDomainService OrgDomainService,
 	secretStore services.SecretStore,
 	config Config,
-) FeatureOperator {
-	return FeatureOperator{
+) IntegratedServiceOperator {
+	return IntegratedServiceOperator{
 		clusterGetter:    clusterGetter,
 		clusterService:   clusterService,
 		helmService:      helmService,
@@ -81,13 +81,13 @@ const (
 	dnsBanzai  = "banzaicloud-dns"
 )
 
-// Name returns the name of the DNS feature
-func (op FeatureOperator) Name() string {
-	return FeatureName
+// Name returns the name of the DNS integrated service
+func (op IntegratedServiceOperator) Name() string {
+	return IntegratedServiceName
 }
 
-// Apply applies the provided specification to the cluster feature
-func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integratedservices.FeatureSpec) error {
+// Apply applies the provided specification to the integrated service
+func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
 		return err
@@ -97,9 +97,9 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integr
 		return err
 	}
 
-	boundSpec, err := bindFeatureSpec(spec)
+	boundSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
-		return errors.WrapIf(err, "failed to bind feature spec")
+		return errors.WrapIf(err, "failed to bind integrated service spec")
 	}
 
 	if err := boundSpec.Validate(); err != nil {
@@ -132,8 +132,8 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integr
 	return nil
 }
 
-// Deactivate deactivates the cluster feature
-func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, _ integratedservices.FeatureSpec) error {
+// Deactivate deactivates the integrated service
+func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID uint, _ integratedservices.IntegratedServiceSpec) error {
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
 		return err
@@ -150,7 +150,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, _ inte
 	return nil
 }
 
-func (op FeatureOperator) getChartValues(ctx context.Context, clusterID uint, spec dnsFeatureSpec) ([]byte, error) {
+func (op IntegratedServiceOperator) getChartValues(ctx context.Context, clusterID uint, spec dnsIntegratedServiceSpec) ([]byte, error) {
 	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get cluster")
@@ -289,7 +289,7 @@ func installSecret(
 	return k8sSecName, nil
 }
 
-func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
+func (op IntegratedServiceOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
 	if _, ok := auth.GetCurrentOrganizationID(ctx); !ok {
 		cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 		if err != nil {

@@ -82,22 +82,22 @@ func (p ClusterAnchoreConfigProvider) GetConfiguration(ctx context.Context, clus
 
 // CustomAnchoreConfigProvider returns custom Anchore configuration for a cluster.
 type CustomAnchoreConfigProvider struct {
-	featureRepository integratedservices.FeatureRepository
-	secretStore       services.SecretStore
+	integratedServicesRepository integratedservices.IntegratedServiceRepository
+	secretStore                  services.SecretStore
 
 	logger services.Logger
 }
 
 // NewCustomAnchoreConfigProvider returns a new ConfigProvider.
 func NewCustomAnchoreConfigProvider(
-	featureRepository integratedservices.FeatureRepository,
+	integratedServiceRepository integratedservices.IntegratedServiceRepository,
 	secretStore services.SecretStore,
 
 	logger services.Logger,
 ) CustomAnchoreConfigProvider {
 	return CustomAnchoreConfigProvider{
-		featureRepository: featureRepository,
-		secretStore:       secretStore,
+		integratedServicesRepository: integratedServiceRepository,
+		secretStore:                  secretStore,
 
 		logger: logger,
 	}
@@ -107,12 +107,12 @@ func NewCustomAnchoreConfigProvider(
 func (p CustomAnchoreConfigProvider) GetConfiguration(ctx context.Context, clusterID uint) (anchore.Config, error) {
 	logger := p.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID})
 
-	feature, err := p.featureRepository.GetFeature(ctx, clusterID, FeatureName)
+	integratedService, err := p.integratedServicesRepository.GetIntegratedService(ctx, clusterID, IntegratedServiceName)
 	if err != nil {
 		return anchore.Config{}, err
 	}
 
-	spec, err := bindFeatureSpec(feature.Spec)
+	spec, err := bindIntegratedServiceSpec(integratedService.Spec)
 	if err != nil {
 		return anchore.Config{}, err
 	}

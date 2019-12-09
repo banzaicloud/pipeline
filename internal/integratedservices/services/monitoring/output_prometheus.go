@@ -20,7 +20,7 @@ type outputPrometheus struct {
 
 func newPrometheusOutputHelper(
 	kubeConfig []byte,
-	spec featureSpec,
+	spec integratedServiceSpec,
 ) outputPrometheus {
 	return outputPrometheus{
 		baseOutput: baseOutput{

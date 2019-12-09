@@ -26,17 +26,17 @@ import (
 	"github.com/banzaicloud/pipeline/src/auth"
 )
 
-func TestFeatureManager_Name(t *testing.T) {
-	mng := NewFeatureManager(nil, nil, Config{})
+func TestIntegratedServiceManager_Name(t *testing.T) {
+	mng := NewIntegratedServicesManager(nil, nil, Config{})
 
 	assert.Equal(t, "dns", mng.Name())
 }
 
-func TestFeatureManager_GetOutput(t *testing.T) {
+func TestIntegratedServiceManager_GetOutput(t *testing.T) {
 	clusterID := uint(42)
 	version := "1.2.3"
 
-	mng := NewFeatureManager(nil, nil, Config{
+	mng := NewIntegratedServicesManager(nil, nil, Config{
 		Charts: ChartsConfig{
 			ExternalDNS: ExternalDNSChartConfig{
 				ChartConfigBase: ChartConfigBase{
@@ -49,17 +49,17 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 	output, err := mng.GetOutput(context.Background(), clusterID, nil)
 
 	assert.NoError(t, err)
-	assert.Equal(t, integratedservices.FeatureOutput{
+	assert.Equal(t, integratedservices.IntegratedServiceOutput{
 		"externalDns": map[string]interface{}{
 			"version": version,
 		},
 	}, output)
 }
 
-func TestFeatureManager_ValidateSpec_ValidSpec(t *testing.T) {
-	mng := NewFeatureManager(nil, nil, Config{})
+func TestIntegratedServiceManager_ValidateSpec_ValidSpec(t *testing.T) {
+	mng := NewIntegratedServicesManager(nil, nil, Config{})
 
-	spec := integratedservices.FeatureSpec{
+	spec := integratedservices.IntegratedServiceSpec{
 		"clusterDomain": "cluster.org.my.domain",
 		"externalDns": obj{
 			"domainFilters": arr{
@@ -80,22 +80,22 @@ func TestFeatureManager_ValidateSpec_ValidSpec(t *testing.T) {
 	err := mng.ValidateSpec(context.Background(), spec)
 	require.NoError(t, err)
 }
-func TestFeatureManager_ValidateSpec_InvalidSpec(t *testing.T) {
-	mng := NewFeatureManager(nil, nil, Config{})
+func TestIntegratedServiceManager_ValidateSpec_InvalidSpec(t *testing.T) {
+	mng := NewIntegratedServicesManager(nil, nil, Config{})
 
-	err := mng.ValidateSpec(context.Background(), integratedservices.FeatureSpec{})
+	err := mng.ValidateSpec(context.Background(), integratedservices.IntegratedServiceSpec{})
 	require.Error(t, err)
 
-	var e integratedservices.InvalidFeatureSpecError
+	var e integratedservices.InvalidIntegratedServiceSpecError
 	assert.True(t, errors.As(err, &e))
 }
 
-func TestFeatureManager_PrepareSpec(t *testing.T) {
+func TestIntegratedServiceManager_PrepareSpec(t *testing.T) {
 	orgID := uint(42)
 	clusterID := uint(13)
 	clusterUID := "ca951029-208d-4cb1-87fe-6e7369d32949"
 
-	mng := NewFeatureManager(
+	mng := NewIntegratedServicesManager(
 		dummyClusterOrgIDGetter{
 			Mapping: map[uint]uint{
 				clusterID: orgID,
@@ -110,11 +110,11 @@ func TestFeatureManager_PrepareSpec(t *testing.T) {
 	)
 
 	cases := map[string]struct {
-		SpecIn  integratedservices.FeatureSpec
-		SpecOut integratedservices.FeatureSpec
+		SpecIn  integratedservices.IntegratedServiceSpec
+		SpecOut integratedservices.IntegratedServiceSpec
 	}{
 		"provider with secret, without txtOwnerID": {
-			SpecIn: integratedservices.FeatureSpec{
+			SpecIn: integratedservices.IntegratedServiceSpec{
 				"externalDns": obj{
 					"provider": obj{
 						"secretId":         "0123456789abcdef",
@@ -122,7 +122,7 @@ func TestFeatureManager_PrepareSpec(t *testing.T) {
 					},
 				},
 			},
-			SpecOut: integratedservices.FeatureSpec{
+			SpecOut: integratedservices.IntegratedServiceSpec{
 				"externalDns": obj{
 					"provider": obj{
 						"secretId":         "brn:42:secret:0123456789abcdef",
@@ -133,7 +133,7 @@ func TestFeatureManager_PrepareSpec(t *testing.T) {
 			},
 		},
 		"provider without secret, with txtOwnerID": {
-			SpecIn: integratedservices.FeatureSpec{
+			SpecIn: integratedservices.IntegratedServiceSpec{
 				"externalDns": obj{
 					"provider": obj{
 						"some-other-field": "some-value",
@@ -141,7 +141,7 @@ func TestFeatureManager_PrepareSpec(t *testing.T) {
 					"txtOwnerId": "my-owner-id",
 				},
 			},
-			SpecOut: integratedservices.FeatureSpec{
+			SpecOut: integratedservices.IntegratedServiceSpec{
 				"externalDns": obj{
 					"provider": obj{
 						"some-other-field": "some-value",

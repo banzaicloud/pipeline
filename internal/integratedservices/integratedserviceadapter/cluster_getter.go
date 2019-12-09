@@ -42,14 +42,14 @@ type CommonClusterGetter interface {
 	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
 }
 
-// MakeClusterGetter adapts a "CommonCluster" cluster getter to a clusterfeature cluster getter
+// MakeClusterGetter adapts a "CommonCluster" cluster getter to an integrated service cluster getter
 func MakeClusterGetter(clusterGetter CommonClusterGetter) ClusterGetterAdapter {
 	return ClusterGetterAdapter{
 		clusterGetter: clusterGetter,
 	}
 }
 
-// ClusterGetterAdapter adapts a "CommonCluster" cluster getter to a clusterfeature cluster getter
+// ClusterGetterAdapter adapts a "CommonCluster" cluster getter to an integrated service cluster getter
 type ClusterGetterAdapter struct {
 	clusterGetter CommonClusterGetter
 }

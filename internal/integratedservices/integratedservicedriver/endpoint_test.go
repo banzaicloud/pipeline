@@ -31,7 +31,7 @@ func TestMakeEndpoints_List(t *testing.T) {
 	ctx := context.Background()
 	clusterID := uint(1)
 
-	clusterFeatureList := []integratedservices.Feature{
+	integratedServiceList := []integratedservices.IntegratedService{
 		{
 			Name: "example",
 			Spec: map[string]interface{}{
@@ -44,18 +44,18 @@ func TestMakeEndpoints_List(t *testing.T) {
 		},
 	}
 
-	service.On("List", ctx, clusterID).Return(clusterFeatureList, nil)
+	service.On("List", ctx, clusterID).Return(integratedServiceList, nil)
 
 	e := MakeEndpoints(service).List
 
-	req := ListClusterFeaturesRequest{
+	req := ListIntegratedServicesRequest{
 		ClusterID: clusterID,
 	}
 
 	result, err := e(ctx, req)
 
 	require.NoError(t, err)
-	assert.Equal(t, map[string]pipeline.ClusterFeatureDetails{
+	assert.Equal(t, map[string]pipeline.IntegratedServiceDetails{
 		"example": {
 			Spec: map[string]interface{}{
 				"hello": "world",
@@ -75,9 +75,9 @@ func TestMakeEndpoints_Details(t *testing.T) {
 
 	ctx := context.Background()
 	clusterID := uint(1)
-	featureName := "example"
+	integratedServiceName := "example"
 
-	clusterFeatureDetails := integratedservices.Feature{
+	integratedServiceDetails := integratedservices.IntegratedService{
 		Name: "example",
 		Spec: map[string]interface{}{
 			"hello": "world",
@@ -88,19 +88,19 @@ func TestMakeEndpoints_Details(t *testing.T) {
 		Status: "ACTIVE",
 	}
 
-	service.On("Details", ctx, clusterID, featureName).Return(clusterFeatureDetails, nil)
+	service.On("Details", ctx, clusterID, integratedServiceName).Return(integratedServiceDetails, nil)
 
 	e := MakeEndpoints(service).Details
 
-	req := ClusterFeatureDetailsRequest{
-		ClusterID:   clusterID,
-		FeatureName: featureName,
+	req := IntegratedServiceDetailsRequest{
+		ClusterID:             clusterID,
+		IntegratedServiceName: integratedServiceName,
 	}
 
 	result, err := e(ctx, req)
 
 	require.NoError(t, err)
-	assert.Equal(t, pipeline.ClusterFeatureDetails{
+	assert.Equal(t, pipeline.IntegratedServiceDetails{
 		Spec: map[string]interface{}{
 			"hello": "world",
 		},
@@ -118,19 +118,19 @@ func TestMakeEndpoints_Activate(t *testing.T) {
 
 	ctx := context.Background()
 	clusterID := uint(1)
-	featureName := "example"
+	integratedServiceName := "example"
 	spec := map[string]interface{}{
 		"hello": "world",
 	}
 
-	service.On("Activate", ctx, clusterID, featureName, spec).Return(nil)
+	service.On("Activate", ctx, clusterID, integratedServiceName, spec).Return(nil)
 
 	e := MakeEndpoints(service).Activate
 
-	req := ActivateClusterFeatureRequest{
-		ClusterID:   clusterID,
-		FeatureName: featureName,
-		Spec:        spec,
+	req := ActivateIntegratedServiceRequest{
+		ClusterID:             clusterID,
+		IntegratedServiceName: integratedServiceName,
+		Spec:                  spec,
 	}
 
 	result, err := e(ctx, req)
@@ -146,15 +146,15 @@ func TestMakeEndpoints_Deactivate(t *testing.T) {
 
 	ctx := context.Background()
 	clusterID := uint(1)
-	featureName := "example"
+	integratedServiceName := "example"
 
-	mockService.On("Deactivate", ctx, clusterID, featureName).Return(nil)
+	mockService.On("Deactivate", ctx, clusterID, integratedServiceName).Return(nil)
 
 	e := MakeEndpoints(mockService).Deactivate
 
-	req := DeactivateClusterFeatureRequest{
-		ClusterID:   clusterID,
-		FeatureName: featureName,
+	req := DeactivateIntegratedServiceRequest{
+		ClusterID:             clusterID,
+		IntegratedServiceName: integratedServiceName,
 	}
 
 	result, err := e(ctx, req)
@@ -170,19 +170,19 @@ func TestMakeEndpoints_Update(t *testing.T) {
 
 	ctx := context.Background()
 	clusterID := uint(1)
-	featureName := "example"
+	integratedServiceName := "example"
 	spec := map[string]interface{}{
 		"hello": "world",
 	}
 
-	service.On("Update", ctx, clusterID, featureName, spec).Return(nil)
+	service.On("Update", ctx, clusterID, integratedServiceName, spec).Return(nil)
 
 	e := MakeEndpoints(service).Update
 
-	req := UpdateClusterFeatureRequest{
-		ClusterID:   clusterID,
-		FeatureName: featureName,
-		Spec:        spec,
+	req := UpdateIntegratedServiceRequest{
+		ClusterID:             clusterID,
+		IntegratedServiceName: integratedServiceName,
+		Spec:                  spec,
 	}
 
 	result, err := e(ctx, req)

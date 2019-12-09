@@ -28,7 +28,7 @@ import (
 )
 
 type secretManager struct {
-	operator FeatureOperator
+	operator IntegratedServiceOperator
 	cluster  integratedserviceadapter.Cluster
 	tags     []string
 	infoer   secretComponentInfoer
@@ -48,7 +48,7 @@ func (m secretManager) generateHTPasswordSecret(ctx context.Context) error {
 		clusterNameSecretTag,
 		clusterUIDSecretTag,
 		releaseSecretTag,
-		featureSecretTag,
+		integratedServiceSecretTag,
 	}
 
 	secretTags = append(secretTags, m.tags...)
@@ -82,7 +82,7 @@ func (m secretManager) getComponentSecret(
 ) (string, error) {
 	var secretName string
 	if ingress.SecretID == "" {
-		// get secret by name, this necessary in case of feature update
+		// get secret by name, this necessary in case of integrated service update
 		secretName = m.infoer.generatedSecretName()
 		existingSecretID, err := m.operator.secretStore.GetIDByName(ctx, secretName)
 		if existingSecretID != "" {

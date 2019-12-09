@@ -85,7 +85,7 @@ func generateOutputDefinition(
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      m.getName(),
 			Namespace: namespace,
-			Labels:    map[string]string{resourceLabelKey: featureName},
+			Labels:    map[string]string{resourceLabelKey: integratedServiceName},
 		},
 		Spec: m.getOutputSpec(spec.Bucket, *bucketOptions),
 	}, nil

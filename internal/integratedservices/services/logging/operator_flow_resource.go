@@ -22,13 +22,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (op FeatureOperator) createClusterFlowResource(ctx context.Context, managers []outputDefinitionManager, clusterID uint) error {
+func (op IntegratedServiceOperator) createClusterFlowResource(ctx context.Context, managers []outputDefinitionManager, clusterID uint) error {
 	// delete old ClusterFlow resource
 	if err := op.kubernetesService.DeleteObject(ctx, clusterID, &v1beta1.ClusterFlow{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      flowResourceName,
 			Namespace: op.config.Namespace,
-			Labels:    map[string]string{resourceLabelKey: featureName},
+			Labels:    map[string]string{resourceLabelKey: integratedServiceName},
 		},
 	}); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to delete flow resource")
@@ -39,7 +39,7 @@ func (op FeatureOperator) createClusterFlowResource(ctx context.Context, manager
 	return op.kubernetesService.EnsureObject(ctx, clusterID, flowResource)
 }
 
-func (op FeatureOperator) generateFlowResource(definitions []outputDefinitionManager) *v1beta1.ClusterFlow {
+func (op IntegratedServiceOperator) generateFlowResource(definitions []outputDefinitionManager) *v1beta1.ClusterFlow {
 	var outputRefs []string
 	for _, d := range definitions {
 		outputRefs = append(outputRefs, d.getName())
@@ -49,7 +49,7 @@ func (op FeatureOperator) generateFlowResource(definitions []outputDefinitionMan
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      flowResourceName,
 			Namespace: op.config.Namespace,
-			Labels:    map[string]string{resourceLabelKey: featureName},
+			Labels:    map[string]string{resourceLabelKey: integratedServiceName},
 		},
 		Spec: v1beta1.FlowSpec{
 			Selectors:  map[string]string{},

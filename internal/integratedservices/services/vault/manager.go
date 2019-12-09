@@ -26,9 +26,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 )
 
-// FeatureManager implements the Vault feature manager
-type FeatureManager struct {
-	integratedservices.PassthroughFeatureSpecPreparer
+// IntegratedServiceManager implements the Vault integrated service manager
+type IntegratedServicesManager struct {
+	integratedservices.PassthroughIntegratedServiceSpecPreparer
 
 	clusterGetter integratedserviceadapter.ClusterGetter
 	secretStore   services.SecretStore
@@ -36,14 +36,14 @@ type FeatureManager struct {
 	logger        common.Logger
 }
 
-// NewVaultFeatureManager builds a new feature manager component
-func MakeFeatureManager(
+// MakeIntegratedServiceManager builds a new integrated service manager component
+func MakeIntegratedServiceManager(
 	clusterGetter integratedserviceadapter.ClusterGetter,
 	secretStore services.SecretStore,
 	config Config,
 	logger common.Logger,
-) FeatureManager {
-	return FeatureManager{
+) IntegratedServicesManager {
+	return IntegratedServicesManager{
 		clusterGetter: clusterGetter,
 		secretStore:   secretStore,
 		config:        config,
@@ -51,18 +51,18 @@ func MakeFeatureManager(
 	}
 }
 
-// Name returns the feature's name
-func (m FeatureManager) Name() string {
-	return featureName
+// Name returns the integrated service' name
+func (m IntegratedServicesManager) Name() string {
+	return integratedServiceName
 }
 
-// GetOutput returns the Vault feature's output
-func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec integratedservices.FeatureSpec) (integratedservices.FeatureOutput, error) {
-	boundSpec, err := bindFeatureSpec(spec)
+// GetOutput returns the Vault integrated service' output
+func (m IntegratedServicesManager) GetOutput(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) (integratedservices.IntegratedServiceOutput, error) {
+	boundSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
-		return nil, integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     err.Error(),
+		return nil, integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 
@@ -126,24 +126,24 @@ func getVaultOutput(m vaultManager, orgID, clusterID uint) (map[string]interface
 	return out, nil
 }
 
-// ValidateSpec validates a Vault feature specification
-func (m FeatureManager) ValidateSpec(ctx context.Context, spec integratedservices.FeatureSpec) error {
-	vaultSpec, err := bindFeatureSpec(spec)
+// ValidateSpec validates a Vault integrated service specification
+func (m IntegratedServicesManager) ValidateSpec(ctx context.Context, spec integratedservices.IntegratedServiceSpec) error {
+	vaultSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
 		return err
 	}
 
 	if !m.config.Managed.Enabled && !vaultSpec.CustomVault.Enabled {
-		return integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     "Pipeline's managed Vault service is not available, configure a custom Vault instance",
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               "Pipeline's managed Vault service is not available, configure a custom Vault instance",
 		}
 	}
 
 	if err := vaultSpec.Validate(); err != nil {
-		return integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     err.Error(),
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 

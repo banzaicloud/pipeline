@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	featureName = "logging"
+	integratedServiceName = "logging"
 
 	providerAmazonS3   = "s3"
 	providerGoogleGCS  = "gcs"
@@ -32,7 +32,7 @@ const (
 	lokiReleaseName            = "loki"
 	lokiServiceName            = "loki"
 	releaseSecretTag           = "release:logging"
-	featureSecretTag           = "feature:logging"
+	integratedServiceSecretTag = "feature:logging"
 	lokiSecretTag              = "app:loki"
 	generatedSecretUsername    = "admin"
 	fluentSharedSecretName     = "logging-operator-fluent-shared-secret"

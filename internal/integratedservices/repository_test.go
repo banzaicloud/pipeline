@@ -22,96 +22,96 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMakeFeatureNotFoundError(t *testing.T) {
-	assert.True(t, IsFeatureNotFoundError(featureNotFoundError{
-		clusterID:   42,
-		featureName: "feature",
+func TestMakeIntegratedServiceNotFoundError(t *testing.T) {
+	assert.True(t, IsIntegratedServiceNotFoundError(integratedServiceNotFoundError{
+		clusterID:             42,
+		integratedServiceName: "integratedService",
 	}))
 }
 
-func TestInmemoryFeatureRepository_GetFeatures(t *testing.T) {
-	repository := NewInMemoryFeatureRepository(nil)
+func TestInmemoryIntegratedServiceRepository_GetIntegratedServices(t *testing.T) {
+	repository := NewInMemoryIntegratedServiceRepository(nil)
 
 	clusterID := uint(1)
-	feature := Feature{
-		Name: "myFeature",
+	integratedService := IntegratedService{
+		Name: "myIntegratedService",
 		Spec: map[string]interface{}{
 			"key": "value",
 		},
-		Status: FeatureStatusActive,
+		Status: IntegratedServiceStatusActive,
 	}
 
-	repository.features[clusterID] = map[string]Feature{
-		feature.Name: feature,
+	repository.integratedServices[clusterID] = map[string]IntegratedService{
+		integratedService.Name: integratedService,
 	}
 
-	features, err := repository.GetFeatures(context.Background(), clusterID)
+	integratedServices, err := repository.GetIntegratedServices(context.Background(), clusterID)
 	require.NoError(t, err)
 
-	assert.Equal(t, []Feature{feature}, features)
+	assert.Equal(t, []IntegratedService{integratedService}, integratedServices)
 }
 
-func TestInmemoryFeatureRepository_GetFeature(t *testing.T) {
-	repository := NewInMemoryFeatureRepository(nil)
+func TestInmemoryIntegratedServiceRepository_GetIntegratedService(t *testing.T) {
+	repository := NewInMemoryIntegratedServiceRepository(nil)
 
 	clusterID := uint(1)
-	feature := Feature{
-		Name: "myFeature",
+	integratedService := IntegratedService{
+		Name: "myIntegratedService",
 		Spec: map[string]interface{}{
 			"key": "value",
 		},
-		Status: FeatureStatusActive,
+		Status: IntegratedServiceStatusActive,
 	}
 
-	repository.features[clusterID] = map[string]Feature{
-		feature.Name: feature,
+	repository.integratedServices[clusterID] = map[string]IntegratedService{
+		integratedService.Name: integratedService,
 	}
 
-	f, err := repository.GetFeature(context.Background(), clusterID, feature.Name)
+	f, err := repository.GetIntegratedService(context.Background(), clusterID, integratedService.Name)
 	require.NoError(t, err)
 
-	assert.Equal(t, feature, f)
+	assert.Equal(t, integratedService, f)
 }
 
-func TestInmemoryFeatureRepository_SaveFeature(t *testing.T) {
-	repository := NewInMemoryFeatureRepository(nil)
+func TestInmemoryIntegratedServiceRepository_SaveIntegratedService(t *testing.T) {
+	repository := NewInMemoryIntegratedServiceRepository(nil)
 
 	clusterID := uint(1)
-	featureName := "myFeature"
+	integratedServiceName := "myIntegratedService"
 	spec := map[string]interface{}{
 		"key": "value",
 	}
 
-	expectedFeature := Feature{
-		Name:   featureName,
+	expectedIntegratedService := IntegratedService{
+		Name:   integratedServiceName,
 		Spec:   spec,
-		Status: FeatureStatusPending,
+		Status: IntegratedServiceStatusPending,
 	}
 
-	err := repository.SaveFeature(context.Background(), clusterID, featureName, spec, FeatureStatusPending)
+	err := repository.SaveIntegratedService(context.Background(), clusterID, integratedServiceName, spec, IntegratedServiceStatusPending)
 	require.NoError(t, err)
 
-	assert.Equal(t, expectedFeature, repository.features[clusterID][featureName])
+	assert.Equal(t, expectedIntegratedService, repository.integratedServices[clusterID][integratedServiceName])
 }
 
-func TestInmemoryFeatureRepository_DeleteFeature(t *testing.T) {
-	repository := NewInMemoryFeatureRepository(nil)
+func TestInmemoryIntegratedServiceRepository_DeleteIntegratedService(t *testing.T) {
+	repository := NewInMemoryIntegratedServiceRepository(nil)
 
 	clusterID := uint(1)
-	feature := Feature{
-		Name: "myFeature",
+	integratedService := IntegratedService{
+		Name: "myIntegratedService",
 		Spec: map[string]interface{}{
 			"key": "value",
 		},
-		Status: FeatureStatusActive,
+		Status: IntegratedServiceStatusActive,
 	}
 
-	repository.features[clusterID] = map[string]Feature{
-		feature.Name: feature,
+	repository.integratedServices[clusterID] = map[string]IntegratedService{
+		integratedService.Name: integratedService,
 	}
 
-	err := repository.DeleteFeature(context.Background(), clusterID, feature.Name)
+	err := repository.DeleteIntegratedService(context.Background(), clusterID, integratedService.Name)
 	require.NoError(t, err)
 
-	assert.NotContains(t, repository.features[clusterID], feature.Name)
+	assert.NotContains(t, repository.integratedServices[clusterID], integratedService.Name)
 }

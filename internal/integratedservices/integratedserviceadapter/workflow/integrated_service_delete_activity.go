@@ -20,23 +20,23 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-const ClusterFeatureDeleteActivityName = "cluster-feature-delete"
+const IntegratedServiceDeleteActivityName = "integrated-service-delete"
 
-type ClusterFeatureDeleteActivityInput struct {
-	ClusterID   uint
-	FeatureName string
+type IntegratedServiceDeleteActivityInput struct {
+	ClusterID             uint
+	IntegratedServiceName string
 }
 
-type ClusterFeatureDeleteActivity struct {
-	features integratedservices.FeatureRepository
+type IntegratedServiceDeleteActivity struct {
+	integratedServices integratedservices.IntegratedServiceRepository
 }
 
-func MakeClusterFeatureDeleteActivity(features integratedservices.FeatureRepository) ClusterFeatureDeleteActivity {
-	return ClusterFeatureDeleteActivity{
-		features: features,
+func MakeIntegratedServiceDeleteActivity(integratedServices integratedservices.IntegratedServiceRepository) IntegratedServiceDeleteActivity {
+	return IntegratedServiceDeleteActivity{
+		integratedServices: integratedServices,
 	}
 }
 
-func (a ClusterFeatureDeleteActivity) Execute(ctx context.Context, input ClusterFeatureDeleteActivityInput) error {
-	return a.features.DeleteFeature(ctx, input.ClusterID, input.FeatureName)
+func (a IntegratedServiceDeleteActivity) Execute(ctx context.Context, input IntegratedServiceDeleteActivityInput) error {
+	return a.integratedServices.DeleteIntegratedService(ctx, input.ClusterID, input.IntegratedServiceName)
 }

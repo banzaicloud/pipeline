@@ -23,7 +23,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 )
 
-func (op FeatureOperator) createClusterOutputDefinitions(ctx context.Context, spec featureSpec, cl integratedserviceadapter.Cluster) ([]outputDefinitionManager, error) {
+func (op IntegratedServiceOperator) createClusterOutputDefinitions(ctx context.Context, spec integratedServiceSpec, cl integratedserviceadapter.Cluster) ([]outputDefinitionManager, error) {
 	var creators []outputManagerCreator
 	if spec.ClusterOutput.Enabled {
 
@@ -56,9 +56,9 @@ func (op FeatureOperator) createClusterOutputDefinitions(ctx context.Context, sp
 		})
 	}
 
-	// remove old output definitions with feature labels
+	// remove old output definitions with integrated service labels
 	var outputList v1beta1.ClusterOutputList
-	if err := op.kubernetesService.List(ctx, cl.GetID(), map[string]string{resourceLabelKey: featureName}, &outputList); err != nil {
+	if err := op.kubernetesService.List(ctx, cl.GetID(), map[string]string{resourceLabelKey: integratedServiceName}, &outputList); err != nil {
 		return nil, errors.WrapIf(err, "failed to list output definitions")
 	}
 
@@ -88,7 +88,7 @@ func (op FeatureOperator) createClusterOutputDefinitions(ctx context.Context, sp
 	return managers, nil
 }
 
-func (op FeatureOperator) getLokiServiceURL(cl integratedserviceadapter.Cluster) (string, error) {
+func (op IntegratedServiceOperator) getLokiServiceURL(cl integratedserviceadapter.Cluster) (string, error) {
 	k8sConfig, err := cl.GetK8sConfig()
 	if err != nil {
 		return "", errors.WrapIfWithDetails(err, "failed to get kubeconfig", "cluster", cl.GetID())
@@ -97,7 +97,7 @@ func (op FeatureOperator) getLokiServiceURL(cl integratedserviceadapter.Cluster)
 	return op.endpointsService.GetServiceURL(k8sConfig, lokiServiceName, op.config.Namespace)
 }
 
-func (op FeatureOperator) installSecretForOutput(ctx context.Context, spec clusterOutputSpec, sourceSecretName string, cl integratedserviceadapter.Cluster) error {
+func (op IntegratedServiceOperator) installSecretForOutput(ctx context.Context, spec clusterOutputSpec, sourceSecretName string, cl integratedserviceadapter.Cluster) error {
 	secretManager, err := newOutputSecretInstallManager(spec.Provider.Name, sourceSecretName, op.config.Namespace)
 	if err != nil {
 		return errors.WrapIf(err, "failed to create output secret installer")

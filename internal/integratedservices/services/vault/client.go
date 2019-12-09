@@ -32,7 +32,7 @@ type vaultManager struct {
 }
 
 func newVaultManager(
-	spec vaultFeatureSpec,
+	spec vaultIntegratedServiceSpec,
 	orgID, clusterID uint,
 	token string,
 ) (*vaultManager, error) {

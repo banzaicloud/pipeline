@@ -20,78 +20,78 @@ import (
 	"sync"
 )
 
-// NewInMemoryFeatureRepository returns a new in-memory feature repository.
-func NewInMemoryFeatureRepository(features map[uint][]Feature) *InMemoryFeatureRepository {
-	lookup := make(map[uint]map[string]Feature, len(features))
-	for clID, fs := range features {
-		m := make(map[string]Feature, len(fs))
+// NewInMemoryIntegratedServiceRepository returns a new in-memory integrated service repository.
+func NewInMemoryIntegratedServiceRepository(integratedServices map[uint][]IntegratedService) *InMemoryIntegratedServiceRepository {
+	lookup := make(map[uint]map[string]IntegratedService, len(integratedServices))
+	for clID, fs := range integratedServices {
+		m := make(map[string]IntegratedService, len(fs))
 		lookup[clID] = m
 		for _, f := range fs {
 			m[f.Name] = f
 		}
 	}
-	return &InMemoryFeatureRepository{
-		features: lookup,
+	return &InMemoryIntegratedServiceRepository{
+		integratedServices: lookup,
 	}
 }
 
-// InMemoryFeatureRepository keeps features in the memory.
+// InMemoryIntegratedServiceRepository keeps integrated services in the memory.
 // Use it in tests or for development/demo purposes.
-type InMemoryFeatureRepository struct {
-	features map[uint]map[string]Feature
+type InMemoryIntegratedServiceRepository struct {
+	integratedServices map[uint]map[string]IntegratedService
 
 	mu sync.RWMutex
 }
 
-// GetFeatures returns a list of all the features stored in the repository for the specified cluster
-func (r *InMemoryFeatureRepository) GetFeatures(ctx context.Context, clusterID uint) ([]Feature, error) {
+// GetIntegratedServices returns a list of all the integrated services stored in the repository for the specified cluster
+func (r *InMemoryIntegratedServiceRepository) GetIntegratedServices(ctx context.Context, clusterID uint) ([]IntegratedService, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	features, ok := r.features[clusterID]
+	integratedServices, ok := r.integratedServices[clusterID]
 	if !ok {
 		return nil, nil
 	}
 
-	fs := make([]Feature, 0, len(features))
+	fs := make([]IntegratedService, 0, len(integratedServices))
 
-	for _, feature := range features {
-		fs = append(fs, feature)
+	for _, integratedService := range integratedServices {
+		fs = append(fs, integratedService)
 	}
 
 	return fs, nil
 }
 
-// GetFeature returns the feature identified by the parameters if it is in the repository, otherwise an error is returned
-func (r *InMemoryFeatureRepository) GetFeature(ctx context.Context, clusterID uint, featureName string) (Feature, error) {
+// GetIntegratedService returns the integrated service identified by the parameters if it is in the repository, otherwise an error is returned
+func (r *InMemoryIntegratedServiceRepository) GetIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string) (IntegratedService, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	if clusterFeatures, ok := r.features[clusterID]; ok {
-		if feature, ok := clusterFeatures[featureName]; ok {
-			return feature, nil
+	if integratedServices, ok := r.integratedServices[clusterID]; ok {
+		if integratedService, ok := integratedServices[integratedServiceName]; ok {
+			return integratedService, nil
 		}
 	}
 
-	return Feature{}, featureNotFoundError{
-		clusterID:   clusterID,
-		featureName: featureName,
+	return IntegratedService{}, integratedServiceNotFoundError{
+		clusterID:             clusterID,
+		integratedServiceName: integratedServiceName,
 	}
 }
 
-// SaveFeature persists the feature to the repository
-func (r *InMemoryFeatureRepository) SaveFeature(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec, status FeatureStatus) error {
+// SaveIntegratedService persists the integrated service to the repository
+func (r *InMemoryIntegratedServiceRepository) SaveIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string, spec IntegratedServiceSpec, status string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	clusterFeatures, ok := r.features[clusterID]
+	integratedServices, ok := r.integratedServices[clusterID]
 	if !ok {
-		clusterFeatures = make(map[string]Feature)
-		r.features[clusterID] = clusterFeatures
+		integratedServices = make(map[string]IntegratedService)
+		r.integratedServices[clusterID] = integratedServices
 	}
 
-	clusterFeatures[featureName] = Feature{
-		Name:   featureName,
+	integratedServices[integratedServiceName] = IntegratedService{
+		Name:   integratedServiceName,
 		Spec:   spec,
 		Status: status,
 	}
@@ -99,119 +99,119 @@ func (r *InMemoryFeatureRepository) SaveFeature(ctx context.Context, clusterID u
 	return nil
 }
 
-// UpdateFeatureStatus sets the feature's status
-func (r *InMemoryFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterID uint, featureName string, status string) error {
+// UpdateIntegratedServiceStatus sets the integrated service's status
+func (r *InMemoryIntegratedServiceRepository) UpdateIntegratedServiceStatus(ctx context.Context, clusterID uint, integratedServiceName string, status string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if clusterFeatures, ok := r.features[clusterID]; ok {
-		if feature, ok := clusterFeatures[featureName]; ok {
-			feature.Status = status
-			clusterFeatures[featureName] = feature
+	if integratedServices, ok := r.integratedServices[clusterID]; ok {
+		if integratedService, ok := integratedServices[integratedServiceName]; ok {
+			integratedService.Status = status
+			integratedServices[integratedServiceName] = integratedService
 			return nil
 		}
 	}
 
-	return featureNotFoundError{
-		clusterID:   clusterID,
-		featureName: featureName,
+	return integratedServiceNotFoundError{
+		clusterID:             clusterID,
+		integratedServiceName: integratedServiceName,
 	}
 }
 
-// UpdateFeatureSpec sets the feature's specification
-func (r *InMemoryFeatureRepository) UpdateFeatureSpec(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error {
+// UpdateIntegratedServiceSpec sets the integrated service's specification
+func (r *InMemoryIntegratedServiceRepository) UpdateIntegratedServiceSpec(ctx context.Context, clusterID uint, integratedServiceName string, spec IntegratedServiceSpec) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if clusterFeatures, ok := r.features[clusterID]; ok {
-		if feature, ok := clusterFeatures[featureName]; ok {
-			feature.Spec = spec
-			clusterFeatures[featureName] = feature
+	if integratedServices, ok := r.integratedServices[clusterID]; ok {
+		if integratedService, ok := integratedServices[integratedServiceName]; ok {
+			integratedService.Spec = spec
+			integratedServices[integratedServiceName] = integratedService
 			return nil
 		}
 	}
 
-	return featureNotFoundError{
-		clusterID:   clusterID,
-		featureName: featureName,
+	return integratedServiceNotFoundError{
+		clusterID:             clusterID,
+		integratedServiceName: integratedServiceName,
 	}
 }
 
-// DeleteFeature removes the feature from the repository.
+// DeleteIntegratedService removes the integrated service from the repository.
 // It is an idempotent operation.
-func (r *InMemoryFeatureRepository) DeleteFeature(ctx context.Context, clusterID uint, featureName string) error {
+func (r *InMemoryIntegratedServiceRepository) DeleteIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if clusterFeatures, ok := r.features[clusterID]; ok {
-		delete(clusterFeatures, featureName)
+	if integratedServices, ok := r.integratedServices[clusterID]; ok {
+		delete(integratedServices, integratedServiceName)
 	}
 
 	return nil
 }
 
 // Clear removes every entry from the repository
-func (r *InMemoryFeatureRepository) Clear() {
+func (r *InMemoryIntegratedServiceRepository) Clear() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.features = make(map[uint]map[string]Feature)
+	r.integratedServices = make(map[uint]map[string]IntegratedService)
 }
 
 // Snapshot returns a snapshot of the repository's state that can be restored later
-func (r *InMemoryFeatureRepository) Snapshot() map[uint]map[string]Feature {
+func (r *InMemoryIntegratedServiceRepository) Snapshot() map[uint]map[string]IntegratedService {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	return copyClusterLookup(r.features)
+	return copyClusterLookup(r.integratedServices)
 }
 
 // Restore sets the repository's state from a snapshot
-func (r *InMemoryFeatureRepository) Restore(snapshot map[uint]map[string]Feature) {
+func (r *InMemoryIntegratedServiceRepository) Restore(snapshot map[uint]map[string]IntegratedService) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.features = copyClusterLookup(snapshot)
+	r.integratedServices = copyClusterLookup(snapshot)
 }
 
-func copyFeatureLookup(lookup map[string]Feature) map[string]Feature {
+func copyIntegratedServiceLookup(lookup map[string]IntegratedService) map[string]IntegratedService {
 	if lookup == nil {
 		return nil
 	}
-	result := make(map[string]Feature, len(lookup))
+	result := make(map[string]IntegratedService, len(lookup))
 	for n, f := range lookup {
 		result[n] = f
 	}
 	return result
 }
 
-func copyClusterLookup(lookup map[uint]map[string]Feature) map[uint]map[string]Feature {
+func copyClusterLookup(lookup map[uint]map[string]IntegratedService) map[uint]map[string]IntegratedService {
 	if lookup == nil {
 		return nil
 	}
-	result := make(map[uint]map[string]Feature, len(lookup))
+	result := make(map[uint]map[string]IntegratedService, len(lookup))
 	for c, fs := range lookup {
-		result[c] = copyFeatureLookup(fs)
+		result[c] = copyIntegratedServiceLookup(fs)
 	}
 	return result
 }
 
-type featureNotFoundError struct {
-	clusterID   uint
-	featureName string
+type integratedServiceNotFoundError struct {
+	clusterID             uint
+	integratedServiceName string
 }
 
-func (e featureNotFoundError) Error() string {
-	return fmt.Sprintf("Feature %q not found for cluster %d.", e.featureName, e.clusterID)
+func (e integratedServiceNotFoundError) Error() string {
+	return fmt.Sprintf("IntegratedService %q not found for cluster %d.", e.integratedServiceName, e.clusterID)
 }
 
-func (e featureNotFoundError) Details() []interface{} {
+func (e integratedServiceNotFoundError) Details() []interface{} {
 	return []interface{}{
 		"clusterId", e.clusterID,
-		"feature", e.featureName,
+		"integrated service", e.integratedServiceName,
 	}
 }
 
-func (featureNotFoundError) FeatureNotFound() bool {
+func (integratedServiceNotFoundError) IntegratedServiceNotFound() bool {
 	return true
 }

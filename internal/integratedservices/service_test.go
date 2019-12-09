@@ -25,151 +25,151 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
-func TestFeatureService_List(t *testing.T) {
+func TestIntegratedServiceService_List(t *testing.T) {
 	clusterID := uint(1)
-	repository := NewInMemoryFeatureRepository(map[uint][]Feature{
+	repository := NewInMemoryIntegratedServiceRepository(map[uint][]IntegratedService{
 		clusterID: {
 			{
-				Name: "myActiveFeature",
-				Spec: FeatureSpec{
+				Name: "myActiveIntegratedService",
+				Spec: IntegratedServiceSpec{
 					"someSpecKey": "someSpecValue",
 				},
-				Status: FeatureStatusActive,
+				Status: IntegratedServiceStatusActive,
 			},
 			{
-				Name: "myPendingFeature",
-				Spec: FeatureSpec{
+				Name: "myPendingIntegratedService",
+				Spec: IntegratedServiceSpec{
 					"mySpecKey": "mySpecValue",
 				},
-				Status: FeatureStatusPending,
+				Status: IntegratedServiceStatusPending,
 			},
 			{
-				Name: "myErrorFeature",
-				Spec: FeatureSpec{
+				Name: "myErrorIntegratedService",
+				Spec: IntegratedServiceSpec{
 					"mySpecKey": "mySpecValue",
 				},
-				Status: FeatureStatusError,
+				Status: IntegratedServiceStatusError,
 			},
 		},
 	})
-	registry := MakeFeatureManagerRegistry([]FeatureManager{
-		&dummyFeatureManager{
-			TheName: "myInactiveFeature",
-			Output: FeatureOutput{
+	registry := MakeIntegratedServiceManagerRegistry([]IntegratedServiceManager{
+		&dummyIntegratedServiceManager{
+			TheName: "myInactiveIntegratedService",
+			Output: IntegratedServiceOutput{
 				"someOutputKey": "someOutputValue",
 			},
 		},
-		&dummyFeatureManager{
-			TheName: "myPendingFeature",
-			Output: FeatureOutput{
+		&dummyIntegratedServiceManager{
+			TheName: "myPendingIntegratedService",
+			Output: IntegratedServiceOutput{
 				"someOutputKey": "someOutputValue",
 			},
 		},
-		&dummyFeatureManager{
-			TheName: "myActiveFeature",
-			Output: FeatureOutput{
+		&dummyIntegratedServiceManager{
+			TheName: "myActiveIntegratedService",
+			Output: IntegratedServiceOutput{
 				"someOutputKey": "someOutputValue",
 			},
 		},
-		&dummyFeatureManager{
-			TheName: "myErrorFeature",
-			Output: FeatureOutput{
+		&dummyIntegratedServiceManager{
+			TheName: "myErrorIntegratedService",
+			Output: IntegratedServiceOutput{
 				"someOutputKey": "someOutputValue",
 			},
 		},
 	})
-	expected := []Feature{
+	expected := []IntegratedService{
 		{
-			Name:   "myActiveFeature",
-			Status: FeatureStatusActive,
+			Name:   "myActiveIntegratedService",
+			Status: IntegratedServiceStatusActive,
 		},
 		{
-			Name:   "myPendingFeature",
-			Status: FeatureStatusPending,
+			Name:   "myPendingIntegratedService",
+			Status: IntegratedServiceStatusPending,
 		},
 		{
-			Name:   "myErrorFeature",
-			Status: FeatureStatusError,
+			Name:   "myErrorIntegratedService",
+			Status: IntegratedServiceStatusError,
 		},
 	}
 	logger := commonadapter.NewNoopLogger()
-	service := MakeFeatureService(nil, registry, repository, logger)
+	service := MakeIntegratedServiceService(nil, registry, repository, logger)
 
-	features, err := service.List(context.Background(), clusterID)
+	integratedServices, err := service.List(context.Background(), clusterID)
 	require.NoError(t, err)
-	assert.ElementsMatch(t, expected, features)
+	assert.ElementsMatch(t, expected, integratedServices)
 }
 
-func TestFeatureService_Details(t *testing.T) {
+func TestIntegratedServiceService_Details(t *testing.T) {
 	clusterID := uint(1)
-	registry := MakeFeatureManagerRegistry([]FeatureManager{
-		&dummyFeatureManager{
-			TheName: "myActiveFeature",
-			Output: FeatureOutput{
+	registry := MakeIntegratedServiceManagerRegistry([]IntegratedServiceManager{
+		&dummyIntegratedServiceManager{
+			TheName: "myActiveIntegratedService",
+			Output: IntegratedServiceOutput{
 				"myOutputKey": "myOutputValue",
 			},
 		},
-		&dummyFeatureManager{
-			TheName: "myInactiveFeature",
-			Output: FeatureOutput{
+		&dummyIntegratedServiceManager{
+			TheName: "myInactiveIntegratedService",
+			Output: IntegratedServiceOutput{
 				"myOutputKey": "myOutputValue",
 			},
 		},
 	})
-	repository := NewInMemoryFeatureRepository(map[uint][]Feature{
+	repository := NewInMemoryIntegratedServiceRepository(map[uint][]IntegratedService{
 		clusterID: {
 			{
-				Name: "myActiveFeature",
-				Spec: FeatureSpec{
+				Name: "myActiveIntegratedService",
+				Spec: IntegratedServiceSpec{
 					"mySpecKey": "mySpecValue",
 				},
-				Status: FeatureStatusActive,
+				Status: IntegratedServiceStatusActive,
 			},
 		},
 	})
 	logger := commonadapter.NewNoopLogger()
-	service := MakeFeatureService(nil, registry, repository, logger)
+	service := MakeIntegratedServiceService(nil, registry, repository, logger)
 
 	cases := map[string]struct {
-		FeatureName string
-		Result      Feature
-		Error       error
+		IntegratedServiceName string
+		Result                IntegratedService
+		Error                 error
 	}{
-		"active feature": {
-			FeatureName: "myActiveFeature",
-			Result: Feature{
-				Name: "myActiveFeature",
-				Spec: FeatureSpec{
+		"active integrated service": {
+			IntegratedServiceName: "myActiveIntegratedService",
+			Result: IntegratedService{
+				Name: "myActiveIntegratedService",
+				Spec: IntegratedServiceSpec{
 					"mySpecKey": "mySpecValue",
 				},
-				Output: FeatureOutput{
+				Output: IntegratedServiceOutput{
 					"myOutputKey": "myOutputValue",
 				},
-				Status: FeatureStatusActive,
+				Status: IntegratedServiceStatusActive,
 			},
 		},
-		"inactive feature": {
-			FeatureName: "myInactiveFeature",
-			Result: Feature{
-				Name:   "myInactiveFeature",
-				Status: FeatureStatusInactive,
+		"inactive integrated service": {
+			IntegratedServiceName: "myInactiveIntegratedService",
+			Result: IntegratedService{
+				Name:   "myInactiveIntegratedService",
+				Status: IntegratedServiceStatusInactive,
 			},
 		},
-		"unknown feature": {
-			FeatureName: "myUnknownFeature",
-			Error: UnknownFeatureError{
-				FeatureName: "myUnknownFeature",
+		"unknown integrated service": {
+			IntegratedServiceName: "myUnknownIntegratedService",
+			Error: UnknownIntegratedServiceError{
+				IntegratedServiceName: "myUnknownIntegratedService",
 			},
 		},
 	}
 	for name, tc := range cases {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			feature, err := service.Details(context.Background(), clusterID, tc.FeatureName)
+			integratedService, err := service.Details(context.Background(), clusterID, tc.IntegratedServiceName)
 			switch tc.Error {
 			case nil:
 				require.NoError(t, err)
-				assert.Equal(t, tc.Result, feature)
+				assert.Equal(t, tc.Result, integratedService)
 			default:
 				assert.Error(t, err)
 				assert.Equal(t, tc.Error, errors.Cause(err))
@@ -178,50 +178,50 @@ func TestFeatureService_Details(t *testing.T) {
 	}
 }
 
-func TestFeatureService_Activate(t *testing.T) {
+func TestIntegratedServiceService_Activate(t *testing.T) {
 	clusterID := uint(1)
-	featureName := "myFeature"
-	dispatcher := &dummyFeatureOperationDispatcher{}
-	featureManager := &dummyFeatureManager{
-		TheName: featureName,
-		Output: FeatureOutput{
+	integratedServiceName := "myIntegratedService"
+	dispatcher := &dummyIntegratedServiceOperationDispatcher{}
+	integratedServiceManager := &dummyIntegratedServiceManager{
+		TheName: integratedServiceName,
+		Output: IntegratedServiceOutput{
 			"someKey": "someValue",
 		},
 	}
-	registry := MakeFeatureManagerRegistry([]FeatureManager{featureManager})
-	repository := NewInMemoryFeatureRepository(nil)
+	registry := MakeIntegratedServiceManagerRegistry([]IntegratedServiceManager{integratedServiceManager})
+	repository := NewInMemoryIntegratedServiceRepository(nil)
 	logger := commonadapter.NewNoopLogger()
-	service := MakeFeatureService(dispatcher, registry, repository, logger)
+	service := MakeIntegratedServiceService(dispatcher, registry, repository, logger)
 
 	cases := map[string]struct {
-		FeatureName     string
-		ValidationError error
-		ApplyError      error
-		Error           interface{}
-		FeatureSaved    bool
+		IntegratedServiceName  string
+		ValidationError        error
+		ApplyError             error
+		Error                  interface{}
+		IntegratedServiceSaved bool
 	}{
 		"success": {
-			FeatureName:  featureName,
-			FeatureSaved: true,
+			IntegratedServiceName:  integratedServiceName,
+			IntegratedServiceSaved: true,
 		},
-		"unknown feature": {
-			FeatureName: "notMyFeature",
-			Error: UnknownFeatureError{
-				FeatureName: "notMyFeature",
+		"unknown integrated service": {
+			IntegratedServiceName: "notMyIntegratedService",
+			Error: UnknownIntegratedServiceError{
+				IntegratedServiceName: "notMyIntegratedService",
 			},
 		},
 		"invalid spec": {
-			FeatureName:     featureName,
-			ValidationError: errors.New("validation error"),
-			Error:           true,
+			IntegratedServiceName: integratedServiceName,
+			ValidationError:       errors.New("validation error"),
+			Error:                 true,
 		},
 		"begin apply fails": {
-			FeatureName: featureName,
-			ApplyError:  errors.New("failed to begin apply"),
-			Error:       true,
+			IntegratedServiceName: integratedServiceName,
+			ApplyError:            errors.New("failed to begin apply"),
+			Error:                 true,
 		},
 	}
-	spec := FeatureSpec{
+	spec := IntegratedServiceSpec{
 		"mySpecKey": "mySpecValue",
 	}
 	for name, tc := range cases {
@@ -229,9 +229,9 @@ func TestFeatureService_Activate(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			repository.Clear()
 			dispatcher.ApplyError = tc.ApplyError
-			featureManager.ValidationError = tc.ValidationError
+			integratedServiceManager.ValidationError = tc.ValidationError
 
-			err := service.Activate(context.Background(), clusterID, tc.FeatureName, spec)
+			err := service.Activate(context.Background(), clusterID, tc.IntegratedServiceName, spec)
 			switch tc.Error {
 			case true:
 				assert.Error(t, err)
@@ -241,64 +241,64 @@ func TestFeatureService_Activate(t *testing.T) {
 				assert.Equal(t, tc.Error, errors.Cause(err))
 			}
 
-			if tc.FeatureSaved {
-				assert.NotEmpty(t, repository.features[clusterID])
+			if tc.IntegratedServiceSaved {
+				assert.NotEmpty(t, repository.integratedServices[clusterID])
 			} else {
-				assert.Empty(t, repository.features[clusterID])
+				assert.Empty(t, repository.integratedServices[clusterID])
 			}
 		})
 	}
 }
 
-func TestFeatureService_Deactivate(t *testing.T) {
+func TestIntegratedServiceService_Deactivate(t *testing.T) {
 	clusterID := uint(1)
-	featureName := "myFeature"
-	dispatcher := &dummyFeatureOperationDispatcher{}
-	registry := MakeFeatureManagerRegistry([]FeatureManager{
-		dummyFeatureManager{
-			TheName: featureName,
-			Output: FeatureOutput{
+	integratedServiceName := "myIntegratedService"
+	dispatcher := &dummyIntegratedServiceOperationDispatcher{}
+	registry := MakeIntegratedServiceManagerRegistry([]IntegratedServiceManager{
+		dummyIntegratedServiceManager{
+			TheName: integratedServiceName,
+			Output: IntegratedServiceOutput{
 				"someKey": "someValue",
 			},
 		},
 	})
-	repository := NewInMemoryFeatureRepository(map[uint][]Feature{
+	repository := NewInMemoryIntegratedServiceRepository(map[uint][]IntegratedService{
 		clusterID: {
 			{
-				Name: featureName,
-				Spec: FeatureSpec{
+				Name: integratedServiceName,
+				Spec: IntegratedServiceSpec{
 					"mySpecKey": "mySpecValue",
 				},
-				Status: FeatureStatusActive,
+				Status: IntegratedServiceStatusActive,
 			},
 		},
 	})
 	snapshot := repository.Snapshot()
 	logger := commonadapter.NewNoopLogger()
-	service := MakeFeatureService(dispatcher, registry, repository, logger)
+	service := MakeIntegratedServiceService(dispatcher, registry, repository, logger)
 
 	cases := map[string]struct {
-		FeatureName     string
-		DeactivateError error
-		Error           interface{}
-		StatusAfter     FeatureStatus
+		IntegratedServiceName string
+		DeactivateError       error
+		Error                 interface{}
+		StatusAfter           IntegratedServiceStatus
 	}{
 		"success": {
-			FeatureName: featureName,
-			StatusAfter: FeatureStatusPending,
+			IntegratedServiceName: integratedServiceName,
+			StatusAfter:           IntegratedServiceStatusPending,
 		},
-		"unknown feature": {
-			FeatureName: "notMyFeature",
-			Error: UnknownFeatureError{
-				FeatureName: "notMyFeature",
+		"unknown integrated service": {
+			IntegratedServiceName: "notMyIntegratedService",
+			Error: UnknownIntegratedServiceError{
+				IntegratedServiceName: "notMyIntegratedService",
 			},
-			StatusAfter: FeatureStatusActive,
+			StatusAfter: IntegratedServiceStatusActive,
 		},
 		"begin deactivate fails": {
-			FeatureName:     featureName,
-			DeactivateError: errors.New("failed to begin deactivate"),
-			Error:           true,
-			StatusAfter:     FeatureStatusActive,
+			IntegratedServiceName: integratedServiceName,
+			DeactivateError:       errors.New("failed to begin deactivate"),
+			Error:                 true,
+			StatusAfter:           IntegratedServiceStatusActive,
 		},
 	}
 	for name, tc := range cases {
@@ -307,7 +307,7 @@ func TestFeatureService_Deactivate(t *testing.T) {
 			repository.Restore(snapshot)
 			dispatcher.DeactivateError = tc.DeactivateError
 
-			err := service.Deactivate(context.Background(), clusterID, tc.FeatureName)
+			err := service.Deactivate(context.Background(), clusterID, tc.IntegratedServiceName)
 			switch tc.Error {
 			case true:
 				assert.Error(t, err)
@@ -317,69 +317,69 @@ func TestFeatureService_Deactivate(t *testing.T) {
 				assert.Equal(t, tc.Error, errors.Cause(err))
 			}
 
-			assert.Equal(t, tc.StatusAfter, repository.features[clusterID][featureName].Status)
+			assert.Equal(t, tc.StatusAfter, repository.integratedServices[clusterID][integratedServiceName].Status)
 		})
 	}
 }
 
-func TestFeatureService_Update(t *testing.T) {
+func TestIntegratedServiceService_Update(t *testing.T) {
 	clusterID := uint(1)
-	featureName := "myFeature"
-	dispatcher := &dummyFeatureOperationDispatcher{}
-	featureManager := &dummyFeatureManager{
-		TheName: featureName,
-		Output: FeatureOutput{
+	integratedServiceName := "myIntegratedService"
+	dispatcher := &dummyIntegratedServiceOperationDispatcher{}
+	integratedServiceManager := &dummyIntegratedServiceManager{
+		TheName: integratedServiceName,
+		Output: IntegratedServiceOutput{
 			"someKey": "someValue",
 		},
 	}
-	registry := MakeFeatureManagerRegistry([]FeatureManager{featureManager})
-	repository := NewInMemoryFeatureRepository(map[uint][]Feature{
+	registry := MakeIntegratedServiceManagerRegistry([]IntegratedServiceManager{integratedServiceManager})
+	repository := NewInMemoryIntegratedServiceRepository(map[uint][]IntegratedService{
 		clusterID: {
 			{
-				Name: featureName,
-				Spec: FeatureSpec{
+				Name: integratedServiceName,
+				Spec: IntegratedServiceSpec{
 					"mySpecKey": "mySpecValue",
 				},
-				Status: FeatureStatusActive,
+				Status: IntegratedServiceStatusActive,
 			},
 		},
 	})
 	snapshot := repository.Snapshot()
 	logger := commonadapter.NewNoopLogger()
-	service := MakeFeatureService(dispatcher, registry, repository, logger)
+	service := MakeIntegratedServiceService(dispatcher, registry, repository, logger)
 
 	cases := map[string]struct {
-		FeatureName     string
-		ValidationError error
-		ApplyError      error
-		Error           interface{}
-		StatusAfter     FeatureStatus
+		IntegratedServiceName string
+		ValidationError       error
+		ApplyError            error
+		Error                 interface{}
+		StatusAfter           IntegratedServiceStatus
 	}{
 		"success": {
-			FeatureName: featureName,
-			StatusAfter: FeatureStatusPending,
+			IntegratedServiceName: integratedServiceName,
+			StatusAfter:           IntegratedServiceStatusPending,
 		},
-		"unknown feature": {
-			FeatureName: "notMyFeature",
-			Error: UnknownFeatureError{
-				FeatureName: "notMyFeature",
+		"unknown integrated service": {
+			IntegratedServiceName: "notMyIntegratedService",
+			Error: UnknownIntegratedServiceError{
+				IntegratedServiceName: "notMyIntegratedService",
 			},
-			StatusAfter: FeatureStatusActive,
+			StatusAfter: IntegratedServiceStatusActive,
 		},
 		"invalid spec": {
-			FeatureName:     featureName,
-			ValidationError: errors.New("validation error"),
-			Error:           true,
-			StatusAfter:     FeatureStatusActive,
+			IntegratedServiceName: integratedServiceName,
+			ValidationError:       errors.New("validation error"),
+			Error:                 true,
+			StatusAfter:           IntegratedServiceStatusActive,
 		},
 		"begin apply fails": {
-			FeatureName: featureName,
-			ApplyError:  errors.New("failed to begin apply"),
-			Error:       true,
-			StatusAfter: FeatureStatusActive,
+			IntegratedServiceName: integratedServiceName,
+			ApplyError:            errors.New("failed to begin apply"),
+			Error:                 true,
+			StatusAfter:           IntegratedServiceStatusActive,
 		},
 	}
-	spec := FeatureSpec{
+	spec := IntegratedServiceSpec{
 		"someSpecKey": "someSpecValue",
 	}
 	for name, tc := range cases {
@@ -387,9 +387,9 @@ func TestFeatureService_Update(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			repository.Restore(snapshot)
 			dispatcher.ApplyError = tc.ApplyError
-			featureManager.ValidationError = tc.ValidationError
+			integratedServiceManager.ValidationError = tc.ValidationError
 
-			err := service.Update(context.Background(), clusterID, tc.FeatureName, spec)
+			err := service.Update(context.Background(), clusterID, tc.IntegratedServiceName, spec)
 			switch tc.Error {
 			case true:
 				assert.Error(t, err)
@@ -399,20 +399,20 @@ func TestFeatureService_Update(t *testing.T) {
 				assert.Equal(t, tc.Error, errors.Cause(err))
 			}
 
-			assert.Equal(t, tc.StatusAfter, repository.features[clusterID][featureName].Status)
+			assert.Equal(t, tc.StatusAfter, repository.integratedServices[clusterID][integratedServiceName].Status)
 		})
 	}
 }
 
-type dummyFeatureOperationDispatcher struct {
+type dummyIntegratedServiceOperationDispatcher struct {
 	ApplyError      error
 	DeactivateError error
 }
 
-func (d dummyFeatureOperationDispatcher) DispatchApply(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error {
+func (d dummyIntegratedServiceOperationDispatcher) DispatchApply(ctx context.Context, clusterID uint, integratedServiceName string, spec IntegratedServiceSpec) error {
 	return d.ApplyError
 }
 
-func (d dummyFeatureOperationDispatcher) DispatchDeactivate(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error {
+func (d dummyIntegratedServiceOperationDispatcher) DispatchDeactivate(ctx context.Context, clusterID uint, integratedServiceName string, spec IntegratedServiceSpec) error {
 	return d.DeactivateError
 }

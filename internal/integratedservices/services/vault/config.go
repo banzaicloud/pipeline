@@ -18,7 +18,7 @@ import (
 	"emperror.dev/errors"
 )
 
-// Config contains configuration for the vault feature.
+// Config contains configuration for the vault integrated service.
 type Config struct {
 	Namespace string
 	Managed   ManagedConfig

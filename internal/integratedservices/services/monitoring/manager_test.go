@@ -28,13 +28,13 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-func TestFeatureManager_Name(t *testing.T) {
-	mng := MakeFeatureManager(nil, nil, nil, nil, Config{}, nil)
+func TestIntegratedServiceManager_Name(t *testing.T) {
+	mng := MakeIntegratedServiceManager(nil, nil, nil, nil, Config{}, nil)
 
 	assert.Equal(t, "monitoring", mng.Name())
 }
 
-func TestFeatureManager_GetOutput(t *testing.T) {
+func TestIntegratedServiceManager_GetOutput(t *testing.T) {
 	orgID := uint(13)
 	clusterID := uint(42)
 	clusterName := "the-cluster"
@@ -108,7 +108,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 	helmService := dummyHelmService{}
 	endpointService := dummyEndpointService{}
 	logger := commonadapter.NewNoopLogger()
-	mng := MakeFeatureManager(clusterGetter, secretStore, endpointService, helmService, config, logger)
+	mng := MakeIntegratedServiceManager(clusterGetter, secretStore, endpointService, helmService, config, logger)
 	ctx := auth.SetCurrentOrganizationID(context.Background(), orgID)
 
 	spec := obj{
@@ -139,7 +139,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 	output, err := mng.GetOutput(ctx, clusterID, spec)
 	assert.NoError(t, err)
 
-	assert.Equal(t, integratedservices.FeatureOutput{
+	assert.Equal(t, integratedservices.IntegratedServiceOutput{
 		"grafana": obj{
 			"serviceUrl": serviceUrl,
 			"url":        grafanaURL,
@@ -163,15 +163,15 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 	}, output)
 }
 
-func TestFeatureManager_ValidateSpec(t *testing.T) {
-	mng := MakeFeatureManager(nil, nil, nil, nil, Config{}, nil)
+func TestIntegratedServiceManager_ValidateSpec(t *testing.T) {
+	mng := MakeIntegratedServiceManager(nil, nil, nil, nil, Config{}, nil)
 
 	cases := map[string]struct {
-		Spec  integratedservices.FeatureSpec
+		Spec  integratedservices.IntegratedServiceSpec
 		Error interface{}
 	}{
 		"empty spec": {
-			Spec:  integratedservices.FeatureSpec{},
+			Spec:  integratedservices.IntegratedServiceSpec{},
 			Error: true,
 		},
 		"valid spec": {

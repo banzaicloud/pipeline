@@ -32,7 +32,7 @@ import (
 )
 
 func TestRegisterHTTPHandlers_List(t *testing.T) {
-	expectedFeatures := map[string]pipeline.ClusterFeatureDetails{
+	expectedIntegratedServices := map[string]pipeline.IntegratedServiceDetails{
 		"example": {
 			Status: "ACTIVE",
 			Spec: map[string]interface{}{
@@ -48,7 +48,7 @@ func TestRegisterHTTPHandlers_List(t *testing.T) {
 	RegisterHTTPHandlers(
 		Endpoints{
 			List: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return expectedFeatures, nil
+				return expectedIntegratedServices, nil
 			},
 		},
 		handler.PathPrefix("/features").Subrouter(),
@@ -68,16 +68,16 @@ func TestRegisterHTTPHandlers_List(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var featureMap map[string]pipeline.ClusterFeatureDetails
+	var integratedServiceMap map[string]pipeline.IntegratedServiceDetails
 
-	err = json.NewDecoder(resp.Body).Decode(&featureMap)
+	err = json.NewDecoder(resp.Body).Decode(&integratedServiceMap)
 	require.NoError(t, err)
 
-	assert.Equal(t, expectedFeatures, featureMap)
+	assert.Equal(t, expectedIntegratedServices, integratedServiceMap)
 }
 
 func TestRegisterHTTPHandlers_Details(t *testing.T) {
-	expectedDetails := pipeline.ClusterFeatureDetails{
+	expectedDetails := pipeline.IntegratedServiceDetails{
 		Spec: map[string]interface{}{
 			"hello": "world",
 		},
@@ -112,12 +112,12 @@ func TestRegisterHTTPHandlers_Details(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var featureDetails pipeline.ClusterFeatureDetails
+	var integratedServiceDetails pipeline.IntegratedServiceDetails
 
-	err = json.NewDecoder(resp.Body).Decode(&featureDetails)
+	err = json.NewDecoder(resp.Body).Decode(&integratedServiceDetails)
 	require.NoError(t, err)
 
-	assert.Equal(t, expectedDetails, featureDetails)
+	assert.Equal(t, expectedDetails, integratedServiceDetails)
 }
 
 func TestRegisterHTTPHandlers_Activate(t *testing.T) {
@@ -140,7 +140,7 @@ func TestRegisterHTTPHandlers_Activate(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	apiReq := pipeline.ActivateClusterFeatureRequest{
+	apiReq := pipeline.ActivateIntegratedServiceRequest{
 		Spec: map[string]interface{}{
 			"hello": "world",
 		},
@@ -206,7 +206,7 @@ func TestRegisterHTTPHandlers_Update(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	apiReq := pipeline.UpdateClusterFeatureRequest{
+	apiReq := pipeline.UpdateIntegratedServiceRequest{
 		Spec: map[string]interface{}{
 			"hello": "world",
 		},

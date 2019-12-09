@@ -28,13 +28,13 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-func TestFeatureOperator_Name(t *testing.T) {
-	op := MakeFeatureOperator(nil, nil, nil, nil, nil, Config{}, nil)
+func TestIntegratedServiceOperator_Name(t *testing.T) {
+	op := MakeIntegratedServicesOperator(nil, nil, nil, nil, nil, Config{}, nil)
 
 	assert.Equal(t, "vault", op.Name())
 }
 
-func TestFeatureOperator_Apply(t *testing.T) {
+func TestIntegratedServiceOperator_Apply(t *testing.T) {
 	clusterID := uint(42)
 	orgID := uint(13)
 
@@ -53,15 +53,15 @@ func TestFeatureOperator_Apply(t *testing.T) {
 
 	logger := commonadapter.NewNoopLogger()
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, secretStore, Config{}, logger)
+	op := MakeIntegratedServicesOperator(clusterGetter, clusterService, helmService, &kubernetesService, secretStore, Config{}, logger)
 
 	cases := map[string]struct {
-		Spec    integratedservices.FeatureSpec
+		Spec    integratedservices.IntegratedServiceSpec
 		Cluster dummyCluster
 		Error   interface{}
 	}{
 		"cluster not ready": {
-			Spec: integratedservices.FeatureSpec{},
+			Spec: integratedservices.IntegratedServiceSpec{},
 			Cluster: dummyCluster{
 				OrgID:  orgID,
 				Status: pkgCluster.Creating,
@@ -72,7 +72,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 			},
 		},
 		"Pipeline's Vault": {
-			Spec: integratedservices.FeatureSpec{
+			Spec: integratedservices.IntegratedServiceSpec{
 				"customVault": obj{
 					"enabled": false,
 				},
@@ -108,7 +108,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 	}
 }
 
-func TestFeatureOperator_Deactivate(t *testing.T) {
+func TestIntegratedServiceOperator_Deactivate(t *testing.T) {
 	clusterID := uint(42)
 
 	clusterGetter := dummyClusterGetter{
@@ -123,7 +123,7 @@ func TestFeatureOperator_Deactivate(t *testing.T) {
 	helmService := dummyHelmService{}
 	kubernetesService := dummyKubernetesService{}
 	logger := commonadapter.NewNoopLogger()
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, nil, Config{}, logger)
+	op := MakeIntegratedServicesOperator(clusterGetter, clusterService, helmService, &kubernetesService, nil, Config{}, logger)
 
 	ctx := context.Background()
 

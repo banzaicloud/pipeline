@@ -28,9 +28,9 @@ import (
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
-// FeatureManager implements the Logging feature manager
-type FeatureManager struct {
-	integratedservices.PassthroughFeatureSpecPreparer
+// IntegratedServiceManager implements the Logging integrated service manager
+type IntegratedServicesManager struct {
+	integratedservices.PassthroughIntegratedServiceSpecPreparer
 
 	clusterGetter    integratedserviceadapter.ClusterGetter
 	secretStore      services.SecretStore
@@ -39,14 +39,14 @@ type FeatureManager struct {
 	logger           common.Logger
 }
 
-func MakeFeatureManager(
+func MakeIntegratedServiceManager(
 	clusterGetter integratedserviceadapter.ClusterGetter,
 	secretStore services.SecretStore,
 	endpointsService endpoints.EndpointService,
 	config Config,
 	logger common.Logger,
-) FeatureManager {
-	return FeatureManager{
+) IntegratedServicesManager {
+	return IntegratedServicesManager{
 		clusterGetter:    clusterGetter,
 		secretStore:      secretStore,
 		endpointsService: endpointsService,
@@ -55,17 +55,17 @@ func MakeFeatureManager(
 	}
 }
 
-// Name returns the feature's name
-func (FeatureManager) Name() string {
-	return featureName
+// Name returns the integrated service' name
+func (IntegratedServicesManager) Name() string {
+	return integratedServiceName
 }
 
-func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec integratedservices.FeatureSpec) (integratedservices.FeatureOutput, error) {
-	boundSpec, err := bindFeatureSpec(spec)
+func (m IntegratedServicesManager) GetOutput(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) (integratedservices.IntegratedServiceOutput, error) {
+	boundSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
-		return nil, integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     err.Error(),
+		return nil, integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 
@@ -84,7 +84,7 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec inte
 		m.logger.Warn(fmt.Sprintf("failed to list endpoints: %s", err.Error()))
 	}
 
-	return integratedservices.FeatureOutput{
+	return integratedservices.IntegratedServiceOutput{
 		"logging": map[string]interface{}{
 			"operatorVersion":  m.config.Charts.Operator.Version,
 			"fluentdVersion":   m.config.Images.Fluentd.Tag,
@@ -94,9 +94,9 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec inte
 	}, nil
 }
 
-func (m FeatureManager) getLokiOutput(
+func (m IntegratedServicesManager) getLokiOutput(
 	ctx context.Context,
-	spec featureSpec,
+	spec integratedServiceSpec,
 	endpoints []*pkgHelm.EndpointItem,
 	kubeConfig []byte,
 	clusterID uint,
@@ -151,7 +151,7 @@ func getLokiServiceURL(
 	return "", nil
 }
 
-func (m FeatureManager) getLokiSecretID(ctx context.Context, spec lokiSpec, clusterID uint) string {
+func (m IntegratedServicesManager) getLokiSecretID(ctx context.Context, spec lokiSpec, clusterID uint) string {
 	if spec.Enabled && spec.Ingress.Enabled {
 		var generatedSecretName = getLokiSecretName(clusterID)
 		if spec.Ingress.SecretID == "" && generatedSecretName != "" {
@@ -167,22 +167,22 @@ func (m FeatureManager) getLokiSecretID(ctx context.Context, spec lokiSpec, clus
 	return ""
 }
 
-func (FeatureManager) ValidateSpec(ctx context.Context, spec integratedservices.FeatureSpec) error {
-	vaultSpec, err := bindFeatureSpec(spec)
+func (IntegratedServicesManager) ValidateSpec(ctx context.Context, spec integratedservices.IntegratedServiceSpec) error {
+	vaultSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
 		return err
 	}
 
 	if err := vaultSpec.Validate(); err != nil {
-		return integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     err.Error(),
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 
 	return nil
 }
 
-func (FeatureManager) PrepareSpec(ctx context.Context, clusterID uint, spec integratedservices.FeatureSpec) (integratedservices.FeatureSpec, error) {
+func (IntegratedServicesManager) PrepareSpec(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) (integratedservices.IntegratedServiceSpec, error) {
 	return spec, nil
 }

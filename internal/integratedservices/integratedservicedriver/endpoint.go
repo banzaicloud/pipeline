@@ -23,14 +23,14 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-type ListClusterFeaturesRequest struct {
+type ListIntegratedServicesRequest struct {
 	ClusterID uint
 }
 
 // MakeListEndpoint returns an endpoint for the matching method of the underlying service.
 func MakeListEndpoint(service integratedservices.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(ListClusterFeaturesRequest)
+		req := request.(ListIntegratedServicesRequest)
 		result, err := service.List(ctx, req.ClusterID)
 		if err != nil {
 			return nil, err
@@ -40,16 +40,16 @@ func MakeListEndpoint(service integratedservices.Service) endpoint.Endpoint {
 	}
 }
 
-type ClusterFeatureDetailsRequest struct {
-	ClusterID   uint
-	FeatureName string
+type IntegratedServiceDetailsRequest struct {
+	ClusterID             uint
+	IntegratedServiceName string
 }
 
 // MakeDetailsEndpoint returns an endpoint for the matching method of the underlying service.
 func MakeDetailsEndpoint(service integratedservices.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(ClusterFeatureDetailsRequest)
-		result, err := service.Details(ctx, req.ClusterID, req.FeatureName)
+		req := request.(IntegratedServiceDetailsRequest)
+		result, err := service.Details(ctx, req.ClusterID, req.IntegratedServiceName)
 		if err != nil {
 			return nil, err
 		}
@@ -58,64 +58,64 @@ func MakeDetailsEndpoint(service integratedservices.Service) endpoint.Endpoint {
 	}
 }
 
-type ActivateClusterFeatureRequest struct {
-	ClusterID   uint
-	FeatureName string
-	Spec        map[string]interface{}
+type ActivateIntegratedServiceRequest struct {
+	ClusterID             uint
+	IntegratedServiceName string
+	Spec                  map[string]interface{}
 }
 
 // MakeActivateEndpoint returns an endpoint for the matching method of the underlying service.
 func MakeActivateEndpoint(service integratedservices.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(ActivateClusterFeatureRequest)
-		err := service.Activate(ctx, req.ClusterID, req.FeatureName, req.Spec)
+		req := request.(ActivateIntegratedServiceRequest)
+		err := service.Activate(ctx, req.ClusterID, req.IntegratedServiceName, req.Spec)
 		return nil, err
 	}
 }
 
-type DeactivateClusterFeatureRequest struct {
-	ClusterID   uint
-	FeatureName string
+type DeactivateIntegratedServiceRequest struct {
+	ClusterID             uint
+	IntegratedServiceName string
 }
 
 // MakeDeactivateEndpoint returns an endpoint for the matching method of the underlying service.
 func MakeDeactivateEndpoint(service integratedservices.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(DeactivateClusterFeatureRequest)
-		err := service.Deactivate(ctx, req.ClusterID, req.FeatureName)
+		req := request.(DeactivateIntegratedServiceRequest)
+		err := service.Deactivate(ctx, req.ClusterID, req.IntegratedServiceName)
 		return nil, err
 	}
 }
 
-type UpdateClusterFeatureRequest struct {
-	ClusterID   uint
-	FeatureName string
-	Spec        map[string]interface{}
+type UpdateIntegratedServiceRequest struct {
+	ClusterID             uint
+	IntegratedServiceName string
+	Spec                  map[string]interface{}
 }
 
 // MakeUpdateEndpoint returns an endpoint for the matching method of the underlying service.
 func MakeUpdateEndpoint(service integratedservices.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(UpdateClusterFeatureRequest)
-		err := service.Update(ctx, req.ClusterID, req.FeatureName, req.Spec)
+		req := request.(UpdateIntegratedServiceRequest)
+		err := service.Update(ctx, req.ClusterID, req.IntegratedServiceName, req.Spec)
 		return nil, err
 	}
 }
 
-func transformDetails(feature integratedservices.Feature) pipeline.ClusterFeatureDetails {
-	return pipeline.ClusterFeatureDetails{
-		Spec:   feature.Spec,
-		Output: feature.Output,
-		Status: feature.Status,
+func transformDetails(integratedService integratedservices.IntegratedService) pipeline.IntegratedServiceDetails {
+	return pipeline.IntegratedServiceDetails{
+		Spec:   integratedService.Spec,
+		Output: integratedService.Output,
+		Status: integratedService.Status,
 	}
 }
 
-func transformList(features []integratedservices.Feature) map[string]pipeline.ClusterFeatureDetails {
-	featureDetails := make(map[string]pipeline.ClusterFeatureDetails, len(features))
+func transformList(integratedServices []integratedservices.IntegratedService) map[string]pipeline.IntegratedServiceDetails {
+	integratedServiceDetails := make(map[string]pipeline.IntegratedServiceDetails, len(integratedServices))
 
-	for _, f := range features {
-		featureDetails[f.Name] = transformDetails(f)
+	for _, f := range integratedServices {
+		integratedServiceDetails[f.Name] = transformDetails(f)
 	}
 
-	return featureDetails
+	return integratedServiceDetails
 }

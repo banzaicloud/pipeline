@@ -18,7 +18,7 @@ import (
 	"emperror.dev/errors"
 )
 
-// Config contains configuration for the logging feature.
+// Config contains configuration for the logging integrated service.
 type Config struct {
 	Namespace string
 	Charts    ChartsConfig

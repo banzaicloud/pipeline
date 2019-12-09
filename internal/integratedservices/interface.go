@@ -20,92 +20,92 @@ import (
 	"emperror.dev/errors"
 )
 
-// Feature represents the state of a cluster feature.
-type Feature struct {
-	Name   string        `json:"name"`
-	Spec   FeatureSpec   `json:"spec"`
-	Output FeatureOutput `json:"output"`
-	Status string        `json:"status"`
+// IntegratedService represents the state of an integrated service.
+type IntegratedService struct {
+	Name   string                  `json:"name"`
+	Spec   IntegratedServiceSpec   `json:"spec"`
+	Output IntegratedServiceOutput `json:"output"`
+	Status string                  `json:"status"`
 }
 
-// FeatureSpec represents a feature's specification (i.e. its input parameters).
-type FeatureSpec = map[string]interface{}
+// IntegratedServiceSpec represents an integrated service's specification (i.e. its input parameters).
+type IntegratedServiceSpec = map[string]interface{}
 
-// FeatureOutput represents a feature's output.
-type FeatureOutput = map[string]interface{}
+// IntegratedServiceOutput represents an integrated service's output.
+type IntegratedServiceOutput = map[string]interface{}
 
-// FeatureStatus represents a feature's status.
-type FeatureStatus = string
+// IntegratedServiceStatus represents an integrated service's status.
+type IntegratedServiceStatus = string
 
-// Feature status constants
+// IntegratedService status constants
 const (
-	FeatureStatusInactive FeatureStatus = "INACTIVE"
-	FeatureStatusPending  FeatureStatus = "PENDING"
-	FeatureStatusActive   FeatureStatus = "ACTIVE"
-	FeatureStatusError    FeatureStatus = "ERROR"
+	IntegratedServiceStatusInactive IntegratedServiceStatus = "INACTIVE"
+	IntegratedServiceStatusPending  IntegratedServiceStatus = "PENDING"
+	IntegratedServiceStatusActive   IntegratedServiceStatus = "ACTIVE"
+	IntegratedServiceStatusError    IntegratedServiceStatus = "ERROR"
 )
 
-// FeatureManagerRegistry contains feature managers.
-type FeatureManagerRegistry interface {
-	// GetFeatureManager retrieves a feature manager by name.
-	GetFeatureManager(featureName string) (FeatureManager, error)
+// IntegratedServiceManagerRegistry contains integrated service managers.
+type IntegratedServiceManagerRegistry interface {
+	// GetIntegratedServiceManager retrieves an integrated service manager by name.
+	GetIntegratedServiceManager(integratedServiceName string) (IntegratedServiceManager, error)
 }
 
-// FeatureOperatorRegistry contains feature operators.
-type FeatureOperatorRegistry interface {
-	// GetFeatureOperator retrieves a feature operator by name.
-	GetFeatureOperator(featureName string) (FeatureOperator, error)
+// IntegratedServiceOperatorRegistry contains integrated service operators.
+type IntegratedServiceOperatorRegistry interface {
+	// GetIntegratedServiceOperator retrieves an integrated service operator by name.
+	GetIntegratedServiceOperator(integratedServiceName string) (IntegratedServiceOperator, error)
 }
 
-// FeatureRepository manages feature state.
-type FeatureRepository interface {
-	// GetFeatures retrieves features for a given cluster.
-	GetFeatures(ctx context.Context, clusterID uint) ([]Feature, error)
+// IntegratedServiceRepository manages integrated service state.
+type IntegratedServiceRepository interface {
+	// GetIntegratedServices retrieves integrated services for a given cluster.
+	GetIntegratedServices(ctx context.Context, clusterID uint) ([]IntegratedService, error)
 
-	// GetFeature retrieves a feature.
-	GetFeature(ctx context.Context, clusterID uint, featureName string) (Feature, error)
+	// GetIntegratedService retrieves an integrated service.
+	GetIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string) (IntegratedService, error)
 
-	// SaveFeature persists a feature.
-	SaveFeature(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec, status string) error
+	// SaveIntegratedService persists an integrated service.
+	SaveIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string, spec IntegratedServiceSpec, status string) error
 
-	// UpdateFeatureStatus updates the status of a feature.
-	UpdateFeatureStatus(ctx context.Context, clusterID uint, featureName string, status string) error
+	// UpdateIntegratedServiceStatus updates the status of an integrated service.
+	UpdateIntegratedServiceStatus(ctx context.Context, clusterID uint, integratedServiceName string, status string) error
 
-	// UpdateFeatureSpec updates the spec of a feature.
-	UpdateFeatureSpec(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error
+	// UpdateIntegratedServiceSpec updates the spec of an integrated service.
+	UpdateIntegratedServiceSpec(ctx context.Context, clusterID uint, integratedServiceName string, spec IntegratedServiceSpec) error
 
-	// DeleteFeature deletes a feature.
-	DeleteFeature(ctx context.Context, clusterID uint, featureName string) error
+	// DeleteIntegratedService deletes an integrated service.
+	DeleteIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string) error
 }
 
-// IsFeatureNotFoundError returns true when the specified error is a "feature not found" error
-func IsFeatureNotFoundError(err error) bool {
+// IsIntegratedServiceNotFoundError returns true when the specified error is a "integrated service not found" error
+func IsIntegratedServiceNotFoundError(err error) bool {
 	var notFoundErr interface {
-		FeatureNotFound() bool
+		IntegratedServiceNotFound() bool
 	}
-	return errors.As(err, &notFoundErr) && notFoundErr.FeatureNotFound()
+	return errors.As(err, &notFoundErr) && notFoundErr.IntegratedServiceNotFound()
 }
 
-// FeatureManager is a collection of feature specific methods that are used synchronously when responding to feature related requests.
-type FeatureManager interface {
-	FeatureOutputProducer
-	FeatureSpecValidator
-	FeatureSpecPreparer
+// IntegratedServiceManager is a collection of integrated service specific methods that are used synchronously when responding to integrated service related requests.
+type IntegratedServiceManager interface {
+	IntegratedServiceOutputProducer
+	IntegratedServiceSpecValidator
+	IntegratedServiceSpecPreparer
 
-	// Name returns the feature's name.
+	// Name returns the integrated service's name.
 	Name() string
 }
 
-// FeatureOutputProducer defines how to produce a cluster feature's output.
-type FeatureOutputProducer interface {
-	// GetOutput returns a cluster feature's output.
-	GetOutput(ctx context.Context, clusterID uint, spec FeatureSpec) (FeatureOutput, error)
+// IntegratedServiceOutputProducer defines how to produce an integrated service's output.
+type IntegratedServiceOutputProducer interface {
+	// GetOutput returns an integrated service's output.
+	GetOutput(ctx context.Context, clusterID uint, spec IntegratedServiceSpec) (IntegratedServiceOutput, error)
 }
 
-// FeatureSpecValidator defines how to validate a feature specification
-type FeatureSpecValidator interface {
-	// ValidateSpec validates a feature specification.
-	ValidateSpec(ctx context.Context, spec FeatureSpec) error
+// IntegratedServiceSpecValidator defines how to validate an integrated service specification
+type IntegratedServiceSpecValidator interface {
+	// ValidateSpec validates an integrated service specification.
+	ValidateSpec(ctx context.Context, spec IntegratedServiceSpec) error
 }
 
 // IsInputValidationError returns true if the error is an input validation error
@@ -116,66 +116,66 @@ func IsInputValidationError(err error) bool {
 	return errors.As(err, &inputValidationError) && inputValidationError.InputValidationError()
 }
 
-// InvalidFeatureSpecError is returned when a feature specification fails the validation.
-type InvalidFeatureSpecError struct {
-	FeatureName string
-	Problem     string
+// InvalidIntegratedServiceSpecError is returned when an integrated service specification fails the validation.
+type InvalidIntegratedServiceSpecError struct {
+	IntegratedServiceName string
+	Problem               string
 }
 
-func (e InvalidFeatureSpecError) Error() string {
-	return "invalid feature spec: " + e.Problem
+func (e InvalidIntegratedServiceSpecError) Error() string {
+	return "invalid integrated service spec: " + e.Problem
 }
 
 // Details returns the error's details
-func (e InvalidFeatureSpecError) Details() []interface{} {
-	return []interface{}{"feature", e.FeatureName}
+func (e InvalidIntegratedServiceSpecError) Details() []interface{} {
+	return []interface{}{"integrated service", e.IntegratedServiceName}
 }
 
 // InputValidationError returns true since InputValidationError is an input validation error
-func (InvalidFeatureSpecError) InputValidationError() bool {
+func (InvalidIntegratedServiceSpecError) InputValidationError() bool {
 	return true
 }
 
-// FeatureSpecPreparer defines how a feature specification is prepared before it's sent to be applied
-type FeatureSpecPreparer interface {
+// IntegratedServiceSpecPreparer defines how an integrated service specification is prepared before it's sent to be applied
+type IntegratedServiceSpecPreparer interface {
 	// PrepareSpec makes certain preparations to the spec before it's sent to be applied.
 	// For example it rewrites the secret ID to it's internal representation, fills in defaults, etc.
-	PrepareSpec(ctx context.Context, clusterID uint, spec FeatureSpec) (FeatureSpec, error)
+	PrepareSpec(ctx context.Context, clusterID uint, spec IntegratedServiceSpec) (IntegratedServiceSpec, error)
 }
 
-// PassthroughFeatureSpecPreparer implements FeatureSpecPreparer by making no modifications to the feature spec
-type PassthroughFeatureSpecPreparer struct{}
+// PassthroughIntegratedServiceSpecPreparer implements IntegratedServiceSpecPreparer by making no modifications to the integrated service spec
+type PassthroughIntegratedServiceSpecPreparer struct{}
 
 // PrepareSpec returns the provided spec without any modifications
-func (PassthroughFeatureSpecPreparer) PrepareSpec(_ context.Context, _ uint, spec FeatureSpec) (FeatureSpec, error) {
+func (PassthroughIntegratedServiceSpecPreparer) PrepareSpec(_ context.Context, _ uint, spec IntegratedServiceSpec) (IntegratedServiceSpec, error) {
 	return spec, nil
 }
 
-// FeatureOperationDispatcher dispatches cluster feature operations asynchronously.
-type FeatureOperationDispatcher interface {
-	// DispatchApply starts applying a desired state for a cluster feature asynchronously.
-	DispatchApply(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error
+// IntegratedServiceOperationDispatcher dispatches cluster integrated service operations asynchronously.
+type IntegratedServiceOperationDispatcher interface {
+	// DispatchApply starts applying a desired state for an integrated service asynchronously.
+	DispatchApply(ctx context.Context, clusterID uint, integratedServiceName string, spec IntegratedServiceSpec) error
 
-	// DispatchDeactivate starts deactivating a cluster feature asynchronously.
-	DispatchDeactivate(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error
+	// DispatchDeactivate starts deactivating an integrated service asynchronously.
+	DispatchDeactivate(ctx context.Context, clusterID uint, integratedServiceName string, spec IntegratedServiceSpec) error
 }
 
-// FeatureOperator defines the operations that can be applied to a cluster feature.
-type FeatureOperator interface {
-	// Apply applies a desired state for a feature on the given cluster.
-	Apply(ctx context.Context, clusterID uint, spec FeatureSpec) error
+// IntegratedServiceOperator defines the operations that can be applied to an integrated service.
+type IntegratedServiceOperator interface {
+	// Apply applies a desired state for an integrated service on the given cluster.
+	Apply(ctx context.Context, clusterID uint, spec IntegratedServiceSpec) error
 
-	// Deactivate deactivates a feature on the given cluster.
-	Deactivate(ctx context.Context, clusterID uint, spec FeatureSpec) error
+	// Deactivate deactivates an integrated service on the given cluster.
+	Deactivate(ctx context.Context, clusterID uint, spec IntegratedServiceSpec) error
 
-	// Name returns the feature's name.
+	// Name returns the integrated service's name.
 	Name() string
 }
 
 //go:generate mockery -name ClusterService -inpkg
 // ClusterService provides a thin access layer to clusters.
 type ClusterService interface {
-	// CheckClusterReady checks whether the cluster is ready for features (eg.: exists and it's running). If the cluster is not ready, a ClusterIsNotReadyError should be returned.
+	// CheckClusterReady checks whether the cluster is ready for integrated services (eg.: exists and it's running). If the cluster is not ready, a ClusterIsNotReadyError should be returned.
 	CheckClusterReady(ctx context.Context, clusterID uint) error
 }
 

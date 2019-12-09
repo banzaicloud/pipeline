@@ -14,4 +14,4 @@
 
 package dns
 
-const FeatureName = "dns"
+const IntegratedServiceName = "dns"

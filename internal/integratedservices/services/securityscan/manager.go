@@ -21,44 +21,44 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-type FeatureManager struct {
-	integratedservices.PassthroughFeatureSpecPreparer
+type IntegratedServiceManager struct {
+	integratedservices.PassthroughIntegratedServiceSpecPreparer
 
 	logger common.Logger
 }
 
-// Name returns the name of the feature
-func (f FeatureManager) Name() string {
-	return FeatureName
+// Name returns the name of the integrated service
+func (f IntegratedServiceManager) Name() string {
+	return IntegratedServiceName
 }
 
-//MakeFeatureManager creates asecurity scan feature manager instance
-func MakeFeatureManager(logger common.Logger) FeatureManager {
-	return FeatureManager{
+//MakeIntegratedServiceManager creates asecurity scan integrated service manager instance
+func MakeIntegratedServiceManager(logger common.Logger) IntegratedServiceManager {
+	return IntegratedServiceManager{
 		logger: logger,
 	}
 }
 
-func (f FeatureManager) ValidateSpec(ctx context.Context, spec integratedservices.FeatureSpec) error {
-	securityScanSpec, err := bindFeatureSpec(spec)
+func (f IntegratedServiceManager) ValidateSpec(ctx context.Context, spec integratedservices.IntegratedServiceSpec) error {
+	securityScanSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
-		return integratedservices.InvalidFeatureSpecError{
-			FeatureName: FeatureName,
-			Problem:     err.Error(),
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: IntegratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 
 	if err := securityScanSpec.Validate(); err != nil {
-		return integratedservices.InvalidFeatureSpecError{
-			FeatureName: FeatureName,
-			Problem:     err.Error(),
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: IntegratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 
 	return nil
 }
 
-func (f FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec integratedservices.FeatureSpec) (integratedservices.FeatureOutput, error) {
+func (f IntegratedServiceManager) GetOutput(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) (integratedservices.IntegratedServiceOutput, error) {
 	out := map[string]interface{}{
 		// todo add "real" anchore version
 		"anchore": map[string]interface{}{

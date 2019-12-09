@@ -48,34 +48,34 @@ const (
 	selectorExclude = "exclude"
 )
 
-type FeatureOperator struct {
+type IntegratedServiceOperator struct {
 	anchoreEnabled   bool
 	anchoreEndpoint  string
 	clusterGetter    integratedserviceadapter.ClusterGetter
 	clusterService   integratedservices.ClusterService
 	helmService      services.HelmService
 	secretStore      services.SecretStore
-	anchoreService   FeatureAnchoreService
-	whiteListService FeatureWhiteListService
+	anchoreService   IntegratedServiceAnchoreService
+	whiteListService IntegratedServiceWhiteListService
 	namespaceService NamespaceService
 	errorHandler     common.ErrorHandler
 	logger           common.Logger
 }
 
-func MakeFeatureOperator(
+func MakeIntegratedServiceOperator(
 	anchoreEnabled bool,
 	anchoreEndpoint string,
 	clusterGetter integratedserviceadapter.ClusterGetter,
 	clusterService integratedservices.ClusterService,
 	helmService services.HelmService,
 	secretStore services.SecretStore,
-	anchoreService FeatureAnchoreService,
-	featureWhitelistService FeatureWhiteListService,
+	anchoreService IntegratedServiceAnchoreService,
+	integratedServiceWhitelistService IntegratedServiceWhiteListService,
 	errorHandler common.ErrorHandler,
 	logger common.Logger,
 
-) FeatureOperator {
-	return FeatureOperator{
+) IntegratedServiceOperator {
+	return IntegratedServiceOperator{
 		anchoreEnabled:   anchoreEnabled,
 		anchoreEndpoint:  anchoreEndpoint,
 		clusterGetter:    clusterGetter,
@@ -83,34 +83,34 @@ func MakeFeatureOperator(
 		helmService:      helmService,
 		secretStore:      secretStore,
 		anchoreService:   anchoreService,
-		whiteListService: featureWhitelistService,
+		whiteListService: integratedServiceWhitelistService,
 		namespaceService: NewNamespacesService(clusterGetter, logger), // wired service
 		errorHandler:     errorHandler,
 		logger:           logger,
 	}
 }
 
-// Name returns the name of the feature
-func (op FeatureOperator) Name() string {
-	return FeatureName
+// Name returns the name of the integrated service
+func (op IntegratedServiceOperator) Name() string {
+	return IntegratedServiceName
 }
 
-func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integratedservices.FeatureSpec) error {
-	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": FeatureName})
-	logger.Info("start to apply feature")
+func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
+	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "integrated service": IntegratedServiceName})
+	logger.Info("start to apply integrated service")
 
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
-		return errors.WrapIf(err, "failed to apply feature")
+		return errors.WrapIf(err, "failed to apply integrated service")
 	}
 
 	if err := op.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
-		return errors.WrapIf(err, "failed to apply feature")
+		return errors.WrapIf(err, "failed to apply integrated service")
 	}
 
-	boundSpec, err := bindFeatureSpec(spec)
+	boundSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
-		return errors.WrapIf(err, "failed to apply feature")
+		return errors.WrapIf(err, "failed to apply integrated service")
 	}
 
 	var anchoreValues *AnchoreValues
@@ -133,7 +133,7 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integr
 
 	if err = op.helmService.ApplyDeployment(ctx, clusterID, securityScanNamespace, securityScanChartName, securityScanRelease,
 		values, securityScanChartVersion); err != nil {
-		return errors.WrapIf(err, "failed to deploy feature")
+		return errors.WrapIf(err, "failed to deploy integrated service")
 	}
 
 	if len(boundSpec.ReleaseWhiteList) > 0 {
@@ -144,21 +144,21 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integr
 
 	if boundSpec.WebhookConfig.Enabled {
 		if err = op.configureWebHook(ctx, clusterID, boundSpec.WebhookConfig); err != nil {
-			//  as agreed, we let the feature activation to succeed and log the errors
+			//  as agreed, we let the integrated service activation to succeed and log the errors
 			op.errorHandler.Handle(ctx, err)
 		}
 	}
 	return nil
 }
 
-func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec integratedservices.FeatureSpec) error {
+func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
-		return errors.WrapIf(err, "failed to deactivate feature")
+		return errors.WrapIf(err, "failed to deactivate integrated service")
 	}
 
 	if err := op.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
-		return errors.WrapIf(err, "failed to deactivate feature")
+		return errors.WrapIf(err, "failed to deactivate integrated service")
 	}
 
 	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
@@ -166,15 +166,15 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec i
 		return errors.WrapIf(err, "failed to get cluster by ID")
 	}
 
-	boundSpec, err := bindFeatureSpec(spec)
+	boundSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
 		op.logger.Debug("failed to bind the spec")
 
-		return errors.WrapIf(err, "failed to apply feature")
+		return errors.WrapIf(err, "failed to apply integrated service")
 	}
 
 	if err := op.helmService.DeleteDeployment(ctx, clusterID, securityScanRelease); err != nil {
-		return errors.WrapIfWithDetails(err, "failed to uninstall feature", "feature", FeatureName,
+		return errors.WrapIfWithDetails(err, "failed to uninstall integrated service", "integrated service", IntegratedServiceName,
 			"clusterID", clusterID)
 	}
 
@@ -197,7 +197,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec i
 	return nil
 }
 
-func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
+func (op IntegratedServiceOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
 	if _, ok := auth.GetCurrentOrganizationID(ctx); !ok {
 		cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 		if err != nil {
@@ -208,7 +208,7 @@ func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID ui
 	return ctx, nil
 }
 
-func (op FeatureOperator) createAnchoreUserForCluster(ctx context.Context, clusterID uint) (string, error) {
+func (op IntegratedServiceOperator) createAnchoreUserForCluster(ctx context.Context, clusterID uint) (string, error) {
 	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 		return "", errors.WrapIf(err, "error retrieving cluster")
@@ -222,7 +222,7 @@ func (op FeatureOperator) createAnchoreUserForCluster(ctx context.Context, clust
 	return userName, nil
 }
 
-func (op FeatureOperator) processChartValues(ctx context.Context, clusterID uint, anchoreValues AnchoreValues) ([]byte, error) {
+func (op IntegratedServiceOperator) processChartValues(ctx context.Context, clusterID uint, anchoreValues AnchoreValues) ([]byte, error) {
 	securityScanValues := SecurityScanChartValues{
 		Anchore: anchoreValues,
 	}
@@ -235,7 +235,7 @@ func (op FeatureOperator) processChartValues(ctx context.Context, clusterID uint
 	return values, nil
 }
 
-func (op FeatureOperator) getCustomAnchoreValues(ctx context.Context, customAnchore anchoreSpec) (*AnchoreValues, error) {
+func (op IntegratedServiceOperator) getCustomAnchoreValues(ctx context.Context, customAnchore anchoreSpec) (*AnchoreValues, error) {
 	if !customAnchore.Enabled { // this is already checked
 		return nil, errors.NewWithDetails("custom anchore disabled")
 	}
@@ -255,7 +255,7 @@ func (op FeatureOperator) getCustomAnchoreValues(ctx context.Context, customAnch
 	return &anchoreValues, nil
 }
 
-func (op FeatureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (*AnchoreValues, error) {
+func (op IntegratedServiceOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (*AnchoreValues, error) {
 
 	// default (pipeline hosted) anchore
 	if !op.anchoreEnabled {
@@ -284,7 +284,7 @@ func (op FeatureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID
 }
 
 // performs namespace labeling based on the provided input
-func (op *FeatureOperator) configureWebHook(ctx context.Context, clusterID uint, whConfig webHookConfigSpec) error {
+func (op *IntegratedServiceOperator) configureWebHook(ctx context.Context, clusterID uint, whConfig webHookConfigSpec) error {
 
 	// possible label values that are used to make decisions by the webhook
 	securityScanLabels := map[string]string{

@@ -23,92 +23,92 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFeatureManagerRegistry_GetFeatureManager(t *testing.T) {
-	expectedFeatureManager := dummyFeatureManager{
-		TheName: "myFeature",
+func TestIntegratedServiceManagerRegistry_GetIntegratedServiceManager(t *testing.T) {
+	expectedIntegratedSErviceManager := dummyIntegratedServiceManager{
+		TheName: "myIntegratedService",
 	}
 
-	registry := MakeFeatureManagerRegistry([]FeatureManager{
-		expectedFeatureManager,
+	registry := MakeIntegratedServiceManagerRegistry([]IntegratedServiceManager{
+		expectedIntegratedSErviceManager,
 	})
 
-	featureManager, err := registry.GetFeatureManager("myFeature")
+	integratedServiceManager, err := registry.GetIntegratedServiceManager("myIntegratedService")
 	require.NoError(t, err)
 
-	assert.Equal(t, expectedFeatureManager, featureManager)
+	assert.Equal(t, expectedIntegratedSErviceManager, integratedServiceManager)
 }
 
-func TestFeatureManagerRegistry_GetFeatureManager_UnknownFeature(t *testing.T) {
-	registry := MakeFeatureManagerRegistry([]FeatureManager{})
+func TestIntegratedServiceManagerRegistry_GetIntegratedServiceManager_UnknownIntegratedService(t *testing.T) {
+	registry := MakeIntegratedServiceManagerRegistry([]IntegratedServiceManager{})
 
-	featureManager, err := registry.GetFeatureManager("myFeature")
+	integratedServiceManager, err := registry.GetIntegratedServiceManager("myIntegratedService")
 	require.Error(t, err)
 
-	assert.True(t, errors.As(err, &UnknownFeatureError{}))
-	assert.True(t, errors.Is(err, UnknownFeatureError{FeatureName: "myFeature"}))
+	assert.True(t, errors.As(err, &UnknownIntegratedServiceError{}))
+	assert.True(t, errors.Is(err, UnknownIntegratedServiceError{IntegratedServiceName: "myIntegratedService"}))
 
-	assert.Nil(t, featureManager)
+	assert.Nil(t, integratedServiceManager)
 }
 
-func TestFeatureOperatorRegistry_GetFeatureOperator(t *testing.T) {
-	expectedFeatureOperator := dummyFeatureOperator{
-		TheName: "myFeature",
+func TestIntegratedServiceNameOperatorRegistry_GetIntegratedServiceOperator(t *testing.T) {
+	expectedIntegratedServiceOperator := dummyIntegratedServiceOperator{
+		TheName: "myIntegratedService",
 	}
 
-	registry := MakeFeatureOperatorRegistry([]FeatureOperator{
-		expectedFeatureOperator,
+	registry := MakeIntegratedServiceOperatorRegistry([]IntegratedServiceOperator{
+		expectedIntegratedServiceOperator,
 	})
 
-	featureOperator, err := registry.GetFeatureOperator("myFeature")
+	integratedServiceOperator, err := registry.GetIntegratedServiceOperator("myIntegratedService")
 	require.NoError(t, err)
 
-	assert.Equal(t, expectedFeatureOperator, featureOperator)
+	assert.Equal(t, expectedIntegratedServiceOperator, integratedServiceOperator)
 }
 
-func TestFeatureOperatorRegistry_GetFeatureOperator_UnknownFeature(t *testing.T) {
-	registry := MakeFeatureOperatorRegistry([]FeatureOperator{})
+func TestIntegratedServiceOperatorRegistry_GetIntegratedServiceOperator_UnknownIntegratedService(t *testing.T) {
+	registry := MakeIntegratedServiceOperatorRegistry([]IntegratedServiceOperator{})
 
-	featureOperator, err := registry.GetFeatureOperator("myFeature")
+	integratedServiceOperator, err := registry.GetIntegratedServiceOperator("myIntegratedService")
 	require.Error(t, err)
 
-	assert.True(t, errors.As(err, &UnknownFeatureError{}))
-	assert.True(t, errors.Is(err, UnknownFeatureError{FeatureName: "myFeature"}))
+	assert.True(t, errors.As(err, &UnknownIntegratedServiceError{}))
+	assert.True(t, errors.Is(err, UnknownIntegratedServiceError{IntegratedServiceName: "myIntegratedService"}))
 
-	assert.Nil(t, featureOperator)
+	assert.Nil(t, integratedServiceOperator)
 }
 
-type dummyFeatureManager struct {
-	PassthroughFeatureSpecPreparer
+type dummyIntegratedServiceManager struct {
+	PassthroughIntegratedServiceSpecPreparer
 
 	TheName         string
-	Output          FeatureOutput
+	Output          IntegratedServiceOutput
 	ValidationError error
 }
 
-func (d dummyFeatureManager) Name() string {
+func (d dummyIntegratedServiceManager) Name() string {
 	return d.TheName
 }
 
-func (d dummyFeatureManager) GetOutput(ctx context.Context, clusterID uint, spec FeatureSpec) (FeatureOutput, error) {
+func (d dummyIntegratedServiceManager) GetOutput(ctx context.Context, clusterID uint, spec IntegratedServiceSpec) (IntegratedServiceOutput, error) {
 	return d.Output, nil
 }
 
-func (d dummyFeatureManager) ValidateSpec(ctx context.Context, spec FeatureSpec) error {
+func (d dummyIntegratedServiceManager) ValidateSpec(ctx context.Context, spec IntegratedServiceSpec) error {
 	return d.ValidationError
 }
 
-type dummyFeatureOperator struct {
+type dummyIntegratedServiceOperator struct {
 	TheName string
 }
 
-func (d dummyFeatureOperator) Name() string {
+func (d dummyIntegratedServiceOperator) Name() string {
 	return d.TheName
 }
 
-func (d dummyFeatureOperator) Apply(ctx context.Context, clusterID uint, spec FeatureSpec) error {
+func (d dummyIntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, spec IntegratedServiceSpec) error {
 	return nil
 }
 
-func (d dummyFeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec FeatureSpec) error {
+func (d dummyIntegratedServiceOperator) Deactivate(ctx context.Context, clusterID uint, spec IntegratedServiceSpec) error {
 	return nil
 }

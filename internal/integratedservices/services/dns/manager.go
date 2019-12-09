@@ -24,8 +24,8 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/brn"
 )
 
-// FeatureManager implements the DNS feature manager
-type FeatureManager struct {
+// IntegratedServiceManager implements the DNS integrated service manager
+type IntegratedServiceManager struct {
 	clusterOrgIDGetter ClusterOrgIDGetter
 	clusterUIDGetter   ClusterUIDGetter
 	config             Config
@@ -41,22 +41,22 @@ type ClusterUIDGetter interface {
 	GetClusterUID(ctx context.Context, clusterID uint) (string, error)
 }
 
-// NewFeatureManager returns a DNS feature manager
-func NewFeatureManager(clusterOrgIDGetter ClusterOrgIDGetter, clusterUIDGetter ClusterUIDGetter, config Config) FeatureManager {
-	return FeatureManager{
+// NewIntegratedServicesManager returns a DNS integrated service manager
+func NewIntegratedServicesManager(clusterOrgIDGetter ClusterOrgIDGetter, clusterUIDGetter ClusterUIDGetter, config Config) IntegratedServiceManager {
+	return IntegratedServiceManager{
 		clusterOrgIDGetter: clusterOrgIDGetter,
 		clusterUIDGetter:   clusterUIDGetter,
 		config:             config,
 	}
 }
 
-// Name returns the feature's name
-func (FeatureManager) Name() string {
-	return FeatureName
+// Name returns the integrated service's name
+func (IntegratedServiceManager) Name() string {
+	return IntegratedServiceName
 }
 
-// GetOutput returns the DNS feature's output
-func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, _ integratedservices.FeatureSpec) (integratedservices.FeatureOutput, error) {
+// GetOutput returns the DNS integrated service's output
+func (m IntegratedServiceManager) GetOutput(ctx context.Context, clusterID uint, _ integratedservices.IntegratedServiceSpec) (integratedservices.IntegratedServiceOutput, error) {
 	return map[string]interface{}{
 		"externalDns": map[string]interface{}{
 			"version": m.config.Charts.ExternalDNS.Version,
@@ -64,20 +64,20 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, _ integra
 	}, nil
 }
 
-// ValidateSpec validates a DNS feature specification
-func (FeatureManager) ValidateSpec(ctx context.Context, spec integratedservices.FeatureSpec) error {
-	dnsSpec, err := bindFeatureSpec(spec)
+// ValidateSpec validates a DNS integrated service specification
+func (IntegratedServiceManager) ValidateSpec(ctx context.Context, spec integratedservices.IntegratedServiceSpec) error {
+	dnsSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
-		return integratedservices.InvalidFeatureSpecError{
-			FeatureName: FeatureName,
-			Problem:     err.Error(),
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: IntegratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 
 	if err := dnsSpec.Validate(); err != nil {
-		return integratedservices.InvalidFeatureSpecError{
-			FeatureName: FeatureName,
-			Problem:     err.Error(),
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: IntegratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 
@@ -85,7 +85,7 @@ func (FeatureManager) ValidateSpec(ctx context.Context, spec integratedservices.
 }
 
 // PrepareSpec makes certain preparations to the spec before it's sent to be applied
-func (m FeatureManager) PrepareSpec(ctx context.Context, clusterID uint, spec integratedservices.FeatureSpec) (integratedservices.FeatureSpec, error) {
+func (m IntegratedServiceManager) PrepareSpec(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) (integratedservices.IntegratedServiceSpec, error) {
 	defaulters := mapStringXform(map[string]any.Transformation{
 		"externalDns": mapStringDefaulter(map[string]any.Transformation{
 			"txtOwnerId": txtOwnerIDDefaulterXform(func() (string, error) {
@@ -107,7 +107,7 @@ func (m FeatureManager) PrepareSpec(ctx context.Context, clusterID uint, spec in
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to transform spec")
 	}
-	if r, ok := res.(integratedservices.FeatureSpec); ok {
+	if r, ok := res.(integratedservices.IntegratedServiceSpec); ok {
 		return r, nil
 	}
 	return nil, errors.Errorf("cannot cast type %T as type %T", res, spec)

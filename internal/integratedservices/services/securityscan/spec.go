@@ -22,8 +22,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-//featureSpec security scan cluster feature specific specification
-type featureSpec struct {
+//integratedServiceSpec security scan cluster integrated service specific specification
+type integratedServiceSpec struct {
 	CustomAnchore    anchoreSpec       `json:"customAnchore" mapstructure:"customAnchore"`
 	Policy           policySpec        `json:"policy" mapstructure:"policy"`
 	ReleaseWhiteList []releaseSpec     `json:"releaseWhiteList,omitempty" mapstructure:"releaseWhiteList"`
@@ -31,7 +31,7 @@ type featureSpec struct {
 }
 
 // Validate validates the input security scan specification.
-func (s featureSpec) Validate() error {
+func (s integratedServiceSpec) Validate() error {
 
 	var validationErrors error
 
@@ -116,12 +116,12 @@ func (w webHookConfigSpec) Validate() error {
 	return nil
 }
 
-func bindFeatureSpec(spec integratedservices.FeatureSpec) (featureSpec, error) {
-	var boundSpec featureSpec
+func bindIntegratedServiceSpec(spec integratedservices.IntegratedServiceSpec) (integratedServiceSpec, error) {
+	var boundSpec integratedServiceSpec
 	if err := mapstructure.Decode(spec, &boundSpec); err != nil {
-		return boundSpec, integratedservices.InvalidFeatureSpecError{
-			FeatureName: FeatureName,
-			Problem:     errors.WrapIf(err, "failed to bind feature spec").Error(),
+		return boundSpec, integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: IntegratedServiceName,
+			Problem:               errors.WrapIf(err, "failed to bind integrated service spec").Error(),
 		}
 	}
 	return boundSpec, nil

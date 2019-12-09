@@ -204,7 +204,7 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 // NOTE: this is a temporary solution. At some point this functionality should be extracted.
 func (a HPAAPI) isMonitoringEnabled(ctx context.Context, clusterID uint) (bool, error) {
 	_, err := a.featureService.Details(ctx, clusterID, "monitoring")
-	if integratedservices.IsFeatureNotFoundError(err) {
+	if integratedservices.IsIntegratedServiceNotFoundError(err) {
 		return false, nil
 	}
 	if err != nil {

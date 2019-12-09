@@ -22,252 +22,252 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
-// Service manages features on Kubernetes clusters.
+// Service manages integrated services on Kubernetes clusters.
 //go:generate mga gen kit endpoint --outdir integratedservicedriver --with-oc Service
 //go:generate mockery -name Service -inpkg
 type Service interface {
-	// List lists the activated features and their details.
-	List(ctx context.Context, clusterID uint) ([]Feature, error)
+	// List lists the activated integrated services and their details.
+	List(ctx context.Context, clusterID uint) ([]IntegratedService, error)
 
-	// Details returns the details of an activated feature.
-	Details(ctx context.Context, clusterID uint, featureName string) (Feature, error)
+	// Details returns the details of an activated integrated service.
+	Details(ctx context.Context, clusterID uint, integratedServiceName string) (IntegratedService, error)
 
-	// Activate activates a feature.
-	Activate(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error
+	// Activate activates a integrated service.
+	Activate(ctx context.Context, clusterID uint, integratedServiceeName string, spec map[string]interface{}) error
 
-	// Deactivate deactivates a feature.
-	Deactivate(ctx context.Context, clusterID uint, featureName string) error
+	// Deactivate deactivates a integrated service.
+	Deactivate(ctx context.Context, clusterID uint, integratedServiceName string) error
 
-	// Update updates a feature.
-	Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error
+	// Update updates a integrated service.
+	Update(ctx context.Context, clusterID uint, integratedServiceName string, spec map[string]interface{}) error
 }
 
-// MakeFeatureService returns a new FeatureService instance.
-func MakeFeatureService(
-	featureOperationDispatcher FeatureOperationDispatcher,
-	featureManagerRegistry FeatureManagerRegistry,
-	featureRepository FeatureRepository,
+// MakeIntegratedServiceService returns a new IntegratedServiceService instance.
+func MakeIntegratedServiceService(
+	integratedServiceOperationDispatcher IntegratedServiceOperationDispatcher,
+	integratedServiceManagerRegistry IntegratedServiceManagerRegistry,
+	integratedServiceRepository IntegratedServiceRepository,
 	logger common.Logger,
-) FeatureService {
-	return FeatureService{
-		featureOperationDispatcher: featureOperationDispatcher,
-		featureManagerRegistry:     featureManagerRegistry,
-		featureRepository:          featureRepository,
-		logger:                     logger.WithFields(map[string]interface{}{"component": "cluster-feature"}),
+) IntegratedServiceService {
+	return IntegratedServiceService{
+		integratedServiceOperationDispatcher: integratedServiceOperationDispatcher,
+		integratedServiceManagerRegistry:     integratedServiceManagerRegistry,
+		integratedServiceRepository:          integratedServiceRepository,
+		logger:                               logger,
 	}
 }
 
-// FeatureService implements a cluster feature service
-type FeatureService struct {
-	featureOperationDispatcher FeatureOperationDispatcher
-	featureManagerRegistry     FeatureManagerRegistry
-	featureRepository          FeatureRepository
-	logger                     common.Logger
+// IntegratedServiceService implements a cluster integrated service service
+type IntegratedServiceService struct {
+	integratedServiceOperationDispatcher IntegratedServiceOperationDispatcher
+	integratedServiceManagerRegistry     IntegratedServiceManagerRegistry
+	integratedServiceRepository          IntegratedServiceRepository
+	logger                               common.Logger
 }
 
-// List returns non-inactive features and their status.
-func (s FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, error) {
+// List returns non-inactive integrated services and their status.
+func (s IntegratedServiceService) List(ctx context.Context, clusterID uint) ([]IntegratedService, error) {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID})
-	logger.Info("listing features")
+	logger.Info("listing integrated services")
 
-	features, err := s.featureRepository.GetFeatures(ctx, clusterID)
+	integratedServices, err := s.integratedServiceRepository.GetIntegratedServices(ctx, clusterID)
 	if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to retrieve features", "clusterId", clusterID)
+		return nil, errors.WrapIfWithDetails(err, "failed to retrieve integrated services", "clusterId", clusterID)
 	}
 
-	// only keep feature name and status
-	for i := range features {
-		features[i].Spec = nil
-		features[i].Output = nil
+	// only keep integrated service name and status
+	for i := range integratedServices {
+		integratedServices[i].Spec = nil
+		integratedServices[i].Output = nil
 	}
 
-	logger.Info("features successfully listed")
+	logger.Info("integrated services successfully listed")
 
-	return features, nil
+	return integratedServices, nil
 }
 
-// Details returns the details of an activated feature.
-func (s FeatureService) Details(ctx context.Context, clusterID uint, featureName string) (Feature, error) {
-	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "feature": featureName})
-	logger.Info("processing feature details request")
+// Details returns the details of an activated integrated service.
+func (s IntegratedServiceService) Details(ctx context.Context, clusterID uint, integratedServiceName string) (IntegratedService, error) {
+	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "integrated service": integratedServiceName})
+	logger.Info("processing integrated service details request")
 
 	// TODO: check cluster ID?
 
-	logger.Debug("retrieving feature manager")
-	featureManager, err := s.featureManagerRegistry.GetFeatureManager(featureName)
+	logger.Debug("retrieving integrated service manager")
+	integratedServiceManager, err := s.integratedServiceManagerRegistry.GetIntegratedServiceManager(integratedServiceName)
 	if err != nil {
-		const msg = "failed to retrieve feature manager"
+		const msg = "failed to retrieve integrated service manager"
 		logger.Debug(msg)
-		return Feature{}, errors.WrapIf(err, msg)
+		return IntegratedService{}, errors.WrapIf(err, msg)
 	}
 
-	logger.Debug("retrieving feature from repository")
-	feature, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
+	logger.Debug("retrieving integrated service from repository")
+	integratedService, err := s.integratedServiceRepository.GetIntegratedService(ctx, clusterID, integratedServiceName)
 	if err != nil {
-		if IsFeatureNotFoundError(err) {
-			return Feature{
-				Name:   featureName,
-				Status: FeatureStatusInactive,
+		if IsIntegratedServiceNotFoundError(err) {
+			return IntegratedService{
+				Name:   integratedServiceName,
+				Status: IntegratedServiceStatusInactive,
 			}, nil
 		}
 
-		const msg = "failed to retrieve feature from repository"
+		const msg = "failed to retrieve integrated service from repository"
 		logger.Debug(msg)
-		return feature, errors.WrapIf(err, msg)
+		return integratedService, errors.WrapIf(err, msg)
 	}
 
-	logger.Debug("retieving feature output")
-	output, err := featureManager.GetOutput(ctx, clusterID, feature.Spec)
+	logger.Debug("retrieving integrated service output")
+	output, err := integratedServiceManager.GetOutput(ctx, clusterID, integratedService.Spec)
 	if err != nil {
-		const msg = "failed to retieve feature output"
+		const msg = "failed to retrieve integrated service output"
 		logger.Debug(msg)
-		return feature, errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "feature", featureName)
+		return integratedService, errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "integrated service", integratedServiceName)
 	}
 
-	feature.Output = merge(feature.Output, output)
+	integratedService.Output = merge(integratedService.Output, output)
 
-	logger.Info("feature details request processed successfully")
+	logger.Info("integrated service details request processed successfully")
 
-	return feature, nil
+	return integratedService, nil
 }
 
-// Activate activates a feature.
-func (s FeatureService) Activate(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error {
-	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "feature": featureName})
-	logger.Info("processing feature activation request")
+// Activate activates a integrated service.
+func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, integratedServiceeName string, spec map[string]interface{}) error {
+	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "integrated service": integratedServiceeName})
+	logger.Info("processing integrated service activation request")
 
 	// TODO: check cluster ID?
 
-	logger.Debug("retieving feature manager")
-	featureManager, err := s.featureManagerRegistry.GetFeatureManager(featureName)
+	logger.Debug("retieving integrated service manager")
+	integratedServiceManager, err := s.integratedServiceManagerRegistry.GetIntegratedServiceManager(integratedServiceeName)
 	if err != nil {
-		const msg = "failed to retieve feature manager"
+		const msg = "failed to retrieve integrated service manager"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
 	}
 
-	logger.Debug("validating feature specification")
-	if err := featureManager.ValidateSpec(ctx, spec); err != nil {
-		logger.Debug("feature specification validation failed")
-		return InvalidFeatureSpecError{FeatureName: featureName, Problem: err.Error()}
+	logger.Debug("validating integrated service specification")
+	if err := integratedServiceManager.ValidateSpec(ctx, spec); err != nil {
+		logger.Debug("integrated service specification validation failed")
+		return InvalidIntegratedServiceSpecError{IntegratedServiceName: integratedServiceeName, Problem: err.Error()}
 	}
 
-	logger.Debug("preparing feature specification")
-	preparedSpec, err := featureManager.PrepareSpec(ctx, clusterID, spec)
+	logger.Debug("preparing integrated service specification")
+	preparedSpec, err := integratedServiceManager.PrepareSpec(ctx, clusterID, spec)
 	if err != nil {
-		const msg = "failed to prepare feature specification"
+		const msg = "failed to prepare integrated service specification"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
 	}
 
-	logger.Debug("starting feature activation")
-	if err := s.featureOperationDispatcher.DispatchApply(ctx, clusterID, featureName, preparedSpec); err != nil {
-		const msg = "failed to start feature activation"
+	logger.Debug("starting integrated service activation")
+	if err := s.integratedServiceOperationDispatcher.DispatchApply(ctx, clusterID, integratedServiceeName, preparedSpec); err != nil {
+		const msg = "failed to start integrated service activation"
 		logger.Debug(msg)
-		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "feature", featureName)
+		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "integrated service", integratedServiceeName)
 	}
 
-	logger.Debug("persisting feature")
-	if err := s.featureRepository.SaveFeature(ctx, clusterID, featureName, spec, FeatureStatusPending); err != nil {
-		const msg = "failed to persist feature"
+	logger.Debug("persisting integrated service")
+	if err := s.integratedServiceRepository.SaveIntegratedService(ctx, clusterID, integratedServiceeName, spec, IntegratedServiceStatusPending); err != nil {
+		const msg = "failed to persist integrated service"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
 	}
 
-	logger.Info("feature activation request processed successfully")
+	logger.Info("integrated service activation request processed successfully")
 
 	return nil
 }
 
-// Deactivate deactivates a feature.
-func (s FeatureService) Deactivate(ctx context.Context, clusterID uint, featureName string) error {
-	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "feature": featureName})
-	logger.Info("processing feature deactivation request")
+// Deactivate deactivates a integrated service.
+func (s IntegratedServiceService) Deactivate(ctx context.Context, clusterID uint, integratedServiceName string) error {
+	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "integrated service": integratedServiceName})
+	logger.Info("processing integrated service deactivation request")
 
 	// TODO: check cluster ID?
 
-	logger.Debug("checking feature name")
-	if _, err := s.featureManagerRegistry.GetFeatureManager(featureName); err != nil {
-		const msg = "failed to retrieve feature manager"
+	logger.Debug("checking integrated service name")
+	if _, err := s.integratedServiceManagerRegistry.GetIntegratedServiceManager(integratedServiceName); err != nil {
+		const msg = "failed to retrieve integrated service manager"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
 	}
 
-	logger.Debug("get feature details")
-	f, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
+	logger.Debug("get integrated service details")
+	f, err := s.integratedServiceRepository.GetIntegratedService(ctx, clusterID, integratedServiceName)
 	if err != nil {
-		const msg = "failed to retrieve feature details"
+		const msg = "failed to retrieve integrated service details"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
 	}
 
-	logger.Debug("starting feature deactivation")
-	if err := s.featureOperationDispatcher.DispatchDeactivate(ctx, clusterID, featureName, f.Spec); err != nil {
-		const msg = "failed to start feature deactivation"
+	logger.Debug("starting integrated service deactivation")
+	if err := s.integratedServiceOperationDispatcher.DispatchDeactivate(ctx, clusterID, integratedServiceName, f.Spec); err != nil {
+		const msg = "failed to start integrated service deactivation"
 		logger.Debug(msg)
-		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "feature", featureName)
+		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "integrated service", integratedServiceName)
 	}
 
-	logger.Debug("updating feature status")
-	if err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, featureName, FeatureStatusPending); err != nil {
-		if !IsFeatureNotFoundError(err) {
-			const msg = "failed to update feature status"
+	logger.Debug("updating integrated service status")
+	if err := s.integratedServiceRepository.UpdateIntegratedServiceStatus(ctx, clusterID, integratedServiceName, IntegratedServiceStatusPending); err != nil {
+		if !IsIntegratedServiceNotFoundError(err) {
+			const msg = "failed to update integrated service status"
 			logger.Debug(msg)
 			return errors.WrapIf(err, msg)
 		}
 
-		logger.Info("feature is already inactive")
+		logger.Info("integrated service is already inactive")
 	}
 
-	logger.Info("feature deactivation request processed successfully")
+	logger.Info("integrated service deactivation request processed successfully")
 
 	return nil
 }
 
-// Update updates a feature.
-func (s FeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error {
-	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterID": clusterID, "feature": featureName})
-	logger.Info("processing feature update request")
+// Update updates a integrated service.
+func (s IntegratedServiceService) Update(ctx context.Context, clusterID uint, integratedServiceName string, spec map[string]interface{}) error {
+	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterID": clusterID, "integrated service": integratedServiceName})
+	logger.Info("processing integrated service update request")
 
 	// TODO: check cluster ID?
 
-	logger.Debug("retieving feature manager")
-	featureManager, err := s.featureManagerRegistry.GetFeatureManager(featureName)
+	logger.Debug("retieving integrated service manager")
+	integratedServiceManager, err := s.integratedServiceManagerRegistry.GetIntegratedServiceManager(integratedServiceName)
 	if err != nil {
-		const msg = "failed to retieve feature manager"
+		const msg = "failed to retrieve integrated service manager"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
 	}
 
-	logger.Debug("validating feature specification")
-	if err := featureManager.ValidateSpec(ctx, spec); err != nil {
-		logger.Debug("feature specification validation failed")
-		return InvalidFeatureSpecError{FeatureName: featureName, Problem: err.Error()}
+	logger.Debug("validating integrated service specification")
+	if err := integratedServiceManager.ValidateSpec(ctx, spec); err != nil {
+		logger.Debug("integrated service specification validation failed")
+		return InvalidIntegratedServiceSpecError{IntegratedServiceName: integratedServiceName, Problem: err.Error()}
 	}
 
-	logger.Debug("preparing feature specification")
-	preparedSpec, err := featureManager.PrepareSpec(ctx, clusterID, spec)
+	logger.Debug("preparing integrated service specification")
+	preparedSpec, err := integratedServiceManager.PrepareSpec(ctx, clusterID, spec)
 	if err != nil {
-		const msg = "failed to prepare feature specification"
+		const msg = "failed to prepare integrated service specification"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
 	}
 
-	logger.Debug("starting feature update")
-	if err := s.featureOperationDispatcher.DispatchApply(ctx, clusterID, featureName, preparedSpec); err != nil {
-		const msg = "failed to start feature update"
+	logger.Debug("starting integrated service update")
+	if err := s.integratedServiceOperationDispatcher.DispatchApply(ctx, clusterID, integratedServiceName, preparedSpec); err != nil {
+		const msg = "failed to start integrated service update"
 		logger.Debug(msg)
-		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "feature", featureName)
+		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "integrated service", integratedServiceName)
 	}
 
-	logger.Debug("persisting feature")
-	if err := s.featureRepository.SaveFeature(ctx, clusterID, featureName, spec, FeatureStatusPending); err != nil {
-		const msg = "failed to persist feature"
+	logger.Debug("persisting integrated service")
+	if err := s.integratedServiceRepository.SaveIntegratedService(ctx, clusterID, integratedServiceName, spec, IntegratedServiceStatusPending); err != nil {
+		const msg = "failed to persist integrated service"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
 	}
 
-	logger.Info("feature updated successfully")
+	logger.Info("integrated service updated successfully")
 
 	return nil
 }

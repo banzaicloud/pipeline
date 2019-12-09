@@ -14,4 +14,4 @@
 
 package securityscan
 
-const FeatureName = "securityscan"
+const IntegratedServiceName = "securityscan"

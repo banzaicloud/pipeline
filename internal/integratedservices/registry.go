@@ -18,66 +18,66 @@ import (
 	"emperror.dev/errors"
 )
 
-// MakeFeatureManagerRegistry returns a FeatureManagerRegistry with the specified feature managers registered.
-func MakeFeatureManagerRegistry(managers []FeatureManager) FeatureManagerRegistry {
-	lookup := make(map[string]FeatureManager, len(managers))
+// MakeIntegratedServiceManagerRegistry returns a IntegratedServiceManagerRegistry with the specified integrated service managers registered.
+func MakeIntegratedServiceManagerRegistry(managers []IntegratedServiceManager) IntegratedServiceManagerRegistry {
+	lookup := make(map[string]IntegratedServiceManager, len(managers))
 	for _, fm := range managers {
 		lookup[fm.Name()] = fm
 	}
 
-	return featureManagerRegistry{
+	return integratedServiceManagerRegistry{
 		lookup: lookup,
 	}
 }
 
-type featureManagerRegistry struct {
-	lookup map[string]FeatureManager
+type integratedServiceManagerRegistry struct {
+	lookup map[string]IntegratedServiceManager
 }
 
-func (r featureManagerRegistry) GetFeatureManager(featureName string) (FeatureManager, error) {
+func (r integratedServiceManagerRegistry) GetIntegratedServiceManager(integratedServiceName string) (IntegratedServiceManager, error) {
 
-	if featureManager, ok := r.lookup[featureName]; ok {
-		return featureManager, nil
+	if integratedServiceManager, ok := r.lookup[integratedServiceName]; ok {
+		return integratedServiceManager, nil
 	}
 
-	return nil, errors.WithStack(UnknownFeatureError{FeatureName: featureName})
+	return nil, errors.WithStack(UnknownIntegratedServiceError{IntegratedServiceName: integratedServiceName})
 }
 
-// MakeFeatureOperatorRegistry returns a FeatureOperatorRegistry with the specified feature operators registered.
-func MakeFeatureOperatorRegistry(operators []FeatureOperator) FeatureOperatorRegistry {
-	lookup := make(map[string]FeatureOperator, len(operators))
+// MakeIntegratedServiceOperatorRegistry returns a IntegratedServiceOperatorRegistry with the specified integrated service operators registered.
+func MakeIntegratedServiceOperatorRegistry(operators []IntegratedServiceOperator) IntegratedServiceOperatorRegistry {
+	lookup := make(map[string]IntegratedServiceOperator, len(operators))
 	for _, fo := range operators {
 		lookup[fo.Name()] = fo
 	}
 
-	return featureOperatorRegistry{
+	return integratedServiceOperatorRegistry{
 		lookup: lookup,
 	}
 }
 
-type featureOperatorRegistry struct {
-	lookup map[string]FeatureOperator
+type integratedServiceOperatorRegistry struct {
+	lookup map[string]IntegratedServiceOperator
 }
 
-func (r featureOperatorRegistry) GetFeatureOperator(featureName string) (FeatureOperator, error) {
+func (r integratedServiceOperatorRegistry) GetIntegratedServiceOperator(integratedServiceName string) (IntegratedServiceOperator, error) {
 
-	if featureOperator, ok := r.lookup[featureName]; ok {
-		return featureOperator, nil
+	if integratedServiceOperator, ok := r.lookup[integratedServiceName]; ok {
+		return integratedServiceOperator, nil
 	}
 
-	return nil, errors.WithStack(UnknownFeatureError{FeatureName: featureName})
+	return nil, errors.WithStack(UnknownIntegratedServiceError{IntegratedServiceName: integratedServiceName})
 }
 
-// UnknownFeatureError is returned when there is no feature manager registered for a feature.
-type UnknownFeatureError struct {
-	FeatureName string
+// UnknownIntegratedServiceError is returned when there is no integrated service manager registered for a integrated service.
+type UnknownIntegratedServiceError struct {
+	IntegratedServiceName string
 }
 
-func (UnknownFeatureError) Error() string {
-	return "unknown feature"
+func (UnknownIntegratedServiceError) Error() string {
+	return "unknown integrated service"
 }
 
 // Details returns the error's details
-func (e UnknownFeatureError) Details() []interface{} {
-	return []interface{}{"feature", e.FeatureName}
+func (e UnknownIntegratedServiceError) Details() []interface{} {
+	return []interface{}{"integrated service", e.IntegratedServiceName}
 }

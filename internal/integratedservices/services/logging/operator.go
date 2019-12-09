@@ -37,8 +37,8 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-// FeatureOperator implements the Logging feature operator
-type FeatureOperator struct {
+// IntegratedServiceOperator implements the Logging integrated service operator
+type IntegratedServiceOperator struct {
 	clusterGetter     integratedserviceadapter.ClusterGetter
 	clusterService    integratedservices.ClusterService
 	helmService       services.HelmService
@@ -49,8 +49,8 @@ type FeatureOperator struct {
 	secretStore       services.SecretStore
 }
 
-// MakeFeatureOperator returns a Logging feature operator
-func MakeFeatureOperator(
+// MakeIntegratedServicesOperator returns a Logging integrated service operator
+func MakeIntegratedServicesOperator(
 	clusterGetter integratedserviceadapter.ClusterGetter,
 	clusterService integratedservices.ClusterService,
 	helmService services.HelmService,
@@ -59,8 +59,8 @@ func MakeFeatureOperator(
 	config Config,
 	logger common.Logger,
 	secretStore services.SecretStore,
-) FeatureOperator {
-	return FeatureOperator{
+) IntegratedServiceOperator {
+	return IntegratedServiceOperator{
 		clusterGetter:     clusterGetter,
 		clusterService:    clusterService,
 		helmService:       helmService,
@@ -72,13 +72,13 @@ func MakeFeatureOperator(
 	}
 }
 
-// Name returns the name of the Logging feature
-func (FeatureOperator) Name() string {
-	return featureName
+// Name returns the name of the Logging integrated service
+func (IntegratedServiceOperator) Name() string {
+	return integratedServiceName
 }
 
-// Apply applies the provided specification to the cluster feature
-func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integratedservices.FeatureSpec) error {
+// Apply applies the provided specification to the integrated service
+func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
 	if err := op.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
 		return err
 	}
@@ -88,11 +88,11 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integr
 		return err
 	}
 
-	boundSpec, err := bindFeatureSpec(spec)
+	boundSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
-		return integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     err.Error(),
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 
@@ -129,8 +129,8 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integr
 	return nil
 }
 
-// Deactivate deactivates the cluster feature
-func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec integratedservices.FeatureSpec) error {
+// Deactivate deactivates the integrated service
+func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
 	if err := op.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec i
 	return nil
 }
 
-func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
+func (op IntegratedServiceOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
 	if _, ok := auth.GetCurrentOrganizationID(ctx); !ok {
 		cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 		if err != nil {
@@ -164,7 +164,7 @@ func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID ui
 	return ctx, nil
 }
 
-func (op FeatureOperator) processTLS(ctx context.Context, spec featureSpec, cl integratedserviceadapter.Cluster) error {
+func (op IntegratedServiceOperator) processTLS(ctx context.Context, spec integratedServiceSpec, cl integratedserviceadapter.Cluster) error {
 	if spec.Logging.TLS {
 
 		// generate TLS secret and save to Vault
@@ -180,7 +180,7 @@ func (op FeatureOperator) processTLS(ctx context.Context, spec featureSpec, cl i
 	return nil
 }
 
-func (op FeatureOperator) generateTLSSecret(cl integratedserviceadapter.Cluster) error {
+func (op IntegratedServiceOperator) generateTLSSecret(cl integratedserviceadapter.Cluster) error {
 	var namespace = op.config.Namespace
 	var clusterUIDSecretTag = generateClusterUIDSecretTag(cl.GetUID())
 	var clusterNameSecretTag = generateClusterNameSecretTag(cl.GetName())
@@ -194,7 +194,7 @@ func (op FeatureOperator) generateTLSSecret(cl integratedserviceadapter.Cluster)
 			clusterUIDSecretTag,
 			secret.TagBanzaiReadonly,
 			releaseSecretTag,
-			featureSecretTag,
+			integratedServiceSecretTag,
 		},
 		Values: map[string]string{
 			secrettype.TLSHosts: tlsHost,
@@ -208,7 +208,7 @@ func (op FeatureOperator) generateTLSSecret(cl integratedserviceadapter.Cluster)
 
 	return nil
 }
-func (op FeatureOperator) generateHTPasswordSecretForLoki(ctx context.Context, cl integratedserviceadapter.Cluster) error {
+func (op IntegratedServiceOperator) generateHTPasswordSecretForLoki(ctx context.Context, cl integratedserviceadapter.Cluster) error {
 	var clusterNameSecretTag = generateClusterNameSecretTag(cl.GetName())
 	var clusterUIDSecretTag = generateClusterUIDSecretTag(cl.GetUID())
 
@@ -216,7 +216,7 @@ func (op FeatureOperator) generateHTPasswordSecretForLoki(ctx context.Context, c
 		clusterNameSecretTag,
 		clusterUIDSecretTag,
 		releaseSecretTag,
-		featureSecretTag,
+		integratedServiceSecretTag,
 		lokiSecretTag,
 	}
 
@@ -242,7 +242,7 @@ func (op FeatureOperator) generateHTPasswordSecretForLoki(ctx context.Context, c
 	return nil
 }
 
-func (op FeatureOperator) installTLSSecretsToCluster(ctx context.Context, cl integratedserviceadapter.Cluster) error {
+func (op IntegratedServiceOperator) installTLSSecretsToCluster(ctx context.Context, cl integratedserviceadapter.Cluster) error {
 
 	const kubeCaCertKey = "ca.crt"
 	const kubeTlsCertKey = "tls.crt"
@@ -270,7 +270,7 @@ func (op FeatureOperator) installTLSSecretsToCluster(ctx context.Context, cl int
 	return nil
 }
 
-func (op FeatureOperator) processLoki(ctx context.Context, spec lokiSpec, cl integratedserviceadapter.Cluster) error {
+func (op IntegratedServiceOperator) processLoki(ctx context.Context, spec lokiSpec, cl integratedserviceadapter.Cluster) error {
 	if spec.Enabled {
 		var chartName = op.config.Charts.Loki.Chart
 		var chartVersion = op.config.Charts.Loki.Version
@@ -331,7 +331,7 @@ func (op FeatureOperator) processLoki(ctx context.Context, spec lokiSpec, cl int
 	return nil
 }
 
-func (op FeatureOperator) installLokiSecret(ctx context.Context, secretName string, cl integratedserviceadapter.Cluster) error {
+func (op IntegratedServiceOperator) installLokiSecret(ctx context.Context, secretName string, cl integratedserviceadapter.Cluster) error {
 	installSecretRequest := pkgCluster.InstallSecretRequest{
 		SourceSecretName: secretName,
 		Namespace:        op.config.Namespace,
@@ -348,14 +348,14 @@ func (op FeatureOperator) installLokiSecret(ctx context.Context, secretName stri
 	return nil
 }
 
-func (op FeatureOperator) getLokiSecret(
+func (op IntegratedServiceOperator) getLokiSecret(
 	ctx context.Context,
 	ingress ingressSpec,
 	cl integratedserviceadapter.Cluster,
 ) (string, error) {
 	var secretName string
 	if ingress.SecretID == "" {
-		// get secret by name, this necessary in case of feature update
+		// get secret by name, this necessary in case of integrated service update
 		secretName = getLokiSecretName(cl.GetID())
 		existingSecretID, err := op.secretStore.GetIDByName(ctx, secretName)
 		if existingSecretID != "" {
@@ -389,7 +389,7 @@ func isSecretNotFoundError(err error) bool {
 	return false
 }
 
-func (op FeatureOperator) installSecret(ctx context.Context, cl integratedserviceadapter.Cluster, secretName string, secretRequest pkgCluster.InstallSecretRequest) (string, error) {
+func (op IntegratedServiceOperator) installSecret(ctx context.Context, cl integratedserviceadapter.Cluster, secretName string, secretRequest pkgCluster.InstallSecretRequest) (string, error) {
 	k8sSecName, err := pkgCluster.InstallSecret(cl, secretName, secretRequest)
 	if err != nil {
 		return "", errors.WrapIfWithDetails(err, "failed to install secret to the cluster", "clusterID", cl.GetID())
@@ -398,7 +398,7 @@ func (op FeatureOperator) installSecret(ctx context.Context, cl integratedservic
 	return k8sSecName, nil
 }
 
-func (op FeatureOperator) installLoggingOperator(ctx context.Context, clusterID uint) error {
+func (op IntegratedServiceOperator) installLoggingOperator(ctx context.Context, clusterID uint) error {
 	var chartValues = loggingOperatorValues{
 		Image: imageValues{
 			Repository: op.config.Images.Operator.Repository,
@@ -440,13 +440,13 @@ func mergeValuesWithConfig(chartValues interface{}, configValues interface{}) ([
 	return json.Marshal(result)
 }
 
-func (op FeatureOperator) createLoggingResource(ctx context.Context, clusterID uint, spec featureSpec) error {
+func (op IntegratedServiceOperator) createLoggingResource(ctx context.Context, clusterID uint, spec integratedServiceSpec) error {
 	var tlsEnabled = spec.Logging.TLS
 	var loggingResource = &v1beta1.Logging{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      loggingResourceName,
 			Namespace: op.config.Namespace,
-			Labels:    map[string]string{resourceLabelKey: featureName},
+			Labels:    map[string]string{resourceLabelKey: integratedServiceName},
 		},
 		Spec: v1beta1.LoggingSpec{
 			FluentbitSpec: &v1beta1.FluentbitSpec{

@@ -29,13 +29,13 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-func TestFeatureOperator_Name(t *testing.T) {
-	op := MakeFeatureOperator(nil, nil, nil, nil, nil, Config{}, nil, nil)
+func TestIntegratedServiceOperator_Name(t *testing.T) {
+	op := MakeIntegratedServicesOperator(nil, nil, nil, nil, nil, Config{}, nil, nil)
 
 	assert.Equal(t, "logging", op.Name())
 }
 
-func TestFeatureOperator_Apply(t *testing.T) {
+func TestIntegratedServiceOperator_Apply(t *testing.T) {
 	clusterID := uint(42)
 	orgID := uint(13)
 
@@ -72,15 +72,15 @@ func TestFeatureOperator_Apply(t *testing.T) {
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	kubernetesService := dummyKubernetesService{}
 	endpointService := dummyEndpointService{}
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, endpointService, Config{}, logger, secretStore)
+	op := MakeIntegratedServicesOperator(clusterGetter, clusterService, helmService, &kubernetesService, endpointService, Config{}, logger, secretStore)
 
 	cases := map[string]struct {
-		Spec    integratedservices.FeatureSpec
+		Spec    integratedservices.IntegratedServiceSpec
 		Cluster dummyCluster
 		Error   interface{}
 	}{
 		"cluster not ready": {
-			Spec: integratedservices.FeatureSpec{},
+			Spec: integratedservices.IntegratedServiceSpec{},
 			Cluster: dummyCluster{
 				OrgID:  orgID,
 				Status: pkgCluster.Creating,
@@ -91,7 +91,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 			},
 		},
 		"enable Loki": {
-			Spec: integratedservices.FeatureSpec{
+			Spec: integratedservices.IntegratedServiceSpec{
 				"loki": obj{
 					"enabled": true,
 					"ingress": obj{
@@ -133,7 +133,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 	}
 }
 
-func TestFeatureOperator_Deactivate(t *testing.T) {
+func TestIntegratedServiceOperator_Deactivate(t *testing.T) {
 	clusterID := uint(42)
 	orgID := uint(13)
 
@@ -156,7 +156,7 @@ func TestFeatureOperator_Deactivate(t *testing.T) {
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	logger := commonadapter.NewNoopLogger()
 	kubernetesService := dummyKubernetesService{}
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, endpointService, Config{}, logger, secretStore)
+	op := MakeIntegratedServicesOperator(clusterGetter, clusterService, helmService, &kubernetesService, endpointService, Config{}, logger, secretStore)
 
 	ctx := context.Background()
 

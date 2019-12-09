@@ -20,24 +20,24 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-const ClusterFeatureSetSpecActivityName = "cluster-feature-set-spec"
+const IntegratedServiceSetSpecActivityName = "integrated-service-set-spec"
 
-type ClusterFeatureSetSpecActivityInput struct {
-	ClusterID   uint
-	FeatureName string
-	Spec        map[string]interface{}
+type IntegratedServiceSetSpecActivityInput struct {
+	ClusterID             uint
+	IntegratedServiceName string
+	Spec                  map[string]interface{}
 }
 
-type ClusterFeatureSetSpecActivity struct {
-	features integratedservices.FeatureRepository
+type IntegratedServiceSetSpecActivity struct {
+	integratedServices integratedservices.IntegratedServiceRepository
 }
 
-func MakeClusterFeatureSetSpecActivity(features integratedservices.FeatureRepository) ClusterFeatureSetSpecActivity {
-	return ClusterFeatureSetSpecActivity{
-		features: features,
+func MakeIntegratedServiceSetSpecActivity(integratedServices integratedservices.IntegratedServiceRepository) IntegratedServiceSetSpecActivity {
+	return IntegratedServiceSetSpecActivity{
+		integratedServices: integratedServices,
 	}
 }
 
-func (a ClusterFeatureSetSpecActivity) Execute(ctx context.Context, input ClusterFeatureSetSpecActivityInput) error {
-	return a.features.UpdateFeatureSpec(ctx, input.ClusterID, input.FeatureName, input.Spec)
+func (a IntegratedServiceSetSpecActivity) Execute(ctx context.Context, input IntegratedServiceSetSpecActivityInput) error {
+	return a.integratedServices.UpdateIntegratedServiceSpec(ctx, input.ClusterID, input.IntegratedServiceName, input.Spec)
 }

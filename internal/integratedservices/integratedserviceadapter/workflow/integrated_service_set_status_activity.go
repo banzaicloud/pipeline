@@ -20,24 +20,24 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-const ClusterFeatureSetStatusActivityName = "cluster-feature-set-status"
+const IntegratedServiceSetStatusActivityName = "integrated-service-set-status"
 
-type ClusterFeatureSetStatusActivityInput struct {
-	ClusterID   uint
-	FeatureName string
-	Status      string
+type IntegratedServiceSetStatusActivityInput struct {
+	ClusterID             uint
+	IntegratedServiceName string
+	Status                string
 }
 
-type ClusterFeatureSetStatusActivity struct {
-	features integratedservices.FeatureRepository
+type IntegratedServiceSetStatusActivity struct {
+	integratedServices integratedservices.IntegratedServiceRepository
 }
 
-func MakeClusterFeatureSetStatusActivity(features integratedservices.FeatureRepository) ClusterFeatureSetStatusActivity {
-	return ClusterFeatureSetStatusActivity{
-		features: features,
+func MakeIntegratedServiceSetStatusActivity(integratedServices integratedservices.IntegratedServiceRepository) IntegratedServiceSetStatusActivity {
+	return IntegratedServiceSetStatusActivity{
+		integratedServices: integratedServices,
 	}
 }
 
-func (a ClusterFeatureSetStatusActivity) Execute(ctx context.Context, input ClusterFeatureSetStatusActivityInput) error {
-	return a.features.UpdateFeatureStatus(ctx, input.ClusterID, input.FeatureName, input.Status)
+func (a IntegratedServiceSetStatusActivity) Execute(ctx context.Context, input IntegratedServiceSetStatusActivityInput) error {
+	return a.integratedServices.UpdateIntegratedServiceStatus(ctx, input.ClusterID, input.IntegratedServiceName, input.Status)
 }

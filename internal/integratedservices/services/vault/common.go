@@ -15,7 +15,7 @@
 package vault
 
 const (
-	featureName             = "vault"
+	integratedServiceName   = "vault"
 	vaultWebhookReleaseName = "vault-secrets-webhook"
 	kubeSysNamespace        = "kube-system"
 	vaultAddressEnvKey      = "VAULT_ADDR"

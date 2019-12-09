@@ -30,13 +30,13 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-func TestFeatureManager_Name(t *testing.T) {
-	mng := MakeFeatureManager(nil, nil, Config{}, nil)
+func TestIntegratedServiceManager_Name(t *testing.T) {
+	mng := MakeIntegratedServiceManager(nil, nil, Config{}, nil)
 
 	assert.Equal(t, "vault", mng.Name())
 }
 
-func TestFeatureManager_GetOutput(t *testing.T) {
+func TestIntegratedServiceManager_GetOutput(t *testing.T) {
 	orgID := uint(13)
 	clusterID := uint(42)
 	clusterName := "the-cluster"
@@ -68,10 +68,10 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
-	mng := MakeFeatureManager(clusterGetter, secretStore, Config{}, nil)
+	mng := MakeIntegratedServiceManager(clusterGetter, secretStore, Config{}, nil)
 	ctx := auth.SetCurrentOrganizationID(context.Background(), orgID)
 
-	vm, err := newVaultManager(vaultFeatureSpec{}, orgID, clusterID, "TODOTOKEN")
+	vm, err := newVaultManager(vaultIntegratedServiceSpec{}, orgID, clusterID, "TODOTOKEN")
 	assert.NoError(t, err)
 
 	vVersion, err := vm.getVaultVersion()
@@ -79,7 +79,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 
 	cases := map[string]struct {
 		spec   obj
-		output integratedservices.FeatureOutput
+		output integratedservices.IntegratedServiceOutput
 	}{
 		"Pipeline Vault": {
 			spec: obj{
@@ -91,7 +91,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 					"serviceAccounts": []string{"*"},
 				},
 			},
-			output: integratedservices.FeatureOutput{
+			output: integratedservices.IntegratedServiceOutput{
 				"vault": map[string]interface{}{
 					"authMethodPath": "kubernetes-cluster/13/42",
 					"role":           "pipeline",
@@ -118,7 +118,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 					"serviceAccounts": []string{"*"},
 				},
 			},
-			output: integratedservices.FeatureOutput{
+			output: integratedservices.IntegratedServiceOutput{
 				"vault": map[string]interface{}{
 					"authMethodPath": "kubernetes-cluster/13/42",
 					"role":           "pipeline-webhook",
@@ -142,14 +142,14 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 
 }
 
-func TestFeatureManager_ValidateSpec(t *testing.T) {
+func TestIntegratedServiceManager_ValidateSpec(t *testing.T) {
 	cases := map[string]struct {
-		Spec             integratedservices.FeatureSpec
+		Spec             integratedservices.IntegratedServiceSpec
 		IsManagedEnabled bool
 		Error            interface{}
 	}{
 		"empty spec": {
-			Spec:             integratedservices.FeatureSpec{},
+			Spec:             integratedservices.IntegratedServiceSpec{},
 			IsManagedEnabled: true,
 			Error:            false,
 		},
@@ -195,7 +195,7 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			ctx := context.Background()
 
-			mng := MakeFeatureManager(nil, nil, Config{Managed: ManagedConfig{Enabled: tc.IsManagedEnabled}}, nil)
+			mng := MakeIntegratedServiceManager(nil, nil, Config{Managed: ManagedConfig{Enabled: tc.IsManagedEnabled}}, nil)
 			err := mng.ValidateSpec(ctx, tc.Spec)
 			switch tc.Error {
 			case true:

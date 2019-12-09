@@ -20,7 +20,7 @@ type outputAlertmanager struct {
 
 func newAlertmanagerOutputHelper(
 	kubeConfig []byte,
-	spec featureSpec,
+	spec integratedServiceSpec,
 ) outputAlertmanager {
 	return outputAlertmanager{
 		baseOutput: baseOutput{

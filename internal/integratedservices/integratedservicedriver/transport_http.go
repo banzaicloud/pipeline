@@ -40,36 +40,36 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, errorHandler 
 
 	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
 		endpoints.List,
-		decodeListClusterFeaturesRequest,
-		encodeListClusterFeaturesResponse,
+		decodeListIntegratedServicesRequest,
+		encodeListIntegratedServicesResponse,
 		options...,
 	))
 
 	router.Methods(http.MethodGet).Path("/{featureName}").Handler(kithttp.NewServer(
 		endpoints.Details,
-		decodeClusterFeatureDetailsRequest,
-		encodeClusterFeatureDetailsResponse,
+		decodeIntegratedServiceDetailsRequest,
+		encodeIntegratedServiceDetailsResponse,
 		options...,
 	))
 
 	router.Methods(http.MethodPost).Path("/{featureName}").Handler(kithttp.NewServer(
 		endpoints.Activate,
-		decodeActivateClusterFeatureRequest,
-		encodeActivateClusterFeatureResponse,
+		decodeActivateIntegratedServiceRequest,
+		encodeActivateIntegratedServicesResponse,
 		options...,
 	))
 
 	router.Methods(http.MethodPut).Path("/{featureName}").Handler(kithttp.NewServer(
 		endpoints.Update,
-		decodeUpdateClusterFeatureRequest,
-		encodeUpdateClusterFeatureResponse,
+		decodeUpdateIntegratedServicesRequest,
+		encodeUpdateIntegratedServiceResponse,
 		options...,
 	))
 
 	router.Methods(http.MethodDelete).Path("/{featureName}").Handler(kithttp.NewServer(
 		endpoints.Deactivate,
-		decodeDeactivateClusterFeatureRequest,
-		encodeDeactivateClusterFeatureResponse,
+		decodeDeactivateIntegratedServicesRequest,
+		encodeDeactivateIntegratedServiceResponse,
 		options...,
 	))
 }
@@ -95,7 +95,7 @@ func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 
 func isNotFoundError(err error) bool {
 	var notFound interface{ NotFound() bool }
-	return errors.As(err, &integratedservices.UnknownFeatureError{}) || integratedservices.IsFeatureNotFoundError(err) || errors.As(err, &notFound)
+	return errors.As(err, &integratedservices.UnknownIntegratedServiceError{}) || integratedservices.IsIntegratedServiceNotFoundError(err) || errors.As(err, &notFound)
 }
 
 func isBadRequestError(err error) bool {
@@ -114,25 +114,25 @@ func errorFilter(errorHandler emperror.Handler) emperror.Handler {
 	})
 }
 
-func decodeListClusterFeaturesRequest(ctx context.Context, _ *http.Request) (interface{}, error) {
+func decodeListIntegratedServicesRequest(ctx context.Context, _ *http.Request) (interface{}, error) {
 	clusterID, ok := ctxutil.ClusterID(ctx)
 	if !ok {
 		// TODO: better error handling?
 		return nil, errors.New("cluster ID not found in the context")
 	}
 
-	return ListClusterFeaturesRequest{
+	return ListIntegratedServicesRequest{
 		ClusterID: clusterID,
 	}, nil
 }
 
-func encodeListClusterFeaturesResponse(_ context.Context, w http.ResponseWriter, resp interface{}) error {
+func encodeListIntegratedServicesResponse(_ context.Context, w http.ResponseWriter, resp interface{}) error {
 	w.Header().Set("Content-Type", "application/json")
 
 	return json.NewEncoder(w).Encode(resp)
 }
 
-func decodeClusterFeatureDetailsRequest(ctx context.Context, _ *http.Request) (interface{}, error) {
+func decodeIntegratedServiceDetailsRequest(ctx context.Context, _ *http.Request) (interface{}, error) {
 	clusterID, ok := ctxutil.ClusterID(ctx)
 	if !ok {
 		// TODO: better error handling?
@@ -140,21 +140,21 @@ func decodeClusterFeatureDetailsRequest(ctx context.Context, _ *http.Request) (i
 	}
 
 	params, _ := ctxutil.Params(ctx)
-	featureName := params["featureName"]
+	integratedServiceName := params["featureName"]
 
-	return ClusterFeatureDetailsRequest{
-		ClusterID:   clusterID,
-		FeatureName: featureName,
+	return IntegratedServiceDetailsRequest{
+		ClusterID:             clusterID,
+		IntegratedServiceName: integratedServiceName,
 	}, nil
 }
 
-func encodeClusterFeatureDetailsResponse(_ context.Context, w http.ResponseWriter, resp interface{}) error {
+func encodeIntegratedServiceDetailsResponse(_ context.Context, w http.ResponseWriter, resp interface{}) error {
 	w.Header().Set("Content-Type", "application/json")
 
 	return json.NewEncoder(w).Encode(resp)
 }
 
-func decodeActivateClusterFeatureRequest(ctx context.Context, req *http.Request) (interface{}, error) {
+func decodeActivateIntegratedServiceRequest(ctx context.Context, req *http.Request) (interface{}, error) {
 	clusterID, ok := ctxutil.ClusterID(ctx)
 	if !ok {
 		// TODO: better error handling?
@@ -162,28 +162,28 @@ func decodeActivateClusterFeatureRequest(ctx context.Context, req *http.Request)
 	}
 
 	params, _ := ctxutil.Params(ctx)
-	featureName := params["featureName"]
+	integratedServiceName := params["integratedServiceName"]
 
-	var requestBody pipeline.ActivateClusterFeatureRequest
+	var requestBody pipeline.ActivateIntegratedServiceRequest
 	if err := decodeRequestBody(req, &requestBody); err != nil {
 		return nil, err
 	}
 
-	return ActivateClusterFeatureRequest{
-		ClusterID:   clusterID,
-		FeatureName: featureName,
-		Spec:        requestBody.Spec,
+	return ActivateIntegratedServiceRequest{
+		ClusterID:             clusterID,
+		IntegratedServiceName: integratedServiceName,
+		Spec:                  requestBody.Spec,
 	}, nil
 }
 
-func encodeActivateClusterFeatureResponse(_ context.Context, w http.ResponseWriter, _ interface{}) error {
+func encodeActivateIntegratedServicesResponse(_ context.Context, w http.ResponseWriter, _ interface{}) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
 
 	return nil
 }
 
-func decodeDeactivateClusterFeatureRequest(ctx context.Context, req *http.Request) (interface{}, error) {
+func decodeDeactivateIntegratedServicesRequest(ctx context.Context, req *http.Request) (interface{}, error) {
 	clusterID, ok := ctxutil.ClusterID(ctx)
 	if !ok {
 		// TODO: better error handling?
@@ -191,22 +191,22 @@ func decodeDeactivateClusterFeatureRequest(ctx context.Context, req *http.Reques
 	}
 
 	params, _ := ctxutil.Params(ctx)
-	featureName := params["featureName"]
+	integratedServiceName := params["integratedServiceName"]
 
-	return DeactivateClusterFeatureRequest{
-		ClusterID:   clusterID,
-		FeatureName: featureName,
+	return DeactivateIntegratedServiceRequest{
+		ClusterID:             clusterID,
+		IntegratedServiceName: integratedServiceName,
 	}, nil
 }
 
-func encodeDeactivateClusterFeatureResponse(_ context.Context, w http.ResponseWriter, _ interface{}) error {
+func encodeDeactivateIntegratedServiceResponse(_ context.Context, w http.ResponseWriter, _ interface{}) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNoContent)
 
 	return nil
 }
 
-func decodeUpdateClusterFeatureRequest(ctx context.Context, req *http.Request) (interface{}, error) {
+func decodeUpdateIntegratedServicesRequest(ctx context.Context, req *http.Request) (interface{}, error) {
 	clusterID, ok := ctxutil.ClusterID(ctx)
 	if !ok {
 		// TODO: better error handling?
@@ -214,22 +214,22 @@ func decodeUpdateClusterFeatureRequest(ctx context.Context, req *http.Request) (
 	}
 
 	params, _ := ctxutil.Params(ctx)
-	featureName := params["featureName"]
+	integratedServiceName := params["integratedServiceName"]
 
-	var requestBody pipeline.UpdateClusterFeatureRequest
+	var requestBody pipeline.UpdateIntegratedServiceRequest
 	if err := decodeRequestBody(req, &requestBody); err != nil {
 
 		return nil, errors.WrapIf(err, "failed to decode request body")
 	}
 
-	return UpdateClusterFeatureRequest{
-		ClusterID:   clusterID,
-		FeatureName: featureName,
-		Spec:        requestBody.Spec,
+	return UpdateIntegratedServiceRequest{
+		ClusterID:             clusterID,
+		IntegratedServiceName: integratedServiceName,
+		Spec:                  requestBody.Spec,
 	}, nil
 }
 
-func encodeUpdateClusterFeatureResponse(_ context.Context, w http.ResponseWriter, _ interface{}) error {
+func encodeUpdateIntegratedServiceResponse(_ context.Context, w http.ResponseWriter, _ interface{}) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
 

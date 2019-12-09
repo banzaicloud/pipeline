@@ -28,9 +28,9 @@ import (
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
-// FeatureManager implements the Monitoring feature manager
-type FeatureManager struct {
-	integratedservices.PassthroughFeatureSpecPreparer
+// IntegratedServiceManager implements the Monitoring integrated service manager
+type IntegratedServiceManager struct {
+	integratedservices.PassthroughIntegratedServiceSpecPreparer
 
 	clusterGetter    integratedserviceadapter.ClusterGetter
 	secretStore      services.SecretStore
@@ -40,15 +40,15 @@ type FeatureManager struct {
 	logger           common.Logger
 }
 
-func MakeFeatureManager(
+func MakeIntegratedServiceManager(
 	clusterGetter integratedserviceadapter.ClusterGetter,
 	secretStore services.SecretStore,
 	endpointsService endpoints.EndpointService,
 	helmService services.HelmService,
 	config Config,
 	logger common.Logger,
-) FeatureManager {
-	return FeatureManager{
+) IntegratedServiceManager {
+	return IntegratedServiceManager{
 		clusterGetter:    clusterGetter,
 		secretStore:      secretStore,
 		endpointsService: endpointsService,
@@ -58,18 +58,18 @@ func MakeFeatureManager(
 	}
 }
 
-// Name returns the feature's name
-func (FeatureManager) Name() string {
-	return featureName
+// Name returns the integrated service' name
+func (IntegratedServiceManager) Name() string {
+	return integratedServiceName
 }
 
-// GetOutput returns the Monitoring feature's output
-func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec integratedservices.FeatureSpec) (integratedservices.FeatureOutput, error) {
-	boundSpec, err := bindFeatureSpec(spec)
+// GetOutput returns the Monitoring integrated service'output
+func (m IntegratedServiceManager) GetOutput(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) (integratedservices.IntegratedServiceOutput, error) {
+	boundSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
-		return nil, integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     err.Error(),
+		return nil, integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 
@@ -91,7 +91,7 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec inte
 	var operatorValues = m.config.Charts.Operator.Values
 	var pushgatewayValues = m.config.Charts.Pushgateway.Values
 
-	out := integratedservices.FeatureOutput{
+	out := integratedservices.IntegratedServiceOutput{
 		"grafana":      m.getComponentOutput(ctx, clusterID, newGrafanaOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues, m.config.Images.Grafana),
 		"prometheus":   m.getComponentOutput(ctx, clusterID, newPrometheusOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues, m.config.Images.Prometheus),
 		"alertmanager": m.getComponentOutput(ctx, clusterID, newAlertmanagerOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues, m.config.Images.Alertmanager),
@@ -104,27 +104,27 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec inte
 	return out, nil
 }
 
-// ValidateSpec validates a Monitoring feature specification
-func (FeatureManager) ValidateSpec(ctx context.Context, spec integratedservices.FeatureSpec) error {
-	boundSpec, err := bindFeatureSpec(spec)
+// ValidateSpec validates a Monitoring integrated service specification
+func (IntegratedServiceManager) ValidateSpec(ctx context.Context, spec integratedservices.IntegratedServiceSpec) error {
+	boundSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
-		return integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     err.Error(),
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 
 	if err := boundSpec.Validate(); err != nil {
-		return integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     err.Error(),
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 
 	return nil
 }
 
-func (m FeatureManager) getComponentOutput(
+func (m IntegratedServiceManager) getComponentOutput(
 	ctx context.Context,
 	clusterID uint,
 	helper outputHelper,

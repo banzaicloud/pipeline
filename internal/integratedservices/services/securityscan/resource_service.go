@@ -33,29 +33,29 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/security"
 )
 
-// FeatureWhiteListService handles whitelist creation and removal
-type FeatureWhiteListService interface {
+// IntegratedServiceWhiteListService handles whitelist creation and removal
+type IntegratedServiceWhiteListService interface {
 	// EnsureReleaseWhiteList makes sure that the passed whitelist is applied to the cluster
 	EnsureReleaseWhiteList(ctx context.Context, clusterID uint, items []releaseSpec) error
 }
 
-type featureWhiteListService struct {
+type integratedServiceWhiteListService struct {
 	clusterGetter    integratedserviceadapter.ClusterGetter
 	whiteListService anchore.WhitelistService
 	logger           common.Logger
 }
 
-func NewFeatureWhitelistService(clusterGetter integratedserviceadapter.ClusterGetter, whiteListService anchore.WhitelistService, logger common.Logger) FeatureWhiteListService {
+func NewIntegratedServiceWhitelistService(clusterGetter integratedserviceadapter.ClusterGetter, whiteListService anchore.WhitelistService, logger common.Logger) IntegratedServiceWhiteListService {
 	_ = v1alpha1.AddToScheme(scheme.Scheme)
 
-	return &featureWhiteListService{
+	return &integratedServiceWhiteListService{
 		clusterGetter:    clusterGetter,
 		whiteListService: whiteListService,
 		logger:           logger,
 	}
 }
 
-func (wls *featureWhiteListService) EnsureReleaseWhiteList(ctx context.Context, clusterID uint, items []releaseSpec) error {
+func (wls *integratedServiceWhiteListService) EnsureReleaseWhiteList(ctx context.Context, clusterID uint, items []releaseSpec) error {
 	logCtx := map[string]interface{}{"clusterID": clusterID}
 	cluster, err := wls.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
@@ -107,7 +107,7 @@ func (wls *featureWhiteListService) EnsureReleaseWhiteList(ctx context.Context, 
 	return nil
 }
 
-func (wls *featureWhiteListService) removeItems(ctx context.Context, cluster integratedserviceadapter.Cluster, itemNames []string) error {
+func (wls *integratedServiceWhiteListService) removeItems(ctx context.Context, cluster integratedserviceadapter.Cluster, itemNames []string) error {
 	var collectedErrors error
 	for _, itemName := range itemNames {
 		if err := wls.whiteListService.DeleteWhitelist(ctx, cluster, itemName); err != nil {
@@ -117,7 +117,7 @@ func (wls *featureWhiteListService) removeItems(ctx context.Context, cluster int
 	return collectedErrors
 }
 
-func (wls *featureWhiteListService) installItems(ctx context.Context, cluster integratedserviceadapter.Cluster, items []releaseSpec) error {
+func (wls *integratedServiceWhiteListService) installItems(ctx context.Context, cluster integratedserviceadapter.Cluster, items []releaseSpec) error {
 	var collectedErrors error
 	for _, item := range items {
 		wlItem := security.ReleaseWhiteListItem{
@@ -134,7 +134,7 @@ func (wls *featureWhiteListService) installItems(ctx context.Context, cluster in
 	return collectedErrors
 }
 
-func (wls *featureWhiteListService) runWithBackoff(f func() error) error {
+func (wls *integratedServiceWhiteListService) runWithBackoff(f func() error) error {
 	// it may take some time until the WhiteListItem CRD is created, thus the first attempt to create
 	// a whitelist cr may fail. Retry the whitelist creation in case of failure
 	var backoffConfig = backoff.ConstantBackoffConfig{

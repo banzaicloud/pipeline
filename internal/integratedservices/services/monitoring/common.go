@@ -19,13 +19,13 @@ import (
 )
 
 const (
-	featureName                      = "monitoring"
+	integratedServiceName            = "monitoring"
 	prometheusOperatorReleaseName    = "monitor"
 	prometheusPushgatewayReleaseName = "pushgateway"
 	grafanaSecretTag                 = "app:grafana"
 	prometheusSecretTag              = "app:prometheus"
 	alertmanagerSecretTag            = "app:alertmanager"
-	featureSecretTag                 = "feature:monitoring"
+	integratedServiceSecretTag       = "feature:monitoring"
 	generatedSecretUsername          = "admin"
 	alertManagerProviderConfigName   = "default-receiver"
 	alertManagerNullReceiverName     = "null"

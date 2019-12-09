@@ -25,7 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/dns"
 )
 
-type featureSpec struct {
+type integratedServiceSpec struct {
 	Prometheus   prometheusSpec   `json:"prometheus" mapstructure:"prometheus"`
 	Grafana      grafanaSpec      `json:"grafana" mapstructure:"grafana"`
 	Exporters    exportersSpec    `json:"exporters" mapstructure:"exporters"`
@@ -98,7 +98,7 @@ type slackSpec struct {
 	SendResolved bool   `json:"sendResolved" mapstructure:"sendResolved"`
 }
 
-func (s featureSpec) Validate() error {
+func (s integratedServiceSpec) Validate() error {
 	// Prometheus validation
 	if err := s.Prometheus.Validate(); err != nil {
 		return err
@@ -269,12 +269,12 @@ func (s pagerDutySpec) Validate() error {
 	return nil
 }
 
-func bindFeatureSpec(spec integratedservices.FeatureSpec) (featureSpec, error) {
-	var boundSpec featureSpec
+func bindIntegratedServiceSpec(spec integratedservices.IntegratedServiceSpec) (integratedServiceSpec, error) {
+	var boundSpec integratedServiceSpec
 	if err := mapstructure.Decode(spec, &boundSpec); err != nil {
-		return boundSpec, integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     errors.WrapIf(err, "failed to bind feature spec").Error(),
+		return boundSpec, integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               errors.WrapIf(err, "failed to bind integrated service spec").Error(),
 		}
 	}
 	return boundSpec, nil

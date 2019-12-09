@@ -28,10 +28,10 @@ import (
 )
 
 // TODO: replace mock with in-memory implementation?
-//go:generate mockery -dir $PWD/internal/common -name SecretStore -testonly -output $PWD/internal/clusterfeature/features/securityscan -outpkg securityscan
+//go:generate mockery -dir $PWD/internal/common -name SecretStore -testonly -output $PWD/internal/integratedservices/services/securityscan -outpkg securityscan
 
 func TestCustomAnchoreConfigProvider_GetConfiguration(t *testing.T) {
-	featureRepository := integratedservices.NewInMemoryFeatureRepository(map[uint][]integratedservices.Feature{
+	integratedServiceRepository := integratedservices.NewInMemoryIntegratedServiceRepository(map[uint][]integratedservices.IntegratedService{
 		1: {
 			{
 				Name: "securityscan",
@@ -43,7 +43,7 @@ func TestCustomAnchoreConfigProvider_GetConfiguration(t *testing.T) {
 					},
 				},
 				Output: nil,
-				Status: integratedservices.FeatureStatusActive,
+				Status: integratedservices.IntegratedServiceStatusActive,
 			},
 		},
 	})
@@ -57,7 +57,7 @@ func TestCustomAnchoreConfigProvider_GetConfiguration(t *testing.T) {
 		nil,
 	)
 
-	configProvider := NewCustomAnchoreConfigProvider(featureRepository, secretStore, common.NewNoopLogger())
+	configProvider := NewCustomAnchoreConfigProvider(integratedServiceRepository, secretStore, common.NewNoopLogger())
 
 	config, err := configProvider.GetConfiguration(context.Background(), 1)
 	require.NoError(t, err)
@@ -76,20 +76,20 @@ func TestCustomAnchoreConfigProvider_GetConfiguration(t *testing.T) {
 }
 
 func TestCustomAnchoreConfigProvider_GetConfiguration_NoConfig(t *testing.T) {
-	featureRepository := integratedservices.NewInMemoryFeatureRepository(map[uint][]integratedservices.Feature{
+	integratedServiceRepository := integratedservices.NewInMemoryIntegratedServiceRepository(map[uint][]integratedservices.IntegratedService{
 		1: {
 			{
 				Name:   "securityscan",
 				Spec:   map[string]interface{}{},
 				Output: nil,
-				Status: integratedservices.FeatureStatusActive,
+				Status: integratedservices.IntegratedServiceStatusActive,
 			},
 		},
 	})
 
 	secretStore := new(SecretStore)
 
-	configProvider := NewCustomAnchoreConfigProvider(featureRepository, secretStore, common.NewNoopLogger())
+	configProvider := NewCustomAnchoreConfigProvider(integratedServiceRepository, secretStore, common.NewNoopLogger())
 
 	_, err := configProvider.GetConfiguration(context.Background(), 1)
 	require.Error(t, err)

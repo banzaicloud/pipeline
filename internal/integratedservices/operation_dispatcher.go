@@ -23,15 +23,15 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
-// NewLocalFeatureOperationDispatcher dispatches feature operations via goroutines
+// NewLocalIntegratedServiceOperationDispatcher dispatches integrated service operations via goroutines
 // This dispatcher implementation should not be used in production, only for development and testing.
-func NewLocalFeatureOperationDispatcher(
+func NewLocalIntegratedServiceOperationDispatcher(
 	jobQueueSize uint,
-	featureOperatorRegistry FeatureOperatorRegistry,
-	featureRepository FeatureRepository,
+	integratedServiceOperatorRegistry IntegratedServiceOperatorRegistry,
+	integratedServiceRepository IntegratedServiceRepository,
 	logger common.Logger,
 	results chan<- error,
-) LocalFeatureOperationDispatcher {
+) LocalIntegratedServiceOperationDispatcher {
 	if logger == nil {
 		logger = commonadapter.NewNoopLogger()
 	}
@@ -39,44 +39,44 @@ func NewLocalFeatureOperationDispatcher(
 	jobQueue := make(chan job, jobQueueSize)
 
 	jobProcessor := localJobProcessor{
-		featureOperatorRegistry: featureOperatorRegistry,
-		featureRepository:       featureRepository,
-		jobQueue:                jobQueue,
-		logger:                  logger,
-		results:                 results,
+		integratedServiceOperatorRegistry: integratedServiceOperatorRegistry,
+		integratedServiceRepository:       integratedServiceRepository,
+		jobQueue:                          jobQueue,
+		logger:                            logger,
+		results:                           results,
 	}
 
 	go jobProcessor.ProcessJobs()
 
-	return LocalFeatureOperationDispatcher{
+	return LocalIntegratedServiceOperationDispatcher{
 		jobQueue: jobQueue,
 		logger:   logger,
 	}
 }
 
-// LocalFeatureOperationDispatcher implements an FeatureOperationDispatcher using goroutines
-type LocalFeatureOperationDispatcher struct {
+// LocalIntegratedServiceOperationDispatcher implements an IntegratedServiceOperationDispatcher using goroutines
+type LocalIntegratedServiceOperationDispatcher struct {
 	jobQueue chan<- job
 	logger   common.Logger
 }
 
 // Terminate prevents the dispatcher from processing further requests
-func (d LocalFeatureOperationDispatcher) Terminate() {
+func (d LocalIntegratedServiceOperationDispatcher) Terminate() {
 	close(d.jobQueue)
 }
 
-// DispatchApply dispatches an Apply request to a feature manager asynchronously
-func (d LocalFeatureOperationDispatcher) DispatchApply(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error {
-	d.logger.Debug("starting feature spec application", map[string]interface{}{
+// DispatchApply dispatches an Apply request to a integrated service manager asynchronously
+func (d LocalIntegratedServiceOperationDispatcher) DispatchApply(ctx context.Context, clusterID uint, integratedServiceName string, spec IntegratedServiceSpec) error {
+	d.logger.Debug("starting integrated service spec application", map[string]interface{}{
 		"clusterID": clusterID,
 		"spec":      spec,
 	})
 	select {
 	case d.jobQueue <- job{
-		Operation:   operationApply,
-		ClusterID:   clusterID,
-		FeatureName: featureName,
-		Spec:        spec,
+		Operation:             operationApply,
+		ClusterID:             clusterID,
+		IntegratedServiceName: integratedServiceName,
+		Spec:                  spec,
 	}:
 		return nil
 	default:
@@ -84,16 +84,16 @@ func (d LocalFeatureOperationDispatcher) DispatchApply(ctx context.Context, clus
 	}
 }
 
-// DispatchDeactivate dispatches a Deactivate request to a feature manager asynchronously
-func (d LocalFeatureOperationDispatcher) DispatchDeactivate(ctx context.Context, clusterID uint, featureName string) error {
-	d.logger.Debug("starting feature deactivation", map[string]interface{}{
+// DispatchDeactivate dispatches a Deactivate request to a integrated service manager asynchronously
+func (d LocalIntegratedServiceOperationDispatcher) DispatchDeactivate(ctx context.Context, clusterID uint, integratedServiceName string) error {
+	d.logger.Debug("starting integrated service deactivation", map[string]interface{}{
 		"clusterID": clusterID,
 	})
 	select {
 	case d.jobQueue <- job{
-		Operation:   operationDeactivate,
-		ClusterID:   clusterID,
-		FeatureName: featureName,
+		Operation:             operationDeactivate,
+		ClusterID:             clusterID,
+		IntegratedServiceName: integratedServiceName,
 	}:
 		return nil
 	default:
@@ -102,11 +102,11 @@ func (d LocalFeatureOperationDispatcher) DispatchDeactivate(ctx context.Context,
 }
 
 type localJobProcessor struct {
-	featureOperatorRegistry FeatureOperatorRegistry
-	featureRepository       FeatureRepository
-	jobQueue                <-chan job
-	logger                  common.Logger
-	results                 chan<- error
+	integratedServiceOperatorRegistry IntegratedServiceOperatorRegistry
+	integratedServiceRepository       IntegratedServiceRepository
+	jobQueue                          <-chan job
+	logger                            common.Logger
+	results                           chan<- error
 }
 
 func (p localJobProcessor) ProcessJobs() {
@@ -125,9 +125,9 @@ func (p localJobProcessor) ProcessJobs() {
 		lastResult = p.ProcessJob(lastJob)
 		p.sendResult(lastResult)
 		if lastResult != nil {
-			logger.Debug("updating feature status")
-			if err := p.featureRepository.UpdateFeatureStatus(ctx, lastJob.ClusterID, lastJob.FeatureName, FeatureStatusError); err != nil {
-				logger.Error("failed to update feature status", map[string]interface{}{"error": err.Error()})
+			logger.Debug("updating integrated service status")
+			if err := p.integratedServiceRepository.UpdateIntegratedServiceStatus(ctx, lastJob.ClusterID, lastJob.IntegratedServiceName, IntegratedServiceStatusError); err != nil {
+				logger.Error("failed to update integrated service status", map[string]interface{}{"error": err.Error()})
 			}
 			logger.Error(lastResult.Error())
 			return
@@ -136,14 +136,14 @@ func (p localJobProcessor) ProcessJobs() {
 
 	switch lastJob.Operation {
 	case operationApply:
-		logger.Debug("updating feature status")
-		if err := p.featureRepository.UpdateFeatureStatus(ctx, lastJob.ClusterID, lastJob.FeatureName, FeatureStatusActive); err != nil {
-			logger.Error("failed to update feature status", map[string]interface{}{"error": err.Error()})
+		logger.Debug("updating integrated service status")
+		if err := p.integratedServiceRepository.UpdateIntegratedServiceStatus(ctx, lastJob.ClusterID, lastJob.IntegratedServiceName, IntegratedServiceStatusActive); err != nil {
+			logger.Error("failed to update integrated service status", map[string]interface{}{"error": err.Error()})
 		}
 	case operationDeactivate:
-		logger.Debug("deleting feature")
-		if err := p.featureRepository.DeleteFeature(ctx, lastJob.ClusterID, lastJob.FeatureName); err != nil {
-			logger.Error("failed to delete feature", map[string]interface{}{"error": err.Error()})
+		logger.Debug("deleting integrated service")
+		if err := p.integratedServiceRepository.DeleteIntegratedService(ctx, lastJob.ClusterID, lastJob.IntegratedServiceName); err != nil {
+			logger.Error("failed to delete integrated service", map[string]interface{}{"error": err.Error()})
 		}
 	}
 }
@@ -158,10 +158,10 @@ func (p localJobProcessor) ProcessJob(j job) error {
 	ctx := context.Background()
 	logger := p.logger.WithContext(ctx)
 
-	logger.Debug("retrieving feature manager")
-	featureOperator, err := p.featureOperatorRegistry.GetFeatureOperator(j.FeatureName)
+	logger.Debug("retrieving integrated service manager")
+	integratedServiceOperator, err := p.integratedServiceOperatorRegistry.GetIntegratedServiceOperator(j.IntegratedServiceName)
 	if err != nil {
-		const msg = "failed to retrieve feature operator"
+		const msg = "failed to retrieve integrated service operator"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
 	}
@@ -169,7 +169,7 @@ func (p localJobProcessor) ProcessJob(j job) error {
 	switch j.Operation {
 	case operationApply:
 		logger.Debug("executing Apply operation")
-		if err := featureOperator.Apply(ctx, j.ClusterID, j.Spec); err != nil {
+		if err := integratedServiceOperator.Apply(ctx, j.ClusterID, j.Spec); err != nil {
 			const msg = "failed to execute Apply operation"
 			logger.Debug(msg)
 			return errors.WrapIf(err, msg)
@@ -177,7 +177,7 @@ func (p localJobProcessor) ProcessJob(j job) error {
 
 	case operationDeactivate:
 		logger.Debug("executing Deactivate operation")
-		if err := featureOperator.Deactivate(ctx, j.ClusterID, j.Spec); err != nil {
+		if err := integratedServiceOperator.Deactivate(ctx, j.ClusterID, j.Spec); err != nil {
 			const msg = "failed to execute Deactivate operation"
 			logger.Debug(msg)
 			return errors.WrapIf(err, msg)
@@ -192,10 +192,10 @@ func (p localJobProcessor) ProcessJob(j job) error {
 }
 
 type job struct {
-	Operation   operation
-	ClusterID   uint
-	FeatureName string
-	Spec        FeatureSpec
+	Operation             operation
+	ClusterID             uint
+	IntegratedServiceName string
+	Spec                  IntegratedServiceSpec
 }
 
 type operation string

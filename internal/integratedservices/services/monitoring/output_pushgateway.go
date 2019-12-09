@@ -20,7 +20,7 @@ type outputPushgateway struct {
 
 func newPushgatewayOutputHelper(
 	kubeConfig []byte,
-	spec featureSpec,
+	spec integratedServiceSpec,
 ) outputPushgateway {
 	return outputPushgateway{
 		baseOutput: baseOutput{

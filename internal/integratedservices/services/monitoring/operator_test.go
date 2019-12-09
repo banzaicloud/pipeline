@@ -29,13 +29,13 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-func TestFeatureOperator_Name(t *testing.T) {
-	op := MakeFeatureOperator(nil, nil, nil, nil, Config{}, nil, nil)
+func TestIntegratedServiceOperator_Name(t *testing.T) {
+	op := MakeIntegratedServiceOperator(nil, nil, nil, nil, Config{}, nil, nil)
 
 	assert.Equal(t, "monitoring", op.Name())
 }
 
-func TestFeatureOperator_Apply(t *testing.T) {
+func TestIntegratedServiceOperator_Apply(t *testing.T) {
 	clusterID := uint(42)
 	orgID := uint(13)
 
@@ -71,7 +71,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 	logger := commonadapter.NewNoopLogger()
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	kubernetesService := dummyKubernetesService{}
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, Config{
+	op := MakeIntegratedServiceOperator(clusterGetter, clusterService, helmService, &kubernetesService, Config{
 		Charts: ChartsConfig{
 			Operator: ChartConfig{
 				Values: map[string]interface{}{},
@@ -83,12 +83,12 @@ func TestFeatureOperator_Apply(t *testing.T) {
 	}, logger, secretStore)
 
 	cases := map[string]struct {
-		Spec    integratedservices.FeatureSpec
+		Spec    integratedservices.IntegratedServiceSpec
 		Cluster dummyCluster
 		Error   interface{}
 	}{
 		"cluster not ready": {
-			Spec: integratedservices.FeatureSpec{},
+			Spec: integratedservices.IntegratedServiceSpec{},
 			Cluster: dummyCluster{
 				OrgID:  orgID,
 				Status: pkgCluster.Creating,
@@ -99,7 +99,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 			},
 		},
 		"Enabled Grafana and Alertmanager": {
-			Spec: integratedservices.FeatureSpec{
+			Spec: integratedservices.IntegratedServiceSpec{
 				"grafana": obj{
 					"enabled": true,
 					"public": obj{
@@ -143,7 +143,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 	}
 }
 
-func TestFeatureOperator_Deactivate(t *testing.T) {
+func TestIntegratedServiceOperator_Deactivate(t *testing.T) {
 	clusterID := uint(42)
 	orgID := uint(13)
 
@@ -165,7 +165,7 @@ func TestFeatureOperator_Deactivate(t *testing.T) {
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	logger := commonadapter.NewNoopLogger()
 	kubernetesService := dummyKubernetesService{}
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, Config{}, logger, secretStore)
+	op := MakeIntegratedServiceOperator(clusterGetter, clusterService, helmService, &kubernetesService, Config{}, logger, secretStore)
 
 	ctx := context.Background()
 

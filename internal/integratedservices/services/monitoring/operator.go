@@ -36,8 +36,8 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-// FeatureOperator implements the Monitoring feature operator
-type FeatureOperator struct {
+// IntegratedServiceOperator implements the Monitoring integrated service operator
+type IntegratedServiceOperator struct {
 	clusterGetter     integratedserviceadapter.ClusterGetter
 	clusterService    integratedservices.ClusterService
 	helmService       services.HelmService
@@ -48,12 +48,12 @@ type FeatureOperator struct {
 }
 
 type chartValuesManager struct {
-	operator  FeatureOperator
+	operator  IntegratedServiceOperator
 	clusterID uint
 }
 
-// MakeFeatureOperator returns a Monitoring feature operator
-func MakeFeatureOperator(
+// MakeIntegratedServiceOperator returns a Monitoring integrated service operator
+func MakeIntegratedServiceOperator(
 	clusterGetter integratedserviceadapter.ClusterGetter,
 	clusterService integratedservices.ClusterService,
 	helmService services.HelmService,
@@ -61,8 +61,8 @@ func MakeFeatureOperator(
 	config Config,
 	logger common.Logger,
 	secretStore services.SecretStore,
-) FeatureOperator {
-	return FeatureOperator{
+) IntegratedServiceOperator {
+	return IntegratedServiceOperator{
 		clusterGetter:     clusterGetter,
 		clusterService:    clusterService,
 		helmService:       helmService,
@@ -73,13 +73,13 @@ func MakeFeatureOperator(
 	}
 }
 
-// Name returns the name of the DNS feature
-func (FeatureOperator) Name() string {
-	return featureName
+// Name returns the name of the DNS integrated service
+func (IntegratedServiceOperator) Name() string {
+	return integratedServiceName
 }
 
-// Apply applies the provided specification to the cluster feature
-func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integratedservices.FeatureSpec) error {
+// Apply applies the provided specification to the integrated service
+func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
 	if err := op.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
 		return err
 	}
@@ -89,13 +89,13 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integr
 		return err
 	}
 
-	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": featureName})
+	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "integrated service": integratedServiceName})
 
-	boundSpec, err := bindFeatureSpec(spec)
+	boundSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
-		return integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     err.Error(),
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 
@@ -165,8 +165,8 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec integr
 	return nil
 }
 
-// Deactivate deactivates the cluster feature
-func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec integratedservices.FeatureSpec) error {
+// Deactivate deactivates the cluster integrated service
+func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
 	if err := op.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
 		return err
 	}
@@ -176,11 +176,11 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec i
 		return err
 	}
 
-	boundSpec, err := bindFeatureSpec(spec)
+	boundSpec, err := bindIntegratedServiceSpec(spec)
 	if err != nil {
-		return integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     err.Error(),
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               err.Error(),
 		}
 	}
 
@@ -211,7 +211,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec i
 	return nil
 }
 
-func (op FeatureOperator) installPrometheusPushGateway(
+func (op IntegratedServiceOperator) installPrometheusPushGateway(
 	ctx context.Context,
 	cluster integratedserviceadapter.Cluster,
 	spec pushgatewaySpec,
@@ -244,11 +244,11 @@ func (op FeatureOperator) installPrometheusPushGateway(
 	)
 }
 
-func (op FeatureOperator) installPrometheusOperator(
+func (op IntegratedServiceOperator) installPrometheusOperator(
 	ctx context.Context,
 	cluster integratedserviceadapter.Cluster,
 	logger common.Logger,
-	spec featureSpec,
+	spec integratedServiceSpec,
 	grafanaSecretID string,
 	prometheusSecretName string,
 	alertmanagerSecretName string,
@@ -340,7 +340,7 @@ func mergeOperatorValuesWithConfig(chartValues interface{}, configValues interfa
 	return json.Marshal(result)
 }
 
-func (op FeatureOperator) generateGrafanaSecret(
+func (op IntegratedServiceOperator) generateGrafanaSecret(
 	ctx context.Context,
 	cluster integratedserviceadapter.Cluster,
 	logger common.Logger,
@@ -380,7 +380,7 @@ func (op FeatureOperator) generateGrafanaSecret(
 	return grafanaSecretID, nil
 }
 
-func (op FeatureOperator) deleteGrafanaSecret(ctx context.Context, clusterID uint) error {
+func (op IntegratedServiceOperator) deleteGrafanaSecret(ctx context.Context, clusterID uint) error {
 	secretID, err := op.secretStore.GetIDByName(ctx, getGrafanaSecretName(clusterID))
 	if err != nil {
 		return errors.WrapIf(err, "failed to get Grafana secret")
@@ -388,7 +388,7 @@ func (op FeatureOperator) deleteGrafanaSecret(ctx context.Context, clusterID uin
 	return op.secretStore.Delete(ctx, secretID)
 }
 
-func (op FeatureOperator) deletePrometheusSecret(ctx context.Context, clusterID uint) error {
+func (op IntegratedServiceOperator) deletePrometheusSecret(ctx context.Context, clusterID uint) error {
 	secretID, err := op.secretStore.GetIDByName(ctx, getPrometheusSecretName(clusterID))
 	if err != nil {
 		return errors.WrapIf(err, "failed to get Prometheus secret")
@@ -396,7 +396,7 @@ func (op FeatureOperator) deletePrometheusSecret(ctx context.Context, clusterID 
 	return op.secretStore.Delete(ctx, secretID)
 }
 
-func (op FeatureOperator) installSecret(ctx context.Context, clusterID uint, secretName string, secretRequest pkgCluster.InstallSecretRequest) (string, error) {
+func (op IntegratedServiceOperator) installSecret(ctx context.Context, clusterID uint, secretName string, secretRequest pkgCluster.InstallSecretRequest) (string, error) {
 	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 		return "", errors.WrapIfWithDetails(err, "failed to get cluster", "clusterID", clusterID)
@@ -410,10 +410,10 @@ func (op FeatureOperator) installSecret(ctx context.Context, clusterID uint, sec
 	return k8sSecName, nil
 }
 
-func (op FeatureOperator) getGrafanaSecret(
+func (op IntegratedServiceOperator) getGrafanaSecret(
 	ctx context.Context,
 	cluster integratedserviceadapter.Cluster,
-	spec featureSpec,
+	spec integratedServiceSpec,
 	logger common.Logger,
 ) (string, error) {
 	var secretID = spec.Grafana.SecretId
@@ -437,7 +437,7 @@ func (op FeatureOperator) getGrafanaSecret(
 	return secretID, nil
 }
 
-func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
+func (op IntegratedServiceOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
 	if _, ok := auth.GetCurrentOrganizationID(ctx); !ok {
 		cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 		if err != nil {
@@ -448,7 +448,7 @@ func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID ui
 	return ctx, nil
 }
 
-func (op FeatureOperator) generateAlertManagerProvidersConfig(ctx context.Context, spec map[string]interface{}) (*configValues, error) {
+func (op IntegratedServiceOperator) generateAlertManagerProvidersConfig(ctx context.Context, spec map[string]interface{}) (*configValues, error) {
 	var err error
 	var hasProvider bool
 
@@ -511,7 +511,7 @@ func (op FeatureOperator) generateAlertManagerProvidersConfig(ctx context.Contex
 	return result, nil
 }
 
-func (op FeatureOperator) generateSlackConfig(ctx context.Context, config slackSpec) ([]slackConfigValues, error) {
+func (op IntegratedServiceOperator) generateSlackConfig(ctx context.Context, config slackSpec) ([]slackConfigValues, error) {
 	if config.Enabled {
 		slackSecret, err := op.secretStore.GetSecretValues(ctx, config.SecretID)
 		if err != nil {
@@ -530,7 +530,7 @@ func (op FeatureOperator) generateSlackConfig(ctx context.Context, config slackS
 	return nil, nil
 }
 
-func (op FeatureOperator) generatePagerdutyConfig(ctx context.Context, config pagerDutySpec) ([]pagerdutyConfigValues, error) {
+func (op IntegratedServiceOperator) generatePagerdutyConfig(ctx context.Context, config pagerDutySpec) ([]pagerdutyConfigValues, error) {
 	if config.Enabled {
 		pdSecret, err := op.secretStore.GetSecretValues(ctx, config.SecretID)
 		if err != nil {
@@ -726,7 +726,7 @@ func (m chartValuesManager) generateNodeExporterChartValues(spec exporterBaseSpe
 	}
 }
 
-func (op FeatureOperator) getDefaultStorageClassName(ctx context.Context, clusterID uint) (string, error) {
+func (op IntegratedServiceOperator) getDefaultStorageClassName(ctx context.Context, clusterID uint) (string, error) {
 	var storageClass v1beta1.StorageClassList
 	if err := op.kubernetesService.List(ctx, clusterID, nil, &storageClass); err != nil {
 		return "", errors.WrapIf(err, "failed to list storage classes")

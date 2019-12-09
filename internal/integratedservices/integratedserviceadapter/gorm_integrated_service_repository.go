@@ -31,21 +31,21 @@ import (
 
 // TableName constants
 const (
-	clusterFeatureTableName = "cluster_features"
+	integratedServiceTableName = "cluster_features"
 )
 
-type featureSpec map[string]interface{}
+type integratedServiceSpec map[string]interface{}
 
-func (fs *featureSpec) Scan(src interface{}) error {
+func (fs *integratedServiceSpec) Scan(src interface{}) error {
 	return json.Scan(src, fs)
 }
 
-func (fs featureSpec) Value() (driver.Value, error) {
+func (fs integratedServiceSpec) Value() (driver.Value, error) {
 	return json.Value(fs)
 }
 
-// clusterFeatureModel describes the cluster group model.
-type clusterFeatureModel struct {
+// integratedServiceModel describes the cluster group model.
+type integratedServiceModel struct {
 	// injecting timestamp fields
 	ID        uint `gorm:"primary_key"`
 	CreatedAt time.Time
@@ -53,122 +53,122 @@ type clusterFeatureModel struct {
 
 	Name      string `gorm:"unique_index:idx_cluster_feature_cluster_id_name"`
 	Status    string
-	ClusterId uint        `gorm:"unique_index:idx_cluster_feature_cluster_id_name"`
-	Spec      featureSpec `gorm:"type:text"`
+	ClusterId uint                  `gorm:"unique_index:idx_cluster_feature_cluster_id_name"`
+	Spec      integratedServiceSpec `gorm:"type:text"`
 	CreatedBy uint
 }
 
 // TableName changes the default table name.
-func (cfm clusterFeatureModel) TableName() string {
-	return clusterFeatureTableName
+func (cfm integratedServiceModel) TableName() string {
+	return integratedServiceTableName
 }
 
 // String method prints formatted cluster fields.
-func (cfm clusterFeatureModel) String() string {
+func (cfm integratedServiceModel) String() string {
 	return fmt.Sprintf("Id: %d, Creation date: %s, Name: %s", cfm.ID, cfm.CreatedAt, cfm.Name)
 }
 
-// GORMFeatureRepository implements feature persistence in RDBMS using GORM.
+// GORMIntegratedServiceRepository implements integrated service persistence in RDBMS using GORM.
 // TODO: write integration tests
-type GORMFeatureRepository struct {
+type GORMIntegratedServiceRepository struct {
 	db     *gorm.DB
 	logger common.Logger
 }
 
-// NewGormFeatureRepository returns a feature repository persisting feature state into database using GORM.
-func NewGormFeatureRepository(db *gorm.DB, logger common.Logger) GORMFeatureRepository {
-	return GORMFeatureRepository{
+// NewGormIntegratedServiceRepository returns an integrated service repository persisting integrated service state into database using GORM.
+func NewGormIntegratedServiceRepository(db *gorm.DB, logger common.Logger) GORMIntegratedServiceRepository {
+	return GORMIntegratedServiceRepository{
 		db:     db,
 		logger: logger,
 	}
 }
 
-// GetFeatures returns features stored in the repository for the specified cluster.
-func (r GORMFeatureRepository) GetFeatures(ctx context.Context, clusterID uint) ([]integratedservices.Feature, error) {
+// GetIntegratedServices returns integrated services stored in the repository for the specified cluster.
+func (r GORMIntegratedServiceRepository) GetIntegratedServices(ctx context.Context, clusterID uint) ([]integratedservices.IntegratedService, error) {
 	logger := logur.WithFields(r.logger, map[string]interface{}{"clusterID": clusterID})
-	logger.Info("retrieving features for cluster")
+	logger.Info("retrieving integrated services for cluster")
 
 	var (
-		featureModels []clusterFeatureModel
-		featureList   []integratedservices.Feature
+		integratedServiceModels []integratedServiceModel
+		integratedServiceList   []integratedservices.IntegratedService
 	)
 
-	if err := r.db.Find(&featureModels, clusterFeatureModel{ClusterId: clusterID}).Error; err != nil {
-		logger.Debug("could not retrieve features")
+	if err := r.db.Find(&integratedServiceModels, integratedServiceModel{ClusterId: clusterID}).Error; err != nil {
+		logger.Debug("could not retrieve integrated services")
 
-		return nil, errors.WrapIfWithDetails(err, "could not retrieve features", "clusterID", clusterID)
+		return nil, errors.WrapIfWithDetails(err, "could not retrieve integrated services", "clusterID", clusterID)
 	}
 
 	// model  --> domain
-	for _, feature := range featureModels {
-		f, e := r.modelToFeature(feature)
+	for _, integratedService := range integratedServiceModels {
+		f, e := r.modelToIntegratedService(integratedService)
 		if e != nil {
-			logger.Debug("failed to convert model to feature")
+			logger.Debug("failed to convert model to integrated service")
 			continue
 		}
 
-		featureList = append(featureList, f)
+		integratedServiceList = append(integratedServiceList, f)
 	}
 
-	logger.Info("features list for cluster retrieved")
+	logger.Info("integrated services list for cluster retrieved")
 
-	return featureList, nil
+	return integratedServiceList, nil
 }
 
-// SaveFeature persists a feature with the specified properties in the database.
-func (r GORMFeatureRepository) SaveFeature(ctx context.Context, clusterID uint, featureName string, spec integratedservices.FeatureSpec, status string) error {
-	model := clusterFeatureModel{
+// SaveIntegratedService persists an integrated service with the specified properties in the database.
+func (r GORMIntegratedServiceRepository) SaveIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string, spec integratedservices.IntegratedServiceSpec, status string) error {
+	model := integratedServiceModel{
 		ClusterId: clusterID,
-		Name:      featureName,
+		Name:      integratedServiceName,
 	}
 
 	if err := r.db.Where(&model).First(&model).Error; err != nil && !gorm.IsRecordNotFoundError(err) {
-		return errors.WrapIfWithDetails(err, "failed to query feature", "clusterId", clusterID, "feature", featureName)
+		return errors.WrapIfWithDetails(err, "failed to query integrated service", "clusterId", clusterID, "integrated service", integratedServiceName)
 	}
 	model.Spec = spec
 	model.Status = status
-	return errors.WrapIfWithDetails(r.db.Save(&model).Error, "failed to save feature", "clusterId", clusterID, "feature", featureName)
+	return errors.WrapIfWithDetails(r.db.Save(&model).Error, "failed to save integrated service", "clusterId", clusterID, "integrated service", integratedServiceName)
 }
 
-// GetFeature retrieves a feature by the cluster ID and feature name.
-// It returns a "feature not found" error if the feature is not in the database.
-func (r GORMFeatureRepository) GetFeature(ctx context.Context, clusterID uint, featureName string) (integratedservices.Feature, error) {
-	fm := clusterFeatureModel{}
+// GetIntegratedService retrieves an integrated service by the cluster ID and integrated service name.
+// It returns a "integrated service not found" error if the integrated service is not in the database.
+func (r GORMIntegratedServiceRepository) GetIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string) (integratedservices.IntegratedService, error) {
+	fm := integratedServiceModel{}
 
-	err := r.db.First(&fm, clusterFeatureModel{Name: featureName, ClusterId: clusterID}).Error
+	err := r.db.First(&fm, integratedServiceModel{Name: integratedServiceName, ClusterId: clusterID}).Error
 
 	if gorm.IsRecordNotFoundError(err) {
-		return integratedservices.Feature{}, featureNotFoundError{
-			ClusterID:   clusterID,
-			FeatureName: featureName,
+		return integratedservices.IntegratedService{}, integratedServiceNotFoundError{
+			ClusterID:             clusterID,
+			IntegratedServiceName: integratedServiceName,
 		}
 	} else if err != nil {
-		return integratedservices.Feature{}, errors.WrapIf(err, "could not retrieve feature")
+		return integratedservices.IntegratedService{}, errors.WrapIf(err, "could not retrieve integrated service")
 	}
 
-	return r.modelToFeature(fm)
+	return r.modelToIntegratedService(fm)
 }
 
-// UpdateFeatureStatus sets the status of the specified feature
-func (r GORMFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterID uint, featureName string, status string) error {
-	fm := clusterFeatureModel{
+// UpdateIntegratedServiceStatus sets the status of the specified integrated service
+func (r GORMIntegratedServiceRepository) UpdateIntegratedServiceStatus(ctx context.Context, clusterID uint, integratedServiceName string, status string) error {
+	fm := integratedServiceModel{
 		ClusterId: clusterID,
-		Name:      featureName,
+		Name:      integratedServiceName,
 	}
 
-	return errors.WrapIf(r.db.Find(&fm, fm).Updates(clusterFeatureModel{Status: status}).Error, "could not update feature status")
+	return errors.WrapIf(r.db.Find(&fm, fm).Updates(integratedServiceModel{Status: status}).Error, "could not update integrated service status")
 }
 
-// UpdateFeatureSpec sets the specification of the specified feature
-func (r GORMFeatureRepository) UpdateFeatureSpec(ctx context.Context, clusterID uint, featureName string, spec integratedservices.FeatureSpec) error {
+// UpdateIntegratedServiceSpec sets the specification of the specified integrated service
+func (r GORMIntegratedServiceRepository) UpdateIntegratedServiceSpec(ctx context.Context, clusterID uint, integratedServiceName string, spec integratedservices.IntegratedServiceSpec) error {
 
-	fm := clusterFeatureModel{ClusterId: clusterID, Name: featureName}
+	fm := integratedServiceModel{ClusterId: clusterID, Name: integratedServiceName}
 
-	return errors.WrapIf(r.db.Find(&fm, fm).Updates(clusterFeatureModel{Spec: spec}).Error, "could not update feature spec")
+	return errors.WrapIf(r.db.Find(&fm, fm).Updates(integratedServiceModel{Spec: spec}).Error, "could not update integrated service spec")
 }
 
-func (r GORMFeatureRepository) modelToFeature(cfm clusterFeatureModel) (integratedservices.Feature, error) {
-	f := integratedservices.Feature{
+func (r GORMIntegratedServiceRepository) modelToIntegratedService(cfm integratedServiceModel) (integratedservices.IntegratedService, error) {
+	f := integratedservices.IntegratedService{
 		Name:   cfm.Name,
 		Status: cfm.Status,
 		Spec:   cfm.Spec,
@@ -177,10 +177,10 @@ func (r GORMFeatureRepository) modelToFeature(cfm clusterFeatureModel) (integrat
 	return f, nil
 }
 
-// DeleteFeature permanently deletes the feature record
-func (r GORMFeatureRepository) DeleteFeature(ctx context.Context, clusterID uint, featureName string) error {
+// DeleteIntegratedService permanently deletes the integrated service record
+func (r GORMIntegratedServiceRepository) DeleteIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string) error {
 
-	fm := clusterFeatureModel{ClusterId: clusterID, Name: featureName}
+	fm := integratedServiceModel{ClusterId: clusterID, Name: integratedServiceName}
 
 	if err := r.db.Delete(&fm, fm).Error; err != nil {
 
@@ -191,22 +191,22 @@ func (r GORMFeatureRepository) DeleteFeature(ctx context.Context, clusterID uint
 
 }
 
-type featureNotFoundError struct {
-	ClusterID   uint
-	FeatureName string
+type integratedServiceNotFoundError struct {
+	ClusterID             uint
+	IntegratedServiceName string
 }
 
-func (e featureNotFoundError) Error() string {
-	return fmt.Sprintf("Feature %q not found for cluster %d", e.FeatureName, e.ClusterID)
+func (e integratedServiceNotFoundError) Error() string {
+	return fmt.Sprintf("IntegratedService %q not found for cluster %d", e.IntegratedServiceName, e.ClusterID)
 }
 
-func (e featureNotFoundError) Details() []interface{} {
+func (e integratedServiceNotFoundError) Details() []interface{} {
 	return []interface{}{
 		"clusterId", e.ClusterID,
-		"feature", e.FeatureName,
+		"integrated service", e.IntegratedServiceName,
 	}
 }
 
-func (featureNotFoundError) FeatureNotFound() bool {
+func (integratedServiceNotFoundError) IntegratedServiceNotFound() bool {
 	return true
 }

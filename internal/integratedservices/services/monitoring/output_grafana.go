@@ -20,7 +20,7 @@ type outputGrafana struct {
 
 func newGrafanaOutputHelper(
 	k8sConfig []byte,
-	spec featureSpec,
+	spec integratedServiceSpec,
 ) outputGrafana {
 	return outputGrafana{
 		baseOutput: baseOutput{

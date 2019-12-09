@@ -24,7 +24,7 @@ import (
 // Migrate executes the table migrations for the cluster module.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
-		&clusterFeatureModel{},
+		&integratedServiceModel{},
 	}
 
 	var tableNames string

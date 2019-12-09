@@ -31,13 +31,13 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-func TestFeatureOperator_Name(t *testing.T) {
-	op := MakeFeatureOperator(nil, nil, nil, nil, nil, nil, Config{})
+func TestIntegratedServiceOperator_Name(t *testing.T) {
+	op := MakeIntegratedServiceOperator(nil, nil, nil, nil, nil, nil, Config{})
 
 	assert.Equal(t, "dns", op.Name())
 }
 
-func TestFeatureOperator_Apply(t *testing.T) {
+func TestIntegratedServiceOperator_Apply(t *testing.T) {
 	clusterID := uint(42)
 	orgID := uint(13)
 	providerSecretName := "route53-secret"
@@ -80,15 +80,15 @@ func TestFeatureOperator_Apply(t *testing.T) {
 		OrgID:  orgID,
 	}
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, secretStore, Config{})
+	op := MakeIntegratedServiceOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, secretStore, Config{})
 
 	cases := map[string]struct {
-		Spec    integratedservices.FeatureSpec
+		Spec    integratedservices.IntegratedServiceSpec
 		Cluster dummyCluster
 		Error   interface{}
 	}{
 		"cluster ready": {
-			Spec: integratedservices.FeatureSpec{
+			Spec: integratedservices.IntegratedServiceSpec{
 				"clusterDomain": "cluster.org.the.domain",
 				"externalDns": obj{
 					"domainFilters": arr{
@@ -111,7 +111,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 			},
 		},
 		"cluster not ready": {
-			Spec: integratedservices.FeatureSpec{
+			Spec: integratedservices.IntegratedServiceSpec{
 				"clusterDomain": "cluster.org.the.domain",
 				"externalDns": obj{
 					"domainFilters": arr{
@@ -137,7 +137,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 			},
 		},
 		"cluster ready, spec with BRN": {
-			Spec: integratedservices.FeatureSpec{
+			Spec: integratedservices.IntegratedServiceSpec{
 				"clusterDomain": "cluster.org.the.domain",
 				"externalDns": obj{
 					"domainFilters": arr{
@@ -183,7 +183,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 	}
 }
 
-func TestFeatureOperator_Deactivate(t *testing.T) {
+func TestIntegratedServiceOperator_Deactivate(t *testing.T) {
 	clusterID := uint(42)
 
 	clusterGetter := dummyClusterGetter{
@@ -196,7 +196,7 @@ func TestFeatureOperator_Deactivate(t *testing.T) {
 	clusterService := integratedserviceadapter.NewClusterService(clusterGetter)
 	helmService := dummyHelmService{}
 	logger := commonadapter.NewNoopLogger()
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, nil, nil, Config{})
+	op := MakeIntegratedServiceOperator(clusterGetter, clusterService, helmService, logger, nil, nil, Config{})
 
 	ctx := context.Background()
 

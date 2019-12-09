@@ -23,7 +23,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-type vaultFeatureSpec struct {
+type vaultIntegratedServiceSpec struct {
 	CustomVault CustomVault `json:"customVault" mapstructure:"customVault"`
 	Settings    Settings    `json:"settings" mapstructure:"settings"`
 }
@@ -40,19 +40,19 @@ type Settings struct {
 	ServiceAccounts []string `json:"serviceAccounts" mapstructure:"serviceAccounts"`
 }
 
-func bindFeatureSpec(spec integratedservices.FeatureSpec) (vaultFeatureSpec, error) {
-	var featureSpec vaultFeatureSpec
-	if err := mapstructure.Decode(spec, &featureSpec); err != nil {
-		return featureSpec, integratedservices.InvalidFeatureSpecError{
-			FeatureName: featureName,
-			Problem:     "failed to bind feature spec",
+func bindIntegratedServiceSpec(spec integratedservices.IntegratedServiceSpec) (vaultIntegratedServiceSpec, error) {
+	var integratedServiceSpec vaultIntegratedServiceSpec
+	if err := mapstructure.Decode(spec, &integratedServiceSpec); err != nil {
+		return integratedServiceSpec, integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               "failed to bind integrated service spec",
 		}
 	}
 
-	return featureSpec, nil
+	return integratedServiceSpec, nil
 }
 
-func (s *vaultFeatureSpec) Validate() error {
+func (s *vaultIntegratedServiceSpec) Validate() error {
 	if s.CustomVault.Enabled {
 
 		// address is required in case of custom vault
@@ -74,7 +74,7 @@ func (s *vaultFeatureSpec) Validate() error {
 	return nil
 }
 
-func (s *vaultFeatureSpec) getVaultAddress() (vaultAddress string) {
+func (s *vaultIntegratedServiceSpec) getVaultAddress() (vaultAddress string) {
 	if s.CustomVault.Enabled {
 		vaultAddress = s.CustomVault.Address
 	} else {

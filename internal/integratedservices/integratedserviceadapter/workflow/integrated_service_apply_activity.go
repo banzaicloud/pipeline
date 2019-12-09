@@ -21,27 +21,27 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-const ClusterFeatureApplyActivityName = "cluster-feature-apply"
+const IntegratedServiceApplyActivityName = "integrated-service-apply"
 
-type ClusterFeatureApplyActivityInput struct {
-	ClusterID     uint
-	FeatureName   string
-	FeatureSpec   integratedservices.FeatureSpec
-	RetryInterval time.Duration
+type IntegratedServiceApplyActivityInput struct {
+	ClusterID             uint
+	IntegratedServiceName string
+	IntegratedServiceSpec integratedservices.IntegratedServiceSpec
+	RetryInterval         time.Duration
 }
 
-type ClusterFeatureApplyActivity struct {
-	features integratedservices.FeatureOperatorRegistry
+type IntegratedServiceApplyActivity struct {
+	integratedServices integratedservices.IntegratedServiceOperatorRegistry
 }
 
-func MakeClusterFeatureApplyActivity(features integratedservices.FeatureOperatorRegistry) ClusterFeatureApplyActivity {
-	return ClusterFeatureApplyActivity{
-		features: features,
+func MakeIntegratedServicesApplyActivity(integratedServices integratedservices.IntegratedServiceOperatorRegistry) IntegratedServiceApplyActivity {
+	return IntegratedServiceApplyActivity{
+		integratedServices: integratedServices,
 	}
 }
 
-func (a ClusterFeatureApplyActivity) Execute(ctx context.Context, input ClusterFeatureApplyActivityInput) error {
-	f, err := a.features.GetFeatureOperator(input.FeatureName)
+func (a IntegratedServiceApplyActivity) Execute(ctx context.Context, input IntegratedServiceApplyActivityInput) error {
+	f, err := a.integratedServices.GetIntegratedServiceOperator(input.IntegratedServiceName)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (a ClusterFeatureApplyActivity) Execute(ctx context.Context, input ClusterF
 	defer heartbeat.Stop()
 
 	for {
-		if err := f.Apply(ctx, input.ClusterID, input.FeatureSpec); err != nil {
+		if err := f.Apply(ctx, input.ClusterID, input.IntegratedServiceSpec); err != nil {
 			if shouldRetry(err) {
 				if err := wait(ctx, input.RetryInterval); err != nil {
 					return err

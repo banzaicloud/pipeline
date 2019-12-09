@@ -20,7 +20,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/validation"
 )
 
-// Config contains configuration for the dns feature.
+// Config contains configuration for the dns integrated service.
 type Config struct {
 	Namespace  string
 	BaseDomain string

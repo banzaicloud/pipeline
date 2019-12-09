@@ -23,21 +23,21 @@ import (
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 )
 
-// FeatureAnchoreService decouples anchore related operations
-type FeatureAnchoreService interface {
+// IntegratedServiceAnchoreService decouples anchore related operations
+type IntegratedServiceAnchoreService interface {
 	GenerateUser(ctx context.Context, orgID uint, clusterID uint) (string, error)
 
 	// Deletes a previously generated user from the anchore
 	DeleteUser(ctx context.Context, orgID uint, clusterID uint) error
 }
 
-// anchoreService basic implementer of the FeatureAnchoreService
+// anchoreService basic implementer of the IntegratedServiceAnchoreService
 type anchoreService struct {
 	anchoreUserService anchore.AnchoreUserService
 	logger             common.Logger
 }
 
-func NewFeatureAnchoreService(anchoreUserService anchore.AnchoreUserService, logger common.Logger) FeatureAnchoreService {
+func NewIntegratedServiceAnchoreService(anchoreUserService anchore.AnchoreUserService, logger common.Logger) IntegratedServiceAnchoreService {
 	return anchoreService{
 		anchoreUserService: anchoreUserService,
 		logger:             logger,
