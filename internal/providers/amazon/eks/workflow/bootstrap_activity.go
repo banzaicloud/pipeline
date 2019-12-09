@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"strings"
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver"
@@ -124,7 +125,7 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 		ObjectMeta: metav1.ObjectMeta{Name: "aws-auth"},
 		Data: map[string]string{
 			"mapRoles": fmt.Sprintf(mapRolesTemplate, input.NodeInstanceRoleArn),
-			"mapUsers": fmt.Sprintf(mapUsersTemplate, input.ClusterUserArn, input.ClusterUserArn),
+			"mapUsers": fmt.Sprintf(mapUsersTemplate, input.ClusterUserArn, userNameFromArn(input.ClusterUserArn)),
 		},
 	}
 
@@ -213,4 +214,10 @@ func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provision
 	}
 
 	return nil
+}
+
+func userNameFromArn(arn string) string {
+	idx := strings.LastIndex(arn, "/")
+
+	return arn[idx+1:]
 }
