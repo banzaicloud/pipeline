@@ -138,3 +138,22 @@ func (s *Service) List(ctx context.Context, clusterID uint, labels map[string]st
 		LabelSelector: k8slabels.SelectorFromSet(labels),
 	}, obj)
 }
+
+// Update updates a given Object on the cluster and returns it.
+func (s *Service) Update(ctx context.Context, clusterID uint, o runtime.Object) error {
+	kubeClient, err := s.newClientForCluster(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to create Kubernetes client")
+	}
+
+	if err := kubeClient.Update(ctx, o); err != nil {
+		return errors.WrapIf(err, "failed to update Object")
+	}
+
+	objectKey, err := client.ObjectKeyFromObject(o)
+	if err != nil {
+		return errors.WrapIf(err, "failed to create ObjectKey")
+	}
+
+	return kubeClient.Get(ctx, objectKey, o)
+}
