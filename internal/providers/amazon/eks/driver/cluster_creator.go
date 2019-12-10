@@ -66,6 +66,18 @@ type clusterRepository interface {
 	Exists(organizationID uint, name string) (bool, error)
 }
 
+type invalidError struct {
+	err error
+}
+
+func (e *invalidError) Error() string {
+	return e.err.Error()
+}
+
+func (invalidError) IsInvalid() bool {
+	return true
+}
+
 func NewEksClusterCreator(logger logrus.FieldLogger,
 	workflowClient client.Client,
 	cloudInfoClient *cloudinfo.Client,
@@ -486,7 +498,7 @@ func (c *EksClusterCreator) CreateCluster(ctx context.Context, commonCluster clu
 	}
 
 	if err := c.validate(createRequest, commonCluster); err != nil {
-		return nil, errors.New("validation failed")
+		return nil, errors.Wrap(&invalidError{err}, "validation failed")
 	}
 
 	if err := commonCluster.Persist(); err != nil {
