@@ -321,6 +321,13 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 		"k8s.io",
 		"kubernetes.io",
 		"google.com",
+		"coreos.com",
+		"oraclecloud.com",
+		"node.info",
+		"azure.com",
+		"agentpool",
+		"storageprofile",
+		"storagetier",
 	})
 	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::chart", "banzaicloud-stable/nodepool-labels-operator")
 	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::version", "0.0.3")
