@@ -40,15 +40,23 @@ type EksClusterUpdater struct {
 	workflowClient client.Client
 }
 
-type commonUpdateValidationError struct {
+type updateValidationError struct {
 	msg string
 
 	invalidRequest     bool
 	preconditionFailed bool
 }
 
-func (e *commonUpdateValidationError) Error() string {
+func (e *updateValidationError) Error() string {
 	return e.msg
+}
+
+func (e *updateValidationError) IsInvalid() bool {
+	return e.invalidRequest
+}
+
+func (e *updateValidationError) IsPreconditionFailed() bool {
+	return e.preconditionFailed
 }
 
 func NewEksClusterUpdater(logger logrus.FieldLogger, workflowClient client.Client) EksClusterUpdater {
@@ -156,7 +164,7 @@ func (c *EksClusterUpdater) validate(ctx context.Context, eksCluster *cluster.EK
 
 	if status.Status != pkgCluster.Running && status.Status != pkgCluster.Warning {
 		return errors.WithDetails(
-			&commonUpdateValidationError{
+			&updateValidationError{
 				msg:                fmt.Sprintf("Cluster is not in %s or %s state yet", pkgCluster.Running, pkgCluster.Warning),
 				preconditionFailed: true,
 			},
@@ -184,7 +192,7 @@ func (c *EksClusterUpdater) prepare(ctx context.Context, eksCluster *cluster.EKS
 	if err := eksCluster.CheckEqualityToUpdate(request); err != nil {
 		clusterPropertiesChanged = false
 		if !scaleOptionsChanged && !ttlChanged {
-			return &commonUpdateValidationError{
+			return &updateValidationError{
 				msg:            err.Error(),
 				invalidRequest: true,
 			}
@@ -196,7 +204,7 @@ func (c *EksClusterUpdater) prepare(ctx context.Context, eksCluster *cluster.EKS
 	}
 
 	if err := request.Validate(); err != nil {
-		return &commonUpdateValidationError{
+		return &updateValidationError{
 			msg:            err.Error(),
 			invalidRequest: true,
 		}
@@ -236,8 +244,11 @@ func (c *EksClusterUpdater) update(ctx context.Context, eksCluster *cluster.EKSC
 			}
 			// we don't want to override existing labels in case of node pools to be updated
 			noReturnIfNoUserLabels := np.ID != 0
-			nodePoolLabelMap[np.Name] = cluster.GetDesiredLabelsForNodePool(logger, np.Name, nodePoolStatus,
+			labelsMap := cluster.GetDesiredLabelsForNodePool(logger, np.Name, nodePoolStatus,
 				noReturnIfNoUserLabels, eksCluster.GetCloud(), eksCluster.GetDistribution(), eksCluster.GetLocation())
+			if len(labelsMap) > 0 {
+				nodePoolLabelMap[np.Name] = labelsMap
+			}
 		}
 
 	}
