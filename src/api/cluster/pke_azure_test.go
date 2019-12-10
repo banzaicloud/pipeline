@@ -86,12 +86,12 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 	var conversionTest = []struct {
 		Name string
 		in   CreatePKEOnAzureClusterRequest
-		out  driver.AzurePKEClusterCreationParams
+		out  driver.ClusterCreationParams
 	}{
 		{
 			Name: "EmptyRequest",
 			in:   CreatePKEOnAzureClusterRequest{},
-			out: driver.AzurePKEClusterCreationParams{
+			out: driver.ClusterCreationParams{
 				OrganizationID: orgID,
 				CreatedBy:      userID,
 				NodePools:      []driver.NodePool{},
@@ -119,7 +119,7 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 				AccessPoints:          []string{"private", "public"},
 				ApiServerAccessPoints: []string{"private", "public"},
 			},
-			out: driver.AzurePKEClusterCreationParams{
+			out: driver.ClusterCreationParams{
 				CreatedBy: userID,
 				Kubernetes: pke.Kubernetes{
 					Version: Version,

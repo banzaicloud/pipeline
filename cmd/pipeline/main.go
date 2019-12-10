@@ -387,9 +387,9 @@ func main() {
 
 	cloudInfoClient := cloudinfo.NewClient(config.Cloudinfo.Endpoint, logrusLogger)
 
-	gormAzurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db, commonLogger)
+	azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonLogger)
 	clusterCreators := api.ClusterCreators{
-		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterCreator(
+		PKEOnAzure: azurePKEDriver.MakeClusterCreator(
 			azurePKEDriver.ClusterCreatorConfig{
 				OIDCIssuerURL:               config.Auth.OIDC.Issuer,
 				PipelineExternalURL:         externalBaseURL,
@@ -398,18 +398,18 @@ func main() {
 			logrusLogger,
 			authdriver.NewOrganizationGetter(db),
 			secret.Store,
-			gormAzurePKEClusterStore,
+			azurePKEClusterStore,
 			workflowClient,
 		),
 	}
 	clusterDeleters := api.ClusterDeleters{
-		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterDeleter(
+		PKEOnAzure: azurePKEDriver.MakeClusterDeleter(
 			clusterEvents,
 			clusterManager.GetKubeProxyCache(),
 			logrusLogger,
 			secret.Store,
 			statusChangeDurationMetric,
-			gormAzurePKEClusterStore,
+			azurePKEClusterStore,
 			workflowClient,
 		),
 	}
@@ -423,12 +423,12 @@ func main() {
 	clusterGroupManager.RegisterFeatureHandler(deployment.FeatureName, deploymentManager)
 	clusterGroupManager.RegisterFeatureHandler(cgFeatureIstio.FeatureName, serviceMeshFeatureHandler)
 	clusterUpdaters := api.ClusterUpdaters{
-		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterUpdater(
+		PKEOnAzure: azurePKEDriver.MakeClusterUpdater(
 			logrusLogger,
 			externalBaseURL,
 			externalURLInsecure,
 			secret.Store,
-			gormAzurePKEClusterStore,
+			azurePKEClusterStore,
 			workflowClient,
 		),
 	}

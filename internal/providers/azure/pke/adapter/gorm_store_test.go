@@ -28,18 +28,19 @@ func TestFillClusterFromClusterModel(t *testing.T) {
 	cases := []struct {
 		name     string
 		input    clusteradapter.ClusterModel
-		expected pke.PKEOnAzureCluster
+		expected pke.Cluster
 	}{
 		{
 			name:     "empty cluster model",
 			input:    clusteradapter.ClusterModel{},
-			expected: pke.PKEOnAzureCluster{},
+			expected: pke.Cluster{},
 		},
 	}
 	for _, tc := range cases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			var result pke.PKEOnAzureCluster
-			fillClusterFromClusterModel(&result, tc.input)
+			var result pke.Cluster
+			fillClusterFromCommonClusterModel(&result, tc.input)
 			assert.Equal(t, tc.expected, result)
 		})
 	}

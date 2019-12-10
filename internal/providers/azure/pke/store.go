@@ -40,13 +40,13 @@ type CreateParams struct {
 	APIServerAccessPoints APIServerAccessPoints
 }
 
-// AzurePKEClusterStore defines behaviors of PKEOnAzureCluster persistent storage
-type AzurePKEClusterStore interface {
-	Create(params CreateParams) (PKEOnAzureCluster, error)
+// ClusterStore defines behaviors of Cluster persistent storage
+type ClusterStore interface {
+	Create(params CreateParams) (Cluster, error)
 	CreateNodePool(clusterID uint, nodePool NodePool) error
 	Delete(clusterID uint) error
 	DeleteNodePool(clusterID uint, nodePoolName string) error
-	GetByID(clusterID uint) (PKEOnAzureCluster, error)
+	GetByID(clusterID uint) (Cluster, error)
 	SetStatus(clusterID uint, status, message string) error
 	SetActiveWorkflowID(clusterID uint, workflowID string) error
 	SetConfigSecretID(clusterID uint, secretID string) error

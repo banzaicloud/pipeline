@@ -66,15 +66,15 @@ type ClusterAPI struct {
 }
 
 type ClusterCreators struct {
-	PKEOnAzure driver.AzurePKEClusterCreator
+	PKEOnAzure driver.ClusterCreator
 }
 
 type ClusterDeleters struct {
-	PKEOnAzure driver.AzurePKEClusterDeleter
+	PKEOnAzure driver.ClusterDeleter
 }
 
 type ClusterUpdaters struct {
-	PKEOnAzure driver.AzurePKEClusterUpdater
+	PKEOnAzure driver.ClusterUpdater
 }
 
 // NewClusterAPI returns a new ClusterAPI instance.
