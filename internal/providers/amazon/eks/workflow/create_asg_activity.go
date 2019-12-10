@@ -24,10 +24,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/zap"
 
@@ -35,7 +33,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
-	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
 const CreateAsgActivityName = "eks-create-asg"
@@ -234,19 +231,7 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 
 	err = cloudformationClient.WaitUntilStackCreateComplete(describeStacksInput)
 	if err != nil {
-		var awsErr awserr.Error
-		if errors.As(err, &awsErr) {
-			if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
-				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient)
-				err = errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
-				if pkgCloudformation.IsErrorFinal(err) {
-					return nil, cadence.NewCustomError(ErrReasonStackFailed, err.Error())
-				}
-				return nil, errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
-			}
-		}
-
-		return nil, err
+		return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "waiting for CF stack create operation to complete failed")
 	}
 
 	// wait for ASG fulfillment

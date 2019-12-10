@@ -141,7 +141,7 @@ func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
 
 	s.env.OnActivity(DeleteSshKeyActivityName, mock.Anything, DeleteSshKeyActivityInput{
 		EKSActivityInput: eksActivityInput,
-		SSHKeyName:       generateSSHKeyNameForCluster(eksActivityInput.ClusterName),
+		SSHKeyName:       GenerateSSHKeyNameForCluster(eksActivityInput.ClusterName),
 	}).Return(nil).Once()
 
 	s.env.OnActivity(GetOrphanNICsActivityName, mock.Anything, GetOrphanNICsActivityInput{
@@ -174,7 +174,7 @@ func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
 
 	s.env.OnActivity(DeleteStackActivityName, mock.Anything, DeleteStackActivityInput{
 		EKSActivityInput: eksActivityInput,
-		StackName:        generateStackNameForCluster(eksActivityInput.ClusterName),
+		StackName:        GenerateStackNameForCluster(eksActivityInput.ClusterName),
 	}).Return(nil).Once()
 
 	s.env.OnActivity(DeleteStackActivityName, mock.Anything, DeleteStackActivityInput{

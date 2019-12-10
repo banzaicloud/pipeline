@@ -19,13 +19,8 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"go.uber.org/cadence"
-
-	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
 const CreateIamRolesActivityName = "eks-create-iam-roles"
@@ -126,17 +121,7 @@ func (a *CreateIamRolesActivity) Execute(ctx context.Context, input CreateIamRol
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
 	err = cloudformationClient.WaitUntilStackCreateComplete(describeStacksInput)
 	if err != nil {
-		var awsErr awserr.Error
-		if errors.As(err, &awsErr) {
-			if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
-				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient)
-				if pkgCloudformation.IsErrorFinal(err) {
-					return nil, cadence.NewCustomError(ErrReasonStackFailed, err.Error())
-				}
-				return nil, err
-			}
-		}
-		return nil, err
+		return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "failed to describe stack")
 	}
 
 	describeStacksOutput, err := cloudformationClient.DescribeStacks(describeStacksInput)

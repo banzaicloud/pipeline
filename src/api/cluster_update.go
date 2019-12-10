@@ -69,30 +69,28 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 			return
 		}
 
-		updateCtx := cluster.UpdateContext{
-			OrganizationID: auth.GetCurrentOrganization(c.Request).ID,
-			UserID:         auth.GetCurrentUser(c.Request).ID,
-			ClusterID:      commonCluster.GetID(),
-		}
-
-		updater := cluster.NewCommonClusterUpdater(
-			updateRequest,
-			a.clientFactory,
-			commonCluster,
-			updateCtx.UserID,
-			a.workflowClient,
-			a.externalBaseURL,
-			a.externalBaseURLInsecure,
-		)
-
 		ctx := ginutils.Context(context.Background(), c)
 
-		switch c := commonCluster.(type) {
-		case *cluster.EKSCluster:
-			c.WorkflowClient = a.workflowClient
+		if _, ok := commonCluster.(*cluster.EKSCluster); ok {
+			err = a.clusterUpdaters.EKSAmazon.UpdateCluster(ctx, updateRequest, commonCluster, auth.GetCurrentUser(c.Request).ID)
+		} else {
+			updateCtx := cluster.UpdateContext{
+				OrganizationID: auth.GetCurrentOrganization(c.Request).ID,
+				UserID:         auth.GetCurrentUser(c.Request).ID,
+				ClusterID:      commonCluster.GetID(),
+			}
+			updater := cluster.NewCommonClusterUpdater(
+				updateRequest,
+				a.clientFactory,
+				commonCluster,
+				updateCtx.UserID,
+				a.workflowClient,
+				a.externalBaseURL,
+				a.externalBaseURLInsecure,
+			)
+			err = a.clusterManager.UpdateCluster(ctx, updateCtx, updater)
 		}
 
-		err = a.clusterManager.UpdateCluster(ctx, updateCtx, updater)
 	}
 	if err != nil {
 		if isInvalid(err) || isInputValidationError(err) {

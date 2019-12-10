@@ -22,7 +22,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"go.uber.org/cadence/activity"
 )
@@ -62,11 +61,20 @@ func (a *DeleteControlPlaneActivity) Execute(ctx context.Context, input DeleteCo
 
 	logger.Info("deleting EKS control plane")
 
-	eksSrv := eks.New(awsSession)
+	eksSvc := eks.New(
+		awsSession,
+		aws.NewConfig().
+			WithLogger(aws.LoggerFunc(
+				func(args ...interface{}) {
+					logger.Debug(args)
+				})).
+			WithLogLevel(aws.LogDebugWithHTTPBody),
+	)
+
 	deleteClusterInput := &eks.DeleteClusterInput{
 		Name: aws.String(input.ClusterName),
 	}
-	_, err = eksSrv.DeleteCluster(deleteClusterInput)
+	_, err = eksSvc.DeleteCluster(deleteClusterInput)
 
 	if awsErr, ok := err.(awserr.Error); ok {
 		if awsErr.Code() == eks.ErrCodeResourceNotFoundException {
@@ -80,7 +88,7 @@ func (a *DeleteControlPlaneActivity) Execute(ctx context.Context, input DeleteCo
 	describeClusterInput := &eks.DescribeClusterInput{
 		Name: aws.String(input.ClusterName),
 	}
-	err = a.waitUntilClusterExists(aws.BackgroundContext(), awsSession, describeClusterInput)
+	err = a.waitUntilClusterExists(aws.BackgroundContext(), eksSvc, describeClusterInput)
 	if err != nil {
 		return err
 	}
@@ -90,8 +98,7 @@ func (a *DeleteControlPlaneActivity) Execute(ctx context.Context, input DeleteCo
 	return nil
 }
 
-func (a *DeleteControlPlaneActivity) waitUntilClusterExists(ctx aws.Context, awsSession *session.Session, input *eks.DescribeClusterInput, opts ...request.WaiterOption) error {
-	eksSvc := eks.New(awsSession)
+func (a *DeleteControlPlaneActivity) waitUntilClusterExists(ctx aws.Context, eksSvc *eks.EKS, input *eks.DescribeClusterInput, opts ...request.WaiterOption) error {
 
 	w := request.Waiter{
 		Name:        "WaitUntilClusterExists",

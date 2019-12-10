@@ -20,6 +20,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/banzaicloud/pipeline/src/cluster"
+
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -61,6 +63,11 @@ func (a *ClusterAPI) DeleteCluster(c *gin.Context) {
 	switch {
 	case commonCluster.GetDistribution() == pkgCluster.PKE && commonCluster.GetCloud() == pkgCluster.Azure:
 		if err := a.clusterDeleters.PKEOnAzure.DeleteByID(ctx, commonCluster.GetID(), force); err != nil {
+			pkgCommon.ErrorResponseWithStatus(c, http.StatusInternalServerError, err)
+			return
+		}
+	case commonCluster.GetDistribution() == pkgCluster.EKS && commonCluster.GetCloud() == pkgCluster.Amazon:
+		if err := a.clusterDeleters.EKSAmazon.DeleteCluster(ctx, commonCluster.(*cluster.EKSCluster), force); err != nil {
 			pkgCommon.ErrorResponseWithStatus(c, http.StatusInternalServerError, err)
 			return
 		}

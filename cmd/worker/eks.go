@@ -21,36 +21,39 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
+	"github.com/banzaicloud/pipeline/src/cluster"
+
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/adapter"
+
 	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
-	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 )
 
 const asgWaitLoopSleepSeconds = 5
 const asgFulfillmentTimeout = 2 * time.Minute
 
-func registerEKSWorkflows(secretStore eksworkflow.SecretStore) error {
+func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *adapter.ClusterManagerAdapter) error {
 
-	vpcTemplate, err := pkgEks.GetVPCTemplate()
+	vpcTemplate, err := eksworkflow.GetVPCTemplate()
 	if err != nil {
 		return errors.WrapIf(err, "failed to get CloudFormation template for VPC")
 	}
 
-	subnetTemplate, err := pkgEks.GetSubnetTemplate()
+	subnetTemplate, err := eksworkflow.GetSubnetTemplate()
 	if err != nil {
 		return errors.WrapIf(err, "failed to get CloudFormation template for Subnet")
 	}
 
-	iamRolesTemplate, err := pkgEks.GetIAMTemplate()
+	iamRolesTemplate, err := eksworkflow.GetIAMTemplate()
 	if err != nil {
 		return errors.WrapIf(err, "failed to get CloudFormation template for IAM roles")
 	}
 
-	nodePoolTemplate, err := pkgEks.GetNodePoolTemplate()
+	nodePoolTemplate, err := eksworkflow.GetNodePoolTemplate()
 	if err != nil {
 		return errors.WrapIf(err, "failed to get CloudFormation template for node pools")
 	}
 
-	workflow.RegisterWithOptions(eksworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: eksworkflow.CreateClusterWorkflowName})
+	workflow.RegisterWithOptions(cluster.EKSCreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSCreateClusterWorkflowName})
 	workflow.RegisterWithOptions(eksworkflow.CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: eksworkflow.CreateInfraWorkflowName})
 
 	awsSessionFactory := eksworkflow.NewAWSSessionFactory(secretStore)
@@ -90,11 +93,14 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore) error {
 	bootstrapActivity := eksworkflow.NewBootstrapActivity(awsSessionFactory)
 	activity.RegisterWithOptions(bootstrapActivity.Execute, activity.RegisterOptions{Name: eksworkflow.BootstrapActivityName})
 
+	saveK8sConfigActivity := eksworkflow.NewSaveK8sConfigActivity(awsSessionFactory, clusterManager)
+	activity.RegisterWithOptions(saveK8sConfigActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveK8sConfigActivityName})
+
 	// update cluster workflow
-	workflow.RegisterWithOptions(eksworkflow.UpdateClusterWorkflow, workflow.RegisterOptions{Name: eksworkflow.UpdateClusterWorkflowName})
+	workflow.RegisterWithOptions(cluster.EKSUpdateClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSUpdateClusterWorkflowName})
 
 	// delete cluster workflow
-	workflow.RegisterWithOptions(eksworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: eksworkflow.DeleteClusterWorkflowName})
+	workflow.RegisterWithOptions(cluster.EKSDeleteClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSDeleteClusterWorkflowName})
 	workflow.RegisterWithOptions(eksworkflow.DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: eksworkflow.DeleteInfraWorkflowName})
 
 	getOwnedELBsActivity := eksworkflow.NewGetOwnedELBsActivity(awsSessionFactory)
@@ -126,6 +132,18 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore) error {
 
 	getSubnetStacksActivity := eksworkflow.NewGetSubnetStacksActivity(awsSessionFactory)
 	activity.RegisterWithOptions(getSubnetStacksActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetSubnetStacksActivityName})
+
+	setClusterStatusActivity := eksworkflow.NewSetClusterStatusActivity(clusterManager)
+	activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SetClusterStatusActivityName})
+
+	deleteClusterFromStoreActivity := eksworkflow.NewDeleteClusterFromStoreActivity(clusterManager)
+	activity.RegisterWithOptions(deleteClusterFromStoreActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteClusterFromStoreActivityName})
+
+	saveNetworkDetails := eksworkflow.NewSaveNetworkDetailsActivity(clusterManager)
+	activity.RegisterWithOptions(saveNetworkDetails.Execute, activity.RegisterOptions{Name: eksworkflow.SaveNetworkDetailsActivityName})
+
+	saveNodePoolsActivity := eksworkflow.NewSaveNodePoolsActivity(clusterManager)
+	activity.RegisterWithOptions(saveNodePoolsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveNodePoolsActivityName})
 
 	return nil
 }

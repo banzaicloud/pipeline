@@ -16,9 +16,6 @@ package cluster
 
 import (
 	"context"
-	"encoding/base64"
-	"net"
-	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -27,24 +24,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/banzaicloud/pipeline/pkg/cluster/eks/nodepools"
+
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/ghodss/yaml"
 	"github.com/sirupsen/logrus"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
-
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
-
-	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
-
-	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/eks/action"
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/secret/verify"
@@ -183,33 +171,41 @@ func createSubnetMappingFromRequest(eksRequest *pkgEks.CreateClusterEKS) map[str
 	return subnetMapping
 }
 
-func getNodePoolsForSubnet(subnetMapping map[string][]*pkgEks.Subnet, eksSubnet eksworkflow.Subnet) []string {
-	var nodePools []string
-	for np, subnets := range subnetMapping {
-		for _, subnet := range subnets {
-			if (subnet.SubnetId != "" && eksSubnet.SubnetID == subnet.SubnetId) ||
-				(subnet.Cidr != "" && eksSubnet.Cidr == subnet.Cidr) {
-				nodePools = append(nodePools, np)
-			}
-		}
-	}
-	return nodePools
-}
-
 // EKSCluster struct for EKS cluster
 type EKSCluster struct {
-	modelCluster    *model.ClusterModel
-	APIEndpoint     string
+	modelCluster *model.ClusterModel
+
 	CloudInfoClient *cloudinfo.Client
-	WorkflowClient  client.Client
 	// maps node pools to subnets. The subnets identified by the "default" key represent the subnets provided in
 	// request.Properties.CreateClusterEKS.Subnets
-	SubnetMapping            map[string][]*pkgEks.Subnet
-	CertificateAuthorityData []byte
-	awsAccessKeyID           string
-	awsSecretAccessKey       string
-	log                      logrus.FieldLogger
+	SubnetMapping map[string][]*pkgEks.Subnet
+	log           logrus.FieldLogger
 	CommonClusterBase
+}
+
+func (c *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
+	panic("not used")
+}
+
+func (c *EKSCluster) CreateCluster() error {
+	panic("not used")
+}
+
+func (c *EKSCluster) DeleteCluster() error {
+	panic("not used")
+}
+
+// Deprecated: UpdateCluster updates EKS cluster in cloud
+func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, updatedBy uint) error {
+	panic("not used")
+}
+
+func (c *EKSCluster) GetEKSModel() *model.EKSClusterModel {
+	return &c.modelCluster.EKS
+}
+
+func (c *EKSCluster) GetSubnetMapping() map[string][]*pkgEks.Subnet {
+	return c.SubnetMapping
 }
 
 // GetOrganizationId gets org where the cluster belongs
@@ -239,7 +235,12 @@ func (c *EKSCluster) SaveSshSecretId(sshSecretId string) error {
 
 // GetAPIEndpoint returns the Kubernetes Api endpoint
 func (c *EKSCluster) GetAPIEndpoint() (string, error) {
-	return c.APIEndpoint, nil
+	config, err := c.GetK8sConfig()
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to get cluster's Kubeconfig")
+	}
+
+	return pkgCluster.GetAPIEndpointFromKubeconfig(config)
 }
 
 // CreateEKSClusterFromModel creates ClusterModel struct from the model
@@ -269,127 +270,6 @@ func (c *EKSCluster) SetCurrentWorkflowID(workflowID string) error {
 	return nil
 }
 
-// CreateCluster creates an EKS cluster with cloudformation templates.
-func (c *EKSCluster) CreateCluster() error {
-	c.log.Info("start creating EKS cluster")
-
-	input := workflow.CreateClusterWorkflowInput{
-		CreateInfrastructureWorkflowInput: workflow.CreateInfrastructureWorkflowInput{
-			Region:             c.modelCluster.Location,
-			OrganizationID:     c.GetOrganizationId(),
-			SecretID:           c.GetSecretId(),
-			SSHSecretID:        c.GetSshSecretId(),
-			ClusterUID:         c.GetUID(),
-			ClusterName:        c.GetName(),
-			VpcID:              aws.StringValue(c.modelCluster.EKS.VpcId),
-			RouteTableID:       aws.StringValue(c.modelCluster.EKS.RouteTableId),
-			VpcCidr:            aws.StringValue(c.modelCluster.EKS.VpcCidr),
-			ScaleEnabled:       c.GetScaleOptions() != nil && c.GetScaleOptions().Enabled,
-			DefaultUser:        c.modelCluster.EKS.DefaultUser,
-			ClusterRoleID:      c.modelCluster.EKS.ClusterRoleId,
-			NodeInstanceRoleID: c.modelCluster.EKS.NodeInstanceRoleId,
-			KubernetesVersion:  c.modelCluster.EKS.Version,
-			LogTypes:           c.modelCluster.EKS.LogTypes,
-		},
-		ClusterID: c.GetID(),
-	}
-
-	for _, mode := range c.modelCluster.EKS.APIServerAccessPoints {
-		switch mode {
-		case "public":
-			input.EndpointPublicAccess = true
-		case "private":
-			input.EndpointPrivateAccess = true
-		}
-	}
-
-	subnets := make([]workflow.Subnet, 0)
-	subnetMapping := make(map[string][]workflow.Subnet)
-	for _, eksSubnetModel := range c.modelCluster.EKS.Subnets {
-		subnet := workflow.Subnet{
-			SubnetID:         aws.StringValue(eksSubnetModel.SubnetId),
-			Cidr:             aws.StringValue(eksSubnetModel.Cidr),
-			AvailabilityZone: aws.StringValue(eksSubnetModel.AvailabilityZone)}
-
-		subnets = append(subnets, subnet)
-
-		nodePools := getNodePoolsForSubnet(c.SubnetMapping, subnet)
-		c.log.Debugf("node pools mapped to subnet %s: %v", subnet.SubnetID, nodePools)
-
-		for _, np := range nodePools {
-			subnetMapping[np] = append(subnetMapping[np], subnet)
-		}
-	}
-
-	input.Subnets = subnets
-	input.ASGSubnetMapping = subnetMapping
-
-	asgList := make([]workflow.AutoscaleGroup, 0)
-	for _, np := range c.modelCluster.EKS.NodePools {
-		asg := workflow.AutoscaleGroup{
-			Name:             np.Name,
-			NodeSpotPrice:    np.NodeSpotPrice,
-			Autoscaling:      np.Autoscaling,
-			NodeMinCount:     np.NodeMinCount,
-			NodeMaxCount:     np.NodeMaxCount,
-			Count:            np.Count,
-			NodeImage:        np.NodeImage,
-			NodeInstanceType: np.NodeInstanceType,
-			Labels:           np.Labels,
-		}
-		asgList = append(asgList, asg)
-	}
-
-	input.AsgList = asgList
-
-	ctx := context.Background()
-	workflowOptions := client.StartWorkflowOptions{
-		TaskList:                     "pipeline",
-		ExecutionStartToCloseTimeout: 1 * 24 * time.Hour,
-	}
-	exec, err := c.WorkflowClient.ExecuteWorkflow(ctx, workflowOptions, eksworkflow.CreateClusterWorkflowName, input)
-	if err != nil {
-		return err
-	}
-
-	err = c.SetCurrentWorkflowID(exec.GetID())
-	if err != nil {
-		return err
-	}
-
-	output := &workflow.CreateClusterWorkflowOutput{}
-	err = exec.Get(ctx, output)
-	if err != nil {
-		return err
-	}
-
-	c.modelCluster.EKS.NodeInstanceRoleId = output.NodeInstanceRoleID
-	c.modelCluster.EKS.VpcId = aws.String(output.VpcID)
-
-	// persist the id of the newly created subnets
-	for _, subnet := range output.Subnets {
-		for _, subnetModel := range c.modelCluster.EKS.Subnets {
-			if (aws.StringValue(subnetModel.SubnetId) != "" && aws.StringValue(subnetModel.SubnetId) == subnet.SubnetID) ||
-				(aws.StringValue(subnetModel.SubnetId) == "" && aws.StringValue(subnetModel.Cidr) != "" && aws.StringValue(subnetModel.Cidr) == subnet.Cidr) {
-				sub := subnet
-				subnetModel.SubnetId = &sub.SubnetID
-				subnetModel.Cidr = &sub.Cidr
-				subnetModel.AvailabilityZone = &sub.AvailabilityZone
-				break
-			}
-		}
-	}
-
-	err = c.modelCluster.Save()
-	if err != nil {
-		return errors.WrapIf(err, "failed to persist cluster to database")
-	}
-
-	c.log.Info("EKS cluster created.")
-
-	return nil
-}
-
 // Persist saves the cluster model
 // Deprecated: Do not use.
 func (c *EKSCluster) Persist() error {
@@ -411,237 +291,8 @@ func (c *EKSCluster) GetDistribution() string {
 	return c.modelCluster.Distribution
 }
 
-func (c *EKSCluster) DeleteCluster() error {
-	panic("not used")
-}
-
-// DeleteCluster deletes cluster from EKS
-func (c *EKSCluster) DeleteEKSCluster(ctx context.Context, workflowClient client.Client, force bool) error {
-	c.log.Info("Start delete EKS cluster")
-
-	nodePoolNames := make([]string, 0)
-	for _, nodePool := range c.modelCluster.EKS.NodePools {
-		nodePoolNames = append(nodePoolNames, nodePool.Name)
-	}
-
-	input := workflow.DeleteClusterWorkflowInput{
-		OrganizationID: c.GetOrganizationId(),
-		Region:         c.modelCluster.Location,
-		SecretID:       c.GetSecretId(),
-		ClusterID:      c.GetID(),
-		ClusterUID:     c.GetUID(),
-		ClusterName:    c.GetName(),
-		NodePoolNames:  nodePoolNames,
-		K8sSecretID:    c.GetConfigSecretId(),
-		DefaultUser:    c.modelCluster.EKS.DefaultUser,
-		Forced:         force,
-	}
-
-	workflowOptions := client.StartWorkflowOptions{
-		TaskList:                     "pipeline",
-		ExecutionStartToCloseTimeout: 1 * 24 * time.Hour,
-	}
-	exec, err := workflowClient.ExecuteWorkflow(ctx, workflowOptions, eksworkflow.DeleteClusterWorkflowName, input)
-	if err != nil {
-		return err
-	}
-
-	err = c.SetCurrentWorkflowID(exec.GetID())
-	if err != nil {
-		return err
-	}
-
-	err = exec.Get(ctx, nil)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[string]*pkgEks.NodePool, userId uint) ([]*model.AmazonNodePoolsModel, error) {
-
-	currentNodePoolMap := make(map[string]*model.AmazonNodePoolsModel, len(c.modelCluster.EKS.NodePools))
-	for _, nodePool := range c.modelCluster.EKS.NodePools {
-		currentNodePoolMap[nodePool.Name] = nodePool
-	}
-
-	updatedNodePools := make([]*model.AmazonNodePoolsModel, 0, len(requestedNodePools))
-
-	for nodePoolName, nodePool := range requestedNodePools {
-		if currentNodePoolMap[nodePoolName] != nil {
-			// update existing node pool
-			updatedNodePools = append(updatedNodePools, &model.AmazonNodePoolsModel{
-				ID:               currentNodePoolMap[nodePoolName].ID,
-				CreatedBy:        currentNodePoolMap[nodePoolName].CreatedBy,
-				CreatedAt:        currentNodePoolMap[nodePoolName].CreatedAt,
-				ClusterID:        currentNodePoolMap[nodePoolName].ClusterID,
-				Name:             nodePoolName,
-				NodeInstanceType: currentNodePoolMap[nodePoolName].NodeInstanceType,
-				NodeImage:        currentNodePoolMap[nodePoolName].NodeImage,
-				NodeSpotPrice:    currentNodePoolMap[nodePoolName].NodeSpotPrice,
-				Autoscaling:      nodePool.Autoscaling,
-				NodeMinCount:     nodePool.MinCount,
-				NodeMaxCount:     nodePool.MaxCount,
-				Count:            nodePool.Count,
-				Delete:           false,
-			})
-
-		} else {
-			// new node pool
-
-			// ---- [ Node instanceType check ] ---- //
-			if len(nodePool.InstanceType) == 0 {
-				c.log.Errorf("instanceType is missing for nodePool %v", nodePoolName)
-				return nil, pkgErrors.ErrorInstancetypeFieldIsEmpty
-			}
-
-			// ---- [ Node image check ] ---- //
-			if len(nodePool.Image) == 0 {
-				c.log.Errorf("image is missing for nodePool %v", nodePoolName)
-				return nil, pkgErrors.ErrorAmazonImageFieldIsEmpty
-			}
-
-			// ---- [ Node spot price ] ---- //
-			if len(nodePool.SpotPrice) == 0 {
-				nodePool.SpotPrice = pkgEks.DefaultSpotPrice
-			}
-
-			updatedNodePools = append(updatedNodePools, &model.AmazonNodePoolsModel{
-				CreatedBy:        userId,
-				Name:             nodePoolName,
-				NodeInstanceType: nodePool.InstanceType,
-				NodeImage:        nodePool.Image,
-				NodeSpotPrice:    nodePool.SpotPrice,
-				Autoscaling:      nodePool.Autoscaling,
-				NodeMinCount:     nodePool.MinCount,
-				NodeMaxCount:     nodePool.MaxCount,
-				Count:            nodePool.Count,
-				Delete:           false,
-			})
-		}
-	}
-
-	for _, nodePool := range c.modelCluster.EKS.NodePools {
-		if requestedNodePools[nodePool.Name] == nil {
-			updatedNodePools = append(updatedNodePools, &model.AmazonNodePoolsModel{
-				ID:        nodePool.ID,
-				ClusterID: nodePool.ClusterID,
-				Name:      nodePool.Name,
-				Labels:    nodePool.Labels,
-				CreatedAt: nodePool.CreatedAt,
-				Delete:    true,
-			})
-		}
-	}
-	return updatedNodePools, nil
-}
-
-// UpdateCluster updates EKS cluster in cloud
-func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, updatedBy uint) error {
-	c.log.Info("start updating EKS cluster")
-
-	modelNodePools, err := c.createNodePoolsFromUpdateRequest(updateRequest.EKS.NodePools, updatedBy)
-	if err != nil {
-		return err
-	}
-
-	subnets := make([]workflow.Subnet, 0)
-	for _, subnet := range c.modelCluster.EKS.Subnets {
-		subnets = append(subnets, workflow.Subnet{
-			SubnetID:         aws.StringValue(subnet.SubnetId),
-			Cidr:             aws.StringValue(subnet.Cidr),
-			AvailabilityZone: aws.StringValue(subnet.AvailabilityZone),
-		})
-	}
-
-	subnetMapping := make(map[string][]workflow.Subnet)
-	for _, nodePool := range modelNodePools {
-		// set subnets only for node pools to be updated
-		if nodePool.Delete || nodePool.ID != 0 {
-			continue
-		}
-		for reqNodePoolName, reqNodePool := range updateRequest.EKS.NodePools {
-			if reqNodePoolName == nodePool.Name {
-				if reqNodePool.Subnet == nil {
-					c.log.WithField("nodePool", nodePool.Name).Info("no subnet specified for node pool in the update request")
-					subnetMapping[nodePool.Name] = append(subnetMapping[nodePool.Name], subnets[0])
-				} else {
-					for _, subnet := range subnets {
-						if (reqNodePool.Subnet.SubnetId != "" && subnet.SubnetID == reqNodePool.Subnet.SubnetId) ||
-							(reqNodePool.Subnet.Cidr != "" && subnet.Cidr == reqNodePool.Subnet.Cidr) {
-							subnetMapping[nodePool.Name] = append(subnetMapping[nodePool.Name], subnet)
-						}
-					}
-				}
-			}
-		}
-
-	}
-
-	input := workflow.UpdateClusterstructureWorkflowInput{
-		Region:             c.modelCluster.Location,
-		OrganizationID:     c.GetOrganizationId(),
-		SecretID:           c.GetSecretId(),
-		ClusterUID:         c.GetUID(),
-		ClusterName:        c.GetName(),
-		ScaleEnabled:       c.GetScaleOptions() != nil && c.GetScaleOptions().Enabled,
-		NodeInstanceRoleID: c.modelCluster.EKS.NodeInstanceRoleId,
-	}
-
-	input.Subnets = subnets
-	input.ASGSubnetMapping = subnetMapping
-
-	asgList := make([]workflow.AutoscaleGroup, 0)
-	for _, np := range modelNodePools {
-		asg := workflow.AutoscaleGroup{
-			Name:             np.Name,
-			NodeSpotPrice:    np.NodeSpotPrice,
-			Autoscaling:      np.Autoscaling,
-			NodeMinCount:     np.NodeMinCount,
-			NodeMaxCount:     np.NodeMaxCount,
-			Count:            np.Count,
-			NodeImage:        np.NodeImage,
-			NodeInstanceType: np.NodeInstanceType,
-			Labels:           np.Labels,
-			Delete:           np.Delete,
-		}
-		if np.ID == 0 {
-			asg.Create = true
-		}
-		asgList = append(asgList, asg)
-	}
-
-	input.AsgList = asgList
-
-	ctx := context.Background()
-	workflowOptions := client.StartWorkflowOptions{
-		TaskList:                     "pipeline",
-		ExecutionStartToCloseTimeout: 1 * 24 * time.Hour,
-	}
-	exec, err := c.WorkflowClient.ExecuteWorkflow(ctx, workflowOptions, eksworkflow.UpdateClusterWorkflowName, input)
-	if err != nil {
-		return err
-	}
-
-	err = c.SetCurrentWorkflowID(exec.GetID())
-	if err != nil {
-		return err
-	}
-
-	var out interface{}
-	err = exec.Get(ctx, out)
-	if err != nil {
-		return err
-	}
-
-	c.log.Info("EKS cluster updated.")
-	c.modelCluster.EKS.NodePools = modelNodePools
-
-	return nil
-}
-
 // UpdateNodePools updates nodes pools of a cluster
+// 		This will become obsolete once we have the Node Pool API ready
 func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
 	c.log.Info("start updating node pools")
 
@@ -690,7 +341,7 @@ func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 
 		waitRoutines++
 		go func(poolName string) {
-			waitChan <- action.WaitForASGToBeFulfilled(context.Background(), awsSession, c.log, c.modelCluster.Name,
+			waitChan <- nodepools.WaitForASGToBeFulfilled(context.Background(), awsSession, c.log, c.modelCluster.Name,
 				poolName, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second)
 		}(poolName)
 
@@ -709,7 +360,7 @@ func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 
 func (c *EKSCluster) getAutoScalingGroupName(cloudformationSrv *cloudformation.CloudFormation, autoscalingSrv *autoscaling.AutoScaling, nodePoolName string) (*string, error) {
 	logResourceId := "NodeGroup"
-	stackName := action.GenerateNodePoolStackName(c.modelCluster.Name, nodePoolName)
+	stackName := nodepools.GenerateNodePoolStackName(c.modelCluster.Name, nodePoolName)
 	describeStackResourceInput := &cloudformation.DescribeStackResourceInput{
 		LogicalResourceId: &logResourceId,
 		StackName:         aws.String(stackName)}
@@ -719,82 +370,6 @@ func (c *EKSCluster) getAutoScalingGroupName(cloudformationSrv *cloudformation.C
 	}
 
 	return describeStacksOutput.StackResourceDetail.PhysicalResourceId, nil
-}
-
-// GenerateK8sConfig generates kube config for this EKS cluster which authenticates through the aws-iam-authenticator,
-// you have to install with: go get github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
-func (c *EKSCluster) GenerateK8sConfig() *clientcmdapi.Config {
-	return &clientcmdapi.Config{
-		APIVersion: "v1",
-		Clusters: []clientcmdapi.NamedCluster{
-			{
-				Name: c.modelCluster.Name,
-				Cluster: clientcmdapi.Cluster{
-					Server:                   c.APIEndpoint,
-					CertificateAuthorityData: c.CertificateAuthorityData,
-				},
-			},
-		},
-		Contexts: []clientcmdapi.NamedContext{
-			{
-				Name: c.modelCluster.Name,
-				Context: clientcmdapi.Context{
-					AuthInfo: "eks",
-					Cluster:  c.modelCluster.Name,
-				},
-			},
-		},
-		AuthInfos: []clientcmdapi.NamedAuthInfo{
-			{
-				Name: "eks",
-				AuthInfo: clientcmdapi.AuthInfo{
-					Exec: &clientcmdapi.ExecConfig{
-						APIVersion: "client.authentication.k8s.io/v1alpha1",
-						Command:    "aws-iam-authenticator",
-						Args:       []string{"token", "-i", c.modelCluster.Name},
-						Env: []clientcmdapi.ExecEnvVar{
-							{Name: "AWS_ACCESS_KEY_ID", Value: c.awsAccessKeyID},
-							{Name: "AWS_SECRET_ACCESS_KEY", Value: c.awsSecretAccessKey},
-						},
-					},
-				},
-			},
-		},
-		Kind:           "Config",
-		CurrentContext: c.modelCluster.Name,
-	}
-}
-
-// DownloadK8sConfig generates and marshalls the kube config for this cluster.
-func (c *EKSCluster) DownloadK8sConfig() ([]byte, error) {
-	if c.APIEndpoint == "" || c.CertificateAuthorityData == nil || c.awsAccessKeyID == "" || c.awsSecretAccessKey == "" {
-
-		awsCred, err := c.createAWSCredentialsFromSecret()
-		if err != nil {
-			return nil, err
-		}
-
-		awsSession, err := session.NewSession(&aws.Config{
-			Region:      aws.String(c.modelCluster.Location),
-			Credentials: awsCred,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		context := action.NewEksClusterCreationContext(awsSession, c.modelCluster.Name, "")
-
-		if err := c.loadEksMasterSettings(context); err != nil {
-			return nil, err
-		}
-
-		if err := c.loadClusterUserCredentials(context); err != nil {
-			return nil, err
-		}
-	}
-
-	k8sCfg := c.GenerateK8sConfig()
-	return yaml.Marshal(k8sCfg)
 }
 
 // GetStatus describes the status of this EKS cluster.
@@ -955,197 +530,6 @@ func (c *EKSCluster) IsReady() (bool, error) {
 	return aws.StringValue(clusterDesc.Cluster.Status) == eks.ClusterStatusActive, nil
 }
 
-// ValidateCreationFields validates all fields
-func (c *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
-	regions, err := c.CloudInfoClient.GetServiceRegions(pkgCluster.Amazon, pkgCluster.EKS)
-	if err != nil {
-		return errors.WrapIf(err, "failed to list regions where EKS service is enabled")
-	}
-
-	regionFound := false
-	for _, region := range regions {
-		if region == r.Location {
-			regionFound = true
-			break
-		}
-	}
-
-	if !regionFound {
-		return pkgErrors.ErrorNotValidLocation
-	}
-
-	// validate VPC
-	awsCred, err := c.createAWSCredentialsFromSecret()
-	if err != nil {
-		return errors.WrapIf(err, "failed to get cluster AWS credentials")
-	}
-
-	awsSession, err := session.NewSession(&aws.Config{
-		Region:      aws.String(c.modelCluster.Location),
-		Credentials: awsCred,
-	})
-	if err != nil {
-		return errors.WrapIf(err, "failed to create AWS session")
-	}
-
-	netSvc := pkgEC2.NewNetworkSvc(ec2.New(awsSession), NewLogurLogger(c.log))
-	if r.Properties.CreateClusterEKS.Vpc != nil {
-
-		if r.Properties.CreateClusterEKS.Vpc.VpcId != "" && r.Properties.CreateClusterEKS.Vpc.Cidr != "" {
-			return errors.NewWithDetails("specifying both CIDR and ID for VPC is not allowed", "vpc", *r.Properties.CreateClusterEKS.Vpc)
-		}
-
-		if r.Properties.CreateClusterEKS.Vpc.VpcId == "" && r.Properties.CreateClusterEKS.Vpc.Cidr == "" {
-			return errors.NewWithDetails("either CIDR or ID is required for VPC", "vpc", *r.Properties.CreateClusterEKS.Vpc)
-		}
-
-		if r.Properties.CreateClusterEKS.Vpc.VpcId != "" {
-			// verify that the provided VPC exists and is in available state
-			exists, err := netSvc.VpcAvailable(r.Properties.CreateClusterEKS.Vpc.VpcId)
-
-			if err != nil {
-				return errors.WrapIfWithDetails(err, "failed to check if VPC is available", "vpc", *r.Properties.CreateClusterEKS.Vpc)
-			}
-
-			if !exists {
-				return errors.NewWithDetails("VPC not found or it's not in 'available' state", "vpc", *r.Properties.CreateClusterEKS.Vpc)
-			}
-		}
-	}
-
-	// subnets
-	allExistingSubnets := make(map[string]*pkgEks.Subnet)
-	allNewSubnets := make(map[string]*pkgEks.Subnet)
-	for _, subnet := range r.Properties.CreateClusterEKS.Subnets {
-		if subnet.SubnetId != "" {
-			allExistingSubnets[subnet.SubnetId] = subnet
-		} else if subnet.Cidr != "" {
-			if s, ok := allNewSubnets[subnet.Cidr]; ok && s.AvailabilityZone != subnet.AvailabilityZone {
-				return errors.Errorf("subnets with same cidr %s but mismatching AZs found", subnet.Cidr)
-			}
-			allNewSubnets[subnet.Cidr] = subnet
-		}
-	}
-	for _, np := range r.Properties.CreateClusterEKS.NodePools {
-		if np.Subnet != nil {
-			if np.Subnet.SubnetId != "" {
-				allExistingSubnets[np.Subnet.SubnetId] = np.Subnet
-			} else if np.Subnet.Cidr != "" {
-				if s, ok := allNewSubnets[np.Subnet.Cidr]; ok && s.AvailabilityZone != np.Subnet.AvailabilityZone {
-					return errors.Errorf("subnets with same cidr %s but mismatching AZs found", np.Subnet.Cidr)
-				}
-				allNewSubnets[np.Subnet.Cidr] = np.Subnet
-			}
-		}
-	}
-
-	for _, subnet := range allNewSubnets {
-		if subnet.AvailabilityZone != "" && !strings.HasPrefix(strings.ToLower(subnet.AvailabilityZone), strings.ToLower(r.Location)) {
-			return errors.Errorf("invalid AZ '%s' for region '%s'", subnet.AvailabilityZone, r.Location)
-		}
-	}
-
-	if len(allExistingSubnets) > 0 && len(allNewSubnets) > 0 {
-		return errors.New("mixing existing subnets identified by provided subnet id and new subnets to be created with given cidr is not allowed, specify either CIDR and optionally AZ or ID for all Subnets")
-	}
-
-	if len(allExistingSubnets)+len(allNewSubnets) < 2 {
-		return errors.New("at least two subnets in two different AZs are required for EKS")
-	}
-
-	if len(allExistingSubnets) > 0 && r.Properties.CreateClusterEKS.Vpc.Cidr != "" {
-		return errors.New("VPC ID must be provided")
-	}
-
-	// verify that the provided existing subnets exist
-	for _, subnet := range allExistingSubnets {
-		if subnet.Cidr != "" && subnet.SubnetId != "" {
-			return errors.New("specifying both CIDR and ID for a Subnet is not allowed")
-		}
-
-		if subnet.Cidr == "" && subnet.SubnetId == "" {
-			return errors.New("either CIDR or ID is required for Subnet")
-		}
-
-		if subnet.SubnetId != "" {
-			exists, err := netSvc.SubnetAvailable(subnet.SubnetId, r.Properties.CreateClusterEKS.Vpc.VpcId)
-			if err != nil {
-				return errors.WrapIfWithDetails(err, "failed to check if Subnet is available in VPC")
-			}
-			if !exists {
-				return errors.Errorf("subnet '%s' not found in VPC or it's not in 'available' state", subnet.SubnetId)
-			}
-		}
-	}
-	// verify that new subnets (to be created) do not overlap and are within the VPC's CIDR range
-	if len(allNewSubnets) > 0 {
-		_, vpcCidr, err := net.ParseCIDR(r.Properties.CreateClusterEKS.Vpc.Cidr)
-		vpcMaskOnes, _ := vpcCidr.Mask.Size()
-		if err != nil {
-			return errors.WrapIf(err, "failed to parse vpc cidr")
-		}
-
-		subnetCidrs := make([]string, 0, len(allNewSubnets))
-		for cidr := range allNewSubnets {
-			subnetCidrs = append(subnetCidrs, cidr)
-		}
-
-		for i := range subnetCidrs {
-			ip1, cidr1, err := net.ParseCIDR(subnetCidrs[i])
-			if err != nil {
-				return errors.WrapIf(err, "failed to parse subnet cidr")
-			}
-
-			if !vpcCidr.Contains(ip1) {
-				return errors.Errorf("subnet cidr '%s' is outside of vpc cidr range '%s'", cidr1, vpcCidr)
-			}
-
-			ones, _ := cidr1.Mask.Size()
-			if ones < vpcMaskOnes {
-				return errors.Errorf("subnet cidr '%s' is is bigger than vpc cidr range '%s'", cidr1, vpcCidr)
-			}
-
-			for j := i + 1; j < len(subnetCidrs); j++ {
-				ip2, cidr2, err := net.ParseCIDR(subnetCidrs[j])
-				if err != nil {
-					return errors.WrapIf(err, "failed to parse subnet cidr")
-				}
-
-				if cidr1.Contains(ip2) || cidr2.Contains(ip1) {
-					return errors.Errorf("overlapping subnets found: '%s', '%s'", cidr1, cidr2)
-				}
-			}
-		}
-	}
-
-	// route table
-	// if VPC ID and Subnet CIDR is provided than Route Table ID is required as well.
-
-	if r.Properties.CreateClusterEKS.Vpc.VpcId != "" && len(allNewSubnets) > 0 {
-		if r.Properties.CreateClusterEKS.RouteTableId == "" {
-			return errors.New("if VPC ID specified and CIDR for Subnets, Route Table ID must be provided as well")
-		}
-
-		// verify if provided route table exists
-		exists, err := netSvc.RouteTableAvailable(r.Properties.CreateClusterEKS.RouteTableId, r.Properties.CreateClusterEKS.Vpc.VpcId)
-		if err != nil {
-			return errors.WrapIfWithDetails(err, "failed to check if RouteTable is available",
-				"vpcId", r.Properties.CreateClusterEKS.Vpc.VpcId,
-				"routeTableId", r.Properties.CreateClusterEKS.RouteTableId)
-		}
-		if !exists {
-			return errors.New("Route Table not found in the given VPC or it's not in 'active' state")
-		}
-
-	} else {
-		if r.Properties.CreateClusterEKS.RouteTableId != "" {
-			return errors.New("Route Table ID should be provided only when VPC ID and CIDR for Subnets are specified")
-		}
-	}
-
-	return nil
-}
-
 // GetSecretWithValidation returns secret from vault
 func (c *EKSCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return c.CommonClusterBase.getSecret(c)
@@ -1205,46 +589,4 @@ func GetEKSNodePools(cluster CommonCluster) ([]*model.AmazonNodePoolsModel, erro
 	}
 
 	return ekscluster.modelCluster.EKS.NodePools, nil
-}
-
-// loadEksMasterSettings gets K8s API server endpoint and Certificate Authority data from AWS and populates into
-// this EKSCluster instance
-func (c *EKSCluster) loadEksMasterSettings(context *action.EksClusterCreateUpdateContext) error {
-	if c.APIEndpoint == "" || c.CertificateAuthorityData == nil {
-		// Get cluster API endpoint and cluster CA data
-		loadEksSettings := action.NewLoadEksSettingsAction(c.log, context)
-		_, err := loadEksSettings.ExecuteAction(nil)
-		if err != nil {
-			return err
-		}
-
-		c.APIEndpoint = aws.StringValue(context.APIEndpoint)
-		c.CertificateAuthorityData, err = base64.StdEncoding.DecodeString(aws.StringValue(context.CertificateAuthorityData))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// loadClusterUserCredentials get the cluster user credentials from AWS and populates into this EKSCluster instance
-func (c *EKSCluster) loadClusterUserCredentials(context *action.EksClusterCreateUpdateContext) error {
-	// Get IAM user access key id and secret
-	if c.awsAccessKeyID == "" || c.awsSecretAccessKey == "" {
-
-		clusterUserAccessKeyId, clusterUserSecretAccessKey, err := action.GetClusterUserAccessKeyIdAndSecretVault(c.GetOrganizationId(), context.ClusterName)
-
-		if err != nil {
-			return errors.WrapIf(err, "getting user access key and secret failed")
-		}
-
-		context.ClusterUserAccessKeyId = clusterUserAccessKeyId
-		context.ClusterUserSecretAccessKey = clusterUserSecretAccessKey
-
-		c.awsAccessKeyID = clusterUserAccessKeyId
-		c.awsSecretAccessKey = clusterUserSecretAccessKey
-	}
-
-	return nil
 }

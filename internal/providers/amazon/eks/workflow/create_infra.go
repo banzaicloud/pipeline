@@ -32,6 +32,7 @@ type CreateInfrastructureWorkflowInput struct {
 	SSHSecretID    string
 
 	ClusterUID   string
+	ClusterID    uint
 	ClusterName  string
 	VpcID        string
 	RouteTableID string
@@ -57,6 +58,7 @@ type CreateInfrastructureWorkflowOutput struct {
 	VpcID              string
 	NodeInstanceRoleID string
 	Subnets            []Subnet
+	ConfigSecretID     string
 }
 
 // CreateInfrastructureWorkflow executes the Cadence workflow responsible for creating EKS
@@ -98,7 +100,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 		iamRolesCreateActivityFuture = workflow.ExecuteActivity(ctx, CreateIamRolesActivityName, activityInput)
 	}
 
-	// create IAM user access key key if not default user and save as secret
+	// create IAM user access key, in case defaultUser = false and save as secret
 	var userAccessKeyActivityFeature workflow.Future
 	{
 		activityInput := &CreateClusterUserAccessKeyActivityInput{
@@ -109,13 +111,13 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 		userAccessKeyActivityFeature = workflow.ExecuteActivity(ctx, CreateClusterUserAccessKeyActivityName, activityInput)
 	}
 
-	sshKeyName := generateSSHKeyNameForCluster(input.ClusterName)
+	sshKeyName := GenerateSSHKeyNameForCluster(input.ClusterName)
 	// upload SSH key activity
 	var uploadSSHKeyActivityFeature workflow.Future
 	{
 		activityInput := &UploadSSHKeyActivityInput{
 			EKSActivityInput: commonActivityInput,
-			SSHKeyName:       generateSSHKeyNameForCluster(input.ClusterName),
+			SSHKeyName:       GenerateSSHKeyNameForCluster(input.ClusterName),
 			SSHSecretID:      input.SSHSecretID,
 		}
 		uploadSSHKeyActivityFeature = workflow.ExecuteActivity(ctx, UploadSSHKeyActivityName, activityInput)
@@ -129,7 +131,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			VpcID:            input.VpcID,
 			RouteTableID:     input.RouteTableID,
 			VpcCidr:          input.VpcCidr,
-			StackName:        generateStackNameForCluster(input.ClusterName),
+			StackName:        GenerateStackNameForCluster(input.ClusterName),
 		}
 		if err := workflow.ExecuteActivity(ctx, CreateVpcActivityName, activityInput).Get(ctx, &vpcActivityOutput); err != nil {
 			return nil, err
@@ -329,10 +331,28 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 		return nil, err
 	}
 
+	var configSecretID string
+	{
+		activityInput := SaveK8sConfigActivityInput{
+			ClusterID:        input.ClusterID,
+			ClusterUID:       input.ClusterUID,
+			ClusterName:      input.ClusterName,
+			OrganizationID:   input.OrganizationID,
+			ProviderSecretID: input.SecretID,
+			UserSecretID:     userAccessKeyActivityOutput.SecretID,
+			Region:           input.Region,
+		}
+		future := workflow.ExecuteActivity(ctx, SaveK8sConfigActivityName, activityInput)
+		if err := future.Get(ctx, &configSecretID); err != nil {
+			return nil, err
+		}
+	}
+
 	output := CreateInfrastructureWorkflowOutput{
 		VpcID:              vpcActivityOutput.VpcID,
 		NodeInstanceRoleID: iamRolesActivityOutput.NodeInstanceRoleID,
 		Subnets:            existingAndNewSubnets,
+		ConfigSecretID:     configSecretID,
 	}
 
 	return &output, nil

@@ -18,7 +18,6 @@ import (
 	"reflect"
 	"testing"
 
-	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 )
 
@@ -49,91 +48,4 @@ func TestCreateSubnetMappingFromRequest(t *testing.T) {
 	if !reflect.DeepEqual(subnetMappings, expected) {
 		t.Errorf("Expected: %v, got: %v", expected, subnetMappings)
 	}
-}
-
-func TestGetNodePoolsForSubnet(t *testing.T) {
-	subnetMapping := map[string][]*eks.Subnet{
-		"default": {
-			&eks.Subnet{
-				Cidr: "192.168.64.0/20",
-			},
-			&eks.Subnet{
-				Cidr: "192.168.80.0/20",
-			},
-			&eks.Subnet{
-				SubnetId: "subnet0",
-			},
-		},
-		"pool1": {
-			&eks.Subnet{
-				Cidr: "192.168.64.0/20",
-			},
-		},
-		"pool2": {
-			&eks.Subnet{
-				Cidr: "192.168.80.0/20",
-			},
-		},
-		"pool3": {
-			&eks.Subnet{
-				SubnetId: "subnet0",
-			},
-			&eks.Subnet{
-				Cidr: "192.168.80.0/20",
-			},
-		},
-	}
-
-	testCases := []struct {
-		name              string
-		subnet            eksworkflow.Subnet
-		expectedNodePools []string
-	}{
-		{
-			name: "get node pools by subnet cidr",
-			subnet: eksworkflow.Subnet{
-				Cidr: "192.168.64.0/20",
-			},
-			expectedNodePools: []string{"default", "pool1"},
-		},
-		{
-			name: "get node pools by subnet subnet id",
-			subnet: eksworkflow.Subnet{
-				SubnetID: "subnet0",
-			},
-			expectedNodePools: []string{"default", "pool3"},
-		},
-		{
-			name: "no matching subnet mapping",
-			subnet: eksworkflow.Subnet{
-				SubnetID: "subnetx",
-			},
-			expectedNodePools: nil,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			nodePools := getNodePoolsForSubnet(subnetMapping, tc.subnet)
-
-			if tc.expectedNodePools == nil && nodePools != nil {
-				t.Errorf("Expected: %v, got: %v", tc.expectedNodePools, nodePools)
-			}
-
-			expected := make(map[string]bool)
-			actual := make(map[string]bool)
-
-			for _, np := range tc.expectedNodePools {
-				expected[np] = true
-			}
-			for _, np := range nodePools {
-				actual[np] = true
-			}
-
-			if !reflect.DeepEqual(actual, expected) {
-				t.Errorf("Expected: %v, got: %v", expected, actual)
-			}
-		})
-	}
-
 }

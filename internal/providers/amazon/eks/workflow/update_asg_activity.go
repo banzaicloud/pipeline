@@ -78,6 +78,40 @@ func NewUpdateAsgActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTe
 	}
 }
 
+func getAutoScalingGroup(cloudformationSrv *cloudformation.CloudFormation, autoscalingSrv *autoscaling.AutoScaling, stackName string) (*autoscaling.Group, error) {
+	describeStackResourceInput := &cloudformation.DescribeStackResourcesInput{
+		StackName: aws.String(stackName),
+	}
+	stackResources, err := cloudformationSrv.DescribeStackResources(describeStackResourceInput)
+	if err != nil {
+		return nil, errors.WrapIfWithDetails(err, "failed to get stack resources", "stack", stackName)
+	}
+
+	var asgId *string
+	for _, res := range stackResources.StackResources {
+		if aws.StringValue(res.LogicalResourceId) == "NodeGroup" {
+			asgId = res.PhysicalResourceId
+			break
+		}
+	}
+
+	if asgId == nil {
+		return nil, nil
+	}
+
+	describeAutoScalingGroupsInput := autoscaling.DescribeAutoScalingGroupsInput{
+		AutoScalingGroupNames: []*string{
+			asgId,
+		},
+	}
+	describeAutoScalingGroupsOutput, err := autoscalingSrv.DescribeAutoScalingGroups(&describeAutoScalingGroupsInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return describeAutoScalingGroupsOutput.AutoScalingGroups[0], nil
+}
+
 func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivityInput) (*UpdateAsgActivityOutput, error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
@@ -185,7 +219,8 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		{
 			ParameterKey:     aws.String("VpcId"),
 			UsePreviousValue: aws.Bool(true),
-		}, {
+		},
+		{
 			ParameterKey:     aws.String("Subnets"),
 			UsePreviousValue: aws.Bool(true),
 		},
