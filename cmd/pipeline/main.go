@@ -72,16 +72,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	prometheusMetrics "github.com/banzaicloud/pipeline/internal/cluster/metrics/adapters/prometheus"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeaturedriver"
-	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns/dnsadapter"
-	featureLogging "github.com/banzaicloud/pipeline/internal/clusterfeature/features/logging"
-	featureMonitoring "github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan/securityscanadapter"
-	featureVault "github.com/banzaicloud/pipeline/internal/clusterfeature/features/vault"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
@@ -91,6 +81,16 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicedriver"
+	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
+	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
+	featureMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan/securityscanadapter"
+	integratedServiceVault "github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/monitor"
@@ -697,29 +697,29 @@ func main() {
 				clustersecretadapter.NewSecretStore(secret.Store),
 			)
 
-			// Cluster Feature API
-			var featureService clusterfeature.Service
+			// Cluster IntegratedService API
+			var featureService integratedservices.Service
 			{
 				logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
-				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
-				clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
+				featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, logger)
+				clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
 				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
 				endpointManager := endpoints.NewEndpointManager(logger)
-				featureManagers := []clusterfeature.FeatureManager{
-					securityscan.MakeFeatureManager(logger),
+				integratedServiceManagers := []integratedservices.IntegratedServiceManager{
+					securityscan.MakeIntegratedServiceManager(logger),
 				}
 
 				if config.Cluster.DNS.Enabled {
-					featureManagers = append(featureManagers, featureDns.NewFeatureManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
+					integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
 				}
 
 				if config.Cluster.Vault.Enabled {
-					featureManagers = append(featureManagers, featureVault.MakeFeatureManager(clusterGetter, secretStore, config.Cluster.Vault.Config, logger))
+					integratedServiceManagers = append(integratedServiceManagers, integratedServiceVault.MakeIntegratedServiceManager(clusterGetter, secretStore, config.Cluster.Vault.Config, logger))
 				}
 
 				if config.Cluster.Monitoring.Enabled {
 					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
-					featureManagers = append(featureManagers, featureMonitoring.MakeFeatureManager(
+					integratedServiceManagers = append(integratedServiceManagers, featureMonitoring.MakeIntegratedServiceManager(
 						clusterGetter,
 						secretStore,
 						endpointManager,
@@ -730,7 +730,7 @@ func main() {
 				}
 
 				if config.Cluster.Logging.Enabled {
-					featureManagers = append(featureManagers, featureLogging.MakeFeatureManager(
+					integratedServiceManagers = append(integratedServiceManagers, integratedServiceLogging.MakeIntegratedServiceManager(
 						clusterGetter,
 						secretStore,
 						endpointManager,
@@ -774,16 +774,16 @@ func main() {
 					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
 				}
 
-				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry(featureManagers)
-				featureOperationDispatcher := clusterfeatureadapter.MakeCadenceFeatureOperationDispatcher(workflowClient, logger)
-				featureService = clusterfeature.MakeFeatureService(featureOperationDispatcher, featureManagerRegistry, featureRepository, logger)
-				endpoints := clusterfeaturedriver.MakeEndpoints(
+				integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
+				integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, logger)
+				featureService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, logger)
+				endpoints := integratedservicedriver.MakeEndpoints(
 					featureService,
 					kitxendpoint.Chain(endpointMiddleware...),
 					appkit.EndpointLogger(commonLogger),
 				)
 
-				clusterfeaturedriver.RegisterHTTPHandlers(
+				integratedservicedriver.RegisterHTTPHandlers(
 					endpoints,
 					clusterRouter.PathPrefix("/features").Subrouter(),
 					errorHandler,

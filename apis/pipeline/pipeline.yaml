@@ -3584,10 +3584,10 @@ paths:
 
     /api/v1/orgs/{orgId}/clusters/{id}/features:
         get:
-            operationId: ListClusterFeatures
+            operationId: ListIntegratedServices
             summary: List enabled features of a cluster
             tags:
-                - cluster features
+                - integrated services
             security:
                 - bearerAuth: []
             parameters:
@@ -3599,7 +3599,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/ClusterFeatureList"
+                                $ref: "#/components/schemas/IntegratedServiceList"
                 default:
                     $ref: '#/components/responses/Error'
 
@@ -3616,10 +3616,10 @@ paths:
                     type: string
 
         get:
-            operationId: ClusterFeatureDetails
-            summary: Get details of a cluster feature
+            operationId: IntegratedServiceDetails
+            summary: Get details of an integrated service
             tags:
-                - cluster features
+                - integrated services
             security:
                 - bearerAuth: []
             responses:
@@ -3628,15 +3628,15 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/ClusterFeatureDetails"
+                                $ref: "#/components/schemas/IntegratedServiceDetails"
                 default:
                     $ref: '#/components/responses/Error'
 
         post:
-            operationId: ActivateClusterFeature
-            summary: Activate a cluster feature
+            operationId: ActivateIntegratedService
+            summary: Activate a integrated service
             tags:
-                - cluster features
+                - integrated services
             security:
                 - bearerAuth: []
             requestBody:
@@ -3644,7 +3644,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/ActivateClusterFeatureRequest"
+                            $ref: "#/components/schemas/ActivateIntegratedServiceRequest"
             responses:
                 202:
                     description: Accepted
@@ -3652,10 +3652,10 @@ paths:
                     $ref: '#/components/responses/Error'
 
         delete:
-            operationId: DeactivateClusterFeature
-            summary: Deactivate a cluster feature
+            operationId: DeactivateIntegratedService
+            summary: Deactivate an integrated service
             tags:
-                - cluster features
+                - integrated services
             security:
                 - bearerAuth: []
             responses:
@@ -3665,10 +3665,10 @@ paths:
                     $ref: '#/components/responses/Error'
 
         put:
-            operationId: UpdateClusterFeature
-            summary: Update a cluster feature
+            operationId: UpdateIntegratedService
+            summary: Update an integrated service
             tags:
-                - cluster features
+                - integrated services
             security:
                 - bearerAuth: []
             requestBody:
@@ -3676,7 +3676,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/UpdateClusterFeatureRequest"
+                            $ref: "#/components/schemas/UpdateIntegratedServiceRequest"
             responses:
                 202:
                     description: Accepted
@@ -7923,20 +7923,20 @@ components:
                 enabled:
                     type: boolean
 
-        ClusterFeatureList:
+        IntegratedServiceList:
             type: object
             additionalProperties:
-                $ref: "#/components/schemas/ClusterFeatureDetails"
+                $ref: "#/components/schemas/IntegratedServiceDetails"
 
-        ActivateClusterFeatureRequest:
+        ActivateIntegratedServiceRequest:
             type: object
             required:
                 - spec
             properties:
                 spec:
-                    $ref: "#/components/schemas/ClusterFeatureSpec"
+                    $ref: "#/components/schemas/IntegratedServiceSpec"
 
-        ClusterFeatureDetails:
+        IntegratedServiceDetails:
             type: object
             required:
                 - status
@@ -7944,20 +7944,20 @@ components:
                 output:
                     type: object
                 spec:
-                    $ref: "#/components/schemas/ClusterFeatureSpec"
+                    $ref: "#/components/schemas/IntegratedServiceSpec"
                 status:
                     type: string
                     enum: [inactive, pending, active, error]
 
-        UpdateClusterFeatureRequest:
+        UpdateIntegratedServiceRequest:
             type: object
             required:
                 - spec
             properties:
                 spec:
-                    $ref: "#/components/schemas/ClusterFeatureSpec"
+                    $ref: "#/components/schemas/IntegratedServiceSpec"
 
-        ClusterFeatureSpec:
+        IntegratedServiceSpec:
             type: object
 
         ListNodepoolLabelsResponse:

@@ -18,35 +18,35 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
-	"github.com/banzaicloud/pipeline/internal/clusterfeature"
-	clusterfeatureworkflow "github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter/workflow"
+	"github.com/banzaicloud/pipeline/internal/integratedservices"
+	clusterfeatureworkflow "github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/workflow"
 )
 
-func registerClusterFeatureWorkflows(featureOperatorRegistry clusterfeature.FeatureOperatorRegistry, featureRepository clusterfeature.FeatureRepository) {
-	workflow.RegisterWithOptions(clusterfeatureworkflow.ClusterFeatureJobWorkflow, workflow.RegisterOptions{Name: clusterfeatureworkflow.ClusterFeatureJobWorkflowName})
+func registerClusterFeatureWorkflows(featureOperatorRegistry integratedservices.IntegratedServiceOperatorRegistry, featureRepository integratedservices.IntegratedServiceRepository) {
+	workflow.RegisterWithOptions(clusterfeatureworkflow.IntegratedServiceJobWorkflow, workflow.RegisterOptions{Name: clusterfeatureworkflow.IntegratedServiceJobWorkflowName})
 
 	{
-		a := clusterfeatureworkflow.MakeClusterFeatureApplyActivity(featureOperatorRegistry)
-		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.ClusterFeatureApplyActivityName})
+		a := clusterfeatureworkflow.MakeIntegratedServicesApplyActivity(featureOperatorRegistry)
+		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.IntegratedServiceApplyActivityName})
 	}
 
 	{
-		a := clusterfeatureworkflow.MakeClusterFeatureDeleteActivity(featureRepository)
-		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.ClusterFeatureDeleteActivityName})
+		a := clusterfeatureworkflow.MakeIntegratedServiceDeleteActivity(featureRepository)
+		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.IntegratedServiceDeleteActivityName})
 	}
 
 	{
-		a := clusterfeatureworkflow.MakeClusterFeatureDeactivateActivity(featureOperatorRegistry)
-		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.ClusterFeatureDeactivateActivityName})
+		a := clusterfeatureworkflow.MakeIntegratedServiceDeactivateActivity(featureOperatorRegistry)
+		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.IntegratedServiceDeactivateActivityName})
 	}
 
 	{
-		a := clusterfeatureworkflow.MakeClusterFeatureSetSpecActivity(featureRepository)
-		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.ClusterFeatureSetSpecActivityName})
+		a := clusterfeatureworkflow.MakeIntegratedServiceSetSpecActivity(featureRepository)
+		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.IntegratedServiceSetSpecActivityName})
 	}
 
 	{
-		a := clusterfeatureworkflow.MakeClusterFeatureSetStatusActivity(featureRepository)
-		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.ClusterFeatureSetStatusActivityName})
+		a := clusterfeatureworkflow.MakeIntegratedServiceSetStatusActivity(featureRepository)
+		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.IntegratedServiceSetStatusActivityName})
 	}
 }
