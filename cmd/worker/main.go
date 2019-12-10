@@ -51,13 +51,13 @@ import (
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
-	featureDns "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
+	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
-	featureLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
-	featureMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
+	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
+	integratedServiceMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan/securityscanadapter"
-	featureVault "github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
+	integratedServiceVault "github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/kubernetes/kubernetesadapter"
 	intpkeworkflowadapter "github.com/banzaicloud/pipeline/internal/pke/workflow/adapter"
@@ -467,7 +467,7 @@ func main() {
 			featureWhitelistService := securityscan.NewIntegratedServiceWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
 
 			featureOperatorRegistry := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
-				featureDns.MakeIntegratedServiceOperator(
+				integratedServiceDNS.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
 					helmService,
@@ -488,7 +488,7 @@ func main() {
 					emperror.MakeContextAware(errorHandler),
 					logger,
 				),
-				featureVault.MakeIntegratedServicesOperator(clusterGetter,
+				integratedServiceVault.MakeIntegratedServicesOperator(clusterGetter,
 					clusterService,
 					helmService,
 					kubernetesService,
@@ -496,7 +496,7 @@ func main() {
 					config.Cluster.Vault.Config,
 					logger,
 				),
-				featureMonitoring.MakeIntegratedServiceOperator(
+				integratedServiceMonitoring.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
 					helmService,
@@ -505,7 +505,7 @@ func main() {
 					logger,
 					commonSecretStore,
 				),
-				featureLogging.MakeIntegratedServicesOperator(
+				integratedServiceLogging.MakeIntegratedServicesOperator(
 					clusterGetter,
 					clusterService,
 					helmService,
