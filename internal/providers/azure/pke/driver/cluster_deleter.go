@@ -41,8 +41,16 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-func MakeAzurePKEClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyCache, logger logrus.FieldLogger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.AzurePKEClusterStore, workflowClient client.Client) AzurePKEClusterDeleter {
-	return AzurePKEClusterDeleter{
+func MakeClusterDeleter(
+	events ClusterDeleterEvents,
+	kubeProxyCache KubeProxyCache,
+	logger logrus.FieldLogger,
+	secrets SecretStore,
+	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric,
+	store pke.ClusterStore,
+	workflowClient client.Client,
+) ClusterDeleter {
+	return ClusterDeleter{
 		events:                     events,
 		kubeProxyCache:             kubeProxyCache,
 		logger:                     logger,
@@ -53,13 +61,13 @@ func MakeAzurePKEClusterDeleter(events ClusterDeleterEvents, kubeProxyCache Kube
 	}
 }
 
-type AzurePKEClusterDeleter struct {
+type ClusterDeleter struct {
 	events                     ClusterDeleterEvents
 	kubeProxyCache             KubeProxyCache
 	logger                     logrus.FieldLogger
 	secrets                    SecretStore
 	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric
-	store                      pke.AzurePKEClusterStore
+	store                      pke.ClusterStore
 	workflowClient             client.Client
 }
 
@@ -75,7 +83,7 @@ type KubeProxyCache interface {
 	Delete(clusterUID string)
 }
 
-func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAzureCluster, forced bool) error {
+func (cd ClusterDeleter) Delete(ctx context.Context, cluster pke.Cluster, forced bool) error {
 	logger := cd.logger.WithField("clusterName", cluster.Name).WithField("clusterID", cluster.ID).WithField("forced", forced)
 	logger.Info("deleting cluster")
 
@@ -202,7 +210,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 	return nil
 }
 
-func (cd AzurePKEClusterDeleter) getClusterStatusChangeDurationTimer(cluster pke.PKEOnAzureCluster) (metrics.DurationMetricTimer, error) {
+func (cd ClusterDeleter) getClusterStatusChangeDurationTimer(cluster pke.Cluster) (metrics.DurationMetricTimer, error) {
 	values := metrics.ClusterStatusChangeDurationMetricValues{
 		ProviderName: pkgCluster.Azure,
 		LocationName: cluster.Location,
@@ -219,7 +227,7 @@ func (cd AzurePKEClusterDeleter) getClusterStatusChangeDurationTimer(cluster pke
 	return cd.statusChangeDurationMetric.StartTimer(values), nil
 }
 
-func (cd AzurePKEClusterDeleter) DeleteByID(ctx context.Context, clusterID uint, forced bool) error {
+func (cd ClusterDeleter) DeleteByID(ctx context.Context, clusterID uint, forced bool) error {
 	cl, err := cd.store.GetByID(clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to load cluster from data store")
@@ -227,7 +235,15 @@ func (cd AzurePKEClusterDeleter) DeleteByID(ctx context.Context, clusterID uint,
 	return cd.Delete(ctx, cl, forced)
 }
 
-func collectPublicIPAddressNames(ctx context.Context, logger logrus.FieldLogger, pipClient *pkgAzure.PublicIPAddressesClient, secrets SecretStore, loadBalancers []network.LoadBalancer, cluster pke.PKEOnAzureCluster, forced bool) ([]string, error) {
+func collectPublicIPAddressNames(
+	ctx context.Context,
+	logger logrus.FieldLogger,
+	pipClient *pkgAzure.PublicIPAddressesClient,
+	secrets SecretStore,
+	loadBalancers []network.LoadBalancer,
+	cluster pke.Cluster,
+	forced bool,
+) ([]string, error) {
 	names := make(map[string]bool)
 	for _, lb := range loadBalancers {
 		names = gatherOwnedPublicIPAddressNames(lb, cluster.Name, names)
@@ -309,7 +325,7 @@ func gatherClusterPublicIPAddressNames(publicAddresses []network.PublicIPAddress
 	return names
 }
 
-func gatherK8sServicePublicIPs(publicAddresses []network.PublicIPAddress, cluster pke.PKEOnAzureCluster, secrets SecretStore, names map[string]bool) (map[string]bool, error) {
+func gatherK8sServicePublicIPs(publicAddresses []network.PublicIPAddress, cluster pke.Cluster, secrets SecretStore, names map[string]bool) (map[string]bool, error) {
 	if cluster.K8sSecretID == "" {
 		return names, nil
 	}
@@ -353,7 +369,7 @@ func gatherK8sServicePublicIPs(publicAddresses []network.PublicIPAddress, cluste
 	return names, nil
 }
 
-func getVMSSNames(cluster pke.PKEOnAzureCluster) []string {
+func getVMSSNames(cluster pke.Cluster) []string {
 	names := make([]string, len(cluster.NodePools))
 	for i, np := range cluster.NodePools {
 		names[i] = pke.GetVMSSName(cluster.Name, np.Name)
@@ -361,7 +377,7 @@ func getVMSSNames(cluster pke.PKEOnAzureCluster) []string {
 	return names
 }
 
-func collectClusterLoadBalancers(ctx context.Context, client *pkgAzure.LoadBalancersClient, cluster pke.PKEOnAzureCluster) ([]network.LoadBalancer, error) {
+func collectClusterLoadBalancers(ctx context.Context, client *pkgAzure.LoadBalancersClient, cluster pke.Cluster) ([]network.LoadBalancer, error) {
 	if client == nil {
 		return nil, nil
 	}

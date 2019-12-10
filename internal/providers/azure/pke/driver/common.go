@@ -175,7 +175,7 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 		}
 }
 
-func handleClusterError(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, status string, clusterID uint, err error) error {
+func handleClusterError(logger logrus.FieldLogger, store pke.ClusterStore, status string, clusterID uint, err error) error {
 	if clusterID != 0 && err != nil {
 		if err := store.SetStatus(clusterID, status, err.Error()); err != nil {
 			logger.Errorf("failed to set cluster error status: %s", err.Error())

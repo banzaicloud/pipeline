@@ -145,7 +145,7 @@ func getAzureNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 		}
 	case pkgCluster.PKE:
 		i, ok := cluster.(interface {
-			GetPKEOnAzureCluster() pke.PKEOnAzureCluster
+			GetPKEOnAzureCluster() pke.Cluster
 		})
 		if !ok {
 			return nil, errors.New("Azure/PKE cluster does not implement method GetPKEOnAzureCluster")

@@ -32,23 +32,23 @@ import (
 )
 
 const (
-	GORMAzurePKEClustersTableName  = "azure_pke_clusters"
-	GORMAzurePKENodePoolsTableName = "azure_pke_node_pools"
+	ClustersTableName  = "azure_pke_clusters"
+	NodePoolsTableName = "azure_pke_node_pools"
 )
 
-type gormAzurePKEClusterStore struct {
+type ClusterStore struct {
 	db  *gorm.DB
 	log common.Logger
 }
 
-func NewGORMAzurePKEClusterStore(db *gorm.DB, logger common.Logger) pke.AzurePKEClusterStore {
-	return gormAzurePKEClusterStore{
+func NewClusterStore(db *gorm.DB, logger common.Logger) ClusterStore {
+	return ClusterStore{
 		db:  db,
 		log: logger,
 	}
 }
 
-type gormAzurePKENodePoolModel struct {
+type nodePoolModel struct {
 	gorm.Model
 
 	Autoscaling  bool
@@ -64,11 +64,11 @@ type gormAzurePKENodePoolModel struct {
 	Zones        zonesModel `gorm:"type:json"`
 }
 
-func (gormAzurePKENodePoolModel) TableName() string {
-	return GORMAzurePKENodePoolsTableName
+func (nodePoolModel) TableName() string {
+	return NodePoolsTableName
 }
 
-type gormAzurePKEClusterModel struct {
+type clusterModel struct {
 	ID                     uint `gorm:"primary_key"`
 	ClusterID              uint `gorm:"unique_index:idx_azure_pke_cluster_id"`
 	ResourceGroupName      string
@@ -81,14 +81,14 @@ type gormAzurePKEClusterModel struct {
 	HTTPProxy httpProxyModel `gorm:"type:json"`
 
 	Cluster   clusteradapter.ClusterModel `gorm:"foreignkey:ClusterID"`
-	NodePools []gormAzurePKENodePoolModel `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
+	NodePools []nodePoolModel             `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
 
 	AccessPoints          accessPointsModel          `gorm:"type:json"`
 	ApiServerAccessPoints apiServerAccessPointsModel `gorm:"type:json"`
 }
 
-func (gormAzurePKEClusterModel) TableName() string {
-	return GORMAzurePKEClustersTableName
+func (clusterModel) TableName() string {
+	return ClustersTableName
 }
 
 type rolesModel []string
@@ -235,57 +235,57 @@ func (m apiServerAccessPointsModel) toEntity() pke.APIServerAccessPoints {
 	return asaps
 }
 
-func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model clusteradapter.ClusterModel) {
-	cl.CreatedBy = model.CreatedBy
-	cl.CreationTime = model.CreatedAt
-	cl.ID = model.ID
-	cl.K8sSecretID = model.ConfigSecretID
-	cl.Name = model.Name
-	cl.OrganizationID = model.OrganizationID
-	cl.SecretID = model.SecretID
-	cl.SSHSecretID = model.SSHSecretID
-	cl.Status = model.Status
-	cl.StatusMessage = model.StatusMessage
-	cl.UID = model.UID
+func fillClusterFromCommonClusterModel(entity *pke.Cluster, model clusteradapter.ClusterModel) {
+	entity.CreatedBy = model.CreatedBy
+	entity.CreationTime = model.CreatedAt
+	entity.ID = model.ID
+	entity.K8sSecretID = model.ConfigSecretID
+	entity.Name = model.Name
+	entity.OrganizationID = model.OrganizationID
+	entity.SecretID = model.SecretID
+	entity.SSHSecretID = model.SSHSecretID
+	entity.Status = model.Status
+	entity.StatusMessage = model.StatusMessage
+	entity.UID = model.UID
 
-	cl.ScaleOptions.DesiredCpu = model.ScaleOptions.DesiredCpu
-	cl.ScaleOptions.DesiredGpu = model.ScaleOptions.DesiredGpu
-	cl.ScaleOptions.DesiredMem = model.ScaleOptions.DesiredMem
-	cl.ScaleOptions.Enabled = model.ScaleOptions.Enabled
-	_ = json.Scan(model.ScaleOptions.Excludes, &cl.ScaleOptions.Excludes)
-	cl.ScaleOptions.KeepDesiredCapacity = model.ScaleOptions.KeepDesiredCapacity
-	cl.ScaleOptions.OnDemandPct = model.ScaleOptions.OnDemandPct
+	entity.ScaleOptions.DesiredCpu = model.ScaleOptions.DesiredCpu
+	entity.ScaleOptions.DesiredGpu = model.ScaleOptions.DesiredGpu
+	entity.ScaleOptions.DesiredMem = model.ScaleOptions.DesiredMem
+	entity.ScaleOptions.Enabled = model.ScaleOptions.Enabled
+	_ = json.Scan(model.ScaleOptions.Excludes, &entity.ScaleOptions.Excludes)
+	entity.ScaleOptions.KeepDesiredCapacity = model.ScaleOptions.KeepDesiredCapacity
+	entity.ScaleOptions.OnDemandPct = model.ScaleOptions.OnDemandPct
 
-	cl.Kubernetes.RBAC = model.RbacEnabled
-	cl.Kubernetes.OIDC.Enabled = model.OidcEnabled
-	cl.TtlMinutes = model.TtlMinutes
+	entity.Kubernetes.RBAC = model.RbacEnabled
+	entity.Kubernetes.OIDC.Enabled = model.OidcEnabled
+	entity.TtlMinutes = model.TtlMinutes
 }
 
-func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model gormAzurePKEClusterModel) error {
-	fillClusterFromClusterModel(cluster, model.Cluster)
+func fillClusterFromClusterModel(entity *pke.Cluster, model clusterModel) error {
+	fillClusterFromCommonClusterModel(entity, model.Cluster)
 
-	cluster.ResourceGroup.Name = model.ResourceGroupName
-	cluster.Location = model.VirtualNetworkLocation
+	entity.ResourceGroup.Name = model.ResourceGroupName
+	entity.Location = model.VirtualNetworkLocation
 
-	cluster.NodePools = make([]pke.NodePool, len(model.NodePools))
+	entity.NodePools = make([]pke.NodePool, len(model.NodePools))
 	for i, np := range model.NodePools {
-		fillNodePoolFromModel(&cluster.NodePools[i], np)
+		fillNodePoolFromModel(&entity.NodePools[i], np)
 	}
 
-	cluster.VirtualNetwork.Name = model.VirtualNetworkName
-	cluster.VirtualNetwork.Location = model.VirtualNetworkLocation
+	entity.VirtualNetwork.Name = model.VirtualNetworkName
+	entity.VirtualNetwork.Location = model.VirtualNetworkLocation
 
-	cluster.Kubernetes.Version = model.KubernetesVersion
-	cluster.ActiveWorkflowID = model.ActiveWorkflowID
+	entity.Kubernetes.Version = model.KubernetesVersion
+	entity.ActiveWorkflowID = model.ActiveWorkflowID
 
-	cluster.HTTPProxy = model.HTTPProxy.toEntity()
-	cluster.AccessPoints = model.AccessPoints.toEntity()
-	cluster.APIServerAccessPoints = model.ApiServerAccessPoints.toEntity()
+	entity.HTTPProxy = model.HTTPProxy.toEntity()
+	entity.AccessPoints = model.AccessPoints.toEntity()
+	entity.APIServerAccessPoints = model.ApiServerAccessPoints.toEntity()
 
 	return nil
 }
 
-func fillNodePoolFromModel(nodePool *pke.NodePool, model gormAzurePKENodePoolModel) {
+func fillNodePoolFromModel(nodePool *pke.NodePool, model nodePoolModel) {
 	nodePool.Autoscaling = model.Autoscaling
 	nodePool.CreatedBy = model.CreatedBy
 	nodePool.DesiredCount = model.DesiredCount
@@ -298,7 +298,7 @@ func fillNodePoolFromModel(nodePool *pke.NodePool, model gormAzurePKENodePoolMod
 	nodePool.Zones = []string(model.Zones)
 }
 
-func fillModelFromNodePool(model *gormAzurePKENodePoolModel, nodePool pke.NodePool) {
+func fillModelFromNodePool(model *nodePoolModel, nodePool pke.NodePool) {
 	model.Autoscaling = nodePool.Autoscaling
 	model.CreatedBy = nodePool.CreatedBy
 	model.DesiredCount = nodePool.DesiredCount
@@ -311,23 +311,23 @@ func fillModelFromNodePool(model *gormAzurePKENodePoolModel, nodePool pke.NodePo
 	model.Zones = zonesModel(nodePool.Zones)
 }
 
-func (s gormAzurePKEClusterStore) nodePools() *gorm.DB {
-	return s.db.Table(GORMAzurePKENodePoolsTableName)
+func (s ClusterStore) nodePools() *gorm.DB {
+	return s.db.Table(NodePoolsTableName)
 }
 
-func (s gormAzurePKEClusterStore) clusterDetails() *gorm.DB {
-	return s.db.Table(GORMAzurePKEClustersTableName)
+func (s ClusterStore) clusterDetails() *gorm.DB {
+	return s.db.Table(ClustersTableName)
 }
 
-func (s gormAzurePKEClusterStore) CreateNodePool(clusterID uint, nodePool pke.NodePool) error {
-	var np gormAzurePKENodePoolModel
+func (s ClusterStore) CreateNodePool(clusterID uint, nodePool pke.NodePool) error {
+	var np nodePoolModel
 	fillModelFromNodePool(&np, nodePool)
 	np.ClusterID = clusterID
 	return getError(s.db.Create(&np), "failed to create node pool model")
 }
 
-func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAzureCluster, err error) {
-	nodePools := make([]gormAzurePKENodePoolModel, len(params.NodePools))
+func (s ClusterStore) Create(params pke.CreateParams) (c pke.Cluster, err error) {
+	nodePools := make([]nodePoolModel, len(params.NodePools))
 	for i, np := range params.NodePools {
 		fillModelFromNodePool(&nodePools[i], np)
 	}
@@ -348,7 +348,7 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 		return
 	}
 
-	model := gormAzurePKEClusterModel{
+	model := clusterModel{
 		Cluster: clusteradapter.ClusterModel{
 			CreatedBy:      params.CreatedBy,
 			Name:           params.Name,
@@ -387,14 +387,14 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 		return
 	}
 
-	if err := fillClusterFromAzurePKEClusterModel(&c, model); err != nil {
+	if err := fillClusterFromClusterModel(&c, model); err != nil {
 		return c, errors.WrapIf(err, "failed to fill cluster from model")
 	}
 
 	return
 }
 
-func (s gormAzurePKEClusterStore) DeleteNodePool(clusterID uint, nodePoolName string) error {
+func (s ClusterStore) DeleteNodePool(clusterID uint, nodePoolName string) error {
 	if err := validateClusterID(clusterID); err != nil {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
@@ -402,7 +402,7 @@ func (s gormAzurePKEClusterStore) DeleteNodePool(clusterID uint, nodePoolName st
 		return errors.New("empty node pool name")
 	}
 
-	model := gormAzurePKENodePoolModel{
+	model := nodePoolModel{
 		ClusterID: clusterID,
 		Name:      nodePoolName,
 	}
@@ -413,7 +413,7 @@ func (s gormAzurePKEClusterStore) DeleteNodePool(clusterID uint, nodePoolName st
 	return getError(s.db.Delete(model), "failed to delete model from database")
 }
 
-func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
+func (s ClusterStore) Delete(clusterID uint) error {
 	if err := validateClusterID(clusterID); err != nil {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
@@ -428,24 +428,24 @@ func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
 	return getError(s.db.Delete(model), "failed to soft-delete model from database")
 }
 
-func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzureCluster, _ error) {
+func (s ClusterStore) GetByID(clusterID uint) (cluster pke.Cluster, _ error) {
 	if err := validateClusterID(clusterID); err != nil {
 		return cluster, errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := gormAzurePKEClusterModel{
+	model := clusterModel{
 		ClusterID: clusterID,
 	}
 	if err := getError(s.db.Preload("Cluster").Preload("NodePools").Where(&model).First(&model), "failed to load model from database"); err != nil {
 		return cluster, err
 	}
-	if err := fillClusterFromAzurePKEClusterModel(&cluster, model); err != nil {
+	if err := fillClusterFromClusterModel(&cluster, model); err != nil {
 		return cluster, errors.WrapIf(err, "failed to fill cluster from model")
 	}
 	return
 }
 
-func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message string) error {
+func (s ClusterStore) SetStatus(clusterID uint, status, message string) error {
 	if err := validateClusterID(clusterID); err != nil {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
@@ -482,12 +482,12 @@ func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message stri
 	return nil
 }
 
-func (s gormAzurePKEClusterStore) UpdateClusterAccessPoints(clusterID uint, accessPoints pke.AccessPoints) error {
+func (s ClusterStore) UpdateClusterAccessPoints(clusterID uint, accessPoints pke.AccessPoints) error {
 	if err := validateClusterID(clusterID); err != nil {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := gormAzurePKEClusterModel{
+	model := clusterModel{
 		ClusterID: clusterID,
 	}
 	if err := getError(s.db.Where(&model).First(&model), "failed to load cluster model"); err != nil {
@@ -506,23 +506,23 @@ func (s gormAzurePKEClusterStore) UpdateClusterAccessPoints(clusterID uint, acce
 
 	s.log.Debug("updated access points from db", map[string]interface{}{"accesspoints": model.AccessPoints})
 
-	updates := gormAzurePKEClusterModel{AccessPoints: model.AccessPoints}
+	updates := clusterModel{AccessPoints: model.AccessPoints}
 	return getError(s.db.Model(&model).Updates(updates), "failed to update PKE-on-Azure cluster access points model")
 }
 
-func (s gormAzurePKEClusterStore) SetActiveWorkflowID(clusterID uint, workflowID string) error {
+func (s ClusterStore) SetActiveWorkflowID(clusterID uint, workflowID string) error {
 	if err := validateClusterID(clusterID); err != nil {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := gormAzurePKEClusterModel{
+	model := clusterModel{
 		ClusterID: clusterID,
 	}
 
 	return getError(s.db.Model(&model).Where("cluster_id = ?", clusterID).Update("ActiveWorkflowID", workflowID), "failed to update PKE-on-Azure cluster model")
 }
 
-func (s gormAzurePKEClusterStore) SetConfigSecretID(clusterID uint, secretID string) error {
+func (s ClusterStore) SetConfigSecretID(clusterID uint, secretID string) error {
 	if err := validateClusterID(clusterID); err != nil {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
@@ -538,7 +538,7 @@ func (s gormAzurePKEClusterStore) SetConfigSecretID(clusterID uint, secretID str
 	return getError(s.db.Model(&model).Updates(fields), "failed to update cluster model")
 }
 
-func (s gormAzurePKEClusterStore) SetSSHSecretID(clusterID uint, secretID string) error {
+func (s ClusterStore) SetSSHSecretID(clusterID uint, secretID string) error {
 	if err := validateClusterID(clusterID); err != nil {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
@@ -554,7 +554,7 @@ func (s gormAzurePKEClusterStore) SetSSHSecretID(clusterID uint, secretID string
 	return getError(s.db.Model(&model).Updates(fields), "failed to update cluster model")
 }
 
-func (s gormAzurePKEClusterStore) GetConfigSecretID(clusterID uint) (string, error) {
+func (s ClusterStore) GetConfigSecretID(clusterID uint) (string, error) {
 	if err := validateClusterID(clusterID); err != nil {
 		return "", errors.WrapIf(err, "invalid cluster ID")
 	}
@@ -568,12 +568,12 @@ func (s gormAzurePKEClusterStore) GetConfigSecretID(clusterID uint) (string, err
 	return model.ConfigSecretID, nil
 }
 
-func (s gormAzurePKEClusterStore) SetNodePoolSizes(clusterID uint, nodePoolName string, min, max, desiredCount uint, autoscaling bool) error {
+func (s ClusterStore) SetNodePoolSizes(clusterID uint, nodePoolName string, min, max, desiredCount uint, autoscaling bool) error {
 	if err := validateClusterID(clusterID); err != nil {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := gormAzurePKENodePoolModel{
+	model := nodePoolModel{
 		ClusterID: clusterID,
 		Name:      nodePoolName,
 	}
@@ -591,8 +591,8 @@ func (s gormAzurePKEClusterStore) SetNodePoolSizes(clusterID uint, nodePoolName 
 // Migrate executes the table migrations for the provider.
 func Migrate(db *gorm.DB, logger common.Logger) error {
 	tables := []interface{}{
-		&gormAzurePKENodePoolModel{},
-		&gormAzurePKEClusterModel{},
+		&nodePoolModel{},
+		&clusterModel{},
 	}
 
 	var tableNames string

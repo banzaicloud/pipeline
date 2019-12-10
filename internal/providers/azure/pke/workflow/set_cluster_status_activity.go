@@ -26,10 +26,10 @@ import (
 const SetClusterStatusActivityName = "pke-azure-set-cluster-status"
 
 type SetClusterStatusActivity struct {
-	store pke.AzurePKEClusterStore
+	store pke.ClusterStore
 }
 
-func MakeSetClusterStatusActivity(store pke.AzurePKEClusterStore) SetClusterStatusActivity {
+func MakeSetClusterStatusActivity(store pke.ClusterStore) SetClusterStatusActivity {
 	return SetClusterStatusActivity{
 		store: store,
 	}

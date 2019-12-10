@@ -25,10 +25,10 @@ import (
 const DeleteNodePoolFromStoreActivityName = "pke-azure-delete-node-pool-from-store"
 
 type DeleteNodePoolFromStoreActivity struct {
-	store pke.AzurePKEClusterStore
+	store pke.ClusterStore
 }
 
-func MakeDeleteNodePoolFromStoreActivity(store pke.AzurePKEClusterStore) DeleteNodePoolFromStoreActivity {
+func MakeDeleteNodePoolFromStoreActivity(store pke.ClusterStore) DeleteNodePoolFromStoreActivity {
 	return DeleteNodePoolFromStoreActivity{
 		store: store,
 	}
