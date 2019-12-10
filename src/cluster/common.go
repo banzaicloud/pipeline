@@ -174,7 +174,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 	var configYaml string
 
 	if azurePKEClusterGetter, ok := cluster.(interface {
-		GetPKEOnAzureCluster() pke.PKEOnAzureCluster
+		GetPKEOnAzureCluster() pke.Cluster
 	}); ok {
 		azurePKECluster := azurePKEClusterGetter.GetPKEOnAzureCluster()
 
@@ -306,7 +306,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	if modelCluster.Distribution == pkgCluster.PKE && modelCluster.Cloud == pkgCluster.Azure {
 		logger := commonadapter.NewLogger(logrusadapter.New(log))
 		logger.Debug("azure adapter stuff")
-		return pkeAzureAdapter.MakeCommonClusterGetter(secret.Store, adapter.NewGORMAzurePKEClusterStore(db, logger)).GetByID(modelCluster.ID)
+		return pkeAzureAdapter.MakeCommonClusterGetter(secret.Store, adapter.NewClusterStore(db, logger)).GetByID(modelCluster.ID)
 	} else if modelCluster.Distribution == pkgCluster.PKE {
 		return createCommonClusterWithDistributionFromModel(modelCluster)
 	}

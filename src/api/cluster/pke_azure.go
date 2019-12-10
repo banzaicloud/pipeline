@@ -26,7 +26,7 @@ const PKEOnAzure = pke.PKEOnAzure
 
 type CreatePKEOnAzureClusterRequest pipeline.CreatePkeOnAzureClusterRequest
 
-func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organizationID, userID uint) driver.AzurePKEClusterCreationParams {
+func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organizationID, userID uint) driver.ClusterCreationParams {
 	var accessPoints pke.AccessPoints
 	for _, apName := range req.AccessPoints {
 		accessPoints = append(accessPoints, pke.AccessPoint{Name: apName})
@@ -37,7 +37,7 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 		apiServerAccessPoints = append(apiServerAccessPoints, pke.APIServerAccessPoint(ap))
 	}
 
-	return driver.AzurePKEClusterCreationParams{
+	return driver.ClusterCreationParams{
 		Name:           req.Name,
 		OrganizationID: organizationID,
 		CreatedBy:      userID,
@@ -96,8 +96,8 @@ func clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(o pipeline.PkeCluster
 
 type UpdatePKEOnAzureClusterRequest pipeline.UpdatePkeOnAzureClusterRequest
 
-func (req UpdatePKEOnAzureClusterRequest) ToAzurePKEClusterUpdateParams(clusterID, userID uint) driver.AzurePKEClusterUpdateParams {
-	return driver.AzurePKEClusterUpdateParams{
+func (req UpdatePKEOnAzureClusterRequest) ToAzurePKEClusterUpdateParams(clusterID, userID uint) driver.ClusterUpdateParams {
+	return driver.ClusterUpdateParams{
 		ClusterID: clusterID,
 		NodePools: requestToClusterNodepools(req.Nodepools, userID),
 	}

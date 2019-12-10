@@ -45,19 +45,19 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
-	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns/dnsadapter"
-	featureLogging "github.com/banzaicloud/pipeline/internal/clusterfeature/features/logging"
-	featureMonitoring "github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan/securityscanadapter"
-	featureVault "github.com/banzaicloud/pipeline/internal/clusterfeature/features/vault"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
+	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
+	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
+	integratedServiceMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan/securityscanadapter"
+	integratedServiceVault "github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/kubernetes/kubernetesadapter"
 	intpkeworkflowadapter "github.com/banzaicloud/pipeline/internal/pke/workflow/adapter"
@@ -330,7 +330,7 @@ func main() {
 		// Register amazon specific workflows and activities
 		registerAwsWorkflows(clusters, tokenGenerator, secretStore)
 
-		azurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db, commonadapter.NewLogger(logger))
+		azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonadapter.NewLogger(logger))
 
 		{
 			passwordSecrets := intpkeworkflowadapter.NewPasswordSecretStore(commonSecretStore)
@@ -427,15 +427,15 @@ func main() {
 			orgGetter := authdriver.NewOrganizationGetter(db)
 
 			logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
-			featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
+			featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, logger)
 			kubernetesService := kubernetes.NewService(
 				kubernetesadapter.NewConfigSecretGetter(clusteradapter.NewClusters(db)),
 				kubernetes.NewConfigFactory(commonSecretStore),
 				logger,
 			)
 
-			clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
-			clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
+			clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
+			clusterService := integratedserviceadapter.NewClusterService(clusterManager)
 			endpointManager := endpoints.NewEndpointManager(logger)
 			orgDomainService := dnsadapter.NewOrgDomainService(
 				config.Cluster.DNS.BaseDomain,
@@ -463,11 +463,11 @@ func main() {
 				commonSecretStore,
 				logger,
 			)
-			featureAnchoreService := securityscan.NewFeatureAnchoreService(anchoreUserService, logger)
-			featureWhitelistService := securityscan.NewFeatureWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
+			featureAnchoreService := securityscan.NewIntegratedServiceAnchoreService(anchoreUserService, logger)
+			featureWhitelistService := securityscan.NewIntegratedServiceWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
 
-			featureOperatorRegistry := clusterfeature.MakeFeatureOperatorRegistry([]clusterfeature.FeatureOperator{
-				featureDns.MakeFeatureOperator(
+			featureOperatorRegistry := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
+				integratedServiceDNS.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
 					helmService,
@@ -476,7 +476,7 @@ func main() {
 					commonSecretStore,
 					config.Cluster.DNS.Config,
 				),
-				securityscan.MakeFeatureOperator(
+				securityscan.MakeIntegratedServiceOperator(
 					config.Cluster.SecurityScan.Anchore.Enabled,
 					config.Cluster.SecurityScan.Anchore.Endpoint,
 					clusterGetter,
@@ -488,7 +488,7 @@ func main() {
 					emperror.MakeContextAware(errorHandler),
 					logger,
 				),
-				featureVault.MakeFeatureOperator(clusterGetter,
+				integratedServiceVault.MakeIntegratedServicesOperator(clusterGetter,
 					clusterService,
 					helmService,
 					kubernetesService,
@@ -496,7 +496,7 @@ func main() {
 					config.Cluster.Vault.Config,
 					logger,
 				),
-				featureMonitoring.MakeFeatureOperator(
+				integratedServiceMonitoring.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
 					helmService,
@@ -505,7 +505,7 @@ func main() {
 					logger,
 					commonSecretStore,
 				),
-				featureLogging.MakeFeatureOperator(
+				integratedServiceLogging.MakeIntegratedServicesOperator(
 					clusterGetter,
 					clusterService,
 					helmService,

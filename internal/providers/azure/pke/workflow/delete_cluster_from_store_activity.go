@@ -23,10 +23,10 @@ import (
 const DeleteClusterFromStoreActivityName = "pke-azure-delete-cluster-from-store"
 
 type DeleteClusterFromStoreActivity struct {
-	store pke.AzurePKEClusterStore
+	store pke.ClusterStore
 }
 
-func MakeDeleteClusterFromStoreActivity(store pke.AzurePKEClusterStore) DeleteClusterFromStoreActivity {
+func MakeDeleteClusterFromStoreActivity(store pke.ClusterStore) DeleteClusterFromStoreActivity {
 	return DeleteClusterFromStoreActivity{
 		store: store,
 	}

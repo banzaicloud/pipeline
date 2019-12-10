@@ -145,7 +145,14 @@ dex:
 #        forbiddenDomains: [
 #            "k8s.io",
 #            "kubernetes.io",
-#            "google.com"
+#            "google.com",
+#            "coreos.com",
+#            "oraclecloud.com",
+#            "node.info",
+#            "azure.com",
+#            "agentpool",
+#            "storageprofile",
+#            "storagetier"
 #        ]
 #
 #        charts:

@@ -89,8 +89,8 @@ func (a APIServerAccessPoints) Exists(name string) bool {
 	return false
 }
 
-// PKEOnAzureCluster defines fields for PKE-on-Azure clusters
-type PKEOnAzureCluster struct {
+// Cluster defines fields for PKE-on-Azure clusters
+type Cluster struct {
 	intCluster.ClusterBase
 
 	Location         string
@@ -107,7 +107,7 @@ type PKEOnAzureCluster struct {
 	APIServerAccessPoints APIServerAccessPoints
 }
 
-func (c PKEOnAzureCluster) HasActiveWorkflow() bool {
+func (c Cluster) HasActiveWorkflow() bool {
 	return c.ActiveWorkflowID != ""
 }
 

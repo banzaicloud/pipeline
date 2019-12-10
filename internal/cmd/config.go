@@ -26,10 +26,10 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterconfig"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/logging"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/vault"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
 )
 
 // AuthOIDCConfig contains OIDC auth configuration.
@@ -321,6 +321,13 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 		"k8s.io",
 		"kubernetes.io",
 		"google.com",
+		"coreos.com",
+		"oraclecloud.com",
+		"node.info",
+		"azure.com",
+		"agentpool",
+		"storageprofile",
+		"storagetier",
 	})
 	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::chart", "banzaicloud-stable/nodepool-labels-operator")
 	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::version", "0.0.3")

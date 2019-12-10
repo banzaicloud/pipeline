@@ -36,13 +36,13 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-type AzurePKEClusterUpdater struct {
+type ClusterUpdater struct {
 	logger                      logrus.FieldLogger
-	paramsPreparer              AzurePKEClusterUpdateParamsPreparer
+	paramsPreparer              ClusterUpdateParamsPreparer
 	pipelineExternalURL         string
 	pipelineExternalURLInsecure bool
 	secrets                     clusterUpdaterSecretStore
-	store                       pke.AzurePKEClusterStore
+	store                       pke.ClusterStore
 	workflowClient              client.Client
 }
 
@@ -52,10 +52,17 @@ type clusterUpdaterSecretStore interface {
 	Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
 }
 
-func MakeAzurePKEClusterUpdater(logger logrus.FieldLogger, pipelineExternalURL string, pipelineExternalURLInsecure bool, secrets clusterUpdaterSecretStore, store pke.AzurePKEClusterStore, workflowClient client.Client) AzurePKEClusterUpdater {
-	return AzurePKEClusterUpdater{
+func MakeClusterUpdater(
+	logger logrus.FieldLogger,
+	pipelineExternalURL string,
+	pipelineExternalURLInsecure bool,
+	secrets clusterUpdaterSecretStore,
+	store pke.ClusterStore,
+	workflowClient client.Client,
+) ClusterUpdater {
+	return ClusterUpdater{
 		logger: logger,
-		paramsPreparer: AzurePKEClusterUpdateParamsPreparer{
+		paramsPreparer: ClusterUpdateParamsPreparer{
 			logger:  logger,
 			secrets: secrets,
 			store:   store,
@@ -68,12 +75,12 @@ func MakeAzurePKEClusterUpdater(logger logrus.FieldLogger, pipelineExternalURL s
 	}
 }
 
-type AzurePKEClusterUpdateParams struct {
+type ClusterUpdateParams struct {
 	ClusterID uint
 	NodePools []NodePool
 }
 
-func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClusterUpdateParams) error {
+func (cu ClusterUpdater) Update(ctx context.Context, params ClusterUpdateParams) error {
 	logger := cu.logger.WithField("clusterID", params.ClusterID)
 
 	logger.Info("updating cluster")
@@ -262,7 +269,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 	return nil
 }
 
-func (cu AzurePKEClusterUpdater) handleError(clusterID uint, err error) error {
+func (cu ClusterUpdater) handleError(clusterID uint, err error) error {
 	return handleClusterError(cu.logger, cu.store, pkgCluster.Warning, clusterID, err)
 }
 
@@ -322,15 +329,15 @@ func sortSubnets(nodePoolsToCreate, nodePoolsToUpdate []NodePool, nodePoolsToDel
 	return
 }
 
-type AzurePKEClusterUpdateParamsPreparer struct {
+type ClusterUpdateParamsPreparer struct {
 	logger  logrus.FieldLogger
 	secrets interface {
 		Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
 	}
-	store pke.AzurePKEClusterStore
+	store pke.ClusterStore
 }
 
-func (p AzurePKEClusterUpdateParamsPreparer) Prepare(ctx context.Context, params *AzurePKEClusterUpdateParams) error {
+func (p ClusterUpdateParamsPreparer) Prepare(ctx context.Context, params *ClusterUpdateParams) error {
 	if params.ClusterID == 0 {
 		return validationErrorf("ClusterID cannot be 0")
 	}
@@ -378,7 +385,7 @@ func (p AzurePKEClusterUpdateParamsPreparer) Prepare(ctx context.Context, params
 }
 
 type clusterUpdaterNodePoolPreparerDataProvider struct {
-	cluster               pke.PKEOnAzureCluster
+	cluster               pke.Cluster
 	resourceGroupName     string
 	subnetsClient         pkgAzure.SubnetsClient
 	virtualNetworkName    string

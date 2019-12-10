@@ -25,10 +25,10 @@ import (
 const UpdateClusterAccessPointsActivityName = "pke-azure-upd-cluster-accesspoints"
 
 type UpdateClusterAccessPointsActivity struct {
-	store pke.AzurePKEClusterStore
+	store pke.ClusterStore
 }
 
-func MakeUpdateClusterAccessPointsActivity(store pke.AzurePKEClusterStore) UpdateClusterAccessPointsActivity {
+func MakeUpdateClusterAccessPointsActivity(store pke.ClusterStore) UpdateClusterAccessPointsActivity {
 	return UpdateClusterAccessPointsActivity{
 		store: store,
 	}

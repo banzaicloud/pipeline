@@ -33,9 +33,9 @@ import (
 )
 
 type AzurePkeCluster struct {
-	model   pke.PKEOnAzureCluster
+	model   pke.Cluster
 	secrets SecretStore
-	store   pke.AzurePKEClusterStore
+	store   pke.ClusterStore
 }
 
 type SecretStore interface {
@@ -45,10 +45,10 @@ type SecretStore interface {
 
 type CommonClusterGetter struct {
 	secrets SecretStore
-	store   pke.AzurePKEClusterStore
+	store   pke.ClusterStore
 }
 
-func MakeCommonClusterGetter(secrets SecretStore, store pke.AzurePKEClusterStore) CommonClusterGetter {
+func MakeCommonClusterGetter(secrets SecretStore, store pke.ClusterStore) CommonClusterGetter {
 	return CommonClusterGetter{
 		secrets: secrets,
 		store:   store,
@@ -302,6 +302,6 @@ func (a *AzurePkeCluster) GetCAHash() (string, error) {
 	return fmt.Sprintf("sha256:%s", hex.EncodeToString(h[:])), nil
 }
 
-func (a *AzurePkeCluster) GetPKEOnAzureCluster() pke.PKEOnAzureCluster {
+func (a *AzurePkeCluster) GetPKEOnAzureCluster() pke.Cluster {
 	return a.model
 }
