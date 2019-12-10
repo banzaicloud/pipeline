@@ -162,7 +162,7 @@ func decodeActivateIntegratedServiceRequest(ctx context.Context, req *http.Reque
 	}
 
 	params, _ := ctxutil.Params(ctx)
-	integratedServiceName := params["integratedServiceName"]
+	integratedServiceName := params["featureName"]
 
 	var requestBody pipeline.ActivateIntegratedServiceRequest
 	if err := decodeRequestBody(req, &requestBody); err != nil {
@@ -191,7 +191,7 @@ func decodeDeactivateIntegratedServicesRequest(ctx context.Context, req *http.Re
 	}
 
 	params, _ := ctxutil.Params(ctx)
-	integratedServiceName := params["integratedServiceName"]
+	integratedServiceName := params["featureName"]
 
 	return DeactivateIntegratedServiceRequest{
 		ClusterID:             clusterID,
@@ -214,7 +214,7 @@ func decodeUpdateIntegratedServicesRequest(ctx context.Context, req *http.Reques
 	}
 
 	params, _ := ctxutil.Params(ctx)
-	integratedServiceName := params["integratedServiceName"]
+	integratedServiceName := params["featureName"]
 
 	var requestBody pipeline.UpdateIntegratedServiceRequest
 	if err := decodeRequestBody(req, &requestBody); err != nil {

@@ -84,13 +84,13 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicedriver"
-	featureDns "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
+	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
-	featureLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
+	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan/securityscanadapter"
-	featureVault "github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
+	integratedServiceVault "github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/monitor"
@@ -705,21 +705,21 @@ func main() {
 				clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
 				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
 				endpointManager := endpoints.NewEndpointManager(logger)
-				featureManagers := []integratedservices.IntegratedServiceManager{
+				integratedServiceManagers := []integratedservices.IntegratedServiceManager{
 					securityscan.MakeIntegratedServiceManager(logger),
 				}
 
 				if config.Cluster.DNS.Enabled {
-					featureManagers = append(featureManagers, featureDns.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
+					integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
 				}
 
 				if config.Cluster.Vault.Enabled {
-					featureManagers = append(featureManagers, featureVault.MakeIntegratedServiceManager(clusterGetter, secretStore, config.Cluster.Vault.Config, logger))
+					integratedServiceManagers = append(integratedServiceManagers, integratedServiceVault.MakeIntegratedServiceManager(clusterGetter, secretStore, config.Cluster.Vault.Config, logger))
 				}
 
 				if config.Cluster.Monitoring.Enabled {
 					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
-					featureManagers = append(featureManagers, featureMonitoring.MakeIntegratedServiceManager(
+					integratedServiceManagers = append(integratedServiceManagers, featureMonitoring.MakeIntegratedServiceManager(
 						clusterGetter,
 						secretStore,
 						endpointManager,
@@ -730,7 +730,7 @@ func main() {
 				}
 
 				if config.Cluster.Logging.Enabled {
-					featureManagers = append(featureManagers, featureLogging.MakeIntegratedServiceManager(
+					integratedServiceManagers = append(integratedServiceManagers, integratedServiceLogging.MakeIntegratedServiceManager(
 						clusterGetter,
 						secretStore,
 						endpointManager,
@@ -774,9 +774,9 @@ func main() {
 					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
 				}
 
-				featureManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(featureManagers)
-				featureOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, logger)
-				featureService = integratedservices.MakeIntegratedServiceService(featureOperationDispatcher, featureManagerRegistry, featureRepository, logger)
+				integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
+				integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, logger)
+				featureService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, logger)
 				endpoints := integratedservicedriver.MakeEndpoints(
 					featureService,
 					kitxendpoint.Chain(endpointMiddleware...),
