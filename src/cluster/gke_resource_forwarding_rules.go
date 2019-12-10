@@ -46,7 +46,7 @@ func (fc *forwardingRulesChecker) list() (resourceNames []string, err error) {
 
 	log.WithFields(logrus.Fields{"project": fc.project, "region": fc.region})
 
-	log.Info("List forwarding rules")
+	log.Debug("list forwarding rules")
 	forwardingRules, err := fc.csv.ForwardingRules.List(fc.project, fc.region).Context(context.Background()).Do()
 	if err != nil {
 		return nil, errors.Wrap(err, "error during listing forwarding rules")

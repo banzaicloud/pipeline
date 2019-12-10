@@ -431,12 +431,7 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
 // DeleteCluster deletes cluster from google
 func (c *GKECluster) DeleteCluster() error {
-
-	if err := c.waitForResourcesDelete(); err != nil {
-		return err
-	}
-
-	c.log.Info("Start delete gke cluster")
+	c.log.Info("start delete gke cluster")
 
 	if c == nil {
 		return pkgErrors.ErrorNilCluster
@@ -457,12 +452,34 @@ func (c *GKECluster) DeleteCluster() error {
 		Zone:      c.model.Cluster.Location,
 	}
 
-	if err := c.callDeleteCluster(&gkec); err != nil {
-		be := getBanzaiErrorFromError(err)
-		// TODO status code !?
-		return errors.New(be.Message)
+	svc, err := c.getGoogleServiceClient()
+	if err != nil {
+		return errors.WrapIf(err, "creating google service client failed")
 	}
-	c.log.Info("Delete succeeded")
+
+	// verify if cluster is managed by Pipeline
+	gkeCluster, err := getClusterGoogle(svc, gkec)
+	if err != nil {
+		if gErr, ok := err.(*googleapi.Error); ok && gErr.Code == http.StatusNotFound {
+			c.log.Info("cluster to be deleted doesn't exist")
+			return nil
+		}
+		return errors.WrapIf(err, "couldn't retrieve cluster details")
+	}
+
+	if gkeCluster != nil && !hasTag(gkeCluster, global.ManagedByPipelineTag, global.ManagedByPipelineValue) {
+		return errors.Errorf("cluster %q not managed by Pipeline", gkeCluster.Name)
+	}
+
+	if err := c.waitForResourcesDelete(); err != nil {
+		return err
+	}
+
+	if err := c.callDeleteCluster(svc, &gkec); err != nil {
+		return err
+	}
+	os.RemoveAll(gkec.TempCredentialPath)
+	c.log.Info("delete succeeded")
 	return nil
 
 }
@@ -475,30 +492,27 @@ func (c *GKECluster) waitForResourcesDelete() error {
 
 	log := c.log.WithFields(logrus.Fields{"zone": c.model.Cluster.Location})
 
-	log.Info("Waiting for deleting cluster resources")
+	log.Info("waiting for deleting cluster resources")
 
-	log.Info("Create compute service")
 	csv, err := c.getComputeService()
 	if err != nil {
-		return errors.Wrap(err, "Error during creating compute service")
+		return errors.Wrap(err, "error during creating compute service")
 	}
 
-	log.Info("Get project id")
 	project, err := c.GetProjectId()
 	if err != nil {
-		return errors.Wrap(err, "Error during getting project id")
+		return errors.Wrap(err, "error during getting project id")
 	}
 
 	clusterName := c.model.Cluster.Name
 	zone := c.model.Cluster.Location
-	log.Info("Find region by zone")
 	region, err := findRegionByZone(csv, project, zone)
 	if err != nil {
-		return errors.Wrap(err, "Error during finding region by zone")
+		return errors.Wrap(err, "error during finding region by zone")
 	}
 
 	regionName := region.Name
-	log.Infof("Region name: %s", regionName)
+	log.Infof("region name: %s", regionName)
 
 	lb := newLoadBalancerHelper(csv, project, regionName, zone, clusterName)
 
@@ -510,7 +524,7 @@ func (c *GKECluster) waitForResourcesDelete() error {
 
 	err = checkResources(checkers, gkeResourceDeleteMaxAttempts, gkeResourceDeleteSleep)
 	if err != nil {
-		return errors.Wrap(err, "Error during checking resources")
+		return errors.Wrap(err, "error during checking resources")
 	}
 
 	return nil
@@ -582,14 +596,14 @@ func checkResources(checkers resourceCheckers, maxAttempts int, sleep time.Durat
 
 		log := log.WithFields(logrus.Fields{"type": rc.getType()})
 
-		log.Info("list resources")
+		log.Debug("list resources")
 
 		resources, err := rc.list()
 		if err != nil {
 			return err
 		}
 
-		log.Infof("Resource count: %d", len(resources))
+		log.Debugf("resource count: %d", len(resources))
 
 		for _, resource := range resources {
 
@@ -599,10 +613,10 @@ func checkResources(checkers resourceCheckers, maxAttempts int, sleep time.Durat
 			deleted := false
 
 			for attempt <= maxAttempts && !deleted {
-				log.Debugf("Waiting for resource to be deleted %d/%d", attempt, maxAttempts)
+				log.Debugf("waiting for resource to be deleted %d/%d", attempt, maxAttempts)
 				err := rc.isResourceDeleted(resource)
 				if err == nil {
-					log.Info("Resource deleted")
+					log.Info("resource deleted")
 					deleted = true
 					break
 				} else {
@@ -938,31 +952,29 @@ func getClusterGoogle(svc *gke.Service, cc googleCluster) (*gke.Cluster, error) 
 	return svc.Projects.Zones.Clusters.Get(cc.ProjectID, cc.Zone, cc.Name).Context(context.TODO()).Do()
 }
 
-func (c *GKECluster) callDeleteCluster(cc *googleCluster) error {
-	svc, err := c.getGoogleServiceClient()
-	if err != nil {
-		return errors.WrapIf(err, "creating google service client failed")
-	}
-	c.log.Info("Get Google Service Client succeeded")
-
-	c.log.Infof("Removing cluster %v from project %v, zone %v", cc.Name, cc.ProjectID, cc.Zone)
+func (c *GKECluster) callDeleteCluster(svc *gke.Service, cc *googleCluster) error {
+	c.log.Infof("removing cluster %v from project %v, zone %v", cc.Name, cc.ProjectID, cc.Zone)
 	deleteCall, err := svc.Projects.Zones.Clusters.Delete(cc.ProjectID, cc.Zone, cc.Name).Context(context.Background()).Do()
-	if err != nil && !strings.Contains(err.Error(), "notFound") {
-		return errors.WrapIf(err, "initiating cluster deletion failed")
-	} else if err == nil {
-		c.log.Infof("Cluster %v delete is called. Status Code %v", cc.Name, deleteCall.HTTPStatusCode)
+
+	if err != nil {
+		if gErr, ok := err.(*googleapi.Error); ok && gErr.Code == http.StatusNotFound {
+			// cluster has already been deleted from cloud provider
+			c.log.Info("cluster to be deleted doesn't exist")
+		} else {
+			return errors.WrapIf(err, "initiating cluster deletion failed")
+		}
+	} else {
+		c.log.Debugf("cluster delete is called. Status Code %v", deleteCall.HTTPStatusCode)
 
 		if deleteCall != nil {
-			c.log.Info("Waiting for cluster...")
+			c.log.Info("waiting for cluster deletion to complete...")
 
 			if err := waitForOperation(newContainerOperation(svc, c.model.ProjectId, c.model.Cluster.Location), deleteCall.Name, c.log); err != nil {
 				return errors.WrapIf(err, "waiting for cluster deletion to complete failed")
 			}
 		}
-	} else {
-		c.log.Infof("Cluster %s doesn't exist", cc.Name)
 	}
-	os.RemoveAll(cc.TempCredentialPath)
+
 	return nil
 }
 
@@ -1404,9 +1416,6 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 		ClusterID: clusterModel.ID,
 	}
 
-	log := log.WithField("cluster", clusterModel.Name)
-	// log.Debug("Load Google props from database")
-
 	err := db.Where(m).Preload("Cluster").Preload("NodePools").Preload("Cluster.ScaleOptions").First(&m).Error
 	if err != nil {
 		return nil, err
@@ -1416,6 +1425,8 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to create DB GKE cluster repository")
 	}
+
+	log := log.WithFields(logrus.Fields{"cluster": clusterModel.Name, "clusterID": m.Cluster.ID})
 
 	gkeCluster := GKECluster{
 		repository: repository,

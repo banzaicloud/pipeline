@@ -17,8 +17,7 @@ package cluster
 import (
 	"context"
 
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
+	"emperror.dev/errors"
 	gkeCompute "google.golang.org/api/compute/v1"
 )
 
@@ -43,24 +42,20 @@ func newLoadBalancerHelper(csv *gkeCompute.Service, project, region, zone, clust
 
 func (lb *loadBalancerHelper) listTargetPools() ([]*gkeCompute.TargetPool, error) {
 
-	log := log.WithFields(logrus.Fields{"project": lb.project, "region": lb.region, "zone": lb.zone})
-
 	if lb.targetPools == nil {
-
-		log.Info("List target pools")
 		pools, err := lb.csv.TargetPools.List(lb.project, lb.region).Context(context.Background()).Do()
 		if err != nil {
-			return nil, errors.Wrap(err, "error during listing target pools")
+			return nil, errors.WrapIf(err, "error during listing target pools")
 		}
 
-		log.Info("List instances")
 		instance, err := findInstanceByClusterName(lb.csv, lb.project, lb.zone, lb.clusterName)
 		if err != nil {
-			return nil, errors.Wrap(err, "error during listing instances")
+			return nil, errors.WrapIf(err, "couldn't check if cluster exists")
 		}
 
-		log.Infof("Find target pool(s) by instance[%s]", instance.Name)
-		lb.targetPools = findTargetPoolsByInstances(pools.Items, instance.SelfLink)
+		if pools != nil && instance != nil {
+			lb.targetPools = findTargetPoolsByInstances(pools.Items, instance.SelfLink)
+		}
 
 	}
 
