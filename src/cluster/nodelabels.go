@@ -53,7 +53,8 @@ func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, node
 	}
 
 	for name, nodePool := range nodePools {
-		labelsMap := getDesiredNodePoolLabels(logger, clusterStatus, name, nodePool, noReturnIfNoUserLabels)
+		labelsMap := GetDesiredLabelsForNodePool(logger, name, nodePool, noReturnIfNoUserLabels,
+			clusterStatus.Cloud, clusterStatus.Distribution, clusterStatus.Region)
 		if len(labelsMap) > 0 {
 			desiredLabels[name] = labelsMap
 		}
@@ -67,8 +68,15 @@ func formatValue(value string) string {
 	return norm
 }
 
-func getDesiredNodePoolLabels(logger logrus.FieldLogger, clusterStatus *pkgCluster.GetClusterStatusResponse, nodePoolName string,
-	nodePool *pkgCluster.NodePoolStatus, noReturnIfNoUserLabels bool) map[string]string {
+func GetDesiredLabelsForNodePool(
+	logger logrus.FieldLogger,
+	nodePoolName string,
+	nodePool *pkgCluster.NodePoolStatus,
+	noReturnIfNoUserLabels bool,
+	cloud string,
+	distribution string,
+	region string,
+) map[string]string {
 
 	desiredLabels := make(map[string]string)
 	if len(nodePool.Labels) == 0 && noReturnIfNoUserLabels {
@@ -86,16 +94,16 @@ func getDesiredNodePoolLabels(logger logrus.FieldLogger, clusterStatus *pkgClust
 	}
 
 	// get CloudInfo labels for node
-	machineDetails, err := cloudinfo.GetMachineDetails(logger, clusterStatus.Cloud,
-		clusterStatus.Distribution,
-		clusterStatus.Region,
+	machineDetails, err := cloudinfo.GetMachineDetails(logger, cloud,
+		distribution,
+		region,
 		nodePool.InstanceType)
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"instance":     nodePool.InstanceType,
-			"cloud":        clusterStatus.Cloud,
-			"distribution": clusterStatus.Distribution,
-			"region":       clusterStatus.Region,
+			"cloud":        cloud,
+			"distribution": distribution,
+			"region":       region,
 		}).Warn(errors.Wrap(err, "failed to get instance attributes from Cloud Info"))
 	} else {
 		if machineDetails != nil {

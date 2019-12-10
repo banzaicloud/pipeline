@@ -19,9 +19,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/mitchellh/mapstructure"
+
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
-	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
@@ -204,27 +205,23 @@ func (a *ClusterAPI) createCluster(
 		}
 	}
 
-	creationCtx := cluster.CreationContext{
-		OrganizationID:          organizationID,
-		UserID:                  userID,
-		Name:                    createClusterRequest.Name,
-		SecretID:                createClusterRequest.SecretId,
-		SecretIDs:               createClusterRequest.SecretIds,
-		Provider:                createClusterRequest.Cloud,
-		PostHooks:               postHooks,
-		ExternalBaseURL:         a.externalBaseURL,
-		ExternalBaseURLInsecure: a.externalBaseURLInsecure,
+	if _, ok := commonCluster.(*cluster.EKSCluster); ok {
+		commonCluster, err = a.clusterCreators.EKSAmazon.CreateCluster(ctx, commonCluster, createClusterRequest, organizationID, userID)
+	} else {
+		creationCtx := cluster.CreationContext{
+			OrganizationID:          organizationID,
+			UserID:                  userID,
+			Name:                    createClusterRequest.Name,
+			SecretID:                createClusterRequest.SecretId,
+			SecretIDs:               createClusterRequest.SecretIds,
+			Provider:                createClusterRequest.Cloud,
+			PostHooks:               postHooks,
+			ExternalBaseURL:         a.externalBaseURL,
+			ExternalBaseURLInsecure: a.externalBaseURLInsecure,
+		}
+		creator := cluster.NewClusterCreator(createClusterRequest, commonCluster, a.workflowClient)
+		commonCluster, err = a.clusterManager.CreateCluster(ctx, creationCtx, creator)
 	}
-
-	switch c := commonCluster.(type) {
-	case *cluster.EKSCluster:
-		c.CloudInfoClient = a.cloudInfoClient
-		c.WorkflowClient = a.workflowClient
-	}
-
-	creator := cluster.NewClusterCreator(createClusterRequest, commonCluster, a.workflowClient)
-
-	commonCluster, err = a.clusterManager.CreateCluster(ctx, creationCtx, creator)
 
 	if err == cluster.ErrAlreadyExists || isInvalid(err) {
 		logger.Debugf("invalid cluster creation: %s", err.Error())

@@ -106,6 +106,7 @@ import (
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/internal/platform/watermill"
+	eksDriver "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/driver"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
@@ -401,6 +402,15 @@ func main() {
 			azurePKEClusterStore,
 			workflowClient,
 		),
+		EKSAmazon: eksDriver.NewEksClusterCreator(
+			logrusLogger,
+			workflowClient,
+			cloudInfoClient,
+			clusters,
+			secretValidator,
+			statusChangeDurationMetric,
+			clusterTotalMetric,
+		),
 	}
 	clusterDeleters := api.ClusterDeleters{
 		PKEOnAzure: azurePKEDriver.MakeClusterDeleter(
@@ -410,6 +420,14 @@ func main() {
 			secret.Store,
 			statusChangeDurationMetric,
 			azurePKEClusterStore,
+			workflowClient,
+		),
+		EKSAmazon: eksDriver.NewEKSClusterDeleter(
+			clusterEvents,
+			clusterManager.GetKubeProxyCache(),
+			logrusLogger,
+			secret.Store,
+			statusChangeDurationMetric,
 			workflowClient,
 		),
 	}
@@ -429,6 +447,10 @@ func main() {
 			externalURLInsecure,
 			secret.Store,
 			azurePKEClusterStore,
+			workflowClient,
+		),
+		EKSAmazon: eksDriver.NewEksClusterUpdater(
+			logrusLogger,
 			workflowClient,
 		),
 	}

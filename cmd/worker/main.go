@@ -66,6 +66,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
+	eksClusterAdapter "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/adapter"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
@@ -226,6 +227,8 @@ func main() {
 			clustersecretadapter.NewSecretStore(secret.Store),
 		)
 
+		eksClusters := eksClusterAdapter.NewClusterManagerAdapter(clusterManager)
+
 		clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
 		emperror.Panic(errors.Wrap(err, "failed to create DexClusterAuthService"))
 
@@ -341,7 +344,7 @@ func main() {
 		registerAzureWorkflows(secretStore, tokenGenerator, azurePKEClusterStore)
 
 		// Register EKS specific workflows
-		err = registerEKSWorkflows(secret.Store)
+		err = registerEKSWorkflows(secret.Store, eksClusters)
 		if err != nil {
 			emperror.Panic(errors.WrapIf(err, "failed to register EKS workflows"))
 		}

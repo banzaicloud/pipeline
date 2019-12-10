@@ -22,6 +22,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver"
+	"go.uber.org/cadence/activity"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
@@ -80,11 +81,26 @@ func NewBootstrapActivity(awsSessionFactory *AWSSessionFactory) *BootstrapActivi
 
 func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivityInput) (*BootstrapActivityOutput, error) {
 
-	session, err := a.awsSessionFactory.New(input.OrganizationID, input.SecretID, input.Region)
+	logger := activity.GetLogger(ctx).Sugar().With(
+		"organization", input.OrganizationID,
+		"cluster", input.ClusterName,
+		"region", input.Region,
+		"version", input.KubernetesVersion,
+	)
+
+	awsSession, err := a.awsSessionFactory.New(input.OrganizationID, input.SecretID, input.Region)
 	if err = errors.WrapIf(err, "failed to create AWS session"); err != nil {
 		return nil, err
 	}
-	eksSvc := eks.New(session)
+	eksSvc := eks.New(
+		awsSession,
+		aws.NewConfig().
+			WithLogger(aws.LoggerFunc(
+				func(args ...interface{}) {
+					logger.Debug(args)
+				})).
+			WithLogLevel(aws.LogDebugWithHTTPBody),
+	)
 
 	kubeClient, err := a.getKubeClient(eksSvc, input)
 	if err = errors.WrapIf(err, "failed to retrieve K8s client"); err != nil {

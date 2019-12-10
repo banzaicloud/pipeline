@@ -15,10 +15,10 @@
 package workflow
 
 import (
-	"errors"
 	"testing"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/cadence/activity"
@@ -26,15 +26,14 @@ import (
 	"go.uber.org/cadence/workflow"
 )
 
-type CreateClusterWorkflowTestSuite struct {
+type CreateInfraWorkflowTestSuite struct {
 	suite.Suite
 	testsuite.WorkflowTestSuite
 
 	env *testsuite.TestWorkflowEnvironment
 }
 
-func TestCreateClusterWorkflowTestSuite(t *testing.T) {
-	workflow.RegisterWithOptions(CreateClusterWorkflow, workflow.RegisterOptions{Name: CreateClusterWorkflowName})
+func TestCreateInfraWorkflowTestSuite(t *testing.T) {
 	workflow.RegisterWithOptions(CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: CreateInfraWorkflowName})
 
 	createVPCActivity := NewCreateVPCActivity(nil, "")
@@ -55,6 +54,9 @@ func TestCreateClusterWorkflowTestSuite(t *testing.T) {
 	createEksClusterActivity := NewCreateEksClusterActivity(nil)
 	activity.RegisterWithOptions(createEksClusterActivity.Execute, activity.RegisterOptions{Name: CreateEksControlPlaneActivityName})
 
+	saveK8sConfigActivity := NewSaveK8sConfigActivity(nil, nil)
+	activity.RegisterWithOptions(saveK8sConfigActivity.Execute, activity.RegisterOptions{Name: SaveK8sConfigActivityName})
+
 	waitAttempts := 1
 	waitInterval := 20 * time.Second
 
@@ -67,78 +69,79 @@ func TestCreateClusterWorkflowTestSuite(t *testing.T) {
 	bootstrapActivity := NewBootstrapActivity(nil)
 	activity.RegisterWithOptions(bootstrapActivity.Execute, activity.RegisterOptions{Name: BootstrapActivityName})
 
-	suite.Run(t, new(CreateClusterWorkflowTestSuite))
+	saveClusterActivity := NewSaveNetworkDetailsActivity(nil)
+	activity.RegisterWithOptions(saveClusterActivity.Execute, activity.RegisterOptions{Name: SaveNetworkDetailsActivityName})
+
+	suite.Run(t, new(CreateInfraWorkflowTestSuite))
 }
 
-func (s *CreateClusterWorkflowTestSuite) SetupTest() {
+func (s *CreateInfraWorkflowTestSuite) SetupTest() {
 	s.env = s.NewTestWorkflowEnvironment()
 }
 
-func (s *CreateClusterWorkflowTestSuite) AfterTest(suiteName, testName string) {
+func (s *CreateInfraWorkflowTestSuite) AfterTest(suiteName, testName string) {
 	s.env.AssertExpectations(s.T())
 }
 
-func (s *CreateClusterWorkflowTestSuite) Test_Successful_Create() {
+func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 
-	workflowInput := CreateClusterWorkflowInput{
-		CreateInfrastructureWorkflowInput: CreateInfrastructureWorkflowInput{
-			Region:                "us-west-1",
-			OrganizationID:        1,
-			SecretID:              "my-secret-id",
-			SSHSecretID:           "ssh-secret-id",
-			ClusterUID:            "cluster-id",
-			ClusterName:           "test-cluster-name",
-			VpcID:                 "",
-			RouteTableID:          "",
-			VpcCidr:               "",
-			ScaleEnabled:          false,
-			DefaultUser:           false,
-			ClusterRoleID:         "test-cluster-role-id",
-			NodeInstanceRoleID:    "test-node-instance-role-id",
-			KubernetesVersion:     "1.14",
-			LogTypes:              []string{"test-log-type"},
-			EndpointPublicAccess:  true,
-			EndpointPrivateAccess: false,
-			Subnets: []Subnet{
+	workflowInput := CreateInfrastructureWorkflowInput{
+		Region:                "us-west-1",
+		OrganizationID:        1,
+		SecretID:              "my-secret-id",
+		SSHSecretID:           "ssh-secret-id",
+		ClusterID:             1,
+		ClusterUID:            "cluster-id",
+		ClusterName:           "test-cluster-name",
+		VpcID:                 "",
+		RouteTableID:          "",
+		VpcCidr:               "",
+		ScaleEnabled:          false,
+		DefaultUser:           false,
+		ClusterRoleID:         "test-cluster-role-id",
+		NodeInstanceRoleID:    "test-node-instance-role-id",
+		KubernetesVersion:     "1.14",
+		LogTypes:              []string{"test-log-type"},
+		EndpointPublicAccess:  true,
+		EndpointPrivateAccess: false,
+		Subnets: []Subnet{
+			{Cidr: "cidr1", AvailabilityZone: "az1"},
+			{Cidr: "cidr2", AvailabilityZone: "az2"},
+			{SubnetID: "subnet3"},
+		},
+		ASGSubnetMapping: map[string][]Subnet{
+			"pool1": {
 				{Cidr: "cidr1", AvailabilityZone: "az1"},
 				{Cidr: "cidr2", AvailabilityZone: "az2"},
-				{SubnetID: "subnet3"},
 			},
-			ASGSubnetMapping: map[string][]Subnet{
-				"pool1": {
-					{Cidr: "cidr1", AvailabilityZone: "az1"},
-					{Cidr: "cidr2", AvailabilityZone: "az2"},
+			"pool2": {{SubnetID: "subnet3"}},
+		},
+		AsgList: []AutoscaleGroup{
+			{
+				Name:             "pool1",
+				NodeSpotPrice:    "0.2",
+				Autoscaling:      true,
+				NodeMinCount:     2,
+				NodeMaxCount:     3,
+				Count:            2,
+				NodeImage:        "ami-test1",
+				NodeInstanceType: "vm-type1-test",
+				Labels: map[string]string{
+					"test-label1":         "test-value1",
+					"test-label2.io/name": "test-value2",
 				},
-				"pool2": {{SubnetID: "subnet3"}},
 			},
-			AsgList: []AutoscaleGroup{
-				{
-					Name:             "pool1",
-					NodeSpotPrice:    "0.2",
-					Autoscaling:      true,
-					NodeMinCount:     2,
-					NodeMaxCount:     3,
-					Count:            2,
-					NodeImage:        "ami-test1",
-					NodeInstanceType: "vm-type1-test",
-					Labels: map[string]string{
-						"test-label1":         "test-value1",
-						"test-label2.io/name": "test-value2",
-					},
-				},
-				{
-					Name:             "pool2",
-					NodeSpotPrice:    "0.0",
-					Autoscaling:      false,
-					NodeMinCount:     3,
-					NodeMaxCount:     3,
-					Count:            3,
-					NodeImage:        "ami-test2",
-					NodeInstanceType: "vm-type2-test",
-				},
+			{
+				Name:             "pool2",
+				NodeSpotPrice:    "0.0",
+				Autoscaling:      false,
+				NodeMinCount:     3,
+				NodeMaxCount:     3,
+				Count:            3,
+				NodeImage:        "ami-test2",
+				NodeInstanceType: "vm-type2-test",
 			},
 		},
-		ClusterID: 1,
 	}
 
 	eksActivity := EKSActivityInput{
@@ -167,7 +170,7 @@ func (s *CreateClusterWorkflowTestSuite) Test_Successful_Create() {
 		EKSActivityInput: eksActivity,
 		UserName:         "test-cluster-name",
 		UseDefaultUser:   false,
-	}).Return(&CreateClusterUserAccessKeyActivityOutput{}, nil)
+	}).Return(&CreateClusterUserAccessKeyActivityOutput{SecretID: "userSecretId"}, nil)
 
 	s.env.OnActivity(UploadSSHKeyActivityName, mock.Anything, UploadSSHKeyActivityInput{
 		EKSActivityInput: eksActivity,
@@ -231,7 +234,7 @@ func (s *CreateClusterWorkflowTestSuite) Test_Successful_Create() {
 	s.env.OnActivity(CreateEksControlPlaneActivityName, mock.Anything, CreateEksControlPlaneActivityInput{
 		EKSActivityInput:      eksActivity,
 		KubernetesVersion:     "1.14",
-		EndpointPrivateAccess: true,
+		EndpointPrivateAccess: false,
 		EndpointPublicAccess:  true,
 		ClusterRoleArn:        "cluster-role-arn",
 		SecurityGroupID:       "test-eks-controlplane-security-group-id",
@@ -323,89 +326,80 @@ func (s *CreateClusterWorkflowTestSuite) Test_Successful_Create() {
 		ClusterUserArn:      "cluster-user-arn",
 	}).Return(&BootstrapActivityOutput{}, nil)
 
-	s.env.ExecuteWorkflow(CreateClusterWorkflowName, workflowInput)
+	s.env.OnActivity(SaveK8sConfigActivityName, mock.Anything, SaveK8sConfigActivityInput{
+		ClusterID:        1,
+		ClusterUID:       "cluster-id",
+		ClusterName:      eksActivity.ClusterName,
+		OrganizationID:   eksActivity.OrganizationID,
+		Region:           eksActivity.Region,
+		UserSecretID:     "userSecretId",
+		ProviderSecretID: "my-secret-id",
+	}).Return("userSecretId", nil)
+
+	s.env.ExecuteWorkflow(CreateInfraWorkflowName, workflowInput)
 
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())
-
-	var workflowOutput CreateClusterWorkflowOutput
-	s.env.GetWorkflowResult(&workflowOutput) //nolint: errcheck
-
-	expectedWorkflowOutput := CreateClusterWorkflowOutput{
-		CreateInfrastructureWorkflowOutput{
-			VpcID:              "new-vpc-id",
-			NodeInstanceRoleID: "node-instance-role-id",
-			Subnets: []Subnet{
-				{SubnetID: "subnet1", Cidr: "cidr1", AvailabilityZone: "az1"},
-				{SubnetID: "subnet2", Cidr: "cidr2", AvailabilityZone: "az2"},
-				{SubnetID: "subnet3", Cidr: "cidr3", AvailabilityZone: "az3"},
-			},
-		},
-	}
-	s.Equal(expectedWorkflowOutput, workflowOutput)
 }
 
-func (s *CreateClusterWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
+func (s *CreateInfraWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
 
-	workflowInput := CreateClusterWorkflowInput{
-		CreateInfrastructureWorkflowInput: CreateInfrastructureWorkflowInput{
-			Region:                "us-west-1",
-			OrganizationID:        1,
-			SecretID:              "my-secret-id",
-			SSHSecretID:           "ssh-secret-id",
-			ClusterUID:            "cluster-id",
-			ClusterName:           "test-cluster-name",
-			VpcID:                 "",
-			RouteTableID:          "",
-			VpcCidr:               "",
-			ScaleEnabled:          false,
-			DefaultUser:           false,
-			ClusterRoleID:         "test-cluster-role-id",
-			NodeInstanceRoleID:    "test-node-instance-role-id",
-			KubernetesVersion:     "1.14",
-			LogTypes:              []string{"test-log-type"},
-			EndpointPublicAccess:  true,
-			EndpointPrivateAccess: false,
-			Subnets: []Subnet{
+	workflowInput := CreateInfrastructureWorkflowInput{
+		Region:                "us-west-1",
+		OrganizationID:        1,
+		SecretID:              "my-secret-id",
+		SSHSecretID:           "ssh-secret-id",
+		ClusterUID:            "cluster-id",
+		ClusterName:           "test-cluster-name",
+		VpcID:                 "",
+		RouteTableID:          "",
+		VpcCidr:               "",
+		ScaleEnabled:          false,
+		DefaultUser:           false,
+		ClusterRoleID:         "test-cluster-role-id",
+		NodeInstanceRoleID:    "test-node-instance-role-id",
+		KubernetesVersion:     "1.14",
+		LogTypes:              []string{"test-log-type"},
+		EndpointPublicAccess:  true,
+		EndpointPrivateAccess: false,
+		Subnets: []Subnet{
+			{Cidr: "cidr1", AvailabilityZone: "az1"},
+			{Cidr: "cidr2", AvailabilityZone: "az2"},
+			{SubnetID: "subnet3"},
+		},
+		ASGSubnetMapping: map[string][]Subnet{
+			"pool1": {
 				{Cidr: "cidr1", AvailabilityZone: "az1"},
 				{Cidr: "cidr2", AvailabilityZone: "az2"},
-				{SubnetID: "subnet3"},
 			},
-			ASGSubnetMapping: map[string][]Subnet{
-				"pool1": {
-					{Cidr: "cidr1", AvailabilityZone: "az1"},
-					{Cidr: "cidr2", AvailabilityZone: "az2"},
+			"pool2": {{SubnetID: "subnet3"}},
+		},
+		AsgList: []AutoscaleGroup{
+			{
+				Name:             "pool1",
+				NodeSpotPrice:    "0.2",
+				Autoscaling:      true,
+				NodeMinCount:     2,
+				NodeMaxCount:     3,
+				Count:            2,
+				NodeImage:        "ami-test1",
+				NodeInstanceType: "vm-type1-test",
+				Labels: map[string]string{
+					"test-label1":         "test-value1",
+					"test-label2.io/name": "test-value2",
 				},
-				"pool2": {{SubnetID: "subnet3"}},
 			},
-			AsgList: []AutoscaleGroup{
-				{
-					Name:             "pool1",
-					NodeSpotPrice:    "0.2",
-					Autoscaling:      true,
-					NodeMinCount:     2,
-					NodeMaxCount:     3,
-					Count:            2,
-					NodeImage:        "ami-test1",
-					NodeInstanceType: "vm-type1-test",
-					Labels: map[string]string{
-						"test-label1":         "test-value1",
-						"test-label2.io/name": "test-value2",
-					},
-				},
-				{
-					Name:             "pool2",
-					NodeSpotPrice:    "0.0",
-					Autoscaling:      false,
-					NodeMinCount:     3,
-					NodeMaxCount:     3,
-					Count:            3,
-					NodeImage:        "ami-test2",
-					NodeInstanceType: "vm-type2-test",
-				},
+			{
+				Name:             "pool2",
+				NodeSpotPrice:    "0.0",
+				Autoscaling:      false,
+				NodeMinCount:     3,
+				NodeMaxCount:     3,
+				Count:            3,
+				NodeImage:        "ami-test2",
+				NodeInstanceType: "vm-type2-test",
 			},
 		},
-		ClusterID: 1,
 	}
 
 	s.env.OnActivity(CreateIamRolesActivityName, mock.Anything, mock.Anything).Return(&CreateIamRolesActivityOutput{
@@ -421,7 +415,7 @@ func (s *CreateClusterWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
 
 	s.env.OnActivity(CreateVpcActivityName, mock.Anything, mock.Anything).Return(nil, errors.New("failed to create VPC"))
 
-	s.env.ExecuteWorkflow(CreateClusterWorkflowName, workflowInput)
+	s.env.ExecuteWorkflow(CreateInfraWorkflowName, workflowInput)
 
 	s.True(s.env.IsWorkflowCompleted())
 	s.Error(s.env.GetWorkflowError())

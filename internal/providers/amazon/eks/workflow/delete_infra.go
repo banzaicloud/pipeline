@@ -72,7 +72,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	{
 		activityInput := GetVpcConfigActivityInput{
 			EKSActivityInput: eksActivityInput,
-			StackName:        generateStackNameForCluster(input.ClusterName),
+			StackName:        GenerateStackNameForCluster(input.ClusterName),
 		}
 
 		if err := workflow.ExecuteActivity(ctx, GetVpcConfigActivityName, activityInput).Get(ctx, &getVpcConfigActivityOutput); err != nil {
@@ -161,7 +161,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	{
 		activityInput := DeleteSshKeyActivityInput{
 			EKSActivityInput: eksActivityInput,
-			SSHKeyName:       generateSSHKeyNameForCluster(input.ClusterName),
+			SSHKeyName:       GenerateSSHKeyNameForCluster(input.ClusterName),
 		}
 		deleteSSHKeyAcitivityFeature = workflow.ExecuteActivity(ctx, DeleteSshKeyActivityName, activityInput)
 	}
@@ -245,7 +245,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	{
 		activityInput := DeleteStackActivityInput{
 			EKSActivityInput: eksActivityInput,
-			StackName:        generateStackNameForCluster(input.ClusterName),
+			StackName:        GenerateStackNameForCluster(input.ClusterName),
 		}
 
 		if err := workflow.ExecuteActivity(ctx, DeleteStackActivityName, activityInput).Get(ctx, nil); err != nil {

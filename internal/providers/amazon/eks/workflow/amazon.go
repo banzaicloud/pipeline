@@ -15,16 +15,25 @@
 package workflow
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	"emperror.dev/errors"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"go.uber.org/cadence"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
+
+	"github.com/banzaicloud/pipeline/src/model"
 
 	"github.com/banzaicloud/pipeline/src/secret"
 
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
+	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
 // ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure
@@ -43,7 +52,7 @@ func getNodePoolStackTags(clusterName string) []*cloudformation.Tag {
 	return getStackTags(clusterName, "nodepool")
 }
 
-func generateStackNameForCluster(clusterName string) string {
+func GenerateStackNameForCluster(clusterName string) string {
 	return "pipeline-eks-" + clusterName
 }
 
@@ -56,7 +65,7 @@ func generateStackNameForIam(clusterName string) string {
 	return "pipeline-eks-iam-" + clusterName
 }
 
-func generateSSHKeyNameForCluster(clusterName string) string {
+func GenerateSSHKeyNameForCluster(clusterName string) string {
 	return "pipeline-eks-ssh-" + clusterName
 }
 
@@ -120,6 +129,21 @@ func generateRequestToken(uuid string, activityName string) string {
 	return token
 }
 
+func packageCFError(err error, stackName string, clientRequestToken string, cloudformationClient *cloudformation.CloudFormation, errMessage string) error {
+	var awsErr awserr.Error
+	if errors.As(err, &awsErr) {
+		if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
+			err = pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cloudformationClient)
+			err = errors.WrapIff(err, errMessage, stackName)
+			if pkgCloudformation.IsErrorFinal(err) {
+				return cadence.NewCustomError(ErrReasonStackFailed, err.Error())
+			}
+			return err
+		}
+	}
+	return err
+}
+
 // EKSActivityInput holds common input data for all activities
 type EKSActivityInput struct {
 	OrganizationID uint
@@ -152,6 +176,7 @@ type AutoscaleGroup struct {
 	Labels           map[string]string
 	Delete           bool
 	Create           bool
+	CreatedBy        uint
 }
 
 type SecretStore interface {
@@ -160,4 +185,17 @@ type SecretStore interface {
 	Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
 	Delete(organizationID uint, secretID string) error
 	Update(organizationID uint, secretID string, request *secret.CreateSecretRequest) error
+}
+
+type Clusters interface {
+	GetCluster(ctx context.Context, id uint) (EksCluster, error)
+}
+
+type EksCluster interface {
+	GetEKSModel() *model.EKSClusterModel
+	Persist() error
+	SetStatus(string, string) error
+	DeleteFromDatabase() error
+	GetConfigSecretId() string
+	SaveConfigSecretId(secretID string) error
 }

@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package workflow
+package cluster
 
 import (
 	"time"
 
-	"emperror.dev/errors"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
+	eksWorkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 )
 
-const DeleteClusterWorkflowName = "eks-delete-cluster"
+const EKSDeleteClusterWorkflowName = "eks-delete-cluster"
 
 // DeleteClusterWorkflowInput holds data needed by the delete cluster workflow
-type DeleteClusterWorkflowInput struct {
+type EKSDeleteClusterWorkflowInput struct {
 	OrganizationID uint
 	SecretID       string
 	Region         string
@@ -47,7 +47,7 @@ type DeleteClusterWorkflowInput struct {
 }
 
 // DeleteClusterWorkflow executes the Cadence workflow responsible for deleting an EKS cluster
-func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInput) error {
+func EKSDeleteClusterWorkflow(ctx workflow.Context, input EKSDeleteClusterWorkflowInput) error {
 	logger := workflow.GetLogger(ctx).Sugar()
 
 	cwo := workflow.ChildWorkflowOptions{
@@ -64,7 +64,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			BackoffCoefficient:       1.5,
 			MaximumInterval:          30 * time.Second,
 			MaximumAttempts:          5,
-			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", ErrReasonStackFailed},
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", eksWorkflow.ErrReasonStackFailed},
 		},
 	}
 
@@ -83,17 +83,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 				if input.Forced {
 					logger.Errorw("deleting k8s resources failed", "error", err)
 				} else {
-					if cadence.IsCustomError(err) {
-						cerr := err.(*cadence.CustomError)
-						if cerr.HasDetails() {
-							var errDetails string
-							if err = errors.WrapIf(cerr.Details(&errDetails), "couldn't get error details that caused Kubernetes resources deletion to fail"); err != nil {
-								return err
-							}
-
-							return errors.New(errDetails)
-						}
-					}
+					_ = eksWorkflow.SetClusterErrorStatus(ctx, input.ClusterID, err)
 					return err
 				}
 			}
@@ -110,17 +100,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			if input.Forced {
 				logger.Errorw("deleting cluster DNS records failed", "error", err)
 			} else {
-				if cadence.IsCustomError(err) {
-					cerr := err.(*cadence.CustomError)
-					if cerr.HasDetails() {
-						var errDetails string
-						if err = errors.WrapIf(cerr.Details(&errDetails), "couldn't get error details that caused cluster DNS records deletion to fail"); err != nil {
-							return err
-						}
-
-						return errors.New(errDetails)
-					}
-				}
+				_ = eksWorkflow.SetClusterErrorStatus(ctx, input.ClusterID, err)
 				return err
 			}
 		}
@@ -128,7 +108,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 	// delete infra child workflow
 	{
-		infraInput := DeleteInfrastructureWorkflowInput{
+		infraInput := eksWorkflow.DeleteInfrastructureWorkflowInput{
 			OrganizationID: input.OrganizationID,
 			SecretID:       input.SecretID,
 			Region:         input.Region,
@@ -138,22 +118,12 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			DefaultUser:    input.DefaultUser,
 		}
 
-		err := workflow.ExecuteChildWorkflow(ctx, DeleteInfraWorkflowName, infraInput).Get(ctx, nil)
+		err := workflow.ExecuteChildWorkflow(ctx, eksWorkflow.DeleteInfraWorkflowName, infraInput).Get(ctx, nil)
 		if err != nil {
 			if input.Forced {
 				logger.Errorw("deleting cluster infrastructure failed", "error", err)
 			} else {
-				if cadence.IsCustomError(err) {
-					cerr := err.(*cadence.CustomError)
-					if cerr.HasDetails() {
-						var errDetails string
-						if err = errors.WrapIf(cerr.Details(&errDetails), "couldn't get error details that caused the deletion of cluster infrastructure to fail"); err != nil {
-							return err
-						}
-
-						return errors.New(errDetails)
-					}
-				}
+				_ = eksWorkflow.SetClusterErrorStatus(ctx, input.ClusterID, err)
 				return err
 			}
 		}
@@ -169,23 +139,23 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			if input.Forced {
 				logger.Errorw("failed to delete unused cluster secrets", "error", err)
 			} else {
-				if cadence.IsCustomError(err) {
-					cerr := err.(*cadence.CustomError)
-					if cerr.HasDetails() {
-						var errDetails string
-						if err = errors.WrapIf(cerr.Details(&errDetails), "couldn't get error details that caused the deletion of unused cluster secrets to fail"); err != nil {
-							return err
-						}
-
-						return errors.New(errDetails)
-					}
-				}
+				_ = eksWorkflow.SetClusterErrorStatus(ctx, input.ClusterID, err)
 				return err
 			}
 		}
 	}
 
-	//TODO: DeleteClusterFromStoreActivityName  child workflow
+	// delete cluster from data store
+	{
+		activityInput := eksWorkflow.DeleteClusterFromStoreActivityInput{
+			ClusterID: input.ClusterID,
+		}
+		err := workflow.ExecuteActivity(ctx, eksWorkflow.DeleteClusterFromStoreActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			_ = eksWorkflow.SetClusterErrorStatus(ctx, input.ClusterID, err)
+			return err
+		}
+	}
 
 	return nil
 }

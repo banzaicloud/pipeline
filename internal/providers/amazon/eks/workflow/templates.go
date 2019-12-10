@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package eks
+package workflow
 
 import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/global"
 )
@@ -36,12 +38,9 @@ func getEksCloudFormationTemplate(name string) (string, error) {
 	// location to retrieve the Cloud Formation template from
 	templatePath := global.Config.Distribution.EKS.TemplateLocation + "/" + name
 
-	log.Infof("getting CloudFormation template from %q", templatePath)
-
 	u, err := url.Parse(templatePath)
 	if err != nil {
-		log.Errorf("getting CloudFormation template from %q failed: %s", templatePath, err.Error())
-		return "", err
+		return "", errors.WrapIf(err, fmt.Sprintf("failed to read CloudFormation template from %s", templatePath))
 	}
 
 	var content []byte
@@ -59,8 +58,7 @@ func getEksCloudFormationTemplate(name string) (string, error) {
 	}
 
 	if err != nil {
-		log.Errorf("reading CloudFormation template content from %q failed: %s", templatePath, err.Error())
-		return "", err
+		return "", errors.WrapIf(err, fmt.Sprintf("failed to read CloudFormation template content from %s", templatePath))
 	}
 
 	return string(content), nil
