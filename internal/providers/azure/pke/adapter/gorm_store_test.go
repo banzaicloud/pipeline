@@ -19,32 +19,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
-	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 )
-
-func TestFillClusterFromClusterModel(t *testing.T) {
-	cases := []struct {
-		name     string
-		input    clusteradapter.ClusterModel
-		expected pke.Cluster
-	}{
-		{
-			name:     "empty cluster model",
-			input:    clusteradapter.ClusterModel{},
-			expected: pke.Cluster{},
-		},
-	}
-	for _, tc := range cases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			var result pke.Cluster
-			fillClusterFromCommonClusterModel(&result, tc.input)
-			assert.Equal(t, tc.expected, result)
-		})
-	}
-}
 
 func TestAccessPointsModel_Serialization(t *testing.T) {
 	m := accessPointsModel{

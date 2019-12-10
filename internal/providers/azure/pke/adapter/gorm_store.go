@@ -48,26 +48,6 @@ func NewClusterStore(db *gorm.DB, logger common.Logger) ClusterStore {
 	}
 }
 
-type nodePoolModel struct {
-	gorm.Model
-
-	Autoscaling  bool
-	ClusterID    uint `gorm:"unique_index:idx_azure_pke_np_cluster_id_name"`
-	CreatedBy    uint
-	DesiredCount uint
-	InstanceType string
-	Max          uint
-	Min          uint
-	Name         string     `gorm:"unique_index:idx_azure_pke_np_cluster_id_name"`
-	Roles        rolesModel `gorm:"type:json"`
-	SubnetName   string
-	Zones        zonesModel `gorm:"type:json"`
-}
-
-func (nodePoolModel) TableName() string {
-	return NodePoolsTableName
-}
-
 type clusterModel struct {
 	ID                     uint `gorm:"primary_key"`
 	ClusterID              uint `gorm:"unique_index:idx_azure_pke_cluster_id"`
@@ -89,6 +69,26 @@ type clusterModel struct {
 
 func (clusterModel) TableName() string {
 	return ClustersTableName
+}
+
+type nodePoolModel struct {
+	gorm.Model
+
+	Autoscaling  bool
+	ClusterID    uint `gorm:"unique_index:idx_azure_pke_np_cluster_id_name"`
+	CreatedBy    uint
+	DesiredCount uint
+	InstanceType string
+	Max          uint
+	Min          uint
+	Name         string     `gorm:"unique_index:idx_azure_pke_np_cluster_id_name"`
+	Roles        rolesModel `gorm:"type:json"`
+	SubnetName   string
+	Zones        zonesModel `gorm:"type:json"`
+}
+
+func (nodePoolModel) TableName() string {
+	return NodePoolsTableName
 }
 
 type rolesModel []string
@@ -235,80 +235,83 @@ func (m apiServerAccessPointsModel) toEntity() pke.APIServerAccessPoints {
 	return asaps
 }
 
-func fillClusterFromCommonClusterModel(entity *pke.Cluster, model clusteradapter.ClusterModel) {
-	entity.CreatedBy = model.CreatedBy
-	entity.CreationTime = model.CreatedAt
-	entity.ID = model.ID
-	entity.K8sSecretID = model.ConfigSecretID
-	entity.Name = model.Name
-	entity.OrganizationID = model.OrganizationID
-	entity.SecretID = model.SecretID
-	entity.SSHSecretID = model.SSHSecretID
-	entity.Status = model.Status
-	entity.StatusMessage = model.StatusMessage
-	entity.UID = model.UID
+func (m clusterModel) intoEntity(e *pke.Cluster) {
+	// common fields
 
-	entity.ScaleOptions.DesiredCpu = model.ScaleOptions.DesiredCpu
-	entity.ScaleOptions.DesiredGpu = model.ScaleOptions.DesiredGpu
-	entity.ScaleOptions.DesiredMem = model.ScaleOptions.DesiredMem
-	entity.ScaleOptions.Enabled = model.ScaleOptions.Enabled
-	_ = json.Scan(model.ScaleOptions.Excludes, &entity.ScaleOptions.Excludes)
-	entity.ScaleOptions.KeepDesiredCapacity = model.ScaleOptions.KeepDesiredCapacity
-	entity.ScaleOptions.OnDemandPct = model.ScaleOptions.OnDemandPct
+	e.CreatedBy = m.Cluster.CreatedBy
+	e.CreationTime = m.Cluster.CreatedAt
+	e.ID = m.Cluster.ID
+	e.K8sSecretID = m.Cluster.ConfigSecretID
+	e.Name = m.Cluster.Name
+	e.OrganizationID = m.Cluster.OrganizationID
+	e.SecretID = m.Cluster.SecretID
+	e.SSHSecretID = m.Cluster.SSHSecretID
+	e.Status = m.Cluster.Status
+	e.StatusMessage = m.Cluster.StatusMessage
+	e.UID = m.Cluster.UID
 
-	entity.Kubernetes.RBAC = model.RbacEnabled
-	entity.Kubernetes.OIDC.Enabled = model.OidcEnabled
-	entity.TtlMinutes = model.TtlMinutes
-}
+	e.ScaleOptions.DesiredCpu = m.Cluster.ScaleOptions.DesiredCpu
+	e.ScaleOptions.DesiredGpu = m.Cluster.ScaleOptions.DesiredGpu
+	e.ScaleOptions.DesiredMem = m.Cluster.ScaleOptions.DesiredMem
+	e.ScaleOptions.Enabled = m.Cluster.ScaleOptions.Enabled
+	_ = json.Scan(m.Cluster.ScaleOptions.Excludes, &e.ScaleOptions.Excludes)
+	e.ScaleOptions.KeepDesiredCapacity = m.Cluster.ScaleOptions.KeepDesiredCapacity
+	e.ScaleOptions.OnDemandPct = m.Cluster.ScaleOptions.OnDemandPct
 
-func fillClusterFromClusterModel(entity *pke.Cluster, model clusterModel) error {
-	fillClusterFromCommonClusterModel(entity, model.Cluster)
+	e.Kubernetes.RBAC = m.Cluster.RbacEnabled
+	e.Kubernetes.OIDC.Enabled = m.Cluster.OidcEnabled
+	e.TtlMinutes = m.Cluster.TtlMinutes
 
-	entity.ResourceGroup.Name = model.ResourceGroupName
-	entity.Location = model.VirtualNetworkLocation
+	// provider specific fields
 
-	entity.NodePools = make([]pke.NodePool, len(model.NodePools))
-	for i, np := range model.NodePools {
-		fillNodePoolFromModel(&entity.NodePools[i], np)
+	e.ResourceGroup.Name = m.ResourceGroupName
+	e.Location = m.VirtualNetworkLocation
+
+	e.NodePools = make([]pke.NodePool, len(m.NodePools))
+	for i, np := range m.NodePools {
+		np.intoEntity(&e.NodePools[i])
 	}
 
-	entity.VirtualNetwork.Name = model.VirtualNetworkName
-	entity.VirtualNetwork.Location = model.VirtualNetworkLocation
+	e.VirtualNetwork.Name = m.VirtualNetworkName
+	e.VirtualNetwork.Location = m.VirtualNetworkLocation
 
-	entity.Kubernetes.Version = model.KubernetesVersion
-	entity.ActiveWorkflowID = model.ActiveWorkflowID
+	e.Kubernetes.Version = m.KubernetesVersion
+	e.ActiveWorkflowID = m.ActiveWorkflowID
 
-	entity.HTTPProxy = model.HTTPProxy.toEntity()
-	entity.AccessPoints = model.AccessPoints.toEntity()
-	entity.APIServerAccessPoints = model.ApiServerAccessPoints.toEntity()
-
-	return nil
+	e.HTTPProxy = m.HTTPProxy.toEntity()
+	e.AccessPoints = m.AccessPoints.toEntity()
+	e.APIServerAccessPoints = m.ApiServerAccessPoints.toEntity()
 }
 
-func fillNodePoolFromModel(nodePool *pke.NodePool, model nodePoolModel) {
-	nodePool.Autoscaling = model.Autoscaling
-	nodePool.CreatedBy = model.CreatedBy
-	nodePool.DesiredCount = model.DesiredCount
-	nodePool.InstanceType = model.InstanceType
-	nodePool.Max = model.Max
-	nodePool.Min = model.Min
-	nodePool.Name = model.Name
-	nodePool.Roles = []string(model.Roles)
-	nodePool.Subnet.Name = model.SubnetName
-	nodePool.Zones = []string(model.Zones)
+func (m clusterModel) toEntity() (e pke.Cluster) {
+	m.intoEntity(&e)
+	return
 }
 
-func fillModelFromNodePool(model *nodePoolModel, nodePool pke.NodePool) {
-	model.Autoscaling = nodePool.Autoscaling
-	model.CreatedBy = nodePool.CreatedBy
-	model.DesiredCount = nodePool.DesiredCount
-	model.InstanceType = nodePool.InstanceType
-	model.Max = nodePool.Max
-	model.Min = nodePool.Min
-	model.Name = nodePool.Name
-	model.Roles = rolesModel(nodePool.Roles)
-	model.SubnetName = nodePool.Subnet.Name
-	model.Zones = zonesModel(nodePool.Zones)
+func (m *nodePoolModel) fromEntity(e pke.NodePool) {
+	m.Autoscaling = e.Autoscaling
+	m.CreatedBy = e.CreatedBy
+	m.DesiredCount = e.DesiredCount
+	m.InstanceType = e.InstanceType
+	m.Max = e.Max
+	m.Min = e.Min
+	m.Name = e.Name
+	m.Roles = rolesModel(e.Roles)
+	m.SubnetName = e.Subnet.Name
+	m.Zones = zonesModel(e.Zones)
+}
+
+func (m nodePoolModel) intoEntity(e *pke.NodePool) {
+	e.Autoscaling = m.Autoscaling
+	e.CreatedBy = m.CreatedBy
+	e.DesiredCount = m.DesiredCount
+	e.InstanceType = m.InstanceType
+	e.Max = m.Max
+	e.Min = m.Min
+	e.Name = m.Name
+	e.Roles = []string(m.Roles)
+	e.Subnet.Name = m.SubnetName
+	e.Zones = []string(m.Zones)
 }
 
 func (s ClusterStore) nodePools() *gorm.DB {
@@ -321,20 +324,20 @@ func (s ClusterStore) clusterDetails() *gorm.DB {
 
 func (s ClusterStore) CreateNodePool(clusterID uint, nodePool pke.NodePool) error {
 	var np nodePoolModel
-	fillModelFromNodePool(&np, nodePool)
+	np.fromEntity(nodePool)
 	np.ClusterID = clusterID
 	return getError(s.db.Create(&np), "failed to create node pool model")
 }
 
-func (s ClusterStore) Create(params pke.CreateParams) (c pke.Cluster, err error) {
+func (s ClusterStore) Create(params pke.CreateParams) (pke.Cluster, error) {
 	nodePools := make([]nodePoolModel, len(params.NodePools))
 	for i, np := range params.NodePools {
-		fillModelFromNodePool(&nodePools[i], np)
+		nodePools[i].fromEntity(np)
 	}
 
 	excludesValue, err := json.Value(params.ScaleOptions.Excludes)
 	if err != nil {
-		return
+		return pke.Cluster{}, errors.WrapIf(err, "failed to jsonify scale options excludes")
 	}
 
 	var excludes string
@@ -344,8 +347,7 @@ func (s ClusterStore) Create(params pke.CreateParams) (c pke.Cluster, err error)
 	case []byte:
 		excludes = string(e)
 	default:
-		err = errors.Errorf("cannot convert type %T to string", e)
-		return
+		return pke.Cluster{}, errors.Errorf("cannot convert type %T to string", e)
 	}
 
 	model := clusterModel{
@@ -383,15 +385,11 @@ func (s ClusterStore) Create(params pke.CreateParams) (c pke.Cluster, err error)
 	model.AccessPoints.fromEntity(params.AccessPoints)
 	model.ApiServerAccessPoints.fromEntity(params.APIServerAccessPoints)
 
-	if err = getError(s.db.Preload("Cluster").Preload("NodePools").Create(&model), "failed to create cluster model"); err != nil {
-		return
+	if err := getError(s.db.Preload("Cluster").Preload("NodePools").Create(&model), "failed to create cluster model"); err != nil {
+		return pke.Cluster{}, err
 	}
 
-	if err := fillClusterFromClusterModel(&c, model); err != nil {
-		return c, errors.WrapIf(err, "failed to fill cluster from model")
-	}
-
-	return
+	return model.toEntity(), nil
 }
 
 func (s ClusterStore) DeleteNodePool(clusterID uint, nodePoolName string) error {
@@ -428,21 +426,20 @@ func (s ClusterStore) Delete(clusterID uint) error {
 	return getError(s.db.Delete(model), "failed to soft-delete model from database")
 }
 
-func (s ClusterStore) GetByID(clusterID uint) (cluster pke.Cluster, _ error) {
+func (s ClusterStore) GetByID(clusterID uint) (pke.Cluster, error) {
 	if err := validateClusterID(clusterID); err != nil {
-		return cluster, errors.WrapIf(err, "invalid cluster ID")
+		return pke.Cluster{}, errors.WrapIf(err, "invalid cluster ID")
 	}
 
 	model := clusterModel{
 		ClusterID: clusterID,
 	}
+
 	if err := getError(s.db.Preload("Cluster").Preload("NodePools").Where(&model).First(&model), "failed to load model from database"); err != nil {
-		return cluster, err
+		return pke.Cluster{}, err
 	}
-	if err := fillClusterFromClusterModel(&cluster, model); err != nil {
-		return cluster, errors.WrapIf(err, "failed to fill cluster from model")
-	}
-	return
+
+	return model.toEntity(), nil
 }
 
 func (s ClusterStore) SetStatus(clusterID uint, status, message string) error {
