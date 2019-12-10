@@ -80,7 +80,7 @@ const (
 // CreateGKEClusterFromRequest creates ClusterModel struct from the request
 func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID uint, userID uint) (*GKECluster, error) {
 	c := GKECluster{
-		log: log.WithField("cluster", request.Name),
+		log: log.WithFields(logrus.Fields{"cluster": request.Name, "organization": orgID}),
 	}
 
 	var err error
@@ -268,13 +268,15 @@ func (c *GKECluster) CreateCluster() error {
 
 	c.model.Cluster.RbacEnabled = true
 
-	c.log.Info("Get Google Service Client")
+	log := c.log.WithFields(logrus.Fields{"project": c.model.ProjectId, "zone": c.model.Cluster.Location})
+
+	log.Debug("Get Google Service Client")
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
 		return errors.WrapIf(err, "getting gke service client failed")
 	}
 
-	c.log.Info("Get Google Service Client succeeded")
+	log.Info("Get Google Service Client succeeded")
 
 	nodePools, err := createNodePoolsFromClusterModel(c.model)
 	if err != nil {
@@ -294,33 +296,40 @@ func (c *GKECluster) CreateCluster() error {
 
 	ccr := generateClusterCreateRequest(cc)
 
-	c.log.Infof("Cluster request: %v", ccr)
+	log.Debugf("cluster create request: %v", ccr)
 	createCall, err := svc.Projects.Zones.Clusters.Create(cc.ProjectID, cc.Zone, ccr).Context(context.Background()).Do()
 
-	c.log.Infof("Cluster request submitted: %v", ccr)
+	if err != nil {
+		if gErr, ok := err.(*googleapi.Error); ok && gErr.Code == http.StatusConflict {
+			// cluster already exists. check if it was created by Pipeline
+			gkeCluster, err := getClusterGoogle(svc, cc)
+			if err != nil {
+				return errors.WrapIf(err, "couldn't retrieve cluster details from cloud provider")
+			}
 
-	if err != nil && !strings.Contains(err.Error(), "alreadyExists") {
-		be := getBanzaiErrorFromError(err)
-		// TODO status code !?
-		return errors.New(be.Message)
+			if !hasTag(gkeCluster, global.ManagedByPipelineTag, global.ManagedByPipelineValue) {
+				return errors.Errorf("cluster %q already exists", gkeCluster.Name)
+			}
+
+		} else {
+			return errors.WrapIf(err, "submitting cluster create request failed")
+		}
 	}
 
 	if createCall != nil {
-		c.log.Infof("Cluster %s create is called for project %s and zone %s", cc.Name, cc.ProjectID, cc.Zone)
-		c.log.Info("Waiting for cluster...")
+		log.Infof("cluster %s create is called for project %s and zone %s", cc.Name, cc.ProjectID, cc.Zone)
+		log.Info("waiting for cluster...")
 
-		if err := waitForOperation(newContainerOperation(svc, c.model.ProjectId, c.model.Cluster.Location), createCall.Name, c.log); err != nil {
+		if err := waitForOperation(newContainerOperation(svc, c.model.ProjectId, c.model.Cluster.Location), createCall.Name, log); err != nil {
 			return errors.WrapIf(err, "waiting for cluster creation to complete failed")
 		}
 	} else {
-		c.log.Info("Cluster %s already exists.", c.model.Cluster.Name)
+		log.Info("cluster already created")
 	}
 
 	gkeCluster, err := getClusterGoogle(svc, cc)
 	if err != nil {
-		be := getBanzaiErrorFromError(err)
-		// TODO status code !?
-		return errors.New(be.Message)
+		return errors.WrapIf(err, "couldn't retrieve cluster status")
 	}
 	if gkeCluster.Status == statusError {
 		return errors.New(gkeCluster.StatusMessage)
@@ -2038,4 +2047,11 @@ func (c *GKECluster) GetTTL() time.Duration {
 // SetTTL sets the lifespan of a cluster
 func (c *GKECluster) SetTTL(ttl time.Duration) {
 	c.model.Cluster.TtlMinutes = uint(ttl.Minutes())
+}
+
+func hasTag(cluster *gke.Cluster, tagKey, tagValue string) bool {
+	if l, ok := cluster.ResourceLabels[tagKey]; ok && l == tagValue {
+		return true
+	}
+	return false
 }
