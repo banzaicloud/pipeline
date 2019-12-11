@@ -19,24 +19,29 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
+	corev1 "k8s.io/api/core/v1"
+	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (op IntegratedServiceOperator) createClusterFlowResource(ctx context.Context, managers []outputDefinitionManager, clusterID uint) error {
-	// delete old ClusterFlow resource
-	if err := op.kubernetesService.DeleteObject(ctx, clusterID, &v1beta1.ClusterFlow{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      flowResourceName,
-			Namespace: op.config.Namespace,
-			Labels:    map[string]string{resourceLabelKey: integratedServiceName},
-		},
-	}); err != nil {
-		return errors.WrapIfWithDetails(err, "failed to delete flow resource")
+	var flowResource = op.generateFlowResource(managers)
+
+	var oldFlow v1beta1.ClusterFlow
+	if err := op.kubernetesService.GetObject(ctx, clusterID, corev1.ObjectReference{
+		Namespace: op.config.Namespace,
+		Name:      flowResourceName,
+	}, &oldFlow); err != nil {
+		if k8sapierrors.IsNotFound(err) {
+			// ClusterFlow resource is not found, create it
+			return op.kubernetesService.EnsureObject(ctx, clusterID, flowResource)
+		}
+
+		return errors.WrapIf(err, "failed to get ClusterFlow resource")
 	}
 
-	// create new flow resource
-	var flowResource = op.generateFlowResource(managers)
-	return op.kubernetesService.EnsureObject(ctx, clusterID, flowResource)
+	flowResource.ResourceVersion = oldFlow.ResourceVersion
+	return op.kubernetesService.Update(ctx, clusterID, flowResource)
 }
 
 func (op IntegratedServiceOperator) generateFlowResource(definitions []outputDefinitionManager) *v1beta1.ClusterFlow {
