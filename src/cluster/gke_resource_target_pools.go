@@ -16,9 +16,8 @@ package cluster
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	gkeCompute "google.golang.org/api/compute/v1"
 )
@@ -77,7 +76,7 @@ func findInstanceByClusterName(csv *gkeCompute.Service, project, zone, clusterNa
 
 	instances, err := csv.Instances.List(project, zone).Context(context.Background()).Do()
 	if err != nil {
-		return nil, err
+		return nil, errors.WrapIf(err, "couldn't list GKE cluster instances")
 	}
 
 	for _, instance := range instances.Items {
@@ -90,7 +89,7 @@ func findInstanceByClusterName(csv *gkeCompute.Service, project, zone, clusterNa
 		}
 	}
 
-	return nil, fmt.Errorf("instance not found by cluster[%s]", clusterName)
+	return nil, nil
 }
 
 // findTargetPoolsByInstances returns all target pools which created by Kubernetes

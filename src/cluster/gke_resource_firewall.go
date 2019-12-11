@@ -45,13 +45,13 @@ func (fc *firewallsChecker) list() (resourceNames []string, err error) {
 
 	log := log.WithFields(logrus.Fields{"checker": "firewall", "project": fc.project, "cluster": fc.clusterName})
 
-	log.Info("List firewalls")
+	log.Debug("list firewalls")
 	firewalls, err := fc.csv.Firewalls.List(fc.project).Context(context.Background()).Do()
 	if err != nil {
 		return nil, errors.Wrap(err, "Error during listing firewalls")
 	}
 
-	log.Info("Find firewall(s) by target")
+	log.Debug("find firewall(s) by target")
 	k8sFirewalls := findFirewallRulesByTarget(firewalls.Items, fc.clusterName)
 	for _, f := range k8sFirewalls {
 		resourceNames = append(resourceNames, f.Name)
@@ -78,9 +78,9 @@ func findFirewallRulesByTarget(rules []*gkeCompute.Firewall, clusterName string)
 			if strings.Contains(r.Description, kubernetesIO) {
 
 				for _, tag := range r.TargetTags {
-					log.Debugf("Firewall rule[%s] target tag: %s", r.Name, tag)
+					log.Debugf("firewall rule[%s] target tag: %s", r.Name, tag)
 					if strings.HasPrefix(tag, targetPrefix+clusterName) {
-						log.Debugf("Append firewall list[%s]", r.Name)
+						log.Debugf("append firewall list[%s]", r.Name)
 						firewalls = append(firewalls, r)
 					}
 				}

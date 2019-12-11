@@ -22,6 +22,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	"github.com/mitchellh/copystructure"
+	corev1 "k8s.io/api/core/v1"
+	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
@@ -487,5 +489,19 @@ func (op IntegratedServiceOperator) createLoggingResource(ctx context.Context, c
 		loggingResource.Spec.FluentbitSpec.TLS.SharedKey = sharedKey
 	}
 
-	return op.kubernetesService.EnsureObject(ctx, clusterID, loggingResource)
+	var oldLoggingResource v1beta1.Logging
+	if err := op.kubernetesService.GetObject(ctx, clusterID, corev1.ObjectReference{
+		Namespace: op.config.Namespace,
+		Name:      loggingResourceName,
+	}, &oldLoggingResource); err != nil {
+		if k8sapierrors.IsNotFound(err) {
+			// Logging resource is not found, create it
+			return op.kubernetesService.EnsureObject(ctx, clusterID, loggingResource)
+		}
+
+		return errors.WrapIf(err, "failed to get Logging resource")
+	}
+
+	loggingResource.ResourceVersion = oldLoggingResource.ResourceVersion
+	return op.kubernetesService.Update(ctx, clusterID, loggingResource)
 }

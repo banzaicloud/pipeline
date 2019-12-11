@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
@@ -181,5 +182,13 @@ func (s *dummyKubernetesService) EnsureObject(ctx context.Context, clusterID uin
 }
 
 func (s *dummyKubernetesService) List(ctx context.Context, clusterID uint, labels map[string]string, o runtime.Object) error {
+	return nil
+}
+
+func (s *dummyKubernetesService) Update(ctx context.Context, clusterID uint, o runtime.Object) error {
+	return nil
+}
+
+func (s *dummyKubernetesService) GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, obj runtime.Object) error {
 	return nil
 }
