@@ -63,7 +63,12 @@ type KubeProxyCache interface {
 // DeleteCluster deletes an EKS Cluster
 func (cd EKSClusterDeleter) DeleteCluster(ctx context.Context, eksCluster *cluster.EKSCluster, forced bool) error {
 
-	logger := cd.logger.WithField("clusterName", eksCluster.GetName()).WithField("clusterID", eksCluster.GetID()).WithField("forced", forced)
+	logger := cd.logger.WithFields(logrus.Fields{
+		"clusterName":    eksCluster.GetName(),
+		"clusterID":      eksCluster.GetID(),
+		"organizationID": eksCluster.GetOrganizationId(),
+		"forced":         forced,
+	})
 	logger.Info("start deleting EKS Cluster")
 
 	modelCluster := eksCluster.GetEKSModel()
@@ -97,7 +102,7 @@ func (cd EKSClusterDeleter) DeleteCluster(ctx context.Context, eksCluster *clust
 	timer, err := getClusterStatusChangeMetricTimer(eksCluster.GetCloud(), eksCluster.GetLocation(), pkgCluster.Deleting, eksCluster.GetOrganizationId(), eksCluster.GetName(), cd.statusChangeDurationMetric)
 	if err = errors.WrapIf(err, "failed to start status change duration metric timer"); err != nil {
 		if forced {
-			cd.logger.Error(err)
+			logger.Error(err)
 			timer = metrics.NoopDurationMetricTimer{}
 		} else {
 			return err
@@ -115,7 +120,7 @@ func (cd EKSClusterDeleter) DeleteCluster(ctx context.Context, eksCluster *clust
 		ctx := context.Background()
 
 		if err := wfrun.Get(ctx, nil); err != nil {
-			cd.logger.Errorf("Cluster deleting workflow failed: %v", err)
+			logger.Error(errors.WrapIf(err, "cluster delete workflow failed"))
 			return
 		}
 		cd.kubeProxyCache.Delete(eksCluster.GetUID())

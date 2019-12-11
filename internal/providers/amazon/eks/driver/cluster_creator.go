@@ -110,8 +110,8 @@ func getNodePoolsForSubnet(subnetMapping map[string][]*pkgEks.Subnet, eksSubnet 
 }
 
 // Create implements the clusterCreator interface.
-func (c *EksClusterCreator) create(ctx context.Context, commonCluster cluster.CommonCluster, createRequest *pkgCluster.CreateClusterRequest) (cluster.CommonCluster, error) {
-	c.logger.Info("start creating EKS Cluster")
+func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogger, commonCluster cluster.CommonCluster, createRequest *pkgCluster.CreateClusterRequest) (cluster.CommonCluster, error) {
+	logger.Info("start creating EKS Cluster")
 	modelCluster := commonCluster.(*cluster.EKSCluster).GetEKSModel()
 
 	if createRequest.PostHooks == nil {
@@ -166,7 +166,7 @@ func (c *EksClusterCreator) create(ctx context.Context, commonCluster cluster.Co
 		subnets = append(subnets, subnet)
 
 		nodePools := getNodePoolsForSubnet(commonCluster.(*cluster.EKSCluster).GetSubnetMapping(), subnet)
-		c.logger.Debugf("node pools mapped to subnet %s: %v", subnet.SubnetID, nodePools)
+		logger.Debugf("node pools mapped to subnet %s: %v", subnet.SubnetID, nodePools)
 
 		for _, np := range nodePools {
 			subnetMapping[np] = append(subnetMapping[np], subnet)
@@ -223,10 +223,10 @@ func (c *EksClusterCreator) create(ctx context.Context, commonCluster cluster.Co
 	go func() {
 		err = exec.Get(ctx, nil)
 		if err != nil {
-			c.logger.Errorf("Cluster create workflow failed: %v", err)
+			logger.Error(errors.WrapIf(err, "cluster create workflow failed"))
 			return
 		}
-		c.logger.Info("EKS cluster created.")
+		logger.Info("EKS cluster created.")
 		timer.RecordDuration()
 	}()
 
@@ -243,11 +243,11 @@ func CreateAWSCredentialsFromSecret(eksCluster *cluster.EKSCluster) (*credential
 }
 
 // ValidateCreationFields validates all fields
-func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, commonCluster cluster.CommonCluster) error {
+func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, logger logrus.FieldLogger, commonCluster cluster.CommonCluster) error {
 
 	eksCluster := commonCluster.(*cluster.EKSCluster)
 
-	c.logger.Debug("validating secretIDs")
+	logger.Debug("validating secretIDs")
 	if len(r.SecretIds) > 0 {
 		var err error
 		for _, secretID := range r.SecretIds {
@@ -265,7 +265,7 @@ func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, commonC
 		}
 	}
 
-	c.logger.Debug("validating creation fields")
+	logger.Debug("validating creation fields")
 
 	regions, err := c.cloudInfoClient.GetServiceRegions(pkgCluster.Amazon, pkgCluster.EKS)
 	if err != nil {
@@ -470,8 +470,6 @@ func (c *EksClusterCreator) assertNotExists(orgID uint, name string) error {
 }
 
 func (c *EksClusterCreator) generateSSHkey(commonCluster cluster.CommonCluster) error {
-	c.logger.Debug("generating SSH Key for the cluster")
-
 	sshKey, err := ssh.NewKeyPairGenerator().Generate()
 	if err != nil {
 		_ = commonCluster.SetStatus(pkgCluster.Error, "internal error")
@@ -493,11 +491,17 @@ func (c *EksClusterCreator) generateSSHkey(commonCluster cluster.CommonCluster) 
 
 func (c *EksClusterCreator) CreateCluster(ctx context.Context, commonCluster cluster.CommonCluster, createRequest *pkgCluster.CreateClusterRequest, organizationID uint, userID uint) (cluster.CommonCluster, error) {
 
+	logger := c.logger.WithFields(logrus.Fields{
+		"clusterName":    commonCluster.GetName(),
+		"clusterID":      commonCluster.GetID(),
+		"organizationID": commonCluster.GetOrganizationId(),
+	})
+
 	if err := c.assertNotExists(organizationID, commonCluster.GetName()); err != nil {
 		return nil, err
 	}
 
-	if err := c.validate(createRequest, commonCluster); err != nil {
+	if err := c.validate(createRequest, logger, commonCluster); err != nil {
 		return nil, errors.Wrap(&invalidError{err}, "validation failed")
 	}
 
@@ -513,11 +517,12 @@ func (c *EksClusterCreator) CreateCluster(ctx context.Context, commonCluster clu
 
 	// Check if public ssh key is needed for the cluster. If so and there is generate one and store it Vault
 	if len(commonCluster.GetSshSecretId()) == 0 && commonCluster.RequiresSshPublicKey() {
+		logger.Debug("generating SSH Key for the cluster")
 		err := c.generateSSHkey(commonCluster)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return c.create(ctx, commonCluster, createRequest)
+	return c.create(ctx, logger, commonCluster, createRequest)
 }
