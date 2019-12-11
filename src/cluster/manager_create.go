@@ -256,6 +256,8 @@ func (m *Manager) createCluster(
 
 		err = exec.Get(ctx, nil)
 		if err != nil {
+			_ = cluster.SetStatus(pkgCluster.Error, "failed to run setup jobs")
+
 			return emperror.Wrap(err, "running setup jobs failed")
 		}
 
