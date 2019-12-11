@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -350,6 +350,21 @@ func (AmazonNodePoolsModel) TableName() string {
 // TableName sets EKSClusterModel's table name
 func (EKSClusterModel) TableName() string {
 	return tableNameAmazonEksProperties
+}
+
+// SetCurrentWorkflowID sets currentWorkflowID
+func (cm *EKSClusterModel) SetCurrentWorkflowID(workflowID string) error {
+	cm.CurrentWorkflowID = workflowID
+	fields := map[string]interface{}{
+		"currentWorkflowID": cm.CurrentWorkflowID,
+	}
+
+	db := global.DB()
+	err := db.Model(&cm).Updates(fields).Error
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to update currentWorkflowID for EKS cluster", "cluster_id", cm.ClusterID)
+	}
+	return nil
 }
 
 // TableName sets database table name for EKSSubnetModel

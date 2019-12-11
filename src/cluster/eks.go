@@ -260,14 +260,7 @@ func (c *EKSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials,
 }
 
 func (c *EKSCluster) SetCurrentWorkflowID(workflowID string) error {
-	c.modelCluster.EKS.CurrentWorkflowID = workflowID
-
-	err := c.modelCluster.Save()
-	if err != nil {
-		return errors.WrapIf(err, "failed to persist cluster to database")
-	}
-
-	return nil
+	return c.modelCluster.EKS.SetCurrentWorkflowID(workflowID)
 }
 
 // Persist saves the cluster model
