@@ -213,9 +213,9 @@ func (c *EksClusterUpdater) prepare(ctx context.Context, eksCluster *cluster.EKS
 	return nil
 }
 
-func (c *EksClusterUpdater) update(ctx context.Context, eksCluster *cluster.EKSCluster, request *pkgCluster.UpdateClusterRequest, userID uint) error {
+func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogger, eksCluster *cluster.EKSCluster, request *pkgCluster.UpdateClusterRequest, userID uint) error {
 
-	c.logger.Info("start EKS Cluster update flow")
+	logger.Info("start EKS Cluster update flow")
 
 	if err := eksCluster.SetStatus(pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
 		return errors.WrapIf(err, "could not update cluster status")
@@ -273,7 +273,7 @@ func (c *EksClusterUpdater) update(ctx context.Context, eksCluster *cluster.EKSC
 		for reqNodePoolName, reqNodePool := range request.EKS.NodePools {
 			if reqNodePoolName == nodePool.Name {
 				if reqNodePool.Subnet == nil {
-					c.logger.WithField("nodePool", nodePool.Name).Info("no subnet specified for node pool in the update Request")
+					logger.WithField("nodePool", nodePool.Name).Info("no subnet specified for node pool in the update Request")
 					subnetMapping[nodePool.Name] = append(subnetMapping[nodePool.Name], subnets[0])
 				} else {
 					for _, subnet := range subnets {
@@ -350,19 +350,25 @@ func (c *EksClusterUpdater) UpdateCluster(ctx context.Context,
 
 	eksCluster := commonCluster.(*cluster.EKSCluster)
 
-	c.logger.Debug("validating update context")
+	logger := c.logger.WithFields(logrus.Fields{
+		"clusterName":    eksCluster.GetName(),
+		"clusterID":      eksCluster.GetID(),
+		"organizationID": eksCluster.GetOrganizationId(),
+	})
+	logger.Info("start deleting EKS Cluster")
+
+	logger.Debug("validate update request")
 	err := c.validate(ctx, eksCluster)
 	if err != nil {
 		return errors.WithMessage(err, "cluster update validation failed")
 	}
 
-	c.logger.Debug("validating prepare context")
 	err = c.prepare(ctx, eksCluster, request)
 	if err != nil {
 		return errors.WithMessage(err, "could not prepare cluster")
 	}
 
-	err = c.update(ctx, eksCluster, request, userID)
+	err = c.update(ctx, logger, eksCluster, request, userID)
 	if err != nil {
 		return errors.WrapIf(err, "error updating cluster")
 	}
