@@ -370,7 +370,7 @@ func main() {
 		errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
 	}
 
-	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, logrusLogger, errorHandler)
+	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, logrusLogger, errorHandler, clusteradapter.NewStore(db, clusters))
 	commonClusterGetter := common.NewClusterGetter(clusterManager, logrusLogger, errorHandler)
 
 	clusterTTLController := cluster.NewTTLController(clusterManager, clusterEventBus, logrusLogger.WithField("subsystem", "ttl-controller"), errorHandler)
