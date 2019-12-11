@@ -64,7 +64,11 @@ type clusterCreator interface {
 }
 
 // CreateCluster creates a new cluster in the background.
-func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext, creator clusterCreator) (CommonCluster, error) {
+func (m *Manager) CreateCluster(
+	ctx context.Context,
+	creationCtx CreationContext,
+	creator clusterCreator,
+) (CommonCluster, error) {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": creationCtx.OrganizationID,
 		"user":         creationCtx.UserID,
@@ -256,6 +260,8 @@ func (m *Manager) createCluster(
 
 		err = exec.Get(ctx, nil)
 		if err != nil {
+			_ = m.clusterStore.SetStatus(ctx, cluster.GetID(), pkgCluster.Error, err.Error())
+
 			return emperror.Wrap(err, "running setup jobs failed")
 		}
 
