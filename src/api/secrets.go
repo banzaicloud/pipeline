@@ -545,7 +545,9 @@ func IsValidSecretType(secretType string) error {
 func checkClustersBeforeDelete(orgId uint, secretId string) error {
 	// TODO: move these to a struct and create them only once upon application init
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(clusteradapter.NewClusters(global.DB()), secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler)
+	clusterRepo := clusteradapter.NewClusters(global.DB())
+	clusterStore := clusteradapter.NewStore(global.DB(), clusterRepo)
+	clusterManager := cluster.NewManager(clusterRepo, secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler, clusterStore)
 
 	clusters, err := clusterManager.GetClustersBySecretID(context.Background(), orgId, secretId)
 	if err != nil {

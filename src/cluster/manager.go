@@ -66,16 +66,24 @@ type Manager struct {
 	workflowClient             client.Client
 	logger                     logrus.FieldLogger
 	errorHandler               emperror.Handler
+	clusterStore               interface {
+		SetStatus(ctx context.Context, id uint, status, message string) error
+	}
 }
 
-func NewManager(clusters clusterRepository,
+func NewManager(
+	clusters clusterRepository,
 	secrets secretValidator,
 	events clusterEvents,
 	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric,
 	clusterTotalMetric *prometheus.CounterVec,
 	workflowClient client.Client,
 	logger logrus.FieldLogger,
-	errorHandler emperror.Handler) *Manager {
+	errorHandler emperror.Handler,
+	clusterStore interface {
+		SetStatus(ctx context.Context, id uint, status, message string) error
+	},
+) *Manager {
 	return &Manager{
 		clusters:                   clusters,
 		secrets:                    secrets,
@@ -86,6 +94,7 @@ func NewManager(clusters clusterRepository,
 		workflowClient:             workflowClient,
 		logger:                     logger,
 		errorHandler:               errorHandler,
+		clusterStore:               clusterStore,
 	}
 }
 
