@@ -567,11 +567,9 @@ paths:
         style: form
       responses:
         202:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClusterDelete_200'
-          description: Cluster deleted successfully
+          description: Cluster delete in progress
+        204:
+          description: Cluster deleted
         default:
           content:
             application/json:
@@ -19932,22 +19930,6 @@ components:
           description: user provided custom node labels to be placed onto the nodes
             of the node pool
           type: object
-      type: object
-    ClusterDelete_200:
-      example:
-        name: gkecluster-pipelineuser-123
-        id: 1
-        status: 202
-      properties:
-        status:
-          example: 202
-          type: integer
-        name:
-          example: gkecluster-pipelineuser-123
-          type: string
-        id:
-          example: 1
-          type: integer
       type: object
     ListEndpointsResponse:
       example:
