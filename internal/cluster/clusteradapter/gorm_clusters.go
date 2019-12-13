@@ -39,7 +39,7 @@ func (c *Clusters) Exists(organizationID uint, name string) (bool, error) {
 	if gorm.IsRecordNotFoundError(err) {
 		return false, nil
 	} else if err != nil {
-		return false, errors.Wrap(err, "could not check cluster existence")
+		return false, errors.WrapIf(err, "could not check cluster existence")
 	}
 
 	return existingCluster.ID != 0, nil
@@ -51,7 +51,7 @@ func (c *Clusters) All() ([]*model.ClusterModel, error) {
 
 	err := c.db.Find(&clusters).Error
 	if err != nil {
-		return nil, errors.Wrap(err, "could not fetch clusters")
+		return nil, errors.WrapIf(err, "could not fetch clusters")
 	}
 
 	return clusters, nil
@@ -63,7 +63,7 @@ func (c *Clusters) FindByOrganization(organizationID uint) ([]*model.ClusterMode
 
 	err := c.db.Find(&clusters, map[string]interface{}{"organization_id": organizationID}).Error
 	if err != nil {
-		return nil, errors.Wrap(err, "could not fetch clusters")
+		return nil, errors.WrapIf(err, "could not fetch clusters")
 	}
 
 	return clusters, nil
@@ -115,9 +115,11 @@ func (e *clusterModelNotFoundError) NotFound() bool {
 
 // IsClusterNotFoundError returns true if the passed in error designates a cluster not found error
 func IsClusterNotFoundError(err error) bool {
-	notFoundErr, ok := errors.Cause(err).(*clusterModelNotFoundError)
+	var notFoundErr interface {
+		NotFound() bool
+	}
 
-	return ok && notFoundErr.NotFound()
+	return errors.As(err, &notFoundErr) && notFoundErr.NotFound()
 }
 
 // findOneBy returns a cluster instance for an organization by cluster name.
@@ -155,7 +157,7 @@ func (c *Clusters) FindBySecret(organizationID uint, secretID string) ([]*model.
 		},
 	).Error
 	if err != nil {
-		return nil, errors.Wrap(err, "could not fetch clusters")
+		return nil, errors.WrapIf(err, "could not fetch clusters")
 	}
 
 	return clusters, nil
