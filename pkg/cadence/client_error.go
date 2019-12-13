@@ -15,6 +15,8 @@
 package cadence
 
 import (
+	"fmt"
+
 	"emperror.dev/errors"
 	"go.uber.org/cadence"
 )
@@ -36,5 +38,17 @@ func WrapClientError(err error) error {
 		}
 	}
 
+	return err
+}
+
+// UnwrapError returns a new detailed error based on the wrapped string in a ClientError,
+// or the original error otherwise
+func UnwrapError(err error) error {
+	if detailser, ok := err.(interface{ Details(d ...interface{}) error }); ok {
+		var str string
+		if detailser.Details(&str) == nil {
+			return fmt.Errorf("client error: %s", str)
+		}
+	}
 	return err
 }
