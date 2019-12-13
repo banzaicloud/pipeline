@@ -30,7 +30,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
-func TestRegisterHTTPHandlers_CreateNodePool(t *testing.T) {
+func TestRegisterNodePoolHTTPHandlers_CreateNodePool(t *testing.T) {
 	tests := []struct {
 		name               string
 		endpointFunc       func(ctx context.Context, request interface{}) (response interface{}, err error)
@@ -98,7 +98,7 @@ func TestRegisterHTTPHandlers_CreateNodePool(t *testing.T) {
 	}
 }
 
-func TestRegisterHTTPHandlers_DeleteNodePool(t *testing.T) {
+func TestRegisterNodePoolHTTPHandlers_DeleteNodePool(t *testing.T) {
 	tests := []struct {
 		name               string
 		endpointFunc       func(ctx context.Context, request interface{}) (response interface{}, err error)
