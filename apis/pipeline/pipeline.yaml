@@ -298,11 +298,9 @@ paths:
                         default: false
             responses:
                 202:
-                    description: Cluster deleted successfully
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterDelete_200'
+                    description: Cluster delete in progress
+                204:
+                    description: Cluster deleted
                 default:
                     $ref: '#/components/responses/Error'
 
@@ -5338,19 +5336,6 @@ components:
                         type: string
                         example:
                             example.io/label1: value1
-
-        ClusterDelete_200:
-            type: object
-            properties:
-                status:
-                    type: integer
-                    example: 202
-                name:
-                    type: string
-                    example: "gkecluster-pipelineuser-123"
-                id:
-                    type: integer
-                    example: 1
 
         ListEndpointsResponse:
             type: object
