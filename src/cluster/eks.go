@@ -583,3 +583,7 @@ func GetEKSNodePools(cluster CommonCluster) ([]*model.AmazonNodePoolsModel, erro
 
 	return ekscluster.modelCluster.EKS.NodePools, nil
 }
+
+func (c *EKSCluster) GetKubernetesVersion() (string, error) {
+	return c.modelCluster.EKS.Version, nil
+}

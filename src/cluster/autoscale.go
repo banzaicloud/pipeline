@@ -17,6 +17,7 @@ package cluster
 import (
 	"fmt"
 
+	"github.com/Masterminds/semver"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -55,18 +56,19 @@ type rbac struct {
 }
 
 type azureInfo struct {
-	ClientID          string `json:"clientID"`
-	ClientSecret      string `json:"clientSecret"`
-	SubscriptionID    string `json:"subscriptionID"`
-	TenantID          string `json:"tenantID"`
-	ResourceGroup     string `json:"resourceGroup"`
-	NodeResourceGroup string `json:"nodeResourceGroup"`
-	ClusterName       string `json:"clusterName"`
-	VMType            string `json:"vmType,omitempty"`
+	ClientID          string `json:"azureClientID"`
+	ClientSecret      string `json:"azureClientSecret"`
+	SubscriptionID    string `json:"azureSubscriptionID"`
+	TenantID          string `json:"azureTenantID"`
+	ResourceGroup     string `json:"azureResourceGroup"`
+	NodeResourceGroup string `json:"azureNodeResourceGroup"`
+	ClusterName       string `json:"azureClusterName"`
+	VMType            string `json:"azureVMType,omitempty"`
 }
 
 type autoDiscovery struct {
-	ClusterName string `json:"clusterName"`
+	ClusterName string   `json:"clusterName"`
+	Tags        []string `json:"tags"`
 }
 
 type autoscalingInfo struct {
@@ -75,10 +77,11 @@ type autoscalingInfo struct {
 	ExtraArgs         map[string]string `json:"extraArgs"`
 	Rbac              rbac              `json:"rbac"`
 	AwsRegion         string            `json:"awsRegion"`
-	Azure             azureInfo         `json:"azure"`
 	AutoDiscovery     autoDiscovery     `json:"autoDiscovery"`
 	SslCertPath       *string           `json:"sslCertPath,omitempty"`
 	SslCertHostPath   *string           `json:"sslCertHostPath,omitempty"`
+	Image             map[string]string `json:"image,omitempty"`
+	azureInfo
 }
 
 func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
@@ -178,6 +181,10 @@ func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autosca
 		AwsRegion: cluster.GetLocation(),
 		AutoDiscovery: autoDiscovery{
 			ClusterName: cluster.GetName(),
+			Tags: []string{
+				"k8s.io/cluster-autoscaler/enabled",
+				"kubernetes.io/cluster/" + cluster.GetName(),
+			},
 		},
 		SslCertPath: &eksCertPath,
 	}
@@ -226,7 +233,7 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 			"expander": expanderStrategy,
 		},
 		Rbac: rbac{Create: true},
-		Azure: azureInfo{
+		azureInfo: azureInfo{
 			ClientID:       clusterSecret.Values[secrettype.AzureClientID],
 			ClientSecret:   clusterSecret.Values[secrettype.AzureClientSecret],
 			SubscriptionID: clusterSecret.Values[secrettype.AzureSubscriptionID],
@@ -248,8 +255,8 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 			log.Errorf("could not get resource group: %s", err.Error())
 		}
 
-		autoscalingInfo.Azure.ResourceGroup = resourceGroup
-		autoscalingInfo.Azure.NodeResourceGroup = *nodeResourceGroup
+		autoscalingInfo.ResourceGroup = resourceGroup
+		autoscalingInfo.NodeResourceGroup = *nodeResourceGroup
 
 	case pkgCluster.PKE:
 		i, ok := cluster.(interface {
@@ -258,9 +265,9 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 		if !ok {
 			return nil
 		}
-		autoscalingInfo.Azure.ResourceGroup = i.GetResourceGroupName()
+		autoscalingInfo.ResourceGroup = i.GetResourceGroupName()
 		if len(vmType) > 0 {
-			autoscalingInfo.Azure.VMType = vmType
+			autoscalingInfo.VMType = vmType
 		}
 		sslCertHostPath := "/etc/kubernetes/pki/ca.crt"
 		autoscalingInfo.SslCertHostPath = &sslCertHostPath
@@ -360,6 +367,11 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 		log.Errorf(err.Error())
 		return err
 	}
+
+	// set image tag & repo depending on K8s version
+	values.Image = getImageVersion(cluster)
+	log.Infof("deploy cluster autoscaler with image tag: %v", values.Image["tag"])
+
 	yamlValues, err := yaml.Marshal(*values)
 	if err != nil {
 		log.Errorf("Error during values marshal: %s", err.Error())
@@ -390,4 +402,31 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 
 	log.Infof("'%s' %sed", chartName, action)
 	return nil
+}
+
+func getImageVersion(cluster CommonCluster) map[string]string {
+	k8sVersion := "1.12"
+	if c, ok := cluster.(interface{ GetKubernetesVersion() (string, error) }); ok {
+		k8sVersion, _ = c.GetKubernetesVersion()
+	}
+	for _, imageVersion := range global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersions {
+		version, err := semver.NewVersion(k8sVersion)
+		if err != nil {
+		}
+
+		majorMinorVersion := fmt.Sprintf("%v.%v", version.Major(), version.Minor())
+		if majorMinorVersion == imageVersion.K8sVersion {
+			return map[string]string{
+				"repository": imageVersion.Repository,
+				"tag":        imageVersion.Tag,
+			}
+		}
+	}
+	// if no image found for k8s major.minor version choose the latest
+	l := len(global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersions)
+	imageVersion := global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersions[l-1]
+	return map[string]string{
+		"repository": imageVersion.Repository,
+		"tag":        imageVersion.Tag,
+	}
 }

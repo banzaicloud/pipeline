@@ -147,8 +147,13 @@ type Configuration struct {
 
 			Charts struct {
 				ClusterAutoscaler struct {
-					Chart   string
-					Version string
+					Chart         string
+					Version       string
+					ImageVersions []struct {
+						K8sVersion string
+						Tag        string
+						Repository string
+					}
 				}
 
 				HPAOperator struct {

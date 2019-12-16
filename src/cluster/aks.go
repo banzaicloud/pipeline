@@ -1175,3 +1175,7 @@ func validateVNetSubnet(cc *pkgAzure.CloudConnection, resourceGroupName, vnetSub
 	}
 	return nil
 }
+
+func (c *AKSCluster) GetKubernetesVersion() (string, error) {
+	return c.modelCluster.AKS.KubernetesVersion, nil
+}
