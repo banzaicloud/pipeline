@@ -267,8 +267,27 @@ dex:
 #
 #        charts:
 #            clusterAutoscaler:
-#                chart: "banzaicloud-stable/cluster-autoscaler"
-#                version: "0.12.3"
+#                chart: "stable/cluster-autoscaler"
+#                version: "6.2.0"
+#                imageVersions:
+#                    - k8sVersion: "1.12"
+#                      tag: "v1.12.8"
+#                      repository: "gcr.io/google-containers/cluster-autoscaler"
+#                    - k8sVersion: "1.13"
+#                      tag: "v1.13.9"
+#                      repository: "gcr.io/google-containers/cluster-autoscaler"
+#                    - k8sversion: "1.14"
+#                      tag: "v1.14.7"
+#                      repository: "gcr.io/google-containers/cluster-autoscaler"
+#                    - k8sversion: "1.15"
+#                      tag: "v1.15.4"
+#                      repository: "gcr.io/google-containers/cluster-autoscaler"
+#                    - k8sVersion: "1.16"
+#                      tag: "v1.16.3"
+#                      repository: "gcr.io/google-containers/cluster-autoscaler"
+#                    - k8sVersion: "1.17"
+#                      tag: "v1.17.0"
+#                      repository: "gcr.io/google-containers/cluster-autoscaler"
 #
 #                # See https://github.com/banzaicloud/banzai-charts/tree/master/cluster-autoscaler for details
 #                values: {}
