@@ -17,9 +17,10 @@ package cluster
 import (
 	"fmt"
 
+	"emperror.dev/errors"
 	"github.com/Masterminds/semver"
 	"github.com/ghodss/yaml"
-	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sHelm "k8s.io/helm/pkg/helm"
 
@@ -369,8 +370,8 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 	}
 
 	// set image tag & repo depending on K8s version
-	values.Image = getImageVersion(cluster)
-	log.Infof("deploy cluster autoscaler with image tag: %v", values.Image["tag"])
+	values.Image = getImageVersion(cluster.GetID(), cluster)
+	log.WithFields(logrus.Fields{"clusterID": cluster.GetID(), "imageTag": values.Image["tag"]}).Infof("deploy cluster autoscaler with image tag")
 
 	yamlValues, err := yaml.Marshal(*values)
 	if err != nil {
@@ -404,29 +405,51 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 	return nil
 }
 
-func getImageVersion(cluster CommonCluster) map[string]string {
-	k8sVersion := "1.12"
+func getK8sVersion(cluster interface{}) (string, error) {
 	if c, ok := cluster.(interface{ GetKubernetesVersion() (string, error) }); ok {
-		k8sVersion, _ = c.GetKubernetesVersion()
-	}
-	for _, imageVersion := range global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersions {
+		k8sVersion, err := c.GetKubernetesVersion()
+		if err != nil {
+			return "", err
+		}
 		version, err := semver.NewVersion(k8sVersion)
 		if err != nil {
+			return "", err
 		}
+		return fmt.Sprintf("%v.%v", version.Major(), version.Minor()), nil
+	}
+	return "", errors.New("no GetKubernetesVersion method found")
 
-		majorMinorVersion := fmt.Sprintf("%v.%v", version.Major(), version.Minor())
-		if majorMinorVersion == imageVersion.K8sVersion {
-			return map[string]string{
-				"repository": imageVersion.Repository,
-				"tag":        imageVersion.Tag,
+}
+
+func getImageVersion(clusterID uint, cluster interface{}) map[string]string {
+
+	var selectedImageVersion map[string]string
+
+	majorMinorVersion, err := getK8sVersion(cluster)
+	if err != nil {
+		log.Error(errors.WrapIfWithDetails(err, "unable to retrieve K8s version of cluster", "clusterID", clusterID))
+	} else {
+		for _, imageVersion := range global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersions {
+			if majorMinorVersion == imageVersion.K8sVersion {
+				selectedImageVersion = map[string]string{
+					"repository": imageVersion.Repository,
+					"tag":        imageVersion.Tag,
+				}
+				break
 			}
 		}
 	}
+
 	// if no image found for k8s major.minor version choose the latest
-	l := len(global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersions)
-	imageVersion := global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersions[l-1]
-	return map[string]string{
-		"repository": imageVersion.Repository,
-		"tag":        imageVersion.Tag,
+	if selectedImageVersion == nil {
+		l := len(global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersions)
+		imageVersion := global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersions[l-1]
+		log.Debugf("no matching image found for clusterID: %v, using the latest version: %s", clusterID, imageVersion.Repository)
+		selectedImageVersion = map[string]string{
+			"repository": imageVersion.Repository,
+			"tag":        imageVersion.Tag,
+		}
 	}
+
+	return selectedImageVersion
 }
