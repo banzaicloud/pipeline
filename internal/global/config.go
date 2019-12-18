@@ -147,9 +147,9 @@ type Configuration struct {
 
 			Charts struct {
 				ClusterAutoscaler struct {
-					Chart         string
-					Version       string
-					ImageVersions []struct {
+					Chart                   string
+					Version                 string
+					ImageVersionConstraints []struct {
 						K8sVersion string
 						Tag        string
 						Repository string

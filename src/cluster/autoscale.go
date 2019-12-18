@@ -429,7 +429,7 @@ func getImageVersion(clusterID uint, cluster interface{}) map[string]string {
 	if err != nil {
 		log.Error(errors.WrapIfWithDetails(err, "unable to retrieve K8s version of cluster", "clusterID", clusterID))
 	} else {
-		for _, imageVersion := range global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersions {
+		for _, imageVersion := range global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersionConstraints {
 			constraint, err := semver.NewConstraint(imageVersion.K8sVersion)
 			if err != nil {
 				log.Error(errors.WrapIf(err, fmt.Sprintf("invalid version constraint specified in config: %s", imageVersion.K8sVersion)))
@@ -445,8 +445,8 @@ func getImageVersion(clusterID uint, cluster interface{}) map[string]string {
 
 	// if no image found for k8s major.minor version choose the latest
 	if selectedImageVersion == nil {
-		l := len(global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersions)
-		imageVersion := global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersions[l-1]
+		l := len(global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersionConstraints)
+		imageVersion := global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersionConstraints[l-1]
 		log.Debugf("no matching image found for clusterID: %v, using the latest version: %s", clusterID, imageVersion.Repository)
 		selectedImageVersion = map[string]string{
 			"repository": imageVersion.Repository,
