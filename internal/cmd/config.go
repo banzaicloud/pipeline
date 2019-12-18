@@ -437,32 +437,32 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::values", map[string]interface{}{})
 	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::imageVersions", []interface{}{
 		map[string]interface{}{
-			"k8sVersion": "1.12",
+			"k8sVersion": "<=1.12.x",
 			"tag":        "v1.12.8",
 			"repository": "gcr.io/google-containers/cluster-autoscaler",
 		},
 		map[string]interface{}{
-			"k8sVersion": "1.13",
+			"k8sVersion": "~1.13",
 			"tag":        "v1.13.9",
 			"repository": "gcr.io/google-containers/cluster-autoscaler",
 		},
 		map[string]interface{}{
-			"k8sVersion": "1.14",
+			"k8sVersion": "~1.14",
 			"tag":        "v1.14.7",
 			"repository": "gcr.io/google-containers/cluster-autoscaler",
 		},
 		map[string]interface{}{
-			"k8sVersion": "1.15",
+			"k8sVersion": "~1.15",
 			"tag":        "v1.15.4",
 			"repository": "gcr.io/google-containers/cluster-autoscaler",
 		},
 		map[string]interface{}{
-			"k8sVersion": "1.16",
+			"k8sVersion": "~1.16",
 			"tag":        "v1.16.3",
 			"repository": "gcr.io/google-containers/cluster-autoscaler",
 		},
 		map[string]interface{}{
-			"k8sVersion": "1.17",
+			"k8sVersion": ">=1.17",
 			"tag":        "v1.17.0",
 			"repository": "gcr.io/google-containers/cluster-autoscaler",
 		},

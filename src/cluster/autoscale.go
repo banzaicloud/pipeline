@@ -405,19 +405,19 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 	return nil
 }
 
-func getK8sVersion(cluster interface{}) (string, error) {
+func getK8sVersion(cluster interface{}) (*semver.Version, error) {
 	if c, ok := cluster.(interface{ GetKubernetesVersion() (string, error) }); ok {
 		k8sVersion, err := c.GetKubernetesVersion()
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		version, err := semver.NewVersion(k8sVersion)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
-		return fmt.Sprintf("%v.%v", version.Major(), version.Minor()), nil
+		return version, nil
 	}
-	return "", errors.New("no GetKubernetesVersion method found")
+	return nil, errors.New("no GetKubernetesVersion method found")
 
 }
 
@@ -425,12 +425,15 @@ func getImageVersion(clusterID uint, cluster interface{}) map[string]string {
 
 	var selectedImageVersion map[string]string
 
-	majorMinorVersion, err := getK8sVersion(cluster)
+	k8sVersion, err := getK8sVersion(cluster)
 	if err != nil {
 		log.Error(errors.WrapIfWithDetails(err, "unable to retrieve K8s version of cluster", "clusterID", clusterID))
 	} else {
 		for _, imageVersion := range global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersions {
-			if majorMinorVersion == imageVersion.K8sVersion {
+			constraint, err := semver.NewConstraint(imageVersion.K8sVersion)
+			if err != nil {
+				log.Error(errors.WrapIf(err, fmt.Sprintf("invalid version constraint specified in config: %s", imageVersion.K8sVersion)))
+			} else if constraint.Check(k8sVersion) {
 				selectedImageVersion = map[string]string{
 					"repository": imageVersion.Repository,
 					"tag":        imageVersion.Tag,
