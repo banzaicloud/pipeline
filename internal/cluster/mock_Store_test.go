@@ -13,6 +13,27 @@ type MockStore struct {
 	mock.Mock
 }
 
+// Exists provides a mock function with given fields: ctx, id
+func (_m *MockStore) Exists(ctx context.Context, id uint) (bool, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(context.Context, uint) bool); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCluster provides a mock function with given fields: ctx, id
 func (_m *MockStore) GetCluster(ctx context.Context, id uint) (Cluster, error) {
 	ret := _m.Called(ctx, id)

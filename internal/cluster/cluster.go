@@ -60,6 +60,9 @@ type Store interface {
 	// Returns a NotFoundError when the cluster cannot be found.
 	GetCluster(ctx context.Context, id uint) (Cluster, error)
 
+	// Exists returns true if the cluster exists
+	Exists(ctx context.Context, id uint) (bool, error)
+
 	// SetStatus sets the cluster status.
 	SetStatus(ctx context.Context, id uint, status string, statusMessage string) error
 }
@@ -172,4 +175,64 @@ func (NotSupportedDistributionError) IsBusinessError() bool {
 // Client errors are usually returned to the consumer without retrying the operation.
 func (NotSupportedDistributionError) ClientError() bool {
 	return true
+}
+
+// Service provides an interface to clusters.
+//go:generate mga gen kit endpoint --outdir clusterdriver --outfile cluster_endpoint_gen.go --with-oc --base-name Cluster Service
+//go:generate mockery -name Service -inpkg
+type Service interface {
+	// DeleteCluster deletes the specified cluster. It returns true if the cluster is already deleted.
+	DeleteCluster(ctx context.Context, clusterID uint, options DeleteClusterOptions) (bool, error)
+}
+
+// DeleteClusterOptions represents cluster deletion options.
+type DeleteClusterOptions struct {
+	Force bool
+}
+
+type clusterService struct {
+	clusters Store
+	manager  Manager
+}
+
+// Manager provides lower level cluster operations for Service.
+type Manager interface {
+	Deleter
+}
+
+// Deleter can be used to delete a cluster.
+type Deleter interface {
+	// DeleteCluster deletes the specified cluster.
+	DeleteCluster(ctx context.Context, clusterID uint, options DeleteClusterOptions) error
+}
+
+// NewService returns a new Service instance
+func NewService(clusters Store, manager Manager) Service {
+	return clusterService{
+		clusters: clusters,
+		manager:  manager,
+	}
+}
+
+// DeleteCluster deletes the specified cluster. It returns true if the cluster is already deleted.
+func (s clusterService) DeleteCluster(ctx context.Context, clusterID uint, options DeleteClusterOptions) (bool, error) {
+	exists, err := s.clusters.Exists(ctx, clusterID)
+	if err != nil {
+		return false, err
+	}
+
+	// Already deleted
+	if !exists {
+		return true, nil
+	}
+
+	if err := s.clusters.SetStatus(ctx, clusterID, Deleting, DeletingMessage); err != nil {
+		return false, err
+	}
+
+	if err := s.manager.DeleteCluster(ctx, clusterID, options); err != nil {
+		return false, err
+	}
+
+	return false, nil
 }
