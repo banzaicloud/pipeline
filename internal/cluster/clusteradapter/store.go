@@ -62,6 +62,25 @@ func (s Store) GetCluster(ctx context.Context, id uint) (cluster.Cluster, error)
 	}, nil
 }
 
+// Exists returns true if the cluster exists in the store and is not deleted
+func (s Store) Exists(ctx context.Context, id uint) (bool, error) {
+	m, err := s.clusters.FindOneByID(0, id)
+
+	if IsClusterNotFoundError(err) {
+		return true, nil
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	if m == nil {
+		return false, nil
+	}
+
+	return m.DeletedAt == nil, nil
+}
+
 func (s Store) findModel(ctx context.Context, id uint) (*model.ClusterModel, error) {
 	clusterModel, err := s.clusters.FindOneByID(0, id)
 	if err != nil {
