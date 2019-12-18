@@ -435,7 +435,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::chart", "stable/cluster-autoscaler")
 	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::version", "6.2.0")
 	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::values", map[string]interface{}{})
-	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::imageVersions", []interface{}{
+	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::imageVersionConstraints", []interface{}{
 		map[string]interface{}{
 			"k8sVersion": "<=1.12.x",
 			"tag":        "v1.12.8",

@@ -269,7 +269,7 @@ dex:
 #            clusterAutoscaler:
 #                chart: "stable/cluster-autoscaler"
 #                version: "6.2.0"
-#                imageVersions:
+#                imageVersionConstraints:
 #                    - k8sVersion: "<=1.12.x"
 #                      tag: "v1.12.8"
 #                      repository: "gcr.io/google-containers/cluster-autoscaler"
