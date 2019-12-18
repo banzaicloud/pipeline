@@ -38,17 +38,18 @@ func TestGetImageVersion_Success(t *testing.T) {
 		Tag        string
 		Repository string
 	}{
-		{K8sVersion: "1.12",
+		{
+			K8sVersion: "<=1.12.x",
 			Tag:        "v1.12.8",
 			Repository: "gcr.io/google-containers/cluster-autoscaler",
 		},
 		{
-			K8sVersion: "1.13",
+			K8sVersion: "~1.13",
 			Tag:        "v1.13.9",
 			Repository: "gcr.io/google-containers/cluster-autoscaler",
 		},
 		{
-			K8sVersion: "1.14",
+			K8sVersion: ">=1.14",
 			Tag:        "v1.14.7",
 			Repository: "gcr.io/google-containers/cluster-autoscaler",
 		},
@@ -60,14 +61,24 @@ func TestGetImageVersion_Success(t *testing.T) {
 		expectedVersion string
 	}{
 		{
-			name:            "test matching version",
+			name:            "test matching version 1",
 			versioner:       &K8sVersioner{k8sVersion: "1.12.2"},
 			expectedVersion: "v1.12.8",
 		},
 		{
-			name:            "test no matching version",
+			name:            "test matching version 2",
+			versioner:       &K8sVersioner{k8sVersion: "1.14.4"},
+			expectedVersion: "v1.14.7",
+		},
+		{
+			name:            "test no matching version 1",
 			versioner:       &K8sVersioner{k8sVersion: "1.15.2"},
 			expectedVersion: "v1.14.7",
+		},
+		{
+			name:            "test no matching version 2",
+			versioner:       &K8sVersioner{k8sVersion: "1.11"},
+			expectedVersion: "v1.12.8",
 		},
 		{
 			name:            "test unknown k8s version",
@@ -81,7 +92,7 @@ func TestGetImageVersion_Success(t *testing.T) {
 			version := getImageVersion(1, tc.versioner)
 
 			if version["tag"] != tc.expectedVersion {
-				t.Errorf("Expected: %v, got: %v", tc.expectedVersion, version)
+				t.Errorf("Expected: %v, got: %v", tc.expectedVersion, version["tag"])
 			}
 		})
 	}
