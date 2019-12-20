@@ -152,6 +152,120 @@ func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
 	return c.cluster, c.cluster.Persist()
 }
 
+func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgCluster.UpdateClusterRequest) ([]NodePoolLabels, error) {
+
+	// we need to retrieve existing node pools, as update request doesn't necessary contains instanceType, spot price etc.
+	clStatus, err := commonCluster.GetStatus()
+	if err != nil {
+		return nil, err
+	}
+	existingNodePoolMap := clStatus.NodePools
+
+	nodePools := make([]NodePoolLabels, 0)
+	cloudType := updateRequest.Cloud
+
+	if updateRequest.PKE != nil {
+		for name, np := range updateRequest.PKE.NodePools {
+			npls := NodePoolLabels{
+				Name:         name,
+				Existing:     false,
+				InstanceType: np.InstanceType,
+				SpotPrice:    np.SpotPrice,
+				Labels:       np.Labels,
+			}
+			existingNodePool, ok := existingNodePoolMap[name]
+			if ok {
+				npls.Existing = true
+				npls.InstanceType = existingNodePool.InstanceType
+				npls.SpotPrice = existingNodePool.SpotPrice
+			}
+			nodePools = append(nodePools, npls)
+		}
+		return nodePools, nil
+	}
+
+	switch cloudType {
+	case pkgCluster.Alibaba:
+		for name, np := range updateRequest.ACK.NodePools {
+			if np != nil {
+				npls := NodePoolLabels{
+					Name:         name,
+					Existing:     false,
+					InstanceType: np.InstanceType,
+					Labels:       np.Labels,
+				}
+				existingNodePool, ok := existingNodePoolMap[name]
+				if ok {
+					npls.Existing = true
+					npls.InstanceType = existingNodePool.InstanceType
+				}
+				nodePools = append(nodePools, npls)
+			}
+		}
+
+	case pkgCluster.Azure:
+		for name, np := range updateRequest.AKS.NodePools {
+			if np != nil {
+				npls := NodePoolLabels{
+					Name:     name,
+					Existing: false,
+					Labels:   np.Labels,
+				}
+				existingNodePool, ok := existingNodePoolMap[name]
+				if ok {
+					npls.Existing = true
+					npls.InstanceType = existingNodePool.InstanceType
+				}
+				nodePools = append(nodePools, npls)
+			}
+		}
+
+	case pkgCluster.Google:
+		for name, np := range updateRequest.GKE.NodePools {
+			if np != nil {
+				npls := NodePoolLabels{
+					Name:         name,
+					Existing:     false,
+					InstanceType: np.NodeInstanceType,
+					Preemptible:  np.Preemptible,
+					Labels:       np.Labels,
+				}
+				existingNodePool, ok := existingNodePoolMap[name]
+				if ok {
+					npls.Existing = true
+					npls.InstanceType = existingNodePool.InstanceType
+					npls.Preemptible = existingNodePool.Preemptible
+				}
+				nodePools = append(nodePools, npls)
+			}
+		}
+
+	case pkgCluster.Oracle:
+		for name, np := range updateRequest.OKE.NodePools {
+			if np != nil {
+				npls := NodePoolLabels{
+					Name:         name,
+					Existing:     false,
+					InstanceType: np.Shape,
+					Labels:       np.Labels,
+				}
+				existingNodePool, ok := existingNodePoolMap[name]
+				if ok {
+					npls.Existing = true
+					npls.InstanceType = existingNodePool.InstanceType
+				}
+				nodePools = append(nodePools, npls)
+			}
+		}
+
+	case pkgCluster.Dummy:
+	case pkgCluster.Kubernetes:
+
+	}
+
+	return nodePools, nil
+}
+
 // Update implements the clusterUpdater interface.
 func (c *commonUpdater) Update(ctx context.Context) error {
 	if c.scaleOptionsChanged {
@@ -166,11 +280,12 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		c.cluster.SetTTL(time.Duration(c.request.TtlMinutes) * time.Minute)
 	}
 
-	// pre deploy NodePoolLabelSet objects for each new node pool to be created
-	nodePools := getNodePoolsFromUpdateRequest(c.request)
-	// to avoid overriding user specified labels, in case of of an empty label map in update request,
-	// set noReturnIfNoUserLabels = true
-	labelsMap, err := GetDesiredLabelsForCluster(ctx, c.cluster, nodePools, true)
+	// obtain desired set of labels for each node pool
+	nodePoolLabelsList, err := buildNodePoolsLabelList(c.cluster, c.request)
+	if err != nil {
+		return err
+	}
+	labelsMap, err := GetDesiredLabelsForCluster(ctx, c.cluster, nodePoolLabelsList)
 	if err != nil {
 		return err
 	}

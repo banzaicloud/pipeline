@@ -177,6 +177,8 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 	input.ASGSubnetMapping = subnetMapping
 
 	asgList := make([]workflow.AutoscaleGroup, 0)
+	nodePoolLabels := make([]cluster.NodePoolLabels, 0)
+
 	for _, np := range modelCluster.NodePools {
 		asg := workflow.AutoscaleGroup{
 			Name:             np.Name,
@@ -190,11 +192,19 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 			Labels:           np.Labels,
 		}
 		asgList = append(asgList, asg)
+
+		nodePoolLabels = append(nodePoolLabels, cluster.NodePoolLabels{
+			Name:         np.Name,
+			Existing:     false,
+			InstanceType: np.NodeInstanceType,
+			SpotPrice:    np.NodeSpotPrice,
+			Labels:       np.Labels,
+		})
 	}
 
 	input.AsgList = asgList
 
-	labelsMap, err := cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nil, false)
+	labelsMap, err := cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolLabels)
 	if err != nil {
 		_ = commonCluster.SetStatus(pkgCluster.Error, "failed to get desired labels")
 

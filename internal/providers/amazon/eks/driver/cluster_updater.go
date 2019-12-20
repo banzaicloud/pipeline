@@ -27,7 +27,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/src/model"
 
-	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
@@ -226,29 +225,23 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 		return err
 	}
 
-	nodePoolLabelMap := make(map[string]map[string]string)
+	var nodePoolLabelMap map[string]map[string]string
 	{
-		logger := pipelineContext.LoggerWithCorrelationID(ctx, c.logger).WithFields(logrus.Fields{
-			"organization": eksCluster.GetOrganizationId(),
-			"cluster":      eksCluster.GetID(),
-		})
 
+		nodePoolLabels := make([]cluster.NodePoolLabels, 0)
 		for _, np := range modelNodePools {
-			nodePoolStatus := &pkgCluster.NodePoolStatus{
-				Autoscaling:  np.Autoscaling,
-				Count:        np.Count,
+			nodePoolLabels = append(nodePoolLabels, cluster.NodePoolLabels{
+				Name:         np.Name,
+				Existing:     np.ID != 0,
 				InstanceType: np.NodeInstanceType,
-				MinCount:     np.NodeMinCount,
-				MaxCount:     np.NodeMaxCount,
 				Labels:       np.Labels,
-			}
-			// we don't want to override existing labels in case of node pools to be updated
-			noReturnIfNoUserLabels := np.ID != 0
-			labelsMap := cluster.GetDesiredLabelsForNodePool(logger, np.Name, nodePoolStatus,
-				noReturnIfNoUserLabels, eksCluster.GetCloud(), eksCluster.GetDistribution(), eksCluster.GetLocation())
-			if len(labelsMap) > 0 {
-				nodePoolLabelMap[np.Name] = labelsMap
-			}
+				SpotPrice:    np.NodeSpotPrice,
+			})
+		}
+
+		nodePoolLabelMap, err = cluster.GetDesiredLabelsForCluster(ctx, eksCluster, nodePoolLabels)
+		if err != nil {
+			return errors.WrapIf(err, "failed to get desired labels for cluster")
 		}
 
 	}
