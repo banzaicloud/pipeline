@@ -40,3 +40,17 @@ func TestNewStatusProblem(t *testing.T) {
 	assert.Equal(t, status, problem.Code)
 	assert.Equal(t, http.StatusText(status), problem.Message)
 }
+
+func TestNewValidationProblem(t *testing.T) {
+	const detail = "invalid request"
+	violations := []string{"error"}
+
+	problem := NewValidationProblem(detail, violations)
+
+	assert.Equal(t, detail, problem.Detail)
+	assert.Equal(t, http.StatusUnprocessableEntity, problem.Status)
+	assert.Equal(t, violations, problem.Violations)
+	assert.Equal(t, http.StatusUnprocessableEntity, problem.Code)
+	assert.Equal(t, detail, problem.Message)
+	assert.Equal(t, detail, problem.Error, detail)
+}

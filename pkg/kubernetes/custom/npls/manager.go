@@ -142,6 +142,54 @@ func (m Manager) Sync(labels map[string]map[string]string) error {
 	return errors.Combine(errs...)
 }
 
+func (m Manager) SyncOne(poolName string, labels map[string]string) error {
+	client := m.client.Resource(labelsetGVR).Namespace(m.namespace)
+
+	currentLabelSetObj, err := client.Get(poolName, metav1.GetOptions{})
+	if err != nil && k8serrors.IsNotFound(errors.Cause(err)) {
+		labelSetObj := unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"kind":       "NodePoolLabelSet",
+				"apiVersion": labelsetGVR.GroupVersion().String(),
+				"metadata": map[string]interface{}{
+					"name": poolName,
+				},
+				"spec": map[string]interface{}{
+					"labels": labels,
+				},
+			},
+		}
+
+		_, err := client.Create(&labelSetObj, metav1.CreateOptions{})
+		if err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+
+	labelSetObj := unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"kind":       "NodePoolLabelSet",
+			"apiVersion": labelsetGVR.GroupVersion().String(),
+			"metadata": map[string]interface{}{
+				"name":            poolName,
+				"resourceVersion": currentLabelSetObj.GetResourceVersion(),
+			},
+			"spec": map[string]interface{}{
+				"labels": labels,
+			},
+		},
+	}
+
+	_, err = client.Update(&labelSetObj, metav1.UpdateOptions{})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m Manager) Delete(poolName string) error {
 	client := m.client.Resource(labelsetGVR).Namespace(m.namespace)
 

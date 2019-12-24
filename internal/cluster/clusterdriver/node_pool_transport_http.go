@@ -23,23 +23,71 @@ import (
 	"emperror.dev/errors"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	"github.com/mitchellh/mapstructure"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
+	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/platform/appkit"
 	"github.com/banzaicloud/pipeline/pkg/problems"
 )
 
 // RegisterNodePoolHTTPHandlers mounts all of the service endpoints into an http.Handler.
 func RegisterNodePoolHTTPHandlers(endpoints NodePoolEndpoints, router *mux.Router, options ...kithttp.ServerOption) {
+	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
+		endpoints.CreateNodePool,
+		decodeCreateNodePoolHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		options...,
+	))
+
 	router.Methods(http.MethodDelete).Path("/{nodePoolName}").Handler(kithttp.NewServer(
 		endpoints.DeleteNodePool,
-		decodeDeleteTokenHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(encodeDeleteTokenHTTPResponse, errorEncoder),
+		decodeDeleteNodePoolHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeDeleteNodePoolHTTPResponse, errorEncoder),
 		options...,
 	))
 }
 
-func decodeDeleteTokenHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeCreateNodePoolHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+
+	rawClusterID, ok := vars["clusterId"]
+	if !ok || rawClusterID == "" {
+		return nil, errors.NewWithDetails("missing parameter from the URL", "param", "clusterId")
+	}
+
+	clusterID, err := strconv.ParseUint(rawClusterID, 10, 32)
+	if err != nil {
+		return nil, errors.NewWithDetails("invalid cluster ID", "rawClusterId", rawClusterID)
+	}
+
+	var rawNodePool pipeline.NodePool
+
+	err = json.NewDecoder(r.Body).Decode(&rawNodePool)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to decode request")
+	}
+
+	var spec map[string]interface{}
+
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Metadata: nil,
+		Result:   &spec,
+		TagName:  "json",
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create decoder")
+	}
+
+	err = decoder.Decode(rawNodePool)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to decode request")
+	}
+
+	return createNodePoolRequest{ClusterID: uint(clusterID), Spec: spec}, nil
+}
+
+func decodeDeleteNodePoolHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	vars := mux.Vars(r)
 
 	rawClusterID, ok := vars["clusterId"]
@@ -60,7 +108,7 @@ func decodeDeleteTokenHTTPRequest(_ context.Context, r *http.Request) (interface
 	return deleteNodePoolRequest{ClusterID: uint(clusterID), NodePoolName: nodePoolName}, nil
 }
 
-func encodeDeleteTokenHTTPResponse(_ context.Context, w http.ResponseWriter, resp interface{}) error {
+func encodeDeleteNodePoolHTTPResponse(_ context.Context, w http.ResponseWriter, resp interface{}) error {
 	deleted, ok := resp.(bool)
 	if !ok || deleted {
 		w.WriteHeader(http.StatusNoContent)
@@ -85,6 +133,17 @@ func errorEncoder(_ context.Context, w http.ResponseWriter, e error) error {
 
 	case appkit.IsConflictError(e):
 		problem = problems.NewDetailedProblem(http.StatusConflict, e.Error())
+
+	case appkit.IsValidationError(e):
+		var violationer interface {
+			Violations() []string
+		}
+
+		if errors.As(e, &violationer) {
+			problem = problems.NewValidationProblem(e.Error(), violationer.Violations())
+		} else {
+			problem = problems.NewDetailedProblem(http.StatusUnprocessableEntity, e.Error())
+		}
 
 	default:
 		problem = problems.NewDetailedProblem(http.StatusInternalServerError, "something went wrong")

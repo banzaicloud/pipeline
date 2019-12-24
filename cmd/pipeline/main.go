@@ -841,6 +841,7 @@ func main() {
 				service := intCluster.NewNodePoolService(
 					clusterStore,
 					clusteradapter.NewNodePoolStore(db, clusterStore),
+					clusteradapter.NewDistributionNodePoolValidator(db),
 					clusteradapter.NewNodePoolManager(workflowClient),
 				)
 				endpoints := clusterdriver.TraceNodePoolEndpoints(clusterdriver.MakeNodePoolEndpoints(

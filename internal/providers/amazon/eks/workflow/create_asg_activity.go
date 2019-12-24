@@ -39,7 +39,7 @@ const CreateAsgActivityName = "eks-create-asg"
 
 // CreateAsgActivity responsible for creating IAM roles
 type CreateAsgActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory AWSFactory
 	// body of the cloud formation template for setting up the VPC
 	cloudFormationTemplate     string
 	asgFulfillmentWaitAttempts int
@@ -77,12 +77,17 @@ type CreateAsgActivityInput struct {
 type CreateAsgActivityOutput struct {
 }
 
+const asgWaitLoopSleep = 5 * time.Second
+const asgFulfillmentTimeout = 2 * time.Minute
+const asgFulfillmentWaitAttempts = asgFulfillmentTimeout / asgWaitLoopSleep
+const asgFulfillmentWaitInterval = asgWaitLoopSleep
+
 // CreateAsgActivity instantiates a new CreateAsgActivity
-func NewCreateAsgActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string, asgFulfillmentWaitAttempts int, asgFulfillmentWaitInterval time.Duration) *CreateAsgActivity {
+func NewCreateAsgActivity(awsSessionFactory AWSFactory, cloudFormationTemplate string) *CreateAsgActivity {
 	return &CreateAsgActivity{
 		awsSessionFactory:          awsSessionFactory,
 		cloudFormationTemplate:     cloudFormationTemplate,
-		asgFulfillmentWaitAttempts: asgFulfillmentWaitAttempts,
+		asgFulfillmentWaitAttempts: int(asgFulfillmentWaitAttempts),
 		asgFulfillmentWaitInterval: asgFulfillmentWaitInterval,
 	}
 }

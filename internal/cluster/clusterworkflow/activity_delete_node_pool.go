@@ -18,7 +18,6 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	"github.com/aws/aws-sdk-go/aws/session"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
@@ -32,10 +31,6 @@ type DeleteNodePoolActivity struct {
 	clusters          cluster.Store
 	nodePools         cluster.NodePoolStore
 	awsSessionFactory AWSSessionFactory
-}
-
-type AWSSessionFactory interface {
-	New(organizationID uint, secretID string, region string) (*session.Session, error)
 }
 
 // NewDeleteNodePoolActivity returns a new DeleteNodePoolActivity.

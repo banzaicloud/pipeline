@@ -15,8 +15,6 @@
 package main
 
 import (
-	"time"
-
 	"emperror.dev/errors"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
@@ -27,9 +25,6 @@ import (
 
 	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 )
-
-const asgWaitLoopSleepSeconds = 5
-const asgFulfillmentTimeout = 2 * time.Minute
 
 func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *adapter.ClusterManagerAdapter) error {
 
@@ -79,12 +74,10 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *a
 	createEksClusterActivity := eksworkflow.NewCreateEksClusterActivity(awsSessionFactory)
 	activity.RegisterWithOptions(createEksClusterActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateEksControlPlaneActivityName})
 
-	waitAttempts := int(asgFulfillmentTimeout.Seconds() / asgWaitLoopSleepSeconds)
-	waitInterval := asgWaitLoopSleepSeconds * time.Second
-	createAsgActivity := eksworkflow.NewCreateAsgActivity(awsSessionFactory, nodePoolTemplate, waitAttempts, waitInterval)
+	createAsgActivity := eksworkflow.NewCreateAsgActivity(awsSessionFactory, nodePoolTemplate)
 	activity.RegisterWithOptions(createAsgActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateAsgActivityName})
 
-	updateAsgActivity := eksworkflow.NewUpdateAsgActivity(awsSessionFactory, nodePoolTemplate, waitAttempts, waitInterval)
+	updateAsgActivity := eksworkflow.NewUpdateAsgActivity(awsSessionFactory, nodePoolTemplate)
 	activity.RegisterWithOptions(updateAsgActivity.Execute, activity.RegisterOptions{Name: eksworkflow.UpdateAsgActivityName})
 
 	createUserAccessKeyActivity := eksworkflow.NewCreateClusterUserAccessKeyActivity(awsSessionFactory)

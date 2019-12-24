@@ -21,6 +21,7 @@ import (
 	"emperror.dev/errors"
 	"go.uber.org/cadence/client"
 
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 )
 
@@ -34,6 +35,32 @@ func NewNodePoolManager(workflowClient client.Client) NodePoolManager {
 	return NodePoolManager{
 		workflowClient: workflowClient,
 	}
+}
+
+func (n NodePoolManager) CreateNodePool(
+	ctx context.Context,
+	clusterID uint,
+	nodePool cluster.NewNodePool,
+	rawNodePool cluster.NewRawNodePool,
+) error {
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,
+	}
+
+	input := clusterworkflow.CreateNodePoolWorkflowInput{
+		ClusterID:   clusterID,
+		UserID:      0,
+		NodePool:    nodePool,
+		RawNodePool: rawNodePool,
+	}
+
+	_, err := n.workflowClient.StartWorkflow(ctx, workflowOptions, clusterworkflow.CreateNodePoolWorkflowName, input)
+	if err != nil {
+		return errors.WrapWithDetails(err, "failed to start workflow", "workflow", clusterworkflow.CreateNodePoolWorkflowName)
+	}
+
+	return nil
 }
 
 func (n NodePoolManager) DeleteNodePool(ctx context.Context, clusterID uint, name string) error {

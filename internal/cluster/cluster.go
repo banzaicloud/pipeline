@@ -113,7 +113,7 @@ func (e NotReadyError) Details() []interface{} {
 	return []interface{}{"clusterId", e.ID}
 }
 
-// NotFound tells a client that this error is related to a conflicting request.
+// Conflict tells a client that this error is related to a conflicting request.
 // Can be used to translate the error to status codes for example.
 func (NotReadyError) Conflict() bool {
 	return true
