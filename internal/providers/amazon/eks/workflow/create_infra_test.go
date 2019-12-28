@@ -16,7 +16,6 @@ package workflow
 
 import (
 	"testing"
-	"time"
 
 	"emperror.dev/errors"
 	"github.com/stretchr/testify/mock"

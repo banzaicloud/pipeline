@@ -164,6 +164,8 @@ func (m Manager) SyncOne(poolName string, labels map[string]string) error {
 		if err != nil {
 			return err
 		}
+
+		return nil
 	} else if err != nil {
 		return err
 	}

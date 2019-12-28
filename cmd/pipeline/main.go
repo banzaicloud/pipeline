@@ -39,6 +39,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"github.com/prometheus/client_golang/prometheus"
+	auth2 "github.com/qor/auth"
 	"github.com/sagikazarmark/kitx/correlation"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
@@ -842,7 +843,16 @@ func main() {
 					clusterStore,
 					clusteradapter.NewNodePoolStore(db, clusterStore),
 					clusteradapter.NewDistributionNodePoolValidator(db),
-					clusteradapter.NewNodePoolManager(workflowClient),
+					clusteradapter.NewNodePoolManager(
+						workflowClient,
+						func(ctx context.Context) uint {
+							if currentUser := ctx.Value(auth2.CurrentUser); currentUser != nil {
+								return currentUser.(*auth.User).ID
+							}
+
+							return 0
+						},
+					),
 				)
 				endpoints := clusterdriver.TraceNodePoolEndpoints(clusterdriver.MakeNodePoolEndpoints(
 					service,

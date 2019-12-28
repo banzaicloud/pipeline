@@ -25,13 +25,12 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
-	"github.com/banzaicloud/pipeline/src/model"
-
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 type EksClusterUpdater struct {
@@ -99,13 +98,13 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 
 			// ---- [ Node instanceType check ] ---- //
 			if len(nodePool.InstanceType) == 0 {
-				//c.log.Errorf("instanceType is missing for nodePool %v", nodePoolName)
+				// c.log.Errorf("instanceType is missing for nodePool %v", nodePoolName)
 				return nil, pkgErrors.ErrorInstancetypeFieldIsEmpty
 			}
 
 			// ---- [ Node image check ] ---- //
 			if len(nodePool.Image) == 0 {
-				//c.log.Errorf("image is missing for nodePool %v", nodePoolName)
+				// c.log.Errorf("image is missing for nodePool %v", nodePoolName)
 				return nil, pkgErrors.ErrorAmazonImageFieldIsEmpty
 			}
 
@@ -243,7 +242,6 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 		if err != nil {
 			return errors.WrapIf(err, "failed to get desired labels for cluster")
 		}
-
 	}
 
 	modelCluster := eksCluster.GetEKSModel()

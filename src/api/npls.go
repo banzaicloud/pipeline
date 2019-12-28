@@ -28,7 +28,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
 	"github.com/banzaicloud/pipeline/src/api/common"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/nodelabels"
 )
 
 // NodePoolManagerAPI implements the Node pool Label Management API actions.
@@ -104,7 +104,7 @@ func (n *NodepoolManagerAPI) GetNodepoolLabelSets(c *gin.Context) {
 			labels = append(labels, pkgCluster.NodePoolLabel{
 				Name:     labelKey,
 				Value:    labelValue,
-				Reserved: cluster.IsReservedDomainKey(labelKey),
+				Reserved: nodelabels.IsReservedDomainKey(labelKey),
 			})
 		}
 		response[npName] = labels

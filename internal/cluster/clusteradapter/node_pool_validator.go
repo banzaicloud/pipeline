@@ -62,6 +62,7 @@ func (v DistributionNodePoolValidator) Validate(_ context.Context, c cluster.Clu
 
 		err = v.db.
 			Where(model.EKSClusterModel{ClusterID: c.ID}).
+			Preload("Subnets").
 			First(&eksCluster).Error
 		if gorm.IsRecordNotFoundError(err) {
 			return errors.NewWithDetails(

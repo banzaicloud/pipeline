@@ -50,9 +50,9 @@ func CreateNodePoolWorkflow(ctx workflow.Context, input CreateNodePoolWorkflowIn
 
 	{
 		input := CreateNodePoolLabelSetActivityInput{
-			ClusterID:    input.ClusterID,
-			NodePoolName: input.NodePool.Name,
-			Labels:       input.NodePool.Labels,
+			ClusterID:   input.ClusterID,
+			NodePool:    input.NodePool,
+			RawNodePool: input.RawNodePool,
 		}
 
 		err := workflow.ExecuteActivity(ctx, CreateNodePoolLabelSetActivityName, input).Get(ctx, nil)

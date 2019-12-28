@@ -47,12 +47,13 @@ func TestNodePoolManager_CreateNodePool(t *testing.T) {
 		clusterworkflow.CreateNodePoolWorkflowName,
 		clusterworkflow.CreateNodePoolWorkflowInput{
 			ClusterID:   clusterID,
+			UserID:      1,
 			NodePool:    newNodePool,
 			RawNodePool: rawNewNodePool,
 		},
 	).Return(nil, nil)
 
-	manager := NewNodePoolManager(client)
+	manager := NewNodePoolManager(client, func(ctx context.Context) uint { return 1 })
 
 	err := manager.CreateNodePool(ctx, clusterID, newNodePool, rawNewNodePool)
 	require.NoError(t, err)
@@ -77,7 +78,7 @@ func TestNodePoolManager_DeleteNodePool(t *testing.T) {
 		},
 	).Return(nil, nil)
 
-	manager := NewNodePoolManager(client)
+	manager := NewNodePoolManager(client, func(ctx context.Context) uint { return 1 })
 
 	err := manager.DeleteNodePool(ctx, clusterID, nodePoolName)
 	require.NoError(t, err)

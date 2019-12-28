@@ -26,6 +26,7 @@ import (
 	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/src/cluster/nodelabels"
 	"github.com/banzaicloud/pipeline/src/model"
 )
 
@@ -84,10 +85,10 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			Where(model.ClusterModel{ID: c.ID}).
 			First(&commonCluster).Error
 		if gorm.IsRecordNotFoundError(err) {
-			return errors.NewWithDetails(
+			return cadence.NewClientError(errors.NewWithDetails(
 				"cluster model is inconsistent",
 				"clusterId", c.ID,
-			)
+			))
 		}
 		if err != nil {
 			return errors.WrapWithDetails(
@@ -101,12 +102,13 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 
 		err = a.db.
 			Where(model.EKSClusterModel{ClusterID: c.ID}).
+			Preload("Subnets").
 			First(&eksCluster).Error
 		if gorm.IsRecordNotFoundError(err) {
-			return errors.NewWithDetails(
+			return cadence.NewClientError(errors.NewWithDetails(
 				"cluster model is inconsistent",
 				"clusterId", c.ID,
-			)
+			))
 		}
 		if err != nil {
 			return errors.WrapWithDetails(
@@ -126,7 +128,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 
 		commonActivityInput := eksworkflow.EKSActivityInput{
 			OrganizationID:            c.OrganizationID,
-			SecretID:                  c.SecretID.String(),
+			SecretID:                  c.SecretID.ResourceID, // TODO: the underlying secret store is the legacy one
 			Region:                    c.Location,
 			ClusterName:               c.Name,
 			AWSClientRequestTokenBase: c.UID,
@@ -167,15 +169,23 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			}
 		}
 
+		labelNodePoolInfo := nodelabels.NodePoolInfo{
+			Name:         nodePool.Name,
+			SpotPrice:    nodePool.SpotPrice,
+			InstanceType: nodePool.InstanceType,
+			Labels:       nodePool.Labels,
+		}
+		labels := nodelabels.GetDesiredLabelsForNodePool(
+			labelNodePoolInfo,
+			false,
+			c.Cloud,
+			c.Distribution,
+			c.Location,
+		)
+
 		subinput := eksworkflow.CreateAsgActivityInput{
-			EKSActivityInput: eksworkflow.EKSActivityInput{
-				OrganizationID:            c.OrganizationID,
-				SecretID:                  c.SecretID.String(),
-				Region:                    c.Location,
-				ClusterName:               c.Name,
-				AWSClientRequestTokenBase: c.UID,
-			},
-			StackName: eksworkflow.GenerateNodePoolStackName(c.Name, input.NodePool.Name),
+			EKSActivityInput: commonActivityInput,
+			StackName:        eksworkflow.GenerateNodePoolStackName(c.Name, input.NodePool.Name),
 
 			ScaleEnabled: commonCluster.ScaleOptions.Enabled,
 			SSHKeyName:   eksworkflow.GenerateSSHKeyNameForCluster(c.Name),
@@ -197,7 +207,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			Count:            nodePool.Size,
 			NodeImage:        nodePool.Image,
 			NodeInstanceType: nodePool.InstanceType,
-			Labels:           input.NodePool.Labels,
+			Labels:           labels,
 		}
 
 		nodePoolTemplate, err := eksworkflow.GetNodePoolTemplate()

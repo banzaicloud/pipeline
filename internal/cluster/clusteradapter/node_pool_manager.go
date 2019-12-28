@@ -28,12 +28,14 @@ import (
 // NodePoolManager manages node pool asynchronously via Cadence workflows.
 type NodePoolManager struct {
 	workflowClient client.Client
+	getUserID      func(ctx context.Context) uint
 }
 
 // NewNodePoolManager returns a new NodePoolManager.
-func NewNodePoolManager(workflowClient client.Client) NodePoolManager {
+func NewNodePoolManager(workflowClient client.Client, getUserID func(ctx context.Context) uint) NodePoolManager {
 	return NodePoolManager{
 		workflowClient: workflowClient,
+		getUserID:      getUserID,
 	}
 }
 
@@ -50,7 +52,7 @@ func (n NodePoolManager) CreateNodePool(
 
 	input := clusterworkflow.CreateNodePoolWorkflowInput{
 		ClusterID:   clusterID,
-		UserID:      0,
+		UserID:      n.getUserID(ctx),
 		NodePool:    nodePool,
 		RawNodePool: rawNodePool,
 	}

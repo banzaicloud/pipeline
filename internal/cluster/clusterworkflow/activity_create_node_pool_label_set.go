@@ -17,32 +17,42 @@ package clusterworkflow
 import (
 	"context"
 
+	"emperror.dev/errors"
+	"github.com/mitchellh/mapstructure"
+
+	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
+	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/src/cluster/nodelabels"
 )
 
 const CreateNodePoolLabelSetActivityName = "create-node-pool-label-set"
 
 type CreateNodePoolLabelSetActivity struct {
+	clusters             cluster.Store
 	dynamicClientFactory DynamicClientFactory
 	namespace            string
 }
 
 // NewCreateNodePoolLabelSetActivity returns a new CreateNodePoolLabelSetActivity.
 func NewCreateNodePoolLabelSetActivity(
+	clusters cluster.Store,
 	dynamicClientFactory DynamicClientFactory,
 	namespace string,
 ) CreateNodePoolLabelSetActivity {
 	return CreateNodePoolLabelSetActivity{
+		clusters:             clusters,
 		dynamicClientFactory: dynamicClientFactory,
 		namespace:            namespace,
 	}
 }
 
 type CreateNodePoolLabelSetActivityInput struct {
-	ClusterID    uint
-	NodePoolName string
-	Labels       map[string]string
+	ClusterID   uint
+	NodePool    cluster.NewNodePool
+	RawNodePool cluster.NewRawNodePool
 }
 
 func (a CreateNodePoolLabelSetActivity) Execute(ctx context.Context, input CreateNodePoolLabelSetActivityInput) error {
@@ -51,9 +61,41 @@ func (a CreateNodePoolLabelSetActivity) Execute(ctx context.Context, input Creat
 		return cadence.WrapClientError(err)
 	}
 
+	c, err := a.clusters.GetCluster(ctx, input.ClusterID)
+	if err != nil {
+		return cadence.WrapClientError(err)
+	}
+
+	labels := input.NodePool.Labels
+
+	switch {
+	case c.Cloud == providers.Amazon && c.Distribution == "eks":
+		var nodePool distribution.NewEKSNodePool
+
+		err := mapstructure.Decode(input.RawNodePool, &nodePool)
+		if err != nil {
+			return errors.Wrap(err, "failed to decode node pool")
+		}
+
+		labelNodePoolInfo := nodelabels.NodePoolInfo{
+			Name:         input.NodePool.Name,
+			SpotPrice:    nodePool.SpotPrice,
+			InstanceType: nodePool.InstanceType,
+			Labels:       input.NodePool.Labels,
+		}
+
+		labels = nodelabels.GetDesiredLabelsForNodePool(
+			labelNodePoolInfo,
+			false,
+			c.Cloud,
+			c.Distribution,
+			c.Location,
+		)
+	}
+
 	manager := npls.NewManager(client, a.namespace)
 
-	err = manager.SyncOne(input.NodePoolName, input.Labels)
+	err = manager.SyncOne(input.NodePool.Name, labels)
 	if err != nil {
 		return err
 	}
