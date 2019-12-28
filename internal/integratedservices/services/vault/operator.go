@@ -41,7 +41,7 @@ type IntegratedServicesOperator struct {
 	kubernetesService KubernetesService
 	secretStore       services.SecretStore
 	config            Config
-	logger            common.Logger
+	logger            services.Logger
 }
 
 // MakeIntegratedServicesOperator returns a Vault integrated service operator
@@ -52,7 +52,7 @@ func MakeIntegratedServicesOperator(
 	kubernetesService KubernetesService,
 	secretStore services.SecretStore,
 	config Config,
-	logger common.Logger,
+	logger services.Logger,
 ) IntegratedServicesOperator {
 	return IntegratedServicesOperator{
 		clusterGetter:     clusterGetter,
@@ -102,7 +102,7 @@ func (op IntegratedServicesOperator) Apply(ctx context.Context, clusterID uint, 
 	}
 
 	// create the token reviwer service account
-	tokenReviewerJWT, err := op.configureClusterTokenReviewer(ctx, logger, clusterID)
+	tokenReviewerJWT, err := op.configureClusterTokenReviewer(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to configure Cluster with token reviewer service account")
 	}
@@ -123,8 +123,8 @@ func (op IntegratedServicesOperator) Apply(ctx context.Context, clusterID uint, 
 
 func (op IntegratedServicesOperator) configureClusterTokenReviewer(
 	ctx context.Context,
-	logger common.Logger,
-	clusterID uint) (string, error) {
+	clusterID uint,
+) (string, error) {
 
 	pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace
 
@@ -199,7 +199,6 @@ func (op IntegratedServicesOperator) configureVault(
 	tokenReviewerJWT string,
 	kubeConfig *k8srest.Config,
 ) error {
-
 	if !boundSpec.CustomVault.Enabled || boundSpec.CustomVault.SecretID != "" {
 		// custom Vault with token or CP's vault
 		logger.Debug("start to setup Vault")
@@ -216,7 +215,7 @@ func (op IntegratedServicesOperator) configureVault(
 		}
 
 		// create Vault manager
-		vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token)
+		vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token, op.logger)
 		if err != nil {
 			return errors.WrapIf(err, "failed to create Vault manager")
 		}
@@ -362,7 +361,7 @@ func (op IntegratedServicesOperator) Deactivate(ctx context.Context, clusterID u
 		}
 
 		// create Vault manager
-		vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token)
+		vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token, op.logger)
 		if err != nil {
 			return errors.WrapIf(err, "failed to create Vault manager")
 		}

@@ -19,7 +19,6 @@ import (
 
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
@@ -33,7 +32,7 @@ type IntegratedServicesManager struct {
 	clusterGetter integratedserviceadapter.ClusterGetter
 	secretStore   services.SecretStore
 	config        Config
-	logger        common.Logger
+	logger        services.Logger
 }
 
 // MakeIntegratedServiceManager builds a new integrated service manager component
@@ -41,7 +40,7 @@ func MakeIntegratedServiceManager(
 	clusterGetter integratedserviceadapter.ClusterGetter,
 	secretStore services.SecretStore,
 	config Config,
-	logger common.Logger,
+	logger services.Logger,
 ) IntegratedServicesManager {
 	return IntegratedServicesManager{
 		clusterGetter: clusterGetter,
@@ -83,7 +82,7 @@ func (m IntegratedServicesManager) GetOutput(ctx context.Context, clusterID uint
 	}
 
 	// create Vault manager
-	vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token)
+	vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token, m.logger)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to create Vault manager")
 	}
