@@ -26,7 +26,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/prometheus/common/log"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 
@@ -148,7 +147,7 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 			} else if input.Count > input.NodeMaxCount {
 				input.Count = input.NodeMaxCount
 			}
-			log.Infof("DesiredCapacity for %v will be: %v", aws.StringValue(asg.AutoScalingGroupARN), input.Count)
+			activity.GetLogger(ctx).Info(fmt.Sprintf("DesiredCapacity for %v will be: %v", aws.StringValue(asg.AutoScalingGroupARN), input.Count))
 		}
 
 	}
@@ -258,7 +257,7 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ValidationError" && strings.HasPrefix(awsErr.Message(), awsNoUpdatesError) {
 			// Get error details
-			log.Warnf("nothing changed during update!")
+			activity.GetLogger(ctx).Warn("nothing changed during update!")
 			err = nil // nolint: ineffassign
 		} else {
 			var awsErr awserr.Error

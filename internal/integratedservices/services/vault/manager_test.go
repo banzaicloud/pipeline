@@ -25,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -71,7 +72,7 @@ func TestIntegratedServiceManager_GetOutput(t *testing.T) {
 	mng := MakeIntegratedServiceManager(clusterGetter, secretStore, Config{}, nil)
 	ctx := auth.SetCurrentOrganizationID(context.Background(), orgID)
 
-	vm, err := newVaultManager(vaultIntegratedServiceSpec{}, orgID, clusterID, "TODOTOKEN")
+	vm, err := newVaultManager(vaultIntegratedServiceSpec{}, orgID, clusterID, "TODOTOKEN", services.NewNoopLogger())
 	assert.NoError(t, err)
 
 	vVersion, err := vm.getVaultVersion()

@@ -21,7 +21,8 @@ import (
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	"github.com/hashicorp/vault/api"
 	vaultapi "github.com/hashicorp/vault/api"
-	"github.com/prometheus/common/log"
+
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 )
 
 type vaultManager struct {
@@ -29,12 +30,14 @@ type vaultManager struct {
 	customVault bool
 	clusterID   uint
 	orgID       uint
+	logger      services.Logger
 }
 
 func newVaultManager(
 	spec vaultIntegratedServiceSpec,
 	orgID, clusterID uint,
 	token string,
+	logger services.Logger,
 ) (*vaultManager, error) {
 	vaultAddress := spec.getVaultAddress()
 
@@ -63,6 +66,7 @@ func newVaultManager(
 		customVault: spec.CustomVault.Enabled,
 		clusterID:   clusterID,
 		orgID:       orgID,
+		logger:      logger,
 	}, nil
 }
 
@@ -87,7 +91,8 @@ func (m vaultManager) enableAuth(path, authType string) error {
 	}
 
 	if _, ok := mounts[fmt.Sprintf("%s/", path)]; ok {
-		log.Debugf("%s auth path is already in use", path)
+		m.logger.Debug("auth path is already in use", map[string]interface{}{"path": path})
+
 		return nil
 	}
 

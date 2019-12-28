@@ -23,7 +23,6 @@ import (
 	"emperror.dev/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
-	"github.com/prometheus/common/log"
 	"github.com/sirupsen/logrus"
 	"github.com/technosophos/moniker"
 	k8sHelm "k8s.io/helm/pkg/helm"

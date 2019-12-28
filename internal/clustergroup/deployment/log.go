@@ -12,18 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package services
+package deployment
 
 import (
-	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
-// Logger is the fundamental interface for all log operations.
-type Logger = common.Logger
+// nolint: gochecknoglobals
+var log logrus.FieldLogger
 
-// NewNoopLogger returns a logger that discards every log event.
-func NewNoopLogger() Logger { return common.NewNoopLogger() }
+func init() {
+	log = global.LogrusLogger()
 
-// SecretStore is a common interface for various parts of the application
-// to read secrets from the platform's secret store.
-type SecretStore = common.SecretStore
+	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
+		log = l
+	})
+}
