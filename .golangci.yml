@@ -11,6 +11,14 @@ linters-settings:
     goimports:
         local-prefixes: github.com/banzaicloud/pipeline
 
+    depguard:
+        list-type: blacklist
+        include-go-root: false
+        packages:
+            - github.com/prometheus/common/log
+        packages-with-error-messages:
+            github.com/prometheus/common/log: "Global logger is deprecated. Inject a logger here. If you are trying to log in a function, chances are you should make it a struct."
+
 linters:
     enable:
         - errcheck
@@ -21,6 +29,7 @@ linters:
         - golint
         - goimports
         - gochecknoglobals
+        - depguard
     disable:
         - funlen
         - gas
