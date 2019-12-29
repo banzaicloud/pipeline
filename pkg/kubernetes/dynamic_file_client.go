@@ -19,7 +19,7 @@ import (
 )
 
 // DynamicFileClient interacts with a cluster with file manifests.
-//go:generate mockery -name DynamicFileClient -inpkg
+//go:generate mga gen mockery --name DynamicFileClient --inpkg
 type DynamicFileClient interface {
 	// Create iterates a set of YAML documents and calls client.Create on them.
 	Create(ctx context.Context, file []byte) error

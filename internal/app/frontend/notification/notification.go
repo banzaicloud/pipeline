@@ -32,7 +32,7 @@ type Notification struct {
 
 // Service provides an interface to notifications.
 //go:generate mga gen kit endpoint --outdir notificationdriver --with-oc Service
-//go:generate mockery -name Service -inpkg
+//go:generate mga gen mockery --name Service --inpkg
 type Service interface {
 	// GetNotifications returns the list of notifications.
 	GetNotifications(ctx context.Context) (Notifications, error)

@@ -24,7 +24,7 @@ import (
 
 // NodePoolService provides an interface to node pools.
 //go:generate mga gen kit endpoint --outdir clusterdriver --outfile node_pool_endpoint_gen.go --with-oc --base-name NodePool NodePoolService
-//go:generate mockery -name NodePoolService -inpkg
+//go:generate mga gen mockery --name NodePoolService --inpkg
 type NodePoolService interface {
 	// DeleteNodePool deletes a node pool from a cluster.
 	DeleteNodePool(ctx context.Context, clusterID uint, name string) (bool, error)
