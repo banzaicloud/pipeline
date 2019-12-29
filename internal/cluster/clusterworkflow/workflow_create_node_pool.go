@@ -29,7 +29,6 @@ const CreateNodePoolWorkflowName = "create-node-pool"
 type CreateNodePoolWorkflowInput struct {
 	ClusterID   uint
 	UserID      uint
-	NodePool    cluster.NewNodePool
 	RawNodePool cluster.NewRawNodePool
 }
 
@@ -51,7 +50,6 @@ func CreateNodePoolWorkflow(ctx workflow.Context, input CreateNodePoolWorkflowIn
 	{
 		input := CreateNodePoolLabelSetActivityInput{
 			ClusterID:   input.ClusterID,
-			NodePool:    input.NodePool,
 			RawNodePool: input.RawNodePool,
 		}
 
@@ -67,7 +65,6 @@ func CreateNodePoolWorkflow(ctx workflow.Context, input CreateNodePoolWorkflowIn
 		input := CreateNodePoolActivityInput{
 			ClusterID:   input.ClusterID,
 			UserID:      input.UserID,
-			NodePool:    input.NodePool,
 			RawNodePool: input.RawNodePool,
 		}
 

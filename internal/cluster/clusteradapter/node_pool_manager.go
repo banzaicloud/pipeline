@@ -42,7 +42,6 @@ func NewNodePoolManager(workflowClient client.Client, getUserID func(ctx context
 func (n NodePoolManager) CreateNodePool(
 	ctx context.Context,
 	clusterID uint,
-	nodePool cluster.NewNodePool,
 	rawNodePool cluster.NewRawNodePool,
 ) error {
 	workflowOptions := client.StartWorkflowOptions{
@@ -53,7 +52,6 @@ func (n NodePoolManager) CreateNodePool(
 	input := clusterworkflow.CreateNodePoolWorkflowInput{
 		ClusterID:   clusterID,
 		UserID:      n.getUserID(ctx),
-		NodePool:    nodePool,
 		RawNodePool: rawNodePool,
 	}
 

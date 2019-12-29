@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
+	"github.com/mitchellh/mapstructure"
 	"k8s.io/apimachinery/pkg/util/validation"
 
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -29,7 +30,7 @@ import (
 //go:generate mga gen mockery --name NodePoolService --inpkg
 type NodePoolService interface {
 	// CreateNodePool creates a new node pool in a cluster.
-	CreateNodePool(ctx context.Context, clusterID uint, nodePool NewNodePool, rawNodePool NewRawNodePool) error
+	CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) error
 
 	// DeleteNodePool deletes a node pool from a cluster.
 	DeleteNodePool(ctx context.Context, clusterID uint, name string) (bool, error)
@@ -131,7 +132,7 @@ type NodePoolValidator interface {
 // NodePoolManager manages node pool infrastructure.
 type NodePoolManager interface {
 	// CreateNodePool creates a new node pool in a cluster.
-	CreateNodePool(ctx context.Context, clusterID uint, nodePool NewNodePool, rawNodePool NewRawNodePool) error
+	CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) error
 
 	// DeleteNodePool deletes a node pool from a cluster.
 	DeleteNodePool(ctx context.Context, clusterID uint, name string) error
@@ -155,7 +156,6 @@ func NewNodePoolService(
 func (s nodePoolService) CreateNodePool(
 	ctx context.Context,
 	clusterID uint,
-	nodePool NewNodePool,
 	rawNodePool NewRawNodePool,
 ) error {
 	cluster, err := s.clusters.GetCluster(ctx, clusterID)
@@ -165,6 +165,12 @@ func (s nodePoolService) CreateNodePool(
 
 	if err := s.checkCluster(cluster); err != nil {
 		return err
+	}
+
+	var nodePool NewNodePool
+
+	if err := mapstructure.Decode(rawNodePool, &nodePool); err != nil {
+		return errors.Wrap(err, "failed to decode node pool")
 	}
 
 	if err := nodePool.Validate(); err != nil {
@@ -192,7 +198,7 @@ func (s nodePoolService) CreateNodePool(
 		return err
 	}
 
-	err = s.manager.CreateNodePool(ctx, clusterID, nodePool, rawNodePool)
+	err = s.manager.CreateNodePool(ctx, clusterID, rawNodePool)
 	if err != nil {
 		return err
 	}

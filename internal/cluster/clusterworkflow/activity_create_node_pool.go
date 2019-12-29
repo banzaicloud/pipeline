@@ -60,7 +60,6 @@ func NewCreateNodePoolActivity(
 type CreateNodePoolActivityInput struct {
 	ClusterID   uint
 	UserID      uint
-	NodePool    cluster.NewNodePool
 	RawNodePool cluster.NewRawNodePool
 }
 
@@ -94,7 +93,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			return errors.WrapWithDetails(
 				err, "failed to get cluster info",
 				"clusterId", c.ID,
-				"nodePoolName", input.NodePool.Name,
+				"nodePoolName", nodePool.Name,
 			)
 		}
 
@@ -114,7 +113,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			return errors.WrapWithDetails(
 				err, "failed to get cluster info",
 				"clusterId", c.ID,
-				"nodePoolName", input.NodePool.Name,
+				"nodePoolName", nodePool.Name,
 			)
 		}
 
@@ -185,7 +184,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 
 		subinput := eksworkflow.CreateAsgActivityInput{
 			EKSActivityInput: commonActivityInput,
-			StackName:        eksworkflow.GenerateNodePoolStackName(c.Name, input.NodePool.Name),
+			StackName:        eksworkflow.GenerateNodePoolStackName(c.Name, nodePool.Name),
 
 			ScaleEnabled: commonCluster.ScaleOptions.Enabled,
 			SSHKeyName:   eksworkflow.GenerateSSHKeyNameForCluster(c.Name),
@@ -199,7 +198,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			NodeSecurityGroupID: vpcActivityOutput.NodeSecurityGroupID,
 			NodeInstanceRoleID:  eksCluster.NodeInstanceRoleId,
 
-			Name:             input.NodePool.Name,
+			Name:             nodePool.Name,
 			NodeSpotPrice:    nodePool.SpotPrice,
 			Autoscaling:      nodePool.Autoscaling.Enabled,
 			NodeMinCount:     minSize,

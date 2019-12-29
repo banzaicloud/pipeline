@@ -31,10 +31,6 @@ func TestNodePoolManager_CreateNodePool(t *testing.T) {
 	const clusterID = uint(1)
 	const nodePoolName = "pool0"
 
-	newNodePool := cluster.NewNodePool{
-		Name: nodePoolName,
-	}
-
 	rawNewNodePool := cluster.NewRawNodePool{
 		"name": nodePoolName,
 	}
@@ -48,14 +44,13 @@ func TestNodePoolManager_CreateNodePool(t *testing.T) {
 		clusterworkflow.CreateNodePoolWorkflowInput{
 			ClusterID:   clusterID,
 			UserID:      1,
-			NodePool:    newNodePool,
 			RawNodePool: rawNewNodePool,
 		},
 	).Return(nil, nil)
 
 	manager := NewNodePoolManager(client, func(ctx context.Context) uint { return 1 })
 
-	err := manager.CreateNodePool(ctx, clusterID, newNodePool, rawNewNodePool)
+	err := manager.CreateNodePool(ctx, clusterID, rawNewNodePool)
 	require.NoError(t, err)
 
 	client.AssertExpectations(t)

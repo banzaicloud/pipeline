@@ -51,7 +51,6 @@ func NewCreateNodePoolLabelSetActivity(
 
 type CreateNodePoolLabelSetActivityInput struct {
 	ClusterID   uint
-	NodePool    cluster.NewNodePool
 	RawNodePool cluster.NewRawNodePool
 }
 
@@ -66,7 +65,8 @@ func (a CreateNodePoolLabelSetActivity) Execute(ctx context.Context, input Creat
 		return cadence.WrapClientError(err)
 	}
 
-	labels := input.NodePool.Labels
+	var name string
+	var labels map[string]string
 
 	switch {
 	case c.Cloud == providers.Amazon && c.Distribution == "eks":
@@ -77,11 +77,13 @@ func (a CreateNodePoolLabelSetActivity) Execute(ctx context.Context, input Creat
 			return errors.Wrap(err, "failed to decode node pool")
 		}
 
+		name = nodePool.Name
+
 		labelNodePoolInfo := nodelabels.NodePoolInfo{
-			Name:         input.NodePool.Name,
+			Name:         nodePool.Name,
 			SpotPrice:    nodePool.SpotPrice,
 			InstanceType: nodePool.InstanceType,
-			Labels:       input.NodePool.Labels,
+			Labels:       nodePool.Labels,
 		}
 
 		labels = nodelabels.GetDesiredLabelsForNodePool(
@@ -95,7 +97,7 @@ func (a CreateNodePoolLabelSetActivity) Execute(ctx context.Context, input Creat
 
 	manager := npls.NewManager(client, a.namespace)
 
-	err = manager.SyncOne(input.NodePool.Name, labels)
+	err = manager.SyncOne(name, labels)
 	if err != nil {
 		return err
 	}

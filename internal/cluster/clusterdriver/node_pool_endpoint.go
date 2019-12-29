@@ -17,9 +17,7 @@ package clusterdriver
 import (
 	"context"
 
-	"emperror.dev/errors"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/mitchellh/mapstructure"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -34,14 +32,7 @@ func MakeCreateNodePoolEndpoint(service cluster.NodePoolService) endpoint.Endpoi
 	return kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 		request := req.(createNodePoolRequest)
 
-		var nodePool cluster.NewNodePool
-
-		err := mapstructure.Decode(request.Spec, &nodePool)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to decode node pool")
-		}
-
-		return nil, service.CreateNodePool(ctx, request.ClusterID, nodePool, request.Spec)
+		return nil, service.CreateNodePool(ctx, request.ClusterID, request.Spec)
 	})
 }
 

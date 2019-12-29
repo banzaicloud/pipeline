@@ -32,12 +32,8 @@ func TestMakeNodePoolEndpoints_CreateNodePool(t *testing.T) {
 		"name": nodePoolName,
 	}
 
-	nodePool := cluster.NewNodePool{
-		Name: nodePoolName,
-	}
-
 	service := new(cluster.MockNodePoolService)
-	service.On("CreateNodePool", ctx, clusterID, nodePool, cluster.NewRawNodePool(spec)).Return(nil)
+	service.On("CreateNodePool", ctx, clusterID, cluster.NewRawNodePool(spec)).Return(nil)
 
 	e := MakeNodePoolEndpoints(service).CreateNodePool
 
