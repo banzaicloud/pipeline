@@ -222,12 +222,8 @@ bin/mga-${MGA_VERSION}:
 	curl -sfL https://git.io/mgatool | bash -s v${MGA_VERSION}
 	@mv bin/mga $@
 
-bin/mockery: bin/gobin
-	@mkdir -p bin
-	GOBIN=bin/ bin/gobin github.com/vektra/mockery/cmd/mockery
-
 .PHONY: generate
-generate: bin/mga bin/mockery ## Generate code
+generate: bin/mga ## Generate code
 	go generate -x ./...
 
 .PHONY: validate-openapi
