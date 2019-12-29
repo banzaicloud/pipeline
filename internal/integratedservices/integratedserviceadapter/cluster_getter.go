@@ -20,7 +20,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
-//go:generate mockery -name ClusterGetter -inpkg
+//go:generate mga gen mockery --name ClusterGetter --inpkg
 // ClusterGetter restricts the external dependencies for the repository
 type ClusterGetter interface {
 	GetClusterByIDOnly(ctx context.Context, clusterID uint) (Cluster, error)

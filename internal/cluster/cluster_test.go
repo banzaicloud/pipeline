@@ -14,4 +14,4 @@
 
 package cluster
 
-//go:generate mockery -name Store -inpkg -testonly
+//go:generate mga gen mockery --name Store --inpkg --testonly

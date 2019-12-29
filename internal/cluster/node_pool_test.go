@@ -25,8 +25,8 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )
 
-//go:generate mockery -name NodePoolStore -inpkg -testonly
-//go:generate mockery -name NodePoolManager -inpkg -testonly
+//go:generate mga gen mockery --name NodePoolStore --inpkg --testonly
+//go:generate mga gen mockery --name NodePoolManager --inpkg --testonly
 
 func TestNodePoolService_DeleteNodePool(t *testing.T) {
 	t.Run("cluster_not_found", func(t *testing.T) {

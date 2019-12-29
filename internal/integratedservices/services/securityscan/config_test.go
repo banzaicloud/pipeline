@@ -28,7 +28,7 @@ import (
 )
 
 // TODO: replace mock with in-memory implementation?
-//go:generate mockery -dir $PWD/internal/common -name SecretStore -testonly -output $PWD/internal/integratedservices/services/securityscan -outpkg securityscan
+//go:generate mga gen mockery --dir $PWD/internal/common --name SecretStore --testonly --output $PWD/internal/integratedservices/services/securityscan --outpkg securityscan
 
 func TestCustomAnchoreConfigProvider_GetConfiguration(t *testing.T) {
 	integratedServiceRepository := integratedservices.NewInMemoryIntegratedServiceRepository(map[uint][]integratedservices.IntegratedService{

@@ -37,7 +37,7 @@ type TypeField struct {
 
 // TypeService provides information about secret types.
 //go:generate mga gen kit endpoint --outdir secrettypedriver --with-oc TypeService
-//go:generate mockery -name TypeService -inpkg
+//go:generate mga gen mockery --name TypeService --inpkg
 type TypeService interface {
 	// ListSecretTypes lists secret type definitions.
 	ListSecretTypes(ctx context.Context) (map[string]TypeDefinition, error)
