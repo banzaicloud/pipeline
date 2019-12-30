@@ -48,7 +48,7 @@ func (n NewEKSNodePool) Validate() error {
 			violations = append(violations, "minimum autoscaling size cannot be lower than one")
 		}
 
-		if n.Autoscaling.MaxSize < n.Autoscaling.MinSize {
+		if n.Autoscaling.MaxSize <= n.Autoscaling.MinSize {
 			violations = append(violations, "maximum autoscaling size cannot be lower than the minimum")
 		}
 	} else if n.Size < 1 {
