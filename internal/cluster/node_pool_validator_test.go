@@ -25,7 +25,36 @@ import (
 
 //go:generate mga gen mockery --name LabelValidator --inpkg --testonly
 
-func TestNewCommonNodePoolValidator(t *testing.T) {
+func TestNodePoolValidators_Validate(t *testing.T) {
+	ctx := context.Background()
+	cluster := Cluster{}
+	nodePool := NewRawNodePool{}
+
+	validator1 := new(MockNodePoolValidator)
+	validator1.On("Validate", ctx, cluster, nodePool).Return(NewValidationError("invalid node pool", []string{"invalid something"}))
+
+	validator2 := new(MockNodePoolValidator)
+	validator2.On("Validate", ctx, cluster, nodePool).Return(errors.New("invalid node pool something"))
+
+	validator3 := new(MockNodePoolValidator)
+	validator3.On("Validate", ctx, cluster, nodePool).Return(nil)
+
+	validator := NodePoolValidators{validator1, validator2, validator3}
+
+	err := validator.Validate(ctx, cluster, nodePool)
+	require.Error(t, err)
+
+	var verr ValidationError
+
+	assert.True(t, errors.As(err, &verr))
+	assert.Equal(
+		t,
+		[]string{"invalid something", "invalid node pool something"},
+		verr.Violations(),
+	)
+}
+
+func TestNewCommonNodePoolValidator_Validate(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		const labelKey = "key"
 		const labelValue = "value"
