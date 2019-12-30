@@ -29,30 +29,6 @@ import (
 //go:generate mga gen mockery --name NodePoolValidator --inpkg --testonly
 //go:generate mga gen mockery --name NodePoolManager --inpkg --testonly
 
-func TestNewNodePool_Validate(t *testing.T) {
-	nodePool := NewNodePool{
-		Name: "",
-		Labels: map[string]string{
-			"key*": "value.*-/",
-		},
-	}
-
-	err := nodePool.Validate()
-	require.Error(t, err)
-
-	var verr ValidationError
-
-	assert.True(t, errors.As(err, &verr))
-	assert.Equal(t,
-		[]string{
-			"name cannot be empty",
-			"invalid label key \"key*\": name part must consist of alphanumeric characters, '-', '_' or '.', and must start and end with an alphanumeric character (e.g. 'MyName',  or 'my.name',  or '123-abc', regex used for validation is '([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]')",
-			"invalid label value \"value.*-/\": a valid label must be an empty string or consist of alphanumeric characters, '-', '_' or '.', and must start and end with an alphanumeric character (e.g. 'MyValue',  or 'my_value',  or '12345', regex used for validation is '(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?')",
-		},
-		verr.Violations(),
-	)
-}
-
 func TestNodePoolService_CreateNodePool(t *testing.T) {
 	t.Run("cluster_not_found", func(t *testing.T) {
 		ctx := context.Background()

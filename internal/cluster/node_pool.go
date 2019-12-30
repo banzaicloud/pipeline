@@ -16,11 +16,8 @@ package cluster
 
 import (
 	"context"
-	"fmt"
 
 	"emperror.dev/errors"
-	"github.com/mitchellh/mapstructure"
-	"k8s.io/apimachinery/pkg/util/validation"
 
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )
@@ -36,41 +33,13 @@ type NodePoolService interface {
 	DeleteNodePool(ctx context.Context, clusterID uint, name string) (bool, error)
 }
 
-// NewNodePool contains generic parameters of a new node pool.
-type NewNodePool struct {
-	Name   string            `mapstructure:"name"`
-	Labels map[string]string `mapstructure:"labels"`
-}
-
-func (n NewNodePool) Validate() error {
-	var violations []string
-
-	if n.Name == "" {
-		violations = append(violations, "name cannot be empty")
-	}
-
-	for key, value := range n.Labels {
-		for _, v := range validation.IsQualifiedName(key) {
-			violations = append(violations, fmt.Sprintf("invalid label key %q: %s", key, v))
-		}
-
-		for _, v := range validation.IsValidLabelValue(value) {
-			violations = append(violations, fmt.Sprintf("invalid label value %q: %s", value, v))
-		}
-	}
-
-	if len(violations) > 0 {
-		return errors.WithStack(ValidationError{
-			message:    "invalid node pool creation request",
-			violations: violations,
-		})
-	}
-
-	return nil
-}
-
 // NewRawNodePool is an unstructured, distribution specific descriptor for a new node pool.
 type NewRawNodePool map[string]interface{}
+
+// Name returns the name of the node pool.
+func (n NewRawNodePool) Name() string {
+	return n["name"].(string)
+}
 
 type nodePoolService struct {
 	clusters  Store
@@ -167,21 +136,11 @@ func (s nodePoolService) CreateNodePool(
 		return err
 	}
 
-	var nodePool NewNodePool
-
-	if err := mapstructure.Decode(rawNodePool, &nodePool); err != nil {
-		return errors.Wrap(err, "failed to decode node pool")
-	}
-
-	if err := nodePool.Validate(); err != nil {
-		return err
-	}
-
 	if err := s.validator.Validate(ctx, cluster, rawNodePool); err != nil {
 		return err
 	}
 
-	exists, err := s.nodePools.NodePoolExists(ctx, clusterID, nodePool.Name)
+	exists, err := s.nodePools.NodePoolExists(ctx, clusterID, rawNodePool.Name())
 	if err != nil {
 		return err
 	}
@@ -189,7 +148,7 @@ func (s nodePoolService) CreateNodePool(
 	if exists {
 		return errors.WithStack(NodePoolAlreadyExistsError{
 			ClusterID: clusterID,
-			NodePool:  nodePool.Name,
+			NodePool:  rawNodePool.Name(),
 		})
 	}
 
