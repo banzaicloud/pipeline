@@ -167,10 +167,10 @@ func (cu ClusterUpdater) Update(ctx context.Context, params ClusterUpdateParams)
 			}
 
 			nodePoolLabels = append(nodePoolLabels, pipCluster.NodePoolLabels{
-				Name:         np.Name,
+				NodePoolName: np.Name,
 				Existing:     false,
 				InstanceType: np.InstanceType,
-				Labels:       np.Labels,
+				CustomLabels: np.Labels,
 			})
 		}
 
@@ -204,10 +204,10 @@ func (cu ClusterUpdater) Update(ctx context.Context, params ClusterUpdateParams)
 		}
 
 		nodePoolLabels = append(nodePoolLabels, pipCluster.NodePoolLabels{
-			Name:         np.Name,
+			NodePoolName: np.Name,
 			Existing:     true,
 			InstanceType: np.InstanceType,
-			Labels:       np.Labels,
+			CustomLabels: np.Labels,
 		})
 	}
 

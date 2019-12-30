@@ -32,12 +32,12 @@ import (
 const labelFormatRegexp = "[^-A-Za-z0-9_.]"
 
 type NodePoolLabels struct {
-	Name         string
+	NodePoolName string
 	Existing     bool
 	InstanceType string            `json:"instanceType,omitempty"`
 	SpotPrice    string            `json:"spotPrice,omitempty"`
 	Preemptible  bool              `json:"preemptible,omitempty"`
-	Labels       map[string]string `json:"labels,omitempty"`
+	CustomLabels map[string]string `json:"labels,omitempty"`
 }
 
 // GetDesiredLabelsForCluster returns desired set of labels for each node pool name, adding Banzaicloud prefixed labels like:
@@ -59,10 +59,10 @@ func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, node
 
 	for _, npLabels := range nodePoolLabels {
 		noReturnIfNoUserLabels := npLabels.Existing
-		labelsMap := getLabelsForNodePool(logger, npLabels.Name, npLabels, noReturnIfNoUserLabels,
+		labelsMap := getLabelsForNodePool(logger, npLabels.NodePoolName, npLabels, noReturnIfNoUserLabels,
 			clusterStatus.Cloud, clusterStatus.Distribution, clusterStatus.Region)
 		if len(labelsMap) > 0 {
-			desiredLabels[npLabels.Name] = labelsMap
+			desiredLabels[npLabels.NodePoolName] = labelsMap
 		}
 	}
 	return desiredLabels, nil
@@ -85,7 +85,7 @@ func getLabelsForNodePool(
 ) map[string]string {
 
 	desiredLabels := make(map[string]string)
-	if len(nodePool.Labels) == 0 && noReturnIfNoUserLabels {
+	if len(nodePool.CustomLabels) == 0 && noReturnIfNoUserLabels {
 		return desiredLabels
 	}
 
@@ -93,7 +93,7 @@ func getLabelsForNodePool(
 	desiredLabels[common.OnDemandLabelKey] = getOnDemandLabel(nodePool)
 
 	// copy user labels unless they are not reserved keys
-	for labelKey, labelValue := range nodePool.Labels {
+	for labelKey, labelValue := range nodePool.CustomLabels {
 		if !IsReservedDomainKey(labelKey) {
 			desiredLabels[labelKey] = labelValue
 		}

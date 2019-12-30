@@ -243,10 +243,10 @@ func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParam
 		nodePoolLabels := make([]cluster.NodePoolLabels, 0)
 		for _, np := range params.NodePools {
 			nodePoolLabels = append(nodePoolLabels, cluster.NodePoolLabels{
-				Name:         np.Name,
+				NodePoolName: np.Name,
 				Existing:     false,
 				InstanceType: np.InstanceType,
-				Labels:       np.Labels,
+				CustomLabels: np.Labels,
 			})
 		}
 

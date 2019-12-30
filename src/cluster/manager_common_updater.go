@@ -167,11 +167,11 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgClus
 	if updateRequest.PKE != nil {
 		for name, np := range updateRequest.PKE.NodePools {
 			npls := NodePoolLabels{
-				Name:         name,
+				NodePoolName: name,
 				Existing:     false,
 				InstanceType: np.InstanceType,
 				SpotPrice:    np.SpotPrice,
-				Labels:       np.Labels,
+				CustomLabels: np.Labels,
 			}
 			existingNodePool, ok := existingNodePoolMap[name]
 			if ok {
@@ -189,10 +189,10 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgClus
 		for name, np := range updateRequest.ACK.NodePools {
 			if np != nil {
 				npls := NodePoolLabels{
-					Name:         name,
+					NodePoolName: name,
 					Existing:     false,
 					InstanceType: np.InstanceType,
-					Labels:       np.Labels,
+					CustomLabels: np.Labels,
 				}
 				existingNodePool, ok := existingNodePoolMap[name]
 				if ok {
@@ -207,9 +207,9 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgClus
 		for name, np := range updateRequest.AKS.NodePools {
 			if np != nil {
 				npls := NodePoolLabels{
-					Name:     name,
-					Existing: false,
-					Labels:   np.Labels,
+					NodePoolName: name,
+					Existing:     false,
+					CustomLabels: np.Labels,
 				}
 				existingNodePool, ok := existingNodePoolMap[name]
 				if ok {
@@ -224,11 +224,11 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgClus
 		for name, np := range updateRequest.GKE.NodePools {
 			if np != nil {
 				npls := NodePoolLabels{
-					Name:         name,
+					NodePoolName: name,
 					Existing:     false,
 					InstanceType: np.NodeInstanceType,
 					Preemptible:  np.Preemptible,
-					Labels:       np.Labels,
+					CustomLabels: np.Labels,
 				}
 				existingNodePool, ok := existingNodePoolMap[name]
 				if ok {
@@ -244,10 +244,10 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgClus
 		for name, np := range updateRequest.OKE.NodePools {
 			if np != nil {
 				npls := NodePoolLabels{
-					Name:         name,
+					NodePoolName: name,
 					Existing:     false,
 					InstanceType: np.Shape,
-					Labels:       np.Labels,
+					CustomLabels: np.Labels,
 				}
 				existingNodePool, ok := existingNodePoolMap[name]
 				if ok {

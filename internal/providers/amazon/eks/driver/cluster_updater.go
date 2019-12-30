@@ -231,10 +231,10 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 		nodePoolLabels := make([]cluster.NodePoolLabels, 0)
 		for _, np := range modelNodePools {
 			nodePoolLabels = append(nodePoolLabels, cluster.NodePoolLabels{
-				Name:         np.Name,
+				NodePoolName: np.Name,
 				Existing:     np.ID != 0,
 				InstanceType: np.NodeInstanceType,
-				Labels:       np.Labels,
+				CustomLabels: np.Labels,
 				SpotPrice:    np.NodeSpotPrice,
 			})
 		}

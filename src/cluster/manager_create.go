@@ -222,10 +222,10 @@ func (m *Manager) createCluster(
 	}
 	for name, np := range clusterStatus.NodePools {
 		nodePoolLabels = append(nodePoolLabels, NodePoolLabels{
-			Name:         name,
+			NodePoolName: name,
 			Existing:     false,
 			InstanceType: np.InstanceType,
-			Labels:       np.Labels,
+			CustomLabels: np.Labels,
 			SpotPrice:    np.SpotPrice,
 			Preemptible:  np.Preemptible,
 		})

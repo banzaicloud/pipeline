@@ -194,11 +194,11 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 		asgList = append(asgList, asg)
 
 		nodePoolLabels = append(nodePoolLabels, cluster.NodePoolLabels{
-			Name:         np.Name,
+			NodePoolName: np.Name,
 			Existing:     false,
 			InstanceType: np.NodeInstanceType,
 			SpotPrice:    np.NodeSpotPrice,
-			Labels:       np.Labels,
+			CustomLabels: np.Labels,
 		})
 	}
 
