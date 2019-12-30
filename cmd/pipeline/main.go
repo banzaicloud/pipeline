@@ -115,6 +115,7 @@ import (
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
+	kubernetes2 "github.com/banzaicloud/pipeline/pkg/kubernetes"
 	"github.com/banzaicloud/pipeline/pkg/problems"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/src/api"
@@ -842,7 +843,12 @@ func main() {
 				service := intCluster.NewNodePoolService(
 					clusterStore,
 					clusteradapter.NewNodePoolStore(db, clusterStore),
-					clusteradapter.NewDistributionNodePoolValidator(db),
+					intCluster.NodePoolValidators{
+						intCluster.NewCommonNodePoolValidator(kubernetes2.LabelValidator{
+							ForbiddenDomains: append([]string{config.Cluster.Labels.Domain}, config.Cluster.Labels.ForbiddenDomains...),
+						}),
+						clusteradapter.NewDistributionNodePoolValidator(db),
+					},
 					clusteradapter.NewNodePoolManager(
 						workflowClient,
 						func(ctx context.Context) uint {

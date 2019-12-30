@@ -97,11 +97,11 @@ func (v CommonNodePoolValidator) Validate(_ context.Context, _ Cluster, rawNodeP
 
 // unwrapViolations is a helper func to unwrap violations from a validation error
 func unwrapViolations(err error) []string {
-	type validationError interface {
+	var verr interface {
 		Violations() []string
 	}
 
-	if verr, ok := err.(validationError); ok {
+	if errors.As(err, &verr) {
 		return verr.Violations()
 	}
 

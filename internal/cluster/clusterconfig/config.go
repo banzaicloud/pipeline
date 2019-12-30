@@ -22,6 +22,7 @@ import (
 type LabelConfig struct {
 	Namespace string
 
+	Domain           string
 	ForbiddenDomains []string
 
 	Charts struct {
