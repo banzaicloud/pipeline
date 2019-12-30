@@ -69,19 +69,17 @@ type LabelValidator interface {
 func (v CommonNodePoolValidator) ValidateNew(_ context.Context, _ Cluster, rawNodePool NewRawNodePool) error {
 	var violations []string
 
-	if name, ok := rawNodePool["name"].(string); !ok || name == "" {
+	if rawNodePool.Name() == "" {
 		violations = append(violations, "name must be a non-empty string")
 	}
 
-	if labels, ok := rawNodePool["labels"].(map[string]string); ok {
-		for key, value := range labels {
-			if err := v.labelValidator.ValidateKey(key); err != nil {
-				violations = append(violations, unwrapViolations(err)...)
-			}
+	for key, value := range rawNodePool.Labels() {
+		if err := v.labelValidator.ValidateKey(key); err != nil {
+			violations = append(violations, unwrapViolations(err)...)
+		}
 
-			if err := v.labelValidator.ValidateValue(value); err != nil {
-				violations = append(violations, unwrapViolations(err)...)
-			}
+		if err := v.labelValidator.ValidateValue(value); err != nil {
+			violations = append(violations, unwrapViolations(err)...)
 		}
 	}
 

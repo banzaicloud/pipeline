@@ -38,7 +38,22 @@ type NewRawNodePool map[string]interface{}
 
 // Name returns the name of the node pool.
 func (n NewRawNodePool) Name() string {
-	return n["name"].(string)
+	name, ok := n["name"].(string)
+	if !ok {
+		return ""
+	}
+
+	return name
+}
+
+// Labels returns the labels of the node pool.
+func (n NewRawNodePool) Labels() map[string]string {
+	labels, ok := n["labels"].(map[string]string)
+	if !ok {
+		return nil
+	}
+
+	return labels
 }
 
 type nodePoolService struct {
