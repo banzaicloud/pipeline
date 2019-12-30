@@ -13,8 +13,8 @@ type MockNodePoolValidator struct {
 	mock.Mock
 }
 
-// Validate provides a mock function with given fields: ctx, cluster, rawNodePool
-func (_m *MockNodePoolValidator) Validate(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) error {
+// ValidateNew provides a mock function with given fields: ctx, cluster, rawNodePool
+func (_m *MockNodePoolValidator) ValidateNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) error {
 	ret := _m.Called(ctx, cluster, rawNodePool)
 
 	var r0 error

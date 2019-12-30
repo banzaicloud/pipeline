@@ -124,7 +124,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		validationError := errors.New("invalid node pool")
 
 		nodePoolValidator := new(MockNodePoolValidator)
-		nodePoolValidator.On("Validate", ctx, cluster, rawNewNodePool).Return(validationError)
+		nodePoolValidator.On("ValidateNew", ctx, cluster, rawNewNodePool).Return(validationError)
 
 		nodePoolManager := new(MockNodePoolManager)
 
@@ -167,7 +167,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(true, nil)
 
 		nodePoolValidator := new(MockNodePoolValidator)
-		nodePoolValidator.On("Validate", ctx, cluster, rawNewNodePool).Return(nil)
+		nodePoolValidator.On("ValidateNew", ctx, cluster, rawNewNodePool).Return(nil)
 
 		nodePoolManager := new(MockNodePoolManager)
 
@@ -211,7 +211,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(false, nil)
 
 		nodePoolValidator := new(MockNodePoolValidator)
-		nodePoolValidator.On("Validate", ctx, cluster, rawNewNodePool).Return(nil)
+		nodePoolValidator.On("ValidateNew", ctx, cluster, rawNewNodePool).Return(nil)
 
 		nodePoolManager := new(MockNodePoolManager)
 		nodePoolManager.On("CreateNodePool", ctx, cluster.ID, rawNewNodePool).Return(nil)

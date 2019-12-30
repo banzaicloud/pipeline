@@ -23,12 +23,12 @@ import (
 // NodePoolValidators combines different node pool validators into one.
 type NodePoolValidators []NodePoolValidator
 
-// Validate validates a new node pool descriptor.
-func (v NodePoolValidators) Validate(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) error {
+// ValidateNew validates a new node pool descriptor.
+func (v NodePoolValidators) ValidateNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) error {
 	var violations []string
 
 	for _, validator := range v {
-		err := validator.Validate(ctx, cluster, rawNodePool)
+		err := validator.ValidateNew(ctx, cluster, rawNodePool)
 		if err != nil {
 			violations = append(violations, unwrapViolations(err)...)
 		}
@@ -65,8 +65,8 @@ type LabelValidator interface {
 	ValidateValue(value string) error
 }
 
-// Validate validates a new node pool descriptor.
-func (v CommonNodePoolValidator) Validate(_ context.Context, _ Cluster, rawNodePool NewRawNodePool) error {
+// ValidateNew validates a new node pool descriptor.
+func (v CommonNodePoolValidator) ValidateNew(_ context.Context, _ Cluster, rawNodePool NewRawNodePool) error {
 	var violations []string
 
 	if name, ok := rawNodePool["name"].(string); !ok || name == "" {

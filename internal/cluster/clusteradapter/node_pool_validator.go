@@ -39,7 +39,7 @@ func NewDistributionNodePoolValidator(db *gorm.DB) DistributionNodePoolValidator
 	}
 }
 
-func (v DistributionNodePoolValidator) Validate(_ context.Context, c cluster.Cluster, rawNodePool cluster.NewRawNodePool) error {
+func (v DistributionNodePoolValidator) ValidateNew(_ context.Context, c cluster.Cluster, rawNodePool cluster.NewRawNodePool) error {
 	switch {
 	case c.Cloud == providers.Amazon && c.Distribution == "eks":
 		var nodePool distribution.NewEKSNodePool

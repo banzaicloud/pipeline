@@ -31,17 +31,17 @@ func TestNodePoolValidators_Validate(t *testing.T) {
 	nodePool := NewRawNodePool{}
 
 	validator1 := new(MockNodePoolValidator)
-	validator1.On("Validate", ctx, cluster, nodePool).Return(NewValidationError("invalid node pool", []string{"invalid something"}))
+	validator1.On("ValidateNew", ctx, cluster, nodePool).Return(NewValidationError("invalid node pool", []string{"invalid something"}))
 
 	validator2 := new(MockNodePoolValidator)
-	validator2.On("Validate", ctx, cluster, nodePool).Return(errors.New("invalid node pool something"))
+	validator2.On("ValidateNew", ctx, cluster, nodePool).Return(errors.New("invalid node pool something"))
 
 	validator3 := new(MockNodePoolValidator)
-	validator3.On("Validate", ctx, cluster, nodePool).Return(nil)
+	validator3.On("ValidateNew", ctx, cluster, nodePool).Return(nil)
 
 	validator := NodePoolValidators{validator1, validator2, validator3}
 
-	err := validator.Validate(ctx, cluster, nodePool)
+	err := validator.ValidateNew(ctx, cluster, nodePool)
 	require.Error(t, err)
 
 	var verr ValidationError
@@ -73,7 +73,7 @@ func TestNewCommonNodePoolValidator_Validate(t *testing.T) {
 
 		validator := NewCommonNodePoolValidator(labelValidator)
 
-		err := validator.Validate(context.Background(), Cluster{}, nodePool)
+		err := validator.ValidateNew(context.Background(), Cluster{}, nodePool)
 		require.NoError(t, err)
 	})
 
@@ -95,7 +95,7 @@ func TestNewCommonNodePoolValidator_Validate(t *testing.T) {
 
 		validator := NewCommonNodePoolValidator(labelValidator)
 
-		err := validator.Validate(context.Background(), Cluster{}, nodePool)
+		err := validator.ValidateNew(context.Background(), Cluster{}, nodePool)
 		require.Error(t, err)
 
 		var verr ValidationError
@@ -126,7 +126,7 @@ func TestNewCommonNodePoolValidator_Validate(t *testing.T) {
 
 		validator := NewCommonNodePoolValidator(labelValidator)
 
-		err := validator.Validate(context.Background(), Cluster{}, nodePool)
+		err := validator.ValidateNew(context.Background(), Cluster{}, nodePool)
 		require.Error(t, err)
 
 		var verr ValidationError

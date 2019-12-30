@@ -94,8 +94,8 @@ type NodePoolStore interface {
 
 // NodePoolValidator validates a new node pool descriptor.
 type NodePoolValidator interface {
-	// Validate validates a new node pool descriptor.
-	Validate(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) error
+	// ValidateNew validates a new node pool descriptor.
+	ValidateNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) error
 }
 
 // NodePoolManager manages node pool infrastructure.
@@ -136,7 +136,7 @@ func (s nodePoolService) CreateNodePool(
 		return err
 	}
 
-	if err := s.validator.Validate(ctx, cluster, rawNodePool); err != nil {
+	if err := s.validator.ValidateNew(ctx, cluster, rawNodePool); err != nil {
 		return err
 	}
 
