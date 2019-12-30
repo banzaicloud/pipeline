@@ -133,7 +133,7 @@ func (Host) TableName() string {
 // String prints row contents.
 func (h Host) String() string {
 	return fmt.Sprintf(
-		"ID: %d, createdAt: %v, createdBy: %d, NodePoolID: %d, Name: %s, PrivateIP: %s, NetworkInterface: %s, Roles: %s, Labels: %s, Taints: %s",
+		"ID: %d, createdAt: %v, createdBy: %d, NodePoolID: %d, Name: %s, PrivateIP: %s, NetworkInterface: %s, Roles: %s, CustomLabels: %s, Taints: %s",
 		h.ID,
 		h.CreatedAt,
 		h.CreatedBy,

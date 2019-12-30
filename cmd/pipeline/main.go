@@ -827,7 +827,6 @@ func main() {
 			cgroupsAPI.AddRoutes(orgs.Group("/:orgid/clustergroups"))
 
 			cRouter.GET("/nodepool-labels", nplsApi.GetNodepoolLabelSets)
-			cRouter.POST("/nodepool-labels", nplsApi.SetNodepoolLabelSets)
 
 			{
 				clusterStore := clusteradapter.NewStore(db, clusters)

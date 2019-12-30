@@ -281,7 +281,7 @@ func (r *UpdateClusterRequest) String() string { // todo expand
 	} else if r.Cloud == Oracle && r.OKE != nil {
 		buffer.WriteString(fmt.Sprintf("Master version: %s", r.OKE.Version))
 		for name, nodePool := range r.UpdateProperties.OKE.NodePools {
-			buffer.WriteString(fmt.Sprintf("NodePool %s Count: %d Version: %s Image: %s Shape: %s Labels: %v",
+			buffer.WriteString(fmt.Sprintf("NodePool %s Count: %d Version: %s Image: %s Shape: %s CustomLabels: %v",
 				name,
 				nodePool.Count,
 				nodePool.Version,
