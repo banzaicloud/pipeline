@@ -25,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/src/cluster/nodelabels"
 	"github.com/banzaicloud/pipeline/src/model"
 )
 
@@ -54,6 +55,21 @@ func (v DistributionNodePoolProcessor) ProcessNew(
 		if err != nil {
 			return rawNodePool, errors.Wrap(err, "failed to decode node pool")
 		}
+
+		labelNodePoolInfo := nodelabels.NodePoolInfo{
+			Name:         nodePool.Name,
+			SpotPrice:    nodePool.SpotPrice,
+			InstanceType: nodePool.InstanceType,
+			Labels:       nodePool.Labels,
+		}
+
+		rawNodePool["labels"] = nodelabels.GetDesiredLabelsForNodePool(
+			labelNodePoolInfo,
+			false,
+			c.Cloud,
+			c.Distribution,
+			c.Location,
+		)
 
 		var eksCluster model.EKSClusterModel
 

@@ -367,7 +367,6 @@ func main() {
 			activity.RegisterWithOptions(createNodePoolActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.CreateNodePoolActivityName})
 
 			createNodePoolLabelSetActivity := clusterworkflow.NewCreateNodePoolLabelSetActivity(
-				clusterStore,
 				cluster2.NewDynamicClientFactory(clusterStore, kubernetes.NewDynamicClientFactory(configFactory)),
 				config.Cluster.Labels.Namespace,
 			)
