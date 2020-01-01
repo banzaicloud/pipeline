@@ -49,6 +49,7 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
+	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
@@ -63,7 +64,6 @@ import (
 	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
 	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
-	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
@@ -112,6 +112,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/internal/providers/google/googleadapter"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 	"github.com/banzaicloud/pipeline/pkg/problems"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -386,7 +387,12 @@ func main() {
 		).Run(config.SpotMetrics.CollectionInterval)
 	}
 
-	cloudInfoClient := cloudinfo.NewClient(config.Cloudinfo.Endpoint, logrusLogger)
+	cloudinfoClient := cloudinfo.NewClient(cloudinfoapi.NewAPIClient(&cloudinfoapi.Configuration{
+		BasePath:      config.Cloudinfo.Endpoint,
+		DefaultHeader: make(map[string]string),
+		UserAgent:     fmt.Sprintf("Pipeline/%s", version),
+	}))
+	global.SetCloudinfoClient(cloudinfoClient)
 
 	azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonLogger)
 	clusterCreators := api.ClusterCreators{
@@ -405,7 +411,7 @@ func main() {
 		EKSAmazon: eksDriver.NewEksClusterCreator(
 			logrusLogger,
 			workflowClient,
-			cloudInfoClient,
+			cloudinfoClient,
 			clusters,
 			secretValidator,
 			statusChangeDurationMetric,
@@ -463,7 +469,6 @@ func main() {
 		clusterManager,
 		commonClusterGetter,
 		workflowClient,
-		cloudInfoClient,
 		clusterGroupManager,
 		logrusLogger,
 		errorHandler,
