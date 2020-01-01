@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,14 +17,18 @@ package cloudinfo
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 )
 
-// GetServiceRegions returns the cloud provider regions where the specified service is available
-func (c *Client) GetServiceRegions(cloudProvider, service string) ([]string, error) {
-	regions, _, err := c.apiClient.RegionsApi.GetRegions(context.Background(), cloudProvider, service)
+// GetServiceRegions returns the cloud provider regions where the specified service is available.
+func (c *Client) GetServiceRegions(ctx context.Context, cloudProvider string, service string) ([]string, error) {
+	regions, _, err := c.apiClient.RegionsApi.GetRegions(ctx, cloudProvider, service)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "couldn't get service availability regions", "cloudProvider", cloudProvider, "service", service)
+		return nil, errors.WrapWithDetails(
+			err, "could not get service availability regions",
+			"cloudProvider", cloudProvider,
+			"service", service,
+		)
 	}
 
 	regionIds := make([]string, len(regions))

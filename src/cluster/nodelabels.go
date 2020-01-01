@@ -23,9 +23,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	"github.com/banzaicloud/pipeline/internal/global"
-	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	"github.com/banzaicloud/pipeline/pkg/common"
 )
 
@@ -45,11 +43,6 @@ type NodePoolLabels struct {
 // noReturnIfNoUserLabels = true, means if there are no labels specified in NodePoolStatus, no labels are returned for that node pool
 // is not returned, to avoid overriding already exisisting user specified labels.
 func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, nodePoolLabels []NodePoolLabels) (map[string]map[string]string, error) {
-	logger := pipelineContext.LoggerWithCorrelationID(ctx, log).WithFields(logrus.Fields{
-		"organization": cluster.GetOrganizationId(),
-		"cluster":      cluster.GetID(),
-	})
-
 	desiredLabels := make(map[string]map[string]string)
 
 	clusterStatus, err := cluster.GetStatus()
@@ -59,8 +52,14 @@ func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, node
 
 	for _, npLabels := range nodePoolLabels {
 		noReturnIfNoUserLabels := npLabels.Existing
-		labelsMap := getLabelsForNodePool(logger, npLabels.NodePoolName, npLabels, noReturnIfNoUserLabels,
-			clusterStatus.Cloud, clusterStatus.Distribution, clusterStatus.Region)
+		labelsMap := getLabelsForNodePool(
+			npLabels.NodePoolName,
+			npLabels,
+			noReturnIfNoUserLabels,
+			clusterStatus.Cloud,
+			clusterStatus.Distribution,
+			clusterStatus.Region,
+		)
 		if len(labelsMap) > 0 {
 			desiredLabels[npLabels.NodePoolName] = labelsMap
 		}
@@ -75,7 +74,6 @@ func formatValue(value string) string {
 }
 
 func getLabelsForNodePool(
-	logger logrus.FieldLogger,
 	nodePoolName string,
 	nodePool NodePoolLabels,
 	noReturnIfNoUserLabels bool,
@@ -99,11 +97,13 @@ func getLabelsForNodePool(
 		}
 	}
 
-	// get CloudInfo labels for node
-	machineDetails, err := cloudinfo.GetMachineDetails(logger, cloud,
+	details, err := global.CloudinfoClient().GetProductDetails(
+		context.Background(),
+		cloud,
 		distribution,
 		region,
-		nodePool.InstanceType)
+		nodePool.InstanceType,
+	)
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"instance":     nodePool.InstanceType,
@@ -112,13 +112,11 @@ func getLabelsForNodePool(
 			"region":       region,
 		}).Warn(errors.Wrap(err, "failed to get instance attributes from Cloud Info"))
 	} else {
-		if machineDetails != nil {
-			for attrKey, attrValue := range machineDetails.Attributes {
-				nKey := formatValue(attrKey)
-				cloudInfoAttrKey := common.CloudInfoLabelKeyPrefix + nKey
-				nValue := formatValue(attrValue)
-				desiredLabels[cloudInfoAttrKey] = nValue
-			}
+		for attrKey, attrValue := range details.Attributes {
+			nKey := formatValue(attrKey)
+			cloudInfoAttrKey := common.CloudInfoLabelKeyPrefix + nKey
+			nValue := formatValue(attrValue)
+			desiredLabels[cloudInfoAttrKey] = nValue
 		}
 	}
 

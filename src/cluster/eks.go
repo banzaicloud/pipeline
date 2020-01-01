@@ -30,7 +30,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/src/model"
@@ -175,7 +174,6 @@ func createSubnetMappingFromRequest(eksRequest *pkgEks.CreateClusterEKS) map[str
 type EKSCluster struct {
 	modelCluster *model.ClusterModel
 
-	CloudInfoClient *cloudinfo.Client
 	// maps node pools to subnets. The subnets identified by the "default" key represent the subnets provided in
 	// request.Properties.CreateClusterEKS.Subnets
 	SubnetMapping map[string][]*pkgEks.Subnet

@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,26 +15,21 @@
 package cloudinfo
 
 import (
-	"github.com/sirupsen/logrus"
+	"sync"
 
 	"github.com/banzaicloud/pipeline/.gen/cloudinfo"
 )
 
+// Client is a custom client for cloudinfo endpoints.
 type Client struct {
 	apiClient *cloudinfo.APIClient
-	logger    logrus.FieldLogger
+
+	productCache sync.Map
 }
 
-func NewClient(cloudInfoEndpoint string, logger logrus.FieldLogger) *Client {
-
-	cloudInfoClient := cloudinfo.NewAPIClient(&cloudinfo.Configuration{
-		BasePath:      cloudInfoEndpoint,
-		DefaultHeader: make(map[string]string),
-		UserAgent:     "Pipeline/go",
-	})
-
+// NewClient returns a new Client.
+func NewClient(apiClient *cloudinfo.APIClient) *Client {
 	return &Client{
-		apiClient: cloudInfoClient,
-		logger:    logger.WithFields(logrus.Fields{"cloudInfoEndpoint": cloudInfoEndpoint}),
+		apiClient: apiClient,
 	}
 }
