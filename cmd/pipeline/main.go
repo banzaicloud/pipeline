@@ -849,6 +849,7 @@ func main() {
 						}),
 						clusteradapter.NewDistributionNodePoolValidator(db),
 					},
+					clusteradapter.NewDistributionNodePoolProcessor(db),
 					clusteradapter.NewNodePoolManager(
 						workflowClient,
 						func(ctx context.Context) uint {

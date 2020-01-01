@@ -23,44 +23,36 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
+	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/src/model"
 )
 
-// DistributionNodePoolValidator validates a node pool request according to its own distribution.
-type DistributionNodePoolValidator struct {
+// DistributionNodePoolProcessor processes a node pool request according to its own distribution.
+type DistributionNodePoolProcessor struct {
 	db *gorm.DB
 }
 
-// NewDistributionNodePoolValidator returns a new DistributionNodePoolValidator.
-func NewDistributionNodePoolValidator(db *gorm.DB) DistributionNodePoolValidator {
-	return DistributionNodePoolValidator{
+// NewDistributionNodePoolProcessor returns a new DistributionNodePoolProcessor.
+func NewDistributionNodePoolProcessor(db *gorm.DB) DistributionNodePoolProcessor {
+	return DistributionNodePoolProcessor{
 		db: db,
 	}
 }
 
-// ValidateNew validates a new node pool descriptor.
-func (v DistributionNodePoolValidator) ValidateNew(
+// ProcessNew processes a new node pool descriptor.
+func (v DistributionNodePoolProcessor) ProcessNew(
 	_ context.Context,
 	c cluster.Cluster,
 	rawNodePool cluster.NewRawNodePool,
-) error {
+) (cluster.NewRawNodePool, error) {
 	switch {
 	case c.Cloud == providers.Amazon && c.Distribution == "eks":
 		var nodePool distribution.NewEKSNodePool
 
 		err := mapstructure.Decode(rawNodePool, &nodePool)
 		if err != nil {
-			return errors.Wrap(err, "failed to decode node pool")
-		}
-
-		message := "invalid node pool creation request"
-		var violations []string
-
-		verr := nodePool.Validate()
-		if err, ok := verr.(cluster.ValidationError); ok {
-			message = err.Error()
-			violations = err.Violations()
+			return rawNodePool, errors.Wrap(err, "failed to decode node pool")
 		}
 
 		var eksCluster model.EKSClusterModel
@@ -70,62 +62,61 @@ func (v DistributionNodePoolValidator) ValidateNew(
 			Preload("Subnets").
 			First(&eksCluster).Error
 		if gorm.IsRecordNotFoundError(err) {
-			return errors.NewWithDetails(
+			return rawNodePool, errors.NewWithDetails(
 				"cluster model is inconsistent",
 				"clusterId", c.ID,
 			)
 		}
 		if err != nil {
-			return errors.WrapWithDetails(
+			return rawNodePool, errors.WrapWithDetails(
 				err, "failed to get cluster info",
 				"clusterId", c.ID,
 				"nodePoolName", nodePool.Name,
 			)
 		}
 
-		hasSubnet := false
-		validSubnet := false
-
-		if nodePool.Subnet.SubnetId != "" {
-			hasSubnet = true
-
-			for _, s := range eksCluster.Subnets {
-				if s.SubnetId != nil && *s.SubnetId == nodePool.Subnet.SubnetId {
-					validSubnet = true
-
-					break
-				}
+		// Default node pool image
+		if nodePool.Image == "" {
+			image, err := eks.GetDefaultImageID(c.Location, eksCluster.Version)
+			if err != nil {
+				return rawNodePool, err
 			}
-		} else if nodePool.Subnet.Cidr != "" && nodePool.Subnet.AvailabilityZone != "" {
-			hasSubnet = true
 
+			rawNodePool["image"] = image
+		}
+
+		// Resolve subnet ID or fallback to one
+		if nodePool.Subnet.SubnetId == "" && nodePool.Subnet.Cidr != "" && nodePool.Subnet.AvailabilityZone != "" {
 			for _, s := range eksCluster.Subnets {
 				if s.Cidr != nil && *s.Cidr == nodePool.Subnet.Cidr && s.AvailabilityZone != nil && *s.AvailabilityZone == nodePool.Subnet.AvailabilityZone {
-					validSubnet = true
-
-					break
+					rawNodePool["subnet"] = map[string]interface{}{
+						"subnetId":         *s.SubnetId,
+						"cidr":             nodePool.Subnet.Cidr,
+						"availabilityZone": nodePool.Subnet.AvailabilityZone,
+					}
 				}
 			}
-		} else if nodePool.Subnet.Cidr != "" || nodePool.Subnet.AvailabilityZone != "" {
-			violations = append(violations, "cidr and availability zone must be specified together")
+		} else if nodePool.Subnet.SubnetId == "" {
+			// TODO: is this necessary?
+			if len(eksCluster.Subnets) == 0 {
+				return rawNodePool, errors.New("cannot resolve subnet")
+			}
+
+			rawNodePool["subnet"] = map[string]interface{}{
+				"subnetId":         *eksCluster.Subnets[0].SubnetId,
+				"cidr":             *eksCluster.Subnets[0].Cidr,
+				"availabilityZone": *eksCluster.Subnets[0].AvailabilityZone,
+			}
 		}
 
-		if hasSubnet && !validSubnet {
-			violations = append(violations, "subnet cannot be found in the cluster")
-		}
-
-		if len(violations) > 0 {
-			return cluster.NewValidationError(message, violations)
-		}
-
-		return nil
+		return rawNodePool, nil
 	}
 
-	return errors.WithStack(cluster.NotSupportedDistributionError{
+	return rawNodePool, errors.WithStack(cluster.NotSupportedDistributionError{
 		ID:           c.ID,
 		Cloud:        c.Cloud,
 		Distribution: c.Distribution,
 
-		Message: "cannot validate unsupported distribution",
+		Message: "cannot process unsupported distribution",
 	})
 }

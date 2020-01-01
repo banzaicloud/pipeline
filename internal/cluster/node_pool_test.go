@@ -27,6 +27,7 @@ import (
 
 //go:generate mga gen mockery --name NodePoolStore --inpkg --testonly
 //go:generate mga gen mockery --name NodePoolValidator --inpkg --testonly
+//go:generate mga gen mockery --name NodePoolProcessor --inpkg --testonly
 //go:generate mga gen mockery --name NodePoolManager --inpkg --testonly
 
 func TestNodePoolService_CreateNodePool(t *testing.T) {
@@ -41,9 +42,10 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 
 		nodePoolStore := new(MockNodePoolStore)
 		nodePoolValidator := new(MockNodePoolValidator)
+		nodePoolProcessor := new(MockNodePoolProcessor)
 		nodePoolManager := new(MockNodePoolManager)
 
-		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolManager)
+		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolProcessor, nodePoolManager)
 
 		rawNewNodePool := NewRawNodePool{
 			"name": "pool0",
@@ -57,6 +59,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		clusterStore.AssertExpectations(t)
 		nodePoolStore.AssertExpectations(t)
 		nodePoolValidator.AssertExpectations(t)
+		nodePoolProcessor.AssertExpectations(t)
 		nodePoolManager.AssertExpectations(t)
 	})
 
@@ -78,9 +81,10 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 
 		nodePoolStore := new(MockNodePoolStore)
 		nodePoolValidator := new(MockNodePoolValidator)
+		nodePoolProcessor := new(MockNodePoolProcessor)
 		nodePoolManager := new(MockNodePoolManager)
 
-		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolManager)
+		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolProcessor, nodePoolManager)
 
 		rawNewNodePool := NewRawNodePool{
 			"name": "pool0",
@@ -94,6 +98,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		clusterStore.AssertExpectations(t)
 		nodePoolStore.AssertExpectations(t)
 		nodePoolValidator.AssertExpectations(t)
+		nodePoolProcessor.AssertExpectations(t)
 		nodePoolManager.AssertExpectations(t)
 	})
 
@@ -126,9 +131,10 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolValidator := new(MockNodePoolValidator)
 		nodePoolValidator.On("ValidateNew", ctx, cluster, rawNewNodePool).Return(validationError)
 
+		nodePoolProcessor := new(MockNodePoolProcessor)
 		nodePoolManager := new(MockNodePoolManager)
 
-		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolManager)
+		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolProcessor, nodePoolManager)
 
 		err := nodePoolService.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.Error(t, err)
@@ -138,6 +144,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		clusterStore.AssertExpectations(t)
 		nodePoolStore.AssertExpectations(t)
 		nodePoolValidator.AssertExpectations(t)
+		nodePoolProcessor.AssertExpectations(t)
 		nodePoolManager.AssertExpectations(t)
 	})
 
@@ -169,9 +176,10 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolValidator := new(MockNodePoolValidator)
 		nodePoolValidator.On("ValidateNew", ctx, cluster, rawNewNodePool).Return(nil)
 
+		nodePoolProcessor := new(MockNodePoolProcessor)
 		nodePoolManager := new(MockNodePoolManager)
 
-		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolManager)
+		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolProcessor, nodePoolManager)
 
 		err := nodePoolService.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.Error(t, err)
@@ -181,6 +189,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		clusterStore.AssertExpectations(t)
 		nodePoolStore.AssertExpectations(t)
 		nodePoolValidator.AssertExpectations(t)
+		nodePoolProcessor.AssertExpectations(t)
 		nodePoolManager.AssertExpectations(t)
 	})
 
@@ -213,10 +222,13 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolValidator := new(MockNodePoolValidator)
 		nodePoolValidator.On("ValidateNew", ctx, cluster, rawNewNodePool).Return(nil)
 
+		nodePoolProcessor := new(MockNodePoolProcessor)
+		nodePoolProcessor.On("ProcessNew", ctx, cluster, rawNewNodePool).Return(rawNewNodePool, nil)
+
 		nodePoolManager := new(MockNodePoolManager)
 		nodePoolManager.On("CreateNodePool", ctx, cluster.ID, rawNewNodePool).Return(nil)
 
-		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolManager)
+		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolProcessor, nodePoolManager)
 
 		err := nodePoolService.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.NoError(t, err)
@@ -224,6 +236,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		clusterStore.AssertExpectations(t)
 		nodePoolStore.AssertExpectations(t)
 		nodePoolValidator.AssertExpectations(t)
+		nodePoolProcessor.AssertExpectations(t)
 		nodePoolManager.AssertExpectations(t)
 	})
 }
@@ -240,9 +253,10 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 
 		nodePoolStore := new(MockNodePoolStore)
 		nodePoolValidator := new(MockNodePoolValidator)
+		nodePoolProcessor := new(MockNodePoolProcessor)
 		nodePoolManager := new(MockNodePoolManager)
 
-		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolManager)
+		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolProcessor, nodePoolManager)
 
 		_, err := nodePoolService.DeleteNodePool(ctx, 1, "pool0")
 		require.Error(t, err)
@@ -252,6 +266,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		clusterStore.AssertExpectations(t)
 		nodePoolStore.AssertExpectations(t)
 		nodePoolValidator.AssertExpectations(t)
+		nodePoolProcessor.AssertExpectations(t)
 		nodePoolManager.AssertExpectations(t)
 	})
 
@@ -273,9 +288,10 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 
 		nodePoolStore := new(MockNodePoolStore)
 		nodePoolValidator := new(MockNodePoolValidator)
+		nodePoolProcessor := new(MockNodePoolProcessor)
 		nodePoolManager := new(MockNodePoolManager)
 
-		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolManager)
+		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolProcessor, nodePoolManager)
 
 		_, err := nodePoolService.DeleteNodePool(ctx, 1, "pool0")
 		require.Error(t, err)
@@ -285,6 +301,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		clusterStore.AssertExpectations(t)
 		nodePoolStore.AssertExpectations(t)
 		nodePoolValidator.AssertExpectations(t)
+		nodePoolProcessor.AssertExpectations(t)
 		nodePoolManager.AssertExpectations(t)
 	})
 
@@ -310,9 +327,10 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(false, nil)
 
 		nodePoolValidator := new(MockNodePoolValidator)
+		nodePoolProcessor := new(MockNodePoolProcessor)
 		nodePoolManager := new(MockNodePoolManager)
 
-		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolManager)
+		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolProcessor, nodePoolManager)
 
 		deleted, err := nodePoolService.DeleteNodePool(ctx, 1, nodePoolName)
 		require.NoError(t, err)
@@ -322,6 +340,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		clusterStore.AssertExpectations(t)
 		nodePoolStore.AssertExpectations(t)
 		nodePoolValidator.AssertExpectations(t)
+		nodePoolProcessor.AssertExpectations(t)
 		nodePoolManager.AssertExpectations(t)
 	})
 
@@ -348,11 +367,12 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(true, nil)
 
 		nodePoolValidator := new(MockNodePoolValidator)
+		nodePoolProcessor := new(MockNodePoolProcessor)
 
 		nodePoolManager := new(MockNodePoolManager)
 		nodePoolManager.On("DeleteNodePool", ctx, cluster.ID, nodePoolName).Return(nil)
 
-		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolManager)
+		nodePoolService := NewNodePoolService(clusterStore, nodePoolStore, nodePoolValidator, nodePoolProcessor, nodePoolManager)
 
 		deleted, err := nodePoolService.DeleteNodePool(ctx, 1, nodePoolName)
 		require.NoError(t, err)
@@ -362,6 +382,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		clusterStore.AssertExpectations(t)
 		nodePoolStore.AssertExpectations(t)
 		nodePoolValidator.AssertExpectations(t)
+		nodePoolProcessor.AssertExpectations(t)
 		nodePoolManager.AssertExpectations(t)
 	})
 }

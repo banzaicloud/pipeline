@@ -60,6 +60,7 @@ type nodePoolService struct {
 	clusters  Store
 	nodePools NodePoolStore
 	validator NodePoolValidator
+	processor NodePoolProcessor
 	manager   NodePoolManager
 }
 
@@ -107,10 +108,16 @@ type NodePoolStore interface {
 	DeleteNodePool(ctx context.Context, clusterID uint, name string) error
 }
 
-// NodePoolValidator validates a new node pool descriptor.
+// NodePoolValidator validates a node pool descriptor.
 type NodePoolValidator interface {
 	// ValidateNew validates a new node pool descriptor.
 	ValidateNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) error
+}
+
+// NodePoolProcessor processes a node pool descriptor.
+type NodePoolProcessor interface {
+	// ProcessNew processes a new node pool descriptor.
+	ProcessNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) (NewRawNodePool, error)
 }
 
 // NodePoolManager manages node pool infrastructure.
@@ -127,12 +134,14 @@ func NewNodePoolService(
 	clusters Store,
 	nodePools NodePoolStore,
 	validator NodePoolValidator,
+	processor NodePoolProcessor,
 	manager NodePoolManager,
 ) NodePoolService {
 	return nodePoolService{
 		clusters:  clusters,
 		nodePools: nodePools,
 		validator: validator,
+		processor: processor,
 		manager:   manager,
 	}
 }
@@ -165,6 +174,11 @@ func (s nodePoolService) CreateNodePool(
 			ClusterID: clusterID,
 			NodePool:  rawNodePool.Name(),
 		})
+	}
+
+	rawNodePool, err = s.processor.ProcessNew(ctx, cluster, rawNodePool)
+	if err != nil {
+		return err
 	}
 
 	err = s.clusters.SetStatus(ctx, clusterID, Updating, "creating node pool")
