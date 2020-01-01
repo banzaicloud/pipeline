@@ -148,26 +148,6 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			}
 		}
 
-		var subnet eksworkflow.Subnet
-
-		if nodePool.Subnet.SubnetId != "" {
-			for _, s := range eksCluster.Subnets {
-				if s.SubnetId != nil && *s.SubnetId == nodePool.Subnet.SubnetId {
-					subnet.SubnetID = nodePool.Subnet.SubnetId
-					subnet.Cidr = *s.Cidr
-					subnet.AvailabilityZone = *s.AvailabilityZone
-				}
-			}
-		} else if nodePool.Subnet.Cidr != "" && nodePool.Subnet.AvailabilityZone != "" {
-			for _, s := range eksCluster.Subnets {
-				if s.Cidr != nil && *s.Cidr == nodePool.Subnet.Cidr && s.AvailabilityZone != nil && *s.AvailabilityZone == nodePool.Subnet.AvailabilityZone {
-					subnet.SubnetID = *s.SubnetId
-					subnet.Cidr = nodePool.Subnet.Cidr
-					subnet.AvailabilityZone = nodePool.Subnet.AvailabilityZone
-				}
-			}
-		}
-
 		labelNodePoolInfo := nodelabels.NodePoolInfo{
 			Name:         nodePool.Name,
 			SpotPrice:    nodePool.SpotPrice,
@@ -190,7 +170,11 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			SSHKeyName:   eksworkflow.GenerateSSHKeyNameForCluster(c.Name),
 
 			Subnets: []eksworkflow.Subnet{
-				subnet,
+				{
+					SubnetID:         nodePool.Subnet.SubnetId,
+					Cidr:             nodePool.Subnet.Cidr,
+					AvailabilityZone: nodePool.Subnet.AvailabilityZone,
+				},
 			},
 
 			VpcID:               vpcActivityOutput.VpcID,
