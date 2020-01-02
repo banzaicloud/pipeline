@@ -30,7 +30,7 @@ type Project = cloudresourcemanager.Project
 
 // Service interacts with Google projects.
 //go:generate mga gen kit endpoint --outdir projectdriver --with-oc --oc-root "cloud/google/project" Service
-//go:generate mockery -name Service -inpkg
+//go:generate mga gen mockery --name Service --inpkg
 type Service interface {
 	// ListProjects lists Google projects.
 	ListProjects(ctx context.Context, secretID string) ([]Project, error)

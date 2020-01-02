@@ -95,6 +95,8 @@ func (cu ClusterUpdater) Update(ctx context.Context, params ClusterUpdateParams)
 	}
 
 	nodePoolsToCreate, nodePoolsToUpdate, nodePoolsToDelete := sortNodePools(params.NodePools, cluster.NodePools)
+	nodePoolLabels := make([]pipCluster.NodePoolLabels, 0)
+
 	subnetsToCreate, subnetsToDelete := sortSubnets(nodePoolsToCreate, nodePoolsToUpdate, nodePoolsToDelete)
 
 	workflowOptions := client.StartWorkflowOptions{
@@ -163,6 +165,13 @@ func (cu ClusterUpdater) Update(ctx context.Context, params ClusterUpdateParams)
 			if err := cu.store.CreateNodePool(params.ClusterID, np.toPke()); err != nil {
 				return errors.WrapIfWithDetails(err, "failed to store new node pool", "clusterID", cluster.ID, "nodepool", np.Name)
 			}
+
+			nodePoolLabels = append(nodePoolLabels, pipCluster.NodePoolLabels{
+				NodePoolName: np.Name,
+				Existing:     false,
+				InstanceType: np.InstanceType,
+				CustomLabels: np.Labels,
+			})
 		}
 
 		toCreateSubnetTemplates = make([]workflow.SubnetTemplate, 0, len(subnetTemplates))
@@ -193,6 +202,13 @@ func (cu ClusterUpdater) Update(ctx context.Context, params ClusterUpdateParams)
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "failed to store updated node pool", "clusterID", cluster.ID, "nodepool", np.Name)
 		}
+
+		nodePoolLabels = append(nodePoolLabels, pipCluster.NodePoolLabels{
+			NodePoolName: np.Name,
+			Existing:     true,
+			InstanceType: np.InstanceType,
+			CustomLabels: np.Labels,
+		})
 	}
 
 	toDeleteVMSSNames := make([]workflow.NodePoolAndVMSS, len(nodePoolsToDelete))
@@ -210,18 +226,8 @@ func (cu ClusterUpdater) Update(ctx context.Context, params ClusterUpdateParams)
 		if err != nil {
 			return errors.WrapIf(err, "failed to get Azure PKE common cluster by ID")
 		}
-		nodePoolStatuses := make(map[string]*pkgCluster.NodePoolStatus, len(params.NodePools))
-		for _, np := range params.NodePools {
-			nodePoolStatuses[np.Name] = &pkgCluster.NodePoolStatus{
-				Autoscaling:  np.Autoscaling,
-				Count:        np.Count,
-				InstanceType: np.InstanceType,
-				MinCount:     np.Min,
-				MaxCount:     np.Max,
-				Labels:       np.Labels,
-			}
-		}
-		labels, err = pipCluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolStatuses, true)
+
+		labels, err = pipCluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolLabels)
 		if err != nil {
 			return errors.WrapIf(err, "failed to get desired labels for cluster")
 		}

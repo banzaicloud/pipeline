@@ -26,17 +26,25 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	"github.com/banzaicloud/pipeline/internal/global"
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
 )
 
 const labelFormatRegexp = "[^-A-Za-z0-9_.]"
 
+type NodePoolLabels struct {
+	NodePoolName string
+	Existing     bool
+	InstanceType string            `json:"instanceType,omitempty"`
+	SpotPrice    string            `json:"spotPrice,omitempty"`
+	Preemptible  bool              `json:"preemptible,omitempty"`
+	CustomLabels map[string]string `json:"labels,omitempty"`
+}
+
 // GetDesiredLabelsForCluster returns desired set of labels for each node pool name, adding Banzaicloud prefixed labels like:
 // head node, ondemand labels + cloudinfo to user defined labels in specified nodePools map.
 // noReturnIfNoUserLabels = true, means if there are no labels specified in NodePoolStatus, no labels are returned for that node pool
-// is not returned, to avoid overriding user specified labels.
-func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, nodePools map[string]*pkgCluster.NodePoolStatus, noReturnIfNoUserLabels bool) (map[string]map[string]string, error) {
+// is not returned, to avoid overriding already exisisting user specified labels.
+func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, nodePoolLabels []NodePoolLabels) (map[string]map[string]string, error) {
 	logger := pipelineContext.LoggerWithCorrelationID(ctx, log).WithFields(logrus.Fields{
 		"organization": cluster.GetOrganizationId(),
 		"cluster":      cluster.GetID(),
@@ -48,15 +56,13 @@ func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, node
 	if err != nil {
 		return desiredLabels, errors.WrapIfWithDetails(err, "failed to get cluster status", "cluster", cluster.GetName())
 	}
-	if len(nodePools) == 0 {
-		nodePools = clusterStatus.NodePools
-	}
 
-	for name, nodePool := range nodePools {
-		labelsMap := GetDesiredLabelsForNodePool(logger, name, nodePool, noReturnIfNoUserLabels,
+	for _, npLabels := range nodePoolLabels {
+		noReturnIfNoUserLabels := npLabels.Existing
+		labelsMap := getLabelsForNodePool(logger, npLabels.NodePoolName, npLabels, noReturnIfNoUserLabels,
 			clusterStatus.Cloud, clusterStatus.Distribution, clusterStatus.Region)
 		if len(labelsMap) > 0 {
-			desiredLabels[name] = labelsMap
+			desiredLabels[npLabels.NodePoolName] = labelsMap
 		}
 	}
 	return desiredLabels, nil
@@ -68,10 +74,10 @@ func formatValue(value string) string {
 	return norm
 }
 
-func GetDesiredLabelsForNodePool(
+func getLabelsForNodePool(
 	logger logrus.FieldLogger,
 	nodePoolName string,
-	nodePool *pkgCluster.NodePoolStatus,
+	nodePool NodePoolLabels,
 	noReturnIfNoUserLabels bool,
 	cloud string,
 	distribution string,
@@ -79,7 +85,7 @@ func GetDesiredLabelsForNodePool(
 ) map[string]string {
 
 	desiredLabels := make(map[string]string)
-	if len(nodePool.Labels) == 0 && noReturnIfNoUserLabels {
+	if len(nodePool.CustomLabels) == 0 && noReturnIfNoUserLabels {
 		return desiredLabels
 	}
 
@@ -87,7 +93,7 @@ func GetDesiredLabelsForNodePool(
 	desiredLabels[common.OnDemandLabelKey] = getOnDemandLabel(nodePool)
 
 	// copy user labels unless they are not reserved keys
-	for labelKey, labelValue := range nodePool.Labels {
+	for labelKey, labelValue := range nodePool.CustomLabels {
 		if !IsReservedDomainKey(labelKey) {
 			desiredLabels[labelKey] = labelValue
 		}
@@ -134,7 +140,7 @@ func IsReservedDomainKey(labelKey string) bool {
 	return false
 }
 
-func getOnDemandLabel(nodePool *pkgCluster.NodePoolStatus) string {
+func getOnDemandLabel(nodePool NodePoolLabels) string {
 	if p, err := strconv.ParseFloat(nodePool.SpotPrice, 64); err == nil && p > 0.0 {
 		return "false"
 	}

@@ -32,7 +32,7 @@ type Token struct {
 
 // Service provides access to personal access tokens.
 //go:generate mga gen kit endpoint --outdir tokendriver --with-oc Service
-//go:generate mockery -name Service -inpkg
+//go:generate mga gen mockery --name Service --inpkg
 type Service interface {
 	// CreateToken creates a new access token. It returns the generated token value.
 	CreateToken(ctx context.Context, tokenRequest NewTokenRequest) (NewToken, error)

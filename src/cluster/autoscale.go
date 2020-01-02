@@ -17,8 +17,10 @@ package cluster
 import (
 	"fmt"
 
+	"emperror.dev/errors"
+	"github.com/Masterminds/semver"
 	"github.com/ghodss/yaml"
-	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sHelm "k8s.io/helm/pkg/helm"
 
@@ -55,18 +57,19 @@ type rbac struct {
 }
 
 type azureInfo struct {
-	ClientID          string `json:"clientID"`
-	ClientSecret      string `json:"clientSecret"`
-	SubscriptionID    string `json:"subscriptionID"`
-	TenantID          string `json:"tenantID"`
-	ResourceGroup     string `json:"resourceGroup"`
-	NodeResourceGroup string `json:"nodeResourceGroup"`
-	ClusterName       string `json:"clusterName"`
-	VMType            string `json:"vmType,omitempty"`
+	ClientID          string `json:"azureClientID"`
+	ClientSecret      string `json:"azureClientSecret"`
+	SubscriptionID    string `json:"azureSubscriptionID"`
+	TenantID          string `json:"azureTenantID"`
+	ResourceGroup     string `json:"azureResourceGroup"`
+	NodeResourceGroup string `json:"azureNodeResourceGroup"`
+	ClusterName       string `json:"azureClusterName"`
+	VMType            string `json:"azureVMType,omitempty"`
 }
 
 type autoDiscovery struct {
-	ClusterName string `json:"clusterName"`
+	ClusterName string   `json:"clusterName"`
+	Tags        []string `json:"tags"`
 }
 
 type autoscalingInfo struct {
@@ -75,10 +78,11 @@ type autoscalingInfo struct {
 	ExtraArgs         map[string]string `json:"extraArgs"`
 	Rbac              rbac              `json:"rbac"`
 	AwsRegion         string            `json:"awsRegion"`
-	Azure             azureInfo         `json:"azure"`
 	AutoDiscovery     autoDiscovery     `json:"autoDiscovery"`
 	SslCertPath       *string           `json:"sslCertPath,omitempty"`
 	SslCertHostPath   *string           `json:"sslCertHostPath,omitempty"`
+	Image             map[string]string `json:"image,omitempty"`
+	azureInfo
 }
 
 func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
@@ -178,6 +182,10 @@ func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autosca
 		AwsRegion: cluster.GetLocation(),
 		AutoDiscovery: autoDiscovery{
 			ClusterName: cluster.GetName(),
+			Tags: []string{
+				"k8s.io/cluster-autoscaler/enabled",
+				"kubernetes.io/cluster/" + cluster.GetName(),
+			},
 		},
 		SslCertPath: &eksCertPath,
 	}
@@ -226,7 +234,7 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 			"expander": expanderStrategy,
 		},
 		Rbac: rbac{Create: true},
-		Azure: azureInfo{
+		azureInfo: azureInfo{
 			ClientID:       clusterSecret.Values[secrettype.AzureClientID],
 			ClientSecret:   clusterSecret.Values[secrettype.AzureClientSecret],
 			SubscriptionID: clusterSecret.Values[secrettype.AzureSubscriptionID],
@@ -248,8 +256,8 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 			log.Errorf("could not get resource group: %s", err.Error())
 		}
 
-		autoscalingInfo.Azure.ResourceGroup = resourceGroup
-		autoscalingInfo.Azure.NodeResourceGroup = *nodeResourceGroup
+		autoscalingInfo.ResourceGroup = resourceGroup
+		autoscalingInfo.NodeResourceGroup = *nodeResourceGroup
 
 	case pkgCluster.PKE:
 		i, ok := cluster.(interface {
@@ -258,9 +266,9 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 		if !ok {
 			return nil
 		}
-		autoscalingInfo.Azure.ResourceGroup = i.GetResourceGroupName()
+		autoscalingInfo.ResourceGroup = i.GetResourceGroupName()
 		if len(vmType) > 0 {
-			autoscalingInfo.Azure.VMType = vmType
+			autoscalingInfo.VMType = vmType
 		}
 		sslCertHostPath := "/etc/kubernetes/pki/ca.crt"
 		autoscalingInfo.SslCertHostPath = &sslCertHostPath
@@ -360,6 +368,11 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 		log.Errorf(err.Error())
 		return err
 	}
+
+	// set image tag & repo depending on K8s version
+	values.Image = getImageVersion(cluster.GetID(), cluster)
+	log.WithFields(logrus.Fields{"clusterID": cluster.GetID(), "imageTag": values.Image["tag"]}).Infof("deploy cluster autoscaler with image tag")
+
 	yamlValues, err := yaml.Marshal(*values)
 	if err != nil {
 		log.Errorf("Error during values marshal: %s", err.Error())
@@ -390,4 +403,56 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 
 	log.Infof("'%s' %sed", chartName, action)
 	return nil
+}
+
+func getK8sVersion(cluster interface{}) (*semver.Version, error) {
+	if c, ok := cluster.(interface{ GetKubernetesVersion() (string, error) }); ok {
+		k8sVersion, err := c.GetKubernetesVersion()
+		if err != nil {
+			return nil, err
+		}
+		version, err := semver.NewVersion(k8sVersion)
+		if err != nil {
+			return nil, err
+		}
+		return version, nil
+	}
+	return nil, errors.New("no GetKubernetesVersion method found")
+
+}
+
+func getImageVersion(clusterID uint, cluster interface{}) map[string]string {
+
+	var selectedImageVersion map[string]string
+
+	k8sVersion, err := getK8sVersion(cluster)
+	if err != nil {
+		log.Error(errors.WrapIfWithDetails(err, "unable to retrieve K8s version of cluster", "clusterID", clusterID))
+	} else {
+		for _, imageVersion := range global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersionConstraints {
+			constraint, err := semver.NewConstraint(imageVersion.K8sVersion)
+			if err != nil {
+				log.Error(errors.WrapIf(err, fmt.Sprintf("invalid version constraint specified in config: %s", imageVersion.K8sVersion)))
+			} else if constraint.Check(k8sVersion) {
+				selectedImageVersion = map[string]string{
+					"repository": imageVersion.Repository,
+					"tag":        imageVersion.Tag,
+				}
+				break
+			}
+		}
+	}
+
+	// if no image found for k8s major.minor version choose the latest
+	if selectedImageVersion == nil {
+		l := len(global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersionConstraints)
+		imageVersion := global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersionConstraints[l-1]
+		log.Debugf("no matching image found for clusterID: %v, using the latest version: %s", clusterID, imageVersion.Repository)
+		selectedImageVersion = map[string]string{
+			"repository": imageVersion.Repository,
+			"tag":        imageVersion.Tag,
+		}
+	}
+
+	return selectedImageVersion
 }

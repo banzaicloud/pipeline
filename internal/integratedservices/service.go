@@ -24,7 +24,7 @@ import (
 
 // Service manages integrated services on Kubernetes clusters.
 //go:generate mga gen kit endpoint --outdir integratedservicedriver --with-oc Service
-//go:generate mockery -name Service -inpkg
+//go:generate mga gen mockery --name Service --inpkg
 type Service interface {
 	// List lists the activated integrated services and their details.
 	List(ctx context.Context, clusterID uint) ([]IntegratedService, error)

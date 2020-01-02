@@ -239,19 +239,18 @@ func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParam
 			_ = cc.handleError(cl.ID, err)
 			return
 		}
-		nodePoolStatuses := make(map[string]*pkgCluster.NodePoolStatus, len(params.NodePools))
+
+		nodePoolLabels := make([]cluster.NodePoolLabels, 0)
 		for _, np := range params.NodePools {
-			nodePoolStatuses[np.Name] = &pkgCluster.NodePoolStatus{
-				Autoscaling:  np.Autoscaling,
-				Count:        np.Count,
+			nodePoolLabels = append(nodePoolLabels, cluster.NodePoolLabels{
+				NodePoolName: np.Name,
+				Existing:     false,
 				InstanceType: np.InstanceType,
-				MinCount:     np.Min,
-				MaxCount:     np.Max,
-				Labels:       np.Labels,
-			}
+				CustomLabels: np.Labels,
+			})
 		}
 
-		labelsMap, err = cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolStatuses, false)
+		labelsMap, err = cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolLabels)
 		if err != nil {
 			_ = cc.handleError(cl.ID, err)
 			return

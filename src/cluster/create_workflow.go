@@ -30,6 +30,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/pkg/brn"
+	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
@@ -61,9 +62,10 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 			StartToCloseTimeout:    20 * time.Minute,
 			WaitForCancellation:    true,
 			RetryPolicy: &cadence.RetryPolicy{
-				InitialInterval:    15 * time.Second,
-				BackoffCoefficient: 1.0,
-				MaximumAttempts:    30,
+				InitialInterval:          15 * time.Second,
+				BackoffCoefficient:       1.0,
+				MaximumAttempts:          30,
+				NonRetriableErrorReasons: []string{"cadenceInternal:Panic", pkgCadence.ClientErrorReason},
 			},
 		}
 		ctx := workflow.WithActivityOptions(ctx, ao)
@@ -74,7 +76,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 		err := workflow.ExecuteActivity(ctx, DownloadK8sConfigActivityName, activityInput).Get(ctx, &configSecretID)
 		if err != nil {
-			return err
+			return pkgCadence.UnwrapError(err)
 		}
 	}
 
@@ -215,6 +217,9 @@ func (a DownloadK8sConfigActivity) Execute(ctx context.Context, input DownloadK8
 
 		config, err := downloader.DownloadK8sConfig()
 		if err != nil {
+			if strings.Contains(err.Error(), "PermissionDenied") {
+				return "", pkgCadence.NewClientError(err)
+			}
 			return "", err
 		}
 

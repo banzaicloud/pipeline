@@ -25,28 +25,28 @@ import (
 )
 
 // ClientFactory returns a Kubernetes client.
-//go:generate mockery -name ClientFactory -inpkg -testonly
+//go:generate mga gen mockery --name ClientFactory --inpkg --testonly
 type ClientFactory interface {
 	// FromSecret creates a Kubernetes client for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error)
 }
 
 // DynamicClientFactory returns a dynamic Kubernetes client.
-//go:generate mockery -name DynamicClientFactory -inpkg -testonly
+//go:generate mga gen mockery --name DynamicClientFactory --inpkg --testonly
 type DynamicClientFactory interface {
 	// FromSecret creates a Kubernetes client for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error)
 }
 
 // HelmClientFactory returns a Kubernetes client.
-//go:generate mockery -name HelmClientFactory -inpkg -testonly
+//go:generate mga gen mockery --name HelmClientFactory --inpkg --testonly
 type HelmClientFactory interface {
 	// FromSecret creates a Kubernetes client for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (*helm.Client, error)
 }
 
 // DynamicFileClientFactory returns a DynamicFileClient.
-//go:generate mockery -name DynamicFileClientFactory -inpkg -testonly
+//go:generate mga gen mockery --name DynamicFileClientFactory --inpkg --testonly
 type DynamicFileClientFactory interface {
 	// FromSecret creates a DynamicFileClient for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (k8s.DynamicFileClient, error)

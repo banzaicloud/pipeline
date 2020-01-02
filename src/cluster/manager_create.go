@@ -64,7 +64,11 @@ type clusterCreator interface {
 }
 
 // CreateCluster creates a new cluster in the background.
-func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext, creator clusterCreator) (CommonCluster, error) {
+func (m *Manager) CreateCluster(
+	ctx context.Context,
+	creationCtx CreationContext,
+	creator clusterCreator,
+) (CommonCluster, error) {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": creationCtx.OrganizationID,
 		"user":         creationCtx.UserID,
@@ -211,7 +215,22 @@ func (m *Manager) createCluster(
 		return emperror.Wrap(err, "failed to update cluster status")
 	}
 
-	labelsMap, err := GetDesiredLabelsForCluster(ctx, cluster, nil, false)
+	nodePoolLabels := make([]NodePoolLabels, 0)
+	clusterStatus, err := cluster.GetStatus()
+	if err != nil {
+		return emperror.Wrap(err, "failed to get cluster status")
+	}
+	for name, np := range clusterStatus.NodePools {
+		nodePoolLabels = append(nodePoolLabels, NodePoolLabels{
+			NodePoolName: name,
+			Existing:     false,
+			InstanceType: np.InstanceType,
+			CustomLabels: np.Labels,
+			SpotPrice:    np.SpotPrice,
+			Preemptible:  np.Preemptible,
+		})
+	}
+	labelsMap, err := GetDesiredLabelsForCluster(ctx, cluster, nodePoolLabels)
 	if err != nil {
 		_ = cluster.SetStatus(pkgCluster.Error, "failed to get desired labels")
 
@@ -256,6 +275,8 @@ func (m *Manager) createCluster(
 
 		err = exec.Get(ctx, nil)
 		if err != nil {
+			_ = m.clusterStore.SetStatus(ctx, cluster.GetID(), pkgCluster.Error, err.Error())
+
 			return emperror.Wrap(err, "running setup jobs failed")
 		}
 

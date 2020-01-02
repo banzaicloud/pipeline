@@ -15,7 +15,6 @@
 package api
 
 import (
-	"context"
 	"net/http"
 
 	"emperror.dev/emperror"
@@ -27,8 +26,6 @@ import (
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
 	"github.com/banzaicloud/pipeline/src/api/common"
 	"github.com/banzaicloud/pipeline/src/cluster"
@@ -114,103 +111,4 @@ func (n *NodepoolManagerAPI) GetNodepoolLabelSets(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
-}
-
-func (n *NodepoolManagerAPI) SetNodepoolLabelSets(c *gin.Context) {
-	ctx := ginutils.Context(context.Background(), c)
-
-	var nodepoolLabelSets map[string]map[string]string
-	if err := c.BindJSON(&nodepoolLabelSets); err != nil {
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	commonCluster, ok := n.clusterGetter.GetClusterFromRequest(c)
-	if !ok {
-		return
-	}
-
-	ready, err := commonCluster.IsReady()
-	if err != nil {
-		err = errors.WithMessage(err, "failed to check cluster readiness")
-		errorHandler.Handle(err)
-
-		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
-	} else if !ready {
-		err := errors.New("cluster is not ready")
-		errorHandler.Handle(err)
-
-		ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "unable to set node pool labels",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	updatedNodePools, err := getNodePoolsWithUpdatedLabels(commonCluster, nodepoolLabelSets)
-	if err != nil {
-		errorHandler.Handle(err)
-		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
-		return
-	}
-
-	labelsMap, err := cluster.GetDesiredLabelsForCluster(ctx, commonCluster, updatedNodePools, false)
-	if err != nil {
-		errorHandler.Handle(err)
-		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
-		return
-	}
-
-	secretID := brn.New(commonCluster.GetOrganizationId(), brn.SecretResourceType, commonCluster.GetConfigSecretId()).String()
-	client, err := n.clientFactory.FromSecret(c.Request.Context(), secretID)
-	if err != nil {
-		errorHandler.Handle(err)
-
-		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
-		return
-	}
-
-	manager := npls.NewManager(client, global.Config.Cluster.Labels.Namespace)
-
-	err = manager.Sync(labelsMap)
-	if err != nil {
-		type errorCollection interface {
-			Errors() []error
-		}
-		if _, ok := err.(errorCollection); ok {
-			err = pkgErrors.NewMultiErrorWithFormatter(err)
-		}
-		errorHandler.Handle(err)
-		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
-		return
-	}
-
-	c.JSON(http.StatusOK, "")
-}
-
-// getNodePoolsWithUpdatedLabels returns NodePoolStatus map with updated user labels from NodePoolLabelSets
-func getNodePoolsWithUpdatedLabels(commonCluster cluster.CommonCluster, nodepoolLabelSets map[string]map[string]string) (map[string]*pkgCluster.NodePoolStatus, error) {
-
-	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
-	clusterStatus, err := commonCluster.GetStatus()
-	if err != nil {
-		return nodePools, err
-	}
-	for nodePoolName, np := range clusterStatus.NodePools {
-		if labelSet, ok := nodepoolLabelSets[nodePoolName]; ok {
-			err := pkgCommon.ValidateNodePoolLabels(labelSet)
-			if err != nil {
-				return nil, err
-			}
-			np.Labels = labelSet
-			nodePools[nodePoolName] = np
-		}
-	}
-
-	return nodePools, nil
 }

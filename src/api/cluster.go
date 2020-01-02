@@ -120,7 +120,8 @@ func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	// TODO: move these to a struct and create them only once upon application init
 	clusters := clusteradapter.NewClusters(global.DB())
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler)
+	clusterStore := clusteradapter.NewStore(global.DB(), clusters)
+	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler, clusterStore)
 	clusterGetter := common.NewClusterGetter(clusterManager, log, errorHandler)
 
 	return clusterGetter.GetClusterFromRequest(c)

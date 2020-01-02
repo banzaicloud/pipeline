@@ -305,3 +305,7 @@ func (a *AzurePkeCluster) GetCAHash() (string, error) {
 func (a *AzurePkeCluster) GetPKEOnAzureCluster() pke.Cluster {
 	return a.model
 }
+
+func (a *AzurePkeCluster) GetKubernetesVersion() (string, error) {
+	return a.model.Kubernetes.Version, nil
+}

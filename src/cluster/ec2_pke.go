@@ -311,7 +311,7 @@ func (c *EC2ClusterPKE) RegisterNode(name, nodePoolName, ip string, master, work
 	}
 
 	if err := db.Where(node).Attrs(internalPke.Host{
-		Labels:    make(internalPke.Labels),
+		CustomLabels:    make(internalPke.CustomLabels),
 		PrivateIP: ip,
 	}).FirstOrCreate(&node).Error; err != nil {
 		return errors.WrapIf(err, "failed to register node")

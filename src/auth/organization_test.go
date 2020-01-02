@@ -23,8 +23,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
-//go:generate mockery -name OrganizationStore -inpkg -testonly
-//go:generate mockery -name OrganizationEvents -inpkg -testonly
+//go:generate mga gen mockery --name OrganizationStore --inpkg --testonly
+//go:generate mga gen mockery --name OrganizationEvents --inpkg --testonly
 
 func TestOrganizationSyncer_SyncOrganizations(t *testing.T) { // TODO: rewrite this test with an in-memory store
 	store := &MockOrganizationStore{}
