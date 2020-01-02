@@ -16,7 +16,6 @@ package cluster
 
 import (
 	"context"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -26,8 +25,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/common"
 )
-
-const labelFormatRegexp = "[^-A-Za-z0-9_.]"
 
 type NodePoolLabels struct {
 	NodePoolName string
@@ -53,6 +50,7 @@ func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, node
 	for _, npLabels := range nodePoolLabels {
 		noReturnIfNoUserLabels := npLabels.Existing
 		labelsMap := getLabelsForNodePool(
+			ctx,
 			npLabels.NodePoolName,
 			npLabels,
 			noReturnIfNoUserLabels,
@@ -67,13 +65,8 @@ func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, node
 	return desiredLabels, nil
 }
 
-func formatValue(value string) string {
-	var re = regexp.MustCompile(labelFormatRegexp)
-	norm := re.ReplaceAllString(value, "_")
-	return norm
-}
-
 func getLabelsForNodePool(
+	ctx context.Context,
 	nodePoolName string,
 	nodePool NodePoolLabels,
 	noReturnIfNoUserLabels bool,
@@ -97,26 +90,26 @@ func getLabelsForNodePool(
 		}
 	}
 
-	details, err := global.CloudinfoClient().GetProductDetails(
-		context.Background(),
-		cloud,
-		distribution,
-		region,
-		nodePool.InstanceType,
-	)
-	if err != nil {
-		log.WithFields(logrus.Fields{
-			"instance":     nodePool.InstanceType,
-			"cloud":        cloud,
-			"distribution": distribution,
-			"region":       region,
-		}).Warn(errors.Wrap(err, "failed to get instance attributes from Cloud Info"))
-	} else {
-		for attrKey, attrValue := range details.Attributes {
-			nKey := formatValue(attrKey)
-			cloudInfoAttrKey := common.CloudInfoLabelKeyPrefix + nKey
-			nValue := formatValue(attrValue)
-			desiredLabels[cloudInfoAttrKey] = nValue
+	{
+		labels, err := global.NodePoolLabelSource().GetLabels(
+			ctx,
+			cloud,
+			distribution,
+			region,
+			nodePool.InstanceType,
+		)
+
+		if err != nil {
+			log.WithFields(logrus.Fields{
+				"instance":     nodePool.InstanceType,
+				"cloud":        cloud,
+				"distribution": distribution,
+				"region":       region,
+			}).Warn(errors.Wrap(err, "failed to get labels from Cloud Info"))
+		} else {
+			for key, value := range labels {
+				desiredLabels[key] = value
+			}
 		}
 	}
 

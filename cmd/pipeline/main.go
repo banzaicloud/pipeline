@@ -394,6 +394,9 @@ func main() {
 	}))
 	global.SetCloudinfoClient(cloudinfoClient)
 
+	nodePoolLabelSource := clusteradapter.NewCloudinfoNodePoolLabelSource(cloudinfoClient)
+	global.SetNodePoolLabelSource(nodePoolLabelSource)
+
 	azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonLogger)
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeClusterCreator(
