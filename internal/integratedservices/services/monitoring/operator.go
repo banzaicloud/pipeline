@@ -631,7 +631,7 @@ func (m chartValuesManager) generateAlertmanagerChartValues(
 					Annotations: annotations,
 				},
 			},
-			Spec: SpecValues{
+			Spec: baseSpecValues{
 				RoutePrefix: spec.Ingress.Path,
 				Image: imageValues{
 					Repository: config.Repository,
@@ -681,14 +681,16 @@ func (m chartValuesManager) generatePrometheusChartValues(
 					Annotations: annotations,
 				},
 			},
-			Spec: SpecValues{
-				RoutePrefix:   spec.Ingress.Path,
+			Spec: PrometheusSpecValues{
+				baseSpecValues: baseSpecValues{
+					RoutePrefix: spec.Ingress.Path,
+					Image: imageValues{
+						Repository: config.Repository,
+						Tag:        config.Tag,
+					},
+				},
 				RetentionSize: fmt.Sprintf("%.2fGiB", float64(spec.Storage.Size)*0.95),
 				Retention:     spec.Storage.Retention,
-				Image: imageValues{
-					Repository: config.Repository,
-					Tag:        config.Tag,
-				},
 				StorageSpec: map[string]interface{}{
 					"volumeClaimTemplate": map[string]interface{}{
 						"spec": map[string]interface{}{
