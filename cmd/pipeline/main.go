@@ -392,7 +392,6 @@ func main() {
 		DefaultHeader: make(map[string]string),
 		UserAgent:     fmt.Sprintf("Pipeline/%s", version),
 	}))
-	global.SetCloudinfoClient(cloudinfoClient)
 
 	nodePoolLabelSource := clusteradapter.NewCloudinfoNodePoolLabelSource(cloudinfoClient)
 	global.SetNodePoolLabelSource(nodePoolLabelSource)
@@ -1035,7 +1034,7 @@ func main() {
 	internalBindAddr := config.Pipeline.InternalAddr
 	logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})
 
-	go createInternalAPIRouter(config, db, basePath, clusterAPI, logger, logrusLogger).Run(internalBindAddr) // nolint: errcheck
+	go createInternalAPIRouter(config, db, basePath, clusterAPI, cloudinfoClient, logger, logrusLogger).Run(internalBindAddr) // nolint: errcheck
 
 	bindAddr := config.Pipeline.Addr
 	certFile, keyFile := config.Pipeline.CertFile, config.Pipeline.KeyFile
@@ -1048,7 +1047,15 @@ func main() {
 	}
 }
 
-func createInternalAPIRouter(conf configuration, db *gorm.DB, basePath string, clusterAPI *api.ClusterAPI, logger logur.Logger, logrusLogger logrus.FieldLogger) *gin.Engine {
+func createInternalAPIRouter(
+	conf configuration,
+	db *gorm.DB,
+	basePath string,
+	clusterAPI *api.ClusterAPI,
+	cloudinfoClient *cloudinfo.Client,
+	logger logur.Logger,
+	logrusLogger logrus.FieldLogger,
+) *gin.Engine {
 	// Initialise Gin router for Internal API
 	internalRouter := gin.New()
 	internalRouter.Use(correlationid.Middleware())
@@ -1061,7 +1068,7 @@ func createInternalAPIRouter(conf configuration, db *gorm.DB, basePath string, c
 	internalGroup := internalRouter.Group(path.Join(basePath, "api", "v1/", "orgs"))
 	internalGroup.Use(auth.InternalUserHandler)
 	internalGroup.Use(api.OrganizationMiddleware)
-	internalGroup.GET("/:orgid/clusters/:id/nodepools", api.GetNodePools)
+	internalGroup.GET("/:orgid/clusters/:id/nodepools", api.NewInternalClusterAPI(cloudinfoClient).GetNodePools)
 	internalGroup.PUT("/:orgid/clusters/:id/nodepools", clusterAPI.UpdateNodePools)
 	return internalRouter
 }

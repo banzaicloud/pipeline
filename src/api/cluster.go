@@ -36,6 +36,7 @@ import (
 	eksdriver "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -330,8 +331,18 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 
 }
 
+type InternalClusterAPI struct {
+	cloudinfoClient *cloudinfo.Client
+}
+
+func NewInternalClusterAPI(cloudinfoClient *cloudinfo.Client) InternalClusterAPI {
+	return InternalClusterAPI{
+		cloudinfoClient: cloudinfoClient,
+	}
+}
+
 // GetNodePools fetch node pool info for a cluster
-func GetNodePools(c *gin.Context) {
+func (a InternalClusterAPI) GetNodePools(c *gin.Context) {
 	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
@@ -373,7 +384,7 @@ func GetNodePools(c *gin.Context) {
 				ActualCount:    nodePoolCounts[nodePoolName],
 			}
 
-			machineDetails, err := global.CloudinfoClient().GetProductDetails(
+			machineDetails, err := a.cloudinfoClient.GetProductDetails(
 				c.Request.Context(),
 				clusterStatus.Cloud,
 				clusterStatus.Distribution,
