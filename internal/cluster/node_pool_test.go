@@ -72,13 +72,41 @@ func TestNewRawNodePool(t *testing.T) {
 	})
 
 	t.Run("GetLabels", func(t *testing.T) {
-		np := NewRawNodePool{
-			"labels": map[string]string{
-				"key": "value",
-			},
-		}
+		t.Run("string", func(t *testing.T) {
+			np := NewRawNodePool{
+				"labels": map[string]string{
+					"key": "value",
+				},
+			}
 
-		assert.Equal(t, map[string]string{"key": "value"}, np.GetLabels())
+			assert.Equal(t, map[string]string{"key": "value"}, np.GetLabels())
+		})
+
+		t.Run("interface", func(t *testing.T) {
+			np := NewRawNodePool{
+				"labels": map[string]interface{}{
+					"key": "value",
+				},
+			}
+
+			assert.Equal(t, map[string]string{"key": "value"}, np.GetLabels())
+		})
+
+		t.Run("empty", func(t *testing.T) {
+			np := NewRawNodePool{}
+
+			assert.Equal(t, map[string]string{}, np.GetLabels())
+		})
+
+		t.Run("wrong_type", func(t *testing.T) {
+			np := NewRawNodePool{
+				"labels": map[string]int{
+					"key": 1,
+				},
+			}
+
+			assert.Equal(t, map[string]string{}, np.GetLabels())
+		})
 	})
 }
 

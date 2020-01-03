@@ -19,6 +19,7 @@ import (
 	"strconv"
 
 	"emperror.dev/errors"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )
@@ -89,9 +90,16 @@ func (n NewRawNodePool) IsOnDemand() bool {
 
 // GetLabels returns labels that are/should be applied to every node in the pool.
 func (n NewRawNodePool) GetLabels() map[string]string {
-	labels, ok := n["labels"].(map[string]string)
+	var labels map[string]string
+
+	l, ok := n["labels"]
 	if !ok {
-		return nil
+		return map[string]string{}
+	}
+
+	err := mapstructure.Decode(l, &labels)
+	if err != nil {
+		return map[string]string{}
 	}
 
 	return labels
