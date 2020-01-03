@@ -16,11 +16,27 @@ package cluster
 
 import (
 	"context"
+	"strconv"
 
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )
+
+// NodePool is a common interface for all distribution node pools.
+type NodePool interface {
+	// GetName returns the node pool name.
+	GetName() string
+
+	// GetInstanceType returns the node pool instance type.
+	GetInstanceType() string
+
+	// IsOnDemand determines whether the machines in the node pool are on demand or spot/preemtible instances.
+	IsOnDemand() bool
+
+	// GetLabels returns labels that are/should be applied to every node in the pool.
+	GetLabels() map[string]string
+}
 
 // NodePoolService provides an interface to node pools.
 //go:generate mga gen kit endpoint --outdir clusterdriver --outfile node_pool_endpoint_gen.go --with-oc --base-name NodePool NodePoolService
@@ -36,8 +52,8 @@ type NodePoolService interface {
 // NewRawNodePool is an unstructured, distribution specific descriptor for a new node pool.
 type NewRawNodePool map[string]interface{}
 
-// Name returns the name of the node pool.
-func (n NewRawNodePool) Name() string {
+// GetName returns the node pool name.
+func (n NewRawNodePool) GetName() string {
 	name, ok := n["name"].(string)
 	if !ok {
 		return ""
@@ -46,8 +62,33 @@ func (n NewRawNodePool) Name() string {
 	return name
 }
 
-// Labels returns the labels of the node pool.
-func (n NewRawNodePool) Labels() map[string]string {
+// GetInstanceType returns the node pool instance type.
+func (n NewRawNodePool) GetInstanceType() string {
+	instanceType, ok := n["instanceType"].(string)
+	if !ok {
+		return ""
+	}
+
+	return instanceType
+}
+
+// IsOnDemand determines whether the machines in the node pool are on demand or spot/preemtible instances.
+func (n NewRawNodePool) IsOnDemand() bool {
+	if spotPrice, ok := n["spotPrice"].(string); ok {
+		if price, err := strconv.ParseFloat(spotPrice, 64); err == nil {
+			return price <= 0.0
+		}
+	}
+
+	if preemptible, ok := n["preemptible"].(bool); ok {
+		return !preemptible
+	}
+
+	return true
+}
+
+// GetLabels returns labels that are/should be applied to every node in the pool.
+func (n NewRawNodePool) GetLabels() map[string]string {
 	labels, ok := n["labels"].(map[string]string)
 	if !ok {
 		return nil
@@ -164,7 +205,7 @@ func (s nodePoolService) CreateNodePool(
 		return err
 	}
 
-	exists, err := s.nodePools.NodePoolExists(ctx, clusterID, rawNodePool.Name())
+	exists, err := s.nodePools.NodePoolExists(ctx, clusterID, rawNodePool.GetName())
 	if err != nil {
 		return err
 	}
@@ -172,7 +213,7 @@ func (s nodePoolService) CreateNodePool(
 	if exists {
 		return errors.WithStack(NodePoolAlreadyExistsError{
 			ClusterID: clusterID,
-			NodePool:  rawNodePool.Name(),
+			NodePool:  rawNodePool.GetName(),
 		})
 	}
 

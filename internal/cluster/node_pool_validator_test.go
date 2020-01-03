@@ -54,7 +54,7 @@ func TestNodePoolValidators_Validate(t *testing.T) {
 	)
 }
 
-func TestNewCommonNodePoolValidator_Validate(t *testing.T) {
+func TestNewCommonNodePoolValidator_ValidateNew(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		const labelKey = "key"
 		const labelValue = "value"

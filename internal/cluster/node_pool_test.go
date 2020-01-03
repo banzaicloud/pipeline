@@ -30,6 +30,81 @@ import (
 //go:generate mga gen mockery --name NodePoolProcessor --inpkg --testonly
 //go:generate mga gen mockery --name NodePoolManager --inpkg --testonly
 
+func TestNewRawNodePool(t *testing.T) {
+	t.Run("GetName", func(t *testing.T) {
+		np := NewRawNodePool{
+			"name": "pool0",
+		}
+
+		assert.Equal(t, "pool0", np.GetName())
+	})
+
+	t.Run("GetInstanceType", func(t *testing.T) {
+		np := NewRawNodePool{
+			"instanceType": "t2-medium",
+		}
+
+		assert.Equal(t, "t2-medium", np.GetInstanceType())
+	})
+
+	t.Run("IsOnDemand", func(t *testing.T) {
+		t.Run("ondemand", func(t *testing.T) {
+			np := NewRawNodePool{}
+
+			assert.True(t, np.IsOnDemand())
+		})
+
+		t.Run("spot", func(t *testing.T) {
+			np := NewRawNodePool{
+				"spotPrice": "0.1",
+			}
+
+			assert.False(t, np.IsOnDemand())
+		})
+
+		t.Run("preemptible", func(t *testing.T) {
+			np := NewRawNodePool{
+				"preemptible": true,
+			}
+
+			assert.False(t, np.IsOnDemand())
+		})
+	})
+
+	t.Run("GetLabels", func(t *testing.T) {
+		np := NewRawNodePool{
+			"labels": map[string]string{
+				"key": "value",
+			},
+		}
+
+		assert.Equal(t, map[string]string{"key": "value"}, np.GetLabels())
+	})
+}
+
+type nodePoolStub struct {
+	name         string
+	instanceType string
+	onDemand     bool
+	labels       map[string]string
+}
+
+func (n nodePoolStub) GetName() string {
+	return n.name
+}
+
+func (n nodePoolStub) GetInstanceType() string {
+	return n.instanceType
+}
+
+func (n nodePoolStub) IsOnDemand() bool {
+	return n.onDemand
+}
+
+func (n nodePoolStub) GetLabels() map[string]string {
+	return n.labels
+}
+
 func TestNodePoolService_CreateNodePool(t *testing.T) {
 	t.Run("cluster_not_found", func(t *testing.T) {
 		ctx := context.Background()

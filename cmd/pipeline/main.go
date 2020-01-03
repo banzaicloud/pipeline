@@ -80,6 +80,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -395,9 +396,6 @@ func main() {
 		UserAgent:     fmt.Sprintf("Pipeline/%s", version),
 	}))
 
-	nodePoolLabelSource := clusteradapter.NewCloudinfoNodePoolLabelSource(cloudinfoClient)
-	global.SetNodePoolLabelSource(nodePoolLabelSource)
-
 	azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonLogger)
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeClusterCreator(
@@ -483,8 +481,6 @@ func main() {
 		clusterUpdaters,
 		dynamicClientFactory,
 	)
-
-	nplsApi := api.NewNodepoolManagerAPI(commonClusterGetter, dynamicClientFactory, logrusLogger, errorHandler)
 
 	// Initialise Gin router
 	engine := gin.New()
@@ -835,21 +831,44 @@ func main() {
 			cgroupsAPI := cgroupAPI.NewAPI(clusterGroupManager, deploymentManager, logrusLogger, errorHandler)
 			cgroupsAPI.AddRoutes(orgs.Group("/:orgid/clustergroups"))
 
-			cRouter.GET("/nodepool-labels", nplsApi.GetNodepoolLabelSets)
-
 			{
 				clusterStore := clusteradapter.NewStore(db, clusters)
+
+				labelValidator := kubernetes2.LabelValidator{
+					ForbiddenDomains: append([]string{config.Cluster.Labels.Domain}, config.Cluster.Labels.ForbiddenDomains...),
+				}
+
+				nplsApi := api.NewNodepoolManagerAPI(
+					commonClusterGetter,
+					dynamicClientFactory,
+					labelValidator,
+					logrusLogger,
+					errorHandler,
+				)
+				cRouter.GET("/nodepool-labels", nplsApi.GetNodepoolLabelSets)
+
+				labelSource := intCluster.NodePoolLabelSources{
+					intCluster.NewCommonNodePoolLabelSource(),
+					clusteradapter.NewCloudinfoNodePoolLabelSource(cloudinfoClient),
+				}
+
+				// Used by legacy node pool label code
+				globalcluster.SetNodePoolLabelSource(intCluster.NodePoolLabelSources{
+					intCluster.NewFilterValidNodePoolLabelSource(labelValidator),
+					labelSource,
+				})
 
 				service := intCluster.NewNodePoolService(
 					clusterStore,
 					clusteradapter.NewNodePoolStore(db, clusterStore),
 					intCluster.NodePoolValidators{
-						intCluster.NewCommonNodePoolValidator(kubernetes2.LabelValidator{
-							ForbiddenDomains: append([]string{config.Cluster.Labels.Domain}, config.Cluster.Labels.ForbiddenDomains...),
-						}),
+						intCluster.NewCommonNodePoolValidator(labelValidator),
 						clusteradapter.NewDistributionNodePoolValidator(db),
 					},
-					clusteradapter.NewDistributionNodePoolProcessor(db),
+					intCluster.NodePoolProcessors{
+						intCluster.NewCommonNodePoolProcessor(labelSource),
+						clusteradapter.NewDistributionNodePoolProcessor(db),
+					},
 					clusteradapter.NewNodePoolManager(
 						workflowClient,
 						func(ctx context.Context) uint {

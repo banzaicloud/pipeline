@@ -26,7 +26,6 @@ import (
 	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/providers"
-	"github.com/banzaicloud/pipeline/src/cluster/nodelabels"
 	"github.com/banzaicloud/pipeline/src/model"
 )
 
@@ -148,20 +147,6 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			}
 		}
 
-		labelNodePoolInfo := nodelabels.NodePoolInfo{
-			Name:         nodePool.Name,
-			SpotPrice:    nodePool.SpotPrice,
-			InstanceType: nodePool.InstanceType,
-			Labels:       nodePool.Labels,
-		}
-		labels := nodelabels.GetDesiredLabelsForNodePool(
-			labelNodePoolInfo,
-			false,
-			c.Cloud,
-			c.Distribution,
-			c.Location,
-		)
-
 		subinput := eksworkflow.CreateAsgActivityInput{
 			EKSActivityInput: commonActivityInput,
 			StackName:        eksworkflow.GenerateNodePoolStackName(c.Name, nodePool.Name),
@@ -190,7 +175,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			Count:            nodePool.Size,
 			NodeImage:        nodePool.Image,
 			NodeInstanceType: nodePool.InstanceType,
-			Labels:           labels,
+			Labels:           nodePool.Labels,
 		}
 
 		nodePoolTemplate, err := eksworkflow.GetNodePoolTemplate()
