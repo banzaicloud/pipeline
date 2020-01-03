@@ -17,9 +17,6 @@ package clusterworkflow
 import (
 	"context"
 
-	"emperror.dev/errors"
-	"github.com/mitchellh/mapstructure"
-
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
@@ -54,19 +51,9 @@ func (a CreateNodePoolLabelSetActivity) Execute(ctx context.Context, input Creat
 		return cadence.WrapClientError(err)
 	}
 
-	var nodePool struct {
-		Name   string            `mapstructure:"name"`
-		Labels map[string]string `mapstructure:"labels"`
-	}
-
-	err = mapstructure.Decode(input.RawNodePool, &nodePool)
-	if err != nil {
-		return errors.Wrap(err, "failed to decode node pool")
-	}
-
 	manager := npls.NewManager(client, a.namespace)
 
-	err = manager.SyncOne(nodePool.Name, nodePool.Labels)
+	err = manager.SyncOne(input.RawNodePool.GetName(), input.RawNodePool.GetLabels())
 	if err != nil {
 		return err
 	}
