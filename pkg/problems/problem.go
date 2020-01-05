@@ -15,6 +15,8 @@
 package problems
 
 import (
+	"net/http"
+
 	"github.com/moogar0880/problems"
 )
 
@@ -80,5 +82,22 @@ func NewStatusProblem(status int) *DefaultProblem {
 		Code:           problem.Status,
 		Message:        problem.Title,
 		Error:          problem.Detail,
+	}
+}
+
+// ValidationProblem describes an RFC-7807 problem.
+type ValidationProblem struct {
+	*DefaultProblem
+
+	Violations []string `json:"violations"`
+}
+
+// NewValidationProblem returns a problem with details and validation errors.
+func NewValidationProblem(details string, violations []string) *ValidationProblem {
+	problem := NewDetailedProblem(http.StatusUnprocessableEntity, details)
+
+	return &ValidationProblem{
+		DefaultProblem: problem,
+		Violations:     violations,
 	}
 }

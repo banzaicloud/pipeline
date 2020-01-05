@@ -39,6 +39,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"github.com/prometheus/client_golang/prometheus"
+	auth2 "github.com/qor/auth"
 	"github.com/sagikazarmark/kitx/correlation"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
@@ -79,6 +80,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -114,6 +116,7 @@ import (
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
+	kubernetes2 "github.com/banzaicloud/pipeline/pkg/kubernetes"
 	"github.com/banzaicloud/pipeline/pkg/problems"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/src/api"
@@ -393,9 +396,6 @@ func main() {
 		UserAgent:     fmt.Sprintf("Pipeline/%s", version),
 	}))
 
-	nodePoolLabelSource := clusteradapter.NewCloudinfoNodePoolLabelSource(cloudinfoClient)
-	global.SetNodePoolLabelSource(nodePoolLabelSource)
-
 	azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonLogger)
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeClusterCreator(
@@ -481,8 +481,6 @@ func main() {
 		clusterUpdaters,
 		dynamicClientFactory,
 	)
-
-	nplsApi := api.NewNodepoolManagerAPI(commonClusterGetter, dynamicClientFactory, logrusLogger, errorHandler)
 
 	// Initialise Gin router
 	engine := gin.New()
@@ -833,15 +831,54 @@ func main() {
 			cgroupsAPI := cgroupAPI.NewAPI(clusterGroupManager, deploymentManager, logrusLogger, errorHandler)
 			cgroupsAPI.AddRoutes(orgs.Group("/:orgid/clustergroups"))
 
-			cRouter.GET("/nodepool-labels", nplsApi.GetNodepoolLabelSets)
-
 			{
 				clusterStore := clusteradapter.NewStore(db, clusters)
+
+				labelValidator := kubernetes2.LabelValidator{
+					ForbiddenDomains: append([]string{config.Cluster.Labels.Domain}, config.Cluster.Labels.ForbiddenDomains...),
+				}
+
+				nplsApi := api.NewNodepoolManagerAPI(
+					commonClusterGetter,
+					dynamicClientFactory,
+					labelValidator,
+					logrusLogger,
+					errorHandler,
+				)
+				cRouter.GET("/nodepool-labels", nplsApi.GetNodepoolLabelSets)
+
+				labelSource := intCluster.NodePoolLabelSources{
+					intCluster.NewCommonNodePoolLabelSource(),
+					clusteradapter.NewCloudinfoNodePoolLabelSource(cloudinfoClient),
+				}
+
+				// Used by legacy node pool label code
+				globalcluster.SetNodePoolLabelSource(intCluster.NodePoolLabelSources{
+					intCluster.NewFilterValidNodePoolLabelSource(labelValidator),
+					labelSource,
+				})
 
 				service := intCluster.NewNodePoolService(
 					clusterStore,
 					clusteradapter.NewNodePoolStore(db, clusterStore),
-					clusteradapter.NewNodePoolManager(workflowClient),
+					intCluster.NodePoolValidators{
+						intCluster.NewCommonNodePoolValidator(labelValidator),
+						clusteradapter.NewDistributionNodePoolValidator(db),
+					},
+					intCluster.NodePoolProcessors{
+						intCluster.NewCommonNodePoolProcessor(labelSource),
+						clusteradapter.NewDistributionNodePoolProcessor(db),
+					},
+					clusteradapter.NewNodePoolManager(
+						workflowClient,
+						func(ctx context.Context) uint {
+							if currentUser := ctx.Value(auth2.CurrentUser); currentUser != nil {
+								return currentUser.(*auth.User).ID
+							}
+
+							return 0
+						},
+					),
 				)
 				endpoints := clusterdriver.TraceNodePoolEndpoints(clusterdriver.MakeNodePoolEndpoints(
 					service,

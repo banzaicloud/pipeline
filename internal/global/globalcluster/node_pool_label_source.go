@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package global
+package globalcluster
 
 import (
 	"context"
 	"sync"
+
+	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
 // nolint: gochecknoglobals
@@ -26,13 +28,7 @@ var nplSource LabelSource
 var nplSourceMu sync.Mutex
 
 type LabelSource interface {
-	GetLabels(
-		ctx context.Context,
-		cloud string,
-		distribution string,
-		region string,
-		instanceType string,
-	) (map[string]string, error)
+	GetLabels(ctx context.Context, cluster cluster.Cluster, nodePool cluster.NodePool) (map[string]string, error)
 }
 
 // NodePoolLabelSource returns an initialized cloudinfo client.

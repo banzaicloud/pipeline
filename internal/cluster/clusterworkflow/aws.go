@@ -12,31 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusterconfig
+package clusterworkflow
 
 import (
-	"errors"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
-// LabelConfig contains cluster label configuration.
-type LabelConfig struct {
-	Namespace string
-
-	Domain           string
-	ForbiddenDomains []string
-
-	Charts struct {
-		NodepoolLabelOperator struct {
-			Chart   string
-			Version string
-		}
-	}
-}
-
-func (c LabelConfig) Validate() error {
-	if c.Namespace == "" {
-		return errors.New("label namespace is required")
-	}
-
-	return nil
+type AWSSessionFactory interface {
+	New(organizationID uint, secretID string, region string) (*session.Session, error)
 }

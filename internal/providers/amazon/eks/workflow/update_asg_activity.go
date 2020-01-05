@@ -69,11 +69,11 @@ type UpdateAsgActivityOutput struct {
 }
 
 // UpdateAsgActivity instantiates a new UpdateAsgActivity
-func NewUpdateAsgActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string, asgFulfillmentWaitAttempts int, asgFulfillmentWaitInterval time.Duration) *UpdateAsgActivity {
+func NewUpdateAsgActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *UpdateAsgActivity {
 	return &UpdateAsgActivity{
 		awsSessionFactory:          awsSessionFactory,
 		cloudFormationTemplate:     cloudFormationTemplate,
-		asgFulfillmentWaitAttempts: asgFulfillmentWaitAttempts,
+		asgFulfillmentWaitAttempts: int(asgFulfillmentWaitAttempts),
 		asgFulfillmentWaitInterval: asgFulfillmentWaitInterval,
 	}
 }

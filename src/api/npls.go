@@ -28,30 +28,41 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
 	"github.com/banzaicloud/pipeline/src/api/common"
-	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // NodePoolManagerAPI implements the Node pool Label Management API actions.
 type NodepoolManagerAPI struct {
-	clusterGetter common.ClusterGetter
-	clientFactory common.DynamicClientFactory
+	clusterGetter  common.ClusterGetter
+	clientFactory  common.DynamicClientFactory
+	labelValidator LabelValidator
 
 	logger       logrus.FieldLogger
 	errorHandler emperror.Handler
+}
+
+// LabelValidator validates Kubernetes object labels.
+type LabelValidator interface {
+	// ValidateKey validates a label key.
+	ValidateKey(key string) error
+
+	// ValidateValue validates a label value.
+	ValidateValue(value string) error
 }
 
 // NewNodepoolManagerAPI returns a new NodepoolManagerAPI instance.
 func NewNodepoolManagerAPI(
 	clusterGetter common.ClusterGetter,
 	clientFactory common.DynamicClientFactory,
+	labelValidator LabelValidator,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
 ) *NodepoolManagerAPI {
 	return &NodepoolManagerAPI{
-		clusterGetter: clusterGetter,
-		clientFactory: clientFactory,
-		logger:        logger,
-		errorHandler:  errorHandler,
+		clusterGetter:  clusterGetter,
+		clientFactory:  clientFactory,
+		labelValidator: labelValidator,
+		logger:         logger,
+		errorHandler:   errorHandler,
 	}
 }
 
@@ -104,7 +115,7 @@ func (n *NodepoolManagerAPI) GetNodepoolLabelSets(c *gin.Context) {
 			labels = append(labels, pkgCluster.NodePoolLabel{
 				Name:     labelKey,
 				Value:    labelValue,
-				Reserved: cluster.IsReservedDomainKey(labelKey),
+				Reserved: n.labelValidator.ValidateKey(labelKey) != nil, // TODO: extract reserved logic
 			})
 		}
 		response[npName] = labels

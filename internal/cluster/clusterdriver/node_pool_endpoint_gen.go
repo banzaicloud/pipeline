@@ -12,6 +12,7 @@ import (
 // meant to be used as a helper struct, to collect all of the endpoints into a
 // single parameter.
 type NodePoolEndpoints struct {
+	CreateNodePool endpoint.Endpoint
 	DeleteNodePool endpoint.Endpoint
 }
 
@@ -20,10 +21,16 @@ type NodePoolEndpoints struct {
 func MakeNodePoolEndpoints(service cluster.NodePoolService, middleware ...endpoint.Middleware) NodePoolEndpoints {
 	mw := kitxendpoint.Chain(middleware...)
 
-	return NodePoolEndpoints{DeleteNodePool: mw(MakeDeleteNodePoolEndpoint(service))}
+	return NodePoolEndpoints{
+		CreateNodePool: mw(MakeCreateNodePoolEndpoint(service)),
+		DeleteNodePool: mw(MakeDeleteNodePoolEndpoint(service)),
+	}
 }
 
 // TraceNodePoolEndpoints returns a(n) NodePoolEndpoints struct where each endpoint is wrapped with a tracing middleware.
 func TraceNodePoolEndpoints(endpoints NodePoolEndpoints) NodePoolEndpoints {
-	return NodePoolEndpoints{DeleteNodePool: kitoc.TraceEndpoint("cluster.DeleteNodePool")(endpoints.DeleteNodePool)}
+	return NodePoolEndpoints{
+		CreateNodePool: kitoc.TraceEndpoint("cluster.CreateNodePool")(endpoints.CreateNodePool),
+		DeleteNodePool: kitoc.TraceEndpoint("cluster.DeleteNodePool")(endpoints.DeleteNodePool),
+	}
 }

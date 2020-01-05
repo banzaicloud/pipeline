@@ -18,6 +18,7 @@ import (
 	"context"
 	"regexp"
 
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 )
 
@@ -42,20 +43,18 @@ func NewCloudinfoNodePoolLabelSource(client *cloudinfo.Client) CloudinfoNodePool
 	}
 }
 
-// GetLabels returns node pool labels.
+// GetLabels returns a set of labels that should be applied to every node in the pool.
 func (s CloudinfoNodePoolLabelSource) GetLabels(
 	ctx context.Context,
-	cloud string,
-	distribution string,
-	region string,
-	instanceType string,
+	c cluster.Cluster,
+	nodePool cluster.NodePool,
 ) (map[string]string, error) {
 	details, err := s.client.GetProductDetails(
 		ctx,
-		cloud,
-		distribution,
-		region,
-		instanceType,
+		c.Cloud,
+		c.Distribution,
+		c.Location,
+		nodePool.GetInstanceType(),
 	)
 	if err != nil {
 		return nil, err

@@ -22,10 +22,41 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/cadence/mocks"
 
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 )
 
-func TestNodePoolManager(t *testing.T) {
+func TestNodePoolManager_CreateNodePool(t *testing.T) {
+	ctx := context.Background()
+	const clusterID = uint(1)
+	const nodePoolName = "pool0"
+
+	rawNewNodePool := cluster.NewRawNodePool{
+		"name": nodePoolName,
+	}
+
+	client := new(mocks.Client)
+	client.On(
+		"StartWorkflow",
+		ctx,
+		mock.Anything,
+		clusterworkflow.CreateNodePoolWorkflowName,
+		clusterworkflow.CreateNodePoolWorkflowInput{
+			ClusterID:   clusterID,
+			UserID:      1,
+			RawNodePool: rawNewNodePool,
+		},
+	).Return(nil, nil)
+
+	manager := NewNodePoolManager(client, func(ctx context.Context) uint { return 1 })
+
+	err := manager.CreateNodePool(ctx, clusterID, rawNewNodePool)
+	require.NoError(t, err)
+
+	client.AssertExpectations(t)
+}
+
+func TestNodePoolManager_DeleteNodePool(t *testing.T) {
 	ctx := context.Background()
 	const clusterID = uint(1)
 	const nodePoolName = "pool0"
@@ -42,7 +73,7 @@ func TestNodePoolManager(t *testing.T) {
 		},
 	).Return(nil, nil)
 
-	manager := NewNodePoolManager(client)
+	manager := NewNodePoolManager(client, func(ctx context.Context) uint { return 1 })
 
 	err := manager.DeleteNodePool(ctx, clusterID, nodePoolName)
 	require.NoError(t, err)

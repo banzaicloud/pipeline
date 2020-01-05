@@ -41,6 +41,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/distributionadapter"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
@@ -355,6 +356,23 @@ func main() {
 
 		{
 			workflow.RegisterWithOptions(clusterworkflow.DeleteNodePoolWorkflow, workflow.RegisterOptions{Name: clusterworkflow.DeleteNodePoolWorkflowName})
+
+			createNodePoolActivity := clusterworkflow.NewCreateNodePoolActivity(
+				clusterStore,
+				db,
+				clusteradapter.NewNodePoolStore(db, clusterStore),
+				distributionadapter.NewEKSNodePoolStore(db),
+				eksworkflow.NewAWSSessionFactory(secret.Store),
+			)
+			activity.RegisterWithOptions(createNodePoolActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.CreateNodePoolActivityName})
+
+			createNodePoolLabelSetActivity := clusterworkflow.NewCreateNodePoolLabelSetActivity(
+				cluster2.NewDynamicClientFactory(clusterStore, kubernetes.NewDynamicClientFactory(configFactory)),
+				config.Cluster.Labels.Namespace,
+			)
+			activity.RegisterWithOptions(createNodePoolLabelSetActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.CreateNodePoolLabelSetActivityName})
+
+			workflow.RegisterWithOptions(clusterworkflow.CreateNodePoolWorkflow, workflow.RegisterOptions{Name: clusterworkflow.CreateNodePoolWorkflowName})
 
 			deleteNodePoolActivity := clusterworkflow.NewDeleteNodePoolActivity(
 				clusterStore,
