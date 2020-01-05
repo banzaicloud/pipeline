@@ -35,7 +35,6 @@ import (
 	"github.com/sirupsen/logrus"
 	logrusadapter "logur.dev/adapter/logrus"
 
-	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	"github.com/banzaicloud/pipeline/src/secret/verify"
 
 	"go.uber.org/cadence/client"
@@ -51,7 +50,7 @@ import (
 type EksClusterCreator struct {
 	logger                     logrus.FieldLogger
 	workflowClient             client.Client
-	cloudInfoClient            *cloudinfo.Client
+	serviceRegionLister        ServiceRegionLister
 	clusters                   clusterRepository
 	secrets                    secretValidator
 	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric
@@ -66,6 +65,12 @@ type clusterRepository interface {
 	Exists(organizationID uint, name string) (bool, error)
 }
 
+// ServiceRegionLister lists regions where a service is available.
+type ServiceRegionLister interface {
+	// GetServiceRegions returns the cloud provider regions where the specified service is available.
+	GetServiceRegions(ctx context.Context, cloudProvider string, service string) ([]string, error)
+}
+
 type invalidError struct {
 	err error
 }
@@ -78,17 +83,19 @@ func (invalidError) IsInvalid() bool {
 	return true
 }
 
-func NewEksClusterCreator(logger logrus.FieldLogger,
+func NewEksClusterCreator(
+	logger logrus.FieldLogger,
 	workflowClient client.Client,
-	cloudInfoClient *cloudinfo.Client,
+	serviceRegionLister ServiceRegionLister,
 	clusters clusterRepository,
 	secrets secretValidator,
 	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric,
-	clusterTotalMetric *prometheus.CounterVec) EksClusterCreator {
+	clusterTotalMetric *prometheus.CounterVec,
+) EksClusterCreator {
 	return EksClusterCreator{
 		logger:                     logger,
 		workflowClient:             workflowClient,
-		cloudInfoClient:            cloudInfoClient,
+		serviceRegionLister:        serviceRegionLister,
 		clusters:                   clusters,
 		secrets:                    secrets,
 		statusChangeDurationMetric: statusChangeDurationMetric,
@@ -177,6 +184,8 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 	input.ASGSubnetMapping = subnetMapping
 
 	asgList := make([]workflow.AutoscaleGroup, 0)
+	nodePoolLabels := make([]cluster.NodePoolLabels, 0)
+
 	for _, np := range modelCluster.NodePools {
 		asg := workflow.AutoscaleGroup{
 			Name:             np.Name,
@@ -190,11 +199,19 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 			Labels:           np.Labels,
 		}
 		asgList = append(asgList, asg)
+
+		nodePoolLabels = append(nodePoolLabels, cluster.NodePoolLabels{
+			NodePoolName: np.Name,
+			Existing:     false,
+			InstanceType: np.NodeInstanceType,
+			SpotPrice:    np.NodeSpotPrice,
+			CustomLabels: np.Labels,
+		})
 	}
 
 	input.AsgList = asgList
 
-	labelsMap, err := cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nil, false)
+	labelsMap, err := cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolLabels)
 	if err != nil {
 		_ = commonCluster.SetStatus(pkgCluster.Error, "failed to get desired labels")
 
@@ -267,7 +284,7 @@ func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, logger 
 
 	logger.Debug("validating creation fields")
 
-	regions, err := c.cloudInfoClient.GetServiceRegions(pkgCluster.Amazon, pkgCluster.EKS)
+	regions, err := c.serviceRegionLister.GetServiceRegions(context.Background(), pkgCluster.Amazon, pkgCluster.EKS)
 	if err != nil {
 		return errors.WrapIf(err, "failed to list regions where EKS service is enabled")
 	}

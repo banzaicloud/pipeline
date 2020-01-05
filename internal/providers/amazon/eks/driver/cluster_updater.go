@@ -25,14 +25,12 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
-	"github.com/banzaicloud/pipeline/src/model"
-
-	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 type EksClusterUpdater struct {
@@ -100,13 +98,13 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 
 			// ---- [ Node instanceType check ] ---- //
 			if len(nodePool.InstanceType) == 0 {
-				//c.log.Errorf("instanceType is missing for nodePool %v", nodePoolName)
+				// c.log.Errorf("instanceType is missing for nodePool %v", nodePoolName)
 				return nil, pkgErrors.ErrorInstancetypeFieldIsEmpty
 			}
 
 			// ---- [ Node image check ] ---- //
 			if len(nodePool.Image) == 0 {
-				//c.log.Errorf("image is missing for nodePool %v", nodePoolName)
+				// c.log.Errorf("image is missing for nodePool %v", nodePoolName)
 				return nil, pkgErrors.ErrorAmazonImageFieldIsEmpty
 			}
 
@@ -226,31 +224,24 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 		return err
 	}
 
-	nodePoolLabelMap := make(map[string]map[string]string)
+	var nodePoolLabelMap map[string]map[string]string
 	{
-		logger := pipelineContext.LoggerWithCorrelationID(ctx, c.logger).WithFields(logrus.Fields{
-			"organization": eksCluster.GetOrganizationId(),
-			"cluster":      eksCluster.GetID(),
-		})
 
+		nodePoolLabels := make([]cluster.NodePoolLabels, 0)
 		for _, np := range modelNodePools {
-			nodePoolStatus := &pkgCluster.NodePoolStatus{
-				Autoscaling:  np.Autoscaling,
-				Count:        np.Count,
+			nodePoolLabels = append(nodePoolLabels, cluster.NodePoolLabels{
+				NodePoolName: np.Name,
+				Existing:     np.ID != 0,
 				InstanceType: np.NodeInstanceType,
-				MinCount:     np.NodeMinCount,
-				MaxCount:     np.NodeMaxCount,
-				Labels:       np.Labels,
-			}
-			// we don't want to override existing labels in case of node pools to be updated
-			noReturnIfNoUserLabels := np.ID != 0
-			labelsMap := cluster.GetDesiredLabelsForNodePool(logger, np.Name, nodePoolStatus,
-				noReturnIfNoUserLabels, eksCluster.GetCloud(), eksCluster.GetDistribution(), eksCluster.GetLocation())
-			if len(labelsMap) > 0 {
-				nodePoolLabelMap[np.Name] = labelsMap
-			}
+				CustomLabels: np.Labels,
+				SpotPrice:    np.NodeSpotPrice,
+			})
 		}
 
+		nodePoolLabelMap, err = cluster.GetDesiredLabelsForCluster(ctx, eksCluster, nodePoolLabels)
+		if err != nil {
+			return errors.WrapIf(err, "failed to get desired labels for cluster")
+		}
 	}
 
 	modelCluster := eksCluster.GetEKSModel()

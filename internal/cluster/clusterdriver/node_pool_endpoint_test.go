@@ -23,6 +23,26 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
+func TestMakeNodePoolEndpoints_CreateNodePool(t *testing.T) {
+	ctx := context.Background()
+	const clusterID = uint(1)
+	const nodePoolName = "pool0"
+
+	spec := map[string]interface{}{
+		"name": nodePoolName,
+	}
+
+	service := new(cluster.MockNodePoolService)
+	service.On("CreateNodePool", ctx, clusterID, cluster.NewRawNodePool(spec)).Return(nil)
+
+	e := MakeNodePoolEndpoints(service).CreateNodePool
+
+	_, err := e(ctx, createNodePoolRequest{clusterID, spec})
+	require.NoError(t, err)
+
+	service.AssertExpectations(t)
+}
+
 func TestMakeNodePoolEndpoints_DeleteNodePool(t *testing.T) {
 	ctx := context.Background()
 	const clusterID = uint(1)

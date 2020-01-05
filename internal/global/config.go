@@ -287,10 +287,6 @@ type Configuration struct {
 		}
 	}
 
-	Cloudinfo struct {
-		Endpoint string
-	}
-
 	Hollowtrees struct {
 		Endpoint        string
 		TokenSigningKey string

@@ -23,6 +23,19 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
+type createNodePoolRequest struct {
+	ClusterID uint
+	Spec      map[string]interface{}
+}
+
+func MakeCreateNodePoolEndpoint(service cluster.NodePoolService) endpoint.Endpoint {
+	return kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+		request := req.(createNodePoolRequest)
+
+		return nil, service.CreateNodePool(ctx, request.ClusterID, request.Spec)
+	})
+}
+
 type deleteNodePoolRequest struct {
 	ClusterID    uint
 	NodePoolName string

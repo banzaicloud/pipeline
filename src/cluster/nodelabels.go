@@ -16,130 +16,104 @@ package cluster
 
 import (
 	"context"
-	"regexp"
 	"strconv"
-	"strings"
 
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/internal/cloudinfo"
-	"github.com/banzaicloud/pipeline/internal/global"
-	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
 )
 
-const labelFormatRegexp = "[^-A-Za-z0-9_.]"
+type NodePoolLabels struct {
+	NodePoolName string
+	Existing     bool
+	InstanceType string            `json:"instanceType,omitempty"`
+	SpotPrice    string            `json:"spotPrice,omitempty"`
+	Preemptible  bool              `json:"preemptible,omitempty"`
+	CustomLabels map[string]string `json:"labels,omitempty"`
+}
+
+// GetName returns the node pool name.
+func (n NodePoolLabels) GetName() string {
+	return n.NodePoolName
+}
+
+// GetInstanceType returns the node pool instance type.
+func (n NodePoolLabels) GetInstanceType() string {
+	return n.InstanceType
+}
+
+// IsOnDemand determines whether the machines in the node pool are on demand or spot/preemtible instances.
+func (n NodePoolLabels) IsOnDemand() bool {
+	if price, err := strconv.ParseFloat(n.SpotPrice, 64); err == nil {
+		return price <= 0.0
+	}
+
+	return !n.Preemptible
+}
+
+// GetLabels returns labels that are/should be applied to every node in the pool.
+func (n NodePoolLabels) GetLabels() map[string]string {
+	return n.CustomLabels
+}
 
 // GetDesiredLabelsForCluster returns desired set of labels for each node pool name, adding Banzaicloud prefixed labels like:
 // head node, ondemand labels + cloudinfo to user defined labels in specified nodePools map.
 // noReturnIfNoUserLabels = true, means if there are no labels specified in NodePoolStatus, no labels are returned for that node pool
-// is not returned, to avoid overriding user specified labels.
-func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, nodePools map[string]*pkgCluster.NodePoolStatus, noReturnIfNoUserLabels bool) (map[string]map[string]string, error) {
-	logger := pipelineContext.LoggerWithCorrelationID(ctx, log).WithFields(logrus.Fields{
-		"organization": cluster.GetOrganizationId(),
-		"cluster":      cluster.GetID(),
-	})
-
+// is not returned, to avoid overriding already exisisting user specified labels.
+func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, nodePoolLabels []NodePoolLabels) (map[string]map[string]string, error) {
 	desiredLabels := make(map[string]map[string]string)
 
 	clusterStatus, err := cluster.GetStatus()
 	if err != nil {
 		return desiredLabels, errors.WrapIfWithDetails(err, "failed to get cluster status", "cluster", cluster.GetName())
 	}
-	if len(nodePools) == 0 {
-		nodePools = clusterStatus.NodePools
-	}
 
-	for name, nodePool := range nodePools {
-		labelsMap := GetDesiredLabelsForNodePool(logger, name, nodePool, noReturnIfNoUserLabels,
-			clusterStatus.Cloud, clusterStatus.Distribution, clusterStatus.Region)
+	for _, npLabels := range nodePoolLabels {
+		labelsMap := getLabelsForNodePool(
+			ctx,
+			npLabels,
+			clusterStatus.Cloud,
+			clusterStatus.Distribution,
+			clusterStatus.Region,
+		)
 		if len(labelsMap) > 0 {
-			desiredLabels[name] = labelsMap
+			desiredLabels[npLabels.NodePoolName] = labelsMap
 		}
 	}
 	return desiredLabels, nil
 }
 
-func formatValue(value string) string {
-	var re = regexp.MustCompile(labelFormatRegexp)
-	norm := re.ReplaceAllString(value, "_")
-	return norm
-}
-
-func GetDesiredLabelsForNodePool(
-	logger logrus.FieldLogger,
-	nodePoolName string,
-	nodePool *pkgCluster.NodePoolStatus,
-	noReturnIfNoUserLabels bool,
+func getLabelsForNodePool(
+	ctx context.Context,
+	nodePool NodePoolLabels,
 	cloud string,
 	distribution string,
 	region string,
 ) map[string]string {
-
-	desiredLabels := make(map[string]string)
-	if len(nodePool.Labels) == 0 && noReturnIfNoUserLabels {
-		return desiredLabels
+	if len(nodePool.CustomLabels) == 0 && nodePool.Existing {
+		return make(map[string]string)
 	}
 
-	desiredLabels[common.LabelKey] = nodePoolName
-	desiredLabels[common.OnDemandLabelKey] = getOnDemandLabel(nodePool)
-
-	// copy user labels unless they are not reserved keys
-	for labelKey, labelValue := range nodePool.Labels {
-		if !IsReservedDomainKey(labelKey) {
-			desiredLabels[labelKey] = labelValue
-		}
-	}
-
-	// get CloudInfo labels for node
-	machineDetails, err := cloudinfo.GetMachineDetails(logger, cloud,
-		distribution,
-		region,
-		nodePool.InstanceType)
+	labels, err := globalcluster.NodePoolLabelSource().GetLabels(
+		ctx,
+		cluster.Cluster{
+			Cloud:        cloud,
+			Distribution: distribution,
+			Location:     region,
+		},
+		nodePool,
+	)
 	if err != nil {
 		log.WithFields(logrus.Fields{
+			"nodePool":     nodePool.NodePoolName,
 			"instance":     nodePool.InstanceType,
 			"cloud":        cloud,
 			"distribution": distribution,
 			"region":       region,
-		}).Warn(errors.Wrap(err, "failed to get instance attributes from Cloud Info"))
-	} else {
-		if machineDetails != nil {
-			for attrKey, attrValue := range machineDetails.Attributes {
-				nKey := formatValue(attrKey)
-				cloudInfoAttrKey := common.CloudInfoLabelKeyPrefix + nKey
-				nValue := formatValue(attrValue)
-				desiredLabels[cloudInfoAttrKey] = nValue
-			}
-		}
+		}).Warn(errors.WithMessage(err, "failed to get labels for node pool"))
 	}
 
-	return desiredLabels
-}
-
-func IsReservedDomainKey(labelKey string) bool {
-	pipelineLabelDomain := global.Config.Cluster.Labels.Domain
-	if strings.Contains(labelKey, pipelineLabelDomain) {
-		return true
-	}
-
-	reservedNodeLabelDomains := global.Config.Cluster.Labels.ForbiddenDomains
-	for _, reservedDomain := range reservedNodeLabelDomains {
-		if strings.Contains(labelKey, reservedDomain) {
-			return true
-		}
-	}
-	return false
-}
-
-func getOnDemandLabel(nodePool *pkgCluster.NodePoolStatus) string {
-	if p, err := strconv.ParseFloat(nodePool.SpotPrice, 64); err == nil && p > 0.0 {
-		return "false"
-	}
-	if nodePool.Preemptible {
-		return "false"
-	}
-	return "true"
+	return labels
 }

@@ -28,7 +28,7 @@ const GetVpcConfigActivityName = "eks-get-vpc-cfg"
 
 // GetVpcConfigActivity responsible for creating IAM roles
 type GetVpcConfigActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory AWSFactory
 }
 
 // GetVpcConfigActivityInput holds data needed for setting up IAM roles
@@ -47,7 +47,7 @@ type GetVpcConfigActivityOutput struct {
 }
 
 // GetVpcConfigActivity instantiates a new GetVpcConfigActivity
-func NewGetVpcConfigActivity(awsSessionFactory *AWSSessionFactory) *GetVpcConfigActivity {
+func NewGetVpcConfigActivity(awsSessionFactory AWSFactory) *GetVpcConfigActivity {
 	return &GetVpcConfigActivity{
 		awsSessionFactory: awsSessionFactory,
 	}

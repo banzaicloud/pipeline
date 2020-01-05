@@ -70,8 +70,8 @@ type grafanaIniServerValues struct {
 
 type alertmanagerValues struct {
 	baseValues
-	Spec   SpecValues    `json:"alertmanagerSpec"`
-	Config *configValues `json:"config"`
+	Spec   baseSpecValues `json:"alertmanagerSpec"`
+	Config *configValues  `json:"config"`
 }
 
 type configValues struct {
@@ -103,24 +103,27 @@ type pagerdutyConfigValues struct {
 	SendResolved bool   `json:"send_resolved"`
 }
 
-type SpecValues struct {
-	RoutePrefix                             string                 `json:"routePrefix"`
+type baseSpecValues struct {
+	RoutePrefix string      `json:"routePrefix"`
+	Image       imageValues `json:"image"`
+}
+
+type PrometheusSpecValues struct {
+	baseSpecValues
 	RetentionSize                           string                 `json:"retentionSize"`
 	Retention                               string                 `json:"retention"`
 	StorageSpec                             map[string]interface{} `json:"storageSpec"`
 	ServiceMonitorSelectorNilUsesHelmValues bool                   `json:"serviceMonitorSelectorNilUsesHelmValues"`
-	Image                                   imageValues            `json:"image"`
 }
 
 type prometheusValues struct {
 	baseValues
-	Spec        SpecValues             `json:"prometheusSpec"`
+	Spec        PrometheusSpecValues   `json:"prometheusSpec"`
 	Annotations map[string]interface{} `json:"annotations"`
 }
 
 type kubeStateMetricsValues struct {
 	Enabled bool `json:"enabled"`
-	SpecValues
 }
 
 type ksmValues struct {

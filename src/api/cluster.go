@@ -29,7 +29,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	intClusterGroup "github.com/banzaicloud/pipeline/internal/clustergroup"
@@ -37,6 +36,7 @@ import (
 	eksdriver "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -56,7 +56,6 @@ type ClusterAPI struct {
 	externalBaseURL         string
 	externalBaseURLInsecure bool
 	workflowClient          client.Client
-	cloudInfoClient         *cloudinfo.Client
 	clientFactory           common.DynamicClientFactory
 
 	logger          logrus.FieldLogger
@@ -86,7 +85,6 @@ func NewClusterAPI(
 	clusterManager *cluster.Manager,
 	clusterGetter common.ClusterGetter,
 	workflowClient client.Client,
-	cloudInfoClient *cloudinfo.Client,
 	clusterGroupManager *intClusterGroup.Manager,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
@@ -101,7 +99,6 @@ func NewClusterAPI(
 		clusterManager:          clusterManager,
 		clusterGetter:           clusterGetter,
 		workflowClient:          workflowClient,
-		cloudInfoClient:         cloudInfoClient,
 		clusterGroupManager:     clusterGroupManager,
 		externalBaseURL:         externalBaseURL,
 		externalBaseURLInsecure: externalBaseURLInsecure,
@@ -334,8 +331,18 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 
 }
 
+type InternalClusterAPI struct {
+	cloudinfoClient *cloudinfo.Client
+}
+
+func NewInternalClusterAPI(cloudinfoClient *cloudinfo.Client) InternalClusterAPI {
+	return InternalClusterAPI{
+		cloudinfoClient: cloudinfoClient,
+	}
+}
+
 // GetNodePools fetch node pool info for a cluster
-func GetNodePools(c *gin.Context) {
+func (a InternalClusterAPI) GetNodePools(c *gin.Context) {
 	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
@@ -377,13 +384,15 @@ func GetNodePools(c *gin.Context) {
 				ActualCount:    nodePoolCounts[nodePoolName],
 			}
 
-			machineDetails, err := cloudinfo.GetMachineDetails(log, clusterStatus.Cloud,
+			machineDetails, err := a.cloudinfoClient.GetProductDetails(
+				c.Request.Context(),
+				clusterStatus.Cloud,
 				clusterStatus.Distribution,
 				clusterStatus.Region,
 				nodePool.InstanceType)
 			if err != nil {
 				errorHandler.Handle(err)
-			} else if machineDetails != nil {
+			} else {
 				clusterTotalResources["cpu"] += float64(nodePool.Count) * machineDetails.CpusPerVm
 				clusterTotalResources["gpu"] += float64(nodePool.Count) * machineDetails.GpusPerVm
 				clusterTotalResources["mem"] += float64(nodePool.Count) * machineDetails.MemPerVm

@@ -215,7 +215,22 @@ func (m *Manager) createCluster(
 		return emperror.Wrap(err, "failed to update cluster status")
 	}
 
-	labelsMap, err := GetDesiredLabelsForCluster(ctx, cluster, nil, false)
+	nodePoolLabels := make([]NodePoolLabels, 0)
+	clusterStatus, err := cluster.GetStatus()
+	if err != nil {
+		return emperror.Wrap(err, "failed to get cluster status")
+	}
+	for name, np := range clusterStatus.NodePools {
+		nodePoolLabels = append(nodePoolLabels, NodePoolLabels{
+			NodePoolName: name,
+			Existing:     false,
+			InstanceType: np.InstanceType,
+			CustomLabels: np.Labels,
+			SpotPrice:    np.SpotPrice,
+			Preemptible:  np.Preemptible,
+		})
+	}
+	labelsMap, err := GetDesiredLabelsForCluster(ctx, cluster, nodePoolLabels)
 	if err != nil {
 		_ = cluster.SetStatus(pkgCluster.Error, "failed to get desired labels")
 

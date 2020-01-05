@@ -53,3 +53,15 @@ func IsBadRequestError(err error) bool {
 
 	return false
 }
+
+func IsValidationError(err error) bool {
+	var validation interface {
+		Validation() bool
+	}
+
+	if errors.As(err, &validation) {
+		return validation.Validation()
+	}
+
+	return false
+}

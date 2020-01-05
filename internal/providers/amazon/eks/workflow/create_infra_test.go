@@ -16,7 +16,6 @@ package workflow
 
 import (
 	"testing"
-	"time"
 
 	"emperror.dev/errors"
 	"github.com/stretchr/testify/mock"
@@ -57,10 +56,7 @@ func TestCreateInfraWorkflowTestSuite(t *testing.T) {
 	saveK8sConfigActivity := NewSaveK8sConfigActivity(nil, nil)
 	activity.RegisterWithOptions(saveK8sConfigActivity.Execute, activity.RegisterOptions{Name: SaveK8sConfigActivityName})
 
-	waitAttempts := 1
-	waitInterval := 20 * time.Second
-
-	createAsgActivity := NewCreateAsgActivity(nil, "", waitAttempts, waitInterval)
+	createAsgActivity := NewCreateAsgActivity(nil, "")
 	activity.RegisterWithOptions(createAsgActivity.Execute, activity.RegisterOptions{Name: CreateAsgActivityName})
 
 	createUserAccessKeyActivity := NewCreateClusterUserAccessKeyActivity(nil)

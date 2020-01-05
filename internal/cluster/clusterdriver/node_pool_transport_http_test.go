@@ -19,12 +19,84 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
+	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/banzaicloud/pipeline/internal/cluster"
 )
+
+func TestRegisterHTTPHandlers_CreateNodePool(t *testing.T) {
+	tests := []struct {
+		name               string
+		endpointFunc       func(ctx context.Context, request interface{}) (response interface{}, err error)
+		expectedStatusCode int
+	}{
+		{
+			name: "invalid",
+			endpointFunc: kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return nil, cluster.NewValidationError(
+					"invalid node pool request",
+					[]string{"name cannot be empty"},
+				)
+			}),
+			expectedStatusCode: http.StatusUnprocessableEntity,
+		},
+		{
+			name: "already_exists",
+			endpointFunc: kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return nil, cluster.NodePoolAlreadyExistsError{
+					ClusterID: 1,
+					NodePool:  "pool0",
+				}
+			}),
+			expectedStatusCode: http.StatusConflict,
+		},
+		{
+			name: "success",
+			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return nil, nil
+			},
+			expectedStatusCode: http.StatusAccepted,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+
+		t.Run(test.name, func(t *testing.T) {
+			const clusterID = uint(1)
+
+			handler := mux.NewRouter()
+			RegisterNodePoolHTTPHandlers(
+				NodePoolEndpoints{
+					CreateNodePool: test.endpointFunc,
+				},
+				handler.PathPrefix("/clusters/{clusterId}/nodepools").Subrouter(),
+			)
+
+			ts := httptest.NewServer(handler)
+			defer ts.Close()
+
+			req, err := http.NewRequest(
+				http.MethodPost,
+				fmt.Sprintf("%s/clusters/%d/nodepools", ts.URL, clusterID),
+				strings.NewReader(`{"name": "pool0"}`),
+			)
+			require.NoError(t, err)
+
+			resp, err := ts.Client().Do(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			assert.Equal(t, test.expectedStatusCode, resp.StatusCode)
+		})
+	}
+}
 
 func TestRegisterHTTPHandlers_DeleteNodePool(t *testing.T) {
 	tests := []struct {

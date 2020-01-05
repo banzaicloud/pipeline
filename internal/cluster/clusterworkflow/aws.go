@@ -12,29 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cloudinfo
+package clusterworkflow
 
 import (
-	"github.com/sirupsen/logrus"
-
-	"github.com/banzaicloud/pipeline/.gen/cloudinfo"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
-type Client struct {
-	apiClient *cloudinfo.APIClient
-	logger    logrus.FieldLogger
-}
-
-func NewClient(cloudInfoEndpoint string, logger logrus.FieldLogger) *Client {
-
-	cloudInfoClient := cloudinfo.NewAPIClient(&cloudinfo.Configuration{
-		BasePath:      cloudInfoEndpoint,
-		DefaultHeader: make(map[string]string),
-		UserAgent:     "Pipeline/go",
-	})
-
-	return &Client{
-		apiClient: cloudInfoClient,
-		logger:    logger.WithFields(logrus.Fields{"cloudInfoEndpoint": cloudInfoEndpoint}),
-	}
+type AWSSessionFactory interface {
+	New(organizationID uint, secretID string, region string) (*session.Session, error)
 }

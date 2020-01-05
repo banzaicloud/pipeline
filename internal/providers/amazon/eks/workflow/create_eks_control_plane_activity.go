@@ -27,6 +27,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"go.uber.org/cadence/activity"
+
+	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 )
 
 const CreateEksControlPlaneActivityName = "eks-create-control-plane"
@@ -135,6 +137,11 @@ func (a *CreateEksControlPlaneActivity) Execute(ctx context.Context, input Creat
 			}},
 		}
 
+		tags := make(map[string]*string)
+		for _, pipTag := range internalAmazon.PipelineTags() {
+			tags[aws.StringValue(pipTag.Key)] = pipTag.Value
+		}
+
 		requestToken := generateRequestToken(input.AWSClientRequestTokenBase, CreateEksControlPlaneActivityName)
 
 		logger.Info("create EKS cluster")
@@ -146,6 +153,7 @@ func (a *CreateEksControlPlaneActivity) Execute(ctx context.Context, input Creat
 			ResourcesVpcConfig: vpcConfigRequest,
 			RoleArn:            &roleArn,
 			Logging:            &logging,
+			Tags:               tags,
 		}
 
 		// set Kubernetes version only if provided, otherwise the cloud provider default one will be used

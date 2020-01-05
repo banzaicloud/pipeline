@@ -39,6 +39,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"github.com/prometheus/client_golang/prometheus"
+	auth2 "github.com/qor/auth"
 	"github.com/sagikazarmark/kitx/correlation"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
@@ -49,6 +50,7 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
+	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
@@ -63,7 +65,6 @@ import (
 	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
 	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
-	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
@@ -79,6 +80,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -112,7 +114,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/internal/providers/google/googleadapter"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
+	kubernetes2 "github.com/banzaicloud/pipeline/pkg/kubernetes"
 	"github.com/banzaicloud/pipeline/pkg/problems"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/src/api"
@@ -386,7 +390,11 @@ func main() {
 		).Run(config.SpotMetrics.CollectionInterval)
 	}
 
-	cloudInfoClient := cloudinfo.NewClient(config.Cloudinfo.Endpoint, logrusLogger)
+	cloudinfoClient := cloudinfo.NewClient(cloudinfoapi.NewAPIClient(&cloudinfoapi.Configuration{
+		BasePath:      config.Cloudinfo.Endpoint,
+		DefaultHeader: make(map[string]string),
+		UserAgent:     fmt.Sprintf("Pipeline/%s", version),
+	}))
 
 	azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonLogger)
 	clusterCreators := api.ClusterCreators{
@@ -405,7 +413,7 @@ func main() {
 		EKSAmazon: eksDriver.NewEksClusterCreator(
 			logrusLogger,
 			workflowClient,
-			cloudInfoClient,
+			cloudinfoClient,
 			clusters,
 			secretValidator,
 			statusChangeDurationMetric,
@@ -463,7 +471,6 @@ func main() {
 		clusterManager,
 		commonClusterGetter,
 		workflowClient,
-		cloudInfoClient,
 		clusterGroupManager,
 		logrusLogger,
 		errorHandler,
@@ -474,8 +481,6 @@ func main() {
 		clusterUpdaters,
 		dynamicClientFactory,
 	)
-
-	nplsApi := api.NewNodepoolManagerAPI(commonClusterGetter, dynamicClientFactory, logrusLogger, errorHandler)
 
 	// Initialise Gin router
 	engine := gin.New()
@@ -826,16 +831,54 @@ func main() {
 			cgroupsAPI := cgroupAPI.NewAPI(clusterGroupManager, deploymentManager, logrusLogger, errorHandler)
 			cgroupsAPI.AddRoutes(orgs.Group("/:orgid/clustergroups"))
 
-			cRouter.GET("/nodepool-labels", nplsApi.GetNodepoolLabelSets)
-			cRouter.POST("/nodepool-labels", nplsApi.SetNodepoolLabelSets)
-
 			{
 				clusterStore := clusteradapter.NewStore(db, clusters)
+
+				labelValidator := kubernetes2.LabelValidator{
+					ForbiddenDomains: append([]string{config.Cluster.Labels.Domain}, config.Cluster.Labels.ForbiddenDomains...),
+				}
+
+				nplsApi := api.NewNodepoolManagerAPI(
+					commonClusterGetter,
+					dynamicClientFactory,
+					labelValidator,
+					logrusLogger,
+					errorHandler,
+				)
+				cRouter.GET("/nodepool-labels", nplsApi.GetNodepoolLabelSets)
+
+				labelSource := intCluster.NodePoolLabelSources{
+					intCluster.NewCommonNodePoolLabelSource(),
+					clusteradapter.NewCloudinfoNodePoolLabelSource(cloudinfoClient),
+				}
+
+				// Used by legacy node pool label code
+				globalcluster.SetNodePoolLabelSource(intCluster.NodePoolLabelSources{
+					intCluster.NewFilterValidNodePoolLabelSource(labelValidator),
+					labelSource,
+				})
 
 				service := intCluster.NewNodePoolService(
 					clusterStore,
 					clusteradapter.NewNodePoolStore(db, clusterStore),
-					clusteradapter.NewNodePoolManager(workflowClient),
+					intCluster.NodePoolValidators{
+						intCluster.NewCommonNodePoolValidator(labelValidator),
+						clusteradapter.NewDistributionNodePoolValidator(db),
+					},
+					intCluster.NodePoolProcessors{
+						intCluster.NewCommonNodePoolProcessor(labelSource),
+						clusteradapter.NewDistributionNodePoolProcessor(db),
+					},
+					clusteradapter.NewNodePoolManager(
+						workflowClient,
+						func(ctx context.Context) uint {
+							if currentUser := ctx.Value(auth2.CurrentUser); currentUser != nil {
+								return currentUser.(*auth.User).ID
+							}
+
+							return 0
+						},
+					),
 				)
 				endpoints := clusterdriver.TraceNodePoolEndpoints(clusterdriver.MakeNodePoolEndpoints(
 					service,
@@ -1028,7 +1071,7 @@ func main() {
 	internalBindAddr := config.Pipeline.InternalAddr
 	logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})
 
-	go createInternalAPIRouter(config, db, basePath, clusterAPI, logger, logrusLogger).Run(internalBindAddr) // nolint: errcheck
+	go createInternalAPIRouter(config, db, basePath, clusterAPI, cloudinfoClient, logger, logrusLogger).Run(internalBindAddr) // nolint: errcheck
 
 	bindAddr := config.Pipeline.Addr
 	certFile, keyFile := config.Pipeline.CertFile, config.Pipeline.KeyFile
@@ -1041,7 +1084,15 @@ func main() {
 	}
 }
 
-func createInternalAPIRouter(conf configuration, db *gorm.DB, basePath string, clusterAPI *api.ClusterAPI, logger logur.Logger, logrusLogger logrus.FieldLogger) *gin.Engine {
+func createInternalAPIRouter(
+	conf configuration,
+	db *gorm.DB,
+	basePath string,
+	clusterAPI *api.ClusterAPI,
+	cloudinfoClient *cloudinfo.Client,
+	logger logur.Logger,
+	logrusLogger logrus.FieldLogger,
+) *gin.Engine {
 	// Initialise Gin router for Internal API
 	internalRouter := gin.New()
 	internalRouter.Use(correlationid.Middleware())
@@ -1054,7 +1105,7 @@ func createInternalAPIRouter(conf configuration, db *gorm.DB, basePath string, c
 	internalGroup := internalRouter.Group(path.Join(basePath, "api", "v1/", "orgs"))
 	internalGroup.Use(auth.InternalUserHandler)
 	internalGroup.Use(api.OrganizationMiddleware)
-	internalGroup.GET("/:orgid/clusters/:id/nodepools", api.GetNodePools)
+	internalGroup.GET("/:orgid/clusters/:id/nodepools", api.NewInternalClusterAPI(cloudinfoClient).GetNodePools)
 	internalGroup.PUT("/:orgid/clusters/:id/nodepools", clusterAPI.UpdateNodePools)
 	return internalRouter
 }
