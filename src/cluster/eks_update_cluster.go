@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/gofrs/uuid"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
@@ -77,6 +78,20 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 		},
 	}
 
+	aoWithHeartBeat := workflow.ActivityOptions{
+		ScheduleToStartTimeout: 10 * time.Minute,
+		StartToCloseTimeout:    5 * time.Minute,
+		WaitForCancellation:    true,
+		HeartbeatTimeout:       45 * time.Second,
+		RetryPolicy: &cadence.RetryPolicy{
+			InitialInterval:          2 * time.Second,
+			BackoffCoefficient:       1.5,
+			MaximumInterval:          30 * time.Second,
+			MaximumAttempts:          5,
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic"},
+		},
+	}
+
 	logger := workflow.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
@@ -87,7 +102,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 		SecretID:                  input.SecretID,
 		Region:                    input.Region,
 		ClusterName:               input.ClusterName,
-		AWSClientRequestTokenBase: input.ClusterUID,
+		AWSClientRequestTokenBase: uuid.Must(uuid.NewV4()).String(),
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
@@ -138,6 +153,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				EKSActivityInput: commonActivityInput,
 				StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
 			}
+			ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
 			f := workflow.ExecuteActivity(ctx, eksWorkflow.DeleteStackActivityName, activityInput)
 			asgFutures = append(asgFutures, f)
 
@@ -197,6 +213,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				NodeInstanceType: nodePool.NodeInstanceType,
 				Labels:           nodePool.Labels,
 			}
+			ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
 			f := workflow.ExecuteActivity(ctx, eksWorkflow.CreateAsgActivityName, activityInput)
 			asgFutures = append(asgFutures, f)
 
@@ -220,6 +237,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				NodeInstanceType: nodePool.NodeInstanceType,
 				Labels:           nodePool.Labels,
 			}
+			ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
 			f := workflow.ExecuteActivity(ctx, eksWorkflow.UpdateAsgActivityName, activityInput)
 			asgFutures = append(asgFutures, f)
 		}

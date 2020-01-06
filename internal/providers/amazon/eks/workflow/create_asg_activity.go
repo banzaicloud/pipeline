@@ -19,20 +19,13 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
-	"go.uber.org/zap"
-
-	zapadapter "logur.dev/adapter/zap"
 
 	"github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
 )
 
 const CreateAsgActivityName = "eks-create-asg"
@@ -41,9 +34,7 @@ const CreateAsgActivityName = "eks-create-asg"
 type CreateAsgActivity struct {
 	awsSessionFactory AWSFactory
 	// body of the cloud formation template for setting up the VPC
-	cloudFormationTemplate     string
-	asgFulfillmentWaitAttempts int
-	asgFulfillmentWaitInterval time.Duration
+	cloudFormationTemplate string
 }
 
 // CreateAsgActivityInput holds data needed for setting up IAM roles
@@ -77,18 +68,11 @@ type CreateAsgActivityInput struct {
 type CreateAsgActivityOutput struct {
 }
 
-const asgWaitLoopSleep = 5 * time.Second
-const asgFulfillmentTimeout = 2 * time.Minute
-const asgFulfillmentWaitAttempts = asgFulfillmentTimeout / asgWaitLoopSleep
-const asgFulfillmentWaitInterval = asgWaitLoopSleep
-
 // CreateAsgActivity instantiates a new CreateAsgActivity
 func NewCreateAsgActivity(awsSessionFactory AWSFactory, cloudFormationTemplate string) *CreateAsgActivity {
 	return &CreateAsgActivity{
-		awsSessionFactory:          awsSessionFactory,
-		cloudFormationTemplate:     cloudFormationTemplate,
-		asgFulfillmentWaitAttempts: int(asgFulfillmentWaitAttempts),
-		asgFulfillmentWaitInterval: asgFulfillmentWaitInterval,
+		awsSessionFactory:      awsSessionFactory,
+		cloudFormationTemplate: cloudFormationTemplate,
 	}
 }
 
@@ -233,75 +217,17 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-
-	err = cloudformationClient.WaitUntilStackCreateComplete(describeStacksInput)
+	err = WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
 		return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "waiting for CF stack create operation to complete failed")
 	}
 
 	// wait for ASG fulfillment
-	err = a.waitForASGToBeFulfilled(ctx, logger, awsSession, input.StackName, input.Name)
+	err = WaitForASGToBeFulfilled(ctx, logger, awsSession, input.StackName, input.Name)
 	if err != nil {
 		return nil, errors.WrapIff(err, "node pool %q ASG not fulfilled", input.Name)
 	}
 
 	outParams := CreateAsgActivityOutput{}
 	return &outParams, nil
-}
-
-// WaitForASGToBeFulfilled waits until an ASG has the desired amount of healthy nodes
-func (a *CreateAsgActivity) waitForASGToBeFulfilled(
-	ctx context.Context,
-	logger *zap.SugaredLogger,
-	awsSession *session.Session,
-	stackName string,
-	nodePoolName string) error {
-
-	logger = logger.With("stackName", stackName)
-	logger.Info("wait for ASG to be fulfilled")
-
-	m := autoscaling.NewManager(awsSession, autoscaling.MetricsEnabled(true), autoscaling.Logger{
-		Logger: zapadapter.New(logger.Desugar()),
-	})
-
-	ticker := time.NewTicker(a.asgFulfillmentWaitInterval)
-	defer ticker.Stop()
-
-	i := 0
-	for {
-		select {
-		case <-ticker.C:
-			if i <= a.asgFulfillmentWaitAttempts {
-				i++
-
-				asGroup, err := m.GetAutoscalingGroupByStackName(stackName)
-				if err != nil {
-					if aerr, ok := err.(awserr.Error); ok {
-						if aerr.Code() == "ValidationError" || aerr.Code() == "ASGNotFoundInResponse" {
-							continue
-						}
-					}
-					return errors.WrapIfWithDetails(err, "could not get ASG", "stackName", stackName)
-				}
-
-				ok, err := asGroup.IsHealthy()
-				if err != nil {
-					if autoscaling.IsErrorFinal(err) {
-						return errors.WithDetails(err, "nodePoolName", nodePoolName, "stackName", aws.StringValue(asGroup.AutoScalingGroupName))
-					}
-					//log.Debug(err)
-					continue
-				}
-				if ok {
-					//log.Debug("ASG is healthy")
-					return nil
-				}
-			} else {
-				return errors.Errorf("waiting for ASG to be fulfilled timed out after %d x %s", a.asgFulfillmentWaitAttempts, a.asgFulfillmentWaitInterval)
-			}
-		case <-ctx.Done(): // wait for ASG fulfillment cancelled
-			return nil
-		}
-	}
-
 }

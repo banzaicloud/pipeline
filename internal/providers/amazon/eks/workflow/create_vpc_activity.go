@@ -135,7 +135,7 @@ func (a *CreateVpcActivity) Execute(ctx context.Context, input CreateVpcActivity
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-	err = cloudformationClient.WaitUntilStackCreateCompleteWithContext(ctx, describeStacksInput)
+	err = WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
 		var awsErr awserr.Error
 		if errors.As(err, &awsErr) {

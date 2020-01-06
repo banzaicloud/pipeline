@@ -57,6 +57,20 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 		},
 	}
 
+	aoWithHeartbeat := workflow.ActivityOptions{
+		ScheduleToStartTimeout: 10 * time.Minute,
+		StartToCloseTimeout:    5 * time.Minute,
+		WaitForCancellation:    true,
+		HeartbeatTimeout:       45 * time.Second,
+		RetryPolicy: &cadence.RetryPolicy{
+			InitialInterval:          2 * time.Second,
+			BackoffCoefficient:       1.5,
+			MaximumInterval:          30 * time.Second,
+			MaximumAttempts:          5,
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", ErrReasonStackFailed},
+		},
+	}
+
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	eksActivityInput := EKSActivityInput{
@@ -132,6 +146,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 			EKSActivityInput: eksActivityInput,
 			StackName:        stackName,
 		}
+		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		f := workflow.ExecuteActivity(ctx, DeleteStackActivityName, activityInput)
 		asgDeleteFutures = append(asgDeleteFutures, f)
 	}
@@ -150,7 +165,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 		activityInput := DeleteControlPlaneActivityInput{
 			EKSActivityInput: eksActivityInput,
 		}
-
+		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		if err := workflow.ExecuteActivity(ctx, DeleteControlPlaneActivityName, activityInput).Get(ctx, nil); err != nil {
 			return err
 		}
@@ -228,6 +243,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 			EKSActivityInput: eksActivityInput,
 			StackName:        subnetStackName,
 		}
+		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		f := workflow.ExecuteActivity(ctx, DeleteStackActivityName, activityInput)
 		deleteSubnetFutures = append(deleteSubnetFutures, f)
 	}
@@ -247,7 +263,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 			EKSActivityInput: eksActivityInput,
 			StackName:        GenerateStackNameForCluster(input.ClusterName),
 		}
-
+		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		if err := workflow.ExecuteActivity(ctx, DeleteStackActivityName, activityInput).Get(ctx, nil); err != nil {
 			return err
 		}
@@ -259,7 +275,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 			EKSActivityInput: eksActivityInput,
 			StackName:        generateStackNameForIam(input.ClusterName),
 		}
-
+		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		if err := workflow.ExecuteActivity(ctx, DeleteStackActivityName, activityInput).Get(ctx, nil); err != nil {
 			return err
 		}
