@@ -111,7 +111,7 @@ func (m *FederationReconciler) reconcileMemberCluster(desiredState DesiredState,
 	case DesiredStateAbsent:
 		err := kubefedctl.UnjoinCluster(hostConfig, memberConfig,
 			m.Configuration.TargetNamespace,
-			m.Host.GetName(), m.Host.GetName(), c.GetName(), c.GetName(),
+			m.Host.GetName(), c.GetName(), c.GetName(),
 			true, false)
 		if err != nil {
 			if strings.Contains(err.Error(), "Failed to get kubefed cluster") {

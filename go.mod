@@ -86,7 +86,7 @@ require (
 	github.com/jinzhu/now v1.0.1
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/kisielk/errcheck v1.2.0 // indirect
-	github.com/kubernetes-sigs/kubefed v0.1.0-rc5
+	github.com/kubernetes-sigs/kubefed v0.1.0-rc6
 	github.com/lestrrat-go/backoff v0.0.0-20190107202757-0bc2a4274cd0
 	github.com/lib/pq v0.0.0-20181016162627-9eb73efc1fcc // indirect
 	github.com/mattn/go-sqlite3 v0.0.0-20160907162043-3fb7a0e792ed // indirect
@@ -175,7 +175,7 @@ require (
 	logur.dev/integration/zap v0.2.0
 	logur.dev/logur v0.15.0
 	sigs.k8s.io/controller-runtime v0.2.0
-	sigs.k8s.io/kubefed v0.1.0-rc5
+	sigs.k8s.io/kubefed v0.1.0-rc6
 	sigs.k8s.io/testing_frameworks v0.1.1
 	vbom.ml/util v0.0.0-20170409195630-256737ac55c4 // indirect
 )
@@ -184,7 +184,7 @@ replace (
 	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08
 	github.com/baiyubin/aliyun-sts-go-sdk => github.com/banzaicloud/aliyun-sts-go-sdk v0.0.0-20191023142834-57827dd1486a
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
-	github.com/kubernetes-sigs/kubefed => github.com/kubernetes-sigs/kubefed v0.1.0-rc5
+	github.com/kubernetes-sigs/kubefed => github.com/kubernetes-sigs/kubefed v0.1.0-rc6
 	github.com/qor/auth => github.com/banzaicloud/auth v0.1.3
 
 	gopkg.in/yaml.v2 => github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182
@@ -198,5 +198,5 @@ replace (
 	k8s.io/client-go => k8s.io/client-go v10.0.0+incompatible
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20180509051136-39cb288412c4
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.1.10
-	sigs.k8s.io/kubefed => sigs.k8s.io/kubefed v0.1.0-rc5
+	sigs.k8s.io/kubefed => sigs.k8s.io/kubefed v0.1.0-rc6
 )
