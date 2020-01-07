@@ -200,7 +200,9 @@ func (cd ClusterDeleter) Delete(ctx context.Context, cluster pke.Cluster, forced
 			return
 		}
 		cd.kubeProxyCache.Delete(cluster.UID)
-		cd.events.ClusterDeleted(cluster.OrganizationID, cluster.Name)
+		if cd.events != nil {
+			cd.events.ClusterDeleted(cluster.OrganizationID, cluster.Name)
+		}
 	}()
 
 	if err = cd.store.SetActiveWorkflowID(cluster.ID, wfrun.GetID()); err != nil {
@@ -211,6 +213,10 @@ func (cd ClusterDeleter) Delete(ctx context.Context, cluster pke.Cluster, forced
 }
 
 func (cd ClusterDeleter) getClusterStatusChangeDurationTimer(cluster pke.Cluster) (metrics.DurationMetricTimer, error) {
+	if cd.statusChangeDurationMetric == nil {
+		return metrics.NoopDurationMetricTimer{}, nil
+	}
+
 	values := metrics.ClusterStatusChangeDurationMetricValues{
 		ProviderName: pkgCluster.Azure,
 		LocationName: cluster.Location,
