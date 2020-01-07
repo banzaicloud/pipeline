@@ -21,27 +21,22 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"go.uber.org/cadence/activity"
-	"go.uber.org/zap"
-
-	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
-
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence"
+	"go.uber.org/cadence/activity"
+	"go.uber.org/zap"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
-
-	"github.com/banzaicloud/pipeline/src/model"
-
-	"github.com/banzaicloud/pipeline/src/secret"
-
 	zapadapter "logur.dev/adapter/zap"
 
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
+	"github.com/banzaicloud/pipeline/src/model"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure

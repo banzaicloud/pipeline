@@ -99,7 +99,7 @@ func (a *DeleteControlPlaneActivity) Execute(ctx context.Context, input DeleteCo
 }
 
 func (a *DeleteControlPlaneActivity) waitUntilClusterExists(ctx aws.Context, eksSvc *eks.EKS, input *eks.DescribeClusterInput, opts ...request.WaiterOption) error {
-	count := 1
+	count := 0
 	w := request.Waiter{
 		Name:        "WaitUntilClusterExists",
 		MaxAttempts: 30,

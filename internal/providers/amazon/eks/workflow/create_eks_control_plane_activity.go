@@ -217,7 +217,7 @@ func waitUntilClusterCreateCompleteWithContext(eksSvc *eks.EKS, ctx aws.Context,
 		Logger: eksSvc.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
 
-			count = count + 1
+			count++
 			activity.RecordHeartbeat(ctx, count)
 
 			var inCpy *eks.DescribeClusterInput
