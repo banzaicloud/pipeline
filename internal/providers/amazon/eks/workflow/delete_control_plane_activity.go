@@ -88,7 +88,7 @@ func (a *DeleteControlPlaneActivity) Execute(ctx context.Context, input DeleteCo
 	describeClusterInput := &eks.DescribeClusterInput{
 		Name: aws.String(input.ClusterName),
 	}
-	err = a.waitUntilClusterExists(aws.BackgroundContext(), eksSvc, describeClusterInput)
+	err = a.waitUntilClusterExists(ctx, eksSvc, describeClusterInput)
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func (a *DeleteControlPlaneActivity) Execute(ctx context.Context, input DeleteCo
 }
 
 func (a *DeleteControlPlaneActivity) waitUntilClusterExists(ctx aws.Context, eksSvc *eks.EKS, input *eks.DescribeClusterInput, opts ...request.WaiterOption) error {
-
+	count := 0
 	w := request.Waiter{
 		Name:        "WaitUntilClusterExists",
 		MaxAttempts: 30,
@@ -118,6 +118,10 @@ func (a *DeleteControlPlaneActivity) waitUntilClusterExists(ctx aws.Context, eks
 		},
 		Logger: eksSvc.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
+
+			count++
+			activity.RecordHeartbeat(ctx, count)
+
 			var inCpy *eks.DescribeClusterInput
 			if input != nil {
 				tmp := *input

@@ -129,7 +129,7 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 		}
 
 		describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-		err = cloudformationClient.WaitUntilStackCreateComplete(describeStacksInput)
+		err = WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
 
 		if err != nil {
 			return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "failed to create subnet with cidr")

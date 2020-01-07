@@ -18,26 +18,34 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"emperror.dev/errors"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence"
+	"go.uber.org/cadence/activity"
+	"go.uber.org/zap"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
-
-	"github.com/banzaicloud/pipeline/src/model"
-
-	"github.com/banzaicloud/pipeline/src/secret"
+	zapadapter "logur.dev/adapter/zap"
 
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
+	"github.com/banzaicloud/pipeline/src/model"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure
 const ErrReasonStackFailed = "CLOUDFORMATION_STACK_FAILED"
+
+const asgWaitLoopSleep = 5 * time.Second
+const asgFulfillmentTimeout = 2 * time.Minute
+const asgFulfillmentWaitAttempts = asgFulfillmentTimeout / asgWaitLoopSleep
+const asgFulfillmentWaitInterval = asgWaitLoopSleep
 
 // getStackTags returns the tags that are placed onto CF template stacks.
 // These tags  are propagated onto the resources created by the CF template.
@@ -198,4 +206,252 @@ type EksCluster interface {
 	DeleteFromDatabase() error
 	GetConfigSecretId() string
 	SaveConfigSecretId(secretID string) error
+}
+
+func WaitUntilStackCreateCompleteWithContext(cf *cloudformation.CloudFormation, ctx aws.Context, input *cloudformation.DescribeStacksInput, opts ...request.WaiterOption) error {
+	count := 0
+	w := request.Waiter{
+		Name:        "WaitUntilStackCreateComplete",
+		MaxAttempts: 120,
+		Delay:       request.ConstantWaiterDelay(30 * time.Second),
+		Acceptors: []request.WaiterAcceptor{
+			{
+				State:   request.SuccessWaiterState,
+				Matcher: request.PathAllWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "CREATE_COMPLETE",
+			},
+			{
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "CREATE_FAILED",
+			},
+			{
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "DELETE_COMPLETE",
+			},
+			{
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "DELETE_FAILED",
+			},
+			{
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "ROLLBACK_FAILED",
+			},
+			{
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "ROLLBACK_COMPLETE",
+			},
+			{
+				State:    request.FailureWaiterState,
+				Matcher:  request.ErrorWaiterMatch,
+				Expected: "ValidationError",
+			},
+		},
+		Logger: cf.Config.Logger,
+		NewRequest: func(opts []request.Option) (*request.Request, error) {
+
+			count++
+			activity.RecordHeartbeat(ctx, count)
+
+			var inCpy *cloudformation.DescribeStacksInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := cf.DescribeStacksRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+	w.ApplyOptions(opts...)
+
+	return w.WaitWithContext(ctx)
+}
+
+func WaitUntilStackUpdateCompleteWithContext(cf *cloudformation.CloudFormation, ctx aws.Context, input *cloudformation.DescribeStacksInput, opts ...request.WaiterOption) error {
+	count := 0
+	w := request.Waiter{
+		Name:        "WaitUntilStackUpdateComplete",
+		MaxAttempts: 120,
+		Delay:       request.ConstantWaiterDelay(30 * time.Second),
+		Acceptors: []request.WaiterAcceptor{
+			{
+				State:   request.SuccessWaiterState,
+				Matcher: request.PathAllWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "UPDATE_COMPLETE",
+			},
+			{
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "UPDATE_FAILED",
+			},
+			{
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "UPDATE_ROLLBACK_FAILED",
+			},
+			{
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "UPDATE_ROLLBACK_COMPLETE",
+			},
+			{
+				State:    request.FailureWaiterState,
+				Matcher:  request.ErrorWaiterMatch,
+				Expected: "ValidationError",
+			},
+		},
+		Logger: cf.Config.Logger,
+		NewRequest: func(opts []request.Option) (*request.Request, error) {
+
+			count++
+			activity.RecordHeartbeat(ctx, count)
+
+			var inCpy *cloudformation.DescribeStacksInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := cf.DescribeStacksRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+	w.ApplyOptions(opts...)
+
+	return w.WaitWithContext(ctx)
+}
+
+func WaitUntilStackDeleteCompleteWithContext(cf *cloudformation.CloudFormation, ctx aws.Context, input *cloudformation.DescribeStacksInput, opts ...request.WaiterOption) error {
+	count := 0
+	w := request.Waiter{
+		Name:        "WaitUntilStackDeleteComplete",
+		MaxAttempts: 120,
+		Delay:       request.ConstantWaiterDelay(30 * time.Second),
+		Acceptors: []request.WaiterAcceptor{
+			{
+				State:   request.SuccessWaiterState,
+				Matcher: request.PathAllWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "DELETE_COMPLETE",
+			},
+			{
+				State:    request.SuccessWaiterState,
+				Matcher:  request.ErrorWaiterMatch,
+				Expected: "ValidationError",
+			},
+			{
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "DELETE_FAILED",
+			},
+			{
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "CREATE_FAILED",
+			},
+			{
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "ROLLBACK_FAILED",
+			},
+			{
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "UPDATE_ROLLBACK_IN_PROGRESS",
+			},
+			{
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "UPDATE_ROLLBACK_FAILED",
+			},
+			{
+				State:   request.FailureWaiterState,
+				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
+				Expected: "UPDATE_ROLLBACK_COMPLETE",
+			},
+		},
+		Logger: cf.Config.Logger,
+		NewRequest: func(opts []request.Option) (*request.Request, error) {
+
+			count++
+			activity.RecordHeartbeat(ctx, count)
+
+			var inCpy *cloudformation.DescribeStacksInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := cf.DescribeStacksRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+	w.ApplyOptions(opts...)
+
+	return w.WaitWithContext(ctx)
+}
+
+// WaitForASGToBeFulfilled waits until an ASG has the desired amount of healthy nodes
+func WaitForASGToBeFulfilled(
+	ctx context.Context,
+	logger *zap.SugaredLogger,
+	awsSession *session.Session,
+	stackName string,
+	nodePoolName string) error {
+
+	logger = logger.With("stackName", stackName)
+	logger.Info("wait for ASG to be fulfilled")
+
+	m := autoscaling.NewManager(awsSession, autoscaling.MetricsEnabled(true), autoscaling.Logger{
+		Logger: zapadapter.New(logger.Desugar()),
+	})
+
+	ticker := time.NewTicker(asgFulfillmentWaitInterval)
+	defer ticker.Stop()
+
+	i := 0
+	for {
+		select {
+		case <-ticker.C:
+			if i <= int(asgFulfillmentWaitAttempts) {
+				i++
+				activity.RecordHeartbeat(ctx, i)
+
+				asGroup, err := m.GetAutoscalingGroupByStackName(stackName)
+				if err != nil {
+					if aerr, ok := err.(awserr.Error); ok {
+						if aerr.Code() == "ValidationError" || aerr.Code() == "ASGNotFoundInResponse" {
+							continue
+						}
+					}
+					return errors.WrapIfWithDetails(err, "could not get ASG", "stackName", stackName)
+				}
+
+				ok, err := asGroup.IsHealthy()
+				if err != nil {
+					if autoscaling.IsErrorFinal(err) {
+						return errors.WithDetails(err, "nodePoolName", nodePoolName, "stackName", aws.StringValue(asGroup.AutoScalingGroupName))
+					}
+					//log.Debug(err)
+					continue
+				}
+				if ok {
+					//log.Debug("ASG is healthy")
+					return nil
+				}
+			} else {
+				return errors.Errorf("waiting for ASG to be fulfilled timed out after %d x %s", asgFulfillmentWaitAttempts, asgFulfillmentWaitInterval)
+			}
+		case <-ctx.Done(): // wait for ASG fulfillment cancelled
+			return nil
+		}
+	}
+
 }

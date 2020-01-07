@@ -85,7 +85,7 @@ func (a *DeleteStackActivity) Execute(ctx context.Context, input DeleteStackActi
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-	err = cloudformationClient.WaitUntilStackDeleteComplete(describeStacksInput)
+	err = WaitUntilStackDeleteCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
 		var awsErr awserr.Error
 		if errors.As(err, &awsErr) {

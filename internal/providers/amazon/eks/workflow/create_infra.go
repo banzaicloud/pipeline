@@ -77,6 +77,20 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 		},
 	}
 
+	aoWithHeartbeat := workflow.ActivityOptions{
+		ScheduleToStartTimeout: 10 * time.Minute,
+		StartToCloseTimeout:    5 * time.Minute,
+		WaitForCancellation:    true,
+		HeartbeatTimeout:       45 * time.Second,
+		RetryPolicy: &cadence.RetryPolicy{
+			InitialInterval:          2 * time.Second,
+			BackoffCoefficient:       1.5,
+			MaximumInterval:          30 * time.Second,
+			MaximumAttempts:          5,
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", ErrReasonStackFailed},
+		},
+	}
+
 	commonActivityInput := EKSActivityInput{
 		OrganizationID:            input.OrganizationID,
 		SecretID:                  input.SecretID,
@@ -97,6 +111,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			ClusterRoleID:      input.ClusterRoleID,
 			NodeInstanceRoleID: input.NodeInstanceRoleID,
 		}
+		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		iamRolesCreateActivityFuture = workflow.ExecuteActivity(ctx, CreateIamRolesActivityName, activityInput)
 	}
 
@@ -133,6 +148,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			VpcCidr:          input.VpcCidr,
 			StackName:        GenerateStackNameForCluster(input.ClusterName),
 		}
+		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		if err := workflow.ExecuteActivity(ctx, CreateVpcActivityName, activityInput).Get(ctx, &vpcActivityOutput); err != nil {
 			return nil, err
 		}
@@ -157,7 +173,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 					AvailabilityZone: subnet.AvailabilityZone,
 					StackName:        generateStackNameForSubnet(input.ClusterName, subnet.Cidr),
 				}
-
+				ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 				createSubnetFutures = append(createSubnetFutures, workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput))
 			} else if subnet.SubnetID != "" {
 				existingSubnetsIDs = append(existingSubnetsIDs, subnet.SubnetID)
@@ -245,6 +261,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			ScheduleToStartTimeout: 10 * time.Minute,
 			StartToCloseTimeout:    20 * time.Minute,
 			WaitForCancellation:    true,
+			HeartbeatTimeout:       35 * time.Second,
 			RetryPolicy: &cadence.RetryPolicy{
 				InitialInterval:          2 * time.Second,
 				BackoffCoefficient:       1.5,
@@ -311,6 +328,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			NodeInstanceType: asg.NodeInstanceType,
 			Labels:           asg.Labels,
 		}
+		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		f := workflow.ExecuteActivity(ctx, CreateAsgActivityName, activityInput)
 		asgFutures = append(asgFutures, f)
 	}

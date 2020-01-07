@@ -274,6 +274,18 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		}
 	}
 
+	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
+	err = WaitUntilStackUpdateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
+	if err != nil {
+		return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "waiting for CF stack create operation to complete failed")
+	}
+
+	// wait for ASG fulfillment
+	err = WaitForASGToBeFulfilled(ctx, logger, awsSession, input.StackName, input.Name)
+	if err != nil {
+		return nil, errors.WrapIff(err, "node pool %q ASG not fulfilled", input.Name)
+	}
+
 	outParams := UpdateAsgActivityOutput{}
 	return &outParams, nil
 }

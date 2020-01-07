@@ -187,6 +187,7 @@ func (a *CreateEksControlPlaneActivity) Execute(ctx context.Context, input Creat
 
 func waitUntilClusterCreateCompleteWithContext(eksSvc *eks.EKS, ctx aws.Context, input *eks.DescribeClusterInput, opts ...request.WaiterOption) error {
 	// wait for 15 mins
+	count := 0
 	w := request.Waiter{
 		Name:        "WaitUntilClusterCreateComplete",
 		MaxAttempts: 30,
@@ -215,6 +216,10 @@ func waitUntilClusterCreateCompleteWithContext(eksSvc *eks.EKS, ctx aws.Context,
 		},
 		Logger: eksSvc.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
+
+			count++
+			activity.RecordHeartbeat(ctx, count)
+
 			var inCpy *eks.DescribeClusterInput
 			if input != nil {
 				tmp := *input
