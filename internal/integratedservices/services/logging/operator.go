@@ -298,10 +298,10 @@ func (op IntegratedServiceOperator) processLoki(ctx context.Context, spec lokiSp
 
 		var chartValues = &lokiValues{
 			Ingress: ingressValues{
-				Enabled: spec.Ingress.Enabled,
-				Hosts:   []string{path.Join(domain, spec.Ingress.Path)},
+				Enabled:     spec.Ingress.Enabled,
+				Hosts:       []string{path.Join(domain, spec.Ingress.Path)},
+				Annotations: annotations,
 			},
-			Annotations: annotations,
 			Image: imageValues{
 				Repository: op.config.Images.Loki.Repository,
 				Tag:        op.config.Images.Loki.Tag,

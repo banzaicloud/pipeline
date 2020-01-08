@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/gofrs/uuid"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
@@ -97,12 +96,13 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 		"cluster", input.ClusterName,
 	)
 
+	workflowID := workflow.GetInfo(ctx).WorkflowExecution.ID
 	commonActivityInput := eksWorkflow.EKSActivityInput{
 		OrganizationID:            input.OrganizationID,
 		SecretID:                  input.SecretID,
 		Region:                    input.Region,
 		ClusterName:               input.ClusterName,
-		AWSClientRequestTokenBase: uuid.Must(uuid.NewV4()).String(),
+		AWSClientRequestTokenBase: workflowID,
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
