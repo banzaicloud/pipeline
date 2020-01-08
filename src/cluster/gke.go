@@ -65,9 +65,9 @@ const (
 )
 
 const (
-	defaultNamespace = "default"
-	clusterAdmin     = "cluster-admin"
-	netesDefault     = "netes-default"
+	adminSANamespace = "kube-system"
+	adminSAName      = "pipeline"
+	adminSARoleName  = "cluster-admin"
 )
 
 // constants to find Kubernetes resources
@@ -1338,18 +1338,18 @@ func (c *GKECluster) generateServiceAccountTokenForGke(cluster *gke.Cluster) (st
 func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error) {
 	serviceAccount := &v1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: netesDefault,
+			Name: adminSAName,
 		},
 	}
 
-	_, err := clientset.CoreV1().ServiceAccounts(defaultNamespace).Create(serviceAccount)
+	_, err := clientset.CoreV1().ServiceAccounts(adminSANamespace).Create(serviceAccount)
 	if err != nil && !k8sErrors.IsAlreadyExists(err) {
-		return "", errors.WrapIfWithDetails(err, "creating service account failed", "namespace", defaultNamespace, "service account", serviceAccount)
+		return "", errors.WrapIfWithDetails(err, "creating service account failed", "namespace", adminSANamespace, "service account", serviceAccount)
 	}
 
 	adminRole := &rbacv1.ClusterRole{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: clusterAdmin,
+			Name: adminSARoleName,
 		},
 		Rules: []rbacv1.PolicyRule{
 			{
@@ -1363,7 +1363,7 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 			},
 		},
 	}
-	clusterAdminRole, err := clientset.RbacV1().ClusterRoles().Get(clusterAdmin, metav1.GetOptions{})
+	clusterAdminRole, err := clientset.RbacV1().ClusterRoles().Get(adminSARoleName, metav1.GetOptions{})
 	if err != nil {
 		clusterAdminRole, err = clientset.RbacV1().ClusterRoles().Create(adminRole)
 		if err != nil {
@@ -1373,13 +1373,13 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 
 	clusterRoleBinding := &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprintf("%s-clusterRoleBinding", netesDefault),
+			Name: fmt.Sprintf("%s-clusterRoleBinding", adminSAName),
 		},
 		Subjects: []rbacv1.Subject{
 			{
 				Kind:      "ServiceAccount",
 				Name:      serviceAccount.Name,
-				Namespace: "default",
+				Namespace: adminSANamespace,
 			},
 		},
 		RoleRef: rbacv1.RoleRef{
@@ -1391,15 +1391,15 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 		return "", errors.WrapIfWithDetails(err, "creating cluster role binding failed", "cluster role", clusterAdminRole.Name, "service account", serviceAccount.Name)
 	}
 
-	if serviceAccount, err = clientset.CoreV1().ServiceAccounts(defaultNamespace).Get(serviceAccount.Name, metav1.GetOptions{}); err != nil {
-		return "", errors.WrapIfWithDetails(err, "retrieving service account failed", "namespace", defaultNamespace, "service account", serviceAccount.Name)
+	if serviceAccount, err = clientset.CoreV1().ServiceAccounts(adminSANamespace).Get(serviceAccount.Name, metav1.GetOptions{}); err != nil {
+		return "", errors.WrapIfWithDetails(err, "retrieving service account failed", "namespace", adminSANamespace, "service account", serviceAccount.Name)
 	}
 
 	if len(serviceAccount.Secrets) > 0 {
 		secret := serviceAccount.Secrets[0]
-		secretObj, err := clientset.CoreV1().Secrets(defaultNamespace).Get(secret.Name, metav1.GetOptions{})
+		secretObj, err := clientset.CoreV1().Secrets(adminSANamespace).Get(secret.Name, metav1.GetOptions{})
 		if err != nil {
-			return "", errors.WrapIfWithDetails(err, "retrieving kubernetes secret found", "namespace", defaultNamespace, "secret", secret.Name)
+			return "", errors.WrapIfWithDetails(err, "retrieving kubernetes secret found", "namespace", adminSANamespace, "secret", secret.Name)
 		}
 		if token, ok := secretObj.Data["token"]; ok {
 			return string(token), nil
