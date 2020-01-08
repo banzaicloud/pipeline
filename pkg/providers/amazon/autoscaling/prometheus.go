@@ -15,6 +15,8 @@
 package autoscaling
 
 import (
+	"sync"
+
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
@@ -23,6 +25,9 @@ import (
 // nolint: gochecknoglobals
 var (
 	timers map[string]*prometheus.Timer
+
+	// nolint: gochecknoglobals
+	timerMu sync.Mutex
 
 	ec2InstanceStartupDuration = prometheus.NewSummaryVec(prometheus.SummaryOpts{
 		Namespace: "pipeline",
@@ -49,6 +54,9 @@ func init() {
 // StartMetricTimer starts a prometheus metric timer for a node instance
 func (m *Manager) StartMetricTimer(instance *Instance) *prometheus.Timer {
 	var region, availabilityZone, instanceType, priceType string
+
+	timerMu.Lock()
+	defer timerMu.Unlock()
 
 	if !m.metricsEnabled {
 		return nil
@@ -96,6 +104,9 @@ func (m *Manager) StopMetricTimer(instance *Instance) bool {
 
 	key := *instance.InstanceId
 
+	timerMu.Lock()
+	defer timerMu.Unlock()
+
 	if timers[key] == nil {
 		return false
 	}
@@ -103,6 +114,7 @@ func (m *Manager) StopMetricTimer(instance *Instance) bool {
 	m.logger.Debug("stop metric timer", map[string]interface{}{
 		"instance-id": key,
 	})
+
 	timers[key].ObserveDuration()
 	timers[key] = nil
 
