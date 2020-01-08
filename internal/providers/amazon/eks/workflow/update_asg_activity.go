@@ -253,25 +253,28 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		TemplateBody:       aws.String(a.cloudFormationTemplate),
 	}
 
+	outParams := UpdateAsgActivityOutput{}
+
 	_, err = cloudformationClient.UpdateStack(updateStackInput)
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ValidationError" && strings.HasPrefix(awsErr.Message(), awsNoUpdatesError) {
 			// Get error details
 			activity.GetLogger(ctx).Warn("nothing changed during update!")
-			err = nil // nolint: ineffassign
-		} else {
-			var awsErr awserr.Error
-			if errors.As(err, &awsErr) {
-				if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
-					err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient)
-					err = errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
-					if pkgCloudformation.IsErrorFinal(err) {
-						return nil, cadence.NewCustomError(ErrReasonStackFailed, err.Error())
-					}
-					return nil, errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
+			return &outParams, nil
+		}
+
+		var awsErr awserr.Error
+		if errors.As(err, &awsErr) {
+			if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
+				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient)
+				err = errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
+				if pkgCloudformation.IsErrorFinal(err) {
+					return nil, cadence.NewCustomError(ErrReasonStackFailed, err.Error())
 				}
+				return nil, errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
 			}
 		}
+
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
@@ -286,6 +289,5 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		return nil, errors.WrapIff(err, "node pool %q ASG not fulfilled", input.Name)
 	}
 
-	outParams := UpdateAsgActivityOutput{}
 	return &outParams, nil
 }
