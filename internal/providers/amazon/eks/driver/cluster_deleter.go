@@ -124,6 +124,7 @@ func (cd EKSClusterDeleter) DeleteCluster(ctx context.Context, eksCluster *clust
 			return
 		}
 		cd.kubeProxyCache.Delete(eksCluster.GetUID())
+		if cd.events != nil {
 		cd.events.ClusterDeleted(eksCluster.GetOrganizationId(), eksCluster.GetName())
 	}()
 
