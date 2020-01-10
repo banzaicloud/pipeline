@@ -405,8 +405,6 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
 		NodeInstanceRoleArn: "node-instance-role-arn",
 	}, nil)
 
-	s.env.OnActivity(CreateClusterUserAccessKeyActivityName, mock.Anything, mock.Anything).Return(&CreateClusterUserAccessKeyActivityOutput{}, nil)
-
 	s.env.OnActivity(UploadSSHKeyActivityName, mock.Anything, mock.Anything).Return(&UploadSSHKeyActivityOutput{}, nil)
 
 	s.env.OnActivity(CreateVpcActivityName, mock.Anything, mock.Anything).Return(nil, errors.New("failed to create VPC"))
