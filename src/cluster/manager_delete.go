@@ -297,7 +297,9 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 	logger.Info("cluster deleted successfully")
 
-	m.events.ClusterDeleted(orgID, deleteName)
+	if m.events != nil {
+		m.events.ClusterDeleted(orgID, deleteName)
+	}
 
 	return nil
 }
