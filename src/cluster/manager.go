@@ -149,6 +149,10 @@ func (m *Manager) getClusterErrorHandler(ctx context.Context, commonCluster Comm
 }
 
 func (m *Manager) getClusterStatusChangeMetricTimer(provider, location, status string, orgId uint, clusterName string) (metrics.DurationMetricTimer, error) {
+	if m.statusChangeDurationMetric == nil {
+		return metrics.NoopDurationMetricTimer{}, nil
+	}
+
 	values := metrics.ClusterStatusChangeDurationMetricValues{
 		ProviderName: provider,
 		LocationName: location,
