@@ -29,6 +29,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
@@ -233,12 +234,12 @@ func (cd ClusterDeleter) getClusterStatusChangeDurationTimer(cluster pke.Cluster
 	return cd.statusChangeDurationMetric.StartTimer(values), nil
 }
 
-func (cd ClusterDeleter) DeleteByID(ctx context.Context, clusterID uint, forced bool) error {
+func (cd ClusterDeleter) DeleteCluster(ctx context.Context, clusterID uint, options cluster.DeleteClusterOptions) error {
 	cl, err := cd.store.GetByID(clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to load cluster from data store")
 	}
-	return cd.Delete(ctx, cl, forced)
+	return cd.Delete(ctx, cl, options.Force)
 }
 
 func collectPublicIPAddressNames(

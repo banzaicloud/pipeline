@@ -420,25 +420,6 @@ func main() {
 			clusterTotalMetric,
 		),
 	}
-	clusterDeleters := api.ClusterDeleters{
-		PKEOnAzure: azurePKEDriver.MakeClusterDeleter(
-			clusterEvents,
-			clusterManager.GetKubeProxyCache(),
-			logrusLogger,
-			secret.Store,
-			statusChangeDurationMetric,
-			azurePKEClusterStore,
-			workflowClient,
-		),
-		EKSAmazon: eksDriver.NewEKSClusterDeleter(
-			clusterEvents,
-			clusterManager.GetKubeProxyCache(),
-			logrusLogger,
-			secret.Store,
-			statusChangeDurationMetric,
-			workflowClient,
-		),
-	}
 
 	cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
 	clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
@@ -471,13 +452,11 @@ func main() {
 		clusterManager,
 		commonClusterGetter,
 		workflowClient,
-		clusterGroupManager,
 		logrusLogger,
 		errorHandler,
 		externalBaseURL,
 		externalURLInsecure,
 		clusterCreators,
-		clusterDeleters,
 		clusterUpdaters,
 		dynamicClientFactory,
 	)
@@ -698,7 +677,6 @@ func main() {
 				cRouter.POST("/secrets/:secretName", api.InstallSecretToCluster)
 				cRouter.PATCH("/secrets/:secretName", api.MergeSecretInCluster)
 				cRouter.Any("/proxy/*path", clusterAPI.ProxyToCluster)
-				cRouter.DELETE("", clusterAPI.DeleteCluster)
 				cRouter.HEAD("", clusterAPI.ClusterCheck)
 				cRouter.GET("/config", api.GetClusterConfig)
 				cRouter.GET("/apiendpoint", api.GetApiEndpoint)
@@ -717,6 +695,26 @@ func main() {
 				cRouter.GET("/images", api.ListImages)
 				cRouter.GET("/images/:imageDigest/deployments", api.GetImageDeployments)
 				cRouter.GET("/deployments/:name/images", api.GetDeploymentImages)
+
+				{
+					service := intCluster.NewService(
+						clusteradapter.NewStore(db, clusters),
+						clusteradapter.NewCadenceClusterManager(workflowClient),
+					)
+					endpoints := clusterdriver.MakeClusterEndpoints(
+						service,
+						kitxendpoint.Chain(endpointMiddleware...),
+						appkit.EndpointLogger(commonLogger),
+					)
+					clusterdriver.RegisterClusterHTTPHandlers(
+						endpoints,
+						clusterRouter,
+						kitxhttp.ServerOptions(httpServerOptions),
+						kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+					)
+					cRouter.DELETE("", gin.WrapH(router))
+				}
+
 			}
 
 			clusterSecretStore := clustersecret.NewStore(

@@ -31,7 +31,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
-	intClusterGroup "github.com/banzaicloud/pipeline/internal/clustergroup"
 	"github.com/banzaicloud/pipeline/internal/global"
 	eksdriver "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
@@ -52,7 +51,6 @@ import (
 type ClusterAPI struct {
 	clusterManager          *cluster.Manager
 	clusterGetter           common.ClusterGetter
-	clusterGroupManager     *intClusterGroup.Manager
 	externalBaseURL         string
 	externalBaseURLInsecure bool
 	workflowClient          client.Client
@@ -61,18 +59,12 @@ type ClusterAPI struct {
 	logger          logrus.FieldLogger
 	errorHandler    emperror.Handler
 	clusterCreators ClusterCreators
-	clusterDeleters ClusterDeleters
 	clusterUpdaters ClusterUpdaters
 }
 
 type ClusterCreators struct {
 	PKEOnAzure driver.ClusterCreator
 	EKSAmazon  eksdriver.EksClusterCreator
-}
-
-type ClusterDeleters struct {
-	PKEOnAzure driver.ClusterDeleter
-	EKSAmazon  eksdriver.EKSClusterDeleter
 }
 
 type ClusterUpdaters struct {
@@ -85,13 +77,11 @@ func NewClusterAPI(
 	clusterManager *cluster.Manager,
 	clusterGetter common.ClusterGetter,
 	workflowClient client.Client,
-	clusterGroupManager *intClusterGroup.Manager,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
 	externalBaseURL string,
 	externalBaseURLInsecure bool,
 	clusterCreators ClusterCreators,
-	clusterDeleters ClusterDeleters,
 	clusterUpdaters ClusterUpdaters,
 	clientFactory common.DynamicClientFactory,
 ) *ClusterAPI {
@@ -99,13 +89,11 @@ func NewClusterAPI(
 		clusterManager:          clusterManager,
 		clusterGetter:           clusterGetter,
 		workflowClient:          workflowClient,
-		clusterGroupManager:     clusterGroupManager,
 		externalBaseURL:         externalBaseURL,
 		externalBaseURLInsecure: externalBaseURLInsecure,
 		logger:                  logger,
 		errorHandler:            errorHandler,
 		clusterCreators:         clusterCreators,
-		clusterDeleters:         clusterDeleters,
 		clusterUpdaters:         clusterUpdaters,
 		clientFactory:           clientFactory,
 	}

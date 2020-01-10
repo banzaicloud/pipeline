@@ -46,7 +46,11 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
+	"github.com/banzaicloud/pipeline/internal/clustergroup"
+	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
+	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
@@ -59,6 +63,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan/securityscanadapter"
 	integratedServiceVault "github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
+	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/kubernetes/kubernetesadapter"
 	intpkeworkflowadapter "github.com/banzaicloud/pipeline/internal/pke/workflow/adapter"
@@ -68,16 +73,20 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	eksClusterAdapter "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/adapter"
+	eksClusterDriver "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/driver"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
+	azurepkedriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/auth/authdriver"
 	"github.com/banzaicloud/pipeline/src/cluster"
+	legacyclusteradapter "github.com/banzaicloud/pipeline/src/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/src/dns"
 	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/spotguide"
@@ -260,6 +269,11 @@ func main() {
 		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 		configFactory := kubernetes.NewConfigFactory(commonSecretStore)
 
+		workflowClient, err := cadence.NewClient(config.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
+		if err != nil {
+			errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
+		}
+
 		// Cluster setup
 		{
 			wf := clustersetup.Workflow{
@@ -353,6 +367,81 @@ func main() {
 		}
 
 		clusterStore := clusteradapter.NewStore(db, clusteradapter.NewClusters(db))
+
+		{
+			workflow.RegisterWithOptions(clusterworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: clusterworkflow.DeleteClusterWorkflowName})
+
+			cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
+			clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
+			federationHandler := federation.NewFederationHandler(cgroupAdapter, global.Config.Cluster.Namespace, logrusLogger, errorHandler)
+			deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler)
+			serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler)
+			clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)
+			clusterGroupManager.RegisterFeatureHandler(deployment.FeatureName, deploymentManager)
+			clusterGroupManager.RegisterFeatureHandler(cgFeatureIstio.FeatureName, serviceMeshFeatureHandler)
+
+			removeClusterFromGroupActivity := clusterworkflow.MakeRemoveClusterFromGroupActivity(clusterGroupManager)
+			activity.RegisterWithOptions(removeClusterFromGroupActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.RemoveClusterFromGroupActivityName})
+
+			commonClusterDeleter := legacyclusteradapter.NewCommonClusterDeleterAdapter(
+				clusterManager,
+				clusterManager,
+			)
+			deleteClusterActivity := clusterworkflow.MakeDeleteClusterActivity(
+				clusteradapter.NewPolyClusterDeleter(
+					clusterStore,
+					clusteradapter.ClusterDeleterEntry{
+						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Alibaba, pkgCluster.ACK),
+						Deleter: commonClusterDeleter,
+					},
+					clusteradapter.ClusterDeleterEntry{
+						Key: clusteradapter.MakeClusterDeleterKey(pkgCluster.Amazon, pkgCluster.EKS),
+						Deleter: eksClusterDriver.NewEKSClusterDeleter(
+							nil,
+							clusterManager.GetKubeProxyCache(),
+							logrusLogger,
+							secret.Store,
+							nil,
+							workflowClient,
+							clusterManager,
+						),
+					},
+					clusteradapter.ClusterDeleterEntry{
+						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Amazon, pkgCluster.PKE),
+						Deleter: commonClusterDeleter,
+					},
+					clusteradapter.ClusterDeleterEntry{
+						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Azure, pkgCluster.AKS),
+						Deleter: commonClusterDeleter,
+					},
+					clusteradapter.ClusterDeleterEntry{
+						Key: clusteradapter.MakeClusterDeleterKey(pkgCluster.Azure, pkgCluster.PKE),
+						Deleter: azurepkedriver.MakeClusterDeleter(
+							nil,
+							clusterManager.GetKubeProxyCache(),
+							logrusLogger,
+							secret.Store,
+							nil,
+							azurePKEClusterStore,
+							workflowClient,
+						),
+					},
+					clusteradapter.ClusterDeleterEntry{
+						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Google, pkgCluster.GKE),
+						Deleter: commonClusterDeleter,
+					},
+					clusteradapter.ClusterDeleterEntry{
+						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Kubernetes, ""),
+						Deleter: commonClusterDeleter,
+					},
+					clusteradapter.ClusterDeleterEntry{
+						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Oracle, pkgCluster.OKE),
+						Deleter: commonClusterDeleter,
+					},
+				),
+			)
+			activity.RegisterWithOptions(deleteClusterActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.DeleteClusterActivityName})
+		}
 
 		{
 			workflow.RegisterWithOptions(clusterworkflow.DeleteNodePoolWorkflow, workflow.RegisterOptions{Name: clusterworkflow.DeleteNodePoolWorkflowName})

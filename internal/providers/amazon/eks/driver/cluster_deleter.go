@@ -22,13 +22,22 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
+	intcluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-func NewEKSClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyCache, logger logrus.FieldLogger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, workflowClient client.Client) EKSClusterDeleter {
+func NewEKSClusterDeleter(
+	events ClusterDeleterEvents,
+	kubeProxyCache KubeProxyCache,
+	logger logrus.FieldLogger,
+	secrets SecretStore,
+	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric,
+	workflowClient client.Client,
+	clusterGetter CommonClusterGetter,
+) EKSClusterDeleter {
 	return EKSClusterDeleter{
 		events:                     events,
 		kubeProxyCache:             kubeProxyCache,
@@ -36,7 +45,12 @@ func NewEKSClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyC
 		secrets:                    secrets,
 		statusChangeDurationMetric: statusChangeDurationMetric,
 		workflowClient:             workflowClient,
+		clusterGetter:              clusterGetter,
 	}
+}
+
+type CommonClusterGetter interface {
+	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
 }
 
 type EKSClusterDeleter struct {
@@ -46,6 +60,7 @@ type EKSClusterDeleter struct {
 	secrets                    SecretStore
 	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric
 	workflowClient             client.Client
+	clusterGetter              CommonClusterGetter
 }
 
 type SecretStore interface {
@@ -61,13 +76,25 @@ type KubeProxyCache interface {
 }
 
 // DeleteCluster deletes an EKS Cluster
-func (cd EKSClusterDeleter) DeleteCluster(ctx context.Context, eksCluster *cluster.EKSCluster, forced bool) error {
+func (cd EKSClusterDeleter) DeleteCluster(ctx context.Context, clusterID uint, options intcluster.DeleteClusterOptions) error {
+	var eksCluster *cluster.EKSCluster
+	{
+		cc, err := cd.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+		if err != nil {
+			return errors.WrapIf(err, "failed to get cluster")
+		}
+
+		var ok bool
+		if eksCluster, ok = cc.(*cluster.EKSCluster); !ok {
+			return errors.NewWithDetails("not an EKS cluster", "clusterId", clusterID)
+		}
+	}
 
 	logger := cd.logger.WithFields(logrus.Fields{
 		"clusterName":    eksCluster.GetName(),
 		"clusterID":      eksCluster.GetID(),
 		"organizationID": eksCluster.GetOrganizationId(),
-		"forced":         forced,
+		"forced":         options.Force,
 	})
 	logger.Info("start deleting EKS Cluster")
 
@@ -88,7 +115,7 @@ func (cd EKSClusterDeleter) DeleteCluster(ctx context.Context, eksCluster *clust
 		NodePoolNames:  nodePoolNames,
 		K8sSecretID:    eksCluster.GetConfigSecretId(),
 		DefaultUser:    modelCluster.DefaultUser,
-		Forced:         forced,
+		Forced:         options.Force,
 	}
 
 	workflowOptions := client.StartWorkflowOptions{
@@ -101,7 +128,7 @@ func (cd EKSClusterDeleter) DeleteCluster(ctx context.Context, eksCluster *clust
 
 	timer, err := getClusterStatusChangeMetricTimer(eksCluster.GetCloud(), eksCluster.GetLocation(), pkgCluster.Deleting, eksCluster.GetOrganizationId(), eksCluster.GetName(), cd.statusChangeDurationMetric)
 	if err = errors.WrapIf(err, "failed to start status change duration metric timer"); err != nil {
-		if forced {
+		if options.Force {
 			logger.Error(err)
 			timer = metrics.NoopDurationMetricTimer{}
 		} else {
@@ -125,7 +152,8 @@ func (cd EKSClusterDeleter) DeleteCluster(ctx context.Context, eksCluster *clust
 		}
 		cd.kubeProxyCache.Delete(eksCluster.GetUID())
 		if cd.events != nil {
-		cd.events.ClusterDeleted(eksCluster.GetOrganizationId(), eksCluster.GetName())
+			cd.events.ClusterDeleted(eksCluster.GetOrganizationId(), eksCluster.GetName())
+		}
 	}()
 
 	err = eksCluster.SetCurrentWorkflowID(wfrun.GetID())
