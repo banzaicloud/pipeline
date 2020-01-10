@@ -33,7 +33,7 @@ func (e expiryServiceManager) ValidateSpec(ctx context.Context, spec integrateds
 	expirySpec := ServiceSpec{}
 	if err := services.BindIntegratedServiceSpec(spec, &expirySpec); err != nil {
 		return integratedservices.InvalidIntegratedServiceSpecError{
-			IntegratedServiceName: ExpiryIntegrationServiceName,
+			IntegratedServiceName: ExpiryInternalServiceName,
 			Problem:               "failed to bind the expiry service specification",
 		}
 	}
@@ -46,7 +46,7 @@ func (e expiryServiceManager) ValidateSpec(ctx context.Context, spec integrateds
 }
 
 func (e expiryServiceManager) Name() string {
-	return ExpiryIntegrationServiceName
+	return ExpiryInternalServiceName
 }
 
 func NewExpiryServiceManager() expiryServiceManager {

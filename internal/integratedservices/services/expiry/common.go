@@ -14,4 +14,4 @@
 
 package expiry
 
-const ExpiryIntegrationServiceName = "expiry"
+const ExpiryInternalServiceName = "expiry"

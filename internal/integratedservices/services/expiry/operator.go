@@ -32,9 +32,12 @@ func (e expiryServiceOperator) Deactivate(ctx context.Context, clusterID uint, s
 }
 
 func (e expiryServiceOperator) Name() string {
-	return ExpiryIntegrationServiceName
+	return ExpiryInternalServiceName
 }
 
 func NewExpiryServiceOperator() expiryServiceOperator {
-	return expiryServiceOperator{}
+	return expiryServiceOperator{
+		expirer: NewSyncNoOpExpirer(common.NewNoopLogger()),
+		log:     common.NewNoopLogger(),
+	}
 }

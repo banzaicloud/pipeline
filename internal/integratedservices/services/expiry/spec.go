@@ -21,7 +21,7 @@ import (
 )
 
 type ServiceSpec struct {
-	Date string `json:"date" mapstruecture:"date"`
+	Date string `json:"date" mapstructure:"date"`
 }
 
 // https://www.ietf.org/rfc/rfc3339.txt
@@ -31,17 +31,17 @@ func (s ServiceSpec) Validate() error {
 	if err != nil {
 
 		return integratedservices.InvalidIntegratedServiceSpecError{
-			IntegratedServiceName: ExpiryIntegrationServiceName,
+			IntegratedServiceName: ExpiryInternalServiceName,
 			Problem:               "date must be in RFC3339 format",
 		}
 	}
 
 	if !t.After(time.Now()) {
+
 		return integratedservices.InvalidIntegratedServiceSpecError{
-			IntegratedServiceName: ExpiryIntegrationServiceName,
+			IntegratedServiceName: ExpiryInternalServiceName,
 			Problem:               "the provided date must be in the future",
 		}
-
 	}
 
 	return nil
