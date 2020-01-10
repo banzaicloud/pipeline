@@ -15,12 +15,20 @@
 package cluster
 
 import (
+	"encoding/base64"
 	"fmt"
+	"net/http"
+	"net/url"
 	"time"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
+	"github.com/ghodss/yaml"
+	ociCommon "github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/containerengine"
-	"github.com/pkg/errors"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
@@ -34,6 +42,8 @@ import (
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
+
+const kubeconfigTokenURL = "https://containerengine.%s.oraclecloud.com/cluster_request/%s"
 
 // OKECluster struct for OKE cluster
 type OKECluster struct {
@@ -100,7 +110,7 @@ func (o *OKECluster) CreateCluster() error {
 
 	o.modelCluster.OKE.SSHPubKey, err = o.getSSHPubKey()
 	if err != nil {
-		return errors.Wrap(err, "could not get ssh pubkey")
+		return errors.WrapIf(err, "could not get ssh pubkey")
 	}
 
 	return cm.ManageOKECluster(&o.modelCluster.OKE)
@@ -127,7 +137,7 @@ func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, userId ui
 
 	model.SSHPubKey, err = o.getSSHPubKey()
 	if err != nil {
-		return errors.Wrap(err, "could not get ssh pubkey")
+		return errors.WrapIf(err, "could not get ssh pubkey")
 	}
 
 	o.modelCluster.OKE = model
@@ -191,15 +201,116 @@ func (o *OKECluster) DownloadK8sConfig() ([]byte, error) {
 
 	oci, err := o.GetOCIWithRegion(o.modelCluster.Location)
 	if err != nil {
-		return nil, err
+		return nil, errors.WrapIf(err, "could not get OCI client")
 	}
 
 	ce, err := oci.NewContainerEngineClient()
 	if err != nil {
-		return nil, err
+		return nil, errors.WrapIf(err, "could not get container engine client")
 	}
 
-	return ce.GetK8SConfig(o.modelCluster.OKE.OCID)
+	k8sConfig, err := ce.GetK8SConfig(o.modelCluster.OKE.OCID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "could not retrieve kubeconfig from provider")
+	}
+
+	k8sConfig, err = o.replaceKubeconfigExecAuthWithSAToken(oci, k8sConfig)
+	if err != nil {
+		return nil, errors.WrapIf(err, "could not replace exec auth in kubeconfig")
+	}
+
+	return k8sConfig, nil
+}
+
+func (o *OKECluster) replaceKubeconfigExecAuthWithSAToken(oci *oci.OCI, k8sConfig []byte) ([]byte, error) {
+	var config clientcmdv1.Config
+	err := yaml.Unmarshal(k8sConfig, &config)
+	if err != nil {
+		return nil, errors.WrapIf(err, "could not unmarshal kubeconfig")
+	}
+
+	execFound := false
+	for _, ai := range config.AuthInfos {
+		if ai.AuthInfo.Exec != nil {
+			execFound = true
+			break
+		}
+	}
+
+	if !execFound {
+		return k8sConfig, nil
+	}
+
+	signer := ociCommon.DefaultRequestSigner(oci.GetConfig())
+	region, err := oci.GetConfig().Region()
+	if err != nil {
+		return nil, errors.WrapIf(err, "could not get region")
+	}
+
+	u, err := url.Parse(fmt.Sprintf(kubeconfigTokenURL, region, o.modelCluster.OKE.OCID))
+	if err != nil {
+		return nil, errors.WrapIf(err, "could not parse token request URL")
+	}
+
+	req := &http.Request{
+		Method: http.MethodGet,
+		URL:    u,
+		Header: make(http.Header),
+	}
+	req.Header.Set("Date", time.Now().UTC().Format(http.TimeFormat))
+	err = signer.Sign(req)
+	if err != nil {
+		return nil, errors.WrapIf(err, "could not create signature for token request")
+	}
+
+	q := u.Query()
+	q.Add("authorization", req.Header.Get("Authorization"))
+	q.Add("date", req.Header.Get("Date"))
+	u.RawQuery = q.Encode()
+
+	token := base64.URLEncoding.EncodeToString([]byte(u.String()))
+
+	for i, ai := range config.AuthInfos {
+		if ai.AuthInfo.Exec != nil {
+			ai.AuthInfo.Exec = nil
+			ai.AuthInfo.Token = token
+		}
+		config.AuthInfos[i] = ai
+	}
+
+	k8sConfig, err = yaml.Marshal(config)
+	if err != nil {
+		return nil, errors.WrapIf(err, "could not marshal kubeconfig")
+	}
+
+	restConfig, err := clientcmd.RESTConfigFromKubeConfig(k8sConfig)
+	if err != nil {
+		return nil, errors.WrapIf(err, "could not get rest config from yaml")
+	}
+
+	clientset, err := kubernetes.NewForConfig(restConfig)
+	if err != nil {
+		return nil, errors.WrapIf(err, "could not create kubernetes clientset")
+	}
+
+	saToken, err := generateServiceAccountToken(clientset)
+	if err != nil {
+		return nil, errors.WrapIf(err, "could not create service account for pipeline")
+	}
+
+	for i, ai := range config.AuthInfos {
+		if ai.AuthInfo.Token != "" {
+			ai.AuthInfo.Token = saToken
+		}
+		config.AuthInfos[i] = ai
+	}
+
+	k8sConfig, err = yaml.Marshal(config)
+	if err != nil {
+		return nil, errors.WrapIf(err, "could not marshal kubeconfig")
+	}
+
+	return k8sConfig, nil
 }
 
 // GetName returns the name of the cluster
@@ -384,7 +495,7 @@ func (o *OKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 	if err != nil {
 		deleteError := o.DeletePreconfiguredVCN(o.modelCluster.OKE.VCNID)
 		if deleteError != nil {
-			err = errors.Wrap(deleteError, err.Error())
+			err = errors.WrapIf(deleteError, err.Error())
 		}
 		return err
 	}
@@ -579,7 +690,7 @@ func (o *OKECluster) GetKubernetesUserName() (string, error) {
 
 	s, err := o.GetSecretWithValidation()
 	if err != nil {
-		return "", errors.Wrap(err, "error getting secret")
+		return "", errors.WrapIf(err, "error getting secret")
 	}
 
 	if s.Values[secrettype.OracleUserOCID] == "" {

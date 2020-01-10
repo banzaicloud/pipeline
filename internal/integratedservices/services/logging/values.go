@@ -25,13 +25,13 @@ type imageValues struct {
 }
 
 type lokiValues struct {
-	Ingress     ingressValues          `json:"ingress" mapstructure:"ingress"`
-	Annotations map[string]interface{} `json:"annotations,omitempty" mapstructure:"annotations"`
-	Image       imageValues            `json:"image"`
+	Ingress ingressValues `json:"ingress" mapstructure:"ingress"`
+	Image   imageValues   `json:"image"`
 }
 
 type ingressValues struct {
-	Enabled bool     `json:"enabled" mapstructure:"enabled"`
-	Hosts   []string `json:"hosts" mapstructure:"hosts"`
-	Path    string   `json:"path,omitempty" mapstructure:"path"`
+	Enabled     bool                   `json:"enabled" mapstructure:"enabled"`
+	Hosts       []string               `json:"hosts" mapstructure:"hosts"`
+	Path        string                 `json:"path,omitempty" mapstructure:"path"`
+	Annotations map[string]interface{} `json:"annotations,omitempty" mapstructure:"annotations"`
 }
