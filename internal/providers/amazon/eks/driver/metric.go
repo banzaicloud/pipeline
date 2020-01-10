@@ -23,6 +23,10 @@ import (
 )
 
 func getClusterStatusChangeMetricTimer(provider, location, status string, orgId uint, clusterName string, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric) (metrics.DurationMetricTimer, error) {
+	if statusChangeDurationMetric == nil {
+		return metrics.NoopDurationMetricTimer{}, nil
+	}
+
 	values := metrics.ClusterStatusChangeDurationMetricValues{
 		ProviderName: provider,
 		LocationName: location,
