@@ -101,6 +101,7 @@ type ClusterConfig struct {
 	Logging      ClusterLoggingConfig
 	DNS          ClusterDNSConfig
 	SecurityScan ClusterSecurityScanConfig
+	Expiry       ExpiryConfig
 }
 
 // Validate validates the configuration.
@@ -246,6 +247,10 @@ func (c ClusterSecurityScanAnchoreConfig) Validate() error {
 	}
 
 	return nil
+}
+
+type ExpiryConfig struct {
+	Enabled bool
 }
 
 // Configure configures some defaults in the Viper instance.
@@ -477,6 +482,8 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::securityScan::anchore::endpoint", "")
 	v.SetDefault("cluster::securityScan::anchore::user", "")
 	v.SetDefault("cluster::securityScan::anchore::password", "")
+
+	v.SetDefault("cluster::expiry::enabled", true)
 
 	v.SetDefault("cluster::disasterRecovery::enabled", true)
 	v.SetDefault("cluster::disasterRecovery::namespace", "")

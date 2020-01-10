@@ -58,6 +58,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
 	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	integratedServiceMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
@@ -627,6 +628,7 @@ func main() {
 					logger,
 					commonSecretStore,
 				),
+				expiry.NewExpiryServiceOperator(),
 			})
 
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)
