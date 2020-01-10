@@ -17,14 +17,30 @@ package expiry
 import (
 	"context"
 
+	"emperror.dev/errors"
+
+	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 )
 
 type expiryServiceOperator struct {
+	expirer Expirer
+
+	log common.Logger
 }
 
 func (e expiryServiceOperator) Apply(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
-	panic("implement me")
+	expirySpec := ServiceSpec{}
+	if err := services.BindIntegratedServiceSpec(spec, &expirySpec); err != nil {
+		return errors.WrapIf(err, "failed to bind the expiry service specification")
+	}
+
+	if err := e.expirer.Expire(context.Background(), expirySpec.Date); err != nil {
+		return errors.WrapIf(err, "failed to expire the resource")
+	}
+
+	return nil
 }
 
 func (e expiryServiceOperator) Deactivate(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
