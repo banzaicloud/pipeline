@@ -115,19 +115,8 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 		iamRolesCreateActivityFuture = workflow.ExecuteActivity(ctx, CreateIamRolesActivityName, activityInput)
 	}
 
-	// create IAM user access key, in case defaultUser = false and save as secret
-	var userAccessKeyActivityFeature workflow.Future
-	{
-		activityInput := &CreateClusterUserAccessKeyActivityInput{
-			EKSActivityInput: commonActivityInput,
-			UserName:         input.ClusterName,
-			UseDefaultUser:   input.DefaultUser,
-		}
-		userAccessKeyActivityFeature = workflow.ExecuteActivity(ctx, CreateClusterUserAccessKeyActivityName, activityInput)
-	}
-
-	sshKeyName := GenerateSSHKeyNameForCluster(input.ClusterName)
 	// upload SSH key activity
+	sshKeyName := GenerateSSHKeyNameForCluster(input.ClusterName)
 	var uploadSSHKeyActivityFeature workflow.Future
 	{
 		activityInput := &UploadSSHKeyActivityInput{
@@ -154,8 +143,24 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 		}
 	}
 
-	// create Subnets activities, gather subnet details for existing subnets activities
+	// wait for IAM roles to created before starting user access key creation
+	iamRolesActivityOutput := &CreateIamRolesActivityOutput{}
+	if err := iamRolesCreateActivityFuture.Get(ctx, &iamRolesActivityOutput); err != nil {
+		return nil, err
+	}
 
+	// create IAM user access key, in case defaultUser = false and save as secret
+	var userAccessKeyActivityFeature workflow.Future
+	{
+		activityInput := &CreateClusterUserAccessKeyActivityInput{
+			EKSActivityInput: commonActivityInput,
+			UserName:         input.ClusterName,
+			UseDefaultUser:   input.DefaultUser,
+		}
+		userAccessKeyActivityFeature = workflow.ExecuteActivity(ctx, CreateClusterUserAccessKeyActivityName, activityInput)
+	}
+
+	// create Subnets activities, gather subnet details for existing subnets activities
 	var existingAndNewSubnets []Subnet
 	{
 		var createSubnetFutures []workflow.Future
@@ -192,7 +197,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			getSubnetsDetailsFuture = workflow.ExecuteActivity(ctx, GetSubnetsDetailsActivityName, activityInput)
 		}
 
-		// wait for subnet info
+		// wait for info about newly created subnets
 		errs := make([]error, len(createSubnetFutures))
 		for i, future := range createSubnetFutures {
 			var activityOutput CreateSubnetActivityOutput
@@ -226,11 +231,6 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			})
 		}
 
-	}
-
-	iamRolesActivityOutput := &CreateIamRolesActivityOutput{}
-	if err := iamRolesCreateActivityFuture.Get(ctx, &iamRolesActivityOutput); err != nil {
-		return nil, err
 	}
 
 	userAccessKeyActivityOutput := CreateClusterUserAccessKeyActivityOutput{}
