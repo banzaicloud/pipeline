@@ -21,13 +21,16 @@ import (
 	"strings"
 
 	"emperror.dev/emperror"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/tls"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/ingresscert"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/dns"
@@ -39,7 +42,8 @@ type ingressControllerValues struct {
 }
 
 type traefikValues struct {
-	SSL sslTraefikValues `json:"ssl"`
+	SSL     sslTraefikValues     `json:"ssl"`
+	Service serviceTraefikValues `json:"service,omitempty"`
 }
 
 type sslTraefikValues struct {
@@ -49,6 +53,10 @@ type sslTraefikValues struct {
 	DefaultSANList []string `json:"defaultSANList"`
 	DefaultCert    string   `json:"defaultCert"`
 	DefaultKey     string   `json:"defaultKey"`
+}
+
+type serviceTraefikValues struct {
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 const DefaultCertSecretName = "default-ingress-cert"
@@ -133,6 +141,19 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 				DefaultKey:  base64.StdEncoding.EncodeToString([]byte(defaultCertSecret.Values[secrettype.ServerKey])),
 			},
 		},
+	}
+
+	// TODO: once we move this to an integrated service we must find a way to append tags to user configured annotations
+	if cluster.GetCloud() == pkgCluster.Amazon {
+		var tags []string
+
+		for _, tag := range amazon.PipelineTags() {
+			tags = append(tags, fmt.Sprintf("%s=%s", aws.StringValue(tag.Key), aws.StringValue(tag.Value)))
+		}
+
+		ingressValues.Traefik.Service.Annotations = map[string]string{
+			"service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags": strings.Join(tags, ","),
+		}
 	}
 
 	ingressValuesJson, err := yaml.Marshal(ingressValues)
