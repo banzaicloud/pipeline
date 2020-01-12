@@ -72,8 +72,8 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/googleapis/gnostic v0.2.0 // indirect
-	github.com/gorilla/mux v1.7.0
-	github.com/gorilla/sessions v0.0.0-20181208214519-12bd4761fc66
+	github.com/gorilla/mux v1.7.3
+	github.com/gorilla/sessions v1.2.0
 	github.com/gosimple/slug v1.7.0 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
 	github.com/hashicorp/go-multierror v1.0.0
