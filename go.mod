@@ -81,10 +81,10 @@ require (
 	github.com/heptio/ark v0.9.3
 	github.com/huandu/xstrings v1.2.1 // indirect
 	github.com/jessevdk/go-flags v1.4.0 // indirect
-	github.com/jinzhu/copier v0.0.0-20180308034124-7e38e58719c3
+	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/jinzhu/gorm v1.9.10
 	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/jinzhu/now v1.0.1
+	github.com/jinzhu/now v1.1.1
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/kubernetes-sigs/kubefed v0.1.0-rc6
