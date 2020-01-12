@@ -107,6 +107,8 @@ github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMx
 github.com/ThreeDotsLabs/watermill v1.0.0-rc.2/go.mod h1:gjVFKc8aN+vmEHw3pA0kh4mmuwHe02nyfghb6IWWiKE=
 github.com/ThreeDotsLabs/watermill v1.0.2 h1:UGiE61pRWAMwEX3z/AVZTaZmm/Y+AeEd+cXoeQz9NuM=
 github.com/ThreeDotsLabs/watermill v1.0.2/go.mod h1:vZCPh7eN0P7r2qKau4SfmcUZ83+3JXWkRl4BiWUlqFw=
+github.com/ThreeDotsLabs/watermill v1.1.0 h1:RWVfySGHEaK4TZhr8L/rKkYkSbyzWRzE8ut7QP7esLY=
+github.com/ThreeDotsLabs/watermill v1.1.0/go.mod h1:Qd1xNFxolCAHCzcMrm6RnjW0manbvN+DJVWc1MWRFlI=
 github.com/airbrake/gobrake v3.6.1+incompatible/go.mod h1:wM4gu3Cn0W0K7GUuVWnlXZU11AGBXMILnrdOU8Kn00o=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=

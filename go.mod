@@ -21,7 +21,7 @@ require (
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/ThreeDotsLabs/watermill v1.0.2
+	github.com/ThreeDotsLabs/watermill v1.1.0
 	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20191023062623-524ecb019aa6
 	github.com/aliyun/aliyun-oss-go-sdk v2.0.3+incompatible
 	github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239 // indirect
