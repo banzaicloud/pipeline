@@ -3,7 +3,8 @@ module github.com/banzaicloud/pipeline
 go 1.13
 
 require (
-	cloud.google.com/go v0.44.3
+	cloud.google.com/go v0.51.0
+	cloud.google.com/go/storage v1.0.0
 	emperror.dev/emperror v0.21.3
 	emperror.dev/errors v0.4.3
 	emperror.dev/handler/logur v0.2.0
@@ -67,7 +68,6 @@ require (
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
-	github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6 // indirect
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/googleapis/gnostic v0.2.0 // indirect
@@ -140,7 +140,7 @@ require (
 	github.com/ugorji/go v1.1.7 // indirect
 	github.com/xanzy/go-gitlab v0.16.2-0.20190325100843-bbb1af7187c8
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
-	go.opencensus.io v0.22.0
+	go.opencensus.io v0.22.2
 	go.uber.org/cadence v0.9.0
 	go.uber.org/dig v1.7.0 // indirect
 	go.uber.org/fx v1.9.0 // indirect
@@ -149,12 +149,12 @@ require (
 	go.uber.org/thriftrw v1.16.1 // indirect
 	go.uber.org/yarpc v1.36.1
 	go.uber.org/zap v1.12.0
-	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
-	golang.org/x/net v0.0.0-20190812203447-cdfb69ac37fc
-	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	google.golang.org/api v0.9.0
-	google.golang.org/genproto v0.0.0-20190801165951-fa694d86fc64
-	google.golang.org/grpc v1.23.1
+	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
+	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
+	golang.org/x/oauth2 v0.0.0-20191202225959-858c2ad4c8b6
+	google.golang.org/api v0.15.0
+	google.golang.org/genproto v0.0.0-20191230161307-f3c370f40bfb
+	google.golang.org/grpc v1.26.0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20150902115704-41f357289737 // indirect
 	gopkg.in/resty.v1 v1.12.0
