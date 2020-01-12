@@ -18,8 +18,9 @@ require (
 	github.com/Azure/go-autorest/autorest/azure/auth v0.4.2
 	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/Azure/go-autorest/autorest/validation v0.2.0
-	github.com/Masterminds/semver v1.4.2
-	github.com/Masterminds/sprig v2.15.0+incompatible
+	github.com/Masterminds/goutils v1.1.0 // indirect
+	github.com/Masterminds/semver v1.5.0
+	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/ThreeDotsLabs/watermill v1.0.2
 	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20191023062623-524ecb019aa6
 	github.com/aliyun/aliyun-oss-go-sdk v2.0.3+incompatible
@@ -78,7 +79,7 @@ require (
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/heptio/ark v0.9.3
-	github.com/huandu/xstrings v1.0.0 // indirect
+	github.com/huandu/xstrings v1.2.1 // indirect
 	github.com/jessevdk/go-flags v1.4.0 // indirect
 	github.com/jinzhu/copier v0.0.0-20180308034124-7e38e58719c3
 	github.com/jinzhu/gorm v1.9.10
