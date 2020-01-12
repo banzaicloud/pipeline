@@ -62,8 +62,8 @@ require (
 	github.com/fatih/structtag v1.0.0 // indirect
 	github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
 	github.com/ghodss/yaml v1.0.0
-	github.com/gin-contrib/cors v0.0.0-20170318125340-cf4846e6a636
-	github.com/gin-gonic/gin v1.4.0
+	github.com/gin-contrib/cors v1.3.0
+	github.com/gin-gonic/gin v1.5.0
 	github.com/go-kit/kit v0.9.0
 	github.com/go-openapi/spec v0.19.0 // indirect
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
@@ -138,7 +138,6 @@ require (
 	github.com/uber/jaeger-client-go v2.17.0+incompatible // indirect
 	github.com/uber/jaeger-lib v2.0.0+incompatible // indirect
 	github.com/uber/tchannel-go v1.12.0 // indirect
-	github.com/ugorji/go v1.1.7 // indirect
 	github.com/xanzy/go-gitlab v0.16.2-0.20190325100843-bbb1af7187c8
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	go.opencensus.io v0.22.2
