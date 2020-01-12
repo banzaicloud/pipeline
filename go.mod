@@ -147,7 +147,7 @@ require (
 	go.uber.org/net/metrics v1.0.1 // indirect
 	go.uber.org/thriftrw v1.16.1 // indirect
 	go.uber.org/yarpc v1.36.1
-	go.uber.org/zap v1.12.0
+	go.uber.org/zap v1.13.0
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
