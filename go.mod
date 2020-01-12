@@ -120,14 +120,13 @@ require (
 	github.com/qor/session v0.0.0-20170907035918-8206b0adab70
 	github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be // indirect
 	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967 // indirect
-	github.com/russross/blackfriday v1.5.1 // indirect
 	github.com/sagikazarmark/kitx v0.3.0
 	github.com/sagikazarmark/ocmux v0.2.0
 	github.com/samuel/go-thrift v0.0.0-20160419172024-e9042807f4f5 // indirect
 	github.com/sirupsen/logrus v1.4.2
-	github.com/spf13/cast v1.3.0
-	github.com/spf13/cobra v0.0.3
-	github.com/spf13/pflag v1.0.3
+	github.com/spf13/cast v1.3.1
+	github.com/spf13/cobra v0.0.5
+	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.1
 	github.com/streadway/quantile v0.0.0-20150917103942-b0c588724d25 // indirect
 	github.com/stretchr/testify v1.4.0
