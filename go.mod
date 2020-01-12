@@ -10,12 +10,12 @@ require (
 	emperror.dev/handler/logur v0.3.0
 	emperror.dev/handler/stackdriver v0.2.0
 	github.com/Azure/azure-pipeline-go v0.2.2
-	github.com/Azure/azure-sdk-for-go v32.5.0+incompatible
-	github.com/Azure/azure-storage-blob-go v0.0.0-20181022225951-5152f14ace1c
+	github.com/Azure/azure-sdk-for-go v38.0.0+incompatible
+	github.com/Azure/azure-storage-blob-go v0.8.0
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
-	github.com/Azure/go-autorest/autorest v0.9.0
-	github.com/Azure/go-autorest/autorest/adal v0.6.0
-	github.com/Azure/go-autorest/autorest/azure/auth v0.3.0
+	github.com/Azure/go-autorest/autorest v0.9.3
+	github.com/Azure/go-autorest/autorest/adal v0.8.1
+	github.com/Azure/go-autorest/autorest/azure/auth v0.4.2
 	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/Azure/go-autorest/autorest/validation v0.2.0
 	github.com/Masterminds/semver v1.4.2
@@ -149,7 +149,7 @@ require (
 	go.uber.org/thriftrw v1.16.1 // indirect
 	go.uber.org/yarpc v1.36.1
 	go.uber.org/zap v1.12.0
-	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
+	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.15.0
