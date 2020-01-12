@@ -25,8 +25,8 @@ require (
 	github.com/aliyun/alibaba-cloud-sdk-go v1.60.327
 	github.com/aliyun/aliyun-oss-go-sdk v2.0.5+incompatible
 	github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239 // indirect
-	github.com/antihax/optional v0.0.0-20180407024304-ca021399b1a6
-	github.com/aokoli/goutils v1.0.1
+	github.com/antihax/optional v1.0.0
+	github.com/aokoli/goutils v1.1.0
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05
 	github.com/aws/aws-sdk-go v1.26.8
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
