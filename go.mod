@@ -47,7 +47,7 @@ require (
 	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190820223206-44cdfe8d8ba9 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/didip/tollbooth v4.0.0+incompatible
+	github.com/didip/tollbooth v4.0.2+incompatible
 	github.com/docker/distribution v0.0.0-20180327202408-83389a148052 // indirect
 	github.com/docker/docker v0.0.0-20170731201938-4f3616fb1c11 // indirect
 	github.com/docker/go-units v0.3.3 // indirect
