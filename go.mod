@@ -88,7 +88,7 @@ require (
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/kubernetes-sigs/kubefed v0.1.0-rc6
-	github.com/lestrrat-go/backoff v0.0.0-20190107202757-0bc2a4274cd0
+	github.com/lestrrat-go/backoff v1.0.0
 	github.com/lib/pq v0.0.0-20181016162627-9eb73efc1fcc // indirect
 	github.com/mattn/go-sqlite3 v0.0.0-20160907162043-3fb7a0e792ed // indirect
 	github.com/microcosm-cc/bluemonday v1.0.2
@@ -96,7 +96,7 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/moogar0880/problems v0.1.1
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
-	github.com/oklog/run v1.0.0
+	github.com/oklog/run v1.1.0
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/oracle/oci-go-sdk v2.0.0+incompatible
