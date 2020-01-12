@@ -119,6 +119,7 @@ require (
 	github.com/qor/responder v0.0.0-20160314063933-ecae0be66c1a // indirect
 	github.com/qor/session v0.0.0-20170907035918-8206b0adab70
 	github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be // indirect
+	github.com/renstrom/shortuuid v3.0.0+incompatible // indirect
 	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967 // indirect
 	github.com/sagikazarmark/kitx v0.3.0
 	github.com/sagikazarmark/ocmux v0.2.0
@@ -168,11 +169,11 @@ require (
 	k8s.io/kube-openapi v0.0.0-20190228160746-b3a7cee44a30 // indirect
 	k8s.io/kubectl v0.0.0-20190523211420-5b63b0fd89bb // indirect
 	k8s.io/kubernetes v1.13.5
-	logur.dev/adapter/logrus v0.2.0
-	logur.dev/adapter/zap v0.2.0
-	logur.dev/integration/watermill v0.2.1
-	logur.dev/integration/zap v0.2.0
-	logur.dev/logur v0.15.0
+	logur.dev/adapter/logrus v0.3.0
+	logur.dev/adapter/zap v0.3.0
+	logur.dev/integration/watermill v0.4.0
+	logur.dev/integration/zap v0.3.0
+	logur.dev/logur v0.15.1
 	sigs.k8s.io/controller-runtime v0.2.0
 	sigs.k8s.io/kubefed v0.1.0-rc6
 	sigs.k8s.io/testing_frameworks v0.1.1
