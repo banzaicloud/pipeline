@@ -22,6 +22,7 @@ ignored = [
 
   # Unsupported VCS
   "cloud.google.com/go",
+  "cloud.google.com/go/storage",
   "google.golang.org/api",
 ]
 
