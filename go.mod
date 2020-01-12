@@ -22,8 +22,8 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/ThreeDotsLabs/watermill v1.1.0
-	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20191023062623-524ecb019aa6
-	github.com/aliyun/aliyun-oss-go-sdk v2.0.3+incompatible
+	github.com/aliyun/alibaba-cloud-sdk-go v1.60.327
+	github.com/aliyun/aliyun-oss-go-sdk v2.0.5+incompatible
 	github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239 // indirect
 	github.com/antihax/optional v0.0.0-20180407024304-ca021399b1a6
 	github.com/aokoli/goutils v1.0.1
