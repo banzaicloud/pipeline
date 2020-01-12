@@ -12,6 +12,7 @@ require (
 	github.com/Azure/azure-pipeline-go v0.2.2
 	github.com/Azure/azure-sdk-for-go v38.0.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.8.0
+	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/Azure/go-autorest/autorest v0.9.3
 	github.com/Azure/go-autorest/autorest/adal v0.8.1
 	github.com/Azure/go-autorest/autorest/azure/auth v0.4.2
@@ -28,6 +29,7 @@ require (
 	github.com/apache/thrift v0.0.0-00010101000000-000000000000 // indirect
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05
 	github.com/aws/aws-sdk-go v1.28.0
+	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-00010101000000-000000000000 // indirect
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
 	github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.1
 	github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677
@@ -36,19 +38,27 @@ require (
 	github.com/banzaicloud/istio-operator v0.0.0-20191104140059-90d1290d7342
 	github.com/banzaicloud/logging-operator/pkg/sdk v0.0.0-20191125142640-aa8071e64c9d
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
+	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
+	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/chai2010/gettext-go v0.0.0-20191225085308-6b9f4b1008e1 // indirect
+	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/coreos/go-oidc v2.1.0+incompatible
+	github.com/crossdock/crossdock-go v0.0.0-20160816171116-049aabb0122b // indirect
 	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
+	github.com/denisenkom/go-mssqldb v0.0.0-20191128021309-1d7a30a10f73 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/didip/tollbooth v4.0.2+incompatible
 	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/docker v1.13.1 // indirect
+	github.com/docker/docker v0.0.0-20170731201938-4f3616fb1c11 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/docker/libcompose v0.4.0
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
+	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
+	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
+	github.com/fatih/camelcase v1.0.0 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.5.0
@@ -77,6 +87,7 @@ require (
 	github.com/kubernetes-sigs/kubefed v0.1.0-rc6
 	github.com/lestrrat-go/backoff v1.0.0
 	github.com/lib/pq v1.3.0 // indirect
+	github.com/mattn/go-sqlite3 v2.0.2+incompatible // indirect
 	github.com/microcosm-cc/bluemonday v1.0.2
 	github.com/mitchellh/copystructure v1.0.0
 	github.com/mitchellh/mapstructure v1.1.2
@@ -92,6 +103,7 @@ require (
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.9.0
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
+	github.com/prashantv/protectmem v0.0.0-20171002184600-e20412882b3a // indirect
 	github.com/prometheus/client_golang v1.3.0
 	github.com/prometheus/common v0.7.0
 	github.com/qor/assetfs v0.0.0-20170713023933-ff57fdc13a14 // indirect
@@ -106,19 +118,25 @@ require (
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/sagikazarmark/kitx v0.3.0
 	github.com/sagikazarmark/ocmux v0.2.0
+	github.com/samuel/go-thrift v0.0.0-20191111193933-5165175b40af // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cast v1.3.1
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.1
+	github.com/streadway/quantile v0.0.0-20150917103942-b0c588724d25 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
 	github.com/uber-go/mapdecode v1.0.0 // indirect
 	github.com/uber-go/tally v3.3.13+incompatible // indirect
+	github.com/uber/jaeger-client-go v2.21.1+incompatible // indirect
+	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	github.com/uber/tchannel-go v1.16.0 // indirect
 	github.com/xanzy/go-gitlab v0.16.2-0.20190325100843-bbb1af7187c8
+	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	go.opencensus.io v0.22.2
 	go.uber.org/cadence v0.9.0
+	go.uber.org/fx v1.10.0 // indirect
 	go.uber.org/net/metrics v1.2.0 // indirect
 	go.uber.org/thriftrw v1.21.0 // indirect
 	go.uber.org/yarpc v1.36.1
@@ -129,6 +147,7 @@ require (
 	google.golang.org/api v0.15.0
 	google.golang.org/genproto v0.0.0-20191230161307-f3c370f40bfb
 	google.golang.org/grpc v1.26.0
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/yaml.v2 v2.2.4
