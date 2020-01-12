@@ -5,10 +5,10 @@ go 1.13
 require (
 	cloud.google.com/go v0.51.0
 	cloud.google.com/go/storage v1.0.0
-	emperror.dev/emperror v0.21.3
-	emperror.dev/errors v0.4.3
-	emperror.dev/handler/logur v0.2.0
-	emperror.dev/handler/stackdriver v0.1.1
+	emperror.dev/emperror v0.23.0
+	emperror.dev/errors v0.6.0
+	emperror.dev/handler/logur v0.3.0
+	emperror.dev/handler/stackdriver v0.2.0
 	github.com/Azure/azure-pipeline-go v0.2.2
 	github.com/Azure/azure-sdk-for-go v32.5.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.0.0-20181022225951-5152f14ace1c
@@ -151,7 +151,7 @@ require (
 	go.uber.org/zap v1.12.0
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
-	golang.org/x/oauth2 v0.0.0-20191202225959-858c2ad4c8b6
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.15.0
 	google.golang.org/genproto v0.0.0-20191230161307-f3c370f40bfb
 	google.golang.org/grpc v1.26.0
