@@ -107,8 +107,8 @@ require (
 	github.com/pkg/errors v0.9.0
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prashantv/protectmem v0.0.0-20171002184600-e20412882b3a // indirect
-	github.com/prometheus/client_golang v1.0.0
-	github.com/prometheus/common v0.4.1
+	github.com/prometheus/client_golang v1.3.0
+	github.com/prometheus/common v0.7.0
 	github.com/qor/assetfs v0.0.0-20170713023933-ff57fdc13a14 // indirect
 	github.com/qor/auth v0.0.0-20190103025640-46aae9fa92fa
 	github.com/qor/mailer v0.0.0-20170814094430-1e6ac7106955 // indirect
