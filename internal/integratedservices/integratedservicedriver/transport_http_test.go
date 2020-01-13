@@ -28,7 +28,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
-	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 )
 
 func TestRegisterHTTPHandlers_List(t *testing.T) {
@@ -51,18 +50,16 @@ func TestRegisterHTTPHandlers_List(t *testing.T) {
 				return expectedIntegratedServices, nil
 			},
 		},
-		handler.PathPrefix("/features").Subrouter(),
+		handler.PathPrefix("/clusters/{clusterId}/services").Subrouter(),
 		emperror.NewNoopHandler(),
 	)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r = r.WithContext(ctxutil.WithClusterID(r.Context(), 1))
-
 		handler.ServeHTTP(w, r)
 	}))
 	defer ts.Close()
 
-	resp, err := ts.Client().Get(ts.URL + "/features")
+	resp, err := ts.Client().Get(ts.URL + "/clusters/1/services")
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -94,19 +91,16 @@ func TestRegisterHTTPHandlers_Details(t *testing.T) {
 				return expectedDetails, nil
 			},
 		},
-		handler.PathPrefix("/features").Subrouter(),
+		handler.PathPrefix("/clusters/{clusterId}/services").Subrouter(),
 		emperror.NewNoopHandler(),
 	)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r = r.WithContext(ctxutil.WithClusterID(r.Context(), 1))
-		r = r.WithContext(ctxutil.WithParams(r.Context(), map[string]string{"featureName": "hello-world"}))
-
 		handler.ServeHTTP(w, r)
 	}))
 	defer ts.Close()
 
-	resp, err := ts.Client().Get(ts.URL + "/features/hello-world")
+	resp, err := ts.Client().Get(ts.URL + "/clusters/1/services/hello-world")
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -128,14 +122,11 @@ func TestRegisterHTTPHandlers_Activate(t *testing.T) {
 				return nil, nil
 			},
 		},
-		handler.PathPrefix("/features").Subrouter(),
+		handler.PathPrefix("/clusters/{clusterId}/services").Subrouter(),
 		emperror.NewNoopHandler(),
 	)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r = r.WithContext(ctxutil.WithClusterID(r.Context(), 1))
-		r = r.WithContext(ctxutil.WithParams(r.Context(), map[string]string{"featureName": "hello-world"}))
-
 		handler.ServeHTTP(w, r)
 	}))
 	defer ts.Close()
@@ -149,7 +140,7 @@ func TestRegisterHTTPHandlers_Activate(t *testing.T) {
 	body, err := json.Marshal(apiReq)
 	require.NoError(t, err)
 
-	resp, err := ts.Client().Post(ts.URL+"/features/hello-world", "application/json", bytes.NewReader(body))
+	resp, err := ts.Client().Post(ts.URL+"/clusters/1/services/hello-world", "application/json", bytes.NewReader(body))
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -164,19 +155,16 @@ func TestRegisterHTTPHandlers_Deactivate(t *testing.T) {
 				return nil, nil
 			},
 		},
-		handler.PathPrefix("/features").Subrouter(),
+		handler.PathPrefix("/clusters/{clusterId}/services").Subrouter(),
 		emperror.NewNoopHandler(),
 	)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r = r.WithContext(ctxutil.WithClusterID(r.Context(), 1))
-		r = r.WithContext(ctxutil.WithParams(r.Context(), map[string]string{"featureName": "hello-world"}))
-
 		handler.ServeHTTP(w, r)
 	}))
 	defer ts.Close()
 
-	req, err := http.NewRequest(http.MethodDelete, ts.URL+"/features/hello-world", nil)
+	req, err := http.NewRequest(http.MethodDelete, ts.URL+"/clusters/1/services/hello-world", nil)
 	require.NoError(t, err)
 
 	resp, err := ts.Client().Do(req)
@@ -194,14 +182,11 @@ func TestRegisterHTTPHandlers_Update(t *testing.T) {
 				return nil, nil
 			},
 		},
-		handler.PathPrefix("/features").Subrouter(),
+		handler.PathPrefix("/clusters/{clusterId}/services").Subrouter(),
 		emperror.NewNoopHandler(),
 	)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r = r.WithContext(ctxutil.WithClusterID(r.Context(), 1))
-		r = r.WithContext(ctxutil.WithParams(r.Context(), map[string]string{"featureName": "hello-world"}))
-
 		handler.ServeHTTP(w, r)
 	}))
 	defer ts.Close()
@@ -215,7 +200,7 @@ func TestRegisterHTTPHandlers_Update(t *testing.T) {
 	body, err := json.Marshal(apiReq)
 	require.NoError(t, err)
 
-	req, err := http.NewRequest(http.MethodPut, ts.URL+"/features/hello-world", bytes.NewReader(body))
+	req, err := http.NewRequest(http.MethodPut, ts.URL+"/clusters/1/services/hello-world", bytes.NewReader(body))
 	require.NoError(t, err)
 
 	resp, err := ts.Client().Do(req)
