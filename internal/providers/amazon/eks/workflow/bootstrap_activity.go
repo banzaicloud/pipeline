@@ -17,6 +17,7 @@ package workflow
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -36,6 +37,8 @@ import (
 
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
 
+	"github.com/banzaicloud/pipeline/internal/providers/amazon"
+	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
@@ -151,6 +154,32 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 		if err != nil {
 			return nil, errors.WrapIfWithDetails(err, "failed to create config map", "configmap", awsAuthConfigMap.Name)
 		}
+	}
+
+	ds, err := kubeClient.AppsV1().DaemonSets("kube-system").Get("aws-node", metav1.GetOptions{})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get CNI driver daemonset")
+	}
+
+	tags := map[string]string{}
+
+	for _, tag := range amazon.PipelineTags() {
+		tags[aws.StringValue(tag.Key)] = aws.StringValue(tag.Value)
+	}
+
+	tagBody, err := json.Marshal(tags)
+	if err != nil {
+		return nil, cadence.NewClientError(err)
+	}
+
+	ds.Spec.Template.Spec.Containers[0].Env = append(ds.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
+		Name:  "ADDITIONAL_ENI_TAGS",
+		Value: string(tagBody),
+	})
+
+	_, err = kubeClient.AppsV1().DaemonSets("kube-system").Update(ds)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update CNI driver daemonset")
 	}
 
 	outParams := BootstrapActivityOutput{}
