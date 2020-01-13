@@ -25,18 +25,12 @@ import (
 
 type Expirer interface {
 	// Expires a resource at a given date
-	Expire(ctx context.Context, date string) error
+	Expire(ctx context.Context, clusterID uint, expiryDate string) error
 }
 
 // No-op Expirer implementation
 type noOpExpirer struct {
 	logger common.Logger
-}
-
-// Non-blocker no-op implementation
-func (n noOpExpirer) Expire(ctx context.Context, date string) error {
-	n.logger.Info("noOpExpirer called", map[string]interface{}{"date": date})
-	return nil
 }
 
 func NewNoOpExpirer(log common.Logger) noOpExpirer {
@@ -45,14 +39,26 @@ func NewNoOpExpirer(log common.Logger) noOpExpirer {
 	}
 }
 
+// Non-blocker no-op implementation
+func (n noOpExpirer) Expire(ctx context.Context, clusterID uint, expiryDate string) error {
+	n.logger.Info("noOpExpirer called", map[string]interface{}{"date": expiryDate})
+	return nil
+}
+
 // Synchronous no - op Expirer implementation
 type syncExpirer struct {
 	logger common.Logger
 }
 
-func (s syncExpirer) Expire(ctx context.Context, date string) error {
+func NewSyncNoOpExpirer(log common.Logger) syncExpirer {
+	return syncExpirer{
+		logger: log,
+	}
+}
 
-	t, err := time.ParseInLocation(time.RFC3339, date, time.Now().Location())
+func (s syncExpirer) Expire(ctx context.Context, clusterID uint, expiryDate string) error {
+
+	t, err := time.ParseInLocation(time.RFC3339, expiryDate, time.Now().Location())
 	if err != nil {
 		return errors.WrapIf(err, "failed to parse the expiry date")
 	}
@@ -63,10 +69,4 @@ func (s syncExpirer) Expire(ctx context.Context, date string) error {
 
 	s.logger.Info("expirer logic triggered")
 	return nil
-}
-
-func NewSyncNoOpExpirer(log common.Logger) syncExpirer {
-	return syncExpirer{
-		logger: log,
-	}
 }

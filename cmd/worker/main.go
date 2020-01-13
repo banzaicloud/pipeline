@@ -59,6 +59,7 @@ import (
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter"
 	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	integratedServiceMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
@@ -579,6 +580,9 @@ func main() {
 			featureAnchoreService := securityscan.NewIntegratedServiceAnchoreService(anchoreUserService, logger)
 			featureWhitelistService := securityscan.NewIntegratedServiceWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
 
+			workflowClient, err := cadence.NewClient(config.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
+			expirerService := adapter.NewAsyncExpirer(workflowClient, logger)
+
 			featureOperatorRegistry := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
 				integratedServiceDNS.MakeIntegratedServiceOperator(
 					clusterGetter,
@@ -628,7 +632,7 @@ func main() {
 					logger,
 					commonSecretStore,
 				),
-				expiry.NewExpiryServiceOperator(),
+				expiry.NewExpiryServiceOperator(expirerService, logger),
 			})
 
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)

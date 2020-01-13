@@ -27,8 +27,9 @@ func Test_syncExpirer_Expire(t *testing.T) {
 		logger common.Logger
 	}
 	type args struct {
-		ctx  context.Context
-		date string
+		ctx       context.Context
+		clusterID uint
+		date      string
 	}
 	tests := []struct {
 		name    string
@@ -54,9 +55,20 @@ func Test_syncExpirer_Expire(t *testing.T) {
 				logger: tt.fields.logger,
 			}
 
-			if err := s.Expire(tt.args.ctx, tt.args.date); (err != nil) != tt.wantErr {
+			if err := s.Expire(tt.args.ctx, tt.args.clusterID, tt.args.date); (err != nil) != tt.wantErr {
 				t.Errorf("Expire() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
+}
+
+func Test(t *testing.T) {
+
+	dateX := time.Now().Format(time.RFC3339)
+	dateY, _ := time.Parse(time.RFC3339, "2020-01-13T16:56:36+05:00")
+	dateZ, _ := time.ParseInLocation(time.RFC3339, "2020-01-13T16:56:36+05:00", time.Now().Location())
+
+	t.Logf("dateX: %s", dateX)
+	t.Logf("dateY: %s", dateY)
+	t.Logf("dateZ: %s", dateZ)
 }

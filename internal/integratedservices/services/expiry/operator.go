@@ -36,7 +36,7 @@ func (e expiryServiceOperator) Apply(ctx context.Context, clusterID uint, spec i
 		return errors.WrapIf(err, "failed to bind the expiry service specification")
 	}
 
-	if err := e.expirer.Expire(context.Background(), expirySpec.Date); err != nil {
+	if err := e.expirer.Expire(context.Background(), clusterID, expirySpec.Date); err != nil {
 		return errors.WrapIf(err, "failed to expire the resource")
 	}
 
@@ -51,9 +51,10 @@ func (e expiryServiceOperator) Name() string {
 	return ExpiryInternalServiceName
 }
 
-func NewExpiryServiceOperator() expiryServiceOperator {
+func NewExpiryServiceOperator(expirer Expirer, logger common.Logger) expiryServiceOperator {
+
 	return expiryServiceOperator{
-		expirer: NewSyncNoOpExpirer(common.NewNoopLogger()),
-		log:     common.NewNoopLogger(),
+		expirer: expirer,
+		log:     logger,
 	}
 }
