@@ -3582,10 +3582,10 @@ paths:
                 default:
                     $ref: '#/components/responses/Error'
 
-    /api/v1/orgs/{orgId}/clusters/{id}/features:
+    /api/v1/orgs/{orgId}/clusters/{id}/services:
         get:
             operationId: ListIntegratedServices
-            summary: List enabled features of a cluster
+            summary: List enabled integrated services of a cluster
             tags:
                 - integrated services
             security:
@@ -3603,14 +3603,14 @@ paths:
                 default:
                     $ref: '#/components/responses/Error'
 
-    /api/v1/orgs/{orgId}/clusters/{id}/features/{featureName}:
+    /api/v1/orgs/{orgId}/clusters/{id}/services/{serviceName}:
         parameters:
             - $ref: '#/components/parameters/orgId'
             - $ref: '#/components/parameters/clusterId'
             -
-                name: featureName
+                name: serviceName
                 in: path
-                description: Feature name
+                description: service name
                 required: true
                 schema:
                     type: string
@@ -3634,7 +3634,7 @@ paths:
 
         post:
             operationId: ActivateIntegratedService
-            summary: Activate a integrated service
+            summary: Activate an integrated service
             tags:
                 - integrated services
             security:
@@ -3667,6 +3667,112 @@ paths:
         put:
             operationId: UpdateIntegratedService
             summary: Update an integrated service
+            tags:
+                - integrated services
+            security:
+                - bearerAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateIntegratedServiceRequest"
+            responses:
+                202:
+                    description: Accepted
+                default:
+                    $ref: '#/components/responses/Error'
+
+    /api/v1/orgs/{orgId}/clusters/{id}/features:
+        get:
+            deprecated: true
+            operationId: ListFeatures
+            summary: List enabled features of a cluster
+            tags:
+                - integrated services
+            security:
+                - bearerAuth: []
+            parameters:
+                - $ref: '#/components/parameters/orgId'
+                - $ref: '#/components/parameters/clusterId'
+            responses:
+                200:
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/IntegratedServiceList"
+                default:
+                    $ref: '#/components/responses/Error'
+
+    /api/v1/orgs/{orgId}/clusters/{id}/features/{featureName}:
+        parameters:
+            - $ref: '#/components/parameters/orgId'
+            - $ref: '#/components/parameters/clusterId'
+            -
+                name: featureName
+                in: path
+                description: Feature name
+                required: true
+                schema:
+                    type: string
+
+        get:
+            deprecated: true
+            operationId: FeatureDetails
+            summary: Get details of a feature
+            tags:
+                - integrated services
+            security:
+                - bearerAuth: []
+            responses:
+                200:
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/IntegratedServiceDetails"
+                default:
+                    $ref: '#/components/responses/Error'
+
+        post:
+            deprecated: true
+            operationId: ActivateFeature
+            summary: Activate a feature
+            tags:
+                - integrated services
+            security:
+                - bearerAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ActivateIntegratedServiceRequest"
+            responses:
+                202:
+                    description: Accepted
+                default:
+                    $ref: '#/components/responses/Error'
+
+        delete:
+            deprecated: true
+            operationId: DeactivateFeature
+            summary: Deactivate a feature
+            tags:
+                - integrated services
+            security:
+                - bearerAuth: []
+            responses:
+                204:
+                    description: No Content
+                default:
+                    $ref: '#/components/responses/Error'
+
+        put:
+            deprecated: true
+            operationId: UpdateFeature
+            summary: Update a feature
             tags:
                 - integrated services
             security:
