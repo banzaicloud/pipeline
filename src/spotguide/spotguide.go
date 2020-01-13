@@ -28,7 +28,7 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/Masterminds/semver"
-	"github.com/Masterminds/sprig"
+	"github.com/Masterminds/sprig/v3"
 	"github.com/banzaicloud/cicd-go/cicd"
 	yaml2 "github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
