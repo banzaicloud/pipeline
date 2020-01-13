@@ -369,6 +369,254 @@
 					"_postman_isSubFolder": true
 				},
 				{
+					"name": "Integrated Services",
+					"item": [
+						{
+							"name": "Integrated service list",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/services",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clusters",
+										":clusterId",
+										"services"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization ID"
+										},
+										{
+											"key": "clusterId",
+											"value": "{{clusterId}}",
+											"description": "Cluster ID"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Integrated service details",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/services/:serviceName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clusters",
+										":clusterId",
+										"services",
+										":serviceName"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization ID"
+										},
+										{
+											"key": "clusterId",
+											"value": "{{clusterId}}",
+											"description": "Cluster ID"
+										},
+										{
+											"key": "serviceName",
+											"value": "",
+											"description": "Service Name"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Activate integrated service",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"spec\": {\n    \n  }\n}"
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/services/:serviceName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clusters",
+										":clusterId",
+										"services",
+										":serviceName"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization ID"
+										},
+										{
+											"key": "clusterId",
+											"value": "{{clusterId}}",
+											"description": "Cluster ID"
+										},
+										{
+											"key": "serviceName",
+											"value": "",
+											"description": "Service Name"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update integrated service",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"spec\": {\n    \n  }\n}"
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/services/:serviceName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clusters",
+										":clusterId",
+										"services",
+										":serviceName"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization ID"
+										},
+										{
+											"key": "clusterId",
+											"value": "{{clusterId}}",
+											"description": "Cluster ID"
+										},
+										{
+											"key": "serviceName",
+											"value": "",
+											"description": "Service Name"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Deactivate integrated service",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/services/:serviceName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clusters",
+										":clusterId",
+										"services",
+										":serviceName"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization ID"
+										},
+										{
+											"key": "clusterId",
+											"value": "{{clusterId}}",
+											"description": "Cluster ID"
+										},
+										{
+											"key": "serviceName",
+											"value": "",
+											"description": "Service Name"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
 					"name": "Features",
 					"item": [
 						{
