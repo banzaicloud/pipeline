@@ -810,16 +810,33 @@ func main() {
 					appkit.EndpointLogger(commonLogger),
 				)
 
-				integratedservicedriver.RegisterHTTPHandlers(
-					endpoints,
-					clusterRouter.PathPrefix("/features").Subrouter(),
-					errorHandler,
-					kitxhttp.ServerOptions(httpServerOptions),
-					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
-				)
+				{
+					integratedservicedriver.RegisterHTTPHandlers(
+						endpoints,
+						clusterRouter.PathPrefix("/services").Subrouter(),
+						errorHandler,
+						kitxhttp.ServerOptions(httpServerOptions),
+						kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+					)
 
-				cRouter.Any("/features", gin.WrapH(router))
-				cRouter.Any("/features/:featureName", gin.WrapH(router))
+					cRouter.Any("/services", gin.WrapH(router))
+					cRouter.Any("/services/:serviceName", gin.WrapH(router))
+				}
+
+				{
+					// set up legacy endpoint
+
+					integratedservicedriver.RegisterHTTPHandlers(
+						endpoints,
+						clusterRouter.PathPrefix("/features").Subrouter(),
+						errorHandler,
+						kitxhttp.ServerOptions(httpServerOptions),
+						kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+					)
+
+					cRouter.Any("/features", gin.WrapH(router))
+					cRouter.Any("/features/:featureName", gin.WrapH(router))
+				}
 			}
 
 			hpaApi := api.NewHPAAPI(featureService, clientFactory, configFactory, commonClusterGetter, errorHandler)
