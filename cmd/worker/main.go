@@ -60,6 +60,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter"
+	expiryWorkflow "github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter/workflow"
 	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	integratedServiceMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
@@ -579,6 +580,12 @@ func main() {
 			)
 			featureAnchoreService := securityscan.NewIntegratedServiceAnchoreService(anchoreUserService, logger)
 			featureWhitelistService := securityscan.NewIntegratedServiceWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
+
+			// expiry integrated service
+			workflow.RegisterWithOptions(expiryWorkflow.ExpiryJobWorkflow, workflow.RegisterOptions{Name: expiryWorkflow.ExpiryJobWorkflowName})
+
+			expiryActivity := expiryWorkflow.NewExpiryActivity(expiryWorkflow.NewNoOpDeleter()) //todo infer the proper deleter here
+			activity.RegisterWithOptions(expiryActivity.Execute, activity.RegisterOptions{Name: expiryWorkflow.ExpireActivityName})
 
 			workflowClient, err := cadence.NewClient(config.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
 			expirerService := adapter.NewAsyncExpirer(workflowClient, logger)

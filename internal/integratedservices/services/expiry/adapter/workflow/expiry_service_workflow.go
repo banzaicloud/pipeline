@@ -21,18 +21,11 @@ import (
 )
 
 const (
-	// ExpiryJobWorkflowName is the name the workflow is registered under
 	ExpiryJobWorkflowName = "expiry-job"
-	ExpiryJobSignalName   = "expiry-signal"
 )
 
 // ExpiryJobWorkflowInput defines the fixed inputs of the expiry workflow
 type ExpiryJobWorkflowInput struct {
-	ClusterID  uint
-	ExpiryDate string
-}
-
-type ExpiryJobSignalInput struct {
 	ClusterID  uint
 	ExpiryDate string
 }

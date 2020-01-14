@@ -43,12 +43,8 @@ func NewAsyncExpirer(cadenceClient client.Client, logger common.Logger) asyncExp
 func (a asyncExpirer) Expire(ctx context.Context, clusterID uint, expiryDate string) error {
 	workflowID := fmt.Sprintf("%s-%d-%s", workflow.ExpiryJobWorkflowName, clusterID, expiry.ExpiryInternalServiceName)
 
-	signalArg := workflow.ExpiryJobSignalInput{
-		ClusterID:  clusterID,
-		ExpiryDate: expiryDate,
-	}
-
 	options := client.StartWorkflowOptions{
+		ID:                           workflowID,
 		TaskList:                     "pipeline",
 		ExecutionStartToCloseTimeout: 3 * time.Hour,
 		WorkflowIDReusePolicy:        client.WorkflowIDReusePolicyAllowDuplicate,
@@ -59,8 +55,7 @@ func (a asyncExpirer) Expire(ctx context.Context, clusterID uint, expiryDate str
 		ExpiryDate: expiryDate,
 	}
 
-	if _, err := a.cadenceClient.SignalWithStartWorkflow(ctx, workflowID, workflow.ExpiryJobSignalName, signalArg, options,
-		workflow.ExpiryJobWorkflowName, workflowInput); err != nil {
+	if _, err := a.cadenceClient.StartWorkflow(ctx, options, workflow.ExpiryJobWorkflowName, workflowInput); err != nil {
 		return errors.WrapIfWithDetails(err, "signal with start workflow failed", "workflowId", workflowID)
 	}
 
