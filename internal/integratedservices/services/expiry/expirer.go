@@ -28,6 +28,15 @@ type Expirer interface {
 	Expire(ctx context.Context, clusterID uint, expiryDate string) error
 }
 
+type ExpiryCanceler interface {
+	CancelExpiry(ctx context.Context, clusterID uint) error
+}
+
+type ExpiryService interface {
+	Expirer
+	ExpiryCanceler
+}
+
 // No-op Expirer implementation
 type noOpExpirer struct {
 	logger common.Logger

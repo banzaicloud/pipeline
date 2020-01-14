@@ -25,9 +25,20 @@ import (
 )
 
 type expiryServiceOperator struct {
-	expirer Expirer
+	expiryService ExpiryService
+	logger        common.Logger
+}
 
-	log common.Logger
+func NewExpiryServiceOperator(expiryService ExpiryService, logger common.Logger) expiryServiceOperator {
+
+	return expiryServiceOperator{
+		expiryService: expiryService,
+		logger:        logger,
+	}
+}
+
+func (e expiryServiceOperator) Name() string {
+	return ExpiryInternalServiceName
 }
 
 func (e expiryServiceOperator) Apply(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
@@ -36,7 +47,7 @@ func (e expiryServiceOperator) Apply(ctx context.Context, clusterID uint, spec i
 		return errors.WrapIf(err, "failed to bind the expiry service specification")
 	}
 
-	if err := e.expirer.Expire(context.Background(), clusterID, expirySpec.Date); err != nil {
+	if err := e.expiryService.Expire(context.Background(), clusterID, expirySpec.Date); err != nil {
 		return errors.WrapIf(err, "failed to expire the resource")
 	}
 
@@ -44,17 +55,9 @@ func (e expiryServiceOperator) Apply(ctx context.Context, clusterID uint, spec i
 }
 
 func (e expiryServiceOperator) Deactivate(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
-	panic("implement me")
-}
-
-func (e expiryServiceOperator) Name() string {
-	return ExpiryInternalServiceName
-}
-
-func NewExpiryServiceOperator(expirer Expirer, logger common.Logger) expiryServiceOperator {
-
-	return expiryServiceOperator{
-		expirer: expirer,
-		log:     logger,
+	if err := e.expiryService.CancelExpiry(context.Background(), clusterID); err != nil {
+		return errors.WrapIf(err, "failed to cancel the expiry")
 	}
+
+	return nil
 }

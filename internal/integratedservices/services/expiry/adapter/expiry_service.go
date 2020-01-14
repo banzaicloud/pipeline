@@ -27,24 +27,23 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter/workflow"
 )
 
-// asyncExpirer Expirer implementation that uses cadence setup for executing the expiration
-type asyncExpirer struct {
+// asyncExpiryService Expirer implementation that uses cadence setup for executing the expiration
+type asyncExpiryService struct {
 	cadenceClient client.Client
 	logger        common.Logger
 }
 
-func NewAsyncExpirer(cadenceClient client.Client, logger common.Logger) asyncExpirer {
-	return asyncExpirer{
+func NewAsyncExpirer(cadenceClient client.Client, logger common.Logger) asyncExpiryService {
+	return asyncExpiryService{
 		cadenceClient: cadenceClient,
 		logger:        logger,
 	}
 }
 
-func (a asyncExpirer) Expire(ctx context.Context, clusterID uint, expiryDate string) error {
-	workflowID := fmt.Sprintf("%s-%d-%s", workflow.ExpiryJobWorkflowName, clusterID, expiry.ExpiryInternalServiceName)
+func (a asyncExpiryService) Expire(ctx context.Context, clusterID uint, expiryDate string) error {
 
 	options := client.StartWorkflowOptions{
-		ID:                           workflowID,
+		ID:                           getWorkflowID(clusterID),
 		TaskList:                     "pipeline",
 		ExecutionStartToCloseTimeout: 3 * time.Hour,
 		WorkflowIDReusePolicy:        client.WorkflowIDReusePolicyAllowDuplicate,
@@ -55,9 +54,32 @@ func (a asyncExpirer) Expire(ctx context.Context, clusterID uint, expiryDate str
 		ExpiryDate: expiryDate,
 	}
 
-	if _, err := a.cadenceClient.StartWorkflow(ctx, options, workflow.ExpiryJobWorkflowName, workflowInput); err != nil {
-		return errors.WrapIfWithDetails(err, "signal with start workflow failed", "workflowId", workflowID)
+	// cancel the workflow if already exists to support the update flow
+	// the error is ignored on purpose here
+	if err := a.cadenceClient.CancelWorkflow(ctx, getWorkflowID(clusterID), ""); err != nil {
+		a.logger.Debug("failed to cancel the workflow ( on apply )", map[string]interface{}{"workflowID": getWorkflowID(clusterID)})
 	}
 
+	if _, err := a.cadenceClient.StartWorkflow(ctx, options, workflow.ExpiryJobWorkflowName, workflowInput); err != nil {
+		return errors.WrapIfWithDetails(err, "failed to start the expiry workflow", "workflowId", getWorkflowID(clusterID))
+	}
+
+	a.logger.Info("expiry workflow successfully started", map[string]interface{}{"workflowID": getWorkflowID(clusterID)})
 	return nil
+}
+
+func (a asyncExpiryService) CancelExpiry(ctx context.Context, clusterID uint) error {
+
+	if err := a.cadenceClient.CancelWorkflow(ctx, getWorkflowID(clusterID), ""); err != nil {
+		return errors.WrapIfWithDetails(err, "failed to cancel the expiry workflow", "workflowId", getWorkflowID(clusterID))
+	}
+
+	a.logger.Info("expiry workflow successfully cancelled", map[string]interface{}{"workflowID": getWorkflowID(clusterID)})
+	return nil
+}
+
+// computes the unique workflow id for the cluster (clusterID is unique in the system)
+func getWorkflowID(clusterID uint) string {
+
+	return fmt.Sprintf("%s-%d-%s", workflow.ExpiryJobWorkflowName, clusterID, expiry.ExpiryInternalServiceName)
 }
