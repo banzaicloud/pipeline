@@ -51,7 +51,7 @@ func Test_syncExpirer_Expire(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := syncExpirer{
+			s := syncExpiryService{
 				logger: tt.fields.logger,
 			}
 

@@ -17,6 +17,7 @@ package workflow
 import (
 	"time"
 
+	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
 )
 
@@ -30,18 +31,18 @@ type ExpiryJobWorkflowInput struct {
 	ExpiryDate string
 }
 
-// IntegratedServiceJobWorkflow executes integrated service jobs
+// ExpiryJobWorkflow triggers the cluster deletion at a given date
 func ExpiryJobWorkflow(ctx workflow.Context, input ExpiryJobWorkflowInput) error {
 
 	expiryTime, err := time.ParseInLocation(time.RFC3339, input.ExpiryDate, time.Now().Location())
 	if err != nil {
-		return err
+		return errors.WrapIf(err, "failed to parse the expiry date")
 	}
 
-	dur := expiryTime.Sub(workflow.Now(ctx))
+	sleepDuration := expiryTime.Sub(workflow.Now(ctx))
 
-	if err := workflow.Sleep(ctx, dur); err != nil {
-		return err
+	if err := workflow.Sleep(ctx, sleepDuration); err != nil {
+		return errors.WrapIf(err, "sleep cancelled (possibly due to the workflow being cancelled")
 	}
 
 	activityInput := ExpiryActivityInput{
