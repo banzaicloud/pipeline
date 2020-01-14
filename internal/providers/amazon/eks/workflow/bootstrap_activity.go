@@ -163,6 +163,19 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 
 	tags := map[string]string{}
 
+	var envVars []v1.EnvVar
+
+	for _, envVar := range ds.Spec.Template.Spec.Containers[0].Env {
+		if envVar.Name == "ADDITIONAL_ENI_TAGS" {
+			// omit invalid JSONs
+			_ = json.Unmarshal([]byte(envVar.Value), &tags)
+
+			continue
+		}
+
+		envVars = append(envVars, envVar)
+	}
+
 	for _, tag := range amazon.PipelineTags() {
 		tags[aws.StringValue(tag.Key)] = aws.StringValue(tag.Value)
 	}
@@ -172,7 +185,7 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 		return nil, cadence.NewClientError(err)
 	}
 
-	ds.Spec.Template.Spec.Containers[0].Env = append(ds.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
+	ds.Spec.Template.Spec.Containers[0].Env = append(envVars, v1.EnvVar{
 		Name:  "ADDITIONAL_ENI_TAGS",
 		Value: string(tagBody),
 	})
