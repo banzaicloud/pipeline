@@ -212,7 +212,7 @@ func main() {
 		logger.Warn("configuration file not found")
 	}
 
-	err = config.Validate()
+	err = errors.WrapIf(config.Validate(), "invalid configuration")
 	if err != nil {
 		logger.Error(err.Error())
 

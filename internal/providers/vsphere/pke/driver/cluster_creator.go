@@ -354,9 +354,9 @@ func (p clusterCreatorNodePoolPreparerDataProvider) getExistingNodePoolByName(ct
 
 // TODO add vsphere params
 const masterUserDataScriptTemplate = `#!/bin/sh
-export HTTP_PROXY="{{ .HttpProxy }}"
-export HTTPS_PROXY="{{ .HttpsProxy }}"
-export NO_PROXY="{{ .NoProxy }}"
+#export HTTP_PROXY="{{ .HttpProxy }}"
+#export HTTPS_PROXY="{{ .HttpsProxy }}"
+#export NO_PROXY="{{ .NoProxy }}"
 export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
 until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 chmod +x /usr/local/bin/pke
@@ -370,6 +370,14 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-cluster-name={{ .ClusterName }} \
 --pipeline-nodepool={{ .NodePoolName }} \
 --taints={{ .Taints }} \
+--kubernetes-advertise-address=$PRIVATE_IP:6443 \
+--kubernetes-api-server={{ .PublicAddress }}:6443 \
+--kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
+--kubernetes-version={{ .KubernetesVersion }} \
+--kubernetes-master-mode={{ .KubernetesMasterMode }} \
+--kubernetes-api-server-cert-sans={{ .PublicAddress }}`
+
+/*
 #--kubernetes-cloud-provider=vsphere \
 #--vsphere-server=$server               \
 #--vsphere-port=$port                   \
@@ -380,18 +388,12 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 #--vsphere-folder=$folder               \
 #--vsphere-username=$username           \
 #--vsphere-password=$password           \
-#--lb-range=$lbrange                    \
---kubernetes-advertise-address=$PRIVATE_IP:6443 \
---kubernetes-api-server={{ .PublicAddress }}:6443 \
---kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
---kubernetes-version={{ .KubernetesVersion }} \
---kubernetes-master-mode={{ .KubernetesMasterMode }} \
---kubernetes-api-server-cert-sans={{ .PublicAddress }}`
+#--lb-range=$lbrange                    */
 
 const workerUserDataScriptTemplate = `#!/bin/sh
-export HTTP_PROXY="{{ .HttpProxy }}"
-export HTTPS_PROXY="{{ .HttpsProxy }}"
-export NO_PROXY="{{ .NoProxy }}"
+#export HTTP_PROXY="{{ .HttpProxy }}"
+#export HTTPS_PROXY="{{ .HttpsProxy }}"
+#export NO_PROXY="{{ .NoProxy }}"
 
 until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 chmod +x /usr/local/bin/pke

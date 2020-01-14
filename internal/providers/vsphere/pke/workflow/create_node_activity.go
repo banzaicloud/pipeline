@@ -114,7 +114,7 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 		return err
 	}
 
-	userData := encodeGuestinfo(generateCloudConfig(input.AdminUsername, input.SSHPublicKey, userDataScript.String()))
+	userData := encodeGuestinfo(generateCloudConfig(input.AdminUsername, input.SSHPublicKey, userDataScript.String(), input.Name))
 
 	vmConfig := types.VirtualMachineConfigSpec{}
 	vmConfig.ExtraConfig = append(vmConfig.ExtraConfig,
@@ -223,10 +223,11 @@ func encodeGuestinfo(data string) string {
 	return buffer.String()
 }
 
-func generateCloudConfig(user, publicKey, script string) string {
+func generateCloudConfig(user, publicKey, script, hostname string) string {
 
 	data := map[string]interface{}{
-		"runcmd": []string{script},
+		"hostname": hostname,
+		"runcmd":   []string{script},
 	}
 
 	if publicKey != "" {
@@ -236,6 +237,7 @@ func generateCloudConfig(user, publicKey, script string) string {
 		data["users"] = []map[string]interface{}{
 			map[string]interface{}{
 				"name":                user,
+				"sudo":                "ALL=(ALL) NOPASSWD:ALL",
 				"ssh-authorized-keys": []string{publicKey}}}
 	}
 
