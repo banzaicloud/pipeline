@@ -47,6 +47,9 @@ func mapCapabilities(config configuration) cap.Capabilities {
 				"enabled": config.Cluster.SecurityScan.Enabled,
 				"managed": config.Cluster.SecurityScan.Anchore.Enabled,
 			},
+			"expiry": cap.Cap{
+				"enabled": config.Cluster.Expiry.Enabled,
+			},
 		},
 	}
 }
