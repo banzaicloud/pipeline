@@ -423,9 +423,11 @@ func WaitForASGToBeFulfilled(
 			if i <= int(asgFulfillmentWaitAttempts) {
 				i++
 				activity.RecordHeartbeat(ctx, i)
+				logger.Infof("wait for ASG, attempt %d", i)
 
 				asGroup, err := m.GetAutoscalingGroupByStackName(stackName)
 				if err != nil {
+					logger.Debug(err)
 					if aerr, ok := err.(awserr.Error); ok {
 						if aerr.Code() == "ValidationError" || aerr.Code() == "ASGNotFoundInResponse" {
 							continue
@@ -436,14 +438,14 @@ func WaitForASGToBeFulfilled(
 
 				ok, err := asGroup.IsHealthy()
 				if err != nil {
+					logger.Debug(err)
 					if autoscaling.IsErrorFinal(err) {
 						return errors.WithDetails(err, "nodePoolName", nodePoolName, "stackName", aws.StringValue(asGroup.AutoScalingGroupName))
 					}
-					//log.Debug(err)
 					continue
 				}
 				if ok {
-					//log.Debug("ASG is healthy")
+					logger.Info("ASG is healthy")
 					return nil
 				}
 			} else {
