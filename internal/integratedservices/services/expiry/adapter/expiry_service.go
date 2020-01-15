@@ -81,5 +81,5 @@ func (a asyncExpiryService) CancelExpiry(ctx context.Context, clusterID uint) er
 // computes the unique workflow id for the cluster (clusterID is unique in the system)
 func getWorkflowID(clusterID uint) string {
 
-	return fmt.Sprintf("%s-%d-%s", workflow.ExpiryJobWorkflowName, clusterID, expiry.ExpiryInternalServiceName)
+	return fmt.Sprintf("%s-%d-%s", workflow.ExpiryJobWorkflowName, clusterID, expiry.InternalServiceName)
 }

@@ -38,7 +38,7 @@ func NewExpiryServiceOperator(expiryService ExpiryService, logger common.Logger)
 }
 
 func (e expiryServiceOperator) Name() string {
-	return ExpiryInternalServiceName
+	return InternalServiceName
 }
 
 func (e expiryServiceOperator) Apply(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {

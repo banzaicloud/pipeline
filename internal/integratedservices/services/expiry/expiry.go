@@ -23,6 +23,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
+const InternalServiceName = "expiry"
+
 type Expirer interface {
 	Expire(ctx context.Context, clusterID uint, expiryDate string) error
 }
