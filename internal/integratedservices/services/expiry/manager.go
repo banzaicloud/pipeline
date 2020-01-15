@@ -18,20 +18,20 @@ import (
 	"context"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
-	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 )
 
 type expiryServiceManager struct {
 	integratedservices.PassthroughIntegratedServiceSpecPreparer
+	specBinderFunc binderFunc
 }
 
 func (e expiryServiceManager) GetOutput(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) (integratedservices.IntegratedServiceOutput, error) {
-	panic("implement me")
+	return integratedservices.IntegratedServiceOutput{}, nil
 }
 
 func (e expiryServiceManager) ValidateSpec(ctx context.Context, spec integratedservices.IntegratedServiceSpec) error {
 	expirySpec := ServiceSpec{}
-	if err := services.BindIntegratedServiceSpec(spec, &expirySpec); err != nil {
+	if err := e.specBinderFunc(spec, &expirySpec); err != nil {
 		return integratedservices.InvalidIntegratedServiceSpecError{
 			IntegratedServiceName: InternalServiceName,
 			Problem:               "failed to bind the expiry service specification",
@@ -49,6 +49,8 @@ func (e expiryServiceManager) Name() string {
 	return InternalServiceName
 }
 
-func NewExpiryServiceManager() expiryServiceManager {
-	return expiryServiceManager{}
+func NewExpiryServiceManager(specBinderFn binderFunc) expiryServiceManager {
+	return expiryServiceManager{
+		specBinderFunc: specBinderFn,
+	}
 }

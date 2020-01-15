@@ -20,6 +20,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
+type binderFunc = func(inputSpec integratedservices.IntegratedServiceSpec, boundSpec interface{}) error
+
 type ServiceSpec struct {
 	Date string `json:"date" mapstructure:"date"`
 }

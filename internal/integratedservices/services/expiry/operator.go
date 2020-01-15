@@ -21,19 +21,20 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
-	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 )
 
 type expiryServiceOperator struct {
-	expiryService ExpiryService
-	logger        common.Logger
+	expiryService  ExpiryService
+	specBinderFunc binderFunc
+	logger         common.Logger
 }
 
-func NewExpiryServiceOperator(expiryService ExpiryService, logger common.Logger) expiryServiceOperator {
+func NewExpiryServiceOperator(expiryService ExpiryService, binderFn binderFunc, logger common.Logger) expiryServiceOperator {
 
 	return expiryServiceOperator{
-		expiryService: expiryService,
-		logger:        logger,
+		expiryService:  expiryService,
+		specBinderFunc: binderFn,
+		logger:         logger,
 	}
 }
 
@@ -43,7 +44,7 @@ func (e expiryServiceOperator) Name() string {
 
 func (e expiryServiceOperator) Apply(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
 	expirySpec := ServiceSpec{}
-	if err := services.BindIntegratedServiceSpec(spec, &expirySpec); err != nil {
+	if err := e.specBinderFunc(spec, &expirySpec); err != nil {
 		return errors.WrapIf(err, "failed to bind the expiry service specification")
 	}
 
