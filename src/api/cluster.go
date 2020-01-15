@@ -118,7 +118,7 @@ func GetClusterConfig(c *gin.Context) {
 	if ok != true {
 		return
 	}
-	config, err := commonCluster.GetK8sConfig()
+	config, err := commonCluster.GetK8sUserConfig()
 	if err != nil {
 		log.Debugf("error during getting config: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{

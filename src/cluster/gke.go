@@ -2012,6 +2012,11 @@ func (c *GKECluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
 }
 
+// GetK8sUserConfig returns the Kubernetes config
+func (c *GKECluster) GetK8sUserConfig() ([]byte, error) {
+	return c.GetK8sConfig()
+}
+
 func waitForOperation(getter operationInfoer, operationName string, logger logrus.FieldLogger) error {
 
 	log := logger.WithFields(logrus.Fields{"operation": operationName})

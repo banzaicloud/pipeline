@@ -316,6 +316,11 @@ func (c *KubeCluster) GetK8sConfig() ([]byte, error) {
 	return c.DownloadK8sConfig()
 }
 
+// GetK8sUserConfig returns the Kubernetes config
+func (c *KubeCluster) GetK8sUserConfig() ([]byte, error) {
+	return c.GetK8sConfig()
+}
+
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *KubeCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled

@@ -64,6 +64,10 @@ func (c *Cluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonCluster.GetK8sConfig()
 }
 
+func (c *Cluster) GetK8sUserConfig() ([]byte, error) {
+	return c.GetK8sConfig()
+}
+
 func (c *Cluster) GetNodePools() []pkeworkflow.NodePool {
 	clusterNodePools := c.CommonCluster.(interface {
 		GetNodePools() []cluster.PKENodePool

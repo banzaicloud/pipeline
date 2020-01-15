@@ -202,6 +202,10 @@ func (a *AzurePkeCluster) GetK8sConfig() ([]byte, error) {
 	return []byte(configStr), nil
 }
 
+func (a *AzurePkeCluster) GetK8sUserConfig() ([]byte, error) {
+	return a.GetK8sConfig()
+}
+
 func (a *AzurePkeCluster) RequiresSshPublicKey() bool {
 	return true
 }
