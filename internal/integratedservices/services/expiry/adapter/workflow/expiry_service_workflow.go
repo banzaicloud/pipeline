@@ -34,7 +34,7 @@ type ExpiryJobWorkflowInput struct {
 // ExpiryJobWorkflow triggers the cluster deletion at a given date
 func ExpiryJobWorkflow(ctx workflow.Context, input ExpiryJobWorkflowInput) error {
 
-	expiryTime, err := time.ParseInLocation(time.RFC3339, input.ExpiryDate, time.Now().Location())
+	expiryTime, err := time.ParseInLocation(time.RFC3339, input.ExpiryDate, workflow.Now(ctx).Location())
 	if err != nil {
 		return errors.WrapIf(err, "failed to parse the expiry date")
 	}

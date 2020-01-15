@@ -27,6 +27,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter/workflow"
 )
 
+// adjust this value if appropriate
+const startToCloseDurationOffset = 24 * time.Hour
+
 // asyncExpiryService Expirer implementation that uses cadence setup for executing the expiration
 type asyncExpiryService struct {
 	cadenceClient client.Client
@@ -42,10 +45,15 @@ func NewAsyncExpirer(cadenceClient client.Client, logger common.Logger) asyncExp
 
 func (a asyncExpiryService) Expire(ctx context.Context, clusterID uint, expiryDate string) error {
 
+	startToCloseTimeout, err := startToCloseDuration(expiryDate)
+	if err != nil {
+		return err
+	}
+
 	options := client.StartWorkflowOptions{
 		ID:                           getWorkflowID(clusterID),
 		TaskList:                     "pipeline",
-		ExecutionStartToCloseTimeout: 3 * time.Hour,
+		ExecutionStartToCloseTimeout: startToCloseTimeout,
 		WorkflowIDReusePolicy:        client.WorkflowIDReusePolicyAllowDuplicate,
 	}
 
@@ -82,4 +90,15 @@ func (a asyncExpiryService) CancelExpiry(ctx context.Context, clusterID uint) er
 func getWorkflowID(clusterID uint) string {
 
 	return fmt.Sprintf("%s-%d-%s", workflow.ExpiryJobWorkflowName, clusterID, expiry.InternalServiceName)
+}
+
+func startToCloseDuration(expiryDate string) (time.Duration, error) {
+	expiryTime, err := time.ParseInLocation(time.RFC3339, expiryDate, time.Now().Location())
+	if err != nil {
+		return 0, errors.WrapIf(err, "failed to parse the expiry date")
+	}
+
+	// add extra 24 hours to the scheduled expiry
+	startToCloseTimeout := expiryTime.Add(startToCloseDurationOffset).Sub(time.Now())
+	return startToCloseTimeout, nil
 }
