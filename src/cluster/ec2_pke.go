@@ -629,6 +629,10 @@ func (c *EC2ClusterPKE) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
 }
 
+func (c *EC2ClusterPKE) GetK8sUserConfig() ([]byte, error) {
+	return c.GetK8sConfig()
+}
+
 func (c *EC2ClusterPKE) RbacEnabled() bool {
 	return c.model.Kubernetes.RBACEnabled
 }

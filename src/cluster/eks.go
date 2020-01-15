@@ -24,6 +24,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/nodepools"
 
@@ -536,9 +539,36 @@ func (c *EKSCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
-// GetK8sConfig returns the Kubernetes config
+// GetK8sConfig returns the Kubernetes config for internal use
 func (c *EKSCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
+}
+
+// GetK8sUserConfig returns the Kubernetes config for external users
+func (c *EKSCluster) GetK8sUserConfig() ([]byte, error) {
+	adminConfig, err := c.CommonClusterBase.getConfig(c)
+	parsedAdminConfig, err := clientcmd.Load(adminConfig)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to load kubernetes API config")
+	}
+
+	userConfig := k8sutil.ExtractConfigBase(parsedAdminConfig).CreateConfigFromTemplate(
+		k8sutil.CreateAuthInfoFunc(func(clusterName string) *clientcmdapi.AuthInfo {
+			return &clientcmdapi.AuthInfo{
+				Exec: &clientcmdapi.ExecConfig{
+					APIVersion: "client.authentication.k8s.io/v1alpha1",
+					Command:    "aws-iam-authenticator",
+					Args:       []string{"token", "-i", clusterName},
+				},
+			}
+		}))
+
+	out, err := clientcmd.Write(*userConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to serialize generated user config")
+	}
+
+	return out, nil
 }
 
 // RequiresSshPublicKey returns true as a public ssh key is needed for bootstrapping

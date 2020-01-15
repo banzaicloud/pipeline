@@ -955,6 +955,11 @@ func (c *AKSCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
 }
 
+// GetK8sUserConfig returns the Kubernetes config for external users
+func (c *AKSCluster) GetK8sUserConfig() ([]byte, error) {
+	return c.GetK8sConfig()
+}
+
 // RequiresSshPublicKey returns true if a public SSH key is needed for bootstrapping the cluster
 func (c *AKSCluster) RequiresSshPublicKey() bool {
 	return true

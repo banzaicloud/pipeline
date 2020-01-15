@@ -522,6 +522,11 @@ func (o *OKECluster) GetK8sConfig() ([]byte, error) {
 	return o.CommonClusterBase.getConfig(o)
 }
 
+// GetK8sUserConfig returns the Kubernetes config
+func (o *OKECluster) GetK8sUserConfig() ([]byte, error) {
+	return o.GetK8sConfig()
+}
+
 // GetClusterManager creates a new oracleClusterManager.ClusterManager
 func (o *OKECluster) GetClusterManager() (manager *oracleClusterManager.ClusterManager, err error) {
 
