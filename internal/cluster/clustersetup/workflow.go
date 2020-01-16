@@ -17,6 +17,7 @@ package clustersetup
 import (
 	"time"
 
+	"emperror.dev/errors"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 )
@@ -131,6 +132,14 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 
 		err := workflow.ExecuteActivity(ctx, InstallTillerWaitActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
+			if cadence.IsTimeoutError(err) {
+				return errors.New(
+					"Cluster setup failed because Tiller couldn't start. " +
+						"Usually this happens when worker nodes are not able to join the cluster. " +
+						"Check your network settings to make sure the worker nodes can communicate with the Kubernetes API server.",
+				)
+			}
+
 			return err
 		}
 	}
