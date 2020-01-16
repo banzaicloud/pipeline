@@ -74,13 +74,15 @@ func (a InstallTillerWaitActivity) Execute(ctx context.Context, input InstallTil
 
 		client, err := a.clientFactory.FromSecret(ctx, input.ConfigSecretID)
 		if err != nil {
+			logger.Debugf("failed to connect to tiller: %s", err)
+
 			return err
 		}
 		defer client.Close()
 
 		resp, err := client.GetVersion()
 		if err != nil {
-			logger.Debug("error during retrieving tiller version")
+			logger.Debugf("error during retrieving tiller version: %s", err)
 
 			return err
 		}
