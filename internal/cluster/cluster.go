@@ -17,6 +17,8 @@ package cluster
 import (
 	"context"
 
+	"emperror.dev/errors"
+
 	"github.com/banzaicloud/pipeline/pkg/brn"
 )
 
@@ -54,14 +56,21 @@ type Cluster struct {
 	ConfigSecretID brn.ResourceName
 }
 
+type Identifier struct {
+	OrganizationID uint
+	ClusterID      uint
+	ClusterName    string
+}
+
 // Store provides an interface to the generic Cluster model persistence.
 type Store interface {
 	// GetCluster returns a generic Cluster.
-	// Returns a NotFoundError when the cluster cannot be found.
+	// Returns an error with the NotFound behavior when the cluster cannot be found.
 	GetCluster(ctx context.Context, id uint) (Cluster, error)
 
-	// Exists returns true if the cluster exists
-	Exists(ctx context.Context, id uint) (bool, error)
+	// GetClusterByName returns a generic Cluster.
+	// Returns an error with the NotFound behavior when the cluster cannot be found.
+	GetClusterByName(ctx context.Context, orgID uint, clusterName string) (Cluster, error)
 
 	// SetStatus sets the cluster status.
 	SetStatus(ctx context.Context, id uint, status string, statusMessage string) error
@@ -69,7 +78,9 @@ type Store interface {
 
 // NotFoundError is returned if a cluster cannot be found.
 type NotFoundError struct {
-	ID uint
+	OrganizationID uint
+	ClusterID      uint
+	ClusterName    string
 }
 
 // Error implements the error interface.
@@ -79,13 +90,22 @@ func (NotFoundError) Error() string {
 
 // Details returns error details.
 func (e NotFoundError) Details() []interface{} {
-	return []interface{}{"clusterId", e.ID}
+	return []interface{}{"clusterId", e.ClusterID, "clusterName", e.ClusterName, "orgId", e.OrganizationID}
 }
 
 // NotFound tells a client that this error is related to a resource being not found.
 // Can be used to translate the error to status codes for example.
 func (NotFoundError) NotFound() bool {
 	return true
+}
+
+// IsNotFoundError returns true if the error implements the NotFound behavior and it returns true.
+func IsNotFoundError(err error) bool {
+	var nfe interface {
+		NotFound() bool
+	}
+
+	return errors.As(err, &nfe) && nfe.NotFound()
 }
 
 // IsBusinessError tells the transport layer whether this error should be translated into the transport format
@@ -103,7 +123,9 @@ func (NotFoundError) ClientError() bool {
 
 // NotReadyError is returned when a cluster is not ready for certain actions.
 type NotReadyError struct {
-	ID uint
+	OrganizationID uint
+	ID             uint
+	Name           string
 }
 
 // Error implements the error interface.
@@ -113,7 +135,7 @@ func (NotReadyError) Error() string {
 
 // Details returns error details.
 func (e NotReadyError) Details() []interface{} {
-	return []interface{}{"clusterId", e.ID}
+	return []interface{}{"clusterId", e.ID, "clusterName", e.Name, "orgId", e.OrganizationID}
 }
 
 // Conflict tells a client that this error is related to a conflicting request.
@@ -158,7 +180,7 @@ func (e NotSupportedDistributionError) Details() []interface{} {
 	}
 }
 
-// NotFound tells a client that this error is related to an invalid request.
+// BadRequest tells a client that this error is related to an invalid request.
 // Can be used to translate the error to status codes for example.
 func (NotSupportedDistributionError) BadRequest() bool {
 	return true
@@ -179,10 +201,10 @@ func (NotSupportedDistributionError) ClientError() bool {
 
 // Service provides an interface to clusters.
 //go:generate mga gen kit endpoint --outdir clusterdriver --outfile cluster_endpoint_gen.go --with-oc --base-name Cluster Service
-//go:generate mockery -name Service -inpkg
+//go:generate mga gen mockery --name Service --inpkg
 type Service interface {
 	// DeleteCluster deletes the specified cluster. It returns true if the cluster is already deleted.
-	DeleteCluster(ctx context.Context, clusterID uint, options DeleteClusterOptions) (bool, error)
+	DeleteCluster(ctx context.Context, clusterIdentifier Identifier, options DeleteClusterOptions) (bool, error)
 }
 
 // DeleteClusterOptions represents cluster deletion options.
@@ -215,22 +237,30 @@ func NewService(clusters Store, manager Manager) Service {
 }
 
 // DeleteCluster deletes the specified cluster. It returns true if the cluster is already deleted.
-func (s clusterService) DeleteCluster(ctx context.Context, clusterID uint, options DeleteClusterOptions) (bool, error) {
-	exists, err := s.clusters.Exists(ctx, clusterID)
-	if err != nil {
-		return false, err
+func (s clusterService) DeleteCluster(ctx context.Context, clusterIdentifier Identifier, options DeleteClusterOptions) (bool, error) {
+	var (
+		c   Cluster
+		err error
+	)
+
+	if clusterIdentifier.ClusterName != "" {
+		c, err = s.clusters.GetClusterByName(ctx, clusterIdentifier.OrganizationID, clusterIdentifier.ClusterName)
+	} else {
+		c, err = s.clusters.GetCluster(ctx, clusterIdentifier.ClusterID)
 	}
 
-	// Already deleted
-	if !exists {
+	if IsNotFoundError(err) {
+		// Already deleted
 		return true, nil
-	}
-
-	if err := s.clusters.SetStatus(ctx, clusterID, Deleting, DeletingMessage); err != nil {
+	} else if err != nil {
 		return false, err
 	}
 
-	if err := s.manager.DeleteCluster(ctx, clusterID, options); err != nil {
+	if err := s.clusters.SetStatus(ctx, c.ID, Deleting, DeletingMessage); err != nil {
+		return false, err
+	}
+
+	if err := s.manager.DeleteCluster(ctx, c.ID, options); err != nil {
 		return false, err
 	}
 

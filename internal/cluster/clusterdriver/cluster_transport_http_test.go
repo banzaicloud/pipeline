@@ -48,36 +48,111 @@ func TestRegisterClusterHTTPHandlers_DeleteCluster(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		test := test
+	t.Run("no_field", func(t *testing.T) {
+		for _, test := range tests {
+			test := test
 
-		t.Run(test.name, func(t *testing.T) {
-			const clusterID = uint(1)
-			const force = true
+			t.Run(test.name, func(t *testing.T) {
+				const orgID = uint(1)
+				const clusterID = uint(1)
+				const force = true
 
-			handler := mux.NewRouter()
-			RegisterClusterHTTPHandlers(
-				ClusterEndpoints{
-					DeleteCluster: test.endpointFunc,
-				},
-				handler.PathPrefix("/clusters/{clusterId}").Subrouter(),
-			)
+				handler := mux.NewRouter()
+				RegisterClusterHTTPHandlers(
+					ClusterEndpoints{
+						DeleteCluster: test.endpointFunc,
+					},
+					handler.PathPrefix("/orgs/{orgId}/clusters/{clusterId}").Subrouter(),
+				)
 
-			ts := httptest.NewServer(handler)
-			defer ts.Close()
+				ts := httptest.NewServer(handler)
+				defer ts.Close()
 
-			req, err := http.NewRequest(
-				http.MethodDelete,
-				fmt.Sprintf("%s/clusters/%d?force=%t", ts.URL, clusterID, force),
-				nil,
-			)
-			require.NoError(t, err)
+				req, err := http.NewRequest(
+					http.MethodDelete,
+					fmt.Sprintf("%s/orgs/%d/clusters/%d?force=%t", ts.URL, orgID, clusterID, force),
+					nil,
+				)
+				require.NoError(t, err)
 
-			resp, err := ts.Client().Do(req)
-			require.NoError(t, err)
-			defer resp.Body.Close()
+				resp, err := ts.Client().Do(req)
+				require.NoError(t, err)
+				defer resp.Body.Close()
 
-			assert.Equal(t, test.expectedStatusCode, resp.StatusCode)
-		})
-	}
+				assert.Equal(t, test.expectedStatusCode, resp.StatusCode)
+			})
+		}
+	})
+
+	t.Run("id_field", func(t *testing.T) {
+		for _, test := range tests {
+			test := test
+
+			t.Run(test.name, func(t *testing.T) {
+				const orgID = uint(1)
+				const clusterID = uint(1)
+				const force = true
+
+				handler := mux.NewRouter()
+				RegisterClusterHTTPHandlers(
+					ClusterEndpoints{
+						DeleteCluster: test.endpointFunc,
+					},
+					handler.PathPrefix("/orgs/{orgId}/clusters/{clusterId}").Subrouter(),
+				)
+
+				ts := httptest.NewServer(handler)
+				defer ts.Close()
+
+				req, err := http.NewRequest(
+					http.MethodDelete,
+					fmt.Sprintf("%s/orgs/%d/clusters/%d?force=%t&field=id", ts.URL, orgID, clusterID, force),
+					nil,
+				)
+				require.NoError(t, err)
+
+				resp, err := ts.Client().Do(req)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+
+				assert.Equal(t, test.expectedStatusCode, resp.StatusCode)
+			})
+		}
+	})
+
+	t.Run("name_field", func(t *testing.T) {
+		for _, test := range tests {
+			test := test
+
+			t.Run(test.name, func(t *testing.T) {
+				const orgID = uint(1)
+				const clusterName = "my-cluster"
+				const force = true
+
+				handler := mux.NewRouter()
+				RegisterClusterHTTPHandlers(
+					ClusterEndpoints{
+						DeleteCluster: test.endpointFunc,
+					},
+					handler.PathPrefix("/orgs/{orgId}/clusters/{clusterId}").Subrouter(),
+				)
+
+				ts := httptest.NewServer(handler)
+				defer ts.Close()
+
+				req, err := http.NewRequest(
+					http.MethodDelete,
+					fmt.Sprintf("%s/orgs/%d/clusters/%s?force=%t&field=name", ts.URL, orgID, clusterName, force),
+					nil,
+				)
+				require.NoError(t, err)
+
+				resp, err := ts.Client().Do(req)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+
+				assert.Equal(t, test.expectedStatusCode, resp.StatusCode)
+			})
+		}
+	})
 }
