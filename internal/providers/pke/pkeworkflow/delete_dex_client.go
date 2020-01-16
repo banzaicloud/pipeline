@@ -17,7 +17,7 @@ package pkeworkflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/auth"
 )
@@ -48,7 +48,7 @@ func (a *DeleteDexClientActivity) Execute(ctx context.Context, input DeleteDexCl
 
 	err = a.clusterAuthService.UnRegisterCluster(ctx, cluster.GetUID())
 	if err != nil {
-		return emperror.Wrap(err, "can't delete dex client for cluster")
+		return errors.WrapIf(err, "can't delete dex client for cluster")
 	}
 
 	return nil

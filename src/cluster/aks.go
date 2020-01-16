@@ -22,14 +22,13 @@ import (
 	"strings"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-09-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -161,7 +160,7 @@ func (c *AKSCluster) GetSecretId() string {
 func (c *AKSCluster) getCloudConnection() (*pkgAzure.CloudConnection, error) {
 	creds, err := c.getCredentials()
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to retrieve AKS credentials")
+		return nil, errors.WrapIf(err, "failed to retrieve AKS credentials")
 	}
 	return pkgAzure.NewCloudConnection(c.getEnvironment(), creds)
 }
@@ -170,7 +169,7 @@ func (c *AKSCluster) getCloudConnection() (*pkgAzure.CloudConnection, error) {
 func (c *AKSCluster) GetAPIEndpoint() (string, error) {
 	cluster, err := c.getAzureCluster()
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to get AKS cluster from Azure")
+		return "", errors.WrapIf(err, "failed to get AKS cluster from Azure")
 	}
 	return *cluster.Fqdn, nil
 }
@@ -178,7 +177,7 @@ func (c *AKSCluster) GetAPIEndpoint() (string, error) {
 func (c *AKSCluster) getNewSSHKeyPair() (ssh.KeyPair, error) {
 	clusterSSHSecret, err := c.getSshSecret(c)
 	if err != nil {
-		return ssh.KeyPair{}, emperror.Wrap(err, "failed to retrieve SSH secret")
+		return ssh.KeyPair{}, errors.WrapIf(err, "failed to retrieve SSH secret")
 	}
 	return sshadapter.KeyPairFromSecret(clusterSSHSecret), nil
 }
@@ -200,14 +199,14 @@ func (c *AKSCluster) CreateCluster() error {
 
 	cc, err := c.getCloudConnection()
 	if err != nil {
-		return emperror.Wrap(err, "failed to get cloud connection")
+		return errors.WrapIf(err, "failed to get cloud connection")
 	}
 
 	var profiles []containerservice.ManagedClusterAgentPoolProfile
 	for _, np := range c.modelCluster.AKS.NodePools {
 		if np != nil {
 			if err := validateVNetSubnet(cc, c.GetResourceGroupName(), np.VNetSubnetID); err != nil {
-				return emperror.Wrap(err, "virtual network subnet validation failed")
+				return errors.WrapIf(err, "virtual network subnet validation failed")
 			}
 			count := int32(np.Count)
 			name := np.Name
@@ -224,12 +223,12 @@ func (c *AKSCluster) CreateCluster() error {
 
 	sshKey, err := c.getNewSSHKeyPair()
 	if err != nil {
-		return emperror.Wrap(err, "failed to get new SSH key pair")
+		return errors.WrapIf(err, "failed to get new SSH key pair")
 	}
 	c.log.Debug("successfully created new SSH keys")
 	creds, err := c.getCredentials()
 	if err != nil {
-		return emperror.Wrap(err, "failed to retrieve AKS credentials")
+		return errors.WrapIf(err, "failed to retrieve AKS credentials")
 	}
 	c.log.Debug("successfully retrieved credentials")
 	dnsPrefix := "dnsprefix"
@@ -264,7 +263,7 @@ func (c *AKSCluster) CreateCluster() error {
 	clusterCreateInitTime := time.Now()
 	cluster, err := cc.GetManagedClustersClient().CreateOrUpdateAndWaitForIt(context.TODO(), c.GetResourceGroupName(), c.GetName(), params)
 	if err != nil {
-		return emperror.Wrap(err, "failed to create cluster")
+		return errors.WrapIf(err, "failed to create cluster")
 	}
 	if !isProvisioningSuccessful(cluster) {
 		return c.onClusterCreateFailure(err, clusterCreateInitTime)
@@ -272,7 +271,7 @@ func (c *AKSCluster) CreateCluster() error {
 	c.log.Info("Cluster ready")
 
 	if err = c.assignStorageAccountContributorRole(); err != nil {
-		return emperror.Wrap(err, "failed to assign storage account contributor role")
+		return errors.WrapIf(err, "failed to assign storage account contributor role")
 	}
 	c.log.Info("Role assigned successfully")
 
@@ -301,17 +300,17 @@ func (c *AKSCluster) assignStorageAccountContributorRole() error {
 
 	cc, err := c.getCloudConnection()
 	if err != nil {
-		return emperror.Wrap(err, "failed to get cloud connection")
+		return errors.WrapIf(err, "failed to get cloud connection")
 	}
 
 	irgName := c.getInfrastructureResourceGroupName()
 	c.log.Infof("Checking infrastructure resource group [%s] existence", irgName)
 	resp, err := cc.GetGroupsClient().CheckExistence(context.TODO(), irgName)
 	if err != nil {
-		return emperror.Wrap(err, "failed to check resource group existence")
+		return errors.WrapIf(err, "failed to check resource group existence")
 	}
 	if resp.StatusCode == http.StatusNotFound {
-		return emperror.Wrap(ErrNoInfrastructureRG, "resource group not found")
+		return errors.WrapIf(ErrNoInfrastructureRG, "resource group not found")
 	}
 
 	scope := makeResourceGroupScope(cc.GetSubscriptionID(), irgName)
@@ -320,7 +319,7 @@ func (c *AKSCluster) assignStorageAccountContributorRole() error {
 	c.log.Infof("Search for %s role", StorageAccountContributor)
 	role, err := cc.GetRoleDefinitionsClient().FindByRoleName(context.TODO(), scope, StorageAccountContributor)
 	if err != nil {
-		return emperror.Wrap(err, "failed to assign storage account contributor role to cluster nodes")
+		return errors.WrapIf(err, "failed to assign storage account contributor role to cluster nodes")
 	}
 	if role == nil {
 		return fmt.Errorf("no role found with the given name[%s]", StorageAccountContributor)
@@ -332,15 +331,15 @@ func (c *AKSCluster) assignStorageAccountContributorRole() error {
 	c.log.Infof("List virtual machines in resource group [%s]", irgName)
 	virtualMachines, err := vmClient.ListAll(context.TODO(), irgName)
 	if err != nil {
-		return emperror.Wrap(err, "failed to list virtual machines in resource group")
+		return errors.WrapIf(err, "failed to list virtual machines in resource group")
 	}
 
 	if err := enableVMsManagedServiceIdentity(c.log, vmClient, irgName, virtualMachines); err != nil {
-		return emperror.Wrap(err, "failed to enable managed service identity for VMs")
+		return errors.WrapIf(err, "failed to enable managed service identity for VMs")
 	}
 
 	if err := assignRoleToVMs(c.log, cc.GetRoleAssignmentsClient(), virtualMachines, role, scope); err != nil {
-		return emperror.Wrap(err, fmt.Sprintf("failed to assign %s role to VMs", StorageAccountContributor))
+		return errors.WrapIf(err, fmt.Sprintf("failed to assign %s role to VMs", StorageAccountContributor))
 	}
 
 	c.log.Info("Role assign succeeded")
@@ -370,7 +369,7 @@ func enableVMsManagedServiceIdentity(log logrus.FieldLogger, client *pkgAzure.Vi
 	for idx, vm := range vms {
 		newVM, err := enableVMManagedServiceIdentity(log, client, resourceGroupName, &vm)
 		if err != nil {
-			return emperror.Wrap(err, "failed to enable managed service identity on vm")
+			return errors.WrapIf(err, "failed to enable managed service identity on vm")
 		}
 		vms[idx] = *newVM
 	}
@@ -382,7 +381,7 @@ func assignRoleToVMs(log logrus.FieldLogger, roleAssignClient *pkgAzure.RoleAssi
 	log.Debug("List all role assignments")
 	roleAssignments, err := roleAssignClient.ListAll(context.TODO(), "")
 	if err != nil {
-		return emperror.Wrap(err, "failed to list role assignments")
+		return errors.WrapIf(err, "failed to list role assignments")
 	}
 
 	for _, vm := range virtualMachines {
@@ -397,7 +396,7 @@ func assignRoleToVMs(log logrus.FieldLogger, roleAssignClient *pkgAzure.RoleAssi
 			log.Infof("Assign role [%s] with scope [%s] to VM [%s] with principalId [%s]", roleID, scope, *vm.Name, principalID)
 			_, err := roleAssignClient.AssignRole(context.TODO(), scope, roleID, principalID)
 			if err != nil {
-				return emperror.Wrap(err, "failed to assign role")
+				return errors.WrapIf(err, "failed to assign role")
 			}
 		}
 	}
@@ -421,7 +420,7 @@ func isRoleAssigned(roleAssignments []authorization.RoleAssignment, scope, roleI
 // Persist saves the cluster model
 // Deprecated: Do not use.
 func (c *AKSCluster) Persist() error {
-	return emperror.Wrap(c.modelCluster.Save(), "failed to persist cluster")
+	return errors.WrapIf(c.modelCluster.Save(), "failed to persist cluster")
 }
 
 // GetResourceGroupName return the resource group's name the cluster belongs in
@@ -438,7 +437,7 @@ func (c *AKSCluster) loadAKSClusterModelFromDB() {
 func (c *AKSCluster) DownloadK8sConfig() ([]byte, error) {
 	cc, err := c.getCloudConnection()
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get cloud connection")
+		return nil, errors.WrapIf(err, "failed to get cloud connection")
 	}
 
 	c.loadAKSClusterModelFromDB()
@@ -448,7 +447,7 @@ func (c *AKSCluster) DownloadK8sConfig() ([]byte, error) {
 	c.log.Infof("Get %s cluster's config in %s, role name: %s", c.GetName(), c.GetResourceGroupName(), roleName)
 	profile, err := cc.GetManagedClustersClient().GetAccessProfile(context.TODO(), c.GetResourceGroupName(), c.GetName(), roleName)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get access profile")
+		return nil, errors.WrapIf(err, "failed to get access profile")
 	}
 	if profile.KubeConfig == nil {
 		c.log.Debug("K8s config not set in access profile")
@@ -515,14 +514,14 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 func (c *AKSCluster) DeleteCluster() error {
 	cc, err := c.getCloudConnection()
 	if err != nil {
-		return emperror.Wrap(err, "failed to get cloud connection")
+		return errors.WrapIf(err, "failed to get cloud connection")
 	}
 
 	c.loadAKSClusterModelFromDB()
 
 	err = cc.GetManagedClustersClient().DeleteAndWaitForIt(context.TODO(), c.GetResourceGroupName(), c.GetName())
 	if err != nil {
-		return emperror.Wrap(err, "cluster deletion request failed")
+		return errors.WrapIf(err, "cluster deletion request failed")
 	}
 	c.log.Info("Delete succeeded")
 	return nil
@@ -543,13 +542,13 @@ func getAgentPoolProfileByName(cluster *containerservice.ManagedCluster, name st
 func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userID uint) error {
 	cc, err := c.getCloudConnection()
 	if err != nil {
-		return emperror.Wrap(err, "failed to get cloud connection")
+		return errors.WrapIf(err, "failed to get cloud connection")
 	}
 	client := cc.GetManagedClustersClient()
 
 	cluster, err := c.getAzureCluster()
 	if err != nil {
-		return emperror.Wrap(err, "failed to retrieve AKS cluster")
+		return errors.WrapIf(err, "failed to retrieve AKS cluster")
 	}
 
 	for name, np := range request.AKS.NodePools {
@@ -567,7 +566,7 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 	clusterUpdateInitTime := time.Now()
 	cluster, err = client.CreateOrUpdateAndWaitForIt(context.TODO(), c.GetResourceGroupName(), c.GetName(), cluster)
 	if err != nil {
-		return emperror.Wrap(err, "cluster update request failed")
+		return errors.WrapIf(err, "cluster update request failed")
 	}
 	if !isProvisioningSuccessful(cluster) {
 		return c.onClusterUpdateFailure(err, clusterUpdateInitTime)
@@ -595,13 +594,13 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 func (c *AKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userID uint) error {
 	cc, err := c.getCloudConnection()
 	if err != nil {
-		return emperror.Wrap(err, "failed to get cloud connection")
+		return errors.WrapIf(err, "failed to get cloud connection")
 	}
 	client := cc.GetManagedClustersClient()
 
 	cluster, err := c.getAzureCluster()
 	if err != nil {
-		return emperror.Wrap(err, "failed to retrieve AKS cluster")
+		return errors.WrapIf(err, "failed to retrieve AKS cluster")
 	}
 
 	for name, np := range request.NodePools {
@@ -619,7 +618,7 @@ func (c *AKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 	clusterUpdateInitTime := time.Now()
 	cluster, err = client.CreateOrUpdateAndWaitForIt(context.TODO(), c.GetResourceGroupName(), c.GetName(), cluster)
 	if err != nil {
-		return emperror.Wrap(err, "cluster update request failed")
+		return errors.WrapIf(err, "cluster update request failed")
 	}
 	if !isProvisioningSuccessful(cluster) {
 		return c.onClusterUpdateFailure(err, clusterUpdateInitTime)
@@ -669,11 +668,11 @@ func (c *AKSCluster) GetModel() *model.ClusterModel {
 func (c *AKSCluster) getAzureCluster() (*containerservice.ManagedCluster, error) {
 	cc, err := c.getCloudConnection()
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create cloud connection")
+		return nil, errors.WrapIf(err, "failed to create cloud connection")
 	}
 	cluster, err := cc.GetManagedClustersClient().Get(context.TODO(), c.GetResourceGroupName(), c.GetName())
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get managed cluster")
+		return nil, errors.WrapIf(err, "failed to get managed cluster")
 	}
 	return &cluster, nil
 }
@@ -739,7 +738,7 @@ func (c *AKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 func (c *AKSCluster) DeleteFromDatabase() error {
 	err := c.modelCluster.Delete()
 	if err != nil {
-		return emperror.Wrap(err, "failed to delete cluster model")
+		return errors.WrapIf(err, "failed to delete cluster model")
 	}
 	c.modelCluster = nil
 	return nil
@@ -748,7 +747,7 @@ func (c *AKSCluster) DeleteFromDatabase() error {
 func (c *AKSCluster) getCredentials() (*pkgAzure.Credentials, error) {
 	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to retrieve AKS secret")
+		return nil, errors.WrapIf(err, "failed to retrieve AKS secret")
 	}
 	return pkgAzure.NewCredentials(clusterSecret.Values), nil
 }
@@ -756,11 +755,11 @@ func (c *AKSCluster) getCredentials() (*pkgAzure.Credentials, error) {
 func getAzureCredentials(orgID uint, secretID string) (*pkgAzure.Credentials, error) {
 	sir, err := getSecret(orgID, secretID)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to retrieve secret", "orgID", orgID, "secretID", secretID)
+		return nil, errors.WrapIfWithDetails(err, "failed to retrieve secret", "orgID", orgID, "secretID", secretID)
 	}
 
 	if err := secret.ValidateSecretType(sir, pkgCluster.Azure); err != nil {
-		return nil, emperror.Wrap(err, "failed to validate secret type")
+		return nil, errors.WrapIf(err, "failed to validate secret type")
 	}
 	return pkgAzure.NewCredentials(sir.Values), nil
 }
@@ -768,7 +767,7 @@ func getAzureCredentials(orgID uint, secretID string) (*pkgAzure.Credentials, er
 func getDefaultCloudConnection(orgID uint, secretID string) (*pkgAzure.CloudConnection, error) {
 	creds, err := getAzureCredentials(orgID, secretID)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to retrieve Azure credentials")
+		return nil, errors.WrapIf(err, "failed to retrieve Azure credentials")
 	}
 	return pkgAzure.NewCloudConnection(&azure.PublicCloud, creds)
 }
@@ -797,7 +796,7 @@ func GetLocations(orgID uint, secretID string) (locations []string, err error) {
 func GetMachineTypes(orgID uint, secretID string, location string) (pkgCluster.MachineTypes, error) {
 	cc, err := getDefaultCloudConnection(orgID, secretID)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get cloud connection")
+		return nil, errors.WrapIf(err, "failed to get cloud connection")
 	}
 	return cc.GetVirtualMachineSizesClient().ListMachineTypes(context.TODO(), location)
 }
@@ -806,7 +805,7 @@ func GetMachineTypes(orgID uint, secretID string, location string) (pkgCluster.M
 func GetKubernetesVersion(orgID uint, secretID string, location string) ([]string, error) {
 	cc, err := getDefaultCloudConnection(orgID, secretID)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get cloud connection")
+		return nil, errors.WrapIf(err, "failed to get cloud connection")
 	}
 	return cc.GetContainerServicesClient().ListKubernetesVersions(context.TODO(), location)
 }
@@ -830,7 +829,7 @@ func (c *AKSCluster) NodePoolExists(nodePoolName string) bool {
 func (c *AKSCluster) IsReady() (bool, error) {
 	cluster, err := c.getAzureCluster()
 	if err != nil {
-		return false, emperror.Wrap(err, "failed to retrieve AKS cluster")
+		return false, errors.WrapIf(err, "failed to retrieve AKS cluster")
 	}
 
 	c.log.Debugf("Cluster provisioning state is: %s", *cluster.ProvisioningState)
@@ -845,7 +844,7 @@ func (c *AKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 	// Validate location
 	c.log.Debug("Validate location")
 	if err := c.validateLocation(location); err != nil {
-		return emperror.Wrap(err, "failed to validate location")
+		return errors.WrapIf(err, "failed to validate location")
 	}
 	c.log.Debug("Validate location passed")
 
@@ -853,7 +852,7 @@ func (c *AKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 	nodePools := r.Properties.CreateClusterAKS.NodePools
 	c.log.Debug("Validate nodePools")
 	if err := c.validateMachineType(nodePools, location); err != nil {
-		return emperror.Wrap(err, "failed to validate machine type")
+		return errors.WrapIf(err, "failed to validate machine type")
 	}
 	c.log.Debug("Validate nodePools passed")
 
@@ -861,7 +860,7 @@ func (c *AKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 	c.log.Debug("Validate kubernetesVersion")
 	k8sVersion := r.Properties.CreateClusterAKS.KubernetesVersion
 	if err := c.validateKubernetesVersion(k8sVersion, location); err != nil {
-		return emperror.Wrap(err, "failed to validate k8s version")
+		return errors.WrapIf(err, "failed to validate k8s version")
 	}
 	c.log.Debug("Validate kubernetesVersion passed")
 
@@ -873,7 +872,7 @@ func (c *AKSCluster) validateLocation(location string) error {
 	c.log.Debugln("Location:", location)
 	validLocations, err := GetLocations(c.GetOrganizationId(), c.GetSecretId())
 	if err != nil {
-		return emperror.Wrap(err, "could not get locations from Azure")
+		return errors.WrapIf(err, "could not get locations from Azure")
 	}
 
 	c.log.Debugf("Valid locations: %#v", validLocations)
@@ -890,7 +889,7 @@ func (c *AKSCluster) validateMachineType(nodePools map[string]*pkgClusterAzure.N
 
 	validMachineTypes, err := GetMachineTypes(c.GetOrganizationId(), c.GetSecretId(), location)
 	if err != nil {
-		return emperror.WrapWith(err, "could not get VM types from Azure", "location", location)
+		return errors.WrapIfWithDetails(err, "could not get VM types from Azure", "location", location)
 	}
 	c.log.Debugf("Valid NodeInstanceTypes: %v", validMachineTypes)
 
@@ -914,7 +913,7 @@ func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) erro
 	c.log.Debugln("K8SVersion:", k8sVersion)
 	validVersions, err := GetKubernetesVersion(c.GetOrganizationId(), c.GetSecretId(), location)
 	if err != nil {
-		return emperror.Wrap(err, "failed to get k8s version")
+		return errors.WrapIf(err, "failed to get k8s version")
 	}
 	c.log.Debugln("Valid K8SVersions:", validVersions)
 
@@ -965,7 +964,7 @@ func (c *AKSCluster) RequiresSshPublicKey() bool {
 func (c *AKSCluster) ListNodeNames() (labels map[string][]string, err error) {
 	cc, err := c.getCloudConnection()
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create cloud connection")
+		return nil, errors.WrapIf(err, "failed to create cloud connection")
 	}
 
 	labels = make(map[string][]string)
@@ -1017,11 +1016,11 @@ func (c *AKSCluster) SetTTL(ttl time.Duration) {
 func ListResourceGroups(orgID uint, secretID string) (res []string, err error) {
 	cc, err := getDefaultCloudConnection(orgID, secretID)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get cloud connection")
+		return nil, errors.WrapIf(err, "failed to get cloud connection")
 	}
 	groups, err := cc.GetGroupsClient().ListAll(context.TODO(), "", nil)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get resource groups from Azure")
+		return nil, errors.WrapIf(err, "could not get resource groups from Azure")
 	}
 	res = make([]string, 0, len(groups))
 	for _, g := range groups {
@@ -1036,12 +1035,12 @@ func ListResourceGroups(orgID uint, secretID string) (res []string, err error) {
 func CreateOrUpdateResourceGroup(orgID uint, secretID string, resourceGroupName, location string) error {
 	cc, err := getDefaultCloudConnection(orgID, secretID)
 	if err != nil {
-		return emperror.Wrap(err, "failed to get cloud connection")
+		return errors.WrapIf(err, "failed to get cloud connection")
 	}
 	_, err = cc.GetGroupsClient().CreateOrUpdate(context.TODO(), resourceGroupName, resources.Group{
 		Location: &location,
 	}) // TODO should we wait for it?
-	return emperror.Wrap(err, "failed to create or update resource group")
+	return errors.WrapIf(err, "failed to create or update resource group")
 }
 
 // GetAKSNodePools returns AKS node pools from a common cluster.
@@ -1069,7 +1068,7 @@ func (c *AKSCluster) onClusterCreateFailure(createError error, operationStartTim
 
 	creds, err := c.getCredentials()
 	if err != nil {
-		return emperror.Wrap(err, "failed to retrieve AKS credentials")
+		return errors.WrapIf(err, "failed to retrieve AKS credentials")
 	}
 
 	clusterResourceURI := fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.ContainerService/managedClusters/%s",
@@ -1118,7 +1117,7 @@ func (c *AKSCluster) onClusterUpdateFailure(createUpdateError error, operationSt
 func (c *AKSCluster) collectActivityLogsWithErrors(filter string) ([]insights.EventData, error) {
 	cc, err := c.getCloudConnection()
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create cloud connection")
+		return nil, errors.WrapIf(err, "failed to create cloud connection")
 	}
 
 	activityLogClient := cc.GetActivityLogsClient()
@@ -1131,7 +1130,7 @@ func (c *AKSCluster) collectActivityLogsWithErrors(filter string) ([]insights.Ev
 		"")
 
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to query activity log")
+		return nil, errors.WrapIf(err, "failed to query activity log")
 	}
 
 	var errEvents []insights.EventData
@@ -1146,7 +1145,7 @@ func (c *AKSCluster) collectActivityLogsWithErrors(filter string) ([]insights.Ev
 
 		err := result.Next()
 		if err != nil {
-			return nil, emperror.Wrap(err, "failed to get next activity log page")
+			return nil, errors.WrapIf(err, "failed to get next activity log page")
 		}
 	}
 
@@ -1170,7 +1169,7 @@ func validateVNetSubnet(cc *pkgAzure.CloudConnection, resourceGroupName, vnetSub
 		}
 		_, err := cc.GetSubnetsClient().Get(context.TODO(), matches[2], matches[3], matches[4], "")
 		if err != nil {
-			return emperror.Wrap(err, "request to retrieve subnet failed")
+			return errors.WrapIf(err, "request to retrieve subnet failed")
 		}
 	}
 	return nil

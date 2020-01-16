@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/util/workqueue"
 
@@ -50,7 +51,7 @@ func (c *TTLController) Start() error {
 	clusters, err := c.manager.GetAllClusters(context.Background())
 
 	if err != nil {
-		return emperror.Wrap(err, "retrieving clusters failed")
+		return errors.WrapIf(err, "retrieving clusters failed")
 	}
 
 	for _, cluster := range clusters {
@@ -129,12 +130,12 @@ func (c *TTLController) handleCluster(clusterID uint) error {
 	cluster, err := c.manager.GetClusterByIDOnly(context.Background(), clusterID)
 
 	if err != nil && !clusteradapter.IsClusterNotFoundError(err) {
-		return emperror.WrapWith(err, "failed to retrieve cluster", "clusterID", clusterID)
+		return errors.WrapIfWithDetails(err, "failed to retrieve cluster", "clusterID", clusterID)
 	}
 
 	clusterDetail, err := cluster.GetStatus()
 	if err != nil {
-		return emperror.WrapWith(err, "failed to retrieve cluster details", "clusterID", clusterID)
+		return errors.WrapIfWithDetails(err, "failed to retrieve cluster details", "clusterID", clusterID)
 	}
 
 	clusterStartedAt := c.getClusterStartTime(clusterDetail)
@@ -176,7 +177,7 @@ func (c *TTLController) handleCluster(clusterID uint) error {
 
 		err = c.manager.DeleteCluster(context.Background(), cluster, false)
 		if err != nil {
-			return emperror.WrapWith(err, "failed to initiate cluster deletion", "clusterID", clusterID)
+			return errors.WrapIfWithDetails(err, "failed to initiate cluster deletion", "clusterID", clusterID)
 		}
 
 	} else {

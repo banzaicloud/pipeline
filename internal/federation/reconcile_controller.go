@@ -18,7 +18,7 @@ import (
 	"context"
 	"strings"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
 	"github.com/sirupsen/logrus"
 	apiextv1b1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -48,12 +48,12 @@ func (m *FederationReconciler) ReconcileController(desiredState DesiredState) er
 	if desiredState == DesiredStatePresent {
 		err := m.installFederationController(m.Host, m.logger)
 		if err != nil {
-			return emperror.Wrap(err, "could not install Federation controller")
+			return errors.WrapIf(err, "could not install Federation controller")
 		}
 	} else {
 		err := m.uninstallFederationController(m.Host, m.logger)
 		if err != nil {
-			return emperror.Wrap(err, "could not remove Federation controller")
+			return errors.WrapIf(err, "could not remove Federation controller")
 		}
 
 	}
@@ -68,12 +68,12 @@ func (m *FederationReconciler) ReconcileServiceDiscovery(desiredState DesiredSta
 
 	err := m.deleteFederatedResources(m.ingressDNSRecordResource)
 	if err != nil {
-		return emperror.Wrap(err, "could not remove ingressDNSRecord(s)")
+		return errors.WrapIf(err, "could not remove ingressDNSRecord(s)")
 	}
 
 	err = m.deleteFederatedResources(m.serviceDNSRecordResource)
 	if err != nil {
-		return emperror.Wrap(err, "could not remove serviceDNSRecord(s)")
+		return errors.WrapIf(err, "could not remove serviceDNSRecord(s)")
 	}
 
 	return nil
@@ -89,12 +89,12 @@ func (m *FederationReconciler) ReconcileFederatedTypes(desiredState DesiredState
 
 	err := m.deleteFederatedResourcesAndTypeConfigs()
 	if err != nil {
-		return emperror.Wrap(err, "could not remove Federation resources and typeConfigs")
+		return errors.WrapIf(err, "could not remove Federation resources and typeConfigs")
 	}
 
 	err = m.removeFederationCRDs(true)
 	if err != nil {
-		return emperror.Wrap(err, "could not remove Federation CRD's")
+		return errors.WrapIf(err, "could not remove Federation CRD's")
 	}
 
 	return nil
@@ -251,7 +251,7 @@ func (m *FederationReconciler) uninstallFederationController(c cluster.CommonClu
 
 	err := DeleteDeployment(c, federationReleaseName)
 	if err != nil {
-		return emperror.Wrap(err, "could not remove Federation controller")
+		return errors.WrapIf(err, "could not remove Federation controller")
 	}
 
 	return nil
@@ -296,13 +296,13 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 
 	valuesOverride, err := yaml.Marshal(values)
 	if err != nil {
-		return emperror.Wrap(err, "could not marshal chart value overrides")
+		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}
 
 	// ensure repo
 	org, err := auth.GetOrganizationById(c.GetOrganizationId())
 	if err != nil {
-		return emperror.Wrap(err, "could not get organization")
+		return errors.WrapIf(err, "could not get organization")
 	}
 
 	env := helm.GenerateHelmRepoEnv(org.Name)
@@ -311,7 +311,7 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 		URL:  "https://raw.githubusercontent.com/banzaicloud/kubefed/helm_chart/charts",
 	})
 	if err != nil {
-		return emperror.WrapWith(err, "failed to add kube-chart repo")
+		return errors.WrapIf(err, "failed to add kube-chart repo")
 	}
 
 	err = InstallOrUpgradeDeployment(
@@ -325,7 +325,7 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 		true,
 	)
 	if err != nil {
-		return emperror.Wrap(err, "could not install Federation controller")
+		return errors.WrapIf(err, "could not install Federation controller")
 	}
 
 	return nil

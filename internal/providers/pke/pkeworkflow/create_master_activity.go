@@ -19,11 +19,10 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
@@ -75,12 +74,12 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 
 	ver, err := awsCluster.GetKubernetesVersion()
 	if err != nil {
-		return "", emperror.Wrap(err, "can't get Kubernetes version")
+		return "", errors.WrapIf(err, "can't get Kubernetes version")
 	}
 
 	imageID, err := getDefaultImageID(cluster.GetLocation(), ver)
 	if err != nil {
-		return "", emperror.Wrapf(err, "failed to get default image for Kubernetes version %s", ver)
+		return "", errors.WrapIff(err, "failed to get default image for Kubernetes version %s", ver)
 	}
 	if input.Pool.ImageID != "" {
 		imageID = input.Pool.ImageID
@@ -88,17 +87,17 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 
 	_, signedToken, err := a.tokenGenerator.GenerateClusterToken(cluster.GetOrganizationId(), cluster.GetID())
 	if err != nil {
-		return "", emperror.Wrap(err, "can't generate Pipeline token")
+		return "", errors.WrapIf(err, "can't generate Pipeline token")
 	}
 
 	bootstrapCommand, err := awsCluster.GetBootstrapCommand("master", input.ExternalBaseUrl, input.ExternalBaseUrlInsecure, signedToken)
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to fetch bootstrap command")
+		return "", errors.WrapIf(err, "failed to fetch bootstrap command")
 	}
 
 	client, err := awsCluster.GetAWSClient()
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to connect to AWS")
+		return "", errors.WrapIf(err, "failed to connect to AWS")
 	}
 
 	cfClient := cloudformation.New(client)
@@ -110,7 +109,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 
 	buf, err := ioutil.ReadFile(fmt.Sprintf("templates/pke/%s.cf.yaml", target))
 	if err != nil {
-		return "", emperror.Wrap(err, "loading CF template")
+		return "", errors.WrapIf(err, "loading CF template")
 	}
 	clusterName := cluster.GetName()
 

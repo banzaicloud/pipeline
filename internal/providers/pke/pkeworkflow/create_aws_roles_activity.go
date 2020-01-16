@@ -18,7 +18,7 @@ import (
 	"context"
 	"io/ioutil"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -57,7 +57,7 @@ func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRol
 
 	buf, err := ioutil.ReadFile("templates/pke/global.cf.yaml")
 	if err != nil {
-		return "", emperror.Wrap(err, "loading CF template")
+		return "", errors.WrapIf(err, "loading CF template")
 	}
 
 	stackInput := &cloudformation.CreateStackInput{

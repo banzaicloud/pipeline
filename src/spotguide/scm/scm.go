@@ -19,7 +19,6 @@ import (
 	"net/http"
 	"time"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/google/go-github/github"
 	"github.com/xanzy/go-gitlab"
@@ -147,7 +146,7 @@ func (f GitLabSCMFactory) newClient(accessToken string) (*gitlab.Client, error) 
 func (f GitLabSCMFactory) CreateSharedSCM() (SCM, error) {
 	gitlabClient, err := f.newClient(f.sharedSCMToken)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create GitLab client")
+		return nil, errors.WrapIf(err, "failed to create GitLab client")
 	}
 
 	return NewGitLabSCM(gitlabClient), nil

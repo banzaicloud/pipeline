@@ -15,7 +15,7 @@
 package istiofeature
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,28 +40,28 @@ func (m *MeshReconciler) ReconcileCanaryOperatorNamespace(desiredState DesiredSt
 					"istio-injection": "enabled",
 				})
 			if err != nil {
-				return emperror.Wrap(err, "could not create canary operator namespace")
+				return errors.WrapIf(err, "could not create canary operator namespace")
 			}
 		} else if err != nil {
-			return emperror.Wrap(err, "could not get canary operator namespace")
+			return errors.WrapIf(err, "could not get canary operator namespace")
 		}
 	} else {
 		_, err := client.CoreV1().Namespaces().Get(canaryOperatorNamespace, metav1.GetOptions{})
 		if k8serrors.IsNotFound(err) {
 			return nil
 		} else if err != nil {
-			return emperror.Wrap(err, "could not get canary operator namespace")
+			return errors.WrapIf(err, "could not get canary operator namespace")
 		}
 
 		err = client.CoreV1().Namespaces().Delete(canaryOperatorNamespace, &metav1.DeleteOptions{})
 		if err != nil {
-			return emperror.Wrap(err, "could not delete canary operator namespace")
+			return errors.WrapIf(err, "could not delete canary operator namespace")
 		}
 
 		m.logger.Debug("waiting for canary operator namespace to be deleted")
 		err = m.waitForNamespaceBeDeleted(client, canaryOperatorNamespace)
 		if err != nil {
-			return emperror.Wrap(err, "timeout during waiting for canary operator namespace to be deleted")
+			return errors.WrapIf(err, "timeout during waiting for canary operator namespace to be deleted")
 		}
 	}
 

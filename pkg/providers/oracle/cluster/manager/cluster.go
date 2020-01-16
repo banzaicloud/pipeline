@@ -15,10 +15,9 @@
 package manager
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/containerengine"
-	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 )
@@ -39,7 +38,7 @@ func (cm *ClusterManager) CreateCluster(clusterModel *model.Cluster) error {
 	clusters = ce.FilterClustersByNotInState(clusters, containerengine.ClusterSummaryLifecycleStateDeleted)
 
 	if len(clusters) > 0 {
-		return emperror.With(errors.New("cluster already exists"), "cluster", clusterModel.Name)
+		return errors.WithDetails(errors.New("cluster already exists"), "cluster", clusterModel.Name)
 	}
 
 	req := containerengine.CreateClusterRequest{}
@@ -71,7 +70,7 @@ func (cm *ClusterManager) UpdateCluster(clusterModel *model.Cluster) error {
 	}
 
 	if cluster.LifecycleState == containerengine.ClusterLifecycleStateDeleted {
-		return emperror.With(errors.New("cluster was deleted"), "cluster", *cluster.Name)
+		return errors.WithDetails(errors.New("cluster was deleted"), "cluster", *cluster.Name)
 	}
 
 	ce, err := cm.oci.NewContainerEngineClient()
@@ -120,7 +119,7 @@ func (cm *ClusterManager) DeleteCluster(clusterModel *model.Cluster) error {
 	}
 
 	if cluster.LifecycleState == containerengine.ClusterLifecycleStateDeleted {
-		return emperror.With(errors.New("cluster was already deleted"), *cluster.Name)
+		return errors.WithDetails(errors.New("cluster was already deleted"), *cluster.Name)
 	}
 
 	req := containerengine.DeleteClusterRequest{

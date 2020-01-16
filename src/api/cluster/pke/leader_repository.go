@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/mitchellh/mapstructure"
@@ -48,7 +48,7 @@ func NewVaultLeaderRepository() (VaultLeaderRepository, error) {
 	role := "pipeline"
 	client, err := vault.NewClient(role)
 	if err != nil {
-		return VaultLeaderRepository{}, emperror.Wrap(err, "failed to create new Vault client")
+		return VaultLeaderRepository{}, errors.WrapIf(err, "failed to create new Vault client")
 	}
 	return NewVaultLeaderRepositoryFromClient(client), nil
 }
@@ -65,7 +65,7 @@ func (r VaultLeaderRepository) GetLeader(organizationID, clusterID uint) (leader
 	path := getSecretPath(organizationID, clusterID)
 
 	secret, err := r.logical.Read(path)
-	if err = emperror.Wrap(err, "failed to read secret"); err != nil {
+	if err = errors.WrapIf(err, "failed to read secret"); err != nil {
 		return
 	}
 
@@ -78,7 +78,7 @@ func (r VaultLeaderRepository) GetLeader(organizationID, clusterID uint) (leader
 	}
 
 	var lsd leaderSecretData
-	if err = emperror.Wrap(mapstructure.Decode(secret.Data["data"], &lsd), "failed to decode secret data"); err != nil {
+	if err = errors.WrapIf(mapstructure.Decode(secret.Data["data"], &lsd), "failed to decode secret data"); err != nil {
 		return
 	}
 
@@ -104,12 +104,12 @@ func (r VaultLeaderRepository) SetLeader(organizationID, clusterID uint, leaderI
 
 	data := make(map[string]interface{})
 	if err := mapstructure.Decode(ls, &data); err != nil {
-		return emperror.Wrap(err, "failed to decode leader secret")
+		return errors.WrapIf(err, "failed to decode leader secret")
 	}
 
 	_, err := r.logical.Write(path, data)
 	if err != nil && strings.Contains(err.Error(), "* check-and-set parameter did not match the current version") {
-		return emperror.Wrap(leaderSetError{}, "failed to write leader secret")
+		return errors.WrapIf(leaderSetError{}, "failed to write leader secret")
 	}
 	return err
 }
@@ -124,7 +124,7 @@ func (r VaultLeaderRepository) DeleteLeader(organizationID, clusterID uint) erro
 		}
 	}
 
-	return emperror.Wrap(err, "failed to delete leader from repository")
+	return errors.WrapIf(err, "failed to delete leader from repository")
 }
 
 func getSecretPath(organizationID, clusterID uint) string {

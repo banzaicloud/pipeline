@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -189,7 +189,7 @@ func StoreConfig(c *KubernetesCluster) ([]byte, error) {
 
 	data, err := yaml.Marshal(config)
 	if err != nil {
-		return nil, emperror.Wrap(err, "marshaling kubernetes config failed")
+		return nil, errors.WrapIf(err, "marshaling kubernetes config failed")
 	}
 
 	return data, nil
@@ -232,7 +232,7 @@ func GetAPIEndpointFromKubeconfig(config []byte) (string, error) {
 	kubeConf := KubeConfig{}
 	err := yaml.Unmarshal(config, &kubeConf)
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to parse cluster's Kubeconfig")
+		return "", errors.WrapIf(err, "failed to parse cluster's Kubeconfig")
 	}
 
 	return kubeConf.Clusters[0].Cluster.Server, nil

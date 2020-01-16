@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
@@ -62,11 +62,11 @@ func (c *commonNodepoolUpdater) Validate(ctx context.Context) error {
 
 	status, err := c.cluster.GetStatus()
 	if err != nil {
-		return emperror.Wrap(err, "could not get cluster status")
+		return errors.WrapIf(err, "could not get cluster status")
 	}
 
 	if status.Status != cluster.Running && status.Status != cluster.Warning {
-		return emperror.With(
+		return errors.WithDetails(
 			&commonNodepoolUpdateValidationError{
 				msg:                fmt.Sprintf("cluster is not in %s or %s state yet", cluster.Running, cluster.Warning),
 				preconditionFailed: true,
@@ -79,7 +79,7 @@ func (c *commonNodepoolUpdater) Validate(ctx context.Context) error {
 	for poolName := range c.request.NodePools {
 
 		if !c.cluster.NodePoolExists(poolName) {
-			return emperror.With(
+			return errors.WithDetails(
 				&commonNodepoolUpdateValidationError{
 					msg:            fmt.Sprintf("Unable to find node pool with name: %s", poolName),
 					invalidRequest: true,

@@ -15,7 +15,7 @@
 package istiofeature
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -36,7 +36,7 @@ func (m *MeshReconciler) ReconcileIstioOperatorNamespace(desiredState DesiredSta
 		if k8serrors.IsNotFound(err) {
 			err := k8sutil.EnsureNamespaceWithLabelWithRetry(client, istioOperatorNamespace, nil)
 			if err != nil {
-				return emperror.Wrap(err, "could not create istio operator namespace")
+				return errors.WrapIf(err, "could not create istio operator namespace")
 			}
 		}
 	} else {
@@ -46,18 +46,18 @@ func (m *MeshReconciler) ReconcileIstioOperatorNamespace(desiredState DesiredSta
 		}
 
 		if err != nil && !k8serrors.IsNotFound(err) {
-			return emperror.Wrap(err, "could not get istio operator namespace")
+			return errors.WrapIf(err, "could not get istio operator namespace")
 		}
 
 		err = client.CoreV1().Namespaces().Delete(istioOperatorNamespace, &metav1.DeleteOptions{})
 		if err != nil {
-			return emperror.Wrap(err, "could not delete istio operator namespace")
+			return errors.WrapIf(err, "could not delete istio operator namespace")
 		}
 
 		m.logger.Debug("waiting for istio operator namespace to be deleted")
 		err = m.waitForNamespaceBeDeleted(client, istioOperatorNamespace)
 		if err != nil {
-			return emperror.Wrap(err, "timeout during waiting for istio operator namespace to be deleted")
+			return errors.WrapIf(err, "timeout during waiting for istio operator namespace to be deleted")
 		}
 	}
 

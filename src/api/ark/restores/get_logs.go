@@ -15,9 +15,8 @@
 package restores
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
@@ -40,7 +39,7 @@ func GetLogs(c *gin.Context) {
 
 	restore, err := svc.GetRestoresService().GetByID(restoreID)
 	if err != nil {
-		err = emperror.Wrap(err, "could not get restore")
+		err = errors.WrapIf(err, "could not get restore")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
@@ -60,7 +59,7 @@ func GetLogs(c *gin.Context) {
 		c.Writer,
 	)
 	if err != nil {
-		err = emperror.Wrap(err, "could not stream logs")
+		err = errors.WrapIf(err, "could not stream logs")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return

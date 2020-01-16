@@ -19,8 +19,7 @@ import (
 	"fmt"
 	"time"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
@@ -133,7 +132,7 @@ func (a *RunPostHookActivity) Execute(ctx context.Context, input RunPostHookActi
 
 	statusMsg := fmt.Sprintf("running %s", hook)
 	if err := hook.Do(cluster); err != nil {
-		err := emperror.Wrap(err, "posthook failed")
+		err := errors.WrapIf(err, "posthook failed")
 		hook.Error(cluster, err)
 
 		return err
@@ -144,7 +143,7 @@ func (a *RunPostHookActivity) Execute(ctx context.Context, input RunPostHookActi
 		status = pkgCluster.Creating
 	}
 	if err := cluster.SetStatus(status, statusMsg); err != nil {
-		return emperror.Wrap(err, "failed to write status to db")
+		return errors.WrapIf(err, "failed to write status to db")
 	}
 
 	return nil

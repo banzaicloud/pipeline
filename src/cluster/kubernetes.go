@@ -19,7 +19,6 @@ import (
 	"strings"
 	"time"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	storagev1 "k8s.io/api/storage/v1"
@@ -78,17 +77,17 @@ func (c *KubeCluster) CreateCluster() error {
 
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
-		return emperror.Wrap(err, "couldn't get Kubernetes config")
+		return errors.WrapIf(err, "couldn't get Kubernetes config")
 	}
 
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		return emperror.Wrap(err, "couldn't create Kubernetes client")
+		return errors.WrapIf(err, "couldn't create Kubernetes client")
 	}
 
 	c.modelCluster.RbacEnabled, err = c.isRBACEnabled(client)
 	if err != nil {
-		return emperror.Wrap(err, "couldn't determine if RBAC is enabled on the cluster")
+		return errors.WrapIf(err, "couldn't determine if RBAC is enabled on the cluster")
 	}
 
 	if c.modelCluster.RbacEnabled {
@@ -103,7 +102,7 @@ func (c *KubeCluster) CreateCluster() error {
 // Persist save the cluster model
 // Deprecated: Do not use.
 func (c *KubeCluster) Persist() error {
-	return emperror.Wrap(c.modelCluster.Save(), "failed to persist cluster")
+	return errors.WrapIf(c.modelCluster.Save(), "failed to persist cluster")
 }
 
 // createDefaultStorageClass creates a default storage class as some clusters are not created with
@@ -123,7 +122,7 @@ func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provision
 
 	_, err := kubernetesClient.StorageV1().StorageClasses().Create(&defaultStorageClass)
 
-	return emperror.Wrap(err, "create storage class failed")
+	return errors.WrapIf(err, "create storage class failed")
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud

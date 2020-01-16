@@ -17,7 +17,7 @@ package restores
 import (
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 
@@ -35,7 +35,7 @@ func Sync(c *gin.Context) {
 	arkSvc := common.GetARKService(c.Request)
 	err := syncRestores(arkSvc, logger)
 	if err != nil {
-		err = emperror.Wrap(err, "could not sync restores")
+		err = errors.WrapIf(err, "could not sync restores")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
@@ -48,7 +48,7 @@ func syncRestores(arkSvc *ark.Service, logger logrus.FieldLogger) error {
 	restoresSyncSvc := sync.NewRestoresSyncService(arkSvc.GetOrganization(), arkSvc.GetDB(), logger)
 	err := restoresSyncSvc.SyncRestoresForCluster(arkSvc.GetCluster())
 	if err != nil {
-		return emperror.WrapWith(err, "could not sync restores", "clusterName", arkSvc.GetCluster().GetName())
+		return errors.WrapIfWithDetails(err, "could not sync restores", "clusterName", arkSvc.GetCluster().GetName())
 	}
 
 	return nil

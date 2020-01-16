@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/auth"
 )
@@ -49,7 +49,7 @@ func (a *CreateDexClientActivity) Execute(ctx context.Context, input CreateDexCl
 
 	err = a.clusterAuthService.RegisterCluster(ctx, cluster.GetName(), cluster.GetID(), cluster.GetUID())
 	if err != nil {
-		return emperror.Wrap(err, fmt.Sprintf("can't create dex client for cluster %+v", cluster))
+		return errors.WrapIf(err, fmt.Sprintf("can't create dex client for cluster %+v", cluster))
 	}
 
 	return nil

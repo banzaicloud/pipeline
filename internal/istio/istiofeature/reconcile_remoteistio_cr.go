@@ -18,10 +18,9 @@ import (
 	"strconv"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
 	istiooperatorclientset "github.com/banzaicloud/istio-operator/pkg/client/clientset/versioned"
-	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +41,7 @@ func (m *MeshReconciler) ReconcileRemoteIstio(desiredState DesiredState, c clust
 	if desiredState == DesiredStatePresent {
 		_, err := client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).Get(c.GetName(), metav1.GetOptions{})
 		if err != nil && !k8serrors.IsNotFound(err) {
-			return emperror.Wrap(err, "could not check existence Remote Istio CR")
+			return errors.WrapIf(err, "could not check existence Remote Istio CR")
 		}
 
 		if err == nil {
@@ -53,17 +52,17 @@ func (m *MeshReconciler) ReconcileRemoteIstio(desiredState DesiredState, c clust
 		remoteIstioCR := m.generateRemoteIstioCR(m.Configuration, c)
 		_, err = client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).Create(&remoteIstioCR)
 		if err != nil {
-			return emperror.Wrap(err, "could not create Remote Istio CR")
+			return errors.WrapIf(err, "could not create Remote Istio CR")
 		}
 	} else {
 		err := client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).Delete(c.GetName(), &metav1.DeleteOptions{})
 		if err != nil && !k8serrors.IsNotFound(err) {
-			return emperror.Wrap(err, "could not remove Remote Istio CR")
+			return errors.WrapIf(err, "could not remove Remote Istio CR")
 		}
 
 		err = m.waitForRemoteIstioCRToBeDeleted(c.GetName(), client)
 		if err != nil {
-			return emperror.Wrap(err, "timeout during waiting for Remote Istio CR to be deleted")
+			return errors.WrapIf(err, "timeout during waiting for Remote Istio CR to be deleted")
 		}
 	}
 
@@ -87,10 +86,10 @@ func (m *MeshReconciler) waitForRemoteIstioCRToBeDeleted(name string, client *is
 		}
 
 		if err != nil {
-			return emperror.WrapWith(err, "could not check Remote Istio CR existence", "name", name)
+			return errors.WrapIfWithDetails(err, "could not check Remote Istio CR existence", "name", name)
 		}
 
-		return emperror.With(errors.New("Remote Istio CR still exists"), "name", name)
+		return errors.NewWithDetails("Remote Istio CR still exists", "name", name)
 	}, backoffPolicy)
 
 	return err

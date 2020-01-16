@@ -15,7 +15,7 @@
 package istiofeature
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
 
 	"github.com/banzaicloud/pipeline/src/cluster"
@@ -28,12 +28,12 @@ func (m *MeshReconciler) ReconcileIstioOperator(desiredState DesiredState) error
 	if desiredState == DesiredStatePresent {
 		err := m.installIstioOperator(m.Master)
 		if err != nil {
-			return emperror.Wrap(err, "could not install Istio operator")
+			return errors.WrapIf(err, "could not install Istio operator")
 		}
 	} else {
 		err := m.uninstallIstioOperator(m.Master)
 		if err != nil {
-			return emperror.Wrap(err, "could not remove Istio operator")
+			return errors.WrapIf(err, "could not remove Istio operator")
 		}
 	}
 
@@ -46,7 +46,7 @@ func (m *MeshReconciler) uninstallIstioOperator(c cluster.CommonCluster) error {
 
 	err := deleteDeployment(c, istioOperatorReleaseName)
 	if err != nil {
-		return emperror.Wrap(err, "could not remove Istio operator")
+		return errors.WrapIf(err, "could not remove Istio operator")
 	}
 
 	return nil
@@ -79,7 +79,7 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
 
 	valuesOverride, err := yaml.Marshal(values)
 	if err != nil {
-		return emperror.Wrap(err, "could not marshal chart value overrides")
+		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}
 
 	err = installOrUpgradeDeployment(
@@ -93,7 +93,7 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
 		true,
 	)
 	if err != nil {
-		return emperror.Wrap(err, "could not install Istio operator")
+		return errors.WrapIf(err, "could not install Istio operator")
 	}
 
 	return nil

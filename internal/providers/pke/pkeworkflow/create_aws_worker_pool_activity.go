@@ -20,11 +20,10 @@ import (
 	"io/ioutil"
 	"strconv"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
@@ -75,12 +74,12 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 
 	ver, err := awsCluster.GetKubernetesVersion()
 	if err != nil {
-		return "", emperror.Wrap(err, "can't get Kubernetes version")
+		return "", errors.WrapIf(err, "can't get Kubernetes version")
 	}
 
 	imageID, err := getDefaultImageID(cluster.GetLocation(), ver)
 	if err != nil {
-		return "", emperror.Wrapf(err, "failed to get default image for Kubernetes version %s", ver)
+		return "", errors.WrapIff(err, "failed to get default image for Kubernetes version %s", ver)
 	}
 	if input.Pool.ImageID != "" {
 		imageID = input.Pool.ImageID
@@ -88,24 +87,24 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 
 	_, signedToken, err := a.tokenGenerator.GenerateClusterToken(cluster.GetOrganizationId(), cluster.GetID())
 	if err != nil {
-		return "", emperror.Wrap(err, "can't generate Pipeline token")
+		return "", errors.WrapIf(err, "can't generate Pipeline token")
 	}
 
 	bootstrapCommand, err := awsCluster.GetBootstrapCommand(input.Pool.Name, input.ExternalBaseUrl, input.ExternalBaseUrlInsecure, signedToken)
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to fetch bootstrap command")
+		return "", errors.WrapIf(err, "failed to fetch bootstrap command")
 	}
 
 	client, err := awsCluster.GetAWSClient()
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to connect to AWS")
+		return "", errors.WrapIf(err, "failed to connect to AWS")
 	}
 
 	cfClient := cloudformation.New(client)
 
 	buf, err := ioutil.ReadFile("templates/pke/worker.cf.yaml")
 	if err != nil {
-		return "", emperror.Wrap(err, "loading CF template")
+		return "", errors.WrapIf(err, "loading CF template")
 	}
 
 	spotPrice, err := strconv.ParseFloat(input.Pool.SpotPrice, 64)
@@ -224,7 +223,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 
 	err = cfClient.WaitUntilStackCreateCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)})
 	if err != nil {
-		return "", emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, stackName, "", cfClient), "waiting for stack creation")
+		return "", errors.WrapIf(pkgCloudformation.NewAwsStackFailure(err, stackName, "", cfClient), "waiting for stack creation")
 	}
 
 	if output.StackId != nil {

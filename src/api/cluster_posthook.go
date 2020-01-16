@@ -18,7 +18,7 @@ import (
 	"net/http"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
@@ -64,7 +64,7 @@ func (a *ClusterAPI) ReRunPostHooks(c *gin.Context) {
 
 	exec, err := a.workflowClient.ExecuteWorkflow(c.Request.Context(), workflowOptions, cluster.RunPostHooksWorkflowName, input)
 	if err != nil {
-		a.errorHandler.Handle(emperror.WrapWith(err, "failed to start workflow", "workflowName", cluster.RunPostHooksWorkflowName))
+		a.errorHandler.Handle(errors.WrapIfWithDetails(err, "failed to start workflow", "workflowName", cluster.RunPostHooksWorkflowName))
 
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,

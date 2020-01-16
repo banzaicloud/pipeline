@@ -17,7 +17,7 @@ package alibaba
 import (
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
@@ -97,7 +97,7 @@ func NewNetworkService(region string, secret *secret.SecretItemResponse, logger 
 	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
 	client, err := vpc.NewClientWithOptions(region, cfg, cred)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create VPC client")
+		return nil, errors.WrapIf(err, "failed to create VPC client")
 	}
 	return &alibabaNetworkService{
 		logger: logger,
@@ -109,7 +109,7 @@ func NewNetworkService(region string, secret *secret.SecretItemResponse, logger 
 func (ns *alibabaNetworkService) ListNetworks() ([]network.Network, error) {
 	res, err := ns.client.DescribeVpcs(vpc.CreateDescribeVpcsRequest())
 	if err != nil {
-		return nil, emperror.Wrap(err, "request to DescribeVpcs failed")
+		return nil, errors.WrapIf(err, "request to DescribeVpcs failed")
 	}
 	networks := make([]network.Network, len(res.Vpcs.Vpc))
 	for idx, item := range res.Vpcs.Vpc {
@@ -128,7 +128,7 @@ func (ns *alibabaNetworkService) ListSubnets(networkID string) ([]network.Subnet
 	req.VpcId = networkID
 	res, err := ns.client.DescribeVSwitches(req)
 	if err != nil {
-		return nil, emperror.Wrap(err, "request to DescribeVSwitches failed")
+		return nil, errors.WrapIf(err, "request to DescribeVSwitches failed")
 	}
 	subnets := make([]network.Subnet, len(res.VSwitches.VSwitch))
 	for idx, item := range res.VSwitches.VSwitch {
@@ -148,7 +148,7 @@ func (ns *alibabaNetworkService) ListRouteTables(networkID string) ([]network.Ro
 	req.VpcId = networkID
 	res, err := ns.client.DescribeRouteTableList(req)
 	if err != nil {
-		return nil, emperror.Wrap(err, "request to DescribeRouteTableList failed")
+		return nil, errors.WrapIf(err, "request to DescribeRouteTableList failed")
 	}
 	routeTables := make([]network.RouteTable, len(res.RouterTableList.RouterTableListType))
 	for idx, item := range res.RouterTableList.RouterTableListType {

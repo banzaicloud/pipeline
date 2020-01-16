@@ -24,7 +24,7 @@ import (
 	"strings"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
@@ -33,7 +33,6 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
 	"github.com/jmespath/go-jmespath"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	storagev1 "k8s.io/api/storage/v1"
@@ -117,7 +116,7 @@ func (c *ACKCluster) ListNodeNames() (map[string][]string, error) {
 		request.ScalingConfigurationId = nodepool.ScalingConfigID
 		response, err := essClient.DescribeScalingInstances(request)
 		if err != nil {
-			return nil, emperror.WrapWith(err, "error listing nodepool instances", "scalingGroupName", nodepool.AsgID)
+			return nil, errors.WrapIfWithDetails(err, "error listing nodepool instances", "scalingGroupName", nodepool.AsgID)
 		}
 
 		var instanceIds []string
@@ -130,7 +129,7 @@ func (c *ACKCluster) ListNodeNames() (map[string][]string, error) {
 
 			instancesResponse, err := ecsClient.DescribeInstances(describeInstancesRequest)
 			if err != nil {
-				return nil, emperror.WrapWith(err, "error getting instances details", "scalingGroupName", nodepool.AsgID)
+				return nil, errors.WrapIfWithDetails(err, "error getting instances details", "scalingGroupName", nodepool.AsgID)
 			}
 
 			var nodeNames []string
@@ -166,7 +165,7 @@ func (c *ACKCluster) GetAlibabaCSClient(cfg *sdk.Config) (*cs.Client, error) {
 		return nil, err
 	}
 	client, err := createAlibabaCSClient(cred, c.modelCluster.ACK.RegionID, cfg)
-	return client, emperror.With(err, "cluster", c.modelCluster.Name)
+	return client, errors.WithDetails(err, "cluster", c.modelCluster.Name)
 }
 
 // GetAlibabaECSClient creates an Alibaba Elastic Compute Service client with the credentials
@@ -177,7 +176,7 @@ func (c *ACKCluster) GetAlibabaECSClient(cfg *sdk.Config) (*ecs.Client, error) {
 	}
 
 	client, err := createAlibabaECSClient(cred, c.modelCluster.ACK.RegionID, cfg)
-	return client, emperror.With(err, "cluster", c.modelCluster.Name)
+	return client, errors.WithDetails(err, "cluster", c.modelCluster.Name)
 }
 
 // GetAlibabaESSClient creates an Alibaba Auto Scaling Service client with credentials
@@ -188,7 +187,7 @@ func (c *ACKCluster) GetAlibabaESSClient(cfg *sdk.Config) (*ess.Client, error) {
 	}
 
 	client, err := createAlibabaESSClient(cred, c.modelCluster.ACK.RegionID, cfg)
-	return client, emperror.With(err, "cluster", c.modelCluster.Name)
+	return client, errors.WithDetails(err, "cluster", c.modelCluster.Name)
 }
 
 // GetAlibabaVPCClient creates an Alibaba Virtual Private Cloud client with credentials
@@ -199,7 +198,7 @@ func (c *ACKCluster) GetAlibabaVPCClient(cfg *sdk.Config) (*vpc.Client, error) {
 	}
 
 	client, err := createAlibabaVPCClient(cred, c.modelCluster.ACK.RegionID, cfg)
-	return client, emperror.With(err, "cluster", c.modelCluster.Name)
+	return client, errors.WithDetails(err, "cluster", c.modelCluster.Name)
 }
 
 func createACKNodePoolsFromRequest(pools ack.NodePools, userId uint) ([]*model.ACKNodePoolModel, error) {
@@ -358,7 +357,7 @@ func (c *ACKCluster) CreateCluster() error {
 	c.modelCluster.RbacEnabled = true
 	vpcID, err := c.getVPCID()
 	if err != nil {
-		return emperror.Wrap(err, "failed to retrieve VPC ID")
+		return errors.WrapIf(err, "failed to retrieve VPC ID")
 	}
 
 	context := action.NewACKContext("", csClient, ecsClient, essClient)
@@ -403,11 +402,11 @@ func (c *ACKCluster) CreateCluster() error {
 	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, true)
 	c.modelCluster.ACK.ProviderClusterID = clusterContext.ClusterID
 	if err != nil {
-		return emperror.WrapWith(err, "failed to create ACK cluster", "cluster", c.modelCluster.Name)
+		return errors.WrapIfWithDetails(err, "failed to create ACK cluster", "cluster", c.modelCluster.Name)
 	}
 	castedValue, ok := resp.(*ack.AlibabaDescribeClusterResponse)
 	if !ok {
-		return emperror.With(errors.New("could not cast cluster create response"), "cluster", c.modelCluster.Name)
+		return errors.WithDetails(errors.New("could not cast cluster create response"), "cluster", c.modelCluster.Name)
 	}
 	c.modelCluster.ACK.KubernetesVersion = castedValue.KubernetesVersion
 	c.alibabaCluster = castedValue
@@ -419,18 +418,18 @@ func (c *ACKCluster) CreateCluster() error {
 
 	restKubeConfig, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
-		return emperror.With(err, "cluster", c.modelCluster.Name)
+		return errors.WithDetails(err, "cluster", c.modelCluster.Name)
 	}
 
 	kubeClient, err := kubernetes.NewForConfig(restKubeConfig)
 	if err != nil {
-		return emperror.WrapWith(err, "could not generate kubeClient from config", "cluster", c.modelCluster.Name)
+		return errors.WrapIfWithDetails(err, "could not generate kubeClient from config", "cluster", c.modelCluster.Name)
 	}
 
 	// create default storage class
 	err = createDefaultStorageClass(kubeClient, "alicloud/disk", storagev1.VolumeBindingWaitForFirstConsumer, map[string]string{"type": "cloud_efficiency"})
 	if err != nil {
-		return emperror.With(err, "cluster", c.modelCluster.Name)
+		return errors.WithDetails(err, "cluster", c.modelCluster.Name)
 	}
 
 	return c.modelCluster.Save()
@@ -443,14 +442,14 @@ func (c *ACKCluster) getVPCID() (string, error) {
 
 	vpcClient, err := c.GetAlibabaVPCClient(nil)
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to get Alibaba VPC client")
+		return "", errors.WrapIf(err, "failed to get Alibaba VPC client")
 	}
 
 	req := vpc.CreateDescribeVSwitchesRequest()
 	req.VSwitchId = c.modelCluster.ACK.VSwitchID
 	res, err := vpcClient.DescribeVSwitches(req)
 	if err != nil {
-		return "", emperror.WrapWith(err, "could not get VSwitch details", "vswitch", c.modelCluster.ACK.VSwitchID)
+		return "", errors.WrapIfWithDetails(err, "could not get VSwitch details", "vswitch", c.modelCluster.ACK.VSwitchID)
 	}
 	if len(res.VSwitches.VSwitch) != 1 {
 		return "", errors.New("VSwitch not found")
@@ -505,7 +504,7 @@ func getConnectionInfo(client *cs.Client, clusterID string) (inf alibabaConnecti
 // Persist
 // Deprecated: Do not use.
 func (c *ACKCluster) Persist() error {
-	return emperror.Wrap(c.modelCluster.Save(), "failed to persist cluster")
+	return errors.WrapIf(c.modelCluster.Save(), "failed to persist cluster")
 }
 
 func (c *ACKCluster) DownloadK8sConfig() ([]byte, error) {
@@ -521,7 +520,7 @@ func (c *ACKCluster) DownloadK8sConfig() ([]byte, error) {
 
 	info, err := getConnectionInfo(csClient, c.modelCluster.ACK.ProviderClusterID)
 	if err != nil {
-		return nil, emperror.With(err, "cluster", c.modelCluster.Name)
+		return nil, errors.WithDetails(err, "cluster", c.modelCluster.Name)
 	}
 	sshHost := info.JumpHost
 
@@ -533,7 +532,7 @@ func (c *ACKCluster) DownloadK8sConfig() ([]byte, error) {
 
 	signer, err := ssh.ParsePrivateKey([]byte(sshKey.PrivateKeyData))
 	if err != nil {
-		return nil, emperror.With(err, "cluster", c.modelCluster.Name)
+		return nil, errors.WithDetails(err, "cluster", c.modelCluster.Name)
 	}
 	clientConfig := ssh.ClientConfig{
 		User: "root",
@@ -544,20 +543,20 @@ func (c *ACKCluster) DownloadK8sConfig() ([]byte, error) {
 	}
 	sshClient, err := ssh.Dial("tcp", fmt.Sprint(sshHost, ":22"), &clientConfig)
 	if err != nil {
-		return nil, emperror.With(err, "cluster", c.modelCluster.Name)
+		return nil, errors.WithDetails(err, "cluster", c.modelCluster.Name)
 	}
 	defer sshClient.Close()
 	var buff bytes.Buffer
 	w := bufio.NewWriter(&buff)
 	sshSession, err := sshClient.NewSession()
 	if err != nil {
-		return nil, emperror.With(err, "cluster", c.modelCluster.Name)
+		return nil, errors.WithDetails(err, "cluster", c.modelCluster.Name)
 	}
 	defer sshSession.Close()
 	sshSession.Stdout = w
 	sshSession.Run(fmt.Sprintf("cat %s", "/etc/kubernetes/kube.conf")) // nolint: errcheck
 	w.Flush()
-	return buff.Bytes(), emperror.With(err, "cluster", c.modelCluster.Name)
+	return buff.Bytes(), errors.WithDetails(err, "cluster", c.modelCluster.Name)
 
 }
 
@@ -646,7 +645,7 @@ func (c *ACKCluster) DeleteCluster() error {
 
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
-		return emperror.WrapWith(err, "could not delete Alibaba cluster", "cluster", c.modelCluster.Name)
+		return errors.WrapIfWithDetails(err, "could not delete Alibaba cluster", "cluster", c.modelCluster.Name)
 	}
 
 	return nil
@@ -716,12 +715,12 @@ func (c *ACKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 
 	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
-		return emperror.WrapWith(err, "failed to update ACK cluster", "cluster", c.modelCluster.Name)
+		return errors.WrapIfWithDetails(err, "failed to update ACK cluster", "cluster", c.modelCluster.Name)
 	}
 
 	castedValue, ok := resp.(*ack.AlibabaDescribeClusterResponse)
 	if !ok {
-		return emperror.With(errors.New("could not cast cluster update response"), "cluster", c.modelCluster.Name)
+		return errors.WithDetails(errors.New("could not cast cluster update response"), "cluster", c.modelCluster.Name)
 	}
 
 	c.modelCluster.ACK.NodePools = nodePoolModels
@@ -1073,7 +1072,7 @@ func (c *ACKCluster) GetK8sConfig() ([]byte, error) {
 func (c *ACKCluster) createAlibabaCredentialsFromSecret() (*credentials.AccessKeyCredential, error) {
 	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to create alibaba creds from secret", "cluster", c.modelCluster.Name)
+		return nil, errors.WrapIfWithDetails(err, "failed to create alibaba creds from secret", "cluster", c.modelCluster.Name)
 	}
 	return verify.CreateAlibabaCredentials(clusterSecret.Values), nil
 }
@@ -1092,7 +1091,7 @@ func createAlibabaCSClient(auth *credentials.AccessKeyCredential, regionID strin
 	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
 	client, err := cs.NewClientWithOptions(regionID, cfg, cred)
 	client.SetReadTimeout(ack.ACKRequestReadTimeout)
-	return client, emperror.Wrap(err, "could not create Alibaba CSClient")
+	return client, errors.WrapIf(err, "could not create Alibaba CSClient")
 }
 
 func createAlibabaECSClient(auth *credentials.AccessKeyCredential, regionID string, cfg *sdk.Config) (*ecs.Client, error) {
@@ -1103,7 +1102,7 @@ func createAlibabaECSClient(auth *credentials.AccessKeyCredential, regionID stri
 	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
 	client, err := ecs.NewClientWithOptions(regionID, cfg, cred)
 	client.SetReadTimeout(ack.ACKRequestReadTimeout)
-	return client, emperror.Wrap(err, "could not create Alibaba ECSClient")
+	return client, errors.WrapIf(err, "could not create Alibaba ECSClient")
 }
 
 func createAlibabaESSClient(auth *credentials.AccessKeyCredential, regionID string, cfg *sdk.Config) (*ess.Client, error) {
@@ -1113,7 +1112,7 @@ func createAlibabaESSClient(auth *credentials.AccessKeyCredential, regionID stri
 	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
 	client, err := ess.NewClientWithOptions(regionID, cfg, cred)
 	client.SetReadTimeout(ack.ACKRequestReadTimeout)
-	return client, emperror.Wrap(err, "could not create Alibaba ESSClient")
+	return client, errors.WrapIf(err, "could not create Alibaba ESSClient")
 }
 
 func createAlibabaVPCClient(auth *credentials.AccessKeyCredential, regionID string, cfg *sdk.Config) (*vpc.Client, error) {
@@ -1123,5 +1122,5 @@ func createAlibabaVPCClient(auth *credentials.AccessKeyCredential, regionID stri
 	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
 	client, err := vpc.NewClientWithOptions(regionID, cfg, cred)
 	client.SetReadTimeout(ack.ACKRequestReadTimeout)
-	return client, emperror.Wrap(err, "could not create Alibaba VPCClient")
+	return client, errors.WrapIf(err, "could not create Alibaba VPCClient")
 }

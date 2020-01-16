@@ -17,10 +17,9 @@ package azure
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	intNetwork "github.com/banzaicloud/pipeline/internal/network"
@@ -92,7 +91,7 @@ type azureNetworkService struct {
 func NewNetworkService(resourceGroupName string, sir *secret.SecretItemResponse, logger logrus.FieldLogger) (intNetwork.Service, error) {
 	cc, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(sir.Values))
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create cloud connection")
+		return nil, errors.WrapIf(err, "failed to create cloud connection")
 	}
 	return &azureNetworkService{
 		client:            cc.GetVirtualNetworksClient().VirtualNetworksClient,
@@ -104,7 +103,7 @@ func NewNetworkService(resourceGroupName string, sir *secret.SecretItemResponse,
 func (ns *azureNetworkService) ListNetworks() ([]intNetwork.Network, error) {
 	rp, err := ns.client.List(context.TODO(), ns.resourceGroupName)
 	if err != nil {
-		return nil, emperror.Wrap(err, "request to list virtual networks failed")
+		return nil, errors.WrapIf(err, "request to list virtual networks failed")
 	}
 	var res []intNetwork.Network
 	for rp.NotDone() {
@@ -130,7 +129,7 @@ func (ns *azureNetworkService) ListRouteTables(networkID string) ([]intNetwork.R
 func (ns *azureNetworkService) ListSubnets(networkID string) ([]intNetwork.Subnet, error) {
 	vn, err := ns.client.Get(context.TODO(), ns.resourceGroupName, networkID, "")
 	if err != nil {
-		return nil, emperror.Wrap(err, "request to get virtual network failed")
+		return nil, errors.WrapIf(err, "request to get virtual network failed")
 	}
 	if vn.Subnets == nil {
 		return nil, nil

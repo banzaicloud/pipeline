@@ -17,7 +17,7 @@ package workflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 )
 
 const DeleteNamespaceServicesActivityName = "delete-namespace-services"
@@ -48,7 +48,7 @@ func MakeDeleteNamespaceServicesActivity(deleter NamespaceServicesDeleter, k8sCo
 func (a DeleteNamespaceServicesActivity) Execute(ctx context.Context, input DeleteNamespaceServicesActivityInput) error {
 	k8sConfig, err := a.k8sConfigGetter.Get(input.OrganizationID, input.K8sSecretID)
 	if err != nil {
-		return emperror.Wrap(err, "failed to get k8s config")
+		return errors.WrapIf(err, "failed to get k8s config")
 	}
-	return emperror.Wrapf(a.deleter.Delete(input.OrganizationID, input.ClusterName, k8sConfig, input.Namespace), "failed to delete services in namespace %q", input.Namespace)
+	return errors.WrapIff(a.deleter.Delete(input.OrganizationID, input.ClusterName, k8sConfig, input.Namespace), "failed to delete services in namespace %q", input.Namespace)
 }

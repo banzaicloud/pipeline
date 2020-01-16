@@ -17,7 +17,7 @@ package backups
 import (
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
@@ -32,7 +32,7 @@ func Create(c *gin.Context) {
 
 	var req arkAPI.CreateBackupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		err = emperror.Wrap(err, "could not parse request")
+		err = errors.WrapIf(err, "could not parse request")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return

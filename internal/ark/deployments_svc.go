@@ -17,9 +17,8 @@ package ark
 import (
 	"encoding/json"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
@@ -256,12 +255,12 @@ func (s *DeploymentsService) installDeployment(
 
 	kubeConfig, err := s.cluster.GetK8sConfig()
 	if err != nil {
-		return emperror.Wrap(err, "unable to fetch k8s config")
+		return errors.WrapIf(err, "unable to fetch k8s config")
 	}
 
 	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
 	if err != nil {
-		return emperror.Wrap(err, "unable to fetch deployments from helm")
+		return errors.WrapIf(err, "unable to fetch deployments from helm")
 	}
 
 	var foundRelease *pkgHelmRelease.Release

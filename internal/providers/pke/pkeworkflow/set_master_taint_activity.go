@@ -17,7 +17,7 @@ package pkeworkflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"go.uber.org/cadence/activity"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -63,7 +63,7 @@ func (a *SetMasterTaintActivity) Execute(ctx context.Context, input SetMasterTai
 
 	nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{LabelSelector: pke.TaintKeyMaster})
 	if err != nil {
-		return emperror.Wrap(err, "failed to list master nodes")
+		return errors.WrapIf(err, "failed to list master nodes")
 	}
 
 	for _, node := range nodes.Items {
@@ -88,7 +88,7 @@ func (a *SetMasterTaintActivity) Execute(ctx context.Context, input SetMasterTai
 
 		_, err = client.CoreV1().Nodes().Update(&node)
 		if err != nil {
-			return emperror.Wrapf(err, "failed to update node %q", node.ObjectMeta.Name)
+			return errors.WrapIff(err, "failed to update node %q", node.ObjectMeta.Name)
 		}
 
 		logger.Info("tainted master node")

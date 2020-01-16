@@ -15,8 +15,7 @@
 package k8sclient
 
 import (
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -28,7 +27,7 @@ func NewClientConfig(kubeConfig []byte) (*rest.Config, error) {
 	}
 	apiconfig, err := clientcmd.Load(kubeConfig)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to load kubernetes API config")
+		return nil, errors.WrapIf(err, "failed to load kubernetes API config")
 	}
 
 	apiconfig, err = cleanConfig(apiconfig)
@@ -39,7 +38,7 @@ func NewClientConfig(kubeConfig []byte) (*rest.Config, error) {
 	clientConfig := clientcmd.NewDefaultClientConfig(*apiconfig, &clientcmd.ConfigOverrides{})
 	config, err := clientConfig.ClientConfig()
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to build client config from API config")
+		return nil, errors.WrapIf(err, "failed to build client config from API config")
 	}
 
 	return config, nil

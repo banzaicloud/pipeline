@@ -18,10 +18,9 @@ import (
 	"fmt"
 	"hash/crc32"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -43,7 +42,7 @@ func (dns *awsRoute53) createIAMUser(userName *string) (*iam.User, error) {
 
 	iamUser, err := dns.iamSvc.CreateUser(userInput)
 	if err != nil {
-		return nil, emperror.With(
+		return nil, errors.WithDetails(
 			errors.Wrap(wrapAwsError(err), "failed to create IAM user"),
 			"userName", userName,
 			"path", path,

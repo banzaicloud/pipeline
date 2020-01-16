@@ -223,7 +223,7 @@ func runPrometheusQuery(config *rest.Config, client kubernetes.Interface, query 
 	log.Debugf("create kubernetes tunnel for %v", promethuesPodLabels)
 	tunnel, err := k8sutil.NewKubeTunnel(pipelineSystemNamespace, client, config, promethuesPodLabels.AsSelector(), prometheusEndpointPort)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create kubernetes tunnel")
+		return nil, errors.WrapIf(err, "failed to create kubernetes tunnel")
 	}
 	defer tunnel.Close()
 	log.Debugf("tunnel listening on port: %d", tunnel.Local)

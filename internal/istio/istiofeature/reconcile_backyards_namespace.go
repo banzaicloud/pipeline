@@ -15,7 +15,7 @@
 package istiofeature
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,28 +40,28 @@ func (m *MeshReconciler) ReconcileBackyardsNamespace(desiredState DesiredState) 
 					"istio-injection": "enabled",
 				})
 			if err != nil {
-				return emperror.Wrap(err, "could not create backyards namespace")
+				return errors.WrapIf(err, "could not create backyards namespace")
 			}
 		} else if err != nil {
-			return emperror.Wrap(err, "could not get backyards namespace")
+			return errors.WrapIf(err, "could not get backyards namespace")
 		}
 	} else {
 		_, err := client.CoreV1().Namespaces().Get(backyardsNamespace, metav1.GetOptions{})
 		if k8serrors.IsNotFound(err) {
 			return nil
 		} else if err != nil {
-			return emperror.Wrap(err, "could not get backyards namespace")
+			return errors.WrapIf(err, "could not get backyards namespace")
 		}
 
 		err = client.CoreV1().Namespaces().Delete(backyardsNamespace, &metav1.DeleteOptions{})
 		if err != nil {
-			return emperror.Wrap(err, "could not delete backyards namespace")
+			return errors.WrapIf(err, "could not delete backyards namespace")
 		}
 
 		m.logger.Debug("waiting for backyards namespace to be deleted")
 		err = m.waitForNamespaceBeDeleted(client, backyardsNamespace)
 		if err != nil {
-			return emperror.Wrap(err, "timeout during waiting for backyards namespace to be deleted")
+			return errors.WrapIf(err, "timeout during waiting for backyards namespace to be deleted")
 		}
 	}
 

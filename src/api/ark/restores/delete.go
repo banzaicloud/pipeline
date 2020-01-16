@@ -17,7 +17,7 @@ package restores
 import (
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
@@ -40,7 +40,7 @@ func Delete(c *gin.Context) {
 
 	err := common.GetARKService(c.Request).GetRestoresService().DeleteByID(restoreID)
 	if err != nil {
-		err = emperror.Wrap(err, "could not delete restore")
+		err = errors.WrapIf(err, "could not delete restore")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return

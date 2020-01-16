@@ -18,8 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -29,7 +28,7 @@ import (
 func GetConfigMapEntry(client kubernetes.Interface, namespace string, name string, key string) (value string, err error) {
 	cm, err := client.CoreV1().ConfigMaps(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
-		return "", emperror.Wrap(err, fmt.Sprintf("couldn't get configmap %s.%s", namespace, name))
+		return "", errors.WrapIf(err, fmt.Sprintf("couldn't get configmap %s.%s", namespace, name))
 	}
 	if v, ok := cm.Data[key]; ok {
 		return v, nil
@@ -47,12 +46,12 @@ func PatchConfigMapDataEntry(log logrus.FieldLogger, client kubernetes.Interface
 
 	patchBytes, err := json.Marshal(patch)
 	if err != nil {
-		return emperror.Wrap(err, "failed to patch configmap")
+		return errors.WrapIf(err, "failed to patch configmap")
 	}
 
 	_, err = client.CoreV1().ConfigMaps(namespace).Patch(name, types.JSONPatchType, patchBytes)
 	if err != nil {
-		return emperror.Wrap(err, "failed to patch configmap")
+		return errors.WrapIf(err, "failed to patch configmap")
 	}
 	return nil
 }

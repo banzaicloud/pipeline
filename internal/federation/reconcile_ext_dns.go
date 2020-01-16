@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
 
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -39,7 +39,7 @@ func (m *FederationReconciler) ReconcileExternalDNSController(desiredState Desir
 
 	err := m.ensureCRDSourceForExtDNS(m.Host, infraNamespace, chartName, releaseName, desiredState)
 	if err != nil {
-		return emperror.Wrap(err, "could not update ExternalDNS controller")
+		return errors.WrapIf(err, "could not update ExternalDNS controller")
 	}
 	return nil
 }
@@ -53,12 +53,12 @@ func (m *FederationReconciler) ensureCRDSourceForExtDNS(
 ) error {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
-		return emperror.Wrap(err, "could not get k8s config")
+		return errors.WrapIf(err, "could not get k8s config")
 	}
 
 	org, err := auth.GetOrganizationById(c.GetOrganizationId())
 	if err != nil {
-		return emperror.Wrap(err, "could not get organization")
+		return errors.WrapIf(err, "could not get organization")
 	}
 
 	hClient, err := pkgHelm.NewClient(kubeConfig, m.logger)
@@ -122,12 +122,12 @@ func (m *FederationReconciler) ensureCRDSourceForExtDNS(
 	}
 	valuesOverride, err := yaml.Marshal(values)
 	if err != nil {
-		return emperror.Wrap(err, "could not marshal chart value overrides")
+		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}
 
 	_, err = helm.UpgradeDeployment(releaseName, deploymentName, resp.Release.Chart.Metadata.Version, nil, valuesOverride, true, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
 	if err != nil {
-		return emperror.WrapWith(err, "could not upgrade deployment", "deploymentName", deploymentName)
+		return errors.WrapIfWithDetails(err, "could not upgrade deployment", "deploymentName", deploymentName)
 	}
 	return nil
 }

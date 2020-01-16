@@ -19,9 +19,9 @@ import (
 	"path"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/ratelimit"
@@ -160,7 +160,7 @@ func (s *SpotguideAPI) LaunchSpotguide(c *gin.Context) {
 
 	err := s.spotguide.LaunchSpotguide(&launchRequest, org, user)
 	if err != nil {
-		s.errorHandler.Handle(emperror.WrapWith(err, "failed to launch spotguide", "spotguide", launchRequest.RepoFullname()))
+		s.errorHandler.Handle(errors.WrapIfWithDetails(err, "failed to launch spotguide", "spotguide", launchRequest.RepoFullname()))
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "error launching spotguide",

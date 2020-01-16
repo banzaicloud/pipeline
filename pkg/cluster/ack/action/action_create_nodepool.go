@@ -16,7 +16,7 @@ package action
 
 import (
 	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
@@ -57,7 +57,7 @@ func (a *CreateACKNodePoolAction) ExecuteAction(input interface{}) (interface{},
 	if len(a.nodePools) == 0 {
 		r, err := GetClusterDetails(a.context.CSClient, a.context.ClusterID)
 		if err != nil {
-			return nil, emperror.With(err, "cluster", cluster.Name)
+			return nil, errors.WithDetails(err, "cluster", cluster.Name)
 		}
 
 		return r, nil

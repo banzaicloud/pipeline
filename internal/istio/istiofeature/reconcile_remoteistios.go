@@ -19,8 +19,7 @@ import (
 	"encoding/base64"
 	"strconv"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -96,7 +95,7 @@ func (m *MeshReconciler) reconcileRemoteIstio(desiredState DesiredState, c clust
 	for _, res := range reconcilers {
 		err := res(desiredState, c)
 		if err != nil {
-			return emperror.Wrap(err, "could not reconcile")
+			return errors.WrapIf(err, "could not reconcile")
 		}
 	}
 
@@ -153,17 +152,17 @@ func (m *MeshReconciler) reconcileRemoteIstioSecret(desiredState DesiredState, c
 func (m *MeshReconciler) generateKubeconfig(c cluster.CommonCluster) ([]byte, error) {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get k8s config")
+		return nil, errors.WrapIf(err, "could not get k8s config")
 	}
 
 	config, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not create rest config from kubeconfig")
+		return nil, errors.WrapIf(err, "could not create rest config from kubeconfig")
 	}
 
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		return nil, emperror.Wrap(err, "cloud not create client from kubeconfig")
+		return nil, errors.WrapIf(err, "cloud not create client from kubeconfig")
 	}
 
 	sa, err := client.CoreV1().ServiceAccounts(istioOperatorNamespace).Get("istio-operator", metav1.GetOptions{})
@@ -373,7 +372,7 @@ func (m *MeshReconciler) getRemoteClustersByExistingRemoteIstioCRs() (map[uint]c
 
 	remoteistios, err := client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).List(metav1.ListOptions{})
 	if err != nil && !k8serrors.IsNotFound(err) {
-		return nil, emperror.Wrap(err, "could not get remote istios")
+		return nil, errors.WrapIf(err, "could not get remote istios")
 	}
 
 	for _, remoteistio := range remoteistios.Items {

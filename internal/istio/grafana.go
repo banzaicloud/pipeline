@@ -21,9 +21,10 @@ import (
 	"net/url"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
@@ -39,21 +40,21 @@ const (
 	appLabel       = pkgCommon.PipelineSpecificLabelsCommonPart + "/app"
 )
 
-func DeleteGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) error {
+func DeleteGrafanaDashboards(_ logrus.FieldLogger, client kubernetes.Interface) error {
 	pipelineSystemNamespace := global.Config.Cluster.Namespace
 
 	cms, err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).List(metav1.ListOptions{
 		LabelSelector: createdByLabel + "=pipeline," + appLabel + "=grafana",
 	})
 	if err != nil {
-		return emperror.Wrap(err, "could not list configmaps")
+		return errors.WrapIf(err, "could not list configmaps")
 	}
 
 	caughtErrors := emperror.NewMultiErrorBuilder()
 	for _, cm := range cms.Items {
 		err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).Delete(cm.Name, &metav1.DeleteOptions{})
 		if err != nil {
-			caughtErrors.Add(emperror.Wrap(err, "could not delete configmap"))
+			caughtErrors.Add(errors.WrapIf(err, "could not delete configmap"))
 		}
 	}
 
@@ -66,7 +67,7 @@ func AddGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) e
 	for _, dashboard := range []string{"galley", "istio-mesh", "istio-performance", "istio-service", "istio-workload", "mixer", "pilot"} {
 		dashboardJson, err := getDashboardJson(log, dashboard)
 		if err != nil {
-			return emperror.WrapWith(err, addDashboardFailed, "dashboard", dashboard)
+			return errors.WrapIfWithDetails(err, addDashboardFailed, "dashboard", dashboard)
 		}
 		_, err = client.CoreV1().ConfigMaps(pipelineSystemNamespace).Create(&v1.ConfigMap{
 			Data: map[string]string{
@@ -82,11 +83,11 @@ func AddGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) e
 			},
 		})
 		if err != nil {
-			if errors.IsAlreadyExists(err) {
+			if k8serrors.IsAlreadyExists(err) {
 				log.Warnf("Istio Grafana dashboard %s already exists", dashboard)
 				continue
 			} else {
-				return emperror.WrapWith(err, addDashboardFailed, "dashboard", dashboard)
+				return errors.WrapIfWithDetails(err, addDashboardFailed, "dashboard", dashboard)
 			}
 		}
 		log.Debugf("created Istio Grafana dashboard %s", dashboard)
@@ -99,28 +100,28 @@ func getDashboardJson(log logrus.FieldLogger, name string) (string, error) {
 	log.Infof("Getting Istio dashboard from %s", templatePath)
 	u, err := url.Parse(templatePath)
 	if err != nil {
-		return "", emperror.WrapWith(err, getJsonFailed, "url", templatePath)
+		return "", errors.WrapIfWithDetails(err, getJsonFailed, "url", templatePath)
 	}
 	var content []byte
 	switch u.Scheme {
 	case "file", "":
 		content, err = ioutil.ReadFile(u.String())
 		if err != nil {
-			return "", emperror.WrapWith(err, getJsonFailed, "url", u.String())
+			return "", errors.WrapIfWithDetails(err, getJsonFailed, "url", u.String())
 		}
 	case "http", "https":
 		var client http.Client
 		resp, err := client.Get(u.String())
 		if err != nil {
-			return "", emperror.WrapWith(err, getJsonFailed, "url", u.String())
+			return "", errors.WrapIfWithDetails(err, getJsonFailed, "url", u.String())
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			return "", emperror.WrapWith(err, getJsonFailed, "url", u.String(), "statusCode", resp.StatusCode)
+			return "", errors.WrapIfWithDetails(err, getJsonFailed, "url", u.String(), "statusCode", resp.StatusCode)
 		}
 		content, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return "", emperror.WrapWith(err, getJsonFailed, "url", u.String())
+			return "", errors.WrapIfWithDetails(err, getJsonFailed, "url", u.String())
 		}
 	default:
 		return "", fmt.Errorf("unsupported scheme: %s", u.Scheme)

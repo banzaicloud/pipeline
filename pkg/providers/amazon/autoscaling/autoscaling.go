@@ -15,10 +15,9 @@
 package autoscaling
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	awsEC2 "github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 )
@@ -101,7 +100,7 @@ func (group *Group) getSpotRequests() ([]*ec2.SpotInstanceRequest, error) {
 
 	lc, err := group.getLaunchConfiguration()
 	if err == nil && lc == nil {
-		err = emperror.With(errors.New("could not find launch configuration for ASG"), "asg", group.getName())
+		err = errors.NewWithDetails("could not find launch configuration for ASG", "asg", group.getName())
 	}
 	if err != nil {
 		return nil, err
@@ -129,7 +128,7 @@ func (group *Group) getLaunchConfiguration() (*autoscaling.LaunchConfiguration, 
 	asgName := group.getName()
 
 	if group.LaunchConfigurationName == nil {
-		return nil, emperror.With(errors.New("could not find launch configuration for ASG"), "asg", asgName)
+		return nil, errors.NewWithDetails("could not find launch configuration for ASG", "asg", asgName)
 	}
 
 	input := &autoscaling.DescribeLaunchConfigurationsInput{
@@ -144,7 +143,7 @@ func (group *Group) getLaunchConfiguration() (*autoscaling.LaunchConfiguration, 
 	}
 
 	if len(result.LaunchConfigurations) != 1 {
-		return nil, emperror.WrapWith(emperror.With(errors.New("invalid response count"), "count", len(result.LaunchConfigurations)), "could not get launch configuration for ASG", "asg", asgName)
+		return nil, errors.WrapIfWithDetails(errors.WithDetails(errors.New("invalid response count"), "count", len(result.LaunchConfigurations)), "could not get launch configuration for ASG", "asg", asgName)
 	}
 
 	return result.LaunchConfigurations[0], nil

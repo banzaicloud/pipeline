@@ -17,7 +17,7 @@ package workflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -53,29 +53,29 @@ func (a WaitPersistentVolumesDeletionActivity) Execute(ctx context.Context, inpu
 	logger := a.logger.WithField("organizationID", input.OrganizationID).WithField("clusterName", input.ClusterName)
 
 	k8sConfig, err := a.k8sConfigGetter.Get(input.OrganizationID, input.K8sSecretID)
-	if err = emperror.Wrap(err, "failed to get k8s config"); err != nil {
+	if err = errors.WrapIf(err, "failed to get k8s config"); err != nil {
 		return
 	}
 
 	client, err := k8sclient.NewClientFromKubeConfig(k8sConfig)
-	if err = emperror.Wrap(err, "failed to instantiate k8s client"); err != nil {
+	if err = errors.WrapIf(err, "failed to instantiate k8s client"); err != nil {
 		return
 	}
 
 	// watch persistent volumes
 	watcher, err := client.CoreV1().PersistentVolumes().Watch(metav1.ListOptions{})
-	if err = emperror.Wrap(err, "failed start watcher for persistent volumes"); err != nil {
+	if err = errors.WrapIf(err, "failed start watcher for persistent volumes"); err != nil {
 		return
 	}
 	defer watcher.Stop()
 
 	pvcList, err := client.CoreV1().PersistentVolumeClaims(corev1.NamespaceAll).List(metav1.ListOptions{})
-	if err = emperror.Wrap(err, "failed to retrieve persistent volume claims"); err != nil {
+	if err = errors.WrapIf(err, "failed to retrieve persistent volume claims"); err != nil {
 		return
 	}
 
 	pvList, err := client.CoreV1().PersistentVolumes().List(metav1.ListOptions{})
-	if err = emperror.Wrap(err, "failed to retrieve persistent volumes"); err != nil {
+	if err = errors.WrapIf(err, "failed to retrieve persistent volumes"); err != nil {
 		return
 	}
 

@@ -16,9 +16,9 @@ package istiofeature
 
 import (
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gofrs/uuid"
 	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
@@ -47,7 +47,7 @@ func NewServiceMeshFeatureHandler(
 func (h *ServiceMeshFeatureHandler) ReconcileState(featureState api.Feature) error {
 	cid, err := uuid.NewV4()
 	if err != nil {
-		return emperror.Wrap(err, "could not generate uuid")
+		return errors.WrapIf(err, "could not generate uuid")
 	}
 	logger := h.logger.WithFields(logrus.Fields{
 		"correlationID":    cid,
@@ -67,7 +67,7 @@ func (h *ServiceMeshFeatureHandler) ReconcileState(featureState api.Feature) err
 	err = mesh.Reconcile()
 	if err != nil {
 		h.errorHandler.Handle(err)
-		return emperror.Wrap(err, "could not reconcile service mesh")
+		return errors.WrapIf(err, "could not reconcile service mesh")
 	}
 
 	return nil
@@ -78,7 +78,7 @@ func (h *ServiceMeshFeatureHandler) ValidateState(featureState api.Feature) erro
 	var config Config
 	err := mapstructure.Decode(featureState.Properties, &config)
 	if err != nil {
-		return emperror.Wrap(err, "could not decode properties into config")
+		return errors.WrapIf(err, "could not decode properties into config")
 	}
 
 	if featureState.ClusterGroup.Clusters[config.MasterClusterID] == nil {
@@ -93,13 +93,13 @@ func (h *ServiceMeshFeatureHandler) ValidateProperties(clusterGroup api.ClusterG
 	var currentConfig Config
 	err := mapstructure.Decode(currentProperties, &currentConfig)
 	if err != nil {
-		return emperror.Wrap(err, "could not decode current properties into config")
+		return errors.WrapIf(err, "could not decode current properties into config")
 	}
 
 	var config Config
 	err = mapstructure.Decode(properties, &config)
 	if err != nil {
-		return emperror.Wrap(err, "could not decode new properties into config")
+		return errors.WrapIf(err, "could not decode new properties into config")
 	}
 
 	if config.MasterClusterID == 0 {
@@ -136,7 +136,7 @@ func (h *ServiceMeshFeatureHandler) GetMembersStatus(featureState api.Feature) (
 	mesh := NewMeshReconciler(*config, h.clusterGetter, h.logger, h.errorHandler)
 	statusMap, err = mesh.GetClusterStatus()
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get clusters status")
+		return nil, errors.WrapIf(err, "could not get clusters status")
 	}
 
 	return statusMap, nil
@@ -146,7 +146,7 @@ func (h *ServiceMeshFeatureHandler) getConfigFromState(state api.Feature) (*Conf
 	var config Config
 	err := mapstructure.Decode(state.Properties, &config)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not decode properties into config")
+		return nil, errors.WrapIf(err, "could not decode properties into config")
 	}
 
 	config.name = state.ClusterGroup.Name

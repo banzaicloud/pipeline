@@ -17,7 +17,7 @@ package eks
 import (
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Masterminds/semver"
 
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -199,7 +199,7 @@ func (eks *CreateClusterEKS) Validate() error {
 	// validate K8s version
 	isValid, err := isValidVersion(eks.Version)
 	if err != nil {
-		return emperror.Wrap(err, "couldn't validate Kubernetes version")
+		return errors.WrapIf(err, "couldn't validate Kubernetes version")
 	}
 	if !isValid {
 		return pkgErrors.ErrorNotValidKubernetesVersion
@@ -222,7 +222,7 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 
 	defaultImage, err := GetDefaultImageID(location, eks.Version)
 	if err != nil {
-		return emperror.Wrapf(err, "couldn't get EKS AMI for Kubernetes version %q in region %q", eks.Version, location)
+		return errors.WrapIff(err, "couldn't get EKS AMI for Kubernetes version %q in region %q", eks.Version, location)
 	}
 
 	if len(eks.NodePools) == 0 {
@@ -283,12 +283,12 @@ func (eks *UpdateClusterAmazonEKS) Validate() error {
 func isValidVersion(version string) (bool, error) {
 	constraint, err := semver.NewConstraint(">= 1.10, < 1.15")
 	if err != nil {
-		return false, emperror.Wrap(err, "couldn't create semver Kubernetes version check constraint")
+		return false, errors.WrapIf(err, "couldn't create semver Kubernetes version check constraint")
 	}
 
 	v, err := semver.NewVersion(version)
 	if err != nil {
-		return false, emperror.Wrap(err, "couldn't create semver")
+		return false, errors.WrapIf(err, "couldn't create semver")
 	}
 
 	// TODO check if there is an AWS API that can tell us supported Kubernetes versions

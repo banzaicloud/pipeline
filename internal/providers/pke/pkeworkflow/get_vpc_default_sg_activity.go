@@ -17,9 +17,8 @@ package pkeworkflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
 	zapadapter "logur.dev/adapter/zap"
 	"logur.dev/logur"
@@ -58,11 +57,11 @@ func (a *GetVpcDefaultSecurityGroupActivity) Execute(ctx context.Context, input 
 
 	logger.Debug("getting VPC's default security group")
 	if err != nil {
-		return "", emperror.WrapWith(err, "couldn't get the default security group of the VPC", "clusterID", input.ClusterID, "vpcId", input.VpcID)
+		return "", errors.WrapIfWithDetails(err, "couldn't get the default security group of the VPC", "clusterID", input.ClusterID, "vpcId", input.VpcID)
 	}
 
 	if sgID == "" {
-		return "", emperror.With(errors.New("couldn't get the default security group of the VPC"), "vpcId", input.VpcID)
+		return "", errors.NewWithDetails("couldn't get the default security group of the VPC", "vpcId", input.VpcID)
 	}
 
 	return sgID, nil

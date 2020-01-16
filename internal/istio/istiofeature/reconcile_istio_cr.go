@@ -18,10 +18,9 @@ import (
 	"strconv"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
 	istiooperatorclientset "github.com/banzaicloud/istio-operator/pkg/client/clientset/versioned"
-	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,7 +40,7 @@ func (m *MeshReconciler) ReconcileIstio(desiredState DesiredState) error {
 	if desiredState == DesiredStatePresent {
 		istio, err := client.IstioV1beta1().Istios(istioOperatorNamespace).Get(m.Configuration.name, metav1.GetOptions{})
 		if err != nil && !k8serrors.IsNotFound(err) {
-			return emperror.Wrap(err, "could not check existence Istio CR")
+			return errors.WrapIf(err, "could not check existence Istio CR")
 		}
 
 		if k8serrors.IsNotFound(err) {
@@ -57,23 +56,23 @@ func (m *MeshReconciler) ReconcileIstio(desiredState DesiredState) error {
 		if k8serrors.IsNotFound(err) {
 			_, err = client.IstioV1beta1().Istios(istioOperatorNamespace).Create(istio)
 			if err != nil {
-				return emperror.Wrap(err, "could not create Istio CR")
+				return errors.WrapIf(err, "could not create Istio CR")
 			}
 		} else if err == nil {
 			_, err := client.IstioV1beta1().Istios(istioOperatorNamespace).Update(istio)
 			if err != nil {
-				return emperror.Wrap(err, "could not update Istio CR")
+				return errors.WrapIf(err, "could not update Istio CR")
 			}
 		}
 	} else {
 		err := client.IstioV1beta1().Istios(istioOperatorNamespace).Delete(m.Configuration.name, &metav1.DeleteOptions{})
 		if err != nil && !k8serrors.IsNotFound(err) {
-			return emperror.Wrap(err, "could not remove Istio CR")
+			return errors.WrapIf(err, "could not remove Istio CR")
 		}
 
 		err = m.waitForIstioCRToBeDeleted(client)
 		if err != nil {
-			return emperror.Wrap(err, "timeout during waiting for Istio CR to be deleted")
+			return errors.WrapIf(err, "timeout during waiting for Istio CR to be deleted")
 		}
 	}
 

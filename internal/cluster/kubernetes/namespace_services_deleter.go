@@ -15,8 +15,7 @@
 package kubernetes
 
 import (
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -42,7 +41,7 @@ func (d NamespaceServicesDeleter) Delete(organizationID uint, clusterName string
 	}
 	services, err := client.CoreV1().Services(namespace).List(metav1.ListOptions{})
 	if err != nil {
-		return emperror.Wrap(err, "could not list services to delete")
+		return errors.WrapIf(err, "could not list services to delete")
 	}
 
 	for _, service := range services.Items {
@@ -54,7 +53,7 @@ func (d NamespaceServicesDeleter) Delete(organizationID uint, clusterName string
 			logger.Infof("deleting kubernetes service %q", service.Name)
 			err := client.CoreV1().Services(namespace).Delete(service.Name, &metav1.DeleteOptions{})
 			if err != nil {
-				return emperror.Wrapf(err, "failed to delete %q service", service.Name)
+				return errors.WrapIff(err, "failed to delete %q service", service.Name)
 			}
 			return nil
 		}, 3, 1)
@@ -65,7 +64,7 @@ func (d NamespaceServicesDeleter) Delete(organizationID uint, clusterName string
 	err = retry(func() error {
 		services, err := client.CoreV1().Services(namespace).List(metav1.ListOptions{})
 		if err != nil {
-			return emperror.Wrap(err, "could not list remaining services")
+			return errors.WrapIf(err, "could not list remaining services")
 		}
 		left := []string{}
 		for _, svc := range services.Items {
@@ -78,7 +77,7 @@ func (d NamespaceServicesDeleter) Delete(organizationID uint, clusterName string
 			}
 		}
 		if len(left) > 0 {
-			return emperror.With(errors.Errorf("services remained after deletion: %v", left), "services", left)
+			return errors.WithDetails(errors.Errorf("services remained after deletion: %v", left), "services", left)
 		}
 		return nil
 	}, 6, 30)

@@ -16,6 +16,7 @@ package istiofeature
 
 import (
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	istiooperatorclientset "github.com/banzaicloud/istio-operator/pkg/client/clientset/versioned"
 	"github.com/sirupsen/logrus"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -84,12 +85,12 @@ func (m *MeshReconciler) getMasterK8sClient() (*kubernetes.Clientset, error) {
 func (m *MeshReconciler) getK8sClient(c cluster.CommonCluster) (*kubernetes.Clientset, error) {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get k8s config")
+		return nil, errors.WrapIf(err, "could not get k8s config")
 	}
 
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		return nil, emperror.Wrap(err, "cloud not create client from kubeconfig")
+		return nil, errors.WrapIf(err, "cloud not create client from kubeconfig")
 	}
 
 	return client, nil
@@ -102,17 +103,17 @@ func (m *MeshReconciler) getMasterIstioOperatorK8sClient() (*istiooperatorclient
 func (m *MeshReconciler) getIstioOperatorK8sClient(c cluster.CommonCluster) (*istiooperatorclientset.Clientset, error) {
 	kubeConfig, err := m.Master.GetK8sConfig()
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get k8s config")
+		return nil, errors.WrapIf(err, "could not get k8s config")
 	}
 
 	config, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not create rest config from kubeconfig")
+		return nil, errors.WrapIf(err, "could not create rest config from kubeconfig")
 	}
 
 	client, err := istiooperatorclientset.NewForConfig(config)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not create istio operator client")
+		return nil, errors.WrapIf(err, "could not create istio operator client")
 	}
 
 	return client, nil
@@ -121,17 +122,17 @@ func (m *MeshReconciler) getIstioOperatorK8sClient(c cluster.CommonCluster) (*is
 func (m *MeshReconciler) getApiExtensionK8sClient(c cluster.CommonCluster) (*apiextensionsclient.Clientset, error) {
 	kubeConfig, err := m.Master.GetK8sConfig()
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get k8s config")
+		return nil, errors.WrapIf(err, "could not get k8s config")
 	}
 
 	config, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not create rest config from kubeconfig")
+		return nil, errors.WrapIf(err, "could not create rest config from kubeconfig")
 	}
 
 	client, err := apiextensionsclient.NewForConfig(config)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not create istio operator client")
+		return nil, errors.WrapIf(err, "could not create istio operator client")
 	}
 
 	return client, nil

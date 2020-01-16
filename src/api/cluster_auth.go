@@ -22,7 +22,7 @@ import (
 	"net/url"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/coreos/go-oidc"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -80,13 +80,13 @@ func NewClusterAuthAPI(
 
 	_, err := url.Parse(redirectURI)
 	if err != nil {
-		return nil, emperror.Wrapf(err, "failed to parse redirect-uri: %q", redirectURI)
+		return nil, errors.WrapIff(err, "failed to parse redirect-uri: %q", redirectURI)
 	}
 
 	ctx := oidc.ClientContext(context.Background(), a.client)
 	provider, err := oidc.NewProvider(ctx, issuerURL)
 	if err != nil {
-		return nil, emperror.Wrapf(err, "failed to query provider: %q", issuerURL)
+		return nil, errors.WrapIff(err, "failed to query provider: %q", issuerURL)
 	}
 
 	var s struct {
@@ -96,7 +96,7 @@ func NewClusterAuthAPI(
 		ScopesSupported []string `json:"scopes_supported"`
 	}
 	if err := provider.Claims(&s); err != nil {
-		return nil, emperror.Wrap(err, "failed to parse provider scopes_supported")
+		return nil, errors.WrapIf(err, "failed to parse provider scopes_supported")
 	}
 
 	if len(s.ScopesSupported) == 0 {

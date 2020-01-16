@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	"github.com/jinzhu/gorm"
 
@@ -123,13 +123,13 @@ func (backup *ClusterBackupsModel) SetValuesFromRequest(db *gorm.DB, req *api.Pe
 
 	stateJSON, err = json.Marshal(req.Backup)
 	if err != nil {
-		return emperror.Wrap(err, "error converting backup to json")
+		return errors.WrapIf(err, "error converting backup to json")
 	}
 
 	if req.Nodes != nil {
 		nodesJSON, err = json.Marshal(req.Nodes)
 		if err != nil {
-			return emperror.Wrap(err, "error converting nodes to json")
+			return errors.WrapIf(err, "error converting nodes to json")
 		}
 	}
 

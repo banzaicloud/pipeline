@@ -17,9 +17,8 @@ package istiofeature
 import (
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
-	"github.com/pkg/errors"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -40,21 +39,21 @@ func (m *MeshReconciler) ReconcileBackyards(desiredState DesiredState) error {
 	if desiredState == DesiredStatePresent {
 		apiextclient, err := m.getApiExtensionK8sClient(m.Master)
 		if err != nil {
-			return emperror.Wrap(err, "could not get api extension client")
+			return errors.WrapIf(err, "could not get api extension client")
 		}
 
 		err = m.waitForCRD("instances.config.istio.io", apiextclient)
 		if err != nil {
-			return emperror.Wrap(err, "error while waiting for metric CRD")
+			return errors.WrapIf(err, "error while waiting for metric CRD")
 		}
 
 		k8sclient, err := m.getMasterK8sClient()
 		if err != nil {
-			return emperror.Wrap(err, "could not get k8s client")
+			return errors.WrapIf(err, "could not get k8s client")
 		}
 		err = m.waitForSidecarInjectorPod(k8sclient)
 		if err != nil {
-			return emperror.Wrap(err, "error while waiting for running sidecar injector")
+			return errors.WrapIf(err, "error while waiting for running sidecar injector")
 		}
 
 		err = m.installBackyards(m.Master, monitoringConfig{
@@ -62,12 +61,12 @@ func (m *MeshReconciler) ReconcileBackyards(desiredState DesiredState) error {
 			url:      prometheusURL,
 		})
 		if err != nil {
-			return emperror.Wrap(err, "could not install Backyards")
+			return errors.WrapIf(err, "could not install Backyards")
 		}
 	} else {
 		err := m.uninstallBackyards(m.Master)
 		if err != nil {
-			return emperror.Wrap(err, "could not remove Backyards")
+			return errors.WrapIf(err, "could not remove Backyards")
 		}
 	}
 
@@ -91,7 +90,7 @@ func (m *MeshReconciler) waitForSidecarInjectorPod(client *kubernetes.Clientset)
 		})
 
 		if err != nil {
-			return emperror.Wrap(err, "could not list pods")
+			return errors.WrapIf(err, "could not list pods")
 		}
 
 		if len(pods.Items) == 0 {
@@ -117,7 +116,7 @@ func (m *MeshReconciler) waitForCRD(name string, client *apiextensionsclient.Cli
 	err := backoff.Retry(func() error {
 		_, err := client.ApiextensionsV1beta1().CustomResourceDefinitions().Get(name, metav1.GetOptions{})
 		if err != nil {
-			return emperror.Wrap(err, "could not get CRD")
+			return errors.WrapIf(err, "could not get CRD")
 		}
 
 		return nil
@@ -132,7 +131,7 @@ func (m *MeshReconciler) uninstallBackyards(c cluster.CommonCluster) error {
 
 	err := deleteDeployment(c, backyardsReleaseName)
 	if err != nil {
-		return emperror.Wrap(err, "could not remove Backyards")
+		return errors.WrapIf(err, "could not remove Backyards")
 	}
 
 	return nil
@@ -216,7 +215,7 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 
 	valuesOverride, err := yaml.Marshal(values)
 	if err != nil {
-		return emperror.Wrap(err, "could not marshal chart value overrides")
+		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}
 
 	err = installOrUpgradeDeployment(
@@ -230,7 +229,7 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 		true,
 	)
 	if err != nil {
-		return emperror.Wrap(err, "could not install Backyards")
+		return errors.WrapIf(err, "could not install Backyards")
 	}
 
 	return nil
