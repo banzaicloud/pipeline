@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.51.0
 	cloud.google.com/go/storage v1.0.0
 	emperror.dev/emperror v0.23.0
-	emperror.dev/errors v0.6.0
+	emperror.dev/errors v0.7.0
 	emperror.dev/handler/logur v0.3.0
 	emperror.dev/handler/stackdriver v0.2.0
 	github.com/Azure/azure-pipeline-go v0.2.2
@@ -36,7 +36,7 @@ require (
 	github.com/banzaicloud/gin-utilz v0.1.0
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
 	github.com/banzaicloud/istio-operator v0.0.0-20191104140059-90d1290d7342
-	github.com/banzaicloud/logging-operator/pkg/sdk v0.0.0-20191125142640-aa8071e64c9d
+	github.com/banzaicloud/logging-operator/pkg/sdk v0.1.1
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
@@ -79,6 +79,7 @@ require (
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/heptio/ark v0.9.3
 	github.com/huandu/xstrings v1.2.1 // indirect
+	github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0 // indirect
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/jinzhu/gorm v1.9.10
 	github.com/jinzhu/inflection v1.0.0 // indirect
