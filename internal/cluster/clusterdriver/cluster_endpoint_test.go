@@ -24,17 +24,58 @@ import (
 )
 
 func TestMakeClusterEndpoints_DeleteCluster(t *testing.T) {
-	ctx := context.Background()
 	const clusterID = uint(1)
-	const force = true
+	const clusterName = "my-cluster"
+	const orgID = uint(1)
 
-	service := new(cluster.MockService)
-	service.On("DeleteCluster", ctx, clusterID, cluster.DeleteClusterOptions{Force: force}).Return(false, nil)
+	testCases := map[string]struct {
+		identifier cluster.Identifier
+		options    cluster.DeleteClusterOptions
+		request    deleteClusterRequest
+	}{
+		"id identifier": {
+			identifier: cluster.Identifier{
+				ClusterID: clusterID,
+			},
+			options: cluster.DeleteClusterOptions{
+				Force: true,
+			},
+			request: deleteClusterRequest{
+				ClusterID: clusterID,
+				Force:     true,
+			},
+		},
+		"name identifier": {
+			identifier: cluster.Identifier{
+				OrganizationID: orgID,
+				ClusterName:    clusterName,
+			},
+			options: cluster.DeleteClusterOptions{
+				Force: true,
+			},
+			request: deleteClusterRequest{
+				OrganizationID: orgID,
+				ClusterName:    clusterName,
+				Force:          true,
+			},
+		},
+	}
 
-	e := MakeClusterEndpoints(service).DeleteCluster
+	for name, testCase := range testCases {
+		testCase := testCase
 
-	_, err := e(ctx, deleteClusterRequest{clusterID, force})
-	require.NoError(t, err)
+		t.Run(name, func(t *testing.T) {
+			ctx := context.Background()
 
-	service.AssertExpectations(t)
+			service := new(cluster.MockService)
+			service.On("DeleteCluster", ctx, testCase.identifier, testCase.options).Return(false, nil)
+
+			e := MakeClusterEndpoints(service).DeleteCluster
+
+			_, err := e(ctx, testCase.request)
+			require.NoError(t, err)
+
+			service.AssertExpectations(t)
+		})
+	}
 }

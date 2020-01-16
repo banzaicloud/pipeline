@@ -36,21 +36,61 @@ func RegisterClusterHTTPHandlers(endpoints ClusterEndpoints, router *mux.Router,
 }
 
 func decodeDeleteClusterHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	vars := mux.Vars(r)
-
-	rawClusterID, ok := vars["clusterId"]
-	if !ok || rawClusterID == "" {
-		return nil, errors.NewWithDetails("missing parameter from the URL", "param", "clusterId")
-	}
-
-	clusterID, err := strconv.ParseUint(rawClusterID, 10, 32)
-	if err != nil {
-		return nil, errors.NewWithDetails("invalid cluster ID", "rawClusterId", rawClusterID)
-	}
-
 	force := r.URL.Query().Get("force") == "true"
 
-	return deleteClusterRequest{ClusterID: uint(clusterID), Force: force}, nil
+	switch field := r.URL.Query().Get("field"); field {
+	case "id", "":
+		clusterID, err := getClusterID(r)
+		if err != nil {
+			return nil, err
+		}
+
+		return deleteClusterRequest{
+			ClusterID: clusterID,
+			Force:     force,
+		}, nil
+
+	case "name":
+		orgID, err := getOrgID(r)
+		if err != nil {
+			return nil, err
+		}
+
+		clusterName := mux.Vars(r)["clusterId"]
+
+		return deleteClusterRequest{
+			OrganizationID: orgID,
+			ClusterName:    clusterName,
+			Force:          force,
+		}, nil
+
+	default:
+		return nil, errors.Errorf("field=%s is not supported", field)
+	}
+}
+
+func getClusterID(req *http.Request) (uint, error) {
+	vars := mux.Vars(req)
+
+	clusterIDStr, ok := vars["clusterId"]
+	if !ok {
+		return 0, errors.New("cluster ID not found in path variables")
+	}
+
+	clusterID, err := strconv.ParseUint(clusterIDStr, 0, 0)
+	return uint(clusterID), errors.WrapIf(err, "invalid cluster ID format")
+}
+
+func getOrgID(req *http.Request) (uint, error) {
+	vars := mux.Vars(req)
+
+	orgIDStr, ok := vars["orgId"]
+	if !ok {
+		return 0, errors.New("organization ID not found in path variables")
+	}
+
+	orgID, err := strconv.ParseUint(orgIDStr, 0, 0)
+	return uint(orgID), errors.WrapIf(err, "invalid organization ID format")
 }
 
 func encodeDeleteClusterHTTPResponse(_ context.Context, w http.ResponseWriter, resp interface{}) error {

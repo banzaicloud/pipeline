@@ -139,7 +139,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 
 		clusterStore := new(MockStore)
 		{
-			err := NotFoundError{ID: 1}
+			err := NotFoundError{ClusterID: 1}
 			clusterStore.On("GetCluster", ctx, uint(1)).Return(Cluster{}, err)
 		}
 
@@ -157,7 +157,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		err := nodePoolService.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.Error(t, err)
 
-		assert.True(t, errors.Is(err, NotFoundError{ID: 1}))
+		assert.True(t, errors.Is(err, NotFoundError{ClusterID: 1}))
 
 		clusterStore.AssertExpectations(t)
 		nodePoolStore.AssertExpectations(t)
@@ -350,7 +350,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 
 		clusterStore := new(MockStore)
 		{
-			err := NotFoundError{ID: 1}
+			err := NotFoundError{ClusterID: 1}
 			clusterStore.On("GetCluster", ctx, uint(1)).Return(Cluster{}, err)
 		}
 
@@ -364,7 +364,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		_, err := nodePoolService.DeleteNodePool(ctx, 1, "pool0")
 		require.Error(t, err)
 
-		assert.True(t, errors.Is(err, NotFoundError{ID: 1}))
+		assert.True(t, errors.Is(err, NotFoundError{ClusterID: 1}))
 
 		clusterStore.AssertExpectations(t)
 		nodePoolStore.AssertExpectations(t)

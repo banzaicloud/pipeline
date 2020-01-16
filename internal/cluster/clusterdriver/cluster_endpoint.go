@@ -24,8 +24,10 @@ import (
 )
 
 type deleteClusterRequest struct {
-	ClusterID uint
-	Force     bool
+	OrganizationID uint
+	ClusterID      uint
+	ClusterName    string
+	Force          bool
 }
 
 // MakeDeleteClusterEndpoint creates an endpoint for a cluster service
@@ -33,6 +35,16 @@ func MakeDeleteClusterEndpoint(service cluster.Service) endpoint.Endpoint {
 	return kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 		request := req.(deleteClusterRequest)
 
-		return service.DeleteCluster(ctx, request.ClusterID, cluster.DeleteClusterOptions{Force: request.Force})
+		return service.DeleteCluster(
+			ctx,
+			cluster.Identifier{
+				OrganizationID: request.OrganizationID,
+				ClusterID:      request.ClusterID,
+				ClusterName:    request.ClusterName,
+			},
+			cluster.DeleteClusterOptions{
+				Force: request.Force,
+			},
+		)
 	})
 }
