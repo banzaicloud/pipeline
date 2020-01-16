@@ -151,6 +151,8 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 		if err != nil {
 			return nil, errors.WrapIfWithDetails(err, "failed to create config map", "configmap", awsAuthConfigMap.Name)
 		}
+	} else if err != nil {
+		return nil, errors.WrapIfWithDetails(err, "failed to create config map", "configmap", awsAuthConfigMap.Name)
 	}
 
 	outParams := BootstrapActivityOutput{}
