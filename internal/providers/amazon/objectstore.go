@@ -18,9 +18,8 @@ import (
 	"sort"
 	"strings"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/objectstore"
@@ -133,11 +132,11 @@ func (s *objectStore) CreateBucket(bucketName string) error {
 
 	switch dbr.Error {
 	case nil:
-		return emperror.WrapWith(dbr.Error, "the bucket already exists", "bucket", bucketName)
+		return errors.WrapIfWithDetails(dbr.Error, "the bucket already exists", "bucket", bucketName)
 	case gorm.ErrRecordNotFound:
 		// proceed to creation
 	default:
-		return emperror.WrapWith(dbr.Error, "failed to retrieve bucket", "bucket", bucketName)
+		return errors.WrapIfWithDetails(dbr.Error, "failed to retrieve bucket", "bucket", bucketName)
 	}
 
 	bucket.Name = bucketName
@@ -150,17 +149,17 @@ func (s *objectStore) CreateBucket(bucketName string) error {
 	logger.Info("creating bucket...")
 
 	if err := s.db.Save(bucket).Error; err != nil {
-		return emperror.WrapWith(err, "failed to save bucket", "bucket", bucketName)
+		return errors.WrapIfWithDetails(err, "failed to save bucket", "bucket", bucketName)
 	}
 
 	if err := s.objectStore.CreateBucket(bucketName); err != nil {
-		return s.createFailed(bucket, emperror.Wrap(err, "failed to create the bucket"))
+		return s.createFailed(bucket, errors.WrapIf(err, "failed to create the bucket"))
 	}
 
 	bucket.Status = providers.BucketCreated
 	bucket.StatusMsg = "bucket successfully created"
 	if err := s.db.Save(bucket).Error; err != nil {
-		return s.createFailed(bucket, emperror.Wrap(err, "failed to save bucket"))
+		return s.createFailed(bucket, errors.WrapIf(err, "failed to save bucket"))
 	}
 	logger.Info("bucket created")
 
@@ -172,10 +171,10 @@ func (s *objectStore) createFailed(bucket *ObjectStoreBucketModel, err error) er
 	bucket.StatusMsg = err.Error()
 
 	if e := s.db.Save(bucket).Error; e != nil {
-		return emperror.WrapWith(e, "failed to save bucket", "bucket", bucket.Name)
+		return errors.WrapIfWithDetails(e, "failed to save bucket", "bucket", bucket.Name)
 	}
 
-	return emperror.With(err, "bucket", bucket.Name)
+	return errors.WithDetails(err, "bucket", bucket.Name)
 }
 
 // DeleteBucket deletes the S3 bucket identified by the specified name
@@ -192,7 +191,7 @@ func (s *objectStore) DeleteBucket(bucketName string) error {
 		if err == gorm.ErrRecordNotFound {
 			return bucketNotFoundError{}
 		}
-		return emperror.WrapWith(err, "failed to lookup", "bucket", bucketName)
+		return errors.WrapIfWithDetails(err, "failed to lookup", "bucket", bucketName)
 	}
 
 	if err := s.deleteFromProvider(bucket); err != nil {
@@ -222,16 +221,16 @@ func (s *objectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 
 	bucket.Status = providers.BucketDeleting
 	if err := s.db.Save(bucket).Error; err != nil {
-		return emperror.WrapWith(err, "failed to update bucket", "bucket", bucket.Name)
+		return errors.WrapIfWithDetails(err, "failed to update bucket", "bucket", bucket.Name)
 	}
 
 	objectStore, err := getProviderObjectStore(s.secret, bucket.Region)
 	if err != nil {
-		return emperror.WrapWith(err, "failed to create object store", "bucket", bucket.Name)
+		return errors.WrapIfWithDetails(err, "failed to create object store", "bucket", bucket.Name)
 	}
 
 	if err := objectStore.DeleteBucket(bucket.Name); err != nil {
-		return emperror.WrapWith(err, "failed to delete bucket from provider", "bucket", bucket.Name)
+		return errors.WrapIfWithDetails(err, "failed to delete bucket from provider", "bucket", bucket.Name)
 	}
 
 	return nil
@@ -241,7 +240,7 @@ func (s *objectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error)
 	bucket.Status = providers.BucketDeleteError
 	bucket.StatusMsg = reason.Error()
 	if err := s.db.Save(bucket).Error; err != nil {
-		return emperror.WrapWith(err, "failed to save bucket", "bucket", bucket.Name)
+		return errors.WrapIfWithDetails(err, "failed to save bucket", "bucket", bucket.Name)
 	}
 	return reason
 }
@@ -252,7 +251,7 @@ func (s *objectStore) CheckBucket(bucketName string) error {
 	logger.Info("looking up the bucket...")
 
 	if err := s.objectStore.CheckBucket(bucketName); err != nil {
-		return emperror.WrapWith(err, "failed to check the bucket", "bucket", bucketName)
+		return errors.WrapIfWithDetails(err, "failed to check the bucket", "bucket", bucketName)
 	}
 
 	return nil
@@ -267,7 +266,7 @@ func (s *objectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	logger.Info("retrieving buckets from provider...")
 	s3Buckets, err := s.objectStore.ListBuckets()
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to retrieve buckets")
+		return nil, errors.WrapIf(err, "failed to retrieve buckets")
 	}
 
 	logger.Info("retrieving managed buckets...")
@@ -275,7 +274,7 @@ func (s *objectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 
 	err = s.db.Where(ObjectStoreBucketModel{OrganizationID: s.org.ID}).Order("name asc").Find(&managedBuckets).Error
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to retrieve managed buckets")
+		return nil, errors.WrapIf(err, "failed to retrieve managed buckets")
 	}
 
 	var bucketList []*objectstore.BucketInfo
@@ -302,7 +301,7 @@ func (s *objectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 	var amazonBuckets []ObjectStoreBucketModel
 
 	if err := s.db.Where(ObjectStoreBucketModel{OrganizationID: s.org.ID}).Order("name asc").Find(&amazonBuckets).Error; err != nil {
-		return nil, emperror.Wrap(err, "failed to retrieve managed buckets")
+		return nil, errors.WrapIf(err, "failed to retrieve managed buckets")
 	}
 
 	bucketList := make([]*objectstore.BucketInfo, 0)
@@ -334,13 +333,13 @@ func GetBucketRegion(secret *secret.SecretItemResponse, bucketName string, regio
 
 	org, err := auth.GetOrganizationById(orgID)
 	if err != nil {
-		return "", emperror.WrapWith(err, "retrieving organization failed", "orgID", orgID)
+		return "", errors.WrapIfWithDetails(err, "retrieving organization failed", "orgID", orgID)
 	}
 
 	// we don't need DB here, this bucket information came from the cloud
 	s, err := NewObjectStore(region, secret, org, nil, log, false)
 	if err != nil {
-		return "", emperror.Wrap(err, "retrieving Amazon object store failed")
+		return "", errors.WrapIf(err, "retrieving Amazon object store failed")
 	}
 
 	return s.objectStore.GetRegion(bucketName)

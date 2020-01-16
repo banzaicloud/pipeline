@@ -14,7 +14,9 @@
 
 package istiofeature
 
-import "emperror.dev/emperror"
+import (
+	"emperror.dev/errors"
+)
 
 func (m *MeshReconciler) Reconcile() error {
 	desiredState := DesiredStatePresent
@@ -54,7 +56,7 @@ func (m *MeshReconciler) Reconcile() error {
 	for _, res := range reconcilers {
 		err := res(desiredState)
 		if err != nil {
-			return emperror.Wrap(err, "could not reconcile")
+			return errors.WrapIf(err, "could not reconcile")
 		}
 	}
 

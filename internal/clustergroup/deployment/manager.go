@@ -21,8 +21,8 @@ import (
 	"strings"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/technosophos/moniker"
 	k8sHelm "k8s.io/helm/pkg/helm"
@@ -79,7 +79,7 @@ func (m *CGDeploymentManager) ReconcileState(featureState api.Feature) error {
 	clusterGroup := featureState.ClusterGroup
 	deploymentModels, err := m.repository.FindAll(clusterGroup.Id)
 	if err != nil {
-		err = emperror.WrapWith(err, "failed to list deployment for cluster group",
+		err = errors.WrapIfWithDetails(err, "failed to list deployment for cluster group",
 			"clusterGroupID", clusterGroup.Id)
 		m.logger.Error(err.Error())
 	}
@@ -559,7 +559,7 @@ func (m CGDeploymentManager) deleteDeploymentFromCluster(clusterId uint, apiClus
 	if err != nil {
 		// deployment not found error is ok in this case
 		if !strings.Contains(err.Error(), "not found") {
-			log.Error(emperror.Wrap(err, "failed to delete cluster group deployment from cluster").Error())
+			log.Error(errors.WrapIf(err, "failed to delete cluster group deployment from cluster").Error())
 			return err
 		}
 	}
@@ -747,12 +747,12 @@ func (m CGDeploymentManager) CreateDeployment(clusterGroup *api.ClusterGroup, or
 	// save deployment
 	deploymentModel, err = m.createDeploymentModel(clusterGroup, orgName, cgDeployment, requestedChart)
 	if err != nil {
-		return nil, emperror.Wrap(err, "Error creating deployment model")
+		return nil, errors.WrapIf(err, "Error creating deployment model")
 	}
 	if !cgDeployment.DryRun {
 		err = m.repository.Save(deploymentModel)
 		if err != nil {
-			return nil, emperror.Wrap(err, "Error saving deployment model")
+			return nil, errors.WrapIf(err, "Error saving deployment model")
 		}
 	}
 
@@ -793,12 +793,12 @@ func (m CGDeploymentManager) UpdateDeployment(clusterGroup *api.ClusterGroup, or
 	// if reUseValues = false update values / valueOverrides from request
 	err = m.updateDeploymentModel(clusterGroup, deploymentModel, cgDeployment, requestedChart)
 	if err != nil {
-		return nil, emperror.Wrap(err, "Error updating deployment model")
+		return nil, errors.WrapIf(err, "Error updating deployment model")
 	}
 	if !cgDeployment.DryRun {
 		err = m.repository.Save(deploymentModel)
 		if err != nil {
-			return nil, emperror.Wrap(err, "Error saving deployment model")
+			return nil, errors.WrapIf(err, "Error saving deployment model")
 		}
 	}
 

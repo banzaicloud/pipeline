@@ -15,9 +15,8 @@
 package deployment
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -45,7 +44,7 @@ func (g *CGDeploymentRepository) FindByName(clusterGroupID uint, deploymentName 
 		})
 	}
 	if err != nil {
-		return nil, emperror.With(err,
+		return nil, errors.WithDetails(err,
 			"clusterGroupID", clusterGroupID,
 			"deploymentName", deploymentName,
 		)
@@ -63,7 +62,7 @@ func (g *CGDeploymentRepository) FindAll(clusterGroupID uint) ([]*ClusterGroupDe
 	}).Find(&deployments).Error
 
 	if err != nil && !gorm.IsRecordNotFoundError(err) {
-		return nil, emperror.With(errors.Wrap(err, "could not fetch cluster group deployments"),
+		return nil, errors.WithDetails(errors.Wrap(err, "could not fetch cluster group deployments"),
 			"clusterGroupID", clusterGroupID,
 		)
 	}

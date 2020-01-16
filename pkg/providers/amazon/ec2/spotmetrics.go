@@ -17,7 +17,7 @@ package ec2
 import (
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
@@ -111,7 +111,7 @@ func (e *SpotMetricsExporter) GetSpotRequests(client *ec2.EC2) (map[string]*Spot
 	input := &ec2.DescribeSpotInstanceRequestsInput{}
 	result, err := client.DescribeSpotInstanceRequests(input)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get spot requests")
+		return nil, errors.WrapIf(err, "could not get spot requests")
 	}
 
 	requests := make(map[string]*SpotInstanceRequest)

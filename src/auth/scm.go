@@ -17,7 +17,6 @@ package auth
 import (
 	"fmt"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 )
@@ -48,14 +47,14 @@ func (s SCMTokenStore) GetSCMToken(userID uint) (string, string, error) {
 		return scmToken, GitlabTokenID, nil
 	}
 
-	return "", "", emperror.Wrap(err, "failed to fetch user's scm token")
+	return "", "", errors.WrapIf(err, "failed to fetch user's scm token")
 }
 
 // GetSCMToken returns the stored SCM token and the provider name for a user.
 func (s SCMTokenStore) GetSCMTokenByProvider(userID uint, provider string) (string, error) {
 	token, err := s.tokenStore.Lookup(fmt.Sprint(userID), provider)
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to lookup user token")
+		return "", errors.WrapIf(err, "failed to lookup user token")
 	}
 
 	if token == nil {

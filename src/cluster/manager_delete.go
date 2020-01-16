@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
@@ -61,7 +62,7 @@ func deleteAllResources(organizationID uint, clusterName string, kubeConfig []by
 
 	err := deleteUserNamespaces(organizationID, clusterName, kubeConfig, namespaces, logger)
 	if err != nil {
-		return emperror.Wrap(err, "failed to delete user namespaces")
+		return errors.WrapIf(err, "failed to delete user namespaces")
 	}
 
 	deleteDefaultNamespaceResources := true
@@ -78,12 +79,12 @@ func deleteAllResources(organizationID uint, clusterName string, kubeConfig []by
 	if deleteDefaultNamespaceResources {
 		err = deleteResources(organizationID, clusterName, kubeConfig, "default", logger)
 		if err != nil {
-			return emperror.Wrap(err, "failed to delete resources in default namespace")
+			return errors.WrapIf(err, "failed to delete resources in default namespace")
 		}
 
 		err = deleteServices(organizationID, clusterName, kubeConfig, "default", logger)
 		if err != nil {
-			return emperror.Wrap(err, "failed to delete services in default namespace")
+			return errors.WrapIf(err, "failed to delete services in default namespace")
 		}
 	}
 
@@ -114,7 +115,7 @@ func deleteServices(organizationID uint, clusterName string, kubeConfig []byte, 
 func deleteDnsRecordsOwnedByCluster(cluster CommonCluster) error {
 	deleter, err := intClusterDNS.MakeDefaultRecordsDeleter()
 	if err != nil {
-		return emperror.Wrap(err, "failed to create default cluster DNS records deleter")
+		return errors.WrapIf(err, "failed to create default cluster DNS records deleter")
 	}
 
 	return deleter.Delete(cluster.GetOrganizationId(), cluster.GetUID())
@@ -123,13 +124,13 @@ func deleteDnsRecordsOwnedByCluster(cluster CommonCluster) error {
 func deleteUnusedSecrets(cluster CommonCluster, logger *logrus.Entry) error {
 	logger.Info("deleting unused cluster secrets")
 	if err := secret.Store.DeleteByClusterUID(cluster.GetOrganizationId(), cluster.GetUID()); err != nil {
-		return emperror.Wrap(err, "deleting cluster secret failed")
+		return errors.WrapIf(err, "deleting cluster secret failed")
 	}
 
 	if cluster.GetCloud() == pkgCluster.Kubernetes {
 		// in case of imported cluster delete the secret that holds the k8s config
 		if err := secret.Store.Delete(cluster.GetOrganizationId(), cluster.GetSecretId()); err != nil {
-			return emperror.Wrap(err, "deleting cluster secret failed")
+			return errors.WrapIf(err, "deleting cluster secret failed")
 		}
 	}
 
@@ -146,7 +147,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	logger.Info("deleting cluster")
 
 	if err := cluster.SetStatus(pkgCluster.Deleting, pkgCluster.DeletingMessage); err != nil {
-		return emperror.WrapWith(err, "cluster status update failed", "cluster_id", cluster.GetID())
+		return errors.WrapIfWithDetails(err, "cluster status update failed", "cluster_id", cluster.GetID())
 	}
 
 	/*
@@ -154,7 +155,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		case *EC2ClusterPKE:
 			// the cluster is only deleted from the database for now
 			if err = cls.DeleteFromDatabase(); err != nil {
-				err = emperror.Wrap(err, "failed to delete from the database")
+				err = errors.WrapIf(err, "failed to delete from the database")
 				if !force {
 					cls.SetStatus(pkgCluster.Error, err.Error())
 					return err
@@ -179,7 +180,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 		deleteResources = false
 	} else if err != nil {
-		err = emperror.Wrap(err, "cannot access Kubernetes cluster")
+		err = errors.WrapIf(err, "cannot access Kubernetes cluster")
 
 		if !force {
 			_ = cluster.SetStatus(pkgCluster.Error, err.Error())
@@ -199,14 +200,14 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			// in case of imported cluster delete only resources from namespaces created by Pipeline
 			client, err := k8sclient.NewClientFromKubeConfig(config)
 			if err != nil {
-				return emperror.Wrap(err, "failed to get Kubernetes clientset from kubeconfig")
+				return errors.WrapIf(err, "failed to get Kubernetes clientset from kubeconfig")
 			}
 
 			namespaceList, err = client.CoreV1().Namespaces().List(metav1.ListOptions{
 				LabelSelector: labels.Set{"owner": "pipeline"}.AsSelector().String(),
 			})
 			if err != nil {
-				err = emperror.Wrap(err, "can not list namespaces")
+				err = errors.WrapIf(err, "can not list namespaces")
 
 				if !force {
 					_ = cluster.SetStatus(pkgCluster.Error, err.Error())
@@ -220,7 +221,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 		err = helm.DeleteAllDeployment(logger, config, namespaceList)
 		if err != nil {
-			err = emperror.Wrap(err, "failed to delete deployments")
+			err = errors.WrapIf(err, "failed to delete deployments")
 
 			if !force {
 				_ = cluster.SetStatus(pkgCluster.Error, err.Error())
@@ -233,7 +234,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 		err = deleteAllResources(cluster.GetOrganizationId(), cluster.GetName(), config, namespaceList, logger)
 		if err != nil {
-			err = emperror.Wrap(err, "failed to delete Kubernetes resources")
+			err = errors.WrapIf(err, "failed to delete Kubernetes resources")
 
 			if !force {
 				_ = cluster.SetStatus(pkgCluster.Error, err.Error())
@@ -248,7 +249,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	// clean up dns registrations
 	err = deleteDnsRecordsOwnedByCluster(cluster)
 	if err != nil {
-		err = emperror.Wrap(err, "failed to delete cluster's DNS records")
+		err = errors.WrapIf(err, "failed to delete cluster's DNS records")
 		logger.Error(err)
 	}
 
@@ -260,7 +261,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		err = cluster.DeleteCluster()
 	}
 	if err != nil {
-		err = emperror.Wrap(err, "failed to delete cluster from the provider")
+		err = errors.WrapIf(err, "failed to delete cluster from the provider")
 		if !force {
 			cluster.SetStatus(pkgCluster.Error, err.Error()) // nolint: errcheck
 			return err
@@ -273,7 +274,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 	err = deleteUnusedSecrets(cluster, logger)
 	if err != nil {
-		err = emperror.Wrap(err, "failed to delete unused cluster secrets")
+		err = errors.WrapIf(err, "failed to delete unused cluster secrets")
 		if !force {
 			cluster.SetStatus(pkgCluster.Error, err.Error()) // nolint: errcheck
 			return err
@@ -286,7 +287,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	deleteName := cluster.GetName()
 	err = cluster.DeleteFromDatabase()
 	if err != nil {
-		err = emperror.Wrap(err, "failed to delete from the database")
+		err = errors.WrapIf(err, "failed to delete from the database")
 		if !force {
 			cluster.SetStatus(pkgCluster.Error, err.Error()) // nolint: errcheck
 			return err

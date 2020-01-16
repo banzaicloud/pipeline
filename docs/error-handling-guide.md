@@ -50,7 +50,6 @@ As an alternative to the above anti-pattern, context and stack trace should be a
 ```go
 
 import (
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 )
 
@@ -65,7 +64,7 @@ err = errors.Wrap(err, "some additional message")
 // Attach a message and stack trace to the error
 // Same as above with the exception that it does not override already existing stack trace
 // Use this if a stack trace is already available
-err = emperror.Wrap(err, "some additional message")
+err = errors.WrapIf(err, "some additional message")
 
 // Attach stack trace to the error without attaching a message
 // Note: this overwrites any previous stack trace

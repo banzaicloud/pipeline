@@ -17,7 +17,7 @@ package schedules
 import (
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 	"k8s.io/apimachinery/pkg/labels"
 
@@ -33,7 +33,7 @@ func Create(c *gin.Context) {
 
 	var request api.CreateScheduleRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		err = emperror.Wrap(err, "could not parse request")
+		err = errors.WrapIf(err, "could not parse request")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
@@ -56,7 +56,7 @@ func Create(c *gin.Context) {
 
 	err := svc.GetSchedulesService().Create(spec, request.Schedule)
 	if err != nil {
-		err = emperror.Wrap(err, "could not create schedule")
+		err = errors.WrapIf(err, "could not create schedule")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return

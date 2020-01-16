@@ -17,7 +17,7 @@ package backups
 import (
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
@@ -38,7 +38,7 @@ func Get(c *gin.Context) {
 	logger.Info("getting backup")
 	backup, err := common.GetARKService(c.Request).GetBackupsService().GetByID(backupID)
 	if err != nil {
-		err = emperror.Wrap(err, "could not get backup")
+		err = errors.WrapIf(err, "could not get backup")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return

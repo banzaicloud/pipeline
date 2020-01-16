@@ -17,7 +17,7 @@ package backups
 import (
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 
@@ -46,7 +46,7 @@ func syncBackups(arkSvc *ark.Service, logger logrus.FieldLogger) error {
 	backupSyncSvc := sync.NewBackupsSyncService(arkSvc.GetOrganization(), arkSvc.GetDB(), logger)
 	err := backupSyncSvc.SyncBackupsForCluster(arkSvc.GetCluster())
 	if err != nil {
-		return emperror.WrapWith(err, "could not sync backups", "clusterName", arkSvc.GetCluster().GetName())
+		return errors.WrapIfWithDetails(err, "could not sync backups", "clusterName", arkSvc.GetCluster().GetName())
 	}
 
 	return nil

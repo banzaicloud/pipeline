@@ -20,8 +20,8 @@ import (
 	"sync"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -51,7 +51,7 @@ func (m *DrainModeMiddleware) Middleware(c *gin.Context) {
 		clientIP := c.ClientIP()
 
 		if clientIP != "127.0.0.1" && clientIP != "::1" {
-			m.errorHandler.Handle(emperror.With(
+			m.errorHandler.Handle(errors.WithDetails(
 				errors.New("Client cannot set drain mode"),
 				"client_ip", clientIP,
 			))

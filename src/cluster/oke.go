@@ -21,7 +21,6 @@ import (
 	"net/url"
 	"time"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
 	ociCommon "github.com/oracle/oci-go-sdk/common"
@@ -193,7 +192,7 @@ func (o *OKECluster) DeleteCluster() error {
 // Persist save the cluster model
 // Deprecated: Do not use.
 func (o *OKECluster) Persist() error {
-	return emperror.Wrap(o.modelCluster.Save(), "failed to persist cluster")
+	return errors.WrapIf(o.modelCluster.Save(), "failed to persist cluster")
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud

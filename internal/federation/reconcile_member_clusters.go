@@ -16,11 +16,10 @@ package federation
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/hashicorp/go-multierror"
 	"github.com/kubernetes-sigs/kubefed/pkg/kubefedctl"
 	apiextv1b1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -49,7 +48,7 @@ func (m *FederationReconciler) ReconcileMemberClusters(desiredState DesiredState
 				if _, ok := registeredMembers[cluster.GetID()]; !ok {
 					err := m.reconcileMemberCluster(DesiredStatePresent, cluster)
 					if err != nil {
-						err = emperror.Wrap(err, "Error joining cluster")
+						err = errors.WrapIf(err, "Error joining cluster")
 						multiErr = *multierror.Append(err, multiErr.Errors...)
 					}
 				}
@@ -66,7 +65,7 @@ func (m *FederationReconciler) ReconcileMemberClusters(desiredState DesiredState
 
 		err := m.reconcileMemberCluster(DesiredStateAbsent, cluster)
 		if err != nil {
-			err = emperror.Wrap(err, "Error unjoining cluster")
+			err = errors.WrapIf(err, "Error unjoining cluster")
 			multierror.Append(err, multiErr.Errors...) // nolint: errcheck
 		}
 	}

@@ -17,7 +17,7 @@ package restores
 import (
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
@@ -32,7 +32,7 @@ func Create(c *gin.Context) {
 
 	var req arkAPI.CreateRestoreRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		err = emperror.Wrap(err, "could not parse request")
+		err = errors.WrapIf(err, "could not parse request")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
@@ -40,7 +40,7 @@ func Create(c *gin.Context) {
 
 	_, err := common.GetARKService(c.Request).GetClusterBackupsService().GetByName(req.BackupName)
 	if err != nil {
-		err = emperror.Wrap(err, "could not find backup")
+		err = errors.WrapIf(err, "could not find backup")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
@@ -48,7 +48,7 @@ func Create(c *gin.Context) {
 
 	restore, err := common.GetARKService(c.Request).GetRestoresService().Create(req)
 	if err != nil {
-		err = emperror.Wrap(err, "could not create restore")
+		err = errors.WrapIf(err, "could not create restore")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return

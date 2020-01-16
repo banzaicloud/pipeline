@@ -20,8 +20,8 @@ import (
 	"strings"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/kubernetes-sigs/kubefed/pkg/client/generic"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
@@ -256,12 +256,12 @@ func (m *FederationReconciler) GetStatus() (map[uint]string, error) {
 func (m *FederationReconciler) getClientConfig(c cluster.CommonCluster) (*rest.Config, error) {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get k8s config")
+		return nil, errors.WrapIf(err, "could not get k8s config")
 	}
 
 	clientConfig, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
-		return nil, emperror.Wrap(err, "cloud not create client config from kubeconfig")
+		return nil, errors.WrapIf(err, "cloud not create client config from kubeconfig")
 	}
 
 	return clientConfig, nil
@@ -274,7 +274,7 @@ func (m *FederationReconciler) getGenericClient() (generic.Client, error) {
 	}
 	client, err := genericclient.New(clientConfig)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get kubefed clientset")
+		return nil, errors.WrapIf(err, "could not get kubefed clientset")
 	}
 	return client, nil
 }

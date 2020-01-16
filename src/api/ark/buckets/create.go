@@ -17,10 +17,9 @@ package buckets
 import (
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
@@ -38,7 +37,7 @@ func Create(c *gin.Context) {
 
 	var request api.CreateBucketRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		err = emperror.Wrap(err, "could not parse request")
+		err = errors.WrapIf(err, "could not parse request")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
@@ -50,7 +49,7 @@ func Create(c *gin.Context) {
 		// location field is empty in request, get bucket location
 		location, err := common.GetBucketLocation(request.Cloud, request.BucketName, request.SecretID, org.ID, logger)
 		if err != nil {
-			err = emperror.WrapWith(err, "failed to get bucket region", "bucket", request.BucketName)
+			err = errors.WrapIfWithDetails(err, "failed to get bucket region", "bucket", request.BucketName)
 			common.ErrorHandler.Handle(err)
 			common.ErrorResponse(c, err)
 			return
@@ -70,7 +69,7 @@ func Create(c *gin.Context) {
 		err = errors.New("bucket already exists")
 	}
 	if err != nil && err != gorm.ErrRecordNotFound {
-		err = emperror.Wrap(err, "could not create bucket")
+		err = errors.WrapIf(err, "could not create bucket")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
@@ -83,7 +82,7 @@ func Create(c *gin.Context) {
 		SecretID:   request.SecretID,
 	})
 	if err != nil {
-		err = emperror.Wrap(err, "could not persist bucket")
+		err = errors.WrapIf(err, "could not persist bucket")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return

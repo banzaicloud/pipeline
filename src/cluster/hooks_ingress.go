@@ -20,11 +20,10 @@ import (
 	"fmt"
 	"strings"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/tls"
 	"github.com/ghodss/yaml"
-	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/ingresscert"
@@ -70,7 +69,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 		orgID := cluster.GetOrganizationId()
 		organization, err := auth.GetOrganizationById(orgID)
 		if err != nil {
-			return emperror.WrapWith(err, "failed to get organization", "organizationId", orgID)
+			return errors.WrapIfWithDetails(err, "failed to get organization", "organizationId", orgID)
 		}
 
 		baseDomain := strings.ToLower(global.Config.Cluster.DNS.BaseDomain)
@@ -85,13 +84,13 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 			orgDomainName := strings.ToLower(fmt.Sprintf("%s.%s", organization.NormalizedName, baseDomain))
 			err = dns.ValidateSubdomain(orgDomainName)
 			if err != nil {
-				return emperror.Wrap(err, "invalid domain for TLS cert")
+				return errors.WrapIf(err, "invalid domain for TLS cert")
 			}
 
 			wildcardOrgDomainName := fmt.Sprintf("*.%s", orgDomainName)
 			err = dns.ValidateWildcardSubdomain(wildcardOrgDomainName)
 			if err != nil {
-				return emperror.Wrap(err, "invalid wildcard domain for TLS cert")
+				return errors.WrapIf(err, "invalid wildcard domain for TLS cert")
 			}
 
 			certRequest = tls.ServerCertificateRequest{
@@ -158,7 +157,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 
 	ingressValuesJson, err := yaml.Marshal(ingressValues)
 	if err != nil {
-		return emperror.Wrap(err, "converting ingress config to json failed")
+		return errors.WrapIf(err, "converting ingress config to json failed")
 	}
 
 	namespace := global.Config.Cluster.Namespace

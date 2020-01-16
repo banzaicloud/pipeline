@@ -18,11 +18,10 @@ import (
 	"context"
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/pkg/errors"
 )
 
 const UploadSSHKeyPairActivityName = "pke-upload-ssh-key-pair-activity"
@@ -58,7 +57,7 @@ func (a *UploadSSHKeyPairActivity) Execute(ctx context.Context, input UploadSSHK
 
 	client, err := awsCluster.GetAWSClient()
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to connect to AWS")
+		return nil, errors.WrapIf(err, "failed to connect to AWS")
 	}
 
 	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
@@ -104,7 +103,7 @@ func (a *UploadSSHKeyPairActivity) Execute(ctx context.Context, input UploadSSHK
 	}
 	importKeyPairOutput, err := e.ImportKeyPair(importKeyPairInput)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to import key pair on AWS EC2")
+		return nil, errors.WrapIf(err, "failed to import key pair on AWS EC2")
 	}
 
 	return &UploadSSHKeyPairActivityOutput{

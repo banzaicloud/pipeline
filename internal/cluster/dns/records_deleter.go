@@ -15,7 +15,7 @@
 package dns
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/src/dns"
 )
@@ -32,7 +32,7 @@ func MakeRecordsDeleter(dnsSVC dns.DnsServiceClient) RecordsDeleter {
 
 func MakeDefaultRecordsDeleter() (RecordsDeleter, error) {
 	svc, err := dns.GetExternalDnsServiceClient()
-	return MakeRecordsDeleter(svc), emperror.Wrap(err, "failed to get external DNS service client")
+	return MakeRecordsDeleter(svc), errors.WrapIf(err, "failed to get external DNS service client")
 }
 
 func (d RecordsDeleter) Delete(organizationID uint, clusterUID string) error {
@@ -41,7 +41,7 @@ func (d RecordsDeleter) Delete(organizationID uint, clusterUID string) error {
 	}
 
 	if err := d.dnsSVC.DeleteDnsRecordsOwnedBy(clusterUID, organizationID); err != nil {
-		return emperror.Wrapf(err, "deleting DNS records owned by cluster failed")
+		return errors.WrapIf(err, "deleting DNS records owned by cluster failed")
 	}
 
 	return nil

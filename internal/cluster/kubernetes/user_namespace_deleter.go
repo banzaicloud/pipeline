@@ -15,8 +15,7 @@
 package kubernetes
 
 import (
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -40,7 +39,7 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, na
 
 	client, err := k8sclient.NewClientFromKubeConfig(k8sConfig)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create k8s client")
+		return nil, errors.WrapIf(err, "failed to create k8s client")
 	}
 
 	err = retry(func() error {
@@ -48,7 +47,7 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, na
 		if nsList == nil {
 			nsList, err = client.CoreV1().Namespaces().List(metav1.ListOptions{})
 			if err != nil {
-				return emperror.Wrap(err, "could not list namespaces")
+				return errors.WrapIf(err, "could not list namespaces")
 			}
 		}
 
@@ -65,11 +64,11 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, na
 				// ignore the error
 				namespace, errGet := client.CoreV1().Namespaces().Get(ns.Name, metav1.GetOptions{})
 				if errGet != nil {
-					return emperror.Wrapf(err, "could not get %q namespace details (%v) after failed deletion", ns.Name, errGet)
+					return errors.WrapIff(err, "could not get %q namespace details (%v) after failed deletion", ns.Name, errGet)
 				}
 
 				if namespace.Status.Phase != corev1.NamespaceTerminating {
-					return emperror.Wrapf(err, "failed to delete %q namespace", ns.Name)
+					return errors.WrapIff(err, "failed to delete %q namespace", ns.Name)
 				}
 			}
 		}
@@ -83,7 +82,7 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, na
 	err = retry(func() error {
 		remainingNamespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
 		if err != nil {
-			return emperror.Wrap(err, "could not list remaining namespaces")
+			return errors.WrapIf(err, "could not list remaining namespaces")
 		}
 
 		left = nil
@@ -117,7 +116,7 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, na
 			left = append(left, remainingNamespace.Name)
 		}
 		if len(left) > 0 {
-			return emperror.With(errors.Errorf("namespaces remaining after deletion: %v", left), "namespaces", left)
+			return errors.WithDetails(errors.Errorf("namespaces remaining after deletion: %v", left), "namespaces", left)
 		}
 		return nil
 	}, 20, 30)

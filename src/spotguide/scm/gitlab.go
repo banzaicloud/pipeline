@@ -17,8 +17,7 @@ package scm
 import (
 	"fmt"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/xanzy/go-gitlab"
 
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -37,7 +36,7 @@ func (scm *gitLabSCM) DownloadFile(owner, repo, file, tag string) ([]byte, error
 	data, _, err := scm.client.RepositoryFiles.GetRawFile(fmt.Sprint(owner, "/", repo), file, &gitlab.GetRawFileOptions{
 		Ref: gitlab.String(tag),
 	})
-	return data, emperror.Wrap(err, "failed to download file from GitLab")
+	return data, errors.WrapIf(err, "failed to download file from GitLab")
 }
 
 func (scm *gitLabSCM) DownloadRelease(owner, repo, tag string) ([]byte, error) {
@@ -48,7 +47,7 @@ func (scm *gitLabSCM) DownloadRelease(owner, repo, tag string) ([]byte, error) {
 
 	archive, _, err := scm.client.Repositories.Archive(fmt.Sprint(owner, "/", repo), opt)
 
-	return archive, emperror.Wrap(err, "failed to download source spotguide repository release")
+	return archive, errors.WrapIf(err, "failed to download source spotguide repository release")
 }
 
 func (scm *gitLabSCM) ListRepositoriesByTopic(owner, topic string, allowPrivate bool) ([]Repository, error) {
@@ -70,7 +69,7 @@ func (scm *gitLabSCM) ListRepositoriesByTopic(owner, topic string, allowPrivate 
 	for {
 		projects, resp, err := scm.client.Groups.ListGroupProjects(owner, opt)
 		if err != nil {
-			return nil, emperror.Wrap(err, "failed to list GitLab projects")
+			return nil, errors.WrapIf(err, "failed to list GitLab projects")
 		}
 
 		for _, project := range projects {
@@ -104,7 +103,7 @@ func (scm *gitLabSCM) ListRepositoryReleases(owner, name string) ([]RepositoryRe
 	for {
 		gitlabTags, resp, err := scm.client.Tags.ListTags(pid, opt)
 		if err != nil {
-			return nil, emperror.Wrap(err, "failed to list GitLab repository tags")
+			return nil, errors.WrapIf(err, "failed to list GitLab repository tags")
 		}
 
 		for _, gitlabTag := range gitlabTags {

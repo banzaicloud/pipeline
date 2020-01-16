@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
 )
 
@@ -64,7 +64,7 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 			if strings.Contains(err.Error(), "could not find tiller") {
 				logger.Info("could not delete helm deployment because tiller is not running")
 			} else {
-				return emperror.Wrap(err, "failed to delete Help deployments")
+				return errors.WrapIf(err, "failed to delete Help deployments")
 			}
 		}
 	}
@@ -79,7 +79,7 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 			K8sSecretID:    input.K8sSecretID,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteUserNamespacesActivityName, activityInput).Get(ctx, &deleteUserNamespacesOutput); err != nil {
-			logger.Info(emperror.Wrap(err, "failed to delete user namespaces")) // retry later after resource deletion
+			logger.Info(errors.WrapIf(err, "failed to delete user namespaces")) // retry later after resource deletion
 		}
 	}
 
@@ -92,7 +92,7 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 			Namespace:      ns,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteNamespaceResourcesActivityName, activityInput).Get(ctx, nil); err != nil {
-			return emperror.Wrapf(err, "failed to delete resources in namespace %q", activityInput.Namespace)
+			return errors.WrapIff(err, "failed to delete resources in namespace %q", activityInput.Namespace)
 		}
 	}
 
@@ -105,7 +105,7 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 			Namespace:      ns,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteNamespaceServicesActivityName, activityInput).Get(ctx, nil); err != nil {
-			return emperror.Wrapf(err, "failed to delete services in namespace %q", activityInput.Namespace)
+			return errors.WrapIff(err, "failed to delete services in namespace %q", activityInput.Namespace)
 		}
 	}
 
@@ -117,12 +117,12 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 			K8sSecretID:    input.K8sSecretID,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteUserNamespacesActivityName, activityInput).Get(ctx, &deleteUserNamespacesOutput); err != nil {
-			logger.Warn(emperror.Wrap(err, "failed to delete user namespaces"))
+			logger.Warn(errors.WrapIf(err, "failed to delete user namespaces"))
 		}
 	}
 
 	if err := waitPeristentVolumeDelete.Get(ctx, nil); err != nil {
-		return emperror.Wrap(err, "waiting for persistent volumes to be deleted failed")
+		return errors.WrapIf(err, "waiting for persistent volumes to be deleted failed")
 	}
 
 	return nil

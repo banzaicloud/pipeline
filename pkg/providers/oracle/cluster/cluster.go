@@ -17,8 +17,7 @@ package cluster
 import (
 	"regexp"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
@@ -141,7 +140,7 @@ func (c *Cluster) Validate(update bool) error {
 	}
 
 	if !isValidVersion(c.Version) {
-		return emperror.With(errors.New("invalid k8s version"), "version", c.Version)
+		return errors.WithDetails(errors.New("invalid k8s version"), "version", c.Version)
 	}
 
 	if len(c.NodePools) < 1 {
@@ -150,13 +149,13 @@ func (c *Cluster) Validate(update bool) error {
 
 	for name, nodePool := range c.NodePools {
 		if nodePool.Version != c.Version {
-			return emperror.With(errors.New("different k8s versions were specified for master and nodes"), "nodepool", name)
+			return errors.WithDetails(errors.New("different k8s versions were specified for master and nodes"), "nodepool", name)
 		}
 		if nodePool.Image == "" && !update {
-			return emperror.With(errors.New("node image must be specified"), "nodepool", name)
+			return errors.WithDetails(errors.New("node image must be specified"), "nodepool", name)
 		}
 		if nodePool.Shape == "" && !update {
-			return emperror.With(errors.New("node shape must be specified"), "nodepool", name)
+			return errors.WithDetails(errors.New("node shape must be specified"), "nodepool", name)
 		}
 
 		if err := pkgCommon.ValidateNodePoolLabels(nodePool.Labels); err != nil {

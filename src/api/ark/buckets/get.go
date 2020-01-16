@@ -17,7 +17,7 @@ package buckets
 import (
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/internal/ark"
@@ -44,7 +44,7 @@ func Get(c *gin.Context) {
 	bs := ark.BucketsServiceFactory(org, global.DB(), logger)
 	bucket, err := bs.GetByID(bucketID)
 	if err != nil {
-		err = emperror.Wrap(err, "could not get bucket")
+		err = errors.WrapIf(err, "could not get bucket")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return

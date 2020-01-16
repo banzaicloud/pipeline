@@ -16,9 +16,9 @@ package federation
 
 import (
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gofrs/uuid"
 	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
@@ -52,7 +52,7 @@ func (f *Handler) ReconcileState(featureState api.Feature) error {
 
 	cid, err := uuid.NewV4()
 	if err != nil {
-		return emperror.Wrap(err, "could not generate uuid")
+		return errors.WrapIf(err, "could not generate uuid")
 	}
 	logger := f.logger.WithFields(logrus.Fields{
 		"correlationID":    cid,
@@ -73,7 +73,7 @@ func (f *Handler) ReconcileState(featureState api.Feature) error {
 	err = fedv2.Reconcile()
 	if err != nil {
 		f.errorHandler.Handle(err)
-		return emperror.Wrap(err, "could not reconcile federation")
+		return errors.WrapIf(err, "could not reconcile federation")
 	}
 
 	return nil
@@ -83,7 +83,7 @@ func (f *Handler) ValidateState(featureState api.Feature) error {
 	var config Config
 	err := mapstructure.Decode(featureState.Properties, &config)
 	if err != nil {
-		return emperror.Wrap(err, "could not decode properties into config")
+		return errors.WrapIf(err, "could not decode properties into config")
 	}
 
 	if featureState.ClusterGroup.Clusters[config.HostClusterID] == nil {
@@ -97,13 +97,13 @@ func (f *Handler) ValidateProperties(clusterGroup api.ClusterGroup, currentPrope
 	var currentConfig Config
 	err := mapstructure.Decode(currentProperties, &currentConfig)
 	if err != nil {
-		return emperror.Wrap(err, "could not decode current properties into config")
+		return errors.WrapIf(err, "could not decode current properties into config")
 	}
 
 	var config Config
 	err = mapstructure.Decode(properties, &config)
 	if err != nil {
-		return emperror.Wrap(err, "could not decode new properties into config")
+		return errors.WrapIf(err, "could not decode new properties into config")
 	}
 
 	if config.HostClusterID == 0 {
@@ -140,7 +140,7 @@ func (f *Handler) GetMembersStatus(featureState api.Feature) (map[uint]string, e
 	statusMap, err = fedv2.GetStatus()
 	if err != nil {
 		f.errorHandler.Handle(err)
-		return nil, emperror.Wrap(err, "could not reconcile federation")
+		return nil, errors.WrapIf(err, "could not reconcile federation")
 	}
 
 	return statusMap, nil
@@ -150,7 +150,7 @@ func (f *Handler) getConfigFromState(state api.Feature) (*Config, error) {
 	var config Config
 	err := mapstructure.Decode(state.Properties, &config)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not decode properties into config")
+		return nil, errors.WrapIf(err, "could not decode properties into config")
 	}
 
 	config.name = state.ClusterGroup.Name

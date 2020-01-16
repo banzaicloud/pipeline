@@ -17,7 +17,7 @@ package cluster
 import (
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -60,7 +60,7 @@ func (c *DummyCluster) CreateCluster() error {
 // Persist save the cluster model
 // Deprecated: Do not use.
 func (c *DummyCluster) Persist() error {
-	return emperror.Wrap(c.modelCluster.Save(), "failed to persist cluster")
+	return errors.WrapIf(c.modelCluster.Save(), "failed to persist cluster")
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud

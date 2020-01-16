@@ -17,7 +17,7 @@ package workflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -52,8 +52,8 @@ func MakeDeleteUserNamespacesActivity(deleter UserNamespaceDeleter, k8sConfigGet
 func (a DeleteUserNamespacesActivity) Execute(ctx context.Context, input DeleteUserNamespacesActivityInput) (DeleteUserNamespacesActivityOutput, error) {
 	k8sConfig, err := a.k8sConfigGetter.Get(input.OrganizationID, input.K8sSecretID)
 	if err != nil {
-		return DeleteUserNamespacesActivityOutput{}, emperror.Wrap(err, "failed to get k8s config")
+		return DeleteUserNamespacesActivityOutput{}, errors.WrapIf(err, "failed to get k8s config")
 	}
 	left, err := a.deleter.Delete(input.OrganizationID, input.ClusterName, nil, k8sConfig)
-	return DeleteUserNamespacesActivityOutput{left}, emperror.Wrap(err, "failed to delete user namespaces")
+	return DeleteUserNamespacesActivityOutput{left}, errors.WrapIf(err, "failed to delete user namespaces")
 }

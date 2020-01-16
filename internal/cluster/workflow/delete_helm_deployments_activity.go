@@ -17,7 +17,7 @@ package workflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/src/helm"
@@ -47,7 +47,7 @@ func (a DeleteHelmDeploymentsActivity) Execute(ctx context.Context, input Delete
 	logger := a.logger.WithField("organizationID", input.OrganizationID).WithField("clusterName", input.ClusterName)
 	k8sConfig, err := a.k8sConfigGetter.Get(input.OrganizationID, input.K8sSecretID)
 	if err != nil {
-		return emperror.Wrap(err, "failed to get k8s config")
+		return errors.WrapIf(err, "failed to get k8s config")
 	}
-	return emperror.Wrap(helm.DeleteAllDeployment(logger, k8sConfig, nil), "failed to delete all Helm deployments")
+	return errors.WrapIf(helm.DeleteAllDeployment(logger, k8sConfig, nil), "failed to delete all Helm deployments")
 }

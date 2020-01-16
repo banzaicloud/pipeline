@@ -17,7 +17,7 @@ package restores
 import (
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
@@ -39,7 +39,7 @@ func GetResults(c *gin.Context) {
 
 	restore, err := common.GetARKService(c.Request).GetRestoresService().GetByID(restoreID)
 	if err != nil {
-		err = emperror.Wrap(err, "could not get restore")
+		err = errors.WrapIf(err, "could not get restore")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return

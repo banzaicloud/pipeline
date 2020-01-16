@@ -19,10 +19,9 @@ import (
 	"context"
 	"encoding/json"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/ark"
@@ -65,7 +64,7 @@ func (s *RestoresSyncService) SyncRestores(clusterManager api.ClusterManager) er
 
 		status, err := cluster.GetStatus()
 		if err != nil {
-			log.Error(emperror.Wrap(err, "could not get cluster status"))
+			log.Error(errors.WrapIf(err, "could not get cluster status"))
 			continue
 		}
 
@@ -101,7 +100,7 @@ func (s *RestoresSyncService) SyncRestoresForCluster(cluster api.Cluster) error 
 	for _, restore := range restores {
 		err = s.syncRestore(restoresSvc, cluster, deployment, restore)
 		if err != nil {
-			return emperror.Wrap(err, "error persisting restore")
+			return errors.WrapIf(err, "error persisting restore")
 		}
 	}
 

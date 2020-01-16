@@ -15,7 +15,7 @@
 package istiofeature
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/istio"
 )
@@ -32,12 +32,12 @@ func (m *MeshReconciler) ReconcileGrafanaDashboards(desiredState DesiredState) e
 	if desiredState == DesiredStatePresent {
 		err := istio.AddGrafanaDashboards(m.logger, client)
 		if err != nil {
-			return emperror.Wrap(err, "failed to add grafana dashboards")
+			return errors.WrapIf(err, "failed to add grafana dashboards")
 		}
 	} else {
 		err := istio.DeleteGrafanaDashboards(m.logger, client)
 		if err != nil {
-			return emperror.Wrap(err, "failed to add grafana dashboards")
+			return errors.WrapIf(err, "failed to add grafana dashboards")
 		}
 	}
 

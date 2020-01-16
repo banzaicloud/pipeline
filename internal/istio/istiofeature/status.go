@@ -17,8 +17,7 @@ package istiofeature
 import (
 	"strconv"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -27,12 +26,12 @@ func (m *MeshReconciler) GetClusterStatus() (map[uint]string, error) {
 
 	client, err := m.getMasterIstioOperatorK8sClient()
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get istio operator client")
+		return nil, errors.WrapIf(err, "could not get istio operator client")
 	}
 
 	istios, err := client.IstioV1beta1().Istios(istioOperatorNamespace).List(metav1.ListOptions{})
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not list istio CRs")
+		return nil, errors.WrapIf(err, "could not list istio CRs")
 	}
 	for _, istio := range istios.Items {
 		labels := istio.GetLabels()
@@ -56,7 +55,7 @@ func (m *MeshReconciler) GetClusterStatus() (map[uint]string, error) {
 
 	remoteistios, err := client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).List(metav1.ListOptions{})
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not list Remote istio CRs")
+		return nil, errors.WrapIf(err, "could not list Remote istio CRs")
 	}
 	for _, remoteistio := range remoteistios.Items {
 		labels := remoteistio.GetLabels()

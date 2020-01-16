@@ -17,8 +17,7 @@ package helm
 import (
 	"fmt"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/helm/portforwarder"
@@ -47,7 +46,7 @@ func NewClient(kubeConfig []byte, logger logrus.FieldLogger) (*Client, error) {
 	logger.Debug("create kubernetes tunnel")
 	tillerTunnel, err := portforwarder.New("kube-system", client, config)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create kubernetes tunnel")
+		return nil, errors.WrapIf(err, "failed to create kubernetes tunnel")
 	}
 
 	tillerTunnelAddress := fmt.Sprintf("localhost:%d", tillerTunnel.Local)

@@ -18,8 +18,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -135,11 +134,11 @@ type SecretStore interface {
 func (s KubeSecretStore) Get(organizationID uint, k8sSecretID string) ([]byte, error) {
 	sir, err := s.secrets.Get(organizationID, k8sSecretID)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get k8s config from secret store")
+		return nil, errors.WrapIf(err, "failed to get k8s config from secret store")
 	}
 	k8sConfig, err := base64.StdEncoding.DecodeString(sir.Values[secrettype.K8SConfig])
 	if err != nil {
-		return nil, emperror.Wrap(err, "can't decode Kubernetes config")
+		return nil, errors.WrapIf(err, "can't decode Kubernetes config")
 	}
 	return k8sConfig, nil
 }

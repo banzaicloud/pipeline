@@ -19,7 +19,7 @@ import (
 	"fmt"
 
 	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
@@ -115,7 +115,7 @@ func (g *Manager) CreateClusterGroup(ctx context.Context, name string, orgID uin
 				})
 			}
 		} else {
-			return nil, emperror.WrapWith(err, "could not check cluster state", "clusterID", cluster.GetID())
+			return nil, errors.WrapIfWithDetails(err, "could not check cluster state", "clusterID", cluster.GetID())
 		}
 	}
 
@@ -185,14 +185,14 @@ func (g *Manager) UpdateClusterGroup(ctx context.Context, clusterGroupID uint, o
 				})
 			}
 		} else {
-			return emperror.WrapWith(err, "could not check cluster state", "clusterID", cluster.GetID())
+			return errors.WrapIfWithDetails(err, "could not check cluster state", "clusterID", cluster.GetID())
 		}
 
 	}
 
 	err = g.validateBeforeClusterGroupUpdate(*existingClusterGroup, newMembers)
 	if err != nil {
-		return emperror.Wrap(err, "updating cluster group is not allowed")
+		return errors.WrapIf(err, "updating cluster group is not allowed")
 	}
 
 	err = g.cgRepo.UpdateMembers(existingClusterGroup, newMembers)
@@ -262,7 +262,7 @@ func (g *Manager) RemoveClusterFromGroup(ctx context.Context, clusterID uint) er
 
 	err = g.validateBeforeClusterGroupUpdate(*existingClusterGroup, newMembers)
 	if err != nil {
-		return emperror.Wrap(err, "removing cluster from group is not allowed")
+		return errors.WrapIf(err, "removing cluster from group is not allowed")
 	}
 
 	err = g.cgRepo.UpdateMembers(existingClusterGroup, newMembers)
@@ -400,7 +400,7 @@ func (g *Manager) getClusterGroupForCluster(clusterID uint) (*uint, error) {
 func (g *Manager) GetClusterGroupNameForCluster(clusterID uint, orgID uint) (*string, error) {
 	cgId, err := g.getClusterGroupForCluster(clusterID)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "error while fetching cluster group for cluster", "clusterID", clusterID)
+		return nil, errors.WrapIfWithDetails(err, "error while fetching cluster group for cluster", "clusterID", clusterID)
 	}
 
 	if cgId == nil {
@@ -411,7 +411,7 @@ func (g *Manager) GetClusterGroupNameForCluster(clusterID uint, orgID uint) (*st
 		ID:             *cgId,
 	})
 	if err != nil {
-		return nil, emperror.WrapWith(err, "error while fetching cluster group for cluster", "clusterID", clusterID)
+		return nil, errors.WrapIfWithDetails(err, "error while fetching cluster group for cluster", "clusterID", clusterID)
 	}
 	return &cgModel.Name, nil
 }
@@ -457,7 +457,7 @@ func (g *Manager) validateBeforeClusterGroupUpdate(clusterGroup api.ClusterGroup
 		err = handler.ValidateState(feature)
 		if err != nil {
 			return &clusterGroupUpdateRejectedError{
-				err: emperror.Wrap(err, fmt.Sprintf("operation rejected by %s", feature.Name)),
+				err: errors.WrapIf(err, fmt.Sprintf("operation rejected by %s", feature.Name)),
 			}
 		}
 	}
@@ -474,13 +474,16 @@ func (g *Manager) reconcileFeature(clusterGroup api.ClusterGroup, featureModel C
 		}
 		feature, err := g.getFeatureFromModel(clusterGroup, &featureModel)
 		if err != nil {
-			g.logger.Error(emperror.Wrap(err, "error reading cluster group feature model").Error())
+			g.logger.Error(errors.WrapIf(err, "error reading cluster group feature model").Error())
 			return nil
 		}
 
 		if featureModel.ReconcileState == api.ReconcileInProgress {
-			return emperror.With(errors.New("reconcile of feature is in progress"),
-				"featureName", featureModel.Name, "clusterGroupID", featureModel.ClusterGroupID)
+			return errors.NewWithDetails(
+				"reconcile of feature is in progress",
+				"featureName", featureModel.Name,
+				"clusterGroupID", featureModel.ClusterGroupID,
+			)
 		}
 
 		// set feature reconcile state to ReconcileInProgress

@@ -18,9 +18,8 @@ import (
 	"encoding/base64"
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"go.uber.org/cadence/.gen/go/shared"
 
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
@@ -92,7 +91,7 @@ func (a *API) PostReady(c *gin.Context) {
 
 	var request ReadyRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		err := emperror.Wrap(err, "could not parse request")
+		err := errors.WrapIf(err, "could not parse request")
 		a.errorHandler.Handle(err)
 
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{
@@ -108,7 +107,7 @@ func (a *API) PostReady(c *gin.Context) {
 	if request.Config != "" {
 		decoded, err := base64.StdEncoding.DecodeString(request.Config)
 		if err != nil {
-			err := emperror.Wrap(err, "could not parse request")
+			err := errors.WrapIf(err, "could not parse request")
 			a.errorHandler.Handle(err)
 
 			c.JSON(http.StatusBadRequest, common.ErrorResponse{
@@ -120,7 +119,7 @@ func (a *API) PostReady(c *gin.Context) {
 		}
 
 		if err := cluster.StoreKubernetesConfig(commonCluster, decoded); err != nil {
-			err := emperror.Wrap(err, "could not store config")
+			err := errors.WrapIf(err, "could not store config")
 			a.errorHandler.Handle(err)
 
 			c.JSON(http.StatusInternalServerError, common.ErrorResponse{
@@ -158,7 +157,7 @@ func (a *API) PostReady(c *gin.Context) {
 				}
 			}
 
-			err := emperror.Wrap(err, "could signal workflow")
+			err := errors.WrapIf(err, "could signal workflow")
 			a.errorHandler.Handle(err)
 
 			c.JSON(http.StatusInternalServerError, common.ErrorResponse{
@@ -177,7 +176,7 @@ func (a *API) PostReady(c *gin.Context) {
 		log.Infof("RegisterNode is not implemented in %T", commonCluster)
 	} else {
 		if err := registerNodeer.RegisterNode(request.Name, request.NodePool, request.IP, request.Master, request.Worker); err != nil {
-			err := emperror.Wrap(err, "could not store config")
+			err := errors.WrapIf(err, "could not store config")
 			a.errorHandler.Handle(err)
 
 			c.JSON(http.StatusInternalServerError, common.ErrorResponse{

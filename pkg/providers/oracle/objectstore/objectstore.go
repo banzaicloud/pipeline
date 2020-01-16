@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/oracle/oci-go-sdk/common"
 
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -60,12 +60,12 @@ func NewPlainObjectStore() (*objectStore, error) {
 func New(config Config, credentials Credentials) (*objectStore, error) {
 	client, err := newClient(config, credentials)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get oci client")
+		return nil, errors.WrapIf(err, "could not get oci client")
 	}
 
 	osClient, err := client.NewObjectStorageClient()
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get object store client")
+		return nil, errors.WrapIf(err, "could not get object store client")
 	}
 
 	return &objectStore{
@@ -97,7 +97,7 @@ func newClient(config Config, credentials Credentials) (*oci.OCI, error) {
 func (o *objectStore) CreateBucket(bucketName string) error {
 	_, err := o.osClient.CreateBucket(bucketName)
 	if err != nil {
-		return emperror.Wrap(o.convertBucketError(err, bucketName), "could not create bucket")
+		return errors.WrapIf(o.convertBucketError(err, bucketName), "could not create bucket")
 	}
 
 	return nil
@@ -114,7 +114,7 @@ func (o *objectStore) ListBuckets() ([]string, error) {
 
 	buckets, err := o.osClient.GetBuckets()
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not list buckets")
+		return nil, errors.WrapIf(err, "could not list buckets")
 	}
 
 	for _, bucket := range buckets {
@@ -130,7 +130,7 @@ func (o *objectStore) ListBuckets() ([]string, error) {
 func (o *objectStore) CheckBucket(bucketName string) (err error) {
 	_, err = o.osClient.GetBucket(bucketName)
 	if err != nil {
-		return emperror.Wrap(o.convertBucketError(err, bucketName), "could not check bucket")
+		return errors.WrapIf(o.convertBucketError(err, bucketName), "could not check bucket")
 	}
 
 	return nil
@@ -140,16 +140,16 @@ func (o *objectStore) CheckBucket(bucketName string) (err error) {
 func (o *objectStore) DeleteBucket(bucketName string) error {
 	obj, err := o.ListObjects(bucketName)
 	if err != nil {
-		return emperror.WrapWith(err, "failed to list objects", "bucket", bucketName)
+		return errors.WrapIfWithDetails(err, "failed to list objects", "bucket", bucketName)
 	}
 
 	if len(obj) > 0 {
-		return emperror.With(pkgErrors.ErrorBucketDeleteNotEmpty, "bucket", bucketName)
+		return errors.WithDetails(pkgErrors.ErrorBucketDeleteNotEmpty, "bucket", bucketName)
 	}
 
 	err = o.osClient.DeleteBucket(bucketName)
 	if err != nil {
-		return emperror.Wrap(o.convertBucketError(err, bucketName), "could not delete bucket")
+		return errors.WrapIf(o.convertBucketError(err, bucketName), "could not delete bucket")
 	}
 
 	return nil
@@ -161,7 +161,7 @@ func (o *objectStore) ListObjects(bucketName string) ([]string, error) {
 
 	objects, err := o.osClient.ListObjects(bucketName)
 	if err != nil {
-		return nil, emperror.Wrap(o.convertBucketError(err, bucketName), "could not list objects")
+		return nil, errors.WrapIf(o.convertBucketError(err, bucketName), "could not list objects")
 	}
 
 	for _, object := range objects {
@@ -177,7 +177,7 @@ func (o *objectStore) ListObjectsWithPrefix(bucketName, prefix string) ([]string
 
 	objects, err := o.osClient.ListObjectsWithPrefix(bucketName, prefix)
 	if err != nil {
-		return nil, emperror.WrapWith(o.convertBucketError(err, bucketName), "could not list objects", "prefix", prefix)
+		return nil, errors.WrapIfWithDetails(o.convertBucketError(err, bucketName), "could not list objects", "prefix", prefix)
 	}
 
 	for _, object := range objects {
@@ -193,7 +193,7 @@ func (o *objectStore) ListObjectKeyPrefixes(bucketName, delimiter string) ([]str
 
 	oprefixes, err := o.osClient.ListObjectKeyPrefixes(bucketName, delimiter)
 	if err != nil {
-		return nil, emperror.WrapWith(o.convertBucketError(err, bucketName), "could not list object key prefixes", "delimeter", delimiter)
+		return nil, errors.WrapIfWithDetails(o.convertBucketError(err, bucketName), "could not list object key prefixes", "delimeter", delimiter)
 	}
 
 	for _, prefix := range oprefixes {
@@ -207,7 +207,7 @@ func (o *objectStore) ListObjectKeyPrefixes(bucketName, delimiter string) ([]str
 func (o *objectStore) GetObject(bucketName string, key string) (io.ReadCloser, error) {
 	reader, err := o.osClient.GetObject(bucketName, key)
 	if err != nil {
-		return nil, emperror.Wrap(o.convertObjectError(err, bucketName, key), "could not get object")
+		return nil, errors.WrapIf(o.convertObjectError(err, bucketName, key), "could not get object")
 	}
 
 	return reader, nil
@@ -219,12 +219,12 @@ func (o *objectStore) PutObject(bucketName string, key string, body io.Reader) e
 	buf := &bytes.Buffer{}
 	length, err := io.Copy(buf, body)
 	if err != nil {
-		return emperror.Wrap(o.convertObjectError(err, bucketName, key), "could not create object")
+		return errors.WrapIf(o.convertObjectError(err, bucketName, key), "could not create object")
 	}
 
 	err = o.osClient.PutObject(bucketName, key, length, ioutil.NopCloser(buf))
 	if err != nil {
-		return emperror.Wrap(o.convertObjectError(err, bucketName, key), "could not create object")
+		return errors.WrapIf(o.convertObjectError(err, bucketName, key), "could not create object")
 	}
 
 	return nil
@@ -234,7 +234,7 @@ func (o *objectStore) PutObject(bucketName string, key string, body io.Reader) e
 func (o *objectStore) DeleteObject(bucketName string, key string) error {
 	err := o.osClient.DeleteObject(bucketName, key)
 	if err != nil {
-		return emperror.Wrap(o.convertObjectError(err, bucketName, key), "could not delete object")
+		return errors.WrapIf(o.convertObjectError(err, bucketName, key), "could not delete object")
 	}
 
 	return nil
@@ -244,7 +244,7 @@ func (o *objectStore) DeleteObject(bucketName string, key string) error {
 func (o *objectStore) GetSignedURL(bucketName, key string, ttl time.Duration) (string, error) {
 	url, err := o.osClient.GetSignedURL(bucketName, key, ttl)
 	if err != nil {
-		return "", emperror.Wrap(o.convertObjectError(err, bucketName, key), "could not get signed url")
+		return "", errors.WrapIf(o.convertObjectError(err, bucketName, key), "could not get signed url")
 	}
 
 	return url, nil
@@ -260,7 +260,7 @@ func (o *objectStore) convertBucketError(err error, bucketName string) error {
 		}
 	}
 
-	return emperror.With(err, "bucketName", bucketName)
+	return errors.WithDetails(err, "bucketName", bucketName)
 }
 
 func (o *objectStore) convertObjectError(err error, bucketName, objectName string) error {
@@ -273,5 +273,5 @@ func (o *objectStore) convertObjectError(err error, bucketName, objectName strin
 		}
 	}
 
-	return emperror.With(err, "bucket", bucketName, "object", objectName)
+	return errors.WithDetails(err, "bucket", bucketName, "object", objectName)
 }

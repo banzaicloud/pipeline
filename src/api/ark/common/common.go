@@ -19,10 +19,9 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -58,7 +57,7 @@ func GetBucketLocation(cloud string, bucketName string, secretId string, organiz
 
 	bucketSecret, err := restricted.GlobalSecretStore.Get(organizationID, secretId)
 	if err != nil {
-		return "", emperror.WrapWith(err, "error during getting secret", "secretId", secretId)
+		return "", errors.WrapIfWithDetails(err, "error during getting secret", "secretId", secretId)
 	}
 
 	return providers.GetBucketLocation(cloud, bucketSecret, bucketName, organizationID, logger)

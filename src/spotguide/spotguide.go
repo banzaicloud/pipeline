@@ -26,7 +26,7 @@ import (
 	"text/template"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Masterminds/semver"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/banzaicloud/cicd-go/cicd"
@@ -151,7 +151,7 @@ func EnsureSharedSpotguideOrganization(db *gorm.DB, scm string, sharedLibraryOrg
 	}
 
 	if err := db.Where(sharedOrg).FirstOrCreate(sharedOrg).Error; err != nil {
-		return nil, emperror.Wrap(err, "failed to create shared organization")
+		return nil, errors.WrapIf(err, "failed to create shared organization")
 	}
 	return sharedOrg, nil
 }
@@ -214,7 +214,7 @@ func ScheduleScrapingSharedSpotguides(workflowClient cadenceClient.Client) error
 func (s *SpotguideManager) scrapeSharedSpotguides() error {
 	sharedSCM, err := s.scmFactory.CreateSharedSCM()
 	if err != nil {
-		return emperror.Wrap(err, "failed to create SCM client")
+		return errors.WrapIf(err, "failed to create SCM client")
 	}
 
 	if s.sharedLibraryOrganization == nil {
@@ -224,7 +224,7 @@ func (s *SpotguideManager) scrapeSharedSpotguides() error {
 			global.Config.Spotguide.SharedLibraryGitHubOrganization,
 		)
 		if err != nil {
-			return emperror.Wrap(err, "failed to query shared spotguide organization")
+			return errors.WrapIf(err, "failed to query shared spotguide organization")
 		}
 	}
 
@@ -235,12 +235,12 @@ func (s *SpotguideManager) ScrapeSpotguides(orgID uint, userID uint) error {
 
 	org, err := auth.GetOrganizationById(orgID)
 	if err != nil {
-		return emperror.Wrap(err, "failed to resolve organization from id")
+		return errors.WrapIf(err, "failed to resolve organization from id")
 	}
 
 	userSCM, err := s.scmFactory.CreateUserSCM(userID)
 	if err != nil {
-		return emperror.Wrap(err, "failed to create SCM client")
+		return errors.WrapIf(err, "failed to create SCM client")
 	}
 
 	return s.scrapeSpotguides(org, userSCM)
@@ -253,7 +253,7 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, scm scm.SCM)
 	allRepositories, err := scm.ListRepositoriesByTopic(org.Name, SpotguideGithubTopic, allowPrivate)
 
 	if err != nil {
-		return emperror.Wrap(err, "failed to list spotguide repositories")
+		return errors.WrapIf(err, "failed to list spotguide repositories")
 	}
 
 	where := SpotguideRepo{
@@ -262,7 +262,7 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, scm scm.SCM)
 
 	var oldSpotguides []SpotguideRepo
 	if err := s.db.Where(&where).Find(&oldSpotguides).Error; err != nil {
-		return emperror.Wrap(err, "failed to list old spotguides")
+		return errors.WrapIf(err, "failed to list old spotguides")
 	}
 
 	oldSpotguidesIndexed := map[SpotguideRepoKey]SpotguideRepo{}
@@ -276,7 +276,7 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, scm scm.SCM)
 
 		releases, err := scm.ListRepositoryReleases(owner, name)
 		if err != nil {
-			return emperror.Wrap(err, "failed to list repo releases")
+			return errors.WrapIf(err, "failed to list repo releases")
 		}
 
 		for _, release := range releases {
@@ -358,7 +358,7 @@ func (s *SpotguideManager) GetSpotguide(orgID uint, name, version string) (*Spot
 	spotguide := SpotguideRepo{}
 	err := query.First(&spotguide).Error
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to find spotguide")
+		return nil, errors.WrapIf(err, "failed to find spotguide")
 	}
 
 	return &spotguide, nil
@@ -367,7 +367,7 @@ func (s *SpotguideManager) GetSpotguide(orgID uint, name, version string) (*Spot
 func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, org *auth.Organization, user *auth.User) error {
 	sourceRepo, err := s.GetSpotguide(org.ID, request.SpotguideName, request.SpotguideVersion)
 	if err != nil {
-		return emperror.Wrap(err, "failed to find spotguide repo")
+		return errors.WrapIf(err, "failed to find spotguide repo")
 	}
 
 	// LaunchRequest might not have the version
@@ -375,17 +375,17 @@ func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, org *auth.Org
 
 	err = createSecrets(request, org.ID, user.ID)
 	if err != nil {
-		return emperror.Wrap(err, "failed to create secrets for spotguide")
+		return errors.WrapIf(err, "failed to create secrets for spotguide")
 	}
 
 	userSCM, err := s.scmFactory.CreateUserSCM(user.ID)
 	if err != nil {
-		return emperror.Wrap(err, "failed to create SCM client")
+		return errors.WrapIf(err, "failed to create SCM client")
 	}
 
 	err = userSCM.CreateRepository(request.RepoOrganization, request.RepoName, request.RepoPrivate, user.ID)
 	if err != nil {
-		return emperror.Wrap(err, "failed to create repository")
+		return errors.WrapIf(err, "failed to create repository")
 	}
 
 	log.Infof("created spotguide repository: %s/%s", request.RepoOrganization, request.RepoName)
@@ -394,18 +394,18 @@ func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, org *auth.Org
 
 	err = enableCICD(cicdClient, request, org.Name)
 	if err != nil {
-		return emperror.Wrap(err, "failed to enable CI/CD for spotguide")
+		return errors.WrapIf(err, "failed to enable CI/CD for spotguide")
 	}
 
 	// Prepare the spotguide content
 	spotguideContent, err := getSpotguideContent(userSCM, request, sourceRepo, s.platformData)
 	if err != nil {
-		return emperror.Wrap(err, "failed to prepare spotguide git content")
+		return errors.WrapIf(err, "failed to prepare spotguide git content")
 	}
 
 	err = userSCM.AddContentToRepository(request.RepoOrganization, request.RepoName, spotguideContent)
 	if err != nil {
-		return emperror.Wrap(err, "failed to add spotguide content to repository")
+		return errors.WrapIf(err, "failed to add spotguide content to repository")
 	}
 
 	log.Infof("added spotguide content to repository: %s/%s", request.RepoOrganization, request.RepoName)
@@ -417,12 +417,12 @@ func preparePipelineYAML(request *LaunchRequest, sourceRepo *SpotguideRepo, pipe
 	// Create repo config that drives the CICD flow from LaunchRequest
 	repoConfig, err := createCICDRepoConfig(pipelineYAML, request, platformData)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to initialize repo config")
+		return nil, errors.WrapIf(err, "failed to initialize repo config")
 	}
 
 	repoConfigRaw, err := yaml.Marshal(repoConfig)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to marshal repo config")
+		return nil, errors.WrapIf(err, "failed to marshal repo config")
 	}
 
 	return repoConfigRaw, nil
@@ -436,12 +436,12 @@ func getSpotguideContent(sourceSCM scm.SCM, request *LaunchRequest, sourceRepo *
 
 	repoBytes, err := sourceSCM.DownloadRelease(sourceRepoOwner, sourceRepoName, request.SpotguideVersion)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to download source spotguide repository release")
+		return nil, errors.WrapIf(err, "failed to download source spotguide repository release")
 	}
 
 	zipReader, err := zip.NewReader(bytes.NewReader(repoBytes), int64(len(repoBytes)))
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to extract source spotguide repository release")
+		return nil, errors.WrapIf(err, "failed to extract source spotguide repository release")
 	}
 
 	var repoFiles []scm.RepositoryFile
@@ -461,20 +461,20 @@ func getSpotguideContent(sourceSCM scm.SCM, request *LaunchRequest, sourceRepo *
 
 		file, err := zf.Open()
 		if err != nil {
-			return nil, emperror.Wrap(err, "failed to extract source spotguide repository release")
+			return nil, errors.WrapIf(err, "failed to extract source spotguide repository release")
 		}
 		defer file.Close()
 
 		content, err := ioutil.ReadAll(file)
 		if err != nil {
-			return nil, emperror.Wrap(err, "failed to extract source spotguide repository release")
+			return nil, errors.WrapIf(err, "failed to extract source spotguide repository release")
 		}
 
 		// Prepare pipeline.yaml
 		if path == PipelineYAMLPath {
 			content, err = preparePipelineYAML(request, sourceRepo, content, platformData)
 			if err != nil {
-				return nil, emperror.Wrap(err, "failed to prepare pipeline.yaml")
+				return nil, errors.WrapIf(err, "failed to prepare pipeline.yaml")
 			}
 		}
 
@@ -509,7 +509,7 @@ func createSecrets(request *LaunchRequest, orgID uint, userID uint) error {
 		secretRequest.Tags = append(secretRequest.Tags, repoTag)
 
 		if _, err := secret.Store.Store(orgID, secretRequest); err != nil {
-			return emperror.WrapWith(err, "failed to create spotguide secret", "name", secretRequest.Name)
+			return errors.WrapIfWithDetails(err, "failed to create spotguide secret", "name", secretRequest.Name)
 		}
 	}
 
@@ -522,12 +522,12 @@ func enableCICD(cicdClient cicd.Client, request *LaunchRequest, org string) erro
 
 	_, err := cicdClient.RepoListOpts(true, true)
 	if err != nil {
-		return emperror.Wrap(err, "failed to sync CICD repositories")
+		return errors.WrapIf(err, "failed to sync CICD repositories")
 	}
 
 	_, err = cicdClient.RepoPost(request.RepoOrganization, request.RepoName, org)
 	if err != nil {
-		return emperror.Wrap(err, "failed to enable CICD repository")
+		return errors.WrapIf(err, "failed to enable CICD repository")
 	}
 
 	repoPatch := cicd.RepoPatch{
@@ -544,7 +544,7 @@ func enableCICD(cicdClient cicd.Client, request *LaunchRequest, org string) erro
 
 	_, err = cicdClient.RepoPatch(request.RepoOrganization, request.RepoName, &repoPatch)
 	if err != nil {
-		return emperror.Wrap(err, "failed to patch CICD repository")
+		return errors.WrapIf(err, "failed to patch CICD repository")
 	}
 
 	return nil
@@ -563,7 +563,7 @@ func createCICDRepoConfig(pipelineYAML []byte, request *LaunchRequest, platformD
 		Funcs(sprig.TxtFuncMap()).
 		Parse(string(pipelineYAML))
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to setup sprig template for pipeline.yaml")
+		return nil, errors.WrapIf(err, "failed to setup sprig template for pipeline.yaml")
 	}
 	buffer := bytes.NewBuffer(nil)
 
@@ -573,22 +573,22 @@ func createCICDRepoConfig(pipelineYAML []byte, request *LaunchRequest, platformD
 
 	clusterDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{TagName: "json", Result: &cluster})
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to merge cluster into sprig template data")
+		return nil, errors.WrapIf(err, "failed to merge cluster into sprig template data")
 	}
 
 	err = clusterDecoder.Decode(request.Cluster)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to merge cluster into sprig template data")
+		return nil, errors.WrapIf(err, "failed to merge cluster into sprig template data")
 	}
 
 	pipelineDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{TagName: "json", Result: &pipeline})
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to merge pipeline into sprig template data")
+		return nil, errors.WrapIf(err, "failed to merge pipeline into sprig template data")
 	}
 
 	err = pipelineDecoder.Decode(request.Pipeline)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to merge pipeline into sprig template data")
+		return nil, errors.WrapIf(err, "failed to merge pipeline into sprig template data")
 	}
 
 	data["cluster"] = cluster
@@ -597,27 +597,27 @@ func createCICDRepoConfig(pipelineYAML []byte, request *LaunchRequest, platformD
 
 	err = yamlTemplate.Execute(buffer, data)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to evaluate sprig template for pipeline.yaml")
+		return nil, errors.WrapIf(err, "failed to evaluate sprig template for pipeline.yaml")
 	}
 
 	repoConfig := new(cicdRepoConfig)
 	if err := yaml.Unmarshal(buffer.Bytes(), repoConfig); err != nil {
-		return nil, emperror.WrapWith(err, "failed to unmarshal initial config", "repoConfig", base64.StdEncoding.EncodeToString(buffer.Bytes()))
+		return nil, errors.WrapIfWithDetails(err, "failed to unmarshal initial config", "repoConfig", base64.StdEncoding.EncodeToString(buffer.Bytes()))
 	}
 
 	// Configure cluster
 	if err := cicdRepoConfigCluster(request, repoConfig); err != nil {
-		return nil, emperror.Wrap(err, "failed to add cluster details")
+		return nil, errors.WrapIf(err, "failed to add cluster details")
 	}
 
 	// Configure secrets
 	if err := cicdRepoConfigSecrets(request, repoConfig); err != nil {
-		return nil, emperror.Wrap(err, "failed to add secrets to steps")
+		return nil, errors.WrapIf(err, "failed to add secrets to steps")
 	}
 
 	// Configure pipeline
 	if err := cicdRepoConfigPipeline(request, repoConfig); err != nil {
-		return nil, emperror.Wrap(err, "failed to merge values")
+		return nil, errors.WrapIf(err, "failed to merge values")
 	}
 
 	return repoConfig, nil

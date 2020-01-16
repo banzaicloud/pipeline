@@ -17,7 +17,7 @@ package pkeworkflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"go.uber.org/cadence/activity"
@@ -67,7 +67,7 @@ func (a *CreateElasticIPActivity) Execute(ctx context.Context, input CreateElast
 	}
 	descAddrOut, err := e.DescribeAddresses(descAddrIn)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to query EIP based on tag")
+		return nil, errors.WrapIf(err, "failed to query EIP based on tag")
 	}
 
 	if descAddrOut != nil && len(descAddrOut.Addresses) > 0 {
@@ -84,7 +84,7 @@ func (a *CreateElasticIPActivity) Execute(ctx context.Context, input CreateElast
 	}
 	addrOut, err := e.AllocateAddress(addrIn)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to allocate EIP")
+		return nil, errors.WrapIf(err, "failed to allocate EIP")
 	}
 
 	log.Infof("Created EIP: %s", *addrOut.PublicIp)
@@ -101,7 +101,7 @@ func (a *CreateElasticIPActivity) Execute(ctx context.Context, input CreateElast
 
 	_, err = e.CreateTags(tagIn)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create tags for EIP")
+		return nil, errors.WrapIf(err, "failed to create tags for EIP")
 	}
 
 	log.Infof("Tagged EIP: %s", *addrOut.PublicIp)

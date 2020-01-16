@@ -18,9 +18,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/pkg/common"
 )
@@ -64,7 +63,7 @@ func (a *API) ListCommands(c *gin.Context) {
 	}); ok {
 		np, err := cl.ListNodePools()
 		if err != nil {
-			err := emperror.Wrap(err, "can't list nodes")
+			err := errors.WrapIf(err, "can't list nodes")
 			a.errorHandler.Handle(err)
 
 			c.JSON(http.StatusInternalServerError, common.ErrorResponse{
@@ -80,7 +79,7 @@ func (a *API) ListCommands(c *gin.Context) {
 
 	token, err := clusterCommander.GetPipelineToken(a.tokenGenerator)
 	if err != nil {
-		err := emperror.Wrap(err, "can't generate token")
+		err := errors.WrapIf(err, "can't generate token")
 		a.errorHandler.Handle(err)
 
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{

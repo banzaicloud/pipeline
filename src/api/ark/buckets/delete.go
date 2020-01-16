@@ -17,7 +17,7 @@ package buckets
 import (
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/internal/ark"
@@ -45,7 +45,7 @@ func Delete(c *gin.Context) {
 	bs := ark.BucketsServiceFactory(org, global.DB(), logger)
 	err := bs.DeleteByID(bucketID)
 	if err != nil {
-		err = emperror.Wrap(err, "could not delete bucket")
+		err = errors.WrapIf(err, "could not delete bucket")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return

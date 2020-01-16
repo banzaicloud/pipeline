@@ -17,7 +17,7 @@ package azure
 import (
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
@@ -47,7 +47,7 @@ func GetSecretForBucket(secret *secret.SecretItemResponse, storageAccount string
 
 	storageAccountClient, err := azureObjectstore.NewAuthorizedStorageAccountClientFromSecret(*azure.NewCredentials(secret.Values))
 	if err != nil {
-		return Secret{}, emperror.Wrap(err, "failed to create storage account client")
+		return Secret{}, errors.WrapIf(err, "failed to create storage account client")
 	}
 
 	key, err := storageAccountClient.GetStorageAccountKey(resourceGroup, storageAccount)

@@ -15,9 +15,8 @@
 package clusteradapter
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/src/model"
 )
@@ -77,7 +76,7 @@ func (c *Clusters) FindOneByID(organizationID uint, clusterID uint) (*model.Clus
 		ID:             clusterID,
 	})
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not find cluster by ID")
+		return nil, errors.WrapIf(err, "could not find cluster by ID")
 	}
 	return cluster, nil
 }
@@ -89,7 +88,7 @@ func (c *Clusters) FindOneByName(organizationID uint, clusterName string) (*mode
 		Name:           clusterName,
 	})
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not find cluster by name")
+		return nil, errors.WrapIf(err, "could not find cluster by name")
 	}
 	return cluster, nil
 }
@@ -134,7 +133,7 @@ func (c *Clusters) findOneBy(cluster model.ClusterModel) (*model.ClusterModel, e
 		})
 	}
 	if err != nil {
-		return nil, emperror.With(err,
+		return nil, errors.WithDetails(err,
 			"clusterID", cluster.ID,
 			"clusterName", cluster.Name,
 			"organizationID", cluster.OrganizationId,
@@ -167,7 +166,7 @@ func (c *Clusters) GetConfigSecretIDByClusterID(organizationID uint, clusterID u
 	cluster := model.ClusterModel{ID: clusterID}
 
 	if err := c.db.Where(cluster).Select("config_secret_id").First(&cluster).Error; err != nil {
-		return "", emperror.Wrap(err, "could not get ConfigSecretID")
+		return "", errors.WrapIf(err, "could not get ConfigSecretID")
 	}
 
 	return cluster.ConfigSecretId, nil

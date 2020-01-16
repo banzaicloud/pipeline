@@ -18,10 +18,9 @@ import (
 	"context"
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/pkg/errors"
 )
 
 const DeleteNLBActivityName = "pke-delete-nlb-activity"
@@ -52,7 +51,7 @@ func (a *DeleteNLBActivity) Execute(ctx context.Context, input DeleteNLBActivity
 
 	client, err := awsCluster.GetAWSClient()
 	if err != nil {
-		return emperror.Wrap(err, "failed to connect to AWS")
+		return errors.WrapIf(err, "failed to connect to AWS")
 	}
 
 	cfClient := cloudformation.New(client)
@@ -73,7 +72,7 @@ func (a *DeleteNLBActivity) Execute(ctx context.Context, input DeleteNLBActivity
 
 	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: &stackName})
 	if err != nil {
-		return emperror.Wrap(err, "waiting for termination")
+		return errors.WrapIf(err, "waiting for termination")
 	}
 
 	return nil

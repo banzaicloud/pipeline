@@ -17,7 +17,7 @@ package backups
 import (
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
 	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
@@ -36,7 +36,7 @@ func (b *orgBackups) Sync(c *gin.Context) {
 	org := auth.GetCurrentOrganization(c.Request)
 	err := sync.NewBackupsSyncService(org, global.DB(), logger).SyncBackups(arkClusterManager.New(b.clusterManager))
 	if err != nil {
-		err = emperror.WrapWith(err, "could not sync org backups", "orgName", org.Name)
+		err = errors.WrapIfWithDetails(err, "could not sync org backups", "orgName", org.Name)
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return

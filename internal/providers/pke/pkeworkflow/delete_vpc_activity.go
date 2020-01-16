@@ -18,12 +18,11 @@ import (
 	"context"
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/gofrs/uuid"
-	"github.com/pkg/errors"
 
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
@@ -56,7 +55,7 @@ func (a *DeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCActivity
 
 	client, err := awsCluster.GetAWSClient()
 	if err != nil {
-		return emperror.Wrap(err, "failed to connect to AWS")
+		return errors.WrapIf(err, "failed to connect to AWS")
 	}
 
 	cfClient := cloudformation.New(client)
@@ -79,5 +78,5 @@ func (a *DeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCActivity
 
 	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: &stackName})
 
-	return emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cfClient), "waiting for termination")
+	return errors.WrapIf(pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cfClient), "waiting for termination")
 }

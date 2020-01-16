@@ -19,8 +19,7 @@ import (
 	"net"
 	"time"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -34,7 +33,7 @@ func NewClientFromConfig(config *rest.Config) (*kubernetes.Clientset, error) {
 	}
 	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create client for config")
+		return nil, errors.WrapIf(err, "failed to create client for config")
 	}
 
 	return client, nil
@@ -105,7 +104,7 @@ func blockerDial(original dialer) dialer {
 			host, _, err := net.SplitHostPort(conn.RemoteAddr().String())
 			if err != nil {
 				conn.Close()
-				return nil, emperror.Wrap(err, "failed to parse remote address")
+				return nil, errors.WrapIf(err, "failed to parse remote address")
 			}
 			ip := net.ParseIP(host)
 			if ip == nil || !globallyRoutable(ip) {

@@ -17,7 +17,7 @@ package kubernetes
 import (
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -80,7 +80,7 @@ func (d NamespaceResourcesDeleter) Delete(organizationID uint, clusterName strin
 			return err
 		}, 6, 1)
 		if err != nil {
-			return emperror.Wrapf(err, "could not delete %s", resourceType.Name)
+			return errors.WrapIff(err, "could not delete %s", resourceType.Name)
 		}
 		if resourceType.Check != nil {
 			err := retry(func() error { return resourceType.Check(resourceType.Resource) }, 10, 20)

@@ -18,8 +18,7 @@ import (
 	"fmt"
 	"time"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	corev1 "k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -60,7 +59,7 @@ func EnsureNamespaceWithLabel(client kubernetes.Interface, namespace string, lab
 	if err != nil && k8sapierrors.IsAlreadyExists(err) {
 		return nil
 	} else if err != nil {
-		return emperror.Wrap(err, "failed to create namespace")
+		return errors.WrapIf(err, "failed to create namespace")
 	}
 
 	return nil
