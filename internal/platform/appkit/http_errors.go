@@ -23,11 +23,7 @@ func IsNotFoundError(err error) bool {
 		NotFound() bool
 	}
 
-	if errors.As(err, &notFound) {
-		return notFound.NotFound()
-	}
-
-	return false
+	return errors.As(err, &notFound) && notFound.NotFound()
 }
 
 func IsConflictError(err error) bool {
@@ -35,11 +31,7 @@ func IsConflictError(err error) bool {
 		Conflict() bool
 	}
 
-	if errors.As(err, &conflict) {
-		return conflict.Conflict()
-	}
-
-	return false
+	return errors.As(err, &conflict) && conflict.Conflict()
 }
 
 func IsBadRequestError(err error) bool {
@@ -47,11 +39,7 @@ func IsBadRequestError(err error) bool {
 		BadRequest() bool
 	}
 
-	if errors.As(err, &badRequest) {
-		return badRequest.BadRequest()
-	}
-
-	return false
+	return errors.As(err, &badRequest) && badRequest.BadRequest()
 }
 
 func IsValidationError(err error) bool {
@@ -59,9 +47,5 @@ func IsValidationError(err error) bool {
 		Validation() bool
 	}
 
-	if errors.As(err, &validation) {
-		return validation.Validation()
-	}
-
-	return false
+	return errors.As(err, &validation) && validation.Validation()
 }
