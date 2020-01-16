@@ -24,9 +24,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/nodepools"
 
@@ -547,6 +548,10 @@ func (c *EKSCluster) GetK8sConfig() ([]byte, error) {
 // GetK8sUserConfig returns the Kubernetes config for external users
 func (c *EKSCluster) GetK8sUserConfig() ([]byte, error) {
 	adminConfig, err := c.CommonClusterBase.getConfig(c)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get raw kubernetes config")
+	}
+
 	parsedAdminConfig, err := clientcmd.Load(adminConfig)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to load kubernetes API config")

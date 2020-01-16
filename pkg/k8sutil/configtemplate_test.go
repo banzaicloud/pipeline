@@ -17,9 +17,10 @@ package k8sutil_test
 import (
 	"testing"
 
-	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
+
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 )
 
 func TestCreateConfigFromTemplateIsValid(t *testing.T) {
