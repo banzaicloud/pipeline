@@ -83,7 +83,6 @@ func NewBootstrapActivity(awsSessionFactory *AWSSessionFactory) *BootstrapActivi
 }
 
 func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivityInput) (*BootstrapActivityOutput, error) {
-
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
@@ -139,6 +138,8 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 				"bindingMode", volumeBindingMode)
 		}
 	}
+
+	logger.Debug("creating aws-auth configmap")
 
 	awsAuthConfigMap := v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{Name: "aws-auth"},
