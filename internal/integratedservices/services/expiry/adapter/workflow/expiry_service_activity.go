@@ -16,6 +16,8 @@ package workflow
 
 import (
 	"context"
+
+	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
 const ExpireActivityName = "expire-cluster-activity"
@@ -36,13 +38,14 @@ func NewExpiryActivity(clusterDeleter ClusterDeleter) ExpiryActivity {
 
 func (a ExpiryActivity) Execute(ctx context.Context, input ExpiryActivityInput) error {
 
-	return a.clusterDeleter.Delete(ctx, input.ClusterID)
+	// todo revise the options argument here
+	return a.clusterDeleter.DeleteCluster(ctx, input.ClusterID, cluster.DeleteClusterOptions{Force: true})
 }
 
 // ClusterDeleter contract for triggering cluster deletion.
 // Designed to be used by the expire integrated service
 type ClusterDeleter interface {
-	Delete(ctx context.Context, clusterID uint) error
+	DeleteCluster(ctx context.Context, clusterID uint, options cluster.DeleteClusterOptions) error
 }
 
 type noOpDeleter struct{}

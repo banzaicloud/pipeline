@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"go.uber.org/cadence/.gen/go/shared"
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/common"
@@ -79,6 +80,11 @@ func (a asyncExpiryService) Expire(ctx context.Context, clusterID uint, expiryDa
 func (a asyncExpiryService) CancelExpiry(ctx context.Context, clusterID uint) error {
 
 	if err := a.cadenceClient.CancelWorkflow(ctx, getWorkflowID(clusterID), ""); err != nil {
+		var enfe *shared.EntityNotExistsError
+		if errors.As(err, &enfe) {
+			return nil
+		}
+
 		return errors.WrapIfWithDetails(err, "failed to cancel the expiry workflow", "workflowId", getWorkflowID(clusterID))
 	}
 

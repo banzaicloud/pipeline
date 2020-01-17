@@ -48,7 +48,7 @@ func (e expiryServiceOperator) Apply(ctx context.Context, clusterID uint, spec i
 		return errors.WrapIf(err, "failed to bind the expiry service specification")
 	}
 
-	if err := e.expiryService.Expire(context.Background(), clusterID, expirySpec.Date); err != nil {
+	if err := e.expiryService.Expire(ctx, clusterID, expirySpec.Date); err != nil {
 		return errors.WrapIf(err, "failed to expire the resource")
 	}
 
@@ -56,7 +56,7 @@ func (e expiryServiceOperator) Apply(ctx context.Context, clusterID uint, spec i
 }
 
 func (e expiryServiceOperator) Deactivate(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
-	if err := e.expiryService.CancelExpiry(context.Background(), clusterID); err != nil {
+	if err := e.expiryService.CancelExpiry(ctx, clusterID); err != nil {
 		return errors.WrapIf(err, "failed to cancel the expiry")
 	}
 
