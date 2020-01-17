@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
@@ -31,14 +32,16 @@ import (
 const CreateMasterActivityName = "pke-create-master-activity"
 
 type CreateMasterActivity struct {
-	clusters       Clusters
-	tokenGenerator TokenGenerator
+	clusters        Clusters
+	tokenGenerator  TokenGenerator
+	cloudInfoClient *cloudinfo.Client
 }
 
-func NewCreateMasterActivity(clusters Clusters, tokenGenerator TokenGenerator) *CreateMasterActivity {
+func NewCreateMasterActivity(clusters Clusters, tokenGenerator TokenGenerator, cloudInfoClient *cloudinfo.Client) *CreateMasterActivity {
 	return &CreateMasterActivity{
-		clusters:       clusters,
-		tokenGenerator: tokenGenerator,
+		clusters:        clusters,
+		tokenGenerator:  tokenGenerator,
+		cloudInfoClient: cloudInfoClient,
 	}
 }
 
@@ -77,7 +80,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 		return "", errors.WrapIf(err, "can't get Kubernetes version")
 	}
 
-	imageID, err := getDefaultImageID(cluster.GetLocation(), ver)
+	imageID, err := getDefaultImageID(cluster.GetLocation(), ver, pkeVersion, a.cloudInfoClient)
 	if err != nil {
 		return "", errors.WrapIff(err, "failed to get default image for Kubernetes version %s", ver)
 	}
