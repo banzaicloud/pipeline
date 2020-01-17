@@ -5,10 +5,10 @@ go 1.13
 require (
 	cloud.google.com/go v0.51.0
 	cloud.google.com/go/storage v1.0.0
-	emperror.dev/emperror v0.23.0
+	emperror.dev/emperror v0.32.0
 	emperror.dev/errors v0.7.0
-	emperror.dev/handler/logur v0.3.0
-	emperror.dev/handler/stackdriver v0.2.0
+	emperror.dev/handler/logur v0.4.0
+	emperror.dev/handler/stackdriver v0.3.0
 	github.com/Azure/azure-pipeline-go v0.2.2
 	github.com/Azure/azure-sdk-for-go v38.0.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.8.0
@@ -117,7 +117,7 @@ require (
 	github.com/qor/responder v0.0.0-20160314063933-ecae0be66c1a // indirect
 	github.com/qor/session v0.0.0-20170907035918-8206b0adab70
 	github.com/robfig/cron v1.2.0 // indirect
-	github.com/sagikazarmark/kitx v0.3.0
+	github.com/sagikazarmark/kitx v0.10.0
 	github.com/sagikazarmark/ocmux v0.2.0
 	github.com/samuel/go-thrift v0.0.0-20191111193933-5165175b40af // indirect
 	github.com/sirupsen/logrus v1.4.2
@@ -162,11 +162,11 @@ require (
 	k8s.io/kube-openapi v0.0.0-20190228160746-b3a7cee44a30 // indirect
 	k8s.io/kubectl v0.0.0-20190523211420-5b63b0fd89bb // indirect
 	k8s.io/kubernetes v1.13.5
-	logur.dev/adapter/logrus v0.3.0
-	logur.dev/adapter/zap v0.3.0
-	logur.dev/integration/watermill v0.4.0
-	logur.dev/integration/zap v0.3.0
-	logur.dev/logur v0.15.1
+	logur.dev/adapter/logrus v0.4.1
+	logur.dev/adapter/zap v0.4.1
+	logur.dev/integration/watermill v0.4.2
+	logur.dev/integration/zap v0.3.2
+	logur.dev/logur v0.16.2
 	sigs.k8s.io/controller-runtime v0.2.0
 	sigs.k8s.io/kubefed v0.1.0-rc6
 	sigs.k8s.io/testing_frameworks v0.1.1
