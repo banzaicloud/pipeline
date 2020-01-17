@@ -18,11 +18,14 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
+// These interfaces are aliased so that the module code is separated from the rest of the application.
+// If the module is moved out of the app, copy the aliased interfaces here.
+
 // Logger is the fundamental interface for all log operations.
 type Logger = common.Logger
 
-// NewNoopLogger returns a logger that discards every log event.
-func NewNoopLogger() Logger { return common.NewNoopLogger() }
+// NoopLogger is a logger that discards every log event.
+type NoopLogger = common.NoopLogger
 
 // SecretStore is a common interface for various parts of the application
 // to read secrets from the platform's secret store.

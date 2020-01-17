@@ -30,7 +30,7 @@ func NewHTTPHandler(c cap.Capabilities, errorHandler cap.ErrorHandler) http.Hand
 
 		err := json.NewEncoder(w).Encode(c)
 		if err != nil {
-			errorHandler.Handle(r.Context(), err)
+			errorHandler.HandleContext(r.Context(), err)
 		}
 	})
 }
