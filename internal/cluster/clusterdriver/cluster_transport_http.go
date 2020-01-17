@@ -27,7 +27,7 @@ import (
 
 // RegisterClusterHTTPHandlers mounts all of the service endpoints into an http.Handler
 func RegisterClusterHTTPHandlers(endpoints ClusterEndpoints, router *mux.Router, options ...kithttp.ServerOption) {
-	router.Methods(http.MethodDelete).Handler(kithttp.NewServer(
+	router.Methods(http.MethodDelete).Path("").Handler(kithttp.NewServer(
 		endpoints.DeleteCluster,
 		decodeDeleteClusterHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(encodeDeleteClusterHTTPResponse, errorEncoder),
