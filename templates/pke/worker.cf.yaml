@@ -89,6 +89,8 @@ Resources:
             set -e
             SIGNAL_URL="${SignalUrl}"
 
+            hostnamectl set-hostname $(curl http://169.254.169.254/latest/meta-data/hostname)
+
             curl -v https://banzaicloud.com/downloads/pke/pke-${PkeVersion} -o /usr/local/bin/pke
             chmod +x /usr/local/bin/pke
             export PATH=$PATH:/usr/local/bin/

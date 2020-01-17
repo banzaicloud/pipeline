@@ -25,6 +25,8 @@ import (
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
+	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/oklog/run"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -351,8 +353,14 @@ func main() {
 		updateClusterStatusActivity := cluster.NewUpdateClusterStatusActivity(clusterManager)
 		activity.RegisterWithOptions(updateClusterStatusActivity.Execute, activity.RegisterOptions{Name: cluster.UpdateClusterStatusActivityName})
 
+		cloudinfoClient := cloudinfo.NewClient(cloudinfoapi.NewAPIClient(&cloudinfoapi.Configuration{
+			BasePath:      config.Cloudinfo.Endpoint,
+			DefaultHeader: make(map[string]string),
+			UserAgent:     fmt.Sprintf("Pipeline/%s", version),
+		}))
+
 		// Register amazon specific workflows and activities
-		registerAwsWorkflows(clusters, tokenGenerator, secretStore)
+		registerAwsWorkflows(clusters, tokenGenerator, secretStore, cloudinfoClient)
 
 		azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonadapter.NewLogger(logger))
 

@@ -55,6 +55,10 @@ type configuration struct {
 	// Cluster configuration
 	Cluster cmd.ClusterConfig
 
+	Cloudinfo struct {
+		Endpoint string
+	}
+
 	// Database connection information
 	Database database.Config
 
