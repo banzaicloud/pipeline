@@ -206,6 +206,11 @@ func main() {
 		}
 		global.SetDB(db)
 
+		workflowClient, err := cadence.NewClient(config.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
+		if err != nil {
+			errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
+		}
+
 		clusterRepo := clusteradapter.NewClusters(db)
 		clusterManager := cluster.NewManager(
 			clusterRepo,
@@ -213,7 +218,7 @@ func main() {
 			nil,
 			nil,
 			nil,
-			nil,
+			workflowClient,
 			logrusLogger,
 			errorHandler,
 			clusteradapter.NewStore(db, clusterRepo),
@@ -268,11 +273,6 @@ func main() {
 
 		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 		configFactory := kubernetes.NewConfigFactory(commonSecretStore)
-
-		workflowClient, err := cadence.NewClient(config.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
-		if err != nil {
-			errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
-		}
 
 		// Cluster setup
 		{
