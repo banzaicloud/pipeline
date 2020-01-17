@@ -136,6 +136,18 @@ func (InvalidIntegratedServiceSpecError) InputValidationError() bool {
 	return true
 }
 
+// Validation tells a client that this error is related to a semantic validation of the request.
+// Can be used to translate the error to status codes for example.
+func (InvalidIntegratedServiceSpecError) Validation() bool {
+	return true
+}
+
+// ClientError tells the consumer whether this error is caused by invalid input supplied by the client.
+// Client errors are usually returned to the consumer without retrying the operation.
+func (InvalidIntegratedServiceSpecError) ClientError() bool {
+	return true
+}
+
 // IntegratedServiceSpecPreparer defines how an integrated service specification is prepared before it's sent to be applied
 type IntegratedServiceSpecPreparer interface {
 	// PrepareSpec makes certain preparations to the spec before it's sent to be applied.

@@ -20,16 +20,24 @@ import (
 	"net/http"
 
 	"emperror.dev/errors"
+	"emperror.dev/errors/match"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	appkithttp "github.com/sagikazarmark/appkit/transport/http"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token"
-	"github.com/banzaicloud/pipeline/pkg/problems"
+	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 )
 
 // RegisterHTTPHandlers mounts all of the service endpoints into an http.Handler.
 func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
+	errorEncoder := kitxhttp.NewJSONProblemErrorResponseEncoder(apphttp.NewDefaultProblemConverter(
+		appkithttp.WithProblemMatchers(
+			appkithttp.NewStatusProblemMatcher(http.StatusForbidden, match.Is(CannotCreateVirtualUser).MatchError),
+		),
+	))
+
 	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
 		endpoints.CreateToken,
 		decodeCreateTokenHTTPRequest,
@@ -90,29 +98,4 @@ func decodeDeleteTokenHTTPRequest(_ context.Context, r *http.Request) (interface
 	}
 
 	return deleteTokenRequest{ID: id}, nil
-}
-
-func errorEncoder(_ context.Context, w http.ResponseWriter, e error) error {
-	var problem problems.StatusProblem
-
-	switch {
-	case errors.Is(e, CannotCreateVirtualUser):
-		problem = problems.NewDetailedProblem(http.StatusForbidden, e.Error())
-
-	case errors.As(e, &token.NotFoundError{}):
-		problem = problems.NewDetailedProblem(http.StatusNotFound, e.Error())
-
-	default:
-		problem = problems.NewDetailedProblem(http.StatusInternalServerError, "something went wrong")
-	}
-
-	w.Header().Set("Content-Type", problems.ProblemMediaType)
-	w.WriteHeader(problem.ProblemStatus())
-
-	err := json.NewEncoder(w).Encode(problem)
-	if err != nil {
-		return errors.Wrap(err, "failed to encode error response")
-	}
-
-	return nil
 }

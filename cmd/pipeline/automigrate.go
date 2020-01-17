@@ -25,7 +25,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 )
 
@@ -62,7 +62,7 @@ func main() {
 	db, err := database.Connect(config.Database.Config)
 	emperror.Panic(errors.WithMessage(err, "failed to initialize db"))
 
-	err = Migrate(db, logger, commonadapter.NewNoopLogger())
+	err = Migrate(db, logger, common.NoopLogger{})
 	if err != nil {
 		panic(err)
 	}

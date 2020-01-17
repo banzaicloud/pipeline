@@ -120,8 +120,15 @@ func (e NotFoundError) Details() []interface{} {
 	return []interface{}{"tokenId", e.ID}
 }
 
-// IsBusinessError tells the transport layer to return this error to the client.
-func (e NotFoundError) IsBusinessError() bool {
+// NotFound tells a client that this error is related to a resource being not found.
+// Can be used to translate the error to eg. status code.
+func (NotFoundError) NotFound() bool {
+	return true
+}
+
+// ClientError tells the transport layer whether this error should be translated into the transport format
+// or an internal error should be returned instead.
+func (NotFoundError) ClientError() bool {
 	return true
 }
 

@@ -23,7 +23,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
+	appkitendpoint "github.com/sagikazarmark/appkit/endpoint"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -38,7 +38,7 @@ func TestRegisterNodePoolHTTPHandlers_CreateNodePool(t *testing.T) {
 	}{
 		{
 			name: "invalid",
-			endpointFunc: kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, request interface{}) (response interface{}, err error) {
+			endpointFunc: appkitendpoint.ClientErrorMiddleware(func(ctx context.Context, request interface{}) (response interface{}, err error) {
 				return nil, cluster.NewValidationError(
 					"invalid node pool request",
 					[]string{"name cannot be empty"},
@@ -48,7 +48,7 @@ func TestRegisterNodePoolHTTPHandlers_CreateNodePool(t *testing.T) {
 		},
 		{
 			name: "already_exists",
-			endpointFunc: kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, request interface{}) (response interface{}, err error) {
+			endpointFunc: appkitendpoint.ClientErrorMiddleware(func(ctx context.Context, request interface{}) (response interface{}, err error) {
 				return nil, cluster.NodePoolAlreadyExistsError{
 					ClusterID: 1,
 					NodePool:  "pool0",

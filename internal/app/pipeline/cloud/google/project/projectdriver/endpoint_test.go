@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/cloud/google/project"
@@ -27,7 +28,6 @@ import (
 func TestMakeEndpoints_ListProjects(t *testing.T) {
 	service := new(project.MockService)
 
-	ctx := context.Background()
 	req := listProjectsRequest{
 		SecretID: "secret",
 	}
@@ -39,11 +39,11 @@ func TestMakeEndpoints_ListProjects(t *testing.T) {
 		},
 	}
 
-	service.On("ListProjects", ctx, req.SecretID).Return(projects, nil)
+	service.On("ListProjects", mock.Anything, req.SecretID).Return(projects, nil)
 
 	e := MakeEndpoints(service).ListProjects
 
-	result, err := e(ctx, req)
+	result, err := e(context.Background(), req)
 
 	require.NoError(t, err)
 	assert.Equal(t, listProjectsResponse{Projects: projects}, result)

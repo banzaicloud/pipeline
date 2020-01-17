@@ -18,7 +18,6 @@ import (
 	"context"
 
 	"github.com/go-kit/kit/endpoint"
-	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
@@ -32,7 +31,7 @@ type deleteClusterRequest struct {
 
 // MakeDeleteClusterEndpoint creates an endpoint for a cluster service
 func MakeDeleteClusterEndpoint(service cluster.Service) endpoint.Endpoint {
-	return kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		request := req.(deleteClusterRequest)
 
 		return service.DeleteCluster(
@@ -46,5 +45,5 @@ func MakeDeleteClusterEndpoint(service cluster.Service) endpoint.Endpoint {
 				Force: request.Force,
 			},
 		)
-	})
+	}
 }

@@ -23,6 +23,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -107,7 +108,7 @@ func TestIntegratedServiceManager_GetOutput(t *testing.T) {
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	helmService := dummyHelmService{}
 	endpointService := dummyEndpointService{}
-	logger := commonadapter.NewNoopLogger()
+	logger := services.NoopLogger{}
 	mng := MakeIntegratedServiceManager(clusterGetter, secretStore, endpointService, helmService, config, logger)
 	ctx := auth.SetCurrentOrganizationID(context.Background(), orgID)
 

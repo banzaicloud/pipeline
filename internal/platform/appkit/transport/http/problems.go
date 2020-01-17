@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,22 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package appkit
+package http
 
 import (
-	"context"
-	"encoding/json"
-	"net/http"
-
-	"github.com/banzaicloud/pipeline/pkg/problems"
+	appkithttp "github.com/sagikazarmark/appkit/transport/http"
 )
 
-// ProblemErrorEncoder encodes errors in the Problem RFC format.
-func ProblemErrorEncoder(_ context.Context, err error, w http.ResponseWriter) {
-	problem := problems.NewDetailedProblem(http.StatusInternalServerError, "something went wrong")
+func init() {
+	DefaultProblemMatchers = append(DefaultProblemMatchers, appkithttp.DefaultProblemMatchers...)
+}
 
-	w.Header().Set("Content-Type", problems.ProblemMediaType)
-	w.WriteHeader(problem.Status)
-
-	_ = json.NewEncoder(w).Encode(problem)
+// DefaultProblemMatchers is a list of default ProblemMatchers.
+// nolint: gochecknoglobals
+var DefaultProblemMatchers = []appkithttp.ProblemMatcher{
+	NewValidationWithViolationsProblemMatcher(),
 }

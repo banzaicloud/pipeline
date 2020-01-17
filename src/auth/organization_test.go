@@ -20,7 +20,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
 //go:generate mga gen mockery --name OrganizationStore --inpkg --testonly
@@ -29,7 +29,7 @@ import (
 func TestOrganizationSyncer_SyncOrganizations(t *testing.T) { // TODO: rewrite this test with an in-memory store
 	store := &MockOrganizationStore{}
 	events := &MockOrganizationEvents{}
-	syncer := NewOrganizationSyncer(store, events, commonadapter.NewNoopLogger())
+	syncer := NewOrganizationSyncer(store, events, common.NoopLogger{})
 
 	ctx := context.Background()
 

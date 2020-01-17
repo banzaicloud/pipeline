@@ -210,3 +210,15 @@ func (e integratedServiceNotFoundError) Details() []interface{} {
 func (integratedServiceNotFoundError) IntegratedServiceNotFound() bool {
 	return true
 }
+
+// NotFound tells a client that this error is related to a resource being not found.
+// Can be used to translate the error to eg. status code.
+func (integratedServiceNotFoundError) NotFound() bool {
+	return true
+}
+
+// ClientError tells the transport layer whether this error should be translated into the transport format
+// or an internal error should be returned instead.
+func (integratedServiceNotFoundError) ClientError() bool {
+	return true
+}

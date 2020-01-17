@@ -597,7 +597,7 @@ func main() {
 					commonSecretStore,
 					featureAnchoreService,
 					featureWhitelistService,
-					emperror.MakeContextAware(errorHandler),
+					errorHandler,
 					logger,
 				),
 				integratedServiceVault.MakeIntegratedServicesOperator(clusterGetter,

@@ -40,8 +40,11 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/prometheus/client_golang/prometheus"
 	auth2 "github.com/qor/auth"
+	appkitendpoint "github.com/sagikazarmark/appkit/endpoint"
+	appkiterrors "github.com/sagikazarmark/appkit/errors"
 	"github.com/sagikazarmark/kitx/correlation"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
+	kitxtransport "github.com/sagikazarmark/kitx/transport"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 	"github.com/sagikazarmark/ocmux"
 	"github.com/sirupsen/logrus"
@@ -97,6 +100,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	"github.com/banzaicloud/pipeline/internal/platform/appkit"
+	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
@@ -247,7 +251,11 @@ func main() {
 	cicdDB, err := database.Connect(config.CICD.Database)
 	emperror.Panic(errors.WithMessage(err, "failed to initialize CICD db"))
 
-	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor{})
+	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor)
+	commonErrorHandler := emperror.WithFilter(
+		emperror.WithContextExtractor(errorHandler, appkit.ContextExtractor),
+		appkiterrors.IsClientError, // filter out client errors
+	)
 
 	publisher, subscriber := watermill.NewPubSub(logger)
 	defer publisher.Close()
@@ -536,7 +544,7 @@ func main() {
 			buildInfo,
 			auth.UserExtractor{},
 			commonLogger,
-			errorHandler,
+			commonErrorHandler,
 		)
 		emperror.Panic(err)
 
@@ -630,18 +638,20 @@ func main() {
 		apiRouter.MethodNotAllowedHandler = problems.StatusProblemHandler(problems.NewStatusProblem(http.StatusMethodNotAllowed))
 
 		v1.Use(auth.Handler)
-		capdriver.RegisterHTTPHandler(mapCapabilities(config), emperror.MakeContextAware(errorHandler), v1)
+		capdriver.RegisterHTTPHandler(mapCapabilities(config), commonErrorHandler, v1)
 		v1.GET("/securityscan", api.SecurityScanEnabled)
 		v1.GET("/me", userAPI.GetCurrentUser)
 		v1.PATCH("/me", userAPI.UpdateCurrentUser)
 
 		endpointMiddleware := []endpoint.Middleware{
 			correlation.Middleware(),
+			appkitendpoint.LoggingMiddleware(logger),
+			appkitendpoint.ClientErrorMiddleware,
 		}
 
 		httpServerOptions := []kithttp.ServerOption{
-			kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
-			kithttp.ServerErrorEncoder(appkit.ProblemErrorEncoder),
+			kithttp.ServerErrorHandler(kitxtransport.NewErrorHandler(commonErrorHandler)),
+			kithttp.ServerErrorEncoder(kitxhttp.NewJSONProblemErrorEncoder(apphttp.NewDefaultProblemConverter())),
 			kithttp.ServerBefore(correlation.HTTPToContext()),
 		}
 
@@ -703,14 +713,12 @@ func main() {
 					)
 					endpoints := clusterdriver.MakeClusterEndpoints(
 						service,
-						kitxendpoint.Chain(endpointMiddleware...),
-						appkit.EndpointLogger(commonLogger),
+						kitxendpoint.Combine(endpointMiddleware...),
 					)
 					clusterdriver.RegisterClusterHTTPHandlers(
 						endpoints,
 						clusterRouter,
 						kitxhttp.ServerOptions(httpServerOptions),
-						kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
 					)
 					cRouter.DELETE("", gin.WrapH(router))
 				}
@@ -725,13 +733,12 @@ func main() {
 			// Cluster IntegratedService API
 			var featureService integratedservices.Service
 			{
-				logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
-				featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, logger)
+				featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
 				clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
 				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
-				endpointManager := endpoints.NewEndpointManager(logger)
+				endpointManager := endpoints.NewEndpointManager(commonLogger)
 				integratedServiceManagers := []integratedservices.IntegratedServiceManager{
-					securityscan.MakeIntegratedServiceManager(logger),
+					securityscan.MakeIntegratedServiceManager(commonLogger),
 				}
 
 				if config.Cluster.DNS.Enabled {
@@ -739,18 +746,18 @@ func main() {
 				}
 
 				if config.Cluster.Vault.Enabled {
-					integratedServiceManagers = append(integratedServiceManagers, integratedServiceVault.MakeIntegratedServiceManager(clusterGetter, secretStore, config.Cluster.Vault.Config, logger))
+					integratedServiceManagers = append(integratedServiceManagers, integratedServiceVault.MakeIntegratedServiceManager(clusterGetter, secretStore, config.Cluster.Vault.Config, commonLogger))
 				}
 
 				if config.Cluster.Monitoring.Enabled {
-					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
+					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), commonLogger)
 					integratedServiceManagers = append(integratedServiceManagers, featureMonitoring.MakeIntegratedServiceManager(
 						clusterGetter,
 						secretStore,
 						endpointManager,
 						helmService,
 						config.Cluster.Monitoring.Config,
-						logger,
+						commonLogger,
 					))
 				}
 
@@ -760,7 +767,7 @@ func main() {
 						secretStore,
 						endpointManager,
 						config.Cluster.Logging.Config,
-						logger,
+						commonLogger,
 					))
 				}
 
@@ -768,7 +775,7 @@ func main() {
 					customAnchoreConfigProvider := securityscan.NewCustomAnchoreConfigProvider(
 						featureRepository,
 						secretStore,
-						logger,
+						commonLogger,
 					)
 
 					configProvider := anchore2.ConfigProviderChain{customAnchoreConfigProvider}
@@ -781,10 +788,9 @@ func main() {
 						))
 					}
 
-					secErrorHandler := emperror.MakeContextAware(errorHandler)
-					securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, secErrorHandler, logger)
+					securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, commonErrorHandler, commonLogger)
 
-					anchoreProxy := api.NewAnchoreProxy(basePath, configProvider, secErrorHandler, logger)
+					anchoreProxy := api.NewAnchoreProxy(basePath, configProvider, commonErrorHandler, commonLogger)
 					proxyHandler := anchoreProxy.Proxy()
 
 					// forthcoming endpoint for all requests proxied to Anchore
@@ -800,36 +806,30 @@ func main() {
 				}
 
 				integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
-				integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, logger)
-				featureService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, logger)
+				integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
+				featureService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, commonLogger)
 				endpoints := integratedservicedriver.MakeEndpoints(
 					featureService,
-					kitxendpoint.Chain(endpointMiddleware...),
-					appkit.EndpointLogger(commonLogger),
+					kitxendpoint.Combine(endpointMiddleware...),
 				)
 
 				{
 					integratedservicedriver.RegisterHTTPHandlers(
 						endpoints,
 						clusterRouter.PathPrefix("/services").Subrouter(),
-						errorHandler,
 						kitxhttp.ServerOptions(httpServerOptions),
-						kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
 					)
 
 					cRouter.Any("/services", gin.WrapH(router))
 					cRouter.Any("/services/:serviceName", gin.WrapH(router))
 				}
 
+				// set up legacy endpoint
 				{
-					// set up legacy endpoint
-
 					integratedservicedriver.RegisterHTTPHandlers(
 						endpoints,
 						clusterRouter.PathPrefix("/features").Subrouter(),
-						errorHandler,
 						kitxhttp.ServerOptions(httpServerOptions),
-						kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
 					)
 
 					cRouter.Any("/features", gin.WrapH(router))
@@ -897,15 +897,13 @@ func main() {
 				)
 				endpoints := clusterdriver.TraceNodePoolEndpoints(clusterdriver.MakeNodePoolEndpoints(
 					service,
-					kitxendpoint.Chain(endpointMiddleware...),
-					appkit.EndpointLogger(commonLogger),
+					kitxendpoint.Combine(endpointMiddleware...),
 				))
 
 				clusterdriver.RegisterNodePoolHTTPHandlers(
 					endpoints,
 					clusterRouter.PathPrefix("/nodepools").Subrouter(),
 					kitxhttp.ServerOptions(httpServerOptions),
-					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
 				)
 
 				cRouter.Any("/nodepools", gin.WrapH(router))
@@ -989,15 +987,13 @@ func main() {
 				service := googleproject.NewService(clientFactory)
 				endpoints := googleprojectdriver.TraceEndpoints(googleprojectdriver.MakeEndpoints(
 					service,
-					kitxendpoint.Chain(endpointMiddleware...),
-					appkit.EndpointLogger(commonLogger),
+					kitxendpoint.Combine(endpointMiddleware...),
 				))
 
 				googleprojectdriver.RegisterHTTPHandlers(
 					endpoints,
 					orgRouter.PathPrefix("/cloud/google/projects").Subrouter(),
 					kitxhttp.ServerOptions(httpServerOptions),
-					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
 				)
 
 				orgs.Any("/:orgid/cloud/google/projects", gin.WrapH(router))
@@ -1010,9 +1006,6 @@ func main() {
 		v1.PUT("/orgs", organizationAPI.SyncOrganizations)
 
 		{
-			logger := commonLogger.WithFields(map[string]interface{}{"module": "auth"})
-			errorHandler := emperror.MakeContextAware(emperror.WithDetails(errorHandler, "module", "auth"))
-
 			service := token.NewService(
 				auth.UserExtractor{},
 				tokenadapter.NewBankVaultsStore(tokenStore),
@@ -1022,15 +1015,13 @@ func main() {
 
 			endpoints := tokendriver.TraceEndpoints(tokendriver.MakeEndpoints(
 				service,
-				kitxendpoint.Chain(endpointMiddleware...),
-				appkit.EndpointLogger(logger),
+				kitxendpoint.Combine(endpointMiddleware...),
 			))
 
 			tokendriver.RegisterHTTPHandlers(
 				endpoints,
 				apiRouter.PathPrefix("/tokens").Subrouter(),
 				kitxhttp.ServerOptions(httpServerOptions),
-				kithttp.ServerErrorHandler(errorHandler),
 			)
 
 			v1.Any("/tokens", gin.WrapH(router))
@@ -1038,21 +1029,16 @@ func main() {
 		}
 
 		{
-			logger := commonLogger.WithFields(map[string]interface{}{"module": "secret"})
-			errorHandler := emperror.MakeContextAware(emperror.WithDetails(errorHandler, "module", "secret"))
-
 			service := secrettype.NewTypeService()
 			endpoints := secrettypedriver.TraceEndpoints(secrettypedriver.MakeEndpoints(
 				service,
-				kitxendpoint.Chain(endpointMiddleware...),
-				appkit.EndpointLogger(logger),
+				kitxendpoint.Combine(endpointMiddleware...),
 			))
 
 			secrettypedriver.RegisterHTTPHandlers(
 				endpoints,
 				apiRouter.PathPrefix("/secret-types").Subrouter(),
 				kitxhttp.ServerOptions(httpServerOptions),
-				kithttp.ServerErrorHandler(errorHandler),
 			)
 
 			v1.Any("/secret-types", gin.WrapH(router))

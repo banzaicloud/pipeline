@@ -18,23 +18,22 @@ import (
 	"context"
 
 	"github.com/go-kit/kit/endpoint"
-	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token"
 )
 
 // MakeCreateTokenEndpoint returns an endpoint for the matching method of the underlying service.
 func MakeCreateTokenEndpoint(service token.Service) endpoint.Endpoint {
-	return kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		return service.CreateToken(ctx, req.(token.NewTokenRequest))
-	})
+	}
 }
 
 // MakeListTokensEndpoint returns an endpoint for the matching method of the underlying service.
 func MakeListTokensEndpoint(service token.Service) endpoint.Endpoint {
-	return kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, _ interface{}) (interface{}, error) {
+	return func(ctx context.Context, _ interface{}) (interface{}, error) {
 		return service.ListTokens(ctx)
-	})
+	}
 }
 
 type getTokenRequest struct {
@@ -43,11 +42,11 @@ type getTokenRequest struct {
 
 // MakeGetTokenEndpoint returns an endpoint for the matching method of the underlying service.
 func MakeGetTokenEndpoint(service token.Service) endpoint.Endpoint {
-	return kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		r := req.(getTokenRequest)
 
 		return service.GetToken(ctx, r.ID)
-	})
+	}
 }
 
 type deleteTokenRequest struct {
@@ -56,9 +55,9 @@ type deleteTokenRequest struct {
 
 // MakeDeleteTokenEndpoint returns an endpoint for the matching method of the underlying service.
 func MakeDeleteTokenEndpoint(service token.Service) endpoint.Endpoint {
-	return kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		r := req.(deleteTokenRequest)
 
 		return nil, service.DeleteToken(ctx, r.ID)
-	})
+	}
 }

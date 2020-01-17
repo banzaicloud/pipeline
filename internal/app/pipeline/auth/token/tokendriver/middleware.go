@@ -53,7 +53,7 @@ func (e sentinel) Error() string {
 	return string(e)
 }
 
-func (e sentinel) IsBusinessError() bool {
+func (e sentinel) ClientError() bool {
 	return true
 }
 

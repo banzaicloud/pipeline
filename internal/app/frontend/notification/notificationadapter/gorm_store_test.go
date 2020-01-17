@@ -25,14 +25,13 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend/notification"
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
 func testGormStoreGetActiveNotifications(t *testing.T) {
 	db, err := gorm.Open("sqlite3", "file::memory:")
 	require.NoError(t, err)
 
-	err = Migrate(db, commonadapter.NewNoopLogger())
+	err = Migrate(db, notification.NoopLogger{})
 	require.NoError(t, err)
 
 	message := "message"

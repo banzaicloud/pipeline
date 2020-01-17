@@ -21,7 +21,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	"github.com/banzaicloud/pipeline/src/auth"
 )
 
@@ -50,7 +50,7 @@ func TestOrgDomainService_EnsureDomain(t *testing.T) {
 				clusterID2: org2,
 			},
 		},
-		commonadapter.NewNoopLogger(),
+		services.NoopLogger{},
 	)
 
 	{

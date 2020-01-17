@@ -18,6 +18,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -65,14 +66,12 @@ func TestMakeClusterEndpoints_DeleteCluster(t *testing.T) {
 		testCase := testCase
 
 		t.Run(name, func(t *testing.T) {
-			ctx := context.Background()
-
 			service := new(cluster.MockService)
-			service.On("DeleteCluster", ctx, testCase.identifier, testCase.options).Return(false, nil)
+			service.On("DeleteCluster", mock.Anything, testCase.identifier, testCase.options).Return(false, nil)
 
 			e := MakeClusterEndpoints(service).DeleteCluster
 
-			_, err := e(ctx, testCase.request)
+			_, err := e(context.Background(), testCase.request)
 			require.NoError(t, err)
 
 			service.AssertExpectations(t)

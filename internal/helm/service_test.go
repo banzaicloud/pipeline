@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
 const organizationName = "banzaicloud"
@@ -58,7 +58,7 @@ func TestIntegration(t *testing.T) {
 			KubeConfig:       kubeConfigBytes,
 		},
 	}
-	service := NewHelmService(clusterService, commonadapter.NewNoopLogger())
+	service := NewHelmService(clusterService, common.NoopLogger{})
 
 	err = service.InstallDeployment(
 		context.Background(),

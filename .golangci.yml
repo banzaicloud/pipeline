@@ -3,6 +3,9 @@ run:
         - .gen
         - client
 
+    skip-files:
+        - ".*_gen\\.go$"
+
 linters-settings:
     golint:
         min-confidence: 0.9

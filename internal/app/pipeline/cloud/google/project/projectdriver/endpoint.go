@@ -18,7 +18,6 @@ import (
 	"context"
 
 	"github.com/go-kit/kit/endpoint"
-	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/cloud/google/project"
 )
@@ -32,7 +31,7 @@ type listProjectsResponse struct {
 }
 
 func MakeListProjectsEndpoint(service project.Service) endpoint.Endpoint {
-	return kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		r := req.(listProjectsRequest)
 
 		projects, err := service.ListProjects(ctx, r.SecretID)
@@ -41,5 +40,5 @@ func MakeListProjectsEndpoint(service project.Service) endpoint.Endpoint {
 		}
 
 		return listProjectsResponse{Projects: projects}, nil
-	})
+	}
 }

@@ -18,7 +18,6 @@ import (
 	"context"
 
 	"github.com/go-kit/kit/endpoint"
-	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
@@ -29,11 +28,11 @@ type createNodePoolRequest struct {
 }
 
 func MakeCreateNodePoolEndpoint(service cluster.NodePoolService) endpoint.Endpoint {
-	return kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		request := req.(createNodePoolRequest)
 
 		return nil, service.CreateNodePool(ctx, request.ClusterID, request.Spec)
-	})
+	}
 }
 
 type deleteNodePoolRequest struct {
@@ -42,9 +41,9 @@ type deleteNodePoolRequest struct {
 }
 
 func MakeDeleteNodePoolEndpoint(service cluster.NodePoolService) endpoint.Endpoint {
-	return kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		request := req.(deleteNodePoolRequest)
 
 		return service.DeleteNodePool(ctx, request.ClusterID, request.NodePoolName)
-	})
+	}
 }
