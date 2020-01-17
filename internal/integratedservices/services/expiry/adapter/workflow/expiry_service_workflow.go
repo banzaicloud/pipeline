@@ -55,7 +55,9 @@ func ExpiryJobWorkflow(ctx workflow.Context, input ExpiryJobWorkflowInput) error
 		WaitForCancellation:    true,
 	})
 
-	workflow.ExecuteActivity(activityCtx, ExpireActivityName, activityInput).Get(activityCtx, nil)
+	if err := workflow.ExecuteActivity(activityCtx, ExpireActivityName, activityInput).Get(activityCtx, nil); err != nil {
+		return errors.WrapIfWithDetails(err, "failed to execute activity", "activity", ExpireActivityName)
+	}
 
 	return nil
 }
