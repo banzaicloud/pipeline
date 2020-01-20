@@ -21,14 +21,13 @@ import (
 	"emperror.dev/errors"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/secrettype"
 )
 
 func TestEndpoints_ListSecretTypes(t *testing.T) {
-	ctx := context.Background()
-
 	expectedSecretTypes := map[string]secrettype.TypeDefinition{
 		"secretType": {
 			Fields: []secrettype.TypeField{
@@ -43,7 +42,7 @@ func TestEndpoints_ListSecretTypes(t *testing.T) {
 	}
 
 	service := new(secrettype.MockTypeService)
-	service.On("ListSecretTypes", ctx).Return(expectedSecretTypes, nil)
+	service.On("ListSecretTypes", mock.Anything).Return(expectedSecretTypes, nil)
 
 	e := MakeEndpoints(service).ListSecretTypes
 
@@ -56,7 +55,6 @@ func TestEndpoints_ListSecretTypes(t *testing.T) {
 }
 
 func TestEndpoints_GetSecretType(t *testing.T) {
-	ctx := context.Background()
 	secretType := "secretType"
 
 	expectedSecretType := secrettype.TypeDefinition{
@@ -71,7 +69,7 @@ func TestEndpoints_GetSecretType(t *testing.T) {
 	}
 
 	service := new(secrettype.MockTypeService)
-	service.On("GetSecretType", ctx, secretType).Return(expectedSecretType, nil)
+	service.On("GetSecretType", mock.Anything, secretType).Return(expectedSecretType, nil)
 
 	e := MakeEndpoints(service).GetSecretType
 
@@ -84,11 +82,10 @@ func TestEndpoints_GetSecretType(t *testing.T) {
 }
 
 func TestEndpoints_GetSecretType_NotFound(t *testing.T) {
-	ctx := context.Background()
 	secretType := "secretType"
 
 	service := new(secrettype.MockTypeService)
-	service.On("GetSecretType", ctx, secretType).Return(secrettype.TypeDefinition{}, secrettype.ErrNotSupportedSecretType)
+	service.On("GetSecretType", mock.Anything, secretType).Return(secrettype.TypeDefinition{}, secrettype.ErrNotSupportedSecretType)
 
 	e := MakeEndpoints(service).GetSecretType
 

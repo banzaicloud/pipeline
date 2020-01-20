@@ -23,8 +23,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/anchore"
-	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 )
 
 // TODO: replace mock with in-memory implementation?
@@ -57,7 +57,7 @@ func TestCustomAnchoreConfigProvider_GetConfiguration(t *testing.T) {
 		nil,
 	)
 
-	configProvider := NewCustomAnchoreConfigProvider(integratedServiceRepository, secretStore, common.NewNoopLogger())
+	configProvider := NewCustomAnchoreConfigProvider(integratedServiceRepository, secretStore, services.NoopLogger{})
 
 	config, err := configProvider.GetConfiguration(context.Background(), 1)
 	require.NoError(t, err)
@@ -89,7 +89,7 @@ func TestCustomAnchoreConfigProvider_GetConfiguration_NoConfig(t *testing.T) {
 
 	secretStore := new(SecretStore)
 
-	configProvider := NewCustomAnchoreConfigProvider(integratedServiceRepository, secretStore, common.NewNoopLogger())
+	configProvider := NewCustomAnchoreConfigProvider(integratedServiceRepository, secretStore, services.NoopLogger{})
 
 	_, err := configProvider.GetConfiguration(context.Background(), 1)
 	require.Error(t, err)

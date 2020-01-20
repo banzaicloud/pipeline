@@ -8,6 +8,14 @@ import (
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 )
 
+// Endpoint name constants
+const (
+	CreateTokenEndpoint = "token.CreateToken"
+	DeleteTokenEndpoint = "token.DeleteToken"
+	GetTokenEndpoint    = "token.GetToken"
+	ListTokensEndpoint  = "token.ListTokens"
+)
+
 // Endpoints collects all of the endpoints that compose the underlying service. It's
 // meant to be used as a helper struct, to collect all of the endpoints into a
 // single parameter.
@@ -21,13 +29,13 @@ type Endpoints struct {
 // MakeEndpoints returns a(n) Endpoints struct where each endpoint invokes
 // the corresponding method on the provided service.
 func MakeEndpoints(service token.Service, middleware ...endpoint.Middleware) Endpoints {
-	mw := kitxendpoint.Chain(middleware...)
+	mw := kitxendpoint.Combine(middleware...)
 
 	return Endpoints{
-		CreateToken: mw(MakeCreateTokenEndpoint(service)),
-		DeleteToken: mw(MakeDeleteTokenEndpoint(service)),
-		GetToken:    mw(MakeGetTokenEndpoint(service)),
-		ListTokens:  mw(MakeListTokensEndpoint(service)),
+		CreateToken: kitxendpoint.OperationNameMiddleware(CreateTokenEndpoint)(mw(MakeCreateTokenEndpoint(service))),
+		DeleteToken: kitxendpoint.OperationNameMiddleware(DeleteTokenEndpoint)(mw(MakeDeleteTokenEndpoint(service))),
+		GetToken:    kitxendpoint.OperationNameMiddleware(GetTokenEndpoint)(mw(MakeGetTokenEndpoint(service))),
+		ListTokens:  kitxendpoint.OperationNameMiddleware(ListTokensEndpoint)(mw(MakeListTokensEndpoint(service))),
 	}
 }
 

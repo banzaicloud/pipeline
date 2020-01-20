@@ -22,7 +22,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"emperror.dev/emperror"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,7 +50,6 @@ func TestRegisterHTTPHandlers_List(t *testing.T) {
 			},
 		},
 		handler.PathPrefix("/clusters/{clusterId}/services").Subrouter(),
-		emperror.NewNoopHandler(),
 	)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +90,6 @@ func TestRegisterHTTPHandlers_Details(t *testing.T) {
 			},
 		},
 		handler.PathPrefix("/clusters/{clusterId}/services").Subrouter(),
-		emperror.NewNoopHandler(),
 	)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +120,6 @@ func TestRegisterHTTPHandlers_Activate(t *testing.T) {
 			},
 		},
 		handler.PathPrefix("/clusters/{clusterId}/services").Subrouter(),
-		emperror.NewNoopHandler(),
 	)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -156,7 +152,6 @@ func TestRegisterHTTPHandlers_Deactivate(t *testing.T) {
 			},
 		},
 		handler.PathPrefix("/clusters/{clusterId}/services").Subrouter(),
-		emperror.NewNoopHandler(),
 	)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -183,7 +178,6 @@ func TestRegisterHTTPHandlers_Update(t *testing.T) {
 			},
 		},
 		handler.PathPrefix("/clusters/{clusterId}/services").Subrouter(),
-		emperror.NewNoopHandler(),
 	)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -8,6 +8,12 @@ import (
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 )
 
+// Endpoint name constants
+const (
+	GetSecretTypeEndpoint   = "secrettype.GetSecretType"
+	ListSecretTypesEndpoint = "secrettype.ListSecretTypes"
+)
+
 // Endpoints collects all of the endpoints that compose the underlying service. It's
 // meant to be used as a helper struct, to collect all of the endpoints into a
 // single parameter.
@@ -19,11 +25,11 @@ type Endpoints struct {
 // MakeEndpoints returns a(n) Endpoints struct where each endpoint invokes
 // the corresponding method on the provided service.
 func MakeEndpoints(service secrettype.TypeService, middleware ...endpoint.Middleware) Endpoints {
-	mw := kitxendpoint.Chain(middleware...)
+	mw := kitxendpoint.Combine(middleware...)
 
 	return Endpoints{
-		GetSecretType:   mw(MakeGetSecretTypeEndpoint(service)),
-		ListSecretTypes: mw(MakeListSecretTypesEndpoint(service)),
+		GetSecretType:   kitxendpoint.OperationNameMiddleware(GetSecretTypeEndpoint)(mw(MakeGetSecretTypeEndpoint(service))),
+		ListSecretTypes: kitxendpoint.OperationNameMiddleware(ListSecretTypesEndpoint)(mw(MakeListSecretTypesEndpoint(service))),
 	}
 }
 

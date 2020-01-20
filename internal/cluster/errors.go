@@ -48,13 +48,6 @@ func (ValidationError) Validation() bool {
 	return true
 }
 
-// IsBusinessError tells the transport layer whether this error should be translated into the transport format
-// or an internal error should be returned instead.
-// Deprecated: use ClientError instead.
-func (ValidationError) IsBusinessError() bool {
-	return true
-}
-
 // ClientError tells the consumer whether this error is caused by invalid input supplied by the client.
 // Client errors are usually returned to the consumer without retrying the operation.
 func (ValidationError) ClientError() bool {

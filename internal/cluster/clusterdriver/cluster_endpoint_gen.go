@@ -8,6 +8,11 @@ import (
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 )
 
+// Endpoint name constants
+const (
+	DeleteClusterClusterEndpoint = "cluster.DeleteCluster"
+)
+
 // ClusterEndpoints collects all of the endpoints that compose the underlying service. It's
 // meant to be used as a helper struct, to collect all of the endpoints into a
 // single parameter.
@@ -18,9 +23,9 @@ type ClusterEndpoints struct {
 // MakeClusterEndpoints returns a(n) ClusterEndpoints struct where each endpoint invokes
 // the corresponding method on the provided service.
 func MakeClusterEndpoints(service cluster.Service, middleware ...endpoint.Middleware) ClusterEndpoints {
-	mw := kitxendpoint.Chain(middleware...)
+	mw := kitxendpoint.Combine(middleware...)
 
-	return ClusterEndpoints{DeleteCluster: mw(MakeDeleteClusterEndpoint(service))}
+	return ClusterEndpoints{DeleteCluster: kitxendpoint.OperationNameMiddleware(DeleteClusterClusterEndpoint)(mw(MakeDeleteClusterEndpoint(service)))}
 }
 
 // TraceClusterEndpoints returns a(n) ClusterEndpoints struct where each endpoint is wrapped with a tracing middleware.

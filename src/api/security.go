@@ -260,7 +260,7 @@ func (s securityHandlers) GetWhiteLists(c *gin.Context) {
 
 	whitelist, err := s.resourceService.GetWhitelists(c.Request.Context(), cluster)
 	if err != nil {
-		s.errorHandler.Handle(c.Request.Context(), err)
+		s.errorHandler.HandleContext(c.Request.Context(), err)
 
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -293,7 +293,7 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 
 	var whiteListItem *security.ReleaseWhiteListItem
 	if err := c.BindJSON(&whiteListItem); err != nil {
-		s.errorHandler.Handle(c.Request.Context(), err)
+		s.errorHandler.HandleContext(c.Request.Context(), err)
 
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -304,7 +304,7 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 	}
 
 	if _, err := s.resourceService.CreateWhitelist(c.Request.Context(), cluster, *whiteListItem); err != nil {
-		s.errorHandler.Handle(c.Request.Context(), err)
+		s.errorHandler.HandleContext(c.Request.Context(), err)
 
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -338,7 +338,7 @@ func (s securityHandlers) DeleteWhiteList(c *gin.Context) {
 	}
 
 	if err := s.resourceService.DeleteWhitelist(c.Request.Context(), cluster, whitelisItemtName); err != nil {
-		s.errorHandler.Handle(c.Request.Context(), err)
+		s.errorHandler.HandleContext(c.Request.Context(), err)
 
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -361,7 +361,7 @@ func (s securityHandlers) ListScanLogs(c *gin.Context) {
 
 	scanlogs, err := s.resourceService.ListScanLogs(c.Request.Context(), cluster)
 	if err != nil {
-		s.errorHandler.Handle(c.Request.Context(), err)
+		s.errorHandler.HandleContext(c.Request.Context(), err)
 
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -386,7 +386,7 @@ func (s securityHandlers) GetScanLogs(c *gin.Context) {
 
 	scanlogs, err := s.resourceService.GetScanLogs(c.Request.Context(), cluster, releaseName)
 	if err != nil {
-		s.errorHandler.Handle(c.Request.Context(), err)
+		s.errorHandler.HandleContext(c.Request.Context(), err)
 
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,

@@ -19,16 +19,15 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/go-kit/kit/endpoint"
-	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/secrettype"
 )
 
 // MakeListSecretTypesEndpoint returns an endpoint for the matching method of the underlying service.
 func MakeListSecretTypesEndpoint(service secrettype.TypeService) endpoint.Endpoint {
-	return kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, _ interface{}) (interface{}, error) {
+	return func(ctx context.Context, _ interface{}) (interface{}, error) {
 		return service.ListSecretTypes(ctx)
-	})
+	}
 }
 
 type getSecretTypeRequest struct {
@@ -45,7 +44,7 @@ func (f getSecretTypeError) Failed() error {
 
 // MakeGetSecretTypeEndpoint returns an endpoint for the matching method of the underlying service.
 func MakeGetSecretTypeEndpoint(service secrettype.TypeService) endpoint.Endpoint {
-	return kitxendpoint.BusinessErrorMiddleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		r := req.(getSecretTypeRequest)
 
 		secretType, err := service.GetSecretType(ctx, r.SecretType)
@@ -54,5 +53,5 @@ func MakeGetSecretTypeEndpoint(service secrettype.TypeService) endpoint.Endpoint
 		}
 
 		return secretType, err
-	})
+	}
 }

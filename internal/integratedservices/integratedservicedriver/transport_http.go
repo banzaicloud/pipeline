@@ -21,30 +21,25 @@ import (
 	"net/http"
 	"strconv"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
-	"github.com/banzaicloud/pipeline/internal/integratedservices"
-	"github.com/banzaicloud/pipeline/pkg/problems"
+	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 )
 
 const integratedServiceNameParamKey = "serviceName"
 
 // RegisterHTTPHandlers mounts all of the service endpoints into an http.Handler.
-func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, errorHandler emperror.Handler, options ...kithttp.ServerOption) {
-	options = append(
-		options,
-		kithttp.ServerErrorEncoder(encodeHTTPError),
-		kithttp.ServerErrorHandler(emperror.MakeContextAware(errorFilter(errorHandler))),
-	)
+func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
+	errorEncoder := kitxhttp.NewJSONProblemErrorResponseEncoder(apphttp.NewDefaultProblemConverter())
 
 	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
 		endpoints.List,
 		decodeListIntegratedServicesRequest,
-		encodeListIntegratedServicesResponse,
+		kitxhttp.ErrorResponseEncoder(encodeListIntegratedServicesResponse, errorEncoder),
 		options...,
 	))
 
@@ -54,74 +49,34 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, errorHandler 
 		router.Methods(http.MethodGet).Handler(kithttp.NewServer(
 			endpoints.Details,
 			decodeIntegratedServiceDetailsRequest,
-			encodeIntegratedServiceDetailsResponse,
+			kitxhttp.ErrorResponseEncoder(encodeIntegratedServiceDetailsResponse, errorEncoder),
 			options...,
 		))
 
 		router.Methods(http.MethodPost).Handler(kithttp.NewServer(
 			endpoints.Activate,
 			decodeActivateIntegratedServiceRequest,
-			encodeActivateIntegratedServicesResponse,
+			kitxhttp.ErrorResponseEncoder(encodeActivateIntegratedServicesResponse, errorEncoder),
 			options...,
 		))
 
 		router.Methods(http.MethodPut).Handler(kithttp.NewServer(
 			endpoints.Update,
 			decodeUpdateIntegratedServicesRequest,
-			encodeUpdateIntegratedServiceResponse,
+			kitxhttp.ErrorResponseEncoder(encodeUpdateIntegratedServiceResponse, errorEncoder),
 			options...,
 		))
 
 		router.Methods(http.MethodDelete).Handler(kithttp.NewServer(
 			endpoints.Deactivate,
 			decodeDeactivateIntegratedServicesRequest,
-			encodeDeactivateIntegratedServiceResponse,
+			kitxhttp.ErrorResponseEncoder(encodeDeactivateIntegratedServiceResponse, errorEncoder),
 			options...,
 		))
 	}
 }
 
-func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
-	var problem problems.StatusProblem
-
-	switch {
-	case isNotFoundError(err):
-		problem = problems.NewDetailedProblem(http.StatusNotFound, err.Error())
-	case isBadRequestError(err):
-		problem = problems.NewDetailedProblem(http.StatusBadRequest, err.Error())
-
-	default:
-		problem = problems.NewDetailedProblem(http.StatusInternalServerError, "something went wrong")
-	}
-
-	w.Header().Set("Content-Type", problems.ProblemMediaType)
-	w.WriteHeader(problem.ProblemStatus())
-
-	_ = json.NewEncoder(w).Encode(problem)
-}
-
-func isNotFoundError(err error) bool {
-	var notFound interface{ NotFound() bool }
-	return errors.As(err, &integratedservices.UnknownIntegratedServiceError{}) || integratedservices.IsIntegratedServiceNotFoundError(err) || errors.As(err, &notFound)
-}
-
-func isBadRequestError(err error) bool {
-	var badRequest interface{ BadRequest() bool }
-	return integratedservices.IsInputValidationError(err) || errors.As(err, &integratedservices.ClusterIsNotReadyError{}) || errors.As(err, &badRequest)
-}
-
-func errorFilter(errorHandler emperror.Handler) emperror.Handler {
-	return emperror.HandlerFunc(func(err error) {
-		switch {
-		case isNotFoundError(err), isBadRequestError(err):
-			// ignore
-		default:
-			errorHandler.Handle(err)
-		}
-	})
-}
-
-func decodeListIntegratedServicesRequest(ctx context.Context, req *http.Request) (interface{}, error) {
+func decodeListIntegratedServicesRequest(_ context.Context, req *http.Request) (interface{}, error) {
 	clusterID, err := getClusterID(req)
 	if err != nil {
 		return nil, err
@@ -138,7 +93,7 @@ func encodeListIntegratedServicesResponse(_ context.Context, w http.ResponseWrit
 	return json.NewEncoder(w).Encode(resp)
 }
 
-func decodeIntegratedServiceDetailsRequest(ctx context.Context, req *http.Request) (interface{}, error) {
+func decodeIntegratedServiceDetailsRequest(_ context.Context, req *http.Request) (interface{}, error) {
 	clusterID, err := getClusterID(req)
 	if err != nil {
 		return nil, err
@@ -161,7 +116,7 @@ func encodeIntegratedServiceDetailsResponse(_ context.Context, w http.ResponseWr
 	return json.NewEncoder(w).Encode(resp)
 }
 
-func decodeActivateIntegratedServiceRequest(ctx context.Context, req *http.Request) (interface{}, error) {
+func decodeActivateIntegratedServiceRequest(_ context.Context, req *http.Request) (interface{}, error) {
 	clusterID, err := getClusterID(req)
 	if err != nil {
 		return nil, err
@@ -191,7 +146,7 @@ func encodeActivateIntegratedServicesResponse(_ context.Context, w http.Response
 	return nil
 }
 
-func decodeDeactivateIntegratedServicesRequest(ctx context.Context, req *http.Request) (interface{}, error) {
+func decodeDeactivateIntegratedServicesRequest(_ context.Context, req *http.Request) (interface{}, error) {
 	clusterID, err := getClusterID(req)
 	if err != nil {
 		return nil, err
@@ -215,7 +170,7 @@ func encodeDeactivateIntegratedServiceResponse(_ context.Context, w http.Respons
 	return nil
 }
 
-func decodeUpdateIntegratedServicesRequest(ctx context.Context, req *http.Request) (interface{}, error) {
+func decodeUpdateIntegratedServicesRequest(_ context.Context, req *http.Request) (interface{}, error) {
 	clusterID, err := getClusterID(req)
 	if err != nil {
 		return nil, err

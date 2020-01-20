@@ -108,13 +108,6 @@ func IsNotFoundError(err error) bool {
 	return errors.As(err, &nfe) && nfe.NotFound()
 }
 
-// IsBusinessError tells the transport layer whether this error should be translated into the transport format
-// or an internal error should be returned instead.
-// Deprecated: use ClientError instead.
-func (NotFoundError) IsBusinessError() bool {
-	return true
-}
-
 // ClientError tells the consumer whether this error is caused by invalid input supplied by the client.
 // Client errors are usually returned to the consumer without retrying the operation.
 func (NotFoundError) ClientError() bool {

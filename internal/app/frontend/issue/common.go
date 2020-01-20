@@ -23,3 +23,6 @@ import (
 
 // Logger is the fundamental interface for all log operations.
 type Logger = common.Logger
+
+// NoopLogger is a logger that discards every log event.
+type NoopLogger = common.NoopLogger

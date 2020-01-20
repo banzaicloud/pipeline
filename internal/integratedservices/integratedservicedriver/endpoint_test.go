@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
@@ -28,7 +29,6 @@ import (
 func TestMakeEndpoints_List(t *testing.T) {
 	service := new(integratedservices.MockService)
 
-	ctx := context.Background()
 	clusterID := uint(1)
 
 	integratedServiceList := []integratedservices.IntegratedService{
@@ -44,7 +44,7 @@ func TestMakeEndpoints_List(t *testing.T) {
 		},
 	}
 
-	service.On("List", ctx, clusterID).Return(integratedServiceList, nil)
+	service.On("List", mock.Anything, clusterID).Return(integratedServiceList, nil)
 
 	e := MakeEndpoints(service).List
 
@@ -52,7 +52,7 @@ func TestMakeEndpoints_List(t *testing.T) {
 		ClusterID: clusterID,
 	}
 
-	result, err := e(ctx, req)
+	result, err := e(context.Background(), req)
 
 	require.NoError(t, err)
 	assert.Equal(t, map[string]pipeline.IntegratedServiceDetails{
@@ -73,7 +73,6 @@ func TestMakeEndpoints_List(t *testing.T) {
 func TestMakeEndpoints_Details(t *testing.T) {
 	service := new(integratedservices.MockService)
 
-	ctx := context.Background()
 	clusterID := uint(1)
 	integratedServiceName := "example"
 
@@ -88,7 +87,7 @@ func TestMakeEndpoints_Details(t *testing.T) {
 		Status: "ACTIVE",
 	}
 
-	service.On("Details", ctx, clusterID, integratedServiceName).Return(integratedServiceDetails, nil)
+	service.On("Details", mock.Anything, clusterID, integratedServiceName).Return(integratedServiceDetails, nil)
 
 	e := MakeEndpoints(service).Details
 
@@ -97,7 +96,7 @@ func TestMakeEndpoints_Details(t *testing.T) {
 		IntegratedServiceName: integratedServiceName,
 	}
 
-	result, err := e(ctx, req)
+	result, err := e(context.Background(), req)
 
 	require.NoError(t, err)
 	assert.Equal(t, pipeline.IntegratedServiceDetails{
@@ -116,14 +115,13 @@ func TestMakeEndpoints_Details(t *testing.T) {
 func TestMakeEndpoints_Activate(t *testing.T) {
 	service := new(integratedservices.MockService)
 
-	ctx := context.Background()
 	clusterID := uint(1)
 	integratedServiceName := "example"
 	spec := map[string]interface{}{
 		"hello": "world",
 	}
 
-	service.On("Activate", ctx, clusterID, integratedServiceName, spec).Return(nil)
+	service.On("Activate", mock.Anything, clusterID, integratedServiceName, spec).Return(nil)
 
 	e := MakeEndpoints(service).Activate
 
@@ -133,7 +131,7 @@ func TestMakeEndpoints_Activate(t *testing.T) {
 		Spec:                  spec,
 	}
 
-	result, err := e(ctx, req)
+	result, err := e(context.Background(), req)
 
 	require.NoError(t, err)
 	assert.Nil(t, result)
@@ -144,11 +142,10 @@ func TestMakeEndpoints_Activate(t *testing.T) {
 func TestMakeEndpoints_Deactivate(t *testing.T) {
 	mockService := new(integratedservices.MockService)
 
-	ctx := context.Background()
 	clusterID := uint(1)
 	integratedServiceName := "example"
 
-	mockService.On("Deactivate", ctx, clusterID, integratedServiceName).Return(nil)
+	mockService.On("Deactivate", mock.Anything, clusterID, integratedServiceName).Return(nil)
 
 	e := MakeEndpoints(mockService).Deactivate
 
@@ -157,7 +154,7 @@ func TestMakeEndpoints_Deactivate(t *testing.T) {
 		IntegratedServiceName: integratedServiceName,
 	}
 
-	result, err := e(ctx, req)
+	result, err := e(context.Background(), req)
 
 	require.NoError(t, err)
 	assert.Nil(t, result)
@@ -168,14 +165,13 @@ func TestMakeEndpoints_Deactivate(t *testing.T) {
 func TestMakeEndpoints_Update(t *testing.T) {
 	service := new(integratedservices.MockService)
 
-	ctx := context.Background()
 	clusterID := uint(1)
 	integratedServiceName := "example"
 	spec := map[string]interface{}{
 		"hello": "world",
 	}
 
-	service.On("Update", ctx, clusterID, integratedServiceName, spec).Return(nil)
+	service.On("Update", mock.Anything, clusterID, integratedServiceName, spec).Return(nil)
 
 	e := MakeEndpoints(service).Update
 
@@ -185,7 +181,7 @@ func TestMakeEndpoints_Update(t *testing.T) {
 		Spec:                  spec,
 	}
 
-	result, err := e(ctx, req)
+	result, err := e(context.Background(), req)
 
 	require.NoError(t, err)
 	assert.Nil(t, result)

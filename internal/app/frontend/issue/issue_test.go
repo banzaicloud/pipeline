@@ -19,8 +19,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
 //go:generate mga gen mockery --name UserExtractor --inpkg --testonly
@@ -60,7 +58,7 @@ func TestService_ReportIssue(t *testing.T) {
 	reporter := new(MockReporter)
 	reporter.On("ReportIssue", ctx, issue).Return(nil)
 
-	service := NewService([]string{"community"}, userExtractor, formatter, reporter, commonadapter.NewNoopLogger())
+	service := NewService([]string{"community"}, userExtractor, formatter, reporter, NoopLogger{})
 
 	err := service.ReportIssue(ctx, newIssue)
 	require.NoError(t, err)

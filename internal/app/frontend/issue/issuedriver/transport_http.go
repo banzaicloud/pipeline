@@ -25,14 +25,17 @@ import (
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend/issue"
+	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 )
 
 // RegisterHTTPHandlers mounts all of the service endpoints into an http.Handler.
 func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
+	errorEncoder := kitxhttp.NewJSONProblemErrorResponseEncoder(apphttp.NewDefaultProblemConverter())
+
 	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
 		endpoints.ReportIssue,
 		decodeReportIssueHTTPRequest,
-		kitxhttp.StatusCodeResponseEncoder(http.StatusCreated),
+		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusCreated), errorEncoder),
 		options...,
 	))
 }

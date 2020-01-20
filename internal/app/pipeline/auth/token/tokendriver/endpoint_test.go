@@ -20,14 +20,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token"
 )
 
 func TestMakeEndpoints_CreateToken(t *testing.T) {
-	ctx := context.Background()
-
 	newTokenReq := token.NewTokenRequest{
 		Name:        "token",
 		VirtualUser: "",
@@ -40,11 +39,11 @@ func TestMakeEndpoints_CreateToken(t *testing.T) {
 	}
 
 	service := new(token.MockService)
-	service.On("CreateToken", ctx, newTokenReq).Return(expectedToken, nil)
+	service.On("CreateToken", mock.Anything, newTokenReq).Return(expectedToken, nil)
 
 	e := MakeEndpoints(service).CreateToken
 
-	resp, err := e(ctx, newTokenReq)
+	resp, err := e(context.Background(), newTokenReq)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedToken, resp)
@@ -53,8 +52,6 @@ func TestMakeEndpoints_CreateToken(t *testing.T) {
 }
 
 func TestMakeEndpoints_ListTokens(t *testing.T) {
-	ctx := context.Background()
-
 	expectedTokens := []token.Token{
 		{
 			ID:        "id",
@@ -65,11 +62,11 @@ func TestMakeEndpoints_ListTokens(t *testing.T) {
 	}
 
 	service := new(token.MockService)
-	service.On("ListTokens", ctx).Return(expectedTokens, nil)
+	service.On("ListTokens", mock.Anything).Return(expectedTokens, nil)
 
 	e := MakeEndpoints(service).ListTokens
 
-	resp, err := e(ctx, nil)
+	resp, err := e(context.Background(), nil)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedTokens, resp)
@@ -78,7 +75,6 @@ func TestMakeEndpoints_ListTokens(t *testing.T) {
 }
 
 func TestMakeEndpoints_GetToken(t *testing.T) {
-	ctx := context.Background()
 	tokenID := "id"
 
 	expectedToken := token.Token{
@@ -89,7 +85,7 @@ func TestMakeEndpoints_GetToken(t *testing.T) {
 	}
 
 	service := new(token.MockService)
-	service.On("GetToken", ctx, tokenID).Return(expectedToken, nil)
+	service.On("GetToken", mock.Anything, tokenID).Return(expectedToken, nil)
 
 	e := MakeEndpoints(service).GetToken
 
@@ -102,15 +98,14 @@ func TestMakeEndpoints_GetToken(t *testing.T) {
 }
 
 func TestMakeEndpoints_DeleteToken(t *testing.T) {
-	ctx := context.Background()
 	tokenID := "id"
 
 	service := new(token.MockService)
-	service.On("DeleteToken", ctx, tokenID).Return(nil)
+	service.On("DeleteToken", mock.Anything, tokenID).Return(nil)
 
 	e := MakeEndpoints(service).DeleteToken
 
-	_, err := e(ctx, deleteTokenRequest{tokenID})
+	_, err := e(context.Background(), deleteTokenRequest{tokenID})
 	require.NoError(t, err)
 
 	service.AssertExpectations(t)

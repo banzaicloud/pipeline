@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,24 +18,27 @@ import (
 	"context"
 
 	"github.com/sagikazarmark/kitx/correlation"
+	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 	"go.opencensus.io/trace"
 )
 
-// ContextExtractor extracts values from a context.
-type ContextExtractor struct{}
-
-// Extract extracts values from a context.
-func (ContextExtractor) Extract(ctx context.Context) map[string]interface{} {
+// ContextExtractor extracts fields from a context.
+func ContextExtractor(ctx context.Context) map[string]interface{} {
 	fields := make(map[string]interface{})
 
 	if correlationID, ok := correlation.FromContext(ctx); ok {
-		fields["correlation_id"] = correlationID
+		fields["correlationId"] = correlationID
+	}
+
+	if operationName, ok := kitxendpoint.OperationName(ctx); ok {
+		fields["operationName"] = operationName
 	}
 
 	if span := trace.FromContext(ctx); span != nil {
 		spanCtx := span.SpanContext()
-		fields["trace_id"] = spanCtx.TraceID.String()
-		fields["span_id"] = spanCtx.SpanID.String()
+
+		fields["traceId"] = spanCtx.TraceID.String()
+		fields["spanId"] = spanCtx.SpanID.String()
 	}
 
 	return fields

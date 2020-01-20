@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package services
+package integratedservices
 
 import (
 	"github.com/banzaicloud/pipeline/internal/common"
@@ -26,7 +26,3 @@ type Logger = common.Logger
 
 // NoopLogger is a logger that discards every log event.
 type NoopLogger = common.NoopLogger
-
-// SecretStore is a common interface for various parts of the application
-// to read secrets from the platform's secret store.
-type SecretStore = common.SecretStore

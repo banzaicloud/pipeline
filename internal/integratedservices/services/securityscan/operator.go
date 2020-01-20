@@ -145,7 +145,7 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 	if boundSpec.WebhookConfig.Enabled {
 		if err = op.configureWebHook(ctx, clusterID, boundSpec.WebhookConfig); err != nil {
 			//  as agreed, we let the integrated service activation to succeed and log the errors
-			op.errorHandler.Handle(ctx, err)
+			op.errorHandler.HandleContext(ctx, err)
 		}
 	}
 	return nil
@@ -181,7 +181,7 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 	if err := op.namespaceService.CleanupLabels(ctx, clusterID, []string{labelKey}); err != nil {
 		// if the operation fails for some reason (eg. non-existent namespaces) we notice that and let the deactivation succeed
 		op.logger.Warn("failed to delete namespace labels", map[string]interface{}{"clusterID": clusterID})
-		op.errorHandler.Handle(ctx, err)
+		op.errorHandler.HandleContext(ctx, err)
 
 		return nil
 	}
@@ -294,7 +294,7 @@ func (op *IntegratedServiceOperator) configureWebHook(ctx context.Context, clust
 
 	if err := op.namespaceService.CleanupLabels(ctx, clusterID, []string{labelKey}); err != nil {
 		// log the error and continue!
-		op.errorHandler.Handle(ctx, err)
+		op.errorHandler.HandleContext(ctx, err)
 	}
 
 	// these namespaces must always be excluded
@@ -303,7 +303,7 @@ func (op *IntegratedServiceOperator) configureWebHook(ctx context.Context, clust
 
 	if err := op.namespaceService.LabelNamespaces(ctx, clusterID, excludedNamespaces, defaultExclusionMap); err != nil {
 		// log the error and continue!
-		op.errorHandler.Handle(ctx, err)
+		op.errorHandler.HandleContext(ctx, err)
 	}
 
 	if whConfig.Selector == selectorInclude && len(whConfig.Namespaces) == 1 && whConfig.Namespaces[0] == allStar {

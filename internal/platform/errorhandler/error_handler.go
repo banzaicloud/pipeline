@@ -47,9 +47,9 @@ func (c Config) Validate() error {
 }
 
 // New returns a new error handler.
-func New(config Config, logger logur.Logger) (emperror.Handlers, error) {
+func New(config Config, logger logur.Logger) (emperror.ErrorHandlers, error) {
 	logHandler := logurhandler.WithStackInfo(logurhandler.New(logger))
-	handlers := emperror.Handlers{logHandler}
+	handlers := emperror.ErrorHandlers{logHandler}
 
 	if config.Stackdriver.Enabled {
 		ctx := context.Background()

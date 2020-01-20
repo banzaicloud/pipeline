@@ -24,5 +24,5 @@ import (
 // Logger is the fundamental interface for all log operations.
 type Logger = common.Logger
 
-// ErrorHandler handles an error.
-type ErrorHandler = common.ErrorHandler
+// NoopLogger is a logger that discards every log event.
+type NoopLogger = common.NoopLogger

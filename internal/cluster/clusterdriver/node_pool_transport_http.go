@@ -27,12 +27,13 @@ import (
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
-	"github.com/banzaicloud/pipeline/internal/platform/appkit"
-	"github.com/banzaicloud/pipeline/pkg/problems"
+	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 )
 
 // RegisterNodePoolHTTPHandlers mounts all of the service endpoints into an http.Handler.
 func RegisterNodePoolHTTPHandlers(endpoints NodePoolEndpoints, router *mux.Router, options ...kithttp.ServerOption) {
+	errorEncoder := kitxhttp.NewJSONProblemErrorResponseEncoder(apphttp.NewDefaultProblemConverter())
+
 	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
 		endpoints.CreateNodePool,
 		decodeCreateNodePoolHTTPRequest,
@@ -117,45 +118,6 @@ func encodeDeleteNodePoolHTTPResponse(_ context.Context, w http.ResponseWriter, 
 	}
 
 	w.WriteHeader(http.StatusAccepted)
-
-	return nil
-}
-
-func errorEncoder(_ context.Context, w http.ResponseWriter, e error) error {
-	var problem problems.StatusProblem
-
-	switch {
-	case appkit.IsBadRequestError(e):
-		problem = problems.NewDetailedProblem(http.StatusBadRequest, e.Error())
-
-	case appkit.IsNotFoundError(e):
-		problem = problems.NewDetailedProblem(http.StatusNotFound, e.Error())
-
-	case appkit.IsConflictError(e):
-		problem = problems.NewDetailedProblem(http.StatusConflict, e.Error())
-
-	case appkit.IsValidationError(e):
-		var violationer interface {
-			Violations() []string
-		}
-
-		if errors.As(e, &violationer) {
-			problem = problems.NewValidationProblem(e.Error(), violationer.Violations())
-		} else {
-			problem = problems.NewDetailedProblem(http.StatusUnprocessableEntity, e.Error())
-		}
-
-	default:
-		problem = problems.NewDetailedProblem(http.StatusInternalServerError, "something went wrong")
-	}
-
-	w.Header().Set("Content-Type", problems.ProblemMediaType)
-	w.WriteHeader(problem.ProblemStatus())
-
-	err := json.NewEncoder(w).Encode(problem)
-	if err != nil {
-		return errors.Wrap(err, "failed to encode error response")
-	}
 
 	return nil
 }

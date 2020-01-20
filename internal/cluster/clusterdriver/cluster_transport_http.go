@@ -23,10 +23,14 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
+
+	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 )
 
 // RegisterClusterHTTPHandlers mounts all of the service endpoints into an http.Handler
 func RegisterClusterHTTPHandlers(endpoints ClusterEndpoints, router *mux.Router, options ...kithttp.ServerOption) {
+	errorEncoder := kitxhttp.NewJSONProblemErrorResponseEncoder(apphttp.NewDefaultProblemConverter())
+
 	router.Methods(http.MethodDelete).Path("").Handler(kithttp.NewServer(
 		endpoints.DeleteCluster,
 		decodeDeleteClusterHTTPRequest,

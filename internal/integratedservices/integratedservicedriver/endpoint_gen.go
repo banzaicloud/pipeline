@@ -8,6 +8,15 @@ import (
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 )
 
+// Endpoint name constants
+const (
+	ActivateEndpoint   = "integratedservices.Activate"
+	DeactivateEndpoint = "integratedservices.Deactivate"
+	DetailsEndpoint    = "integratedservices.Details"
+	ListEndpoint       = "integratedservices.List"
+	UpdateEndpoint     = "integratedservices.Update"
+)
+
 // Endpoints collects all of the endpoints that compose the underlying service. It's
 // meant to be used as a helper struct, to collect all of the endpoints into a
 // single parameter.
@@ -22,14 +31,14 @@ type Endpoints struct {
 // MakeEndpoints returns a(n) Endpoints struct where each endpoint invokes
 // the corresponding method on the provided service.
 func MakeEndpoints(service integratedservices.Service, middleware ...endpoint.Middleware) Endpoints {
-	mw := kitxendpoint.Chain(middleware...)
+	mw := kitxendpoint.Combine(middleware...)
 
 	return Endpoints{
-		Activate:   mw(MakeActivateEndpoint(service)),
-		Deactivate: mw(MakeDeactivateEndpoint(service)),
-		Details:    mw(MakeDetailsEndpoint(service)),
-		List:       mw(MakeListEndpoint(service)),
-		Update:     mw(MakeUpdateEndpoint(service)),
+		Activate:   kitxendpoint.OperationNameMiddleware(ActivateEndpoint)(mw(MakeActivateEndpoint(service))),
+		Deactivate: kitxendpoint.OperationNameMiddleware(DeactivateEndpoint)(mw(MakeDeactivateEndpoint(service))),
+		Details:    kitxendpoint.OperationNameMiddleware(DetailsEndpoint)(mw(MakeDetailsEndpoint(service))),
+		List:       kitxendpoint.OperationNameMiddleware(ListEndpoint)(mw(MakeListEndpoint(service))),
+		Update:     kitxendpoint.OperationNameMiddleware(UpdateEndpoint)(mw(MakeUpdateEndpoint(service))),
 	}
 }
 
