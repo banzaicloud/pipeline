@@ -24,7 +24,8 @@ import (
 
 // LabelValidator validates Kubernetes object labels.
 type LabelValidator struct {
-	ForbiddenDomains []string
+	ForbiddenDomains   []string
+	ForbiddenLabelKeys []string
 }
 
 // ValidateKey validates a label key.
@@ -47,6 +48,12 @@ func (v LabelValidator) ValidateKey(key string) error {
 
 		if keyDomain == domain || strings.HasSuffix(keyDomain, "."+domain) {
 			violations = append(violations, fmt.Sprintf("forbidden label key domain in %q: %q domain is not allowed", key, domain))
+		}
+	}
+
+	for _, labelKey := range v.ForbiddenLabelKeys {
+		if key == labelKey {
+			violations = append(violations, fmt.Sprintf("label key %q is not allowed", key))
 		}
 	}
 

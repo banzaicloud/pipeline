@@ -53,6 +53,8 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
+	"github.com/banzaicloud/pipeline/internal/global/nplabels"
+
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
@@ -857,8 +859,11 @@ func main() {
 				clusterStore := clusteradapter.NewStore(db, clusters)
 
 				labelValidator := kubernetes2.LabelValidator{
-					ForbiddenDomains: append([]string{config.Cluster.Labels.Domain}, config.Cluster.Labels.ForbiddenDomains...),
+					ForbiddenDomains:   append([]string{config.Cluster.Labels.Domain}, config.Cluster.Labels.ForbiddenDomains...),
+					ForbiddenLabelKeys: nplabels.GetForbiddenLabelKeys(),
 				}
+
+				nplabels.SetNodePoolLabelValidator(labelValidator)
 
 				nplsApi := api.NewNodepoolManagerAPI(
 					commonClusterGetter,

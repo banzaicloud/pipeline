@@ -20,6 +20,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 )
 
 func TestLabelValidator_ValidateKey(t *testing.T) {
@@ -45,10 +47,17 @@ func TestLabelValidator_ValidateKey(t *testing.T) {
 				"forbidden label key domain in \"node.example.com/key\": \"example.com\" domain is not allowed",
 			},
 		},
+		{
+			key: "node-role.kubernetes.io/master",
+			errors: []string{
+				"label key \"node-role.kubernetes.io/master\" is not allowed",
+			},
+		},
 	}
 
 	validator := LabelValidator{
-		ForbiddenDomains: []string{"example.com"},
+		ForbiddenDomains:   []string{"example.com"},
+		ForbiddenLabelKeys: nplabels.GetForbiddenLabelKeys(),
 	}
 
 	for _, test := range tests {

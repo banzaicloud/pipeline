@@ -158,7 +158,7 @@ func (c *Cluster) Validate(update bool) error {
 			return errors.WithDetails(errors.New("node shape must be specified"), "nodepool", name)
 		}
 
-		if err := pkgCommon.ValidateNodePoolLabels(nodePool.Labels); err != nil {
+		if err := pkgCommon.ValidateNodePoolLabels(name, nodePool.Labels); err != nil {
 			return err
 		}
 	}

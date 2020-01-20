@@ -38,6 +38,8 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/banzaicloud/pipeline/pkg/common"
+
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
@@ -1033,7 +1035,7 @@ func (c *ACKCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 		return err
 	}
 
-	for _, np := range r.Properties.CreateClusterACK.NodePools {
+	for npName, np := range r.Properties.CreateClusterACK.NodePools {
 		var (
 			instanceType = np.InstanceType
 			// diskCategory = np.SystemDiskCategory
@@ -1046,6 +1048,11 @@ func (c *ACKCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 
 		err = c.validateSystemDiskCategories(region, zone, diskCategory)
 		if err != nil {
+			return err
+		}
+
+		// --- [Label validation]--- //
+		if err := common.ValidateNodePoolLabels(npName, np.Labels); err != nil {
 			return err
 		}
 	}

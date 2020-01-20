@@ -39,8 +39,8 @@ type UpdateClusterPKE struct {
 func (a *UpdateClusterPKE) Validate() error {
 	// TODO implement
 
-	for _, np := range a.NodePools {
-		if err := common.ValidateNodePoolLabels(np.Labels); err != nil {
+	for npName, np := range a.NodePools {
+		if err := common.ValidateNodePoolLabels(npName, np.Labels); err != nil {
 			return err
 		}
 

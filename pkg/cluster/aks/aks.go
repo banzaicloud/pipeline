@@ -78,7 +78,7 @@ func (azure *CreateClusterAKS) Validate() error {
 		return pkgErrors.ErrorResourceGroupRequired
 	}
 
-	for _, np := range azure.NodePools {
+	for npName, np := range azure.NodePools {
 
 		// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
 		if np.Autoscaling {
@@ -105,7 +105,7 @@ func (azure *CreateClusterAKS) Validate() error {
 			return pkgErrors.ErrorInstancetypeFieldIsEmpty
 		}
 
-		if err := pkgCommon.ValidateNodePoolLabels(np.Labels); err != nil {
+		if err := pkgCommon.ValidateNodePoolLabels(npName, np.Labels); err != nil {
 			return err
 		}
 	}
