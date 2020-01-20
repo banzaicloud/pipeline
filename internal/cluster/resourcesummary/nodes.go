@@ -28,7 +28,7 @@ func CalculateNodesTotalCapacityAndAllocatable(nodes []v1.Node) (map[v1.Resource
 
 		for nodeCapName, nodeCapValue := range nodeCaps {
 			if value, ok := caps[nodeCapName]; !ok {
-				caps[nodeCapName] = *nodeCapValue.Copy()
+				caps[nodeCapName] = nodeCapValue.DeepCopy()
 			} else {
 				value.Add(nodeCapValue)
 				caps[nodeCapName] = value
@@ -37,7 +37,7 @@ func CalculateNodesTotalCapacityAndAllocatable(nodes []v1.Node) (map[v1.Resource
 
 		for nodeAllocName, nodeAllocValue := range nodeAllocs {
 			if value, ok := allocs[nodeAllocName]; !ok {
-				allocs[nodeAllocName] = *nodeAllocValue.Copy()
+				allocs[nodeAllocName] = nodeAllocValue.DeepCopy()
 			} else {
 				value.Add(nodeAllocValue)
 				allocs[nodeAllocName] = value
