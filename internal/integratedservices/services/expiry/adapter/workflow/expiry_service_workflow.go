@@ -50,7 +50,7 @@ func ExpiryJobWorkflow(ctx workflow.Context, input ExpiryJobWorkflowInput) error
 	}
 
 	activityCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-		ScheduleToStartTimeout: 15 * time.Minute,
+		ScheduleToStartTimeout: 5 * time.Minute,
 		StartToCloseTimeout:    3 * time.Hour,
 		WaitForCancellation:    true,
 	})

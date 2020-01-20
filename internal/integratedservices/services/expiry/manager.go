@@ -30,7 +30,7 @@ func (e expiryServiceManager) GetOutput(ctx context.Context, clusterID uint, spe
 }
 
 func (e expiryServiceManager) ValidateSpec(ctx context.Context, spec integratedservices.IntegratedServiceSpec) error {
-	expirySpec := ServiceSpec{}
+	var expirySpec ServiceSpec
 	if err := e.specBinderFunc(spec, &expirySpec); err != nil {
 		return integratedservices.InvalidIntegratedServiceSpecError{
 			IntegratedServiceName: ServiceName,

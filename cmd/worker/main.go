@@ -589,7 +589,7 @@ func main() {
 			expiryActivity := expiryWorkflow.NewExpiryActivity(clusterDeleter)
 			activity.RegisterWithOptions(expiryActivity.Execute, activity.RegisterOptions{Name: expiryWorkflow.ExpireActivityName})
 
-			expirerService := adapter.NewAsyncExpirer(workflowClient, logger)
+			expirerService := adapter.NewAsyncExpiryService(workflowClient, logger)
 
 			featureOperatorRegistry := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
 				integratedServiceDNS.MakeIntegratedServiceOperator(

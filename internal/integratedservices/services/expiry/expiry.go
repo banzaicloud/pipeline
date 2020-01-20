@@ -16,11 +16,6 @@ package expiry
 
 import (
 	"context"
-	"time"
-
-	"emperror.dev/errors"
-
-	"github.com/banzaicloud/pipeline/internal/common"
 )
 
 const ServiceName = "expiry"
@@ -36,34 +31,4 @@ type ExpiryCanceller interface {
 type ExpiryService interface {
 	Expirer
 	ExpiryCanceller
-}
-
-// Synchronous no - op ExpirationService implementation
-type syncExpiryService struct {
-	logger common.Logger
-}
-
-func (s syncExpiryService) CancelExpiry(ctx context.Context, clusterID uint) error {
-	return nil
-}
-
-func NewSyncExpiryService(log common.Logger) syncExpiryService {
-	return syncExpiryService{
-		logger: log,
-	}
-}
-
-func (s syncExpiryService) Expire(ctx context.Context, clusterID uint, expiryDate string) error {
-
-	t, err := time.ParseInLocation(time.RFC3339, expiryDate, time.Now().Location())
-	if err != nil {
-		return errors.WrapIf(err, "failed to parse the expiry date")
-	}
-
-	// get the duration
-	duration := t.Sub(time.Now())
-	time.Sleep(duration)
-
-	s.logger.Info("expirer logic triggered")
-	return nil
 }
