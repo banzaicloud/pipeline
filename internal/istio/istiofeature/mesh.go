@@ -17,10 +17,11 @@ package istiofeature
 import (
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
-	istiooperatorclientset "github.com/banzaicloud/istio-operator/pkg/client/clientset/versioned"
 	"github.com/sirupsen/logrus"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/kubernetes"
+
+	istiooperatorclientset "github.com/banzaicloud/pipeline/.gen/istio-operator/pkg/client/clientset/versioned"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
