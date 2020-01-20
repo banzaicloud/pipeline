@@ -589,7 +589,6 @@ func main() {
 			expiryActivity := expiryWorkflow.NewExpiryActivity(clusterDeleter)
 			activity.RegisterWithOptions(expiryActivity.Execute, activity.RegisterOptions{Name: expiryWorkflow.ExpireActivityName})
 
-			workflowClient, err := cadence.NewClient(config.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
 			expirerService := adapter.NewAsyncExpirer(workflowClient, logger)
 
 			featureOperatorRegistry := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
