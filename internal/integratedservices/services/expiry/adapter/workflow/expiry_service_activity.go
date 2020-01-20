@@ -27,10 +27,10 @@ type ExpiryActivityInput struct {
 }
 
 type ExpiryActivity struct {
-	clusterDeleter ClusterDeleter
+	clusterDeleter clusterDeleter
 }
 
-func NewExpiryActivity(clusterDeleter ClusterDeleter) ExpiryActivity {
+func NewExpiryActivity(clusterDeleter clusterDeleter) ExpiryActivity {
 	return ExpiryActivity{
 		clusterDeleter: clusterDeleter,
 	}
@@ -42,18 +42,8 @@ func (a ExpiryActivity) Execute(ctx context.Context, input ExpiryActivityInput) 
 	return a.clusterDeleter.DeleteCluster(ctx, input.ClusterID, cluster.DeleteClusterOptions{Force: true})
 }
 
-// ClusterDeleter contract for triggering cluster deletion.
+// clusterDeleter contract for triggering cluster deletion.
 // Designed to be used by the expire integrated service
-type ClusterDeleter interface {
+type clusterDeleter interface {
 	DeleteCluster(ctx context.Context, clusterID uint, options cluster.DeleteClusterOptions) error
-}
-
-type noOpDeleter struct{}
-
-func (n noOpDeleter) Delete(ctx context.Context, clusterID uint) error {
-	return nil
-}
-
-func NewNoOpDeleter() noOpDeleter {
-	return noOpDeleter{}
 }

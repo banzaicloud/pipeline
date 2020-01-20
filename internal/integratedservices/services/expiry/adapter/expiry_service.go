@@ -46,7 +46,7 @@ func NewAsyncExpirer(cadenceClient client.Client, logger common.Logger) asyncExp
 
 func (a asyncExpiryService) Expire(ctx context.Context, clusterID uint, expiryDate string) error {
 
-	startToCloseTimeout, err := startToCloseDuration(expiryDate)
+	startToCloseTimeout, err := CalculateDuration(now, expiryDate)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (a asyncExpiryService) Expire(ctx context.Context, clusterID uint, expiryDa
 	options := client.StartWorkflowOptions{
 		ID:                           getWorkflowID(clusterID),
 		TaskList:                     "pipeline",
-		ExecutionStartToCloseTimeout: startToCloseTimeout,
+		ExecutionStartToCloseTimeout: startToCloseTimeout + startToCloseDurationOffset,
 		WorkflowIDReusePolicy:        client.WorkflowIDReusePolicyAllowDuplicate,
 	}
 
@@ -98,13 +98,11 @@ func getWorkflowID(clusterID uint) string {
 	return fmt.Sprintf("%s-%d-%s", workflow.ExpiryJobWorkflowName, clusterID, expiry.ServiceName)
 }
 
-func startToCloseDuration(expiryDate string) (time.Duration, error) {
-	expiryTime, err := time.ParseInLocation(time.RFC3339, expiryDate, time.Now().Location())
+func CalculateDuration(now time.Time, tillDate string) (time.Duration, error) {
+	expiryTime, err := time.Parse(time.RFC3339, tillDate)
 	if err != nil {
 		return 0, errors.WrapIf(err, "failed to parse the expiry date")
 	}
 
-	// add extra 24 hours to the scheduled expiry
-	startToCloseTimeout := expiryTime.Add(startToCloseDurationOffset).Sub(time.Now())
-	return startToCloseTimeout, nil
+	return now.Sub(expiryTime), nil
 }
