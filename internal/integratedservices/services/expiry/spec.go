@@ -33,7 +33,7 @@ func (s ServiceSpec) Validate() error {
 	if err != nil {
 
 		return integratedservices.InvalidIntegratedServiceSpecError{
-			IntegratedServiceName: InternalServiceName,
+			IntegratedServiceName: ServiceName,
 			Problem:               "date must be in RFC3339 format",
 		}
 	}
@@ -41,7 +41,7 @@ func (s ServiceSpec) Validate() error {
 	if !t.After(time.Now()) {
 
 		return integratedservices.InvalidIntegratedServiceSpecError{
-			IntegratedServiceName: InternalServiceName,
+			IntegratedServiceName: ServiceName,
 			Problem:               "the provided date must be in the future",
 		}
 	}
