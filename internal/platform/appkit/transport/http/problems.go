@@ -18,12 +18,8 @@ import (
 	appkithttp "github.com/sagikazarmark/appkit/transport/http"
 )
 
-func init() {
-	DefaultProblemMatchers = append(DefaultProblemMatchers, appkithttp.DefaultProblemMatchers...)
-}
-
 // DefaultProblemMatchers is a list of default ProblemMatchers.
 // nolint: gochecknoglobals
-var DefaultProblemMatchers = []appkithttp.ProblemMatcher{
+var DefaultProblemMatchers = append([]appkithttp.ProblemMatcher{
 	NewValidationWithViolationsProblemMatcher(),
-}
+}, appkithttp.DefaultProblemMatchers...)
