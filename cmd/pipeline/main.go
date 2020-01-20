@@ -89,8 +89,10 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicedriver"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
 	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
@@ -803,6 +805,11 @@ func main() {
 					cRouter.GET("/whitelists", securityApiHandler.GetWhiteLists)
 					cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
 					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
+				}
+
+				if config.Cluster.Expiry.Enabled {
+					integratedServiceManagers = append(integratedServiceManagers,
+						expiry.NewExpiryServiceManager(services.BindIntegratedServiceSpec))
 				}
 
 				integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)

@@ -56,8 +56,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter"
+	expiryWorkflow "github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter/workflow"
 	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	integratedServiceMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
@@ -578,6 +582,15 @@ func main() {
 			featureAnchoreService := securityscan.NewIntegratedServiceAnchoreService(anchoreUserService, logger)
 			featureWhitelistService := securityscan.NewIntegratedServiceWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
 
+			// expiry integrated service
+			workflow.RegisterWithOptions(expiryWorkflow.ExpiryJobWorkflow, workflow.RegisterOptions{Name: expiryWorkflow.ExpiryJobWorkflowName})
+
+			clusterDeleter := clusteradapter.NewCadenceClusterManager(workflowClient)
+			expiryActivity := expiryWorkflow.NewExpiryActivity(clusterDeleter)
+			activity.RegisterWithOptions(expiryActivity.Execute, activity.RegisterOptions{Name: expiryWorkflow.ExpireActivityName})
+
+			expirerService := adapter.NewAsyncExpiryService(workflowClient, logger)
+
 			featureOperatorRegistry := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
 				integratedServiceDNS.MakeIntegratedServiceOperator(
 					clusterGetter,
@@ -627,6 +640,7 @@ func main() {
 					logger,
 					commonSecretStore,
 				),
+				expiry.NewExpiryServiceOperator(expirerService, services.BindIntegratedServiceSpec, logger),
 			})
 
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)
