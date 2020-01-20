@@ -68,7 +68,7 @@ func (a asyncExpiryService) Expire(ctx context.Context, clusterID uint, expiryDa
 	if err := a.cadenceClient.CancelWorkflow(ctx, getWorkflowID(clusterID), ""); err != nil {
 
 		if !IsEntityNotFoundError(err) {
-			errors.WrapIfWithDetails(err, "failed to cancel the expiry workflow", "clusterID", clusterID)
+			return errors.WrapIfWithDetails(err, "failed to cancel the expiry workflow", "clusterID", clusterID)
 		}
 
 		// let the flow continue
