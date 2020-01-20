@@ -24,6 +24,7 @@ import (
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter/workflow"
 )
 
@@ -45,7 +46,7 @@ func NewAsyncExpiryService(cadenceClient client.Client, logger common.Logger) as
 
 func (a asyncExpiryService) Expire(ctx context.Context, clusterID uint, expiryDate string) error {
 
-	startToCloseTimeout, err := CalculateDuration(now, expiryDate)
+	startToCloseTimeout, err := expiry.CalculateDuration(time.Now(), expiryDate)
 	if err != nil {
 		return err
 	}
