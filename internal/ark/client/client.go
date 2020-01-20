@@ -15,11 +15,12 @@
 package client
 
 import (
-	clientset "github.com/heptio/ark/pkg/generated/clientset/versioned"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+
+	clientset "github.com/banzaicloud/pipeline/.gen/heptio/ark/pkg/generated/clientset/versioned"
 )
 
 // ClientService is an interface for a implementation which gives back an initialized ARK client
