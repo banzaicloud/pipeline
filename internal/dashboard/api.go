@@ -28,7 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/kubernetes/pkg/scheduler/cache"
+	"k8s.io/kubernetes/pkg/scheduler/nodeinfo"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
@@ -156,13 +156,13 @@ func (d *DashboardAPI) GetClusterDashboard(c *gin.Context) {
 	c.JSON(http.StatusOK, clusterInfo)
 }
 
-func createNodeInfoMap(pods []v1.Pod, nodes []v1.Node) map[string]*cache.NodeInfo {
-	nodeInfoMap := make(map[string]*cache.NodeInfo)
+func createNodeInfoMap(pods []v1.Pod, nodes []v1.Node) map[string]*nodeinfo.NodeInfo {
+	nodeInfoMap := make(map[string]*nodeinfo.NodeInfo)
 	for _, pod := range pods {
 		nodeName := pod.Spec.NodeName
 		if len(nodeName) > 0 {
 			if _, ok := nodeInfoMap[nodeName]; !ok {
-				nodeInfoMap[nodeName] = cache.NewNodeInfo()
+				nodeInfoMap[nodeName] = nodeinfo.NewNodeInfo()
 			}
 			nodeInfoMap[nodeName].AddPod(pod.DeepCopy())
 		}
@@ -348,7 +348,7 @@ func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonClust
 func calculateNodeResourceUsage(
 	resourceName v1.ResourceName,
 	node v1.Node,
-	nodeInfoMap map[string]*cache.NodeInfo,
+	nodeInfoMap map[string]*nodeinfo.NodeInfo,
 	clusterResourceRequestMap map[v1.ResourceName]resource.Quantity,
 	clusterResourceAllocatableMap map[v1.ResourceName]resource.Quantity,
 ) (float64, string, string) {
