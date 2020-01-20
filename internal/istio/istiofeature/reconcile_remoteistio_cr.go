@@ -20,10 +20,11 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
-	istiooperatorclientset "github.com/banzaicloud/istio-operator/pkg/client/clientset/versioned"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	istiooperatorclientset "github.com/banzaicloud/pipeline/.gen/istio-operator/pkg/client/clientset/versioned"
 
 	"github.com/banzaicloud/pipeline/pkg/backoff"
 	"github.com/banzaicloud/pipeline/src/cluster"
