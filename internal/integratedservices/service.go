@@ -132,14 +132,14 @@ func (s IntegratedServiceService) Details(ctx context.Context, clusterID uint, i
 }
 
 // Activate activates a integrated service.
-func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, integratedServiceeName string, spec map[string]interface{}) error {
-	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "integrated service": integratedServiceeName})
+func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, integratedServiceName string, spec map[string]interface{}) error {
+	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "integrated service": integratedServiceName})
 	logger.Info("processing integrated service activation request")
 
 	// TODO: check cluster ID?
 
-	logger.Debug("retieving integrated service manager")
-	integratedServiceManager, err := s.integratedServiceManagerRegistry.GetIntegratedServiceManager(integratedServiceeName)
+	logger.Debug("retrieving integrated service manager")
+	integratedServiceManager, err := s.integratedServiceManagerRegistry.GetIntegratedServiceManager(integratedServiceName)
 	if err != nil {
 		const msg = "failed to retrieve integrated service manager"
 		logger.Debug(msg)
@@ -149,7 +149,7 @@ func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, 
 	logger.Debug("validating integrated service specification")
 	if err := integratedServiceManager.ValidateSpec(ctx, spec); err != nil {
 		logger.Debug("integrated service specification validation failed")
-		return InvalidIntegratedServiceSpecError{IntegratedServiceName: integratedServiceeName, Problem: err.Error()}
+		return InvalidIntegratedServiceSpecError{IntegratedServiceName: integratedServiceName, Problem: err.Error()}
 	}
 
 	logger.Debug("preparing integrated service specification")
@@ -161,14 +161,14 @@ func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, 
 	}
 
 	logger.Debug("starting integrated service activation")
-	if err := s.integratedServiceOperationDispatcher.DispatchApply(ctx, clusterID, integratedServiceeName, preparedSpec); err != nil {
+	if err := s.integratedServiceOperationDispatcher.DispatchApply(ctx, clusterID, integratedServiceName, preparedSpec); err != nil {
 		const msg = "failed to start integrated service activation"
 		logger.Debug(msg)
-		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "integrated service", integratedServiceeName)
+		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "integrated service", integratedServiceName)
 	}
 
 	logger.Debug("persisting integrated service")
-	if err := s.integratedServiceRepository.SaveIntegratedService(ctx, clusterID, integratedServiceeName, spec, IntegratedServiceStatusPending); err != nil {
+	if err := s.integratedServiceRepository.SaveIntegratedService(ctx, clusterID, integratedServiceName, spec, IntegratedServiceStatusPending); err != nil {
 		const msg = "failed to persist integrated service"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
