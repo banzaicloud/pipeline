@@ -25,11 +25,11 @@ import (
 
 type defaultProblemConverter struct{}
 
-func (c defaultProblemConverter) NewProblem(_ context.Context, err error) interface{} {
+func (defaultProblemConverter) NewProblem(_ context.Context, err error) interface{} {
 	return problems.NewDetailedProblem(http.StatusInternalServerError, err.Error())
 }
 
-func (c defaultProblemConverter) NewStatusProblem(_ context.Context, status int, err error) appkithttp.StatusProblem {
+func (defaultProblemConverter) NewStatusProblem(_ context.Context, status int, err error) appkithttp.StatusProblem {
 	return problems.NewDetailedProblem(status, err.Error())
 }
 

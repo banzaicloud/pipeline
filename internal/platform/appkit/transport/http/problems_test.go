@@ -160,7 +160,7 @@ func TestDefaultProblemMatchers_ValidationWithViolations(t *testing.T) {
 		t.Errorf("unexpected error\nexpected: %s\nactual:   %s", want, have)
 	}
 
-	if want, have := "violation", problem.Violations[0]; want != have {
+	if want, have := err.Violations, problem.Violations; !assert.ElementsMatch(t, want, have) {
 		t.Errorf("unexpected violations\nexpected: %v\nactual:   %v", err.Violations(), problem.Violations)
 	}
 }
