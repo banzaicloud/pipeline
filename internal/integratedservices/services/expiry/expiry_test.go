@@ -40,7 +40,7 @@ func Test_syncExpirer_Expire(t *testing.T) {
 		{
 			name: "expirer should execute at the defined date",
 			fields: fields{
-				logger: common.NewNoopLogger(),
+				logger: common.NoopLogger{},
 			},
 			args: args{
 				ctx:  context.Background(),
