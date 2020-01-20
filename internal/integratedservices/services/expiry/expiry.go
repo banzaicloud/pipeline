@@ -16,6 +16,9 @@ package expiry
 
 import (
 	"context"
+	"time"
+
+	"emperror.dev/errors"
 )
 
 const ServiceName = "expiry"
@@ -31,4 +34,13 @@ type ExpiryCanceller interface {
 type ExpiryService interface {
 	Expirer
 	ExpiryCanceller
+}
+
+func CalculateDuration(now time.Time, tillDate string) (time.Duration, error) {
+	expiryTime, err := time.Parse(time.RFC3339, tillDate)
+	if err != nil {
+		return 0, errors.WrapIf(err, "failed to parse the expiry date")
+	}
+
+	return expiryTime.Sub(now), nil
 }

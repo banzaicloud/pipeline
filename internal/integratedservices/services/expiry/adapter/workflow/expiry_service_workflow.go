@@ -20,7 +20,7 @@ import (
 	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
 
-	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
 )
 
 const (
@@ -36,7 +36,7 @@ type ExpiryJobWorkflowInput struct {
 // ExpiryJobWorkflow triggers the cluster deletion at a given date
 func ExpiryJobWorkflow(ctx workflow.Context, input ExpiryJobWorkflowInput) error {
 
-	sleepDuration, err := adapter.CalculateDuration(workflow.Now(ctx), input.ExpiryDate)
+	sleepDuration, err := expiry.CalculateDuration(workflow.Now(ctx), input.ExpiryDate)
 	if err != nil {
 		return errors.WrapIf(err, "failed to calculate the  expiry duration")
 	}

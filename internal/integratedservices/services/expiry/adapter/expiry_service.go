@@ -101,15 +101,6 @@ func getWorkflowID(clusterID uint) string {
 	return fmt.Sprintf("%s-%d", workflow.ExpiryJobWorkflowName, clusterID)
 }
 
-func CalculateDuration(now time.Time, tillDate string) (time.Duration, error) {
-	expiryTime, err := time.Parse(time.RFC3339, tillDate)
-	if err != nil {
-		return 0, errors.WrapIf(err, "failed to parse the expiry date")
-	}
-
-	return now.Sub(expiryTime), nil
-}
-
 func IsEntityNotFoundError(err error) bool {
 	var ene shared.EntityNotExistsError
 	return errors.As(err, ene)
