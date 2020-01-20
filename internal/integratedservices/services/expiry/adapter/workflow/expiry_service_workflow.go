@@ -38,7 +38,7 @@ func ExpiryJobWorkflow(ctx workflow.Context, input ExpiryJobWorkflowInput) error
 
 	sleepDuration, err := expiry.CalculateDuration(workflow.Now(ctx), input.ExpiryDate)
 	if err != nil {
-		return errors.WrapIf(err, "failed to calculate the  expiry duration")
+		return errors.WrapIf(err, "failed to calculate the expiry duration")
 	}
 
 	if err := workflow.Sleep(ctx, sleepDuration); err != nil {
@@ -51,7 +51,7 @@ func ExpiryJobWorkflow(ctx workflow.Context, input ExpiryJobWorkflowInput) error
 
 	activityCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		ScheduleToStartTimeout: 5 * time.Minute,
-		StartToCloseTimeout:    3 * time.Hour,
+		StartToCloseTimeout:    5 * time.Minute,
 		WaitForCancellation:    true,
 	})
 
