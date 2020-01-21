@@ -37,7 +37,7 @@ type asyncExpiryService struct {
 	logger        common.Logger
 }
 
-func NewAsyncExpiryService(cadenceClient client.Client, logger common.Logger) asyncExpiryService {
+func NewAsyncExpiryService(cadenceClient client.Client, logger common.Logger) expiry.ExpiryService {
 	return asyncExpiryService{
 		cadenceClient: cadenceClient,
 		logger:        logger,
