@@ -21,11 +21,11 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
-	"github.com/kubernetes-sigs/kubefed/pkg/client/generic"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
+	"sigs.k8s.io/kubefed/pkg/client/generic"
 	genericclient "sigs.k8s.io/kubefed/pkg/client/generic"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"

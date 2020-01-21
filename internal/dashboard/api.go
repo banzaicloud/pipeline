@@ -305,8 +305,8 @@ func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonClust
 			case v1.NodeReady:
 				status.Ready = fmt.Sprint(condition.Status)
 				status.LastHeartbeatTime = condition.LastHeartbeatTime.String()
-			case v1.NodeOutOfDisk:
-				status.OutOfDisk = fmt.Sprint(condition.Status)
+			// case v1.NodeOutOfDisk:
+			// 	status.OutOfDisk = fmt.Sprint(condition.Status)
 			case v1.NodeMemoryPressure:
 				status.MemoryPressure = fmt.Sprint(condition.Status)
 			case v1.NodeDiskPressure:
