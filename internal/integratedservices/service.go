@@ -16,6 +16,7 @@ package integratedservices
 
 import (
 	"context"
+	"fmt"
 
 	"emperror.dev/errors"
 
@@ -142,6 +143,16 @@ func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, 
 	integratedServiceManager, err := s.integratedServiceManagerRegistry.GetIntegratedServiceManager(integratedServiceName)
 	if err != nil {
 		const msg = "failed to retrieve integrated service manager"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
+	}
+
+	if _, err := s.integratedServiceRepository.GetIntegratedService(ctx, clusterID, integratedServiceName); err == nil {
+		return errors.WithStackIf(serviceAlreadyActiveError{
+			ServiceName: integratedServiceName,
+		})
+	} else if !IsIntegratedServiceNotFoundError(err) { // unexpected error
+		const msg = "failed to get integrated service from repository"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
 	}
@@ -281,4 +292,22 @@ func merge(this map[string]interface{}, that map[string]interface{}) map[string]
 		result[k] = v
 	}
 	return result
+}
+
+type serviceAlreadyActiveError struct {
+	ServiceName string
+}
+
+func (e serviceAlreadyActiveError) Error() string {
+	return fmt.Sprintf("Service %q is already active.", e.ServiceName)
+}
+
+func (e serviceAlreadyActiveError) Details() []interface{} {
+	return []interface{}{
+		"integratedServiceName", e.ServiceName,
+	}
+}
+
+func (serviceAlreadyActiveError) ClientError() bool {
+	return true
 }
