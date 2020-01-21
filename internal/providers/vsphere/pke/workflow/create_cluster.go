@@ -25,8 +25,10 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
+	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/vmware/govmomi/vim25/types"
 )
 
 const CreateClusterWorkflowName = "pke-vsphere-create-cluster"
@@ -81,11 +83,15 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 	*/
 
-	// Create nodes
+	var masterRef types.ManagedObjectReference
+	// Create master nodes
 	{
-		futures := make([]workflow.Future, len(input.Nodes))
+		futures := make(map[string]workflow.Future)
 
-		for i, node := range input.Nodes {
+		for _, node := range input.Nodes {
+			if !node.Master {
+				continue
+			}
 			if node.UserDataScriptParams == nil {
 				node.UserDataScriptParams = make(map[string]string)
 			}
@@ -99,13 +105,13 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 				DatastoreName:    input.DatastoreName,
 				Node:             node,
 			}
-			futures[i] = workflow.ExecuteActivity(ctx, CreateNodeActivityName, activityInput)
+			futures[node.Name] = workflow.ExecuteActivity(ctx, CreateNodeActivityName, activityInput)
 		}
 
-		errs := make([]error, len(futures))
+		errs := []error{}
 
-		for i, future := range futures {
-			errs[i] = errors.WrapIff(future.Get(ctx, nil), "creating node %q", input.Nodes[i].Name)
+		for i := range futures {
+			errs = append(errs, errors.WrapIff(futures[i].Get(ctx, &masterRef), "creating node %q", i))
 		}
 
 		if err := errors.Combine(errs...); err != nil {
@@ -113,7 +119,53 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 	}
 
+	var masterIP string
+	workflow.ExecuteActivity(ctx, WaitForIPActivityName, WaitForIPActivityInput{
+		Ref:            masterRef,
+		OrganizationID: input.OrganizationID,
+		SecretID:       input.SecretID,
+		ClusterName:    input.ClusterName,
+	}).Get(ctx, &masterIP)
+
 	setClusterStatus(ctx, input.ClusterID, pkgCluster.Creating, "waiting for Kubernetes master") // nolint: errcheck
+
+	// Create worker nodes
+	{
+		futures := make(map[string]workflow.Future)
+
+		for _, node := range input.Nodes {
+			if node.Master {
+				continue
+			}
+			if node.UserDataScriptParams == nil {
+				node.UserDataScriptParams = make(map[string]string)
+			}
+			if node.UserDataScriptParams["PublicAddress"] == "" {
+				node.UserDataScriptParams["PublicAddress"] = masterIP
+			}
+			activityInput := CreateNodeActivityInput{
+				OrganizationID:   input.OrganizationID,
+				SecretID:         input.SecretID,
+				ClusterID:        input.ClusterID,
+				ClusterName:      input.ClusterName,
+				ResourcePoolName: input.ResourcePoolName,
+				FolderName:       input.FolderName,
+				DatastoreName:    input.DatastoreName,
+				Node:             node,
+			}
+			futures[node.Name] = workflow.ExecuteActivity(ctx, CreateNodeActivityName, activityInput)
+		}
+
+		errs := []error{}
+
+		for i := range futures {
+			errs = append(errs, errors.WrapIff(futures[i].Get(ctx, nil), "creating node %q", i))
+		}
+
+		if err := errors.Combine(errs...); err != nil {
+			return err
+		}
+	}
 
 	if err := waitForMasterReadySignal(ctx, 1*time.Hour); err != nil {
 		_ = setClusterErrorStatus(ctx, input.ClusterID, err)
@@ -134,7 +186,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	{
 		workflowInput := clustersetup.WorkflowInput{
-			ConfigSecretID: configSecretID,
+			ConfigSecretID: brn.New(input.OrganizationID, brn.SecretResourceType, configSecretID).String(),
 			Cluster: clustersetup.Cluster{
 				ID:   input.ClusterID,
 				UID:  input.ClusterUID,
@@ -153,20 +205,17 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 	}
 
-	/*
+	postHookWorkflowInput := cluster.RunPostHooksWorkflowInput{
+		ClusterID: input.ClusterID,
+		PostHooks: cluster.BuildWorkflowPostHookFunctions(nil, true),
+	}
 
-		postHookWorkflowInput := cluster.RunPostHooksWorkflowInput{
-			ClusterID: input.ClusterID,
-			PostHooks: cluster.BuildWorkflowPostHookFunctions(input.PostHooks, true),
-		}
+	err := workflow.ExecuteChildWorkflow(ctx, cluster.RunPostHooksWorkflowName, postHookWorkflowInput).Get(ctx, nil)
+	if err != nil {
+		_ = setClusterErrorStatus(ctx, input.ClusterID, err)
+		return err
+	}
 
-		err = workflow.ExecuteChildWorkflow(ctx, cluster.RunPostHooksWorkflowName, postHookWorkflowInput).Get(ctx, nil)
-		if err != nil {
-			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
-			return err
-		}
-
-	*/
 	return nil
 }
 

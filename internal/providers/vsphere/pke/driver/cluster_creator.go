@@ -357,7 +357,10 @@ const masterUserDataScriptTemplate = `#!/bin/sh
 #export HTTP_PROXY="{{ .HttpProxy }}"
 #export HTTPS_PROXY="{{ .HttpsProxy }}"
 #export NO_PROXY="{{ .NoProxy }}"
-export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
+
+PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
+PUBLIC_ADDRESS="{{ if .PublicAddress }}{{ .PublicAddress }}{{ else }}$PRIVATE_IP{{ end }}"
+
 until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
@@ -371,11 +374,11 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-nodepool={{ .NodePoolName }} \
 --taints={{ .Taints }} \
 --kubernetes-advertise-address=$PRIVATE_IP:6443 \
---kubernetes-api-server={{ .PublicAddress }}:6443 \
---kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
+--kubernetes-api-server=$PUBLIC_ADDRESS:6443 \
+--kubernetes-infrastructure-cidr=$PRIVATE_IP/32 \
 --kubernetes-version={{ .KubernetesVersion }} \
 --kubernetes-master-mode={{ .KubernetesMasterMode }} \
---kubernetes-api-server-cert-sans={{ .PublicAddress }}`
+--kubernetes-api-server-cert-sans="${PUBLIC_ADDRESS}"`
 
 /*
 #--kubernetes-cloud-provider=vsphere \
@@ -399,6 +402,8 @@ until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /us
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
 
+PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
+
 pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-insecure="{{ .PipelineURLInsecure }}" \
 --pipeline-token="{{ .PipelineToken }}" \
@@ -408,6 +413,6 @@ pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --taints={{ .Taints }} \
 --kubernetes-cloud-provider=vsphere \
 --kubernetes-api-server={{ .PublicAddress }}:6443 \
---kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
+--kubernetes-infrastructure-cidr=$PRIVATE_IP/32 \
 --kubernetes-version={{ .KubernetesVersion }} \
 --kubernetes-pod-network-cidr=""`

@@ -73,10 +73,11 @@ type Node struct {
 	UserDataScriptTemplate string
 	TemplateName           string
 	NodePoolName           string
+	Master                 bool
 }
 
 // Execute performs the activity
-func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivityInput) error {
+func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivityInput) (types.ManagedObjectReference, error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
@@ -89,16 +90,18 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 		"node", input.Node.Name,
 	}*/
 
+	vmRef := types.ManagedObjectReference{}
+
 	logger.Info("create virtual machine")
 
 	userDataScriptTemplate, err := template.New(input.Name + "UserDataScript").Parse(input.UserDataScriptTemplate)
 	if err != nil {
-		return err
+		return vmRef, err
 	}
 
 	_, token, err := a.tokenGenerator.GenerateClusterToken(input.OrganizationID, input.ClusterID)
 	if err != nil {
-		return err
+		return vmRef, err
 	}
 
 	input.UserDataScriptParams["PipelineToken"] = token
@@ -106,12 +109,12 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 	var userDataScript strings.Builder
 	err = userDataScriptTemplate.Execute(&userDataScript, input.UserDataScriptParams)
 	if err = errors.WrapIf(err, "failed to execute user data script template"); err != nil {
-		return err
+		return vmRef, err
 	}
 
 	c, err := a.vmomiClientFactory.New(input.OrganizationID, input.SecretID)
 	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
-		return err
+		return vmRef, err
 	}
 
 	userData := encodeGuestinfo(generateCloudConfig(input.AdminUsername, input.SSHPublicKey, userDataScript.String(), input.Name))
@@ -130,19 +133,19 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 	finder := find.NewFinder(c.Client)
 	folder, err := finder.FolderOrDefault(ctx, input.FolderName)
 	if err != nil {
-		return err
+		return vmRef, err
 	}
 	folderRef := folder.Reference()
 
 	template, err := finder.VirtualMachine(ctx, input.TemplateName)
 	if err != nil {
-		return err
+		return vmRef, err
 	}
 	templateRef := template.Reference()
 
 	pool, err := finder.ResourcePoolOrDefault(ctx, input.ResourcePoolName)
 	if err != nil {
-		return err
+		return vmRef, err
 	}
 
 	poolRef := pool.Reference()
@@ -154,16 +157,16 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 		cloneSpec.Location.Datastore = &dsRef
 	} else {
 		if _, ok := err.(*find.NotFoundError); !ok {
-			return err
+			return vmRef, err
 		}
 
 		logger.Debugf("ds %s not found, fallback to drs", input.DatastoreName)
 		storagePod, err := finder.DatastoreCluster(ctx, input.DatastoreName)
 		if err != nil {
 			if _, ok := err.(*find.NotFoundError); ok {
-				return fmt.Errorf("neither a datastore nor a datastore cluster named %q found", input.DatastoreName)
+				return vmRef, fmt.Errorf("neither a datastore nor a datastore cluster named %q found", input.DatastoreName)
 			}
-			return err
+			return vmRef, err
 		}
 
 		storagePodRef := storagePod.Reference()
@@ -184,11 +187,11 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 		storageResourceManager := object.NewStorageResourceManager(c.Client)
 		result, err := storageResourceManager.RecommendDatastores(ctx, storagePlacementSpec)
 		if err != nil {
-			return err
+			return vmRef, err
 		}
 
 		if len(result.Recommendations) == 0 {
-			return fmt.Errorf("no datastore-cluster recommendations")
+			return vmRef, fmt.Errorf("no datastore-cluster recommendations")
 		}
 
 		cloneSpec.Location.Datastore = &result.Recommendations[0].Action[0].(*types.StoragePlacementAction).Destination
@@ -196,18 +199,23 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 
 	task, err := template.Clone(ctx, folder, input.Name, cloneSpec)
 	if err != nil {
-		return err
+		return vmRef, err
 	}
 
 	logger.Info("cloning template", "task", task.String())
 
 	taskInfo, err := task.WaitForResult(ctx, nil)
 	if err != nil {
-		return err
+		return vmRef, err
 	}
 
 	logger.Infof("vm created: %+v\n", taskInfo)
-	return nil
+	logger.Debugf("result %T: %+v", taskInfo.Result)
+
+	if ref, ok := taskInfo.Result.(types.ManagedObjectReference); ok {
+		vmRef = ref
+	}
+	return vmRef, nil
 }
 
 func encodeGuestinfo(data string) string {
@@ -226,8 +234,10 @@ func encodeGuestinfo(data string) string {
 func generateCloudConfig(user, publicKey, script, hostname string) string {
 
 	data := map[string]interface{}{
-		"hostname": hostname,
-		"runcmd":   []string{script},
+		"hostname":          hostname,
+		"fqdn":              hostname,
+		"preserve_hostname": false,
+		"runcmd":            []string{script},
 	}
 
 	if publicKey != "" {

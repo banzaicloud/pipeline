@@ -52,6 +52,7 @@ func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
 		UserDataScriptTemplate: workerUserDataScriptTemplate,
 		TemplateName:           np.TemplateName,
 		NodePoolName:           np.Name,
+		Master:                 np.hasRole(pkgPKE.RoleMaster),
 	}
 
 	k8sMasterMode := "default"
@@ -101,7 +102,7 @@ func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
 		"PKEVersion":           pkeVersion,
 		"KubernetesVersion":    f.KubernetesVersion,
 		"KubernetesMasterMode": k8sMasterMode,
-		"PublicAddress":        "<not yet set>",
+		//"PublicAddress":        "<not yet set>",
 		//"HttpProxy":            "<not yet set>",
 		//"HttpsProxy":           "<not yet set>",
 		//"NoProxy":              f.NoProxy,
