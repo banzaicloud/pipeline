@@ -63,16 +63,9 @@ func (a asyncExpiryService) Expire(ctx context.Context, clusterID uint, expiryDa
 		ExpiryDate: expiryDate,
 	}
 
-	// terminate the workflow if already exists to support the update flow
-	// the error is ignored on purpose here
-	if err := a.cadenceClient.TerminateWorkflow(ctx, getWorkflowID(clusterID), "", "expiration service cancelled", nil); err != nil {
-
-		if !IsEntityNotExistsError(err) {
-			return errors.WrapIfWithDetails(err, "failed to cancel the expiry workflow", "clusterID", clusterID)
-		}
-
-		// let the flow continue
-		a.logger.Debug("entity not found, proceed forward (apply)")
+	// cancel the workflow if already set up (support the update flow)
+	if err := a.CancelExpiry(ctx, clusterID); err != nil {
+		return errors.WrapIfWithDetails(err, "failed to setup expiry workflow", "clusterID", clusterID)
 	}
 
 	if _, err := a.cadenceClient.StartWorkflow(ctx, options, workflow.ExpiryJobWorkflowName, workflowInput); err != nil {
@@ -85,10 +78,10 @@ func (a asyncExpiryService) Expire(ctx context.Context, clusterID uint, expiryDa
 
 func (a asyncExpiryService) CancelExpiry(ctx context.Context, clusterID uint) error {
 
-	if err := a.cadenceClient.CancelWorkflow(ctx, getWorkflowID(clusterID), ""); err != nil {
-		if !IsEntityNotExistsError(err) {
+	if err := a.cadenceClient.TerminateWorkflow(ctx, getWorkflowID(clusterID), "", "expiration service cancelled", nil); err != nil {
 
-			return errors.WrapIfWithDetails(err, "failed to cancel the expiry workflow", "workflowId", getWorkflowID(clusterID))
+		if !IsEntityNotExistsError(err) {
+			return errors.WrapIfWithDetails(err, "failed to cancel the expiry workflow", "clusterID", clusterID)
 		}
 	}
 
