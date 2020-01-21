@@ -478,7 +478,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	})
 
 	v.SetDefault("cluster::autoscale::charts::hpaOperator::chart", "banzaicloud-stable/hpa-operator")
-	v.SetDefault("cluster::autoscale::charts::hpaOperator::version", "0.0.14")
+	v.SetDefault("cluster::autoscale::charts::hpaOperator::version", "0.0.16")
 	v.SetDefault("cluster::autoscale::charts::hpaOperator::values", map[string]interface{}{})
 
 	v.SetDefault("cluster::securityScan::enabled", true)
