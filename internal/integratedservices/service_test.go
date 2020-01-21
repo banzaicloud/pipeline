@@ -187,9 +187,7 @@ func TestIntegratedServiceService_Activate(t *testing.T) {
 		},
 	}
 	registry := MakeIntegratedServiceManagerRegistry([]IntegratedServiceManager{integratedServiceManager})
-	repository := NewInMemoryIntegratedServiceRepository(nil)
 	logger := NoopLogger{}
-	service := MakeIntegratedServiceService(dispatcher, registry, repository, logger)
 
 	cases := map[string]struct {
 		IntegratedServiceName  string
@@ -197,6 +195,7 @@ func TestIntegratedServiceService_Activate(t *testing.T) {
 		ApplyError             error
 		Error                  interface{}
 		IntegratedServiceSaved bool
+		InitialServices        map[uint][]IntegratedService
 	}{
 		"success": {
 			IntegratedServiceName:  integratedServiceName,
@@ -218,6 +217,22 @@ func TestIntegratedServiceService_Activate(t *testing.T) {
 			ApplyError:            errors.New("failed to begin apply"),
 			Error:                 true,
 		},
+		"already active service": {
+			IntegratedServiceName: integratedServiceName,
+			InitialServices: map[uint][]IntegratedService{
+				clusterID: {
+					{
+						Name:   integratedServiceName,
+						Spec:   IntegratedServiceSpec{},
+						Status: IntegratedServiceStatusActive,
+					},
+				},
+			},
+			Error: serviceAlreadyActiveError{
+				ServiceName: integratedServiceName,
+			},
+			IntegratedServiceSaved: true,
+		},
 	}
 	spec := IntegratedServiceSpec{
 		"mySpecKey": "mySpecValue",
@@ -225,7 +240,8 @@ func TestIntegratedServiceService_Activate(t *testing.T) {
 	for name, tc := range cases {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			repository.Clear()
+			repository := NewInMemoryIntegratedServiceRepository(tc.InitialServices)
+			service := MakeIntegratedServiceService(dispatcher, registry, repository, logger)
 			dispatcher.ApplyError = tc.ApplyError
 			integratedServiceManager.ValidationError = tc.ValidationError
 
