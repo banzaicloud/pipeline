@@ -15,8 +15,6 @@
 package services
 
 import (
-	"reflect"
-
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
 
@@ -26,10 +24,7 @@ import (
 // BindIntegratedServiceSpec binds an incoming integrated service specific raw spec (json) into the appropriate struct
 func BindIntegratedServiceSpec(inputSpec integratedservices.IntegratedServiceSpec, boundSpec interface{}) error {
 	if err := mapstructure.Decode(inputSpec, &boundSpec); err != nil {
-		return integratedservices.InvalidIntegratedServiceSpecError{
-			IntegratedServiceName: reflect.TypeOf(boundSpec).Name(),
-			Problem:               errors.WrapIf(err, "failed to bind integrated service spec").Error(),
-		}
+		return errors.WrapIf(err, "failed to decode integrated service specification")
 	}
 	return nil
 }
