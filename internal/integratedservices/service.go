@@ -131,7 +131,7 @@ func (s IntegratedServiceService) Details(ctx context.Context, clusterID uint, i
 	return integratedService, nil
 }
 
-// Activate activates a integrated service.
+// Activate activates an integrated service.
 func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, integratedServiceName string, spec map[string]interface{}) error {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "integrated service": integratedServiceName})
 	logger.Info("processing integrated service activation request")
