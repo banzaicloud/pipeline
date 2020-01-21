@@ -25,6 +25,11 @@ import (
 )
 
 func (op IntegratedServiceOperator) createClusterFlowResource(ctx context.Context, managers []outputDefinitionManager, clusterID uint) error {
+	if len(managers) == 0 {
+		// create flow only in case of non empty output list
+		return nil
+	}
+
 	var flowResource = op.generateFlowResource(managers)
 
 	var oldFlow v1beta1.ClusterFlow
