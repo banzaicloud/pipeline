@@ -214,7 +214,7 @@ dex:
 #        charts:
 #            operator:
 #                chart: "banzaicloud-stable/logging-operator"
-#                version: "2.6.0"
+#                version: "2.7.2"
 #
 #                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-operator for details
 #                values: {}
