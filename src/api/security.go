@@ -22,10 +22,11 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
-	clientV1alpha1 "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	"github.com/gin-gonic/gin"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
+
+	clientV1alpha1 "github.com/banzaicloud/pipeline/.gen/anchore-image-validator/pkg/clientset/v1alpha1"
 
 	internalCommon "github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"

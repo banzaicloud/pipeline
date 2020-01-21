@@ -51,7 +51,6 @@ require (
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
-	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cors v1.3.0
@@ -63,7 +62,6 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-github v17.0.0+incompatible
-	github.com/googleapis/gnostic v0.3.1 // indirect
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/sessions v1.2.0
 	github.com/gosimple/slug v1.9.0 // indirect
@@ -116,7 +114,7 @@ require (
 	github.com/spf13/cast v1.3.1
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.6.1
+	github.com/spf13/viper v1.6.2
 	github.com/streadway/quantile v0.0.0-20150917103942-b0c588724d25 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
@@ -156,9 +154,9 @@ require (
 	logur.dev/integration/watermill v0.4.2
 	logur.dev/integration/zap v0.3.2
 	logur.dev/logur v0.16.2
-	sigs.k8s.io/controller-runtime v0.2.0
+	sigs.k8s.io/controller-runtime v0.4.0
 	sigs.k8s.io/kubefed v0.1.0-rc6
-	sigs.k8s.io/testing_frameworks v0.1.1
+	sigs.k8s.io/testing_frameworks v0.1.2
 	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect
 )
 
@@ -198,6 +196,5 @@ replace (
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.17.1
 	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.17.1
 	k8s.io/sample-controller => k8s.io/sample-controller v0.17.1
-	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.1.10
 	sigs.k8s.io/kubefed => github.com/banzaicloud/kubefed v0.1.0-rc2.0.20200120020848-e4919c863f7a
 )
