@@ -78,7 +78,6 @@ require (
 	github.com/jinzhu/now v1.1.1
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/jmoiron/sqlx v1.2.0 // indirect
-	github.com/kubernetes-sigs/kubefed v0.1.0-rc6
 	github.com/lestrrat-go/backoff v1.0.0
 	github.com/lib/pq v1.3.0 // indirect
 	github.com/mattn/go-sqlite3 v2.0.2+incompatible // indirect
@@ -197,5 +196,5 @@ replace (
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.17.1
 	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.17.1
 	k8s.io/sample-controller => k8s.io/sample-controller v0.17.1
-	sigs.k8s.io/kubefed => github.com/banzaicloud/kubefed v0.1.0-rc2.0.20200120020848-e4919c863f7a
+	sigs.k8s.io/kubefed => github.com/banzaicloud/kubefed v0.1.0-rc2.0.20200121120031-f51ecb598a2d
 )
