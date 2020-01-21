@@ -20,12 +20,13 @@ import (
 
 	"emperror.dev/errors"
 	"k8s.io/apimachinery/pkg/util/validation"
+
+	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 )
 
 // LabelValidator validates Kubernetes object labels.
 type LabelValidator struct {
-	ForbiddenDomains   []string
-	ForbiddenLabelKeys []string
+	ForbiddenDomains []string
 }
 
 // ValidateKey validates a label key.
@@ -51,7 +52,7 @@ func (v LabelValidator) ValidateKey(key string) error {
 		}
 	}
 
-	for _, labelKey := range v.ForbiddenLabelKeys {
+	for _, labelKey := range nplabels.ForbiddenLabelKeys {
 		if key == labelKey {
 			violations = append(violations, fmt.Sprintf("label key %q is not allowed", key))
 		}

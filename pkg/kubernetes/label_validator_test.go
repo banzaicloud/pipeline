@@ -20,8 +20,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 )
 
 func TestLabelValidator_ValidateKey(t *testing.T) {
@@ -56,8 +54,7 @@ func TestLabelValidator_ValidateKey(t *testing.T) {
 	}
 
 	validator := LabelValidator{
-		ForbiddenDomains:   []string{"example.com"},
-		ForbiddenLabelKeys: nplabels.GetForbiddenLabelKeys(),
+		ForbiddenDomains: []string{"example.com"},
 	}
 
 	for _, test := range tests {

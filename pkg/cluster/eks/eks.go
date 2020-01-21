@@ -206,7 +206,7 @@ func (eks *CreateClusterEKS) Validate() error {
 	}
 
 	// validate node pools
-	errs := make([]error, 0)
+	var errs []error
 	for npName, np := range eks.NodePools {
 		if err := np.Validate(npName); err != nil {
 			errs = append(errs, err)
@@ -276,7 +276,7 @@ func (eks *UpdateClusterAmazonEKS) Validate() error {
 	}
 
 	// validate node pools
-	errs := make([]error, 0)
+	var errs []error
 	for npName, np := range eks.NodePools {
 		if err := np.ValidateForUpdate(npName); err != nil {
 			errs = append(errs, err)

@@ -90,8 +90,7 @@ var (
 func TestCreateCommonClusterFromRequest(t *testing.T) {
 
 	labelValidator := kubernetes2.LabelValidator{
-		ForbiddenDomains:   []string{},
-		ForbiddenLabelKeys: nplabels.GetForbiddenLabelKeys(),
+		ForbiddenDomains: []string{},
 	}
 
 	nplabels.SetNodePoolLabelValidator(labelValidator)

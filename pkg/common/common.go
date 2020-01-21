@@ -95,7 +95,7 @@ type ValidationError struct {
 func (e ValidationError) Error() string {
 	errMsg := e.message
 	if len(e.violations) > 0 {
-		errMsg = errMsg + ": " + strings.Join(e.violations, ", ")
+		errMsg += ": " + strings.Join(e.violations, ", ")
 	}
 	return errMsg
 }

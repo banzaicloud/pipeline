@@ -53,8 +53,6 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
-	"github.com/banzaicloud/pipeline/internal/global/nplabels"
-
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
@@ -86,6 +84,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
+	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -859,8 +858,7 @@ func main() {
 				clusterStore := clusteradapter.NewStore(db, clusters)
 
 				labelValidator := kubernetes2.LabelValidator{
-					ForbiddenDomains:   append([]string{config.Cluster.Labels.Domain}, config.Cluster.Labels.ForbiddenDomains...),
-					ForbiddenLabelKeys: nplabels.GetForbiddenLabelKeys(),
+					ForbiddenDomains: append([]string{config.Cluster.Labels.Domain}, config.Cluster.Labels.ForbiddenDomains...),
 				}
 
 				nplabels.SetNodePoolLabelValidator(labelValidator)

@@ -124,7 +124,7 @@ func (g *CreateClusterGKE) Validate() error {
 	}
 
 	// validate node pools
-	errs := make([]error, 0)
+	var errs []error
 	for npName, np := range g.NodePools {
 		if err := validateNodePool(npName, np); err != nil {
 			errs = append(errs, err)
@@ -162,7 +162,7 @@ func (a *UpdateClusterGoogle) Validate() error {
 	}
 
 	// validate node pools
-	errs := make([]error, 0)
+	var errs []error
 	for npName, np := range a.NodePools {
 		if err := validateNodePool(npName, np); err != nil {
 			errs = append(errs, err)
