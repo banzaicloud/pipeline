@@ -15,9 +15,7 @@
 package common
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -85,55 +83,11 @@ func ErrorResponseWithStatus(c *gin.Context, status int, err error) {
 	})
 }
 
-// ValidationError is returned when a request is semantically invalid.
-type ValidationError struct {
-	message    string
-	violations []string
-}
-
-// Error implements the error interface.
-func (e ValidationError) Error() string {
-	errMsg := e.message
-	if len(e.violations) > 0 {
-		errMsg += ": " + strings.Join(e.violations, ", ")
-	}
-	return errMsg
-}
-
-// unwrapViolations is a helper func to unwrap violations from a validation error
-func unwrapViolations(err error) []string {
-	var verr interface {
-		Violations() []string
-	}
-
-	if errors.As(err, &verr) {
-		return verr.Violations()
-	}
-
-	return []string{err.Error()}
-}
-
 // Validate checks whether the node pool labels collide with labels
 // set by Pipeline and also if these are valid Kubernetes labels
 func ValidateNodePoolLabels(nodePoolName string, labels map[string]string) error {
-	var violations []string
-
-	for key, value := range labels {
-		if err := nplabels.NodePoolLabelValidator().ValidateKey(key); err != nil {
-			violations = append(violations, unwrapViolations(err)...)
-		}
-
-		if err := nplabels.NodePoolLabelValidator().ValidateValue(value); err != nil {
-			violations = append(violations, unwrapViolations(err)...)
-		}
-	}
-
-	if len(violations) > 0 {
-		return errors.WithStack(ValidationError{
-			message:    fmt.Sprintf("invalid labels on %s node pool", nodePoolName),
-			violations: violations,
-		})
-	}
-
-	return nil
+	return errors.WithMessagef(
+		nplabels.NodePoolLabelValidator().ValidateLabels(labels),
+		"invalid labels on %s node pool", nodePoolName,
+	)
 }
