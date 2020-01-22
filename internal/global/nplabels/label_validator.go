@@ -27,6 +27,8 @@ var nplLabelValidatorMu sync.Mutex
 type LabelValidator interface {
 	ValidateKey(key string) error
 	ValidateValue(value string) error
+	ValidateLabel(key string, value string) error
+	ValidateLabels(labels map[string]string) error
 }
 
 // NodePoolLabelValidator returns a global node pool validator.

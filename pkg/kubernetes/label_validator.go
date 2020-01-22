@@ -115,10 +115,7 @@ func (v LabelValidator) validateValue(value string) []string {
 
 // ValidateLabel validates both a label key and a value.
 func (v LabelValidator) ValidateLabel(key string, value string) error {
-	var violations []string
-
-	violations = append(violations, v.validateKey(key)...)
-	violations = append(violations, v.validateValue(value)...)
+	violations := v.validateLabel(key, value)
 
 	if len(violations) > 0 {
 		return errors.WithStack(LabelValidationError{
@@ -129,13 +126,46 @@ func (v LabelValidator) ValidateLabel(key string, value string) error {
 	return nil
 }
 
+func (v LabelValidator) validateLabel(key string, value string) []string {
+	var violations []string
+
+	violations = append(violations, v.validateKey(key)...)
+	violations = append(violations, v.validateValue(value)...)
+
+	return violations
+}
+
+// ValidateLabels validates a set of label key-value pairs.
+func (v LabelValidator) ValidateLabels(labels map[string]string) error {
+	var violations []string
+
+	for key, value := range labels {
+		violations = append(violations, v.validateLabel(key, value)...)
+	}
+
+	if len(violations) > 0 {
+		return errors.WithStack(LabelValidationError{
+			message:    "invalid labels",
+			violations: violations,
+		})
+	}
+
+	return nil
+}
+
 // LabelValidationError is returned (with a set of underlying violations) when a label is invalid.
 type LabelValidationError struct {
+	message string
+
 	violations []string
 }
 
 // Error implements the error interface.
 func (e LabelValidationError) Error() string {
+	if e.message != "" {
+		return e.message
+	}
+
 	return "invalid label"
 }
 

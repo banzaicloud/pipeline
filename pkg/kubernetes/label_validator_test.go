@@ -187,3 +187,40 @@ func TestLabelValidator_ValidateLabel(t *testing.T) {
 		})
 	}
 }
+
+func TestLabelValidator_ValidateLabels(t *testing.T) {
+	labels := map[string]string{
+		"key":                            "",
+		"key*":                           "value.*-/",
+		"":                               "",
+		"example.com/key":                "",
+		"node.example.com/key":           "",
+		"node-role.kubernetes.io/master": "",
+	}
+
+	expectedViolations := []string{
+		"invalid label key \"key*\": name part must consist of alphanumeric characters, '-', '_' or '.', and must start and end with an alphanumeric character (e.g. 'MyName',  or 'my.name',  or '123-abc', regex used for validation is '([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]')",
+		"invalid label value \"value.*-/\": a valid label must be an empty string or consist of alphanumeric characters, '-', '_' or '.', and must start and end with an alphanumeric character (e.g. 'MyValue',  or 'my_value',  or '12345', regex used for validation is '(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?')",
+		"invalid label key \"\": name part must be non-empty", "invalid label key \"\": name part must consist of alphanumeric characters, '-', '_' or '.', and must start and end with an alphanumeric character (e.g. 'MyName',  or 'my.name',  or '123-abc', regex used for validation is '([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]')",
+		"forbidden label key domain in \"example.com/key\": \"example.com\" domain is not allowed",
+		"forbidden label key domain in \"node.example.com/key\": \"example.com\" domain is not allowed",
+		"label key \"node-role.kubernetes.io/master\" is not allowed",
+	}
+
+	validator := LabelValidator{
+		ForbiddenDomains: []string{"example.com"},
+	}
+
+	err := validator.ValidateLabels(labels)
+	require.Error(t, err)
+
+	var verr LabelValidationError
+
+	assert.True(t, errors.As(err, &verr))
+
+	violations := verr.Violations()
+
+	for _, violation := range expectedViolations {
+		assert.Contains(t, violations, violation)
+	}
+}
