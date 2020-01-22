@@ -20,9 +20,26 @@ import (
 
 	"emperror.dev/errors"
 	"k8s.io/apimachinery/pkg/util/validation"
-
-	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 )
+
+// A list of forbidden node pool label keys
+//
+// Note: this isn't configurable on purpose. These labels should never be configured by a user.
+// nolint: gochecknoglobals
+var forbiddenLabelKeys = []string{
+	"node-role.kubernetes.io/master",
+	"kubernetes.io/arch",
+	"kubernetes.io/os",
+	"beta.kubernetes.io/arch",
+	"beta.kubernetes.io/os",
+	"kubernetes.io/hostname",
+	"beta.kubernetes.io/instance-type",
+	"node.kubernetes.io/instance-type",
+	"failure-domain.beta.kubernetes.io/region",
+	"failure-domain.beta.kubernetes.io/zone",
+	"topology.kubernetes.io/region",
+	"topology.kubernetes.io/zone",
+}
 
 // LabelValidator validates Kubernetes object labels.
 type LabelValidator struct {
@@ -52,7 +69,7 @@ func (v LabelValidator) ValidateKey(key string) error {
 		}
 	}
 
-	for _, labelKey := range nplabels.ForbiddenLabelKeys {
+	for _, labelKey := range forbiddenLabelKeys {
 		if key == labelKey {
 			violations = append(violations, fmt.Sprintf("label key %q is not allowed", key))
 		}

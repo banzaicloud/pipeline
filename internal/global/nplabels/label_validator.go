@@ -24,23 +24,6 @@ var nplLabelValidator LabelValidator
 // nolint: gochecknoglobals
 var nplLabelValidatorMu sync.Mutex
 
-//ForbiddenLabelKeys list of forbidden node pool label keys
-// nolint: gochecknoglobals
-var ForbiddenLabelKeys = []string{
-	"node-role.kubernetes.io/master",
-	"kubernetes.io/arch",
-	"kubernetes.io/os",
-	"beta.kubernetes.io/arch",
-	"beta.kubernetes.io/os",
-	"kubernetes.io/hostname",
-	"beta.kubernetes.io/instance-type",
-	"node.kubernetes.io/instance-type",
-	"failure-domain.beta.kubernetes.io/region",
-	"failure-domain.beta.kubernetes.io/zone",
-	"topology.kubernetes.io/region",
-	"topology.kubernetes.io/zone",
-}
-
 type LabelValidator interface {
 	ValidateKey(key string) error
 	ValidateValue(value string) error
