@@ -48,6 +48,18 @@ type LabelValidator struct {
 
 // ValidateKey validates a label key.
 func (v LabelValidator) ValidateKey(key string) error {
+	violations := v.validateKey(key)
+
+	if len(violations) > 0 {
+		return errors.WithStack(LabelValidationError{
+			violations: violations,
+		})
+	}
+
+	return nil
+}
+
+func (v LabelValidator) validateKey(key string) []string {
 	var violations []string
 
 	for _, v := range validation.IsQualifiedName(key) {
@@ -75,6 +87,13 @@ func (v LabelValidator) ValidateKey(key string) error {
 		}
 	}
 
+	return violations
+}
+
+// ValidateValue validates a label value.
+func (v LabelValidator) ValidateValue(value string) error {
+	violations := v.validateValue(value)
+
 	if len(violations) > 0 {
 		return errors.WithStack(LabelValidationError{
 			violations: violations,
@@ -84,13 +103,22 @@ func (v LabelValidator) ValidateKey(key string) error {
 	return nil
 }
 
-// ValidateValue validates a label value.
-func (v LabelValidator) ValidateValue(value string) error {
+func (v LabelValidator) validateValue(value string) []string {
 	var violations []string
 
 	for _, v := range validation.IsValidLabelValue(value) {
 		violations = append(violations, fmt.Sprintf("invalid label value %q: %s", value, v))
 	}
+
+	return violations
+}
+
+// ValidateLabel validates both a label key and a value.
+func (v LabelValidator) ValidateLabel(key string, value string) error {
+	var violations []string
+
+	violations = append(violations, v.validateKey(key)...)
+	violations = append(violations, v.validateValue(value)...)
 
 	if len(violations) > 0 {
 		return errors.WithStack(LabelValidationError{
