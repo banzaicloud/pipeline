@@ -15,12 +15,12 @@
 package main
 
 import (
-	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 )
 
 func registerAwsWorkflows(

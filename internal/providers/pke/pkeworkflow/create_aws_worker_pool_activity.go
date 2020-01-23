@@ -24,10 +24,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
