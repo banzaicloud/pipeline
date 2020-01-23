@@ -58,10 +58,10 @@ func (n NodePoolLabels) GetLabels() map[string]string {
 	return n.CustomLabels
 }
 
-// GetDesiredLabelsForCluster returns desired set of labels for each node pool name, adding Banzaicloud prefixed labels like:
-// head node, ondemand labels + cloudinfo to user defined labels in specified nodePools map.
-// noReturnIfNoUserLabels = true, means if there are no labels specified in NodePoolStatus, no labels are returned for that node pool
-// is not returned, to avoid overriding already exisisting user specified labels.
+// GetDesiredLabelsForCluster returns desired set of labels for each node pool name,
+// adding reserved labels like: head node, ondemand labels + cloudinfo to user defined labels in specified nodePools map.
+// All user labels are deleted in case Label map is empty in NodePoolLabels, however in case Label map is nil
+// no labels are returned to avoid overriding already exisisting user specified labels.
 func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, nodePoolLabels []NodePoolLabels) (map[string]map[string]string, error) {
 	desiredLabels := make(map[string]map[string]string)
 
@@ -92,7 +92,8 @@ func getLabelsForNodePool(
 	distribution string,
 	region string,
 ) map[string]string {
-	if len(nodePool.CustomLabels) == 0 && nodePool.Existing {
+
+	if nodePool.CustomLabels == nil && nodePool.Existing {
 		return make(map[string]string)
 	}
 
