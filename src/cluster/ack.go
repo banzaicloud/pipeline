@@ -42,6 +42,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack/action"
+	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers/alibaba"
@@ -1033,7 +1034,7 @@ func (c *ACKCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 		return err
 	}
 
-	for _, np := range r.Properties.CreateClusterACK.NodePools {
+	for npName, np := range r.Properties.CreateClusterACK.NodePools {
 		var (
 			instanceType = np.InstanceType
 			// diskCategory = np.SystemDiskCategory
@@ -1046,6 +1047,11 @@ func (c *ACKCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 
 		err = c.validateSystemDiskCategories(region, zone, diskCategory)
 		if err != nil {
+			return err
+		}
+
+		// --- [Label validation]--- //
+		if err := common.ValidateNodePoolLabels(npName, np.Labels); err != nil {
 			return err
 		}
 	}

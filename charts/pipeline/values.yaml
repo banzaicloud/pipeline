@@ -108,19 +108,6 @@ configuration:
           key: ""
           cert: ""
 
-    labels:
-      forbiddenDomains:
-        - k8s.io
-        - kubernetes.io
-        - google.com
-        - coreos.com
-        - oraclecloud.com
-        - node.info
-        - azure.com
-        - agentpool
-        - storageprofile
-        - storagetier
-
     securityScan:
       anchore:
         enabled: false

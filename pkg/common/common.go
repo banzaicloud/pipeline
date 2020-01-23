@@ -15,13 +15,15 @@
 package common
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
-	"k8s.io/apimachinery/pkg/util/validation"
+
+	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 )
 
 // BanzaiResponse describes Pipeline's responses
@@ -42,26 +44,6 @@ type CreatorBaseFields struct {
 	CreatedAt   time.Time `json:"createdAt,omitempty"`
 	CreatorName string    `json:"creatorName,omitempty"`
 	CreatorId   uint      `json:"creatorId,omitempty"`
-}
-
-// Validate checks whether the node pool labels collide with labels
-// set by Pipeline and also if these are valid Kubernetes labels
-func ValidateNodePoolLabels(labels map[string]string) error {
-	for name, value := range labels {
-		// validate node label name
-		errs := validation.IsQualifiedName(name)
-		if len(errs) > 0 {
-			return errors.WrapIfWithDetails(errors.New(strings.Join(errs, "\n")), "invalid node label name", map[string]string{"labelName": name})
-		}
-
-		// validate node label value
-		errs = validation.IsValidLabelValue(value)
-		if len(errs) > 0 {
-			return errors.WrapIfWithDetails(errors.New(strings.Join(errs, "\n")), "invalid node label value", map[string]string{"labelValue": value})
-		}
-	}
-
-	return nil
 }
 
 // ### [ Constants to common cluster default values ] ### //
@@ -101,4 +83,24 @@ func ErrorResponseWithStatus(c *gin.Context, status int, err error) {
 		Message: err.Error(),
 		Error:   errors.Cause(err).Error(),
 	})
+}
+
+// Validate checks whether the node pool labels collide with labels
+// set by Pipeline and also if these are valid Kubernetes labels
+func ValidateNodePoolLabels(nodePoolName string, labels map[string]string) error {
+	err := nplabels.NodePoolLabelValidator().ValidateLabels(labels)
+	if err != nil { // Temporary hack: return errors in a readable format for the UI
+		msg := fmt.Sprintf("invalid labels on %s node pool", nodePoolName)
+
+		var verr interface {
+			Violations() []string
+		}
+		if errors.As(err, &verr) {
+			msg += ": " + strings.Join(verr.Violations(), ", ")
+		}
+
+		return errors.New(msg)
+	}
+
+	return nil
 }

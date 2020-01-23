@@ -84,6 +84,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
+	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -859,6 +860,8 @@ func main() {
 				labelValidator := kubernetes2.LabelValidator{
 					ForbiddenDomains: append([]string{config.Cluster.Labels.Domain}, config.Cluster.Labels.ForbiddenDomains...),
 				}
+
+				nplabels.SetNodePoolLabelValidator(labelValidator)
 
 				nplsApi := api.NewNodepoolManagerAPI(
 					commonClusterGetter,

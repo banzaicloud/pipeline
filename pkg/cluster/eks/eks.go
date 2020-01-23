@@ -93,7 +93,7 @@ const (
 )
 
 // Validate checks Amazon's node fields
-func (a *NodePool) Validate() error {
+func (a *NodePool) Validate(npName string) error {
 	// ---- [ Node instanceType check ] ---- //
 	if len(a.InstanceType) == 0 {
 		return pkgErrors.ErrorInstancetypeFieldIsEmpty
@@ -141,7 +141,7 @@ func (a *NodePool) Validate() error {
 	}
 
 	// --- [Label validation]--- //
-	if err := pkgCommon.ValidateNodePoolLabels(a.Labels); err != nil {
+	if err := pkgCommon.ValidateNodePoolLabels(npName, a.Labels); err != nil {
 		return err
 	}
 
@@ -149,7 +149,7 @@ func (a *NodePool) Validate() error {
 }
 
 // ValidateForUpdate checks Amazon's node fields
-func (a *NodePool) ValidateForUpdate() error {
+func (a *NodePool) ValidateForUpdate(npName string) error {
 
 	// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
 	if a.Autoscaling {
@@ -183,7 +183,7 @@ func (a *NodePool) ValidateForUpdate() error {
 	}
 
 	// --- [Label validation]--- //
-	if err := pkgCommon.ValidateNodePoolLabels(a.Labels); err != nil {
+	if err := pkgCommon.ValidateNodePoolLabels(npName, a.Labels); err != nil {
 		return err
 	}
 
@@ -205,10 +205,15 @@ func (eks *CreateClusterEKS) Validate() error {
 		return pkgErrors.ErrorNotValidKubernetesVersion
 	}
 
-	for _, np := range eks.NodePools {
-		if err := np.Validate(); err != nil {
-			return err
+	// validate node pools
+	var errs []error
+	for npName, np := range eks.NodePools {
+		if err := np.Validate(npName); err != nil {
+			errs = append(errs, err)
 		}
+	}
+	if err := errors.Combine(errs...); err != nil {
+		return err
 	}
 
 	return nil
@@ -270,10 +275,15 @@ func (eks *UpdateClusterAmazonEKS) Validate() error {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
 	}
 
-	for _, np := range eks.NodePools {
-		if err := np.ValidateForUpdate(); err != nil {
-			return err
+	// validate node pools
+	var errs []error
+	for npName, np := range eks.NodePools {
+		if err := np.ValidateForUpdate(npName); err != nil {
+			errs = append(errs, err)
 		}
+	}
+	if err := errors.Combine(errs...); err != nil {
+		return err
 	}
 
 	return nil

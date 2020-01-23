@@ -331,7 +331,7 @@ func (c *EC2ClusterPKE) ValidateCreationFields(r *pkgCluster.CreateClusterReques
 	// TODO(Ecsy): implement me
 
 	for _, np := range r.Properties.CreateClusterPKE.NodePools {
-		if err := common.ValidateNodePoolLabels(np.Labels); err != nil {
+		if err := common.ValidateNodePoolLabels(np.Name, np.Labels); err != nil {
 			return err
 		}
 	}

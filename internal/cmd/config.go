@@ -324,7 +324,6 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::labels::domain", "banzaicloud.io")
 	v.SetDefault("cluster::labels::forbiddenDomains", []string{
 		"k8s.io",
-		"kubernetes.io",
 		"google.com",
 		"coreos.com",
 		"oraclecloud.com",

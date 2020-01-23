@@ -17,7 +17,7 @@ package gke
 import (
 	"regexp"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -61,6 +61,29 @@ type UpdateClusterGoogle struct {
 	Master      *Master              `json:"master,omitempty"`
 }
 
+func validateNodePool(npName string, nodePool *NodePool) error {
+
+	// ---- [ Min & Max count fields are required in case of auto scaling ] ---- //
+	if nodePool.Autoscaling {
+		if nodePool.MaxCount == 0 {
+			return pkgErrors.ErrorMaxFieldRequiredError
+		}
+		if nodePool.MaxCount < nodePool.MinCount {
+			return pkgErrors.ErrorNodePoolMinMaxFieldError
+		}
+	}
+
+	if nodePool.Count == 0 {
+		nodePool.Count = pkgCommon.DefaultNodeMinCount
+	}
+
+	if err := pkgCommon.ValidateNodePoolLabels(npName, nodePool.Labels); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Validate validates Google cluster create request
 func (g *CreateClusterGKE) Validate() error {
 
@@ -100,25 +123,15 @@ func (g *CreateClusterGKE) Validate() error {
 		return pkgErrors.ErrorGkeVPCRequiredFieldIsEmpty
 	}
 
-	for _, nodePool := range g.NodePools {
-
-		// ---- [ Min & Max count fields are required in case of auto scaling ] ---- //
-		if nodePool.Autoscaling {
-			if nodePool.MaxCount == 0 {
-				return pkgErrors.ErrorMaxFieldRequiredError
-			}
-			if nodePool.MaxCount < nodePool.MinCount {
-				return pkgErrors.ErrorNodePoolMinMaxFieldError
-			}
+	// validate node pools
+	var errs []error
+	for npName, np := range g.NodePools {
+		if err := validateNodePool(npName, np); err != nil {
+			errs = append(errs, err)
 		}
-
-		if nodePool.Count == 0 {
-			nodePool.Count = pkgCommon.DefaultNodeMinCount
-		}
-
-		if err := pkgCommon.ValidateNodePoolLabels(nodePool.Labels); err != nil {
-			return err
-		}
+	}
+	if err := errors.Combine(errs...); err != nil {
+		return err
 	}
 
 	return nil
@@ -146,6 +159,17 @@ func (a *UpdateClusterGoogle) Validate() error {
 	// if nodepools are provided in the update request check that it's not empty
 	if a.NodePools != nil && len(a.NodePools) == 0 {
 		return pkgErrors.ErrorNodePoolNotProvided
+	}
+
+	// validate node pools
+	var errs []error
+	for npName, np := range a.NodePools {
+		if err := validateNodePool(npName, np); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	if err := errors.Combine(errs...); err != nil {
+		return err
 	}
 
 	return nil

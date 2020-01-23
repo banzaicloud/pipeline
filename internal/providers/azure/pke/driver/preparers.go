@@ -184,7 +184,7 @@ func (p NodePoolPreparer) Prepare(ctx context.Context, nodePool *NodePool) error
 		return validationErrorf("%s.Name must be specified", p.namespace)
 	}
 
-	err := common.ValidateNodePoolLabels(nodePool.Labels)
+	err := common.ValidateNodePoolLabels(nodePool.Name, nodePool.Labels)
 	if err != nil {
 		return validationErrorf(err.Error())
 	}
