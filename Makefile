@@ -24,7 +24,7 @@ endif
 TEST_FORMAT = short-verbose
 endif
 
-CLOUDINFO_VERSION = 0.7.0
+CLOUDINFO_VERSION = 0.9.5
 DEX_VERSION = 2.19.0
 # TODO: use an exact version
 ANCHORE_VERSION = 156836d

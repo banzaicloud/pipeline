@@ -10,7 +10,7 @@ Method | HTTP request | Description
 
 ## GetVersions
 
-> VersionsResponse GetVersions(ctx, provider, service, region)
+> []LocationVersion GetVersions(ctx, provider, service, region)
 Provides a list of available versions on a given provider in a specific region for a service.
 
 ### Required Parameters
@@ -25,7 +25,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**VersionsResponse**](VersionsResponse.md)
+[**[]LocationVersion**](LocationVersion.md)
 
 ### Authorization
 

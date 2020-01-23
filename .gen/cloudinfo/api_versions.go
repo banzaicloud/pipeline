@@ -3,7 +3,7 @@
  *
  * The product info application uses the cloud provider APIs to asynchronously fetch and parse instance type attributes and prices, while storing the results in an in memory cache and making it available as structured data through a REST API.
  *
- * API version: 0.7.0
+ * API version: 0.9.5
  * Contact: info@banzaicloud.com
  */
 
@@ -34,16 +34,16 @@ GetVersions Provides a list of available versions on a given provider in a speci
  * @param provider
  * @param service
  * @param region
-@return VersionsResponse
+@return []LocationVersion
 */
-func (a *VersionsApiService) GetVersions(ctx _context.Context, provider string, service string, region string) (VersionsResponse, *_nethttp.Response, error) {
+func (a *VersionsApiService) GetVersions(ctx _context.Context, provider string, service string, region string) ([]LocationVersion, *_nethttp.Response, error) {
 	var (
 		localVarHTTPMethod   = _nethttp.MethodGet
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  VersionsResponse
+		localVarReturnValue  []LocationVersion
 	)
 
 	// create path and map variables
@@ -95,7 +95,7 @@ func (a *VersionsApiService) GetVersions(ctx _context.Context, provider string, 
 			error: localVarHTTPResponse.Status,
 		}
 		if localVarHTTPResponse.StatusCode == 200 {
-			var v VersionsResponse
+			var v []LocationVersion
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
