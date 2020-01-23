@@ -15,7 +15,9 @@
 package common
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -86,8 +88,19 @@ func ErrorResponseWithStatus(c *gin.Context, status int, err error) {
 // Validate checks whether the node pool labels collide with labels
 // set by Pipeline and also if these are valid Kubernetes labels
 func ValidateNodePoolLabels(nodePoolName string, labels map[string]string) error {
-	return errors.WithMessagef(
-		nplabels.NodePoolLabelValidator().ValidateLabels(labels),
-		"invalid labels on %s node pool", nodePoolName,
-	)
+	err := nplabels.NodePoolLabelValidator().ValidateLabels(labels)
+	if err != nil { // Temporary hack: return errors in a readable format for the UI
+		msg := fmt.Sprintf("invalid labels on %s node pool", nodePoolName)
+
+		var verr interface {
+			Violations() []string
+		}
+		if errors.As(err, &verr) {
+			msg += ": " + strings.Join(verr.Violations(), ", ")
+		}
+
+		return errors.New(msg)
+	}
+
+	return nil
 }
