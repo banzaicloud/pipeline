@@ -22,22 +22,24 @@ import (
 	"github.com/Masterminds/semver"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
-
-	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
 const pkeVersion = "0.4.19"
 
-func getDefaultImageID(region, kubernetesVersion, pkeVersion string, cloudInfoClient *cloudinfo.Client) (string, error) {
+type PKEImageNameGetter interface {
+	PKEImageName(cloudProvider, service, os, kubeVersion, pkeVersion, region string) (string, error)
+}
+
+func getDefaultImageID(region, kubernetesVersion, pkeVersion string, pkeImageNameGetter PKEImageNameGetter) (string, error) {
 	kubeVersion, err := semver.NewVersion(kubernetesVersion)
 	if err != nil {
 		return "", errors.WithDetails(err, "could not create semver from Kubernetes version", "kubernetesVersion", kubernetesVersion)
 	}
 	_ = kubeVersion
 
-	if cloudInfoClient != nil {
-		ami, err := cloudInfoClient.PKEImageName("amazon", "pke", "ubuntu", kubeVersion.String(), pkeVersion, region)
+	if pkeImageNameGetter != nil {
+		ami, err := pkeImageNameGetter.PKEImageName("amazon", "pke", "ubuntu", kubeVersion.String(), pkeVersion, region)
 		if err != nil {
 			// fail silently
 		}
