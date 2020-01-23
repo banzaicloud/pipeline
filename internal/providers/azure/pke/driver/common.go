@@ -116,10 +116,10 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 	return workflow.VirtualMachineScaleSetTemplate{
 			AdminUsername: "azureuser",
 			Image: workflow.Image{
-				Offer:     "CentOS-CI",
-				Publisher: "OpenLogic",
-				SKU:       "7-CI",
-				Version:   "7.6.20190306",
+				Offer:     "UbuntuServer",
+				Publisher: "Canonical",
+				SKU:       "18.04-LTS",
+				Version:   "18.04.201912180",
 			},
 			InstanceCount:                uint(np.Count),
 			InstanceType:                 np.InstanceType,
