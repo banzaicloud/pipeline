@@ -20,9 +20,10 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver"
-	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
+
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"

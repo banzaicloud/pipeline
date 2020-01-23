@@ -19,6 +19,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/antihax/optional"
+
 	"github.com/banzaicloud/pipeline/.gen/cloudinfo"
 )
 
