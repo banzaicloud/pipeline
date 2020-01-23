@@ -10,7 +10,7 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   title: Product Info.
-  version: 0.7.0
+  version: 0.9.5
 servers:
 - url: /api/v1
 paths:
@@ -258,6 +258,30 @@ paths:
           type: string
         style: form
         x-go-name: Version
+      - explode: true
+        in: query
+        name: os
+        required: false
+        schema:
+          type: string
+        style: form
+        x-go-name: Os
+      - explode: true
+        in: query
+        name: pkeVersion
+        required: false
+        schema:
+          type: string
+        style: form
+        x-go-name: PkeVersion
+      - explode: true
+        in: query
+        name: latestOnly
+        required: false
+        schema:
+          type: string
+        style: form
+        x-go-name: LatestOnly
       responses:
         200:
           content:
@@ -396,70 +420,6 @@ components:
         type: string
       type: array
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
-    GetAttributeValuesPathParams:
-      description: GetAttributeValuesPathParams is a placeholder for the get attribute
-        values route's path parameters
-      properties:
-        attribute:
-          description: in:path
-          type: string
-          x-go-name: Attribute
-        provider:
-          description: in:path
-          type: string
-          x-go-name: Provider
-        region:
-          description: in:path
-          type: string
-          x-go-name: Region
-        service:
-          description: in:path
-          type: string
-          x-go-name: Service
-      type: object
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
-    GetImagesQueryParams:
-      description: GetImagesQueryParams is a placeholder for the get images query
-        parameters
-      properties:
-        gpu:
-          description: in:query
-          type: string
-          x-go-name: Gpu
-        version:
-          description: in:query
-          type: string
-          x-go-name: Version
-      type: object
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
-    GetProviderPathParams:
-      description: GetProviderPathParams is a placeholder for the providers related
-        route path parameters
-      properties:
-        provider:
-          description: in:path
-          type: string
-          x-go-name: Provider
-      type: object
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
-    GetRegionPathParams:
-      description: GetRegionPathParams is a placeholder for the regions related route
-        path parameters
-      properties:
-        provider:
-          description: in:path
-          type: string
-          x-go-name: Provider
-        region:
-          description: in:path
-          type: string
-          x-go-name: Region
-        service:
-          description: in:path
-          type: string
-          x-go-name: Service
-      type: object
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     GetRegionResp:
       description: GetRegionResp holds the detailed description of a specific region
         of a cloud provider
@@ -483,55 +443,41 @@ components:
           x-go-name: Zones
       type: object
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
-    GetServicesPathParams:
-      description: GetServicesPathParams is a placeholder for the services related
-        route path parameters
-      properties:
-        provider:
-          description: in:path
-          type: string
-          x-go-name: Provider
-        service:
-          description: in:path
-          type: string
-          x-go-name: Service
-      type: object
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     Image:
       description: Image represents an image
       example:
         name: name
+        creationDate: 2000-01-23T04:56:07.000+00:00
         gpu: true
         version: version
+        tags:
+          key: tags
       properties:
+        creationDate:
+          format: date-time
+          type: string
+          x-go-name: CreationDate
         gpu:
           type: boolean
           x-go-name: GpuAvailable
         name:
           type: string
           x-go-name: Name
+        tags:
+          additionalProperties:
+            type: string
+          type: object
+          x-go-name: Tags
         version:
           type: string
           x-go-name: Version
       type: object
-      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
     ImagesResponse:
       description: ImagesResponse holds the list of available images
-      example:
-        images:
-        - name: name
-          gpu: true
-          version: version
-        - name: name
-          gpu: true
-          version: version
-      properties:
-        images:
-          items:
-            $ref: '#/components/schemas/Image'
-          type: array
-          x-go-name: Images
-      type: object
+      items:
+        $ref: '#/components/schemas/Image'
+      type: array
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     LocationVersion:
       description: LocationVersion struct for displaying version information per location
@@ -554,7 +500,7 @@ components:
           type: array
           x-go-name: Versions
       type: object
-      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
     ProductDetails:
       description: ProductDetails extended view of the virtual machine details
       example:
@@ -632,7 +578,7 @@ components:
           type: array
           x-go-name: Zones
       type: object
-      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
     ProductDetailsResponse:
       description: ProductDetailsResponse Api object to be mapped to product info
         response
@@ -713,7 +659,7 @@ components:
           type: array
           x-go-name: Services
       type: object
-      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
     ProviderResponse:
       description: ProviderResponse is the response used for the requested provider
       example:
@@ -761,12 +707,12 @@ components:
       properties:
         id:
           type: string
-          x-go-name: Id
+          x-go-name: ID
         name:
           type: string
           x-go-name: Name
       type: object
-      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
     RegionsResponse:
       description: RegionsResponse holds the list of available regions of a cloud
         provider
@@ -788,7 +734,7 @@ components:
           x-go-name: Service
       title: Service represents a service supported by a given provider.
       type: object
-      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
     ServiceResponse:
       description: ServiceResponse holds the list of available services
       example:
@@ -818,25 +764,9 @@ components:
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     VersionsResponse:
       description: VersionsResponse holds the list of available versions
-      example:
-        versions:
-        - default: default
-          versions:
-          - versions
-          - versions
-          location: location
-        - default: default
-          versions:
-          - versions
-          - versions
-          location: location
-      properties:
-        versions:
-          items:
-            $ref: '#/components/schemas/LocationVersion'
-          type: array
-          x-go-name: Versions
-      type: object
+      items:
+        $ref: '#/components/schemas/LocationVersion'
+      type: array
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     ZonePrice:
       description: ZonePrice struct for displaying price information per zone
@@ -852,4 +782,4 @@ components:
           type: string
           x-go-name: Zone
       type: object
-      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types

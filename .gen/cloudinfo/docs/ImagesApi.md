@@ -10,7 +10,7 @@ Method | HTTP request | Description
 
 ## GetImages
 
-> ImagesResponse GetImages(ctx, provider, service, region, optional)
+> []Image GetImages(ctx, provider, service, region, optional)
 Provides a list of available images on a given provider in a specific region for a service.
 
 ### Required Parameters
@@ -36,10 +36,13 @@ Name | Type | Description  | Notes
 
  **gpu** | **optional.String**|  | 
  **version** | **optional.String**|  | 
+ **os** | **optional.String**|  | 
+ **pkeVersion** | **optional.String**|  | 
+ **latestOnly** | **optional.String**|  | 
 
 ### Return type
 
-[**ImagesResponse**](ImagesResponse.md)
+[**[]Image**](Image.md)
 
 ### Authorization
 
