@@ -128,7 +128,7 @@
     "containerRegistry": {
       "enabled": true
     },
-    "expiration": {
+    "expiry": {
       "enabled": true
     },
     "advancedNetwork": {
