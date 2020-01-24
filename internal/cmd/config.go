@@ -424,11 +424,11 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::dns::baseDomain", "")
 	v.SetDefault("cluster::dns::providerSecret", "secret/data/banzaicloud/aws")
 	v.SetDefault("cluster::dns::charts::externalDns::chart", "stable/external-dns")
-	v.SetDefault("cluster::dns::charts::externalDns::version", "2.2.3")
+	v.SetDefault("cluster::dns::charts::externalDns::version", "2.15.2")
 	v.SetDefault("cluster::dns::charts::externalDns::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"repository": "bitnami/external-dns",
-			"tag":        "0.5.15",
+			"tag":        "0.5.18",
 		},
 	})
 

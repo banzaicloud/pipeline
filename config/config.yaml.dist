@@ -241,7 +241,7 @@ dex:
 #        charts:
 #            externalDns:
 #                chart: "stable/external-dns"
-#                version: "2.2.3"
+#                version: "2.15.2"
 #
 #                # See https://github.com/helm/charts/tree/master/stable/external-dns for details
 #                values: {}
