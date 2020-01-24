@@ -33,9 +33,7 @@ func (m *MeshReconciler) GetClusterStatus() (map[uint]string, error) {
 	}
 
 	var istios v1beta1.IstioList
-	err = client.List(context.Background(), &runtimeclient.ListOptions{
-		Namespace: istioOperatorNamespace,
-	}, &istios)
+	err = client.List(context.Background(), &istios, runtimeclient.InNamespace(istioOperatorNamespace))
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not list istio CRs")
 	}
@@ -60,9 +58,7 @@ func (m *MeshReconciler) GetClusterStatus() (map[uint]string, error) {
 	}
 
 	var remoteistios v1beta1.RemoteIstioList
-	err = client.List(context.Background(), &runtimeclient.ListOptions{
-		Namespace: istioOperatorNamespace,
-	}, &remoteistios)
+	err = client.List(context.Background(), &remoteistios, runtimeclient.InNamespace(istioOperatorNamespace))
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not list Remote istio CRs")
 	}
