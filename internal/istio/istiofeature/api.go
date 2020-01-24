@@ -26,7 +26,7 @@ const (
 	FeatureName = "servicemesh"
 
 	istioOperatorReleaseName  = "istio-operator"
-	istioVersion              = "1.3"
+	istioVersion              = "1.4"
 	backyardsReleaseName      = "backyards"
 	canaryOperatorReleaseName = "canary"
 	prometheusHostname        = "monitor-prometheus-server.pipeline-system.svc.cluster.local"
