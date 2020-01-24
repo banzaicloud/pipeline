@@ -4382,6 +4382,7 @@ components:
                     enum:
                         - weave
                         - calico
+                        - cilium
                 providerConfig:
                     type: object
 

@@ -20,12 +20,14 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 )
 
 func registerAwsWorkflows(
 	clusters *pkeworkflowadapter.ClusterManagerAdapter,
 	tokenGenerator pkeworkflowadapter.TokenGenerator,
 	secretStore pkeworkflow.SecretStore,
+	cloudInfoClient *cloudinfo.Client,
 ) {
 	workflow.RegisterWithOptions(pkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.CreateClusterWorkflowName})
 	workflow.RegisterWithOptions(pkeworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.DeleteClusterWorkflowName})
@@ -57,13 +59,13 @@ func registerAwsWorkflows(
 	createNLBActivity := pkeworkflow.NewCreateNLBActivity(awsClientFactory)
 	activity.RegisterWithOptions(createNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateNLBActivityName})
 
-	createMasterActivity := pkeworkflow.NewCreateMasterActivity(clusters, tokenGenerator)
+	createMasterActivity := pkeworkflow.NewCreateMasterActivity(clusters, tokenGenerator, cloudInfoClient)
 	activity.RegisterWithOptions(createMasterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateMasterActivityName})
 
 	listNodePoolsActivity := pkeworkflow.NewListNodePoolsActivity(clusters)
 	activity.RegisterWithOptions(listNodePoolsActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.ListNodePoolsActivityName})
 
-	createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters, tokenGenerator)
+	createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters, tokenGenerator, cloudInfoClient)
 	activity.RegisterWithOptions(createWorkerPoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateWorkerPoolActivityName})
 
 	deletePoolActivity := pkeworkflow.NewDeletePoolActivity(clusters)

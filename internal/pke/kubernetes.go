@@ -24,7 +24,7 @@ import (
 const (
 	DefaultServiceCIDR = "10.32.0.0/24"
 	DefaultPodCIDR     = "10.200.0.0/16"
-	DefaultNetwork     = "calico"
+	DefaultNetwork     = "cilium"
 )
 
 type CRI struct {

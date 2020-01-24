@@ -33,14 +33,16 @@ import (
 const CreateWorkerPoolActivityName = "pke-create-aws-worker-pool-activity"
 
 type CreateWorkerPoolActivity struct {
-	clusters       Clusters
-	tokenGenerator TokenGenerator
+	clusters           Clusters
+	tokenGenerator     TokenGenerator
+	pkeImageNameGetter PKEImageNameGetter
 }
 
-func NewCreateWorkerPoolActivity(clusters Clusters, tokenGenerator TokenGenerator) *CreateWorkerPoolActivity {
+func NewCreateWorkerPoolActivity(clusters Clusters, tokenGenerator TokenGenerator, cloudInfoClient PKEImageNameGetter) *CreateWorkerPoolActivity {
 	return &CreateWorkerPoolActivity{
-		clusters:       clusters,
-		tokenGenerator: tokenGenerator,
+		clusters:           clusters,
+		tokenGenerator:     tokenGenerator,
+		pkeImageNameGetter: cloudInfoClient,
 	}
 }
 
@@ -77,7 +79,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		return "", errors.WrapIf(err, "can't get Kubernetes version")
 	}
 
-	imageID, err := getDefaultImageID(cluster.GetLocation(), ver)
+	imageID, err := getDefaultImageID(cluster.GetLocation(), ver, pkeVersion, a.pkeImageNameGetter)
 	if err != nil {
 		return "", errors.WrapIff(err, "failed to get default image for Kubernetes version %s", ver)
 	}
