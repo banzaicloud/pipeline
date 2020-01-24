@@ -18922,7 +18922,6 @@ components:
           - 62bc3c75-91fb-4670-bad4-24b401a9deac
           - 4378ae32-2355-12ed-b984-1234567804ed
           name: gkecluster-pipelineuser-123
-          ttlMinutes: 120
           secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
           location: us-central1-a
           postHooks:
@@ -19104,7 +19103,6 @@ components:
         - 62bc3c75-91fb-4670-bad4-24b401a9deac
         - 4378ae32-2355-12ed-b984-1234567804ed
         name: gkecluster-pipelineuser-123
-        ttlMinutes: 120
         secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
         location: us-central1-a
         postHooks:
@@ -19128,13 +19126,6 @@ components:
         cloud:
           example: google
           type: string
-        ttlMinutes:
-          description: The lifespan of the cluster expressed in minutes after which
-            it is automatically deleted. Zero value means the cluster is never automatically
-            deleted.
-          example: 120
-          minimum: 0
-          type: integer
         secretId:
           example: 62bc3c75-91fb-4670-bad4-24b401a9deac
           type: string
@@ -19260,6 +19251,7 @@ components:
           enum:
           - weave
           - calico
+          - cilium
           type: string
         providerConfig:
           type: object
@@ -19771,13 +19763,6 @@ components:
         cloud:
           example: google
           type: string
-        ttlMinutes:
-          description: The lifespan of the cluster expressed in minutes after which
-            it is automatically deleted. Zero value means the cluster is never automatically
-            deleted.
-          example: 120
-          minimum: 0
-          type: integer
         properties:
           example:
             google:
@@ -21149,7 +21134,6 @@ components:
         creatorName: userName
         creatorId: 1
         startedAt: 2018-07-03T14:23:29+02:00
-        ttlMinutes: 120
         distribution: gke
         monitoring: false
         version: 1.12.6-gke.10
@@ -21231,13 +21215,6 @@ components:
         region:
           example: us-central1
           type: string
-        ttlMinutes:
-          description: The lifespan of the cluster expressed in minutes after which
-            it is automatically deleted. Zero value means the cluster is never automatically
-            deleted.
-          example: 120
-          minimum: 0
-          type: integer
         nodePools:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolStatus'
