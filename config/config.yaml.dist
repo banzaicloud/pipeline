@@ -254,6 +254,9 @@ dex:
 #            user: ""
 #            password: ""
 #
+#    expiry:
+#        enabled: true
+#
 #    autoscale:
 #        # Inherited from cluster.namespace when empty
 #        namespace: ""
