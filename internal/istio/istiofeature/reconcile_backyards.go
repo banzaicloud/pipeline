@@ -23,7 +23,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -77,8 +76,6 @@ func (m *MeshReconciler) ReconcileBackyards(desiredState DesiredState) error {
 	return nil
 }
 
-var sidecarPodFieldSelector = fields.ParseSelectorOrDie("status.phase=Running")
-
 // waitForSidecarInjectorPod waits for Sidecar Injector Pods to be running
 func (m *MeshReconciler) waitForSidecarInjectorPod(client runtimeclient.Client) error {
 	m.logger.Debug("waiting for sidecar injector pod")
@@ -91,11 +88,7 @@ func (m *MeshReconciler) waitForSidecarInjectorPod(client runtimeclient.Client) 
 
 	err := backoff.Retry(func() error {
 		var pods corev1.PodList
-		err := client.List(context.Background(), &runtimeclient.ListOptions{
-			LabelSelector: labels.SelectorFromValidatedSet(map[string]string{"app": "istio-sidecar-injector"}),
-			FieldSelector: sidecarPodFieldSelector,
-		}, &pods)
-
+		err := client.List(context.Background(), &pods, runtimeclient.MatchingLabels(map[string]string{"app": "istio-sidecar-injector"}), runtimeclient.MatchingFields(fields.Set(map[string]string{"status.phase": "Running"})))
 		if err != nil {
 			return errors.WrapIf(err, "could not list pods")
 		}
