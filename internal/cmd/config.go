@@ -551,6 +551,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cloud::alibaba::defaultRegion", "eu-central-1")
 
 	v.SetDefault("distribution::eks::templateLocation", "./templates/eks")
+	v.SetDefault("distribution::eks::exposeAdminKubeconfig", true)
 
 	v.SetDefault("cloudinfo::endpoint", "")
 	v.SetDefault("hollowtrees::endpoint", "")
