@@ -379,9 +379,7 @@ func (m *MeshReconciler) getRemoteClustersByExistingRemoteIstioCRs() (map[uint]c
 	}
 
 	var remoteistios v1beta1.RemoteIstioList
-	err = client.List(context.Background(), &runtimeclient.ListOptions{
-		Namespace: istioOperatorNamespace,
-	}, &remoteistios)
+	err = client.List(context.Background(), &remoteistios, runtimeclient.InNamespace(istioOperatorNamespace))
 	if err != nil && !k8serrors.IsNotFound(err) {
 		return nil, errors.WrapIf(err, "could not get remote istios")
 	}
