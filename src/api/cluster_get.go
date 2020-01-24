@@ -81,7 +81,6 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 		Spot:         clusterStatus.Spot,
 
 		ScaleOptions: commonCluster.GetScaleOptions(),
-		TtlMinutes:   clusterStatus.TtlMinutes,
 
 		// TODO: keep one of the following?
 		// TODO: is this correct?
@@ -247,7 +246,6 @@ type GetClusterResponse struct {
 	Monitoring   bool                     `json:"monitoring"`
 	SecurityScan bool                     `json:"securityscan"`
 	ScaleOptions *pkgCluster.ScaleOptions `json:"scaleOptions,omitempty" yaml:"scaleOptions,omitempty"`
-	TtlMinutes   uint                     `json:"ttlMinutes,omitempty" yaml:"ttlMinutes,omitempty"`
 
 	// TODO: keep one of the following?
 	Version       string `json:"version,omitempty"`

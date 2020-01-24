@@ -20,7 +20,6 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-	"time"
 
 	"emperror.dev/errors"
 
@@ -167,15 +166,6 @@ func (a *AzurePkeCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 }
 
 func (a *AzurePkeCluster) SetScaleOptions(*pkgCluster.ScaleOptions) {
-}
-
-func (a *AzurePkeCluster) GetTTL() time.Duration {
-	return time.Duration(a.model.TtlMinutes) * time.Minute
-}
-
-func (a *AzurePkeCluster) SetTTL(t time.Duration) {
-	a.model.TtlMinutes = uint(t.Minutes())
-	// TODO: persist
 }
 
 func (a *AzurePkeCluster) GetAPIEndpoint() (string, error) {

@@ -101,8 +101,6 @@ type Cluster struct {
 	ActiveWorkflowID string
 	HTTPProxy        intPKE.HTTPProxy
 
-	TtlMinutes uint
-
 	AccessPoints          AccessPoints
 	APIServerAccessPoints APIServerAccessPoints
 }

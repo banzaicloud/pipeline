@@ -17,15 +17,18 @@ package model
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+
+	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 )
 
 // Migrate executes the table migrations for the application models.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
-		&ClusterModel{},
+		&MigrationClusterModel{},
 		&ScaleOptions{},
 		&ACKClusterModel{},
 		&ACKNodePoolModel{},
@@ -106,4 +109,40 @@ func AddForeignKeyAndReferencedKey(db *gorm.DB, logger logrus.FieldLogger, paren
 
 func AddForeignKey(db *gorm.DB, logger logrus.FieldLogger, parentTable, childTable interface{}, foreignKeyField string) error {
 	return AddForeignKeyAndReferencedKey(db, logger, parentTable, childTable, foreignKeyField, "")
+}
+
+// MigrationClusterModel describes the common cluster model
+// Note: this model is being moved to github.com/banzaicloud/pipeline/pkg/model.ClusterModel
+type MigrationClusterModel struct {
+	ID             uint   `gorm:"primary_key"`
+	UID            string `gorm:"unique_index:idx_clusters_uid"`
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeletedAt      *time.Time `gorm:"unique_index:idx_clusters_unique_id" sql:"index"`
+	StartedAt      *time.Time
+	Name           string `gorm:"unique_index:idx_clusters_unique_id"`
+	Location       string
+	Cloud          string
+	Distribution   string
+	OrganizationId uint `gorm:"unique_index:idx_clusters_unique_id"`
+	SecretId       string
+	ConfigSecretId string
+	SshSecretId    string
+	Status         string
+	RbacEnabled    bool
+	ScaleOptions   ScaleOptions           `gorm:"foreignkey:ClusterID"`
+	StatusMessage  string                 `sql:"type:text;"`
+	ACK            ACKClusterModel        `gorm:"foreignkey:ID"`
+	AKS            AKSClusterModel        `gorm:"foreignkey:ID"`
+	EKS            EKSClusterModel        `gorm:"foreignkey:ClusterID"`
+	Dummy          DummyClusterModel      `gorm:"foreignkey:ID"`
+	Kubernetes     KubernetesClusterModel `gorm:"foreignkey:ID"`
+	OKE            modelOracle.Cluster
+	CreatedBy      uint
+	TtlMinutes     uint `gorm:"not null;default:0"`
+}
+
+// TableName sets MigrationClusterModel's table name
+func (MigrationClusterModel) TableName() string {
+	return tableNameClusters
 }

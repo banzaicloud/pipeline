@@ -33,6 +33,8 @@ const (
 	clustersTableName = "clusters"
 )
 
+const InstanceTypeSeparator = " "
+
 // ClusterModel describes the common cluster model.
 type ClusterModel struct {
 	ID  uint   `gorm:"primary_key"`
@@ -57,10 +59,7 @@ type ClusterModel struct {
 	OidcEnabled    bool               `gorm:"default:false;not null"`
 	StatusMessage  string             `sql:"type:text;"`
 	ScaleOptions   model.ScaleOptions `gorm:"foreignkey:ClusterID"`
-	TtlMinutes     uint               `gorm:"default:0"`
 }
-
-const InstanceTypeSeparator = " "
 
 // TableName changes the default table name.
 func (ClusterModel) TableName() string {

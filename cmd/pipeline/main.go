@@ -388,11 +388,6 @@ func main() {
 	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, logrusLogger, errorHandler, clusteradapter.NewStore(db, clusters))
 	commonClusterGetter := common.NewClusterGetter(clusterManager, logrusLogger, errorHandler)
 
-	clusterTTLController := cluster.NewTTLController(clusterManager, clusterEventBus, logrusLogger.WithField("subsystem", "ttl-controller"), errorHandler)
-	defer clusterTTLController.Stop()
-	err = clusterTTLController.Start()
-	emperror.Panic(err)
-
 	if config.SpotMetrics.Enabled {
 		go monitor.NewSpotMetricsExporter(
 			context.Background(),
