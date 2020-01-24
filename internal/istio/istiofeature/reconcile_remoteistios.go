@@ -15,6 +15,7 @@
 package istiofeature
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"strconv"
@@ -185,10 +186,15 @@ func (m *MeshReconciler) generateKubeconfig(c cluster.CommonCluster) ([]byte, er
 
 	clusterName := c.GetName()
 
+	caData := secret.Data["ca.crt"]
+	if !bytes.Contains(caData, config.CAData) {
+		caData = append(append(caData, []byte("\n")...), config.CAData...)
+	}
+
 	yml := `apiVersion: v1
 clusters:
    - cluster:
-       certificate-authority-data: ` + base64.StdEncoding.EncodeToString(secret.Data["ca.crt"]) + `
+       certificate-authority-data: ` + base64.StdEncoding.EncodeToString(caData) + `
        server: ` + config.Host + `
      name: ` + clusterName + `
 contexts:
