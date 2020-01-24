@@ -24,7 +24,9 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/src/cluster"
@@ -365,12 +367,15 @@ func (m *MeshReconciler) reconcileRemoteIstioClusterRoleBinding(desiredState Des
 func (m *MeshReconciler) getRemoteClustersByExistingRemoteIstioCRs() (map[uint]cluster.CommonCluster, error) {
 	clusters := make(map[uint]cluster.CommonCluster, 0)
 
-	client, err := m.getMasterIstioOperatorK8sClient()
+	client, err := m.getMasterRuntimeK8sClient()
 	if err != nil {
 		return nil, err
 	}
 
-	remoteistios, err := client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).List(metav1.ListOptions{})
+	var remoteistios v1beta1.RemoteIstioList
+	err = client.List(context.Background(), &runtimeclient.ListOptions{
+		Namespace: istioOperatorNamespace,
+	}, &remoteistios)
 	if err != nil && !k8serrors.IsNotFound(err) {
 		return nil, errors.WrapIf(err, "could not get remote istios")
 	}

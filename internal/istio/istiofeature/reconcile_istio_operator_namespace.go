@@ -15,9 +15,12 @@
 package istiofeature
 
 import (
+	"context"
+
 	"emperror.dev/errors"
+	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 )
@@ -31,16 +34,26 @@ func (m *MeshReconciler) ReconcileIstioOperatorNamespace(desiredState DesiredSta
 		return err
 	}
 
+	k8sclient, err := m.getK8sClient(m.Master)
+	if err != nil {
+		return err
+	}
+
+	var namespace corev1.Namespace
 	if desiredState == DesiredStatePresent {
-		_, err := client.CoreV1().Namespaces().Get(istioOperatorNamespace, metav1.GetOptions{})
+		err = client.Get(context.Background(), types.NamespacedName{
+			Name: istioOperatorNamespace,
+		}, &namespace)
 		if k8serrors.IsNotFound(err) {
-			err := k8sutil.EnsureNamespaceWithLabelWithRetry(client, istioOperatorNamespace, nil)
+			err := k8sutil.EnsureNamespaceWithLabelWithRetry(k8sclient, istioOperatorNamespace, nil)
 			if err != nil {
 				return errors.WrapIf(err, "could not create istio operator namespace")
 			}
 		}
 	} else {
-		_, err := client.CoreV1().Namespaces().Get(istioOperatorNamespace, metav1.GetOptions{})
+		err = client.Get(context.Background(), types.NamespacedName{
+			Name: istioOperatorNamespace,
+		}, &namespace)
 		if k8serrors.IsNotFound(err) {
 			return nil
 		}
@@ -49,7 +62,7 @@ func (m *MeshReconciler) ReconcileIstioOperatorNamespace(desiredState DesiredSta
 			return errors.WrapIf(err, "could not get istio operator namespace")
 		}
 
-		err = client.CoreV1().Namespaces().Delete(istioOperatorNamespace, &metav1.DeleteOptions{})
+		err = client.Delete(context.Background(), &namespace)
 		if err != nil {
 			return errors.WrapIf(err, "could not delete istio operator namespace")
 		}
