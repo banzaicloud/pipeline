@@ -24,6 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
@@ -550,6 +551,10 @@ func (c *EKSCluster) GetK8sUserConfig() ([]byte, error) {
 	adminConfig, err := c.CommonClusterBase.getConfig(c)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get raw kubernetes config")
+	}
+
+	if global.Config.Distribution.EKS.ExposeAdminKubeconfig {
+		return adminConfig, nil
 	}
 
 	parsedAdminConfig, err := clientcmd.Load(adminConfig)

@@ -283,7 +283,8 @@ type Configuration struct {
 
 	Distribution struct {
 		EKS struct {
-			TemplateLocation string
+			TemplateLocation      string
+			ExposeAdminKubeconfig bool
 		}
 	}
 

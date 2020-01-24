@@ -382,6 +382,9 @@ dex:
 #    eks:
 #        # EKS Cloud Formation template location
 #        templateLocation: ./templates/eks
+#        # Expose admin kubeconfig over the API by default.
+#        # Set this to false to remove credentials from the config and make the user responsible for how they authenticate.
+#        exposeAdminKubeconfig: true
 
 cloudinfo:
     # Format: {baseUrl}/api/v1
