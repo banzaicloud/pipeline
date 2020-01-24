@@ -17,7 +17,6 @@ package cluster
 import (
 	"encoding/base64"
 	"strings"
-	"time"
 
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
@@ -55,7 +54,6 @@ func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest
 		Kubernetes: model.KubernetesClusterModel{
 			Metadata: request.Properties.CreateClusterKubernetes.Metadata,
 		},
-		TtlMinutes: request.TtlMinutes,
 	}
 	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
 	return &cluster, nil
@@ -171,7 +169,6 @@ func (c *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nil,
 		Region:            c.modelCluster.Location,
-		TtlMinutes:        c.modelCluster.TtlMinutes,
 		StartedAt:         c.modelCluster.StartedAt,
 	}, nil
 }
@@ -334,16 +331,6 @@ func (c *KubeCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 // SetScaleOptions sets scale options for the cluster
 func (c *KubeCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
-}
-
-// GetTTL retrieves the TTL of the cluster
-func (c *KubeCluster) GetTTL() time.Duration {
-	return time.Duration(c.modelCluster.TtlMinutes) * time.Minute
-}
-
-// SetTTL sets the lifespan of a cluster
-func (c *KubeCluster) SetTTL(ttl time.Duration) {
-	c.modelCluster.TtlMinutes = uint(ttl.Minutes())
 }
 
 // isRBACEnabled determines if RBAC is enabled on the Kubernetes cluster by investigating if list of

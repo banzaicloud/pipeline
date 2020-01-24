@@ -72,7 +72,6 @@ func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		SecretId:       request.SecretId,
 		CreatedBy:      userId,
 		Distribution:   pkgCluster.OKE,
-		TtlMinutes:     request.TtlMinutes,
 	}
 	updateScaleOptions(&oke.modelCluster.ScaleOptions, request.ScaleOptions)
 
@@ -360,7 +359,6 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		CreatorBaseFields: *NewCreatorBaseFields(o.modelCluster.CreatedAt, o.modelCluster.CreatedBy),
 		NodePools:         nodePools,
 		Region:            o.modelCluster.Location,
-		TtlMinutes:        o.modelCluster.TtlMinutes,
 		StartedAt:         o.modelCluster.StartedAt,
 	}, nil
 }
@@ -715,14 +713,4 @@ func (o *OKECluster) getSSHPubKey() (string, error) {
 	sshKey := sshadapter.KeyPairFromSecret(sshSecret)
 
 	return sshKey.PublicKeyData, nil
-}
-
-// GetTTL retrieves the TTL of the cluster
-func (o *OKECluster) GetTTL() time.Duration {
-	return time.Duration(o.modelCluster.TtlMinutes) * time.Minute
-}
-
-// SetTTL sets the lifespan of a cluster
-func (o *OKECluster) SetTTL(ttl time.Duration) {
-	o.modelCluster.TtlMinutes = uint(ttl.Minutes())
 }

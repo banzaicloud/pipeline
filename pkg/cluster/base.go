@@ -92,7 +92,6 @@ type CreateClusterRequest struct {
 	PostHooks    PostHooks                `json:"postHooks" yaml:"postHooks"`
 	Properties   *CreateClusterProperties `json:"properties" yaml:"properties" binding:"required"`
 	ScaleOptions *ScaleOptions            `json:"scaleOptions,omitempty" yaml:"scaleOptions,omitempty"`
-	TtlMinutes   uint                     `json:"ttlMinutes,omitempty" yaml:"ttlMinutes,omitempty"`
 }
 
 // CreateClusterProperties contains the cluster flavor specific properties.
@@ -163,9 +162,8 @@ type GetClusterStatusResponse struct {
 	pkgCommon.CreatorBaseFields
 
 	// If region not available fall back to Location
-	Region     string     `json:"region,omitempty"`
-	TtlMinutes uint       `json:"ttlMinutes,omitempty"`
-	StartedAt  *time.Time `json:"startedAt,omitempty"`
+	Region    string     `json:"region,omitempty"`
+	StartedAt *time.Time `json:"startedAt,omitempty"`
 }
 
 // NodePoolStatus describes cluster's node status
@@ -222,7 +220,6 @@ type UpdateClusterRequest struct {
 	Cloud            string `json:"cloud" binding:"required"`
 	UpdateProperties `json:"properties"`
 	ScaleOptions     *ScaleOptions `json:"scaleOptions,omitempty" yaml:"scaleOptions,omitempty"`
-	TtlMinutes       uint          `json:"ttlMinutes,omitempty" yaml:"ttlMinutes,omitempty"`
 }
 
 // UpdateProperties describes Pipeline's UpdateCluster request properties

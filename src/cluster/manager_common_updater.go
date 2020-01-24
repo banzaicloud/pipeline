@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"emperror.dev/errors"
 	"go.uber.org/cadence/client"
@@ -47,7 +46,6 @@ type commonUpdater struct {
 	cluster                  CommonCluster
 	userID                   uint
 	scaleOptionsChanged      bool
-	ttlChanged               bool
 	clusterPropertiesChanged bool
 	workflowClient           client.Client
 	externalBaseURL          string
@@ -126,12 +124,11 @@ func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
 	c.cluster.AddDefaultsToUpdate(c.request)
 
 	c.scaleOptionsChanged = isDifferent(c.request.ScaleOptions, c.cluster.GetScaleOptions()) == nil
-	c.ttlChanged = time.Duration(c.request.TtlMinutes)*time.Minute != c.cluster.GetTTL()
 	c.clusterPropertiesChanged = true
 
 	if err := c.cluster.CheckEqualityToUpdate(c.request); err != nil {
 		c.clusterPropertiesChanged = false
-		if !c.scaleOptionsChanged && !c.ttlChanged {
+		if !c.scaleOptionsChanged {
 			return nil, &commonUpdateValidationError{
 				msg:            err.Error(),
 				invalidRequest: true,
@@ -272,12 +269,8 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		c.cluster.SetScaleOptions(c.request.ScaleOptions)
 	}
 
-	if !c.clusterPropertiesChanged && !c.scaleOptionsChanged && !c.ttlChanged {
+	if !c.clusterPropertiesChanged && !c.scaleOptionsChanged {
 		return nil
-	}
-
-	if c.ttlChanged {
-		c.cluster.SetTTL(time.Duration(c.request.TtlMinutes) * time.Minute)
 	}
 
 	// obtain desired set of labels for each node pool

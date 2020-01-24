@@ -15,8 +15,6 @@
 package cluster
 
 import (
-	"time"
-
 	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
 
@@ -47,7 +45,6 @@ func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, org
 			KubernetesVersion: request.Properties.CreateClusterDummy.Node.KubernetesVersion,
 			NodeCount:         request.Properties.CreateClusterDummy.Node.Count,
 		},
-		TtlMinutes: request.TtlMinutes,
 	}
 	return &cluster, nil
 }
@@ -97,7 +94,6 @@ func (c *DummyCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nil,
 		Region:            c.modelCluster.Location,
-		TtlMinutes:        c.modelCluster.TtlMinutes,
 		StartedAt:         c.modelCluster.StartedAt,
 	}, nil
 }
@@ -253,14 +249,4 @@ func (c *DummyCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 // SetScaleOptions sets scale options for the cluster
 func (c *DummyCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
-}
-
-// GetTTL retrieves the TTL of the cluster
-func (c *DummyCluster) GetTTL() time.Duration {
-	return time.Duration(c.modelCluster.TtlMinutes) * time.Minute
-}
-
-// SetTTL sets the lifespan of a cluster
-func (c *DummyCluster) SetTTL(ttl time.Duration) {
-	c.modelCluster.TtlMinutes = uint(ttl.Minutes())
 }
