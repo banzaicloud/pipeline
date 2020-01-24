@@ -24,9 +24,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/banzaicloud/pipeline/internal/global"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+
+	"github.com/banzaicloud/pipeline/internal/global"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 
