@@ -428,7 +428,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::dns::charts::externalDns::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"repository": "bitnami/external-dns",
-			"tag":        "0.5.15",
+			"tag":        "0.5.18",
 		},
 	})
 
