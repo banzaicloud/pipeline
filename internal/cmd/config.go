@@ -354,7 +354,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::monitoring::namespace", "")
 	v.SetDefault("cluster::monitoring::grafana::adminUser", "admin")
 	v.SetDefault("cluster::monitoring::charts::operator::chart", "stable/prometheus-operator")
-	v.SetDefault("cluster::monitoring::charts::operator::version", "7.2.0")
+	v.SetDefault("cluster::monitoring::charts::operator::version", "8.5.14")
 	v.SetDefault("cluster::monitoring::charts::operator::values", map[string]interface{}{
 		"prometheus": map[string]interface{}{
 			"ingress": map[string]interface{}{
@@ -384,23 +384,23 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 		},
 	})
 	v.SetDefault("cluster::monitoring::images::operator::repository", "quay.io/coreos/prometheus-operator")
-	v.SetDefault("cluster::monitoring::images::operator::tag", "v0.32.0")
+	v.SetDefault("cluster::monitoring::images::operator::tag", "v0.34.0")
 	v.SetDefault("cluster::monitoring::images::prometheus::repository", "quay.io/prometheus/prometheus")
-	v.SetDefault("cluster::monitoring::images::prometheus::tag", "v2.12.0")
+	v.SetDefault("cluster::monitoring::images::prometheus::tag", "v2.13.1")
 	v.SetDefault("cluster::monitoring::images::alertmanager::repository", "quay.io/prometheus/alertmanager")
 	v.SetDefault("cluster::monitoring::images::alertmanager::tag", "v0.19.0")
 	v.SetDefault("cluster::monitoring::images::grafana::repository", "grafana/grafana")
-	v.SetDefault("cluster::monitoring::images::grafana::tag", "6.4.2")
+	v.SetDefault("cluster::monitoring::images::grafana::tag", "6.5.2")
 	v.SetDefault("cluster::monitoring::images::kubestatemetrics::repository", "quay.io/coreos/kube-state-metrics")
-	v.SetDefault("cluster::monitoring::images::kubestatemetrics::tag", "v1.8.0")
+	v.SetDefault("cluster::monitoring::images::kubestatemetrics::tag", "v1.9.3")
 	v.SetDefault("cluster::monitoring::images::nodeexporter::repository", "quay.io/prometheus/node-exporter")
-	v.SetDefault("cluster::monitoring::images::nodeexporter::tag", "v0.18.0")
+	v.SetDefault("cluster::monitoring::images::nodeexporter::tag", "v0.18.1")
 
 	v.SetDefault("cluster::monitoring::charts::pushgateway::chart", "stable/prometheus-pushgateway")
-	v.SetDefault("cluster::monitoring::charts::pushgateway::version", "1.0.1")
+	v.SetDefault("cluster::monitoring::charts::pushgateway::version", "1.2.13")
 	v.SetDefault("cluster::monitoring::charts::pushgateway::values", map[string]interface{}{})
 	v.SetDefault("cluster::monitoring::images::pushgateway::repository", "prom/pushgateway")
-	v.SetDefault("cluster::monitoring::images::pushgateway::tag", "v1.0.0")
+	v.SetDefault("cluster::monitoring::images::pushgateway::tag", "v1.0.1")
 
 	v.SetDefault("cluster::logging::enabled", true)
 	v.SetDefault("cluster::logging::namespace", "")
