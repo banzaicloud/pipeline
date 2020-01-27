@@ -60,12 +60,11 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 5 * time.Minute,
 		StartToCloseTimeout:    10 * time.Minute,
-		ScheduleToCloseTimeout: 15 * time.Minute,
 		WaitForCancellation:    true,
 	}
 	cwo := workflow.ChildWorkflowOptions{
-		ExecutionStartToCloseTimeout: 30 * time.Minute,
-		TaskStartToCloseTimeout:      40 * time.Minute,
+		ExecutionStartToCloseTimeout: 1 * time.Hour,
+		TaskStartToCloseTimeout:      30 * time.Second,
 	}
 	ctx = workflow.WithChildOptions(workflow.WithActivityOptions(ctx, ao), cwo)
 
