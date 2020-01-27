@@ -193,14 +193,14 @@ dex:
 #        charts:
 #            operator:
 #                chart: "stable/prometheus-operator"
-#                version: "7.2.0"
+#                version: "8.5.14"
 #
 #                # See https://github.com/helm/charts/tree/master/stable/prometheus-operator for details
 #                values: {}
 #
 #            pushgateway:
 #                chart: "stable/prometheus-pushgateway"
-#                version: "1.0.1"
+#                version: "1.2.13"
 #
 #                # See https://github.com/helm/charts/tree/master/stable/prometheus-pushgateway for details
 #                values: {}
