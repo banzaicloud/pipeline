@@ -33,9 +33,6 @@ import (
 const (
 	imageValidatorVersion = "0.3.6"
 
-	securityScanNamespace = "pipeline-system"
-	securityScanRelease   = "anchore"
-
 	// the label key on the namespaces that is watched by the webhook
 	labelKey = "scan"
 
@@ -125,12 +122,13 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		}
 	}
 
+	// todo move the logic here!
 	values, err := op.processChartValues(ctx, clusterID, *anchoreValues)
 	if err != nil {
 		return errors.WrapIf(err, "failed to assemble chart values")
 	}
 
-	if err = op.helmService.ApplyDeployment(ctx, clusterID, securityScanNamespace, op.webhookConfig.Chart, securityScanRelease,
+	if err = op.helmService.ApplyDeployment(ctx, clusterID, op.webhookConfig.Namespace, op.webhookConfig.Chart, op.webhookConfig.Release,
 		values, op.webhookConfig.Version); err != nil {
 		return errors.WrapIf(err, "failed to deploy integrated service")
 	}
@@ -172,7 +170,7 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 		return errors.WrapIf(err, "failed to apply integrated service")
 	}
 
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, securityScanRelease); err != nil {
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, op.webhookConfig.Release); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to uninstall integrated service", "integrated service", IntegratedServiceName,
 			"clusterID", clusterID)
 	}
@@ -222,8 +220,8 @@ func (op IntegratedServiceOperator) createAnchoreUserForCluster(ctx context.Cont
 }
 
 func (op IntegratedServiceOperator) processChartValues(ctx context.Context, clusterID uint, anchoreValues AnchoreValues) ([]byte, error) {
-	securityScanValues := SecurityScanChartValues{
-		Anchore: anchoreValues,
+	securityScanValues := ImageValidatorChartValues{
+		ExternalAnchore: anchoreValues,
 	}
 
 	values, err := json.Marshal(securityScanValues)
