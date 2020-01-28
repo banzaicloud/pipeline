@@ -109,7 +109,7 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		return errors.WrapIf(err, "failed to apply integrated service")
 	}
 
-	var anchoreValues *AnchoreValues
+	var anchoreValues AnchoreValues
 	if boundSpec.CustomAnchore.Enabled {
 		anchoreValues, err = op.getCustomAnchoreValues(ctx, boundSpec.CustomAnchore)
 		if err != nil {
@@ -122,8 +122,7 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		}
 	}
 
-	// todo move the logic here!
-	values, err := op.processChartValues(ctx, clusterID, *anchoreValues)
+	values, err := op.processChartValues(ctx, clusterID, anchoreValues, boundSpec.WebhookConfig)
 	if err != nil {
 		return errors.WrapIf(err, "failed to assemble chart values")
 	}
@@ -219,7 +218,9 @@ func (op IntegratedServiceOperator) createAnchoreUserForCluster(ctx context.Cont
 	return userName, nil
 }
 
-func (op IntegratedServiceOperator) processChartValues(ctx context.Context, clusterID uint, anchoreValues AnchoreValues) ([]byte, error) {
+// processChartValues is in charge to assemble the values json for the chart based on the input and configuration
+func (op IntegratedServiceOperator) processChartValues(ctx context.Context, clusterID uint, anchoreValues AnchoreValues,
+	webhookConfigSpec webHookConfigSpec) ([]byte, error) {
 	securityScanValues := ImageValidatorChartValues{
 		ExternalAnchore: anchoreValues,
 	}
@@ -232,52 +233,52 @@ func (op IntegratedServiceOperator) processChartValues(ctx context.Context, clus
 	return values, nil
 }
 
-func (op IntegratedServiceOperator) getCustomAnchoreValues(ctx context.Context, customAnchore anchoreSpec) (*AnchoreValues, error) {
+func (op IntegratedServiceOperator) getCustomAnchoreValues(ctx context.Context, customAnchore anchoreSpec) (AnchoreValues, error) {
 	if !customAnchore.Enabled { // this is already checked
-		return nil, errors.NewWithDetails("custom anchore disabled")
+		return AnchoreValues{}, errors.NewWithDetails("custom anchore disabled")
 	}
 
 	anchoreUserSecret, err := op.secretStore.GetSecretValues(ctx, customAnchore.SecretID)
 	if err != nil {
-		return nil, errors.WrapWithDetails(err, "failed to get anchore secret", "secretId", customAnchore.SecretID)
+		return AnchoreValues{}, errors.WrapWithDetails(err, "failed to get anchore secret", "secretId", customAnchore.SecretID)
 	}
 
 	var anchoreValues AnchoreValues
 	if err := mapstructure.Decode(anchoreUserSecret, &anchoreValues); err != nil {
-		return nil, errors.WrapIf(err, "failed to extract anchore secret values")
+		return AnchoreValues{}, errors.WrapIf(err, "failed to extract anchore secret values")
 	}
 
 	anchoreValues.Host = customAnchore.Url
 
-	return &anchoreValues, nil
+	return anchoreValues, nil
 }
 
-func (op IntegratedServiceOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (*AnchoreValues, error) {
+func (op IntegratedServiceOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (AnchoreValues, error) {
 
 	// default (pipeline hosted) anchore
 	if !op.anchoreEnabled {
-		return nil, errors.NewWithDetails("default anchore is not enabled")
+		return AnchoreValues{}, errors.NewWithDetails("default anchore is not enabled")
 	}
 
 	secretName, err := op.createAnchoreUserForCluster(ctx, clusterID)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to create anchore user")
+		return AnchoreValues{}, errors.WrapIf(err, "failed to create anchore user")
 	}
 
 	anchoreSecretID := secret.GenerateSecretIDFromName(secretName)
 	anchoreUserSecret, err := op.secretStore.GetSecretValues(ctx, anchoreSecretID)
 	if err != nil {
-		return nil, errors.WrapWithDetails(err, "failed to get anchore secret", "secretId", anchoreSecretID)
+		return AnchoreValues{}, errors.WrapWithDetails(err, "failed to get anchore secret", "secretId", anchoreSecretID)
 	}
 
 	var anchoreValues AnchoreValues
 	if err := mapstructure.Decode(anchoreUserSecret, &anchoreValues); err != nil {
-		return nil, errors.WrapIf(err, "failed to extract anchore secret values")
+		return AnchoreValues{}, errors.WrapIf(err, "failed to extract anchore secret values")
 	}
 
 	anchoreValues.Host = op.anchoreEndpoint
 
-	return &anchoreValues, nil
+	return anchoreValues, nil
 }
 
 // performs namespace labeling based on the provided input
