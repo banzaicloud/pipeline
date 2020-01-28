@@ -21,7 +21,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 )
 
-// PipelineTags returns resource tags for azure based on the pipeline uuid if available
+// PipelineTags returns resource tags for Amazon based on the Pipeline UUID if available
 func PipelineTags() []*cloudformation.Tag {
 	tags := []*cloudformation.Tag{
 		{
