@@ -221,16 +221,33 @@ func (op IntegratedServiceOperator) createAnchoreUserForCluster(ctx context.Cont
 // processChartValues is in charge to assemble the values json for the chart based on the input and configuration
 func (op IntegratedServiceOperator) processChartValues(ctx context.Context, clusterID uint, anchoreValues AnchoreValues,
 	webhookConfigSpec webHookConfigSpec) ([]byte, error) {
-	securityScanValues := ImageValidatorChartValues{
-		ExternalAnchore: anchoreValues,
+
+	namespaceSelector := NamespaceSelector{}
+	objectSelector := ObjectSelector{}
+
+	if webhookConfigSpec.Enabled {
+		switch webhookConfigSpec.Selector {
+		case selectorExclude:
+
+			// todo set up namespaceselectors and objectselectors
+		case selectorInclude:
+			// todo set up namespaceselectors and objectselectors
+		default:
+			return nil, errors.New("Unsupported selector")
+		}
 	}
 
-	values, err := json.Marshal(securityScanValues)
+	valuesBytes, err := json.Marshal(ImageValidatorChartValues{
+		ExternalAnchore:   anchoreValues,
+		NamespaceSelector: namespaceSelector,
+		ObjectSelector:    objectSelector,
+	})
+
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to marshal chart values")
 	}
 
-	return values, nil
+	return valuesBytes, nil
 }
 
 func (op IntegratedServiceOperator) getCustomAnchoreValues(ctx context.Context, customAnchore anchoreSpec) (AnchoreValues, error) {

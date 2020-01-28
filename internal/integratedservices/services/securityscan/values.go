@@ -42,3 +42,36 @@ type NamespaceSelector struct {
 type ObjectSelector struct {
 	MatchExpressions []MatchExpression `json:"matchExpressions" mapstructure:"matchExpressions"`
 }
+
+func (n NamespaceSelector) addMatchLabel(key string, value string) {
+	if n.MatchLabels == nil {
+		n.MatchLabels = make(map[string]string)
+	}
+	n.MatchLabels[key] = value
+}
+
+func (n NamespaceSelector) addMatchExpression(key string, operator string, values []string) {
+	if n.MatchExpressions == nil {
+		n.MatchExpressions = make([]MatchExpression, 0, len(values))
+	}
+
+	n.MatchExpressions = append(n.MatchExpressions,
+		MatchExpression{
+			Key:      key,
+			Operator: operator,
+			Values:   values,
+		})
+}
+
+func (o ObjectSelector) addMatchExpression(key string, operator string, values []string) {
+	if o.MatchExpressions == nil {
+		o.MatchExpressions = make([]MatchExpression, 0, len(values))
+	}
+
+	o.MatchExpressions = append(o.MatchExpressions,
+		MatchExpression{
+			Key:      key,
+			Operator: operator,
+			Values:   values,
+		})
+}
