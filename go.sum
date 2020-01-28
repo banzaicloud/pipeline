@@ -157,6 +157,8 @@ github.com/banzaicloud/helm v2.7.1-0.20200120004947-14c2e60cf8e2+incompatible h1
 github.com/banzaicloud/helm v2.7.1-0.20200120004947-14c2e60cf8e2+incompatible/go.mod h1:jr3AOoMmWJs0qi4BM4OrTCIOwNyQu7/K9hA6B1SxD1s=
 github.com/banzaicloud/istio-operator v0.0.0-20191104140059-90d1290d7342 h1:1thVJJgjxerPRgtHftg/fIX9pvZw9cfH+8zUG/voj6I=
 github.com/banzaicloud/istio-operator v0.0.0-20191104140059-90d1290d7342/go.mod h1:ZsHnkYOQmq/OhsTX/apqgSoT2Jt5qkr15zuoVcj48Xk=
+github.com/banzaicloud/istio-operator v0.0.0-20200120100557-309b8a34e9eb h1:0+9wlwI5TpPl/6nc79ZR/PgQ3AfOqj8Iv5ISSzrCUdA=
+github.com/banzaicloud/istio-operator v0.0.0-20200120100557-309b8a34e9eb/go.mod h1:ZsHnkYOQmq/OhsTX/apqgSoT2Jt5qkr15zuoVcj48Xk=
 github.com/banzaicloud/kubefed v0.1.0-rc2.0.20200121120031-f51ecb598a2d h1:+M0ol8U7OyW8g1Z8YiI/UMejN+3E5fq+W6LB2NvgcGQ=
 github.com/banzaicloud/kubefed v0.1.0-rc2.0.20200121120031-f51ecb598a2d/go.mod h1:Kha8l/jZw8NYFEftmqGehhCTwfvEHQLzwS4M/FI88io=
 github.com/banzaicloud/logging-operator/pkg/sdk v0.1.1 h1:qXmP4D3hbW0GT+rMLDqAnAJY0NcqqDhE2UmQxPieRfQ=

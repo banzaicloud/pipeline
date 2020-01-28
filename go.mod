@@ -36,7 +36,7 @@ require (
 	github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677
 	github.com/banzaicloud/gin-utilz v0.1.0
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
-	github.com/banzaicloud/istio-operator v0.0.0-20191104140059-90d1290d7342
+	github.com/banzaicloud/istio-operator v0.0.0-20200120100557-309b8a34e9eb
 	github.com/banzaicloud/logging-operator/pkg/sdk v0.1.1
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect

@@ -39,7 +39,9 @@ const (
 	backyardsNamespace        = "backyards-system"
 	canaryOperatorNamespace   = "backyards-canary"
 	istioOperatorNamespace    = "istio-system"
-	zipkinAddress             = "backyards-zipkin.backyards-system:9411"
+	zipkinAddress             = "backyards-zipkin.backyards-system.svc.cluster.local:9411"
+	alsHost                   = "backyards-als.backyards-system.svc.cluster.local"
+	alsPort                   = 50600
 
 	backoffDelaySeconds = 10
 	backoffMaxretries   = 10

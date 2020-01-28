@@ -117,6 +117,8 @@ func (m *MeshReconciler) waitForRemoteIstioCRToBeDeleted(name string, client cli
 // generateRemoteIstioCR generates istio-operator specific CR based on the given params
 func (m *MeshReconciler) generateRemoteIstioCR(config Config, c cluster.CommonCluster) v1beta1.RemoteIstio {
 	enabled := true
+	replicaCount := int32(1)
+
 	istioConfig := v1beta1.RemoteIstio{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      c.GetName(),
@@ -161,12 +163,11 @@ func (m *MeshReconciler) generateRemoteIstioCR(config Config, c cluster.CommonCl
 					},
 				},
 			},
-			SidecarInjector: v1beta1.SidecarInjectorConfiguration{
-				Enabled:      &enabled,
-				ReplicaCount: 1,
-			},
 		},
 	}
+
+	istioConfig.Spec.SidecarInjector.Enabled = &enabled
+	istioConfig.Spec.SidecarInjector.ReplicaCount = &replicaCount
 
 	return istioConfig
 }
