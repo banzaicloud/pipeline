@@ -566,9 +566,17 @@ traefik:
 	v.SetDefault("cluster::backyards::charts::backyards::chart", "banzaicloud-stable/backyards")
 	v.SetDefault("cluster::backyards::charts::backyards::version", "1.1.0")
 	v.SetDefault("cluster::backyards::charts::backyards::values", map[string]interface{}{
-		"image": map[string]interface{}{
-			"repository": "banzaicloud/backyards",
-			"tag":        "1.1.0",
+		"application": map[string]interface{}{
+			"image": map[string]interface{}{
+				"repository": "banzaicloud/backyards",
+				"tag":        "1.1.2",
+			},
+		},
+		"web": map[string]interface{}{
+			"image": map[string]interface{}{
+				"repository": "banzaicloud/backyards",
+				"tag":        "1.1.2",
+			},
 		},
 	})
 	v.SetDefault("cluster::backyards::charts::canaryOperator::chart", "banzaicloud-stable/canary-operator")
