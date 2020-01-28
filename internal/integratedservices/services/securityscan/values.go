@@ -14,8 +14,11 @@
 
 package securityscan
 
-type SecurityScanChartValues struct {
-	Anchore AnchoreValues `json:"externalAnchore"`
+// represents a values yaml to be passed to the anchore image validator webhook chart
+type ImageValidatorChartValues struct {
+	ExternalAnchore   AnchoreValues     `json:"externalAnchore" mapstructure:"externalAnchore"`
+	NamespaceSelector NamespaceSelector `json:"namespaceSelector" mapstructure:"namespaceSelector"`
+	ObjectSelector    ObjectSelector    `json:"objectSelector" mapstructure:"objectSelector"`
 }
 
 // AnchoreValues struct used to build chart values and to extract anchore data from secret values
@@ -23,4 +26,19 @@ type AnchoreValues struct {
 	Host     string `json:"anchoreHost" mapstructure:"host"`
 	User     string `json:"anchoreUser" mapstructure:"username"`
 	Password string `json:"anchorePass" mapstructure:"password"`
+}
+
+type MatchExpression struct {
+	Key      string   `json:"key" mapstructure:"key"`
+	Operator string   `json:"operator" mapstructure:"operator"`
+	Values   []string `json:"values" mapstructure:"values"`
+}
+
+type NamespaceSelector struct {
+	MatchLabels      map[string]string `json:"matchLabels" mapstructure:"matchLabels"`
+	MatchExpressions []MatchExpression `json:"matchExpressions" mapstructure:"matchExpressions"`
+}
+
+type ObjectSelector struct {
+	MatchExpressions []MatchExpression `json:"matchExpressions" mapstructure:"matchExpressions"`
 }
