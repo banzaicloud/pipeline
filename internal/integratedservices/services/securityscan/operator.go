@@ -138,12 +138,6 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		}
 	}
 
-	if boundSpec.WebhookConfig.Enabled {
-		if err = op.configureWebHook(ctx, clusterID, boundSpec.WebhookConfig); err != nil {
-			//  as agreed, we let the integrated service activation to succeed and log the errors
-			op.errorHandler.HandleContext(ctx, err)
-		}
-	}
 	return nil
 }
 
