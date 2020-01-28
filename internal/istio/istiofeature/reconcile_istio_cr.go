@@ -142,22 +142,31 @@ func (m *MeshReconciler) configureIstioCR(istio *v1beta1.Istio, config Config) {
 	istio.Spec.AutoInjectionNamespaces = config.AutoSidecarInjectNamespaces
 	istio.Spec.Version = istioVersion
 	istio.Spec.ImagePullPolicy = corev1.PullAlways
-	istio.Spec.Gateways.IngressConfig.MaxReplicas = 1
-	istio.Spec.Gateways.EgressConfig.MaxReplicas = 1
-	istio.Spec.Pilot = v1beta1.PilotConfiguration{
-		Image:       m.Configuration.internalConfig.istioOperator.pilotImage,
-		MaxReplicas: maxReplicas,
-	}
-	istio.Spec.Mixer = v1beta1.MixerConfiguration{
-		K8sResourceConfiguration: v1beta1.K8sResourceConfiguration{
-			Image:       &m.Configuration.internalConfig.istioOperator.mixerImage,
-			MaxReplicas: &maxReplicas,
-		},
-	}
+	istio.Spec.Gateways.IngressConfig.MaxReplicas = &maxReplicas
+	istio.Spec.Gateways.EgressConfig.MaxReplicas = &maxReplicas
+	istio.Spec.Pilot.Image = &m.Configuration.internalConfig.istioOperator.pilotImage
+	istio.Spec.Pilot.MaxReplicas = &maxReplicas
+	istio.Spec.Mixer.Image = &m.Configuration.internalConfig.istioOperator.mixerImage
+	istio.Spec.Mixer.MaxReplicas = &maxReplicas
 	istio.Spec.SidecarInjector.RewriteAppHTTPProbe = true
 	istio.Spec.Tracing.Enabled = &enabled
 	istio.Spec.Tracing.Zipkin.Address = zipkinAddress
 	istio.Spec.Mixer.MultiClusterSupport = &enabled
+
+	istio.Spec.Proxy.EnvoyAccessLogService = v1beta1.EnvoyServiceCommonConfiguration{
+		Enabled: &enabled,
+		Host:    alsHost,
+		Port:    alsPort,
+		TLSSettings: &v1beta1.TLSSettings{
+			Mode: "DISABLE",
+		},
+		TCPKeepalive: &v1beta1.TCPKeepalive{
+			Interval: "10s",
+			Probes:   3,
+			Time:     "10s",
+		},
+	}
+	istio.Spec.Proxy.UseMetadataExchangeFilter = &enabled
 
 	if len(m.Remotes) > 0 {
 		istio.Spec.UseMCP = &enabled
