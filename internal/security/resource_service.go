@@ -209,12 +209,12 @@ func (s securityResourceService) getClusterClient(ctx context.Context, cluster C
 		return nil, errors.WrapIf(err, "failed to create k8s client config")
 	}
 
-	cl, err := client.New(config, client.Options{})
+	cli, err := client.New(config, client.Options{})
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to create security config")
 	}
 
-	return cl, nil
+	return cli, nil
 }
 
 func (s securityResourceService) assembleWhiteListItem(whitelistItem security.ReleaseWhiteListItem) *securityV1Alpha.WhiteListItem {
