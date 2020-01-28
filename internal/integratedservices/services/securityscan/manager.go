@@ -24,7 +24,8 @@ import (
 type IntegratedServiceManager struct {
 	integratedservices.PassthroughIntegratedServiceSpecPreparer
 
-	logger common.Logger
+	webhookConfig WebhookConfig
+	logger        common.Logger
 }
 
 // Name returns the name of the integrated service
@@ -33,9 +34,10 @@ func (f IntegratedServiceManager) Name() string {
 }
 
 //MakeIntegratedServiceManager creates asecurity scan integrated service manager instance
-func MakeIntegratedServiceManager(logger common.Logger) IntegratedServiceManager {
+func MakeIntegratedServiceManager(logger common.Logger, webhookConfig WebhookConfig) IntegratedServiceManager {
 	return IntegratedServiceManager{
-		logger: logger,
+		webhookConfig: webhookConfig,
+		logger:        logger,
 	}
 }
 
@@ -62,7 +64,7 @@ func (f IntegratedServiceManager) GetOutput(ctx context.Context, clusterID uint,
 	out := map[string]interface{}{
 		// todo add "real" anchore version
 		"anchore": map[string]interface{}{
-			"version": securityScanChartVersion,
+			"version": f.webhookConfig.Version,
 		},
 		"imageValidator": map[string]interface{}{
 			"version": imageValidatorVersion,

@@ -31,12 +31,8 @@ import (
 )
 
 const (
-	securityScanChartVersion = "0.4.4"
-	// todo read this from the chart possibly
 	imageValidatorVersion = "0.3.6"
 
-	// anchore version
-	securityScanChartName = "banzaicloud-stable/anchore-policy-validator"
 	securityScanNamespace = "pipeline-system"
 	securityScanRelease   = "anchore"
 
@@ -51,6 +47,7 @@ const (
 type IntegratedServiceOperator struct {
 	anchoreEnabled   bool
 	anchoreEndpoint  string
+	webhookConfig    WebhookConfig
 	clusterGetter    integratedserviceadapter.ClusterGetter
 	clusterService   integratedservices.ClusterService
 	helmService      services.HelmService
@@ -65,6 +62,7 @@ type IntegratedServiceOperator struct {
 func MakeIntegratedServiceOperator(
 	anchoreEnabled bool,
 	anchoreEndpoint string,
+	webhookConfig WebhookConfig,
 	clusterGetter integratedserviceadapter.ClusterGetter,
 	clusterService integratedservices.ClusterService,
 	helmService services.HelmService,
@@ -78,6 +76,7 @@ func MakeIntegratedServiceOperator(
 	return IntegratedServiceOperator{
 		anchoreEnabled:   anchoreEnabled,
 		anchoreEndpoint:  anchoreEndpoint,
+		webhookConfig:    webhookConfig,
 		clusterGetter:    clusterGetter,
 		clusterService:   clusterService,
 		helmService:      helmService,
@@ -131,8 +130,8 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		return errors.WrapIf(err, "failed to assemble chart values")
 	}
 
-	if err = op.helmService.ApplyDeployment(ctx, clusterID, securityScanNamespace, securityScanChartName, securityScanRelease,
-		values, securityScanChartVersion); err != nil {
+	if err = op.helmService.ApplyDeployment(ctx, clusterID, securityScanNamespace, op.webhookConfig.Chart, securityScanRelease,
+		values, op.webhookConfig.Version); err != nil {
 		return errors.WrapIf(err, "failed to deploy integrated service")
 	}
 
