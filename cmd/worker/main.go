@@ -443,7 +443,7 @@ func main() {
 						Deleter: commonClusterDeleter,
 					},
 					clusteradapter.ClusterDeleterEntry{
-						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Kubernetes, ""),
+						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Kubernetes, pkgCluster.Unknown),
 						Deleter: commonClusterDeleter,
 					},
 					clusteradapter.ClusterDeleterEntry{
