@@ -30,7 +30,7 @@ require (
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05
 	github.com/aws/aws-sdk-go v1.28.0
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-00010101000000-000000000000 // indirect
-	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
+	github.com/banzaicloud/anchore-image-validator v0.0.0-20200124145221-79c6757b5058
 	github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.1
 	github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677
 	github.com/banzaicloud/gin-utilz v0.1.0
@@ -125,7 +125,7 @@ require (
 	github.com/spf13/cast v1.3.1
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.6.1
+	github.com/spf13/viper v1.6.2
 	github.com/streadway/quantile v0.0.0-20150917103942-b0c588724d25 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
@@ -153,9 +153,10 @@ require (
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/yaml.v2 v2.2.4
-	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
+	k8s.io/api v0.17.1
 	k8s.io/apiextensions-apiserver v0.0.0-20190918201827-3de75813f604
-	k8s.io/apimachinery v0.0.0-20190823012420-8ca64af22337
+	k8s.io/apimachinery v0.17.1
+	k8s.io/apiserver v0.0.0-00010101000000-000000000000 // indirect
 	k8s.io/cli-runtime v0.0.0-20190404071300-cbd7455f4bce // indirect
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/cluster-bootstrap v0.0.0-20190404071559-03c28a85c7b7
@@ -163,12 +164,13 @@ require (
 	k8s.io/kube-openapi v0.0.0-20190228160746-b3a7cee44a30 // indirect
 	k8s.io/kubectl v0.0.0-20190523211420-5b63b0fd89bb // indirect
 	k8s.io/kubernetes v1.13.5
+	k8s.io/utils v0.0.0-20200124190032-861946025e34 // indirect
 	logur.dev/adapter/logrus v0.4.1
 	logur.dev/adapter/zap v0.4.1
 	logur.dev/integration/watermill v0.4.2
 	logur.dev/integration/zap v0.3.2
 	logur.dev/logur v0.16.2
-	sigs.k8s.io/controller-runtime v0.2.0
+	sigs.k8s.io/controller-runtime v0.4.0
 	sigs.k8s.io/kubefed v0.1.0-rc6
 	sigs.k8s.io/testing_frameworks v0.1.1
 	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect
