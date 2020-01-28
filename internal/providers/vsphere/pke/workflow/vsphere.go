@@ -20,6 +20,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
+	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/vim25/soap"
@@ -56,4 +57,13 @@ func (f *VMOMIClientFactory) New(organizationID uint, secretID string) (*govmomi
 
 	// Connect and log in to ESX or vCenter
 	return govmomi.NewClient(ctx, u, true)
+}
+
+func getClusterTags(clusterName, nodePoolName string) map[string]string {
+	tags := pke.PipelineTags()
+	tags["banzaicloud-cluster"] = clusterName
+	if nodePoolName != "" {
+		tags["banzaicloud-nodepool"] = nodePoolName
+	}
+	return tags
 }

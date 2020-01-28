@@ -32,34 +32,52 @@ import (
 	"go.uber.org/cadence/activity"
 )
 
-// DeleteNodeActivityName is the default registration name of the activity
-const DeleteNodeActivityName = "pke-vsphere-delete-node"
+// CreateNodeActivityName is the default registration name of the activity
+const CreateNodeActivityName = "pke-vsphere-create-node"
 
-// DeleteNodeActivity represents an activity for creating a vSphere virtual machine
-type DeleteNodeActivity struct {
+// CreateNodeActivity represents an activity for creating a vSphere virtual machine
+type CreateNodeActivity struct {
 	vmomiClientFactory *VMOMIClientFactory
 	tokenGenerator     pkeworkflowadapter.TokenGenerator
 }
 
-// MakeDeleteNodeActivity returns a new DeleteNodeActivity
-func MakeDeleteNodeActivity(vmomiClientFactory *VMOMIClientFactory) DeleteNodeActivity {
-	return DeleteNodeActivity{
+// MakeCreateNodeActivity returns a new CreateNodeActivity
+func MakeCreateNodeActivity(vmomiClientFactory *VMOMIClientFactory, tokenGenerator pkeworkflowadapter.TokenGenerator) CreateNodeActivity {
+	return CreateNodeActivity{
 		vmomiClientFactory: vmomiClientFactory,
+		tokenGenerator:     tokenGenerator,
 	}
 }
 
-// DeleteNodeActivityInput represents the input needed for executing a DeleteNodeActivity
-type DeleteNodeActivityInput struct {
-	OrganizationID uint
-	ClusterID      uint
-	SecretID       string
-	ClusterName    string
+// CreateNodeActivityInput represents the input needed for executing a CreateNodeActivity
+type CreateNodeActivityInput struct {
+	OrganizationID   uint
+	ClusterID        uint
+	SecretID         string
+	ClusterName      string
+	ResourcePoolName string
+	FolderName       string
+	DatastoreName    string
 	//HTTPProxy         intPKEWorkflow.HTTPProxy
 	Node
 }
 
+// Node represents a vSphere virtual machine
+type Node struct {
+	AdminUsername          string
+	VCPU                   int
+	RamMB                  int
+	Name                   string
+	SSHPublicKey           string
+	UserDataScriptParams   map[string]string
+	UserDataScriptTemplate string
+	TemplateName           string
+	NodePoolName           string
+	Master                 bool
+}
+
 // Execute performs the activity
-func (a DeleteNodeActivity) Execute(ctx context.Context, input DeleteNodeActivityInput) (existed bool, err error) {
+func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivityInput) (types.ManagedObjectReference, error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
@@ -72,26 +90,60 @@ func (a DeleteNodeActivity) Execute(ctx context.Context, input DeleteNodeActivit
 		"node", input.Node.Name,
 	}*/
 
-	c, err := a.vmomiClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
-		return true, err
+	vmRef := types.ManagedObjectReference{}
+
+	logger.Info("create virtual machine")
+
+	userDataScriptTemplate, err := template.New(input.Name + "UserDataScript").Parse(input.UserDataScriptTemplate)
+	if err != nil {
+		return vmRef, err
 	}
 
-	expectedTags := getClusterTags(input.Name, input.NodePoolName)
+	_, token, err := a.tokenGenerator.GenerateClusterToken(input.OrganizationID, input.ClusterID)
+	if err != nil {
+		return vmRef, err
+	}
+
+	input.UserDataScriptParams["PipelineToken"] = token
+
+	var userDataScript strings.Builder
+	err = userDataScriptTemplate.Execute(&userDataScript, input.UserDataScriptParams)
+	if err = errors.WrapIf(err, "failed to execute user data script template"); err != nil {
+		return vmRef, err
+	}
+
+	c, err := a.vmomiClientFactory.New(input.OrganizationID, input.SecretID)
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
+		return vmRef, err
+	}
+
+	userData := encodeGuestinfo(generateCloudConfig(input.AdminUsername, input.SSHPublicKey, userDataScript.String(), input.Name))
+
+	vmConfig := types.VirtualMachineConfigSpec{}
+	vmConfig.ExtraConfig = append(vmConfig.ExtraConfig,
+		&types.OptionValue{Key: "disk.enableUUID", Value: "true"}, // needed for pv mounting
+		&types.OptionValue{Key: "guestinfo.userdata.encoding", Value: "gzip+base64"},
+		&types.OptionValue{Key: "guestinfo.userdata", Value: userData},
+	)
+
+	tags := getClusterTags(input.Name, input.NodePoolName)
+	for key := range tags {
+		vmConfig.ExtraConfig = append(vmConfig.ExtraConfig,
+			&types.OptionValue{Key: fmt.Sprintf("guestinfo.%s", key), Value: tags[key]},
+		)
+	}
+
+	cloneSpec := types.VirtualMachineCloneSpec{
+		Config:  &vmConfig,
+		PowerOn: true,
+	}
 
 	finder := find.NewFinder(c.Client)
 	folder, err := finder.FolderOrDefault(ctx, input.FolderName)
 	if err != nil {
 		return vmRef, err
 	}
-	vms, err := finder.VirtualMachineList(ctx, input.Name)
-	if err != nil {
-		return false, errors.WrapIff(err, "couldn't find a VM named %q", input.Name)
-	}
-
-	for _, vm := range vms {
-		config, err := vm.QueryConfigTarget()
-	}
+	folderRef := folder.Reference()
 
 	template, err := finder.VirtualMachine(ctx, input.TemplateName)
 	if err != nil {
@@ -166,7 +218,7 @@ func (a DeleteNodeActivity) Execute(ctx context.Context, input DeleteNodeActivit
 		return vmRef, err
 	}
 
-	logger.Infof("vm deleted: %+v\n", taskInfo)
+	logger.Infof("vm created: %+v\n", taskInfo)
 
 	if ref, ok := taskInfo.Result.(types.ManagedObjectReference); ok {
 		vmRef = ref
