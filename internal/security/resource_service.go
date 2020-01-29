@@ -186,15 +186,15 @@ func (s securityResourceService) getWhitelist(ctx context.Context, cluster Clust
 		return nil, errors.WrapIf(err, "failed to get audit client")
 	}
 
-	whilteListItem := &securityV1Alpha.WhiteListItem{}
+	whiteListItem := &securityV1Alpha.WhiteListItem{}
 	nsname := types.NamespacedName{
 		Name: whitelistItemName,
 	}
 
-	if err := cli.Get(ctx, nsname, whilteListItem); err != nil {
+	if err := cli.Get(ctx, nsname, whiteListItem); err != nil {
 		return nil, errors.WrapIff(err, "failed to get whiteListItem: %s", whitelistItemName)
 	}
-	return whilteListItem, nil
+	return whiteListItem, nil
 }
 
 func (s securityResourceService) getClusterClient(ctx context.Context, cluster Cluster) (client.Client, error) {
