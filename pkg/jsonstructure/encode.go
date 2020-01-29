@@ -59,7 +59,7 @@ func encode(v reflect.Value) (interface{}, error) {
 		}
 		fallthrough
 	case reflect.Array:
-		arr := make([]interface{}, v.Len())
+		arr := make(Array, v.Len())
 		for i := range arr {
 			val, err := encode(v.Index(i))
 			if err != nil {
@@ -79,7 +79,7 @@ func encode(v reflect.Value) (interface{}, error) {
 				return nil, nil
 			}
 
-			obj := make(map[string]interface{}, v.Len())
+			obj := make(Object, v.Len())
 			for it := v.MapRange(); it.Next(); {
 				key := it.Key().String()
 				val, err := encode(it.Value())
@@ -92,7 +92,7 @@ func encode(v reflect.Value) (interface{}, error) {
 		}
 
 	case reflect.Struct:
-		obj := make(map[string]interface{}, v.NumField())
+		obj := make(Object, v.NumField())
 		if err := encodeStruct(obj, v); err != nil {
 			return nil, err
 		}
@@ -103,7 +103,7 @@ func encode(v reflect.Value) (interface{}, error) {
 	return nil, encodeError{v}
 }
 
-func encodeStruct(obj map[string]interface{}, value reflect.Value) error {
+func encodeStruct(obj Object, value reflect.Value) error {
 	for it := mirror.NewStructIter(value); it.Next(); {
 		if err := encodeField(obj, it.Field(), it.Value()); err != nil {
 			return err
@@ -112,7 +112,7 @@ func encodeStruct(obj map[string]interface{}, value reflect.Value) error {
 	return nil
 }
 
-func encodeField(obj map[string]interface{}, field reflect.StructField, value reflect.Value) error {
+func encodeField(obj Object, field reflect.StructField, value reflect.Value) error {
 	jsonTag := field.Tag.Get("json")
 	if jsonTag == "-" {
 		// omit field
