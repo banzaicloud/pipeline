@@ -593,6 +593,11 @@ func (m chartValuesManager) generateGrafanaChartValues(
 			Persistence: persistenceValues{
 				Enabled: true,
 			},
+			Datasources: datasourcesValues{
+				Enabled:         true,
+				Label:           "grafana_datasource",
+				SearchNamespace: "ALL",
+			},
 		}
 	}
 
