@@ -6,6 +6,9 @@ replicaCount: 1
 # Upgrade strategy
 strategy:
   type: Recreate
+  # this must be set to aviod issues when the chart is upgraded from rollingUpdate type
+  # https://github.com/helm/helm/issues/5144#issuecomment-512758270
+  rollingUpdate: null
 
 ## Additional entries to the hosts
 hostAliases: []

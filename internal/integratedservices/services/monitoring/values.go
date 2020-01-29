@@ -53,6 +53,13 @@ type grafanaValues struct {
 	DefaultDashboardsEnabled bool              `json:"defaultDashboardsEnabled"`
 	Image                    imageValues       `json:"image"`
 	Persistence              persistenceValues `json:"persistence"`
+	Datasources              datasourcesValues `json:"datasources"`
+}
+
+type datasourcesValues struct {
+	Enabled         bool   `json:"enabled"`
+	Label           string `json:"label"`
+	SearchNamespace string `json:"searchNamespace"`
 }
 
 type persistenceValues struct {
