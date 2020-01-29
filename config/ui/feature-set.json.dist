@@ -134,5 +134,8 @@
     "advancedNetwork": {
       "enabled": true
     }
+  },
+  "importKubernetesCluster": {
+    "enabled": true
   }
 }
