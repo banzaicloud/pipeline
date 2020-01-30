@@ -347,7 +347,7 @@ func main() {
 
 		workflow.RegisterWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
 
-		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager)
+		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager, config.Cluster.PostHook)
 		activity.RegisterWithOptions(runPostHookActivity.Execute, activity.RegisterOptions{Name: cluster.RunPostHookActivityName})
 
 		updateClusterStatusActivity := cluster.NewUpdateClusterStatusActivity(clusterManager)

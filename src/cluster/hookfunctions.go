@@ -93,7 +93,8 @@ func (p *Priority) GetPriority() int {
 
 // BasePostFunction describe a default posthook function
 type BasePostFunction struct {
-	f func(CommonCluster) error
+	f      func(CommonCluster, pkgCluster.PostHookConfig) error
+	config pkgCluster.PostHookConfig
 	Priority
 	ErrorHandler
 }
@@ -113,7 +114,7 @@ func (p *PostFunctionWithParam) Do(cluster CommonCluster) error {
 
 // Do call function and pass CommonCluster as param
 func (b *BasePostFunction) Do(cluster CommonCluster) error {
-	return b.f(cluster)
+	return b.f(cluster, b.config)
 }
 
 func (b *BasePostFunction) String() string {

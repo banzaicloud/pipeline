@@ -96,17 +96,25 @@ type RunPostHookActivityInput struct {
 
 type RunPostHookActivity struct {
 	manager *Manager
+	config  pkgCluster.PostHookConfig
 }
 
-func NewRunPostHookActivity(manager *Manager) *RunPostHookActivity {
+func NewRunPostHookActivity(manager *Manager, config pkgCluster.PostHookConfig) *RunPostHookActivity {
 	return &RunPostHookActivity{
 		manager: manager,
+		config:  config,
 	}
 }
 func (a *RunPostHookActivity) Execute(ctx context.Context, input RunPostHookActivityInput) error {
 	hook, ok := HookMap[input.HookName]
 	if !ok {
 		return errors.New("hook function not found")
+	}
+
+	if phf, ok := hook.(*BasePostFunction); ok {
+		phfCopy := *phf // This is to avoid bugs caused by the global nature of posthooks
+		phfCopy.config = a.config
+		hook = &phfCopy
 	}
 
 	if hookWithParam, ok := hook.(*PostFunctionWithParam); ok {
