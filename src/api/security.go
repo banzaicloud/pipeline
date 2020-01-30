@@ -22,10 +22,9 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
-	clientV1alpha1 "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	"github.com/gin-gonic/gin"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	internalCommon "github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -42,11 +41,13 @@ func init() {
 	_ = v1alpha1.AddToScheme(scheme.Scheme)
 }
 
-func getSecurityClient(c *gin.Context) *clientV1alpha1.SecurityV1Alpha1Client {
+func getClusterClient(c *gin.Context) client.Client {
+
 	kubeConfig, ok := GetK8sConfig(c)
 	if !ok {
 		return nil
 	}
+
 	config, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
 		log.Errorf("Error getting K8s config: %s", err.Error())
@@ -58,17 +59,18 @@ func getSecurityClient(c *gin.Context) *clientV1alpha1.SecurityV1Alpha1Client {
 		return nil
 	}
 
-	securityClientSet, err := clientV1alpha1.SecurityConfig(config)
+	cli, err := client.New(config, client.Options{})
 	if err != nil {
-		log.Errorf("Error getting SecurityClient: %s", err.Error())
+		log.Errorf("Error creating new K8s client: %s", err.Error())
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error getting SecurityClient",
+			Message: "Error creatig K8s Client",
 			Error:   err.Error(),
 		})
 		return nil
 	}
-	return securityClientSet
+
+	return cli
 }
 
 // GetImageDeployments list deployments by image
@@ -159,16 +161,16 @@ func getImageDigest(imageID string) string {
 
 // GetWhitelistSet will return a WhitelistSet
 func GetWhitelistSet(c *gin.Context) (map[string]bool, bool) {
-	securityClientSet := getSecurityClient(c)
+	cli := getClusterClient(c)
+
 	releaseWhitelist := make(map[string]bool)
-	if securityClientSet == nil {
-		return releaseWhitelist, false
-	}
-	whitelists, err := securityClientSet.Whitelists().List(metav1.ListOptions{})
-	if err != nil {
+	whitelists := &v1alpha1.WhiteListItemList{}
+
+	if err := cli.List(c, &client.ListOptions{}, whitelists); err != nil {
 		log.Warnf("can not fetch WhiteList: %s", err.Error())
 		return releaseWhitelist, false
 	}
+
 	for _, whitelist := range whitelists.Items {
 		releaseWhitelist[whitelist.ObjectMeta.Name] = true
 	}
@@ -178,16 +180,16 @@ func GetWhitelistSet(c *gin.Context) (map[string]bool, bool) {
 
 // GetReleaseScanLog will return a ReleaseScanlog
 func GetReleaseScanLog(c *gin.Context) (map[string]bool, bool) {
-	securityClientSet := getSecurityClient(c)
+	cli := getClusterClient(c)
+
 	releaseScanLogReject := make(map[string]bool)
-	if securityClientSet == nil {
-		return releaseScanLogReject, false
-	}
-	audits, err := securityClientSet.Audits().List(metav1.ListOptions{LabelSelector: "fakerelease=false"})
-	if err != nil {
+	audits := &v1alpha1.AuditList{}
+
+	if err := cli.List(c, client.MatchingLabels(map[string]string{"fakerelease": "false"}), audits); err != nil {
 		log.Warnf("can not fetch ScanLog: %s", err.Error())
 		return releaseScanLogReject, false
 	}
+
 	for _, audit := range audits.Items {
 		if audit.Spec.Action == "reject" {
 			releaseScanLogReject[audit.Spec.ReleaseName] = true
