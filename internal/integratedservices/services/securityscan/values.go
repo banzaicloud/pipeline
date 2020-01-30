@@ -16,9 +16,9 @@ package securityscan
 
 // represents a values yaml to be passed to the anchore image validator webhook chart
 type ImageValidatorChartValues struct {
-	ExternalAnchore   *AnchoreValues     `json:"externalAnchore,omitempty" mapstructure:"externalAnchore"`
-	NamespaceSelector *NamespaceSelector `json:"namespaceSelector,omitempty" mapstructure:"namespaceSelector"`
-	ObjectSelector    *ObjectSelector    `json:"objectSelector,omitempty" mapstructure:"objectSelector"`
+	ExternalAnchore   *AnchoreValues    `json:"externalAnchore,omitempty" mapstructure:"externalAnchore"`
+	NamespaceSelector *SetBasedSelector `json:"namespaceSelector,omitempty" mapstructure:"namespaceSelector"`
+	ObjectSelector    *SetBasedSelector `json:"objectSelector,omitempty" mapstructure:"objectSelector"`
 }
 
 // AnchoreValues struct used to build chart values and to extract anchore data from secret values
@@ -34,28 +34,17 @@ type MatchExpression struct {
 	Values   []string `json:"values" mapstructure:"values"`
 }
 
-type NamespaceSelector struct {
+type SetBasedSelector struct {
 	MatchLabels      map[string]string `json:"matchLabels,omitempty" mapstructure:"matchLabels"`
 	MatchExpressions []MatchExpression `json:"matchExpressions,omitempty" mapstructure:"matchExpressions"`
 }
 
-type ObjectSelector struct {
-	MatchExpressions []MatchExpression `json:"matchExpressions,omitempty" mapstructure:"matchExpressions"`
-}
-
-func (n *NamespaceSelector) addMatchLabel(key string, value string) {
-	if n.MatchLabels == nil {
-		n.MatchLabels = make(map[string]string)
-	}
-	n.MatchLabels[key] = value
-}
-
-func (n NamespaceSelector) addMatchExpression(key string, operator string, values []string) {
-	if n.MatchExpressions == nil {
-		n.MatchExpressions = make([]MatchExpression, 0, len(values))
+func (s *SetBasedSelector) addMatchExpression(key string, operator string, values []string) {
+	if s.MatchExpressions == nil {
+		s.MatchExpressions = make([]MatchExpression, 0, len(values))
 	}
 
-	n.MatchExpressions = append(n.MatchExpressions,
+	s.MatchExpressions = append(s.MatchExpressions,
 		MatchExpression{
 			Key:      key,
 			Operator: operator,
@@ -63,15 +52,9 @@ func (n NamespaceSelector) addMatchExpression(key string, operator string, value
 		})
 }
 
-func (o ObjectSelector) addMatchExpression(key string, operator string, values []string) {
-	if o.MatchExpressions == nil {
-		o.MatchExpressions = make([]MatchExpression, 0, len(values))
+func (s *SetBasedSelector) addMatchLabel(key string, value string) {
+	if s.MatchLabels == nil {
+		s.MatchLabels = make(map[string]string)
 	}
-
-	o.MatchExpressions = append(o.MatchExpressions,
-		MatchExpression{
-			Key:      key,
-			Operator: operator,
-			Values:   values,
-		})
+	s.MatchLabels[key] = value
 }
