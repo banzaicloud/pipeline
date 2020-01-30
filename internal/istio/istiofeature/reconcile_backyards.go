@@ -212,6 +212,9 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 		values.Application.Image.Tag = m.Configuration.internalConfig.backyards.imageTag
 	}
 
+	if m.Configuration.internalConfig.backyards.webImageRepository != "" {
+		values.Web.Image.Repository = m.Configuration.internalConfig.backyards.webImageRepository
+	}
 	if m.Configuration.internalConfig.backyards.webImageTag != "" {
 		values.Web.Image.Tag = m.Configuration.internalConfig.backyards.webImageTag
 	}
