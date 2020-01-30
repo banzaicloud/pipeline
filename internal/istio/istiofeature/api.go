@@ -97,11 +97,12 @@ type canaryOperatorConfiguration struct {
 }
 
 type backyardsConfiguration struct {
-	chartVersion    string
-	chartName       string
-	imageRepository string
-	imageTag        string
-	webImageTag     string
+	chartVersion       string
+	chartName          string
+	imageRepository    string
+	imageTag           string
+	webImageRepository string
+	webImageTag        string
 }
 
 type istioOperatorConfiguration struct {
