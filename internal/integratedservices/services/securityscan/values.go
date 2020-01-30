@@ -16,9 +16,9 @@ package securityscan
 
 // represents a values yaml to be passed to the anchore image validator webhook chart
 type ImageValidatorChartValues struct {
-	ExternalAnchore   AnchoreValues     `json:"externalAnchore" mapstructure:"externalAnchore"`
-	NamespaceSelector NamespaceSelector `json:"namespaceSelector" mapstructure:"namespaceSelector"`
-	ObjectSelector    ObjectSelector    `json:"objectSelector" mapstructure:"objectSelector"`
+	ExternalAnchore   *AnchoreValues     `json:"externalAnchore,omitempty" mapstructure:"externalAnchore"`
+	NamespaceSelector *NamespaceSelector `json:"namespaceSelector,omitempty" mapstructure:"namespaceSelector"`
+	ObjectSelector    *ObjectSelector    `json:"objectSelector,omitempty" mapstructure:"objectSelector"`
 }
 
 // AnchoreValues struct used to build chart values and to extract anchore data from secret values
@@ -35,15 +35,15 @@ type MatchExpression struct {
 }
 
 type NamespaceSelector struct {
-	MatchLabels      map[string]string `json:"matchLabels" mapstructure:"matchLabels"`
-	MatchExpressions []MatchExpression `json:"matchExpressions" mapstructure:"matchExpressions"`
+	MatchLabels      map[string]string `json:"matchLabels,omitempty" mapstructure:"matchLabels"`
+	MatchExpressions []MatchExpression `json:"matchExpressions,omitempty" mapstructure:"matchExpressions"`
 }
 
 type ObjectSelector struct {
-	MatchExpressions []MatchExpression `json:"matchExpressions" mapstructure:"matchExpressions"`
+	MatchExpressions []MatchExpression `json:"matchExpressions,omitempty" mapstructure:"matchExpressions"`
 }
 
-func (n NamespaceSelector) addMatchLabel(key string, value string) {
+func (n *NamespaceSelector) addMatchLabel(key string, value string) {
 	if n.MatchLabels == nil {
 		n.MatchLabels = make(map[string]string)
 	}

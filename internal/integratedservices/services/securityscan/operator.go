@@ -36,7 +36,7 @@ const (
 	// the label key on the namespaces that is watched by the webhook
 	labelKey = "scan"
 
-	allStar         = "*"
+	selectedAllStar = "*"
 	selectorInclude = "include"
 	selectorExclude = "exclude"
 )
@@ -138,6 +138,12 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		}
 	}
 
+	if boundSpec.WebhookConfig.Enabled {
+		if err = op.configureWebHook(ctx, clusterID, boundSpec.WebhookConfig); err != nil {
+			//  as agreed, we let the integrated service activation to succeed and log the errors
+			op.errorHandler.HandleContext(ctx, err)
+		}
+	}
 	return nil
 }
 
@@ -216,27 +222,10 @@ func (op IntegratedServiceOperator) createAnchoreUserForCluster(ctx context.Cont
 func (op IntegratedServiceOperator) processChartValues(ctx context.Context, clusterID uint, anchoreValues AnchoreValues,
 	webhookConfigSpec webHookConfigSpec) ([]byte, error) {
 
-	namespaceSelector := NamespaceSelector{}
-	objectSelector := ObjectSelector{}
+	chartValues := webhookConfigSpec.GetValues()
+	chartValues.ExternalAnchore = &anchoreValues
 
-	if webhookConfigSpec.Enabled {
-		switch webhookConfigSpec.Selector {
-		case selectorExclude:
-
-			// todo set up namespaceselectors and objectselectors
-		case selectorInclude:
-			// todo set up namespaceselectors and objectselectors
-		default:
-			return nil, errors.New("Unsupported selector")
-		}
-	}
-
-	valuesBytes, err := json.Marshal(ImageValidatorChartValues{
-		ExternalAnchore:   anchoreValues,
-		NamespaceSelector: namespaceSelector,
-		ObjectSelector:    objectSelector,
-	})
-
+	valuesBytes, err := json.Marshal(chartValues)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to marshal chart values")
 	}
@@ -315,7 +304,7 @@ func (op *IntegratedServiceOperator) configureWebHook(ctx context.Context, clust
 		op.errorHandler.HandleContext(ctx, err)
 	}
 
-	if whConfig.Selector == selectorInclude && len(whConfig.Namespaces) == 1 && whConfig.Namespaces[0] == allStar {
+	if whConfig.Selector == selectorInclude && whConfig.allNamespaces() {
 		// this setup corresponds to the default configuration, do nothing
 		op.logger.Info("all namespaces are subject for security scan")
 		return nil
