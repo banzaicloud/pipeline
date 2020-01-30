@@ -138,7 +138,6 @@ func (w webHookConfigSpec) GetValues() ImageValidatorChartValues {
 	if w.Enabled {
 		switch w.Selector {
 		case selectorInclude:
-			//
 			if !w.allNamespaces() {
 				namespaceSelector.addMatchLabel(labelKey, "scan")
 			}
@@ -149,7 +148,6 @@ func (w webHookConfigSpec) GetValues() ImageValidatorChartValues {
 				namespaceSelector.addMatchLabel(labelKey, "scan")
 			}
 		}
-
 	}
 
 	return ImageValidatorChartValues{

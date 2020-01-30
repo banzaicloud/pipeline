@@ -38,7 +38,10 @@ func Test_webHookConfigSpec_GetValues(t *testing.T) {
 				Selector:   selectorInclude,
 				Namespaces: []string{selectedAllStar},
 			},
-			want: ImageValidatorChartValues{}, // empty values!
+			want: ImageValidatorChartValues{
+				NamespaceSelector: DefaultNamespaceSelector(),
+				ObjectSelector:    DefaultObjectSelector(),
+			}, // empty values!
 		},
 		{
 			name: "include some namespaces", // namespaces labeled with scan=scan
@@ -48,9 +51,22 @@ func Test_webHookConfigSpec_GetValues(t *testing.T) {
 				Namespaces: []string{"ns1", "ns2"},
 			},
 			want: ImageValidatorChartValues{
-				NamespaceSelector: &NamespaceSelector{
+				NamespaceSelector: &SetBasedSelector{
 					MatchLabels: map[string]string{labelKey: "scan"},
+					MatchExpressions: []MatchExpression{
+						{
+							Key:      "name",
+							Operator: "NotIn",
+							Values:   []string{"anchore"},
+						},
+						{
+							Key:      labelKey,
+							Operator: "NotIn",
+							Values:   []string{"noscan"},
+						},
+					},
 				},
+				ObjectSelector: DefaultObjectSelector(),
 			},
 		},
 		{
@@ -61,9 +77,22 @@ func Test_webHookConfigSpec_GetValues(t *testing.T) {
 				Namespaces: []string{selectedAllStar},
 			},
 			want: ImageValidatorChartValues{
-				NamespaceSelector: &NamespaceSelector{
-					MatchLabels: map[string]string{labelKey: "scan"}, // selector for label to exclude all ns-es
+				NamespaceSelector: &SetBasedSelector{
+					MatchLabels: map[string]string{labelKey: "scan"},
+					MatchExpressions: []MatchExpression{
+						{
+							Key:      "name",
+							Operator: "NotIn",
+							Values:   []string{"anchore"},
+						},
+						{
+							Key:      labelKey,
+							Operator: "NotIn",
+							Values:   []string{"noscan"},
+						},
+					},
 				},
+				ObjectSelector: DefaultObjectSelector(),
 			},
 		},
 		{
@@ -73,7 +102,10 @@ func Test_webHookConfigSpec_GetValues(t *testing.T) {
 				Selector:   selectorExclude,
 				Namespaces: []string{"ns1", "ns2"},
 			},
-			want: ImageValidatorChartValues{}, // empty values here / namespaces labeled, the default config applies
+			want: ImageValidatorChartValues{
+				NamespaceSelector: DefaultNamespaceSelector(),
+				ObjectSelector:    DefaultObjectSelector(),
+			}, // empty values here / namespaces labeled, the default config applies
 		},
 	}
 	for _, tt := range tests {
