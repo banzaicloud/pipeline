@@ -17,8 +17,11 @@ package cluster
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"time"
 
+	"emperror.dev/errors"
+	"github.com/ghodss/yaml"
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
@@ -120,6 +123,38 @@ type ScaleOptions struct {
 
 // PostHookParam describes posthook params in create request
 type PostHookParam interface{}
+
+type PostHookConfig struct {
+	// ingress controller config
+	Ingresscontroller IngressControllerConfig
+}
+
+type IngressControllerConfig struct {
+	Enabled bool
+	Values  ValuesConfig
+}
+
+type ValuesConfig string
+
+// todo (colin) remove these after we created ingress-controller integrated service
+func NewValuesConfig(mapIn map[string]interface{}) (ValuesConfig, error) {
+	out, err := yaml.Marshal(mapIn)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to create values config")
+	}
+	return ValuesConfig(out), nil
+}
+
+func (v ValuesConfig) ToMap() (map[string]interface{}, error) {
+	var out = make(map[string]interface{})
+	var trimmedStr = strings.TrimSpace(string(v))
+	err := yaml.Unmarshal([]byte(trimmedStr), &out)
+	if err != nil {
+		return nil, errors.WrapIf(err, "error during converting to map")
+	}
+
+	return out, nil
+}
 
 // GenTLSForLogging describes the TLS related params for Logging
 type GenTLSForLogging struct {

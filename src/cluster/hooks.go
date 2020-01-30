@@ -103,7 +103,7 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 	return nil
 }
 
-func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
+func InstallKubernetesDashboardPostHook(cluster CommonCluster, _ pkgCluster.PostHookConfig) error {
 
 	k8sDashboardNameSpace := global.Config.Cluster.Namespace
 	k8sDashboardReleaseName := "dashboard"
@@ -216,7 +216,7 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 }
 
 // InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
-func InstallClusterAutoscalerPostHook(cluster CommonCluster) error {
+func InstallClusterAutoscalerPostHook(cluster CommonCluster, _ pkgCluster.PostHookConfig) error {
 	return DeployClusterAutoscaler(cluster)
 }
 
@@ -247,7 +247,7 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 }
 
 // InstallHorizontalPodAutoscalerPostHook
-func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
+func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster, _ pkgCluster.PostHookConfig) error {
 	promServiceName := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceName
 	infraNamespace := global.Config.Cluster.Autoscale.Namespace
 	serviceContext := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceContext
@@ -300,7 +300,7 @@ func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) er
 }
 
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
-func InitSpotConfig(cluster CommonCluster) error {
+func InitSpotConfig(cluster CommonCluster, _ pkgCluster.PostHookConfig) error {
 
 	spot, err := isSpotCluster(cluster)
 	if err != nil {
@@ -347,7 +347,7 @@ func InitSpotConfig(cluster CommonCluster) error {
 }
 
 // DeployInstanceTerminationHandler deploys the instance termination handler
-func DeployInstanceTerminationHandler(cluster CommonCluster) error {
+func DeployInstanceTerminationHandler(cluster CommonCluster, _ pkgCluster.PostHookConfig) error {
 	cloud := cluster.GetCloud()
 
 	if cloud != pkgCluster.Amazon && cloud != pkgCluster.Google {

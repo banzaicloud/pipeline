@@ -362,6 +362,11 @@ dex:
 #
 #                # See https://github.com/kubernetes-sigs/kubefed/tree/master/charts/kubefed for details
 #                values: {}
+#
+#    posthook:
+#        ingressconrtroller:
+#            enabled: true
+#            values: |
 
 #helm:
 #    home: "./var/cache"

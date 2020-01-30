@@ -15,25 +15,20 @@
 package cluster
 
 import (
-	"crypto/x509/pkix"
-	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/banzaicloud/bank-vaults/pkg/sdk/tls"
-	"github.com/ghodss/yaml"
-
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/internal/global/ingresscert"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
-	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	"github.com/banzaicloud/pipeline/internal/util"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/dns"
-	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 type ingressControllerValues struct {
@@ -48,96 +43,79 @@ type traefikValues struct {
 type sslTraefikValues struct {
 	Enabled        bool     `json:"enabled"`
 	GenerateTLS    bool     `json:"generateTLS"`
-	DefaultCN      string   `json:"defaultCN"`
-	DefaultSANList []string `json:"defaultSANList"`
-	DefaultCert    string   `json:"defaultCert"`
-	DefaultKey     string   `json:"defaultKey"`
+	DefaultCN      string   `json:"defaultCN,omitempty"`
+	DefaultSANList []string `json:"defaultSANList,omitempty"`
+	DefaultCert    string   `json:"defaultCert,omitempty"`
+	DefaultKey     string   `json:"defaultKey,omitempty"`
 }
 
 type serviceTraefikValues struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
-const DefaultCertSecretName = "default-ingress-cert"
-
 // InstallIngressControllerPostHook post hooks can't return value, they can log error and/or update state?
-func InstallIngressControllerPostHook(cluster CommonCluster) error {
-	defaultCertSecret, err := secret.Store.GetByName(cluster.GetOrganizationId(), DefaultCertSecretName)
-	if err == secret.ErrSecretNotExists {
-		certGenerator := ingresscert.GetCertGenerator()
-
-		orgID := cluster.GetOrganizationId()
-		organization, err := auth.GetOrganizationById(orgID)
-		if err != nil {
-			return errors.WrapIfWithDetails(err, "failed to get organization", "organizationId", orgID)
-		}
-
-		baseDomain := strings.ToLower(global.Config.Cluster.DNS.BaseDomain)
-
-		certRequest := tls.ServerCertificateRequest{
-			Subject: pkix.Name{
-				CommonName: "banzaicloud.io",
-			},
-		}
-
-		if baseDomain != "" {
-			orgDomainName := strings.ToLower(fmt.Sprintf("%s.%s", organization.NormalizedName, baseDomain))
-			err = dns.ValidateSubdomain(orgDomainName)
-			if err != nil {
-				return errors.WrapIf(err, "invalid domain for TLS cert")
-			}
-
-			wildcardOrgDomainName := fmt.Sprintf("*.%s", orgDomainName)
-			err = dns.ValidateWildcardSubdomain(wildcardOrgDomainName)
-			if err != nil {
-				return errors.WrapIf(err, "invalid wildcard domain for TLS cert")
-			}
-
-			certRequest = tls.ServerCertificateRequest{
-				Subject: pkix.Name{
-					CommonName: wildcardOrgDomainName,
-				},
-				DNSNames: []string{orgDomainName, wildcardOrgDomainName},
-			}
-		}
-
-		rootCA, cert, key, err := certGenerator.GenerateServerCertificate(certRequest)
-		if err != nil {
-			return errors.Wrap(err, "failed to generate certificate")
-		}
-
-		defaultCertSecretRequest := &secret.CreateSecretRequest{
-			Name: DefaultCertSecretName,
-			Type: secrettype.TLSSecretType,
-			Values: map[string]string{
-				secrettype.CACert:     string(rootCA),
-				secrettype.ServerCert: string(cert),
-				secrettype.ServerKey:  string(key),
-			},
-			Tags: []string{
-				secret.TagBanzaiReadonly,
-			},
-		}
-
-		secretId, err := secret.Store.Store(cluster.GetOrganizationId(), defaultCertSecretRequest)
-		if err != nil {
-			return errors.Wrap(err, "failed to save generated certificate")
-		}
-
-		defaultCertSecret, err = secret.Store.Get(cluster.GetOrganizationId(), secretId)
-		if err != nil {
-			return errors.Wrap(err, "failed to load generated certificate")
-		}
-	} else if err != nil {
-		return errors.Wrap(err, "failed to check default ingress cert existence")
+func InstallIngressControllerPostHook(cluster CommonCluster, config pkgCluster.PostHookConfig) error {
+	if !config.Ingresscontroller.Enabled {
+		return nil
 	}
 
-	ingressValues := ingressControllerValues{
+	orgID := cluster.GetOrganizationId()
+	organization, err := auth.GetOrganizationById(orgID)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to get organization", "organizationId", orgID)
+	}
+
+	var orgDomainName string
+	var wildcardOrgDomainName string
+	var baseDomain = strings.ToLower(global.Config.Cluster.DNS.BaseDomain)
+	if baseDomain != "" {
+		orgDomainName = strings.ToLower(fmt.Sprintf("%s.%s", organization.NormalizedName, baseDomain))
+		err = dns.ValidateSubdomain(orgDomainName)
+		if err != nil {
+			return errors.WrapIf(err, "invalid domain for TLS cert")
+		}
+
+		wildcardOrgDomainName = fmt.Sprintf("*.%s", orgDomainName)
+		err = dns.ValidateWildcardSubdomain(wildcardOrgDomainName)
+		if err != nil {
+			return errors.WrapIf(err, "invalid wildcard domain for TLS cert")
+		}
+	}
+
+	icConfigValues, err := config.Ingresscontroller.Values.ToMap()
+	if err != nil {
+		return errors.WrapIf(err, "failed to convert ingress controller values")
+	}
+
+	var defaultCN = orgDomainName
+	var defaultSANList []string
+	if orgDomainName != "" {
+		defaultSANList = append(defaultSANList, orgDomainName)
+	}
+
+	if wildcardOrgDomainName != "" {
+		defaultSANList = append(defaultSANList, wildcardOrgDomainName)
+	}
+
+	if values, ok := icConfigValues["traefik"].(map[string]interface{}); ok {
+		if sslV, ok := values["ssl"].(map[string]interface{}); ok {
+			if sanList, ok := sslV["defaultSANList"].([]interface{}); ok {
+				for _, san := range sanList {
+					if s, ok := san.(string); ok {
+						defaultSANList = append(defaultSANList, s)
+					}
+				}
+			}
+		}
+	}
+
+	var ingressValues = ingressControllerValues{
 		Traefik: traefikValues{
 			SSL: sslTraefikValues{
-				Enabled:     true,
-				DefaultCert: base64.StdEncoding.EncodeToString([]byte(defaultCertSecret.Values[secrettype.ServerCert])),
-				DefaultKey:  base64.StdEncoding.EncodeToString([]byte(defaultCertSecret.Values[secrettype.ServerKey])),
+				Enabled:        true,
+				GenerateTLS:    true,
+				DefaultCN:      defaultCN,
+				DefaultSANList: defaultSANList,
 			},
 		},
 	}
@@ -155,12 +133,26 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 		}
 	}
 
-	ingressValuesJson, err := yaml.Marshal(ingressValues)
+	valuesBytes, err := mergeValues(ingressValues, icConfigValues)
 	if err != nil {
-		return errors.WrapIf(err, "converting ingress config to json failed")
+		return errors.WrapIf(err, "failed to merge treafik values with config")
 	}
 
 	namespace := global.Config.Cluster.Namespace
 
-	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "ingress", ingressValuesJson, "", false)
+	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "ingress", valuesBytes, "", false)
+}
+
+func mergeValues(chartValues interface{}, configValues interface{}) ([]byte, error) {
+	out, err := jsonstructure.Encode(chartValues)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to encode chart values")
+	}
+
+	result, err := util.Merge(configValues, out)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to merge values")
+	}
+
+	return json.Marshal(result)
 }
