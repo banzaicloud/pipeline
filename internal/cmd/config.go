@@ -574,7 +574,7 @@ traefik:
 		},
 		"web": map[string]interface{}{
 			"image": map[string]interface{}{
-				"repository": "banzaicloud/backyards",
+				"repository": "banzaicloud/backyards-web",
 				"tag":        "1.1.2",
 			},
 		},

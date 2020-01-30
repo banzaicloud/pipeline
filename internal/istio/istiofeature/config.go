@@ -27,11 +27,12 @@ func (config Config) init() Config {
 	}
 
 	config.internalConfig.backyards = backyardsConfiguration{
-		chartVersion:    global.Config.Cluster.Backyards.Charts.Backyards.Version,
-		chartName:       global.Config.Cluster.Backyards.Charts.Backyards.Chart,
-		imageRepository: global.Config.Cluster.Backyards.Charts.Backyards.Values.Application.Image.Repository,
-		imageTag:        global.Config.Cluster.Backyards.Charts.Backyards.Values.Application.Image.Tag,
-		webImageTag:     global.Config.Cluster.Backyards.Charts.Backyards.Values.Web.Image.Tag,
+		chartVersion:       global.Config.Cluster.Backyards.Charts.Backyards.Version,
+		chartName:          global.Config.Cluster.Backyards.Charts.Backyards.Chart,
+		imageRepository:    global.Config.Cluster.Backyards.Charts.Backyards.Values.Application.Image.Repository,
+		imageTag:           global.Config.Cluster.Backyards.Charts.Backyards.Values.Application.Image.Tag,
+		webImageRepository: global.Config.Cluster.Backyards.Charts.Backyards.Values.Web.Image.Repository,
+		webImageTag:        global.Config.Cluster.Backyards.Charts.Backyards.Values.Web.Image.Tag,
 	}
 
 	config.internalConfig.istioOperator = istioOperatorConfiguration{
