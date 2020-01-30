@@ -26,8 +26,6 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	clientV1alpha1 "github.com/banzaicloud/pipeline/.gen/anchore-image-validator/pkg/clientset/v1alpha1"
-
 	internalCommon "github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
