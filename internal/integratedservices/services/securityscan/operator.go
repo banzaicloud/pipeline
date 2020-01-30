@@ -122,7 +122,7 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		}
 	}
 
-	values, err := op.processChartValues(ctx, clusterID, anchoreValues, boundSpec.WebhookConfig)
+	values, err := assembleChartValues(anchoreValues, boundSpec.WebhookConfig)
 	if err != nil {
 		return errors.WrapIf(err, "failed to assemble chart values")
 	}
@@ -139,7 +139,7 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 	}
 
 	if boundSpec.WebhookConfig.Enabled {
-		if err = op.configureWebHook(ctx, clusterID, boundSpec.WebhookConfig); err != nil {
+		if err = op.applyLabelsForSecurityScan(ctx, clusterID, boundSpec.WebhookConfig); err != nil {
 			//  as agreed, we let the integrated service activation to succeed and log the errors
 			op.errorHandler.HandleContext(ctx, err)
 		}
@@ -218,9 +218,8 @@ func (op IntegratedServiceOperator) createAnchoreUserForCluster(ctx context.Cont
 	return userName, nil
 }
 
-// processChartValues is in charge to assemble the values json for the chart based on the input and configuration
-func (op IntegratedServiceOperator) processChartValues(ctx context.Context, clusterID uint, anchoreValues AnchoreValues,
-	webhookConfigSpec webHookConfigSpec) ([]byte, error) {
+// assembleChartValues is in charge to assemble the values json for the chart based on the input and configuration
+func assembleChartValues(anchoreValues AnchoreValues, webhookConfigSpec webHookConfigSpec) ([]byte, error) {
 
 	chartValues := webhookConfigSpec.GetValues()
 	chartValues.ExternalAnchore = &anchoreValues
@@ -282,7 +281,7 @@ func (op IntegratedServiceOperator) getDefaultAnchoreValues(ctx context.Context,
 }
 
 // performs namespace labeling based on the provided input
-func (op *IntegratedServiceOperator) configureWebHook(ctx context.Context, clusterID uint, whConfig webHookConfigSpec) error {
+func (op *IntegratedServiceOperator) applyLabelsForSecurityScan(ctx context.Context, clusterID uint, whConfig webHookConfigSpec) error {
 
 	// possible label values that are used to make decisions by the webhook
 	securityScanLabels := map[string]string{
@@ -290,6 +289,7 @@ func (op *IntegratedServiceOperator) configureWebHook(ctx context.Context, clust
 		selectorExclude: "noscan",
 	}
 
+	// remove all scan related labels from all namespaces
 	if err := op.namespaceService.CleanupLabels(ctx, clusterID, []string{labelKey}); err != nil {
 		// log the error and continue!
 		op.errorHandler.HandleContext(ctx, err)
