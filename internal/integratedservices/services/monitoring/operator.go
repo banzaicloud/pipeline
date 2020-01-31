@@ -29,7 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	"github.com/banzaicloud/pipeline/internal/util"
+	"github.com/banzaicloud/pipeline/pkg/any"
 	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/src/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/src/cluster"
@@ -336,7 +336,7 @@ func mergeOperatorValuesWithConfig(chartValues interface{}, configValues interfa
 		return nil, errors.WrapIf(err, "failed to encode chart values")
 	}
 
-	result, err := util.Merge(configValues, out)
+	result, err := any.Merge(configValues, out, jsonstructure.DefaultMergeOptions())
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to merge values")
 	}
