@@ -21,6 +21,8 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+
+	"github.com/banzaicloud/pipeline/pkg/values"
 )
 
 func TestConfigure(t *testing.T) {
@@ -41,7 +43,7 @@ func TestConfigure(t *testing.T) {
 	err = v.ReadConfig(file)
 	require.NoError(t, err)
 
-	err = v.Unmarshal(&config)
+	err = v.Unmarshal(&config, viper.DecodeHook(values.DecodeHook()))
 	require.NoError(t, err)
 
 	err = config.Process()
