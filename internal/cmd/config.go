@@ -490,6 +490,8 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 
 	// ingress controller config
 	v.SetDefault("cluster::posthook::ingress::enabled", true)
+	v.SetDefault("cluster::posthook::ingress::chart", "banzaicloud-stable/pipeline-cluster-ingress")
+	v.SetDefault("cluster::posthook::ingress::version", "0.0.8")
 	v.SetDefault("cluster::posthook::ingress::values", `
 traefik:
   ssl:

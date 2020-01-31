@@ -25,7 +25,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/util"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/dns"
@@ -135,7 +134,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster, config pkgCluster.P
 
 	namespace := global.Config.Cluster.Namespace
 
-	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "ingress", valuesBytes, "", false)
+	return installDeployment(cluster, namespace, config.Ingress.Chart, "ingress", valuesBytes, config.Ingress.Version, false)
 }
 
 func mergeValues(chartValues interface{}, configValues interface{}) ([]byte, error) {
