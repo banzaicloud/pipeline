@@ -27,6 +27,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
+	"github.com/banzaicloud/pipeline/pkg/values"
 )
 
 const version = "automigrate"
@@ -42,7 +43,7 @@ func main() {
 	_ = v.ReadInConfig()
 
 	var config configuration
-	err := v.Unmarshal(&config)
+	err := v.Unmarshal(&config, viper.DecodeHook(values.DecodeHook()))
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
 	err = config.Process()
