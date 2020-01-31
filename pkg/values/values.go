@@ -53,12 +53,7 @@ func DecodeHook() mapstructure.DecodeHookFunc {
 }
 
 func toMap(v string) (map[string]interface{}, error) {
-	var out = make(map[string]interface{})
-	var trimmedStr = strings.TrimSpace(v)
-	err := yaml.Unmarshal([]byte(trimmedStr), &out)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to unmarshal values")
-	}
-
-	return out, nil
+	var out map[string]interface{}
+	err := yaml.Unmarshal([]byte(strings.TrimSpace(v)), &out)
+	return out, errors.WrapIf(err, "failed to unmarshal values")
 }
