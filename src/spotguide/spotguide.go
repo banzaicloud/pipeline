@@ -39,7 +39,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/internal/util"
+	"github.com/banzaicloud/pipeline/pkg/any"
 	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -696,7 +696,7 @@ func cicdRepoConfigPipeline(request *LaunchRequest, repoConfig *cicdRepoConfig) 
 				return err
 			}
 
-			merged, err := util.Merge(pipelineStep, stepToMergeIn)
+			merged, err := any.Merge(pipelineStep, stepToMergeIn, jsonstructure.DefaultMergeOptions())
 			if err != nil {
 				return err
 			}

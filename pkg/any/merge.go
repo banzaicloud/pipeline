@@ -17,12 +17,21 @@ package any
 import (
 	"reflect"
 
+	"emperror.dev/emperror"
 	"emperror.dev/errors"
 )
 
 // Merge returns the merge of its first and second arguments.
 func Merge(fst, snd Value, options ...MergeOption) (Value, error) {
 	return MergeWithContext(NewMergeContext(options...), fst, snd)
+}
+
+// MustMerge returns the merge of its first and second arguments.
+// It panics if there were any errors during merging.
+func MustMerge(fst, snd Value, options ...MergeOption) Value {
+	val, err := Merge(fst, snd, options...)
+	emperror.Panic(err)
+	return val
 }
 
 // MergeWithContext returns the merge of fst and snd using the specified MergeContext.
