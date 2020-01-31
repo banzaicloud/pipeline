@@ -15,7 +15,7 @@
 package ark
 
 import (
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/providers"
@@ -28,21 +28,21 @@ func ValidateCreateBucketRequest(req *api.CreateBucketRequest, org *auth.Organiz
 
 	err := IsProviderSupported(req.Cloud)
 	if err != nil {
-		return errors.Wrap(err, req.Cloud)
+		return errors.WrapIf(err, req.Cloud)
 	}
 
 	if req.Cloud == pkgProviders.Azure {
 		if req.ResourceGroup == "" {
-			return errors.Wrap(errors.New("resourceGroup must not be empty"), "error validating create bucket request")
+			return errors.New("error validating create bucket request: resourceGroup must not be empty")
 		}
 		if req.StorageAccount == "" {
-			return errors.Wrap(errors.New("storageAccount must not be empty"), "error validating create bucket request")
+			return errors.New("error validating create bucket request: storageAccount must not be empty")
 		}
 	}
 
 	secret, err := GetSecretWithValidation(req.SecretID, org.ID, req.Cloud)
 	if err != nil {
-		return errors.Wrap(err, "error validating create bucket request")
+		return errors.WrapIf(err, "error validating create bucket request")
 	}
 
 	ctx := providers.ObjectStoreContext{
@@ -55,12 +55,12 @@ func ValidateCreateBucketRequest(req *api.CreateBucketRequest, org *auth.Organiz
 
 	os, err := NewObjectStore(ctx)
 	if err != nil {
-		return errors.Wrap(err, "error validating create bucket request")
+		return errors.WrapIf(err, "error validating create bucket request")
 	}
 
 	_, err = os.ListCommonPrefixes(req.BucketName, "/")
 	if err != nil {
-		return errors.Wrap(err, "error validating create bucket request")
+		return errors.WrapIf(err, "error validating create bucket request")
 	}
 
 	return nil
