@@ -30,6 +30,8 @@ type PostHookConfig struct {
 
 type IngressControllerConfig struct {
 	Enabled bool
+	Chart   string
+	Version string
 	Values  ValuesConfig
 }
 
