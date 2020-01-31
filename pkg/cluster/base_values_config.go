@@ -15,12 +15,7 @@
 package cluster
 
 import (
-	"reflect"
-	"strings"
-
-	"emperror.dev/errors"
-	"github.com/ghodss/yaml"
-	"github.com/mitchellh/mapstructure"
+	"github.com/banzaicloud/pipeline/pkg/values"
 )
 
 type PostHookConfig struct {
@@ -32,43 +27,5 @@ type IngressControllerConfig struct {
 	Enabled bool
 	Chart   string
 	Version string
-	Values  ValuesConfig
-}
-
-type ValuesConfig map[string]interface{}
-
-func ValuesDecodeHook() mapstructure.DecodeHookFunc {
-	return func(a reflect.Type, b reflect.Type, d interface{}) (interface{}, error) {
-
-		if a.Kind() == reflect.String && b == reflect.TypeOf(new(ValuesConfig)).Elem() {
-
-			if data, ok := d.(string); ok {
-				_, err := yaml.Marshal(data)
-				if err != nil {
-					return nil, errors.WrapIf(err, "error during marshal yaml")
-				}
-
-				output, err := toMap(data)
-				if err != nil {
-					return nil, errors.WrapIf(err, "failed to convert string to map")
-				}
-
-				return output, nil
-			}
-
-		}
-
-		return d, nil
-	}
-}
-
-func toMap(v string) (map[string]interface{}, error) {
-	var out = make(map[string]interface{})
-	var trimmedStr = strings.TrimSpace(v)
-	err := yaml.Unmarshal([]byte(trimmedStr), &out)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to unmarshal values")
-	}
-
-	return out, nil
+	Values  values.Config
 }

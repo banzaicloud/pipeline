@@ -21,6 +21,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
+	"github.com/banzaicloud/pipeline/pkg/values"
 )
 
 // Config is a global config instance.
@@ -88,6 +89,15 @@ type Configuration struct {
 
 			Domain           string
 			ForbiddenDomains []string
+		}
+
+		Posthook struct {
+			Ingress struct {
+				Enabled bool
+				Chart   string
+				Version string
+				Values  values.Config
+			}
 		}
 
 		Vault struct {
