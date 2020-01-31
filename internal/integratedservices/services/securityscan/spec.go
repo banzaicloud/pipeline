@@ -132,19 +132,23 @@ func bindIntegratedServiceSpec(spec integratedservices.IntegratedServiceSpec) (i
 }
 
 func (w webHookConfigSpec) GetValues() ImageValidatorChartValues {
-	namespaceSelector := DefaultNamespaceSelector()
-	objectSelector := DefaultObjectSelector()
+	var (
+		namespaceSelector *SetBasedSelector
+		objectSelector    *SetBasedSelector
+	)
 
 	if w.Enabled {
 		switch w.Selector {
 		case selectorInclude:
 			if !w.allNamespaces() {
+				namespaceSelector = new(SetBasedSelector)
 				namespaceSelector.addMatchLabel(labelKey, "scan")
-			}
+			} // else - the default settings
 
 		case selectorExclude:
 			if w.allNamespaces() {
 				// exclude all / the scan label should be removed from all namespaces
+				namespaceSelector = new(SetBasedSelector)
 				namespaceSelector.addMatchLabel(labelKey, "scan")
 			}
 		}
@@ -154,23 +158,4 @@ func (w webHookConfigSpec) GetValues() ImageValidatorChartValues {
 		NamespaceSelector: namespaceSelector,
 		ObjectSelector:    objectSelector,
 	}
-}
-
-// todo: defaults set here temporarily
-// investigate why all values are overridden (check the template and helm install options)
-func DefaultNamespaceSelector() *SetBasedSelector {
-	defaultNsSelector := new(SetBasedSelector)
-	defaultNsSelector.addMatchExpression("name", "NotIn", []string{"anchore"})
-	defaultNsSelector.addMatchExpression(labelKey, "NotIn", []string{"noscan"})
-
-	return defaultNsSelector
-}
-
-// todo: defaults set here temporarily
-// investigate why all values are overridden (check the template and helm install options)
-func DefaultObjectSelector() *SetBasedSelector {
-	defaultObjSelector := new(SetBasedSelector)
-	defaultObjSelector.addMatchExpression("security.banzaicloud.io/validate", "NotIn", []string{"skip"})
-
-	return defaultObjSelector
 }

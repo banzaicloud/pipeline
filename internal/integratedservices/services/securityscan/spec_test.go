@@ -39,8 +39,8 @@ func Test_webHookConfigSpec_GetValues(t *testing.T) {
 				Namespaces: []string{selectedAllStar},
 			},
 			want: ImageValidatorChartValues{
-				NamespaceSelector: DefaultNamespaceSelector(),
-				ObjectSelector:    DefaultObjectSelector(),
+				NamespaceSelector: nil,
+				ObjectSelector:    nil,
 			}, // empty values!
 		},
 		{
@@ -53,20 +53,8 @@ func Test_webHookConfigSpec_GetValues(t *testing.T) {
 			want: ImageValidatorChartValues{
 				NamespaceSelector: &SetBasedSelector{
 					MatchLabels: map[string]string{labelKey: "scan"},
-					MatchExpressions: []MatchExpression{
-						{
-							Key:      "name",
-							Operator: "NotIn",
-							Values:   []string{"anchore"},
-						},
-						{
-							Key:      labelKey,
-							Operator: "NotIn",
-							Values:   []string{"noscan"},
-						},
-					},
 				},
-				ObjectSelector: DefaultObjectSelector(),
+				ObjectSelector: nil,
 			},
 		},
 		{
@@ -79,20 +67,8 @@ func Test_webHookConfigSpec_GetValues(t *testing.T) {
 			want: ImageValidatorChartValues{
 				NamespaceSelector: &SetBasedSelector{
 					MatchLabels: map[string]string{labelKey: "scan"},
-					MatchExpressions: []MatchExpression{
-						{
-							Key:      "name",
-							Operator: "NotIn",
-							Values:   []string{"anchore"},
-						},
-						{
-							Key:      labelKey,
-							Operator: "NotIn",
-							Values:   []string{"noscan"},
-						},
-					},
 				},
-				ObjectSelector: DefaultObjectSelector(),
+				ObjectSelector: nil,
 			},
 		},
 		{
@@ -103,8 +79,8 @@ func Test_webHookConfigSpec_GetValues(t *testing.T) {
 				Namespaces: []string{"ns1", "ns2"},
 			},
 			want: ImageValidatorChartValues{
-				NamespaceSelector: DefaultNamespaceSelector(),
-				ObjectSelector:    DefaultObjectSelector(),
+				NamespaceSelector: nil,
+				ObjectSelector:    nil,
 			}, // empty values here / namespaces labeled, the default config applies
 		},
 	}
