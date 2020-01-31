@@ -20,7 +20,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
@@ -115,8 +114,7 @@ func (s *BackupsSyncService) SyncBackupsForCluster(cluster api.Cluster) error {
 		return errors.WrapIf(err, "could not get ark client")
 	}
 
-	var listOptions metav1.ListOptions
-	backups, err := client.ListBackups(listOptions)
+	backups, err := client.ListBackups()
 	if err != nil {
 		return errors.WrapIf(err, "could not list backups")
 	}
