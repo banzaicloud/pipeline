@@ -72,7 +72,7 @@ stop: ## Stop docker development environment
 	docker-compose stop
 
 config/config.yaml:
-	cat config/config.dev.yaml | sed "s/uuid: \"\"/uuid: \"$$USER.local\"/" > config/config.yaml
+	cat config/config.dev.yaml | sed "s/uuid: \"\"/uuid: \"$$RANDOM.$$USER.local\"/" > config/config.yaml
 
 config/ui/feature-set.json:
 	mv config/ui/feature-set.json{,~} || true && cp config/ui/feature-set.json.dist config/ui/feature-set.json
