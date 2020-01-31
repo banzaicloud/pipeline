@@ -38,11 +38,6 @@ func DecodeHook() mapstructure.DecodeHookFunc {
 		if a.Kind() == reflect.String && b == reflect.TypeOf(new(Config)).Elem() {
 
 			if data, ok := d.(string); ok {
-				_, err := yaml.Marshal(data)
-				if err != nil {
-					return nil, errors.WrapIf(err, "error during marshal yaml")
-				}
-
 				output, err := toMap(data)
 				if err != nil {
 					return nil, errors.WrapIf(err, "failed to convert string to map")
