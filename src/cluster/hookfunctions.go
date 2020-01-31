@@ -93,7 +93,7 @@ func (p *Priority) GetPriority() int {
 
 // BasePostFunction describe a default posthook function
 type BasePostFunction struct {
-	f      func(CommonCluster) error
+	f func(CommonCluster) error
 	Priority
 	ErrorHandler
 }
