@@ -55,7 +55,7 @@ type serviceTraefikValues struct {
 
 // InstallIngressControllerPostHook post hooks can't return value, they can log error and/or update state?
 func InstallIngressControllerPostHook(cluster CommonCluster, config pkgCluster.PostHookConfig) error {
-	if !config.Ingresscontroller.Enabled {
+	if !config.Ingress.Enabled {
 		return nil
 	}
 
@@ -82,11 +82,6 @@ func InstallIngressControllerPostHook(cluster CommonCluster, config pkgCluster.P
 		}
 	}
 
-	icConfigValues, err := config.Ingresscontroller.Values.ToMap()
-	if err != nil {
-		return errors.WrapIf(err, "failed to convert ingress controller values")
-	}
-
 	var defaultCN = orgDomainName
 	var defaultSANList []string
 	if orgDomainName != "" {
@@ -97,7 +92,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster, config pkgCluster.P
 		defaultSANList = append(defaultSANList, wildcardOrgDomainName)
 	}
 
-	if values, ok := icConfigValues["traefik"].(map[string]interface{}); ok {
+	if values, ok := config.Ingress.Values["traefik"].(map[string]interface{}); ok {
 		if sslV, ok := values["ssl"].(map[string]interface{}); ok {
 			if sanList, ok := sslV["defaultSANList"].([]interface{}); ok {
 				for _, san := range sanList {
@@ -133,7 +128,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster, config pkgCluster.P
 		}
 	}
 
-	valuesBytes, err := mergeValues(ingressValues, icConfigValues)
+	valuesBytes, err := mergeValues(ingressValues, map[string]interface{}(config.Ingress.Values))
 	if err != nil {
 		return errors.WrapIf(err, "failed to merge treafik values with config")
 	}

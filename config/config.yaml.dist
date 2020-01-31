@@ -364,7 +364,7 @@ dex:
 #                values: {}
 #
 #    posthook:
-#        ingressconrtroller:
+#        ingress:
 #            enabled: true
 #            values: |
 
