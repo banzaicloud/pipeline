@@ -489,20 +489,13 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::expiry::enabled", true)
 
 	// ingress controller config
-	defaultIngressControllerValues, err := cluster.NewValuesConfig(map[string]interface{}{
-		"traefik": map[string]interface{}{
-			"ssl": map[string]interface{}{
-				"enabled":        true,
-				"generateTLS":    true,
-			},
-		},
-	})
-	if err != nil {
-		// todo (colin): panic??
-		panic(err)
-	}
-	v.SetDefault("cluster::posthook::ingresscontroller::enabled", true)
-	v.SetDefault("cluster::posthook::ingresscontroller::values", defaultIngressControllerValues)
+	v.SetDefault("cluster::posthook::ingress::enabled", true)
+	v.SetDefault("cluster::posthook::ingress::values", `
+traefik:
+  ssl:
+    enabled: true
+    generateTLS: true
+`)
 
 	v.SetDefault("cluster::disasterRecovery::enabled", true)
 	v.SetDefault("cluster::disasterRecovery::namespace", "")
