@@ -32,7 +32,7 @@ import (
 	evbus "github.com/asaskevich/EventBus"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/values"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/endpoint"
@@ -186,13 +186,13 @@ func main() {
 	}
 
 	var config configuration
-	err = v.Unmarshal(&config, viper.DecodeHook(pkgCluster.ValuesDecodeHook()))
+	err = v.Unmarshal(&config, viper.DecodeHook(values.DecodeHook()))
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
 	err = config.Process()
 	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
 
-	err = v.Unmarshal(&global.Config)
+	err = v.Unmarshal(&global.Config, viper.DecodeHook(values.DecodeHook()))
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
 
 	err = global.Config.Process()

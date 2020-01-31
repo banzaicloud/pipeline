@@ -25,6 +25,7 @@ import (
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
+	"github.com/banzaicloud/pipeline/pkg/values"
 	"github.com/oklog/run"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -137,13 +138,13 @@ func main() {
 	}
 
 	var config configuration
-	err = v.Unmarshal(&config, viper.DecodeHook(pkgCluster.ValuesDecodeHook()))
+	err = v.Unmarshal(&config, viper.DecodeHook(values.DecodeHook()))
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
 	err = config.Process()
 	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
 
-	err = v.Unmarshal(&global.Config)
+	err = v.Unmarshal(&global.Config, viper.DecodeHook(values.DecodeHook()))
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
 
 	err = global.Config.Process()
@@ -347,7 +348,7 @@ func main() {
 
 		workflow.RegisterWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
 
-		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager, config.Cluster.PostHook)
+		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager)
 		activity.RegisterWithOptions(runPostHookActivity.Execute, activity.RegisterOptions{Name: cluster.RunPostHookActivityName})
 
 		updateClusterStatusActivity := cluster.NewUpdateClusterStatusActivity(clusterManager)
