@@ -31,7 +31,7 @@ func DefaultMergeOptions() any.MergeOptions {
 		u = reflect.TypeOf(nil)
 	)
 	return any.MergeOptions{
-		any.WithStrategy(a, a, pairwiseArrayMergeStrategy{}),
+		any.WithStrategy(a, a, PairwiseArrayMergeStrategy{}),
 		any.WithStrategy(a, b, any.UseSecond),
 		any.WithStrategy(a, n, any.UseSecond),
 		any.WithStrategy(a, o, any.UseSecond),
@@ -52,7 +52,7 @@ func DefaultMergeOptions() any.MergeOptions {
 		any.WithStrategy(o, a, any.UseSecond),
 		any.WithStrategy(o, b, any.UseSecond),
 		any.WithStrategy(o, n, any.UseSecond),
-		any.WithStrategy(o, o, pairwiseObjectMergeStrategy{}),
+		any.WithStrategy(o, o, PairwiseObjectMergeStrategy{}),
 		any.WithStrategy(o, s, any.UseSecond),
 		any.WithStrategy(o, u, any.UseFirst),
 		any.WithStrategy(s, a, any.UseSecond),
@@ -70,33 +70,22 @@ func DefaultMergeOptions() any.MergeOptions {
 	}
 }
 
-func max(x, y int) int {
-	if x > y {
-		return x
-	}
-
-	return y
+// PairwiseArrayMergeStrategy is a merge strategy for JSON arrays, merging array elements with matching indices.
+// If InnerJoin is true, the resulting array will contain only the result of merging elements of the arrays with matching indices;
+// otherwise, the rest of the elements from the longer array are copied to the result array beyond the common, merged part.
+type PairwiseArrayMergeStrategy struct {
+	// InnerJoin makes the strategy merge only elements at common indices of the two arrays.
+	InnerJoin bool
 }
 
-func min(x, y int) int {
-	if x < y {
-		return x
-	}
-
-	return y
-}
-
-type pairwiseArrayMergeStrategy struct {
-	innerJoin bool
-}
-
-func (m pairwiseArrayMergeStrategy) Merge(ctx any.MergeContext, fst, snd any.Value) (any.Value, error) {
+// Merge returns the combination of two JSON arrays using a pairwise merge strategy.
+func (ms PairwiseArrayMergeStrategy) Merge(ctx any.MergeContext, fst, snd any.Value) (any.Value, error) {
 	fstArr, sndArr := fst.(Array), snd.(Array)
 	fstLen, sndLen := len(fstArr), len(sndArr)
 
 	resCap := max(fstLen, sndLen) // result's capacity must be enough for both arrays
 	resLen := min(fstLen, sndLen) // but its initial length must be the common length of the two
-	if m.innerJoin {              // but if we only consider the intersection of the two arrays
+	if ms.InnerJoin {             // but if we only consider the intersection of the two arrays
 		resCap = resLen // result's capacity can be equal to its length
 	}
 
@@ -110,7 +99,7 @@ func (m pairwiseArrayMergeStrategy) Merge(ctx any.MergeContext, fst, snd any.Val
 		}
 	}
 
-	if !m.innerJoin {
+	if !ms.InnerJoin {
 		if fstLen > resLen {
 			resArr = append(resArr, fstArr[resLen:]...)
 		} else {
@@ -121,21 +110,37 @@ func (m pairwiseArrayMergeStrategy) Merge(ctx any.MergeContext, fst, snd any.Val
 	return resArr, nil
 }
 
-func appendArrayMerge(_ any.MergeContext, fst, snd any.Value) (any.Value, error) {
+// AppendArrayMergeStrategy is a merge strategy for JSON arrays, concatenating the two arrays.
+type AppendArrayMergeStrategy struct {
+	// SecondFirst makes the strategy copy elements from the second array to the result before elements from the first array if true.
+	SecondFirst bool
+}
+
+// Merge returns the combination of two JSON arrays by concatenating them.
+func (ms AppendArrayMergeStrategy) Merge(_ any.MergeContext, fst, snd any.Value) (any.Value, error) {
 	fstArr, sndArr := fst.(Array), snd.(Array)
+	if ms.SecondFirst {
+		fstArr, sndArr = sndArr, fstArr
+	}
 	resArr := make(Array, 0, len(fstArr)+len(sndArr))
 	resArr = append(resArr, fstArr...)
 	return append(resArr, sndArr...), nil
 }
 
-type pairwiseObjectMergeStrategy struct {
-	innerJoin bool
+// PairwiseObjectMergeStrategy is a merge strategy for JSON objects, merging object members with matching keys.
+// If InnerJoin is true, the result will be the union of the intersection of the two objects, pairwise merging members with matching keys;
+// otherwise, the result will be the union of the two objects, pairwise merging members with matching keys.
+type PairwiseObjectMergeStrategy struct {
+	InnerJoin bool
 }
 
-func (m pairwiseObjectMergeStrategy) Merge(ctx any.MergeContext, fst, snd any.Value) (any.Value, error) {
+// Merge returns the combination of two JSON objects using a pairwise merge strategy.
+func (ms PairwiseObjectMergeStrategy) Merge(ctx any.MergeContext, fst, snd any.Value) (any.Value, error) {
 	fstObj, sndObj := fst.(Object), snd.(Object)
+
 	resObj := make(Object)
-	if m.innerJoin {
+
+	if ms.InnerJoin {
 		for k, dv := range fstObj {
 			if sv, ok := sndObj[k]; ok {
 				var err error
@@ -158,5 +163,22 @@ func (m pairwiseObjectMergeStrategy) Merge(ctx any.MergeContext, fst, snd any.Va
 			resObj[k] = v
 		}
 	}
+
 	return resObj, nil
+}
+
+func max(x, y int) int {
+	if x > y {
+		return x
+	}
+
+	return y
+}
+
+func min(x, y int) int {
+	if x < y {
+		return x
+	}
+
+	return y
 }
