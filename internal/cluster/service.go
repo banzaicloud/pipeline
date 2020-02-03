@@ -193,11 +193,17 @@ func (NotSupportedDistributionError) ClientError() bool {
 }
 
 // Service provides an interface to clusters.
-//go:generate mga gen kit endpoint --outdir clusterdriver --outfile cluster_endpoint_gen.go --with-oc --base-name Cluster Service
+//go:generate mga gen kit endpoint --outdir clusterdriver --outfile endpoint_gen.go --with-oc Service
 //go:generate mga gen mockery --name Service --inpkg
 type Service interface {
 	// DeleteCluster deletes the specified cluster. It returns true if the cluster is already deleted.
 	DeleteCluster(ctx context.Context, clusterIdentifier Identifier, options DeleteClusterOptions) (bool, error)
+
+	// CreateNodePool creates a new node pool in a cluster.
+	CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) error
+
+	// DeleteNodePool deletes a node pool from a cluster.
+	DeleteNodePool(ctx context.Context, clusterID uint, name string) (bool, error)
 }
 
 // DeleteClusterOptions represents cluster deletion options.
@@ -206,8 +212,13 @@ type DeleteClusterOptions struct {
 }
 
 type clusterService struct {
-	clusters Store
-	manager  Manager
+	clusters       Store
+	clusterManager Manager
+
+	nodePools         NodePoolStore
+	nodePoolValidator NodePoolValidator
+	nodePoolProcessor NodePoolProcessor
+	nodePoolManager   NodePoolManager
 }
 
 // Manager provides lower level cluster operations for Service.
@@ -222,10 +233,22 @@ type Deleter interface {
 }
 
 // NewService returns a new Service instance
-func NewService(clusters Store, manager Manager) Service {
+func NewService(
+	clusters Store,
+	clusterManager Manager,
+	nodePools NodePoolStore,
+	nodePoolValidator NodePoolValidator,
+	nodePoolProcessor NodePoolProcessor,
+	nodePoolManager NodePoolManager,
+) Service {
 	return clusterService{
-		clusters: clusters,
-		manager:  manager,
+		clusters:       clusters,
+		clusterManager: clusterManager,
+
+		nodePools:         nodePools,
+		nodePoolValidator: nodePoolValidator,
+		nodePoolProcessor: nodePoolProcessor,
+		nodePoolManager:   nodePoolManager,
 	}
 }
 
@@ -253,7 +276,7 @@ func (s clusterService) DeleteCluster(ctx context.Context, clusterIdentifier Ide
 		return false, err
 	}
 
-	if err := s.manager.DeleteCluster(ctx, c.ID, options); err != nil {
+	if err := s.clusterManager.DeleteCluster(ctx, c.ID, options); err != nil {
 		return false, err
 	}
 

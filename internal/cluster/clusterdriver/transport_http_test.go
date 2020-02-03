@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,7 +30,138 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
-func TestRegisterNodePoolHTTPHandlers_CreateNodePool(t *testing.T) {
+func TestRegisterHTTPHandlers_DeleteCluster(t *testing.T) {
+	tests := []struct {
+		name               string
+		endpointFunc       func(ctx context.Context, request interface{}) (response interface{}, err error)
+		expectedStatusCode int
+	}{
+		{
+			name: "already_deleted",
+			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return true, nil
+			},
+			expectedStatusCode: http.StatusNoContent,
+		},
+		{
+			name: "async_delete",
+			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return false, nil
+			},
+			expectedStatusCode: http.StatusAccepted,
+		},
+	}
+
+	t.Run("no_field", func(t *testing.T) {
+		for _, test := range tests {
+			test := test
+
+			t.Run(test.name, func(t *testing.T) {
+				const orgID = uint(1)
+				const clusterID = uint(1)
+				const force = true
+
+				handler := mux.NewRouter()
+				RegisterHTTPHandlers(
+					Endpoints{
+						DeleteCluster: test.endpointFunc,
+					},
+					handler.PathPrefix("/orgs/{orgId}/clusters/{clusterId}").Subrouter(),
+				)
+
+				ts := httptest.NewServer(handler)
+				defer ts.Close()
+
+				req, err := http.NewRequest(
+					http.MethodDelete,
+					fmt.Sprintf("%s/orgs/%d/clusters/%d?force=%t", ts.URL, orgID, clusterID, force),
+					nil,
+				)
+				require.NoError(t, err)
+
+				resp, err := ts.Client().Do(req)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+
+				assert.Equal(t, test.expectedStatusCode, resp.StatusCode)
+			})
+		}
+	})
+
+	t.Run("id_field", func(t *testing.T) {
+		for _, test := range tests {
+			test := test
+
+			t.Run(test.name, func(t *testing.T) {
+				const orgID = uint(1)
+				const clusterID = uint(1)
+				const force = true
+
+				handler := mux.NewRouter()
+				RegisterHTTPHandlers(
+					Endpoints{
+						DeleteCluster: test.endpointFunc,
+					},
+					handler.PathPrefix("/orgs/{orgId}/clusters/{clusterId}").Subrouter(),
+				)
+
+				ts := httptest.NewServer(handler)
+				defer ts.Close()
+
+				req, err := http.NewRequest(
+					http.MethodDelete,
+					fmt.Sprintf("%s/orgs/%d/clusters/%d?force=%t&field=id", ts.URL, orgID, clusterID, force),
+					nil,
+				)
+				require.NoError(t, err)
+
+				resp, err := ts.Client().Do(req)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+
+				assert.Equal(t, test.expectedStatusCode, resp.StatusCode)
+			})
+		}
+	})
+
+	t.Run("name_field", func(t *testing.T) {
+		for _, test := range tests {
+			test := test
+
+			t.Run(test.name, func(t *testing.T) {
+				const orgID = uint(1)
+				const clusterName = "my-cluster"
+				const force = true
+
+				handler := mux.NewRouter()
+				RegisterHTTPHandlers(
+					Endpoints{
+						DeleteCluster: test.endpointFunc,
+					},
+					handler.PathPrefix("/orgs/{orgId}/clusters/{clusterId}").Subrouter(),
+				)
+
+				ts := httptest.NewServer(handler)
+				defer ts.Close()
+
+				req, err := http.NewRequest(
+					http.MethodDelete,
+					fmt.Sprintf("%s/orgs/%d/clusters/%s?force=%t&field=name", ts.URL, orgID, clusterName, force),
+					nil,
+				)
+				require.NoError(t, err)
+
+				resp, err := ts.Client().Do(req)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+
+				assert.Equal(t, test.expectedStatusCode, resp.StatusCode)
+			})
+		}
+	})
+}
+
+func TestRegisterHTTPHandlers_CreateNodePool(t *testing.T) {
 	tests := []struct {
 		name               string
 		endpointFunc       func(ctx context.Context, request interface{}) (response interface{}, err error)
@@ -72,11 +203,11 @@ func TestRegisterNodePoolHTTPHandlers_CreateNodePool(t *testing.T) {
 			const clusterID = uint(1)
 
 			handler := mux.NewRouter()
-			RegisterNodePoolHTTPHandlers(
-				NodePoolEndpoints{
+			RegisterHTTPHandlers(
+				Endpoints{
 					CreateNodePool: test.endpointFunc,
 				},
-				handler.PathPrefix("/clusters/{clusterId}/nodepools").Subrouter(),
+				handler.PathPrefix("/clusters/{clusterId}").Subrouter(),
 			)
 
 			ts := httptest.NewServer(handler)
@@ -98,7 +229,7 @@ func TestRegisterNodePoolHTTPHandlers_CreateNodePool(t *testing.T) {
 	}
 }
 
-func TestRegisterNodePoolHTTPHandlers_DeleteNodePool(t *testing.T) {
+func TestRegisterHTTPHandlers_DeleteNodePool(t *testing.T) {
 	tests := []struct {
 		name               string
 		endpointFunc       func(ctx context.Context, request interface{}) (response interface{}, err error)
@@ -128,11 +259,11 @@ func TestRegisterNodePoolHTTPHandlers_DeleteNodePool(t *testing.T) {
 			const nodePoolName = "pool0"
 
 			handler := mux.NewRouter()
-			RegisterNodePoolHTTPHandlers(
-				NodePoolEndpoints{
+			RegisterHTTPHandlers(
+				Endpoints{
 					DeleteNodePool: test.endpointFunc,
 				},
-				handler.PathPrefix("/clusters/{clusterId}/nodepools").Subrouter(),
+				handler.PathPrefix("/clusters/{clusterId}").Subrouter(),
 			)
 
 			ts := httptest.NewServer(handler)
