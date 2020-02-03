@@ -395,6 +395,9 @@ dex:
 #            enabled: true
 #            chart: "banzaicloud-stable/instance-termination-handler"
 #            version: "0.0.7"
+#
+#        hpa:
+#            enabled: true
 
 #helm:
 #    home: "./var/cache"

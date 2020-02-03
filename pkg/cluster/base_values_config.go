@@ -30,6 +30,9 @@ type PostHookConfig struct {
 
 	// Instance Termination Handler config
 	Ith BasePostHookConfig
+
+	// Horizontal Pod Autoscaler config
+	Hpa HPAConfig
 }
 
 type BasePostHookConfig struct {
@@ -51,6 +54,10 @@ type SpotConfig struct {
 type SpotChartsConfig struct {
 	Scheduler BaseChartConfig
 	Webhook   BaseChartConfig
+}
+
+type HPAConfig struct {
+	Enabled bool
 }
 
 type IngressControllerConfig struct {

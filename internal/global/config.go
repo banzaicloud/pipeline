@@ -123,6 +123,10 @@ type Configuration struct {
 				Chart   string
 				Version string
 			}
+
+			Hpa struct {
+				Enabled bool
+			}
 		}
 
 		Vault struct {
