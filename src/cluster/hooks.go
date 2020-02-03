@@ -251,6 +251,11 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 
 // InstallHorizontalPodAutoscalerPostHook
 func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
+	var config = global.Config.Cluster.Posthook.Hpa
+	if !config.Enabled {
+		return nil
+	}
+
 	promServiceName := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceName
 	infraNamespace := global.Config.Cluster.Autoscale.Namespace
 	serviceContext := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceContext
