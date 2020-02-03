@@ -24,12 +24,30 @@ type PostHookConfig struct {
 
 	// Kubernetes Dashboard config
 	Dashboard BasePostHookConfig
+
+	// Init spot config
+	Spotconfig SpotConfig
 }
 
 type BasePostHookConfig struct {
 	Enabled bool
+
+	BaseChartConfig `mapstructure:",squash"`
+}
+
+type BaseChartConfig struct {
 	Chart   string
 	Version string
+}
+
+type SpotConfig struct {
+	Enabled bool
+	Charts  SpotChartsConfig
+}
+
+type SpotChartsConfig struct {
+	Scheduler BaseChartConfig
+	Webhook   BaseChartConfig
 }
 
 type IngressControllerConfig struct {

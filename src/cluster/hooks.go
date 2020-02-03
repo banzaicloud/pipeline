@@ -305,6 +305,10 @@ func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) er
 
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
 func InitSpotConfig(cluster CommonCluster) error {
+	var config = global.Config.Cluster.Posthook.Spotconfig
+	if !config.Enabled {
+		return nil
+	}
 
 	spot, err := isSpotCluster(cluster)
 	if err != nil {
@@ -339,11 +343,11 @@ func InitSpotConfig(cluster CommonCluster) error {
 		return errors.WrapIf(err, "failed to marshal yaml values")
 	}
 
-	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-scheduler", "spot-scheduler", marshalledValues, "", false)
+	err = installDeployment(cluster, pipelineSystemNamespace, config.Charts.Scheduler.Chart, "spot-scheduler", marshalledValues, config.Charts.Scheduler.Version, false)
 	if err != nil {
 		return errors.WrapIf(err, "failed to install the spot-scheduler deployment")
 	}
-	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-config-webhook", "spot-webhook", marshalledValues, "", true)
+	err = installDeployment(cluster, pipelineSystemNamespace, config.Charts.Webhook.Chart, "spot-webhook", marshalledValues, config.Charts.Webhook.Version, true)
 	if err != nil {
 		return errors.WrapIf(err, "failed to install the spot-config-webhook deployment")
 	}

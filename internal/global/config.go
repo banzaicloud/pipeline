@@ -103,6 +103,20 @@ type Configuration struct {
 				Chart   string
 				Version string
 			}
+
+			Spotconfig struct {
+				Enabled bool
+				Charts  struct {
+					Webhook struct {
+						Chart   string
+						Version string
+					}
+					Scheduler struct {
+						Chart   string
+						Version string
+					}
+				}
+			}
 		}
 
 		Vault struct {
