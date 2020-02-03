@@ -406,29 +406,6 @@ paths:
                 default:
                     $ref: '#/components/responses/Error'
 
-    /api/v1/orgs/{orgId}/clusters/{id}/apiendpoint:
-        get:
-            security:
-                - bearerAuth: []
-            tags:
-                - clusters
-            summary: Get API endpoint
-            operationId: GetAPIEndpoint
-            description: Get API endpoint
-            parameters:
-                - $ref: '#/components/parameters/orgId'
-                - $ref: '#/components/parameters/clusterId'
-            responses:
-                200:
-                    description: "API endpoint showed"
-                    content:
-                        text/plain:
-                            schema:
-                                type: string
-                                example: "35.195.56.31"
-                default:
-                    $ref: '#/components/responses/Error'
-
     /api/v1/orgs/{orgId}/clusters/{id}/monitoring:
         post:
             security:
