@@ -706,20 +706,72 @@ func main() {
 				cRouter.GET("/deployments/:name/images", api.GetDeploymentImages)
 
 				{
-					service := intCluster.NewService(
-						clusteradapter.NewStore(db, clusters),
-						clusteradapter.NewCadenceClusterManager(workflowClient),
+					clusterStore := clusteradapter.NewStore(db, clusters)
+
+					labelValidator := kubernetes2.LabelValidator{
+						ForbiddenDomains: append([]string{config.Cluster.Labels.Domain}, config.Cluster.Labels.ForbiddenDomains...),
+					}
+
+					nplabels.SetNodePoolLabelValidator(labelValidator)
+
+					nplsApi := api.NewNodepoolManagerAPI(
+						commonClusterGetter,
+						dynamicClientFactory,
+						labelValidator,
+						logrusLogger,
+						errorHandler,
 					)
-					endpoints := clusterdriver.MakeClusterEndpoints(
+					cRouter.GET("/nodepool-labels", nplsApi.GetNodepoolLabelSets)
+
+					labelSource := intCluster.NodePoolLabelSources{
+						intCluster.NewCommonNodePoolLabelSource(),
+						clusteradapter.NewCloudinfoNodePoolLabelSource(cloudinfoClient),
+					}
+
+					// Used by legacy node pool label code
+					globalcluster.SetNodePoolLabelSource(intCluster.NodePoolLabelSources{
+						intCluster.NewFilterValidNodePoolLabelSource(labelValidator),
+						labelSource,
+					})
+
+					service := intCluster.NewService(
+						clusterStore,
+						clusteradapter.NewCadenceClusterManager(workflowClient),
+						clusteradapter.NewNodePoolStore(db, clusterStore),
+						intCluster.NodePoolValidators{
+							intCluster.NewCommonNodePoolValidator(labelValidator),
+							clusteradapter.NewDistributionNodePoolValidator(db),
+						},
+						intCluster.NodePoolProcessors{
+							intCluster.NewCommonNodePoolProcessor(labelSource),
+							clusteradapter.NewDistributionNodePoolProcessor(db),
+						},
+						clusteradapter.NewNodePoolManager(
+							workflowClient,
+							func(ctx context.Context) uint {
+								if currentUser := ctx.Value(auth2.CurrentUser); currentUser != nil {
+									return currentUser.(*auth.User).ID
+								}
+
+								return 0
+							},
+						),
+					)
+
+					endpoints := clusterdriver.MakeEndpoints(
 						service,
 						kitxendpoint.Combine(endpointMiddleware...),
 					)
-					clusterdriver.RegisterClusterHTTPHandlers(
+
+					clusterdriver.RegisterHTTPHandlers(
 						endpoints,
 						clusterRouter,
 						kitxhttp.ServerOptions(httpServerOptions),
 					)
+
 					cRouter.DELETE("", gin.WrapH(router))
+					cRouter.Any("/nodepools", gin.WrapH(router))
+					cRouter.Any("/nodepools/:nodePoolName", gin.WrapH(router))
 				}
 
 			}
@@ -849,72 +901,6 @@ func main() {
 			// ClusterGroupAPI
 			cgroupsAPI := cgroupAPI.NewAPI(clusterGroupManager, deploymentManager, logrusLogger, errorHandler)
 			cgroupsAPI.AddRoutes(orgs.Group("/:orgid/clustergroups"))
-
-			{
-				clusterStore := clusteradapter.NewStore(db, clusters)
-
-				labelValidator := kubernetes2.LabelValidator{
-					ForbiddenDomains: append([]string{config.Cluster.Labels.Domain}, config.Cluster.Labels.ForbiddenDomains...),
-				}
-
-				nplabels.SetNodePoolLabelValidator(labelValidator)
-
-				nplsApi := api.NewNodepoolManagerAPI(
-					commonClusterGetter,
-					dynamicClientFactory,
-					labelValidator,
-					logrusLogger,
-					errorHandler,
-				)
-				cRouter.GET("/nodepool-labels", nplsApi.GetNodepoolLabelSets)
-
-				labelSource := intCluster.NodePoolLabelSources{
-					intCluster.NewCommonNodePoolLabelSource(),
-					clusteradapter.NewCloudinfoNodePoolLabelSource(cloudinfoClient),
-				}
-
-				// Used by legacy node pool label code
-				globalcluster.SetNodePoolLabelSource(intCluster.NodePoolLabelSources{
-					intCluster.NewFilterValidNodePoolLabelSource(labelValidator),
-					labelSource,
-				})
-
-				service := intCluster.NewNodePoolService(
-					clusterStore,
-					clusteradapter.NewNodePoolStore(db, clusterStore),
-					intCluster.NodePoolValidators{
-						intCluster.NewCommonNodePoolValidator(labelValidator),
-						clusteradapter.NewDistributionNodePoolValidator(db),
-					},
-					intCluster.NodePoolProcessors{
-						intCluster.NewCommonNodePoolProcessor(labelSource),
-						clusteradapter.NewDistributionNodePoolProcessor(db),
-					},
-					clusteradapter.NewNodePoolManager(
-						workflowClient,
-						func(ctx context.Context) uint {
-							if currentUser := ctx.Value(auth2.CurrentUser); currentUser != nil {
-								return currentUser.(*auth.User).ID
-							}
-
-							return 0
-						},
-					),
-				)
-				endpoints := clusterdriver.TraceNodePoolEndpoints(clusterdriver.MakeNodePoolEndpoints(
-					service,
-					kitxendpoint.Combine(endpointMiddleware...),
-				))
-
-				clusterdriver.RegisterNodePoolHTTPHandlers(
-					endpoints,
-					clusterRouter.PathPrefix("/nodepools").Subrouter(),
-					kitxhttp.ServerOptions(httpServerOptions),
-				)
-
-				cRouter.Any("/nodepools", gin.WrapH(router))
-				cRouter.Any("/nodepools/:nodePoolName", gin.WrapH(router))
-			}
 
 			namespaceAPI := namespace.NewAPI(commonClusterGetter, clientFactory, errorHandler)
 			namespaceAPI.RegisterRoutes(cRouter.Group("/namespaces"))
