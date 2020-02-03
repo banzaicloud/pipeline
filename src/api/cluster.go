@@ -154,35 +154,6 @@ func GetClusterConfig(c *gin.Context) {
 	return
 }
 
-// GetApiEndpoint returns the Kubernetes Api endpoint
-func GetApiEndpoint(c *gin.Context) {
-
-	log.Info("Start getting API endpoint")
-
-	log.Info("Create common cluster model from request")
-	commonCluster, ok := getClusterFromRequest(c)
-	if !ok {
-		return
-	}
-
-	log.Info("Start getting API endpoint")
-	endPoint, err := commonCluster.GetAPIEndpoint()
-	if err != nil {
-		log.Errorf("Error during getting api endpoint: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error getting endpoint",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	log.Debugf("API endpoint: %s", endPoint)
-
-	c.String(http.StatusOK, endPoint)
-	return
-}
-
 // GetClusters fetches all the K8S clusters from the cloud.
 func (a *ClusterAPI) GetClusters(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
