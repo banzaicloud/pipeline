@@ -279,6 +279,10 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 
 // DeployClusterAutoscaler post hook only for AWS & EKS & Azure for now
 func DeployClusterAutoscaler(cluster CommonCluster) error {
+	var config = global.Config.Cluster.Posthook.Autoscaler
+	if !config.Enabled {
+		return nil
+	}
 
 	var nodeGroups []nodeGroup
 	var err error

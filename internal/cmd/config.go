@@ -531,6 +531,9 @@ traefik:
 	// Horizontal Pod Autoscaler
 	v.SetDefault("cluster::posthook::hpa::enabled", true)
 
+	// Cluster Autoscaler
+	v.SetDefault("cluster::posthook::autoscaler::enabled", true)
+
 	v.SetDefault("cluster::disasterRecovery::enabled", true)
 	v.SetDefault("cluster::disasterRecovery::namespace", "")
 	v.SetDefault("cluster::disasterRecovery::ark::syncEnabled", true)
