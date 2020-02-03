@@ -12,9 +12,6 @@ services:
         volumes:
             - ${PWD}/database/docker-init-mysql.sql:/docker-entrypoint-initdb.d/docker-init.sql
 
-    adminer:
-        image: adminer
-
     vault:
         image: vault:1.3.2
         command: server
