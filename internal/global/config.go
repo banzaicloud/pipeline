@@ -127,6 +127,10 @@ type Configuration struct {
 			Hpa struct {
 				Enabled bool
 			}
+
+			Autoscaler struct {
+				Enabled bool
+			}
 		}
 
 		Vault struct {

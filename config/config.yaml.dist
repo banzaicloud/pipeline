@@ -398,6 +398,10 @@ dex:
 #
 #        hpa:
 #            enabled: true
+#
+#        autoscaler:
+#            enabled: true
+
 
 #helm:
 #    home: "./var/cache"

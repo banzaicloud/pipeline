@@ -32,7 +32,10 @@ type PostHookConfig struct {
 	Ith BasePostHookConfig
 
 	// Horizontal Pod Autoscaler config
-	Hpa HPAConfig
+	Hpa BaseConfig
+
+	// Cluster Autoscaler config
+	Autoscaler BaseConfig
 }
 
 type BasePostHookConfig struct {
@@ -56,7 +59,7 @@ type SpotChartsConfig struct {
 	Webhook   BaseChartConfig
 }
 
-type HPAConfig struct {
+type BaseConfig struct {
 	Enabled bool
 }
 
