@@ -27,7 +27,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	internalCommon "github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/global"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
@@ -197,20 +196,6 @@ func GetReleaseScanLog(c *gin.Context) (map[string]bool, bool) {
 	}
 	log.Debugf("ReleaseScanLogReject set: %#v", releaseScanLogReject)
 	return releaseScanLogReject, true
-}
-
-// SecurityScanEnabled checks if security scan is enabled in pipeline
-func SecurityScanEnabled(c *gin.Context) {
-	if global.Config.Cluster.SecurityScan.Anchore.Enabled {
-		c.JSON(http.StatusOK, gin.H{
-			"enabled": true,
-		})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"enabled": false,
-	})
-	return
 }
 
 // SecurityHandler defines security related handler functions intended to be used for defining routes
