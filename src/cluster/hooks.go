@@ -34,7 +34,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/hollowtrees"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -356,6 +355,11 @@ func InitSpotConfig(cluster CommonCluster) error {
 
 // DeployInstanceTerminationHandler deploys the instance termination handler
 func DeployInstanceTerminationHandler(cluster CommonCluster) error {
+	var config = global.Config.Cluster.Posthook.Ith
+	if !config.Enabled {
+		return nil
+	}
+
 	cloud := cluster.GetCloud()
 
 	if cloud != pkgCluster.Amazon && cloud != pkgCluster.Google {
@@ -411,7 +415,7 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 		return errors.WrapIf(err, "failed to marshal yaml values")
 	}
 
-	return installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/instance-termination-handler", "ith", marshalledValues, "", false)
+	return installDeployment(cluster, pipelineSystemNamespace, config.Chart, "ith", marshalledValues, config.Version, false)
 }
 
 func isSpotCluster(cluster CommonCluster) (bool, error) {

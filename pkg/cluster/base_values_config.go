@@ -27,6 +27,9 @@ type PostHookConfig struct {
 
 	// Init spot config
 	Spotconfig SpotConfig
+
+	// Instance Termination Handler config
+	Ith BasePostHookConfig
 }
 
 type BasePostHookConfig struct {

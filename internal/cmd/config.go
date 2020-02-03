@@ -523,6 +523,11 @@ traefik:
 	v.SetDefault("cluster::posthook::spotconfig::charts::webhook::chart", "banzaicloud-stable/spot-config-webhook")
 	v.SetDefault("cluster::posthook::spotconfig::charts::webhook::version", "0.1.5")
 
+	// Instance Termination Handler
+	v.SetDefault("cluster::posthook::ith::enabled", true)
+	v.SetDefault("cluster::posthook::ith::chart", "banzaicloud-stable/instance-termination-handler")
+	v.SetDefault("cluster::posthook::ith::version", "0.0.7")
+
 	v.SetDefault("cluster::disasterRecovery::enabled", true)
 	v.SetDefault("cluster::disasterRecovery::namespace", "")
 	v.SetDefault("cluster::disasterRecovery::ark::syncEnabled", true)

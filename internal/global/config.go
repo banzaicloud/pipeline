@@ -117,6 +117,12 @@ type Configuration struct {
 					}
 				}
 			}
+
+			Ith struct {
+				Enabled bool
+				Chart   string
+				Version string
+			}
 		}
 
 		Vault struct {
