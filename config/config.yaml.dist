@@ -371,6 +371,10 @@ dex:
 #
 #            # See https://github.com/helm/charts/tree/master/stable/traefik for details
 #            values: |
+#              traefik:
+#                ssl:
+#                  enabled: true
+#                  generateTLS: true
 
 #helm:
 #    home: "./var/cache"
