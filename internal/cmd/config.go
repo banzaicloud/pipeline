@@ -511,6 +511,11 @@ traefik:
     generateTLS: true
 `)
 
+	// Kubernetes Dashboard
+	v.SetDefault("cluster::posthook::dashboard::enabled", true)
+	v.SetDefault("cluster::posthook::dashboard::chart", "banzaicloud-stable/kubernetes-dashboard")
+	v.SetDefault("cluster::posthook::dashboard::version", "0.9.1")
+
 	v.SetDefault("cluster::disasterRecovery::enabled", true)
 	v.SetDefault("cluster::disasterRecovery::namespace", "")
 	v.SetDefault("cluster::disasterRecovery::ark::syncEnabled", true)

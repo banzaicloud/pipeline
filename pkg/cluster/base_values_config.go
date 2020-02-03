@@ -21,11 +21,19 @@ import (
 type PostHookConfig struct {
 	// ingress controller config
 	Ingress IngressControllerConfig
+
+	// Kubernetes Dashboard config
+	Dashboard BasePostHookConfig
 }
 
-type IngressControllerConfig struct {
+type BasePostHookConfig struct {
 	Enabled bool
 	Chart   string
 	Version string
-	Values  values.Config
+}
+
+type IngressControllerConfig struct {
+	BasePostHookConfig `mapstructure:",squash"`
+
+	Values values.Config
 }

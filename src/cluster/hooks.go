@@ -104,6 +104,10 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 }
 
 func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
+	var config = global.Config.Cluster.Posthook.Dashboard
+	if !config.Enabled {
+		return nil
+	}
 
 	k8sDashboardNameSpace := global.Config.Cluster.Namespace
 	k8sDashboardReleaseName := "dashboard"
@@ -211,7 +215,7 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 
 	}
 
-	return installDeployment(cluster, k8sDashboardNameSpace, pkgHelm.BanzaiRepository+"/kubernetes-dashboard", k8sDashboardReleaseName, valuesJson, "", false)
+	return installDeployment(cluster, k8sDashboardNameSpace, config.Chart, k8sDashboardReleaseName, valuesJson, config.Version, false)
 
 }
 

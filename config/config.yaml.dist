@@ -375,6 +375,11 @@ dex:
 #                ssl:
 #                  enabled: true
 #                  generateTLS: true
+#
+#        dashboard:
+#            enabled: true
+#            chart: "banzaicloud-stable/kubernetes-dashboard"
+#            version: "0.9.1"
 
 #helm:
 #    home: "./var/cache"
