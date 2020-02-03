@@ -687,7 +687,6 @@ func main() {
 				cRouter.Any("/proxy/*path", clusterAPI.ProxyToCluster)
 				cRouter.HEAD("", clusterAPI.ClusterCheck)
 				cRouter.GET("/config", api.GetClusterConfig)
-				cRouter.GET("/apiendpoint", api.GetApiEndpoint)
 				cRouter.GET("/nodes", api.GetClusterNodes)
 				cRouter.GET("/endpoints", api.MakeEndpointLister(logger).ListEndpoints)
 				cRouter.GET("/secrets", api.ListClusterSecrets)
