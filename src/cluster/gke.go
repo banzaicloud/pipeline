@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
