@@ -17,7 +17,6 @@ package values
 import (
 	"reflect"
 	"strings"
-	"time"
 
 	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
@@ -28,11 +27,6 @@ type Config map[string]interface{}
 
 func DecodeHook() mapstructure.DecodeHookFunc {
 	return func(a reflect.Type, b reflect.Type, d interface{}) (interface{}, error) {
-
-		// parse duration
-		if a.Kind() == reflect.String && b == reflect.TypeOf(new(time.Duration)).Elem() {
-			return time.ParseDuration(d.(string))
-		}
 
 		// parse values config
 		if a.Kind() == reflect.String && b == reflect.TypeOf(new(Config)).Elem() {
