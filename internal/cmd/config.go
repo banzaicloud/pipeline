@@ -516,6 +516,13 @@ traefik:
 	v.SetDefault("cluster::posthook::dashboard::chart", "banzaicloud-stable/kubernetes-dashboard")
 	v.SetDefault("cluster::posthook::dashboard::version", "0.9.1")
 
+	// Init spot config
+	v.SetDefault("cluster::posthook::spotconfig::enabled", false)
+	v.SetDefault("cluster::posthook::spotconfig::charts::scheduler::chart", "banzaicloud-stable/spot-scheduler")
+	v.SetDefault("cluster::posthook::spotconfig::charts::scheduler::version", "0.1.0")
+	v.SetDefault("cluster::posthook::spotconfig::charts::webhook::chart", "banzaicloud-stable/spot-config-webhook")
+	v.SetDefault("cluster::posthook::spotconfig::charts::webhook::version", "0.1.5")
+
 	v.SetDefault("cluster::disasterRecovery::enabled", true)
 	v.SetDefault("cluster::disasterRecovery::namespace", "")
 	v.SetDefault("cluster::disasterRecovery::ark::syncEnabled", true)

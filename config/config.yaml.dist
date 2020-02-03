@@ -380,6 +380,16 @@ dex:
 #            enabled: true
 #            chart: "banzaicloud-stable/kubernetes-dashboard"
 #            version: "0.9.1"
+#
+#        spotconfig:
+#            enabled: true
+#            charts:
+#                scheduler:
+#                    chart: "banzaicloud-stable/spot-scheduler"
+#                    version: "0.1.0"
+#                webhook:
+#                    chart: "banzaicloud-stable/spot-config-webhook"
+#                    version: "0.1.5"
 
 #helm:
 #    home: "./var/cache"
