@@ -29,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
@@ -216,6 +217,7 @@ type ClusterDNSConfig struct {
 type ClusterSecurityScanConfig struct {
 	Enabled bool
 	Anchore ClusterSecurityScanAnchoreConfig
+	Webhook securityscan.WebhookConfig
 }
 
 func (c ClusterSecurityScanConfig) Validate() error {
@@ -230,8 +232,7 @@ func (c ClusterSecurityScanConfig) Validate() error {
 
 // ClusterSecurityScanAnchoreConfig contains cluster security scan anchore configuration.
 type ClusterSecurityScanAnchoreConfig struct {
-	Enabled bool
-
+	Enabled        bool
 	anchore.Config `mapstructure:",squash"`
 }
 
@@ -485,6 +486,17 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::securityScan::anchore::endpoint", "")
 	v.SetDefault("cluster::securityScan::anchore::user", "")
 	v.SetDefault("cluster::securityScan::anchore::password", "")
+	v.SetDefault("cluster::securityScan::webhook::chart", "banzaicloud-stable/anchore-policy-validator")
+	v.SetDefault("cluster::securityScan::webhook::version", "0.5.2")
+	v.SetDefault("cluster::securityScan::webhook::release", "anchore")
+	v.SetDefault("cluster::securityScan::webhook::namespace", "pipeline-system")
+	//v.SetDefault("cluster::securityScan::webhook::values", map[string]interface{}{
+	//	"image": map[string]interface{}{
+	//		"repository": "banzaicloud/ark",
+	//		"tag":        "v0.9.11",
+	//		"pullPolicy": "IfNotPresent",
+	//	},
+	//})
 
 	v.SetDefault("cluster::expiry::enabled", true)
 

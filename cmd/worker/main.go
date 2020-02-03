@@ -613,6 +613,7 @@ func main() {
 				securityscan.MakeIntegratedServiceOperator(
 					config.Cluster.SecurityScan.Anchore.Enabled,
 					config.Cluster.SecurityScan.Anchore.Endpoint,
+					config.Cluster.SecurityScan.Webhook,
 					clusterGetter,
 					clusterService,
 					helmService,

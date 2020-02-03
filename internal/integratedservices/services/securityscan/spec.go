@@ -116,6 +116,10 @@ func (w webHookConfigSpec) Validate() error {
 	return nil
 }
 
+func (w webHookConfigSpec) allNamespaces() bool {
+	return (len(w.Namespaces) == 1) && w.Namespaces[0] == selectedAllStar
+}
+
 func bindIntegratedServiceSpec(spec integratedservices.IntegratedServiceSpec) (integratedServiceSpec, error) {
 	var boundSpec integratedServiceSpec
 	if err := mapstructure.Decode(spec, &boundSpec); err != nil {
@@ -125,4 +129,33 @@ func bindIntegratedServiceSpec(spec integratedservices.IntegratedServiceSpec) (i
 		}
 	}
 	return boundSpec, nil
+}
+
+func (w webHookConfigSpec) GetValues() ImageValidatorChartValues {
+	var (
+		namespaceSelector *SetBasedSelector
+		objectSelector    *SetBasedSelector
+	)
+
+	if w.Enabled {
+		switch w.Selector {
+		case selectorInclude:
+			if !w.allNamespaces() {
+				namespaceSelector = new(SetBasedSelector)
+				namespaceSelector.addMatchLabel(labelKey, "scan")
+			} // else - the default settings
+
+		case selectorExclude:
+			if w.allNamespaces() {
+				// exclude all / the scan label should be removed from all namespaces
+				namespaceSelector = new(SetBasedSelector)
+				namespaceSelector.addMatchLabel(labelKey, "scan")
+			}
+		}
+	}
+
+	return ImageValidatorChartValues{
+		NamespaceSelector: namespaceSelector,
+		ObjectSelector:    objectSelector,
+	}
 }
