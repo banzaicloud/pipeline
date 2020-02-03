@@ -97,6 +97,12 @@ type Configuration struct {
 				Version string
 				Values  values.Config
 			}
+
+			Dashboard struct {
+				Enabled bool
+				Chart   string
+				Version string
+			}
 		}
 
 		Vault struct {
