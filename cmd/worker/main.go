@@ -89,6 +89,7 @@ import (
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/hook"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/auth/authdriver"
 	"github.com/banzaicloud/pipeline/src/cluster"
@@ -137,13 +138,13 @@ func main() {
 	}
 
 	var config configuration
-	err = v.Unmarshal(&config)
+	err = v.Unmarshal(&config, hook.DecodeHookWithDefaults())
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
 	err = config.Process()
 	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
 
-	err = v.Unmarshal(&global.Config)
+	err = v.Unmarshal(&global.Config, hook.DecodeHookWithDefaults())
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
 
 	err = global.Config.Process()
@@ -612,6 +613,7 @@ func main() {
 				securityscan.MakeIntegratedServiceOperator(
 					config.Cluster.SecurityScan.Anchore.Enabled,
 					config.Cluster.SecurityScan.Anchore.Endpoint,
+					config.Cluster.SecurityScan.Webhook,
 					clusterGetter,
 					clusterService,
 					helmService,

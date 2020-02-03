@@ -362,6 +362,19 @@ dex:
 #
 #                # See https://github.com/kubernetes-sigs/kubefed/tree/master/charts/kubefed for details
 #                values: {}
+#
+#    posthook:
+#        ingress:
+#            enabled: true
+#            chart: "banzaicloud-stable/pipeline-cluster-ingress"
+#            version: "0.0.8"
+#
+#            # See https://github.com/helm/charts/tree/master/stable/traefik for details
+#            values: |
+#              traefik:
+#                ssl:
+#                  enabled: true
+#                  generateTLS: true
 
 #helm:
 #    home: "./var/cache"

@@ -123,6 +123,7 @@ import (
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
+	"github.com/banzaicloud/pipeline/pkg/hook"
 	kubernetes2 "github.com/banzaicloud/pipeline/pkg/kubernetes"
 	"github.com/banzaicloud/pipeline/pkg/problems"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -185,13 +186,13 @@ func main() {
 	}
 
 	var config configuration
-	err = v.Unmarshal(&config)
+	err = v.Unmarshal(&config, hook.DecodeHookWithDefaults())
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
 	err = config.Process()
 	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
 
-	err = v.Unmarshal(&global.Config)
+	err = v.Unmarshal(&global.Config, hook.DecodeHookWithDefaults())
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
 
 	err = global.Config.Process()
@@ -736,7 +737,7 @@ func main() {
 				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
 				endpointManager := endpoints.NewEndpointManager(commonLogger)
 				integratedServiceManagers := []integratedservices.IntegratedServiceManager{
-					securityscan.MakeIntegratedServiceManager(commonLogger),
+					securityscan.MakeIntegratedServiceManager(commonLogger, config.Cluster.SecurityScan.Webhook),
 				}
 
 				if config.Cluster.DNS.Enabled {
