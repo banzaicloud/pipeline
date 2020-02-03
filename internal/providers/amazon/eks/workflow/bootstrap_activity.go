@@ -22,7 +22,7 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"go.uber.org/cadence/activity"
 
 	"github.com/aws/aws-sdk-go/aws"
