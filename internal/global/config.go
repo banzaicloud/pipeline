@@ -19,7 +19,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/pkg/values"
 )
@@ -133,14 +132,6 @@ type Configuration struct {
 				ExternalDNS struct {
 					Chart string
 				}
-			}
-		}
-
-		SecurityScan struct {
-			Anchore struct {
-				Enabled bool
-
-				anchore.Config `mapstructure:",squash"`
 			}
 		}
 
