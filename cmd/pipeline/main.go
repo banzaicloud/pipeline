@@ -123,10 +123,10 @@ import (
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
+	"github.com/banzaicloud/pipeline/pkg/hook"
 	kubernetes2 "github.com/banzaicloud/pipeline/pkg/kubernetes"
 	"github.com/banzaicloud/pipeline/pkg/problems"
 	"github.com/banzaicloud/pipeline/pkg/providers"
-	"github.com/banzaicloud/pipeline/pkg/values"
 	"github.com/banzaicloud/pipeline/src/api"
 	"github.com/banzaicloud/pipeline/src/api/ark/backups"
 	"github.com/banzaicloud/pipeline/src/api/ark/backupservice"
@@ -186,13 +186,13 @@ func main() {
 	}
 
 	var config configuration
-	err = v.Unmarshal(&config, viper.DecodeHook(values.DecodeHook()))
+	err = v.Unmarshal(&config, hook.DecodeHookWithDefaults())
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
 	err = config.Process()
 	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
 
-	err = v.Unmarshal(&global.Config, viper.DecodeHook(values.DecodeHook()))
+	err = v.Unmarshal(&global.Config, hook.DecodeHookWithDefaults())
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
 
 	err = global.Config.Process()
