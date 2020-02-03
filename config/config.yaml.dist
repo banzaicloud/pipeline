@@ -390,6 +390,11 @@ dex:
 #                webhook:
 #                    chart: "banzaicloud-stable/spot-config-webhook"
 #                    version: "0.1.5"
+#
+#        ith:
+#            enabled: true
+#            chart: "banzaicloud-stable/instance-termination-handler"
+#            version: "0.0.7"
 
 #helm:
 #    home: "./var/cache"
