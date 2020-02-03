@@ -24,7 +24,8 @@ import (
 type IntegratedServiceManager struct {
 	integratedservices.PassthroughIntegratedServiceSpecPreparer
 
-	logger common.Logger
+	webhookConfig WebhookConfig
+	logger        common.Logger
 }
 
 // Name returns the name of the integrated service
@@ -33,9 +34,10 @@ func (f IntegratedServiceManager) Name() string {
 }
 
 //MakeIntegratedServiceManager creates asecurity scan integrated service manager instance
-func MakeIntegratedServiceManager(logger common.Logger) IntegratedServiceManager {
+func MakeIntegratedServiceManager(logger common.Logger, webhookConfig WebhookConfig) IntegratedServiceManager {
 	return IntegratedServiceManager{
-		logger: logger,
+		webhookConfig: webhookConfig,
+		logger:        logger,
 	}
 }
 
@@ -59,12 +61,14 @@ func (f IntegratedServiceManager) ValidateSpec(ctx context.Context, spec integra
 }
 
 func (f IntegratedServiceManager) GetOutput(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) (integratedservices.IntegratedServiceOutput, error) {
+	// todo read these through the helm service?
 	out := map[string]interface{}{
-		// todo add "real" anchore version
 		"anchore": map[string]interface{}{
-			"version": securityScanChartVersion,
+			// todo this is the chart version ?!
+			"version": f.webhookConfig.Version,
 		},
 		"imageValidator": map[string]interface{}{
+			// todo image validator version! probably these two need to be exchanged
 			"version": imageValidatorVersion,
 		},
 	}

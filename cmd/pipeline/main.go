@@ -736,7 +736,7 @@ func main() {
 				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
 				endpointManager := endpoints.NewEndpointManager(commonLogger)
 				integratedServiceManagers := []integratedservices.IntegratedServiceManager{
-					securityscan.MakeIntegratedServiceManager(commonLogger),
+					securityscan.MakeIntegratedServiceManager(commonLogger, config.Cluster.SecurityScan.Webhook),
 				}
 
 				if config.Cluster.DNS.Enabled {
