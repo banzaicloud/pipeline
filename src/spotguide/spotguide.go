@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/banzaicloud/cicd-go/cicd"
 	yaml2 "github.com/ghodss/yaml"
