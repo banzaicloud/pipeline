@@ -97,6 +97,40 @@ type Configuration struct {
 				Version string
 				Values  values.Config
 			}
+
+			Dashboard struct {
+				Enabled bool
+				Chart   string
+				Version string
+			}
+
+			Spotconfig struct {
+				Enabled bool
+				Charts  struct {
+					Webhook struct {
+						Chart   string
+						Version string
+					}
+					Scheduler struct {
+						Chart   string
+						Version string
+					}
+				}
+			}
+
+			Ith struct {
+				Enabled bool
+				Chart   string
+				Version string
+			}
+
+			Hpa struct {
+				Enabled bool
+			}
+
+			Autoscaler struct {
+				Enabled bool
+			}
 		}
 
 		Vault struct {
