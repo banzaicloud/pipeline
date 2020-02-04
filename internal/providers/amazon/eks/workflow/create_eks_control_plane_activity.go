@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 

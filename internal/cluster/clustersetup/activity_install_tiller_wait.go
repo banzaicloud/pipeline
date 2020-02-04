@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/pkg/backoff"
