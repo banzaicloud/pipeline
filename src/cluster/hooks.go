@@ -34,7 +34,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/hollowtrees"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -104,6 +103,10 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 }
 
 func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
+	var config = global.Config.Cluster.Posthook.Dashboard
+	if !config.Enabled {
+		return nil
+	}
 
 	k8sDashboardNameSpace := global.Config.Cluster.Namespace
 	k8sDashboardReleaseName := "dashboard"
@@ -211,7 +214,7 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 
 	}
 
-	return installDeployment(cluster, k8sDashboardNameSpace, pkgHelm.BanzaiRepository+"/kubernetes-dashboard", k8sDashboardReleaseName, valuesJson, "", false)
+	return installDeployment(cluster, k8sDashboardNameSpace, config.Chart, k8sDashboardReleaseName, valuesJson, config.Version, false)
 
 }
 
@@ -248,6 +251,11 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 
 // InstallHorizontalPodAutoscalerPostHook
 func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
+	var config = global.Config.Cluster.Posthook.Hpa
+	if !config.Enabled {
+		return nil
+	}
+
 	promServiceName := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceName
 	infraNamespace := global.Config.Cluster.Autoscale.Namespace
 	serviceContext := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceContext
@@ -301,6 +309,10 @@ func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) er
 
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
 func InitSpotConfig(cluster CommonCluster) error {
+	var config = global.Config.Cluster.Posthook.Spotconfig
+	if !config.Enabled {
+		return nil
+	}
 
 	spot, err := isSpotCluster(cluster)
 	if err != nil {
@@ -335,11 +347,11 @@ func InitSpotConfig(cluster CommonCluster) error {
 		return errors.WrapIf(err, "failed to marshal yaml values")
 	}
 
-	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-scheduler", "spot-scheduler", marshalledValues, "", false)
+	err = installDeployment(cluster, pipelineSystemNamespace, config.Charts.Scheduler.Chart, "spot-scheduler", marshalledValues, config.Charts.Scheduler.Version, false)
 	if err != nil {
 		return errors.WrapIf(err, "failed to install the spot-scheduler deployment")
 	}
-	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-config-webhook", "spot-webhook", marshalledValues, "", true)
+	err = installDeployment(cluster, pipelineSystemNamespace, config.Charts.Webhook.Chart, "spot-webhook", marshalledValues, config.Charts.Webhook.Version, true)
 	if err != nil {
 		return errors.WrapIf(err, "failed to install the spot-config-webhook deployment")
 	}
@@ -348,6 +360,11 @@ func InitSpotConfig(cluster CommonCluster) error {
 
 // DeployInstanceTerminationHandler deploys the instance termination handler
 func DeployInstanceTerminationHandler(cluster CommonCluster) error {
+	var config = global.Config.Cluster.Posthook.Ith
+	if !config.Enabled {
+		return nil
+	}
+
 	cloud := cluster.GetCloud()
 
 	if cloud != pkgCluster.Amazon && cloud != pkgCluster.Google {
@@ -403,7 +420,7 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 		return errors.WrapIf(err, "failed to marshal yaml values")
 	}
 
-	return installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/instance-termination-handler", "ith", marshalledValues, "", false)
+	return installDeployment(cluster, pipelineSystemNamespace, config.Chart, "ith", marshalledValues, config.Version, false)
 }
 
 func isSpotCluster(cluster CommonCluster) (bool, error) {

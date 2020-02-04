@@ -21,11 +21,50 @@ import (
 type PostHookConfig struct {
 	// ingress controller config
 	Ingress IngressControllerConfig
+
+	// Kubernetes Dashboard config
+	Dashboard BasePostHookConfig
+
+	// Init spot config
+	Spotconfig SpotConfig
+
+	// Instance Termination Handler config
+	Ith BasePostHookConfig
+
+	// Horizontal Pod Autoscaler config
+	Hpa BaseConfig
+
+	// Cluster Autoscaler config
+	Autoscaler BaseConfig
+}
+
+type BasePostHookConfig struct {
+	Enabled bool
+
+	BaseChartConfig `mapstructure:",squash"`
+}
+
+type BaseChartConfig struct {
+	Chart   string
+	Version string
+}
+
+type SpotConfig struct {
+	Enabled bool
+	Charts  SpotChartsConfig
+}
+
+type SpotChartsConfig struct {
+	Scheduler BaseChartConfig
+	Webhook   BaseChartConfig
+}
+
+type BaseConfig struct {
+	Enabled bool
 }
 
 type IngressControllerConfig struct {
-	Enabled bool
-	Chart   string
-	Version string
-	Values  values.Config
+	BasePostHookConfig `mapstructure:",squash"`
+
+	Values values.Config
 }
