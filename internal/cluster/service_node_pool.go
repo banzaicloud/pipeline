@@ -39,17 +39,6 @@ type NodePool interface {
 	GetLabels() map[string]string
 }
 
-// NodePoolService provides an interface to node pools.
-//go:generate mga gen kit endpoint --outdir clusterdriver --outfile node_pool_endpoint_gen.go --with-oc --base-name NodePool NodePoolService
-//go:generate mga gen mockery --name NodePoolService --inpkg
-type NodePoolService interface {
-	// CreateNodePool creates a new node pool in a cluster.
-	CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) error
-
-	// DeleteNodePool deletes a node pool from a cluster.
-	DeleteNodePool(ctx context.Context, clusterID uint, name string) (bool, error)
-}
-
 // NewRawNodePool is an unstructured, distribution specific descriptor for a new node pool.
 type NewRawNodePool map[string]interface{}
 
@@ -103,14 +92,6 @@ func (n NewRawNodePool) GetLabels() map[string]string {
 	}
 
 	return labels
-}
-
-type nodePoolService struct {
-	clusters  Store
-	nodePools NodePoolStore
-	validator NodePoolValidator
-	processor NodePoolProcessor
-	manager   NodePoolManager
 }
 
 // NodePoolAlreadyExistsError is returned when a node pool already exists.
@@ -171,24 +152,7 @@ type NodePoolManager interface {
 	DeleteNodePool(ctx context.Context, clusterID uint, name string) error
 }
 
-// NewNodePoolService returns a new NodePoolService.
-func NewNodePoolService(
-	clusters Store,
-	nodePools NodePoolStore,
-	validator NodePoolValidator,
-	processor NodePoolProcessor,
-	manager NodePoolManager,
-) NodePoolService {
-	return nodePoolService{
-		clusters:  clusters,
-		nodePools: nodePools,
-		validator: validator,
-		processor: processor,
-		manager:   manager,
-	}
-}
-
-func (s nodePoolService) CreateNodePool(
+func (s clusterService) CreateNodePool(
 	ctx context.Context,
 	clusterID uint,
 	rawNodePool NewRawNodePool,
@@ -202,7 +166,7 @@ func (s nodePoolService) CreateNodePool(
 		return err
 	}
 
-	if err := s.validator.ValidateNew(ctx, cluster, rawNodePool); err != nil {
+	if err := s.nodePoolValidator.ValidateNew(ctx, cluster, rawNodePool); err != nil {
 		return err
 	}
 
@@ -218,7 +182,7 @@ func (s nodePoolService) CreateNodePool(
 		})
 	}
 
-	rawNodePool, err = s.processor.ProcessNew(ctx, cluster, rawNodePool)
+	rawNodePool, err = s.nodePoolProcessor.ProcessNew(ctx, cluster, rawNodePool)
 	if err != nil {
 		return err
 	}
@@ -228,7 +192,7 @@ func (s nodePoolService) CreateNodePool(
 		return err
 	}
 
-	err = s.manager.CreateNodePool(ctx, clusterID, rawNodePool)
+	err = s.nodePoolManager.CreateNodePool(ctx, clusterID, rawNodePool)
 	if err != nil {
 		return err
 	}
@@ -236,7 +200,7 @@ func (s nodePoolService) CreateNodePool(
 	return nil
 }
 
-func (s nodePoolService) DeleteNodePool(ctx context.Context, clusterID uint, name string) (bool, error) {
+func (s clusterService) DeleteNodePool(ctx context.Context, clusterID uint, name string) (bool, error) {
 	cluster, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
 		return false, err
@@ -261,7 +225,7 @@ func (s nodePoolService) DeleteNodePool(ctx context.Context, clusterID uint, nam
 		return false, err
 	}
 
-	err = s.manager.DeleteNodePool(ctx, clusterID, name)
+	err = s.nodePoolManager.DeleteNodePool(ctx, clusterID, name)
 	if err != nil {
 		return false, err
 	}
@@ -269,8 +233,8 @@ func (s nodePoolService) DeleteNodePool(ctx context.Context, clusterID uint, nam
 	return false, nil
 }
 
-func (s nodePoolService) checkCluster(cluster Cluster) error {
-	if err := s.supported(cluster); err != nil {
+func (s clusterService) checkCluster(cluster Cluster) error {
+	if err := s.nodePoolSupported(cluster); err != nil {
 		return err
 	}
 
@@ -281,7 +245,7 @@ func (s nodePoolService) checkCluster(cluster Cluster) error {
 	return nil
 }
 
-func (s nodePoolService) supported(cluster Cluster) error {
+func (s clusterService) nodePoolSupported(cluster Cluster) error {
 	switch {
 	case cluster.Cloud == providers.Amazon && cluster.Distribution == "eks":
 		return nil

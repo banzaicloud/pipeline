@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
-func TestMakeClusterEndpoints_DeleteCluster(t *testing.T) {
+func TestMakeEndpoints_DeleteCluster(t *testing.T) {
 	const clusterID = uint(1)
 	const clusterName = "my-cluster"
 	const orgID = uint(1)
@@ -69,7 +69,7 @@ func TestMakeClusterEndpoints_DeleteCluster(t *testing.T) {
 			service := new(cluster.MockService)
 			service.On("DeleteCluster", mock.Anything, testCase.identifier, testCase.options).Return(false, nil)
 
-			e := MakeClusterEndpoints(service).DeleteCluster
+			e := MakeEndpoints(service).DeleteCluster
 
 			_, err := e(context.Background(), testCase.request)
 			require.NoError(t, err)
@@ -77,4 +77,38 @@ func TestMakeClusterEndpoints_DeleteCluster(t *testing.T) {
 			service.AssertExpectations(t)
 		})
 	}
+}
+
+func TestMakeEndpoints_CreateNodePool(t *testing.T) {
+	const clusterID = uint(1)
+	const nodePoolName = "pool0"
+
+	spec := map[string]interface{}{
+		"name": nodePoolName,
+	}
+
+	service := new(cluster.MockService)
+	service.On("CreateNodePool", mock.Anything, clusterID, cluster.NewRawNodePool(spec)).Return(nil)
+
+	e := MakeEndpoints(service).CreateNodePool
+
+	_, err := e(context.Background(), createNodePoolRequest{clusterID, spec})
+	require.NoError(t, err)
+
+	service.AssertExpectations(t)
+}
+
+func TestMakeEndpoints_DeleteNodePool(t *testing.T) {
+	const clusterID = uint(1)
+	const nodePoolName = "pool0"
+
+	service := new(cluster.MockService)
+	service.On("DeleteNodePool", mock.Anything, clusterID, nodePoolName).Return(false, nil)
+
+	e := MakeEndpoints(service).DeleteNodePool
+
+	_, err := e(context.Background(), deleteNodePoolRequest{clusterID, nodePoolName})
+	require.NoError(t, err)
+
+	service.AssertExpectations(t)
 }
