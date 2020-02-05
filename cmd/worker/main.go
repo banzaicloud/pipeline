@@ -67,6 +67,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter"
 	expiryWorkflow "github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter/workflow"
+	intsvcingress "github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
+	intsvcingressadapter "github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress/ingressadapter"
 	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	integratedServiceMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
@@ -658,6 +660,13 @@ func main() {
 					commonSecretStore,
 				),
 				expiry.NewExpiryServiceOperator(expirerService, services.BindIntegratedServiceSpec, logger),
+				intsvcingress.NewOperator(
+					intsvcingressadapter.NewOperatorClusterStore(clusterStore),
+					clusterService,
+					config.Cluster.Ingress.Config,
+					helmService,
+					intsvcingressadapter.NewOrgDomainService(config.Cluster.DNS.BaseDomain, orgGetter),
+				),
 			})
 
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)

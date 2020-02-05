@@ -97,6 +97,7 @@ import (
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
 	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
@@ -791,6 +792,8 @@ func main() {
 					securityscan.MakeIntegratedServiceManager(commonLogger, config.Cluster.SecurityScan.Config),
 				}
 
+				helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), commonLogger)
+
 				if config.Cluster.DNS.Enabled {
 					integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
 				}
@@ -800,7 +803,6 @@ func main() {
 				}
 
 				if config.Cluster.Monitoring.Enabled {
-					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), commonLogger)
 					integratedServiceManagers = append(integratedServiceManagers, featureMonitoring.MakeIntegratedServiceManager(
 						clusterGetter,
 						commonSecretStore,
@@ -858,6 +860,14 @@ func main() {
 				if config.Cluster.Expiry.Enabled {
 					integratedServiceManagers = append(integratedServiceManagers,
 						expiry.NewExpiryServiceManager(services.BindIntegratedServiceSpec))
+				}
+
+				if config.Cluster.Ingress.Enabled {
+					integratedServiceManagers = append(integratedServiceManagers, ingress.NewManager(
+						config.Cluster.Ingress.Config,
+						helmService,
+						commonLogger,
+					))
 				}
 
 				integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
