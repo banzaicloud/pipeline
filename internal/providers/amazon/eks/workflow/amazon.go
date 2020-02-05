@@ -142,7 +142,7 @@ func packageCFError(err error, stackName string, clientRequestToken string, clou
 	if errors.As(err, &awsErr) {
 		if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
 			err = pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cloudformationClient)
-			err = errors.WrapIff(err, errMessage, stackName)
+			err = errors.WrapIfWithDetails(err, errMessage, "stackName", stackName)
 			if pkgCloudformation.IsErrorFinal(err) {
 				return cadence.NewCustomError(ErrReasonStackFailed, err.Error())
 			}
