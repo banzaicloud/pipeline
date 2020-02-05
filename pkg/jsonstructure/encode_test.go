@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEncode(t *testing.T) {
+func TestEncode_JSON_marshal_conformance(t *testing.T) {
 	type (
 		NamedBool bool
 
