@@ -25,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterconfig"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
@@ -185,12 +186,7 @@ type ClusterConfig struct {
 
 	Federation federation.StaticConfig
 
-	Ingress struct {
-		Cert struct {
-			Source string
-			Path   string
-		}
-	}
+	Ingress ClusterIngressConfig
 
 	Labels clusterconfig.LabelConfig
 
@@ -217,6 +213,8 @@ func (c ClusterConfig) Validate() error {
 	var errs error
 
 	errs = errors.Append(errs, c.DNS.Validate())
+
+	errs = errors.Append(errs, c.Ingress.Validate())
 
 	errs = errors.Append(errs, c.Labels.Validate())
 
@@ -255,6 +253,10 @@ func (c *ClusterConfig) Process() error {
 
 	if c.DNS.Namespace == "" {
 		c.DNS.Namespace = c.Namespace
+	}
+
+	if c.Ingress.Namespace == "" {
+		c.Ingress.Namespace = c.Namespace
 	}
 
 	if c.Labels.Namespace == "" {
@@ -354,6 +356,27 @@ func (c ClusterDNSConfig) Validate() error {
 
 type ClusterExpiryConfig struct {
 	Enabled bool
+}
+
+type ClusterIngressConfig struct {
+	Enabled bool
+
+	ingress.Config `mapstructure:",squash"`
+
+	Cert struct {
+		Source string
+		Path   string
+	}
+}
+
+func (c ClusterIngressConfig) Validate() error {
+	var errs error
+
+	if c.Enabled {
+		errs = errors.Append(errs, c.Config.Validate())
+	}
+
+	return errs
 }
 
 // ClusterLoggingConfig contains cluster logging configuration.
@@ -492,9 +515,6 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster::manifest", "")
 	v.SetDefault("cluster::namespace", "pipeline-system")
 
-	v.SetDefault("cluster::ingress::cert::source", "file")
-	v.SetDefault("cluster::ingress::cert::path", "config/certs")
-
 	v.SetDefault("cluster::labels::domain", "banzaicloud.io")
 	v.SetDefault("cluster::labels::forbiddenDomains", []string{
 		"k8s.io",
@@ -605,6 +625,20 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 			"tag":        "0.5.18",
 		},
 	})
+
+	v.SetDefault("cluster::ingress::enabled", true)
+	v.SetDefault("cluster::ingress::controllers", []string{"traefik"})
+	v.SetDefault("cluster::ingress::namespace", "")
+	v.SetDefault("cluster::ingress::releaseName", "ingress")
+	v.SetDefault("cluster::ingress::charts::traefik::chart", "stable/traefik")
+	v.SetDefault("cluster::ingress::charts::traefik::version", "1.86.1")
+	v.SetDefault("cluster::ingress::charts::traefik::values", `
+ssl:
+  enabled: true
+  generateTLS: true
+`)
+	v.SetDefault("cluster::ingress::cert::source", "file")
+	v.SetDefault("cluster::ingress::cert::path", "config/certs")
 
 	v.SetDefault("cluster::autoscale::namespace", "")
 	v.SetDefault("cluster::autoscale::hpa::prometheus::serviceName", "monitor-prometheus-server")

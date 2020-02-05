@@ -46,6 +46,10 @@ func mapCapabilities(config configuration) cap.Capabilities {
 			"expiry": cap.Cap{
 				"enabled": config.Cluster.Expiry.Enabled,
 			},
+			"ingress": cap.Cap{
+				"enabled":     config.Cluster.Ingress.Enabled,
+				"controllers": config.Cluster.Ingress.Controllers,
+			},
 		},
 	}
 }
