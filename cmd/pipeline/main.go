@@ -781,7 +781,7 @@ func main() {
 			)
 
 			// Cluster IntegratedService API
-			var featureService integratedservices.Service
+			var integratedServicesService integratedservices.Service
 			{
 				featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
 				clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
@@ -862,9 +862,9 @@ func main() {
 
 				integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
 				integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
-				featureService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, commonLogger)
+				integratedServicesService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, commonLogger)
 				endpoints := integratedservicesdriver.MakeEndpoints(
-					featureService,
+					integratedServicesService,
 					kitxendpoint.Combine(endpointMiddleware...),
 				)
 
@@ -892,7 +892,7 @@ func main() {
 				}
 			}
 
-			hpaApi := api.NewHPAAPI(featureService, clientFactory, configFactory, commonClusterGetter, errorHandler)
+			hpaApi := api.NewHPAAPI(integratedServicesService, clientFactory, configFactory, commonClusterGetter, errorHandler)
 			cRouter.GET("/hpa", hpaApi.GetHpaResource)
 			cRouter.PUT("/hpa", hpaApi.PutHpaResource)
 			cRouter.DELETE("/hpa", hpaApi.DeleteHpaResource)
