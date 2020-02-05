@@ -25,11 +25,40 @@ import (
 )
 
 // Encode returns a transformation of v that is equivalent with JSON encoding and decoding v.
-func Encode(v interface{}) (interface{}, error) {
-	return encode(reflect.ValueOf(v))
+func Encode(v interface{}, options ...EncodeOption) (interface{}, error) {
+	var e encoder
+	EncodeOptions(options).apply(&e)
+	return e.encode(reflect.ValueOf(v))
 }
 
-func encode(v reflect.Value) (interface{}, error) {
+// EncodeOption represents an encoding option.
+type EncodeOption interface {
+	apply(*encoder)
+}
+
+// EncodeOptions is a list of encoding options.
+type EncodeOptions []EncodeOption
+
+func (opts EncodeOptions) apply(e *encoder) {
+	for _, opt := range opts {
+		opt.apply(e)
+	}
+}
+
+type zeroStructIsEmptyOption bool
+
+// WithZeroStructsAsEmpty is an encoding option that makes the encoder treat struct values equal to their default (zero) value as empty.
+const WithZeroStructsAsEmpty zeroStructIsEmptyOption = true
+
+func (o zeroStructIsEmptyOption) apply(e *encoder) {
+	e.zeroStructIsEmpty = bool(o)
+}
+
+type encoder struct {
+	zeroStructIsEmpty bool
+}
+
+func (e encoder) encode(v reflect.Value) (interface{}, error) {
 	numberType := reflect.TypeOf(float64(0))
 
 	switch v.Kind() {
@@ -61,7 +90,7 @@ func encode(v reflect.Value) (interface{}, error) {
 	case reflect.Array:
 		arr := make(Array, v.Len())
 		for i := range arr {
-			val, err := encode(v.Index(i))
+			val, err := e.encode(v.Index(i))
 			if err != nil {
 				return nil, err
 			}
@@ -71,7 +100,7 @@ func encode(v reflect.Value) (interface{}, error) {
 
 	// indirection
 	case reflect.Interface, reflect.Ptr:
-		return encode(deref(v))
+		return e.encode(deref(v))
 
 	case reflect.Map:
 		if v.Type().Key().Kind() == reflect.String {
@@ -82,7 +111,7 @@ func encode(v reflect.Value) (interface{}, error) {
 			obj := make(Object, v.Len())
 			for it := v.MapRange(); it.Next(); {
 				key := it.Key().String()
-				val, err := encode(it.Value())
+				val, err := e.encode(it.Value())
 				if err != nil {
 					return nil, err
 				}
@@ -93,7 +122,7 @@ func encode(v reflect.Value) (interface{}, error) {
 
 	case reflect.Struct:
 		obj := make(Object, v.NumField())
-		if err := encodeStruct(obj, v); err != nil {
+		if err := e.encodeStruct(obj, v); err != nil {
 			return nil, err
 		}
 		return obj, nil
@@ -103,16 +132,16 @@ func encode(v reflect.Value) (interface{}, error) {
 	return nil, encodeError{v}
 }
 
-func encodeStruct(obj Object, value reflect.Value) error {
+func (e encoder) encodeStruct(obj Object, value reflect.Value) error {
 	for it := mirror.NewStructIter(value); it.Next(); {
-		if err := encodeField(obj, it.Field(), it.Value()); err != nil {
+		if err := e.encodeField(obj, it.Field(), it.Value()); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func encodeField(obj Object, field reflect.StructField, value reflect.Value) error {
+func (e encoder) encodeField(obj Object, field reflect.StructField, value reflect.Value) error {
 	jsonTag := field.Tag.Get("json")
 	if jsonTag == "-" {
 		// omit field
@@ -134,7 +163,7 @@ func encodeField(obj Object, field reflect.StructField, value reflect.Value) err
 		}
 	}
 
-	if omitempty && isEmpty(value) {
+	if omitempty && e.isEmpty(value) {
 		// omit empty field
 		return nil
 	}
@@ -150,14 +179,14 @@ func encodeField(obj Object, field reflect.StructField, value reflect.Value) err
 			// omit nil pointer
 			return nil
 		case reflect.Struct:
-			if err := encodeStruct(obj, value); err != nil {
+			if err := e.encodeStruct(obj, value); err != nil {
 				return err
 			}
 			return nil
 		}
 	}
 
-	val, err := encode(value)
+	val, err := e.encode(value)
 	if err != nil {
 		return err
 	}
@@ -171,7 +200,7 @@ func encodeField(obj Object, field reflect.StructField, value reflect.Value) err
 	return nil
 }
 
-func isEmpty(value reflect.Value) bool {
+func (e encoder) isEmpty(value reflect.Value) bool {
 	switch value.Kind() {
 	case reflect.Bool:
 		return value.Bool() == false
@@ -185,6 +214,11 @@ func isEmpty(value reflect.Value) bool {
 		return value.IsNil()
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
 		return value.Len() == 0
+	case reflect.Struct:
+		if e.zeroStructIsEmpty {
+			return value.IsZero()
+		}
+		fallthrough
 	default:
 		return false
 	}
