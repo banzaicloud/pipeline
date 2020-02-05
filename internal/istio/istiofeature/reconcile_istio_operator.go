@@ -17,6 +17,8 @@ package istiofeature
 import (
 	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
@@ -57,7 +59,8 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
 	m.logger.Debug("installing Istio operator")
 
 	type operator struct {
-		Image imageChartValue `json:"image,omitempty"`
+		Image     imageChartValue             `json:"image,omitempty"`
+		Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 	}
 
 	type Values struct {
@@ -67,6 +70,12 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
 	values := Values{
 		Operator: operator{
 			Image: imageChartValue{},
+			Resources: corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse("200m"),
+					corev1.ResourceMemory: resource.MustParse("256Mi"),
+				},
+			},
 		},
 	}
 

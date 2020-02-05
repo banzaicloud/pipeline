@@ -26,7 +26,7 @@ const (
 	FeatureName = "servicemesh"
 
 	istioOperatorReleaseName  = "istio-operator"
-	istioVersion              = "1.3"
+	istioVersion              = "1.4"
 	backyardsReleaseName      = "backyards"
 	canaryOperatorReleaseName = "canary"
 	prometheusHostname        = "monitor-prometheus-server.pipeline-system.svc.cluster.local"
@@ -39,7 +39,9 @@ const (
 	backyardsNamespace        = "backyards-system"
 	canaryOperatorNamespace   = "backyards-canary"
 	istioOperatorNamespace    = "istio-system"
-	zipkinAddress             = "backyards-zipkin.backyards-system:9411"
+	zipkinAddress             = "backyards-zipkin.backyards-system.svc.cluster.local:9411"
+	alsHost                   = "backyards-als.backyards-system.svc.cluster.local"
+	alsPort                   = 50600
 
 	backoffDelaySeconds = 10
 	backoffMaxretries   = 10
@@ -95,11 +97,12 @@ type canaryOperatorConfiguration struct {
 }
 
 type backyardsConfiguration struct {
-	chartVersion    string
-	chartName       string
-	imageRepository string
-	imageTag        string
-	webImageTag     string
+	chartVersion       string
+	chartName          string
+	imageRepository    string
+	imageTag           string
+	webImageRepository string
+	webImageTag        string
 }
 
 type istioOperatorConfiguration struct {

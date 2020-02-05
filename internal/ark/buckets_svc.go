@@ -25,10 +25,10 @@ import (
 	"regexp"
 	"time"
 
+	"emperror.dev/errors"
 	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	"github.com/heptio/ark/pkg/cloudprovider"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/kubernetes/pkg/apis/core"
 
@@ -72,7 +72,7 @@ func (s *BucketsService) GetObjectStoreForBucket(bucket *api.Bucket) (cloudprovi
 
 	secret, err := GetSecretWithValidation(bucket.SecretID, s.org.ID, bucket.Cloud)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not get secret with validation")
+		return nil, errors.WrapIf(err, "could not get secret with validation")
 	}
 
 	ctx := providers.ObjectStoreContext{
@@ -85,7 +85,7 @@ func (s *BucketsService) GetObjectStoreForBucket(bucket *api.Bucket) (cloudprovi
 
 	os, err := NewObjectStore(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not initialize object store client")
+		return nil, errors.WrapIf(err, "could not initialize object store client")
 	}
 
 	return os, nil
@@ -370,7 +370,7 @@ func (s *BucketsService) streamObjectFromObjectStore(
 	if resp.StatusCode != http.StatusOK {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return errors.Wrap(err, "request failed: unable to decode response body")
+			return errors.WrapIf(err, "request failed: unable to decode response body")
 		}
 
 		return errors.Errorf("request failed: %v", string(body))

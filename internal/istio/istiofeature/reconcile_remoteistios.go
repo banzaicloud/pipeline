@@ -15,15 +15,18 @@
 package istiofeature
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"strconv"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
@@ -183,10 +186,15 @@ func (m *MeshReconciler) generateKubeconfig(c cluster.CommonCluster) ([]byte, er
 
 	clusterName := c.GetName()
 
+	caData := secret.Data["ca.crt"]
+	if !bytes.Contains(caData, config.CAData) {
+		caData = append(append(caData, []byte("\n")...), config.CAData...)
+	}
+
 	yml := `apiVersion: v1
 clusters:
    - cluster:
-       certificate-authority-data: ` + base64.StdEncoding.EncodeToString(secret.Data["ca.crt"]) + `
+       certificate-authority-data: ` + base64.StdEncoding.EncodeToString(caData) + `
        server: ` + config.Host + `
      name: ` + clusterName + `
 contexts:
@@ -365,12 +373,13 @@ func (m *MeshReconciler) reconcileRemoteIstioClusterRoleBinding(desiredState Des
 func (m *MeshReconciler) getRemoteClustersByExistingRemoteIstioCRs() (map[uint]cluster.CommonCluster, error) {
 	clusters := make(map[uint]cluster.CommonCluster, 0)
 
-	client, err := m.getMasterIstioOperatorK8sClient()
+	client, err := m.getMasterRuntimeK8sClient()
 	if err != nil {
 		return nil, err
 	}
 
-	remoteistios, err := client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).List(metav1.ListOptions{})
+	var remoteistios v1beta1.RemoteIstioList
+	err = client.List(context.Background(), &remoteistios, runtimeclient.InNamespace(istioOperatorNamespace))
 	if err != nil && !k8serrors.IsNotFound(err) {
 		return nil, errors.WrapIf(err, "could not get remote istios")
 	}

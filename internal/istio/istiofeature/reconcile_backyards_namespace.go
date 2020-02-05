@@ -15,9 +15,12 @@
 package istiofeature
 
 import (
+	"context"
+
 	"emperror.dev/errors"
+	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 )
@@ -31,11 +34,19 @@ func (m *MeshReconciler) ReconcileBackyardsNamespace(desiredState DesiredState) 
 		return err
 	}
 
-	if desiredState == DesiredStatePresent {
-		_, err := client.CoreV1().Namespaces().Get(backyardsNamespace, metav1.GetOptions{})
-		if k8serrors.IsNotFound(err) {
+	k8sclient, err := m.getK8sClient(m.Master)
+	if err != nil {
+		return err
+	}
 
-			err := k8sutil.EnsureNamespaceWithLabelWithRetry(client, backyardsNamespace,
+	var namespace corev1.Namespace
+
+	if desiredState == DesiredStatePresent {
+		err := client.Get(context.Background(), types.NamespacedName{
+			Name: backyardsNamespace,
+		}, &namespace)
+		if k8serrors.IsNotFound(err) {
+			err := k8sutil.EnsureNamespaceWithLabelWithRetry(k8sclient, backyardsNamespace,
 				map[string]string{
 					"istio-injection": "enabled",
 				})
@@ -46,14 +57,16 @@ func (m *MeshReconciler) ReconcileBackyardsNamespace(desiredState DesiredState) 
 			return errors.WrapIf(err, "could not get backyards namespace")
 		}
 	} else {
-		_, err := client.CoreV1().Namespaces().Get(backyardsNamespace, metav1.GetOptions{})
+		err := client.Get(context.Background(), types.NamespacedName{
+			Name: backyardsNamespace,
+		}, &namespace)
 		if k8serrors.IsNotFound(err) {
 			return nil
 		} else if err != nil {
 			return errors.WrapIf(err, "could not get backyards namespace")
 		}
 
-		err = client.CoreV1().Namespaces().Delete(backyardsNamespace, &metav1.DeleteOptions{})
+		err = client.Delete(context.Background(), &namespace)
 		if err != nil {
 			return errors.WrapIf(err, "could not delete backyards namespace")
 		}

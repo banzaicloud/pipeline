@@ -17,7 +17,6 @@ package ark
 import (
 	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	"github.com/sirupsen/logrus"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/ark/client"
@@ -111,8 +110,7 @@ func (s *SchedulesService) List() (schedules []*api.Schedule, err error) {
 		return nil, err
 	}
 
-	var listOptions metav1.ListOptions
-	list, err := client.ListSchedules(listOptions)
+	list, err := client.ListSchedules()
 	if err != nil {
 		return nil, err
 	}

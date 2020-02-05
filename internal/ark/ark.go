@@ -15,7 +15,7 @@
 package ark
 
 import (
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -36,11 +36,11 @@ func IsProviderSupported(provider string) error {
 func GetSecretWithValidation(secretID string, orgID uint, provider string) (*secret.SecretItemResponse, error) {
 	s, err := secret.Store.Get(orgID, secretID)
 	if err != nil {
-		return nil, errors.Wrap(err, "error validating create bucket request")
+		return nil, errors.WrapIf(err, "error validating create bucket request")
 	}
 
 	if err := secret.ValidateSecretType(s, provider); err != nil {
-		return nil, errors.Wrap(err, "error validating create bucket request")
+		return nil, errors.WrapIf(err, "error validating create bucket request")
 	}
 
 	return s, nil

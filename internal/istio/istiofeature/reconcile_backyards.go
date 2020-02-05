@@ -15,13 +15,16 @@
 package istiofeature
 
 import (
+	"context"
 	"time"
 
 	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
-	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
+	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/types"
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/pkg/backoff"
 	"github.com/banzaicloud/pipeline/src/cluster"
@@ -37,12 +40,12 @@ func (m *MeshReconciler) ReconcileBackyards(desiredState DesiredState) error {
 	defer m.logger.Debug("Backyards reconciled")
 
 	if desiredState == DesiredStatePresent {
-		apiextclient, err := m.getApiExtensionK8sClient(m.Master)
+		client, err := m.getRuntimeK8sClient(m.Master)
 		if err != nil {
 			return errors.WrapIf(err, "could not get api extension client")
 		}
 
-		err = m.waitForCRD("instances.config.istio.io", apiextclient)
+		err = m.waitForCRD("instances.config.istio.io", client)
 		if err != nil {
 			return errors.WrapIf(err, "error while waiting for metric CRD")
 		}
@@ -74,7 +77,7 @@ func (m *MeshReconciler) ReconcileBackyards(desiredState DesiredState) error {
 }
 
 // waitForSidecarInjectorPod waits for Sidecar Injector Pods to be running
-func (m *MeshReconciler) waitForSidecarInjectorPod(client *kubernetes.Clientset) error {
+func (m *MeshReconciler) waitForSidecarInjectorPod(client runtimeclient.Client) error {
 	m.logger.Debug("waiting for sidecar injector pod")
 
 	var backoffConfig = backoff.ConstantBackoffConfig{
@@ -84,11 +87,8 @@ func (m *MeshReconciler) waitForSidecarInjectorPod(client *kubernetes.Clientset)
 	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	err := backoff.Retry(func() error {
-		pods, err := client.CoreV1().Pods(istioOperatorNamespace).List(metav1.ListOptions{
-			LabelSelector: "app=istio-sidecar-injector",
-			FieldSelector: "status.phase=Running",
-		})
-
+		var pods corev1.PodList
+		err := client.List(context.Background(), &pods, runtimeclient.MatchingLabels(map[string]string{"app": "istio-sidecar-injector"}), runtimeclient.MatchingFields(fields.Set(map[string]string{"status.phase": "Running"})))
 		if err != nil {
 			return errors.WrapIf(err, "could not list pods")
 		}
@@ -104,7 +104,7 @@ func (m *MeshReconciler) waitForSidecarInjectorPod(client *kubernetes.Clientset)
 }
 
 // waitForCRD waits for CRD to be present in the cluster
-func (m *MeshReconciler) waitForCRD(name string, client *apiextensionsclient.Clientset) error {
+func (m *MeshReconciler) waitForCRD(name string, client runtimeclient.Client) error {
 	m.logger.WithField("name", name).Debug("waiting for CRD")
 
 	var backoffConfig = backoff.ConstantBackoffConfig{
@@ -113,8 +113,11 @@ func (m *MeshReconciler) waitForCRD(name string, client *apiextensionsclient.Cli
 	}
 	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
+	var crd apiextensionsv1beta1.CustomResourceDefinition
 	err := backoff.Retry(func() error {
-		_, err := client.ApiextensionsV1beta1().CustomResourceDefinitions().Get(name, metav1.GetOptions{})
+		err := client.Get(context.Background(), types.NamespacedName{
+			Name: name,
+		}, &crd)
 		if err != nil {
 			return errors.WrapIf(err, "could not get CRD")
 		}
@@ -209,6 +212,9 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 		values.Application.Image.Tag = m.Configuration.internalConfig.backyards.imageTag
 	}
 
+	if m.Configuration.internalConfig.backyards.webImageRepository != "" {
+		values.Web.Image.Repository = m.Configuration.internalConfig.backyards.webImageRepository
+	}
 	if m.Configuration.internalConfig.backyards.webImageTag != "" {
 		values.Web.Image.Tag = m.Configuration.internalConfig.backyards.webImageTag
 	}

@@ -165,7 +165,7 @@ func GetWhitelistSet(c *gin.Context) (map[string]bool, bool) {
 	releaseWhitelist := make(map[string]bool)
 	whitelists := &v1alpha1.WhiteListItemList{}
 
-	if err := cli.List(c, &client.ListOptions{}, whitelists); err != nil {
+	if err := cli.List(c, whitelists, &client.ListOptions{}); err != nil {
 		log.Warnf("can not fetch WhiteList: %s", err.Error())
 		return releaseWhitelist, false
 	}
@@ -184,7 +184,7 @@ func GetReleaseScanLog(c *gin.Context) (map[string]bool, bool) {
 	releaseScanLogReject := make(map[string]bool)
 	audits := &v1alpha1.AuditList{}
 
-	if err := cli.List(c, client.MatchingLabels(map[string]string{"fakerelease": "false"}), audits); err != nil {
+	if err := cli.List(c, audits, client.MatchingLabels(map[string]string{"fakerelease": "false"})); err != nil {
 		log.Warnf("can not fetch ScanLog: %s", err.Error())
 		return releaseScanLogReject, false
 	}
