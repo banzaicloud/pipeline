@@ -14,7 +14,7 @@ Parameters:
   UserPath:
     Type: String
     Description: The path of the provided user to set as cluster admin.
-    Default: ""
+    Default: "/"
 
   ClusterRoleId:
     Type: String
@@ -24,7 +24,7 @@ Parameters:
   ClusterRolePath:
     Type: String
     Description: The path of the provided role to set for the EKS cluster.
-    Default: ""
+    Default: "/"
 
   NodeInstanceRoleId:
     Type: String
@@ -34,7 +34,7 @@ Parameters:
   NodeInstanceRolePath:
     Type: String
     Description: The path of the provided role to set for the EKS nodes.
-    Default: ""
+    Default: "/"
 
 Conditions:
   CreateUser: !Equals [ !Ref UserId, "" ]
