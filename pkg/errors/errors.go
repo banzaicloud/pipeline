@@ -56,3 +56,27 @@ var (
 
 	ErrorMissingCloudSpecificProperties = errors.New("missing cloud specific properties")
 )
+
+// BadRequestBehavior can be used to add the BadRequest() bool behavior to error implementations.
+type BadRequestBehavior struct{}
+
+// BadRequest returns true.
+func (BadRequestBehavior) BadRequest() bool {
+	return true
+}
+
+// ClientErrorBehavior can be used to add the ClientError() bool behavior to error implementations.
+type ClientErrorBehavior struct{}
+
+// ClientError returns true.
+func (ClientErrorBehavior) ClientError() bool {
+	return true
+}
+
+// ValidationBehavior can be used to add the Validation() bool behavior to error implementations.
+type ValidationBehavior struct{}
+
+// Validation returns true.
+func (ValidationBehavior) Validation() bool {
+	return true
+}
