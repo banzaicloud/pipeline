@@ -64,12 +64,12 @@ func (f IntegratedServiceManager) GetOutput(ctx context.Context, clusterID uint,
 	// todo read these through the helm service?
 	out := map[string]interface{}{
 		"anchore": map[string]interface{}{
-			// todo this is the chart version ?!
-			"version": f.webhookConfig.Version,
+			// leave this for backwards compatibility
+			// to be populated (externally) via direct call to the configured anchore service
+			"version": "",
 		},
 		"imageValidator": map[string]interface{}{
-			// todo image validator version! probably these two need to be exchanged
-			"version": imageValidatorVersion,
+			"version": f.webhookConfig.Version,
 		},
 	}
 

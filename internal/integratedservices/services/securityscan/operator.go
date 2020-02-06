@@ -31,8 +31,6 @@ import (
 )
 
 const (
-	imageValidatorVersion = "0.3.6"
-
 	// the label key on the namespaces that is watched by the webhook
 	labelKey = "scan"
 
