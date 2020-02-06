@@ -17,11 +17,11 @@ package cluster
 import (
 	"time"
 
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 )
 

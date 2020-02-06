@@ -18,12 +18,12 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/providers"

@@ -19,12 +19,12 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
 	intcluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/secret"

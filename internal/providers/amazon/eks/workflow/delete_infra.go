@@ -18,10 +18,10 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
-
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
+
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 )
 
 const DeleteInfraWorkflowName = "eks-delete-infra"
