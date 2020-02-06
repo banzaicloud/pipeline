@@ -129,7 +129,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 		}
 	}
 
-	valuesBytes, err := mergeValues(ingressValues, map[string]interface{}(config.Ingress.Values))
+	valuesBytes, err := mergeValues(ingressValues, config.Ingress.Values)
 	if err != nil {
 		return errors.WrapIf(err, "failed to merge treafik values with config")
 	}

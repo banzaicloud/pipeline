@@ -26,7 +26,7 @@ func DecodeHookWithDefaults() viper.DecoderConfigOption {
 		mapstructure.ComposeDecodeHookFunc(
 			mapstructure.StringToTimeDurationHookFunc(),
 			mapstructure.StringToSliceHookFunc(","),
-			values.DecodeHook(),
+			values.StringToMapStringInterface(),
 		),
 	)
 }

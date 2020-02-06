@@ -14,10 +14,6 @@
 
 package cluster
 
-import (
-	"github.com/banzaicloud/pipeline/pkg/values"
-)
-
 type PostHookConfig struct {
 	// ingress controller config
 	Ingress IngressControllerConfig
@@ -66,5 +62,5 @@ type BaseConfig struct {
 type IngressControllerConfig struct {
 	BasePostHookConfig `mapstructure:",squash"`
 
-	Values values.Config
+	Values map[string]interface{}
 }

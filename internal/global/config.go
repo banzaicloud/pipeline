@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/internal/platform/log"
-	"github.com/banzaicloud/pipeline/pkg/values"
 )
 
 // Config is a global config instance.
@@ -95,7 +94,7 @@ type Configuration struct {
 				Enabled bool
 				Chart   string
 				Version string
-				Values  values.Config
+				Values  map[string]interface{}
 			}
 
 			Dashboard struct {

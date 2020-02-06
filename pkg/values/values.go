@@ -23,18 +23,12 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-type Config map[string]interface{}
-
-func DecodeHook() mapstructure.DecodeHookFunc {
-	return func(a reflect.Type, b reflect.Type, d interface{}) (interface{}, error) {
-
-		// parse values config
-		if a.Kind() == reflect.String && b == reflect.TypeOf(new(Config)).Elem() {
-
-			if data, ok := d.(string); ok {
-
-				var output map[string]interface{}
-				if err := yaml.Unmarshal([]byte(strings.TrimSpace(data)), &output); err != nil {
+func StringToMapStringInterface() mapstructure.DecodeHookFunc {
+	return func(srcType, dstType reflect.Type, srcVal interface{}) (interface{}, error) {
+		var output map[string]interface{}
+		if srcType.Kind() == reflect.String && dstType == reflect.TypeOf(output) {
+			if str, ok := srcVal.(string); ok {
+				if err := yaml.Unmarshal([]byte(strings.TrimSpace(str)), &output); err != nil {
 					return nil, errors.WrapIf(err, "failed to convert string to map")
 				}
 
@@ -43,6 +37,6 @@ func DecodeHook() mapstructure.DecodeHookFunc {
 
 		}
 
-		return d, nil
+		return srcVal, nil
 	}
 }
