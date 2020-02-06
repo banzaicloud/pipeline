@@ -122,6 +122,10 @@ dex:
 #    # Namespace to install components to
 #    namespace: "pipeline-system"
 #
+#    eks:
+#        ssh:
+#            generate: true
+#
 #    ingress:
 #        # Certificate CA for signing default ingress certs
 #        cert:

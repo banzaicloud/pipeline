@@ -416,6 +416,7 @@ func main() {
 			secretValidator,
 			statusChangeDurationMetric,
 			clusterTotalMetric,
+			config.Cluster.Eks,
 		),
 	}
 
@@ -439,6 +440,7 @@ func main() {
 		EKSAmazon: eksDriver.NewEksClusterUpdater(
 			logrusLogger,
 			workflowClient,
+			config.Cluster.Eks,
 		),
 	}
 

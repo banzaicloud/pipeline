@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
@@ -47,6 +48,8 @@ type EKSUpdateClusterstructureWorkflowInput struct {
 	NodeInstanceRoleID string
 	AsgList            []eksWorkflow.AutoscaleGroup
 	NodePoolLabels     map[string]map[string]string
+
+	Config eks.Config
 }
 
 func waitForActivities(asgFutures []workflow.Future, ctx workflow.Context, clusterID uint) error {
@@ -166,7 +169,6 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 		return err
 	}
 
-	sshKeyName := eksWorkflow.GenerateSSHKeyNameForCluster(input.ClusterName)
 	asgFutures = make([]workflow.Future, 0)
 	for _, nodePool := range input.AsgList {
 
@@ -194,7 +196,6 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
 
 				ScaleEnabled: input.ScaleEnabled,
-				SSHKeyName:   sshKeyName,
 
 				Subnets: asgSubnets,
 
@@ -213,6 +214,10 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				NodeInstanceType: nodePool.NodeInstanceType,
 				Labels:           nodePool.Labels,
 			}
+			if input.Config.Ssh.Generate {
+				activityInput.SSHKeyName = eksWorkflow.GenerateSSHKeyNameForCluster(input.ClusterName)
+			}
+
 			ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
 			f := workflow.ExecuteActivity(ctx, eksWorkflow.CreateAsgActivityName, activityInput)
 			asgFutures = append(asgFutures, f)

@@ -35,6 +35,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -241,6 +242,9 @@ type ClusterConfig struct {
 
 	// Posthook configs
 	PostHook cluster.PostHookConfig
+
+	// EKS configs
+	Eks eks.Config
 
 	// Features
 	Vault        ClusterVaultConfig
@@ -497,6 +501,8 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 
 	v.SetDefault("cluster::ingress::cert::source", "file")
 	v.SetDefault("cluster::ingress::cert::path", "config/certs")
+
+	v.SetDefault("cluster::eks::ssh::generate", true)
 
 	v.SetDefault("cluster::labels::domain", "banzaicloud.io")
 	v.SetDefault("cluster::labels::forbiddenDomains", []string{
