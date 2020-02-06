@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/zap"
@@ -163,6 +164,8 @@ type EKSActivityInput struct {
 
 	// 64 chars length unique unique identifier that identifies the create CloudFormation
 	AWSClientRequestTokenBase string
+
+	config eks.Config
 }
 
 // Subnet holds the fields of a Amazon subnet

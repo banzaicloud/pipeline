@@ -365,7 +365,7 @@ func main() {
 		registerAzureWorkflows(secretStore, tokenGenerator, azurePKEClusterStore)
 
 		// Register EKS specific workflows
-		err = registerEKSWorkflows(secret.Store, eksClusters)
+		err = registerEKSWorkflows(secret.Store, eksClusters, config.Cluster.Eks)
 		if err != nil {
 			emperror.Panic(errors.WrapIf(err, "failed to register EKS workflows"))
 		}
@@ -408,6 +408,7 @@ func main() {
 							nil,
 							workflowClient,
 							clusterManager,
+							config.Cluster.Eks,
 						),
 					},
 					clusteradapter.ClusterDeleterEntry{
@@ -456,6 +457,7 @@ func main() {
 				clusteradapter.NewNodePoolStore(db, clusterStore),
 				distributionadapter.NewEKSNodePoolStore(db),
 				eksworkflow.NewAWSSessionFactory(secret.Store),
+				config.Cluster.Eks,
 			)
 			activity.RegisterWithOptions(createNodePoolActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.CreateNodePoolActivityName})
 

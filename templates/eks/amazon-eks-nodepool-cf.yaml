@@ -6,7 +6,7 @@ Parameters:
 
   KeyName:
     Description: The EC2 Key Pair to allow SSH access to the instances
-    Type: AWS::EC2::KeyPair::KeyName
+    Type: String
 
   NodeImageId:
     Type: AWS::EC2::Image::Id
@@ -197,6 +197,7 @@ Metadata:
 Conditions:
   IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
   AutoscalerEnabled:  !Equals [ !Ref ClusterAutoscalerEnabled, "true" ]
+  HasKeyName: !Not [ !Equals [ !Ref KeyName, "" ] ]
 
 Resources:
   NodeInstanceProfile:
@@ -292,7 +293,7 @@ Resources:
       ImageId: !Ref NodeImageId
       InstanceType: !Ref NodeInstanceType
       SpotPrice: !If [ IsSpotInstance, !Ref NodeSpotPrice, !Ref "AWS::NoValue" ]
-      KeyName: !Ref KeyName
+      KeyName: !If [ HasKeyName, !Ref KeyName, !Ref "AWS::NoValue" ]
       SecurityGroups:
       - !Ref NodeSecurityGroup
       BlockDeviceMappings:

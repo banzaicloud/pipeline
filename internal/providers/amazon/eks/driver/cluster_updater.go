@@ -22,6 +22,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
@@ -36,6 +37,7 @@ import (
 type EksClusterUpdater struct {
 	logger         logrus.FieldLogger
 	workflowClient client.Client
+	config         eks.Config
 }
 
 type updateValidationError struct {
@@ -57,10 +59,11 @@ func (e *updateValidationError) IsPreconditionFailed() bool {
 	return e.preconditionFailed
 }
 
-func NewEksClusterUpdater(logger logrus.FieldLogger, workflowClient client.Client) EksClusterUpdater {
+func NewEksClusterUpdater(logger logrus.FieldLogger, workflowClient client.Client, config eks.Config) EksClusterUpdater {
 	return EksClusterUpdater{
 		logger:         logger,
 		workflowClient: workflowClient,
+		config:         config,
 	}
 }
 
@@ -284,6 +287,7 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 		ScaleEnabled:       eksCluster.GetScaleOptions() != nil && eksCluster.GetScaleOptions().Enabled,
 		NodeInstanceRoleID: modelCluster.NodeInstanceRoleId,
 		NodePoolLabels:     nodePoolLabelMap,
+		Config:             c.config,
 	}
 
 	input.Subnets = subnets

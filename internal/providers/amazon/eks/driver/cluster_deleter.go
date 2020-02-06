@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
@@ -37,6 +38,7 @@ func NewEKSClusterDeleter(
 	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric,
 	workflowClient client.Client,
 	clusterGetter CommonClusterGetter,
+	config eks.Config,
 ) EKSClusterDeleter {
 	return EKSClusterDeleter{
 		events:                     events,
@@ -46,6 +48,7 @@ func NewEKSClusterDeleter(
 		statusChangeDurationMetric: statusChangeDurationMetric,
 		workflowClient:             workflowClient,
 		clusterGetter:              clusterGetter,
+		config:                     config,
 	}
 }
 
@@ -61,6 +64,7 @@ type EKSClusterDeleter struct {
 	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric
 	workflowClient             client.Client
 	clusterGetter              CommonClusterGetter
+	config                     eks.Config
 }
 
 type SecretStore interface {
@@ -116,6 +120,7 @@ func (cd EKSClusterDeleter) DeleteCluster(ctx context.Context, clusterID uint, o
 		K8sSecretID:    eksCluster.GetConfigSecretId(),
 		DefaultUser:    modelCluster.DefaultUser,
 		Forced:         options.Force,
+		Config:         cd.config,
 	}
 
 	workflowOptions := client.StartWorkflowOptions{

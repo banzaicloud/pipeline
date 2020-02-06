@@ -27,6 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshdriver"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -55,6 +56,7 @@ type EksClusterCreator struct {
 	secrets                    secretValidator
 	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric
 	clusterTotalMetric         *prometheus.CounterVec
+	config                     eks.Config
 }
 
 type secretValidator interface {
@@ -91,6 +93,7 @@ func NewEksClusterCreator(
 	secrets secretValidator,
 	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric,
 	clusterTotalMetric *prometheus.CounterVec,
+	config eks.Config,
 ) EksClusterCreator {
 	return EksClusterCreator{
 		logger:                     logger,
@@ -100,6 +103,7 @@ func NewEksClusterCreator(
 		secrets:                    secrets,
 		statusChangeDurationMetric: statusChangeDurationMetric,
 		clusterTotalMetric:         clusterTotalMetric,
+		config:                     config,
 	}
 }
 
@@ -148,6 +152,7 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 			NodeInstanceRoleID: modelCluster.NodeInstanceRoleId,
 			KubernetesVersion:  modelCluster.Version,
 			LogTypes:           modelCluster.LogTypes,
+			Config:             c.config,
 		},
 		PostHooks:        createRequest.PostHooks,
 		OrganizationName: org.Name,
@@ -533,7 +538,7 @@ func (c *EksClusterCreator) CreateCluster(ctx context.Context, commonCluster clu
 	}
 
 	// Check if public ssh key is needed for the cluster. If so and there is generate one and store it Vault
-	if len(commonCluster.GetSshSecretId()) == 0 && commonCluster.RequiresSshPublicKey() {
+	if len(commonCluster.GetSshSecretId()) == 0 && commonCluster.RequiresSshPublicKey() && c.config.Ssh.Generate {
 		logger.Debug("generating SSH Key for the cluster")
 		err := c.generateSSHkey(commonCluster)
 		if err != nil {

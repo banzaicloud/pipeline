@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
 
@@ -37,6 +38,7 @@ type CreateNodePoolActivity struct {
 	nodePools         cluster.NodePoolStore
 	eksNodePools      distribution.EKSNodePoolStore
 	awsSessionFactory AWSSessionFactory
+	config            eks.Config
 }
 
 // NewCreateNodePoolActivity returns a new CreateNodePoolActivity.
@@ -46,6 +48,7 @@ func NewCreateNodePoolActivity(
 	nodePools cluster.NodePoolStore,
 	eksNodePools distribution.EKSNodePoolStore,
 	awsSessionFactory AWSSessionFactory,
+	config eks.Config,
 ) CreateNodePoolActivity {
 	return CreateNodePoolActivity{
 		clusters:          clusters,
@@ -53,6 +56,7 @@ func NewCreateNodePoolActivity(
 		nodePools:         nodePools,
 		eksNodePools:      eksNodePools,
 		awsSessionFactory: awsSessionFactory,
+		config:            config,
 	}
 }
 
@@ -152,7 +156,6 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			StackName:        eksworkflow.GenerateNodePoolStackName(c.Name, nodePool.Name),
 
 			ScaleEnabled: commonCluster.ScaleOptions.Enabled,
-			SSHKeyName:   eksworkflow.GenerateSSHKeyNameForCluster(c.Name),
 
 			Subnets: []eksworkflow.Subnet{
 				{
@@ -176,6 +179,10 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			NodeImage:        nodePool.Image,
 			NodeInstanceType: nodePool.InstanceType,
 			Labels:           nodePool.Labels,
+		}
+
+		if a.config.Ssh.Generate {
+			subinput.SSHKeyName = eksworkflow.GenerateSSHKeyNameForCluster(c.Name)
 		}
 
 		nodePoolTemplate, err := eksworkflow.GetNodePoolTemplate()

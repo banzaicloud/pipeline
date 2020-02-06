@@ -23,6 +23,8 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
 	"go.uber.org/cadence/workflow"
+
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 )
 
 type CreateInfraWorkflowTestSuite struct {
@@ -47,7 +49,7 @@ func TestCreateInfraWorkflowTestSuite(t *testing.T) {
 	createIamRolesActivity := NewCreateIamRolesActivity(nil, "")
 	activity.RegisterWithOptions(createIamRolesActivity.Execute, activity.RegisterOptions{Name: CreateIamRolesActivityName})
 
-	uploadSSHActivityActivity := NewUploadSSHKeyActivity(nil)
+	uploadSSHActivityActivity := NewUploadSSHKeyActivity(nil, eks.Config{Ssh: eks.SSHConfig{Generate: true}})
 	activity.RegisterWithOptions(uploadSSHActivityActivity.Execute, activity.RegisterOptions{Name: UploadSSHKeyActivityName})
 
 	createEksClusterActivity := NewCreateEksClusterActivity(nil)

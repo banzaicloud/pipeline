@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
 )
 
@@ -31,6 +32,7 @@ const UploadSSHKeyActivityName = "eks-upload-ssh-key"
 //  UploadSSHKeyActivity responsible for uploading SSH key
 type UploadSSHKeyActivity struct {
 	awsSessionFactory *AWSSessionFactory
+	config            eks.Config
 }
 
 //  UploadSSHKeyActivityInput holds data needed to upload SSH key
@@ -45,13 +47,18 @@ type UploadSSHKeyActivityOutput struct {
 }
 
 //  UploadSSHKeyActivity instantiates a new  UploadSSHKeyActivity
-func NewUploadSSHKeyActivity(awsSessionFactory *AWSSessionFactory) *UploadSSHKeyActivity {
+func NewUploadSSHKeyActivity(awsSessionFactory *AWSSessionFactory, config eks.Config) *UploadSSHKeyActivity {
 	return &UploadSSHKeyActivity{
 		awsSessionFactory: awsSessionFactory,
+		config:            config,
 	}
 }
 
 func (a *UploadSSHKeyActivity) Execute(ctx context.Context, input UploadSSHKeyActivityInput) (*UploadSSHKeyActivityOutput, error) {
+	if !a.config.Ssh.Generate {
+		return nil, nil
+	}
+
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,

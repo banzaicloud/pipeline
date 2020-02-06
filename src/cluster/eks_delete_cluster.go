@@ -17,6 +17,7 @@ package cluster
 import (
 	"time"
 
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
@@ -44,6 +45,8 @@ type EKSDeleteClusterWorkflowInput struct {
 
 	// force delete
 	Forced bool
+
+	Config eks.Config
 }
 
 // DeleteClusterWorkflow executes the Cadence workflow responsible for deleting an EKS cluster
@@ -116,6 +119,7 @@ func EKSDeleteClusterWorkflow(ctx workflow.Context, input EKSDeleteClusterWorkfl
 			ClusterName:    input.ClusterName,
 			NodePoolNames:  input.NodePoolNames,
 			DefaultUser:    input.DefaultUser,
+			Config:         input.Config,
 		}
 
 		err := workflow.ExecuteChildWorkflow(ctx, eksWorkflow.DeleteInfraWorkflowName, infraInput).Get(ctx, nil)
