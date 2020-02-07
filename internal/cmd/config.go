@@ -243,9 +243,6 @@ type ClusterConfig struct {
 	// Posthook configs
 	PostHook cluster.PostHookConfig
 
-	// EKS configs
-	Eks eks.Config
-
 	// Features
 	Vault        ClusterVaultConfig
 	Monitoring   ClusterMonitoringConfig
@@ -312,6 +309,10 @@ type ClusterConfig struct {
 	Backyards istiofeature.StaticConfig
 
 	Federation federation.StaticConfig
+}
+
+type DistributionConfig struct {
+	Eks eks.Config
 }
 
 // Validate validates the configuration.
@@ -501,8 +502,6 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 
 	v.SetDefault("cluster::ingress::cert::source", "file")
 	v.SetDefault("cluster::ingress::cert::path", "config/certs")
-
-	v.SetDefault("cluster::eks::ssh::generate", true)
 
 	v.SetDefault("cluster::labels::domain", "banzaicloud.io")
 	v.SetDefault("cluster::labels::forbiddenDomains", []string{
@@ -792,6 +791,7 @@ traefik:
 
 	v.SetDefault("distribution::eks::templateLocation", "./templates/eks")
 	v.SetDefault("distribution::eks::exposeAdminKubeconfig", true)
+	v.SetDefault("distribution::eks::ssh::generate", true)
 
 	v.SetDefault("cloudinfo::endpoint", "")
 	v.SetDefault("hollowtrees::endpoint", "")

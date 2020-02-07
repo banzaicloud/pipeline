@@ -54,6 +54,9 @@ type configuration struct {
 		}
 		UUID string
 	}
+
+	// Distribution configs
+	Distribution cmd.DistributionConfig
 }
 
 // Validate validates the configuration.
