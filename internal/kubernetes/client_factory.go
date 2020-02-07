@@ -106,6 +106,9 @@ func (f HelmClientFactory) FromSecret(ctx context.Context, secretID string) (*ba
 	f.logger.Debug("create kubernetes tunnel")
 	tillerTunnel, err := portforwarder.New("kube-system", client, config)
 	if err != nil {
+		if tillerTunnel != nil {
+			tillerTunnel.Close()
+		}
 		return nil, errors.WrapIf(err, "failed to create kubernetes tunnel")
 	}
 
