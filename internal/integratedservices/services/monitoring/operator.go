@@ -149,17 +149,17 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		}
 	}
 
+	// install Prometheus Operator
+	if err := op.installPrometheusOperator(ctx, cluster, logger, boundSpec, grafanaSecretID, prometheusSecretName, alertmanagerSecretName); err != nil {
+		return errors.WrapIf(err, "failed to install Prometheus operator")
+	}
+
 	// Pushgateway
 	if boundSpec.Pushgateway.Enabled {
 		// install Prometheus Pushgateway
 		if err := op.installPrometheusPushGateway(ctx, cluster, boundSpec.Pushgateway, logger); err != nil {
 			return errors.WrapIf(err, "failed to install Prometheus Pushgateway")
 		}
-	}
-
-	// install Prometheus Operator
-	if err := op.installPrometheusOperator(ctx, cluster, logger, boundSpec, grafanaSecretID, prometheusSecretName, alertmanagerSecretName); err != nil {
-		return errors.WrapIf(err, "failed to install Prometheus operator")
 	}
 
 	return nil
@@ -221,6 +221,10 @@ func (op IntegratedServiceOperator) installPrometheusPushGateway(
 		Image: imageValues{
 			Repository: op.config.Images.Pushgateway.Repository,
 			Tag:        op.config.Images.Pushgateway.Tag,
+		},
+		ServiceMonitor: serviceMonitorValues{
+			Enabled:   true,
+			Namespace: op.config.Namespace,
 		},
 	}
 
