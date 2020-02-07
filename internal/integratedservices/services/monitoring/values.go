@@ -36,7 +36,13 @@ type imageValues struct {
 }
 
 type prometheusPushgatewayValues struct {
-	Image imageValues `json:"image"`
+	Image          imageValues          `json:"image"`
+	ServiceMonitor serviceMonitorValues `json:"serviceMonitor"`
+}
+
+type serviceMonitorValues struct {
+	Enabled   bool   `json:"enabled"`
+	Namespace string `json:"namespace"`
 }
 
 type baseValues struct {
