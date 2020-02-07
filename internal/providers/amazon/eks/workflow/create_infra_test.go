@@ -140,6 +140,11 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 				NodeInstanceType: "vm-type2-test",
 			},
 		},
+		Config: eks.Config{
+			Ssh: eks.SSHConfig{
+				Generate: true,
+			},
+		},
 	}
 
 	eksActivity := EKSActivityInput{
@@ -396,6 +401,11 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
 				Count:            3,
 				NodeImage:        "ami-test2",
 				NodeInstanceType: "vm-type2-test",
+			},
+		},
+		Config: eks.Config{
+			Ssh: eks.SSHConfig{
+				Generate: true,
 			},
 		},
 	}
