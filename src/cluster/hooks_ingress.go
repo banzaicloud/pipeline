@@ -55,7 +55,7 @@ type serviceTraefikValues struct {
 
 // InstallIngressControllerPostHook post hooks can't return value, they can log error and/or update state?
 func InstallIngressControllerPostHook(cluster CommonCluster) error {
-	var config = global.Config.Cluster.Posthook
+	var config = global.Config.Cluster.PostHook
 	if !config.Ingress.Enabled {
 		return nil
 	}

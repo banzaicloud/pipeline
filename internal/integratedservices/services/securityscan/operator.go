@@ -22,7 +22,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
@@ -40,9 +39,7 @@ const (
 )
 
 type IntegratedServiceOperator struct {
-	anchoreEnabled   bool
-	anchoreEndpoint  string
-	webhookConfig    WebhookConfig
+	config           Config
 	clusterGetter    integratedserviceadapter.ClusterGetter
 	clusterService   integratedservices.ClusterService
 	helmService      services.HelmService
@@ -55,9 +52,7 @@ type IntegratedServiceOperator struct {
 }
 
 func MakeIntegratedServiceOperator(
-	anchoreEnabled bool,
-	anchoreEndpoint string,
-	webhookConfig WebhookConfig,
+	config Config,
 	clusterGetter integratedserviceadapter.ClusterGetter,
 	clusterService integratedservices.ClusterService,
 	helmService services.HelmService,
@@ -69,9 +64,7 @@ func MakeIntegratedServiceOperator(
 
 ) IntegratedServiceOperator {
 	return IntegratedServiceOperator{
-		anchoreEnabled:   anchoreEnabled,
-		anchoreEndpoint:  anchoreEndpoint,
-		webhookConfig:    webhookConfig,
+		config:           config,
 		clusterGetter:    clusterGetter,
 		clusterService:   clusterService,
 		helmService:      helmService,
@@ -125,8 +118,8 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		return errors.WrapIf(err, "failed to assemble chart values")
 	}
 
-	if err = op.helmService.ApplyDeployment(ctx, clusterID, op.webhookConfig.Namespace, op.webhookConfig.Chart, op.webhookConfig.Release,
-		values, op.webhookConfig.Version); err != nil {
+	if err = op.helmService.ApplyDeployment(ctx, clusterID, op.config.Webhook.Namespace, op.config.Webhook.Chart, op.config.Webhook.Release,
+		values, op.config.Webhook.Version); err != nil {
 		return errors.WrapIf(err, "failed to deploy integrated service")
 	}
 
@@ -167,7 +160,7 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 		return errors.WrapIf(err, "failed to apply integrated service")
 	}
 
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, op.webhookConfig.Release); err != nil {
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, op.config.Webhook.Release); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to uninstall integrated service", "integrated service", IntegratedServiceName,
 			"clusterID", clusterID)
 	}
@@ -253,7 +246,7 @@ func (op IntegratedServiceOperator) getCustomAnchoreValues(ctx context.Context, 
 func (op IntegratedServiceOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (AnchoreValues, error) {
 
 	// default (pipeline hosted) anchore
-	if !op.anchoreEnabled {
+	if !op.config.Anchore.Enabled {
 		return AnchoreValues{}, errors.NewWithDetails("default anchore is not enabled")
 	}
 
@@ -273,7 +266,7 @@ func (op IntegratedServiceOperator) getDefaultAnchoreValues(ctx context.Context,
 		return AnchoreValues{}, errors.WrapIf(err, "failed to extract anchore secret values")
 	}
 
-	anchoreValues.Host = op.anchoreEndpoint
+	anchoreValues.Host = op.config.Anchore.Endpoint
 
 	return anchoreValues, nil
 }
@@ -294,7 +287,7 @@ func (op *IntegratedServiceOperator) applyLabelsForSecurityScan(ctx context.Cont
 	}
 
 	// these namespaces must always be excluded
-	excludedNamespaces := []string{global.Config.Cluster.Namespace, "kube-system"}
+	excludedNamespaces := []string{op.config.PipelineNamespace, "kube-system"}
 	defaultExclusionMap := map[string]string{labelKey: securityScanLabels[selectorExclude]}
 
 	if err := op.namespaceService.LabelNamespaces(ctx, clusterID, excludedNamespaces, defaultExclusionMap); err != nil {

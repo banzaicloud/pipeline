@@ -15,7 +15,7 @@
 package auth
 
 import (
-	"errors"
+	"emperror.dev/errors"
 )
 
 // Config contains auth configuration.
@@ -30,31 +30,14 @@ type Config struct {
 
 // Validate validates the configuration.
 func (c Config) Validate() error {
-	if err := c.OIDC.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.CLI.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.RedirectURL.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Cookie.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Token.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Role.Validate(); err != nil {
-		return err
-	}
-
-	return nil
+	return errors.Combine(
+		c.OIDC.Validate(),
+		c.CLI.Validate(),
+		c.RedirectURL.Validate(),
+		c.Cookie.Validate(),
+		c.Token.Validate(),
+		c.Role.Validate(),
+	)
 }
 
 // Process post-processes the configuration after loading (before validation).
@@ -76,19 +59,21 @@ type OIDCConfig struct {
 
 // Validate validates the configuration.
 func (c OIDCConfig) Validate() error {
+	var err error
+
 	if c.Issuer == "" {
-		return errors.New("auth oidc issuer is required")
+		err = errors.Append(err, errors.New("auth oidc issuer is required"))
 	}
 
 	if c.ClientID == "" {
-		return errors.New("auth oidc client ID is required")
+		err = errors.Append(err, errors.New("auth oidc client ID is required"))
 	}
 
 	if c.ClientSecret == "" {
-		return errors.New("auth oidc client secret is required")
+		err = errors.Append(err, errors.New("auth oidc client secret is required"))
 	}
 
-	return nil
+	return err
 }
 
 // CLIConfig contains cli auth configuration.
@@ -113,15 +98,17 @@ type RedirectURLConfig struct {
 
 // Validate validates the configuration.
 func (c RedirectURLConfig) Validate() error {
-	if c.Login == "" {
-		return errors.New("auth login redirect URL is required")
-	}
+	var err error
 
 	if c.Login == "" {
-		return errors.New("auth signup redirect URL is required")
+		err = errors.Append(err, errors.New("auth login redirect URL is required"))
 	}
 
-	return nil
+	if c.Signup == "" {
+		err = errors.Append(err, errors.New("auth signup redirect URL is required"))
+	}
+
+	return err
 }
 
 // Process post-processes the configuration after loading (before validation).
@@ -158,23 +145,25 @@ type TokenConfig struct {
 
 // Validate validates the configuration.
 func (c TokenConfig) Validate() error {
+	var err error
+
 	if c.SigningKey == "" {
-		return errors.New("auth token signing key is required")
+		err = errors.Append(err, errors.New("auth token signing key is required"))
 	}
 
 	if len(c.SigningKey) < 32 {
-		return errors.New("auth token signing key must be at least 32 characters")
+		err = errors.Append(err, errors.New("auth token signing key must be at least 32 characters"))
 	}
 
 	if c.Issuer == "" {
-		return errors.New("auth token issuer is required")
+		err = errors.Append(err, errors.New("auth token issuer is required"))
 	}
 
 	if c.Audience == "" {
-		return errors.New("auth token audience is required")
+		err = errors.Append(err, errors.New("auth token audience is required"))
 	}
 
-	return nil
+	return err
 }
 
 // RoleConfig contains role based authorization configuration.

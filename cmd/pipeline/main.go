@@ -38,6 +38,7 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
+	"github.com/mitchellh/mapstructure"
 	"github.com/prometheus/client_golang/prometheus"
 	auth2 "github.com/qor/auth"
 	appkitendpoint "github.com/sagikazarmark/appkit/endpoint"
@@ -192,11 +193,8 @@ func main() {
 	err = config.Process()
 	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
 
-	err = v.Unmarshal(&global.Config, hook.DecodeHookWithDefaults())
-	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
-
-	err = global.Config.Process()
-	emperror.Panic(errors.WithMessage(err, "failed to process global configuration"))
+	err = mapstructure.Decode(config, &global.Config)
+	emperror.Panic(errors.Wrap(err, "failed to bind configuration to global configuration"))
 
 	// Create logger (first thing after configuration loading)
 	logger := log.NewLogger(config.Log)
@@ -221,13 +219,6 @@ func main() {
 	err = config.Validate()
 	if err != nil {
 		logger.Error(err.Error())
-
-		os.Exit(3)
-	}
-
-	err = global.Config.Validate()
-	if err != nil {
-		logger.Error(err.Error(), map[string]interface{}{"config": "global"})
 
 		os.Exit(3)
 	}
@@ -371,7 +362,7 @@ func main() {
 	}
 	prometheus.MustRegister(statusChangeDurationMetric, clusterTotalMetric)
 
-	externalBaseURL := global.Config.Pipeline.External.URL
+	externalBaseURL := config.Pipeline.External.URL
 	if externalBaseURL == "" {
 		externalBaseURL = "http://" + config.Pipeline.Addr
 		logger.Warn("no pipeline.external_url set, falling back to bind address", map[string]interface{}{
@@ -379,7 +370,7 @@ func main() {
 		})
 	}
 
-	externalURLInsecure := global.Config.Pipeline.External.Insecure
+	externalURLInsecure := config.Pipeline.External.Insecure
 
 	workflowClient, err := cadence.NewClient(config.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
 	if err != nil {
@@ -430,7 +421,7 @@ func main() {
 
 	cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
 	clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
-	federationHandler := federation.NewFederationHandler(cgroupAdapter, global.Config.Cluster.Namespace, logrusLogger, errorHandler)
+	federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config)
 	deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler)
 	serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler)
 	clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)
@@ -571,7 +562,7 @@ func main() {
 		dcGroup.GET("", dashboardAPI.GetClusterDashboard)
 	}
 
-	scmTokenStore := auth.NewSCMTokenStore(tokenStore, global.Config.CICD.Enabled)
+	scmTokenStore := auth.NewSCMTokenStore(tokenStore, config.CICD.Enabled)
 
 	organizationAPI := api.NewOrganizationAPI(organizationSyncer, auth.NewRefreshTokenStore(tokenStore))
 	userAPI := api.NewUserAPI(db, scmTokenStore, logrusLogger, errorHandler)
@@ -579,18 +570,18 @@ func main() {
 
 	var spotguideAPI *api.SpotguideAPI
 
-	if global.Config.CICD.Enabled {
+	if config.CICD.Enabled {
 		spotguidePlatformData := spotguide.PlatformData{
-			AutoDNSEnabled: global.Config.Cluster.DNS.BaseDomain != "",
+			AutoDNSEnabled: config.Cluster.DNS.BaseDomain != "",
 		}
 
-		scmProvider := global.Config.CICD.SCM
+		scmProvider := config.CICD.SCM
 		var scmToken string
 		switch scmProvider {
 		case "github":
-			scmToken = global.Config.Github.Token
+			scmToken = config.Github.Token
 		case "gitlab":
-			scmToken = global.Config.Gitlab.Token
+			scmToken = config.Gitlab.Token
 		default:
 			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
 		}
@@ -601,7 +592,7 @@ func main() {
 		sharedSpotguideOrg, err := spotguide.EnsureSharedSpotguideOrganization(
 			db,
 			scmProvider,
-			global.Config.Spotguide.SharedLibraryGitHubOrganization,
+			config.Spotguide.SharedLibraryGitHubOrganization,
 		)
 		if err != nil {
 			errorHandler.Handle(errors.WrapIf(err, "failed to create shared Spotguide organization"))
@@ -652,7 +643,7 @@ func main() {
 			orgs.Use(api.OrganizationMiddleware)
 			orgs.Use(authorizationMiddleware)
 
-			if global.Config.CICD.Enabled {
+			if config.CICD.Enabled {
 				spotguides := orgs.Group("/:orgid/spotguides")
 				spotguideAPI.Install(spotguides)
 			}
@@ -780,7 +771,7 @@ func main() {
 				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
 				endpointManager := endpoints.NewEndpointManager(commonLogger)
 				integratedServiceManagers := []integratedservices.IntegratedServiceManager{
-					securityscan.MakeIntegratedServiceManager(commonLogger, config.Cluster.SecurityScan.Webhook),
+					securityscan.MakeIntegratedServiceManager(commonLogger, config.Cluster.SecurityScan.Config),
 				}
 
 				if config.Cluster.DNS.Enabled {
@@ -1037,16 +1028,16 @@ func main() {
 	}
 
 	arkEvents.NewClusterEventHandler(arkEvents.NewClusterEvents(clusterEventBus), db, logrusLogger)
-	if global.Config.Cluster.DisasterRecovery.Ark.SyncEnabled {
+	if config.Cluster.DisasterRecovery.Ark.SyncEnabled {
 		go arkSync.RunSyncServices(
 			context.Background(),
 			db,
 			arkClusterManager.New(clusterManager),
 			logrusLogger.WithField("subsystem", "ark"),
 			errorHandler,
-			global.Config.Cluster.DisasterRecovery.Ark.BucketSyncInterval,
-			global.Config.Cluster.DisasterRecovery.Ark.RestoreSyncInterval,
-			global.Config.Cluster.DisasterRecovery.Ark.BackupSyncInterval,
+			config.Cluster.DisasterRecovery.Ark.BucketSyncInterval,
+			config.Cluster.DisasterRecovery.Ark.RestoreSyncInterval,
+			config.Cluster.DisasterRecovery.Ark.BackupSyncInterval,
 		)
 	}
 

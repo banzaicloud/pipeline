@@ -19,6 +19,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
+
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
@@ -50,6 +52,8 @@ type Config struct {
 	name         string
 	enabled      bool
 	clusterGroup api.ClusterGroup
+	staticConfig StaticConfig
+	dnsConfig    dns.Config
 }
 
 type FederationReconciler struct {
@@ -88,7 +92,14 @@ const (
 )
 
 // NewFederationReconciler crates a new feature reconciler for Federation
-func NewFederationReconciler(clusterGroupName string, config Config, clusterGetter api.ClusterGetter, infraNamespace string, logger logrus.FieldLogger, errorHandler emperror.Handler) *FederationReconciler {
+func NewFederationReconciler(
+	clusterGroupName string,
+	config Config,
+	clusterGetter api.ClusterGetter,
+	infraNamespace string,
+	logger logrus.FieldLogger,
+	errorHandler emperror.Handler,
+) *FederationReconciler {
 	reconciler := &FederationReconciler{
 		Configuration:    config,
 		ClusterGroupName: clusterGroupName,

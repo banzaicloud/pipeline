@@ -30,7 +30,6 @@ import (
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
 	ctlutil "sigs.k8s.io/kubefed/pkg/controller/util"
 
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/helm"
@@ -277,8 +276,8 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 		federatedIngress = "Disabled"
 	}
 
-	fedImageTag := global.Config.Cluster.Federation.Charts.Kubefed.Values.ControllerManager.Tag
-	fedImageRepo := global.Config.Cluster.Federation.Charts.Kubefed.Values.ControllerManager.Repository
+	fedImageTag := m.Configuration.staticConfig.Charts.Kubefed.Values.ControllerManager.Tag
+	fedImageRepo := m.Configuration.staticConfig.Charts.Kubefed.Values.ControllerManager.Repository
 	values := map[string]interface{}{
 		"global": map[string]interface{}{
 			"scope": scope,
@@ -317,10 +316,10 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 	err = InstallOrUpgradeDeployment(
 		c,
 		m.Configuration.TargetNamespace,
-		global.Config.Cluster.Federation.Charts.Kubefed.Chart,
+		m.Configuration.staticConfig.Charts.Kubefed.Chart,
 		federationReleaseName,
 		valuesOverride,
-		global.Config.Cluster.Federation.Charts.Kubefed.Version,
+		m.Configuration.staticConfig.Charts.Kubefed.Version,
 		true,
 		true,
 	)

@@ -79,11 +79,13 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
 		},
 	}
 
-	if m.Configuration.internalConfig.istioOperator.imageRepository != "" {
-		values.Operator.Image.Repository = m.Configuration.internalConfig.istioOperator.imageRepository
+	istioChart := m.Configuration.internalConfig.Charts.IstioOperator
+
+	if istioChart.Values.Operator.Image.Repository != "" {
+		values.Operator.Image.Repository = istioChart.Values.Operator.Image.Repository
 	}
-	if m.Configuration.internalConfig.istioOperator.imageTag != "" {
-		values.Operator.Image.Tag = m.Configuration.internalConfig.istioOperator.imageTag
+	if istioChart.Values.Operator.Image.Tag != "" {
+		values.Operator.Image.Tag = istioChart.Values.Operator.Image.Tag
 	}
 
 	valuesOverride, err := yaml.Marshal(values)
@@ -94,10 +96,10 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
 	err = installOrUpgradeDeployment(
 		c,
 		istioOperatorNamespace,
-		m.Configuration.internalConfig.istioOperator.chartName,
+		istioChart.Chart,
 		istioOperatorReleaseName,
 		valuesOverride,
-		m.Configuration.internalConfig.istioOperator.chartVersion,
+		istioChart.Version,
 		true,
 		true,
 	)

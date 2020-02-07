@@ -144,9 +144,9 @@ func (m *MeshReconciler) configureIstioCR(istio *v1beta1.Istio, config Config) {
 	istio.Spec.ImagePullPolicy = corev1.PullAlways
 	istio.Spec.Gateways.IngressConfig.MaxReplicas = &maxReplicas
 	istio.Spec.Gateways.EgressConfig.MaxReplicas = &maxReplicas
-	istio.Spec.Pilot.Image = &m.Configuration.internalConfig.istioOperator.pilotImage
+	istio.Spec.Pilot.Image = &m.Configuration.internalConfig.Istio.PilotImage
 	istio.Spec.Pilot.MaxReplicas = &maxReplicas
-	istio.Spec.Mixer.Image = &m.Configuration.internalConfig.istioOperator.mixerImage
+	istio.Spec.Mixer.Image = &m.Configuration.internalConfig.Istio.MixerImage
 	istio.Spec.Mixer.MaxReplicas = &maxReplicas
 	istio.Spec.SidecarInjector.RewriteAppHTTPProbe = true
 	istio.Spec.Tracing.Enabled = &enabled

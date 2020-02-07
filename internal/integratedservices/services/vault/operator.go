@@ -26,7 +26,6 @@ import (
 	k8srest "k8s.io/client-go/rest"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
@@ -126,7 +125,7 @@ func (op IntegratedServicesOperator) configureClusterTokenReviewer(
 	clusterID uint,
 ) (string, error) {
 
-	pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace
+	pipelineSystemNamespace := op.config.Namespace
 
 	// Prepare cluster first with the proper token reviewer SA
 	serviceAccount := corev1.ServiceAccount{
@@ -273,7 +272,7 @@ func (op IntegratedServicesOperator) installOrUpdateWebhook(
 		vaultExternalAddress = spec.CustomVault.Address
 	}
 
-	pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace
+	pipelineSystemNamespace := op.config.Namespace
 	var chartValues = &webhookValues{
 		Env: map[string]string{
 			vaultAddressEnvKey: vaultExternalAddress,
@@ -299,8 +298,8 @@ func (op IntegratedServicesOperator) installOrUpdateWebhook(
 		return errors.WrapIf(err, "failed to decode chartValues")
 	}
 
-	chartName := global.Config.Cluster.Vault.Charts.Webhook.Chart
-	chartVersion := global.Config.Cluster.Vault.Charts.Webhook.Version
+	chartName := op.config.Charts.Webhook.Chart
+	chartVersion := op.config.Charts.Webhook.Version
 
 	return op.helmService.ApplyDeployment(
 		ctx,
@@ -383,7 +382,7 @@ func (op IntegratedServicesOperator) Deactivate(ctx context.Context, clusterID u
 		}
 
 		// delete kubernetes service account
-		pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace
+		pipelineSystemNamespace := op.config.Namespace
 		if err := op.kubernetesService.DeleteObject(ctx, clusterID, &corev1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: vaultTokenReviewer, Namespace: pipelineSystemNamespace}}); err != nil {
 			return errors.WrapIf(err, fmt.Sprintf("failed to delete kubernetes service account"))
 		}

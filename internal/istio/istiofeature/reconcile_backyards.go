@@ -205,18 +205,20 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 		"API_URL": "api",
 	}
 
-	if m.Configuration.internalConfig.backyards.imageRepository != "" {
-		values.Application.Image.Repository = m.Configuration.internalConfig.backyards.imageRepository
+	backyardsChart := m.Configuration.internalConfig.Charts.Backyards
+
+	if backyardsChart.Values.Application.Image.Repository != "" {
+		values.Application.Image.Repository = backyardsChart.Values.Application.Image.Repository
 	}
-	if m.Configuration.internalConfig.backyards.imageTag != "" {
-		values.Application.Image.Tag = m.Configuration.internalConfig.backyards.imageTag
+	if backyardsChart.Values.Application.Image.Tag != "" {
+		values.Application.Image.Tag = backyardsChart.Values.Application.Image.Tag
 	}
 
-	if m.Configuration.internalConfig.backyards.webImageRepository != "" {
-		values.Web.Image.Repository = m.Configuration.internalConfig.backyards.webImageRepository
+	if backyardsChart.Values.Web.Image.Repository != "" {
+		values.Web.Image.Repository = backyardsChart.Values.Web.Image.Repository
 	}
-	if m.Configuration.internalConfig.backyards.webImageTag != "" {
-		values.Web.Image.Tag = m.Configuration.internalConfig.backyards.webImageTag
+	if backyardsChart.Values.Web.Image.Tag != "" {
+		values.Web.Image.Tag = backyardsChart.Values.Web.Image.Tag
 	}
 
 	valuesOverride, err := yaml.Marshal(values)
@@ -227,10 +229,10 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 	err = installOrUpgradeDeployment(
 		c,
 		backyardsNamespace,
-		m.Configuration.internalConfig.backyards.chartName,
+		backyardsChart.Chart,
 		backyardsReleaseName,
 		valuesOverride,
-		m.Configuration.internalConfig.backyards.chartVersion,
+		backyardsChart.Version,
 		true,
 		true,
 	)
