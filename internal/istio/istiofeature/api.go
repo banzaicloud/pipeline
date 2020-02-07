@@ -67,10 +67,10 @@ type Config struct {
 	// EnableMTLS signals if mutual TLS is enabled in the service mesh
 	EnableMTLS bool `json:"enableMTLS,omitempty"`
 
-	internalConfig internalConfig
 	name           string
 	enabled        bool
 	clusterGroup   api.ClusterGroup
+	internalConfig StaticConfig
 }
 
 type MeshReconciler struct {
@@ -81,37 +81,6 @@ type MeshReconciler struct {
 	clusterGetter api.ClusterGetter
 	logger        logrus.FieldLogger
 	errorHandler  emperror.Handler
-}
-
-type internalConfig struct {
-	canary        canaryOperatorConfiguration
-	backyards     backyardsConfiguration
-	istioOperator istioOperatorConfiguration
-}
-
-type canaryOperatorConfiguration struct {
-	chartVersion    string
-	chartName       string
-	imageRepository string
-	imageTag        string
-}
-
-type backyardsConfiguration struct {
-	chartVersion       string
-	chartName          string
-	imageRepository    string
-	imageTag           string
-	webImageRepository string
-	webImageTag        string
-}
-
-type istioOperatorConfiguration struct {
-	chartVersion    string
-	chartName       string
-	imageRepository string
-	imageTag        string
-	pilotImage      string
-	mixerImage      string
 }
 
 type imageChartValue struct {

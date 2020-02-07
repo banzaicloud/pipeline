@@ -25,6 +25,7 @@ import (
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
+	"github.com/mitchellh/mapstructure"
 	"github.com/oklog/run"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -144,11 +145,8 @@ func main() {
 	err = config.Process()
 	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
 
-	err = v.Unmarshal(&global.Config, hook.DecodeHookWithDefaults())
-	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
-
-	err = global.Config.Process()
-	emperror.Panic(errors.WithMessage(err, "failed to process global configuration"))
+	err = mapstructure.Decode(config, &global.Config)
+	emperror.Panic(errors.Wrap(err, "failed to bind configuration to global configuration"))
 
 	// Create logger (first thing after configuration loading)
 	logger := log.NewLogger(config.Log)
@@ -177,13 +175,6 @@ func main() {
 		os.Exit(3)
 	}
 
-	err = global.Config.Validate()
-	if err != nil {
-		logger.Error(err.Error(), map[string]interface{}{"config": "global"})
-
-		os.Exit(3)
-	}
-
 	// Configure error handler
 	errorHandler, err := errorhandler.New(config.Errors, logger)
 	if err != nil {
@@ -207,7 +198,7 @@ func main() {
 		worker, err := cadence.NewWorker(config.Cadence, taskList, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-worker"})))
 		emperror.Panic(err)
 
-		db, err := database.Connect(config.Database)
+		db, err := database.Connect(config.Database.Config)
 		if err != nil {
 			emperror.Panic(err)
 		}
@@ -256,13 +247,13 @@ func main() {
 		clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
 		emperror.Panic(errors.Wrap(err, "failed to create DexClusterAuthService"))
 
-		scmProvider := global.Config.CICD.SCM
+		scmProvider := config.CICD.SCM
 		var scmToken string
 		switch scmProvider {
 		case "github":
-			scmToken = global.Config.Github.Token
+			scmToken = config.Github.Token
 		case "gitlab":
-			scmToken = global.Config.Gitlab.Token
+			scmToken = config.Gitlab.Token
 		default:
 			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
 		}
@@ -386,7 +377,7 @@ func main() {
 
 			cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
 			clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
-			federationHandler := federation.NewFederationHandler(cgroupAdapter, global.Config.Cluster.Namespace, logrusLogger, errorHandler)
+			federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config)
 			deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler)
 			serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler)
 			clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)
@@ -611,9 +602,7 @@ func main() {
 					config.Cluster.DNS.Config,
 				),
 				securityscan.MakeIntegratedServiceOperator(
-					config.Cluster.SecurityScan.Anchore.Enabled,
-					config.Cluster.SecurityScan.Anchore.Endpoint,
-					config.Cluster.SecurityScan.Webhook,
+					config.Cluster.SecurityScan.Config,
 					clusterGetter,
 					clusterService,
 					helmService,

@@ -25,15 +25,14 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/internal/cmd"
-	"github.com/banzaicloud/pipeline/internal/platform/cadence"
-	"github.com/banzaicloud/pipeline/internal/platform/database"
-	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
-	"github.com/banzaicloud/pipeline/internal/platform/log"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // configuration holds any kind of configuration that comes from the outside world and
 // is necessary for running the application.
 type configuration struct {
+	cmd.Config `mapstructure:",squash"`
+
 	// Meaningful values are recommended (eg. production, development, staging, release/123, etc)
 	Environment string
 
@@ -43,85 +42,38 @@ type configuration struct {
 	// Timeout for graceful shutdown
 	ShutdownTimeout time.Duration
 
-	// Log configuration
-	Log log.Config
-
-	// Error handling configuration
-	Errors errorhandler.Config
-
-	// Auth configuration
-	Auth authConfig
-
-	// Cluster configuration
-	Cluster cmd.ClusterConfig
-
-	Cloudinfo struct {
-		Endpoint string
-	}
-
-	// Database connection information
-	Database database.Config
-
-	// Cadence configuration
-	Cadence cadence.Config
-
-	Helm struct {
-		Tiller struct {
-			Version string
+	// TODO: remove if not required
+	// This is required by the global config, so it's hard to determine whether
+	// it's really required here (i.e. used through global config that's
+	// initialized from this).
+	Pipeline struct {
+		External struct {
+			URL string
 		}
+		UUID string
 	}
 }
 
 // Validate validates the configuration.
 func (c configuration) Validate() error {
+	var err error
+
+	err = errors.Append(err, c.Config.Validate())
+
 	if c.Environment == "" {
-		return errors.New("environment is required")
+		err = errors.Append(err, errors.New("environment is required"))
 	}
 
-	if err := c.Errors.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Auth.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Cluster.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Database.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Cadence.Validate(); err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // Process post-processes the configuration after loading (before validation).
 func (c *configuration) Process() error {
-	if err := c.Cluster.Process(); err != nil {
-		return err
-	}
+	var err error
 
-	return nil
-}
+	err = errors.Append(err, c.Config.Process())
 
-// authConfig contains auth configuration.
-type authConfig struct {
-	Token cmd.AuthTokenConfig
-}
-
-// Validate validates the configuration.
-func (c authConfig) Validate() error {
-	if err := c.Token.Validate(); err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // configure configures some defaults in the Viper instance.
@@ -149,6 +101,8 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("debug", false)
 	v.SetDefault("shutdownTimeout", 15*time.Second)
 
+	v.SetDefault("auth::role::default", auth.RoleAdmin)
+
 	// ErrorHandler configuration
 	v.Set("errors::serviceName", appName)
 	v.Set("errors::serviceVersion", version)
@@ -156,4 +110,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Cadence configuration
 	v.SetDefault("cadence::createNonexistentDomain", false)
 	v.SetDefault("cadence::workflowExecutionRetentionPeriodInDays", 3)
+
+	v.SetDefault("pipeline::uuid", "")
+	v.SetDefault("pipeline::external::url", "")
 }

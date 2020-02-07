@@ -28,6 +28,7 @@ type ServiceMeshFeatureHandler struct {
 	clusterGetter api.ClusterGetter
 	logger        logrus.FieldLogger
 	errorHandler  emperror.Handler
+	staticConfig  StaticConfig
 }
 
 // NewServiceMeshFeatureHandler returns a new ServiceMeshFeatureHandler instance.
@@ -152,6 +153,7 @@ func (h *ServiceMeshFeatureHandler) getConfigFromState(state api.Feature) (*Conf
 	config.name = state.ClusterGroup.Name
 	config.enabled = state.Enabled
 	config.clusterGroup = state.ClusterGroup
+	config.internalConfig = h.staticConfig
 
 	return &config, nil
 }

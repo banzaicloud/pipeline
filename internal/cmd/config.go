@@ -16,7 +16,6 @@ package cmd
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 	"time"
 
@@ -24,67 +23,209 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterconfig"
+	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
+	"github.com/banzaicloud/pipeline/internal/istio/istiofeature"
+	"github.com/banzaicloud/pipeline/internal/platform/cadence"
+	"github.com/banzaicloud/pipeline/internal/platform/database"
+	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
+	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/src/auth"
 )
 
-// AuthOIDCConfig contains OIDC auth configuration.
-type AuthOIDCConfig struct {
-	Issuer       string
-	Insecure     bool
-	ClientID     string
-	ClientSecret string
+type Config struct {
+	// Auth configuration
+	Auth auth.Config
+
+	// Cadence configuration
+	Cadence cadence.Config
+
+	CICD struct {
+		Enabled  bool
+		URL      string
+		Insecure bool
+		SCM      string
+		Database database.Config
+	}
+
+	Cloud struct {
+		Amazon struct {
+			DefaultRegion string
+		}
+
+		Alibaba struct {
+			DefaultRegion string
+		}
+	}
+
+	Cloudinfo CloudinfoConfig
+
+	// Cluster configuration
+	Cluster ClusterConfig
+
+	// Database configuration
+	Database struct {
+		database.Config `mapstructure:",squash"`
+
+		AutoMigrate bool
+	}
+
+	Dex struct {
+		APIAddr string
+		APICa   string
+	}
+
+	Distribution struct {
+		EKS struct {
+			TemplateLocation      string
+			ExposeAdminKubeconfig bool
+		}
+	}
+
+	// Error handling configuration
+	Errors errorhandler.Config
+
+	Github struct {
+		Token string
+	}
+
+	Gitlab struct {
+		URL   string
+		Token string
+	}
+
+	Helm struct {
+		Tiller struct {
+			Version string
+		}
+
+		Home string
+
+		Repositories map[string]string
+	}
+
+	Hollowtrees struct {
+		Endpoint        string
+		TokenSigningKey string
+	}
+
+	Kubernetes struct {
+		Client struct {
+			ForceGlobal bool
+		}
+	}
+
+	// Log configuration
+	Log log.Config
+
+	Secret struct {
+		TLS struct {
+			DefaultValidity time.Duration
+		}
+	}
+
+	Spotguide struct {
+		AllowPrereleases                bool
+		AllowPrivateRepos               bool
+		SyncInterval                    time.Duration
+		SharedLibraryGitHubOrganization string
+	}
+
+	// Telemetry configuration
+	Telemetry TelemetryConfig
+}
+
+func (c Config) Validate() error {
+	var err error
+
+	err = errors.Append(err, c.Auth.Validate())
+
+	err = errors.Append(err, c.Cadence.Validate())
+
+	if c.CICD.Enabled {
+		if c.CICD.URL == "" {
+			err = errors.Append(err, errors.New("cicd url is required"))
+		}
+
+		switch c.CICD.SCM {
+		case "github":
+			if c.Github.Token == "" {
+				err = errors.Append(err, errors.New("github token is required"))
+			}
+
+		case "gitlab":
+			if c.Gitlab.URL == "" {
+				err = errors.Append(err, errors.New("gitlab url is required"))
+			}
+
+			if c.Gitlab.Token == "" {
+				err = errors.Append(err, errors.New("gitlab token is required"))
+			}
+
+		default:
+			err = errors.Append(err, errors.New("cicd scm is required"))
+		}
+
+		err = errors.Append(err, c.CICD.Database.Validate())
+	}
+
+	err = errors.Append(err, c.Cloudinfo.Validate())
+
+	err = errors.Append(err, c.Cluster.Validate())
+
+	err = errors.Append(err, c.Errors.Validate())
+
+	err = errors.Append(err, c.Telemetry.Validate())
+
+	return err
+}
+
+func (c *Config) Process() error {
+	var err error
+
+	err = errors.Append(err, c.Cluster.Process())
+
+	return err
+}
+
+type CloudinfoConfig struct {
+	Endpoint string
+}
+
+func (c CloudinfoConfig) Validate() error {
+	var err error
+
+	if c.Endpoint == "" {
+		err = errors.Append(err, errors.New("cloudinfo endpoint is required"))
+	}
+
+	return err
+}
+
+// TelemetryConfig contains telemetry configuration.
+type TelemetryConfig struct {
+	Enabled bool
+	Addr    string
+	Debug   bool
 }
 
 // Validate validates the configuration.
-func (c AuthOIDCConfig) Validate() error {
-	if c.Issuer == "" {
-		return errors.New("auth oidc issuer is required")
+func (c TelemetryConfig) Validate() error {
+	var err error
+
+	if c.Enabled {
+		if c.Addr == "" {
+			err = errors.Append(err, errors.New("telemetry http server address is required"))
+		}
 	}
 
-	if c.ClientID == "" {
-		return errors.New("auth oidc client ID is required")
-	}
-
-	if c.ClientSecret == "" {
-		return errors.New("auth oidc client secret is required")
-	}
-
-	return nil
-}
-
-// AuthTokenConfig contains auth configuration.
-type AuthTokenConfig struct {
-	SigningKey string
-	Issuer     string
-	Audience   string
-}
-
-// Validate validates the configuration.
-func (c AuthTokenConfig) Validate() error {
-	if c.SigningKey == "" {
-		return errors.New("auth token signing key is required")
-	}
-
-	if len(c.SigningKey) < 32 {
-		return errors.New("auth token signing key must be at least 32 characters")
-	}
-
-	if c.Issuer == "" {
-		return errors.New("auth token issuer is required")
-	}
-
-	if c.Audience == "" {
-		return errors.New("auth token audience is required")
-	}
-
-	return nil
+	return err
 }
 
 // ClusterConfig contains cluster configuration.
@@ -97,6 +238,13 @@ type ClusterConfig struct {
 
 	Labels clusterconfig.LabelConfig
 
+	Ingress struct {
+		Cert struct {
+			Source string
+			Path   string
+		}
+	}
+
 	// Posthook configs
 	PostHook cluster.PostHookConfig
 
@@ -107,6 +255,65 @@ type ClusterConfig struct {
 	DNS          ClusterDNSConfig
 	SecurityScan ClusterSecurityScanConfig
 	Expiry       ExpiryConfig
+
+	Autoscale struct {
+		Namespace string
+
+		HPA struct {
+			Prometheus struct {
+				ServiceName    string
+				ServiceContext string
+				LocalPort      int
+			}
+		}
+
+		Charts struct {
+			ClusterAutoscaler struct {
+				Chart                   string
+				Version                 string
+				ImageVersionConstraints []struct {
+					K8sVersion string
+					Tag        string
+					Repository string
+				}
+			}
+
+			HPAOperator struct {
+				Chart   string
+				Version string
+			}
+		}
+	}
+
+	DisasterRecovery struct {
+		Namespace string
+
+		Ark struct {
+			SyncEnabled         bool
+			BucketSyncInterval  time.Duration
+			RestoreSyncInterval time.Duration
+			BackupSyncInterval  time.Duration
+			RestoreWaitTimeout  time.Duration
+		}
+
+		Charts struct {
+			Ark struct {
+				Chart   string
+				Version string
+				Values  struct {
+					Image struct {
+						Repository string
+						Tag        string
+						PullPolicy string
+					}
+				}
+			}
+		}
+	}
+
+	Backyards istiofeature.StaticConfig
+
+	Federation federation.StaticConfig
 }
 
 // Validate validates the configuration.
@@ -182,6 +389,18 @@ func (c *ClusterConfig) Process() error {
 		c.DNS.Namespace = c.Namespace
 	}
 
+	if c.Autoscale.Namespace == "" {
+		c.Autoscale.Namespace = c.Namespace
+	}
+
+	if c.DisasterRecovery.Namespace == "" {
+		c.DisasterRecovery.Namespace = c.Namespace
+	}
+
+	if c.SecurityScan.PipelineNamespace == "" {
+		c.SecurityScan.PipelineNamespace = c.Namespace
+	}
+
 	return nil
 }
 
@@ -216,42 +435,18 @@ type ClusterDNSConfig struct {
 // ClusterSecurityScanConfig contains cluster security scan configuration.
 type ClusterSecurityScanConfig struct {
 	Enabled bool
-	Anchore ClusterSecurityScanAnchoreConfig
-	Webhook securityscan.WebhookConfig
+
+	securityscan.Config `mapstructure:",squash"`
 }
 
 func (c ClusterSecurityScanConfig) Validate() error {
-	if c.Anchore.Enabled {
-		if err := c.Anchore.Validate(); err != nil {
-			return err
-		}
-	}
+	var err error
 
-	return nil
-}
-
-// ClusterSecurityScanAnchoreConfig contains cluster security scan anchore configuration.
-type ClusterSecurityScanAnchoreConfig struct {
-	Enabled        bool
-	anchore.Config `mapstructure:",squash"`
-}
-
-func (c ClusterSecurityScanAnchoreConfig) Validate() error {
 	if c.Enabled {
-		if _, err := url.Parse(c.Endpoint); err != nil {
-			return errors.Wrap(err, "anchore endpoint must be a valid URL")
-		}
-
-		if c.User == "" {
-			return errors.New("anchore user is required")
-		}
-
-		if c.Password == "" {
-			return errors.New("anchore password is required")
-		}
+		err = errors.Append(err, c.Config.Validate())
 	}
 
-	return nil
+	return err
 }
 
 type ExpiryConfig struct {
@@ -272,11 +467,6 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	// ErrorHandler configuration
 	v.SetDefault("errors::stackdriver::enabled", false)
 	v.SetDefault("errors::stackdriver::projectId", false)
-
-	// Pipeline configuration
-	v.SetDefault("pipeline::uuid", "")
-	v.SetDefault("pipeline::external::url", "")
-	v.SetDefault("pipeline::external::insecure", false)
 
 	// Auth configuration
 	v.SetDefault("auth::oidc::issuer", "")

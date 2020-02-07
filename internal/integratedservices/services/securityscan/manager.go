@@ -24,8 +24,8 @@ import (
 type IntegratedServiceManager struct {
 	integratedservices.PassthroughIntegratedServiceSpecPreparer
 
-	webhookConfig WebhookConfig
-	logger        common.Logger
+	config Config
+	logger common.Logger
 }
 
 // Name returns the name of the integrated service
@@ -34,10 +34,10 @@ func (f IntegratedServiceManager) Name() string {
 }
 
 //MakeIntegratedServiceManager creates asecurity scan integrated service manager instance
-func MakeIntegratedServiceManager(logger common.Logger, webhookConfig WebhookConfig) IntegratedServiceManager {
+func MakeIntegratedServiceManager(logger common.Logger, config Config) IntegratedServiceManager {
 	return IntegratedServiceManager{
-		webhookConfig: webhookConfig,
-		logger:        logger,
+		config: config,
+		logger: logger,
 	}
 }
 
@@ -50,7 +50,7 @@ func (f IntegratedServiceManager) ValidateSpec(ctx context.Context, spec integra
 		}
 	}
 
-	if err := securityScanSpec.Validate(); err != nil {
+	if err := securityScanSpec.Validate(f.config.PipelineNamespace); err != nil {
 		return integratedservices.InvalidIntegratedServiceSpecError{
 			IntegratedServiceName: IntegratedServiceName,
 			Problem:               err.Error(),
@@ -69,7 +69,7 @@ func (f IntegratedServiceManager) GetOutput(ctx context.Context, clusterID uint,
 			"version": "",
 		},
 		"imageValidator": map[string]interface{}{
-			"version": f.webhookConfig.Version,
+			"version": f.config.Webhook.Version,
 		},
 	}
 

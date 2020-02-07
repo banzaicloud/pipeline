@@ -16,14 +16,13 @@ package main
 
 import (
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/cap"
-	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // mapCapabilities maps configuration to capabilities.
 func mapCapabilities(config configuration) cap.Capabilities {
 	return cap.Capabilities{
 		"cicd": cap.Cap{
-			"enabled": global.Config.CICD.Enabled,
+			"enabled": config.CICD.Enabled,
 		},
 		"features": cap.Cap{
 			"vault": cap.Cap{

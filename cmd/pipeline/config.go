@@ -26,45 +26,19 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/cmd"
-	"github.com/banzaicloud/pipeline/internal/platform/cadence"
-	"github.com/banzaicloud/pipeline/internal/platform/database"
-	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
-	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // configuration holds any kind of configuration that comes from the outside world and
 // is necessary for running the application.
 type configuration struct {
-	// Log configuration
-	Log log.Config
+	cmd.Config `mapstructure:",squash"`
 
-	// Error handling configuration
-	Errors errorhandler.Config
-
-	// Telemetry configuration
-	Telemetry telemetryConfig
-
-	Pipeline struct {
-		Addr         string
-		InternalAddr string
-		BasePath     string
-		CertFile     string
-		KeyFile      string
+	Audit struct {
+		Enabled   bool
+		Headers   []string
+		SkipPaths []string
 	}
-
-	// Auth configuration
-	Auth auth.Config
-
-	// Database configuration
-	Database struct {
-		database.Config `mapstructure:",squash"`
-
-		AutoMigrate bool
-	}
-
-	// Cadence configuration
-	Cadence cadence.Config
 
 	CORS struct {
 		AllowAllOrigins    bool
@@ -75,111 +49,53 @@ type configuration struct {
 	// Frontend configuration
 	Frontend frontend.Config
 
-	// Cluster configuration
-	Cluster cmd.ClusterConfig
-
-	Cloudinfo struct {
-		Endpoint string
-	}
-
-	CICD struct {
-		Enabled  bool
-		Database database.Config
-	}
-
-	Github struct {
-		Token string
-	}
+	Pipeline PipelineConfig
 
 	SpotMetrics struct {
 		Enabled            bool
 		CollectionInterval time.Duration
 	}
-
-	Audit struct {
-		Enabled   bool
-		Headers   []string
-		SkipPaths []string
-	}
 }
 
 // Validate validates the configuration.
 func (c configuration) Validate() error {
-	if err := c.Errors.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Telemetry.Validate(); err != nil {
-		return err
-	}
-
-	if c.Pipeline.Addr == "" {
-		return errors.New("pipeline address is required")
-	}
-	if c.Pipeline.InternalAddr == "" {
-		return errors.New("pipeline internal address is required")
-	}
-
-	if err := c.Auth.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Cadence.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Frontend.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Cluster.Validate(); err != nil {
-		return err
-	}
-
-	if c.Cloudinfo.Endpoint == "" {
-		return errors.New("cloudinfo endpoint is required")
-	}
-
-	// if c.CICD.Enabled {
-	if err := c.CICD.Database.Validate(); err != nil {
-		return err
-	}
-	// }
-
-	return nil
+	return errors.Combine(c.Config.Validate(), c.Frontend.Validate())
 }
 
 // Process post-processes the configuration after loading (before validation).
 func (c *configuration) Process() error {
-	if err := c.Auth.Process(); err != nil {
-		return err
-	}
+	var err error
 
-	if err := c.Cluster.Process(); err != nil {
-		return err
-	}
+	err = errors.Append(err, c.Config.Process())
 
-	return nil
+	return err
 }
 
-// telemetryConfig contains telemetry configuration.
-type telemetryConfig struct {
-	Enabled bool
-	Addr    string
-	Debug   bool
+type PipelineConfig struct {
+	Addr         string
+	InternalAddr string
+	BasePath     string
+	CertFile     string
+	KeyFile      string
+	UUID         string
+	External     struct {
+		URL      string
+		Insecure bool
+	}
 }
 
-// Validate validates the configuration.
-func (c telemetryConfig) Validate() error {
-	if !c.Enabled {
-		return nil
-	}
+func (c PipelineConfig) Validate() error {
+	var err error
 
 	if c.Addr == "" {
-		return errors.New("telemetry http server address is required")
+		err = errors.Append(err, errors.New("pipeline address is required"))
 	}
 
-	return nil
+	if c.InternalAddr == "" {
+		err = errors.Append(err, errors.New("pipeline internal address is required"))
+	}
+
+	return err
 }
 
 // configure configures some defaults in the Viper instance.
@@ -221,6 +137,9 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("pipeline::basePath", "")
 	v.SetDefault("pipeline::certFile", "")
 	v.SetDefault("pipeline::keyFile", "")
+	v.SetDefault("pipeline::uuid", "")
+	v.SetDefault("pipeline::external::url", "")
+	v.SetDefault("pipeline::external::insecure", false)
 
 	// Auth configuration
 	v.SetDefault("auth::redirectUrl::login", "/ui")

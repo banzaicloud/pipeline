@@ -83,11 +83,13 @@ func (m *MeshReconciler) installCanaryOperator(c cluster.CommonCluster, promethe
 		},
 	}
 
-	if m.Configuration.internalConfig.canary.imageRepository != "" {
-		values.Operator.Image.Repository = m.Configuration.internalConfig.canary.imageRepository
+	canaryChart := m.Configuration.internalConfig.Charts.CanaryOperator
+
+	if canaryChart.Values.Operator.Image.Repository != "" {
+		values.Operator.Image.Repository = canaryChart.Values.Operator.Image.Repository
 	}
-	if m.Configuration.internalConfig.canary.imageTag != "" {
-		values.Operator.Image.Tag = m.Configuration.internalConfig.canary.imageTag
+	if canaryChart.Values.Operator.Image.Tag != "" {
+		values.Operator.Image.Tag = canaryChart.Values.Operator.Image.Tag
 	}
 
 	valuesOverride, err := yaml.Marshal(values)
@@ -98,10 +100,10 @@ func (m *MeshReconciler) installCanaryOperator(c cluster.CommonCluster, promethe
 	err = installOrUpgradeDeployment(
 		c,
 		canaryOperatorNamespace,
-		m.Configuration.internalConfig.canary.chartName,
+		canaryChart.Chart,
 		canaryOperatorReleaseName,
 		valuesOverride,
-		m.Configuration.internalConfig.canary.chartVersion,
+		canaryChart.Version,
 		true,
 		true,
 	)

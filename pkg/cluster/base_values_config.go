@@ -29,10 +29,10 @@ type PostHookConfig struct {
 	Spotconfig SpotConfig
 
 	// Instance Termination Handler config
-	Ith BasePostHookConfig
+	ITH BasePostHookConfig
 
 	// Horizontal Pod Autoscaler config
-	Hpa BaseConfig
+	HPA BaseConfig
 
 	// Cluster Autoscaler config
 	Autoscaler BaseConfig

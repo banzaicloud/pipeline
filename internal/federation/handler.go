@@ -22,6 +22,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 )
 
 type Handler struct {
@@ -29,6 +30,8 @@ type Handler struct {
 	infraNamespace string
 	logger         logrus.FieldLogger
 	errorHandler   emperror.Handler
+	staticConfig   StaticConfig
+	dnsConfig      dns.Config
 }
 
 const FeatureName = "federation"
@@ -39,12 +42,16 @@ func NewFederationHandler(
 	infraNamespace string,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
+	staticConfig StaticConfig,
+	dnsConfig dns.Config,
 ) *Handler {
 	return &Handler{
 		clusterGetter:  clusterGetter,
 		infraNamespace: infraNamespace,
 		logger:         logger.WithField("feature", FeatureName),
 		errorHandler:   errorHandler,
+		staticConfig:   staticConfig,
+		dnsConfig:      dnsConfig,
 	}
 }
 
@@ -156,6 +163,8 @@ func (f *Handler) getConfigFromState(state api.Feature) (*Config, error) {
 	config.name = state.ClusterGroup.Name
 	config.enabled = state.Enabled
 	config.clusterGroup = state.ClusterGroup
+	config.staticConfig = f.staticConfig
+	config.dnsConfig = f.dnsConfig
 
 	if len(config.TargetNamespace) == 0 {
 		config.TargetNamespace = "federation-system"

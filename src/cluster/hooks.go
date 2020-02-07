@@ -103,7 +103,7 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 }
 
 func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
-	var config = global.Config.Cluster.Posthook.Dashboard
+	var config = global.Config.Cluster.PostHook.Dashboard
 	if !config.Enabled {
 		return nil
 	}
@@ -251,7 +251,7 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 
 // InstallHorizontalPodAutoscalerPostHook
 func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
-	var config = global.Config.Cluster.Posthook.Hpa
+	var config = global.Config.Cluster.PostHook.HPA
 	if !config.Enabled {
 		return nil
 	}
@@ -309,7 +309,7 @@ func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) er
 
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
 func InitSpotConfig(cluster CommonCluster) error {
-	var config = global.Config.Cluster.Posthook.Spotconfig
+	var config = global.Config.Cluster.PostHook.Spotconfig
 	if !config.Enabled {
 		return nil
 	}
@@ -360,7 +360,7 @@ func InitSpotConfig(cluster CommonCluster) error {
 
 // DeployInstanceTerminationHandler deploys the instance termination handler
 func DeployInstanceTerminationHandler(cluster CommonCluster) error {
-	var config = global.Config.Cluster.Posthook.Ith
+	var config = global.Config.Cluster.PostHook.ITH
 	if !config.Enabled {
 		return nil
 	}
