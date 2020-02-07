@@ -22,6 +22,8 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
 	"go.uber.org/cadence/workflow"
+
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 )
 
 type DeleteClusterInfraWorkflowTestSuite struct {
@@ -86,6 +88,11 @@ func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
 		SecretID:       "my-secret-id",
 		ClusterName:    "test-cluster-name",
 		NodePoolNames:  []string{"pool1", "pool2"},
+		Config: eks.Config{
+			Ssh: eks.SSHConfig{
+				Generate: true,
+			},
+		},
 	}
 
 	eksActivityInput := EKSActivityInput{
