@@ -122,10 +122,6 @@ dex:
 #    # Namespace to install components to
 #    namespace: "pipeline-system"
 #
-#    eks:
-#        ssh:
-#            generate: true
-#
 #    ingress:
 #        # Certificate CA for signing default ingress certs
 #        cert:
@@ -423,6 +419,8 @@ dex:
 #        # Expose admin kubeconfig over the API by default.
 #        # Set this to false to remove credentials from the config and make the user responsible for how they authenticate.
 #        exposeAdminKubeconfig: true
+#        ssh:
+#            generate: true
 
 cloudinfo:
     # Format: {baseUrl}/api/v1
