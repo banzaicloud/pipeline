@@ -724,7 +724,7 @@ traefik:
 	// Cluster Autoscaler
 	v.SetDefault("cluster::posthook::autoscaler::enabled", true)
 
-	v.SetDefault("cluster::disasterRecovery::enabled", true)
+	//v.SetDefault("cluster::disasterRecovery::enabled", true)
 	v.SetDefault("cluster::disasterRecovery::namespace", "")
 	v.SetDefault("cluster::disasterRecovery::ark::syncEnabled", true)
 	v.SetDefault("cluster::disasterRecovery::ark::bucketSyncInterval", "10m")
@@ -741,16 +741,18 @@ traefik:
 		},
 	})
 
-	v.SetDefault("cluster::backyards::enabled", true)
+	//v.SetDefault("cluster::backyards::enabled", true)
 	v.SetDefault("cluster::backyards::istio::grafanaDashboardLocation", "./etc/dashboards/istio")
 	v.SetDefault("cluster::backyards::istio::pilotImage", "banzaicloud/istio-pilot:1.4.2-bzc")
 	v.SetDefault("cluster::backyards::istio::mixerImage", "banzaicloud/istio-mixer:1.4.2-bzc")
 	v.SetDefault("cluster::backyards::charts::istioOperator::chart", "banzaicloud-stable/istio-operator")
 	v.SetDefault("cluster::backyards::charts::istioOperator::version", "0.0.32")
 	v.SetDefault("cluster::backyards::charts::istioOperator::values", map[string]interface{}{
-		"image": map[string]interface{}{
-			"repository": "banzaicloud/istio-operator",
-			"tag":        "0.4.6",
+		"operator": map[string]interface{}{
+			"image": map[string]interface{}{
+				"repository": "banzaicloud/istio-operator",
+				"tag":        "0.4.6",
+			},
 		},
 	})
 	v.SetDefault("cluster::backyards::charts::backyards::chart", "banzaicloud-stable/backyards")
@@ -772,9 +774,11 @@ traefik:
 	v.SetDefault("cluster::backyards::charts::canaryOperator::chart", "banzaicloud-stable/canary-operator")
 	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.7")
 	v.SetDefault("cluster::backyards::charts::canaryOperator::values", map[string]interface{}{
-		"image": map[string]interface{}{
-			"repository": "banzaicloud/canary-operator",
-			"tag":        "0.1.5",
+		"operator": map[string]interface{}{
+			"image": map[string]interface{}{
+				"repository": "banzaicloud/canary-operator",
+				"tag":        "0.1.5",
+			},
 		},
 	})
 
@@ -804,9 +808,6 @@ traefik:
 	v.SetDefault("cloudinfo::endpoint", "")
 	v.SetDefault("hollowtrees::endpoint", "")
 	v.SetDefault("hollowtrees::tokenSigningKey", "")
-
-	// Temporary hook flags
-	v.SetDefault("hooks::domainHookDisabled", false)
 
 	// CICD config
 	v.SetDefault("cicd::enabled", false)
