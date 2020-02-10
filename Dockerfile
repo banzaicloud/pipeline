@@ -22,7 +22,7 @@ COPY . /build
 RUN make build-release
 
 
-FROM alpine:3.10 AS iamauth
+FROM alpine:3.11 AS iamauth
 
 WORKDIR /tmp
 
@@ -36,12 +36,24 @@ RUN set -xe \
     && mv aws-iam-authenticator_${IAM_AUTH_VERSION}_linux_amd64 aws-iam-authenticator
 
 
+FROM alpine:3.11 AS migrate
+
+ENV MIGRATE_VERSION v4.8.0
+
+RUN set -xe && \
+    apk add --update --no-cache ca-certificates curl && \
+    curl -L https://github.com/golang-migrate/migrate/releases/download/${MIGRATE_VERSION}/migrate.linux-amd64.tar.gz | tar xvz && \
+    mv migrate.linux-amd64 /tmp/migrate
+
+
 FROM ${FROM_IMAGE}
 
 COPY --from=builder /etc/nsswitch.conf.build /etc/nsswitch.conf
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=iamauth /tmp/aws-iam-authenticator /usr/bin/
+COPY --from=migrate /tmp/migrate /usr/bin/
+COPY --from=builder /build/database/migrations /migrations/
 COPY --from=builder /build/views /views/
 COPY --from=builder /build/templates /templates/
 COPY --from=builder /build/build/release/pipeline /
