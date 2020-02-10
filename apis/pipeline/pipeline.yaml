@@ -1811,9 +1811,6 @@ paths:
                                             "enabled": true,
                                             "managed": false
                                         }
-                                    },
-                                    "issue": {
-                                        "enabled": false
                                     }
                                 }
 
