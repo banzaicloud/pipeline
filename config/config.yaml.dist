@@ -114,15 +114,6 @@ dex:
 #        # This will be refactored according to https://github.com/banzaicloud/pipeline/issues/2263
 #        forceGlobal: false
 
-#frontend:
-#    issue:
-#        enabled: false
-#        driver: "github"
-#
-#        github:
-#            owner: "banzaicloud"
-#            repository: "pipeline-issues"
-
 #cluster:
 #    # An initial Kubernetes manifest to be installed on clusters.
 #    # It accepts a file path with valid YAML templates inside.

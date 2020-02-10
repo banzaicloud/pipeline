@@ -25,9 +25,6 @@ func mapCapabilities(config configuration) cap.Capabilities {
 		"cicd": cap.Cap{
 			"enabled": global.Config.CICD.Enabled,
 		},
-		"issue": cap.Cap{
-			"enabled": config.Frontend.Issue.Enabled,
-		},
 		"features": cap.Cap{
 			"vault": cap.Cap{
 				"enabled": config.Cluster.Vault.Enabled,
