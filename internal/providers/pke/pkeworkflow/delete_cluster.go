@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 )
 
@@ -32,6 +33,9 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		ScheduleToStartTimeout: 5 * time.Minute,
 		StartToCloseTimeout:    5 * time.Minute,
 		WaitForCancellation:    true,
+		RetryPolicy: &cadence.RetryPolicy{
+			MaximumAttempts: 5,
+		},
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
