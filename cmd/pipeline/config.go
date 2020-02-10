@@ -159,10 +159,6 @@ func (c *configuration) Process() error {
 		return err
 	}
 
-	if c.Frontend.Issue.Github.Token == "" {
-		c.Frontend.Issue.Github.Token = c.Github.Token
-	}
-
 	return nil
 }
 
@@ -242,14 +238,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cors::allowAllOrigins", true)
 	v.SetDefault("cors::allowOrigins", []string{})
 	v.SetDefault("cors::allowOriginsRegexp", "")
-
-	v.SetDefault("frontend::issue::enabled", false)
-	v.SetDefault("frontend::issue::driver", "github")
-	v.SetDefault("frontend::issue::labels", []string{"community"})
-
-	v.SetDefault("frontend::issue::github::token", "")
-	v.SetDefault("frontend::issue::github::owner", "banzaicloud")
-	v.SetDefault("frontend::issue::github::repository", "pipeline-issues")
 
 	v.SetDefault("spotmetrics::enabled", false)
 	v.SetDefault("spotmetrics::collectionInterval", 30*time.Second)

@@ -540,8 +540,6 @@ func main() {
 			router.PathPrefix("/frontend").Subrouter(),
 			config.Frontend,
 			db,
-			buildInfo,
-			auth.UserExtractor{},
 			commonLogger,
 			commonErrorHandler,
 		)
@@ -549,11 +547,6 @@ func main() {
 
 		// TODO: refactor authentication middleware
 		base.Any("frontend/notifications", gin.WrapH(router))
-
-		// TODO: return 422 unprocessable entity instead of 404
-		if config.Frontend.Issue.Enabled {
-			base.Any("frontend/issues", auth.Handler, gin.WrapH(router))
-		}
 	}
 
 	base.GET("version", gin.WrapH(buildinfo.Handler(buildInfo)))
