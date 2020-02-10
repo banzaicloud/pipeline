@@ -18,6 +18,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
@@ -50,5 +51,22 @@ func TestConfigure(t *testing.T) {
 	require.NoError(t, err)
 
 	err = config.Validate()
+	require.NoError(t, err)
+}
+
+func TestConfigureForUsedDefaults(t *testing.T) {
+	v := viper.NewWithOptions(
+		viper.KeyDelimiter("::"),
+	)
+	p := pflag.NewFlagSet("test", pflag.ContinueOnError)
+
+	configure(v, p)
+
+	WithErrorUnused := viper.DecoderConfigOption(func(cfg *mapstructure.DecoderConfig) {
+		cfg.ErrorUnused = true
+	})
+
+	var config configuration
+	err := v.Unmarshal(&config, hook.DecodeHookWithDefaults(), WithErrorUnused)
 	require.NoError(t, err)
 }
