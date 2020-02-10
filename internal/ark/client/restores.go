@@ -15,21 +15,24 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 )
 
 // CreateRestore creates an ARK restore by a CreateRestoreRequest
 func (c *Client) CreateRestore(req api.CreateRestoreRequest) (*arkAPI.Restore, error) {
-
 	name := fmt.Sprintf("%s-%s", req.BackupName, time.Now().Format("20060102150405"))
 
-	restore := &arkAPI.Restore{
+	restore := arkAPI.Restore{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: c.Namespace,
 			Name:      name,
@@ -47,32 +50,58 @@ func (c *Client) CreateRestore(req api.CreateRestoreRequest) (*arkAPI.Restore, e
 		},
 	}
 
-	restore, err := c.Client.ArkV1().Restores(restore.Namespace).Create(restore)
+	err := c.Client.Create(context.Background(), &restore)
 	if err != nil {
 		return nil, err
 	}
 
-	return restore, nil
+	err = c.Client.Get(context.Background(), types.NamespacedName{
+		Name:      restore.Name,
+		Namespace: restore.Namespace,
+	}, &restore)
+	if err != nil {
+		return nil, err
+	}
+
+	return &restore, nil
 }
 
 // ListRestores lists ARK restores
-func (c *Client) ListRestores(listOptions metav1.ListOptions) (restores *arkAPI.RestoreList, err error) {
+func (c *Client) ListRestores() (*arkAPI.RestoreList, error) {
+	var restores arkAPI.RestoreList
 
-	restores, err = c.Client.ArkV1().Restores(c.Namespace).List(listOptions)
+	err := c.Client.List(context.Background(), &restores, runtimeclient.InNamespace(c.Namespace))
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	return &restores, nil
 }
 
 // GetRestoreByName gets an ARK restore by name
-func (c *Client) GetRestoreByName(name string) (restore *arkAPI.Restore, err error) {
+func (c *Client) GetRestoreByName(name string) (*arkAPI.Restore, error) {
+	var restore arkAPI.Restore
 
-	restore, err = c.Client.Ark().Restores(c.Namespace).Get(name, metav1.GetOptions{})
+	err := c.Client.Get(context.Background(), types.NamespacedName{
+		Name:      name,
+		Namespace: c.Namespace,
+	}, &restore)
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	return &restore, nil
 }
 
 // DeleteRestoreByName deletes an ARK restore by name
 func (c *Client) DeleteRestoreByName(name string) error {
+	restore, err := c.GetRestoreByName(name)
+	if k8serrors.IsNotFound(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
 
-	return c.Client.Ark().Restores(c.Namespace).Delete(name, &metav1.DeleteOptions{})
+	return c.Client.Delete(context.Background(), restore)
 }

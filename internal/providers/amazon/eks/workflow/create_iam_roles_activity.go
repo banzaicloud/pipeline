@@ -16,6 +16,7 @@ package workflow
 
 import (
 	"context"
+	"strings"
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
@@ -77,6 +78,10 @@ func (a *CreateIamRolesActivity) Execute(ctx context.Context, input CreateIamRol
 		clusterUserID = aws.StringValue(currentUser.User.UserName)
 	}
 
+	userID, userPath := splitResourceId(clusterUserID)
+	clusterRoleID, clusterRolePath := splitResourceId(input.ClusterRoleID)
+	nodeInstanceRoleID, nodeInstanceRolePath := splitResourceId(input.NodeInstanceRoleID)
+
 	stackParams := []*cloudformation.Parameter{
 		{
 			ParameterKey:   aws.String("ClusterName"),
@@ -84,15 +89,27 @@ func (a *CreateIamRolesActivity) Execute(ctx context.Context, input CreateIamRol
 		},
 		{
 			ParameterKey:   aws.String("UserId"),
-			ParameterValue: aws.String(clusterUserID),
+			ParameterValue: aws.String(userID),
+		},
+		{
+			ParameterKey:   aws.String("UserPath"),
+			ParameterValue: aws.String(userPath),
 		},
 		{
 			ParameterKey:   aws.String("ClusterRoleId"),
-			ParameterValue: aws.String(input.ClusterRoleID),
+			ParameterValue: aws.String(clusterRoleID),
+		},
+		{
+			ParameterKey:   aws.String("ClusterRolePath"),
+			ParameterValue: aws.String(clusterRolePath),
 		},
 		{
 			ParameterKey:   aws.String("NodeInstanceRoleId"),
-			ParameterValue: aws.String(input.NodeInstanceRoleID),
+			ParameterValue: aws.String(nodeInstanceRoleID),
+		},
+		{
+			ParameterKey:   aws.String("NodeInstanceRolePath"),
+			ParameterValue: aws.String(nodeInstanceRolePath),
 		},
 	}
 
@@ -144,4 +161,22 @@ func (a *CreateIamRolesActivity) Execute(ctx context.Context, input CreateIamRol
 	}
 
 	return &outParams, nil
+}
+
+func splitResourceId(input string) (string, string) {
+	if input == "" {
+		return "", ""
+	}
+
+	idSplit := strings.Split(input, "/")
+
+	id := idSplit[len(idSplit)-1]
+
+	path := strings.Join(idSplit[:len(idSplit)-1], "/")
+	path = path + "/"
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+
+	return id, path
 }

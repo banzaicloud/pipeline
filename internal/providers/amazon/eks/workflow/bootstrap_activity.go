@@ -19,6 +19,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"emperror.dev/errors"
@@ -56,6 +57,14 @@ const mapUsersTemplate = `- userarn: %s
   groups:
   - system:masters
 `
+
+// nolint: gochecknoglobals
+var iamRoleARNRegexp = regexp.MustCompile("arn:aws:iam::([0-9]{12}):role")
+
+func findResourceInRoleARN(iamRoleARN string) (string, string) {
+	arnMeta := iamRoleARNRegexp.Find([]byte(iamRoleARN))
+	return string(arnMeta), strings.TrimPrefix(iamRoleARN, string(arnMeta))
+}
 
 // CreateEksControlPlaneActivity creates aws-auth map & default StorageClass on cluster
 type BootstrapActivity struct {
@@ -141,10 +150,22 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 
 	logger.Debug("creating aws-auth configmap")
 
+	mapRoles := fmt.Sprintf(mapRolesTemplate, input.NodeInstanceRoleArn)
+
+	// The aws-iam-authenticator doesn't handle path currently in role mappings:
+	// https://github.com/kubernetes-sigs/aws-iam-authenticator/issues/268
+	// Once this bug gets fixed our code won't work, so we are making it future
+	// compatible by adding the role id with and without path to the mapping.
+	roleMeta, roleResource := findResourceInRoleARN(input.NodeInstanceRoleArn)
+	roleID, rolePath := splitResourceId(roleResource)
+	if rolePath != "/" {
+		mapRoles += fmt.Sprintf(mapRolesTemplate, roleMeta+"/"+roleID)
+	}
+
 	awsAuthConfigMap := v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{Name: "aws-auth"},
 		Data: map[string]string{
-			"mapRoles": fmt.Sprintf(mapRolesTemplate, input.NodeInstanceRoleArn),
+			"mapRoles": mapRoles,
 			"mapUsers": fmt.Sprintf(mapUsersTemplate, input.ClusterUserArn, userNameFromArn(input.ClusterUserArn)),
 		},
 	}

@@ -11,15 +11,30 @@ Parameters:
     Description: The user ID provided to set as cluster admin.
     Default: ""
 
+  UserPath:
+    Type: String
+    Description: The path of the provided user to set as cluster admin.
+    Default: "/"
+
   ClusterRoleId:
     Type: String
     Description: The role ID provided to set for the EKS cluster.
     Default: ""
 
+  ClusterRolePath:
+    Type: String
+    Description: The path of the provided role to set for the EKS cluster.
+    Default: "/"
+
   NodeInstanceRoleId:
     Type: String
     Description: The role ID provided to set for the EKS nodes.
     Default: ""
+
+  NodeInstanceRolePath:
+    Type: String
+    Description: The path of the provided role to set for the EKS nodes.
+    Default: "/"
 
 Conditions:
   CreateUser: !Equals [ !Ref UserId, "" ]
@@ -109,16 +124,16 @@ Resources:
 Outputs:
   ClusterRoleArn:
     Description: The ClusterRole ARN
-    Value: !If [ CreateClusterRole, !GetAtt ClusterRole.Arn, !Sub "arn:aws:iam::${AWS::AccountId}:role/${ClusterRoleId}" ]
+    Value: !If [ CreateClusterRole, !GetAtt ClusterRole.Arn, !Sub "arn:aws:iam::${AWS::AccountId}:role${ClusterRolePath}${ClusterRoleId}" ]
 
   NodeInstanceRoleId:
     Description: The NodeInstanceRole ID
-    Value: !If [ CreateNodeInstanceRole, !Ref NodeInstanceRole, !Sub "${NodeInstanceRoleId}" ] 
+    Value: !If [ CreateNodeInstanceRole, !Ref NodeInstanceRole, !Sub "${NodeInstanceRoleId}" ]
 
   NodeInstanceRoleArn:
     Description: The NodeInstanceRole ARN
-    Value: !If [ CreateNodeInstanceRole, !GetAtt NodeInstanceRole.Arn, !Sub "arn:aws:iam::${AWS::AccountId}:role/${NodeInstanceRoleId}" ] 
+    Value: !If [ CreateNodeInstanceRole, !GetAtt NodeInstanceRole.Arn, !Sub "arn:aws:iam::${AWS::AccountId}:role${NodeInstanceRolePath}${NodeInstanceRoleId}" ]
 
   ClusterUserArn:
     Description: Cluster user's ARN
-    Value: !If [ CreateUser, !GetAtt ClusterUser.Arn, !Sub "arn:aws:iam::${AWS::AccountId}:user/${UserId}" ]
+    Value: !If [ CreateUser, !GetAtt ClusterUser.Arn, !Sub "arn:aws:iam::${AWS::AccountId}:user${UserPath}${UserId}" ]

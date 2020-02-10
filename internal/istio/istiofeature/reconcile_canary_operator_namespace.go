@@ -15,9 +15,12 @@
 package istiofeature
 
 import (
+	"context"
+
 	"emperror.dev/errors"
+	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 )
@@ -31,11 +34,18 @@ func (m *MeshReconciler) ReconcileCanaryOperatorNamespace(desiredState DesiredSt
 		return err
 	}
 
-	if desiredState == DesiredStatePresent {
-		_, err := client.CoreV1().Namespaces().Get(canaryOperatorNamespace, metav1.GetOptions{})
-		if k8serrors.IsNotFound(err) {
+	k8sclient, err := m.getK8sClient(m.Master)
+	if err != nil {
+		return err
+	}
 
-			err := k8sutil.EnsureNamespaceWithLabelWithRetry(client, canaryOperatorNamespace,
+	var namespace corev1.Namespace
+	if desiredState == DesiredStatePresent {
+		err := client.Get(context.Background(), types.NamespacedName{
+			Name: canaryOperatorNamespace,
+		}, &namespace)
+		if k8serrors.IsNotFound(err) {
+			err := k8sutil.EnsureNamespaceWithLabelWithRetry(k8sclient, canaryOperatorNamespace,
 				map[string]string{
 					"istio-injection": "enabled",
 				})
@@ -46,14 +56,16 @@ func (m *MeshReconciler) ReconcileCanaryOperatorNamespace(desiredState DesiredSt
 			return errors.WrapIf(err, "could not get canary operator namespace")
 		}
 	} else {
-		_, err := client.CoreV1().Namespaces().Get(canaryOperatorNamespace, metav1.GetOptions{})
+		err := client.Get(context.Background(), types.NamespacedName{
+			Name: canaryOperatorNamespace,
+		}, &namespace)
 		if k8serrors.IsNotFound(err) {
 			return nil
 		} else if err != nil {
 			return errors.WrapIf(err, "could not get canary operator namespace")
 		}
 
-		err = client.CoreV1().Namespaces().Delete(canaryOperatorNamespace, &metav1.DeleteOptions{})
+		err = client.Delete(context.Background(), &namespace)
 		if err != nil {
 			return errors.WrapIf(err, "could not delete canary operator namespace")
 		}

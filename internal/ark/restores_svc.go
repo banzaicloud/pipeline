@@ -20,7 +20,6 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -171,8 +170,7 @@ func (s *RestoresService) ListFromARK() ([]arkAPI.Restore, error) {
 		return nil, errors.WrapIf(err, "error getting ark client")
 	}
 
-	var listOptions metav1.ListOptions
-	restores, err := client.ListRestores(listOptions)
+	restores, err := client.ListRestores()
 	if err != nil {
 		return nil, errors.WrapIf(err, "error getting restores")
 	}

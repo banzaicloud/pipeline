@@ -15,12 +15,18 @@
 package client
 
 import (
-	clientset "github.com/heptio/ark/pkg/generated/clientset/versioned"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/kubernetes/scheme"
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
+	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1" 
+
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
+
+func init() { 
+	_ = arkAPI.AddToScheme(scheme.Scheme)
+}
 
 // ClientService is an interface for a implementation which gives back an initialized ARK client
 type ClientService interface {
@@ -33,7 +39,7 @@ type Client struct {
 	Logger    logrus.FieldLogger
 	Namespace string
 
-	Client clientset.Interface
+	Client runtimeclient.Client
 }
 
 // New creates an initialized Client instance
@@ -53,39 +59,17 @@ func New(config []byte, namespace string, logger logrus.FieldLogger) (client *Cl
 	return
 }
 
-// getK8sClientConfig creates a Kubernetes client config
-func (c *Client) getK8sClientConfig(kubeConfig []byte) (config *rest.Config, err error) {
-
-	if kubeConfig != nil {
-		apiconfig, err := clientcmd.Load(kubeConfig)
-		if err != nil {
-			return config, err
-		}
-
-		clientConfig := clientcmd.NewDefaultClientConfig(*apiconfig, &clientcmd.ConfigOverrides{})
-		config, err = clientConfig.ClientConfig()
-		if err != nil {
-			return config, err
-		}
-	} else {
-		err = errors.New("kubeconfig value is nil")
-		return
-	}
-
-	return
-}
-
 // new initializes an ARK client from a k8s config
-func (c *Client) new(config []byte) (clientset.Interface, error) {
-
-	clientConfig, err := c.getK8sClientConfig(config)
+func (c *Client) new(kubeconfig []byte) (runtimeclient.Client, error) {
+	config, err := k8sclient.NewClientConfig(kubeconfig)
 	if err != nil {
-		return nil, err
+		return nil, errors.WrapIf(err, "could not create rest config from kubeconfig")
 	}
 
-	arkClient, err := clientset.NewForConfig(clientConfig)
+	client, err := runtimeclient.New(config, runtimeclient.Options{})
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.WrapIf(err, "could not create runtime client")
 	}
-	return arkClient, nil
+
+	return client, nil
 }

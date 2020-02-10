@@ -134,9 +134,9 @@ func (s *Service) List(ctx context.Context, clusterID uint, labels map[string]st
 	if err != nil {
 		return errors.WrapIf(err, "failed to create Kubernetes client")
 	}
-	return kubeClient.List(ctx, &client.ListOptions{
+	return kubeClient.List(ctx, obj, &client.ListOptions{
 		LabelSelector: k8slabels.SelectorFromSet(labels),
-	}, obj)
+	})
 }
 
 // Update updates a given Object on the cluster and returns it.

@@ -71,7 +71,7 @@ func (s securityResourceService) GetWhitelists(ctx context.Context, cluster Clus
 
 	whitelist := &securityV1Alpha.WhiteListItemList{}
 
-	if err := cli.List(ctx, &client.ListOptions{}, whitelist); err != nil {
+	if err := cli.List(ctx, whitelist, &client.ListOptions{}); err != nil {
 		return nil, errors.WrapIf(err, "failed to retrieve current whitelist")
 	}
 
@@ -109,7 +109,7 @@ func (s securityResourceService) ListScanLogs(ctx context.Context, cluster Clust
 
 	audits := &securityV1Alpha.AuditList{}
 
-	if err := cli.List(ctx, &client.ListOptions{}, audits); err != nil {
+	if err := cli.List(ctx, audits, &client.ListOptions{}); err != nil {
 		return nil, errors.WrapIf(err, "failed to list scan logs")
 	}
 

@@ -21,9 +21,9 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/hashicorp/go-multierror"
-	"github.com/kubernetes-sigs/kubefed/pkg/kubefedctl"
 	apiextv1b1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
+	"sigs.k8s.io/kubefed/pkg/kubefedctl"
 
 	"github.com/banzaicloud/pipeline/src/cluster"
 )

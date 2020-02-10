@@ -15,15 +15,17 @@
 package istiofeature
 
 import (
+	"context"
 	"strconv"
 	"time"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
-	istiooperatorclientset "github.com/banzaicloud/istio-operator/pkg/client/clientset/versioned"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/pkg/backoff"
 )
@@ -32,40 +34,53 @@ func (m *MeshReconciler) ReconcileIstio(desiredState DesiredState) error {
 	m.logger.Debug("reconciling Istio CR")
 	defer m.logger.Debug("Istio CR reconciled")
 
-	client, err := m.getMasterIstioOperatorK8sClient()
+	client, err := m.getMasterRuntimeK8sClient()
 	if err != nil {
 		return err
 	}
 
+	var istio v1beta1.Istio
 	if desiredState == DesiredStatePresent {
-		istio, err := client.IstioV1beta1().Istios(istioOperatorNamespace).Get(m.Configuration.name, metav1.GetOptions{})
+		err := client.Get(context.Background(), types.NamespacedName{
+			Name:      m.Configuration.name,
+			Namespace: istioOperatorNamespace,
+		}, &istio)
 		if err != nil && !k8serrors.IsNotFound(err) {
 			return errors.WrapIf(err, "could not check existence Istio CR")
 		}
 
 		if k8serrors.IsNotFound(err) {
-			istio = &v1beta1.Istio{
+			istio = v1beta1.Istio{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: m.Configuration.name,
+					Name:      m.Configuration.name,
+					Namespace: istioOperatorNamespace,
 				},
 			}
 		}
 
-		istio = m.configureIstioCR(istio, m.Configuration)
+		m.configureIstioCR(&istio, m.Configuration)
 
 		if k8serrors.IsNotFound(err) {
-			_, err = client.IstioV1beta1().Istios(istioOperatorNamespace).Create(istio)
+			err = client.Create(context.Background(), &istio)
 			if err != nil {
 				return errors.WrapIf(err, "could not create Istio CR")
 			}
 		} else if err == nil {
-			_, err := client.IstioV1beta1().Istios(istioOperatorNamespace).Update(istio)
+			err = client.Update(context.Background(), &istio)
 			if err != nil {
 				return errors.WrapIf(err, "could not update Istio CR")
 			}
 		}
 	} else {
-		err := client.IstioV1beta1().Istios(istioOperatorNamespace).Delete(m.Configuration.name, &metav1.DeleteOptions{})
+		err := client.Get(context.Background(), types.NamespacedName{
+			Name:      m.Configuration.name,
+			Namespace: istioOperatorNamespace,
+		}, &istio)
+		if err != nil && !k8serrors.IsNotFound(err) {
+			return errors.WrapIf(err, "could not check existence Istio CR")
+		}
+
+		err = client.Delete(context.Background(), &istio)
 		if err != nil && !k8serrors.IsNotFound(err) {
 			return errors.WrapIf(err, "could not remove Istio CR")
 		}
@@ -80,7 +95,7 @@ func (m *MeshReconciler) ReconcileIstio(desiredState DesiredState) error {
 }
 
 // waitForIstioCRToBeDeleted wait for Istio CR to be deleted
-func (m *MeshReconciler) waitForIstioCRToBeDeleted(client *istiooperatorclientset.Clientset) error {
+func (m *MeshReconciler) waitForIstioCRToBeDeleted(client client.Client) error {
 	m.logger.Debug("waiting for Istio CR to be deleted")
 
 	var backoffConfig = backoff.ConstantBackoffConfig{
@@ -90,7 +105,11 @@ func (m *MeshReconciler) waitForIstioCRToBeDeleted(client *istiooperatorclientse
 	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	err := backoff.Retry(func() error {
-		_, err := client.IstioV1beta1().Istios(istioOperatorNamespace).Get(m.Configuration.name, metav1.GetOptions{})
+		var istio v1beta1.Istio
+		err := client.Get(context.Background(), types.NamespacedName{
+			Name:      m.Configuration.name,
+			Namespace: istioOperatorNamespace,
+		}, &istio)
 		if k8serrors.IsNotFound(err) {
 			return nil
 		}
@@ -106,7 +125,7 @@ func (m *MeshReconciler) waitForIstioCRToBeDeleted(client *istiooperatorclientse
 }
 
 // configureIstioCR configures istio-operator specific CR based on the given params
-func (m *MeshReconciler) configureIstioCR(istio *v1beta1.Istio, config Config) *v1beta1.Istio {
+func (m *MeshReconciler) configureIstioCR(istio *v1beta1.Istio, config Config) {
 	enabled := true
 	maxReplicas := int32(1)
 
@@ -123,22 +142,31 @@ func (m *MeshReconciler) configureIstioCR(istio *v1beta1.Istio, config Config) *
 	istio.Spec.AutoInjectionNamespaces = config.AutoSidecarInjectNamespaces
 	istio.Spec.Version = istioVersion
 	istio.Spec.ImagePullPolicy = corev1.PullAlways
-	istio.Spec.Gateways.IngressConfig.MaxReplicas = 1
-	istio.Spec.Gateways.EgressConfig.MaxReplicas = 1
-	istio.Spec.Pilot = v1beta1.PilotConfiguration{
-		Image:       m.Configuration.internalConfig.istioOperator.pilotImage,
-		MaxReplicas: maxReplicas,
-	}
-	istio.Spec.Mixer = v1beta1.MixerConfiguration{
-		K8sResourceConfiguration: v1beta1.K8sResourceConfiguration{
-			Image:       &m.Configuration.internalConfig.istioOperator.mixerImage,
-			MaxReplicas: &maxReplicas,
-		},
-	}
+	istio.Spec.Gateways.IngressConfig.MaxReplicas = &maxReplicas
+	istio.Spec.Gateways.EgressConfig.MaxReplicas = &maxReplicas
+	istio.Spec.Pilot.Image = &m.Configuration.internalConfig.istioOperator.pilotImage
+	istio.Spec.Pilot.MaxReplicas = &maxReplicas
+	istio.Spec.Mixer.Image = &m.Configuration.internalConfig.istioOperator.mixerImage
+	istio.Spec.Mixer.MaxReplicas = &maxReplicas
 	istio.Spec.SidecarInjector.RewriteAppHTTPProbe = true
 	istio.Spec.Tracing.Enabled = &enabled
 	istio.Spec.Tracing.Zipkin.Address = zipkinAddress
 	istio.Spec.Mixer.MultiClusterSupport = &enabled
+
+	istio.Spec.Proxy.EnvoyAccessLogService = v1beta1.EnvoyServiceCommonConfiguration{
+		Enabled: &enabled,
+		Host:    alsHost,
+		Port:    alsPort,
+		TLSSettings: &v1beta1.TLSSettings{
+			Mode: "DISABLE",
+		},
+		TCPKeepalive: &v1beta1.TCPKeepalive{
+			Interval: "10s",
+			Probes:   3,
+			Time:     "10s",
+		},
+	}
+	istio.Spec.Proxy.UseMetadataExchangeFilter = &enabled
 
 	if len(m.Remotes) > 0 {
 		istio.Spec.UseMCP = &enabled
@@ -156,6 +184,4 @@ func (m *MeshReconciler) configureIstioCR(istio *v1beta1.Istio, config Config) *
 			Mode: "REGISTRY_ONLY",
 		}
 	}
-
-	return istio
 }
