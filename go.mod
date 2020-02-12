@@ -195,5 +195,5 @@ replace (
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.17.2
 	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.17.2
 	k8s.io/sample-controller => k8s.io/sample-controller v0.17.2
-	sigs.k8s.io/kubefed => github.com/banzaicloud/kubefed v0.1.0-rc2.0.20200121120031-f51ecb598a2d
+	sigs.k8s.io/kubefed => github.com/banzaicloud/kubefed v0.1.0-rc6.1.0.20200210184657-03ba7b7e85c9
 )

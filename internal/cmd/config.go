@@ -786,8 +786,8 @@ traefik:
 	v.SetDefault("cluster::federation::charts::kubefed::version", "0.1.0-rc6")
 	v.SetDefault("cluster::federation::charts::kubefed::values", map[string]interface{}{
 		"controllermanager": map[string]interface{}{
-			"repository": "quay.io/kubernetes-multicluster",
-			"tag":        "v0.1.0-rc6",
+			"repository": "banzaicloud",
+			"tag":        "v0.1.0-rc6.1",
 		},
 	})
 

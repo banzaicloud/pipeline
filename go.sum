@@ -159,6 +159,8 @@ github.com/banzaicloud/istio-operator v0.0.0-20200120100557-309b8a34e9eb h1:0+9w
 github.com/banzaicloud/istio-operator v0.0.0-20200120100557-309b8a34e9eb/go.mod h1:ZsHnkYOQmq/OhsTX/apqgSoT2Jt5qkr15zuoVcj48Xk=
 github.com/banzaicloud/kubefed v0.1.0-rc2.0.20200121120031-f51ecb598a2d h1:+M0ol8U7OyW8g1Z8YiI/UMejN+3E5fq+W6LB2NvgcGQ=
 github.com/banzaicloud/kubefed v0.1.0-rc2.0.20200121120031-f51ecb598a2d/go.mod h1:Kha8l/jZw8NYFEftmqGehhCTwfvEHQLzwS4M/FI88io=
+github.com/banzaicloud/kubefed v0.1.0-rc6.1.0.20200210184657-03ba7b7e85c9 h1:nF0G4ub85718896NPYKPiEEu732wnV03ruXlT5JFY6Y=
+github.com/banzaicloud/kubefed v0.1.0-rc6.1.0.20200210184657-03ba7b7e85c9/go.mod h1:Kha8l/jZw8NYFEftmqGehhCTwfvEHQLzwS4M/FI88io=
 github.com/banzaicloud/logging-operator/pkg/sdk v0.1.1 h1:qXmP4D3hbW0GT+rMLDqAnAJY0NcqqDhE2UmQxPieRfQ=
 github.com/banzaicloud/logging-operator/pkg/sdk v0.1.1/go.mod h1:1pRU2dbp3jA+d6Ha6l/8+K+5g6Gfs8zZoC9xQgo9+VQ=
 github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f h1:WeGZeO6I+lI1IG2vm1iXTeMrHLcMUjfoYm+rubBM5c4=
