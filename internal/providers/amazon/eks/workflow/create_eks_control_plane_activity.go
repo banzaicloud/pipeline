@@ -100,6 +100,10 @@ func (a *CreateEksControlPlaneActivity) Execute(ctx context.Context, input Creat
 			if awsErr.Code() == eks.ErrCodeResourceNotFoundException {
 				createCluster = true
 			} else {
+				// sometimes error is different then ErrCodeResourceNotFoundException and Cluster is nil in describeClusterOutput
+				if describeClusterOutput.Cluster == nil {
+					return nil, errors.WrapIff(err, "could not get the status of EKS cluster %s in region %s", input.ClusterName, input.Region)
+				}
 				switch clusterStatus := aws.StringValue(describeClusterOutput.Cluster.Status); clusterStatus {
 				case eks.ClusterStatusActive:
 					logger.Infof("EKS cluster is in %s state", clusterStatus)
