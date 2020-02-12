@@ -49,9 +49,6 @@ type configuration struct {
 		AllowOriginsRegexp string
 	}
 
-	// Distribution configs
-	Distribution cmd.DistributionConfig
-
 	// Frontend configuration
 	Frontend frontend.Config
 
