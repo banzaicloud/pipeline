@@ -35,7 +35,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -82,6 +81,9 @@ type Config struct {
 		EKS struct {
 			TemplateLocation      string
 			ExposeAdminKubeconfig bool
+			SSH                   struct {
+				Generate bool
+			}
 		}
 	}
 
@@ -309,10 +311,6 @@ type ClusterConfig struct {
 	Backyards istiofeature.StaticConfig
 
 	Federation federation.StaticConfig
-}
-
-type DistributionConfig struct {
-	Eks eks.Config
 }
 
 // Validate validates the configuration.
