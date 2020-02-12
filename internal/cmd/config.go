@@ -36,13 +36,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 type Config struct {
-	// Auth configuration
-	Auth auth.Config
-
 	// Cadence configuration
 	Cadence cadence.Config
 
@@ -143,8 +139,6 @@ type Config struct {
 
 func (c Config) Validate() error {
 	var err error
-
-	err = errors.Append(err, c.Auth.Validate())
 
 	err = errors.Append(err, c.Cadence.Validate())
 
@@ -460,6 +454,10 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 		v.SetDefault("no_color", true)
 	}
 
+	v.SetDefault("auth::token::signingKey", "")
+	v.SetDefault("auth::token::issuer", "")
+	v.SetDefault("auth::token::audience", "")
+
 	v.SetDefault("log::format", "logfmt")
 	v.SetDefault("log::level", "info")
 	v.RegisterAlias("log::noColor", "no_color")
@@ -467,22 +465,6 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	// ErrorHandler configuration
 	v.SetDefault("errors::stackdriver::enabled", false)
 	v.SetDefault("errors::stackdriver::projectId", false)
-
-	// Auth configuration
-	v.SetDefault("auth::oidc::issuer", "")
-	v.SetDefault("auth::oidc::insecure", false)
-	v.SetDefault("auth::oidc::clientId", "")
-	v.SetDefault("auth::oidc::clientSecret", "")
-
-	v.SetDefault("auth::cli::clientId", "banzai-cli")
-
-	v.SetDefault("auth::cookie::secure", true)
-	v.SetDefault("auth::cookie::domain", "")
-	v.SetDefault("auth::cookie::setDomain", false)
-
-	v.SetDefault("auth::token::signingKey", "")
-	v.SetDefault("auth::token::issuer", "")
-	v.SetDefault("auth::token::audience", "")
 
 	// Dex configuration
 	v.SetDefault("dex::apiAddr", "")

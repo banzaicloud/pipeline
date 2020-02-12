@@ -33,6 +33,8 @@ import (
 type configuration struct {
 	cmd.Config `mapstructure:",squash"`
 
+	Auth authConfig
+
 	// Meaningful values are recommended (eg. production, development, staging, release/123, etc)
 	Environment string
 
@@ -58,6 +60,8 @@ type configuration struct {
 func (c configuration) Validate() error {
 	var err error
 
+	err = errors.Append(err, c.Auth.Validate())
+
 	err = errors.Append(err, c.Config.Validate())
 
 	if c.Environment == "" {
@@ -74,6 +78,31 @@ func (c *configuration) Process() error {
 	err = errors.Append(err, c.Config.Process())
 
 	return err
+}
+
+type authConfig struct {
+	// TODO: remove this when the global config no longer needs them
+	Cookie struct {
+		Secure    bool
+		SetDomain bool
+	}
+	// TODO: remove this when the global config no longer needs them
+	OIDC struct {
+		Issuer string
+	}
+	Token auth.TokenConfig
+}
+
+func (c authConfig) Validate() error {
+	var errs error
+
+	if c.OIDC.Issuer == "" {
+		errs = errors.Append(errs, errors.New("auth oidc issuer is required"))
+	}
+
+	errs = errors.Append(errs, c.Token.Validate())
+
+	return errs
 }
 
 // configure configures some defaults in the Viper instance.
@@ -100,8 +129,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("environment", "production")
 	v.SetDefault("debug", false)
 	v.SetDefault("shutdownTimeout", 15*time.Second)
-
-	v.SetDefault("auth::role::default", auth.RoleAdmin)
 
 	// ErrorHandler configuration
 	v.Set("errors::serviceName", appName)

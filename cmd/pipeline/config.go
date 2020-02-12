@@ -34,6 +34,9 @@ import (
 type configuration struct {
 	cmd.Config `mapstructure:",squash"`
 
+	// Auth configuration
+	Auth auth.Config
+
 	Audit struct {
 		Enabled   bool
 		Headers   []string
@@ -59,12 +62,14 @@ type configuration struct {
 
 // Validate validates the configuration.
 func (c configuration) Validate() error {
-	return errors.Combine(c.Config.Validate(), c.Frontend.Validate())
+	return errors.Combine(c.Auth.Validate(), c.Config.Validate(), c.Frontend.Validate())
 }
 
 // Process post-processes the configuration after loading (before validation).
 func (c *configuration) Process() error {
 	var err error
+
+	err = errors.Append(err, c.Auth.Process())
 
 	err = errors.Append(err, c.Config.Process())
 
@@ -142,6 +147,17 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("pipeline::external::insecure", false)
 
 	// Auth configuration
+	v.SetDefault("auth::oidc::issuer", "")
+	v.SetDefault("auth::oidc::insecure", false)
+	v.SetDefault("auth::oidc::clientId", "")
+	v.SetDefault("auth::oidc::clientSecret", "")
+
+	v.SetDefault("auth::cli::clientId", "banzai-cli")
+
+	v.SetDefault("auth::cookie::secure", true)
+	v.SetDefault("auth::cookie::domain", "")
+	v.SetDefault("auth::cookie::setDomain", false)
+
 	v.SetDefault("auth::redirectUrl::login", "/ui")
 	v.SetDefault("auth::redirectUrl::signup", "/ui")
 
