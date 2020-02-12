@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -172,35 +171,19 @@ func (c CloudinfoConfig) Validate() error {
 	return err
 }
 
-// TelemetryConfig contains telemetry configuration.
-type TelemetryConfig struct {
-	Enabled bool
-	Addr    string
-	Debug   bool
-}
-
-// Validate validates the configuration.
-func (c TelemetryConfig) Validate() error {
-	var err error
-
-	if c.Enabled {
-		if c.Addr == "" {
-			err = errors.Append(err, errors.New("telemetry http server address is required"))
-		}
-	}
-
-	return err
-}
-
 // ClusterConfig contains cluster configuration.
 type ClusterConfig struct {
-	// Initial manifest
-	Manifest string
+	Autoscale ClusterAutoscaleConfig
 
-	// Namespace to install Pipeline components to
-	Namespace string
+	Backyards istiofeature.StaticConfig
 
-	Labels clusterconfig.LabelConfig
+	DisasterRecovery ClusterDisasterRecoveryConfig
+
+	DNS ClusterDNSConfig
+
+	Expiry ClusterExpiryConfig
+
+	Federation federation.StaticConfig
 
 	Ingress struct {
 		Cert struct {
@@ -209,150 +192,59 @@ type ClusterConfig struct {
 		}
 	}
 
+	Labels clusterconfig.LabelConfig
+
+	// Initial manifest
+	Manifest string
+
+	Monitoring ClusterMonitoringConfig
+
+	Logging ClusterLoggingConfig
+
+	// Namespace to install Pipeline components to
+	Namespace string
+
 	// Posthook configs
 	PostHook cluster.PostHookConfig
 
-	// Features
-	Vault        ClusterVaultConfig
-	Monitoring   ClusterMonitoringConfig
-	Logging      ClusterLoggingConfig
-	DNS          ClusterDNSConfig
 	SecurityScan ClusterSecurityScanConfig
-	Expiry       ExpiryConfig
 
-	Autoscale struct {
-		Namespace string
-
-		HPA struct {
-			Prometheus struct {
-				ServiceName    string
-				ServiceContext string
-				LocalPort      int
-			}
-		}
-
-		Charts struct {
-			ClusterAutoscaler struct {
-				Chart                   string
-				Version                 string
-				ImageVersionConstraints []struct {
-					K8sVersion string
-					Tag        string
-					Repository string
-				}
-			}
-
-			HPAOperator struct {
-				Chart   string
-				Version string
-			}
-		}
-	}
-
-	DisasterRecovery struct {
-		Namespace string
-
-		Ark struct {
-			SyncEnabled         bool
-			BucketSyncInterval  time.Duration
-			RestoreSyncInterval time.Duration
-			BackupSyncInterval  time.Duration
-			RestoreWaitTimeout  time.Duration
-		}
-
-		Charts struct {
-			Ark struct {
-				Chart   string
-				Version string
-				Values  struct {
-					Image struct {
-						Repository string
-						Tag        string
-						PullPolicy string
-					}
-				}
-			}
-		}
-	}
-
-	Backyards istiofeature.StaticConfig
-
-	Federation federation.StaticConfig
+	Vault ClusterVaultConfig
 }
 
 // Validate validates the configuration.
 func (c ClusterConfig) Validate() error {
+	var errs error
+
+	errs = errors.Append(errs, c.DNS.Validate())
+
+	errs = errors.Append(errs, c.Labels.Validate())
+
+	errs = errors.Append(errs, c.Logging.Validate())
+
 	if c.Manifest != "" {
 		file, err := os.OpenFile(c.Manifest, os.O_RDONLY, 0666)
-		if err != nil {
-			return fmt.Errorf("cluster manifest file is not readable: %w", err)
-		}
 		_ = file.Close()
+		if err != nil {
+			errs = errors.Append(errs, errors.Errorf("cluster manifest file is not readable: %w", err))
+		}
 	}
+
+	errs = errors.Append(errs, c.Monitoring.Validate())
 
 	if c.Namespace == "" {
-		return errors.New("cluster namespace is required")
+		errs = errors.Append(errs, errors.New("cluster namespace is required"))
 	}
 
-	if err := c.Labels.Validate(); err != nil {
-		return err
-	}
+	errs = errors.Append(errs, c.SecurityScan.Validate())
 
-	if c.Vault.Enabled {
-		if err := c.Vault.Validate(); err != nil {
-			return err
-		}
-	}
+	errs = errors.Append(errs, c.Vault.Validate())
 
-	if c.Monitoring.Enabled {
-		if err := c.Monitoring.Validate(); err != nil {
-			return err
-		}
-	}
-
-	if c.Logging.Enabled {
-		if err := c.Logging.Validate(); err != nil {
-			return err
-		}
-	}
-
-	if c.DNS.Enabled {
-		if err := c.DNS.Validate(); err != nil {
-			return err
-		}
-	}
-
-	if c.SecurityScan.Enabled {
-		if err := c.SecurityScan.Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return errs
 }
 
 // Process post-processes the configuration after loading (before validation).
 func (c *ClusterConfig) Process() error {
-	if c.Labels.Namespace == "" {
-		c.Labels.Namespace = c.Namespace
-	}
-
-	if c.Vault.Namespace == "" {
-		c.Vault.Namespace = c.Namespace
-	}
-
-	if c.Monitoring.Namespace == "" {
-		c.Monitoring.Namespace = c.Namespace
-	}
-
-	if c.Logging.Namespace == "" {
-		c.Logging.Namespace = c.Namespace
-	}
-
-	if c.DNS.Namespace == "" {
-		c.DNS.Namespace = c.Namespace
-	}
-
 	if c.Autoscale.Namespace == "" {
 		c.Autoscale.Namespace = c.Namespace
 	}
@@ -361,25 +253,107 @@ func (c *ClusterConfig) Process() error {
 		c.DisasterRecovery.Namespace = c.Namespace
 	}
 
+	if c.DNS.Namespace == "" {
+		c.DNS.Namespace = c.Namespace
+	}
+
+	if c.Labels.Namespace == "" {
+		c.Labels.Namespace = c.Namespace
+	}
+
+	if c.Logging.Namespace == "" {
+		c.Logging.Namespace = c.Namespace
+	}
+
+	if c.Monitoring.Namespace == "" {
+		c.Monitoring.Namespace = c.Namespace
+	}
+
 	if c.SecurityScan.PipelineNamespace == "" {
 		c.SecurityScan.PipelineNamespace = c.Namespace
+	}
+
+	if c.Vault.Namespace == "" {
+		c.Vault.Namespace = c.Namespace
 	}
 
 	return nil
 }
 
-// ClusterVaultConfig contains cluster vault configuration.
-type ClusterVaultConfig struct {
-	Enabled bool
+type ClusterAutoscaleConfig struct {
+	Namespace string
 
-	vault.Config `mapstructure:",squash"`
+	HPA struct {
+		Prometheus struct {
+			ServiceName    string
+			ServiceContext string
+			LocalPort      int
+		}
+	}
+
+	Charts struct {
+		ClusterAutoscaler struct {
+			Chart                   string
+			Version                 string
+			ImageVersionConstraints []struct {
+				K8sVersion string
+				Tag        string
+				Repository string
+			}
+		}
+
+		HPAOperator struct {
+			Chart   string
+			Version string
+		}
+	}
 }
 
-// ClusterMonitoringConfig contains cluster monitoring configuration.
-type ClusterMonitoringConfig struct {
+type ClusterDisasterRecoveryConfig struct {
+	Namespace string
+
+	Ark struct {
+		SyncEnabled         bool
+		BucketSyncInterval  time.Duration
+		RestoreSyncInterval time.Duration
+		BackupSyncInterval  time.Duration
+		RestoreWaitTimeout  time.Duration
+	}
+
+	Charts struct {
+		Ark struct {
+			Chart   string
+			Version string
+			Values  struct {
+				Image struct {
+					Repository string
+					Tag        string
+					PullPolicy string
+				}
+			}
+		}
+	}
+}
+
+// ClusterDNSConfig contains cluster DNS configuration.
+type ClusterDNSConfig struct {
 	Enabled bool
 
-	monitoring.Config `mapstructure:",squash"`
+	dns.Config `mapstructure:",squash"`
+}
+
+func (c ClusterDNSConfig) Validate() error {
+	var errs error
+
+	if c.Enabled {
+		errs = errors.Append(errs, c.Config.Validate())
+	}
+
+	return errs
+}
+
+type ClusterExpiryConfig struct {
+	Enabled bool
 }
 
 // ClusterLoggingConfig contains cluster logging configuration.
@@ -389,11 +363,31 @@ type ClusterLoggingConfig struct {
 	logging.Config `mapstructure:",squash"`
 }
 
-// ClusterDNSConfig contains cluster DNS configuration.
-type ClusterDNSConfig struct {
+func (c ClusterLoggingConfig) Validate() error {
+	var errs error
+
+	if c.Enabled {
+		errs = errors.Append(errs, c.Config.Validate())
+	}
+
+	return errs
+}
+
+// ClusterMonitoringConfig contains cluster monitoring configuration.
+type ClusterMonitoringConfig struct {
 	Enabled bool
 
-	dns.Config `mapstructure:",squash"`
+	monitoring.Config `mapstructure:",squash"`
+}
+
+func (c ClusterMonitoringConfig) Validate() error {
+	var errs error
+
+	if c.Enabled {
+		errs = errors.Append(errs, c.Config.Validate())
+	}
+
+	return errs
 }
 
 // ClusterSecurityScanConfig contains cluster security scan configuration.
@@ -413,8 +407,41 @@ func (c ClusterSecurityScanConfig) Validate() error {
 	return err
 }
 
-type ExpiryConfig struct {
+// ClusterVaultConfig contains cluster vault configuration.
+type ClusterVaultConfig struct {
 	Enabled bool
+
+	vault.Config `mapstructure:",squash"`
+}
+
+func (c ClusterVaultConfig) Validate() error {
+	var errs error
+
+	if c.Enabled {
+		errs = errors.Append(errs, c.Config.Validate())
+	}
+
+	return errs
+}
+
+// TelemetryConfig contains telemetry configuration.
+type TelemetryConfig struct {
+	Enabled bool
+	Addr    string
+	Debug   bool
+}
+
+// Validate validates the configuration.
+func (c TelemetryConfig) Validate() error {
+	var err error
+
+	if c.Enabled {
+		if c.Addr == "" {
+			err = errors.Append(err, errors.New("telemetry http server address is required"))
+		}
+	}
+
+	return err
 }
 
 // Configure configures some defaults in the Viper instance.
