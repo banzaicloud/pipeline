@@ -23,8 +23,6 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
 	"go.uber.org/cadence/workflow"
-
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 )
 
 type CreateInfraWorkflowTestSuite struct {
@@ -49,7 +47,7 @@ func TestCreateInfraWorkflowTestSuite(t *testing.T) {
 	createIamRolesActivity := NewCreateIamRolesActivity(nil, "")
 	activity.RegisterWithOptions(createIamRolesActivity.Execute, activity.RegisterOptions{Name: CreateIamRolesActivityName})
 
-	uploadSSHActivityActivity := NewUploadSSHKeyActivity(nil, eks.Config{Ssh: eks.SSHConfig{Generate: true}})
+	uploadSSHActivityActivity := NewUploadSSHKeyActivity(nil)
 	activity.RegisterWithOptions(uploadSSHActivityActivity.Execute, activity.RegisterOptions{Name: UploadSSHKeyActivityName})
 
 	createEksClusterActivity := NewCreateEksClusterActivity(nil)
@@ -140,11 +138,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 				NodeInstanceType: "vm-type2-test",
 			},
 		},
-		Config: eks.Config{
-			Ssh: eks.SSHConfig{
-				Generate: true,
-			},
-		},
+		GenerateSSH: true,
 	}
 
 	eksActivity := EKSActivityInput{
@@ -403,11 +397,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
 				NodeInstanceType: "vm-type2-test",
 			},
 		},
-		Config: eks.Config{
-			Ssh: eks.SSHConfig{
-				Generate: true,
-			},
-		},
+		GenerateSSH: true,
 	}
 
 	s.env.OnActivity(CreateIamRolesActivityName, mock.Anything, mock.Anything).Return(&CreateIamRolesActivityOutput{

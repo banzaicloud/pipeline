@@ -19,13 +19,12 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/adapter"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
-func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *adapter.ClusterManagerAdapter, config eks.Config) error {
+func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *adapter.ClusterManagerAdapter) error {
 
 	vpcTemplate, err := eksworkflow.GetVPCTemplate()
 	if err != nil {
@@ -64,7 +63,7 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *a
 	createIamRolesActivity := eksworkflow.NewCreateIamRolesActivity(awsSessionFactory, iamRolesTemplate)
 	activity.RegisterWithOptions(createIamRolesActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateIamRolesActivityName})
 
-	uploadSSHActivityActivity := eksworkflow.NewUploadSSHKeyActivity(awsSessionFactory, config)
+	uploadSSHActivityActivity := eksworkflow.NewUploadSSHKeyActivity(awsSessionFactory)
 	activity.RegisterWithOptions(uploadSSHActivityActivity.Execute, activity.RegisterOptions{Name: eksworkflow.UploadSSHKeyActivityName})
 
 	getVpcConfigActivity := eksworkflow.NewGetVpcConfigActivity(awsSessionFactory)

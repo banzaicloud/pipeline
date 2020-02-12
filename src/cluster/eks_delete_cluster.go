@@ -21,7 +21,6 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 )
 
@@ -46,7 +45,8 @@ type EKSDeleteClusterWorkflowInput struct {
 	// force delete
 	Forced bool
 
-	Config eks.Config
+	// TODO (colin): remove this after we can save SSH generation during create process
+	GenerateSSH bool
 }
 
 // DeleteClusterWorkflow executes the Cadence workflow responsible for deleting an EKS cluster
@@ -119,7 +119,7 @@ func EKSDeleteClusterWorkflow(ctx workflow.Context, input EKSDeleteClusterWorkfl
 			ClusterName:    input.ClusterName,
 			NodePoolNames:  input.NodePoolNames,
 			DefaultUser:    input.DefaultUser,
-			Config:         input.Config,
+			GenerateSSH:    input.GenerateSSH,
 		}
 
 		err := workflow.ExecuteChildWorkflow(ctx, eksWorkflow.DeleteInfraWorkflowName, infraInput).Get(ctx, nil)
