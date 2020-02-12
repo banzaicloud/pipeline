@@ -150,6 +150,9 @@ var Config struct {
 		EKS struct {
 			ExposeAdminKubeconfig bool
 			TemplateLocation      string
+			SSH                   struct {
+				Generate bool
+			}
 		}
 	}
 	Gitlab struct {

@@ -23,7 +23,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
+	"github.com/banzaicloud/pipeline/internal/global"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -38,7 +38,6 @@ type CreateNodePoolActivity struct {
 	nodePools         cluster.NodePoolStore
 	eksNodePools      distribution.EKSNodePoolStore
 	awsSessionFactory AWSSessionFactory
-	config            eks.Config
 }
 
 // NewCreateNodePoolActivity returns a new CreateNodePoolActivity.
@@ -48,7 +47,6 @@ func NewCreateNodePoolActivity(
 	nodePools cluster.NodePoolStore,
 	eksNodePools distribution.EKSNodePoolStore,
 	awsSessionFactory AWSSessionFactory,
-	config eks.Config,
 ) CreateNodePoolActivity {
 	return CreateNodePoolActivity{
 		clusters:          clusters,
@@ -56,7 +54,6 @@ func NewCreateNodePoolActivity(
 		nodePools:         nodePools,
 		eksNodePools:      eksNodePools,
 		awsSessionFactory: awsSessionFactory,
-		config:            config,
 	}
 }
 
@@ -181,7 +178,8 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			Labels:           nodePool.Labels,
 		}
 
-		if a.config.Ssh.Generate {
+		var eksConfig = global.Config.Distribution.EKS
+		if eksConfig.SSH.Generate {
 			subinput.SSHKeyName = eksworkflow.GenerateSSHKeyNameForCluster(c.Name)
 		}
 

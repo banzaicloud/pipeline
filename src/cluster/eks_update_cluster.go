@@ -22,7 +22,6 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -49,7 +48,7 @@ type EKSUpdateClusterstructureWorkflowInput struct {
 	AsgList            []eksWorkflow.AutoscaleGroup
 	NodePoolLabels     map[string]map[string]string
 
-	Config eks.Config
+	GenerateSSH bool
 }
 
 func waitForActivities(asgFutures []workflow.Future, ctx workflow.Context, clusterID uint) error {
@@ -214,7 +213,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				NodeInstanceType: nodePool.NodeInstanceType,
 				Labels:           nodePool.Labels,
 			}
-			if input.Config.Ssh.Generate {
+			if input.GenerateSSH {
 				activityInput.SSHKeyName = eksWorkflow.GenerateSSHKeyNameForCluster(input.ClusterName)
 			}
 

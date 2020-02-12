@@ -25,7 +25,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
@@ -37,7 +37,6 @@ import (
 type EksClusterUpdater struct {
 	logger         logrus.FieldLogger
 	workflowClient client.Client
-	config         eks.Config
 }
 
 type updateValidationError struct {
@@ -59,11 +58,10 @@ func (e *updateValidationError) IsPreconditionFailed() bool {
 	return e.preconditionFailed
 }
 
-func NewEksClusterUpdater(logger logrus.FieldLogger, workflowClient client.Client, config eks.Config) EksClusterUpdater {
+func NewEksClusterUpdater(logger logrus.FieldLogger, workflowClient client.Client) EksClusterUpdater {
 	return EksClusterUpdater{
 		logger:         logger,
 		workflowClient: workflowClient,
-		config:         config,
 	}
 }
 
@@ -287,7 +285,7 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 		ScaleEnabled:       eksCluster.GetScaleOptions() != nil && eksCluster.GetScaleOptions().Enabled,
 		NodeInstanceRoleID: modelCluster.NodeInstanceRoleId,
 		NodePoolLabels:     nodePoolLabelMap,
-		Config:             c.config,
+		GenerateSSH:        global.Config.Distribution.EKS.SSH.Generate,
 	}
 
 	input.Subnets = subnets

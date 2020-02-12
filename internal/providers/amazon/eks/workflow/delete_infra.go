@@ -20,8 +20,6 @@ import (
 	"emperror.dev/errors"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
-
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 )
 
 const DeleteInfraWorkflowName = "eks-delete-infra"
@@ -35,7 +33,7 @@ type DeleteInfrastructureWorkflowInput struct {
 	ClusterUID     string
 	NodePoolNames  []string
 	DefaultUser    bool
-	Config         eks.Config
+	GenerateSSH    bool
 }
 
 // DeleteInfrastructureWorkflow executes the Cadence workflow responsible for deleting EKS
@@ -175,7 +173,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 
 	// delete SSH key
 	var deleteSSHKeyAcitivityFeature workflow.Future
-	if input.Config.Ssh.Generate {
+	if input.GenerateSSH {
 		{
 			activityInput := DeleteSshKeyActivityInput{
 				EKSActivityInput: eksActivityInput,

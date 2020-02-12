@@ -20,8 +20,6 @@ import (
 	"emperror.dev/errors"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
-
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks"
 )
 
 const CreateInfraWorkflowName = "eks-create-infra"
@@ -55,7 +53,7 @@ type CreateInfrastructureWorkflowInput struct {
 	LogTypes []string
 	AsgList  []AutoscaleGroup
 
-	Config eks.Config
+	GenerateSSH bool
 }
 
 type CreateInfrastructureWorkflowOutput struct {
@@ -122,7 +120,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 	// upload SSH key activity
 	sshKeyName := GenerateSSHKeyNameForCluster(input.ClusterName)
 	var uploadSSHKeyActivityFeature workflow.Future
-	if input.Config.Ssh.Generate {
+	if input.GenerateSSH {
 		{
 			activityInput := &UploadSSHKeyActivityInput{
 				EKSActivityInput: commonActivityInput,
@@ -335,7 +333,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			NodeInstanceType: asg.NodeInstanceType,
 			Labels:           asg.Labels,
 		}
-		if input.Config.Ssh.Generate {
+		if input.GenerateSSH {
 			activityInput.SSHKeyName = sshKeyName
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
