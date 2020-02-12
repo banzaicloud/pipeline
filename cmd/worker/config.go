@@ -38,6 +38,13 @@ type configuration struct {
 	// Meaningful values are recommended (eg. production, development, staging, release/123, etc)
 	Environment string
 
+	CICD struct {
+		Enabled  bool
+		Insecure bool
+		SCM      string
+		URL      string
+	}
+
 	// Turns on some debug functionality
 	Debug bool
 
@@ -58,17 +65,42 @@ type configuration struct {
 
 // Validate validates the configuration.
 func (c configuration) Validate() error {
-	var err error
+	var errs error
 
-	err = errors.Append(err, c.Auth.Validate())
+	errs = errors.Append(errs, c.Auth.Validate())
 
-	err = errors.Append(err, c.Config.Validate())
+	if c.CICD.Enabled {
+		if c.CICD.URL == "" {
+			errs = errors.Append(errs, errors.New("cicd url is required"))
+		}
 
-	if c.Environment == "" {
-		err = errors.Append(err, errors.New("environment is required"))
+		switch c.CICD.SCM {
+		case "github":
+			if c.Github.Token == "" {
+				errs = errors.Append(errs, errors.New("github token is required"))
+			}
+
+		case "gitlab":
+			if c.Gitlab.URL == "" {
+				errs = errors.Append(errs, errors.New("gitlab url is required"))
+			}
+
+			if c.Gitlab.Token == "" {
+				errs = errors.Append(errs, errors.New("gitlab token is required"))
+			}
+
+		default:
+			errs = errors.Append(errs, errors.New("cicd scm is required"))
+		}
 	}
 
-	return err
+	errs = errors.Append(errs, c.Config.Validate())
+
+	if c.Environment == "" {
+		errs = errors.Append(errs, errors.New("environment is required"))
+	}
+
+	return errs
 }
 
 // Process post-processes the configuration after loading (before validation).

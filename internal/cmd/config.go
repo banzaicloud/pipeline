@@ -42,14 +42,6 @@ type Config struct {
 	// Cadence configuration
 	Cadence cadence.Config
 
-	CICD struct {
-		Enabled  bool
-		URL      string
-		Insecure bool
-		SCM      string
-		Database database.Config
-	}
-
 	Cloud struct {
 		Amazon struct {
 			DefaultRegion string
@@ -145,36 +137,11 @@ func (c Config) Validate() error {
 
 	err = errors.Append(err, c.Cadence.Validate())
 
-	if c.CICD.Enabled {
-		if c.CICD.URL == "" {
-			err = errors.Append(err, errors.New("cicd url is required"))
-		}
-
-		switch c.CICD.SCM {
-		case "github":
-			if c.Github.Token == "" {
-				err = errors.Append(err, errors.New("github token is required"))
-			}
-
-		case "gitlab":
-			if c.Gitlab.URL == "" {
-				err = errors.Append(err, errors.New("gitlab url is required"))
-			}
-
-			if c.Gitlab.Token == "" {
-				err = errors.Append(err, errors.New("gitlab token is required"))
-			}
-
-		default:
-			err = errors.Append(err, errors.New("cicd scm is required"))
-		}
-
-		err = errors.Append(err, c.CICD.Database.Validate())
-	}
-
 	err = errors.Append(err, c.Cloudinfo.Validate())
 
 	err = errors.Append(err, c.Cluster.Validate())
+
+	err = errors.Append(err, c.Database.Validate())
 
 	err = errors.Append(err, c.Errors.Validate())
 
@@ -800,17 +767,6 @@ traefik:
 	v.SetDefault("cicd::url", "http://localhost:8000")
 	v.SetDefault("cicd::insecure", false)
 	v.SetDefault("cicd::scm", "github")
-	v.SetDefault("cicd::database::dialect", "mysql")
-	v.SetDefault("cicd::database::host", "")
-	v.SetDefault("cicd::database::port", 3306)
-	v.SetDefault("cicd::database::tls", "")
-	v.SetDefault("cicd::database::user", "")
-	v.SetDefault("cicd::database::password", "")
-	v.SetDefault("cicd::database::name", "cicd")
-	v.SetDefault("cicd::database::params", map[string]string{
-		"charset": "utf8mb4",
-	})
-	v.SetDefault("cicd::database::queryLog", false)
 
 	// Auth provider (Gitlab/Github) settings
 	v.SetDefault("github::token", "")
