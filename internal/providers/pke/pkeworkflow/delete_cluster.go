@@ -34,7 +34,10 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		StartToCloseTimeout:    5 * time.Minute,
 		WaitForCancellation:    true,
 		RetryPolicy: &cadence.RetryPolicy{
-			MaximumAttempts: 5,
+			InitialInterval:    2 * time.Second,
+			BackoffCoefficient: 1.5,
+			MaximumInterval:    30 * time.Second,
+			MaximumAttempts:    5,
 		},
 	}
 
