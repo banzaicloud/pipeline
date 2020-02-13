@@ -27,6 +27,7 @@ import (
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 )
 
@@ -66,9 +67,13 @@ func decodeDeleteClusterHTTPRequest(_ context.Context, r *http.Request) (interfa
 			return nil, err
 		}
 
-		return deleteClusterRequest{
-			ClusterID: clusterID,
-			Force:     force,
+		return DeleteClusterRequest{
+			ClusterIdentifier: cluster.Identifier{
+				ClusterID: clusterID,
+			},
+			Options: cluster.DeleteClusterOptions{
+				Force: force,
+			},
 		}, nil
 
 	case "name":
@@ -79,10 +84,14 @@ func decodeDeleteClusterHTTPRequest(_ context.Context, r *http.Request) (interfa
 
 		clusterName := mux.Vars(r)["clusterId"]
 
-		return deleteClusterRequest{
-			OrganizationID: orgID,
-			ClusterName:    clusterName,
-			Force:          force,
+		return DeleteClusterRequest{
+			ClusterIdentifier: cluster.Identifier{
+				OrganizationID: orgID,
+				ClusterName:    clusterName,
+			},
+			Options: cluster.DeleteClusterOptions{
+				Force: force,
+			},
 		}, nil
 
 	default:
@@ -114,9 +123,9 @@ func getOrgID(req *http.Request) (uint, error) {
 	return uint(orgID), errors.WrapIf(err, "invalid organization ID format")
 }
 
-func encodeDeleteClusterHTTPResponse(_ context.Context, w http.ResponseWriter, resp interface{}) error {
-	deleted, ok := resp.(bool)
-	if !ok || deleted {
+func encodeDeleteClusterHTTPResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	resp, ok := response.(DeleteClusterResponse)
+	if !ok || resp.Deleted {
 		w.WriteHeader(http.StatusNoContent)
 
 		return nil
@@ -163,7 +172,7 @@ func decodeCreateNodePoolHTTPRequest(_ context.Context, r *http.Request) (interf
 		return nil, errors.Wrap(err, "failed to decode request")
 	}
 
-	return createNodePoolRequest{ClusterID: uint(clusterID), Spec: spec}, nil
+	return CreateNodePoolRequest{ClusterID: uint(clusterID), RawNodePool: spec}, nil
 }
 
 func decodeDeleteNodePoolHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -184,12 +193,12 @@ func decodeDeleteNodePoolHTTPRequest(_ context.Context, r *http.Request) (interf
 		return nil, errors.NewWithDetails("missing parameter from the URL", "param", "nodePoolName")
 	}
 
-	return deleteNodePoolRequest{ClusterID: uint(clusterID), NodePoolName: nodePoolName}, nil
+	return DeleteNodePoolRequest{ClusterID: uint(clusterID), Name: nodePoolName}, nil
 }
 
-func encodeDeleteNodePoolHTTPResponse(_ context.Context, w http.ResponseWriter, resp interface{}) error {
-	deleted, ok := resp.(bool)
-	if !ok || deleted {
+func encodeDeleteNodePoolHTTPResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	resp, ok := response.(DeleteNodePoolResponse)
+	if !ok || resp.Deleted {
 		w.WriteHeader(http.StatusNoContent)
 
 		return nil

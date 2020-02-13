@@ -23,7 +23,6 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	appkitendpoint "github.com/sagikazarmark/appkit/endpoint"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -39,14 +38,14 @@ func TestRegisterHTTPHandlers_DeleteCluster(t *testing.T) {
 		{
 			name: "already_deleted",
 			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return true, nil
+				return DeleteClusterResponse{Deleted: true}, nil
 			},
 			expectedStatusCode: http.StatusNoContent,
 		},
 		{
 			name: "async_delete",
 			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return false, nil
+				return DeleteClusterResponse{Deleted: false}, nil
 			},
 			expectedStatusCode: http.StatusAccepted,
 		},
@@ -169,28 +168,28 @@ func TestRegisterHTTPHandlers_CreateNodePool(t *testing.T) {
 	}{
 		{
 			name: "invalid",
-			endpointFunc: appkitendpoint.ClientErrorMiddleware(func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return nil, cluster.NewValidationError(
+			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return CreateNodePoolResponse{Err: cluster.NewValidationError(
 					"invalid node pool request",
 					[]string{"name cannot be empty"},
-				)
-			}),
+				)}, nil
+			},
 			expectedStatusCode: http.StatusUnprocessableEntity,
 		},
 		{
 			name: "already_exists",
-			endpointFunc: appkitendpoint.ClientErrorMiddleware(func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return nil, cluster.NodePoolAlreadyExistsError{
+			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return CreateNodePoolResponse{Err: cluster.NodePoolAlreadyExistsError{
 					ClusterID: 1,
 					NodePool:  "pool0",
-				}
-			}),
+				}}, nil
+			},
 			expectedStatusCode: http.StatusConflict,
 		},
 		{
 			name: "success",
 			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return nil, nil
+				return CreateNodePoolResponse{}, nil
 			},
 			expectedStatusCode: http.StatusAccepted,
 		},
@@ -238,14 +237,14 @@ func TestRegisterHTTPHandlers_DeleteNodePool(t *testing.T) {
 		{
 			name: "already_deleted",
 			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return true, nil
+				return DeleteNodePoolResponse{Deleted: true}, nil
 			},
 			expectedStatusCode: http.StatusNoContent,
 		},
 		{
 			name: "async_delete",
 			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return false, nil
+				return DeleteNodePoolResponse{Deleted: false}, nil
 			},
 			expectedStatusCode: http.StatusAccepted,
 		},
