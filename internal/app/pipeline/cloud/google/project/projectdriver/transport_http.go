@@ -22,6 +22,7 @@ import (
 	"github.com/gorilla/mux"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/cloud/google/project"
 	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 )
 
@@ -34,7 +35,7 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
 		endpoints.ListProjects,
 		decodeListProjectsHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(kitxhttp.JSONResponseEncoder, errorEncoder),
+		kitxhttp.ErrorResponseEncoder(encodeListProjectsHTTPResponse, errorEncoder),
 		options...,
 	))
 }
@@ -45,5 +46,20 @@ func decodeListProjectsHTTPRequest(_ context.Context, r *http.Request) (interfac
 		secretID = r.URL.Query().Get(secretIDParam)
 	}
 
-	return listProjectsRequest{SecretID: secretID}, nil
+	return ListProjectsRequest{SecretID: secretID}, nil
+}
+
+// TODO: use api response type
+type listProjectsResponse struct {
+	Projects []project.Project `json:"projects"`
+}
+
+func encodeListProjectsHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(ListProjectsResponse)
+
+	apiResp := listProjectsResponse{
+		Projects: resp.Projects,
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, apiResp)
 }
