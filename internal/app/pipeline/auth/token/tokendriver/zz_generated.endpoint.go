@@ -63,8 +63,8 @@ type CreateTokenRequest struct {
 
 // CreateTokenResponse is a response struct for CreateToken endpoint.
 type CreateTokenResponse struct {
-	R0  token.NewToken
-	Err error
+	NewToken token.NewToken
+	Err      error
 }
 
 func (r CreateTokenResponse) Failed() error {
@@ -76,23 +76,23 @@ func MakeCreateTokenEndpoint(service token.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(CreateTokenRequest)
 
-		r0, err := service.CreateToken(ctx, req.TokenRequest)
+		newToken, err := service.CreateToken(ctx, req.TokenRequest)
 
 		if err != nil {
 			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
 				return CreateTokenResponse{
-					Err: err,
-					R0:  r0,
+					Err:      err,
+					NewToken: newToken,
 				}, err
 			}
 
 			return CreateTokenResponse{
-				Err: err,
-				R0:  r0,
+				Err:      err,
+				NewToken: newToken,
 			}, nil
 		}
 
-		return CreateTokenResponse{R0: r0}, nil
+		return CreateTokenResponse{NewToken: newToken}, nil
 	}
 }
 
@@ -136,8 +136,8 @@ type GetTokenRequest struct {
 
 // GetTokenResponse is a response struct for GetToken endpoint.
 type GetTokenResponse struct {
-	R0  token.Token
-	Err error
+	Token token.Token
+	Err   error
 }
 
 func (r GetTokenResponse) Failed() error {
@@ -149,23 +149,23 @@ func MakeGetTokenEndpoint(service token.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(GetTokenRequest)
 
-		r0, err := service.GetToken(ctx, req.Id)
+		token, err := service.GetToken(ctx, req.Id)
 
 		if err != nil {
 			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
 				return GetTokenResponse{
-					Err: err,
-					R0:  r0,
+					Err:   err,
+					Token: token,
 				}, err
 			}
 
 			return GetTokenResponse{
-				Err: err,
-				R0:  r0,
+				Err:   err,
+				Token: token,
 			}, nil
 		}
 
-		return GetTokenResponse{R0: r0}, nil
+		return GetTokenResponse{Token: token}, nil
 	}
 }
 
@@ -174,8 +174,8 @@ type ListTokensRequest struct{}
 
 // ListTokensResponse is a response struct for ListTokens endpoint.
 type ListTokensResponse struct {
-	R0  []token.Token
-	Err error
+	Tokens []token.Token
+	Err    error
 }
 
 func (r ListTokensResponse) Failed() error {
@@ -185,22 +185,22 @@ func (r ListTokensResponse) Failed() error {
 // MakeListTokensEndpoint returns an endpoint for the matching method of the underlying service.
 func MakeListTokensEndpoint(service token.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		r0, err := service.ListTokens(ctx)
+		tokens, err := service.ListTokens(ctx)
 
 		if err != nil {
 			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
 				return ListTokensResponse{
-					Err: err,
-					R0:  r0,
+					Err:    err,
+					Tokens: tokens,
 				}, err
 			}
 
 			return ListTokensResponse{
-				Err: err,
-				R0:  r0,
+				Err:    err,
+				Tokens: tokens,
 			}, nil
 		}
 
-		return ListTokensResponse{R0: r0}, nil
+		return ListTokensResponse{Tokens: tokens}, nil
 	}
 }

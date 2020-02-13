@@ -41,21 +41,21 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
 		endpoints.CreateToken,
 		decodeCreateTokenHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(kitxhttp.JSONResponseEncoder, errorEncoder),
+		kitxhttp.ErrorResponseEncoder(encodeCreateTokenHTTPResponse, errorEncoder),
 		options...,
 	))
 
 	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
 		endpoints.ListTokens,
 		kithttp.NopRequestDecoder,
-		kitxhttp.JSONResponseEncoder,
+		kitxhttp.ErrorResponseEncoder(encodeListTokensHTTPResponse, errorEncoder),
 		options...,
 	))
 
 	router.Methods(http.MethodGet).Path("/{id}").Handler(kithttp.NewServer(
 		endpoints.GetToken,
 		decodeGetTokenHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(kitxhttp.JSONResponseEncoder, errorEncoder),
+		kitxhttp.ErrorResponseEncoder(encodeGetTokenHTTPResponse, errorEncoder),
 		options...,
 	))
 
@@ -75,7 +75,19 @@ func decodeCreateTokenHTTPRequest(_ context.Context, r *http.Request) (interface
 		return nil, errors.Wrap(err, "failed to decode request")
 	}
 
-	return newTokenRequest, nil
+	return CreateTokenRequest{TokenRequest: newTokenRequest}, nil
+}
+
+func encodeCreateTokenHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(CreateTokenResponse)
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp.NewToken)
+}
+
+func encodeListTokensHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(ListTokensResponse)
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp.Tokens)
 }
 
 func decodeGetTokenHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -86,7 +98,13 @@ func decodeGetTokenHTTPRequest(_ context.Context, r *http.Request) (interface{},
 		return nil, errors.NewWithDetails("missing parameter from the URL", "param", "id")
 	}
 
-	return getTokenRequest{ID: id}, nil
+	return GetTokenRequest{Id: id}, nil
+}
+
+func encodeGetTokenHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(GetTokenResponse)
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp.Token)
 }
 
 func decodeDeleteTokenHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -97,5 +115,5 @@ func decodeDeleteTokenHTTPRequest(_ context.Context, r *http.Request) (interface
 		return nil, errors.NewWithDetails("missing parameter from the URL", "param", "id")
 	}
 
-	return deleteTokenRequest{ID: id}, nil
+	return DeleteTokenRequest{Id: id}, nil
 }
