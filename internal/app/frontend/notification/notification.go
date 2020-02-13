@@ -30,12 +30,13 @@ type Notification struct {
 	Priority int8   `json:"priority"`
 }
 
-// Service provides an interface to notifications.
-//go:generate mga gen kit endpoint --outdir notificationdriver --with-oc Service
 //go:generate mga gen mockery --name Service --inpkg
+// +kit:endpoint:withOpenCensus=true,errorStrategy=service
+
+// Service provides an interface to notifications.
 type Service interface {
 	// GetNotifications returns the list of notifications.
-	GetNotifications(ctx context.Context) (Notifications, error)
+	GetNotifications(ctx context.Context) (notifications Notifications, err error)
 }
 
 type service struct {

@@ -43,7 +43,7 @@ func TestMakeHTTPHandler_GetNotifications(t *testing.T) {
 	RegisterHTTPHandlers(
 		Endpoints{
 			GetNotifications: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return notifications, nil
+				return GetNotificationsResponse{Notifications: notifications}, nil
 			},
 		},
 		handler.PathPrefix("/notifications").Subrouter(),
