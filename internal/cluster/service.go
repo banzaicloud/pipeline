@@ -192,18 +192,19 @@ func (NotSupportedDistributionError) ClientError() bool {
 	return true
 }
 
-// Service provides an interface to clusters.
-//go:generate mga gen kit endpoint --outdir clusterdriver --outfile endpoint_gen.go --with-oc Service
 //go:generate mga gen mockery --name Service --inpkg
+// +kit:endpoint:withOpenCensus=true,errorStrategy=service
+
+// Service provides an interface to clusters.
 type Service interface {
 	// DeleteCluster deletes the specified cluster. It returns true if the cluster is already deleted.
-	DeleteCluster(ctx context.Context, clusterIdentifier Identifier, options DeleteClusterOptions) (bool, error)
+	DeleteCluster(ctx context.Context, clusterIdentifier Identifier, options DeleteClusterOptions) (deleted bool, err error)
 
 	// CreateNodePool creates a new node pool in a cluster.
 	CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) error
 
 	// DeleteNodePool deletes a node pool from a cluster.
-	DeleteNodePool(ctx context.Context, clusterID uint, name string) (bool, error)
+	DeleteNodePool(ctx context.Context, clusterID uint, name string) (deleted bool, err error)
 }
 
 // DeleteClusterOptions represents cluster deletion options.
