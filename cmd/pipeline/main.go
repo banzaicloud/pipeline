@@ -1003,7 +1003,7 @@ func main() {
 		}
 
 		{
-			service := secrettype.NewTypeService()
+			service := secrettype.NewService()
 			endpoints := secrettypedriver.TraceEndpoints(secrettypedriver.MakeEndpoints(
 				service,
 				kitxendpoint.Combine(endpointMiddleware...),

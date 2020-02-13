@@ -40,16 +40,22 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
 		endpoints.ListSecretTypes,
 		kithttp.NopRequestDecoder,
-		kitxhttp.ErrorResponseEncoder(kitxhttp.JSONResponseEncoder, errorEncoder),
+		kitxhttp.ErrorResponseEncoder(encodeListSecretTypesHTTPResponse, errorEncoder),
 		options...,
 	))
 
 	router.Methods(http.MethodGet).Path("/{type}").Handler(kithttp.NewServer(
 		endpoints.GetSecretType,
 		decodeGetSecretTypeHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(kitxhttp.JSONResponseEncoder, errorEncoder),
+		kitxhttp.ErrorResponseEncoder(encodeGetSecretTypeHTTPResponse, errorEncoder),
 		options...,
 	))
+}
+
+func encodeListSecretTypesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(ListSecretTypesResponse)
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp.SecretTypes)
 }
 
 func decodeGetSecretTypeHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -60,5 +66,11 @@ func decodeGetSecretTypeHTTPRequest(_ context.Context, r *http.Request) (interfa
 		return nil, errors.NewWithDetails("missing parameter from the URL", "param", "type")
 	}
 
-	return getSecretTypeRequest{SecretType: t}, nil
+	return GetSecretTypeRequest{SecretType: t}, nil
+}
+
+func encodeGetSecretTypeHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(GetSecretTypeResponse)
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp.SecretTypeDef)
 }
