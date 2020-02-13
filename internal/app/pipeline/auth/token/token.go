@@ -30,18 +30,19 @@ type Token struct {
 	CreatedAt time.Time  `json:"createdAt,omitempty"`
 }
 
-// Service provides access to personal access tokens.
-//go:generate mga gen kit endpoint --outdir tokendriver --with-oc Service
 //go:generate mga gen mockery --name Service --inpkg
+// +kit:endpoint:withOpenCensus=true,errorStrategy=service
+
+// Service provides access to personal access tokens.
 type Service interface {
 	// CreateToken creates a new access token. It returns the generated token value.
-	CreateToken(ctx context.Context, tokenRequest NewTokenRequest) (NewToken, error)
+	CreateToken(ctx context.Context, tokenRequest NewTokenRequest) (newToken NewToken, err error)
 
 	// ListTokens lists access tokens for a user.
-	ListTokens(ctx context.Context) ([]Token, error)
+	ListTokens(ctx context.Context) (tokens []Token, err error)
 
 	// GetToken returns a single access tokens for a user.
-	GetToken(ctx context.Context, id string) (Token, error)
+	GetToken(ctx context.Context, id string) (token Token, err error)
 
 	// DeleteToken deletes a single access token for a user.
 	DeleteToken(ctx context.Context, id string) error
