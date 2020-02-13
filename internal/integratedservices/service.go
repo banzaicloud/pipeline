@@ -23,24 +23,25 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
-// Service manages integrated services on Kubernetes clusters.
-//go:generate mga gen kit endpoint --outdir integratedservicedriver --with-oc Service
 //go:generate mga gen mockery --name Service --inpkg
+// +kit:endpoint:withOpenCensus=true,errorStrategy=service
+
+// Service manages integrated services on Kubernetes clusters.
 type Service interface {
 	// List lists the activated integrated services and their details.
-	List(ctx context.Context, clusterID uint) ([]IntegratedService, error)
+	List(ctx context.Context, clusterID uint) (services []IntegratedService, err error)
 
 	// Details returns the details of an activated integrated service.
-	Details(ctx context.Context, clusterID uint, integratedServiceName string) (IntegratedService, error)
+	Details(ctx context.Context, clusterID uint, serviceName string) (service IntegratedService, err error)
 
 	// Activate activates a integrated service.
-	Activate(ctx context.Context, clusterID uint, integratedServiceeName string, spec map[string]interface{}) error
+	Activate(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error
 
 	// Deactivate deactivates a integrated service.
-	Deactivate(ctx context.Context, clusterID uint, integratedServiceName string) error
+	Deactivate(ctx context.Context, clusterID uint, serviceName string) error
 
 	// Update updates a integrated service.
-	Update(ctx context.Context, clusterID uint, integratedServiceName string, spec map[string]interface{}) error
+	Update(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error
 }
 
 // MakeIntegratedServiceService returns a new IntegratedServiceService instance.

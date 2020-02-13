@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package integratedservicedriver
+package integratedservicesdriver
 
 import (
 	"context"
@@ -82,15 +82,27 @@ func decodeListIntegratedServicesRequest(_ context.Context, req *http.Request) (
 		return nil, err
 	}
 
-	return ListIntegratedServicesRequest{
+	return ListRequest{
 		ClusterID: clusterID,
 	}, nil
 }
 
-func encodeListIntegratedServicesResponse(_ context.Context, w http.ResponseWriter, resp interface{}) error {
+func encodeListIntegratedServicesResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(ListResponse)
+
+	integratedServiceDetails := make(map[string]pipeline.IntegratedServiceDetails, len(resp.Services))
+
+	for _, s := range resp.Services {
+		integratedServiceDetails[s.Name] = pipeline.IntegratedServiceDetails{
+			Spec:   s.Spec,
+			Output: s.Output,
+			Status: s.Status,
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 
-	return json.NewEncoder(w).Encode(resp)
+	return json.NewEncoder(w).Encode(integratedServiceDetails)
 }
 
 func decodeIntegratedServiceDetailsRequest(_ context.Context, req *http.Request) (interface{}, error) {
@@ -104,16 +116,24 @@ func decodeIntegratedServiceDetailsRequest(_ context.Context, req *http.Request)
 		return nil, err
 	}
 
-	return IntegratedServiceDetailsRequest{
-		ClusterID:             clusterID,
-		IntegratedServiceName: serviceName,
+	return DetailsRequest{
+		ClusterID:   clusterID,
+		ServiceName: serviceName,
 	}, nil
 }
 
-func encodeIntegratedServiceDetailsResponse(_ context.Context, w http.ResponseWriter, resp interface{}) error {
+func encodeIntegratedServiceDetailsResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(DetailsResponse)
+
+	service := pipeline.IntegratedServiceDetails{
+		Spec:   resp.Service.Spec,
+		Output: resp.Service.Output,
+		Status: resp.Service.Status,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 
-	return json.NewEncoder(w).Encode(resp)
+	return json.NewEncoder(w).Encode(service)
 }
 
 func decodeActivateIntegratedServiceRequest(_ context.Context, req *http.Request) (interface{}, error) {
@@ -132,10 +152,10 @@ func decodeActivateIntegratedServiceRequest(_ context.Context, req *http.Request
 		return nil, err
 	}
 
-	return ActivateIntegratedServiceRequest{
-		ClusterID:             clusterID,
-		IntegratedServiceName: serviceName,
-		Spec:                  requestBody.Spec,
+	return ActivateRequest{
+		ClusterID:   clusterID,
+		ServiceName: serviceName,
+		Spec:        requestBody.Spec,
 	}, nil
 }
 
@@ -157,9 +177,9 @@ func decodeDeactivateIntegratedServicesRequest(_ context.Context, req *http.Requ
 		return nil, err
 	}
 
-	return DeactivateIntegratedServiceRequest{
-		ClusterID:             clusterID,
-		IntegratedServiceName: serviceName,
+	return DeactivateRequest{
+		ClusterID:   clusterID,
+		ServiceName: serviceName,
 	}, nil
 }
 
@@ -187,10 +207,10 @@ func decodeUpdateIntegratedServicesRequest(_ context.Context, req *http.Request)
 		return nil, errors.WrapIf(err, "failed to decode request body")
 	}
 
-	return UpdateIntegratedServiceRequest{
-		ClusterID:             clusterID,
-		IntegratedServiceName: serviceName,
-		Spec:                  requestBody.Spec,
+	return UpdateRequest{
+		ClusterID:   clusterID,
+		ServiceName: serviceName,
+		Spec:        requestBody.Spec,
 	}, nil
 }
 
