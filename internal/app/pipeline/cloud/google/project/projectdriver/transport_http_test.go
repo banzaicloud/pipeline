@@ -29,12 +29,10 @@ import (
 )
 
 func TestRegisterHTTPHandlers_ListProjects(t *testing.T) {
-	expectedProjects := listProjectsResponse{
-		Projects: []project.Project{
-			{
-				Name:      "my-project",
-				ProjectId: "1234",
-			},
+	projects := []project.Project{
+		{
+			Name:      "my-project",
+			ProjectId: "1234",
 		},
 	}
 
@@ -42,7 +40,7 @@ func TestRegisterHTTPHandlers_ListProjects(t *testing.T) {
 	RegisterHTTPHandlers(
 		Endpoints{
 			ListProjects: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return expectedProjects, nil
+				return ListProjectsResponse{Projects: projects}, nil
 			},
 		},
 		handler.PathPrefix("/cloud/google/projects").Subrouter(),
@@ -62,5 +60,5 @@ func TestRegisterHTTPHandlers_ListProjects(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&projectResp)
 	require.NoError(t, err)
 
-	assert.Equal(t, expectedProjects, projectResp)
+	assert.Equal(t, projects, projectResp.Projects)
 }
