@@ -15,6 +15,7 @@
 package notificationdriver
 
 import (
+	"context"
 	"net/http"
 
 	kithttp "github.com/go-kit/kit/transport/http"
@@ -31,7 +32,13 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
 		endpoints.GetNotifications,
 		kithttp.NopRequestDecoder,
-		kitxhttp.ErrorResponseEncoder(kitxhttp.JSONResponseEncoder, errorEncoder),
+		kitxhttp.ErrorResponseEncoder(encodeGetNotificationsHTTPResponse, errorEncoder),
 		options...,
 	))
+}
+
+func encodeGetNotificationsHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(GetNotificationsResponse)
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp.Notifications)
 }
