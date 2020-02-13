@@ -136,8 +136,9 @@ type OrganizationStore interface {
 	ApplyUserMembership(ctx context.Context, organizationID uint, userID uint, role string) error
 }
 
+// +mga:event:dispatcher
+
 // OrganizationEvents dispatches organization events.
-//go:generate mga gen ev dispatcher OrganizationEvents
 type OrganizationEvents interface {
 	// OrganizationCreated dispatches an OrganizationCreated event.
 	OrganizationCreated(ctx context.Context, event OrganizationCreated) error

@@ -29,7 +29,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/src/auth"
-	"github.com/banzaicloud/pipeline/src/auth/authgen"
 )
 
 func TestOrganizationSyncer_SyncOrganizations(t *testing.T) {
@@ -42,7 +41,7 @@ func TestOrganizationSyncer_SyncOrganizations(t *testing.T) {
 	messages, err := publisher.Subscribe(context.Background(), topic)
 	require.NoError(t, err)
 
-	eventDispatcher := authgen.NewOrganizationEventDispatcher(eventBus)
+	eventDispatcher := auth.NewOrganizationEventDispatcher(eventBus)
 
 	syncer := auth.NewOrganizationSyncer(store, eventDispatcher, common.NoopLogger{})
 
