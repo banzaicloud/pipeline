@@ -36,11 +36,13 @@ func NewServiceMeshFeatureHandler(
 	clusterGetter api.ClusterGetter,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
+	staticConfig StaticConfig,
 ) *ServiceMeshFeatureHandler {
 	return &ServiceMeshFeatureHandler{
 		clusterGetter: clusterGetter,
 		logger:        logger,
 		errorHandler:  errorHandler,
+		staticConfig:  staticConfig,
 	}
 }
 
