@@ -13,13 +13,13 @@ type MockService struct {
 	mock.Mock
 }
 
-// Activate provides a mock function with given fields: ctx, clusterID, integratedServiceeName, spec
-func (_m *MockService) Activate(ctx context.Context, clusterID uint, integratedServiceeName string, spec map[string]interface{}) error {
-	ret := _m.Called(ctx, clusterID, integratedServiceeName, spec)
+// Activate provides a mock function with given fields: ctx, clusterID, serviceName, spec
+func (_m *MockService) Activate(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error {
+	ret := _m.Called(ctx, clusterID, serviceName, spec)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, uint, string, map[string]interface{}) error); ok {
-		r0 = rf(ctx, clusterID, integratedServiceeName, spec)
+		r0 = rf(ctx, clusterID, serviceName, spec)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -27,13 +27,13 @@ func (_m *MockService) Activate(ctx context.Context, clusterID uint, integratedS
 	return r0
 }
 
-// Deactivate provides a mock function with given fields: ctx, clusterID, integratedServiceName
-func (_m *MockService) Deactivate(ctx context.Context, clusterID uint, integratedServiceName string) error {
-	ret := _m.Called(ctx, clusterID, integratedServiceName)
+// Deactivate provides a mock function with given fields: ctx, clusterID, serviceName
+func (_m *MockService) Deactivate(ctx context.Context, clusterID uint, serviceName string) error {
+	ret := _m.Called(ctx, clusterID, serviceName)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, uint, string) error); ok {
-		r0 = rf(ctx, clusterID, integratedServiceName)
+		r0 = rf(ctx, clusterID, serviceName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -41,20 +41,20 @@ func (_m *MockService) Deactivate(ctx context.Context, clusterID uint, integrate
 	return r0
 }
 
-// Details provides a mock function with given fields: ctx, clusterID, integratedServiceName
-func (_m *MockService) Details(ctx context.Context, clusterID uint, integratedServiceName string) (IntegratedService, error) {
-	ret := _m.Called(ctx, clusterID, integratedServiceName)
+// Details provides a mock function with given fields: ctx, clusterID, serviceName
+func (_m *MockService) Details(ctx context.Context, clusterID uint, serviceName string) (IntegratedService, error) {
+	ret := _m.Called(ctx, clusterID, serviceName)
 
 	var r0 IntegratedService
 	if rf, ok := ret.Get(0).(func(context.Context, uint, string) IntegratedService); ok {
-		r0 = rf(ctx, clusterID, integratedServiceName)
+		r0 = rf(ctx, clusterID, serviceName)
 	} else {
 		r0 = ret.Get(0).(IntegratedService)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, uint, string) error); ok {
-		r1 = rf(ctx, clusterID, integratedServiceName)
+		r1 = rf(ctx, clusterID, serviceName)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -85,13 +85,13 @@ func (_m *MockService) List(ctx context.Context, clusterID uint) ([]IntegratedSe
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: ctx, clusterID, integratedServiceName, spec
-func (_m *MockService) Update(ctx context.Context, clusterID uint, integratedServiceName string, spec map[string]interface{}) error {
-	ret := _m.Called(ctx, clusterID, integratedServiceName, spec)
+// Update provides a mock function with given fields: ctx, clusterID, serviceName, spec
+func (_m *MockService) Update(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error {
+	ret := _m.Called(ctx, clusterID, serviceName, spec)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, uint, string, map[string]interface{}) error); ok {
-		r0 = rf(ctx, clusterID, integratedServiceName, spec)
+		r0 = rf(ctx, clusterID, serviceName, spec)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -90,7 +90,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
-	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicedriver"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicesdriver"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
@@ -846,13 +846,13 @@ func main() {
 				integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
 				integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
 				featureService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, commonLogger)
-				endpoints := integratedservicedriver.MakeEndpoints(
+				endpoints := integratedservicesdriver.MakeEndpoints(
 					featureService,
 					kitxendpoint.Combine(endpointMiddleware...),
 				)
 
 				{
-					integratedservicedriver.RegisterHTTPHandlers(
+					integratedservicesdriver.RegisterHTTPHandlers(
 						endpoints,
 						clusterRouter.PathPrefix("/services").Subrouter(),
 						kitxhttp.ServerOptions(httpServerOptions),
@@ -864,7 +864,7 @@ func main() {
 
 				// set up legacy endpoint
 				{
-					integratedservicedriver.RegisterHTTPHandlers(
+					integratedservicesdriver.RegisterHTTPHandlers(
 						endpoints,
 						clusterRouter.PathPrefix("/features").Subrouter(),
 						kitxhttp.ServerOptions(httpServerOptions),

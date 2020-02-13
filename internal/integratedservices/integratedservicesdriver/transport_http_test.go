@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package integratedservicedriver
+package integratedservicesdriver
 
 import (
 	"bytes"
@@ -27,6 +27,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
+	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
 func TestRegisterHTTPHandlers_List(t *testing.T) {
@@ -46,7 +47,18 @@ func TestRegisterHTTPHandlers_List(t *testing.T) {
 	RegisterHTTPHandlers(
 		Endpoints{
 			List: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return expectedIntegratedServices, nil
+				return ListResponse{Services: []integratedservices.IntegratedService{
+					{
+						Name:   "example",
+						Status: "ACTIVE",
+						Spec: map[string]interface{}{
+							"hello": "world",
+						},
+						Output: map[string]interface{}{
+							"hello": "world",
+						},
+					},
+				}}, nil
 			},
 		},
 		handler.PathPrefix("/clusters/{clusterId}/services").Subrouter(),
@@ -63,12 +75,12 @@ func TestRegisterHTTPHandlers_List(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var integratedServiceMap map[string]pipeline.IntegratedServiceDetails
+	var integratedServices map[string]pipeline.IntegratedServiceDetails
 
-	err = json.NewDecoder(resp.Body).Decode(&integratedServiceMap)
+	err = json.NewDecoder(resp.Body).Decode(&integratedServices)
 	require.NoError(t, err)
 
-	assert.Equal(t, expectedIntegratedServices, integratedServiceMap)
+	assert.Equal(t, expectedIntegratedServices, integratedServices)
 }
 
 func TestRegisterHTTPHandlers_Details(t *testing.T) {
@@ -86,7 +98,16 @@ func TestRegisterHTTPHandlers_Details(t *testing.T) {
 	RegisterHTTPHandlers(
 		Endpoints{
 			Details: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return expectedDetails, nil
+				return DetailsResponse{Service: integratedservices.IntegratedService{
+					Name: "example",
+					Spec: map[string]interface{}{
+						"hello": "world",
+					},
+					Output: map[string]interface{}{
+						"hello": "world",
+					},
+					Status: "ACTIVE",
+				}}, nil
 			},
 		},
 		handler.PathPrefix("/clusters/{clusterId}/services").Subrouter(),
@@ -116,7 +137,7 @@ func TestRegisterHTTPHandlers_Activate(t *testing.T) {
 	RegisterHTTPHandlers(
 		Endpoints{
 			Activate: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return nil, nil
+				return ActivateResponse{}, nil
 			},
 		},
 		handler.PathPrefix("/clusters/{clusterId}/services").Subrouter(),
@@ -148,7 +169,7 @@ func TestRegisterHTTPHandlers_Deactivate(t *testing.T) {
 	RegisterHTTPHandlers(
 		Endpoints{
 			Deactivate: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return nil, nil
+				return DeactivateResponse{}, nil
 			},
 		},
 		handler.PathPrefix("/clusters/{clusterId}/services").Subrouter(),
@@ -174,7 +195,7 @@ func TestRegisterHTTPHandlers_Update(t *testing.T) {
 	RegisterHTTPHandlers(
 		Endpoints{
 			Update: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return nil, nil
+				return UpdateResponse{}, nil
 			},
 		},
 		handler.PathPrefix("/clusters/{clusterId}/services").Subrouter(),
