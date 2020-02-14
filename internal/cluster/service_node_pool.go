@@ -110,7 +110,7 @@ func (e NodePoolAlreadyExistsError) Details() []interface{} {
 	return []interface{}{"clusterId", e.ClusterID, "nodePool", e.NodePool}
 }
 
-// NotFound tells a client that this error is related to a conflicting request.
+// Conflict tells a client that this error is related to a conflicting request.
 // Can be used to translate the error to status codes for example.
 func (NodePoolAlreadyExistsError) Conflict() bool {
 	return true
