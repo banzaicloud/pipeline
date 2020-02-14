@@ -48,8 +48,8 @@ func (ValidationError) Validation() bool {
 	return true
 }
 
-// ClientError tells the consumer whether this error is caused by invalid input supplied by the client.
+// ServiceError tells the consumer whether this error is caused by invalid input supplied by the client.
 // Client errors are usually returned to the consumer without retrying the operation.
-func (ValidationError) ClientError() bool {
+func (ValidationError) ServiceError() bool {
 	return true
 }

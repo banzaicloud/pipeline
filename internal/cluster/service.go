@@ -108,9 +108,9 @@ func IsNotFoundError(err error) bool {
 	return errors.As(err, &nfe) && nfe.NotFound()
 }
 
-// ClientError tells the consumer whether this error is caused by invalid input supplied by the client.
+// ServiceError tells the consumer whether this error is caused by invalid input supplied by the client.
 // Client errors are usually returned to the consumer without retrying the operation.
-func (NotFoundError) ClientError() bool {
+func (NotFoundError) ServiceError() bool {
 	return true
 }
 
@@ -139,14 +139,14 @@ func (NotReadyError) Conflict() bool {
 
 // IsBusinessError tells the transport layer whether this error should be translated into the transport format
 // or an internal error should be returned instead.
-// Deprecated: use ClientError instead.
+// Deprecated: use ServiceError instead.
 func (NotReadyError) IsBusinessError() bool {
 	return true
 }
 
-// ClientError tells the consumer whether this error is caused by invalid input supplied by the client.
+// ServiceError tells the consumer whether this error is caused by invalid input supplied by the client.
 // Client errors are usually returned to the consumer without retrying the operation.
-func (NotReadyError) ClientError() bool {
+func (NotReadyError) ServiceError() bool {
 	return true
 }
 
@@ -181,14 +181,14 @@ func (NotSupportedDistributionError) BadRequest() bool {
 
 // IsBusinessError tells the transport layer whether this error should be translated into the transport format
 // or an internal error should be returned instead.
-// Deprecated: use ClientError instead.
+// Deprecated: use ServiceError instead.
 func (NotSupportedDistributionError) IsBusinessError() bool {
 	return true
 }
 
-// ClientError tells the consumer whether this error is caused by invalid input supplied by the client.
+// ServiceError tells the consumer whether this error is caused by invalid input supplied by the client.
 // Client errors are usually returned to the consumer without retrying the operation.
-func (NotSupportedDistributionError) ClientError() bool {
+func (NotSupportedDistributionError) ServiceError() bool {
 	return true
 }
 

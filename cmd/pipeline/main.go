@@ -248,7 +248,7 @@ func main() {
 	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor)
 	commonErrorHandler := emperror.WithFilter(
 		emperror.WithContextExtractor(errorHandler, appkit.ContextExtractor),
-		appkiterrors.IsClientError, // filter out client errors
+		appkiterrors.IsServiceError, // filter out client errors
 	)
 
 	publisher, subscriber := watermill.NewPubSub(logger)
@@ -627,7 +627,6 @@ func main() {
 		endpointMiddleware := []endpoint.Middleware{
 			correlation.Middleware(),
 			appkitendpoint.LoggingMiddleware(logger),
-			appkitendpoint.ClientErrorMiddleware,
 		}
 
 		httpServerOptions := []kithttp.ServerOption{

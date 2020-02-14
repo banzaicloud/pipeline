@@ -105,7 +105,7 @@ require (
 	github.com/qor/session v0.0.0-20170907035918-8206b0adab70
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/rubenv/sql-migrate v0.0.0-20200119084958-8794cecc920c // indirect
-	github.com/sagikazarmark/appkit v0.4.0
+	github.com/sagikazarmark/appkit v0.6.0
 	github.com/sagikazarmark/kitx v0.10.0
 	github.com/sagikazarmark/ocmux v0.2.0
 	github.com/samuel/go-thrift v0.0.0-20191111193933-5165175b40af // indirect

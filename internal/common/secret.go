@@ -51,8 +51,8 @@ func (e SecretNotFoundError) Details() []interface{} {
 	return []interface{}{"secretId", e.SecretID}
 }
 
-// ClientError tells the consumer whether this error is caused by invalid input supplied by the client.
+// ServiceError tells the consumer whether this error is caused by invalid input supplied by the client.
 // Client errors are usually returned to the consumer without retrying the operation.
-func (SecretNotFoundError) ClientError() bool {
+func (SecretNotFoundError) ServiceError() bool {
 	return true
 }

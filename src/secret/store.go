@@ -554,7 +554,7 @@ func (m MismatchError) Error() string {
 	return m.Err.Error()
 }
 
-func (MismatchError) ClientError() bool {
+func (MismatchError) ServiceError() bool {
 	return true
 }
 
