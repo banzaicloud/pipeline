@@ -42,7 +42,6 @@ func RegisterApp(
 	endpointMiddleware := []endpoint.Middleware{
 		correlation.Middleware(),
 		appkitendpoint.LoggingMiddleware(logger),
-		appkitendpoint.ClientErrorMiddleware,
 	}
 
 	httpServerOptions := []kithttp.ServerOption{

@@ -217,8 +217,8 @@ func (integratedServiceNotFoundError) NotFound() bool {
 	return true
 }
 
-// ClientError tells the transport layer whether this error should be translated into the transport format
+// ServiceError tells the transport layer whether this error should be translated into the transport format
 // or an internal error should be returned instead.
-func (integratedServiceNotFoundError) ClientError() bool {
+func (integratedServiceNotFoundError) ServiceError() bool {
 	return true
 }

@@ -309,6 +309,6 @@ func (e serviceAlreadyActiveError) Details() []interface{} {
 	}
 }
 
-func (serviceAlreadyActiveError) ClientError() bool {
+func (serviceAlreadyActiveError) ServiceError() bool {
 	return true
 }
