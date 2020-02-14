@@ -5,6 +5,7 @@ run:
 
     skip-files:
         - ".*_gen\\.go$"
+        - "zz_generated\\..*\\.go$"
 
 linters-settings:
     golint:
