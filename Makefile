@@ -303,6 +303,10 @@ validate-proto: bin/prototool bin/protoc-gen-go _download-protos ## Validate pro
 proto: bin/prototool bin/protoc-gen-go _download-protos ## Generate client and server stubs from the protobuf definition
 	bin/prototool $(if ${VERBOSE},--debug ,)all
 
+snapshot:
+	@test -n "${SNAPSHOT_VERSION}" || (echo "Missing snapshot version" && exit 1)
+	curl -X POST -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" -H "Authorization: token ${GITHUB_TOKEN}" --data '{"event_type": "snapshot", "client_payload": {"version": "$(SNAPSHOT_VERSION)"}}' https://api.github.com/repos/banzaicloud/pipeline/dispatches
+
 .PHONY: list
 list: ## List all make targets
 	@$(MAKE) -pRrn : -f $(MAKEFILE_LIST) 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | egrep -v -e '^[^[:alnum:]]' -e '^$@$$' | sort
