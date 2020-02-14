@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"emperror.dev/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -29,6 +30,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
+	"github.com/banzaicloud/pipeline/pkg/backoff"
 	"github.com/banzaicloud/pipeline/src/auth"
 )
 
@@ -101,7 +103,7 @@ func (op IntegratedServicesOperator) Apply(ctx context.Context, clusterID uint, 
 	}
 
 	// create the token reviwer service account
-	tokenReviewerJWT, err := op.configureClusterTokenReviewer(ctx, clusterID)
+	tokenReviewerJWT, err := op.configureClusterTokenReviewer(ctx, logger, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to configure Cluster with token reviewer service account")
 	}
@@ -122,6 +124,7 @@ func (op IntegratedServicesOperator) Apply(ctx context.Context, clusterID uint, 
 
 func (op IntegratedServicesOperator) configureClusterTokenReviewer(
 	ctx context.Context,
+	logger common.Logger,
 	clusterID uint,
 ) (string, error) {
 
@@ -184,9 +187,30 @@ func (op IntegratedServicesOperator) configureClusterTokenReviewer(
 		return "", errors.WrapIf(err, "failed to create token reviewer cluster role binding")
 	}
 
-	tokenReviewerJWT := string(serviceAccountToken.Data[corev1.ServiceAccountTokenKey])
+	var tokenReviewerJWT string
 
-	return tokenReviewerJWT, nil
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoff.ConstantBackoffConfig{
+		Delay:      5 * time.Second,
+		MaxRetries: 5,
+	})
+
+	return tokenReviewerJWT, backoff.Retry(func() error {
+		serviceAccountToken.SetResourceVersion("")
+
+		err = op.kubernetesService.EnsureObject(ctx, clusterID, &serviceAccountToken)
+		if err != nil {
+			return errors.WrapIf(err, "failed to query token reviewer ServiceAccount token")
+		}
+
+		tokenReviewerJWT = string(serviceAccountToken.Data[corev1.ServiceAccountTokenKey])
+		if tokenReviewerJWT == "" {
+			return errors.New("tokenReviewerJWT is empty")
+		}
+
+		logger.Info("kubernetes service account created in Kubernetes for vault token review")
+
+		return nil
+	}, backoffPolicy)
 }
 
 func (op IntegratedServicesOperator) configureVault(
@@ -243,14 +267,13 @@ func (op IntegratedServicesOperator) configureVault(
 		if _, err := vaultManager.configureAuth(tokenReviewerJWT, kubeConfig.Host, kubeConfig.CAData); err != nil {
 			return errors.WrapIf(err, fmt.Sprintf("failed to configure %s auth method for vault", authMethodType))
 		}
-		logger.Info(fmt.Sprintf("auth method %q enabled for vault", authMethodType))
+		logger.Info(fmt.Sprintf("auth method %q configured for vault", authMethodType))
 
 		// create role
 		if _, err := vaultManager.createRole(boundSpec.Settings.ServiceAccounts, boundSpec.Settings.Namespaces); err != nil {
 			return errors.WrapIf(err, fmt.Sprintf("failed to create role in the auth method %q", authMethodType))
 		}
 		logger.Info(fmt.Sprintf("role created in auth method %q for vault", authMethodType))
-
 	}
 
 	return nil
