@@ -23,6 +23,8 @@ jobs:
                     MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
             -
                 image: postgres:9.6
+                environment:
+                    POSTGRES_HOST_AUTH_METHOD: "trust"
 
             -
                 image: vault:1.1.0
