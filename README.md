@@ -1,4 +1,4 @@
- <p align="center"><img src="docs/images/pipeline_logo.png" width="260"></p>
+ <p align="center"><img src=".github/logo.png" width="260"></p>
     
 [![CircleCI](https://circleci.com/gh/banzaicloud/pipeline/tree/master.svg?style=shield)](https://circleci.com/gh/banzaicloud/pipeline/tree/master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/banzaicloud/pipeline)](https://goreportcard.com/report/github.com/banzaicloud/pipeline)
