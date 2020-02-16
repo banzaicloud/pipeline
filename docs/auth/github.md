@@ -10,7 +10,7 @@ Take note of the generated GitHub access token as it will be needed.
 
 Register an [OAuth](https://developer.github.com/apps/building-integrations/setting-up-and-registering-oauth-apps/registering-oauth-apps/) application on GitHub for the Pipeline API and CI/CD workflow.
 
-<a href="images/howto/GithubOAuthAppReg.png" target="_blank"><img src="images/howto/GithubOAuthAppReg.png" height="250"></a>
+![github oauth app reg](images/GithubOAuthAppReg.png)
 
 Fill in `Authorization callback URL`. This field has to be updated once the Control Plane is up and running using the IP address or the DNS name:
 
@@ -26,4 +26,4 @@ Fill in `Authorization callback URL`. This field has to be updated once the Cont
 
 Take note of the `Client ID` and `Client Secret` as these will be required for launching the Pipeline Control Plane and fill them into the `config/dex.yml` file (or into environment variables, see that file for details).
 
-<a href="images/howto/GithubOAuthAppId.png" target="_blank"><img src="images/howto/GithubOAuthAppId.png" height="250"></a>
+![github oauth app id](images/GithubOAuthAppId.png)

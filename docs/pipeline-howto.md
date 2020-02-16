@@ -30,7 +30,7 @@ To hook your Spark application into BanzaiCloud CI/CD flow the following steps a
 
 Both Pipeline and CI/CD flow requires GitHub OAuth authentication and for this a OAuth application must be setup on GitHub.
 
-Setup your Pipeline GitHub OAuth application according to [this guilde](./github-app.md)
+Setup your Pipeline GitHub OAuth application according to [this guilde](auth/github-app.md)
 
 ### Deploy Control Plane
 
@@ -41,7 +41,7 @@ Deploy `Control Plane` using [Pipeline Control Plane Launcher](https://github.co
   * [Azure](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.3.0/docs/control-plane-on-azure.md#deployment-end-points)
   * [Google Cloud](https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.3.0/docs/control-plane-on-gcloud.md#deployment-end-points)
 
-* Go back to the earlier created GitHub OAuth application and modify it. Set the `Authorization callback URL` field according to [OAuth Application Authorization Callback](./github-app.md#register-the-oauth-application-on-github)
+* Go back to the earlier created GitHub OAuth application and modify it. Set the `Authorization callback URL` field according to [OAuth Application Authorization Callback](auth/github-app.md#register-the-oauth-application-on-github)
 
 ### Define pipeline workflow configuration for your Spark application
 
@@ -140,7 +140,7 @@ For the hooked repositories set the following secrets :
 
   <a href="images/howto/RepoSecretPluginEndPointCI.png" target="_blank"><img src="images/howto/RepoSecretPluginEndPointCI.png"></a>
 
-* `plugin_token` - this is the token needed to access the Pipeline API. To obtain this token see [how to acquire the access token](./github-app.md#acquiring-the-access-token)
+* `plugin_token` - this is the token needed to access the Pipeline API. To obtain this token see [how to acquire the access token](auth/github-app.md#acquiring-the-access-token)
 
   <a href="images/howto/RepoSecretPluginToken.png" target="_blank"><img src="images/howto/RepoSecretPluginToken.png"></a>
 
