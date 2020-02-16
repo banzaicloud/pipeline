@@ -20,11 +20,11 @@ The recommended region is `eu-frankfurt-1`.
 Navigate to `User settings` in the user menu. Under `User information` find the `user_ocid`.
 
 <p align="center">
-<img src="images/oracle_secret/oracle_user_ocid_1.png" width="700">
+<img src="images/oracle_user_ocid_1.png" width="700">
 </p>
 
 <p align="center">
-<img src="images/oracle_secret/oracle_user_ocid_2.png" width="700">
+<img src="images/oracle_user_ocid_2.png" width="700">
 </p>
 
 #### tenancy_ocid
@@ -36,11 +36,11 @@ Tenancy ocid can be found on the `Tenancy: ...` page of the user menu (like the 
 From the menu choose `Identitiy` menu item. Under `Compartments` found a list of your Compartments. If the list is empty, create a new Compartment.
 
 <p align="center">
-<img src="images/oracle_secret/oracle_compartments_1.png" width="700">
+<img src="images/oracle_compartments_1.png" width="700">
 </p>
 
 <p align="center">
-<img src="images/oracle_secret/oracle_compartments_2.png" width="700">
+<img src="images/oracle_compartments_2.png" width="700">
 </p>
 
 #### api_key
@@ -76,7 +76,7 @@ cat ~/.oci/oci_api_key_public.pem | pbcopy
 5. Upload the public key in the console, under user settings.
 
 <p align="center">
-<img src="images/oracle_secret/oracle_pub_key.png" width="700">
+<img src="images/oracle_pub_key.png" width="700">
 </p>
 
 #### api_key_fingerprint
