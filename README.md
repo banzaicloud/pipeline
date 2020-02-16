@@ -63,7 +63,7 @@ Based on our OpenAPI 3.0 descriptor we have generated language clients for diffe
 
 You can test the REST API, using the Postman collection. 
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](docs/postman/e2e_test.postman_collection.json)
+[![Run in Postman](https://run.pstmn.io/button.svg)](apis/pipeline/postman.json)
 
 ## Quick try
 
