@@ -45,7 +45,7 @@ Pipeline does support `BYOK` - `Bring Your Own Kubernetes` and can adopt and man
 
 ## Installation
 
-Pipeline can be installed locally for development by following the [development guide](docs/pipeline-howto.md).
+Pipeline can be installed locally for development by following the [development guide](docs/developer.md).
 
 If you want to install Pipeline for production usage, please read our [installation guide](https://banzaicloud.com/docs/pipeline/quickstart/install-pipeline).
 
