@@ -83,6 +83,9 @@ func registerAwsWorkflows(
 	deleteNLBActivity := pkeworkflow.NewDeleteNLBActivity(clusters)
 	activity.RegisterWithOptions(deleteNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteNLBActivityName})
 
+	waitForDeleteNLBActivity := pkeworkflow.NewWaitForDeleteNLBActivity(clusters)
+	activity.RegisterWithOptions(waitForDeleteNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteNLBActivityName})
+
 	deleteVPCActivity := pkeworkflow.NewDeleteVPCActivity(clusters)
 	activity.RegisterWithOptions(deleteVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteVPCActivityName})
 

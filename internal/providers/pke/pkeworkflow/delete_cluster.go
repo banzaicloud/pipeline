@@ -97,6 +97,12 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	if err = workflow.ExecuteActivity(ctx, DeleteNLBActivityName, deleteNLBActivityInput).Get(ctx, nil); err != nil {
 		return err
 	}
+	if err = workflow.ExecuteActivity(
+		workflow.WithHeartbeatTimeout(ctx, 5*time.Minute),
+		WaitForDeleteNLBActivityName,
+		deleteNLBActivityInput).Get(ctx, nil); err != nil {
+		return err
+	}
 
 	// terminate master nodes
 	{
