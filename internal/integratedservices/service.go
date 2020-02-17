@@ -24,7 +24,7 @@ import (
 )
 
 //go:generate mga gen mockery --name Service --inpkg
-// +kit:endpoint:withOpenCensus=true,errorStrategy=service
+// +kit:endpoint:errorStrategy=service
 
 // Service manages integrated services on Kubernetes clusters.
 type Service interface {

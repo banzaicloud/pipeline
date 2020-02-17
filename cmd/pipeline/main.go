@@ -35,6 +35,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/go-kit/kit/tracing/opencensus"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -626,6 +627,11 @@ func main() {
 
 		endpointMiddleware := []endpoint.Middleware{
 			correlation.Middleware(),
+			opencensus.TraceEndpoint("", opencensus.WithSpanName(func(ctx context.Context, _ string) string {
+				name, _ := kitxendpoint.OperationName(ctx)
+
+				return name
+			})),
 			appkitendpoint.LoggingMiddleware(logger),
 		}
 
@@ -957,10 +963,10 @@ func main() {
 				clientFactory := google.NewClientFactory(secretStore)
 
 				service := googleproject.NewService(clientFactory)
-				endpoints := googleprojectdriver.TraceEndpoints(googleprojectdriver.MakeEndpoints(
+				endpoints := googleprojectdriver.MakeEndpoints(
 					service,
 					kitxendpoint.Combine(endpointMiddleware...),
-				))
+				)
 
 				googleprojectdriver.RegisterHTTPHandlers(
 					endpoints,
@@ -985,10 +991,10 @@ func main() {
 			)
 			service = tokendriver.AuthorizationMiddleware(auth.NewAuthorizer(db, organizationStore))(service)
 
-			endpoints := tokendriver.TraceEndpoints(tokendriver.MakeEndpoints(
+			endpoints := tokendriver.MakeEndpoints(
 				service,
 				kitxendpoint.Combine(endpointMiddleware...),
-			))
+			)
 
 			tokendriver.RegisterHTTPHandlers(
 				endpoints,
@@ -1002,10 +1008,10 @@ func main() {
 
 		{
 			service := secrettype.NewService()
-			endpoints := secrettypedriver.TraceEndpoints(secrettypedriver.MakeEndpoints(
+			endpoints := secrettypedriver.MakeEndpoints(
 				service,
 				kitxendpoint.Combine(endpointMiddleware...),
-			))
+			)
 
 			secrettypedriver.RegisterHTTPHandlers(
 				endpoints,

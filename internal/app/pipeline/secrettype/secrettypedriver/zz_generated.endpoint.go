@@ -9,7 +9,6 @@ import (
 	"errors"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/secrettype"
 	"github.com/go-kit/kit/endpoint"
-	kitoc "github.com/go-kit/kit/tracing/opencensus"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 )
 
@@ -39,14 +38,6 @@ func MakeEndpoints(service secrettype.Service, middleware ...endpoint.Middleware
 	return Endpoints{
 		GetSecretType:   kitxendpoint.OperationNameMiddleware("secrettype.GetSecretType")(mw(MakeGetSecretTypeEndpoint(service))),
 		ListSecretTypes: kitxendpoint.OperationNameMiddleware("secrettype.ListSecretTypes")(mw(MakeListSecretTypesEndpoint(service))),
-	}
-}
-
-// TraceEndpoints returns a(n) Endpoints struct where each endpoint is wrapped with a tracing middleware.
-func TraceEndpoints(endpoints Endpoints) Endpoints {
-	return Endpoints{
-		GetSecretType:   kitoc.TraceEndpoint("secrettype.GetSecretType")(endpoints.GetSecretType),
-		ListSecretTypes: kitoc.TraceEndpoint("secrettype.ListSecretTypes")(endpoints.ListSecretTypes),
 	}
 }
 

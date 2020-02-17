@@ -15,7 +15,10 @@
 package frontend
 
 import (
+	"context"
+
 	"github.com/go-kit/kit/endpoint"
+	"github.com/go-kit/kit/tracing/opencensus"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -41,6 +44,11 @@ func RegisterApp(
 ) error {
 	endpointMiddleware := []endpoint.Middleware{
 		correlation.Middleware(),
+		opencensus.TraceEndpoint("", opencensus.WithSpanName(func(ctx context.Context, _ string) string {
+			name, _ := kitxendpoint.OperationName(ctx)
+
+			return name
+		})),
 		appkitendpoint.LoggingMiddleware(logger),
 	}
 
@@ -53,10 +61,10 @@ func RegisterApp(
 	{
 		store := notificationadapter.NewGormStore(db)
 		service := notification.NewService(store)
-		endpoints := notificationdriver.TraceEndpoints(notificationdriver.MakeEndpoints(
+		endpoints := notificationdriver.MakeEndpoints(
 			service,
 			kitxendpoint.Combine(endpointMiddleware...),
-		))
+		)
 
 		notificationdriver.RegisterHTTPHandlers(
 			endpoints,
