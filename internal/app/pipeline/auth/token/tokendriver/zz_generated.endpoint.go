@@ -9,7 +9,6 @@ import (
 	"errors"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token"
 	"github.com/go-kit/kit/endpoint"
-	kitoc "github.com/go-kit/kit/tracing/opencensus"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 )
 
@@ -43,16 +42,6 @@ func MakeEndpoints(service token.Service, middleware ...endpoint.Middleware) End
 		DeleteToken: kitxendpoint.OperationNameMiddleware("token.DeleteToken")(mw(MakeDeleteTokenEndpoint(service))),
 		GetToken:    kitxendpoint.OperationNameMiddleware("token.GetToken")(mw(MakeGetTokenEndpoint(service))),
 		ListTokens:  kitxendpoint.OperationNameMiddleware("token.ListTokens")(mw(MakeListTokensEndpoint(service))),
-	}
-}
-
-// TraceEndpoints returns a(n) Endpoints struct where each endpoint is wrapped with a tracing middleware.
-func TraceEndpoints(endpoints Endpoints) Endpoints {
-	return Endpoints{
-		CreateToken: kitoc.TraceEndpoint("token.CreateToken")(endpoints.CreateToken),
-		DeleteToken: kitoc.TraceEndpoint("token.DeleteToken")(endpoints.DeleteToken),
-		GetToken:    kitoc.TraceEndpoint("token.GetToken")(endpoints.GetToken),
-		ListTokens:  kitoc.TraceEndpoint("token.ListTokens")(endpoints.ListTokens),
 	}
 }
 

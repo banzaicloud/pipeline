@@ -9,7 +9,6 @@ import (
 	"errors"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/cloud/google/project"
 	"github.com/go-kit/kit/endpoint"
-	kitoc "github.com/go-kit/kit/tracing/opencensus"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 )
 
@@ -36,11 +35,6 @@ func MakeEndpoints(service project.Service, middleware ...endpoint.Middleware) E
 	mw := kitxendpoint.Combine(middleware...)
 
 	return Endpoints{ListProjects: kitxendpoint.OperationNameMiddleware("cloud/google/project.ListProjects")(mw(MakeListProjectsEndpoint(service)))}
-}
-
-// TraceEndpoints returns a(n) Endpoints struct where each endpoint is wrapped with a tracing middleware.
-func TraceEndpoints(endpoints Endpoints) Endpoints {
-	return Endpoints{ListProjects: kitoc.TraceEndpoint("cloud/google/project.ListProjects")(endpoints.ListProjects)}
 }
 
 // ListProjectsRequest is a request struct for ListProjects endpoint.

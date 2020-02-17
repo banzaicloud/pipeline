@@ -9,7 +9,6 @@ import (
 	"errors"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/go-kit/kit/endpoint"
-	kitoc "github.com/go-kit/kit/tracing/opencensus"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 )
 
@@ -45,17 +44,6 @@ func MakeEndpoints(service integratedservices.Service, middleware ...endpoint.Mi
 		Details:    kitxendpoint.OperationNameMiddleware("integratedservices.Details")(mw(MakeDetailsEndpoint(service))),
 		List:       kitxendpoint.OperationNameMiddleware("integratedservices.List")(mw(MakeListEndpoint(service))),
 		Update:     kitxendpoint.OperationNameMiddleware("integratedservices.Update")(mw(MakeUpdateEndpoint(service))),
-	}
-}
-
-// TraceEndpoints returns a(n) Endpoints struct where each endpoint is wrapped with a tracing middleware.
-func TraceEndpoints(endpoints Endpoints) Endpoints {
-	return Endpoints{
-		Activate:   kitoc.TraceEndpoint("integratedservices.Activate")(endpoints.Activate),
-		Deactivate: kitoc.TraceEndpoint("integratedservices.Deactivate")(endpoints.Deactivate),
-		Details:    kitoc.TraceEndpoint("integratedservices.Details")(endpoints.Details),
-		List:       kitoc.TraceEndpoint("integratedservices.List")(endpoints.List),
-		Update:     kitoc.TraceEndpoint("integratedservices.Update")(endpoints.Update),
 	}
 }
 

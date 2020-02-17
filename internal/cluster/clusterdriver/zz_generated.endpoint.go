@@ -9,7 +9,6 @@ import (
 	"errors"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/go-kit/kit/endpoint"
-	kitoc "github.com/go-kit/kit/tracing/opencensus"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 )
 
@@ -41,15 +40,6 @@ func MakeEndpoints(service cluster.Service, middleware ...endpoint.Middleware) E
 		CreateNodePool: kitxendpoint.OperationNameMiddleware("cluster.CreateNodePool")(mw(MakeCreateNodePoolEndpoint(service))),
 		DeleteCluster:  kitxendpoint.OperationNameMiddleware("cluster.DeleteCluster")(mw(MakeDeleteClusterEndpoint(service))),
 		DeleteNodePool: kitxendpoint.OperationNameMiddleware("cluster.DeleteNodePool")(mw(MakeDeleteNodePoolEndpoint(service))),
-	}
-}
-
-// TraceEndpoints returns a(n) Endpoints struct where each endpoint is wrapped with a tracing middleware.
-func TraceEndpoints(endpoints Endpoints) Endpoints {
-	return Endpoints{
-		CreateNodePool: kitoc.TraceEndpoint("cluster.CreateNodePool")(endpoints.CreateNodePool),
-		DeleteCluster:  kitoc.TraceEndpoint("cluster.DeleteCluster")(endpoints.DeleteCluster),
-		DeleteNodePool: kitoc.TraceEndpoint("cluster.DeleteNodePool")(endpoints.DeleteNodePool),
 	}
 }
 

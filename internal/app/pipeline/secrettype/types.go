@@ -36,7 +36,7 @@ type TypeField struct {
 }
 
 //go:generate mga gen mockery --name Service --inpkg
-// +kit:endpoint:withOpenCensus=true,errorStrategy=service
+// +kit:endpoint:errorStrategy=service
 
 // Service provides information about secret types.
 type Service interface {

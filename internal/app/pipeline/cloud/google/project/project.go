@@ -30,7 +30,7 @@ import (
 type Project cloudresourcemanager.Project
 
 //go:generate mga gen mockery --name Service --inpkg
-// +kit:endpoint:withOpenCensus=true,errorStrategy=service,moduleName=cloud/google/project
+// +kit:endpoint:errorStrategy=service,moduleName=cloud/google/project
 
 // Service interacts with Google projects.
 type Service interface {
