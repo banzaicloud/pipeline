@@ -172,14 +172,14 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	}
 
 	// delete SSH key
-	var deleteSSHKeyAcitivityFeature workflow.Future
+	var deleteSSHKeyActivityFeature workflow.Future
 	if input.GenerateSSH {
 		{
 			activityInput := DeleteSshKeyActivityInput{
 				EKSActivityInput: eksActivityInput,
 				SSHKeyName:       GenerateSSHKeyNameForCluster(input.ClusterName),
 			}
-			deleteSSHKeyAcitivityFeature = workflow.ExecuteActivity(ctx, DeleteSshKeyActivityName, activityInput)
+			deleteSSHKeyActivityFeature = workflow.ExecuteActivity(ctx, DeleteSshKeyActivityName, activityInput)
 		}
 	}
 
@@ -221,8 +221,8 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 		}
 	}
 
-	if deleteSSHKeyAcitivityFeature != nil {
-		if err := deleteSSHKeyAcitivityFeature.Get(ctx, nil); err != nil {
+	if deleteSSHKeyActivityFeature != nil {
+		if err := deleteSSHKeyActivityFeature.Get(ctx, nil); err != nil {
 			return err
 		}
 	}

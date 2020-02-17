@@ -45,7 +45,6 @@ type EKSDeleteClusterWorkflowInput struct {
 	// force delete
 	Forced bool
 
-	// TODO (colin): remove this after we can save SSH generation during create process
 	GenerateSSH bool
 }
 

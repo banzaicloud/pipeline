@@ -181,6 +181,8 @@ type EKSClusterModel struct {
 	APIServerAccessPoints EKSAPIServerAccessPoints `sql:"type:json"`
 
 	CurrentWorkflowID string
+
+	SSHGenerated bool
 }
 
 type EKSLogTypes = JSONStringArray
@@ -364,6 +366,24 @@ func (cm *EKSClusterModel) SetCurrentWorkflowID(workflowID string) error {
 		return errors.WrapIfWithDetails(err, "failed to update currentWorkflowID for EKS cluster", "cluster_id", cm.ClusterID)
 	}
 	return nil
+}
+
+func (cm *EKSClusterModel) PersistSSHGenerate(sshGenerated bool) error {
+	cm.SSHGenerated = sshGenerated
+	fields := map[string]interface{}{
+		"sshGenerated": cm.SSHGenerated,
+	}
+
+	db := global.DB()
+	err := db.Model(&cm).Updates(fields).Error
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to update sshGenerated field for EKS cluster", "cluster_id", cm.ClusterID)
+	}
+	return nil
+}
+
+func (cm EKSClusterModel) IsSSHGenerated() bool {
+	return cm.SSHGenerated
 }
 
 // TableName sets database table name for EKSSubnetModel

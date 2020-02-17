@@ -24,7 +24,6 @@ import (
 
 	intcluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
-	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -117,7 +116,7 @@ func (cd EKSClusterDeleter) DeleteCluster(ctx context.Context, clusterID uint, o
 		K8sSecretID:    eksCluster.GetConfigSecretId(),
 		DefaultUser:    modelCluster.DefaultUser,
 		Forced:         options.Force,
-		GenerateSSH:    global.Config.Distribution.EKS.SSH.Generate,
+		GenerateSSH:    eksCluster.IsSSHGenerated(),
 	}
 
 	workflowOptions := client.StartWorkflowOptions{

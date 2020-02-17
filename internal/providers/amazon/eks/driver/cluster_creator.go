@@ -149,7 +149,7 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 			NodeInstanceRoleID: modelCluster.NodeInstanceRoleId,
 			KubernetesVersion:  modelCluster.Version,
 			LogTypes:           modelCluster.LogTypes,
-			GenerateSSH:        global.Config.Distribution.EKS.SSH.Generate,
+			GenerateSSH:        modelCluster.SSHGenerated,
 		},
 		PostHooks:        createRequest.PostHooks,
 		OrganizationName: org.Name,
@@ -535,12 +535,22 @@ func (c *EksClusterCreator) CreateCluster(ctx context.Context, commonCluster clu
 	}
 
 	// Check if public ssh key is needed for the cluster. If so and there is generate one and store it Vault
+	var sshGenerated bool
 	if len(commonCluster.GetSshSecretId()) == 0 && commonCluster.RequiresSshPublicKey() && global.Config.Distribution.EKS.SSH.Generate {
 		logger.Debug("generating SSH Key for the cluster")
 		err := c.generateSSHkey(commonCluster)
 		if err != nil {
 			return nil, err
 		}
+
+		sshGenerated = true
+	} else {
+		sshGenerated = false
+	}
+
+	// store SSH generation
+	if err := commonCluster.(*cluster.EKSCluster).PersistSSHGenerate(sshGenerated); err != nil {
+		return nil, err
 	}
 
 	return c.create(ctx, logger, commonCluster, createRequest)

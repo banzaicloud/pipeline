@@ -25,7 +25,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
@@ -285,7 +284,7 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 		ScaleEnabled:       eksCluster.GetScaleOptions() != nil && eksCluster.GetScaleOptions().Enabled,
 		NodeInstanceRoleID: modelCluster.NodeInstanceRoleId,
 		NodePoolLabels:     nodePoolLabelMap,
-		GenerateSSH:        global.Config.Distribution.EKS.SSH.Generate,
+		GenerateSSH:        eksCluster.IsSSHGenerated(),
 	}
 
 	input.Subnets = subnets
