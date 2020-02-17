@@ -55,29 +55,38 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 	// terminate worker nodes
 	{
-		futures := make([]workflow.Future, len(nodePools))
-
-		for i, np := range nodePools {
+		futures := make([]workflow.Future, 0, 2*len(nodePools))
+		for _, np := range nodePools {
 			if !np.Master && np.Worker {
 				deletePoolActivityInput := DeletePoolActivityInput{
 					ClusterID: input.ClusterID,
 					Pool:      np,
 				}
 
-				futures[i] = workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput)
+				// initiate deletion
+				futures = append(futures, workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput))
+
+				// set the heartbeat timeout!
+				// initiate wait for deletion to complete
+				futures = append(futures, workflow.ExecuteActivity(workflow.WithHeartbeatTimeout(ctx, 5*time.Minute),
+					WaitForDeletePoolActivityName,
+					deletePoolActivityInput))
 			}
 		}
 
 		errs := make([]error, len(futures))
-		for i, future := range futures {
+		for _, future := range futures {
 			if future != nil {
-				errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't terminate node pool %q", nodePools[i].Name)
+				if e := future.Get(ctx, nil); e != nil {
+					errs = append(errs, errors.Wrapf(e, "couldn't terminate master node pool"))
+				}
 			}
 		}
 
 		if err := errors.Combine(errs...); err != nil {
 			return err
 		}
+
 	}
 
 	// release NLB
@@ -91,23 +100,32 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 	// terminate master nodes
 	{
-		futures := make([]workflow.Future, len(nodePools))
+		futures := make([]workflow.Future, 0, 2*len(nodePools))
 
-		for i, np := range nodePools {
+		for _, np := range nodePools {
 			if np.Master || !np.Worker {
 				deletePoolActivityInput := DeletePoolActivityInput{
 					ClusterID: input.ClusterID,
 					Pool:      np,
 				}
 
-				futures[i] = workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput)
+				// initiate deletion
+				futures = append(futures, workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput))
+
+				// set the heartbeat timeout!
+				// initiate wait for deletion to complete
+				futures = append(futures, workflow.ExecuteActivity(workflow.WithHeartbeatTimeout(ctx, 5*time.Minute),
+					WaitForDeletePoolActivityName,
+					deletePoolActivityInput))
 			}
 		}
 
 		errs := make([]error, len(futures))
-		for i, future := range futures {
+		for _, future := range futures {
 			if future != nil {
-				errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't terminate node pool %q", nodePools[i].Name)
+				if e := future.Get(ctx, nil); e != nil {
+					errs = append(errs, errors.Wrapf(e, "couldn't terminate worker node pool"))
+				}
 			}
 		}
 
