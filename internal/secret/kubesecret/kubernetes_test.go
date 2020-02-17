@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package secret_test
+package kubesecret_test
 
 import (
 	"testing"
@@ -22,13 +22,13 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/banzaicloud/pipeline/internal/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/kubesecret"
 )
 
 func TestCreateKubeSecret(t *testing.T) {
 	tests := map[string]struct {
 		kubeSecret        v1.Secret
-		kubeSecretRequest secret.KubeSecretRequest
+		kubeSecretRequest kubesecret.KubeSecretRequest
 	}{
 		"simple secret": {
 			v1.Secret{
@@ -40,7 +40,7 @@ func TestCreateKubeSecret(t *testing.T) {
 					"key": "value",
 				},
 			},
-			secret.KubeSecretRequest{
+			kubesecret.KubeSecretRequest{
 				Name:      "secret",
 				Namespace: "namespace",
 				Type:      "generic",
@@ -59,7 +59,7 @@ func TestCreateKubeSecret(t *testing.T) {
 					".htpasswd": "blah",
 				},
 			},
-			secret.KubeSecretRequest{
+			kubesecret.KubeSecretRequest{
 				Name:      "secret",
 				Namespace: "namespace",
 				Type:      "htpasswd",
@@ -81,7 +81,7 @@ func TestCreateKubeSecret(t *testing.T) {
 					"tls.key": "tlskey",
 				},
 			},
-			secret.KubeSecretRequest{
+			kubesecret.KubeSecretRequest{
 				Name:      "secret",
 				Namespace: "namespace",
 				Type:      "generic",
@@ -89,7 +89,7 @@ func TestCreateKubeSecret(t *testing.T) {
 					"clientCert": "tlscert",
 					"clientKey":  "tlskey",
 				},
-				Spec: map[string]secret.KubeSecretSpecItem{
+				Spec: map[string]kubesecret.KubeSecretSpecItem{
 					"tls.crt": {
 						Source: "clientCert",
 					},
@@ -109,7 +109,7 @@ func TestCreateKubeSecret(t *testing.T) {
 					"docker.json": "{\"docker_password\":\"password\",\"docker_username\":\"username\"}",
 				},
 			},
-			secret.KubeSecretRequest{
+			kubesecret.KubeSecretRequest{
 				Name:      "secret",
 				Namespace: "namespace",
 				Type:      "generic",
@@ -117,7 +117,7 @@ func TestCreateKubeSecret(t *testing.T) {
 					"username": "username",
 					"password": "password",
 				},
-				Spec: map[string]secret.KubeSecretSpecItem{
+				Spec: map[string]kubesecret.KubeSecretSpecItem{
 					"docker.json": {
 						SourceMap: map[string]string{
 							"docker_username": "username",
@@ -137,7 +137,7 @@ func TestCreateKubeSecret(t *testing.T) {
 					"google.json": "{\"password\":\"password\",\"username\":\"username\"}",
 				},
 			},
-			secret.KubeSecretRequest{
+			kubesecret.KubeSecretRequest{
 				Name:      "secret",
 				Namespace: "namespace",
 				Type:      "generic",
@@ -145,7 +145,7 @@ func TestCreateKubeSecret(t *testing.T) {
 					"username": "username",
 					"password": "password",
 				},
-				Spec: map[string]secret.KubeSecretSpecItem{
+				Spec: map[string]kubesecret.KubeSecretSpecItem{
 					"google.json": {},
 				},
 			},
@@ -160,10 +160,10 @@ func TestCreateKubeSecret(t *testing.T) {
 					"key": "value",
 				},
 			},
-			secret.KubeSecretRequest{
+			kubesecret.KubeSecretRequest{
 				Name:      "secret",
 				Namespace: "namespace",
-				Spec: map[string]secret.KubeSecretSpecItem{
+				Spec: map[string]kubesecret.KubeSecretSpecItem{
 					"key": {
 						Value: "value",
 					},
@@ -181,7 +181,7 @@ func TestCreateKubeSecret(t *testing.T) {
 					"google.json": "{\"password\":\"password\",\"username\":\"username\"}",
 				},
 			},
-			secret.KubeSecretRequest{
+			kubesecret.KubeSecretRequest{
 				Name:      "secret",
 				Namespace: "namespace",
 				Type:      "generic",
@@ -189,7 +189,7 @@ func TestCreateKubeSecret(t *testing.T) {
 					"username": "username",
 					"password": "password",
 				},
-				Spec: map[string]secret.KubeSecretSpecItem{
+				Spec: map[string]kubesecret.KubeSecretSpecItem{
 					"key": {
 						Value: "value",
 					},
@@ -201,7 +201,7 @@ func TestCreateKubeSecret(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			kubeSecret, err := secret.CreateKubeSecret(test.kubeSecretRequest)
+			kubeSecret, err := kubesecret.CreateKubeSecret(test.kubeSecretRequest)
 			require.NoError(t, err)
 
 			assert.Equal(t, test.kubeSecret, kubeSecret)
