@@ -27,7 +27,6 @@ require (
 	github.com/aliyun/aliyun-oss-go-sdk v2.0.5+incompatible
 	github.com/antihax/optional v1.0.0
 	github.com/aokoli/goutils v1.1.0
-	github.com/apache/thrift v0.0.0-00010101000000-000000000000 // indirect
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05
 	github.com/aws/aws-sdk-go v1.28.0
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-00010101000000-000000000000 // indirect
@@ -40,9 +39,7 @@ require (
 	github.com/banzaicloud/logging-operator/pkg/sdk v0.1.1
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
-	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/chai2010/gettext-go v0.0.0-20191225085308-6b9f4b1008e1 // indirect
-	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/coreos/go-oidc v2.1.0+incompatible
 	github.com/crossdock/crossdock-go v0.0.0-20160816171116-049aabb0122b // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20191128021309-1d7a30a10f73 // indirect
@@ -56,7 +53,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.5.0
-	github.com/go-kit/kit v0.9.0
+	github.com/go-kit/kit v0.10.0
 	github.com/go-openapi/spec v0.19.5 // indirect
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
@@ -85,11 +82,10 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/moogar0880/problems v0.1.1
 	github.com/oklog/run v1.1.0
-	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/oracle/oci-go-sdk v2.0.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.6.0
-	github.com/pkg/errors v0.9.0
+	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prashantv/protectmem v0.0.0-20171002184600-e20412882b3a // indirect
 	github.com/prometheus/client_golang v1.3.0
@@ -105,8 +101,8 @@ require (
 	github.com/qor/session v0.0.0-20170907035918-8206b0adab70
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/rubenv/sql-migrate v0.0.0-20200119084958-8794cecc920c // indirect
-	github.com/sagikazarmark/appkit v0.6.0
-	github.com/sagikazarmark/kitx v0.10.0
+	github.com/sagikazarmark/appkit v0.7.0
+	github.com/sagikazarmark/kitx v0.12.0
 	github.com/sagikazarmark/ocmux v0.2.0
 	github.com/samuel/go-thrift v0.0.0-20191111193933-5165175b40af // indirect
 	github.com/sirupsen/logrus v1.4.2
@@ -135,7 +131,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.15.0
 	google.golang.org/genproto v0.0.0-20191230161307-f3c370f40bfb
-	google.golang.org/grpc v1.26.0
+	google.golang.org/grpc v1.27.1
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/resty.v1 v1.12.0
