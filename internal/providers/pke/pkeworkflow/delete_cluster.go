@@ -68,7 +68,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 				// set the heartbeat timeout!
 				// initiate wait for deletion to complete
-				futures = append(futures, workflow.ExecuteActivity(workflow.WithHeartbeatTimeout(ctx, 5*time.Minute),
+				futures = append(futures, workflow.ExecuteActivity(workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
 					WaitForDeletePoolActivityName,
 					deletePoolActivityInput))
 			}
@@ -98,7 +98,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		return err
 	}
 	if err = workflow.ExecuteActivity(
-		workflow.WithHeartbeatTimeout(ctx, 5*time.Minute),
+		workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
 		WaitForDeleteNLBActivityName,
 		deleteNLBActivityInput).Get(ctx, nil); err != nil {
 		return err
@@ -120,7 +120,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 				// set the heartbeat timeout!
 				// initiate wait for deletion to complete
-				futures = append(futures, workflow.ExecuteActivity(workflow.WithHeartbeatTimeout(ctx, 5*time.Minute),
+				futures = append(futures, workflow.ExecuteActivity(workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
 					WaitForDeletePoolActivityName,
 					deletePoolActivityInput))
 			}
@@ -163,6 +163,10 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		ClusterID: input.ClusterID,
 	}
 	if err = workflow.ExecuteActivity(ctx, DeleteVPCActivityName, deleteVPCActivityInput).Get(ctx, nil); err != nil {
+		return err
+	}
+
+	if err = workflow.ExecuteActivity(workflow.WithHeartbeatTimeout(ctx, 1*time.Minute), WaitForDeleteVPCActivityName, deleteVPCActivityInput).Get(ctx, nil); err != nil {
 		return err
 	}
 
