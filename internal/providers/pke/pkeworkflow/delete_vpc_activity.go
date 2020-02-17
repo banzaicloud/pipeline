@@ -76,7 +76,48 @@ func (a *DeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCActivity
 		}
 	}
 
-	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: &stackName})
+	return errors.WrapIf(pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cfClient), "waiting for termination")
+}
+
+const WaitForDeleteVPCActivityName = "wait-for-pke-delete-vpc-activity"
+
+type WaitForDeleteVPCActivity struct {
+	DeleteVPCActivity
+}
+
+func NewWaitForDeleteVPCActivity(clusters Clusters) *WaitForDeleteVPCActivity {
+	return &WaitForDeleteVPCActivity{
+		DeleteVPCActivity{
+			clusters: clusters,
+		},
+	}
+}
+
+func (a *WaitForDeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCActivityInput) error {
+	c, err := a.clusters.GetCluster(ctx, input.ClusterID)
+	if err != nil {
+		return err
+	}
+	awsCluster, ok := c.(AWSCluster)
+	if !ok {
+		return errors.New(fmt.Sprintf("can't delete VPC for cluster type %t", c))
+	}
+
+	client, err := awsCluster.GetAWSClient()
+	if err != nil {
+		return errors.WrapIf(err, "failed to connect to AWS")
+	}
+
+	cfClient := cloudformation.New(client)
+	clientRequestToken := uuid.Must(uuid.NewV4()).String()
+
+	clusterName := c.GetName()
+	stackName := "pke-vpc-" + clusterName
+
+	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx,
+		&cloudformation.DescribeStacksInput{StackName: &stackName},
+		WithHeartBeatOption(ctx),
+	)
 
 	return errors.WrapIf(pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cfClient), "waiting for termination")
 }

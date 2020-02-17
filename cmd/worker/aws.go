@@ -84,10 +84,13 @@ func registerAwsWorkflows(
 	activity.RegisterWithOptions(deleteNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteNLBActivityName})
 
 	waitForDeleteNLBActivity := pkeworkflow.NewWaitForDeleteNLBActivity(clusters)
-	activity.RegisterWithOptions(waitForDeleteNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteNLBActivityName})
+	activity.RegisterWithOptions(waitForDeleteNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitForDeleteNLBActivityName})
 
 	deleteVPCActivity := pkeworkflow.NewDeleteVPCActivity(clusters)
 	activity.RegisterWithOptions(deleteVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteVPCActivityName})
+
+	waitForDeleteVPCActivity := pkeworkflow.NewWaitForDeleteVPCActivity(clusters)
+	activity.RegisterWithOptions(waitForDeleteVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitForDeleteVPCActivityName})
 
 	uploadSshKeyPairActivity := pkeworkflow.NewUploadSSHKeyPairActivity(clusters)
 	activity.RegisterWithOptions(uploadSshKeyPairActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UploadSSHKeyPairActivityName})

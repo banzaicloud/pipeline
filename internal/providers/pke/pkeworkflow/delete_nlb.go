@@ -70,11 +70,6 @@ func (a *DeleteNLBActivity) Execute(ctx context.Context, input DeleteNLBActivity
 		}
 	}
 
-	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: &stackName})
-	if err != nil {
-		return errors.WrapIf(err, "waiting for termination")
-	}
-
 	return nil
 }
 
