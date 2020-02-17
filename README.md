@@ -43,11 +43,17 @@ Pipeline supports all major cloud providers (either provider managed Kubernetes 
 
 Pipeline does support `BYOK` - `Bring Your Own Kubernetes` and can adopt and manage existing Kubernetes clusters as well. 
 
-## Installation
+## Resources
+
+### Installation
+
+If you want to install Pipeline for evaluation or production usage, please read our [quickstart guide](https://banzaicloud.com/docs/pipeline/quickstart/).
 
 Pipeline can be installed locally for development by following the [development guide](docs/developer.md).
 
-If you want to install Pipeline for production usage, please read our [installation guide](https://banzaicloud.com/docs/pipeline/quickstart/install-pipeline).
+### Documentation
+
+You can find the documentation for operators and users of the platform at [banzaicloud.com](https://banzaicloud.com/docs/pipeline/).
 
 ### API specification
 
@@ -61,7 +67,7 @@ Based on our OpenAPI 3.0 descriptor we have generated language clients for diffe
 
 ### Postman 
 
-You can test the REST API, using the Postman collection. 
+You can test the REST API using the Postman collection. 
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](apis/pipeline/postman.json)
 
