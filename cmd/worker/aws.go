@@ -71,6 +71,9 @@ func registerAwsWorkflows(
 	deletePoolActivity := pkeworkflow.NewDeletePoolActivity(clusters)
 	activity.RegisterWithOptions(deletePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeletePoolActivityName})
 
+	waitForDeletePoolActivity := pkeworkflow.NewWaitForDeletePoolActivity(clusters)
+	activity.RegisterWithOptions(waitForDeletePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitForDeletePoolActivityName})
+
 	updatePoolActivity := pkeworkflow.NewUpdatePoolActivity(awsClientFactory)
 	activity.RegisterWithOptions(updatePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdatePoolActivityName})
 
