@@ -135,7 +135,12 @@ func (m traefikManager) compileChartValues(ctx context.Context, clusterID uint, 
 		}
 
 		typedValues.SSL.DefaultCN = orgDomain.Name
-		typedValues.SSL.DefaultSANList = append(typedValues.SSL.DefaultSANList, orgDomain.Name, orgDomain.WildcardName)
+		if orgDomain.Name != "" {
+			typedValues.SSL.DefaultSANList = append(typedValues.SSL.DefaultSANList, orgDomain.Name)
+		}
+		if orgDomain.WildcardName != "" {
+			typedValues.SSL.DefaultSANList = append(typedValues.SSL.DefaultSANList, orgDomain.WildcardName)
+		}
 	}
 
 	if cluster.Cloud == pkgcluster.Amazon {

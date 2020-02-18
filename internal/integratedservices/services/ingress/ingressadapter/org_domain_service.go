@@ -42,6 +42,10 @@ type OrganizationStore interface {
 }
 
 func (s OrgDomainService) GetOrgDomain(ctx context.Context, orgID uint) (ingress.OrgDomain, error) {
+	if s.baseDomain == "" {
+		return ingress.OrgDomain{}, nil
+	}
+
 	org, err := s.organizations.Get(ctx, orgID)
 	if err != nil {
 		return ingress.OrgDomain{}, errors.WrapIf(err, "failed to get organization")
