@@ -27,4 +27,3 @@ func WithHeartBeatOption(ctx context.Context) request.WaiterOption {
 		activity.RecordHeartbeat(ctx)
 	}
 }
-
