@@ -165,13 +165,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.Set("errors::serviceName", appName)
 	v.Set("errors::serviceVersion", version)
 
-	// Telemetry configuration
-	v.SetDefault("telemetry::enabled", false)
-	p.String("telemetry-addr", "127.0.0.1:9900", "Telemetry HTTP server address")
-	_ = v.BindPFlag("telemetry::addr", p.Lookup("telemetry-addr"))
-	v.SetDefault("telemetry::addr", "127.0.0.1:9900")
-	v.SetDefault("telemetry::debug", true)
-
 	// Pipeline configuration
 	p.String("addr", "127.0.0.1:9090", "Pipeline HTTP server address")
 	_ = v.BindPFlag("pipeline::addr", p.Lookup("addr"))

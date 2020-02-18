@@ -418,7 +418,7 @@ type ExpiryConfig struct {
 }
 
 // Configure configures some defaults in the Viper instance.
-func Configure(v *viper.Viper, _ *pflag.FlagSet) {
+func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Log configuration
 	if _, ok := os.LookupEnv("NO_COLOR"); ok {
 		v.SetDefault("no_color", true)
@@ -780,4 +780,11 @@ traefik:
 	v.SetDefault("spotguide::sharedLibraryGitHubOrganization", "spotguides")
 
 	v.SetDefault("secret::tls::defaultValidity", "8760h") // 1 year
+
+	// Telemetry configuration
+	v.SetDefault("telemetry::enabled", false)
+	p.String("telemetry-addr", "127.0.0.1:9900", "Telemetry HTTP server address")
+	_ = v.BindPFlag("telemetry::addr", p.Lookup("telemetry-addr"))
+	v.SetDefault("telemetry::addr", "127.0.0.1:9900")
+	v.SetDefault("telemetry::debug", true)
 }
