@@ -71,9 +71,12 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 				}
 
 				// initiate wait for deletion to complete
-				futures = append(futures, workflow.ExecuteActivity(workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
-					WaitForDeletePoolActivityName,
-					deletePoolActivityInput))
+				futures = append(futures,
+					workflow.ExecuteActivity(
+						workflow.WithStartToCloseTimeout(
+							workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
+							1*time.Hour),
+						WaitForDeletePoolActivityName, deletePoolActivityInput))
 			}
 		}
 
@@ -100,7 +103,9 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		return err
 	}
 	if err = workflow.ExecuteActivity(
-		workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
+		workflow.WithStartToCloseTimeout(
+			workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
+			1*time.Hour),
 		WaitForDeleteNLBActivityName,
 		deleteNLBActivityInput).Get(ctx, nil); err != nil {
 		return err
@@ -124,7 +129,10 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 				}
 
 				// initiate wait for deletion to complete
-				futures = append(futures, workflow.ExecuteActivity(workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
+				futures = append(futures, workflow.ExecuteActivity(
+					workflow.WithStartToCloseTimeout(
+						workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
+						1*time.Hour),
 					WaitForDeletePoolActivityName,
 					deletePoolActivityInput))
 			}
@@ -169,7 +177,11 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		return err
 	}
 
-	if err = workflow.ExecuteActivity(workflow.WithHeartbeatTimeout(ctx, 1*time.Minute), WaitForDeleteVPCActivityName, deleteVPCActivityInput).Get(ctx, nil); err != nil {
+	if err = workflow.ExecuteActivity(
+		workflow.WithStartToCloseTimeout(
+			workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
+			1*time.Hour),
+		WaitForDeleteVPCActivityName, deleteVPCActivityInput).Get(ctx, nil); err != nil {
 		return err
 	}
 
