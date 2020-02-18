@@ -21,6 +21,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/gofrs/uuid"
 
@@ -116,8 +117,7 @@ func (a *WaitForDeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCA
 
 	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx,
 		&cloudformation.DescribeStacksInput{StackName: &stackName},
-		WithHeartBeatOption(ctx),
-	)
+		request.WithWaiterRequestOptions(WithHeartBeatOption(ctx)))
 
 	return errors.WrapIf(pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cfClient), "waiting for termination")
 }

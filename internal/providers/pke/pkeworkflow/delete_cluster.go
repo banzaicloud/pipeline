@@ -55,7 +55,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 	// terminate worker nodes
 	{
-		futures := make([]workflow.Future, 0, 2*len(nodePools))
+		futures := make([]workflow.Future, 0, len(nodePools))
 		errs := make([]error, 0, 2*len(nodePools))
 		for _, np := range nodePools {
 			if !np.Master && np.Worker {
@@ -113,7 +113,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 	// terminate master nodes
 	{
-		futures := make([]workflow.Future, 0, 2*len(nodePools))
+		futures := make([]workflow.Future, 0, len(nodePools))
 		errs := make([]error, 0, 2*len(nodePools))
 		for _, np := range nodePools {
 			if np.Master || !np.Worker {

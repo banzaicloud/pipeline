@@ -20,6 +20,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 )
 
@@ -76,12 +77,12 @@ func (a *DeleteNLBActivity) Execute(ctx context.Context, input DeleteNLBActivity
 const WaitForDeleteNLBActivityName = "wait-for-pke-delete-nlb-activity"
 
 type WaitForDeleteNLBActivity struct {
-	DeleteNLBActivity
+	clusters Clusters
 }
 
 func NewWaitForDeleteNLBActivity(clusters Clusters) *WaitForDeleteNLBActivity {
 	return &WaitForDeleteNLBActivity{
-		DeleteNLBActivity{clusters: clusters},
+		clusters: clusters,
 	}
 }
 
@@ -107,7 +108,7 @@ func (a *WaitForDeleteNLBActivity) Execute(ctx context.Context, input DeleteNLBA
 
 	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx,
 		&cloudformation.DescribeStacksInput{StackName: &stackName},
-		WithHeartBeatOption(ctx))
+		request.WithWaiterRequestOptions(WithHeartBeatOption(ctx)))
 	if err != nil {
 		return errors.WrapIf(err, "waiting for termination")
 	}

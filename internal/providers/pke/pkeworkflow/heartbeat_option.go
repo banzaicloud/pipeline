@@ -22,8 +22,8 @@ import (
 )
 
 // WithHeartBeatOption injects the heart beat function into the aws waiter
-func WithHeartBeatOption(ctx context.Context) request.WaiterOption {
-	return func(w *request.Waiter) {
+func WithHeartBeatOption(ctx context.Context) request.Option {
+	return func(_ *request.Request) {
 		activity.RecordHeartbeat(ctx)
 	}
 }

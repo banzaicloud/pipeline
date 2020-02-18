@@ -21,6 +21,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
@@ -54,7 +55,7 @@ func (a *DeletePoolActivity) Execute(ctx context.Context, input DeletePoolActivi
 
 	awsCluster, ok := cluster.(AWSCluster)
 	if !ok {
-		return errors.New(fmt.Sprintf("can't get AWS client for %t", cluster))
+		return errors.New(fmt.Sprintf("can't get AWS client for %T", cluster))
 	}
 
 	client, err := awsCluster.GetAWSClient()
@@ -88,14 +89,12 @@ func (a *DeletePoolActivity) Execute(ctx context.Context, input DeletePoolActivi
 }
 
 type WaitForDeletePoolActivity struct {
-	DeletePoolActivity
+	clusters Clusters
 }
 
 func NewWaitForDeletePoolActivity(clusters Clusters) *WaitForDeletePoolActivity {
 	return &WaitForDeletePoolActivity{
-		DeletePoolActivity{
-			clusters: clusters,
-		},
+		clusters: clusters,
 	}
 }
 
@@ -108,7 +107,7 @@ func (a *WaitForDeletePoolActivity) Execute(ctx context.Context, input DeletePoo
 
 	awsCluster, ok := cluster.(AWSCluster)
 	if !ok {
-		return errors.New(fmt.Sprintf("can't get AWS client for %t", cluster))
+		return errors.New(fmt.Sprintf("can't get AWS client for %T", cluster))
 	}
 
 	client, err := awsCluster.GetAWSClient()
@@ -124,7 +123,7 @@ func (a *WaitForDeletePoolActivity) Execute(ctx context.Context, input DeletePoo
 	}
 
 	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: &stackName},
-		WithHeartBeatOption(ctx))
+		request.WithWaiterRequestOptions(WithHeartBeatOption(ctx)))
 	if err != nil {
 		return errors.WrapIf(pkgCloudformation.NewAwsStackFailure(err, stackName, "", cfClient), "waiting for termination")
 	}
