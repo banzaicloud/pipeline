@@ -15,6 +15,7 @@
 package secret
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -34,11 +35,11 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/cast"
 	"golang.org/x/crypto/bcrypt"
 	"k8s.io/apimachinery/pkg/util/validation"
 
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/secret"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
@@ -57,11 +58,18 @@ var Store *secretStore
 // nolint: gochecknoglobals
 var ErrSecretNotExists = fmt.Errorf("There's no secret with this ID")
 
-func init() {
-	Store = newVaultSecretStore()
+// InitSecretStore initializes the global secret store.
+func InitSecretStore(store secret.Store, vaultClient *vault.Client) {
+	Store = &secretStore{
+		SecretStore: store,
+		Client:      vaultClient,
+		Logical:     vaultClient.RawClient().Logical(),
+	}
 }
 
 type secretStore struct {
+	SecretStore secret.Store
+
 	Client  *vault.Client
 	Logical *vaultapi.Logical
 }
@@ -109,16 +117,6 @@ func ValidateSecretType(s *SecretItemResponse, validType string) error {
 		}
 	}
 	return nil
-}
-
-func newVaultSecretStore() *secretStore {
-	role := "pipeline"
-	client, err := vault.NewClient(role)
-	if err != nil {
-		panic(err)
-	}
-	logical := client.Vault().Logical()
-	return &secretStore{Client: client, Logical: logical}
 }
 
 // GenerateSecretIDFromName generates a "unique by name per organization" id for Secrets
@@ -232,18 +230,21 @@ func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
 
 // Delete secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Delete(organizationID uint, secretID string) error {
-
-	path := secretMetadataPath(organizationID, secretID)
-
-	log.Debugln("Delete secret:", path)
+	log.WithFields(logrus.Fields{
+		"organizationId": organizationID,
+		"secretId":       secretID,
+	}).Debugln("deleting secret")
 
 	secret, err := ss.Get(organizationID, secretID)
+	if err == ErrSecretNotExists { // Already deleted
+		return nil
+	}
 	if err != nil {
 		return errors.Wrap(err, "Error during querying secret before deletion")
 	}
 
-	if _, err := ss.Logical.Delete(path); err != nil {
-		return errors.Wrap(err, "Error during deleting secret")
+	if err := ss.SecretStore.Delete(context.Background(), organizationID, secretID); err != nil {
+		return err
 	}
 
 	// if type is distribution, unmount all pki engines
@@ -251,7 +252,7 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 		clusterID := getClusterIDFromTags(secret.Tags)
 		basePath := clusterPKIPath(organizationID, clusterID)
 
-		path = fmt.Sprintf("%s/ca", basePath)
+		path := fmt.Sprintf("%s/ca", basePath)
 		err = ss.Client.Vault().Sys().Unmount(path)
 		if err != nil {
 			log.Warnf("failed to unmount %s: %s", path, err)
@@ -281,28 +282,28 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 
 // Save secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Store(organizationID uint, request *CreateSecretRequest) (string, error) {
-
 	// We allow only Kubernetes compatible Secret names
 	if errorList := validation.IsDNS1123Subdomain(request.Name); errorList != nil {
 		return "", errors.New(errorList[0])
 	}
 
 	secretID := GenerateSecretID(request)
-	path := secretDataPath(organizationID, secretID)
 
 	if err := ss.generateValuesIfNeeded(organizationID, request); err != nil {
 		return "", err
 	}
 
-	sort.Strings(request.Tags)
-
-	data, err := secretData(0, request)
-	if err != nil {
-		return "", err
+	model := secret.Model{
+		ID:        secretID,
+		Name:      request.Name,
+		Type:      request.Type,
+		Values:    request.Values,
+		Tags:      request.Tags,
+		UpdatedBy: request.UpdatedBy,
 	}
 
-	if _, err := ss.Logical.Write(path, data); err != nil {
-		return "", errors.Wrap(err, "Error during storing secret")
+	if err := ss.SecretStore.Create(context.Background(), organizationID, model); err != nil {
+		return "", err
 	}
 
 	return secretID, nil
@@ -310,25 +311,26 @@ func (ss *secretStore) Store(organizationID uint, request *CreateSecretRequest) 
 
 // Update secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Update(organizationID uint, secretID string, request *CreateSecretRequest) error {
-
 	if GenerateSecretID(request) != secretID {
 		return errors.New("Secret name cannot be changed")
 	}
 
-	path := secretDataPath(organizationID, secretID)
+	log.WithFields(logrus.Fields{
+		"organizationId": organizationID,
+		"secretId":       secretID,
+	}).Debugln("updating secret")
 
-	log.Debugln("Update secret:", path)
-
-	sort.Strings(request.Tags)
-
-	// If secret doesn't exists, create it.
-	data, err := secretData(request.Version, request)
-	if err != nil {
-		return err
+	model := secret.Model{
+		ID:        secretID,
+		Name:      request.Name,
+		Type:      request.Type,
+		Values:    request.Values,
+		Tags:      request.Tags,
+		UpdatedBy: request.UpdatedBy,
 	}
 
-	if _, err := ss.Logical.Write(path, data); err != nil {
-		return errors.Wrap(err, "Error during updating secret")
+	if err := ss.SecretStore.Put(context.Background(), organizationID, model); err != nil {
+		return err
 	}
 
 	return nil
@@ -380,151 +382,95 @@ func (ss *secretStore) CreateOrUpdate(organizationID uint, value *CreateSecretRe
 	return secretID, nil
 }
 
-func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*SecretItemResponse, error) {
-
-	data := cast.ToStringMap(secret.Data["data"])
-	metadata := cast.ToStringMap(secret.Data["metadata"])
-
-	version, _ := metadata["version"].(json.Number).Int64()
-
-	updatedAt, err := time.Parse(time.RFC3339, metadata["created_time"].(string))
-	if err != nil {
-		return nil, err
-	}
-
-	response := SecretItemResponse{
-		ID:        secretID,
-		Version:   int(version),
-		UpdatedAt: updatedAt,
-		Tags:      []string{},
-	}
-
-	if err := mapstructure.Decode(data["value"], &response); err != nil {
-		return nil, err
-	}
-
-	if !values {
-		// Clear the values otherwise
-		for k := range response.Values {
-			response.Values[k] = "<hidden>"
-		}
-	}
-
-	return &response, nil
-}
-
 // Retrieve secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretItemResponse, error) {
-
-	path := secretDataPath(organizationID, secretID)
-
-	secret, err := ss.Logical.Read(path)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "Error during reading secret")
-	}
-
-	if secret == nil {
+	model, err := ss.SecretStore.Get(context.Background(), organizationID, secretID)
+	if err != nil && errors.As(err, &secret.NotFoundError{}) {
 		return nil, ErrSecretNotExists
+	} else if err != nil {
+		return nil, err
 	}
 
-	return parseSecret(secretID, secret, true)
+	return &SecretItemResponse{
+		ID:        model.ID,
+		Name:      model.Name,
+		Type:      model.Type,
+		Values:    model.Values,
+		Tags:      model.Tags,
+		Version:   0,
+		UpdatedAt: model.UpdatedAt,
+		UpdatedBy: model.UpdatedBy,
+	}, nil
 }
 
 // Retrieve secret by secret Name secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) GetByName(organizationID uint, name string) (*SecretItemResponse, error) {
-
 	secretID := GenerateSecretIDFromName(name)
-	secret, err := ss.Get(organizationID, secretID)
-	if err == ErrSecretNotExists {
-		return nil, err
-	} else if err != nil {
-		return nil, errors.Wrap(err, "Error during reading secret")
-	}
 
-	if secret == nil {
+	secret, err := ss.Get(organizationID, secretID)
+	if err != nil {
 		return nil, ErrSecretNotExists
 	}
 
 	return secret, nil
 }
 
-func (ss *secretStore) getSecretIDs(orgid uint, query *ListSecretsQuery) ([]string, error) {
-	if len(query.IDs) > 0 {
-		return query.IDs, nil
-	}
-
-	listPath := fmt.Sprintf("secret/metadata/orgs/%d", orgid)
-
-	list, err := ss.Logical.List(listPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if list != nil {
-		keys := cast.ToStringSlice(list.Data["keys"])
-		res := make([]string, len(keys))
-		for i, key := range keys {
-			res[i] = string(key)
-		}
-		return res, nil
-	}
-
-	return nil, nil
-}
-
 // List secret secret/orgs/:orgid:/ scope
 func (ss *secretStore) List(orgid uint, query *ListSecretsQuery) ([]*SecretItemResponse, error) {
-
 	log.Debugf("Searching for secrets [orgid: %d, query: %#v]", orgid, query)
 
-	secretIDs, err := ss.getSecretIDs(orgid, query)
-	if err != nil {
-		log.Errorf("Error listing secrets: %s", err.Error())
-		return nil, err
-	}
+	var models []secret.Model
+	var err error
 
-	responseItems := []*SecretItemResponse{}
+	if len(query.IDs) > 0 {
+		models = make([]secret.Model, 0, len(query.IDs))
 
-	for _, secretID := range secretIDs {
-
-		if secret, err := ss.Logical.Read(secretDataPath(orgid, secretID)); err != nil {
-
-			log.Errorf("Error listing secrets: %s", err.Error())
-			return nil, err
-
-		} else if secret != nil {
-
-			sir, err := parseSecret(secretID, secret, query.Values)
+		for _, id := range query.IDs {
+			model, err := ss.SecretStore.Get(context.Background(), orgid, id)
 			if err != nil {
 				return nil, err
 			}
 
-			if (query.Type == secrettype.AllSecrets || sir.Type == query.Type) && hasTags(sir.Tags, query.Tags) {
-				responseItems = append(responseItems, sir)
-			}
+			models = append(models, model)
+		}
+	} else {
+		models, err = ss.SecretStore.List(context.Background(), orgid)
+		if err != nil {
+			log.Errorf("Error listing secrets: %s", err.Error())
+
+			return nil, err
 		}
 	}
 
-	return responseItems, nil
-}
+	responseItems := []*SecretItemResponse{}
 
-func secretData(version int, request *CreateSecretRequest) (map[string]interface{}, error) {
-	valueData := map[string]interface{}{}
+	for _, model := range models {
+		if !((query.Type == secrettype.AllSecrets || model.Type == query.Type) && hasTags(model.Tags, query.Tags)) {
+			continue
+		}
 
-	if err := mapstructure.Decode(request, &valueData); err != nil {
-		return nil, errors.Wrap(err, "Error during encoding secret")
+		responseItem := &SecretItemResponse{
+			ID:        model.ID,
+			Name:      model.Name,
+			Type:      model.Type,
+			Values:    model.Values,
+			Tags:      model.Tags,
+			Version:   0,
+			UpdatedAt: model.UpdatedAt,
+			UpdatedBy: model.UpdatedBy,
+		}
+
+		if !query.Values {
+			// Clear the values otherwise
+			for k := range responseItem.Values {
+				responseItem.Values[k] = "<hidden>"
+			}
+		}
+
+		responseItems = append(responseItems, responseItem)
 	}
 
-	return vault.NewData(version, map[string]interface{}{"value": valueData}), nil
-}
-
-func secretDataPath(organizationID uint, secretID string) string {
-	return fmt.Sprintf("secret/data/orgs/%d/%s", organizationID, secretID)
-}
-
-func secretMetadataPath(organizationID uint, secretID string) string {
-	return fmt.Sprintf("secret/metadata/orgs/%d/%s", organizationID, secretID)
+	return responseItems, nil
 }
 
 func hasTags(tags []string, searchingTag []string) bool {
@@ -560,7 +506,7 @@ func (MismatchError) ServiceError() bool {
 
 // IsCASError detects if the underlying Vault error is caused by a CAS failure
 func IsCASError(err error) bool {
-	return strings.Contains(err.Error(), "check-and-set parameter did not match the current version")
+	return strings.Contains(err.Error(), "check-and-set parameter did not match the current version") || errors.As(err, &secret.AlreadyExistsError{})
 }
 
 func isTLSSecretGenerationNeeded(cr *CreateSecretRequest) bool {
