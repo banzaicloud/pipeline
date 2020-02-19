@@ -74,6 +74,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/kubernetes/kubernetesadapter"
 	intpkeworkflowadapter "github.com/banzaicloud/pipeline/internal/pke/workflow/adapter"
+	"github.com/banzaicloud/pipeline/internal/platform/appkit"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
@@ -87,6 +88,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/kubesecret"
+	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
@@ -193,12 +195,15 @@ func main() {
 
 	logger.Info("starting application", buildInfo.Fields())
 
+	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor)
+
 	vaultClient, err := vault.NewClient("pipeline")
 	emperror.Panic(err)
 	global.SetVault(vaultClient)
 
 	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
-	secret.InitSecretStore(secretStore)
+	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, commonLogger)
+	secret.InitSecretStore(secretStore, pkeSecreter)
 	restricted.InitSecretStore(secret.Store)
 
 	var group run.Group

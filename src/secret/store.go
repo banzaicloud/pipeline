@@ -46,9 +46,10 @@ var Store *secretStore
 var ErrSecretNotExists = fmt.Errorf("There's no secret with this ID")
 
 // InitSecretStore initializes the global secret store.
-func InitSecretStore(store secret.Store) {
+func InitSecretStore(store secret.Store, pkeSecreter PkeSecreter) {
 	Store = &secretStore{
 		SecretStore: store,
+		PkeSecreter: pkeSecreter,
 	}
 }
 
