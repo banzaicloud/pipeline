@@ -17,7 +17,7 @@ package action
 import (
 	"encoding/json"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/sirupsen/logrus"
@@ -57,12 +57,12 @@ func (a *DeleteSSHKeyAction) ExecuteAction(input interface{}) (interface{}, erro
 	jsonData := []string{a.sshKeyName}
 	marshaledValue, err := json.Marshal(jsonData)
 	if err != nil {
-		return nil, emperror.With(err, "sshKeyName", a.sshKeyName)
+		return nil, errors.WithDetails(err, "sshKeyName", a.sshKeyName)
 	}
 	req.KeyPairNames = string(marshaledValue)
 	req.RegionId = a.sshKeyRegionID
 
 	resp, err := ecsClient.DeleteKeyPairs(req)
 
-	return resp, emperror.WrapWith(err, "could not delete ssh key from Alibaba", "sshKeyName", a.sshKeyName)
+	return resp, errors.WrapIfWithDetails(err, "could not delete ssh key from Alibaba", "sshKeyName", a.sshKeyName)
 }

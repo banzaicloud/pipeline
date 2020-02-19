@@ -30,18 +30,19 @@ type Token struct {
 	CreatedAt time.Time  `json:"createdAt,omitempty"`
 }
 
-// Service provides access to personal access tokens.
-//go:generate mga gen kit endpoint --outdir tokendriver --with-oc Service
 //go:generate mga gen mockery --name Service --inpkg
+// +kit:endpoint:errorStrategy=service
+
+// Service provides access to personal access tokens.
 type Service interface {
 	// CreateToken creates a new access token. It returns the generated token value.
-	CreateToken(ctx context.Context, tokenRequest NewTokenRequest) (NewToken, error)
+	CreateToken(ctx context.Context, tokenRequest NewTokenRequest) (newToken NewToken, err error)
 
 	// ListTokens lists access tokens for a user.
-	ListTokens(ctx context.Context) ([]Token, error)
+	ListTokens(ctx context.Context) (tokens []Token, err error)
 
 	// GetToken returns a single access tokens for a user.
-	GetToken(ctx context.Context, id string) (Token, error)
+	GetToken(ctx context.Context, id string) (token Token, err error)
 
 	// DeleteToken deletes a single access token for a user.
 	DeleteToken(ctx context.Context, id string) error
@@ -120,8 +121,15 @@ func (e NotFoundError) Details() []interface{} {
 	return []interface{}{"tokenId", e.ID}
 }
 
-// IsBusinessError tells the transport layer to return this error to the client.
-func (e NotFoundError) IsBusinessError() bool {
+// NotFound tells a client that this error is related to a resource being not found.
+// Can be used to translate the error to eg. status code.
+func (NotFoundError) NotFound() bool {
+	return true
+}
+
+// ServiceError tells the transport layer whether this error should be translated into the transport format
+// or an internal error should be returned instead.
+func (NotFoundError) ServiceError() bool {
 	return true
 }
 

@@ -16,6 +16,7 @@ package action
 
 import (
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/sirupsen/logrus"
 
@@ -97,14 +98,14 @@ func (a *UpdateACKNodePoolAction) ExecuteAction(input interface{}) (interface{},
 		if len(createdInstanceIds) != 0 {
 			_, err = attachInstancesToCluster(a.log, a.context.ClusterID, createdInstanceIds, a.context.CSClient)
 			if err != nil {
-				return nil, emperror.With(err, "cluster", a.clusterName)
+				return nil, errors.WithDetails(err, "cluster", a.clusterName)
 			}
 		}
 	}
 
 	r, err := GetClusterDetails(a.context.CSClient, a.context.ClusterID)
 	if err != nil {
-		return nil, emperror.With(err, "cluster", a.clusterName)
+		return nil, errors.WithDetails(err, "cluster", a.clusterName)
 	}
 
 	return r, nil

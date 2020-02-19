@@ -23,6 +23,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
+	"github.com/banzaicloud/pipeline/internal/global"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -152,7 +153,6 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			StackName:        eksworkflow.GenerateNodePoolStackName(c.Name, nodePool.Name),
 
 			ScaleEnabled: commonCluster.ScaleOptions.Enabled,
-			SSHKeyName:   eksworkflow.GenerateSSHKeyNameForCluster(c.Name),
 
 			Subnets: []eksworkflow.Subnet{
 				{
@@ -176,6 +176,11 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			NodeImage:        nodePool.Image,
 			NodeInstanceType: nodePool.InstanceType,
 			Labels:           nodePool.Labels,
+		}
+
+		var eksConfig = global.Config.Distribution.EKS
+		if eksConfig.SSH.Generate {
+			subinput.SSHKeyName = eksworkflow.GenerateSSHKeyNameForCluster(c.Name)
 		}
 
 		nodePoolTemplate, err := eksworkflow.GetNodePoolTemplate()

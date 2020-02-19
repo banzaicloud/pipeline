@@ -17,13 +17,12 @@ package cluster
 import (
 	stderrors "errors"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	v1 "k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	intSecret "github.com/banzaicloud/pipeline/internal/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/kubesecret"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -98,13 +97,13 @@ func InstallSecretsByK8SConfig(kubeConfig []byte, orgID uint, query *secret.List
 			return nil, err
 		}
 
-		kubeSecretRequest := intSecret.KubeSecretRequest{
+		kubeSecretRequest := kubesecret.KubeSecretRequest{
 			Name:   s.Name,
 			Type:   s.Type,
 			Values: s.Values,
 		}
 
-		newK8sSecret, err := intSecret.CreateKubeSecret(kubeSecretRequest)
+		newK8sSecret, err := kubesecret.CreateKubeSecret(kubeSecretRequest)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to create k8s secret")
 		}
@@ -169,10 +168,10 @@ func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, 
 		return "", errors.Wrap(err, "failed to create kubernetes client")
 	}
 
-	kubeSecretRequest := intSecret.KubeSecretRequest{
+	kubeSecretRequest := kubesecret.KubeSecretRequest{
 		Name:      secretName,
 		Namespace: req.Namespace,
-		Spec:      make(intSecret.KubeSecretSpec, len(req.Spec)),
+		Spec:      make(kubesecret.KubeSecretSpec, len(req.Spec)),
 	}
 
 	if req.SourceSecretName != "" {
@@ -180,7 +179,7 @@ func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, 
 		if err == secret.ErrSecretNotExists {
 			return "", ErrSecretNotFound
 		} else if err != nil {
-			return "", emperror.With(errors.Wrap(err, "failed to get secret"), "secret", req.SourceSecretName)
+			return "", errors.WithDetails(errors.Wrap(err, "failed to get secret"), "secret", req.SourceSecretName)
 		}
 
 		kubeSecretRequest.Type = secretItem.Type
@@ -188,20 +187,20 @@ func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, 
 	}
 
 	for key, spec := range req.Spec {
-		kubeSecretRequest.Spec[key] = intSecret.KubeSecretSpecItem{
+		kubeSecretRequest.Spec[key] = kubesecret.KubeSecretSpecItem{
 			Source:    spec.Source,
 			SourceMap: spec.SourceMap,
 			Value:     spec.Value,
 		}
 	}
 
-	kubeSecret, err := intSecret.CreateKubeSecret(kubeSecretRequest)
+	kubeSecret, err := kubesecret.CreateKubeSecret(kubeSecretRequest)
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to create kubernetes secret")
+		return "", errors.WrapIf(err, "failed to create kubernetes secret")
 	}
 
 	if err := k8sutil.EnsureNamespace(clusterClient, req.Namespace); err != nil {
-		return "", emperror.Wrap(err, "failed to ensure that namespace exists")
+		return "", errors.WrapIf(err, "failed to ensure that namespace exists")
 	}
 
 	_, err = clusterClient.CoreV1().Secrets(req.Namespace).Create(&kubeSecret)
@@ -212,7 +211,7 @@ func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, 
 		}
 		return "", ErrKubernetesSecretAlreadyExists
 	} else if err != nil {
-		return "", emperror.Wrap(err, "failed to create secret")
+		return "", errors.WrapIf(err, "failed to create secret")
 	}
 
 	return secretName, nil
@@ -236,10 +235,10 @@ func MergeSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, re
 		return "", errors.Wrap(err, "failed to create kubernetes client")
 	}
 
-	kubeSecretRequest := intSecret.KubeSecretRequest{
+	kubeSecretRequest := kubesecret.KubeSecretRequest{
 		Name:      secretName,
 		Namespace: req.Namespace,
-		Spec:      make(intSecret.KubeSecretSpec, len(req.Spec)),
+		Spec:      make(kubesecret.KubeSecretSpec, len(req.Spec)),
 	}
 
 	if req.SourceSecretName != "" {
@@ -247,7 +246,7 @@ func MergeSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, re
 		if err == secret.ErrSecretNotExists {
 			return "", ErrSecretNotFound
 		} else if err != nil {
-			return "", emperror.With(errors.Wrap(err, "failed to get secret"), "secret", req.SourceSecretName)
+			return "", errors.WithDetails(errors.Wrap(err, "failed to get secret"), "secret", req.SourceSecretName)
 		}
 
 		kubeSecretRequest.Type = secretItem.Type
@@ -258,20 +257,20 @@ func MergeSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, re
 	if err != nil && k8sapierrors.IsNotFound(err) {
 		return "", ErrKubernetesSecretNotFound
 	} else if err != nil {
-		return "", emperror.With(errors.Wrap(err, "failed to get kubernetes secret"), "secret", secretName)
+		return "", errors.WithDetails(errors.Wrap(err, "failed to get kubernetes secret"), "secret", secretName)
 	}
 
 	for key, spec := range req.Spec {
-		kubeSecretRequest.Spec[key] = intSecret.KubeSecretSpecItem{
+		kubeSecretRequest.Spec[key] = kubesecret.KubeSecretSpecItem{
 			Source:    spec.Source,
 			SourceMap: spec.SourceMap,
 			Value:     spec.Value,
 		}
 	}
 
-	kubeSecret, err := intSecret.CreateKubeSecret(kubeSecretRequest)
+	kubeSecret, err := kubesecret.CreateKubeSecret(kubeSecretRequest)
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to create kubernetes secret")
+		return "", errors.WrapIf(err, "failed to create kubernetes secret")
 	}
 
 	if clusterSecret.StringData == nil {
@@ -286,7 +285,7 @@ func MergeSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, re
 	if err != nil && k8sapierrors.IsNotFound(err) {
 		return "", ErrKubernetesSecretNotFound
 	} else if err != nil {
-		return "", emperror.Wrap(err, "failed to update secret")
+		return "", errors.WrapIf(err, "failed to update secret")
 	}
 
 	return secretName, nil

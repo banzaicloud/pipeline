@@ -15,7 +15,7 @@
 package istiofeature
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
 
 	"github.com/banzaicloud/pipeline/src/cluster"
@@ -28,21 +28,21 @@ func (m *MeshReconciler) ReconcileCanaryOperator(desiredState DesiredState) erro
 	if desiredState == DesiredStatePresent {
 		k8sclient, err := m.getMasterK8sClient()
 		if err != nil {
-			return emperror.Wrap(err, "could not get k8s client")
+			return errors.WrapIf(err, "could not get k8s client")
 		}
 		err = m.waitForSidecarInjectorPod(k8sclient)
 		if err != nil {
-			return emperror.Wrap(err, "error while waiting for running sidecar injector")
+			return errors.WrapIf(err, "error while waiting for running sidecar injector")
 		}
 
 		err = m.installCanaryOperator(m.Master, prometheusURL)
 		if err != nil {
-			return emperror.Wrap(err, "could not install canary-operator")
+			return errors.WrapIf(err, "could not install canary-operator")
 		}
 	} else {
 		err := m.uninstallCanaryOperator(m.Master)
 		if err != nil {
-			return emperror.Wrap(err, "could not remove canary-operator")
+			return errors.WrapIf(err, "could not remove canary-operator")
 		}
 	}
 
@@ -55,7 +55,7 @@ func (m *MeshReconciler) uninstallCanaryOperator(c cluster.CommonCluster) error 
 
 	err := deleteDeployment(c, canaryOperatorReleaseName)
 	if err != nil {
-		return emperror.Wrap(err, "could not remove canary-operator")
+		return errors.WrapIf(err, "could not remove canary-operator")
 	}
 
 	return nil
@@ -83,30 +83,32 @@ func (m *MeshReconciler) installCanaryOperator(c cluster.CommonCluster, promethe
 		},
 	}
 
-	if m.Configuration.internalConfig.canary.imageRepository != "" {
-		values.Operator.Image.Repository = m.Configuration.internalConfig.canary.imageRepository
+	canaryChart := m.Configuration.internalConfig.Charts.CanaryOperator
+
+	if canaryChart.Values.Operator.Image.Repository != "" {
+		values.Operator.Image.Repository = canaryChart.Values.Operator.Image.Repository
 	}
-	if m.Configuration.internalConfig.canary.imageTag != "" {
-		values.Operator.Image.Tag = m.Configuration.internalConfig.canary.imageTag
+	if canaryChart.Values.Operator.Image.Tag != "" {
+		values.Operator.Image.Tag = canaryChart.Values.Operator.Image.Tag
 	}
 
 	valuesOverride, err := yaml.Marshal(values)
 	if err != nil {
-		return emperror.Wrap(err, "could not marshal chart value overrides")
+		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}
 
 	err = installOrUpgradeDeployment(
 		c,
 		canaryOperatorNamespace,
-		m.Configuration.internalConfig.canary.chartName,
+		canaryChart.Chart,
 		canaryOperatorReleaseName,
 		valuesOverride,
-		m.Configuration.internalConfig.canary.chartVersion,
+		canaryChart.Version,
 		true,
 		true,
 	)
 	if err != nil {
-		return emperror.Wrap(err, "could not install canary-operator")
+		return errors.WrapIf(err, "could not install canary-operator")
 	}
 
 	return nil

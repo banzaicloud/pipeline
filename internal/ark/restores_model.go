@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
@@ -63,12 +63,12 @@ func (restore *ClusterBackupRestoresModel) SetValuesFromRequest(req *api.Persist
 
 	stateJSON, err := json.Marshal(req.Restore)
 	if err != nil {
-		return emperror.Wrap(err, "error converting state to json")
+		return errors.WrapIf(err, "error converting state to json")
 	}
 
 	resultsJSON, err := json.Marshal(req.Results)
 	if err != nil {
-		return emperror.Wrap(err, "error converting results to json")
+		return errors.WrapIf(err, "error converting results to json")
 	}
 
 	restore.Results = resultsJSON

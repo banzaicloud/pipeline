@@ -17,7 +17,7 @@ package schedules
 import (
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
@@ -33,7 +33,7 @@ func Get(c *gin.Context) {
 
 	schedule, err := common.GetARKService(c.Request).GetSchedulesService().GetByName(scheduleName)
 	if err != nil {
-		err = emperror.Wrap(err, "could not get schedule")
+		err = errors.WrapIf(err, "could not get schedule")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return

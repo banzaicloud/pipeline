@@ -17,9 +17,7 @@ package cluster
 import (
 	"encoding/base64"
 	"strings"
-	"time"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	storagev1 "k8s.io/api/storage/v1"
@@ -56,7 +54,6 @@ func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest
 		Kubernetes: model.KubernetesClusterModel{
 			Metadata: request.Properties.CreateClusterKubernetes.Metadata,
 		},
-		TtlMinutes: request.TtlMinutes,
 	}
 	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
 	return &cluster, nil
@@ -78,17 +75,17 @@ func (c *KubeCluster) CreateCluster() error {
 
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
-		return emperror.Wrap(err, "couldn't get Kubernetes config")
+		return errors.WrapIf(err, "couldn't get Kubernetes config")
 	}
 
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		return emperror.Wrap(err, "couldn't create Kubernetes client")
+		return errors.WrapIf(err, "couldn't create Kubernetes client")
 	}
 
 	c.modelCluster.RbacEnabled, err = c.isRBACEnabled(client)
 	if err != nil {
-		return emperror.Wrap(err, "couldn't determine if RBAC is enabled on the cluster")
+		return errors.WrapIf(err, "couldn't determine if RBAC is enabled on the cluster")
 	}
 
 	if c.modelCluster.RbacEnabled {
@@ -103,7 +100,7 @@ func (c *KubeCluster) CreateCluster() error {
 // Persist save the cluster model
 // Deprecated: Do not use.
 func (c *KubeCluster) Persist() error {
-	return emperror.Wrap(c.modelCluster.Save(), "failed to persist cluster")
+	return errors.WrapIf(c.modelCluster.Save(), "failed to persist cluster")
 }
 
 // createDefaultStorageClass creates a default storage class as some clusters are not created with
@@ -123,7 +120,7 @@ func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provision
 
 	_, err := kubernetesClient.StorageV1().StorageClasses().Create(&defaultStorageClass)
 
-	return emperror.Wrap(err, "create storage class failed")
+	return errors.WrapIf(err, "create storage class failed")
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
@@ -172,7 +169,6 @@ func (c *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nil,
 		Region:            c.modelCluster.Location,
-		TtlMinutes:        c.modelCluster.TtlMinutes,
 		StartedAt:         c.modelCluster.StartedAt,
 	}, nil
 }
@@ -317,6 +313,11 @@ func (c *KubeCluster) GetK8sConfig() ([]byte, error) {
 	return c.DownloadK8sConfig()
 }
 
+// GetK8sUserConfig returns the Kubernetes config
+func (c *KubeCluster) GetK8sUserConfig() ([]byte, error) {
+	return c.GetK8sConfig()
+}
+
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *KubeCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
@@ -330,16 +331,6 @@ func (c *KubeCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 // SetScaleOptions sets scale options for the cluster
 func (c *KubeCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
-}
-
-// GetTTL retrieves the TTL of the cluster
-func (c *KubeCluster) GetTTL() time.Duration {
-	return time.Duration(c.modelCluster.TtlMinutes) * time.Minute
-}
-
-// SetTTL sets the lifespan of a cluster
-func (c *KubeCluster) SetTTL(ttl time.Duration) {
-	c.modelCluster.TtlMinutes = uint(ttl.Minutes())
 }
 
 // isRBACEnabled determines if RBAC is enabled on the Kubernetes cluster by investigating if list of

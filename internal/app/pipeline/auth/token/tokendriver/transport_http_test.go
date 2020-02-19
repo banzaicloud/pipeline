@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/sagikazarmark/kitx/endpoint"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -41,7 +40,10 @@ func TestRegisterHTTPHandlers_CreateToken(t *testing.T) {
 	RegisterHTTPHandlers(
 		Endpoints{
 			CreateToken: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return expectedToken, nil
+				return CreateTokenResponse{
+					NewToken: expectedToken,
+					Err:      nil,
+				}, nil
 			},
 		},
 		handler.PathPrefix("/tokens").Subrouter(),
@@ -83,9 +85,9 @@ func TestRegisterHTTPHandlers_CreateToken_VirtualUserDenied(t *testing.T) {
 	handler := mux.NewRouter()
 	RegisterHTTPHandlers(
 		Endpoints{
-			CreateToken: endpoint.BusinessErrorMiddleware(func(_ context.Context, _ interface{}) (interface{}, error) {
-				return token.NewToken{}, CannotCreateVirtualUser
-			}),
+			CreateToken: func(_ context.Context, _ interface{}) (interface{}, error) {
+				return CreateTokenResponse{Err: CannotCreateVirtualUser}, nil
+			},
 		},
 		handler.PathPrefix("/tokens").Subrouter(),
 	)
@@ -117,7 +119,7 @@ func TestRegisterHTTPHandlers_ListTokens(t *testing.T) {
 	RegisterHTTPHandlers(
 		Endpoints{
 			ListTokens: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return expectedTokens, nil
+				return ListTokensResponse{Tokens: expectedTokens}, nil
 			},
 		},
 		handler.PathPrefix("/tokens").Subrouter(),
@@ -154,7 +156,7 @@ func TestRegisterHTTPHandlers_GetToken(t *testing.T) {
 	RegisterHTTPHandlers(
 		Endpoints{
 			GetToken: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return expectedToken, nil
+				return GetTokenResponse{Token: expectedToken}, nil
 			},
 		},
 		handler.PathPrefix("/tokens").Subrouter(),
@@ -183,9 +185,9 @@ func TestRegisterHTTPHandlers_GetToken_NotFound(t *testing.T) {
 	handler := mux.NewRouter()
 	RegisterHTTPHandlers(
 		Endpoints{
-			GetToken: endpoint.BusinessErrorMiddleware(func(_ context.Context, _ interface{}) (interface{}, error) {
-				return token.Token{}, token.NotFoundError{ID: tokenID}
-			}),
+			GetToken: func(_ context.Context, _ interface{}) (interface{}, error) {
+				return GetTokenResponse{Err: token.NotFoundError{ID: tokenID}}, nil
+			},
 		},
 		handler.PathPrefix("/tokens").Subrouter(),
 	)
@@ -207,7 +209,7 @@ func TestRegisterHTTPHandlers_DeleteToken(t *testing.T) {
 	RegisterHTTPHandlers(
 		Endpoints{
 			DeleteToken: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return nil, nil
+				return DeleteTokenResponse{}, nil
 			},
 		},
 		handler.PathPrefix("/tokens").Subrouter(),

@@ -5,6 +5,8 @@ log:
     level: "debug"
 
 pipeline:
+    uuid: ""
+
     # URL base path
     # Default is "/pipeline" in the development environment to allow using the UI locally
     basePath: "/pipeline"

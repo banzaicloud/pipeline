@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
@@ -103,7 +103,6 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 			Cloud:          google.Provider,
 			Distribution:   google.ClusterDistributionGKE,
 			CreatedBy:      userID,
-			TtlMinutes:     request.TtlMinutes,
 		},
 
 		MasterVersion: request.Properties.CreateClusterGKE.Master.Version,
@@ -424,7 +423,6 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		NodePools:         nodePools,
 		CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),
 		Region:            c.model.Region,
-		TtlMinutes:        c.model.Cluster.TtlMinutes,
 		StartedAt:         c.model.Cluster.StartedAt,
 	}, nil
 }
@@ -2012,6 +2010,11 @@ func (c *GKECluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
 }
 
+// GetK8sUserConfig returns the Kubernetes config
+func (c *GKECluster) GetK8sUserConfig() ([]byte, error) {
+	return c.GetK8sConfig()
+}
+
 func waitForOperation(getter operationInfoer, operationName string, logger logrus.FieldLogger) error {
 
 	log := logger.WithFields(logrus.Fields{"operation": operationName})
@@ -2048,16 +2051,6 @@ func (c *GKECluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 // SetScaleOptions sets scale options for the cluster
 func (c *GKECluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.model.Cluster.ScaleOptions, scaleOptions)
-}
-
-// GetTTL retrieves the TTL of the cluster
-func (c *GKECluster) GetTTL() time.Duration {
-	return time.Duration(c.model.Cluster.TtlMinutes) * time.Minute
-}
-
-// SetTTL sets the lifespan of a cluster
-func (c *GKECluster) SetTTL(ttl time.Duration) {
-	c.model.Cluster.TtlMinutes = uint(ttl.Minutes())
 }
 
 func hasTag(cluster *gke.Cluster, tagKey, tagValue string) bool {

@@ -47,29 +47,74 @@ func (s Store) GetCluster(ctx context.Context, id uint) (cluster.Cluster, error)
 		return cluster.Cluster{}, err
 	}
 
+	return clusterModelToEntity(clusterModel), nil
+}
+
+func clusterModelToEntity(m *model.ClusterModel) cluster.Cluster {
 	return cluster.Cluster{
-		ID:             clusterModel.ID,
-		UID:            clusterModel.UID,
-		Name:           clusterModel.Name,
-		OrganizationID: clusterModel.OrganizationId,
-		Status:         clusterModel.Status,
-		StatusMessage:  clusterModel.StatusMessage,
-		Cloud:          clusterModel.Cloud,
-		Distribution:   clusterModel.Distribution,
-		Location:       clusterModel.Location,
-		SecretID:       brn.New(clusterModel.OrganizationId, brn.SecretResourceType, clusterModel.SecretId),
-		ConfigSecretID: brn.New(clusterModel.OrganizationId, brn.SecretResourceType, clusterModel.ConfigSecretId),
-	}, nil
+		ID:             m.ID,
+		UID:            m.UID,
+		Name:           m.Name,
+		OrganizationID: m.OrganizationId,
+		Status:         m.Status,
+		StatusMessage:  m.StatusMessage,
+		Cloud:          m.Cloud,
+		Distribution:   m.Distribution,
+		Location:       m.Location,
+		SecretID:       brn.New(m.OrganizationId, brn.SecretResourceType, m.SecretId),
+		ConfigSecretID: brn.New(m.OrganizationId, brn.SecretResourceType, m.ConfigSecretId),
+	}
+}
+
+func (s Store) GetClusterByName(ctx context.Context, orgID uint, clusterName string) (cluster.Cluster, error) {
+	clusterModel, err := s.findModelByName(ctx, orgID, clusterName)
+	if err != nil {
+		return cluster.Cluster{}, err
+	}
+
+	return clusterModelToEntity(clusterModel), nil
+}
+
+// Exists returns true if the cluster exists in the store and is not deleted
+func (s Store) Exists(ctx context.Context, id uint) (bool, error) {
+	m, err := s.clusters.FindOneByID(0, id)
+
+	if IsClusterNotFoundError(err) {
+		return true, nil
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	if m == nil {
+		return false, nil
+	}
+
+	return m.DeletedAt == nil, nil
 }
 
 func (s Store) findModel(ctx context.Context, id uint) (*model.ClusterModel, error) {
 	clusterModel, err := s.clusters.FindOneByID(0, id)
 	if err != nil {
 		if IsClusterNotFoundError(err) {
-			return nil, errors.WithStack(cluster.NotFoundError{ID: id})
+			return nil, errors.WithStack(cluster.NotFoundError{ClusterID: id})
 		}
 
-		return nil, errors.WrapWithDetails(err, "failed to get cluster", "cluster_id", id)
+		return nil, errors.WrapWithDetails(err, "failed to get cluster", "clusterId", id)
+	}
+
+	return clusterModel, nil
+}
+
+func (s Store) findModelByName(ctx context.Context, orgID uint, clusterName string) (*model.ClusterModel, error) {
+	clusterModel, err := s.clusters.FindOneByName(orgID, clusterName)
+	if err != nil {
+		if IsClusterNotFoundError(err) {
+			return nil, errors.WithStack(cluster.NotFoundError{OrganizationID: orgID, ClusterName: clusterName})
+		}
+
+		return nil, errors.WrapWithDetails(err, "failed to get cluster", "clusterName", clusterName, "orgId", orgID)
 	}
 
 	return clusterModel, nil

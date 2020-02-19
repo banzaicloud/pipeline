@@ -15,8 +15,8 @@
 package ark
 
 import (
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
@@ -82,7 +82,7 @@ func (s *BucketsRepository) GetActiveDeploymentModel(bucket *ClusterBackupBucket
 	err = s.db.Model(&bucket).Related(&deployment, "Deployment").Error
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
-			err = errors.Wrap(err, "error getting deployment")
+			err = errors.WrapIf(err, "error getting deployment")
 		}
 		return
 	}
@@ -91,7 +91,7 @@ func (s *BucketsRepository) GetActiveDeploymentModel(bucket *ClusterBackupBucket
 	err = s.db.Model(deployment).Related(&cluster, "Cluster").Error
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
-			err = errors.Wrap(err, "error getting deployment")
+			err = errors.WrapIf(err, "error getting deployment")
 		}
 		return
 	}

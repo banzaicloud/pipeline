@@ -19,7 +19,6 @@ import (
 
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
@@ -89,7 +88,7 @@ func (m IntegratedServicesManager) GetOutput(ctx context.Context, clusterID uint
 
 	defer vaultManager.close()
 
-	chartVersion := global.Config.Cluster.Vault.Charts.Webhook.Version
+	chartVersion := m.config.Charts.Webhook.Version
 
 	vaultOutput, err := getVaultOutput(*vaultManager, orgID, clusterID)
 	if err != nil {

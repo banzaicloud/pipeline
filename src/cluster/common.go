@@ -80,12 +80,11 @@ type CommonCluster interface {
 	DeleteCluster() error
 	GetScaleOptions() *pkgCluster.ScaleOptions
 	SetScaleOptions(*pkgCluster.ScaleOptions)
-	GetTTL() time.Duration
-	SetTTL(time.Duration)
 
 	// Kubernetes
 	GetAPIEndpoint() (string, error)
 	GetK8sConfig() ([]byte, error)
+	GetK8sUserConfig() ([]byte, error)
 	RequiresSshPublicKey() bool
 	RbacEnabled() bool
 

@@ -567,11 +567,9 @@ paths:
         style: form
       responses:
         202:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClusterDelete_200'
-          description: Cluster deleted successfully
+          description: Cluster delete in progress
+        204:
+          description: Cluster deleted
         default:
           content:
             application/json:
@@ -1489,138 +1487,6 @@ paths:
       security:
       - bearerAuth: []
       summary: Get a cluster config with OIDC login
-      tags:
-      - clusters
-  /api/v1/orgs/{orgId}/clusters/{id}/apiendpoint:
-    get:
-      description: Get API endpoint
-      operationId: GetAPIEndpoint
-      parameters:
-      - description: Organization identifier
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          type: integer
-        style: simple
-      - description: Cluster identifier
-        explode: false
-        in: path
-        name: id
-        required: true
-        schema:
-          type: integer
-        style: simple
-      responses:
-        200:
-          content:
-            text/plain:
-              schema:
-                example: 35.195.56.31
-                type: string
-          description: API endpoint showed
-        default:
-          content:
-            application/json:
-              examples:
-                BadRequest:
-                  value:
-                    code: 400
-                    message: Invalid request
-                    error: Failed to parse request.
-                Unauthorized:
-                  value:
-                    code: 401
-                    message: Unauthorized
-                    error: Unauthorized
-                OrganizationNotFound:
-                  value:
-                    code: 404
-                    message: Organization not found
-                    error: Organization not found
-                SecretAlreadyExists:
-                  value:
-                    code: 409
-                    message: Secret already exists
-                    error: Secret already exists
-                InternalServerError:
-                  value:
-                    code: 500
-                    message: Something went wrong
-                    error: Something went wrong
-              schema:
-                $ref: '#/components/schemas/CommonError'
-            application/problem+json:
-              examples:
-                BadRequest:
-                  value:
-                    type: about:blank
-                    title: Invalid request
-                    status: 400
-                    detail: Failed to parse request.
-                    instance: ""
-                    code: 400
-                    message: Failed to parse request.
-                    error: Invalid request
-                Unauthorized:
-                  value:
-                    type: about:blank
-                    title: Unauthorized
-                    status: 401
-                    detail: You are unauthorized to access this resource.
-                    instance: ""
-                    code: 401
-                    message: You are unauthorized to access this resource.
-                    error: Unauthorized
-                AccessDenied:
-                  value:
-                    type: about:blank
-                    title: Access denied
-                    status: 403
-                    detail: You are unauthorized to perform this action access this
-                      resource.
-                    instance: ""
-                    code: 403
-                    message: You are unauthorized to perform this action access this
-                      resource.
-                    error: Access denied
-                OrganizationNotFound:
-                  value:
-                    type: about:blank
-                    title: Organization not found
-                    status: 404
-                    detail: Organization not found
-                    instance: ""
-                    code: 404
-                    message: Organization not found
-                    error: Organization not found
-                SecretAlreadyExists:
-                  value:
-                    type: about:blank
-                    title: Secret already exists
-                    status: 409
-                    detail: Secret already exists
-                    instance: ""
-                    code: 409
-                    message: Secret already exists
-                    error: Secret already exists
-                InternalServerError:
-                  value:
-                    type: about:blank
-                    title: Internal server error
-                    status: 500
-                    detail: Something went wrong
-                    instance: ""
-                    code: 500
-                    message: Something went wrong
-                    error: Internal server error
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      summary: Get API endpoint
       tags:
       - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/monitoring:
@@ -7826,8 +7692,6 @@ paths:
                     vault:
                       enabled: true
                       managed: false
-                  issue:
-                    enabled: false
                 type: object
           description: capabilities successfully returned
       summary: Lists configured Pipeline capabilities
@@ -16842,9 +16706,689 @@ paths:
       summary: Update Feature of Cluster Group
       tags:
       - clustergroup features
-  /api/v1/orgs/{orgId}/clusters/{id}/features:
+  /api/v1/orgs/{orgId}/clusters/{id}/services:
     get:
       operationId: ListIntegratedServices
+      parameters:
+      - description: Organization identifier
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Cluster identifier
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegratedServiceList'
+          description: Success
+        default:
+          content:
+            application/json:
+              examples:
+                BadRequest:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: Failed to parse request.
+                Unauthorized:
+                  value:
+                    code: 401
+                    message: Unauthorized
+                    error: Unauthorized
+                OrganizationNotFound:
+                  value:
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+            application/problem+json:
+              examples:
+                BadRequest:
+                  value:
+                    type: about:blank
+                    title: Invalid request
+                    status: 400
+                    detail: Failed to parse request.
+                    instance: ""
+                    code: 400
+                    message: Failed to parse request.
+                    error: Invalid request
+                Unauthorized:
+                  value:
+                    type: about:blank
+                    title: Unauthorized
+                    status: 401
+                    detail: You are unauthorized to access this resource.
+                    instance: ""
+                    code: 401
+                    message: You are unauthorized to access this resource.
+                    error: Unauthorized
+                AccessDenied:
+                  value:
+                    type: about:blank
+                    title: Access denied
+                    status: 403
+                    detail: You are unauthorized to perform this action access this
+                      resource.
+                    instance: ""
+                    code: 403
+                    message: You are unauthorized to perform this action access this
+                      resource.
+                    error: Access denied
+                OrganizationNotFound:
+                  value:
+                    type: about:blank
+                    title: Organization not found
+                    status: 404
+                    detail: Organization not found
+                    instance: ""
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    type: about:blank
+                    title: Secret already exists
+                    status: 409
+                    detail: Secret already exists
+                    instance: ""
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    type: about:blank
+                    title: Internal server error
+                    status: 500
+                    detail: Something went wrong
+                    instance: ""
+                    code: 500
+                    message: Something went wrong
+                    error: Internal server error
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List enabled integrated services of a cluster
+      tags:
+      - integrated services
+  /api/v1/orgs/{orgId}/clusters/{id}/services/{serviceName}:
+    delete:
+      operationId: DeactivateIntegratedService
+      parameters:
+      - description: Organization identifier
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Cluster identifier
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: service name
+        explode: false
+        in: path
+        name: serviceName
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        204:
+          description: No Content
+        default:
+          content:
+            application/json:
+              examples:
+                BadRequest:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: Failed to parse request.
+                Unauthorized:
+                  value:
+                    code: 401
+                    message: Unauthorized
+                    error: Unauthorized
+                OrganizationNotFound:
+                  value:
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+            application/problem+json:
+              examples:
+                BadRequest:
+                  value:
+                    type: about:blank
+                    title: Invalid request
+                    status: 400
+                    detail: Failed to parse request.
+                    instance: ""
+                    code: 400
+                    message: Failed to parse request.
+                    error: Invalid request
+                Unauthorized:
+                  value:
+                    type: about:blank
+                    title: Unauthorized
+                    status: 401
+                    detail: You are unauthorized to access this resource.
+                    instance: ""
+                    code: 401
+                    message: You are unauthorized to access this resource.
+                    error: Unauthorized
+                AccessDenied:
+                  value:
+                    type: about:blank
+                    title: Access denied
+                    status: 403
+                    detail: You are unauthorized to perform this action access this
+                      resource.
+                    instance: ""
+                    code: 403
+                    message: You are unauthorized to perform this action access this
+                      resource.
+                    error: Access denied
+                OrganizationNotFound:
+                  value:
+                    type: about:blank
+                    title: Organization not found
+                    status: 404
+                    detail: Organization not found
+                    instance: ""
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    type: about:blank
+                    title: Secret already exists
+                    status: 409
+                    detail: Secret already exists
+                    instance: ""
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    type: about:blank
+                    title: Internal server error
+                    status: 500
+                    detail: Something went wrong
+                    instance: ""
+                    code: 500
+                    message: Something went wrong
+                    error: Internal server error
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Deactivate an integrated service
+      tags:
+      - integrated services
+    get:
+      operationId: IntegratedServiceDetails
+      parameters:
+      - description: Organization identifier
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Cluster identifier
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: service name
+        explode: false
+        in: path
+        name: serviceName
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegratedServiceDetails'
+          description: Success
+        default:
+          content:
+            application/json:
+              examples:
+                BadRequest:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: Failed to parse request.
+                Unauthorized:
+                  value:
+                    code: 401
+                    message: Unauthorized
+                    error: Unauthorized
+                OrganizationNotFound:
+                  value:
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+            application/problem+json:
+              examples:
+                BadRequest:
+                  value:
+                    type: about:blank
+                    title: Invalid request
+                    status: 400
+                    detail: Failed to parse request.
+                    instance: ""
+                    code: 400
+                    message: Failed to parse request.
+                    error: Invalid request
+                Unauthorized:
+                  value:
+                    type: about:blank
+                    title: Unauthorized
+                    status: 401
+                    detail: You are unauthorized to access this resource.
+                    instance: ""
+                    code: 401
+                    message: You are unauthorized to access this resource.
+                    error: Unauthorized
+                AccessDenied:
+                  value:
+                    type: about:blank
+                    title: Access denied
+                    status: 403
+                    detail: You are unauthorized to perform this action access this
+                      resource.
+                    instance: ""
+                    code: 403
+                    message: You are unauthorized to perform this action access this
+                      resource.
+                    error: Access denied
+                OrganizationNotFound:
+                  value:
+                    type: about:blank
+                    title: Organization not found
+                    status: 404
+                    detail: Organization not found
+                    instance: ""
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    type: about:blank
+                    title: Secret already exists
+                    status: 409
+                    detail: Secret already exists
+                    instance: ""
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    type: about:blank
+                    title: Internal server error
+                    status: 500
+                    detail: Something went wrong
+                    instance: ""
+                    code: 500
+                    message: Something went wrong
+                    error: Internal server error
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Get details of an integrated service
+      tags:
+      - integrated services
+    post:
+      operationId: ActivateIntegratedService
+      parameters:
+      - description: Organization identifier
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Cluster identifier
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: service name
+        explode: false
+        in: path
+        name: serviceName
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivateIntegratedServiceRequest'
+        required: true
+      responses:
+        202:
+          description: Accepted
+        default:
+          content:
+            application/json:
+              examples:
+                BadRequest:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: Failed to parse request.
+                Unauthorized:
+                  value:
+                    code: 401
+                    message: Unauthorized
+                    error: Unauthorized
+                OrganizationNotFound:
+                  value:
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+            application/problem+json:
+              examples:
+                BadRequest:
+                  value:
+                    type: about:blank
+                    title: Invalid request
+                    status: 400
+                    detail: Failed to parse request.
+                    instance: ""
+                    code: 400
+                    message: Failed to parse request.
+                    error: Invalid request
+                Unauthorized:
+                  value:
+                    type: about:blank
+                    title: Unauthorized
+                    status: 401
+                    detail: You are unauthorized to access this resource.
+                    instance: ""
+                    code: 401
+                    message: You are unauthorized to access this resource.
+                    error: Unauthorized
+                AccessDenied:
+                  value:
+                    type: about:blank
+                    title: Access denied
+                    status: 403
+                    detail: You are unauthorized to perform this action access this
+                      resource.
+                    instance: ""
+                    code: 403
+                    message: You are unauthorized to perform this action access this
+                      resource.
+                    error: Access denied
+                OrganizationNotFound:
+                  value:
+                    type: about:blank
+                    title: Organization not found
+                    status: 404
+                    detail: Organization not found
+                    instance: ""
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    type: about:blank
+                    title: Secret already exists
+                    status: 409
+                    detail: Secret already exists
+                    instance: ""
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    type: about:blank
+                    title: Internal server error
+                    status: 500
+                    detail: Something went wrong
+                    instance: ""
+                    code: 500
+                    message: Something went wrong
+                    error: Internal server error
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Activate an integrated service
+      tags:
+      - integrated services
+    put:
+      operationId: UpdateIntegratedService
+      parameters:
+      - description: Organization identifier
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Cluster identifier
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: service name
+        explode: false
+        in: path
+        name: serviceName
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateIntegratedServiceRequest'
+        required: true
+      responses:
+        202:
+          description: Accepted
+        default:
+          content:
+            application/json:
+              examples:
+                BadRequest:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: Failed to parse request.
+                Unauthorized:
+                  value:
+                    code: 401
+                    message: Unauthorized
+                    error: Unauthorized
+                OrganizationNotFound:
+                  value:
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+            application/problem+json:
+              examples:
+                BadRequest:
+                  value:
+                    type: about:blank
+                    title: Invalid request
+                    status: 400
+                    detail: Failed to parse request.
+                    instance: ""
+                    code: 400
+                    message: Failed to parse request.
+                    error: Invalid request
+                Unauthorized:
+                  value:
+                    type: about:blank
+                    title: Unauthorized
+                    status: 401
+                    detail: You are unauthorized to access this resource.
+                    instance: ""
+                    code: 401
+                    message: You are unauthorized to access this resource.
+                    error: Unauthorized
+                AccessDenied:
+                  value:
+                    type: about:blank
+                    title: Access denied
+                    status: 403
+                    detail: You are unauthorized to perform this action access this
+                      resource.
+                    instance: ""
+                    code: 403
+                    message: You are unauthorized to perform this action access this
+                      resource.
+                    error: Access denied
+                OrganizationNotFound:
+                  value:
+                    type: about:blank
+                    title: Organization not found
+                    status: 404
+                    detail: Organization not found
+                    instance: ""
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    type: about:blank
+                    title: Secret already exists
+                    status: 409
+                    detail: Secret already exists
+                    instance: ""
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    type: about:blank
+                    title: Internal server error
+                    status: 500
+                    detail: Something went wrong
+                    instance: ""
+                    code: 500
+                    message: Something went wrong
+                    error: Internal server error
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Update an integrated service
+      tags:
+      - integrated services
+  /api/v1/orgs/{orgId}/clusters/{id}/features:
+    get:
+      deprecated: true
+      operationId: ListFeatures
       parameters:
       - description: Organization identifier
         explode: false
@@ -16974,7 +17518,8 @@ paths:
       - integrated services
   /api/v1/orgs/{orgId}/clusters/{id}/features/{featureName}:
     delete:
-      operationId: DeactivateIntegratedService
+      deprecated: true
+      operationId: DeactivateFeature
       parameters:
       - description: Organization identifier
         explode: false
@@ -17103,11 +17648,12 @@ paths:
           description: Internal server error
       security:
       - bearerAuth: []
-      summary: Deactivate an integrated service
+      summary: Deactivate a feature
       tags:
       - integrated services
     get:
-      operationId: IntegratedServiceDetails
+      deprecated: true
+      operationId: FeatureDetails
       parameters:
       - description: Organization identifier
         explode: false
@@ -17240,11 +17786,12 @@ paths:
           description: Internal server error
       security:
       - bearerAuth: []
-      summary: Get details of an integrated service
+      summary: Get details of a feature
       tags:
       - integrated services
     post:
-      operationId: ActivateIntegratedService
+      deprecated: true
+      operationId: ActivateFeature
       parameters:
       - description: Organization identifier
         explode: false
@@ -17379,11 +17926,12 @@ paths:
           description: Internal server error
       security:
       - bearerAuth: []
-      summary: Activate a integrated service
+      summary: Activate a feature
       tags:
       - integrated services
     put:
-      operationId: UpdateIntegratedService
+      deprecated: true
+      operationId: UpdateFeature
       parameters:
       - description: Organization identifier
         explode: false
@@ -17518,7 +18066,7 @@ paths:
           description: Internal server error
       security:
       - bearerAuth: []
-      summary: Update an integrated service
+      summary: Update a feature
       tags:
       - integrated services
   /api/v1/orgs/{orgId}/clusters/{id}/nodepools:
@@ -18240,7 +18788,6 @@ components:
           - 62bc3c75-91fb-4670-bad4-24b401a9deac
           - 4378ae32-2355-12ed-b984-1234567804ed
           name: gkecluster-pipelineuser-123
-          ttlMinutes: 120
           secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
           location: us-central1-a
           postHooks:
@@ -18422,7 +18969,6 @@ components:
         - 62bc3c75-91fb-4670-bad4-24b401a9deac
         - 4378ae32-2355-12ed-b984-1234567804ed
         name: gkecluster-pipelineuser-123
-        ttlMinutes: 120
         secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
         location: us-central1-a
         postHooks:
@@ -18446,13 +18992,6 @@ components:
         cloud:
           example: google
           type: string
-        ttlMinutes:
-          description: The lifespan of the cluster expressed in minutes after which
-            it is automatically deleted. Zero value means the cluster is never automatically
-            deleted.
-          example: 120
-          minimum: 0
-          type: integer
         secretId:
           example: 62bc3c75-91fb-4670-bad4-24b401a9deac
           type: string
@@ -18578,6 +19117,7 @@ components:
           enum:
           - weave
           - calico
+          - cilium
           type: string
         providerConfig:
           type: object
@@ -19133,13 +19673,6 @@ components:
         cloud:
           example: google
           type: string
-        ttlMinutes:
-          description: The lifespan of the cluster expressed in minutes after which
-            it is automatically deleted. Zero value means the cluster is never automatically
-            deleted.
-          example: 120
-          minimum: 0
-          type: integer
         properties:
           example:
             google:
@@ -19292,22 +19825,6 @@ components:
           description: user provided custom node labels to be placed onto the nodes
             of the node pool
           type: object
-      type: object
-    ClusterDelete_200:
-      example:
-        name: gkecluster-pipelineuser-123
-        id: 1
-        status: 202
-      properties:
-        status:
-          example: 202
-          type: integer
-        name:
-          example: gkecluster-pipelineuser-123
-          type: string
-        id:
-          example: 1
-          type: integer
       type: object
     ListEndpointsResponse:
       example:
@@ -20527,7 +21044,6 @@ components:
         creatorName: userName
         creatorId: 1
         startedAt: 2018-07-03T14:23:29+02:00
-        ttlMinutes: 120
         distribution: gke
         monitoring: false
         version: 1.12.6-gke.10
@@ -20609,13 +21125,6 @@ components:
         region:
           example: us-central1
           type: string
-        ttlMinutes:
-          description: The lifespan of the cluster expressed in minutes after which
-            it is automatically deleted. Zero value means the cluster is never automatically
-            deleted.
-          example: 120
-          minimum: 0
-          type: integer
         nodePools:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolStatus'

@@ -74,7 +74,11 @@ type ClusterModel struct {
 	Kubernetes     KubernetesClusterModel `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
 	CreatedBy      uint
-	TtlMinutes     uint `gorm:"not null;default:0"`
+}
+
+// TableName sets ClusterModel's table name
+func (ClusterModel) TableName() string {
+	return tableNameClusters
 }
 
 // ScaleOptions describes scale options
@@ -286,11 +290,6 @@ func (cs *ClusterModel) Save() error {
 func (cs *ClusterModel) Delete() error {
 	db := global.DB()
 	return db.Delete(&cs).Error
-}
-
-// TableName sets ClusterModel's table name
-func (ClusterModel) TableName() string {
-	return tableNameClusters
 }
 
 // String method prints formatted cluster fields

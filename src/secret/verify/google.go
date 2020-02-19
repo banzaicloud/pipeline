@@ -22,7 +22,7 @@ import (
 	"strconv"
 	"strings"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/jwt"
 	"google.golang.org/api/cloudresourcemanager/v1"
@@ -76,7 +76,7 @@ func checkRequiredServices(serviceAccount *ServiceAccount) ([]string, error) {
 
 	enabledServices, err := listEnabledServices(serviceAccount)
 	if err != nil {
-		return nil, emperror.Wrap(err, "list enabled services failed")
+		return nil, errors.WrapIf(err, "list enabled services failed")
 	}
 
 	var missingServices []string
@@ -112,7 +112,7 @@ func listEnabledServices(serviceAccount *ServiceAccount) ([]string, error) {
 	}
 	suSvc, err := serviceusage.New(client)
 	if err != nil {
-		return nil, emperror.Wrap(err, "cannot create serviceusage client for checking enabled services")
+		return nil, errors.WrapIf(err, "cannot create serviceusage client for checking enabled services")
 	}
 	enabledServicesCall := suSvc.Services.List("projects/" + strconv.FormatInt(project.ProjectNumber, 10)).Filter("state:ENABLED").Fields("services/config/name")
 
@@ -121,7 +121,7 @@ func listEnabledServices(serviceAccount *ServiceAccount) ([]string, error) {
 	for {
 		resp, err := enabledServicesCall.PageToken(nextPageToken).Do()
 		if err != nil {
-			return nil, emperror.Wrap(err, "enabled services call failed")
+			return nil, errors.WrapIf(err, "enabled services call failed")
 		}
 		for _, service := range resp.Services {
 			enabledServices = append(enabledServices, service.Config.Name)

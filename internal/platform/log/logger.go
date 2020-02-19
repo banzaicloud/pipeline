@@ -23,7 +23,7 @@ import (
 )
 
 // NewLogger creates a new logger.
-func NewLogger(config Config) logur.Logger {
+func NewLogger(config Config) logur.LoggerFacade {
 	logger := logrus.New()
 
 	logger.SetOutput(os.Stdout)
@@ -48,6 +48,6 @@ func NewLogger(config Config) logur.Logger {
 }
 
 // WithFields returns a new contextual logger instance with context added to it.
-func WithFields(logger logur.Logger, fields map[string]interface{}) logur.Logger {
+func WithFields(logger logur.Logger, fields map[string]interface{}) logur.LoggerFacade {
 	return logur.WithFields(logger, fields)
 }

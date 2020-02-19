@@ -15,9 +15,8 @@
 package ark
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/labels"
 
@@ -61,17 +60,17 @@ func (s *ClusterBackupsService) DeleteByName(name string) error {
 
 	_, err := s.deployments.GetActiveDeployment()
 	if err != nil {
-		return emperror.Wrap(err, "error getting active deployment")
+		return errors.WrapIf(err, "error getting active deployment")
 	}
 
 	client, err := s.deployments.GetClient()
 	if err != nil {
-		return emperror.Wrap(err, "error getting ark client")
+		return errors.WrapIf(err, "error getting ark client")
 	}
 
 	backup, err := s.repository.FindOneByName(name)
 	if err != nil {
-		return emperror.Wrap(err, "backup not found")
+		return errors.WrapIf(err, "backup not found")
 	}
 
 	if backup.Bucket.Deployment.ClusterID != s.cluster.GetID() {
@@ -80,12 +79,12 @@ func (s *ClusterBackupsService) DeleteByName(name string) error {
 
 	err = s.repository.UpdateStatus(backup, "Deleting", "deleting backup...")
 	if err != nil {
-		return emperror.Wrap(err, "cannot update backup status")
+		return errors.WrapIf(err, "cannot update backup status")
 	}
 
 	err = client.CreateDeleteBackupRequestByName(backup.Name)
 	if err != nil {
-		return emperror.Wrap(err, "error during deleting backup")
+		return errors.WrapIf(err, "error during deleting backup")
 	}
 
 	return nil
@@ -96,17 +95,17 @@ func (s *ClusterBackupsService) DeleteByID(id uint) error {
 
 	_, err := s.deployments.GetActiveDeployment()
 	if err != nil {
-		return emperror.Wrap(err, "error getting active deployment")
+		return errors.WrapIf(err, "error getting active deployment")
 	}
 
 	client, err := s.deployments.GetClient()
 	if err != nil {
-		return emperror.Wrap(err, "error getting ark client")
+		return errors.WrapIf(err, "error getting ark client")
 	}
 
 	backup, err := s.repository.FindOneByID(id)
 	if err != nil {
-		return emperror.Wrap(err, "backup not found")
+		return errors.WrapIf(err, "backup not found")
 	}
 
 	if backup.Bucket.Deployment.ClusterID != s.cluster.GetID() {
@@ -115,12 +114,12 @@ func (s *ClusterBackupsService) DeleteByID(id uint) error {
 
 	err = s.repository.UpdateStatus(backup, "Deleting", "deleting backup...")
 	if err != nil {
-		return emperror.Wrap(err, "cannot update backup status")
+		return errors.WrapIf(err, "cannot update backup status")
 	}
 
 	err = client.CreateDeleteBackupRequestByName(backup.Name)
 	if err != nil {
-		return emperror.Wrap(err, "error during deleting backup")
+		return errors.WrapIf(err, "error during deleting backup")
 	}
 
 	return nil
@@ -131,12 +130,12 @@ func (s *ClusterBackupsService) Create(req api.CreateBackupRequest) error {
 
 	deployment, err := s.deployments.GetActiveDeployment()
 	if err != nil {
-		return emperror.Wrap(err, "error getting active deployment")
+		return errors.WrapIf(err, "error getting active deployment")
 	}
 
 	client, err := s.deployments.GetClient()
 	if err != nil {
-		return emperror.Wrap(err, "error getting ark client")
+		return errors.WrapIf(err, "error getting ark client")
 	}
 
 	if req.Labels == nil {
@@ -147,7 +146,7 @@ func (s *ClusterBackupsService) Create(req api.CreateBackupRequest) error {
 
 	backup, err := client.CreateBackup(req)
 	if err != nil {
-		return emperror.Wrap(err, "error creating backup")
+		return errors.WrapIf(err, "error creating backup")
 	}
 
 	if backup.Status.Phase == "" {
@@ -167,7 +166,7 @@ func (s *ClusterBackupsService) Create(req api.CreateBackupRequest) error {
 	}
 	_, err = s.Persist(preq)
 	if err != nil {
-		return emperror.Wrap(err, "error persisting backup")
+		return errors.WrapIf(err, "error persisting backup")
 	}
 
 	return nil

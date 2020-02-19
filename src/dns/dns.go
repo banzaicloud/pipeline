@@ -15,10 +15,9 @@
 package dns
 
 import (
-	"errors"
 	"strings"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"k8s.io/apimachinery/pkg/util/validation"
 
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -78,7 +77,7 @@ func GetBaseDomain() (string, error) {
 
 	err := ValidateSubdomain(baseDomain)
 	if err != nil {
-		return "", emperror.WrapWith(err, "invalid base domain")
+		return "", errors.WrapIf(err, "invalid base domain")
 	}
 
 	return baseDomain, nil
@@ -88,7 +87,7 @@ func GetBaseDomain() (string, error) {
 func ValidateSubdomain(subdomain string) error {
 	errs := validation.IsDNS1123Subdomain(subdomain)
 	if len(errs) > 0 {
-		return emperror.With(errors.New(strings.Join(errs, "\n")), "subdomain", subdomain)
+		return errors.WithDetails(errors.New(strings.Join(errs, "\n")), "subdomain", subdomain)
 	}
 
 	return nil
@@ -98,7 +97,7 @@ func ValidateSubdomain(subdomain string) error {
 func ValidateWildcardSubdomain(subdomain string) error {
 	errs := validation.IsWildcardDNS1123Subdomain(subdomain)
 	if len(errs) > 0 {
-		return emperror.With(errors.New(strings.Join(errs, "\n")), "subdomain", subdomain)
+		return errors.WithDetails(errors.New(strings.Join(errs, "\n")), "subdomain", subdomain)
 	}
 
 	return nil

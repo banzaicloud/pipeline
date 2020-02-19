@@ -19,7 +19,7 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 )
 
 // ### [ Constants to EKS cluster default values ] ### //
@@ -30,7 +30,7 @@ const (
 func constraintForVersion(v string) *semver.Constraints {
 	cs, err := semver.NewConstraint(fmt.Sprintf("~%s", v))
 	if err != nil {
-		emperror.Panic(emperror.Wrap(err, fmt.Sprintf("could not create semver constraint for Kubernetes version %s.x", v)))
+		emperror.Panic(errors.WrapIf(err, fmt.Sprintf("could not create semver constraint for Kubernetes version %s.x", v)))
 	}
 	return cs
 }

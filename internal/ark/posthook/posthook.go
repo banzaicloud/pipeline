@@ -18,8 +18,8 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/labels"
 
@@ -85,7 +85,7 @@ func RestoreFromBackup(
 		err = WaitingForRestoreToFinish(restoresSvc, sync.NewRestoresSyncService(org, db, logger), cluster, restore, logger, waitTimeout)
 	}
 	if err != nil {
-		errorHandler.Handle(emperror.Wrap(err, "could not restore"))
+		errorHandler.Handle(errors.WrapIf(err, "could not restore"))
 	}
 
 	err = svc.GetDeploymentsService().Remove()
@@ -103,11 +103,11 @@ func WaitingForRestoreToFinish(restoresSvc *ark.RestoresService, restoresSyncSvc
 	for i := 0; i <= retryAttempts; i++ {
 		err := restoresSyncSvc.SyncRestoresForCluster(cluster)
 		if err != nil {
-			return emperror.WrapWith(err, "could not sync restores for cluster", "cluster", cluster.GetName())
+			return errors.WrapIfWithDetails(err, "could not sync restores for cluster", "cluster", cluster.GetName())
 		}
 		r, err := restoresSvc.GetByName(restore.Name)
 		if err != nil {
-			return emperror.WrapWith(err, "could not get restore by name", "restore", restore.Name, "cluster", cluster.GetName())
+			return errors.WrapIfWithDetails(err, "could not get restore by name", "restore", restore.Name, "cluster", cluster.GetName())
 		}
 		if r.Status == "Completed" {
 			return nil

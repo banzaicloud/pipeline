@@ -21,8 +21,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
 func TestIntegratedServiceService_List(t *testing.T) {
@@ -92,7 +90,7 @@ func TestIntegratedServiceService_List(t *testing.T) {
 			Status: IntegratedServiceStatusError,
 		},
 	}
-	logger := commonadapter.NewNoopLogger()
+	logger := NoopLogger{}
 	service := MakeIntegratedServiceService(nil, registry, repository, logger)
 
 	integratedServices, err := service.List(context.Background(), clusterID)
@@ -127,7 +125,7 @@ func TestIntegratedServiceService_Details(t *testing.T) {
 			},
 		},
 	})
-	logger := commonadapter.NewNoopLogger()
+	logger := NoopLogger{}
 	service := MakeIntegratedServiceService(nil, registry, repository, logger)
 
 	cases := map[string]struct {
@@ -189,9 +187,7 @@ func TestIntegratedServiceService_Activate(t *testing.T) {
 		},
 	}
 	registry := MakeIntegratedServiceManagerRegistry([]IntegratedServiceManager{integratedServiceManager})
-	repository := NewInMemoryIntegratedServiceRepository(nil)
-	logger := commonadapter.NewNoopLogger()
-	service := MakeIntegratedServiceService(dispatcher, registry, repository, logger)
+	logger := NoopLogger{}
 
 	cases := map[string]struct {
 		IntegratedServiceName  string
@@ -199,6 +195,7 @@ func TestIntegratedServiceService_Activate(t *testing.T) {
 		ApplyError             error
 		Error                  interface{}
 		IntegratedServiceSaved bool
+		InitialServices        map[uint][]IntegratedService
 	}{
 		"success": {
 			IntegratedServiceName:  integratedServiceName,
@@ -220,6 +217,22 @@ func TestIntegratedServiceService_Activate(t *testing.T) {
 			ApplyError:            errors.New("failed to begin apply"),
 			Error:                 true,
 		},
+		"already active service": {
+			IntegratedServiceName: integratedServiceName,
+			InitialServices: map[uint][]IntegratedService{
+				clusterID: {
+					{
+						Name:   integratedServiceName,
+						Spec:   IntegratedServiceSpec{},
+						Status: IntegratedServiceStatusActive,
+					},
+				},
+			},
+			Error: serviceAlreadyActiveError{
+				ServiceName: integratedServiceName,
+			},
+			IntegratedServiceSaved: true,
+		},
 	}
 	spec := IntegratedServiceSpec{
 		"mySpecKey": "mySpecValue",
@@ -227,7 +240,8 @@ func TestIntegratedServiceService_Activate(t *testing.T) {
 	for name, tc := range cases {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			repository.Clear()
+			repository := NewInMemoryIntegratedServiceRepository(tc.InitialServices)
+			service := MakeIntegratedServiceService(dispatcher, registry, repository, logger)
 			dispatcher.ApplyError = tc.ApplyError
 			integratedServiceManager.ValidationError = tc.ValidationError
 
@@ -274,7 +288,7 @@ func TestIntegratedServiceService_Deactivate(t *testing.T) {
 		},
 	})
 	snapshot := repository.Snapshot()
-	logger := commonadapter.NewNoopLogger()
+	logger := NoopLogger{}
 	service := MakeIntegratedServiceService(dispatcher, registry, repository, logger)
 
 	cases := map[string]struct {
@@ -345,7 +359,7 @@ func TestIntegratedServiceService_Update(t *testing.T) {
 		},
 	})
 	snapshot := repository.Snapshot()
-	logger := commonadapter.NewNoopLogger()
+	logger := NoopLogger{}
 	service := MakeIntegratedServiceService(dispatcher, registry, repository, logger)
 
 	cases := map[string]struct {

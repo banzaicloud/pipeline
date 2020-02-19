@@ -22,11 +22,11 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	aliErrors "github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -51,7 +51,7 @@ func deleteCluster(log logrus.FieldLogger, clusterID string, csClient *cs.Client
 		}
 
 		if cluster == nil {
-			return emperror.Wrap(err, "could not delete cluster!")
+			return errors.WrapIf(err, "could not delete cluster!")
 		}
 	}
 
@@ -77,7 +77,7 @@ func deleteCluster(log logrus.FieldLogger, clusterID string, csClient *cs.Client
 
 	err = waitUntilClusterDeleteIsComplete(log, clusterID, csClient)
 	if err != nil {
-		return emperror.WrapWith(err, "cluster deletion failed", "clusterId", clusterID)
+		return errors.WrapIfWithDetails(err, "cluster deletion failed", "clusterId", clusterID)
 	}
 
 	return nil
@@ -94,7 +94,7 @@ func describeScalingInstances(essClient *ess.Client, asgId, scalingConfId, regio
 
 	describeScalingInstancesResponse, err := essClient.DescribeScalingInstances(describeScalingInstancesRequest)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "could not describe scaling instances", "scalingGroupId", asgId)
+		return nil, errors.WrapIfWithDetails(err, "could not describe scaling instances", "scalingGroupId", asgId)
 	}
 	return describeScalingInstancesResponse, nil
 }
@@ -120,12 +120,12 @@ func attachInstancesToCluster(log logrus.FieldLogger, clusterID string, instance
 
 	_, err = csClient.AttachInstances(attachInstanceRequest)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not attach instances to cluster")
+		return nil, errors.WrapIf(err, "could not attach instances to cluster")
 	}
 	log.Info("Wait for nodepool attach")
 	clusterWithPools, err := waitUntilClusterCreateOrScaleComplete(log, clusterID, csClient, false)
 	if err != nil {
-		return nil, emperror.Wrap(err, "attaching nodepool failed")
+		return nil, errors.WrapIf(err, "attaching nodepool failed")
 	}
 	return clusterWithPools, nil
 }
@@ -176,7 +176,7 @@ func deleteNodePool(log logrus.FieldLogger, nodePool *model.ACKNodePoolModel, es
 			}
 		}
 
-		errChan <- emperror.WrapWith(err, "could not delete scaling group", "scalingGroupId", nodePool.AsgID, "nodePoolName", nodePool.Name)
+		errChan <- errors.WrapIfWithDetails(err, "could not delete scaling group", "scalingGroupId", nodePool.AsgID, "nodePoolName", nodePool.Name)
 		return
 	}
 
@@ -211,7 +211,7 @@ func createNodePool(logger logrus.FieldLogger, nodePool *model.ACKNodePoolModel,
 
 	createScalingGroupResponse, err := essClient.CreateScalingGroup(scalingGroupRequest)
 	if err != nil {
-		errChan <- emperror.WrapWith(err, "could not create Scaling Group", "nodePoolName", nodePool.Name, "cluster", cluster.Name)
+		errChan <- errors.WrapIfWithDetails(err, "could not create Scaling Group", "nodePoolName", nodePool.Name, "cluster", cluster.Name)
 		instanceIdsChan <- nil
 		return
 	}
@@ -236,7 +236,7 @@ func createNodePool(logger logrus.FieldLogger, nodePool *model.ACKNodePoolModel,
 	scalingConfigurationRequest.Tags = pipelineTags(cluster.Name, nodePool.Name)
 	createConfigurationResponse, err := essClient.CreateScalingConfiguration(scalingConfigurationRequest)
 	if err != nil {
-		errChan <- emperror.WrapWith(err, "could not create Scaling Configuration", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgID, "cluster", cluster.Name)
+		errChan <- errors.WrapIfWithDetails(err, "could not create Scaling Configuration", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgID, "cluster", cluster.Name)
 		instanceIdsChan <- nil
 		return
 	}
@@ -255,14 +255,14 @@ func createNodePool(logger logrus.FieldLogger, nodePool *model.ACKNodePoolModel,
 
 	_, err = essClient.EnableScalingGroup(enableSGRequest)
 	if err != nil {
-		errChan <- emperror.WrapWith(err, "could not enable Scaling Group", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgID, "cluster", cluster.Name)
+		errChan <- errors.WrapIfWithDetails(err, "could not enable Scaling Group", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgID, "cluster", cluster.Name)
 		instanceIdsChan <- nil
 		return
 	}
 
 	instanceIds, err := waitUntilScalingInstanceUpdated(log, essClient, cluster.RegionID, nodePool)
 	if err != nil {
-		errChan <- emperror.With(err, "cluster", cluster.Name)
+		errChan <- errors.WithDetails(err, "cluster", cluster.Name)
 		instanceIdsChan <- nil
 		return
 	}
@@ -277,7 +277,7 @@ func updateNodePool(log logrus.FieldLogger, nodePool *model.ACKNodePoolModel, es
 	describeScalingInstancesResponseBeforeModify, err :=
 		describeScalingInstances(essClient, nodePool.AsgID, nodePool.ScalingConfigID, regionId)
 	if err != nil {
-		errChan <- emperror.With(err, "nodePoolName", nodePool.Name, "cluster", clusterName)
+		errChan <- errors.WithDetails(err, "nodePoolName", nodePool.Name, "cluster", clusterName)
 		createdInstanceIdsChan <- nil
 		return
 	}
@@ -292,14 +292,14 @@ func updateNodePool(log logrus.FieldLogger, nodePool *model.ACKNodePoolModel, es
 
 	_, err = essClient.ModifyScalingGroup(modifyScalingGroupReq)
 	if err != nil {
-		errChan <- emperror.WrapWith(err, "could not modify ScalingGroup", "scalingGroupId", nodePool.AsgID, "nodePoolName", nodePool.Name, "cluster", clusterName)
+		errChan <- errors.WrapIfWithDetails(err, "could not modify ScalingGroup", "scalingGroupId", nodePool.AsgID, "nodePoolName", nodePool.Name, "cluster", clusterName)
 		createdInstanceIdsChan <- nil
 		return
 	}
 
 	_, err = waitUntilScalingInstanceUpdated(log, essClient, regionId, nodePool)
 	if err != nil {
-		errChan <- emperror.With(err, "cluster", clusterName)
+		errChan <- errors.WithDetails(err, "cluster", clusterName)
 		createdInstanceIdsChan <- nil
 		return
 	}
@@ -307,7 +307,7 @@ func updateNodePool(log logrus.FieldLogger, nodePool *model.ACKNodePoolModel, es
 	describeScalingInstancesResponseAfterModify, err :=
 		describeScalingInstances(essClient, nodePool.AsgID, nodePool.ScalingConfigID, regionId)
 	if err != nil {
-		errChan <- emperror.With(err, "nodePoolName", nodePool.Name, "cluster", clusterName)
+		errChan <- errors.WithDetails(err, "nodePoolName", nodePool.Name, "cluster", clusterName)
 		createdInstanceIdsChan <- nil
 		return
 	}
@@ -336,7 +336,7 @@ func waitUntilScalingInstanceUpdated(log logrus.FieldLogger, essClient *ess.Clie
 	for {
 		describeScalingInstancesResponse, err := describeScalingInstances(essClient, nodePool.AsgID, nodePool.ScalingConfigID, regionId)
 		if err != nil {
-			return nil, emperror.With(err, "nodePoolName", nodePool.Name)
+			return nil, errors.WithDetails(err, "nodePoolName", nodePool.Name)
 		}
 		if describeScalingInstancesResponse.TotalCount < nodePool.MinCount || describeScalingInstancesResponse.TotalCount > nodePool.MaxCount {
 			continue
@@ -363,7 +363,7 @@ func waitUntilScalingInstancesDeleted(log logrus.FieldLogger, essClient *ess.Cli
 	for {
 		describeScalingInstancesResponse, err := describeScalingInstances(essClient, nodePool.AsgID, nodePool.ScalingConfigID, regionId)
 		if err != nil {
-			return emperror.With(err, "nodePoolName", nodePool.Name)
+			return errors.WithDetails(err, "nodePoolName", nodePool.Name)
 		}
 
 		if describeScalingInstancesResponse.TotalCount == 0 {
@@ -453,14 +453,14 @@ func waitUntilClusterDeleteIsComplete(logger logrus.FieldLogger, clusterID strin
 				}
 			}
 
-			return emperror.WrapWith(err, "could not get cluster details", "clusterId", clusterID)
+			return errors.WrapIfWithDetails(err, "could not get cluster details", "clusterId", clusterID)
 		}
 
 		var r *ack.AlibabaDescribeClusterResponse
 
 		err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
 		if err != nil {
-			return emperror.WrapWith(err, "could not unmarshall describe cluster details", "clusterId", clusterID)
+			return errors.WrapIfWithDetails(err, "could not unmarshall describe cluster details", "clusterId", clusterID)
 		}
 
 		if r.State == ack.AlibabaClusterStateFailed {
@@ -489,14 +489,14 @@ func GetClusterDetails(client *cs.Client, clusterID string) (r *ack.AlibabaDescr
 	req.ClusterId = clusterID
 	resp, err := client.DescribeClusterDetail(req)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "could not get cluster details", "clusterId", clusterID)
+		return nil, errors.WrapIfWithDetails(err, "could not get cluster details", "clusterId", clusterID)
 	}
 	if !resp.IsSuccess() {
-		return nil, emperror.WrapWith(err, "unexpected http status code", "statusCode", resp.GetHttpStatus())
+		return nil, errors.WrapIfWithDetails(err, "unexpected http status code", "statusCode", resp.GetHttpStatus())
 	}
 
 	err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
-	return r, emperror.WrapWith(err, "could not unmarshall describe cluster details", "clusterId", clusterID)
+	return r, errors.WrapIfWithDetails(err, "could not unmarshall describe cluster details", "clusterId", clusterID)
 }
 
 // collectClusterLogs returns the event logs associated with the cluster identified by clusterID

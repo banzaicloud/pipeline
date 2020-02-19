@@ -20,11 +20,10 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
@@ -67,7 +66,7 @@ func (a *CreateNLBActivity) Execute(ctx context.Context, input CreateNLBActivity
 
 	buf, err := ioutil.ReadFile("templates/pke/nlb.cf.yaml")
 	if err != nil {
-		return nil, emperror.Wrap(err, "loading CF template")
+		return nil, errors.WrapIf(err, "loading CF template")
 	}
 
 	params := []*cloudformation.Parameter{
@@ -108,12 +107,12 @@ func (a *CreateNLBActivity) Execute(ctx context.Context, input CreateNLBActivity
 
 	err = cfClient.WaitUntilStackCreateCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)})
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to wait for stack")
+		return nil, errors.WrapIf(err, "failed to wait for stack")
 	}
 
 	output, err := cfClient.DescribeStacks(&cloudformation.DescribeStacksInput{StackName: aws.String(stackName)})
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get stack")
+		return nil, errors.WrapIf(err, "failed to get stack")
 	}
 
 	if len(output.Stacks) != 1 {

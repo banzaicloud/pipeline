@@ -15,9 +15,12 @@
 package istiofeature
 
 import (
-	"emperror.dev/emperror"
+	"context"
+
+	"emperror.dev/errors"
+	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 )
@@ -31,33 +34,43 @@ func (m *MeshReconciler) ReconcileIstioOperatorNamespace(desiredState DesiredSta
 		return err
 	}
 
+	k8sclient, err := m.getK8sClient(m.Master)
+	if err != nil {
+		return err
+	}
+
+	var namespace corev1.Namespace
 	if desiredState == DesiredStatePresent {
-		_, err := client.CoreV1().Namespaces().Get(istioOperatorNamespace, metav1.GetOptions{})
+		err = client.Get(context.Background(), types.NamespacedName{
+			Name: istioOperatorNamespace,
+		}, &namespace)
 		if k8serrors.IsNotFound(err) {
-			err := k8sutil.EnsureNamespaceWithLabelWithRetry(client, istioOperatorNamespace, nil)
+			err := k8sutil.EnsureNamespaceWithLabelWithRetry(k8sclient, istioOperatorNamespace, nil)
 			if err != nil {
-				return emperror.Wrap(err, "could not create istio operator namespace")
+				return errors.WrapIf(err, "could not create istio operator namespace")
 			}
 		}
 	} else {
-		_, err := client.CoreV1().Namespaces().Get(istioOperatorNamespace, metav1.GetOptions{})
+		err = client.Get(context.Background(), types.NamespacedName{
+			Name: istioOperatorNamespace,
+		}, &namespace)
 		if k8serrors.IsNotFound(err) {
 			return nil
 		}
 
 		if err != nil && !k8serrors.IsNotFound(err) {
-			return emperror.Wrap(err, "could not get istio operator namespace")
+			return errors.WrapIf(err, "could not get istio operator namespace")
 		}
 
-		err = client.CoreV1().Namespaces().Delete(istioOperatorNamespace, &metav1.DeleteOptions{})
+		err = client.Delete(context.Background(), &namespace)
 		if err != nil {
-			return emperror.Wrap(err, "could not delete istio operator namespace")
+			return errors.WrapIf(err, "could not delete istio operator namespace")
 		}
 
 		m.logger.Debug("waiting for istio operator namespace to be deleted")
 		err = m.waitForNamespaceBeDeleted(client, istioOperatorNamespace)
 		if err != nil {
-			return emperror.Wrap(err, "timeout during waiting for istio operator namespace to be deleted")
+			return errors.WrapIf(err, "timeout during waiting for istio operator namespace to be deleted")
 		}
 	}
 

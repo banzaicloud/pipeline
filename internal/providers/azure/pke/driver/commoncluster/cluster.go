@@ -20,7 +20,6 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-	"time"
 
 	"emperror.dev/errors"
 
@@ -169,15 +168,6 @@ func (a *AzurePkeCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 func (a *AzurePkeCluster) SetScaleOptions(*pkgCluster.ScaleOptions) {
 }
 
-func (a *AzurePkeCluster) GetTTL() time.Duration {
-	return time.Duration(a.model.TtlMinutes) * time.Minute
-}
-
-func (a *AzurePkeCluster) SetTTL(t time.Duration) {
-	a.model.TtlMinutes = uint(t.Minutes())
-	// TODO: persist
-}
-
 func (a *AzurePkeCluster) GetAPIEndpoint() (string, error) {
 	config, err := a.GetK8sConfig()
 	if err != nil {
@@ -200,6 +190,10 @@ func (a *AzurePkeCluster) GetK8sConfig() ([]byte, error) {
 		return nil, errors.Wrap(err, "can't decode Kubernetes config")
 	}
 	return []byte(configStr), nil
+}
+
+func (a *AzurePkeCluster) GetK8sUserConfig() ([]byte, error) {
+	return a.GetK8sConfig()
 }
 
 func (a *AzurePkeCluster) RequiresSshPublicKey() bool {

@@ -17,11 +17,9 @@ package sync
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
@@ -75,7 +73,7 @@ func (s *BackupsSyncService) SyncBackups(clusterManager api.ClusterManager) erro
 
 		status, err := cluster.GetStatus()
 		if err != nil {
-			log.Error(emperror.Wrap(err, "could not get cluster status"))
+			log.Error(errors.WrapIf(err, "could not get cluster status"))
 			continue
 		}
 
@@ -99,7 +97,7 @@ func (s *BackupsSyncService) SyncBackupsForCluster(cluster api.Cluster) error {
 
 	deployment, err := deploymentsSvc.GetActiveDeployment()
 	if err != nil {
-		return emperror.Wrap(err, "could not get active deployment")
+		return errors.WrapIf(err, "could not get active deployment")
 	}
 
 	if deployment.RestoreMode == true {
@@ -108,18 +106,17 @@ func (s *BackupsSyncService) SyncBackupsForCluster(cluster api.Cluster) error {
 
 	bucket, err := s.bucketsSvc.GetByID(deployment.BucketID)
 	if err != nil {
-		return emperror.Wrap(err, "could not get bucket by id")
+		return errors.WrapIf(err, "could not get bucket by id")
 	}
 
 	client, err := deploymentsSvc.GetClient()
 	if err != nil {
-		return emperror.Wrap(err, "could not get ark client")
+		return errors.WrapIf(err, "could not get ark client")
 	}
 
-	var listOptions metav1.ListOptions
-	backups, err := client.ListBackups(listOptions)
+	backups, err := client.ListBackups()
 	if err != nil {
-		return emperror.Wrap(err, "could not list backups")
+		return errors.WrapIf(err, "could not list backups")
 	}
 
 	for _, backup := range backups.Items {
@@ -158,7 +155,7 @@ func (s *BackupsSyncService) SyncBackupsForCluster(cluster api.Cluster) error {
 
 		_, err = s.backupsSvc.Persist(req)
 		if err != nil {
-			return emperror.Wrap(err, "could not persist backup")
+			return errors.WrapIf(err, "could not persist backup")
 		}
 
 		log.Debug("backup synced")

@@ -25,6 +25,7 @@ import (
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
+	"github.com/mitchellh/mapstructure"
 	"github.com/oklog/run"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -33,6 +34,7 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
+	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	cluster2 "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
@@ -46,19 +48,28 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
+	"github.com/banzaicloud/pipeline/internal/clustergroup"
+	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
+	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter"
+	expiryWorkflow "github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter/workflow"
 	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	integratedServiceMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan/securityscanadapter"
 	integratedServiceVault "github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
+	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/kubernetes/kubernetesadapter"
 	intpkeworkflowadapter "github.com/banzaicloud/pipeline/internal/pke/workflow/adapter"
@@ -68,17 +79,22 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	eksClusterAdapter "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/adapter"
+	eksClusterDriver "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/driver"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
+	azurepkedriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
-	//vspherePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/adapter"
-	intSecret "github.com/banzaicloud/pipeline/internal/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/kubesecret"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/hook"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/auth/authdriver"
 	"github.com/banzaicloud/pipeline/src/cluster"
+	legacyclusteradapter "github.com/banzaicloud/pipeline/src/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/src/dns"
 	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/spotguide"
@@ -123,17 +139,14 @@ func main() {
 	}
 
 	var config configuration
-	err = v.Unmarshal(&config)
+	err = v.Unmarshal(&config, hook.DecodeHookWithDefaults())
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
 	err = config.Process()
 	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
 
-	err = v.Unmarshal(&global.Config)
-	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
-
-	err = global.Config.Process()
-	emperror.Panic(errors.WithMessage(err, "failed to process global configuration"))
+	err = mapstructure.Decode(config, &global.Config)
+	emperror.Panic(errors.Wrap(err, "failed to bind configuration to global configuration"))
 
 	// Create logger (first thing after configuration loading)
 	logger := log.NewLogger(config.Log)
@@ -162,13 +175,6 @@ func main() {
 		os.Exit(3)
 	}
 
-	err = global.Config.Validate()
-	if err != nil {
-		logger.Error(err.Error(), map[string]interface{}{"config": "global"})
-
-		os.Exit(3)
-	}
-
 	// Configure error handler
 	errorHandler, err := errorhandler.New(config.Errors, logger)
 	if err != nil {
@@ -192,11 +198,16 @@ func main() {
 		worker, err := cadence.NewWorker(config.Cadence, taskList, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-worker"})))
 		emperror.Panic(err)
 
-		db, err := database.Connect(config.Database)
+		db, err := database.Connect(config.Database.Config)
 		if err != nil {
 			emperror.Panic(err)
 		}
 		global.SetDB(db)
+
+		workflowClient, err := cadence.NewClient(config.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
+		if err != nil {
+			errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
+		}
 
 		clusterRepo := clusteradapter.NewClusters(db)
 		clusterManager := cluster.NewManager(
@@ -205,7 +216,7 @@ func main() {
 			nil,
 			nil,
 			nil,
-			nil,
+			workflowClient,
 			logrusLogger,
 			errorHandler,
 			clusteradapter.NewStore(db, clusterRepo),
@@ -236,13 +247,13 @@ func main() {
 		clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
 		emperror.Panic(errors.Wrap(err, "failed to create DexClusterAuthService"))
 
-		scmProvider := global.Config.CICD.SCM
+		scmProvider := config.CICD.SCM
 		var scmToken string
 		switch scmProvider {
 		case "github":
-			scmToken = global.Config.Github.Token
+			scmToken = config.Github.Token
 		case "gitlab":
-			scmToken = global.Config.Gitlab.Token
+			scmToken = config.Gitlab.Token
 		default:
 			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
 		}
@@ -334,8 +345,14 @@ func main() {
 		updateClusterStatusActivity := cluster.NewUpdateClusterStatusActivity(clusterManager)
 		activity.RegisterWithOptions(updateClusterStatusActivity.Execute, activity.RegisterOptions{Name: cluster.UpdateClusterStatusActivityName})
 
+		cloudinfoClient := cloudinfo.NewClient(cloudinfoapi.NewAPIClient(&cloudinfoapi.Configuration{
+			BasePath:      config.Cloudinfo.Endpoint,
+			DefaultHeader: make(map[string]string),
+			UserAgent:     fmt.Sprintf("Pipeline/%s", version),
+		}))
+
 		// Register amazon specific workflows and activities
-		registerAwsWorkflows(clusters, tokenGenerator, secretStore)
+		registerAwsWorkflows(clusters, tokenGenerator, secretStore, cloudinfoClient)
 
 		azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonadapter.NewLogger(logger))
 
@@ -354,6 +371,81 @@ func main() {
 		}
 
 		clusterStore := clusteradapter.NewStore(db, clusteradapter.NewClusters(db))
+
+		{
+			workflow.RegisterWithOptions(clusterworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: clusterworkflow.DeleteClusterWorkflowName})
+
+			cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
+			clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
+			federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config)
+			deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler)
+			serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler, config.Cluster.Backyards)
+			clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)
+			clusterGroupManager.RegisterFeatureHandler(deployment.FeatureName, deploymentManager)
+			clusterGroupManager.RegisterFeatureHandler(cgFeatureIstio.FeatureName, serviceMeshFeatureHandler)
+
+			removeClusterFromGroupActivity := clusterworkflow.MakeRemoveClusterFromGroupActivity(clusterGroupManager)
+			activity.RegisterWithOptions(removeClusterFromGroupActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.RemoveClusterFromGroupActivityName})
+
+			commonClusterDeleter := legacyclusteradapter.NewCommonClusterDeleterAdapter(
+				clusterManager,
+				clusterManager,
+			)
+			deleteClusterActivity := clusterworkflow.MakeDeleteClusterActivity(
+				clusteradapter.NewPolyClusterDeleter(
+					clusterStore,
+					clusteradapter.ClusterDeleterEntry{
+						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Alibaba, pkgCluster.ACK),
+						Deleter: commonClusterDeleter,
+					},
+					clusteradapter.ClusterDeleterEntry{
+						Key: clusteradapter.MakeClusterDeleterKey(pkgCluster.Amazon, pkgCluster.EKS),
+						Deleter: eksClusterDriver.NewEKSClusterDeleter(
+							nil,
+							clusterManager.GetKubeProxyCache(),
+							logrusLogger,
+							secret.Store,
+							nil,
+							workflowClient,
+							clusterManager,
+						),
+					},
+					clusteradapter.ClusterDeleterEntry{
+						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Amazon, pkgCluster.PKE),
+						Deleter: commonClusterDeleter,
+					},
+					clusteradapter.ClusterDeleterEntry{
+						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Azure, pkgCluster.AKS),
+						Deleter: commonClusterDeleter,
+					},
+					clusteradapter.ClusterDeleterEntry{
+						Key: clusteradapter.MakeClusterDeleterKey(pkgCluster.Azure, pkgCluster.PKE),
+						Deleter: azurepkedriver.MakeClusterDeleter(
+							nil,
+							clusterManager.GetKubeProxyCache(),
+							logrusLogger,
+							secret.Store,
+							nil,
+							azurePKEClusterStore,
+							workflowClient,
+						),
+					},
+					clusteradapter.ClusterDeleterEntry{
+						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Google, pkgCluster.GKE),
+						Deleter: commonClusterDeleter,
+					},
+					clusteradapter.ClusterDeleterEntry{
+						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Kubernetes, pkgCluster.Unknown),
+						Deleter: commonClusterDeleter,
+					},
+					clusteradapter.ClusterDeleterEntry{
+						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Oracle, pkgCluster.OKE),
+						Deleter: commonClusterDeleter,
+					},
+				),
+			)
+			activity.RegisterWithOptions(deleteClusterActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.DeleteClusterActivityName})
+		}
 
 		{
 			workflow.RegisterWithOptions(clusterworkflow.DeleteNodePoolWorkflow, workflow.RegisterOptions{Name: clusterworkflow.DeleteNodePoolWorkflowName})
@@ -416,7 +508,7 @@ func main() {
 
 		workflow.RegisterWithOptions(intClusterWorkflow.DeleteK8sResourcesWorkflow, workflow.RegisterOptions{Name: intClusterWorkflow.DeleteK8sResourcesWorkflowName})
 
-		k8sConfigGetter := intSecret.MakeKubeSecretStore(secret.Store)
+		k8sConfigGetter := kubesecret.MakeKubeSecretStore(secret.Store)
 
 		deleteHelmDeploymentsActivity := intClusterWorkflow.MakeDeleteHelmDeploymentsActivity(k8sConfigGetter, logrusLogger)
 		activity.RegisterWithOptions(deleteHelmDeploymentsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteHelmDeploymentsActivityName})
@@ -431,7 +523,7 @@ func main() {
 		activity.RegisterWithOptions(deleteNamespaceServicesActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteNamespaceServicesActivityName})
 
 		clusterDNSRecordsDeleter, err := intClusterDNS.MakeDefaultRecordsDeleter()
-		emperror.Panic(emperror.Wrap(err, "failed to create default cluster DNS records deleter"))
+		emperror.Panic(errors.WrapIf(err, "failed to create default cluster DNS records deleter"))
 
 		deleteClusterDNSRecordsActivity := intClusterWorkflow.MakeDeleteClusterDNSRecordsActivity(clusterDNSRecordsDeleter)
 		activity.RegisterWithOptions(deleteClusterDNSRecordsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteClusterDNSRecordsActivityName})
@@ -493,6 +585,15 @@ func main() {
 			featureAnchoreService := securityscan.NewIntegratedServiceAnchoreService(anchoreUserService, logger)
 			featureWhitelistService := securityscan.NewIntegratedServiceWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
 
+			// expiry integrated service
+			workflow.RegisterWithOptions(expiryWorkflow.ExpiryJobWorkflow, workflow.RegisterOptions{Name: expiryWorkflow.ExpiryJobWorkflowName})
+
+			clusterDeleter := clusteradapter.NewCadenceClusterManager(workflowClient)
+			expiryActivity := expiryWorkflow.NewExpiryActivity(clusterDeleter)
+			activity.RegisterWithOptions(expiryActivity.Execute, activity.RegisterOptions{Name: expiryWorkflow.ExpireActivityName})
+
+			expirerService := adapter.NewAsyncExpiryService(workflowClient, logger)
+
 			featureOperatorRegistry := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
 				integratedServiceDNS.MakeIntegratedServiceOperator(
 					clusterGetter,
@@ -504,15 +605,14 @@ func main() {
 					config.Cluster.DNS.Config,
 				),
 				securityscan.MakeIntegratedServiceOperator(
-					config.Cluster.SecurityScan.Anchore.Enabled,
-					config.Cluster.SecurityScan.Anchore.Endpoint,
+					config.Cluster.SecurityScan.Config,
 					clusterGetter,
 					clusterService,
 					helmService,
 					commonSecretStore,
 					featureAnchoreService,
 					featureWhitelistService,
-					emperror.MakeContextAware(errorHandler),
+					errorHandler,
 					logger,
 				),
 				integratedServiceVault.MakeIntegratedServicesOperator(clusterGetter,
@@ -542,6 +642,7 @@ func main() {
 					logger,
 					commonSecretStore,
 				),
+				expiry.NewExpiryServiceOperator(expirerService, services.BindIntegratedServiceSpec, logger),
 			})
 
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)

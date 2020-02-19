@@ -39,8 +39,8 @@ type UpdateClusterPKE struct {
 func (a *UpdateClusterPKE) Validate() error {
 	// TODO implement
 
-	for _, np := range a.NodePools {
-		if err := common.ValidateNodePoolLabels(np.Labels); err != nil {
+	for npName, np := range a.NodePools {
+		if err := common.ValidateNodePoolLabels(npName, np.Labels); err != nil {
 			return err
 		}
 
@@ -73,6 +73,7 @@ type NetworkProvider string
 
 const (
 	NPCalico NetworkProvider = "calico"
+	NPCilium NetworkProvider = "cilium"
 )
 
 type NodePools []NodePool
@@ -153,7 +154,7 @@ func (pke *CreateClusterPKE) AddDefaults() error {
 		pke.Network.ServiceCIDR = "10.32.0.0/24"
 	}
 	if pke.Network.Provider == "" {
-		pke.Network.Provider = NPCalico
+		pke.Network.Provider = NPCilium
 	}
 
 	return nil

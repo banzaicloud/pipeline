@@ -19,11 +19,9 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
-	"github.com/banzaicloud/pipeline/src/cluster"
-
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/adapter"
-
 	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *adapter.ClusterManagerAdapter) error {

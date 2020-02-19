@@ -36,7 +36,13 @@ type imageValues struct {
 }
 
 type prometheusPushgatewayValues struct {
-	Image imageValues `json:"image"`
+	Image          imageValues          `json:"image"`
+	ServiceMonitor serviceMonitorValues `json:"serviceMonitor"`
+}
+
+type serviceMonitorValues struct {
+	Enabled   bool   `json:"enabled"`
+	Namespace string `json:"namespace"`
 }
 
 type baseValues struct {
@@ -53,6 +59,17 @@ type grafanaValues struct {
 	DefaultDashboardsEnabled bool              `json:"defaultDashboardsEnabled"`
 	Image                    imageValues       `json:"image"`
 	Persistence              persistenceValues `json:"persistence"`
+	Sidecar                  sidecar           `json:"sidecar"`
+}
+
+type sidecar struct {
+	Datasources datasources `json:"datasources"`
+}
+
+type datasources struct {
+	Enabled         bool   `json:"enabled"`
+	Label           string `json:"label"`
+	SearchNamespace string `json:"searchNamespace"`
 }
 
 type persistenceValues struct {

@@ -22,9 +22,10 @@ import (
 
 // Config contains configuration for the dns integrated service.
 type Config struct {
-	Namespace  string
-	BaseDomain string
-	Charts     ChartsConfig
+	Namespace      string
+	BaseDomain     string
+	ProviderSecret string
+	Charts         ChartsConfig
 }
 
 func (c Config) Validate() error {

@@ -16,30 +16,32 @@ package integratedservices
 
 import (
 	"context"
+	"fmt"
 
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
-// Service manages integrated services on Kubernetes clusters.
-//go:generate mga gen kit endpoint --outdir integratedservicedriver --with-oc Service
 //go:generate mga gen mockery --name Service --inpkg
+// +kit:endpoint:errorStrategy=service
+
+// Service manages integrated services on Kubernetes clusters.
 type Service interface {
 	// List lists the activated integrated services and their details.
-	List(ctx context.Context, clusterID uint) ([]IntegratedService, error)
+	List(ctx context.Context, clusterID uint) (services []IntegratedService, err error)
 
 	// Details returns the details of an activated integrated service.
-	Details(ctx context.Context, clusterID uint, integratedServiceName string) (IntegratedService, error)
+	Details(ctx context.Context, clusterID uint, serviceName string) (service IntegratedService, err error)
 
 	// Activate activates a integrated service.
-	Activate(ctx context.Context, clusterID uint, integratedServiceeName string, spec map[string]interface{}) error
+	Activate(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error
 
 	// Deactivate deactivates a integrated service.
-	Deactivate(ctx context.Context, clusterID uint, integratedServiceName string) error
+	Deactivate(ctx context.Context, clusterID uint, serviceName string) error
 
 	// Update updates a integrated service.
-	Update(ctx context.Context, clusterID uint, integratedServiceName string, spec map[string]interface{}) error
+	Update(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error
 }
 
 // MakeIntegratedServiceService returns a new IntegratedServiceService instance.
@@ -131,17 +133,27 @@ func (s IntegratedServiceService) Details(ctx context.Context, clusterID uint, i
 	return integratedService, nil
 }
 
-// Activate activates a integrated service.
-func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, integratedServiceeName string, spec map[string]interface{}) error {
-	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "integrated service": integratedServiceeName})
+// Activate activates an integrated service.
+func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, integratedServiceName string, spec map[string]interface{}) error {
+	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "integrated service": integratedServiceName})
 	logger.Info("processing integrated service activation request")
 
 	// TODO: check cluster ID?
 
-	logger.Debug("retieving integrated service manager")
-	integratedServiceManager, err := s.integratedServiceManagerRegistry.GetIntegratedServiceManager(integratedServiceeName)
+	logger.Debug("retrieving integrated service manager")
+	integratedServiceManager, err := s.integratedServiceManagerRegistry.GetIntegratedServiceManager(integratedServiceName)
 	if err != nil {
 		const msg = "failed to retrieve integrated service manager"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
+	}
+
+	if _, err := s.integratedServiceRepository.GetIntegratedService(ctx, clusterID, integratedServiceName); err == nil {
+		return errors.WithStackIf(serviceAlreadyActiveError{
+			ServiceName: integratedServiceName,
+		})
+	} else if !IsIntegratedServiceNotFoundError(err) { // unexpected error
+		const msg = "failed to get integrated service from repository"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
 	}
@@ -149,7 +161,7 @@ func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, 
 	logger.Debug("validating integrated service specification")
 	if err := integratedServiceManager.ValidateSpec(ctx, spec); err != nil {
 		logger.Debug("integrated service specification validation failed")
-		return InvalidIntegratedServiceSpecError{IntegratedServiceName: integratedServiceeName, Problem: err.Error()}
+		return InvalidIntegratedServiceSpecError{IntegratedServiceName: integratedServiceName, Problem: err.Error()}
 	}
 
 	logger.Debug("preparing integrated service specification")
@@ -161,14 +173,14 @@ func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, 
 	}
 
 	logger.Debug("starting integrated service activation")
-	if err := s.integratedServiceOperationDispatcher.DispatchApply(ctx, clusterID, integratedServiceeName, preparedSpec); err != nil {
+	if err := s.integratedServiceOperationDispatcher.DispatchApply(ctx, clusterID, integratedServiceName, preparedSpec); err != nil {
 		const msg = "failed to start integrated service activation"
 		logger.Debug(msg)
-		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "integrated service", integratedServiceeName)
+		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "integrated service", integratedServiceName)
 	}
 
 	logger.Debug("persisting integrated service")
-	if err := s.integratedServiceRepository.SaveIntegratedService(ctx, clusterID, integratedServiceeName, spec, IntegratedServiceStatusPending); err != nil {
+	if err := s.integratedServiceRepository.SaveIntegratedService(ctx, clusterID, integratedServiceName, spec, IntegratedServiceStatusPending); err != nil {
 		const msg = "failed to persist integrated service"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
@@ -281,4 +293,28 @@ func merge(this map[string]interface{}, that map[string]interface{}) map[string]
 		result[k] = v
 	}
 	return result
+}
+
+type serviceAlreadyActiveError struct {
+	ServiceName string
+}
+
+func (e serviceAlreadyActiveError) Error() string {
+	return fmt.Sprintf("Service %q is already active.", e.ServiceName)
+}
+
+func (e serviceAlreadyActiveError) Details() []interface{} {
+	return []interface{}{
+		"integratedServiceName", e.ServiceName,
+	}
+}
+
+func (serviceAlreadyActiveError) ServiceError() bool {
+	return true
+}
+
+// Conflict tells a client that this error is related to a conflicting request.
+// Can be used to translate the error to status codes for example.
+func (serviceAlreadyActiveError) Conflict() bool {
+	return true
 }

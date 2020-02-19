@@ -18,7 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -70,7 +70,7 @@ func (m *Manager) UpdateCluster(ctx context.Context, updateCtx UpdateContext, up
 	}
 
 	if err := cluster.SetStatus(pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
-		return emperror.With(err, "could not update cluster status")
+		return errors.WrapIf(err, "could not update cluster status")
 	}
 
 	logger.Info("updating cluster")
@@ -106,11 +106,11 @@ func (m *Manager) updateCluster(ctx context.Context, updateCtx UpdateContext, cl
 			m.events.ClusterUpdated(updateCtx.ClusterID)
 		}
 
-		return emperror.Wrap(err, "error updating cluster")
+		return errors.WrapIf(err, "error updating cluster")
 	}
 
 	if err := cluster.SetStatus(pkgCluster.Running, pkgCluster.RunningMessage); err != nil {
-		return emperror.Wrap(err, "could not update cluster status")
+		return errors.WrapIf(err, "could not update cluster status")
 	}
 	m.events.ClusterUpdated(updateCtx.ClusterID)
 

@@ -21,7 +21,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/google/go-github/github"
 
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -40,31 +40,31 @@ func (scm *gitHubSCM) DownloadFile(owner, repo, file, tag string) ([]byte, error
 		Ref: tag,
 	})
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to download file from GitHub")
+		return nil, errors.WrapIf(err, "failed to download file from GitHub")
 	}
 
 	defer reader.Close()
 
 	data, err := ioutil.ReadAll(reader)
-	return data, emperror.Wrap(err, "failed to download file from GitHub")
+	return data, errors.WrapIf(err, "failed to download file from GitHub")
 }
 
 func (scm *gitHubSCM) DownloadRelease(owner, repo, tag string) ([]byte, error) {
 	sourceRelease, _, err := scm.client.Repositories.GetReleaseByTag(context.Background(), owner, repo, tag)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to find source spotguide repository release")
+		return nil, errors.WrapIf(err, "failed to find source spotguide repository release")
 	}
 
 	// Support private repositories via downloading with an authenticated client
 	downloadRequest, err := http.NewRequest(http.MethodGet, sourceRelease.GetZipballURL(), nil)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create source spotguide repository release download request")
+		return nil, errors.WrapIf(err, "failed to create source spotguide repository release download request")
 	}
 
 	repoBytes := bytes.NewBuffer(nil)
 	_, err = scm.client.Do(context.Background(), downloadRequest, repoBytes)
 
-	return repoBytes.Bytes(), emperror.Wrap(err, "failed to download source spotguide repository release")
+	return repoBytes.Bytes(), errors.WrapIf(err, "failed to download source spotguide repository release")
 }
 
 func (scm *gitHubSCM) ListRepositoriesByTopic(owner, topic string, allowPrivate bool) ([]Repository, error) {
@@ -91,7 +91,7 @@ func (scm *gitHubSCM) ListRepositoriesByTopic(owner, topic string, allowPrivate 
 				return repositories, nil
 			}
 
-			return nil, emperror.Wrap(err, "failed to list github repositories")
+			return nil, errors.WrapIf(err, "failed to list github repositories")
 		}
 
 		for _, githubRepo := range reposRes.Repositories {
@@ -121,7 +121,7 @@ func (scm *gitHubSCM) ListRepositoryReleases(owner, name string) ([]RepositoryRe
 	for {
 		githubReleases, resp, err := scm.client.Repositories.ListReleases(context.Background(), owner, name, &listOpts)
 		if err != nil {
-			return nil, emperror.Wrap(err, "failed to list github repository releases")
+			return nil, errors.WrapIf(err, "failed to list github repository releases")
 		}
 
 		for _, githubRelease := range githubReleases {
@@ -159,7 +159,7 @@ func (scm *gitHubSCM) CreateRepository(owner, name string, private bool, userID 
 
 	_, _, err := scm.client.Repositories.Create(context.Background(), orgName, &repo)
 	if err != nil {
-		return emperror.Wrap(err, "failed to create spotguide repository")
+		return errors.WrapIf(err, "failed to create spotguide repository")
 	}
 
 	return nil
@@ -175,7 +175,7 @@ func (scm *gitHubSCM) AddContentToRepository(owner, name string, spotguideConten
 
 	contentResponse, _, err := scm.client.Repositories.CreateFile(context.Background(), owner, name, "README.md", contentOptions)
 	if err != nil {
-		return emperror.Wrap(err, "failed to initialize spotguide repository")
+		return errors.WrapIf(err, "failed to initialize spotguide repository")
 	}
 
 	// List the files here that needs to be created in this commit and create a tree from them
@@ -194,7 +194,7 @@ func (scm *gitHubSCM) AddContentToRepository(owner, name string, spotguideConten
 				Encoding: github.String(repoFile.Encoding),
 			})
 			if err != nil {
-				return emperror.Wrapf(err, "failed to create blob for spotguide repository: %s", repoFile.Path)
+				return errors.WrapIff(err, "failed to create blob for spotguide repository: %s", repoFile.Path)
 			}
 
 			blobSHA = blob.SHA
@@ -216,7 +216,7 @@ func (scm *gitHubSCM) AddContentToRepository(owner, name string, spotguideConten
 	// Create a tree from the tree entries
 	tree, _, err := scm.client.Git.CreateTree(context.Background(), owner, name, contentResponse.GetSHA(), entries)
 	if err != nil {
-		return emperror.Wrap(err, "failed to create git tree for spotguide repository")
+		return errors.WrapIf(err, "failed to create git tree for spotguide repository")
 	}
 
 	// Create a commit from the tree
@@ -230,7 +230,7 @@ func (scm *gitHubSCM) AddContentToRepository(owner, name string, spotguideConten
 
 	newCommit, _, err := scm.client.Git.CreateCommit(context.Background(), owner, name, commit)
 	if err != nil {
-		return emperror.Wrap(err, "failed to create git commit for spotguide repository")
+		return errors.WrapIf(err, "failed to create git commit for spotguide repository")
 	}
 
 	// Attach the commit to the master branch.
@@ -238,14 +238,14 @@ func (scm *gitHubSCM) AddContentToRepository(owner, name string, spotguideConten
 	// See: https://github.com/google/go-github/blob/master/example/commitpr/main.go#L62
 	ref, _, err := scm.client.Git.GetRef(context.Background(), owner, name, "refs/heads/master")
 	if err != nil {
-		return emperror.Wrap(err, "failed to get git ref for spotguide repository")
+		return errors.WrapIf(err, "failed to get git ref for spotguide repository")
 	}
 
 	ref.Object.SHA = newCommit.SHA
 
 	_, _, err = scm.client.Git.UpdateRef(context.Background(), owner, name, ref, false)
 	if err != nil {
-		return emperror.Wrap(err, "failed to update git ref for spotguide repository")
+		return errors.WrapIf(err, "failed to update git ref for spotguide repository")
 	}
 
 	return nil

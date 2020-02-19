@@ -32,11 +32,10 @@ import (
 	"text/template"
 	"time"
 
-	"emperror.dev/emperror"
-	"github.com/Masterminds/sprig"
+	"emperror.dev/errors"
+	"github.com/Masterminds/sprig/v3"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/patrickmn/go-cache"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cast"
 	v1 "k8s.io/api/core/v1"
@@ -176,14 +175,14 @@ func GetChartFile(file []byte, fileName string) (string, error) {
 	return "", nil
 }
 
-//DeleteAllDeployment deletes all Helm deployment
+// DeleteAllDeployment deletes all Helm deployment
 // namespaces - if provided than delete all helm deployments only from the provided namespaces
 func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte, namespaces *v1.NamespaceList) error {
 	log.Info("getting deployments....")
 	filter := ""
 	releaseResp, err := ListDeployments(&filter, "", kubeconfig)
 	if err != nil {
-		return emperror.Wrap(err, "failed to get deployments")
+		return errors.WrapIf(err, "failed to get deployments")
 	}
 
 	if releaseResp != nil {
@@ -217,7 +216,7 @@ func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte, namespaces *
 
 				err := DeleteDeployment(r.Name, kubeconfig)
 				if err != nil {
-					return emperror.WrapWith(err, "failed to delete deployment", "deployment", r.Name, "namespace", r.Name)
+					return errors.WrapIfWithDetails(err, "failed to delete deployment", "deployment", r.Name, "namespace", r.Name)
 				}
 				deletedDeployments[r.Name] = true
 
@@ -410,7 +409,7 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 		}
 		err = updateSpotConfigMap(kubeConfig, odPcts, releaseName)
 		if err != nil {
-			return nil, emperror.Wrap(err, "failed to update spot ConfigMap")
+			return nil, errors.WrapIf(err, "failed to update spot ConfigMap")
 		}
 		cmUpdated = true
 	}
@@ -448,7 +447,7 @@ func CreateDeployment(chartName, chartVersion string, chartPackage []byte, names
 func updateSpotConfigMap(kubeConfig []byte, odPcts map[string]int, releaseName string) error {
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		return emperror.Wrap(err, "failed to get kubernetes client from kubeconfig")
+		return errors.WrapIf(err, "failed to get kubernetes client from kubeconfig")
 	}
 	pipelineSystemNamespace := global.Config.Cluster.Namespace
 	cm, err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).Get(common.SpotConfigMapKey, metav1.GetOptions{})
@@ -461,10 +460,10 @@ func updateSpotConfigMap(kubeConfig []byte, odPcts map[string]int, releaseName s
 				Data: make(map[string]string),
 			})
 			if err != nil {
-				return emperror.Wrap(err, "failed to create spot configmap")
+				return errors.WrapIf(err, "failed to create spot configmap")
 			}
 		} else {
-			return emperror.Wrap(err, "failed to retrieve spot configmap")
+			return errors.WrapIf(err, "failed to retrieve spot configmap")
 		}
 	}
 
@@ -476,7 +475,7 @@ func updateSpotConfigMap(kubeConfig []byte, odPcts map[string]int, releaseName s
 	}
 	_, err = client.CoreV1().ConfigMaps(pipelineSystemNamespace).Update(cm)
 	if err != nil {
-		return emperror.Wrap(err, "failed to update spot configmap")
+		return errors.WrapIf(err, "failed to update spot configmap")
 	}
 	return nil
 }
@@ -484,12 +483,12 @@ func updateSpotConfigMap(kubeConfig []byte, odPcts map[string]int, releaseName s
 func cleanupSpotConfigMap(kubeConfig []byte, odPcts map[string]int, releaseName string) error {
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		return emperror.Wrap(err, "failed to get kubernetes client from kubeconfig")
+		return errors.WrapIf(err, "failed to get kubernetes client from kubeconfig")
 	}
 	pipelineSystemNamespace := global.Config.Cluster.Namespace
 	cm, err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).Get(common.SpotConfigMapKey, metav1.GetOptions{})
 	if err != nil {
-		return emperror.Wrap(err, "failed to retrieve spot configmap")
+		return errors.WrapIf(err, "failed to retrieve spot configmap")
 	}
 
 	if cm.Data == nil {
@@ -503,7 +502,7 @@ func cleanupSpotConfigMap(kubeConfig []byte, odPcts map[string]int, releaseName 
 	}
 	_, err = client.CoreV1().ConfigMaps(pipelineSystemNamespace).Update(cm)
 	if err != nil {
-		return emperror.Wrap(err, "failed to update spot configmap")
+		return errors.WrapIf(err, "failed to update spot configmap")
 	}
 	return nil
 }

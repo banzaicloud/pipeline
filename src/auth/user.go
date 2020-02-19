@@ -24,7 +24,7 @@ import (
 	"strings"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/banzaicloud/cicd-go/cicd"
 	ginauth "github.com/banzaicloud/gin-utilz/auth"
 	"github.com/dgrijalva/jwt-go"
@@ -242,13 +242,13 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	if global.Config.CICD.Enabled && (schema.Provider == ProviderDexGithub || schema.Provider == ProviderDexGitlab) {
 		err = bus.createUserInCICDDB(currentUser)
 		if err != nil {
-			return nil, "", emperror.Wrap(err, "failed to create user in CICD database")
+			return nil, "", errors.WrapIf(err, "failed to create user in CICD database")
 		}
 	}
 
 	err = bus.db.Create(currentUser).Error
 	if err != nil {
-		return nil, "", emperror.Wrap(err, "failed to create user organization")
+		return nil, "", errors.WrapIf(err, "failed to create user organization")
 	}
 
 	err = bus.orgSyncer.SyncOrganizations(authCtx.Request.Context(), *currentUser, schema.RawInfo.(*IDTokenClaims))

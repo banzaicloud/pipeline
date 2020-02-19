@@ -16,6 +16,7 @@ package securityscan
 
 import (
 	"context"
+	"net/url"
 
 	"emperror.dev/errors"
 
@@ -25,6 +26,40 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 )
+
+type Config struct {
+	Anchore           AnchoreConfig
+	PipelineNamespace string
+	Webhook           WebhookConfig
+}
+
+func (c Config) Validate() error {
+	return errors.Combine(c.Anchore.Validate())
+}
+
+type AnchoreConfig struct {
+	Enabled        bool
+	anchore.Config `mapstructure:",squash"`
+}
+
+func (c AnchoreConfig) Validate() error {
+	var err error
+
+	if c.Enabled {
+		_, e := url.Parse(c.Endpoint)
+		err = errors.Append(err, errors.Wrap(e, "anchore endpoint must be a valid URL"))
+
+		if c.User == "" {
+			err = errors.Append(err, errors.New("anchore user is required"))
+		}
+
+		if c.Password == "" {
+			err = errors.Append(err, errors.New("anchore password is required"))
+		}
+	}
+
+	return err
+}
 
 // UserNameGenerator generates an Anchore username for a cluster.
 type UserNameGenerator interface {
@@ -133,4 +168,14 @@ func (p CustomAnchoreConfigProvider) GetConfiguration(ctx context.Context, clust
 		User:     secret[secrettype.Username],
 		Password: secret[secrettype.Password],
 	}, nil
+}
+
+// WebhookConfig encapsulates configuration of the image validator webhook
+// sensitive defaults provided through env vars
+type WebhookConfig struct {
+	Chart     string
+	Version   string
+	Release   string
+	Namespace string
+	Values    map[string]interface{}
 }

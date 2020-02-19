@@ -18,11 +18,10 @@ import (
 	"context"
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/pkg/errors"
 )
 
 const DeleteSSHKeyPairActivityName = "pke-delete-ssh-key-pair-activity"
@@ -54,7 +53,7 @@ func (a *DeleteSSHKeyPairActivity) Execute(ctx context.Context, input DeleteSSHK
 
 	client, err := awsCluster.GetAWSClient()
 	if err != nil {
-		return emperror.Wrap(err, "failed to connect to AWS")
+		return errors.WrapIf(err, "failed to connect to AWS")
 	}
 
 	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
@@ -92,7 +91,7 @@ func (a *DeleteSSHKeyPairActivity) Execute(ctx context.Context, input DeleteSSHK
 
 	_, err = e.DeleteKeyPair(deleteKeyPairInput)
 	if err != nil {
-		return emperror.Wrap(err, "failed to delete key pair on AWS EC2")
+		return errors.WrapIf(err, "failed to delete key pair on AWS EC2")
 	}
 
 	return nil

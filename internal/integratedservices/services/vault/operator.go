@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"emperror.dev/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -26,10 +27,10 @@ import (
 	k8srest "k8s.io/client-go/rest"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
+	"github.com/banzaicloud/pipeline/pkg/backoff"
 	"github.com/banzaicloud/pipeline/src/auth"
 )
 
@@ -102,7 +103,7 @@ func (op IntegratedServicesOperator) Apply(ctx context.Context, clusterID uint, 
 	}
 
 	// create the token reviwer service account
-	tokenReviewerJWT, err := op.configureClusterTokenReviewer(ctx, clusterID)
+	tokenReviewerJWT, err := op.configureClusterTokenReviewer(ctx, logger, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to configure Cluster with token reviewer service account")
 	}
@@ -123,10 +124,11 @@ func (op IntegratedServicesOperator) Apply(ctx context.Context, clusterID uint, 
 
 func (op IntegratedServicesOperator) configureClusterTokenReviewer(
 	ctx context.Context,
+	logger common.Logger,
 	clusterID uint,
 ) (string, error) {
 
-	pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace
+	pipelineSystemNamespace := op.config.Namespace
 
 	// Prepare cluster first with the proper token reviewer SA
 	serviceAccount := corev1.ServiceAccount{
@@ -185,9 +187,30 @@ func (op IntegratedServicesOperator) configureClusterTokenReviewer(
 		return "", errors.WrapIf(err, "failed to create token reviewer cluster role binding")
 	}
 
-	tokenReviewerJWT := string(serviceAccountToken.Data[corev1.ServiceAccountTokenKey])
+	var tokenReviewerJWT string
 
-	return tokenReviewerJWT, nil
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoff.ConstantBackoffConfig{
+		Delay:      5 * time.Second,
+		MaxRetries: 5,
+	})
+
+	return tokenReviewerJWT, backoff.Retry(func() error {
+		serviceAccountToken.SetResourceVersion("")
+
+		err = op.kubernetesService.EnsureObject(ctx, clusterID, &serviceAccountToken)
+		if err != nil {
+			return errors.WrapIf(err, "failed to query token reviewer ServiceAccount token")
+		}
+
+		tokenReviewerJWT = string(serviceAccountToken.Data[corev1.ServiceAccountTokenKey])
+		if tokenReviewerJWT == "" {
+			return errors.New("tokenReviewerJWT is empty")
+		}
+
+		logger.Info("kubernetes service account created in Kubernetes for vault token review")
+
+		return nil
+	}, backoffPolicy)
 }
 
 func (op IntegratedServicesOperator) configureVault(
@@ -244,14 +267,13 @@ func (op IntegratedServicesOperator) configureVault(
 		if _, err := vaultManager.configureAuth(tokenReviewerJWT, kubeConfig.Host, kubeConfig.CAData); err != nil {
 			return errors.WrapIf(err, fmt.Sprintf("failed to configure %s auth method for vault", authMethodType))
 		}
-		logger.Info(fmt.Sprintf("auth method %q enabled for vault", authMethodType))
+		logger.Info(fmt.Sprintf("auth method %q configured for vault", authMethodType))
 
 		// create role
 		if _, err := vaultManager.createRole(boundSpec.Settings.ServiceAccounts, boundSpec.Settings.Namespaces); err != nil {
 			return errors.WrapIf(err, fmt.Sprintf("failed to create role in the auth method %q", authMethodType))
 		}
 		logger.Info(fmt.Sprintf("role created in auth method %q for vault", authMethodType))
-
 	}
 
 	return nil
@@ -273,7 +295,7 @@ func (op IntegratedServicesOperator) installOrUpdateWebhook(
 		vaultExternalAddress = spec.CustomVault.Address
 	}
 
-	pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace
+	pipelineSystemNamespace := op.config.Namespace
 	var chartValues = &webhookValues{
 		Env: map[string]string{
 			vaultAddressEnvKey: vaultExternalAddress,
@@ -299,8 +321,8 @@ func (op IntegratedServicesOperator) installOrUpdateWebhook(
 		return errors.WrapIf(err, "failed to decode chartValues")
 	}
 
-	chartName := global.Config.Cluster.Vault.Charts.Webhook.Chart
-	chartVersion := global.Config.Cluster.Vault.Charts.Webhook.Version
+	chartName := op.config.Charts.Webhook.Chart
+	chartVersion := op.config.Charts.Webhook.Version
 
 	return op.helmService.ApplyDeployment(
 		ctx,
@@ -383,7 +405,7 @@ func (op IntegratedServicesOperator) Deactivate(ctx context.Context, clusterID u
 		}
 
 		// delete kubernetes service account
-		pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace
+		pipelineSystemNamespace := op.config.Namespace
 		if err := op.kubernetesService.DeleteObject(ctx, clusterID, &corev1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: vaultTokenReviewer, Namespace: pipelineSystemNamespace}}); err != nil {
 			return errors.WrapIf(err, fmt.Sprintf("failed to delete kubernetes service account"))
 		}

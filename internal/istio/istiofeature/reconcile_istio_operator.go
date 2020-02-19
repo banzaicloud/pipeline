@@ -15,8 +15,10 @@
 package istiofeature
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
@@ -28,12 +30,12 @@ func (m *MeshReconciler) ReconcileIstioOperator(desiredState DesiredState) error
 	if desiredState == DesiredStatePresent {
 		err := m.installIstioOperator(m.Master)
 		if err != nil {
-			return emperror.Wrap(err, "could not install Istio operator")
+			return errors.WrapIf(err, "could not install Istio operator")
 		}
 	} else {
 		err := m.uninstallIstioOperator(m.Master)
 		if err != nil {
-			return emperror.Wrap(err, "could not remove Istio operator")
+			return errors.WrapIf(err, "could not remove Istio operator")
 		}
 	}
 
@@ -46,7 +48,7 @@ func (m *MeshReconciler) uninstallIstioOperator(c cluster.CommonCluster) error {
 
 	err := deleteDeployment(c, istioOperatorReleaseName)
 	if err != nil {
-		return emperror.Wrap(err, "could not remove Istio operator")
+		return errors.WrapIf(err, "could not remove Istio operator")
 	}
 
 	return nil
@@ -57,7 +59,8 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
 	m.logger.Debug("installing Istio operator")
 
 	type operator struct {
-		Image imageChartValue `json:"image,omitempty"`
+		Image     imageChartValue             `json:"image,omitempty"`
+		Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 	}
 
 	type Values struct {
@@ -67,33 +70,41 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
 	values := Values{
 		Operator: operator{
 			Image: imageChartValue{},
+			Resources: corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse("200m"),
+					corev1.ResourceMemory: resource.MustParse("256Mi"),
+				},
+			},
 		},
 	}
 
-	if m.Configuration.internalConfig.istioOperator.imageRepository != "" {
-		values.Operator.Image.Repository = m.Configuration.internalConfig.istioOperator.imageRepository
+	istioChart := m.Configuration.internalConfig.Charts.IstioOperator
+
+	if istioChart.Values.Operator.Image.Repository != "" {
+		values.Operator.Image.Repository = istioChart.Values.Operator.Image.Repository
 	}
-	if m.Configuration.internalConfig.istioOperator.imageTag != "" {
-		values.Operator.Image.Tag = m.Configuration.internalConfig.istioOperator.imageTag
+	if istioChart.Values.Operator.Image.Tag != "" {
+		values.Operator.Image.Tag = istioChart.Values.Operator.Image.Tag
 	}
 
 	valuesOverride, err := yaml.Marshal(values)
 	if err != nil {
-		return emperror.Wrap(err, "could not marshal chart value overrides")
+		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}
 
 	err = installOrUpgradeDeployment(
 		c,
 		istioOperatorNamespace,
-		m.Configuration.internalConfig.istioOperator.chartName,
+		istioChart.Chart,
 		istioOperatorReleaseName,
 		valuesOverride,
-		m.Configuration.internalConfig.istioOperator.chartVersion,
+		istioChart.Version,
 		true,
 		true,
 	)
 	if err != nil {
-		return emperror.Wrap(err, "could not install Istio operator")
+		return errors.WrapIf(err, "could not install Istio operator")
 	}
 
 	return nil

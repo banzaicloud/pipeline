@@ -29,11 +29,12 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
-	intSecret "github.com/banzaicloud/pipeline/internal/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/kubesecret"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
@@ -200,7 +201,9 @@ func (cd ClusterDeleter) Delete(ctx context.Context, cluster pke.Cluster, forced
 			return
 		}
 		cd.kubeProxyCache.Delete(cluster.UID)
-		cd.events.ClusterDeleted(cluster.OrganizationID, cluster.Name)
+		if cd.events != nil {
+			cd.events.ClusterDeleted(cluster.OrganizationID, cluster.Name)
+		}
 	}()
 
 	if err = cd.store.SetActiveWorkflowID(cluster.ID, wfrun.GetID()); err != nil {
@@ -211,6 +214,10 @@ func (cd ClusterDeleter) Delete(ctx context.Context, cluster pke.Cluster, forced
 }
 
 func (cd ClusterDeleter) getClusterStatusChangeDurationTimer(cluster pke.Cluster) (metrics.DurationMetricTimer, error) {
+	if cd.statusChangeDurationMetric == nil {
+		return metrics.NoopDurationMetricTimer{}, nil
+	}
+
 	values := metrics.ClusterStatusChangeDurationMetricValues{
 		ProviderName: pkgCluster.Azure,
 		LocationName: cluster.Location,
@@ -227,12 +234,12 @@ func (cd ClusterDeleter) getClusterStatusChangeDurationTimer(cluster pke.Cluster
 	return cd.statusChangeDurationMetric.StartTimer(values), nil
 }
 
-func (cd ClusterDeleter) DeleteByID(ctx context.Context, clusterID uint, forced bool) error {
+func (cd ClusterDeleter) DeleteCluster(ctx context.Context, clusterID uint, options cluster.DeleteClusterOptions) error {
 	cl, err := cd.store.GetByID(clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to load cluster from data store")
 	}
-	return cd.Delete(ctx, cl, forced)
+	return cd.Delete(ctx, cl, options.Force)
 }
 
 func collectPublicIPAddressNames(
@@ -330,7 +337,7 @@ func gatherK8sServicePublicIPs(publicAddresses []network.PublicIPAddress, cluste
 		return names, nil
 	}
 
-	k8sConfig, err := intSecret.MakeKubeSecretStore(secrets).Get(cluster.OrganizationID, cluster.K8sSecretID)
+	k8sConfig, err := kubesecret.MakeKubeSecretStore(secrets).Get(cluster.OrganizationID, cluster.K8sSecretID)
 	if err != nil {
 		return names, errors.WrapIf(err, "failed to get k8s config")
 	}

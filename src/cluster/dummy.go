@@ -15,9 +15,7 @@
 package cluster
 
 import (
-	"time"
-
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -47,7 +45,6 @@ func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, org
 			KubernetesVersion: request.Properties.CreateClusterDummy.Node.KubernetesVersion,
 			NodeCount:         request.Properties.CreateClusterDummy.Node.Count,
 		},
-		TtlMinutes: request.TtlMinutes,
 	}
 	return &cluster, nil
 }
@@ -60,7 +57,7 @@ func (c *DummyCluster) CreateCluster() error {
 // Persist save the cluster model
 // Deprecated: Do not use.
 func (c *DummyCluster) Persist() error {
-	return emperror.Wrap(c.modelCluster.Save(), "failed to persist cluster")
+	return errors.WrapIf(c.modelCluster.Save(), "failed to persist cluster")
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
@@ -97,7 +94,6 @@ func (c *DummyCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nil,
 		Region:            c.modelCluster.Location,
-		TtlMinutes:        c.modelCluster.TtlMinutes,
 		StartedAt:         c.modelCluster.StartedAt,
 	}, nil
 }
@@ -235,6 +231,11 @@ func (c *DummyCluster) GetK8sConfig() ([]byte, error) {
 	return c.DownloadK8sConfig()
 }
 
+// GetK8sUserConfig returns the Kubernetes config
+func (c *DummyCluster) GetK8sUserConfig() ([]byte, error) {
+	return c.GetK8sConfig()
+}
+
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *DummyCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
@@ -248,14 +249,4 @@ func (c *DummyCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 // SetScaleOptions sets scale options for the cluster
 func (c *DummyCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
-}
-
-// GetTTL retrieves the TTL of the cluster
-func (c *DummyCluster) GetTTL() time.Duration {
-	return time.Duration(c.modelCluster.TtlMinutes) * time.Minute
-}
-
-// SetTTL sets the lifespan of a cluster
-func (c *DummyCluster) SetTTL(ttl time.Duration) {
-	c.modelCluster.TtlMinutes = uint(ttl.Minutes())
 }

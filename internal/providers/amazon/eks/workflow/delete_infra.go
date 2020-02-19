@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 )
@@ -34,6 +33,7 @@ type DeleteInfrastructureWorkflowInput struct {
 	ClusterUID     string
 	NodePoolNames  []string
 	DefaultUser    bool
+	GenerateSSH    bool
 }
 
 // DeleteInfrastructureWorkflow executes the Cadence workflow responsible for deleting EKS
@@ -173,12 +173,14 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 
 	// delete SSH key
 	var deleteSSHKeyAcitivityFeature workflow.Future
-	{
-		activityInput := DeleteSshKeyActivityInput{
-			EKSActivityInput: eksActivityInput,
-			SSHKeyName:       GenerateSSHKeyNameForCluster(input.ClusterName),
+	if input.GenerateSSH {
+		{
+			activityInput := DeleteSshKeyActivityInput{
+				EKSActivityInput: eksActivityInput,
+				SSHKeyName:       GenerateSSHKeyNameForCluster(input.ClusterName),
+			}
+			deleteSSHKeyAcitivityFeature = workflow.ExecuteActivity(ctx, DeleteSshKeyActivityName, activityInput)
 		}
-		deleteSSHKeyAcitivityFeature = workflow.ExecuteActivity(ctx, DeleteSshKeyActivityName, activityInput)
 	}
 
 	if getVpcConfigActivityOutput.VpcID != "" {
@@ -219,8 +221,10 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 		}
 	}
 
-	if err := deleteSSHKeyAcitivityFeature.Get(ctx, nil); err != nil {
-		return err
+	if deleteSSHKeyAcitivityFeature != nil {
+		if err := deleteSSHKeyAcitivityFeature.Get(ctx, nil); err != nil {
+			return err
+		}
 	}
 
 	// get subnet stack names

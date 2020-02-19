@@ -260,7 +260,6 @@ func (m clusterModel) intoEntity(e *pke.Cluster) {
 
 	e.Kubernetes.RBAC = m.Cluster.RbacEnabled
 	e.Kubernetes.OIDC.Enabled = m.Cluster.OidcEnabled
-	e.TtlMinutes = m.Cluster.TtlMinutes
 
 	// provider specific fields
 

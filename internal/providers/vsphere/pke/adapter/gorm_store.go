@@ -69,7 +69,6 @@ type ProviderData struct {
 	Monitoring   bool
 	Logging      bool
 	SecurityScan bool
-	TtlMinutes   uint
 
 	ResourcePoolName string
 	FolderName       string
@@ -120,7 +119,6 @@ func fillClusterFromClusterModel(cl *pke.PKEOnVsphereCluster, model clusteradapt
 
 	cl.Kubernetes.RBAC = model.RbacEnabled
 	cl.Kubernetes.OIDC.Enabled = model.OidcEnabled
-	cl.TtlMinutes = model.TtlMinutes
 }
 
 func fillClusterFromModel(cluster *pke.PKEOnVsphereCluster, model vspherePkeCluster) error {
@@ -214,7 +212,6 @@ func (s gormVspherePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOn
 			//Monitoring   bool
 			//Logging      bool
 			//SecurityScan bool
-			//TtlMinutes   uint
 		},
 	}
 

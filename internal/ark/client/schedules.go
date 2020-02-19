@@ -15,16 +15,20 @@
 package client
 
 import (
+	"context"
+
 	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 )
 
 // CreateSchedule creates an ARK schedule by a CreateScheduleRequest
 func (c *Client) CreateSchedule(req *api.CreateScheduleRequest) error {
-
-	s := &arkAPI.Schedule{
+	schedule := arkAPI.Schedule{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: c.Namespace,
 			Name:      req.Name,
@@ -45,7 +49,7 @@ func (c *Client) CreateSchedule(req *api.CreateScheduleRequest) error {
 		},
 	}
 
-	_, err := c.Client.ArkV1().Schedules(s.Namespace).Create(s)
+	err := c.Client.Create(context.Background(), &schedule)
 	if err != nil {
 		return err
 	}
@@ -54,23 +58,41 @@ func (c *Client) CreateSchedule(req *api.CreateScheduleRequest) error {
 }
 
 // ListSchedules lists ARK schedules
-func (c *Client) ListSchedules(listOptions metav1.ListOptions) (schedules *arkAPI.ScheduleList, err error) {
+func (c *Client) ListSchedules() (*arkAPI.ScheduleList, error) {
+	var schedules arkAPI.ScheduleList
 
-	schedules, err = c.Client.ArkV1().Schedules(c.Namespace).List(listOptions)
+	err := c.Client.List(context.Background(), &schedules, runtimeclient.InNamespace(c.Namespace))
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	return &schedules, nil
 }
 
 // GetScheduleByName gets an ARK schedule by name
-func (c *Client) GetScheduleByName(name string) (schedule *arkAPI.Schedule, err error) {
+func (c *Client) GetScheduleByName(name string) (*arkAPI.Schedule, error) {
+	var schedule arkAPI.Schedule
 
-	schedule, err = c.Client.Ark().Schedules(c.Namespace).Get(name, metav1.GetOptions{})
+	err := c.Client.Get(context.Background(), types.NamespacedName{
+		Name:      name,
+		Namespace: c.Namespace,
+	}, &schedule)
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	return &schedule, nil
 }
 
 // DeleteScheduleByName deletes a schedule by name
 func (c *Client) DeleteScheduleByName(name string) error {
+	schedule, err := c.GetScheduleByName(name)
+	if k8serrors.IsNotFound(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
 
-	return c.Client.Ark().Schedules(c.Namespace).Delete(name, &metav1.DeleteOptions{})
+	return c.Client.Delete(context.Background(), schedule)
 }

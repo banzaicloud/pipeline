@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/patrickmn/go-cache"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
@@ -122,7 +123,7 @@ func (c clusterErrorHandler) Handle(err error) {
 		_ = c.cluster.SetStatus(c.status, statusMessage)
 	}
 
-	err = emperror.With(
+	err = errors.WithDetails(
 		err,
 		"clusterId", c.cluster.GetID(),
 		"clusterName", c.cluster.GetName(),
@@ -148,6 +149,10 @@ func (m *Manager) getClusterErrorHandler(ctx context.Context, commonCluster Comm
 }
 
 func (m *Manager) getClusterStatusChangeMetricTimer(provider, location, status string, orgId uint, clusterName string) (metrics.DurationMetricTimer, error) {
+	if m.statusChangeDurationMetric == nil {
+		return metrics.NoopDurationMetricTimer{}, nil
+	}
+
 	values := metrics.ClusterStatusChangeDurationMetricValues{
 		ProviderName: provider,
 		LocationName: location,
@@ -156,7 +161,7 @@ func (m *Manager) getClusterStatusChangeMetricTimer(provider, location, status s
 	if global.Config.Telemetry.Debug {
 		org, err := auth.GetOrganizationById(orgId)
 		if err != nil {
-			return nil, emperror.Wrap(err, "Error during getting organization. ")
+			return nil, errors.WrapIf(err, "Error during getting organization. ")
 		}
 
 		values.OrganizationName = org.Name
@@ -176,7 +181,7 @@ func (m *Manager) GetKubeProxy(requestSchema string, requestHost string, apiProx
 		kubeProxy, err = NewKubeAPIProxy(requestSchema, requestHost, apiProxyPrefix, commonCluster, defaultProxyExpirationMinutes*time.Minute)
 
 		if err != nil {
-			return nil, emperror.Wrap(err, "Error during creating cluster API proxy.")
+			return nil, errors.WrapIf(err, "Error during creating cluster API proxy.")
 		}
 
 		m.kubeProxyCache.Put(commonCluster.GetUID(), kubeProxy)

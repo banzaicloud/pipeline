@@ -22,7 +22,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
@@ -31,26 +30,16 @@ import (
 )
 
 const (
-	securityScanChartVersion = "0.4.4"
-	// todo read this from the chart possibly
-	imageValidatorVersion = "0.3.6"
-
-	// anchore version
-	securityScanChartName = "banzaicloud-stable/anchore-policy-validator"
-	securityScanNamespace = "pipeline-system"
-	securityScanRelease   = "anchore"
-
 	// the label key on the namespaces that is watched by the webhook
 	labelKey = "scan"
 
-	allStar         = "*"
+	selectedAllStar = "*"
 	selectorInclude = "include"
 	selectorExclude = "exclude"
 )
 
 type IntegratedServiceOperator struct {
-	anchoreEnabled   bool
-	anchoreEndpoint  string
+	config           Config
 	clusterGetter    integratedserviceadapter.ClusterGetter
 	clusterService   integratedservices.ClusterService
 	helmService      services.HelmService
@@ -63,8 +52,7 @@ type IntegratedServiceOperator struct {
 }
 
 func MakeIntegratedServiceOperator(
-	anchoreEnabled bool,
-	anchoreEndpoint string,
+	config Config,
 	clusterGetter integratedserviceadapter.ClusterGetter,
 	clusterService integratedservices.ClusterService,
 	helmService services.HelmService,
@@ -76,8 +64,7 @@ func MakeIntegratedServiceOperator(
 
 ) IntegratedServiceOperator {
 	return IntegratedServiceOperator{
-		anchoreEnabled:   anchoreEnabled,
-		anchoreEndpoint:  anchoreEndpoint,
+		config:           config,
 		clusterGetter:    clusterGetter,
 		clusterService:   clusterService,
 		helmService:      helmService,
@@ -113,7 +100,7 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		return errors.WrapIf(err, "failed to apply integrated service")
 	}
 
-	var anchoreValues *AnchoreValues
+	var anchoreValues AnchoreValues
 	if boundSpec.CustomAnchore.Enabled {
 		anchoreValues, err = op.getCustomAnchoreValues(ctx, boundSpec.CustomAnchore)
 		if err != nil {
@@ -126,13 +113,13 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		}
 	}
 
-	values, err := op.processChartValues(ctx, clusterID, *anchoreValues)
+	values, err := assembleChartValues(anchoreValues, boundSpec.WebhookConfig)
 	if err != nil {
 		return errors.WrapIf(err, "failed to assemble chart values")
 	}
 
-	if err = op.helmService.ApplyDeployment(ctx, clusterID, securityScanNamespace, securityScanChartName, securityScanRelease,
-		values, securityScanChartVersion); err != nil {
+	if err = op.helmService.ApplyDeployment(ctx, clusterID, op.config.Webhook.Namespace, op.config.Webhook.Chart, op.config.Webhook.Release,
+		values, op.config.Webhook.Version); err != nil {
 		return errors.WrapIf(err, "failed to deploy integrated service")
 	}
 
@@ -143,9 +130,9 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 	}
 
 	if boundSpec.WebhookConfig.Enabled {
-		if err = op.configureWebHook(ctx, clusterID, boundSpec.WebhookConfig); err != nil {
+		if err = op.applyLabelsForSecurityScan(ctx, clusterID, boundSpec.WebhookConfig); err != nil {
 			//  as agreed, we let the integrated service activation to succeed and log the errors
-			op.errorHandler.Handle(ctx, err)
+			op.errorHandler.HandleContext(ctx, err)
 		}
 	}
 	return nil
@@ -173,7 +160,7 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 		return errors.WrapIf(err, "failed to apply integrated service")
 	}
 
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, securityScanRelease); err != nil {
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, op.config.Webhook.Release); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to uninstall integrated service", "integrated service", IntegratedServiceName,
 			"clusterID", clusterID)
 	}
@@ -181,7 +168,7 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 	if err := op.namespaceService.CleanupLabels(ctx, clusterID, []string{labelKey}); err != nil {
 		// if the operation fails for some reason (eg. non-existent namespaces) we notice that and let the deactivation succeed
 		op.logger.Warn("failed to delete namespace labels", map[string]interface{}{"clusterID": clusterID})
-		op.errorHandler.Handle(ctx, err)
+		op.errorHandler.HandleContext(ctx, err)
 
 		return nil
 	}
@@ -222,69 +209,70 @@ func (op IntegratedServiceOperator) createAnchoreUserForCluster(ctx context.Cont
 	return userName, nil
 }
 
-func (op IntegratedServiceOperator) processChartValues(ctx context.Context, clusterID uint, anchoreValues AnchoreValues) ([]byte, error) {
-	securityScanValues := SecurityScanChartValues{
-		Anchore: anchoreValues,
-	}
+// assembleChartValues is in charge to assemble the values json for the chart based on the input and configuration
+func assembleChartValues(anchoreValues AnchoreValues, webhookConfigSpec webHookConfigSpec) ([]byte, error) {
 
-	values, err := json.Marshal(securityScanValues)
+	chartValues := webhookConfigSpec.GetValues()
+	chartValues.ExternalAnchore = &anchoreValues
+
+	valuesBytes, err := json.Marshal(chartValues)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to marshal chart values")
 	}
 
-	return values, nil
+	return valuesBytes, nil
 }
 
-func (op IntegratedServiceOperator) getCustomAnchoreValues(ctx context.Context, customAnchore anchoreSpec) (*AnchoreValues, error) {
+func (op IntegratedServiceOperator) getCustomAnchoreValues(ctx context.Context, customAnchore anchoreSpec) (AnchoreValues, error) {
 	if !customAnchore.Enabled { // this is already checked
-		return nil, errors.NewWithDetails("custom anchore disabled")
+		return AnchoreValues{}, errors.NewWithDetails("custom anchore disabled")
 	}
 
 	anchoreUserSecret, err := op.secretStore.GetSecretValues(ctx, customAnchore.SecretID)
 	if err != nil {
-		return nil, errors.WrapWithDetails(err, "failed to get anchore secret", "secretId", customAnchore.SecretID)
+		return AnchoreValues{}, errors.WrapWithDetails(err, "failed to get anchore secret", "secretId", customAnchore.SecretID)
 	}
 
 	var anchoreValues AnchoreValues
 	if err := mapstructure.Decode(anchoreUserSecret, &anchoreValues); err != nil {
-		return nil, errors.WrapIf(err, "failed to extract anchore secret values")
+		return AnchoreValues{}, errors.WrapIf(err, "failed to extract anchore secret values")
 	}
 
 	anchoreValues.Host = customAnchore.Url
 
-	return &anchoreValues, nil
+	return anchoreValues, nil
 }
 
-func (op IntegratedServiceOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (*AnchoreValues, error) {
+func (op IntegratedServiceOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (AnchoreValues, error) {
 
 	// default (pipeline hosted) anchore
-	if !op.anchoreEnabled {
-		return nil, errors.NewWithDetails("default anchore is not enabled")
+	if !op.config.Anchore.Enabled {
+		return AnchoreValues{}, errors.NewWithDetails("default anchore is not enabled")
 	}
 
 	secretName, err := op.createAnchoreUserForCluster(ctx, clusterID)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to create anchore user")
+		return AnchoreValues{}, errors.WrapIf(err, "failed to create anchore user")
 	}
 
 	anchoreSecretID := secret.GenerateSecretIDFromName(secretName)
 	anchoreUserSecret, err := op.secretStore.GetSecretValues(ctx, anchoreSecretID)
 	if err != nil {
-		return nil, errors.WrapWithDetails(err, "failed to get anchore secret", "secretId", anchoreSecretID)
+		return AnchoreValues{}, errors.WrapWithDetails(err, "failed to get anchore secret", "secretId", anchoreSecretID)
 	}
 
 	var anchoreValues AnchoreValues
 	if err := mapstructure.Decode(anchoreUserSecret, &anchoreValues); err != nil {
-		return nil, errors.WrapIf(err, "failed to extract anchore secret values")
+		return AnchoreValues{}, errors.WrapIf(err, "failed to extract anchore secret values")
 	}
 
-	anchoreValues.Host = op.anchoreEndpoint
+	anchoreValues.Host = op.config.Anchore.Endpoint
 
-	return &anchoreValues, nil
+	return anchoreValues, nil
 }
 
 // performs namespace labeling based on the provided input
-func (op *IntegratedServiceOperator) configureWebHook(ctx context.Context, clusterID uint, whConfig webHookConfigSpec) error {
+func (op *IntegratedServiceOperator) applyLabelsForSecurityScan(ctx context.Context, clusterID uint, whConfig webHookConfigSpec) error {
 
 	// possible label values that are used to make decisions by the webhook
 	securityScanLabels := map[string]string{
@@ -292,21 +280,22 @@ func (op *IntegratedServiceOperator) configureWebHook(ctx context.Context, clust
 		selectorExclude: "noscan",
 	}
 
+	// remove all scan related labels from all namespaces
 	if err := op.namespaceService.CleanupLabels(ctx, clusterID, []string{labelKey}); err != nil {
 		// log the error and continue!
-		op.errorHandler.Handle(ctx, err)
+		op.errorHandler.HandleContext(ctx, err)
 	}
 
 	// these namespaces must always be excluded
-	excludedNamespaces := []string{global.Config.Cluster.Namespace, "kube-system"}
+	excludedNamespaces := []string{op.config.PipelineNamespace, "kube-system"}
 	defaultExclusionMap := map[string]string{labelKey: securityScanLabels[selectorExclude]}
 
 	if err := op.namespaceService.LabelNamespaces(ctx, clusterID, excludedNamespaces, defaultExclusionMap); err != nil {
 		// log the error and continue!
-		op.errorHandler.Handle(ctx, err)
+		op.errorHandler.HandleContext(ctx, err)
 	}
 
-	if whConfig.Selector == selectorInclude && len(whConfig.Namespaces) == 1 && whConfig.Namespaces[0] == allStar {
+	if whConfig.Selector == selectorInclude && whConfig.allNamespaces() {
 		// this setup corresponds to the default configuration, do nothing
 		op.logger.Info("all namespaces are subject for security scan")
 		return nil

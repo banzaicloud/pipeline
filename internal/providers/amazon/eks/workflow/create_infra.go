@@ -52,6 +52,8 @@ type CreateInfrastructureWorkflowInput struct {
 
 	LogTypes []string
 	AsgList  []AutoscaleGroup
+
+	GenerateSSH bool
 }
 
 type CreateInfrastructureWorkflowOutput struct {
@@ -118,13 +120,15 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 	// upload SSH key activity
 	sshKeyName := GenerateSSHKeyNameForCluster(input.ClusterName)
 	var uploadSSHKeyActivityFeature workflow.Future
-	{
-		activityInput := &UploadSSHKeyActivityInput{
-			EKSActivityInput: commonActivityInput,
-			SSHKeyName:       GenerateSSHKeyNameForCluster(input.ClusterName),
-			SSHSecretID:      input.SSHSecretID,
+	if input.GenerateSSH {
+		{
+			activityInput := &UploadSSHKeyActivityInput{
+				EKSActivityInput: commonActivityInput,
+				SSHKeyName:       GenerateSSHKeyNameForCluster(input.ClusterName),
+				SSHSecretID:      input.SSHSecretID,
+			}
+			uploadSSHKeyActivityFeature = workflow.ExecuteActivity(ctx, UploadSSHKeyActivityName, activityInput)
 		}
-		uploadSSHKeyActivityFeature = workflow.ExecuteActivity(ctx, UploadSSHKeyActivityName, activityInput)
 	}
 
 	// create VPC activity
@@ -238,9 +242,11 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 		return nil, err
 	}
 
-	uploadSSHKeyActivityOutput := &UploadSSHKeyActivityOutput{}
-	if err := uploadSSHKeyActivityFeature.Get(ctx, &uploadSSHKeyActivityOutput); err != nil {
-		return nil, err
+	if uploadSSHKeyActivityFeature != nil {
+		uploadSSHKeyActivityOutput := &UploadSSHKeyActivityOutput{}
+		if err := uploadSSHKeyActivityFeature.Get(ctx, &uploadSSHKeyActivityOutput); err != nil {
+			return nil, err
+		}
 	}
 
 	// create EKS cluster
@@ -309,7 +315,6 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			StackName:        GenerateNodePoolStackName(input.ClusterName, asg.Name),
 
 			ScaleEnabled: input.ScaleEnabled,
-			SSHKeyName:   sshKeyName,
 
 			Subnets: asgSubnets,
 
@@ -327,6 +332,9 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			NodeImage:        asg.NodeImage,
 			NodeInstanceType: asg.NodeInstanceType,
 			Labels:           asg.Labels,
+		}
+		if input.GenerateSSH {
+			activityInput.SSHKeyName = sshKeyName
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		f := workflow.ExecuteActivity(ctx, CreateAsgActivityName, activityInput)

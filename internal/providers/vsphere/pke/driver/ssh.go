@@ -18,15 +18,15 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
-	intSecret "github.com/banzaicloud/pipeline/internal/secret"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh"
+	"github.com/banzaicloud/pipeline/internal/secret/sshsecret"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // GetOrCreateSSHKeyPair creates and saves a new SSH key pair for the cluster or gets the cluster's SSH key pair if it already exists
 func GetOrCreateSSHKeyPair(cluster pke.PKEOnVsphereCluster, secrets secretStore, store pke.ClusterStore) (ssh.KeyPair, error) {
 
-	keyPair, secretID, err := intSecret.GetOrCreateSSHKeyPair(secrets, getOrCreateSSHKeyPairClusterAdapter(cluster))
+	keyPair, secretID, err := sshsecret.GetOrCreateSSHKeyPair(secrets, getOrCreateSSHKeyPairClusterAdapter(cluster))
 	if err != nil {
 		return keyPair, errors.WrapIf(err, "failed to get or create SSH key pair")
 	}

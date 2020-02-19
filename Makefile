@@ -24,7 +24,7 @@ endif
 TEST_FORMAT = short-verbose
 endif
 
-CLOUDINFO_VERSION = 0.7.0
+CLOUDINFO_VERSION = 0.9.5
 DEX_VERSION = 2.19.0
 # TODO: use an exact version
 ANCHORE_VERSION = 156836d
@@ -38,7 +38,7 @@ GOTESTSUM_VERSION = 0.4.0
 GOBIN_VERSION = 0.0.13
 PROTOTOOL_VERSION = 1.8.0
 PROTOC_GEN_GO_VERSION = 1.3.2
-MGA_VERSION = 0.0.12
+MGA_VERSION = 0.1.2
 
 GOLANG_VERSION = 1.13
 
@@ -72,7 +72,7 @@ stop: ## Stop docker development environment
 	docker-compose stop
 
 config/config.yaml:
-	cp config/config.dev.yaml config/config.yaml
+	cat config/config.dev.yaml | sed "s/uuid: \"\"/uuid: \"$$RANDOM.$$USER.local\"/" > config/config.yaml
 
 config/ui/feature-set.json:
 	mv config/ui/feature-set.json{,~} || true && cp config/ui/feature-set.json.dist config/ui/feature-set.json
@@ -225,6 +225,9 @@ bin/mga-${MGA_VERSION}:
 .PHONY: generate
 generate: bin/mga ## Generate code
 	go generate -x ./...
+	mga gen kit endpoint ./...
+	mga gen ev dispatcher ./...
+	mga gen ev handler ./...
 
 .PHONY: validate-openapi
 validate-openapi: ## Validate the openapi description
@@ -299,6 +302,10 @@ validate-proto: bin/prototool bin/protoc-gen-go _download-protos ## Validate pro
 .PHONY: proto
 proto: bin/prototool bin/protoc-gen-go _download-protos ## Generate client and server stubs from the protobuf definition
 	bin/prototool $(if ${VERBOSE},--debug ,)all
+
+snapshot:
+	@test -n "${SNAPSHOT_VERSION}" || (echo "Missing snapshot version" && exit 1)
+	curl -X POST -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" -H "Authorization: token ${GITHUB_TOKEN}" --data '{"event_type": "snapshot", "client_payload": {"version": "$(SNAPSHOT_VERSION)"}}' https://api.github.com/repos/banzaicloud/pipeline/dispatches
 
 .PHONY: list
 list: ## List all make targets

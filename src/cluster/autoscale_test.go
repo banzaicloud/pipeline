@@ -35,8 +35,8 @@ func (k *K8sVersioner) GetKubernetesVersion() (string, error) {
 func TestGetImageVersion_Success(t *testing.T) {
 	global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.ImageVersionConstraints = []struct {
 		K8sVersion string
-		Tag        string
 		Repository string
+		Tag        string
 	}{
 		{
 			K8sVersion: "<=1.12.x",

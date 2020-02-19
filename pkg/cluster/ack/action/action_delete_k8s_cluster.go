@@ -15,7 +15,7 @@
 package action
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
@@ -70,5 +70,5 @@ func (a *DeleteACKClusterAction) GetName() string {
 // ExecuteAction executes this DeleteACKClusterAction
 func (a *DeleteACKClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	a.log.Info("EXECUTE DeleteClusterAction")
-	return nil, emperror.With(deleteCluster(a.log, a.context.ClusterID, a.context.CSClient), "cluster", a.context.ClusterName)
+	return nil, errors.WithDetails(deleteCluster(a.log, a.context.ClusterID, a.context.CSClient), "cluster", a.context.ClusterName)
 }

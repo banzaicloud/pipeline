@@ -36,7 +36,7 @@ func TestTypeService_ListSecretTypes(t *testing.T) {
 		},
 	}
 
-	var service = typeService{
+	var service = service{
 		types: types,
 	}
 
@@ -57,7 +57,7 @@ func TestTypeService_GetSecretType(t *testing.T) {
 		},
 	}
 
-	var service = typeService{
+	var service = service{
 		types: map[string]TypeDefinition{
 			"secretType": typeDefinition,
 		},
@@ -70,7 +70,7 @@ func TestTypeService_GetSecretType(t *testing.T) {
 }
 
 func TestTypeService_GetSecretType_Error(t *testing.T) {
-	var service = typeService{
+	var service = service{
 		types: map[string]TypeDefinition{},
 	}
 

@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/ghodss/yaml"
 	"github.com/sirupsen/logrus"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -279,6 +279,10 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 
 // DeployClusterAutoscaler post hook only for AWS & EKS & Azure for now
 func DeployClusterAutoscaler(cluster CommonCluster) error {
+	var config = global.Config.Cluster.PostHook.Autoscaler
+	if !config.Enabled {
+		return nil
+	}
 
 	var nodeGroups []nodeGroup
 	var err error

@@ -35,13 +35,18 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/go-kit/kit/tracing/opencensus"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
+	"github.com/mitchellh/mapstructure"
 	"github.com/prometheus/client_golang/prometheus"
 	auth2 "github.com/qor/auth"
+	appkitendpoint "github.com/sagikazarmark/appkit/endpoint"
+	appkiterrors "github.com/sagikazarmark/appkit/errors"
 	"github.com/sagikazarmark/kitx/correlation"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
+	kitxtransport "github.com/sagikazarmark/kitx/transport"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 	"github.com/sagikazarmark/ocmux"
 	"github.com/sirupsen/logrus"
@@ -81,13 +86,16 @@ import (
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
+	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
-	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicedriver"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicesdriver"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
 	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
@@ -97,6 +105,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	"github.com/banzaicloud/pipeline/internal/platform/appkit"
+	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
@@ -118,6 +127,7 @@ import (
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
+	"github.com/banzaicloud/pipeline/pkg/hook"
 	kubernetes2 "github.com/banzaicloud/pipeline/pkg/kubernetes"
 	"github.com/banzaicloud/pipeline/pkg/problems"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -134,7 +144,6 @@ import (
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/auth/authadapter"
 	"github.com/banzaicloud/pipeline/src/auth/authdriver"
-	"github.com/banzaicloud/pipeline/src/auth/authgen"
 	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/dns"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -180,17 +189,14 @@ func main() {
 	}
 
 	var config configuration
-	err = v.Unmarshal(&config)
+	err = v.Unmarshal(&config, hook.DecodeHookWithDefaults())
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
 	err = config.Process()
 	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
 
-	err = v.Unmarshal(&global.Config)
-	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
-
-	err = global.Config.Process()
-	emperror.Panic(errors.WithMessage(err, "failed to process global configuration"))
+	err = mapstructure.Decode(config, &global.Config)
+	emperror.Panic(errors.Wrap(err, "failed to bind configuration to global configuration"))
 
 	// Create logger (first thing after configuration loading)
 	logger := log.NewLogger(config.Log)
@@ -219,13 +225,6 @@ func main() {
 		os.Exit(3)
 	}
 
-	err = global.Config.Validate()
-	if err != nil {
-		logger.Error(err.Error(), map[string]interface{}{"config": "global"})
-
-		os.Exit(3)
-	}
-
 	errorHandler, err := errorhandler.New(config.Errors, logger)
 	if err != nil {
 		logger.Error(err.Error())
@@ -249,7 +248,11 @@ func main() {
 	cicdDB, err := database.Connect(config.CICD.Database)
 	emperror.Panic(errors.WithMessage(err, "failed to initialize CICD db"))
 
-	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor{})
+	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor)
+	commonErrorHandler := emperror.WithFilter(
+		emperror.WithContextExtractor(errorHandler, appkit.ContextExtractor),
+		appkiterrors.IsServiceError, // filter out client errors
+	)
 
 	publisher, subscriber := watermill.NewPubSub(logger)
 	defer publisher.Close()
@@ -282,7 +285,7 @@ func main() {
 			func(eventName string) string { return organizationTopic },
 			eventMarshaler,
 		)
-		eventDispatcher := authgen.NewOrganizationEventDispatcher(eventBus)
+		eventDispatcher := auth.NewOrganizationEventDispatcher(eventBus)
 
 		roleBinder, err := auth.NewRoleBinder(config.Auth.Role.Default, config.Auth.Role.Binding)
 		emperror.Panic(err)
@@ -361,7 +364,7 @@ func main() {
 	}
 	prometheus.MustRegister(statusChangeDurationMetric, clusterTotalMetric)
 
-	externalBaseURL := global.Config.Pipeline.External.URL
+	externalBaseURL := config.Pipeline.External.URL
 	if externalBaseURL == "" {
 		externalBaseURL = "http://" + config.Pipeline.Addr
 		logger.Warn("no pipeline.external_url set, falling back to bind address", map[string]interface{}{
@@ -369,7 +372,7 @@ func main() {
 		})
 	}
 
-	externalURLInsecure := global.Config.Pipeline.External.Insecure
+	externalURLInsecure := config.Pipeline.External.Insecure
 
 	workflowClient, err := cadence.NewClient(config.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
 	if err != nil {
@@ -378,11 +381,6 @@ func main() {
 
 	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, logrusLogger, errorHandler, clusteradapter.NewStore(db, clusters))
 	commonClusterGetter := common.NewClusterGetter(clusterManager, logrusLogger, errorHandler)
-
-	clusterTTLController := cluster.NewTTLController(clusterManager, clusterEventBus, logrusLogger.WithField("subsystem", "ttl-controller"), errorHandler)
-	defer clusterTTLController.Stop()
-	err = clusterTTLController.Start()
-	emperror.Panic(err)
 
 	if config.SpotMetrics.Enabled {
 		go monitor.NewSpotMetricsExporter(
@@ -435,31 +433,12 @@ func main() {
 			workflowClient,
 		),
 	}
-	clusterDeleters := api.ClusterDeleters{
-		PKEOnAzure: azurePKEDriver.MakeClusterDeleter(
-			clusterEvents,
-			clusterManager.GetKubeProxyCache(),
-			logrusLogger,
-			secret.Store,
-			statusChangeDurationMetric,
-			azurePKEClusterStore,
-			workflowClient,
-		),
-		EKSAmazon: eksDriver.NewEKSClusterDeleter(
-			clusterEvents,
-			clusterManager.GetKubeProxyCache(),
-			logrusLogger,
-			secret.Store,
-			statusChangeDurationMetric,
-			workflowClient,
-		),
-	}
 
 	cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
 	clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
-	federationHandler := federation.NewFederationHandler(cgroupAdapter, global.Config.Cluster.Namespace, logrusLogger, errorHandler)
+	federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config)
 	deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler)
-	serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler)
+	serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler, config.Cluster.Backyards)
 	clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)
 	clusterGroupManager.RegisterFeatureHandler(deployment.FeatureName, deploymentManager)
 	clusterGroupManager.RegisterFeatureHandler(cgFeatureIstio.FeatureName, serviceMeshFeatureHandler)
@@ -486,13 +465,11 @@ func main() {
 		clusterManager,
 		commonClusterGetter,
 		workflowClient,
-		clusterGroupManager,
 		logrusLogger,
 		errorHandler,
 		externalBaseURL,
 		externalURLInsecure,
 		clusterCreators,
-		clusterDeleters,
 		clusterUpdaters,
 		dynamicClientFactory,
 	)
@@ -569,20 +546,13 @@ func main() {
 			router.PathPrefix("/frontend").Subrouter(),
 			config.Frontend,
 			db,
-			buildInfo,
-			auth.UserExtractor{},
 			commonLogger,
-			errorHandler,
+			commonErrorHandler,
 		)
 		emperror.Panic(err)
 
 		// TODO: refactor authentication middleware
 		base.Any("frontend/notifications", gin.WrapH(router))
-
-		// TODO: return 422 unprocessable entity instead of 404
-		if config.Frontend.Issue.Enabled {
-			base.Any("frontend/issues", auth.Handler, gin.WrapH(router))
-		}
 	}
 
 	base.GET("version", gin.WrapH(buildinfo.Handler(buildInfo)))
@@ -607,7 +577,7 @@ func main() {
 		dcGroup.GET("", dashboardAPI.GetClusterDashboard)
 	}
 
-	scmTokenStore := auth.NewSCMTokenStore(tokenStore, global.Config.CICD.Enabled)
+	scmTokenStore := auth.NewSCMTokenStore(tokenStore, config.CICD.Enabled)
 
 	organizationAPI := api.NewOrganizationAPI(organizationSyncer, auth.NewRefreshTokenStore(tokenStore))
 	userAPI := api.NewUserAPI(db, scmTokenStore, logrusLogger, errorHandler)
@@ -615,18 +585,18 @@ func main() {
 
 	var spotguideAPI *api.SpotguideAPI
 
-	if global.Config.CICD.Enabled {
+	if config.CICD.Enabled {
 		spotguidePlatformData := spotguide.PlatformData{
-			AutoDNSEnabled: global.Config.Cluster.DNS.BaseDomain != "",
+			AutoDNSEnabled: config.Cluster.DNS.BaseDomain != "",
 		}
 
-		scmProvider := global.Config.CICD.SCM
+		scmProvider := config.CICD.SCM
 		var scmToken string
 		switch scmProvider {
 		case "github":
-			scmToken = global.Config.Github.Token
+			scmToken = config.Github.Token
 		case "gitlab":
-			scmToken = global.Config.Gitlab.Token
+			scmToken = config.Gitlab.Token
 		default:
 			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
 		}
@@ -637,7 +607,7 @@ func main() {
 		sharedSpotguideOrg, err := spotguide.EnsureSharedSpotguideOrganization(
 			db,
 			scmProvider,
-			global.Config.Spotguide.SharedLibraryGitHubOrganization,
+			config.Spotguide.SharedLibraryGitHubOrganization,
 		)
 		if err != nil {
 			errorHandler.Handle(errors.WrapIf(err, "failed to create shared Spotguide organization"))
@@ -666,18 +636,23 @@ func main() {
 		apiRouter.MethodNotAllowedHandler = problems.StatusProblemHandler(problems.NewStatusProblem(http.StatusMethodNotAllowed))
 
 		v1.Use(auth.Handler)
-		capdriver.RegisterHTTPHandler(mapCapabilities(config), emperror.MakeContextAware(errorHandler), v1)
-		v1.GET("/securityscan", api.SecurityScanEnabled)
+		capdriver.RegisterHTTPHandler(mapCapabilities(config), commonErrorHandler, v1)
 		v1.GET("/me", userAPI.GetCurrentUser)
 		v1.PATCH("/me", userAPI.UpdateCurrentUser)
 
 		endpointMiddleware := []endpoint.Middleware{
 			correlation.Middleware(),
+			opencensus.TraceEndpoint("", opencensus.WithSpanName(func(ctx context.Context, _ string) string {
+				name, _ := kitxendpoint.OperationName(ctx)
+
+				return name
+			})),
+			appkitendpoint.LoggingMiddleware(logger),
 		}
 
 		httpServerOptions := []kithttp.ServerOption{
-			kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
-			kithttp.ServerErrorEncoder(appkit.ProblemErrorEncoder),
+			kithttp.ServerErrorHandler(kitxtransport.NewErrorHandler(commonErrorHandler)),
+			kithttp.ServerErrorEncoder(kitxhttp.NewJSONProblemErrorEncoder(apphttp.NewDefaultProblemConverter())),
 			kithttp.ServerBefore(correlation.HTTPToContext()),
 		}
 
@@ -687,7 +662,7 @@ func main() {
 			orgs.Use(api.OrganizationMiddleware)
 			orgs.Use(authorizationMiddleware)
 
-			if global.Config.CICD.Enabled {
+			if config.CICD.Enabled {
 				spotguides := orgs.Group("/:orgid/spotguides")
 				spotguideAPI.Install(spotguides)
 			}
@@ -713,10 +688,8 @@ func main() {
 				cRouter.POST("/secrets/:secretName", api.InstallSecretToCluster)
 				cRouter.PATCH("/secrets/:secretName", api.MergeSecretInCluster)
 				cRouter.Any("/proxy/*path", clusterAPI.ProxyToCluster)
-				cRouter.DELETE("", clusterAPI.DeleteCluster)
 				cRouter.HEAD("", clusterAPI.ClusterCheck)
 				cRouter.GET("/config", api.GetClusterConfig)
-				cRouter.GET("/apiendpoint", api.GetApiEndpoint)
 				cRouter.GET("/nodes", api.GetClusterNodes)
 				cRouter.GET("/endpoints", api.MakeEndpointLister(logger).ListEndpoints)
 				cRouter.GET("/secrets", api.ListClusterSecrets)
@@ -732,6 +705,76 @@ func main() {
 				cRouter.GET("/images", api.ListImages)
 				cRouter.GET("/images/:imageDigest/deployments", api.GetImageDeployments)
 				cRouter.GET("/deployments/:name/images", api.GetDeploymentImages)
+
+				{
+					clusterStore := clusteradapter.NewStore(db, clusters)
+
+					labelValidator := kubernetes2.LabelValidator{
+						ForbiddenDomains: append([]string{config.Cluster.Labels.Domain}, config.Cluster.Labels.ForbiddenDomains...),
+					}
+
+					nplabels.SetNodePoolLabelValidator(labelValidator)
+
+					nplsApi := api.NewNodepoolManagerAPI(
+						commonClusterGetter,
+						dynamicClientFactory,
+						labelValidator,
+						logrusLogger,
+						errorHandler,
+					)
+					cRouter.GET("/nodepool-labels", nplsApi.GetNodepoolLabelSets)
+
+					labelSource := intCluster.NodePoolLabelSources{
+						intCluster.NewCommonNodePoolLabelSource(),
+						clusteradapter.NewCloudinfoNodePoolLabelSource(cloudinfoClient),
+					}
+
+					// Used by legacy node pool label code
+					globalcluster.SetNodePoolLabelSource(intCluster.NodePoolLabelSources{
+						intCluster.NewFilterValidNodePoolLabelSource(labelValidator),
+						labelSource,
+					})
+
+					service := intCluster.NewService(
+						clusterStore,
+						clusteradapter.NewCadenceClusterManager(workflowClient),
+						clusteradapter.NewNodePoolStore(db, clusterStore),
+						intCluster.NodePoolValidators{
+							intCluster.NewCommonNodePoolValidator(labelValidator),
+							clusteradapter.NewDistributionNodePoolValidator(db),
+						},
+						intCluster.NodePoolProcessors{
+							intCluster.NewCommonNodePoolProcessor(labelSource),
+							clusteradapter.NewDistributionNodePoolProcessor(db),
+						},
+						clusteradapter.NewNodePoolManager(
+							workflowClient,
+							func(ctx context.Context) uint {
+								if currentUser := ctx.Value(auth2.CurrentUser); currentUser != nil {
+									return currentUser.(*auth.User).ID
+								}
+
+								return 0
+							},
+						),
+					)
+
+					endpoints := clusterdriver.MakeEndpoints(
+						service,
+						kitxendpoint.Combine(endpointMiddleware...),
+					)
+
+					clusterdriver.RegisterHTTPHandlers(
+						endpoints,
+						clusterRouter,
+						kitxhttp.ServerOptions(httpServerOptions),
+					)
+
+					cRouter.DELETE("", gin.WrapH(router))
+					cRouter.Any("/nodepools", gin.WrapH(router))
+					cRouter.Any("/nodepools/:nodePoolName", gin.WrapH(router))
+				}
+
 			}
 
 			clusterSecretStore := clustersecret.NewStore(
@@ -742,13 +785,12 @@ func main() {
 			// Cluster IntegratedService API
 			var featureService integratedservices.Service
 			{
-				logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
-				featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, logger)
+				featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
 				clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
 				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
-				endpointManager := endpoints.NewEndpointManager(logger)
+				endpointManager := endpoints.NewEndpointManager(commonLogger)
 				integratedServiceManagers := []integratedservices.IntegratedServiceManager{
-					securityscan.MakeIntegratedServiceManager(logger),
+					securityscan.MakeIntegratedServiceManager(commonLogger, config.Cluster.SecurityScan.Config),
 				}
 
 				if config.Cluster.DNS.Enabled {
@@ -756,18 +798,18 @@ func main() {
 				}
 
 				if config.Cluster.Vault.Enabled {
-					integratedServiceManagers = append(integratedServiceManagers, integratedServiceVault.MakeIntegratedServiceManager(clusterGetter, secretStore, config.Cluster.Vault.Config, logger))
+					integratedServiceManagers = append(integratedServiceManagers, integratedServiceVault.MakeIntegratedServiceManager(clusterGetter, secretStore, config.Cluster.Vault.Config, commonLogger))
 				}
 
 				if config.Cluster.Monitoring.Enabled {
-					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
+					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), commonLogger)
 					integratedServiceManagers = append(integratedServiceManagers, featureMonitoring.MakeIntegratedServiceManager(
 						clusterGetter,
 						secretStore,
 						endpointManager,
 						helmService,
 						config.Cluster.Monitoring.Config,
-						logger,
+						commonLogger,
 					))
 				}
 
@@ -777,7 +819,7 @@ func main() {
 						secretStore,
 						endpointManager,
 						config.Cluster.Logging.Config,
-						logger,
+						commonLogger,
 					))
 				}
 
@@ -785,7 +827,7 @@ func main() {
 					customAnchoreConfigProvider := securityscan.NewCustomAnchoreConfigProvider(
 						featureRepository,
 						secretStore,
-						logger,
+						commonLogger,
 					)
 
 					configProvider := anchore2.ConfigProviderChain{customAnchoreConfigProvider}
@@ -798,10 +840,9 @@ func main() {
 						))
 					}
 
-					secErrorHandler := emperror.MakeContextAware(errorHandler)
-					securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, secErrorHandler, logger)
+					securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, commonErrorHandler, commonLogger)
 
-					anchoreProxy := api.NewAnchoreProxy(basePath, configProvider, secErrorHandler, logger)
+					anchoreProxy := api.NewAnchoreProxy(basePath, configProvider, commonErrorHandler, commonLogger)
 					proxyHandler := anchoreProxy.Proxy()
 
 					// forthcoming endpoint for all requests proxied to Anchore
@@ -816,25 +857,41 @@ func main() {
 					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
 				}
 
+				if config.Cluster.Expiry.Enabled {
+					integratedServiceManagers = append(integratedServiceManagers,
+						expiry.NewExpiryServiceManager(services.BindIntegratedServiceSpec))
+				}
+
 				integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
-				integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, logger)
-				featureService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, logger)
-				endpoints := integratedservicedriver.MakeEndpoints(
+				integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
+				featureService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, commonLogger)
+				endpoints := integratedservicesdriver.MakeEndpoints(
 					featureService,
-					kitxendpoint.Chain(endpointMiddleware...),
-					appkit.EndpointLogger(commonLogger),
+					kitxendpoint.Combine(endpointMiddleware...),
 				)
 
-				integratedservicedriver.RegisterHTTPHandlers(
-					endpoints,
-					clusterRouter.PathPrefix("/features").Subrouter(),
-					errorHandler,
-					kitxhttp.ServerOptions(httpServerOptions),
-					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
-				)
+				{
+					integratedservicesdriver.RegisterHTTPHandlers(
+						endpoints,
+						clusterRouter.PathPrefix("/services").Subrouter(),
+						kitxhttp.ServerOptions(httpServerOptions),
+					)
 
-				cRouter.Any("/features", gin.WrapH(router))
-				cRouter.Any("/features/:featureName", gin.WrapH(router))
+					cRouter.Any("/services", gin.WrapH(router))
+					cRouter.Any("/services/:serviceName", gin.WrapH(router))
+				}
+
+				// set up legacy endpoint
+				{
+					integratedservicesdriver.RegisterHTTPHandlers(
+						endpoints,
+						clusterRouter.PathPrefix("/features").Subrouter(),
+						kitxhttp.ServerOptions(httpServerOptions),
+					)
+
+					cRouter.Any("/features", gin.WrapH(router))
+					cRouter.Any("/features/:featureName", gin.WrapH(router))
+				}
 			}
 
 			hpaApi := api.NewHPAAPI(featureService, clientFactory, configFactory, commonClusterGetter, errorHandler)
@@ -845,72 +902,6 @@ func main() {
 			// ClusterGroupAPI
 			cgroupsAPI := cgroupAPI.NewAPI(clusterGroupManager, deploymentManager, logrusLogger, errorHandler)
 			cgroupsAPI.AddRoutes(orgs.Group("/:orgid/clustergroups"))
-
-			{
-				clusterStore := clusteradapter.NewStore(db, clusters)
-
-				labelValidator := kubernetes2.LabelValidator{
-					ForbiddenDomains: append([]string{config.Cluster.Labels.Domain}, config.Cluster.Labels.ForbiddenDomains...),
-				}
-
-				nplsApi := api.NewNodepoolManagerAPI(
-					commonClusterGetter,
-					dynamicClientFactory,
-					labelValidator,
-					logrusLogger,
-					errorHandler,
-				)
-				cRouter.GET("/nodepool-labels", nplsApi.GetNodepoolLabelSets)
-
-				labelSource := intCluster.NodePoolLabelSources{
-					intCluster.NewCommonNodePoolLabelSource(),
-					clusteradapter.NewCloudinfoNodePoolLabelSource(cloudinfoClient),
-				}
-
-				// Used by legacy node pool label code
-				globalcluster.SetNodePoolLabelSource(intCluster.NodePoolLabelSources{
-					intCluster.NewFilterValidNodePoolLabelSource(labelValidator),
-					labelSource,
-				})
-
-				service := intCluster.NewNodePoolService(
-					clusterStore,
-					clusteradapter.NewNodePoolStore(db, clusterStore),
-					intCluster.NodePoolValidators{
-						intCluster.NewCommonNodePoolValidator(labelValidator),
-						clusteradapter.NewDistributionNodePoolValidator(db),
-					},
-					intCluster.NodePoolProcessors{
-						intCluster.NewCommonNodePoolProcessor(labelSource),
-						clusteradapter.NewDistributionNodePoolProcessor(db),
-					},
-					clusteradapter.NewNodePoolManager(
-						workflowClient,
-						func(ctx context.Context) uint {
-							if currentUser := ctx.Value(auth2.CurrentUser); currentUser != nil {
-								return currentUser.(*auth.User).ID
-							}
-
-							return 0
-						},
-					),
-				)
-				endpoints := clusterdriver.TraceNodePoolEndpoints(clusterdriver.MakeNodePoolEndpoints(
-					service,
-					kitxendpoint.Chain(endpointMiddleware...),
-					appkit.EndpointLogger(commonLogger),
-				))
-
-				clusterdriver.RegisterNodePoolHTTPHandlers(
-					endpoints,
-					clusterRouter.PathPrefix("/nodepools").Subrouter(),
-					kitxhttp.ServerOptions(httpServerOptions),
-					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
-				)
-
-				cRouter.Any("/nodepools", gin.WrapH(router))
-				cRouter.Any("/nodepools/:nodePoolName", gin.WrapH(router))
-			}
 
 			namespaceAPI := namespace.NewAPI(commonClusterGetter, clientFactory, errorHandler)
 			namespaceAPI.RegisterRoutes(cRouter.Group("/namespaces"))
@@ -987,17 +978,15 @@ func main() {
 				clientFactory := google.NewClientFactory(secretStore)
 
 				service := googleproject.NewService(clientFactory)
-				endpoints := googleprojectdriver.TraceEndpoints(googleprojectdriver.MakeEndpoints(
+				endpoints := googleprojectdriver.MakeEndpoints(
 					service,
-					kitxendpoint.Chain(endpointMiddleware...),
-					appkit.EndpointLogger(commonLogger),
-				))
+					kitxendpoint.Combine(endpointMiddleware...),
+				)
 
 				googleprojectdriver.RegisterHTTPHandlers(
 					endpoints,
 					orgRouter.PathPrefix("/cloud/google/projects").Subrouter(),
 					kitxhttp.ServerOptions(httpServerOptions),
-					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
 				)
 
 				orgs.Any("/:orgid/cloud/google/projects", gin.WrapH(router))
@@ -1010,9 +999,6 @@ func main() {
 		v1.PUT("/orgs", organizationAPI.SyncOrganizations)
 
 		{
-			logger := commonLogger.WithFields(map[string]interface{}{"module": "auth"})
-			errorHandler := emperror.MakeContextAware(emperror.WithDetails(errorHandler, "module", "auth"))
-
 			service := token.NewService(
 				auth.UserExtractor{},
 				tokenadapter.NewBankVaultsStore(tokenStore),
@@ -1020,17 +1006,15 @@ func main() {
 			)
 			service = tokendriver.AuthorizationMiddleware(auth.NewAuthorizer(db, organizationStore))(service)
 
-			endpoints := tokendriver.TraceEndpoints(tokendriver.MakeEndpoints(
+			endpoints := tokendriver.MakeEndpoints(
 				service,
-				kitxendpoint.Chain(endpointMiddleware...),
-				appkit.EndpointLogger(logger),
-			))
+				kitxendpoint.Combine(endpointMiddleware...),
+			)
 
 			tokendriver.RegisterHTTPHandlers(
 				endpoints,
 				apiRouter.PathPrefix("/tokens").Subrouter(),
 				kitxhttp.ServerOptions(httpServerOptions),
-				kithttp.ServerErrorHandler(errorHandler),
 			)
 
 			v1.Any("/tokens", gin.WrapH(router))
@@ -1038,21 +1022,16 @@ func main() {
 		}
 
 		{
-			logger := commonLogger.WithFields(map[string]interface{}{"module": "secret"})
-			errorHandler := emperror.MakeContextAware(emperror.WithDetails(errorHandler, "module", "secret"))
-
-			service := secrettype.NewTypeService()
-			endpoints := secrettypedriver.TraceEndpoints(secrettypedriver.MakeEndpoints(
+			service := secrettype.NewService()
+			endpoints := secrettypedriver.MakeEndpoints(
 				service,
-				kitxendpoint.Chain(endpointMiddleware...),
-				appkit.EndpointLogger(logger),
-			))
+				kitxendpoint.Combine(endpointMiddleware...),
+			)
 
 			secrettypedriver.RegisterHTTPHandlers(
 				endpoints,
 				apiRouter.PathPrefix("/secret-types").Subrouter(),
 				kitxhttp.ServerOptions(httpServerOptions),
-				kithttp.ServerErrorHandler(errorHandler),
 			)
 
 			v1.Any("/secret-types", gin.WrapH(router))
@@ -1068,16 +1047,16 @@ func main() {
 	}
 
 	arkEvents.NewClusterEventHandler(arkEvents.NewClusterEvents(clusterEventBus), db, logrusLogger)
-	if global.Config.Cluster.DisasterRecovery.Ark.SyncEnabled {
+	if config.Cluster.DisasterRecovery.Ark.SyncEnabled {
 		go arkSync.RunSyncServices(
 			context.Background(),
 			db,
 			arkClusterManager.New(clusterManager),
 			logrusLogger.WithField("subsystem", "ark"),
 			errorHandler,
-			global.Config.Cluster.DisasterRecovery.Ark.BucketSyncInterval,
-			global.Config.Cluster.DisasterRecovery.Ark.RestoreSyncInterval,
-			global.Config.Cluster.DisasterRecovery.Ark.BackupSyncInterval,
+			config.Cluster.DisasterRecovery.Ark.BucketSyncInterval,
+			config.Cluster.DisasterRecovery.Ark.RestoreSyncInterval,
+			config.Cluster.DisasterRecovery.Ark.BackupSyncInterval,
 		)
 	}
 

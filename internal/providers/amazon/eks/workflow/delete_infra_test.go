@@ -86,6 +86,7 @@ func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
 		SecretID:       "my-secret-id",
 		ClusterName:    "test-cluster-name",
 		NodePoolNames:  []string{"pool1", "pool2"},
+		GenerateSSH:    true,
 	}
 
 	eksActivityInput := EKSActivityInput{

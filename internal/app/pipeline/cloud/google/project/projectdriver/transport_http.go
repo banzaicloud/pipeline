@@ -16,25 +16,26 @@ package projectdriver
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
-	"emperror.dev/errors"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
-	"github.com/banzaicloud/pipeline/pkg/problems"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/cloud/google/project"
+	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 )
 
 const secretIDParam = "secretId"
 
 // RegisterHTTPHandlers mounts all of the service endpoints into an http.Handler.
 func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
+	errorEncoder := kitxhttp.NewJSONProblemErrorResponseEncoder(apphttp.NewDefaultProblemConverter())
+
 	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
 		endpoints.ListProjects,
 		decodeListProjectsHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(kitxhttp.JSONResponseEncoder, errorEncoder),
+		kitxhttp.ErrorResponseEncoder(encodeListProjectsHTTPResponse, errorEncoder),
 		options...,
 	))
 }
@@ -45,19 +46,20 @@ func decodeListProjectsHTTPRequest(_ context.Context, r *http.Request) (interfac
 		secretID = r.URL.Query().Get(secretIDParam)
 	}
 
-	return listProjectsRequest{SecretID: secretID}, nil
+	return ListProjectsRequest{SecretID: secretID}, nil
 }
 
-func errorEncoder(_ context.Context, w http.ResponseWriter, e error) error {
-	problem := problems.NewDetailedProblem(http.StatusInternalServerError, "something went wrong")
+// TODO: use api response type
+type listProjectsResponse struct {
+	Projects []project.Project `json:"projects"`
+}
 
-	w.Header().Set("Content-Type", problems.ProblemMediaType)
-	w.WriteHeader(problem.Status)
+func encodeListProjectsHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(ListProjectsResponse)
 
-	err := json.NewEncoder(w).Encode(problem)
-	if err != nil {
-		return errors.Wrap(err, "failed to encode error response")
+	apiResp := listProjectsResponse{
+		Projects: resp.Projects,
 	}
 
-	return nil
+	return kitxhttp.JSONResponseEncoder(ctx, w, apiResp)
 }

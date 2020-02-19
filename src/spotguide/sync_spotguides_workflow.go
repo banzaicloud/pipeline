@@ -18,7 +18,7 @@ import (
 	"context"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
 )
 
@@ -35,8 +35,8 @@ func NewScrapeSharedSpotguidesActivity(manager *SpotguideManager) ScrapeSharedSp
 	}
 }
 
-func (a ScrapeSharedSpotguidesActivity) Execute(ctx context.Context) error {
-	return emperror.Wrap(a.manager.scrapeSharedSpotguides(), "failed to scrape shared spotguides")
+func (a ScrapeSharedSpotguidesActivity) Execute(_ context.Context) error {
+	return errors.WrapIf(a.manager.scrapeSharedSpotguides(), "failed to scrape shared spotguides")
 }
 
 func ScrapeSharedSpotguidesWorkflow(ctx workflow.Context) error {

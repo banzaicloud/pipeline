@@ -18,7 +18,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
@@ -31,7 +30,7 @@ type integratedServiceSpec struct {
 }
 
 // Validate validates the input security scan specification.
-func (s integratedServiceSpec) Validate() error {
+func (s integratedServiceSpec) Validate(pipelineNamespace string) error {
 
 	var validationErrors error
 
@@ -47,7 +46,7 @@ func (s integratedServiceSpec) Validate() error {
 		validationErrors = errors.Combine(validationErrors, releaseSpec.Validate())
 	}
 
-	validationErrors = errors.Combine(validationErrors, s.WebhookConfig.Validate())
+	validationErrors = errors.Combine(validationErrors, s.WebhookConfig.Validate(pipelineNamespace))
 
 	return validationErrors
 }
@@ -99,21 +98,24 @@ type webHookConfigSpec struct {
 	Namespaces []string `json:"namespaces" mapstructure:"namespaces"`
 }
 
-func (w webHookConfigSpec) Validate() error {
+func (w webHookConfigSpec) Validate(pipelineNamespace string) error {
 	if w.Enabled {
 		if w.Selector == "" || len(w.Namespaces) == 0 {
 			return errors.NewPlain("selector and namespaces must be filled")
 		}
 
 		for _, ns := range w.Namespaces {
-			if ns == global.Config.Cluster.Namespace || ns == "kube-system" {
-				return errors.Errorf("the following namespaces may not be modified: %v",
-					[]string{global.Config.Cluster.Namespace, "kube-system"})
+			if ns == pipelineNamespace || ns == "kube-system" {
+				return errors.Errorf("the following namespaces may not be modified: %v", []string{pipelineNamespace, "kube-system"})
 			}
 		}
 	}
 
 	return nil
+}
+
+func (w webHookConfigSpec) allNamespaces() bool {
+	return (len(w.Namespaces) == 1) && w.Namespaces[0] == selectedAllStar
 }
 
 func bindIntegratedServiceSpec(spec integratedservices.IntegratedServiceSpec) (integratedServiceSpec, error) {
@@ -125,4 +127,33 @@ func bindIntegratedServiceSpec(spec integratedservices.IntegratedServiceSpec) (i
 		}
 	}
 	return boundSpec, nil
+}
+
+func (w webHookConfigSpec) GetValues() ImageValidatorChartValues {
+	var (
+		namespaceSelector *SetBasedSelector
+		objectSelector    *SetBasedSelector
+	)
+
+	if w.Enabled {
+		switch w.Selector {
+		case selectorInclude:
+			if !w.allNamespaces() {
+				namespaceSelector = new(SetBasedSelector)
+				namespaceSelector.addMatchLabel(labelKey, "scan")
+			} // else - the default settings
+
+		case selectorExclude:
+			if w.allNamespaces() {
+				// exclude all / the scan label should be removed from all namespaces
+				namespaceSelector = new(SetBasedSelector)
+				namespaceSelector.addMatchLabel(labelKey, "scan")
+			}
+		}
+	}
+
+	return ImageValidatorChartValues{
+		NamespaceSelector: namespaceSelector,
+		ObjectSelector:    objectSelector,
+	}
 }

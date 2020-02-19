@@ -61,7 +61,7 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 
 		orgID, err := ap.idFromPath(c, "orgid")
 		if err != nil {
-			ap.errorHandler.Handle(c.Request.Context(), err)
+			ap.errorHandler.HandleContext(c.Request.Context(), err)
 
 			c.JSON(http.StatusInternalServerError, c.AbortWithError(http.StatusInternalServerError, err))
 			return
@@ -69,7 +69,7 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 
 		clusterID, err := ap.idFromPath(c, "id")
 		if err != nil {
-			ap.errorHandler.Handle(c.Request.Context(), err)
+			ap.errorHandler.HandleContext(c.Request.Context(), err)
 
 			c.JSON(http.StatusInternalServerError, c.AbortWithError(http.StatusInternalServerError, err))
 			return
@@ -79,7 +79,7 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 
 		proxy, err := ap.buildReverseProxy(c.Request.Context(), proxyPath, orgID, clusterID)
 		if err != nil {
-			ap.errorHandler.Handle(c.Request.Context(), err)
+			ap.errorHandler.HandleContext(c.Request.Context(), err)
 
 			c.JSON(http.StatusInternalServerError, c.AbortWithError(http.StatusInternalServerError, err))
 			return

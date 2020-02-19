@@ -17,7 +17,7 @@ package k8sutil
 import (
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -38,12 +38,12 @@ func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interfa
 	}
 	secrets, err := client.CoreV1().Secrets(namespace).List(options)
 	if err != nil {
-		return "", emperror.WrapWith(err, "namespace", namespace)
+		return "", errors.WrapIfWithDetails(err, "namespace", namespace)
 	}
 	for _, s := range secrets.Items {
 		token, err := kubeadm.BootstrapTokenFromSecret(&s)
 		if err != nil {
-			return "", emperror.Wrap(err, "unable to parse token")
+			return "", errors.WrapIf(err, "unable to parse token")
 		}
 		log.Debugf("Token found %s with expiration %s", token.Token, token.Expires)
 		// Check expiration for token to be at least 10Minute available
@@ -56,11 +56,11 @@ func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interfa
 	}
 	tokenValue, err := util.GenerateBootstrapToken()
 	if err != nil {
-		return "", emperror.Wrap(err, "bootstrap token generation failed")
+		return "", errors.WrapIf(err, "bootstrap token generation failed")
 	}
 	tokenString, err := kubeadm.NewBootstrapTokenString(tokenValue)
 	if err != nil {
-		return "", emperror.Wrap(err, "bootstrap token generation failed")
+		return "", errors.WrapIf(err, "bootstrap token generation failed")
 	}
 	token := kubeadm.BootstrapToken{
 		Token:       tokenString,
@@ -71,7 +71,7 @@ func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interfa
 	}
 	_, err = client.CoreV1().Secrets(namespace).Create(token.ToSecret())
 	if err != nil {
-		return "", emperror.Wrap(err, "unable to create token")
+		return "", errors.WrapIf(err, "unable to create token")
 	}
 	return tokenString.String(), nil
 }

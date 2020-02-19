@@ -14,34 +14,58 @@
 
 package istiofeature
 
-import (
-	"github.com/banzaicloud/pipeline/internal/global"
-)
-
-func (config Config) init() Config {
-	config.internalConfig.canary = canaryOperatorConfiguration{
-		chartVersion:    global.Config.Cluster.Backyards.Charts.CanaryOperator.Version,
-		chartName:       global.Config.Cluster.Backyards.Charts.CanaryOperator.Chart,
-		imageRepository: global.Config.Cluster.Backyards.Charts.CanaryOperator.Values.Operator.Image.Repository,
-		imageTag:        global.Config.Cluster.Backyards.Charts.CanaryOperator.Values.Operator.Image.Tag,
+type StaticConfig struct {
+	Istio struct {
+		GrafanaDashboardLocation string
+		PilotImage               string
+		MixerImage               string
 	}
 
-	config.internalConfig.backyards = backyardsConfiguration{
-		chartVersion:    global.Config.Cluster.Backyards.Charts.Backyards.Version,
-		chartName:       global.Config.Cluster.Backyards.Charts.Backyards.Chart,
-		imageRepository: global.Config.Cluster.Backyards.Charts.Backyards.Values.Application.Image.Repository,
-		imageTag:        global.Config.Cluster.Backyards.Charts.Backyards.Values.Application.Image.Tag,
-		webImageTag:     global.Config.Cluster.Backyards.Charts.Backyards.Values.Web.Image.Tag,
-	}
+	Charts struct {
+		IstioOperator struct {
+			Chart   string
+			Version string
+			Values  struct {
+				Operator struct {
+					Image struct {
+						Repository string
+						Tag        string
+					}
+				}
+			}
+		}
 
-	config.internalConfig.istioOperator = istioOperatorConfiguration{
-		chartVersion:    global.Config.Cluster.Backyards.Charts.IstioOperator.Version,
-		chartName:       global.Config.Cluster.Backyards.Charts.IstioOperator.Chart,
-		imageRepository: global.Config.Cluster.Backyards.Charts.IstioOperator.Values.Operator.Image.Repository,
-		imageTag:        global.Config.Cluster.Backyards.Charts.IstioOperator.Values.Operator.Image.Tag,
-		pilotImage:      global.Config.Cluster.Backyards.Istio.PilotImage,
-		mixerImage:      global.Config.Cluster.Backyards.Istio.MixerImage,
-	}
+		Backyards struct {
+			Chart   string
+			Version string
+			Values  struct {
+				Application struct {
+					Image struct {
+						Repository string
+						Tag        string
+					}
+				}
 
-	return config
+				Web struct {
+					Image struct {
+						Repository string
+						Tag        string
+					}
+				}
+			}
+		}
+
+		CanaryOperator struct {
+			Chart   string
+			Version string
+			Values  struct {
+				Operator struct {
+					Image struct {
+						Repository string
+						Tag        string
+					}
+				}
+			}
+		}
+	}
 }

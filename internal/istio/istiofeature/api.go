@@ -26,7 +26,7 @@ const (
 	FeatureName = "servicemesh"
 
 	istioOperatorReleaseName  = "istio-operator"
-	istioVersion              = "1.3"
+	istioVersion              = "1.4"
 	backyardsReleaseName      = "backyards"
 	canaryOperatorReleaseName = "canary"
 	prometheusHostname        = "monitor-prometheus-server.pipeline-system.svc.cluster.local"
@@ -39,7 +39,9 @@ const (
 	backyardsNamespace        = "backyards-system"
 	canaryOperatorNamespace   = "backyards-canary"
 	istioOperatorNamespace    = "istio-system"
-	zipkinAddress             = "backyards-zipkin.backyards-system:9411"
+	zipkinAddress             = "backyards-zipkin.backyards-system.svc.cluster.local:9411"
+	alsHost                   = "backyards-als.backyards-system.svc.cluster.local"
+	alsPort                   = 50600
 
 	backoffDelaySeconds = 10
 	backoffMaxretries   = 10
@@ -65,10 +67,10 @@ type Config struct {
 	// EnableMTLS signals if mutual TLS is enabled in the service mesh
 	EnableMTLS bool `json:"enableMTLS,omitempty"`
 
-	internalConfig internalConfig
 	name           string
 	enabled        bool
 	clusterGroup   api.ClusterGroup
+	internalConfig StaticConfig
 }
 
 type MeshReconciler struct {
@@ -79,36 +81,6 @@ type MeshReconciler struct {
 	clusterGetter api.ClusterGetter
 	logger        logrus.FieldLogger
 	errorHandler  emperror.Handler
-}
-
-type internalConfig struct {
-	canary        canaryOperatorConfiguration
-	backyards     backyardsConfiguration
-	istioOperator istioOperatorConfiguration
-}
-
-type canaryOperatorConfiguration struct {
-	chartVersion    string
-	chartName       string
-	imageRepository string
-	imageTag        string
-}
-
-type backyardsConfiguration struct {
-	chartVersion    string
-	chartName       string
-	imageRepository string
-	imageTag        string
-	webImageTag     string
-}
-
-type istioOperatorConfiguration struct {
-	chartVersion    string
-	chartName       string
-	imageRepository string
-	imageTag        string
-	pilotImage      string
-	mixerImage      string
 }
 
 type imageChartValue struct {

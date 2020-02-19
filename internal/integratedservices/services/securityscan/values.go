@@ -14,8 +14,11 @@
 
 package securityscan
 
-type SecurityScanChartValues struct {
-	Anchore AnchoreValues `json:"externalAnchore"`
+// represents a values yaml to be passed to the anchore image validator webhook chart
+type ImageValidatorChartValues struct {
+	ExternalAnchore   *AnchoreValues    `json:"externalAnchore,omitempty" mapstructure:"externalAnchore"`
+	NamespaceSelector *SetBasedSelector `json:"namespaceSelector,omitempty" mapstructure:"namespaceSelector"`
+	ObjectSelector    *SetBasedSelector `json:"objectSelector,omitempty" mapstructure:"objectSelector"`
 }
 
 // AnchoreValues struct used to build chart values and to extract anchore data from secret values
@@ -23,4 +26,35 @@ type AnchoreValues struct {
 	Host     string `json:"anchoreHost" mapstructure:"host"`
 	User     string `json:"anchoreUser" mapstructure:"username"`
 	Password string `json:"anchorePass" mapstructure:"password"`
+}
+
+type MatchExpression struct {
+	Key      string   `json:"key" mapstructure:"key"`
+	Operator string   `json:"operator" mapstructure:"operator"`
+	Values   []string `json:"values" mapstructure:"values"`
+}
+
+type SetBasedSelector struct {
+	MatchLabels      map[string]string `json:"matchLabels,omitempty" mapstructure:"matchLabels"`
+	MatchExpressions []MatchExpression `json:"matchExpressions,omitempty" mapstructure:"matchExpressions"`
+}
+
+func (s *SetBasedSelector) addMatchExpression(key string, operator string, values []string) {
+	if s.MatchExpressions == nil {
+		s.MatchExpressions = make([]MatchExpression, 0, len(values))
+	}
+
+	s.MatchExpressions = append(s.MatchExpressions,
+		MatchExpression{
+			Key:      key,
+			Operator: operator,
+			Values:   values,
+		})
+}
+
+func (s *SetBasedSelector) addMatchLabel(key string, value string) {
+	if s.MatchLabels == nil {
+		s.MatchLabels = make(map[string]string)
+	}
+	s.MatchLabels[key] = value
 }

@@ -25,6 +25,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
@@ -181,15 +182,10 @@ func (c *EksClusterUpdater) prepare(ctx context.Context, eksCluster *cluster.EKS
 		eksCluster.SetScaleOptions(request.ScaleOptions)
 	}
 
-	ttlChanged := time.Duration(request.TtlMinutes)*time.Minute != eksCluster.GetTTL()
-	if ttlChanged {
-		eksCluster.SetTTL(time.Duration(request.TtlMinutes) * time.Minute)
-	}
-
 	clusterPropertiesChanged := true
 	if err := eksCluster.CheckEqualityToUpdate(request); err != nil {
 		clusterPropertiesChanged = false
-		if !scaleOptionsChanged && !ttlChanged {
+		if !scaleOptionsChanged {
 			return &updateValidationError{
 				msg:            err.Error(),
 				invalidRequest: true,
@@ -197,7 +193,7 @@ func (c *EksClusterUpdater) prepare(ctx context.Context, eksCluster *cluster.EKS
 		}
 	}
 
-	if !clusterPropertiesChanged && !scaleOptionsChanged && !ttlChanged {
+	if !clusterPropertiesChanged && !scaleOptionsChanged {
 		return nil
 	}
 
@@ -289,6 +285,7 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 		ScaleEnabled:       eksCluster.GetScaleOptions() != nil && eksCluster.GetScaleOptions().Enabled,
 		NodeInstanceRoleID: modelCluster.NodeInstanceRoleId,
 		NodePoolLabels:     nodePoolLabelMap,
+		GenerateSSH:        global.Config.Distribution.EKS.SSH.Generate,
 	}
 
 	input.Subnets = subnets

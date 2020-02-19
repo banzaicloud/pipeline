@@ -17,7 +17,7 @@ package api
 import (
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
@@ -112,8 +112,8 @@ func InstallSecretToCluster(c *gin.Context) {
 
 		return
 	} else if err != nil {
-		errorHandler.Handle(emperror.With(
-			emperror.Wrap(err, "failed to install secret into cluster"),
+		errorHandler.Handle(errors.WithDetails(
+			errors.WrapIf(err, "failed to install secret into cluster"),
 			"clusterId", commonCluster.GetID(),
 			"organizationId", commonCluster.GetOrganizationId(),
 			"secret", secretName,
@@ -204,8 +204,8 @@ func MergeSecretInCluster(c *gin.Context) {
 
 		return
 	} else if err != nil {
-		errorHandler.Handle(emperror.With(
-			emperror.Wrap(err, "failed to install secret into cluster"),
+		errorHandler.Handle(errors.WithDetails(
+			errors.WrapIf(err, "failed to install secret into cluster"),
 			"clusterId", commonCluster.GetID(),
 			"organizationId", commonCluster.GetOrganizationId(),
 			"secret", secretName,

@@ -35,23 +35,24 @@ type TypeField struct {
 	Description string `json:"description,omitempty"`
 }
 
-// TypeService provides information about secret types.
-//go:generate mga gen kit endpoint --outdir secrettypedriver --with-oc TypeService
-//go:generate mga gen mockery --name TypeService --inpkg
-type TypeService interface {
+//go:generate mga gen mockery --name Service --inpkg
+// +kit:endpoint:errorStrategy=service
+
+// Service provides information about secret types.
+type Service interface {
 	// ListSecretTypes lists secret type definitions.
-	ListSecretTypes(ctx context.Context) (map[string]TypeDefinition, error)
+	ListSecretTypes(ctx context.Context) (secretTypes map[string]TypeDefinition, err error)
 
 	// GetSecretType returns a single secret type definition.
-	GetSecretType(ctx context.Context, secretType string) (TypeDefinition, error)
+	GetSecretType(ctx context.Context, secretType string) (secretTypeDef TypeDefinition, err error)
 }
 
-// NewTypeService returns a new TypeService.
-func NewTypeService() TypeService {
-	return typeService{types: types}
+// NewService returns a new Service.
+func NewService() Service {
+	return service{types: types}
 }
 
-type typeService struct {
+type service struct {
 	types map[string]TypeDefinition
 }
 
@@ -72,14 +73,14 @@ func init() {
 	}
 }
 
-func (t typeService) ListSecretTypes(ctx context.Context) (map[string]TypeDefinition, error) {
+func (t service) ListSecretTypes(ctx context.Context) (map[string]TypeDefinition, error) {
 	return t.types, nil
 }
 
 // ErrNotSupportedSecretType describe an error if the secret type is not supported.
 var ErrNotSupportedSecretType = errors.Sentinel("not supported secret type")
 
-func (t typeService) GetSecretType(ctx context.Context, secretType string) (TypeDefinition, error) {
+func (t service) GetSecretType(ctx context.Context, secretType string) (TypeDefinition, error) {
 	typeDef, ok := t.types[secretType]
 	if !ok {
 		return TypeDefinition{}, errors.WithStack(ErrNotSupportedSecretType)

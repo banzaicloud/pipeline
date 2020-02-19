@@ -18,12 +18,11 @@ import (
 	"encoding/json"
 	"strings"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
@@ -101,7 +100,7 @@ func (a *CreateACKClusterAction) ExecuteAction(input interface{}) (output interf
 	params := a.context.AlibabaClusterCreateParams
 	p, err := json.Marshal(&params)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "could not marshal cluster create params", "cluster", a.context.Name)
+		return nil, errors.WrapIfWithDetails(err, "could not marshal cluster create params", "cluster", a.context.Name)
 	}
 
 	req := cs.CreateCreateClusterRequest()
@@ -113,17 +112,17 @@ func (a *CreateACKClusterAction) ExecuteAction(input interface{}) (output interf
 	// do a cluster creation
 	resp, err := csClient.CreateCluster(req)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "could not create cluster", "cluster", a.context.Name)
+		return nil, errors.WrapIfWithDetails(err, "could not create cluster", "cluster", a.context.Name)
 	}
 	if !resp.IsSuccess() || resp.GetHttpStatus() < 200 || resp.GetHttpStatus() > 299 {
-		return nil, emperror.With(errors.Errorf("create cluster error the returned status code is %d", resp.GetHttpStatus()), "cluster", a.context.Name)
+		return nil, errors.WithDetails(errors.Errorf("create cluster error the returned status code is %d", resp.GetHttpStatus()), "cluster", a.context.Name)
 	}
 
 	// parse response
 	var r ack.AlibabaClusterCreateResponse
 	err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
 	if err != nil {
-		return nil, emperror.With(err, "cluster", a.context.Name)
+		return nil, errors.WithDetails(err, "cluster", a.context.Name)
 	}
 
 	// We need this field to be able to implement the UndoAction for ClusterCreate
@@ -135,7 +134,7 @@ func (a *CreateACKClusterAction) ExecuteAction(input interface{}) (output interf
 	a.log.Info("Waiting for cluster to get ready...")
 	cluster, err := waitUntilClusterCreateOrScaleComplete(a.log, r.ClusterID, csClient, true)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "cluster create failed", "cluster", a.context.Name)
+		return nil, errors.WrapIfWithDetails(err, "cluster create failed", "cluster", a.context.Name)
 	}
 
 	return cluster, nil
@@ -145,5 +144,5 @@ func (a *CreateACKClusterAction) ExecuteAction(input interface{}) (output interf
 func (a *CreateACKClusterAction) UndoAction() error {
 	a.log.Info("EXECUTE UNDO CreateACKClusterAction")
 
-	return emperror.With(deleteCluster(a.log, a.context.ClusterID, a.context.CSClient), "cluster", a.context.Name)
+	return errors.WithDetails(deleteCluster(a.log, a.context.ClusterID, a.context.CSClient), "cluster", a.context.Name)
 }

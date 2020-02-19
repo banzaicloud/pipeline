@@ -19,13 +19,15 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
+
 	"emperror.dev/emperror"
-	"github.com/kubernetes-sigs/kubefed/pkg/client/generic"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
+	"sigs.k8s.io/kubefed/pkg/client/generic"
 	genericclient "sigs.k8s.io/kubefed/pkg/client/generic"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
@@ -50,6 +52,8 @@ type Config struct {
 	name         string
 	enabled      bool
 	clusterGroup api.ClusterGroup
+	staticConfig StaticConfig
+	dnsConfig    dns.Config
 }
 
 type FederationReconciler struct {
@@ -88,7 +92,14 @@ const (
 )
 
 // NewFederationReconciler crates a new feature reconciler for Federation
-func NewFederationReconciler(clusterGroupName string, config Config, clusterGetter api.ClusterGetter, infraNamespace string, logger logrus.FieldLogger, errorHandler emperror.Handler) *FederationReconciler {
+func NewFederationReconciler(
+	clusterGroupName string,
+	config Config,
+	clusterGetter api.ClusterGetter,
+	infraNamespace string,
+	logger logrus.FieldLogger,
+	errorHandler emperror.Handler,
+) *FederationReconciler {
 	reconciler := &FederationReconciler{
 		Configuration:    config,
 		ClusterGroupName: clusterGroupName,
@@ -256,12 +267,12 @@ func (m *FederationReconciler) GetStatus() (map[uint]string, error) {
 func (m *FederationReconciler) getClientConfig(c cluster.CommonCluster) (*rest.Config, error) {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get k8s config")
+		return nil, errors.WrapIf(err, "could not get k8s config")
 	}
 
 	clientConfig, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
-		return nil, emperror.Wrap(err, "cloud not create client config from kubeconfig")
+		return nil, errors.WrapIf(err, "cloud not create client config from kubeconfig")
 	}
 
 	return clientConfig, nil
@@ -274,7 +285,7 @@ func (m *FederationReconciler) getGenericClient() (generic.Client, error) {
 	}
 	client, err := genericclient.New(clientConfig)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get kubefed clientset")
+		return nil, errors.WrapIf(err, "could not get kubefed clientset")
 	}
 	return client, nil
 }

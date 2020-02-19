@@ -20,9 +20,9 @@ import (
 	"strconv"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -754,12 +754,12 @@ func (bc *bucketController) queryData(ginCtx *gin.Context) (*BucketQueryData, er
 
 	// bind the query to the query data struct
 	if err := mapstructure.Decode(ginCtx.Request.URL.Query(), &bqd); err != nil {
-		return nil, emperror.WrapWith(err, "failed to parse query params", "query params")
+		return nil, errors.WrapIfWithDetails(err, "failed to parse query params", "query params")
 	}
 
 	// this is a similar approach to the above, however it only works if all query params to be bound are uppercase (and correspond to the queryData exported fields with no configuration possibilities)
 	// if  err:= ginCtx.BindQuery(&bqd); err != nil {
-	// 	return nil, emperror.WrapWith(err, "failed to parse query params", "bucket")
+	// 	return nil, errors.WrapIfWithDetails(err, "failed to parse query params", "bucket")
 	// }
 
 	return &bqd, nil

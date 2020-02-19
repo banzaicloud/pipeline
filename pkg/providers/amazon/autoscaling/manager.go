@@ -17,14 +17,13 @@ package autoscaling
 import (
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/pkg/errors"
 	"logur.dev/logur"
 )
 
@@ -53,7 +52,7 @@ func NewManager(session *session.Session, opts ...Option) *Manager {
 	}
 
 	if m.logger == nil {
-		//m.logger = logrus.New()
+		// m.logger = logrus.New()
 	}
 
 	return m
@@ -91,7 +90,7 @@ func (m *Manager) GetAutoscalingGroupByID(id string) (*Group, error) {
 	}
 
 	if len(result.AutoScalingGroups) != 1 {
-		return nil, emperror.WrapWith(emperror.With(errors.New("invalid response count"), "count", len(result.AutoScalingGroups)), "could not get ASG", "id", id)
+		return nil, errors.WrapIfWithDetails(errors.WithDetails(errors.New("invalid response count"), "count", len(result.AutoScalingGroups)), "could not get ASG", "id", id)
 	}
 
 	return NewGroup(m, result.AutoScalingGroups[0]), nil
@@ -124,7 +123,7 @@ func (m *Manager) GetAutoscalingGroupByStackName(stackName string) (*Group, erro
 	}
 
 	if len(describeAutoScalingGroupsOutput.AutoScalingGroups) != 1 {
-		return nil, awserr.New("ASGNotFoundInResponse", "could not find ASG in response", emperror.WrapWith(emperror.With(errors.New("invalid response count"), "count", len(describeAutoScalingGroupsOutput.AutoScalingGroups)), "could not get ASG for stack", "stackName", stackName))
+		return nil, awserr.New("ASGNotFoundInResponse", "could not find ASG in response", errors.WrapIfWithDetails(errors.WithDetails(errors.New("invalid response count"), "count", len(describeAutoScalingGroupsOutput.AutoScalingGroups)), "could not get ASG for stack", "stackName", stackName))
 	}
 
 	return NewGroup(m, describeAutoScalingGroupsOutput.AutoScalingGroups[0]), nil

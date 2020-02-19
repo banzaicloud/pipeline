@@ -17,10 +17,9 @@ package cluster
 import (
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
 	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -35,7 +34,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/hollowtrees"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -105,6 +103,10 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 }
 
 func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
+	var config = global.Config.Cluster.PostHook.Dashboard
+	if !config.Enabled {
+		return nil
+	}
 
 	k8sDashboardNameSpace := global.Config.Cluster.Namespace
 	k8sDashboardReleaseName := "dashboard"
@@ -212,7 +214,7 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 
 	}
 
-	return installDeployment(cluster, k8sDashboardNameSpace, pkgHelm.BanzaiRepository+"/kubernetes-dashboard", k8sDashboardReleaseName, valuesJson, "", false)
+	return installDeployment(cluster, k8sDashboardNameSpace, config.Chart, k8sDashboardReleaseName, valuesJson, config.Version, false)
 
 }
 
@@ -249,6 +251,11 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 
 // InstallHorizontalPodAutoscalerPostHook
 func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
+	var config = global.Config.Cluster.PostHook.HPA
+	if !config.Enabled {
+		return nil
+	}
+
 	promServiceName := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceName
 	infraNamespace := global.Config.Cluster.Autoscale.Namespace
 	serviceContext := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceContext
@@ -302,10 +309,14 @@ func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) er
 
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
 func InitSpotConfig(cluster CommonCluster) error {
+	var config = global.Config.Cluster.PostHook.Spotconfig
+	if !config.Enabled {
+		return nil
+	}
 
 	spot, err := isSpotCluster(cluster)
 	if err != nil {
-		return emperror.Wrap(err, "failed to check if cluster has spot instances")
+		return errors.WrapIf(err, "failed to check if cluster has spot instances")
 	}
 
 	if !spot {
@@ -317,38 +328,43 @@ func InitSpotConfig(cluster CommonCluster) error {
 
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
-		return emperror.Wrap(err, "failed to get Kubernetes config")
+		return errors.WrapIf(err, "failed to get Kubernetes config")
 	}
 
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		return emperror.Wrap(err, "failed to get Kubernetes clientset from kubeconfig")
+		return errors.WrapIf(err, "failed to get Kubernetes clientset from kubeconfig")
 	}
 
 	err = initializeSpotConfigMap(client, pipelineSystemNamespace)
 	if err != nil {
-		return emperror.Wrap(err, "failed to initialize spot ConfigMap")
+		return errors.WrapIf(err, "failed to initialize spot ConfigMap")
 	}
 
 	values := map[string]interface{}{}
 	marshalledValues, err := yaml.Marshal(values)
 	if err != nil {
-		return emperror.Wrap(err, "failed to marshal yaml values")
+		return errors.WrapIf(err, "failed to marshal yaml values")
 	}
 
-	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-scheduler", "spot-scheduler", marshalledValues, "", false)
+	err = installDeployment(cluster, pipelineSystemNamespace, config.Charts.Scheduler.Chart, "spot-scheduler", marshalledValues, config.Charts.Scheduler.Version, false)
 	if err != nil {
-		return emperror.Wrap(err, "failed to install the spot-scheduler deployment")
+		return errors.WrapIf(err, "failed to install the spot-scheduler deployment")
 	}
-	err = installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/spot-config-webhook", "spot-webhook", marshalledValues, "", true)
+	err = installDeployment(cluster, pipelineSystemNamespace, config.Charts.Webhook.Chart, "spot-webhook", marshalledValues, config.Charts.Webhook.Version, true)
 	if err != nil {
-		return emperror.Wrap(err, "failed to install the spot-config-webhook deployment")
+		return errors.WrapIf(err, "failed to install the spot-config-webhook deployment")
 	}
 	return nil
 }
 
 // DeployInstanceTerminationHandler deploys the instance termination handler
 func DeployInstanceTerminationHandler(cluster CommonCluster) error {
+	var config = global.Config.Cluster.PostHook.ITH
+	if !config.Enabled {
+		return nil
+	}
+
 	cloud := cluster.GetCloud()
 
 	if cloud != pkgCluster.Amazon && cloud != pkgCluster.Google {
@@ -384,7 +400,7 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 		)
 		_, token, err := generator.Generate(cluster.GetID(), cluster.GetOrganizationId(), nil)
 		if err != nil {
-			err = emperror.Wrap(err, "could not generate JWT token for instance termination handler")
+			err = errors.WrapIf(err, "could not generate JWT token for instance termination handler")
 			errorHandler.Handle(err)
 			return err
 		}
@@ -401,16 +417,16 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 
 	marshalledValues, err := yaml.Marshal(values)
 	if err != nil {
-		return emperror.Wrap(err, "failed to marshal yaml values")
+		return errors.WrapIf(err, "failed to marshal yaml values")
 	}
 
-	return installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/instance-termination-handler", "ith", marshalledValues, "", false)
+	return installDeployment(cluster, pipelineSystemNamespace, config.Chart, "ith", marshalledValues, config.Version, false)
 }
 
 func isSpotCluster(cluster CommonCluster) (bool, error) {
 	status, err := cluster.GetStatus()
 	if err != nil {
-		return false, emperror.Wrap(err, "failed to get cluster status")
+		return false, errors.WrapIf(err, "failed to get cluster status")
 	}
 	return status.Spot, nil
 }
@@ -427,10 +443,10 @@ func initializeSpotConfigMap(client *kubernetes.Clientset, systemNs string) erro
 				Data: make(map[string]string),
 			})
 			if err != nil {
-				return emperror.Wrap(err, "failed to create spot ConfigMap")
+				return errors.WrapIf(err, "failed to create spot ConfigMap")
 			}
 		} else {
-			return emperror.Wrap(err, "failed to retrieve spot ConfigMap")
+			return errors.WrapIf(err, "failed to retrieve spot ConfigMap")
 		}
 	}
 	log.Info("finished initializing spot ConfigMap")

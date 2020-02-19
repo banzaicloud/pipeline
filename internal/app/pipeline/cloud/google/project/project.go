@@ -26,14 +26,16 @@ import (
 
 // Project represents a Google Cloud project.
 // TODO: actualize this type from the Google API SDK.
-type Project = cloudresourcemanager.Project
+// Note: aliases do not seem to work with MGA right now.
+type Project cloudresourcemanager.Project
+
+//go:generate mga gen mockery --name Service --inpkg
+// +kit:endpoint:errorStrategy=service,moduleName=cloud/google/project
 
 // Service interacts with Google projects.
-//go:generate mga gen kit endpoint --outdir projectdriver --with-oc --oc-root "cloud/google/project" Service
-//go:generate mga gen mockery --name Service --inpkg
 type Service interface {
 	// ListProjects lists Google projects.
-	ListProjects(ctx context.Context, secretID string) ([]Project, error)
+	ListProjects(ctx context.Context, secretID string) (projects []Project, err error)
 }
 
 // NewService returns a new Service.
@@ -72,7 +74,7 @@ func (s service) ListProjects(ctx context.Context, secretID string) ([]Project, 
 
 	err = projectSvc.List().Pages(ctx, func(resp *cloudresourcemanager.ListProjectsResponse) error {
 		for _, project := range resp.Projects {
-			projects = append(projects, *project)
+			projects = append(projects, Project(*project))
 		}
 
 		return nil

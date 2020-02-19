@@ -15,7 +15,7 @@
 package pkeworkflow
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 
@@ -58,7 +58,7 @@ type Secret interface {
 func (f *AWSClientFactory) New(organizationID uint, secretID string, region string) (*session.Session, error) {
 	s, err := f.secrets.GetSecret(organizationID, secretID)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get AWS secret")
+		return nil, errors.WrapIf(err, "failed to get AWS secret")
 	}
 
 	err = s.ValidateSecretType(amazon.Provider)

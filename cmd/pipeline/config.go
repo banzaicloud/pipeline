@@ -26,45 +26,31 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/cmd"
-	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
-	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
-	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/src/auth"
 )
 
 // configuration holds any kind of configuration that comes from the outside world and
 // is necessary for running the application.
 type configuration struct {
-	// Log configuration
-	Log log.Config
-
-	// Error handling configuration
-	Errors errorhandler.Config
-
-	// Telemetry configuration
-	Telemetry telemetryConfig
-
-	Pipeline struct {
-		Addr         string
-		InternalAddr string
-		BasePath     string
-		CertFile     string
-		KeyFile      string
-	}
+	cmd.Config `mapstructure:",squash"`
 
 	// Auth configuration
 	Auth auth.Config
 
-	// Database configuration
-	Database struct {
-		database.Config `mapstructure:",squash"`
-
-		AutoMigrate bool
+	Audit struct {
+		Enabled   bool
+		Headers   []string
+		SkipPaths []string
 	}
 
-	// Cadence configuration
-	Cadence cadence.Config
+	CICD struct {
+		Enabled  bool
+		URL      string
+		Insecure bool
+		SCM      string
+		Database database.Config
+	}
 
 	CORS struct {
 		AllowAllOrigins    bool
@@ -75,115 +61,84 @@ type configuration struct {
 	// Frontend configuration
 	Frontend frontend.Config
 
-	// Cluster configuration
-	Cluster cmd.ClusterConfig
-
-	Cloudinfo struct {
-		Endpoint string
-	}
-
-	CICD struct {
-		Enabled  bool
-		Database database.Config
-	}
-
-	Github struct {
-		Token string
-	}
+	Pipeline PipelineConfig
 
 	SpotMetrics struct {
 		Enabled            bool
 		CollectionInterval time.Duration
 	}
-
-	Audit struct {
-		Enabled   bool
-		Headers   []string
-		SkipPaths []string
-	}
 }
 
 // Validate validates the configuration.
 func (c configuration) Validate() error {
-	if err := c.Errors.Validate(); err != nil {
-		return err
+	var errs error
+
+	if c.CICD.Enabled {
+		if c.CICD.URL == "" {
+			errs = errors.Append(errs, errors.New("cicd url is required"))
+		}
+
+		switch c.CICD.SCM {
+		case "github":
+			if c.Github.Token == "" {
+				errs = errors.Append(errs, errors.New("github token is required"))
+			}
+
+		case "gitlab":
+			if c.Gitlab.URL == "" {
+				errs = errors.Append(errs, errors.New("gitlab url is required"))
+			}
+
+			if c.Gitlab.Token == "" {
+				errs = errors.Append(errs, errors.New("gitlab token is required"))
+			}
+
+		default:
+			errs = errors.Append(errs, errors.New("cicd scm is required"))
+		}
+
+		errs = errors.Append(errs, c.CICD.Database.Validate())
 	}
 
-	if err := c.Telemetry.Validate(); err != nil {
-		return err
-	}
-
-	if c.Pipeline.Addr == "" {
-		return errors.New("pipeline address is required")
-	}
-	if c.Pipeline.InternalAddr == "" {
-		return errors.New("pipeline internal address is required")
-	}
-
-	if err := c.Auth.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Cadence.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Frontend.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Cluster.Validate(); err != nil {
-		return err
-	}
-
-	if c.Cloudinfo.Endpoint == "" {
-		return errors.New("cloudinfo endpoint is required")
-	}
-
-	// if c.CICD.Enabled {
-	if err := c.CICD.Database.Validate(); err != nil {
-		return err
-	}
-	// }
-
-	return nil
+	return errors.Combine(errs, c.Auth.Validate(), c.Config.Validate(), c.Frontend.Validate())
 }
 
 // Process post-processes the configuration after loading (before validation).
 func (c *configuration) Process() error {
-	if err := c.Auth.Process(); err != nil {
-		return err
-	}
+	var err error
 
-	if err := c.Cluster.Process(); err != nil {
-		return err
-	}
+	err = errors.Append(err, c.Auth.Process())
 
-	if c.Frontend.Issue.Github.Token == "" {
-		c.Frontend.Issue.Github.Token = c.Github.Token
-	}
+	err = errors.Append(err, c.Config.Process())
 
-	return nil
+	return err
 }
 
-// telemetryConfig contains telemetry configuration.
-type telemetryConfig struct {
-	Enabled bool
-	Addr    string
-	Debug   bool
+type PipelineConfig struct {
+	Addr         string
+	InternalAddr string
+	BasePath     string
+	CertFile     string
+	KeyFile      string
+	UUID         string
+	External     struct {
+		URL      string
+		Insecure bool
+	}
 }
 
-// Validate validates the configuration.
-func (c telemetryConfig) Validate() error {
-	if !c.Enabled {
-		return nil
-	}
+func (c PipelineConfig) Validate() error {
+	var err error
 
 	if c.Addr == "" {
-		return errors.New("telemetry http server address is required")
+		err = errors.Append(err, errors.New("pipeline address is required"))
 	}
 
-	return nil
+	if c.InternalAddr == "" {
+		err = errors.Append(err, errors.New("pipeline internal address is required"))
+	}
+
+	return err
 }
 
 // configure configures some defaults in the Viper instance.
@@ -225,8 +180,22 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("pipeline::basePath", "")
 	v.SetDefault("pipeline::certFile", "")
 	v.SetDefault("pipeline::keyFile", "")
+	v.SetDefault("pipeline::uuid", "")
+	v.SetDefault("pipeline::external::url", "")
+	v.SetDefault("pipeline::external::insecure", false)
 
 	// Auth configuration
+	v.SetDefault("auth::oidc::issuer", "")
+	v.SetDefault("auth::oidc::insecure", false)
+	v.SetDefault("auth::oidc::clientId", "")
+	v.SetDefault("auth::oidc::clientSecret", "")
+
+	v.SetDefault("auth::cli::clientId", "banzai-cli")
+
+	v.SetDefault("auth::cookie::secure", true)
+	v.SetDefault("auth::cookie::domain", "")
+	v.SetDefault("auth::cookie::setDomain", false)
+
 	v.SetDefault("auth::redirectUrl::login", "/ui")
 	v.SetDefault("auth::redirectUrl::signup", "/ui")
 
@@ -236,20 +205,24 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 		auth.RoleMember: "",
 	})
 
+	v.SetDefault("cicd::database::dialect", "mysql")
+	v.SetDefault("cicd::database::host", "")
+	v.SetDefault("cicd::database::port", 3306)
+	v.SetDefault("cicd::database::tls", "")
+	v.SetDefault("cicd::database::user", "")
+	v.SetDefault("cicd::database::password", "")
+	v.SetDefault("cicd::database::name", "cicd")
+	v.SetDefault("cicd::database::params", map[string]string{
+		"charset": "utf8mb4",
+	})
+	v.SetDefault("cicd::database::queryLog", false)
+
 	// Database config
 	v.SetDefault("database::autoMigrate", false)
 
 	v.SetDefault("cors::allowAllOrigins", true)
 	v.SetDefault("cors::allowOrigins", []string{})
 	v.SetDefault("cors::allowOriginsRegexp", "")
-
-	v.SetDefault("frontend::issue::enabled", false)
-	v.SetDefault("frontend::issue::driver", "github")
-	v.SetDefault("frontend::issue::labels", []string{"community"})
-
-	v.SetDefault("frontend::issue::github::token", "")
-	v.SetDefault("frontend::issue::github::owner", "banzaicloud")
-	v.SetDefault("frontend::issue::github::repository", "pipeline-issues")
 
 	v.SetDefault("spotmetrics::enabled", false)
 	v.SetDefault("spotmetrics::collectionInterval", 30*time.Second)

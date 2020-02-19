@@ -15,7 +15,7 @@
 package action
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -44,5 +44,5 @@ func (a *DeleteACKNodePoolAction) ExecuteAction(input interface{}) (output inter
 		return nil, nil
 	}
 	a.log.Info("EXECUTE DeleteNodePoolAction")
-	return nil, emperror.With(deleteNodePools(a.log, a.context.NodePools, a.context.ESSClient, a.context.RegionId), "cluster", a.context.ClusterName)
+	return nil, errors.WithDetails(deleteNodePools(a.log, a.context.NodePools, a.context.ESSClient, a.context.RegionId), "cluster", a.context.ClusterName)
 }

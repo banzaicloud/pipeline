@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
@@ -187,18 +187,18 @@ func (m *Manager) createCluster(
 		sshKey, err := ssh.NewKeyPairGenerator().Generate()
 		if err != nil {
 			_ = cluster.SetStatus(pkgCluster.Error, "internal error")
-			return emperror.Wrap(err, "failed to generate SSH key")
+			return errors.WrapIf(err, "failed to generate SSH key")
 		}
 
 		sshSecretId, err := sshdriver.StoreSSHKeyPair(sshKey, cluster.GetOrganizationId(), cluster.GetID(), cluster.GetName(), cluster.GetUID())
 		if err != nil {
 			_ = cluster.SetStatus(pkgCluster.Error, "internal error")
-			return emperror.Wrap(err, "failed to store SSH key")
+			return errors.WrapIf(err, "failed to store SSH key")
 		}
 
 		if err := cluster.SaveSshSecretId(sshSecretId); err != nil {
 			_ = cluster.SetStatus(pkgCluster.Error, "internal error")
-			return emperror.Wrap(err, "failed to save SSH key secret ID")
+			return errors.WrapIf(err, "failed to save SSH key secret ID")
 		}
 	}
 	if err := creator.Create(ctx); err != nil {
@@ -212,13 +212,13 @@ func (m *Manager) createCluster(
 	// (and/or reload the model between workflow executions which is probably a good idea anyway)
 	err := cluster.SetStatus(pkgCluster.Creating, "running posthooks")
 	if err != nil {
-		return emperror.Wrap(err, "failed to update cluster status")
+		return errors.WrapIf(err, "failed to update cluster status")
 	}
 
 	nodePoolLabels := make([]NodePoolLabels, 0)
 	clusterStatus, err := cluster.GetStatus()
 	if err != nil {
-		return emperror.Wrap(err, "failed to get cluster status")
+		return errors.WrapIf(err, "failed to get cluster status")
 	}
 	for name, np := range clusterStatus.NodePools {
 		nodePoolLabels = append(nodePoolLabels, NodePoolLabels{
@@ -242,7 +242,7 @@ func (m *Manager) createCluster(
 	{
 		org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
 		if err != nil {
-			return emperror.Wrap(err, "failed to get organization name")
+			return errors.WrapIf(err, "failed to get organization name")
 		}
 
 		input := CreateClusterWorkflowInput{
@@ -264,7 +264,7 @@ func (m *Manager) createCluster(
 		if err != nil {
 			_ = cluster.SetStatus(pkgCluster.Error, "failed to run setup jobs")
 
-			return emperror.WrapWith(err, "failed to start workflow", "workflowName", CreateClusterWorkflowName)
+			return errors.WrapIfWithDetails(err, "failed to start workflow", "workflowName", CreateClusterWorkflowName)
 		}
 
 		logger.WithFields(logrus.Fields{
@@ -277,7 +277,7 @@ func (m *Manager) createCluster(
 		if err != nil {
 			_ = m.clusterStore.SetStatus(ctx, cluster.GetID(), pkgCluster.Error, err.Error())
 
-			return emperror.Wrap(err, "running setup jobs failed")
+			return errors.WrapIf(err, "running setup jobs failed")
 		}
 
 		logger.WithFields(logrus.Fields{
@@ -308,7 +308,7 @@ func (m *Manager) createCluster(
 		if err != nil {
 			_ = cluster.SetStatus(pkgCluster.Error, "failed to run posthooks")
 
-			return emperror.WrapWith(err, "failed to start workflow", "workflowName", RunPostHooksWorkflowName)
+			return errors.WrapIfWithDetails(err, "failed to start workflow", "workflowName", RunPostHooksWorkflowName)
 		}
 
 		logger.WithFields(logrus.Fields{
@@ -319,7 +319,7 @@ func (m *Manager) createCluster(
 
 		err = exec.Get(ctx, nil)
 		if err != nil {
-			return emperror.Wrap(err, "running posthooks failed")
+			return errors.WrapIf(err, "running posthooks failed")
 		}
 
 		logger.WithFields(logrus.Fields{

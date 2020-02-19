@@ -27,6 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshdriver"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -148,6 +149,7 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 			NodeInstanceRoleID: modelCluster.NodeInstanceRoleId,
 			KubernetesVersion:  modelCluster.Version,
 			LogTypes:           modelCluster.LogTypes,
+			GenerateSSH:        global.Config.Distribution.EKS.SSH.Generate,
 		},
 		PostHooks:        createRequest.PostHooks,
 		OrganizationName: org.Name,
@@ -533,7 +535,7 @@ func (c *EksClusterCreator) CreateCluster(ctx context.Context, commonCluster clu
 	}
 
 	// Check if public ssh key is needed for the cluster. If so and there is generate one and store it Vault
-	if len(commonCluster.GetSshSecretId()) == 0 && commonCluster.RequiresSshPublicKey() {
+	if len(commonCluster.GetSshSecretId()) == 0 && commonCluster.RequiresSshPublicKey() && global.Config.Distribution.EKS.SSH.Generate {
 		logger.Debug("generating SSH Key for the cluster")
 		err := c.generateSSHkey(commonCluster)
 		if err != nil {

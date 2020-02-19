@@ -15,7 +15,7 @@
 package events
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 
@@ -59,7 +59,7 @@ func (eh *ClusterEventHandler) DeleteStaleARKDeployments(orgID uint) error {
 		if deployment.ID > 0 && deployment.Cluster.ID == 0 {
 			err = eh.db.Delete(&deployment).Error
 			if err != nil {
-				eh.logger.Error(emperror.Wrap(err, "could not delete deployment record"))
+				eh.logger.Error(errors.WrapIf(err, "could not delete deployment record"))
 			}
 		}
 	}

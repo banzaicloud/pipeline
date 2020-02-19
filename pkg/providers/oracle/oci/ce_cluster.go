@@ -19,10 +19,9 @@ import (
 	"fmt"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/containerengine"
-	"github.com/pkg/errors"
 )
 
 // CreateCluster creates an OKE cluster specified in the request
@@ -207,7 +206,7 @@ func (ce *ContainerEngine) WaitingForClusterNodePoolActiveState(clusterID *strin
 			}
 			ok, err = ce.IsNodePoolActive(np.Id)
 			if err != nil {
-				return emperror.WrapWith(err, fmt.Sprintf("error in nodepool %s", *np.Name), "nodepool", *np.Name)
+				return errors.WrapIfWithDetails(err, fmt.Sprintf("error in nodepool %s", *np.Name), "nodepool", *np.Name)
 			}
 		}
 

@@ -21,7 +21,6 @@ import (
 	"net/url"
 	"time"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
 	ociCommon "github.com/oracle/oci-go-sdk/common"
@@ -73,7 +72,6 @@ func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		SecretId:       request.SecretId,
 		CreatedBy:      userId,
 		Distribution:   pkgCluster.OKE,
-		TtlMinutes:     request.TtlMinutes,
 	}
 	updateScaleOptions(&oke.modelCluster.ScaleOptions, request.ScaleOptions)
 
@@ -193,7 +191,7 @@ func (o *OKECluster) DeleteCluster() error {
 // Persist save the cluster model
 // Deprecated: Do not use.
 func (o *OKECluster) Persist() error {
-	return emperror.Wrap(o.modelCluster.Save(), "failed to persist cluster")
+	return errors.WrapIf(o.modelCluster.Save(), "failed to persist cluster")
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
@@ -361,7 +359,6 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		CreatorBaseFields: *NewCreatorBaseFields(o.modelCluster.CreatedAt, o.modelCluster.CreatedBy),
 		NodePools:         nodePools,
 		Region:            o.modelCluster.Location,
-		TtlMinutes:        o.modelCluster.TtlMinutes,
 		StartedAt:         o.modelCluster.StartedAt,
 	}, nil
 }
@@ -521,6 +518,11 @@ func (o *OKECluster) GetConfigSecretId() string {
 // GetK8sConfig returns the Kubernetes config
 func (o *OKECluster) GetK8sConfig() ([]byte, error) {
 	return o.CommonClusterBase.getConfig(o)
+}
+
+// GetK8sUserConfig returns the Kubernetes config
+func (o *OKECluster) GetK8sUserConfig() ([]byte, error) {
+	return o.GetK8sConfig()
 }
 
 // GetClusterManager creates a new oracleClusterManager.ClusterManager
@@ -711,14 +713,4 @@ func (o *OKECluster) getSSHPubKey() (string, error) {
 	sshKey := sshadapter.KeyPairFromSecret(sshSecret)
 
 	return sshKey.PublicKeyData, nil
-}
-
-// GetTTL retrieves the TTL of the cluster
-func (o *OKECluster) GetTTL() time.Duration {
-	return time.Duration(o.modelCluster.TtlMinutes) * time.Minute
-}
-
-// SetTTL sets the lifespan of a cluster
-func (o *OKECluster) SetTTL(ttl time.Duration) {
-	o.modelCluster.TtlMinutes = uint(ttl.Minutes())
 }

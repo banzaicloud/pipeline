@@ -14,70 +14,10 @@
 
 package frontend
 
-import (
-	"emperror.dev/errors"
-)
-
 // Config contains configuration required by the frontend application.
-type Config struct {
-	Issue IssueConfig
-}
+type Config struct{}
 
 // Validate validates the configuration.
 func (c Config) Validate() error {
-	if c.Issue.Enabled {
-		if err := c.Issue.Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// IssueConfig contains Issue configuration.
-type IssueConfig struct {
-	Enabled bool
-	Driver  string
-	Labels  []string
-
-	Github GithubIssueConfig
-}
-
-// Validate validates the configuration.
-func (c IssueConfig) Validate() error {
-	if c.Driver != "github" {
-		return errors.New("only github issue driver is supported")
-	}
-
-	if c.Driver == "github" {
-		if err := c.Github.Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// GithubIssueConfig contains GitHub issue driver configuration.
-type GithubIssueConfig struct {
-	Token      string
-	Owner      string
-	Repository string
-}
-
-// Validate validates the configuration.
-func (c GithubIssueConfig) Validate() error {
-	if c.Token == "" {
-		return errors.New("github token is required")
-	}
-
-	if c.Owner == "" {
-		return errors.New("github issue repository owner is required")
-	}
-
-	if c.Repository == "" {
-		return errors.New("github issue repository is required")
-	}
-
 	return nil
 }

@@ -19,10 +19,10 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -60,7 +60,7 @@ func (e *spotMetricsExporter) Run(interval time.Duration) {
 	e.logger.WithField("interval", interval.String()).Debug("collecting spot request metrics from EKS clusters")
 	err := e.collectMetrics()
 	if err != nil {
-		e.errorHandler.Handle(emperror.Wrap(err, "could not collect spot metrics"))
+		e.errorHandler.Handle(errors.WrapIf(err, "could not collect spot metrics"))
 	}
 
 	ticker := time.NewTicker(interval)
@@ -70,7 +70,7 @@ func (e *spotMetricsExporter) Run(interval time.Duration) {
 			e.logger.WithField("interval", interval.String()).Debug("collecting spot request metrics from EKS clusters")
 			err := e.collectMetrics()
 			if err != nil {
-				e.errorHandler.Handle(emperror.Wrap(err, "could not collect spot metrics"))
+				e.errorHandler.Handle(errors.WrapIf(err, "could not collect spot metrics"))
 			}
 		case <-e.ctx.Done():
 			e.logger.Debug("closing ticker")
@@ -83,7 +83,7 @@ func (e *spotMetricsExporter) Run(interval time.Duration) {
 func (e *spotMetricsExporter) collectMetrics() error {
 	clusters, err := e.manager.GetAllClusters(e.ctx)
 	if err != nil {
-		return emperror.Wrap(err, "could not get clusters from cluster manager")
+		return errors.WrapIf(err, "could not get clusters from cluster manager")
 	}
 
 	requests := make(map[string]*pkgEC2.SpotInstanceRequest)
@@ -94,7 +94,7 @@ func (e *spotMetricsExporter) collectMetrics() error {
 
 		status, err := cluster.GetStatus()
 		if err != nil {
-			e.errorHandler.Handle(emperror.WrapWith(err, "could not get cluster status", "clusterID", clusterID, "clusterName", clusterName))
+			e.errorHandler.Handle(errors.WrapWithDetails(err, "could not get cluster status", "clusterID", clusterID, "clusterName", clusterName))
 		}
 		if status.Status != pkgCluster.Running || cluster.GetDistribution() != pkgCluster.EKS {
 			continue
@@ -103,7 +103,7 @@ func (e *spotMetricsExporter) collectMetrics() error {
 		log.Debug("collecting metrics from cluster")
 		clusterSecret, err := cluster.GetSecretWithValidation()
 		if err != nil {
-			e.errorHandler.Handle(emperror.WrapWith(err, "could not get secret", "clusterID", clusterID, "clusterName", clusterName))
+			e.errorHandler.Handle(errors.WrapWithDetails(err, "could not get secret", "clusterID", clusterID, "clusterName", clusterName))
 			continue
 		}
 
@@ -112,13 +112,13 @@ func (e *spotMetricsExporter) collectMetrics() error {
 			Credentials: verify.CreateAWSCredentials(clusterSecret.Values),
 		})
 		if err != nil {
-			e.errorHandler.Handle(emperror.WrapWith(err, "could not get EC2 service", "clusterID", clusterID, "clusterName", clusterName))
+			e.errorHandler.Handle(errors.WrapWithDetails(err, "could not get EC2 service", "clusterID", clusterID, "clusterName", clusterName))
 			continue
 		}
 
 		srs, err := e.exporter.GetSpotRequests(client)
 		if err != nil {
-			e.errorHandler.Handle(emperror.WrapWith(err, "could not get spot requests", "clusterID", clusterID, "clusterName", clusterName))
+			e.errorHandler.Handle(errors.WrapWithDetails(err, "could not get spot requests", "clusterID", clusterID, "clusterName", clusterName))
 			continue
 		}
 		for key, request := range srs {

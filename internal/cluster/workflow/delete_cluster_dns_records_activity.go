@@ -17,7 +17,7 @@ package workflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 )
 
 const DeleteClusterDNSRecordsActivityName = "delete-cluster-dns-records"
@@ -42,5 +42,5 @@ func MakeDeleteClusterDNSRecordsActivity(deleter ClusterDNSRecordsDeleter) Delet
 }
 
 func (a DeleteClusterDNSRecordsActivity) Execute(ctx context.Context, input DeleteClusterDNSRecordsActivityInput) error {
-	return emperror.Wrap(a.deleter.Delete(input.OrganizationID, input.ClusterUID), "failed to delete cluster DNS records")
+	return errors.WrapIf(a.deleter.Delete(input.OrganizationID, input.ClusterUID), "failed to delete cluster DNS records")
 }

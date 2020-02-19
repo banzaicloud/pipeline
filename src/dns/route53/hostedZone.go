@@ -19,11 +19,10 @@ import (
 	"strings"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/route53"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
@@ -61,7 +60,7 @@ func (dns *awsRoute53) setHostedZoneSoaNTTL(id *string, nttl uint) error {
 	recordSetInput := &route53.ListResourceRecordSetsInput{HostedZoneId: id}
 	recordSetOutput, err := dns.route53Svc.ListResourceRecordSets(recordSetInput)
 	if err != nil {
-		return emperror.WrapWith(err, "listing hosted zone record sets failed", "hostedZoneId", aws.StringValue(id))
+		return errors.WrapIfWithDetails(err, "listing hosted zone record sets failed", "hostedZoneId", aws.StringValue(id))
 	}
 
 	var soaSet *route53.ResourceRecordSet
@@ -92,7 +91,7 @@ func (dns *awsRoute53) setHostedZoneSoaNTTL(id *string, nttl uint) error {
 	}
 
 	_, err = dns.route53Svc.ChangeResourceRecordSets(changeRecordSetInput)
-	return emperror.Wrap(err, "changing SOA record set")
+	return errors.WrapIf(err, "changing SOA record set")
 }
 
 // getHostedZoneWithNameServers returns the hosted zone and it name servers with given id from AWS Route53

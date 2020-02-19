@@ -17,7 +17,6 @@ package ec2
 import (
 	"fmt"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -63,7 +62,7 @@ func (svc *NetworkSvc) VpcAvailable(vpcId string) (bool, error) {
 				return false, nil
 			}
 		}
-		return false, emperror.WrapWith(err, "failed to describe VPC", "vpcId", vpcId)
+		return false, errors.WrapIfWithDetails(err, "failed to describe VPC", "vpcId", vpcId)
 	}
 
 	if len(result.Vpcs) == 1 {
@@ -102,7 +101,7 @@ func (svc *NetworkSvc) RouteTableAvailable(routeTableId, vpcId string) (bool, er
 				return false, nil
 			}
 		}
-		return false, emperror.WrapWith(err, "failed to describe Route Table", "vpcId", vpcId, "routeTableId", routeTableId)
+		return false, errors.WrapIfWithDetails(err, "failed to describe Route Table", "vpcId", vpcId, "routeTableId", routeTableId)
 	}
 
 	if len(result.RouteTables) == 1 {
@@ -139,7 +138,7 @@ func (svc *NetworkSvc) SubnetAvailable(subnetId, vpcId string) (bool, error) {
 				return false, nil
 			}
 		}
-		return false, emperror.WrapWith(err, "failed to describe Subnet", "vpcId", vpcId, "subnetId", subnetId)
+		return false, errors.WrapIfWithDetails(err, "failed to describe Subnet", "vpcId", vpcId, "subnetId", subnetId)
 	}
 
 	if len(result.Subnets) == 1 {
@@ -167,7 +166,7 @@ func (svc *NetworkSvc) GetVpcDefaultSecurityGroup(vpcId string) (string, error) 
 	})
 
 	if err != nil {
-		return "", emperror.WrapWith(err, "failed to describe default security group of the VPC", "vpcId", vpcId)
+		return "", errors.WrapIfWithDetails(err, "failed to describe default security group of the VPC", "vpcId", vpcId)
 	}
 
 	if len(result.SecurityGroups) == 0 {
@@ -186,7 +185,7 @@ func (svc *NetworkSvc) GetSubnetCidr(subnetId string) (string, error) {
 	})
 
 	if err != nil {
-		return "", emperror.WrapWith(err, "failed to describe subnet", "subnetId", subnetId)
+		return "", errors.WrapIfWithDetails(err, "failed to describe subnet", "subnetId", subnetId)
 	}
 
 	if len(result.Subnets) > 0 {

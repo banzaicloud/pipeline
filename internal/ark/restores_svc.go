@@ -15,13 +15,11 @@
 package ark
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -111,7 +109,7 @@ func (s *RestoresService) DeleteByName(name string) error {
 
 	client, err := s.deployments.GetClient()
 	if err != nil {
-		return emperror.Wrap(err, "error getting ark client")
+		return errors.WrapIf(err, "error getting ark client")
 	}
 
 	err = client.DeleteRestoreByName(name)
@@ -119,17 +117,17 @@ func (s *RestoresService) DeleteByName(name string) error {
 		err = nil
 	}
 	if err != nil {
-		return emperror.Wrap(err, "error during deleting restore")
+		return errors.WrapIf(err, "error during deleting restore")
 	}
 
 	restore, err := s.GetModelByName(name)
 	if err != nil {
-		return emperror.Wrap(err, "error during deleting restore")
+		return errors.WrapIf(err, "error during deleting restore")
 	}
 
 	err = s.repository.Delete(restore)
 	if err != nil {
-		return emperror.Wrap(err, "error during deleting restore")
+		return errors.WrapIf(err, "error during deleting restore")
 	}
 
 	return nil
@@ -140,12 +138,12 @@ func (s *RestoresService) DeleteByID(id uint) error {
 
 	restore, err := s.GetModelByID(id)
 	if err != nil {
-		return emperror.Wrap(err, "could not get restore from database")
+		return errors.WrapIf(err, "could not get restore from database")
 	}
 
 	client, err := s.deployments.GetClient()
 	if err != nil {
-		return emperror.Wrap(err, "could not get ARK client")
+		return errors.WrapIf(err, "could not get ARK client")
 	}
 
 	err = client.DeleteRestoreByName(restore.Name)
@@ -153,12 +151,12 @@ func (s *RestoresService) DeleteByID(id uint) error {
 		err = nil
 	}
 	if err != nil {
-		return emperror.Wrap(err, "could not delete restore through ARK")
+		return errors.WrapIf(err, "could not delete restore through ARK")
 	}
 
 	err = s.repository.Delete(restore)
 	if err != nil {
-		return emperror.Wrap(err, "could not delete restore from database")
+		return errors.WrapIf(err, "could not delete restore from database")
 	}
 
 	return nil
@@ -169,13 +167,12 @@ func (s *RestoresService) ListFromARK() ([]arkAPI.Restore, error) {
 
 	client, err := s.deployments.GetClient()
 	if err != nil {
-		return nil, emperror.Wrap(err, "error getting ark client")
+		return nil, errors.WrapIf(err, "error getting ark client")
 	}
 
-	var listOptions metav1.ListOptions
-	restores, err := client.ListRestores(listOptions)
+	restores, err := client.ListRestores()
 	if err != nil {
-		return nil, emperror.Wrap(err, "error getting restores")
+		return nil, errors.WrapIf(err, "error getting restores")
 	}
 
 	return restores.Items, nil
@@ -204,17 +201,17 @@ func (s *RestoresService) Create(req api.CreateRestoreRequest) (*api.Restore, er
 
 	deployment, err := s.deployments.GetActiveDeployment()
 	if err != nil {
-		return nil, emperror.Wrap(err, "error getting active deployment")
+		return nil, errors.WrapIf(err, "error getting active deployment")
 	}
 
 	client, err := s.deployments.GetClient()
 	if err != nil {
-		return nil, emperror.Wrap(err, "error getting ark client")
+		return nil, errors.WrapIf(err, "error getting ark client")
 	}
 
 	restore, err := client.CreateRestore(req)
 	if err != nil {
-		return nil, emperror.Wrap(err, "error creating restore")
+		return nil, errors.WrapIf(err, "error creating restore")
 	}
 
 	if restore.Status.Phase == "" {
@@ -230,7 +227,7 @@ func (s *RestoresService) Create(req api.CreateRestoreRequest) (*api.Restore, er
 
 	restoreItem, err := s.Persist(r)
 	if err != nil {
-		return nil, emperror.Wrap(err, "error persisting restore")
+		return nil, errors.WrapIf(err, "error persisting restore")
 	}
 
 	return restoreItem, nil

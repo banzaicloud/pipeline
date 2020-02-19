@@ -15,9 +15,8 @@
 package backups
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
@@ -40,7 +39,7 @@ func GetLogs(c *gin.Context) {
 
 	backup, err := svc.GetBackupsService().GetByID(backupID)
 	if err != nil {
-		err = emperror.Wrap(err, "could not get backup")
+		err = errors.WrapIf(err, "could not get backup")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
@@ -55,7 +54,7 @@ func GetLogs(c *gin.Context) {
 
 	err = svc.GetBucketsService().StreamBackupLogsFromObjectStore(backup.Bucket, backup.Name, c.Writer)
 	if err != nil {
-		err = emperror.Wrap(err, "could not stream backup logs")
+		err = errors.WrapIf(err, "could not stream backup logs")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return

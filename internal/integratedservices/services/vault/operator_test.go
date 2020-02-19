@@ -23,6 +23,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -51,7 +52,7 @@ func TestIntegratedServiceOperator_Apply(t *testing.T) {
 		},
 	}
 
-	logger := commonadapter.NewNoopLogger()
+	logger := services.NoopLogger{}
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	op := MakeIntegratedServicesOperator(clusterGetter, clusterService, helmService, &kubernetesService, secretStore, Config{}, logger)
 
@@ -122,7 +123,7 @@ func TestIntegratedServiceOperator_Deactivate(t *testing.T) {
 	clusterService := integratedserviceadapter.NewClusterService(clusterGetter)
 	helmService := dummyHelmService{}
 	kubernetesService := dummyKubernetesService{}
-	logger := commonadapter.NewNoopLogger()
+	logger := services.NoopLogger{}
 	op := MakeIntegratedServicesOperator(clusterGetter, clusterService, helmService, &kubernetesService, nil, Config{}, logger)
 
 	ctx := context.Background()

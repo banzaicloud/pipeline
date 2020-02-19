@@ -24,12 +24,12 @@ import (
 	v1meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	"github.com/banzaicloud/pipeline/internal/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 func TestIngressEndpointUrls(t *testing.T) {
-	//given
+	// given
 	ingress := &v1beta1.Ingress{
 		Spec: v1beta1.IngressSpec{
 			Backend: &v1beta1.IngressBackend{},
@@ -121,7 +121,7 @@ func TestIngressEndpointUrls(t *testing.T) {
 	}
 
 	// when
-	logger := commonadapter.NewNoopLogger()
+	logger := common.NoopLogger{}
 	actualEndpoints := getIngressEndpoints(loadBalancerPublicHost, ingress, serviceForIngress, logger)
 
 	// then
@@ -359,7 +359,7 @@ func TestLoadBalancersWithIngressPaths(t *testing.T) {
 			inputIngressList: ingressListWithMultipleLoadBalancer, expectedEndPointList: expectedEndpointWithMultipleLoadBalancer},
 		{testName: "serviceWithPorts", inputServiceList: serviceListWithPort, inputIngressList: nil, expectedEndPointList: expectedEndpointListWithPort},
 	}
-	logger := commonadapter.NewNoopLogger()
+	logger := common.NoopLogger{}
 	m := NewEndpointManager(logger)
 	for _, tc := range cases {
 		t.Run(tc.testName, func(t *testing.T) {

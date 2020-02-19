@@ -16,20 +16,26 @@ package istiofeature
 
 import (
 	"emperror.dev/emperror"
-	istiooperatorclientset "github.com/banzaicloud/istio-operator/pkg/client/clientset/versioned"
+	"emperror.dev/errors"
+	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
 	"github.com/sirupsen/logrus"
-	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
+func init() {
+	_ = v1beta1.AddToScheme(scheme.Scheme)
+	_ = apiextensionsv1beta1.AddToScheme(scheme.Scheme)
+}
+
 // NewMeshReconciler crates a new mesh feature reconciler
 func NewMeshReconciler(config Config, clusterGetter api.ClusterGetter, logger logrus.FieldLogger, errorHandler emperror.Handler) *MeshReconciler {
-	config = config.init()
-
 	reconciler := &MeshReconciler{
 		Configuration: config,
 
@@ -77,61 +83,42 @@ func (m *MeshReconciler) getRemoteClusters() []cluster.CommonCluster {
 	return remotes
 }
 
-func (m *MeshReconciler) getMasterK8sClient() (*kubernetes.Clientset, error) {
-	return m.getK8sClient(m.Master)
+func (m *MeshReconciler) getMasterK8sClient() (runtimeclient.Client, error) {
+	return m.getRuntimeK8sClient(m.Master)
 }
 
 func (m *MeshReconciler) getK8sClient(c cluster.CommonCluster) (*kubernetes.Clientset, error) {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get k8s config")
+		return nil, errors.WrapIf(err, "could not get k8s config")
 	}
 
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		return nil, emperror.Wrap(err, "cloud not create client from kubeconfig")
+		return nil, errors.WrapIf(err, "cloud not create client from kubeconfig")
 	}
 
 	return client, nil
 }
 
-func (m *MeshReconciler) getMasterIstioOperatorK8sClient() (*istiooperatorclientset.Clientset, error) {
-	return m.getIstioOperatorK8sClient(m.Master)
+func (m *MeshReconciler) getMasterRuntimeK8sClient() (runtimeclient.Client, error) {
+	return m.getRuntimeK8sClient(m.Master)
 }
 
-func (m *MeshReconciler) getIstioOperatorK8sClient(c cluster.CommonCluster) (*istiooperatorclientset.Clientset, error) {
+func (m *MeshReconciler) getRuntimeK8sClient(c cluster.CommonCluster) (runtimeclient.Client, error) {
 	kubeConfig, err := m.Master.GetK8sConfig()
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get k8s config")
+		return nil, errors.WrapIf(err, "could not get k8s config")
 	}
 
 	config, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not create rest config from kubeconfig")
+		return nil, errors.WrapIf(err, "could not create rest config from kubeconfig")
 	}
 
-	client, err := istiooperatorclientset.NewForConfig(config)
+	client, err := runtimeclient.New(config, runtimeclient.Options{})
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not create istio operator client")
-	}
-
-	return client, nil
-}
-
-func (m *MeshReconciler) getApiExtensionK8sClient(c cluster.CommonCluster) (*apiextensionsclient.Clientset, error) {
-	kubeConfig, err := m.Master.GetK8sConfig()
-	if err != nil {
-		return nil, emperror.Wrap(err, "could not get k8s config")
-	}
-
-	config, err := k8sclient.NewClientConfig(kubeConfig)
-	if err != nil {
-		return nil, emperror.Wrap(err, "could not create rest config from kubeconfig")
-	}
-
-	client, err := apiextensionsclient.NewForConfig(config)
-	if err != nil {
-		return nil, emperror.Wrap(err, "could not create istio operator client")
+		return nil, errors.WrapIf(err, "could not create runtime client")
 	}
 
 	return client, nil

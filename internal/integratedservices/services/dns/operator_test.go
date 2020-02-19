@@ -23,6 +23,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -74,7 +75,7 @@ func TestIntegratedServiceOperator_Apply(t *testing.T) {
 	}
 	clusterService := integratedserviceadapter.NewClusterService(clusterGetter)
 	helmService := dummyHelmService{}
-	logger := commonadapter.NewNoopLogger()
+	logger := services.NoopLogger{}
 	orgDomainService := dummyOrgDomainService{
 		Domain: "the.domain",
 		OrgID:  orgID,
@@ -195,7 +196,7 @@ func TestIntegratedServiceOperator_Deactivate(t *testing.T) {
 	}
 	clusterService := integratedserviceadapter.NewClusterService(clusterGetter)
 	helmService := dummyHelmService{}
-	logger := commonadapter.NewNoopLogger()
+	logger := services.NoopLogger{}
 	op := MakeIntegratedServiceOperator(clusterGetter, clusterService, helmService, logger, nil, nil, Config{})
 
 	ctx := context.Background()

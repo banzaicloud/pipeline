@@ -17,8 +17,7 @@ package federation
 import (
 	"strings"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 
@@ -30,7 +29,7 @@ import (
 func DeleteDeployment(c cluster.CommonCluster, releaseName string) error {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
-		return emperror.Wrap(err, "could not get k8s config")
+		return errors.WrapIf(err, "could not get k8s config")
 	}
 
 	err = helm.DeleteDeployment(releaseName, kubeConfig)
@@ -39,7 +38,7 @@ func DeleteDeployment(c cluster.CommonCluster, releaseName string) error {
 		if e != nil && strings.Contains(e.Error(), "not found") {
 			return nil
 		}
-		return emperror.Wrap(err, "could not remove deployment")
+		return errors.WrapIf(err, "could not remove deployment")
 	}
 
 	return nil
@@ -57,17 +56,17 @@ func InstallOrUpgradeDeployment(
 ) error {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
-		return emperror.Wrap(err, "could not get k8s config")
+		return errors.WrapIf(err, "could not get k8s config")
 	}
 
 	org, err := auth.GetOrganizationById(c.GetOrganizationId())
 	if err != nil {
-		return emperror.Wrap(err, "could not get organization")
+		return errors.WrapIf(err, "could not get organization")
 	}
 
 	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
 	if err != nil {
-		return emperror.Wrap(err, "unable to fetch deployments from helm")
+		return errors.WrapIf(err, "unable to fetch deployments from helm")
 	}
 
 	var foundRelease *pkgHelmRelease.Release
@@ -88,13 +87,13 @@ func InstallOrUpgradeDeployment(
 			}
 			_, err = helm.UpgradeDeployment(releaseName, deploymentName, chartVersion, nil, values, false, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
 			if err != nil {
-				return emperror.WrapWith(err, "could not upgrade deployment", "deploymentName", deploymentName)
+				return errors.WrapIfWithDetails(err, "could not upgrade deployment", "deploymentName", deploymentName)
 			}
 			return nil
 		case pkgHelmRelease.Status_FAILED:
 			err = helm.DeleteDeployment(releaseName, kubeConfig)
 			if err != nil {
-				return emperror.WrapWith(err, "failed to delete failed deployment", "deploymentName", deploymentName)
+				return errors.WrapIfWithDetails(err, "failed to delete failed deployment", "deploymentName", deploymentName)
 			}
 		}
 	}
@@ -117,7 +116,7 @@ func InstallOrUpgradeDeployment(
 		options...,
 	)
 	if err != nil {
-		return emperror.WrapWith(err, "could not deploy", "deploymentName", deploymentName)
+		return errors.WrapIfWithDetails(err, "could not deploy", "deploymentName", deploymentName)
 	}
 
 	return nil

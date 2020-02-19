@@ -298,11 +298,9 @@ paths:
                         default: false
             responses:
                 202:
-                    description: Cluster deleted successfully
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterDelete_200'
+                    description: Cluster delete in progress
+                204:
+                    description: Cluster deleted
                 default:
                     $ref: '#/components/responses/Error'
 
@@ -407,50 +405,6 @@ paths:
                                 $ref: '#/components/schemas/ClusterConfig'
                 default:
                     $ref: '#/components/responses/Error'
-
-    /api/v1/orgs/{orgId}/clusters/{id}/apiendpoint:
-        get:
-            security:
-                - bearerAuth: []
-            tags:
-                - clusters
-            summary: Get API endpoint
-            operationId: GetAPIEndpoint
-            description: Get API endpoint
-            parameters:
-                - $ref: '#/components/parameters/orgId'
-                - $ref: '#/components/parameters/clusterId'
-            responses:
-                200:
-                    description: "API endpoint showed"
-                    content:
-                        text/plain:
-                            schema:
-                                type: string
-                                example: "35.195.56.31"
-                default:
-                    $ref: '#/components/responses/Error'
-
-    /api/v1/orgs/{orgId}/clusters/{id}/monitoring:
-        post:
-            security:
-                - bearerAuth: []
-            tags:
-                - clusters
-            summary: Update monitoring
-            operationId: UpdateMonitoring
-            description: Update monitoring
-            parameters:
-                - $ref: '#/components/parameters/orgId'
-                - $ref: '#/components/parameters/clusterId'
-            responses:
-                200:
-                    description: "Monitoring updated"
-                    content:
-                        text/plain:
-                            schema:
-                                type: string
-                                example: "OK"
 
     /api/v1/orgs/{orgId}/clusters/{id}/endpoints:
         get:
@@ -1857,9 +1811,6 @@ paths:
                                             "enabled": true,
                                             "managed": false
                                         }
-                                    },
-                                    "issue": {
-                                        "enabled": false
                                     }
                                 }
 
@@ -3582,10 +3533,10 @@ paths:
                 default:
                     $ref: '#/components/responses/Error'
 
-    /api/v1/orgs/{orgId}/clusters/{id}/features:
+    /api/v1/orgs/{orgId}/clusters/{id}/services:
         get:
             operationId: ListIntegratedServices
-            summary: List enabled features of a cluster
+            summary: List enabled integrated services of a cluster
             tags:
                 - integrated services
             security:
@@ -3603,14 +3554,14 @@ paths:
                 default:
                     $ref: '#/components/responses/Error'
 
-    /api/v1/orgs/{orgId}/clusters/{id}/features/{featureName}:
+    /api/v1/orgs/{orgId}/clusters/{id}/services/{serviceName}:
         parameters:
             - $ref: '#/components/parameters/orgId'
             - $ref: '#/components/parameters/clusterId'
             -
-                name: featureName
+                name: serviceName
                 in: path
-                description: Feature name
+                description: service name
                 required: true
                 schema:
                     type: string
@@ -3634,7 +3585,7 @@ paths:
 
         post:
             operationId: ActivateIntegratedService
-            summary: Activate a integrated service
+            summary: Activate an integrated service
             tags:
                 - integrated services
             security:
@@ -4132,11 +4083,6 @@ components:
                 cloud:
                     type: string
                     example: "google"
-                ttlMinutes:
-                    type: integer
-                    minimum: 0
-                    example: 120
-                    description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
                 secretId:
                     type: string
                     example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
@@ -4278,6 +4224,7 @@ components:
                     enum:
                         - weave
                         - calico
+                        - cilium
                 providerConfig:
                     type: object
 
@@ -5122,11 +5069,6 @@ components:
                 cloud:
                     type: string
                     example: google
-                ttlMinutes:
-                    type: integer
-                    minimum: 0
-                    example: 120
-                    description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
                 properties:
                     type: object
                     # additionalProperties:
@@ -5315,19 +5257,6 @@ components:
                         type: string
                         example:
                             example.io/label1: value1
-
-        ClusterDelete_200:
-            type: object
-            properties:
-                status:
-                    type: integer
-                    example: 202
-                name:
-                    type: string
-                    example: "gkecluster-pipelineuser-123"
-                id:
-                    type: integer
-                    example: 1
 
         ListEndpointsResponse:
             type: object
@@ -6443,11 +6372,6 @@ components:
                 region:
                     type: string
                     example: "us-central1"
-                ttlMinutes:
-                    type: integer
-                    minimum: 0
-                    example: 120
-                    description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
                 nodePools:
                     type: object
                     additionalProperties:

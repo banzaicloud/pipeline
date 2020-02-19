@@ -24,6 +24,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+
+	"github.com/banzaicloud/pipeline/internal/global"
+
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/nodepools"
 
@@ -70,7 +76,6 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		},
 		RbacEnabled: true,
 		CreatedBy:   userId,
-		TtlMinutes:  request.TtlMinutes,
 	}
 
 	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
@@ -402,7 +407,6 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Version:           c.modelCluster.EKS.Version,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		Region:            c.modelCluster.Location,
-		TtlMinutes:        c.modelCluster.TtlMinutes,
 		StartedAt:         c.modelCluster.StartedAt,
 	}, nil
 }
@@ -536,9 +540,44 @@ func (c *EKSCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
-// GetK8sConfig returns the Kubernetes config
+// GetK8sConfig returns the Kubernetes config for internal use
 func (c *EKSCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
+}
+
+// GetK8sUserConfig returns the Kubernetes config for external users
+func (c *EKSCluster) GetK8sUserConfig() ([]byte, error) {
+	adminConfig, err := c.CommonClusterBase.getConfig(c)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get raw kubernetes config")
+	}
+
+	if global.Config.Distribution.EKS.ExposeAdminKubeconfig {
+		return adminConfig, nil
+	}
+
+	parsedAdminConfig, err := clientcmd.Load(adminConfig)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to load kubernetes API config")
+	}
+
+	userConfig := k8sutil.ExtractConfigBase(parsedAdminConfig).CreateConfigFromTemplate(
+		k8sutil.CreateAuthInfoFunc(func(clusterName string) *clientcmdapi.AuthInfo {
+			return &clientcmdapi.AuthInfo{
+				Exec: &clientcmdapi.ExecConfig{
+					APIVersion: "client.authentication.k8s.io/v1alpha1",
+					Command:    "aws-iam-authenticator",
+					Args:       []string{"token", "-i", clusterName},
+				},
+			}
+		}))
+
+	out, err := clientcmd.Write(*userConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to serialize generated user config")
+	}
+
+	return out, nil
 }
 
 // RequiresSshPublicKey returns true as a public ssh key is needed for bootstrapping
@@ -560,16 +599,6 @@ func (c *EKSCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 // SetScaleOptions sets scale options for the cluster
 func (c *EKSCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
-}
-
-// GetTTL retrieves the TTL of the cluster
-func (c *EKSCluster) GetTTL() time.Duration {
-	return time.Duration(c.modelCluster.TtlMinutes) * time.Minute
-}
-
-// SetTTL sets the lifespan of a cluster
-func (c *EKSCluster) SetTTL(ttl time.Duration) {
-	c.modelCluster.TtlMinutes = uint(ttl.Minutes())
 }
 
 // GetEKSNodePools returns EKS node pools from a common cluster.

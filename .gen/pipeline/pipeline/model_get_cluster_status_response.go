@@ -46,9 +46,6 @@ type GetClusterStatusResponse struct {
 
 	Region string `json:"region,omitempty"`
 
-	// The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-	TtlMinutes int32 `json:"ttlMinutes,omitempty"`
-
 	NodePools map[string]NodePoolStatus `json:"nodePools,omitempty"`
 
 	TotalSummary ResourceSummary `json:"totalSummary,omitempty"`

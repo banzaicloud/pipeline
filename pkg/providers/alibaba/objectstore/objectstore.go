@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -56,7 +56,7 @@ func NewPlainObjectStore() (*objectStore, error) {
 func New(config Config, credentials Credentials) (*objectStore, error) {
 	client, err := newClient(config, credentials)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not create Alibaba client")
+		return nil, errors.WrapIf(err, "could not create Alibaba client")
 	}
 
 	return &objectStore{
@@ -83,7 +83,7 @@ func (o *objectStore) CreateBucket(bucketName string) (err error) {
 	err = o.client.CreateBucket(bucketName)
 	if err != nil {
 		err = o.convertError(err)
-		return emperror.WrapWith(err, "bucket creation failed", "bucket", bucketName)
+		return errors.WrapIfWithDetails(err, "bucket creation failed", "bucket", bucketName)
 	}
 
 	return nil
@@ -95,7 +95,7 @@ func (o *objectStore) ListBuckets() ([]string, error) {
 
 	result, err := o.client.ListBuckets()
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not list buckets")
+		return nil, errors.WrapIf(err, "could not list buckets")
 	}
 
 	for _, bucket := range result.Buckets {
@@ -109,7 +109,7 @@ func (o *objectStore) ListBuckets() ([]string, error) {
 func (o *objectStore) GetLocation(bucketName string) (string, error) {
 	location, err := o.client.GetBucketLocation(bucketName)
 	if err != nil {
-		return "", emperror.WrapWith(err, "failed to fetch bucket location", "bucketname", bucketName)
+		return "", errors.WrapIfWithDetails(err, "failed to fetch bucket location", "bucketname", bucketName)
 	}
 	return location, nil
 }
@@ -124,7 +124,7 @@ func (o *objectStore) CheckBucket(bucketName string) error {
 	_, err = client.GetBucketInfo(bucketName)
 	if err != nil {
 		err = o.convertError(err)
-		return emperror.WrapWith(err, "checking bucket failed", "bucket", bucketName)
+		return errors.WrapIfWithDetails(err, "checking bucket failed", "bucket", bucketName)
 	}
 
 	return nil
@@ -134,11 +134,11 @@ func (o *objectStore) CheckBucket(bucketName string) error {
 func (o *objectStore) DeleteBucket(bucketName string) error {
 	obj, err := o.ListObjects(bucketName)
 	if err != nil {
-		return emperror.WrapWith(err, "failed to list objects", "bucket", bucketName)
+		return errors.WrapIfWithDetails(err, "failed to list objects", "bucket", bucketName)
 	}
 
 	if len(obj) > 0 {
-		return emperror.With(pkgErrors.ErrorBucketDeleteNotEmpty, "bucket", bucketName)
+		return errors.WithDetails(pkgErrors.ErrorBucketDeleteNotEmpty, "bucket", bucketName)
 	}
 
 	client, err := o.getClientForBucket(bucketName)
@@ -149,7 +149,7 @@ func (o *objectStore) DeleteBucket(bucketName string) error {
 	err = client.DeleteBucket(bucketName)
 	if err != nil {
 		err = o.convertError(err)
-		return emperror.WrapWith(err, "bucket deletion failed", "bucket", bucketName)
+		return errors.WrapIfWithDetails(err, "bucket deletion failed", "bucket", bucketName)
 	}
 
 	return nil
@@ -161,7 +161,7 @@ func (o *objectStore) ListObjects(bucketName string) ([]string, error) {
 
 	result, err := o.listObjectsWithOptions(bucketName)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "error listing object for bucket", "bucket", bucketName)
+		return nil, errors.WrapIfWithDetails(err, "error listing object for bucket", "bucket", bucketName)
 	}
 
 	for _, object := range result.Objects {
@@ -177,7 +177,7 @@ func (o *objectStore) ListObjectsWithPrefix(bucketName, prefix string) ([]string
 
 	result, err := o.listObjectsWithOptions(bucketName, oss.Prefix(prefix))
 	if err != nil {
-		return nil, emperror.WrapWith(err, "error listing object for bucket", "bucket", bucketName, "prefix", prefix)
+		return nil, errors.WrapIfWithDetails(err, "error listing object for bucket", "bucket", bucketName, "prefix", prefix)
 	}
 
 	for _, object := range result.Objects {
@@ -193,7 +193,7 @@ func (o *objectStore) ListObjectKeyPrefixes(bucketName string, delimiter string)
 
 	result, err := o.listObjectsWithOptions(bucketName, oss.Delimiter(delimiter))
 	if err != nil {
-		return nil, emperror.WrapWith(err, "error getting prefixes for bucket", "bucket", bucketName, "delimeter", delimiter)
+		return nil, errors.WrapIfWithDetails(err, "error getting prefixes for bucket", "bucket", bucketName, "delimeter", delimiter)
 	}
 
 	for _, prefix := range result.CommonPrefixes {
@@ -207,13 +207,13 @@ func (o *objectStore) ListObjectKeyPrefixes(bucketName string, delimiter string)
 func (o *objectStore) GetObject(bucketName string, key string) (io.ReadCloser, error) {
 	b, err := o.client.Bucket(bucketName)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "error getting bucket instance", "bucket", bucketName)
+		return nil, errors.WrapIfWithDetails(err, "error getting bucket instance", "bucket", bucketName)
 	}
 
 	reader, err := b.GetObject(key)
 	if err != nil {
 		err = o.convertError(err)
-		return nil, emperror.WrapWith(err, "error getting object", "bucket", bucketName, "object", key)
+		return nil, errors.WrapIfWithDetails(err, "error getting object", "bucket", bucketName, "object", key)
 	}
 
 	return reader, nil
@@ -223,13 +223,13 @@ func (o *objectStore) GetObject(bucketName string, key string) (io.ReadCloser, e
 func (o *objectStore) PutObject(bucketName string, key string, body io.Reader) error {
 	b, err := o.client.Bucket(bucketName)
 	if err != nil {
-		return emperror.WrapWith(err, "error getting bucket instance", "bucket", bucketName)
+		return errors.WrapIfWithDetails(err, "error getting bucket instance", "bucket", bucketName)
 	}
 
 	err = b.PutObject(key, body)
 	if err != nil {
 		err = o.convertError(err)
-		return emperror.WrapWith(err, "error putting object", "bucket", bucketName, "object", key)
+		return errors.WrapIfWithDetails(err, "error putting object", "bucket", bucketName, "object", key)
 	}
 
 	return nil
@@ -239,13 +239,13 @@ func (o *objectStore) PutObject(bucketName string, key string, body io.Reader) e
 func (o *objectStore) DeleteObject(bucketName string, key string) error {
 	b, err := o.client.Bucket(bucketName)
 	if err != nil {
-		return emperror.WrapWith(err, "error getting bucket instance", "bucket", bucketName)
+		return errors.WrapIfWithDetails(err, "error getting bucket instance", "bucket", bucketName)
 	}
 
 	err = b.DeleteObject(key)
 	if err != nil {
 		err = o.convertError(err)
-		return emperror.WrapWith(err, "error deleting object", "bucket", bucketName, "object", key)
+		return errors.WrapIfWithDetails(err, "error deleting object", "bucket", bucketName, "object", key)
 	}
 
 	return nil
@@ -255,13 +255,13 @@ func (o *objectStore) DeleteObject(bucketName string, key string) error {
 func (o *objectStore) GetSignedURL(bucketName, key string, ttl time.Duration) (string, error) {
 	b, err := o.client.Bucket(bucketName)
 	if err != nil {
-		return "", emperror.WrapWith(err, "error getting bucket instance", "bucket", bucketName)
+		return "", errors.WrapIfWithDetails(err, "error getting bucket instance", "bucket", bucketName)
 	}
 
 	url, err := b.SignURL(key, oss.HTTPGet, int64(ttl.Seconds()))
 	if err != nil {
 		err = o.convertError(err)
-		return "", emperror.WrapWith(err, "could not get signed url", "bucket", bucketName, "object", key)
+		return "", errors.WrapIfWithDetails(err, "could not get signed url", "bucket", bucketName, "object", key)
 	}
 
 	return url, nil
@@ -286,7 +286,7 @@ func (o *objectStore) getClientForBucket(bucketName string) (*oss.Client, error)
 	result, err := o.client.GetBucketLocation(bucketName)
 	if err != nil {
 		err = o.convertError(err)
-		return nil, emperror.WrapWith(err, "get bucket location failed", "bucket", bucketName)
+		return nil, errors.WrapIfWithDetails(err, "get bucket location failed", "bucket", bucketName)
 	}
 	location := strings.TrimPrefix(result, "oss-")
 
@@ -301,7 +301,7 @@ func (o *objectStore) getClientForLocation(location string) (*oss.Client, error)
 		config.Region = location
 		client, err = newClient(config, o.credentials)
 		if err != nil {
-			return nil, emperror.WrapWith(err, "could not create Alibaba client for location", "location", location)
+			return nil, errors.WrapIfWithDetails(err, "could not create Alibaba client for location", "location", location)
 		}
 	}
 

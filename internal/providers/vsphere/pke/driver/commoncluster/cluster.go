@@ -206,6 +206,10 @@ func (a *VspherePkeCluster) GetK8sConfig() ([]byte, error) {
 	return []byte(configStr), nil
 }
 
+func (a *VspherePkeCluster) GetK8sUserConfig() ([]byte, error) {
+	return a.GetK8sConfig()
+}
+
 func (a *VspherePkeCluster) RequiresSshPublicKey() bool {
 	return true
 }

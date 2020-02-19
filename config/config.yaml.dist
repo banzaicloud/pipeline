@@ -114,15 +114,6 @@ dex:
 #        # This will be refactored according to https://github.com/banzaicloud/pipeline/issues/2263
 #        forceGlobal: false
 
-#frontend:
-#    issue:
-#        enabled: false
-#        driver: "github"
-#
-#        github:
-#            owner: "banzaicloud"
-#            repository: "pipeline-issues"
-
 #cluster:
 #    # An initial Kubernetes manifest to be installed on clusters.
 #    # It accepts a file path with valid YAML templates inside.
@@ -176,7 +167,7 @@ dex:
 #        charts:
 #            webhook:
 #                chart: "banzaicloud-stable/vault-secrets-webhook"
-#                version: "0.6.0"
+#                version: "0.8.0"
 #
 #                # See https://github.com/banzaicloud/bank-vaults/tree/master/charts/vault-secrets-webhook for details
 #                values: {}
@@ -193,14 +184,14 @@ dex:
 #        charts:
 #            operator:
 #                chart: "stable/prometheus-operator"
-#                version: "7.2.0"
+#                version: "8.5.14"
 #
 #                # See https://github.com/helm/charts/tree/master/stable/prometheus-operator for details
 #                values: {}
 #
 #            pushgateway:
 #                chart: "stable/prometheus-pushgateway"
-#                version: "1.0.1"
+#                version: "1.2.13"
 #
 #                # See https://github.com/helm/charts/tree/master/stable/prometheus-pushgateway for details
 #                values: {}
@@ -214,14 +205,14 @@ dex:
 #        charts:
 #            operator:
 #                chart: "banzaicloud-stable/logging-operator"
-#                version: "2.6.0"
+#                version: "2.7.2"
 #
 #                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-operator for details
 #                values: {}
 #
 #            loki:
 #                chart: "banzaicloud-stable/loki"
-#                version: "0.16.1"
+#                version: "0.17.0"
 #
 #                # See https://github.com/banzaicloud/banzai-charts/tree/master/loki for details
 #                values: {}
@@ -241,7 +232,7 @@ dex:
 #        charts:
 #            externalDns:
 #                chart: "stable/external-dns"
-#                version: "2.2.3"
+#                version: "2.15.2"
 #
 #                # See https://github.com/helm/charts/tree/master/stable/external-dns for details
 #                values: {}
@@ -253,6 +244,9 @@ dex:
 #            endpoint: ""
 #            user: ""
 #            password: ""
+#
+#    expiry:
+#        enabled: true
 #
 #    autoscale:
 #        # Inherited from cluster.namespace when empty
@@ -294,7 +288,7 @@ dex:
 #
 #            hpaOperator:
 #                chart: "banzaicloud-stable/hpa-operator"
-#                version: "0.0.14"
+#                version: "0.0.16"
 #
 #                # See https://github.com/banzaicloud/banzai-charts/tree/master/hpa-operator for details
 #                values: {}
@@ -328,20 +322,20 @@ dex:
 #            # See https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/istio/deps/grafana/dashboards
 #            grafanaDashboardLocation: ./etc/dashboards/istio
 #
-#            pilotImage: "banzaicloud/istio-pilot:1.3.4-bzc"
-#            mixerImage: "banzaicloud/istio-mixer:1.3.4-bzc"
+#            pilotImage: "banzaicloud/istio-pilot:1.4.2-bzc"
+#            mixerImage: "banzaicloud/istio-mixer:1.4.2-bzc"
 #
 #        charts:
 #            istioOperator:
 #                chart: "banzaicloud-stable/istio-operator"
-#                version: "0.0.24"
+#                version: "0.0.32"
 #
 #                # See https://github.com/banzaicloud/istio-operator/tree/release-1.3/deploy/charts/istio-operator for details
 #                values: {}
 #
 #            backyards:
 #                chart: "banzaicloud-stable/backyards"
-#                version: "1.0.4"
+#                version: "1.1.0"
 #
 #                values: {}
 #
@@ -359,6 +353,46 @@ dex:
 #
 #                # See https://github.com/kubernetes-sigs/kubefed/tree/master/charts/kubefed for details
 #                values: {}
+#
+#    posthook:
+#        ingress:
+#            enabled: true
+#            chart: "banzaicloud-stable/pipeline-cluster-ingress"
+#            version: "0.0.8"
+#
+#            # See https://github.com/helm/charts/tree/master/stable/traefik for details
+#            values: |
+#              traefik:
+#                ssl:
+#                  enabled: true
+#                  generateTLS: true
+#
+#        dashboard:
+#            enabled: true
+#            chart: "banzaicloud-stable/kubernetes-dashboard"
+#            version: "0.9.1"
+#
+#        spotconfig:
+#            enabled: true
+#            charts:
+#                scheduler:
+#                    chart: "banzaicloud-stable/spot-scheduler"
+#                    version: "0.1.0"
+#                webhook:
+#                    chart: "banzaicloud-stable/spot-config-webhook"
+#                    version: "0.1.5"
+#
+#        ith:
+#            enabled: true
+#            chart: "banzaicloud-stable/instance-termination-handler"
+#            version: "0.0.7"
+#
+#        hpa:
+#            enabled: true
+#
+#        autoscaler:
+#            enabled: true
+
 
 #helm:
 #    home: "./var/cache"
@@ -382,6 +416,11 @@ dex:
 #    eks:
 #        # EKS Cloud Formation template location
 #        templateLocation: ./templates/eks
+#        # Expose admin kubeconfig over the API by default.
+#        # Set this to false to remove credentials from the config and make the user responsible for how they authenticate.
+#        exposeAdminKubeconfig: true
+#        ssh:
+#            generate: true
 
 cloudinfo:
     # Format: {baseUrl}/api/v1

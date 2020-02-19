@@ -17,7 +17,7 @@ package workflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 )
 
 const DeleteUnusedClusterSecretsActivityName = "delete-unused-cluster-secrets"
@@ -42,5 +42,5 @@ func MakeDeleteUnusedClusterSecretsActivity(secrets SecretStore) DeleteUnusedClu
 }
 
 func (a DeleteUnusedClusterSecretsActivity) Execute(_ context.Context, input DeleteUnusedClusterSecretsActivityInput) error {
-	return emperror.Wrap(a.secrets.DeleteByClusterUID(input.OrganizationID, input.ClusterUID), "failed to delete secrets by cluster unique ID")
+	return errors.WrapIf(a.secrets.DeleteByClusterUID(input.OrganizationID, input.ClusterUID), "failed to delete secrets by cluster unique ID")
 }

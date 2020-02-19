@@ -16,33 +16,46 @@ package secrettypedriver
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"emperror.dev/errors"
+	"emperror.dev/errors/match"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	appkithttp "github.com/sagikazarmark/appkit/transport/http"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/secrettype"
-	"github.com/banzaicloud/pipeline/pkg/problems"
+	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 )
 
 // RegisterHTTPHandlers mounts all of the service endpoints into an http.Handler.
 func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
+	errorEncoder := kitxhttp.NewJSONProblemErrorResponseEncoder(apphttp.NewDefaultProblemConverter(
+		appkithttp.WithProblemMatchers(
+			appkithttp.NewStatusProblemMatcher(http.StatusNotFound, match.Is(secrettype.ErrNotSupportedSecretType).MatchError),
+		),
+	))
+
 	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
 		endpoints.ListSecretTypes,
 		kithttp.NopRequestDecoder,
-		kitxhttp.ErrorResponseEncoder(kitxhttp.JSONResponseEncoder, errorEncoder),
+		kitxhttp.ErrorResponseEncoder(encodeListSecretTypesHTTPResponse, errorEncoder),
 		options...,
 	))
 
 	router.Methods(http.MethodGet).Path("/{type}").Handler(kithttp.NewServer(
 		endpoints.GetSecretType,
 		decodeGetSecretTypeHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(kitxhttp.JSONResponseEncoder, errorEncoder),
+		kitxhttp.ErrorResponseEncoder(encodeGetSecretTypeHTTPResponse, errorEncoder),
 		options...,
 	))
+}
+
+func encodeListSecretTypesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(ListSecretTypesResponse)
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp.SecretTypes)
 }
 
 func decodeGetSecretTypeHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -53,27 +66,11 @@ func decodeGetSecretTypeHTTPRequest(_ context.Context, r *http.Request) (interfa
 		return nil, errors.NewWithDetails("missing parameter from the URL", "param", "type")
 	}
 
-	return getSecretTypeRequest{SecretType: t}, nil
+	return GetSecretTypeRequest{SecretType: t}, nil
 }
 
-func errorEncoder(_ context.Context, w http.ResponseWriter, e error) error {
-	var problem problems.StatusProblem
+func encodeGetSecretTypeHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(GetSecretTypeResponse)
 
-	switch {
-	case errors.Is(e, secrettype.ErrNotSupportedSecretType):
-		problem = problems.NewDetailedProblem(http.StatusNotFound, e.Error())
-
-	default:
-		problem = problems.NewDetailedProblem(http.StatusInternalServerError, "something went wrong")
-	}
-
-	w.Header().Set("Content-Type", problems.ProblemMediaType)
-	w.WriteHeader(problem.ProblemStatus())
-
-	err := json.NewEncoder(w).Encode(problem)
-	if err != nil {
-		return errors.Wrap(err, "failed to encode error response")
-	}
-
-	return nil
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp.SecretTypeDef)
 }

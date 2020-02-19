@@ -15,8 +15,8 @@
 package ark
 
 import (
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
@@ -55,7 +55,7 @@ func (s *BackupsService) GetModelByName(name string) (*ClusterBackupsModel, erro
 
 	model, err := s.repository.FindOneByName(name)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not get backup from database")
+		return nil, errors.WrapIf(err, "could not get backup from database")
 	}
 
 	return model, nil
@@ -66,7 +66,7 @@ func (s *BackupsService) GetModelByID(id uint) (*ClusterBackupsModel, error) {
 
 	model, err := s.repository.FindOneByID(id)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not get backup from database")
+		return nil, errors.WrapIf(err, "could not get backup from database")
 	}
 
 	return model, nil

@@ -20,7 +20,6 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
 // NewLocalIntegratedServiceOperationDispatcher dispatches integrated service operations via goroutines
@@ -33,7 +32,7 @@ func NewLocalIntegratedServiceOperationDispatcher(
 	results chan<- error,
 ) LocalIntegratedServiceOperationDispatcher {
 	if logger == nil {
-		logger = commonadapter.NewNoopLogger()
+		logger = common.NoopLogger{}
 	}
 
 	jobQueue := make(chan job, jobQueueSize)

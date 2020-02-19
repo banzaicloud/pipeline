@@ -18,10 +18,9 @@ import (
 	"context"
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
 )
 
@@ -54,7 +53,7 @@ func (a *DeleteElasticIPActivity) Execute(ctx context.Context, input DeleteElast
 
 	client, err := awsCluster.GetAWSClient()
 	if err != nil {
-		return emperror.Wrap(err, "failed to connect to AWS")
+		return errors.WrapIf(err, "failed to connect to AWS")
 	}
 
 	clusterName := c.GetName()
@@ -71,7 +70,7 @@ func (a *DeleteElasticIPActivity) Execute(ctx context.Context, input DeleteElast
 	}
 	descAddrOut, err := e.DescribeAddresses(descAddrIn)
 	if err != nil {
-		return emperror.Wrap(err, "failed to query EIP based on tag")
+		return errors.WrapIf(err, "failed to query EIP based on tag")
 	}
 
 	if descAddrOut == nil || len(descAddrOut.Addresses) == 0 {
@@ -85,7 +84,7 @@ func (a *DeleteElasticIPActivity) Execute(ctx context.Context, input DeleteElast
 		}
 		_, err := e.ReleaseAddress(addrIn)
 		if err != nil {
-			return emperror.Wrapf(err, "failed to release EIP %s (%s)", *ip.AllocationId, *ip.PublicIp)
+			return errors.WrapIff(err, "failed to release EIP %s (%s)", *ip.AllocationId, *ip.PublicIp)
 		}
 		log.Infof("Released EIP: %s (%s)", *ip.AllocationId, *ip.PublicIp)
 	}

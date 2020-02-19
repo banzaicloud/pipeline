@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	credentials "cloud.google.com/go/iam/credentials/apiv1"
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/golang/protobuf/ptypes/duration"
 	"golang.org/x/net/context"
 	googleauth "golang.org/x/oauth2/google"
@@ -44,7 +44,7 @@ func (iam *IamSvc) GenerateNewAccessToken(serviceAccountEmail string, duration *
 	ctx := context.Background()
 	credentialsClient, err := credentials.NewIamCredentialsClient(ctx, option.WithCredentials(iam.googleCredentials))
 	if err != nil {
-		return nil, emperror.Wrap(err, "instantiating GCP IAM credentials client failed")
+		return nil, errors.WrapIf(err, "instantiating GCP IAM credentials client failed")
 	}
 
 	defer credentialsClient.Close()
@@ -61,7 +61,7 @@ func (iam *IamSvc) GenerateNewAccessToken(serviceAccountEmail string, duration *
 
 	resp, err := credentialsClient.GenerateAccessToken(ctx, &req)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "generate GCP access token for service account failed", "service account", serviceAccountEmail)
+		return nil, errors.WrapIfWithDetails(err, "generate GCP access token for service account failed", "service account", serviceAccountEmail)
 	}
 	return resp, nil
 }

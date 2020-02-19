@@ -15,24 +15,27 @@
 package istiofeature
 
 import (
+	"context"
 	"strconv"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"emperror.dev/errors"
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
 )
 
 func (m *MeshReconciler) GetClusterStatus() (map[uint]string, error) {
 	status := make(map[uint]string, 0)
 
-	client, err := m.getMasterIstioOperatorK8sClient()
+	client, err := m.getMasterRuntimeK8sClient()
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get istio operator client")
+		return nil, errors.WrapIf(err, "could not get istio operator client")
 	}
 
-	istios, err := client.IstioV1beta1().Istios(istioOperatorNamespace).List(metav1.ListOptions{})
+	var istios v1beta1.IstioList
+	err = client.List(context.Background(), &istios, runtimeclient.InNamespace(istioOperatorNamespace))
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not list istio CRs")
+		return nil, errors.WrapIf(err, "could not list istio CRs")
 	}
 	for _, istio := range istios.Items {
 		labels := istio.GetLabels()
@@ -54,9 +57,10 @@ func (m *MeshReconciler) GetClusterStatus() (map[uint]string, error) {
 		status[uint(clusterID)] = string(istio.Status.Status)
 	}
 
-	remoteistios, err := client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).List(metav1.ListOptions{})
+	var remoteistios v1beta1.RemoteIstioList
+	err = client.List(context.Background(), &remoteistios, runtimeclient.InNamespace(istioOperatorNamespace))
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not list Remote istio CRs")
+		return nil, errors.WrapIf(err, "could not list Remote istio CRs")
 	}
 	for _, remoteistio := range remoteistios.Items {
 		labels := remoteistio.GetLabels()

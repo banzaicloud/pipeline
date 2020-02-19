@@ -18,10 +18,9 @@ import (
 	"context"
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/ark"
@@ -57,7 +56,7 @@ func ARKMiddleware(db *gorm.DB, logger logrus.FieldLogger) gin.HandlerFunc {
 		}
 		cl, err := clusters.FindOneByID(org.ID, clusterID)
 		if err != nil {
-			err = emperror.Wrap(err, "could not find cluster")
+			err = errors.WrapIf(err, "could not find cluster")
 			ErrorResponse(c, err)
 			ErrorHandler.Handle(err)
 			return
@@ -65,7 +64,7 @@ func ARKMiddleware(db *gorm.DB, logger logrus.FieldLogger) gin.HandlerFunc {
 
 		cluster, err := cluster.GetCommonClusterFromModel(cl)
 		if err != nil {
-			err = emperror.Wrap(err, "could not get cluster from model")
+			err = errors.WrapIf(err, "could not get cluster from model")
 			ErrorResponse(c, err)
 			ErrorHandler.Handle(err)
 			return

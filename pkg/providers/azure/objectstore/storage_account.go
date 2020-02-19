@@ -19,10 +19,9 @@ import (
 
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -63,7 +62,7 @@ func NewAuthorizedStorageAccountClientFromSecret(credentials azure.Credentials) 
 func (s *storageAccount) GetStorageAccountKey(resourceGroup, storageAccount string) (string, error) {
 	keys, err := s.client.ListKeys(context.TODO(), resourceGroup, storageAccount)
 	if err != nil {
-		return "", emperror.With(
+		return "", errors.WithDetails(
 			errors.Wrap(err, "failed to retrieve keys for storage account"),
 			"storage-account", storageAccount,
 		)
@@ -96,7 +95,7 @@ func (s *storageAccount) CheckStorageAccountExistence(resourceGroup, storageAcco
 		},
 	)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to retrieve storage account name availability")
+		return nil, errors.WrapIf(err, "failed to retrieve storage account name availability")
 	}
 
 	if *result.NameAvailable == false {
@@ -104,7 +103,7 @@ func (s *storageAccount) CheckStorageAccountExistence(resourceGroup, storageAcco
 		// retrieve the storage account
 		if _, err = s.client.GetProperties(context.TODO(), resourceGroup, storageAccount); err != nil {
 			logger.Errorf("could not retrieve storage account, %s", *result.Message)
-			return nil, emperror.WrapWith(err, *result.Message, "storage_account", storageAccount, "resource_group", resourceGroup)
+			return nil, errors.WrapIfWithDetails(err, *result.Message, "storage_account", storageAccount, "resource_group", resourceGroup)
 		}
 		// storage name exists, available
 		return &trueVal, nil

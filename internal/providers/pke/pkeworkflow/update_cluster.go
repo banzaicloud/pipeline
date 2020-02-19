@@ -84,9 +84,10 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 
 	// delete removed nodepools
 	{
-		futures := make([]workflow.Future, len(input.NodePoolsToDelete))
+		futures := make([]workflow.Future, 0, 2*len(input.NodePoolsToDelete))
+		errs := make([]error, 0, len(futures))
 
-		for i, np := range input.NodePoolsToDelete {
+		for _, np := range input.NodePoolsToDelete {
 			if np.Master || !np.Worker {
 				continue
 			}
@@ -97,13 +98,21 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 				Pool:      np,
 			}
 
-			futures[i] = workflow.ExecuteActivity(ctx, DeletePoolActivityName, activityInput)
+			// initiate deletion
+			if e := workflow.ExecuteActivity(ctx, DeletePoolActivityName, activityInput).Get(ctx, nil); err != nil {
+				errs = append(errs, errors.Wrapf(e, "couldn't initiate master node pool deletion"))
+				continue
+			}
+
+			futures = append(futures, workflow.ExecuteActivity(ctx, WaitForDeletePoolActivityName, activityInput))
+
 		}
 
-		errs := make([]error, len(futures))
-		for i, future := range futures {
+		for _, future := range futures {
 			if future != nil {
-				errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't delete node pool %q", input.NodePoolsToDelete[i].Name)
+				if e := future.Get(ctx, nil); e != nil {
+					errs = append(errs, errors.Wrap(e, "couldn't delete node pool"))
+				}
 			}
 		}
 

@@ -23,7 +23,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
@@ -72,7 +71,7 @@ func TestIntegratedServiceManager_GetOutput(t *testing.T) {
 	mng := MakeIntegratedServiceManager(clusterGetter, secretStore, Config{}, nil)
 	ctx := auth.SetCurrentOrganizationID(context.Background(), orgID)
 
-	vm, err := newVaultManager(vaultIntegratedServiceSpec{}, orgID, clusterID, "TODOTOKEN", services.NewNoopLogger())
+	vm, err := newVaultManager(vaultIntegratedServiceSpec{}, orgID, clusterID, "TODOTOKEN", services.NoopLogger{})
 	assert.NoError(t, err)
 
 	vVersion, err := vm.getVaultVersion()
@@ -103,7 +102,7 @@ func TestIntegratedServiceManager_GetOutput(t *testing.T) {
 			}`, 13),
 				},
 				"webhook": map[string]interface{}{
-					"version": global.Config.Cluster.Vault.Charts.Webhook.Version,
+					"version": "",
 				},
 			},
 		},
@@ -126,7 +125,7 @@ func TestIntegratedServiceManager_GetOutput(t *testing.T) {
 					"version":        vVersion,
 				},
 				"webhook": map[string]interface{}{
-					"version": global.Config.Cluster.Vault.Charts.Webhook.Version,
+					"version": "",
 				},
 			},
 		},

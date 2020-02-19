@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/iterator"
@@ -79,18 +79,18 @@ func New(config Config, credentials Credentials) (*objectStore, error) {
 
 	credentialsJSON, err := json.Marshal(credentials)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not marshal credentials")
+		return nil, errors.WrapIf(err, "could not marshal credentials")
 	}
 
 	jwtConfig, err := google.JWTConfigFromJSON(credentialsJSON)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get JWT config from JSON")
+		return nil, errors.WrapIf(err, "could not get JWT config from JSON")
 	}
 	if jwtConfig.Email == "" {
-		return nil, emperror.Wrap(err, "credentials does not contain an email")
+		return nil, errors.WrapIf(err, "credentials does not contain an email")
 	}
 	if len(jwtConfig.PrivateKey) == 0 {
-		return nil, emperror.Wrap(err, "credentials does not contain a private key")
+		return nil, errors.WrapIf(err, "credentials does not contain a private key")
 	}
 
 	o.googleAccessID = jwtConfig.Email
@@ -100,12 +100,12 @@ func New(config Config, credentials Credentials) (*objectStore, error) {
 
 	creds, err := google.CredentialsFromJSON(ctx, credentialsJSON, apiStorage.DevstorageFullControlScope)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get credentials from JSON")
+		return nil, errors.WrapIf(err, "could not get credentials from JSON")
 	}
 
 	client, err := storage.NewClient(ctx, option.WithScopes(storage.ScopeReadWrite), option.WithCredentials(creds))
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not create Google client")
+		return nil, errors.WrapIf(err, "could not create Google client")
 	}
 	o.client = client
 
@@ -122,7 +122,7 @@ func (o *objectStore) CreateBucket(bucketName string) error {
 
 	err := bucketHandle.Create(context.Background(), o.projectID, bucketAttrs)
 	if err != nil {
-		return emperror.Wrap(o.convertBucketError(err, bucketName), "could not create bucket")
+		return errors.WrapIf(o.convertBucketError(err, bucketName), "could not create bucket")
 	}
 
 	return nil
@@ -141,7 +141,7 @@ func (o *objectStore) ListBuckets() ([]string, error) {
 		}
 
 		if err != nil {
-			return nil, emperror.Wrap(err, "could not list buckets")
+			return nil, errors.WrapIf(err, "could not list buckets")
 		}
 
 		buckets = append(buckets, bucket.Name)
@@ -154,7 +154,7 @@ func (o *objectStore) ListBuckets() ([]string, error) {
 func (o *objectStore) CheckBucket(bucketName string) error {
 	_, err := o.client.Bucket(bucketName).Attrs(context.Background())
 	if err != nil {
-		return emperror.Wrap(o.convertBucketError(err, bucketName), "could not check bucket")
+		return errors.WrapIf(o.convertBucketError(err, bucketName), "could not check bucket")
 	}
 
 	return nil
@@ -165,16 +165,16 @@ func (o *objectStore) DeleteBucket(bucketName string) error {
 
 	obj, err := o.ListObjects(bucketName)
 	if err != nil {
-		return emperror.WrapWith(err, "failed to list objects", "bucket", bucketName)
+		return errors.WrapIfWithDetails(err, "failed to list objects", "bucket", bucketName)
 	}
 
 	if len(obj) > 0 {
-		return emperror.With(pkgErrors.ErrorBucketDeleteNotEmpty, "bucket", bucketName)
+		return errors.WithDetails(pkgErrors.ErrorBucketDeleteNotEmpty, "bucket", bucketName)
 	}
 
 	err = o.client.Bucket(bucketName).Delete(context.Background())
 	if err != nil {
-		return emperror.Wrap(o.convertBucketError(err, bucketName), "could not delete bucket")
+		return errors.WrapIf(o.convertBucketError(err, bucketName), "could not delete bucket")
 	}
 
 	return nil
@@ -186,7 +186,7 @@ func (o *objectStore) ListObjects(bucketName string) ([]string, error) {
 
 	objects, err := o.listObjectsWithQuery(bucketName, &storage.Query{})
 	if err != nil {
-		return nil, emperror.Wrap(o.convertBucketError(err, bucketName), "could not list objects")
+		return nil, errors.WrapIf(o.convertBucketError(err, bucketName), "could not list objects")
 	}
 
 	for _, object := range objects {
@@ -204,7 +204,7 @@ func (o *objectStore) ListObjectsWithPrefix(bucketName, prefix string) ([]string
 		Prefix: prefix,
 	})
 	if err != nil {
-		return nil, emperror.WrapWith(o.convertBucketError(err, bucketName), "could not list objects", "prefix", prefix)
+		return nil, errors.WrapIfWithDetails(o.convertBucketError(err, bucketName), "could not list objects", "prefix", prefix)
 	}
 
 	for _, object := range objects {
@@ -222,7 +222,7 @@ func (o *objectStore) ListObjectKeyPrefixes(bucketName string, delimiter string)
 		Delimiter: delimiter,
 	})
 	if err != nil {
-		return nil, emperror.WrapWith(o.convertBucketError(err, bucketName), "could not list object key prefixes", "delimeter", delimiter)
+		return nil, errors.WrapIfWithDetails(o.convertBucketError(err, bucketName), "could not list object key prefixes", "delimeter", delimiter)
 	}
 
 	for _, object := range objects {
@@ -238,7 +238,7 @@ func (o *objectStore) ListObjectKeyPrefixes(bucketName string, delimiter string)
 func (o *objectStore) GetObject(bucketName string, key string) (io.ReadCloser, error) {
 	r, err := o.client.Bucket(bucketName).Object(key).NewReader(context.Background())
 	if err != nil {
-		return nil, emperror.Wrap(o.convertObjectError(err, bucketName, key), "could not get object")
+		return nil, errors.WrapIf(o.convertObjectError(err, bucketName, key), "could not get object")
 	}
 
 	return r, nil
@@ -251,11 +251,11 @@ func (o *objectStore) PutObject(bucketName string, key string, body io.Reader) e
 	_, copyErr := io.Copy(w, body)
 	closeErr := w.Close()
 	if copyErr != nil {
-		return emperror.Wrap(o.convertObjectError(copyErr, bucketName, key), "could not create object")
+		return errors.WrapIf(o.convertObjectError(copyErr, bucketName, key), "could not create object")
 	}
 
 	if closeErr != nil {
-		return emperror.Wrap(o.convertObjectError(closeErr, bucketName, key), "could not create object")
+		return errors.WrapIf(o.convertObjectError(closeErr, bucketName, key), "could not create object")
 	}
 
 	return nil
@@ -265,7 +265,7 @@ func (o *objectStore) PutObject(bucketName string, key string, body io.Reader) e
 func (o *objectStore) DeleteObject(bucketName string, key string) error {
 	err := o.client.Bucket(bucketName).Object(key).Delete(context.Background())
 	if err != nil {
-		return emperror.Wrap(o.convertObjectError(err, bucketName, key), "could not delete object")
+		return errors.WrapIf(o.convertObjectError(err, bucketName, key), "could not delete object")
 	}
 
 	return nil
@@ -280,7 +280,7 @@ func (o *objectStore) GetSignedURL(bucketName, key string, ttl time.Duration) (s
 		Expires:        time.Now().Add(ttl),
 	})
 	if err != nil {
-		return "", emperror.Wrap(o.convertObjectError(err, bucketName, key), "could not get signed url")
+		return "", errors.WrapIf(o.convertObjectError(err, bucketName, key), "could not get signed url")
 	}
 
 	return url, nil
@@ -319,7 +319,7 @@ func (o *objectStore) convertBucketError(err error, bucketName string) error {
 		}
 	}
 
-	return emperror.With(err, "bucketName", bucketName)
+	return errors.WithDetails(err, "bucketName", bucketName)
 }
 
 func (o *objectStore) convertObjectError(err error, bucketName, objectName string) error {
@@ -335,5 +335,5 @@ func (o *objectStore) convertObjectError(err error, bucketName, objectName strin
 		}
 	}
 
-	return emperror.With(err, "bucket", bucketName, "object", objectName)
+	return errors.WithDetails(err, "bucket", bucketName, "object", objectName)
 }

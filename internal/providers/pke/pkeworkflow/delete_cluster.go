@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 )
 
@@ -32,6 +33,12 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		ScheduleToStartTimeout: 5 * time.Minute,
 		StartToCloseTimeout:    5 * time.Minute,
 		WaitForCancellation:    true,
+		RetryPolicy: &cadence.RetryPolicy{
+			InitialInterval:    2 * time.Second,
+			BackoffCoefficient: 1.5,
+			MaximumInterval:    30 * time.Second,
+			MaximumAttempts:    5,
+		},
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
@@ -48,29 +55,43 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 	// terminate worker nodes
 	{
-		futures := make([]workflow.Future, len(nodePools))
-
-		for i, np := range nodePools {
+		futures := make([]workflow.Future, 0, len(nodePools))
+		errs := make([]error, 0, 2*len(nodePools))
+		for _, np := range nodePools {
 			if !np.Master && np.Worker {
 				deletePoolActivityInput := DeletePoolActivityInput{
 					ClusterID: input.ClusterID,
 					Pool:      np,
 				}
 
-				futures[i] = workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput)
+				// initiate deletion
+				if e := workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput).Get(ctx, nil); err != nil {
+					errs = append(errs, errors.Wrapf(e, "couldn't initiate worker node pool deletion"))
+					continue
+				}
+
+				// initiate wait for deletion to complete
+				futures = append(futures,
+					workflow.ExecuteActivity(
+						workflow.WithStartToCloseTimeout(
+							workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
+							1*time.Hour),
+						WaitForDeletePoolActivityName, deletePoolActivityInput))
 			}
 		}
 
-		errs := make([]error, len(futures))
-		for i, future := range futures {
+		for _, future := range futures {
 			if future != nil {
-				errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't terminate node pool %q", nodePools[i].Name)
+				if e := future.Get(ctx, nil); e != nil {
+					errs = append(errs, errors.Wrapf(e, "couldn't terminate master node pool"))
+				}
 			}
 		}
 
 		if err := errors.Combine(errs...); err != nil {
 			return err
 		}
+
 	}
 
 	// release NLB
@@ -81,26 +102,47 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	if err = workflow.ExecuteActivity(ctx, DeleteNLBActivityName, deleteNLBActivityInput).Get(ctx, nil); err != nil {
 		return err
 	}
+	if err = workflow.ExecuteActivity(
+		workflow.WithStartToCloseTimeout(
+			workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
+			1*time.Hour),
+		WaitForDeleteNLBActivityName,
+		deleteNLBActivityInput).Get(ctx, nil); err != nil {
+		return err
+	}
 
 	// terminate master nodes
 	{
-		futures := make([]workflow.Future, len(nodePools))
-
-		for i, np := range nodePools {
+		futures := make([]workflow.Future, 0, len(nodePools))
+		errs := make([]error, 0, 2*len(nodePools))
+		for _, np := range nodePools {
 			if np.Master || !np.Worker {
 				deletePoolActivityInput := DeletePoolActivityInput{
 					ClusterID: input.ClusterID,
 					Pool:      np,
 				}
 
-				futures[i] = workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput)
+				// initiate deletion
+				if e := workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput).Get(ctx, nil); err != nil {
+					errs = append(errs, errors.Wrapf(e, "couldn't initiate master node pool deletion"))
+					continue
+				}
+
+				// initiate wait for deletion to complete
+				futures = append(futures, workflow.ExecuteActivity(
+					workflow.WithStartToCloseTimeout(
+						workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
+						1*time.Hour),
+					WaitForDeletePoolActivityName,
+					deletePoolActivityInput))
 			}
 		}
 
-		errs := make([]error, len(futures))
-		for i, future := range futures {
+		for _, future := range futures {
 			if future != nil {
-				errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't terminate node pool %q", nodePools[i].Name)
+				if e := future.Get(ctx, nil); e != nil {
+					errs = append(errs, errors.Wrapf(e, "couldn't terminate worker node pool"))
+				}
 			}
 		}
 
@@ -132,6 +174,14 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		ClusterID: input.ClusterID,
 	}
 	if err = workflow.ExecuteActivity(ctx, DeleteVPCActivityName, deleteVPCActivityInput).Get(ctx, nil); err != nil {
+		return err
+	}
+
+	if err = workflow.ExecuteActivity(
+		workflow.WithStartToCloseTimeout(
+			workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
+			1*time.Hour),
+		WaitForDeleteVPCActivityName, deleteVPCActivityInput).Get(ctx, nil); err != nil {
 		return err
 	}
 

@@ -17,8 +17,8 @@ package eks
 import (
 	"fmt"
 
-	"emperror.dev/emperror"
-	"github.com/Masterminds/semver"
+	"emperror.dev/errors"
+	"github.com/Masterminds/semver/v3"
 
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -93,7 +93,7 @@ const (
 )
 
 // Validate checks Amazon's node fields
-func (a *NodePool) Validate() error {
+func (a *NodePool) Validate(npName string) error {
 	// ---- [ Node instanceType check ] ---- //
 	if len(a.InstanceType) == 0 {
 		return pkgErrors.ErrorInstancetypeFieldIsEmpty
@@ -141,7 +141,7 @@ func (a *NodePool) Validate() error {
 	}
 
 	// --- [Label validation]--- //
-	if err := pkgCommon.ValidateNodePoolLabels(a.Labels); err != nil {
+	if err := pkgCommon.ValidateNodePoolLabels(npName, a.Labels); err != nil {
 		return err
 	}
 
@@ -149,7 +149,7 @@ func (a *NodePool) Validate() error {
 }
 
 // ValidateForUpdate checks Amazon's node fields
-func (a *NodePool) ValidateForUpdate() error {
+func (a *NodePool) ValidateForUpdate(npName string) error {
 
 	// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
 	if a.Autoscaling {
@@ -183,7 +183,7 @@ func (a *NodePool) ValidateForUpdate() error {
 	}
 
 	// --- [Label validation]--- //
-	if err := pkgCommon.ValidateNodePoolLabels(a.Labels); err != nil {
+	if err := pkgCommon.ValidateNodePoolLabels(npName, a.Labels); err != nil {
 		return err
 	}
 
@@ -199,16 +199,21 @@ func (eks *CreateClusterEKS) Validate() error {
 	// validate K8s version
 	isValid, err := isValidVersion(eks.Version)
 	if err != nil {
-		return emperror.Wrap(err, "couldn't validate Kubernetes version")
+		return errors.WrapIf(err, "couldn't validate Kubernetes version")
 	}
 	if !isValid {
 		return pkgErrors.ErrorNotValidKubernetesVersion
 	}
 
-	for _, np := range eks.NodePools {
-		if err := np.Validate(); err != nil {
-			return err
+	// validate node pools
+	var errs []error
+	for npName, np := range eks.NodePools {
+		if err := np.Validate(npName); err != nil {
+			errs = append(errs, err)
 		}
+	}
+	if err := errors.Combine(errs...); err != nil {
+		return err
 	}
 
 	return nil
@@ -222,7 +227,7 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 
 	defaultImage, err := GetDefaultImageID(location, eks.Version)
 	if err != nil {
-		return emperror.Wrapf(err, "couldn't get EKS AMI for Kubernetes version %q in region %q", eks.Version, location)
+		return errors.WrapIff(err, "couldn't get EKS AMI for Kubernetes version %q in region %q", eks.Version, location)
 	}
 
 	if len(eks.NodePools) == 0 {
@@ -270,10 +275,15 @@ func (eks *UpdateClusterAmazonEKS) Validate() error {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
 	}
 
-	for _, np := range eks.NodePools {
-		if err := np.ValidateForUpdate(); err != nil {
-			return err
+	// validate node pools
+	var errs []error
+	for npName, np := range eks.NodePools {
+		if err := np.ValidateForUpdate(npName); err != nil {
+			errs = append(errs, err)
 		}
+	}
+	if err := errors.Combine(errs...); err != nil {
+		return err
 	}
 
 	return nil
@@ -283,12 +293,12 @@ func (eks *UpdateClusterAmazonEKS) Validate() error {
 func isValidVersion(version string) (bool, error) {
 	constraint, err := semver.NewConstraint(">= 1.10, < 1.15")
 	if err != nil {
-		return false, emperror.Wrap(err, "couldn't create semver Kubernetes version check constraint")
+		return false, errors.WrapIf(err, "couldn't create semver Kubernetes version check constraint")
 	}
 
 	v, err := semver.NewVersion(version)
 	if err != nil {
-		return false, emperror.Wrap(err, "couldn't create semver")
+		return false, errors.WrapIf(err, "couldn't create semver")
 	}
 
 	// TODO check if there is an AWS API that can tell us supported Kubernetes versions

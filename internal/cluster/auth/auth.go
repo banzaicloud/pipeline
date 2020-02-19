@@ -19,7 +19,7 @@ import (
 	"encoding/base64"
 	"net/url"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	k8sClient "k8s.io/client-go/tools/clientcmd"
@@ -56,13 +56,13 @@ func newDexClient(hostAndPort, caPath string) (*dexClient, error) {
 	if caPath != "" {
 		creds, err := credentials.NewClientTLSFromFile(caPath, "")
 		if err != nil {
-			return nil, emperror.Wrapf(err, "loading dex CA cert failed")
+			return nil, errors.WrapIff(err, "loading dex CA cert failed")
 		}
 		dialOption = grpc.WithTransportCredentials(creds)
 	}
 	conn, err := grpc.Dial(hostAndPort, dialOption)
 	if err != nil {
-		return nil, emperror.Wrapf(err, "grpc dial failed")
+		return nil, errors.WrapIff(err, "grpc dial failed")
 	}
 	return &dexClient{DexClient: dex.NewDexClient(conn), grpcConn: conn}, nil
 }
@@ -106,12 +106,12 @@ type dexClusterAuthService struct {
 func NewDexClusterAuthService(secretStore *clustersecret.Store) (ClusterAuthService, error) {
 	client, err := newDexClient(global.Config.Dex.APIAddr, global.Config.Dex.APICa)
 	if err != nil {
-		return nil, emperror.Wrapf(err, "failed to create dex auth service")
+		return nil, errors.WrapIff(err, "failed to create dex auth service")
 	}
 
 	pipelineExternalURL, err := url.Parse(global.Config.Pipeline.External.URL)
 	if err != nil {
-		return nil, emperror.Wrapf(err, "failed to parse pipeline externalURL")
+		return nil, errors.WrapIff(err, "failed to parse pipeline externalURL")
 	}
 
 	pipelineExternalURL.Path = "/auth/dex/cluster/callback"
@@ -143,7 +143,7 @@ func (a *dexClusterAuthService) RegisterCluster(ctx context.Context, clusterName
 	}
 
 	if _, err := a.dexClient.CreateClient(ctx, req); err != nil {
-		return emperror.Wrapf(err, "failed to create dex client for cluster: %s", clusterUID)
+		return errors.WrapIff(err, "failed to create dex client for cluster: %s", clusterUID)
 	}
 
 	// save the secret to the secret store
@@ -159,7 +159,7 @@ func (a *dexClusterAuthService) RegisterCluster(ctx context.Context, clusterName
 	_, err := a.secretStore.EnsureSecretExists(ctx, clusterID, secretRequest)
 
 	if err != nil {
-		return emperror.Wrapf(err, "failed to create secret for dex clientID/clientSecret for cluster: %s", clusterUID)
+		return errors.WrapIff(err, "failed to create secret for dex clientID/clientSecret for cluster: %s", clusterUID)
 	}
 
 	return nil
@@ -174,7 +174,7 @@ func (a *dexClusterAuthService) UnRegisterCluster(ctx context.Context, clusterUI
 	}
 
 	if _, err := a.dexClient.DeleteClient(ctx, req); err != nil {
-		return emperror.Wrapf(err, "failed to delete dex client for cluster: %s", clusterUID)
+		return errors.WrapIff(err, "failed to delete dex client for cluster: %s", clusterUID)
 	}
 
 	return nil
@@ -185,7 +185,7 @@ func (a *dexClusterAuthService) GetClusterClientSecret(ctx context.Context, clus
 	secret, err := a.secretStore.GetSecret(ctx, clusterID, authSecretName)
 
 	if err != nil {
-		return ClusterClientSecret{}, emperror.Wrapf(err, "failed to get dex client for cluster: %d", clusterID)
+		return ClusterClientSecret{}, errors.WrapIff(err, "failed to get dex client for cluster: %d", clusterID)
 	}
 
 	return ClusterClientSecret{
@@ -198,12 +198,12 @@ func (a *dexClusterAuthService) GetClusterConfig(ctx context.Context, clusterID 
 
 	secret, err := a.secretStore.GetSecret(ctx, clusterID, configSecretName)
 	if err != nil {
-		return nil, emperror.Wrapf(err, "failed to get dex client for cluster: %d", clusterID)
+		return nil, errors.WrapIff(err, "failed to get dex client for cluster: %d", clusterID)
 	}
 
 	configData, err := base64.StdEncoding.DecodeString(secret.Values[secrettype.K8SConfig])
 	if err != nil {
-		return nil, emperror.Wrapf(err, "failed to base64 decode kubeconfig: %d", clusterID)
+		return nil, errors.WrapIff(err, "failed to base64 decode kubeconfig: %d", clusterID)
 	}
 
 	return k8sClient.Load(configData)

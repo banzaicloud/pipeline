@@ -24,6 +24,7 @@ import (
 type IntegratedServiceManager struct {
 	integratedservices.PassthroughIntegratedServiceSpecPreparer
 
+	config Config
 	logger common.Logger
 }
 
@@ -33,8 +34,9 @@ func (f IntegratedServiceManager) Name() string {
 }
 
 //MakeIntegratedServiceManager creates asecurity scan integrated service manager instance
-func MakeIntegratedServiceManager(logger common.Logger) IntegratedServiceManager {
+func MakeIntegratedServiceManager(logger common.Logger, config Config) IntegratedServiceManager {
 	return IntegratedServiceManager{
+		config: config,
 		logger: logger,
 	}
 }
@@ -48,7 +50,7 @@ func (f IntegratedServiceManager) ValidateSpec(ctx context.Context, spec integra
 		}
 	}
 
-	if err := securityScanSpec.Validate(); err != nil {
+	if err := securityScanSpec.Validate(f.config.PipelineNamespace); err != nil {
 		return integratedservices.InvalidIntegratedServiceSpecError{
 			IntegratedServiceName: IntegratedServiceName,
 			Problem:               err.Error(),
@@ -59,13 +61,15 @@ func (f IntegratedServiceManager) ValidateSpec(ctx context.Context, spec integra
 }
 
 func (f IntegratedServiceManager) GetOutput(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) (integratedservices.IntegratedServiceOutput, error) {
+	// todo read these through the helm service?
 	out := map[string]interface{}{
-		// todo add "real" anchore version
 		"anchore": map[string]interface{}{
-			"version": securityScanChartVersion,
+			// leave this for backwards compatibility
+			// to be populated (externally) via direct call to the configured anchore service
+			"version": "",
 		},
 		"imageValidator": map[string]interface{}{
-			"version": imageValidatorVersion,
+			"version": f.config.Webhook.Version,
 		},
 	}
 

@@ -27,7 +27,7 @@ import (
 // and has the right name
 func TestMakeIntegratedServiceManager(t *testing.T) {
 	var securityScanIntegratedServiceManager interface{}
-	securityScanIntegratedServiceManager = MakeIntegratedServiceManager(nil)
+	securityScanIntegratedServiceManager = MakeIntegratedServiceManager(nil, Config{})
 
 	fm, ok := securityScanIntegratedServiceManager.(integratedservices.IntegratedServiceManager)
 
@@ -79,7 +79,7 @@ func TestIntegratedServiceManager_ValidateSpec(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	integratedServiceManager := MakeIntegratedServiceManager(nil)
+	integratedServiceManager := MakeIntegratedServiceManager(nil, Config{})
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			err := integratedServiceManager.ValidateSpec(ctx, test.spec)

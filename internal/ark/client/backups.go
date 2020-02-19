@@ -15,17 +15,19 @@
 package client
 
 import (
+	"context"
+
 	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
-	v1 "github.com/heptio/ark/pkg/apis/ark/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 )
 
 // CreateBackup creates an ARK backup by a CreateBackupRequest
-func (c *Client) CreateBackup(spec api.CreateBackupRequest) (*v1.Backup, error) {
-
-	backup := &arkAPI.Backup{
+func (c *Client) CreateBackup(spec api.CreateBackupRequest) (*arkAPI.Backup, error) {
+	backup := arkAPI.Backup{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: c.Namespace,
 			Name:      spec.Name,
@@ -43,52 +45,69 @@ func (c *Client) CreateBackup(spec api.CreateBackupRequest) (*v1.Backup, error) 
 		},
 	}
 
-	backup, err := c.Client.ArkV1().Backups(backup.Namespace).Create(backup)
+	err := c.Client.Create(context.Background(), &backup)
 	if err != nil {
 		return nil, err
 	}
 
-	return backup, nil
+	err = c.Client.Get(context.Background(), types.NamespacedName{
+		Name:      backup.Name,
+		Namespace: backup.Namespace,
+	}, &backup)
+	if err != nil {
+		return nil, err
+	}
+
+	return &backup, nil
 }
 
 // ListBackups lists ARK backups
-func (c *Client) ListBackups(listOptions metav1.ListOptions) (backups *arkAPI.BackupList, err error) {
+func (c *Client) ListBackups() (*arkAPI.BackupList, error) {
+	var backups arkAPI.BackupList
 
-	backups, err = c.Client.ArkV1().Backups(c.Namespace).List(listOptions)
+	err := c.Client.List(context.Background(), &backups, runtimeclient.InNamespace(c.Namespace))
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	return &backups, nil
 }
 
 // GetBackupByName gets an ARK backup by name
-func (c *Client) GetBackupByName(name string) (backup *arkAPI.Backup, err error) {
+func (c *Client) GetBackupByName(name string) (*arkAPI.Backup, error) {
+	var backup arkAPI.Backup
 
-	backup, err = c.Client.Ark().Backups(c.Namespace).Get(name, metav1.GetOptions{})
+	err := c.Client.Get(context.Background(), types.NamespacedName{
+		Name:      name,
+		Namespace: c.Namespace,
+	}, &backup)
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	return &backup, nil
 }
 
 // CreateDeleteBackupRequestByName creates a DeleteBackupRequest for an ARK backup by name
-func (c *Client) CreateDeleteBackupRequestByName(name string) (err error) {
-
+func (c *Client) CreateDeleteBackupRequestByName(name string) error {
 	backup, err := c.GetBackupByName(name)
 	if err != nil {
 		return err
 	}
 
-	deleteRequest := &v1.DeleteBackupRequest{
+	deleteRequest := arkAPI.DeleteBackupRequest{
 		ObjectMeta: metav1.ObjectMeta{
+			Namespace:    c.Namespace,
 			GenerateName: name + "-",
 			Labels: map[string]string{
-				v1.BackupNameLabel: backup.Name,
-				v1.BackupUIDLabel:  string(backup.UID),
+				arkAPI.BackupNameLabel: backup.Name,
+				arkAPI.BackupUIDLabel:  string(backup.UID),
 			},
 		},
-		Spec: v1.DeleteBackupRequestSpec{
+		Spec: arkAPI.DeleteBackupRequestSpec{
 			BackupName: backup.Name,
 		},
 	}
 
-	_, err = c.Client.ArkV1().DeleteBackupRequests(c.Namespace).Create(deleteRequest)
-
-	return
+	return c.Client.Create(context.Background(), &deleteRequest)
 }

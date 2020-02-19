@@ -20,6 +20,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
@@ -27,6 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	kubernetes2 "github.com/banzaicloud/pipeline/pkg/kubernetes"
 	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -86,6 +88,12 @@ var (
 )
 
 func TestCreateCommonClusterFromRequest(t *testing.T) {
+
+	labelValidator := kubernetes2.LabelValidator{
+		ForbiddenDomains: []string{},
+	}
+
+	nplabels.SetNodePoolLabelValidator(labelValidator)
 
 	cases := []struct {
 		name          string

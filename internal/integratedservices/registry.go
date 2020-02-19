@@ -79,5 +79,17 @@ func (UnknownIntegratedServiceError) Error() string {
 
 // Details returns the error's details
 func (e UnknownIntegratedServiceError) Details() []interface{} {
-	return []interface{}{"integrated service", e.IntegratedServiceName}
+	return []interface{}{"integratedService", e.IntegratedServiceName}
+}
+
+// NotFound tells a client that this error is related to a resource being not found.
+// Can be used to translate the error to eg. status code.
+func (UnknownIntegratedServiceError) NotFound() bool {
+	return true
+}
+
+// ServiceError tells the transport layer whether this error should be translated into the transport format
+// or an internal error should be returned instead.
+func (UnknownIntegratedServiceError) ServiceError() bool {
+	return true
 }

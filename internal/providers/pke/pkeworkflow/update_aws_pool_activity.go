@@ -17,7 +17,7 @@ package pkeworkflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 )
@@ -54,7 +54,7 @@ func (a *UpdatePoolActivity) Execute(ctx context.Context, input UpdatePoolActivi
 		MaxSize:              aws.Int64(int64(input.Pool.MaxCount)),
 	})
 	if err != nil {
-		return emperror.Wrapf(err, "setting min/max capacity of pool %q", input.Pool.Name)
+		return errors.WrapIff(err, "setting min/max capacity of pool %q", input.Pool.Name)
 	}
 
 	if !input.Pool.Autoscaling {
@@ -66,7 +66,7 @@ func (a *UpdatePoolActivity) Execute(ctx context.Context, input UpdatePoolActivi
 			HonorCooldown:        aws.Bool(false),
 		})
 		if err != nil {
-			return emperror.Wrapf(err, "setting desired capacity of pool %q", input.Pool.Name)
+			return errors.WrapIff(err, "setting desired capacity of pool %q", input.Pool.Name)
 		}
 	}
 
@@ -88,7 +88,7 @@ func (a *UpdatePoolActivity) Execute(ctx context.Context, input UpdatePoolActivi
 		},
 	})
 	if err != nil {
-		return emperror.Wrap(err, "failed to create tags for ASG")
+		return errors.WrapIf(err, "failed to create tags for ASG")
 	}
 
 	_, err = autoscalingSrv.DeleteTags(&autoscaling.DeleteTagsInput{
@@ -103,7 +103,7 @@ func (a *UpdatePoolActivity) Execute(ctx context.Context, input UpdatePoolActivi
 		},
 	})
 	if err != nil {
-		return emperror.Wrap(err, "failed to delete tags for ASG")
+		return errors.WrapIf(err, "failed to delete tags for ASG")
 	}
 
 	return nil
