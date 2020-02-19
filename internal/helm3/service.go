@@ -113,6 +113,8 @@ type Store interface {
 
 	//ListRepositories retrieves persisted repositories for the given organisation
 	ListRepositories(ctx context.Context, organizationID uint) ([]Repository, error)
+
+	GetRepository(ctx context.Context, organizationID uint, repository Repository) (Repository, error)
 }
 
 type SecretStore interface {
@@ -127,16 +129,23 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 		return errors.WrapIf(err, "failed to add new helm repository")
 	}
 
-	// validate secrets (if any)
-	if err := s.secretStore.CheckPasswordSecret(ctx, repository.PasswordSecretID); err != nil {
-		return errors.WrapIf(err, "failed to add new helm repository")
+	if repository.PasswordSecretID != "" {
+		if err := s.secretStore.CheckPasswordSecret(ctx, repository.PasswordSecretID); err != nil {
+			return errors.WrapIf(err, "failed to add new helm repository")
+		}
 	}
 
-	if err := s.secretStore.CheckTLSSecret(ctx, repository.PasswordSecretID); err != nil {
-		return errors.WrapIf(err, "failed to add new helm repository")
+	if repository.TlsSecretID != "" {
+		if err := s.secretStore.CheckTLSSecret(ctx, repository.PasswordSecretID); err != nil {
+			return errors.WrapIf(err, "failed to add new helm repository")
+		}
 	}
 
-	// check for existing repository todo
+	// check record existence
+	if _, err := s.store.GetRepository(ctx, organizationID, repository); err == nil {
+		return errors.WrapIf(err, "helm repository already exists")
+	}
+
 	// validate repository index? todo
 
 	// save in store
