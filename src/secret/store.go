@@ -25,8 +25,6 @@ import (
 	"time"
 
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/tls"
-	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
-	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -48,10 +46,9 @@ var Store *secretStore
 var ErrSecretNotExists = fmt.Errorf("There's no secret with this ID")
 
 // InitSecretStore initializes the global secret store.
-func InitSecretStore(store secret.Store, vaultClient *vault.Client) {
+func InitSecretStore(store secret.Store) {
 	Store = &secretStore{
 		SecretStore: store,
-		Logical:     vaultClient.RawClient().Logical(),
 	}
 }
 
@@ -64,8 +61,6 @@ type PkeSecreter interface {
 type secretStore struct {
 	SecretStore secret.Store
 	PkeSecreter PkeSecreter
-
-	Logical *vaultapi.Logical
 }
 
 // CreateSecretRequest param for secretStore.Store
