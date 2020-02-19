@@ -56,17 +56,17 @@ func MakeGetNotificationsEndpoint(service notification.Service) endpoint.Endpoin
 		notifications, err := service.GetNotifications(ctx)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return GetNotificationsResponse{
 					Err:           err,
 					Notifications: notifications,
-				}, err
+				}, nil
 			}
 
 			return GetNotificationsResponse{
 				Err:           err,
 				Notifications: notifications,
-			}, nil
+			}, err
 		}
 
 		return GetNotificationsResponse{Notifications: notifications}, nil

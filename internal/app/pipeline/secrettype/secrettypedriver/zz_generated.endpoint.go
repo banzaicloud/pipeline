@@ -64,17 +64,17 @@ func MakeGetSecretTypeEndpoint(service secrettype.Service) endpoint.Endpoint {
 		secretTypeDef, err := service.GetSecretType(ctx, req.SecretType)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return GetSecretTypeResponse{
 					Err:           err,
 					SecretTypeDef: secretTypeDef,
-				}, err
+				}, nil
 			}
 
 			return GetSecretTypeResponse{
 				Err:           err,
 				SecretTypeDef: secretTypeDef,
-			}, nil
+			}, err
 		}
 
 		return GetSecretTypeResponse{SecretTypeDef: secretTypeDef}, nil
@@ -100,17 +100,17 @@ func MakeListSecretTypesEndpoint(service secrettype.Service) endpoint.Endpoint {
 		secretTypes, err := service.ListSecretTypes(ctx)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return ListSecretTypesResponse{
 					Err:         err,
 					SecretTypes: secretTypes,
-				}, err
+				}, nil
 			}
 
 			return ListSecretTypesResponse{
 				Err:         err,
 				SecretTypes: secretTypes,
-			}, nil
+			}, err
 		}
 
 		return ListSecretTypesResponse{SecretTypes: secretTypes}, nil
