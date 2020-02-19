@@ -16,13 +16,8 @@ package secret
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
 	"crypto/sha256"
-	"crypto/x509"
-	"encoding/base64"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
 	"sort"
 	"strconv"
@@ -44,12 +39,6 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
-const (
-	rsaKeySize             = 2048
-	RSAPrivateKeyBlockType = "RSA PRIVATE KEY"
-	PublicKeyBlockType     = "PUBLIC KEY"
-)
-
 // Store object that wraps up vault logical store
 // nolint: gochecknoglobals
 var Store *secretStore
@@ -62,15 +51,20 @@ var ErrSecretNotExists = fmt.Errorf("There's no secret with this ID")
 func InitSecretStore(store secret.Store, vaultClient *vault.Client) {
 	Store = &secretStore{
 		SecretStore: store,
-		Client:      vaultClient,
 		Logical:     vaultClient.RawClient().Logical(),
 	}
 }
 
+// PkeSecreter is a temporary interface for splitting the PKE secret generation/deletion code from the legacy secret store.
+type PkeSecreter interface {
+	GeneratePkeSecret(organizationID uint, tags []string) (map[string]string, error)
+	DeletePkeSecret(organizationID uint, tags []string) error
+}
+
 type secretStore struct {
 	SecretStore secret.Store
+	PkeSecreter PkeSecreter
 
-	Client  *vault.Client
 	Logical *vaultapi.Logical
 }
 
@@ -249,31 +243,9 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 
 	// if type is distribution, unmount all pki engines
 	if secret.Type == secrettype.PKESecretType {
-		clusterID := getClusterIDFromTags(secret.Tags)
-		basePath := clusterPKIPath(organizationID, clusterID)
-
-		path := fmt.Sprintf("%s/ca", basePath)
-		err = ss.Client.Vault().Sys().Unmount(path)
+		err := ss.PkeSecreter.DeletePkeSecret(organizationID, secret.Tags)
 		if err != nil {
-			log.Warnf("failed to unmount %s: %s", path, err)
-		}
-
-		path = fmt.Sprintf("%s/%s", basePath, secrettype.KubernetesCACommonName)
-		err = ss.Client.Vault().Sys().Unmount(path)
-		if err != nil {
-			log.Warnf("failed to unmount %s: %s", path, err)
-		}
-
-		path = fmt.Sprintf("%s/%s", basePath, secrettype.EtcdCACommonName)
-		err = ss.Client.Vault().Sys().Unmount(path)
-		if err != nil {
-			log.Warnf("failed to unmount %s: %s", path, err)
-		}
-
-		path = fmt.Sprintf("%s/%s", basePath, secrettype.KubernetesFrontProxyCACommonName)
-		err = ss.Client.Vault().Sys().Unmount(path)
-		if err != nil {
-			log.Warnf("failed to unmount %s: %s", path, err)
+			return err
 		}
 	}
 
@@ -580,221 +552,19 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 		}
 
 	} else if value.Type == secrettype.PKESecretType {
-		clusterID := getClusterIDFromTags(value.Tags)
-		if clusterID == "" {
-			return errors.New("clusterID is missing from the tags")
-		}
-
-		mountInput := vaultapi.MountInput{
-			Type:        "pki",
-			Description: fmt.Sprintf("root PKI engine for cluster %s", clusterID),
-			Config: vaultapi.MountConfigInput{
-				MaxLeaseTTL:     "43801h",
-				DefaultLeaseTTL: "43801h",
-			},
-		}
-
-		// Mount a separate PKI engine for the cluster
-		basePath := clusterPKIPath(organizationID, clusterID)
-		path := fmt.Sprintf("%s/ca", basePath)
-
-		err := ss.Client.Vault().Sys().Mount(path, &mountInput)
-		if err != nil {
-			return errors.Wrapf(err, "Error mounting pki engine for cluster %s", clusterID)
-		}
-
-		// Generate the root CA
-		rootCAData := map[string]interface{}{
-			"common_name": fmt.Sprintf("cluster-%s-ca", clusterID),
-		}
-
-		_, err = ss.Logical.Write(fmt.Sprintf("%s/root/generate/internal", path), rootCAData)
-		if err != nil {
-			// Unmount the pki engine first
-			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
-				log.Warnf("failed to unmount %s: %s", path, err)
-			}
-			return errors.Wrapf(err, "Error generating root CA for cluster %s", clusterID)
-		}
-
-		// Get root CA
-		rootCA, err := ss.Logical.Read(fmt.Sprintf("%s/cert/ca", path))
-		if err != nil {
-			// Unmount the pki engine first
-			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
-				log.Warnf("failed to unmount %s: %s", path, err)
-			}
-			return errors.Wrapf(err, "Error reading root CA for cluster %s", clusterID)
-		}
-		ca := rootCA.Data["certificate"].(string)
-
-		// Generate the intermediate CAs
-		kubernetesCA, err := ss.generateIntermediateCert(clusterID, basePath, secrettype.KubernetesCACommonName)
-		if err != nil {
-			// Unmount the pki backend first
-			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
-				log.Warnf("failed to unmount %s: %s", path, err)
-			}
-			return err
-		}
-
-		etcdCA, err := ss.generateIntermediateCert(clusterID, basePath, secrettype.EtcdCACommonName)
-		if err != nil {
-			// Unmount the pki backend first
-			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
-				log.Warnf("failed to unmount %s: %s", path, err)
-			}
-			return err
-		}
-
-		frontProxyCA, err := ss.generateIntermediateCert(clusterID, basePath, secrettype.KubernetesFrontProxyCACommonName)
-		if err != nil {
-			// Unmount the pki backend first
-			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
-				log.Warnf("failed to unmount %s: %s", path, err)
-			}
-			return err
-		}
-
-		// Service Account key-pair
-		saPub, saPriv, err := generateSAKeyPair(clusterID)
+		values, err := ss.PkeSecreter.GeneratePkeSecret(organizationID, value.Tags)
 		if err != nil {
 			return err
 		}
 
-		// Encryption Secret
-		var rnd = make([]byte, 32)
-		_, err = rand.Read(rnd)
-		if err != nil {
-			return err
-		}
-		encryptionSecret := base64.StdEncoding.EncodeToString(rnd)
-
-		value.Values[secrettype.KubernetesCAKey] = kubernetesCA.Key
-		value.Values[secrettype.KubernetesCACert] = kubernetesCA.Cert + "\n" + ca
-		value.Values[secrettype.KubernetesCASigningCert] = kubernetesCA.Cert
-		value.Values[secrettype.EtcdCAKey] = etcdCA.Key
-		value.Values[secrettype.EtcdCACert] = etcdCA.Cert + "\n" + ca
-		value.Values[secrettype.FrontProxyCAKey] = frontProxyCA.Key
-		value.Values[secrettype.FrontProxyCACert] = frontProxyCA.Cert + "\n" + ca
-		value.Values[secrettype.SAPub] = saPub
-		value.Values[secrettype.SAKey] = saPriv
-		value.Values[secrettype.EncryptionSecret] = encryptionSecret
+		value.Values = values
 	}
 
 	return nil
 }
 
-func (ss *secretStore) generateIntermediateCert(clusterID, basePath, commonName string) (*certificate, error) {
-	mountInput := vaultapi.MountInput{
-		Type:        "pki",
-		Description: fmt.Sprintf("%s intermediate PKI engine for cluster %s", commonName, clusterID),
-		Config: vaultapi.MountConfigInput{
-			MaxLeaseTTL:     "43800h",
-			DefaultLeaseTTL: "43800h",
-		},
-	}
-
-	path := fmt.Sprintf("%s/%s", basePath, commonName)
-
-	// Each intermediate and ca cert needs it's own pki mount, see:
-	// https://github.com/hashicorp/vault/issues/1586#issuecomment-230300216
-	err := ss.Client.Vault().Sys().Mount(path, &mountInput)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error mounting %s intermediate pki engine for cluster %s", commonName, clusterID)
-	}
-
-	caData := map[string]interface{}{
-		"common_name": commonName,
-	}
-
-	caSecret, err := ss.Logical.Write(fmt.Sprintf("%s/intermediate/generate/exported", path), caData)
-	if err != nil {
-		// Unmount the pki backend first
-		if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
-			log.Warnf("failed to unmount %s: %s", path, err)
-		}
-		return nil, errors.Wrapf(err, "error generating %s intermediate cert for cluster %s", commonName, clusterID)
-	}
-
-	caSignData := map[string]interface{}{
-		"csr":    caSecret.Data["csr"],
-		"format": "pem_bundle",
-	}
-
-	caCertSecret, err := ss.Logical.Write(fmt.Sprintf("%s/ca/root/sign-intermediate", basePath), caSignData)
-	if err != nil {
-		// Unmount the pki backend first
-		if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
-			log.Warnf("failed to unmount %s: %s", path, err)
-		}
-		return nil, errors.Wrapf(err, "error signing %s intermediate cert for cluster %s", commonName, clusterID)
-	}
-
-	return &certificate{
-		Key:  caSecret.Data["private_key"].(string),
-		Cert: caCertSecret.Data["certificate"].(string),
-	}, nil
-}
-
-type certificate struct {
-	Cert string
-	Key  string
-}
-
-const clusterIDTagName = "clusterID"
 const clusterUIDTagName = "clusterUID"
 
 func clusterUIDTag(clusterUID string) string {
 	return fmt.Sprintf("%s:%s", clusterUIDTagName, clusterUID)
-}
-
-func getClusterIDFromTags(tags []string) string {
-	for _, tag := range tags {
-		if strings.HasPrefix(tag, clusterIDTagName+":") {
-			return strings.TrimPrefix(tag, clusterIDTagName+":")
-		}
-	}
-
-	// This should never happen
-	return ""
-}
-
-func clusterPKIPath(organizationID uint, clusterID string) string {
-	return fmt.Sprintf("clusters/%d/%s/pki", organizationID, clusterID)
-}
-
-func generateSAKeyPair(clusterID string) (pub, priv string, err error) {
-	pk, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
-	if err != nil {
-		return "", "", errors.Wrapf(err, "Error generating SA key pair for cluster %s, generate key failed", clusterID)
-	}
-
-	saPub, err := encodePublicKeyPEM(&pk.PublicKey)
-	if err != nil {
-		return "", "", errors.Wrapf(err, "Error generating SA key pair for cluster %s, encode public key failed", clusterID)
-	}
-	saPriv := encodePrivateKeyPEM(pk)
-
-	return string(saPub), string(saPriv), nil
-}
-
-func encodePublicKeyPEM(key *rsa.PublicKey) ([]byte, error) {
-	der, err := x509.MarshalPKIXPublicKey(key)
-	if err != nil {
-		return []byte{}, err
-	}
-	block := pem.Block{
-		Type:  PublicKeyBlockType,
-		Bytes: der,
-	}
-	return pem.EncodeToMemory(&block), nil
-}
-
-func encodePrivateKeyPEM(key *rsa.PrivateKey) []byte {
-	block := pem.Block{
-		Type:  RSAPrivateKeyBlockType,
-		Bytes: x509.MarshalPKCS1PrivateKey(key),
-	}
-	return pem.EncodeToMemory(&block)
 }
