@@ -12,30 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package helm3
+package helmrepoadapter
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
 )
 
-// Migrate executes the table migrations for the helm module.
-func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
-	tables := []interface{}{
-		RepositoryModel{},
-	}
+// TableName constants
+const (
+	tableName = "helm_repositories"
+)
 
-	var tableNames string
-	for _, table := range tables {
-		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
-	}
+// ClusterModel describes the common cluster model.
+type RepositoryModel struct {
+	gorm.Model
 
-	logger.WithFields(logrus.Fields{
-		"table_names": strings.TrimSpace(tableNames),
-	}).Info("migrating model tables")
+	Name             string
+	URL              string
+	OrganizationID   uint // FK to organizations
+	PasswordSecretID string
+	TlsSecretID      string
+}
 
-	return db.AutoMigrate(tables...).Error
+// TableName changes the default table name.
+func (RepositoryModel) TableName() string {
+	return tableName
 }
