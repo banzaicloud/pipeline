@@ -123,6 +123,7 @@ import (
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/internal/providers/google/googleadapter"
+	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
@@ -240,12 +241,19 @@ func main() {
 
 	logger.Info("starting application", buildInfo.Fields())
 
+	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor)
+	commonErrorHandler := emperror.WithFilter(
+		emperror.WithContextExtractor(errorHandler, appkit.ContextExtractor),
+		appkiterrors.IsServiceError, // filter out client errors
+	)
+
 	vaultClient, err := vault.NewClient("pipeline")
 	emperror.Panic(err)
 	global.SetVault(vaultClient)
 
 	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
-	secret.InitSecretStore(secretStore)
+	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, commonLogger)
+	secret.InitSecretStore(secretStore, pkeSecreter)
 	restricted.InitSecretStore(secret.Store)
 
 	// Connect to database
@@ -256,12 +264,6 @@ func main() {
 	// TODO: make this optional when CICD is disabled
 	cicdDB, err := database.Connect(config.CICD.Database)
 	emperror.Panic(errors.WithMessage(err, "failed to initialize CICD db"))
-
-	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor)
-	commonErrorHandler := emperror.WithFilter(
-		emperror.WithContextExtractor(errorHandler, appkit.ContextExtractor),
-		appkiterrors.IsServiceError, // filter out client errors
-	)
 
 	publisher, subscriber := watermill.NewPubSub(logger)
 	defer publisher.Close()
