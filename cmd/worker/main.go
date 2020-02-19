@@ -195,9 +195,10 @@ func main() {
 
 	vaultClient, err := vault.NewClient("pipeline")
 	emperror.Panic(err)
+	global.SetVault(vaultClient)
 
 	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
-	secret.InitSecretStore(secretStore, vaultClient)
+	secret.InitSecretStore(secretStore)
 	restricted.InitSecretStore(secret.Store)
 
 	var group run.Group
