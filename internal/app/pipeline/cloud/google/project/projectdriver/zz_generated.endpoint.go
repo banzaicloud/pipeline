@@ -60,17 +60,17 @@ func MakeListProjectsEndpoint(service project.Service) endpoint.Endpoint {
 		projects, err := service.ListProjects(ctx, req.SecretID)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return ListProjectsResponse{
 					Err:      err,
 					Projects: projects,
-				}, err
+				}, nil
 			}
 
 			return ListProjectsResponse{
 				Err:      err,
 				Projects: projects,
-			}, nil
+			}, err
 		}
 
 		return ListProjectsResponse{Projects: projects}, nil

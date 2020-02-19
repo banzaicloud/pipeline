@@ -66,11 +66,11 @@ func MakeCreateNodePoolEndpoint(service cluster.Service) endpoint.Endpoint {
 		err := service.CreateNodePool(ctx, req.ClusterID, req.RawNodePool)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
-				return CreateNodePoolResponse{Err: err}, err
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return CreateNodePoolResponse{Err: err}, nil
 			}
 
-			return CreateNodePoolResponse{Err: err}, nil
+			return CreateNodePoolResponse{Err: err}, err
 		}
 
 		return CreateNodePoolResponse{}, nil
@@ -101,17 +101,17 @@ func MakeDeleteClusterEndpoint(service cluster.Service) endpoint.Endpoint {
 		deleted, err := service.DeleteCluster(ctx, req.ClusterIdentifier, req.Options)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return DeleteClusterResponse{
 					Deleted: deleted,
 					Err:     err,
-				}, err
+				}, nil
 			}
 
 			return DeleteClusterResponse{
 				Deleted: deleted,
 				Err:     err,
-			}, nil
+			}, err
 		}
 
 		return DeleteClusterResponse{Deleted: deleted}, nil
@@ -142,17 +142,17 @@ func MakeDeleteNodePoolEndpoint(service cluster.Service) endpoint.Endpoint {
 		deleted, err := service.DeleteNodePool(ctx, req.ClusterID, req.Name)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return DeleteNodePoolResponse{
 					Deleted: deleted,
 					Err:     err,
-				}, err
+				}, nil
 			}
 
 			return DeleteNodePoolResponse{
 				Deleted: deleted,
 				Err:     err,
-			}, nil
+			}, err
 		}
 
 		return DeleteNodePoolResponse{Deleted: deleted}, nil

@@ -68,17 +68,17 @@ func MakeCreateTokenEndpoint(service token.Service) endpoint.Endpoint {
 		newToken, err := service.CreateToken(ctx, req.TokenRequest)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return CreateTokenResponse{
 					Err:      err,
 					NewToken: newToken,
-				}, err
+				}, nil
 			}
 
 			return CreateTokenResponse{
 				Err:      err,
 				NewToken: newToken,
-			}, nil
+			}, err
 		}
 
 		return CreateTokenResponse{NewToken: newToken}, nil
@@ -107,11 +107,11 @@ func MakeDeleteTokenEndpoint(service token.Service) endpoint.Endpoint {
 		err := service.DeleteToken(ctx, req.Id)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
-				return DeleteTokenResponse{Err: err}, err
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return DeleteTokenResponse{Err: err}, nil
 			}
 
-			return DeleteTokenResponse{Err: err}, nil
+			return DeleteTokenResponse{Err: err}, err
 		}
 
 		return DeleteTokenResponse{}, nil
@@ -141,17 +141,17 @@ func MakeGetTokenEndpoint(service token.Service) endpoint.Endpoint {
 		token, err := service.GetToken(ctx, req.Id)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return GetTokenResponse{
 					Err:   err,
 					Token: token,
-				}, err
+				}, nil
 			}
 
 			return GetTokenResponse{
 				Err:   err,
 				Token: token,
-			}, nil
+			}, err
 		}
 
 		return GetTokenResponse{Token: token}, nil
@@ -177,17 +177,17 @@ func MakeListTokensEndpoint(service token.Service) endpoint.Endpoint {
 		tokens, err := service.ListTokens(ctx)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return ListTokensResponse{
 					Err:    err,
 					Tokens: tokens,
-				}, err
+				}, nil
 			}
 
 			return ListTokensResponse{
 				Err:    err,
 				Tokens: tokens,
-			}, nil
+			}, err
 		}
 
 		return ListTokensResponse{Tokens: tokens}, nil
