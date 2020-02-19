@@ -20,7 +20,15 @@ import (
 	"reflect"
 	"testing"
 
+	"emperror.dev/emperror"
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
+
+	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
+	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
+	"github.com/banzaicloud/pipeline/internal/secret/restricted"
+	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
@@ -86,6 +94,17 @@ var (
 		ValidType:  pkgCluster.Amazon,
 	}
 )
+
+func init() {
+	vaultClient, err := vault.NewClient("pipeline")
+	emperror.Panic(err)
+	global.SetVault(vaultClient)
+
+	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
+	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, common.NoopLogger{})
+	secret.InitSecretStore(secretStore, pkeSecreter)
+	restricted.InitSecretStore(secret.Store)
+}
 
 func TestCreateCommonClusterFromRequest(t *testing.T) {
 
