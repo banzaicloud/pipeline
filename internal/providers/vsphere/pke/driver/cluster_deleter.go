@@ -32,7 +32,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-func MakeVspherePKEClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyCache, logger logrus.FieldLogger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.VsphereClusterStore, workflowClient client.Client) VspherePKEClusterDeleter {
+func MakeVspherePKEClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyCache, logger logrus.FieldLogger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.ClusterStore, workflowClient client.Client) VspherePKEClusterDeleter {
 	return VspherePKEClusterDeleter{
 		events:                     events,
 		kubeProxyCache:             kubeProxyCache,
@@ -50,7 +50,7 @@ type VspherePKEClusterDeleter struct {
 	logger                     logrus.FieldLogger
 	secrets                    SecretStore
 	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric
-	store                      pke.VsphereClusterStore
+	store                      pke.ClusterStore
 	workflowClient             client.Client
 }
 
@@ -160,7 +160,7 @@ func (cd VspherePKEClusterDeleter) DeleteByID(ctx context.Context, clusterID uin
 
 func getVMNames(cluster pke.PKEOnVsphereCluster) []string {
 	names := []string{}
-	for i, np := range cluster.NodePools {
+	for _, np := range cluster.NodePools {
 		for j := 1; j <= np.Count; j++ {
 			names = append(names, pke.GetVMName(cluster.Name, np.Name, j))
 		}

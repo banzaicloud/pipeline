@@ -18,17 +18,12 @@ import (
 	"fmt"
 	"time"
 
+	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+
 	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
-	"go.uber.org/zap"
-
-	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
-	intPKE "github.com/banzaicloud/pipeline/internal/pke"
-	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
-	"github.com/banzaicloud/pipeline/pkg/brn"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/src/cluster"
-	"github.com/vmware/govmomi/vim25/types"
 )
 
 const DeleteClusterWorkflowName = "pke-vsphere-delete-cluster"
@@ -38,19 +33,21 @@ type DeleteClusterWorkflowInput struct {
 	ClusterID        uint
 	ClusterName      string
 	ClusterUID       string
+	K8sSecretID      string
 	OrganizationID   uint
 	OrganizationName string
 	ResourcePoolName string
 	FolderName       string
 	DatastoreName    string
 	SecretID         string
-	OIDCEnabled      bool
-	PostHooks        pkgCluster.PostHooks
 	Nodes            []Node
-	HTTPProxy        intPKE.HTTPProxy
+
+	Forced bool
 }
 
 func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInput) error {
+	logger := workflow.GetLogger(ctx).Sugar()
+
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 5 * time.Minute,
 		StartToCloseTimeout:    10 * time.Minute,
@@ -59,51 +56,33 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	// Generate CA certificates
-	{
-		activityInput := pkeworkflow.GenerateCertificatesActivityInput{ClusterID: input.ClusterID}
-
-		err := workflow.ExecuteActivity(ctx, pkeworkflow.GenerateCertificatesActivityName, activityInput).Get(ctx, nil)
-		if err != nil {
-			// TODO _ = setClusterErrorStatus(ctx, input.ClusterID, err)
-			return err
+	// delete k8s resources
+	if input.K8sSecretID != "" {
+		wfInput := intClusterWorkflow.DeleteK8sResourcesWorkflowInput{
+			OrganizationID: input.OrganizationID,
+			ClusterName:    input.ClusterName,
+			K8sSecretID:    input.K8sSecretID,
 		}
-	}
-
-	/*
-		// Delete dex client for the cluster
-		if input.OIDCEnabled {
-			activityInput := pkeworkflow.DeleteDexClientActivityInput{
-				ClusterID: input.ClusterID,
-			}
-			err := workflow.ExecuteActivity(ctx, pkeworkflow.DeleteDexClientActivityName, activityInput).Get(ctx, nil)
-			if err != nil {
+		if err := workflow.ExecuteChildWorkflow(ctx, intClusterWorkflow.DeleteK8sResourcesWorkflowName, wfInput).Get(ctx, nil); err != nil {
+			if input.Forced {
+				logger.Errorw("deleting k8s resources failed", "error", err)
+			} else {
+				_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 				return err
 			}
 		}
-	*/
-
-	var masterRef types.ManagedObjectReference
-	// Delete master nodes
+	}
+	// Delete nodes
 	{
 		futures := make(map[string]workflow.Future)
 
 		for _, node := range input.Nodes {
-			if !node.Master {
-				continue
-			}
-			if node.UserDataScriptParams == nil {
-				node.UserDataScriptParams = make(map[string]string)
-			}
 			activityInput := DeleteNodeActivityInput{
-				OrganizationID:   input.OrganizationID,
-				SecretID:         input.SecretID,
-				ClusterID:        input.ClusterID,
-				ClusterName:      input.ClusterName,
-				ResourcePoolName: input.ResourcePoolName,
-				FolderName:       input.FolderName,
-				DatastoreName:    input.DatastoreName,
-				Node:             node,
+				OrganizationID: input.OrganizationID,
+				SecretID:       input.SecretID,
+				ClusterID:      input.ClusterID,
+				ClusterName:    input.ClusterName,
+				Node:           node,
 			}
 			futures[node.Name] = workflow.ExecuteActivity(ctx, DeleteNodeActivityName, activityInput)
 		}
@@ -111,7 +90,8 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		errs := []error{}
 
 		for i := range futures {
-			errs = append(errs, errors.WrapIff(futures[i].Get(ctx, &masterRef), "creating node %q", i))
+			var existed bool
+			errs = append(errs, errors.WrapIff(futures[i].Get(ctx, &existed), "deleting node %q", i))
 		}
 
 		if err := errors.Combine(errs...); err != nil {
@@ -119,123 +99,39 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 	}
 
-	var masterIP string
-	workflow.ExecuteActivity(ctx, WaitForIPActivityName, WaitForIPActivityInput{
-		Ref:            masterRef,
-		OrganizationID: input.OrganizationID,
-		SecretID:       input.SecretID,
-		ClusterName:    input.ClusterName,
-	}).Get(ctx, &masterIP)
-
-	setClusterStatus(ctx, input.ClusterID, pkgCluster.Creating, "waiting for Kubernetes master") // nolint: errcheck
-
-	// Delete worker nodes
+	// delete unused secrets
 	{
-		futures := make(map[string]workflow.Future)
-
-		for _, node := range input.Nodes {
-			if node.Master {
-				continue
-			}
-			if node.UserDataScriptParams == nil {
-				node.UserDataScriptParams = make(map[string]string)
-			}
-			if node.UserDataScriptParams["PublicAddress"] == "" {
-				node.UserDataScriptParams["PublicAddress"] = masterIP
-			}
-			activityInput := DeleteNodeActivityInput{
-				OrganizationID:   input.OrganizationID,
-				SecretID:         input.SecretID,
-				ClusterID:        input.ClusterID,
-				ClusterName:      input.ClusterName,
-				ResourcePoolName: input.ResourcePoolName,
-				FolderName:       input.FolderName,
-				DatastoreName:    input.DatastoreName,
-				Node:             node,
-			}
-			futures[node.Name] = workflow.ExecuteActivity(ctx, DeleteNodeActivityName, activityInput)
+		activityInput := intClusterWorkflow.DeleteUnusedClusterSecretsActivityInput{
+			OrganizationID: input.OrganizationID,
+			ClusterUID:     input.ClusterUID,
 		}
-
-		errs := []error{}
-
-		for i := range futures {
-			errs = append(errs, errors.WrapIff(futures[i].Get(ctx, nil), "creating node %q", i))
-		}
-
-		if err := errors.Combine(errs...); err != nil {
-			return err
+		if err := workflow.ExecuteActivity(ctx, intClusterWorkflow.DeleteUnusedClusterSecretsActivityName, activityInput).Get(ctx, nil); err != nil {
+			setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, fmt.Sprintf("failed to delete unused cluster secrets: %v", err)) // nolint: errcheck
 		}
 	}
 
-	if err := waitForMasterReadySignal(ctx, 1*time.Hour); err != nil {
-		_ = setClusterErrorStatus(ctx, input.ClusterID, err)
-		return err
-	}
-
-	var configSecretID string
+	// remove dex client (if we created it)
 	{
-		activityInput := cluster.DownloadK8sConfigActivityInput{
+		deleteDexClientActivityInput := &pkeworkflow.DeleteDexClientActivityInput{
 			ClusterID: input.ClusterID,
 		}
-		future := workflow.ExecuteActivity(ctx, cluster.DownloadK8sConfigActivityName, activityInput)
-		if err := future.Get(ctx, &configSecretID); err != nil {
+		if err := workflow.ExecuteActivity(ctx, pkeworkflow.DeleteDexClientActivityName, deleteDexClientActivityInput).Get(ctx, nil); err != nil {
 			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}
 
+	// delete cluster from data store
 	{
-		workflowInput := clustersetup.WorkflowInput{
-			ConfigSecretID: brn.New(input.OrganizationID, brn.SecretResourceType, configSecretID).String(),
-			Cluster: clustersetup.Cluster{
-				ID:   input.ClusterID,
-				UID:  input.ClusterUID,
-				Name: input.ClusterName,
-			},
-			Organization: clustersetup.Organization{
-				ID:   input.OrganizationID,
-				Name: input.OrganizationName,
-			},
+		activityInput := DeleteClusterFromStoreActivityInput{
+			ClusterID: input.ClusterID,
 		}
-
-		future := workflow.ExecuteChildWorkflow(ctx, clustersetup.WorkflowName, workflowInput)
-		if err := future.Get(ctx, nil); err != nil {
+		err := workflow.ExecuteActivity(ctx, DeleteClusterFromStoreActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
 			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}
 
-	postHookWorkflowInput := cluster.RunPostHooksWorkflowInput{
-		ClusterID: input.ClusterID,
-		PostHooks: cluster.BuildWorkflowPostHookFunctions(nil, true),
-	}
-
-	err := workflow.ExecuteChildWorkflow(ctx, cluster.RunPostHooksWorkflowName, postHookWorkflowInput).Get(ctx, nil)
-	if err != nil {
-		_ = setClusterErrorStatus(ctx, input.ClusterID, err)
-		return err
-	}
-
-	return nil
-}
-
-func waitForMasterReadySignal(ctx workflow.Context, timeout time.Duration) error {
-	signalName := "master-ready"
-	signalChan := workflow.GetSignalChannel(ctx, signalName)
-	signalTimeoutTimer := workflow.NewTimer(ctx, timeout)
-	signalTimeout := false
-
-	signalSelector := workflow.NewSelector(ctx).AddReceive(signalChan, func(c workflow.Channel, more bool) {
-		c.Receive(ctx, nil)
-		workflow.GetLogger(ctx).Info("Received signal!", zap.String("signal", signalName))
-	}).AddFuture(signalTimeoutTimer, func(workflow.Future) {
-		signalTimeout = true
-	})
-
-	signalSelector.Select(ctx) // wait for signal
-
-	if signalTimeout {
-		return fmt.Errorf("timeout while waiting for %q signal", signalName)
-	}
 	return nil
 }

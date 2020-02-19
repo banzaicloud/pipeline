@@ -25,7 +25,7 @@ type dummyVspherePKEClusterStore struct {
 	id       uint
 }
 
-func NewDummyVspherePKEClusterStore() pke.VsphereClusterStore {
+func NewDummyVspherePKEClusterStore() pke.ClusterStore {
 	return dummyVspherePKEClusterStore{clusters: make(map[uint]*pke.PKEOnVsphereCluster), id: uint(os.Getpid())}
 }
 

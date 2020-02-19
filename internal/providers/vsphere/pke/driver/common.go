@@ -110,7 +110,7 @@ func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
 	return node
 }
 
-func handleClusterError(logger logrus.FieldLogger, store pke.VsphereClusterStore, status string, clusterID uint, err error) error {
+func handleClusterError(logger logrus.FieldLogger, store pke.ClusterStore, status string, clusterID uint, err error) error {
 	if clusterID != 0 && err != nil {
 		if err := store.SetStatus(clusterID, status, err.Error()); err != nil {
 			logger.Errorf("failed to set cluster error status: %s", err.Error())

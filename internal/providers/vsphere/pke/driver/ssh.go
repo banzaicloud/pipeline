@@ -24,7 +24,7 @@ import (
 )
 
 // GetOrCreateSSHKeyPair creates and saves a new SSH key pair for the cluster or gets the cluster's SSH key pair if it already exists
-func GetOrCreateSSHKeyPair(cluster pke.PKEOnVsphereCluster, secrets secretStore, store pke.VsphereClusterStore) (ssh.KeyPair, error) {
+func GetOrCreateSSHKeyPair(cluster pke.PKEOnVsphereCluster, secrets secretStore, store pke.ClusterStore) (ssh.KeyPair, error) {
 
 	keyPair, secretID, err := intSecret.GetOrCreateSSHKeyPair(secrets, getOrCreateSSHKeyPairClusterAdapter(cluster))
 	if err != nil {

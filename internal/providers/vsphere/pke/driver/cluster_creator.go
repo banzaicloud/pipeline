@@ -44,7 +44,7 @@ func MakeVspherePKEClusterCreator(
 	logger logrus.FieldLogger,
 	organizations OrganizationStore,
 	secrets ClusterCreatorSecretStore,
-	store pke.VsphereClusterStore,
+	store pke.ClusterStore,
 	workflowClient client.Client,
 ) VspherePKEClusterCreator {
 	return VspherePKEClusterCreator{
@@ -63,7 +63,7 @@ type VspherePKEClusterCreator struct {
 	logger         logrus.FieldLogger
 	organizations  OrganizationStore
 	secrets        ClusterCreatorSecretStore
-	store          vspherePKE.VsphereClusterStore
+	store          vspherePKE.ClusterStore
 	workflowClient client.Client
 }
 

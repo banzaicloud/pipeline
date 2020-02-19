@@ -39,8 +39,8 @@ type CreateParams struct {
 	Kubernetes       intPKE.Kubernetes
 }
 
-// VsphereClusterStore defines behaviors of PKEOnVsphereCluster persistent storage
-type VsphereClusterStore interface {
+// ClusterStore defines behaviors of PKEOnVsphereCluster persistent storage
+type ClusterStore interface {
 	Create(params CreateParams) (PKEOnVsphereCluster, error)
 	CreateNodePool(clusterID uint, nodePool NodePool) error
 	Delete(clusterID uint) error

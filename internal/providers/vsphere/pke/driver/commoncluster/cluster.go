@@ -35,7 +35,7 @@ import (
 type VspherePkeCluster struct {
 	model   pke.PKEOnVsphereCluster
 	secrets SecretStore
-	store   pke.VsphereClusterStore
+	store   pke.ClusterStore
 }
 
 type SecretStore interface {
@@ -45,10 +45,10 @@ type SecretStore interface {
 
 type CommonClusterGetter struct {
 	secrets SecretStore
-	store   pke.VsphereClusterStore
+	store   pke.ClusterStore
 }
 
-func MakeCommonClusterGetter(secrets SecretStore, store pke.VsphereClusterStore) CommonClusterGetter {
+func MakeCommonClusterGetter(secrets SecretStore, store pke.ClusterStore) CommonClusterGetter {
 	return CommonClusterGetter{
 		secrets: secrets,
 		store:   store,
