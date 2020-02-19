@@ -365,7 +365,7 @@ func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretItemRes
 		Type:      model.Type,
 		Values:    model.Values,
 		Tags:      model.Tags,
-		Version:   0,
+		Version:   1,
 		UpdatedAt: model.UpdatedAt,
 		UpdatedBy: model.UpdatedBy,
 	}, nil
@@ -423,7 +423,7 @@ func (ss *secretStore) List(orgid uint, query *ListSecretsQuery) ([]*SecretItemR
 			Type:      model.Type,
 			Values:    model.Values,
 			Tags:      model.Tags,
-			Version:   0,
+			Version:   1,
 			UpdatedAt: model.UpdatedAt,
 			UpdatedBy: model.UpdatedBy,
 		}

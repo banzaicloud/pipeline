@@ -22,12 +22,31 @@ import (
 	"testing"
 	"time"
 
+	"emperror.dev/emperror"
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
+
+	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
+	"github.com/banzaicloud/pipeline/internal/secret/restricted"
+	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	clusterTypes "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/api"
 	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
+
+func init() {
+	vaultClient, err := vault.NewClient("pipeline")
+	emperror.Panic(err)
+	global.SetVault(vaultClient)
+
+	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
+	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, common.NoopLogger{})
+	secret.InitSecretStore(secretStore, pkeSecreter)
+	restricted.InitSecretStore(secret.Store)
+}
 
 func TestIsValidSecretType(t *testing.T) {
 
