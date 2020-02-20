@@ -71,7 +71,6 @@ type CreateSecretRequest struct {
 	Type      string            `json:"type" binding:"required" mapstructure:"type"`
 	Values    map[string]string `json:"values" binding:"required" mapstructure:"values"`
 	Tags      []string          `json:"tags,omitempty" mapstructure:"tags"`
-	Version   int               `json:"version,omitempty" mapstructure:"-"`
 	UpdatedBy string            `json:"updatedBy,omitempty" mapstructure:"updatedBy"`
 }
 
@@ -334,7 +333,6 @@ func (ss *secretStore) CreateOrUpdate(organizationID uint, value *CreateSecretRe
 		log.Errorf("Error during checking secret: %s", err.Error())
 		return "", err
 	} else if secret != nil {
-		value.Version = secret.Version
 		err := ss.Update(organizationID, secretID, value)
 		if err != nil {
 			log.Errorf("Error during updating secret: %s", err.Error())

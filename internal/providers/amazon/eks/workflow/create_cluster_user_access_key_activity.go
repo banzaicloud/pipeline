@@ -164,8 +164,6 @@ func (a *CreateClusterUserAccessKeyActivity) Execute(ctx context.Context, input 
 
 	var secretID string
 	if clusterUserAccessKeySecret != nil {
-		secretRequest.Version = clusterUserAccessKeySecret.Version
-
 		if err = a.awsSessionFactory.GetSecretStore().Update(input.OrganizationID, clusterUserAccessKeySecret.ID, &secretRequest); err != nil {
 			return nil, errors.WrapIff(err, "failed to update secret: %s", secretName)
 		}

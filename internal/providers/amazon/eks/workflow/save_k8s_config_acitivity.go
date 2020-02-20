@@ -166,10 +166,8 @@ func (a *SaveK8sConfigActivity) storeConfig(logger *zap.SugaredLogger, cluster E
 	secretID := secret.GenerateSecretID(&createSecretRequest)
 
 	// Try to get the secret version first
-	if configSecret, err := secret.Store.Get(input.OrganizationID, secretID); err != nil && err != secret.ErrSecretNotExists {
+	if _, err := secret.Store.Get(input.OrganizationID, secretID); err != nil && err != secret.ErrSecretNotExists {
 		return err
-	} else if configSecret != nil {
-		createSecretRequest.Version = configSecret.Version
 	}
 
 	err := secret.Store.Update(input.OrganizationID, secretID, &createSecretRequest)
