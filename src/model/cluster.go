@@ -162,9 +162,9 @@ type EKSSubnetModel struct {
 // EKSClusterModel describes the EKS cluster model
 type EKSClusterModel struct {
 	ID        uint `gorm:"primary_key"`
-	ClusterID uint `gorm:"unique_index:idx_eks_clusters_cluster_id"`
-
 	Version      string
+
+	ClusterID uint `gorm:"unique_index:idx_eks_clusters_cluster_id"`
 	NodePools    []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
 	VpcId        *string                 `gorm:"size:32"`
 	VpcCidr      *string                 `gorm:"size:18"`
@@ -182,7 +182,7 @@ type EKSClusterModel struct {
 
 	CurrentWorkflowID string
 
-	SSHGenerated bool
+	SSHGenerated bool `gorm:"default:true"`
 }
 
 type EKSLogTypes = JSONStringArray
