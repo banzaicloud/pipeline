@@ -5925,9 +5925,6 @@ components:
                 type:
                     type: string
                     example: "google"
-                version:
-                    type: integer
-                    example: 1
                 updatedAt:
                     type: string
                     format: date-time
@@ -5986,9 +5983,6 @@ components:
                 updatedBy:
                     type: string
                     example: "username"
-                version:
-                    type: integer
-                    example: 1
                 tags:
                     type: array
                     items:
@@ -6013,9 +6007,6 @@ components:
                     items:
                         type: string
                     example: [ "repo:pipeline", "tag2" ]
-                version:
-                    type: integer
-                    example: 1
                 values:
                     # additionalProperties:
                         # oneOf:
