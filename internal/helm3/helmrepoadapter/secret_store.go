@@ -36,18 +36,18 @@ func NewSecretStore(store common.SecretStore, logger common.Logger) helm3.Secret
 }
 
 func (s secretStore) CheckPasswordSecret(ctx context.Context, secretID string) error {
+	// todo validate the secret type too
 	return s.secretExists(ctx, secretID)
 }
 
 func (s secretStore) CheckTLSSecret(ctx context.Context, secretID string) error {
+	// todo validate the secret type too
 	return s.secretExists(ctx, secretID)
 }
 
 func (s secretStore) secretExists(ctx context.Context, secretID string) error {
-	// naive implemetation of the validation
-	// todo: refine this, check the error, etc ...
 	if _, err := s.secrets.GetSecretValues(ctx, secretID); err != nil {
-		return errors.WrapIf(err, "failed to retrieve  secret values")
+		return errors.WrapIf(err, "failed to retrieve secret values")
 	}
 
 	return nil

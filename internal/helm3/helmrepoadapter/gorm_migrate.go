@@ -25,7 +25,7 @@ import (
 // Migrate executes the table migrations for the helm module.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
-		RepositoryModel{},
+		repositoryModel{},
 	}
 
 	var tableNames string
