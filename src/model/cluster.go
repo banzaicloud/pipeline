@@ -161,10 +161,10 @@ type EKSSubnetModel struct {
 
 // EKSClusterModel describes the EKS cluster model
 type EKSClusterModel struct {
-	ID        uint `gorm:"primary_key"`
-	Version      string
+	ID      uint `gorm:"primary_key"`
+	Version string
 
-	ClusterID uint `gorm:"unique_index:idx_eks_clusters_cluster_id"`
+	ClusterID    uint                    `gorm:"unique_index:idx_eks_clusters_cluster_id"`
 	NodePools    []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
 	VpcId        *string                 `gorm:"size:32"`
 	VpcCidr      *string                 `gorm:"size:18"`
