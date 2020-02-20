@@ -212,7 +212,7 @@ dex:
 #
 #            loki:
 #                chart: "banzaicloud-stable/loki"
-#                version: "0.17.0"
+#                version: "0.17.3"
 #
 #                # See https://github.com/banzaicloud/banzai-charts/tree/master/loki for details
 #                values: {}
