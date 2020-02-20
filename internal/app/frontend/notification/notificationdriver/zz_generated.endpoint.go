@@ -9,7 +9,6 @@ import (
 	"errors"
 	"github.com/banzaicloud/pipeline/internal/app/frontend/notification"
 	"github.com/go-kit/kit/endpoint"
-	kitoc "github.com/go-kit/kit/tracing/opencensus"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 )
 
@@ -38,11 +37,6 @@ func MakeEndpoints(service notification.Service, middleware ...endpoint.Middlewa
 	return Endpoints{GetNotifications: kitxendpoint.OperationNameMiddleware("notification.GetNotifications")(mw(MakeGetNotificationsEndpoint(service)))}
 }
 
-// TraceEndpoints returns a(n) Endpoints struct where each endpoint is wrapped with a tracing middleware.
-func TraceEndpoints(endpoints Endpoints) Endpoints {
-	return Endpoints{GetNotifications: kitoc.TraceEndpoint("notification.GetNotifications")(endpoints.GetNotifications)}
-}
-
 // GetNotificationsRequest is a request struct for GetNotifications endpoint.
 type GetNotificationsRequest struct{}
 
@@ -62,17 +56,17 @@ func MakeGetNotificationsEndpoint(service notification.Service) endpoint.Endpoin
 		notifications, err := service.GetNotifications(ctx)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return GetNotificationsResponse{
 					Err:           err,
 					Notifications: notifications,
-				}, err
+				}, nil
 			}
 
 			return GetNotificationsResponse{
 				Err:           err,
 				Notifications: notifications,
-			}, nil
+			}, err
 		}
 
 		return GetNotificationsResponse{Notifications: notifications}, nil

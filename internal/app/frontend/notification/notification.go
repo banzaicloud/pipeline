@@ -31,7 +31,7 @@ type Notification struct {
 }
 
 //go:generate mga gen mockery --name Service --inpkg
-// +kit:endpoint:withOpenCensus=true,errorStrategy=service
+// +kit:endpoint:errorStrategy=service
 
 // Service provides an interface to notifications.
 type Service interface {

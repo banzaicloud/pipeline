@@ -31,7 +31,7 @@ type Token struct {
 }
 
 //go:generate mga gen mockery --name Service --inpkg
-// +kit:endpoint:withOpenCensus=true,errorStrategy=service
+// +kit:endpoint:errorStrategy=service
 
 // Service provides access to personal access tokens.
 type Service interface {

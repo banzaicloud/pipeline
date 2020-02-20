@@ -9,7 +9,6 @@ import (
 	"errors"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/secrettype"
 	"github.com/go-kit/kit/endpoint"
-	kitoc "github.com/go-kit/kit/tracing/opencensus"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 )
 
@@ -42,14 +41,6 @@ func MakeEndpoints(service secrettype.Service, middleware ...endpoint.Middleware
 	}
 }
 
-// TraceEndpoints returns a(n) Endpoints struct where each endpoint is wrapped with a tracing middleware.
-func TraceEndpoints(endpoints Endpoints) Endpoints {
-	return Endpoints{
-		GetSecretType:   kitoc.TraceEndpoint("secrettype.GetSecretType")(endpoints.GetSecretType),
-		ListSecretTypes: kitoc.TraceEndpoint("secrettype.ListSecretTypes")(endpoints.ListSecretTypes),
-	}
-}
-
 // GetSecretTypeRequest is a request struct for GetSecretType endpoint.
 type GetSecretTypeRequest struct {
 	SecretType string
@@ -73,17 +64,17 @@ func MakeGetSecretTypeEndpoint(service secrettype.Service) endpoint.Endpoint {
 		secretTypeDef, err := service.GetSecretType(ctx, req.SecretType)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return GetSecretTypeResponse{
 					Err:           err,
 					SecretTypeDef: secretTypeDef,
-				}, err
+				}, nil
 			}
 
 			return GetSecretTypeResponse{
 				Err:           err,
 				SecretTypeDef: secretTypeDef,
-			}, nil
+			}, err
 		}
 
 		return GetSecretTypeResponse{SecretTypeDef: secretTypeDef}, nil
@@ -109,17 +100,17 @@ func MakeListSecretTypesEndpoint(service secrettype.Service) endpoint.Endpoint {
 		secretTypes, err := service.ListSecretTypes(ctx)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return ListSecretTypesResponse{
 					Err:         err,
 					SecretTypes: secretTypes,
-				}, err
+				}, nil
 			}
 
 			return ListSecretTypesResponse{
 				Err:         err,
 				SecretTypes: secretTypes,
-			}, nil
+			}, err
 		}
 
 		return ListSecretTypesResponse{SecretTypes: secretTypes}, nil

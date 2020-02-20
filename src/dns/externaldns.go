@@ -24,7 +24,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/src/dns/route53"
-	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // nolint: gochecknoglobals
@@ -83,7 +82,7 @@ func newExternalDnsServiceClientInstance() {
 	// vault kv put secret/banzaicloud/aws AWS_REGION=... AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=...
 	awsCredentialsPath := global.Config.Cluster.DNS.ProviderSecret
 
-	secret, err := secret.Store.Logical.Read(awsCredentialsPath)
+	secret, err := global.Vault().RawClient().Logical().Read(awsCredentialsPath)
 	if err != nil {
 		log.Errorf("Failed to read AWS credentials from Vault: %s", err.Error())
 		errCreate = err

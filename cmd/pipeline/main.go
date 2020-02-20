@@ -31,10 +31,12 @@ import (
 	watermillMiddleware "github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	evbus "github.com/asaskevich/EventBus"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/go-kit/kit/tracing/opencensus"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -121,6 +123,9 @@ import (
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/internal/providers/google/googleadapter"
+	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
+	"github.com/banzaicloud/pipeline/internal/secret/restricted"
+	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
@@ -236,6 +241,21 @@ func main() {
 
 	logger.Info("starting application", buildInfo.Fields())
 
+	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor)
+	commonErrorHandler := emperror.WithFilter(
+		emperror.WithContextExtractor(errorHandler, appkit.ContextExtractor),
+		appkiterrors.IsServiceError, // filter out client errors
+	)
+
+	vaultClient, err := vault.NewClient("pipeline")
+	emperror.Panic(err)
+	global.SetVault(vaultClient)
+
+	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
+	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, commonLogger)
+	secret.InitSecretStore(secretStore, pkeSecreter)
+	restricted.InitSecretStore(secret.Store)
+
 	// Connect to database
 	db, err := database.Connect(config.Database.Config)
 	emperror.Panic(errors.WithMessage(err, "failed to initialize db"))
@@ -244,12 +264,6 @@ func main() {
 	// TODO: make this optional when CICD is disabled
 	cicdDB, err := database.Connect(config.CICD.Database)
 	emperror.Panic(errors.WithMessage(err, "failed to initialize CICD db"))
-
-	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor)
-	commonErrorHandler := emperror.WithFilter(
-		emperror.WithContextExtractor(errorHandler, appkit.ContextExtractor),
-		appkiterrors.IsServiceError, // filter out client errors
-	)
 
 	publisher, subscriber := watermill.NewPubSub(logger)
 	defer publisher.Close()
@@ -270,7 +284,7 @@ func main() {
 	// Used internally to make sure every event/command bus uses the same one
 	eventMarshaler := cqrs.JSONMarshaler{GenerateName: cqrs.StructName}
 
-	secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+	commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
 	organizationStore := authadapter.NewGormOrganizationStore(db)
 
@@ -441,7 +455,7 @@ func main() {
 		),
 	}
 
-	configFactory := kubernetes.NewConfigFactory(secretStore)
+	configFactory := kubernetes.NewConfigFactory(commonSecretStore)
 	clientFactory := kubernetes.NewClientFactory(configFactory)
 	dynamicClientFactory := kubernetes.NewDynamicClientFactory(configFactory)
 
@@ -626,6 +640,11 @@ func main() {
 
 		endpointMiddleware := []endpoint.Middleware{
 			correlation.Middleware(),
+			opencensus.TraceEndpoint("", opencensus.WithSpanName(func(ctx context.Context, _ string) string {
+				name, _ := kitxendpoint.OperationName(ctx)
+
+				return name
+			})),
 			appkitendpoint.LoggingMiddleware(logger),
 		}
 
@@ -777,14 +796,14 @@ func main() {
 				}
 
 				if config.Cluster.Vault.Enabled {
-					integratedServiceManagers = append(integratedServiceManagers, integratedServiceVault.MakeIntegratedServiceManager(clusterGetter, secretStore, config.Cluster.Vault.Config, commonLogger))
+					integratedServiceManagers = append(integratedServiceManagers, integratedServiceVault.MakeIntegratedServiceManager(clusterGetter, commonSecretStore, config.Cluster.Vault.Config, commonLogger))
 				}
 
 				if config.Cluster.Monitoring.Enabled {
 					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), commonLogger)
 					integratedServiceManagers = append(integratedServiceManagers, featureMonitoring.MakeIntegratedServiceManager(
 						clusterGetter,
-						secretStore,
+						commonSecretStore,
 						endpointManager,
 						helmService,
 						config.Cluster.Monitoring.Config,
@@ -795,7 +814,7 @@ func main() {
 				if config.Cluster.Logging.Enabled {
 					integratedServiceManagers = append(integratedServiceManagers, integratedServiceLogging.MakeIntegratedServiceManager(
 						clusterGetter,
-						secretStore,
+						commonSecretStore,
 						endpointManager,
 						config.Cluster.Logging.Config,
 						commonLogger,
@@ -805,7 +824,7 @@ func main() {
 				if config.Cluster.SecurityScan.Enabled {
 					customAnchoreConfigProvider := securityscan.NewCustomAnchoreConfigProvider(
 						featureRepository,
-						secretStore,
+						commonSecretStore,
 						commonLogger,
 					)
 
@@ -815,7 +834,7 @@ func main() {
 						configProvider = append(configProvider, securityscan.NewClusterAnchoreConfigProvider(
 							config.Cluster.SecurityScan.Anchore.Endpoint,
 							securityscanadapter.NewUserNameGenerator(securityscanadapter.NewClusterService(clusterManager)),
-							securityscanadapter.NewUserSecretStore(secretStore),
+							securityscanadapter.NewUserSecretStore(commonSecretStore),
 						))
 					}
 
@@ -953,14 +972,14 @@ func main() {
 			orgs.POST("/:orgid/azure/resourcegroups", api.AddResourceGroups)
 
 			{
-				secretStore := googleadapter.NewSecretStore(secretStore)
+				secretStore := googleadapter.NewSecretStore(commonSecretStore)
 				clientFactory := google.NewClientFactory(secretStore)
 
 				service := googleproject.NewService(clientFactory)
-				endpoints := googleprojectdriver.TraceEndpoints(googleprojectdriver.MakeEndpoints(
+				endpoints := googleprojectdriver.MakeEndpoints(
 					service,
 					kitxendpoint.Combine(endpointMiddleware...),
-				))
+				)
 
 				googleprojectdriver.RegisterHTTPHandlers(
 					endpoints,
@@ -985,10 +1004,10 @@ func main() {
 			)
 			service = tokendriver.AuthorizationMiddleware(auth.NewAuthorizer(db, organizationStore))(service)
 
-			endpoints := tokendriver.TraceEndpoints(tokendriver.MakeEndpoints(
+			endpoints := tokendriver.MakeEndpoints(
 				service,
 				kitxendpoint.Combine(endpointMiddleware...),
-			))
+			)
 
 			tokendriver.RegisterHTTPHandlers(
 				endpoints,
@@ -1002,10 +1021,10 @@ func main() {
 
 		{
 			service := secrettype.NewService()
-			endpoints := secrettypedriver.TraceEndpoints(secrettypedriver.MakeEndpoints(
+			endpoints := secrettypedriver.MakeEndpoints(
 				service,
 				kitxendpoint.Combine(endpointMiddleware...),
-			))
+			)
 
 			secrettypedriver.RegisterHTTPHandlers(
 				endpoints,

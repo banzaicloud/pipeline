@@ -193,7 +193,7 @@ func (NotSupportedDistributionError) ServiceError() bool {
 }
 
 //go:generate mga gen mockery --name Service --inpkg
-// +kit:endpoint:withOpenCensus=true,errorStrategy=service
+// +kit:endpoint:errorStrategy=service
 
 // Service provides an interface to clusters.
 type Service interface {

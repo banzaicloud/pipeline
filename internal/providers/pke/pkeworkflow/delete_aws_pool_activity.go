@@ -21,12 +21,16 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
-const DeletePoolActivityName = "pke-delete-aws-pool-activity"
+const (
+	DeletePoolActivityName        = "pke-delete-aws-pool-activity"
+	WaitForDeletePoolActivityName = "wait-for-pke-delete-aws-pool-activity"
+)
 
 type DeletePoolActivity struct {
 	clusters Clusters
@@ -49,14 +53,9 @@ func (a *DeletePoolActivity) Execute(ctx context.Context, input DeletePoolActivi
 		return err
 	}
 
-	stackName := fmt.Sprintf("pke-pool-%s-worker-%s", cluster.GetName(), input.Pool.Name)
-	if input.Pool.Master {
-		stackName = fmt.Sprintf("pke-master-%s", cluster.GetName())
-	}
-
 	awsCluster, ok := cluster.(AWSCluster)
 	if !ok {
-		return errors.New(fmt.Sprintf("can't get AWS client for %t", cluster))
+		return errors.New(fmt.Sprintf("can't get AWS client for %T", cluster))
 	}
 
 	client, err := awsCluster.GetAWSClient()
@@ -65,6 +64,11 @@ func (a *DeletePoolActivity) Execute(ctx context.Context, input DeletePoolActivi
 	}
 
 	cfClient := cloudformation.New(client)
+
+	stackName := fmt.Sprintf("pke-pool-%s-worker-%s", cluster.GetName(), input.Pool.Name)
+	if input.Pool.Master {
+		stackName = fmt.Sprintf("pke-master-%s", cluster.GetName())
+	}
 
 	stackInput := &cloudformation.DeleteStackInput{
 		StackName: aws.String(stackName),
@@ -81,7 +85,45 @@ func (a *DeletePoolActivity) Execute(ctx context.Context, input DeletePoolActivi
 		return err
 	}
 
-	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: &stackName})
+	return nil
+}
+
+type WaitForDeletePoolActivity struct {
+	clusters Clusters
+}
+
+func NewWaitForDeletePoolActivity(clusters Clusters) *WaitForDeletePoolActivity {
+	return &WaitForDeletePoolActivity{
+		clusters: clusters,
+	}
+}
+
+func (a *WaitForDeletePoolActivity) Execute(ctx context.Context, input DeletePoolActivityInput) error {
+
+	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
+	if err != nil {
+		return err
+	}
+
+	awsCluster, ok := cluster.(AWSCluster)
+	if !ok {
+		return errors.New(fmt.Sprintf("can't get AWS client for %T", cluster))
+	}
+
+	client, err := awsCluster.GetAWSClient()
+	if err != nil {
+		return errors.WrapIf(err, "failed to connect to AWS")
+	}
+
+	cfClient := cloudformation.New(client)
+
+	stackName := fmt.Sprintf("pke-pool-%s-worker-%s", cluster.GetName(), input.Pool.Name)
+	if input.Pool.Master {
+		stackName = fmt.Sprintf("pke-master-%s", cluster.GetName())
+	}
+
+	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: &stackName},
+		request.WithWaiterRequestOptions(WithHeartBeatOption(ctx)))
 	if err != nil {
 		return errors.WrapIf(pkgCloudformation.NewAwsStackFailure(err, stackName, "", cfClient), "waiting for termination")
 	}

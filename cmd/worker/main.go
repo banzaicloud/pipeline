@@ -25,6 +25,7 @@ import (
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	"github.com/mitchellh/mapstructure"
 	"github.com/oklog/run"
 	"github.com/spf13/pflag"
@@ -73,6 +74,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/kubernetes/kubernetesadapter"
 	intpkeworkflowadapter "github.com/banzaicloud/pipeline/internal/pke/workflow/adapter"
+	"github.com/banzaicloud/pipeline/internal/platform/appkit"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
@@ -86,6 +88,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/kubesecret"
+	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
+	"github.com/banzaicloud/pipeline/internal/secret/restricted"
+	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
@@ -189,6 +194,17 @@ func main() {
 	buildInfo := buildinfo.New(version, commitHash, buildDate)
 
 	logger.Info("starting application", buildInfo.Fields())
+
+	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor)
+
+	vaultClient, err := vault.NewClient("pipeline")
+	emperror.Panic(err)
+	global.SetVault(vaultClient)
+
+	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
+	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, commonLogger)
+	secret.InitSecretStore(secretStore, pkeSecreter)
+	restricted.InitSecretStore(secret.Store)
 
 	var group run.Group
 

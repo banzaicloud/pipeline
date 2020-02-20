@@ -20,6 +20,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 )
 
@@ -70,7 +71,44 @@ func (a *DeleteNLBActivity) Execute(ctx context.Context, input DeleteNLBActivity
 		}
 	}
 
-	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: &stackName})
+	return nil
+}
+
+const WaitForDeleteNLBActivityName = "wait-for-pke-delete-nlb-activity"
+
+type WaitForDeleteNLBActivity struct {
+	clusters Clusters
+}
+
+func NewWaitForDeleteNLBActivity(clusters Clusters) *WaitForDeleteNLBActivity {
+	return &WaitForDeleteNLBActivity{
+		clusters: clusters,
+	}
+}
+
+func (a *WaitForDeleteNLBActivity) Execute(ctx context.Context, input DeleteNLBActivityInput) error {
+	c, err := a.clusters.GetCluster(ctx, input.ClusterID)
+	if err != nil {
+		return err
+	}
+	awsCluster, ok := c.(AWSCluster)
+	if !ok {
+		return errors.New(fmt.Sprintf("failed to set up wait for delete NLB for cluster type %t", c))
+	}
+
+	client, err := awsCluster.GetAWSClient()
+	if err != nil {
+		return errors.WrapIf(err, "failed to connect to AWS")
+	}
+
+	cfClient := cloudformation.New(client)
+
+	clusterName := c.GetName()
+	stackName := "pke-nlb-" + clusterName
+
+	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx,
+		&cloudformation.DescribeStacksInput{StackName: &stackName},
+		request.WithWaiterRequestOptions(WithHeartBeatOption(ctx)))
 	if err != nil {
 		return errors.WrapIf(err, "waiting for termination")
 	}
