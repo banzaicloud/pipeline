@@ -56,6 +56,9 @@ func validate() error {
 	return nil
 }
 
+//go:generate mga gen mockery --name Service --inpkg
+// +kit:endpoint:errorStrategy=service
+
 // Service manages Helm chart repositories.
 type Service interface {
 	// AddRepository adds a new Helm chart repository.
