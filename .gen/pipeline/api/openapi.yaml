@@ -19982,6 +19982,7 @@ components:
         id: 62bc3c75-91fb-4670-bad4-24b401a9deac
         type: google
         error: Validation failed
+        version: 1
         updatedAt: 2018-07-01T08:27:23.2636996Z
         tags:
         - repo:pipeline
@@ -20006,6 +20007,9 @@ components:
         updatedBy:
           example: username
           type: string
+        version:
+          example: 1
+          type: integer
         tags:
           example:
           - repo:pipeline

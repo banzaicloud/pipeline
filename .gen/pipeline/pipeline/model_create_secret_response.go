@@ -28,5 +28,7 @@ type CreateSecretResponse struct {
 
 	UpdatedBy string `json:"updatedBy,omitempty"`
 
+	Version int32 `json:"version,omitempty"`
+
 	Tags []string `json:"tags,omitempty"`
 }
