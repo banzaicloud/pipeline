@@ -16,12 +16,10 @@ package helm3
 
 import (
 	"context"
-	"fmt"
-	"net/url"
 
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
 // Repository represents a Helm chart repository.
@@ -43,27 +41,6 @@ type Repository struct {
 	// If there is a client key pair in the secret,
 	// it will be presented to the repository server.
 	TlsSecretID string `json:"tlsSecretId"`
-}
-
-func (r Repository) Validate() error {
-	var violations []string
-
-	if r.Name == "" {
-		violations = append(violations, "name cannot be empty")
-	}
-
-	// name matches a regex
-
-	_, err := url.Parse(r.URL)
-	if err != nil {
-		violations = append(violations, fmt.Sprintf("invalid repository URL: %s", err.Error()))
-	}
-
-	if len(violations) > 0 {
-		return errors.WithStack(cluster.NewValidationError("invalid chart repository", violations))
-	}
-
-	return nil
 }
 
 func validate() error {
@@ -94,13 +71,20 @@ type Service interface {
 }
 
 // NewService returns a new Service.
-func NewService() Service {
-	return service{}
+func NewService(store Store, secretStore SecretStore, validator RepoValidator, logger common.Logger) Service {
+	return service{
+		store:         store,
+		secretStore:   secretStore,
+		repoValidator: validator,
+		logger:        logger,
+	}
 }
 
 type service struct {
-	store       Store
-	secretStore SecretStore
+	store         Store
+	secretStore   SecretStore
+	repoValidator RepoValidator
+	logger        common.Logger
 }
 
 // Store interface abstracting persistence operations
@@ -114,6 +98,7 @@ type Store interface {
 	//ListRepositories retrieves persisted repositories for the given organisation
 	ListRepositories(ctx context.Context, organizationID uint) ([]Repository, error)
 
+	//GetRepository retrieves a repository entry
 	GetRepository(ctx context.Context, organizationID uint, repository Repository) (Repository, error)
 }
 
@@ -123,9 +108,9 @@ type SecretStore interface {
 }
 
 func (s service) AddRepository(ctx context.Context, organizationID uint, repository Repository) error {
-	// todo error response strategy: collect all or return fast
+
 	// validate repository
-	if err := repository.Validate(); err != nil {
+	if err := s.repoValidator.Validate(ctx, repository); err != nil {
 		return errors.WrapIf(err, "failed to add new helm repository")
 	}
 
