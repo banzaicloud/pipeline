@@ -149,7 +149,7 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 			NodeInstanceRoleID: modelCluster.NodeInstanceRoleId,
 			KubernetesVersion:  modelCluster.Version,
 			LogTypes:           modelCluster.LogTypes,
-			GenerateSSH:        modelCluster.SSHGenerated,
+			UseGeneratedSSHKey: modelCluster.SSHGenerated,
 		},
 		PostHooks:        createRequest.PostHooks,
 		OrganizationName: org.Name,

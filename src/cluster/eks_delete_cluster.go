@@ -45,7 +45,7 @@ type EKSDeleteClusterWorkflowInput struct {
 	// force delete
 	Forced bool
 
-	GenerateSSH bool
+	GeneratedSSHKeyUsed bool
 }
 
 // DeleteClusterWorkflow executes the Cadence workflow responsible for deleting an EKS cluster
@@ -111,14 +111,14 @@ func EKSDeleteClusterWorkflow(ctx workflow.Context, input EKSDeleteClusterWorkfl
 	// delete infra child workflow
 	{
 		infraInput := eksWorkflow.DeleteInfrastructureWorkflowInput{
-			OrganizationID: input.OrganizationID,
-			SecretID:       input.SecretID,
-			Region:         input.Region,
-			ClusterUID:     input.ClusterUID,
-			ClusterName:    input.ClusterName,
-			NodePoolNames:  input.NodePoolNames,
-			DefaultUser:    input.DefaultUser,
-			GenerateSSH:    input.GenerateSSH,
+			OrganizationID:   input.OrganizationID,
+			SecretID:         input.SecretID,
+			Region:           input.Region,
+			ClusterUID:       input.ClusterUID,
+			ClusterName:      input.ClusterName,
+			NodePoolNames:    input.NodePoolNames,
+			DefaultUser:      input.DefaultUser,
+			GeneratedSSHUsed: input.GeneratedSSHKeyUsed,
 		}
 
 		err := workflow.ExecuteChildWorkflow(ctx, eksWorkflow.DeleteInfraWorkflowName, infraInput).Get(ctx, nil)

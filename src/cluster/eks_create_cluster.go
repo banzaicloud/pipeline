@@ -73,7 +73,7 @@ func EKSCreateClusterWorkflow(ctx workflow.Context, input EKSCreateClusterWorkfl
 		NodeInstanceRoleID:    input.NodeInstanceRoleID,
 		EndpointPublicAccess:  input.EndpointPublicAccess,
 		EndpointPrivateAccess: input.EndpointPublicAccess,
-		GenerateSSH:           input.GenerateSSH,
+		UseGeneratedSSHKey:    input.UseGeneratedSSHKey,
 	}
 
 	infraOutput := eksWorkflow.CreateInfrastructureWorkflowOutput{}

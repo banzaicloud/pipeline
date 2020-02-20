@@ -106,17 +106,17 @@ func (cd EKSClusterDeleter) DeleteCluster(ctx context.Context, clusterID uint, o
 	}
 
 	input := cluster.EKSDeleteClusterWorkflowInput{
-		OrganizationID: eksCluster.GetOrganizationId(),
-		Region:         eksCluster.GetLocation(),
-		SecretID:       eksCluster.GetSecretId(),
-		ClusterID:      eksCluster.GetID(),
-		ClusterUID:     eksCluster.GetUID(),
-		ClusterName:    eksCluster.GetName(),
-		NodePoolNames:  nodePoolNames,
-		K8sSecretID:    eksCluster.GetConfigSecretId(),
-		DefaultUser:    modelCluster.DefaultUser,
-		Forced:         options.Force,
-		GenerateSSH:    eksCluster.IsSSHGenerated(),
+		OrganizationID:      eksCluster.GetOrganizationId(),
+		Region:              eksCluster.GetLocation(),
+		SecretID:            eksCluster.GetSecretId(),
+		ClusterID:           eksCluster.GetID(),
+		ClusterUID:          eksCluster.GetUID(),
+		ClusterName:         eksCluster.GetName(),
+		NodePoolNames:       nodePoolNames,
+		K8sSecretID:         eksCluster.GetConfigSecretId(),
+		DefaultUser:         modelCluster.DefaultUser,
+		Forced:              options.Force,
+		GeneratedSSHKeyUsed: eksCluster.IsSSHGenerated(),
 	}
 
 	workflowOptions := client.StartWorkflowOptions{

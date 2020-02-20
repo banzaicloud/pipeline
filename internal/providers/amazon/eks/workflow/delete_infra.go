@@ -26,14 +26,14 @@ const DeleteInfraWorkflowName = "eks-delete-infra"
 
 // DeleteInfrastructureWorkflowInput holds data needed by the delete EKS cluster infrastructure workflow
 type DeleteInfrastructureWorkflowInput struct {
-	OrganizationID uint
-	SecretID       string
-	Region         string
-	ClusterName    string
-	ClusterUID     string
-	NodePoolNames  []string
-	DefaultUser    bool
-	GenerateSSH    bool
+	OrganizationID   uint
+	SecretID         string
+	Region           string
+	ClusterName      string
+	ClusterUID       string
+	NodePoolNames    []string
+	DefaultUser      bool
+	GeneratedSSHUsed bool
 }
 
 // DeleteInfrastructureWorkflow executes the Cadence workflow responsible for deleting EKS
@@ -173,7 +173,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 
 	// delete SSH key
 	var deleteSSHKeyActivityFeature workflow.Future
-	if input.GenerateSSH {
+	if input.GeneratedSSHUsed {
 		{
 			activityInput := DeleteSshKeyActivityInput{
 				EKSActivityInput: eksActivityInput,
