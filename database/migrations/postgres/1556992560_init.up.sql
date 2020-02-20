@@ -103,8 +103,8 @@ CREATE UNIQUE INDEX idx_amazon_node_pools_cluster_id_name ON "amazon_node_pools"
 
 CREATE TABLE "amazon_eks_clusters" (
   "id" serial,
-  "cluster_id" integer,
   "version" text,
+  "cluster_id" integer,
   "vpc_id" varchar(32),
   "vpc_cidr" varchar(18),
   "route_table_id" varchar(32),

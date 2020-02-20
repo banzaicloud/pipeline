@@ -48,7 +48,7 @@ type EKSUpdateClusterstructureWorkflowInput struct {
 	AsgList            []eksWorkflow.AutoscaleGroup
 	NodePoolLabels     map[string]map[string]string
 
-	GenerateSSH bool
+	UseGeneratedSSHKey bool
 }
 
 func waitForActivities(asgFutures []workflow.Future, ctx workflow.Context, clusterID uint) error {
@@ -213,7 +213,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				NodeInstanceType: nodePool.NodeInstanceType,
 				Labels:           nodePool.Labels,
 			}
-			if input.GenerateSSH {
+			if input.UseGeneratedSSHKey {
 				activityInput.SSHKeyName = eksWorkflow.GenerateSSHKeyNameForCluster(input.ClusterName)
 			}
 
