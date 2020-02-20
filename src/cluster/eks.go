@@ -266,6 +266,14 @@ func (c *EKSCluster) SetCurrentWorkflowID(workflowID string) error {
 	return c.modelCluster.EKS.SetCurrentWorkflowID(workflowID)
 }
 
+func (c *EKSCluster) PersistSSHGenerate(sshGenerated bool) error {
+	return c.modelCluster.EKS.PersistSSHGenerate(sshGenerated)
+}
+
+func (c *EKSCluster) IsSSHGenerated() bool {
+	return c.modelCluster.EKS.IsSSHGenerated()
+}
+
 // Persist saves the cluster model
 // Deprecated: Do not use.
 func (c *EKSCluster) Persist() error {

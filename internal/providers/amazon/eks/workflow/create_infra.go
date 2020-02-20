@@ -53,7 +53,7 @@ type CreateInfrastructureWorkflowInput struct {
 	LogTypes []string
 	AsgList  []AutoscaleGroup
 
-	GenerateSSH bool
+	UseGeneratedSSHKey bool
 }
 
 type CreateInfrastructureWorkflowOutput struct {
@@ -120,7 +120,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 	// upload SSH key activity
 	sshKeyName := GenerateSSHKeyNameForCluster(input.ClusterName)
 	var uploadSSHKeyActivityFeature workflow.Future
-	if input.GenerateSSH {
+	if input.UseGeneratedSSHKey {
 		{
 			activityInput := &UploadSSHKeyActivityInput{
 				EKSActivityInput: commonActivityInput,
@@ -333,7 +333,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			NodeInstanceType: asg.NodeInstanceType,
 			Labels:           asg.Labels,
 		}
-		if input.GenerateSSH {
+		if input.UseGeneratedSSHKey {
 			activityInput.SSHKeyName = sshKeyName
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)

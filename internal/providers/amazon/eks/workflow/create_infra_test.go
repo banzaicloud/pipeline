@@ -138,7 +138,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 				NodeInstanceType: "vm-type2-test",
 			},
 		},
-		GenerateSSH: true,
+		UseGeneratedSSHKey: true,
 	}
 
 	eksActivity := EKSActivityInput{
@@ -397,7 +397,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
 				NodeInstanceType: "vm-type2-test",
 			},
 		},
-		GenerateSSH: true,
+		UseGeneratedSSHKey: true,
 	}
 
 	s.env.OnActivity(CreateIamRolesActivityName, mock.Anything, mock.Anything).Return(&CreateIamRolesActivityOutput{

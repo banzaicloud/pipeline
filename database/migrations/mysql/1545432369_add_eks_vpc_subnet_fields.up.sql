@@ -1,7 +1,7 @@
+ALTER TABLE `amazon_eks_clusters` ADD COLUMN `cluster_id`         int(10) unsigned DEFAULT 0;
 ALTER TABLE `amazon_eks_clusters` ADD COLUMN `vpc_id`             varchar(32) DEFAULT NULL;
 ALTER TABLE `amazon_eks_clusters` ADD COLUMN `vpc_cidr`           varchar(18) DEFAULT NULL;
 ALTER TABLE `amazon_eks_clusters` ADD COLUMN `route_table_id`     varchar(32) DEFAULT NULL;
-ALTER TABLE `amazon_eks_clusters` ADD COLUMN `cluster_id`         int(10) unsigned DEFAULT 0;
 
 UPDATE `amazon_eks_clusters` SET cluster_id=id;
 
