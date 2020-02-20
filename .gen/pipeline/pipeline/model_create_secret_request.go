@@ -18,7 +18,5 @@ type CreateSecretRequest struct {
 
 	Tags []string `json:"tags,omitempty"`
 
-	Version int32 `json:"version,omitempty"`
-
 	Values map[string]interface{} `json:"values"`
 }
