@@ -71,11 +71,11 @@ func MakeActivateEndpoint(service integratedservices.Service) endpoint.Endpoint 
 		err := service.Activate(ctx, req.ClusterID, req.ServiceName, req.Spec)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
-				return ActivateResponse{Err: err}, err
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return ActivateResponse{Err: err}, nil
 			}
 
-			return ActivateResponse{Err: err}, nil
+			return ActivateResponse{Err: err}, err
 		}
 
 		return ActivateResponse{}, nil
@@ -105,11 +105,11 @@ func MakeDeactivateEndpoint(service integratedservices.Service) endpoint.Endpoin
 		err := service.Deactivate(ctx, req.ClusterID, req.ServiceName)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
-				return DeactivateResponse{Err: err}, err
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return DeactivateResponse{Err: err}, nil
 			}
 
-			return DeactivateResponse{Err: err}, nil
+			return DeactivateResponse{Err: err}, err
 		}
 
 		return DeactivateResponse{}, nil
@@ -140,17 +140,17 @@ func MakeDetailsEndpoint(service integratedservices.Service) endpoint.Endpoint {
 		service, err := service.Details(ctx, req.ClusterID, req.ServiceName)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return DetailsResponse{
 					Err:     err,
 					Service: service,
-				}, err
+				}, nil
 			}
 
 			return DetailsResponse{
 				Err:     err,
 				Service: service,
-			}, nil
+			}, err
 		}
 
 		return DetailsResponse{Service: service}, nil
@@ -180,17 +180,17 @@ func MakeListEndpoint(service integratedservices.Service) endpoint.Endpoint {
 		services, err := service.List(ctx, req.ClusterID)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return ListResponse{
 					Err:      err,
 					Services: services,
-				}, err
+				}, nil
 			}
 
 			return ListResponse{
 				Err:      err,
 				Services: services,
-			}, nil
+			}, err
 		}
 
 		return ListResponse{Services: services}, nil
@@ -221,11 +221,11 @@ func MakeUpdateEndpoint(service integratedservices.Service) endpoint.Endpoint {
 		err := service.Update(ctx, req.ClusterID, req.ServiceName, req.Spec)
 
 		if err != nil {
-			if endpointErr := endpointError(nil); errors.As(err, &endpointErr) && endpointErr.EndpointError() {
-				return UpdateResponse{Err: err}, err
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return UpdateResponse{Err: err}, nil
 			}
 
-			return UpdateResponse{Err: err}, nil
+			return UpdateResponse{Err: err}, err
 		}
 
 		return UpdateResponse{}, nil
