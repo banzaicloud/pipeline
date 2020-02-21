@@ -27,6 +27,7 @@ type serviceError interface {
 // single parameter.
 type Endpoints struct {
 	AddRepository    endpoint.Endpoint
+	DeleteRepository endpoint.Endpoint
 	ListRepositories endpoint.Endpoint
 }
 
@@ -37,6 +38,7 @@ func MakeEndpoints(service helm3.Service, middleware ...endpoint.Middleware) End
 
 	return Endpoints{
 		AddRepository:    kitxendpoint.OperationNameMiddleware("helm3.AddRepository")(mw(MakeAddRepositoryEndpoint(service))),
+		DeleteRepository: kitxendpoint.OperationNameMiddleware("helm3.DeleteRepository")(mw(MakeDeleteRepositoryEndpoint(service))),
 		ListRepositories: kitxendpoint.OperationNameMiddleware("helm3.ListRepositories")(mw(MakeListRepositoriesEndpoint(service))),
 	}
 }
@@ -72,6 +74,40 @@ func MakeAddRepositoryEndpoint(service helm3.Service) endpoint.Endpoint {
 		}
 
 		return AddRepositoryResponse{}, nil
+	}
+}
+
+// DeleteRepositoryRequest is a request struct for DeleteRepository endpoint.
+type DeleteRepositoryRequest struct {
+	OrganizationID uint
+	RepoName       string
+}
+
+// DeleteRepositoryResponse is a response struct for DeleteRepository endpoint.
+type DeleteRepositoryResponse struct {
+	Err error
+}
+
+func (r DeleteRepositoryResponse) Failed() error {
+	return r.Err
+}
+
+// MakeDeleteRepositoryEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeDeleteRepositoryEndpoint(service helm3.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(DeleteRepositoryRequest)
+
+		err := service.DeleteRepository(ctx, req.OrganizationID, req.RepoName)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return DeleteRepositoryResponse{Err: err}, nil
+			}
+
+			return DeleteRepositoryResponse{Err: err}, err
+		}
+
+		return DeleteRepositoryResponse{}, nil
 	}
 }
 

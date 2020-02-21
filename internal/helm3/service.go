@@ -67,7 +67,7 @@ type Service interface {
 	// ListRepositories lists Helm repositories.
 	ListRepositories(ctx context.Context, organizationID uint) (repos []Repository, err error)
 
-	// DeleteRepository(ctx context.Context, organizationID uint, repoName string) error
+	DeleteRepository(ctx context.Context, organizationID uint, repoName string) error
 
 	// GetRepositoryIndex(ctx context.Context, organizationID uint, repoName string) (index []byte, err error)
 	// PurgeIndexCache(ctx context.Context, organizationID uint, repoName string) error
@@ -81,13 +81,6 @@ func NewService(store Store, secretStore SecretStore, validator RepoValidator, l
 		repoValidator: validator,
 		logger:        logger,
 	}
-}
-
-type service struct {
-	store         Store
-	secretStore   SecretStore
-	repoValidator RepoValidator
-	logger        common.Logger
 }
 
 // Store interface abstracting persistence operations
@@ -108,6 +101,13 @@ type Store interface {
 type SecretStore interface {
 	CheckPasswordSecret(ctx context.Context, secretID string) error
 	CheckTLSSecret(ctx context.Context, secretID string) error
+}
+
+type service struct {
+	store         Store
+	secretStore   SecretStore
+	repoValidator RepoValidator
+	logger        common.Logger
 }
 
 func (s service) AddRepository(ctx context.Context, organizationID uint, repository Repository) error {
@@ -131,7 +131,7 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 
 	// check record existence
 	if _, err := s.store.GetRepository(ctx, organizationID, repository); err == nil {
-		return errors.WrapIf(err, "helm repository already exists")
+		return errors.New("helm repository already exists")
 	}
 
 	// validate repository index? todo
@@ -146,4 +146,16 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 
 func (s service) ListRepositories(ctx context.Context, organizationID uint) (repos []Repository, err error) {
 	return s.store.ListRepositories(ctx, organizationID)
+}
+
+func (s service) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {
+	s.logger.Debug("deleting helm repository", map[string]interface{}{"orgID": organizationID, "helm repository": repoName})
+	if err := s.store.DeleteRepository(ctx, organizationID, Repository{
+		Name: repoName,
+	}); err != nil {
+		return errors.WrapIf(err, "failed to delete helm repository")
+	}
+
+	s.logger.Debug("deleted helm repository", map[string]interface{}{"orgID": organizationID, "helm repository": repoName})
+	return nil
 }

@@ -40,8 +40,15 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 
 	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
 		endpoints.ListRepositories,
-		decodeListRepositoryHTTPRequest,
+		decodeListRepositoriesHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(encodeListRepositoriesHTTPResponse, errorEncoder),
+		options...,
+	))
+
+	router.Methods(http.MethodDelete).Path("/{repoName}").Handler(kithttp.NewServer(
+		endpoints.DeleteRepository,
+		decodeDeleteRepositoryHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeDeleteRepositoryHTTPResponse, errorEncoder),
 		options...,
 	))
 }
@@ -75,20 +82,45 @@ func encodeCreateRepositoryHTTPResponse(ctx context.Context, w http.ResponseWrit
 	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
 }
 
-func decodeListRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeListRepositoriesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	orgID, err := extractOrgID(r)
 	if err != nil {
 		return 0, errors.WrapIf(err, "failed to decode list request")
 	}
 
 	return ListRepositoriesRequest{OrganizationID: orgID}, nil
-
 }
 
 func encodeListRepositoriesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	resp := response.(ListRepositoriesResponse)
 
 	return kitxhttp.JSONResponseEncoder(ctx, w, resp.Repos)
+}
+
+func decodeDeleteRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, err := extractOrgID(r)
+	if err != nil {
+		return 0, errors.WrapIf(err, "failed to decode list request")
+	}
+
+	repoName, err := extractHelmRepoName(r)
+	if err != nil {
+		return 0, errors.WrapIf(err, "failed to decode list request")
+	}
+
+	return DeleteRepositoryRequest{OrganizationID: orgID, RepoName: repoName}, nil
+}
+
+func encodeDeleteRepositoryHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(DeleteRepositoryResponse)
+
+	emptyResponse := DeleteRepositoryResponse{}
+
+	if resp == emptyResponse {
+		return nil
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
 }
 
 func extractOrgID(r *http.Request) (uint, error) {
@@ -105,4 +137,15 @@ func extractOrgID(r *http.Request) (uint, error) {
 	}
 
 	return uint(orgID), nil
+}
+
+func extractHelmRepoName(r *http.Request) (string, error) {
+	vars := mux.Vars(r)
+
+	repoName, ok := vars["repoName"]
+	if !ok || repoName == "" {
+		return "", errors.NewWithDetails("missing path parameter", "param", "repoName")
+	}
+
+	return repoName, nil
 }

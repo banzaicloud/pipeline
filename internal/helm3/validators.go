@@ -70,6 +70,10 @@ func (r repoValidator) Validate(ctx context.Context, repository Repository) erro
 		violations = append(violations, fmt.Sprintf("invalid repository URL: %s", err.Error()))
 	}
 
+	if repository.PasswordSecretID == "" && repository.TlsSecretID == "" {
+		violations = append(violations, fmt.Sprintf("a secret ID must be provided"))
+	}
+
 	if len(violations) > 0 {
 		return errors.WithStack(NewValidationError("invalid chart repository", violations))
 	}

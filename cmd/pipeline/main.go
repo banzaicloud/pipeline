@@ -973,6 +973,7 @@ func main() {
 				)
 
 				orgs.Any("/:orgid/helmrepos", gin.WrapH(router))
+				orgs.Any("/:orgid/helmrepos/*path", gin.WrapH(router))
 			}
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
 			orgs.GET("/:orgid/secrets/:id", api.GetSecret)
