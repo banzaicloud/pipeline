@@ -28,6 +28,11 @@ type RepoValidator interface {
 	Validate(ctx context.Context, repository Repository) error
 }
 
+func NewHelmRepoValidator() RepoValidator {
+	// todo refine validator implementation: are more validators needed, add external / internal validators
+	return repoValidator{}
+}
+
 type RepoValidators []RepoValidator
 
 func (r RepoValidators) Validate(ctx context.Context, repository Repository) error {
@@ -42,7 +47,7 @@ func (r RepoValidators) Validate(ctx context.Context, repository Repository) err
 
 	if len(violations) > 0 {
 		return errors.WithStack(
-			cluster.NewValidationError("invalid node pool", violations))
+			cluster.NewValidationError("invalid helm repository", violations))
 	}
 
 	return nil

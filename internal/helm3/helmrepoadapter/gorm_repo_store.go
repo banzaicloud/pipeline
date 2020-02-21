@@ -127,6 +127,7 @@ func toDomain(model repositoryModel) helm3.Repository {
 func toModel(repository helm3.Repository) repositoryModel {
 	return repositoryModel{
 		Name:             repository.Name,
+		URL:              repository.URL,
 		PasswordSecretID: repository.PasswordSecretID,
 		TlsSecretID:      repository.TlsSecretID,
 	}
