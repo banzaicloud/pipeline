@@ -90,6 +90,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 	"github.com/banzaicloud/pipeline/internal/helm2"
 	"github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
+	"github.com/banzaicloud/pipeline/internal/helm3"
+	"github.com/banzaicloud/pipeline/internal/helm3/helm3driver"
+	"github.com/banzaicloud/pipeline/internal/helm3/helmrepoadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicesdriver"
@@ -956,6 +959,21 @@ func main() {
 			orgs.DELETE("/:orgid/helm/repos/:name", api.HelmReposDelete)
 			orgs.GET("/:orgid/helm/charts", api.HelmCharts)
 			orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
+			{
+				helmRepoStore := helmrepoadapter.NewHelmRepoStore(db, commonLogger)
+				secretStore := helmrepoadapter.NewSecretStore(commonSecretStore, commonLogger)
+				validator := helm3.NewHelmRepoValidator()
+
+				helmService := helm3.NewService(helmRepoStore, secretStore, validator, commonLogger)
+
+				helmRepoEndpoints := helm3driver.MakeEndpoints(helmService)
+				helm3driver.RegisterHTTPHandlers(helmRepoEndpoints,
+					orgRouter.PathPrefix("/helmrepos").Subrouter(),
+					kitxhttp.ServerOptions(httpServerOptions),
+				)
+
+				orgs.Any("/:orgid/helmrepos", gin.WrapH(router))
+			}
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
 			orgs.GET("/:orgid/secrets/:id", api.GetSecret)
 			orgs.POST("/:orgid/secrets", api.AddSecrets)
