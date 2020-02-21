@@ -33,8 +33,8 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-func MakeClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyCache, logger logrus.FieldLogger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.ClusterStore, workflowClient client.Client) VspherePKEClusterDeleter {
-	return VspherePKEClusterDeleter{
+func MakeClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyCache, logger logrus.FieldLogger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.ClusterStore, workflowClient client.Client) ClusterDeleter {
+	return ClusterDeleter{
 		events:                     events,
 		kubeProxyCache:             kubeProxyCache,
 		logger:                     logger,
@@ -45,7 +45,7 @@ func MakeClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyCac
 	}
 }
 
-type VspherePKEClusterDeleter struct {
+type ClusterDeleter struct {
 	events                     ClusterDeleterEvents
 	kubeProxyCache             KubeProxyCache
 	logger                     logrus.FieldLogger
@@ -67,7 +67,7 @@ type KubeProxyCache interface {
 	Delete(clusterUID string)
 }
 
-func (cd VspherePKEClusterDeleter) DeleteCluster(ctx context.Context, clusterID uint, options cluster.DeleteClusterOptions) error {
+func (cd ClusterDeleter) DeleteCluster(ctx context.Context, clusterID uint, options cluster.DeleteClusterOptions) error {
 	cl, err := cd.store.GetByID(clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to load cluster from data store")
@@ -75,7 +75,7 @@ func (cd VspherePKEClusterDeleter) DeleteCluster(ctx context.Context, clusterID 
 	return cd.Delete(ctx, cl, options.Force)
 }
 
-func (cd VspherePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnVsphereCluster, forced bool) error {
+func (cd ClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnVsphereCluster, forced bool) error {
 	logger := cd.logger.WithField("clusterName", cluster.Name).WithField("clusterID", cluster.ID).WithField("forced", forced)
 	logger.Info("Deleting cluster")
 
@@ -87,6 +87,7 @@ func (cd VspherePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOn
 		ClusterUID:     cluster.UID,
 		K8sSecretID:    cluster.K8sSecretID,
 		Forced:         forced,
+		// TODO: nodes !!!
 	}
 
 	retryPolicy := &cadence.RetryPolicy{
@@ -132,7 +133,9 @@ func (cd VspherePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOn
 			return
 		}
 		cd.kubeProxyCache.Delete(cluster.UID)
-		cd.events.ClusterDeleted(cluster.OrganizationID, cluster.Name)
+		if cd.events != nil {
+			cd.events.ClusterDeleted(cluster.OrganizationID, cluster.Name)
+		}
 	}()
 
 	if err = cd.store.SetActiveWorkflowID(cluster.ID, wfrun.GetID()); err != nil {
@@ -142,7 +145,11 @@ func (cd VspherePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOn
 	return nil
 }
 
-func (cd VspherePKEClusterDeleter) getClusterStatusChangeDurationTimer(cluster pke.PKEOnVsphereCluster) (metrics.DurationMetricTimer, error) {
+func (cd ClusterDeleter) getClusterStatusChangeDurationTimer(cluster pke.PKEOnVsphereCluster) (metrics.DurationMetricTimer, error) {
+	if cd.statusChangeDurationMetric == nil {
+		return metrics.NoopDurationMetricTimer{}, nil
+	}
+
 	values := metrics.ClusterStatusChangeDurationMetricValues{
 		ProviderName: pkgCluster.Vsphere,
 		LocationName: "na",
@@ -159,7 +166,7 @@ func (cd VspherePKEClusterDeleter) getClusterStatusChangeDurationTimer(cluster p
 	return cd.statusChangeDurationMetric.StartTimer(values), nil
 }
 
-func (cd VspherePKEClusterDeleter) DeleteByID(ctx context.Context, clusterID uint, forced bool) error {
+func (cd ClusterDeleter) DeleteByID(ctx context.Context, clusterID uint, forced bool) error {
 	cl, err := cd.store.GetByID(clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to load cluster from data store")
