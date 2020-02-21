@@ -23,6 +23,7 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/client"
 
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
@@ -32,7 +33,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-func MakeVspherePKEClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyCache, logger logrus.FieldLogger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.ClusterStore, workflowClient client.Client) VspherePKEClusterDeleter {
+func MakeClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyCache, logger logrus.FieldLogger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.ClusterStore, workflowClient client.Client) VspherePKEClusterDeleter {
 	return VspherePKEClusterDeleter{
 		events:                     events,
 		kubeProxyCache:             kubeProxyCache,
@@ -64,6 +65,14 @@ type ClusterDeleterEvents interface {
 
 type KubeProxyCache interface {
 	Delete(clusterUID string)
+}
+
+func (cd VspherePKEClusterDeleter) DeleteCluster(ctx context.Context, clusterID uint, options cluster.DeleteClusterOptions) error {
+	cl, err := cd.store.GetByID(clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to load cluster from data store")
+	}
+	return cd.Delete(ctx, cl, options.Force)
 }
 
 func (cd VspherePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnVsphereCluster, forced bool) error {

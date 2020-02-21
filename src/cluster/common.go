@@ -310,7 +310,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		case pkgCluster.Azure:
 			return pkeAzureAdapter.MakeCommonClusterGetter(secret.Store, adapter.NewClusterStore(db, logger)).GetByID(modelCluster.ID)
 		case pkgCluster.Vsphere:
-			return pkeVsphereAdapter.MakeCommonClusterGetter(secret.Store, vsphereadapter.NewGORMVspherePKEClusterStore(db)).GetByID(modelCluster.ID)
+			return pkeVsphereAdapter.MakeCommonClusterGetter(secret.Store, vsphereadapter.NewClusterStore(db)).GetByID(modelCluster.ID)
 		default:
 			return createCommonClusterWithDistributionFromModel(modelCluster)
 		}

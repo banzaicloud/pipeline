@@ -85,6 +85,8 @@ import (
 	azurepkedriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
+	vsphereadapter "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/adapter"
+	vspheredriver "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/secret/kubesecret"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
@@ -371,6 +373,7 @@ func main() {
 		}
 
 		clusterStore := clusteradapter.NewStore(db, clusteradapter.NewClusters(db))
+		vsphereClusterStore := vsphereadapter.NewClusterStore(db) //, commonadapter.NewLogger(logger))
 
 		{
 			workflow.RegisterWithOptions(clusterworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: clusterworkflow.DeleteClusterWorkflowName})
@@ -442,6 +445,18 @@ func main() {
 						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Oracle, pkgCluster.OKE),
 						Deleter: commonClusterDeleter,
 					},
+					clusteradapter.ClusterDeleterEntry{
+						Key: clusteradapter.MakeClusterDeleterKey(pkgCluster.Vsphere, pkgCluster.PKE),
+						Deleter: vspheredriver.MakeClusterDeleter(
+							nil,
+							clusterManager.GetKubeProxyCache(),
+							logrusLogger,
+							secret.Store,
+							nil,
+							vsphereClusterStore,
+							workflowClient,
+						),
+					},
 				),
 			)
 			activity.RegisterWithOptions(deleteClusterActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.DeleteClusterActivityName})
@@ -485,7 +500,8 @@ func main() {
 		}
 
 		// Register vsphere specific workflows
-		registerVsphereWorkflows(secretStore, tokenGenerator) //, vsphereClusterStore)
+
+		registerVsphereWorkflows(secretStore, tokenGenerator, vsphereClusterStore)
 
 		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterSecretStore)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})

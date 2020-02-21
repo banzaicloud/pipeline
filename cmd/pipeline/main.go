@@ -397,7 +397,7 @@ func main() {
 	}))
 
 	azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonLogger)
-	gormVspherePKEClusterStore := vspherePKEAdapter.NewGORMVspherePKEClusterStore(db)
+	gormVspherePKEClusterStore := vspherePKEAdapter.NewClusterStore(db)
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeClusterCreator(
 			azurePKEDriver.ClusterCreatorConfig{

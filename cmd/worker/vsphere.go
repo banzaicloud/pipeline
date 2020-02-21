@@ -20,10 +20,11 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
+	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	vsphereworkflow "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/workflow"
 )
 
-func registerVsphereWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator pkeworkflowadapter.TokenGenerator) {
+func registerVsphereWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator pkeworkflowadapter.TokenGenerator, store pke.ClusterStore) {
 	workflow.RegisterWithOptions(vsphereworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: vsphereworkflow.CreateClusterWorkflowName})
 
 	vsphereClientFactory := vsphereworkflow.NewVMOMIClientFactory(secretStore)
@@ -33,4 +34,12 @@ func registerVsphereWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerato
 
 	waitForIpActivity := vsphereworkflow.MakeWaitForIPActivity(vsphereClientFactory)
 	activity.RegisterWithOptions(waitForIpActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.WaitForIPActivityName})
+
+	workflow.RegisterWithOptions(vsphereworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: vsphereworkflow.DeleteClusterWorkflowName})
+
+	deleteNodeActivity := vsphereworkflow.MakeDeleteNodeActivity(vsphereClientFactory)
+	activity.RegisterWithOptions(deleteNodeActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.DeleteNodeActivityName})
+
+	deleteClusterFromStoreActivity := vsphereworkflow.MakeDeleteClusterFromStoreActivity(store)
+	activity.RegisterWithOptions(deleteClusterFromStoreActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.DeleteClusterFromStoreActivityName})
 }

@@ -36,7 +36,7 @@ type gormVspherePKEClusterStore struct {
 	db *gorm.DB
 }
 
-func NewGORMVspherePKEClusterStore(db *gorm.DB) pke.ClusterStore {
+func NewClusterStore(db *gorm.DB) pke.ClusterStore {
 	return gormVspherePKEClusterStore{
 		db: db,
 	}
