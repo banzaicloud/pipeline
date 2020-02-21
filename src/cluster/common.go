@@ -240,10 +240,8 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 	secretID := secret.GenerateSecretID(&createSecretRequest)
 
 	// Try to get the secret version first
-	if configSecret, err := getSecret(organizationID, secretID); err != nil && err != secret.ErrSecretNotExists {
+	if _, err := getSecret(organizationID, secretID); err != nil && err != secret.ErrSecretNotExists {
 		return err
-	} else if configSecret != nil {
-		createSecretRequest.Version = configSecret.Version
 	}
 
 	err := secret.Store.Update(organizationID, secretID, &createSecretRequest)
