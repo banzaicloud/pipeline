@@ -34,7 +34,7 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
 		endpoints.AddRepository,
 		decodeAddRepositoryHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(encodeCreateTokenHTTPResponse, errorEncoder),
+		kitxhttp.ErrorResponseEncoder(encodeCreateRepositoryHTTPResponse, errorEncoder),
 		options...,
 	))
 
@@ -64,8 +64,13 @@ func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interfa
 	return addRepositoryRequest, nil
 }
 
-func encodeCreateTokenHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+func encodeCreateRepositoryHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	resp := response.(AddRepositoryResponse)
+	emptyResponse := AddRepositoryResponse{}
+
+	if resp == emptyResponse {
+		return nil
+	}
 
 	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
 }
