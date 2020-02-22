@@ -25,11 +25,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )
 
-//go:generate mga gen mockery --name NodePoolStore --inpkg --testonly
-//go:generate mga gen mockery --name NodePoolValidator --inpkg --testonly
-//go:generate mga gen mockery --name NodePoolProcessor --inpkg --testonly
-//go:generate mga gen mockery --name NodePoolManager --inpkg --testonly
-
 func TestNewRawNodePool(t *testing.T) {
 	t.Run("GetName", func(t *testing.T) {
 		np := NewRawNodePool{

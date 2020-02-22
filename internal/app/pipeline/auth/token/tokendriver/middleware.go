@@ -35,6 +35,8 @@ func AuthorizationMiddleware(authorizer Authorizer) Middleware {
 	}
 }
 
+// +testify:mock:testOnly=true
+
 // Authorizer checks if a context has permission to execute an action.
 type Authorizer interface {
 	// Authorize authorizes a context to execute an action on an object.

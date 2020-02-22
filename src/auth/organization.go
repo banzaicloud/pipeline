@@ -90,6 +90,8 @@ func normalizeOrganizationName(name string) string {
 	return name
 }
 
+// +testify:mock:testOnly=true
+
 // OrganizationSyncer synchronizes organization membership for a user.
 // It creates missing organizations, adds user to and removes from existing organizations,
 // updates organization role.
@@ -117,6 +119,8 @@ func NewOrganizationSyncer(store OrganizationStore, events OrganizationEvents, l
 // ErrOrganizationConflict is returned when an organization exists, but with mismatching parameters.
 const ErrOrganizationConflict = errors.Sentinel("organization already exists, but with mismatching parameters")
 
+// +testify:mock:testOnly=true
+
 // OrganizationStore is a persistence layer for organizations.
 type OrganizationStore interface {
 	// EnsureOrganizationExists ensures that an organization exists.
@@ -137,6 +141,7 @@ type OrganizationStore interface {
 }
 
 // +mga:event:dispatcher
+// +testify:mock:testOnly=true
 
 // OrganizationEvents dispatches organization events.
 type OrganizationEvents interface {

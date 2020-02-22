@@ -28,8 +28,6 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-//go:generate mga gen mockery --name ReadWriteOrganizationalSecretStore --inpkg --testonly
-
 func TestSecretStore_GetSecretValues(t *testing.T) {
 	organizationID := uint(1)
 	secretID := "id"

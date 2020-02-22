@@ -25,10 +25,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:generate mga gen mockery --name UserExtractor --inpkg --testonly
-//go:generate mga gen mockery --name Store --inpkg --testonly
-//go:generate mga gen mockery --name Generator --inpkg --testonly
-
 func TestService_CreateToken(t *testing.T) {
 	ctx := context.Background()
 	userID := uint(1)

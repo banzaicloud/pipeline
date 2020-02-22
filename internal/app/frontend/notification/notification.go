@@ -30,8 +30,8 @@ type Notification struct {
 	Priority int8   `json:"priority"`
 }
 
-//go:generate mga gen mockery --name Service --inpkg
 // +kit:endpoint:errorStrategy=service
+// +testify:mock
 
 // Service provides an interface to notifications.
 type Service interface {
@@ -49,6 +49,8 @@ func NewService(store Store) Service {
 		store: store,
 	}
 }
+
+// +testify:mock:testOnly=true
 
 // Store is a data persistence layer for notifications.
 type Store interface {

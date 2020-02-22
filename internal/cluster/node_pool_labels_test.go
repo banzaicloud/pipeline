@@ -23,8 +23,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:generate mga gen mockery --name NodePoolLabelSource --inpkg --testonly
-
 func TestNodePoolLabelSources_GetLabels(t *testing.T) {
 	ctx := context.Background()
 	cluster := Cluster{}

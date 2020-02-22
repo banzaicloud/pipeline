@@ -56,6 +56,8 @@ func NewCommonNodePoolValidator(labelValidator LabelValidator) CommonNodePoolVal
 	}
 }
 
+// +testify:mock:testOnly=true
+
 // LabelValidator validates Kubernetes object labels.
 type LabelValidator interface {
 	// ValidateKey validates a label key.
