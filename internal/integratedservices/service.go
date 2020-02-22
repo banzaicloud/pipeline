@@ -23,8 +23,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
-//go:generate mga gen mockery --name Service --inpkg
 // +kit:endpoint:errorStrategy=service
+// +testify:mock
 
 // Service manages integrated services on Kubernetes clusters.
 type Service interface {

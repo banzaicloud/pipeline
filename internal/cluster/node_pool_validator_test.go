@@ -23,8 +23,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:generate mga gen mockery --name LabelValidator --inpkg --testonly
-
 func TestNodePoolValidators_Validate(t *testing.T) {
 	ctx := context.Background()
 	cluster := Cluster{}

@@ -30,6 +30,8 @@ type Config struct {
 // ErrConfigNotFound is returned by config providers to indicate it couldn't find any configuration.
 const ErrConfigNotFound = errors.Sentinel("anchore config not found")
 
+// +testify:mock:testOnly=true
+
 // ConfigProvider returns Anchore configuration for a cluster.
 type ConfigProvider interface {
 	// GetConfiguration returns Anchore configuration for a cluster.

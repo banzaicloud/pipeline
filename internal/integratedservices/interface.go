@@ -184,7 +184,8 @@ type IntegratedServiceOperator interface {
 	Name() string
 }
 
-//go:generate mga gen mockery --name ClusterService --inpkg
+// +testify:mock
+
 // ClusterService provides a thin access layer to clusters.
 type ClusterService interface {
 	// CheckClusterReady checks whether the cluster is ready for integrated services (eg.: exists and it's running). If the cluster is not ready, a ClusterIsNotReadyError should be returned.

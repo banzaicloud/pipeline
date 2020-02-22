@@ -38,7 +38,7 @@ GOTESTSUM_VERSION = 0.4.0
 GOBIN_VERSION = 0.0.13
 PROTOTOOL_VERSION = 1.8.0
 PROTOC_GEN_GO_VERSION = 1.3.2
-MGA_VERSION = 0.1.2
+MGA_VERSION = 0.2.0
 
 GOLANG_VERSION = 1.13
 
@@ -228,6 +228,7 @@ generate: bin/mga ## Generate code
 	bin/mga gen kit endpoint ./...
 	bin/mga gen ev dispatcher ./...
 	bin/mga gen ev handler ./...
+	bin/mga gen testify mock ./...
 
 .PHONY: validate-openapi
 validate-openapi: ## Validate the openapi description
