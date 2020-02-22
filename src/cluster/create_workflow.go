@@ -104,7 +104,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 	}
 
-	if input.Distribution == pkgCluster.ACK || input.Distribution == pkgCluster.AKS {
+	if input.Distribution == pkgCluster.ACK {
 		ao := workflow.ActivityOptions{
 			ScheduleToStartTimeout: 10 * time.Minute,
 			StartToCloseTimeout:    20 * time.Minute,
