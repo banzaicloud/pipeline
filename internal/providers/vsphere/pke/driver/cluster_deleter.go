@@ -79,6 +79,14 @@ func (cd ClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnVsphereClu
 	logger := cd.logger.WithField("clusterName", cluster.Name).WithField("clusterID", cluster.ID).WithField("forced", forced)
 	logger.Info("Deleting cluster")
 
+	vmNames := getVMNames(cluster)
+	nodes := make([]workflow.Node, 0)
+	for _, vmName := range vmNames  {
+		nodes = append(nodes, workflow.Node{
+			Name: vmName,
+		})
+	}
+
 	input := workflow.DeleteClusterWorkflowInput{
 		OrganizationID: cluster.OrganizationID,
 		SecretID:       cluster.SecretID,
@@ -87,7 +95,7 @@ func (cd ClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnVsphereClu
 		ClusterUID:     cluster.UID,
 		K8sSecretID:    cluster.K8sSecretID,
 		Forced:         forced,
-		// TODO: nodes !!!
+		Nodes:          nodes,
 	}
 
 	retryPolicy := &cadence.RetryPolicy{
