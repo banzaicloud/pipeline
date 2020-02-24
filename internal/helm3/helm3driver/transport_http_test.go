@@ -23,44 +23,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"emperror.dev/errors"
+	"github.com/go-kit/kit/endpoint"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 
 	"github.com/banzaicloud/pipeline/internal/helm3"
 )
-
-func TestRegisterHTTPHandlers_AddRepository(t *testing.T) {
-
-	handler := mux.NewRouter()
-	RegisterHTTPHandlers(
-		Endpoints{
-			AddRepository: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return AddRepositoryResponse{}, nil
-			},
-		},
-		handler.PathPrefix("/orgs/{orgId}/helmrepos").Subrouter(),
-	)
-
-	ts := httptest.NewServer(handler)
-	defer ts.Close()
-
-	addRepoReq := helm3.Repository{
-		Name:             "test-helm-repository",
-		URL:              "https: //kubernetes-charts.banzaicloud.com",
-		PasswordSecretID: "0f54013dc29a52560599613be8d67e64bf903ddaaca55d467776c47eea6b4f59",
-	}
-
-	body, err := json.Marshal(addRepoReq)
-	require.NoError(t, err)
-
-	resp, err := ts.Client().Post(fmt.Sprintf("%s/orgs/%d/helmrepos", ts.URL, 1), "application/json", bytes.NewReader(body))
-
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-}
 
 func TestRegisterHTTPHandlers_ListRepositories(t *testing.T) {
 	handler := mux.NewRouter()
@@ -121,4 +91,62 @@ func TestRegisterHTTPHandlers_DeleteRepositories(t *testing.T) {
 
 	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
 
+}
+
+func TestRegisterHTTPHandlers_AddRepository(t *testing.T) {
+
+	tests := []struct {
+		name               string
+		endpoint           endpoint.Endpoint
+		expectedStatusCode int
+	}{
+		{
+			name: "helm repository successfully added",
+			endpoint: func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return AddRepositoryResponse{}, nil
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "failed to add helm repository",
+			endpoint: func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return AddRepositoryResponse{}, errors.New("testing")
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			// GIVEN
+			handler := mux.NewRouter()
+
+			RegisterHTTPHandlers(
+				Endpoints{
+					AddRepository: tt.endpoint,
+				},
+				handler.PathPrefix("/orgs/{orgId}/helmrepos").Subrouter(), )
+
+			ts := httptest.NewServer(handler)
+			defer ts.Close()
+
+			// WHEN
+			addRepoReq := helm3.Repository{
+				Name:             "test-helm-repository",
+				URL:              "https: //kubernetes-charts.banzaicloud.com",
+				PasswordSecretID: "0f54013dc29a52560599613be8d67e64bf903ddaaca55d467776c47eea6b4f59",
+			}
+
+			body, err := json.Marshal(addRepoReq)
+			require.NoError(t, err)
+
+			resp, err := ts.Client().Post(fmt.Sprintf("%s/orgs/%d/helmrepos", ts.URL, 1), "application/json", bytes.NewReader(body))
+
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			assert.Equal(t, tt.expectedStatusCode, resp.StatusCode)
+
+		})
+	}
 }
