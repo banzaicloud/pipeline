@@ -15,19 +15,21 @@
 package main
 
 import (
+	"context"
 	"encoding/base32"
 	"fmt"
 	"os"
-	"os/signal"
 	"syscall"
 	"text/template"
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	"emperror.dev/errors/match"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	"github.com/mitchellh/mapstructure"
 	"github.com/oklog/run"
+	appkitrun "github.com/sagikazarmark/appkit/run"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/cadence/activity"
@@ -661,53 +663,12 @@ func main() {
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)
 		}
 
-		var closeCh = make(chan struct{})
-
-		group.Add(
-			func() error {
-				err := worker.Start()
-				if err != nil {
-					return err
-				}
-
-				<-closeCh
-
-				return nil
-			},
-			func(e error) {
-				worker.Stop()
-				close(closeCh)
-			},
-		)
+		group.Add(appkitrun.CadenceWorkerRun(worker))
 	}
 
 	// Setup signal handler
-	{
-		var (
-			cancelInterrupt = make(chan struct{})
-			ch              = make(chan os.Signal, 2)
-		)
-		defer close(ch)
-
-		group.Add(
-			func() error {
-				signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-
-				select {
-				case sig := <-ch:
-					logger.Info("captured signal", map[string]interface{}{"signal": sig})
-				case <-cancelInterrupt:
-				}
-
-				return nil
-			},
-			func(e error) {
-				close(cancelInterrupt)
-				signal.Stop(ch)
-			},
-		)
-	}
+	group.Add(run.SignalHandler(context.Background(), syscall.SIGINT, syscall.SIGTERM))
 
 	err = group.Run()
-	emperror.Handle(errorHandler, err)
+	emperror.WithFilter(errorHandler, match.As(&run.SignalError{}).MatchError).Handle(err)
 }
