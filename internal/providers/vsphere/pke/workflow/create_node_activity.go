@@ -212,11 +212,13 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 	}
 
 	logger.Info("cloning template", "task", task.String())
-
-	taskInfo, err := task.WaitForResult(ctx, nil)
+	progressLogger := newProgressLogger("creating vm - progress ", logger)
+	defer progressLogger.Wait()
+	taskInfo, err := task.WaitForResult(ctx, progressLogger)
 	if err != nil {
 		return vmRef, err
 	}
+
 
 	logger.Infof("vm created: %+v\n", taskInfo)
 

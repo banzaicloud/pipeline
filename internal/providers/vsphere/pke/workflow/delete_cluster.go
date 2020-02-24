@@ -21,6 +21,7 @@ import (
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"go.uber.org/cadence"
 
 	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
@@ -53,7 +54,24 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		StartToCloseTimeout:    10 * time.Minute,
 		ScheduleToCloseTimeout: 15 * time.Minute,
 		WaitForCancellation:    true,
+		RetryPolicy: &cadence.RetryPolicy{
+			InitialInterval:          2 * time.Second,
+			BackoffCoefficient:       1.5,
+			MaximumInterval:          30 * time.Second,
+			MaximumAttempts:          5,
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic"},
+		},
 	}
+	//
+	//
+	//aoWithHeartbeat := workflow.ActivityOptions{
+	//	ScheduleToStartTimeout: 10 * time.Minute,
+	//	StartToCloseTimeout:    5 * time.Minute,
+	//	WaitForCancellation:    true,
+	//	HeartbeatTimeout:       45 * time.Second,
+	//
+	//}
+
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	// delete k8s resources

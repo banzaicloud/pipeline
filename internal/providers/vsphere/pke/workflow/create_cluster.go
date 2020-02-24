@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
 
@@ -48,6 +49,7 @@ type CreateClusterWorkflowInput struct {
 	PostHooks        pkgCluster.PostHooks
 	Nodes            []Node
 	HTTPProxy        intPKE.HTTPProxy
+	NodePoolLabels   map[string]map[string]string
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
@@ -56,6 +58,13 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		StartToCloseTimeout:    10 * time.Minute,
 		ScheduleToCloseTimeout: 15 * time.Minute,
 		WaitForCancellation:    true,
+		RetryPolicy: &cadence.RetryPolicy{
+			InitialInterval:          2 * time.Second,
+			BackoffCoefficient:       1.5,
+			MaximumInterval:          30 * time.Second,
+			MaximumAttempts:          5,
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic"},
+		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
@@ -196,6 +205,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 				ID:   input.OrganizationID,
 				Name: input.OrganizationName,
 			},
+			NodePoolLabels: input.NodePoolLabels,
 		}
 
 		future := workflow.ExecuteChildWorkflow(ctx, clustersetup.WorkflowName, workflowInput)

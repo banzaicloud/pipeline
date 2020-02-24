@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver/commoncluster"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 	corev1 "k8s.io/api/core/v1"
@@ -255,6 +256,33 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 		return cl, errors.WrapIf(err, "failed to get organization")
 	}
 
+	var labelsMap map[string]map[string]string
+	{
+		var commonCluster cluster.CommonCluster
+		commonCluster, err = commoncluster.MakeCommonClusterGetter(cc.secrets, cc.store).GetByID(cl.ID)
+		if err != nil {
+			_ = cc.handleError(cl.ID, err)
+			return
+		}
+
+		nodePoolLabels := make([]cluster.NodePoolLabels, 0)
+		for _, np := range params.NodePools {
+			nodePoolLabels = append(nodePoolLabels, cluster.NodePoolLabels{
+				NodePoolName: np.Name,
+				Existing:     false,
+				//TODO setup the correct instance name
+				InstanceType: np.TemplateName,
+				CustomLabels: np.Labels,
+			})
+		}
+
+		labelsMap, err = cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolLabels)
+		if err != nil {
+			_ = cc.handleError(cl.ID, err)
+			return
+		}
+	}
+
 	input := workflow.CreateClusterWorkflowInput{
 		ClusterID:        cl.ID,
 		ClusterName:      cl.Name,
@@ -265,7 +293,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 		OIDCEnabled:      cl.Kubernetes.OIDC.Enabled,
 		Nodes:            nodes,
 		HTTPProxy:        cl.HTTPProxy,
-		// TODO labels?
+		NodePoolLabels:   labelsMap,
 		ResourcePoolName: cl.ResourcePool,
 		DatastoreName:    cl.Datastore,
 		FolderName:       cl.Folder,
@@ -315,7 +343,12 @@ func (p VspherePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, pa
 	if params.OrganizationID == 0 {
 		return validationErrorf("OrganizationID cannot be 0")
 	}
-	// TODO check org exists
+
+	_, err := auth.GetOrganizationById(params.OrganizationID)
+	if err != nil {
+		return validationErrorf("OrganizationID cannot be found %s", err.Error())
+	}
+
 	// TODO check creator user exists if present
 	if params.SecretID == "" {
 		return validationErrorf("SecretID cannot be empty")

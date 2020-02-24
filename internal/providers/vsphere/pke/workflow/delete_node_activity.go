@@ -70,31 +70,50 @@ func (a DeleteNodeActivity) Execute(ctx context.Context, input DeleteNodeActivit
 
 	finder := find.NewFinder(c.Client)
 	vms, err := finder.VirtualMachineList(ctx, input.Name)
-	if err != nil {
-		return false, errors.WrapIff(err, "couldn't find a VM named %q", input.Name)
+	if err != nil  {
+		logger.Warnf("couldn't find a VM named %q: %s", input.Name, err.Error())
+		return false, nil
+	}
+	if len(vms) != 1 {
+		logger.Warnf("couldn't find a single VM named %q", input.Name)
+		return false, nil
 	}
 
 	// TODO check tags
 	//config, err := vm.QueryConfigTarget()
 	//expectedTags := getClusterTags(input.Name, input.NodePoolName)
 
-	if len(vms) != 1 {
-		return false, errors.WrapIff(err, "couldn't find a single VM named %q", input.Name)
-	}
 	vm := vms[0]
-
-	task, err := vm.Destroy(ctx)
+	task, err := vm.PowerOff(ctx)
 	if err != nil {
-		return false, errors.WrapIf(err, "failed to destroy VM")
+		return true, errors.WrapIf(err, "failed to power off VM")
 	}
 
-	logger.Info("destroying VM", "task", task.String())
-
+	// power off
+	logger.Info("wait for power off VM", "task", task.String())
+	//err = vm.WaitForPowerState(ctx, types.VirtualMachinePowerStatePoweredOff)
+	//if err != nil {
+	//	return false, errors.WrapIf(err, "failed to power off VM")
+	//}
+	
 	taskInfo, err := task.WaitForResult(ctx, nil)
 	if err != nil {
 		return true, err
 	}
+	logger.Infof("vm powered off: %+v\n", taskInfo)
 
+	// destroy
+	task, err = vm.Destroy(ctx)
+	if err != nil {
+		return true, errors.WrapIf(err, "failed to destroy VM")
+	}
+	logger.Info("destroying VM", "task", task.String())
+	progressLogger := newProgressLogger("destroying VM - progress ", logger)
+	defer progressLogger.Wait()
+	taskInfo, err = task.WaitForResult(ctx, progressLogger)
+	if err != nil {
+		return true, err
+	}
 	logger.Infof("vm deleted: %+v\n", taskInfo)
 	return true, nil
 }
