@@ -20,8 +20,6 @@ import (
 	"net/url"
 
 	"emperror.dev/errors"
-
-	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
 type RepoValidator interface {
@@ -47,7 +45,7 @@ func (r RepoValidators) Validate(ctx context.Context, repository Repository) err
 
 	if len(violations) > 0 {
 		return errors.WithStack(
-			cluster.NewValidationError("invalid helm repository", violations))
+			NewValidationError("invalid helm repository", violations))
 	}
 
 	return nil

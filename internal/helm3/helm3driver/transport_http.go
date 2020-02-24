@@ -74,7 +74,7 @@ func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interfa
 func encodeCreateRepositoryHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	resp, ok := response.(AddRepositoryResponse)
 	if !ok {
-		return errors.New( "failed to decode create helm repository response")
+		return errors.New("failed to decode create helm repository response")
 	}
 	emptyResponse := AddRepositoryResponse{}
 

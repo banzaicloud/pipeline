@@ -53,3 +53,26 @@ func (ValidationError) Validation() bool {
 func (ValidationError) ServiceError() bool {
 	return true
 }
+
+// HelmRepositoryServiceError is returned when a helm repository already exists in the store.
+type HelmRepositoryServiceError struct {
+	OrganizationID uint
+	Description    string
+}
+
+// Error implements the error interface.
+func (e HelmRepositoryServiceError) Error() string {
+	return e.Description
+}
+
+// Details returns error details.
+func (e HelmRepositoryServiceError) Details() []interface{} {
+	return []interface{}{"organizationId", e.OrganizationID}
+}
+
+// ServiceError tells the consumer that this is a business error and it should be returned to the client.
+// Non-service errors are usually translated into "internal" errors.
+func (HelmRepositoryServiceError) ServiceError() bool {
+	return true
+}
+

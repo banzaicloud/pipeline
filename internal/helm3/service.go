@@ -31,7 +31,7 @@ type Repository struct {
 	URL string `json:"url"`
 
 	// PasswordSecretID is the identifier of a password type secret that contains the credentials for a repository.
-	PasswordSecretID string `json:"passwordSecretId"`
+	PasswordSecretID string `json:"passwordSecretId,omitempty"`
 
 	// TlsSecretID is the identifier of a TLS secret.
 	//
@@ -40,7 +40,7 @@ type Repository struct {
 	//
 	// If there is a client key pair in the secret,
 	// it will be presented to the repository server.
-	TlsSecretID string `json:"tlsSecretId"`
+	TlsSecretID string `json:"tlsSecretId,omitempty"`
 }
 
 func validate() error {
@@ -115,6 +115,7 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 	// validate repository
 	if err := s.repoValidator.Validate(ctx, repository); err != nil {
 		return errors.WrapIf(err, "failed to add new helm repository")
+
 	}
 
 	if repository.PasswordSecretID != "" {
@@ -131,14 +132,20 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 
 	// check record existence
 	if _, err := s.store.GetRepository(ctx, organizationID, repository); err == nil {
-		return errors.New("helm repository already exists")
+		return HelmRepositoryServiceError{
+			Description:    err.Error(),
+			OrganizationID: organizationID,
+		}
 	}
 
 	// validate repository index? todo
 
 	// save in store
 	if err := s.store.AddRepository(ctx, organizationID, repository); err != nil {
-		return errors.WrapIf(err, "failed to persist new helm repository")
+		return HelmRepositoryServiceError{
+			Description:    err.Error(),
+			OrganizationID: organizationID,
+		}
 	}
 
 	return nil
