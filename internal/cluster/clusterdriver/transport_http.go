@@ -52,7 +52,7 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 	router.Methods(http.MethodPost).Path("/nodepools/{nodePoolName}/update").Handler(kithttp.NewServer(
 		endpoints.UpdateNodePool,
 		decodeUpdateNodePoolHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		kitxhttp.ErrorResponseEncoder(encodeUpdateNodePoolHTTPResponse, errorEncoder),
 		options...,
 	))
 
@@ -262,4 +262,12 @@ func encodeDeleteNodePoolHTTPResponse(_ context.Context, w http.ResponseWriter, 
 	w.WriteHeader(http.StatusAccepted)
 
 	return nil
+}
+
+func encodeUpdateNodePoolHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(UpdateNodePoolResponse)
+
+	w.WriteHeader(http.StatusAccepted)
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
 }

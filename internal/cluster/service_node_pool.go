@@ -244,29 +244,29 @@ func (s service) UpdateNodePool(
 	clusterID uint,
 	nodePoolName string,
 	rawNodePoolUpdate RawNodePoolUpdate,
-) error {
+) (string, error) {
 	cluster, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if err := s.checkCluster(cluster); err != nil {
-		return err
+		return "", err
 	}
 
 	service, err := s.getDistributionService(cluster)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// TODO: move this to distribution level
 	exists, err := s.nodePools.NodePoolExists(ctx, clusterID, nodePoolName)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if !exists {
-		return errors.WithStack(NodePoolNotFoundError{
+		return "", errors.WithStack(NodePoolNotFoundError{
 			ClusterID: clusterID,
 			NodePool:  nodePoolName,
 		})

@@ -365,7 +365,7 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 
 		rawNodePoolUpdate := RawNodePoolUpdate{}
 
-		err := service.UpdateNodePool(ctx, 1, "pool0", rawNodePoolUpdate)
+		_, err := service.UpdateNodePool(ctx, 1, "pool0", rawNodePoolUpdate)
 		require.Error(t, err)
 
 		assert.True(t, errors.Is(err, NotFoundError{ClusterID: 1}))
@@ -403,7 +403,7 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 
 		rawNodePoolUpdate := RawNodePoolUpdate{}
 
-		err := service.UpdateNodePool(ctx, 1, "pool0", rawNodePoolUpdate)
+		_, err := service.UpdateNodePool(ctx, 1, "pool0", rawNodePoolUpdate)
 		require.Error(t, err)
 
 		assert.True(t, errors.As(err, &NotSupportedDistributionError{}))
@@ -450,7 +450,7 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 
 		rawNodePoolUpdate := RawNodePoolUpdate{}
 
-		err := service.UpdateNodePool(ctx, 1, nodePoolName, rawNodePoolUpdate)
+		_, err := service.UpdateNodePool(ctx, 1, nodePoolName, rawNodePoolUpdate)
 		require.Error(t, err)
 
 		assert.True(t, errors.Is(err, NodePoolNotFoundError{ClusterID: 1, NodePool: nodePoolName}))
@@ -495,7 +495,7 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 
 		distErr := errors.NewPlain("distribution error")
 
-		distribution.On("UpdateNodePool", ctx, cluster.ID, nodePoolName, rawNodePoolUpdate).Return(distErr)
+		distribution.On("UpdateNodePool", ctx, cluster.ID, nodePoolName, rawNodePoolUpdate).Return("", distErr)
 
 		distributions := map[string]Service{
 			cluster.Distribution: distribution,
@@ -503,7 +503,7 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 
 		service := NewService(clusterStore, nil, clusterGroupManager, distributions, nodePoolStore, validator, processor, manager)
 
-		err := service.UpdateNodePool(ctx, cluster.ID, nodePoolName, rawNodePoolUpdate)
+		_, err := service.UpdateNodePool(ctx, cluster.ID, nodePoolName, rawNodePoolUpdate)
 		require.Error(t, err)
 
 		assert.Equal(t, distErr, err)
@@ -547,7 +547,7 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 
 		rawNodePoolUpdate := RawNodePoolUpdate{}
 
-		distribution.On("UpdateNodePool", ctx, cluster.ID, nodePoolName, rawNodePoolUpdate).Return(nil)
+		distribution.On("UpdateNodePool", ctx, cluster.ID, nodePoolName, rawNodePoolUpdate).Return("pid", nil)
 
 		distributions := map[string]Service{
 			cluster.Distribution: distribution,
@@ -555,7 +555,7 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 
 		service := NewService(clusterStore, nil, clusterGroupManager, distributions, nodePoolStore, validator, processor, manager)
 
-		err := service.UpdateNodePool(ctx, cluster.ID, nodePoolName, rawNodePoolUpdate)
+		_, err := service.UpdateNodePool(ctx, cluster.ID, nodePoolName, rawNodePoolUpdate)
 		require.NoError(t, err)
 
 		clusterStore.AssertExpectations(t)

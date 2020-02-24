@@ -197,7 +197,7 @@ type Service interface {
 	CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) error
 
 	// UpdateNodePool updates an existing node pool in a cluster.
-	UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, rawNodePoolUpdate RawNodePoolUpdate) error
+	UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, rawNodePoolUpdate RawNodePoolUpdate) (processID string, err error)
 
 	// DeleteNodePool deletes a node pool from a cluster.
 	DeleteNodePool(ctx context.Context, clusterID uint, name string) (deleted bool, err error)

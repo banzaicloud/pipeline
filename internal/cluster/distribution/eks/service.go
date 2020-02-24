@@ -25,7 +25,7 @@ type Service interface {
 	// UpdateNodePool updates an existing node pool in a cluster.
 	//
 	// This method accepts a partial body representation.
-	UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, nodePoolUpdate NodePoolUpdate) error
+	UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
 }
 
 // NodePoolUpdate describes a node pool update request.
@@ -58,7 +58,7 @@ type service struct {
 // NodePoolManager is responsible for managing node pools.
 type NodePoolManager interface {
 	// UpdateNodePool updates an existing node pool in a cluster.
-	UpdateNodePool(ctx context.Context, c cluster.Cluster, nodePoolName string, nodePoolUpdate NodePoolUpdate) error
+	UpdateNodePool(ctx context.Context, c cluster.Cluster, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
 }
 
 func (s service) UpdateNodePool(
@@ -66,17 +66,17 @@ func (s service) UpdateNodePool(
 	clusterID uint,
 	nodePoolName string,
 	nodePoolUpdate NodePoolUpdate,
-) error {
+) (string, error) {
 	// TODO: check if node pool exists
 
 	c, err := s.genericClusters.GetCluster(ctx, clusterID)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = s.genericClusters.SetStatus(ctx, clusterID, cluster.Updating, "updating node pool")
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	return s.nodePoolManager.UpdateNodePool(ctx, c, nodePoolName, nodePoolUpdate)

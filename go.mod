@@ -38,15 +38,13 @@ require (
 	github.com/banzaicloud/istio-operator v0.0.0-20200120100557-309b8a34e9eb
 	github.com/banzaicloud/logging-operator/pkg/sdk v0.1.1
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
-	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
+	github.com/banzaicloud/pipeline-sdk v0.0.6
 	github.com/coreos/go-oidc v2.1.0+incompatible
-	github.com/crossdock/crossdock-go v0.0.0-20160816171116-049aabb0122b // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20200206145737-bbfc9a55622e // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/didip/tollbooth v4.0.2+incompatible
 	github.com/docker/libcompose v0.4.0
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
-	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.5.0
@@ -79,9 +77,8 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
-	github.com/prashantv/protectmem v0.0.0-20171002184600-e20412882b3a // indirect
-	github.com/prometheus/client_golang v1.3.0
-	github.com/prometheus/common v0.8.0
+	github.com/prometheus/client_golang v1.4.1
+	github.com/prometheus/common v0.9.1
 	github.com/qor/assetfs v0.0.0-20170713023933-ff57fdc13a14 // indirect
 	github.com/qor/auth v0.0.0-20190103025640-46aae9fa92fa
 	github.com/qor/mailer v0.0.0-20170814094430-1e6ac7106955 // indirect
@@ -95,31 +92,21 @@ require (
 	github.com/sagikazarmark/appkit v0.8.0
 	github.com/sagikazarmark/kitx v0.12.0
 	github.com/sagikazarmark/ocmux v0.2.0
-	github.com/samuel/go-thrift v0.0.0-20191111193933-5165175b40af // indirect
-	github.com/sirupsen/logrus v1.4.2
+	github.com/sirupsen/logrus v1.5.0
 	github.com/spf13/cast v1.3.1
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
-	github.com/streadway/quantile v0.0.0-20150917103942-b0c588724d25 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
-	github.com/uber-go/mapdecode v1.0.0 // indirect
-	github.com/uber-go/tally v3.3.15+incompatible // indirect
-	github.com/uber/jaeger-client-go v2.22.1+incompatible // indirect
-	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
-	github.com/uber/tchannel-go v1.16.0 // indirect
 	github.com/vmware/govmomi v0.22.0
 	github.com/xanzy/go-gitlab v0.16.2-0.20190325100843-bbb1af7187c8
 	go.opencensus.io v0.22.2
 	go.uber.org/cadence v0.9.0
-	go.uber.org/fx v1.10.0 // indirect
-	go.uber.org/net/metrics v1.3.0 // indirect
-	go.uber.org/thriftrw v1.21.0 // indirect
-	go.uber.org/yarpc v1.36.1
-	go.uber.org/zap v1.13.0
+	go.uber.org/yarpc v1.44.0
+	go.uber.org/zap v1.14.1
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
-	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
+	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.15.0
 	google.golang.org/genproto v0.0.0-20200212174721-66ed5ce911ce

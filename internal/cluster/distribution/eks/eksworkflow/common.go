@@ -26,6 +26,7 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
+	"github.com/banzaicloud/pipeline-sdk/process"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
@@ -68,11 +69,15 @@ func setClusterStatus(ctx workflow.Context, clusterID uint, status, statusMessag
 		WaitForCancellation:    true,
 	})
 
-	return workflow.ExecuteActivity(ctx, clusterworkflow.SetClusterStatusActivityName, clusterworkflow.SetClusterStatusActivityInput{
+	processEvent := process.NewProcessEvent(ctx, clusterworkflow.SetClusterStatusActivityName)
+	err := workflow.ExecuteActivity(ctx, clusterworkflow.SetClusterStatusActivityName, clusterworkflow.SetClusterStatusActivityInput{
 		ClusterID:     clusterID,
 		Status:        status,
 		StatusMessage: statusMessage,
 	}).Get(ctx, nil)
+	processEvent.End(err)
+
+	return err
 }
 
 // TODO: this is temporary

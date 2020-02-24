@@ -198,7 +198,7 @@ jobs:
             -
                 run:
                     name: Test PostgreSQL database schema diff
-                    command: migra postgresql://postgres:postgres@localhost/pipeline_automigrate postgresql://postgres:postgres@localhost/pipeline_migrations --unsafe
+                    command: migra postgresql://postgres:postgres@localhost/pipeline_migrations postgresql://postgres:postgres@localhost/pipeline_automigrate --unsafe
 
             -
                 run:
@@ -210,7 +210,7 @@ jobs:
             -
                 run:
                     name: Test PostgreSQL database schema diff again
-                    command: migra postgresql://postgres:postgres@localhost/pipeline_automigrate postgresql://postgres:postgres@localhost/pipeline_migrations --unsafe
+                    command: migra postgresql://postgres:postgres@localhost/pipeline_migrations postgresql://postgres:postgres@localhost/pipeline_automigrate --unsafe
             -
                 save_cache:
                     name: Save Go build cache

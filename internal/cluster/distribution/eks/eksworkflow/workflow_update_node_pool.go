@@ -21,6 +21,7 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
+	"github.com/banzaicloud/pipeline-sdk/process"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
@@ -30,17 +31,22 @@ type UpdateNodePoolWorkflowInput struct {
 	SecretID string
 	Region   string
 
-	ClusterID    uint
-	ClusterName  string
-	NodePoolName string
+	OrganizationID uint
+	ClusterID      uint
+	ClusterName    string
+	NodePoolName   string
 
 	NodeImage string
 }
 
-func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowInput) error {
+func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowInput) (err error) {
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Duration(workflow.GetInfo(ctx).ExecutionStartToCloseTimeoutSeconds) * time.Second,
+		StartToCloseTimeout:    time.Duration(workflow.GetInfo(ctx).ExecutionStartToCloseTimeoutSeconds) * time.Second,
 	})
+
+	processLog := process.NewProcessLog(ctx, input.OrganizationID, fmt.Sprint(input.ClusterID))
+	defer processLog.End(err)
 
 	stackName := GenerateNodePoolStackName(input.ClusterName, input.NodePoolName)
 
@@ -67,7 +73,9 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 			},
 		})
 
-		err := workflow.ExecuteActivity(ctx, UpdateNodeGroupActivityName, activityInput).Get(ctx, nil)
+		processEvent := process.NewProcessEvent(ctx, UpdateNodeGroupActivityName)
+		err = workflow.ExecuteActivity(ctx, UpdateNodeGroupActivityName, activityInput).Get(ctx, nil)
+		processEvent.End(err)
 		if err != nil {
 			_ = setClusterStatus(ctx, input.ClusterID, cluster.Warning, fmt.Sprintf("failed to update node pool: %s", err.Error()))
 
@@ -98,7 +106,9 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 			},
 		})
 
-		err := workflow.ExecuteActivity(ctx, WaitCloudFormationStackUpdateActivityName, activityInput).Get(ctx, nil)
+		processEvent := process.NewProcessEvent(ctx, WaitCloudFormationStackUpdateActivityName)
+		err = workflow.ExecuteActivity(ctx, WaitCloudFormationStackUpdateActivityName, activityInput).Get(ctx, nil)
+		processEvent.End(err)
 		if err != nil {
 			_ = setClusterStatus(ctx, input.ClusterID, cluster.Warning, fmt.Sprintf("failed to update node pool: %s", err.Error()))
 
@@ -106,7 +116,7 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 		}
 	}
 
-	err := setClusterStatus(ctx, input.ClusterID, cluster.Running, cluster.RunningMessage)
+	err = setClusterStatus(ctx, input.ClusterID, cluster.Running, cluster.RunningMessage)
 	if err != nil {
 		return err
 	}
