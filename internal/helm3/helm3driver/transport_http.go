@@ -112,11 +112,10 @@ func decodeDeleteRepositoryHTTPRequest(_ context.Context, r *http.Request) (inte
 }
 
 func encodeDeleteRepositoryHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	resp := response.(DeleteRepositoryResponse)
+	resp, ok := response.(DeleteRepositoryResponse)
+	if ok && resp.Err == nil {
+		w.WriteHeader(http.StatusNoContent)
 
-	emptyResponse := DeleteRepositoryResponse{}
-
-	if resp == emptyResponse {
 		return nil
 	}
 
