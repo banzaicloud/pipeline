@@ -235,6 +235,10 @@ func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, err
 }
 
 func (a *AzurePkeCluster) IsReady() (bool, error) {
+	// cluster is not ready in case there's no config secret yet
+	if len(a.GetConfigSecretId()) == 0 {
+		return false, nil
+	}
 	return true, nil
 }
 
