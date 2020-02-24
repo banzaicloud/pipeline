@@ -122,6 +122,8 @@ func (NodePoolAlreadyExistsError) ServiceError() bool {
 	return true
 }
 
+// +testify:mock:testOnly=true
+
 // NodePoolStore provides an interface to node pool persistence.
 type NodePoolStore interface {
 	// NodePoolExists checks if a node pool exists.
@@ -131,17 +133,23 @@ type NodePoolStore interface {
 	DeleteNodePool(ctx context.Context, clusterID uint, name string) error
 }
 
+// +testify:mock:testOnly=true
+
 // NodePoolValidator validates a node pool descriptor.
 type NodePoolValidator interface {
 	// ValidateNew validates a new node pool descriptor.
 	ValidateNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) error
 }
 
+// +testify:mock:testOnly=true
+
 // NodePoolProcessor processes a node pool descriptor.
 type NodePoolProcessor interface {
 	// ProcessNew processes a new node pool descriptor.
 	ProcessNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) (NewRawNodePool, error)
 }
+
+// +testify:mock:testOnly=true
 
 // NodePoolManager manages node pool infrastructure.
 type NodePoolManager interface {

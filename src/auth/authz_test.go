@@ -24,8 +24,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
-//go:generate mga gen mockery --name RoleSource --inpkg --testonly
-
 func TestRbacEnforcer_Enforce_NoOrgIsAllowed(t *testing.T) {
 	enforcer := NewRbacEnforcer(nil, common.NoopLogger{})
 

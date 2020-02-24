@@ -21,6 +21,8 @@ import (
 	"emperror.dev/errors"
 )
 
+// +testify:mock:testOnly=true
+
 // NodePoolLabelSource returns a set of labels that should be applied to every node in the pool.
 type NodePoolLabelSource interface {
 	// GetLabels returns a set of labels that should be applied to every node in the pool.

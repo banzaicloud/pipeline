@@ -23,8 +23,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:generate mga gen mockery --name ConfigProvider --inpkg --testonly
-
 func TestConfigProviderChain_GetConfiguration(t *testing.T) {
 	t.Parallel()
 
