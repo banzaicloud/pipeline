@@ -103,12 +103,12 @@ func encodeListRepositoriesHTTPResponse(ctx context.Context, w http.ResponseWrit
 func decodeDeleteRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	orgID, err := extractOrgID(r)
 	if err != nil {
-		return 0, errors.WrapIf(err, "failed to decode list request")
+		return nil, errors.WrapIf(err, "failed to decode list request")
 	}
 
 	repoName, err := extractHelmRepoName(r)
 	if err != nil {
-		return 0, errors.WrapIf(err, "failed to decode list request")
+		return nil, errors.WrapIf(err, "failed to decode list request")
 	}
 
 	return DeleteRepositoryRequest{OrganizationID: orgID, RepoName: repoName}, nil

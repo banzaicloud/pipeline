@@ -28,9 +28,9 @@ import (
 type repositoryModel struct {
 	gorm.Model
 
-	Name             string
+	OrganizationID   uint   `gorm:"unique_index:unique_per_org"`
+	Name             string `gorm:"unique_index:unique_per_org"`
 	URL              string
-	OrganizationID   uint // FK to organizations
 	PasswordSecretID string
 	TlsSecretID      string
 }
@@ -92,6 +92,7 @@ func (h helmRepoStore) AddRepository(_ context.Context, organizationID uint, rep
 	repoModel.OrganizationID = organizationID
 
 	if err := h.db.Create(&repoModel).Error; err != nil {
+
 		return errors.WrapIf(err, "failed to persist the helm repository")
 	}
 	h.logger.Debug("persisted new helm repository record", map[string]interface{}{"organisationID": organizationID,
