@@ -63,7 +63,7 @@ func (r repoValidator) Validate(ctx context.Context, repository Repository) erro
 
 	// name matches a regex
 
-	_, err := url.Parse(repository.URL)
+	_, err := url.ParseRequestURI(repository.URL)
 	if err != nil {
 		violations = append(violations, fmt.Sprintf("invalid repository URL: %s", err.Error()))
 	}
