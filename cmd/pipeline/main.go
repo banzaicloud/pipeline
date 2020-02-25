@@ -89,7 +89,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/internal/helm/helm3driver"
 	"github.com/banzaicloud/pipeline/internal/helm/helmdriver"
 	"github.com/banzaicloud/pipeline/internal/helm/helmrepoadapter"
 	"github.com/banzaicloud/pipeline/internal/helm2"
@@ -967,7 +966,7 @@ func main() {
 
 				helmService := helm.NewService(helmRepoStore, secretStore, validator, commonLogger)
 
-				helmRepoEndpoints := helm3driver.MakeEndpoints(helmService)
+				helmRepoEndpoints := helmdriver.MakeEndpoints(helmService)
 				helmdriver.RegisterHTTPHandlers(helmRepoEndpoints,
 					orgRouter.PathPrefix("/helmrepos").Subrouter(),
 					kitxhttp.ServerOptions(httpServerOptions),
