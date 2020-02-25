@@ -15,13 +15,9 @@
 package secret
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
+	"context"
 	"crypto/sha256"
-	"crypto/x509"
-	"encoding/base64"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
 	"sort"
 	"strconv"
@@ -29,24 +25,16 @@ import (
 	"time"
 
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/tls"
-	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
-	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/cast"
 	"golang.org/x/crypto/bcrypt"
 	"k8s.io/apimachinery/pkg/util/validation"
 
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/secret"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/src/secret/verify"
-)
-
-const (
-	rsaKeySize             = 2048
-	RSAPrivateKeyBlockType = "RSA PRIVATE KEY"
-	PublicKeyBlockType     = "PUBLIC KEY"
 )
 
 // Store object that wraps up vault logical store
@@ -57,13 +45,23 @@ var Store *secretStore
 // nolint: gochecknoglobals
 var ErrSecretNotExists = fmt.Errorf("There's no secret with this ID")
 
-func init() {
-	Store = newVaultSecretStore()
+// InitSecretStore initializes the global secret store.
+func InitSecretStore(store secret.Store, pkeSecreter PkeSecreter) {
+	Store = &secretStore{
+		SecretStore: store,
+		PkeSecreter: pkeSecreter,
+	}
+}
+
+// PkeSecreter is a temporary interface for splitting the PKE secret generation/deletion code from the legacy secret store.
+type PkeSecreter interface {
+	GeneratePkeSecret(organizationID uint, tags []string) (map[string]string, error)
+	DeletePkeSecret(organizationID uint, tags []string) error
 }
 
 type secretStore struct {
-	Client  *vault.Client
-	Logical *vaultapi.Logical
+	SecretStore secret.Store
+	PkeSecreter PkeSecreter
 }
 
 // CreateSecretRequest param for secretStore.Store
@@ -73,7 +71,6 @@ type CreateSecretRequest struct {
 	Type      string            `json:"type" binding:"required" mapstructure:"type"`
 	Values    map[string]string `json:"values" binding:"required" mapstructure:"values"`
 	Tags      []string          `json:"tags,omitempty" mapstructure:"tags"`
-	Version   int               `json:"version,omitempty" mapstructure:"-"`
 	UpdatedBy string            `json:"updatedBy,omitempty" mapstructure:"updatedBy"`
 }
 
@@ -109,16 +106,6 @@ func ValidateSecretType(s *SecretItemResponse, validType string) error {
 		}
 	}
 	return nil
-}
-
-func newVaultSecretStore() *secretStore {
-	role := "pipeline"
-	client, err := vault.NewClient(role)
-	if err != nil {
-		panic(err)
-	}
-	logical := client.Vault().Logical()
-	return &secretStore{Client: client, Logical: logical}
 }
 
 // GenerateSecretIDFromName generates a "unique by name per organization" id for Secrets
@@ -232,47 +219,28 @@ func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
 
 // Delete secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Delete(organizationID uint, secretID string) error {
-
-	path := secretMetadataPath(organizationID, secretID)
-
-	log.Debugln("Delete secret:", path)
+	log.WithFields(logrus.Fields{
+		"organizationId": organizationID,
+		"secretId":       secretID,
+	}).Debugln("deleting secret")
 
 	secret, err := ss.Get(organizationID, secretID)
+	if err == ErrSecretNotExists { // Already deleted
+		return nil
+	}
 	if err != nil {
 		return errors.Wrap(err, "Error during querying secret before deletion")
 	}
 
-	if _, err := ss.Logical.Delete(path); err != nil {
-		return errors.Wrap(err, "Error during deleting secret")
+	if err := ss.SecretStore.Delete(context.Background(), organizationID, secretID); err != nil {
+		return err
 	}
 
 	// if type is distribution, unmount all pki engines
 	if secret.Type == secrettype.PKESecretType {
-		clusterID := getClusterIDFromTags(secret.Tags)
-		basePath := clusterPKIPath(organizationID, clusterID)
-
-		path = fmt.Sprintf("%s/ca", basePath)
-		err = ss.Client.Vault().Sys().Unmount(path)
+		err := ss.PkeSecreter.DeletePkeSecret(organizationID, secret.Tags)
 		if err != nil {
-			log.Warnf("failed to unmount %s: %s", path, err)
-		}
-
-		path = fmt.Sprintf("%s/%s", basePath, secrettype.KubernetesCACommonName)
-		err = ss.Client.Vault().Sys().Unmount(path)
-		if err != nil {
-			log.Warnf("failed to unmount %s: %s", path, err)
-		}
-
-		path = fmt.Sprintf("%s/%s", basePath, secrettype.EtcdCACommonName)
-		err = ss.Client.Vault().Sys().Unmount(path)
-		if err != nil {
-			log.Warnf("failed to unmount %s: %s", path, err)
-		}
-
-		path = fmt.Sprintf("%s/%s", basePath, secrettype.KubernetesFrontProxyCACommonName)
-		err = ss.Client.Vault().Sys().Unmount(path)
-		if err != nil {
-			log.Warnf("failed to unmount %s: %s", path, err)
+			return err
 		}
 	}
 
@@ -281,28 +249,28 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 
 // Save secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Store(organizationID uint, request *CreateSecretRequest) (string, error) {
-
 	// We allow only Kubernetes compatible Secret names
 	if errorList := validation.IsDNS1123Subdomain(request.Name); errorList != nil {
 		return "", errors.New(errorList[0])
 	}
 
 	secretID := GenerateSecretID(request)
-	path := secretDataPath(organizationID, secretID)
 
 	if err := ss.generateValuesIfNeeded(organizationID, request); err != nil {
 		return "", err
 	}
 
-	sort.Strings(request.Tags)
-
-	data, err := secretData(0, request)
-	if err != nil {
-		return "", err
+	model := secret.Model{
+		ID:        secretID,
+		Name:      request.Name,
+		Type:      request.Type,
+		Values:    request.Values,
+		Tags:      request.Tags,
+		UpdatedBy: request.UpdatedBy,
 	}
 
-	if _, err := ss.Logical.Write(path, data); err != nil {
-		return "", errors.Wrap(err, "Error during storing secret")
+	if err := ss.SecretStore.Create(context.Background(), organizationID, model); err != nil {
+		return "", err
 	}
 
 	return secretID, nil
@@ -310,25 +278,26 @@ func (ss *secretStore) Store(organizationID uint, request *CreateSecretRequest) 
 
 // Update secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Update(organizationID uint, secretID string, request *CreateSecretRequest) error {
-
 	if GenerateSecretID(request) != secretID {
 		return errors.New("Secret name cannot be changed")
 	}
 
-	path := secretDataPath(organizationID, secretID)
+	log.WithFields(logrus.Fields{
+		"organizationId": organizationID,
+		"secretId":       secretID,
+	}).Debugln("updating secret")
 
-	log.Debugln("Update secret:", path)
-
-	sort.Strings(request.Tags)
-
-	// If secret doesn't exists, create it.
-	data, err := secretData(request.Version, request)
-	if err != nil {
-		return err
+	model := secret.Model{
+		ID:        secretID,
+		Name:      request.Name,
+		Type:      request.Type,
+		Values:    request.Values,
+		Tags:      request.Tags,
+		UpdatedBy: request.UpdatedBy,
 	}
 
-	if _, err := ss.Logical.Write(path, data); err != nil {
-		return errors.Wrap(err, "Error during updating secret")
+	if err := ss.SecretStore.Put(context.Background(), organizationID, model); err != nil {
+		return err
 	}
 
 	return nil
@@ -364,7 +333,6 @@ func (ss *secretStore) CreateOrUpdate(organizationID uint, value *CreateSecretRe
 		log.Errorf("Error during checking secret: %s", err.Error())
 		return "", err
 	} else if secret != nil {
-		value.Version = secret.Version
 		err := ss.Update(organizationID, secretID, value)
 		if err != nil {
 			log.Errorf("Error during updating secret: %s", err.Error())
@@ -380,151 +348,95 @@ func (ss *secretStore) CreateOrUpdate(organizationID uint, value *CreateSecretRe
 	return secretID, nil
 }
 
-func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*SecretItemResponse, error) {
-
-	data := cast.ToStringMap(secret.Data["data"])
-	metadata := cast.ToStringMap(secret.Data["metadata"])
-
-	version, _ := metadata["version"].(json.Number).Int64()
-
-	updatedAt, err := time.Parse(time.RFC3339, metadata["created_time"].(string))
-	if err != nil {
-		return nil, err
-	}
-
-	response := SecretItemResponse{
-		ID:        secretID,
-		Version:   int(version),
-		UpdatedAt: updatedAt,
-		Tags:      []string{},
-	}
-
-	if err := mapstructure.Decode(data["value"], &response); err != nil {
-		return nil, err
-	}
-
-	if !values {
-		// Clear the values otherwise
-		for k := range response.Values {
-			response.Values[k] = "<hidden>"
-		}
-	}
-
-	return &response, nil
-}
-
 // Retrieve secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretItemResponse, error) {
-
-	path := secretDataPath(organizationID, secretID)
-
-	secret, err := ss.Logical.Read(path)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "Error during reading secret")
-	}
-
-	if secret == nil {
+	model, err := ss.SecretStore.Get(context.Background(), organizationID, secretID)
+	if err != nil && errors.As(err, &secret.NotFoundError{}) {
 		return nil, ErrSecretNotExists
+	} else if err != nil {
+		return nil, err
 	}
 
-	return parseSecret(secretID, secret, true)
+	return &SecretItemResponse{
+		ID:        model.ID,
+		Name:      model.Name,
+		Type:      model.Type,
+		Values:    model.Values,
+		Tags:      model.Tags,
+		Version:   1,
+		UpdatedAt: model.UpdatedAt,
+		UpdatedBy: model.UpdatedBy,
+	}, nil
 }
 
 // Retrieve secret by secret Name secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) GetByName(organizationID uint, name string) (*SecretItemResponse, error) {
-
 	secretID := GenerateSecretIDFromName(name)
-	secret, err := ss.Get(organizationID, secretID)
-	if err == ErrSecretNotExists {
-		return nil, err
-	} else if err != nil {
-		return nil, errors.Wrap(err, "Error during reading secret")
-	}
 
-	if secret == nil {
+	secret, err := ss.Get(organizationID, secretID)
+	if err != nil {
 		return nil, ErrSecretNotExists
 	}
 
 	return secret, nil
 }
 
-func (ss *secretStore) getSecretIDs(orgid uint, query *ListSecretsQuery) ([]string, error) {
-	if len(query.IDs) > 0 {
-		return query.IDs, nil
-	}
-
-	listPath := fmt.Sprintf("secret/metadata/orgs/%d", orgid)
-
-	list, err := ss.Logical.List(listPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if list != nil {
-		keys := cast.ToStringSlice(list.Data["keys"])
-		res := make([]string, len(keys))
-		for i, key := range keys {
-			res[i] = string(key)
-		}
-		return res, nil
-	}
-
-	return nil, nil
-}
-
 // List secret secret/orgs/:orgid:/ scope
 func (ss *secretStore) List(orgid uint, query *ListSecretsQuery) ([]*SecretItemResponse, error) {
-
 	log.Debugf("Searching for secrets [orgid: %d, query: %#v]", orgid, query)
 
-	secretIDs, err := ss.getSecretIDs(orgid, query)
-	if err != nil {
-		log.Errorf("Error listing secrets: %s", err.Error())
-		return nil, err
-	}
+	var models []secret.Model
+	var err error
 
-	responseItems := []*SecretItemResponse{}
+	if len(query.IDs) > 0 {
+		models = make([]secret.Model, 0, len(query.IDs))
 
-	for _, secretID := range secretIDs {
-
-		if secret, err := ss.Logical.Read(secretDataPath(orgid, secretID)); err != nil {
-
-			log.Errorf("Error listing secrets: %s", err.Error())
-			return nil, err
-
-		} else if secret != nil {
-
-			sir, err := parseSecret(secretID, secret, query.Values)
+		for _, id := range query.IDs {
+			model, err := ss.SecretStore.Get(context.Background(), orgid, id)
 			if err != nil {
 				return nil, err
 			}
 
-			if (query.Type == secrettype.AllSecrets || sir.Type == query.Type) && hasTags(sir.Tags, query.Tags) {
-				responseItems = append(responseItems, sir)
-			}
+			models = append(models, model)
+		}
+	} else {
+		models, err = ss.SecretStore.List(context.Background(), orgid)
+		if err != nil {
+			log.Errorf("Error listing secrets: %s", err.Error())
+
+			return nil, err
 		}
 	}
 
-	return responseItems, nil
-}
+	responseItems := []*SecretItemResponse{}
 
-func secretData(version int, request *CreateSecretRequest) (map[string]interface{}, error) {
-	valueData := map[string]interface{}{}
+	for _, model := range models {
+		if !((query.Type == secrettype.AllSecrets || model.Type == query.Type) && hasTags(model.Tags, query.Tags)) {
+			continue
+		}
 
-	if err := mapstructure.Decode(request, &valueData); err != nil {
-		return nil, errors.Wrap(err, "Error during encoding secret")
+		responseItem := &SecretItemResponse{
+			ID:        model.ID,
+			Name:      model.Name,
+			Type:      model.Type,
+			Values:    model.Values,
+			Tags:      model.Tags,
+			Version:   1,
+			UpdatedAt: model.UpdatedAt,
+			UpdatedBy: model.UpdatedBy,
+		}
+
+		if !query.Values {
+			// Clear the values otherwise
+			for k := range responseItem.Values {
+				responseItem.Values[k] = "<hidden>"
+			}
+		}
+
+		responseItems = append(responseItems, responseItem)
 	}
 
-	return vault.NewData(version, map[string]interface{}{"value": valueData}), nil
-}
-
-func secretDataPath(organizationID uint, secretID string) string {
-	return fmt.Sprintf("secret/data/orgs/%d/%s", organizationID, secretID)
-}
-
-func secretMetadataPath(organizationID uint, secretID string) string {
-	return fmt.Sprintf("secret/metadata/orgs/%d/%s", organizationID, secretID)
+	return responseItems, nil
 }
 
 func hasTags(tags []string, searchingTag []string) bool {
@@ -560,7 +472,7 @@ func (MismatchError) ServiceError() bool {
 
 // IsCASError detects if the underlying Vault error is caused by a CAS failure
 func IsCASError(err error) bool {
-	return strings.Contains(err.Error(), "check-and-set parameter did not match the current version")
+	return strings.Contains(err.Error(), "check-and-set parameter did not match the current version") || errors.As(err, &secret.AlreadyExistsError{})
 }
 
 func isTLSSecretGenerationNeeded(cr *CreateSecretRequest) bool {
@@ -634,221 +546,19 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 		}
 
 	} else if value.Type == secrettype.PKESecretType {
-		clusterID := getClusterIDFromTags(value.Tags)
-		if clusterID == "" {
-			return errors.New("clusterID is missing from the tags")
-		}
-
-		mountInput := vaultapi.MountInput{
-			Type:        "pki",
-			Description: fmt.Sprintf("root PKI engine for cluster %s", clusterID),
-			Config: vaultapi.MountConfigInput{
-				MaxLeaseTTL:     "43801h",
-				DefaultLeaseTTL: "43801h",
-			},
-		}
-
-		// Mount a separate PKI engine for the cluster
-		basePath := clusterPKIPath(organizationID, clusterID)
-		path := fmt.Sprintf("%s/ca", basePath)
-
-		err := ss.Client.Vault().Sys().Mount(path, &mountInput)
-		if err != nil {
-			return errors.Wrapf(err, "Error mounting pki engine for cluster %s", clusterID)
-		}
-
-		// Generate the root CA
-		rootCAData := map[string]interface{}{
-			"common_name": fmt.Sprintf("cluster-%s-ca", clusterID),
-		}
-
-		_, err = ss.Logical.Write(fmt.Sprintf("%s/root/generate/internal", path), rootCAData)
-		if err != nil {
-			// Unmount the pki engine first
-			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
-				log.Warnf("failed to unmount %s: %s", path, err)
-			}
-			return errors.Wrapf(err, "Error generating root CA for cluster %s", clusterID)
-		}
-
-		// Get root CA
-		rootCA, err := ss.Logical.Read(fmt.Sprintf("%s/cert/ca", path))
-		if err != nil {
-			// Unmount the pki engine first
-			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
-				log.Warnf("failed to unmount %s: %s", path, err)
-			}
-			return errors.Wrapf(err, "Error reading root CA for cluster %s", clusterID)
-		}
-		ca := rootCA.Data["certificate"].(string)
-
-		// Generate the intermediate CAs
-		kubernetesCA, err := ss.generateIntermediateCert(clusterID, basePath, secrettype.KubernetesCACommonName)
-		if err != nil {
-			// Unmount the pki backend first
-			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
-				log.Warnf("failed to unmount %s: %s", path, err)
-			}
-			return err
-		}
-
-		etcdCA, err := ss.generateIntermediateCert(clusterID, basePath, secrettype.EtcdCACommonName)
-		if err != nil {
-			// Unmount the pki backend first
-			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
-				log.Warnf("failed to unmount %s: %s", path, err)
-			}
-			return err
-		}
-
-		frontProxyCA, err := ss.generateIntermediateCert(clusterID, basePath, secrettype.KubernetesFrontProxyCACommonName)
-		if err != nil {
-			// Unmount the pki backend first
-			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
-				log.Warnf("failed to unmount %s: %s", path, err)
-			}
-			return err
-		}
-
-		// Service Account key-pair
-		saPub, saPriv, err := generateSAKeyPair(clusterID)
+		values, err := ss.PkeSecreter.GeneratePkeSecret(organizationID, value.Tags)
 		if err != nil {
 			return err
 		}
 
-		// Encryption Secret
-		var rnd = make([]byte, 32)
-		_, err = rand.Read(rnd)
-		if err != nil {
-			return err
-		}
-		encryptionSecret := base64.StdEncoding.EncodeToString(rnd)
-
-		value.Values[secrettype.KubernetesCAKey] = kubernetesCA.Key
-		value.Values[secrettype.KubernetesCACert] = kubernetesCA.Cert + "\n" + ca
-		value.Values[secrettype.KubernetesCASigningCert] = kubernetesCA.Cert
-		value.Values[secrettype.EtcdCAKey] = etcdCA.Key
-		value.Values[secrettype.EtcdCACert] = etcdCA.Cert + "\n" + ca
-		value.Values[secrettype.FrontProxyCAKey] = frontProxyCA.Key
-		value.Values[secrettype.FrontProxyCACert] = frontProxyCA.Cert + "\n" + ca
-		value.Values[secrettype.SAPub] = saPub
-		value.Values[secrettype.SAKey] = saPriv
-		value.Values[secrettype.EncryptionSecret] = encryptionSecret
+		value.Values = values
 	}
 
 	return nil
 }
 
-func (ss *secretStore) generateIntermediateCert(clusterID, basePath, commonName string) (*certificate, error) {
-	mountInput := vaultapi.MountInput{
-		Type:        "pki",
-		Description: fmt.Sprintf("%s intermediate PKI engine for cluster %s", commonName, clusterID),
-		Config: vaultapi.MountConfigInput{
-			MaxLeaseTTL:     "43800h",
-			DefaultLeaseTTL: "43800h",
-		},
-	}
-
-	path := fmt.Sprintf("%s/%s", basePath, commonName)
-
-	// Each intermediate and ca cert needs it's own pki mount, see:
-	// https://github.com/hashicorp/vault/issues/1586#issuecomment-230300216
-	err := ss.Client.Vault().Sys().Mount(path, &mountInput)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error mounting %s intermediate pki engine for cluster %s", commonName, clusterID)
-	}
-
-	caData := map[string]interface{}{
-		"common_name": commonName,
-	}
-
-	caSecret, err := ss.Logical.Write(fmt.Sprintf("%s/intermediate/generate/exported", path), caData)
-	if err != nil {
-		// Unmount the pki backend first
-		if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
-			log.Warnf("failed to unmount %s: %s", path, err)
-		}
-		return nil, errors.Wrapf(err, "error generating %s intermediate cert for cluster %s", commonName, clusterID)
-	}
-
-	caSignData := map[string]interface{}{
-		"csr":    caSecret.Data["csr"],
-		"format": "pem_bundle",
-	}
-
-	caCertSecret, err := ss.Logical.Write(fmt.Sprintf("%s/ca/root/sign-intermediate", basePath), caSignData)
-	if err != nil {
-		// Unmount the pki backend first
-		if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
-			log.Warnf("failed to unmount %s: %s", path, err)
-		}
-		return nil, errors.Wrapf(err, "error signing %s intermediate cert for cluster %s", commonName, clusterID)
-	}
-
-	return &certificate{
-		Key:  caSecret.Data["private_key"].(string),
-		Cert: caCertSecret.Data["certificate"].(string),
-	}, nil
-}
-
-type certificate struct {
-	Cert string
-	Key  string
-}
-
-const clusterIDTagName = "clusterID"
 const clusterUIDTagName = "clusterUID"
 
 func clusterUIDTag(clusterUID string) string {
 	return fmt.Sprintf("%s:%s", clusterUIDTagName, clusterUID)
-}
-
-func getClusterIDFromTags(tags []string) string {
-	for _, tag := range tags {
-		if strings.HasPrefix(tag, clusterIDTagName+":") {
-			return strings.TrimPrefix(tag, clusterIDTagName+":")
-		}
-	}
-
-	// This should never happen
-	return ""
-}
-
-func clusterPKIPath(organizationID uint, clusterID string) string {
-	return fmt.Sprintf("clusters/%d/%s/pki", organizationID, clusterID)
-}
-
-func generateSAKeyPair(clusterID string) (pub, priv string, err error) {
-	pk, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
-	if err != nil {
-		return "", "", errors.Wrapf(err, "Error generating SA key pair for cluster %s, generate key failed", clusterID)
-	}
-
-	saPub, err := encodePublicKeyPEM(&pk.PublicKey)
-	if err != nil {
-		return "", "", errors.Wrapf(err, "Error generating SA key pair for cluster %s, encode public key failed", clusterID)
-	}
-	saPriv := encodePrivateKeyPEM(pk)
-
-	return string(saPub), string(saPriv), nil
-}
-
-func encodePublicKeyPEM(key *rsa.PublicKey) ([]byte, error) {
-	der, err := x509.MarshalPKIXPublicKey(key)
-	if err != nil {
-		return []byte{}, err
-	}
-	block := pem.Block{
-		Type:  PublicKeyBlockType,
-		Bytes: der,
-	}
-	return pem.EncodeToMemory(&block), nil
-}
-
-func encodePrivateKeyPEM(key *rsa.PrivateKey) []byte {
-	block := pem.Block{
-		Type:  RSAPrivateKeyBlockType,
-		Bytes: x509.MarshalPKCS1PrivateKey(key),
-	}
-	return pem.EncodeToMemory(&block)
 }

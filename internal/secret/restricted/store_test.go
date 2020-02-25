@@ -26,9 +26,6 @@ const (
 	orgID = 19
 )
 
-// nolint: gochecknoglobals
-var version = 1
-
 func TestBlockingTags(t *testing.T) {
 
 	cases := []struct {
@@ -89,7 +86,6 @@ var (
 		Tags: []string{
 			secret.TagBanzaiReadonly,
 		},
-		Version:   version,
 		UpdatedBy: "banzaiuser",
 	}
 
@@ -100,7 +96,6 @@ var (
 			"key": "value",
 		},
 		Tags:      secret.ForbiddenTags,
-		Version:   version,
 		UpdatedBy: "banzaiuser",
 	}
 )
@@ -125,7 +120,7 @@ func (ss inMemorySecretStore) Get(orgID uint, secretID string) (*secret.SecretIt
 				Type:      s.Type,
 				Values:    s.Values,
 				Tags:      s.Tags,
-				Version:   s.Version + 1,
+				Version:   1,
 				UpdatedBy: s.UpdatedBy,
 			}, nil
 		}
@@ -143,7 +138,7 @@ func (ss inMemorySecretStore) List(orgID uint, query *secret.ListSecretsQuery) (
 				Type:      s.Type,
 				Values:    s.Values,
 				Tags:      s.Tags,
-				Version:   s.Version + 1,
+				Version:   1,
 				UpdatedBy: s.UpdatedBy,
 			})
 		}

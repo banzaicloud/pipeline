@@ -20,14 +20,20 @@ import (
 	"testing"
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/route53/route53iface"
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	"github.com/pkg/errors"
 
+	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
+	"github.com/banzaicloud/pipeline/internal/secret/restricted"
+	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -36,6 +42,17 @@ import (
 
 func init() {
 	global.Config.Cluster.DNS.BaseDomain = "example.org"
+}
+
+func init() {
+	vaultClient, err := vault.NewClient("pipeline")
+	emperror.Panic(err)
+	global.SetVault(vaultClient)
+
+	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
+	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, common.NoopLogger{})
+	secret.InitSecretStore(secretStore, pkeSecreter)
+	restricted.InitSecretStore(secret.Store)
 }
 
 const (

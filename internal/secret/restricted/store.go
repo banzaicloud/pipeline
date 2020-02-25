@@ -22,8 +22,13 @@ import (
 
 // GlobalSecretStore object that wraps the main secret store and restricts access to certain items
 // nolint: gochecknoglobals
-var GlobalSecretStore = &restrictedSecretStore{
-	secretStore: secret.Store,
+var GlobalSecretStore *restrictedSecretStore
+
+// InitSecretStore initializes the global secret store.
+func InitSecretStore(store secretStore) {
+	GlobalSecretStore = &restrictedSecretStore{
+		secretStore: store,
+	}
 }
 
 // restrictedSecretStore checks whether the user can access a certain secret.

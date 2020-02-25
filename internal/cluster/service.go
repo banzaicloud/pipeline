@@ -62,6 +62,8 @@ type Identifier struct {
 	ClusterName    string
 }
 
+// +testify:mock:testOnly=true
+
 // Store provides an interface to the generic Cluster model persistence.
 type Store interface {
 	// GetCluster returns a generic Cluster.
@@ -192,8 +194,8 @@ func (NotSupportedDistributionError) ServiceError() bool {
 	return true
 }
 
-//go:generate mga gen mockery --name Service --inpkg
 // +kit:endpoint:errorStrategy=service
+// +testify:mock
 
 // Service provides an interface to clusters.
 type Service interface {

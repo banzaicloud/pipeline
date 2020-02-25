@@ -29,8 +29,8 @@ import (
 // Note: aliases do not seem to work with MGA right now.
 type Project cloudresourcemanager.Project
 
-//go:generate mga gen mockery --name Service --inpkg
 // +kit:endpoint:errorStrategy=service,moduleName=cloud/google/project
+// +testify:mock
 
 // Service interacts with Google projects.
 type Service interface {

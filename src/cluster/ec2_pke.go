@@ -50,7 +50,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
-const defaultPKEVersion = "1.15.3"
+const defaultK8sVersion = "1.15.3"
 
 var _ CommonCluster = (*EC2ClusterPKE)(nil)
 
@@ -673,7 +673,10 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 
 // IsReady checks if the cluster is running according to the cloud provider.
 func (c *EC2ClusterPKE) IsReady() (bool, error) {
-	// TODO: is this a correct implementation?
+	// cluster is not ready in case there's no config secret yet
+	if c.GetConfigSecretId() == "" {
+		return false, nil
+	}
 	return true, nil
 }
 
@@ -815,7 +818,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 
 	version := c.model.Kubernetes.Version
 	if version == "" {
-		version = defaultPKEVersion
+		version = defaultK8sVersion
 	}
 	if version[0] == 'v' {
 		version = version[1:]

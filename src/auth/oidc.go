@@ -383,6 +383,8 @@ func (provider OIDCProvider) Callback(context *auth.Context) {
 func (OIDCProvider) ServeHTTP(*auth.Context) {
 }
 
+// +testify:mock:testOnly=true
+
 // OIDCOrganizationSyncer synchronizes organizations of a user from an OIDC ID token.
 type OIDCOrganizationSyncer interface {
 	SyncOrganizations(ctx gocontext.Context, user User, idTokenClaims *IDTokenClaims) error

@@ -30,8 +30,8 @@ type Token struct {
 	CreatedAt time.Time  `json:"createdAt,omitempty"`
 }
 
-//go:generate mga gen mockery --name Service --inpkg
 // +kit:endpoint:errorStrategy=service
+// +testify:mock
 
 // Service provides access to personal access tokens.
 type Service interface {
@@ -80,6 +80,8 @@ type service struct {
 	generator     Generator
 }
 
+// +testify:mock:testOnly=true
+
 // UserExtractor extracts user information from the context.
 type UserExtractor interface {
 	// GetUserID returns the ID of the currently authenticated user.
@@ -90,6 +92,8 @@ type UserExtractor interface {
 	// If a user cannot be found in the context, it returns false as the second return value.
 	GetUserLogin(ctx context.Context) (string, bool)
 }
+
+// +testify:mock:testOnly=true
 
 // Store persists access tokens in a secret store.
 type Store interface {
@@ -132,6 +136,8 @@ func (NotFoundError) NotFound() bool {
 func (NotFoundError) ServiceError() bool {
 	return true
 }
+
+// +testify:mock:testOnly=true
 
 // Generator generates a token.
 type Generator interface {

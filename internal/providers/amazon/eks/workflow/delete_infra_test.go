@@ -81,12 +81,12 @@ func (s *DeleteClusterInfraWorkflowTestSuite) AfterTest(suiteName, testName stri
 func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
 
 	workflowInput := DeleteInfrastructureWorkflowInput{
-		Region:         "us-west-1",
-		OrganizationID: 1,
-		SecretID:       "my-secret-id",
-		ClusterName:    "test-cluster-name",
-		NodePoolNames:  []string{"pool1", "pool2"},
-		GenerateSSH:    true,
+		Region:           "us-west-1",
+		OrganizationID:   1,
+		SecretID:         "my-secret-id",
+		ClusterName:      "test-cluster-name",
+		NodePoolNames:    []string{"pool1", "pool2"},
+		GeneratedSSHUsed: true,
 	}
 
 	eksActivityInput := EKSActivityInput{

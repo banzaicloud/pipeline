@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "842d1370-28f5-4e7f-bdba-28907522d73a",
+		"_postman_id": "98eb35a8-0073-49a2-84ec-ffdfaaa2dcb5",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -5304,7 +5304,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "6bea8617-0a29-4bd1-b62d-6973ea25ab2f",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -5320,7 +5320,8 @@
 											"    postman.setNextRequest(null);",
 											"}",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -5334,7 +5335,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"name\": \"my-alibaba-secret-{{$randomInt}}\",\n\t\"type\": \"alibaba\",\n\t\"values\": {\n\t\t\"ALIBABA_ACCESS_KEY_ID\": \"{{AlibabaAccessKeyId}}\",\n\t\t\"ALIBABA_ACCESS_KEY_SECRET\": \"{{AlibabaAccessKeySecret}}\"\n\t},\n\t\"version\": 1\n}"
+									"raw": "{\n\t\"name\": \"my-alibaba-secret-{{$randomInt}}\",\n\t\"type\": \"alibaba\",\n\t\"values\": {\n\t\t\"ALIBABA_ACCESS_KEY_ID\": \"{{AlibabaAccessKeyId}}\",\n\t\t\"ALIBABA_ACCESS_KEY_SECRET\": \"{{AlibabaAccessKeySecret}}\"\n\t}\n}"
 								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdAlibaba",
@@ -5565,7 +5566,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "0d4a9acd-3257-4327-a9ec-806b7b9b644c",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -5581,7 +5582,8 @@
 											"    postman.setNextRequest(null);",
 											"}",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -5595,7 +5597,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"name\": \"my-amazon-secret-{{$randomInt}}\",\n\t\"type\": \"amazon\",\n\t\"values\": {\n\t\t\"AWS_ACCESS_KEY_ID\": \"{{AwsAccessKeyId}}\",\n\t\t\"AWS_SECRET_ACCESS_KEY\": \"{{AwsSecretAccessKey}}\"\n\t},\n\t\"version\": 1\n}"
+									"raw": "{\n\t\"name\": \"my-amazon-secret-{{$randomInt}}\",\n\t\"type\": \"amazon\",\n\t\"values\": {\n\t\t\"AWS_ACCESS_KEY_ID\": \"{{AwsAccessKeyId}}\",\n\t\t\"AWS_SECRET_ACCESS_KEY\": \"{{AwsSecretAccessKey}}\"\n\t}\n}"
 								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdAmazon",
@@ -5826,7 +5828,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "56d2ef54-8fed-4d0a-934a-79c57e20ab58",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -5842,7 +5844,8 @@
 											"    postman.setNextRequest(null);",
 											"}",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -5856,7 +5859,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"name\": \"my-azure-secret-{{$randomInt}}\",\n\t\"type\": \"azure\",\n\t\"values\": {\n\t\t\"AZURE_CLIENT_ID\": \"{{AzureClientId}}\",\n\t\t\"AZURE_CLIENT_SECRET\": \"{{AzureClientSecret}}\",\n\t\t\"AZURE_TENANT_ID\": \"{{AzureTenantId}}\",\n\t\t\"AZURE_SUBSCRIPTION_ID\": \"{{AzureSubscriptionId}}\"\n\t},\n\t\"version\": 1\n}"
+									"raw": "{\n\t\"name\": \"my-azure-secret-{{$randomInt}}\",\n\t\"type\": \"azure\",\n\t\"values\": {\n\t\t\"AZURE_CLIENT_ID\": \"{{AzureClientId}}\",\n\t\t\"AZURE_CLIENT_SECRET\": \"{{AzureClientSecret}}\",\n\t\t\"AZURE_TENANT_ID\": \"{{AzureTenantId}}\",\n\t\t\"AZURE_SUBSCRIPTION_ID\": \"{{AzureSubscriptionId}}\"\n\t}\n}"
 								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdAzure",
@@ -6087,7 +6090,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "920008bb-a579-470b-9f1f-3222ee346935",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -6103,7 +6106,8 @@
 											"    postman.setNextRequest(null);",
 											"}",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -6117,7 +6121,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"name\": \"my-google-secret-{{$randomInt}}\",\n\t\"type\": \"google\",\n\t\"values\": {\n\t\t\"type\": \"{{googleType}}\",\n\t\t\"project_id\": \"{{googleProjectId}}\",\n\t\t\"private_key_id\": \"{{googlePrivateKeyId}}\",\n\t\t\"private_key\": \"{{googlePrivateKey}}\",\n\t\t\"client_email\": \"{{googleClientEmail}}\",\n\t\t\"client_id\": \"{{googleClientId}}\",\n\t\t\"auth_uri\": \"{{googleAuthUri}}\",\n\t\t\"token_uri\": \"{{googleTokenUri}}\",\n\t\t\"auth_provider_x509_cert_url\": \"{{googleAuthProviderX509CertUrl}}\",\n\t\t\"client_x509_cert_url\": \"{{googleClientX509CertUrl}}\"\n\t},\n\t\"version\": 1\n}"
+									"raw": "{\n\t\"name\": \"my-google-secret-{{$randomInt}}\",\n\t\"type\": \"google\",\n\t\"values\": {\n\t\t\"type\": \"{{googleType}}\",\n\t\t\"project_id\": \"{{googleProjectId}}\",\n\t\t\"private_key_id\": \"{{googlePrivateKeyId}}\",\n\t\t\"private_key\": \"{{googlePrivateKey}}\",\n\t\t\"client_email\": \"{{googleClientEmail}}\",\n\t\t\"client_id\": \"{{googleClientId}}\",\n\t\t\"auth_uri\": \"{{googleAuthUri}}\",\n\t\t\"token_uri\": \"{{googleTokenUri}}\",\n\t\t\"auth_provider_x509_cert_url\": \"{{googleAuthProviderX509CertUrl}}\",\n\t\t\"client_x509_cert_url\": \"{{googleClientX509CertUrl}}\"\n\t}\n}"
 								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdGoogle",
@@ -6348,7 +6352,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "924623fd-bbac-4449-b896-cf3e20a3f359",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -6364,7 +6368,8 @@
 											"    postman.setNextRequest(null);",
 											"}",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -6378,7 +6383,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"name\": \"my-oci-secret-{{$randomInt}}\",\n\t\"type\": \"oracle\",\n\t\"values\": {\n\t\t\"user_ocid\": \"{{oracleUserOcid}}\",\n\t\t\"api_key_fingerprint\": \"{{oracleApiKeyFingerprint}}\",\n\t\t\"api_key\": \"{{oracleApiKey}}\",\n\t\t\"region\": \"{{oracleRegion}}\",\n\t\t\"compartment_ocid\": \"{{oracleCompartmentOcid}}\",\n\t\t\"tenancy_ocid\": \"{{oracleTenancyOcid}}\"\n\t},\n\t\"version\": 1\n}"
+									"raw": "{\n\t\"name\": \"my-oci-secret-{{$randomInt}}\",\n\t\"type\": \"oracle\",\n\t\"values\": {\n\t\t\"user_ocid\": \"{{oracleUserOcid}}\",\n\t\t\"api_key_fingerprint\": \"{{oracleApiKeyFingerprint}}\",\n\t\t\"api_key\": \"{{oracleApiKey}}\",\n\t\t\"region\": \"{{oracleRegion}}\",\n\t\t\"compartment_ocid\": \"{{oracleCompartmentOcid}}\",\n\t\t\"tenancy_ocid\": \"{{oracleTenancyOcid}}\"\n\t}\n}"
 								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdOracle",
@@ -6609,7 +6614,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "5f36d492-9ecd-471b-8aff-5ef0621d39d7",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -6625,7 +6630,8 @@
 											"    postman.setNextRequest(null);",
 											"}",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -6639,7 +6645,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n \t\"name\": \"my-tls-secret-{{$randomInt}}\",\n\t\"type\": \"tls\",\n\t\"values\": {\n\t\t\"hosts\": \"localhost\"\n\t},\n\t\"version\": 1\n}"
+									"raw": "{\n \t\"name\": \"my-tls-secret-{{$randomInt}}\",\n\t\"type\": \"tls\",\n\t\"values\": {\n\t\t\"hosts\": \"localhost\"\n\t}\n}"
 								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdKubernetes",
@@ -6834,7 +6840,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "4d31c431-ebd2-42df-b138-b3783965ae2c",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -6850,7 +6856,8 @@
 											"    postman.setNextRequest(null);",
 											"}",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -6864,7 +6871,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n \t\"name\": \"my-tls-secret-{{$randomInt}}\",\n\t\"type\": \"tls\",\n\t\"values\": {\n\t\t\"hosts\": \"localhost\"\n\t},\n\t\"version\": 1\n}"
+									"raw": "{\n \t\"name\": \"my-tls-secret-{{$randomInt}}\",\n\t\"type\": \"tls\",\n\t\"values\": {\n\t\t\"hosts\": \"localhost\"\n\t}\n}"
 								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdTLS",
@@ -7060,7 +7067,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "ad1adc27-f583-4943-97bd-6e923bea3304",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -7076,7 +7083,8 @@
 											"    postman.setNextRequest(null);",
 											"}",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -7090,7 +7098,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"name\": \"my-password-secret-{{$randomInt}}\",\n\t\"type\": \"password\",\n\t\"values\": {\n\t\t\"username\": \"root\",\n\t\t\"password\": \"randAlpha,16\"\n\t},\n\t\"version\": 1\n}"
+									"raw": "{\n\t\"name\": \"my-password-secret-{{$randomInt}}\",\n\t\"type\": \"password\",\n\t\"values\": {\n\t\t\"username\": \"root\",\n\t\t\"password\": \"randAlpha,16\"\n\t}\n}"
 								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdPassword",
@@ -7286,7 +7294,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "150f951a-b88d-4bfa-a98b-f151f5c109e8",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -7302,7 +7310,8 @@
 											"    postman.setNextRequest(null);",
 											"}",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -7316,7 +7325,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"name\": \"my-generic-secret-which-is-Docker-in-this-example-{{$randomInt}}\",\n\t\"type\": \"generic\",\n\t\"values\": {\n\t\t\"DOCKER_USERNAME\": \"{{DockerUsername}}\",\n\t\t\"DOCKER_PASSWORD\": \"{{DockerPassword}}\"\n\t},\n\t\"version\": 1\n}"
+									"raw": "{\n\t\"name\": \"my-generic-secret-which-is-Docker-in-this-example-{{$randomInt}}\",\n\t\"type\": \"generic\",\n\t\"values\": {\n\t\t\"DOCKER_USERNAME\": \"{{DockerUsername}}\",\n\t\t\"DOCKER_PASSWORD\": \"{{DockerPassword}}\"\n\t}\n}"
 								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdGeneric",

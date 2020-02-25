@@ -31,6 +31,8 @@ type SecretStore struct {
 	extractor OrgIDContextExtractor
 }
 
+// +testify:mock:testOnly=true
+
 // ReadWriteOrganizationalSecretStore is the global secret store that stores values under a compound key:
 // the organization ID and a secret ID.
 type ReadWriteOrganizationalSecretStore interface {

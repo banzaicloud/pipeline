@@ -35,8 +35,8 @@ type TypeField struct {
 	Description string `json:"description,omitempty"`
 }
 
-//go:generate mga gen mockery --name Service --inpkg
 // +kit:endpoint:errorStrategy=service
+// +testify:mock
 
 // Service provides information about secret types.
 type Service interface {

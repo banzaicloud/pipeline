@@ -25,7 +25,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-09-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -37,15 +37,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgClusterAzure "github.com/banzaicloud/pipeline/pkg/cluster/aks"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/utils"
-)
-
-const (
-	poolNameKey = "poolName"
 )
 
 // nolint: gochecknoglobals
@@ -214,6 +211,9 @@ func (c *AKSCluster) CreateCluster() error {
 				Count:        &count,
 				VMSize:       containerservice.VMSizeTypes(np.NodeInstanceType),
 				VnetSubnetID: getVNetSubnetID(np),
+				NodeLabels: map[string]*string{
+					pkgCommon.LabelKey: &name,
+				},
 			})
 		}
 	}
@@ -961,33 +961,6 @@ func (c *AKSCluster) GetK8sUserConfig() ([]byte, error) {
 // RequiresSshPublicKey returns true if a public SSH key is needed for bootstrapping the cluster
 func (c *AKSCluster) RequiresSshPublicKey() bool {
 	return true
-}
-
-// ListNodeNames returns node names to label them
-func (c *AKSCluster) ListNodeNames() (labels map[string][]string, err error) {
-	cc, err := c.getCloudConnection()
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to create cloud connection")
-	}
-
-	labels = make(map[string][]string)
-	irgName := c.getInfrastructureResourceGroupName()
-	vms, err := cc.GetVirtualMachinesClient().ListAll(context.TODO(), irgName)
-	for _, np := range c.modelCluster.AKS.NodePools {
-		if np != nil {
-			for _, vm := range vms {
-				if vm.OsProfile != nil && vm.OsProfile.ComputerName != nil {
-					for key, tag := range vm.Tags {
-						if poolNameKey == key && tag != nil && *tag == np.Name {
-							labels[np.Name] = append(labels[np.Name], *vm.OsProfile.ComputerName)
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return
 }
 
 // RbacEnabled returns true if rbac enabled on the cluster

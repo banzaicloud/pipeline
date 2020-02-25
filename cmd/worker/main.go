@@ -15,18 +15,21 @@
 package main
 
 import (
+	"context"
 	"encoding/base32"
 	"fmt"
 	"os"
-	"os/signal"
 	"syscall"
 	"text/template"
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	"emperror.dev/errors/match"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	"github.com/mitchellh/mapstructure"
 	"github.com/oklog/run"
+	appkitrun "github.com/sagikazarmark/appkit/run"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/cadence/activity"
@@ -75,6 +78,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/kubernetes/kubernetesadapter"
 	intpkeworkflowadapter "github.com/banzaicloud/pipeline/internal/pke/workflow/adapter"
+	"github.com/banzaicloud/pipeline/internal/platform/appkit"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
@@ -88,6 +92,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/kubesecret"
+	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
+	"github.com/banzaicloud/pipeline/internal/secret/restricted"
+	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
@@ -191,6 +198,17 @@ func main() {
 	buildInfo := buildinfo.New(version, commitHash, buildDate)
 
 	logger.Info("starting application", buildInfo.Fields())
+
+	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor)
+
+	vaultClient, err := vault.NewClient("pipeline")
+	emperror.Panic(err)
+	global.SetVault(vaultClient)
+
+	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
+	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, commonLogger)
+	secret.InitSecretStore(secretStore, pkeSecreter)
+	restricted.InitSecretStore(secret.Store)
 
 	var group run.Group
 
@@ -654,53 +672,12 @@ func main() {
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)
 		}
 
-		var closeCh = make(chan struct{})
-
-		group.Add(
-			func() error {
-				err := worker.Start()
-				if err != nil {
-					return err
-				}
-
-				<-closeCh
-
-				return nil
-			},
-			func(e error) {
-				worker.Stop()
-				close(closeCh)
-			},
-		)
+		group.Add(appkitrun.CadenceWorkerRun(worker))
 	}
 
 	// Setup signal handler
-	{
-		var (
-			cancelInterrupt = make(chan struct{})
-			ch              = make(chan os.Signal, 2)
-		)
-		defer close(ch)
-
-		group.Add(
-			func() error {
-				signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-
-				select {
-				case sig := <-ch:
-					logger.Info("captured signal", map[string]interface{}{"signal": sig})
-				case <-cancelInterrupt:
-				}
-
-				return nil
-			},
-			func(e error) {
-				close(cancelInterrupt)
-				signal.Stop(ch)
-			},
-		)
-	}
+	group.Add(run.SignalHandler(context.Background(), syscall.SIGINT, syscall.SIGTERM))
 
 	err = group.Run()
-	emperror.Handle(errorHandler, err)
+	emperror.WithFilter(errorHandler, match.As(&run.SignalError{}).MatchError).Handle(err)
 }

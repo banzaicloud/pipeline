@@ -575,6 +575,11 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 					"traefik.ingress.kubernetes.io/redirect-replacement": `https://$1\`,
 				},
 			},
+			"sidecar": map[string]interface{}{
+				"datasources": map[string]interface{}{
+					"enabled": "true",
+				},
+			},
 		},
 	})
 	v.SetDefault("cluster::monitoring::images::operator::repository", "quay.io/coreos/prometheus-operator")
@@ -604,7 +609,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::logging::images::operator::repository", "banzaicloud/logging-operator")
 	v.SetDefault("cluster::logging::images::operator::tag", "2.7.0")
 	v.SetDefault("cluster::logging::charts::loki::chart", "banzaicloud-stable/loki")
-	v.SetDefault("cluster::logging::charts::loki::version", "0.17.0")
+	v.SetDefault("cluster::logging::charts::loki::version", "0.17.3")
 	v.SetDefault("cluster::logging::charts::loki::values", map[string]interface{}{})
 	v.SetDefault("cluster::logging::images::loki::repository", "grafana/loki")
 	v.SetDefault("cluster::logging::images::loki::tag", "v1.3.0")

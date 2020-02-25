@@ -321,7 +321,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 // It's used only used in case of ACK etc. when we're not able to add labels via API.
 func labelNodesWithNodePoolName(commonCluster CommonCluster) error {
 	switch commonCluster.GetDistribution() {
-	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE, pkgCluster.PKE:
+	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE, pkgCluster.PKE, pkgCluster.AKS:
 		log.Infof("nodes are already labelled on : %v", commonCluster.GetDistribution())
 		return nil
 	}
