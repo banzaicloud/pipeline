@@ -20,6 +20,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/vmware/govmomi/find"
+	"github.com/vmware/govmomi/vim25/types"
 	"go.uber.org/cadence/activity"
 )
 
@@ -84,36 +85,37 @@ func (a DeleteNodeActivity) Execute(ctx context.Context, input DeleteNodeActivit
 	//expectedTags := getClusterTags(input.Name, input.NodePoolName)
 
 	vm := vms[0]
-	task, err := vm.PowerOff(ctx)
+
+	// Power off the VM.
+	powerState, err := vm.PowerState(ctx)
 	if err != nil {
-		return true, errors.WrapIf(err, "failed to power off VM")
+		return true, errors.WrapIf(err, "failed to get power state of VM")
+	}
+	if powerState != types.VirtualMachinePowerStatePoweredOff {
+		task, err := vm.PowerOff(ctx)
+		if err != nil {
+			return true, errors.WrapIf(err, "failed to power off VM")
+		}
+
+		logger.Info("wait for power off VM", "task", task.String())
+		err = vm.WaitForPowerState(ctx, types.VirtualMachinePowerStatePoweredOff)
+		if err != nil {
+			return false, errors.WrapIf(err, "failed to power off VM")
+		}
 	}
 
-	// power off
-	logger.Info("wait for power off VM", "task", task.String())
-	//err = vm.WaitForPowerState(ctx, types.VirtualMachinePowerStatePoweredOff)
-	//if err != nil {
-	//	return false, errors.WrapIf(err, "failed to power off VM")
-	//}
-	
-	taskInfo, err := task.WaitForResult(ctx, nil)
-	if err != nil {
-		return true, err
-	}
-	logger.Infof("vm powered off: %+v\n", taskInfo)
-
-	// destroy
-	task, err = vm.Destroy(ctx)
+	// Destroy VM
+	task, err := vm.Destroy(ctx)
 	if err != nil {
 		return true, errors.WrapIf(err, "failed to destroy VM")
 	}
 	logger.Info("destroying VM", "task", task.String())
 	progressLogger := newProgressLogger("destroying VM - progress ", logger)
 	defer progressLogger.Wait()
-	taskInfo, err = task.WaitForResult(ctx, progressLogger)
+	taskInfo, err := task.WaitForResult(ctx, progressLogger)
 	if err != nil {
 		return true, err
 	}
-	logger.Infof("vm deleted: %+v\n", taskInfo)
+	logger.Infof("vm destroyed: %+v\n", taskInfo)
 	return true, nil
 }

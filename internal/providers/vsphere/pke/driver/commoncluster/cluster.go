@@ -254,6 +254,9 @@ func (a *VspherePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, e
 }
 
 func (a *VspherePkeCluster) IsReady() (bool, error) {
+	if a.model.SecretID == "" {
+		return false, nil
+	}
 	return true, nil
 }
 
