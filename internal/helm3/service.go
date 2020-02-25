@@ -83,21 +83,23 @@ func NewService(store Store, secretStore SecretStore, validator RepoValidator, l
 	}
 }
 
+// +testify:mock:testOnly=true
 // Store interface abstracting persistence operations
 type Store interface {
-	// AddRepository persists the repository item for the given organisation
-	AddRepository(ctx context.Context, organizationID uint, repository Repository) error
+	// Create persists the repository item for the given organisation
+	Create(ctx context.Context, organizationID uint, repository Repository) error
 
-	// DeleteRepository persists the repository item for the given organisation
-	DeleteRepository(ctx context.Context, organizationID uint, repository Repository) error
+	// Delete persists the repository item for the given organisation
+	Delete(ctx context.Context, organizationID uint, repository Repository) error
 
-	//ListRepositories retrieves persisted repositories for the given organisation
-	ListRepositories(ctx context.Context, organizationID uint) ([]Repository, error)
+	//List retrieves persisted repositories for the given organisation
+	List(ctx context.Context, organizationID uint) ([]Repository, error)
 
-	//GetRepository retrieves a repository entry
-	GetRepository(ctx context.Context, organizationID uint, repository Repository) (Repository, error)
+	//Getretrieves a repository entry
+	Get(ctx context.Context, organizationID uint, repository Repository) (Repository, error)
 }
 
+// +testify:mock:testOnly=true
 type SecretStore interface {
 	CheckPasswordSecret(ctx context.Context, secretID string) error
 	CheckTLSSecret(ctx context.Context, secretID string) error

@@ -52,7 +52,7 @@ func NewHelmRepoStore(db *gorm.DB, logger common.Logger) helm3.Store {
 	}
 }
 
-func (h helmRepoStore) DeleteRepository(_ context.Context, organizationID uint, repository helm3.Repository) error {
+func (h helmRepoStore) Delete(_ context.Context, organizationID uint, repository helm3.Repository) error {
 	model := toModel(repository)
 	model.OrganizationID = organizationID
 
@@ -70,7 +70,7 @@ func (h helmRepoStore) DeleteRepository(_ context.Context, organizationID uint, 
 	return nil
 }
 
-func (h helmRepoStore) ListRepositories(_ context.Context, organizationID uint) ([]helm3.Repository, error) {
+func (h helmRepoStore) List(_ context.Context, organizationID uint) ([]helm3.Repository, error) {
 	var repoModels []repositoryModel
 	if err := h.db.Where("organization_id = ?", organizationID).Find(&repoModels).Error; err != nil {
 		return nil, errors.WrapIf(err, "failed to list helm repositories")
@@ -87,7 +87,7 @@ func (h helmRepoStore) ListRepositories(_ context.Context, organizationID uint) 
 	return repos, nil
 }
 
-func (h helmRepoStore) AddRepository(_ context.Context, organizationID uint, repository helm3.Repository) error {
+func (h helmRepoStore) Create(_ context.Context, organizationID uint, repository helm3.Repository) error {
 	repoModel := toModel(repository)
 	repoModel.OrganizationID = organizationID
 
@@ -101,7 +101,7 @@ func (h helmRepoStore) AddRepository(_ context.Context, organizationID uint, rep
 	return nil
 }
 
-func (h helmRepoStore) GetRepository(_ context.Context, organizationID uint, repository helm3.Repository) (helm3.Repository, error) {
+func (h helmRepoStore) Get(_ context.Context, organizationID uint, repository helm3.Repository) (helm3.Repository, error) {
 	repoModel := toModel(repository)
 	repoModel.OrganizationID = organizationID
 

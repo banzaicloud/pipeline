@@ -43,7 +43,7 @@ func setUpDatabase(t *testing.T) *gorm.DB {
 	return db
 }
 
-func Test_helmRepoStore_AddRepository(t *testing.T) {
+func Test_helmRepoStore_Create(t *testing.T) {
 	t.Run("create - success", func(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
@@ -54,10 +54,10 @@ func Test_helmRepoStore_AddRepository(t *testing.T) {
 			PasswordSecretID: "secretRef",
 		}
 
-		err := store.AddRepository(context.Background(), 1, newRepo)
+		err := store.Create(context.Background(), 1, newRepo)
 		require.NoError(t, err)
 
-		retrieved, err := store.GetRepository(context.Background(), 1, newRepo)
+		retrieved, err := store.Get(context.Background(), 1, newRepo)
 
 		require.NoError(t, err)
 		assert.Equal(t, newRepo.Name, retrieved.Name)
@@ -73,17 +73,17 @@ func Test_helmRepoStore_AddRepository(t *testing.T) {
 			PasswordSecretID: "secretRef",
 		}
 
-		err := store.AddRepository(context.Background(), 1, newRepo)
+		err := store.Create(context.Background(), 1, newRepo)
 		require.NoError(t, err)
 
-		err = store.AddRepository(context.Background(), 1, newRepo)
+		err = store.Create(context.Background(), 1, newRepo)
 		// addition fails due to constraint violation
 		require.Error(t, err)
 	})
 
 }
 
-func Test_helmRepoStore_GetRepository(t *testing.T) {
+func Test_helmRepoStore_Get(t *testing.T) {
 	t.Run("get repository - not found", func(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
@@ -94,7 +94,7 @@ func Test_helmRepoStore_GetRepository(t *testing.T) {
 			PasswordSecretID: "secretRef",
 		}
 
-		_, err := store.GetRepository(context.Background(), 1, newRepo)
+		_, err := store.Get(context.Background(), 1, newRepo)
 		require.Error(t, err)
 	})
 
@@ -108,17 +108,17 @@ func Test_helmRepoStore_GetRepository(t *testing.T) {
 			PasswordSecretID: "secretRef",
 		}
 
-		err := store.AddRepository(context.Background(), 1, newRepo)
+		err := store.Create(context.Background(), 1, newRepo)
 		require.NoError(t, err)
 
-		retrieved, err := store.GetRepository(context.Background(), 1, newRepo)
+		retrieved, err := store.Get(context.Background(), 1, newRepo)
 		require.NoError(t, err)
 		assert.NotNil(t, retrieved)
 		assert.Equal(t, retrieved, newRepo)
 	})
 }
 
-func Test_helmRepoStore_DeleteRepository(t *testing.T) {
+func Test_helmRepoStore_Delete(t *testing.T) {
 	t.Run("delete repository - not exists", func(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
@@ -129,7 +129,7 @@ func Test_helmRepoStore_DeleteRepository(t *testing.T) {
 			PasswordSecretID: "secretRef",
 		}
 
-		err := store.DeleteRepository(context.Background(), 1, toBeDeleted)
+		err := store.Delete(context.Background(), 1, toBeDeleted)
 		require.Error(t, err)
 	})
 
@@ -143,10 +143,10 @@ func Test_helmRepoStore_DeleteRepository(t *testing.T) {
 			PasswordSecretID: "secretRef",
 		}
 
-		err := store.AddRepository(context.Background(), 1, toBeDeleted)
+		err := store.Create(context.Background(), 1, toBeDeleted)
 		require.NoError(t, err)
 
-		err = store.DeleteRepository(context.Background(), 1, toBeDeleted)
+		err = store.Delete(context.Background(), 1, toBeDeleted)
 		require.NoError(t, err)
 	})
 }
@@ -156,7 +156,7 @@ func Test_helmRepoStore_ListRepositories(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 
-		repos, err := store.ListRepositories(context.Background(), 1)
+		repos, err := store.List(context.Background(), 1)
 		require.NoError(t, err)
 		require.NotNil(t, repos)
 	})
@@ -165,23 +165,23 @@ func Test_helmRepoStore_ListRepositories(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 
-		store.AddRepository(context.Background(), 1, helm3.Repository{
+		store.Create(context.Background(), 1, helm3.Repository{
 			Name:             "list-0",
 			URL:              "repoURL",
 			PasswordSecretID: "secretRef",
 		})
-		store.AddRepository(context.Background(), 1, helm3.Repository{
+		store.Create(context.Background(), 1, helm3.Repository{
 			Name:             "list-2",
 			URL:              "repoURL",
 			PasswordSecretID: "secretRef",
 		})
-		store.AddRepository(context.Background(), 1, helm3.Repository{
+		store.Create(context.Background(), 1, helm3.Repository{
 			Name:             "list-3",
 			URL:              "repoURL",
 			PasswordSecretID: "secretRef",
 		})
 
-		repos, err := store.ListRepositories(context.Background(), 1)
+		repos, err := store.List(context.Background(), 1)
 		require.NoError(t, err)
 		require.NotNil(t, repos)
 		assert.Equal(t, 3, len(repos))
