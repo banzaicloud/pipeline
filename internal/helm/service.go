@@ -162,7 +162,7 @@ func (s service) ListRepositories(ctx context.Context, organizationID uint) (rep
 }
 
 func (s service) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {
-	if err := s.store.Delete(ctx, organizationID, Repository{Name: repoName,}); err != nil {
+	if err := s.store.Delete(ctx, organizationID, Repository{Name: repoName}); err != nil {
 
 		return errors.WrapIf(err, "failed to delete helm repository")
 	}

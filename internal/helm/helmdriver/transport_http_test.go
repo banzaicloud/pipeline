@@ -134,7 +134,7 @@ func TestRegisterHTTPHandlers_AddRepository(t *testing.T) {
 				Endpoints{
 					AddRepository: tt.endpoint,
 				},
-				handler.PathPrefix("/orgs/{orgId}/helmrepos").Subrouter(), )
+				handler.PathPrefix("/orgs/{orgId}/helmrepos").Subrouter())
 
 			ts := httptest.NewServer(handler)
 			defer ts.Close()

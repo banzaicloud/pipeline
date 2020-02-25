@@ -75,4 +75,3 @@ func (e AlreadyExistsError) Details() []interface{} {
 func (AlreadyExistsError) ServiceError() bool {
 	return true
 }
-
