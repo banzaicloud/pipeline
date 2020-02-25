@@ -674,7 +674,7 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 // IsReady checks if the cluster is running according to the cloud provider.
 func (c *EC2ClusterPKE) IsReady() (bool, error) {
 	// cluster is not ready in case there's no config secret yet
-	if len(c.GetConfigSecretId()) == 0 {
+	if c.GetConfigSecretId() == "" {
 		return false, nil
 	}
 	return true, nil
