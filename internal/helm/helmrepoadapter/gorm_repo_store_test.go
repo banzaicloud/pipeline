@@ -27,7 +27,7 @@ import (
 	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
-	"github.com/banzaicloud/pipeline/internal/helm3"
+	"github.com/banzaicloud/pipeline/internal/helm"
 )
 
 func setUpDatabase(t *testing.T) *gorm.DB {
@@ -48,7 +48,7 @@ func Test_helmRepoStore_Create(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 
-		newRepo := helm3.Repository{
+		newRepo := helm.Repository{
 			Name:             "testing",
 			URL:              "repoURL",
 			PasswordSecretID: "secretRef",
@@ -67,7 +67,7 @@ func Test_helmRepoStore_Create(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 
-		newRepo := helm3.Repository{
+		newRepo := helm.Repository{
 			Name:             "violation",
 			URL:              "repoURL",
 			PasswordSecretID: "secretRef",
@@ -88,7 +88,7 @@ func Test_helmRepoStore_Get(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 
-		newRepo := helm3.Repository{
+		newRepo := helm.Repository{
 			Name:             "testing",
 			URL:              "repoURL",
 			PasswordSecretID: "secretRef",
@@ -102,7 +102,7 @@ func Test_helmRepoStore_Get(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 
-		newRepo := helm3.Repository{
+		newRepo := helm.Repository{
 			Name:             "testing",
 			URL:              "repoURL",
 			PasswordSecretID: "secretRef",
@@ -123,7 +123,7 @@ func Test_helmRepoStore_Delete(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 
-		toBeDeleted := helm3.Repository{
+		toBeDeleted := helm.Repository{
 			Name:             "testing",
 			URL:              "repoURL",
 			PasswordSecretID: "secretRef",
@@ -137,7 +137,7 @@ func Test_helmRepoStore_Delete(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 
-		toBeDeleted := helm3.Repository{
+		toBeDeleted := helm.Repository{
 			Name:             "testing",
 			URL:              "repoURL",
 			PasswordSecretID: "secretRef",
@@ -165,17 +165,17 @@ func Test_helmRepoStore_ListRepositories(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 
-		store.Create(context.Background(), 1, helm3.Repository{
+		store.Create(context.Background(), 1, helm.Repository{
 			Name:             "list-0",
 			URL:              "repoURL",
 			PasswordSecretID: "secretRef",
 		})
-		store.Create(context.Background(), 1, helm3.Repository{
+		store.Create(context.Background(), 1, helm.Repository{
 			Name:             "list-2",
 			URL:              "repoURL",
 			PasswordSecretID: "secretRef",
 		})
-		store.Create(context.Background(), 1, helm3.Repository{
+		store.Create(context.Background(), 1, helm.Repository{
 			Name:             "list-3",
 			URL:              "repoURL",
 			PasswordSecretID: "secretRef",

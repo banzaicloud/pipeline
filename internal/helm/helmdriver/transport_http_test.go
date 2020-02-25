@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package helm3driver
+package helmdriver
 
 import (
 	"bytes"
@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 
-	"github.com/banzaicloud/pipeline/internal/helm3"
+	"github.com/banzaicloud/pipeline/internal/helm"
 )
 
 func TestRegisterHTTPHandlers_ListRepositories(t *testing.T) {
@@ -38,7 +38,7 @@ func TestRegisterHTTPHandlers_ListRepositories(t *testing.T) {
 		Endpoints{
 			ListRepositories: func(ctx context.Context, request interface{}) (response interface{}, err error) {
 				return ListRepositoriesResponse{
-					Repos: []helm3.Repository{
+					Repos: []helm.Repository{
 						{
 							Name:             "test-repo-name",
 							URL:              "https: //kubernetes-charts.banzaicloud.com",
@@ -111,7 +111,7 @@ func TestRegisterHTTPHandlers_AddRepository(t *testing.T) {
 			endpoint: func(ctx context.Context, request interface{}) (response interface{}, err error) {
 				// response encoded by the response encoder
 				return AddRepositoryResponse{
-					Err: helm3.NewValidationError("testing", []string{"testing"}),
+					Err: helm.NewValidationError("testing", []string{"testing"}),
 				}, nil
 			},
 			expectedStatusCode: http.StatusUnprocessableEntity,
@@ -140,7 +140,7 @@ func TestRegisterHTTPHandlers_AddRepository(t *testing.T) {
 			defer ts.Close()
 
 			// WHEN
-			addRepoReq := helm3.Repository{
+			addRepoReq := helm.Repository{
 				Name:             "test-helm-repository",
 				URL:              "https: //kubernetes-charts.banzaicloud.com",
 				PasswordSecretID: "0f54013dc29a52560599613be8d67e64bf903ddaaca55d467776c47eea6b4f59",

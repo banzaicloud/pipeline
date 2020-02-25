@@ -21,7 +21,7 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/helm3"
+	"github.com/banzaicloud/pipeline/internal/helm"
 )
 
 // repositoryModel describes the common cluster model.
@@ -45,14 +45,14 @@ type helmRepoStore struct {
 	logger common.Logger
 }
 
-func NewHelmRepoStore(db *gorm.DB, logger common.Logger) helm3.Store {
+func NewHelmRepoStore(db *gorm.DB, logger common.Logger) helm.Store {
 	return helmRepoStore{
 		db:     db,
 		logger: logger,
 	}
 }
 
-func (h helmRepoStore) Delete(_ context.Context, organizationID uint, repository helm3.Repository) error {
+func (h helmRepoStore) Delete(_ context.Context, organizationID uint, repository helm.Repository) error {
 	model := toModel(repository)
 	model.OrganizationID = organizationID
 
@@ -70,13 +70,13 @@ func (h helmRepoStore) Delete(_ context.Context, organizationID uint, repository
 	return nil
 }
 
-func (h helmRepoStore) List(_ context.Context, organizationID uint) ([]helm3.Repository, error) {
+func (h helmRepoStore) List(_ context.Context, organizationID uint) ([]helm.Repository, error) {
 	var repoModels []repositoryModel
 	if err := h.db.Where("organization_id = ?", organizationID).Find(&repoModels).Error; err != nil {
 		return nil, errors.WrapIf(err, "failed to list helm repositories")
 	}
 
-	repos := make([]helm3.Repository, 0, len(repoModels))
+	repos := make([]helm.Repository, 0, len(repoModels))
 	for _, model := range repoModels {
 		repos = append(repos, toDomain(model))
 	}
@@ -87,7 +87,7 @@ func (h helmRepoStore) List(_ context.Context, organizationID uint) ([]helm3.Rep
 	return repos, nil
 }
 
-func (h helmRepoStore) Create(_ context.Context, organizationID uint, repository helm3.Repository) error {
+func (h helmRepoStore) Create(_ context.Context, organizationID uint, repository helm.Repository) error {
 	repoModel := toModel(repository)
 	repoModel.OrganizationID = organizationID
 
@@ -101,12 +101,12 @@ func (h helmRepoStore) Create(_ context.Context, organizationID uint, repository
 	return nil
 }
 
-func (h helmRepoStore) Get(_ context.Context, organizationID uint, repository helm3.Repository) (helm3.Repository, error) {
+func (h helmRepoStore) Get(_ context.Context, organizationID uint, repository helm.Repository) (helm.Repository, error) {
 	repoModel := toModel(repository)
 	repoModel.OrganizationID = organizationID
 
 	if err := h.db.Where(&repoModel).First(&repoModel).Error; err != nil {
-		return helm3.Repository{}, errors.WrapIf(err, "failed to get helm repository")
+		return helm.Repository{}, errors.WrapIf(err, "failed to get helm repository")
 	}
 	h.logger.Debug("retrieved helm repository record",
 		map[string]interface{}{"organisationID": organizationID, "repoName": repository.Name})
@@ -115,8 +115,8 @@ func (h helmRepoStore) Get(_ context.Context, organizationID uint, repository he
 }
 
 // toDomain transforms a gorm model to a domain struct
-func toDomain(model repositoryModel) helm3.Repository {
-	return helm3.Repository{
+func toDomain(model repositoryModel) helm.Repository {
+	return helm.Repository{
 		Name:             model.Name,
 		URL:              model.URL,
 		PasswordSecretID: model.PasswordSecretID,
@@ -125,7 +125,7 @@ func toDomain(model repositoryModel) helm3.Repository {
 }
 
 //toModel transforms a domain struct to gorm model representation
-func toModel(repository helm3.Repository) repositoryModel {
+func toModel(repository helm.Repository) repositoryModel {
 	return repositoryModel{
 		Name:             repository.Name,
 		URL:              repository.URL,

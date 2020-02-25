@@ -20,7 +20,7 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/helm3"
+	"github.com/banzaicloud/pipeline/internal/helm"
 )
 
 type secretStore struct {
@@ -28,7 +28,7 @@ type secretStore struct {
 	logger  common.Logger
 }
 
-func NewSecretStore(store common.SecretStore, logger common.Logger) helm3.SecretStore {
+func NewSecretStore(store common.SecretStore, logger common.Logger) helm.SecretStore {
 	return secretStore{
 		secrets: store,
 		logger:  logger,

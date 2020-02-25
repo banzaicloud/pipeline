@@ -88,11 +88,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
+	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/internal/helm/helm3driver"
+	"github.com/banzaicloud/pipeline/internal/helm/helmdriver"
+	"github.com/banzaicloud/pipeline/internal/helm/helmrepoadapter"
 	"github.com/banzaicloud/pipeline/internal/helm2"
 	"github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
-	"github.com/banzaicloud/pipeline/internal/helm3"
-	"github.com/banzaicloud/pipeline/internal/helm3/helm3driver"
-	"github.com/banzaicloud/pipeline/internal/helm3/helmrepoadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicesdriver"
@@ -962,12 +963,12 @@ func main() {
 			{
 				helmRepoStore := helmrepoadapter.NewHelmRepoStore(db, commonLogger)
 				secretStore := helmrepoadapter.NewSecretStore(commonSecretStore, commonLogger)
-				validator := helm3.NewHelmRepoValidator()
+				validator := helm.NewHelmRepoValidator()
 
-				helmService := helm3.NewService(helmRepoStore, secretStore, validator, commonLogger)
+				helmService := helm.NewService(helmRepoStore, secretStore, validator, commonLogger)
 
 				helmRepoEndpoints := helm3driver.MakeEndpoints(helmService)
-				helm3driver.RegisterHTTPHandlers(helmRepoEndpoints,
+				helmdriver.RegisterHTTPHandlers(helmRepoEndpoints,
 					orgRouter.PathPrefix("/helmrepos").Subrouter(),
 					kitxhttp.ServerOptions(httpServerOptions),
 				)

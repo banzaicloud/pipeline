@@ -22,7 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/helm3/helmrepoadapter"
+	"github.com/banzaicloud/pipeline/internal/helm/helmrepoadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
