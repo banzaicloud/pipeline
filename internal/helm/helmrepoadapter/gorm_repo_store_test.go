@@ -16,6 +16,7 @@ package helmrepoadapter
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"testing"
 
@@ -165,21 +166,15 @@ func Test_helmRepoStore_ListRepositories(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 
-		store.Create(context.Background(), 1, helm.Repository{
-			Name:             "list-0",
-			URL:              "repoURL",
-			PasswordSecretID: "secretRef",
-		})
-		store.Create(context.Background(), 1, helm.Repository{
-			Name:             "list-2",
-			URL:              "repoURL",
-			PasswordSecretID: "secretRef",
-		})
-		store.Create(context.Background(), 1, helm.Repository{
-			Name:             "list-3",
-			URL:              "repoURL",
-			PasswordSecretID: "secretRef",
-		})
+		for i := 0; i < 3; i++ {
+			if err := store.Create(context.Background(), 1, helm.Repository{
+				Name:             fmt.Sprintf("list-%d", i),
+				URL:              "repoURL",
+				PasswordSecretID: "secretRef",
+			}); err != nil {
+				t.Fatal("failed to create repository")
+			}
+		}
 
 		repos, err := store.List(context.Background(), 1)
 		require.NoError(t, err)
