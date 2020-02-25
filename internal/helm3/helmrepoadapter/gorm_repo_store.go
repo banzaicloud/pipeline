@@ -94,8 +94,8 @@ func (h helmRepoStore) AddRepository(_ context.Context, organizationID uint, rep
 	if err := h.db.Create(&repoModel).Error; err != nil {
 		return errors.WrapIf(err, "failed to persist the helm repository")
 	}
-	h.logger.Debug("persisted new helm repository record",
-		map[string]interface{}{"organisationID": organizationID, "repoName": repository.Name})
+	h.logger.Debug("persisted new helm repository record", map[string]interface{}{"organisationID": organizationID,
+		"repoName": repository.Name})
 
 	return nil
 }
@@ -105,7 +105,7 @@ func (h helmRepoStore) GetRepository(_ context.Context, organizationID uint, rep
 	repoModel.OrganizationID = organizationID
 
 	if err := h.db.Where(&repoModel).First(&repoModel).Error; err != nil {
-		return helm3.Repository{}, errors.WrapIf(err, "failed to list helm repositories")
+		return helm3.Repository{}, errors.WrapIf(err, "failed to get helm repository")
 	}
 	h.logger.Debug("retrieved helm repository record",
 		map[string]interface{}{"organisationID": organizationID, "repoName": repository.Name})

@@ -54,25 +54,25 @@ func (ValidationError) ServiceError() bool {
 	return true
 }
 
-// HelmRepositoryServiceError is returned when a helm repository already exists in the store.
-type HelmRepositoryServiceError struct {
+// AlreadyExistsError is returned when a helm repository already exists in the store.
+type AlreadyExistsError struct {
 	OrganizationID uint
 	Description    string
 }
 
 // Error implements the error interface.
-func (e HelmRepositoryServiceError) Error() string {
+func (e AlreadyExistsError) Error() string {
 	return e.Description
 }
 
 // Details returns error details.
-func (e HelmRepositoryServiceError) Details() []interface{} {
+func (e AlreadyExistsError) Details() []interface{} {
 	return []interface{}{"organizationId", e.OrganizationID}
 }
 
 // ServiceError tells the consumer that this is a business error and it should be returned to the client.
 // Non-service errors are usually translated into "internal" errors.
-func (HelmRepositoryServiceError) ServiceError() bool {
+func (AlreadyExistsError) ServiceError() bool {
 	return true
 }
 

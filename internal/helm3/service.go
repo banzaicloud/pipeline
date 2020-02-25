@@ -120,19 +120,20 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 
 	if repository.PasswordSecretID != "" {
 		if err := s.secretStore.CheckPasswordSecret(ctx, repository.PasswordSecretID); err != nil {
-			return errors.WrapIf(err, "failed to add new helm repository")
+			return ValidationError{message: err.Error(), violations: []string{"password secret must exist"}}
 		}
 	}
 
 	if repository.TlsSecretID != "" {
 		if err := s.secretStore.CheckTLSSecret(ctx, repository.PasswordSecretID); err != nil {
-			return errors.WrapIf(err, "failed to add new helm repository")
+			return ValidationError{message: err.Error(), violations: []string{"tls secret must exist"}}
 		}
 	}
 
-	// check record existence
-	if _, err := s.store.GetRepository(ctx, organizationID, repository); err == nil {
-		return HelmRepositoryServiceError{
+	// check record existence (use a db constraint instead? todo decide)
+	_, err := s.store.GetRepository(ctx, organizationID, repository)
+	if err != nil {
+		return AlreadyExistsError{
 			Description:    err.Error(),
 			OrganizationID: organizationID,
 		}
@@ -142,10 +143,7 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 
 	// save in store
 	if err := s.store.AddRepository(ctx, organizationID, repository); err != nil {
-		return HelmRepositoryServiceError{
-			Description:    err.Error(),
-			OrganizationID: organizationID,
-		}
+		return errors.WrapIf(err, "failed to add helm repository")
 	}
 
 	return nil
