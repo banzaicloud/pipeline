@@ -56,11 +56,13 @@ func (h helmRepoStore) Delete(_ context.Context, organizationID uint, repository
 	model := toModel(repository)
 	model.OrganizationID = organizationID
 
-	if err := h.db.Where(model).First(&model).Error; err != nil {
+	// find soft-deleted records if any
+	if err := h.db.Unscoped().Where(model).First(&model).Error; err != nil {
 		return errors.WrapIf(err, "failed to load helm repository record")
 	}
 
-	if err := h.db.Delete(model).Error; err != nil {
+	// delete the record permanently in order for the unique constraint to be workings
+	if err := h.db.Unscoped().Delete(model).Error; err != nil {
 		return errors.WrapIf(err, "failed to delete repository record")
 	}
 
