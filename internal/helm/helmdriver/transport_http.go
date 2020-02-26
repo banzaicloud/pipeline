@@ -34,7 +34,7 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
 		endpoints.AddRepository,
 		decodeAddRepositoryHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(encodeCreateRepositoryHTTPResponse, errorEncoder),
+		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
 	))
 
@@ -71,19 +71,6 @@ func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interfa
 	return addRepositoryRequest, nil
 }
 
-func encodeCreateRepositoryHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	resp, ok := response.(AddRepositoryResponse)
-	if !ok {
-		return errors.New("failed to decode create helm repository response")
-	}
-	emptyResponse := AddRepositoryResponse{}
-
-	if resp == emptyResponse {
-		return nil
-	}
-
-	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
-}
 
 func decodeListRepositoriesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	orgID, err := extractOrgID(r)
