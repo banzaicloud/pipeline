@@ -25,6 +25,8 @@ import (
 	"github.com/gorilla/mux"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
+	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 )
 
@@ -59,16 +61,21 @@ func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interfa
 		return nil, errors.WrapIff(e, "failed to decode add repository request")
 	}
 
-	var addRepositoryRequest AddRepositoryRequest
+	var request pipeline.HelmReposAddRequest
 
-	err := json.NewDecoder(r.Body).Decode(&addRepositoryRequest)
+	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to decode request")
 	}
 
-	addRepositoryRequest.OrganizationID = orgID
-
-	return addRepositoryRequest, nil
+	return AddRepositoryRequest{
+		OrganizationID: orgID,
+		Repository: helm.Repository{
+			Name:             request.Name,
+			URL:              request.Url,
+			PasswordSecretID: request.PasswordSecretRef,
+			TlsSecretID:      request.TlsSecretRef,
+		}}, nil
 }
 
 func decodeListRepositoriesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -82,8 +89,17 @@ func decodeListRepositoriesHTTPRequest(_ context.Context, r *http.Request) (inte
 
 func encodeListRepositoriesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	resp := response.(ListRepositoriesResponse)
+	list := make([]pipeline.HelmRepoListItem, 0, len(resp.Repos))
+	for _, repo := range resp.Repos {
+		list = append(list, pipeline.HelmRepoListItem{
+			Name:              repo.Name,
+			Url:               repo.URL,
+			PasswordSecretRef: repo.PasswordSecretID,
+			TlsSecretRef:      repo.TlsSecretID,
+		})
+	}
 
-	return kitxhttp.JSONResponseEncoder(ctx, w, resp.Repos)
+	return kitxhttp.JSONResponseEncoder(ctx, w, list)
 }
 
 func decodeDeleteRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {

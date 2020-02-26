@@ -100,14 +100,14 @@ func TestRegisterHTTPHandlers_AddRepository(t *testing.T) {
 		expectedStatusCode int
 	}{
 		{
-			name: "helm repository successfully added",
+			name: "Success",
 			endpoint: func(ctx context.Context, request interface{}) (response interface{}, err error) {
 				return AddRepositoryResponse{}, nil
 			},
 			expectedStatusCode: http.StatusAccepted,
 		},
 		{
-			name: "failed to add helm repository (business error / validation)",
+			name: "BusinessError",
 			endpoint: func(ctx context.Context, request interface{}) (response interface{}, err error) {
 				// response encoded by the response encoder
 				return AddRepositoryResponse{
@@ -117,7 +117,7 @@ func TestRegisterHTTPHandlers_AddRepository(t *testing.T) {
 			expectedStatusCode: http.StatusUnprocessableEntity,
 		},
 		{
-			name: "failed to add helm repository (internal server error)",
+			name: "InternalServerError",
 			endpoint: func(ctx context.Context, request interface{}) (response interface{}, err error) {
 				return AddRepositoryResponse{}, errors.New("testing")
 			},
