@@ -39,7 +39,6 @@ linters:
         - govet
 
         - bodyclose
-        - dogsled
         - dupl
         - gochecknoinits
         - gocognit
