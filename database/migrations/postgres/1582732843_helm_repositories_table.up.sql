@@ -13,9 +13,6 @@ create table helm_repositories
     tls_secret_id      text
 );
 
-alter table helm_repositories
-    owner to sparky;
-
 create index idx_helm_repositories_deleted_at
     on helm_repositories (deleted_at);
 
