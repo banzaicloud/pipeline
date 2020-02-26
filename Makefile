@@ -40,7 +40,7 @@ PROTOTOOL_VERSION = 1.8.0
 PROTOC_GEN_GO_VERSION = 1.3.2
 MGA_VERSION = 0.2.0
 
-GOLANG_VERSION = 1.13
+GOLANG_VERSION = 1.14
 
 .PHONY: up
 up: etc/config/dex.yml config/ui/feature-set.json start config/config.yaml ## Set up the development environment

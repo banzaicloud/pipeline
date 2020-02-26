@@ -1,5 +1,5 @@
-ARG GO_VERSION=1.13
-ARG FROM_IMAGE=alpine:3.10
+ARG GO_VERSION=1.14
+ARG FROM_IMAGE=alpine:3.11
 
 FROM golang:${GO_VERSION}-alpine AS builder
 
@@ -22,7 +22,7 @@ COPY . /build
 RUN make build-release
 
 
-FROM alpine:3.10 AS iamauth
+FROM alpine:3.11 AS iamauth
 
 WORKDIR /tmp
 
