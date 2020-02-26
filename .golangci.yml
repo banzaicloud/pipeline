@@ -26,10 +26,14 @@ linters:
     enable-all: true
     disable:
         - funlen
+        - maligned
+        - wsl
+        - gomnd
+
+        # TODO: fixme
         - gosec
         - megacheck
         - varcheck
-        - gomnd
 
         # Disable govet for now because it fails on Circle
         - govet
@@ -45,7 +49,6 @@ linters:
         - godox
         - interfacer
         - lll
-        - maligned
         - nakedret
         - prealloc
         - rowserrcheck
@@ -53,6 +56,5 @@ linters:
         - stylecheck
         - unconvert
         - unparam
-        - wsl
 
     fast: false
