@@ -58,6 +58,9 @@ func (h helmRepoStore) Delete(_ context.Context, organizationID uint, repository
 
 	// find soft-deleted records if any
 	if err := h.db.Unscoped().Where(model).First(&model).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return nil
+		}
 		return errors.WrapIf(err, "failed to load helm repository record")
 	}
 
