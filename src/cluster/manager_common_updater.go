@@ -150,7 +150,6 @@ func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
 }
 
 func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgCluster.UpdateClusterRequest) ([]NodePoolLabels, error) {
-
 	// we need to retrieve existing node pools, as update request doesn't necessary contains instanceType, spot price etc.
 	clStatus, err := commonCluster.GetStatus()
 	if err != nil {
@@ -257,7 +256,6 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgClus
 
 	case pkgCluster.Dummy:
 	case pkgCluster.Kubernetes:
-
 	}
 
 	return nodePools, nil

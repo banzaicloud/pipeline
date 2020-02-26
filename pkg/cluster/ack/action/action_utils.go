@@ -37,7 +37,6 @@ import (
 )
 
 func deleteCluster(log logrus.FieldLogger, clusterID string, csClient *cs.Client) error {
-
 	if len(clusterID) == 0 {
 		return errors.New("could not delete cluster, could not get clusterID " +
 			"(there is a big chance that resources are in unrecognized state in Alibaba " +

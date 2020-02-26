@@ -250,7 +250,6 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 }
 
 func (s *ObjectStore) createUpdateStorageAccountSecret(accesskey string) (string, string, error) {
-
 	var secretId string
 	storageAccountName := alfanumericRegexp.ReplaceAllString(s.storageAccount, "-")
 	secretName := fmt.Sprintf("%v-key", storageAccountName)

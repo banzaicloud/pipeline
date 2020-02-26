@@ -46,7 +46,6 @@ type BucketsService struct {
 
 // BucketsServiceFactory creates and returns an initialized BucketsService instance
 func BucketsServiceFactory(org *auth.Organization, db *gorm.DB, logger logrus.FieldLogger) *BucketsService {
-
 	return NewBucketsService(org, NewBucketsRepository(org, db, logger), logger)
 }
 
@@ -56,7 +55,6 @@ func NewBucketsService(
 	repository *BucketsRepository,
 	logger logrus.FieldLogger,
 ) *BucketsService {
-
 	return &BucketsService{
 		org:        org,
 		repository: repository,
@@ -93,7 +91,6 @@ func (s *BucketsService) GetObjectStoreForBucket(bucket *api.Bucket) (cloudprovi
 
 // GetBackupsFromObjectStore gets Backups from object store bucket
 func (s *BucketsService) GetBackupsFromObjectStore(bucket *api.Bucket) ([]*arkAPI.Backup, error) {
-
 	os, err := s.GetObjectStoreForBucket(bucket)
 	if err != nil {
 		return nil, err
@@ -111,19 +108,16 @@ func (s *BucketsService) GetBackupsFromObjectStore(bucket *api.Bucket) ([]*arkAP
 // GetActiveDeploymentModel gets the active ARK ClusterBackupDeploymentsModel
 func (s *BucketsService) GetActiveDeploymentModel(bucket *ClusterBackupBucketsModel) (
 	ClusterBackupDeploymentsModel, error) {
-
 	return s.repository.GetActiveDeploymentModel(bucket)
 }
 
 // GetModels gets ClusterBackupBucketsModels
 func (s *BucketsService) GetModels() ([]*ClusterBackupBucketsModel, error) {
-
 	return s.repository.Find()
 }
 
 // GetByRequest finds a Bucket by a FindBucketRequest
 func (s *BucketsService) GetByRequest(req api.FindBucketRequest) (*api.Bucket, error) {
-
 	bucket, err := s.repository.FindOneByRequest(req)
 	if err != nil {
 		return nil, err
@@ -134,7 +128,6 @@ func (s *BucketsService) GetByRequest(req api.FindBucketRequest) (*api.Bucket, e
 
 // GetByID gets a Bucket by an id
 func (s *BucketsService) GetByID(id uint) (*api.Bucket, error) {
-
 	bucket, err := s.repository.FindOneByID(id)
 	if err != nil {
 		return nil, err
@@ -145,7 +138,6 @@ func (s *BucketsService) GetByID(id uint) (*api.Bucket, error) {
 
 // GetByName gets a Bucket by name
 func (s *BucketsService) GetByName(name string) (*api.Bucket, error) {
-
 	bucket, err := s.repository.FindOneByName(name)
 	if err != nil {
 		return nil, err
@@ -156,7 +148,6 @@ func (s *BucketsService) GetByName(name string) (*api.Bucket, error) {
 
 // DeleteByName deletes a Bucket by name
 func (s *BucketsService) DeleteByName(name string) error {
-
 	bucket, err := s.repository.FindOneByName(name)
 	if err != nil {
 		return err
@@ -171,7 +162,6 @@ func (s *BucketsService) DeleteByName(name string) error {
 
 // DeleteByName deletes a Bucket by ID
 func (s *BucketsService) DeleteByID(id uint) error {
-
 	bucket, err := s.repository.FindOneByID(id)
 	if err != nil {
 		return err
@@ -186,7 +176,6 @@ func (s *BucketsService) DeleteByID(id uint) error {
 
 // List gets all Buckets
 func (s *BucketsService) List() ([]*api.Bucket, error) {
-
 	buckets := make([]*api.Bucket, 0)
 
 	items, err := s.GetModels()
@@ -204,13 +193,11 @@ func (s *BucketsService) List() ([]*api.Bucket, error) {
 
 // IsBucketInUse check whether a ClusterBackupBucketsModel is used in an active ARK deployment
 func (s *BucketsService) IsBucketInUse(bucket *ClusterBackupBucketsModel) error {
-
 	return s.repository.IsInUse(bucket)
 }
 
 // FindOrCreateBucket finds or create a new ClusterBackupBucketsModel by a CreateBucketRequest
 func (s *BucketsService) FindOrCreateBucket(req *api.CreateBucketRequest) (*ClusterBackupBucketsModel, error) {
-
 	err := ValidateCreateBucketRequest(req, s.org)
 	if err != nil {
 		return nil, err
@@ -227,7 +214,6 @@ func (s *BucketsService) FindOrCreateBucket(req *api.CreateBucketRequest) (*Clus
 // GetNodesFromBackupContents gets core.NodeList from a backup in an object store bucket
 func (s *BucketsService) GetNodesFromBackupContents(bucket *api.Bucket, backupName string) (
 	nodes core.NodeList, err error) {
-
 	nodes.APIVersion = "v1"
 
 	buf := new(bytes.Buffer)
@@ -284,7 +270,6 @@ func (s *BucketsService) StreamRestoreResultsFromObjectStore(
 	restoreName string,
 	w io.Writer,
 ) error {
-
 	return s.streamObjectFromObjectStore(arkAPI.DownloadTarget{
 		Kind: arkAPI.DownloadTargetKindRestoreResults,
 		Name: restoreName,
@@ -298,7 +283,6 @@ func (s *BucketsService) StreamRestoreLogsFromObjectStore(
 	restoreName string,
 	w io.Writer,
 ) error {
-
 	return s.streamObjectFromObjectStore(arkAPI.DownloadTarget{
 		Kind: arkAPI.DownloadTargetKindRestoreLog,
 		Name: restoreName,
@@ -311,7 +295,6 @@ func (s *BucketsService) StreamBackupLogsFromObjectStore(
 	backupName string,
 	w io.Writer,
 ) error {
-
 	return s.streamObjectFromObjectStore(arkAPI.DownloadTarget{
 		Kind: arkAPI.DownloadTargetKindBackupLog,
 		Name: backupName,
@@ -324,7 +307,6 @@ func (s *BucketsService) StreamBackupContentsFromObjectStore(
 	backupName string,
 	w io.Writer,
 ) error {
-
 	return s.streamObjectFromObjectStore(arkAPI.DownloadTarget{
 		Kind: arkAPI.DownloadTargetKindBackupContents,
 		Name: backupName,
@@ -337,7 +319,6 @@ func (s *BucketsService) streamObjectFromObjectStore(
 	backupName string,
 	w io.Writer,
 ) error {
-
 	os, err := s.GetObjectStoreForBucket(bucket)
 	if err != nil {
 		return err

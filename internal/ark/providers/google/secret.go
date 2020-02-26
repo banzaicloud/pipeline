@@ -22,7 +22,6 @@ import (
 
 // GetSecret gets formatted secret for ARK
 func GetSecret(secret *secret.SecretItemResponse) (string, error) {
-
 	values, err := json.Marshal(secret.Values)
 	if err != nil {
 		return "", err

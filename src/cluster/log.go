@@ -46,5 +46,4 @@ func NewLogurLogger(fl logrus.FieldLogger) logur.Logger {
 	logger := logrusadapter.NewFromEntry(entry)
 
 	return logger
-
 }

@@ -37,7 +37,6 @@ type SpotMetricsExporter struct {
 
 // NewSpotMetricsExporter gives back an initialized SpotMetricsExporter
 func NewSpotMetricsExporter(logger logrus.FieldLogger, namespace string) *SpotMetricsExporter {
-
 	e := &SpotMetricsExporter{
 		logger: logger,
 	}

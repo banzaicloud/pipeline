@@ -246,7 +246,6 @@ func (c *GKECluster) GetAPIEndpoint() (string, error) {
 
 // CreateCluster creates a new cluster
 func (c *GKECluster) CreateCluster() error {
-
 	c.log.Info("Start create cluster (Google)")
 
 	secretItem, err := c.GetSecretWithValidation()
@@ -309,7 +308,6 @@ func (c *GKECluster) CreateCluster() error {
 			if !hasTag(gkeCluster, global.ManagedByPipelineTag, global.ManagedByPipelineValue) {
 				return errors.Errorf("cluster %q already exists", gkeCluster.Name)
 			}
-
 		} else {
 			return errors.WrapIf(err, "submitting cluster create request failed")
 		}
@@ -339,7 +337,6 @@ func (c *GKECluster) CreateCluster() error {
 	c.updateCurrentVersions(gkeCluster)
 
 	return nil
-
 }
 
 func (c *GKECluster) updateCurrentVersions(gkeCluster *gke.Cluster) {
@@ -357,7 +354,6 @@ func (c *GKECluster) Persist() error {
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
 func (c *GKECluster) DownloadK8sConfig() ([]byte, error) {
-
 	config, err := c.getGoogleKubernetesConfig()
 	if err != nil {
 		return nil, errors.WrapIf(err, "retrieving kubernetes config failed")
@@ -366,7 +362,6 @@ func (c *GKECluster) DownloadK8sConfig() ([]byte, error) {
 	c.log.Info("Get k8s config succeeded")
 
 	return config, nil
-
 }
 
 // GetName returns the name of the cluster
@@ -479,7 +474,6 @@ func (c *GKECluster) DeleteCluster() error {
 	os.RemoveAll(gkec.TempCredentialPath)
 	c.log.Info("delete succeeded")
 	return nil
-
 }
 
 const gkeResourceDeleteMaxAttempts = 12
@@ -487,7 +481,6 @@ const gkeResourceDeleteSleep = 5 * time.Second
 
 // waitForResourcesDelete waits until the Kubernetes destroys all the resources which it had created
 func (c *GKECluster) waitForResourcesDelete() error {
-
 	log := c.log.WithFields(logrus.Fields{"zone": c.model.Cluster.Location})
 
 	log.Info("waiting for deleting cluster resources")
@@ -530,7 +523,6 @@ func (c *GKECluster) waitForResourcesDelete() error {
 
 // findRegionByZone returns region by zone
 func findRegionByZone(csv *gkeCompute.Service, project, zone string) (*gkeCompute.Region, error) {
-
 	regions, err := listRegions(csv, project)
 	if err != nil {
 		return nil, err
@@ -562,7 +554,6 @@ func listRegions(csv *gkeCompute.Service, project string) ([]*gkeCompute.Region,
 }
 
 func (c *GKECluster) getRegionByZone(project string, zone string) (string, error) {
-
 	c.log.Infof("start getting region by zone[%s]", zone)
 	csv, err := c.getComputeService()
 	if err != nil {
@@ -589,9 +580,7 @@ func (c *GKECluster) getRegionByZone(project string, zone string) (string, error
 
 // checkResources checks all load balancer resources deleted by Kubernetes
 func checkResources(checkers resourceCheckers, maxAttempts int, sleep time.Duration) error {
-
 	for _, rc := range checkers {
-
 		log := log.WithFields(logrus.Fields{"type": rc.getType()})
 
 		log.Debug("list resources")
@@ -604,7 +593,6 @@ func checkResources(checkers resourceCheckers, maxAttempts int, sleep time.Durat
 		log.Debugf("resource count: %d", len(resources))
 
 		for _, resource := range resources {
-
 			log := log.WithFields(logrus.Fields{"resource": resource, "type": rc.getType()})
 
 			attempt := 0
@@ -630,7 +618,6 @@ func checkResources(checkers resourceCheckers, maxAttempts int, sleep time.Durat
 					return err
 				}
 			}
-
 		}
 	}
 
@@ -639,7 +626,6 @@ func checkResources(checkers resourceCheckers, maxAttempts int, sleep time.Durat
 
 // UpdateNodePools updates nodes pools of a cluster
 func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
-
 	c.log.Info("Start updating cluster (gke) nodepools")
 
 	svc, err := c.getGoogleServiceClient()
@@ -656,7 +642,6 @@ func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 
 	// Update node pools
 	for poolName, nodePool := range request.NodePools {
-
 		log.Infof("Updating node size to %v for node pool %s", nodePool.Count, poolName)
 		updateCall, err := svc.Projects.Zones.Clusters.NodePools.SetSize(projectId, c.model.Cluster.Location, c.GetName(), poolName, &gke.SetNodePoolSizeRequest{
 			NodeCount: int64(nodePool.Count),
@@ -677,7 +662,6 @@ func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 
 // UpdateCluster updates GKE cluster in cloud
 func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, userId uint) error {
-
 	c.log.Info("Start updating cluster (gke)")
 
 	svc, err := c.getGoogleServiceClient()
@@ -733,7 +717,6 @@ func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	c.updateModel(res, updatedNodePools)
 
 	return nil
-
 }
 
 func (c *GKECluster) updateModel(cluster *gke.Cluster, updatedNodePools []*gke.NodePool) {
@@ -803,9 +786,7 @@ func (c *GKECluster) updateModel(cluster *gke.Cluster, updatedNodePools []*gke.N
 		if !found {
 			nodePoolModel.Delete = true
 		}
-
 	}
-
 }
 
 // GetID returns the specified cluster id
@@ -818,7 +799,6 @@ func (c *GKECluster) GetUID() string {
 }
 
 func (c *GKECluster) getGoogleServiceClient() (*gke.Service, error) {
-
 	client, err := c.newClientFromCredentials()
 	if err != nil {
 		return nil, errors.WrapIf(err, "retrieving cluster credentials secret failed")
@@ -922,7 +902,6 @@ func pipelineTags() map[string]string {
 }
 
 func getBanzaiErrorFromError(err error) *pkgCommon.BanzaiResponse {
-
 	if err == nil {
 		// error is nil
 		return &pkgCommon.BanzaiResponse{
@@ -1019,7 +998,6 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 		if err != nil {
 			return nil, err
 		}
-
 	}
 
 	// Collect node pools that have to be deleted and delete them before
@@ -1119,7 +1097,6 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 					if err != nil {
 						return nil, err
 					}
-
 				}
 
 				if nodePool.InitialNodeCount > 0 && nodePool.InitialNodeCount != updatedCluster.NodePools[i].InitialNodeCount {
@@ -1167,7 +1144,6 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 		if err != nil {
 			return nil, err
 		}
-
 	}
 
 	// Delete node pools
@@ -1213,7 +1189,6 @@ func autoscalingHasBeenUpdated(updatedNodePool *gke.NodePool, actualNodePool *gk
 }
 
 func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
-
 	c.log.Info("Get Google Service Client")
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
@@ -1436,7 +1411,6 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 
 // AddDefaultsToUpdate adds defaults to update request
 func (c *GKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
-
 	// TODO: error handling
 	defGooglePools, _ := createNodePoolsFromClusterModel(c.model)
 
@@ -1500,12 +1474,10 @@ func (c *GKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 		log.Warnf("Master K8s version: %s", masterVersion)
 		r.GKE.Master.Version = masterVersion
 	}
-
 }
 
 // CheckEqualityToUpdate validates the update request
 func (c *GKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
-
 	// create update request struct with the stored data to check equality
 	nodePools, _ := createNodePoolsRequestDataFromNodePoolModel(c.model.NodePools)
 	preCl := &pkgClusterGoogle.UpdateClusterGoogle{
@@ -1545,7 +1517,6 @@ func (c *GKECluster) DeleteFromDatabase() error {
 
 // GetGkeServerConfig returns configuration info about the Kubernetes Engine service.
 func (c *GKECluster) GetGkeServerConfig(zone string) (*gke.ServerConfig, error) {
-
 	c.log.Info("Start getting configuration info")
 
 	c.log.Info("Get Google service client")
@@ -1570,17 +1541,14 @@ func (c *GKECluster) GetGkeServerConfig(zone string) (*gke.ServerConfig, error) 
 	serverConfig.ValidNodeVersions = updateVersions(serverConfig.ValidNodeVersions)
 
 	return serverConfig, nil
-
 }
 
 func updateVersions(validVersions []string) []string {
-
 	log.Info("append `major.minor` K8S version format to valid GKE versions")
 
 	var updatedVersions []string
 
 	for _, v := range validVersions {
-
 		version := strings.Split(v, ".")
 
 		if len(version) >= 2 {
@@ -1600,7 +1568,6 @@ func updateVersions(validVersions []string) []string {
 
 // GetAllMachineTypesByZone lists supported machine types by zone
 func (c *GKECluster) GetAllMachineTypesByZone(zone string) (map[string]pkgCluster.MachineTypes, error) {
-
 	computeService, err := c.getComputeService()
 	if err != nil {
 		return nil, err
@@ -1616,7 +1583,6 @@ func (c *GKECluster) GetAllMachineTypesByZone(zone string) (map[string]pkgCluste
 
 // GetAllMachineTypes lists all supported machine types
 func (c *GKECluster) GetAllMachineTypes() (map[string]pkgCluster.MachineTypes, error) {
-
 	computeService, err := c.getComputeService()
 	if err != nil {
 		return nil, err
@@ -1658,7 +1624,6 @@ const zonePrefix = "zones/"
 
 // getMachineTypes returns supported machine types by zone
 func getMachineTypes(csv *gkeCompute.Service, project, zone string) (map[string]pkgCluster.MachineTypes, error) {
-
 	var machineTypes []string
 	req := csv.MachineTypes.List(project, zone)
 	if err := req.Pages(context.Background(), func(page *gkeCompute.MachineTypeList) error {
@@ -1677,7 +1642,6 @@ func getMachineTypes(csv *gkeCompute.Service, project, zone string) (map[string]
 
 // getComputeService create a Compute Service from GKECluster
 func (c *GKECluster) getComputeService() (*gkeCompute.Service, error) {
-
 	// New client from credentials
 	client, err := c.newClientFromCredentials()
 	if err != nil {
@@ -1706,7 +1670,6 @@ func (c *GKECluster) newClientFromCredentials() (*http.Client, error) {
 
 // GetZones lists supported zones
 func (c *GKECluster) GetZones() ([]string, error) {
-
 	computeService, err := c.getComputeService()
 	if err != nil {
 		return nil, err
@@ -1824,7 +1787,6 @@ func (c *GKECluster) IsReady() (bool, error) {
 
 // ValidateCreationFields validates all field
 func (c *GKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
-
 	location := r.Location
 
 	// Validate location
@@ -1930,7 +1892,6 @@ func (c *GKECluster) validateLocation(location string) error {
 
 // validateMachineType validates nodeInstanceTypes
 func (c *GKECluster) validateMachineType(nodePools map[string]*pkgClusterGoogle.NodePool, location string) error {
-
 	var machineTypes []string
 	for _, nodePool := range nodePools {
 		if nodePool != nil {
@@ -1957,7 +1918,6 @@ func (c *GKECluster) validateMachineType(nodePools map[string]*pkgClusterGoogle.
 
 // validateKubernetesVersion validates k8s versions
 func (c *GKECluster) validateKubernetesVersion(masterVersion, nodeVersion, location string) error {
-
 	c.log.Infof("Master version: %s", masterVersion)
 	c.log.Infof("Node version: %s", nodeVersion)
 	config, err := c.GetGkeServerConfig(location)
@@ -1980,7 +1940,6 @@ func (c *GKECluster) validateKubernetesVersion(masterVersion, nodeVersion, locat
 	}
 
 	return nil
-
 }
 
 // GetSecretWithValidation returns secret from vault
@@ -2016,7 +1975,6 @@ func (c *GKECluster) GetK8sUserConfig() ([]byte, error) {
 }
 
 func waitForOperation(getter operationInfoer, operationName string, logger logrus.FieldLogger) error {
-
 	log := logger.WithFields(logrus.Fields{"operation": operationName})
 
 	log.Info("start checking operation status")
@@ -2025,7 +1983,6 @@ func waitForOperation(getter operationInfoer, operationName string, logger logru
 	var err error
 	operationStatus := statusRunning
 	for operationStatus != statusDone {
-
 		operationStatus, operationType, err = getter.getInfo(operationName)
 		if err != nil {
 			return errors.WrapIf(err, "retrieving operation status failed")

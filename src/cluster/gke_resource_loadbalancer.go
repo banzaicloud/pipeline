@@ -41,7 +41,6 @@ func newLoadBalancerHelper(csv *gkeCompute.Service, project, region, zone, clust
 }
 
 func (lb *loadBalancerHelper) listTargetPools() ([]*gkeCompute.TargetPool, error) {
-
 	if lb.targetPools == nil {
 		pools, err := lb.csv.TargetPools.List(lb.project, lb.region).Context(context.Background()).Do()
 		if err != nil {
@@ -56,7 +55,6 @@ func (lb *loadBalancerHelper) listTargetPools() ([]*gkeCompute.TargetPool, error
 		if pools != nil && instance != nil {
 			lb.targetPools = findTargetPoolsByInstances(pools.Items, instance.SelfLink)
 		}
-
 	}
 
 	return lb.targetPools, nil

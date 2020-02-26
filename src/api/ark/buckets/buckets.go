@@ -24,7 +24,6 @@ const (
 
 // AddRoutes adds ARK buckets related API routes
 func AddRoutes(group *gin.RouterGroup) {
-
 	group.GET("", List)
 	group.POST("", Create)
 	group.PUT("/sync", Sync)

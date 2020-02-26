@@ -66,7 +66,6 @@ func TestConfig_Validate(t *testing.T) {
 }
 
 func TestGetDSN(t *testing.T) {
-
 	configs := map[string]Config{
 		"root:@tcp(host:3306)/database?parseTime=true": {
 			Dialect:  "mysql",

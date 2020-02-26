@@ -40,7 +40,6 @@ import (
 // @Router /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments/{deploymentName} [delete]
 // @Security bearerAuth
 func (n *API) Delete(c *gin.Context) {
-
 	ctx := ginutils.Context(context.Background(), c)
 
 	name := c.Param("name")

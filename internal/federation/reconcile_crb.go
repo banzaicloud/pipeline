@@ -30,7 +30,6 @@ const federationClusterRoleName = "kubefed-role"
 const federationDNSClusterRoleName = "kubefed-dns-role"
 
 func (m *FederationReconciler) ReconcileClusterRoleBindingForExtDNS(desiredState DesiredState) error {
-
 	if desiredState == DesiredStatePresent {
 		err := m.createClusterRoleBindingForExternalDNS()
 		if err != nil {
@@ -47,7 +46,6 @@ func (m *FederationReconciler) ReconcileClusterRoleBindingForExtDNS(desiredState
 }
 
 func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
-
 	m.logger.Debug("start creating ClusterRoleBinding for ExternalDNS")
 	defer m.logger.Debug("finished creating ClusterRoleBinding for ExternalDNS")
 
@@ -103,7 +101,6 @@ func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
 }
 
 func (m *FederationReconciler) deleteClusterRoleBindingForExternalDNS() error {
-
 	m.logger.Debug("start deleting ClusterRoleBinding for ExternalDNS")
 	defer m.logger.Debug("finished deleting ClusterRoleBinding for ExternalDNS")
 

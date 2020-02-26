@@ -27,7 +27,6 @@ const (
 
 // AddRoutes adds ARK restores related API routes
 func AddRoutes(group *gin.RouterGroup) {
-
 	group.Use(common.ARKMiddleware(global.DB(), common.Log))
 	group.GET("", List)
 	group.POST("", Create)

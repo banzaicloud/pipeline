@@ -36,7 +36,6 @@ import (
 
 // DeleteCluster deletes a cluster.
 func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, force bool) error {
-
 	timer, err := m.getClusterStatusChangeMetricTimer(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting, cluster.GetOrganizationId(), cluster.GetName())
 	if err != nil {
 		return err
@@ -59,7 +58,6 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 }
 
 func deleteAllResources(organizationID uint, clusterName string, kubeConfig []byte, namespaces *corev1.NamespaceList, logger *logrus.Entry) error {
-
 	err := deleteUserNamespaces(organizationID, clusterName, kubeConfig, namespaces, logger)
 	if err != nil {
 		return errors.WrapIf(err, "failed to delete user namespaces")
@@ -194,7 +192,6 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	}
 
 	if deleteResources {
-
 		var namespaceList *corev1.NamespaceList
 		if cluster.GetCloud() == pkgCluster.Kubernetes {
 			// in case of imported cluster delete only resources from namespaces created by Pipeline

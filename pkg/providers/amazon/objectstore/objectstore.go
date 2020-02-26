@@ -64,7 +64,6 @@ func NewPlainObjectStore() (*objectStore, error) {
 
 // New returns an Object Store instance that manages Amazon S3 buckets.
 func New(config Config, credentials Credentials) (*objectStore, error) {
-
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(config.Region),
 		Credentials: awsCredentials.NewStaticCredentials(
@@ -348,7 +347,6 @@ func (s *objectStore) GetSignedURL(bucketName, key string, ttl time.Duration) (s
 }
 
 func (s *objectStore) convertError(err error) error {
-
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch awsErr.Code() {
 		case s3.ErrCodeBucketAlreadyExists:

@@ -39,7 +39,6 @@ func NewRestoresRepository(
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) *RestoresRepository {
-
 	return &RestoresRepository{
 		org:     org,
 		cluster: cluster,
@@ -96,7 +95,6 @@ func (r *RestoresRepository) FindOneByID(id uint) (*ClusterBackupRestoresModel, 
 
 // Persist persists a ClusterBackupRestoresModel by a PersistRestoreRequest
 func (r *RestoresRepository) Persist(req *api.PersistRestoreRequest) (restore ClusterBackupRestoresModel, err error) {
-
 	log := r.logger.WithField("restore-name", req.Restore.Name)
 
 	query := ClusterBackupRestoresModel{
@@ -133,6 +131,5 @@ func (r *RestoresRepository) Persist(req *api.PersistRestoreRequest) (restore Cl
 
 // Delete deletes a ClusterBackupRestoresModel
 func (r *RestoresRepository) Delete(restore *ClusterBackupRestoresModel) error {
-
 	return r.db.Delete(restore).Error
 }

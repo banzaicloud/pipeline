@@ -16,7 +16,6 @@ package oci
 
 // GetSupportedShapes gives back supported node shapes in all subscribed regions
 func (oci *OCI) GetSupportedShapes() (shapes map[string][]string, err error) {
-
 	ic, err := oci.NewIdentityClient()
 	if err != nil {
 		return shapes, err
@@ -41,7 +40,6 @@ func (oci *OCI) GetSupportedShapes() (shapes map[string][]string, err error) {
 
 // GetSupportedShapesInARegion gives back supported node shapes in the given region
 func (oci *OCI) GetSupportedShapesInARegion(region string) (shapes []string, err error) {
-
 	err = oci.ChangeRegion(region)
 	if err != nil {
 		return shapes, err
@@ -62,7 +60,6 @@ func (oci *OCI) GetSupportedShapesInARegion(region string) (shapes []string, err
 
 // GetSupportedImages gives back supported node images in all subscribed regions
 func (oci *OCI) GetSupportedImages() (images map[string][]string, err error) {
-
 	ic, err := oci.NewIdentityClient()
 	if err != nil {
 		return images, err
@@ -87,7 +84,6 @@ func (oci *OCI) GetSupportedImages() (images map[string][]string, err error) {
 
 // GetSupportedImagesInARegion gives back supported node images in the given region
 func (oci *OCI) GetSupportedImagesInARegion(region string) (images []string, err error) {
-
 	err = oci.ChangeRegion(region)
 	if err != nil {
 		return nil, err
@@ -108,7 +104,6 @@ func (oci *OCI) GetSupportedImagesInARegion(region string) (images []string, err
 
 // GetSupportedK8SVersions gives back supported k8s versions in all subscribed regions
 func (oci *OCI) GetSupportedK8SVersions() (k8sversions map[string][]string, err error) {
-
 	ic, err := oci.NewIdentityClient()
 	if err != nil {
 		return k8sversions, err
@@ -133,7 +128,6 @@ func (oci *OCI) GetSupportedK8SVersions() (k8sversions map[string][]string, err 
 
 // GetSupportedK8SVersionsInARegion gives back supported k8s versions in the given region
 func (oci *OCI) GetSupportedK8SVersionsInARegion(region string) (k8sversions []string, err error) {
-
 	err = oci.ChangeRegion(region)
 	if err != nil {
 		return nil, err

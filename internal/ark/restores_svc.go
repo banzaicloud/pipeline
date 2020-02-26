@@ -41,7 +41,6 @@ func RestoresServiceFactory(
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) *RestoresService {
-
 	return NewRestoresService(org, deployments, NewRestoresRepository(org, deployments.GetCluster(), db, logger), logger)
 }
 
@@ -62,7 +61,6 @@ func NewRestoresService(
 
 // GetModelByName gets a ClusterBackupRestoresModel by name
 func (s *RestoresService) GetModelByName(name string) (*ClusterBackupRestoresModel, error) {
-
 	model, err := s.repository.FindOneByName(name)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get restore from database")
@@ -73,7 +71,6 @@ func (s *RestoresService) GetModelByName(name string) (*ClusterBackupRestoresMod
 
 // GetByName gets a Restore by name
 func (s *RestoresService) GetByName(name string) (*api.Restore, error) {
-
 	model, err := s.GetModelByName(name)
 	if err != nil {
 		return nil, err
@@ -84,7 +81,6 @@ func (s *RestoresService) GetByName(name string) (*api.Restore, error) {
 
 // GetModelByID gets a ClusterBackupRestoresModel by ID
 func (s *RestoresService) GetModelByID(id uint) (*ClusterBackupRestoresModel, error) {
-
 	model, err := s.repository.FindOneByID(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get restore from database")
@@ -95,7 +91,6 @@ func (s *RestoresService) GetModelByID(id uint) (*ClusterBackupRestoresModel, er
 
 // GetByID gets a Restore by ID
 func (s *RestoresService) GetByID(id uint) (*api.Restore, error) {
-
 	model, err := s.GetModelByID(id)
 	if err != nil {
 		return nil, err
@@ -106,7 +101,6 @@ func (s *RestoresService) GetByID(id uint) (*api.Restore, error) {
 
 // DeleteByName deletes a Restore by name
 func (s *RestoresService) DeleteByName(name string) error {
-
 	client, err := s.deployments.GetClient()
 	if err != nil {
 		return errors.WrapIf(err, "error getting ark client")
@@ -135,7 +129,6 @@ func (s *RestoresService) DeleteByName(name string) error {
 
 // DeleteByID deletes a Restore by ID
 func (s *RestoresService) DeleteByID(id uint) error {
-
 	restore, err := s.GetModelByID(id)
 	if err != nil {
 		return errors.WrapIf(err, "could not get restore from database")
@@ -164,7 +157,6 @@ func (s *RestoresService) DeleteByID(id uint) error {
 
 // ListFromARK gets restores from ARK
 func (s *RestoresService) ListFromARK() ([]arkAPI.Restore, error) {
-
 	client, err := s.deployments.GetClient()
 	if err != nil {
 		return nil, errors.WrapIf(err, "error getting ark client")
@@ -180,7 +172,6 @@ func (s *RestoresService) ListFromARK() ([]arkAPI.Restore, error) {
 
 // List gets all restores stored in the DB
 func (s *RestoresService) List() ([]*api.Restore, error) {
-
 	restores := make([]*api.Restore, 0)
 
 	items, err := s.repository.Find()
@@ -198,7 +189,6 @@ func (s *RestoresService) List() ([]*api.Restore, error) {
 
 // Create creates and persists a restore by a CreateRestoreRequest
 func (s *RestoresService) Create(req api.CreateRestoreRequest) (*api.Restore, error) {
-
 	deployment, err := s.deployments.GetActiveDeployment()
 	if err != nil {
 		return nil, errors.WrapIf(err, "error getting active deployment")
@@ -235,7 +225,6 @@ func (s *RestoresService) Create(req api.CreateRestoreRequest) (*api.Restore, er
 
 // Persist persists a restore by a PersistRestoreRequest
 func (s *RestoresService) Persist(req *api.PersistRestoreRequest) (*api.Restore, error) {
-
 	restore, err := s.repository.Persist(req)
 	if err != nil {
 		return nil, err

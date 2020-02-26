@@ -29,7 +29,6 @@ const secretIdKey = "secretId"
 
 // GetResourceGroups lists resource groups by secret
 func GetResourceGroups(c *gin.Context) {
-
 	orgID := auth.GetCurrentOrganization(c.Request).ID
 	secretId := getSecretIdFromHeader(c)
 
@@ -50,12 +49,10 @@ func GetResourceGroups(c *gin.Context) {
 	log.Infof("resource groups found: %v", groups)
 
 	c.JSON(http.StatusOK, groups)
-
 }
 
 // AddResourceGroups creates a new resource group
 func AddResourceGroups(c *gin.Context) {
-
 	orgID := auth.GetCurrentOrganization(c.Request).ID
 	log := log.WithFields(logrus.Fields{"org": orgID})
 
@@ -88,7 +85,6 @@ func AddResourceGroups(c *gin.Context) {
 	c.JSON(http.StatusCreated, CreateResourceGroupResponse{
 		Name: request.Name,
 	})
-
 }
 
 func getSecretIdFromHeader(c *gin.Context) string {

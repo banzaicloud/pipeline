@@ -52,7 +52,6 @@ func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interfa
 		if now.Before(&expiration) {
 			return token.Token.String(), nil
 		}
-
 	}
 	tokenValue, err := util.GenerateBootstrapToken()
 	if err != nil {

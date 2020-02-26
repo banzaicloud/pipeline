@@ -38,7 +38,6 @@ func ClusterBackupsServiceFactory(
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) *ClusterBackupsService {
-
 	repository := NewBackupsRepository(org, db, logger)
 	backups := NewBackupsService(org, repository, logger)
 
@@ -47,7 +46,6 @@ func ClusterBackupsServiceFactory(
 
 // NewClusterBackupsService creates and returns an initialized ClusterBackupsService instance
 func NewClusterBackupsService(backups *BackupsService, deployments *DeploymentsService) *ClusterBackupsService {
-
 	return &ClusterBackupsService{
 		BackupsService: backups,
 		deployments:    deployments,
@@ -57,7 +55,6 @@ func NewClusterBackupsService(backups *BackupsService, deployments *DeploymentsS
 
 // DeleteByName deletes an ARK backup by name
 func (s *ClusterBackupsService) DeleteByName(name string) error {
-
 	_, err := s.deployments.GetActiveDeployment()
 	if err != nil {
 		return errors.WrapIf(err, "error getting active deployment")
@@ -92,7 +89,6 @@ func (s *ClusterBackupsService) DeleteByName(name string) error {
 
 // DeleteByID deletes an ARK backup by ID
 func (s *ClusterBackupsService) DeleteByID(id uint) error {
-
 	_, err := s.deployments.GetActiveDeployment()
 	if err != nil {
 		return errors.WrapIf(err, "error getting active deployment")
@@ -127,7 +123,6 @@ func (s *ClusterBackupsService) DeleteByID(id uint) error {
 
 // Create creates and persists an ARK backup by a CreateBackupRequest
 func (s *ClusterBackupsService) Create(req api.CreateBackupRequest) error {
-
 	deployment, err := s.deployments.GetActiveDeployment()
 	if err != nil {
 		return errors.WrapIf(err, "error getting active deployment")

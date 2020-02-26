@@ -41,7 +41,6 @@ func init() {
 }
 
 func getClusterClient(c *gin.Context) client.Client {
-
 	kubeConfig, ok := GetK8sConfig(c)
 	if !ok {
 		return nil
@@ -150,7 +149,6 @@ func GetImageDeployments(c *gin.Context) {
 }
 
 func getImageDigest(imageID string) string {
-
 	image := strings.Split(imageID, "@")
 	if len(image) > 1 {
 		return image[1]
@@ -226,7 +224,6 @@ func NewSecurityApiHandlers(
 	clusterGetter apiCommon.ClusterGetter,
 	errorHandler internalCommon.ErrorHandler,
 	logger internalCommon.Logger) SecurityHandler {
-
 	wlSvc := anchore.NewSecurityResourceService(logger)
 	return securityHandlers{
 		clusterGetter:   clusterGetter,
@@ -237,7 +234,6 @@ func NewSecurityApiHandlers(
 }
 
 func (s securityHandlers) GetWhiteLists(c *gin.Context) {
-
 	cluster, ok := s.clusterGetter.GetClusterFromRequest(c)
 	if !ok {
 		s.logger.Warn("failed to retrieve cluster based on the request")
@@ -302,11 +298,9 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 	}
 
 	c.Status(http.StatusCreated)
-
 }
 
 func (s securityHandlers) DeleteWhiteList(c *gin.Context) {
-
 	whitelisItemtName := c.Param("name")
 	if whitelisItemtName == "" {
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{

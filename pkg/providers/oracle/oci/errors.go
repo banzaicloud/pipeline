@@ -45,7 +45,6 @@ func (se servicefailure) Error() string {
 
 func (se servicefailure) GetHTTPStatusCode() int {
 	return se.StatusCode
-
 }
 
 func (se servicefailure) GetMessage() string {

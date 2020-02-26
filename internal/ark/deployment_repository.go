@@ -37,7 +37,6 @@ func NewDeploymentsRepository(
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) *DeploymentsRepository {
-
 	return &DeploymentsRepository{
 		org:     org,
 		cluster: cluster,
@@ -48,7 +47,6 @@ func NewDeploymentsRepository(
 
 // FindFirst gets the first ClusterBackupDeploymentsModel for a cluster (normally there must only be one per cluster)
 func (s *DeploymentsRepository) FindFirst() (*ClusterBackupDeploymentsModel, error) {
-
 	var deployment ClusterBackupDeploymentsModel
 	err := s.db.Where(&ClusterBackupDeploymentsModel{
 		ClusterID:      s.cluster.GetID(),
@@ -63,7 +61,6 @@ func (s *DeploymentsRepository) FindFirst() (*ClusterBackupDeploymentsModel, err
 
 // Persist creates and persists a ClusterBackupDeploymentsModel by a PersistDeploymentRequest
 func (s *DeploymentsRepository) Persist(req *api.PersistDeploymentRequest) (*ClusterBackupDeploymentsModel, error) {
-
 	deployment := &ClusterBackupDeploymentsModel{
 		BucketID:    req.BucketID,
 		RestoreMode: req.RestoreMode,
@@ -80,13 +77,11 @@ func (s *DeploymentsRepository) Persist(req *api.PersistDeploymentRequest) (*Clu
 
 // Delete deletes a ClusterBackupDeploymentsModel
 func (s *DeploymentsRepository) Delete(deployment *ClusterBackupDeploymentsModel) error {
-
 	return s.db.Delete(&deployment).Error
 }
 
 // UpdateStatus updates the status of a ClusterBackupDeploymentsModel
 func (s *DeploymentsRepository) UpdateStatus(deployment *ClusterBackupDeploymentsModel, status, message string) error {
-
 	deployment.Status = status
 	deployment.StatusMessage = message
 

@@ -179,7 +179,6 @@ func (svc *NetworkSvc) GetVpcDefaultSecurityGroup(vpcId string) (string, error) 
 
 // GetSubnetCidr returns the cidr of the subnet
 func (svc *NetworkSvc) GetSubnetCidr(subnetId string) (string, error) {
-
 	result, err := svc.ec2Api.DescribeSubnets(&ec2.DescribeSubnetsInput{
 		SubnetIds: []*string{aws.String(subnetId)},
 	})

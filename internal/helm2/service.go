@@ -314,7 +314,6 @@ func (s *HelmService) DeleteDeployment(ctx context.Context, clusterID uint, rele
 	logger.Info("deployment deleted successfully")
 
 	return nil
-
 }
 
 func (s *HelmService) GetDeployment(ctx context.Context, clusterID uint, releaseName string) (*pkgHelm.GetDeploymentResponse, error) {

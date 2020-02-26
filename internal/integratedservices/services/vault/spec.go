@@ -54,7 +54,6 @@ func bindIntegratedServiceSpec(spec integratedservices.IntegratedServiceSpec) (v
 
 func (s *vaultIntegratedServiceSpec) Validate() error {
 	if s.CustomVault.Enabled {
-
 		// address is required in case of custom vault
 		if s.CustomVault.Address == "" {
 			return errors.New("address field is required in case of custom vault")

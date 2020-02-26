@@ -22,7 +22,6 @@ import (
 )
 
 func TestMakeAnchoreClient(t *testing.T) {
-
 	anchoreCli := anchore.NewAPIClient(&anchore.Configuration{
 		BasePath:      "https://alpha.dev.banzaicloud.com/imagecheck",
 		DefaultHeader: make(map[string]string),
@@ -38,5 +37,4 @@ func TestMakeAnchoreClient(t *testing.T) {
 
 	s, r, e := anchoreCli.UserManagementApi.ListAccounts(auth, &anchore.ListAccountsOpts{})
 	print(s, r, e)
-
 }

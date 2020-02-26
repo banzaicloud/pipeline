@@ -79,7 +79,6 @@ func (s *restrictedSecretStore) Delete(organizationID uint, secretID string) err
 }
 
 func (s *restrictedSecretStore) checkBlockingTags(organizationID uint, secretID string) error {
-
 	secretItem, err := s.secretStore.Get(organizationID, secretID)
 	if err != nil {
 		return err
@@ -117,7 +116,6 @@ func (s *restrictedSecretStore) isSecretReadOnly(secretItem *secret.SecretItemRe
 	}
 
 	return nil
-
 }
 
 // ReadOnlyError describes a secret error where it contains read only tag

@@ -161,7 +161,6 @@ func (r GORMIntegratedServiceRepository) UpdateIntegratedServiceStatus(ctx conte
 
 // UpdateIntegratedServiceSpec sets the specification of the specified integrated service
 func (r GORMIntegratedServiceRepository) UpdateIntegratedServiceSpec(ctx context.Context, clusterID uint, integratedServiceName string, spec integratedservices.IntegratedServiceSpec) error {
-
 	fm := integratedServiceModel{ClusterId: clusterID, Name: integratedServiceName}
 
 	return errors.WrapIf(r.db.Find(&fm, fm).Updates(integratedServiceModel{Spec: spec}).Error, "could not update integrated service spec")
@@ -179,16 +178,13 @@ func (r GORMIntegratedServiceRepository) modelToIntegratedService(cfm integrated
 
 // DeleteIntegratedService permanently deletes the integrated service record
 func (r GORMIntegratedServiceRepository) DeleteIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string) error {
-
 	fm := integratedServiceModel{ClusterId: clusterID, Name: integratedServiceName}
 
 	if err := r.db.Delete(&fm, fm).Error; err != nil {
-
 		return errors.WrapIf(err, "could not delete status")
 	}
 
 	return nil
-
 }
 
 type integratedServiceNotFoundError struct {

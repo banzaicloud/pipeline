@@ -49,7 +49,6 @@ func init() {
 }
 
 func TestIsValidSecretType(t *testing.T) {
-
 	cases := []struct {
 		name       string
 		secretType string
@@ -70,11 +69,9 @@ func TestIsValidSecretType(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestAddSecret(t *testing.T) {
-
 	cases := []struct {
 		name     string
 		request  secret.CreateSecretRequest
@@ -109,7 +106,6 @@ func TestAddSecret(t *testing.T) {
 }
 
 func TestListSecrets(t *testing.T) {
-
 	_, _ = secret.Store.Store(orgId, &awsCreateSecretRequest)
 	_, _ = secret.Store.Store(orgId, &aksCreateSecretRequest)
 	_, _ = secret.Store.Store(orgId, &gkeCreateSecretRequest)
@@ -150,11 +146,9 @@ func TestListSecrets(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestDeleteSecrets(t *testing.T) {
-
 	cases := []struct {
 		name     string
 		secretId string

@@ -45,13 +45,11 @@ func NewClusterService(getter clusterGetter) *ClusterService {
 func (s *ClusterService) GetCluster(ctx context.Context, clusterID uint) (*helm2.Cluster, error) {
 	c, err := s.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
-
 		return nil, err
 	}
 
 	org, err := auth.GetOrganizationById(c.GetOrganizationId())
 	if err != nil {
-
 		return nil, errors.WrapIfWithDetails(err, "failed to get organization", "organizationId", c.GetOrganizationId())
 	}
 

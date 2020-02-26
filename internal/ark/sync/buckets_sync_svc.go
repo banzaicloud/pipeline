@@ -39,7 +39,6 @@ func NewBucketsSyncService(
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) *BucketsSyncService {
-
 	return &BucketsSyncService{
 		org:        org,
 		bucketsSvc: ark.BucketsServiceFactory(org, db, logger),
@@ -51,7 +50,6 @@ func NewBucketsSyncService(
 
 // SyncBackupsFromBuckets syncs backups from object store buckets for ARK backup bucket for within the organization
 func (s *BucketsSyncService) SyncBackupsFromBuckets() error {
-
 	buckets, err := s.bucketsSvc.List()
 	if err != nil {
 		return err
@@ -77,7 +75,6 @@ func (s *BucketsSyncService) SyncBackupsFromBuckets() error {
 }
 
 func (s *BucketsSyncService) syncBackupsFromBucket(bucket *api.Bucket) (backupIDS []int, err error) {
-
 	backupIDS = make([]int, 0)
 
 	log := s.logger.WithField("bucket", bucket.Name)

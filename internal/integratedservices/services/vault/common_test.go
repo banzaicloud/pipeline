@@ -143,7 +143,6 @@ type dummyKubernetesService struct {
 
 // GetKubeConfig gets a kube config for a specific cluster.
 func (s *dummyKubernetesService) GetKubeConfig(ctx context.Context, clusterID uint) (*k8srest.Config, error) {
-
 	return &k8srest.Config{
 		Host:            "https://127.0.0.1:6443",
 		TLSClientConfig: k8srest.TLSClientConfig{CAData: []byte("BLABLA")},
@@ -152,7 +151,6 @@ func (s *dummyKubernetesService) GetKubeConfig(ctx context.Context, clusterID ui
 
 // DeleteObject deletes an Object from a specific cluster.
 func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error {
-
 	return nil
 }
 

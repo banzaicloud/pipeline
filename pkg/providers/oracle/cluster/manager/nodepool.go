@@ -25,7 +25,6 @@ import (
 
 // SyncNodePools keeps the cluster node pools in state with the model
 func (cm *ClusterManager) SyncNodePools(clusterModel *model.Cluster) error {
-
 	cm.oci.GetLogger().Infof("Syncing Node Pools states of Cluster[%s]", clusterModel.Name)
 
 	nodePools := clusterModel.NodePools
@@ -87,7 +86,6 @@ func (cm *ClusterManager) SyncNodePools(clusterModel *model.Cluster) error {
 
 // UpdateNodePool updates node pool in a cluster
 func (cm *ClusterManager) UpdateNodePool(clusterModel *model.Cluster, np *model.NodePool) error {
-
 	ce, err := cm.oci.NewContainerEngineClient()
 	if err != nil {
 		return err
@@ -126,7 +124,6 @@ func (cm *ClusterManager) UpdateNodePool(clusterModel *model.Cluster, np *model.
 
 // DeleteNodePool deletes a node pool from a cluster
 func (cm *ClusterManager) DeleteNodePool(clusterModel *model.Cluster, np *model.NodePool) error {
-
 	cm.oci.GetLogger().Infof("Deleting NodePool[%s]", np.Name)
 
 	ce, err := cm.oci.NewContainerEngineClient()
@@ -139,7 +136,6 @@ func (cm *ClusterManager) DeleteNodePool(clusterModel *model.Cluster, np *model.
 
 // AddNodePool creates a new node pool in a cluster
 func (cm *ClusterManager) AddNodePool(clusterModel *model.Cluster, np *model.NodePool) error {
-
 	ce, err := cm.oci.NewContainerEngineClient()
 	if err != nil {
 		return err

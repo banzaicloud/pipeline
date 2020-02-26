@@ -118,7 +118,6 @@ func (m *FederationReconciler) reconcileMemberCluster(desiredState DesiredState,
 			} else {
 				return err
 			}
-
 		}
 	}
 

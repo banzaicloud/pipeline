@@ -203,7 +203,6 @@ func decodeUpdateIntegratedServicesRequest(_ context.Context, req *http.Request)
 
 	var requestBody pipeline.UpdateIntegratedServiceRequest
 	if err := decodeRequestBody(req, &requestBody); err != nil {
-
 		return nil, errors.WrapIf(err, "failed to decode request body")
 	}
 

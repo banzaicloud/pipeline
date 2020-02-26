@@ -135,7 +135,6 @@ func (g *Manager) CreateClusterGroup(ctx context.Context, name string, orgID uin
 		return nil, err
 	}
 	return cgId, nil
-
 }
 
 // UpdateClusterGroup updates a cluster group
@@ -187,7 +186,6 @@ func (g *Manager) UpdateClusterGroup(ctx context.Context, clusterGroupID uint, o
 		} else {
 			return errors.WrapIfWithDetails(err, "could not check cluster state", "clusterID", cluster.GetID())
 		}
-
 	}
 
 	err = g.validateBeforeClusterGroupUpdate(*existingClusterGroup, newMembers)
@@ -509,7 +507,6 @@ func (g *Manager) reconcileFeature(clusterGroup api.ClusterGroup, featureModel C
 		if dbErr != nil {
 			g.errorHandler.Handle(dbErr)
 		}
-
 	}
 	return nil
 }

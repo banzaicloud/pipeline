@@ -66,7 +66,6 @@ func (a SaveNetworkDetailsActivity) Execute(ctx context.Context, input SaveNetwo
 				}
 			}
 		}
-
 	}
 
 	return cluster.Persist()

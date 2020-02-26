@@ -234,7 +234,6 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 				AvailabilityZone: subnet.AvailabilityZone,
 			})
 		}
-
 	}
 
 	userAccessKeyActivityOutput := CreateClusterUserAccessKeyActivityOutput{}
@@ -297,7 +296,6 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 	// create AutoScalingGroups
 	asgFutures := make([]workflow.Future, 0)
 	for _, asg := range input.AsgList {
-
 		asgSubnets := input.ASGSubnetMapping[asg.Name]
 		for i := range asgSubnets {
 			for _, sn := range existingAndNewSubnets {

@@ -24,7 +24,6 @@ import (
 
 // CreateRouteTable creates a Route Table specified in the request
 func (vn *VirtualNetwork) CreateRouteTable(request core.CreateRouteTableRequest) (table core.RouteTable, err error) {
-
 	response, err := vn.client.CreateRouteTable(context.Background(), request)
 	if err != nil {
 		return table, err
@@ -35,7 +34,6 @@ func (vn *VirtualNetwork) CreateRouteTable(request core.CreateRouteTableRequest)
 
 // UpdateRouteTable updates a Route Table specified in the request
 func (vn *VirtualNetwork) UpdateRouteTable(request core.UpdateRouteTableRequest) (table core.RouteTable, err error) {
-
 	response, err := vn.client.UpdateRouteTable(context.Background(), request)
 	if err != nil {
 		return table, err
@@ -46,7 +44,6 @@ func (vn *VirtualNetwork) UpdateRouteTable(request core.UpdateRouteTableRequest)
 
 // DeleteRouteTable removes a Route Table by id
 func (vn *VirtualNetwork) DeleteRouteTable(id *string) error {
-
 	_, err := vn.client.DeleteRouteTable(context.Background(), core.DeleteRouteTableRequest{
 		RtId: id,
 	})
@@ -56,7 +53,6 @@ func (vn *VirtualNetwork) DeleteRouteTable(id *string) error {
 
 // GetRouteTable gets a Route Table by id
 func (vn *VirtualNetwork) GetRouteTable(id *string) (table core.RouteTable, err error) {
-
 	response, err := vn.client.GetRouteTable(context.Background(), core.GetRouteTableRequest{
 		RtId: id,
 	})
@@ -66,7 +62,6 @@ func (vn *VirtualNetwork) GetRouteTable(id *string) (table core.RouteTable, err 
 
 // GetRouteTableByName gets a Route Table by name
 func (vn *VirtualNetwork) GetRouteTableByName(name string, vcnID *string) (table core.RouteTable, err error) {
-
 	request := core.ListRouteTablesRequest{
 		CompartmentId: common.String(vn.CompartmentOCID),
 		DisplayName:   common.String(name),
@@ -87,7 +82,6 @@ func (vn *VirtualNetwork) GetRouteTableByName(name string, vcnID *string) (table
 
 // GetRouteTables gets all Route Tables within a VCN
 func (vn *VirtualNetwork) GetRouteTables(vcnID *string) (tables []core.RouteTable, err error) {
-
 	request := core.ListRouteTablesRequest{
 		CompartmentId: common.String(vn.CompartmentOCID),
 		VcnId:         vcnID,

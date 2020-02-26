@@ -154,7 +154,6 @@ func (a anchoreService) RemoveUser(ctx context.Context, orgID uint, clusterID ui
 	}
 
 	if exists {
-
 		if err := a.deleteUser(ctx, restClient, userName, userName); err != nil {
 			a.logger.Debug("failed to delete anchore user", fnCtx)
 
@@ -170,7 +169,6 @@ func (a anchoreService) RemoveUser(ctx context.Context, orgID uint, clusterID ui
 
 	// remove the secret if exists / ignore the error
 	if err := a.secretStore.Delete(ctx, secret.GenerateSecretIDFromName(userName)); err != nil {
-
 		a.logger.Debug("failed to delete credentials for nonexistent anchore user", fnCtx)
 	}
 
@@ -179,7 +177,6 @@ func (a anchoreService) RemoveUser(ctx context.Context, orgID uint, clusterID ui
 }
 
 func (a anchoreService) userExists(ctx context.Context, client AnchoreClient, userName string) (bool, error) {
-
 	anchoreUsr, err := client.GetUser(ctx, userName)
 	if err != nil {
 		a.logger.Debug("failed to retrieve anchore user")
@@ -192,7 +189,6 @@ func (a anchoreService) userExists(ctx context.Context, client AnchoreClient, us
 
 //  ensureUserCredentials makes sure the user credentials secret is up to date
 func (a anchoreService) ensureUserCredentials(ctx context.Context, orgID uint, client AnchoreClient, userName string) error {
-
 	// check the user at anchore
 	_, err := client.GetUserCredentials(ctx, userName)
 	if err != nil {
@@ -214,7 +210,6 @@ func (a anchoreService) ensureUserCredentials(ctx context.Context, orgID uint, c
 
 // createUserSecret creates a new password type secret, and returns the newly generated password string
 func (a anchoreService) createUserSecret(ctx context.Context, orgID uint, clusterID uint) (string, error) {
-
 	userName, err := a.userNameService.GenerateUsername(ctx, clusterID)
 	if err != nil {
 		a.logger.Debug("failed to generate anchore username")
@@ -279,7 +274,6 @@ func (a anchoreService) createUser(ctx context.Context, client AnchoreClient, us
 
 // storeCredentialsSecret stores the passed in userName and password asa secret and returns the related secretID
 func (a anchoreService) storeCredentialsSecret(ctx context.Context, orgID uint, userName string, password string) (string, error) {
-
 	secretRequest := secret.CreateSecretRequest{
 		Name: userName,
 		Type: "password",

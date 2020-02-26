@@ -186,7 +186,6 @@ func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte, namespaces *
 	}
 
 	if releaseResp != nil {
-
 		var nsFilter map[string]bool
 		if namespaces != nil {
 			nsFilter = make(map[string]bool, len(namespaces.Items))
@@ -263,7 +262,6 @@ func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.
 	}
 
 	if tagFilter != "" {
-
 		clusterKey := string(sha1.New().Sum(kubeConfig))
 		releasesKey := string(sha1.New().Sum([]byte(resp.String())))
 		deploymentsKey := clusterKey + "-" + releasesKey
@@ -324,7 +322,6 @@ func DeploymentHasTag(deployment *pkgHelm.GetDeploymentResponse, tagFilter strin
 }
 
 func GetRequestedChart(releaseName, chartName, chartVersion string, chartPackage []byte, env helm_env.EnvSettings) (requestedChart *chart.Chart, err error) {
-
 	// If the request has a chart package sent by the user we install that
 	if chartPackage != nil && len(chartPackage) != 0 {
 		requestedChart, err = chartutil.LoadArchive(bytes.NewReader(chartPackage))
@@ -356,7 +353,6 @@ func GetRequestedChart(releaseName, chartName, chartVersion string, chartPackage
 
 // UpgradeDeployment upgrades a Helm deployment
 func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage []byte, values []byte, reuseValues bool, kubeConfig []byte, env helm_env.EnvSettings) (*rls.UpdateReleaseResponse, error) {
-
 	chartRequested, err := GetRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
@@ -386,7 +382,6 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 
 // CreateDeployment creates a Helm deployment in chosen namespace
 func CreateDeployment(chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, dryRun bool, odPcts map[string]int, kubeConfig []byte, env helm_env.EnvSettings, overrideOpts ...helm.InstallOption) (*rls.InstallReleaseResponse, error) {
-
 	chartRequested, err := GetRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
@@ -547,7 +542,6 @@ func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTy
 }
 
 func ParseReleaseManifest(manifest string, resourceTypes []string) ([]pkgHelm.DeploymentResource, error) {
-
 	objects := strings.Split(manifest, "---")
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 	deployments := make([]pkgHelm.DeploymentResource, 0)
@@ -578,7 +572,6 @@ func ParseReleaseManifest(manifest string, resourceTypes []string) ([]pkgHelm.De
 				Kind: reflect.ValueOf(obj).Elem().FieldByName("Kind").String(),
 			})
 		}
-
 	}
 
 	return deployments, nil
@@ -641,7 +634,6 @@ func GetDeploymentByVersion(releaseName string, kubeConfig []byte, version int32
 // returns with an error if the release is not found or another error occurs
 // in case of error the status is filled with information to classify the error cause
 func GetDeploymentStatus(releaseName string, kubeConfig []byte) (int32, error) {
-
 	helmClient, err := pkgHelm.NewClient(kubeConfig, log)
 
 	if err != nil {
@@ -658,7 +650,6 @@ func GetDeploymentStatus(releaseName string, kubeConfig []byte) (int32, error) {
 	}
 
 	return int32(releaseStatusResponse.Info.Status.GetCode()), nil
-
 }
 
 func GenerateName(nameTemplate string) (string, error) {
@@ -730,7 +721,6 @@ func MergeValues(dest map[string]interface{}, src map[string]interface{}) map[st
 
 // ReposGet returns repo
 func ReposGet(env helm_env.EnvSettings) ([]*repo.Entry, error) {
-
 	repoPath := env.Home.RepositoryFile()
 	log.Debugf("Helm repo path: %s", repoPath)
 
@@ -813,12 +803,10 @@ func ReposDelete(env helm_env.EnvSettings, repoName string) error {
 		}
 	}
 	return nil
-
 }
 
 // ReposModify modifies repo(s)
 func ReposModify(env helm_env.EnvSettings, repoName string, newRepo *repo.Entry) error {
-
 	log.Debug("ReposModify")
 	repoFile := env.Home.RepositoryFile()
 	log.Debugf("Repo File: %s", repoFile)
@@ -868,7 +856,6 @@ func ReposModify(env helm_env.EnvSettings, repoName string, newRepo *repo.Entry)
 
 // ReposUpdate updates a repo(s)
 func ReposUpdate(env helm_env.EnvSettings, repoName string) error {
-
 	repoFile := env.Home.RepositoryFile()
 	log.Debugf("Repo File: %s", repoFile)
 
@@ -889,7 +876,6 @@ func ReposUpdate(env helm_env.EnvSettings, repoName string) error {
 				return errors.Wrap(errIdx, "Repo index download failed")
 			}
 			return nil
-
 		}
 	}
 
@@ -915,7 +901,6 @@ func ChartsGet(env helm_env.EnvSettings, queryName, queryRepo, queryVersion, que
 	cl := make([]ChartList, 0)
 
 	for _, r := range f.Repositories {
-
 		log.Debugf("Repository: %s", r.Name)
 		i, errIndx := repo.LoadIndexFile(r.Cache)
 		if errIndx != nil {
@@ -944,10 +929,8 @@ func ChartsGet(env helm_env.EnvSettings, queryName, queryRepo, queryVersion, que
 						c.Charts = append(c.Charts, i.Entries[n])
 					}
 				}
-
 			}
 			cl = append(cl, c)
-
 		}
 	}
 	return cl, nil
@@ -969,7 +952,6 @@ type ChartVersion struct {
 
 // ChartGet returns chart details
 func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion string) (details *ChartDetails, err error) {
-
 	repoPath := env.Home.RepositoryFile()
 	log.Debugf("Helm repo path: %s", repoPath)
 	var f *repo.RepoFile
@@ -983,7 +965,6 @@ func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion strin
 	}
 
 	for _, repository := range f.Repositories {
-
 		log.Debugf("Repository: %s", repository.Name)
 
 		var i *repo.IndexFile
@@ -998,14 +979,11 @@ func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion strin
 		}
 
 		if repository.Name == chartRepo {
-
 			for name, chartVersions := range i.Entries {
 				log.Debugf("Chart: %s", name)
 				if chartName == name {
 					for _, v := range chartVersions {
-
 						if v.Version == chartVersion || chartVersion == "" {
-
 							var ver *ChartVersion
 							ver, err = getChartVersion(v, repository.URL)
 							if err != nil {
@@ -1022,15 +1000,11 @@ func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion strin
 							} else {
 								details.Versions = append(details.Versions, ver)
 							}
-
 						}
-
 					}
 					return
 				}
-
 			}
-
 		}
 	}
 	return

@@ -37,7 +37,6 @@ func GetNodeStatus(node v1.Node) string {
 				return StatusNotReady
 			default:
 				return StatusUnknown
-
 			}
 		}
 	}

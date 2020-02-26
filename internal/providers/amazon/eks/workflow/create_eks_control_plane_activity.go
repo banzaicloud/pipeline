@@ -63,7 +63,6 @@ func NewCreateEksClusterActivity(awsSessionFactory *AWSSessionFactory) *CreateEk
 }
 
 func (a *CreateEksControlPlaneActivity) Execute(ctx context.Context, input CreateEksControlPlaneActivityInput) (*CreateEksControlPlaneActivityOutput, error) {
-
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
@@ -220,7 +219,6 @@ func waitUntilClusterCreateCompleteWithContext(eksSvc *eks.EKS, ctx aws.Context,
 		},
 		Logger: eksSvc.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
-
 			count++
 			activity.RecordHeartbeat(ctx, count)
 

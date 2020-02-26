@@ -27,7 +27,6 @@ type Verifier interface {
 // NewVerifier create new instance which implements `Verifier` interface
 func NewVerifier(cloudType string, values map[string]string) Verifier {
 	switch cloudType {
-
 	case pkgCluster.Alibaba:
 		return CreateAlibabaSecret(values)
 	case pkgCluster.Amazon:

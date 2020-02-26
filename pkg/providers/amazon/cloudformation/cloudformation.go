@@ -48,7 +48,6 @@ func GetExistingTaggedStackNames(cfSvc *cloudformation.CloudFormation, tags map[
 }
 
 func getFlattenedTags(tags []*cloudformation.Tag) map[string]string {
-
 	t := make(map[string]string, 0)
 
 	for _, tag := range tags {
@@ -128,7 +127,6 @@ func NewAwsStackFailure(awsStackError error, stackName, clientRequestToken strin
 		failedEventsMsg: failedEventsMsg,
 		isFinal:         isFinalErr,
 	}
-
 }
 
 func collectFailedStackEvents(stackName, clientRequestToken string, cloudformationSrv *cloudformation.CloudFormation) ([]*cloudformation.StackEvent, error) {
@@ -137,7 +135,6 @@ func collectFailedStackEvents(stackName, clientRequestToken string, cloudformati
 	describeStackEventsInput := &cloudformation.DescribeStackEventsInput{StackName: aws.String(stackName)}
 	err := cloudformationSrv.DescribeStackEventsPages(describeStackEventsInput,
 		func(page *cloudformation.DescribeStackEventsOutput, lastPage bool) bool {
-
 			for _, event := range page.StackEvents {
 				if clientRequestToken != "" && aws.StringValue(event.ClientRequestToken) != clientRequestToken {
 					continue

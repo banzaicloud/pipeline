@@ -144,7 +144,6 @@ func (s *SpotguideAPI) SyncSpotguides(c *gin.Context) {
 
 // LaunchSpotguide creates a spotguide workflow, all secrets, repositories.
 func (s *SpotguideAPI) LaunchSpotguide(c *gin.Context) {
-
 	var launchRequest spotguide.LaunchRequest
 	if err := c.BindJSON(&launchRequest); err != nil {
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{

@@ -51,7 +51,6 @@ func RestoreFromBackup(
 	errorHandler emperror.Handler,
 	waitTimeout time.Duration,
 ) error {
-
 	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
 	if err != nil {
 		return err

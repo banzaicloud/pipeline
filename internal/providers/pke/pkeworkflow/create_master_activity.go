@@ -162,7 +162,6 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 	stackName := fmt.Sprintf("pke-master-%s", clusterName)
 
 	if input.MultiMaster {
-
 		params = append(params,
 			[]*cloudformation.Parameter{
 				{

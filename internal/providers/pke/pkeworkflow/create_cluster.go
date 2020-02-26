@@ -280,9 +280,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 		masterInput.TargetGroup = activityOutput.TargetGroup
 		externalAddress = activityOutput.DNSName
-
 	} else {
-
 		// Create EIP
 		var eip CreateElasticIPActivityOutput
 		activityInput := &CreateElasticIPActivityInput{
