@@ -19,7 +19,7 @@ import (
 
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/internal/helm2"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
@@ -42,7 +42,7 @@ func NewClusterService(getter clusterGetter) *ClusterService {
 }
 
 // GetCluster retrieves the cluster representation based on the cluster identifier.
-func (s *ClusterService) GetCluster(ctx context.Context, clusterID uint) (*helm.Cluster, error) {
+func (s *ClusterService) GetCluster(ctx context.Context, clusterID uint) (*helm2.Cluster, error) {
 	c, err := s.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 
@@ -60,5 +60,5 @@ func (s *ClusterService) GetCluster(ctx context.Context, clusterID uint) (*helm.
 		return nil, errors.WrapIfWithDetails(err, "failed to get kube config", "clusterId", c.GetID())
 	}
 
-	return &helm.Cluster{OrganizationName: org.Name, KubeConfig: kubeConfig}, nil
+	return &helm2.Cluster{OrganizationName: org.Name, KubeConfig: kubeConfig}, nil
 }
