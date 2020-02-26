@@ -39,6 +39,7 @@ linters:
         - gas
         - megacheck
         - varcheck
+        - gomnd
 
         # Disable govet for now because it fails on Circle
         - govet
