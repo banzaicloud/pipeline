@@ -71,7 +71,6 @@ func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interfa
 	return addRepositoryRequest, nil
 }
 
-
 func decodeListRepositoriesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	orgID, err := extractOrgID(r)
 	if err != nil {

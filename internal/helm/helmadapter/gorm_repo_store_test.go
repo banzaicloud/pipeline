@@ -45,7 +45,7 @@ func setUpDatabase(t *testing.T) *gorm.DB {
 }
 
 func Test_helmRepoStore_Create(t *testing.T) {
-	t.Run("create - success", func(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 
@@ -64,7 +64,7 @@ func Test_helmRepoStore_Create(t *testing.T) {
 		assert.Equal(t, newRepo.Name, retrieved.Name)
 	})
 
-	t.Run("create - unique constraint violation", func(t *testing.T) {
+	t.Run("AlreadyExists", func(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 
@@ -120,7 +120,7 @@ func Test_helmRepoStore_Get(t *testing.T) {
 }
 
 func Test_helmRepoStore_Delete(t *testing.T) {
-	t.Run("delete repository - not exists", func(t *testing.T) {
+	t.Run("DoesntExist", func(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 
@@ -134,7 +134,7 @@ func Test_helmRepoStore_Delete(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	t.Run("delete repository - success", func(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 
@@ -153,7 +153,7 @@ func Test_helmRepoStore_Delete(t *testing.T) {
 }
 
 func Test_helmRepoStore_ListRepositories(t *testing.T) {
-	t.Run("list repositories - none found", func(t *testing.T) {
+	t.Run("NoneFound", func(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 
@@ -162,7 +162,7 @@ func Test_helmRepoStore_ListRepositories(t *testing.T) {
 		require.NotNil(t, repos)
 	})
 
-	t.Run("list repositories - success", func(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
 

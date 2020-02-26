@@ -28,8 +28,8 @@ import (
 type repositoryModel struct {
 	gorm.Model
 
-	OrganizationID   uint   `gorm:"unique_index:unique_per_org"`
-	Name             string `gorm:"unique_index:unique_per_org"`
+	OrganizationID   uint   `gorm:"unique_index:idx_org_name"`
+	Name             string `gorm:"unique_index:idx_org_name"`
 	URL              string
 	PasswordSecretID string
 	TlsSecretID      string
@@ -86,8 +86,11 @@ func (h helmRepoStore) List(_ context.Context, organizationID uint) ([]helm.Repo
 		repos = append(repos, toDomain(model))
 	}
 
-	h.logger.Debug("retrieved helm repository records",
-		map[string]interface{}{"organisationID": organizationID, "repositories #": len(repos)})
+	h.logger.Debug(
+		"retrieved helm repository records",
+		map[string]interface{}{
+			"organisationID": organizationID,
+			"repositories #": len(repos)})
 
 	return repos, nil
 }
@@ -97,11 +100,14 @@ func (h helmRepoStore) Create(_ context.Context, organizationID uint, repository
 	repoModel.OrganizationID = organizationID
 
 	if err := h.db.Create(&repoModel).Error; err != nil {
-
 		return errors.WrapIf(err, "failed to persist the helm repository")
 	}
-	h.logger.Debug("persisted new helm repository record", map[string]interface{}{"organisationID": organizationID,
-		"repoName": repository.Name})
+
+	h.logger.Debug(
+		"persisted new helm repository record",
+		map[string]interface{}{
+			"organisationID": organizationID,
+			"repoName":       repository.Name})
 
 	return nil
 }

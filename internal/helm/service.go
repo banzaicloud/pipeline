@@ -22,6 +22,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
+type Logger = common.Logger
+
 // Repository represents a Helm chart repository.
 type Repository struct {
 	// Name is a unique identifier for the repository.
@@ -61,7 +63,7 @@ type Service interface {
 }
 
 // NewService returns a new Service.
-func NewService(store Store, secretStore SecretStore, validator RepoValidator, logger common.Logger) Service {
+func NewService(store Store, secretStore SecretStore, validator RepoValidator, logger Logger) Service {
 
 	return service{
 		store:         store,
@@ -100,7 +102,7 @@ type service struct {
 	store         Store
 	secretStore   SecretStore
 	repoValidator RepoValidator
-	logger        common.Logger
+	logger        Logger
 }
 
 func (s service) AddRepository(ctx context.Context, organizationID uint, repository Repository) error {
