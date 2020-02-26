@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.13
+ARG GO_VERSION=1.14
 ARG FROM_IMAGE=scratch
 
 FROM golang:${GO_VERSION}-alpine AS builder
