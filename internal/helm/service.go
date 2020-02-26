@@ -43,19 +43,6 @@ type Repository struct {
 	TlsSecretID string `json:"tlsSecretId,omitempty"`
 }
 
-func validate() error {
-	// name is not empty
-	// name matches a regex
-	// url is a valid URL
-
-	// external validations:
-	// index is available
-	// password secret exists (if provided)
-	// tls secret exists (if provided)
-
-	return nil
-}
-
 //go:generate mga gen mockery --name Service --inpkg
 // +kit:endpoint:errorStrategy=service
 
@@ -85,6 +72,7 @@ func NewService(store Store, secretStore SecretStore, validator RepoValidator, l
 }
 
 // +testify:mock:testOnly=true
+
 // Store interface abstracting persistence operations
 type Store interface {
 	// Create persists the repository item for the given organisation
@@ -101,6 +89,7 @@ type Store interface {
 }
 
 // +testify:mock:testOnly=true
+
 // SecretStore abstracts secret related operations
 type SecretStore interface {
 	CheckPasswordSecret(ctx context.Context, secretID string) error
@@ -140,6 +129,7 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 
 		return AlreadyExistsError{
 			Description:    "helm repository already exists",
+			RepositoryName: repository.Name,
 			OrganizationID: organizationID,
 		}
 	}

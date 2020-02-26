@@ -967,12 +967,12 @@ func main() {
 
 				helmRepoEndpoints := helmdriver.MakeEndpoints(helmService)
 				helmdriver.RegisterHTTPHandlers(helmRepoEndpoints,
-					orgRouter.PathPrefix("/helmrepos").Subrouter(),
+					orgRouter.PathPrefix("/helm/repos").Subrouter(),
 					kitxhttp.ServerOptions(httpServerOptions),
 				)
 
-				orgs.Any("/:orgid/helmrepos", gin.WrapH(router))
-				orgs.Any("/:orgid/helmrepos/*path", gin.WrapH(router))
+				orgs.Any("/:orgid/helm/repos", gin.WrapH(router))
+				orgs.Any("/:orgid/helm/repos/*path", gin.WrapH(router))
 			}
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
 			orgs.GET("/:orgid/secrets/:id", api.GetSecret)

@@ -57,12 +57,13 @@ func (ValidationError) ServiceError() bool {
 // AlreadyExistsError is returned when a helm repository already exists in the store.
 type AlreadyExistsError struct {
 	OrganizationID uint
+	RepositoryName string
 	Description    string
 }
 
 // Error implements the error interface.
 func (e AlreadyExistsError) Error() string {
-	return e.Description
+	return "helm repository already exists"
 }
 
 // Details returns error details.
