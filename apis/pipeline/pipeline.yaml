@@ -5579,6 +5579,10 @@ components:
                 caFile:
                     type: string
                     example: ""
+                passwordSecretRef:
+                    type: string
+                tlsSecretRef:
+                    type: string
 
         HelmReposModifyRequest:
             type: object
@@ -5593,6 +5597,11 @@ components:
                     type: string
                 caFile:
                     type: string
+                passwordSecretRef:
+                    type: string
+                tlsSecretRef:
+                    type: string
+
             example:
                 url: "https://kubernetes-charts.storage.googleapis.com"
 
@@ -5611,6 +5620,10 @@ components:
                 keyFile:
                     type: string
                 caFile:
+                    type: string
+                passwordSecretRef:
+                    type: string
+                tlsSecretRef:
                     type: string
             example:
                 name: "stable"
