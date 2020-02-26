@@ -89,10 +89,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/helm/helmdriver"
-	"github.com/banzaicloud/pipeline/internal/helm/helmrepoadapter"
 	"github.com/banzaicloud/pipeline/internal/helm2"
-	"github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicesdriver"
@@ -960,8 +959,8 @@ func main() {
 			orgs.GET("/:orgid/helm/charts", api.HelmCharts)
 			orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
 			{
-				helmRepoStore := helmrepoadapter.NewHelmRepoStore(db, commonLogger)
-				secretStore := helmrepoadapter.NewSecretStore(commonSecretStore, commonLogger)
+				helmRepoStore := helmadapter.NewHelmRepoStore(db, commonLogger)
+				secretStore := helmadapter.NewSecretStore(commonSecretStore, commonLogger)
 				validator := helm.NewHelmRepoValidator()
 
 				helmService := helm.NewService(helmRepoStore, secretStore, validator, commonLogger)
