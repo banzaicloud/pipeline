@@ -26,8 +26,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gotest.tools/assert"
 
 	"github.com/banzaicloud/pipeline/internal/helm"
 )
