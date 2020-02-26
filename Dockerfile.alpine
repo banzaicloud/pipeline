@@ -35,6 +35,16 @@ RUN set -xe \
     && mv aws-iam-authenticator_${IAM_AUTH_VERSION}_linux_amd64 aws-iam-authenticator
 
 
+FROM alpine:3.11 AS migrate
+
+ENV MIGRATE_VERSION v4.8.0
+
+RUN set -xe && \
+    apk add --update --no-cache ca-certificates curl && \
+    curl -L https://github.com/golang-migrate/migrate/releases/download/${MIGRATE_VERSION}/migrate.linux-amd64.tar.gz | tar xvz && \
+    mv migrate.linux-amd64 /tmp/migrate
+
+
 FROM ${FROM_IMAGE}
 
 COPY --from=builder /etc/nsswitch.conf.build /etc/nsswitch.conf
