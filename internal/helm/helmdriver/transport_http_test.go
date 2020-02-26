@@ -49,13 +49,13 @@ func TestRegisterHTTPHandlers_ListRepositories(t *testing.T) {
 				}, nil
 			},
 		},
-		handler.PathPrefix("/orgs/{orgId}/helmrepos").Subrouter(),
+		handler.PathPrefix("/orgs/{orgId}/helm/repos").Subrouter(),
 	)
 
 	ts := httptest.NewServer(handler)
 	defer ts.Close()
 
-	resp, err := ts.Client().Get(fmt.Sprintf("%s/orgs/%d/helmrepos", ts.URL, 1))
+	resp, err := ts.Client().Get(fmt.Sprintf("%s/orgs/%d/helm/repos", ts.URL, 1))
 
 	require.NoError(t, err)
 	defer resp.Body.Close()
@@ -71,7 +71,7 @@ func TestRegisterHTTPHandlers_DeleteRepositories(t *testing.T) {
 				return DeleteRepositoryResponse{}, nil
 			},
 		},
-		handler.PathPrefix("/orgs/{orgId}/helmrepos").Subrouter(),
+		handler.PathPrefix("/orgs/{orgId}/helm/repos").Subrouter(),
 	)
 
 	ts := httptest.NewServer(handler)
@@ -79,7 +79,7 @@ func TestRegisterHTTPHandlers_DeleteRepositories(t *testing.T) {
 
 	req, err := http.NewRequest(
 		http.MethodDelete,
-		fmt.Sprintf("%s/orgs/%d/helmrepos/%s", ts.URL, 1, "test-repo"),
+		fmt.Sprintf("%s/orgs/%d/helm/repos/%s", ts.URL, 1, "test-repo"),
 		nil,
 	)
 	require.NoError(t, err)
@@ -134,7 +134,7 @@ func TestRegisterHTTPHandlers_AddRepository(t *testing.T) {
 				Endpoints{
 					AddRepository: tt.endpoint,
 				},
-				handler.PathPrefix("/orgs/{orgId}/helmrepos").Subrouter())
+				handler.PathPrefix("/orgs/{orgId}/helm/repos").Subrouter())
 
 			ts := httptest.NewServer(handler)
 			defer ts.Close()
@@ -149,7 +149,7 @@ func TestRegisterHTTPHandlers_AddRepository(t *testing.T) {
 			body, err := json.Marshal(addRepoReq)
 			require.NoError(t, err)
 
-			resp, err := ts.Client().Post(fmt.Sprintf("%s/orgs/%d/helmrepos", ts.URL, 1), "application/json", bytes.NewReader(body))
+			resp, err := ts.Client().Post(fmt.Sprintf("%s/orgs/%d/helm/repos", ts.URL, 1), "application/json", bytes.NewReader(body))
 
 			require.NoError(t, err)
 			defer resp.Body.Close()
