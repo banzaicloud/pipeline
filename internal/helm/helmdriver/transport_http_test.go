@@ -104,7 +104,7 @@ func TestRegisterHTTPHandlers_AddRepository(t *testing.T) {
 			endpoint: func(ctx context.Context, request interface{}) (response interface{}, err error) {
 				return AddRepositoryResponse{}, nil
 			},
-			expectedStatusCode: http.StatusOK,
+			expectedStatusCode: http.StatusAccepted,
 		},
 		{
 			name: "failed to add helm repository (business error / validation)",

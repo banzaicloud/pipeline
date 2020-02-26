@@ -131,7 +131,7 @@ func Test_helmRepoStore_Delete(t *testing.T) {
 		}
 
 		err := store.Delete(context.Background(), 1, toBeDeleted)
-		require.Error(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Success", func(t *testing.T) {
