@@ -51,7 +51,7 @@ func (s *SecretStore) EnsureSecretExists(organizationID uint, sec clustersecret.
 
 	id, err := s.secrets.GetOrCreate(organizationID, createSecret)
 
-	return string(id), err
+	return id, err
 }
 
 // GetSecret gets a secret by name if it exists

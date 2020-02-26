@@ -110,11 +110,11 @@ func (c *pkeCreator) Create(ctx context.Context) error {
 	}
 
 	input := pkeworkflow.CreateClusterWorkflowInput{
-		OrganizationID:              uint(c.cluster.GetOrganizationId()),
-		ClusterID:                   uint(c.cluster.GetID()),
+		OrganizationID:              c.cluster.GetOrganizationId(),
+		ClusterID:                   c.cluster.GetID(),
 		ClusterUID:                  c.cluster.GetUID(),
 		ClusterName:                 c.cluster.GetName(),
-		SecretID:                    string(c.cluster.GetSecretId()),
+		SecretID:                    c.cluster.GetSecretId(),
 		Region:                      c.cluster.GetLocation(),
 		PipelineExternalURL:         externalBaseURL,
 		PipelineExternalURLInsecure: externalBaseURLInsecure,

@@ -98,7 +98,7 @@ type SecretItemResponse struct {
 
 // ValidateSecretType validates the secret type
 func ValidateSecretType(s *SecretItemResponse, validType string) error {
-	if string(s.Type) != validType {
+	if s.Type != validType {
 		return MismatchError{
 			SecretType: s.Type,
 			ValidType:  validType,
@@ -109,7 +109,7 @@ func ValidateSecretType(s *SecretItemResponse, validType string) error {
 
 // GenerateSecretIDFromName generates a "unique by name per organization" id for Secrets
 func GenerateSecretIDFromName(name string) string {
-	return string(fmt.Sprintf("%x", sha256.Sum256([]byte(name))))
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(name)))
 }
 
 // GenerateSecretID generates a "unique by name per organization" id for Secrets
