@@ -56,6 +56,7 @@ type Service interface {
 	// ListRepositories lists Helm repositories.
 	ListRepositories(ctx context.Context, organizationID uint) (repos []Repository, err error)
 
+	// ListRepositories deletes a Helm repository
 	DeleteRepository(ctx context.Context, organizationID uint, repoName string) error
 
 	// GetRepositoryIndex(ctx context.Context, organizationID uint, repoName string) (index []byte, err error)
