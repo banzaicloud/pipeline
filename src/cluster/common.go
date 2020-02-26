@@ -160,7 +160,7 @@ func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "can't decode Kubernetes config")
 		}
-		loadedConfig = []byte(configStr)
+		loadedConfig = configStr
 
 		c.config = loadedConfig
 	}

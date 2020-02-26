@@ -52,7 +52,6 @@ linters:
         - prealloc
         - scopelint
         - stylecheck
-        - unconvert
         - unparam
 
     fast: false

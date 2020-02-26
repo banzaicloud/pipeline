@@ -525,14 +525,14 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 	}
 
 	input := pkeworkflow.UpdateClusterWorkflowInput{
-		ClusterID:                   uint(c.GetID()),
+		ClusterID:                   c.GetID(),
 		NodePoolsToAdd:              nodePoolsToAdd,
 		NodePoolsToUpdate:           nodePoolsToUpdate,
 		NodePoolsToDelete:           nodePoolsToDelete,
-		OrganizationID:              uint(c.GetOrganizationId()),
+		OrganizationID:              c.GetOrganizationId(),
 		ClusterUID:                  c.GetUID(),
 		ClusterName:                 c.GetName(),
-		SecretID:                    string(c.GetSecretId()),
+		SecretID:                    c.GetSecretId(),
 		Region:                      c.GetLocation(),
 		PipelineExternalURL:         externalBaseURL,
 		PipelineExternalURLInsecure: externalBaseURLInsecure,
@@ -576,7 +576,7 @@ func (c *EC2ClusterPKE) DeleteCluster() error {
 
 func (c *EC2ClusterPKE) DeletePKECluster(ctx context.Context, workflowClient client.Client) error {
 	input := pkeworkflow.DeleteClusterWorkflowInput{
-		ClusterID: uint(c.GetID()),
+		ClusterID: c.GetID(),
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",

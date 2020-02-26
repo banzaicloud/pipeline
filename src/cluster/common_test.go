@@ -252,7 +252,7 @@ var (
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
 		Cloud:    pkgCluster.Azure,
-		SecretId: string(clusterRequestSecretId),
+		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterAKS: &aks.CreateClusterAKS{
 				ResourceGroup:     clusterRequestRG,
@@ -275,7 +275,7 @@ var (
 		Name:     clusterRequestName,
 		Location: "",
 		Cloud:    pkgCluster.Azure,
-		SecretId: string(clusterRequestSecretId),
+		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterAKS: &aks.CreateClusterAKS{
 				ResourceGroup:     clusterRequestRG,
@@ -294,7 +294,7 @@ var (
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
 		Cloud:    pkgCluster.Amazon,
-		SecretId: string(clusterRequestSecretId),
+		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterEKS: &eks.CreateClusterEKS{
 				Version: clusterRequestKubernetesEKS,
@@ -317,7 +317,7 @@ var (
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
 		Cloud:    pkgCluster.Dummy,
-		SecretId: string(clusterRequestSecretId),
+		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterDummy: &dummy.CreateClusterDummy{
 				Node: &dummy.Node{
@@ -332,7 +332,7 @@ var (
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
 		Cloud:    pkgCluster.Kubernetes,
-		SecretId: string(clusterRequestSecretId),
+		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterKubernetes: &kubernetes.CreateClusterKubernetes{
 				Metadata: map[string]string{
@@ -346,7 +346,7 @@ var (
 		Name:     clusterRequestName,
 		Location: "",
 		Cloud:    pkgCluster.Kubernetes,
-		SecretId: string(clusterRequestSecretId),
+		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterKubernetes: &kubernetes.CreateClusterKubernetes{
 				Metadata: map[string]string{
@@ -360,7 +360,7 @@ var (
 		Name:       clusterRequestName,
 		Location:   clusterRequestLocation,
 		Cloud:      "nonExistsCloud",
-		SecretId:   string(clusterRequestSecretId),
+		SecretId:   clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{},
 	}
 )

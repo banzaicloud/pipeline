@@ -195,7 +195,7 @@ func (scm *gitHubSCM) AddContentToRepository(owner, name string, spotguideConten
 
 			blobSHA = blob.SHA
 		} else {
-			blobContent = github.String(string(repoFile.Content))
+			blobContent = github.String(repoFile.Content)
 		}
 
 		entry := github.TreeEntry{
