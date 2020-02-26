@@ -264,7 +264,6 @@ func StartTokenStoreGC(tokenStore bauth.TokenStore) {
 
 // Install the whole OAuth and JWT Token based authn/authz mechanism to the specified Gin Engine.
 func Install(engine *gin.Engine) {
-
 	// We have to make the raw net/http handlers a bit Gin-ish
 	authHandler := gin.WrapH(Auth.NewServeMux())
 	engine.Use(gin.WrapH(SessionManager.Middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))))
@@ -292,7 +291,6 @@ type BanzaiSessionStorer struct {
 
 // Update updates the BanzaiSessionStorer
 func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *http.Request, claims *claims.Claims) error {
-
 	// Get the current user object, in this early stage this is how to get it
 	context := &auth.Context{Auth: Auth, Claims: claims, Request: req}
 	user, err := Auth.UserStorer.Get(claims, context)

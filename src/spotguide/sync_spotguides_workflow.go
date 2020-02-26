@@ -40,7 +40,6 @@ func (a ScrapeSharedSpotguidesActivity) Execute(_ context.Context) error {
 }
 
 func ScrapeSharedSpotguidesWorkflow(ctx workflow.Context) error {
-
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 5 * time.Minute,
 		StartToCloseTimeout:    10 * time.Minute,

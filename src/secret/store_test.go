@@ -24,7 +24,6 @@ import (
 )
 
 func TestCreateSecretValidate(t *testing.T) {
-
 	cases := []struct {
 		name     string
 		request  secret.CreateSecretRequest
@@ -55,10 +54,8 @@ func TestCreateSecretValidate(t *testing.T) {
 			} else if tc.isError {
 				t.Errorf("Not occours error")
 			}
-
 		})
 	}
-
 }
 
 const (

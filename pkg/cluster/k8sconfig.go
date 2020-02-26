@@ -291,5 +291,4 @@ func CreateDummyConfig() *KubeConfig {
 		CurrentContext: "federal-context",
 		Kind:           "Config",
 	}
-
 }

@@ -27,7 +27,6 @@ type outputSecretInstallManagerAzure struct {
 }
 
 func (m outputSecretInstallManagerAzure) generateSecretRequest(secretValues map[string]string, spec bucketSpec) (*pkgCluster.InstallSecretRequest, error) {
-
 	credentials := *azure.NewCredentials(secretValues)
 
 	storageAccountClient, err := azureObjectstore.NewAuthorizedStorageAccountClientFromSecret(credentials)

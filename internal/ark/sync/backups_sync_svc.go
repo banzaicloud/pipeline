@@ -39,7 +39,6 @@ type BackupsSyncService struct {
 
 // NewBackupsSyncService returns an initialized BackupsSyncService
 func NewBackupsSyncService(org *auth.Organization, db *gorm.DB, logger logrus.FieldLogger) *BackupsSyncService {
-
 	s := &BackupsSyncService{
 		org:    org,
 		db:     db,
@@ -54,7 +53,6 @@ func NewBackupsSyncService(org *auth.Organization, db *gorm.DB, logger logrus.Fi
 
 // SyncBackups syncs backups between Pipeline DB and ARK for every Cluster within the Org
 func (s *BackupsSyncService) SyncBackups(clusterManager api.ClusterManager) error {
-
 	// delete backups stored removed buckets
 	s.logger.Debug("delete backups of removed buckets")
 	err := ark.BackupsServiceFactory(s.org, s.db, s.logger).DeleteBackupsWithoutBucket()

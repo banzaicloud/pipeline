@@ -119,6 +119,5 @@ func (a WaitPersistentVolumesDeletionActivity) Execute(ctx context.Context, inpu
 		case <-ctx.Done():
 			return
 		}
-
 	}
 }

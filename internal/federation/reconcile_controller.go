@@ -54,7 +54,6 @@ func (m *FederationReconciler) ReconcileController(desiredState DesiredState) er
 		if err != nil {
 			return errors.WrapIf(err, "could not remove Federation controller")
 		}
-
 	}
 
 	return nil
@@ -164,7 +163,6 @@ func (m *FederationReconciler) federatedResourcesExists(resource *metav1.APIReso
 }
 
 func (m *FederationReconciler) deleteFederatedResources(resource *metav1.APIResource) error {
-
 	m.logger.Debugf("start deleting resource %s", resource.Name)
 	defer m.logger.Debugf("finished deleting resource %s", resource.Name)
 
@@ -202,7 +200,6 @@ func (m *FederationReconciler) deleteFederatedResources(resource *metav1.APIReso
 }
 
 func (m *FederationReconciler) removeFederationCRDs(all bool) error {
-
 	m.logger.Debug("start deleting Federation CRD's")
 	defer m.logger.Debug("finished deleting Federation CRD's")
 

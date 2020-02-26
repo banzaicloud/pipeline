@@ -364,7 +364,6 @@ var testLaunchRequestJSON = `{
 }`
 
 func TestCICDRepoConfigPipeline(t *testing.T) {
-
 	launchRequest := LaunchRequest{}
 	err := json.Unmarshal([]byte(testLaunchRequestJSON), &launchRequest)
 
@@ -481,7 +480,6 @@ pipeline:
 `
 
 func TestCICDRepoConfigPipelineClusterBlock(t *testing.T) {
-
 	config := cicdRepoConfig{}
 	yaml.Unmarshal([]byte(testClusterPipelineYAML), &config) // nolint: errcheck
 

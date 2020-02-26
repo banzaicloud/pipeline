@@ -82,7 +82,6 @@ func (c *DummyCluster) GetDistribution() string {
 
 // GetStatus gets cluster status
 func (c *DummyCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-
 	return &pkgCluster.GetClusterStatusResponse{
 		Status:            c.modelCluster.Status,
 		StatusMessage:     c.modelCluster.StatusMessage,

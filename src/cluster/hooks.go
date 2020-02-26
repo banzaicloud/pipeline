@@ -113,7 +113,6 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 	var valuesJson []byte
 
 	if cluster.RbacEnabled() {
-
 		// create service account
 		kubeConfig, err := cluster.GetK8sConfig()
 		if err != nil {
@@ -211,11 +210,9 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 		if err != nil {
 			return err
 		}
-
 	}
 
 	return installDeployment(cluster, k8sDashboardNameSpace, config.Chart, k8sDashboardReleaseName, valuesJson, config.Version, false)
-
 }
 
 // InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
@@ -297,7 +294,6 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 
 // RestoreFromBackup restores an ARK backup
 func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) error {
-
 	var params arkAPI.RestoreFromBackupParams
 	err := castToPostHookParam(param, &params)
 	if err != nil {

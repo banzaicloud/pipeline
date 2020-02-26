@@ -82,7 +82,6 @@ func ListAllBuckets(c *gin.Context) {
 	logger.Debug("proceeding to listing managed buckets")
 	ListManagedBuckets(c)
 	return
-
 }
 
 // ListBuckets returns the list of object storage buckets (object storage container in case of Azure)
@@ -138,7 +137,6 @@ func ListBuckets(c *gin.Context) {
 
 // ListManagedBuckets lists managed buckets for the user when no secret is provided
 func ListManagedBuckets(c *gin.Context) {
-
 	logger := correlationid.Logger(log, c)
 	organization := auth.GetCurrentOrganization(c.Request)
 
@@ -180,7 +178,6 @@ func ListManagedBuckets(c *gin.Context) {
 		}
 
 		allBuckets = append(allBuckets, bucketList...)
-
 	}
 
 	c.JSON(http.StatusOK, bucketsResponse(allBuckets, organization.ID, includeSecret))
@@ -388,7 +385,6 @@ func CheckBucket(c *gin.Context) {
 // DeleteBucket deletes object storage buckets (object storage container in case of Azure)
 // that can be accessed with the credentials from the given secret
 func DeleteBucket(c *gin.Context) {
-
 	const (
 		forceQueryKey = "force"
 	)
@@ -578,7 +574,6 @@ func bucketsResponse(buckets []*objectstore.BucketInfo, orgid uint, withSecretNa
 	}
 
 	return bucketItems
-
 }
 
 // bucketController gathers bucket related operations / helpers
@@ -588,7 +583,6 @@ type bucketController struct {
 // GetBucket handler for retrieving bucket details by name
 // it retrieves all the managed buckets and filters them by name
 func GetBucket(c *gin.Context) {
-
 	logger := correlationid.Logger(log, c)
 
 	bucketName := c.Param("name")
@@ -658,7 +652,6 @@ func GetBucket(c *gin.Context) {
 	ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(BucketNotFoundError{errMessage: fmt.Sprintf("bucket with name: %s not found", bucketName)}))
 
 	return
-
 }
 
 // SecretNotFoundError signals that a given bucket was not found
@@ -691,7 +684,6 @@ func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, orgid uint,
 	}
 
 	if withSecretName {
-
 		// get the secret name from the store if requested
 		if secretResponse, err := secret.Store.Get(orgid, bi.SecretRef); err == nil {
 			secretName = secretResponse.Name
@@ -713,7 +705,6 @@ func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, orgid uint,
 				notes = err.Error()
 			}
 		}
-
 	}
 
 	ret := BucketResponseItem{
@@ -770,7 +761,6 @@ func (bc *bucketController) queryData(ginCtx *gin.Context) (*BucketQueryData, er
 func (bc *bucketController) filterBuckets(buckets []*objectstore.BucketInfo, bucketName string, qd BucketQueryData) ([]*objectstore.BucketInfo, error) {
 	ret := make([]*objectstore.BucketInfo, 0)
 	for _, bucket := range buckets {
-
 		if bucketName != "" {
 			if bucket.Name != bucketName {
 				continue
@@ -815,7 +805,6 @@ func (qd *BucketQueryData) withSecretName() bool {
 
 // withSecretName computes the need for including secret names in the response
 func (qd *BucketQueryData) validateForGetBucket() error {
-
 	if len(qd.CloudType) != 1 {
 		return errors.New("cloudType query parameter is mandatory")
 	}

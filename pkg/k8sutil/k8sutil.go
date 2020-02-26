@@ -192,7 +192,6 @@ func GetResourceQuantityInBytes(q *resource.Quantity) int {
 }
 
 func formatQuantity(q *resource.Quantity) string {
-
 	if q.IsZero() {
 		return "0"
 	}
@@ -232,7 +231,6 @@ func formatQuantity(q *resource.Quantity) string {
 }
 
 func formatCPUQuantity(q *resource.Quantity) string {
-
 	if q.IsZero() {
 		return "0"
 	}
@@ -256,7 +254,6 @@ func formatCPUQuantity(q *resource.Quantity) string {
 	}
 
 	return fmt.Sprintf("%s CPU", string(number))
-
 }
 
 // IsK8sErrorPermanent checks if the given error is permanent error or not

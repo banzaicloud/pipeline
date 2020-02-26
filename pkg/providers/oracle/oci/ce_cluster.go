@@ -26,7 +26,6 @@ import (
 
 // CreateCluster creates an OKE cluster specified in the request
 func (ce *ContainerEngine) CreateCluster(request containerengine.CreateClusterRequest) (clusterOCID string, err error) {
-
 	response, err := ce.client.CreateCluster(context.Background(), request)
 	if err != nil {
 		return clusterOCID, err
@@ -50,7 +49,6 @@ func (ce *ContainerEngine) CreateCluster(request containerengine.CreateClusterRe
 
 // UpdateCluster updates an OKE cluster specified in the request
 func (ce *ContainerEngine) UpdateCluster(request containerengine.UpdateClusterRequest) (clusterOCID string, err error) {
-
 	response, err := ce.client.UpdateCluster(context.Background(), request)
 	if err != nil {
 		return clusterOCID, err
@@ -74,7 +72,6 @@ func (ce *ContainerEngine) UpdateCluster(request containerengine.UpdateClusterRe
 
 // DeleteCluster removes an OKE cluster specified in the request
 func (ce *ContainerEngine) DeleteCluster(request containerengine.DeleteClusterRequest) (err error) {
-
 	response, err := ce.client.DeleteCluster(context.Background(), request)
 	if err != nil {
 		return err
@@ -94,7 +91,6 @@ func (ce *ContainerEngine) DeleteCluster(request containerengine.DeleteClusterRe
 
 // GetCluster gets a Cluster by id
 func (ce *ContainerEngine) GetClusterByID(id *string) (cluster containerengine.Cluster, err error) {
-
 	response, err := ce.client.GetCluster(context.Background(), containerengine.GetClusterRequest{
 		ClusterId: id,
 	})
@@ -107,7 +103,6 @@ func (ce *ContainerEngine) GetClusterByID(id *string) (cluster containerengine.C
 
 // GetClusterByName gets a Cluster by name within a Compartment
 func (ce *ContainerEngine) GetClusterByName(name string) (cluster containerengine.ClusterSummary, err error) {
-
 	clusters, err := ce.GetClustersByName(name)
 	if err != nil {
 		return cluster, err
@@ -126,7 +121,6 @@ func (ce *ContainerEngine) GetClusterByName(name string) (cluster containerengin
 
 // GetClustersByName gets all Clusters by name within a Compartment
 func (ce *ContainerEngine) GetClustersByName(name string) (clusters []containerengine.ClusterSummary, err error) {
-
 	if name == "" {
 		return clusters, errors.New("cluster name must not be empty")
 	}
@@ -150,7 +144,6 @@ func (ce *ContainerEngine) GetClustersByName(name string) (clusters []containere
 
 // GetClusters gets all Clusters within the Compartment
 func (ce *ContainerEngine) GetClusters() (clusters []containerengine.ClusterSummary, err error) {
-
 	request := containerengine.ListClustersRequest{
 		CompartmentId: common.String(ce.CompartmentOCID),
 	}
@@ -187,11 +180,9 @@ const okeSleepForNodepoolActive = 30 * time.Second
 // WaitingForClusterNodePoolActiveState waits until every node in the existing pools is in ACTIVE state
 // only checks node pools specified in nodepoolNamesToCheck if any
 func (ce *ContainerEngine) WaitingForClusterNodePoolActiveState(clusterID *string, nodepoolNamesToCheck map[string]bool) error {
-
 	ce.oci.logger.Info("Waiting for all nodepools state to be ACTIVE on all nodes")
 
 	for i := 0; i <= okeWaitAttemptsForNodepoolActive; i++ {
-
 		time.Sleep(okeSleepForNodepoolActive)
 
 		nodePools, err := ce.GetNodePools(clusterID)
@@ -220,7 +211,6 @@ func (ce *ContainerEngine) WaitingForClusterNodePoolActiveState(clusterID *strin
 
 // FilterClustersByNotInState filter cluster list by cluster state
 func (ce *ContainerEngine) FilterClustersByNotInState(clusters []containerengine.ClusterSummary, state containerengine.ClusterSummaryLifecycleStateEnum) (filteredClusters []containerengine.ClusterSummary) {
-
 	for _, cluster := range clusters {
 		if cluster.LifecycleState != state {
 			filteredClusters = append(filteredClusters, cluster)

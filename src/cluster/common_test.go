@@ -107,7 +107,6 @@ func init() {
 }
 
 func TestCreateCommonClusterFromRequest(t *testing.T) {
-
 	labelValidator := kubernetes2.LabelValidator{
 		ForbiddenDomains: []string{},
 	}
@@ -132,11 +131,9 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-
 			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createRequest, organizationId, userId)
 
 			if tc.expectedError != nil {
-
 				if err != nil {
 					if !reflect.DeepEqual(tc.expectedError, err) {
 						t.Errorf("Expected model: %v, got: %v", tc.expectedError, err)
@@ -145,7 +142,6 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 					t.Errorf("Expected error: %s, but not got error!", tc.expectedError.Error())
 					t.FailNow()
 				}
-
 			} else {
 				if err != nil {
 					t.Errorf("Error during CreateCommonClusterFromRequest: %s", err.Error())
@@ -161,14 +157,11 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 					t.Errorf("Expected model: %v, got: %v", tc.expectedModel, modelAccessor.GetModel())
 				}
 			}
-
 		})
 	}
-
 }
 
 func TestGKEKubernetesVersion(t *testing.T) {
-
 	testCases := []struct {
 		name    string
 		version string
@@ -206,14 +199,11 @@ func TestGKEKubernetesVersion(t *testing.T) {
 			if !reflect.DeepEqual(tc.error, err) {
 				t.Errorf("Expected error: %#v, got: %#v", tc.error, err)
 			}
-
 		})
 	}
-
 }
 
 func TestGetSecretWithValidation(t *testing.T) {
-
 	cases := []struct {
 		name                 string
 		secretRequest        secret.CreateSecretRequest
@@ -226,7 +216,6 @@ func TestGetSecretWithValidation(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-
 			if secretID, err := secret.Store.Store(organizationId, &tc.secretRequest); err != nil {
 				t.Errorf("Error during saving secret: %s", err.Error())
 				t.FailNow()
@@ -255,7 +244,6 @@ func TestGetSecretWithValidation(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 // nolint: gochecknoglobals

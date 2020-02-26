@@ -109,7 +109,6 @@ func (a *NodePool) Validate(npName string) error {
 		if a.MaxCount == 0 {
 			return pkgErrors.ErrorMaxFieldRequiredError
 		}
-
 	} else {
 		// ---- [ Node min count check ] ---- //
 		if a.MinCount == 0 {
@@ -150,13 +149,11 @@ func (a *NodePool) Validate(npName string) error {
 
 // ValidateForUpdate checks Amazon's node fields
 func (a *NodePool) ValidateForUpdate(npName string) error {
-
 	// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
 	if a.Autoscaling {
 		if a.MaxCount == 0 {
 			return pkgErrors.ErrorMaxFieldRequiredError
 		}
-
 	} else {
 		// ---- [ Node min count check ] ---- //
 		if a.MinCount == 0 {
@@ -269,7 +266,6 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 // Validate validates the update request (only EKS part). If any of the fields is missing, the method fills
 // with stored data.
 func (eks *UpdateClusterAmazonEKS) Validate() error {
-
 	// ---- [ Amazon EKS field check ] ---- //
 	if eks == nil {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
@@ -303,7 +299,6 @@ func isValidVersion(version string) (bool, error) {
 
 	// TODO check if there is an AWS API that can tell us supported Kubernetes versions
 	return constraint.Check(v), nil
-
 }
 
 // CertificateAuthority is a helper struct for AWS kube config JSON parsing

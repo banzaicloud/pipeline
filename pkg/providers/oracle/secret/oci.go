@@ -45,7 +45,6 @@ func CreateOCICredential(values map[string]string) *oci.Credential {
 
 // VerifySecret validates OCI credentials
 func (a *OCIVerify) VerifySecret() (err error) {
-
 	client, err := oci.NewOCI(a.credential)
 	if err != nil {
 		return err

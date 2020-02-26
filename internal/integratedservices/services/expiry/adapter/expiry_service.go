@@ -45,7 +45,6 @@ func NewAsyncExpiryService(cadenceClient client.Client, logger common.Logger) ex
 }
 
 func (a asyncExpiryService) Expire(ctx context.Context, clusterID uint, expiryDate string) error {
-
 	startToCloseTimeout, err := expiry.CalculateDuration(time.Now(), expiryDate)
 	if err != nil {
 		return err
@@ -77,9 +76,7 @@ func (a asyncExpiryService) Expire(ctx context.Context, clusterID uint, expiryDa
 }
 
 func (a asyncExpiryService) CancelExpiry(ctx context.Context, clusterID uint) error {
-
 	if err := a.cadenceClient.TerminateWorkflow(ctx, getWorkflowID(clusterID), "", "expiration service cancelled", nil); err != nil {
-
 		if !IsEntityNotExistsError(err) {
 			return errors.WrapIfWithDetails(err, "failed to cancel the expiry workflow", "clusterID", clusterID)
 		}
@@ -91,7 +88,6 @@ func (a asyncExpiryService) CancelExpiry(ctx context.Context, clusterID uint) er
 
 // computes the unique workflow id for the cluster (clusterID is unique in the system)
 func getWorkflowID(clusterID uint) string {
-
 	return fmt.Sprintf("%s-%d", workflow.ExpiryJobWorkflowName, clusterID)
 }
 

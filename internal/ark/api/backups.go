@@ -126,7 +126,6 @@ type BackupOptions struct {
 
 // UnmarshalJSON is a custom JSON unmarshal function for labelSelector parsing
 func (bo *BackupOptions) UnmarshalJSON(data []byte) error {
-
 	type Alias BackupOptions
 	aux := &struct {
 		LabelSelector string `json:"labelSelector"`
@@ -153,7 +152,6 @@ func (bo *BackupOptions) UnmarshalJSON(data []byte) error {
 
 // ExtendFromLabels used for set information to the request from the labels of the Backup
 func (req *PersistBackupRequest) ExtendFromLabels() {
-
 	if len(req.Backup.Labels) < 1 {
 		return
 	}

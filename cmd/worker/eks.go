@@ -25,7 +25,6 @@ import (
 )
 
 func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *adapter.ClusterManagerAdapter) error {
-
 	vpcTemplate, err := eksworkflow.GetVPCTemplate()
 	if err != nil {
 		return errors.WrapIf(err, "failed to get CloudFormation template for VPC")

@@ -21,7 +21,6 @@ import (
 )
 
 func TestRandomString(t *testing.T) {
-
 	cases := []struct {
 		name    string
 		genType string
@@ -48,8 +47,6 @@ func TestRandomString(t *testing.T) {
 			if len(result) != tc.length {
 				t.Errorf("result length mismatch")
 			}
-
 		})
 	}
-
 }

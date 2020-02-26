@@ -219,7 +219,6 @@ func (a *ClusterAPI) ClusterCheck(c *gin.Context) {
 
 // GetPodDetails returns all pods with details
 func GetPodDetails(c *gin.Context) {
-
 	commonCluster, isOk := getClusterFromRequest(c)
 	if !isOk {
 		return
@@ -237,11 +236,9 @@ func GetPodDetails(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
-
 }
 
 func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDetailsResponse, err error) {
-
 	log.Info("get K8S config")
 	var kubeConfig []byte
 	kubeConfig, err = commonCluster.GetK8sConfig()
@@ -287,7 +284,6 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 	}
 
 	return
-
 }
 
 type InternalClusterAPI struct {
@@ -456,7 +452,6 @@ func InstallSecretsToCluster(c *gin.Context) {
 
 // ProxyToCluster sets up a proxy and forwards all requests to the cluster's API server.
 func (a *ClusterAPI) ProxyToCluster(c *gin.Context) {
-
 	commonCluster, ok := getClusterFromRequest(c)
 	if !ok {
 		return

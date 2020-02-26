@@ -192,7 +192,6 @@ func (a anchoreClient) DeleteUser(ctx context.Context, accountName string, userN
 }
 
 func (a anchoreClient) authorizedContext(ctx context.Context) context.Context {
-
 	basicAuth := anchore.BasicAuth{
 		UserName: a.userName,
 		Password: a.password,
@@ -202,7 +201,6 @@ func (a anchoreClient) authorizedContext(ctx context.Context) context.Context {
 }
 
 func (a anchoreClient) getRestClient() *anchore.APIClient {
-
 	return anchore.NewAPIClient(&anchore.Configuration{
 		BasePath:      a.endpoint,
 		DefaultHeader: make(map[string]string),
@@ -215,7 +213,6 @@ func (a anchoreClient) getRestClient() *anchore.APIClient {
 // notation differences
 // WARNING: Time values are lost during transformation, possible fix: https://github.com/mitchellh/mapstructure/issues/159
 func (a anchoreClient) transform(fromType interface{}, toType interface{}) error {
-
 	if err := mapstructure.Decode(fromType, toType); err != nil {
 		return errors.WrapIf(err, "failed to unmarshal to 'toType' type")
 	}

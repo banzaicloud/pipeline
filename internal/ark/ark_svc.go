@@ -40,7 +40,6 @@ type Service struct {
 
 // NewARKService returns a new ARKService instance
 func NewARKService(org *auth.Organization, cluster api.Cluster, db *gorm.DB, logger logrus.FieldLogger) *Service {
-
 	backups := BackupsServiceFactory(org, db, logger)
 	buckets := BucketsServiceFactory(org, db, logger)
 	deployments := DeploymentsServiceFactory(org, cluster, db, logger)

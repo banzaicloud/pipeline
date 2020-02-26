@@ -111,7 +111,6 @@ func (rm ResourceMetric) validateResourceMetric() error {
 		targetValue := int32(int64Value)
 		if targetValue <= 0 || targetValue > 100 {
 			return fmt.Errorf("invalid percentage value specified: %v (Percentage value shoud be between [1,99]", targetValue)
-
 		}
 	case QuantityValueType:
 		_, err := resource.ParseQuantity(rm.TargetAverageValue)

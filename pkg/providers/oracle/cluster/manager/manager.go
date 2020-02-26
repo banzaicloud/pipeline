@@ -26,7 +26,6 @@ type ClusterManager struct {
 
 // NewClusterManager creates a new ClusterManager
 func NewClusterManager(oci *oci.OCI) *ClusterManager {
-
 	return &ClusterManager{
 		oci: oci,
 	}
@@ -34,7 +33,6 @@ func NewClusterManager(oci *oci.OCI) *ClusterManager {
 
 // ManageOKECluster manages an OKE cluster specified in a model.Cluster
 func (cm *ClusterManager) ManageOKECluster(clusterModel *model.Cluster) error {
-
 	// Creating
 	if clusterModel.OCID == "" && !clusterModel.Delete {
 		return cm.CreateCluster(clusterModel)

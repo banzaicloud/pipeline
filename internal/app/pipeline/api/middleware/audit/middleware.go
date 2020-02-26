@@ -78,14 +78,12 @@ func LogWriter(
 		var body *string
 
 		if len(rawBody) > 0 {
-
 			if !json.Valid(rawBody) {
 				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error ": "invalid JSON in body"})
 				return
 			}
 
 			if strings.Contains(path, "/secrets") || strings.Contains(path, "/spotguides") {
-
 				var request struct {
 					*secret.CreateSecretRequest
 					*spotguide.LaunchRequest
@@ -124,9 +122,7 @@ func LogWriter(
 
 				newBodyString := string(newBody)
 				body = &newBodyString
-
 			} else {
-
 				newBodyString := string(rawBody)
 				body = &newBodyString
 			}

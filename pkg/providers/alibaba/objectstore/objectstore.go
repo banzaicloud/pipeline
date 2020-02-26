@@ -309,7 +309,6 @@ func (o *objectStore) getClientForLocation(location string) (*oss.Client, error)
 }
 
 func (o *objectStore) convertError(err error) error {
-
 	if ossErr, ok := err.(oss.ServiceError); ok {
 		switch ossErr.Code {
 		case "BucketAlreadyExists":

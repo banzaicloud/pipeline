@@ -106,7 +106,6 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 			if err := workflow.ExecuteActivity(ctx, GetOwnedELBsActivityName, activityInput).Get(ctx, &ownedELBsOutput); err != nil {
 				return err
 			}
-
 		}
 
 		// wait for ELBs to be releases by EKS
@@ -202,7 +201,6 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 		// delete orphan NIC's
 		deleteNICFutures := make([]workflow.Future, 0)
 		for _, nicID := range getNicsOutput.NicList {
-
 			activityInput := DeleteOrphanNICActivityInput{
 				EKSActivityInput: eksActivityInput,
 				NicID:            nicID,
@@ -242,7 +240,6 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	// delete subnets
 	deleteSubnetFutures := make([]workflow.Future, 0)
 	for _, subnetStackName := range subnetStackOutput.StackNames {
-
 		activityInput := DeleteStackActivityInput{
 			EKSActivityInput: eksActivityInput,
 			StackName:        subnetStackName,

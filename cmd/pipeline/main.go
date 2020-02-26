@@ -773,7 +773,6 @@ func main() {
 					cRouter.Any("/nodepools", gin.WrapH(router))
 					cRouter.Any("/nodepools/:nodePoolName", gin.WrapH(router))
 				}
-
 			}
 
 			clusterSecretStore := clustersecret.NewStore(

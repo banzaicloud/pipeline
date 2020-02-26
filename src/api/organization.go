@@ -199,7 +199,6 @@ func (a *OrganizationAPI) DeleteOrganization(c *gin.Context) {
 			Error:   message,
 		})
 	} else {
-
 		log.Infof("Clean org's helm home folder %s", deleteName)
 		if err := cluster.CleanHelmFolder(deleteName); err != nil {
 			log.Errorf("Helm home cleaning failed: %s", err.Error())

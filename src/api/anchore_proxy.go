@@ -162,7 +162,6 @@ func (ap AnchoreProxy) buildReverseProxy(ctx context.Context, proxyPath string, 
 func (ap AnchoreProxy) idFromPath(c *gin.Context, paramKey string) (uint, error) {
 	id, err := strconv.ParseUint(c.Param(paramKey), 0, 64)
 	if err != nil {
-
 		return 0, errors.WrapIf(err, "failed to get id from request path")
 	}
 

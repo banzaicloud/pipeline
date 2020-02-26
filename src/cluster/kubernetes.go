@@ -38,7 +38,6 @@ const RBAC_API_VERSION = "rbac.authorization.k8s.io"
 
 // CreateKubernetesClusterFromRequest creates ClusterModel struct from the request
 func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*KubeCluster, error) {
-
 	cluster := KubeCluster{
 		log: log.WithField("cluster", request.Name),
 	}
@@ -57,7 +56,6 @@ func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest
 	}
 	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
 	return &cluster, nil
-
 }
 
 // KubeCluster struct for Build your own cluster
@@ -72,7 +70,6 @@ type KubeCluster struct {
 
 // CreateCluster creates a new cluster
 func (c *KubeCluster) CreateCluster() error {
-
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return errors.WrapIf(err, "couldn't get Kubernetes config")
@@ -150,7 +147,6 @@ func (c *KubeCluster) GetDistribution() string {
 
 // GetStatus gets cluster status
 func (c *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-
 	if len(c.modelCluster.Location) == 0 {
 		c.log.Debug("Empty location.. reload from db")
 		// reload from db
@@ -229,7 +225,6 @@ func (c *KubeCluster) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
 
 // GetAPIEndpoint returns the Kubernetes Api endpoint
 func (c *KubeCluster) GetAPIEndpoint() (string, error) {
-
 	if c.APIEndpoint != "" {
 		return c.APIEndpoint, nil
 	}
@@ -336,7 +331,6 @@ func (c *KubeCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 // isRBACEnabled determines if RBAC is enabled on the Kubernetes cluster by investigating if list of
 // api versions enabled on the API server contains 'rbac`
 func (c *KubeCluster) isRBACEnabled(client *kubernetes.Clientset) (bool, error) {
-
 	apiGroups, err := client.ServerGroups()
 	if err != nil {
 		return false, errors.WrapIf(err, "couldn't retrieve Kubernetes API groups")

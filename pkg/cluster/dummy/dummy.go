@@ -32,7 +32,6 @@ type UpdateClusterDummy struct {
 
 // Validate validates cluster create request
 func (d *CreateClusterDummy) Validate() error {
-
 	if d.Node == nil {
 		d.Node = &Node{
 			KubernetesVersion: "DummyKubernetesVersion",

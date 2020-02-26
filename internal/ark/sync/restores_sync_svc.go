@@ -43,7 +43,6 @@ func NewRestoresSyncService(
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) *RestoresSyncService {
-
 	return &RestoresSyncService{
 		org:    org,
 		db:     db,
@@ -53,7 +52,6 @@ func NewRestoresSyncService(
 
 // SyncRestores syncs restores from ARK for every cluster within the organization
 func (s *RestoresSyncService) SyncRestores(clusterManager api.ClusterManager) error {
-
 	clusters, err := clusterManager.GetClusters(context.Background(), s.org.ID)
 	if err != nil {
 		return err
@@ -82,7 +80,6 @@ func (s *RestoresSyncService) SyncRestores(clusterManager api.ClusterManager) er
 }
 
 func (s *RestoresSyncService) SyncRestoresForCluster(cluster api.Cluster) error {
-
 	deployments := ark.DeploymentsServiceFactory(s.org, cluster, s.db, s.logger)
 
 	deployment, err := deployments.GetActiveDeployment()
@@ -113,7 +110,6 @@ func (s *RestoresSyncService) syncRestore(
 	deployment *ark.ClusterBackupDeploymentsModel,
 	restore arkAPI.Restore,
 ) error {
-
 	log := s.logger.WithField("restore-name", restore.Name)
 	log.Debugf("syncing...")
 
@@ -145,7 +141,6 @@ func (s *RestoresSyncService) syncRestore(
 
 func (s *RestoresSyncService) getRestoreResultFromObjectStore(req *api.PersistRestoreRequest) (
 	*api.RestoreResults, error) {
-
 	bs := ark.BucketsServiceFactory(s.org, s.db, s.logger)
 	bucket, err := bs.GetByID(req.BucketID)
 	if err != nil {

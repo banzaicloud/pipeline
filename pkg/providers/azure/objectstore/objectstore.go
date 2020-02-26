@@ -391,7 +391,6 @@ func (o *objectStore) GetSignedURL(bucketName, key string, ttl time.Duration) (s
 }
 
 func (o *objectStore) convertError(err error) error {
-
 	if azureErr, ok := err.(azblob.StorageError); ok {
 		switch azureErr.ServiceCode() {
 		case azblob.ServiceCodeContainerAlreadyExists:

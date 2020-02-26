@@ -44,7 +44,6 @@ type Credential struct {
 
 // NewOCI creates a new OCI Config and gets and caches tenancy info
 func NewOCI(credential *Credential) (oci *OCI, err error) {
-
 	config := common.NewRawConfigurationProvider(credential.TenancyOCID, credential.UserOCID, credential.Region, credential.APIKeyFingerprint, credential.APIKey, common.String(credential.Password))
 
 	oci = &OCI{
@@ -62,7 +61,6 @@ func NewOCI(credential *Credential) (oci *OCI, err error) {
 
 // ChangeRegion changes region in the config to the specified one
 func (oci *OCI) ChangeRegion(regionName string) (err error) {
-
 	i, err := oci.NewIdentityClient()
 	if err != nil {
 		return err
@@ -83,19 +81,16 @@ func (oci *OCI) ChangeRegion(regionName string) (err error) {
 
 // SetLogger sets a logrus logger
 func (oci *OCI) SetLogger(logger logrus.FieldLogger) {
-
 	oci.logger = logger
 }
 
 // GetLogger gets the previously set logrus logger
 func (oci *OCI) GetLogger() logrus.FieldLogger {
-
 	return oci.logger
 }
 
 // Validate is validates the credentials by retrieving and checking the related tenancy information
 func (oci *OCI) Validate() error {
-
 	oci.GetTenancy() // nolint: errcheck
 
 	tenancyID, err := oci.config.TenancyOCID()
@@ -127,7 +122,6 @@ func (oci *OCI) Validate() error {
 
 // GetTenancy gets and caches tenancy info
 func (oci *OCI) GetTenancy() (t identity.Tenancy, err error) {
-
 	if oci.Tenancy.Id != nil {
 		return oci.Tenancy, nil
 	}
@@ -148,6 +142,5 @@ func (oci *OCI) GetTenancy() (t identity.Tenancy, err error) {
 
 // GetConfig gives back oci.config
 func (oci *OCI) GetConfig() common.ConfigurationProvider {
-
 	return oci.config
 }

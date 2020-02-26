@@ -56,7 +56,6 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 		params := updateRequest.ToAzurePKEClusterUpdateParams(commonCluster.GetID(), auth.GetCurrentUser(c.Request).ID)
 		err = a.clusterUpdaters.PKEOnAzure.Update(c, params)
 	} else {
-
 		// bind request body to UpdateClusterRequest struct
 		var updateRequest *pkgCluster.UpdateClusterRequest
 		if err := c.BindJSON(&updateRequest); err != nil {
@@ -90,7 +89,6 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 			)
 			err = a.clusterManager.UpdateCluster(ctx, updateCtx, updater)
 		}
-
 	}
 	if err != nil {
 		if isInvalid(err) || isInputValidationError(err) {

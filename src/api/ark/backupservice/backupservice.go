@@ -23,7 +23,6 @@ import (
 
 // AddRoutes adds ARK backups related API routes
 func AddRoutes(group *gin.RouterGroup) {
-
 	group.Use(common.ARKMiddleware(global.DB(), common.Log))
 	group.HEAD("/status", StatusDeprecated)
 	group.GET("/status", Status)

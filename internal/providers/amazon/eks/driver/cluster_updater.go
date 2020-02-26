@@ -65,7 +65,6 @@ func NewEksClusterUpdater(logger logrus.FieldLogger, workflowClient client.Clien
 }
 
 func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedNodePools map[string]*pkgEks.NodePool, userId uint) ([]*model.AmazonNodePoolsModel, error) {
-
 	currentNodePoolMap := make(map[string]*model.AmazonNodePoolsModel, len(eksCluster.GetModel().EKS.NodePools))
 	for _, nodePool := range eksCluster.GetModel().EKS.NodePools {
 		currentNodePoolMap[nodePool.Name] = nodePool
@@ -92,7 +91,6 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 				Labels:           nodePool.Labels,
 				Delete:           false,
 			})
-
 		} else {
 			// new node pool
 
@@ -154,7 +152,6 @@ func isDifferent(x interface{}, y interface{}) error {
 }
 
 func (c *EksClusterUpdater) validate(ctx context.Context, eksCluster *cluster.EKSCluster) error {
-
 	status, err := eksCluster.GetStatus()
 	if err != nil {
 		return errors.Wrap(err, "could not get Cluster status")
@@ -207,7 +204,6 @@ func (c *EksClusterUpdater) prepare(ctx context.Context, eksCluster *cluster.EKS
 }
 
 func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogger, eksCluster *cluster.EKSCluster, request *pkgCluster.UpdateClusterRequest, userID uint) error {
-
 	logger.Info("start EKS Cluster update flow")
 
 	if err := eksCluster.SetStatus(pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
@@ -221,7 +217,6 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 
 	var nodePoolLabelMap map[string]map[string]string
 	{
-
 		nodePoolLabels := make([]cluster.NodePoolLabels, 0)
 		for _, np := range modelNodePools {
 			nodePoolLabels = append(nodePoolLabels, cluster.NodePoolLabels{
@@ -334,7 +329,6 @@ func (c *EksClusterUpdater) UpdateCluster(ctx context.Context,
 	request *pkgCluster.UpdateClusterRequest,
 	commonCluster cluster.CommonCluster,
 	userID uint) error {
-
 	eksCluster := commonCluster.(*cluster.EKSCluster)
 
 	logger := c.logger.WithFields(logrus.Fields{

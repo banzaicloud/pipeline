@@ -46,7 +46,6 @@ type DeleteClusterWorkflowInput struct {
 }
 
 func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInput) error {
-
 	logger := workflow.GetLogger(ctx).Sugar()
 
 	ao := workflow.ActivityOptions{

@@ -27,7 +27,6 @@ type computeRegionOperation struct {
 }
 
 func (co *computeRegionOperation) getInfo(operationName string) (string, string, error) {
-
 	op, err := co.csv.RegionOperations.Get(co.projectId, co.region, operationName).Context(context.Background()).Do()
 	if err != nil {
 		return "", "", err

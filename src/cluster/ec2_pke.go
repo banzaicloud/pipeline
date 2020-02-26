@@ -211,7 +211,6 @@ func (c *EC2ClusterPKE) SetStatus(status, statusMessage string) error {
 
 // DeleteFromDatabase deletes the distribution related entities from the database
 func (c *EC2ClusterPKE) DeleteFromDatabase() error {
-
 	// dependencies are deleted using a GORM hook!
 	if e := c.db.Delete(c.model).Error; e != nil {
 		return errors.WrapIfWithDetails(e, "failed to delete EC2BanzaiCloudCluster", "distro", c.model.ID)
@@ -394,7 +393,6 @@ func createNodePoolsFromPKENodePools(pkeNodePools []PKENodePool) []pkeworkflow.N
 }
 
 func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluster.UpdateClusterRequest, userID uint, workflowClient client.Client, externalBaseURL string, externalBaseURLInsecure bool) error {
-
 	vpcid, ok := c.model.Network.CloudProviderConfig["vpcID"].(string)
 	if !ok {
 		return errors.New("VPC ID not found")
@@ -698,7 +696,6 @@ type PKENodePool struct {
 func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
 	pools := make([]PKENodePool, len(c.model.NodePools), len(c.model.NodePools))
 	for i, np := range c.model.NodePools {
-
 		var amazonPool internalPke.NodePoolProviderConfigAmazon
 		_ = mapstructure.Decode(np.ProviderConfig, &amazonPool)
 
@@ -732,7 +729,6 @@ func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
 				pools[i].Worker = true
 			}
 		}
-
 	}
 	return pools
 }

@@ -67,7 +67,6 @@ func (ClusterBackupsModel) TableName() string {
 
 // ConvertModelToEntity converts a ClusterBackupsModel to api.Backup
 func (backup *ClusterBackupsModel) ConvertModelToEntity() *api.Backup {
-
 	state := backup.GetStateObject()
 
 	item := &api.Backup{
@@ -105,7 +104,6 @@ func (backup *ClusterBackupsModel) ConvertModelToEntity() *api.Backup {
 
 // GetStateObject gives back ark Backup from saved json
 func (backup *ClusterBackupsModel) GetStateObject() *arkAPI.Backup {
-
 	var stateObject *arkAPI.Backup
 	err := json.Unmarshal(backup.State, &stateObject)
 	if err != nil {
@@ -117,7 +115,6 @@ func (backup *ClusterBackupsModel) GetStateObject() *arkAPI.Backup {
 
 // SetValuesFromRequest sets values from PersistBackupRequest to the model
 func (backup *ClusterBackupsModel) SetValuesFromRequest(db *gorm.DB, req *api.PersistBackupRequest) error {
-
 	var err error
 	var stateJSON, nodesJSON []byte
 

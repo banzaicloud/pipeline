@@ -91,7 +91,6 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		if err := errors.Combine(errs...); err != nil {
 			return err
 		}
-
 	}
 
 	// release NLB

@@ -24,7 +24,6 @@ import (
 )
 
 func TestNewVerifier(t *testing.T) {
-
 	cases := []struct {
 		name      string
 		cloudType string
@@ -68,7 +67,6 @@ func TestNewVerifier(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 const (

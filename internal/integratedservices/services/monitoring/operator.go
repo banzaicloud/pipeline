@@ -349,7 +349,6 @@ func (op IntegratedServiceOperator) generateGrafanaSecret(
 	cluster integratedserviceadapter.Cluster,
 	logger common.Logger,
 ) (string, error) {
-
 	clusterNameSecretTag := getClusterNameSecretTag(cluster.GetName())
 	clusterUIDSecretTag := getClusterUIDSecretTag(cluster.GetUID())
 	releaseSecretTag := getReleaseSecretTag()
@@ -621,7 +620,6 @@ func (m chartValuesManager) generateAlertmanagerChartValues(
 	config ImageConfig,
 ) (*alertmanagerValues, error) {
 	if spec.Enabled {
-
 		var annotations map[string]interface{}
 		if spec.Ingress.Enabled {
 			annotations = generateAnnotations(secretName)
@@ -667,7 +665,6 @@ func (m chartValuesManager) generatePrometheusChartValues(
 	config ImageConfig,
 ) *prometheusValues {
 	if spec.Enabled {
-
 		var defaultStorageClassName = spec.Storage.Class
 		if defaultStorageClassName == "" {
 			var err error

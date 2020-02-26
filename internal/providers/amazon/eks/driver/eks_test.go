@@ -106,5 +106,4 @@ func TestGetNodePoolsForSubnet(t *testing.T) {
 			}
 		})
 	}
-
 }

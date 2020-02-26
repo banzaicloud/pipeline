@@ -27,7 +27,6 @@ type outputSecretInstallManagerGCS struct {
 }
 
 func (m outputSecretInstallManagerGCS) generateSecretRequest(secretValues map[string]string, _ bucketSpec) (*pkgCluster.InstallSecretRequest, error) {
-
 	raw, err := json.Marshal(secretValues)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal secret values")

@@ -24,7 +24,6 @@ import (
 
 // CreateNodePool creates node pool specified in the request
 func (ce *ContainerEngine) CreateNodePool(request containerengine.CreateNodePoolRequest) (nodepoolOCID string, err error) {
-
 	ctx := context.Background()
 
 	response, err := ce.client.CreateNodePool(ctx, request)
@@ -50,7 +49,6 @@ func (ce *ContainerEngine) CreateNodePool(request containerengine.CreateNodePool
 
 // UpdateNodePool updates a node pool specified in a request
 func (ce *ContainerEngine) UpdateNodePool(request containerengine.UpdateNodePoolRequest) (nodepoolOCID string, err error) {
-
 	response, err := ce.client.UpdateNodePool(context.Background(), request)
 	if err != nil {
 		return nodepoolOCID, err
@@ -74,7 +72,6 @@ func (ce *ContainerEngine) UpdateNodePool(request containerengine.UpdateNodePool
 
 // DeleteNodePool deletes a node pool by id
 func (ce *ContainerEngine) DeleteNodePool(id *string) error {
-
 	response, err := ce.client.DeleteNodePool(context.Background(), containerengine.DeleteNodePoolRequest{
 		NodePoolId: id,
 	})
@@ -96,7 +93,6 @@ func (ce *ContainerEngine) DeleteNodePool(id *string) error {
 
 // DeleteNodePoolByName deletes a node pool in a cluster by name
 func (ce *ContainerEngine) DeleteNodePoolByName(clusterID *string, name string) error {
-
 	nodePool, err := ce.GetNodePoolByName(clusterID, name)
 	if err != nil {
 		return err
@@ -114,7 +110,6 @@ func (ce *ContainerEngine) DeleteNodePoolByName(clusterID *string, name string) 
 
 // GetNodePool gets a Node Pool by id
 func (ce *ContainerEngine) GetNodePool(id *string) (nodepool containerengine.NodePool, err error) {
-
 	response, err := ce.client.GetNodePool(context.Background(), containerengine.GetNodePoolRequest{
 		NodePoolId: id,
 	})
@@ -128,7 +123,6 @@ func (ce *ContainerEngine) GetNodePool(id *string) (nodepool containerengine.Nod
 
 // GetNodePoolByName gets a Node Pool by name within a Cluster
 func (ce *ContainerEngine) GetNodePoolByName(clusterID *string, name string) (nodepool containerengine.NodePoolSummary, err error) {
-
 	request := containerengine.ListNodePoolsRequest{
 		CompartmentId: common.String(ce.CompartmentOCID),
 		ClusterId:     clusterID,
@@ -152,7 +146,6 @@ func (ce *ContainerEngine) GetNodePoolByName(clusterID *string, name string) (no
 
 // GetNodePools gets all Node Pools within a Cluster
 func (ce *ContainerEngine) GetNodePools(clusterID *string) (nodepools []containerengine.NodePoolSummary, err error) {
-
 	request := containerengine.ListNodePoolsRequest{
 		CompartmentId: common.String(ce.CompartmentOCID),
 		ClusterId:     clusterID,
@@ -223,13 +216,11 @@ func (ce *ContainerEngine) IsNodePoolActive(id *string) (bool, error) {
 
 // GetDefaultNodePoolOptions gets default node pool options
 func (ce *ContainerEngine) GetDefaultNodePoolOptions() (options NodePoolOptions, err error) {
-
 	return ce.GetNodePoolOptions("all")
 }
 
 // GetNodePoolOptions gets available node pool options for a specified cluster OCID
 func (ce *ContainerEngine) GetNodePoolOptions(clusterID string) (options NodePoolOptions, err error) {
-
 	request := containerengine.GetNodePoolOptionsRequest{
 		NodePoolOptionId: &clusterID,
 	}

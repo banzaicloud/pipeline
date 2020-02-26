@@ -128,7 +128,6 @@ type azureBucketConfig struct {
 
 // GetChartConfig get a ChartConfig
 func GetChartConfig() ChartConfig {
-
 	return ChartConfig{
 		Name:      "ark",
 		Namespace: global.Config.Cluster.DisasterRecovery.Namespace,
@@ -139,7 +138,6 @@ func GetChartConfig() ChartConfig {
 
 // Get gets helm deployment value overrides
 func (req ConfigRequest) Get() (values ValueOverrides, err error) {
-
 	pvp, err := req.getPVPConfig()
 	if err != nil {
 		return values, err
@@ -174,7 +172,6 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 }
 
 func (req ConfigRequest) getPVPConfig() (persistentVolumeProvider, error) {
-
 	var config persistentVolumeProvider
 	var pvc string
 
@@ -199,7 +196,6 @@ func (req ConfigRequest) getPVPConfig() (persistentVolumeProvider, error) {
 }
 
 func (req ConfigRequest) getBSPConfig() (backupStorageProvider, error) {
-
 	var config backupStorageProvider
 	var bsp string
 
@@ -229,7 +225,6 @@ func (req ConfigRequest) getBSPConfig() (backupStorageProvider, error) {
 }
 
 func (req ConfigRequest) getCredentials() (credentials, error) {
-
 	var config credentials
 	var azureSecret azure.Secret
 	var BucketSecretContents, ClusterSecretContents string
