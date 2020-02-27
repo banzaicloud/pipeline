@@ -123,15 +123,18 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 		}
 	}
 
-	if _, err := s.store.Get(ctx, organizationID, repository); err == nil {
+	exists, err := s.repoExists(ctx, organizationID, repository)
+	if err != nil {
+		return errors.WrapIf(err, "failed to add helm repository")
+	}
+
+	if exists {
 		return AlreadyExistsError{
 			Description:    "helm repository already exists",
 			RepositoryName: repository.Name,
 			OrganizationID: organizationID,
 		}
 	}
-
-	// validate repository index? todo
 
 	// save in store
 	if err := s.store.Create(ctx, organizationID, repository); err != nil {
@@ -153,4 +156,14 @@ func (s service) DeleteRepository(ctx context.Context, organizationID uint, repo
 
 	s.logger.Debug("deleted helm repository", map[string]interface{}{"orgID": organizationID, "helm repository": repoName})
 	return nil
+}
+
+func (s service) repoExists(ctx context.Context, orgID uint, repository Repository) (bool, error) {
+	_, err := s.store.Get(ctx, orgID, repository)
+
+	if err != nil {
+		return false, nil
+	}
+
+	return true, nil
 }

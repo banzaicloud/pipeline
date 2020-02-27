@@ -53,18 +53,9 @@ func NewHelmRepoStore(db *gorm.DB, logger common.Logger) helm.Store {
 }
 
 func (h helmRepoStore) Delete(_ context.Context, organizationID uint, repository helm.Repository) error {
-	model := toModel(repository)
-	model.OrganizationID = organizationID
+	model := toModel(organizationID, repository)
 
-	// find soft-deleted records if any
-	if err := h.db.Unscoped().Where(model).First(&model).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return nil
-		}
-		return errors.WrapIf(err, "failed to load helm repository record")
-	}
-
-	// delete the record permanently in order for the unique constraint to be workings
+	// delete the record permanently in order for the unique constraint to be working
 	if err := h.db.Unscoped().Delete(model).Error; err != nil {
 		return errors.WrapIf(err, "failed to delete repository record")
 	}
@@ -96,8 +87,7 @@ func (h helmRepoStore) List(_ context.Context, organizationID uint) ([]helm.Repo
 }
 
 func (h helmRepoStore) Create(_ context.Context, organizationID uint, repository helm.Repository) error {
-	repoModel := toModel(repository)
-	repoModel.OrganizationID = organizationID
+	repoModel := toModel(organizationID, repository)
 
 	if err := h.db.Create(&repoModel).Error; err != nil {
 		return errors.WrapIf(err, "failed to persist the helm repository")
@@ -113,8 +103,7 @@ func (h helmRepoStore) Create(_ context.Context, organizationID uint, repository
 }
 
 func (h helmRepoStore) Get(_ context.Context, organizationID uint, repository helm.Repository) (helm.Repository, error) {
-	repoModel := toModel(repository)
-	repoModel.OrganizationID = organizationID
+	repoModel := toModel(organizationID, repository)
 
 	if err := h.db.Where(&repoModel).First(&repoModel).Error; err != nil {
 		return helm.Repository{}, errors.WrapIf(err, "failed to get helm repository")
@@ -136,8 +125,9 @@ func toDomain(model repositoryModel) helm.Repository {
 }
 
 //toModel transforms a domain struct to gorm model representation
-func toModel(repository helm.Repository) repositoryModel {
+func toModel(orgID uint, repository helm.Repository) repositoryModel {
 	return repositoryModel{
+		OrganizationID:   orgID,
 		Name:             repository.Name,
 		URL:              repository.URL,
 		PasswordSecretID: repository.PasswordSecretID,

@@ -58,7 +58,7 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	orgID, e := extractOrgID(r)
 	if e != nil {
-		return nil, errors.WrapIff(e, "failed to decode add repository request")
+		return nil, errors.WrapIf(e, "failed to decode add repository request")
 	}
 
 	var request pipeline.HelmReposAddRequest
