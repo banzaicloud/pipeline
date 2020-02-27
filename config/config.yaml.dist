@@ -421,6 +421,10 @@ dex:
 #        exposeAdminKubeconfig: true
 #        ssh:
 #            generate: true
+#
+#    pke:
+#        amazon:
+#            globalRegion: us-east-1
 
 cloudinfo:
     # Format: {baseUrl}/api/v1

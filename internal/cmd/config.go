@@ -78,6 +78,12 @@ type Config struct {
 				Generate bool
 			}
 		}
+
+		PKE struct {
+			Amazon struct {
+				GlobalRegion string
+			}
+		}
 	}
 
 	// Error handling configuration
@@ -825,6 +831,8 @@ traefik:
 	v.SetDefault("distribution::eks::templateLocation", "./templates/eks")
 	v.SetDefault("distribution::eks::exposeAdminKubeconfig", true)
 	v.SetDefault("distribution::eks::ssh::generate", true)
+
+	v.SetDefault("distribution::pke::amazon::globalRegion", "us-east-1")
 
 	v.SetDefault("cloudinfo::endpoint", "")
 	v.SetDefault("hollowtrees::endpoint", "")

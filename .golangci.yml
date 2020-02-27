@@ -7,6 +7,8 @@ run:
         - ".*_gen\\.go$"
         - "zz_generated\\..*\\.go$"
 
+    timeout: 2m
+
 linters-settings:
     golint:
         min-confidence: 0.9
