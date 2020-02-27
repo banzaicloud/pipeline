@@ -36,7 +36,6 @@ func (s *ensureSecretExistsStub) EnsureSecretExists(organizationID uint, secret 
 }
 
 func (s *ensureSecretExistsStub) GetSecret(organizationID uint, name string) (SecretResponse, error) {
-
 	return SecretResponse{}, nil
 }
 

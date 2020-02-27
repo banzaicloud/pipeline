@@ -37,7 +37,6 @@ func WaitForASGToBeFulfilled(
 	nodePoolName string,
 	waitAttempts int,
 	waitInterval time.Duration) error {
-
 	logurLogger := logrusadapter.New(logrus.New())
 	m := autoscaling.NewManager(awsSession, autoscaling.MetricsEnabled(true), autoscaling.Logger{
 		Logger: logurLogger,
@@ -88,7 +87,6 @@ func WaitForASGToBeFulfilled(
 			return nil
 		}
 	}
-
 }
 
 // GenerateNodePoolStackName returns the CF Stack name for a node pool

@@ -56,7 +56,6 @@ func NewFederationHandler(
 }
 
 func (f *Handler) ReconcileState(featureState api.Feature) error {
-
 	cid, err := uuid.NewV4()
 	if err != nil {
 		return errors.WrapIf(err, "could not generate uuid")

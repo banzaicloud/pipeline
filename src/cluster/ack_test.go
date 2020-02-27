@@ -100,7 +100,6 @@ var (
 )
 
 func TestACKClusterStatus(t *testing.T) {
-
 	testCases := []struct {
 		name           string
 		model          *model.ClusterModel
@@ -123,10 +122,7 @@ func TestACKClusterStatus(t *testing.T) {
 				if !reflect.DeepEqual(status, tc.expectedStatus) {
 					t.Errorf("Expected model: %v, got: %v", tc.expectedStatus, status)
 				}
-
 			}
-
 		})
 	}
-
 }

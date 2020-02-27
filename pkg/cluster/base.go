@@ -308,7 +308,6 @@ func (r *CreateClusterRequest) AddDefaults() error {
 
 // Validate checks the request fields
 func (r *CreateClusterRequest) Validate() error {
-
 	if err := r.validateMainFields(); err != nil {
 		return err
 	}
@@ -362,7 +361,6 @@ func (r *CreateClusterRequest) validateMainFields() error {
 
 // Validate checks the request fields
 func (r *UpdateClusterRequest) Validate() error {
-
 	r.preValidate()
 	if r.PKE != nil {
 		return r.PKE.Validate()
@@ -384,12 +382,10 @@ func (r *UpdateClusterRequest) Validate() error {
 	default:
 		return pkgErrors.ErrorNotSupportedCloudType
 	}
-
 }
 
 // preValidate resets other cloud type fields
 func (r *UpdateClusterRequest) preValidate() {
-
 	switch r.Cloud {
 	case Alibaba:
 		// reset other fields

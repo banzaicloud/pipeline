@@ -37,7 +37,6 @@ func NewExpiryActivity(clusterDeleter clusterDeleter) ExpiryActivity {
 }
 
 func (a ExpiryActivity) Execute(ctx context.Context, input ExpiryActivityInput) error {
-
 	// todo revise the options argument here
 	return a.clusterDeleter.DeleteCluster(ctx, input.ClusterID, cluster.DeleteClusterOptions{Force: true})
 }

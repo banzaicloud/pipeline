@@ -38,7 +38,6 @@ type EKSCreateClusterWorkflowInput struct {
 
 // CreateClusterWorkflow executes the Cadence workflow responsible for creating and configuring an EKS cluster
 func EKSCreateClusterWorkflow(ctx workflow.Context, input EKSCreateClusterWorkflowInput) error {
-
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 5 * time.Minute,
 		StartToCloseTimeout:    10 * time.Minute,
@@ -131,5 +130,4 @@ func EKSCreateClusterWorkflow(ctx workflow.Context, input EKSCreateClusterWorkfl
 	}
 
 	return nil
-
 }

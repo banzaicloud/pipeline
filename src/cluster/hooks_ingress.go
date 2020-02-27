@@ -24,7 +24,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
-	"github.com/banzaicloud/pipeline/internal/util"
+	"github.com/banzaicloud/pipeline/pkg/any"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -129,7 +129,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 		}
 	}
 
-	valuesBytes, err := mergeValues(ingressValues, map[string]interface{}(config.Ingress.Values))
+	valuesBytes, err := mergeValues(ingressValues, config.Ingress.Values)
 	if err != nil {
 		return errors.WrapIf(err, "failed to merge treafik values with config")
 	}
@@ -145,7 +145,7 @@ func mergeValues(chartValues interface{}, configValues interface{}) ([]byte, err
 		return nil, errors.WrapIf(err, "failed to encode chart values")
 	}
 
-	result, err := util.Merge(configValues, out)
+	result, err := any.Merge(configValues, out, jsonstructure.DefaultMergeOptions())
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to merge values")
 	}

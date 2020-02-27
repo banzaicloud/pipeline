@@ -57,8 +57,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	"github.com/banzaicloud/pipeline/internal/helm2"
+	"github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
@@ -67,6 +67,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter"
 	expiryWorkflow "github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter/workflow"
+	intsvcingress "github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
+	intsvcingressadapter "github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress/ingressadapter"
 	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	integratedServiceMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
@@ -250,7 +252,7 @@ func main() {
 		)
 		tokenGenerator := auth.NewClusterTokenGenerator(tokenManager, tokenStore)
 
-		helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
+		helmService := helm2.NewHelmService(helmadapter.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
 		secretStore := pkeworkflowadapter.NewSecretStore(secret.Store)
@@ -658,6 +660,13 @@ func main() {
 					commonSecretStore,
 				),
 				expiry.NewExpiryServiceOperator(expirerService, services.BindIntegratedServiceSpec, logger),
+				intsvcingress.NewOperator(
+					intsvcingressadapter.NewOperatorClusterStore(clusterStore),
+					clusterService,
+					config.Cluster.Ingress.Config,
+					helmService,
+					intsvcingressadapter.NewOrgDomainService(config.Cluster.DNS.BaseDomain, orgGetter),
+				),
 			})
 
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)

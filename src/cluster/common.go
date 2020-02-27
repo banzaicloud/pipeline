@@ -160,7 +160,7 @@ func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "can't decode Kubernetes config")
 		}
-		loadedConfig = []byte(configStr)
+		loadedConfig = configStr
 
 		c.config = loadedConfig
 	}
@@ -169,7 +169,6 @@ func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 
 // StoreKubernetesConfig stores the given K8S config in vault
 func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
-
 	var configYaml string
 
 	if azurePKEClusterGetter, ok := cluster.(interface {
@@ -290,14 +289,12 @@ func getScaleOptionsFromModel(scaleOptions model.ScaleOptions) *pkgCluster.Scale
 			scaleOpt.Excludes = strings.Split(scaleOptions.Excludes, clusteradapter.InstanceTypeSeparator)
 		}
 		return scaleOpt
-
 	}
 	return nil
 }
 
 // GetCommonClusterFromModel extracts CommonCluster from a ClusterModel
 func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster, error) {
-
 	db := global.DB()
 
 	if modelCluster.Distribution == pkgCluster.PKE && modelCluster.Cloud == pkgCluster.Azure {
@@ -402,7 +399,6 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 // CreateCommonClusterFromRequest creates a CommonCluster from a request
 func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (CommonCluster, error) {
-
 	if err := createClusterRequest.AddDefaults(); err != nil {
 		return nil, err
 	}
@@ -474,7 +470,6 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 			return nil, err
 		}
 		return okeCluster, nil
-
 	}
 
 	return nil, pkgErrors.ErrorNotSupportedCloudType
@@ -520,7 +515,6 @@ func GetUserIdAndName(modelCluster *model.ClusterModel) (userId uint, userName s
 
 // NewCreatorBaseFields creates a new CreatorBaseFields instance from createdAt and createdBy
 func NewCreatorBaseFields(createdAt time.Time, createdBy uint) *pkgCommon.CreatorBaseFields {
-
 	var userName string
 	if createdBy != 0 {
 		userName = auth.GetUserNickNameById(createdBy)

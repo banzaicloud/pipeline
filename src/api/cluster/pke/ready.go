@@ -83,7 +83,6 @@ type ReadyRequest struct {
 }
 
 func (a *API) PostReady(c *gin.Context) {
-
 	commonCluster, log, ok := a.getCluster(c)
 	if !ok {
 		return

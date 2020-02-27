@@ -16,7 +16,6 @@ import (
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
 	"github.com/antihax/optional"
 )
@@ -46,8 +45,9 @@ func (a *SystemApiService) DeleteService(ctx _context.Context, servicename strin
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/system/services/{servicename}/{hostid}"
-	localVarPath = strings.Replace(localVarPath, "{"+"servicename"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", servicename)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"hostid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", hostid)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"servicename"+"}", _neturl.QueryEscape(parameterToString(servicename, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"hostid"+"}", _neturl.QueryEscape(parameterToString(hostid, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -99,7 +99,6 @@ func (a *SystemApiService) DeleteService(ctx _context.Context, servicename strin
 				return localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarHTTPResponse, newErr
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -125,7 +124,6 @@ func (a *SystemApiService) DescribeErrorCodes(ctx _context.Context) ([]AnchoreEr
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/system/error_codes"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -176,7 +174,6 @@ func (a *SystemApiService) DescribeErrorCodes(ctx _context.Context) ([]AnchoreEr
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -211,7 +208,6 @@ func (a *SystemApiService) DescribePolicy(ctx _context.Context) ([]GateSpec, *_n
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/system/policy_spec"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -262,7 +258,6 @@ func (a *SystemApiService) DescribePolicy(ctx _context.Context) ([]GateSpec, *_n
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -297,7 +292,6 @@ func (a *SystemApiService) GetServiceDetail(ctx _context.Context) (SystemStatusR
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/system"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -358,7 +352,6 @@ func (a *SystemApiService) GetServiceDetail(ctx _context.Context) (SystemStatusR
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -393,7 +386,7 @@ func (a *SystemApiService) GetServicesByName(ctx _context.Context, servicename s
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/system/services/{servicename}"
-	localVarPath = strings.Replace(localVarPath, "{"+"servicename"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", servicename)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"servicename"+"}", _neturl.QueryEscape(parameterToString(servicename, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -455,7 +448,6 @@ func (a *SystemApiService) GetServicesByName(ctx _context.Context, servicename s
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -491,8 +483,9 @@ func (a *SystemApiService) GetServicesByNameAndHost(ctx _context.Context, servic
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/system/services/{servicename}/{hostid}"
-	localVarPath = strings.Replace(localVarPath, "{"+"servicename"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", servicename)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"hostid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", hostid)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"servicename"+"}", _neturl.QueryEscape(parameterToString(servicename, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"hostid"+"}", _neturl.QueryEscape(parameterToString(hostid, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -554,7 +547,6 @@ func (a *SystemApiService) GetServicesByNameAndHost(ctx _context.Context, servic
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -589,7 +581,6 @@ func (a *SystemApiService) GetStatus(ctx _context.Context) (StatusResponse, *_ne
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/status"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -650,7 +641,6 @@ func (a *SystemApiService) GetStatus(ctx _context.Context) (StatusResponse, *_ne
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -684,7 +674,6 @@ func (a *SystemApiService) GetSystemFeeds(ctx _context.Context) ([]FeedMetadata,
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/system/feeds"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -745,7 +734,6 @@ func (a *SystemApiService) GetSystemFeeds(ctx _context.Context) ([]FeedMetadata,
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -779,7 +767,6 @@ func (a *SystemApiService) ListServices(ctx _context.Context) ([]Service, *_neth
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/system/services"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -840,7 +827,6 @@ func (a *SystemApiService) ListServices(ctx _context.Context) ([]Service, *_neth
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -883,7 +869,6 @@ func (a *SystemApiService) PostSystemFeeds(ctx _context.Context, localVarOptiona
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/system/feeds"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -950,7 +935,6 @@ func (a *SystemApiService) PostSystemFeeds(ctx _context.Context, localVarOptiona
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

@@ -43,7 +43,6 @@ func (fc *forwardingRulesChecker) getType() string {
 }
 
 func (fc *forwardingRulesChecker) list() (resourceNames []string, err error) {
-
 	log.WithFields(logrus.Fields{"project": fc.project, "region": fc.region})
 
 	log.Debug("list forwarding rules")
@@ -86,7 +85,6 @@ func isClusterTarget(targetPools []*gkeCompute.TargetPool, targetPoolName string
 
 // isForwardingRuleDeleted checks the given forwarding rule is deleted by Kubernetes
 func isForwardingRuleDeleted(csv *gkeCompute.Service, project, region, forwardingRule string) error {
-
 	log := log.WithFields(logrus.Fields{"rule": forwardingRule, "project": project, "region": region})
 
 	log.Info("Get forwarding rule")
@@ -99,7 +97,6 @@ func isForwardingRuleDeleted(csv *gkeCompute.Service, project, region, forwardin
 }
 
 func deleteForwardingRule(csv *gkeCompute.Service, project, region, ruleName string) error {
-
 	log := log.WithFields(logrus.Fields{"project": project, "rule": ruleName, "region": region})
 
 	log.Info("delete forwardingRule")

@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.13
+ARG GO_VERSION=1.14
 
 FROM golang:${GO_VERSION}-alpine AS builder
 
@@ -15,7 +15,7 @@ RUN cd $GOPATH/src/github.com/kubernetes-sigs/aws-iam-authenticator && \
 
 RUN go get github.com/derekparker/delve/cmd/dlv
 
-FROM alpine:3.9
+FROM alpine:3.11
 
 RUN apk add --update --no-cache bash curl libc6-compat
 

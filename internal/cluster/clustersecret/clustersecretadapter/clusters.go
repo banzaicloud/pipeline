@@ -48,9 +48,9 @@ type clusterWrapper struct {
 }
 
 func (c *clusterWrapper) GetOrganizationID() uint {
-	return uint(c.commonCluster.GetOrganizationId())
+	return c.commonCluster.GetOrganizationId()
 }
 
 func (c *clusterWrapper) GetUID() string {
-	return string(c.commonCluster.GetUID())
+	return c.commonCluster.GetUID()
 }

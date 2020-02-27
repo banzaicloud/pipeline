@@ -35,7 +35,6 @@ type ObjectStorage struct {
 
 // NewObjectStorageClient creates new ObjectStorage
 func (oci *OCI) NewObjectStorageClient() (client *ObjectStorage, err error) {
-
 	client = &ObjectStorage{}
 
 	oClient, err := objectstorage.NewObjectStorageClientWithConfigurationProvider(oci.config)
@@ -59,7 +58,6 @@ func (oci *OCI) NewObjectStorageClient() (client *ObjectStorage, err error) {
 
 // CreateBucket creates a bucket with the given name
 func (os *ObjectStorage) CreateBucket(name string) (bucket objectstorage.Bucket, err error) {
-
 	response, err := os.client.CreateBucket(context.Background(), objectstorage.CreateBucketRequest{
 		NamespaceName: &os.Namespace,
 		CreateBucketDetails: objectstorage.CreateBucketDetails{
@@ -93,7 +91,6 @@ func (os *ObjectStorage) DeleteBucket(name string) error {
 
 // GetBucket gets an Object Storage bucket by name
 func (os *ObjectStorage) GetBucket(name string) (bucket objectstorage.Bucket, err error) {
-
 	request := objectstorage.GetBucketRequest{
 		NamespaceName: &os.Namespace,
 		BucketName:    &name,
@@ -117,7 +114,6 @@ func (os *ObjectStorage) GetBucket(name string) (bucket objectstorage.Bucket, er
 
 // GetBuckets gets an Object Storage buckets
 func (os *ObjectStorage) GetBuckets() (buckets []objectstorage.BucketSummary, err error) {
-
 	request := objectstorage.ListBucketsRequest{
 		CompartmentId: common.String(os.CompartmentOCID),
 		NamespaceName: common.String(os.Namespace),

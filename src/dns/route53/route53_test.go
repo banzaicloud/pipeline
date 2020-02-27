@@ -240,7 +240,6 @@ func (stateStore *inMemoryStateStore) findByStatus(status string) ([]domainState
 }
 
 func (stateStore *inMemoryStateStore) findByOrgId(orgId uint, state *domainState) (bool, error) {
-
 	for _, v := range stateStore.orgDomains {
 		if v.organisationId == orgId {
 			state.organisationId = v.organisationId
@@ -294,7 +293,6 @@ type mockRoute53Svc struct {
 }
 
 func (mock *mockRoute53Svc) reset() {
-
 	mock.testCaseName = ""
 
 	mock.createHostedZoneCallCount = 0
@@ -419,7 +417,6 @@ func (mock *mockRoute53Svc) ChangeResourceRecordSets(changeResourceRecordSets *r
 
 	if aws.StringValue(changeResourceRecordSets.HostedZoneId) != testBaseHostedZoneId &&
 		aws.StringValue(changeResourceRecordSets.HostedZoneId) != testHostedZoneId {
-
 		return nil, errors.New("route53.ChangeResourceRecordSets invoked with wrong hosted zone id")
 	}
 
@@ -743,7 +740,6 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 	if route53SecretCount != 1 {
 		t.Errorf("There should be one route53 secret in Vault but got %d", route53SecretCount)
 	}
-
 }
 
 func TestAwsRoute53_RegisterDomain_Fail(t *testing.T) {
@@ -801,7 +797,6 @@ func TestAwsRoute53_RegisterDomain_Fail(t *testing.T) {
 
 				route53Svc.reset()
 				iamSvcWithCreateIAMUserFailing.reset()
-
 			},
 		},
 		{
@@ -825,7 +820,6 @@ func TestAwsRoute53_RegisterDomain_Fail(t *testing.T) {
 
 				route53Svc.reset()
 				iamSvcWithAttachUserPolicyFailing.reset()
-
 			},
 		},
 		{
@@ -854,7 +848,6 @@ func TestAwsRoute53_RegisterDomain_Fail(t *testing.T) {
 				route53Svc.reset()
 				iamSvcWithCreateAccessKeyFailing.reset()
 				cleanupVaultTestSecrets()
-
 			},
 		},
 	}
@@ -882,14 +875,11 @@ func TestAwsRoute53_RegisterDomain_Fail(t *testing.T) {
 			if tc.verifyRollbacks != nil {
 				tc.verifyRollbacks(t)
 			}
-
 		})
 	}
-
 }
 
 func TestAwsRoute53_UnregisterDomain(t *testing.T) {
-
 	key := stateKey(testOrgId, testDomain)
 
 	stateStore := &inMemoryStateStore{
@@ -940,7 +930,6 @@ func TestAwsRoute53_UnregisterDomain(t *testing.T) {
 	iamSvc.reset()
 
 	cleanupVaultTestSecrets()
-
 }
 
 func TestAwsRoute53_Cleanup(t *testing.T) {
@@ -1050,7 +1039,6 @@ func TestAwsRoute53_Cleanup(t *testing.T) {
 			cleanupVaultTestSecrets()
 		})
 	}
-
 }
 
 func TestAwsRoute53_RegisterDomainRerun(t *testing.T) {
@@ -1169,7 +1157,6 @@ func Test_nameServerMatch(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func cleanupVaultTestSecrets() {
@@ -1183,12 +1170,10 @@ func cleanupVaultTestSecrets() {
 		if secretItem.Name == IAMUserAccessKeySecretName {
 			if secretItem.Values[secrettype.AwsAccessKeyId] == testAccessKeyId &&
 				secretItem.Values[secrettype.AwsSecretAccessKey] == testAccessSecretKey {
-
 				_ = secret.Store.Delete(testOrgId, secretItem.ID)
 			}
 		}
 	}
-
 }
 
 func getTestOrgById(orgId uint) (*auth.Organization, error) {

@@ -65,7 +65,6 @@ func (dns *awsRoute53) getIAMUser(userName *string) (*iam.User, error) {
 	}
 
 	return user, nil
-
 }
 
 // deleteIAMUser deletes the Amazon IAM user with the given name

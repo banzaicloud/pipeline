@@ -74,7 +74,6 @@ func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objects
 }
 
 func GetBucketLocation(provider string, secret *secret.SecretItemResponse, bucketName string, orgID uint, log logrus.FieldLogger) (string, error) {
-
 	switch provider {
 	case providers.Alibaba:
 		defaultRegion := global.Config.Cloud.Alibaba.DefaultRegion
@@ -87,5 +86,4 @@ func GetBucketLocation(provider string, secret *secret.SecretItemResponse, bucke
 	default:
 		return "", pkgErrors.ErrorNotSupportedCloudType
 	}
-
 }

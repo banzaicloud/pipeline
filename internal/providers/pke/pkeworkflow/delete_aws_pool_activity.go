@@ -99,7 +99,6 @@ func NewWaitForDeletePoolActivity(clusters Clusters) *WaitForDeletePoolActivity 
 }
 
 func (a *WaitForDeletePoolActivity) Execute(ctx context.Context, input DeletePoolActivityInput) error {
-
 	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
 		return err

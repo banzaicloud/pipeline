@@ -132,7 +132,6 @@ type CalculationResult struct {
 }
 
 func TestEmptyRevocalbeActionsShouldPass(t *testing.T) {
-
 	actions := []Action{}
 
 	output, err := NewActionExecutor(logrus.New()).ExecuteActions(actions, "foobar", true)
@@ -141,7 +140,6 @@ func TestEmptyRevocalbeActionsShouldPass(t *testing.T) {
 }
 
 func TestRevocableActionsShouldFail(t *testing.T) {
-
 	initialValue := 5
 	result := &CalculationResult{
 		value: initialValue,
@@ -158,7 +156,6 @@ func TestRevocableActionsShouldFail(t *testing.T) {
 }
 
 func TestRevocableActionsShouldPass(t *testing.T) {
-
 	initialValue := 5
 	result := &CalculationResult{
 		value: initialValue,

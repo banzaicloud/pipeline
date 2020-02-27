@@ -211,7 +211,6 @@ func (op IntegratedServiceOperator) createAnchoreUserForCluster(ctx context.Cont
 
 // assembleChartValues is in charge to assemble the values json for the chart based on the input and configuration
 func assembleChartValues(anchoreValues AnchoreValues, webhookConfigSpec webHookConfigSpec) ([]byte, error) {
-
 	chartValues := webhookConfigSpec.GetValues()
 	chartValues.ExternalAnchore = &anchoreValues
 
@@ -244,7 +243,6 @@ func (op IntegratedServiceOperator) getCustomAnchoreValues(ctx context.Context, 
 }
 
 func (op IntegratedServiceOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (AnchoreValues, error) {
-
 	// default (pipeline hosted) anchore
 	if !op.config.Anchore.Enabled {
 		return AnchoreValues{}, errors.NewWithDetails("default anchore is not enabled")
@@ -273,7 +271,6 @@ func (op IntegratedServiceOperator) getDefaultAnchoreValues(ctx context.Context,
 
 // performs namespace labeling based on the provided input
 func (op *IntegratedServiceOperator) applyLabelsForSecurityScan(ctx context.Context, clusterID uint, whConfig webHookConfigSpec) error {
-
 	// possible label values that are used to make decisions by the webhook
 	securityScanLabels := map[string]string{
 		selectorInclude: "scan",

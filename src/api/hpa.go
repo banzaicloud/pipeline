@@ -164,7 +164,6 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 		}
 	}
 	for _, cm := range scalingRequest.CustomMetrics {
-
 		value, err := runPrometheusQuery(config, client, cm.Query)
 		if err != nil {
 			log.Error(err.Error())
@@ -182,7 +181,6 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 
 	err = setDeploymentAutoscalingInfo(client, *scalingRequest)
 	if err != nil {
-
 		httpStatusCode := http.StatusBadRequest
 		if _, ok := err.(*scaleTargetNotFoundError); ok {
 			httpStatusCode = http.StatusNotFound
@@ -263,7 +261,6 @@ func runPrometheusQuery(config *rest.Config, client kubernetes.Interface, query 
 	log.Debugf("prometheus query result: %s", sampleValue)
 
 	return value, err
-
 }
 
 // DeleteHpaResource deletes a Hpa resource annotations from scaleTarget - K8s deployment/statefulset
@@ -294,7 +291,6 @@ func (a HPAAPI) DeleteHpaResource(c *gin.Context) {
 
 	err = deleteDeploymentAutoscalingInfo(client, scaleTarget)
 	if err != nil {
-
 		httpStatusCode := http.StatusInternalServerError
 		if _, ok := err.(*scaleTargetNotFoundError); ok {
 			httpStatusCode = http.StatusNotFound
@@ -341,7 +337,6 @@ func (a HPAAPI) GetHpaResource(c *gin.Context) {
 
 	deploymentResponse, err := getHpaResources(scaleTarget, client)
 	if err != nil {
-
 		httpStatusCode := http.StatusInternalServerError
 		if _, ok := err.(*scaleTargetNotFoundError); ok {
 			httpStatusCode = http.StatusNotFound
@@ -358,7 +353,6 @@ func (a HPAAPI) GetHpaResource(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, deploymentResponse)
-
 }
 
 func getHpaResources(scaleTargetRef string, client kubernetes.Interface) (*hpa.DeploymentScalingInfo, error) {
@@ -413,7 +407,6 @@ func getHpaResources(scaleTargetRef string, client kubernetes.Interface) (*hpa.D
 	}
 
 	return nil, &scaleTargetNotFoundError{scaleTargetRef: scaleTargetRef}
-
 }
 
 func generateStatusMessage(status v2beta1.HorizontalPodAutoscalerStatus) string {

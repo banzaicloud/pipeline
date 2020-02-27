@@ -98,8 +98,7 @@ type SecretItemResponse struct {
 
 // ValidateSecretType validates the secret type
 func ValidateSecretType(s *SecretItemResponse, validType string) error {
-	if string(s.Type) != validType {
-
+	if s.Type != validType {
 		return MismatchError{
 			SecretType: s.Type,
 			ValidType:  validType,
@@ -110,7 +109,7 @@ func ValidateSecretType(s *SecretItemResponse, validType string) error {
 
 // GenerateSecretIDFromName generates a "unique by name per organization" id for Secrets
 func GenerateSecretIDFromName(name string) string {
-	return string(fmt.Sprintf("%x", sha256.Sum256([]byte(name))))
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(name)))
 }
 
 // GenerateSecretID generates a "unique by name per organization" id for Secrets
@@ -325,7 +324,6 @@ func (ss *secretStore) GetOrCreate(organizationID uint, value *CreateSecretReque
 
 // CreateOrUpdate create new secret or update if it's exist. secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) CreateOrUpdate(organizationID uint, value *CreateSecretRequest) (string, error) {
-
 	secretID := GenerateSecretID(value)
 
 	// Try to get the secret version first
@@ -502,7 +500,6 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 		if err != nil {
 			return errors.Wrap(err, "Error during decoding TLS secret")
 		}
-
 	} else if value.Type == secrettype.PasswordSecretType {
 		// Generate a password if needed (if password is in method,length)
 
@@ -522,12 +519,10 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 			}
 			value.Values[secrettype.Password] = password
 		}
-
 	} else if value.Type == secrettype.HtpasswdSecretType {
 		// Generate a password if needed otherwise store the htaccess file if provided
 
 		if _, ok := value.Values[secrettype.HtpasswdFile]; !ok {
-
 			username := value.Values[secrettype.Username]
 			if value.Values[secrettype.Password] == "" {
 				password, err := RandomString("randAlphaNum", 12)
@@ -544,7 +539,6 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 
 			value.Values[secrettype.HtpasswdFile] = fmt.Sprintf("%s:%s", username, string(passwordHash))
 		}
-
 	} else if value.Type == secrettype.PKESecretType {
 		values, err := ss.PkeSecreter.GeneratePkeSecret(organizationID, value.Tags)
 		if err != nil {

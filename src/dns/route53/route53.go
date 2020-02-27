@@ -109,7 +109,6 @@ func (ctx *context) rollback() {
 	} else {
 		log.Info("rollback failed")
 	}
-
 }
 
 type workerTask struct {
@@ -216,7 +215,6 @@ func (dns *awsRoute53) RegisterDomain(orgId uint, domain string) error {
 				DomainEvent: *createCommonEvent(orgId, domain),
 				Cause:       response.error,
 			}
-
 		} else {
 			dns.notificationChannel <- RegisterDomainSucceededEvent{
 				DomainEvent: *createCommonEvent(orgId, domain),
@@ -243,7 +241,6 @@ func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
 				DomainEvent: *createCommonEvent(orgId, domain),
 				Cause:       response.error,
 			}
-
 		} else {
 			dns.notificationChannel <- UnregisterDomainSucceededEvent{
 				DomainEvent: *createCommonEvent(orgId, domain),
@@ -289,7 +286,6 @@ func (dns *awsRoute53) registerDomain(orgId uint, domain string) error {
 		state.status = CREATING
 
 		err = dns.stateStore.update(state)
-
 	} else {
 		state.organisationId = orgId
 		state.domain = domain
@@ -326,7 +322,6 @@ func (dns *awsRoute53) registerDomain(orgId uint, domain string) error {
 		if err := dns.setHostedZoneSoaNTTL(hostedZone.Id, soaNTTL); err != nil {
 			log.Errorf("could not set NTTL: %v", err)
 		}
-
 	} else {
 		log.Infof("skip creating hosted zone in route53 as it already exists with id: '%s'", hostedZoneIdShort)
 	}
@@ -455,7 +450,6 @@ func (dns *awsRoute53) unregisterDomain(orgId uint, domain string) error {
 				return err
 			}
 		}
-
 	}
 
 	// delete route53  access keys
@@ -468,7 +462,6 @@ func (dns *awsRoute53) unregisterDomain(orgId uint, domain string) error {
 		}
 		for _, awsAccessKey := range awsAccessKeys {
 			if err := dns.deleteAmazonAccessKey(awsAccessKey.UserName, awsAccessKey.AccessKeyId); err != nil {
-
 				log.Errorf("deleting Amazon access key '%s' of user '%s' failed: %s",
 					aws.StringValue(awsAccessKey.AccessKeyId),
 					aws.StringValue(awsAccessKey.UserName), extractErrorMessage(err))
@@ -607,7 +600,6 @@ func (dns *awsRoute53) cleanup(wg *sync.WaitGroup, domainState *domainState) {
 			}
 		}
 	}
-
 }
 
 // ProcessUnfinishedTasks continues processing in-progress domain registrations/unregistrations
@@ -934,7 +926,6 @@ func (dns *awsRoute53) startNewWorker() chan workerTask {
 				task.responseQueue <- workerResponse{error: fmt.Errorf("operation %q not supported", task.operation)}
 			}
 		}
-
 	}()
 
 	return workQueue

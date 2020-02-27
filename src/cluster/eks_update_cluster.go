@@ -143,11 +143,9 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 	// first delete node pools
 	asgFutures := make([]workflow.Future, 0)
 	for _, nodePool := range input.AsgList {
-
 		log := logger.With("nodePool", nodePool.Name)
 
 		if nodePool.Delete {
-
 			log.Info("node pool will be deleted")
 			nodePoolsToDelete[nodePool.Name] = nodePool
 
@@ -158,7 +156,6 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 			ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
 			f := workflow.ExecuteActivity(ctx, eksWorkflow.DeleteStackActivityName, activityInput)
 			asgFutures = append(asgFutures, f)
-
 		}
 	}
 
@@ -170,11 +167,9 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 
 	asgFutures = make([]workflow.Future, 0)
 	for _, nodePool := range input.AsgList {
-
 		log := logger.With("nodePool", nodePool.Name)
 
 		if nodePool.Create {
-
 			log.Info("node pool will be created")
 			nodePoolsToCreate[nodePool.Name] = nodePool
 
@@ -220,9 +215,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 			ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
 			f := workflow.ExecuteActivity(ctx, eksWorkflow.CreateAsgActivityName, activityInput)
 			asgFutures = append(asgFutures, f)
-
 		} else if !nodePool.Delete {
-
 			// update nodePool
 			log.Info("node pool will be updated")
 			nodePoolsToUpdate[nodePool.Name] = nodePool

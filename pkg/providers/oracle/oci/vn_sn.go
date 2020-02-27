@@ -24,7 +24,6 @@ import (
 
 // CreateSubnet creates a Subnet specified in the request
 func (vn *VirtualNetwork) CreateSubnet(request core.CreateSubnetRequest) (subnet core.Subnet, err error) {
-
 	response, err := vn.client.CreateSubnet(context.Background(), request)
 	if err != nil {
 		return subnet, err
@@ -35,7 +34,6 @@ func (vn *VirtualNetwork) CreateSubnet(request core.CreateSubnetRequest) (subnet
 
 // UpdateSubnet updates a Subnet specified in the request
 func (vn *VirtualNetwork) UpdateSubnet(request core.UpdateSubnetRequest) (subnet core.Subnet, err error) {
-
 	response, err := vn.client.UpdateSubnet(context.Background(), request)
 	if err != nil {
 		return subnet, err
@@ -46,7 +44,6 @@ func (vn *VirtualNetwork) UpdateSubnet(request core.UpdateSubnetRequest) (subnet
 
 // DeleteSubnet removes a Subnet by id
 func (vn *VirtualNetwork) DeleteSubnet(id *string) error {
-
 	_, err := vn.client.DeleteSubnet(context.Background(), core.DeleteSubnetRequest{
 		SubnetId: id,
 	})
@@ -56,7 +53,6 @@ func (vn *VirtualNetwork) DeleteSubnet(id *string) error {
 
 // GetSubnet gets a Subnet by id
 func (vn *VirtualNetwork) GetSubnet(id *string) (subnet core.Subnet, err error) {
-
 	response, err := vn.client.GetSubnet(context.Background(), core.GetSubnetRequest{
 		SubnetId: id,
 	})
@@ -66,7 +62,6 @@ func (vn *VirtualNetwork) GetSubnet(id *string) (subnet core.Subnet, err error) 
 
 // GetSubnetByName gets a Subnet by name within a VCN
 func (vn *VirtualNetwork) GetSubnetByName(name string, vcnID *string) (subnet core.Subnet, err error) {
-
 	request := core.ListSubnetsRequest{
 		CompartmentId: common.String(vn.CompartmentOCID),
 		DisplayName:   common.String(name),
@@ -87,7 +82,6 @@ func (vn *VirtualNetwork) GetSubnetByName(name string, vcnID *string) (subnet co
 
 // GetSubnets gets all Subnets within a VCN
 func (vn *VirtualNetwork) GetSubnets(vcnID *string) (subnets []core.Subnet, err error) {
-
 	request := core.ListSubnetsRequest{
 		CompartmentId: common.String(vn.CompartmentOCID),
 		VcnId:         vcnID,

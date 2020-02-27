@@ -84,7 +84,6 @@ func (m vaultManager) disableAuth(path string) error {
 }
 
 func (m vaultManager) enableAuth(path, authType string) error {
-
 	mounts, err := m.vaultClient.RawClient().Sys().ListAuth()
 	if err != nil {
 		return errors.WrapIf(err, "failed to list auth")

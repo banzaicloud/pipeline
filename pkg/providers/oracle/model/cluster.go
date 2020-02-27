@@ -93,7 +93,6 @@ func (NodePoolSubnet) TableName() string {
 
 // CreateModelFromCreateRequest create model from create request
 func CreateModelFromCreateRequest(r *pkgCluster.CreateClusterRequest, userId uint) (cluster Cluster, err error) {
-
 	cluster.Name = r.Name
 
 	return CreateModelFromRequest(cluster, r.Properties.CreateClusterOKE, userId)
@@ -106,7 +105,6 @@ func CreateModelFromUpdateRequest(current Cluster, r *pkgCluster.UpdateClusterRe
 
 // CreateModelFromRequest creates model from request
 func CreateModelFromRequest(model Cluster, r *cluster.Cluster, userID uint) (cluster Cluster, err error) {
-
 	model.Version = r.Version
 	model.CreatedBy = userID
 
@@ -162,7 +160,6 @@ func CreateModelFromRequest(model Cluster, r *cluster.Cluster, userID uint) (clu
 
 // GetNodePoolByName gets a NodePool from the []NodePools by name
 func (c *Cluster) GetNodePoolByName(name string) *NodePool {
-
 	for _, np := range c.NodePools {
 		if np.Name == name {
 			return np
@@ -174,7 +171,6 @@ func (c *Cluster) GetNodePoolByName(name string) *NodePool {
 
 // Cleanup removes node pools
 func (c *Cluster) Cleanup() error {
-
 	log.Info("Cleanup oracle nodepool... delete all node pools")
 
 	err := c.RemoveNodePools()
@@ -199,7 +195,6 @@ func (d *NodePool) BeforeDelete() error {
 
 // RemoveNodePools delete node pool records from the database
 func (c *Cluster) RemoveNodePools() error {
-
 	if c.ID == 0 {
 		return nil
 	}
@@ -228,7 +223,6 @@ func (c *Cluster) BeforeSave() error {
 
 // GetClusterRequestFromModel converts cluster model from database and to Cluster
 func (c *Cluster) GetClusterRequestFromModel() *cluster.Cluster {
-
 	nodePools := make(map[string]*cluster.NodePool)
 	if c.NodePools != nil {
 		for _, np := range c.NodePools {

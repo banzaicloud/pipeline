@@ -278,7 +278,6 @@ func (c *ACKCluster) createACKNodePoolsModelFromUpdateRequestData(pools ack.Node
 				Delete:       false,
 			})
 		}
-
 	}
 	return updatedNodePools, nil
 }
@@ -547,7 +546,6 @@ func (c *ACKCluster) DownloadK8sConfig() ([]byte, error) {
 	sshSession.Run(fmt.Sprintf("cat %s", "/etc/kubernetes/kube.conf")) // nolint: errcheck
 	w.Flush()
 	return buff.Bytes(), errors.WithDetails(err, "cluster", c.modelCluster.Name)
-
 }
 
 // GetCloud returns the cloud type of the cluster
@@ -569,7 +567,6 @@ func (c *ACKCluster) GetType() string {
 }
 
 func (c *ACKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.modelCluster.ACK.NodePools {
 		if np != nil {

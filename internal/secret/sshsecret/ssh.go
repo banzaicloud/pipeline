@@ -33,7 +33,6 @@ func GetOrCreateSSHKeyPair(secrets interface {
 	GetSSHSecretID() string
 	GetUID() string
 }) (ssh.KeyPair, string, error) {
-
 	sshSecretID := cluster.GetSSHSecretID()
 	if sshSecretID == "" {
 		return CreateSSHKeyPair(secrets, cluster.GetOrganizationID(), cluster.GetID(), cluster.GetName(), cluster.GetUID())
@@ -46,7 +45,6 @@ func GetOrCreateSSHKeyPair(secrets interface {
 func GetSSHKeyPair(secrets interface {
 	Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
 }, organizationID uint, sshSecretID string) (ssh.KeyPair, error) {
-
 	sir, err := secrets.Get(organizationID, sshSecretID)
 	if err != nil {
 		return ssh.KeyPair{}, err
@@ -58,7 +56,6 @@ func GetSSHKeyPair(secrets interface {
 func CreateSSHKeyPair(secrets interface {
 	Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
 }, organizationID uint, clusterID uint, clusterName string, clusterUID string) (sshKeyPair ssh.KeyPair, sshSecretID string, err error) {
-
 	sshKeyPair, err = ssh.NewKeyPairGenerator().Generate()
 	if err != nil {
 		return

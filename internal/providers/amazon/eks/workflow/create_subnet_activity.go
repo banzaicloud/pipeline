@@ -155,7 +155,6 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 			Cidr:             input.Cidr,
 			AvailabilityZone: input.AvailabilityZone,
 		}, nil
-
 	}
 
 	return nil, nil

@@ -60,7 +60,6 @@ func (ClusterBackupRestoresModel) TableName() string {
 
 // SetValuesFromRequest set values from a PersistRestoreRequest to the restore object
 func (restore *ClusterBackupRestoresModel) SetValuesFromRequest(req *api.PersistRestoreRequest) error {
-
 	stateJSON, err := json.Marshal(req.Restore)
 	if err != nil {
 		return errors.WrapIf(err, "error converting state to json")
@@ -86,7 +85,6 @@ func (restore *ClusterBackupRestoresModel) SetValuesFromRequest(req *api.Persist
 
 // ConvertModelToEntity converts ClusterBackupRestoresModel to api.Restore
 func (restore *ClusterBackupRestoresModel) ConvertModelToEntity() *api.Restore {
-
 	state := restore.GetState()
 	results := restore.GetResults()
 
@@ -121,7 +119,6 @@ func (restore *ClusterBackupRestoresModel) ConvertModelToEntity() *api.Restore {
 
 // GetState unmarshals a stored state JSON into arkAPI.Restore
 func (restore *ClusterBackupRestoresModel) GetState() *arkAPI.Restore {
-
 	var state *arkAPI.Restore
 	err := json.Unmarshal(restore.State, &state)
 	if err != nil {
@@ -133,7 +130,6 @@ func (restore *ClusterBackupRestoresModel) GetState() *arkAPI.Restore {
 
 // GetResults unmarshals a stored result JSON into api.RestoreResults
 func (restore *ClusterBackupRestoresModel) GetResults() *api.RestoreResults {
-
 	var results *api.RestoreResults
 	err := json.Unmarshal(restore.Results, &results)
 	if err != nil {

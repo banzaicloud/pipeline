@@ -60,7 +60,6 @@ func (m *ClusterBackupBucketsModel) BeforeDelete(db *gorm.DB) error {
 
 // ConvertModelToEntity converts a ClusterBackupBucketsModel to Bucket
 func (m *ClusterBackupBucketsModel) ConvertModelToEntity() *api.Bucket {
-
 	inUse := false
 	if m.Deployment.Cluster.ID > 0 {
 		inUse = true

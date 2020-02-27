@@ -149,7 +149,6 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 			}
 			activity.GetLogger(ctx).Info(fmt.Sprintf("DesiredCapacity for %v will be: %v", aws.StringValue(asg.AutoScalingGroupARN), input.Count))
 		}
-
 	}
 
 	logger.With("stackName", input.StackName).Info("updating stack")
@@ -274,7 +273,6 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 				return nil, errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
 			}
 		}
-
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}

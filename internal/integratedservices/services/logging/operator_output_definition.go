@@ -26,7 +26,6 @@ import (
 func (op IntegratedServiceOperator) createClusterOutputDefinitions(ctx context.Context, spec integratedServiceSpec, cl integratedserviceadapter.Cluster) ([]outputDefinitionManager, error) {
 	var creators []outputManagerCreator
 	if spec.ClusterOutput.Enabled {
-
 		// install secrets to cluster
 		sourceSecretName, err := op.secretStore.GetNameByID(ctx, spec.ClusterOutput.Provider.SecretID)
 		if err != nil {
@@ -71,7 +70,6 @@ func (op IntegratedServiceOperator) createClusterOutputDefinitions(ctx context.C
 	// create output definition managers
 	var managers = newOutputDefinitionManager(creators)
 	for _, m := range managers {
-
 		// generate output definition
 		outputDefinition, err := generateOutputDefinition(ctx, m, op.secretStore, op.config.Namespace, cl.GetOrganizationId())
 		if err != nil {
@@ -82,7 +80,6 @@ func (op IntegratedServiceOperator) createClusterOutputDefinitions(ctx context.C
 		if err := op.kubernetesService.EnsureObject(ctx, cl.GetID(), outputDefinition); err != nil {
 			return nil, errors.WrapIf(err, "failed to create output definition")
 		}
-
 	}
 
 	return managers, nil

@@ -422,11 +422,9 @@ func getK8sVersion(cluster interface{}) (*semver.Version, error) {
 		return version, nil
 	}
 	return nil, errors.New("no GetKubernetesVersion method found")
-
 }
 
 func getImageVersion(clusterID uint, cluster interface{}) map[string]string {
-
 	var selectedImageVersion map[string]string
 
 	k8sVersion, err := getK8sVersion(cluster)

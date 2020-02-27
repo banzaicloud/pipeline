@@ -128,7 +128,6 @@ func createClusterCreateOrUpdateFailedError(createOrUpdateError error, errorEven
 			clusterCreateUpdateError: createOrUpdateError,
 			failedEventsMsg:          failedEventsMsg,
 		}
-
 	}
 
 	return createOrUpdateError
@@ -473,13 +472,11 @@ func (c *AKSCluster) GetDistribution() string {
 
 // GetStatus returns the cluster's status
 func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-
 	// c.log.Info("Create cluster status response")
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.modelCluster.AKS.NodePools {
 		if np != nil {
-
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Autoscaling:       np.Autoscaling,
 				Count:             np.Count,
@@ -884,7 +881,6 @@ func (c *AKSCluster) validateLocation(location string) error {
 
 // validateMachineType validates nodeInstanceTypes
 func (c *AKSCluster) validateMachineType(nodePools map[string]*pkgClusterAzure.NodePoolCreate, location string) error {
-
 	validMachineTypes, err := GetMachineTypes(c.GetOrganizationId(), c.GetSecretId(), location)
 	if err != nil {
 		return errors.WrapIfWithDetails(err, "could not get VM types from Azure", "location", location)
@@ -907,7 +903,6 @@ func (c *AKSCluster) validateMachineType(nodePools map[string]*pkgClusterAzure.N
 
 // validateKubernetesVersion validates k8s version
 func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) error {
-
 	c.log.Debugln("K8SVersion:", k8sVersion)
 	validVersions, err := GetKubernetesVersion(c.GetOrganizationId(), c.GetSecretId(), location)
 	if err != nil {

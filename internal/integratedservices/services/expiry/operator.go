@@ -30,7 +30,6 @@ type expiryServiceOperator struct {
 }
 
 func NewExpiryServiceOperator(expiryService ExpiryService, binderFn binderFunc, logger common.Logger) expiryServiceOperator {
-
 	return expiryServiceOperator{
 		expiryService:  expiryService,
 		specBinderFunc: binderFn,

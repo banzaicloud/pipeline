@@ -254,7 +254,6 @@ func (os *objectStore) DeleteBucket(bucketName string) error {
 	}
 
 	return nil
-
 }
 
 func (os *objectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
@@ -314,7 +313,6 @@ func (os *objectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error
 }
 
 func GetBucketLocation(secret *secret.SecretItemResponse, bucketName string, region string, orgID uint, log logrus.FieldLogger) (string, error) {
-
 	org, err := auth.GetOrganizationById(orgID)
 	if err != nil {
 		return "", errors.WrapIfWithDetails(err, "retrieving organization failed", "orgID", orgID)

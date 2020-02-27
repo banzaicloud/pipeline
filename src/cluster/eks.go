@@ -324,7 +324,6 @@ func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 	ASGWaitLoopCount := int(asgFulfillmentTimeout.Seconds() / asgWaitLoopSleepSeconds)
 
 	for poolName, nodePool := range request.NodePools {
-
 		asgName, err := c.getAutoScalingGroupName(cloudformationSrv, autoscalingSrv, poolName)
 		if err != nil {
 			c.log.Errorf("ASG not found for node pool %v. %v", poolName, err.Error())
@@ -348,7 +347,6 @@ func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 			waitChan <- nodepools.WaitForASGToBeFulfilled(context.Background(), awsSession, c.log, c.modelCluster.Name,
 				poolName, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second)
 		}(poolName)
-
 	}
 
 	// wait for goroutines to finish
@@ -378,13 +376,11 @@ func (c *EKSCluster) getAutoScalingGroupName(cloudformationSrv *cloudformation.C
 
 // GetStatus describes the status of this EKS cluster.
 func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-
 	var hasSpotNodePool bool
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.modelCluster.EKS.NodePools {
 		if np != nil {
-
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Autoscaling:       np.Autoscaling,
 				Count:             np.Count,
@@ -438,7 +434,6 @@ func (c *EKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 	// create update request struct with the stored data to check equality
 	preNodePools := make(map[string]*pkgEks.NodePool)
 	for _, preNp := range c.modelCluster.EKS.NodePools {
-
 		preNodePools[preNp.Name] = &pkgEks.NodePool{
 			InstanceType: preNp.NodeInstanceType,
 			SpotPrice:    preNp.NodeSpotPrice,

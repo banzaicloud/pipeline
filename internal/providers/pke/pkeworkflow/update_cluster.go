@@ -105,7 +105,6 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			}
 
 			futures = append(futures, workflow.ExecuteActivity(ctx, WaitForDeletePoolActivityName, activityInput))
-
 		}
 
 		for _, future := range futures {

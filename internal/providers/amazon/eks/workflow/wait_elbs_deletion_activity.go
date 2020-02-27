@@ -89,7 +89,6 @@ func (a *WaitELBsDeletionActivity) Execute(ctx context.Context, input WaitELBsDe
 						if err = errors.WrapIf(err, "couldn't describe ELBs"); err != nil {
 							return err
 						}
-
 					}
 
 					remaining = append(remaining, lbName)
@@ -104,7 +103,6 @@ func (a *WaitELBsDeletionActivity) Execute(ctx context.Context, input WaitELBsDe
 			}
 		case <-ctx.Done():
 			return nil
-
 		}
 	}
 }

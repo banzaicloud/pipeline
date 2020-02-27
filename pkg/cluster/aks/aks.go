@@ -64,7 +64,6 @@ type UpdateClusterAzure struct {
 
 // Validate validates aks cluster create request
 func (azure *CreateClusterAKS) Validate() error {
-
 	if azure == nil {
 		return pkgErrors.ErrorAzureFieldIsEmpty
 	}
@@ -79,7 +78,6 @@ func (azure *CreateClusterAKS) Validate() error {
 	}
 
 	for npName, np := range azure.NodePools {
-
 		// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
 		if np.Autoscaling {
 			err := checkVersionsIsNewerThen(azure.KubernetesVersion, minKubernetesVersionWithAutoscalerStr)

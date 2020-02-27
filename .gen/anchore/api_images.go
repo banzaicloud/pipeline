@@ -16,7 +16,6 @@ import (
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
 	"github.com/antihax/optional"
 )
@@ -59,7 +58,6 @@ func (a *ImagesApiService) AddImage(ctx _context.Context, image ImageAnalysisReq
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -131,7 +129,6 @@ func (a *ImagesApiService) AddImage(ctx _context.Context, image ImageAnalysisReq
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -173,7 +170,7 @@ func (a *ImagesApiService) DeleteImage(ctx _context.Context, imageDigest string,
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/{imageDigest}"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageDigest)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(parameterToString(imageDigest, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -254,7 +251,7 @@ func (a *ImagesApiService) DeleteImageByImageId(ctx _context.Context, imageId st
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/by_id/{imageId}"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(parameterToString(imageId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -312,7 +309,6 @@ func (a *ImagesApiService) DeleteImageByImageId(ctx _context.Context, imageId st
 				return localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarHTTPResponse, newErr
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -345,7 +341,7 @@ func (a *ImagesApiService) GetImage(ctx _context.Context, imageDigest string, lo
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/{imageDigest}"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageDigest)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(parameterToString(imageDigest, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -410,7 +406,6 @@ func (a *ImagesApiService) GetImage(ctx _context.Context, imageDigest string, lo
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -452,7 +447,7 @@ func (a *ImagesApiService) GetImageByImageId(ctx _context.Context, imageId strin
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/by_id/{imageId}"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(parameterToString(imageId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -517,7 +512,6 @@ func (a *ImagesApiService) GetImageByImageId(ctx _context.Context, imageId strin
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -560,8 +554,9 @@ func (a *ImagesApiService) GetImageContentByType(ctx _context.Context, imageDige
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/{imageDigest}/content/{ctype}"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageDigest)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"ctype"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", ctype)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(parameterToString(imageDigest, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"ctype"+"}", _neturl.QueryEscape(parameterToString(ctype, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -626,7 +621,6 @@ func (a *ImagesApiService) GetImageContentByType(ctx _context.Context, imageDige
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -668,7 +662,7 @@ func (a *ImagesApiService) GetImageContentByTypeFiles(ctx _context.Context, imag
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/{imageDigest}/content/files"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageDigest)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(parameterToString(imageDigest, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -733,7 +727,6 @@ func (a *ImagesApiService) GetImageContentByTypeFiles(ctx _context.Context, imag
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -776,8 +769,9 @@ func (a *ImagesApiService) GetImageContentByTypeImageId(ctx _context.Context, im
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/by_id/{imageId}/content/{ctype}"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageId)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"ctype"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", ctype)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(parameterToString(imageId, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"ctype"+"}", _neturl.QueryEscape(parameterToString(ctype, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -842,7 +836,6 @@ func (a *ImagesApiService) GetImageContentByTypeImageId(ctx _context.Context, im
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -884,7 +877,7 @@ func (a *ImagesApiService) GetImageContentByTypeImageIdFiles(ctx _context.Contex
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/by_id/{imageId}/content/files"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(parameterToString(imageId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -949,7 +942,6 @@ func (a *ImagesApiService) GetImageContentByTypeImageIdFiles(ctx _context.Contex
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -991,7 +983,7 @@ func (a *ImagesApiService) GetImageContentByTypeImageIdJavapackage(ctx _context.
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/by_id/{imageId}/content/java"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(parameterToString(imageId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -1056,7 +1048,6 @@ func (a *ImagesApiService) GetImageContentByTypeImageIdJavapackage(ctx _context.
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1098,7 +1089,7 @@ func (a *ImagesApiService) GetImageContentByTypeJavapackage(ctx _context.Context
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/{imageDigest}/content/java"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageDigest)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(parameterToString(imageDigest, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -1163,7 +1154,6 @@ func (a *ImagesApiService) GetImageContentByTypeJavapackage(ctx _context.Context
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1206,8 +1196,9 @@ func (a *ImagesApiService) GetImageMetadataByType(ctx _context.Context, imageDig
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/{imageDigest}/metadata/{mtype}"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageDigest)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"mtype"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", mtype)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(parameterToString(imageDigest, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"mtype"+"}", _neturl.QueryEscape(parameterToString(mtype, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -1272,7 +1263,6 @@ func (a *ImagesApiService) GetImageMetadataByType(ctx _context.Context, imageDig
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1324,7 +1314,7 @@ func (a *ImagesApiService) GetImagePolicyCheck(ctx _context.Context, imageDigest
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/{imageDigest}/check"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageDigest)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(parameterToString(imageDigest, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -1402,7 +1392,6 @@ func (a *ImagesApiService) GetImagePolicyCheck(ctx _context.Context, imageDigest
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1452,7 +1441,7 @@ func (a *ImagesApiService) GetImagePolicyCheckByImageId(ctx _context.Context, im
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/by_id/{imageId}/check"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(parameterToString(imageId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -1527,7 +1516,6 @@ func (a *ImagesApiService) GetImagePolicyCheckByImageId(ctx _context.Context, im
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1574,8 +1562,9 @@ func (a *ImagesApiService) GetImageVulnerabilitiesByType(ctx _context.Context, i
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/{imageDigest}/vuln/{vtype}"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageDigest)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"vtype"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", vtype)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(parameterToString(imageDigest, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"vtype"+"}", _neturl.QueryEscape(parameterToString(vtype, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -1646,7 +1635,6 @@ func (a *ImagesApiService) GetImageVulnerabilitiesByType(ctx _context.Context, i
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1689,8 +1677,9 @@ func (a *ImagesApiService) GetImageVulnerabilitiesByTypeImageId(ctx _context.Con
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/by_id/{imageId}/vuln/{vtype}"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageId)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"vtype"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", vtype)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(parameterToString(imageId, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"vtype"+"}", _neturl.QueryEscape(parameterToString(vtype, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -1755,7 +1744,6 @@ func (a *ImagesApiService) GetImageVulnerabilitiesByTypeImageId(ctx _context.Con
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1797,7 +1785,7 @@ func (a *ImagesApiService) GetImageVulnerabilityTypes(ctx _context.Context, imag
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/{imageDigest}/vuln"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageDigest)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(parameterToString(imageDigest, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -1862,7 +1850,6 @@ func (a *ImagesApiService) GetImageVulnerabilityTypes(ctx _context.Context, imag
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1904,7 +1891,7 @@ func (a *ImagesApiService) GetImageVulnerabilityTypesByImageId(ctx _context.Cont
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/by_id/{imageId}/vuln"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(parameterToString(imageId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -1969,7 +1956,6 @@ func (a *ImagesApiService) GetImageVulnerabilityTypesByImageId(ctx _context.Cont
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -2011,7 +1997,7 @@ func (a *ImagesApiService) ListImageContent(ctx _context.Context, imageDigest st
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/{imageDigest}/content"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageDigest)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(parameterToString(imageDigest, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -2076,7 +2062,6 @@ func (a *ImagesApiService) ListImageContent(ctx _context.Context, imageDigest st
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -2118,7 +2103,7 @@ func (a *ImagesApiService) ListImageContentByImageid(ctx _context.Context, image
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/by_id/{imageId}/content"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", _neturl.QueryEscape(parameterToString(imageId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -2183,7 +2168,6 @@ func (a *ImagesApiService) ListImageContentByImageid(ctx _context.Context, image
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -2225,7 +2209,7 @@ func (a *ImagesApiService) ListImageMetadata(ctx _context.Context, imageDigest s
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/{imageDigest}/metadata"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageDigest)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(parameterToString(imageDigest, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -2290,7 +2274,6 @@ func (a *ImagesApiService) ListImageMetadata(ctx _context.Context, imageDigest s
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -2338,7 +2321,6 @@ func (a *ImagesApiService) ListImages(ctx _context.Context, localVarOptionals *L
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -2417,7 +2399,6 @@ func (a *ImagesApiService) ListImages(ctx _context.Context, localVarOptionals *L
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

@@ -25,7 +25,7 @@ import (
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
-const pkeVersion = "0.4.21"
+const pkeVersion = "0.4.23"
 
 type PKEImageNameGetter interface {
 	PKEImageName(cloudProvider, service, os, kubeVersion, pkeVersion, region string) (string, error)
@@ -280,9 +280,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 		masterInput.TargetGroup = activityOutput.TargetGroup
 		externalAddress = activityOutput.DNSName
-
 	} else {
-
 		// Create EIP
 		var eip CreateElasticIPActivityOutput
 		activityInput := &CreateElasticIPActivityInput{

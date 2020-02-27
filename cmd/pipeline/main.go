@@ -88,8 +88,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
-	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	"github.com/banzaicloud/pipeline/internal/helm2"
+	"github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicesdriver"
@@ -97,6 +97,7 @@ import (
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
 	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
@@ -773,7 +774,6 @@ func main() {
 					cRouter.Any("/nodepools", gin.WrapH(router))
 					cRouter.Any("/nodepools/:nodePoolName", gin.WrapH(router))
 				}
-
 			}
 
 			clusterSecretStore := clustersecret.NewStore(
@@ -782,7 +782,7 @@ func main() {
 			)
 
 			// Cluster IntegratedService API
-			var featureService integratedservices.Service
+			var integratedServicesService integratedservices.Service
 			{
 				featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
 				clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
@@ -791,6 +791,8 @@ func main() {
 				integratedServiceManagers := []integratedservices.IntegratedServiceManager{
 					securityscan.MakeIntegratedServiceManager(commonLogger, config.Cluster.SecurityScan.Config),
 				}
+
+				helmService := helm2.NewHelmService(helmadapter.NewClusterService(clusterManager), commonLogger)
 
 				if config.Cluster.DNS.Enabled {
 					integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
@@ -801,7 +803,6 @@ func main() {
 				}
 
 				if config.Cluster.Monitoring.Enabled {
-					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), commonLogger)
 					integratedServiceManagers = append(integratedServiceManagers, featureMonitoring.MakeIntegratedServiceManager(
 						clusterGetter,
 						commonSecretStore,
@@ -861,11 +862,19 @@ func main() {
 						expiry.NewExpiryServiceManager(services.BindIntegratedServiceSpec))
 				}
 
+				if config.Cluster.Ingress.Enabled {
+					integratedServiceManagers = append(integratedServiceManagers, ingress.NewManager(
+						config.Cluster.Ingress.Config,
+						helmService,
+						commonLogger,
+					))
+				}
+
 				integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
 				integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
-				featureService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, commonLogger)
+				integratedServicesService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, commonLogger)
 				endpoints := integratedservicesdriver.MakeEndpoints(
-					featureService,
+					integratedServicesService,
 					kitxendpoint.Combine(endpointMiddleware...),
 				)
 
@@ -893,7 +902,7 @@ func main() {
 				}
 			}
 
-			hpaApi := api.NewHPAAPI(featureService, clientFactory, configFactory, commonClusterGetter, errorHandler)
+			hpaApi := api.NewHPAAPI(integratedServicesService, clientFactory, configFactory, commonClusterGetter, errorHandler)
 			cRouter.GET("/hpa", hpaApi.GetHpaResource)
 			cRouter.PUT("/hpa", hpaApi.PutHpaResource)
 			cRouter.DELETE("/hpa", hpaApi.DeleteHpaResource)

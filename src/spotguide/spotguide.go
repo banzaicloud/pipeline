@@ -39,7 +39,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/internal/util"
+	"github.com/banzaicloud/pipeline/pkg/any"
 	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -232,7 +232,6 @@ func (s *SpotguideManager) scrapeSharedSpotguides() error {
 }
 
 func (s *SpotguideManager) ScrapeSpotguides(orgID uint, userID uint) error {
-
 	org, err := auth.GetOrganizationById(orgID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to resolve organization from id")
@@ -247,7 +246,6 @@ func (s *SpotguideManager) ScrapeSpotguides(orgID uint, userID uint) error {
 }
 
 func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, scm scm.SCM) error {
-
 	allowPrivate := global.Config.Spotguide.AllowPrivateRepos
 
 	allRepositories, err := scm.ListRepositoriesByTopic(org.Name, SpotguideGithubTopic, allowPrivate)
@@ -280,7 +278,6 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, scm scm.SCM)
 		}
 
 		for _, release := range releases {
-
 			if !s.isSpotguideReleaseAllowed(release) {
 				continue
 			}
@@ -501,11 +498,9 @@ func getSpotguideContent(sourceSCM scm.SCM, request *LaunchRequest, sourceRepo *
 }
 
 func createSecrets(request *LaunchRequest, orgID uint, userID uint) error {
-
 	repoTag := "repo:" + request.RepoFullname()
 
 	for _, secretRequest := range request.Secrets {
-
 		secretRequest.Tags = append(secretRequest.Tags, repoTag)
 
 		if _, err := secret.Store.Store(orgID, secretRequest); err != nil {
@@ -519,7 +514,6 @@ func createSecrets(request *LaunchRequest, orgID uint, userID uint) error {
 }
 
 func enableCICD(cicdClient cicd.Client, request *LaunchRequest, org string) error {
-
 	_, err := cicdClient.RepoListOpts(true, true)
 	if err != nil {
 		return errors.WrapIf(err, "failed to sync CICD repositories")
@@ -624,14 +618,12 @@ func createCICDRepoConfig(pipelineYAML []byte, request *LaunchRequest, platformD
 }
 
 func cicdRepoConfigCluster(request *LaunchRequest, repoConfig *cicdRepoConfig) error {
-
 	clusterJSON, err := jsonstructure.Encode(request.Cluster)
 	if err != nil {
 		return err
 	}
 
 	for i, step := range repoConfig.Pipeline {
-
 		// Find CreateClusterStep step and transform it
 		if step.Key == CreateClusterStep {
 			log.Debugf("merge cluster info to %q step", step.Key)
@@ -696,7 +688,7 @@ func cicdRepoConfigPipeline(request *LaunchRequest, repoConfig *cicdRepoConfig) 
 				return err
 			}
 
-			merged, err := util.Merge(pipelineStep, stepToMergeIn)
+			merged, err := any.Merge(pipelineStep, stepToMergeIn, jsonstructure.DefaultMergeOptions())
 			if err != nil {
 				return err
 			}

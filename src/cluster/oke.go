@@ -61,7 +61,6 @@ func CreateOKEClusterFromModel(clusterModel *model.ClusterModel) (*OKECluster, e
 
 // CreateOKEClusterFromRequest creates ClusterModel struct from the request
 func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*OKECluster, error) {
-
 	var oke OKECluster
 
 	oke.modelCluster = &model.ClusterModel{
@@ -98,7 +97,6 @@ func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 
 // CreateCluster creates a new cluster
 func (o *OKECluster) CreateCluster() error {
-
 	log.Info("Start creating Oracle cluster")
 
 	cm, err := o.GetClusterManager()
@@ -121,7 +119,6 @@ func (o *OKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 
 // UpdateCluster updates the cluster
 func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, userId uint) error {
-
 	updated, err := o.PopulateNetworkValues(r.UpdateProperties.OKE, o.modelCluster.OKE.VCNID)
 	if err != nil {
 		return err
@@ -166,7 +163,6 @@ func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, userId ui
 
 // DeleteCluster deletes cluster
 func (o *OKECluster) DeleteCluster() error {
-
 	// mark cluster model to deleting
 	o.modelCluster.OKE.Delete = true
 
@@ -196,7 +192,6 @@ func (o *OKECluster) Persist() error {
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
 func (o *OKECluster) DownloadK8sConfig() ([]byte, error) {
-
 	oci, err := o.GetOCIWithRegion(o.modelCluster.Location)
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not get OCI client")
@@ -328,7 +323,6 @@ func (o *OKECluster) GetDistribution() string {
 
 // GetStatus gets cluster status
 func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range o.modelCluster.OKE.NodePools {
 		if np != nil {
@@ -383,7 +377,6 @@ func (o *OKECluster) GetModel() *model.ClusterModel {
 
 // CheckEqualityToUpdate validates the update request
 func (o *OKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
-
 	cluster := o.modelCluster.OKE.GetClusterRequestFromModel()
 
 	log.Info("Check stored & updated cluster equals")
@@ -393,7 +386,6 @@ func (o *OKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 
 // AddDefaultsToUpdate adds defaults to update request
 func (o *OKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
-
 	r.UpdateProperties.OKE.AddDefaults() // nolint: errcheck
 }
 
@@ -482,7 +474,6 @@ func (o *OKECluster) IsReady() (bool, error) {
 
 // ValidateCreationFields validates all field
 func (o *OKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
-
 	cm, err := o.GetClusterManager()
 	if err != nil {
 		return err
@@ -527,7 +518,6 @@ func (o *OKECluster) GetK8sUserConfig() ([]byte, error) {
 
 // GetClusterManager creates a new oracleClusterManager.ClusterManager
 func (o *OKECluster) GetClusterManager() (manager *oracleClusterManager.ClusterManager, err error) {
-
 	oci, err := o.GetOCIWithRegion(o.modelCluster.Location)
 	if err != nil {
 		return manager, err
@@ -558,7 +548,6 @@ func (o *OKECluster) GetCluster() (cluster containerengine.Cluster, err error) {
 
 // GetOCI creates a new oci.OCI
 func (o *OKECluster) GetOCI() (OCI *oci.OCI, err error) {
-
 	s, err := o.CommonClusterBase.getSecret(o)
 	if err != nil {
 		return OCI, err
@@ -576,7 +565,6 @@ func (o *OKECluster) GetOCI() (OCI *oci.OCI, err error) {
 
 // GetOCIWithRegion creates a new oci.OCI with the given region
 func (o *OKECluster) GetOCIWithRegion(region string) (OCI *oci.OCI, err error) {
-
 	OCI, err = o.GetOCI()
 	if err != nil {
 		return OCI, err
@@ -589,7 +577,6 @@ func (o *OKECluster) GetOCIWithRegion(region string) (OCI *oci.OCI, err error) {
 
 // CreatePreconfiguredVCN creates a preconfigured VCN with the given name
 func (o *OKECluster) CreatePreconfiguredVCN(name string) (VCNID string, err error) {
-
 	oci, err := o.GetOCIWithRegion(o.modelCluster.Location)
 	if err != nil {
 		return
@@ -612,7 +599,6 @@ func (o *OKECluster) CreatePreconfiguredVCN(name string) (VCNID string, err erro
 
 // DeletePreconfiguredVCN deletes a preconfigured VCN by id
 func (o *OKECluster) DeletePreconfiguredVCN(VCNID string) (err error) {
-
 	oci, err := o.GetOCIWithRegion(o.modelCluster.Location)
 	if err != nil {
 		return
@@ -624,7 +610,6 @@ func (o *OKECluster) DeletePreconfiguredVCN(VCNID string) (err error) {
 
 // PopulateNetworkValues fills network related values in the request object
 func (o *OKECluster) PopulateNetworkValues(r *oracle.Cluster, VCNID string) (*oracle.Cluster, error) {
-
 	oci, err := o.GetOCIWithRegion(o.modelCluster.Location)
 	if err != nil {
 		return r, err
@@ -654,7 +639,6 @@ func (o *OKECluster) PopulateNetworkValues(r *oracle.Cluster, VCNID string) (*or
 
 // GetPoolQuantityValues calculates quantityPerSubnet and SubnetIDS for the given instance count
 func (o *OKECluster) GetPoolQuantityValues(count uint, networkValues network.NetworkValues) (qps uint, subnetIDS []string) {
-
 	if count == 0 || len(networkValues.WNSubnetIDs) < 3 {
 		return
 	}
@@ -689,7 +673,6 @@ func (o *OKECluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 
 // GetKubernetesUserName returns the user ID which needed to create a cluster role binding which gives admin rights to the user
 func (o *OKECluster) GetKubernetesUserName() (string, error) {
-
 	s, err := o.GetSecretWithValidation()
 	if err != nil {
 		return "", errors.WrapIf(err, "error getting secret")
@@ -700,11 +683,9 @@ func (o *OKECluster) GetKubernetesUserName() (string, error) {
 	}
 
 	return s.Values[secrettype.OracleUserOCID], nil
-
 }
 
 func (o *OKECluster) getSSHPubKey() (string, error) {
-
 	sshSecret, err := o.getSshSecret(o)
 	if err != nil {
 		return "", err

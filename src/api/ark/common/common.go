@@ -43,7 +43,6 @@ func init() {
 
 // ErrorResponse aborts the http request with a JSON error response with a status code and error
 func ErrorResponse(c *gin.Context, err error) {
-
 	status := http.StatusBadRequest
 
 	if errors.Cause(err) == gorm.ErrRecordNotFound {
@@ -54,7 +53,6 @@ func ErrorResponse(c *gin.Context, err error) {
 }
 
 func GetBucketLocation(cloud string, bucketName string, secretId string, organizationID uint, logger logrus.FieldLogger) (string, error) {
-
 	bucketSecret, err := restricted.GlobalSecretStore.Get(organizationID, secretId)
 	if err != nil {
 		return "", errors.WrapIfWithDetails(err, "error during getting secret", "secretId", secretId)

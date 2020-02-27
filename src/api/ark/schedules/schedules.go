@@ -23,7 +23,6 @@ import (
 
 // AddRoutes adds ARK schedules related API routes
 func AddRoutes(group *gin.RouterGroup) {
-
 	group.Use(common.ARKMiddleware(global.DB(), common.Log))
 	group.GET("", List)
 	group.POST("", Create)

@@ -73,7 +73,6 @@ func (a *GetOwnedELBsActivity) Execute(ctx context.Context, input GetOwnedELBsAc
 
 	err = elbService.DescribeLoadBalancersPagesWithContext(ctx, describeLoadBalancers,
 		func(page *elb.DescribeLoadBalancersOutput, lastPage bool) bool {
-
 			for _, lb := range page.LoadBalancerDescriptions {
 				if aws.StringValue(lb.VPCId) == input.VpcID {
 					loadBalancerNames = append(loadBalancerNames, lb.LoadBalancerName)
@@ -117,7 +116,6 @@ func (a *GetOwnedELBsActivity) Execute(ctx context.Context, input GetOwnedELBsAc
 				}
 			}
 		}
-
 	}
 
 	logger.Infof("ELBs owned by cluster: '%s'", output.LoadBalancerNames)

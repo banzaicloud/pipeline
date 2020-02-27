@@ -36,7 +36,6 @@ func AddOrgRoutes(group *gin.RouterGroup, clusterManager *cluster.Manager) {
 
 // AddRoutes adds ARK backups related API routes
 func AddRoutes(group *gin.RouterGroup) {
-
 	group.Use(common.ARKMiddleware(global.DB(), common.Log))
 	group.GET("", List)
 	group.POST("", Create)

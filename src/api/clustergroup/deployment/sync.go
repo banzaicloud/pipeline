@@ -41,7 +41,6 @@ import (
 // @Router /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments/{deploymentName}/sync [put]
 // @Security bearerAuth
 func (n *API) Sync(c *gin.Context) {
-
 	ctx := gutils.Context(context.Background(), c)
 
 	name := c.Param("name")
@@ -83,5 +82,4 @@ func (n *API) Sync(c *gin.Context) {
 		}
 		c.JSON(http.StatusAccepted, response.TargetClustersStatus)
 	}
-
 }
