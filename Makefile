@@ -274,17 +274,16 @@ apis/dex/api.proto:
 _download-protos: apis/dex/api.proto
 
 bin/protoc: bin/protoc-${PROTOC_VERSION}
-	@ln -sf protoc-${PROTOC_VERSION} bin/protoc
+	@ln -sf protoc-${PROTOC_VERSION}/bin/protoc bin/protoc
 bin/protoc-${PROTOC_VERSION}:
-	@mkdir -p bin
+	@mkdir -p bin/protoc-${PROTOC_VERSION}
 ifeq (${OS}, darwin)
 	curl -L https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-osx-x86_64.zip > bin/protoc.zip
 endif
 ifeq (${OS}, linux)
 	curl -L https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip > bin/protoc.zip
 endif
-	unzip -p bin/protoc.zip bin/protoc > bin/protoc-${PROTOC_VERSION}
-	chmod +x bin/protoc-${PROTOC_VERSION}
+	unzip bin/protoc.zip -d bin/protoc-${PROTOC_VERSION}
 	rm bin/protoc.zip
 
 bin/protoc-gen-go:
@@ -305,7 +304,7 @@ buf: bin/buf _download-protos ## Generate client and server stubs from the proto
 .PHONY: proto
 # proto: buf
 proto: bin/protoc bin/protoc-gen-go ## Generate client and server stubs from the protobuf definition
-	protoc -I apis/dex --go_out=plugins=grpc,import_path=dex:.gen/dex $(shell find apis/dex -name '*.proto')
+	bin/protoc -I bin/protoc-${PROTOC_VERSION} -I apis/dex --go_out=plugins=grpc,import_path=dex:.gen/dex $(shell find apis/dex -name '*.proto')
 
 snapshot:
 	@test -n "${SNAPSHOT_VERSION}" || (echo "Missing snapshot version" && exit 1)
