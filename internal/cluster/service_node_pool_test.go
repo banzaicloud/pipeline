@@ -142,8 +142,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
 		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		rawNewNodePool := NewRawNodePool{
 			"name": "pool0",
@@ -181,8 +182,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
 		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		rawNewNodePool := NewRawNodePool{
 			"name": "pool0",
@@ -231,8 +233,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 
 		processor := new(MockNodePoolProcessor)
 		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		err := nodePoolService.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.Error(t, err)
@@ -276,8 +279,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 
 		processor := new(MockNodePoolProcessor)
 		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		err := nodePoolService.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.Error(t, err)
@@ -326,7 +330,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		manager := new(MockNodePoolManager)
 		manager.On("CreateNodePool", ctx, cluster.ID, rawNewNodePool).Return(nil)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		clusterGroupManager := new(MockClusterGroupManager)
+
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		err := nodePoolService.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.NoError(t, err)
@@ -353,8 +359,9 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
 		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		_, err := nodePoolService.DeleteNodePool(ctx, 1, "pool0")
 		require.Error(t, err)
@@ -388,8 +395,9 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
 		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		_, err := nodePoolService.DeleteNodePool(ctx, 1, "pool0")
 		require.Error(t, err)
@@ -427,8 +435,9 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
 		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		deleted, err := nodePoolService.DeleteNodePool(ctx, 1, nodePoolName)
 		require.NoError(t, err)
@@ -470,7 +479,9 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		manager := new(MockNodePoolManager)
 		manager.On("DeleteNodePool", ctx, cluster.ID, nodePoolName).Return(nil)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		clusterGroupManager := new(MockClusterGroupManager)
+
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		deleted, err := nodePoolService.DeleteNodePool(ctx, 1, nodePoolName)
 		require.NoError(t, err)
