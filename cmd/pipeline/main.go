@@ -736,6 +736,7 @@ func main() {
 					service := intCluster.NewService(
 						clusterStore,
 						clusteradapter.NewCadenceClusterManager(workflowClient),
+						clusterGroupManager,
 						clusteradapter.NewNodePoolStore(db, clusterStore),
 						intCluster.NodePoolValidators{
 							intCluster.NewCommonNodePoolValidator(labelValidator),

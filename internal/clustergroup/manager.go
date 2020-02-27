@@ -234,6 +234,38 @@ func (g *Manager) DeleteClusterGroupByID(ctx context.Context, orgID uint, cluste
 	return g.cgRepo.Delete(cgModel)
 }
 
+func (g *Manager) ValidateClusterRemoval(ctx context.Context, clusterID uint) error {
+	clusterGroupID, err := g.getClusterGroupForCluster(clusterID)
+	if err != nil {
+		return err
+	}
+	if clusterGroupID == nil {
+		return nil
+	}
+
+	cgModel, err := g.cgRepo.FindOne(ClusterGroupModel{
+		ID: *clusterGroupID,
+	})
+	if err != nil {
+		return err
+	}
+
+	existingClusterGroup := g.GetClusterGroupFromModel(ctx, cgModel, false)
+	// remove clusterID from members
+	newMembers := make(map[uint]api.Cluster, 0)
+	for id, cluster := range existingClusterGroup.Clusters {
+		if id != clusterID {
+			newMembers[id] = cluster
+		}
+	}
+
+	err = g.validateBeforeClusterGroupUpdate(*existingClusterGroup, newMembers)
+	if err != nil {
+		return errors.WrapIf(err, "removing cluster from group is not allowed")
+	}
+	return nil
+}
+
 // RemoveClusterFromGroup removes a cluster from group
 func (g *Manager) RemoveClusterFromGroup(ctx context.Context, clusterID uint) error {
 	clusterGroupID, err := g.getClusterGroupForCluster(clusterID)
