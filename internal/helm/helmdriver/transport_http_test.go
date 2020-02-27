@@ -89,11 +89,9 @@ func TestRegisterHTTPHandlers_DeleteRepositories(t *testing.T) {
 	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
-
 }
 
 func TestRegisterHTTPHandlers_AddRepository(t *testing.T) {
-
 	tests := []struct {
 		name               string
 		endpoint           endpoint.Endpoint
@@ -126,7 +124,6 @@ func TestRegisterHTTPHandlers_AddRepository(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			// GIVEN
 			handler := mux.NewRouter()
 

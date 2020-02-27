@@ -24,7 +24,6 @@ import (
 )
 
 func Test_service_AddRepository(t *testing.T) {
-
 	type fields struct {
 		store         Store
 		secretStore   SecretStore
@@ -154,7 +153,6 @@ func Test_service_AddRepository(t *testing.T) {
 			}
 
 			if err := s.AddRepository(tt.args.ctx, tt.args.organizationID, tt.args.repository); (err != nil) != tt.wantErr {
-
 				t.Errorf("AddRepository() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

@@ -81,7 +81,6 @@ func Test_helmRepoStore_Create(t *testing.T) {
 		// addition fails due to constraint violation
 		require.Error(t, err)
 	})
-
 }
 
 func Test_helmRepoStore_Get(t *testing.T) {
@@ -181,5 +180,4 @@ func Test_helmRepoStore_ListRepositories(t *testing.T) {
 		require.NotNil(t, repos)
 		assert.Equal(t, 3, len(repos))
 	})
-
 }

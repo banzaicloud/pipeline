@@ -65,7 +65,6 @@ type Service interface {
 
 // NewService returns a new Service.
 func NewService(store Store, secretStore SecretStore, validator RepoValidator, logger Logger) Service {
-
 	return service{
 		store:         store,
 		secretStore:   secretStore,
@@ -107,29 +106,24 @@ type service struct {
 }
 
 func (s service) AddRepository(ctx context.Context, organizationID uint, repository Repository) error {
-
 	// validate repository
 	if err := s.repoValidator.Validate(ctx, repository); err != nil {
-
 		return errors.WrapIf(err, "failed to add new helm repository")
 	}
 
 	if repository.PasswordSecretID != "" {
 		if err := s.secretStore.CheckPasswordSecret(ctx, repository.PasswordSecretID); err != nil {
-
 			return ValidationError{message: err.Error(), violations: []string{"password secret must exist"}}
 		}
 	}
 
 	if repository.TlsSecretID != "" {
 		if err := s.secretStore.CheckTLSSecret(ctx, repository.PasswordSecretID); err != nil {
-
 			return ValidationError{message: err.Error(), violations: []string{"tls secret must exist"}}
 		}
 	}
 
 	if _, err := s.store.Get(ctx, organizationID, repository); err == nil {
-
 		return AlreadyExistsError{
 			Description:    "helm repository already exists",
 			RepositoryName: repository.Name,
@@ -141,7 +135,6 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 
 	// save in store
 	if err := s.store.Create(ctx, organizationID, repository); err != nil {
-
 		return errors.WrapIf(err, "failed to add helm repository")
 	}
 
@@ -150,13 +143,11 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 }
 
 func (s service) ListRepositories(ctx context.Context, organizationID uint) (repos []Repository, err error) {
-
 	return s.store.List(ctx, organizationID)
 }
 
 func (s service) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {
 	if err := s.store.Delete(ctx, organizationID, Repository{Name: repoName}); err != nil {
-
 		return errors.WrapIf(err, "failed to delete helm repository")
 	}
 
