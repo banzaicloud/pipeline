@@ -20,6 +20,7 @@ Method | HTTP request | Description
 ## DeleteService
 
 > DeleteService(ctx, servicename, hostid)
+
 Delete the service config
 
 ### Required Parameters
@@ -52,6 +53,7 @@ Name | Type | Description  | Notes
 ## DescribeErrorCodes
 
 > []AnchoreErrorCode DescribeErrorCodes(ctx, )
+
 Describe anchore engine error codes.
 
 Describe anchore engine error codes.
@@ -81,6 +83,7 @@ This endpoint does not need any parameter.
 ## DescribePolicy
 
 > []GateSpec DescribePolicy(ctx, )
+
 Describe the policy language spec implemented by this service.
 
 Get the policy language spec for this service
@@ -110,6 +113,7 @@ This endpoint does not need any parameter.
 ## GetServiceDetail
 
 > SystemStatusResponse GetServiceDetail(ctx, )
+
 System status
 
 Get the system status including queue lengths
@@ -139,6 +143,7 @@ This endpoint does not need any parameter.
 ## GetServicesByName
 
 > []Service GetServicesByName(ctx, servicename)
+
 Get a service configuration and state
 
 ### Required Parameters
@@ -170,6 +175,7 @@ Name | Type | Description  | Notes
 ## GetServicesByNameAndHost
 
 > []Service GetServicesByNameAndHost(ctx, servicename, hostid)
+
 Get service config for a specific host
 
 ### Required Parameters
@@ -202,6 +208,7 @@ Name | Type | Description  | Notes
 ## GetStatus
 
 > StatusResponse GetStatus(ctx, )
+
 Service status
 
 Get the API service status
@@ -231,6 +238,7 @@ This endpoint does not need any parameter.
 ## GetSystemFeeds
 
 > []FeedMetadata GetSystemFeeds(ctx, )
+
 list feeds operations and information
 
 ### Required Parameters
@@ -258,6 +266,7 @@ This endpoint does not need any parameter.
 ## ListServices
 
 > []Service ListServices(ctx, )
+
 List system services
 
 ### Required Parameters
@@ -285,6 +294,7 @@ This endpoint does not need any parameter.
 ## PostSystemFeeds
 
 > []FeedSyncResult PostSystemFeeds(ctx, optional)
+
 trigger feeds operations
 
 ### Required Parameters

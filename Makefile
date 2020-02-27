@@ -32,7 +32,7 @@ ANCHORE_VERSION = 156836d
 GOLANGCI_VERSION = 1.23.6
 JQ_VERSION = 1.5
 LICENSEI_VERSION = 0.2.0
-OPENAPI_GENERATOR_VERSION = v4.1.3
+OPENAPI_GENERATOR_VERSION = v4.2.3
 MIGRATE_VERSION = 4.0.2
 GOTESTSUM_VERSION = 0.4.0
 GOBIN_VERSION = 0.0.13
@@ -244,7 +244,7 @@ generate-openapi: validate-openapi ## Generate go server based on openapi descri
 	-g go-server \
 	-o /local/.gen/pipeline
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) .gen/pipeline/; fi
-	rm .gen/pipeline/Dockerfile .gen/pipeline/README.md .gen/pipeline/main.go .gen/pipeline/go/api_* .gen/pipeline/go/logger.go .gen/pipeline/go/routers.go
+	rm .gen/pipeline/{Dockerfile,go.*,README.md,main.go,go/api*.go,go/logger.go,go/routers.go}
 	mv .gen/pipeline/go .gen/pipeline/pipeline
 
 define generate_openapi_client

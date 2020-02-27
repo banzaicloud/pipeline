@@ -16,7 +16,6 @@ import (
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
 	"github.com/antihax/optional"
 )
@@ -55,7 +54,6 @@ func (a *SubscriptionsApiService) AddSubscription(ctx _context.Context, subscrip
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/subscriptions"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -111,7 +109,6 @@ func (a *SubscriptionsApiService) AddSubscription(ctx _context.Context, subscrip
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -151,7 +148,7 @@ func (a *SubscriptionsApiService) DeleteSubscription(ctx _context.Context, subsc
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/subscriptions/{subscriptionId}"
-	localVarPath = strings.Replace(localVarPath, "{"+"subscriptionId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", subscriptionId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"subscriptionId"+"}", _neturl.QueryEscape(parameterToString(subscriptionId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -206,7 +203,6 @@ func (a *SubscriptionsApiService) DeleteSubscription(ctx _context.Context, subsc
 				return localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarHTTPResponse, newErr
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -239,7 +235,7 @@ func (a *SubscriptionsApiService) GetSubscription(ctx _context.Context, subscrip
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/subscriptions/{subscriptionId}"
-	localVarPath = strings.Replace(localVarPath, "{"+"subscriptionId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", subscriptionId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"subscriptionId"+"}", _neturl.QueryEscape(parameterToString(subscriptionId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -304,7 +300,6 @@ func (a *SubscriptionsApiService) GetSubscription(ctx _context.Context, subscrip
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -349,7 +344,6 @@ func (a *SubscriptionsApiService) ListSubscriptions(ctx _context.Context, localV
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/subscriptions"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -419,7 +413,6 @@ func (a *SubscriptionsApiService) ListSubscriptions(ctx _context.Context, localV
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -462,7 +455,7 @@ func (a *SubscriptionsApiService) UpdateSubscription(ctx _context.Context, subsc
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/subscriptions/{subscriptionId}"
-	localVarPath = strings.Replace(localVarPath, "{"+"subscriptionId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", subscriptionId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"subscriptionId"+"}", _neturl.QueryEscape(parameterToString(subscriptionId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -519,7 +512,6 @@ func (a *SubscriptionsApiService) UpdateSubscription(ctx _context.Context, subsc
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

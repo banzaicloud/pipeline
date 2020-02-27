@@ -22,6 +22,7 @@ Method | HTTP request | Description
 ## CreateAccount
 
 > Account CreateAccount(ctx, account)
+
 Create a new user. Only avaialble to admin user.
 
 ### Required Parameters
@@ -53,6 +54,7 @@ Name | Type | Description  | Notes
 ## CreateUser
 
 > User CreateUser(ctx, accountname, user)
+
 Create a new user
 
 ### Required Parameters
@@ -85,6 +87,7 @@ Name | Type | Description  | Notes
 ## CreateUserCredential
 
 > User CreateUserCredential(ctx, accountname, username, credential)
+
 add/replace credential
 
 ### Required Parameters
@@ -118,6 +121,7 @@ Name | Type | Description  | Notes
 ## DeleteAccount
 
 > DeleteAccount(ctx, accountname)
+
 Delete the specified account, only allowed if the account is in the disabled state. All users will be deleted along with the account and all resources will be garbage collected
 
 ### Required Parameters
@@ -149,6 +153,7 @@ Name | Type | Description  | Notes
 ## DeleteUser
 
 > DeleteUser(ctx, accountname, username)
+
 Delete a specific user credential by username of the credential. Cannot be the credential used to authenticate the request.
 
 ### Required Parameters
@@ -181,6 +186,7 @@ Name | Type | Description  | Notes
 ## DeleteUserCredential
 
 > DeleteUserCredential(ctx, accountname, username, credentialType)
+
 Delete a credential by type
 
 ### Required Parameters
@@ -214,6 +220,7 @@ Name | Type | Description  | Notes
 ## GetAccount
 
 > Account GetAccount(ctx, accountname)
+
 Get info about an user. Only available to admin user. Uses the main user Id, not a username.
 
 ### Required Parameters
@@ -245,6 +252,7 @@ Name | Type | Description  | Notes
 ## GetAccountUser
 
 > User GetAccountUser(ctx, accountname, username)
+
 Get a specific user in the specified account
 
 ### Required Parameters
@@ -277,6 +285,7 @@ Name | Type | Description  | Notes
 ## ListAccounts
 
 > []Account ListAccounts(ctx, optional)
+
 List user summaries. Only available to the system admin user.
 
 ### Required Parameters
@@ -317,6 +326,7 @@ Name | Type | Description  | Notes
 ## ListUserCredentials
 
 > []AccessCredential ListUserCredentials(ctx, accountname, username)
+
 Get current credential summary
 
 ### Required Parameters
@@ -349,6 +359,7 @@ Name | Type | Description  | Notes
 ## ListUsers
 
 > []User ListUsers(ctx, accountname)
+
 List accounts for the user
 
 ### Required Parameters
@@ -380,6 +391,7 @@ Name | Type | Description  | Notes
 ## UpdateAccountState
 
 > AccountStatus UpdateAccountState(ctx, accountname, desiredState)
+
 Update the state of an account to either enabled or disabled. For deletion use the DELETE route
 
 ### Required Parameters

@@ -11,6 +11,7 @@ Method | HTTP request | Description
 ## DescribePolicy
 
 > []GateSpec DescribePolicy(ctx, )
+
 Describe the policy language spec implemented by this service.
 
 Get the policy language spec for this service

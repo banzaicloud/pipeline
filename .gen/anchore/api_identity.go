@@ -44,7 +44,6 @@ func (a *IdentityApiService) AddCredential(ctx _context.Context, credential Acce
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/user/credentials"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -107,7 +106,6 @@ func (a *IdentityApiService) AddCredential(ctx _context.Context, credential Acce
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -141,7 +139,6 @@ func (a *IdentityApiService) GetCredentials(ctx _context.Context) ([]AccessCrede
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/user/credentials"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -202,7 +199,6 @@ func (a *IdentityApiService) GetCredentials(ctx _context.Context) ([]AccessCrede
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -236,7 +232,6 @@ func (a *IdentityApiService) GetUser(ctx _context.Context) (User, *_nethttp.Resp
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/user"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -297,7 +292,6 @@ func (a *IdentityApiService) GetUser(ctx _context.Context) (User, *_nethttp.Resp
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -331,7 +325,6 @@ func (a *IdentityApiService) GetUsersAccount(ctx _context.Context) (Account, *_n
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/account"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -392,7 +385,6 @@ func (a *IdentityApiService) GetUsersAccount(ctx _context.Context) (Account, *_n
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

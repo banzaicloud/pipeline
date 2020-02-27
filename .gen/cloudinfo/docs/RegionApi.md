@@ -13,6 +13,7 @@ Method | HTTP request | Description
 > GetRegionResp GetRegion(ctx, provider, service, region)
 
 
+
 Provides the detailed info of a specific region of a cloud provider
 
 ### Required Parameters

@@ -19,7 +19,7 @@ paths:
       description: Returns the supported continents
       operationId: getContinents
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -32,7 +32,7 @@ paths:
       description: Returns the supported providers
       operationId: getProviders
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -54,7 +54,7 @@ paths:
         style: simple
         x-go-name: Provider
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -76,7 +76,7 @@ paths:
         style: simple
         x-go-name: Provider
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -107,7 +107,7 @@ paths:
         style: simple
         x-go-name: Service
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -138,7 +138,7 @@ paths:
         style: simple
         x-go-name: Service
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -168,7 +168,7 @@ paths:
         style: simple
         x-go-name: Service
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -206,7 +206,7 @@ paths:
         style: simple
         x-go-name: Region
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -283,7 +283,7 @@ paths:
         style: form
         x-go-name: LatestOnly
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -322,7 +322,7 @@ paths:
         style: simple
         x-go-name: Region
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -361,7 +361,7 @@ paths:
         style: simple
         x-go-name: Region
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:

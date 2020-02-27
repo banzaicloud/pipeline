@@ -14,6 +14,7 @@ Method | HTTP request | Description
 ## AddCredential
 
 > User AddCredential(ctx, credential)
+
 add/replace credential
 
 ### Required Parameters
@@ -45,6 +46,7 @@ Name | Type | Description  | Notes
 ## GetCredentials
 
 > []AccessCredential GetCredentials(ctx, )
+
 Get current credential summary
 
 ### Required Parameters
@@ -72,6 +74,7 @@ This endpoint does not need any parameter.
 ## GetUser
 
 > User GetUser(ctx, )
+
 List authenticated user info
 
 ### Required Parameters
@@ -99,6 +102,7 @@ This endpoint does not need any parameter.
 ## GetUsersAccount
 
 > Account GetUsersAccount(ctx, )
+
 List the account for the authenticated user
 
 ### Required Parameters

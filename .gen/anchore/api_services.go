@@ -16,7 +16,6 @@ import (
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
 )
 
@@ -45,8 +44,9 @@ func (a *ServicesApiService) DeleteService(ctx _context.Context, servicename str
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/system/services/{servicename}/{hostid}"
-	localVarPath = strings.Replace(localVarPath, "{"+"servicename"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", servicename)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"hostid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", hostid)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"servicename"+"}", _neturl.QueryEscape(parameterToString(servicename, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"hostid"+"}", _neturl.QueryEscape(parameterToString(hostid, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -98,7 +98,6 @@ func (a *ServicesApiService) DeleteService(ctx _context.Context, servicename str
 				return localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarHTTPResponse, newErr
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -124,7 +123,7 @@ func (a *ServicesApiService) GetServicesByName(ctx _context.Context, servicename
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/system/services/{servicename}"
-	localVarPath = strings.Replace(localVarPath, "{"+"servicename"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", servicename)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"servicename"+"}", _neturl.QueryEscape(parameterToString(servicename, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -186,7 +185,6 @@ func (a *ServicesApiService) GetServicesByName(ctx _context.Context, servicename
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -222,8 +220,9 @@ func (a *ServicesApiService) GetServicesByNameAndHost(ctx _context.Context, serv
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/system/services/{servicename}/{hostid}"
-	localVarPath = strings.Replace(localVarPath, "{"+"servicename"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", servicename)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"hostid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", hostid)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"servicename"+"}", _neturl.QueryEscape(parameterToString(servicename, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"hostid"+"}", _neturl.QueryEscape(parameterToString(hostid, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -285,7 +284,6 @@ func (a *ServicesApiService) GetServicesByNameAndHost(ctx _context.Context, serv
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -319,7 +317,6 @@ func (a *ServicesApiService) ListServices(ctx _context.Context) ([]Service, *_ne
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/system/services"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -380,7 +377,6 @@ func (a *ServicesApiService) ListServices(ctx _context.Context) ([]Service, *_ne
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

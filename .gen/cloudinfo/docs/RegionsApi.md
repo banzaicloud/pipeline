@@ -13,6 +13,7 @@ Method | HTTP request | Description
 > []Region GetRegions(ctx, provider, service)
 
 
+
 Provides the list of available regions of a cloud provider
 
 ### Required Parameters

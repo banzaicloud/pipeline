@@ -13,6 +13,7 @@ Method | HTTP request | Description
 > ServicesResponse GetServices(ctx, provider)
 
 
+
 Provides a list with the available services for the provider
 
 ### Required Parameters

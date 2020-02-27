@@ -65,7 +65,6 @@ func (a *VulnerabilitiesApiService) QueryImagesByVulnerability(ctx _context.Cont
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/query/images/by_vulnerability"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -148,7 +147,6 @@ func (a *VulnerabilitiesApiService) QueryImagesByVulnerability(ctx _context.Cont
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -197,7 +195,6 @@ func (a *VulnerabilitiesApiService) QueryVulnerabilities(ctx _context.Context, i
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/query/vulnerabilities"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -271,7 +268,6 @@ func (a *VulnerabilitiesApiService) QueryVulnerabilities(ctx _context.Context, i
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

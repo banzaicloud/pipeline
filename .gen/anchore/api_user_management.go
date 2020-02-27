@@ -16,7 +16,6 @@ import (
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
 	"github.com/antihax/optional"
 )
@@ -47,7 +46,6 @@ func (a *UserManagementApiService) CreateAccount(ctx _context.Context, account A
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/accounts"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -120,7 +118,6 @@ func (a *UserManagementApiService) CreateAccount(ctx _context.Context, account A
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -156,7 +153,7 @@ func (a *UserManagementApiService) CreateUser(ctx _context.Context, accountname 
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/accounts/{accountname}/users"
-	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", accountname)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(parameterToString(accountname, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -210,7 +207,6 @@ func (a *UserManagementApiService) CreateUser(ctx _context.Context, accountname 
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -247,8 +243,9 @@ func (a *UserManagementApiService) CreateUserCredential(ctx _context.Context, ac
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/accounts/{accountname}/users/{username}/credentials"
-	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", accountname)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"username"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", username)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(parameterToString(accountname, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"username"+"}", _neturl.QueryEscape(parameterToString(username, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -312,7 +309,6 @@ func (a *UserManagementApiService) CreateUserCredential(ctx _context.Context, ac
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -345,7 +341,7 @@ func (a *UserManagementApiService) DeleteAccount(ctx _context.Context, accountna
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/accounts/{accountname}"
-	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", accountname)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(parameterToString(accountname, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -397,7 +393,6 @@ func (a *UserManagementApiService) DeleteAccount(ctx _context.Context, accountna
 				return localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarHTTPResponse, newErr
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -422,8 +417,9 @@ func (a *UserManagementApiService) DeleteUser(ctx _context.Context, accountname 
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/accounts/{accountname}/users/{username}"
-	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", accountname)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"username"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", username)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(parameterToString(accountname, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"username"+"}", _neturl.QueryEscape(parameterToString(username, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -475,7 +471,6 @@ func (a *UserManagementApiService) DeleteUser(ctx _context.Context, accountname 
 				return localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarHTTPResponse, newErr
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -501,8 +496,9 @@ func (a *UserManagementApiService) DeleteUserCredential(ctx _context.Context, ac
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/accounts/{accountname}/users/{username}/credentials"
-	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", accountname)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"username"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", username)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(parameterToString(accountname, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"username"+"}", _neturl.QueryEscape(parameterToString(username, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -555,7 +551,6 @@ func (a *UserManagementApiService) DeleteUserCredential(ctx _context.Context, ac
 				return localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarHTTPResponse, newErr
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -581,7 +576,7 @@ func (a *UserManagementApiService) GetAccount(ctx _context.Context, accountname 
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/accounts/{accountname}"
-	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", accountname)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(parameterToString(accountname, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -643,7 +638,6 @@ func (a *UserManagementApiService) GetAccount(ctx _context.Context, accountname 
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -679,8 +673,9 @@ func (a *UserManagementApiService) GetAccountUser(ctx _context.Context, accountn
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/accounts/{accountname}/users/{username}"
-	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", accountname)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"username"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", username)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(parameterToString(accountname, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"username"+"}", _neturl.QueryEscape(parameterToString(username, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -742,7 +737,6 @@ func (a *UserManagementApiService) GetAccountUser(ctx _context.Context, accountn
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -783,7 +777,6 @@ func (a *UserManagementApiService) ListAccounts(ctx _context.Context, localVarOp
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/accounts"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -847,7 +840,6 @@ func (a *UserManagementApiService) ListAccounts(ctx _context.Context, localVarOp
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -883,8 +875,9 @@ func (a *UserManagementApiService) ListUserCredentials(ctx _context.Context, acc
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/accounts/{accountname}/users/{username}/credentials"
-	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", accountname)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"username"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", username)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(parameterToString(accountname, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"username"+"}", _neturl.QueryEscape(parameterToString(username, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -946,7 +939,6 @@ func (a *UserManagementApiService) ListUserCredentials(ctx _context.Context, acc
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -981,7 +973,7 @@ func (a *UserManagementApiService) ListUsers(ctx _context.Context, accountname s
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/accounts/{accountname}/users"
-	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", accountname)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(parameterToString(accountname, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -1043,7 +1035,6 @@ func (a *UserManagementApiService) ListUsers(ctx _context.Context, accountname s
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -1079,7 +1070,7 @@ func (a *UserManagementApiService) UpdateAccountState(ctx _context.Context, acco
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/accounts/{accountname}/state"
-	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", accountname)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"accountname"+"}", _neturl.QueryEscape(parameterToString(accountname, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -1153,7 +1144,6 @@ func (a *UserManagementApiService) UpdateAccountState(ctx _context.Context, acco
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

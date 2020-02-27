@@ -17,6 +17,7 @@ Method | HTTP request | Description
 > TokenResponse GetOauthToken(ctx, )
 
 
+
 Request a jwt token for subsequent operations, this request is authenticated with normal HTTP auth
 
 ### Required Parameters
@@ -44,6 +45,7 @@ This endpoint does not need any parameter.
 ## HealthNoop
 
 > HealthNoop(ctx, )
+
 
 
 Health check, returns 200 and no body if service is running
@@ -75,6 +77,7 @@ This endpoint does not need any parameter.
 > string Ping(ctx, )
 
 
+
 Simple status check
 
 ### Required Parameters
@@ -102,6 +105,7 @@ This endpoint does not need any parameter.
 ## QueryImagesByPackage
 
 > PaginatedImageList QueryImagesByPackage(ctx, name, optional)
+
 List of images containing given package
 
 Filterable query interface to search for images containing specified package
@@ -150,6 +154,7 @@ Name | Type | Description  | Notes
 ## VersionNoop
 
 > ServiceVersion VersionNoop(ctx, )
+
 
 
 Returns the version object for the service, including db schema version info

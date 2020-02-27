@@ -14,6 +14,7 @@ Method | HTTP request | Description
 > []string GetContinents(ctx, )
 
 
+
 Returns the supported continents
 
 ### Required Parameters
@@ -41,6 +42,7 @@ No authorization required
 ## GetContinentsData
 
 > []Continent GetContinentsData(ctx, provider, service)
+
 
 
 Provides the list of available continents and regions of a cloud provider

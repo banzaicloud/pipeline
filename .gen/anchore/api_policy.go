@@ -44,7 +44,6 @@ func (a *PolicyApiService) DescribePolicy(ctx _context.Context) ([]GateSpec, *_n
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/system/policy_spec"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -95,7 +94,6 @@ func (a *PolicyApiService) DescribePolicy(ctx _context.Context) ([]GateSpec, *_n
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

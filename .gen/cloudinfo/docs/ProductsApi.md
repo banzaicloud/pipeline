@@ -11,6 +11,7 @@ Method | HTTP request | Description
 ## GetProducts
 
 > ProductDetailsResponse GetProducts(ctx, provider, service, region)
+
 Provides a list of available machine types on a given provider in a specific region.
 
 ### Required Parameters
