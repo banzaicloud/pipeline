@@ -35,9 +35,7 @@ LICENSEI_VERSION = 0.2.0
 OPENAPI_GENERATOR_VERSION = v4.2.3
 MIGRATE_VERSION = 4.9.1
 GOTESTSUM_VERSION = 0.4.1
-GOBIN_VERSION = 0.0.13
 PROTOTOOL_VERSION = 1.8.0
-PROTOC_GEN_GO_VERSION = 1.3.2
 MGA_VERSION = 0.2.0
 
 GOLANG_VERSION = 1.14
@@ -209,12 +207,6 @@ bin/migrate-${MIGRATE_VERSION}:
 	curl -L https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.${OS}-amd64.tar.gz | tar xvz -C bin
 	@mv bin/migrate.${OS}-amd64 $@
 
-bin/gobin: bin/gobin-${GOBIN_VERSION}
-	@ln -sf gobin-${GOBIN_VERSION} bin/gobin
-bin/gobin-${GOBIN_VERSION}:
-	@mkdir -p bin
-	curl -L https://github.com/myitcv/gobin/releases/download/v${GOBIN_VERSION}/${OS}-amd64 > ./bin/gobin-${GOBIN_VERSION} && chmod +x ./bin/gobin-${GOBIN_VERSION}
-
 bin/mga: bin/mga-${MGA_VERSION}
 	@ln -sf mga-${MGA_VERSION} bin/mga
 bin/mga-${MGA_VERSION}:
@@ -274,12 +266,9 @@ apis/anchore/swagger.yaml:
 generate-anchore-client: apis/anchore/swagger.yaml ## Generate client from Anchore OpenAPI spec
 	$(call generate_openapi_client,apis/anchore/swagger.yaml,anchore,.gen/anchore)
 
-bin/protoc-gen-go: bin/protoc-gen-go-${PROTOC_GEN_GO_VERSION}
-	@ln -sf protoc-gen-go-${PROTOC_GEN_GO_VERSION} bin/protoc-gen-go
-bin/protoc-gen-go-${PROTOC_GEN_GO_VERSION}: bin/gobin
+bin/protoc-gen-go:
 	@mkdir -p bin
-	GOBIN=bin/ bin/gobin github.com/golang/protobuf/protoc-gen-go@v${PROTOC_GEN_GO_VERSION}
-	@mv bin/protoc-gen-go bin/protoc-gen-go-${PROTOC_GEN_GO_VERSION}
+	go build -o bin/protoc-gen-go github.com/golang/protobuf/protoc-gen-go
 
 bin/prototool: bin/prototool-${PROTOTOOL_VERSION}
 	@ln -sf prototool-${PROTOTOOL_VERSION} bin/prototool
