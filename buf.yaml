@@ -1,0 +1,9 @@
+build:
+    roots:
+        - apis/pipeline
+
+lint:
+    use:
+        - DEFAULT
+    except:
+        - SERVICE_SUFFIX
