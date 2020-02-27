@@ -256,7 +256,7 @@ define generate_openapi_client
 	-g go \
 	-o /local/${3}
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) ${3}; fi
-	rm ${3}/{.travis.yml,git_push.sh,go.*}
+	rm -rf ${3}/{.travis.yml,git_push.sh,go.*,docs}
 endef
 
 apis/cloudinfo/openapi.yaml:
