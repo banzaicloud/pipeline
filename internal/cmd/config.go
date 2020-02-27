@@ -36,6 +36,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/values"
 )
 
 type Config struct {
@@ -307,6 +308,7 @@ type ClusterAutoscaleConfig struct {
 		HPAOperator struct {
 			Chart   string
 			Version string
+			Values  values.Config
 		}
 	}
 }
@@ -686,7 +688,7 @@ ssl:
 	})
 
 	v.SetDefault("cluster::autoscale::charts::hpaOperator::chart", "banzaicloud-stable/hpa-operator")
-	v.SetDefault("cluster::autoscale::charts::hpaOperator::version", "0.0.16")
+	v.SetDefault("cluster::autoscale::charts::hpaOperator::version", "0.1.0")
 	v.SetDefault("cluster::autoscale::charts::hpaOperator::values", map[string]interface{}{})
 
 	v.SetDefault("cluster::securityScan::enabled", true)
