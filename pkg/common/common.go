@@ -73,7 +73,6 @@ const (
 
 // ErrorResponseWithStatus aborts the http request with a JSON error response with the given status code and error
 func ErrorResponseWithStatus(c *gin.Context, status int, err error) {
-
 	if c.Writer.Status() != http.StatusOK {
 		return
 	}

@@ -70,7 +70,6 @@ func (p *pipelineMetrics) Collect(ch chan<- prometheus.Metric) {
 }
 
 func (p *pipelineMetrics) scrape(scrapesTotalCluster chan<- scrapeResultTotalCluster) {
-
 	defer close(scrapesTotalCluster)
 
 	allCluster, err := p.clusters.All()
@@ -92,7 +91,6 @@ func (p *pipelineMetrics) scrape(scrapesTotalCluster chan<- scrapeResultTotalClu
 			clusterName: cluster.Name,
 		}
 	}
-
 }
 
 func (p *pipelineMetrics) setClusterMetrics(resultTotalCluster <-chan scrapeResultTotalCluster) {

@@ -55,7 +55,6 @@ func NewGetVpcConfigActivity(awsSessionFactory AWSFactory) *GetVpcConfigActivity
 
 // return with empty output fields in case VPC stack doesn't exists anymore
 func (a *GetVpcConfigActivity) Execute(ctx context.Context, input GetVpcConfigActivityInput) (*GetVpcConfigActivityOutput, error) {
-
 	output := GetVpcConfigActivityOutput{}
 
 	session, err := a.awsSessionFactory.New(input.OrganizationID, input.SecretID, input.Region)

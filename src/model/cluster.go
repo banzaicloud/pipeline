@@ -265,7 +265,6 @@ func (cs *ClusterModel) BeforeCreate() (err error) {
 // AfterFind converts metadata json string into map in case of Kubernetes and sets NodeInstanceType and/or Location field(s)
 // to unknown if they are empty
 func (cs *ClusterModel) AfterFind() error {
-
 	if len(cs.Location) == 0 {
 		cs.Location = unknown
 	}

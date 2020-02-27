@@ -28,7 +28,6 @@ type NodePoolOptions struct {
 
 // Has checks if the strings array has a value
 func (s Strings) Has(value string) bool {
-
 	for _, v := range s.strings {
 		if v == value {
 			return true
@@ -40,6 +39,5 @@ func (s Strings) Has(value string) bool {
 
 // Get gets the raw array
 func (s Strings) Get() []string {
-
 	return s.strings
 }

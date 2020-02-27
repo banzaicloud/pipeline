@@ -25,7 +25,6 @@ import (
 
 // GetOrCreateSSHKeyPair creates and saves a new SSH key pair for the cluster or gets the cluster's SSH key pair if it already exists
 func GetOrCreateSSHKeyPair(cluster pke.Cluster, secrets secretStore, store pke.ClusterStore) (ssh.KeyPair, error) {
-
 	keyPair, secretID, err := sshsecret.GetOrCreateSSHKeyPair(secrets, getOrCreateSSHKeyPairClusterAdapter(cluster))
 	if err != nil {
 		return keyPair, errors.WrapIf(err, "failed to get or create SSH key pair")

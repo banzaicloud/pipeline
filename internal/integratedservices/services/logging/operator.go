@@ -168,7 +168,6 @@ func (op IntegratedServiceOperator) ensureOrgIDInContext(ctx context.Context, cl
 
 func (op IntegratedServiceOperator) processTLS(ctx context.Context, spec integratedServiceSpec, cl integratedserviceadapter.Cluster) error {
 	if spec.Logging.TLS {
-
 		// generate TLS secret and save to Vault
 		if err := op.generateTLSSecret(cl); err != nil {
 			return errors.WrapIf(err, "failed to generate TLS secret")
@@ -245,7 +244,6 @@ func (op IntegratedServiceOperator) generateHTPasswordSecretForLoki(ctx context.
 }
 
 func (op IntegratedServiceOperator) installTLSSecretsToCluster(ctx context.Context, cl integratedserviceadapter.Cluster) error {
-
 	const kubeCaCertKey = "ca.crt"
 	const kubeTlsCertKey = "tls.crt"
 	const kubeTlsKeyKey = "tls.key"

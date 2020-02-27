@@ -32,7 +32,6 @@ type BackupsService struct {
 
 // BackupsServiceFactory creates and returns an initialized BackupsService instance
 func BackupsServiceFactory(org *auth.Organization, db *gorm.DB, logger logrus.FieldLogger) *BackupsService {
-
 	return NewBackupsService(org, NewBackupsRepository(org, db, logger), logger)
 }
 
@@ -42,7 +41,6 @@ func NewBackupsService(
 	repository *BackupsRepository,
 	logger logrus.FieldLogger,
 ) *BackupsService {
-
 	return &BackupsService{
 		org:        org,
 		logger:     logger,
@@ -52,7 +50,6 @@ func NewBackupsService(
 
 // GetModelByName returns a ClusterBackupsModel instance by name
 func (s *BackupsService) GetModelByName(name string) (*ClusterBackupsModel, error) {
-
 	model, err := s.repository.FindOneByName(name)
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not get backup from database")
@@ -63,7 +60,6 @@ func (s *BackupsService) GetModelByName(name string) (*ClusterBackupsModel, erro
 
 // GetModelByID returns a ClusterBackupsModel instance by ID
 func (s *BackupsService) GetModelByID(id uint) (*ClusterBackupsModel, error) {
-
 	model, err := s.repository.FindOneByID(id)
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not get backup from database")
@@ -74,7 +70,6 @@ func (s *BackupsService) GetModelByID(id uint) (*ClusterBackupsModel, error) {
 
 // GetByID returns a Backup instance by ID
 func (s *BackupsService) GetByID(id uint) (*api.Backup, error) {
-
 	model, err := s.GetModelByID(id)
 	if err != nil {
 		return nil, err
@@ -85,7 +80,6 @@ func (s *BackupsService) GetByID(id uint) (*api.Backup, error) {
 
 // GetByName returns a Backup instance by name
 func (s *BackupsService) GetByName(name string) (*api.Backup, error) {
-
 	model, err := s.GetModelByName(name)
 	if err != nil {
 		return nil, err
@@ -96,7 +90,6 @@ func (s *BackupsService) GetByName(name string) (*api.Backup, error) {
 
 // List returns Backup instances
 func (s *BackupsService) List() ([]*api.Backup, error) {
-
 	backups := make([]*api.Backup, 0)
 
 	items, err := s.repository.Find()
@@ -114,7 +107,6 @@ func (s *BackupsService) List() ([]*api.Backup, error) {
 
 // FindByPersistRequest returns a ClusterBackupsModel by PersistBackupRequest
 func (s *BackupsService) FindByPersistRequest(req *api.PersistBackupRequest) (*ClusterBackupsModel, error) {
-
 	backup, err := s.repository.FindByPersistRequest(req)
 	if err != nil {
 		return nil, err
@@ -125,7 +117,6 @@ func (s *BackupsService) FindByPersistRequest(req *api.PersistBackupRequest) (*C
 
 // Persist persist ClusterBackupsModel from PersistBackupRequest
 func (s *BackupsService) Persist(req *api.PersistBackupRequest) (ClusterBackupsModel, error) {
-
 	req.ExtendFromLabels()
 
 	return s.repository.Persist(req)
@@ -133,12 +124,10 @@ func (s *BackupsService) Persist(req *api.PersistBackupRequest) (ClusterBackupsM
 
 // DeleteNonExistingBackupsByBucketAndKeys deletes ClusterBackupsModel if their ID not in keys
 func (s *BackupsService) DeleteNonExistingBackupsByBucketAndKeys(bucketID uint, keys []int) error {
-
 	return s.repository.DeleteBackupsNotInKeys(bucketID, keys)
 }
 
 // DeleteBackupsWithoutBucket deletes backups from DB if their bucket is removed
 func (s *BackupsService) DeleteBackupsWithoutBucket() error {
-
 	return s.repository.DeleteBackupsWithoutBucket()
 }

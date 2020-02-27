@@ -32,7 +32,6 @@ type credentials struct {
 
 // GetSecret gets formatted secret for ARK
 func GetSecret(secret *secret.SecretItemResponse) (string, error) {
-
 	a := secretContents{
 		Credentials: credentials{
 			KeyID: secret.Values[secrettype.AwsAccessKeyId],

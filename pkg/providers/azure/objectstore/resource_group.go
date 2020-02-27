@@ -54,7 +54,6 @@ func NewAuthorizedResourceGroupClientFromSecret(credentials azure.Credentials) (
 // GetAllResourceGroups returns all resource groups using
 // the Azure credentials referenced by the provided secret.
 func (rg *resourceGroup) GetAllResourceGroups() ([]*resources.Group, error) {
-
 	resourceGroupsPages, err := rg.client.List(context.TODO(), "", nil)
 	if err != nil {
 		return nil, err

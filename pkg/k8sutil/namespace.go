@@ -34,7 +34,6 @@ func EnsureNamespace(client kubernetes.Interface, namespace string) error {
 
 // EnsureNamespaceWithLabel creates a namespace with optional labels
 func EnsureNamespaceWithLabel(client kubernetes.Interface, namespace string, labels map[string]string) error {
-
 	// add label to mark the namespace that it was created by Pipeline
 	mergedLabels := map[string]string{}
 	for k, v := range labels {

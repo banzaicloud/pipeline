@@ -28,10 +28,8 @@ type ServiceSpec struct {
 
 // https://www.ietf.org/rfc/rfc3339.txt
 func (s ServiceSpec) Validate() error {
-
 	t, err := time.Parse(time.RFC3339, s.Date)
 	if err != nil {
-
 		return integratedservices.InvalidIntegratedServiceSpecError{
 			IntegratedServiceName: ServiceName,
 			Problem:               "date must be in RFC3339 format",
@@ -39,7 +37,6 @@ func (s ServiceSpec) Validate() error {
 	}
 
 	if !t.After(time.Now()) {
-
 		return integratedservices.InvalidIntegratedServiceSpecError{
 			IntegratedServiceName: ServiceName,
 			Problem:               "the provided date must be in the future",

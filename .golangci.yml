@@ -14,7 +14,6 @@ linters-settings:
         min-complexity: 15
     goimports:
         local-prefixes: github.com/banzaicloud/pipeline
-
     depguard:
         list-type: blacklist
         include-go-root: false
@@ -24,23 +23,35 @@ linters-settings:
             github.com/prometheus/common/log: "Global logger is deprecated. Inject a logger here. If you are trying to log in a function, chances are you should make it a struct."
 
 linters:
-    enable:
-        - errcheck
-        - staticcheck
-        - deadcode
-        - misspell
-        - gofmt
-        - golint
-        - goimports
-        - gochecknoglobals
-        - depguard
+    enable-all: true
     disable:
         - funlen
-        - gas
+        - maligned
+        - wsl
+        - gomnd
+
+        # TODO: fixme
+        - gosec
         - megacheck
         - varcheck
 
         # Disable govet for now because it fails on Circle
         - govet
+
+        - bodyclose
+        - dupl
+        - gochecknoinits
+        - gocognit
+        - goconst
+        - gocritic
+        - gocyclo
+        - godox
+        - interfacer
+        - lll
+        - nakedret
+        - prealloc
+        - scopelint
+        - stylecheck
+        - unparam
 
     fast: false

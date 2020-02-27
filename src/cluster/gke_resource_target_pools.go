@@ -47,7 +47,6 @@ func (tc *targetPoolsChecker) getType() string {
 }
 
 func (tc *targetPoolsChecker) list() (resourceNames []string, err error) {
-
 	var targetPools []*gkeCompute.TargetPool
 	targetPools, err = tc.lb.listTargetPools()
 	if err != nil {
@@ -73,7 +72,6 @@ func (tc *targetPoolsChecker) forceDelete(resourceName string) error {
 
 // findInstanceByClusterName returns the cluster's instance
 func findInstanceByClusterName(csv *gkeCompute.Service, project, zone, clusterName string) (*gkeCompute.Instance, error) {
-
 	instances, err := csv.Instances.List(project, zone).Context(context.Background()).Do()
 	if err != nil {
 		return nil, errors.WrapIf(err, "couldn't list GKE cluster instances")
@@ -94,7 +92,6 @@ func findInstanceByClusterName(csv *gkeCompute.Service, project, zone, clusterNa
 
 // findTargetPoolsByInstances returns all target pools which created by Kubernetes
 func findTargetPoolsByInstances(pools []*gkeCompute.TargetPool, instanceName string) []*gkeCompute.TargetPool {
-
 	var filteredPools []*gkeCompute.TargetPool
 	for _, p := range pools {
 		if p != nil {
@@ -111,7 +108,6 @@ func findTargetPoolsByInstances(pools []*gkeCompute.TargetPool, instanceName str
 
 // isTargetPoolDeleted checks the given target pool is deleted by Kubernetes
 func isTargetPoolDeleted(csv *gkeCompute.Service, project, region, targetPoolName string) error {
-
 	log := log.WithFields(logrus.Fields{"project": project, "region": region, "target pool": targetPoolName})
 
 	log.Info("Get target pool")
@@ -124,7 +120,6 @@ func isTargetPoolDeleted(csv *gkeCompute.Service, project, region, targetPoolNam
 }
 
 func deleteTargetPool(csv *gkeCompute.Service, project, region, poolName string) error {
-
 	log := log.WithFields(logrus.Fields{"project": project, "pool": poolName, "region": region})
 
 	log.Info("delete target pool")

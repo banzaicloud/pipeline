@@ -25,7 +25,6 @@ import (
 
 // ValidateCreateBucketRequest validates a CreateBucketRequest
 func ValidateCreateBucketRequest(req *api.CreateBucketRequest, org *auth.Organization) error {
-
 	err := IsProviderSupported(req.Cloud)
 	if err != nil {
 		return errors.WrapIf(err, req.Cloud)

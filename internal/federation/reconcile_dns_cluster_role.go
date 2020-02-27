@@ -39,7 +39,6 @@ func (m *FederationReconciler) ReconcileClusterRoleForExtDNS(desiredState Desire
 }
 
 func (m *FederationReconciler) createClusterRoleForExternalDNS() error {
-
 	m.logger.Debug("start creating ClusterRole for ExternalDNS")
 	defer m.logger.Debug("finished creating ClusterRole for ExternalDNS")
 
@@ -85,7 +84,6 @@ func (m *FederationReconciler) createClusterRoleForExternalDNS() error {
 }
 
 func (m *FederationReconciler) deleteClusterRoleForExternalDNS() error {
-
 	m.logger.Debug("start deleting ClusterRole for ExternalDNS")
 	defer m.logger.Debug("finished deleting ClusterRole for ExternalDNS")
 

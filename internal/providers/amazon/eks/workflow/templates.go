@@ -34,7 +34,6 @@ const (
 
 // getEksCloudFormationTemplate returns CloudFormation template with given name
 func getEksCloudFormationTemplate(name string) (string, error) {
-
 	// location to retrieve the Cloud Formation template from
 	templatePath := global.Config.Distribution.EKS.TemplateLocation + "/" + name
 

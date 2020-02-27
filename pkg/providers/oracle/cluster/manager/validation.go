@@ -22,7 +22,6 @@ import (
 
 // ValidateModel validates model configuration
 func (cm *ClusterManager) ValidateModel(clusterModel *model.Cluster) error {
-
 	m := clusterModel
 
 	vn, err := cm.oci.NewVirtualNetworkClient()

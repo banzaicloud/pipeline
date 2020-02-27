@@ -31,7 +31,6 @@ type objectStore struct {
 
 // NewObjectStore creates a new objectStore
 func NewObjectStore(ctx providers.ObjectStoreContext) (cloudprovider.ObjectStore, error) {
-
 	config := amazonObjectstore.Config{
 		Region: ctx.Location,
 	}

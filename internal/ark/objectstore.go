@@ -27,7 +27,6 @@ import (
 
 // NewObjectStore gets a initialized ObjectStore for the given provider
 func NewObjectStore(ctx iProviders.ObjectStoreContext) (cloudprovider.ObjectStore, error) {
-
 	switch ctx.Provider {
 	case providers.Google:
 		return google.NewObjectStore(ctx)

@@ -330,7 +330,6 @@ func (s *objectStore) searchCriteria(bucketName string) *ObjectStoreBucketModel 
 
 // GetBucketRegion returns with the given bucket's region from Amazon
 func GetBucketRegion(secret *secret.SecretItemResponse, bucketName string, region string, orgID uint, log logrus.FieldLogger) (string, error) {
-
 	org, err := auth.GetOrganizationById(orgID)
 	if err != nil {
 		return "", errors.WrapIfWithDetails(err, "retrieving organization failed", "orgID", orgID)

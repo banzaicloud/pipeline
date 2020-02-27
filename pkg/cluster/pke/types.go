@@ -43,7 +43,6 @@ func (a *UpdateClusterPKE) Validate() error {
 		if err := common.ValidateNodePoolLabels(npName, np.Labels); err != nil {
 			return err
 		}
-
 	}
 	return nil
 }

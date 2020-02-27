@@ -27,7 +27,6 @@ const (
 )
 
 func TestBlockingTags(t *testing.T) {
-
 	cases := []struct {
 		name    string
 		request *secret.CreateSecretRequest
@@ -72,7 +71,6 @@ func TestBlockingTags(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 // nolint: gochecknoglobals

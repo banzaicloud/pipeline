@@ -224,7 +224,7 @@ func (c ClusterConfig) Validate() error {
 		file, err := os.OpenFile(c.Manifest, os.O_RDONLY, 0666)
 		_ = file.Close()
 		if err != nil {
-			errs = errors.Append(errs, errors.Errorf("cluster manifest file is not readable: %w", err))
+			errs = errors.Append(errs, errors.Wrap(err, "cluster manifest file is not readable"))
 		}
 	}
 
@@ -698,13 +698,13 @@ ssl:
 	v.SetDefault("cluster::securityScan::webhook::version", "0.5.3")
 	v.SetDefault("cluster::securityScan::webhook::release", "anchore")
 	v.SetDefault("cluster::securityScan::webhook::namespace", "pipeline-system")
-	//v.SetDefault("cluster::securityScan::webhook::values", map[string]interface{}{
+	// v.SetDefault("cluster::securityScan::webhook::values", map[string]interface{}{
 	//	"image": map[string]interface{}{
 	//		"repository": "banzaicloud/ark",
 	//		"tag":        "v0.9.11",
 	//		"pullPolicy": "IfNotPresent",
 	//	},
-	//})
+	// })
 
 	v.SetDefault("cluster::expiry::enabled", true)
 
@@ -742,7 +742,7 @@ traefik:
 	// Cluster Autoscaler
 	v.SetDefault("cluster::posthook::autoscaler::enabled", true)
 
-	//v.SetDefault("cluster::disasterRecovery::enabled", true)
+	// v.SetDefault("cluster::disasterRecovery::enabled", true)
 	v.SetDefault("cluster::disasterRecovery::namespace", "")
 	v.SetDefault("cluster::disasterRecovery::ark::syncEnabled", true)
 	v.SetDefault("cluster::disasterRecovery::ark::bucketSyncInterval", "10m")
@@ -759,7 +759,7 @@ traefik:
 		},
 	})
 
-	//v.SetDefault("cluster::backyards::enabled", true)
+	// v.SetDefault("cluster::backyards::enabled", true)
 	v.SetDefault("cluster::backyards::istio::grafanaDashboardLocation", "./etc/dashboards/istio")
 	v.SetDefault("cluster::backyards::istio::pilotImage", "banzaicloud/istio-pilot:1.4.2-bzc")
 	v.SetDefault("cluster::backyards::istio::mixerImage", "banzaicloud/istio-mixer:1.4.2-bzc")

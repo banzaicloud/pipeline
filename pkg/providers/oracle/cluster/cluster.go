@@ -46,67 +46,56 @@ type NodePool struct {
 
 // SetVCNID sets VCNID
 func (c *Cluster) SetVCNID(id string) {
-
 	c.VCNID = id
 }
 
 // GetVCNID gets VCNID
 func (c *Cluster) GetVCNID() (id string) {
-
 	return c.VCNID
 }
 
 // SetLBSubnetID1 sets LBSubnetID1
 func (c *Cluster) SetLBSubnetID1(id string) {
-
 	c.LBSubnetID1 = id
 }
 
 // GetLBSubnetID1 gets LBSubnetID1
 func (c *Cluster) GetLBSubnetID1() (id string) {
-
 	return c.LBSubnetID1
 }
 
 // SetLBSubnetID2 sets LBSubnetID2
 func (c *Cluster) SetLBSubnetID2(id string) {
-
 	c.LBSubnetID2 = id
 }
 
 // GetLBSubnetID2 gets LBSubnetID2
 func (c *Cluster) GetLBSubnetID2() (id string) {
-
 	return c.LBSubnetID2
 }
 
 // SetQuantityPerSubnet sets QuantityPerSubnet
 func (np *NodePool) SetQuantityPerSubnet(q uint) {
-
 	np.quantityPerSubnet = q
 }
 
 // GetQuantityPerSubnet gets QuantityPerSubnet
 func (np *NodePool) GetQuantityPerSubnet() (q uint) {
-
 	return np.quantityPerSubnet
 }
 
 // SetSubnetIDs sets SubnetIDs
 func (np *NodePool) SetSubnetIDs(ids []string) {
-
 	np.SubnetIDs = ids
 }
 
 // GetSubnetIDs gets SubnetIDs
 func (np *NodePool) GetSubnetIDs() (ids []string) {
-
 	return np.SubnetIDs
 }
 
 // AddDefaults adds default values to the request
 func (c *Cluster) AddDefaults() error {
-
 	if c == nil {
 		return nil
 	}
@@ -117,7 +106,6 @@ func (c *Cluster) AddDefaults() error {
 	}
 
 	for _, np := range c.NodePools {
-
 		// set default image
 		if len(np.Image) == 0 {
 			np.Image = defaultImage
@@ -134,7 +122,6 @@ func (c *Cluster) AddDefaults() error {
 
 // Validate validates Oracle cluster create request
 func (c *Cluster) Validate(update bool) error {
-
 	if c == nil {
 		return errors.New("oracle is <nil>")
 	}

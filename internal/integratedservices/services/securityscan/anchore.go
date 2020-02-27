@@ -47,7 +47,6 @@ func NewIntegratedServiceAnchoreService(anchoreUserService anchore.AnchoreUserSe
 func (a anchoreService) GenerateUser(ctx context.Context, orgID uint, clusterID uint) (string, error) {
 	userName, err := a.anchoreUserService.EnsureUser(ctx, orgID, clusterID)
 	if err != nil {
-
 		a.logger.Debug("error creating anchore user", map[string]interface{}{"organization": orgID,
 			"clusterGUID": clusterID})
 
@@ -62,9 +61,7 @@ func (a anchoreService) GenerateUser(ctx context.Context, orgID uint, clusterID 
 }
 
 func (a anchoreService) DeleteUser(ctx context.Context, orgID uint, clusterID uint) error {
-
 	if err := a.anchoreUserService.RemoveUser(ctx, orgID, clusterID); err != nil {
-
 		a.logger.Debug("error deleting anchore user", map[string]interface{}{"organization": orgID,
 			"clusterID": clusterID})
 

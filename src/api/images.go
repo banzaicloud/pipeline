@@ -142,7 +142,6 @@ func listAllImages(client *kubernetes.Clientset, labelSelector string) ([]*pipel
 }
 
 func getPodImages(pod v1.Pod) []*pipeline.ClusterImage {
-
 	images := make([]*pipeline.ClusterImage, 0)
 	for _, container := range pod.Status.ContainerStatuses {
 		fullName := strings.Split(container.Image, ":")

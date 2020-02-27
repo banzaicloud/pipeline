@@ -43,7 +43,6 @@ var ErrNotSupportedSecretType = errors.New("Not supported secret type")
 
 // ValidateSecret validates the given secret
 func ValidateSecret(c *gin.Context) {
-
 	log.Info("start validation secret")
 
 	log.Info("Get organization id from params")
@@ -73,11 +72,9 @@ func ValidateSecret(c *gin.Context) {
 	}, true, false); ok {
 		c.Status(http.StatusOK)
 	}
-
 }
 
 func validateSecret(c *gin.Context, createSecretRequest *secret.CreateSecretRequest, validate bool, new bool) (ok bool, validationError error) {
-
 	ok = true
 	log.Info("Start validation")
 	verifier := verify.NewVerifier(createSecretRequest.Type, createSecretRequest.Values)
@@ -105,7 +102,6 @@ func validateSecret(c *gin.Context, createSecretRequest *secret.CreateSecretRequ
 
 // AddSecrets saves the given secret to vault
 func AddSecrets(c *gin.Context) {
-
 	log.Info("Start adding secrets")
 
 	log.Info("Get organization id from params")
@@ -196,7 +192,6 @@ func AddSecrets(c *gin.Context) {
 
 // UpdateSecrets updates the given secret in Vault
 func UpdateSecrets(c *gin.Context) {
-
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 	log.Debugf("Organization id: %d", organizationID)
 
@@ -283,7 +278,6 @@ func UpdateSecrets(c *gin.Context) {
 // ListSecrets returns the user all secrets, if the secret type or tag is filled
 // then a filtered response is returned
 func ListSecrets(c *gin.Context) {
-
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 
 	var query secret.ListSecretsQuery
@@ -322,7 +316,6 @@ func ListSecrets(c *gin.Context) {
 
 // GetSecret returns a secret by ID
 func GetSecret(c *gin.Context) {
-
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 
 	secretID := getSecretID(c)

@@ -32,7 +32,6 @@ type objectStore struct {
 
 // NewObjectStore creates a new objectStore
 func NewObjectStore(ctx providers.ObjectStoreContext) (cloudprovider.ObjectStore, error) {
-
 	config := azureObjectstore.Config{
 		StorageAccount: ctx.StorageAccount,
 		ResourceGroup:  ctx.ResourceGroup,

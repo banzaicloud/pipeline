@@ -92,7 +92,6 @@ func getLabelsForNodePool(
 	distribution string,
 	region string,
 ) map[string]string {
-
 	if nodePool.CustomLabels == nil && nodePool.Existing {
 		return make(map[string]string)
 	}

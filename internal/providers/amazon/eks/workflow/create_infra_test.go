@@ -80,7 +80,6 @@ func (s *CreateInfraWorkflowTestSuite) AfterTest(suiteName, testName string) {
 }
 
 func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
-
 	workflowInput := CreateInfrastructureWorkflowInput{
 		Region:                "us-west-1",
 		OrganizationID:        1,
@@ -340,7 +339,6 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 }
 
 func (s *CreateInfraWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
-
 	workflowInput := CreateInfrastructureWorkflowInput{
 		Region:                "us-west-1",
 		OrganizationID:        1,

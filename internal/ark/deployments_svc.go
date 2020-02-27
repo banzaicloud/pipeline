@@ -52,7 +52,6 @@ func DeploymentsServiceFactory(
 	db *gorm.DB,
 	logger logrus.FieldLogger,
 ) *DeploymentsService {
-
 	return NewDeploymentsService(org, cluster, NewDeploymentsRepository(org, cluster, db, logger), logger)
 }
 
@@ -78,7 +77,6 @@ func (s *DeploymentsService) GetCluster() api.Cluster {
 
 // GetClient gets an initialized ARK client
 func (s *DeploymentsService) GetClient() (*client.Client, error) {
-
 	deployment, err := s.GetActiveDeployment()
 	if err != nil {
 		return nil, err
@@ -105,13 +103,11 @@ func (s *DeploymentsService) GetClient() (*client.Client, error) {
 
 // GetActiveDeployment gets the active ClusterBackupDeploymentsModel
 func (s *DeploymentsService) GetActiveDeployment() (*ClusterBackupDeploymentsModel, error) {
-
 	return s.repository.FindFirst()
 }
 
 // Deploy deploys ARK with helm configured to use the given bucket and mode
 func (s *DeploymentsService) Deploy(bucket *ClusterBackupBucketsModel, restoreMode bool) error {
-
 	var deployment *ClusterBackupDeploymentsModel
 	if !restoreMode {
 		_, err := s.GetActiveDeployment()
@@ -200,7 +196,6 @@ func (s *DeploymentsService) Deploy(bucket *ClusterBackupBucketsModel, restoreMo
 
 // Remove deletes an ARK deployment
 func (s *DeploymentsService) Remove() error {
-
 	deployment, err := s.GetActiveDeployment()
 	if err == gorm.ErrRecordNotFound {
 		return errors.New("not deployed")
@@ -223,7 +218,6 @@ func (s *DeploymentsService) Remove() error {
 }
 
 func (s *DeploymentsService) getChartConfig(req ConfigRequest) (config ChartConfig, err error) {
-
 	config = GetChartConfig()
 
 	arkConfig, err := req.Get()
@@ -252,7 +246,6 @@ func (s *DeploymentsService) installDeployment(
 	chartVersion string,
 	timeout int64,
 ) error {
-
 	kubeConfig, err := s.cluster.GetK8sConfig()
 	if err != nil {
 		return errors.WrapIf(err, "unable to fetch k8s config")

@@ -114,7 +114,6 @@ func (d *DashboardAPI) GetDashboard(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, GetDashboardResponse{Clusters: clusterResponse})
-
 }
 
 // @Summary Get Dashboard info for a cluster
@@ -423,7 +422,6 @@ func calculateClusterResourceUsage(
 }
 
 func addResourceSummary(client *kubernetes.Clientset, response ClusterInfo) bool {
-
 	var partialResponse bool
 	for name, nodePool := range response.NodePools {
 		selector := fmt.Sprintf("%s=%s", pkgCommon.LabelKey, name)

@@ -127,7 +127,6 @@ func (op IntegratedServicesOperator) configureClusterTokenReviewer(
 	logger common.Logger,
 	clusterID uint,
 ) (string, error) {
-
 	pipelineSystemNamespace := op.config.Namespace
 
 	// Prepare cluster first with the proper token reviewer SA
@@ -416,7 +415,6 @@ func (op IntegratedServicesOperator) Deactivate(ctx context.Context, clusterID u
 			return errors.WrapIf(err, fmt.Sprintf("failed to delete kubernetes cluster role binding"))
 		}
 		logger.Info("kubernetes cluster role binding deleted successfully")
-
 	}
 
 	return nil

@@ -35,7 +35,6 @@ type integratedServiceManagerRegistry struct {
 }
 
 func (r integratedServiceManagerRegistry) GetIntegratedServiceManager(integratedServiceName string) (IntegratedServiceManager, error) {
-
 	if integratedServiceManager, ok := r.lookup[integratedServiceName]; ok {
 		return integratedServiceManager, nil
 	}
@@ -60,7 +59,6 @@ type integratedServiceOperatorRegistry struct {
 }
 
 func (r integratedServiceOperatorRegistry) GetIntegratedServiceOperator(integratedServiceName string) (IntegratedServiceOperator, error) {
-
 	if integratedServiceOperator, ok := r.lookup[integratedServiceName]; ok {
 		return integratedServiceOperator, nil
 	}

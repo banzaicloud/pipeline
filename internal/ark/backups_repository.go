@@ -31,7 +31,6 @@ type BackupsRepository struct {
 
 // NewBackupsRepository returns a new BackupsRepository instance
 func NewBackupsRepository(org *auth.Organization, db *gorm.DB, logger logrus.FieldLogger) *BackupsRepository {
-
 	return &BackupsRepository{
 		org:    org,
 		logger: logger,
@@ -41,7 +40,6 @@ func NewBackupsRepository(org *auth.Organization, db *gorm.DB, logger logrus.Fie
 
 // Find returns ClusterBackupsModel instances
 func (r *BackupsRepository) Find() (backups []*ClusterBackupsModel, err error) {
-
 	query := ClusterBackupsModel{
 		OrganizationID: r.org.ID,
 	}
@@ -82,7 +80,6 @@ func (r *BackupsRepository) FindOneByID(id uint) (*ClusterBackupsModel, error) {
 // FindByPersistRequest returns a ClusterBackupsModel by PersistBackupRequest
 func (r *BackupsRepository) FindByPersistRequest(req *api.PersistBackupRequest) (
 	*ClusterBackupsModel, error) {
-
 	var backup ClusterBackupsModel
 
 	query := ClusterBackupsModel{
@@ -98,7 +95,6 @@ func (r *BackupsRepository) FindByPersistRequest(req *api.PersistBackupRequest) 
 
 // Persist persist ClusterBackupsModel from PersistBackupRequest
 func (r *BackupsRepository) Persist(req *api.PersistBackupRequest) (backup ClusterBackupsModel, err error) {
-
 	query := ClusterBackupsModel{
 		Name:           req.Backup.Name,
 		BucketID:       req.BucketID,
@@ -122,7 +118,6 @@ func (r *BackupsRepository) Persist(req *api.PersistBackupRequest) (backup Clust
 
 // DeleteBackupsWithoutBucket deletes backups from DB if their bucket is removed
 func (r *BackupsRepository) DeleteBackupsWithoutBucket() error {
-
 	bucketsTableName := ClusterBackupBucketsModel{}.TableName()
 
 	return r.db.Where(
@@ -132,7 +127,6 @@ func (r *BackupsRepository) DeleteBackupsWithoutBucket() error {
 
 // DeleteBackupsNotInKeys deletes ClusterBackupsModel if their ID not in keys
 func (r *BackupsRepository) DeleteBackupsNotInKeys(bucketID uint, keys []int) error {
-
 	query := ClusterBackupsModel{
 		OrganizationID: r.org.ID,
 	}
@@ -144,7 +138,6 @@ func (r *BackupsRepository) DeleteBackupsNotInKeys(bucketID uint, keys []int) er
 
 // UpdateStatus updates ClusterBackupsModel status and statusMessage fields
 func (r *BackupsRepository) UpdateStatus(backup *ClusterBackupsModel, status, message string) error {
-
 	backup.Status = status
 	backup.StatusMessage = message
 

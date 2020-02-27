@@ -215,7 +215,6 @@ func (o *objectStore) GetObject(bucketName string, key string) (io.ReadCloser, e
 
 // PutObject creates a new object using the data in body with the given key
 func (o *objectStore) PutObject(bucketName string, key string, body io.Reader) error {
-
 	buf := &bytes.Buffer{}
 	length, err := io.Copy(buf, body)
 	if err != nil {

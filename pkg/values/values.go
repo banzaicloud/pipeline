@@ -27,12 +27,9 @@ type Config map[string]interface{}
 
 func DecodeHook() mapstructure.DecodeHookFunc {
 	return func(a reflect.Type, b reflect.Type, d interface{}) (interface{}, error) {
-
 		// parse values config
 		if a.Kind() == reflect.String && b == reflect.TypeOf(new(Config)).Elem() {
-
 			if data, ok := d.(string); ok {
-
 				var output map[string]interface{}
 				if err := yaml.Unmarshal([]byte(strings.TrimSpace(data)), &output); err != nil {
 					return nil, errors.WrapIf(err, "failed to convert string to map")
@@ -40,7 +37,6 @@ func DecodeHook() mapstructure.DecodeHookFunc {
 
 				return output, nil
 			}
-
 		}
 
 		return d, nil

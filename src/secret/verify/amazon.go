@@ -55,7 +55,6 @@ func (a *awsVerify) VerifySecret() error {
 
 // CreateEC2Client create a new ec2 instance with the credentials
 func CreateEC2Client(credentials *credentials.Credentials, region string) (*ec2.EC2, error) {
-
 	// set aws log level
 	var lv aws.LogLevelType
 	if log.Level == logrus.DebugLevel {

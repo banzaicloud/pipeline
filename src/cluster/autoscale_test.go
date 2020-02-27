@@ -96,5 +96,4 @@ func TestGetImageVersion_Success(t *testing.T) {
 			}
 		})
 	}
-
 }

@@ -41,7 +41,6 @@ func MakeEndpointLister(logger common.Logger) EndpointLister {
 
 // ListEndpoints lists service public endpoints
 func (el EndpointLister) ListEndpoints(c *gin.Context) {
-
 	releaseName := c.Query("releaseName")
 	log.Infof("Filtering for helm release name: %s", releaseName)
 	log.Info("if empty(\"\") all the endpoints will be returned")
@@ -91,7 +90,6 @@ func (el EndpointLister) ListEndpoints(c *gin.Context) {
 
 //GetClusterNodes Get node information
 func GetClusterNodes(c *gin.Context) {
-
 	kubeConfig, ok := GetK8sConfig(c)
 	if !ok {
 		return
@@ -122,5 +120,4 @@ func GetClusterNodes(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
-
 }

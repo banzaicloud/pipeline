@@ -24,7 +24,6 @@ const Provider = "alibaba"
 // GetESSServiceEndpoint returns the endpoint of the ESS Service in the
 // given region (https://www.alibabacloud.com/help/doc-detail/25927.htm)
 func GetESSServiceEndpoint(region string) string {
-
 	region = strings.ToLower(region)
 
 	switch strings.ToLower(region) {

@@ -25,7 +25,6 @@ type SpotInstanceRequest struct {
 
 // NewSpotInstanceRequest initialises and gives back a SpotInstanceRequest
 func NewSpotInstanceRequest(request *ec2.SpotInstanceRequest) *SpotInstanceRequest {
-
 	return &SpotInstanceRequest{
 		SpotInstanceRequest: request,
 	}
