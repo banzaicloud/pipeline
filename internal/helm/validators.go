@@ -22,15 +22,18 @@ import (
 	"emperror.dev/errors"
 )
 
+// RepoValidator interface for helm repository validation
 type RepoValidator interface {
+	// Validate performs helpm repository validation
 	Validate(ctx context.Context, repository Repository) error
 }
 
+// NewHelmRepoValidator creates a new helm repo validator
 func NewHelmRepoValidator() RepoValidator {
-	// todo refine validator implementation: are more validators needed, add external / internal validators
 	return repoValidator{}
 }
 
+// Composite validator type
 type RepoValidators []RepoValidator
 
 func (r RepoValidators) Validate(ctx context.Context, repository Repository) error {
@@ -81,12 +84,12 @@ func (r repoValidator) Validate(ctx context.Context, repository Repository) erro
 
 // unwrapViolations is a helper func to unwrap violations from a validation error
 func unwrapViolations(err error) []string {
-	var verr interface {
+	var validationError interface {
 		Violations() []string
 	}
 
-	if errors.As(err, &verr) {
-		return verr.Violations()
+	if errors.As(err, &validationError) {
+		return validationError.Violations()
 	}
 
 	return []string{err.Error()}

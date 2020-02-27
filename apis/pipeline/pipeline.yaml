@@ -5566,7 +5566,7 @@ components:
                     example: "stable"
                 cache:
                     type: string
-                    example: "statestore/<cluster_name>/helm/repository/cache/stabl-index.yaml"
+                    example: "statestore/<cluster_name>/helm/repository/cache/stable-index.yaml"
                 url:
                     type: string
                     example: "https://kubernetes-charts.storage.googleapis.com"
