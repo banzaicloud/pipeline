@@ -67,6 +67,7 @@ var Config struct {
 				HPAOperator struct {
 					Chart   string
 					Version string
+					Values  map[string]interface{}
 				}
 			}
 			HPA struct {
