@@ -12,6 +12,7 @@ Method | HTTP request | Description
 ## QueryImagesByVulnerability
 
 > PaginatedVulnerableImageList QueryImagesByVulnerability(ctx, vulnerabilityId, optional)
+
 List images vulnerable to the specific vulnerability ID.
 
 Returns a listing of images and their respective packages vulnerable to the given vulnerability ID
@@ -62,6 +63,7 @@ Name | Type | Description  | Notes
 ## QueryVulnerabilities
 
 > PaginatedVulnerabilityList QueryVulnerabilities(ctx, id, optional)
+
 Listing information about given vulnerability
 
 List (w/filters) vulnerability records known by the system, with affected packages information if present

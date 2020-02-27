@@ -45,7 +45,6 @@ func (a *DefaultApiService) GetOauthToken(ctx _context.Context) (TokenResponse, 
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/oauth/token"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -106,7 +105,6 @@ func (a *DefaultApiService) GetOauthToken(ctx _context.Context) (TokenResponse, 
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -139,7 +137,6 @@ func (a *DefaultApiService) HealthNoop(ctx _context.Context) (*_nethttp.Response
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/health"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -206,7 +203,6 @@ func (a *DefaultApiService) Ping(ctx _context.Context) (string, *_nethttp.Respon
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -257,7 +253,6 @@ func (a *DefaultApiService) Ping(ctx _context.Context) (string, *_nethttp.Respon
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -308,7 +303,6 @@ func (a *DefaultApiService) QueryImagesByPackage(ctx _context.Context, name stri
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/query/images/by_package"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -385,7 +379,6 @@ func (a *DefaultApiService) QueryImagesByPackage(ctx _context.Context, name stri
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -420,7 +413,6 @@ func (a *DefaultApiService) VersionNoop(ctx _context.Context) (ServiceVersion, *
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/version"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -471,7 +463,6 @@ func (a *DefaultApiService) VersionNoop(ctx _context.Context) (ServiceVersion, *
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

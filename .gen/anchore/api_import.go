@@ -45,7 +45,6 @@ func (a *ImportApiService) ImportImageArchive(ctx _context.Context, archiveFile 
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/import/images"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -114,7 +113,6 @@ func (a *ImportApiService) ImportImageArchive(ctx _context.Context, archiveFile 
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

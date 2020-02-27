@@ -15,6 +15,7 @@ Method | HTTP request | Description
 ## CreateRegistry
 
 > []RegistryConfiguration CreateRegistry(ctx, registrydata, optional)
+
 Add a new registry
 
 Adds a new registry to the system
@@ -60,6 +61,7 @@ Name | Type | Description  | Notes
 ## DeleteRegistry
 
 > DeleteRegistry(ctx, registry, optional)
+
 Delete a registry configuration
 
 Delete a registry configuration record from the system. Does not remove any images.
@@ -104,6 +106,7 @@ Name | Type | Description  | Notes
 ## GetRegistry
 
 > RegistryConfiguration GetRegistry(ctx, registry, optional)
+
 Get a specific registry configuration
 
 Get information on a specific registry
@@ -148,6 +151,7 @@ Name | Type | Description  | Notes
 ## ListRegistries
 
 > []RegistryConfiguration ListRegistries(ctx, optional)
+
 List configured registries
 
 List all configured registries the system can/will watch
@@ -190,6 +194,7 @@ Name | Type | Description  | Notes
 ## UpdateRegistry
 
 > []RegistryConfiguration UpdateRegistry(ctx, registry, registrydata, optional)
+
 Update/replace a registry configuration
 
 Replaces an existing registry record with the given record

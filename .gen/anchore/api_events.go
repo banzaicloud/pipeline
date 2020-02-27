@@ -16,7 +16,6 @@ import (
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
 	"github.com/antihax/optional"
 )
@@ -53,7 +52,7 @@ func (a *EventsApiService) DeleteEvent(ctx _context.Context, eventId string, loc
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/events/{eventId}"
-	localVarPath = strings.Replace(localVarPath, "{"+"eventId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", eventId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"eventId"+"}", _neturl.QueryEscape(parameterToString(eventId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -137,7 +136,6 @@ func (a *EventsApiService) DeleteEvents(ctx _context.Context, localVarOptionals 
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/events"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -210,7 +208,6 @@ func (a *EventsApiService) DeleteEvents(ctx _context.Context, localVarOptionals 
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -253,7 +250,7 @@ func (a *EventsApiService) GetEvent(ctx _context.Context, eventId string, localV
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/events/{eventId}"
-	localVarPath = strings.Replace(localVarPath, "{"+"eventId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", eventId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"eventId"+"}", _neturl.QueryEscape(parameterToString(eventId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -308,7 +305,6 @@ func (a *EventsApiService) GetEvent(ctx _context.Context, eventId string, localV
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -368,7 +364,6 @@ func (a *EventsApiService) ListEvents(ctx _context.Context, localVarOptionals *L
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/events"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -449,7 +444,6 @@ func (a *EventsApiService) ListEvents(ctx _context.Context, localVarOptionals *L
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

@@ -13,6 +13,7 @@ Method | HTTP request | Description
 > ProviderResponse GetProvider(ctx, provider)
 
 
+
 Returns the requested provider
 
 ### Required Parameters

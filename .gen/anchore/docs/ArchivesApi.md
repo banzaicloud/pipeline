@@ -21,6 +21,7 @@ Method | HTTP request | Description
 > []AnalysisArchiveAddResult ArchiveImageAnalysis(ctx, imageReferences)
 
 
+
 ### Required Parameters
 
 
@@ -50,6 +51,7 @@ Name | Type | Description  | Notes
 ## CreateAnalysisArchiveRule
 
 > AnalysisArchiveTransitionRule CreateAnalysisArchiveRule(ctx, rule)
+
 
 
 ### Required Parameters
@@ -83,6 +85,7 @@ Name | Type | Description  | Notes
 > AnalysisArchiveTransitionRule DeleteAnalysisArchiveRule(ctx, ruleId)
 
 
+
 ### Required Parameters
 
 
@@ -112,6 +115,7 @@ Name | Type | Description  | Notes
 ## DeleteArchivedAnalysis
 
 > ArchivedAnalysis DeleteArchivedAnalysis(ctx, imageDigest, optional)
+
 
 
 Performs a synchronous archive deletion
@@ -158,6 +162,7 @@ Name | Type | Description  | Notes
 > AnalysisArchiveTransitionRule GetAnalysisArchiveRule(ctx, ruleId)
 
 
+
 ### Required Parameters
 
 
@@ -187,6 +192,7 @@ Name | Type | Description  | Notes
 ## GetArchivedAnalysis
 
 > ArchivedAnalysis GetArchivedAnalysis(ctx, imageDigest)
+
 
 
 Returns the archive metadata record identifying the image and tags for the analysis in the archive.
@@ -222,6 +228,7 @@ Name | Type | Description  | Notes
 > []ArchivedAnalysis ListAnalysisArchive(ctx, )
 
 
+
 ### Required Parameters
 
 This endpoint does not need any parameter.
@@ -247,6 +254,7 @@ This endpoint does not need any parameter.
 ## ListAnalysisArchiveRules
 
 > []AnalysisArchiveTransitionRule ListAnalysisArchiveRules(ctx, optional)
+
 
 
 ### Required Parameters
@@ -287,6 +295,7 @@ Name | Type | Description  | Notes
 ## ListArchives
 
 > ArchiveSummary ListArchives(ctx, )
+
 
 
 ### Required Parameters

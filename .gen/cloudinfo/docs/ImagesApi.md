@@ -11,6 +11,7 @@ Method | HTTP request | Description
 ## GetImages
 
 > []Image GetImages(ctx, provider, service, region, optional)
+
 Provides a list of available images on a given provider in a specific region for a service.
 
 ### Required Parameters

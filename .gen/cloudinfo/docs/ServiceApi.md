@@ -13,6 +13,7 @@ Method | HTTP request | Description
 > ServiceResponse GetService(ctx, provider, service)
 
 
+
 Provides service details for the given service on the provider in the given region
 
 ### Required Parameters

@@ -15,6 +15,7 @@ Method | HTTP request | Description
 ## AddSubscription
 
 > []Subscription AddSubscription(ctx, subscription, optional)
+
 Add a subscription of a specific type
 
 Create a new subscription to watch a tag and get notifications of changes
@@ -59,6 +60,7 @@ Name | Type | Description  | Notes
 ## DeleteSubscription
 
 > DeleteSubscription(ctx, subscriptionId, optional)
+
 Delete subscriptions of a specific type
 
 ### Required Parameters
@@ -101,6 +103,7 @@ Name | Type | Description  | Notes
 ## GetSubscription
 
 > []Subscription GetSubscription(ctx, subscriptionId, optional)
+
 Get a specific subscription set
 
 ### Required Parameters
@@ -143,6 +146,7 @@ Name | Type | Description  | Notes
 ## ListSubscriptions
 
 > []Subscription ListSubscriptions(ctx, optional)
+
 List all subscriptions
 
 ### Required Parameters
@@ -185,6 +189,7 @@ Name | Type | Description  | Notes
 ## UpdateSubscription
 
 > []Subscription UpdateSubscription(ctx, subscriptionId, subscription, optional)
+
 Update an existing and specific subscription
 
 ### Required Parameters

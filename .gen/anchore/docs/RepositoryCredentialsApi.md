@@ -11,6 +11,7 @@ Method | HTTP request | Description
 ## AddRepository
 
 > []Subscription AddRepository(ctx, repository, optional)
+
 Add repository to watch
 
 ### Required Parameters

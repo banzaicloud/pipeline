@@ -14,6 +14,7 @@ Method | HTTP request | Description
 ## DeleteEvent
 
 > DeleteEvent(ctx, eventId, optional)
+
 Delete Event
 
 Delete an event by its event ID
@@ -58,6 +59,7 @@ Name | Type | Description  | Notes
 ## DeleteEvents
 
 > []string DeleteEvents(ctx, optional)
+
 Delete Events
 
 Delete all or a subset of events filtered using the optional query parameters
@@ -103,6 +105,7 @@ Name | Type | Description  | Notes
 ## GetEvent
 
 > EventResponse GetEvent(ctx, eventId, optional)
+
 Get Event
 
 Lookup an event by its event ID
@@ -147,6 +150,7 @@ Name | Type | Description  | Notes
 ## ListEvents
 
 > EventsList ListEvents(ctx, optional)
+
 List Events
 
 Returns a paginated list of events in the descending order of their occurrence. Optional query parameters may be used for filtering results

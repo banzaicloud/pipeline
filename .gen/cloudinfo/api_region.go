@@ -16,7 +16,6 @@ import (
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
 )
 
@@ -49,9 +48,11 @@ func (a *RegionApiService) GetRegion(ctx _context.Context, provider string, serv
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/providers/{provider}/services/{service}/regions/{region}"
-	localVarPath = strings.Replace(localVarPath, "{"+"provider"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", provider)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"service"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", service)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"region"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", region)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"provider"+"}", _neturl.QueryEscape(parameterToString(provider, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"service"+"}", _neturl.QueryEscape(parameterToString(service, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"region"+"}", _neturl.QueryEscape(parameterToString(region, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -103,7 +104,6 @@ func (a *RegionApiService) GetRegion(ctx _context.Context, provider string, serv
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

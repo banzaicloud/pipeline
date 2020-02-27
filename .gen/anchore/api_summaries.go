@@ -52,7 +52,6 @@ func (a *SummariesApiService) ListImagetags(ctx _context.Context, localVarOption
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/summaries/imagetags"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -116,7 +115,6 @@ func (a *SummariesApiService) ListImagetags(ctx _context.Context, localVarOption
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

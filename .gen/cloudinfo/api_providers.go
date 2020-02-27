@@ -44,7 +44,6 @@ func (a *ProvidersApiService) GetProviders(ctx _context.Context) (ProvidersRespo
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/providers"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -95,7 +94,6 @@ func (a *ProvidersApiService) GetProviders(ctx _context.Context) (ProvidersRespo
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

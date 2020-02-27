@@ -11,6 +11,7 @@ Method | HTTP request | Description
 ## GetVersions
 
 > []LocationVersion GetVersions(ctx, provider, service, region)
+
 Provides a list of available versions on a given provider in a specific region for a service.
 
 ### Required Parameters

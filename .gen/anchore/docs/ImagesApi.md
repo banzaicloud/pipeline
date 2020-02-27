@@ -32,6 +32,7 @@ Method | HTTP request | Description
 ## AddImage
 
 > []AnchoreImage AddImage(ctx, image, optional)
+
 Submit a new image for analysis by the engine
 
 Creates a new analysis task that is executed asynchronously
@@ -78,6 +79,7 @@ Name | Type | Description  | Notes
 ## DeleteImage
 
 > DeleteImage(ctx, imageDigest, optional)
+
 Delete an image analysis
 
 ### Required Parameters
@@ -121,6 +123,7 @@ Name | Type | Description  | Notes
 ## DeleteImageByImageId
 
 > DeleteImageByImageId(ctx, imageId, optional)
+
 Delete image by docker imageId
 
 ### Required Parameters
@@ -164,6 +167,7 @@ Name | Type | Description  | Notes
 ## GetImage
 
 > []AnchoreImage GetImage(ctx, imageDigest, optional)
+
 Get image metadata
 
 ### Required Parameters
@@ -206,6 +210,7 @@ Name | Type | Description  | Notes
 ## GetImageByImageId
 
 > []AnchoreImage GetImageByImageId(ctx, imageId, optional)
+
 Lookup image by docker imageId
 
 ### Required Parameters
@@ -248,6 +253,7 @@ Name | Type | Description  | Notes
 ## GetImageContentByType
 
 > ContentPackageResponse GetImageContentByType(ctx, imageDigest, ctype, optional)
+
 Get the content of an image by type
 
 ### Required Parameters
@@ -292,6 +298,7 @@ Name | Type | Description  | Notes
 ## GetImageContentByTypeFiles
 
 > ContentFilesResponse GetImageContentByTypeFiles(ctx, imageDigest, optional)
+
 Get the content of an image by type files
 
 ### Required Parameters
@@ -334,6 +341,7 @@ Name | Type | Description  | Notes
 ## GetImageContentByTypeImageId
 
 > ContentPackageResponse GetImageContentByTypeImageId(ctx, imageId, ctype, optional)
+
 Get the content of an image by type
 
 ### Required Parameters
@@ -378,6 +386,7 @@ Name | Type | Description  | Notes
 ## GetImageContentByTypeImageIdFiles
 
 > ContentFilesResponse GetImageContentByTypeImageIdFiles(ctx, imageId, optional)
+
 Get the content of an image by type files
 
 ### Required Parameters
@@ -420,6 +429,7 @@ Name | Type | Description  | Notes
 ## GetImageContentByTypeImageIdJavapackage
 
 > ContentJavaPackageResponse GetImageContentByTypeImageIdJavapackage(ctx, imageId, optional)
+
 Get the content of an image by type java
 
 ### Required Parameters
@@ -462,6 +472,7 @@ Name | Type | Description  | Notes
 ## GetImageContentByTypeJavapackage
 
 > ContentJavaPackageResponse GetImageContentByTypeJavapackage(ctx, imageDigest, optional)
+
 Get the content of an image by type java
 
 ### Required Parameters
@@ -504,6 +515,7 @@ Name | Type | Description  | Notes
 ## GetImageMetadataByType
 
 > MetadataResponse GetImageMetadataByType(ctx, imageDigest, mtype, optional)
+
 Get the metadata of an image by type
 
 ### Required Parameters
@@ -548,6 +560,7 @@ Name | Type | Description  | Notes
 ## GetImagePolicyCheck
 
 > []map[string]interface{} GetImagePolicyCheck(ctx, imageDigest, tag, optional)
+
 Check policy evaluation status for image
 
 Get the policy evaluation for the given image
@@ -598,6 +611,7 @@ Name | Type | Description  | Notes
 ## GetImagePolicyCheckByImageId
 
 > []map[string]interface{} GetImagePolicyCheckByImageId(ctx, imageId, tag, optional)
+
 Check policy evaluation status for image
 
 Get the policy evaluation for the given image
@@ -647,6 +661,7 @@ Name | Type | Description  | Notes
 ## GetImageVulnerabilitiesByType
 
 > VulnerabilityResponse GetImageVulnerabilitiesByType(ctx, imageDigest, vtype, optional)
+
 Get vulnerabilities by type
 
 ### Required Parameters
@@ -693,6 +708,7 @@ Name | Type | Description  | Notes
 ## GetImageVulnerabilitiesByTypeImageId
 
 > VulnerabilityResponse GetImageVulnerabilitiesByTypeImageId(ctx, imageId, vtype, optional)
+
 Get vulnerabilities by type
 
 ### Required Parameters
@@ -737,6 +753,7 @@ Name | Type | Description  | Notes
 ## GetImageVulnerabilityTypes
 
 > []string GetImageVulnerabilityTypes(ctx, imageDigest, optional)
+
 Get vulnerability types
 
 ### Required Parameters
@@ -779,6 +796,7 @@ Name | Type | Description  | Notes
 ## GetImageVulnerabilityTypesByImageId
 
 > []string GetImageVulnerabilityTypesByImageId(ctx, imageId, optional)
+
 Get vulnerability types
 
 ### Required Parameters
@@ -821,6 +839,7 @@ Name | Type | Description  | Notes
 ## ListImageContent
 
 > []string ListImageContent(ctx, imageDigest, optional)
+
 List image content types
 
 ### Required Parameters
@@ -863,6 +882,7 @@ Name | Type | Description  | Notes
 ## ListImageContentByImageid
 
 > []string ListImageContentByImageid(ctx, imageId, optional)
+
 List image content types
 
 ### Required Parameters
@@ -905,6 +925,7 @@ Name | Type | Description  | Notes
 ## ListImageMetadata
 
 > []string ListImageMetadata(ctx, imageDigest, optional)
+
 List image metadata types
 
 ### Required Parameters
@@ -947,6 +968,7 @@ Name | Type | Description  | Notes
 ## ListImages
 
 > []AnchoreImage ListImages(ctx, optional)
+
 List all visible images
 
 List all images visible to the user

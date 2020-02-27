@@ -16,7 +16,6 @@ import (
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
 )
 
@@ -46,7 +45,6 @@ func (a *ContinentsApiService) GetContinents(ctx _context.Context) ([]string, *_
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/continents"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -97,7 +95,6 @@ func (a *ContinentsApiService) GetContinents(ctx _context.Context) ([]string, *_
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -134,8 +131,9 @@ func (a *ContinentsApiService) GetContinentsData(ctx _context.Context, provider 
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/providers/{provider}/services/{service}/continents"
-	localVarPath = strings.Replace(localVarPath, "{"+"provider"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", provider)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"service"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", service)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"provider"+"}", _neturl.QueryEscape(parameterToString(provider, "")) , -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"service"+"}", _neturl.QueryEscape(parameterToString(service, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -187,7 +185,6 @@ func (a *ContinentsApiService) GetContinentsData(ctx _context.Context, provider 
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
