@@ -89,7 +89,11 @@ type CreateClusterWorkflowInput struct {
 	SubnetID                    string
 }
 
-func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
+type CreateClusterWorkflow struct {
+	GlobalRegion string
+}
+
+func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateClusterWorkflowInput) error {
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 10 * time.Minute,
 		StartToCloseTimeout:    20 * time.Minute,
@@ -120,7 +124,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	// Create AWS roles
 	{
 		activityInput := CreateAWSRolesActivityInput{AWSActivityInput: awsActivityInput, ClusterID: input.ClusterID}
-		activityInput.AWSActivityInput.Region = "us-east-1"
+		activityInput.AWSActivityInput.Region = w.GlobalRegion
 		err := workflow.ExecuteActivity(ctx, CreateAWSRolesActivityName, activityInput).Get(ctx, &rolesStackID)
 		if err != nil {
 			return err

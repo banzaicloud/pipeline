@@ -372,7 +372,7 @@ func main() {
 		}))
 
 		// Register amazon specific workflows and activities
-		registerAwsWorkflows(clusters, tokenGenerator, secretStore, cloudinfoClient)
+		registerAwsWorkflows(clusters, tokenGenerator, secretStore, cloudinfoClient, config.Distribution.PKE.Amazon.GlobalRegion)
 
 		azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonadapter.NewLogger(logger))
 
