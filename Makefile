@@ -32,9 +32,10 @@ ANCHORE_VERSION = 156836d
 GOLANGCI_VERSION = 1.23.6
 LICENSEI_VERSION = 0.2.0
 OPENAPI_GENERATOR_VERSION = v4.2.3
+PROTOC_VERSION = 3.11.4
+BUF_VERSION = 0.7.0
 MIGRATE_VERSION = 4.9.1
 GOTESTSUM_VERSION = 0.4.1
-PROTOTOOL_VERSION = 1.8.0
 MGA_VERSION = 0.2.0
 
 GOLANG_VERSION = 1.14
@@ -265,16 +266,6 @@ apis/anchore/swagger.yaml:
 generate-anchore-client: apis/anchore/swagger.yaml ## Generate client from Anchore OpenAPI spec
 	$(call generate_openapi_client,apis/anchore/swagger.yaml,anchore,.gen/anchore)
 
-bin/protoc-gen-go:
-	@mkdir -p bin
-	go build -o bin/protoc-gen-go github.com/golang/protobuf/protoc-gen-go
-
-bin/prototool: bin/prototool-${PROTOTOOL_VERSION}
-	@ln -sf prototool-${PROTOTOOL_VERSION} bin/prototool
-bin/prototool-${PROTOTOOL_VERSION}:
-	@mkdir -p bin
-	curl -L https://github.com/uber/prototool/releases/download/v${PROTOTOOL_VERSION}/prototool-${OS}-x86_64 > ./bin/prototool-${PROTOTOOL_VERSION} && chmod +x ./bin/prototool-${PROTOTOOL_VERSION}
-
 apis/dex/api.proto:
 	@mkdir -p apis/dex
 	curl https://raw.githubusercontent.com/dexidp/dex/v${DEX_VERSION}/api/api.proto > apis/dex/api.proto
@@ -282,15 +273,39 @@ apis/dex/api.proto:
 .PHONY: _download-protos
 _download-protos: apis/dex/api.proto
 
-.PHONY: validate-proto
-validate-proto: bin/prototool bin/protoc-gen-go _download-protos ## Validate protobuf definition
-	bin/prototool $(if ${VERBOSE},--debug ,)compile
-	bin/prototool $(if ${VERBOSE},--debug ,)lint
-	bin/prototool $(if ${VERBOSE},--debug ,)break check
+bin/protoc: bin/protoc-${PROTOC_VERSION}
+	@ln -sf protoc-${PROTOC_VERSION} bin/protoc
+bin/protoc-${PROTOC_VERSION}:
+	@mkdir -p bin
+ifeq (${OS}, darwin)
+	curl -L https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-osx-x86_64.zip > bin/protoc.zip
+endif
+ifeq (${OS}, linux)
+	curl -L https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip > bin/protoc.zip
+endif
+	unzip -p bin/protoc.zip bin/protoc > bin/protoc-${PROTOC_VERSION}
+	chmod +x bin/protoc-${PROTOC_VERSION}
+	rm bin/protoc.zip
+
+bin/protoc-gen-go:
+	@mkdir -p bin
+	go build -o bin/protoc-gen-go github.com/golang/protobuf/protoc-gen-go
+
+bin/buf: bin/buf-${BUF_VERSION}
+	@ln -sf buf-${BUF_VERSION} bin/buf
+bin/buf-${BUF_VERSION}:
+	@mkdir -p bin
+	curl -L https://github.com/bufbuild/buf/releases/download/v${BUF_VERSION}/buf-${OS}-x86_64 -o ./bin/buf-${BUF_VERSION} && chmod +x ./bin/buf-${BUF_VERSION}
+
+.PHONY: buf
+buf: bin/buf _download-protos ## Generate client and server stubs from the protobuf definition
+	bin/buf image build -o /dev/null
+	bin/buf check lint
 
 .PHONY: proto
-proto: bin/prototool bin/protoc-gen-go _download-protos ## Generate client and server stubs from the protobuf definition
-	bin/prototool $(if ${VERBOSE},--debug ,)all
+# proto: buf
+proto: bin/protoc bin/protoc-gen-go ## Generate client and server stubs from the protobuf definition
+	protoc -I apis/dex --go_out=plugins=grpc,import_path=dex:.gen/dex $(shell find apis/dex -name '*.proto')
 
 snapshot:
 	@test -n "${SNAPSHOT_VERSION}" || (echo "Missing snapshot version" && exit 1)
