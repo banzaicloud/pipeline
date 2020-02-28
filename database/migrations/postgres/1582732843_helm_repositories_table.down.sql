@@ -1,1 +1,1 @@
-drop table if exists "helm_repositories";
+DROP TABLE IF EXISTS "helm_repositories";

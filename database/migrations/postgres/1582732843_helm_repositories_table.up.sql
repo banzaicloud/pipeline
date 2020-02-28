@@ -1,20 +1,17 @@
-create table helm_repositories
+CREATE TABLE "helm_repositories"
 (
-    id                 serial not null
-        constraint helm_repositories_pkey
-            primary key,
-    created_at         timestamp with time zone,
-    updated_at         timestamp with time zone,
-    deleted_at         timestamp with time zone,
-    organization_id    integer,
-    name               text,
-    url                text,
-    password_secret_id text,
-    tls_secret_id      text
+    "id"                 serial,
+    "created_at"         timestamp with time zone,
+    "updated_at"         timestamp with time zone,
+    "deleted_at"         timestamp with time zone,
+    "organization_id"    integer,
+    "name"               text,
+    "url"                text,
+    "password_secret_id" text,
+    "tls_secret_id"      text,
+    PRIMARY KEY ("id")
 );
 
-create index idx_helm_repositories_deleted_at
-    on helm_repositories (deleted_at);
+CREATE UNIQUE INDEX idx_org_name ON "helm_repositories" (organization_id, name);
 
-create unique index idx_org_name
-    on helm_repositories (organization_id, name);
+
