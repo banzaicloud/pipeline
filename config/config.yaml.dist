@@ -397,7 +397,7 @@ dex:
 #helm:
 #    home: "./var/cache"
 #    tiller:
-#        version: "v2.14.2"
+#        version: "v2.16.3"
 #    repositories:
 #        stable: "https://kubernetes-charts.storage.googleapis.com"
 #        banzaicloud-stable: "https://kubernetes-charts.banzaicloud.com"

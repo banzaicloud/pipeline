@@ -818,7 +818,7 @@ traefik:
 	})
 
 	// Helm configuration
-	v.SetDefault("helm::tiller::version", "v2.14.2")
+	v.SetDefault("helm::tiller::version", "v2.16.3")
 	v.SetDefault("helm::home", "./var/cache")
 	v.SetDefault("helm::repositories::stable", "https://kubernetes-charts.storage.googleapis.com")
 	v.SetDefault("helm::repositories::banzaicloud-stable", "https://kubernetes-charts.banzaicloud.com")
