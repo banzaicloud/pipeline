@@ -58,7 +58,6 @@ func (ValidationError) ServiceError() bool {
 type AlreadyExistsError struct {
 	OrganizationID uint
 	RepositoryName string
-	Description    string
 }
 
 // Error implements the error interface.

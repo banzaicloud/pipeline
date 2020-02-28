@@ -130,7 +130,6 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 
 	if exists {
 		return AlreadyExistsError{
-			Description:    "helm repository already exists",
 			RepositoryName: repository.Name,
 			OrganizationID: organizationID,
 		}
