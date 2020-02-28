@@ -16,6 +16,7 @@ package helmadapter
 
 import (
 	"context"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
@@ -25,8 +26,9 @@ import (
 
 // repositoryModel describes the helm repository model.
 type repositoryModel struct {
-	gorm.Model
-
+	ID               uint `gorm:"primary_key"`
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 	OrganizationID   uint   `gorm:"unique_index:idx_org_name"`
 	Name             string `gorm:"unique_index:idx_org_name"`
 	URL              string
