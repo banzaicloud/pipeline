@@ -286,7 +286,7 @@ endif
 	unzip bin/protoc.zip -d bin/protoc-${PROTOC_VERSION}
 	rm bin/protoc.zip
 
-bin/protoc-gen-go:
+bin/protoc-gen-go: go.mod
 	@mkdir -p bin
 	go build -o bin/protoc-gen-go github.com/golang/protobuf/protoc-gen-go
 

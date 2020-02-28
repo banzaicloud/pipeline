@@ -57,7 +57,7 @@ require (
 	github.com/go-openapi/spec v0.19.5 // indirect
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
-	github.com/golang/protobuf v1.3.3
+	github.com/golang/protobuf v1.3.4
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/sessions v1.2.0
