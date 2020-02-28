@@ -85,7 +85,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger, commonLogger common.Logger)
 		return err
 	}
 
-	if err := helmadapter.Migrate(db, logger); err != nil {
+	if err := helmadapter.Migrate(db, commonLogger); err != nil {
 		return err
 	}
 

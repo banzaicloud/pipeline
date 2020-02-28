@@ -17,17 +17,14 @@ package helmadapter
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"testing"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"logur.dev/logur"
 
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm"
 )
 
@@ -35,10 +32,7 @@ func setUpDatabase(t *testing.T) *gorm.DB {
 	db, err := gorm.Open("sqlite3", "file::memory:")
 	require.NoError(t, err)
 
-	logger := logrus.New()
-	logger.SetOutput(ioutil.Discard)
-
-	err = Migrate(db, logger)
+	err = Migrate(db, common.NoopLogger{})
 	require.NoError(t, err)
 
 	return db
@@ -47,7 +41,7 @@ func setUpDatabase(t *testing.T) *gorm.DB {
 func Test_helmRepoStore_Create(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
+		store := NewHelmRepoStore(db, common.NoopLogger{})
 
 		newRepo := helm.Repository{
 			Name:             "testing",
@@ -66,7 +60,7 @@ func Test_helmRepoStore_Create(t *testing.T) {
 
 	t.Run("AlreadyExists", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
+		store := NewHelmRepoStore(db, common.NoopLogger{})
 
 		newRepo := helm.Repository{
 			Name:             "violation",
@@ -84,9 +78,9 @@ func Test_helmRepoStore_Create(t *testing.T) {
 }
 
 func Test_helmRepoStore_Get(t *testing.T) {
-	t.Run("get repository - not found", func(t *testing.T) {
+	t.Run("NotFound", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
+		store := NewHelmRepoStore(db, common.NoopLogger{})
 
 		newRepo := helm.Repository{
 			Name:             "testing",
@@ -98,9 +92,9 @@ func Test_helmRepoStore_Get(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	t.Run("get repository - success", func(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
+		store := NewHelmRepoStore(db, common.NoopLogger{})
 
 		newRepo := helm.Repository{
 			Name:             "testing",
@@ -121,7 +115,7 @@ func Test_helmRepoStore_Get(t *testing.T) {
 func Test_helmRepoStore_Delete(t *testing.T) {
 	t.Run("DoesntExist", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
+		store := NewHelmRepoStore(db, common.NoopLogger{})
 
 		toBeDeleted := helm.Repository{
 			Name:             "testing",
@@ -135,7 +129,7 @@ func Test_helmRepoStore_Delete(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
+		store := NewHelmRepoStore(db, common.NoopLogger{})
 
 		toBeDeleted := helm.Repository{
 			Name:             "testing",
@@ -154,7 +148,7 @@ func Test_helmRepoStore_Delete(t *testing.T) {
 func Test_helmRepoStore_ListRepositories(t *testing.T) {
 	t.Run("NoneFound", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
+		store := NewHelmRepoStore(db, common.NoopLogger{})
 
 		repos, err := store.List(context.Background(), 1)
 		require.NoError(t, err)
@@ -163,7 +157,7 @@ func Test_helmRepoStore_ListRepositories(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		db := setUpDatabase(t)
-		store := NewHelmRepoStore(db, commonadapter.NewLogger(logur.NoopLogger{}))
+		store := NewHelmRepoStore(db, common.NoopLogger{})
 
 		for i := 0; i < 3; i++ {
 			if err := store.Create(context.Background(), 1, helm.Repository{

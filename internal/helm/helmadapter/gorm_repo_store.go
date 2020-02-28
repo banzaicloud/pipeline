@@ -20,11 +20,10 @@ import (
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 
-	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm"
 )
 
-// repositoryModel describes the common cluster model.
+// repositoryModel describes the helm repository model.
 type repositoryModel struct {
 	gorm.Model
 
@@ -42,10 +41,10 @@ func (repositoryModel) TableName() string {
 
 type helmRepoStore struct {
 	db     *gorm.DB
-	logger common.Logger
+	logger Logger
 }
 
-func NewHelmRepoStore(db *gorm.DB, logger common.Logger) helm.Store {
+func NewHelmRepoStore(db *gorm.DB, logger Logger) helm.Store {
 	return helmRepoStore{
 		db:     db,
 		logger: logger,
@@ -61,7 +60,7 @@ func (h helmRepoStore) Delete(_ context.Context, organizationID uint, repository
 	}
 
 	h.logger.Debug("deleted helm repository record",
-		map[string]interface{}{"organisationID": organizationID, "repoName": repository.Name})
+		map[string]interface{}{"organizationID": organizationID, "repoName": repository.Name})
 
 	return nil
 }
@@ -80,8 +79,8 @@ func (h helmRepoStore) List(_ context.Context, organizationID uint) ([]helm.Repo
 	h.logger.Debug(
 		"retrieved helm repository records",
 		map[string]interface{}{
-			"organisationID": organizationID,
-			"repositories #": len(repos)})
+			"organizationID":  organizationID,
+			"repositoryCount": len(repos)})
 
 	return repos, nil
 }
@@ -96,7 +95,7 @@ func (h helmRepoStore) Create(_ context.Context, organizationID uint, repository
 	h.logger.Debug(
 		"persisted new helm repository record",
 		map[string]interface{}{
-			"organisationID": organizationID,
+			"organizationID": organizationID,
 			"repoName":       repository.Name})
 
 	return nil
@@ -109,7 +108,7 @@ func (h helmRepoStore) Get(_ context.Context, organizationID uint, repository he
 		return helm.Repository{}, errors.WrapIf(err, "failed to get helm repository")
 	}
 	h.logger.Debug("retrieved helm repository record",
-		map[string]interface{}{"organisationID": organizationID, "repoName": repository.Name})
+		map[string]interface{}{"organizationID": organizationID, "repoName": repository.Name})
 
 	return toDomain(repoModel), nil
 }

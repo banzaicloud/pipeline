@@ -19,16 +19,15 @@ import (
 
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm"
 )
 
 type secretStore struct {
-	secrets common.SecretStore
-	logger  common.Logger
+	secrets SecretStore
+	logger  Logger
 }
 
-func NewSecretStore(store common.SecretStore, logger common.Logger) helm.SecretStore {
+func NewSecretStore(store SecretStore, logger Logger) helm.SecretStore {
 	return secretStore{
 		secrets: store,
 		logger:  logger,
@@ -36,12 +35,12 @@ func NewSecretStore(store common.SecretStore, logger common.Logger) helm.SecretS
 }
 
 func (s secretStore) CheckPasswordSecret(ctx context.Context, secretID string) error {
-	// todo validate the secret type too
+	// TODO validate the secret type too
 	return s.secretExists(ctx, secretID)
 }
 
 func (s secretStore) CheckTLSSecret(ctx context.Context, secretID string) error {
-	// todo validate the secret type too
+	// TODO validate the secret type too
 	return s.secretExists(ctx, secretID)
 }
 

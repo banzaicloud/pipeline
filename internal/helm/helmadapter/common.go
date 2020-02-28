@@ -15,24 +15,9 @@
 package helmadapter
 
 import (
-	"fmt"
-	"strings"
-
-	"github.com/jinzhu/gorm"
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
-// Migrate executes the table migrations for the helm module.
-func Migrate(db *gorm.DB, logger Logger) error {
-	tables := []interface{}{
-		repositoryModel{},
-	}
+type Logger = common.Logger
 
-	var tableNames string
-	for _, table := range tables {
-		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
-	}
-
-	logger.Info("migrating model tables", map[string]interface{}{"table_names": strings.TrimSpace(tableNames)})
-
-	return db.AutoMigrate(tables...).Error
-}
+type SecretStore = common.SecretStore
