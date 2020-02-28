@@ -1,18 +1,11 @@
-create table helm_repositories
-(
-    id                 int unsigned auto_increment
-        primary key,
-    created_at         timestamp    null,
-    updated_at         timestamp    null,
-    deleted_at         timestamp    null,
-    organization_id    int unsigned null,
-    name               varchar(255) null,
-    url                varchar(255) null,
-    password_secret_id varchar(255) null,
-    tls_secret_id      varchar(255) null,
-    constraint idx_org_name
-        unique (organization_id, name)
-);
-
-create index idx_helm_repositories_deleted_at
-    on helm_repositories (deleted_at);
+CREATE TABLE `helm_repositories` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `organization_id` int(10) unsigned DEFAULT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `password_secret_id` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tls_secret_id` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  CONSTRAINT `idx_org_name` UNIQUE (`organization_id`, `name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
