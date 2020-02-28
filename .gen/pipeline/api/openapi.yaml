@@ -19550,9 +19550,11 @@ components:
       example:
         cache: statestore/<cluster_name>/helm/repository/cache/stabl-index.yaml
         caFile: caFile
+        passwordSecretRef: passwordSecretRef
         keyFile: keyFile
         certFile: certFile
         name: stable
+        tlsSecretRef: tlsSecretRef
         url: https://kubernetes-charts.storage.googleapis.com
       properties:
         name:
@@ -19570,6 +19572,10 @@ components:
           type: string
         caFile:
           type: string
+        passwordSecretRef:
+          type: string
+        tlsSecretRef:
+          type: string
       type: object
     HelmReposModifyRequest:
       example:
@@ -19584,6 +19590,10 @@ components:
         keyFile:
           type: string
         caFile:
+          type: string
+        passwordSecretRef:
+          type: string
+        tlsSecretRef:
           type: string
       type: object
     HelmReposAddRequest:
@@ -19600,6 +19610,10 @@ components:
         keyFile:
           type: string
         caFile:
+          type: string
+        passwordSecretRef:
+          type: string
+        tlsSecretRef:
           type: string
       required:
       - name

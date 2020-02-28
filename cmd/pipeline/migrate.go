@@ -22,6 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
@@ -81,6 +82,10 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger, commonLogger common.Logger)
 	}
 
 	if err := integratedserviceadapter.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := helmadapter.Migrate(db, commonLogger); err != nil {
 		return err
 	}
 

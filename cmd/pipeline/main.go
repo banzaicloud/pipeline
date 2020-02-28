@@ -89,7 +89,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 	"github.com/banzaicloud/pipeline/internal/helm2"
-	"github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
+	helmadapter2 "github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicesdriver"
@@ -792,7 +792,7 @@ func main() {
 					securityscan.MakeIntegratedServiceManager(commonLogger, config.Cluster.SecurityScan.Config),
 				}
 
-				helmService := helm2.NewHelmService(helmadapter.NewClusterService(clusterManager), commonLogger)
+				helmService := helm2.NewHelmService(helmadapter2.NewClusterService(clusterManager), commonLogger)
 
 				if config.Cluster.DNS.Enabled {
 					integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
@@ -956,6 +956,7 @@ func main() {
 			orgs.DELETE("/:orgid/helm/repos/:name", api.HelmReposDelete)
 			orgs.GET("/:orgid/helm/charts", api.HelmCharts)
 			orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
+
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
 			orgs.GET("/:orgid/secrets/:id", api.GetSecret)
 			orgs.POST("/:orgid/secrets", api.AddSecrets)
