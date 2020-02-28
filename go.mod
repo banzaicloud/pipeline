@@ -149,7 +149,7 @@ require (
 	logur.dev/integration/watermill v0.4.2
 	logur.dev/integration/zap v0.3.2
 	logur.dev/logur v0.16.2
-	sigs.k8s.io/controller-runtime v0.4.0
+	sigs.k8s.io/controller-runtime v0.5.0
 	sigs.k8s.io/kubefed v0.1.0-rc6
 	sigs.k8s.io/testing_frameworks v0.1.2
 	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect
