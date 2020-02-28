@@ -186,21 +186,21 @@ type EKSCluster struct {
 	CommonClusterBase
 }
 
-func (c *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
-	panic("not used")
+func (c *EKSCluster) ValidateCreationFields(*pkgCluster.CreateClusterRequest) error {
+	return errors.New("not implemented")
 }
 
 func (c *EKSCluster) CreateCluster() error {
-	panic("not used")
+	return errors.New("not implemented")
 }
 
 func (c *EKSCluster) DeleteCluster() error {
-	panic("not used")
+	return errors.New("not implemented")
 }
 
 // Deprecated: UpdateCluster updates EKS cluster in cloud
-func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, updatedBy uint) error {
-	panic("not used")
+func (c *EKSCluster) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error {
+	return errors.New("not implemented")
 }
 
 func (c *EKSCluster) GetEKSModel() *model.EKSClusterModel {
