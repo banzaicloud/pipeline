@@ -329,7 +329,7 @@ func (c *EC2ClusterPKE) ValidateCreationFields(r *pkgCluster.CreateClusterReques
 }
 
 func (c *EC2ClusterPKE) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error {
-	panic("not used")
+	return errors.New("not implemented")
 }
 
 func createNodePoolsFromPKERequest(nodePools pke.UpdateNodePools) []pkeworkflow.NodePool {
@@ -571,7 +571,7 @@ func (c *EC2ClusterPKE) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
 }
 
 func (c *EC2ClusterPKE) DeleteCluster() error {
-	panic("not used")
+	return errors.New("not implemented")
 }
 
 func (c *EC2ClusterPKE) DeletePKECluster(ctx context.Context, workflowClient client.Client) error {
