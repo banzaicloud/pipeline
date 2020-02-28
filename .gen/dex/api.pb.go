@@ -1228,7 +1228,9 @@ func init() {
 	proto.RegisterType((*VerifyPasswordResp)(nil), "api.VerifyPasswordResp")
 }
 
-func init() { proto.RegisterFile("api.proto", fileDescriptor_00212fb1f9d3bf1c) }
+func init() {
+	proto.RegisterFile("api.proto", fileDescriptor_00212fb1f9d3bf1c)
+}
 
 var fileDescriptor_00212fb1f9d3bf1c = []byte{
 	// 890 bytes of a gzipped FileDescriptorProto
