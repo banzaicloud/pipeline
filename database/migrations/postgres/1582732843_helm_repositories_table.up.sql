@@ -3,7 +3,6 @@ CREATE TABLE "helm_repositories"
     "id"                 serial,
     "created_at"         timestamp with time zone,
     "updated_at"         timestamp with time zone,
-    "deleted_at"         timestamp with time zone,
     "organization_id"    integer,
     "name"               text,
     "url"                text,
