@@ -17,7 +17,7 @@ require (
 	github.com/Azure/go-autorest/autorest/azure/auth v0.4.2
 	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/Azure/go-autorest/autorest/validation v0.2.0
-	github.com/DATA-DOG/go-sqlmock v1.4.0 // indirect
+	github.com/DATA-DOG/go-sqlmock v1.4.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/semver/v3 v3.0.3
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
@@ -39,22 +39,18 @@ require (
 	github.com/banzaicloud/logging-operator/pkg/sdk v0.1.1
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
-	github.com/chai2010/gettext-go v0.0.0-20191225085308-6b9f4b1008e1 // indirect
 	github.com/coreos/go-oidc v2.1.0+incompatible
 	github.com/crossdock/crossdock-go v0.0.0-20160816171116-049aabb0122b // indirect
-	github.com/denisenkom/go-mssqldb v0.0.0-20191128021309-1d7a30a10f73 // indirect
+	github.com/denisenkom/go-mssqldb v0.0.0-20200206145737-bbfc9a55622e // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/didip/tollbooth v4.0.2+incompatible
 	github.com/docker/libcompose v0.4.0
-	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
-	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-kit/kit v0.10.0
-	github.com/go-openapi/spec v0.19.5 // indirect
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.4
@@ -62,11 +58,9 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/sessions v1.2.0
 	github.com/gosimple/slug v1.9.0 // indirect
-	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/heptio/ark v0.9.3
-	github.com/huandu/xstrings v1.2.1 // indirect
 	github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0 // indirect
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/jinzhu/gorm v1.9.10
@@ -76,7 +70,7 @@ require (
 	github.com/jmoiron/sqlx v1.2.0 // indirect
 	github.com/lestrrat-go/backoff v1.0.0
 	github.com/lib/pq v1.3.0 // indirect
-	github.com/mattn/go-sqlite3 v2.0.2+incompatible // indirect
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/microcosm-cc/bluemonday v1.0.2
 	github.com/mitchellh/copystructure v1.0.0
 	github.com/mitchellh/mapstructure v1.1.2
@@ -86,10 +80,9 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
-	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prashantv/protectmem v0.0.0-20171002184600-e20412882b3a // indirect
 	github.com/prometheus/client_golang v1.3.0
-	github.com/prometheus/common v0.7.0
+	github.com/prometheus/common v0.8.0
 	github.com/qor/assetfs v0.0.0-20170713023933-ff57fdc13a14 // indirect
 	github.com/qor/auth v0.0.0-20190103025640-46aae9fa92fa
 	github.com/qor/mailer v0.0.0-20170814094430-1e6ac7106955 // indirect
@@ -99,8 +92,7 @@ require (
 	github.com/qor/render v0.0.0-20171201033449-63566e46f01b // indirect
 	github.com/qor/responder v0.0.0-20160314063933-ecae0be66c1a // indirect
 	github.com/qor/session v0.0.0-20170907035918-8206b0adab70
-	github.com/robfig/cron v1.2.0 // indirect
-	github.com/rubenv/sql-migrate v0.0.0-20200119084958-8794cecc920c // indirect
+	github.com/rubenv/sql-migrate v0.0.0-20200212082348-64f95ea68aa3 // indirect
 	github.com/sagikazarmark/appkit v0.8.0
 	github.com/sagikazarmark/kitx v0.12.0
 	github.com/sagikazarmark/ocmux v0.2.0
@@ -114,15 +106,15 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
 	github.com/uber-go/mapdecode v1.0.0 // indirect
-	github.com/uber-go/tally v3.3.13+incompatible // indirect
-	github.com/uber/jaeger-client-go v2.21.1+incompatible // indirect
+	github.com/uber-go/tally v3.3.15+incompatible // indirect
+	github.com/uber/jaeger-client-go v2.22.1+incompatible // indirect
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	github.com/uber/tchannel-go v1.16.0 // indirect
 	github.com/xanzy/go-gitlab v0.16.2-0.20190325100843-bbb1af7187c8
 	go.opencensus.io v0.22.2
 	go.uber.org/cadence v0.9.0
 	go.uber.org/fx v1.10.0 // indirect
-	go.uber.org/net/metrics v1.2.0 // indirect
+	go.uber.org/net/metrics v1.3.0 // indirect
 	go.uber.org/thriftrw v1.21.0 // indirect
 	go.uber.org/yarpc v1.36.1
 	go.uber.org/zap v1.13.0
@@ -142,7 +134,6 @@ require (
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/cluster-bootstrap v0.17.3
 	k8s.io/helm v2.16.3+incompatible
-	k8s.io/kubectl v0.17.3 // indirect
 	k8s.io/kubernetes v1.17.3
 	logur.dev/adapter/logrus v0.4.1
 	logur.dev/adapter/zap v0.4.1
@@ -152,7 +143,6 @@ require (
 	sigs.k8s.io/controller-runtime v0.5.0
 	sigs.k8s.io/kubefed v0.1.0-rc6
 	sigs.k8s.io/testing_frameworks v0.1.2
-	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect
 )
 
 replace (
