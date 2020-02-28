@@ -72,7 +72,7 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 			DefaultUser:           request.Properties.CreateClusterEKS.IAM.DefaultUser,
 			ClusterRoleId:         request.Properties.CreateClusterEKS.IAM.ClusterRoleID,
 			NodeInstanceRoleId:    request.Properties.CreateClusterEKS.IAM.NodeInstanceRoleID,
-			APIServerAccessPoints: createAPIServerAccesPointsFromRequest(request),
+			APIServerAccessPoints: createAPIServerAccessPointsFromRequest(request),
 		},
 		RbacEnabled: true,
 		CreatedBy:   userId,
@@ -86,7 +86,7 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 	return &cluster, nil
 }
 
-func createAPIServerAccesPointsFromRequest(request *pkgCluster.CreateClusterRequest) []string {
+func createAPIServerAccessPointsFromRequest(request *pkgCluster.CreateClusterRequest) []string {
 	if len(request.Properties.CreateClusterEKS.APIServerAccessPoints) != 0 {
 		return request.Properties.CreateClusterEKS.APIServerAccessPoints
 	}
