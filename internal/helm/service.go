@@ -45,7 +45,6 @@ type Repository struct {
 	TlsSecretID string `json:"tlsSecretId,omitempty"`
 }
 
-//go:generate mga gen mockery --name Service --inpkg
 // +kit:endpoint:errorStrategy=service
 
 // Service manages Helm chart repositories.
@@ -58,9 +57,6 @@ type Service interface {
 
 	// ListRepositories deletes a Helm repository
 	DeleteRepository(ctx context.Context, organizationID uint, repoName string) error
-
-	// GetRepositoryIndex(ctx context.Context, organizationID uint, repoName string) (index []byte, err error)
-	// PurgeIndexCache(ctx context.Context, organizationID uint, repoName string) error
 }
 
 // NewService returns a new Service.
