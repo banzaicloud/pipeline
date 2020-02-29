@@ -79,3 +79,33 @@ type CleanupType interface {
 	// Cleanup is called before a secret is deleted to allow the type to clean up any resources used for the secret.
 	Cleanup(organizationID uint, data map[string]string, tags []string) error
 }
+
+// TypeList is an accessor to a list of secret types.
+type TypeList struct {
+	types   []Type
+	typeMap map[string]Type
+}
+
+// NewTypeList returns a new TypeList.
+func NewTypeList(types []Type) TypeList {
+	typeMap := make(map[string]Type, len(types))
+
+	for _, typ := range types {
+		typeMap[typ.Name()] = typ
+	}
+
+	return TypeList{
+		types:   types,
+		typeMap: typeMap,
+	}
+}
+
+// Types returns the list of secret types.
+func (t TypeList) Types() []Type {
+	return t.types
+}
+
+// Type returns a type from the list (if it exists).
+func (t TypeList) Type(typ string) Type {
+	return t.typeMap[typ]
+}
