@@ -9,9 +9,6 @@ jobs:
     if: github.event.action == 'snapshot'
 
     steps:
-      - name: Check ref
-        run: test -n ${{ github.event.client_payload.ref }} || (echo "Missing ref" && exit 1)
-
       - name: Checkout code
         uses: actions/checkout@v2
         with:
