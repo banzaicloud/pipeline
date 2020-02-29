@@ -26,9 +26,9 @@ import (
 	"github.com/sirupsen/logrus"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	"github.com/banzaicloud/pipeline/src/cluster"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 const metricsNamesapce = "pipeline"
@@ -109,7 +109,7 @@ func (e *spotMetricsExporter) collectMetrics() error {
 
 		client, err := e.getEC2Client(aws.Config{
 			Region:      aws.String(cluster.GetLocation()),
-			Credentials: verify.CreateAWSCredentials(clusterSecret.Values),
+			Credentials: amazon.CreateAWSCredentials(clusterSecret.Values),
 		})
 		if err != nil {
 			e.errorHandler.Handle(errors.WrapWithDetails(err, "could not get EC2 service", "clusterID", clusterID, "clusterName", clusterName))

@@ -28,6 +28,7 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 
@@ -40,7 +41,6 @@ import (
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 const asgWaitLoopSleepSeconds = 5
@@ -259,7 +259,7 @@ func (c *EKSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials,
 	if err != nil {
 		return nil, err
 	}
-	return verify.CreateAWSCredentials(clusterSecret.Values), nil
+	return amazon.CreateAWSCredentials(clusterSecret.Values), nil
 }
 
 func (c *EKSCluster) SetCurrentWorkflowID(workflowID string) error {

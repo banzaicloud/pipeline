@@ -152,7 +152,7 @@ func (a *SaveK8sConfigActivity) storeConfig(logger *zap.SugaredLogger, cluster E
 
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("cluster-%d-config", input.ClusterID),
-		Type: secrettype.K8SConfig,
+		Type: secrettype.Kubernetes,
 		Values: map[string]string{
 			secrettype.K8SConfig: encodedConfig,
 		},

@@ -48,7 +48,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers/alibaba"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 	"github.com/banzaicloud/pipeline/src/utils"
 )
 
@@ -1069,7 +1068,7 @@ func (c *ACKCluster) createAlibabaCredentialsFromSecret() (*credentials.AccessKe
 	if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "failed to create alibaba creds from secret", "cluster", c.modelCluster.Name)
 	}
-	return verify.CreateAlibabaCredentials(clusterSecret.Values), nil
+	return alibaba.CreateCredentials(clusterSecret.Values), nil
 }
 
 func createAlibabaConfig() *sdk.Config {

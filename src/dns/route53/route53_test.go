@@ -35,6 +35,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	"github.com/banzaicloud/pipeline/internal/secret/types"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -51,7 +52,11 @@ func init() {
 
 	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
 	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, common.NoopLogger{})
-	secret.InitSecretStore(secretStore, pkeSecreter)
+	secretTypes := types.NewDefaultTypeList(types.DefaultTypeListConfig{
+		TLSDefaultValidity: 365 * 24 * time.Hour,
+		PkeSecreter:        pkeSecreter,
+	})
+	secret.InitSecretStore(secretStore, secretTypes)
 	restricted.InitSecretStore(secret.Store)
 }
 

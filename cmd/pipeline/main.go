@@ -127,6 +127,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
+	"github.com/banzaicloud/pipeline/internal/secret/types"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
@@ -254,7 +255,11 @@ func main() {
 
 	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
 	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, commonLogger)
-	secret.InitSecretStore(secretStore, pkeSecreter)
+	secretTypes := types.NewDefaultTypeList(types.DefaultTypeListConfig{
+		TLSDefaultValidity: config.Secret.TLS.DefaultValidity,
+		PkeSecreter:        pkeSecreter,
+	})
+	secret.InitSecretStore(secretStore, secretTypes)
 	restricted.InitSecretStore(secret.Store)
 
 	// Connect to database
@@ -1031,7 +1036,7 @@ func main() {
 		}
 
 		{
-			service := secrettype.NewService()
+			service := secrettype.NewService(secretTypes)
 			endpoints := secrettypedriver.MakeEndpoints(
 				service,
 				kitxendpoint.Combine(endpointMiddleware...),

@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,18 +19,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 )
 
-// OCIVerify for validation OCI credentials
-type OCIVerify struct {
-	credential *oci.Credential
-}
-
-// CreateOCISecret creates a new 'OCIVerify' instance
-func CreateOCISecret(values map[string]string) *OCIVerify {
-	return &OCIVerify{
-		credential: CreateOCICredential(values),
-	}
-}
-
 // CreateOCICredential creates an 'oci.Credential' instance from secret's values
 func CreateOCICredential(values map[string]string) *oci.Credential {
 	return &oci.Credential{
@@ -41,14 +29,4 @@ func CreateOCICredential(values map[string]string) *oci.Credential {
 		Region:            values[secrettype.OracleRegion],
 		CompartmentOCID:   values[secrettype.OracleCompartmentOCID],
 	}
-}
-
-// VerifySecret validates OCI credentials
-func (a *OCIVerify) VerifySecret() (err error) {
-	client, err := oci.NewOCI(a.credential)
-	if err != nil {
-		return err
-	}
-
-	return client.Validate()
 }

@@ -54,7 +54,6 @@ import (
 	pkgProviderGoogle "github.com/banzaicloud/pipeline/pkg/providers/google"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 	"github.com/banzaicloud/pipeline/src/utils"
 )
 
@@ -1260,7 +1259,7 @@ func (c *GKECluster) generateServiceAccountTokenForGke(cluster *gke.Cluster) (st
 		return "", errors.WrapIf(err, "retrieving cluster credentials secret failed")
 	}
 
-	serviceAccount := verify.CreateServiceAccount(clusterSecret.Values)
+	serviceAccount := pkgProviderGoogle.CreateServiceAccount(clusterSecret.Values)
 	jsonConfig, err := json.Marshal(serviceAccount)
 	if err != nil {
 		return "", errors.WrapIf(err, "marshaling cluster credentials secret to json format failed")
@@ -1664,8 +1663,8 @@ func (c *GKECluster) newClientFromCredentials() (*http.Client, error) {
 
 	// TODO https://github.com/mitchellh/mapstructure
 
-	credentials := verify.CreateServiceAccount(clusterSecret.Values)
-	return verify.CreateOath2Client(credentials)
+	credentials := pkgProviderGoogle.CreateServiceAccount(clusterSecret.Values)
+	return pkgProviderGoogle.CreateOath2Client(credentials)
 }
 
 // GetZones lists supported zones

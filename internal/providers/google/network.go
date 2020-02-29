@@ -22,8 +22,8 @@ import (
 	"google.golang.org/api/compute/v1"
 
 	"github.com/banzaicloud/pipeline/internal/network"
+	"github.com/banzaicloud/pipeline/pkg/providers/google"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 type googleNetwork struct {
@@ -84,12 +84,12 @@ type googleNetworkService struct {
 	computeService *compute.Service
 	logger         logrus.FieldLogger
 	region         string
-	serviceAccount *verify.ServiceAccount
+	serviceAccount *google.ServiceAccount
 }
 
 // NewNetworkService returns a new Google network Service
 func NewNetworkService(region string, secret *secret.SecretItemResponse, logger logrus.FieldLogger) (network.Service, error) {
-	sa := verify.CreateServiceAccount(secret.Values)
+	sa := google.CreateServiceAccount(secret.Values)
 	svc, err := newComputeServiceFromServiceAccount(sa)
 	if err != nil {
 		return nil, err
@@ -171,8 +171,8 @@ func (ns *googleNetworkService) ListRouteTables(networkID string) ([]network.Rou
 	return routeTables, nil
 }
 
-func newComputeServiceFromServiceAccount(serviceAccount *verify.ServiceAccount) (*compute.Service, error) {
-	client, err := verify.CreateOath2Client(serviceAccount, compute.ComputeReadonlyScope)
+func newComputeServiceFromServiceAccount(serviceAccount *google.ServiceAccount) (*compute.Service, error) {
+	client, err := google.CreateOath2Client(serviceAccount, compute.ComputeReadonlyScope)
 	if err != nil {
 		return nil, err
 	}

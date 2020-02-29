@@ -19,8 +19,8 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/network"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 type amazonNetwork struct {
@@ -85,8 +85,8 @@ type amazonNetworkService struct {
 
 // NewNetworkService returns a new Amazon network Service
 func NewNetworkService(region string, secret *secret.SecretItemResponse, logger logrus.FieldLogger) (network.Service, error) {
-	cred := verify.CreateAWSCredentials(secret.Values)
-	client, err := verify.CreateEC2Client(cred, region)
+	cred := amazon.CreateAWSCredentials(secret.Values)
+	client, err := amazon.CreateEC2Client(cred, region)
 	if err != nil {
 		return nil, err
 	}

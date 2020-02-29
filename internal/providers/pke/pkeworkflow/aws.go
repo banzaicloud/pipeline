@@ -20,7 +20,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 type AWSActivityInput struct {
@@ -66,7 +65,7 @@ func (f *AWSClientFactory) New(organizationID uint, secretID string, region stri
 		return nil, err
 	}
 
-	awsCred := verify.CreateAWSCredentials(s.GetValues())
+	awsCred := amazon.CreateAWSCredentials(s.GetValues())
 
 	return session.NewSession(&aws.Config{
 		Region:      aws.String(region),

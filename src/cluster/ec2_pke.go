@@ -44,10 +44,10 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 const defaultK8sVersion = "1.15.3"
@@ -231,7 +231,7 @@ func (c *EC2ClusterPKE) GetAWSClient() (*session.Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	awsCred := verify.CreateAWSCredentials(secret.Values)
+	awsCred := amazon.CreateAWSCredentials(secret.Values)
 	return session.NewSession(&aws.Config{
 		Region:      aws.String(c.model.Cluster.Location),
 		Credentials: awsCred,

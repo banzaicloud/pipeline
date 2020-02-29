@@ -24,8 +24,8 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/network"
+	"github.com/banzaicloud/pipeline/pkg/providers/alibaba"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 type alibabaNetwork struct {
@@ -93,7 +93,7 @@ func NewNetworkService(region string, secret *secret.SecretItemResponse, logger 
 		WithAutoRetry(true).
 		WithDebug(true).
 		WithTimeout(time.Minute)
-	auth := verify.CreateAlibabaCredentials(secret.Values)
+	auth := alibaba.CreateCredentials(secret.Values)
 	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
 	client, err := vpc.NewClientWithOptions(region, cfg, cred)
 	if err != nil {
