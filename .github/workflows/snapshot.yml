@@ -9,9 +9,13 @@ jobs:
     if: github.event.action == 'snapshot'
 
     steps:
-      # TODO: add ref support
+      - name: Check ref
+        run: test -n ${{ github.event.client_payload.ref }} || (echo "Missing ref" && exit 1)
+
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.client_payload.ref }}
 
       - name: Check version
         run: test -n ${{ github.event.client_payload.version }} || (echo "Missing snapshot version" && exit 1)
