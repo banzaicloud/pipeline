@@ -223,7 +223,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("cluster-%d-config", cluster.GetID()),
-		Type: secrettype.K8SConfig,
+		Type: secrettype.Kubernetes,
 		Values: map[string]string{
 			secrettype.K8SConfig: encodedConfig,
 		},

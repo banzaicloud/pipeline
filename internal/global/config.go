@@ -178,11 +178,6 @@ var Config struct {
 		}
 		UUID string
 	}
-	Secret struct {
-		TLS struct {
-			DefaultValidity time.Duration
-		}
-	}
 	Spotguide struct {
 		AllowPrereleases                bool
 		AllowPrivateRepos               bool

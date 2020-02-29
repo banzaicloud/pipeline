@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,23 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package verify
+package alibaba
 
 import (
-	"github.com/sirupsen/logrus"
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
 
-	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 )
 
-// Note: this should be FieldLogger instead.
-// Debug mode should be split to a separate config.
-// nolint: gochecknoglobals
-var log *logrus.Logger
-
-func init() {
-	log = global.LogrusLogger()
-
-	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
-		log = l
-	})
+func CreateCredentials(values map[string]string) *credentials.AccessKeyCredential {
+	return credentials.NewAccessKeyCredential(
+		values[secrettype.AlibabaAccessKeyId],
+		values[secrettype.AlibabaSecretAccessKey],
+	)
 }

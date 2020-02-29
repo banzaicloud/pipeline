@@ -102,6 +102,10 @@ type inMemorySecretStore struct {
 	secrets map[uint]map[string]secret.CreateSecretRequest
 }
 
+func (ss inMemorySecretStore) Verify(organizationID uint, secretID string) error {
+	panic("implement me")
+}
+
 func (ss inMemorySecretStore) Delete(orgID uint, secretID string) error {
 	if os, ok := ss.secrets[orgID]; ok {
 		delete(os, secretID)

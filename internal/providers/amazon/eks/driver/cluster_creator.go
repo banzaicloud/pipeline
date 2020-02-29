@@ -30,13 +30,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshdriver"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/src/auth"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	logrusadapter "logur.dev/adapter/logrus"
-
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 
 	"go.uber.org/cadence/client"
 
@@ -257,7 +256,7 @@ func CreateAWSCredentialsFromSecret(eksCluster *cluster.EKSCluster) (*credential
 	if err != nil {
 		return nil, err
 	}
-	return verify.CreateAWSCredentials(clusterSecret.Values), nil
+	return amazon.CreateAWSCredentials(clusterSecret.Values), nil
 }
 
 // ValidateCreationFields validates all fields

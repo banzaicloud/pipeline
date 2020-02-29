@@ -20,21 +20,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/bank-vaults/pkg/sdk/tls"
-	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/bcrypt"
 	"k8s.io/apimachinery/pkg/util/validation"
 
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 // Store object that wraps up vault logical store
@@ -46,22 +40,16 @@ var Store *secretStore
 var ErrSecretNotExists = fmt.Errorf("There's no secret with this ID")
 
 // InitSecretStore initializes the global secret store.
-func InitSecretStore(store secret.Store, pkeSecreter PkeSecreter) {
+func InitSecretStore(store secret.Store, types secret.TypeList) {
 	Store = &secretStore{
 		SecretStore: store,
-		PkeSecreter: pkeSecreter,
+		Types:       types,
 	}
-}
-
-// PkeSecreter is a temporary interface for splitting the PKE secret generation/deletion code from the legacy secret store.
-type PkeSecreter interface {
-	GeneratePkeSecret(organizationID uint, tags []string) (map[string]string, error)
-	DeletePkeSecret(organizationID uint, tags []string) error
 }
 
 type secretStore struct {
 	SecretStore secret.Store
-	PkeSecreter PkeSecreter
+	Types       secret.TypeList
 }
 
 // CreateSecretRequest param for secretStore.Store
@@ -72,6 +60,9 @@ type CreateSecretRequest struct {
 	Values    map[string]string `json:"values" binding:"required" mapstructure:"values"`
 	Tags      []string          `json:"tags,omitempty" mapstructure:"tags"`
 	UpdatedBy string            `json:"updatedBy,omitempty" mapstructure:"updatedBy"`
+
+	// Verify secret if the type has a verifier
+	Verify bool `json:"-" mapstructure:"-"`
 }
 
 func (r *CreateSecretRequest) MarshalJSON() ([]byte, error) {
@@ -117,74 +108,6 @@ func GenerateSecretID(request *CreateSecretRequest) string {
 	return GenerateSecretIDFromName(request.Name)
 }
 
-// Validate SecretRequest
-func (r *CreateSecretRequest) Validate(verifier verify.Verifier) error {
-	fields, ok := secrettype.DefaultRules[r.Type]
-
-	if !ok {
-		return errors.Errorf("wrong secret type: %s", r.Type)
-	}
-
-	for _, field := range fields.Fields {
-		if _, ok := r.Values[field.Name]; field.Required && !ok {
-			return errors.Errorf("missing key: %s", field.Name)
-		}
-	}
-
-	if verifier != nil {
-		return verifier.VerifySecret()
-	}
-
-	return nil
-}
-
-// ValidateAsNew validates a create secret request as it was a new secret.
-func (r *CreateSecretRequest) ValidateAsNew(verifier verify.Verifier) error {
-	fields, ok := secrettype.DefaultRules[r.Type]
-
-	if !ok {
-		return errors.Errorf("wrong secret type: %s", r.Type)
-	}
-
-	switch r.Type {
-	case secrettype.TLSSecretType:
-		if len(r.Values) < 3 { // Assume secret generation
-			if _, ok := r.Values[secrettype.TLSHosts]; !ok {
-				return errors.Errorf("missing key: %s", secrettype.TLSHosts)
-			}
-		}
-
-		if len(r.Values) >= 3 { // We expect keys for server TLS (at least)
-			for _, field := range []string{secrettype.CACert, secrettype.ServerKey, secrettype.ServerCert} {
-				if _, ok := r.Values[field]; !ok {
-					return errors.Errorf("missing key: %s", field)
-				}
-			}
-		}
-
-		if len(r.Values) > 3 { // We expect keys for mutual TLS
-			for _, field := range []string{secrettype.ClientKey, secrettype.ClientCert} {
-				if _, ok := r.Values[field]; !ok {
-					return errors.Errorf("missing key: %s", field)
-				}
-			}
-		}
-
-	default:
-		for _, field := range fields.Fields {
-			if _, ok := r.Values[field.Name]; field.Required && !ok {
-				return errors.Errorf("missing key: %s", field.Name)
-			}
-		}
-	}
-
-	if verifier != nil {
-		return verifier.VerifySecret()
-	}
-
-	return nil
-}
-
 // DeleteByClusterUID Delete secrets by ClusterUID
 func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
 	if clusterUID == "" {
@@ -223,7 +146,7 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 		"secretId":       secretID,
 	}).Debugln("deleting secret")
 
-	secret, err := ss.Get(organizationID, secretID)
+	s, err := ss.Get(organizationID, secretID)
 	if err == ErrSecretNotExists { // Already deleted
 		return nil
 	}
@@ -231,13 +154,17 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 		return errors.Wrap(err, "Error during querying secret before deletion")
 	}
 
+	secretType := ss.Types.Type(s.Type)
+	if secretType == nil {
+		return errors.Errorf("wrong secret type: %s", s.Type)
+	}
+
 	if err := ss.SecretStore.Delete(context.Background(), organizationID, secretID); err != nil {
 		return err
 	}
 
-	// if type is distribution, unmount all pki engines
-	if secret.Type == secrettype.PKESecretType {
-		err := ss.PkeSecreter.DeletePkeSecret(organizationID, secret.Tags)
+	if ct, ok := secretType.(secret.CleanupType); ok {
+		err := ct.Cleanup(organizationID, s.Values, s.Tags)
 		if err != nil {
 			return err
 		}
@@ -255,8 +182,48 @@ func (ss *secretStore) Store(organizationID uint, request *CreateSecretRequest) 
 
 	secretID := GenerateSecretID(request)
 
-	if err := ss.generateValuesIfNeeded(organizationID, request); err != nil {
-		return "", err
+	secretType := ss.Types.Type(request.Type)
+	if secretType == nil {
+		return "", errors.Errorf("wrong secret type: %s", request.Type)
+	}
+
+	if gt, ok := secretType.(secret.GeneratorType); ok {
+		complete, err := gt.ValidateNew(request.Values)
+		if err != nil {
+			return "", err
+		}
+
+		if !complete {
+			values, err := gt.Generate(organizationID, request.Name, request.Values, request.Tags)
+			if err != nil {
+				return "", err
+			}
+
+			request.Values = values
+		}
+	} else {
+		err := secretType.Validate(request.Values)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if pt, ok := secretType.(secret.ProcessorType); ok {
+		values, err := pt.Process(request.Values)
+		if err != nil {
+			return "", err
+		}
+
+		request.Values = values
+	}
+
+	if request.Verify {
+		if vt, ok := secretType.(secret.VerifierType); ok {
+			err := vt.Verify(request.Values)
+			if err != nil {
+				return "", err
+			}
+		}
 	}
 
 	model := secret.Model{
@@ -279,6 +246,34 @@ func (ss *secretStore) Store(organizationID uint, request *CreateSecretRequest) 
 func (ss *secretStore) Update(organizationID uint, secretID string, request *CreateSecretRequest) error {
 	if GenerateSecretID(request) != secretID {
 		return errors.New("Secret name cannot be changed")
+	}
+
+	secretType := ss.Types.Type(request.Type)
+	if secretType == nil {
+		return errors.Errorf("wrong secret type: %s", request.Type)
+	}
+
+	err := secretType.Validate(request.Values)
+	if err != nil {
+		return err
+	}
+
+	if pt, ok := secretType.(secret.ProcessorType); ok {
+		values, err := pt.Process(request.Values)
+		if err != nil {
+			return err
+		}
+
+		request.Values = values
+	}
+
+	if request.Verify {
+		if vt, ok := secretType.(secret.VerifierType); ok {
+			err := vt.Verify(request.Values)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	log.WithFields(logrus.Fields{
@@ -383,6 +378,13 @@ func (ss *secretStore) GetByName(organizationID uint, name string) (*SecretItemR
 func (ss *secretStore) List(orgid uint, query *ListSecretsQuery) ([]*SecretItemResponse, error) {
 	log.Debugf("Searching for secrets [orgid: %d, query: %#v]", orgid, query)
 
+	if query.Type != "" {
+		secretType := ss.Types.Type(query.Type)
+		if secretType == nil {
+			return nil, errors.Errorf("wrong secret type: %s", query.Type)
+		}
+	}
+
 	var models []secret.Model
 	var err error
 
@@ -437,6 +439,28 @@ func (ss *secretStore) List(orgid uint, query *ListSecretsQuery) ([]*SecretItemR
 	return responseItems, nil
 }
 
+// Verify secret secret/orgs/:orgid:/:id: scope
+func (ss *secretStore) Verify(organizationID uint, secretID string) error {
+	s, err := ss.Get(organizationID, secretID)
+	if err != nil {
+		return err
+	}
+
+	secretType := ss.Types.Type(s.Type)
+	if secretType == nil {
+		return errors.Errorf("wrong secret type: %s", s.Type)
+	}
+
+	if vt, ok := secretType.(secret.VerifierType); ok {
+		err := vt.Verify(s.Values)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func hasTags(tags []string, searchingTag []string) bool {
 	var isOK bool
 	for _, t := range searchingTag {
@@ -471,84 +495,6 @@ func (MismatchError) ServiceError() bool {
 // IsCASError detects if the underlying Vault error is caused by a CAS failure
 func IsCASError(err error) bool {
 	return strings.Contains(err.Error(), "check-and-set parameter did not match the current version") || errors.As(err, &secret.AlreadyExistsError{})
-}
-
-func isTLSSecretGenerationNeeded(cr *CreateSecretRequest) bool {
-	for k, v := range cr.Values {
-		if k != secrettype.TLSHosts && k != secrettype.TLSValidity && v != "" {
-			return false
-		}
-	}
-	return true
-}
-
-func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *CreateSecretRequest) error {
-	if value.Type == secrettype.TLSSecretType && isTLSSecretGenerationNeeded(value) {
-		// If we are not storing a full TLS secret instead of it's a request to generate one
-
-		validity := value.Values[secrettype.TLSValidity]
-		if validity == "" {
-			validity = global.Config.Secret.TLS.DefaultValidity.String()
-		}
-
-		cc, err := tls.GenerateTLS(value.Values[secrettype.TLSHosts], validity)
-		if err != nil {
-			return errors.Wrap(err, "Error during generating TLS secret")
-		}
-
-		err = mapstructure.Decode(cc, &value.Values)
-		if err != nil {
-			return errors.Wrap(err, "Error during decoding TLS secret")
-		}
-	} else if value.Type == secrettype.PasswordSecretType {
-		// Generate a password if needed (if password is in method,length)
-
-		if value.Values[secrettype.Password] == "" {
-			value.Values[secrettype.Password] = DefaultPasswordFormat
-		}
-
-		methodAndLength := strings.Split(value.Values[secrettype.Password], ",")
-		if len(methodAndLength) == 2 {
-			length, err := strconv.Atoi(methodAndLength[1])
-			if err != nil {
-				return err
-			}
-			password, err := RandomString(methodAndLength[0], length)
-			if err != nil {
-				return err
-			}
-			value.Values[secrettype.Password] = password
-		}
-	} else if value.Type == secrettype.HtpasswdSecretType {
-		// Generate a password if needed otherwise store the htaccess file if provided
-
-		if _, ok := value.Values[secrettype.HtpasswdFile]; !ok {
-			username := value.Values[secrettype.Username]
-			if value.Values[secrettype.Password] == "" {
-				password, err := RandomString("randAlphaNum", 12)
-				if err != nil {
-					return err
-				}
-				value.Values[secrettype.Password] = password
-			}
-
-			passwordHash, err := bcrypt.GenerateFromPassword([]byte(value.Values[secrettype.Password]), bcrypt.DefaultCost)
-			if err != nil {
-				return err
-			}
-
-			value.Values[secrettype.HtpasswdFile] = fmt.Sprintf("%s:%s", username, string(passwordHash))
-		}
-	} else if value.Type == secrettype.PKESecretType {
-		values, err := ss.PkeSecreter.GeneratePkeSecret(organizationID, value.Tags)
-		if err != nil {
-			return err
-		}
-
-		value.Values = values
-	}
-
-	return nil
 }
 
 const clusterUIDTagName = "clusterUID"

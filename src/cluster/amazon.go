@@ -18,8 +18,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 func newEC2Client(orgID uint, secretID string, region string) (*ec2.EC2, error) {
@@ -33,9 +33,9 @@ func newEC2Client(orgID uint, secretID string, region string) (*ec2.EC2, error) 
 		return nil, err
 	}
 
-	creds := verify.CreateAWSCredentials(s.Values)
+	creds := amazon.CreateAWSCredentials(s.Values)
 
-	return verify.CreateEC2Client(creds, region)
+	return amazon.CreateEC2Client(creds, region)
 }
 
 // ListRegions lists supported regions

@@ -28,18 +28,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
-	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
-	"github.com/banzaicloud/pipeline/src/utils"
 )
-
-// ErrNotSupportedSecretType describe an error if the secret type is not supported
-var ErrNotSupportedSecretType = errors.New("Not supported secret type")
 
 // ValidateSecret validates the given secret
 func ValidateSecret(c *gin.Context) {
@@ -52,7 +46,7 @@ func ValidateSecret(c *gin.Context) {
 	secretID := getSecretID(c)
 	log.Infof("secret id [%d]", secretID)
 
-	secretItem, err := restricted.GlobalSecretStore.Get(organizationID, secretID)
+	err := restricted.GlobalSecretStore.Verify(organizationID, secretID)
 	if err != nil {
 		log.Errorf("Error during getting secret: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
@@ -63,41 +57,7 @@ func ValidateSecret(c *gin.Context) {
 		return
 	}
 
-	if ok, _ := validateSecret(c, &secret.CreateSecretRequest{
-		Name:      secretItem.Name,
-		Type:      secretItem.Type,
-		Values:    secretItem.Values,
-		Tags:      secretItem.Tags,
-		UpdatedBy: secretItem.UpdatedBy,
-	}, true, false); ok {
-		c.Status(http.StatusOK)
-	}
-}
-
-func validateSecret(c *gin.Context, createSecretRequest *secret.CreateSecretRequest, validate bool, new bool) (ok bool, validationError error) {
-	ok = true
-	log.Info("Start validation")
-	verifier := verify.NewVerifier(createSecretRequest.Type, createSecretRequest.Values)
-
-	if new {
-		validationError = createSecretRequest.ValidateAsNew(verifier)
-	} else {
-		validationError = createSecretRequest.Validate(verifier)
-	}
-
-	if validationError != nil && validate {
-		ok = false
-		log.Errorf("Validation error: %s", validationError.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Validation error",
-			Error:   validationError.Error(),
-		})
-	} else {
-		log.Info("Validation passed")
-	}
-
-	return
+	c.Status(http.StatusOK)
 }
 
 // AddSecrets saves the given secret to vault
@@ -129,21 +89,26 @@ func AddSecrets(c *gin.Context) {
 
 	createSecretRequest.UpdatedBy = auth.GetCurrentUser(c.Request).Login
 
-	// Check if the received value is base64 encoded if not encode it.
-	if createSecretRequest.Values[secrettype.K8SConfig] != "" {
-		createSecretRequest.Values[secrettype.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[secrettype.K8SConfig])
-	}
-
 	log.Info("Binding request succeeded")
 
-	var validationError error
-	var ok bool
-	if ok, validationError = validateSecret(c, &createSecretRequest, validate, true); !ok {
-		return
-	}
+	createSecretRequest.Verify = validate
 
 	secretID, err := restricted.GlobalSecretStore.Store(organizationID, &createSecretRequest)
 	if err != nil {
+		var verr interface {
+			Validation() bool
+		}
+
+		if errors.As(err, &verr) && verr.Validation() {
+			c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Validation error",
+				Error:   err.Error(),
+			})
+
+			return
+		}
+
 		statusCode := http.StatusInternalServerError
 		message := "Error during store"
 		if secret.IsCASError(err) {
@@ -162,11 +127,6 @@ func AddSecrets(c *gin.Context) {
 
 	log.Infof("Secret stored at: %d/%s", organizationID, secretID)
 
-	var errorMsg string
-	if validationError != nil {
-		errorMsg = validationError.Error()
-	}
-
 	s, err := restricted.GlobalSecretStore.Get(organizationID, secretID)
 	if err != nil {
 		log.Errorf("error during getting secret: %s", err.Error())
@@ -182,7 +142,6 @@ func AddSecrets(c *gin.Context) {
 		Name:      s.Name,
 		Type:      s.Type,
 		Id:        secretID,
-		Error:     errorMsg,
 		UpdatedAt: s.UpdatedAt,
 		UpdatedBy: s.UpdatedBy,
 		Version:   int32(s.Version),
@@ -218,20 +177,25 @@ func UpdateSecrets(c *gin.Context) {
 
 	createSecretRequest.UpdatedBy = auth.GetCurrentUser(c.Request).Login
 
-	// Check if the received value is base64 encoded if not encode it.
-	if createSecretRequest.Values[secrettype.K8SConfig] != "" {
-		createSecretRequest.Values[secrettype.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[secrettype.K8SConfig])
-	}
-
 	log.Info("Binding request succeeded")
 
-	var validationError error
-	var ok bool
-	if ok, validationError = validateSecret(c, &createSecretRequest, validate, false); !ok {
-		return
-	}
+	createSecretRequest.Verify = validate
 
 	if err := restricted.GlobalSecretStore.Update(organizationID, secretID, &createSecretRequest); err != nil {
+		var verr interface {
+			Validation() bool
+		}
+
+		if errors.As(err, &verr) && verr.Validation() {
+			c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Validation error",
+				Error:   err.Error(),
+			})
+
+			return
+		}
+
 		statusCode := http.StatusInternalServerError
 		if secret.IsCASError(err) {
 			statusCode = http.StatusBadRequest
@@ -258,16 +222,10 @@ func UpdateSecrets(c *gin.Context) {
 		return
 	}
 
-	var errorMsg string
-	if validationError != nil {
-		errorMsg = validationError.Error()
-	}
-
 	c.JSON(http.StatusOK, pipeline.CreateSecretResponse{
 		Name:      s.Name,
 		Type:      s.Type,
 		Id:        secretID,
-		Error:     errorMsg,
 		UpdatedAt: s.UpdatedAt,
 		UpdatedBy: s.UpdatedBy,
 		Version:   int32(s.Version),
@@ -293,24 +251,15 @@ func ListSecrets(c *gin.Context) {
 
 	log.Debugln("Organization:", organizationID, "type:", query.Type, "tags:", query.Tags, "values:", query.Values)
 
-	if err := IsValidSecretType(query.Type); err != nil {
-		log.Errorf("Error validation secret type[%s]: %s", query.Type, err.Error())
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
+	if secrets, err := restricted.GlobalSecretStore.List(organizationID, &query); err != nil {
+		log.Errorf("Error during listing secrets: %s", err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Not supported secret type",
+			Message: "Error during listing secrets",
 			Error:   err.Error(),
 		})
 	} else {
-		if secrets, err := restricted.GlobalSecretStore.List(organizationID, &query); err != nil {
-			log.Errorf("Error during listing secrets: %s", err.Error())
-			c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
-				Code:    http.StatusBadRequest,
-				Message: "Error during listing secrets",
-				Error:   err.Error(),
-			})
-		} else {
-			c.JSON(http.StatusOK, secrets)
-		}
+		c.JSON(http.StatusOK, secrets)
 	}
 }
 
@@ -513,16 +462,6 @@ func DeleteSecretTag(c *gin.Context) {
 
 	log.Debugf("deleted secret tag: %s from %d/%s", tag, organizationID, secretID)
 	c.Status(http.StatusNoContent)
-}
-
-// IsValidSecretType checks the given secret type is supported
-func IsValidSecretType(secretType string) error {
-	if len(secretType) != 0 {
-		if _, ok := secrettype.DefaultRules[secretType]; !ok {
-			return ErrNotSupportedSecretType
-		}
-	}
-	return nil
 }
 
 // checkClustersBeforeDelete returns error if there's a running cluster that created with the given secret

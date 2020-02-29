@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"emperror.dev/emperror"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
@@ -29,6 +30,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
+	"github.com/banzaicloud/pipeline/internal/secret/types"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
@@ -69,30 +71,6 @@ var (
 	clusterRequestNodeLabels = map[string]string{
 		"testname": "testvalue",
 	}
-
-	amazonSecretRequest = secret.CreateSecretRequest{
-		Name: secretName,
-		Type: pkgCluster.Amazon,
-		Values: map[string]string{
-			clusterKubeMetaKey: clusterKubeMetaValue,
-		},
-	}
-
-	aksSecretRequest = secret.CreateSecretRequest{
-		Name: secretName,
-		Type: pkgCluster.Azure,
-		Values: map[string]string{
-			clusterKubeMetaKey: clusterKubeMetaValue,
-		},
-	}
-)
-
-// nolint: gochecknoglobals
-var (
-	errAzureAmazon = secret.MismatchError{
-		SecretType: pkgCluster.Azure,
-		ValidType:  pkgCluster.Amazon,
-	}
 )
 
 func init() {
@@ -102,7 +80,11 @@ func init() {
 
 	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
 	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, common.NoopLogger{})
-	secret.InitSecretStore(secretStore, pkeSecreter)
+	secretTypes := types.NewDefaultTypeList(types.DefaultTypeListConfig{
+		TLSDefaultValidity: 365 * 24 * time.Hour,
+		PkeSecreter:        pkeSecreter,
+	})
+	secret.InitSecretStore(secretStore, secretTypes)
 	restricted.InitSecretStore(secret.Store)
 }
 
@@ -198,49 +180,6 @@ func TestGKEKubernetesVersion(t *testing.T) {
 
 			if !reflect.DeepEqual(tc.error, err) {
 				t.Errorf("Expected error: %#v, got: %#v", tc.error, err)
-			}
-		})
-	}
-}
-
-func TestGetSecretWithValidation(t *testing.T) {
-	cases := []struct {
-		name                 string
-		secretRequest        secret.CreateSecretRequest
-		createClusterRequest *pkgCluster.CreateClusterRequest
-		err                  error
-	}{
-		{"amazon", amazonSecretRequest, eksCreateFull, nil},
-		{"aks", aksSecretRequest, aksCreateFull, nil},
-		{"aks wrong cloud field", aksSecretRequest, eksCreateFull, errAzureAmazon},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			if secretID, err := secret.Store.Store(organizationId, &tc.secretRequest); err != nil {
-				t.Errorf("Error during saving secret: %s", err.Error())
-				t.FailNow()
-			} else {
-				defer secret.Store.Delete(organizationId, secretID) // nolint: errcheck
-			}
-
-			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createClusterRequest, organizationId, userId)
-			if err != nil {
-				t.Errorf("Error during create model from request: %s", err.Error())
-				t.FailNow()
-			}
-
-			_, err = commonCluster.GetSecretWithValidation()
-			if tc.err != nil {
-				if err == nil {
-					t.Errorf("Expected error: %s, but got non", tc.err.Error())
-					t.FailNow()
-				} else if !reflect.DeepEqual(tc.err, err) {
-					t.Errorf("Expected error: %s, but got: %s", tc.err.Error(), err.Error())
-					t.FailNow()
-				}
-			} else if err != nil {
-				t.Errorf("Error during secret validation: %v", err)
-				t.FailNow()
 			}
 		})
 	}
