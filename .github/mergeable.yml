@@ -11,9 +11,13 @@ mergeable:
           regex: 'wip'
           message: 'WIP label on PR'
       - do: description
-        must_exclude:
-          regex: '\[ \]'
-          message: 'Remaining tasks in the description.'
+        and:
+          - must_exclude:
+              regex: '\[ \]'
+              message: 'Remaining tasks in the description.'
+          - must_exclude:
+              regex: 'no\|yes|fixes #X, partially #Y, mentioned in #Z'
+              message: 'Please fill out the PR template.'
         no_empty:
           enabled: true
           message: 'Description matter and should not be empty. Provide detail with **what** was changed, **why** it was changed, and **how** it was changed.'
