@@ -327,15 +327,21 @@ func GetSecret(c *gin.Context) {
 
 	secretID := getSecretID(c)
 
-	if secret, err := restricted.GlobalSecretStore.Get(organizationID, secretID); err != nil {
+	if s, err := restricted.GlobalSecretStore.Get(organizationID, secretID); err != nil {
+		status := http.StatusBadRequest
+
+		if errors.Is(err, secret.ErrSecretNotExists) {
+			status = http.StatusNotFound
+		}
+
 		log.Errorf("Error during getting secret: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
+		c.AbortWithStatusJSON(status, common.ErrorResponse{
+			Code:    status,
 			Message: "Error during listing secret",
 			Error:   err.Error(),
 		})
 	} else {
-		c.JSON(http.StatusOK, secret)
+		c.JSON(http.StatusOK, s)
 	}
 }
 
