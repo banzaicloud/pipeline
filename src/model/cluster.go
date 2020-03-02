@@ -29,11 +29,6 @@ import (
 
 const unknown = "unknown"
 
-// TableName constants
-const (
-	tableNameClusters = "clusters"
-)
-
 // ClusterModel describes the common cluster model
 // Note: this model is being moved to github.com/banzaicloud/pipeline/pkg/model.ClusterModel
 type ClusterModel struct {
@@ -66,7 +61,7 @@ type ClusterModel struct {
 
 // TableName sets ClusterModel's table name
 func (ClusterModel) TableName() string {
-	return tableNameClusters
+	return "clusters"
 }
 
 // ScaleOptions describes scale options
