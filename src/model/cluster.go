@@ -16,7 +16,6 @@ package model
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -32,9 +31,8 @@ const unknown = "unknown"
 
 // TableName constants
 const (
-	tableNameClusters             = "clusters"
-	tableNameDummyProperties      = "dummy_clusters"
-	tableNameKubernetesProperties = "kubernetes_clusters"
+	tableNameClusters        = "clusters"
+	tableNameDummyProperties = "dummy_clusters"
 )
 
 // ClusterModel describes the common cluster model
@@ -90,27 +88,6 @@ type DummyClusterModel struct {
 	ID                uint `gorm:"primary_key"`
 	KubernetesVersion string
 	NodeCount         int
-}
-
-// KubernetesClusterModel describes the build your own cluster model
-type KubernetesClusterModel struct {
-	ID          uint              `gorm:"primary_key"`
-	Metadata    map[string]string `gorm:"-"`
-	MetadataRaw []byte            `gorm:"meta_data"`
-}
-
-// BeforeSave converts the metadata into a json string in case of Kubernetes
-func (cs *KubernetesClusterModel) BeforeSave() (err error) {
-	cs.MetadataRaw, err = json.Marshal(cs.Metadata)
-	return
-}
-
-// AfterFind converts the metadata json string to a map in case of Kubernetes
-func (cs *KubernetesClusterModel) AfterFind() error {
-	if len(cs.MetadataRaw) != 0 {
-		return json.Unmarshal(cs.MetadataRaw, &cs.Metadata)
-	}
-	return nil
 }
 
 func (cs *ClusterModel) BeforeCreate() (err error) {
@@ -194,11 +171,6 @@ func (cs *ClusterModel) String() string {
 // TableName sets the DummyClusterModel's table name
 func (DummyClusterModel) TableName() string {
 	return tableNameDummyProperties
-}
-
-// TableName sets the KubernetesClusterModel's table name
-func (KubernetesClusterModel) TableName() string {
-	return tableNameKubernetesProperties
 }
 
 // UpdateStatus updates the model's status and status message in database
