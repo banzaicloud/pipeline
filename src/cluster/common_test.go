@@ -28,6 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
+	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
@@ -324,7 +325,7 @@ var (
 		Cloud:          pkgCluster.Kubernetes,
 		Distribution:   pkgCluster.Unknown,
 		OrganizationId: organizationId,
-		Kubernetes: model.KubernetesClusterModel{
+		Kubernetes: kubernetesadapter.KubernetesClusterModel{
 			Metadata: map[string]string{
 				clusterKubeMetaKey: clusterKubeMetaValue,
 			},
@@ -340,7 +341,7 @@ var (
 		Cloud:          pkgCluster.Kubernetes,
 		Distribution:   pkgCluster.Unknown,
 		OrganizationId: organizationId,
-		Kubernetes: model.KubernetesClusterModel{
+		Kubernetes: kubernetesadapter.KubernetesClusterModel{
 			Metadata: map[string]string{
 				clusterKubeMetaKey: clusterKubeMetaValue,
 			},
