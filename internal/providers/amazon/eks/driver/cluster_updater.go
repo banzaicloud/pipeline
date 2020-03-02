@@ -25,12 +25,12 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/src/cluster"
-	"github.com/banzaicloud/pipeline/src/model"
 )
 
 type EksClusterUpdater struct {
@@ -64,18 +64,18 @@ func NewEksClusterUpdater(logger logrus.FieldLogger, workflowClient client.Clien
 	}
 }
 
-func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedNodePools map[string]*pkgEks.NodePool, userId uint) ([]*model.AmazonNodePoolsModel, error) {
-	currentNodePoolMap := make(map[string]*model.AmazonNodePoolsModel, len(eksCluster.GetModel().EKS.NodePools))
+func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedNodePools map[string]*pkgEks.NodePool, userId uint) ([]*amazonadapter.AmazonNodePoolsModel, error) {
+	currentNodePoolMap := make(map[string]*amazonadapter.AmazonNodePoolsModel, len(eksCluster.GetModel().EKS.NodePools))
 	for _, nodePool := range eksCluster.GetModel().EKS.NodePools {
 		currentNodePoolMap[nodePool.Name] = nodePool
 	}
 
-	updatedNodePools := make([]*model.AmazonNodePoolsModel, 0, len(requestedNodePools))
+	updatedNodePools := make([]*amazonadapter.AmazonNodePoolsModel, 0, len(requestedNodePools))
 
 	for nodePoolName, nodePool := range requestedNodePools {
 		if currentNodePoolMap[nodePoolName] != nil {
 			// update existing node pool
-			updatedNodePools = append(updatedNodePools, &model.AmazonNodePoolsModel{
+			updatedNodePools = append(updatedNodePools, &amazonadapter.AmazonNodePoolsModel{
 				ID:               currentNodePoolMap[nodePoolName].ID,
 				CreatedBy:        currentNodePoolMap[nodePoolName].CreatedBy,
 				CreatedAt:        currentNodePoolMap[nodePoolName].CreatedAt,
@@ -111,7 +111,7 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 				nodePool.SpotPrice = pkgEks.DefaultSpotPrice
 			}
 
-			updatedNodePools = append(updatedNodePools, &model.AmazonNodePoolsModel{
+			updatedNodePools = append(updatedNodePools, &amazonadapter.AmazonNodePoolsModel{
 				CreatedBy:        userId,
 				Name:             nodePoolName,
 				NodeInstanceType: nodePool.InstanceType,
@@ -129,7 +129,7 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 
 	for _, nodePool := range eksCluster.GetModel().EKS.NodePools {
 		if requestedNodePools[nodePool.Name] == nil {
-			updatedNodePools = append(updatedNodePools, &model.AmazonNodePoolsModel{
+			updatedNodePools = append(updatedNodePools, &amazonadapter.AmazonNodePoolsModel{
 				ID:        nodePool.ID,
 				ClusterID: nodePool.ClusterID,
 				Name:      nodePool.Name,

@@ -17,7 +17,7 @@ package workflow
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/src/model"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 )
 
 const SaveNodePoolsActivityName = "eks-save-node-pools"
@@ -46,9 +46,11 @@ func (a SaveNodePoolsActivity) Execute(ctx context.Context, input SaveNodePoolsA
 		return err
 	}
 
-	if eksCluster, ok := cluster.(interface{ GetEKSModel() *model.EKSClusterModel }); ok {
+	if eksCluster, ok := cluster.(interface {
+		GetEKSModel() *amazonadapter.EKSClusterModel
+	}); ok {
 		modelCluster := eksCluster.GetEKSModel()
-		updatedNodepools := make([]*model.AmazonNodePoolsModel, 0)
+		updatedNodepools := make([]*amazonadapter.AmazonNodePoolsModel, 0)
 
 		for _, np := range modelCluster.NodePools {
 			_, ok := input.NodePoolsToDelete[np.Name]
@@ -68,7 +70,7 @@ func (a SaveNodePoolsActivity) Execute(ctx context.Context, input SaveNodePoolsA
 		}
 
 		for _, asg := range input.NodePoolsToCreate {
-			np := &model.AmazonNodePoolsModel{
+			np := &amazonadapter.AmazonNodePoolsModel{
 				CreatedBy:        asg.CreatedBy,
 				Name:             asg.Name,
 				NodeInstanceType: asg.NodeInstanceType,

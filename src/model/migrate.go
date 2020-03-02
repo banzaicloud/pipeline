@@ -20,6 +20,8 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 )
 
 // Migrate executes the table migrations for the application models.
@@ -27,9 +29,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
 		&ClusterModel{},
 		&ScaleOptions{},
-		&AmazonNodePoolsModel{},
-		&EKSClusterModel{},
-		&EKSSubnetModel{},
 	}
 
 	var tableNames string
@@ -47,7 +46,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	// setup FKs
-	err = AddForeignKey(db, logger, &ClusterModel{}, &EKSClusterModel{}, "ClusterID")
+	err = AddForeignKey(db, logger, &ClusterModel{}, &amazonadapter.EKSClusterModel{}, "ClusterID")
 	if err != nil {
 		return err
 	}
@@ -57,7 +56,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		return err
 	}
 
-	err = AddForeignKey(db, logger, &EKSClusterModel{}, &EKSSubnetModel{}, "ClusterID")
+	err = AddForeignKey(db, logger, &amazonadapter.EKSClusterModel{}, &amazonadapter.EKSSubnetModel{}, "ClusterID")
 	if err != nil {
 		return err
 	}

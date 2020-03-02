@@ -23,8 +23,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 	"github.com/banzaicloud/pipeline/pkg/providers"
-	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // DistributionNodePoolValidator validates a node pool request according to its own distribution.
@@ -63,10 +63,10 @@ func (v DistributionNodePoolValidator) ValidateNew(
 			violations = err.Violations()
 		}
 
-		var eksCluster model.EKSClusterModel
+		var eksCluster amazonadapter.EKSClusterModel
 
 		err = v.db.
-			Where(model.EKSClusterModel{ClusterID: c.ID}).
+			Where(amazonadapter.EKSClusterModel{ClusterID: c.ID}).
 			Preload("Subnets").
 			First(&eksCluster).Error
 		if gorm.IsRecordNotFoundError(err) {
