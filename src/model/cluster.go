@@ -30,7 +30,7 @@ import (
 const unknown = "unknown"
 
 // ClusterModel describes the common cluster model
-// Note: this model is being moved to github.com/banzaicloud/pipeline/pkg/model.ClusterModel
+// Note: this model is being moved to github.com/banzaicloud/pipeline/internal/cluster/clusteradapter.ClusterModel
 type ClusterModel struct {
 	ID             uint   `gorm:"primary_key"`
 	UID            string `gorm:"unique_index:idx_clusters_uid"`
