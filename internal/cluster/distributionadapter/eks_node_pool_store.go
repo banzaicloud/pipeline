@@ -21,7 +21,7 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
-	"github.com/banzaicloud/pipeline/src/model"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 )
 
 // NodePoolStore provides an interface to EKS node pool persistence.
@@ -43,7 +43,7 @@ func (s EKSNodePoolStore) CreateNodePool(
 	createdBy uint,
 	nodePool distribution.NewEKSNodePool,
 ) error {
-	nodePoolModel := &model.AmazonNodePoolsModel{
+	nodePoolModel := &amazonadapter.AmazonNodePoolsModel{
 		ClusterID:        clusterID,
 		CreatedBy:        createdBy,
 		Name:             nodePool.Name,

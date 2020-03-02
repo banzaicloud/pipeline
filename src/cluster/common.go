@@ -32,6 +32,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
@@ -336,7 +337,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		err := db.
 			Preload("NodePools").
 			Preload("Subnets").
-			Where(model.EKSClusterModel{ClusterID: eksCluster.modelCluster.ID}).
+			Where(amazonadapter.EKSClusterModel{ClusterID: eksCluster.modelCluster.ID}).
 			First(&eksCluster.modelCluster.EKS).Error
 
 		return eksCluster, err
