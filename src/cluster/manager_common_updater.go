@@ -254,7 +254,6 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgClus
 			}
 		}
 
-	case pkgCluster.Dummy:
 	case pkgCluster.Kubernetes:
 	}
 

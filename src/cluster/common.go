@@ -356,16 +356,6 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 		return gkeCluster, err
 
-	case pkgCluster.Dummy:
-		dummyCluster, err := CreateDummyClusterFromModel(modelCluster)
-		if err != nil {
-			return nil, err
-		}
-
-		err = db.Where(model.DummyClusterModel{ID: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy).Error
-
-		return dummyCluster, err
-
 	case pkgCluster.Kubernetes:
 		// Create Kubernetes struct
 		kubernetesCluster, err := CreateKubernetesClusterFromModel(modelCluster)
@@ -445,15 +435,6 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 			return nil, err
 		}
 		return gkeCluster, nil
-
-	case pkgCluster.Dummy:
-		// Create Dummy struct
-		dummy, err := CreateDummyClusterFromRequest(createClusterRequest, orgId, userId)
-		if err != nil {
-			return nil, err
-		}
-
-		return dummy, nil
 
 	case pkgCluster.Kubernetes:
 		// Create Kubernetes struct

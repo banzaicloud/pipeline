@@ -33,7 +33,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/types"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
@@ -102,7 +101,6 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 		expectedError error
 	}{
 		{name: "aks create", createRequest: aksCreateFull, expectedModel: aksModelFull, expectedError: nil},
-		{name: "dummy create", createRequest: dummyCreateFull, expectedModel: dummyModelFull, expectedError: nil},
 		{name: "kube create", createRequest: kubeCreateFull, expectedModel: kubeModelFull, expectedError: nil},
 
 		{name: "not supported cloud", createRequest: notSupportedCloud, expectedModel: nil, expectedError: pkgErrors.ErrorNotSupportedCloudType},
@@ -252,21 +250,6 @@ var (
 		},
 	}
 
-	dummyCreateFull = &pkgCluster.CreateClusterRequest{
-		Name:     clusterRequestName,
-		Location: clusterRequestLocation,
-		Cloud:    pkgCluster.Dummy,
-		SecretId: clusterRequestSecretId,
-		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterDummy: &dummy.CreateClusterDummy{
-				Node: &dummy.Node{
-					KubernetesVersion: clusterRequestKubernetes,
-					Count:             clusterRequestNodeCount,
-				},
-			},
-		},
-	}
-
 	kubeCreateFull = &pkgCluster.CreateClusterRequest{
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
@@ -329,20 +312,6 @@ var (
 					Labels:           clusterRequestNodeLabels,
 				},
 			},
-		},
-	}
-
-	dummyModelFull = &model.ClusterModel{
-		CreatedBy:      userId,
-		Name:           clusterRequestName,
-		Location:       clusterRequestLocation,
-		Cloud:          pkgCluster.Dummy,
-		Distribution:   pkgCluster.Dummy,
-		OrganizationId: organizationId,
-		SecretId:       clusterRequestSecretId,
-		Dummy: model.DummyClusterModel{
-			KubernetesVersion: clusterRequestKubernetes,
-			NodeCount:         clusterRequestNodeCount,
 		},
 	}
 

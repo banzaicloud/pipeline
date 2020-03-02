@@ -53,7 +53,6 @@ type ClusterModel struct {
 	ACK            ACKClusterModel        `gorm:"foreignkey:ID"`
 	AKS            AKSClusterModel        `gorm:"foreignkey:ID"`
 	EKS            EKSClusterModel        `gorm:"foreignkey:ClusterID"`
-	Dummy          DummyClusterModel      `gorm:"foreignkey:ID"`
 	Kubernetes     KubernetesClusterModel `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
 	CreatedBy      uint
@@ -144,10 +143,6 @@ func (cs *ClusterModel) String() string {
 		buffer.WriteString(fmt.Sprintf("NodePools: %v, Kubernetes version: %s",
 			cs.AKS.NodePools,
 			cs.AKS.KubernetesVersion))
-	case pkgCluster.Dummy:
-		buffer.WriteString(fmt.Sprintf("Node count: %d, kubernetes version: %s",
-			cs.Dummy.NodeCount,
-			cs.Dummy.KubernetesVersion))
 	case pkgCluster.Kubernetes:
 		buffer.WriteString(fmt.Sprintf("Metadata: %#v", cs.Kubernetes.Metadata))
 	}
