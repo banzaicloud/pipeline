@@ -31,8 +31,7 @@ const unknown = "unknown"
 
 // TableName constants
 const (
-	tableNameClusters        = "clusters"
-	tableNameDummyProperties = "dummy_clusters"
+	tableNameClusters = "clusters"
 )
 
 // ClusterModel describes the common cluster model
@@ -81,13 +80,6 @@ type ScaleOptions struct {
 	OnDemandPct         int
 	Excludes            string `sql:"type:text;"`
 	KeepDesiredCapacity bool
-}
-
-// DummyClusterModel describes the dummy cluster model
-type DummyClusterModel struct {
-	ID                uint `gorm:"primary_key"`
-	KubernetesVersion string
-	NodeCount         int
 }
 
 func (cs *ClusterModel) BeforeCreate() (err error) {
@@ -166,11 +158,6 @@ func (cs *ClusterModel) String() string {
 	}
 
 	return buffer.String()
-}
-
-// TableName sets the DummyClusterModel's table name
-func (DummyClusterModel) TableName() string {
-	return tableNameDummyProperties
 }
 
 // UpdateStatus updates the model's status and status message in database
