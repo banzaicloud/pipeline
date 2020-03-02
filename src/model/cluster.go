@@ -16,7 +16,6 @@ package model
 
 import (
 	"bytes"
-	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -37,13 +36,10 @@ const (
 	tableNameClusters             = "clusters"
 	tableNameAlibabaProperties    = "alibaba_acsk_clusters"
 	tableNameAlibabaNodePools     = "alibaba_acsk_node_pools"
-	tableNameAmazonNodePools      = "amazon_node_pools"
-	tableNameAmazonEksProperties  = "amazon_eks_clusters"
 	tableNameAzureProperties      = "azure_aks_clusters"
 	tableNameAzureNodePools       = "azure_aks_node_pools"
 	tableNameDummyProperties      = "dummy_clusters"
 	tableNameKubernetesProperties = "kubernetes_clusters"
-	tableNameEKSSubnets           = "amazon_eks_subnets"
 )
 
 // ClusterModel describes the common cluster model
@@ -128,78 +124,6 @@ type ACKClusterModel struct {
 	NodePools                []*ACKNodePoolModel `gorm:"foreignkey:ClusterID"`
 	KubernetesVersion        string
 	VSwitchID                string
-}
-
-// AmazonNodePoolsModel describes Amazon node groups model of a cluster
-type AmazonNodePoolsModel struct {
-	ID               uint `gorm:"primary_key"`
-	CreatedAt        time.Time
-	CreatedBy        uint
-	ClusterID        uint   `gorm:"unique_index:idx_amazon_node_pools_cluster_id_name"`
-	Name             string `gorm:"unique_index:idx_amazon_node_pools_cluster_id_name"`
-	NodeSpotPrice    string
-	Autoscaling      bool
-	NodeMinCount     int
-	NodeMaxCount     int
-	Count            int
-	NodeImage        string
-	NodeInstanceType string
-	Labels           map[string]string `gorm:"-"`
-	Delete           bool              `gorm:"-"`
-}
-
-// EKSSubnetModel describes the model of subnets used for creating an EKS cluster
-type EKSSubnetModel struct {
-	ID               uint `gorm:"primary_key"`
-	CreatedAt        time.Time
-	EKSCluster       EKSClusterModel
-	ClusterID        uint    `gorm:"index:idx_eks_subnets_cluster_id"`
-	SubnetId         *string `gorm:"size:32"`
-	Cidr             *string `gorm:"size:18"`
-	AvailabilityZone *string `gorm:"size:25"`
-}
-
-// EKSClusterModel describes the EKS cluster model
-type EKSClusterModel struct {
-	ID      uint `gorm:"primary_key"`
-	Version string
-
-	ClusterID    uint                    `gorm:"unique_index:idx_eks_clusters_cluster_id"`
-	NodePools    []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
-	VpcId        *string                 `gorm:"size:32"`
-	VpcCidr      *string                 `gorm:"size:18"`
-	RouteTableId *string                 `gorm:"size:32"`
-	Subnets      []*EKSSubnetModel       `gorm:"foreignkey:ClusterID"`
-
-	// IAM settings
-	DefaultUser        bool
-	ClusterRoleId      string
-	NodeInstanceRoleId string
-
-	LogTypes EKSLogTypes `sql:"type:json"`
-
-	APIServerAccessPoints EKSAPIServerAccessPoints `sql:"type:json"`
-
-	CurrentWorkflowID string
-
-	SSHGenerated bool `gorm:"default:true"`
-}
-
-type EKSLogTypes = JSONStringArray
-
-type EKSAPIServerAccessPoints = JSONStringArray
-
-// JSONStringArray is a special type, that represents a JSON array of strings in SQL databases
-type JSONStringArray []string
-
-// Value implements the driver.Valuer interface
-func (elt JSONStringArray) Value() (driver.Value, error) {
-	return json.Marshal(elt)
-}
-
-// Scan implements the sql.Scanner interface
-func (elt *JSONStringArray) Scan(src interface{}) error {
-	return json.Unmarshal(src.([]byte), elt)
 }
 
 // AKSClusterModel describes the aks cluster model
@@ -342,54 +266,6 @@ func (ACKNodePoolModel) TableName() string {
 	return tableNameAlibabaNodePools
 }
 
-// TableName sets AmazonNodePoolsModel's table name
-func (AmazonNodePoolsModel) TableName() string {
-	return tableNameAmazonNodePools
-}
-
-// TableName sets EKSClusterModel's table name
-func (EKSClusterModel) TableName() string {
-	return tableNameAmazonEksProperties
-}
-
-// SetCurrentWorkflowID sets currentWorkflowID
-func (cm *EKSClusterModel) SetCurrentWorkflowID(workflowID string) error {
-	cm.CurrentWorkflowID = workflowID
-	fields := map[string]interface{}{
-		"currentWorkflowID": cm.CurrentWorkflowID,
-	}
-
-	db := global.DB()
-	err := db.Model(&cm).Updates(fields).Error
-	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to update currentWorkflowID for EKS cluster", "cluster_id", cm.ClusterID)
-	}
-	return nil
-}
-
-func (cm *EKSClusterModel) PersistSSHGenerate(sshGenerated bool) error {
-	cm.SSHGenerated = sshGenerated
-	fields := map[string]interface{}{
-		"sshGenerated": cm.SSHGenerated,
-	}
-
-	db := global.DB()
-	err := db.Model(&cm).Updates(fields).Error
-	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to update sshGenerated field for EKS cluster", "cluster_id", cm.ClusterID)
-	}
-	return nil
-}
-
-func (cm EKSClusterModel) IsSSHGenerated() bool {
-	return cm.SSHGenerated
-}
-
-// TableName sets database table name for EKSSubnetModel
-func (EKSSubnetModel) TableName() string {
-	return tableNameEKSSubnets
-}
-
 // TableName sets AzureClusterModel's table name
 func (AKSClusterModel) TableName() string {
 	return tableNameAzureProperties
@@ -408,27 +284,6 @@ func (DummyClusterModel) TableName() string {
 // TableName sets the KubernetesClusterModel's table name
 func (KubernetesClusterModel) TableName() string {
 	return tableNameKubernetesProperties
-}
-
-// AfterUpdate removes marked node pool(s)
-func (cm *EKSClusterModel) AfterUpdate(tx *gorm.DB) error {
-	log.WithField("clusterId", cm.ClusterID).Debug("remove node pools marked for deletion")
-
-	for _, nodePoolModel := range cm.NodePools {
-		if nodePoolModel.Delete {
-			err := tx.Model(cm).Association("NodePools").Delete(nodePoolModel).Error
-			if err != nil {
-				return err
-			}
-
-			err = tx.Delete(nodePoolModel).Error
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
 }
 
 // AfterUpdate removes marked node pool(s)
