@@ -33,8 +33,6 @@ const unknown = "unknown"
 // TableName constants
 const (
 	tableNameClusters             = "clusters"
-	tableNameAzureProperties      = "azure_aks_clusters"
-	tableNameAzureNodePools       = "azure_aks_node_pools"
 	tableNameDummyProperties      = "dummy_clusters"
 	tableNameKubernetesProperties = "kubernetes_clusters"
 )
@@ -85,30 +83,6 @@ type ScaleOptions struct {
 	OnDemandPct         int
 	Excludes            string `sql:"type:text;"`
 	KeepDesiredCapacity bool
-}
-
-// AKSClusterModel describes the aks cluster model
-type AKSClusterModel struct {
-	ID                uint `gorm:"primary_key"`
-	ResourceGroup     string
-	KubernetesVersion string
-	NodePools         []*AKSNodePoolModel `gorm:"foreignkey:ClusterID"`
-}
-
-// AKSNodePoolModel describes AKS node pools model of a cluster
-type AKSNodePoolModel struct {
-	ID               uint `gorm:"primary_key"`
-	CreatedAt        time.Time
-	CreatedBy        uint
-	ClusterID        uint   `gorm:"unique_index:idx_aks_node_pools_cluster_id_name"`
-	Name             string `gorm:"unique_index:idx_aks_node_pools_cluster_id_name"`
-	Autoscaling      bool
-	NodeMinCount     int
-	NodeMaxCount     int
-	Count            int
-	NodeInstanceType string
-	VNetSubnetID     string
-	Labels           map[string]string `gorm:"-"`
 }
 
 // DummyClusterModel describes the dummy cluster model
@@ -215,16 +189,6 @@ func (cs *ClusterModel) String() string {
 	}
 
 	return buffer.String()
-}
-
-// TableName sets AzureClusterModel's table name
-func (AKSClusterModel) TableName() string {
-	return tableNameAzureProperties
-}
-
-// TableName sets AzureNodePoolModel's table name
-func (AKSNodePoolModel) TableName() string {
-	return tableNameAzureNodePools
 }
 
 // TableName sets the DummyClusterModel's table name
