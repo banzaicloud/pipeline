@@ -22,7 +22,6 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/gofrs/uuid"
-	"github.com/jinzhu/gorm"
 
 	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -34,8 +33,6 @@ const unknown = "unknown"
 // TableName constants
 const (
 	tableNameClusters             = "clusters"
-	tableNameAlibabaProperties    = "alibaba_acsk_clusters"
-	tableNameAlibabaNodePools     = "alibaba_acsk_node_pools"
 	tableNameAzureProperties      = "azure_aks_clusters"
 	tableNameAzureNodePools       = "azure_aks_node_pools"
 	tableNameDummyProperties      = "dummy_clusters"
@@ -88,42 +85,6 @@ type ScaleOptions struct {
 	OnDemandPct         int
 	Excludes            string `sql:"type:text;"`
 	KeepDesiredCapacity bool
-}
-
-// ACKNodePoolModel describes Alibaba Cloud CS node groups model of a cluster
-type ACKNodePoolModel struct {
-	ID                           uint `gorm:"primary_key"`
-	CreatedAt                    time.Time
-	CreatedBy                    uint
-	ClusterID                    uint   `gorm:"unique_index:idx_ack_node_pools_cluster_id_name"`
-	Name                         string `gorm:"unique_index:idx_ack_node_pools_cluster_id_name"`
-	InstanceType                 string
-	DeprecatedSystemDiskCategory string `gorm:"column:system_disk_category"`
-	DeprecatedSystemDiskSize     int    `gorm:"column:system_disk_size"`
-	DeprecatedImage              string `gorm:"column:image"`
-	Count                        int
-	MinCount                     int
-	MaxCount                     int
-	AsgID                        string
-	ScalingConfigID              string
-	Labels                       map[string]string `gorm:"-"`
-	Delete                       bool              `gorm:"-"`
-}
-
-// ACKClusterModel describes the Alibaba Cloud CS cluster model
-type ACKClusterModel struct {
-	ID                       uint `gorm:"primary_key"`
-	ProviderClusterID        string
-	RegionID                 string
-	ZoneID                   string
-	MasterInstanceType       string
-	MasterSystemDiskCategory string
-	MasterSystemDiskSize     int
-	SNATEntry                bool
-	SSHFlags                 bool
-	NodePools                []*ACKNodePoolModel `gorm:"foreignkey:ClusterID"`
-	KubernetesVersion        string
-	VSwitchID                string
 }
 
 // AKSClusterModel describes the aks cluster model
@@ -256,16 +217,6 @@ func (cs *ClusterModel) String() string {
 	return buffer.String()
 }
 
-// TableName sets ACKClusterModel's table name
-func (ACKClusterModel) TableName() string {
-	return tableNameAlibabaProperties
-}
-
-// TableName sets ACKNodePoolModel's table name
-func (ACKNodePoolModel) TableName() string {
-	return tableNameAlibabaNodePools
-}
-
 // TableName sets AzureClusterModel's table name
 func (AKSClusterModel) TableName() string {
 	return tableNameAzureProperties
@@ -284,23 +235,6 @@ func (DummyClusterModel) TableName() string {
 // TableName sets the KubernetesClusterModel's table name
 func (KubernetesClusterModel) TableName() string {
 	return tableNameKubernetesProperties
-}
-
-// AfterUpdate removes marked node pool(s)
-func (a *ACKClusterModel) AfterUpdate(scope *gorm.Scope) error {
-	log.Debug("Remove node pools marked for deletion")
-
-	for _, nodePoolModel := range a.NodePools {
-		if nodePoolModel.Delete {
-			err := scope.DB().Delete(nodePoolModel).Error
-
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
 }
 
 // UpdateStatus updates the model's status and status message in database
