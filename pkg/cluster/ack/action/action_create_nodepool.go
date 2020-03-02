@@ -19,21 +19,21 @@ import (
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // CreateACKNodePoolAction describes the properties of an Alibaba cluster creation
 type CreateACKNodePoolAction struct {
 	log       logrus.FieldLogger
-	nodePools []*model.ACKNodePoolModel
+	nodePools []*alibabaadapter.ACKNodePoolModel
 	context   *ACKContext
 	region    string
 }
 
 // NewCreateACKNodePoolAction creates a new CreateACKNodePoolAction
-func NewCreateACKNodePoolAction(log logrus.FieldLogger, nodepools []*model.ACKNodePoolModel, clusterContext *ACKContext, region string) *CreateACKNodePoolAction {
+func NewCreateACKNodePoolAction(log logrus.FieldLogger, nodepools []*alibabaadapter.ACKNodePoolModel, clusterContext *ACKContext, region string) *CreateACKNodePoolAction {
 	return &CreateACKNodePoolAction{
 		log:       log,
 		nodePools: nodepools,

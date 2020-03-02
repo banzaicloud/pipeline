@@ -21,7 +21,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/src/model"
+	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
 )
 
 // ACKClusterDeleteContext describes the fields used across ACK cluster delete operation
@@ -29,12 +29,12 @@ type ACKClusterDeleteContext struct {
 	ACKContext
 	RegionId    string
 	ClusterName string
-	NodePools   []*model.ACKNodePoolModel
+	NodePools   []*alibabaadapter.ACKNodePoolModel
 }
 
 // NewACKClusterDeletionContext creates a new ACKClusterDeleteContext
 func NewACKClusterDeletionContext(csClient *cs.Client,
-	ecsClient *ecs.Client, essClient *ess.Client, clusterID string, nodePools []*model.ACKNodePoolModel, clusterName, regionID string) *ACKClusterDeleteContext {
+	ecsClient *ecs.Client, essClient *ess.Client, clusterID string, nodePools []*alibabaadapter.ACKNodePoolModel, clusterName, regionID string) *ACKClusterDeleteContext {
 	return &ACKClusterDeleteContext{
 		ACKContext: ACKContext{
 			CSClient:  csClient,

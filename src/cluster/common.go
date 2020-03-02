@@ -31,6 +31,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
+	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	pkeAzureAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
@@ -314,7 +315,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		err = db.Where(model.ACKClusterModel{ID: alibabaCluster.modelCluster.ID}).First(&alibabaCluster.modelCluster.ACK).Error
+		err = db.Where(alibabaadapter.ACKClusterModel{ID: alibabaCluster.modelCluster.ID}).First(&alibabaCluster.modelCluster.ACK).Error
 		if err != nil {
 			return nil, err
 		}

@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pipCluster "github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/model"
@@ -48,7 +49,7 @@ var (
 		SecretId:       secretId,
 		Status:         status,
 		StatusMessage:  statusMsg,
-		ACK: model.ACKClusterModel{
+		ACK: alibabaadapter.ACKClusterModel{
 			ID:                id,
 			ProviderClusterID: idStr,
 			RegionID:          region,
@@ -66,7 +67,7 @@ var (
 		SecretId:       secretId,
 		Status:         status,
 		StatusMessage:  statusMsg,
-		ACK: model.ACKClusterModel{
+		ACK: alibabaadapter.ACKClusterModel{
 			ID:                id,
 			ProviderClusterID: idStr,
 			RegionID:          region2,

@@ -38,6 +38,7 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
@@ -191,16 +192,16 @@ func (c *ACKCluster) GetAlibabaVPCClient(cfg *sdk.Config) (*vpc.Client, error) {
 	return client, errors.WithDetails(err, "cluster", c.modelCluster.Name)
 }
 
-func createACKNodePoolsFromRequest(pools ack.NodePools, userId uint) ([]*model.ACKNodePoolModel, error) {
+func createACKNodePoolsFromRequest(pools ack.NodePools, userId uint) ([]*alibabaadapter.ACKNodePoolModel, error) {
 	nodePoolsCount := len(pools)
 	if nodePoolsCount == 0 {
 		return nil, pkgErrors.ErrorNodePoolNotProvided
 	}
 
-	var res = make([]*model.ACKNodePoolModel, len(pools))
+	var res = make([]*alibabaadapter.ACKNodePoolModel, len(pools))
 	var i int
 	for name, pool := range pools {
-		res[i] = &model.ACKNodePoolModel{
+		res[i] = &alibabaadapter.ACKNodePoolModel{
 			CreatedBy:    userId,
 			Name:         name,
 			InstanceType: pool.InstanceType,
@@ -215,9 +216,9 @@ func createACKNodePoolsFromRequest(pools ack.NodePools, userId uint) ([]*model.A
 	return res, nil
 }
 
-func (c *ACKCluster) createACKNodePoolsModelFromUpdateRequestData(pools ack.NodePools, userId uint) ([]*model.ACKNodePoolModel, error) {
-	currentNodePoolMap := make(map[string]*model.ACKNodePoolModel, len(c.modelCluster.ACK.NodePools))
-	updatedNodePools := make([]*model.ACKNodePoolModel, 0, len(pools))
+func (c *ACKCluster) createACKNodePoolsModelFromUpdateRequestData(pools ack.NodePools, userId uint) ([]*alibabaadapter.ACKNodePoolModel, error) {
+	currentNodePoolMap := make(map[string]*alibabaadapter.ACKNodePoolModel, len(c.modelCluster.ACK.NodePools))
+	updatedNodePools := make([]*alibabaadapter.ACKNodePoolModel, 0, len(pools))
 
 	for _, nodePool := range c.modelCluster.ACK.NodePools {
 		// Collect stored node pool info from DB
@@ -225,7 +226,7 @@ func (c *ACKCluster) createACKNodePoolsModelFromUpdateRequestData(pools ack.Node
 
 		// Delete node pool stored in the DB but deleted with Update
 		if pools[nodePool.Name] == nil {
-			updatedNodePools = append(updatedNodePools, &model.ACKNodePoolModel{
+			updatedNodePools = append(updatedNodePools, &alibabaadapter.ACKNodePoolModel{
 				ID:              nodePool.ID,
 				CreatedBy:       nodePool.CreatedBy,
 				CreatedAt:       nodePool.CreatedAt,
@@ -243,7 +244,7 @@ func (c *ACKCluster) createACKNodePoolsModelFromUpdateRequestData(pools ack.Node
 			if currentNodePoolMap[nodePoolName].MinCount != nodePool.MinCount ||
 				currentNodePoolMap[nodePoolName].MaxCount != nodePool.MaxCount ||
 				currentNodePoolMap[nodePoolName].InstanceType != nodePool.InstanceType {
-				updatedNodePools = append(updatedNodePools, &model.ACKNodePoolModel{
+				updatedNodePools = append(updatedNodePools, &alibabaadapter.ACKNodePoolModel{
 					ID:              currentNodePoolMap[nodePoolName].ID,
 					CreatedBy:       currentNodePoolMap[nodePoolName].CreatedBy,
 					CreatedAt:       currentNodePoolMap[nodePoolName].CreatedAt,
@@ -267,7 +268,7 @@ func (c *ACKCluster) createACKNodePoolsModelFromUpdateRequestData(pools ack.Node
 				return nil, pkgErrors.ErrorInstancetypeFieldIsEmpty
 			}
 
-			updatedNodePools = append(updatedNodePools, &model.ACKNodePoolModel{
+			updatedNodePools = append(updatedNodePools, &alibabaadapter.ACKNodePoolModel{
 				CreatedBy:    userId,
 				Name:         nodePoolName,
 				InstanceType: nodePool.InstanceType,
@@ -307,7 +308,7 @@ func CreateACKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		Distribution:   pkgCluster.ACK,
 		OrganizationId: orgId,
 		SecretId:       request.SecretId,
-		ACK: model.ACKClusterModel{
+		ACK: alibabaadapter.ACKClusterModel{
 			RegionID:                 request.Properties.CreateClusterACK.RegionID,
 			ZoneID:                   request.Properties.CreateClusterACK.ZoneID,
 			MasterInstanceType:       request.Properties.CreateClusterACK.MasterInstanceType,
@@ -659,9 +660,9 @@ func (c *ACKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 		return err
 	}
 
-	var nodePoolsToCreate []*model.ACKNodePoolModel
-	var nodePoolsToUpdate []*model.ACKNodePoolModel
-	var nodePoolsToDelete []*model.ACKNodePoolModel
+	var nodePoolsToCreate []*alibabaadapter.ACKNodePoolModel
+	var nodePoolsToUpdate []*alibabaadapter.ACKNodePoolModel
+	var nodePoolsToDelete []*alibabaadapter.ACKNodePoolModel
 
 	for _, nodePool := range nodePoolModels {
 		// delete nodePool

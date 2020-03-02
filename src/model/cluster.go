@@ -23,6 +23,7 @@ import (
 	"github.com/gofrs/uuid"
 
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 )
@@ -48,12 +49,12 @@ type ClusterModel struct {
 	SshSecretId    string
 	Status         string
 	RbacEnabled    bool
-	ScaleOptions   ScaleOptions           `gorm:"foreignkey:ClusterID"`
-	StatusMessage  string                 `sql:"type:text;"`
-	ACK            ACKClusterModel        `gorm:"foreignkey:ID"`
-	AKS            AKSClusterModel        `gorm:"foreignkey:ID"`
-	EKS            EKSClusterModel        `gorm:"foreignkey:ClusterID"`
-	Kubernetes     KubernetesClusterModel `gorm:"foreignkey:ID"`
+	ScaleOptions   ScaleOptions                   `gorm:"foreignkey:ClusterID"`
+	StatusMessage  string                         `sql:"type:text;"`
+	ACK            alibabaadapter.ACKClusterModel `gorm:"foreignkey:ID"`
+	AKS            AKSClusterModel                `gorm:"foreignkey:ID"`
+	EKS            EKSClusterModel                `gorm:"foreignkey:ClusterID"`
+	Kubernetes     KubernetesClusterModel         `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
 	CreatedBy      uint
 }
