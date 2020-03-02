@@ -26,6 +26,7 @@ import (
 	storageUtil "k8s.io/kubernetes/pkg/apis/storage/util"
 
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -50,7 +51,7 @@ func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest
 		CreatedBy:      userId,
 		SecretId:       request.SecretId,
 		Distribution:   pkgCluster.Unknown,
-		Kubernetes: model.KubernetesClusterModel{
+		Kubernetes: kubernetesadapter.KubernetesClusterModel{
 			Metadata: request.Properties.CreateClusterKubernetes.Metadata,
 		},
 	}
