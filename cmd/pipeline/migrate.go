@@ -24,6 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
+	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
 	"github.com/banzaicloud/pipeline/internal/ark"
@@ -38,6 +39,10 @@ import (
 // Migrate runs migrations for the application.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger, commonLogger common.Logger) error {
 	if err := model.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := alibabaadapter.Migrate(db, logger); err != nil {
 		return err
 	}
 

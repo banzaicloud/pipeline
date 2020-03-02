@@ -20,21 +20,21 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/sirupsen/logrus"
 
+	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // UpdateACKNodePoolAction describes the fields used across ACK cluster update operation
 type UpdateACKNodePoolAction struct {
 	clusterName string
 	log         logrus.FieldLogger
-	nodePools   []*model.ACKNodePoolModel
+	nodePools   []*alibabaadapter.ACKNodePoolModel
 	context     *ACKContext
 	region      string
 }
 
 // NewUpdateACKNodePoolAction creates a new UpdateACKNodePoolAction
-func NewUpdateACKNodePoolAction(log logrus.FieldLogger, clusterName string, nodepools []*model.ACKNodePoolModel, clusterContext *ACKContext, region string) *UpdateACKNodePoolAction {
+func NewUpdateACKNodePoolAction(log logrus.FieldLogger, clusterName string, nodepools []*alibabaadapter.ACKNodePoolModel, clusterContext *ACKContext, region string) *UpdateACKNodePoolAction {
 	return &UpdateACKNodePoolAction{
 		log:         log,
 		clusterName: clusterName,

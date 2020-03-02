@@ -30,10 +30,10 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers/alibaba"
-	"github.com/banzaicloud/pipeline/src/model"
 )
 
 func deleteCluster(log logrus.FieldLogger, clusterID string, csClient *cs.Client) error {
@@ -129,7 +129,7 @@ func attachInstancesToCluster(log logrus.FieldLogger, clusterID string, instance
 	return clusterWithPools, nil
 }
 
-func deleteNodePools(log logrus.FieldLogger, nodePools []*model.ACKNodePoolModel, essClient *ess.Client, regionId string) error {
+func deleteNodePools(log logrus.FieldLogger, nodePools []*alibabaadapter.ACKNodePoolModel, essClient *ess.Client, regionId string) error {
 	errChan := make(chan error, len(nodePools))
 	defer close(errChan)
 
@@ -149,7 +149,7 @@ func deleteNodePools(log logrus.FieldLogger, nodePools []*model.ACKNodePoolModel
 	return pkgErrors.NewMultiErrorWithFormatter(caughtErrors.ErrOrNil())
 }
 
-func deleteNodePool(log logrus.FieldLogger, nodePool *model.ACKNodePoolModel, essClient *ess.Client, regionId string, errChan chan<- error) {
+func deleteNodePool(log logrus.FieldLogger, nodePool *alibabaadapter.ACKNodePoolModel, essClient *ess.Client, regionId string, errChan chan<- error) {
 	deleteSGRequest := ess.CreateDeleteScalingGroupRequest()
 	deleteSGRequest.SetScheme(requests.HTTPS)
 	deleteSGRequest.SetDomain(alibaba.GetESSServiceEndpoint(regionId))
@@ -188,7 +188,7 @@ func deleteNodePool(log logrus.FieldLogger, nodePool *model.ACKNodePoolModel, es
 	errChan <- nil
 }
 
-func createNodePool(logger logrus.FieldLogger, nodePool *model.ACKNodePoolModel, essClient *ess.Client, cluster *ack.AlibabaDescribeClusterResponse, instanceIdsChan chan<- []string, errChan chan<- error) {
+func createNodePool(logger logrus.FieldLogger, nodePool *alibabaadapter.ACKNodePoolModel, essClient *ess.Client, cluster *ack.AlibabaDescribeClusterResponse, instanceIdsChan chan<- []string, errChan chan<- error) {
 	scalingGroupRequest := ess.CreateCreateScalingGroupRequest()
 	scalingGroupRequest.SetScheme(requests.HTTPS)
 	scalingGroupRequest.SetDomain(alibaba.GetESSServiceEndpoint(cluster.RegionID))
@@ -272,7 +272,7 @@ func createNodePool(logger logrus.FieldLogger, nodePool *model.ACKNodePoolModel,
 	instanceIdsChan <- instanceIds
 }
 
-func updateNodePool(log logrus.FieldLogger, nodePool *model.ACKNodePoolModel, essClient *ess.Client, regionId, clusterName string, createdInstanceIdsChan chan<- []string, errChan chan<- error) {
+func updateNodePool(log logrus.FieldLogger, nodePool *alibabaadapter.ACKNodePoolModel, essClient *ess.Client, regionId, clusterName string, createdInstanceIdsChan chan<- []string, errChan chan<- error) {
 	describeScalingInstancesResponseBeforeModify, err :=
 		describeScalingInstances(essClient, nodePool.AsgID, nodePool.ScalingConfigID, regionId)
 	if err != nil {
@@ -329,7 +329,7 @@ func updateNodePool(log logrus.FieldLogger, nodePool *model.ACKNodePoolModel, es
 	createdInstanceIdsChan <- nil
 }
 
-func waitUntilScalingInstanceUpdated(log logrus.FieldLogger, essClient *ess.Client, regionId string, nodePool *model.ACKNodePoolModel) ([]string, error) {
+func waitUntilScalingInstanceUpdated(log logrus.FieldLogger, essClient *ess.Client, regionId string, nodePool *alibabaadapter.ACKNodePoolModel) ([]string, error) {
 	log.WithField("nodePoolName", nodePool.Name).Info("waiting for instances to get ready")
 
 	for {
@@ -356,7 +356,7 @@ func waitUntilScalingInstanceUpdated(log logrus.FieldLogger, essClient *ess.Clie
 	}
 }
 
-func waitUntilScalingInstancesDeleted(log logrus.FieldLogger, essClient *ess.Client, regionId string, nodePool *model.ACKNodePoolModel) error {
+func waitUntilScalingInstancesDeleted(log logrus.FieldLogger, essClient *ess.Client, regionId string, nodePool *alibabaadapter.ACKNodePoolModel) error {
 	log.WithField("nodePoolName", nodePool.Name).Info("waiting for instances to be deleted")
 
 	for {
