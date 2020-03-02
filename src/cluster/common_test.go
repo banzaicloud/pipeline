@@ -27,6 +27,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
@@ -297,10 +298,10 @@ var (
 		Cloud:          pkgCluster.Azure,
 		Distribution:   pkgCluster.AKS,
 		OrganizationId: organizationId,
-		AKS: model.AKSClusterModel{
+		AKS: azureadapter.AKSClusterModel{
 			ResourceGroup:     clusterRequestRG,
 			KubernetesVersion: clusterRequestKubernetes,
-			NodePools: []*model.AKSNodePoolModel{
+			NodePools: []*azureadapter.AKSNodePoolModel{
 				{
 					CreatedBy:        userId,
 					Autoscaling:      true,

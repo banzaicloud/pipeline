@@ -33,6 +33,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/global"
 	internalAzure "github.com/banzaicloud/pipeline/internal/providers/azure"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -59,9 +60,9 @@ type AKSCluster struct {
 
 // CreateAKSClusterFromRequest returns an AKS cluster instance created from the specified request
 func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID uint, userID uint) (*AKSCluster, error) {
-	var nodePools = make([]*model.AKSNodePoolModel, 0, len(request.Properties.CreateClusterAKS.NodePools))
+	var nodePools = make([]*azureadapter.AKSNodePoolModel, 0, len(request.Properties.CreateClusterAKS.NodePools))
 	for name, np := range request.Properties.CreateClusterAKS.NodePools {
-		nodePools = append(nodePools, &model.AKSNodePoolModel{
+		nodePools = append(nodePools, &azureadapter.AKSNodePoolModel{
 			CreatedBy:        userID,
 			Name:             name,
 			Autoscaling:      np.Autoscaling,
@@ -84,7 +85,7 @@ func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 		CreatedBy:      userID,
 		SecretId:       request.SecretId,
 		Distribution:   pkgCluster.AKS,
-		AKS: model.AKSClusterModel{
+		AKS: azureadapter.AKSClusterModel{
 			ResourceGroup:     request.Properties.CreateClusterAKS.ResourceGroup,
 			KubernetesVersion: request.Properties.CreateClusterAKS.KubernetesVersion,
 			NodePools:         nodePools,
@@ -181,7 +182,7 @@ func isProvisioningSuccessful(cluster *containerservice.ManagedCluster) bool {
 	return *cluster.ProvisioningState == "Succeeded"
 }
 
-func getVNetSubnetID(np *model.AKSNodePoolModel) *string {
+func getVNetSubnetID(np *azureadapter.AKSNodePoolModel) *string {
 	if len(np.VNetSubnetID) == 0 {
 		return nil
 	}
@@ -428,7 +429,7 @@ func (c *AKSCluster) GetResourceGroupName() string {
 
 func (c *AKSCluster) loadAKSClusterModelFromDB() {
 	database := global.DB()
-	database.Where(model.AKSClusterModel{ID: c.GetID()}).First(&c.modelCluster.AKS)
+	database.Where(azureadapter.AKSClusterModel{ID: c.GetID()}).First(&c.modelCluster.AKS)
 }
 
 // DownloadK8sConfig returns the kubeconfig file's contents from AKS
@@ -635,7 +636,7 @@ func (c *AKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 }
 
 // getNodePoolByName returns saved NodePool by name
-func (c *AKSCluster) getNodePoolByName(name string) *model.AKSNodePoolModel {
+func (c *AKSCluster) getNodePoolByName(name string) *azureadapter.AKSNodePoolModel {
 	for _, nodePool := range c.modelCluster.AKS.NodePools {
 		if nodePool != nil && nodePool.Name == name {
 			return nodePool
@@ -1005,7 +1006,7 @@ func CreateOrUpdateResourceGroup(orgID uint, secretID string, resourceGroupName,
 }
 
 // GetAKSNodePools returns AKS node pools from a common cluster.
-func GetAKSNodePools(cluster CommonCluster) ([]*model.AKSNodePoolModel, error) {
+func GetAKSNodePools(cluster CommonCluster) ([]*azureadapter.AKSNodePoolModel, error) {
 	akscluster, ok := cluster.(*AKSCluster)
 	if !ok {
 		return nil, ErrInvalidClusterInstance
