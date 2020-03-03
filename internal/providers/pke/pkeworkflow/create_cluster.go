@@ -140,7 +140,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		}
 
 		activityInput := WaitCFCompletionActivityInput{AWSActivityInput: awsActivityInput, StackID: rolesStackID}
-		activityInput.AWSActivityInput.Region = "us-east-1"
+		activityInput.AWSActivityInput.Region = w.GlobalRegion
 
 		err := workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, activityInput).Get(ctx, &rolesOutput)
 		if err != nil {
