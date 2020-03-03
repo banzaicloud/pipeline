@@ -21,6 +21,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 	"github.com/banzaicloud/pipeline/pkg/gormhelper"
 )
@@ -45,13 +46,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		return err
 	}
 
-	// setup FKs
-	err = gormhelper.AddForeignKey(db, logger, &ClusterModel{}, &amazonadapter.EKSClusterModel{}, "ClusterID")
-	if err != nil {
-		return err
-	}
-
-	err = gormhelper.AddForeignKey(db, logger, &amazonadapter.EKSClusterModel{}, &amazonadapter.EKSSubnetModel{}, "ClusterID")
+	err = gormhelper.AddForeignKey(db, logger, &clustermodel.ClusterModel{}, &amazonadapter.EKSClusterModel{}, "ClusterID")
 	if err != nil {
 		return err
 	}
