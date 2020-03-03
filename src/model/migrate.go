@@ -22,6 +22,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
+	"github.com/banzaicloud/pipeline/pkg/gormhelper"
 )
 
 // Migrate executes the table migrations for the application models.
@@ -46,57 +47,20 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	// setup FKs
-	err = AddForeignKey(db, logger, &ClusterModel{}, &amazonadapter.EKSClusterModel{}, "ClusterID")
+	err = gormhelper.AddForeignKey(db, logger, &ClusterModel{}, &amazonadapter.EKSClusterModel{}, "ClusterID")
 	if err != nil {
 		return err
 	}
 
-	err = AddForeignKey(db, logger, &ClusterModel{}, &ScaleOptions{}, "ClusterID")
+	err = gormhelper.AddForeignKey(db, logger, &ClusterModel{}, &ScaleOptions{}, "ClusterID")
 	if err != nil {
 		return err
 	}
 
-	err = AddForeignKey(db, logger, &amazonadapter.EKSClusterModel{}, &amazonadapter.EKSSubnetModel{}, "ClusterID")
+	err = gormhelper.AddForeignKey(db, logger, &amazonadapter.EKSClusterModel{}, &amazonadapter.EKSSubnetModel{}, "ClusterID")
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func AddForeignKeyAndReferencedKey(db *gorm.DB, logger logrus.FieldLogger, parentTable, childTable interface{}, foreignKeyField string, referencedField string) error {
-	parentTableScope := db.NewScope(parentTable)
-	childTableScope := db.NewScope(childTable)
-
-	log := logger.WithFields(logrus.Fields{
-		"parent_table": strings.TrimSpace(parentTableScope.TableName()),
-		"child_table":  strings.TrimSpace(childTableScope.TableName()),
-	})
-
-	f, ok := childTableScope.FieldByName(foreignKeyField)
-	if !ok {
-		return fmt.Errorf("field %q not found", foreignKeyField)
-	}
-	if !f.IsForeignKey {
-		return fmt.Errorf("%q is not a foreign key field", foreignKeyField)
-	}
-
-	parentIdField := ""
-	if referencedField == "" {
-		parentIdField = parentTableScope.PrimaryKey()
-	} else {
-		f, ok := parentTableScope.FieldByName(referencedField)
-		if !ok {
-			return fmt.Errorf("field %q not found", referencedField)
-		}
-		parentIdField = f.DBName
-	}
-	references := fmt.Sprintf("%s(%s)", parentTableScope.TableName(), parentIdField)
-
-	log.Infof("adding foreign key constraint: %s -> %s", f.DBName, references)
-	return db.Model(childTable).AddForeignKey(f.DBName, references, "RESTRICT", "RESTRICT").Error
-}
-
-func AddForeignKey(db *gorm.DB, logger logrus.FieldLogger, parentTable, childTable interface{}, foreignKeyField string) error {
-	return AddForeignKeyAndReferencedKey(db, logger, parentTable, childTable, foreignKeyField, "")
 }
