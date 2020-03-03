@@ -79,9 +79,9 @@ func (e envService) transform(ctx context.Context, repository helm.Repository) (
 	}
 
 	if repository.TlsSecretID != "" {
-		tlsSecrets, tlsErr := e.secretStore.ResolveTlsSecrets(ctx, repository.PasswordSecretID)
+		tlsSecrets, tlsErr := e.secretStore.ResolveTlsSecrets(ctx, repository.TlsSecretID)
 		if tlsErr != nil {
-			return repo.Entry{}, errors.WrapIf(tlsErr, "failed to transform password values")
+			return repo.Entry{}, errors.WrapIf(tlsErr, "failed to transform tls values")
 		}
 
 		entry.CAFile = tlsSecrets.CAFile

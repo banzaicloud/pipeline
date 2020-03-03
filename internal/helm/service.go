@@ -133,7 +133,7 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 	}
 
 	if repository.TlsSecretID != "" {
-		if err := s.secretStore.CheckTLSSecret(ctx, repository.PasswordSecretID); err != nil {
+		if err := s.secretStore.CheckTLSSecret(ctx, repository.TlsSecretID); err != nil {
 			return ValidationError{message: err.Error(), violations: []string{"tls secret must exist"}}
 		}
 	}
