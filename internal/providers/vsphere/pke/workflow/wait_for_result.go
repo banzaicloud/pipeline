@@ -70,15 +70,15 @@ func (p *progressLogger) loopA() {
 		case <-p.done:
 			stop = true
 		case <-tick.C:
-			line := fmt.Sprintf("\r%s", p.taskName)
-			p.logger.Info(line)
+			line := fmt.Sprintf("%s", p.taskName)
+			p.logger.Debug(line)
 		}
 	}
 
 	if err != nil && err != io.EOF {
-		p.logger.Info(fmt.Sprintf("\r%sError: %s\n", p.taskName, err))
+		p.logger.Debug(fmt.Sprintf("%sError: %s\n", p.taskName, err))
 	} else if called {
-		p.logger.Info(fmt.Sprintf("\r%sOK\n", p.taskName))
+		p.logger.Debug(fmt.Sprintf("%sOK\n", p.taskName))
 	}
 }
 
@@ -96,7 +96,7 @@ func (p *progressLogger) loopB(tick *time.Ticker, ch <-chan progress.Report) err
 			}
 			err = r.Error()
 		case <-tick.C:
-			line := fmt.Sprintf("\r%s", p.taskName)
+			line := fmt.Sprintf("%s", p.taskName)
 			if r != nil {
 				line += fmt.Sprintf("(%.0f%%", r.Percentage())
 				detail := r.Detail()

@@ -191,36 +191,6 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 		return
 	}
 
-	{
-		nodePoolLabels := make([]cluster.NodePoolLabels, 0)
-		for _, np := range params.NodePools {
-			nodePoolLabels = append(nodePoolLabels, cluster.NodePoolLabels{
-				NodePoolName: np.Name,
-				Existing:     false,
-				InstanceType: np.InstanceType(),
-				CustomLabels: np.Labels,
-			})
-		}
-
-		// TODO
-		/*
-			var commonCluster cluster.CommonCluster
-			commonCluster, err = commoncluster.MakeCommonClusterGetter(cc.secrets, cc.store).GetByID(cl.ID)
-			if err != nil {
-				_ = cc.handleError(cl.ID, err)
-				return
-			}
-
-			var labelsMap map[string]map[string]string
-			labelsMap, err = cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolLabels)
-			if err != nil {
-				_ = cc.handleError(cl.ID, err)
-				return
-			}
-		*/
-
-	}
-
 	sshKeyPair, err := GetOrCreateSSHKeyPair(cl, cc.secrets, cc.store)
 	if err = errors.WrapIf(err, "failed to get or create SSH key pair"); err != nil {
 		_ = cc.handleError(cl.ID, err)
@@ -270,7 +240,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 			nodePoolLabels = append(nodePoolLabels, cluster.NodePoolLabels{
 				NodePoolName: np.Name,
 				Existing:     false,
-				//TODO setup the correct instance name
+				//TODO setup instance name, memory, vcpu
 				InstanceType: np.TemplateName,
 				CustomLabels: np.Labels,
 			})

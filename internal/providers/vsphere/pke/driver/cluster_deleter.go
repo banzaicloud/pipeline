@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/pipeline/src/utils"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/client"
@@ -79,7 +80,14 @@ func (cd ClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnVsphereClu
 	logger := cd.logger.WithField("clusterName", cluster.Name).WithField("clusterID", cluster.ID).WithField("forced", forced)
 	logger.Info("Deleting cluster")
 
-	vmNames := getVMNames(cluster)
+
+	masterVmNames, vmNames := getVMNames(cluster)
+	masterNodes := make([]workflow.Node, 0)
+	for _, vmName := range masterVmNames  {
+		masterNodes = append(masterNodes, workflow.Node{
+			Name: vmName,
+		})
+	}
 	nodes := make([]workflow.Node, 0)
 	for _, vmName := range vmNames  {
 		nodes = append(nodes, workflow.Node{
@@ -95,6 +103,7 @@ func (cd ClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnVsphereClu
 		ClusterUID:     cluster.UID,
 		K8sSecretID:    cluster.K8sSecretID,
 		Forced:         forced,
+		MasterNodes:    masterNodes,
 		Nodes:          nodes,
 	}
 
@@ -182,12 +191,21 @@ func (cd ClusterDeleter) DeleteByID(ctx context.Context, clusterID uint, forced 
 	return cd.Delete(ctx, cl, forced)
 }
 
-func getVMNames(cluster pke.PKEOnVsphereCluster) []string {
-	names := []string{}
+func getVMNames(cluster pke.PKEOnVsphereCluster) ([]string, []string) {
+	masterVmNames := []string{}
+	vmNames := []string{}
 	for _, np := range cluster.NodePools {
+		names := []string{}
 		for j := 1; j <= np.Count; j++ {
 			names = append(names, pke.GetVMName(cluster.Name, np.Name, j))
 		}
+		
+		if utils.Contains(np.Roles, "master") {
+			masterVmNames = append(masterVmNames, names...)
+		} else {
+			vmNames = append(vmNames, names...)
+		}
+
 	}
-	return names
+	return masterVmNames, vmNames
 }

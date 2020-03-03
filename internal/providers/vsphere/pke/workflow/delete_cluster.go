@@ -41,8 +41,8 @@ type DeleteClusterWorkflowInput struct {
 	FolderName       string
 	DatastoreName    string
 	SecretID         string
+	MasterNodes      []Node
 	Nodes            []Node
-
 	Forced bool
 }
 
@@ -90,11 +90,30 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			}
 		}
 	}
-	// Delete nodes
+
+	// Delete VM nodes
+	{
+		for _, node := range input.Nodes {
+			activityInput := DeleteNodeActivityInput{
+				OrganizationID: input.OrganizationID,
+				SecretID:       input.SecretID,
+				ClusterID:      input.ClusterID,
+				ClusterName:    input.ClusterName,
+				Node:           node,
+			}
+
+			err := workflow.ExecuteActivity(ctx, DeleteNodeActivityName, activityInput).Get(ctx, nil)
+			if err != nil {
+				return errors.WrapIff(err, "deleting node %q", node.Name)
+			}
+		}
+	}
+
+	// Delete master VM nodes
 	{
 		futures := make(map[string]workflow.Future)
 
-		for _, node := range input.Nodes {
+		for _, node := range input.MasterNodes {
 			activityInput := DeleteNodeActivityInput{
 				OrganizationID: input.OrganizationID,
 				SecretID:       input.SecretID,
