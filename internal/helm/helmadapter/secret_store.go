@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/helm"
 )
@@ -42,6 +43,22 @@ func (s secretStore) CheckPasswordSecret(ctx context.Context, secretID string) e
 func (s secretStore) CheckTLSSecret(ctx context.Context, secretID string) error {
 	// TODO validate the secret type too
 	return s.secretExists(ctx, secretID)
+}
+
+func (s secretStore) ResolvePasswordSecrets(ctx context.Context, secretID string) (helm.PasswordSecret, error) {
+	valuesMap, err := s.secrets.GetSecretValues(ctx, secretID)
+	if err != nil {
+		return helm.PasswordSecret{}, errors.WrapIfWithDetails(err, "failed to resolve password secret",
+			"secretID", secretID)
+	}
+
+	var passwordSecret helm.PasswordSecret
+	if err := mapstructure.Decode(valuesMap, &passwordSecret); err != nil {
+		return passwordSecret, errors.WrapIfWithDetails(err, "failed to decode password secret",
+			"secretID", secretID)
+	}
+
+	return passwordSecret, nil
 }
 
 func (s secretStore) secretExists(ctx context.Context, secretID string) error {
