@@ -287,7 +287,7 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 	}
 
 	return installDeployment(cluster, infraNamespace, config.Autoscale.Charts.HPAOperator.Chart,
-		"hpa-operator", mergedValues, config.Autoscale.Charts.HPAOperator.Version, false)
+		"hpa-operator", mergedValues, config.Autoscale.Charts.HPAOperator.Version, true)
 }
 
 // RestoreFromBackup restores an ARK backup
