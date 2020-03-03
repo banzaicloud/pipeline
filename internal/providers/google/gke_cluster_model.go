@@ -20,20 +20,14 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
-)
-
-// TableName constants
-const (
-	gkeClusterModelTableName  = "google_gke_clusters"
-	gkeNodePoolModelTableName = "google_gke_node_pools"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 )
 
 // GKEClusterModel is the schema for the DB.
 type GKEClusterModel struct {
-	ID        uint                        `gorm:"primary_key"`
-	Cluster   clusteradapter.ClusterModel `gorm:"foreignkey:ClusterID"`
-	ClusterID uint                        `gorm:"unique_index:idx_gke_cluster_id"`
+	ID        uint                      `gorm:"primary_key"`
+	Cluster   clustermodel.ClusterModel `gorm:"foreignkey:ClusterID"`
+	ClusterID uint                      `gorm:"unique_index:idx_gke_cluster_id"`
 
 	MasterVersion string
 	NodeVersion   string
@@ -46,7 +40,7 @@ type GKEClusterModel struct {
 
 // TableName changes the default table name.
 func (GKEClusterModel) TableName() string {
-	return gkeClusterModelTableName
+	return "google_gke_clusters"
 }
 
 // BeforeCreate sets some initial values for the cluster.
@@ -123,7 +117,7 @@ type GKENodePoolModel struct {
 
 // TableName changes the default table name.
 func (GKENodePoolModel) TableName() string {
-	return gkeNodePoolModelTableName
+	return "google_gke_node_pools"
 }
 
 // BeforeDelete deletes all nodepoollabels that belongs to GKENodePoolModel

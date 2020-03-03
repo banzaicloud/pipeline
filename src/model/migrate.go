@@ -29,7 +29,6 @@ import (
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
 		&ClusterModel{},
-		&ScaleOptions{},
 	}
 
 	var tableNames string
@@ -48,11 +47,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 
 	// setup FKs
 	err = gormhelper.AddForeignKey(db, logger, &ClusterModel{}, &amazonadapter.EKSClusterModel{}, "ClusterID")
-	if err != nil {
-		return err
-	}
-
-	err = gormhelper.AddForeignKey(db, logger, &ClusterModel{}, &ScaleOptions{}, "ClusterID")
 	if err != nil {
 		return err
 	}

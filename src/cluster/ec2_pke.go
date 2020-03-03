@@ -36,6 +36,7 @@ import (
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/global"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
@@ -173,7 +174,7 @@ func (c *EC2ClusterPKE) SetStatus(status, statusMessage string) error {
 	if c.model.Cluster.ID != 0 {
 		// Record status change to history before modifying the actual status.
 		// If setting/saving the actual status doesn't succeed somehow, at least we can reconstruct it from history (i.e. event sourcing).
-		statusHistory := clusteradapter.StatusHistoryModel{
+		statusHistory := clustermodel.StatusHistoryModel{
 			ClusterID:   c.model.Cluster.ID,
 			ClusterName: c.model.Cluster.Name,
 
@@ -1031,7 +1032,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 	}
 
 	c.model = &internalPke.EC2PKEClusterModel{
-		Cluster: clusteradapter.ClusterModel{
+		Cluster: clustermodel.ClusterModel{
 			Name:           request.Name,
 			Location:       request.Location,
 			Cloud:          request.Cloud,

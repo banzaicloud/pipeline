@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 )
 
 func TestGKEClusterModel_String(t *testing.T) {
@@ -30,7 +30,7 @@ func TestGKEClusterModel_String(t *testing.T) {
 		{
 			name: "SingleNodePools",
 			googleClusterModel: GKEClusterModel{
-				Cluster: clusteradapter.ClusterModel{
+				Cluster: clustermodel.ClusterModel{
 					ID:           1,
 					Cloud:        "google",
 					Distribution: "gke",
@@ -57,7 +57,7 @@ func TestGKEClusterModel_String(t *testing.T) {
 		{
 			name: "MultipleNodePools",
 			googleClusterModel: GKEClusterModel{
-				Cluster: clusteradapter.ClusterModel{
+				Cluster: clustermodel.ClusterModel{
 					ID:           1,
 					Cloud:        "google",
 					Distribution: "gke",
