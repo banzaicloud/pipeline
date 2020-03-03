@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusteradapter
+package clustermodel
 
 import (
 	"fmt"
@@ -20,12 +20,15 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/pkg/gormhelper"
 )
 
 // Migrate executes the table migrations for the cluster module.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
 		&ClusterModel{},
+		&ScaleOptions{},
 		&StatusHistoryModel{},
 	}
 
@@ -38,5 +41,15 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		"table_names": strings.TrimSpace(tableNames),
 	}).Info("migrating model tables")
 
-	return db.AutoMigrate(tables...).Error
+	err := db.AutoMigrate(tables...).Error
+	if err != nil {
+		return err
+	}
+
+	err = gormhelper.AddForeignKey(db, logger, &ClusterModel{}, &ScaleOptions{}, "ClusterID")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

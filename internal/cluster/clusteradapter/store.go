@@ -21,6 +21,7 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	"github.com/banzaicloud/pipeline/src/model"
 )
@@ -133,7 +134,7 @@ func (s Store) SetStatus(ctx context.Context, id uint, status string, message st
 			"statusMessage": message,
 		}
 
-		statusHistory := StatusHistoryModel{
+		statusHistory := clustermodel.StatusHistoryModel{
 			ClusterID:   clusterModel.ID,
 			ClusterName: clusterModel.Name,
 

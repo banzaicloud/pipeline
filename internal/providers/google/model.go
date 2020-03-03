@@ -21,7 +21,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/pkg/gormhelper"
 	"github.com/banzaicloud/pipeline/pkg/providers/google"
 )
@@ -50,7 +50,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		return err
 	}
 
-	err = gormhelper.AddForeignKey(db, logger, &clusteradapter.ClusterModel{}, &GKEClusterModel{}, "ClusterID")
+	err = gormhelper.AddForeignKey(db, logger, &clustermodel.ClusterModel{}, &GKEClusterModel{}, "ClusterID")
 	if err != nil {
 		return err
 	}

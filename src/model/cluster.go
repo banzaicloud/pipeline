@@ -22,6 +22,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/gofrs/uuid"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
@@ -52,7 +53,7 @@ type ClusterModel struct {
 	SshSecretId    string
 	Status         string
 	RbacEnabled    bool
-	ScaleOptions   ScaleOptions                             `gorm:"foreignkey:ClusterID"`
+	ScaleOptions   clustermodel.ScaleOptions                `gorm:"foreignkey:ClusterID"`
 	StatusMessage  string                                   `sql:"type:text;"`
 	ACK            alibabaadapter.ACKClusterModel           `gorm:"foreignkey:ID"`
 	AKS            azureadapter.AKSClusterModel             `gorm:"foreignkey:ID"`
@@ -65,19 +66,6 @@ type ClusterModel struct {
 // TableName sets ClusterModel's table name
 func (ClusterModel) TableName() string {
 	return "clusters"
-}
-
-// ScaleOptions describes scale options
-type ScaleOptions struct {
-	ID                  uint `gorm:"primary_key"`
-	ClusterID           uint `gorm:"unique_index:idx_scale_options_cluster_id"`
-	Enabled             bool
-	DesiredCpu          float64
-	DesiredMem          float64
-	DesiredGpu          int
-	OnDemandPct         int
-	Excludes            string `sql:"type:text;"`
-	KeepDesiredCapacity bool
 }
 
 func (cs *ClusterModel) BeforeCreate() (err error) {
@@ -163,7 +151,7 @@ func (cs *ClusterModel) UpdateStatus(status, statusMessage string) error {
 	if cs.ID != 0 {
 		// Record status change to history before modifying the actual status.
 		// If setting/saving the actual status doesn't succeed somehow, at least we can reconstruct it from history (i.e. event sourcing).
-		statusHistory := StatusHistoryModel{
+		statusHistory := clustermodel.StatusHistoryModel{
 			ClusterID:   cs.ID,
 			ClusterName: cs.Name,
 

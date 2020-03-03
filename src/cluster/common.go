@@ -27,7 +27,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	logrusadapter "logur.dev/adapter/logrus"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
@@ -265,11 +265,11 @@ func getSecret(organizationId uint, secretId string) (*secret.SecretItemResponse
 	return secret.Store.Get(organizationId, secretId)
 }
 
-func updateScaleOptions(scaleOptions *model.ScaleOptions, requestScaleOptions *pkgCluster.ScaleOptions) {
+func updateScaleOptions(scaleOptions *clustermodel.ScaleOptions, requestScaleOptions *pkgCluster.ScaleOptions) {
 	if scaleOptions == nil || requestScaleOptions == nil {
 		return
 	}
-	excludes := strings.Join(requestScaleOptions.Excludes, clusteradapter.InstanceTypeSeparator)
+	excludes := strings.Join(requestScaleOptions.Excludes, clustermodel.InstanceTypeSeparator)
 	scaleOptions.Enabled = requestScaleOptions.Enabled
 	scaleOptions.DesiredCpu = requestScaleOptions.DesiredCpu
 	scaleOptions.DesiredMem = requestScaleOptions.DesiredMem
@@ -279,7 +279,7 @@ func updateScaleOptions(scaleOptions *model.ScaleOptions, requestScaleOptions *p
 	scaleOptions.KeepDesiredCapacity = requestScaleOptions.KeepDesiredCapacity
 }
 
-func getScaleOptionsFromModel(scaleOptions model.ScaleOptions) *pkgCluster.ScaleOptions {
+func getScaleOptionsFromModel(scaleOptions clustermodel.ScaleOptions) *pkgCluster.ScaleOptions {
 	if scaleOptions.ID != 0 {
 		scaleOpt := &pkgCluster.ScaleOptions{
 			Enabled:             scaleOptions.Enabled,
@@ -290,7 +290,7 @@ func getScaleOptionsFromModel(scaleOptions model.ScaleOptions) *pkgCluster.Scale
 			KeepDesiredCapacity: scaleOptions.KeepDesiredCapacity,
 		}
 		if len(scaleOptions.Excludes) > 0 {
-			scaleOpt.Excludes = strings.Split(scaleOptions.Excludes, clusteradapter.InstanceTypeSeparator)
+			scaleOpt.Excludes = strings.Split(scaleOptions.Excludes, clustermodel.InstanceTypeSeparator)
 		}
 		return scaleOpt
 	}

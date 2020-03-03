@@ -1,5 +1,4 @@
-// nolint: dupl
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,22 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package clustermodel
 
 import (
 	"time"
 )
 
-const (
-	clusterStatusHistoryTableName = "cluster_status_history"
-)
-
 // StatusHistoryModel records the status transitions of a cluster and stores it in a database.
-// Note: this model is temporarily copied here from internal/cluster, until import cycles are resolved.
 type StatusHistoryModel struct {
 	ID uint `gorm:"primary_key"`
 
-	ClusterID   uint      `gorm:"not null; index"`
+	ClusterID   uint      `gorm:"not null;index"`
 	ClusterName string    `gorm:"not null"`
 	CreatedAt   time.Time `gorm:"not null"`
 
@@ -40,5 +34,5 @@ type StatusHistoryModel struct {
 
 // TableName changes the default table name.
 func (StatusHistoryModel) TableName() string {
-	return clusterStatusHistoryTableName
+	return "cluster_status_history"
 }

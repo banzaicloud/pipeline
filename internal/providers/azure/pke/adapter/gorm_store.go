@@ -22,13 +22,12 @@ import (
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/database/sql/json"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/src/model"
 )
 
 const (
@@ -60,8 +59,8 @@ type clusterModel struct {
 
 	HTTPProxy httpProxyModel `gorm:"type:json"`
 
-	Cluster   clusteradapter.ClusterModel `gorm:"foreignkey:ClusterID"`
-	NodePools []nodePoolModel             `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
+	Cluster   clustermodel.ClusterModel `gorm:"foreignkey:ClusterID"`
+	NodePools []nodePoolModel           `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
 
 	AccessPoints          accessPointsModel          `gorm:"type:json"`
 	ApiServerAccessPoints apiServerAccessPointsModel `gorm:"type:json"`
@@ -350,7 +349,7 @@ func (s ClusterStore) Create(params pke.CreateParams) (pke.Cluster, error) {
 	}
 
 	model := clusterModel{
-		Cluster: clusteradapter.ClusterModel{
+		Cluster: clustermodel.ClusterModel{
 			CreatedBy:      params.CreatedBy,
 			Name:           params.Name,
 			Location:       params.Location,
@@ -363,7 +362,7 @@ func (s ClusterStore) Create(params pke.CreateParams) (pke.Cluster, error) {
 			StatusMessage:  pkgCluster.CreatingMessage,
 			RbacEnabled:    params.RBAC,
 			OidcEnabled:    params.OIDC,
-			ScaleOptions: model.ScaleOptions{
+			ScaleOptions: clustermodel.ScaleOptions{
 				Enabled:             params.ScaleOptions.Enabled,
 				DesiredCpu:          params.ScaleOptions.DesiredCpu,
 				DesiredMem:          params.ScaleOptions.DesiredMem,
@@ -415,7 +414,7 @@ func (s ClusterStore) Delete(clusterID uint) error {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := clusteradapter.ClusterModel{
+	model := clustermodel.ClusterModel{
 		ID: clusterID,
 	}
 	if err := getError(s.db.Where(model).First(&model), "failed to load model from database"); err != nil {
@@ -446,7 +445,7 @@ func (s ClusterStore) SetStatus(clusterID uint, status, message string) error {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := clusteradapter.ClusterModel{
+	model := clustermodel.ClusterModel{
 		ID: clusterID,
 	}
 	if err := getError(s.db.Where(&model).First(&model), "failed to load cluster model"); err != nil {
@@ -459,7 +458,7 @@ func (s ClusterStore) SetStatus(clusterID uint, status, message string) error {
 			"statusMessage": message,
 		}
 
-		statusHistory := clusteradapter.StatusHistoryModel{
+		statusHistory := clustermodel.StatusHistoryModel{
 			ClusterID:   model.ID,
 			ClusterName: model.Name,
 
@@ -523,7 +522,7 @@ func (s ClusterStore) SetConfigSecretID(clusterID uint, secretID string) error {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := clusteradapter.ClusterModel{
+	model := clustermodel.ClusterModel{
 		ID: clusterID,
 	}
 
@@ -539,7 +538,7 @@ func (s ClusterStore) SetSSHSecretID(clusterID uint, secretID string) error {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := clusteradapter.ClusterModel{
+	model := clustermodel.ClusterModel{
 		ID: clusterID,
 	}
 
@@ -555,7 +554,7 @@ func (s ClusterStore) GetConfigSecretID(clusterID uint) (string, error) {
 		return "", errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := clusteradapter.ClusterModel{
+	model := clustermodel.ClusterModel{
 		ID: clusterID,
 	}
 	if err := getError(s.db.Where(&model).First(&model), "failed to load cluster model"); err != nil {

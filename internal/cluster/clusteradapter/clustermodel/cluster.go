@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusteradapter
+package clustermodel
 
 import (
 	"fmt"
@@ -22,16 +22,10 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 const unknownLocation = "unknown"
-
-// TableName constants
-const (
-	clustersTableName = "clusters"
-)
 
 const InstanceTypeSeparator = " "
 
@@ -56,14 +50,14 @@ type ClusterModel struct {
 	SSHSecretID    string
 	Status         string
 	RbacEnabled    bool
-	OidcEnabled    bool               `gorm:"default:false;not null"`
-	StatusMessage  string             `sql:"type:text;"`
-	ScaleOptions   model.ScaleOptions `gorm:"foreignkey:ClusterID"`
+	OidcEnabled    bool         `gorm:"default:false;not null"`
+	StatusMessage  string       `sql:"type:text;"`
+	ScaleOptions   ScaleOptions `gorm:"foreignkey:ClusterID"`
 }
 
 // TableName changes the default table name.
 func (ClusterModel) TableName() string {
-	return clustersTableName
+	return "clusters"
 }
 
 func (m *ClusterModel) BeforeCreate() (err error) {
