@@ -40,7 +40,7 @@ func NewEnvService(orgService OrgService, secretStore helm.SecretStore, logger L
 	}
 }
 
-// AddRepository
+// AddRepository sets up the environment for the passed in repository
 func (e envService) AddRepository(ctx context.Context, organizationID uint, repository helm.Repository) error {
 	orgName, err := e.orgService.GetOrgNameByOrgID(ctx, organizationID)
 	if err != nil {
@@ -57,6 +57,32 @@ func (e envService) AddRepository(ctx context.Context, organizationID uint, repo
 	_, err = legacyHelm.ReposAdd(helmEnv, &entry)
 	if err != nil {
 		return errors.WrapIf(err, "failed to set up environment for repository")
+	}
+
+	return nil
+}
+
+// ListRepositories noop implementation (env details not returned
+func (e envService) ListRepositories(ctx context.Context, organizationID uint) (repos []helm.Repository, err error) {
+	// TODO revise this (should anything be returned here?)
+	return nil, nil
+}
+
+// DeleteRepository deletes the  helm repository environment
+func (e envService) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {
+	orgName, err := e.orgService.GetOrgNameByOrgID(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to add repository")
+	}
+
+	helmEnv := legacyHelm.GenerateHelmRepoEnv(orgName)
+
+	if err := legacyHelm.ReposDelete(helmEnv, repoName); err != nil {
+		if err.Error() == legacyHelm.ErrRepoNotFound.Error() {
+			return nil
+		}
+
+		return errors.WrapIf(err, "failed to delete helm repository environment")
 	}
 
 	return nil
@@ -79,6 +105,7 @@ func (e envService) transform(ctx context.Context, repository helm.Repository) (
 	}
 
 	if repository.TlsSecretID != "" {
+		// TODO tls support needs to be finalized here (too)
 		tlsSecrets, tlsErr := e.secretStore.ResolveTlsSecrets(ctx, repository.TlsSecretID)
 		if tlsErr != nil {
 			return repo.Entry{}, errors.WrapIf(tlsErr, "failed to transform tls values")
@@ -90,12 +117,4 @@ func (e envService) transform(ctx context.Context, repository helm.Repository) (
 	}
 
 	return entry, nil
-}
-
-func (e envService) ListRepositories(ctx context.Context, organizationID uint) (repos []helm.Repository, err error) {
-	panic("implement me")
-}
-
-func (e envService) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {
-	panic("implement me")
 }

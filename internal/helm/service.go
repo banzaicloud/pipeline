@@ -168,6 +168,22 @@ func (s service) ListRepositories(ctx context.Context, organizationID uint) (rep
 }
 
 func (s service) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {
+
+	repoExists, err := s.repoExists(ctx, organizationID, Repository{Name: repoName})
+	if err != nil {
+		return err
+	}
+
+	if !repoExists {
+		return nil
+	}
+
+	// delete the environment
+	if err := s.envService.DeleteRepository(ctx, organizationID, repoName); err != nil {
+		return errors.WrapIf(err, "failed to delete helm repository environment")
+	}
+
+	// delete form the persistent store
 	if err := s.store.Delete(ctx, organizationID, Repository{Name: repoName}); err != nil {
 		return errors.WrapIf(err, "failed to delete helm repository")
 	}
@@ -180,6 +196,7 @@ func (s service) repoExists(ctx context.Context, orgID uint, repository Reposito
 	_, err := s.store.Get(ctx, orgID, repository)
 
 	if err != nil {
+		// TODO refine this implementation, separate results by error type
 		return false, nil
 	}
 
