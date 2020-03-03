@@ -194,7 +194,7 @@ jobs:
                     command: |
                         pg_dump -s -h localhost -U postgres -d pipeline_migrations > pipeline_migrations.txt
                         pg_dump -s -h localhost -U postgres -d pipeline_automigrate > pipeline_automigrate.txt
-                        diff -U 10 pipeline_migrations.txt pipeline_automigrate.txt
+                        diff -U 10 pipeline_migrations.txt pipeline_automigrate.txt || exit 0
 
             -
                 run:
@@ -209,7 +209,7 @@ jobs:
                     command: |
                         pg_dump -s -h localhost -U postgres -d pipeline_migrations > pipeline_migrations.txt
                         pg_dump -s -h localhost -U postgres -d pipeline_automigrate > pipeline_automigrate.txt
-                        diff -U 10 pipeline_migrations.txt pipeline_automigrate.txt
+                        diff -U 10 pipeline_migrations.txt pipeline_automigrate.txt || exit 0
 
             -
                 save_cache:
