@@ -20,10 +20,6 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
-
-	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
-	"github.com/banzaicloud/pipeline/pkg/gormhelper"
 )
 
 // Migrate executes the table migrations for the application models.
@@ -42,11 +38,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}).Info("migrating model tables")
 
 	err := db.AutoMigrate(tables...).Error
-	if err != nil {
-		return err
-	}
-
-	err = gormhelper.AddForeignKey(db, logger, &clustermodel.ClusterModel{}, &amazonadapter.EKSClusterModel{}, "ClusterID")
 	if err != nil {
 		return err
 	}

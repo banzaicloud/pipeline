@@ -119,7 +119,7 @@ func getNodePoolsForSubnet(subnetMapping map[string][]*pkgEks.Subnet, eksSubnet 
 // Create implements the clusterCreator interface.
 func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogger, commonCluster cluster.CommonCluster, createRequest *pkgCluster.CreateClusterRequest) (cluster.CommonCluster, error) {
 	logger.Info("start creating EKS Cluster")
-	modelCluster := commonCluster.(*cluster.EKSCluster).GetEKSModel()
+	modelCluster := commonCluster.(*cluster.EKSCluster).GetModel()
 
 	if createRequest.PostHooks == nil {
 		createRequest.PostHooks = make(pkgCluster.PostHooks)
