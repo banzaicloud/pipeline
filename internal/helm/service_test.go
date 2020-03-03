@@ -28,6 +28,7 @@ func Test_service_AddRepository(t *testing.T) {
 		store         Store
 		secretStore   SecretStore
 		repoValidator RepoValidator
+		envService    Service
 		logger        common.Logger
 	}
 	type args struct {
@@ -39,7 +40,7 @@ func Test_service_AddRepository(t *testing.T) {
 		name       string
 		fields     fields
 		args       args
-		setupMocks func(store *Store, secretStore *SecretStore, arguments args)
+		setupMocks func(store *Store, secretStore *SecretStore, envService *Service, arguments args)
 		wantErr    bool
 	}{
 		{
@@ -47,6 +48,7 @@ func Test_service_AddRepository(t *testing.T) {
 			fields: fields{
 				store:         &MockStore{},
 				secretStore:   &MockSecretStore{},
+				envService:    &MockService{},
 				repoValidator: NewHelmRepoValidator(),
 				logger:        common.NoopLogger{},
 			},
@@ -59,7 +61,7 @@ func Test_service_AddRepository(t *testing.T) {
 					PasswordSecretID: "password-ref",
 				},
 			},
-			setupMocks: func(store *Store, secretStore *SecretStore, arguments args) {
+			setupMocks: func(store *Store, secretStore *SecretStore, envService *Service, arguments args) {
 				secretStoreMock := (*secretStore).(*MockSecretStore)
 				secretStoreMock.On("CheckPasswordSecret", arguments.ctx, arguments.repository.PasswordSecretID).Return(nil)
 			},
@@ -70,6 +72,7 @@ func Test_service_AddRepository(t *testing.T) {
 			fields: fields{
 				store:         &MockStore{},
 				secretStore:   &MockSecretStore{},
+				envService:    &MockService{},
 				repoValidator: NewHelmRepoValidator(),
 				logger:        common.NoopLogger{},
 			},
@@ -82,7 +85,7 @@ func Test_service_AddRepository(t *testing.T) {
 					PasswordSecretID: "password-ref",
 				},
 			},
-			setupMocks: func(store *Store, secretStore *SecretStore, arguments args) {
+			setupMocks: func(store *Store, secretStore *SecretStore, envService *Service, arguments args) {
 				secretStoreMock := (*secretStore).(*MockSecretStore)
 				secretStoreMock.On("CheckPasswordSecret", arguments.ctx, arguments.repository.PasswordSecretID).Return(errors.New("secret doesn't exist"))
 			},
@@ -93,6 +96,7 @@ func Test_service_AddRepository(t *testing.T) {
 			fields: fields{
 				store:         &MockStore{},
 				secretStore:   &MockSecretStore{},
+				envService:    &MockService{},
 				repoValidator: NewHelmRepoValidator(),
 				logger:        common.NoopLogger{},
 			},
@@ -105,7 +109,7 @@ func Test_service_AddRepository(t *testing.T) {
 					PasswordSecretID: "password-ref",
 				},
 			},
-			setupMocks: func(store *Store, secretStore *SecretStore, arguments args) {
+			setupMocks: func(store *Store, secretStore *SecretStore, envService *Service, arguments args) {
 				secretStoreMock := (*secretStore).(*MockSecretStore)
 				secretStoreMock.On("CheckPasswordSecret", arguments.ctx, arguments.repository.PasswordSecretID).Return(nil)
 
@@ -119,6 +123,7 @@ func Test_service_AddRepository(t *testing.T) {
 			fields: fields{
 				store:         &MockStore{},
 				secretStore:   &MockSecretStore{},
+				envService:    &MockService{},
 				repoValidator: NewHelmRepoValidator(),
 				logger:        common.NoopLogger{},
 			},
@@ -131,24 +136,28 @@ func Test_service_AddRepository(t *testing.T) {
 					PasswordSecretID: "password-ref",
 				},
 			},
-			setupMocks: func(store *Store, secretStore *SecretStore, arguments args) {
+			setupMocks: func(store *Store, secretStore *SecretStore, envService *Service, arguments args) {
 				secretStoreMock := (*secretStore).(*MockSecretStore)
 				secretStoreMock.On("CheckPasswordSecret", arguments.ctx, arguments.repository.PasswordSecretID).Return(nil)
 
 				storeMock := (*store).(*MockStore)
 				storeMock.On("Get", arguments.ctx, arguments.organizationID, arguments.repository).Return(Repository{}, errors.New("repo not found"))
 				storeMock.On("Create", arguments.ctx, arguments.organizationID, arguments.repository).Return(nil)
+
+				envServiceMock := (*envService).(*MockService)
+				envServiceMock.On("AddRepository", arguments.ctx, arguments.organizationID, arguments.repository).Return(nil)
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.setupMocks(&tt.fields.store, &tt.fields.secretStore, tt.args)
+			tt.setupMocks(&tt.fields.store, &tt.fields.secretStore, &tt.fields.envService, tt.args)
 			s := service{
 				store:         tt.fields.store,
 				secretStore:   tt.fields.secretStore,
 				repoValidator: tt.fields.repoValidator,
+				envService:    tt.fields.envService,
 				logger:        tt.fields.logger,
 			}
 

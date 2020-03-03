@@ -46,6 +46,7 @@ type Repository struct {
 }
 
 // +kit:endpoint:errorStrategy=service
+// +testify:mock:testOnly=true
 
 // Service manages Helm chart repositories.
 type Service interface {
@@ -87,8 +88,6 @@ type Store interface {
 	Get(ctx context.Context, organizationID uint, repository Repository) (Repository, error)
 }
 
-// +testify:mock:testOnly=true
-
 type PasswordSecret struct {
 	UserName string
 	Password string
@@ -99,6 +98,8 @@ type TlsSecret struct {
 	CertFile string
 	KeyFile  string
 }
+
+// +testify:mock:testOnly=true
 
 // SecretStore abstracts secret related operations
 type SecretStore interface {
@@ -168,7 +169,6 @@ func (s service) ListRepositories(ctx context.Context, organizationID uint) (rep
 }
 
 func (s service) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {
-
 	repoExists, err := s.repoExists(ctx, organizationID, Repository{Name: repoName})
 	if err != nil {
 		return err
