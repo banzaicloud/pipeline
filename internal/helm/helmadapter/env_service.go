@@ -47,21 +47,12 @@ func (e envService) AddRepository(ctx context.Context, organizationID uint, repo
 		return errors.WrapIf(err, "failed to add repository")
 	}
 
-	var (
-		passwordSecrets helm.PasswordSecret
-		passErr         error
-	)
-	if repository.PasswordSecretID != "" {
-		passwordSecrets, passErr = e.secretStore.ResolvePasswordSecrets(ctx, repository.PasswordSecretID)
-		if passErr != nil {
-			return errors.WrapIf(err, "failed to transform password values")
-		}
-	}
-	// TODO handle tls secrets
-
 	helmEnv := legacyHelm.GenerateHelmRepoEnv(orgName)
 
-	entry := e.transform(passwordSecrets, repository)
+	entry, err := e.transform(ctx, repository)
+	if err != nil {
+		return errors.WrapIf(err, "failed to resolve helm entry data")
+	}
 
 	_, err = legacyHelm.ReposAdd(helmEnv, &entry)
 	if err != nil {
@@ -71,18 +62,34 @@ func (e envService) AddRepository(ctx context.Context, organizationID uint, repo
 	return nil
 }
 
-func (e envService) transform(passwordSecrets helm.PasswordSecret, repository helm.Repository) repo.Entry {
+func (e envService) transform(ctx context.Context, repository helm.Repository) (repo.Entry, error) {
 	entry := repo.Entry{
 		Name: repository.Name,
 		URL:  repository.URL,
 	}
 
-	if passwordSecrets != (helm.PasswordSecret{}) {
+	if repository.PasswordSecretID != "" {
+		passwordSecrets, passErr := e.secretStore.ResolvePasswordSecrets(ctx, repository.PasswordSecretID)
+		if passErr != nil {
+			return repo.Entry{}, errors.WrapIf(passErr, "failed to transform password values")
+		}
+
 		entry.Username = passwordSecrets.UserName
 		entry.Password = passwordSecrets.Password
 	}
 
-	return entry
+	if repository.TlsSecretID != "" {
+		tlsSecrets, tlsErr := e.secretStore.ResolveTlsSecrets(ctx, repository.PasswordSecretID)
+		if tlsErr != nil {
+			return repo.Entry{}, errors.WrapIf(tlsErr, "failed to transform password values")
+		}
+
+		entry.CAFile = tlsSecrets.CAFile
+		entry.CertFile = tlsSecrets.CertFile
+		entry.KeyFile = tlsSecrets.KeyFile
+	}
+
+	return entry, nil
 }
 
 func (e envService) ListRepositories(ctx context.Context, organizationID uint) (repos []helm.Repository, err error) {
