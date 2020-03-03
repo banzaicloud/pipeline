@@ -61,6 +61,22 @@ func (s secretStore) ResolvePasswordSecrets(ctx context.Context, secretID string
 	return passwordSecret, nil
 }
 
+func (s secretStore) ResolveTlsSecrets(ctx context.Context, secretID string) (helm.TlsSecret, error) {
+	valuesMap, err := s.secrets.GetSecretValues(ctx, secretID)
+	if err != nil {
+		return helm.TlsSecret{}, errors.WrapIfWithDetails(err, "failed to resolve password secret",
+			"secretID", secretID)
+	}
+
+	var tlsSecret helm.TlsSecret
+	if err := mapstructure.Decode(valuesMap, &tlsSecret); err != nil {
+		return tlsSecret, errors.WrapIfWithDetails(err, "failed to decode tls secret",
+			"secretID", secretID)
+	}
+
+	return tlsSecret, nil
+}
+
 func (s secretStore) secretExists(ctx context.Context, secretID string) error {
 	if _, err := s.secrets.GetSecretValues(ctx, secretID); err != nil {
 		return errors.WrapIf(err, "failed to retrieve secret values")

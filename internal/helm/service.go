@@ -60,11 +60,12 @@ type Service interface {
 }
 
 // NewService returns a new Service.
-func NewService(store Store, secretStore SecretStore, validator RepoValidator, logger Logger) Service {
+func NewService(store Store, secretStore SecretStore, validator RepoValidator, envService Service, logger Logger) Service {
 	return service{
 		store:         store,
 		secretStore:   secretStore,
 		repoValidator: validator,
+		envService:    envService,
 		logger:        logger,
 	}
 }
@@ -88,16 +89,34 @@ type Store interface {
 
 // +testify:mock:testOnly=true
 
+type PasswordSecret struct {
+	UserName string
+	Password string
+}
+
+type TlsSecret struct {
+	CAFile   string
+	CertFile string
+	KeyFile  string
+}
+
 // SecretStore abstracts secret related operations
 type SecretStore interface {
+	// CheckPasswordSecret checks the existence and the type of the secret
 	CheckPasswordSecret(ctx context.Context, secretID string) error
+	// CheckTLSSecret checks the existence and the type of the secret
 	CheckTLSSecret(ctx context.Context, secretID string) error
+	// ResolvePasswordSecrets resolves the password type secret values
+	ResolvePasswordSecrets(ctx context.Context, secretID string) (PasswordSecret, error)
+	// ResolveTlsSecrets resolves the tls type secret values
+	ResolveTlsSecrets(ctx context.Context, secretID string) (TlsSecret, error)
 }
 
 type service struct {
 	store         Store
 	secretStore   SecretStore
 	repoValidator RepoValidator
+	envService    Service
 	logger        Logger
 }
 
@@ -134,6 +153,10 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 	// save in store
 	if err := s.store.Create(ctx, organizationID, repository); err != nil {
 		return errors.WrapIf(err, "failed to add helm repository")
+	}
+
+	if err := s.envService.AddRepository(ctx, organizationID, repository); err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 
 	s.logger.Debug("created helm repository", map[string]interface{}{"orgID": organizationID, "helm repository": repository.Name})
