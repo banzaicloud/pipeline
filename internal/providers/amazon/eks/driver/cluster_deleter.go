@@ -98,7 +98,7 @@ func (cd EKSClusterDeleter) DeleteCluster(ctx context.Context, clusterID uint, o
 	})
 	logger.Info("start deleting EKS Cluster")
 
-	modelCluster := eksCluster.GetEKSModel()
+	modelCluster := eksCluster.GetModel()
 
 	nodePoolNames := make([]string, 0)
 	for _, nodePool := range modelCluster.NodePools {

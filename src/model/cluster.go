@@ -25,7 +25,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -57,7 +56,6 @@ type ClusterModel struct {
 	StatusMessage  string                                   `sql:"type:text;"`
 	ACK            alibabaadapter.ACKClusterModel           `gorm:"foreignkey:ID"`
 	AKS            azureadapter.AKSClusterModel             `gorm:"foreignkey:ID"`
-	EKS            amazonadapter.EKSClusterModel            `gorm:"foreignkey:ClusterID"`
 	Kubernetes     kubernetesadapter.KubernetesClusterModel `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
 	CreatedBy      uint
@@ -113,23 +111,6 @@ func (cs *ClusterModel) String() string {
 	buffer.WriteString(fmt.Sprintf("Id: %d, Creation date: %s, Cloud: %s, Distribution: %s, ", cs.ID, cs.CreatedAt, cs.Cloud, cs.Distribution))
 
 	switch cs.Distribution {
-	case pkgCluster.EKS:
-		// Write EKS Master
-		buffer.WriteString(fmt.Sprintf("Master version: %s",
-			cs.EKS.Version))
-
-		// Write EKS Node
-		for _, nodePool := range cs.EKS.NodePools {
-			buffer.WriteString(fmt.Sprintf("NodePool Name: %s, Autoscaling: %v, InstanceType: %s, Spot price: %s, Min count: %d, Max count: %d, Count: %d, Node image: %s",
-				nodePool.Name,
-				nodePool.Autoscaling,
-				nodePool.NodeInstanceType,
-				nodePool.NodeSpotPrice,
-				nodePool.NodeMinCount,
-				nodePool.NodeMaxCount,
-				nodePool.Count,
-				nodePool.NodeImage))
-		}
 	case pkgCluster.AKS:
 		// Write AKS
 		buffer.WriteString(fmt.Sprintf("NodePools: %v, Kubernetes version: %s",

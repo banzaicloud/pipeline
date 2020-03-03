@@ -17,17 +17,21 @@ package amazonadapter
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // EKSClusterModel describes the EKS cluster model
 type EKSClusterModel struct {
-	ID      uint `gorm:"primary_key"`
+	ID      uint                      `gorm:"primary_key"`
+	Cluster clustermodel.ClusterModel `gorm:"foreignkey:ClusterID"`
+
 	Version string
 
 	ClusterID    uint                    `gorm:"unique_index:idx_eks_clusters_cluster_id"`
@@ -110,6 +114,14 @@ func (cm EKSClusterModel) IsSSHGenerated() bool {
 	return cm.SSHGenerated
 }
 
+func (cm EKSClusterModel) String() string {
+	return fmt.Sprintf("%s, Master version: %s, Node pools: %s",
+		cm.Cluster,
+		cm.Version,
+		cm.NodePools,
+	)
+}
+
 // AmazonNodePoolsModel describes Amazon node groups model of a cluster
 type AmazonNodePoolsModel struct {
 	ID               uint `gorm:"primary_key"`
@@ -131,6 +143,19 @@ type AmazonNodePoolsModel struct {
 // TableName sets AmazonNodePoolsModel's table name
 func (AmazonNodePoolsModel) TableName() string {
 	return "amazon_node_pools"
+}
+
+func (m AmazonNodePoolsModel) String() string {
+	return fmt.Sprintf("NodePool Name: %s, Autoscaling: %v, InstanceType: %s, Spot price: %s, Min count: %d, Max count: %d, Count: %d, Node image: %s",
+		m.Name,
+		m.Autoscaling,
+		m.NodeInstanceType,
+		m.NodeSpotPrice,
+		m.NodeMinCount,
+		m.NodeMaxCount,
+		m.Count,
+		m.NodeImage,
+	)
 }
 
 // EKSSubnetModel describes the model of subnets used for creating an EKS cluster
