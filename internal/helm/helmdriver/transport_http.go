@@ -53,6 +53,13 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 		kitxhttp.ErrorResponseEncoder(encodeDeleteRepositoryHTTPResponse, errorEncoder),
 		options...,
 	))
+
+	router.Methods(http.MethodPatch).Path("/{repoName}").Handler(kithttp.NewServer(
+		endpoints.UpdateRepository,
+		decodeUpdateRepositoryHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		options...,
+	))
 }
 
 func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -72,6 +79,34 @@ func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interfa
 		OrganizationID: orgID,
 		Repository: helm.Repository{
 			Name:             request.Name,
+			URL:              request.Url,
+			PasswordSecretID: request.PasswordSecretRef,
+			TlsSecretID:      request.TlsSecretRef,
+		}}, nil
+}
+
+func decodeUpdateRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, e := extractOrgID(r)
+	if e != nil {
+		return nil, errors.WrapIf(e, "failed to decode patch repository request")
+	}
+
+	repoName, err := extractHelmRepoName(r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode list request")
+	}
+
+	var request pipeline.HelmReposAddRequest
+
+	dErr := json.NewDecoder(r.Body).Decode(&request)
+	if dErr != nil {
+		return nil, errors.WrapIf(dErr, "failed to decode request")
+	}
+
+	return UpdateRepositoryRequest{
+		OrganizationID: orgID,
+		Repository: helm.Repository{
+			Name:             repoName,
 			URL:              request.Url,
 			PasswordSecretID: request.PasswordSecretRef,
 			TlsSecretID:      request.TlsSecretRef,

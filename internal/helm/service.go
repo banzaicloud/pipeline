@@ -214,7 +214,7 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 		}
 	}
 
-	exists, err := s.repoExists(ctx, organizationID, repository)
+	exists, err := s.repoExists(ctx, organizationID, Repository{Name: repository.Name})
 	if err != nil {
 		return errors.WrapIfWithDetails(err, "failed to retrieve helm repository",
 			"orgID", organizationID, "repoName", repository.Name)
