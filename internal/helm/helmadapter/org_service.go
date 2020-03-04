@@ -39,7 +39,7 @@ func NewOrgService(logger Logger) OrgService {
 	return orgService{logger: logger}
 }
 
-// GetOrgNameByOrgID gets the organization name for the provider ID
+// GetOrgNameByOrgID gets the organization name for the provided organization ID
 func (o orgService) GetOrgNameByOrgID(ctx context.Context, orgID uint) (string, error) {
 	org, err := auth.GetOrganizationById(orgID)
 	if err != nil {
