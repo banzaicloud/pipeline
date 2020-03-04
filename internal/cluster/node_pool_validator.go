@@ -95,6 +95,33 @@ func (v CommonNodePoolValidator) ValidateNew(_ context.Context, _ Cluster, rawNo
 	return nil
 }
 
+// DistributionNodePoolValidator allows registering validators for Kubernetes distributions.
+type DistributionNodePoolValidator struct {
+	validators map[string]NodePoolValidator
+}
+
+// NewDistributionNodePoolValidator returns a new DistributionNodePoolValidator.
+func NewDistributionNodePoolValidator(validators map[string]NodePoolValidator) DistributionNodePoolValidator {
+	return DistributionNodePoolValidator{
+		validators: validators,
+	}
+}
+
+func (v DistributionNodePoolValidator) ValidateNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) error {
+	validator, ok := v.validators[cluster.Distribution]
+	if !ok {
+		return errors.WithStack(NotSupportedDistributionError{
+			ID:           cluster.ID,
+			Cloud:        cluster.Cloud,
+			Distribution: cluster.Distribution,
+
+			Message: "cannot validate unsupported distribution",
+		})
+	}
+
+	return validator.ValidateNew(ctx, cluster, rawNodePool)
+}
+
 // unwrapViolations is a helper func to unwrap violations from a validation error
 func unwrapViolations(err error) []string {
 	var verr interface {

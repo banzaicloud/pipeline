@@ -137,3 +137,72 @@ func TestNewCommonNodePoolValidator_ValidateNew(t *testing.T) {
 		)
 	})
 }
+
+func TestNewDistributionNodePoolValidator_ValidateNew(t *testing.T) {
+	t.Run("valid", func(t *testing.T) {
+		distValidator := new(MockNodePoolValidator)
+
+		ctx := context.Background()
+		cluster := Cluster{
+			Distribution: "eks",
+		}
+		nodePool := NewRawNodePool{}
+
+		distValidator.On("ValidateNew", ctx, cluster, nodePool).Return(nil)
+
+		validator := NewDistributionNodePoolValidator(map[string]NodePoolValidator{
+			"eks": distValidator,
+		})
+
+		err := validator.ValidateNew(ctx, cluster, nodePool)
+		require.NoError(t, err)
+	})
+
+	t.Run("invalid", func(t *testing.T) {
+		distValidator := new(MockNodePoolValidator)
+
+		ctx := context.Background()
+		cluster := Cluster{
+			Distribution: "eks",
+		}
+		nodePool := NewRawNodePool{}
+
+		distErr := errors.New("invalid node pool")
+
+		distValidator.On("ValidateNew", ctx, cluster, nodePool).Return(distErr)
+
+		validator := NewDistributionNodePoolValidator(map[string]NodePoolValidator{
+			"eks": distValidator,
+		})
+
+		err := validator.ValidateNew(ctx, cluster, nodePool)
+		require.Error(t, err)
+
+		assert.Same(t, distErr, err)
+	})
+
+	t.Run("unsupported_distribution", func(t *testing.T) {
+		ctx := context.Background()
+		cluster := Cluster{
+			ID:           1,
+			Cloud:        "amazon",
+			Distribution: "eks",
+		}
+		nodePool := NewRawNodePool{}
+
+		validator := NewDistributionNodePoolValidator(map[string]NodePoolValidator{})
+
+		err := validator.ValidateNew(ctx, cluster, nodePool)
+		require.Error(t, err)
+
+		expectedErr := NotSupportedDistributionError{
+			ID:           cluster.ID,
+			Cloud:        cluster.Cloud,
+			Distribution: cluster.Distribution,
+
+			Message: "cannot validate unsupported distribution",
+		}
+
+		assert.Equal(t, expectedErr, errors.Cause(err))
+	})
+}

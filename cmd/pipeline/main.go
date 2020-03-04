@@ -77,6 +77,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterdriver"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	prometheusMetrics "github.com/banzaicloud/pipeline/internal/cluster/metrics/adapters/prometheus"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
@@ -746,7 +747,9 @@ func main() {
 						clusteradapter.NewNodePoolStore(db, clusterStore),
 						intCluster.NodePoolValidators{
 							intCluster.NewCommonNodePoolValidator(labelValidator),
-							clusteradapter.NewDistributionNodePoolValidator(db),
+							intCluster.NewDistributionNodePoolValidator(map[string]intCluster.NodePoolValidator{
+								"eks": eksadapter.NewNodePoolValidator(db),
+							}),
 						},
 						intCluster.NodePoolProcessors{
 							intCluster.NewCommonNodePoolProcessor(labelSource),
