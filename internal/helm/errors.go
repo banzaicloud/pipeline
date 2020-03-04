@@ -81,3 +81,30 @@ func (AlreadyExistsError) ServiceError() bool {
 func (AlreadyExistsError) Conflict() bool {
 	return true
 }
+
+type NotFoundError struct {
+	OrganizationID uint
+	RepositoryName string
+}
+
+// Error implements the error interface.
+func (e NotFoundError) Error() string {
+	return "helm repository not found"
+}
+
+// Details returns error details.
+func (e NotFoundError) Details() []interface{} {
+	return []interface{}{"organizationId", e.OrganizationID}
+}
+
+// ServiceError tells the consumer that this is a business error and it should be returned to the client.
+// Non-service errors are usually translated into "internal" errors.
+func (NotFoundError) ServiceError() bool {
+	return true
+}
+
+// Conflict tells the consumer that this error is related to a conflicting request.
+// Can be used to translate the error to the consumer's response format (eg. status codes).
+func (NotFoundError) Conflict() bool {
+	return true
+}
