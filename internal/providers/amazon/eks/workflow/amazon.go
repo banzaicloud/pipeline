@@ -200,7 +200,7 @@ type Clusters interface {
 }
 
 type EksCluster interface {
-	GetEKSModel() *amazonadapter.EKSClusterModel
+	GetModel() *amazonadapter.EKSClusterModel
 	Persist() error
 	SetStatus(string, string) error
 	DeleteFromDatabase() error

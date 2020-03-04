@@ -41,6 +41,10 @@ import (
 
 // Migrate runs migrations for the application.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger, commonLogger common.Logger) error {
+	if err := clustermodel.Migrate(db, logger); err != nil {
+		return err
+	}
+
 	if err := alibabaadapter.Migrate(db, logger); err != nil {
 		return err
 	}
@@ -74,10 +78,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger, commonLogger common.Logger)
 	}
 
 	if err := audit.Migrate(db, logger); err != nil {
-		return err
-	}
-
-	if err := clustermodel.Migrate(db, logger); err != nil {
 		return err
 	}
 

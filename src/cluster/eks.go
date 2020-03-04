@@ -24,22 +24,20 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
-	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
-
-	"github.com/banzaicloud/pipeline/pkg/k8sutil"
-
-	"github.com/banzaicloud/pipeline/pkg/cluster/eks/nodepools"
-
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/sirupsen/logrus"
-
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
+	"github.com/banzaicloud/pipeline/pkg/cluster/eks/nodepools"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
@@ -53,33 +51,39 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		log: log.WithField("cluster", request.Name),
 	}
 
-	modelNodePools := createNodePoolsFromRequest(request.Properties.CreateClusterEKS.NodePools, userId)
-
-	cluster.modelCluster = &model.ClusterModel{
-		Name:           request.Name,
-		Location:       request.Location,
-		Cloud:          request.Cloud,
-		OrganizationId: orgId,
-		SecretId:       request.SecretId,
-		Distribution:   pkgCluster.EKS,
-		EKS: amazonadapter.EKSClusterModel{
-			Version:               request.Properties.CreateClusterEKS.Version,
-			LogTypes:              request.Properties.CreateClusterEKS.LogTypes,
-			NodePools:             modelNodePools,
-			VpcId:                 &request.Properties.CreateClusterEKS.Vpc.VpcId,
-			VpcCidr:               &request.Properties.CreateClusterEKS.Vpc.Cidr,
-			RouteTableId:          &request.Properties.CreateClusterEKS.RouteTableId,
-			Subnets:               createSubnetsFromRequest(request.Properties.CreateClusterEKS),
-			DefaultUser:           request.Properties.CreateClusterEKS.IAM.DefaultUser,
-			ClusterRoleId:         request.Properties.CreateClusterEKS.IAM.ClusterRoleID,
-			NodeInstanceRoleId:    request.Properties.CreateClusterEKS.IAM.NodeInstanceRoleID,
-			APIServerAccessPoints: createAPIServerAccessPointsFromRequest(request),
-		},
-		RbacEnabled: true,
-		CreatedBy:   userId,
+	var err error
+	cluster.repository, err = NewDBEKSClusterRepository(global.DB())
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to create EKS cluster repository")
 	}
 
-	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
+	modelNodePools := createNodePoolsFromRequest(request.Properties.CreateClusterEKS.NodePools, userId)
+
+	cluster.model = &amazonadapter.EKSClusterModel{
+		Cluster: clustermodel.ClusterModel{
+			Name:           request.Name,
+			Location:       request.Location,
+			Cloud:          request.Cloud,
+			OrganizationID: orgId,
+			SecretID:       request.SecretId,
+			Distribution:   pkgCluster.EKS,
+			RbacEnabled:    true,
+			CreatedBy:      userId,
+		},
+		Version:               request.Properties.CreateClusterEKS.Version,
+		LogTypes:              request.Properties.CreateClusterEKS.LogTypes,
+		NodePools:             modelNodePools,
+		VpcId:                 &request.Properties.CreateClusterEKS.Vpc.VpcId,
+		VpcCidr:               &request.Properties.CreateClusterEKS.Vpc.Cidr,
+		RouteTableId:          &request.Properties.CreateClusterEKS.RouteTableId,
+		Subnets:               createSubnetsFromRequest(request.Properties.CreateClusterEKS),
+		DefaultUser:           request.Properties.CreateClusterEKS.IAM.DefaultUser,
+		ClusterRoleId:         request.Properties.CreateClusterEKS.IAM.ClusterRoleID,
+		NodeInstanceRoleId:    request.Properties.CreateClusterEKS.IAM.NodeInstanceRoleID,
+		APIServerAccessPoints: createAPIServerAccessPointsFromRequest(request),
+	}
+
+	updateScaleOptions(&cluster.model.Cluster.ScaleOptions, request.ScaleOptions)
 
 	// subnet mapping
 	cluster.SubnetMapping = createSubnetMappingFromRequest(request.Properties.CreateClusterEKS)
@@ -176,9 +180,53 @@ func createSubnetMappingFromRequest(eksRequest *pkgEks.CreateClusterEKS) map[str
 	return subnetMapping
 }
 
+type dbEKSClusterRepository struct {
+	db *gorm.DB
+}
+
+func (r dbEKSClusterRepository) DeleteClusterModel(model *clustermodel.ClusterModel) error {
+	return r.db.Delete(model).Error
+}
+
+func (r dbEKSClusterRepository) DeleteModel(model *amazonadapter.EKSClusterModel) error {
+	return r.db.Delete(model).Error
+}
+
+func (r dbEKSClusterRepository) DeleteNodePool(model *amazonadapter.AmazonNodePoolsModel) error {
+	return r.db.Delete(model).Error
+}
+
+func (r dbEKSClusterRepository) SaveModel(model *amazonadapter.EKSClusterModel) error {
+	return r.db.Save(model).Error
+}
+
+func (r dbEKSClusterRepository) SaveStatusHistory(model *clustermodel.StatusHistoryModel) error {
+	return r.db.Save(model).Error
+}
+
+// NewDBEKSClusterRepository returns a new EKSClusterRepository backed by a GORM DB
+func NewDBEKSClusterRepository(db *gorm.DB) (EKSClusterRepository, error) {
+	if db == nil {
+		return nil, errors.New("db parameter cannot be nil")
+	}
+	return dbEKSClusterRepository{
+		db: db,
+	}, nil
+}
+
+// EKSClusterRepository describes a EKS cluster's persistent storage repository
+type EKSClusterRepository interface {
+	DeleteClusterModel(model *clustermodel.ClusterModel) error
+	DeleteModel(model *amazonadapter.EKSClusterModel) error
+	DeleteNodePool(model *amazonadapter.AmazonNodePoolsModel) error
+	SaveModel(model *amazonadapter.EKSClusterModel) error
+	SaveStatusHistory(model *clustermodel.StatusHistoryModel) error
+}
+
 // EKSCluster struct for EKS cluster
 type EKSCluster struct {
-	modelCluster *model.ClusterModel
+	repository EKSClusterRepository
+	model      *amazonadapter.EKSClusterModel
 
 	// maps node pools to subnets. The subnets identified by the "default" key represent the subnets provided in
 	// request.Properties.CreateClusterEKS.Subnets
@@ -204,37 +252,40 @@ func (c *EKSCluster) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error
 	return errors.New("not implemented")
 }
 
-func (c *EKSCluster) GetEKSModel() *amazonadapter.EKSClusterModel {
-	return &c.modelCluster.EKS
-}
-
 func (c *EKSCluster) GetSubnetMapping() map[string][]*pkgEks.Subnet {
 	return c.SubnetMapping
 }
 
 // GetOrganizationId gets org where the cluster belongs
 func (c *EKSCluster) GetOrganizationId() uint {
-	return c.modelCluster.OrganizationId
+	return c.model.Cluster.OrganizationID
 }
 
 // GetLocation gets where the cluster is.
 func (c *EKSCluster) GetLocation() string {
-	return c.modelCluster.Location
+	return c.model.Cluster.Location
 }
 
 // GetSecretId retrieves the secret id
 func (c *EKSCluster) GetSecretId() string {
-	return c.modelCluster.SecretId
+	return c.model.Cluster.SecretID
 }
 
 // GetSshSecretId retrieves the secret id
 func (c *EKSCluster) GetSshSecretId() string {
-	return c.modelCluster.SshSecretId
+	return c.model.Cluster.SSHSecretID
 }
 
 // SaveSshSecretId saves the ssh secret id to database
 func (c *EKSCluster) SaveSshSecretId(sshSecretId string) error {
-	return c.modelCluster.UpdateSshSecret(sshSecretId)
+	c.model.Cluster.SSHSecretID = sshSecretId
+
+	err := c.repository.SaveModel(c.model)
+	if err != nil {
+		return errors.Wrap(err, "failed to save ssh secret id")
+	}
+
+	return nil
 }
 
 // GetAPIEndpoint returns the Kubernetes Api endpoint
@@ -248,11 +299,30 @@ func (c *EKSCluster) GetAPIEndpoint() (string, error) {
 }
 
 // CreateEKSClusterFromModel creates ClusterModel struct from the model
-func CreateEKSClusterFromModel(clusterModel *model.ClusterModel) *EKSCluster {
-	return &EKSCluster{
-		modelCluster: clusterModel,
-		log:          log.WithField("cluster", clusterModel.Name),
+func CreateEKSClusterFromModel(clusterModel *model.ClusterModel) (*EKSCluster, error) {
+	db := global.DB()
+
+	m := amazonadapter.EKSClusterModel{
+		ClusterID: clusterModel.ID,
 	}
+
+	err := db.Where(m).Preload("Cluster").Preload("NodePools").Preload("Subnets").Preload("Cluster.ScaleOptions").First(&m).Error
+	if err != nil {
+		return nil, err
+	}
+
+	repository, err := NewDBEKSClusterRepository(db)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to create DB EKS cluster repository")
+	}
+
+	log := log.WithFields(logrus.Fields{"cluster": clusterModel.Name, "clusterID": m.Cluster.ID})
+
+	return &EKSCluster{
+		repository: repository,
+		model:      &m,
+		log:        log.WithField("cluster", clusterModel.Name),
+	}, nil
 }
 
 func (c *EKSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials, error) {
@@ -264,36 +334,36 @@ func (c *EKSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials,
 }
 
 func (c *EKSCluster) SetCurrentWorkflowID(workflowID string) error {
-	return c.modelCluster.EKS.SetCurrentWorkflowID(workflowID)
+	return c.model.SetCurrentWorkflowID(workflowID)
 }
 
 func (c *EKSCluster) PersistSSHGenerate(sshGenerated bool) error {
-	return c.modelCluster.EKS.PersistSSHGenerate(sshGenerated)
+	return c.model.PersistSSHGenerate(sshGenerated)
 }
 
 func (c *EKSCluster) IsSSHGenerated() bool {
-	return c.modelCluster.EKS.IsSSHGenerated()
+	return c.model.IsSSHGenerated()
 }
 
 // Persist saves the cluster model
 // Deprecated: Do not use.
 func (c *EKSCluster) Persist() error {
-	return errors.WrapIf(c.modelCluster.Save(), "failed to persist cluster")
+	return errors.WrapIf(c.repository.SaveModel(c.model), "failed to persist cluster")
 }
 
 // GetName returns the name of the cluster
 func (c *EKSCluster) GetName() string {
-	return c.modelCluster.Name
+	return c.model.Cluster.Name
 }
 
 // GetCloud returns the cloud type of the cluster
 func (c *EKSCluster) GetCloud() string {
-	return c.modelCluster.Cloud
+	return c.model.Cluster.Cloud
 }
 
 // GetDistribution returns the distribution type of the cluster
 func (c *EKSCluster) GetDistribution() string {
-	return c.modelCluster.Distribution
+	return c.model.Cluster.Distribution
 }
 
 // UpdateNodePools updates nodes pools of a cluster
@@ -307,7 +377,7 @@ func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 	}
 
 	awsSession, err := session.NewSession(&aws.Config{
-		Region:      aws.String(c.modelCluster.Location),
+		Region:      aws.String(c.model.Cluster.Location),
 		Credentials: awsCred,
 	})
 	if err != nil {
@@ -345,7 +415,7 @@ func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 
 		waitRoutines++
 		go func(poolName string) {
-			waitChan <- nodepools.WaitForASGToBeFulfilled(context.Background(), awsSession, c.log, c.modelCluster.Name,
+			waitChan <- nodepools.WaitForASGToBeFulfilled(context.Background(), awsSession, c.log, c.model.Cluster.Name,
 				poolName, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second)
 		}(poolName)
 	}
@@ -363,7 +433,7 @@ func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 
 func (c *EKSCluster) getAutoScalingGroupName(cloudformationSrv *cloudformation.CloudFormation, autoscalingSrv *autoscaling.AutoScaling, nodePoolName string) (*string, error) {
 	logResourceId := "NodeGroup"
-	stackName := nodepools.GenerateNodePoolStackName(c.modelCluster.Name, nodePoolName)
+	stackName := nodepools.GenerateNodePoolStackName(c.model.Cluster.Name, nodePoolName)
 	describeStackResourceInput := &cloudformation.DescribeStackResourceInput{
 		LogicalResourceId: &logResourceId,
 		StackName:         aws.String(stackName)}
@@ -380,7 +450,7 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	var hasSpotNodePool bool
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
-	for _, np := range c.modelCluster.EKS.NodePools {
+	for _, np := range c.model.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Autoscaling:       np.Autoscaling,
@@ -400,41 +470,41 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	}
 
 	return &pkgCluster.GetClusterStatusResponse{
-		Status:            c.modelCluster.Status,
-		StatusMessage:     c.modelCluster.StatusMessage,
-		Name:              c.modelCluster.Name,
-		Location:          c.modelCluster.Location,
-		Cloud:             c.modelCluster.Cloud,
-		Distribution:      c.modelCluster.Distribution,
+		Status:            c.model.Cluster.Status,
+		StatusMessage:     c.model.Cluster.StatusMessage,
+		Name:              c.model.Cluster.Name,
+		Location:          c.model.Cluster.Location,
+		Cloud:             c.model.Cluster.Cloud,
+		Distribution:      c.model.Cluster.Distribution,
 		Spot:              hasSpotNodePool,
-		ResourceID:        c.modelCluster.ID,
+		ResourceID:        c.model.Cluster.ID,
 		NodePools:         nodePools,
-		Version:           c.modelCluster.EKS.Version,
-		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
-		Region:            c.modelCluster.Location,
-		StartedAt:         c.modelCluster.StartedAt,
+		Version:           c.model.Version,
+		CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),
+		Region:            c.model.Cluster.Location,
+		StartedAt:         c.model.Cluster.StartedAt,
 	}, nil
 }
 
 // GetID returns the DB ID of this cluster
 func (c *EKSCluster) GetID() uint {
-	return c.modelCluster.ID
+	return c.model.Cluster.ID
 }
 
 func (c *EKSCluster) GetUID() string {
-	return c.modelCluster.UID
+	return c.model.Cluster.UID
 }
 
 // GetModel returns the DB model of this cluster
-func (c *EKSCluster) GetModel() *model.ClusterModel {
-	return c.modelCluster
+func (c *EKSCluster) GetModel() *amazonadapter.EKSClusterModel {
+	return c.model
 }
 
 // CheckEqualityToUpdate validates the update request
 func (c *EKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
 	// create update request struct with the stored data to check equality
 	preNodePools := make(map[string]*pkgEks.NodePool)
-	for _, preNp := range c.modelCluster.EKS.NodePools {
+	for _, preNp := range c.model.NodePools {
 		preNodePools[preNp.Name] = &pkgEks.NodePool{
 			InstanceType: preNp.NodeInstanceType,
 			SpotPrice:    preNp.NodeSpotPrice,
@@ -458,7 +528,7 @@ func (c *EKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 
 // AddDefaultsToUpdate adds defaults to update request
 func (c *EKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
-	defaultImage, _ := pkgEks.GetDefaultImageID(c.modelCluster.Location, c.modelCluster.EKS.Version)
+	defaultImage, _ := pkgEks.GetDefaultImageID(c.model.Cluster.Location, c.model.Version)
 
 	// add default node image(s) if needed
 	if r != nil && r.EKS != nil && r.EKS.NodePools != nil {
@@ -472,22 +542,66 @@ func (c *EKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 // DeleteFromDatabase deletes model from the database
 func (c *EKSCluster) DeleteFromDatabase() error {
-	err := c.modelCluster.Delete()
-	if err != nil {
+	if err := c.repository.DeleteClusterModel(&c.model.Cluster); err != nil {
 		return err
 	}
-	c.modelCluster = nil
+
+	for _, nodePool := range c.model.NodePools {
+		if err := c.repository.DeleteNodePool(nodePool); err != nil {
+			return err
+		}
+	}
+
+	if err := c.repository.DeleteModel(c.model); err != nil {
+		return err
+	}
+
+	c.model = nil
+
 	return nil
 }
 
 // SetStatus sets the cluster's status
 func (c *EKSCluster) SetStatus(status string, statusMessage string) error {
-	return c.modelCluster.UpdateStatus(status, statusMessage)
+	if c.model.Cluster.Status == status && c.model.Cluster.StatusMessage == statusMessage {
+		return nil
+	}
+
+	if c.model.Cluster.ID != 0 {
+		// Record status change to history before modifying the actual status.
+		// If setting/saving the actual status doesn't succeed somehow, at least we can reconstruct it from history (i.e. event sourcing).
+		statusHistory := clustermodel.StatusHistoryModel{
+			ClusterID:   c.model.Cluster.ID,
+			ClusterName: c.model.Cluster.Name,
+
+			FromStatus:        c.model.Cluster.Status,
+			FromStatusMessage: c.model.Cluster.StatusMessage,
+			ToStatus:          status,
+			ToStatusMessage:   statusMessage,
+		}
+
+		if err := c.repository.SaveStatusHistory(&statusHistory); err != nil {
+			return errors.Wrap(err, "failed to record cluster status change to history")
+		}
+	}
+
+	if c.model.Cluster.Status == pkgCluster.Creating && (status == pkgCluster.Running || status == pkgCluster.Warning) {
+		now := time.Now()
+		c.model.Cluster.StartedAt = &now
+	}
+	c.model.Cluster.Status = status
+	c.model.Cluster.StatusMessage = statusMessage
+
+	if err := c.repository.SaveModel(c.model); err != nil {
+		return errors.Wrap(err, "failed to update cluster status")
+	}
+
+	return nil
 }
 
 // NodePoolExists returns true if node pool with nodePoolName exists
 func (c *EKSCluster) NodePoolExists(nodePoolName string) bool {
-	for _, np := range c.modelCluster.EKS.NodePools {
+	for _, np := range c.model.NodePools {
 		if np != nil && np.Name == nodePoolName {
 			return true
 		}
@@ -496,7 +610,7 @@ func (c *EKSCluster) NodePoolExists(nodePoolName string) bool {
 }
 
 func (c *EKSCluster) setNodePoolSize(nodePoolName string, count int) bool {
-	for _, np := range c.modelCluster.EKS.NodePools {
+	for _, np := range c.model.NodePools {
 		if np != nil && np.Name == nodePoolName {
 			np.Count = count
 		}
@@ -512,7 +626,7 @@ func (c *EKSCluster) IsReady() (bool, error) {
 	}
 
 	awsSession, err := session.NewSession(&aws.Config{
-		Region:      aws.String(c.modelCluster.Location),
+		Region:      aws.String(c.model.Cluster.Location),
 		Credentials: awsCred,
 	})
 	if err != nil {
@@ -536,12 +650,19 @@ func (c *EKSCluster) GetSecretWithValidation() (*secret.SecretItemResponse, erro
 
 // SaveConfigSecretId saves the config secret id in database
 func (c *EKSCluster) SaveConfigSecretId(configSecretId string) error {
-	return c.modelCluster.UpdateConfigSecret(configSecretId)
+	c.model.Cluster.ConfigSecretID = configSecretId
+
+	err := c.repository.SaveModel(c.model)
+	if err != nil {
+		return errors.Wrap(err, "failed to save config secret id")
+	}
+
+	return nil
 }
 
 // GetConfigSecretId returns config secret id
 func (c *EKSCluster) GetConfigSecretId() string {
-	return c.modelCluster.ConfigSecretId
+	return c.model.Cluster.ConfigSecretID
 }
 
 // GetK8sConfig returns the Kubernetes config for internal use
@@ -592,17 +713,17 @@ func (c *EKSCluster) RequiresSshPublicKey() bool {
 
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *EKSCluster) RbacEnabled() bool {
-	return c.modelCluster.RbacEnabled
+	return c.model.Cluster.RbacEnabled
 }
 
 // GetScaleOptions returns scale options for the cluster
 func (c *EKSCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
-	return getScaleOptionsFromModel(c.modelCluster.ScaleOptions)
+	return getScaleOptionsFromModel(c.model.Cluster.ScaleOptions)
 }
 
 // SetScaleOptions sets scale options for the cluster
 func (c *EKSCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
-	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
+	updateScaleOptions(&c.model.Cluster.ScaleOptions, scaleOptions)
 }
 
 // GetEKSNodePools returns EKS node pools from a common cluster.
@@ -612,9 +733,9 @@ func GetEKSNodePools(cluster CommonCluster) ([]*amazonadapter.AmazonNodePoolsMod
 		return nil, ErrInvalidClusterInstance
 	}
 
-	return ekscluster.modelCluster.EKS.NodePools, nil
+	return ekscluster.model.NodePools, nil
 }
 
 func (c *EKSCluster) GetKubernetesVersion() (string, error) {
-	return c.modelCluster.EKS.Version, nil
+	return c.model.Version, nil
 }

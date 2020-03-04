@@ -65,8 +65,8 @@ func NewEksClusterUpdater(logger logrus.FieldLogger, workflowClient client.Clien
 }
 
 func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedNodePools map[string]*pkgEks.NodePool, userId uint) ([]*amazonadapter.AmazonNodePoolsModel, error) {
-	currentNodePoolMap := make(map[string]*amazonadapter.AmazonNodePoolsModel, len(eksCluster.GetModel().EKS.NodePools))
-	for _, nodePool := range eksCluster.GetModel().EKS.NodePools {
+	currentNodePoolMap := make(map[string]*amazonadapter.AmazonNodePoolsModel, len(eksCluster.GetModel().NodePools))
+	for _, nodePool := range eksCluster.GetModel().NodePools {
 		currentNodePoolMap[nodePool.Name] = nodePool
 	}
 
@@ -127,7 +127,7 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 		}
 	}
 
-	for _, nodePool := range eksCluster.GetModel().EKS.NodePools {
+	for _, nodePool := range eksCluster.GetModel().NodePools {
 		if requestedNodePools[nodePool.Name] == nil {
 			updatedNodePools = append(updatedNodePools, &amazonadapter.AmazonNodePoolsModel{
 				ID:        nodePool.ID,
@@ -234,7 +234,7 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 		}
 	}
 
-	modelCluster := eksCluster.GetEKSModel()
+	modelCluster := eksCluster.GetModel()
 
 	subnets := make([]workflow.Subnet, 0)
 	for _, subnet := range modelCluster.Subnets {
