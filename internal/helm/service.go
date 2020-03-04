@@ -196,7 +196,6 @@ func (s service) DeleteRepository(ctx context.Context, organizationID uint, repo
 }
 
 func (s service) PatchRepository(ctx context.Context, organizationID uint, repository Repository) error {
-
 	// validate repository
 	if err := s.repoValidator.Validate(ctx, repository); err != nil {
 		return errors.WrapIf(err, "failed to add new helm repository")

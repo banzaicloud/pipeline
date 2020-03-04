@@ -210,6 +210,5 @@ func Test_helmRepoStore_Update(t *testing.T) {
 		assert.Equal(t, updatedRepo.Name, retrieved.Name)
 		assert.Equal(t, updatedRepo.URL, retrieved.URL)
 		assert.Equal(t, updatedRepo.PasswordSecretID, retrieved.PasswordSecretID)
-
 	})
 }

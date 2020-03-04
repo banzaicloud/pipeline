@@ -130,7 +130,6 @@ func (h helmRepoStore) Update(ctx context.Context, organizationID uint, reposito
 			"repoName":       repository.Name})
 
 	return nil
-
 }
 
 // toDomain transforms a gorm model to a domain struct
