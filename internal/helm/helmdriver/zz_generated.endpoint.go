@@ -29,6 +29,7 @@ type Endpoints struct {
 	AddRepository    endpoint.Endpoint
 	DeleteRepository endpoint.Endpoint
 	ListRepositories endpoint.Endpoint
+	UpdateRepository endpoint.Endpoint
 }
 
 // MakeEndpoints returns a(n) Endpoints struct where each endpoint invokes
@@ -40,6 +41,7 @@ func MakeEndpoints(service helm.Service, middleware ...endpoint.Middleware) Endp
 		AddRepository:    kitxendpoint.OperationNameMiddleware("helm.AddRepository")(mw(MakeAddRepositoryEndpoint(service))),
 		DeleteRepository: kitxendpoint.OperationNameMiddleware("helm.DeleteRepository")(mw(MakeDeleteRepositoryEndpoint(service))),
 		ListRepositories: kitxendpoint.OperationNameMiddleware("helm.ListRepositories")(mw(MakeListRepositoriesEndpoint(service))),
+		UpdateRepository: kitxendpoint.OperationNameMiddleware("helm.UpdateRepository")(mw(MakeUpdateRepositoryEndpoint(service))),
 	}
 }
 
@@ -148,5 +150,39 @@ func MakeListRepositoriesEndpoint(service helm.Service) endpoint.Endpoint {
 		}
 
 		return ListRepositoriesResponse{Repos: repos}, nil
+	}
+}
+
+// UpdateRepositoryRequest is a request struct for UpdateRepository endpoint.
+type UpdateRepositoryRequest struct {
+	OrganizationID uint
+	Repository     helm.Repository
+}
+
+// UpdateRepositoryResponse is a response struct for UpdateRepository endpoint.
+type UpdateRepositoryResponse struct {
+	Err error
+}
+
+func (r UpdateRepositoryResponse) Failed() error {
+	return r.Err
+}
+
+// MakeUpdateRepositoryEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeUpdateRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(UpdateRepositoryRequest)
+
+		err := service.UpdateRepository(ctx, req.OrganizationID, req.Repository)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return UpdateRepositoryResponse{Err: err}, nil
+			}
+
+			return UpdateRepositoryResponse{Err: err}, err
+		}
+
+		return UpdateRepositoryResponse{}, nil
 	}
 }
