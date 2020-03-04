@@ -24,6 +24,13 @@ import (
 	legacyHelm "github.com/banzaicloud/pipeline/src/helm"
 )
 
+// OrgService interface for decoupling organization related operations
+type OrgService interface {
+
+	// GetOrgNameByOrgID retrieves organization name for the provided ID
+	GetOrgNameByOrgID(ctx context.Context, orgID uint) (string, error)
+}
+
 // envService component implementing operations related to the helm environment
 // This implementation relies on the legacy helm implementation
 type envService struct {
@@ -32,7 +39,7 @@ type envService struct {
 	logger      Logger
 }
 
-func NewEnvService(orgService OrgService, secretStore helm.SecretStore, logger Logger) envService {
+func NewEnvService(orgService OrgService, secretStore helm.SecretStore, logger Logger) helm.Service {
 	return envService{
 		orgService:  orgService,
 		secretStore: secretStore,

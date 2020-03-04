@@ -22,13 +22,6 @@ import (
 	"github.com/banzaicloud/pipeline/src/auth"
 )
 
-// OrgService interface for decoupling organization related operations
-type OrgService interface {
-
-	// GetOrgNameByOrgID retrieves organization name for the provided ID
-	GetOrgNameByOrgID(ctx context.Context, orgID uint) (string, error)
-}
-
 // orgService component implementing organization related operations
 type orgService struct {
 	logger Logger
