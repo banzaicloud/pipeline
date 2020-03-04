@@ -88,7 +88,7 @@ func (e envService) DeleteRepository(ctx context.Context, organizationID uint, r
 	return nil
 }
 
-func (e envService) UpdateRepository(ctx context.Context, organizationID uint, repository helm.Repository) error {
+func (e envService) PatchRepository(ctx context.Context, organizationID uint, repository helm.Repository) error {
 	orgName, err := e.orgService.GetOrgNameByOrgID(ctx, organizationID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to add repository")

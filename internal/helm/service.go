@@ -56,8 +56,8 @@ type Service interface {
 	ListRepositories(ctx context.Context, organizationID uint) (repos []Repository, err error)
 	// ListRepositories deletes a Helm repository
 	DeleteRepository(ctx context.Context, organizationID uint, repoName string) error
-	// UpdateRepository updates an existing repository
-	UpdateRepository(ctx context.Context, organizationID uint, repository Repository) error
+	// PatchRepository updates an existing repository
+	PatchRepository(ctx context.Context, organizationID uint, repository Repository) error
 }
 
 // NewService returns a new Service.
@@ -195,7 +195,7 @@ func (s service) DeleteRepository(ctx context.Context, organizationID uint, repo
 	return nil
 }
 
-func (s service) UpdateRepository(ctx context.Context, organizationID uint, repository Repository) error {
+func (s service) PatchRepository(ctx context.Context, organizationID uint, repository Repository) error {
 
 	// validate repository
 	if err := s.repoValidator.Validate(ctx, repository); err != nil {
@@ -232,7 +232,7 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 		return errors.WrapIf(err, "failed to add helm repository")
 	}
 
-	if err := s.envService.AddRepository(ctx, organizationID, repository); err != nil {
+	if err := s.envService.PatchRepository(ctx, organizationID, repository); err != nil {
 		return errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 

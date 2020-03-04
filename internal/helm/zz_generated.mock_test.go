@@ -65,8 +65,8 @@ func (_m *MockService) ListRepositories(ctx context.Context, organizationID uint
 	return r0, r1
 }
 
-// UpdateRepository provides a mock function.
-func (_m *MockService) UpdateRepository(ctx context.Context, organizationID uint, repository Repository) error {
+// PatchRepository provides a mock function.
+func (_m *MockService) PatchRepository(ctx context.Context, organizationID uint, repository Repository) error {
 	ret := _m.Called(ctx, organizationID, repository)
 
 	var r0 error
