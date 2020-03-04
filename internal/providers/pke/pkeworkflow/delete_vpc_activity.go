@@ -77,7 +77,7 @@ func (a *DeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCActivity
 		}
 	}
 
-	return errors.WrapIf(pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cfClient), "waiting for termination")
+	return nil
 }
 
 const WaitForDeleteVPCActivityName = "wait-for-pke-delete-vpc-activity"
@@ -119,5 +119,5 @@ func (a *WaitForDeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCA
 		&cloudformation.DescribeStacksInput{StackName: &stackName},
 		request.WithWaiterRequestOptions(WithHeartBeatOption(ctx)))
 
-	return errors.WrapIf(pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cfClient), "waiting for termination")
+	return errors.WrapIf(pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cfClient), "failure while waiting for vpc stack deletion to complete")
 }
