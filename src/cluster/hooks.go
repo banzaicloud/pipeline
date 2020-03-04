@@ -266,9 +266,8 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 				"url": fmt.Sprintf("http://%s.%s.svc:%d/%s", promServiceName, infraNamespace, prometheusPort, serviceContext),
 			},
 			"enableExternalMetricsApi": true,
-			"enableCustomMetricsApi": false,
+			"enableCustomMetricsApi":   false,
 		},
-
 	}
 
 	// install metricsServer for Amazon & Azure & Alibaba & Oracle only if metrics.k8s.io endpoint is not available already
