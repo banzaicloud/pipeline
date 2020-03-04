@@ -46,7 +46,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
-	"github.com/banzaicloud/pipeline/internal/cluster/distributionadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksadapter"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
@@ -479,7 +479,7 @@ func main() {
 				clusterStore,
 				db,
 				clusteradapter.NewNodePoolStore(db, clusterStore),
-				distributionadapter.NewEKSNodePoolStore(db),
+				eksadapter.NewNodePoolStore(db),
 				eksworkflow.NewAWSSessionFactory(secret.Store),
 			)
 			activity.RegisterWithOptions(createNodePoolActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.CreateNodePoolActivityName})
