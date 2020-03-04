@@ -88,6 +88,26 @@ func (e envService) DeleteRepository(ctx context.Context, organizationID uint, r
 	return nil
 }
 
+func (e envService) UpdateRepository(ctx context.Context, organizationID uint, repository helm.Repository) error {
+	orgName, err := e.orgService.GetOrgNameByOrgID(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to add repository")
+	}
+
+	helmEnv := legacyHelm.GenerateHelmRepoEnv(orgName)
+
+	entry, err := e.transform(ctx, repository)
+	if err != nil {
+		return errors.WrapIf(err, "failed to resolve helm entry data")
+	}
+
+	if err := legacyHelm.ReposModify(helmEnv, repository.Name, &entry); err != nil {
+		return errors.WrapIf(err, "failed to update helm repository environment")
+	}
+
+	return nil
+}
+
 func (e envService) transform(ctx context.Context, repository helm.Repository) (repo.Entry, error) {
 	entry := repo.Entry{
 		Name: repository.Name,

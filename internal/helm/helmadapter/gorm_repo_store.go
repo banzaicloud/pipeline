@@ -115,6 +115,24 @@ func (h helmRepoStore) Get(_ context.Context, organizationID uint, repository he
 	return toDomain(repoModel), nil
 }
 
+func (h helmRepoStore) Update(ctx context.Context, organizationID uint, repository helm.Repository) error {
+	repoModel := toModel(organizationID, repository)
+
+	if err := h.db.Update(&repoModel).Error; err != nil {
+		return errors.WrapIfWithDetails(err, "failed to update the helm repository",
+			"orgID", organizationID, "repoName", repoModel.Name)
+	}
+
+	h.logger.Debug(
+		"updated helm repository record",
+		map[string]interface{}{
+			"organizationID": organizationID,
+			"repoName":       repository.Name})
+
+	return nil
+
+}
+
 // toDomain transforms a gorm model to a domain struct
 func toDomain(model repositoryModel) helm.Repository {
 	return helm.Repository{

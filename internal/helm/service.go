@@ -52,12 +52,12 @@ type Repository struct {
 type Service interface {
 	// AddRepository adds a new Helm chart repository.
 	AddRepository(ctx context.Context, organizationID uint, repository Repository) error
-
 	// ListRepositories lists Helm repositories.
 	ListRepositories(ctx context.Context, organizationID uint) (repos []Repository, err error)
-
 	// ListRepositories deletes a Helm repository
 	DeleteRepository(ctx context.Context, organizationID uint, repoName string) error
+	// UpdateRepository updates an existing repository
+	UpdateRepository(ctx context.Context, organizationID uint, repository Repository) error
 }
 
 // NewService returns a new Service.
@@ -86,6 +86,9 @@ type Store interface {
 
 	//Getretrieves a repository entry
 	Get(ctx context.Context, organizationID uint, repository Repository) (Repository, error)
+
+	// Update updates the given repository
+	Update(ctx context.Context, organizationID uint, repository Repository) error
 }
 
 type PasswordSecret struct {
@@ -189,6 +192,51 @@ func (s service) DeleteRepository(ctx context.Context, organizationID uint, repo
 	}
 
 	s.logger.Debug("deleted helm repository", map[string]interface{}{"orgID": organizationID, "helm repository": repoName})
+	return nil
+}
+
+func (s service) UpdateRepository(ctx context.Context, organizationID uint, repository Repository) error {
+
+	// validate repository
+	if err := s.repoValidator.Validate(ctx, repository); err != nil {
+		return errors.WrapIf(err, "failed to add new helm repository")
+	}
+
+	if repository.PasswordSecretID != "" {
+		if err := s.secretStore.CheckPasswordSecret(ctx, repository.PasswordSecretID); err != nil {
+			return ValidationError{message: err.Error(), violations: []string{"password secret must exist"}}
+		}
+	}
+
+	if repository.TlsSecretID != "" {
+		if err := s.secretStore.CheckTLSSecret(ctx, repository.TlsSecretID); err != nil {
+			return ValidationError{message: err.Error(), violations: []string{"tls secret must exist"}}
+		}
+	}
+
+	exists, err := s.repoExists(ctx, organizationID, repository)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to retrieve helm repository",
+			"orgID", organizationID, "repoName", repository.Name)
+	}
+
+	if !exists {
+		return NotFoundError{
+			RepositoryName: repository.Name,
+			OrganizationID: organizationID,
+		}
+	}
+
+	// save in store
+	if err := s.store.Update(ctx, organizationID, repository); err != nil {
+		return errors.WrapIf(err, "failed to add helm repository")
+	}
+
+	if err := s.envService.AddRepository(ctx, organizationID, repository); err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	s.logger.Debug("created helm repository", map[string]interface{}{"orgID": organizationID, "helm repository": repository.Name})
 	return nil
 }
 
