@@ -175,3 +175,41 @@ func Test_helmRepoStore_ListRepositories(t *testing.T) {
 		assert.Equal(t, 3, len(repos))
 	})
 }
+
+func Test_helmRepoStore_Update(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		db := setUpDatabase(t)
+		store := NewHelmRepoStore(db, common.NoopLogger{})
+
+		newRepo := helm.Repository{
+			Name:             "testing",
+			URL:              "repoURL",
+			PasswordSecretID: "secretRef",
+		}
+
+		err := store.Create(context.Background(), 1, newRepo)
+		require.NoError(t, err)
+
+		retrieved, err := store.Get(context.Background(), 1, newRepo)
+
+		require.NoError(t, err)
+		assert.Equal(t, newRepo.Name, retrieved.Name)
+
+		updatedRepo := helm.Repository{
+			Name:             "testing",
+			URL:              "UpdatedrepoURL",
+			PasswordSecretID: "UpdatedsecretRef",
+		}
+
+		err = store.Update(context.Background(), 1, updatedRepo)
+		require.NoError(t, err)
+
+		retrieved, err = store.Get(context.Background(), 1, updatedRepo)
+
+		require.NoError(t, err)
+		assert.Equal(t, updatedRepo.Name, retrieved.Name)
+		assert.Equal(t, updatedRepo.URL, retrieved.URL)
+		assert.Equal(t, updatedRepo.PasswordSecretID, retrieved.PasswordSecretID)
+
+	})
+}

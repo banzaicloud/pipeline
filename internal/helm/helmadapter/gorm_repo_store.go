@@ -118,7 +118,7 @@ func (h helmRepoStore) Get(_ context.Context, organizationID uint, repository he
 func (h helmRepoStore) Update(ctx context.Context, organizationID uint, repository helm.Repository) error {
 	repoModel := toModel(organizationID, repository)
 
-	if err := h.db.Update(&repoModel).Error; err != nil {
+	if err := h.db.Model(&repoModel).Updates(repoModel).Error; err != nil {
 		return errors.WrapIfWithDetails(err, "failed to update the helm repository",
 			"orgID", organizationID, "repoName", repoModel.Name)
 	}
