@@ -24,7 +24,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	eks2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
-	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )
 
@@ -77,7 +76,7 @@ func (v DistributionNodePoolProcessor) ProcessNew(
 
 		// Default node pool image
 		if nodePool.Image == "" {
-			image, err := eks.GetDefaultImageID(c.Location, eksCluster.Version)
+			image, err := eks2.GetDefaultImageID(c.Location, eksCluster.Version)
 			if err != nil {
 				return rawNodePool, err
 			}

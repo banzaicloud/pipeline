@@ -25,6 +25,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -108,7 +109,7 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 
 			// ---- [ Node spot price ] ---- //
 			if len(nodePool.SpotPrice) == 0 {
-				nodePool.SpotPrice = pkgEks.DefaultSpotPrice
+				nodePool.SpotPrice = eks.DefaultSpotPrice
 			}
 
 			updatedNodePools = append(updatedNodePools, &amazonadapter.AmazonNodePoolsModel{
