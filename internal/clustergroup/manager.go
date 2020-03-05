@@ -471,11 +471,11 @@ func (g *Manager) validateBeforeClusterGroupUpdate(clusterGroup api.ClusterGroup
 		members = append(members, member)
 	}
 
+	var errs []error
 	for name, feature := range features {
 		if !feature.Enabled {
 			continue
 		}
-
 		clusterGroup.Clusters = newClusters
 		clusterGroup.Members = members
 		feature.ClusterGroup = clusterGroup
@@ -486,10 +486,13 @@ func (g *Manager) validateBeforeClusterGroupUpdate(clusterGroup api.ClusterGroup
 		}
 		err = handler.ValidateState(feature)
 		if err != nil {
-			return &clusterGroupUpdateRejectedError{
+			errs = append(errs, &clusterGroupUpdateRejectedError{
 				err: errors.WrapIf(err, fmt.Sprintf("operation rejected by %s", feature.Name)),
-			}
+			})
 		}
+	}
+	if err := errors.Combine(errs...); err != nil {
+		return err
 	}
 
 	return nil
