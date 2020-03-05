@@ -18,7 +18,6 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/vim25/types"
 	"go.uber.org/cadence/activity"
@@ -30,7 +29,6 @@ const DeleteNodeActivityName = "pke-vsphere-delete-node"
 // DeleteNodeActivity represents an activity for creating a vSphere virtual machine
 type DeleteNodeActivity struct {
 	vmomiClientFactory *VMOMIClientFactory
-	tokenGenerator     pkeworkflowadapter.TokenGenerator
 }
 
 // MakeDeleteNodeActivity returns a new DeleteNodeActivity
@@ -59,11 +57,6 @@ func (a DeleteNodeActivity) Execute(ctx context.Context, input DeleteNodeActivit
 		"node", input.Name,
 	)
 
-	/*keyvals := []interface{}{
-		"cluster", input.ClusterName,
-		"node", input.Node.Name,
-	}*/
-
 	c, err := a.vmomiClientFactory.New(input.OrganizationID, input.SecretID)
 	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
 		return true, err
@@ -71,7 +64,7 @@ func (a DeleteNodeActivity) Execute(ctx context.Context, input DeleteNodeActivit
 
 	finder := find.NewFinder(c.Client)
 	vms, err := finder.VirtualMachineList(ctx, input.Name)
-	if err != nil  {
+	if err != nil {
 		logger.Warnf("couldn't find a VM named %q: %s", input.Name, err.Error())
 		return false, nil
 	}
@@ -80,11 +73,11 @@ func (a DeleteNodeActivity) Execute(ctx context.Context, input DeleteNodeActivit
 		return false, nil
 	}
 
+	vm := vms[0]
+
 	// TODO check tags
 	//config, err := vm.QueryConfigTarget()
 	//expectedTags := getClusterTags(input.Name, input.NodePoolName)
-
-	vm := vms[0]
 
 	// Power off the VM.
 	powerState, err := vm.PowerState(ctx)

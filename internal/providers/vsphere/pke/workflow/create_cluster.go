@@ -23,13 +23,14 @@ import (
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
 
+	"github.com/vmware/govmomi/vim25/types"
+
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/cluster"
-	"github.com/vmware/govmomi/vim25/types"
 )
 
 const CreateClusterWorkflowName = "pke-vsphere-create-cluster"
@@ -74,23 +75,21 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 		err := workflow.ExecuteActivity(ctx, pkeworkflow.GenerateCertificatesActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			// TODO _ = setClusterErrorStatus(ctx, input.ClusterID, err)
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}
 
-	/*
-		// Create dex client for the cluster
-		if input.OIDCEnabled {
-			activityInput := pkeworkflow.CreateDexClientActivityInput{
-				ClusterID: input.ClusterID,
-			}
-			err := workflow.ExecuteActivity(ctx, pkeworkflow.CreateDexClientActivityName, activityInput).Get(ctx, nil)
-			if err != nil {
-				return err
-			}
+	// Create dex client for the cluster
+	if input.OIDCEnabled {
+		activityInput := pkeworkflow.CreateDexClientActivityInput{
+			ClusterID: input.ClusterID,
 		}
-	*/
+		err := workflow.ExecuteActivity(ctx, pkeworkflow.CreateDexClientActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
 
 	var masterRef types.ManagedObjectReference
 	// Create master nodes
@@ -129,12 +128,15 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	}
 
 	var masterIP string
-	workflow.ExecuteActivity(ctx, WaitForIPActivityName, WaitForIPActivityInput{
+	err := workflow.ExecuteActivity(ctx, WaitForIPActivityName, WaitForIPActivityInput{
 		Ref:            masterRef,
 		OrganizationID: input.OrganizationID,
 		SecretID:       input.SecretID,
 		ClusterName:    input.ClusterName,
 	}).Get(ctx, &masterIP)
+	if err != nil {
+		return err
+	}
 
 	setClusterStatus(ctx, input.ClusterID, pkgCluster.Creating, "waiting for Kubernetes master") // nolint: errcheck
 
@@ -220,7 +222,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		PostHooks: cluster.BuildWorkflowPostHookFunctions(nil, true),
 	}
 
-	err := workflow.ExecuteChildWorkflow(ctx, cluster.RunPostHooksWorkflowName, postHookWorkflowInput).Get(ctx, nil)
+	err = workflow.ExecuteChildWorkflow(ctx, cluster.RunPostHooksWorkflowName, postHookWorkflowInput).Get(ctx, nil)
 	if err != nil {
 		_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 		return err

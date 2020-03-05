@@ -18,10 +18,11 @@ import (
 	"fmt"
 	"time"
 
+	"go.uber.org/cadence"
+
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"go.uber.org/cadence"
 
 	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
@@ -43,7 +44,7 @@ type DeleteClusterWorkflowInput struct {
 	SecretID         string
 	MasterNodes      []Node
 	Nodes            []Node
-	Forced bool
+	Forced           bool
 }
 
 func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInput) error {

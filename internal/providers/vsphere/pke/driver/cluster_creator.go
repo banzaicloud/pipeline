@@ -21,10 +21,11 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver/commoncluster"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 	corev1 "k8s.io/api/core/v1"
+
+	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver/commoncluster"
 
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"

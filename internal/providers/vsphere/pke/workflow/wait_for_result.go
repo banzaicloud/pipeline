@@ -26,7 +26,7 @@ import (
 
 type progressLogger struct {
 	taskName string
-	logger *zap.SugaredLogger
+	logger   *zap.SugaredLogger
 
 	wg sync.WaitGroup
 
@@ -37,7 +37,7 @@ type progressLogger struct {
 func newProgressLogger(taskName string, logger *zap.SugaredLogger) *progressLogger {
 	p := &progressLogger{
 		taskName: taskName,
-		logger: logger,
+		logger:   logger,
 
 		sink: make(chan chan progress.Report),
 		done: make(chan struct{}),
@@ -122,4 +122,3 @@ func (p *progressLogger) Wait() {
 	close(p.done)
 	p.wg.Wait()
 }
-

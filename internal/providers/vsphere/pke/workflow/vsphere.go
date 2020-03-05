@@ -19,11 +19,12 @@ import (
 	"net/url"
 
 	"emperror.dev/errors"
+	"github.com/vmware/govmomi"
+	"github.com/vmware/govmomi/vim25/soap"
+
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	"github.com/vmware/govmomi"
-	"github.com/vmware/govmomi/vim25/soap"
 )
 
 type VMOMIClientFactory struct {

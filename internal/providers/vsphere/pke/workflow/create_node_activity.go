@@ -24,12 +24,13 @@ import (
 	"text/template"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/ghodss/yaml"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/types"
 	"go.uber.org/cadence/activity"
+
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 )
 
 // CreateNodeActivityName is the default registration name of the activity
@@ -85,11 +86,6 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 		"node", input.Name,
 	)
 
-	/*keyvals := []interface{}{
-		"cluster", input.ClusterName,
-		"node", input.Node.Name,
-	}*/
-
 	vmRef := types.ManagedObjectReference{}
 
 	logger.Info("create virtual machine")
@@ -117,7 +113,10 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 		return vmRef, err
 	}
 
-	userData := encodeGuestinfo(generateCloudConfig(input.AdminUsername, input.SSHPublicKey, userDataScript.String(), input.Name))
+	userData, err := encodeGuestInfo(generateCloudConfig(input.AdminUsername, input.SSHPublicKey, userDataScript.String(), input.Name))
+	if err = errors.WrapIf(err, "failed to encode user data"); err != nil {
+		return vmRef, err
+	}
 
 	vmConfig := types.VirtualMachineConfigSpec{}
 	vmConfig.ExtraConfig = append(vmConfig.ExtraConfig,
@@ -227,17 +226,20 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 	return vmRef, nil
 }
 
-func encodeGuestinfo(data string) string {
+func encodeGuestInfo(data string) (string, error) {
 	buffer := new(bytes.Buffer)
 	encoder := base64.NewEncoder(base64.StdEncoding, buffer)
 	compressor := gzip.NewWriter(encoder)
 
-	compressor.Write([]byte(data))
+	_, err := compressor.Write([]byte(data))
+	if err != nil {
+		return "", err
+	}
 
 	compressor.Close()
 	encoder.Close()
 
-	return buffer.String()
+	return buffer.String(), nil
 }
 
 func generateCloudConfig(user, publicKey, script, hostname string) string {
@@ -254,7 +256,7 @@ func generateCloudConfig(user, publicKey, script, hostname string) string {
 			user = "banzaicloud"
 		}
 		data["users"] = []map[string]interface{}{
-			map[string]interface{}{
+			{
 				"name":                user,
 				"sudo":                "ALL=(ALL) NOPASSWD:ALL",
 				"ssh-authorized-keys": []string{publicKey}}}
