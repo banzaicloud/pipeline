@@ -18,23 +18,23 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
 )
 
 func TestCreateSubnetMappingFromRequest(t *testing.T) {
-	eksRequest := &eks.CreateClusterEKS{
-		NodePools: map[string]*eks.NodePool{
+	eksRequest := &ekscluster.CreateClusterEKS{
+		NodePools: map[string]*ekscluster.NodePool{
 			"pool1": {
-				Subnet: &eks.Subnet{SubnetId: "subnet1"},
+				Subnet: &ekscluster.Subnet{SubnetId: "subnet1"},
 			},
 		},
-		Subnets: []*eks.Subnet{
+		Subnets: []*ekscluster.Subnet{
 			{SubnetId: "subnet0"},
 			{SubnetId: "subnet1"},
 		},
 	}
 
-	expected := map[string][]*eks.Subnet{
+	expected := map[string][]*ekscluster.Subnet{
 		"default": {
 			{SubnetId: "subnet0"},
 			{SubnetId: "subnet1"},

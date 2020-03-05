@@ -32,11 +32,11 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	eks2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	pkgEks "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster/nodepools"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/eks/nodepools"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/src/model"

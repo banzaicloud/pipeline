@@ -21,9 +21,9 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
@@ -96,7 +96,7 @@ type CreateClusterRequest struct {
 type CreateClusterProperties struct {
 	CreateClusterACK *ack.CreateClusterACK `json:"ack,omitempty" yaml:"ack,omitempty"`
 
-	CreateClusterEKS        *eks.CreateClusterEKS               `json:"eks,omitempty" yaml:"eks,omitempty"`
+	CreateClusterEKS        *ekscluster.CreateClusterEKS        `json:"eks,omitempty" yaml:"eks,omitempty"`
 	CreateClusterAKS        *aks.CreateClusterAKS               `json:"aks,omitempty" yaml:"aks,omitempty"`
 	CreateClusterGKE        *gke.CreateClusterGKE               `json:"gke,omitempty" yaml:"gke,omitempty"`
 	CreateClusterKubernetes *kubernetes.CreateClusterKubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
@@ -221,12 +221,12 @@ type UpdateClusterRequest struct {
 
 // UpdateProperties describes Pipeline's UpdateCluster request properties
 type UpdateProperties struct {
-	ACK *ack.UpdateClusterACK       `json:"ack,omitempty"`
-	EKS *eks.UpdateClusterAmazonEKS `json:"eks,omitempty"`
-	AKS *aks.UpdateClusterAzure     `json:"aks,omitempty"`
-	GKE *gke.UpdateClusterGoogle    `json:"gke,omitempty"`
-	OKE *oke.Cluster                `json:"oke,omitempty"`
-	PKE *pke.UpdateClusterPKE       `json:"pke,omitempty"`
+	ACK *ack.UpdateClusterACK              `json:"ack,omitempty"`
+	EKS *ekscluster.UpdateClusterAmazonEKS `json:"eks,omitempty"`
+	AKS *aks.UpdateClusterAzure            `json:"aks,omitempty"`
+	GKE *gke.UpdateClusterGoogle           `json:"gke,omitempty"`
+	OKE *oke.Cluster                       `json:"oke,omitempty"`
+	PKE *pke.UpdateClusterPKE              `json:"pke,omitempty"`
 }
 
 // String method prints formatted update request fields
