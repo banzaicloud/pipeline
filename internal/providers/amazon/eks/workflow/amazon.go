@@ -32,8 +32,8 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
 	zapadapter "logur.dev/adapter/zap"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -200,7 +200,7 @@ type Clusters interface {
 }
 
 type EksCluster interface {
-	GetModel() *amazonadapter.EKSClusterModel
+	GetModel() *eksmodel.EKSClusterModel
 	Persist() error
 	SetStatus(string, string) error
 	DeleteFromDatabase() error

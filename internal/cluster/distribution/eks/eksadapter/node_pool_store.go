@@ -21,7 +21,7 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 )
 
 type nodePoolStore struct {
@@ -42,7 +42,7 @@ func (s nodePoolStore) CreateNodePool(
 	createdBy uint,
 	nodePool eks.NewNodePool,
 ) error {
-	nodePoolModel := &amazonadapter.AmazonNodePoolsModel{
+	nodePoolModel := &eksmodel.AmazonNodePoolsModel{
 		ClusterID:        clusterID,
 		CreatedBy:        createdBy,
 		Name:             nodePool.Name,

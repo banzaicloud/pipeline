@@ -23,7 +23,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	eks2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )
 
@@ -53,10 +53,10 @@ func (v distributionNodePoolProcessor) ProcessNew(
 			return rawNodePool, errors.Wrap(err, "failed to decode node pool")
 		}
 
-		var eksCluster amazonadapter.EKSClusterModel
+		var eksCluster eksmodel.EKSClusterModel
 
 		err = v.db.
-			Where(amazonadapter.EKSClusterModel{ClusterID: c.ID}).
+			Where(eksmodel.EKSClusterModel{ClusterID: c.ID}).
 			Preload("Subnets").
 			First(&eksCluster).Error
 		if gorm.IsRecordNotFoundError(err) {
