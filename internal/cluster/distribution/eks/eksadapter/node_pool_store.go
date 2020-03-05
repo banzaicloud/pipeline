@@ -24,20 +24,20 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 )
 
-// NodePoolStore provides an interface to EKS node pool persistence.
-type NodePoolStore struct {
+// nodePoolStore provides an interface to EKS node pool persistence.
+type nodePoolStore struct {
 	db *gorm.DB
 }
 
-// NewNodePoolStore returns a new NodePoolStore.
-func NewNodePoolStore(db *gorm.DB) NodePoolStore {
-	return NodePoolStore{
+// NewNodePoolStore returns a new eks.NodePoolStore.
+func NewNodePoolStore(db *gorm.DB) eks.NodePoolStore {
+	return nodePoolStore{
 		db: db,
 	}
 }
 
 // CreateNodePool saves a new node pool.
-func (s NodePoolStore) CreateNodePool(
+func (s nodePoolStore) CreateNodePool(
 	_ context.Context,
 	clusterID uint,
 	createdBy uint,

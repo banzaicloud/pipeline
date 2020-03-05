@@ -26,20 +26,20 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 )
 
-// NodePoolValidator validates a node pool request according to its own distribution.
-type NodePoolValidator struct {
+// nodePoolValidator validates a node pool request according to its own distribution.
+type nodePoolValidator struct {
 	db *gorm.DB
 }
 
-// NewNodePoolValidator returns a new NodePoolValidator.
-func NewNodePoolValidator(db *gorm.DB) NodePoolValidator {
-	return NodePoolValidator{
+// NewNodePoolValidator returns a new cluster.NodePoolValidator.
+func NewNodePoolValidator(db *gorm.DB) cluster.NodePoolValidator {
+	return nodePoolValidator{
 		db: db,
 	}
 }
 
 // ValidateNew validates a new node pool descriptor.
-func (v NodePoolValidator) ValidateNew(
+func (v nodePoolValidator) ValidateNew(
 	_ context.Context,
 	c cluster.Cluster,
 	rawNodePool cluster.NewRawNodePool,
