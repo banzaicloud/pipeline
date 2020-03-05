@@ -31,20 +31,20 @@ const (
 // nolint: gochecknoglobals
 var labelFormatRe = regexp.MustCompile(labelFormatRegexp)
 
-// CloudinfoNodePoolLabelSource gets default node pool labels from Cloudinfo.
-type CloudinfoNodePoolLabelSource struct {
+// cloudinfoNodePoolLabelSource gets default node pool labels from Cloudinfo.
+type cloudinfoNodePoolLabelSource struct {
 	client *cloudinfo.Client
 }
 
-// NewCloudinfoNodePoolLabelSource returns a new CloudinfoNodePoolLabelSource.
-func NewCloudinfoNodePoolLabelSource(client *cloudinfo.Client) CloudinfoNodePoolLabelSource {
-	return CloudinfoNodePoolLabelSource{
+// NewCloudinfoNodePoolLabelSource returns a new cloudinfoNodePoolLabelSource.
+func NewCloudinfoNodePoolLabelSource(client *cloudinfo.Client) cluster.NodePoolLabelSource {
+	return cloudinfoNodePoolLabelSource{
 		client: client,
 	}
 }
 
 // GetLabels returns a set of labels that should be applied to every node in the pool.
-func (s CloudinfoNodePoolLabelSource) GetLabels(
+func (s cloudinfoNodePoolLabelSource) GetLabels(
 	ctx context.Context,
 	c cluster.Cluster,
 	nodePool cluster.NodePool,

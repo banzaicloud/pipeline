@@ -27,20 +27,20 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )
 
-// DistributionNodePoolProcessor processes a node pool request according to its own distribution.
-type DistributionNodePoolProcessor struct {
+// distributionNodePoolProcessor processes a node pool request according to its own distribution.
+type distributionNodePoolProcessor struct {
 	db *gorm.DB
 }
 
-// NewDistributionNodePoolProcessor returns a new DistributionNodePoolProcessor.
-func NewDistributionNodePoolProcessor(db *gorm.DB) DistributionNodePoolProcessor {
-	return DistributionNodePoolProcessor{
+// NewDistributionNodePoolProcessor returns a new distributionNodePoolProcessor.
+func NewDistributionNodePoolProcessor(db *gorm.DB) cluster.NodePoolProcessor {
+	return distributionNodePoolProcessor{
 		db: db,
 	}
 }
 
 // ProcessNew processes a new node pool descriptor.
-func (v DistributionNodePoolProcessor) ProcessNew(
+func (v distributionNodePoolProcessor) ProcessNew(
 	_ context.Context,
 	c cluster.Cluster,
 	rawNodePool cluster.NewRawNodePool,
