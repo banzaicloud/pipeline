@@ -47,6 +47,11 @@ func TestNodePoolLabelSources_GetLabels(t *testing.T) {
 
 	assert.Equal(t, map[string]string{"key": "value2", "key2": "value3"}, labels)
 	assert.Equal(t, []error{err4}, errors.GetErrors(err))
+
+	source1.AssertExpectations(t)
+	source2.AssertExpectations(t)
+	source3.AssertExpectations(t)
+	source4.AssertExpectations(t)
 }
 
 func TestCommonNodePoolLabelSource_GetLabels(t *testing.T) {
@@ -82,7 +87,6 @@ func TestFilterValidNodePoolLabelSource_GetLabels(t *testing.T) {
 	labelValidator.On("ValidateKey", "key").Return(nil)
 	labelValidator.On("ValidateValue", "value").Return(nil)
 	labelValidator.On("ValidateKey", "key2").Return(errors.New("invalid key"))
-	labelValidator.On("ValidateValue", "value2").Return(nil)
 
 	source := NewFilterValidNodePoolLabelSource(labelValidator)
 
@@ -96,4 +100,6 @@ func TestFilterValidNodePoolLabelSource_GetLabels(t *testing.T) {
 		},
 		labels,
 	)
+
+	labelValidator.AssertExpectations(t)
 }
