@@ -33,7 +33,6 @@ type BucketsRepository struct {
 
 // NewBucketsRepository returns a new BucketsRepository instance
 func NewBucketsRepository(org *auth.Organization, db *gorm.DB, logger logrus.FieldLogger) *BucketsRepository {
-
 	return &BucketsRepository{
 		org:    org,
 		db:     db,
@@ -43,7 +42,6 @@ func NewBucketsRepository(org *auth.Organization, db *gorm.DB, logger logrus.Fie
 
 // Find returns ClusterBackupBucketsModel instances
 func (s *BucketsRepository) Find() (buckets []*ClusterBackupBucketsModel, err error) {
-
 	err = s.db.Where(&ClusterBackupBucketsModel{
 		OrganizationID: s.org.ID,
 	}).Preload("Deployment").Preload("Deployment.Cluster").Find(&buckets).Error
@@ -78,7 +76,6 @@ func (s *BucketsRepository) FindOneByID(id uint) (*ClusterBackupBucketsModel, er
 // GetActiveDeploymentModel gets the active ARK deployment, if any
 func (s *BucketsRepository) GetActiveDeploymentModel(bucket *ClusterBackupBucketsModel) (
 	deployment ClusterBackupDeploymentsModel, err error) {
-
 	err = s.db.Model(&bucket).Related(&deployment, "Deployment").Error
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
@@ -101,7 +98,6 @@ func (s *BucketsRepository) GetActiveDeploymentModel(bucket *ClusterBackupBucket
 
 // FindOneByRequest finds a ClusterBackupBucketsModel by a FindBucketRequest
 func (s *BucketsRepository) FindOneByRequest(req api.FindBucketRequest) (*ClusterBackupBucketsModel, error) {
-
 	var bucket ClusterBackupBucketsModel
 
 	err := s.db.Where(ClusterBackupBucketsModel{
@@ -120,7 +116,6 @@ func (s *BucketsRepository) FindOneByRequest(req api.FindBucketRequest) (*Cluste
 
 // FindOneOrCreateByRequest finds or creates a ClusterBackupBucketsModel by a CreateBucketRequest
 func (s *BucketsRepository) FindOneOrCreateByRequest(req *api.CreateBucketRequest) (*ClusterBackupBucketsModel, error) {
-
 	var bucket ClusterBackupBucketsModel
 
 	err := s.db.FirstOrInit(&bucket, ClusterBackupBucketsModel{
@@ -148,7 +143,6 @@ func (s *BucketsRepository) FindOneOrCreateByRequest(req *api.CreateBucketReques
 
 // Delete deletes a ClusterBackupBucketsModel
 func (s *BucketsRepository) Delete(bucket *ClusterBackupBucketsModel) error {
-
 	err := s.IsInUse(bucket)
 	if err != nil {
 		return err
@@ -159,7 +153,6 @@ func (s *BucketsRepository) Delete(bucket *ClusterBackupBucketsModel) error {
 
 // IsInUse checks whether a ClusterBackupBucketsModel is used in an active ARK deployment
 func (s *BucketsRepository) IsInUse(bucket *ClusterBackupBucketsModel) error {
-
 	_, err := s.GetActiveDeploymentModel(bucket)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -173,7 +166,6 @@ func (s *BucketsRepository) IsInUse(bucket *ClusterBackupBucketsModel) error {
 
 // UpdateStatus updates the status of a ClusterBackupBucketsModel
 func (s *BucketsRepository) UpdateStatus(bucket *ClusterBackupBucketsModel, status, message string) error {
-
 	bucket.Status = status
 	bucket.StatusMessage = message
 

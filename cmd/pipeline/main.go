@@ -88,8 +88,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
-	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	"github.com/banzaicloud/pipeline/internal/helm2"
+	helmadapter2 "github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicesdriver"
@@ -97,6 +97,7 @@ import (
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
 	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
@@ -128,6 +129,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
+	"github.com/banzaicloud/pipeline/internal/secret/types"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
@@ -255,7 +257,11 @@ func main() {
 
 	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
 	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, commonLogger)
-	secret.InitSecretStore(secretStore, pkeSecreter)
+	secretTypes := types.NewDefaultTypeList(types.DefaultTypeListConfig{
+		TLSDefaultValidity: config.Secret.TLS.DefaultValidity,
+		PkeSecreter:        pkeSecreter,
+	})
+	secret.InitSecretStore(secretStore, secretTypes)
 	restricted.InitSecretStore(secret.Store)
 
 	// Connect to database
@@ -751,6 +757,7 @@ func main() {
 					service := intCluster.NewService(
 						clusterStore,
 						clusteradapter.NewCadenceClusterManager(workflowClient),
+						clusterGroupManager,
 						clusteradapter.NewNodePoolStore(db, clusterStore),
 						intCluster.NodePoolValidators{
 							intCluster.NewCommonNodePoolValidator(labelValidator),
@@ -787,7 +794,6 @@ func main() {
 					cRouter.Any("/nodepools", gin.WrapH(router))
 					cRouter.Any("/nodepools/:nodePoolName", gin.WrapH(router))
 				}
-
 			}
 
 			clusterSecretStore := clustersecret.NewStore(
@@ -796,7 +802,7 @@ func main() {
 			)
 
 			// Cluster IntegratedService API
-			var featureService integratedservices.Service
+			var integratedServicesService integratedservices.Service
 			{
 				featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
 				clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
@@ -805,6 +811,8 @@ func main() {
 				integratedServiceManagers := []integratedservices.IntegratedServiceManager{
 					securityscan.MakeIntegratedServiceManager(commonLogger, config.Cluster.SecurityScan.Config),
 				}
+
+				helmService := helm2.NewHelmService(helmadapter2.NewClusterService(clusterManager), commonLogger)
 
 				if config.Cluster.DNS.Enabled {
 					integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
@@ -815,7 +823,6 @@ func main() {
 				}
 
 				if config.Cluster.Monitoring.Enabled {
-					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), commonLogger)
 					integratedServiceManagers = append(integratedServiceManagers, featureMonitoring.MakeIntegratedServiceManager(
 						clusterGetter,
 						commonSecretStore,
@@ -875,11 +882,19 @@ func main() {
 						expiry.NewExpiryServiceManager(services.BindIntegratedServiceSpec))
 				}
 
+				if config.Cluster.Ingress.Enabled {
+					integratedServiceManagers = append(integratedServiceManagers, ingress.NewManager(
+						config.Cluster.Ingress.Config,
+						helmService,
+						commonLogger,
+					))
+				}
+
 				integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
 				integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
-				featureService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, commonLogger)
+				integratedServicesService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, commonLogger)
 				endpoints := integratedservicesdriver.MakeEndpoints(
-					featureService,
+					integratedServicesService,
 					kitxendpoint.Combine(endpointMiddleware...),
 				)
 
@@ -907,7 +922,7 @@ func main() {
 				}
 			}
 
-			hpaApi := api.NewHPAAPI(featureService, clientFactory, configFactory, commonClusterGetter, errorHandler)
+			hpaApi := api.NewHPAAPI(integratedServicesService, clientFactory, configFactory, commonClusterGetter, errorHandler)
 			cRouter.GET("/hpa", hpaApi.GetHpaResource)
 			cRouter.PUT("/hpa", hpaApi.PutHpaResource)
 			cRouter.DELETE("/hpa", hpaApi.DeleteHpaResource)
@@ -961,6 +976,7 @@ func main() {
 			orgs.DELETE("/:orgid/helm/repos/:name", api.HelmReposDelete)
 			orgs.GET("/:orgid/helm/charts", api.HelmCharts)
 			orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
+
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
 			orgs.GET("/:orgid/secrets/:id", api.GetSecret)
 			orgs.POST("/:orgid/secrets", api.AddSecrets)
@@ -1035,7 +1051,7 @@ func main() {
 		}
 
 		{
-			service := secrettype.NewService()
+			service := secrettype.NewService(secretTypes)
 			endpoints := secrettypedriver.MakeEndpoints(
 				service,
 				kitxendpoint.Combine(endpointMiddleware...),

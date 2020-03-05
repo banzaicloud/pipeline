@@ -30,13 +30,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshdriver"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/src/auth"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	logrusadapter "logur.dev/adapter/logrus"
-
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 
 	"go.uber.org/cadence/client"
 
@@ -120,7 +119,7 @@ func getNodePoolsForSubnet(subnetMapping map[string][]*pkgEks.Subnet, eksSubnet 
 // Create implements the clusterCreator interface.
 func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogger, commonCluster cluster.CommonCluster, createRequest *pkgCluster.CreateClusterRequest) (cluster.CommonCluster, error) {
 	logger.Info("start creating EKS Cluster")
-	modelCluster := commonCluster.(*cluster.EKSCluster).GetEKSModel()
+	modelCluster := commonCluster.(*cluster.EKSCluster).GetModel()
 
 	if createRequest.PostHooks == nil {
 		createRequest.PostHooks = make(pkgCluster.PostHooks)
@@ -250,7 +249,6 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 	}()
 
 	return commonCluster, nil
-
 }
 
 func CreateAWSCredentialsFromSecret(eksCluster *cluster.EKSCluster) (*credentials.Credentials, error) {
@@ -258,12 +256,11 @@ func CreateAWSCredentialsFromSecret(eksCluster *cluster.EKSCluster) (*credential
 	if err != nil {
 		return nil, err
 	}
-	return verify.CreateAWSCredentials(clusterSecret.Values), nil
+	return amazon.CreateAWSCredentials(clusterSecret.Values), nil
 }
 
 // ValidateCreationFields validates all fields
 func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, logger logrus.FieldLogger, commonCluster cluster.CommonCluster) error {
-
 	eksCluster := commonCluster.(*cluster.EKSCluster)
 
 	logger.Debug("validating secretIDs")
@@ -319,7 +316,6 @@ func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, logger 
 
 	netSvc := pkgEC2.NewNetworkSvc(ec2.New(awsSession), logrusadapter.New(logrus.New()))
 	if r.Properties.CreateClusterEKS.Vpc != nil {
-
 		if r.Properties.CreateClusterEKS.Vpc.VpcId != "" && r.Properties.CreateClusterEKS.Vpc.Cidr != "" {
 			return errors.NewWithDetails("specifying both CIDR and ID for VPC is not allowed", "vpc", *r.Properties.CreateClusterEKS.Vpc)
 		}
@@ -465,7 +461,6 @@ func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, logger 
 		if !exists {
 			return errors.New("Route Table not found in the given VPC or it's not in 'active' state")
 		}
-
 	} else {
 		if r.Properties.CreateClusterEKS.RouteTableId != "" {
 			return errors.New("Route Table ID should be provided only when VPC ID and CIDR for Subnets are specified")
@@ -509,7 +504,6 @@ func (c *EksClusterCreator) generateSSHkey(commonCluster cluster.CommonCluster) 
 }
 
 func (c *EksClusterCreator) CreateCluster(ctx context.Context, commonCluster cluster.CommonCluster, createRequest *pkgCluster.CreateClusterRequest, organizationID uint, userID uint) (cluster.CommonCluster, error) {
-
 	logger := c.logger.WithFields(logrus.Fields{
 		"clusterName":    commonCluster.GetName(),
 		"clusterID":      commonCluster.GetID(),

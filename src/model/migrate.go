@@ -17,28 +17,15 @@ package model
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
-
-	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 )
 
 // Migrate executes the table migrations for the application models.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
-		&MigrationClusterModel{},
-		&ScaleOptions{},
-		&ACKClusterModel{},
-		&ACKNodePoolModel{},
-		&AmazonNodePoolsModel{},
-		&EKSClusterModel{},
-		&EKSSubnetModel{},
-		&AKSClusterModel{},
-		&AKSNodePoolModel{},
-		&DummyClusterModel{},
-		&KubernetesClusterModel{},
+		&ClusterModel{},
 	}
 
 	var tableNames string
@@ -55,94 +42,5 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		return err
 	}
 
-	// setup FKs
-	err = AddForeignKey(db, logger, &ClusterModel{}, &EKSClusterModel{}, "ClusterID")
-	if err != nil {
-		return err
-	}
-
-	err = AddForeignKey(db, logger, &ClusterModel{}, &ScaleOptions{}, "ClusterID")
-	if err != nil {
-		return err
-	}
-
-	err = AddForeignKey(db, logger, &EKSClusterModel{}, &EKSSubnetModel{}, "ClusterID")
-	if err != nil {
-		return err
-	}
-
 	return nil
-}
-
-func AddForeignKeyAndReferencedKey(db *gorm.DB, logger logrus.FieldLogger, parentTable, childTable interface{}, foreignKeyField string, referencedField string) error {
-	parentTableScope := db.NewScope(parentTable)
-	childTableScope := db.NewScope(childTable)
-
-	log := logger.WithFields(logrus.Fields{
-		"parent_table": strings.TrimSpace(parentTableScope.TableName()),
-		"child_table":  strings.TrimSpace(childTableScope.TableName()),
-	})
-
-	f, ok := childTableScope.FieldByName(foreignKeyField)
-	if !ok {
-		return fmt.Errorf("field %q not found", foreignKeyField)
-	}
-	if !f.IsForeignKey {
-		return fmt.Errorf("%q is not a foreign key field", foreignKeyField)
-	}
-
-	parentIdField := ""
-	if referencedField == "" {
-		parentIdField = parentTableScope.PrimaryKey()
-	} else {
-		f, ok := parentTableScope.FieldByName(referencedField)
-		if !ok {
-			return fmt.Errorf("field %q not found", referencedField)
-		}
-		parentIdField = f.DBName
-	}
-	references := fmt.Sprintf("%s(%s)", parentTableScope.TableName(), parentIdField)
-
-	log.Infof("adding foreign key constraint: %s -> %s", f.DBName, references)
-	return db.Model(childTable).AddForeignKey(f.DBName, references, "RESTRICT", "RESTRICT").Error
-}
-
-func AddForeignKey(db *gorm.DB, logger logrus.FieldLogger, parentTable, childTable interface{}, foreignKeyField string) error {
-	return AddForeignKeyAndReferencedKey(db, logger, parentTable, childTable, foreignKeyField, "")
-}
-
-// MigrationClusterModel describes the common cluster model
-// Note: this model is being moved to github.com/banzaicloud/pipeline/pkg/model.ClusterModel
-type MigrationClusterModel struct {
-	ID             uint   `gorm:"primary_key"`
-	UID            string `gorm:"unique_index:idx_clusters_uid"`
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	DeletedAt      *time.Time `gorm:"unique_index:idx_clusters_unique_id" sql:"index"`
-	StartedAt      *time.Time
-	Name           string `gorm:"unique_index:idx_clusters_unique_id"`
-	Location       string
-	Cloud          string
-	Distribution   string
-	OrganizationId uint `gorm:"unique_index:idx_clusters_unique_id"`
-	SecretId       string
-	ConfigSecretId string
-	SshSecretId    string
-	Status         string
-	RbacEnabled    bool
-	ScaleOptions   ScaleOptions           `gorm:"foreignkey:ClusterID"`
-	StatusMessage  string                 `sql:"type:text;"`
-	ACK            ACKClusterModel        `gorm:"foreignkey:ID"`
-	AKS            AKSClusterModel        `gorm:"foreignkey:ID"`
-	EKS            EKSClusterModel        `gorm:"foreignkey:ClusterID"`
-	Dummy          DummyClusterModel      `gorm:"foreignkey:ID"`
-	Kubernetes     KubernetesClusterModel `gorm:"foreignkey:ID"`
-	OKE            modelOracle.Cluster
-	CreatedBy      uint
-	TtlMinutes     uint `gorm:"not null;default:0"`
-}
-
-// TableName sets MigrationClusterModel's table name
-func (MigrationClusterModel) TableName() string {
-	return tableNameClusters
 }

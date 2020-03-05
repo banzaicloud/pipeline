@@ -16,8 +16,7 @@ package pke
 
 import (
 	"fmt"
-
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusterbase"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 )
 
@@ -37,7 +36,7 @@ func (np NodePool) InstanceType() string {
 }
 
 type PKEOnVsphereCluster struct {
-	intCluster.ClusterBase
+	clusterbase.ClusterBase
 
 	NodePools        []NodePool
 	ResourcePool     string

@@ -189,7 +189,7 @@ func (a *AzurePkeCluster) GetK8sConfig() ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "can't decode Kubernetes config")
 	}
-	return []byte(configStr), nil
+	return configStr, nil
 }
 
 func (a *AzurePkeCluster) GetK8sUserConfig() ([]byte, error) {
@@ -235,6 +235,10 @@ func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, err
 }
 
 func (a *AzurePkeCluster) IsReady() (bool, error) {
+	// cluster is not ready in case there's no config secret yet
+	if a.GetConfigSecretId() == "" {
+		return false, nil
+	}
 	return true, nil
 }
 

@@ -53,11 +53,11 @@ type Cluster struct {
 var _ pkeworkflow.AWSCluster = (*Cluster)(nil)
 
 func (c *Cluster) GetID() uint {
-	return uint(c.CommonCluster.GetID())
+	return c.CommonCluster.GetID()
 }
 
 func (c *Cluster) GetOrganizationId() uint {
-	return uint(c.CommonCluster.GetOrganizationId())
+	return c.CommonCluster.GetOrganizationId()
 }
 
 func (c *Cluster) GetK8sConfig() ([]byte, error) {

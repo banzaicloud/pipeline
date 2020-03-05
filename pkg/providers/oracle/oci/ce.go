@@ -34,7 +34,6 @@ type ContainerEngine struct {
 
 // NewContainerEngineClient creates a new ContainerEngine
 func (oci *OCI) NewContainerEngineClient() (client *ContainerEngine, err error) {
-
 	client = &ContainerEngine{}
 
 	oClient, err := containerengine.NewContainerEngineClientWithConfigurationProvider(oci.config)
@@ -62,7 +61,6 @@ func (ce *ContainerEngine) getResourceID(resources []containerengine.WorkRequest
 
 // wait until work request finish
 func (ce *ContainerEngine) waitUntilWorkRequestComplete(client containerengine.ContainerEngineClient, workReuqestID *string) (containerengine.GetWorkRequestResponse, error) {
-
 	// retry GetWorkRequest call until TimeFinished is set
 	policy := common.NewRetryPolicy(uint(180), func(r common.OCIOperationResponse) bool {
 		return r.Response.(containerengine.GetWorkRequestResponse).TimeFinished == nil
@@ -82,7 +80,6 @@ func (ce *ContainerEngine) waitUntilWorkRequestComplete(client containerengine.C
 
 // GetAvailableKubernetesVersions gets available K8S versions
 func (ce *ContainerEngine) GetAvailableKubernetesVersions() (versions Strings, err error) {
-
 	request := containerengine.GetClusterOptionsRequest{
 		ClusterOptionId: common.String("all"),
 	}
@@ -96,7 +93,6 @@ func (ce *ContainerEngine) GetAvailableKubernetesVersions() (versions Strings, e
 
 // GetK8SConfig generates and downloads K8S config
 func (ce *ContainerEngine) GetK8SConfig(OCID string) ([]byte, error) {
-
 	response, err := ce.client.CreateKubeconfig(context.Background(), containerengine.CreateKubeconfigRequest{
 		ClusterId: &OCID,
 	})

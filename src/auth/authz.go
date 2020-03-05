@@ -31,6 +31,8 @@ type RbacEnforcer struct {
 	logger     Logger
 }
 
+// +testify:mock:testOnly=true
+
 // RoleSource returns the user's role in a given organization.
 type RoleSource interface {
 	// FindUserRole returns the user's role in a given organization.

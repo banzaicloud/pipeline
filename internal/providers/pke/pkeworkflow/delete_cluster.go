@@ -48,8 +48,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		ClusterID: input.ClusterID,
 	}
 
-	var err error
-	if err = workflow.ExecuteActivity(ctx, ListNodePoolsActivityName, listNodePoolsActivityInput).Get(ctx, &nodePools); err != nil {
+	if err := workflow.ExecuteActivity(ctx, ListNodePoolsActivityName, listNodePoolsActivityInput).Get(ctx, &nodePools); err != nil {
 		return err
 	}
 
@@ -65,8 +64,8 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 				}
 
 				// initiate deletion
-				if e := workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput).Get(ctx, nil); err != nil {
-					errs = append(errs, errors.Wrapf(e, "couldn't initiate worker node pool deletion"))
+				if err := workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput).Get(ctx, nil); err != nil {
+					errs = append(errs, errors.Wrapf(err, "couldn't initiate worker node pool deletion"))
 					continue
 				}
 
@@ -91,7 +90,6 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		if err := errors.Combine(errs...); err != nil {
 			return err
 		}
-
 	}
 
 	// release NLB
@@ -99,10 +97,10 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	deleteNLBActivityInput := &DeleteNLBActivityInput{
 		ClusterID: input.ClusterID,
 	}
-	if err = workflow.ExecuteActivity(ctx, DeleteNLBActivityName, deleteNLBActivityInput).Get(ctx, nil); err != nil {
+	if err := workflow.ExecuteActivity(ctx, DeleteNLBActivityName, deleteNLBActivityInput).Get(ctx, nil); err != nil {
 		return err
 	}
-	if err = workflow.ExecuteActivity(
+	if err := workflow.ExecuteActivity(
 		workflow.WithStartToCloseTimeout(
 			workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
 			1*time.Hour),
@@ -123,8 +121,8 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 				}
 
 				// initiate deletion
-				if e := workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput).Get(ctx, nil); err != nil {
-					errs = append(errs, errors.Wrapf(e, "couldn't initiate master node pool deletion"))
+				if err := workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput).Get(ctx, nil); err != nil {
+					errs = append(errs, errors.Wrapf(err, "couldn't initiate master node pool deletion"))
 					continue
 				}
 
@@ -164,7 +162,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	deleteElasticIPActivityInput := &DeleteElasticIPActivityInput{
 		ClusterID: input.ClusterID,
 	}
-	if err = workflow.ExecuteActivity(ctx, DeleteElasticIPActivityName, deleteElasticIPActivityInput).Get(ctx, nil); err != nil {
+	if err := workflow.ExecuteActivity(ctx, DeleteElasticIPActivityName, deleteElasticIPActivityInput).Get(ctx, nil); err != nil {
 		return err
 	}
 
@@ -173,11 +171,11 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	deleteVPCActivityInput := &DeleteVPCActivityInput{
 		ClusterID: input.ClusterID,
 	}
-	if err = workflow.ExecuteActivity(ctx, DeleteVPCActivityName, deleteVPCActivityInput).Get(ctx, nil); err != nil {
+	if err := workflow.ExecuteActivity(ctx, DeleteVPCActivityName, deleteVPCActivityInput).Get(ctx, nil); err != nil {
 		return err
 	}
 
-	if err = workflow.ExecuteActivity(
+	if err := workflow.ExecuteActivity(
 		workflow.WithStartToCloseTimeout(
 			workflow.WithHeartbeatTimeout(ctx, 1*time.Minute),
 			1*time.Hour),
@@ -190,7 +188,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	deleteDexClientActivityInput := &DeleteDexClientActivityInput{
 		ClusterID: input.ClusterID,
 	}
-	if err = workflow.ExecuteActivity(ctx, DeleteDexClientActivityName, deleteDexClientActivityInput).Get(ctx, nil); err != nil {
+	if err := workflow.ExecuteActivity(ctx, DeleteDexClientActivityName, deleteDexClientActivityInput).Get(ctx, nil); err != nil {
 		return err
 	}
 

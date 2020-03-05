@@ -79,7 +79,6 @@ func (s *DeleteClusterInfraWorkflowTestSuite) AfterTest(suiteName, testName stri
 }
 
 func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
-
 	workflowInput := DeleteInfrastructureWorkflowInput{
 		Region:           "us-west-1",
 		OrganizationID:   1,

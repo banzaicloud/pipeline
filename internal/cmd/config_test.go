@@ -22,7 +22,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
 	"github.com/banzaicloud/pipeline/pkg/hook"
+	"github.com/banzaicloud/pipeline/pkg/values"
 )
 
 func TestConfigure_DefaultValueBinding(t *testing.T) {
@@ -61,6 +63,37 @@ func TestConfigure_DefaultValueBinding(t *testing.T) {
 							},
 						},
 					},
+				},
+			},
+		},
+		"cluster ingress": {
+			Subtree: config.Cluster.Ingress,
+			Expected: ClusterIngressConfig{
+				Enabled: true,
+				Config: ingress.Config{
+					ReleaseName: "ingress",
+					Controllers: []string{
+						"traefik",
+					},
+					Charts: ingress.ChartsConfig{
+						Traefik: ingress.TraefikChartConfig{
+							Chart:   "stable/traefik",
+							Version: "1.86.1",
+							Values: values.Config(map[string]interface{}{
+								"ssl": map[string]interface{}{
+									"enabled":     true,
+									"generateTLS": true,
+								},
+							}),
+						},
+					},
+				},
+				Cert: struct {
+					Source string
+					Path   string
+				}{
+					Source: "file",
+					Path:   "config/certs",
 				},
 			},
 		},

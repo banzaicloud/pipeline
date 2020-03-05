@@ -18,6 +18,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/src/model"
 )
 
@@ -33,7 +34,7 @@ func NewClusters(db *gorm.DB) *Clusters {
 
 // Exists checks if a given cluster exists within an organization.
 func (c *Clusters) Exists(organizationID uint, name string) (bool, error) {
-	var existingCluster ClusterModel
+	var existingCluster clustermodel.ClusterModel
 
 	err := c.db.First(&existingCluster, map[string]interface{}{"name": name, "organization_id": organizationID}).Error
 	if gorm.IsRecordNotFoundError(err) {

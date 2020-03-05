@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.13
+ARG GO_VERSION=1.14
 
 FROM golang:${GO_VERSION}-alpine AS builder
 
@@ -13,7 +13,7 @@ RUN cd $GOPATH/src/github.com/kubernetes-sigs/aws-iam-authenticator && \
     git checkout 981ecbe && \
     go install ./cmd/aws-iam-authenticator
 
-FROM alpine:3.9
+FROM alpine:3.11
 
 RUN apk add --update --no-cache bash curl
 

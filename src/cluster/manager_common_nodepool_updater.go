@@ -59,7 +59,6 @@ func NewCommonNodepoolUpdater(request *cluster.UpdateNodePoolsRequest, cluster C
 
 // Validate implements the clusterUpdater interface.
 func (c *commonNodepoolUpdater) Validate(ctx context.Context) error {
-
 	status, err := c.cluster.GetStatus()
 	if err != nil {
 		return errors.WrapIf(err, "could not get cluster status")
@@ -77,7 +76,6 @@ func (c *commonNodepoolUpdater) Validate(ctx context.Context) error {
 
 	// check node pools
 	for poolName := range c.request.NodePools {
-
 		if !c.cluster.NodePoolExists(poolName) {
 			return errors.WithDetails(
 				&commonNodepoolUpdateValidationError{

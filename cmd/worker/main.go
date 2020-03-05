@@ -15,19 +15,21 @@
 package main
 
 import (
+	"context"
 	"encoding/base32"
 	"fmt"
 	"os"
-	"os/signal"
 	"syscall"
 	"text/template"
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	"emperror.dev/errors/match"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	"github.com/mitchellh/mapstructure"
 	"github.com/oklog/run"
+	appkitrun "github.com/sagikazarmark/appkit/run"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/cadence/activity"
@@ -44,7 +46,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
-	"github.com/banzaicloud/pipeline/internal/cluster/distributionadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksadapter"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
@@ -55,8 +57,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	"github.com/banzaicloud/pipeline/internal/helm2"
+	"github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
@@ -65,6 +67,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter"
 	expiryWorkflow "github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter/workflow"
+	intsvcingress "github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
+	intsvcingressadapter "github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress/ingressadapter"
 	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	integratedServiceMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
@@ -93,6 +97,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
+	"github.com/banzaicloud/pipeline/internal/secret/types"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
@@ -205,7 +210,11 @@ func main() {
 
 	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
 	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, commonLogger)
-	secret.InitSecretStore(secretStore, pkeSecreter)
+	secretTypes := types.NewDefaultTypeList(types.DefaultTypeListConfig{
+		TLSDefaultValidity: config.Secret.TLS.DefaultValidity,
+		PkeSecreter:        pkeSecreter,
+	})
+	secret.InitSecretStore(secretStore, secretTypes)
 	restricted.InitSecretStore(secret.Store)
 
 	var group run.Group
@@ -250,7 +259,7 @@ func main() {
 		)
 		tokenGenerator := auth.NewClusterTokenGenerator(tokenManager, tokenStore)
 
-		helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
+		helmService := helm2.NewHelmService(helmadapter.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
 		secretStore := pkeworkflowadapter.NewSecretStore(secret.Store)
@@ -370,7 +379,7 @@ func main() {
 		}))
 
 		// Register amazon specific workflows and activities
-		registerAwsWorkflows(clusters, tokenGenerator, secretStore, cloudinfoClient)
+		registerAwsWorkflows(clusters, tokenGenerator, secretStore, cloudinfoClient, config.Distribution.PKE.Amazon.GlobalRegion)
 
 		azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonadapter.NewLogger(logger))
 
@@ -391,11 +400,11 @@ func main() {
 		clusterStore := clusteradapter.NewStore(db, clusteradapter.NewClusters(db))
 		vsphereClusterStore := vsphereadapter.NewClusterStore(db) //, commonadapter.NewLogger(logger))
 
+		cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
+		clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
 		{
 			workflow.RegisterWithOptions(clusterworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: clusterworkflow.DeleteClusterWorkflowName})
 
-			cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
-			clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
 			federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config)
 			deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler)
 			serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler, config.Cluster.Backyards)
@@ -485,7 +494,7 @@ func main() {
 				clusterStore,
 				db,
 				clusteradapter.NewNodePoolStore(db, clusterStore),
-				distributionadapter.NewEKSNodePoolStore(db),
+				eksadapter.NewNodePoolStore(db),
 				eksworkflow.NewAWSSessionFactory(secret.Store),
 			)
 			activity.RegisterWithOptions(createNodePoolActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.CreateNodePoolActivityName})
@@ -675,58 +684,24 @@ func main() {
 					commonSecretStore,
 				),
 				expiry.NewExpiryServiceOperator(expirerService, services.BindIntegratedServiceSpec, logger),
+				intsvcingress.NewOperator(
+					intsvcingressadapter.NewOperatorClusterStore(clusterStore),
+					clusterService,
+					config.Cluster.Ingress.Config,
+					helmService,
+					intsvcingressadapter.NewOrgDomainService(config.Cluster.DNS.BaseDomain, orgGetter),
+				),
 			})
 
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)
 		}
 
-		var closeCh = make(chan struct{})
-
-		group.Add(
-			func() error {
-				err := worker.Start()
-				if err != nil {
-					return err
-				}
-
-				<-closeCh
-
-				return nil
-			},
-			func(e error) {
-				worker.Stop()
-				close(closeCh)
-			},
-		)
+		group.Add(appkitrun.CadenceWorkerRun(worker))
 	}
 
 	// Setup signal handler
-	{
-		var (
-			cancelInterrupt = make(chan struct{})
-			ch              = make(chan os.Signal, 2)
-		)
-		defer close(ch)
-
-		group.Add(
-			func() error {
-				signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-
-				select {
-				case sig := <-ch:
-					logger.Info("captured signal", map[string]interface{}{"signal": sig})
-				case <-cancelInterrupt:
-				}
-
-				return nil
-			},
-			func(e error) {
-				close(cancelInterrupt)
-				signal.Stop(ch)
-			},
-		)
-	}
+	group.Add(run.SignalHandler(context.Background(), syscall.SIGINT, syscall.SIGTERM))
 
 	err = group.Run()
-	emperror.Handle(errorHandler, err)
+	emperror.WithFilter(errorHandler, match.As(&run.SignalError{}).MatchError).Handle(err)
 }

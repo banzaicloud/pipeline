@@ -60,7 +60,6 @@ func NewClusterAuthAPI(
 	insecureSkipVerify bool,
 	redirectURI string,
 ) (*ClusterAuthAPI, error) {
-
 	httpClient := http.Client{
 		Timeout: time.Second * 10,
 		Transport: &http.Transport{
@@ -122,7 +121,6 @@ func NewClusterAuthAPI(
 }
 
 func (api *ClusterAuthAPI) dexCallback(c *gin.Context) {
-
 	var (
 		err          error
 		token        *oauth2.Token
@@ -328,7 +326,6 @@ func (api *ClusterAuthAPI) oauth2Config(clientSecret auth.ClusterClientSecret, s
 }
 
 func (api *ClusterAuthAPI) generateKubeConfig(ctx context.Context, IDToken string, refreshToken string, claims claim, clientID, clientSecret string, clusterID uint) ([]byte, error) {
-
 	config, err := api.clusterAuthService.GetClusterConfig(ctx, clusterID)
 	if err != nil {
 		return nil, err

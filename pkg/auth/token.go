@@ -151,6 +151,8 @@ func (g JWTTokenGenerator) GenerateToken(sub string, expiresAt int64, tokenType 
 	return tokenID, signedToken, nil
 }
 
+// +testify:mock:testOnly=true
+
 // TokenGenerator generates a token.
 type TokenGenerator interface {
 	// GenerateToken generates a token.

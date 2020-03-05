@@ -100,6 +100,11 @@ func (c configuration) Validate() error {
 		errs = errors.Append(errs, errors.New("environment is required"))
 	}
 
+	// TODO: this config is only used here, so the validation is here too. Either the config or the validation should be moved somewhere else.
+	if c.Distribution.PKE.Amazon.GlobalRegion == "" {
+		errs = errors.Append(errs, errors.New("pke amazon global region is required"))
+	}
+
 	return errs
 }
 

@@ -62,6 +62,8 @@ type Identifier struct {
 	ClusterName    string
 }
 
+// +testify:mock:testOnly=true
+
 // Store provides an interface to the generic Cluster model persistence.
 type Store interface {
 	// GetCluster returns a generic Cluster.
@@ -74,6 +76,39 @@ type Store interface {
 
 	// SetStatus sets the cluster status.
 	SetStatus(ctx context.Context, id uint, status string, statusMessage string) error
+}
+
+// +testify:mock:testOnly=true
+type ClusterGroupManager interface {
+	ValidateClusterRemoval(ctx context.Context, clusterID uint) error
+}
+
+// ClusterDeleteNotPermittedError is returned if a cluster cannot be deleted.
+type ClusterDeleteNotPermittedError struct {
+	OrganizationID uint
+	ClusterID      uint
+	ClusterName    string
+	Msg            string
+}
+
+// Error implements the error interface.
+func (e ClusterDeleteNotPermittedError) Error() string {
+	return e.Msg
+}
+
+func (e ClusterDeleteNotPermittedError) Validation() bool {
+	return true
+}
+
+// ServiceError tells the consumer whether this error is caused by invalid input supplied by the client.
+// Client errors are usually returned to the consumer without retrying the operation.
+func (ClusterDeleteNotPermittedError) ServiceError() bool {
+	return true
+}
+
+// Details returns error details.
+func (e ClusterDeleteNotPermittedError) Details() []interface{} {
+	return []interface{}{"clusterId", e.ClusterID, "clusterName", e.ClusterName, "orgId", e.OrganizationID}
 }
 
 // NotFoundError is returned if a cluster cannot be found.
@@ -192,8 +227,8 @@ func (NotSupportedDistributionError) ServiceError() bool {
 	return true
 }
 
-//go:generate mga gen mockery --name Service --inpkg
 // +kit:endpoint:errorStrategy=service
+// +testify:mock
 
 // Service provides an interface to clusters.
 type Service interface {
@@ -213,8 +248,9 @@ type DeleteClusterOptions struct {
 }
 
 type clusterService struct {
-	clusters       Store
-	clusterManager Manager
+	clusters            Store
+	clusterManager      Manager
+	clusterGroupManager ClusterGroupManager
 
 	nodePools         NodePoolStore
 	nodePoolValidator NodePoolValidator
@@ -237,14 +273,16 @@ type Deleter interface {
 func NewService(
 	clusters Store,
 	clusterManager Manager,
+	clusterGroupManager ClusterGroupManager,
 	nodePools NodePoolStore,
 	nodePoolValidator NodePoolValidator,
 	nodePoolProcessor NodePoolProcessor,
 	nodePoolManager NodePoolManager,
 ) Service {
 	return clusterService{
-		clusters:       clusters,
-		clusterManager: clusterManager,
+		clusters:            clusters,
+		clusterManager:      clusterManager,
+		clusterGroupManager: clusterGroupManager,
 
 		nodePools:         nodePools,
 		nodePoolValidator: nodePoolValidator,
@@ -271,6 +309,16 @@ func (s clusterService) DeleteCluster(ctx context.Context, clusterIdentifier Ide
 		return true, nil
 	} else if err != nil {
 		return false, err
+	}
+
+	err = s.clusterGroupManager.ValidateClusterRemoval(ctx, clusterIdentifier.ClusterID)
+	if err != nil {
+		return false, ClusterDeleteNotPermittedError{
+			OrganizationID: clusterIdentifier.OrganizationID,
+			ClusterName:    clusterIdentifier.ClusterName,
+			ClusterID:      clusterIdentifier.ClusterID,
+			Msg:            err.Error(),
+		}
 	}
 
 	if err := s.clusters.SetStatus(ctx, c.ID, Deleting, DeletingMessage); err != nil {

@@ -25,7 +25,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-09-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -33,19 +33,17 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/global"
 	internalAzure "github.com/banzaicloud/pipeline/internal/providers/azure"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgClusterAzure "github.com/banzaicloud/pipeline/pkg/cluster/aks"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/utils"
-)
-
-const (
-	poolNameKey = "poolName"
 )
 
 // nolint: gochecknoglobals
@@ -62,9 +60,9 @@ type AKSCluster struct {
 
 // CreateAKSClusterFromRequest returns an AKS cluster instance created from the specified request
 func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID uint, userID uint) (*AKSCluster, error) {
-	var nodePools = make([]*model.AKSNodePoolModel, 0, len(request.Properties.CreateClusterAKS.NodePools))
+	var nodePools = make([]*azureadapter.AKSNodePoolModel, 0, len(request.Properties.CreateClusterAKS.NodePools))
 	for name, np := range request.Properties.CreateClusterAKS.NodePools {
-		nodePools = append(nodePools, &model.AKSNodePoolModel{
+		nodePools = append(nodePools, &azureadapter.AKSNodePoolModel{
 			CreatedBy:        userID,
 			Name:             name,
 			Autoscaling:      np.Autoscaling,
@@ -87,7 +85,7 @@ func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 		CreatedBy:      userID,
 		SecretId:       request.SecretId,
 		Distribution:   pkgCluster.AKS,
-		AKS: model.AKSClusterModel{
+		AKS: azureadapter.AKSClusterModel{
 			ResourceGroup:     request.Properties.CreateClusterAKS.ResourceGroup,
 			KubernetesVersion: request.Properties.CreateClusterAKS.KubernetesVersion,
 			NodePools:         nodePools,
@@ -131,7 +129,6 @@ func createClusterCreateOrUpdateFailedError(createOrUpdateError error, errorEven
 			clusterCreateUpdateError: createOrUpdateError,
 			failedEventsMsg:          failedEventsMsg,
 		}
-
 	}
 
 	return createOrUpdateError
@@ -185,7 +182,7 @@ func isProvisioningSuccessful(cluster *containerservice.ManagedCluster) bool {
 	return *cluster.ProvisioningState == "Succeeded"
 }
 
-func getVNetSubnetID(np *model.AKSNodePoolModel) *string {
+func getVNetSubnetID(np *azureadapter.AKSNodePoolModel) *string {
 	if len(np.VNetSubnetID) == 0 {
 		return nil
 	}
@@ -214,6 +211,9 @@ func (c *AKSCluster) CreateCluster() error {
 				Count:        &count,
 				VMSize:       containerservice.VMSizeTypes(np.NodeInstanceType),
 				VnetSubnetID: getVNetSubnetID(np),
+				NodeLabels: map[string]*string{
+					pkgCommon.LabelKey: &name,
+				},
 			})
 		}
 	}
@@ -429,7 +429,7 @@ func (c *AKSCluster) GetResourceGroupName() string {
 
 func (c *AKSCluster) loadAKSClusterModelFromDB() {
 	database := global.DB()
-	database.Where(model.AKSClusterModel{ID: c.GetID()}).First(&c.modelCluster.AKS)
+	database.Where(azureadapter.AKSClusterModel{ID: c.GetID()}).First(&c.modelCluster.AKS)
 }
 
 // DownloadK8sConfig returns the kubeconfig file's contents from AKS
@@ -473,13 +473,11 @@ func (c *AKSCluster) GetDistribution() string {
 
 // GetStatus returns the cluster's status
 func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-
 	// c.log.Info("Create cluster status response")
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.modelCluster.AKS.NodePools {
 		if np != nil {
-
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Autoscaling:       np.Autoscaling,
 				Count:             np.Count,
@@ -638,7 +636,7 @@ func (c *AKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 }
 
 // getNodePoolByName returns saved NodePool by name
-func (c *AKSCluster) getNodePoolByName(name string) *model.AKSNodePoolModel {
+func (c *AKSCluster) getNodePoolByName(name string) *azureadapter.AKSNodePoolModel {
 	for _, nodePool := range c.modelCluster.AKS.NodePools {
 		if nodePool != nil && nodePool.Name == name {
 			return nodePool
@@ -884,7 +882,6 @@ func (c *AKSCluster) validateLocation(location string) error {
 
 // validateMachineType validates nodeInstanceTypes
 func (c *AKSCluster) validateMachineType(nodePools map[string]*pkgClusterAzure.NodePoolCreate, location string) error {
-
 	validMachineTypes, err := GetMachineTypes(c.GetOrganizationId(), c.GetSecretId(), location)
 	if err != nil {
 		return errors.WrapIfWithDetails(err, "could not get VM types from Azure", "location", location)
@@ -907,7 +904,6 @@ func (c *AKSCluster) validateMachineType(nodePools map[string]*pkgClusterAzure.N
 
 // validateKubernetesVersion validates k8s version
 func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) error {
-
 	c.log.Debugln("K8SVersion:", k8sVersion)
 	validVersions, err := GetKubernetesVersion(c.GetOrganizationId(), c.GetSecretId(), location)
 	if err != nil {
@@ -963,33 +959,6 @@ func (c *AKSCluster) RequiresSshPublicKey() bool {
 	return true
 }
 
-// ListNodeNames returns node names to label them
-func (c *AKSCluster) ListNodeNames() (labels map[string][]string, err error) {
-	cc, err := c.getCloudConnection()
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to create cloud connection")
-	}
-
-	labels = make(map[string][]string)
-	irgName := c.getInfrastructureResourceGroupName()
-	vms, err := cc.GetVirtualMachinesClient().ListAll(context.TODO(), irgName)
-	for _, np := range c.modelCluster.AKS.NodePools {
-		if np != nil {
-			for _, vm := range vms {
-				if vm.OsProfile != nil && vm.OsProfile.ComputerName != nil {
-					for key, tag := range vm.Tags {
-						if poolNameKey == key && tag != nil && *tag == np.Name {
-							labels[np.Name] = append(labels[np.Name], *vm.OsProfile.ComputerName)
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return
-}
-
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *AKSCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
@@ -1037,7 +1006,7 @@ func CreateOrUpdateResourceGroup(orgID uint, secretID string, resourceGroupName,
 }
 
 // GetAKSNodePools returns AKS node pools from a common cluster.
-func GetAKSNodePools(cluster CommonCluster) ([]*model.AKSNodePoolModel, error) {
+func GetAKSNodePools(cluster CommonCluster) ([]*azureadapter.AKSNodePoolModel, error) {
 	akscluster, ok := cluster.(*AKSCluster)
 	if !ok {
 		return nil, ErrInvalidClusterInstance

@@ -19,10 +19,16 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend/notification/notificationadapter"
-	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
+	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
+	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
+	"github.com/banzaicloud/pipeline/src/model"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
 	"github.com/banzaicloud/pipeline/internal/ark"
@@ -30,12 +36,31 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers"
 	"github.com/banzaicloud/pipeline/src/auth"
 	route53model "github.com/banzaicloud/pipeline/src/dns/route53/model"
-	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/spotguide"
 )
 
 // Migrate runs migrations for the application.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger, commonLogger common.Logger) error {
+	if err := clustermodel.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := alibabaadapter.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := amazonadapter.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := azureadapter.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := kubernetesadapter.Migrate(db, logger); err != nil {
+		return err
+	}
+
 	if err := model.Migrate(db, logger); err != nil {
 		return err
 	}
@@ -53,10 +78,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger, commonLogger common.Logger)
 	}
 
 	if err := audit.Migrate(db, logger); err != nil {
-		return err
-	}
-
-	if err := clusteradapter.Migrate(db, logger); err != nil {
 		return err
 	}
 
@@ -81,6 +102,10 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger, commonLogger common.Logger)
 	}
 
 	if err := integratedserviceadapter.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := helmadapter.Migrate(db, commonLogger); err != nil {
 		return err
 	}
 

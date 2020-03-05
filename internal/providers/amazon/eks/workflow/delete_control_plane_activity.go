@@ -118,7 +118,6 @@ func (a *DeleteControlPlaneActivity) waitUntilClusterExists(ctx aws.Context, eks
 		},
 		Logger: eksSvc.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
-
 			count++
 			activity.RecordHeartbeat(ctx, count)
 

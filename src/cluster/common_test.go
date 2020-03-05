@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"emperror.dev/emperror"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
@@ -26,12 +27,14 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
+	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
+	"github.com/banzaicloud/pipeline/internal/secret/types"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
@@ -69,30 +72,6 @@ var (
 	clusterRequestNodeLabels = map[string]string{
 		"testname": "testvalue",
 	}
-
-	amazonSecretRequest = secret.CreateSecretRequest{
-		Name: secretName,
-		Type: pkgCluster.Amazon,
-		Values: map[string]string{
-			clusterKubeMetaKey: clusterKubeMetaValue,
-		},
-	}
-
-	aksSecretRequest = secret.CreateSecretRequest{
-		Name: secretName,
-		Type: pkgCluster.Azure,
-		Values: map[string]string{
-			clusterKubeMetaKey: clusterKubeMetaValue,
-		},
-	}
-)
-
-// nolint: gochecknoglobals
-var (
-	errAzureAmazon = secret.MismatchError{
-		SecretType: pkgCluster.Azure,
-		ValidType:  pkgCluster.Amazon,
-	}
 )
 
 func init() {
@@ -102,12 +81,15 @@ func init() {
 
 	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
 	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, common.NoopLogger{})
-	secret.InitSecretStore(secretStore, pkeSecreter)
+	secretTypes := types.NewDefaultTypeList(types.DefaultTypeListConfig{
+		TLSDefaultValidity: 365 * 24 * time.Hour,
+		PkeSecreter:        pkeSecreter,
+	})
+	secret.InitSecretStore(secretStore, secretTypes)
 	restricted.InitSecretStore(secret.Store)
 }
 
 func TestCreateCommonClusterFromRequest(t *testing.T) {
-
 	labelValidator := kubernetes2.LabelValidator{
 		ForbiddenDomains: []string{},
 	}
@@ -121,7 +103,6 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 		expectedError error
 	}{
 		{name: "aks create", createRequest: aksCreateFull, expectedModel: aksModelFull, expectedError: nil},
-		{name: "dummy create", createRequest: dummyCreateFull, expectedModel: dummyModelFull, expectedError: nil},
 		{name: "kube create", createRequest: kubeCreateFull, expectedModel: kubeModelFull, expectedError: nil},
 
 		{name: "not supported cloud", createRequest: notSupportedCloud, expectedModel: nil, expectedError: pkgErrors.ErrorNotSupportedCloudType},
@@ -132,11 +113,9 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-
 			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createRequest, organizationId, userId)
 
 			if tc.expectedError != nil {
-
 				if err != nil {
 					if !reflect.DeepEqual(tc.expectedError, err) {
 						t.Errorf("Expected model: %v, got: %v", tc.expectedError, err)
@@ -145,7 +124,6 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 					t.Errorf("Expected error: %s, but not got error!", tc.expectedError.Error())
 					t.FailNow()
 				}
-
 			} else {
 				if err != nil {
 					t.Errorf("Error during CreateCommonClusterFromRequest: %s", err.Error())
@@ -161,14 +139,11 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 					t.Errorf("Expected model: %v, got: %v", tc.expectedModel, modelAccessor.GetModel())
 				}
 			}
-
 		})
 	}
-
 }
 
 func TestGKEKubernetesVersion(t *testing.T) {
-
 	testCases := []struct {
 		name    string
 		version string
@@ -206,56 +181,8 @@ func TestGKEKubernetesVersion(t *testing.T) {
 			if !reflect.DeepEqual(tc.error, err) {
 				t.Errorf("Expected error: %#v, got: %#v", tc.error, err)
 			}
-
 		})
 	}
-
-}
-
-func TestGetSecretWithValidation(t *testing.T) {
-
-	cases := []struct {
-		name                 string
-		secretRequest        secret.CreateSecretRequest
-		createClusterRequest *pkgCluster.CreateClusterRequest
-		err                  error
-	}{
-		{"amazon", amazonSecretRequest, eksCreateFull, nil},
-		{"aks", aksSecretRequest, aksCreateFull, nil},
-		{"aks wrong cloud field", aksSecretRequest, eksCreateFull, errAzureAmazon},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-
-			if secretID, err := secret.Store.Store(organizationId, &tc.secretRequest); err != nil {
-				t.Errorf("Error during saving secret: %s", err.Error())
-				t.FailNow()
-			} else {
-				defer secret.Store.Delete(organizationId, secretID) // nolint: errcheck
-			}
-
-			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createClusterRequest, organizationId, userId)
-			if err != nil {
-				t.Errorf("Error during create model from request: %s", err.Error())
-				t.FailNow()
-			}
-
-			_, err = commonCluster.GetSecretWithValidation()
-			if tc.err != nil {
-				if err == nil {
-					t.Errorf("Expected error: %s, but got non", tc.err.Error())
-					t.FailNow()
-				} else if !reflect.DeepEqual(tc.err, err) {
-					t.Errorf("Expected error: %s, but got: %s", tc.err.Error(), err.Error())
-					t.FailNow()
-				}
-			} else if err != nil {
-				t.Errorf("Error during secret validation: %v", err)
-				t.FailNow()
-			}
-		})
-	}
-
 }
 
 // nolint: gochecknoglobals
@@ -264,7 +191,7 @@ var (
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
 		Cloud:    pkgCluster.Azure,
-		SecretId: string(clusterRequestSecretId),
+		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterAKS: &aks.CreateClusterAKS{
 				ResourceGroup:     clusterRequestRG,
@@ -287,7 +214,7 @@ var (
 		Name:     clusterRequestName,
 		Location: "",
 		Cloud:    pkgCluster.Azure,
-		SecretId: string(clusterRequestSecretId),
+		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterAKS: &aks.CreateClusterAKS{
 				ResourceGroup:     clusterRequestRG,
@@ -306,7 +233,7 @@ var (
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
 		Cloud:    pkgCluster.Amazon,
-		SecretId: string(clusterRequestSecretId),
+		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterEKS: &eks.CreateClusterEKS{
 				Version: clusterRequestKubernetesEKS,
@@ -325,26 +252,11 @@ var (
 		},
 	}
 
-	dummyCreateFull = &pkgCluster.CreateClusterRequest{
-		Name:     clusterRequestName,
-		Location: clusterRequestLocation,
-		Cloud:    pkgCluster.Dummy,
-		SecretId: string(clusterRequestSecretId),
-		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterDummy: &dummy.CreateClusterDummy{
-				Node: &dummy.Node{
-					KubernetesVersion: clusterRequestKubernetes,
-					Count:             clusterRequestNodeCount,
-				},
-			},
-		},
-	}
-
 	kubeCreateFull = &pkgCluster.CreateClusterRequest{
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
 		Cloud:    pkgCluster.Kubernetes,
-		SecretId: string(clusterRequestSecretId),
+		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterKubernetes: &kubernetes.CreateClusterKubernetes{
 				Metadata: map[string]string{
@@ -358,7 +270,7 @@ var (
 		Name:     clusterRequestName,
 		Location: "",
 		Cloud:    pkgCluster.Kubernetes,
-		SecretId: string(clusterRequestSecretId),
+		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterKubernetes: &kubernetes.CreateClusterKubernetes{
 				Metadata: map[string]string{
@@ -372,7 +284,7 @@ var (
 		Name:       clusterRequestName,
 		Location:   clusterRequestLocation,
 		Cloud:      "nonExistsCloud",
-		SecretId:   string(clusterRequestSecretId),
+		SecretId:   clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{},
 	}
 )
@@ -387,10 +299,10 @@ var (
 		Cloud:          pkgCluster.Azure,
 		Distribution:   pkgCluster.AKS,
 		OrganizationId: organizationId,
-		AKS: model.AKSClusterModel{
+		AKS: azureadapter.AKSClusterModel{
 			ResourceGroup:     clusterRequestRG,
 			KubernetesVersion: clusterRequestKubernetes,
-			NodePools: []*model.AKSNodePoolModel{
+			NodePools: []*azureadapter.AKSNodePoolModel{
 				{
 					CreatedBy:        userId,
 					Autoscaling:      true,
@@ -405,20 +317,6 @@ var (
 		},
 	}
 
-	dummyModelFull = &model.ClusterModel{
-		CreatedBy:      userId,
-		Name:           clusterRequestName,
-		Location:       clusterRequestLocation,
-		Cloud:          pkgCluster.Dummy,
-		Distribution:   pkgCluster.Dummy,
-		OrganizationId: organizationId,
-		SecretId:       clusterRequestSecretId,
-		Dummy: model.DummyClusterModel{
-			KubernetesVersion: clusterRequestKubernetes,
-			NodeCount:         clusterRequestNodeCount,
-		},
-	}
-
 	kubeModelFull = &model.ClusterModel{
 		CreatedBy:      userId,
 		Name:           clusterRequestName,
@@ -427,7 +325,7 @@ var (
 		Cloud:          pkgCluster.Kubernetes,
 		Distribution:   pkgCluster.Unknown,
 		OrganizationId: organizationId,
-		Kubernetes: model.KubernetesClusterModel{
+		Kubernetes: kubernetesadapter.KubernetesClusterModel{
 			Metadata: map[string]string{
 				clusterKubeMetaKey: clusterKubeMetaValue,
 			},
@@ -443,7 +341,7 @@ var (
 		Cloud:          pkgCluster.Kubernetes,
 		Distribution:   pkgCluster.Unknown,
 		OrganizationId: organizationId,
-		Kubernetes: model.KubernetesClusterModel{
+		Kubernetes: kubernetesadapter.KubernetesClusterModel{
 			Metadata: map[string]string{
 				clusterKubeMetaKey: clusterKubeMetaValue,
 			},

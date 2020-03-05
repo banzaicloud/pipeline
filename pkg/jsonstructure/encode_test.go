@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEncode(t *testing.T) {
+func TestEncode_JSON_marshal_conformance(t *testing.T) {
 	type (
 		NamedBool bool
 
@@ -63,59 +63,59 @@ func TestEncode(t *testing.T) {
 		},
 		"float32": {
 			Input:  float32(42),
-			Result: float64(42),
+			Result: Number(42),
 		},
 		"float64": {
 			Input:  float64(42),
-			Result: float64(42),
+			Result: Number(42),
 		},
 		"int": {
 			Input:  int(42),
-			Result: float64(42),
+			Result: Number(42),
 		},
 		"int8": {
 			Input:  int8(42),
-			Result: float64(42),
+			Result: Number(42),
 		},
 		"int16": {
 			Input:  int16(42),
-			Result: float64(42),
+			Result: Number(42),
 		},
 		"int32": {
 			Input:  int32(42),
-			Result: float64(42),
+			Result: Number(42),
 		},
 		"int64": {
 			Input:  int64(42),
-			Result: float64(42),
+			Result: Number(42),
 		},
 		"uint": {
 			Input:  uint(42),
-			Result: float64(42),
+			Result: Number(42),
 		},
 		"uint8": {
 			Input:  uint8(42),
-			Result: float64(42),
+			Result: Number(42),
 		},
 		"uint16": {
 			Input:  uint16(42),
-			Result: float64(42),
+			Result: Number(42),
 		},
 		"uint32": {
 			Input:  uint32(42),
-			Result: float64(42),
+			Result: Number(42),
 		},
 		"uint64": {
 			Input:  uint64(42),
-			Result: float64(42),
+			Result: Number(42),
 		},
 		"uint64 max": {
 			Input:  ^uint64(0),
-			Result: float64(^uint64(0)),
+			Result: Number(^uint64(0)),
 		},
 		"uintptr": {
 			Input:  uintptr(42),
-			Result: float64(42),
+			Result: Number(42),
 		},
 		"unsafe.Pointer": {
 			Input: unsafe.Pointer(nil),
@@ -135,11 +135,11 @@ func TestEncode(t *testing.T) {
 		},
 		"byte": {
 			Input:  byte(42),
-			Result: float64(42),
+			Result: Number(42),
 		},
 		"rune": {
 			Input:  rune(42),
-			Result: float64(42),
+			Result: Number(42),
 		},
 
 		// composite types
@@ -165,39 +165,39 @@ func TestEncode(t *testing.T) {
 		// arrays
 		"empty bool array": {
 			Input:  [...]bool{},
-			Result: []interface{}{},
+			Result: Array{},
 		},
 		"non-empty bool array": {
 			Input:  [...]bool{false, true},
-			Result: []interface{}{false, true},
+			Result: Array{false, true},
 		},
 		"empty float32 array": {
 			Input:  [...]float32{},
-			Result: []interface{}{},
+			Result: Array{},
 		},
 		"non-empty float32 array": {
 			Input:  [...]float32{42},
-			Result: []interface{}{float64(42)},
+			Result: Array{Number(42)},
 		},
 		"empty float64 array": {
 			Input:  [...]float64{},
-			Result: []interface{}{},
+			Result: Array{},
 		},
 		"non-empty float64 array": {
 			Input:  [...]float64{42},
-			Result: []interface{}{float64(42)},
+			Result: Array{Number(42)},
 		},
 		"empty byte array": {
 			Input:  [...]byte{},
-			Result: []interface{}{},
+			Result: Array{},
 		},
 		"non-empty byte array": {
 			Input:  [...]byte{42},
-			Result: []interface{}{float64(42)},
+			Result: Array{Number(42)},
 		},
 		"empty interface{} array": {
 			Input:  [...]interface{}{},
-			Result: []interface{}{},
+			Result: Array{},
 		},
 		"non-empy interface{} array": {
 			Input: [...]interface{}{
@@ -207,21 +207,21 @@ func TestEncode(t *testing.T) {
 				[...]bool{false, true},
 				[]bool{false, true},
 				[...]interface{}{},
-				[]interface{}{},
+				Array{},
 				map[string]bool{
 					"false": false,
 					"true":  true,
 				},
 				map[string]interface{}{},
 			},
-			Result: []interface{}{
+			Result: Array{
 				nil,
 				false, true,
-				float64(42), float64(42), float64(42), float64(42),
-				[]interface{}{false, true},
-				[]interface{}{false, true},
-				[]interface{}{},
-				[]interface{}{},
+				Number(42), Number(42), Number(42), Number(42),
+				Array{false, true},
+				Array{false, true},
+				Array{},
+				Array{},
 				map[string]interface{}{
 					"false": false,
 					"true":  true,
@@ -237,11 +237,11 @@ func TestEncode(t *testing.T) {
 		},
 		"empty bool slice": {
 			Input:  []bool{},
-			Result: []interface{}{},
+			Result: Array{},
 		},
 		"non-empty bool slice": {
 			Input:  []bool{false, true},
-			Result: []interface{}{false, true},
+			Result: Array{false, true},
 		},
 		"nil byte slice": {
 			Input:  []byte(nil),
@@ -256,12 +256,12 @@ func TestEncode(t *testing.T) {
 			Result: "AQID",
 		},
 		"nil interface{} slice": {
-			Input:  []interface{}(nil),
+			Input:  Array(nil),
 			Result: nil,
 		},
 		"empty interface{} slice": {
-			Input:  []interface{}{},
-			Result: []interface{}{},
+			Input:  Array{},
+			Result: Array{},
 		},
 
 		// channels
@@ -325,18 +325,18 @@ func TestEncode(t *testing.T) {
 				"int":     int(42),
 				"uint":    uint(42),
 				"array":   [...]interface{}{},
-				"slice":   []interface{}{},
+				"slice":   Array{},
 			},
 			Result: map[string]interface{}{
 				"nil":     nil,
 				"false":   false,
 				"true":    true,
-				"float32": float64(42),
-				"float64": float64(42),
-				"int":     float64(42),
-				"uint":    float64(42),
-				"array":   []interface{}{},
-				"slice":   []interface{}{},
+				"float32": Number(42),
+				"float64": Number(42),
+				"int":     Number(42),
+				"uint":    Number(42),
+				"array":   Array{},
+				"slice":   Array{},
 			},
 		},
 
@@ -464,7 +464,7 @@ func TestEncode(t *testing.T) {
 				Field: 0,
 			},
 			Result: map[string]interface{}{
-				"Field": float64(0),
+				"Field": Number(0),
 			},
 		},
 		"struct with non-zero int field, no tag": {
@@ -474,7 +474,7 @@ func TestEncode(t *testing.T) {
 				Field: 42,
 			},
 			Result: map[string]interface{}{
-				"Field": float64(42),
+				"Field": Number(42),
 			},
 		},
 		"struct with zero int field, omit tag": {
@@ -500,7 +500,7 @@ func TestEncode(t *testing.T) {
 				Field: 0,
 			},
 			Result: map[string]interface{}{
-				"Field": float64(0),
+				"Field": Number(0),
 			},
 		},
 		"struct with non-zero int field, empty tag": {
@@ -510,7 +510,7 @@ func TestEncode(t *testing.T) {
 				Field: 42,
 			},
 			Result: map[string]interface{}{
-				"Field": float64(42),
+				"Field": Number(42),
 			},
 		},
 		"struct with zero int field, rename tag": {
@@ -520,7 +520,7 @@ func TestEncode(t *testing.T) {
 				Field: 0,
 			},
 			Result: map[string]interface{}{
-				"field": float64(0),
+				"field": Number(0),
 			},
 		},
 		"struct with non-zero int field, rename tag": {
@@ -530,7 +530,7 @@ func TestEncode(t *testing.T) {
 				Field: 42,
 			},
 			Result: map[string]interface{}{
-				"field": float64(42),
+				"field": Number(42),
 			},
 		},
 		"struct with zero int field, omitempty tag": {
@@ -548,7 +548,7 @@ func TestEncode(t *testing.T) {
 				Field: 42,
 			},
 			Result: map[string]interface{}{
-				"Field": float64(42),
+				"Field": Number(42),
 			},
 		},
 		"struct with zero int field, rename and omitempty tag": {
@@ -566,7 +566,7 @@ func TestEncode(t *testing.T) {
 				Field: 42,
 			},
 			Result: map[string]interface{}{
-				"field": float64(42),
+				"field": Number(42),
 			},
 		},
 		"struct with nil embedded interface field, no tag": {

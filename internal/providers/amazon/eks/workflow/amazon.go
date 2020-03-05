@@ -33,9 +33,9 @@ import (
 	zapadapter "logur.dev/adapter/zap"
 
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
-	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
@@ -200,7 +200,7 @@ type Clusters interface {
 }
 
 type EksCluster interface {
-	GetEKSModel() *model.EKSClusterModel
+	GetModel() *amazonadapter.EKSClusterModel
 	Persist() error
 	SetStatus(string, string) error
 	DeleteFromDatabase() error
@@ -253,7 +253,6 @@ func WaitUntilStackCreateCompleteWithContext(cf *cloudformation.CloudFormation, 
 		},
 		Logger: cf.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
-
 			count++
 			activity.RecordHeartbeat(ctx, count)
 
@@ -308,7 +307,6 @@ func WaitUntilStackUpdateCompleteWithContext(cf *cloudformation.CloudFormation, 
 		},
 		Logger: cf.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
-
 			count++
 			activity.RecordHeartbeat(ctx, count)
 
@@ -378,7 +376,6 @@ func WaitUntilStackDeleteCompleteWithContext(cf *cloudformation.CloudFormation, 
 		},
 		Logger: cf.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
-
 			count++
 			activity.RecordHeartbeat(ctx, count)
 
@@ -405,7 +402,6 @@ func WaitForASGToBeFulfilled(
 	awsSession *session.Session,
 	stackName string,
 	nodePoolName string) error {
-
 	logger = logger.With("stackName", stackName)
 	logger.Info("wait for ASG to be fulfilled")
 
@@ -453,5 +449,4 @@ func WaitForASGToBeFulfilled(
 			return nil
 		}
 	}
-
 }

@@ -117,7 +117,6 @@ func TestMarshalValues(t *testing.T) {
 			valuesBytes, _ := json.Marshal(vals)
 
 			t.Log(string(valuesBytes))
-
 		})
 	}
 }

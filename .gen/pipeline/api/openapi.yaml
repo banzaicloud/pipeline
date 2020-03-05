@@ -53,7 +53,7 @@ paths:
     get:
       description: Return Pipeline build and deployment info
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -75,7 +75,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -105,7 +105,7 @@ paths:
               $ref: '#/components/schemas/LaunchSpotguidesRequest'
         required: true
       responses:
-        202:
+        "202":
           description: Spotguide launch response
       security:
       - bearerAuth: []
@@ -124,7 +124,7 @@ paths:
           type: integer
         style: simple
       responses:
-        202:
+        "202":
           description: Spotguides update
       security:
       - bearerAuth: []
@@ -154,7 +154,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -277,7 +277,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -426,7 +426,7 @@ paths:
               type: object
         required: true
       responses:
-        202:
+        "202":
           content:
             application/json:
               schema:
@@ -566,9 +566,9 @@ paths:
           type: boolean
         style: form
       responses:
-        202:
+        "202":
           description: Cluster delete in progress
-        204:
+        "204":
           description: Cluster deleted
         default:
           content:
@@ -694,7 +694,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -824,7 +824,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           description: Cluster exists
         default:
           content:
@@ -956,7 +956,7 @@ paths:
               type: object
         required: true
       responses:
-        202:
+        "202":
           description: Cluster update accepted
         default:
           content:
@@ -1083,7 +1083,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -1220,7 +1220,7 @@ paths:
               $ref: '#/components/schemas/ReRunPostHook'
         required: true
       responses:
-        200:
+        "200":
           description: Posthooks started
       security:
       - bearerAuth: []
@@ -1249,7 +1249,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -1380,7 +1380,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -1519,7 +1519,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -1650,7 +1650,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -1789,7 +1789,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -1927,7 +1927,7 @@ paths:
               $ref: '#/components/schemas/InstallSecretsRequest'
         required: true
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -2074,7 +2074,7 @@ paths:
               $ref: '#/components/schemas/InstallSecretRequest'
         required: true
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -2218,7 +2218,7 @@ paths:
               $ref: '#/components/schemas/InstallSecretRequest'
         required: true
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -2349,7 +2349,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -2480,7 +2480,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -2521,7 +2521,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -2546,7 +2546,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -2674,7 +2674,7 @@ paths:
               $ref: '#/components/schemas/HelmReposAddRequest'
         required: true
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -2805,7 +2805,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -2941,7 +2941,7 @@ paths:
               $ref: '#/components/schemas/HelmReposModifyRequest'
         required: true
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -3072,7 +3072,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -3219,7 +3219,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -3365,7 +3365,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -3503,7 +3503,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -3633,7 +3633,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           description: Tiller is available
         default:
           content:
@@ -3765,7 +3765,7 @@ paths:
               $ref: '#/components/schemas/CreateUpdateDeploymentRequest'
         required: true
       responses:
-        201:
+        "201":
           content:
             application/json:
               schema:
@@ -3896,7 +3896,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -3934,7 +3934,7 @@ paths:
               $ref: '#/components/schemas/ReleaseWhiteListItem'
         required: true
       responses:
-        200:
+        "200":
           description: Whitelist created
       security:
       - bearerAuth: []
@@ -3971,7 +3971,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           description: Whitelist deleted
       security:
       - bearerAuth: []
@@ -4008,7 +4008,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -4154,7 +4154,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -4292,13 +4292,13 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           description: Deployment status is OK
-        400:
+        "400":
           description: Error during checking deployment status
-        401:
+        "401":
           description: Unauthorized
-        404:
+        "404":
           description: Deployment not found
       security:
       - bearerAuth: []
@@ -4340,7 +4340,7 @@ paths:
               $ref: '#/components/schemas/CreateUpdateDeploymentRequest'
         required: true
       responses:
-        201:
+        "201":
           content:
             application/json:
               schema:
@@ -4487,7 +4487,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -4626,7 +4626,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -4765,7 +4765,7 @@ paths:
           type: string
         style: form
       responses:
-        201:
+        "201":
           description: Deployment autoscaling updated successfully
         default:
           content:
@@ -4899,7 +4899,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -5035,7 +5035,7 @@ paths:
               $ref: '#/components/schemas/DeploymentScalingRequest'
         required: true
       responses:
-        201:
+        "201":
           description: Deployment autoscaling updated successfully
         default:
           content:
@@ -5145,7 +5145,7 @@ paths:
       description: List all API tokens
       operationId: ListTokens
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -5266,7 +5266,7 @@ paths:
               $ref: '#/components/schemas/TokenCreateRequest'
         required: true
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -5390,7 +5390,7 @@ paths:
           type: string
         style: simple
       responses:
-        204:
+        "204":
           description: Token deleted successfully
         default:
           content:
@@ -5545,7 +5545,7 @@ paths:
           type: boolean
         style: form
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -5683,7 +5683,7 @@ paths:
               $ref: '#/components/schemas/CreateSecretRequest'
         required: true
       responses:
-        201:
+        "201":
           content:
             application/json:
               schema:
@@ -5797,7 +5797,7 @@ paths:
       description: List secret types definitions
       operationId: ListSecretTypes
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -5929,7 +5929,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -6060,7 +6060,7 @@ paths:
           type: string
         style: simple
       responses:
-        204:
+        "204":
           description: Secret deleted successfully
         default:
           content:
@@ -6186,7 +6186,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -6330,13 +6330,13 @@ paths:
               $ref: '#/components/schemas/CreateSecretRequest'
         required: true
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreateSecretResponse'
           description: Secret updated successfully
-        409:
+        "409":
           content:
             application/json:
               examples:
@@ -6473,7 +6473,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           description: Valid secret
         default:
           content:
@@ -6600,7 +6600,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -6739,7 +6739,7 @@ paths:
           type: string
         style: simple
       responses:
-        204:
+        "204":
           description: Secret tag deleted successfully
         default:
           content:
@@ -6873,7 +6873,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -6996,7 +6996,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -7110,7 +7110,7 @@ paths:
       description: Listing organizations
       operationId: ListOrgs
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -7224,7 +7224,7 @@ paths:
     put:
       operationId: SyncOrgs
       responses:
-        200:
+        "200":
           description: Organizations synchronized successfully
         default:
           content:
@@ -7334,7 +7334,7 @@ paths:
       description: Listing Pipeline API endpoint
       operationId: ListEndpoints
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -7362,7 +7362,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -7395,7 +7395,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -7411,7 +7411,7 @@ paths:
       description: Get current user
       operationId: GetCurrentUser
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -7530,7 +7530,7 @@ paths:
               $ref: '#/components/schemas/UpdateUserRequest'
         required: true
       responses:
-        204:
+        "204":
           description: Modifiying current user's settings succeeded
         default:
           content:
@@ -7640,7 +7640,7 @@ paths:
       description: Retrieve Pipeline capabilities
       operationId: ListCapabilities
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -7685,7 +7685,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -7818,7 +7818,7 @@ paths:
               $ref: '#/components/schemas/CreateResourceGroup'
         required: true
       responses:
-        201:
+        "201":
           content:
             application/json:
               schema:
@@ -7975,7 +7975,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -8105,7 +8105,7 @@ paths:
               $ref: '#/components/schemas/CreateObjectStoreBucketRequest'
         required: true
       responses:
-        202:
+        "202":
           content:
             application/json:
               schema:
@@ -8294,7 +8294,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           description: Storage bucket deleted successfully
         default:
           content:
@@ -8477,7 +8477,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -8664,7 +8664,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           description: Object store buckets exists
         default:
           content:
@@ -8823,7 +8823,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -8994,7 +8994,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -9165,7 +9165,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -9296,7 +9296,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -9435,7 +9435,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -9565,7 +9565,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           description: Leader deletion successful
         default:
           content:
@@ -9690,7 +9690,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -9825,13 +9825,13 @@ paths:
               $ref: '#/components/schemas/PostLeaderElectionRequest'
         required: true
       responses:
-        201:
+        "201":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PostLeaderElectionResponse'
           description: Application successful
-        409:
+        "409":
           content:
             application/json:
               schema:
@@ -9961,7 +9961,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -10096,7 +10096,7 @@ paths:
               $ref: '#/components/schemas/PostReadyPKENodeRequest'
         required: true
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -10229,7 +10229,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -10360,7 +10360,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -10499,7 +10499,7 @@ paths:
           type: string
         style: simple
       responses:
-        202:
+        "202":
           description: Namespace deletion started
         default:
           content:
@@ -10627,7 +10627,7 @@ paths:
           type: string
         style: form
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -10764,7 +10764,7 @@ paths:
               $ref: '#/components/schemas/EnableARKRequest'
         required: true
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -10895,7 +10895,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -11026,7 +11026,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -11156,7 +11156,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           description: ARK service running
         default:
           content:
@@ -11275,7 +11275,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -11403,7 +11403,7 @@ paths:
               $ref: '#/components/schemas/CreateBackupBucketRequest'
         required: true
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -11534,7 +11534,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -11664,7 +11664,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -11787,7 +11787,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           description: Backup buckets synced successfully
         default:
           content:
@@ -11906,7 +11906,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -12029,7 +12029,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           description: Backups synced successfully
         default:
           content:
@@ -12156,7 +12156,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -12292,7 +12292,7 @@ paths:
               $ref: '#/components/schemas/CreateBackupRequest'
         required: true
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -12423,7 +12423,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           description: Backups synced successfully
         default:
           content:
@@ -12558,7 +12558,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -12696,7 +12696,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -12835,7 +12835,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             text/plain:
               schema:
@@ -12978,7 +12978,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/x-gzip:
               schema:
@@ -13110,7 +13110,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -13246,7 +13246,7 @@ paths:
               $ref: '#/components/schemas/CreateScheduleRequest'
         required: true
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -13385,7 +13385,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -13523,7 +13523,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -13654,7 +13654,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -13790,7 +13790,7 @@ paths:
               $ref: '#/components/schemas/CreateRestoreRequest'
         required: true
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -13921,7 +13921,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           description: Restores synced successfully
         default:
           content:
@@ -14056,7 +14056,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -14194,7 +14194,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -14333,7 +14333,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -14455,7 +14455,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -14585,7 +14585,7 @@ paths:
         description: Create Cluster Group Request
         required: true
       responses:
-        201:
+        "201":
           content:
             application/json:
               schema:
@@ -14716,7 +14716,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -14846,7 +14846,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -14982,7 +14982,7 @@ paths:
         description: Update Cluster Group Request
         required: true
       responses:
-        202:
+        "202":
           content:
             application/json:
               schema:
@@ -15112,7 +15112,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -15251,7 +15251,7 @@ paths:
         description: Deployment Create Request
         required: true
       responses:
-        201:
+        "201":
           content:
             application/json:
               schema:
@@ -15259,7 +15259,7 @@ paths:
           description: Multi-cluster deployment has been created successfully. All
             install / upgrade operations on all targeted clusters returned with no
             errors.
-        207:
+        "207":
           content:
             application/json:
               examples:
@@ -15413,14 +15413,14 @@ paths:
           type: boolean
         style: form
       responses:
-        202:
+        "202":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/deployment.TargetClusterStatus'
           description: Multi-cluster deployment has been deleted successfully. All
             delete operations on all targeted clusters returned with no errors.
-        207:
+        "207":
           content:
             application/json:
               examples:
@@ -15564,7 +15564,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -15709,7 +15709,7 @@ paths:
         description: Deployment Update Request
         required: true
       responses:
-        202:
+        "202":
           content:
             application/json:
               schema:
@@ -15717,7 +15717,7 @@ paths:
           description: Multi-cluster deployment has been updated successfully. All
             upgrade / install operations on all targeted clusters returned with no
             errors.
-        207:
+        "207":
           content:
             application/json:
               examples:
@@ -15862,7 +15862,7 @@ paths:
           type: string
         style: simple
       responses:
-        202:
+        "202":
           content:
             application/json:
               schema:
@@ -15870,7 +15870,7 @@ paths:
           description: Multi-cluster deployment has been synced successfully. All
             upgrade / install operations on all targeted clusters returned with no
             errors.
-        207:
+        "207":
           content:
             application/json:
               examples:
@@ -16007,7 +16007,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -16147,7 +16147,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -16285,7 +16285,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -16424,7 +16424,7 @@ paths:
       requestBody:
         $ref: '#/components/requestBodies/api.FeatureRequest'
       responses:
-        202:
+        "202":
           content:
             application/json:
               schema:
@@ -16563,7 +16563,7 @@ paths:
       requestBody:
         $ref: '#/components/requestBodies/api.FeatureRequest'
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -16693,7 +16693,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -16831,7 +16831,7 @@ paths:
           type: string
         style: simple
       responses:
-        204:
+        "204":
           description: No Content
         default:
           content:
@@ -16964,7 +16964,7 @@ paths:
           type: string
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -17107,7 +17107,7 @@ paths:
               $ref: '#/components/schemas/ActivateIntegratedServiceRequest'
         required: true
       responses:
-        202:
+        "202":
           description: Accepted
         default:
           content:
@@ -17246,7 +17246,7 @@ paths:
               $ref: '#/components/schemas/UpdateIntegratedServiceRequest'
         required: true
       responses:
-        202:
+        "202":
           description: Accepted
         default:
           content:
@@ -17379,7 +17379,7 @@ paths:
               $ref: '#/components/schemas/NodePool'
         required: true
       responses:
-        202:
+        "202":
           description: Node pool creation in progress
         default:
           content:
@@ -17514,9 +17514,9 @@ paths:
           type: string
         style: simple
       responses:
-        202:
+        "202":
           description: Node pool delete in progress
-        204:
+        "204":
           description: Node pool deleted
         default:
           content:
@@ -17643,7 +17643,7 @@ paths:
           type: integer
         style: simple
       responses:
-        200:
+        "200":
           content:
             application/json:
               schema:
@@ -19220,13 +19220,13 @@ components:
               type: KernelDeadlock
               lastTransitionTime: 2018-04-16T19:46:26Z
               message: kernel has no deadlock
-              status: False
+              status: "False"
             - reason: KernelHasNoDeadlock
               lastHeartbeatTime: 2018-04-17T09:02:45Z
               type: KernelDeadlock
               lastTransitionTime: 2018-04-16T19:46:26Z
               message: kernel has no deadlock
-              status: False
+              status: "False"
             capacity:
               memory: 7664776Ki
               cpu: "2"
@@ -19283,13 +19283,13 @@ components:
               type: KernelDeadlock
               lastTransitionTime: 2018-04-16T19:46:26Z
               message: kernel has no deadlock
-              status: False
+              status: "False"
             - reason: KernelHasNoDeadlock
               lastHeartbeatTime: 2018-04-17T09:02:45Z
               type: KernelDeadlock
               lastTransitionTime: 2018-04-16T19:46:26Z
               message: kernel has no deadlock
-              status: False
+              status: "False"
             capacity:
               memory: 7664776Ki
               cpu: "2"
@@ -19356,13 +19356,13 @@ components:
             type: KernelDeadlock
             lastTransitionTime: 2018-04-16T19:46:26Z
             message: kernel has no deadlock
-            status: False
+            status: "False"
           - reason: KernelHasNoDeadlock
             lastHeartbeatTime: 2018-04-17T09:02:45Z
             type: KernelDeadlock
             lastTransitionTime: 2018-04-16T19:46:26Z
             message: kernel has no deadlock
-            status: False
+            status: "False"
           capacity:
             memory: 7664776Ki
             cpu: "2"
@@ -19594,9 +19594,11 @@ components:
       example:
         cache: statestore/<cluster_name>/helm/repository/cache/stabl-index.yaml
         caFile: caFile
+        passwordSecretRef: passwordSecretRef
         keyFile: keyFile
         certFile: certFile
         name: stable
+        tlsSecretRef: tlsSecretRef
         url: https://kubernetes-charts.storage.googleapis.com
       properties:
         name:
@@ -19614,6 +19616,10 @@ components:
           type: string
         caFile:
           type: string
+        passwordSecretRef:
+          type: string
+        tlsSecretRef:
+          type: string
       type: object
     HelmReposModifyRequest:
       example:
@@ -19628,6 +19634,10 @@ components:
         keyFile:
           type: string
         caFile:
+          type: string
+        passwordSecretRef:
+          type: string
+        tlsSecretRef:
           type: string
       type: object
     HelmReposAddRequest:
@@ -19644,6 +19654,10 @@ components:
         keyFile:
           type: string
         caFile:
+          type: string
+        passwordSecretRef:
+          type: string
+        tlsSecretRef:
           type: string
       required:
       - name
@@ -20858,11 +20872,11 @@ components:
         conditions:
         - type: Initialized
           lastTransitionTime: 2018-08-01T07:04:37Z
-          status: True
+          status: "True"
           lastProbeTime: lastProbeTime
         - type: Initialized
           lastTransitionTime: 2018-08-01T07:04:37Z
-          status: True
+          status: "True"
           lastProbeTime: lastProbeTime
         restartPolicy: Always
         labels:
@@ -20895,14 +20909,14 @@ components:
       example:
         type: Initialized
         lastTransitionTime: 2018-08-01T07:04:37Z
-        status: True
+        status: "True"
         lastProbeTime: lastProbeTime
       properties:
         type:
           example: Initialized
           type: string
         status:
-          example: True
+          example: "True"
           type: string
         lastProbeTime:
           type: string
@@ -22967,13 +22981,13 @@ components:
         type: KernelDeadlock
         lastTransitionTime: 2018-04-16T19:46:26Z
         message: kernel has no deadlock
-        status: False
+        status: "False"
       properties:
         type:
           example: KernelDeadlock
           type: string
         status:
-          example: False
+          example: "False"
           type: string
         lastHeartbeatTime:
           example: 2018-04-17T09:02:45Z
@@ -23106,13 +23120,13 @@ components:
           type: KernelDeadlock
           lastTransitionTime: 2018-04-16T19:46:26Z
           message: kernel has no deadlock
-          status: False
+          status: "False"
         - reason: KernelHasNoDeadlock
           lastHeartbeatTime: 2018-04-17T09:02:45Z
           type: KernelDeadlock
           lastTransitionTime: 2018-04-16T19:46:26Z
           message: kernel has no deadlock
-          status: False
+          status: "False"
         capacity:
           memory: 7664776Ki
           cpu: "2"

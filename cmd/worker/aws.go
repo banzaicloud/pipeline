@@ -28,8 +28,9 @@ func registerAwsWorkflows(
 	tokenGenerator pkeworkflowadapter.TokenGenerator,
 	secretStore pkeworkflow.SecretStore,
 	cloudInfoClient *cloudinfo.Client,
+	pkeGlobalRegion string,
 ) {
-	workflow.RegisterWithOptions(pkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.CreateClusterWorkflowName})
+	workflow.RegisterWithOptions(pkeworkflow.CreateClusterWorkflow{GlobalRegion: pkeGlobalRegion}.Execute, workflow.RegisterOptions{Name: pkeworkflow.CreateClusterWorkflowName})
 	workflow.RegisterWithOptions(pkeworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.DeleteClusterWorkflowName})
 	workflow.RegisterWithOptions(pkeworkflow.UpdateClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.UpdateClusterWorkflowName})
 
@@ -97,5 +98,4 @@ func registerAwsWorkflows(
 
 	deleteSshKeyPairActivity := pkeworkflow.NewDeleteSSHKeyPairActivity(clusters)
 	activity.RegisterWithOptions(deleteSshKeyPairActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteSSHKeyPairActivityName})
-
 }

@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,87 +16,145 @@ package helm
 
 import (
 	"context"
-	"flag"
-	"io/ioutil"
-	"os"
-	"regexp"
 	"testing"
-	"time"
 
-	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
-const organizationName = "banzaicloud"
-
-type clusterServiceStub struct {
-	cluster Cluster
-}
-
-func (s *clusterServiceStub) GetCluster(ctx context.Context, clusterID uint) (*Cluster, error) {
-	return &s.cluster, nil
-}
-
-func TestIntegration(t *testing.T) {
-	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
-		t.Skip("skipping as execution was not requested explicitly using go test -run")
+func Test_service_AddRepository(t *testing.T) {
+	type fields struct {
+		store         Store
+		secretStore   SecretStore
+		repoValidator RepoValidator
+		logger        common.Logger
 	}
-
-	kubeConfigFile := os.Getenv("KUBECONFIG")
-	if kubeConfigFile == "" {
-		t.Skip("skipping as Kubernetes config was not provided")
+	type args struct {
+		ctx            context.Context
+		organizationID uint
+		repository     Repository
 	}
+	tests := []struct {
+		name       string
+		fields     fields
+		args       args
+		setupMocks func(store *Store, secretStore *SecretStore, arguments args)
+		wantErr    bool
+	}{
+		{
+			name: "validation fails on the repo URL",
+			fields: fields{
+				store:         &MockStore{},
+				secretStore:   &MockSecretStore{},
+				repoValidator: NewHelmRepoValidator(),
+				logger:        common.NoopLogger{},
+			},
+			args: args{
+				ctx:            context.Background(),
+				organizationID: 1,
+				repository: Repository{
+					Name:             "test-repo",
+					URL:              "failing-URL",
+					PasswordSecretID: "password-ref",
+				},
+			},
+			setupMocks: func(store *Store, secretStore *SecretStore, arguments args) {
+				secretStoreMock := (*secretStore).(*MockSecretStore)
+				secretStoreMock.On("CheckPasswordSecret", arguments.ctx, arguments.repository.PasswordSecretID).Return(nil)
+			},
+			wantErr: true,
+		},
+		{
+			name: "validation fails on the password secret reference",
+			fields: fields{
+				store:         &MockStore{},
+				secretStore:   &MockSecretStore{},
+				repoValidator: NewHelmRepoValidator(),
+				logger:        common.NoopLogger{},
+			},
+			args: args{
+				ctx:            context.Background(),
+				organizationID: 1,
+				repository: Repository{
+					Name:             "test-repo",
+					URL:              "https://example.com/charts",
+					PasswordSecretID: "password-ref",
+				},
+			},
+			setupMocks: func(store *Store, secretStore *SecretStore, arguments args) {
+				secretStoreMock := (*secretStore).(*MockSecretStore)
+				secretStoreMock.On("CheckPasswordSecret", arguments.ctx, arguments.repository.PasswordSecretID).Return(errors.New("secret doesn't exist"))
+			},
+			wantErr: true,
+		},
+		{
+			name: "helm repository already exists",
+			fields: fields{
+				store:         &MockStore{},
+				secretStore:   &MockSecretStore{},
+				repoValidator: NewHelmRepoValidator(),
+				logger:        common.NoopLogger{},
+			},
+			args: args{
+				ctx:            context.Background(),
+				organizationID: 1,
+				repository: Repository{
+					Name:             "test-repo",
+					URL:              "https://example.com/charts",
+					PasswordSecretID: "password-ref",
+				},
+			},
+			setupMocks: func(store *Store, secretStore *SecretStore, arguments args) {
+				secretStoreMock := (*secretStore).(*MockSecretStore)
+				secretStoreMock.On("CheckPasswordSecret", arguments.ctx, arguments.repository.PasswordSecretID).Return(nil)
 
-	kubeConfigBytes, err := ioutil.ReadFile(kubeConfigFile)
-	require.NoError(t, err)
+				storeMock := (*store).(*MockStore)
+				storeMock.On("Get", arguments.ctx, arguments.organizationID, arguments.repository).Return(Repository{}, nil)
+			},
+			wantErr: true,
+		},
+		{
+			name: "helm repository successfully created",
+			fields: fields{
+				store:         &MockStore{},
+				secretStore:   &MockSecretStore{},
+				repoValidator: NewHelmRepoValidator(),
+				logger:        common.NoopLogger{},
+			},
+			args: args{
+				ctx:            context.Background(),
+				organizationID: 1,
+				repository: Repository{
+					Name:             "test-repo",
+					URL:              "https://example.com/charts",
+					PasswordSecretID: "password-ref",
+				},
+			},
+			setupMocks: func(store *Store, secretStore *SecretStore, arguments args) {
+				secretStoreMock := (*secretStore).(*MockSecretStore)
+				secretStoreMock.On("CheckPasswordSecret", arguments.ctx, arguments.repository.PasswordSecretID).Return(nil)
 
-	clusterService := &clusterServiceStub{
-		cluster: Cluster{
-			OrganizationName: organizationName,
-			KubeConfig:       kubeConfigBytes,
+				storeMock := (*store).(*MockStore)
+				storeMock.On("Get", arguments.ctx, arguments.organizationID, arguments.repository).Return(Repository{}, errors.New("repo not found"))
+				storeMock.On("Create", arguments.ctx, arguments.organizationID, arguments.repository).Return(nil)
+			},
+			wantErr: false,
 		},
 	}
-	service := NewHelmService(clusterService, common.NoopLogger{})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupMocks(&tt.fields.store, &tt.fields.secretStore, tt.args)
+			s := service{
+				store:         tt.fields.store,
+				secretStore:   tt.fields.secretStore,
+				repoValidator: tt.fields.repoValidator,
+				logger:        tt.fields.logger,
+			}
 
-	err = service.InstallDeployment(
-		context.Background(),
-		1,
-		"default",
-		"banzaicloud-stable/banzaicloud-docs",
-		"helm-service-test",
-		[]byte{},
-		"0.1.1",
-		true,
-	)
-	require.NoError(t, err)
-
-	values := map[string]interface{}{
-		"replicaCount": 2,
+			if err := s.AddRepository(tt.args.ctx, tt.args.organizationID, tt.args.repository); (err != nil) != tt.wantErr {
+				t.Errorf("AddRepository() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
 	}
-
-	valuesBytes, err := yaml.Marshal(values)
-	require.NoError(t, err)
-
-	err = service.UpdateDeployment(
-		context.Background(),
-		1,
-		"default",
-		"banzaicloud-stable/banzaicloud-docs",
-		"helm-service-test",
-		valuesBytes,
-		"0.1.1",
-	)
-	require.NoError(t, err)
-
-	// Wait for update to finish
-	time.Sleep(5 * time.Second)
-
-	err = service.DeleteDeployment(
-		context.Background(),
-		1,
-		"helm-service-test",
-	)
-	require.NoError(t, err)
 }

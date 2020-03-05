@@ -16,7 +16,6 @@ import (
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
 	"github.com/antihax/optional"
 )
@@ -57,7 +56,6 @@ func (a *RegistriesApiService) CreateRegistry(ctx _context.Context, registrydata
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/registries"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -126,7 +124,6 @@ func (a *RegistriesApiService) CreateRegistry(ctx _context.Context, registrydata
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -167,7 +164,7 @@ func (a *RegistriesApiService) DeleteRegistry(ctx _context.Context, registry str
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/registries/{registry}"
-	localVarPath = strings.Replace(localVarPath, "{"+"registry"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", registry)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"registry"+"}", _neturl.QueryEscape(parameterToString(registry, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -222,7 +219,6 @@ func (a *RegistriesApiService) DeleteRegistry(ctx _context.Context, registry str
 				return localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarHTTPResponse, newErr
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -256,7 +252,7 @@ func (a *RegistriesApiService) GetRegistry(ctx _context.Context, registry string
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/registries/{registry}"
-	localVarPath = strings.Replace(localVarPath, "{"+"registry"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", registry)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"registry"+"}", _neturl.QueryEscape(parameterToString(registry, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -311,7 +307,6 @@ func (a *RegistriesApiService) GetRegistry(ctx _context.Context, registry string
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -353,7 +348,6 @@ func (a *RegistriesApiService) ListRegistries(ctx _context.Context, localVarOpti
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/registries"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -407,7 +401,6 @@ func (a *RegistriesApiService) ListRegistries(ctx _context.Context, localVarOpti
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -453,7 +446,7 @@ func (a *RegistriesApiService) UpdateRegistry(ctx _context.Context, registry str
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/registries/{registry}"
-	localVarPath = strings.Replace(localVarPath, "{"+"registry"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", registry)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"registry"+"}", _neturl.QueryEscape(parameterToString(registry, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -523,7 +516,6 @@ func (a *RegistriesApiService) UpdateRegistry(ctx _context.Context, registry str
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

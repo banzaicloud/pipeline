@@ -18,12 +18,12 @@ import (
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 )
 
 type EC2PKEClusterModel struct {
-	ID                 uint                        `gorm:"primary_key"`
-	Cluster            clusteradapter.ClusterModel `gorm:"foreignkey:ClusterID"`
+	ID                 uint                      `gorm:"primary_key"`
+	Cluster            clustermodel.ClusterModel `gorm:"foreignkey:ClusterID"`
 	ClusterID          uint
 	MasterInstanceType string
 	MasterImage        string

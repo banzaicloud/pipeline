@@ -23,7 +23,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
@@ -54,7 +53,6 @@ const (
 	Amazon     = "amazon"
 	Azure      = "azure"
 	Google     = "google"
-	Dummy      = "dummy"
 	Kubernetes = "kubernetes"
 	Oracle     = "oracle"
 	Vsphere    = "vsphere"
@@ -102,7 +100,6 @@ type CreateClusterProperties struct {
 	CreateClusterEKS        *eks.CreateClusterEKS               `json:"eks,omitempty" yaml:"eks,omitempty"`
 	CreateClusterAKS        *aks.CreateClusterAKS               `json:"aks,omitempty" yaml:"aks,omitempty"`
 	CreateClusterGKE        *gke.CreateClusterGKE               `json:"gke,omitempty" yaml:"gke,omitempty"`
-	CreateClusterDummy      *dummy.CreateClusterDummy           `json:"dummy,omitempty" yaml:"dummy,omitempty"`
 	CreateClusterKubernetes *kubernetes.CreateClusterKubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
 	CreateClusterOKE        *oke.Cluster                        `json:"oke,omitempty" yaml:"oke,omitempty"`
 	CreateClusterPKE        *pke.CreateClusterPKE               `json:"pke,omitempty" yaml:"pke,omitempty"`
@@ -225,13 +222,12 @@ type UpdateClusterRequest struct {
 
 // UpdateProperties describes Pipeline's UpdateCluster request properties
 type UpdateProperties struct {
-	ACK   *ack.UpdateClusterACK       `json:"ack,omitempty"`
-	EKS   *eks.UpdateClusterAmazonEKS `json:"eks,omitempty"`
-	AKS   *aks.UpdateClusterAzure     `json:"aks,omitempty"`
-	GKE   *gke.UpdateClusterGoogle    `json:"gke,omitempty"`
-	Dummy *dummy.UpdateClusterDummy   `json:"dummy,omitempty"`
-	OKE   *oke.Cluster                `json:"oke,omitempty"`
-	PKE   *pke.UpdateClusterPKE       `json:"pke,omitempty"`
+	ACK *ack.UpdateClusterACK       `json:"ack,omitempty"`
+	EKS *eks.UpdateClusterAmazonEKS `json:"eks,omitempty"`
+	AKS *aks.UpdateClusterAzure     `json:"aks,omitempty"`
+	GKE *gke.UpdateClusterGoogle    `json:"gke,omitempty"`
+	OKE *oke.Cluster                `json:"oke,omitempty"`
+	PKE *pke.UpdateClusterPKE       `json:"pke,omitempty"`
 }
 
 // String method prints formatted update request fields
@@ -269,13 +265,6 @@ func (r *UpdateClusterRequest) String() string { // todo expand
 		if r.GKE.NodePools != nil {
 			buffer.WriteString(fmt.Sprintf("Node pools: %v", r.GKE.NodePools))
 		}
-	} else if r.Cloud == Dummy && r.Dummy != nil {
-		// Write Dummy node
-		if r.Dummy.Node != nil {
-			buffer.WriteString(fmt.Sprintf("Node count: %d, k8s version: %s",
-				r.Dummy.Node.Count,
-				r.Dummy.Node.KubernetesVersion))
-		}
 	} else if r.Cloud == Oracle && r.OKE != nil {
 		buffer.WriteString(fmt.Sprintf("Master version: %s", r.OKE.Version))
 		for name, nodePool := range r.UpdateProperties.OKE.NodePools {
@@ -309,7 +298,6 @@ func (r *CreateClusterRequest) AddDefaults() error {
 
 // Validate checks the request fields
 func (r *CreateClusterRequest) Validate() error {
-
 	if err := r.validateMainFields(); err != nil {
 		return err
 	}
@@ -331,9 +319,6 @@ func (r *CreateClusterRequest) Validate() error {
 	case Google:
 		// gke validate
 		return r.Properties.CreateClusterGKE.Validate()
-	case Dummy:
-		// dummy validate
-		return r.Properties.CreateClusterDummy.Validate()
 	case Kubernetes:
 		// kubernetes validate
 		return r.Properties.CreateClusterKubernetes.Validate()
@@ -363,7 +348,6 @@ func (r *CreateClusterRequest) validateMainFields() error {
 
 // Validate checks the request fields
 func (r *UpdateClusterRequest) Validate() error {
-
 	r.preValidate()
 	if r.PKE != nil {
 		return r.PKE.Validate()
@@ -378,19 +362,15 @@ func (r *UpdateClusterRequest) Validate() error {
 		return r.AKS.Validate()
 	case Google:
 		return r.GKE.Validate()
-	case Dummy:
-		return r.Dummy.Validate()
 	case Oracle:
 		return r.OKE.Validate(true)
 	default:
 		return pkgErrors.ErrorNotSupportedCloudType
 	}
-
 }
 
 // preValidate resets other cloud type fields
 func (r *UpdateClusterRequest) preValidate() {
-
 	switch r.Cloud {
 	case Alibaba:
 		// reset other fields

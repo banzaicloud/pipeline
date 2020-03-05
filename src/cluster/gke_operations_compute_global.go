@@ -26,7 +26,6 @@ type computeGlobalOperation struct {
 }
 
 func (co *computeGlobalOperation) getInfo(operationName string) (string, string, error) {
-
 	op, err := co.csv.GlobalOperations.Get(co.projectId, operationName).Context(context.Background()).Do()
 	if err != nil {
 		return "", "", err

@@ -32,7 +32,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	"github.com/banzaicloud/pipeline/internal/util"
+	"github.com/banzaicloud/pipeline/pkg/any"
 	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/src/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/src/cluster"
@@ -168,7 +168,6 @@ func (op IntegratedServiceOperator) ensureOrgIDInContext(ctx context.Context, cl
 
 func (op IntegratedServiceOperator) processTLS(ctx context.Context, spec integratedServiceSpec, cl integratedserviceadapter.Cluster) error {
 	if spec.Logging.TLS {
-
 		// generate TLS secret and save to Vault
 		if err := op.generateTLSSecret(cl); err != nil {
 			return errors.WrapIf(err, "failed to generate TLS secret")
@@ -245,7 +244,6 @@ func (op IntegratedServiceOperator) generateHTPasswordSecretForLoki(ctx context.
 }
 
 func (op IntegratedServiceOperator) installTLSSecretsToCluster(ctx context.Context, cl integratedserviceadapter.Cluster) error {
-
 	const kubeCaCertKey = "ca.crt"
 	const kubeTlsCertKey = "tls.crt"
 	const kubeTlsKeyKey = "tls.key"
@@ -434,7 +432,7 @@ func mergeValuesWithConfig(chartValues interface{}, configValues interface{}) ([
 		return nil, errors.WrapIf(err, "failed to encode chart values")
 	}
 
-	result, err := util.Merge(configValues, out)
+	result, err := any.Merge(configValues, out, jsonstructure.DefaultMergeOptions())
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to merge values")
 	}

@@ -97,7 +97,6 @@ func createNodePoolsFromClusterModel(clusterModel *google.GKEClusterModel) ([]*g
 				Enabled: false,
 			}
 		}
-
 	}
 
 	return nodePools, nil

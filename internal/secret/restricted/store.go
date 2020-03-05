@@ -43,6 +43,7 @@ type secretStore interface {
 	List(orgID uint, query *secret.ListSecretsQuery) ([]*secret.SecretItemResponse, error)
 	Store(orgID uint, request *secret.CreateSecretRequest) (string, error)
 	Update(orgID uint, secretID string, request *secret.CreateSecretRequest) error
+	Verify(organizationID uint, secretID string) error
 }
 
 func (s *restrictedSecretStore) List(orgid uint, query *secret.ListSecretsQuery) ([]*secret.SecretItemResponse, error) {
@@ -78,8 +79,15 @@ func (s *restrictedSecretStore) Delete(organizationID uint, secretID string) err
 	return s.secretStore.Delete(organizationID, secretID)
 }
 
-func (s *restrictedSecretStore) checkBlockingTags(organizationID uint, secretID string) error {
+func (s *restrictedSecretStore) Verify(organizationID uint, secretID string) error {
+	if err := s.checkBlockingTags(organizationID, secretID); err != nil {
+		return err
+	}
 
+	return s.secretStore.Verify(organizationID, secretID)
+}
+
+func (s *restrictedSecretStore) checkBlockingTags(organizationID uint, secretID string) error {
 	secretItem, err := s.secretStore.Get(organizationID, secretID)
 	if err != nil {
 		return err
@@ -117,7 +125,6 @@ func (s *restrictedSecretStore) isSecretReadOnly(secretItem *secret.SecretItemRe
 	}
 
 	return nil
-
 }
 
 // ReadOnlyError describes a secret error where it contains read only tag

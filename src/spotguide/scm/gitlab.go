@@ -51,7 +51,6 @@ func (scm *gitLabSCM) DownloadRelease(owner, repo, tag string) ([]byte, error) {
 }
 
 func (scm *gitLabSCM) ListRepositoriesByTopic(owner, topic string, allowPrivate bool) ([]Repository, error) {
-
 	// TODO move this outside, also for github
 	var visibility *gitlab.VisibilityValue
 	if !allowPrivate {
@@ -158,11 +157,9 @@ func (scm *gitLabSCM) CreateRepository(owner, name string, private bool, userID 
 }
 
 func (scm *gitLabSCM) AddContentToRepository(owner, name string, content []RepositoryFile) error {
-
 	var actions []*gitlab.CommitAction
 
 	for _, repoFile := range content {
-
 		action := &gitlab.CommitAction{
 			Action:   gitlab.FileCreate,
 			FilePath: repoFile.Path,

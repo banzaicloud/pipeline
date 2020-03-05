@@ -22,8 +22,9 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -36,7 +37,7 @@ type CreateNodePoolActivity struct {
 	clusters          cluster.Store
 	db                *gorm.DB
 	nodePools         cluster.NodePoolStore
-	eksNodePools      distribution.EKSNodePoolStore
+	eksNodePools      eks.NodePoolStore
 	awsSessionFactory AWSSessionFactory
 }
 
@@ -45,7 +46,7 @@ func NewCreateNodePoolActivity(
 	clusters cluster.Store,
 	db *gorm.DB,
 	nodePools cluster.NodePoolStore,
-	eksNodePools distribution.EKSNodePoolStore,
+	eksNodePools eks.NodePoolStore,
 	awsSessionFactory AWSSessionFactory,
 ) CreateNodePoolActivity {
 	return CreateNodePoolActivity{
@@ -71,7 +72,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 
 	switch {
 	case c.Cloud == providers.Amazon && c.Distribution == "eks":
-		var nodePool distribution.NewEKSNodePool
+		var nodePool eks.NewNodePool
 
 		err := mapstructure.Decode(input.RawNodePool, &nodePool)
 		if err != nil {
@@ -97,10 +98,10 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			)
 		}
 
-		var eksCluster model.EKSClusterModel
+		var eksCluster amazonadapter.EKSClusterModel
 
 		err = a.db.
-			Where(model.EKSClusterModel{ClusterID: c.ID}).
+			Where(amazonadapter.EKSClusterModel{ClusterID: c.ID}).
 			Preload("Subnets").
 			First(&eksCluster).Error
 		if gorm.IsRecordNotFoundError(err) {

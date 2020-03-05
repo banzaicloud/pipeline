@@ -23,7 +23,6 @@ import (
 
 // GetIAMUser retrieves the Amazon IAM user with the given user name
 func GetIAMUser(svc iamiface.IAMAPI, userName *string) (*iam.User, error) {
-
 	user := &iam.GetUserInput{
 		UserName: userName,
 	}
@@ -100,7 +99,6 @@ func GetPolicy(svc iamiface.IAMAPI, arn string) (*iam.Policy, error) {
 	}
 
 	return policy.Policy, nil
-
 }
 
 // GetPolicyByName retrieves the IAM policy identified by the given policy name

@@ -85,7 +85,6 @@ func (s *storageAccount) GetAllStorageAccounts(resourceGroup string) (*[]storage
 }
 
 func (s *storageAccount) CheckStorageAccountExistence(resourceGroup, storageAccount string, logger logrus.FieldLogger) (*bool, error) {
-
 	logger.Info("retrieving storage account name availability...")
 	result, err := s.client.CheckNameAvailability(
 		context.TODO(),

@@ -24,29 +24,33 @@ import (
 	k8s "github.com/banzaicloud/pipeline/pkg/kubernetes"
 )
 
+// +testify:mock:testOnly=true
+
 // ClientFactory returns a Kubernetes client.
-//go:generate mga gen mockery --name ClientFactory --inpkg --testonly
 type ClientFactory interface {
 	// FromSecret creates a Kubernetes client for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error)
 }
 
+// +testify:mock:testOnly=true
+
 // DynamicClientFactory returns a dynamic Kubernetes client.
-//go:generate mga gen mockery --name DynamicClientFactory --inpkg --testonly
 type DynamicClientFactory interface {
 	// FromSecret creates a Kubernetes client for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error)
 }
 
+// +testify:mock:testOnly=true
+
 // HelmClientFactory returns a Kubernetes client.
-//go:generate mga gen mockery --name HelmClientFactory --inpkg --testonly
 type HelmClientFactory interface {
 	// FromSecret creates a Kubernetes client for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (*helm.Client, error)
 }
 
+// +testify:mock:testOnly=true
+
 // DynamicFileClientFactory returns a DynamicFileClient.
-//go:generate mga gen mockery --name DynamicFileClientFactory --inpkg --testonly
 type DynamicFileClientFactory interface {
 	// FromSecret creates a DynamicFileClient for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (k8s.DynamicFileClient, error)

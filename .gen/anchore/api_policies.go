@@ -16,7 +16,6 @@ import (
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
 	"github.com/antihax/optional"
 )
@@ -55,7 +54,6 @@ func (a *PoliciesApiService) AddPolicy(ctx _context.Context, bundle PolicyBundle
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/policies"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -121,7 +119,6 @@ func (a *PoliciesApiService) AddPolicy(ctx _context.Context, bundle PolicyBundle
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -162,7 +159,7 @@ func (a *PoliciesApiService) DeletePolicy(ctx _context.Context, policyId string,
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/policies/{policyId}"
-	localVarPath = strings.Replace(localVarPath, "{"+"policyId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", policyId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"policyId"+"}", _neturl.QueryEscape(parameterToString(policyId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -227,7 +224,6 @@ func (a *PoliciesApiService) DeletePolicy(ctx _context.Context, policyId string,
 				return localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarHTTPResponse, newErr
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -263,7 +259,7 @@ func (a *PoliciesApiService) GetPolicy(ctx _context.Context, policyId string, lo
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/policies/{policyId}"
-	localVarPath = strings.Replace(localVarPath, "{"+"policyId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", policyId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"policyId"+"}", _neturl.QueryEscape(parameterToString(policyId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -331,7 +327,6 @@ func (a *PoliciesApiService) GetPolicy(ctx _context.Context, policyId string, lo
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -375,7 +370,6 @@ func (a *PoliciesApiService) ListPolicies(ctx _context.Context, localVarOptional
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/policies"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -432,7 +426,6 @@ func (a *PoliciesApiService) ListPolicies(ctx _context.Context, localVarOptional
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -478,7 +471,7 @@ func (a *PoliciesApiService) UpdatePolicy(ctx _context.Context, policyId string,
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/policies/{policyId}"
-	localVarPath = strings.Replace(localVarPath, "{"+"policyId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", policyId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"policyId"+"}", _neturl.QueryEscape(parameterToString(policyId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -548,7 +541,6 @@ func (a *PoliciesApiService) UpdatePolicy(ctx _context.Context, policyId string,
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

@@ -104,7 +104,6 @@ func (a *CreateVpcActivity) Execute(ctx context.Context, input CreateVpcActivity
 					ParameterValue: aws.String(input.RouteTableID),
 				})
 		}
-
 	} else if input.VpcCidr != "" {
 		stackParams = append(stackParams,
 			&cloudformation.Parameter{

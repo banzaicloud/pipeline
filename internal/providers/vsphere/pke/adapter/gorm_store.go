@@ -19,17 +19,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
-
-	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/src/model"
 )
 
 type gormVspherePKEClusterStore struct {
@@ -55,7 +52,7 @@ type vspherePkeCluster struct {
 	gorm.Model
 
 	ClusterID uint                        `gorm:"unique_index:idx_vsphere_pke_cluster_id"`
-	Cluster   clusteradapter.ClusterModel `gorm:"foreignkey:ClusterID"`
+	Cluster   clustermodel.ClusterModel `gorm:"foreignkey:ClusterID"`
 
 	ProviderData ProviderData `gorm:"type:json"`
 }
@@ -96,7 +93,7 @@ func (recordNotFoundError) NotFound() bool {
 	return true
 }
 
-func fillClusterFromClusterModel(cl *pke.PKEOnVsphereCluster, model clusteradapter.ClusterModel) {
+func fillClusterFromClusterModel(cl *pke.PKEOnVsphereCluster, model clustermodel.ClusterModel) {
 	cl.CreatedBy = model.CreatedBy
 	cl.CreationTime = model.CreatedAt
 	cl.ID = model.ID
@@ -178,7 +175,7 @@ func (s gormVspherePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOn
 	}
 
 	model := vspherePkeCluster{
-		Cluster: clusteradapter.ClusterModel{
+		Cluster: clustermodel.ClusterModel{
 			CreatedBy:      params.CreatedBy,
 			Name:           params.Name,
 			Cloud:          pkgCluster.Vsphere,
@@ -190,7 +187,7 @@ func (s gormVspherePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOn
 			StatusMessage:  pkgCluster.CreatingMessage,
 			RbacEnabled:    params.RBAC,
 			OidcEnabled:    params.OIDC,
-			ScaleOptions: model.ScaleOptions{
+			ScaleOptions: clustermodel.ScaleOptions{
 				Enabled:             params.ScaleOptions.Enabled,
 				DesiredCpu:          params.ScaleOptions.DesiredCpu,
 				DesiredMem:          params.ScaleOptions.DesiredMem,
@@ -255,7 +252,7 @@ func (s gormVspherePKEClusterStore) Delete(clusterID uint) error {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := clusteradapter.ClusterModel{
+	model := clustermodel.ClusterModel{
 		ID: clusterID,
 	}
 	if err := getError(s.db.Where(model).First(&model), "failed to load model from database"); err != nil {
@@ -287,7 +284,7 @@ func (s gormVspherePKEClusterStore) SetStatus(clusterID uint, status, message st
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := clusteradapter.ClusterModel{
+	model := clustermodel.ClusterModel{
 		ID: clusterID,
 	}
 	if err := getError(s.db.Where(&model).First(&model), "failed to load cluster model"); err != nil {
@@ -300,7 +297,7 @@ func (s gormVspherePKEClusterStore) SetStatus(clusterID uint, status, message st
 			"statusMessage": message,
 		}
 
-		statusHistory := clusteradapter.StatusHistoryModel{
+		statusHistory := clustermodel.StatusHistoryModel{
 			ClusterID:   model.ID,
 			ClusterName: model.Name,
 
@@ -362,7 +359,7 @@ func (s gormVspherePKEClusterStore) SetConfigSecretID(clusterID uint, secretID s
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := clusteradapter.ClusterModel{
+	model := clustermodel.ClusterModel{
 		ID: clusterID,
 	}
 
@@ -378,7 +375,7 @@ func (s gormVspherePKEClusterStore) SetSSHSecretID(clusterID uint, secretID stri
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := clusteradapter.ClusterModel{
+	model := clustermodel.ClusterModel{
 		ID: clusterID,
 	}
 
@@ -394,7 +391,7 @@ func (s gormVspherePKEClusterStore) GetConfigSecretID(clusterID uint) (string, e
 		return "", errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := clusteradapter.ClusterModel{
+	model := clustermodel.ClusterModel{
 		ID: clusterID,
 	}
 	if err := getError(s.db.Where(&model).First(&model), "failed to load cluster model"); err != nil {
@@ -408,7 +405,7 @@ func (s gormVspherePKEClusterStore) SetFeature(clusterID uint, feature string, s
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
-	model := clusteradapter.ClusterModel{
+	model := clustermodel.ClusterModel{
 		ID: clusterID,
 	}
 

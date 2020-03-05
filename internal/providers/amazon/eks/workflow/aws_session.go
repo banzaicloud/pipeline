@@ -22,7 +22,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 type AWSFactory interface {
@@ -41,7 +40,6 @@ func NewAWSSessionFactory(secretStore SecretStore) *AWSSessionFactory {
 
 // New creates a new AWS session.
 func (f *AWSSessionFactory) New(organizationID uint, secretID string, region string) (*session.Session, error) {
-
 	awsCred, err := f.GetAWSCredentials(organizationID, secretID, region)
 
 	if err != nil {
@@ -69,7 +67,7 @@ func (f *AWSSessionFactory) GetAWSCredentials(organizationID uint, secretID stri
 		return nil, errors.WithDetails(err, keyvals...)
 	}
 
-	awsCred := verify.CreateAWSCredentials(sir.Values)
+	awsCred := amazon.CreateAWSCredentials(sir.Values)
 
 	return awsCred, nil
 }

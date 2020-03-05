@@ -37,7 +37,6 @@ const (
 // ARKMiddleware is a middleware for initializing a CommonCluster and an ARKService
 // from the request parameters for later use
 func ARKMiddleware(db *gorm.DB, logger logrus.FieldLogger) gin.HandlerFunc {
-
 	return func(c *gin.Context) {
 		logger = logger.WithField("middleware", "ARK")
 
@@ -86,6 +85,5 @@ func GetARKService(req *http.Request) *ark.Service {
 }
 
 func setVariableToContext(req *http.Request, key interface{}, val interface{}) *http.Request {
-
 	return req.WithContext(context.WithValue(req.Context(), key, val))
 }

@@ -24,7 +24,6 @@ import (
 
 // CreateSecurityList creates a Security List specified in the request
 func (vn *VirtualNetwork) CreateSecurityList(request core.CreateSecurityListRequest) (list core.SecurityList, err error) {
-
 	response, err := vn.client.CreateSecurityList(context.Background(), request)
 	if err != nil {
 		return list, err
@@ -35,7 +34,6 @@ func (vn *VirtualNetwork) CreateSecurityList(request core.CreateSecurityListRequ
 
 // UpdateSecurityList updates a Security List specified in the request
 func (vn *VirtualNetwork) UpdateSecurityList(request core.UpdateSecurityListRequest) (list core.SecurityList, err error) {
-
 	response, err := vn.client.UpdateSecurityList(context.Background(), request)
 	if err != nil {
 		return list, err
@@ -46,7 +44,6 @@ func (vn *VirtualNetwork) UpdateSecurityList(request core.UpdateSecurityListRequ
 
 // DeleteSecurityList removes a Security List by id
 func (vn *VirtualNetwork) DeleteSecurityList(id *string) error {
-
 	_, err := vn.client.DeleteSecurityList(context.Background(), core.DeleteSecurityListRequest{
 		SecurityListId: id,
 	})
@@ -56,7 +53,6 @@ func (vn *VirtualNetwork) DeleteSecurityList(id *string) error {
 
 // GetSecurityList gets a Security List by id
 func (vn *VirtualNetwork) GetSecurityList(id *string) (list core.SecurityList, err error) {
-
 	response, err := vn.client.GetSecurityList(context.Background(), core.GetSecurityListRequest{
 		SecurityListId: id,
 	})
@@ -66,7 +62,6 @@ func (vn *VirtualNetwork) GetSecurityList(id *string) (list core.SecurityList, e
 
 // GetSecurityListByName gets a Security List by name
 func (vn *VirtualNetwork) GetSecurityListByName(name string, vcnID *string) (list core.SecurityList, err error) {
-
 	request := core.ListSecurityListsRequest{
 		CompartmentId: common.String(vn.CompartmentOCID),
 		DisplayName:   common.String(name),
@@ -87,7 +82,6 @@ func (vn *VirtualNetwork) GetSecurityListByName(name string, vcnID *string) (lis
 
 // GetSecurityLists gets all Security Lists within a VCN
 func (vn *VirtualNetwork) GetSecurityLists(vcnID *string) (lists []core.SecurityList, err error) {
-
 	request := core.ListSecurityListsRequest{
 		CompartmentId: common.String(vn.CompartmentOCID),
 		VcnId:         vcnID,

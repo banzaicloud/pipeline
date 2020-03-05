@@ -135,7 +135,6 @@ func (g *Manager) CreateClusterGroup(ctx context.Context, name string, orgID uin
 		return nil, err
 	}
 	return cgId, nil
-
 }
 
 // UpdateClusterGroup updates a cluster group
@@ -187,7 +186,6 @@ func (g *Manager) UpdateClusterGroup(ctx context.Context, clusterGroupID uint, o
 		} else {
 			return errors.WrapIfWithDetails(err, "could not check cluster state", "clusterID", cluster.GetID())
 		}
-
 	}
 
 	err = g.validateBeforeClusterGroupUpdate(*existingClusterGroup, newMembers)
@@ -232,6 +230,38 @@ func (g *Manager) DeleteClusterGroupByID(ctx context.Context, orgID uint, cluste
 	}
 
 	return g.cgRepo.Delete(cgModel)
+}
+
+func (g *Manager) ValidateClusterRemoval(ctx context.Context, clusterID uint) error {
+	clusterGroupID, err := g.getClusterGroupForCluster(clusterID)
+	if err != nil {
+		return err
+	}
+	if clusterGroupID == nil {
+		return nil
+	}
+
+	cgModel, err := g.cgRepo.FindOne(ClusterGroupModel{
+		ID: *clusterGroupID,
+	})
+	if err != nil {
+		return err
+	}
+
+	existingClusterGroup := g.GetClusterGroupFromModel(ctx, cgModel, false)
+	// remove clusterID from members
+	newMembers := make(map[uint]api.Cluster, 0)
+	for id, cluster := range existingClusterGroup.Clusters {
+		if id != clusterID {
+			newMembers[id] = cluster
+		}
+	}
+
+	err = g.validateBeforeClusterGroupUpdate(*existingClusterGroup, newMembers)
+	if err != nil {
+		return errors.WrapIf(err, "removing cluster from group is not allowed")
+	}
+	return nil
 }
 
 // RemoveClusterFromGroup removes a cluster from group
@@ -441,11 +471,11 @@ func (g *Manager) validateBeforeClusterGroupUpdate(clusterGroup api.ClusterGroup
 		members = append(members, member)
 	}
 
+	var errs []error
 	for name, feature := range features {
 		if !feature.Enabled {
 			continue
 		}
-
 		clusterGroup.Clusters = newClusters
 		clusterGroup.Members = members
 		feature.ClusterGroup = clusterGroup
@@ -456,10 +486,13 @@ func (g *Manager) validateBeforeClusterGroupUpdate(clusterGroup api.ClusterGroup
 		}
 		err = handler.ValidateState(feature)
 		if err != nil {
-			return &clusterGroupUpdateRejectedError{
+			errs = append(errs, &clusterGroupUpdateRejectedError{
 				err: errors.WrapIf(err, fmt.Sprintf("operation rejected by %s", feature.Name)),
-			}
+			})
 		}
+	}
+	if err := errors.Combine(errs...); err != nil {
+		return err
 	}
 
 	return nil
@@ -509,7 +542,6 @@ func (g *Manager) reconcileFeature(clusterGroup api.ClusterGroup, featureModel C
 		if dbErr != nil {
 			g.errorHandler.Handle(dbErr)
 		}
-
 	}
 	return nil
 }

@@ -27,8 +27,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:generate mga gen mockery --name OIDCOrganizationSyncer --inpkg --testonly
-
 func setUpDatabase(t *testing.T) *gorm.DB {
 	db, err := gorm.Open("sqlite3", "file::memory:")
 	require.NoError(t, err)

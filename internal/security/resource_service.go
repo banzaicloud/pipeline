@@ -198,7 +198,6 @@ func (s securityResourceService) getWhitelist(ctx context.Context, cluster Clust
 }
 
 func (s securityResourceService) getClusterClient(ctx context.Context, cluster Cluster) (client.Client, error) {
-
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get k8s config for the cluster")

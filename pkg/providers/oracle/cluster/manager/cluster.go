@@ -24,7 +24,6 @@ import (
 
 // CreateCluster creates a new cluster
 func (cm *ClusterManager) CreateCluster(clusterModel *model.Cluster) error {
-
 	ce, err := cm.oci.NewContainerEngineClient()
 	if err != nil {
 		return err
@@ -63,7 +62,6 @@ func (cm *ClusterManager) CreateCluster(clusterModel *model.Cluster) error {
 
 // UpdateCluster updates the cluster
 func (cm *ClusterManager) UpdateCluster(clusterModel *model.Cluster) error {
-
 	cluster, err := cm.GetCluster(clusterModel)
 	if err != nil {
 		return err
@@ -107,7 +105,6 @@ func (cm *ClusterManager) UpdateCluster(clusterModel *model.Cluster) error {
 
 // DeleteCluster deletes a cluster
 func (cm *ClusterManager) DeleteCluster(clusterModel *model.Cluster) error {
-
 	ce, err := cm.oci.NewContainerEngineClient()
 	if err != nil {
 		return err
@@ -133,7 +130,6 @@ func (cm *ClusterManager) DeleteCluster(clusterModel *model.Cluster) error {
 
 // GetCluster gets a cluster by ID or name
 func (cm *ClusterManager) GetCluster(model *model.Cluster) (cluster containerengine.Cluster, err error) {
-
 	if model.OCID != "" {
 		return cm.GetClusterByID(&model.OCID)
 	}
@@ -143,7 +139,6 @@ func (cm *ClusterManager) GetCluster(model *model.Cluster) (cluster containereng
 
 // GetClusterByID gets cluster by ID
 func (cm *ClusterManager) GetClusterByID(id *string) (cluster containerengine.Cluster, err error) {
-
 	ce, err := cm.oci.NewContainerEngineClient()
 	if err != nil {
 		return cluster, err
@@ -154,7 +149,6 @@ func (cm *ClusterManager) GetClusterByID(id *string) (cluster containerengine.Cl
 
 // GetClusterByName gets cluster by name
 func (cm *ClusterManager) GetClusterByName(name string) (cluster containerengine.Cluster, err error) {
-
 	ce, err := cm.oci.NewContainerEngineClient()
 	if err != nil {
 		return cluster, err

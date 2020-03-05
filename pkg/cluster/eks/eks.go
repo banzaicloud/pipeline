@@ -20,6 +20,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
 
+	eks2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
@@ -109,7 +110,6 @@ func (a *NodePool) Validate(npName string) error {
 		if a.MaxCount == 0 {
 			return pkgErrors.ErrorMaxFieldRequiredError
 		}
-
 	} else {
 		// ---- [ Node min count check ] ---- //
 		if a.MinCount == 0 {
@@ -137,7 +137,7 @@ func (a *NodePool) Validate(npName string) error {
 
 	// ---- [ Node spot price ] ---- //
 	if len(a.SpotPrice) == 0 {
-		a.SpotPrice = DefaultSpotPrice
+		a.SpotPrice = eks2.DefaultSpotPrice
 	}
 
 	// --- [Label validation]--- //
@@ -150,13 +150,11 @@ func (a *NodePool) Validate(npName string) error {
 
 // ValidateForUpdate checks Amazon's node fields
 func (a *NodePool) ValidateForUpdate(npName string) error {
-
 	// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
 	if a.Autoscaling {
 		if a.MaxCount == 0 {
 			return pkgErrors.ErrorMaxFieldRequiredError
 		}
-
 	} else {
 		// ---- [ Node min count check ] ---- //
 		if a.MinCount == 0 {
@@ -225,7 +223,7 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
 	}
 
-	defaultImage, err := GetDefaultImageID(location, eks.Version)
+	defaultImage, err := eks2.GetDefaultImageID(location, eks.Version)
 	if err != nil {
 		return errors.WrapIff(err, "couldn't get EKS AMI for Kubernetes version %q in region %q", eks.Version, location)
 	}
@@ -269,7 +267,6 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 // Validate validates the update request (only EKS part). If any of the fields is missing, the method fills
 // with stored data.
 func (eks *UpdateClusterAmazonEKS) Validate() error {
-
 	// ---- [ Amazon EKS field check ] ---- //
 	if eks == nil {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
@@ -303,7 +300,6 @@ func isValidVersion(version string) (bool, error) {
 
 	// TODO check if there is an AWS API that can tell us supported Kubernetes versions
 	return constraint.Check(v), nil
-
 }
 
 // CertificateAuthority is a helper struct for AWS kube config JSON parsing

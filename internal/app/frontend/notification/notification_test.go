@@ -22,8 +22,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:generate mga gen mockery --name Store --inpkg --testonly
-
 func TestService_GetNotifications(t *testing.T) {
 	store := &MockStore{}
 

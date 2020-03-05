@@ -33,7 +33,6 @@ func SchedulesServiceFactory(
 	arkClientService client.ClientService,
 	logger logrus.FieldLogger,
 ) *SchedulesService {
-
 	return NewSchedulesService(arkClientService, logger)
 }
 
@@ -42,7 +41,6 @@ func NewSchedulesService(
 	arkClientService client.ClientService,
 	logger logrus.FieldLogger,
 ) *SchedulesService {
-
 	return &SchedulesService{
 		arkClientService: arkClientService,
 		logger:           logger,
@@ -51,7 +49,6 @@ func NewSchedulesService(
 
 // Create creates a schedule by a CreateBackupRequest
 func (s *SchedulesService) Create(backupRequest *api.CreateBackupRequest, schedule string) error {
-
 	req := &api.CreateScheduleRequest{
 		Name:     backupRequest.Name,
 		TTL:      backupRequest.TTL,
@@ -70,7 +67,6 @@ func (s *SchedulesService) Create(backupRequest *api.CreateBackupRequest, schedu
 
 // GetByName gets a schedule by name
 func (s *SchedulesService) GetByName(name string) (*api.Schedule, error) {
-
 	client, err := s.arkClientService.GetClient()
 	if err != nil {
 		return nil, err
@@ -86,7 +82,6 @@ func (s *SchedulesService) GetByName(name string) (*api.Schedule, error) {
 
 // DeleteByName deletes a schedule by name
 func (s *SchedulesService) DeleteByName(name string) error {
-
 	client, err := s.arkClientService.GetClient()
 	if err != nil {
 		return err
@@ -102,7 +97,6 @@ func (s *SchedulesService) DeleteByName(name string) error {
 
 // List gets all schedule
 func (s *SchedulesService) List() (schedules []*api.Schedule, err error) {
-
 	schedules = make([]*api.Schedule, 0)
 
 	client, err := s.arkClientService.GetClient()
@@ -124,7 +118,6 @@ func (s *SchedulesService) List() (schedules []*api.Schedule, err error) {
 }
 
 func (s *SchedulesService) convertScheduleToEntity(schedule arkAPI.Schedule) *api.Schedule {
-
 	return &api.Schedule{
 		UID:              string(schedule.GetUID()),
 		Name:             schedule.Name,

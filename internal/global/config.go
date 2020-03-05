@@ -67,6 +67,7 @@ var Config struct {
 				HPAOperator struct {
 					Chart   string
 					Version string
+					Values  map[string]interface{}
 				}
 			}
 			HPA struct {
@@ -176,11 +177,6 @@ var Config struct {
 			URL string
 		}
 		UUID string
-	}
-	Secret struct {
-		TLS struct {
-			DefaultValidity time.Duration
-		}
 	}
 	Spotguide struct {
 		AllowPrereleases                bool

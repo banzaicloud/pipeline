@@ -42,7 +42,6 @@ func (fc *firewallsChecker) getType() string {
 }
 
 func (fc *firewallsChecker) list() (resourceNames []string, err error) {
-
 	log := log.WithFields(logrus.Fields{"checker": "firewall", "project": fc.project, "cluster": fc.clusterName})
 
 	log.Debug("list firewalls")
@@ -70,13 +69,10 @@ func (fc *firewallsChecker) forceDelete(resourceName string) error {
 
 // findFirewallRulesByTarget returns all firewalls which created by Kubernetes
 func findFirewallRulesByTarget(rules []*gkeCompute.Firewall, clusterName string) []*gkeCompute.Firewall {
-
 	var firewalls []*gkeCompute.Firewall
 	for _, r := range rules {
 		if r != nil {
-
 			if strings.Contains(r.Description, kubernetesIO) {
-
 				for _, tag := range r.TargetTags {
 					log.Debugf("firewall rule[%s] target tag: %s", r.Name, tag)
 					if strings.HasPrefix(tag, targetPrefix+clusterName) {
@@ -84,7 +80,6 @@ func findFirewallRulesByTarget(rules []*gkeCompute.Firewall, clusterName string)
 						firewalls = append(firewalls, r)
 					}
 				}
-
 			}
 		}
 	}
@@ -94,7 +89,6 @@ func findFirewallRulesByTarget(rules []*gkeCompute.Firewall, clusterName string)
 
 // isFirewallDeleted checks the given firewall is deleted by Kubernetes
 func isFirewallDeleted(csv *gkeCompute.Service, project, firewall string) error {
-
 	log := log.WithFields(logrus.Fields{"firewall": firewall, "project": project})
 
 	log.Info("get firewall")
@@ -108,7 +102,6 @@ func isFirewallDeleted(csv *gkeCompute.Service, project, firewall string) error 
 }
 
 func deleteFirewall(csv *gkeCompute.Service, project, firewallName string) error {
-
 	log := log.WithFields(logrus.Fields{"project": project, "firewall": firewallName})
 
 	log.Info("delete firewall")

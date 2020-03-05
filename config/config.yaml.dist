@@ -212,7 +212,7 @@ dex:
 #
 #            loki:
 #                chart: "banzaicloud-stable/loki"
-#                version: "0.17.0"
+#                version: "0.17.3"
 #
 #                # See https://github.com/banzaicloud/banzai-charts/tree/master/loki for details
 #                values: {}
@@ -397,7 +397,7 @@ dex:
 #helm:
 #    home: "./var/cache"
 #    tiller:
-#        version: "v2.14.2"
+#        version: "v2.16.3"
 #    repositories:
 #        stable: "https://kubernetes-charts.storage.googleapis.com"
 #        banzaicloud-stable: "https://kubernetes-charts.banzaicloud.com"
@@ -421,6 +421,10 @@ dex:
 #        exposeAdminKubeconfig: true
 #        ssh:
 #            generate: true
+#
+#    pke:
+#        amazon:
+#            globalRegion: us-east-1
 
 cloudinfo:
     # Format: {baseUrl}/api/v1

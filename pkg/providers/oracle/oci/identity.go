@@ -30,7 +30,6 @@ type Identity struct {
 
 // NewIdentityClient creates a new Identity
 func (oci *OCI) NewIdentityClient() (client *Identity, err error) {
-
 	client = &Identity{}
 
 	oClient, err := identity.NewIdentityClientWithConfigurationProvider(oci.config)
@@ -46,7 +45,6 @@ func (oci *OCI) NewIdentityClient() (client *Identity, err error) {
 
 // GetAvailabilityDomains gets all Availability Domains within the region
 func (i *Identity) GetAvailabilityDomains() (domains []identity.AvailabilityDomain, err error) {
-
 	r, err := i.client.ListAvailabilityDomains(context.Background(), identity.ListAvailabilityDomainsRequest{
 		CompartmentId: common.String(i.oci.CompartmentOCID),
 	})
@@ -56,7 +54,6 @@ func (i *Identity) GetAvailabilityDomains() (domains []identity.AvailabilityDoma
 
 // GetTenancy gets an identity.Tenancy
 func (i *Identity) GetTenancy(id string) (t identity.Tenancy, err error) {
-
 	r, err := i.client.GetTenancy(context.Background(), identity.GetTenancyRequest{
 		TenancyId: common.String(id),
 	})
@@ -66,7 +63,6 @@ func (i *Identity) GetTenancy(id string) (t identity.Tenancy, err error) {
 
 // IsRegionAvailable check whether the given region is available
 func (i *Identity) IsRegionAvailable(name string) error {
-
 	availableRegions, err := i.GetSubscribedRegionNames()
 	if err != nil {
 		return err
@@ -81,7 +77,6 @@ func (i *Identity) IsRegionAvailable(name string) error {
 
 // GetSubscribedRegionNames gives back an array of subscribed regions' names
 func (i *Identity) GetSubscribedRegionNames() (regions map[string]string, err error) {
-
 	response, err := i.client.ListRegionSubscriptions(context.Background(), identity.ListRegionSubscriptionsRequest{
 		TenancyId: i.oci.Tenancy.Id,
 	})
@@ -96,7 +91,6 @@ func (i *Identity) GetSubscribedRegionNames() (regions map[string]string, err er
 
 // GetCompartment gets a Compartment by id
 func (i *Identity) GetCompartment(id *string) (c identity.Compartment, err error) {
-
 	response, err := i.client.GetCompartment(context.Background(), identity.GetCompartmentRequest{
 		CompartmentId: id,
 	})

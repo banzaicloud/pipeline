@@ -62,7 +62,6 @@ type UpdateClusterGoogle struct {
 }
 
 func validateNodePool(npName string, nodePool *NodePool) error {
-
 	// ---- [ Min & Max count fields are required in case of auto scaling ] ---- //
 	if nodePool.Autoscaling {
 		if nodePool.MaxCount == 0 {
@@ -86,7 +85,6 @@ func validateNodePool(npName string, nodePool *NodePool) error {
 
 // Validate validates Google cluster create request
 func (g *CreateClusterGKE) Validate() error {
-
 	if g == nil {
 		return errors.New("Google is <nil>")
 	}
@@ -140,7 +138,6 @@ func (g *CreateClusterGKE) Validate() error {
 // Validate validates the update request (only gke part). If any of the fields is missing, the method fills
 // with stored data.
 func (a *UpdateClusterGoogle) Validate() error {
-
 	// ---- [ Google field check ] ---- //
 	if a == nil {
 		return errors.New("'gke' field is empty")

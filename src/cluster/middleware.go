@@ -40,7 +40,6 @@ func (e *notSupportedQueryError) Error() string {
 // NewClusterCheckMiddleware returns a new gin middleware that checks cluster is exists in the current org.
 func NewClusterCheckMiddleware(manager *Manager, errorHandler emperror.Handler) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		ctx := context.Background()
 
 		orgID, ok := ginutils.UintParam(c, "orgid")

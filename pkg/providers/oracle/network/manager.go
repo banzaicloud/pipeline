@@ -41,7 +41,6 @@ type NetworkValues struct {
 
 // NewVCNManager creates a new VCNManager
 func NewVCNManager(oci *oci.OCI) *VCNManager {
-
 	return &VCNManager{
 		oci: oci,
 	}
@@ -49,7 +48,6 @@ func NewVCNManager(oci *oci.OCI) *VCNManager {
 
 // GetNetworkValues gives back NetworkValues collected from OCI for a given VCN
 func (m *VCNManager) GetNetworkValues(vcnID string) (values NetworkValues, err error) {
-
 	vn, err := m.oci.NewVirtualNetworkClient()
 	if err != nil {
 		return values, err
@@ -88,7 +86,6 @@ func (m *VCNManager) GetNetworkValues(vcnID string) (values NetworkValues, err e
 // - 2 security lists
 //   workernodes, loadbalancers
 func (m *VCNManager) Create(name string) (vcn core.Vcn, err error) {
-
 	vn, err := m.oci.NewVirtualNetworkClient()
 	if err != nil {
 		return vcn, err
@@ -143,7 +140,6 @@ func (m *VCNManager) Create(name string) (vcn core.Vcn, err error) {
 
 // Delete deletes a VCN and all related resources by id
 func (m *VCNManager) Delete(id *string) error {
-
 	vn, err := m.oci.NewVirtualNetworkClient()
 	if err != nil {
 		return err
@@ -180,7 +176,6 @@ func (m *VCNManager) Delete(id *string) error {
 }
 
 func (m *VCNManager) addDefaultRoute(id *string, igw core.InternetGateway) (err error) {
-
 	r := core.UpdateRouteTableRequest{
 		RtId: id,
 		UpdateRouteTableDetails: core.UpdateRouteTableDetails{
@@ -201,7 +196,6 @@ func (m *VCNManager) addDefaultRoute(id *string, igw core.InternetGateway) (err 
 }
 
 func (m *VCNManager) createVCN(name string, CIDR string) (vcn core.Vcn, err error) {
-
 	r := core.CreateVcnRequest{
 		CreateVcnDetails: core.CreateVcnDetails{
 			DisplayName:   common.String(name),
@@ -218,7 +212,6 @@ func (m *VCNManager) createVCN(name string, CIDR string) (vcn core.Vcn, err erro
 }
 
 func (m *VCNManager) createIGW(name string) (igw core.InternetGateway, err error) {
-
 	r := core.CreateInternetGatewayRequest{
 		CreateInternetGatewayDetails: core.CreateInternetGatewayDetails{
 			CompartmentId: common.String(m.oci.CompartmentOCID),
@@ -234,7 +227,6 @@ func (m *VCNManager) createIGW(name string) (igw core.InternetGateway, err error
 }
 
 func (m *VCNManager) createSecurityList(name string, egressRules []core.EgressSecurityRule, ingressRules []core.IngressSecurityRule) (list core.SecurityList, err error) {
-
 	r := core.CreateSecurityListRequest{
 		CreateSecurityListDetails: core.CreateSecurityListDetails{
 			CompartmentId:        m.vcn.CompartmentId,
@@ -251,7 +243,6 @@ func (m *VCNManager) createSecurityList(name string, egressRules []core.EgressSe
 }
 
 func (m *VCNManager) createWorkerNodesSecurityList(name string, CIDR string) (list core.SecurityList, err error) {
-
 	egress := []core.EgressSecurityRule{
 		{
 			Destination: common.String(CIDR),
@@ -363,7 +354,6 @@ func (m *VCNManager) createWorkerNodesSecurityList(name string, CIDR string) (li
 }
 
 func (m *VCNManager) createLoadBalancersSecurityList(name string) (list core.SecurityList, err error) {
-
 	egress := []core.EgressSecurityRule{
 		{
 			Destination: common.String("0.0.0.0/0"),
@@ -384,7 +374,6 @@ func (m *VCNManager) createLoadBalancersSecurityList(name string) (list core.Sec
 }
 
 func (m *VCNManager) createSubnet(name string, CIDR string, AD *string, DHCPOptionsID *string, RouteTableID *string, SecurityListID *string) (subnet core.Subnet, err error) {
-
 	r := core.CreateSubnetRequest{
 		CreateSubnetDetails: core.CreateSubnetDetails{
 			AvailabilityDomain: AD,
@@ -405,7 +394,6 @@ func (m *VCNManager) createSubnet(name string, CIDR string, AD *string, DHCPOpti
 }
 
 func (m *VCNManager) removeAllSecurityList() error {
-
 	lists, err := m.vn.GetSecurityLists(m.vcn.Id)
 	if err != nil {
 		return err
@@ -427,7 +415,6 @@ func (m *VCNManager) removeAllSecurityList() error {
 }
 
 func (m *VCNManager) removeRouteTables() error {
-
 	tables, err := m.vn.GetRouteTables(m.vcn.Id)
 	if err != nil {
 		return err
@@ -448,7 +435,6 @@ func (m *VCNManager) removeRouteTables() error {
 }
 
 func (m *VCNManager) removeInternetGateways() error {
-
 	igws, err := m.vn.GetInternetGateways(m.vcn.Id)
 	if err != nil {
 		return err
@@ -463,7 +449,6 @@ func (m *VCNManager) removeInternetGateways() error {
 }
 
 func (m *VCNManager) removeSubnets() error {
-
 	subnets, err := m.vn.GetSubnets(m.vcn.Id)
 	if err != nil {
 		return err
@@ -481,7 +466,6 @@ func (m *VCNManager) removeSubnets() error {
 }
 
 func (m *VCNManager) removeRoutesFromRouteTable(id *string) (err error) {
-
 	r := core.UpdateRouteTableRequest{
 		RtId: id,
 		UpdateRouteTableDetails: core.UpdateRouteTableDetails{
@@ -497,7 +481,6 @@ func (m *VCNManager) removeRoutesFromRouteTable(id *string) (err error) {
 }
 
 func (m *VCNManager) getAvailabilityDomains() (domains []identity.AvailabilityDomain, err error) {
-
 	i, err := m.oci.NewIdentityClient()
 	if err != nil {
 		return domains, err
@@ -508,7 +491,6 @@ func (m *VCNManager) getAvailabilityDomains() (domains []identity.AvailabilityDo
 
 // CreateDNSLabel creates max 15 char long lowercased dns label string from the given str
 func CreateDNSLabel(str string) (cstr string) {
-
 	cstr = ""
 	reg, err := regexp.Compile("[^a-zA-Z0-9]+")
 	if err != nil {

@@ -62,7 +62,6 @@ func (m *FederationReconciler) ensureCRDSourceForExtDNS(
 
 	hClient, err := pkgHelm.NewClient(kubeConfig, m.logger)
 	if err != nil {
-
 		return err
 	}
 	defer hClient.Close()

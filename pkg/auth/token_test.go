@@ -59,8 +59,6 @@ func TestJWTTokenGenerator_GenerateToken(t *testing.T) {
 	assert.Equal(t, expectedSignedToken, signedToken)
 }
 
-//go:generate mga gen mockery --name TokenGenerator --inpkg --testonly
-
 func TestTokenManager_GenerateToken(t *testing.T) {
 	const sub = "subject"
 	const tokenType = "apitoken"

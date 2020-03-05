@@ -153,14 +153,12 @@ func newExternalDnsServiceClientInstance() {
 
 // GetExternalDnsServiceClient creates a new external dns service client
 func GetExternalDnsServiceClient() (DnsServiceClient, error) {
-
 	// create a singleton
 	once.Do(func() {
 		newExternalDnsServiceClientInstance()
 	})
 
 	return dnsServiceClient, errCreate
-
 }
 
 // SubscribeDnsEvents returns DnsEventsSubscription to caller.
@@ -199,7 +197,6 @@ func UnsubscribeDnsEvents(id uuid.UUID) {
 
 		close(eventsChannel)
 	}
-
 }
 
 func observeDnsEvents() {

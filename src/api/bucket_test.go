@@ -22,7 +22,6 @@ import (
 )
 
 func TestBucketNotFoundResponseCode(t *testing.T) {
-
 	tests := []struct {
 		name   string
 		errMsg string

@@ -41,7 +41,6 @@ func NewSyncService(
 	RestoreSyncInterval time.Duration,
 	BackupSyncInterval time.Duration,
 ) *Service {
-
 	return &Service{
 		clusterManager:      ClusterManager,
 		bucketSyncInterval:  BucketSyncInterval,
@@ -52,7 +51,6 @@ func NewSyncService(
 
 // Run runs every ARK related sync services
 func (s *Service) Run(context context.Context, db *gorm.DB, logger logrus.FieldLogger) {
-
 	var wg sync.WaitGroup
 
 	// buckets
@@ -85,7 +83,6 @@ func (s *Service) syncRegisteredBucketsLoop(
 	logger logrus.FieldLogger,
 	interval time.Duration,
 ) {
-
 	logger.WithField("interval", interval.String()).Debug("syncing backups from buckets")
 	go s.syncRegisteredBuckets(db, logger) // nolint: errcheck
 	ticker := time.NewTicker(interval)
@@ -105,7 +102,6 @@ func (s *Service) syncRegisteredBucketsLoop(
 }
 
 func (s *Service) syncRegisteredBuckets(db *gorm.DB, logger logrus.FieldLogger) error {
-
 	var orgs []*auth.Organization
 	err := db.Find(&orgs).Error
 	if err != nil {
@@ -131,7 +127,6 @@ func (s *Service) syncRestoresLoop(
 	logger logrus.FieldLogger,
 	interval time.Duration,
 ) {
-
 	logger.WithField("interval", interval.String()).Debug("syncing restores")
 	go s.syncRestores(db, logger) // nolint: errcheck
 	ticker := time.NewTicker(interval)
@@ -151,7 +146,6 @@ func (s *Service) syncRestoresLoop(
 }
 
 func (s *Service) syncRestores(db *gorm.DB, logger logrus.FieldLogger) error {
-
 	var orgs []*auth.Organization
 	err := db.Find(&orgs).Error
 	if err != nil {
@@ -177,7 +171,6 @@ func (s *Service) syncBackupsLoop(
 	logger logrus.FieldLogger,
 	interval time.Duration,
 ) {
-
 	logger.WithField("interval", interval.String()).Debug("syncing backups for organizations")
 	go s.syncBackups(db, logger) // nolint: errcheck
 	ticker := time.NewTicker(interval)
@@ -197,7 +190,6 @@ func (s *Service) syncBackupsLoop(
 }
 
 func (s *Service) syncBackups(db *gorm.DB, logger logrus.FieldLogger) error {
-
 	var orgs []*auth.Organization
 	err := db.Find(&orgs).Error
 	if err != nil {

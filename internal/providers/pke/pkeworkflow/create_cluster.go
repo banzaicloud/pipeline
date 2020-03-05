@@ -25,7 +25,7 @@ import (
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
-const pkeVersion = "0.4.21"
+const pkeVersion = "0.4.23"
 
 type PKEImageNameGetter interface {
 	PKEImageName(cloudProvider, service, os, kubeVersion, pkeVersion, region string) (string, error)
@@ -89,7 +89,11 @@ type CreateClusterWorkflowInput struct {
 	SubnetID                    string
 }
 
-func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
+type CreateClusterWorkflow struct {
+	GlobalRegion string
+}
+
+func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateClusterWorkflowInput) error {
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 10 * time.Minute,
 		StartToCloseTimeout:    20 * time.Minute,
@@ -120,7 +124,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	// Create AWS roles
 	{
 		activityInput := CreateAWSRolesActivityInput{AWSActivityInput: awsActivityInput, ClusterID: input.ClusterID}
-		activityInput.AWSActivityInput.Region = "us-east-1"
+		activityInput.AWSActivityInput.Region = w.GlobalRegion
 		err := workflow.ExecuteActivity(ctx, CreateAWSRolesActivityName, activityInput).Get(ctx, &rolesStackID)
 		if err != nil {
 			return err
@@ -136,7 +140,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 
 		activityInput := WaitCFCompletionActivityInput{AWSActivityInput: awsActivityInput, StackID: rolesStackID}
-		activityInput.AWSActivityInput.Region = "us-east-1"
+		activityInput.AWSActivityInput.Region = w.GlobalRegion
 
 		err := workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, activityInput).Get(ctx, &rolesOutput)
 		if err != nil {
@@ -280,9 +284,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 		masterInput.TargetGroup = activityOutput.TargetGroup
 		externalAddress = activityOutput.DNSName
-
 	} else {
-
 		// Create EIP
 		var eip CreateElasticIPActivityOutput
 		activityInput := &CreateElasticIPActivityInput{

@@ -68,7 +68,6 @@ func (scm *gitHubSCM) DownloadRelease(owner, repo, tag string) ([]byte, error) {
 }
 
 func (scm *gitHubSCM) ListRepositoriesByTopic(owner, topic string, allowPrivate bool) ([]Repository, error) {
-
 	var repositories []Repository
 
 	query := fmt.Sprintf("org:%s topic:%s fork:true", owner, topic)
@@ -113,7 +112,6 @@ func (scm *gitHubSCM) ListRepositoriesByTopic(owner, topic string, allowPrivate 
 }
 
 func (scm *gitHubSCM) ListRepositoryReleases(owner, name string) ([]RepositoryRelease, error) {
-
 	var releases []RepositoryRelease
 
 	listOpts := github.ListOptions{PerPage: 100}
@@ -166,7 +164,6 @@ func (scm *gitHubSCM) CreateRepository(owner, name string, private bool, userID 
 }
 
 func (scm *gitHubSCM) AddContentToRepository(owner, name string, spotguideContent []RepositoryFile) error {
-
 	// A file has to be created with the API to be able to use the fresh repo
 	contentOptions := &github.RepositoryContentFileOptions{
 		Content: []byte("# Say hello to Spotguides!"),
@@ -182,7 +179,6 @@ func (scm *gitHubSCM) AddContentToRepository(owner, name string, spotguideConten
 	entries := []github.TreeEntry{}
 
 	for _, repoFile := range spotguideContent {
-
 		// The GitHub API accepts blobs as utf-8 by default, and we can change the encoding only in the
 		// CreateBlob call, so if the file is utf-8 let's spare an API call, otherwise create the blob
 		// with base64 encoding specified.
@@ -199,7 +195,7 @@ func (scm *gitHubSCM) AddContentToRepository(owner, name string, spotguideConten
 
 			blobSHA = blob.SHA
 		} else {
-			blobContent = github.String(string(repoFile.Content))
+			blobContent = github.String(repoFile.Content)
 		}
 
 		entry := github.TreeEntry{

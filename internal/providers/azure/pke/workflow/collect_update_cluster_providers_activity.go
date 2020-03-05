@@ -54,7 +54,6 @@ type CollectUpdateClusterProvidersActivityOutput struct {
 }
 
 func (a CollectUpdateClusterProvidersActivity) Execute(ctx context.Context, input CollectUpdateClusterProvidersActivityInput) (output CollectUpdateClusterProvidersActivityOutput, err error) {
-
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
 	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
 		return

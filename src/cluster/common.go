@@ -27,15 +27,18 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	logrusadapter "logur.dev/adapter/logrus"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
+	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	pkeAzureAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
 	vsphereadapter "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/adapter"
 	pkeVsphereAdapter "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver/commoncluster"
+	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -162,7 +165,7 @@ func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "can't decode Kubernetes config")
 		}
-		loadedConfig = []byte(configStr)
+		loadedConfig = configStr
 
 		c.config = loadedConfig
 	}
@@ -171,7 +174,6 @@ func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 
 // StoreKubernetesConfig stores the given K8S config in vault
 func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
-
 	var configYaml string
 
 	if azurePKEClusterGetter, ok := cluster.(interface {
@@ -226,7 +228,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("cluster-%d-config", cluster.GetID()),
-		Type: secrettype.K8SConfig,
+		Type: secrettype.Kubernetes,
 		Values: map[string]string{
 			secrettype.K8SConfig: encodedConfig,
 		},
@@ -264,11 +266,11 @@ func getSecret(organizationId uint, secretId string) (*secret.SecretItemResponse
 	return secret.Store.Get(organizationId, secretId)
 }
 
-func updateScaleOptions(scaleOptions *model.ScaleOptions, requestScaleOptions *pkgCluster.ScaleOptions) {
+func updateScaleOptions(scaleOptions *clustermodel.ScaleOptions, requestScaleOptions *pkgCluster.ScaleOptions) {
 	if scaleOptions == nil || requestScaleOptions == nil {
 		return
 	}
-	excludes := strings.Join(requestScaleOptions.Excludes, clusteradapter.InstanceTypeSeparator)
+	excludes := strings.Join(requestScaleOptions.Excludes, clustermodel.InstanceTypeSeparator)
 	scaleOptions.Enabled = requestScaleOptions.Enabled
 	scaleOptions.DesiredCpu = requestScaleOptions.DesiredCpu
 	scaleOptions.DesiredMem = requestScaleOptions.DesiredMem
@@ -278,7 +280,7 @@ func updateScaleOptions(scaleOptions *model.ScaleOptions, requestScaleOptions *p
 	scaleOptions.KeepDesiredCapacity = requestScaleOptions.KeepDesiredCapacity
 }
 
-func getScaleOptionsFromModel(scaleOptions model.ScaleOptions) *pkgCluster.ScaleOptions {
+func getScaleOptionsFromModel(scaleOptions clustermodel.ScaleOptions) *pkgCluster.ScaleOptions {
 	if scaleOptions.ID != 0 {
 		scaleOpt := &pkgCluster.ScaleOptions{
 			Enabled:             scaleOptions.Enabled,
@@ -289,17 +291,15 @@ func getScaleOptionsFromModel(scaleOptions model.ScaleOptions) *pkgCluster.Scale
 			KeepDesiredCapacity: scaleOptions.KeepDesiredCapacity,
 		}
 		if len(scaleOptions.Excludes) > 0 {
-			scaleOpt.Excludes = strings.Split(scaleOptions.Excludes, clusteradapter.InstanceTypeSeparator)
+			scaleOpt.Excludes = strings.Split(scaleOptions.Excludes, clustermodel.InstanceTypeSeparator)
 		}
 		return scaleOpt
-
 	}
 	return nil
 }
 
 // GetCommonClusterFromModel extracts CommonCluster from a ClusterModel
 func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster, error) {
-
 	db := global.DB()
 
 	if modelCluster.Distribution == pkgCluster.PKE {
@@ -323,7 +323,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		err = db.Where(model.ACKClusterModel{ID: alibabaCluster.modelCluster.ID}).First(&alibabaCluster.modelCluster.ACK).Error
+		err = db.Where(alibabaadapter.ACKClusterModel{ID: alibabaCluster.modelCluster.ID}).First(&alibabaCluster.modelCluster.ACK).Error
 		if err != nil {
 			return nil, err
 		}
@@ -337,13 +337,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 	case pkgCluster.Amazon:
 		// Create Amazon EKS struct
-		eksCluster := CreateEKSClusterFromModel(modelCluster)
-
-		err := db.
-			Preload("NodePools").
-			Preload("Subnets").
-			Where(model.EKSClusterModel{ClusterID: eksCluster.modelCluster.ID}).
-			First(&eksCluster.modelCluster.EKS).Error
+		eksCluster, err := CreateEKSClusterFromModel(modelCluster)
 
 		return eksCluster, err
 
@@ -352,7 +346,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		aksCluster := CreateAKSClusterFromModel(modelCluster)
 
 		err := db.Preload("NodePools").
-			Where(model.AKSClusterModel{ID: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.AKS).Error
+			Where(azureadapter.AKSClusterModel{ID: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.AKS).Error
 
 		return aksCluster, err
 
@@ -365,16 +359,6 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 		return gkeCluster, err
 
-	case pkgCluster.Dummy:
-		dummyCluster, err := CreateDummyClusterFromModel(modelCluster)
-		if err != nil {
-			return nil, err
-		}
-
-		err = db.Where(model.DummyClusterModel{ID: dummyCluster.modelCluster.ID}).First(&dummyCluster.modelCluster.Dummy).Error
-
-		return dummyCluster, err
-
 	case pkgCluster.Kubernetes:
 		// Create Kubernetes struct
 		kubernetesCluster, err := CreateKubernetesClusterFromModel(modelCluster)
@@ -382,7 +366,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		err = db.Where(model.KubernetesClusterModel{ID: kubernetesCluster.modelCluster.ID}).First(&kubernetesCluster.modelCluster.Kubernetes).Error
+		err = db.Where(kubernetesadapter.KubernetesClusterModel{ID: kubernetesCluster.modelCluster.ID}).First(&kubernetesCluster.modelCluster.Kubernetes).Error
 		if database.IsRecordNotFoundError(err) {
 			// metadata not set so there's no properties in DB
 			log.Warnf(err.Error())
@@ -408,7 +392,6 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 // CreateCommonClusterFromRequest creates a CommonCluster from a request
 func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (CommonCluster, error) {
-
 	if err := createClusterRequest.AddDefaults(); err != nil {
 		return nil, err
 	}
@@ -456,15 +439,6 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 		}
 		return gkeCluster, nil
 
-	case pkgCluster.Dummy:
-		// Create Dummy struct
-		dummy, err := CreateDummyClusterFromRequest(createClusterRequest, orgId, userId)
-		if err != nil {
-			return nil, err
-		}
-
-		return dummy, nil
-
 	case pkgCluster.Kubernetes:
 		// Create Kubernetes struct
 		kubeCluster, err := CreateKubernetesClusterFromRequest(createClusterRequest, orgId, userId)
@@ -480,7 +454,6 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 			return nil, err
 		}
 		return okeCluster, nil
-
 	}
 
 	return nil, pkgErrors.ErrorNotSupportedCloudType
@@ -526,7 +499,6 @@ func GetUserIdAndName(modelCluster *model.ClusterModel) (userId uint, userName s
 
 // NewCreatorBaseFields creates a new CreatorBaseFields instance from createdAt and createdBy
 func NewCreatorBaseFields(createdAt time.Time, createdBy uint) *pkgCommon.CreatorBaseFields {
-
 	var userName string
 	if createdBy != 0 {
 		userName = auth.GetUserNickNameById(createdBy)

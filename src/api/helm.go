@@ -182,7 +182,6 @@ func ListDeployments(c *gin.Context) {
 
 // HelmDeploymentStatus checks the status of a deployment through the helm client API
 func HelmDeploymentStatus(c *gin.Context) {
-
 	name := c.Param("name")
 	log.Infof("getting status for deployment: [%s]", name)
 
@@ -251,7 +250,6 @@ func GetDeployment(c *gin.Context) {
 	if err == nil {
 		c.JSON(http.StatusOK, deployment)
 	} else {
-
 		httpStatusCode := http.StatusInternalServerError
 		if _, ok := err.(*helm.DeploymentNotFoundError); ok {
 			httpStatusCode = http.StatusNotFound
@@ -305,7 +303,6 @@ func GetDeploymentResources(c *gin.Context) {
 	c.JSON(http.StatusOK, pkgHelm.GetDeploymentResourcesResponse{
 		DeploymentResources: deploymentResourcesResponse,
 	})
-
 }
 
 // GetTillerStatus checks if tiller ready to accept deployments
@@ -467,7 +464,6 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context, commonCluster cluster.Co
 
 // HelmReposGet listing helm repositories in the cluster
 func HelmReposGet(c *gin.Context) {
-
 	log.Info("Get helm repository")
 
 	response, err := helm.ReposGet(helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name))
@@ -533,7 +529,6 @@ func HelmReposDelete(c *gin.Context) {
 				Message: err.Error(),
 				Name:    repoName})
 			return
-
 		}
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -578,7 +573,6 @@ func HelmReposModify(c *gin.Context) {
 				Message: "repo not found",
 			})
 			return
-
 		}
 		log.Errorf("Error during helm repo modified. %s", errModify.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -688,7 +682,6 @@ func HelmChart(c *gin.Context) {
 }
 
 func sendResponseWithRepo(c *gin.Context, helmEnv environment.EnvSettings, repoName string) {
-
 	entries, err := helm.ReposGet(helmEnv)
 	if err != nil {
 		log.Errorf("Error during getting helm repo: %s", err.Error())
@@ -715,7 +708,6 @@ func sendResponseWithRepo(c *gin.Context, helmEnv environment.EnvSettings, repoN
 
 // ListHelmReleases list helm releases
 func ListHelmReleases(c *gin.Context, response *rls.ListReleasesResponse, optparam interface{}) []pkgHelm.ListDeploymentResponse {
-
 	// Get WhiteList set
 	releaseWhitelist, ok := GetWhitelistSet(c)
 	if !ok {
@@ -729,7 +721,6 @@ func ListHelmReleases(c *gin.Context, response *rls.ListReleasesResponse, optpar
 	releases := make([]pkgHelm.ListDeploymentResponse, 0)
 	if response != nil && len(response.Releases) > 0 {
 		for _, r := range response.Releases {
-
 			createdAt := time.Unix(r.Info.FirstDeployed.Seconds, 0)
 			updated := time.Unix(r.Info.LastDeployed.Seconds, 0)
 			chartName := r.GetChart().GetMetadata().GetName()

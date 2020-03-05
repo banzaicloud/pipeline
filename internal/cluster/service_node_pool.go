@@ -21,7 +21,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/pkg/cloud"
 )
 
 // NodePool is a common interface for all distribution node pools.
@@ -122,6 +122,8 @@ func (NodePoolAlreadyExistsError) ServiceError() bool {
 	return true
 }
 
+// +testify:mock:testOnly=true
+
 // NodePoolStore provides an interface to node pool persistence.
 type NodePoolStore interface {
 	// NodePoolExists checks if a node pool exists.
@@ -131,17 +133,23 @@ type NodePoolStore interface {
 	DeleteNodePool(ctx context.Context, clusterID uint, name string) error
 }
 
+// +testify:mock:testOnly=true
+
 // NodePoolValidator validates a node pool descriptor.
 type NodePoolValidator interface {
 	// ValidateNew validates a new node pool descriptor.
 	ValidateNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) error
 }
 
+// +testify:mock:testOnly=true
+
 // NodePoolProcessor processes a node pool descriptor.
 type NodePoolProcessor interface {
 	// ProcessNew processes a new node pool descriptor.
 	ProcessNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) (NewRawNodePool, error)
 }
+
+// +testify:mock:testOnly=true
 
 // NodePoolManager manages node pool infrastructure.
 type NodePoolManager interface {
@@ -247,7 +255,7 @@ func (s clusterService) checkCluster(cluster Cluster) error {
 
 func (s clusterService) nodePoolSupported(cluster Cluster) error {
 	switch {
-	case cluster.Cloud == providers.Amazon && cluster.Distribution == "eks":
+	case cluster.Cloud == cloud.Amazon && cluster.Distribution == "eks":
 		return nil
 	}
 

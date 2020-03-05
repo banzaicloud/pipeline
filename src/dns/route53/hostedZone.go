@@ -96,7 +96,6 @@ func (dns *awsRoute53) setHostedZoneSoaNTTL(id *string, nttl uint) error {
 
 // getHostedZoneWithNameServers returns the hosted zone and it name servers with given id from AWS Route53
 func (dns *awsRoute53) getHostedZoneWithNameServers(id *string) (*route53.GetHostedZoneOutput, error) {
-
 	hostedZoneInput := &route53.GetHostedZoneInput{Id: id}
 	hostedZoneOutput, err := dns.route53Svc.GetHostedZone(hostedZoneInput)
 	if err != nil {
@@ -108,7 +107,6 @@ func (dns *awsRoute53) getHostedZoneWithNameServers(id *string) (*route53.GetHos
 
 // getHostedZone returns the hosted zone with given id from AWS Route53
 func (dns *awsRoute53) getHostedZone(id *string) (*route53.HostedZone, error) {
-
 	h, err := dns.getHostedZoneWithNameServers(id)
 	if err != nil {
 		return nil, err
@@ -410,7 +408,6 @@ func (dns *awsRoute53) unChainFromBaseDomain(domain string) error {
 
 	if !strings.HasSuffix(domain, ".") {
 		domain += "."
-
 	}
 	resourceRecordSet, err := dns.getResourceRecordSetFromBaseHostedZone(aws.String(domain))
 	if err != nil {

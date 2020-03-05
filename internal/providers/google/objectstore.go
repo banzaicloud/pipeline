@@ -26,10 +26,10 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/pkg/providers/google"
 	googleObjectstore "github.com/banzaicloud/pipeline/pkg/providers/google/objectstore"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 type bucketNotFoundError struct{}
@@ -49,7 +49,7 @@ type ObjectStore struct {
 	logger logrus.FieldLogger
 
 	org            *auth.Organization
-	serviceAccount *verify.ServiceAccount
+	serviceAccount *google.ServiceAccount
 	secret         *secret.SecretItemResponse
 
 	location string
@@ -65,9 +65,9 @@ func NewObjectStore(
 	logger logrus.FieldLogger,
 	force bool,
 ) (*ObjectStore, error) {
-	var serviceAccount *verify.ServiceAccount
+	var serviceAccount *google.ServiceAccount
 	if secret != nil {
-		serviceAccount = verify.CreateServiceAccount(secret.Values)
+		serviceAccount = google.CreateServiceAccount(secret.Values)
 	}
 	ostore, err := getProviderObjectStore(secret, location)
 	if err != nil {

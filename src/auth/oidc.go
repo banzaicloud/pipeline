@@ -106,7 +106,6 @@ func newOIDCProvider(config *OIDCProviderConfig, refreshTokenStore RefreshTokenS
 	provider.verifier = oidcProvider.Verifier(&oidc.Config{ClientID: config.ClientID})
 
 	if config.AuthorizeHandler == nil {
-
 		config.AuthorizeHandler = func(context *auth.Context) (*claims.Claims, error) {
 			var (
 				schema       auth.Schema
@@ -188,7 +187,6 @@ func newOIDCProvider(config *OIDCProviderConfig, refreshTokenStore RefreshTokenS
 				if rawIDToken != "" {
 					// The public CLI client's verifier is needed in this case
 					verifier = oidcProvider.Verifier(&oidc.Config{ClientID: config.PublicClientID})
-
 				} else {
 					token, err = oauth2Config.TokenSource(ctx, token).Token()
 					if err != nil {
@@ -333,7 +331,6 @@ func (provider OIDCProvider) Login(context *auth.Context) {
 // RedeemRefreshToken plays an OAuth redeem refresh token flow
 // https://www.oauth.com/oauth2-servers/access-tokens/refreshing-access-tokens/
 func (provider OIDCProvider) RedeemRefreshToken(context *auth.Context, refreshToken string) (*IDTokenClaims, *oauth2.Token, error) {
-
 	ctx := oidc.ClientContext(gocontext.Background(), provider.httpClient)
 
 	token, err := provider.OAuthConfig(context).TokenSource(ctx, &oauth2.Token{RefreshToken: refreshToken}).Token()
@@ -383,6 +380,8 @@ func (provider OIDCProvider) Callback(context *auth.Context) {
 func (OIDCProvider) ServeHTTP(*auth.Context) {
 }
 
+// +testify:mock:testOnly=true
+
 // OIDCOrganizationSyncer synchronizes organizations of a user from an OIDC ID token.
 type OIDCOrganizationSyncer interface {
 	SyncOrganizations(ctx gocontext.Context, user User, idTokenClaims *IDTokenClaims) error
@@ -408,7 +407,6 @@ func (s oidcOrganizationSyncer) SyncOrganizations(ctx gocontext.Context, user Us
 	provider := idTokenClaims.FederatedClaims["connector_id"]
 
 	for _, group := range idTokenClaims.Groups {
-
 		// In case of Google group names are email addresses.
 		// We map the domain to an org and the name to a role/team.
 		if provider == "google" {

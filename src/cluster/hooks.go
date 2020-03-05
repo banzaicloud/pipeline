@@ -113,7 +113,6 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 	var valuesJson []byte
 
 	if cluster.RbacEnabled() {
-
 		// create service account
 		kubeConfig, err := cluster.GetK8sConfig()
 		if err != nil {
@@ -211,11 +210,9 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 		if err != nil {
 			return err
 		}
-
 	}
 
 	return installDeployment(cluster, k8sDashboardNameSpace, config.Chart, k8sDashboardReleaseName, valuesJson, config.Version, false)
-
 }
 
 // InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
@@ -251,19 +248,19 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 
 // InstallHorizontalPodAutoscalerPostHook
 func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
-	var config = global.Config.Cluster.PostHook.HPA
-	if !config.Enabled {
+	var config = global.Config.Cluster
+
+	if !config.PostHook.HPA.Enabled {
 		return nil
 	}
 
-	promServiceName := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceName
-	infraNamespace := global.Config.Cluster.Autoscale.Namespace
-	serviceContext := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceContext
-	chartName := global.Config.Cluster.Autoscale.Charts.HPAOperator.Chart
-	chartVersion := global.Config.Cluster.Autoscale.Charts.HPAOperator.Version
+	promServiceName := config.Autoscale.HPA.Prometheus.ServiceName
+	infraNamespace := config.Autoscale.Namespace
+	serviceContext := config.Autoscale.HPA.Prometheus.ServiceContext
 
 	values := map[string]interface{}{
 		"kube-metrics-adapter": map[string]interface{}{
+			"enabled": "true",
 			"prometheus": map[string]interface{}{
 				"url": fmt.Sprintf("http://%s.%s.svc/%s", promServiceName, infraNamespace, serviceContext),
 			},
@@ -275,29 +272,25 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 	case pkgCluster.Amazon, pkgCluster.Azure, pkgCluster.Alibaba, pkgCluster.Oracle:
 		if !metricsServerIsInstalled(cluster) {
 			log.Infof("Metrics Server is not installed, installing")
-			values["metricsServer"] = map[string]interface{}{
-				"enabled": true,
-			}
-			values["metrics-server"] = map[string]interface{}{
-				"rbac": map[string]interface{}{"create": true},
+			values = map[string]interface{}{
+				"metrics-server": map[string]interface{}{"enabled": true},
 			}
 		} else {
 			log.Infof("Metrics Server is already installed")
 		}
 	}
 
-	valuesOverride, err := yaml.Marshal(values)
+	mergedValues, err := mergeValues(values, config.Autoscale.Charts.HPAOperator.Values)
 	if err != nil {
-		return err
+		return errors.WrapIf(err, "failed to merge hpa-operator chart values with config")
 	}
 
-	return installDeployment(cluster, infraNamespace, chartName,
-		"hpa-operator", valuesOverride, chartVersion, false)
+	return installDeployment(cluster, infraNamespace, config.Autoscale.Charts.HPAOperator.Chart,
+		"hpa-operator", mergedValues, config.Autoscale.Charts.HPAOperator.Version, false)
 }
 
 // RestoreFromBackup restores an ARK backup
 func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) error {
-
 	var params arkAPI.RestoreFromBackupParams
 	err := castToPostHookParam(param, &params)
 	if err != nil {

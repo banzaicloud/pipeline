@@ -35,7 +35,6 @@ type ExpiryJobWorkflowInput struct {
 
 // ExpiryJobWorkflow triggers the cluster deletion at a given date
 func ExpiryJobWorkflow(ctx workflow.Context, input ExpiryJobWorkflowInput) error {
-
 	sleepDuration, err := expiry.CalculateDuration(workflow.Now(ctx), input.ExpiryDate)
 	if err != nil {
 		return errors.WrapIf(err, "failed to calculate the expiry duration")

@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -26,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterconfig"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
@@ -36,6 +36,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/values"
 )
 
 type Config struct {
@@ -75,6 +76,12 @@ type Config struct {
 			ExposeAdminKubeconfig bool
 			SSH                   struct {
 				Generate bool
+			}
+		}
+
+		PKE struct {
+			Amazon struct {
+				GlobalRegion string
 			}
 		}
 	}
@@ -172,187 +179,77 @@ func (c CloudinfoConfig) Validate() error {
 	return err
 }
 
-// TelemetryConfig contains telemetry configuration.
-type TelemetryConfig struct {
-	Enabled bool
-	Addr    string
-	Debug   bool
-}
-
-// Validate validates the configuration.
-func (c TelemetryConfig) Validate() error {
-	var err error
-
-	if c.Enabled {
-		if c.Addr == "" {
-			err = errors.Append(err, errors.New("telemetry http server address is required"))
-		}
-	}
-
-	return err
-}
-
 // ClusterConfig contains cluster configuration.
 type ClusterConfig struct {
+	Autoscale ClusterAutoscaleConfig
+
+	Backyards istiofeature.StaticConfig
+
+	DisasterRecovery ClusterDisasterRecoveryConfig
+
+	DNS ClusterDNSConfig
+
+	Expiry ClusterExpiryConfig
+
+	Federation federation.StaticConfig
+
+	Ingress ClusterIngressConfig
+
+	Labels clusterconfig.LabelConfig
+
 	// Initial manifest
 	Manifest string
+
+	Monitoring ClusterMonitoringConfig
+
+	Logging ClusterLoggingConfig
 
 	// Namespace to install Pipeline components to
 	Namespace string
 
-	Labels clusterconfig.LabelConfig
-
-	Ingress struct {
-		Cert struct {
-			Source string
-			Path   string
-		}
-	}
-
 	// Posthook configs
 	PostHook cluster.PostHookConfig
 
-	// Features
-	Vault        ClusterVaultConfig
-	Monitoring   ClusterMonitoringConfig
-	Logging      ClusterLoggingConfig
-	DNS          ClusterDNSConfig
 	SecurityScan ClusterSecurityScanConfig
-	Expiry       ExpiryConfig
 
-	Autoscale struct {
-		Namespace string
-
-		HPA struct {
-			Prometheus struct {
-				ServiceName    string
-				ServiceContext string
-				LocalPort      int
-			}
-		}
-
-		Charts struct {
-			ClusterAutoscaler struct {
-				Chart                   string
-				Version                 string
-				ImageVersionConstraints []struct {
-					K8sVersion string
-					Tag        string
-					Repository string
-				}
-			}
-
-			HPAOperator struct {
-				Chart   string
-				Version string
-			}
-		}
-	}
-
-	DisasterRecovery struct {
-		Namespace string
-
-		Ark struct {
-			SyncEnabled         bool
-			BucketSyncInterval  time.Duration
-			RestoreSyncInterval time.Duration
-			BackupSyncInterval  time.Duration
-			RestoreWaitTimeout  time.Duration
-		}
-
-		Charts struct {
-			Ark struct {
-				Chart   string
-				Version string
-				Values  struct {
-					Image struct {
-						Repository string
-						Tag        string
-						PullPolicy string
-					}
-				}
-			}
-		}
-	}
-
-	Backyards istiofeature.StaticConfig
-
-	Federation federation.StaticConfig
+	Vault ClusterVaultConfig
 }
 
 // Validate validates the configuration.
 func (c ClusterConfig) Validate() error {
+	var errs error
+
+	errs = errors.Append(errs, c.DNS.Validate())
+
+	errs = errors.Append(errs, c.Ingress.Validate())
+
+	errs = errors.Append(errs, c.Labels.Validate())
+
+	errs = errors.Append(errs, c.Logging.Validate())
+
 	if c.Manifest != "" {
 		file, err := os.OpenFile(c.Manifest, os.O_RDONLY, 0666)
-		if err != nil {
-			return fmt.Errorf("cluster manifest file is not readable: %w", err)
-		}
 		_ = file.Close()
+		if err != nil {
+			errs = errors.Append(errs, errors.Wrap(err, "cluster manifest file is not readable"))
+		}
 	}
+
+	errs = errors.Append(errs, c.Monitoring.Validate())
 
 	if c.Namespace == "" {
-		return errors.New("cluster namespace is required")
+		errs = errors.Append(errs, errors.New("cluster namespace is required"))
 	}
 
-	if err := c.Labels.Validate(); err != nil {
-		return err
-	}
+	errs = errors.Append(errs, c.SecurityScan.Validate())
 
-	if c.Vault.Enabled {
-		if err := c.Vault.Validate(); err != nil {
-			return err
-		}
-	}
+	errs = errors.Append(errs, c.Vault.Validate())
 
-	if c.Monitoring.Enabled {
-		if err := c.Monitoring.Validate(); err != nil {
-			return err
-		}
-	}
-
-	if c.Logging.Enabled {
-		if err := c.Logging.Validate(); err != nil {
-			return err
-		}
-	}
-
-	if c.DNS.Enabled {
-		if err := c.DNS.Validate(); err != nil {
-			return err
-		}
-	}
-
-	if c.SecurityScan.Enabled {
-		if err := c.SecurityScan.Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return errs
 }
 
 // Process post-processes the configuration after loading (before validation).
 func (c *ClusterConfig) Process() error {
-	if c.Labels.Namespace == "" {
-		c.Labels.Namespace = c.Namespace
-	}
-
-	if c.Vault.Namespace == "" {
-		c.Vault.Namespace = c.Namespace
-	}
-
-	if c.Monitoring.Namespace == "" {
-		c.Monitoring.Namespace = c.Namespace
-	}
-
-	if c.Logging.Namespace == "" {
-		c.Logging.Namespace = c.Namespace
-	}
-
-	if c.DNS.Namespace == "" {
-		c.DNS.Namespace = c.Namespace
-	}
-
 	if c.Autoscale.Namespace == "" {
 		c.Autoscale.Namespace = c.Namespace
 	}
@@ -361,25 +258,133 @@ func (c *ClusterConfig) Process() error {
 		c.DisasterRecovery.Namespace = c.Namespace
 	}
 
+	if c.DNS.Namespace == "" {
+		c.DNS.Namespace = c.Namespace
+	}
+
+	if c.Ingress.Namespace == "" {
+		c.Ingress.Namespace = c.Namespace
+	}
+
+	if c.Labels.Namespace == "" {
+		c.Labels.Namespace = c.Namespace
+	}
+
+	if c.Logging.Namespace == "" {
+		c.Logging.Namespace = c.Namespace
+	}
+
+	if c.Monitoring.Namespace == "" {
+		c.Monitoring.Namespace = c.Namespace
+	}
+
 	if c.SecurityScan.PipelineNamespace == "" {
 		c.SecurityScan.PipelineNamespace = c.Namespace
+	}
+
+	if c.Vault.Namespace == "" {
+		c.Vault.Namespace = c.Namespace
 	}
 
 	return nil
 }
 
-// ClusterVaultConfig contains cluster vault configuration.
-type ClusterVaultConfig struct {
-	Enabled bool
+type ClusterAutoscaleConfig struct {
+	Namespace string
 
-	vault.Config `mapstructure:",squash"`
+	HPA struct {
+		Prometheus struct {
+			ServiceName    string
+			ServiceContext string
+			LocalPort      int
+		}
+	}
+
+	Charts struct {
+		ClusterAutoscaler struct {
+			Chart                   string
+			Version                 string
+			ImageVersionConstraints []struct {
+				K8sVersion string
+				Tag        string
+				Repository string
+			}
+		}
+
+		HPAOperator struct {
+			Chart   string
+			Version string
+			Values  values.Config
+		}
+	}
 }
 
-// ClusterMonitoringConfig contains cluster monitoring configuration.
-type ClusterMonitoringConfig struct {
+type ClusterDisasterRecoveryConfig struct {
+	Namespace string
+
+	Ark struct {
+		SyncEnabled         bool
+		BucketSyncInterval  time.Duration
+		RestoreSyncInterval time.Duration
+		BackupSyncInterval  time.Duration
+		RestoreWaitTimeout  time.Duration
+	}
+
+	Charts struct {
+		Ark struct {
+			Chart   string
+			Version string
+			Values  struct {
+				Image struct {
+					Repository string
+					Tag        string
+					PullPolicy string
+				}
+			}
+		}
+	}
+}
+
+// ClusterDNSConfig contains cluster DNS configuration.
+type ClusterDNSConfig struct {
 	Enabled bool
 
-	monitoring.Config `mapstructure:",squash"`
+	dns.Config `mapstructure:",squash"`
+}
+
+func (c ClusterDNSConfig) Validate() error {
+	var errs error
+
+	if c.Enabled {
+		errs = errors.Append(errs, c.Config.Validate())
+	}
+
+	return errs
+}
+
+type ClusterExpiryConfig struct {
+	Enabled bool
+}
+
+type ClusterIngressConfig struct {
+	Enabled bool
+
+	ingress.Config `mapstructure:",squash"`
+
+	Cert struct {
+		Source string
+		Path   string
+	}
+}
+
+func (c ClusterIngressConfig) Validate() error {
+	var errs error
+
+	if c.Enabled {
+		errs = errors.Append(errs, c.Config.Validate())
+	}
+
+	return errs
 }
 
 // ClusterLoggingConfig contains cluster logging configuration.
@@ -389,11 +394,31 @@ type ClusterLoggingConfig struct {
 	logging.Config `mapstructure:",squash"`
 }
 
-// ClusterDNSConfig contains cluster DNS configuration.
-type ClusterDNSConfig struct {
+func (c ClusterLoggingConfig) Validate() error {
+	var errs error
+
+	if c.Enabled {
+		errs = errors.Append(errs, c.Config.Validate())
+	}
+
+	return errs
+}
+
+// ClusterMonitoringConfig contains cluster monitoring configuration.
+type ClusterMonitoringConfig struct {
 	Enabled bool
 
-	dns.Config `mapstructure:",squash"`
+	monitoring.Config `mapstructure:",squash"`
+}
+
+func (c ClusterMonitoringConfig) Validate() error {
+	var errs error
+
+	if c.Enabled {
+		errs = errors.Append(errs, c.Config.Validate())
+	}
+
+	return errs
 }
 
 // ClusterSecurityScanConfig contains cluster security scan configuration.
@@ -413,8 +438,41 @@ func (c ClusterSecurityScanConfig) Validate() error {
 	return err
 }
 
-type ExpiryConfig struct {
+// ClusterVaultConfig contains cluster vault configuration.
+type ClusterVaultConfig struct {
 	Enabled bool
+
+	vault.Config `mapstructure:",squash"`
+}
+
+func (c ClusterVaultConfig) Validate() error {
+	var errs error
+
+	if c.Enabled {
+		errs = errors.Append(errs, c.Config.Validate())
+	}
+
+	return errs
+}
+
+// TelemetryConfig contains telemetry configuration.
+type TelemetryConfig struct {
+	Enabled bool
+	Addr    string
+	Debug   bool
+}
+
+// Validate validates the configuration.
+func (c TelemetryConfig) Validate() error {
+	var err error
+
+	if c.Enabled {
+		if c.Addr == "" {
+			err = errors.Append(err, errors.New("telemetry http server address is required"))
+		}
+	}
+
+	return err
 }
 
 // Configure configures some defaults in the Viper instance.
@@ -464,9 +522,6 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Cluster configuration
 	v.SetDefault("cluster::manifest", "")
 	v.SetDefault("cluster::namespace", "pipeline-system")
-
-	v.SetDefault("cluster::ingress::cert::source", "file")
-	v.SetDefault("cluster::ingress::cert::path", "config/certs")
 
 	v.SetDefault("cluster::labels::domain", "banzaicloud.io")
 	v.SetDefault("cluster::labels::forbiddenDomains", []string{
@@ -528,6 +583,11 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 					"traefik.ingress.kubernetes.io/redirect-replacement": `https://$1\`,
 				},
 			},
+			"sidecar": map[string]interface{}{
+				"datasources": map[string]interface{}{
+					"enabled": "true",
+				},
+			},
 		},
 	})
 	v.SetDefault("cluster::monitoring::images::operator::repository", "quay.io/coreos/prometheus-operator")
@@ -557,7 +617,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::logging::images::operator::repository", "banzaicloud/logging-operator")
 	v.SetDefault("cluster::logging::images::operator::tag", "2.7.0")
 	v.SetDefault("cluster::logging::charts::loki::chart", "banzaicloud-stable/loki")
-	v.SetDefault("cluster::logging::charts::loki::version", "0.17.0")
+	v.SetDefault("cluster::logging::charts::loki::version", "0.17.3")
 	v.SetDefault("cluster::logging::charts::loki::values", map[string]interface{}{})
 	v.SetDefault("cluster::logging::images::loki::repository", "grafana/loki")
 	v.SetDefault("cluster::logging::images::loki::tag", "v1.3.0")
@@ -578,6 +638,20 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 			"tag":        "0.5.18",
 		},
 	})
+
+	v.SetDefault("cluster::ingress::enabled", true)
+	v.SetDefault("cluster::ingress::controllers", []string{"traefik"})
+	v.SetDefault("cluster::ingress::namespace", "")
+	v.SetDefault("cluster::ingress::releaseName", "ingress")
+	v.SetDefault("cluster::ingress::charts::traefik::chart", "stable/traefik")
+	v.SetDefault("cluster::ingress::charts::traefik::version", "1.86.1")
+	v.SetDefault("cluster::ingress::charts::traefik::values", `
+ssl:
+  enabled: true
+  generateTLS: true
+`)
+	v.SetDefault("cluster::ingress::cert::source", "file")
+	v.SetDefault("cluster::ingress::cert::path", "config/certs")
 
 	v.SetDefault("cluster::autoscale::namespace", "")
 	v.SetDefault("cluster::autoscale::hpa::prometheus::serviceName", "monitor-prometheus-server")
@@ -620,7 +694,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	})
 
 	v.SetDefault("cluster::autoscale::charts::hpaOperator::chart", "banzaicloud-stable/hpa-operator")
-	v.SetDefault("cluster::autoscale::charts::hpaOperator::version", "0.0.16")
+	v.SetDefault("cluster::autoscale::charts::hpaOperator::version", "0.1.0")
 	v.SetDefault("cluster::autoscale::charts::hpaOperator::values", map[string]interface{}{})
 
 	v.SetDefault("cluster::securityScan::enabled", true)
@@ -632,13 +706,13 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::securityScan::webhook::version", "0.5.3")
 	v.SetDefault("cluster::securityScan::webhook::release", "anchore")
 	v.SetDefault("cluster::securityScan::webhook::namespace", "pipeline-system")
-	//v.SetDefault("cluster::securityScan::webhook::values", map[string]interface{}{
+	// v.SetDefault("cluster::securityScan::webhook::values", map[string]interface{}{
 	//	"image": map[string]interface{}{
 	//		"repository": "banzaicloud/ark",
 	//		"tag":        "v0.9.11",
 	//		"pullPolicy": "IfNotPresent",
 	//	},
-	//})
+	// })
 
 	v.SetDefault("cluster::expiry::enabled", true)
 
@@ -676,7 +750,7 @@ traefik:
 	// Cluster Autoscaler
 	v.SetDefault("cluster::posthook::autoscaler::enabled", true)
 
-	//v.SetDefault("cluster::disasterRecovery::enabled", true)
+	// v.SetDefault("cluster::disasterRecovery::enabled", true)
 	v.SetDefault("cluster::disasterRecovery::namespace", "")
 	v.SetDefault("cluster::disasterRecovery::ark::syncEnabled", true)
 	v.SetDefault("cluster::disasterRecovery::ark::bucketSyncInterval", "10m")
@@ -693,7 +767,7 @@ traefik:
 		},
 	})
 
-	//v.SetDefault("cluster::backyards::enabled", true)
+	// v.SetDefault("cluster::backyards::enabled", true)
 	v.SetDefault("cluster::backyards::istio::grafanaDashboardLocation", "./etc/dashboards/istio")
 	v.SetDefault("cluster::backyards::istio::pilotImage", "banzaicloud/istio-pilot:1.4.2-bzc")
 	v.SetDefault("cluster::backyards::istio::mixerImage", "banzaicloud/istio-mixer:1.4.2-bzc")
@@ -744,7 +818,7 @@ traefik:
 	})
 
 	// Helm configuration
-	v.SetDefault("helm::tiller::version", "v2.14.2")
+	v.SetDefault("helm::tiller::version", "v2.16.3")
 	v.SetDefault("helm::home", "./var/cache")
 	v.SetDefault("helm::repositories::stable", "https://kubernetes-charts.storage.googleapis.com")
 	v.SetDefault("helm::repositories::banzaicloud-stable", "https://kubernetes-charts.banzaicloud.com")
@@ -757,6 +831,8 @@ traefik:
 	v.SetDefault("distribution::eks::templateLocation", "./templates/eks")
 	v.SetDefault("distribution::eks::exposeAdminKubeconfig", true)
 	v.SetDefault("distribution::eks::ssh::generate", true)
+
+	v.SetDefault("distribution::pke::amazon::globalRegion", "us-east-1")
 
 	v.SetDefault("cloudinfo::endpoint", "")
 	v.SetDefault("hollowtrees::endpoint", "")

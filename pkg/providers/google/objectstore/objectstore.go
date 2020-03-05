@@ -162,7 +162,6 @@ func (o *objectStore) CheckBucket(bucketName string) error {
 
 // DeleteBucket deletes a bucket from the object store
 func (o *objectStore) DeleteBucket(bucketName string) error {
-
 	obj, err := o.ListObjects(bucketName)
 	if err != nil {
 		return errors.WrapIfWithDetails(err, "failed to list objects", "bucket", bucketName)
@@ -305,7 +304,6 @@ func (o *objectStore) listObjectsWithQuery(bucket string, query *storage.Query) 
 }
 
 func (o *objectStore) convertBucketError(err error, bucketName string) error {
-
 	if err == storage.ErrBucketNotExist {
 		return errBucketNotFound{bucketName: bucketName}
 	}
@@ -323,7 +321,6 @@ func (o *objectStore) convertBucketError(err error, bucketName string) error {
 }
 
 func (o *objectStore) convertObjectError(err error, bucketName, objectName string) error {
-
 	if err == storage.ErrObjectNotExist {
 		return errObjectNotFound{bucketName: bucketName, objectName: objectName}
 	}

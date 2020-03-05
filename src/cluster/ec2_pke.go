@@ -36,6 +36,7 @@ import (
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/global"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
@@ -44,10 +45,10 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 const defaultK8sVersion = "1.15.3"
@@ -173,7 +174,7 @@ func (c *EC2ClusterPKE) SetStatus(status, statusMessage string) error {
 	if c.model.Cluster.ID != 0 {
 		// Record status change to history before modifying the actual status.
 		// If setting/saving the actual status doesn't succeed somehow, at least we can reconstruct it from history (i.e. event sourcing).
-		statusHistory := clusteradapter.StatusHistoryModel{
+		statusHistory := clustermodel.StatusHistoryModel{
 			ClusterID:   c.model.Cluster.ID,
 			ClusterName: c.model.Cluster.Name,
 
@@ -211,7 +212,6 @@ func (c *EC2ClusterPKE) SetStatus(status, statusMessage string) error {
 
 // DeleteFromDatabase deletes the distribution related entities from the database
 func (c *EC2ClusterPKE) DeleteFromDatabase() error {
-
 	// dependencies are deleted using a GORM hook!
 	if e := c.db.Delete(c.model).Error; e != nil {
 		return errors.WrapIfWithDetails(e, "failed to delete EC2BanzaiCloudCluster", "distro", c.model.ID)
@@ -232,7 +232,7 @@ func (c *EC2ClusterPKE) GetAWSClient() (*session.Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	awsCred := verify.CreateAWSCredentials(secret.Values)
+	awsCred := amazon.CreateAWSCredentials(secret.Values)
 	return session.NewSession(&aws.Config{
 		Region:      aws.String(c.model.Cluster.Location),
 		Credentials: awsCred,
@@ -330,7 +330,7 @@ func (c *EC2ClusterPKE) ValidateCreationFields(r *pkgCluster.CreateClusterReques
 }
 
 func (c *EC2ClusterPKE) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error {
-	panic("not used")
+	return errors.New("not implemented")
 }
 
 func createNodePoolsFromPKERequest(nodePools pke.UpdateNodePools) []pkeworkflow.NodePool {
@@ -394,7 +394,6 @@ func createNodePoolsFromPKENodePools(pkeNodePools []PKENodePool) []pkeworkflow.N
 }
 
 func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluster.UpdateClusterRequest, userID uint, workflowClient client.Client, externalBaseURL string, externalBaseURLInsecure bool) error {
-
 	vpcid, ok := c.model.Network.CloudProviderConfig["vpcID"].(string)
 	if !ok {
 		return errors.New("VPC ID not found")
@@ -527,14 +526,14 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 	}
 
 	input := pkeworkflow.UpdateClusterWorkflowInput{
-		ClusterID:                   uint(c.GetID()),
+		ClusterID:                   c.GetID(),
 		NodePoolsToAdd:              nodePoolsToAdd,
 		NodePoolsToUpdate:           nodePoolsToUpdate,
 		NodePoolsToDelete:           nodePoolsToDelete,
-		OrganizationID:              uint(c.GetOrganizationId()),
+		OrganizationID:              c.GetOrganizationId(),
 		ClusterUID:                  c.GetUID(),
 		ClusterName:                 c.GetName(),
-		SecretID:                    string(c.GetSecretId()),
+		SecretID:                    c.GetSecretId(),
 		Region:                      c.GetLocation(),
 		PipelineExternalURL:         externalBaseURL,
 		PipelineExternalURLInsecure: externalBaseURLInsecure,
@@ -573,12 +572,12 @@ func (c *EC2ClusterPKE) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
 }
 
 func (c *EC2ClusterPKE) DeleteCluster() error {
-	panic("not used")
+	return errors.New("not implemented")
 }
 
 func (c *EC2ClusterPKE) DeletePKECluster(ctx context.Context, workflowClient client.Client) error {
 	input := pkeworkflow.DeleteClusterWorkflowInput{
-		ClusterID: uint(c.GetID()),
+		ClusterID: c.GetID(),
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
@@ -673,7 +672,10 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 
 // IsReady checks if the cluster is running according to the cloud provider.
 func (c *EC2ClusterPKE) IsReady() (bool, error) {
-	// TODO: is this a correct implementation?
+	// cluster is not ready in case there's no config secret yet
+	if c.GetConfigSecretId() == "" {
+		return false, nil
+	}
 	return true, nil
 }
 
@@ -695,7 +697,6 @@ type PKENodePool struct {
 func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
 	pools := make([]PKENodePool, len(c.model.NodePools), len(c.model.NodePools))
 	for i, np := range c.model.NodePools {
-
 		var amazonPool internalPke.NodePoolProviderConfigAmazon
 		_ = mapstructure.Decode(np.ProviderConfig, &amazonPool)
 
@@ -729,7 +730,6 @@ func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
 				pools[i].Worker = true
 			}
 		}
-
 	}
 	return pools
 }
@@ -1032,7 +1032,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 	}
 
 	c.model = &internalPke.EC2PKEClusterModel{
-		Cluster: clusteradapter.ClusterModel{
+		Cluster: clustermodel.ClusterModel{
 			Name:           request.Name,
 			Location:       request.Location,
 			Cloud:          request.Cloud,

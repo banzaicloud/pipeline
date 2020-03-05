@@ -22,13 +22,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/pkg/cloud"
 )
-
-//go:generate mga gen mockery --name NodePoolStore --inpkg --testonly
-//go:generate mga gen mockery --name NodePoolValidator --inpkg --testonly
-//go:generate mga gen mockery --name NodePoolProcessor --inpkg --testonly
-//go:generate mga gen mockery --name NodePoolManager --inpkg --testonly
 
 func TestNewRawNodePool(t *testing.T) {
 	t.Run("GetName", func(t *testing.T) {
@@ -147,8 +142,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
 		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		rawNewNodePool := NewRawNodePool{
 			"name": "pool0",
@@ -186,8 +182,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
 		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		rawNewNodePool := NewRawNodePool{
 			"name": "pool0",
@@ -216,7 +213,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 			Name:          "cluster",
 			Status:        Running,
 			StatusMessage: RunningMessage,
-			Cloud:         providers.Amazon,
+			Cloud:         cloud.Amazon,
 			Distribution:  "eks",
 		}
 		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
@@ -236,8 +233,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 
 		processor := new(MockNodePoolProcessor)
 		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		err := nodePoolService.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.Error(t, err)
@@ -262,7 +260,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 			Name:          "cluster",
 			Status:        Running,
 			StatusMessage: RunningMessage,
-			Cloud:         providers.Amazon,
+			Cloud:         cloud.Amazon,
 			Distribution:  "eks",
 		}
 		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
@@ -281,8 +279,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 
 		processor := new(MockNodePoolProcessor)
 		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		err := nodePoolService.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.Error(t, err)
@@ -307,7 +306,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 			Name:          "cluster",
 			Status:        Running,
 			StatusMessage: RunningMessage,
-			Cloud:         providers.Amazon,
+			Cloud:         cloud.Amazon,
 			Distribution:  "eks",
 		}
 		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
@@ -331,7 +330,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		manager := new(MockNodePoolManager)
 		manager.On("CreateNodePool", ctx, cluster.ID, rawNewNodePool).Return(nil)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		clusterGroupManager := new(MockClusterGroupManager)
+
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		err := nodePoolService.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.NoError(t, err)
@@ -358,8 +359,9 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
 		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		_, err := nodePoolService.DeleteNodePool(ctx, 1, "pool0")
 		require.Error(t, err)
@@ -393,8 +395,9 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
 		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		_, err := nodePoolService.DeleteNodePool(ctx, 1, "pool0")
 		require.Error(t, err)
@@ -419,7 +422,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 			Name:          "cluster",
 			Status:        Running,
 			StatusMessage: RunningMessage,
-			Cloud:         providers.Amazon,
+			Cloud:         cloud.Amazon,
 			Distribution:  "eks",
 		}
 		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
@@ -432,8 +435,9 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
 		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		deleted, err := nodePoolService.DeleteNodePool(ctx, 1, nodePoolName)
 		require.NoError(t, err)
@@ -458,7 +462,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 			Name:          "cluster",
 			Status:        Running,
 			StatusMessage: RunningMessage,
-			Cloud:         providers.Amazon,
+			Cloud:         cloud.Amazon,
 			Distribution:  "eks",
 		}
 		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
@@ -475,7 +479,9 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		manager := new(MockNodePoolManager)
 		manager.On("DeleteNodePool", ctx, cluster.ID, nodePoolName).Return(nil)
 
-		nodePoolService := NewService(clusterStore, nil, nodePoolStore, validator, processor, manager)
+		clusterGroupManager := new(MockClusterGroupManager)
+
+		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
 
 		deleted, err := nodePoolService.DeleteNodePool(ctx, 1, nodePoolName)
 		require.NoError(t, err)

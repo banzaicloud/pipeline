@@ -20,7 +20,6 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/hashicorp/go-multierror"
 	apiextv1b1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
 	"sigs.k8s.io/kubefed/pkg/kubefedctl"
@@ -37,7 +36,7 @@ func (m *FederationReconciler) ReconcileMemberClusters(desiredState DesiredState
 		return err
 	}
 
-	multiErr := multierror.Error{}
+	var errs []error
 
 	// if desiredState == DesiredStatePresent join clusters unless they are already registered
 	memberClusterIDs := make(map[uint]bool)
@@ -49,7 +48,7 @@ func (m *FederationReconciler) ReconcileMemberClusters(desiredState DesiredState
 					err := m.reconcileMemberCluster(DesiredStatePresent, cluster)
 					if err != nil {
 						err = errors.WrapIf(err, "Error joining cluster")
-						multiErr = *multierror.Append(err, multiErr.Errors...)
+						errs = append(errs, err)
 					}
 				}
 			}
@@ -66,11 +65,14 @@ func (m *FederationReconciler) ReconcileMemberClusters(desiredState DesiredState
 		err := m.reconcileMemberCluster(DesiredStateAbsent, cluster)
 		if err != nil {
 			err = errors.WrapIf(err, "Error unjoining cluster")
-			multierror.Append(err, multiErr.Errors...) // nolint: errcheck
+			errs = append(errs, err)
 		}
 	}
 
-	return multiErr.ErrorOrNil()
+	if err := errors.Combine(errs...); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *FederationReconciler) reconcileMemberCluster(desiredState DesiredState, c cluster.CommonCluster) error {
@@ -118,7 +120,6 @@ func (m *FederationReconciler) reconcileMemberCluster(desiredState DesiredState,
 			} else {
 				return err
 			}
-
 		}
 	}
 

@@ -12,7 +12,7 @@ jobs:
         resource_class: large
         docker:
             -
-                image: banzaicloud/golang:1.13
+                image: banzaicloud/golang:1.14
                 environment:
                     GOFLAG: -mod=readonly
                     GOCACHE: "/tmp/go/cache"
@@ -149,7 +149,7 @@ jobs:
                 run:
                     name: Test MySQL database migrations are reversible
                     command: |
-                        bin/migrate -source "file://database/migrations/mysql" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" down
+                        bin/migrate -source "file://database/migrations/mysql" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" down -all
                         bin/migrate -source "file://database/migrations/mysql" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" up
 
             -
@@ -194,13 +194,13 @@ jobs:
                     command: |
                         pg_dump -s -h localhost -U postgres -d pipeline_migrations > pipeline_migrations.txt
                         pg_dump -s -h localhost -U postgres -d pipeline_automigrate > pipeline_automigrate.txt
-                        diff -U 10 pipeline_migrations.txt pipeline_automigrate.txt
+                        diff -U 10 pipeline_migrations.txt pipeline_automigrate.txt || exit 0
 
             -
                 run:
                     name: Test PostgreSQL database migrations are reversible
                     command: |
-                        bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:5432/pipeline_migrations?sslmode=disable" down
+                        bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:5432/pipeline_migrations?sslmode=disable" down -all
                         bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:5432/pipeline_migrations?sslmode=disable" up
 
             -
@@ -209,7 +209,7 @@ jobs:
                     command: |
                         pg_dump -s -h localhost -U postgres -d pipeline_migrations > pipeline_migrations.txt
                         pg_dump -s -h localhost -U postgres -d pipeline_automigrate > pipeline_automigrate.txt
-                        diff -U 10 pipeline_migrations.txt pipeline_automigrate.txt
+                        diff -U 10 pipeline_migrations.txt pipeline_automigrate.txt || exit 0
 
             -
                 save_cache:

@@ -139,7 +139,6 @@ func TestIntegratedServiceManager_GetOutput(t *testing.T) {
 			assert.Equal(t, tc.output, output)
 		})
 	}
-
 }
 
 func TestIntegratedServiceManager_ValidateSpec(t *testing.T) {

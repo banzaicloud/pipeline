@@ -24,6 +24,7 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
+	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -31,10 +32,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	"github.com/banzaicloud/pipeline/internal/secret/types"
 	clusterTypes "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/src/api"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/secret/verify"
 )
 
 func init() {
@@ -44,72 +44,44 @@ func init() {
 
 	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
 	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, common.NoopLogger{})
-	secret.InitSecretStore(secretStore, pkeSecreter)
+	secretTypes := types.NewDefaultTypeList(types.DefaultTypeListConfig{
+		TLSDefaultValidity: 365 * 24 * time.Hour,
+		PkeSecreter:        pkeSecreter,
+	})
+	secret.InitSecretStore(secretStore, secretTypes)
 	restricted.InitSecretStore(secret.Store)
 }
 
-func TestIsValidSecretType(t *testing.T) {
-
-	cases := []struct {
-		name       string
-		secretType string
-		error      error
-	}{
-		{name: "Amazon secret type", secretType: clusterTypes.Amazon, error: nil},
-		{name: "Azure secret type", secretType: clusterTypes.Azure, error: nil},
-		{name: "Google secret type", secretType: clusterTypes.Google, error: nil},
-		{name: "Oracle secret type", secretType: clusterTypes.Oracle, error: nil},
-		{name: "not supported secret type", secretType: invalidSecretType, error: api.ErrNotSupportedSecretType},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := api.IsValidSecretType(tc.secretType)
-			if !reflect.DeepEqual(tc.error, err) {
-				t.Errorf("Expected error: %s, but got: %s", tc.error.Error(), err.Error())
-			}
-		})
-	}
-
-}
-
 func TestAddSecret(t *testing.T) {
-
 	cases := []struct {
-		name     string
-		request  secret.CreateSecretRequest
-		isError  bool
-		verifier verify.Verifier
+		name    string
+		request secret.CreateSecretRequest
+		isError bool
 	}{
-		{name: "add aws secret", request: awsCreateSecretRequest, isError: false, verifier: nil},
-		{name: "add aks secret", request: aksCreateSecretRequest, isError: false, verifier: nil},
-		{name: "add gke secret", request: gkeCreateSecretRequest, isError: false, verifier: nil},
-		{name: "add oci secret", request: OCICreateSecretRequest, isError: false, verifier: nil},
+		{name: "add aws secret", request: awsCreateSecretRequest, isError: false},
+		{name: "add aks secret", request: aksCreateSecretRequest, isError: false},
+		{name: "add gke secret", request: gkeCreateSecretRequest, isError: false},
+		{name: "add oci secret", request: OCICreateSecretRequest, isError: false},
 
-		{name: "add aws secret (missing key(s))", request: awsMissingKey, isError: true, verifier: nil},
-		{name: "add aks secret (missing key(s))", request: aksMissingKey, isError: true, verifier: nil},
-		{name: "add gke secret (missing key(s))", request: gkeMissingKey, isError: true, verifier: nil},
-		{name: "add oci secret (missing key(s))", request: OCIMissingKey, isError: true, verifier: nil},
+		{name: "add aws secret (missing key(s))", request: awsMissingKey, isError: true},
+		{name: "add aks secret (missing key(s))", request: aksMissingKey, isError: true},
+		{name: "add gke secret (missing key(s))", request: gkeMissingKey, isError: true},
+		{name: "add oci secret (missing key(s))", request: OCIMissingKey, isError: true},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if err := tc.request.Validate(tc.verifier); err != nil {
-				if !tc.isError {
-					t.Errorf("Error during validate request: %s", err.Error())
-				}
+			_, err := secret.Store.Store(orgId, &tc.request)
+			if tc.isError {
+				require.Error(t, err)
 			} else {
-				// valid request
-				if _, err := secret.Store.Store(orgId, &tc.request); err != nil {
-					t.Errorf("Error during save secret: %s", err.Error())
-				}
+				require.NoError(t, err)
 			}
 		})
 	}
 }
 
 func TestListSecrets(t *testing.T) {
-
 	_, _ = secret.Store.Store(orgId, &awsCreateSecretRequest)
 	_, _ = secret.Store.Store(orgId, &aksCreateSecretRequest)
 	_, _ = secret.Store.Store(orgId, &gkeCreateSecretRequest)
@@ -131,30 +103,24 @@ func TestListSecrets(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if err := api.IsValidSecretType(tc.secretType); err != nil {
-				t.Errorf("Error during validate secret type: %s", err)
+			if items, err := secret.Store.List(orgId, &secret.ListSecretsQuery{Type: tc.secretType, Tags: tc.tag}); err != nil {
+				t.Errorf("Error during listing secrets")
 			} else {
-				if items, err := secret.Store.List(orgId, &secret.ListSecretsQuery{Type: tc.secretType, Tags: tc.tag}); err != nil {
-					t.Errorf("Error during listing secrets")
-				} else {
-					// Clear CreatedAt times, we don't know them
-					for i := range items {
-						items[i].UpdatedAt = time.Time{}
-					}
-					sort.Sort(sortableSecretItemResponses(tc.expectedValues))
-					sort.Sort(sortableSecretItemResponses(items))
-					if !reflect.DeepEqual(tc.expectedValues, items) {
-						t.Errorf("\nExpected values: %#+v\nbut got: %#+v", tc.expectedValues, items)
-					}
+				// Clear CreatedAt times, we don't know them
+				for i := range items {
+					items[i].UpdatedAt = time.Time{}
+				}
+				sort.Sort(sortableSecretItemResponses(tc.expectedValues))
+				sort.Sort(sortableSecretItemResponses(items))
+				if !reflect.DeepEqual(tc.expectedValues, items) {
+					t.Errorf("\nExpected values: %#+v\nbut got: %#+v", tc.expectedValues, items)
 				}
 			}
 		})
 	}
-
 }
 
 func TestDeleteSecrets(t *testing.T) {
-
 	cases := []struct {
 		name     string
 		secretId string
@@ -206,10 +172,6 @@ var (
 
 const (
 	orgId = 12345
-)
-
-const (
-	invalidSecretType = "SOMETHING_ELSE"
 )
 
 // AWS test constants

@@ -22,10 +22,9 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
-	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
+	eks2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 	"github.com/banzaicloud/pipeline/pkg/providers"
-	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // DistributionNodePoolProcessor processes a node pool request according to its own distribution.
@@ -48,17 +47,17 @@ func (v DistributionNodePoolProcessor) ProcessNew(
 ) (cluster.NewRawNodePool, error) {
 	switch {
 	case c.Cloud == providers.Amazon && c.Distribution == "eks":
-		var nodePool distribution.NewEKSNodePool
+		var nodePool eks2.NewNodePool
 
 		err := mapstructure.Decode(rawNodePool, &nodePool)
 		if err != nil {
 			return rawNodePool, errors.Wrap(err, "failed to decode node pool")
 		}
 
-		var eksCluster model.EKSClusterModel
+		var eksCluster amazonadapter.EKSClusterModel
 
 		err = v.db.
-			Where(model.EKSClusterModel{ClusterID: c.ID}).
+			Where(amazonadapter.EKSClusterModel{ClusterID: c.ID}).
 			Preload("Subnets").
 			First(&eksCluster).Error
 		if gorm.IsRecordNotFoundError(err) {
@@ -77,7 +76,7 @@ func (v DistributionNodePoolProcessor) ProcessNew(
 
 		// Default node pool image
 		if nodePool.Image == "" {
-			image, err := eks.GetDefaultImageID(c.Location, eksCluster.Version)
+			image, err := eks2.GetDefaultImageID(c.Location, eksCluster.Version)
 			if err != nil {
 				return rawNodePool, err
 			}

@@ -29,18 +29,16 @@ DEX_VERSION = 2.19.0
 # TODO: use an exact version
 ANCHORE_VERSION = 156836d
 
-GOLANGCI_VERSION = 1.21.0
-JQ_VERSION = 1.5
+GOLANGCI_VERSION = 1.23.6
 LICENSEI_VERSION = 0.2.0
-OPENAPI_GENERATOR_VERSION = v4.1.3
-MIGRATE_VERSION = 4.0.2
-GOTESTSUM_VERSION = 0.4.0
-GOBIN_VERSION = 0.0.13
-PROTOTOOL_VERSION = 1.8.0
-PROTOC_GEN_GO_VERSION = 1.3.2
-MGA_VERSION = 0.1.2
+OPENAPI_GENERATOR_VERSION = v4.2.3
+PROTOC_VERSION = 3.11.4
+BUF_VERSION = 0.7.0
+MIGRATE_VERSION = 4.9.1
+GOTESTSUM_VERSION = 0.4.1
+MGA_VERSION = 0.2.0
 
-GOLANG_VERSION = 1.13
+GOLANG_VERSION = 1.14
 
 .PHONY: up
 up: etc/config/dex.yml config/ui/feature-set.json start config/config.yaml ## Set up the development environment
@@ -209,12 +207,6 @@ bin/migrate-${MIGRATE_VERSION}:
 	curl -L https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.${OS}-amd64.tar.gz | tar xvz -C bin
 	@mv bin/migrate.${OS}-amd64 $@
 
-bin/gobin: bin/gobin-${GOBIN_VERSION}
-	@ln -sf gobin-${GOBIN_VERSION} bin/gobin
-bin/gobin-${GOBIN_VERSION}:
-	@mkdir -p bin
-	curl -L https://github.com/myitcv/gobin/releases/download/v${GOBIN_VERSION}/${OS}-amd64 > ./bin/gobin-${GOBIN_VERSION} && chmod +x ./bin/gobin-${GOBIN_VERSION}
-
 bin/mga: bin/mga-${MGA_VERSION}
 	@ln -sf mga-${MGA_VERSION} bin/mga
 bin/mga-${MGA_VERSION}:
@@ -228,6 +220,7 @@ generate: bin/mga ## Generate code
 	bin/mga gen kit endpoint ./...
 	bin/mga gen ev dispatcher ./...
 	bin/mga gen ev handler ./...
+	bin/mga gen testify mock ./...
 
 .PHONY: validate-openapi
 validate-openapi: ## Validate the openapi description
@@ -243,7 +236,7 @@ generate-openapi: validate-openapi ## Generate go server based on openapi descri
 	-g go-server \
 	-o /local/.gen/pipeline
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) .gen/pipeline/; fi
-	rm .gen/pipeline/Dockerfile .gen/pipeline/README.md .gen/pipeline/main.go .gen/pipeline/go/api_* .gen/pipeline/go/logger.go .gen/pipeline/go/routers.go
+	rm .gen/pipeline/{Dockerfile,go.*,README.md,main.go,go/api*.go,go/logger.go,go/routers.go}
 	mv .gen/pipeline/go .gen/pipeline/pipeline
 
 define generate_openapi_client
@@ -255,7 +248,7 @@ define generate_openapi_client
 	-g go \
 	-o /local/${3}
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) ${3}; fi
-	rm ${3}/{.travis.yml,git_push.sh,go.*}
+	rm -rf ${3}/{.travis.yml,git_push.sh,go.*,docs}
 endef
 
 apis/cloudinfo/openapi.yaml:
@@ -273,19 +266,6 @@ apis/anchore/swagger.yaml:
 generate-anchore-client: apis/anchore/swagger.yaml ## Generate client from Anchore OpenAPI spec
 	$(call generate_openapi_client,apis/anchore/swagger.yaml,anchore,.gen/anchore)
 
-bin/protoc-gen-go: bin/protoc-gen-go-${PROTOC_GEN_GO_VERSION}
-	@ln -sf protoc-gen-go-${PROTOC_GEN_GO_VERSION} bin/protoc-gen-go
-bin/protoc-gen-go-${PROTOC_GEN_GO_VERSION}: bin/gobin
-	@mkdir -p bin
-	GOBIN=bin/ bin/gobin github.com/golang/protobuf/protoc-gen-go@v${PROTOC_GEN_GO_VERSION}
-	@mv bin/protoc-gen-go bin/protoc-gen-go-${PROTOC_GEN_GO_VERSION}
-
-bin/prototool: bin/prototool-${PROTOTOOL_VERSION}
-	@ln -sf prototool-${PROTOTOOL_VERSION} bin/prototool
-bin/prototool-${PROTOTOOL_VERSION}:
-	@mkdir -p bin
-	curl -L https://github.com/uber/prototool/releases/download/v${PROTOTOOL_VERSION}/prototool-${OS}-x86_64 > ./bin/prototool-${PROTOTOOL_VERSION} && chmod +x ./bin/prototool-${PROTOTOOL_VERSION}
-
 apis/dex/api.proto:
 	@mkdir -p apis/dex
 	curl https://raw.githubusercontent.com/dexidp/dex/v${DEX_VERSION}/api/api.proto > apis/dex/api.proto
@@ -293,15 +273,38 @@ apis/dex/api.proto:
 .PHONY: _download-protos
 _download-protos: apis/dex/api.proto
 
-.PHONY: validate-proto
-validate-proto: bin/prototool bin/protoc-gen-go _download-protos ## Validate protobuf definition
-	bin/prototool $(if ${VERBOSE},--debug ,)compile
-	bin/prototool $(if ${VERBOSE},--debug ,)lint
-	bin/prototool $(if ${VERBOSE},--debug ,)break check
+bin/protoc: bin/protoc-${PROTOC_VERSION}
+	@ln -sf protoc-${PROTOC_VERSION}/bin/protoc bin/protoc
+bin/protoc-${PROTOC_VERSION}:
+	@mkdir -p bin/protoc-${PROTOC_VERSION}
+ifeq (${OS}, darwin)
+	curl -L https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-osx-x86_64.zip > bin/protoc.zip
+endif
+ifeq (${OS}, linux)
+	curl -L https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip > bin/protoc.zip
+endif
+	unzip bin/protoc.zip -d bin/protoc-${PROTOC_VERSION}
+	rm bin/protoc.zip
+
+bin/protoc-gen-go: go.mod
+	@mkdir -p bin
+	go build -o bin/protoc-gen-go github.com/golang/protobuf/protoc-gen-go
+
+bin/buf: bin/buf-${BUF_VERSION}
+	@ln -sf buf-${BUF_VERSION} bin/buf
+bin/buf-${BUF_VERSION}:
+	@mkdir -p bin
+	curl -L https://github.com/bufbuild/buf/releases/download/v${BUF_VERSION}/buf-${OS}-x86_64 -o ./bin/buf-${BUF_VERSION} && chmod +x ./bin/buf-${BUF_VERSION}
+
+.PHONY: buf
+buf: bin/buf _download-protos ## Generate client and server stubs from the protobuf definition
+	bin/buf image build -o /dev/null
+	bin/buf check lint
 
 .PHONY: proto
-proto: bin/prototool bin/protoc-gen-go _download-protos ## Generate client and server stubs from the protobuf definition
-	bin/prototool $(if ${VERBOSE},--debug ,)all
+# proto: buf
+proto: bin/protoc bin/protoc-gen-go ## Generate client and server stubs from the protobuf definition
+	bin/protoc -I bin/protoc-${PROTOC_VERSION} -I apis/dex --go_out=plugins=grpc,import_path=dex:.gen/dex $(shell find apis/dex -name '*.proto')
 
 snapshot:
 	@test -n "${SNAPSHOT_VERSION}" || (echo "Missing snapshot version" && exit 1)

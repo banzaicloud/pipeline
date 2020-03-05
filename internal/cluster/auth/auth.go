@@ -124,7 +124,6 @@ func NewDexClusterAuthService(secretStore *clustersecret.Store) (ClusterAuthServ
 }
 
 func (a *dexClusterAuthService) RegisterCluster(ctx context.Context, clusterName string, clusterID uint, clusterUID string) error {
-
 	clientID := clusterUID
 	clientSecret, _ := secret.RandomString("randAlphaNum", 32)
 	cliRedirectURI := "http://localhost:5555/callback"
@@ -166,7 +165,6 @@ func (a *dexClusterAuthService) RegisterCluster(ctx context.Context, clusterName
 }
 
 func (a *dexClusterAuthService) UnRegisterCluster(ctx context.Context, clusterUID string) error {
-
 	clientID := clusterUID
 
 	req := &dex.DeleteClientReq{
@@ -181,7 +179,6 @@ func (a *dexClusterAuthService) UnRegisterCluster(ctx context.Context, clusterUI
 }
 
 func (a *dexClusterAuthService) GetClusterClientSecret(ctx context.Context, clusterID uint) (ClusterClientSecret, error) {
-
 	secret, err := a.secretStore.GetSecret(ctx, clusterID, authSecretName)
 
 	if err != nil {
@@ -195,7 +192,6 @@ func (a *dexClusterAuthService) GetClusterClientSecret(ctx context.Context, clus
 }
 
 func (a *dexClusterAuthService) GetClusterConfig(ctx context.Context, clusterID uint) (*k8sClientApi.Config, error) {
-
 	secret, err := a.secretStore.GetSecret(ctx, clusterID, configSecretName)
 	if err != nil {
 		return nil, errors.WrapIff(err, "failed to get dex client for cluster: %d", clusterID)

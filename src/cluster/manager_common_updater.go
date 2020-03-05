@@ -150,7 +150,6 @@ func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
 }
 
 func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgCluster.UpdateClusterRequest) ([]NodePoolLabels, error) {
-
 	// we need to retrieve existing node pools, as update request doesn't necessary contains instanceType, spot price etc.
 	clStatus, err := commonCluster.GetStatus()
 	if err != nil {
@@ -255,9 +254,7 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgClus
 			}
 		}
 
-	case pkgCluster.Dummy:
 	case pkgCluster.Kubernetes:
-
 	}
 
 	return nodePools, nil
@@ -321,7 +318,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 // It's used only used in case of ACK etc. when we're not able to add labels via API.
 func labelNodesWithNodePoolName(commonCluster CommonCluster) error {
 	switch commonCluster.GetDistribution() {
-	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE, pkgCluster.PKE:
+	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE, pkgCluster.PKE, pkgCluster.AKS:
 		log.Infof("nodes are already labelled on : %v", commonCluster.GetDistribution())
 		return nil
 	}

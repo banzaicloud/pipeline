@@ -19,7 +19,7 @@ import (
 
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	"github.com/banzaicloud/pipeline/internal/secret"
 )
 
 // TypeDefinition represents a secret type definition.
@@ -30,13 +30,13 @@ type TypeDefinition struct {
 // TypeField represents the fields in a secret.
 type TypeField struct {
 	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
 	Required    bool   `json:"required"`
 	Opaque      bool   `json:"opaque,omitempty"`
-	Description string `json:"description,omitempty"`
 }
 
-//go:generate mga gen mockery --name Service --inpkg
 // +kit:endpoint:errorStrategy=service
+// +testify:mock
 
 // Service provides information about secret types.
 type Service interface {
@@ -47,40 +47,43 @@ type Service interface {
 	GetSecretType(ctx context.Context, secretType string) (secretTypeDef TypeDefinition, err error)
 }
 
+type publicSecretType interface {
+	Public() bool
+}
+
 // NewService returns a new Service.
-func NewService() Service {
-	return service{types: types}
+func NewService(typeList secret.TypeList) Service {
+	types := typeList.Types()
+	typeDefs := make(map[string]TypeDefinition, len(types))
+
+	for _, st := range types {
+		if pst, ok := st.(publicSecretType); ok && !pst.Public() {
+			continue
+		}
+
+		var typeDef TypeDefinition
+		for _, field := range st.Definition().Fields {
+			typeDef.Fields = append(typeDef.Fields, TypeField(field))
+		}
+
+		typeDefs[st.Name()] = typeDef
+	}
+
+	return service{types: typeDefs}
 }
 
 type service struct {
 	types map[string]TypeDefinition
 }
 
-// nolint: gochecknoglobals
-var types map[string]TypeDefinition
-
-// Load type definitions of the secrettype package.
-func init() {
-	types = make(map[string]TypeDefinition, len(secrettype.DefaultRules))
-
-	for key, st := range secrettype.DefaultRules {
-		var typeDef TypeDefinition
-		for _, field := range st.Fields {
-			typeDef.Fields = append(typeDef.Fields, TypeField(field))
-		}
-
-		types[key] = typeDef
-	}
-}
-
-func (t service) ListSecretTypes(ctx context.Context) (map[string]TypeDefinition, error) {
+func (t service) ListSecretTypes(_ context.Context) (map[string]TypeDefinition, error) {
 	return t.types, nil
 }
 
 // ErrNotSupportedSecretType describe an error if the secret type is not supported.
 var ErrNotSupportedSecretType = errors.Sentinel("not supported secret type")
 
-func (t service) GetSecretType(ctx context.Context, secretType string) (TypeDefinition, error) {
+func (t service) GetSecretType(_ context.Context, secretType string) (TypeDefinition, error) {
 	typeDef, ok := t.types[secretType]
 	if !ok {
 		return TypeDefinition{}, errors.WithStack(ErrNotSupportedSecretType)

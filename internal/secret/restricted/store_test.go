@@ -27,7 +27,6 @@ const (
 )
 
 func TestBlockingTags(t *testing.T) {
-
 	cases := []struct {
 		name    string
 		request *secret.CreateSecretRequest
@@ -72,7 +71,6 @@ func TestBlockingTags(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 // nolint: gochecknoglobals
@@ -102,6 +100,10 @@ var (
 
 type inMemorySecretStore struct {
 	secrets map[uint]map[string]secret.CreateSecretRequest
+}
+
+func (ss inMemorySecretStore) Verify(organizationID uint, secretID string) error {
+	panic("implement me")
 }
 
 func (ss inMemorySecretStore) Delete(orgID uint, secretID string) error {

@@ -170,7 +170,6 @@ func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(tc.nodePools, nodePools) {
-
 				t.Error("Expected node pools:\n")
 				for _, np := range tc.nodePools {
 					data, _ := json.Marshal(*np)
@@ -223,13 +222,11 @@ func TestCreateRequestNodePoolsFromNodePoolModel(t *testing.T) {
 			if !reflect.DeepEqual(tc.nodePoolsRequestData, requestNodePools) {
 				t.Errorf("Expected node pools request data: %v, got: %v", tc.nodePoolsRequestData, requestNodePools)
 			}
-
 		})
 	}
 }
 
 func TestUpdateVersions(t *testing.T) {
-
 	cases := []struct {
 		name   string
 		input  []string
@@ -247,7 +244,6 @@ func TestUpdateVersions(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 // nolint: gochecknoglobals

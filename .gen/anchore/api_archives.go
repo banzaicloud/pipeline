@@ -16,7 +16,6 @@ import (
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
 	"github.com/antihax/optional"
 )
@@ -47,7 +46,6 @@ func (a *ArchivesApiService) ArchiveImageAnalysis(ctx _context.Context, imageRef
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/archives/images"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -110,7 +108,6 @@ func (a *ArchivesApiService) ArchiveImageAnalysis(ctx _context.Context, imageRef
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -145,7 +142,6 @@ func (a *ArchivesApiService) CreateAnalysisArchiveRule(ctx _context.Context, rul
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/archives/rules"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -208,7 +204,6 @@ func (a *ArchivesApiService) CreateAnalysisArchiveRule(ctx _context.Context, rul
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -243,7 +238,7 @@ func (a *ArchivesApiService) DeleteAnalysisArchiveRule(ctx _context.Context, rul
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/archives/rules/{ruleId}"
-	localVarPath = strings.Replace(localVarPath, "{"+"ruleId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", ruleId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"ruleId"+"}", _neturl.QueryEscape(parameterToString(ruleId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -305,7 +300,6 @@ func (a *ArchivesApiService) DeleteAnalysisArchiveRule(ctx _context.Context, rul
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -348,7 +342,7 @@ func (a *ArchivesApiService) DeleteArchivedAnalysis(ctx _context.Context, imageD
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/archives/images/{imageDigest}"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageDigest)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(parameterToString(imageDigest, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -413,7 +407,6 @@ func (a *ArchivesApiService) DeleteArchivedAnalysis(ctx _context.Context, imageD
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -448,7 +441,7 @@ func (a *ArchivesApiService) GetAnalysisArchiveRule(ctx _context.Context, ruleId
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/archives/rules/{ruleId}"
-	localVarPath = strings.Replace(localVarPath, "{"+"ruleId"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", ruleId)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"ruleId"+"}", _neturl.QueryEscape(parameterToString(ruleId, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -510,7 +503,6 @@ func (a *ArchivesApiService) GetAnalysisArchiveRule(ctx _context.Context, ruleId
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -546,7 +538,7 @@ func (a *ArchivesApiService) GetArchivedAnalysis(ctx _context.Context, imageDige
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/archives/images/{imageDigest}"
-	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", imageDigest)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"imageDigest"+"}", _neturl.QueryEscape(parameterToString(imageDigest, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -608,7 +600,6 @@ func (a *ArchivesApiService) GetArchivedAnalysis(ctx _context.Context, imageDige
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -642,7 +633,6 @@ func (a *ArchivesApiService) ListAnalysisArchive(ctx _context.Context) ([]Archiv
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/archives/images"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -703,7 +693,6 @@ func (a *ArchivesApiService) ListAnalysisArchive(ctx _context.Context) ([]Archiv
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -744,7 +733,6 @@ func (a *ArchivesApiService) ListAnalysisArchiveRules(ctx _context.Context, loca
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/archives/rules"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -808,7 +796,6 @@ func (a *ArchivesApiService) ListAnalysisArchiveRules(ctx _context.Context, loca
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -842,7 +829,6 @@ func (a *ArchivesApiService) ListArchives(ctx _context.Context) (ArchiveSummary,
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/archives"
-
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -903,7 +889,6 @@ func (a *ArchivesApiService) ListArchives(ctx _context.Context) (ArchiveSummary,
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

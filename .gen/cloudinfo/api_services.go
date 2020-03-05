@@ -16,7 +16,6 @@ import (
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
 )
 
@@ -47,7 +46,7 @@ func (a *ServicesApiService) GetServices(ctx _context.Context, provider string) 
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/providers/{provider}/services"
-	localVarPath = strings.Replace(localVarPath, "{"+"provider"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", provider)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"provider"+"}", _neturl.QueryEscape(parameterToString(provider, "")) , -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -99,7 +98,6 @@ func (a *ServicesApiService) GetServices(ctx _context.Context, provider string) 
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
