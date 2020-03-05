@@ -50,6 +50,10 @@ func TestNodePoolValidators_Validate(t *testing.T) {
 		[]string{"invalid something", "invalid node pool something"},
 		verr.Violations(),
 	)
+
+	validator1.AssertExpectations(t)
+	validator2.AssertExpectations(t)
+	validator3.AssertExpectations(t)
 }
 
 func TestNewCommonNodePoolValidator_ValidateNew(t *testing.T) {
@@ -73,6 +77,8 @@ func TestNewCommonNodePoolValidator_ValidateNew(t *testing.T) {
 
 		err := validator.ValidateNew(context.Background(), Cluster{}, nodePool)
 		require.NoError(t, err)
+
+		labelValidator.AssertExpectations(t)
 	})
 
 	t.Run("Invalid", func(t *testing.T) {
@@ -104,6 +110,8 @@ func TestNewCommonNodePoolValidator_ValidateNew(t *testing.T) {
 			[]string{"name must be a non-empty string", "invalid key", "invalid value"},
 			verr.Violations(),
 		)
+
+		labelValidator.AssertExpectations(t)
 	})
 
 	t.Run("InvalidSingleLabelError", func(t *testing.T) {
@@ -135,6 +143,8 @@ func TestNewCommonNodePoolValidator_ValidateNew(t *testing.T) {
 			[]string{"name must be a non-empty string", "invalid key", "invalid value"},
 			verr.Violations(),
 		)
+
+		labelValidator.AssertExpectations(t)
 	})
 }
 
@@ -156,6 +166,8 @@ func TestNewDistributionNodePoolValidator_ValidateNew(t *testing.T) {
 
 		err := validator.ValidateNew(ctx, cluster, nodePool)
 		require.NoError(t, err)
+
+		distValidator.AssertExpectations(t)
 	})
 
 	t.Run("Invalid", func(t *testing.T) {
@@ -179,6 +191,8 @@ func TestNewDistributionNodePoolValidator_ValidateNew(t *testing.T) {
 		require.Error(t, err)
 
 		assert.Same(t, distErr, err)
+
+		distValidator.AssertExpectations(t)
 	})
 
 	t.Run("UnsupportedDistribution", func(t *testing.T) {
