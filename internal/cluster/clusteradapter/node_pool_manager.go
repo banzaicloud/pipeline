@@ -25,13 +25,13 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 )
 
-// nodePoolManager manages node pool asynchronously via Cadence workflows.
 type nodePoolManager struct {
 	workflowClient client.Client
 	getUserID      func(ctx context.Context) uint
 }
 
-// NewNodePoolManager returns a new nodePoolManager.
+// NewNodePoolManager returns a new cluster.NodePoolManager
+// that manages node pools asynchronously via Cadence workflows.
 func NewNodePoolManager(workflowClient client.Client, getUserID func(ctx context.Context) uint) cluster.NodePoolManager {
 	return nodePoolManager{
 		workflowClient: workflowClient,
