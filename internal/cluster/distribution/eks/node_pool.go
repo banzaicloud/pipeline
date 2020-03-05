@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package distribution
+package eks
 
 import (
 	"context"
@@ -20,8 +20,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
-// NewEKSNodePool describes Amazon node groups model of a cluster
-type NewEKSNodePool struct {
+// NewNodePool describes new a Kubernetes node pool in an Amazon EKS cluster.
+type NewNodePool struct {
 	Name        string            `mapstructure:"name"`
 	Labels      map[string]string `mapstructure:"labels"`
 	Size        int               `mapstructure:"size"`
@@ -40,7 +40,10 @@ type NewEKSNodePool struct {
 	} `mapstructure:"subnet"`
 }
 
-func (n NewEKSNodePool) Validate() error {
+// Validate semantically validates the new node pool.
+//
+// Some cluster specific compatibility information (eg. subnet settings) should be validated by an external validator.
+func (n NewNodePool) Validate() error {
 	var violations []string
 
 	if n.Autoscaling.Enabled {
@@ -66,8 +69,8 @@ func (n NewEKSNodePool) Validate() error {
 	return nil
 }
 
-// NodePoolStore provides an interface to EKS node pool persistence.
-type EKSNodePoolStore interface {
+// NodePoolStore provides an interface for EKS node pool persistence.
+type NodePoolStore interface {
 	// CreateNodePool saves a new node pool.
-	CreateNodePool(ctx context.Context, clusterID uint, createdBy uint, nodePool NewEKSNodePool) error
+	CreateNodePool(ctx context.Context, clusterID uint, createdBy uint, nodePool NewNodePool) error
 }

@@ -31,6 +31,7 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
+	eks2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -528,7 +529,7 @@ func (c *EKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 
 // AddDefaultsToUpdate adds defaults to update request
 func (c *EKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
-	defaultImage, _ := pkgEks.GetDefaultImageID(c.model.Cluster.Location, c.model.Version)
+	defaultImage, _ := eks2.GetDefaultImageID(c.model.Cluster.Location, c.model.Version)
 
 	// add default node image(s) if needed
 	if r != nil && r.EKS != nil && r.EKS.NodePools != nil {
