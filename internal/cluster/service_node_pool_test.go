@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/pkg/cloud"
 )
 
 func TestNewRawNodePool(t *testing.T) {
@@ -213,7 +213,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 			Name:          "cluster",
 			Status:        Running,
 			StatusMessage: RunningMessage,
-			Cloud:         providers.Amazon,
+			Cloud:         cloud.Amazon,
 			Distribution:  "eks",
 		}
 		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
@@ -260,7 +260,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 			Name:          "cluster",
 			Status:        Running,
 			StatusMessage: RunningMessage,
-			Cloud:         providers.Amazon,
+			Cloud:         cloud.Amazon,
 			Distribution:  "eks",
 		}
 		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
@@ -306,7 +306,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 			Name:          "cluster",
 			Status:        Running,
 			StatusMessage: RunningMessage,
-			Cloud:         providers.Amazon,
+			Cloud:         cloud.Amazon,
 			Distribution:  "eks",
 		}
 		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
@@ -422,7 +422,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 			Name:          "cluster",
 			Status:        Running,
 			StatusMessage: RunningMessage,
-			Cloud:         providers.Amazon,
+			Cloud:         cloud.Amazon,
 			Distribution:  "eks",
 		}
 		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
@@ -462,7 +462,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 			Name:          "cluster",
 			Status:        Running,
 			StatusMessage: RunningMessage,
-			Cloud:         providers.Amazon,
+			Cloud:         cloud.Amazon,
 			Distribution:  "eks",
 		}
 		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)

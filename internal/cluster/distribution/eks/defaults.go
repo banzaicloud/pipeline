@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import (
 	"github.com/Masterminds/semver/v3"
 )
 
-// ### [ Constants to EKS cluster default values ] ### //
 const (
 	DefaultSpotPrice = "0.0" // 0 spot price stands for on-demand instances
 )
@@ -30,14 +29,15 @@ const (
 func constraintForVersion(v string) *semver.Constraints {
 	cs, err := semver.NewConstraint(fmt.Sprintf("~%s", v))
 	if err != nil {
-		emperror.Panic(errors.WrapIf(err, fmt.Sprintf("could not create semver constraint for Kubernetes version %s.x", v)))
+		emperror.Panic(errors.WrapIff(err, "could not create semver constraint for Kubernetes version %s.x", v))
 	}
+
 	return cs
 }
 
 // AMIs taken form https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
 // nolint: gochecknoglobals
-var mappings = []struct {
+var defaultImageMap = []struct {
 	constraint *semver.Constraints
 	images     map[string]string
 }{
@@ -139,22 +139,26 @@ var mappings = []struct {
 	},
 }
 
-// GetDefaultImageID returns the EKS optimized AMI for given Kubernetes version and region
-func GetDefaultImageID(region, kubernetesVersion string) (string, error) {
+// GetDefaultImageID returns the EKS optimized AMI for given Kubernetes version and region.
+func GetDefaultImageID(region string, kubernetesVersion string) (string, error) {
 	kubeVersion, err := semver.NewVersion(kubernetesVersion)
 	if err != nil {
 		return "", errors.WrapIfWithDetails(err, "could not create semver from Kubernetes version", "kubernetesVersion", kubernetesVersion)
 	}
 
-	for _, m := range mappings {
+	for _, m := range defaultImageMap {
 		if m.constraint.Check(kubeVersion) {
 			if ami, ok := m.images[region]; ok {
 				return ami, nil
 			}
 
-			return "", errors.Errorf("no EKS AMI found for Kubernetes version %q in region %q", kubeVersion, region)
+			return "", errors.NewWithDetails(
+				"no EKS AMI found for Kubernetes version",
+				"kubernetesVersion", kubeVersion.String(),
+				"region", region,
+			)
 		}
 	}
 
-	return "", fmt.Errorf("unsupported Kubernetes version %q", kubeVersion)
+	return "", errors.Errorf("unsupported Kubernetes version %q", kubeVersion)
 }

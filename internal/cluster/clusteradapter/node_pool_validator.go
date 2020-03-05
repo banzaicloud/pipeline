@@ -22,7 +22,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )
@@ -47,7 +47,7 @@ func (v DistributionNodePoolValidator) ValidateNew(
 ) error {
 	switch {
 	case c.Cloud == providers.Amazon && c.Distribution == "eks":
-		var nodePool distribution.NewEKSNodePool
+		var nodePool eks.NewNodePool
 
 		err := mapstructure.Decode(rawNodePool, &nodePool)
 		if err != nil {
