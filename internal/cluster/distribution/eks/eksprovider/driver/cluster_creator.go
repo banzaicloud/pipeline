@@ -39,7 +39,7 @@ import (
 
 	"go.uber.org/cadence/client"
 
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"

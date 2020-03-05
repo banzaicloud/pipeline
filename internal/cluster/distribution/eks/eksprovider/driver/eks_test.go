@@ -18,7 +18,7 @@ import (
 	"reflect"
 	"testing"
 
-	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
+	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 )
 

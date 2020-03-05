@@ -20,8 +20,8 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
+	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
-	eksWorkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 )
 
 const EKSDeleteClusterWorkflowName = "eks-delete-cluster"
