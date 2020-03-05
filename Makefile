@@ -306,9 +306,11 @@ buf: bin/buf _download-protos ## Generate client and server stubs from the proto
 proto: bin/protoc bin/protoc-gen-go ## Generate client and server stubs from the protobuf definition
 	bin/protoc -I bin/protoc-${PROTOC_VERSION} -I apis/dex --go_out=plugins=grpc,import_path=dex:.gen/dex $(shell find apis/dex -name '*.proto')
 
+snapshot: SNAPSHOT_REF ?= $(shell git symbolic-ref -q --short HEAD || git rev-parse HEAD)
 snapshot:
+	@git rev-parse --verify $(SNAPSHOT_REF) > /dev/null
 	@test -n "${SNAPSHOT_VERSION}" || (echo "Missing snapshot version" && exit 1)
-	curl -X POST -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" -H "Authorization: token ${GITHUB_TOKEN}" --data '{"event_type": "snapshot", "client_payload": {"version": "$(SNAPSHOT_VERSION)"}}' https://api.github.com/repos/banzaicloud/pipeline/dispatches
+	curl -X POST -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" -H "Authorization: token ${GITHUB_TOKEN}" --data '{"event_type": "snapshot", "client_payload": {"version": "$(SNAPSHOT_VERSION)", "ref": "$(SNAPSHOT_REF)"}}' https://api.github.com/repos/banzaicloud/pipeline/dispatches
 
 .PHONY: list
 list: ## List all make targets
