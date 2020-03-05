@@ -53,7 +53,7 @@ func TestNodePoolValidators_Validate(t *testing.T) {
 }
 
 func TestNewCommonNodePoolValidator_ValidateNew(t *testing.T) {
-	t.Run("valid", func(t *testing.T) {
+	t.Run("Valid", func(t *testing.T) {
 		const labelKey = "key"
 		const labelValue = "value"
 
@@ -75,7 +75,7 @@ func TestNewCommonNodePoolValidator_ValidateNew(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("invalid", func(t *testing.T) {
+	t.Run("Invalid", func(t *testing.T) {
 		const labelKey = "key"
 		const labelValue = "value"
 
@@ -106,7 +106,7 @@ func TestNewCommonNodePoolValidator_ValidateNew(t *testing.T) {
 		)
 	})
 
-	t.Run("invalid_single_label_error", func(t *testing.T) {
+	t.Run("InvalidSingleLabelError", func(t *testing.T) {
 		const labelKey = "key"
 		const labelValue = "value"
 
@@ -139,7 +139,7 @@ func TestNewCommonNodePoolValidator_ValidateNew(t *testing.T) {
 }
 
 func TestNewDistributionNodePoolValidator_ValidateNew(t *testing.T) {
-	t.Run("valid", func(t *testing.T) {
+	t.Run("Valid", func(t *testing.T) {
 		distValidator := new(MockNodePoolValidator)
 
 		ctx := context.Background()
@@ -158,7 +158,7 @@ func TestNewDistributionNodePoolValidator_ValidateNew(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("invalid", func(t *testing.T) {
+	t.Run("Invalid", func(t *testing.T) {
 		distValidator := new(MockNodePoolValidator)
 
 		ctx := context.Background()
@@ -181,7 +181,7 @@ func TestNewDistributionNodePoolValidator_ValidateNew(t *testing.T) {
 		assert.Same(t, distErr, err)
 	})
 
-	t.Run("unsupported_distribution", func(t *testing.T) {
+	t.Run("UnsupportedDistribution", func(t *testing.T) {
 		ctx := context.Background()
 		cluster := Cluster{
 			ID:           1,

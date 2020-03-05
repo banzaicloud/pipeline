@@ -24,7 +24,7 @@ import (
 )
 
 func TestNodePoolProcessors_ProcessNew(t *testing.T) {
-	t.Run("", func(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()
 		cluster := Cluster{}
 		nodePool := NewRawNodePool{
@@ -52,7 +52,7 @@ func TestNodePoolProcessors_ProcessNew(t *testing.T) {
 		assert.Equal(t, nodePool2, processedNodePool)
 	})
 
-	t.Run("error", func(t *testing.T) {
+	t.Run("Error", func(t *testing.T) {
 		ctx := context.Background()
 		cluster := Cluster{}
 		nodePool := NewRawNodePool{
