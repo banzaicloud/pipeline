@@ -23,8 +23,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -98,10 +98,10 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			)
 		}
 
-		var eksCluster amazonadapter.EKSClusterModel
+		var eksCluster eksmodel.EKSClusterModel
 
 		err = a.db.
-			Where(amazonadapter.EKSClusterModel{ClusterID: c.ID}).
+			Where(eksmodel.EKSClusterModel{ClusterID: c.ID}).
 			Preload("Subnets").
 			First(&eksCluster).Error
 		if gorm.IsRecordNotFoundError(err) {

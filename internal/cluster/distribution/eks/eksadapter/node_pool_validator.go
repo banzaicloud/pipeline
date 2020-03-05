@@ -23,7 +23,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 )
 
 type nodePoolValidator struct {
@@ -63,10 +63,10 @@ func (v nodePoolValidator) ValidateNew(
 		violations = err.Violations()
 	}
 
-	var eksCluster amazonadapter.EKSClusterModel
+	var eksCluster eksmodel.EKSClusterModel
 
 	err = v.db.
-		Where(amazonadapter.EKSClusterModel{ClusterID: c.ID}).
+		Where(eksmodel.EKSClusterModel{ClusterID: c.ID}).
 		Preload("Subnets").
 		First(&eksCluster).Error
 	if gorm.IsRecordNotFoundError(err) {
