@@ -19,8 +19,8 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/adapter"
-	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
+	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 

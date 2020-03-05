@@ -17,7 +17,7 @@ package adapter
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
