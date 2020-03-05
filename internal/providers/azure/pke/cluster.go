@@ -15,7 +15,7 @@
 package pke
 
 import (
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusterbase"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 )
 
@@ -91,7 +91,7 @@ func (a APIServerAccessPoints) Exists(name string) bool {
 
 // Cluster defines fields for PKE-on-Azure clusters
 type Cluster struct {
-	intCluster.ClusterBase
+	clusterbase.ClusterBase
 
 	Location         string
 	NodePools        []NodePool

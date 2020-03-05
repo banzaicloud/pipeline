@@ -21,7 +21,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/pkg/cloud"
 )
 
 // NodePool is a common interface for all distribution node pools.
@@ -255,7 +255,7 @@ func (s clusterService) checkCluster(cluster Cluster) error {
 
 func (s clusterService) nodePoolSupported(cluster Cluster) error {
 	switch {
-	case cluster.Cloud == providers.Amazon && cluster.Distribution == "eks":
+	case cluster.Cloud == cloud.Amazon && cluster.Distribution == "eks":
 		return nil
 	}
 
