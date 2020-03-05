@@ -26,19 +26,22 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 )
 
-// nodePoolValidator validates a node pool request according to its own distribution.
 type nodePoolValidator struct {
 	db *gorm.DB
 }
 
-// NewNodePoolValidator returns a new cluster.NodePoolValidator.
+// NewNodePoolValidator returns a new cluster.NodePoolValidator
+// that validates an EKS node pool request.
+//
+// Note: once persistence is properly separated from Gorm,
+// this should be moved to the EKS package,
+// since it contains business validation rules.
 func NewNodePoolValidator(db *gorm.DB) cluster.NodePoolValidator {
 	return nodePoolValidator{
 		db: db,
 	}
 }
 
-// ValidateNew validates a new node pool descriptor.
 func (v nodePoolValidator) ValidateNew(
 	_ context.Context,
 	c cluster.Cluster,

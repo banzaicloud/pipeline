@@ -39,20 +39,19 @@ func (p NodePoolProcessors) ProcessNew(
 	return rawNodePool, nil
 }
 
-// CommonNodePoolProcessor processes common node pool fields.
-type CommonNodePoolProcessor struct {
+type commonNodePoolProcessor struct {
 	labelSource NodePoolLabelSource
 }
 
-// NewCommonNodePoolProcessor returns a new CommonNodePoolProcessor.
-func NewCommonNodePoolProcessor(labelSource NodePoolLabelSource) CommonNodePoolProcessor {
-	return CommonNodePoolProcessor{
+// NewCommonNodePoolProcessor returns a new NodePoolProcessor
+// that processes common node pool fields.
+func NewCommonNodePoolProcessor(labelSource NodePoolLabelSource) NodePoolProcessor {
+	return commonNodePoolProcessor{
 		labelSource: labelSource,
 	}
 }
 
-// ProcessNew processes a new node pool descriptor.
-func (p CommonNodePoolProcessor) ProcessNew(
+func (p commonNodePoolProcessor) ProcessNew(
 	ctx context.Context,
 	c Cluster,
 	rawNodePool NewRawNodePool,

@@ -25,13 +25,13 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )
 
-// nodePoolStore provides an interface to node pool persistence.
 type nodePoolStore struct {
 	db       *gorm.DB
 	clusters cluster.Store
 }
 
-// NewNodePoolStore returns a new nodePoolStore.
+// NewNodePoolStore returns a new cluster.NodePoolStore
+// that persists node pools into the database using Gorm.
 func NewNodePoolStore(db *gorm.DB, clusters cluster.Store) cluster.NodePoolStore {
 	return nodePoolStore{
 		db:       db,
@@ -39,7 +39,6 @@ func NewNodePoolStore(db *gorm.DB, clusters cluster.Store) cluster.NodePoolStore
 	}
 }
 
-// NodePoolExists checks if a node pool exists.
 func (s nodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name string) (bool, error) {
 	c, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
@@ -85,7 +84,6 @@ func (s nodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name 
 	return true, nil
 }
 
-// DeleteNodePool deletes a node pool.
 func (s nodePoolStore) DeleteNodePool(ctx context.Context, clusterID uint, name string) error {
 	c, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
