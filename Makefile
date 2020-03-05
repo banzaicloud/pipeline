@@ -17,7 +17,7 @@ COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 LDFLAGS += -X main.version=${VERSION} -X main.commitHash=${COMMIT_HASH} -X main.buildDate=${BUILD_DATE}
 export CGO_ENABLED ?= 0
-ifeq (${VERBOSE}, 1)
+ifeq ($(VERBOSE), 1)
 ifeq ($(filter -v,${GOARGS}),)
 	GOARGS += -v
 endif
@@ -93,7 +93,7 @@ runall: run run-worker
 
 .PHONY: goversion
 goversion:
-ifneq (${IGNORE_GOLANG_VERSION_REQ}, 1)
+ifneq ($(IGNORE_GOLANG_VERSION_REQ), 1)
 	@printf "${GOLANG_VERSION}\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^${GOLANG_VERSION}$$" || (printf "Required Go version is ${GOLANG_VERSION}\nInstalled: `go version`" && exit 1)
 endif
 
@@ -103,7 +103,7 @@ build-%: goversion ## Build a binary
 
 .PHONY: build
 build: goversion ## Build all binaries
-ifeq (${VERBOSE}, 1)
+ifeq ($(VERBOSE), 1)
 	go env
 endif
 
@@ -277,10 +277,10 @@ bin/protoc: bin/protoc-${PROTOC_VERSION}
 	@ln -sf protoc-${PROTOC_VERSION}/bin/protoc bin/protoc
 bin/protoc-${PROTOC_VERSION}:
 	@mkdir -p bin/protoc-${PROTOC_VERSION}
-ifeq (${OS}, darwin)
+ifeq ($(OS), darwin)
 	curl -L https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-osx-x86_64.zip > bin/protoc.zip
 endif
-ifeq (${OS}, linux)
+ifeq ($(OS), linux)
 	curl -L https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip > bin/protoc.zip
 endif
 	unzip bin/protoc.zip -d bin/protoc-${PROTOC_VERSION}
