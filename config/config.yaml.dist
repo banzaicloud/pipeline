@@ -288,7 +288,7 @@ dex:
 #
 #            hpaOperator:
 #                chart: "banzaicloud-stable/hpa-operator"
-#                version: "0.0.16"
+#                version: "0.2.2"
 #
 #                # See https://github.com/banzaicloud/banzai-charts/tree/master/hpa-operator for details
 #                values: {}

@@ -255,15 +255,18 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 	}
 
 	promServiceName := config.Autoscale.HPA.Prometheus.ServiceName
+	prometheusPort := global.Config.Cluster.Autoscale.HPA.Prometheus.LocalPort
+
 	infraNamespace := config.Autoscale.Namespace
 	serviceContext := config.Autoscale.HPA.Prometheus.ServiceContext
 
 	values := map[string]interface{}{
 		"kube-metrics-adapter": map[string]interface{}{
-			"enabled": "true",
 			"prometheus": map[string]interface{}{
-				"url": fmt.Sprintf("http://%s.%s.svc/%s", promServiceName, infraNamespace, serviceContext),
+				"url": fmt.Sprintf("http://%s.%s.svc:%d/%s", promServiceName, infraNamespace, prometheusPort, serviceContext),
 			},
+			"enableExternalMetricsApi": true,
+			"enableCustomMetricsApi":   false,
 		},
 	}
 
@@ -272,9 +275,7 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 	case pkgCluster.Amazon, pkgCluster.Azure, pkgCluster.Alibaba, pkgCluster.Oracle:
 		if !metricsServerIsInstalled(cluster) {
 			log.Infof("Metrics Server is not installed, installing")
-			values = map[string]interface{}{
-				"metrics-server": map[string]interface{}{"enabled": true},
-			}
+			values["metrics-server"] = map[string]interface{}{"enabled": true}
 		} else {
 			log.Infof("Metrics Server is already installed")
 		}
