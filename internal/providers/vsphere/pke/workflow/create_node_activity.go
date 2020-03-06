@@ -243,7 +243,6 @@ func encodeGuestInfo(data string) (string, error) {
 }
 
 func generateCloudConfig(user, publicKey, script, hostname string) string {
-
 	data := map[string]interface{}{
 		"hostname":          hostname,
 		"fqdn":              hostname,

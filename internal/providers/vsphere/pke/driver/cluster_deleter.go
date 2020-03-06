@@ -205,7 +205,6 @@ func getVMNames(cluster pke.PKEOnVsphereCluster) ([]string, []string) {
 		} else {
 			vmNames = append(vmNames, names...)
 		}
-
 	}
 	return masterVmNames, vmNames
 }

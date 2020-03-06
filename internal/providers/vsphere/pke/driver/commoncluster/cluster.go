@@ -203,7 +203,7 @@ func (a *VspherePkeCluster) GetK8sConfig() ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "can't decode Kubernetes config")
 	}
-	return []byte(configStr), nil
+	return configStr, nil
 }
 
 func (a *VspherePkeCluster) GetK8sUserConfig() ([]byte, error) {

@@ -42,7 +42,6 @@ type nodeTemplateFactory struct {
 }
 
 func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
-
 	node := workflow.Node{
 		Name:                   pke.GetVMName(f.ClusterName, np.Name, number),
 		VCPU:                   np.VCPU,
@@ -59,7 +58,6 @@ func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
 	taints := ""
 
 	if np.hasRole(pkgPKE.RoleMaster) {
-
 		if f.SingleNodePool {
 			taints = "," // do not taint single node pool cluster's master node
 		} else {

@@ -19,11 +19,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -51,7 +53,7 @@ type nodePoolModel struct {
 type vspherePkeCluster struct {
 	gorm.Model
 
-	ClusterID uint                        `gorm:"unique_index:idx_vsphere_pke_cluster_id"`
+	ClusterID uint                      `gorm:"unique_index:idx_vsphere_pke_cluster_id"`
 	Cluster   clustermodel.ClusterModel `gorm:"foreignkey:ClusterID"`
 
 	ProviderData ProviderData `gorm:"type:json"`
