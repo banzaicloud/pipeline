@@ -962,11 +962,7 @@ func main() {
 
 			clusterAuthAPI.RegisterRoutes(cRouter, engine)
 
-			orgs.GET("/:orgid/helm/repos", api.HelmReposGet)
-			orgs.POST("/:orgid/helm/repos", api.HelmReposAdd)
-			orgs.PUT("/:orgid/helm/repos/:name", api.HelmReposModify)
 			orgs.PUT("/:orgid/helm/repos/:name/update", api.HelmReposUpdate)
-			orgs.DELETE("/:orgid/helm/repos/:name", api.HelmReposDelete)
 			orgs.GET("/:orgid/helm/charts", api.HelmCharts)
 			orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
 			{
@@ -985,12 +981,14 @@ func main() {
 					kitxendpoint.Combine(endpointMiddleware...),
 				)
 				helmdriver.RegisterHTTPHandlers(endpoints,
-					orgRouter.PathPrefix("/helm/repositories").Subrouter(),
+					orgRouter.PathPrefix("/helm/repos").Subrouter(),
 					kitxhttp.ServerOptions(httpServerOptions),
 				)
 
-				orgs.Any("/:orgid/helm/repositories", gin.WrapH(router))
-				orgs.Any("/:orgid/helm/repositories/*path", gin.WrapH(router))
+				orgs.POST("/:orgid/helm/repos", gin.WrapH(router))
+				orgs.GET("/:orgid/helm/repos", gin.WrapH(router))
+				orgs.PATCH("/:orgid/helm/repos/:name", gin.WrapH(router))
+				orgs.DELETE("/:orgid/helm/repos/:name", gin.WrapH(router))
 			}
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
 			orgs.GET("/:orgid/secrets/:id", api.GetSecret)

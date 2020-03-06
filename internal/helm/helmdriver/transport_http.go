@@ -47,14 +47,14 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 		options...,
 	))
 
-	router.Methods(http.MethodDelete).Path("/{repoName}").Handler(kithttp.NewServer(
+	router.Methods(http.MethodDelete).Path("/{name}").Handler(kithttp.NewServer(
 		endpoints.DeleteRepository,
 		decodeDeleteRepositoryHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(encodeDeleteRepositoryHTTPResponse, errorEncoder),
 		options...,
 	))
 
-	router.Methods(http.MethodPatch).Path("/{repoName}").Handler(kithttp.NewServer(
+	router.Methods(http.MethodPatch).Path("/{name}").Handler(kithttp.NewServer(
 		endpoints.PatchRepository,
 		decodePatchRepositoryHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
@@ -182,9 +182,9 @@ func extractOrgID(r *http.Request) (uint, error) {
 func extractHelmRepoName(r *http.Request) (string, error) {
 	vars := mux.Vars(r)
 
-	repoName, ok := vars["repoName"]
+	repoName, ok := vars["name"]
 	if !ok || repoName == "" {
-		return "", errors.NewWithDetails("missing path parameter", "param", "repoName")
+		return "", errors.NewWithDetails("missing path parameter", "param", "name")
 	}
 
 	return repoName, nil
