@@ -77,45 +77,21 @@ type Node struct {
 	Master                 bool
 }
 
-// Execute performs the activity
-func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivityInput) (types.ManagedObjectReference, error) {
-	logger := activity.GetLogger(ctx).Sugar().With(
-		"organization", input.OrganizationID,
-		"cluster", input.ClusterName,
-		"secret", input.SecretID,
-		"node", input.Name,
-	)
-
-	vmRef := types.ManagedObjectReference{}
-
-	logger.Info("create virtual machine")
-
+func generateVMConfigs(input CreateNodeActivityInput) (*types.VirtualMachineConfigSpec, error) {
 	userDataScriptTemplate, err := template.New(input.Name + "UserDataScript").Parse(input.UserDataScriptTemplate)
 	if err != nil {
-		return vmRef, err
+		return nil, err
 	}
-
-	_, token, err := a.tokenGenerator.GenerateClusterToken(input.OrganizationID, input.ClusterID)
-	if err != nil {
-		return vmRef, err
-	}
-
-	input.UserDataScriptParams["PipelineToken"] = token
 
 	var userDataScript strings.Builder
 	err = userDataScriptTemplate.Execute(&userDataScript, input.UserDataScriptParams)
 	if err = errors.WrapIf(err, "failed to execute user data script template"); err != nil {
-		return vmRef, err
-	}
-
-	c, err := a.vmomiClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
-		return vmRef, err
+		return nil, err
 	}
 
 	userData, err := encodeGuestInfo(generateCloudConfig(input.AdminUsername, input.SSHPublicKey, userDataScript.String(), input.Name))
 	if err = errors.WrapIf(err, "failed to encode user data"); err != nil {
-		return vmRef, err
+		return nil, err
 	}
 
 	vmConfig := types.VirtualMachineConfigSpec{}
@@ -132,9 +108,41 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 		)
 	}
 
+	return &vmConfig, nil
+}
+
+// Execute performs the activity
+func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivityInput) (types.ManagedObjectReference, error) {
+	logger := activity.GetLogger(ctx).Sugar().With(
+		"organization", input.OrganizationID,
+		"cluster", input.ClusterName,
+		"secret", input.SecretID,
+		"node", input.Name,
+	)
+
+	logger.Info("create virtual machine")
+
+	vmRef := types.ManagedObjectReference{}
+
+	_, token, err := a.tokenGenerator.GenerateClusterToken(input.OrganizationID, input.ClusterID)
+	if err != nil {
+		return vmRef, err
+	}
+	input.UserDataScriptParams["PipelineToken"] = token
+
+	vmConfig, err := generateVMConfigs(input)
+	if err != nil {
+		return vmRef, err
+	}
+
 	cloneSpec := types.VirtualMachineCloneSpec{
-		Config:  &vmConfig,
+		Config:  vmConfig,
 		PowerOn: true,
+	}
+
+	c, err := a.vmomiClientFactory.New(input.OrganizationID, input.SecretID)
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
+		return vmRef, err
 	}
 
 	finder := find.NewFinder(c.Client)
