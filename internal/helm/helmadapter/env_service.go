@@ -30,16 +30,27 @@ type OrgService interface {
 	GetOrgNameByOrgID(ctx context.Context, orgID uint) (string, error)
 }
 
+// Helm related configurations
+type Config struct {
+	Repositories map[string]string
+}
+
+func NewConfig(defaultRepos map[string]string) Config {
+	return Config{Repositories: defaultRepos}
+}
+
 // envService component implementing operations related to the helm environment
 // This implementation relies on the legacy helm implementation
 type envService struct {
+	config      Config
 	orgService  OrgService
 	secretStore helm.SecretStore
 	logger      Logger
 }
 
-func NewEnvService(orgService OrgService, secretStore helm.SecretStore, logger Logger) helm.Service {
+func NewEnvService(config Config, orgService OrgService, secretStore helm.SecretStore, logger Logger) helm.Service {
 	return envService{
+		config:      config,
 		orgService:  orgService,
 		secretStore: secretStore,
 		logger:      logger,
@@ -70,8 +81,15 @@ func (e envService) AddRepository(ctx context.Context, organizationID uint, repo
 
 // ListRepositories noop implementation (env details not returned
 func (e envService) ListRepositories(ctx context.Context, organizationID uint) (repos []helm.Repository, err error) {
-	// TODO revise this (should anything be returned here?)
-	return nil, nil
+	defaultRepos := make([]helm.Repository, 0, len(e.config.Repositories))
+	for name, repo := range e.config.Repositories {
+		defaultRepos = append(defaultRepos, helm.Repository{
+			Name: name,
+			URL:  repo,
+		})
+	}
+
+	return defaultRepos, nil
 }
 
 // DeleteRepository deletes the  helm repository environment

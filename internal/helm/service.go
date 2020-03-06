@@ -168,7 +168,17 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 }
 
 func (s service) ListRepositories(ctx context.Context, organizationID uint) (repos []Repository, err error) {
-	return s.store.List(ctx, organizationID)
+	defaultRepos, err := s.envService.ListRepositories(ctx, organizationID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to retrieve default repositories")
+	}
+
+	persistedRepos, err := s.store.List(ctx, organizationID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to retrieve persisted repositories")
+	}
+
+	return append(defaultRepos, persistedRepos...), nil
 }
 
 func (s service) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {

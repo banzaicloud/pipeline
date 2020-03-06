@@ -972,10 +972,12 @@ func main() {
 			{
 				repoStore := helmadapter.NewHelmRepoStore(db, commonLogger)
 				secretStore := helmadapter.NewSecretStore(commonSecretStore, commonLogger)
-				validator := helm.NewHelmRepoValidator()
 				orgService := helmadapter.NewOrgService(commonLogger)
-				envService := helmadapter.NewEnvService(orgService, secretStore, commonLogger)
+				envService := helmadapter.NewEnvService(
+					helmadapter.NewConfig(config.Helm.Repositories),
+					orgService, secretStore, commonLogger)
 
+				validator := helm.NewHelmRepoValidator()
 				service := helm.NewService(repoStore, secretStore, validator, envService, commonLogger)
 
 				endpoints := helmdriver.MakeEndpoints(
