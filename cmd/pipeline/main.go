@@ -970,16 +970,19 @@ func main() {
 			orgs.GET("/:orgid/helm/charts", api.HelmCharts)
 			orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
 			{
-				helmRepoStore := helmadapter.NewHelmRepoStore(db, commonLogger)
+				repoStore := helmadapter.NewHelmRepoStore(db, commonLogger)
 				secretStore := helmadapter.NewSecretStore(commonSecretStore, commonLogger)
 				validator := helm.NewHelmRepoValidator()
 				orgService := helmadapter.NewOrgService(commonLogger)
 				envService := helmadapter.NewEnvService(orgService, secretStore, commonLogger)
 
-				helmService := helm.NewService(helmRepoStore, secretStore, validator, envService, commonLogger)
+				service := helm.NewService(repoStore, secretStore, validator, envService, commonLogger)
 
-				helmRepoEndpoints := helmdriver.MakeEndpoints(helmService)
-				helmdriver.RegisterHTTPHandlers(helmRepoEndpoints,
+				endpoints := helmdriver.MakeEndpoints(
+					service,
+					kitxendpoint.Combine(endpointMiddleware...),
+				)
+				helmdriver.RegisterHTTPHandlers(endpoints,
 					orgRouter.PathPrefix("/helm/repositories").Subrouter(),
 					kitxhttp.ServerOptions(httpServerOptions),
 				)

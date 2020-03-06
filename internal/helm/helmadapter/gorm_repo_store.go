@@ -127,7 +127,9 @@ func (h helmRepoStore) Update(ctx context.Context, organizationID uint, reposito
 		"updated helm repository record",
 		map[string]interface{}{
 			"organizationID": organizationID,
-			"repoName":       repository.Name})
+			"repoName":       repository.Name,
+		},
+	)
 
 	return nil
 }

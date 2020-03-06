@@ -26,7 +26,6 @@ import (
 
 // OrgService interface for decoupling organization related operations
 type OrgService interface {
-
 	// GetOrgNameByOrgID retrieves organization name for the provided ID
 	GetOrgNameByOrgID(ctx context.Context, orgID uint) (string, error)
 }
@@ -85,7 +84,7 @@ func (e envService) DeleteRepository(ctx context.Context, organizationID uint, r
 	helmEnv := legacyHelm.GenerateHelmRepoEnv(orgName)
 
 	if err := legacyHelm.ReposDelete(helmEnv, repoName); err != nil {
-		if err.Error() == legacyHelm.ErrRepoNotFound.Error() {
+		if errors.Cause(err) == legacyHelm.ErrRepoNotFound {
 			return nil
 		}
 

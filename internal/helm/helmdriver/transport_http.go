@@ -110,7 +110,8 @@ func decodePatchRepositoryHTTPRequest(_ context.Context, r *http.Request) (inter
 			URL:              request.Url,
 			PasswordSecretID: request.PasswordSecretRef,
 			TlsSecretID:      request.TlsSecretRef,
-		}}, nil
+		},
+	}, nil
 }
 
 func decodeListRepositoriesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {

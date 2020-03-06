@@ -33,13 +33,13 @@ func NewOrgService(logger Logger) OrgService {
 }
 
 // GetOrgNameByOrgID gets the organization name for the provided organization ID
-func (o orgService) GetOrgNameByOrgID(ctx context.Context, orgID uint) (string, error) {
+func (s orgService) GetOrgNameByOrgID(ctx context.Context, orgID uint) (string, error) {
 	org, err := auth.GetOrganizationById(orgID)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to get organization by ID")
 	}
 
-	o.logger.Debug("found organization name for organization ID", map[string]interface{}{
+	s.logger.Debug("found organization name for organization ID", map[string]interface{}{
 		"org ID": orgID, "orgName": org.Name,
 	})
 	return org.Name, nil
