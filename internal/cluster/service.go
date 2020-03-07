@@ -247,7 +247,7 @@ type DeleteClusterOptions struct {
 	Force bool
 }
 
-type clusterService struct {
+type service struct {
 	clusters            Store
 	clusterManager      Manager
 	clusterGroupManager ClusterGroupManager
@@ -279,7 +279,7 @@ func NewService(
 	nodePoolProcessor NodePoolProcessor,
 	nodePoolManager NodePoolManager,
 ) Service {
-	return clusterService{
+	return service{
 		clusters:            clusters,
 		clusterManager:      clusterManager,
 		clusterGroupManager: clusterGroupManager,
@@ -292,7 +292,7 @@ func NewService(
 }
 
 // DeleteCluster deletes the specified cluster. It returns true if the cluster is already deleted.
-func (s clusterService) DeleteCluster(ctx context.Context, clusterIdentifier Identifier, options DeleteClusterOptions) (bool, error) {
+func (s service) DeleteCluster(ctx context.Context, clusterIdentifier Identifier, options DeleteClusterOptions) (bool, error) {
 	var (
 		c   Cluster
 		err error
