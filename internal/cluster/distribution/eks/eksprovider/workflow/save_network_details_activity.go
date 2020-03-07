@@ -49,9 +49,9 @@ func (a SaveNetworkDetailsActivity) Execute(ctx context.Context, input SaveNetwo
 	}
 
 	if eksCluster, ok := cluster.(interface {
-		GetEKSModel() *eksmodel.EKSClusterModel
+		GetModel() *eksmodel.EKSClusterModel
 	}); ok {
-		modelCluster := eksCluster.GetEKSModel()
+		modelCluster := eksCluster.GetModel()
 		modelCluster.NodeInstanceRoleId = input.NodeInstanceRoleID
 		modelCluster.VpcId = aws.String(input.VpcID)
 

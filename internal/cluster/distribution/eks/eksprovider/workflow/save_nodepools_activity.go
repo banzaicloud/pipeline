@@ -47,9 +47,9 @@ func (a SaveNodePoolsActivity) Execute(ctx context.Context, input SaveNodePoolsA
 	}
 
 	if eksCluster, ok := cluster.(interface {
-		GetEKSModel() *eksmodel.EKSClusterModel
+		GetModel() *eksmodel.EKSClusterModel
 	}); ok {
-		modelCluster := eksCluster.GetEKSModel()
+		modelCluster := eksCluster.GetModel()
 		updatedNodepools := make([]*eksmodel.AmazonNodePoolsModel, 0)
 
 		for _, np := range modelCluster.NodePools {
