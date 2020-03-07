@@ -435,11 +435,11 @@ func WaitForASGToBeFulfilled(
 					if autoscaling.IsErrorFinal(err) {
 						return errors.WithDetails(err, "nodePoolName", nodePoolName, "stackName", aws.StringValue(asGroup.AutoScalingGroupName))
 					}
-					//log.Debug(err)
+					// log.Debug(err)
 					continue
 				}
 				if ok {
-					//log.Debug("ASG is healthy")
+					// log.Debug("ASG is healthy")
 					return nil
 				}
 			} else {

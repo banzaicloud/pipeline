@@ -33,11 +33,7 @@ type NewNodePool struct {
 	InstanceType string `mapstructure:"instanceType"`
 	Image        string `mapstructure:"image"`
 	SpotPrice    string `mapstructure:"spotPrice"`
-	Subnet       struct {
-		SubnetId         string `mapstructure:"subnetId"`
-		Cidr             string `mapstructure:"cidr"`
-		AvailabilityZone string `mapstructure:"availabilityZone"`
-	} `mapstructure:"subnet"`
+	SubnetID     string `mapstructure:"subnetId"`
 }
 
 // Validate semantically validates the new node pool.
