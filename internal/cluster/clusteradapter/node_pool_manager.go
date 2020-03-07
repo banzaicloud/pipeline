@@ -25,21 +25,21 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 )
 
-// NodePoolManager manages node pool asynchronously via Cadence workflows.
-type NodePoolManager struct {
+type nodePoolManager struct {
 	workflowClient client.Client
 	getUserID      func(ctx context.Context) uint
 }
 
-// NewNodePoolManager returns a new NodePoolManager.
-func NewNodePoolManager(workflowClient client.Client, getUserID func(ctx context.Context) uint) NodePoolManager {
-	return NodePoolManager{
+// NewNodePoolManager returns a new cluster.NodePoolManager
+// that manages node pools asynchronously via Cadence workflows.
+func NewNodePoolManager(workflowClient client.Client, getUserID func(ctx context.Context) uint) cluster.NodePoolManager {
+	return nodePoolManager{
 		workflowClient: workflowClient,
 		getUserID:      getUserID,
 	}
 }
 
-func (n NodePoolManager) CreateNodePool(
+func (n nodePoolManager) CreateNodePool(
 	ctx context.Context,
 	clusterID uint,
 	rawNodePool cluster.NewRawNodePool,
@@ -63,7 +63,7 @@ func (n NodePoolManager) CreateNodePool(
 	return nil
 }
 
-func (n NodePoolManager) DeleteNodePool(ctx context.Context, clusterID uint, name string) error {
+func (n nodePoolManager) DeleteNodePool(ctx context.Context, clusterID uint, name string) error {
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
 		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,

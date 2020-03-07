@@ -62,36 +62,34 @@ const (
 	nodePoolOnDemandLabelKey = "node.banzaicloud.io/ondemand"
 )
 
-// CommonNodePoolLabelSource returns common labels for a node pool.
-type CommonNodePoolLabelSource struct{}
+type commonNodePoolLabelSource struct{}
 
-// NewCommonNodePoolLabelSource returns a new CommonNodePoolLabelSource.
-func NewCommonNodePoolLabelSource() CommonNodePoolLabelSource {
-	return CommonNodePoolLabelSource{}
+// NewCommonNodePoolLabelSource returns a new NodePoolLabelSource
+// that returns common labels for a node pool.
+func NewCommonNodePoolLabelSource() NodePoolLabelSource {
+	return commonNodePoolLabelSource{}
 }
 
-// GetLabels returns a set of labels that should be applied to every node in the pool.
-func (s CommonNodePoolLabelSource) GetLabels(_ context.Context, _ Cluster, nodePool NodePool) (map[string]string, error) {
+func (s commonNodePoolLabelSource) GetLabels(_ context.Context, _ Cluster, nodePool NodePool) (map[string]string, error) {
 	return map[string]string{
 		nodePoolNameLabelKey:     nodePool.GetName(),
 		nodePoolOnDemandLabelKey: strconv.FormatBool(nodePool.IsOnDemand()),
 	}, nil
 }
 
-// FilterValidNodePoolLabelSource validates existing labels and filters invalid ones.
-type FilterValidNodePoolLabelSource struct {
+type filterValidNodePoolLabelSource struct {
 	labelValidator LabelValidator
 }
 
-// NewFilterValidNodePoolLabelSource returns a new FilterValidNodePoolLabelSource.
-func NewFilterValidNodePoolLabelSource(labelValidator LabelValidator) FilterValidNodePoolLabelSource {
-	return FilterValidNodePoolLabelSource{
+// NewFilterValidNodePoolLabelSource returns a new NodePoolLabelSource
+// that validates existing labels and filters invalid ones.
+func NewFilterValidNodePoolLabelSource(labelValidator LabelValidator) NodePoolLabelSource {
+	return filterValidNodePoolLabelSource{
 		labelValidator: labelValidator,
 	}
 }
 
-// GetLabels returns a set of labels that should be applied to every node in the pool.
-func (s FilterValidNodePoolLabelSource) GetLabels(_ context.Context, _ Cluster, nodePool NodePool) (map[string]string, error) {
+func (s filterValidNodePoolLabelSource) GetLabels(_ context.Context, _ Cluster, nodePool NodePool) (map[string]string, error) {
 	labels := make(map[string]string)
 
 	for key, value := range nodePool.GetLabels() {

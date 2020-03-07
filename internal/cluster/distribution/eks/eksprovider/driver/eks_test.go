@@ -18,38 +18,38 @@ import (
 	"reflect"
 	"testing"
 
-	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
-	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
+	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 )
 
 func TestGetNodePoolsForSubnet(t *testing.T) {
-	subnetMapping := map[string][]*eks.Subnet{
+	subnetMapping := map[string][]*ekscluster.Subnet{
 		"default": {
-			&eks.Subnet{
+			&ekscluster.Subnet{
 				Cidr: "192.168.64.0/20",
 			},
-			&eks.Subnet{
+			&ekscluster.Subnet{
 				Cidr: "192.168.80.0/20",
 			},
-			&eks.Subnet{
+			&ekscluster.Subnet{
 				SubnetId: "subnet0",
 			},
 		},
 		"pool1": {
-			&eks.Subnet{
+			&ekscluster.Subnet{
 				Cidr: "192.168.64.0/20",
 			},
 		},
 		"pool2": {
-			&eks.Subnet{
+			&ekscluster.Subnet{
 				Cidr: "192.168.80.0/20",
 			},
 		},
 		"pool3": {
-			&eks.Subnet{
+			&ekscluster.Subnet{
 				SubnetId: "subnet0",
 			},
-			&eks.Subnet{
+			&ekscluster.Subnet{
 				Cidr: "192.168.80.0/20",
 			},
 		},

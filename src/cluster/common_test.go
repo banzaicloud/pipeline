@@ -24,6 +24,7 @@ import (
 	"emperror.dev/emperror"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
@@ -35,7 +36,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/types"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -235,9 +235,9 @@ var (
 		Cloud:    pkgCluster.Amazon,
 		SecretId: clusterRequestSecretId,
 		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterEKS: &eks.CreateClusterEKS{
+			CreateClusterEKS: &ekscluster.CreateClusterEKS{
 				Version: clusterRequestKubernetesEKS,
-				NodePools: map[string]*eks.NodePool{
+				NodePools: map[string]*ekscluster.NodePool{
 					pool1Name: {
 						InstanceType: clusterRequestNodeInstance,
 						SpotPrice:    clusterRequestSpotPrice,

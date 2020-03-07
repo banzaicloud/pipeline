@@ -26,10 +26,10 @@ import (
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
+	pkgEks "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
@@ -65,18 +65,18 @@ func NewEksClusterUpdater(logger logrus.FieldLogger, workflowClient client.Clien
 	}
 }
 
-func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedNodePools map[string]*pkgEks.NodePool, userId uint) ([]*amazonadapter.AmazonNodePoolsModel, error) {
-	currentNodePoolMap := make(map[string]*amazonadapter.AmazonNodePoolsModel, len(eksCluster.GetModel().NodePools))
+func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedNodePools map[string]*pkgEks.NodePool, userId uint) ([]*eksmodel.AmazonNodePoolsModel, error) {
+	currentNodePoolMap := make(map[string]*eksmodel.AmazonNodePoolsModel, len(eksCluster.GetModel().NodePools))
 	for _, nodePool := range eksCluster.GetModel().NodePools {
 		currentNodePoolMap[nodePool.Name] = nodePool
 	}
 
-	updatedNodePools := make([]*amazonadapter.AmazonNodePoolsModel, 0, len(requestedNodePools))
+	updatedNodePools := make([]*eksmodel.AmazonNodePoolsModel, 0, len(requestedNodePools))
 
 	for nodePoolName, nodePool := range requestedNodePools {
 		if currentNodePoolMap[nodePoolName] != nil {
 			// update existing node pool
-			updatedNodePools = append(updatedNodePools, &amazonadapter.AmazonNodePoolsModel{
+			updatedNodePools = append(updatedNodePools, &eksmodel.AmazonNodePoolsModel{
 				ID:               currentNodePoolMap[nodePoolName].ID,
 				CreatedBy:        currentNodePoolMap[nodePoolName].CreatedBy,
 				CreatedAt:        currentNodePoolMap[nodePoolName].CreatedAt,
@@ -112,7 +112,7 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 				nodePool.SpotPrice = eks.DefaultSpotPrice
 			}
 
-			updatedNodePools = append(updatedNodePools, &amazonadapter.AmazonNodePoolsModel{
+			updatedNodePools = append(updatedNodePools, &eksmodel.AmazonNodePoolsModel{
 				CreatedBy:        userId,
 				Name:             nodePoolName,
 				NodeInstanceType: nodePool.InstanceType,
@@ -130,7 +130,7 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 
 	for _, nodePool := range eksCluster.GetModel().NodePools {
 		if requestedNodePools[nodePool.Name] == nil {
-			updatedNodePools = append(updatedNodePools, &amazonadapter.AmazonNodePoolsModel{
+			updatedNodePools = append(updatedNodePools, &eksmodel.AmazonNodePoolsModel{
 				ID:        nodePool.ID,
 				ClusterID: nodePool.ClusterID,
 				Name:      nodePool.Name,

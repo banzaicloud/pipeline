@@ -32,11 +32,11 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	eks2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	pkgEks "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster/nodepools"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/eks/nodepools"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/src/model"
@@ -60,7 +60,7 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 
 	modelNodePools := createNodePoolsFromRequest(request.Properties.CreateClusterEKS.NodePools, userId)
 
-	cluster.model = &amazonadapter.EKSClusterModel{
+	cluster.model = &eksmodel.EKSClusterModel{
 		Cluster: clustermodel.ClusterModel{
 			Name:           request.Name,
 			Location:       request.Location,
@@ -99,11 +99,11 @@ func createAPIServerAccessPointsFromRequest(request *pkgCluster.CreateClusterReq
 	return []string{"public"}
 }
 
-func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId uint) []*amazonadapter.AmazonNodePoolsModel {
-	var modelNodePools = make([]*amazonadapter.AmazonNodePoolsModel, len(nodePools))
+func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId uint) []*eksmodel.AmazonNodePoolsModel {
+	var modelNodePools = make([]*eksmodel.AmazonNodePoolsModel, len(nodePools))
 	i := 0
 	for nodePoolName, nodePool := range nodePools {
-		modelNodePools[i] = &amazonadapter.AmazonNodePoolsModel{
+		modelNodePools[i] = &eksmodel.AmazonNodePoolsModel{
 			CreatedBy:        userId,
 			Name:             nodePoolName,
 			NodeSpotPrice:    nodePool.SpotPrice,
@@ -122,7 +122,7 @@ func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId ui
 }
 
 // createSubnetsFromRequest collects distinct existing (subnetid !=0) and to be created subnets from the request
-func createSubnetsFromRequest(eksRequest *pkgEks.CreateClusterEKS) []*amazonadapter.EKSSubnetModel {
+func createSubnetsFromRequest(eksRequest *pkgEks.CreateClusterEKS) []*eksmodel.EKSSubnetModel {
 	if eksRequest == nil {
 		return nil
 	}
@@ -140,16 +140,16 @@ func createSubnetsFromRequest(eksRequest *pkgEks.CreateClusterEKS) []*amazonadap
 		}
 	}
 
-	uniqueSubnets := make(map[string]*amazonadapter.EKSSubnetModel, 0)
+	uniqueSubnets := make(map[string]*eksmodel.EKSSubnetModel, 0)
 	for _, subnet := range subnetsFromRequest {
 		if subnet != nil {
 			if subnet.SubnetId != "" {
 				if _, ok := uniqueSubnets[subnet.SubnetId]; !ok {
-					uniqueSubnets[subnet.SubnetId] = &amazonadapter.EKSSubnetModel{SubnetId: &subnet.SubnetId}
+					uniqueSubnets[subnet.SubnetId] = &eksmodel.EKSSubnetModel{SubnetId: &subnet.SubnetId}
 				}
 			} else if subnet.Cidr != "" {
 				if _, ok := uniqueSubnets[subnet.Cidr]; !ok {
-					uniqueSubnets[subnet.Cidr] = &amazonadapter.EKSSubnetModel{
+					uniqueSubnets[subnet.Cidr] = &eksmodel.EKSSubnetModel{
 						Cidr:             &subnet.Cidr,
 						AvailabilityZone: &subnet.AvailabilityZone,
 					}
@@ -158,7 +158,7 @@ func createSubnetsFromRequest(eksRequest *pkgEks.CreateClusterEKS) []*amazonadap
 		}
 	}
 
-	var modelSubnets []*amazonadapter.EKSSubnetModel
+	var modelSubnets []*eksmodel.EKSSubnetModel
 	for _, subnet := range uniqueSubnets {
 		modelSubnets = append(modelSubnets, subnet)
 	}
@@ -189,15 +189,15 @@ func (r dbEKSClusterRepository) DeleteClusterModel(model *clustermodel.ClusterMo
 	return r.db.Delete(model).Error
 }
 
-func (r dbEKSClusterRepository) DeleteModel(model *amazonadapter.EKSClusterModel) error {
+func (r dbEKSClusterRepository) DeleteModel(model *eksmodel.EKSClusterModel) error {
 	return r.db.Delete(model).Error
 }
 
-func (r dbEKSClusterRepository) DeleteNodePool(model *amazonadapter.AmazonNodePoolsModel) error {
+func (r dbEKSClusterRepository) DeleteNodePool(model *eksmodel.AmazonNodePoolsModel) error {
 	return r.db.Delete(model).Error
 }
 
-func (r dbEKSClusterRepository) SaveModel(model *amazonadapter.EKSClusterModel) error {
+func (r dbEKSClusterRepository) SaveModel(model *eksmodel.EKSClusterModel) error {
 	return r.db.Save(model).Error
 }
 
@@ -218,16 +218,16 @@ func NewDBEKSClusterRepository(db *gorm.DB) (EKSClusterRepository, error) {
 // EKSClusterRepository describes a EKS cluster's persistent storage repository
 type EKSClusterRepository interface {
 	DeleteClusterModel(model *clustermodel.ClusterModel) error
-	DeleteModel(model *amazonadapter.EKSClusterModel) error
-	DeleteNodePool(model *amazonadapter.AmazonNodePoolsModel) error
-	SaveModel(model *amazonadapter.EKSClusterModel) error
+	DeleteModel(model *eksmodel.EKSClusterModel) error
+	DeleteNodePool(model *eksmodel.AmazonNodePoolsModel) error
+	SaveModel(model *eksmodel.EKSClusterModel) error
 	SaveStatusHistory(model *clustermodel.StatusHistoryModel) error
 }
 
 // EKSCluster struct for EKS cluster
 type EKSCluster struct {
 	repository EKSClusterRepository
-	model      *amazonadapter.EKSClusterModel
+	model      *eksmodel.EKSClusterModel
 
 	// maps node pools to subnets. The subnets identified by the "default" key represent the subnets provided in
 	// request.Properties.CreateClusterEKS.Subnets
@@ -303,7 +303,7 @@ func (c *EKSCluster) GetAPIEndpoint() (string, error) {
 func CreateEKSClusterFromModel(clusterModel *model.ClusterModel) (*EKSCluster, error) {
 	db := global.DB()
 
-	m := amazonadapter.EKSClusterModel{
+	m := eksmodel.EKSClusterModel{
 		ClusterID: clusterModel.ID,
 	}
 
@@ -497,7 +497,7 @@ func (c *EKSCluster) GetUID() string {
 }
 
 // GetModel returns the DB model of this cluster
-func (c *EKSCluster) GetModel() *amazonadapter.EKSClusterModel {
+func (c *EKSCluster) GetModel() *eksmodel.EKSClusterModel {
 	return c.model
 }
 
@@ -728,7 +728,7 @@ func (c *EKSCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 }
 
 // GetEKSNodePools returns EKS node pools from a common cluster.
-func GetEKSNodePools(cluster CommonCluster) ([]*amazonadapter.AmazonNodePoolsModel, error) {
+func GetEKSNodePools(cluster CommonCluster) ([]*eksmodel.AmazonNodePoolsModel, error) {
 	ekscluster, ok := cluster.(*EKSCluster)
 	if !ok {
 		return nil, ErrInvalidClusterInstance

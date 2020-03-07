@@ -20,7 +20,7 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
+	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )

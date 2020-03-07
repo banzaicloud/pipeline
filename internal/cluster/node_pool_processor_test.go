@@ -24,7 +24,7 @@ import (
 )
 
 func TestNodePoolProcessors_ProcessNew(t *testing.T) {
-	t.Run("", func(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()
 		cluster := Cluster{}
 		nodePool := NewRawNodePool{
@@ -50,9 +50,13 @@ func TestNodePoolProcessors_ProcessNew(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, nodePool2, processedNodePool)
+
+		processor1.AssertExpectations(t)
+		processor2.AssertExpectations(t)
+		processor3.AssertExpectations(t)
 	})
 
-	t.Run("error", func(t *testing.T) {
+	t.Run("Error", func(t *testing.T) {
 		ctx := context.Background()
 		cluster := Cluster{}
 		nodePool := NewRawNodePool{
@@ -71,6 +75,8 @@ func TestNodePoolProcessors_ProcessNew(t *testing.T) {
 
 		assert.Equal(t, nodePool, processedNodePool)
 		assert.Equal(t, perr, err)
+
+		processor1.AssertExpectations(t)
 	})
 }
 
@@ -108,4 +114,6 @@ func TestCommonNodePoolProcessor_ProcessNew(t *testing.T) {
 		},
 		processedNodePool,
 	)
+
+	labelSource.AssertExpectations(t)
 }

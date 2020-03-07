@@ -30,9 +30,9 @@ import (
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
+	eksdriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	"github.com/banzaicloud/pipeline/internal/global"
-	eksdriver "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/driver"
 	azureDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	vsphereDriver "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"

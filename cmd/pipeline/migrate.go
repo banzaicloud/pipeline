@@ -20,12 +20,12 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend/notification/notificationadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
 	"github.com/banzaicloud/pipeline/src/model"
@@ -49,7 +49,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger, commonLogger common.Logger)
 		return err
 	}
 
-	if err := amazonadapter.Migrate(db, logger); err != nil {
+	if err := eksmodel.Migrate(db, logger); err != nil {
 		return err
 	}
 

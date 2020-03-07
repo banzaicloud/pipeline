@@ -23,24 +23,23 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	eks2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )
 
-// DistributionNodePoolProcessor processes a node pool request according to its own distribution.
-type DistributionNodePoolProcessor struct {
+type distributionNodePoolProcessor struct {
 	db *gorm.DB
 }
 
-// NewDistributionNodePoolProcessor returns a new DistributionNodePoolProcessor.
-func NewDistributionNodePoolProcessor(db *gorm.DB) DistributionNodePoolProcessor {
-	return DistributionNodePoolProcessor{
+// NewDistributionNodePoolProcessor returns a new cluster.NodePoolProcessor
+// that processes a node pool request according to its own distribution.
+func NewDistributionNodePoolProcessor(db *gorm.DB) cluster.NodePoolProcessor {
+	return distributionNodePoolProcessor{
 		db: db,
 	}
 }
 
-// ProcessNew processes a new node pool descriptor.
-func (v DistributionNodePoolProcessor) ProcessNew(
+func (v distributionNodePoolProcessor) ProcessNew(
 	_ context.Context,
 	c cluster.Cluster,
 	rawNodePool cluster.NewRawNodePool,
@@ -54,10 +53,10 @@ func (v DistributionNodePoolProcessor) ProcessNew(
 			return rawNodePool, errors.Wrap(err, "failed to decode node pool")
 		}
 
-		var eksCluster amazonadapter.EKSClusterModel
+		var eksCluster eksmodel.EKSClusterModel
 
 		err = v.db.
-			Where(amazonadapter.EKSClusterModel{ClusterID: c.ID}).
+			Where(eksmodel.EKSClusterModel{ClusterID: c.ID}).
 			Preload("Subnets").
 			First(&eksCluster).Error
 		if gorm.IsRecordNotFoundError(err) {
