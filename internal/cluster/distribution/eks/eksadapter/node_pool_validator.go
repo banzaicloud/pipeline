@@ -83,35 +83,20 @@ func (v nodePoolValidator) ValidateNew(
 		)
 	}
 
-	hasSubnet := false
-	validSubnet := false
-
-	if nodePool.Subnet.SubnetId != "" {
-		hasSubnet = true
+	if nodePool.SubnetID != "" {
+		validSubnet := false
 
 		for _, s := range eksCluster.Subnets {
-			if s.SubnetId != nil && *s.SubnetId == nodePool.Subnet.SubnetId {
+			if s.SubnetId != nil && *s.SubnetId == nodePool.SubnetID {
 				validSubnet = true
 
 				break
 			}
 		}
-	} else if nodePool.Subnet.Cidr != "" && nodePool.Subnet.AvailabilityZone != "" {
-		hasSubnet = true
 
-		for _, s := range eksCluster.Subnets {
-			if s.Cidr != nil && *s.Cidr == nodePool.Subnet.Cidr && s.AvailabilityZone != nil && *s.AvailabilityZone == nodePool.Subnet.AvailabilityZone {
-				validSubnet = true
-
-				break
-			}
+		if !validSubnet {
+			violations = append(violations, "subnet cannot be found in the cluster")
 		}
-	} else if nodePool.Subnet.Cidr != "" || nodePool.Subnet.AvailabilityZone != "" {
-		violations = append(violations, "cidr and availability zone must be specified together")
-	}
-
-	if hasSubnet && !validSubnet {
-		violations = append(violations, "subnet cannot be found in the cluster")
 	}
 
 	if len(violations) > 0 {
