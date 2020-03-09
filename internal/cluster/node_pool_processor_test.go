@@ -24,7 +24,7 @@ import (
 )
 
 func TestNodePoolProcessors_ProcessNew(t *testing.T) {
-	t.Run("", func(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()
 		cluster := Cluster{}
 		nodePool := NewRawNodePool{
@@ -50,9 +50,13 @@ func TestNodePoolProcessors_ProcessNew(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, nodePool2, processedNodePool)
+
+		processor1.AssertExpectations(t)
+		processor2.AssertExpectations(t)
+		processor3.AssertExpectations(t)
 	})
 
-	t.Run("error", func(t *testing.T) {
+	t.Run("Error", func(t *testing.T) {
 		ctx := context.Background()
 		cluster := Cluster{}
 		nodePool := NewRawNodePool{
@@ -71,6 +75,8 @@ func TestNodePoolProcessors_ProcessNew(t *testing.T) {
 
 		assert.Equal(t, nodePool, processedNodePool)
 		assert.Equal(t, perr, err)
+
+		processor1.AssertExpectations(t)
 	})
 }
 
@@ -108,4 +114,82 @@ func TestCommonNodePoolProcessor_ProcessNew(t *testing.T) {
 		},
 		processedNodePool,
 	)
+
+	labelSource.AssertExpectations(t)
+}
+
+func TestNewDistributionNodePoolProcessor_ProcessNew(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		distProcessor := new(MockNodePoolProcessor)
+
+		ctx := context.Background()
+		cluster := Cluster{
+			Distribution: "eks",
+		}
+		nodePool := NewRawNodePool{}
+		nodePool2 := NewRawNodePool{"key": "value"}
+
+		distProcessor.On("ProcessNew", ctx, cluster, nodePool).Return(nodePool2, nil)
+
+		processor := NewDistributionNodePoolProcessor(map[string]NodePoolProcessor{
+			"eks": distProcessor,
+		})
+
+		processedNodePool, err := processor.ProcessNew(ctx, cluster, nodePool)
+		require.NoError(t, err)
+
+		assert.Equal(t, nodePool2, processedNodePool)
+
+		distProcessor.AssertExpectations(t)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		distProcessor := new(MockNodePoolProcessor)
+
+		ctx := context.Background()
+		cluster := Cluster{
+			Distribution: "eks",
+		}
+		nodePool := NewRawNodePool{}
+
+		distErr := errors.New("invalid node pool")
+
+		distProcessor.On("ProcessNew", ctx, cluster, nodePool).Return(nodePool, distErr)
+
+		processor := NewDistributionNodePoolProcessor(map[string]NodePoolProcessor{
+			"eks": distProcessor,
+		})
+
+		_, err := processor.ProcessNew(ctx, cluster, nodePool)
+		require.Error(t, err)
+
+		assert.Same(t, distErr, err)
+
+		distProcessor.AssertExpectations(t)
+	})
+
+	t.Run("UnsupportedDistribution", func(t *testing.T) {
+		ctx := context.Background()
+		cluster := Cluster{
+			ID:           1,
+			Cloud:        "amazon",
+			Distribution: "eks",
+		}
+		nodePool := NewRawNodePool{}
+
+		processor := NewDistributionNodePoolProcessor(map[string]NodePoolProcessor{})
+
+		_, err := processor.ProcessNew(ctx, cluster, nodePool)
+		require.Error(t, err)
+
+		expectedErr := NotSupportedDistributionError{
+			ID:           cluster.ID,
+			Cloud:        cluster.Cloud,
+			Distribution: cluster.Distribution,
+
+			Message: "cannot process unsupported distribution",
+		}
+
+		assert.Equal(t, expectedErr, errors.Cause(err))
+	})
 }

@@ -12,21 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package amazonadapter
+package clusterbase
 
 import (
-	"github.com/sirupsen/logrus"
+	"time"
 
-	"github.com/banzaicloud/pipeline/internal/global"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
-// nolint: gochecknoglobals
-var log logrus.FieldLogger
+// ClusterBase defines common cluster fields
+type ClusterBase struct {
+	CreatedBy      uint
+	CreationTime   time.Time
+	ID             uint
+	K8sSecretID    string
+	Name           string
+	OrganizationID uint
+	ScaleOptions   pkgCluster.ScaleOptions
+	SecretID       string
+	SSHSecretID    string
+	Status         string
+	StatusMessage  string
+	UID            string
+}
 
-func init() {
-	log = global.LogrusLogger()
+func (c ClusterBase) GetID() uint {
+	return c.ID
+}
 
-	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
-		log = l
-	})
+func (c ClusterBase) GetName() string {
+	return c.Name
 }

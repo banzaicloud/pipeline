@@ -46,7 +46,10 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
-	"github.com/banzaicloud/pipeline/internal/cluster/distributionadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksadapter"
+	eksClusterAdapter "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
+	eksClusterDriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
+	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
@@ -84,9 +87,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
-	eksClusterAdapter "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/adapter"
-	eksClusterDriver "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/driver"
-	eksworkflow "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/workflow"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurepkedriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
@@ -479,7 +479,7 @@ func main() {
 				clusterStore,
 				db,
 				clusteradapter.NewNodePoolStore(db, clusterStore),
-				distributionadapter.NewEKSNodePoolStore(db),
+				eksadapter.NewNodePoolStore(db),
 				eksworkflow.NewAWSSessionFactory(secret.Store),
 			)
 			activity.RegisterWithOptions(createNodePoolActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.CreateNodePoolActivityName})

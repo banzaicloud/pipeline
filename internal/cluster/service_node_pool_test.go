@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/pkg/cloud"
 )
 
 func TestNewRawNodePool(t *testing.T) {
@@ -43,13 +43,13 @@ func TestNewRawNodePool(t *testing.T) {
 	})
 
 	t.Run("IsOnDemand", func(t *testing.T) {
-		t.Run("ondemand", func(t *testing.T) {
+		t.Run("OnDemand", func(t *testing.T) {
 			np := NewRawNodePool{}
 
 			assert.True(t, np.IsOnDemand())
 		})
 
-		t.Run("spot", func(t *testing.T) {
+		t.Run("Spot", func(t *testing.T) {
 			np := NewRawNodePool{
 				"spotPrice": "0.1",
 			}
@@ -57,7 +57,7 @@ func TestNewRawNodePool(t *testing.T) {
 			assert.False(t, np.IsOnDemand())
 		})
 
-		t.Run("preemptible", func(t *testing.T) {
+		t.Run("Preemptible", func(t *testing.T) {
 			np := NewRawNodePool{
 				"preemptible": true,
 			}
@@ -67,7 +67,7 @@ func TestNewRawNodePool(t *testing.T) {
 	})
 
 	t.Run("GetLabels", func(t *testing.T) {
-		t.Run("string", func(t *testing.T) {
+		t.Run("String", func(t *testing.T) {
 			np := NewRawNodePool{
 				"labels": map[string]string{
 					"key": "value",
@@ -77,7 +77,7 @@ func TestNewRawNodePool(t *testing.T) {
 			assert.Equal(t, map[string]string{"key": "value"}, np.GetLabels())
 		})
 
-		t.Run("interface", func(t *testing.T) {
+		t.Run("Interface", func(t *testing.T) {
 			np := NewRawNodePool{
 				"labels": map[string]interface{}{
 					"key": "value",
@@ -87,13 +87,13 @@ func TestNewRawNodePool(t *testing.T) {
 			assert.Equal(t, map[string]string{"key": "value"}, np.GetLabels())
 		})
 
-		t.Run("empty", func(t *testing.T) {
+		t.Run("Empty", func(t *testing.T) {
 			np := NewRawNodePool{}
 
 			assert.Equal(t, map[string]string{}, np.GetLabels())
 		})
 
-		t.Run("wrong_type", func(t *testing.T) {
+		t.Run("WrongType", func(t *testing.T) {
 			np := NewRawNodePool{
 				"labels": map[string]int{
 					"key": 1,
@@ -129,7 +129,7 @@ func (n nodePoolStub) GetLabels() map[string]string {
 }
 
 func TestNodePoolService_CreateNodePool(t *testing.T) {
-	t.Run("cluster_not_found", func(t *testing.T) {
+	t.Run("ClusterNotFound", func(t *testing.T) {
 		ctx := context.Background()
 
 		clusterStore := new(MockStore)
@@ -162,7 +162,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		manager.AssertExpectations(t)
 	})
 
-	t.Run("distribution_not_supported", func(t *testing.T) {
+	t.Run("DistributionNotSupported", func(t *testing.T) {
 		ctx := context.Background()
 
 		clusterStore := new(MockStore)
@@ -202,7 +202,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		manager.AssertExpectations(t)
 	})
 
-	t.Run("invalid_node_pool", func(t *testing.T) {
+	t.Run("InvalidNodePool", func(t *testing.T) {
 		ctx := context.Background()
 
 		clusterStore := new(MockStore)
@@ -213,7 +213,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 			Name:          "cluster",
 			Status:        Running,
 			StatusMessage: RunningMessage,
-			Cloud:         providers.Amazon,
+			Cloud:         cloud.Amazon,
 			Distribution:  "eks",
 		}
 		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
@@ -249,7 +249,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		manager.AssertExpectations(t)
 	})
 
-	t.Run("node_pool_already_exist", func(t *testing.T) {
+	t.Run("NodePoolAlreadyExists", func(t *testing.T) {
 		ctx := context.Background()
 
 		clusterStore := new(MockStore)
@@ -260,7 +260,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 			Name:          "cluster",
 			Status:        Running,
 			StatusMessage: RunningMessage,
-			Cloud:         providers.Amazon,
+			Cloud:         cloud.Amazon,
 			Distribution:  "eks",
 		}
 		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
@@ -295,7 +295,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		manager.AssertExpectations(t)
 	})
 
-	t.Run("success", func(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()
 
 		clusterStore := new(MockStore)
@@ -306,7 +306,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 			Name:          "cluster",
 			Status:        Running,
 			StatusMessage: RunningMessage,
-			Cloud:         providers.Amazon,
+			Cloud:         cloud.Amazon,
 			Distribution:  "eks",
 		}
 		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
@@ -346,7 +346,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 }
 
 func TestNodePoolService_DeleteNodePool(t *testing.T) {
-	t.Run("cluster_not_found", func(t *testing.T) {
+	t.Run("ClusterNotFound", func(t *testing.T) {
 		ctx := context.Background()
 
 		clusterStore := new(MockStore)
@@ -375,7 +375,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		manager.AssertExpectations(t)
 	})
 
-	t.Run("distribution_not_supported", func(t *testing.T) {
+	t.Run("DistributionNotSupported", func(t *testing.T) {
 		ctx := context.Background()
 
 		clusterStore := new(MockStore)
@@ -411,7 +411,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		manager.AssertExpectations(t)
 	})
 
-	t.Run("node_pool_does_not_exist", func(t *testing.T) {
+	t.Run("NodePoolDoesNotExist", func(t *testing.T) {
 		ctx := context.Background()
 
 		clusterStore := new(MockStore)
@@ -422,7 +422,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 			Name:          "cluster",
 			Status:        Running,
 			StatusMessage: RunningMessage,
-			Cloud:         providers.Amazon,
+			Cloud:         cloud.Amazon,
 			Distribution:  "eks",
 		}
 		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
@@ -451,7 +451,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		manager.AssertExpectations(t)
 	})
 
-	t.Run("success", func(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()
 
 		clusterStore := new(MockStore)
@@ -462,7 +462,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 			Name:          "cluster",
 			Status:        Running,
 			StatusMessage: RunningMessage,
-			Cloud:         providers.Amazon,
+			Cloud:         cloud.Amazon,
 			Distribution:  "eks",
 		}
 		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)

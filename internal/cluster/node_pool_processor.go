@@ -16,6 +16,8 @@ package cluster
 
 import (
 	"context"
+
+	"emperror.dev/errors"
 )
 
 // NodePoolProcessors combines different node pool processors into one.
@@ -39,25 +41,24 @@ func (p NodePoolProcessors) ProcessNew(
 	return rawNodePool, nil
 }
 
-// CommonNodePoolProcessor processes common node pool fields.
-type CommonNodePoolProcessor struct {
+type commonNodePoolProcessor struct {
 	labelSource NodePoolLabelSource
 }
 
-// NewCommonNodePoolProcessor returns a new CommonNodePoolProcessor.
-func NewCommonNodePoolProcessor(labelSource NodePoolLabelSource) CommonNodePoolProcessor {
-	return CommonNodePoolProcessor{
+// NewCommonNodePoolProcessor returns a new NodePoolProcessor
+// that processes common node pool fields.
+func NewCommonNodePoolProcessor(labelSource NodePoolLabelSource) NodePoolProcessor {
+	return commonNodePoolProcessor{
 		labelSource: labelSource,
 	}
 }
 
-// ProcessNew processes a new node pool descriptor.
-func (p CommonNodePoolProcessor) ProcessNew(
+func (p commonNodePoolProcessor) ProcessNew(
 	ctx context.Context,
-	c Cluster,
+	cluster Cluster,
 	rawNodePool NewRawNodePool,
 ) (NewRawNodePool, error) {
-	sourcedLabels, err := p.labelSource.GetLabels(ctx, c, rawNodePool)
+	sourcedLabels, err := p.labelSource.GetLabels(ctx, cluster, rawNodePool)
 	if err != nil {
 		return rawNodePool, err
 	}
@@ -74,4 +75,35 @@ func (p CommonNodePoolProcessor) ProcessNew(
 	rawNodePool["labels"] = labels
 
 	return rawNodePool, nil
+}
+
+type distributionNodePoolProcessor struct {
+	processors map[string]NodePoolProcessor
+}
+
+// NewDistributionNodePoolProcessor returns a new NodePoolProcessor
+// that allows registering processors for Kubernetes distributions.
+func NewDistributionNodePoolProcessor(processors map[string]NodePoolProcessor) NodePoolProcessor {
+	return distributionNodePoolProcessor{
+		processors: processors,
+	}
+}
+
+func (p distributionNodePoolProcessor) ProcessNew(
+	ctx context.Context,
+	cluster Cluster,
+	rawNodePool NewRawNodePool,
+) (NewRawNodePool, error) {
+	processor, ok := p.processors[cluster.Distribution]
+	if !ok {
+		return rawNodePool, errors.WithStack(NotSupportedDistributionError{
+			ID:           cluster.ID,
+			Cloud:        cluster.Cloud,
+			Distribution: cluster.Distribution,
+
+			Message: "cannot process unsupported distribution",
+		})
+	}
+
+	return processor.ProcessNew(ctx, cluster, rawNodePool)
 }

@@ -32,6 +32,7 @@ func NewDefaultTypeList(config DefaultTypeListConfig) secret.TypeList {
 		AlibabaType{},
 		AmazonType{},
 		AzureType{},
+		AzureStorageAccountType{},
 		CloudflareType{},
 		DigitalOceanType{},
 		FnType{},

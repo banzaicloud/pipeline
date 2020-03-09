@@ -654,7 +654,7 @@ ssl:
 	v.SetDefault("cluster::ingress::cert::path", "config/certs")
 
 	v.SetDefault("cluster::autoscale::namespace", "")
-	v.SetDefault("cluster::autoscale::hpa::prometheus::serviceName", "monitor-prometheus-server")
+	v.SetDefault("cluster::autoscale::hpa::prometheus::serviceName", "monitor-prometheus-operato-prometheus")
 	v.SetDefault("cluster::autoscale::hpa::prometheus::serviceContext", "prometheus")
 	v.SetDefault("cluster::autoscale::hpa::prometheus::localPort", 9090)
 	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::chart", "stable/cluster-autoscaler")
@@ -694,7 +694,7 @@ ssl:
 	})
 
 	v.SetDefault("cluster::autoscale::charts::hpaOperator::chart", "banzaicloud-stable/hpa-operator")
-	v.SetDefault("cluster::autoscale::charts::hpaOperator::version", "0.1.0")
+	v.SetDefault("cluster::autoscale::charts::hpaOperator::version", "0.2.2")
 	v.SetDefault("cluster::autoscale::charts::hpaOperator::values", map[string]interface{}{})
 
 	v.SetDefault("cluster::securityScan::enabled", true)

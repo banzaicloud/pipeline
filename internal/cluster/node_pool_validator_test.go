@@ -50,10 +50,14 @@ func TestNodePoolValidators_Validate(t *testing.T) {
 		[]string{"invalid something", "invalid node pool something"},
 		verr.Violations(),
 	)
+
+	validator1.AssertExpectations(t)
+	validator2.AssertExpectations(t)
+	validator3.AssertExpectations(t)
 }
 
 func TestNewCommonNodePoolValidator_ValidateNew(t *testing.T) {
-	t.Run("valid", func(t *testing.T) {
+	t.Run("Valid", func(t *testing.T) {
 		const labelKey = "key"
 		const labelValue = "value"
 
@@ -73,9 +77,11 @@ func TestNewCommonNodePoolValidator_ValidateNew(t *testing.T) {
 
 		err := validator.ValidateNew(context.Background(), Cluster{}, nodePool)
 		require.NoError(t, err)
+
+		labelValidator.AssertExpectations(t)
 	})
 
-	t.Run("invalid", func(t *testing.T) {
+	t.Run("Invalid", func(t *testing.T) {
 		const labelKey = "key"
 		const labelValue = "value"
 
@@ -104,9 +110,11 @@ func TestNewCommonNodePoolValidator_ValidateNew(t *testing.T) {
 			[]string{"name must be a non-empty string", "invalid key", "invalid value"},
 			verr.Violations(),
 		)
+
+		labelValidator.AssertExpectations(t)
 	})
 
-	t.Run("invalid_single_label_error", func(t *testing.T) {
+	t.Run("InvalidSingleLabelError", func(t *testing.T) {
 		const labelKey = "key"
 		const labelValue = "value"
 
@@ -135,5 +143,80 @@ func TestNewCommonNodePoolValidator_ValidateNew(t *testing.T) {
 			[]string{"name must be a non-empty string", "invalid key", "invalid value"},
 			verr.Violations(),
 		)
+
+		labelValidator.AssertExpectations(t)
+	})
+}
+
+func TestNewDistributionNodePoolValidator_ValidateNew(t *testing.T) {
+	t.Run("Valid", func(t *testing.T) {
+		distValidator := new(MockNodePoolValidator)
+
+		ctx := context.Background()
+		cluster := Cluster{
+			Distribution: "eks",
+		}
+		nodePool := NewRawNodePool{}
+
+		distValidator.On("ValidateNew", ctx, cluster, nodePool).Return(nil)
+
+		validator := NewDistributionNodePoolValidator(map[string]NodePoolValidator{
+			"eks": distValidator,
+		})
+
+		err := validator.ValidateNew(ctx, cluster, nodePool)
+		require.NoError(t, err)
+
+		distValidator.AssertExpectations(t)
+	})
+
+	t.Run("Invalid", func(t *testing.T) {
+		distValidator := new(MockNodePoolValidator)
+
+		ctx := context.Background()
+		cluster := Cluster{
+			Distribution: "eks",
+		}
+		nodePool := NewRawNodePool{}
+
+		distErr := errors.New("invalid node pool")
+
+		distValidator.On("ValidateNew", ctx, cluster, nodePool).Return(distErr)
+
+		validator := NewDistributionNodePoolValidator(map[string]NodePoolValidator{
+			"eks": distValidator,
+		})
+
+		err := validator.ValidateNew(ctx, cluster, nodePool)
+		require.Error(t, err)
+
+		assert.Same(t, distErr, err)
+
+		distValidator.AssertExpectations(t)
+	})
+
+	t.Run("UnsupportedDistribution", func(t *testing.T) {
+		ctx := context.Background()
+		cluster := Cluster{
+			ID:           1,
+			Cloud:        "amazon",
+			Distribution: "eks",
+		}
+		nodePool := NewRawNodePool{}
+
+		validator := NewDistributionNodePoolValidator(map[string]NodePoolValidator{})
+
+		err := validator.ValidateNew(ctx, cluster, nodePool)
+		require.Error(t, err)
+
+		expectedErr := NotSupportedDistributionError{
+			ID:           cluster.ID,
+			Cloud:        cluster.Cloud,
+			Distribution: cluster.Distribution,
+
+			Message: "cannot validate unsupported distribution",
+		}
+
+		assert.Equal(t, expectedErr, errors.Cause(err))
 	})
 }

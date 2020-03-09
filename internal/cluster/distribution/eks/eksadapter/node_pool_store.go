@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package distributionadapter
+package eksadapter
 
 import (
 	"context"
@@ -20,30 +20,29 @@ import (
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 )
 
-// NodePoolStore provides an interface to EKS node pool persistence.
-type EKSNodePoolStore struct {
+type nodePoolStore struct {
 	db *gorm.DB
 }
 
-// NewEKSNodePoolStore returns a new EKSNodePoolStore.
-func NewEKSNodePoolStore(db *gorm.DB) EKSNodePoolStore {
-	return EKSNodePoolStore{
+// NewNodePoolStore returns a new eks.NodePoolStore
+// that provides an interface to EKS node pool persistence.
+func NewNodePoolStore(db *gorm.DB) eks.NodePoolStore {
+	return nodePoolStore{
 		db: db,
 	}
 }
 
-// CreateNodePool saves a new node pool.
-func (s EKSNodePoolStore) CreateNodePool(
+func (s nodePoolStore) CreateNodePool(
 	_ context.Context,
 	clusterID uint,
 	createdBy uint,
-	nodePool distribution.NewEKSNodePool,
+	nodePool eks.NewNodePool,
 ) error {
-	nodePoolModel := &amazonadapter.AmazonNodePoolsModel{
+	nodePoolModel := &eksmodel.AmazonNodePoolsModel{
 		ClusterID:        clusterID,
 		CreatedBy:        createdBy,
 		Name:             nodePool.Name,

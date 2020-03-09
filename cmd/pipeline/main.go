@@ -77,6 +77,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterdriver"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksadapter"
+	eksDriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	prometheusMetrics "github.com/banzaicloud/pipeline/internal/cluster/metrics/adapters/prometheus"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
@@ -119,7 +121,6 @@ import (
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/internal/platform/watermill"
-	eksDriver "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/driver"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
@@ -746,11 +747,15 @@ func main() {
 						clusteradapter.NewNodePoolStore(db, clusterStore),
 						intCluster.NodePoolValidators{
 							intCluster.NewCommonNodePoolValidator(labelValidator),
-							clusteradapter.NewDistributionNodePoolValidator(db),
+							intCluster.NewDistributionNodePoolValidator(map[string]intCluster.NodePoolValidator{
+								"eks": eksadapter.NewNodePoolValidator(db),
+							}),
 						},
 						intCluster.NodePoolProcessors{
 							intCluster.NewCommonNodePoolProcessor(labelSource),
-							clusteradapter.NewDistributionNodePoolProcessor(db),
+							intCluster.NewDistributionNodePoolProcessor(map[string]intCluster.NodePoolProcessor{
+								"eks": eksadapter.NewNodePoolProcessor(db),
+							}),
 						},
 						clusteradapter.NewNodePoolManager(
 							workflowClient,

@@ -44,14 +44,14 @@ func (v NodePoolValidators) ValidateNew(ctx context.Context, cluster Cluster, ra
 	return nil
 }
 
-// CommonNodePoolValidator validates fields found in all node pool types.
-type CommonNodePoolValidator struct {
+type commonNodePoolValidator struct {
 	labelValidator LabelValidator
 }
 
-// NewCommonNodePoolValidator returns a new CommonNodePoolValidator.
-func NewCommonNodePoolValidator(labelValidator LabelValidator) CommonNodePoolValidator {
-	return CommonNodePoolValidator{
+// NewCommonNodePoolValidator returns a new NodePoolValidator
+// that validates common fields found in all node pool types.
+func NewCommonNodePoolValidator(labelValidator LabelValidator) NodePoolValidator {
+	return commonNodePoolValidator{
 		labelValidator: labelValidator,
 	}
 }
@@ -67,8 +67,7 @@ type LabelValidator interface {
 	ValidateValue(value string) error
 }
 
-// ValidateNew validates a new node pool descriptor.
-func (v CommonNodePoolValidator) ValidateNew(_ context.Context, _ Cluster, rawNodePool NewRawNodePool) error {
+func (v commonNodePoolValidator) ValidateNew(_ context.Context, _ Cluster, rawNodePool NewRawNodePool) error {
 	var violations []string
 
 	if rawNodePool.GetName() == "" {
@@ -93,6 +92,33 @@ func (v CommonNodePoolValidator) ValidateNew(_ context.Context, _ Cluster, rawNo
 	}
 
 	return nil
+}
+
+type distributionNodePoolValidator struct {
+	validators map[string]NodePoolValidator
+}
+
+// NewDistributionNodePoolValidator returns a new NodePoolValidator
+// that allows registering validators for Kubernetes distributions.
+func NewDistributionNodePoolValidator(validators map[string]NodePoolValidator) NodePoolValidator {
+	return distributionNodePoolValidator{
+		validators: validators,
+	}
+}
+
+func (v distributionNodePoolValidator) ValidateNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) error {
+	validator, ok := v.validators[cluster.Distribution]
+	if !ok {
+		return errors.WithStack(NotSupportedDistributionError{
+			ID:           cluster.ID,
+			Cloud:        cluster.Cloud,
+			Distribution: cluster.Distribution,
+
+			Message: "cannot validate unsupported distribution",
+		})
+	}
+
+	return validator.ValidateNew(ctx, cluster, rawNodePool)
 }
 
 // unwrapViolations is a helper func to unwrap violations from a validation error

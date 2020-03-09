@@ -214,12 +214,12 @@ func (a HPAAPI) isMonitoringEnabled(ctx context.Context, clusterID uint) (bool, 
 
 func runPrometheusQuery(config *rest.Config, client kubernetes.Interface, query string) (model.Value, error) {
 	prometheusEndpointPort := global.Config.Cluster.Autoscale.HPA.Prometheus.LocalPort
+	prometheusServiceName := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceName
 	pipelineSystemNamespace := global.Config.Cluster.Namespace
 	serviceContext := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceContext
-	promethuesPodLabels := labels.Set{"app": "prometheus", "component": "server"}
-
-	log.Debugf("create kubernetes tunnel for %v", promethuesPodLabels)
-	tunnel, err := k8sutil.NewKubeTunnel(pipelineSystemNamespace, client, config, promethuesPodLabels.AsSelector(), prometheusEndpointPort)
+	prometheusPodLabels := labels.Set{"app": "prometheus", "prometheus": prometheusServiceName}
+	log.Debugf("create kubernetes tunnel for %v", prometheusPodLabels)
+	tunnel, err := k8sutil.NewKubeTunnel(pipelineSystemNamespace, client, config, prometheusPodLabels.AsSelector(), prometheusEndpointPort)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to create kubernetes tunnel")
 	}

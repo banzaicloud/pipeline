@@ -21,7 +21,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/pkg/cloud"
 )
 
 // NodePool is a common interface for all distribution node pools.
@@ -160,7 +160,7 @@ type NodePoolManager interface {
 	DeleteNodePool(ctx context.Context, clusterID uint, name string) error
 }
 
-func (s clusterService) CreateNodePool(
+func (s service) CreateNodePool(
 	ctx context.Context,
 	clusterID uint,
 	rawNodePool NewRawNodePool,
@@ -208,7 +208,7 @@ func (s clusterService) CreateNodePool(
 	return nil
 }
 
-func (s clusterService) DeleteNodePool(ctx context.Context, clusterID uint, name string) (bool, error) {
+func (s service) DeleteNodePool(ctx context.Context, clusterID uint, name string) (bool, error) {
 	cluster, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
 		return false, err
@@ -241,7 +241,7 @@ func (s clusterService) DeleteNodePool(ctx context.Context, clusterID uint, name
 	return false, nil
 }
 
-func (s clusterService) checkCluster(cluster Cluster) error {
+func (s service) checkCluster(cluster Cluster) error {
 	if err := s.nodePoolSupported(cluster); err != nil {
 		return err
 	}
@@ -253,9 +253,9 @@ func (s clusterService) checkCluster(cluster Cluster) error {
 	return nil
 }
 
-func (s clusterService) nodePoolSupported(cluster Cluster) error {
+func (s service) nodePoolSupported(cluster Cluster) error {
 	switch {
-	case cluster.Cloud == providers.Amazon && cluster.Distribution == "eks":
+	case cluster.Cloud == cloud.Amazon && cluster.Distribution == "eks":
 		return nil
 	}
 

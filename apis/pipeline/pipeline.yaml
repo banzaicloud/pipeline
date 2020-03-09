@@ -4450,8 +4450,9 @@ components:
                             description: The upper limit price for the requested spot instance. If this field is left empty or 0 passed in on-demand instances used instead of spot instances.
                             type: string
                             example: "0.2"
-                        subnet:
-                            $ref: '#/components/schemas/EKSSubnet'
+                        subnetId:
+                            type: string
+                            example: "subnet-xxxxxxxxxxxxxx"
 
         EKSNodePool:
             type: object

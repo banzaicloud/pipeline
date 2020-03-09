@@ -19,7 +19,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 )
 
 const SaveNetworkDetailsActivityName = "eks-save-network-details"
@@ -49,9 +49,9 @@ func (a SaveNetworkDetailsActivity) Execute(ctx context.Context, input SaveNetwo
 	}
 
 	if eksCluster, ok := cluster.(interface {
-		GetEKSModel() *amazonadapter.EKSClusterModel
+		GetModel() *eksmodel.EKSClusterModel
 	}); ok {
-		modelCluster := eksCluster.GetEKSModel()
+		modelCluster := eksCluster.GetModel()
 		modelCluster.NodeInstanceRoleId = input.NodeInstanceRoleID
 		modelCluster.VpcId = aws.String(input.VpcID)
 

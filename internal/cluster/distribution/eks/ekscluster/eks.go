@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package eks
+package ekscluster
 
 import (
 	"fmt"
@@ -20,6 +20,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
 
+	eks2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
@@ -136,7 +137,7 @@ func (a *NodePool) Validate(npName string) error {
 
 	// ---- [ Node spot price ] ---- //
 	if len(a.SpotPrice) == 0 {
-		a.SpotPrice = DefaultSpotPrice
+		a.SpotPrice = eks2.DefaultSpotPrice
 	}
 
 	// --- [Label validation]--- //
@@ -222,7 +223,7 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
 	}
 
-	defaultImage, err := GetDefaultImageID(location, eks.Version)
+	defaultImage, err := eks2.GetDefaultImageID(location, eks.Version)
 	if err != nil {
 		return errors.WrapIff(err, "couldn't get EKS AMI for Kubernetes version %q in region %q", eks.Version, location)
 	}

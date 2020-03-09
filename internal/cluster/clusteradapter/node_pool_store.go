@@ -21,26 +21,25 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/providers/amazon/amazonadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )
 
-// NodePoolStore provides an interface to node pool persistence.
-type NodePoolStore struct {
+type nodePoolStore struct {
 	db       *gorm.DB
 	clusters cluster.Store
 }
 
-// NewNodePoolStore returns a new NodePoolStore.
-func NewNodePoolStore(db *gorm.DB, clusters cluster.Store) NodePoolStore {
-	return NodePoolStore{
+// NewNodePoolStore returns a new cluster.NodePoolStore
+// that persists node pools into the database using Gorm.
+func NewNodePoolStore(db *gorm.DB, clusters cluster.Store) cluster.NodePoolStore {
+	return nodePoolStore{
 		db:       db,
 		clusters: clusters,
 	}
 }
 
-// NodePoolExists checks if a node pool exists.
-func (s NodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name string) (bool, error) {
+func (s nodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name string) (bool, error) {
 	c, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
 		return false, err
@@ -48,10 +47,10 @@ func (s NodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name 
 
 	switch {
 	case c.Cloud == providers.Amazon && c.Distribution == "eks":
-		var eksCluster amazonadapter.EKSClusterModel
+		var eksCluster eksmodel.EKSClusterModel
 
 		err := s.db.
-			Where(amazonadapter.EKSClusterModel{ClusterID: clusterID}).
+			Where(eksmodel.EKSClusterModel{ClusterID: clusterID}).
 			Preload("NodePools", "name = ?", name).
 			First(&eksCluster).Error
 		if gorm.IsRecordNotFoundError(err) {
@@ -85,8 +84,7 @@ func (s NodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name 
 	return true, nil
 }
 
-// DeleteNodePool deletes a node pool.
-func (s NodePoolStore) DeleteNodePool(ctx context.Context, clusterID uint, name string) error {
+func (s nodePoolStore) DeleteNodePool(ctx context.Context, clusterID uint, name string) error {
 	c, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
 		return err
@@ -94,9 +92,9 @@ func (s NodePoolStore) DeleteNodePool(ctx context.Context, clusterID uint, name 
 
 	switch {
 	case c.Cloud == providers.Amazon && c.Distribution == "eks":
-		var eksCluster amazonadapter.EKSClusterModel
+		var eksCluster eksmodel.EKSClusterModel
 
-		err := s.db.Where(amazonadapter.EKSClusterModel{ClusterID: clusterID}).First(&eksCluster).Error
+		err := s.db.Where(eksmodel.EKSClusterModel{ClusterID: clusterID}).First(&eksCluster).Error
 		if gorm.IsRecordNotFoundError(err) {
 			return errors.NewWithDetails(
 				"cluster model is inconsistent",
@@ -111,7 +109,7 @@ func (s NodePoolStore) DeleteNodePool(ctx context.Context, clusterID uint, name 
 			)
 		}
 
-		err = s.db.Where(amazonadapter.AmazonNodePoolsModel{ClusterID: eksCluster.ID, Name: name}).Delete(amazonadapter.AmazonNodePoolsModel{}).Error
+		err = s.db.Where(eksmodel.AmazonNodePoolsModel{ClusterID: eksCluster.ID, Name: name}).Delete(eksmodel.AmazonNodePoolsModel{}).Error
 		if err != nil {
 			return errors.WrapWithDetails(
 				err, "failed to delete node pool",

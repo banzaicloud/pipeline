@@ -47,12 +47,20 @@ type Service interface {
 	GetSecretType(ctx context.Context, secretType string) (secretTypeDef TypeDefinition, err error)
 }
 
+type publicSecretType interface {
+	Public() bool
+}
+
 // NewService returns a new Service.
 func NewService(typeList secret.TypeList) Service {
 	types := typeList.Types()
 	typeDefs := make(map[string]TypeDefinition, len(types))
 
 	for _, st := range types {
+		if pst, ok := st.(publicSecretType); ok && !pst.Public() {
+			continue
+		}
+
 		var typeDef TypeDefinition
 		for _, field := range st.Definition().Fields {
 			typeDef.Fields = append(typeDef.Fields, TypeField(field))
