@@ -202,7 +202,6 @@ func (s service) DeleteRepository(ctx context.Context, organizationID uint, repo
 }
 
 func (s service) PatchRepository(ctx context.Context, organizationID uint, repository Repository) error {
-
 	if repository.PasswordSecretID != "" {
 		if err := s.secretStore.CheckPasswordSecret(ctx, repository.PasswordSecretID); err != nil {
 			return ValidationError{message: err.Error(), violations: []string{"password secret must exist"}}
