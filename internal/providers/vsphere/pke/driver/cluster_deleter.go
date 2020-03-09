@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/client"
 
@@ -35,7 +34,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-func MakeClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyCache, logger logrus.FieldLogger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.ClusterStore, workflowClient client.Client) ClusterDeleter {
+func MakeClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyCache, logger Logger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.ClusterStore, workflowClient client.Client) ClusterDeleter {
 	return ClusterDeleter{
 		events:                     events,
 		kubeProxyCache:             kubeProxyCache,
@@ -50,7 +49,7 @@ func MakeClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyCac
 type ClusterDeleter struct {
 	events                     ClusterDeleterEvents
 	kubeProxyCache             KubeProxyCache
-	logger                     logrus.FieldLogger
+	logger                     Logger
 	secrets                    SecretStore
 	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric
 	store                      pke.ClusterStore
@@ -78,7 +77,7 @@ func (cd ClusterDeleter) DeleteCluster(ctx context.Context, clusterID uint, opti
 }
 
 func (cd ClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnVsphereCluster, forced bool) error {
-	logger := cd.logger.WithField("clusterName", cluster.Name).WithField("clusterID", cluster.ID).WithField("forced", forced)
+	logger := cd.logger.WithFields(map[string]interface{}{"clusterName": cluster.Name, "clusterID": cluster.ID, "forced": forced})
 	logger.Info("Deleting cluster")
 
 	masterVmNames, vmNames := getVMNames(cluster)
@@ -127,7 +126,7 @@ func (cd ClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnVsphereClu
 	timer, err := cd.getClusterStatusChangeDurationTimer(cluster)
 	if err = errors.WrapIf(err, "failed to start status change duration metric timer"); err != nil {
 		if forced {
-			cd.logger.Error(err)
+			cd.logger.Error(err.Error())
 			timer = metrics.NoopDurationMetricTimer{}
 		} else {
 			return err
@@ -146,7 +145,7 @@ func (cd ClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnVsphereClu
 		ctx := context.Background()
 
 		if err := wfrun.Get(ctx, nil); err != nil {
-			cd.logger.Errorf("cluster deleting workflow failed: %v", err)
+			cd.logger.Error("cluster deleting workflow failed: " + err.Error())
 			return
 		}
 		cd.kubeProxyCache.Delete(cluster.UID)
@@ -196,7 +195,7 @@ func getVMNames(cluster pke.PKEOnVsphereCluster) ([]string, []string) {
 	vmNames := []string{}
 	for _, np := range cluster.NodePools {
 		names := []string{}
-		for j := 1; j <= np.Count; j++ {
+		for j := 1; j <= np.Size; j++ {
 			names = append(names, pke.GetVMName(cluster.Name, np.Name, j))
 		}
 

@@ -51,37 +51,31 @@ type nodePoolModel struct {
 }
 
 type vspherePkeCluster struct {
-	gorm.Model
-
+	ID        uint                      `gorm:"primary_key"`
 	ClusterID uint                      `gorm:"unique_index:idx_vsphere_pke_cluster_id"`
 	Cluster   clustermodel.ClusterModel `gorm:"foreignkey:ClusterID"`
 
-	ProviderData ProviderData `gorm:"type:json"`
+	Spec ProviderSpec `gorm:"type:json"`
 }
 
-type ProviderData struct {
+type ProviderSpec struct {
 	NodePools        []nodePoolModel
 	Kubernetes       intPKE.Kubernetes
 	ActiveWorkflowID string
 	HTTPProxy        intPKE.HTTPProxy
-
-	Monitoring   bool
-	Logging      bool
-	SecurityScan bool
-
 	ResourcePoolName string
 	FolderName       string
 	DatastoreName    string
 }
 
-func (m *ProviderData) Scan(v interface{}) error {
+func (m *ProviderSpec) Scan(v interface{}) error {
 	if s, ok := v.(string); ok {
 		v = []byte(s)
 	}
 	return json.Unmarshal(v.([]byte), m)
 }
 
-func (m ProviderData) Value() (driver.Value, error) {
+func (m ProviderSpec) Value() (driver.Value, error) {
 	return json.Marshal(m)
 }
 
@@ -123,25 +117,23 @@ func fillClusterFromClusterModel(cl *pke.PKEOnVsphereCluster, model clustermodel
 func fillClusterFromModel(cluster *pke.PKEOnVsphereCluster, model vspherePkeCluster) error {
 	fillClusterFromClusterModel(cluster, model.Cluster)
 
-	cluster.NodePools = make([]pke.NodePool, len(model.ProviderData.NodePools))
-	for i, np := range model.ProviderData.NodePools {
+	cluster.NodePools = make([]pke.NodePool, len(model.Spec.NodePools))
+	for i, np := range model.Spec.NodePools {
 		fillNodePoolFromModel(&cluster.NodePools[i], np)
 	}
 
-	cluster.Kubernetes = model.ProviderData.Kubernetes
-	cluster.ActiveWorkflowID = model.ProviderData.ActiveWorkflowID
-	cluster.Datastore = model.ProviderData.DatastoreName
-	cluster.Folder = model.ProviderData.FolderName
-	cluster.ResourcePool = model.ProviderData.ResourcePoolName
-
-	//cluster.HTTPProxy = model.HTTPProxy.toEntity()
+	cluster.Kubernetes = model.Spec.Kubernetes
+	cluster.ActiveWorkflowID = model.Spec.ActiveWorkflowID
+	cluster.Datastore = model.Spec.DatastoreName
+	cluster.Folder = model.Spec.FolderName
+	cluster.ResourcePool = model.Spec.ResourcePoolName
 
 	return nil
 }
 
 func fillNodePoolFromModel(nodePool *pke.NodePool, model nodePoolModel) {
 	nodePool.CreatedBy = model.CreatedBy
-	nodePool.Count = model.Count
+	nodePool.Size = model.Count
 	nodePool.VCPU = model.VCPU
 	nodePool.RamMB = model.RamMB
 	nodePool.Name = model.Name
@@ -150,7 +142,7 @@ func fillNodePoolFromModel(nodePool *pke.NodePool, model nodePoolModel) {
 
 func fillModelFromNodePool(model *nodePoolModel, nodePool pke.NodePool) {
 	model.CreatedBy = nodePool.CreatedBy
-	model.Count = nodePool.Count
+	model.Count = nodePool.Size
 	model.VCPU = nodePool.VCPU
 	model.RamMB = nodePool.RamMB
 	model.Name = nodePool.Name
@@ -199,18 +191,12 @@ func (s gormVspherePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOn
 				KeepDesiredCapacity: params.ScaleOptions.KeepDesiredCapacity,
 			},
 		},
-		ProviderData: ProviderData{
-
+		Spec: ProviderSpec{
 			NodePools:        nodePools,
 			ResourcePoolName: params.ResourcePoolName,
 			FolderName:       params.FolderName,
 			DatastoreName:    params.DatastoreName,
-
-			Kubernetes: params.Kubernetes,
-			//HTTPProxy        intPKE.HTTPProxy
-			//Monitoring   bool
-			//Logging      bool
-			//SecurityScan bool
+			Kubernetes:       params.Kubernetes,
 		},
 	}
 
@@ -318,22 +304,22 @@ func (s gormVspherePKEClusterStore) SetStatus(clusterID uint, status, message st
 	return nil
 }
 
-func (s gormVspherePKEClusterStore) getProviderData(clusterID uint) (ProviderData, error) {
+func (s gormVspherePKEClusterStore) getProviderData(clusterID uint) (ProviderSpec, error) {
 	if err := validateClusterID(clusterID); err != nil {
-		return ProviderData{}, errors.WrapIf(err, "invalid cluster ID")
+		return ProviderSpec{}, errors.WrapIf(err, "invalid cluster ID")
 	}
 
 	model := vspherePkeCluster{
 		ClusterID: clusterID,
 	}
 	if err := getError(s.db.Where(&model).First(&model), "failed to load cluster model"); err != nil {
-		return ProviderData{}, err
+		return ProviderSpec{}, err
 	}
 
-	return model.ProviderData, nil
+	return model.Spec, nil
 }
 
-func (s gormVspherePKEClusterStore) updateProviderData(clusterID uint, data ProviderData) error {
+func (s gormVspherePKEClusterStore) updateProviderData(clusterID uint, data ProviderSpec) error {
 	if err := validateClusterID(clusterID); err != nil {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
@@ -342,7 +328,7 @@ func (s gormVspherePKEClusterStore) updateProviderData(clusterID uint, data Prov
 		ClusterID: clusterID,
 	}
 
-	return getError(s.db.Model(&model).Where("cluster_id = ?", clusterID).Update("ProviderData", data), "failed to update PKE-on-Vsphere cluster model")
+	return getError(s.db.Model(&model).Where("cluster_id = ?", clusterID).Update("ProviderSpec", data), "failed to update PKE-on-Vsphere cluster model")
 }
 
 func (s gormVspherePKEClusterStore) SetActiveWorkflowID(clusterID uint, workflowID string) error {

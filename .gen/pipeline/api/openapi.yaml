@@ -18520,7 +18520,7 @@ components:
           additionalProperties:
             type: string
           type: object
-        count:
+        size:
           minimum: 1
           type: integer
         vcpu:
@@ -19592,7 +19592,7 @@ components:
       type: array
     HelmRepoListItem:
       example:
-        cache: statestore/<cluster_name>/helm/repository/cache/stabl-index.yaml
+        cache: statestore/<cluster_name>/helm/repository/cache/stable-index.yaml
         caFile: caFile
         passwordSecretRef: passwordSecretRef
         keyFile: keyFile
@@ -19605,7 +19605,7 @@ components:
           example: stable
           type: string
         cache:
-          example: statestore/<cluster_name>/helm/repository/cache/stabl-index.yaml
+          example: statestore/<cluster_name>/helm/repository/cache/stable-index.yaml
           type: string
         url:
           example: https://kubernetes-charts.storage.googleapis.com
@@ -22631,7 +22631,7 @@ components:
           description: Virtual machines will be created in this resource pool.
           example: my-resource-pool
           type: string
-        nodepools:
+        nodePools:
           items:
             $ref: '#/components/schemas/PKEOnVsphereNodePool'
           type: array

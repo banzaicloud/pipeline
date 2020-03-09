@@ -21,5 +21,5 @@ type CreatePkeOnVsphereClusterRequestAllOf struct {
 	// Virtual machines will be created in this resource pool.
 	ResourcePool string `json:"resourcePool,omitempty"`
 
-	Nodepools []PkeOnVsphereNodePool `json:"nodepools,omitempty"`
+	NodePools []PkeOnVsphereNodePool `json:"nodePools,omitempty"`
 }

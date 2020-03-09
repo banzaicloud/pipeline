@@ -56,6 +56,8 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
+	intPKE "github.com/banzaicloud/pipeline/internal/pke"
+
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
@@ -418,6 +420,7 @@ func main() {
 
 	azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonLogger)
 	gormVspherePKEClusterStore := vspherePKEAdapter.NewClusterStore(db)
+	k8sPreparer := intPKE.MakeKubernetesPreparer(logrusLogger, "Kubernetes")
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeClusterCreator(
 			azurePKEDriver.ClusterCreatorConfig{
@@ -441,12 +444,13 @@ func main() {
 			clusterTotalMetric,
 		),
 		PKEOnVsphere: vspherePKEDriver.MakeVspherePKEClusterCreator(
+			commonLogger,
 			vspherePKEDriver.ClusterCreatorConfig{
 				OIDCIssuerURL:               config.Auth.OIDC.Issuer,
 				PipelineExternalURL:         externalBaseURL,
 				PipelineExternalURLInsecure: externalURLInsecure,
 			},
-			logrusLogger,
+			k8sPreparer,
 			authdriver.NewOrganizationGetter(db),
 			secret.Store,
 			gormVspherePKEClusterStore,

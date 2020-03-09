@@ -25,7 +25,7 @@ const PKEOnVsphere = "pke-on-vsphere"
 
 type NodePool struct {
 	CreatedBy uint
-	Count     int
+	Size      int
 	VCPU      int
 	RamMB     int
 	Name      string
@@ -46,11 +46,7 @@ type PKEOnVsphereCluster struct {
 	Kubernetes       intPKE.Kubernetes
 	ActiveWorkflowID string
 	HTTPProxy        intPKE.HTTPProxy
-
-	Monitoring   bool
-	Logging      bool
-	SecurityScan bool
-	TtlMinutes   uint
+	TtlMinutes       uint
 }
 
 func (c PKEOnVsphereCluster) HasActiveWorkflow() bool {

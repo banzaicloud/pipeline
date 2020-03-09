@@ -20,7 +20,6 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-	"time"
 
 	"emperror.dev/errors"
 
@@ -169,15 +168,6 @@ func (a *VspherePkeCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 func (a *VspherePkeCluster) SetScaleOptions(*pkgCluster.ScaleOptions) {
 }
 
-func (a *VspherePkeCluster) GetTTL() time.Duration {
-	return time.Duration(a.model.TtlMinutes) * time.Minute
-}
-
-func (a *VspherePkeCluster) SetTTL(t time.Duration) {
-	a.model.TtlMinutes = uint(t.Minutes())
-	// TODO: persist
-}
-
 func (a *VspherePkeCluster) GetAPIEndpoint() (string, error) {
 	config, err := a.GetK8sConfig()
 	if err != nil {
@@ -226,7 +216,7 @@ func (a *VspherePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, e
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range a.model.NodePools {
 		nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-			Count:        np.Count,
+			Count:        np.Size,
 			InstanceType: np.InstanceType(),
 		}
 	}

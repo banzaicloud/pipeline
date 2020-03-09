@@ -18,14 +18,17 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
+
+	"github.com/banzaicloud/pipeline/internal/common"
 
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/workflow"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
+
+type Logger = common.Logger
 
 type nodeTemplateFactory struct {
 	ClusterID                   uint
@@ -76,7 +79,7 @@ func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
 			)
 		}
 
-		if np.Count > 1 {
+		if np.Size > 1 {
 			k8sMasterMode = "ha"
 		}
 	}
@@ -107,10 +110,10 @@ func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
 	return node
 }
 
-func handleClusterError(logger logrus.FieldLogger, store pke.ClusterStore, status string, clusterID uint, err error) error {
+func handleClusterError(logger Logger, store pke.ClusterStore, status string, clusterID uint, err error) error {
 	if clusterID != 0 && err != nil {
 		if err := store.SetStatus(clusterID, status, err.Error()); err != nil {
-			logger.Errorf("failed to set cluster error status: %s", err.Error())
+			logger.Error("failed to set cluster error status: " + err.Error())
 		}
 	}
 	return err

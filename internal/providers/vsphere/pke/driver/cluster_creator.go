@@ -21,15 +21,13 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 	corev1 "k8s.io/api/core/v1"
-
-	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver/commoncluster"
 
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	vspherePKE "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
+	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver/commoncluster"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
@@ -42,31 +40,34 @@ const pkeVersion = "0.4.14"
 const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
 func MakeVspherePKEClusterCreator(
+	logger Logger,
 	config ClusterCreatorConfig,
-	logger logrus.FieldLogger,
+	k8sPreparer intPKE.KubernetesPreparer,
 	organizations OrganizationStore,
 	secrets ClusterCreatorSecretStore,
 	store pke.ClusterStore,
 	workflowClient client.Client,
 ) VspherePKEClusterCreator {
 	return VspherePKEClusterCreator{
-		config:         config,
-		logger:         logger,
-		organizations:  organizations,
-		secrets:        secrets,
-		store:          store,
-		workflowClient: workflowClient,
+		logger:           logger,
+		config:           config,
+		creationPreparer: MakeVspherePKEClusterCreationParamsPreparer(logger, k8sPreparer),
+		organizations:    organizations,
+		secrets:          secrets,
+		store:            store,
+		workflowClient:   workflowClient,
 	}
 }
 
 // VspherePKEClusterCreator creates new PKE-on-Vsphere clusters
 type VspherePKEClusterCreator struct {
-	config         ClusterCreatorConfig
-	logger         logrus.FieldLogger
-	organizations  OrganizationStore
-	secrets        ClusterCreatorSecretStore
-	store          vspherePKE.ClusterStore
-	workflowClient client.Client
+	logger           Logger
+	config           ClusterCreatorConfig
+	creationPreparer VspherePKEClusterCreationParamsPreparer
+	organizations    OrganizationStore
+	secrets          ClusterCreatorSecretStore
+	store            vspherePKE.ClusterStore
+	workflowClient   client.Client
 }
 
 type OrganizationStore interface {
@@ -90,7 +91,7 @@ type NodePool struct {
 	Name          string
 	Roles         []string
 	Labels        map[string]string
-	Count         int
+	Size          int
 	AdminUsername string
 	VCPU          int
 	RamMB         int
@@ -111,7 +112,7 @@ func (np NodePool) hasRole(role pkgPKE.Role) bool {
 }
 
 func (np NodePool) toPke() (pnp pke.NodePool) {
-	pnp.Count = np.Count
+	pnp.Size = np.Size
 	pnp.VCPU = np.VCPU
 	pnp.RamMB = np.RamMB
 	pnp.Name = np.Name
@@ -141,10 +142,7 @@ type VspherePKEClusterCreationParams struct {
 	Kubernetes       intPKE.Kubernetes
 	ActiveWorkflowID string
 
-	Monitoring   bool
-	Logging      bool
-	SecurityScan bool
-	TtlMinutes   uint
+	TtlMinutes uint
 }
 
 // Create
@@ -156,7 +154,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 
 	// TODO maybe check the connection here, OR don't fetch the secret at all
 
-	if err = MakeVspherePKEClusterCreationParamsPreparer(cc.logger).Prepare(ctx, &params); err != nil {
+	if err = cc.creationPreparer.Prepare(ctx, &params); err != nil {
 		return
 	}
 
@@ -166,7 +164,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 			CreatedBy: np.CreatedBy,
 			Name:      np.Name,
 			Roles:     np.Roles,
-			Count:     np.Count,
+			Size:      np.Size,
 			VCPU:      np.VCPU,
 			RamMB:     np.RamMB,
 		}
@@ -217,7 +215,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 
 	var nodes []workflow.Node
 	for _, np := range params.NodePools {
-		for i := 1; i <= np.Count; i++ {
+		for i := 1; i <= np.Size; i++ {
 			nodes = append(nodes, tf.getNode(np, i))
 		}
 	}
@@ -281,7 +279,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 	}
 
 	if err = cc.store.SetActiveWorkflowID(cl.ID, wfexec.ID); err != nil {
-		cc.logger.WithField("clusterID", cl.ID).WithField("workflowID", wfexec.ID).Error("failed to set active workflow ID", err)
+		_ = cc.handleError(cl.ID, err)
 		return
 	}
 
@@ -295,13 +293,13 @@ func (cc VspherePKEClusterCreator) handleError(clusterID uint, err error) error 
 // VspherePKEClusterCreationParamsPreparer implements VspherePKEClusterCreationParams preparation
 type VspherePKEClusterCreationParamsPreparer struct {
 	k8sPreparer intPKE.KubernetesPreparer
-	logger      logrus.FieldLogger
+	logger      Logger
 }
 
 // MakeVspherePKEClusterCreationParamsPreparer returns an instance of VspherePKEClusterCreationParamsPreparer
-func MakeVspherePKEClusterCreationParamsPreparer(logger logrus.FieldLogger) VspherePKEClusterCreationParamsPreparer {
+func MakeVspherePKEClusterCreationParamsPreparer(logger Logger, k8sPreparer intPKE.KubernetesPreparer) VspherePKEClusterCreationParamsPreparer {
 	return VspherePKEClusterCreationParamsPreparer{
-		k8sPreparer: intPKE.MakeKubernetesPreparer(logger, "Kubernetes"),
+		k8sPreparer: k8sPreparer,
 		logger:      logger,
 	}
 }

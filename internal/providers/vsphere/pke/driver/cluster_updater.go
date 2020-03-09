@@ -172,10 +172,10 @@ func (cu VspherePKEClusterUpdater) Update(ctx context.Context, params VspherePKE
 	for i, np := range nodePoolsToUpdate {
 		toUpdateVMSSChanges[i] = workflow.VirtualMachineScaleSetChanges{
 			Name:          pke.GetVMSSName(cluster.Name, np.Name),
-			InstanceCount: uint(np.Count),
+			InstanceCount: uint(np.Size),
 		}
 
-		err := cu.store.SetNodePoolSizes(params.ClusterID, np.Name, uint(np.Min), uint(np.Max), uint(np.Count), np.Autoscaling)
+		err := cu.store.SetNodePoolSizes(params.ClusterID, np.Name, uint(np.Min), uint(np.Max), uint(np.Size), np.Autoscaling)
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "failed to store updated node pool", "clusterID", cluster.ID, "nodepool", np.Name)
 		}

@@ -18,7 +18,7 @@ type PkeOnVsphereNodePool struct {
 
 	Labels map[string]string `json:"labels,omitempty"`
 
-	Count int32 `json:"count,omitempty"`
+	Size int32 `json:"size,omitempty"`
 
 	// Number of VCPUs to attach to each node.
 	Vcpu int32 `json:"vcpu"`

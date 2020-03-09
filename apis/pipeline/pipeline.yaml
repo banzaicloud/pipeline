@@ -4400,7 +4400,7 @@ components:
                             type: string
                             description: "Virtual machines will be created in this resource pool."
                             example: "my-resource-pool"
-                        nodepools:
+                        nodePools:
                             type: array
                             items:
                                 $ref: '#/components/schemas/PKEOnVsphereNodePool'
@@ -4427,7 +4427,7 @@ components:
                     type: object
                     additionalProperties:
                         type: string
-                count:
+                size:
                     type: integer
                     minimum: 1
                 vcpu:

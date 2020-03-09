@@ -475,7 +475,7 @@ func main() {
 						Deleter: vspheredriver.MakeClusterDeleter(
 							nil,
 							clusterManager.GetKubeProxyCache(),
-							logrusLogger,
+							commonLogger,
 							secret.Store,
 							nil,
 							vsphereClusterStore,

@@ -59,7 +59,7 @@ func (req CreatePKEOnVsphereClusterRequest) ToVspherePKEClusterCreationParams(or
 				Enabled: req.Kubernetes.Oidc.Enabled,
 			},
 		},
-		NodePools: vsphereRequestToClusterNodepools(req.Nodepools, userID),
+		NodePools: vsphereRequestToClusterNodepools(req.NodePools, userID),
 		HTTPProxy: intPKE.HTTPProxy{
 			HTTP:       clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(req.Proxy.Http),
 			HTTPS:      clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(req.Proxy.Https),
@@ -90,7 +90,7 @@ func vsphereRequestToClusterNodepools(request []pipeline.PkeOnVsphereNodePool, u
 			Name:          node.Name,
 			Roles:         node.Roles,
 			Labels:        node.Labels,
-			Count:         int(node.Count),
+			Size:          int(node.Size),
 			AdminUsername: node.AdminUsername,
 			VCPU:          int(node.Vcpu),
 			RamMB:         int(node.RamMB),

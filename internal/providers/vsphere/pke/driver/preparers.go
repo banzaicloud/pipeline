@@ -19,14 +19,13 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
-	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 )
 
 // NodePoolsPreparer implements []NodePool preparation
 type NodePoolsPreparer struct {
-	logger       logrus.FieldLogger
+	logger       Logger
 	namespace    string
 	dataProvider nodePoolsDataProvider
 }
@@ -70,7 +69,7 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 
 // NodePoolPreparer implements NodePool preparation
 type NodePoolPreparer struct {
-	logger       logrus.FieldLogger
+	logger       Logger
 	namespace    string
 	dataProvider interface {
 		getExistingNodePoolByName(ctx context.Context, nodePoolName string) (pke.NodePool, error)
@@ -97,7 +96,7 @@ func (p NodePoolPreparer) Prepare(ctx context.Context, nodePool *NodePool) error
 	return p.prepareExistingNodePool(ctx, nodePool, np)
 }
 
-func (p NodePoolPreparer) getLogger() logrus.FieldLogger {
+func (p NodePoolPreparer) getLogger() Logger {
 	return p.logger
 }
 
@@ -108,7 +107,7 @@ func (p NodePoolPreparer) getNamespace() string {
 func (p NodePoolPreparer) prepareNewNodePool(ctx context.Context, nodePool *NodePool) error {
 	if len(nodePool.Roles) == 0 {
 		nodePool.Roles = []string{"worker"}
-		p.logger.Debugf("%s.Roles not specified, defaulting to %v", p.namespace, nodePool.Roles)
+		p.logger.Debug(fmt.Sprintf("%s.Roles not specified, defaulting to %v", p.namespace, nodePool.Roles))
 	}
 
 	return nil
