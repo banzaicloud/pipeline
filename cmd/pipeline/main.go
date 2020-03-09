@@ -768,7 +768,9 @@ func main() {
 						},
 						intCluster.NodePoolProcessors{
 							intCluster.NewCommonNodePoolProcessor(labelSource),
-							clusteradapter.NewDistributionNodePoolProcessor(db),
+							intCluster.NewDistributionNodePoolProcessor(map[string]intCluster.NodePoolProcessor{
+								"eks": eksadapter.NewNodePoolProcessor(db),
+							}),
 						},
 						clusteradapter.NewNodePoolManager(
 							workflowClient,

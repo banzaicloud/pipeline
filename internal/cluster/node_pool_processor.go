@@ -16,6 +16,8 @@ package cluster
 
 import (
 	"context"
+
+	"emperror.dev/errors"
 )
 
 // NodePoolProcessors combines different node pool processors into one.
@@ -53,10 +55,10 @@ func NewCommonNodePoolProcessor(labelSource NodePoolLabelSource) NodePoolProcess
 
 func (p commonNodePoolProcessor) ProcessNew(
 	ctx context.Context,
-	c Cluster,
+	cluster Cluster,
 	rawNodePool NewRawNodePool,
 ) (NewRawNodePool, error) {
-	sourcedLabels, err := p.labelSource.GetLabels(ctx, c, rawNodePool)
+	sourcedLabels, err := p.labelSource.GetLabels(ctx, cluster, rawNodePool)
 	if err != nil {
 		return rawNodePool, err
 	}
@@ -73,4 +75,35 @@ func (p commonNodePoolProcessor) ProcessNew(
 	rawNodePool["labels"] = labels
 
 	return rawNodePool, nil
+}
+
+type distributionNodePoolProcessor struct {
+	processors map[string]NodePoolProcessor
+}
+
+// NewDistributionNodePoolProcessor returns a new NodePoolProcessor
+// that allows registering processors for Kubernetes distributions.
+func NewDistributionNodePoolProcessor(processors map[string]NodePoolProcessor) NodePoolProcessor {
+	return distributionNodePoolProcessor{
+		processors: processors,
+	}
+}
+
+func (p distributionNodePoolProcessor) ProcessNew(
+	ctx context.Context,
+	cluster Cluster,
+	rawNodePool NewRawNodePool,
+) (NewRawNodePool, error) {
+	processor, ok := p.processors[cluster.Distribution]
+	if !ok {
+		return rawNodePool, errors.WithStack(NotSupportedDistributionError{
+			ID:           cluster.ID,
+			Cloud:        cluster.Cloud,
+			Distribution: cluster.Distribution,
+
+			Message: "cannot process unsupported distribution",
+		})
+	}
+
+	return processor.ProcessNew(ctx, cluster, rawNodePool)
 }
