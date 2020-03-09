@@ -142,7 +142,13 @@ func (h helmRepoStore) Update(ctx context.Context, organizationID uint, reposito
 	var model repositoryModel
 	repoModel := toModel(organizationID, repository)
 
-	if err := h.db.Where(&repositoryModel{Name: repoModel.Name}).First(&model).Update(repoModel).Error; err != nil {
+	if err := h.db.Where(&repositoryModel{Name: repoModel.Name}).First(&model).Error; err != nil {
+		return errors.WrapIfWithDetails(err, "failed to retrieve the helm repository for update",
+			"orgID", organizationID, "repoName", repoModel.Name)
+	}
+
+	repoModel.ID = model.ID // the ID needs to be set for the gorm operation
+	if err := h.db.Save(&repoModel).Error; err != nil {
 		return errors.WrapIfWithDetails(err, "failed to update the helm repository",
 			"orgID", organizationID, "repoName", repoModel.Name)
 	}
