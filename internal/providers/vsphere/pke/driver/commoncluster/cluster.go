@@ -86,10 +86,6 @@ func (a *VspherePkeCluster) GetName() string {
 	return a.model.Name
 }
 
-//func (a *VspherePkeCluster) GetResourceGroupName() string {
-//return a.model.ResourceGroup.Name
-//}
-
 func (a *VspherePkeCluster) GetCloud() string {
 	return pkgCluster.Vsphere
 }

@@ -88,9 +88,8 @@ func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
 	}
 
 	node.UserDataScriptParams = map[string]string{
-		"ClusterID":   strconv.FormatUint(uint64(f.ClusterID), 10),
-		"ClusterName": f.ClusterName,
-		//"InfraCIDR":             np.Subnet.CIDR, TODO find out why would this be needed
+		"ClusterID":            strconv.FormatUint(uint64(f.ClusterID), 10),
+		"ClusterName":          f.ClusterName,
 		"NodePoolName":         np.Name,
 		"Taints":               taints,
 		"OrgID":                strconv.FormatUint(uint64(f.OrganizationID), 10),

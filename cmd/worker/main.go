@@ -398,7 +398,7 @@ func main() {
 		}
 
 		clusterStore := clusteradapter.NewStore(db, clusteradapter.NewClusters(db))
-		vsphereClusterStore := vsphereadapter.NewClusterStore(db) //, commonadapter.NewLogger(logger))
+		vsphereClusterStore := vsphereadapter.NewClusterStore(db)
 
 		cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
 		clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)

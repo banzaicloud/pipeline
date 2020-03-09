@@ -52,7 +52,6 @@ type ClusterStore interface {
 	SetConfigSecretID(clusterID uint, secretID string) error
 	SetSSHSecretID(clusterID uint, sshSecretID string) error
 	SetFeature(clusterID uint, feature string, state bool) error
-	//SetNodePoolSizes(clusterID uint, nodePoolName string, desiredCount uint) error
 }
 
 // IsNotFound returns true if the error is about a resource not being found
