@@ -48,5 +48,6 @@ func NewDefaultTypeList(config DefaultTypeListConfig) secret.TypeList {
 		SSHType{},
 		TLSType{DefaultValidity: config.TLSDefaultValidity},
 		VaultType{},
+		VsphereType{},
 	})
 }
