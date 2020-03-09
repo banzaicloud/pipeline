@@ -60,6 +60,13 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
 	))
+
+	router.Methods(http.MethodPut).Path("/{name}").Handler(kithttp.NewServer(
+		endpoints.PatchRepository,
+		decodeUpdateRepositoryHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		options...,
+	))
 }
 
 func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -93,17 +100,46 @@ func decodePatchRepositoryHTTPRequest(_ context.Context, r *http.Request) (inter
 
 	repoName, err := extractHelmRepoName(r)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to decode list request")
+		return nil, errors.WrapIf(err, "failed to decode patch repository request")
 	}
 
 	var request pipeline.HelmReposAddRequest
 
 	dErr := json.NewDecoder(r.Body).Decode(&request)
 	if dErr != nil {
-		return nil, errors.WrapIf(dErr, "failed to decode request")
+		return nil, errors.WrapIf(dErr, "failed to decode patch repository request")
 	}
 
 	return PatchRepositoryRequest{
+		OrganizationID: orgID,
+		Repository: helm.Repository{
+			Name:             repoName,
+			URL:              request.Url,
+			PasswordSecretID: request.PasswordSecretRef,
+			TlsSecretID:      request.TlsSecretRef,
+		},
+	}, nil
+}
+
+func decodeUpdateRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, e := extractOrgID(r)
+	if e != nil {
+		return nil, errors.WrapIf(e, "failed to decode update repository request")
+	}
+
+	repoName, err := extractHelmRepoName(r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode update repository request")
+	}
+
+	var request pipeline.HelmReposAddRequest
+
+	dErr := json.NewDecoder(r.Body).Decode(&request)
+	if dErr != nil {
+		return nil, errors.WrapIf(dErr, "failed to decode update repository request")
+	}
+
+	return UpdateRepositoryRequest{
 		OrganizationID: orgID,
 		Repository: helm.Repository{
 			Name:             repoName,

@@ -132,6 +132,10 @@ func (e envService) PatchRepository(ctx context.Context, organizationID uint, re
 	return nil
 }
 
+func (e envService) UpdateRepository(ctx context.Context, organizationID uint, repository helm.Repository) error {
+	return e.PatchRepository(ctx, organizationID, repository)
+}
+
 func (e envService) transform(ctx context.Context, repository helm.Repository) (repo.Entry, error) {
 	entry := repo.Entry{
 		Name: repository.Name,

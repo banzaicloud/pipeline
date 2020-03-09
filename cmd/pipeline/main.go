@@ -988,6 +988,7 @@ func main() {
 				orgs.POST("/:orgid/helm/repos", gin.WrapH(router))
 				orgs.GET("/:orgid/helm/repos", gin.WrapH(router))
 				orgs.PATCH("/:orgid/helm/repos/:name", gin.WrapH(router))
+				orgs.PUT("/:orgid/helm/repos/:name", gin.WrapH(router))
 				orgs.DELETE("/:orgid/helm/repos/:name", gin.WrapH(router))
 			}
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
