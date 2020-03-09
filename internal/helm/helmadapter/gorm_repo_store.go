@@ -54,11 +54,14 @@ func NewHelmRepoStore(db *gorm.DB, logger Logger) helm.Store {
 }
 
 func (h helmRepoStore) Delete(_ context.Context, organizationID uint, repository helm.Repository) error {
-	model := toModel(organizationID, repository)
+	var model repositoryModel
+	repoModel := toModel(organizationID, repository)
 
-	// delete the record permanently in order for the unique constraint to be working
-	if err := h.db.Unscoped().Delete(model).Error; err != nil {
-		return errors.WrapIf(err, "failed to delete repository record")
+	if err := h.db.Where(&repositoryModel{Name: repoModel.Name}).First(&model).Delete(repoModel).Error; err != nil {
+		if !gorm.IsRecordNotFoundError(err) {
+			return errors.WrapIfWithDetails(err, "failed to delete the helm repository",
+				"orgID", organizationID, "repoName", repoModel.Name)
+		}
 	}
 
 	h.logger.Debug("deleted helm repository record",
