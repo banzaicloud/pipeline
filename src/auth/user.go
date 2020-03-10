@@ -67,16 +67,17 @@ type AuthIdentity struct {
 
 // User struct
 type User struct {
-	ID            uint           `gorm:"primary_key" json:"id"`
-	CreatedAt     time.Time      `json:"createdAt"`
-	UpdatedAt     time.Time      `json:"updatedAt"`
-	Name          string         `form:"name" json:"name,omitempty"`
-	Email         string         `form:"email" json:"email,omitempty"`
-	Login         string         `gorm:"unique;not null" form:"login" json:"login"`
-	Image         string         `form:"image" json:"image,omitempty"`
-	Organizations []Organization `gorm:"many2many:user_organizations" json:"organizations,omitempty"`
-	Virtual       bool           `json:"-" gorm:"-"` // Used only internally
-	APIToken      string         `json:"-" gorm:"-"` // Used only internally
+	ID             uint           `gorm:"primary_key" json:"id"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
+	Name           string         `form:"name" json:"name,omitempty"`
+	Email          string         `form:"email" json:"email,omitempty"`
+	Login          string         `gorm:"unique;not null" form:"login" json:"login"`
+	Image          string         `form:"image" json:"image,omitempty"`
+	Organizations  []Organization `gorm:"many2many:user_organizations" json:"organizations,omitempty"`
+	Virtual        bool           `json:"-" gorm:"-"` // Used only internally
+	APIToken       string         `json:"-" gorm:"-"` // Used only internally
+	ServiceAccount bool           `json:"-" gorm:"-"` // Used only internally
 }
 
 // CICDUser struct

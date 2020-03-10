@@ -33,7 +33,7 @@ require (
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
 	github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.1
 	github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677
-	github.com/banzaicloud/gin-utilz v0.1.0
+	github.com/banzaicloud/gin-utilz v0.2.0
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
 	github.com/banzaicloud/istio-operator v0.0.0-20200120100557-309b8a34e9eb
 	github.com/banzaicloud/logging-operator/pkg/sdk v0.1.1

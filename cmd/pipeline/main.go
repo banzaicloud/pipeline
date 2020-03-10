@@ -16,8 +16,11 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/base32"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -332,7 +335,8 @@ func main() {
 		base32.StdEncoding.EncodeToString([]byte(config.Auth.Token.SigningKey)),
 	)
 	tokenManager := pkgAuth.NewTokenManager(tokenGenerator, tokenStore)
-	auth.Init(db, cicdDB, config.Auth, tokenStore, tokenManager, organizationSyncer)
+	serviceAccountService := auth.NewServiceAccountService()
+	auth.Init(db, cicdDB, config.Auth, tokenStore, tokenManager, organizationSyncer, serviceAccountService)
 
 	if config.Database.AutoMigrate {
 		logger.Info("running automatic schema migrations")
@@ -586,11 +590,12 @@ func main() {
 	auth.Install(engine)
 	auth.StartTokenStoreGC(tokenStore)
 
-	enforcer := auth.NewRbacEnforcer(organizationStore, commonLogger)
+	enforcer := auth.NewRbacEnforcer(organizationStore, serviceAccountService, commonLogger)
 	authorizationMiddleware := ginauth.NewMiddleware(enforcer, basePath, errorHandler)
 
 	dashboardAPI := dashboard.NewDashboardAPI(clusterManager, clusterGroupManager, logrusLogger, errorHandler)
 	dgroup := base.Group(path.Join("dashboard", "orgs"))
+	dgroup.Use(auth.InternalHandler)
 	dgroup.Use(auth.Handler)
 	dgroup.Use(api.OrganizationMiddleware)
 	dgroup.Use(authorizationMiddleware)
@@ -661,6 +666,7 @@ func main() {
 		apiRouter.NotFoundHandler = problems.StatusProblemHandler(problems.NewStatusProblem(http.StatusNotFound))
 		apiRouter.MethodNotAllowedHandler = problems.StatusProblemHandler(problems.NewStatusProblem(http.StatusMethodNotAllowed))
 
+		v1.Use(auth.InternalHandler)
 		v1.Use(auth.Handler)
 		capdriver.RegisterHTTPHandler(mapCapabilities(config), commonErrorHandler, v1)
 		v1.GET("/me", userAPI.GetCurrentUser)
@@ -1129,10 +1135,31 @@ func main() {
 	go createInternalAPIRouter(config, db, basePath, clusterAPI, cloudinfoClient, logger, logrusLogger).Run(internalBindAddr) // nolint: errcheck
 
 	bindAddr := config.Pipeline.Addr
-	certFile, keyFile := config.Pipeline.CertFile, config.Pipeline.KeyFile
-	if certFile != "" && keyFile != "" {
+	caCertFile, certFile, keyFile := config.Pipeline.CACertFile, config.Pipeline.CertFile, config.Pipeline.KeyFile
+	if caCertFile != "" && certFile != "" && keyFile != "" {
 		logger.Info("Pipeline API listening", map[string]interface{}{"address": "https://" + bindAddr})
-		_ = engine.RunTLS(bindAddr, certFile, keyFile)
+
+		caCert, err := ioutil.ReadFile(caCertFile)
+		emperror.Panic(err)
+
+		clientCertCAs := x509.NewCertPool()
+		if !clientCertCAs.AppendCertsFromPEM(caCert) {
+			emperror.Panic(errors.New("failed to append CA certificate"))
+		}
+
+		serverCertificate, err := tls.LoadX509KeyPair(certFile, keyFile)
+		emperror.Panic(err)
+
+		pipelineTLS := tls.Config{
+			Certificates: []tls.Certificate{serverCertificate},
+			ClientAuth:   tls.VerifyClientCertIfGiven,
+			ClientCAs:    clientCertCAs,
+		}
+
+		listener, err := tls.Listen("tcp", bindAddr, &pipelineTLS)
+		emperror.Panic(err)
+
+		_ = engine.RunListener(listener)
 	} else {
 		logger.Info("Pipeline API listening", map[string]interface{}{"address": "http://" + bindAddr})
 		_ = engine.Run(bindAddr)
