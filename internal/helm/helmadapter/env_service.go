@@ -102,7 +102,7 @@ func (e envService) DeleteRepository(ctx context.Context, organizationID uint, r
 	helmEnv := legacyHelm.GenerateHelmRepoEnv(orgName)
 
 	if err := legacyHelm.ReposDelete(helmEnv, repoName); err != nil {
-		if errors.Cause(err) == legacyHelm.ErrRepoNotFound {
+		if errors.Cause(err).Error() == legacyHelm.ErrRepoNotFound.Error() {
 			return nil
 		}
 
