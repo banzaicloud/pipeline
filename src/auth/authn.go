@@ -86,6 +86,9 @@ var (
 	// Handler is the Gin authentication middleware
 	Handler gin.HandlerFunc
 
+	// InternalHandler is the Gin authentication middleware for internal clients
+	InternalHandler gin.HandlerFunc
+
 	// SessionManager is responsible for handling browser session Cookies
 	SessionManager session.ManagerInterface
 
@@ -134,7 +137,7 @@ func (r redirector) Redirect(w http.ResponseWriter, req *http.Request, action st
 }
 
 // Init initializes the auth
-func Init(db *gorm.DB, cdb *gorm.DB, config Config, tokenStore bauth.TokenStore, tokenManager TokenManager, orgSyncer OIDCOrganizationSyncer) {
+func Init(db *gorm.DB, cdb *gorm.DB, config Config, tokenStore bauth.TokenStore, tokenManager TokenManager, orgSyncer OIDCOrganizationSyncer, serviceAccountService ServiceAccountService) {
 	CookieDomain = config.Cookie.Domain
 
 	signingKey := config.Token.SigningKey
@@ -212,10 +215,21 @@ func Init(db *gorm.DB, cdb *gorm.DB, config Config, tokenStore bauth.TokenStore,
 		func(ctx context.Context, value interface{}) context.Context {
 			return context.WithValue(ctx, auth.CurrentUser, value)
 		},
+		func(ctx context.Context) interface{} {
+			return ctx.Value(auth.CurrentUser)
+		},
 		ginauth.TokenStoreOption(tokenStore),
 		ginauth.ExtractorOption(cookieExtractor{sessionStorer}),
 		ginauth.ErrorHandlerOption(emperror.MakeContextAware(errorHandler)),
 	)
+
+	InternalHandler = func(c *gin.Context) {
+		user := serviceAccountService.ExtractServiceAccount(c.Request)
+		if user != nil {
+			newContext := context.WithValue(c.Request.Context(), auth.CurrentUser, user)
+			c.Request = c.Request.WithContext(newContext)
+		}
+	}
 }
 
 func SyncOrgsForUser(

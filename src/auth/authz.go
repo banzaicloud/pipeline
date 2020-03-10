@@ -27,8 +27,9 @@ import (
 
 // RbacEnforcer makes authorization decisions based on user roles.
 type RbacEnforcer struct {
-	roleSource RoleSource
-	logger     Logger
+	roleSource            RoleSource
+	serviceAccountService ServiceAccountService
+	logger                Logger
 }
 
 // +testify:mock:testOnly=true
@@ -41,9 +42,10 @@ type RoleSource interface {
 }
 
 // NewRbacEnforcer returns a new RbacEnforcer.
-func NewRbacEnforcer(roleSource RoleSource, logger Logger) RbacEnforcer {
+func NewRbacEnforcer(roleSource RoleSource, serviceAccountService ServiceAccountService, logger Logger) RbacEnforcer {
 	return RbacEnforcer{
-		roleSource: roleSource,
+		roleSource:            roleSource,
+		serviceAccountService: serviceAccountService,
 
 		logger: logger,
 	}
@@ -65,6 +67,10 @@ func (e RbacEnforcer) Enforce(org *Organization, user *User, path, method string
 
 	// This is a virtual user
 	if user.ID == 0 {
+		if e.serviceAccountService.IsAdminServiceAccount(user) {
+			return true, nil
+		}
+
 		e.logger.Debug("authorizing virtual user", map[string]interface{}{
 			"organizationId": org.ID,
 			"virtualUser":    user.Login,

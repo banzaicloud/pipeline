@@ -118,6 +118,7 @@ type PipelineConfig struct {
 	Addr         string
 	InternalAddr string
 	BasePath     string
+	CACertFile   string
 	CertFile     string
 	KeyFile      string
 	UUID         string
@@ -171,6 +172,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("pipeline::addr", "127.0.0.1:9090")
 	v.SetDefault("pipeline::internalAddr", "127.0.0.1:9091")
 	v.SetDefault("pipeline::basePath", "")
+	v.SetDefault("pipeline::caCertFile", "")
 	v.SetDefault("pipeline::certFile", "")
 	v.SetDefault("pipeline::keyFile", "")
 	v.SetDefault("pipeline::uuid", "")
