@@ -54,11 +54,14 @@ func NewHelmRepoStore(db *gorm.DB, logger Logger) helm.Store {
 }
 
 func (h helmRepoStore) Delete(_ context.Context, organizationID uint, repository helm.Repository) error {
-	model := toModel(organizationID, repository)
+	var model repositoryModel
+	repoModel := toModel(organizationID, repository)
 
-	// delete the record permanently in order for the unique constraint to be working
-	if err := h.db.Unscoped().Delete(model).Error; err != nil {
-		return errors.WrapIf(err, "failed to delete repository record")
+	if err := h.db.Where(&repositoryModel{Name: repoModel.Name}).First(&model).Delete(repoModel).Error; err != nil {
+		if !gorm.IsRecordNotFoundError(err) {
+			return errors.WrapIfWithDetails(err, "failed to delete the helm repository",
+				"orgID", organizationID, "repoName", repoModel.Name)
+		}
 	}
 
 	h.logger.Debug("deleted helm repository record",
@@ -113,6 +116,52 @@ func (h helmRepoStore) Get(_ context.Context, organizationID uint, repository he
 		map[string]interface{}{"organizationID": organizationID, "repoName": repository.Name})
 
 	return toDomain(repoModel), nil
+}
+
+func (h helmRepoStore) Patch(ctx context.Context, organizationID uint, repository helm.Repository) error {
+	var model repositoryModel
+	repoModel := toModel(organizationID, repository)
+
+	if err := h.db.Where(&repositoryModel{Name: repoModel.Name}).First(&model).Updates(repoModel).Error; err != nil {
+		return errors.WrapIfWithDetails(err, "failed to update the helm repository",
+			"orgID", organizationID, "repoName", repoModel.Name)
+	}
+
+	h.logger.Debug(
+		"patched helm repository record",
+		map[string]interface{}{
+			"organizationID": organizationID,
+			"repoName":       repository.Name,
+		},
+	)
+
+	return nil
+}
+
+func (h helmRepoStore) Update(ctx context.Context, organizationID uint, repository helm.Repository) error {
+	var model repositoryModel
+	repoModel := toModel(organizationID, repository)
+
+	if err := h.db.Where(&repositoryModel{Name: repoModel.Name}).First(&model).Error; err != nil {
+		return errors.WrapIfWithDetails(err, "failed to retrieve the helm repository for update",
+			"orgID", organizationID, "repoName", repoModel.Name)
+	}
+
+	repoModel.ID = model.ID // the ID needs to be set for the gorm operation
+	if err := h.db.Save(&repoModel).Error; err != nil {
+		return errors.WrapIfWithDetails(err, "failed to update the helm repository",
+			"orgID", organizationID, "repoName", repoModel.Name)
+	}
+
+	h.logger.Debug(
+		"updated helm repository record",
+		map[string]interface{}{
+			"organizationID": organizationID,
+			"repoName":       repository.Name,
+		},
+	)
+
+	return nil
 }
 
 // toDomain transforms a gorm model to a domain struct
