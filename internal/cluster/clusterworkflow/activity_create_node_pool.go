@@ -157,9 +157,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 
 			Subnets: []eksworkflow.Subnet{
 				{
-					SubnetID:         nodePool.Subnet.SubnetId,
-					Cidr:             nodePool.Subnet.Cidr,
-					AvailabilityZone: nodePool.Subnet.AvailabilityZone,
+					SubnetID: nodePool.SubnetID,
 				},
 			},
 

@@ -85,27 +85,14 @@ func (p nodePoolProcessor) ProcessNew(
 	}
 
 	// Resolve subnet ID or fallback to one
-	if nodePool.Subnet.SubnetId == "" && nodePool.Subnet.Cidr != "" && nodePool.Subnet.AvailabilityZone != "" {
-		for _, s := range eksCluster.Subnets {
-			if s.Cidr != nil && *s.Cidr == nodePool.Subnet.Cidr && s.AvailabilityZone != nil && *s.AvailabilityZone == nodePool.Subnet.AvailabilityZone {
-				rawNodePool["subnet"] = map[string]interface{}{
-					"subnetId":         *s.SubnetId,
-					"cidr":             nodePool.Subnet.Cidr,
-					"availabilityZone": nodePool.Subnet.AvailabilityZone,
-				}
-			}
-		}
-	} else if nodePool.Subnet.SubnetId == "" {
+	if nodePool.SubnetID == "" {
 		// TODO: is this necessary?
 		if len(eksCluster.Subnets) == 0 {
 			return rawNodePool, errors.New("cannot resolve subnet")
 		}
 
-		rawNodePool["subnet"] = map[string]interface{}{
-			"subnetId":         *eksCluster.Subnets[0].SubnetId,
-			"cidr":             *eksCluster.Subnets[0].Cidr,
-			"availabilityZone": *eksCluster.Subnets[0].AvailabilityZone,
-		}
+		// TODO: better algorithm for choosing a subnet?
+		rawNodePool["subnetId"] = *eksCluster.Subnets[0].SubnetId
 	}
 
 	return rawNodePool, nil

@@ -92,6 +92,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
+	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	"github.com/banzaicloud/pipeline/internal/helm/helmdriver"
 	"github.com/banzaicloud/pipeline/internal/helm2"
 	helmadapter2 "github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -978,14 +981,35 @@ func main() {
 
 			clusterAuthAPI.RegisterRoutes(cRouter, engine)
 
-			orgs.GET("/:orgid/helm/repos", api.HelmReposGet)
-			orgs.POST("/:orgid/helm/repos", api.HelmReposAdd)
-			orgs.PUT("/:orgid/helm/repos/:name", api.HelmReposModify)
 			orgs.PUT("/:orgid/helm/repos/:name/update", api.HelmReposUpdate)
-			orgs.DELETE("/:orgid/helm/repos/:name", api.HelmReposDelete)
 			orgs.GET("/:orgid/helm/charts", api.HelmCharts)
 			orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
+			{
+				repoStore := helmadapter.NewHelmRepoStore(db, commonLogger)
+				secretStore := helmadapter.NewSecretStore(commonSecretStore, commonLogger)
+				orgService := helmadapter.NewOrgService(commonLogger)
+				envService := helmadapter.NewEnvService(
+					helmadapter.NewConfig(config.Helm.Repositories),
+					orgService, secretStore, commonLogger)
 
+				validator := helm.NewHelmRepoValidator()
+				service := helm.NewService(repoStore, secretStore, validator, envService, commonLogger)
+
+				endpoints := helmdriver.MakeEndpoints(
+					service,
+					kitxendpoint.Combine(endpointMiddleware...),
+				)
+				helmdriver.RegisterHTTPHandlers(endpoints,
+					orgRouter.PathPrefix("/helm/repos").Subrouter(),
+					kitxhttp.ServerOptions(httpServerOptions),
+				)
+
+				orgs.POST("/:orgid/helm/repos", gin.WrapH(router))
+				orgs.GET("/:orgid/helm/repos", gin.WrapH(router))
+				orgs.PATCH("/:orgid/helm/repos/:name", gin.WrapH(router))
+				orgs.PUT("/:orgid/helm/repos/:name", gin.WrapH(router))
+				orgs.DELETE("/:orgid/helm/repos/:name", gin.WrapH(router))
+			}
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
 			orgs.GET("/:orgid/secrets/:id", api.GetSecret)
 			orgs.POST("/:orgid/secrets", api.AddSecrets)

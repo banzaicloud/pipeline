@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "90add52b-5b26-4b0d-8dc8-1c94a9d78fc9",
+		"_postman_id": "ba8e1f03-3676-465c-87b7-a3fdee186055",
 		"name": "Pipeline API",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -1045,7 +1045,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"name\":\"pool{{$randomInt}}\",\n    \"size\": 3,\n    \"instanceType\": \"t2.medium\",\n    \"labels\": {\n  \t  \"key\": \"value\"\n    },\n    \"autoscaling\": {\n  \t  \"enabled\": true,\n  \t  \"minSize\": 3,\n  \t  \"maxSize\": 5\n    },\n    \"image\": \"\",\n    \"spotPrice\": \"\",\n    \"subnet\": {\n\t\t\"subnetId\": \"\",\n\t\t\"cidr\": \"\",\n\t\t\"availabilityZone\": \"\"\n    }\n}",
+											"raw": "{\n    \"name\":\"pool{{$randomInt}}\",\n    \"size\": 3,\n    \"instanceType\": \"t2.medium\",\n    \"labels\": {\n  \t  \"key\": \"value\"\n    },\n    \"autoscaling\": {\n  \t  \"enabled\": true,\n  \t  \"minSize\": 3,\n  \t  \"maxSize\": 5\n    },\n    \"image\": \"\",\n    \"spotPrice\": \"\",\n    \"subnetId\": \"\"\n}",
 											"options": {
 												"raw": {
 													"language": "json"
