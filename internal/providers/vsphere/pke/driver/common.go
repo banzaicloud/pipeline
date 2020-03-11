@@ -102,6 +102,7 @@ func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
 		"PKEVersion":           pkeVersion,
 		"KubernetesVersion":    f.KubernetesVersion,
 		"KubernetesMasterMode": k8sMasterMode,
+		// TODO setup http proxy
 		//"PublicAddress":        "<not yet set>",
 		//"HttpProxy":            "<not yet set>",
 		//"HttpsProxy":           "<not yet set>",

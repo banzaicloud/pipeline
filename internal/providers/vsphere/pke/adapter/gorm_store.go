@@ -197,6 +197,7 @@ func (s gormVspherePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOn
 			FolderName:       params.FolderName,
 			DatastoreName:    params.DatastoreName,
 			Kubernetes:       params.Kubernetes,
+			HTTPProxy:        params.HTTPProxy,
 		},
 	}
 
