@@ -328,7 +328,7 @@ func (s gormVspherePKEClusterStore) updateProviderData(clusterID uint, data Prov
 		ClusterID: clusterID,
 	}
 
-	return getError(s.db.Model(&model).Where("cluster_id = ?", clusterID).Update("ProviderSpec", data), "failed to update PKE-on-Vsphere cluster model")
+	return getError(s.db.Model(&model).Where("cluster_id = ?", clusterID).Update("Spec", data), "failed to update PKE-on-Vsphere cluster model")
 }
 
 func (s gormVspherePKEClusterStore) SetActiveWorkflowID(clusterID uint, workflowID string) error {
