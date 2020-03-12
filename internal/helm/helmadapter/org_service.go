@@ -19,6 +19,7 @@ import (
 
 	"emperror.dev/errors"
 
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/src/auth"
 )
 
@@ -28,7 +29,7 @@ type orgService struct {
 }
 
 // NewOrgService constructs a new organization service instance
-func NewOrgService(logger Logger) OrgService {
+func NewOrgService(logger Logger) helm.OrgService {
 	return orgService{logger: logger}
 }
 

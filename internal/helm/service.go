@@ -62,6 +62,8 @@ type Service interface {
 	UpdateRepository(ctx context.Context, organizationID uint, repository Repository) error
 }
 
+// +testify:mock:testOnly=true
+
 // Service manages Helm chart repositories.
 type EnvService interface {
 	// AddRepository adds a new Helm chart repository.
@@ -94,6 +96,14 @@ type Store interface {
 	Update(ctx context.Context, organizationID uint, repository Repository) error
 }
 
+type Releaser interface {
+	// TODO list / define all operations related to releases
+}
+
+type Chartmanager interface {
+	// TODO list /define all operations related to charts
+}
+
 type PasswordSecret struct {
 	UserName string
 	Password string
@@ -123,16 +133,24 @@ type service struct {
 	store         Store
 	secretStore   SecretStore
 	repoValidator RepoValidator
-	envService    Service
+	envResolver   EnvResolver
+	envService    EnvService
 	logger        Logger
 }
 
 // NewService returns a new Service.
-func NewService(store Store, secretStore SecretStore, validator RepoValidator, envService Service, logger Logger) Service {
+func NewService(
+	store Store,
+	secretStore SecretStore,
+	validator RepoValidator,
+	envResolver EnvResolver,
+	envService EnvService,
+	logger Logger) Service {
 	return service{
 		store:         store,
 		secretStore:   secretStore,
 		repoValidator: validator,
+		envResolver:   envResolver,
 		envService:    envService,
 		logger:        logger,
 	}
@@ -171,7 +189,12 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 		return errors.WrapIf(err, "failed to add helm repository")
 	}
 
-	if err := s.envService.AddRepository(ctx, organizationID, repository); err != nil {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	if err := s.envService.AddRepository(ctx, helmEnv, repository); err != nil {
 		return errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 
@@ -180,7 +203,12 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 }
 
 func (s service) ListRepositories(ctx context.Context, organizationID uint) (repos []Repository, err error) {
-	defaultRepos, err := s.envService.ListRepositories(ctx, organizationID)
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	defaultRepos, err := s.envService.ListRepositories(ctx, helmEnv)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to retrieve default repositories")
 	}
@@ -203,7 +231,12 @@ func (s service) DeleteRepository(ctx context.Context, organizationID uint, repo
 		return nil
 	}
 
-	if err := s.envService.DeleteRepository(ctx, organizationID, repoName); err != nil {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	if err := s.envService.DeleteRepository(ctx, helmEnv, repoName); err != nil {
 		return errors.WrapIf(err, "failed to delete helm repository environment")
 	}
 
@@ -245,7 +278,12 @@ func (s service) PatchRepository(ctx context.Context, organizationID uint, repos
 		return errors.WrapIf(err, "failed to add helm repository")
 	}
 
-	if err := s.envService.PatchRepository(ctx, organizationID, repository); err != nil {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	if err := s.envService.PatchRepository(ctx, helmEnv, repository); err != nil {
 		return errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 
@@ -287,7 +325,12 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 		return errors.WrapIf(err, "failed to add helm repository")
 	}
 
-	if err := s.envService.PatchRepository(ctx, organizationID, repository); err != nil {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	if err := s.envService.PatchRepository(ctx, helmEnv, repository); err != nil {
 		return errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 

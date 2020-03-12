@@ -29,7 +29,8 @@ func Test_service_AddRepository(t *testing.T) {
 		store         Store
 		secretStore   SecretStore
 		repoValidator RepoValidator
-		envService    Service
+		envResolver   EnvResolver
+		envService    EnvService
 		logger        common.Logger
 	}
 	type args struct {
@@ -41,7 +42,7 @@ func Test_service_AddRepository(t *testing.T) {
 		name       string
 		fields     fields
 		args       args
-		setupMocks func(store *Store, secretStore *SecretStore, envService *Service, arguments args)
+		setupMocks func(store *Store, secretStore *SecretStore, envResolver *EnvResolver, envService *EnvService, arguments args)
 		wantErr    bool
 	}{
 		{
@@ -49,7 +50,8 @@ func Test_service_AddRepository(t *testing.T) {
 			fields: fields{
 				store:         &MockStore{},
 				secretStore:   &MockSecretStore{},
-				envService:    &MockService{},
+				envResolver:   &MockEnvResolver{},
+				envService:    &MockEnvService{},
 				repoValidator: NewHelmRepoValidator(),
 				logger:        common.NoopLogger{},
 			},
@@ -62,7 +64,7 @@ func Test_service_AddRepository(t *testing.T) {
 					PasswordSecretID: "password-ref",
 				},
 			},
-			setupMocks: func(store *Store, secretStore *SecretStore, envService *Service, arguments args) {
+			setupMocks: func(store *Store, secretStore *SecretStore, envResolver *EnvResolver, envService *EnvService, arguments args) {
 				secretStoreMock := (*secretStore).(*MockSecretStore)
 				secretStoreMock.On("CheckPasswordSecret", arguments.ctx, arguments.repository.PasswordSecretID).Return(nil)
 			},
@@ -73,7 +75,8 @@ func Test_service_AddRepository(t *testing.T) {
 			fields: fields{
 				store:         &MockStore{},
 				secretStore:   &MockSecretStore{},
-				envService:    &MockService{},
+				envResolver:   &MockEnvResolver{},
+				envService:    &MockEnvService{},
 				repoValidator: NewHelmRepoValidator(),
 				logger:        common.NoopLogger{},
 			},
@@ -86,7 +89,7 @@ func Test_service_AddRepository(t *testing.T) {
 					PasswordSecretID: "password-ref",
 				},
 			},
-			setupMocks: func(store *Store, secretStore *SecretStore, envService *Service, arguments args) {
+			setupMocks: func(store *Store, secretStore *SecretStore, envResolver *EnvResolver, envService *EnvService, arguments args) {
 				secretStoreMock := (*secretStore).(*MockSecretStore)
 				secretStoreMock.On("CheckPasswordSecret", arguments.ctx, arguments.repository.PasswordSecretID).Return(errors.New("secret doesn't exist"))
 			},
@@ -97,7 +100,8 @@ func Test_service_AddRepository(t *testing.T) {
 			fields: fields{
 				store:         &MockStore{},
 				secretStore:   &MockSecretStore{},
-				envService:    &MockService{},
+				envResolver:   &MockEnvResolver{},
+				envService:    &MockEnvService{},
 				repoValidator: NewHelmRepoValidator(),
 				logger:        common.NoopLogger{},
 			},
@@ -110,7 +114,7 @@ func Test_service_AddRepository(t *testing.T) {
 					PasswordSecretID: "password-ref",
 				},
 			},
-			setupMocks: func(store *Store, secretStore *SecretStore, envService *Service, arguments args) {
+			setupMocks: func(store *Store, secretStore *SecretStore, envResolver *EnvResolver, envService *EnvService, arguments args) {
 				secretStoreMock := (*secretStore).(*MockSecretStore)
 				secretStoreMock.On("CheckPasswordSecret", arguments.ctx, arguments.repository.PasswordSecretID).Return(nil)
 
@@ -124,7 +128,8 @@ func Test_service_AddRepository(t *testing.T) {
 			fields: fields{
 				store:         &MockStore{},
 				secretStore:   &MockSecretStore{},
-				envService:    &MockService{},
+				envResolver:   &MockEnvResolver{},
+				envService:    &MockEnvService{},
 				repoValidator: NewHelmRepoValidator(),
 				logger:        common.NoopLogger{},
 			},
@@ -137,7 +142,7 @@ func Test_service_AddRepository(t *testing.T) {
 					PasswordSecretID: "password-ref",
 				},
 			},
-			setupMocks: func(store *Store, secretStore *SecretStore, envService *Service, arguments args) {
+			setupMocks: func(store *Store, secretStore *SecretStore, envResolver *EnvResolver, envService *EnvService, arguments args) {
 				secretStoreMock := (*secretStore).(*MockSecretStore)
 				secretStoreMock.On("CheckPasswordSecret", arguments.ctx, arguments.repository.PasswordSecretID).Return(nil)
 
@@ -145,19 +150,23 @@ func Test_service_AddRepository(t *testing.T) {
 				storeMock.On("Get", arguments.ctx, arguments.organizationID, arguments.repository).Return(Repository{}, errors.New("repo not found"))
 				storeMock.On("Create", arguments.ctx, arguments.organizationID, arguments.repository).Return(nil)
 
-				envServiceMock := (*envService).(*MockService)
-				envServiceMock.On("AddRepository", arguments.ctx, arguments.organizationID, arguments.repository).Return(nil)
+				envResolverMock := (*envResolver).(*MockEnvResolver)
+				envResolverMock.On("ResolveHelmEnv", arguments.ctx, arguments.organizationID).Return(HelmEnv{home: "/test"}, nil)
+
+				envServiceMock := (*envService).(*MockEnvService)
+				envServiceMock.On("AddRepository", arguments.ctx, HelmEnv{home: "/test"}, arguments.repository).Return(nil)
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.setupMocks(&tt.fields.store, &tt.fields.secretStore, &tt.fields.envService, tt.args)
+			tt.setupMocks(&tt.fields.store, &tt.fields.secretStore, &tt.fields.envResolver, &tt.fields.envService, tt.args)
 			s := service{
 				store:         tt.fields.store,
 				secretStore:   tt.fields.secretStore,
 				repoValidator: tt.fields.repoValidator,
+				envResolver:   tt.fields.envResolver,
 				envService:    tt.fields.envService,
 				logger:        tt.fields.logger,
 			}
@@ -174,7 +183,8 @@ func Test_service_ListRepositories(t *testing.T) {
 		store         Store
 		secretStore   SecretStore
 		repoValidator RepoValidator
-		envService    Service
+		envResolver   EnvResolver
+		envService    EnvService
 		logger        Logger
 	}
 	type args struct {
@@ -186,7 +196,7 @@ func Test_service_ListRepositories(t *testing.T) {
 		fields     fields
 		args       args
 		wantRepos  []Repository
-		setupMocks func(store *Store, secretStore *SecretStore, envService *Service, arguments args)
+		setupMocks func(store *Store, secretStore *SecretStore, envResolver *EnvResolver, envService *EnvService, arguments args)
 		wantErr    bool
 	}{
 		{
@@ -195,7 +205,8 @@ func Test_service_ListRepositories(t *testing.T) {
 				store:         &MockStore{},
 				secretStore:   &MockSecretStore{},
 				repoValidator: NewHelmRepoValidator(),
-				envService:    &MockService{},
+				envResolver:   &MockEnvResolver{},
+				envService:    &MockEnvService{},
 				logger:        common.NoopLogger{},
 			},
 			args: args{
@@ -216,12 +227,15 @@ func Test_service_ListRepositories(t *testing.T) {
 					URL:  "https://grafana.github.io/loki/charts",
 				},
 			},
-			setupMocks: func(store *Store, secretStore *SecretStore, envService *Service, arguments args) {
+			setupMocks: func(store *Store, secretStore *SecretStore, envResolver *EnvResolver, envService *EnvService, arguments args) {
 				storeMock := (*store).(*MockStore)
 				storeMock.On("List", arguments.ctx, arguments.organizationID).Return([]Repository{}, nil)
 
-				envServiceMock := (*envService).(*MockService)
-				envServiceMock.On("ListRepositories", arguments.ctx, arguments.organizationID).Return(
+				envResolverMock := (*envResolver).(*MockEnvResolver)
+				envResolverMock.On("ResolveHelmEnv", arguments.ctx, arguments.organizationID).Return(HelmEnv{home: "/test"}, nil)
+
+				envServiceMock := (*envService).(*MockEnvService)
+				envServiceMock.On("ListRepositories", arguments.ctx, HelmEnv{home: "/test"}).Return(
 					[]Repository{
 						{
 							Name: "stable",
@@ -247,7 +261,8 @@ func Test_service_ListRepositories(t *testing.T) {
 				store:         &MockStore{},
 				secretStore:   &MockSecretStore{},
 				repoValidator: NewHelmRepoValidator(),
-				envService:    &MockService{},
+				envResolver:   &MockEnvResolver{},
+				envService:    &MockEnvService{},
 				logger:        common.NoopLogger{},
 			},
 			args: args{
@@ -264,7 +279,7 @@ func Test_service_ListRepositories(t *testing.T) {
 					URL:  "https://userdomain.io/userrepo/charts",
 				},
 			},
-			setupMocks: func(store *Store, secretStore *SecretStore, envService *Service, arguments args) {
+			setupMocks: func(store *Store, secretStore *SecretStore, envResolver *EnvResolver, envService *EnvService, arguments args) {
 				storeMock := (*store).(*MockStore)
 				storeMock.On("List", arguments.ctx, arguments.organizationID).Return(
 					[]Repository{
@@ -276,8 +291,11 @@ func Test_service_ListRepositories(t *testing.T) {
 					nil,
 				)
 
-				envServiceMock := (*envService).(*MockService)
-				envServiceMock.On("ListRepositories", arguments.ctx, arguments.organizationID).Return(
+				envResolverMock := (*envResolver).(*MockEnvResolver)
+				envResolverMock.On("ResolveHelmEnv", arguments.ctx, arguments.organizationID).Return(HelmEnv{home: "/test"}, nil)
+
+				envServiceMock := (*envService).(*MockEnvService)
+				envServiceMock.On("ListRepositories", arguments.ctx, HelmEnv{home: "/test"}).Return(
 					[]Repository{
 						{
 							Name: "stable",
@@ -292,11 +310,12 @@ func Test_service_ListRepositories(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.setupMocks(&tt.fields.store, &tt.fields.secretStore, &tt.fields.envService, tt.args)
+			tt.setupMocks(&tt.fields.store, &tt.fields.secretStore, &tt.fields.envResolver, &tt.fields.envService, tt.args)
 			s := service{
 				store:         tt.fields.store,
 				secretStore:   tt.fields.secretStore,
 				repoValidator: tt.fields.repoValidator,
+				envResolver:   tt.fields.envResolver,
 				envService:    tt.fields.envService,
 				logger:        tt.fields.logger,
 			}

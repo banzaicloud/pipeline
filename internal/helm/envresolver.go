@@ -17,9 +17,17 @@ package helm
 import (
 	"context"
 	"path"
+
+	"emperror.dev/errors"
 )
 
 const platformHelmHome = "pipeline"
+
+// OrgService interface for decoupling organization related operations
+type OrgService interface {
+	// GetOrgNameByOrgID retrieves organization name for the provided ID
+	GetOrgNameByOrgID(ctx context.Context, orgID uint) (string, error)
+}
 
 // HelmEnv helm environment settings abstraction
 type HelmEnv struct {
@@ -38,39 +46,49 @@ func (e HelmEnv) IsPlatform() bool {
 	return e.platform
 }
 
+// +testify:mock:testOnly=true
+
 // HelmEnvResolver interface to abstract resolving helm homes
 type EnvResolver interface {
-	// ResolveHelmEnv resolves the helm home for the passed in organization name
-	// if the orgName parameter is empty the platfrom helm env home is returned
-	ResolveHelmEnv(ctx context.Context, orgName string) (HelmEnv, error)
+	// ResolveHelmEnv resolves the helm home for the passed in organization ID
+	// if the orgName parameter is empty the platform helm env home is returned
+	ResolveHelmEnv(ctx context.Context, organizationID uint) (HelmEnv, error)
+
+	ResolvePlatformEnv(ctx context.Context) (HelmEnv, error)
 }
 
 type helmEnvResolver struct {
 	// helmHomes the configurable directory location where helm homes are to be set up
-	helmHomes string
-	logger    Logger
+	helmHomes  string
+	orgService OrgService
+	logger     Logger
 }
 
-func (h helmEnvResolver) ResolveHelmEnv(ctx context.Context, orgName string) (HelmEnv, error) {
-	if orgName == "" {
-		h.logger.Debug("resolving platform helm env home")
+func NewHelmEnvResolver(helmHome string, orgService OrgService, logger Logger) EnvResolver {
+	return helmEnvResolver{
+		helmHomes:  helmHome,
+		orgService: orgService,
+		logger:     logger,
+	}
+}
 
-		return HelmEnv{
-			home:     path.Join(h.helmHomes, platformHelmHome),
-			platform: true,
-		}, nil
+func (h helmEnvResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (HelmEnv, error) {
+	h.logger.Debug("resolving organization helm env home")
+	orgName, err := h.orgService.GetOrgNameByOrgID(ctx, organizationID)
+	if err != nil {
+		return HelmEnv{}, errors.WrapIfWithDetails(err, "failed to get organization name for ID",
+			"organizationID", organizationID)
 	}
 
-	h.logger.Debug("resolving organization helm env home")
 	return HelmEnv{
 		home:     path.Join(h.helmHomes, orgName),
 		platform: false,
 	}, nil
 }
 
-func NewHelmEnvResolver(helmHome string, logger Logger) EnvResolver {
-	return helmEnvResolver{
-		helmHomes: helmHome,
-		logger:    logger,
-	}
+func (h helmEnvResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
+	return HelmEnv{
+		home:     path.Join(h.helmHomes, platformHelmHome),
+		platform: true,
+	}, nil
 }
