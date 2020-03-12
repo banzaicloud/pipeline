@@ -62,15 +62,18 @@ type Service interface {
 	UpdateRepository(ctx context.Context, organizationID uint, repository Repository) error
 }
 
-// NewService returns a new Service.
-func NewService(store Store, secretStore SecretStore, validator RepoValidator, envService Service, logger Logger) Service {
-	return service{
-		store:         store,
-		secretStore:   secretStore,
-		repoValidator: validator,
-		envService:    envService,
-		logger:        logger,
-	}
+// Service manages Helm chart repositories.
+type EnvService interface {
+	// AddRepository adds a new Helm chart repository.
+	AddRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) error
+	// ListRepositories lists Helm repositories.
+	ListRepositories(ctx context.Context, helmEnv HelmEnv) (repos []Repository, err error)
+	// ListRepositories deletes a Helm repository
+	DeleteRepository(ctx context.Context, helmEnv HelmEnv, repoName string) error
+	// PatchRepository patches an existing repository
+	PatchRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) error
+	// UpdateRepository updates an existing repository
+	UpdateRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) error
 }
 
 // +testify:mock:testOnly=true
@@ -122,6 +125,17 @@ type service struct {
 	repoValidator RepoValidator
 	envService    Service
 	logger        Logger
+}
+
+// NewService returns a new Service.
+func NewService(store Store, secretStore SecretStore, validator RepoValidator, envService Service, logger Logger) Service {
+	return service{
+		store:         store,
+		secretStore:   secretStore,
+		repoValidator: validator,
+		envService:    envService,
+		logger:        logger,
+	}
 }
 
 func (s service) AddRepository(ctx context.Context, organizationID uint, repository Repository) error {

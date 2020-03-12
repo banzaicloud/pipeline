@@ -18,6 +18,8 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	"k8s.io/helm/pkg/helm/environment"
+	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/repo"
 
 	"github.com/banzaicloud/pipeline/internal/helm"
@@ -80,12 +82,12 @@ func (e envService) AddRepository(ctx context.Context, organizationID uint, repo
 }
 
 // ListRepositories noop implementation (env details not returned
-func (e envService) ListRepositories(ctx context.Context, organizationID uint) (repos []helm.Repository, err error) {
+func (e envService) ListRepositories(_ context.Context, organizationID uint) (repos []helm.Repository, err error) {
 	defaultRepos := make([]helm.Repository, 0, len(e.config.Repositories))
-	for name, repo := range e.config.Repositories {
+	for name, repository := range e.config.Repositories {
 		defaultRepos = append(defaultRepos, helm.Repository{
 			Name: name,
-			URL:  repo,
+			URL:  repository,
 		})
 	}
 
@@ -162,6 +164,102 @@ func (e envService) transform(ctx context.Context, repository helm.Repository) (
 		entry.CAFile = tlsSecrets.CAFile
 		entry.CertFile = tlsSecrets.CertFile
 		entry.KeyFile = tlsSecrets.KeyFile
+	}
+
+	return entry, nil
+}
+
+// helmEnvService component in charge to operate the helm env on the filesystem
+type helmEnvService struct {
+	logger Logger
+}
+
+func NewHelmEnvService(logger Logger) helm.EnvService {
+	return helmEnvService{logger: logger}
+}
+
+func (h helmEnvService) AddRepository(_ context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
+	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
+
+	if err := legacyHelm.EnsureDirectories(envSettings); err != nil {
+		return errors.WrapIfWithDetails(err, "failed to install helm environment", "path", helmEnv.GetHome())
+	}
+
+	entry, err := h.repositoryToEntry(repository)
+	if err != nil {
+		return errors.WrapIf(err, "failed to resolve helm entry data")
+	}
+
+	if _, err = legacyHelm.ReposAdd(envSettings, &entry); err != nil {
+		return errors.WrapIf(err, "failed to set up environment for repository")
+	}
+
+	h.logger.Debug("helm repository successfully added", map[string]interface{}{"helmEnv": helmEnv.GetHome(),
+		"repository": repository.Name})
+	return nil
+}
+
+func (h helmEnvService) ListRepositories(_ context.Context, helmEnv helm.HelmEnv) (repos []helm.Repository, err error) {
+	h.logger.Debug("returning empty helm repository list", map[string]interface{}{"helmEnv": helmEnv.GetHome()})
+
+	// no data from the env returned
+	return []helm.Repository{}, nil
+}
+
+func (h helmEnvService) DeleteRepository(_ context.Context, helmEnv helm.HelmEnv, repoName string) error {
+	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
+
+	if err := legacyHelm.ReposDelete(envSettings, repoName); err != nil {
+		if errors.Cause(err).Error() == legacyHelm.ErrRepoNotFound.Error() {
+			return nil
+		}
+
+		return errors.WrapIf(err, "failed to remove helm repository")
+	}
+
+	h.logger.Debug("helm repository successfully removed", map[string]interface{}{"helmEnv": helmEnv.GetHome()})
+	return nil
+
+}
+
+func (h helmEnvService) PatchRepository(_ context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
+	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
+
+	entry, err := h.repositoryToEntry(repository)
+	if err != nil {
+		return errors.WrapIf(err, "failed to resolve helm entry data")
+	}
+
+	if err = legacyHelm.ReposModify(envSettings, repository.Name, &entry); err != nil {
+		return errors.WrapIf(err, "failed to set up environment for repository")
+	}
+
+	h.logger.Debug("helm repository successfully patched", map[string]interface{}{"helmEnv": helmEnv.GetHome(),
+		"repository": repository.Name})
+	return nil
+}
+
+func (h helmEnvService) UpdateRepository(_ context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
+	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
+
+	entry, err := h.repositoryToEntry(repository)
+	if err != nil {
+		return errors.WrapIf(err, "failed to resolve helm entry data")
+	}
+
+	if err = legacyHelm.ReposModify(envSettings, repository.Name, &entry); err != nil {
+		return errors.WrapIf(err, "failed to set up environment for repository")
+	}
+
+	h.logger.Debug("helm repository successfully updated", map[string]interface{}{"helmEnv": helmEnv.GetHome(),
+		"repository": repository.Name})
+	return nil
+}
+
+func (h helmEnvService) repositoryToEntry(repository helm.Repository) (repo.Entry, error) {
+	entry := repo.Entry{
+		Name: repository.Name,
+		URL:  repository.URL,
 	}
 
 	return entry, nil
