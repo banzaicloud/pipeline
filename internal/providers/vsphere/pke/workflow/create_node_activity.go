@@ -59,7 +59,6 @@ type CreateNodeActivityInput struct {
 	ResourcePoolName string
 	FolderName       string
 	DatastoreName    string
-	//HTTPProxy         intPKEWorkflow.HTTPProxy
 	Node
 }
 
@@ -121,6 +120,9 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 	)
 
 	logger.Info("create virtual machine")
+
+	logger.Info("http= " + input.UserDataScriptParams["HttpProxy"])
+	logger.Info("https= " + input.UserDataScriptParams["HttpsProxy"])
 
 	vmRef := types.ManagedObjectReference{}
 

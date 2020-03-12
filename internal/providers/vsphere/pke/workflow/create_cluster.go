@@ -16,6 +16,8 @@ package workflow
 
 import (
 	"fmt"
+	"net"
+	"strconv"
 	"time"
 
 	"emperror.dev/errors"
@@ -27,6 +29,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
+	intPKEWorkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -91,6 +94,22 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 	}
 
+	var httpProxy intPKEWorkflow.HTTPProxy
+	{
+		activityInput := intPKEWorkflow.AssembleHTTPProxySettingsActivityInput{
+			OrganizationID:     input.OrganizationID,
+			HTTPProxyHostPort:  getHostPort(input.HTTPProxy.HTTP),
+			HTTPProxySecretID:  input.HTTPProxy.HTTP.SecretID,
+			HTTPSProxyHostPort: getHostPort(input.HTTPProxy.HTTPS),
+			HTTPSProxySecretID: input.HTTPProxy.HTTPS.SecretID,
+		}
+		var output intPKEWorkflow.AssembleHTTPProxySettingsActivityOutput
+		if err := workflow.ExecuteActivity(ctx, intPKEWorkflow.AssembleHTTPProxySettingsActivityName, activityInput).Get(ctx, &output); err != nil {
+			return err
+		}
+		httpProxy = output.Settings
+	}
+
 	var masterRef types.ManagedObjectReference
 	// Create master nodes
 	{
@@ -103,6 +122,10 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 			if node.UserDataScriptParams == nil {
 				node.UserDataScriptParams = make(map[string]string)
 			}
+
+			node.UserDataScriptParams["HttpProxy"] = httpProxy.HTTPProxyURL
+			node.UserDataScriptParams["HttpsProxy"] = httpProxy.HTTPSProxyURL
+
 			activityInput := CreateNodeActivityInput{
 				OrganizationID:   input.OrganizationID,
 				SecretID:         input.SecretID,
@@ -154,6 +177,10 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 			if node.UserDataScriptParams["PublicAddress"] == "" {
 				node.UserDataScriptParams["PublicAddress"] = masterIP
 			}
+
+			node.UserDataScriptParams["HttpProxy"] = httpProxy.HTTPProxyURL
+			node.UserDataScriptParams["HttpsProxy"] = httpProxy.HTTPSProxyURL
+
 			activityInput := CreateNodeActivityInput{
 				OrganizationID:   input.OrganizationID,
 				SecretID:         input.SecretID,
@@ -229,6 +256,16 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	}
 
 	return nil
+}
+
+func getHostPort(o intPKE.HTTPProxyOptions) string {
+	if o.Host == "" {
+		return ""
+	}
+	if o.Port == 0 {
+		return o.Host
+	}
+	return net.JoinHostPort(o.Host, strconv.FormatUint(uint64(o.Port), 10))
 }
 
 func waitForMasterReadySignal(ctx workflow.Context, timeout time.Duration) error {

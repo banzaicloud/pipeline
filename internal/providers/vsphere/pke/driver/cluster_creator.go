@@ -356,9 +356,9 @@ func (p clusterCreatorNodePoolPreparerDataProvider) getExistingNodePoolByName(ct
 
 // TODO add vsphere params
 const masterUserDataScriptTemplate = `#!/bin/sh
-#export HTTP_PROXY="{{ .HttpProxy }}"
-#export HTTPS_PROXY="{{ .HttpsProxy }}"
-#export NO_PROXY="{{ .NoProxy }}"
+export HTTP_PROXY="{{ .HttpProxy }}"
+export HTTPS_PROXY="{{ .HttpsProxy }}"
+export NO_PROXY="{{ .NoProxy }}"
 
 PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
 PUBLIC_ADDRESS="{{ if .PublicAddress }}{{ .PublicAddress }}{{ else }}$PRIVATE_IP{{ end }}"
@@ -396,9 +396,9 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 #--lb-range=$lbrange                    */
 
 const workerUserDataScriptTemplate = `#!/bin/sh
-#export HTTP_PROXY="{{ .HttpProxy }}"
-#export HTTPS_PROXY="{{ .HttpsProxy }}"
-#export NO_PROXY="{{ .NoProxy }}"
+export HTTP_PROXY="{{ .HttpProxy }}"
+export HTTPS_PROXY="{{ .HttpsProxy }}"
+export NO_PROXY="{{ .NoProxy }}"
 
 until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 chmod +x /usr/local/bin/pke

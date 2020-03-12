@@ -21,6 +21,7 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
+	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 )
 
 // NodePoolsPreparer implements []NodePool preparation
@@ -84,6 +85,11 @@ func (p NodePoolPreparer) Prepare(ctx context.Context, nodePool *NodePool) error
 
 	if nodePool.Name == "" {
 		return validationErrorf("%s.Name must be specified", p.namespace)
+	}
+
+	if nodePool.hasRole(pkgPKE.RoleMaster) && nodePool.Size == 0 {
+		p.logger.Debug("Master node pool size should be >= 0, defaulting to 1")
+		nodePool.Size = 1
 	}
 
 	np, err := p.dataProvider.getExistingNodePoolByName(ctx, nodePool.Name)

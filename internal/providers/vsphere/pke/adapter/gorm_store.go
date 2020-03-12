@@ -127,6 +127,7 @@ func fillClusterFromModel(cluster *pke.PKEOnVsphereCluster, model vspherePkeClus
 	cluster.Datastore = model.Spec.DatastoreName
 	cluster.Folder = model.Spec.FolderName
 	cluster.ResourcePool = model.Spec.ResourcePoolName
+	cluster.HTTPProxy = model.Spec.HTTPProxy
 
 	return nil
 }

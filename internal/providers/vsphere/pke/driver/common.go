@@ -90,6 +90,7 @@ func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
 		}
 	}
 
+	// HttpProxy settings will be set in workflow
 	node.UserDataScriptParams = map[string]string{
 		"ClusterID":            strconv.FormatUint(uint64(f.ClusterID), 10),
 		"ClusterName":          f.ClusterName,
@@ -102,11 +103,7 @@ func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
 		"PKEVersion":           pkeVersion,
 		"KubernetesVersion":    f.KubernetesVersion,
 		"KubernetesMasterMode": k8sMasterMode,
-		// TODO setup http proxy
-		//"PublicAddress":        "<not yet set>",
-		//"HttpProxy":            "<not yet set>",
-		//"HttpsProxy":           "<not yet set>",
-		//"NoProxy":              f.NoProxy,
+		"NoProxy":              f.NoProxy,
 	}
 	return node
 }
