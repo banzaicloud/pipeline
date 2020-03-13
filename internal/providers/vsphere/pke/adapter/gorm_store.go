@@ -390,37 +390,6 @@ func (s gormVspherePKEClusterStore) GetConfigSecretID(clusterID uint) (string, e
 	return model.ConfigSecretID, nil
 }
 
-func (s gormVspherePKEClusterStore) SetFeature(clusterID uint, feature string, state bool) error {
-	if err := validateClusterID(clusterID); err != nil {
-		return errors.WrapIf(err, "invalid cluster ID")
-	}
-
-	model := clustermodel.ClusterModel{
-		ID: clusterID,
-	}
-
-	features := map[string]bool{
-		"SecurityScan": true,
-		"Logging":      true,
-		"Monitoring":   true,
-	}
-
-	if !features[feature] {
-		return fmt.Errorf("unknown feature: %q", feature)
-	}
-
-	fields := map[string]interface{}{
-		feature: state,
-	}
-
-	return getError(s.db.Model(&model).Updates(fields), "failed to update %q feature state", feature)
-}
-
-func (s gormVspherePKEClusterStore) SetNodePoolSizes(clusterID uint, nodePoolName string, min, max, desiredCount uint, autoscaling bool) error {
-	// TODO
-	return nil
-}
-
 // Migrate executes the table migrations for the provider.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
