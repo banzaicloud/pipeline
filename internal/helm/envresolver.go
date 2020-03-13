@@ -21,7 +21,10 @@ import (
 	"emperror.dev/errors"
 )
 
-const platformHelmHome = "pipeline"
+const (
+	platformHelmHome = "pipeline"
+	helmPostFix      = "helm"
+)
 
 // OrgService interface for decoupling organization related operations
 type OrgService interface {
@@ -81,14 +84,14 @@ func (h helmEnvResolver) ResolveHelmEnv(ctx context.Context, organizationID uint
 	}
 
 	return HelmEnv{
-		home:     path.Join(h.helmHomes, orgName),
+		home:     path.Join(h.helmHomes, orgName, helmPostFix),
 		platform: false,
 	}, nil
 }
 
 func (h helmEnvResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
 	return HelmEnv{
-		home:     path.Join(h.helmHomes, platformHelmHome),
+		home:     path.Join(h.helmHomes, platformHelmHome, helmPostFix),
 		platform: true,
 	}, nil
 }
