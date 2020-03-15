@@ -26,9 +26,15 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
+	sqlJson "github.com/banzaicloud/pipeline/internal/database/sql/json"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+)
+
+const (
+	ClustersTableName  = "vsphere_pke_clusters"
+	NodePoolsTableName = "vsphere_pke_node_pools"
 )
 
 type gormVspherePKEClusterStore struct {
@@ -41,25 +47,48 @@ func NewClusterStore(db *gorm.DB) pke.ClusterStore {
 	}
 }
 
+type rolesModel []string
+
+func (m *rolesModel) Scan(v interface{}) error {
+	return sqlJson.Scan(v, m)
+}
+
+func (m rolesModel) Value() (driver.Value, error) {
+	return sqlJson.Value(m)
+}
+
 type nodePoolModel struct {
-	CreatedBy uint
-	Count     int
-	VCPU      int
-	RamMB     int
-	Name      string
-	Roles     []string
+	gorm.Model
+
+	Autoscaling bool
+	ClusterID   uint `gorm:"unique_index:idx_vsphere_pke_np_cluster_id_name"`
+	CreatedBy   uint
+	Count       int
+	Max         uint
+	Min         uint
+	VCPU        int
+	RamMB       int
+	Name        string     `gorm:"unique_index:idx_vsphere_pke_np_cluster_id_name"`
+	Roles       rolesModel `gorm:"type:json"`
+}
+
+func (nodePoolModel) TableName() string {
+	return NodePoolsTableName
 }
 
 type vspherePkeCluster struct {
 	ID        uint                      `gorm:"primary_key"`
 	ClusterID uint                      `gorm:"unique_index:idx_vsphere_pke_cluster_id"`
 	Cluster   clustermodel.ClusterModel `gorm:"foreignkey:ClusterID"`
+	Spec      ProviderSpec              `gorm:"type:json"`
+	NodePools []nodePoolModel           `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
+}
 
-	Spec ProviderSpec `gorm:"type:json"`
+func (vspherePkeCluster) TableName() string {
+	return ClustersTableName
 }
 
 type ProviderSpec struct {
-	NodePools        []nodePoolModel
 	Kubernetes       intPKE.Kubernetes
 	ActiveWorkflowID string
 	HTTPProxy        intPKE.HTTPProxy
@@ -117,8 +146,8 @@ func fillClusterFromClusterModel(cl *pke.PKEOnVsphereCluster, model clustermodel
 func fillClusterFromModel(cluster *pke.PKEOnVsphereCluster, model vspherePkeCluster) error {
 	fillClusterFromClusterModel(cluster, model.Cluster)
 
-	cluster.NodePools = make([]pke.NodePool, len(model.Spec.NodePools))
-	for i, np := range model.Spec.NodePools {
+	cluster.NodePools = make([]pke.NodePool, len(model.NodePools))
+	for i, np := range model.NodePools {
 		fillNodePoolFromModel(&cluster.NodePools[i], np)
 	}
 
@@ -151,15 +180,9 @@ func fillModelFromNodePool(model *nodePoolModel, nodePool pke.NodePool) {
 }
 
 func (s gormVspherePKEClusterStore) CreateNodePool(clusterID uint, nodePool pke.NodePool) error {
-	data, err := s.getProviderData(clusterID)
-	if err != nil {
-		return err
-	}
-
 	var np nodePoolModel
+	np.ClusterID = clusterID
 	fillModelFromNodePool(&np, nodePool)
-
-	data.NodePools = append(data.NodePools, np)
 	return getError(s.db.Create(&np), "failed to create node pool model")
 }
 
@@ -193,13 +216,13 @@ func (s gormVspherePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOn
 			},
 		},
 		Spec: ProviderSpec{
-			NodePools:        nodePools,
 			ResourcePoolName: params.ResourcePoolName,
 			FolderName:       params.FolderName,
 			DatastoreName:    params.DatastoreName,
 			Kubernetes:       params.Kubernetes,
 			HTTPProxy:        params.HTTPProxy,
 		},
+		NodePools: nodePools,
 	}
 
 	if err = getError(s.db.Preload("Cluster").Create(&model), "failed to create cluster model"); err != nil {
@@ -212,29 +235,22 @@ func (s gormVspherePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOn
 }
 
 func (s gormVspherePKEClusterStore) DeleteNodePool(clusterID uint, nodePoolName string) error {
-	data, err := s.getProviderData(clusterID)
-	if err != nil {
-		return err
+	if err := validateClusterID(clusterID); err != nil {
+		return errors.WrapIf(err, "invalid cluster ID")
 	}
-
 	if nodePoolName == "" {
 		return errors.New("empty node pool name")
 	}
 
-	newPools := []nodePoolModel{}
-
-	for _, np := range data.NodePools {
-		if np.Name != nodePoolName {
-			newPools = append(newPools, np)
-		}
+	model := nodePoolModel{
+		ClusterID: clusterID,
+		Name:      nodePoolName,
 	}
-	if len(newPools) == len(data.NodePools) {
-		return errors.New("can't find node pool")
+	if err := getError(s.db.Where(model).First(&model), "failed to load model from database"); err != nil {
+		return err
 	}
 
-	data.NodePools = newPools
-
-	return s.updateProviderData(clusterID, data)
+	return getError(s.db.Delete(model), "failed to delete model from database")
 }
 
 func (s gormVspherePKEClusterStore) Delete(clusterID uint) error {
@@ -394,6 +410,7 @@ func (s gormVspherePKEClusterStore) GetConfigSecretID(clusterID uint) (string, e
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
 		&vspherePkeCluster{},
+		&nodePoolModel{},
 	}
 
 	var tableNames string
