@@ -634,7 +634,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::securityScan::anchore::user", "")
 	v.SetDefault("cluster::securityScan::anchore::password", "")
 	v.SetDefault("cluster::securityScan::webhook::chart", "banzaicloud-stable/anchore-policy-validator")
-	v.SetDefault("cluster::securityScan::webhook::version", "0.5.3")
+	v.SetDefault("cluster::securityScan::webhook::version", "0.5.6")
 	v.SetDefault("cluster::securityScan::webhook::release", "anchore")
 	v.SetDefault("cluster::securityScan::webhook::namespace", "pipeline-system")
 	//v.SetDefault("cluster::securityScan::webhook::values", map[string]interface{}{
