@@ -4411,7 +4411,7 @@ components:
                 - name
                 - roles
                 - vcpu
-                - ramMB
+                - ram
             properties:
                 name:
                     type: string
@@ -4434,7 +4434,7 @@ components:
                     type: integer
                     example: 2
                     description: Number of VCPUs to attach to each node.
-                ramMB:
+                ram:
                     type: integer
                     example: 2048
                     description: MiBs of RAM to attach to each node.

@@ -18527,7 +18527,7 @@ components:
           description: Number of VCPUs to attach to each node.
           example: 2
           type: integer
-        ramMB:
+        ram:
           description: MiBs of RAM to attach to each node.
           example: 2048
           type: integer
@@ -18544,7 +18544,7 @@ components:
           type: string
       required:
       - name
-      - ramMB
+      - ram
       - roles
       - vcpu
       type: object

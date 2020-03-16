@@ -93,7 +93,7 @@ func vsphereRequestToClusterNodepools(request []pipeline.PkeOnVsphereNodePool, u
 			Size:          int(node.Size),
 			AdminUsername: node.AdminUsername,
 			VCPU:          int(node.Vcpu),
-			RamMB:         int(node.RamMB),
+			RamMB:         int(node.Ram),
 			TemplateName:  node.Template,
 		}
 	}

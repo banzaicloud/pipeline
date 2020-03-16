@@ -27,13 +27,13 @@ type NodePool struct {
 	CreatedBy uint
 	Size      int
 	VCPU      int
-	RamMB     int
+	Ram       int
 	Name      string
 	Roles     []string
 }
 
 func (np NodePool) InstanceType() string {
-	return fmt.Sprintf("%dvcpu-%dmb", np.VCPU, np.RamMB)
+	return fmt.Sprintf("%dvcpu-%dmb", np.VCPU, np.Ram)
 }
 
 type PKEOnVsphereCluster struct {

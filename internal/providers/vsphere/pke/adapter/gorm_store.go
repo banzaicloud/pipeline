@@ -63,10 +63,10 @@ type nodePoolModel struct {
 	Autoscaling bool
 	ClusterID   uint `gorm:"unique_index:idx_vsphere_pke_np_cluster_id_name"`
 	CreatedBy   uint
-	Count       int
-	Max         uint
-	Min         uint
-	VCPU        int
+	Size        int
+	MaxSize     uint
+	MinSize     uint
+	VCPU        int `gorm:"column:vcpu"`
 	RamMB       int
 	Name        string     `gorm:"unique_index:idx_vsphere_pke_np_cluster_id_name"`
 	Roles       rolesModel `gorm:"type:json"`
@@ -163,18 +163,18 @@ func fillClusterFromModel(cluster *pke.PKEOnVsphereCluster, model vspherePkeClus
 
 func fillNodePoolFromModel(nodePool *pke.NodePool, model nodePoolModel) {
 	nodePool.CreatedBy = model.CreatedBy
-	nodePool.Size = model.Count
+	nodePool.Size = model.Size
 	nodePool.VCPU = model.VCPU
-	nodePool.RamMB = model.RamMB
+	nodePool.Ram = model.RamMB
 	nodePool.Name = model.Name
 	nodePool.Roles = model.Roles
 }
 
 func fillModelFromNodePool(model *nodePoolModel, nodePool pke.NodePool) {
 	model.CreatedBy = nodePool.CreatedBy
-	model.Count = nodePool.Size
+	model.Size = nodePool.Size
 	model.VCPU = nodePool.VCPU
-	model.RamMB = nodePool.RamMB
+	model.RamMB = nodePool.Ram
 	model.Name = nodePool.Name
 	model.Roles = nodePool.Roles
 }
@@ -276,7 +276,7 @@ func (s gormVspherePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnVs
 	model := vspherePkeCluster{
 		ClusterID: clusterID,
 	}
-	if err := getError(s.db.Preload("Cluster").Where(&model).First(&model), "failed to load model from database"); err != nil {
+	if err := getError(s.db.Preload("Cluster").Preload("NodePools").Where(&model).First(&model), "failed to load model from database"); err != nil {
 		return cluster, err
 	}
 	if err := fillClusterFromModel(&cluster, model); err != nil {

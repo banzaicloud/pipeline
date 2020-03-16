@@ -114,7 +114,7 @@ func (np NodePool) hasRole(role pkgPKE.Role) bool {
 func (np NodePool) toPke() (pnp pke.NodePool) {
 	pnp.Size = np.Size
 	pnp.VCPU = np.VCPU
-	pnp.RamMB = np.RamMB
+	pnp.Ram = np.RamMB
 	pnp.Name = np.Name
 	pnp.Roles = np.Roles
 	return
@@ -166,7 +166,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 			Roles:     np.Roles,
 			Size:      np.Size,
 			VCPU:      np.VCPU,
-			RamMB:     np.RamMB,
+			Ram:       np.RamMB,
 		}
 	}
 	createParams := pke.CreateParams{
