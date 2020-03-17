@@ -64,7 +64,7 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 			if strings.Contains(err.Error(), "could not find tiller") {
 				logger.Info("could not delete helm deployment because tiller is not running")
 			} else {
-				return errors.WrapIf(err, "failed to delete Help deployments")
+				return errors.WrapIf(err, "failed to delete Helm deployments")
 			}
 		}
 	}
