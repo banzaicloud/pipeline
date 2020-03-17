@@ -58,6 +58,7 @@ func (m rolesModel) Value() (driver.Value, error) {
 }
 
 type nodePoolModel struct {
+	ID          uint `gorm:"primary_key"`
 	Autoscaling bool
 	ClusterID   uint `gorm:"unique_index:idx_vsphere_pke_np_cluster_id_name"`
 	CreatedBy   uint

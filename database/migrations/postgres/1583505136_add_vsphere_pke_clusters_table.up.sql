@@ -20,6 +20,4 @@ CREATE TABLE "vsphere_pke_node_pools" (
   PRIMARY KEY ("id")
 );
 
-CREATE INDEX idx_vsphere_pke_node_pools_deleted_at ON "vsphere_pke_node_pools"(deleted_at);
-
 CREATE UNIQUE INDEX idx_vsphere_pke_np_cluster_id_name ON "vsphere_pke_node_pools"(cluster_id, "name");

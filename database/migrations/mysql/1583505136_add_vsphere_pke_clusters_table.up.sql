@@ -20,6 +20,5 @@ CREATE TABLE `vsphere_pke_node_pools` (
   `name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `roles` json DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_vsphere_pke_np_cluster_id_name` (`cluster_id`,`name`),
-  KEY `idx_vsphere_pke_node_pools_deleted_at` (`deleted_at`)
+  UNIQUE KEY `idx_vsphere_pke_np_cluster_id_name` (`cluster_id`,`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
