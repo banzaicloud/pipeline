@@ -49,7 +49,7 @@ const (
 	clusterRequestNodeCount     = 1
 	clusterRequestRG            = "testResourceGroup"
 	clusterRequestKubernetes    = "1.9.6"
-	clusterRequestKubernetesEKS = "1.11"
+	clusterRequestKubernetesEKS = "1.13"
 	clusterRequestAgentName     = "testAgent"
 	clusterRequestSpotPrice     = "1.2"
 	clusterRequestNodeMinCount  = 1
