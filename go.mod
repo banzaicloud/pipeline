@@ -109,6 +109,7 @@ require (
 	github.com/uber/jaeger-client-go v2.22.1+incompatible // indirect
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	github.com/uber/tchannel-go v1.16.0 // indirect
+	github.com/vmware/govmomi v0.22.0
 	github.com/xanzy/go-gitlab v0.16.2-0.20190325100843-bbb1af7187c8
 	go.opencensus.io v0.22.2
 	go.uber.org/cadence v0.9.0

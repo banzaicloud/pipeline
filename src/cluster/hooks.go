@@ -270,15 +270,23 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 		},
 	}
 
-	// install metricsServer for Amazon & Azure & Alibaba & Oracle only if metrics.k8s.io endpoint is not available already
-	switch cluster.GetCloud() {
-	case pkgCluster.Amazon, pkgCluster.Azure, pkgCluster.Alibaba, pkgCluster.Oracle:
-		if !metricsServerIsInstalled(cluster) {
-			log.Infof("Metrics Server is not installed, installing")
-			values["metrics-server"] = map[string]interface{}{"enabled": true}
-		} else {
-			log.Infof("Metrics Server is already installed")
+	// install metricsServer only if metrics.k8s.io endpoint is not available already
+	if !metricsServerIsInstalled(cluster) {
+		log.Infof("Metrics Server is not installed, installing")
+
+		metricsServerValues := make(map[string]interface{}, 0)
+		metricsServerValues["enabled"] = true
+
+		// use InternalIP on VSphere
+		if cluster.GetCloud() == pkgCluster.Vsphere {
+			metricsServerValues["args"] = []string{
+				"--kubelet-preferred-address-types=InternalIP",
+			}
 		}
+
+		values["metrics-server"] = metricsServerValues
+	} else {
+		log.Infof("Metrics Server is already installed")
 	}
 
 	mergedValues, err := mergeValues(values, config.Autoscale.Charts.HPAOperator.Values)

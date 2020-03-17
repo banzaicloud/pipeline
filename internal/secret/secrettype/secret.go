@@ -36,6 +36,7 @@ const (
 	Dummy      = "dummy"
 	Kubernetes = "kubernetes"
 	Oracle     = "oracle"
+	Vsphere    = "vsphere"
 )
 
 // Alibaba keys
@@ -82,6 +83,13 @@ const (
 	OracleAPIKeyFingerprint = "api_key_fingerprint"
 	OracleRegion            = "region"
 	OracleCompartmentOCID   = "compartment_ocid"
+)
+
+// vSphere keys
+const (
+	VsphereURL      = "url"
+	VsphereUser     = "user"
+	VspherePassword = "password"
 )
 
 // Kubernetes keys
@@ -258,6 +266,13 @@ var DefaultRules = map[string]Meta{
 			{Name: OracleAPIKeyFingerprint, Required: true, Description: "Fingerprint of you public key"},
 			{Name: OracleRegion, Required: true, Description: "Oracle region"},
 			{Name: OracleCompartmentOCID, Required: true, Description: "Your compartment OCID"},
+		},
+	},
+	Vsphere: {
+		Fields: []FieldMeta{
+			{Name: VsphereURL, Required: true, Description: "The URL endpoint of the vSphere instance to use (don't include auth info)"},
+			{Name: VsphereUser, Required: true, Description: "Username to use for vSphere authentication"},
+			{Name: VspherePassword, Required: true, Description: "Password to use for vSphere authentication"},
 		},
 	},
 	SSHSecretType: {
