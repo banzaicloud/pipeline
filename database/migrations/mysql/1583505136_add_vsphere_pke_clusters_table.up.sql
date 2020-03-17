@@ -9,9 +9,6 @@ CREATE TABLE `vsphere_pke_clusters` (
 
 CREATE TABLE `vsphere_pke_node_pools` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  `deleted_at` timestamp NULL DEFAULT NULL,
   `autoscaling` tinyint(1) DEFAULT NULL,
   `cluster_id` int(10) unsigned DEFAULT NULL,
   `created_by` int(10) unsigned DEFAULT NULL,
@@ -19,7 +16,7 @@ CREATE TABLE `vsphere_pke_node_pools` (
   `max_size` int(10) unsigned DEFAULT NULL,
   `min_size` int(10) unsigned DEFAULT NULL,
   `vcpu` int(11) DEFAULT NULL,
-  `ram_mb` int(11) DEFAULT NULL,
+  `ram` int(11) DEFAULT NULL,
   `name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `roles` json DEFAULT NULL,
   PRIMARY KEY (`id`),

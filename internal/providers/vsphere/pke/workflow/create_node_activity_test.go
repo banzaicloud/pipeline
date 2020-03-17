@@ -32,7 +32,7 @@ func TestCreateNodeActivity_GenerateVMConfig(t *testing.T) {
 		Node: Node{
 			AdminUsername: "",
 			VCPU:          2,
-			RamMB:         1024,
+			RAM:           1024,
 			Name:          "vmware-test-638-pool1-01",
 			SSHPublicKey:  "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCcbjzbnsFLpteiglidLoYny7s93YjBq59oJEN no-reply@banzaicloud.com \n",
 			UserDataScriptParams: map[string]string{

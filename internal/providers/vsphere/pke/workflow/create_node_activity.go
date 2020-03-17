@@ -20,8 +20,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"strings"
-	"text/template"
 
 	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
@@ -31,6 +29,9 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
+
+	"strings"
+	"text/template"
 )
 
 // CreateNodeActivityName is the default registration name of the activity
@@ -66,7 +67,7 @@ type CreateNodeActivityInput struct {
 type Node struct {
 	AdminUsername          string
 	VCPU                   int
-	RamMB                  int
+	RAM                    int
 	Name                   string
 	SSHPublicKey           string
 	UserDataScriptParams   map[string]string

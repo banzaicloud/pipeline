@@ -45,8 +45,3 @@ func (VsphereType) Definition() secret.TypeDefinition {
 func (t VsphereType) Validate(data map[string]string) error {
 	return validateDefinition(data, t.Definition())
 }
-
-func (VsphereType) Verify(data map[string]string) error {
-	// TODO
-	return nil
-}

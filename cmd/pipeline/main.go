@@ -56,8 +56,6 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
-	intPKE "github.com/banzaicloud/pipeline/internal/pke"
-
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
@@ -113,6 +111,7 @@ import (
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/monitor"
+	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/platform/appkit"
 	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"

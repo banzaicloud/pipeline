@@ -58,8 +58,6 @@ func (m rolesModel) Value() (driver.Value, error) {
 }
 
 type nodePoolModel struct {
-	gorm.Model
-
 	Autoscaling bool
 	ClusterID   uint `gorm:"unique_index:idx_vsphere_pke_np_cluster_id_name"`
 	CreatedBy   uint
@@ -67,7 +65,7 @@ type nodePoolModel struct {
 	MaxSize     uint
 	MinSize     uint
 	VCPU        int `gorm:"column:vcpu"`
-	RamMB       int
+	RAM         int
 	Name        string     `gorm:"unique_index:idx_vsphere_pke_np_cluster_id_name"`
 	Roles       rolesModel `gorm:"type:json"`
 }
@@ -165,7 +163,7 @@ func fillNodePoolFromModel(nodePool *pke.NodePool, model nodePoolModel) {
 	nodePool.CreatedBy = model.CreatedBy
 	nodePool.Size = model.Size
 	nodePool.VCPU = model.VCPU
-	nodePool.Ram = model.RamMB
+	nodePool.Ram = model.RAM
 	nodePool.Name = model.Name
 	nodePool.Roles = model.Roles
 }
@@ -174,7 +172,7 @@ func fillModelFromNodePool(model *nodePoolModel, nodePool pke.NodePool) {
 	model.CreatedBy = nodePool.CreatedBy
 	model.Size = nodePool.Size
 	model.VCPU = nodePool.VCPU
-	model.RamMB = nodePool.Ram
+	model.RAM = nodePool.Ram
 	model.Name = nodePool.Name
 	model.Roles = nodePool.Roles
 }

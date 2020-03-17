@@ -21,7 +21,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/workflow"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
@@ -48,7 +47,7 @@ func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
 	node := workflow.Node{
 		Name:                   pke.GetVMName(f.ClusterName, np.Name, number),
 		VCPU:                   np.VCPU,
-		RamMB:                  np.RamMB,
+		RAM:                    np.RAM,
 		SSHPublicKey:           f.SSHPublicKey,
 		AdminUsername:          np.AdminUsername,
 		UserDataScriptTemplate: workerUserDataScriptTemplate,

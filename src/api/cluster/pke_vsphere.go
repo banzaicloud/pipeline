@@ -71,17 +71,6 @@ func (req CreatePKEOnVsphereClusterRequest) ToVspherePKEClusterCreationParams(or
 	}
 }
 
-/*
-type UpdatePKEOnVsphereClusterRequest pipeline.UpdatePkeOnVsphereClusterRequest
-
-func (req UpdatePKEOnVsphereClusterRequest) ToVspherePKEClusterUpdateParams(clusterID, userID uint) driver.VspherePKEClusterUpdateParams {
-	return driver.VspherePKEClusterUpdateParams{
-		ClusterID: clusterID,
-		NodePools: vsphereRequestToClusterNodepools(req.Nodepools, userID),
-	}
-}
-*/
-
 func vsphereRequestToClusterNodepools(request []pipeline.PkeOnVsphereNodePool, userID uint) []driver.NodePool {
 	nodepools := make([]driver.NodePool, len(request))
 	for i, node := range request {
@@ -93,7 +82,7 @@ func vsphereRequestToClusterNodepools(request []pipeline.PkeOnVsphereNodePool, u
 			Size:          int(node.Size),
 			AdminUsername: node.AdminUsername,
 			VCPU:          int(node.Vcpu),
-			RamMB:         int(node.Ram),
+			RAM:           int(node.RAM),
 			TemplateName:  node.Template,
 		}
 	}

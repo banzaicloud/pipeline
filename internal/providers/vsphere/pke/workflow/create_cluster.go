@@ -21,11 +21,10 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/vmware/govmomi/vim25/types"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
-
-	"github.com/vmware/govmomi/vim25/types"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"

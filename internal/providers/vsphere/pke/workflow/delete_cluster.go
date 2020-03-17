@@ -63,15 +63,6 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			NonRetriableErrorReasons: []string{"cadenceInternal:Panic"},
 		},
 	}
-	//
-	//
-	//aoWithHeartbeat := workflow.ActivityOptions{
-	//	ScheduleToStartTimeout: 10 * time.Minute,
-	//	StartToCloseTimeout:    5 * time.Minute,
-	//	WaitForCancellation:    true,
-	//	HeartbeatTimeout:       45 * time.Second,
-	//
-	//}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 

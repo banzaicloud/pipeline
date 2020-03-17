@@ -46,7 +46,6 @@ type PKEOnVsphereCluster struct {
 	Kubernetes       intPKE.Kubernetes
 	ActiveWorkflowID string
 	HTTPProxy        intPKE.HTTPProxy
-	TtlMinutes       uint
 }
 
 func (c PKEOnVsphereCluster) HasActiveWorkflow() bool {

@@ -94,12 +94,12 @@ type NodePool struct {
 	Size          int
 	AdminUsername string
 	VCPU          int
-	RamMB         int
+	RAM           int
 	TemplateName  string
 }
 
 func (np NodePool) InstanceType() string {
-	return fmt.Sprintf("%dvcpu-%dmb", np.VCPU, np.RamMB)
+	return fmt.Sprintf("%dvcpu-%dmb", np.VCPU, np.RAM)
 }
 
 func (np NodePool) hasRole(role pkgPKE.Role) bool {
@@ -114,7 +114,7 @@ func (np NodePool) hasRole(role pkgPKE.Role) bool {
 func (np NodePool) toPke() (pnp pke.NodePool) {
 	pnp.Size = np.Size
 	pnp.VCPU = np.VCPU
-	pnp.Ram = np.RamMB
+	pnp.Ram = np.RAM
 	pnp.Name = np.Name
 	pnp.Roles = np.Roles
 	return
@@ -127,22 +127,19 @@ type Subnet struct {
 
 // VspherePKEClusterCreationParams defines parameters for PKE-on-Vsphere cluster creation
 type VspherePKEClusterCreationParams struct {
-	CreatedBy      uint
-	Name           string
-	NodePools      []NodePool
-	OrganizationID uint
-	ScaleOptions   pkgCluster.ScaleOptions
-	SecretID       string
-	SSHSecretID    string
-	HTTPProxy      intPKE.HTTPProxy
-
+	CreatedBy        uint
+	Name             string
+	NodePools        []NodePool
+	OrganizationID   uint
+	ScaleOptions     pkgCluster.ScaleOptions
+	SecretID         string
+	SSHSecretID      string
+	HTTPProxy        intPKE.HTTPProxy
 	ResourcePoolName string
 	FolderName       string
 	DatastoreName    string
 	Kubernetes       intPKE.Kubernetes
 	ActiveWorkflowID string
-
-	TtlMinutes uint
 }
 
 // Create
@@ -166,7 +163,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 			Roles:     np.Roles,
 			Size:      np.Size,
 			VCPU:      np.VCPU,
-			Ram:       np.RamMB,
+			Ram:       np.RAM,
 		}
 	}
 	createParams := pke.CreateParams{

@@ -19,11 +19,6 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"go.uber.org/cadence"
-	"go.uber.org/cadence/client"
-
-	"github.com/banzaicloud/pipeline/src/utils"
-
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -32,6 +27,9 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/secret"
+	"github.com/banzaicloud/pipeline/src/utils"
+	"go.uber.org/cadence"
+	"go.uber.org/cadence/client"
 )
 
 func MakeClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyCache, logger Logger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.ClusterStore, workflowClient client.Client) ClusterDeleter {

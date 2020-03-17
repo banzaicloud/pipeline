@@ -9,15 +9,12 @@ CREATE UNIQUE INDEX idx_vsphere_pke_cluster_id ON "vsphere_pke_clusters"(cluster
 
 CREATE TABLE "vsphere_pke_node_pools" (
   "id" serial,
-  "created_at" timestamp with time zone,
-  "updated_at" timestamp with time zone,
-  "deleted_at" timestamp with time zone,
   "autoscaling" boolean,"cluster_id" integer,
   "created_by" integer,"size" integer,
   "max_size" integer,
   "min_size" integer,
   "vcpu" integer,
-  "ram_mb" integer,
+  "ram" integer,
   "name" text,
   "roles" json,
   PRIMARY KEY ("id")
