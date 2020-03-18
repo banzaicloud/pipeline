@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "ba8e1f03-3676-465c-87b7-a3fdee186055",
+		"_postman_id": "56c6ea66-7ad9-47c3-bcc1-68b059dbf308",
 		"name": "Pipeline API",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -1738,6 +1738,82 @@
 											]
 										},
 										"description": "Creates a Kubernetes cluster on Oracle"
+									},
+									"response": []
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Vsphere PKE",
+							"item": [
+								{
+									"name": "Create cluster",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "f28a263a-0d98-4e3d-b40a-c38b473541a4",
+												"exec": [
+													"if (responseCode.code === 202) {",
+													"    tests[\"Response Code 202\"] = responseCode.code == 202;",
+													"",
+													"    pm.environment.set(\"timestampHeader\", new Date());",
+													"    var dataJSON = JSON.parse(responseBody);",
+													"    pm.environment.set(\"clusterId\", dataJSON.id);",
+													"    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+													"",
+													"    tests[\"Response Time\"] = pm.expect(pm.response.responseTime).to.be.below(80500)",
+													"",
+													"    postman.setNextRequest(\"Cluster Status\");",
+													"} else {",
+													"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+													"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+													"    console.warn(responseBody);",
+													"    postman.setNextRequest(null);",
+													"}",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"type": "text",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"kubernetes\": {\n    \"cri\": {},\n    \"network\": {},\n    \"oidc\": {\n    \t\"enabled\": false\n    },\n    \"version\": \"1.15.3\",\n    \"rbac\": true\n  },\n  \"type\": \"pke-on-vsphere\",\n  \"name\": \"vmware-{{username}}-{{$randomInt}}\",\n  \"secretName\": \"vmware\",\n  \"datastore\": \"DatastoreCluster\",\n  \"resourcepool\": \"resource-pool\",\n  \"folder\": \"folderName\",\n  \"network\": {},\n  \"nodePools\": [\n      {\n        \"name\": \"master\",\n        \"roles\": [\n          \"master\"\n        ],\n        \"size\": 1,\n        \"vcpu\": 2,\n        \"ram\": 1024,\n        \"template\": \"centos-7-pke-202001171452\"\n      },\n      {\n        \"name\": \"pool1\",\n        \"template\": \"centos-7-pke-202001171452\",\n        \"roles\": [\n          \"worker\"\n        ],\n        \"labels\": {\n            \"userLabel1\":\"userValue1\"\n        },\n        \"size\": 1,\n        \"vcpu\": 2,\n        \"ram\": 1024\n      },\n      {\n        \"name\": \"pool2\",\n        \"template\": \"centos-7-pke-202001171452\",\n        \"roles\": [\n          \"worker\"\n        ],\n        \"labels\": {\n            \"userLabel2\":\"userValue2\"\n        },\n        \"size\": 1,\n        \"vcpu\": 2,\n        \"ram\": 1024\n      }      \n    ]\n}"
+										},
+										"url": {
+											"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
+											"host": [
+												"{{url}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"orgs",
+												":orgId",
+												"clusters"
+											],
+											"variable": [
+												{
+													"description": "Organization identifier",
+													"key": "orgId",
+													"value": "{{orgId}}"
+												}
+											]
+										},
+										"description": "Creates a Kubernetes cluster on AWS"
 									},
 									"response": []
 								}
