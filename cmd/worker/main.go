@@ -91,6 +91,8 @@ import (
 	azurepkedriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
+	vsphereadapter "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/adapter"
+	vspheredriver "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/secret/kubesecret"
 	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
@@ -396,6 +398,7 @@ func main() {
 		}
 
 		clusterStore := clusteradapter.NewStore(db, clusteradapter.NewClusters(db))
+		vsphereClusterStore := vsphereadapter.NewClusterStore(db)
 
 		cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
 		clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
@@ -467,6 +470,18 @@ func main() {
 						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Oracle, pkgCluster.OKE),
 						Deleter: commonClusterDeleter,
 					},
+					clusteradapter.ClusterDeleterEntry{
+						Key: clusteradapter.MakeClusterDeleterKey(pkgCluster.Vsphere, pkgCluster.PKE),
+						Deleter: vspheredriver.MakeClusterDeleter(
+							nil,
+							clusterManager.GetKubeProxyCache(),
+							commonLogger,
+							secret.Store,
+							nil,
+							vsphereClusterStore,
+							workflowClient,
+						),
+					},
 				),
 			)
 			activity.RegisterWithOptions(deleteClusterActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.DeleteClusterActivityName})
@@ -508,6 +523,10 @@ func main() {
 			setClusterStatusActivity := clusterworkflow.NewSetClusterStatusActivity(clusterStore)
 			activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.SetClusterStatusActivityName})
 		}
+
+		// Register vsphere specific workflows
+
+		registerVsphereWorkflows(secretStore, tokenGenerator, vsphereClusterStore)
 
 		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterSecretStore)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})

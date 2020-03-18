@@ -158,8 +158,8 @@ github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677 h1:5q4Sv/DFbmi
 github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677/go.mod h1:ND5gChfnQKdrvWBqMdN0sUkYLpR5P9AccDam/hDdbmA=
 github.com/banzaicloud/gin-utilz v0.1.0 h1:YZVZAXmo4Hn0U/NAgwpEgZnIQtoiqmCnyNAMY706m/o=
 github.com/banzaicloud/gin-utilz v0.1.0/go.mod h1:nsiYkSEcsJSpADh8mw+PZDYxm5CZUnJAPoybh3ga4Io=
-github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419 h1:sn/niKkNX/nfniL8OG7Jf4TmMFrz5r4C87W5xQbEGHs=
-github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419/go.mod h1:1eXhK1Ld1vRFbNpqi8Eu1ktCCk5LARA1Tbdl8EsAfgE=
+github.com/banzaicloud/go-gin-prometheus v0.1.0 h1:zetacN1k3svVc7DtzGfpHA49uO0G8cwsiP5qSuUUQKs=
+github.com/banzaicloud/go-gin-prometheus v0.1.0/go.mod h1:1eXhK1Ld1vRFbNpqi8Eu1ktCCk5LARA1Tbdl8EsAfgE=
 github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182 h1:U3i2pc5I/dwlXqcTgPSHBP1k9ISjnyMlXh6Opi94pf8=
 github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182/go.mod h1:OeOXKxwBf3IGkKdrjisjo3pb+RlQNRMXpaGgiDdyRfA=
 github.com/banzaicloud/helm v2.7.1-0.20200228123321-c4355aab74fc+incompatible h1:JOyw3e97+ArUdmzLNMuu7RukJuGNs9FLyWtiMAyztiI=
@@ -255,6 +255,7 @@ github.com/davecgh/go-spew v0.0.0-20151105211317-5215b55f46b2/go.mod h1:J7Y8YcW2
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/davecgh/go-xdr v0.0.0-20161123171359-e6a2ba005892/go.mod h1:CTDl0pzVzE5DEzZhPfvhY/9sPFMQIxaJ9VAMs9AagrE=
 github.com/daviddengcn/go-colortext v0.0.0-20160507010035-511bcaf42ccd/go.mod h1:dv4zxwHi5C/8AeI+4gX4dCWOIvNi7I6JCSX0HvlKPgE=
 github.com/denisenkom/go-mssqldb v0.0.0-20191001013358-cfbb681360f0/go.mod h1:xbL0rPBG9cCiLr28tMa8zpbdarY27NDyej4t/EjAShU=
 github.com/denisenkom/go-mssqldb v0.0.0-20200206145737-bbfc9a55622e h1:LzwWXEScfcTu7vUZNlDDWDARoSGEtvlDKK2BYHowNeE=
@@ -534,6 +535,7 @@ github.com/google/pprof v0.0.0-20181206194817-3ea8567a2e57/go.mod h1:zfwlbNMJ+OI
 github.com/google/pprof v0.0.0-20190515194954-54271f7e092f/go.mod h1:zfwlbNMJ+OItoe0UupaVj+oy1omPYYDuagoSzA8v9mc=
 github.com/google/pprof v0.0.0-20191218002539-d4f498aebedc/go.mod h1:ZgVRPoUq/hfqzAqh7sHMqb3I9Rq5C59dIz2SbBwJ4eM=
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
+github.com/google/uuid v0.0.0-20170306145142-6a5e28554805/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/google/uuid v1.0.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/google/uuid v1.1.1 h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=
 github.com/google/uuid v1.1.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
@@ -1101,6 +1103,9 @@ github.com/ugorji/go v1.1.7/go.mod h1:kZn38zHttfInRq0xu/PH0az30d+z6vm202qpg1oXVM
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
 github.com/ugorji/go/codec v1.1.7 h1:2SvQaVZ1ouYrrKKwoSk2pzd4A9evlKJb9oTL+OaLUSs=
 github.com/ugorji/go/codec v1.1.7/go.mod h1:Ax+UKWsSmolVDwsd+7N3ZtXu+yMGCf907BLYF3GoBXY=
+github.com/vmware/govmomi v0.22.0 h1:fIg5KkUxu4b/y1BmmtNFO9pyN10CkVzvriaJyynAdE8=
+github.com/vmware/govmomi v0.22.0/go.mod h1:Y+Wq4lst78L85Ge/F8+ORXIWiKYqaro1vhAulACy9Lc=
+github.com/vmware/vmw-guestinfo v0.0.0-20170707015358-25eff159a728/go.mod h1:x9oS4Wk2s2u4tS29nEaDLdzvuHdB19CvSGJjPgkZJNk=
 github.com/ultraware/funlen v0.0.1/go.mod h1:Dp4UiAus7Wdb9KUZsYWZEWiRzGuM2kXM1lPbfaF6xhA=
 github.com/ultraware/funlen v0.0.2/go.mod h1:Dp4UiAus7Wdb9KUZsYWZEWiRzGuM2kXM1lPbfaF6xhA=
 github.com/urfave/cli v1.20.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijbERA=

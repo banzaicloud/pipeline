@@ -156,7 +156,7 @@ func (a *API) PostReady(c *gin.Context) {
 				}
 			}
 
-			err := errors.WrapIf(err, "could signal workflow")
+			err := errors.WrapIf(err, "could not signal workflow")
 			a.errorHandler.Handle(err)
 
 			c.JSON(http.StatusInternalServerError, common.ErrorResponse{

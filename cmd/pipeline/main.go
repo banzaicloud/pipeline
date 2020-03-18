@@ -111,6 +111,7 @@ import (
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/monitor"
+	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/platform/appkit"
 	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
@@ -128,6 +129,8 @@ import (
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/internal/providers/google/googleadapter"
+	vspherePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/adapter"
+	vspherePKEDriver "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/secret/pkesecret"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
@@ -418,6 +421,8 @@ func main() {
 	}))
 
 	azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonLogger)
+	gormVspherePKEClusterStore := vspherePKEAdapter.NewClusterStore(db)
+	k8sPreparer := intPKE.MakeKubernetesPreparer(logrusLogger, "Kubernetes")
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeClusterCreator(
 			azurePKEDriver.ClusterCreatorConfig{
@@ -439,6 +444,19 @@ func main() {
 			secretValidator,
 			statusChangeDurationMetric,
 			clusterTotalMetric,
+		),
+		PKEOnVsphere: vspherePKEDriver.MakeVspherePKEClusterCreator(
+			commonLogger,
+			vspherePKEDriver.ClusterCreatorConfig{
+				OIDCIssuerURL:               config.Auth.OIDC.Issuer,
+				PipelineExternalURL:         externalBaseURL,
+				PipelineExternalURLInsecure: externalURLInsecure,
+			},
+			k8sPreparer,
+			authdriver.NewOrganizationGetter(db),
+			secret.Store,
+			gormVspherePKEClusterStore,
+			workflowClient,
 		),
 	}
 

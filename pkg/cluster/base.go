@@ -55,6 +55,7 @@ const (
 	Google     = "google"
 	Kubernetes = "kubernetes"
 	Oracle     = "oracle"
+	Vsphere    = "vsphere"
 )
 
 // Distribution constants

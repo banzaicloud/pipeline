@@ -17,31 +17,20 @@ package api
 import (
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
-	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
-	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
+	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
+	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
-const PKEOnAzure = pke.PKEOnAzure
+const PKEOnVsphere = pke.PKEOnVsphere
 
-type CreatePKEOnAzureClusterRequest pipeline.CreatePkeOnAzureClusterRequest
+type CreatePKEOnVsphereClusterRequest pipeline.CreatePkeOnVsphereClusterRequest
 
-func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organizationID, userID uint) driver.ClusterCreationParams {
-	var accessPoints pke.AccessPoints
-	for _, apName := range req.AccessPoints {
-		accessPoints = append(accessPoints, pke.AccessPoint{Name: apName})
-	}
-
-	var apiServerAccessPoints pke.APIServerAccessPoints
-	for _, ap := range req.ApiServerAccessPoints {
-		apiServerAccessPoints = append(apiServerAccessPoints, pke.APIServerAccessPoint(ap))
-	}
-
-	return driver.ClusterCreationParams{
+func (req CreatePKEOnVsphereClusterRequest) ToVspherePKEClusterCreationParams(organizationID, userID uint) driver.VspherePKEClusterCreationParams {
+	return driver.VspherePKEClusterCreationParams{
 		Name:           req.Name,
 		OrganizationID: organizationID,
 		CreatedBy:      userID,
-		ResourceGroup:  req.ResourceGroup,
 		ScaleOptions: cluster.ScaleOptions{
 			Enabled:             req.ScaleOptions.Enabled,
 			DesiredCpu:          req.ScaleOptions.DesiredCpu,
@@ -70,57 +59,31 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 				Enabled: req.Kubernetes.Oidc.Enabled,
 			},
 		},
-		Network: driver.VirtualNetwork{
-			Name:     req.Network.Name,
-			CIDR:     req.Network.Cidr,
-			Location: req.Location,
-		},
-		AccessPoints:          accessPoints,
-		APIServerAccessPoints: apiServerAccessPoints,
-		NodePools:             azureRequestToClusterNodepools(req.Nodepools, userID),
+		NodePools: vsphereRequestToClusterNodepools(req.NodePools, userID),
 		HTTPProxy: intPKE.HTTPProxy{
 			HTTP:       clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(req.Proxy.Http),
 			HTTPS:      clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(req.Proxy.Https),
 			Exceptions: req.Proxy.Exceptions,
 		},
+		ResourcePoolName: req.ResourcePool,
+		FolderName:       req.Folder,
+		DatastoreName:    req.Datastore,
 	}
 }
 
-func clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(o pipeline.PkeClusterHttpProxyOptions) intPKE.HTTPProxyOptions {
-	return intPKE.HTTPProxyOptions{
-		Host:     o.Host,
-		Port:     uint16(o.Port),
-		SecretID: o.SecretId,
-	}
-}
-
-type UpdatePKEOnAzureClusterRequest pipeline.UpdatePkeOnAzureClusterRequest
-
-func (req UpdatePKEOnAzureClusterRequest) ToAzurePKEClusterUpdateParams(clusterID, userID uint) driver.ClusterUpdateParams {
-	return driver.ClusterUpdateParams{
-		ClusterID: clusterID,
-		NodePools: azureRequestToClusterNodepools(req.Nodepools, userID),
-	}
-}
-
-func azureRequestToClusterNodepools(request []pipeline.PkeOnAzureNodePool, userID uint) []driver.NodePool {
+func vsphereRequestToClusterNodepools(request []pipeline.PkeOnVsphereNodePool, userID uint) []driver.NodePool {
 	nodepools := make([]driver.NodePool, len(request))
 	for i, node := range request {
 		nodepools[i] = driver.NodePool{
-			CreatedBy:    userID,
-			Name:         node.Name,
-			InstanceType: node.InstanceType,
-			Subnet: driver.Subnet{
-				Name: node.Subnet.Name,
-				CIDR: node.Subnet.Cidr,
-			},
-			Zones:       node.Zones,
-			Roles:       node.Roles,
-			Labels:      node.Labels,
-			Autoscaling: node.Autoscaling,
-			Count:       int(node.Count),
-			Min:         int(node.MinCount),
-			Max:         int(node.MaxCount),
+			CreatedBy:     userID,
+			Name:          node.Name,
+			Roles:         node.Roles,
+			Labels:        node.Labels,
+			Size:          int(node.Size),
+			AdminUsername: node.AdminUsername,
+			VCPU:          int(node.Vcpu),
+			RAM:           int(node.RAM),
+			TemplateName:  node.Template,
 		}
 	}
 	return nodepools

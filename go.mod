@@ -34,7 +34,7 @@ require (
 	github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.1
 	github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677
 	github.com/banzaicloud/gin-utilz v0.1.0
-	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
+	github.com/banzaicloud/go-gin-prometheus v0.1.0
 	github.com/banzaicloud/istio-operator v0.0.0-20200120100557-309b8a34e9eb
 	github.com/banzaicloud/logging-operator/pkg/sdk v0.1.1
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
@@ -58,7 +58,6 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/sessions v1.2.0
 	github.com/gosimple/slug v1.9.0 // indirect
-	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/heptio/ark v0.9.3
 	github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0 // indirect
@@ -110,6 +109,7 @@ require (
 	github.com/uber/jaeger-client-go v2.22.1+incompatible // indirect
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	github.com/uber/tchannel-go v1.16.0 // indirect
+	github.com/vmware/govmomi v0.22.0
 	github.com/xanzy/go-gitlab v0.16.2-0.20190325100843-bbb1af7187c8
 	go.opencensus.io v0.22.2
 	go.uber.org/cadence v0.9.0

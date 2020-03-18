@@ -10,7 +10,7 @@
 
 package pipeline
 
-type CreateClusterRequestV2 struct {
+type CreatePkeOnVsphereClusterRequest struct {
 
 	Name string `json:"name"`
 
@@ -23,4 +23,19 @@ type CreateClusterRequestV2 struct {
 	ScaleOptions ScaleOptions `json:"scaleOptions,omitempty"`
 
 	Type string `json:"type"`
+
+	Kubernetes CreatePkeClusterKubernetes `json:"kubernetes"`
+
+	Proxy PkeClusterHttpProxy `json:"proxy,omitempty"`
+
+	// Folder to create nodes in.
+	Folder string `json:"folder,omitempty"`
+
+	// Name of datastore or datastore cluster to place VM disks on.
+	Datastore string `json:"datastore,omitempty"`
+
+	// Virtual machines will be created in this resource pool.
+	ResourcePool string `json:"resourcePool,omitempty"`
+
+	NodePools []PkeOnVsphereNodePool `json:"nodePools,omitempty"`
 }

@@ -150,6 +150,21 @@ func (a *ClusterAPI) CreateCluster(c *gin.Context) {
 	}
 
 	switch createClusterRequestBase.Type {
+	case clusterAPI.PKEOnVsphere:
+		var req clusterAPI.CreatePKEOnVsphereClusterRequest
+		if ok := a.parseRequest(c, requestBody, &req); !ok {
+			return
+		}
+		req.SecretId = secretID
+		// TODO legacy posthook support if needed
+		params := req.ToVspherePKEClusterCreationParams(orgID, userID)
+		a.logger.Infof("request: %+v\n\n\nparams: %+v\n\n", req, params)
+		vsphereCluster, err := a.clusterCreators.PKEOnVsphere.Create(ctx, params)
+		if err = errors.WrapIf(err, "failed to create cluster from request"); err != nil {
+			a.handleCreationError(c, err)
+			return
+		}
+		cluster = vsphereCluster
 	case clusterAPI.PKEOnAzure:
 		var req clusterAPI.CreatePKEOnAzureClusterRequest
 		if ok := a.parseRequest(c, requestBody, &req); !ok {
