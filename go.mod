@@ -134,6 +134,7 @@ require (
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/cluster-bootstrap v0.17.3
 	k8s.io/helm v2.16.3+incompatible
+	k8s.io/klog v1.0.0
 	k8s.io/kubernetes v1.17.3
 	logur.dev/adapter/logrus v0.4.1
 	logur.dev/adapter/zap v0.4.1
