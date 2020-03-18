@@ -658,7 +658,7 @@ ssl:
 	v.SetDefault("cluster::autoscale::hpa::prometheus::serviceContext", "prometheus")
 	v.SetDefault("cluster::autoscale::hpa::prometheus::localPort", 9090)
 	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::chart", "stable/cluster-autoscaler")
-	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::version", "6.2.0")
+	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::version", "7.1.0")
 	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::values", map[string]interface{}{})
 	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::imageVersionConstraints", []interface{}{
 		map[string]interface{}{
