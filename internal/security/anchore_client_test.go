@@ -23,7 +23,7 @@ import (
 
 func TestMakeAnchoreClient(t *testing.T) {
 	anchoreCli := anchore.NewAPIClient(&anchore.Configuration{
-		BasePath:      "https://alpha.dev.banzaicloud.com/imagecheck",
+		BasePath:      "https://alpha.dev.banzaicloud.com/anchore",
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "Pipeline/go",
 	})
