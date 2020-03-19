@@ -69,7 +69,7 @@ func TestConfigure_DefaultValueBinding(t *testing.T) {
 		"cluster ingress": {
 			Subtree: config.Cluster.Ingress,
 			Expected: ClusterIngressConfig{
-				Enabled: true,
+				Enabled: false,
 				Config: ingress.Config{
 					ReleaseName: "ingress",
 					Controllers: []string{
