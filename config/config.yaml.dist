@@ -262,7 +262,7 @@ dex:
 #        charts:
 #            clusterAutoscaler:
 #                chart: "stable/cluster-autoscaler"
-#                version: "6.2.0"
+#                version: "7.1.0"
 #                imageVersionConstraints:
 #                    - k8sVersion: "<=1.12.x"
 #                      tag: "v1.12.8"
