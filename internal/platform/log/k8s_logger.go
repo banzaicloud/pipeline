@@ -18,6 +18,7 @@ import (
 	"emperror.dev/errors"
 	logurhandler "emperror.dev/handler/logur"
 	"k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/klog"
 	"logur.dev/logur"
 )
 
@@ -34,4 +35,10 @@ func SetK8sLogger(logger logur.Logger) {
 
 		handler.Handle(e)
 	}
+
+	// TODO: use SetLogger once it's released
+	klog.SetOutputBySeverity("INFO", logur.NewLevelWriter(logger, logur.Info))
+	klog.SetOutputBySeverity("WARNING", logur.NewLevelWriter(logger, logur.Warn))
+	klog.SetOutputBySeverity("ERROR", logur.NewLevelWriter(logger, logur.Error))
+	klog.SetOutputBySeverity("FATAL", logur.NewLevelWriter(logger, logur.Error))
 }
