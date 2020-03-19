@@ -139,7 +139,9 @@ func (m *FederationReconciler) labelRegisteredCluster(c cluster.CommonCluster) e
 	clusterLabels[clusterLabelId] = fmt.Sprintf("%v", clusterId)
 	clusterLabels[clusterLabelCloud] = c.GetCloud()
 	clusterLabels[clusterLabelDistribution] = c.GetDistribution()
-	clusterLabels[clusterLabelLocation] = c.GetLocation()
+	if c.GetLocation() != "" && c.GetLocation() != "n/a" {
+		clusterLabels[clusterLabelLocation] = c.GetLocation()
+	}
 	clusterLabels[clusterLabelGroupName] = m.ClusterGroupName
 
 	cluster := &fedv1b1.KubeFedCluster{}
