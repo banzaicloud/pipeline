@@ -17,10 +17,8 @@ package main
 import (
 	"context"
 	"crypto/tls"
-	"crypto/x509"
 	"encoding/base32"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -1139,24 +1137,15 @@ func main() {
 	if caCertFile != "" && certFile != "" && keyFile != "" {
 		logger.Info("Pipeline API listening", map[string]interface{}{"address": "https://" + bindAddr})
 
-		caCert, err := ioutil.ReadFile(caCertFile)
+		pipelineTLS, err := auth.TLSConfigForClientAuth(caCertFile)
 		emperror.Panic(err)
-
-		clientCertCAs := x509.NewCertPool()
-		if !clientCertCAs.AppendCertsFromPEM(caCert) {
-			emperror.Panic(errors.New("failed to append CA certificate"))
-		}
 
 		serverCertificate, err := tls.LoadX509KeyPair(certFile, keyFile)
 		emperror.Panic(err)
 
-		pipelineTLS := tls.Config{
-			Certificates: []tls.Certificate{serverCertificate},
-			ClientAuth:   tls.VerifyClientCertIfGiven,
-			ClientCAs:    clientCertCAs,
-		}
+		pipelineTLS.Certificates = []tls.Certificate{serverCertificate}
 
-		listener, err := tls.Listen("tcp", bindAddr, &pipelineTLS)
+		listener, err := tls.Listen("tcp", bindAddr, pipelineTLS)
 		emperror.Panic(err)
 
 		_ = engine.RunListener(listener)
