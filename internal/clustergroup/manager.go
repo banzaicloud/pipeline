@@ -290,6 +290,15 @@ func (g *Manager) RemoveClusterFromGroup(ctx context.Context, clusterID uint) er
 		}
 	}
 
+	if len(newMembers) == 0 {
+		g.logger.Debug("delete cluster group before deleting it's last member")
+		err := g.DeleteClusterGroupByID(ctx, existingClusterGroup.OrganizationID, existingClusterGroup.Id)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
 	err = g.validateBeforeClusterGroupUpdate(*existingClusterGroup, newMembers)
 	if err != nil {
 		return errors.WrapIf(err, "removing cluster from group is not allowed")
@@ -448,12 +457,6 @@ func (g *Manager) GetClusterGroupNameForCluster(clusterID uint, orgID uint) (*st
 
 func (g *Manager) validateBeforeClusterGroupUpdate(clusterGroup api.ClusterGroup, newClusters map[uint]api.Cluster) error {
 	g.logger.WithField("clusterGroupName", clusterGroup.Name).Debug("validate group members before update")
-
-	if len(newClusters) == 0 {
-		return &clusterGroupUpdateRejectedError{
-			err: errors.New("there must be at least 1 cluster member in a group"),
-		}
-	}
 
 	features, err := g.GetFeatures(clusterGroup)
 	if err != nil {
