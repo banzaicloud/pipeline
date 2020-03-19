@@ -223,7 +223,11 @@ func Init(db *gorm.DB, cdb *gorm.DB, config Config, tokenStore bauth.TokenStore,
 		ginauth.ErrorHandlerOption(emperror.MakeContextAware(errorHandler)),
 	)
 
-	InternalHandler = func(c *gin.Context) {
+	InternalHandler = newInternalHandler(serviceAccountService)
+}
+
+func newInternalHandler(serviceAccountService ServiceAccountService) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		user := serviceAccountService.ExtractServiceAccount(c.Request)
 		if user != nil {
 			newContext := context.WithValue(c.Request.Context(), auth.CurrentUser, user)

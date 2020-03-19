@@ -15,6 +15,7 @@ config/ui/feature-set.json
 config/ui/*~
 *.bak
 *.swp
+*.csr
 *.pem
 !config/certs/*.pem
 */main/main.go
