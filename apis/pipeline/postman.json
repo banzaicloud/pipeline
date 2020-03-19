@@ -1746,7 +1746,7 @@
 							"_postman_isSubFolder": true
 						},
 						{
-							"name": "Vsphere PKE",
+							"name": "vSphere PKE",
 							"item": [
 								{
 									"name": "Create cluster",
@@ -1813,7 +1813,7 @@
 												}
 											]
 										},
-										"description": "Creates a Kubernetes cluster on AWS"
+										"description": "Creates a Kubernetes cluster on vSphere"
 									},
 									"response": []
 								}
