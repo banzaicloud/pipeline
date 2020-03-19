@@ -288,7 +288,7 @@ func (eks *UpdateClusterAmazonEKS) Validate() error {
 
 // isValidVersion validates the given K8S version
 func isValidVersion(version string) (bool, error) {
-	constraint, err := semver.NewConstraint(">= 1.10, < 1.15")
+	constraint, err := semver.NewConstraint(">= 1.13, < 1.16")
 	if err != nil {
 		return false, errors.WrapIf(err, "couldn't create semver Kubernetes version check constraint")
 	}
