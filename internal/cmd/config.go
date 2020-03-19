@@ -639,7 +639,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 		},
 	})
 
-	v.SetDefault("cluster::ingress::enabled", true)
+	v.SetDefault("cluster::ingress::enabled", false)
 	v.SetDefault("cluster::ingress::controllers", []string{"traefik"})
 	v.SetDefault("cluster::ingress::namespace", "")
 	v.SetDefault("cluster::ingress::releaseName", "ingress")
