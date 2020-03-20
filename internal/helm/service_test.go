@@ -271,12 +271,12 @@ func Test_service_ListRepositories(t *testing.T) {
 			},
 			wantRepos: []Repository{
 				{
-					Name: "stable",
-					URL:  "https://kubernetes-charts.storage.googleapis.com",
-				},
-				{
 					Name: "user-repo",
 					URL:  "https://userdomain.io/userrepo/charts",
+				},
+				{
+					Name: "stable",
+					URL:  "https://kubernetes-charts.storage.googleapis.com",
 				},
 			},
 			setupMocks: func(store *Store, secretStore *SecretStore, envResolver *EnvResolver, envService *EnvService, arguments args) {

@@ -218,7 +218,7 @@ func (s service) ListRepositories(ctx context.Context, organizationID uint) (rep
 		return nil, errors.WrapIf(err, "failed to retrieve persisted repositories")
 	}
 
-	return append(defaultRepos, persistedRepos...), nil
+	return mergeDefaults(defaultRepos, persistedRepos), nil
 }
 
 func (s service) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {
@@ -347,4 +347,24 @@ func (s service) repoExists(ctx context.Context, orgID uint, repository Reposito
 	}
 
 	return true, nil
+}
+
+// mergeDefaults adds the defaults to the list of repositories if already not added
+func mergeDefaults(defaultRepos []Repository, storedRepos []Repository) []Repository {
+	merged := storedRepos
+	for _, defaultRepo := range defaultRepos {
+		if !contains(defaultRepo.Name, storedRepos) {
+			merged = append(merged, defaultRepo)
+		}
+	}
+	return merged
+}
+
+func contains(repoName string, repos []Repository) bool {
+	for _, repo := range repos {
+		if repo.Name == repoName {
+			return true
+		}
+	}
+	return false
 }

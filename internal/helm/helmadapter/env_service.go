@@ -23,6 +23,7 @@ import (
 	"k8s.io/helm/pkg/repo"
 
 	"github.com/banzaicloud/pipeline/internal/helm"
+	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
 	legacyHelm "github.com/banzaicloud/pipeline/src/helm"
 )
 
@@ -70,10 +71,19 @@ func (h helmEnvService) AddRepository(_ context.Context, helmEnv helm.HelmEnv, r
 }
 
 func (h helmEnvService) ListRepositories(_ context.Context, helmEnv helm.HelmEnv) (repos []helm.Repository, err error) {
-	h.logger.Debug("returning empty helm repository list", map[string]interface{}{"helmEnv": helmEnv.GetHome()})
+	h.logger.Debug("returning default helm repository list", map[string]interface{}{"helmEnv": helmEnv.GetHome()})
 
-	// no data from the env returned
-	return []helm.Repository{}, nil
+	// TODO workaround to decorate org repositories with defaults
+	return []helm.Repository{
+		{
+			Name: helm2.StableRepository,
+			URL:  h.config.Repositories[helm2.StableRepository],
+		},
+		{
+			Name: helm2.BanzaiRepository,
+			URL:  h.config.Repositories[helm2.BanzaiRepository],
+		},
+	}, nil
 }
 
 func (h helmEnvService) DeleteRepository(_ context.Context, helmEnv helm.HelmEnv, repoName string) error {
