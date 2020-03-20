@@ -21,7 +21,6 @@ import (
 	k8sHelm "k8s.io/helm/pkg/helm"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 
-	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/helm"
 )
@@ -57,11 +56,6 @@ func InstallOrUpgradeDeployment(
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return errors.WrapIf(err, "could not get k8s config")
-	}
-
-	org, err := auth.GetOrganizationById(c.GetOrganizationId())
-	if err != nil {
-		return errors.WrapIf(err, "could not get organization")
 	}
 
 	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
