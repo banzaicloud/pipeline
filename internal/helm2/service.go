@@ -111,7 +111,7 @@ func (s *HelmService) InstallDeployment(
 		false,
 		nil,
 		cluster.KubeConfig,
-		helm.GenerateHelmRepoEnv(cluster.OrganizationName), // TODO: refactor!!!!!!
+		helm.GeneratePlatformHelmRepoEnv(), // TODO: refactor!!!!!!
 		options...,
 	)
 	if err != nil {
@@ -162,7 +162,7 @@ func (s *HelmService) UpdateDeployment(
 				values,
 				false,
 				cluster.KubeConfig,
-				helm.GenerateHelmRepoEnv(cluster.OrganizationName), // TODO: refactor!!!!!!
+				helm.GeneratePlatformHelmRepoEnv(), // TODO: refactor!!!!!!
 			)
 			if err != nil {
 				return errors.WrapIfWithDetails(
@@ -212,7 +212,7 @@ func (s *HelmService) ApplyDeployment(
 				values,
 				false,
 				cluster.KubeConfig,
-				helm.GenerateHelmRepoEnv(cluster.OrganizationName), // TODO: refactor!!!!!!
+				helm.GeneratePlatformHelmRepoEnv(), // TODO: refactor!!!!!!
 			)
 			if err != nil {
 				return errors.WrapIfWithDetails(
@@ -244,7 +244,7 @@ func (s *HelmService) ApplyDeployment(
 				false,
 				nil,
 				cluster.KubeConfig,
-				helm.GenerateHelmRepoEnv(cluster.OrganizationName), // TODO: refactor!!!!!!
+				helm.GeneratePlatformHelmRepoEnv(), // TODO: refactor!!!!!!
 				options...,
 			)
 			if err != nil {
@@ -269,7 +269,7 @@ func (s *HelmService) ApplyDeployment(
 			false,
 			nil,
 			cluster.KubeConfig,
-			helm.GenerateHelmRepoEnv(cluster.OrganizationName), // TODO: refactor!!!!!!
+			helm.GeneratePlatformHelmRepoEnv(), // TODO: refactor!!!!!!
 			options...,
 		)
 		if err != nil {

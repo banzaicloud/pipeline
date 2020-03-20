@@ -27,6 +27,7 @@ import (
 	"k8s.io/helm/pkg/repo"
 
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	phelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
@@ -49,6 +50,10 @@ func GenerateHelmRepoEnv(orgName string) (env helmEnv.EnvSettings) {
 	}
 
 	return
+}
+
+func GeneratePlatformHelmRepoEnv() (env helmEnv.EnvSettings) {
+	return GenerateHelmRepoEnv(helm.PlatformHelmHome)
 }
 
 // DownloadChartFromRepo download a given chart

@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	platformHelmHome = "pipeline"
+	PlatformHelmHome = "pipeline"
 	helmPostFix      = "helm"
 )
 
@@ -91,7 +91,7 @@ func (h helmEnvResolver) ResolveHelmEnv(ctx context.Context, organizationID uint
 
 func (h helmEnvResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
 	return HelmEnv{
-		home:     path.Join(h.helmHomes, platformHelmHome, helmPostFix),
+		home:     path.Join(h.helmHomes, PlatformHelmHome, helmPostFix),
 		platform: true,
 	}, nil
 }

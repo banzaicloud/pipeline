@@ -85,7 +85,7 @@ func InstallOrUpgradeDeployment(
 			if !upgrade {
 				return nil
 			}
-			_, err = helm.UpgradeDeployment(releaseName, deploymentName, chartVersion, nil, values, false, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
+			_, err = helm.UpgradeDeployment(releaseName, deploymentName, chartVersion, nil, values, false, kubeConfig, helm.GeneratePlatformHelmRepoEnv())
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "could not upgrade deployment", "deploymentName", deploymentName)
 			}
@@ -112,7 +112,7 @@ func InstallOrUpgradeDeployment(
 		false,
 		nil,
 		kubeConfig,
-		helm.GenerateHelmRepoEnv(org.Name),
+		helm.GeneratePlatformHelmRepoEnv(),
 		options...,
 	)
 	if err != nil {
