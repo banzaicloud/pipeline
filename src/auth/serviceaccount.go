@@ -31,6 +31,10 @@ func NewServiceAccountService() ServiceAccountService {
 }
 
 func (s serviceAccountService) ExtractServiceAccount(r *http.Request) *User {
+	if r.TLS == nil {
+		return nil
+	}
+
 	var cert *x509.Certificate
 
 chains:
