@@ -30,7 +30,6 @@ import (
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
 	ctlutil "sigs.k8s.io/kubefed/pkg/controller/util"
 
-	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/helm"
 )
@@ -295,13 +294,7 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}
 
-	// ensure repo
-	org, err := auth.GetOrganizationById(c.GetOrganizationId())
-	if err != nil {
-		return errors.WrapIf(err, "could not get organization")
-	}
-
-	env := helm.GenerateHelmRepoEnv(org.Name)
+	env := helm.GeneratePlatformHelmRepoEnv()
 	_, err = helm.ReposAdd(env, &repo.Entry{
 		Name: "kubefed-charts",
 		URL:  "https://raw.githubusercontent.com/banzaicloud/kubefed/helm_chart/charts",

@@ -112,7 +112,7 @@ func installOrUpgradeDeployment(
 		false,
 		nil,
 		kubeConfig,
-		helm.GenerateHelmRepoEnv(org.Name),
+		helm.GeneratePlatformHelmRepoEnv(),
 		options...,
 	)
 	if err != nil {

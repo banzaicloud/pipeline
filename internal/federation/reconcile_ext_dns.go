@@ -22,7 +22,6 @@ import (
 	"github.com/ghodss/yaml"
 
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/dns"
 	"github.com/banzaicloud/pipeline/src/helm"
@@ -53,11 +52,6 @@ func (m *FederationReconciler) ensureCRDSourceForExtDNS(
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return errors.WrapIf(err, "could not get k8s config")
-	}
-
-	org, err := auth.GetOrganizationById(c.GetOrganizationId())
-	if err != nil {
-		return errors.WrapIf(err, "could not get organization")
 	}
 
 	hClient, err := pkgHelm.NewClient(kubeConfig, m.logger)
@@ -123,7 +117,7 @@ func (m *FederationReconciler) ensureCRDSourceForExtDNS(
 		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}
 
-	_, err = helm.UpgradeDeployment(releaseName, deploymentName, resp.Release.Chart.Metadata.Version, nil, valuesOverride, true, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
+	_, err = helm.UpgradeDeployment(releaseName, deploymentName, resp.Release.Chart.Metadata.Version, nil, valuesOverride, true, kubeConfig, helm.GeneratePlatformHelmRepoEnv())
 	if err != nil {
 		return errors.WrapIfWithDetails(err, "could not upgrade deployment", "deploymentName", deploymentName)
 	}

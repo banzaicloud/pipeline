@@ -62,15 +62,20 @@ type Service interface {
 	UpdateRepository(ctx context.Context, organizationID uint, repository Repository) error
 }
 
-// NewService returns a new Service.
-func NewService(store Store, secretStore SecretStore, validator RepoValidator, envService Service, logger Logger) Service {
-	return service{
-		store:         store,
-		secretStore:   secretStore,
-		repoValidator: validator,
-		envService:    envService,
-		logger:        logger,
-	}
+// +testify:mock:testOnly=true
+
+// Service manages Helm chart repositories.
+type EnvService interface {
+	// AddRepository adds a new Helm chart repository.
+	AddRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) error
+	// ListRepositories lists Helm repositories.
+	ListRepositories(ctx context.Context, helmEnv HelmEnv) (repos []Repository, err error)
+	// ListRepositories deletes a Helm repository
+	DeleteRepository(ctx context.Context, helmEnv HelmEnv, repoName string) error
+	// PatchRepository patches an existing repository
+	PatchRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) error
+	// UpdateRepository updates an existing repository
+	UpdateRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) error
 }
 
 // +testify:mock:testOnly=true
@@ -120,8 +125,27 @@ type service struct {
 	store         Store
 	secretStore   SecretStore
 	repoValidator RepoValidator
-	envService    Service
+	envResolver   EnvResolver
+	envService    EnvService
 	logger        Logger
+}
+
+// NewService returns a new Service.
+func NewService(
+	store Store,
+	secretStore SecretStore,
+	validator RepoValidator,
+	envResolver EnvResolver,
+	envService EnvService,
+	logger Logger) Service {
+	return service{
+		store:         store,
+		secretStore:   secretStore,
+		repoValidator: validator,
+		envResolver:   envResolver,
+		envService:    envService,
+		logger:        logger,
+	}
 }
 
 func (s service) AddRepository(ctx context.Context, organizationID uint, repository Repository) error {
@@ -157,7 +181,12 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 		return errors.WrapIf(err, "failed to add helm repository")
 	}
 
-	if err := s.envService.AddRepository(ctx, organizationID, repository); err != nil {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	if err := s.envService.AddRepository(ctx, helmEnv, repository); err != nil {
 		return errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 
@@ -166,7 +195,12 @@ func (s service) AddRepository(ctx context.Context, organizationID uint, reposit
 }
 
 func (s service) ListRepositories(ctx context.Context, organizationID uint) (repos []Repository, err error) {
-	defaultRepos, err := s.envService.ListRepositories(ctx, organizationID)
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	defaultRepos, err := s.envService.ListRepositories(ctx, helmEnv)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to retrieve default repositories")
 	}
@@ -176,7 +210,7 @@ func (s service) ListRepositories(ctx context.Context, organizationID uint) (rep
 		return nil, errors.WrapIf(err, "failed to retrieve persisted repositories")
 	}
 
-	return append(defaultRepos, persistedRepos...), nil
+	return mergeDefaults(defaultRepos, persistedRepos), nil
 }
 
 func (s service) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {
@@ -189,7 +223,12 @@ func (s service) DeleteRepository(ctx context.Context, organizationID uint, repo
 		return nil
 	}
 
-	if err := s.envService.DeleteRepository(ctx, organizationID, repoName); err != nil {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	if err := s.envService.DeleteRepository(ctx, helmEnv, repoName); err != nil {
 		return errors.WrapIf(err, "failed to delete helm repository environment")
 	}
 
@@ -231,7 +270,12 @@ func (s service) PatchRepository(ctx context.Context, organizationID uint, repos
 		return errors.WrapIf(err, "failed to add helm repository")
 	}
 
-	if err := s.envService.PatchRepository(ctx, organizationID, repository); err != nil {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	if err := s.envService.PatchRepository(ctx, helmEnv, repository); err != nil {
 		return errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 
@@ -273,7 +317,12 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 		return errors.WrapIf(err, "failed to add helm repository")
 	}
 
-	if err := s.envService.PatchRepository(ctx, organizationID, repository); err != nil {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	if err := s.envService.PatchRepository(ctx, helmEnv, repository); err != nil {
 		return errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 
@@ -290,4 +339,24 @@ func (s service) repoExists(ctx context.Context, orgID uint, repository Reposito
 	}
 
 	return true, nil
+}
+
+// mergeDefaults adds the defaults to the list of repositories if not already added
+func mergeDefaults(defaultRepos []Repository, storedRepos []Repository) []Repository {
+	merged := storedRepos
+	for _, defaultRepo := range defaultRepos {
+		if !contains(defaultRepo.Name, storedRepos) {
+			merged = append(merged, defaultRepo)
+		}
+	}
+	return merged
+}
+
+func contains(repoName string, repos []Repository) bool {
+	for _, repo := range repos {
+		if repo.Name == repoName {
+			return true
+		}
+	}
+	return false
 }

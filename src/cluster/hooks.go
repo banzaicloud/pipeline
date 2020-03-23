@@ -36,7 +36,6 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
-	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/helm"
 )
 
@@ -49,12 +48,6 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
-		return err
-	}
-
-	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
-	if err != nil {
-		log.Errorf("Error during getting organization: %s", err.Error())
 		return err
 	}
 
@@ -93,7 +86,7 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 		k8sHelm.InstallWait(wait),
 		k8sHelm.ValueOverrides(values),
 	}
-	_, err = helm.CreateDeployment(deploymentName, chartVersion, nil, namespace, releaseName, false, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), options...)
+	_, err = helm.CreateDeployment(deploymentName, chartVersion, nil, namespace, releaseName, false, nil, kubeConfig, helm.GeneratePlatformHelmRepoEnv(), options...)
 	if err != nil {
 		log.Errorf("Deploying '%s' failed due to: %s", deploymentName, err.Error())
 		return err

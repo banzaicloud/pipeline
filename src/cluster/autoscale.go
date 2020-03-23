@@ -393,7 +393,7 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 
 	switch action {
 	case install:
-		_, err = helm.CreateDeployment(chartName, chartVersion, nil, helm.SystemNamespace, releaseName, false, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), k8sHelm.ValueOverrides(yamlValues))
+		_, err = helm.CreateDeployment(chartName, chartVersion, nil, helm.SystemNamespace, releaseName, false, nil, kubeConfig, helm.GeneratePlatformHelmRepoEnv(), k8sHelm.ValueOverrides(yamlValues))
 	case upgrade:
 		_, err = helm.UpgradeDeployment(releaseName, chartName, chartVersion, nil, yamlValues, false, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
 	default:
