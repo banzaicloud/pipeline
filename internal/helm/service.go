@@ -96,14 +96,6 @@ type Store interface {
 	Update(ctx context.Context, organizationID uint, repository Repository) error
 }
 
-type Releaser interface {
-	// TODO list / define all operations related to releases
-}
-
-type Chartmanager interface {
-	// TODO list /define all operations related to charts
-}
-
 type PasswordSecret struct {
 	UserName string
 	Password string
@@ -349,7 +341,7 @@ func (s service) repoExists(ctx context.Context, orgID uint, repository Reposito
 	return true, nil
 }
 
-// mergeDefaults adds the defaults to the list of repositories if already not added
+// mergeDefaults adds the defaults to the list of repositories if not already added
 func mergeDefaults(defaultRepos []Repository, storedRepos []Repository) []Repository {
 	merged := storedRepos
 	for _, defaultRepo := range defaultRepos {

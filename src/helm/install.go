@@ -39,9 +39,9 @@ func CreateEnvSettings(helmRepoHome string) helmEnv.EnvSettings {
 }
 
 // GenerateHelmRepoEnv Generate helm path based on orgName
-func GenerateHelmRepoEnv(orgName string) (env helmEnv.EnvSettings) {
+func GenerateHelmRepoEnv(orgName string) helmEnv.EnvSettings {
 	var helmPath = global.GetHelmPath(orgName)
-	env = CreateEnvSettings(fmt.Sprintf("%s/%s", helmPath, phelm.HelmPostFix))
+	env := CreateEnvSettings(fmt.Sprintf("%s/%s", helmPath, phelm.HelmPostFix))
 
 	// check local helm
 	if _, err := os.Stat(helmPath); os.IsNotExist(err) {
@@ -49,10 +49,10 @@ func GenerateHelmRepoEnv(orgName string) (env helmEnv.EnvSettings) {
 		InstallLocalHelm(env) // nolint: errcheck
 	}
 
-	return
+	return env
 }
 
-func GeneratePlatformHelmRepoEnv() (env helmEnv.EnvSettings) {
+func GeneratePlatformHelmRepoEnv() helmEnv.EnvSettings {
 	return GenerateHelmRepoEnv(helm.PlatformHelmHome)
 }
 
