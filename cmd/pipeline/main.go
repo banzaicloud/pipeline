@@ -26,6 +26,7 @@ import (
 	"path"
 	"regexp"
 	"syscall"
+	"time"
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
@@ -50,6 +51,7 @@ import (
 	auth2 "github.com/qor/auth"
 	appkitendpoint "github.com/sagikazarmark/appkit/endpoint"
 	appkiterrors "github.com/sagikazarmark/appkit/errors"
+	appkitrun "github.com/sagikazarmark/appkit/run"
 	"github.com/sagikazarmark/kitx/correlation"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 	kitxtransport "github.com/sagikazarmark/kitx/transport"
@@ -1132,17 +1134,22 @@ func main() {
 
 	var group run.Group
 
-	internalRouter := createInternalAPIRouter(config, db, basePath, clusterAPI, cloudinfoClient, logger, logrusLogger)
-	internalBindAddr := config.Pipeline.InternalAddr
-	internalListener, err := net.Listen("tcp", internalBindAddr)
-	emperror.Panic(err)
+	{
+		logger := logur.WithField(logger, "server", "internal")
 
-	group.Add(func() error {
-		logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})
-		return internalRouter.RunListener(internalListener)
-	}, func(error) {
-		internalListener.Close()
-	})
+		server := &http.Server{
+			Handler:  createInternalAPIRouter(config, db, basePath, clusterAPI, cloudinfoClient, logger, logrusLogger),
+			ErrorLog: log.NewErrorStandardLogger(logger),
+		}
+		defer server.Close()
+
+		logger.Info("listening on address", map[string]interface{}{"address": config.Pipeline.InternalAddr})
+
+		ln, err := net.Listen("tcp", config.Pipeline.InternalAddr)
+		emperror.Panic(err)
+
+		group.Add(appkitrun.LogServe(logger)(appkitrun.HTTPServe(server, ln, 5*time.Second)))
+	}
 
 	bindAddr := config.Pipeline.Addr
 	caCertFile, certFile, keyFile := config.Pipeline.CACertFile, config.Pipeline.CertFile, config.Pipeline.KeyFile
