@@ -414,12 +414,26 @@ func main() {
 	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, logrusLogger, errorHandler, clusteradapter.NewStore(db, clusters))
 	commonClusterGetter := common.NewClusterGetter(clusterManager, logrusLogger, errorHandler)
 
+	var group run.Group
+
 	if config.SpotMetrics.Enabled {
-		go monitor.NewSpotMetricsExporter(
-			context.Background(),
+		ctx, cancel := context.WithCancel(context.Background())
+		exporter := monitor.NewSpotMetricsExporter(
+			ctx,
 			clusterManager,
 			logrusLogger.WithField("subsystem", "spot-metrics-exporter"),
-		).Run(config.SpotMetrics.CollectionInterval)
+		)
+
+		group.Add(
+			func() error {
+				exporter.Run(config.SpotMetrics.CollectionInterval)
+
+				return nil
+			},
+			func(err error) {
+				cancel()
+			},
+		)
 	}
 
 	cloudinfoClient := cloudinfo.NewClient(cloudinfoapi.NewAPIClient(&cloudinfoapi.Configuration{
@@ -1131,8 +1145,6 @@ func main() {
 	}
 
 	base.GET("api", api.MetaHandler(engine, basePath+"/api"))
-
-	var group run.Group
 
 	{
 		logger := logur.WithField(logger, "server", "internal")
