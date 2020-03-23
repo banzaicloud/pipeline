@@ -1151,36 +1151,34 @@ func main() {
 		group.Add(appkitrun.LogServe(logger)(appkitrun.HTTPServe(server, ln, 5*time.Second)))
 	}
 
-	bindAddr := config.Pipeline.Addr
-	caCertFile, certFile, keyFile := config.Pipeline.CACertFile, config.Pipeline.CertFile, config.Pipeline.KeyFile
-	if caCertFile != "" && certFile != "" && keyFile != "" {
-		pipelineTLS, err := auth.TLSConfigForClientAuth(caCertFile)
+	{
+		logger := logur.WithField(logger, "server", "app")
+
+		server := &http.Server{
+			Handler:  engine,
+			ErrorLog: log.NewErrorStandardLogger(logger),
+		}
+		defer server.Close()
+
+		logger.Info("listening on address", map[string]interface{}{"address": config.Pipeline.Addr})
+
+		ln, err := net.Listen("tcp", config.Pipeline.Addr)
 		emperror.Panic(err)
 
-		serverCertificate, err := tls.LoadX509KeyPair(certFile, keyFile)
-		emperror.Panic(err)
+		caCertFile, certFile, keyFile := config.Pipeline.CACertFile, config.Pipeline.CertFile, config.Pipeline.KeyFile
+		if caCertFile != "" && certFile != "" && keyFile != "" {
+			tlsConfig, err := auth.TLSConfigForClientAuth(caCertFile)
+			emperror.Panic(err)
 
-		pipelineTLS.Certificates = []tls.Certificate{serverCertificate}
+			serverCertificate, err := tls.LoadX509KeyPair(certFile, keyFile)
+			emperror.Panic(err)
 
-		listener, err := tls.Listen("tcp", bindAddr, pipelineTLS)
-		emperror.Panic(err)
+			tlsConfig.Certificates = []tls.Certificate{serverCertificate}
 
-		group.Add(func() error {
-			logger.Info("Pipeline API listening", map[string]interface{}{"address": "https://" + bindAddr})
-			return engine.RunListener(listener)
-		}, func(error) {
-			listener.Close()
-		})
-	} else {
-		listener, err := net.Listen("tcp", bindAddr)
-		emperror.Panic(err)
+			ln = tls.NewListener(ln, tlsConfig)
+		}
 
-		group.Add(func() error {
-			logger.Info("Pipeline API listening", map[string]interface{}{"address": "http://" + bindAddr})
-			return engine.RunListener(listener)
-		}, func(error) {
-			listener.Close()
-		})
+		group.Add(appkitrun.LogServe(logger)(appkitrun.HTTPServe(server, ln, 5*time.Second)))
 	}
 
 	// Setup signal handler
