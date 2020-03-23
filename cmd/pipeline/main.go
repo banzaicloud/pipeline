@@ -1132,15 +1132,26 @@ func main() {
 
 	arkEvents.NewClusterEventHandler(arkEvents.NewClusterEvents(clusterEventBus), db, logrusLogger)
 	if config.Cluster.DisasterRecovery.Ark.SyncEnabled {
-		go arkSync.RunSyncServices(
-			context.Background(),
-			db,
-			arkClusterManager.New(clusterManager),
-			logrusLogger.WithField("subsystem", "ark"),
-			errorHandler,
-			config.Cluster.DisasterRecovery.Ark.BucketSyncInterval,
-			config.Cluster.DisasterRecovery.Ark.RestoreSyncInterval,
-			config.Cluster.DisasterRecovery.Ark.BackupSyncInterval,
+		ctx, cancel := context.WithCancel(context.Background())
+
+		group.Add(
+			func() error {
+				arkSync.RunSyncServices(
+					ctx,
+					db,
+					arkClusterManager.New(clusterManager),
+					logrusLogger.WithField("subsystem", "ark"),
+					errorHandler,
+					config.Cluster.DisasterRecovery.Ark.BucketSyncInterval,
+					config.Cluster.DisasterRecovery.Ark.RestoreSyncInterval,
+					config.Cluster.DisasterRecovery.Ark.BackupSyncInterval,
+				)
+
+				return nil
+			},
+			func(err error) {
+				cancel()
+			},
 		)
 	}
 
