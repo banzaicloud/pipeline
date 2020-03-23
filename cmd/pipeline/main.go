@@ -19,14 +19,17 @@ import (
 	"crypto/tls"
 	"encoding/base32"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"path"
 	"regexp"
+	"syscall"
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	"emperror.dev/errors/match"
 	"github.com/ThreeDotsLabs/watermill/components/cqrs"
 	"github.com/ThreeDotsLabs/watermill/message"
 	watermillMiddleware "github.com/ThreeDotsLabs/watermill/message/router/middleware"
@@ -42,6 +45,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
+	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
 	auth2 "github.com/qor/auth"
 	appkitendpoint "github.com/sagikazarmark/appkit/endpoint"
@@ -1126,16 +1130,23 @@ func main() {
 
 	base.GET("api", api.MetaHandler(engine, basePath+"/api"))
 
-	internalBindAddr := config.Pipeline.InternalAddr
-	logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})
+	var group run.Group
 
-	go createInternalAPIRouter(config, db, basePath, clusterAPI, cloudinfoClient, logger, logrusLogger).Run(internalBindAddr) // nolint: errcheck
+	internalRouter := createInternalAPIRouter(config, db, basePath, clusterAPI, cloudinfoClient, logger, logrusLogger)
+	internalBindAddr := config.Pipeline.InternalAddr
+	internalListener, err := net.Listen("tcp", internalBindAddr)
+	emperror.Panic(err)
+
+	group.Add(func() error {
+		logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})
+		return internalRouter.RunListener(internalListener)
+	}, func(error) {
+		internalListener.Close()
+	})
 
 	bindAddr := config.Pipeline.Addr
 	caCertFile, certFile, keyFile := config.Pipeline.CACertFile, config.Pipeline.CertFile, config.Pipeline.KeyFile
 	if caCertFile != "" && certFile != "" && keyFile != "" {
-		logger.Info("Pipeline API listening", map[string]interface{}{"address": "https://" + bindAddr})
-
 		pipelineTLS, err := auth.TLSConfigForClientAuth(caCertFile)
 		emperror.Panic(err)
 
@@ -1147,11 +1158,29 @@ func main() {
 		listener, err := tls.Listen("tcp", bindAddr, pipelineTLS)
 		emperror.Panic(err)
 
-		_ = engine.RunListener(listener)
+		group.Add(func() error {
+			logger.Info("Pipeline API listening", map[string]interface{}{"address": "https://" + bindAddr})
+			return engine.RunListener(listener)
+		}, func(error) {
+			listener.Close()
+		})
 	} else {
-		logger.Info("Pipeline API listening", map[string]interface{}{"address": "http://" + bindAddr})
-		_ = engine.Run(bindAddr)
+		listener, err := net.Listen("tcp", bindAddr)
+		emperror.Panic(err)
+
+		group.Add(func() error {
+			logger.Info("Pipeline API listening", map[string]interface{}{"address": "http://" + bindAddr})
+			return engine.RunListener(listener)
+		}, func(error) {
+			listener.Close()
+		})
 	}
+
+	// Setup signal handler
+	group.Add(run.SignalHandler(context.Background(), syscall.SIGINT, syscall.SIGTERM))
+
+	err = group.Run()
+	emperror.WithFilter(errorHandler, match.As(&run.SignalError{}).MatchError).Handle(err)
 }
 
 func createInternalAPIRouter(
