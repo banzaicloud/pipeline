@@ -180,9 +180,6 @@ spec:
         - name: config-volume
           mountPath: /config
 
-        - mountPath: /statestore
-          name: statestore
-
       {{- if .Values.vault.tlsSecret }}
         - name: vault-tls
           mountPath: /vault/tls
@@ -200,14 +197,6 @@ spec:
         configMap:
           name: {{ include "pipeline.fullname" . }}
 
-      - name: statestore
-        {{- if .Values.statestore.persistence.enabled }}
-        persistentVolumeClaim:
-           claimName: {{ default (printf "%s-statestore" (include "pipeline.fullname" .)) .Values.statestore.persistence.existingClaim }}
-        {{- else }}
-        hostPath:
-          path: /opt/pipeline/statestore/
-        {{- end }}
       {{- if .Values.vault.tlsSecret }}
       - name: vault-tls
         secret:

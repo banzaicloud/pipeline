@@ -19,7 +19,7 @@ hostAliases: []
 
 image:
   repository: banzaicloud/pipeline
-  tag: 0.32.0
+  tag: 0.40.0
   pullPolicy: IfNotPresent
 
 resources:
@@ -147,26 +147,6 @@ vault:
   # The secret that holds the Vault CA cert.
   # If left empty SKIP_VERIFY will be used.
   tlsSecret: ""
-
-statestore:
-  persistence:
-    enabled: true
-
-    ## A manually managed Persistent Volume and Claim
-    ## Requires persistence.enabled: true
-    ## If defined, PVC must be created manually before volume will be bound
-    # existingClaim:
-
-    ## Pipeline StateStore data Persistent Volume Storage Class
-    ## If defined, storageClassName: <storageClass>
-    ## If set to "-", storageClassName: "", which disables dynamic provisioning
-    ## If undefined (the default) or set to null, no storageClassName spec is
-    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-    ##   GKE, AWS & OpenStack)
-    ##
-    # storageClass: "-"
-    accessMode: ReadWriteOnce
-    size: 128Mi
 
 ##
 ## MySQL configuration
