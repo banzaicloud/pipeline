@@ -1189,9 +1189,13 @@ func main() {
 		emperror.Panic(err)
 
 		caCertFile, certFile, keyFile := config.Pipeline.CACertFile, config.Pipeline.CertFile, config.Pipeline.KeyFile
-		if caCertFile != "" && certFile != "" && keyFile != "" {
-			tlsConfig, err := auth.TLSConfigForClientAuth(caCertFile)
-			emperror.Panic(err)
+		if certFile != "" && keyFile != "" {
+			tlsConfig := &tls.Config{}
+
+			if caCertFile != "" {
+				tlsConfig, err = auth.TLSConfigForClientAuth(caCertFile)
+				emperror.Panic(err)
+			}
 
 			serverCertificate, err := tls.LoadX509KeyPair(certFile, keyFile)
 			emperror.Panic(err)
