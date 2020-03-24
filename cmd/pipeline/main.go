@@ -1190,13 +1190,11 @@ func main() {
 
 		caCertFile, certFile, keyFile := config.Pipeline.CACertFile, config.Pipeline.CertFile, config.Pipeline.KeyFile
 		if certFile != "" && keyFile != "" {
-			var tlsConfig *tls.Config
+			tlsConfig := &tls.Config{}
 
 			if caCertFile != "" {
 				tlsConfig, err = auth.TLSConfigForClientAuth(caCertFile)
 				emperror.Panic(err)
-			} else {
-				tlsConfig = &tls.Config{}
 			}
 
 			serverCertificate, err := tls.LoadX509KeyPair(certFile, keyFile)
