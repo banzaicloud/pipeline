@@ -24,7 +24,7 @@ type PkeOnVsphereNodePool struct {
 	Vcpu int32 `json:"vcpu"`
 
 	// MiBs of RAM to attach to each node.
-	RAM int32 `json:"ram"`
+	Ram int32 `json:"ram"`
 
 	// Name of VM template available on vSphere to clone as the base of nodes.
 	Template string `json:"template,omitempty"`
