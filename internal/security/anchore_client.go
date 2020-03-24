@@ -102,6 +102,12 @@ func (a anchoreClient) GetUser(ctx context.Context, userName string) (interface{
 	a.logger.Info("retrieving anchore user", fnCtx)
 
 	usr, resp, err := a.getRestClient().UserManagementApi.GetAccountUser(a.authorizedContext(ctx), userName, userName)
+	if err != nil && resp == nil { // TODO: simplify error checking (openapi returns a generic error for 404 as well)
+		a.logger.Debug("failed to retrieve user from anchore", fnCtx)
+
+		return nil, errors.WrapIfWithDetails(err, "failed to retrieve user from anchore", fnCtx)
+	}
+
 	if resp.StatusCode == http.StatusNotFound {
 		// user not found
 		return nil, nil
