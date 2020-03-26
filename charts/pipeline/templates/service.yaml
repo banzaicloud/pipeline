@@ -13,12 +13,8 @@ spec:
   - port: {{ .Values.service.externalPort }}
     targetPort: {{ .Values.service.internalPort }}
     protocol: TCP
-  {{- if .Values.service.tls  }}
-#https://github.com/containous/traefik/issues/3806
+    #https://github.com/containous/traefik/issues/3806
     name: "https-{{ .Values.service.name }}"
-  {{- else }}
-    name: "{{ .Values.service.name }}"
-  {{ end }}
   selector:
     app: {{ include "pipeline.name" . }}
 

@@ -100,8 +100,8 @@ func testInternalHandlerWithBadClientCertificate(t *testing.T) {
 
 	clientTransport.TLSClientConfig.Certificates = []tls.Certificate{clientCert}
 
-	resp, err := client.Get(server.URL + "/hello")
-	require.NoError(t, err)
+	_, err = client.Get(server.URL + "/hello")
 
-	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "remote error: tls: bad certificate")
 }

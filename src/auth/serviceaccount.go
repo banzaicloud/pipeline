@@ -15,16 +15,18 @@
 package auth
 
 import (
-	"crypto/x509"
 	"net/http"
 )
+
+const pipelineServiceAccountLogin = "pipeline"
 
 type ServiceAccountService interface {
 	ExtractServiceAccount(*http.Request) *User
 	IsAdminServiceAccount(*User) bool
 }
 
-type serviceAccountService struct{}
+type serviceAccountService struct {
+}
 
 func NewServiceAccountService() ServiceAccountService {
 	return serviceAccountService{}
@@ -35,22 +37,10 @@ func (s serviceAccountService) ExtractServiceAccount(r *http.Request) *User {
 		return nil
 	}
 
-	var cert *x509.Certificate
-
-chains:
-	for _, vcc := range r.TLS.VerifiedChains {
-		for _, vc := range vcc {
-			if vc.Subject.CommonName == "pipeline" {
-				cert = vc
-				break chains
-			}
-		}
-	}
-
-	if cert != nil {
+	if len(r.TLS.VerifiedChains) > 0 {
 		user := User{
 			ID:             0,
-			Login:          cert.Subject.CommonName,
+			Login:          pipelineServiceAccountLogin,
 			ServiceAccount: true,
 		}
 
@@ -63,7 +53,7 @@ chains:
 func (s serviceAccountService) IsAdminServiceAccount(u *User) bool {
 	if u.ID == 0 && u.ServiceAccount {
 		switch u.Login {
-		case "pipeline":
+		case pipelineServiceAccountLogin:
 			return true
 		}
 	}

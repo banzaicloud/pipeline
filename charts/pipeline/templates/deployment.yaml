@@ -127,16 +127,16 @@ spec:
         {{- end }}
 
         # Pipeline service and TLS
-        {{- if .Values.service.tls }}
+        - name: PIPELINE_PIPELINE_CACERTFILE
+          value: /tls/ca.crt
         - name: PIPELINE_PIPELINE_CERTFILE
-          value: /tls/server.crt
+          value: /tls/tls.crt
         - name: PIPELINE_PIPELINE_KEYFILE
-          value: /tls/server.key
+          value: /tls/tls.key
         - name: PIPELINECTL_API_URL
           value: "https://127.0.0.1:{{ .Values.service.internalPort }}"
         - name: PIPELINECTL_API_VERIFY
           value: "false"
-        {{ end }}
         # Anchore configuration
         {{- if .Values.configuration.cluster.securityScan.anchore.enabled }}
         - name: PIPELINE_CLUSTER_SECURITYSCAN_ANCHORE_PASSWORD
@@ -161,17 +161,13 @@ spec:
           httpGet:
             path: {{ .Values.configuration.pipeline.basePath }}/api
             port: {{ .Values.service.internalPort }}
-          {{- if .Values.service.tls }}
             scheme: HTTPS
-          {{- end }}
           initialDelaySeconds: 15
         readinessProbe:
           httpGet:
             path: {{ .Values.configuration.pipeline.basePath }}/api
             port: {{ .Values.service.internalPort }}
-          {{- if .Values.service.tls }}
             scheme: HTTPS
-          {{- end }}
           initialDelaySeconds: 10
         resources:
 {{ toYaml .Values.resources | indent 12 }}
@@ -184,10 +180,8 @@ spec:
         - name: vault-tls
           mountPath: /vault/tls
        {{ end }}
-      {{- if .Values.service.tls  }}
         - name: pipeline-tls
           mountPath: /tls
-      {{ end }}
       {{- if eq .Values.configuration.cluster.ingress.cert.source "file" }}
         - name: sign-ca
           mountPath: {{ .Values.configuration.cluster.ingress.cert.path }}
@@ -202,11 +196,9 @@ spec:
         secret:
           secretName: {{ .Release.Name }}-vault-tls
       {{ end }}
-      {{- if .Values.service.tls  }}
       - name: pipeline-tls
         secret:
-          secretName: {{ include "pipeline.fullname" . }}-tls
-      {{ end }}
+          secretName: {{ include "pipeline-tls-secret-name" . }}
       {{- if eq .Values.configuration.cluster.ingress.cert.source "file" }}
       - name: sign-ca
         secret:
