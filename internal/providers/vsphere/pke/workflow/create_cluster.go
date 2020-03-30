@@ -89,6 +89,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 		err := workflow.ExecuteActivity(ctx, pkeworkflow.CreateDexClientActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}
@@ -104,6 +105,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 		var output intPKEWorkflow.AssembleHTTPProxySettingsActivityOutput
 		if err := workflow.ExecuteActivity(ctx, intPKEWorkflow.AssembleHTTPProxySettingsActivityName, activityInput).Get(ctx, &output); err != nil {
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 		httpProxy = output.Settings
@@ -145,6 +147,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 
 		if err := errors.Combine(errs...); err != nil {
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}
@@ -160,7 +163,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
-	setClusterStatus(ctx, input.ClusterID, pkgCluster.Creating, "waiting for Kubernetes master") // nolint: errcheck
+	_ = setClusterStatus(ctx, input.ClusterID, pkgCluster.Creating, "waiting for Kubernetes master") // nolint: errcheck
 
 	// Create worker nodes
 	{
@@ -200,6 +203,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 
 		if err := errors.Combine(errs...); err != nil {
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}
