@@ -45,11 +45,31 @@ type Repository struct {
 	TlsSecretID string `json:"tlsSecretId,omitempty"`
 }
 
+//  Release represents information related to a helm chart release
+type Release struct {
+	// ReleaseInput struct encapsulating information about the release to be created
+	ReleaseName string
+	ChartName   string
+	Namespace   string
+	Values      []string // TODO is this type OK?
+	// TODO repo here?
+}
+
 // +kit:endpoint:errorStrategy=service
 // +testify:mock:testOnly=true
 
 // Service manages Helm chart repositories.
 type Service interface {
+	// helm repository management operations
+	repository
+
+	// release management operations
+	releaser
+}
+
+// releaser collects and groups release related operations
+// it's intended to be embedded in the "Helm Facade"
+type repository interface {
 	// AddRepository adds a new Helm chart repository.
 	AddRepository(ctx context.Context, organizationID uint, repository Repository) error
 	// ListRepositories lists Helm repositories.
@@ -60,6 +80,13 @@ type Service interface {
 	PatchRepository(ctx context.Context, organizationID uint, repository Repository) error
 	// UpdateRepository updates an existing repository
 	UpdateRepository(ctx context.Context, organizationID uint, repository Repository) error
+}
+
+// releaser collects and groups release related operations
+// it's intended to be embedded in the "Helm Facade"
+type releaser interface {
+	// Install installs the release to the cluster with the given identifier
+	Install(ctx context.Context, organizationID uint, clusterID uint, release Release) error
 }
 
 // +testify:mock:testOnly=true
@@ -121,13 +148,21 @@ type SecretStore interface {
 	ResolveTlsSecrets(ctx context.Context, secretID string) (TlsSecret, error)
 }
 
+// Cluster collects operations to extract  cluster related information
+type ClusterService interface {
+	// Retrieves the kuebernetes configuration as a slice of bytes
+	GetKubeConfig(ctx context.Context, clusterID uint) ([]byte, error)
+}
+
 type service struct {
-	store         Store
-	secretStore   SecretStore
-	repoValidator RepoValidator
-	envResolver   EnvResolver
-	envService    EnvService
-	logger        Logger
+	store          Store
+	secretStore    SecretStore
+	repoValidator  RepoValidator
+	envResolver    EnvResolver
+	envService     EnvService
+	releaser       Releaser
+	clusterService ClusterService
+	logger         Logger
 }
 
 // NewService returns a new Service.
@@ -137,14 +172,18 @@ func NewService(
 	validator RepoValidator,
 	envResolver EnvResolver,
 	envService EnvService,
+	releaser Releaser,
+	clusterService ClusterService,
 	logger Logger) Service {
 	return service{
-		store:         store,
-		secretStore:   secretStore,
-		repoValidator: validator,
-		envResolver:   envResolver,
-		envService:    envService,
-		logger:        logger,
+		store:          store,
+		secretStore:    secretStore,
+		repoValidator:  validator,
+		envResolver:    envResolver,
+		envService:     envService,
+		releaser:       releaser,
+		clusterService: clusterService,
+		logger:         logger,
 	}
 }
 
@@ -327,6 +366,27 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 	}
 
 	s.logger.Debug("created helm repository", map[string]interface{}{"orgID": organizationID, "helm repository": repository.Name})
+	return nil
+}
+
+func (s service) Install(ctx context.Context, organizationID uint, clusterID uint, release Release) error {
+	// TODO should this come from the api?
+	releaserOptions := ReleaserOptions{}
+
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	kubeKonfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get cluster configuration")
+	}
+
+	if _, err := s.releaser.Install(ctx, helmEnv, kubeKonfig, release, releaserOptions); err != nil {
+		return errors.WrapIf(err, "failed to install release")
+	}
+
 	return nil
 }
 

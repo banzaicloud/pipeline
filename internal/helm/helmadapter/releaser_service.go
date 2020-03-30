@@ -48,8 +48,7 @@ func NewReleaser(logger Logger) helm.Releaser {
 	}
 }
 
-func (r releaser) Install(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.ReleaseInput, options helm.ReleaserOptions) (string, error) {
-
+func (r releaser) Install(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.ReleaserOptions) (string, error) {
 	// customize the settings passed forward
 	envSettings := r.processEnvSettings(helmEnv)
 
@@ -138,7 +137,7 @@ func (r releaser) processEnvSettings(helmEnv helm.HelmEnv) *cli.EnvSettings {
 }
 
 // processEnvSettings emulates an cli.EnvSettings instance based on the passed in data
-func (r releaser) processValues(providers getter.Providers, releaseInput helm.ReleaseInput) (map[string]interface{}, error) {
+func (r releaser) processValues(providers getter.Providers, releaseInput helm.Release) (map[string]interface{}, error) {
 	valueOpts := &values.Options{}
 	valueOpts.Values = releaseInput.Values // TODO validate this!
 
@@ -149,7 +148,7 @@ func (r releaser) debugFn(format string, v ...interface{}) {
 	r.logger.Debug(fmt.Sprintf(format, v...))
 }
 
-func (r releaser) getActionConfiguration(clientGetter genericclioptions.RESTClientGetter, input helm.ReleaseInput) (*action.Configuration, error) {
+func (r releaser) getActionConfiguration(clientGetter genericclioptions.RESTClientGetter, input helm.Release) (*action.Configuration, error) {
 	actionConfig := new(action.Configuration)
 	if err := actionConfig.Init(clientGetter, input.Namespace, "", r.debugFn); err != nil {
 		r.logger.Error("failed to initialize action config")

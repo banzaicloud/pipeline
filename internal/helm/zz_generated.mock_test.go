@@ -89,6 +89,20 @@ func (_m *MockService) DeleteRepository(ctx context.Context, organizationID uint
 	return r0
 }
 
+// Install provides a mock function.
+func (_m *MockService) Install(ctx context.Context, organizationID uint, clusterID uint, release Release) error {
+	ret := _m.Called(ctx, organizationID, clusterID, release)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, Release) error); ok {
+		r0 = rf(ctx, organizationID, clusterID, release)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListRepositories provides a mock function.
 func (_m *MockService) ListRepositories(ctx context.Context, organizationID uint) (repos []Repository, err error) {
 	ret := _m.Called(ctx, organizationID)
