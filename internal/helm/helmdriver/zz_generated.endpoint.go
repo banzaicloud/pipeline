@@ -28,6 +28,7 @@ type serviceError interface {
 type Endpoints struct {
 	AddRepository    endpoint.Endpoint
 	DeleteRepository endpoint.Endpoint
+	Install          endpoint.Endpoint
 	ListRepositories endpoint.Endpoint
 	PatchRepository  endpoint.Endpoint
 	UpdateRepository endpoint.Endpoint
@@ -41,6 +42,7 @@ func MakeEndpoints(service helm.Service, middleware ...endpoint.Middleware) Endp
 	return Endpoints{
 		AddRepository:    kitxendpoint.OperationNameMiddleware("helm.AddRepository")(mw(MakeAddRepositoryEndpoint(service))),
 		DeleteRepository: kitxendpoint.OperationNameMiddleware("helm.DeleteRepository")(mw(MakeDeleteRepositoryEndpoint(service))),
+		Install:          kitxendpoint.OperationNameMiddleware("helm.Install")(mw(MakeInstallEndpoint(service))),
 		ListRepositories: kitxendpoint.OperationNameMiddleware("helm.ListRepositories")(mw(MakeListRepositoriesEndpoint(service))),
 		PatchRepository:  kitxendpoint.OperationNameMiddleware("helm.PatchRepository")(mw(MakePatchRepositoryEndpoint(service))),
 		UpdateRepository: kitxendpoint.OperationNameMiddleware("helm.UpdateRepository")(mw(MakeUpdateRepositoryEndpoint(service))),
@@ -112,6 +114,41 @@ func MakeDeleteRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
 		}
 
 		return DeleteRepositoryResponse{}, nil
+	}
+}
+
+// InstallRequest is a request struct for Install endpoint.
+type InstallRequest struct {
+	OrganizationID uint
+	ClusterID      uint
+	Release        helm.Release
+}
+
+// InstallResponse is a response struct for Install endpoint.
+type InstallResponse struct {
+	Err error
+}
+
+func (r InstallResponse) Failed() error {
+	return r.Err
+}
+
+// MakeInstallEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeInstallEndpoint(service helm.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(InstallRequest)
+
+		err := service.Install(ctx, req.OrganizationID, req.ClusterID, req.Release)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return InstallResponse{Err: err}, nil
+			}
+
+			return InstallResponse{Err: err}, err
+		}
+
+		return InstallResponse{}, nil
 	}
 }
 
