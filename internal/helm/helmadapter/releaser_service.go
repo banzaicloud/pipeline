@@ -131,7 +131,7 @@ func (r releaser) Install(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 func (r releaser) processEnvSettings(helmEnv helm.HelmEnv) *cli.EnvSettings {
 	envSettings := cli.New()
 	envSettings.RepositoryConfig = helmEnv.GetHome()
-	//envSettings.RepositoryCache // TODO configure other settings
+	envSettings.RepositoryCache = helmEnv.GetRepoCache()
 
 	return envSettings
 }
@@ -139,18 +139,21 @@ func (r releaser) processEnvSettings(helmEnv helm.HelmEnv) *cli.EnvSettings {
 // processEnvSettings emulates an cli.EnvSettings instance based on the passed in data
 func (r releaser) processValues(providers getter.Providers, releaseInput helm.Release) (map[string]interface{}, error) {
 	valueOpts := &values.Options{}
-	valueOpts.Values = releaseInput.Values // TODO validate this!
+
+	for key, val := range releaseInput.Values {
+		valueOpts.Values = append(valueOpts.Values, fmt.Sprintf("%s=%s", key, val))
+	}
 
 	return valueOpts.MergeValues(providers)
 }
 
-func (r releaser) debugFn(format string, v ...interface{}) {
+func (r releaser) debugFnf(format string, v ...interface{}) {
 	r.logger.Debug(fmt.Sprintf(format, v...))
 }
 
 func (r releaser) getActionConfiguration(clientGetter genericclioptions.RESTClientGetter, input helm.Release) (*action.Configuration, error) {
 	actionConfig := new(action.Configuration)
-	if err := actionConfig.Init(clientGetter, input.Namespace, "", r.debugFn); err != nil {
+	if err := actionConfig.Init(clientGetter, input.Namespace, "", r.debugFnf); err != nil {
 		r.logger.Error("failed to initialize action config")
 		return nil, errors.WrapIf(err, "failed to initialize install action config")
 	}

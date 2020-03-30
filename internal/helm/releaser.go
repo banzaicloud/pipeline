@@ -31,8 +31,9 @@ func (ri Release) NameAndChartSlice() []string {
 
 // ReleaserOptions placeholder for releaser directives
 type ReleaserOptions struct {
-	DryRun bool
-	//  TODO extend with other options, decide on where to populate it
+	DryRun       bool
+	GenerateName bool
+	Wait         bool
 }
 
 // Releaser interface collecting operations related to releases

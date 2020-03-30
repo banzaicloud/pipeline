@@ -48,11 +48,11 @@ type Repository struct {
 //  Release represents information related to a helm chart release
 type Release struct {
 	// ReleaseInput struct encapsulating information about the release to be created
-	ReleaseName string
-	ChartName   string
-	Namespace   string
-	Values      []string // TODO is this type OK?
-	// TODO repo here?
+	ReleaseName     string
+	ChartName       string
+	Namespace       string
+	Values          map[string]interface{} //json representation
+	ReleaserOptions ReleaserOptions
 }
 
 // +kit:endpoint:errorStrategy=service

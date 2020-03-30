@@ -35,7 +35,7 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 
 	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
 		endpoints.AddRepository,
-		decodeInstallChartHTTPRequest,
+		decodeAddRepositoryHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
 	))
@@ -105,6 +105,12 @@ func decodeInstallChartHTTPRequest(_ context.Context, r *http.Request) (interfac
 			ReleaseName: request.ReleaseName,
 			ChartName:   request.Name,
 			Namespace:   request.Namespace,
+			Values:      request.Values,
+			ReleaserOptions: helm.ReleaserOptions{
+				DryRun:       request.DryRun,
+				GenerateName: request.ReleaseName == "",
+				Wait:         false,
+			},
 		}}, nil
 }
 
