@@ -39,6 +39,8 @@ type HelmEnv struct {
 
 	// platform signals whether the instance represents a platform environment (as opposed to an org bound one)
 	platform bool
+
+	repoCacheDir string
 }
 
 func (e HelmEnv) GetHome() string {
@@ -47,6 +49,10 @@ func (e HelmEnv) GetHome() string {
 
 func (e HelmEnv) IsPlatform() bool {
 	return e.platform
+}
+
+func (e HelmEnv) GetRepoCache() string {
+	return e.repoCacheDir
 }
 
 // +testify:mock:testOnly=true
@@ -60,38 +66,71 @@ type EnvResolver interface {
 	ResolvePlatformEnv(ctx context.Context) (HelmEnv, error)
 }
 
-type helmEnvResolver struct {
+type helm2EnvResolver struct {
 	// helmHomes the configurable directory location where helm homes are to be set up
 	helmHomes  string
 	orgService OrgService
 	logger     Logger
 }
 
-func NewHelmEnvResolver(helmHome string, orgService OrgService, logger Logger) EnvResolver {
-	return helmEnvResolver{
+func NewHelm2EnvResolver(helmHome string, orgService OrgService, logger Logger) EnvResolver {
+	return helm2EnvResolver{
 		helmHomes:  helmHome,
 		orgService: orgService,
 		logger:     logger,
 	}
 }
 
-func (h helmEnvResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (HelmEnv, error) {
-	h.logger.Debug("resolving organization helm env home")
-	orgName, err := h.orgService.GetOrgNameByOrgID(ctx, organizationID)
+func (h2r helm2EnvResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (HelmEnv, error) {
+	h2r.logger.Debug("resolving organization helm env home")
+	orgName, err := h2r.orgService.GetOrgNameByOrgID(ctx, organizationID)
 	if err != nil {
 		return HelmEnv{}, errors.WrapIfWithDetails(err, "failed to get organization name for ID",
 			"organizationID", organizationID)
 	}
 
 	return HelmEnv{
-		home:     path.Join(h.helmHomes, orgName, helmPostFix),
+		home:     path.Join(h2r.helmHomes, orgName, helmPostFix),
 		platform: false,
 	}, nil
 }
 
-func (h helmEnvResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
+func (h2r helm2EnvResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
 	return HelmEnv{
-		home:     path.Join(h.helmHomes, PlatformHelmHome, helmPostFix),
+		home:     path.Join(h2r.helmHomes, PlatformHelmHome, helmPostFix),
 		platform: true,
 	}, nil
+}
+
+// helm3EnvResolver helm env resolver to be used for resolving helm 3 environments
+type helm3EnvResolver struct {
+	delegate EnvResolver
+}
+
+func NewHelm3EnvResolver(delegate EnvResolver) EnvResolver {
+	return helm3EnvResolver{delegate: delegate}
+}
+
+func (h3r helm3EnvResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (HelmEnv, error) {
+	env, err := h3r.delegate.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return HelmEnv{}, errors.WrapIf(err, "failed to get helm env")
+	}
+	return decorateEnv(env), nil
+}
+
+func (h3r helm3EnvResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
+	env, err := h3r.delegate.ResolvePlatformEnv(ctx)
+	if err != nil {
+		return HelmEnv{}, errors.WrapIf(err, "failed to get helm env")
+	}
+
+	return decorateEnv(env), nil
+}
+
+func decorateEnv(env HelmEnv) HelmEnv {
+	newEnv := env
+	newEnv.home = path.Join(env.home, "repository", "repositories.yaml")
+	newEnv.repoCacheDir = path.Join(env.home, "repository", "cache")
+	return newEnv
 }
