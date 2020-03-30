@@ -21,17 +21,8 @@ import (
 //  TODO is this exaggerate?
 type KubeConfigBytes = []byte
 
-// ReleaseInput struct encapsulating information about the release to be created
-type ReleaseInput struct {
-	ReleaseName string
-	ChartName   string
-	Namespace   string
-	Values      []string // TODO is this type OK?
-	// TODO repo here?
-}
-
 // utility for providing input arguments ...
-func (ri ReleaseInput) NameAndChartSlice() []string {
+func (ri Release) NameAndChartSlice() []string {
 	if ri.ReleaseName == "" {
 		return []string{ri.ChartName}
 	}
@@ -40,10 +31,12 @@ func (ri ReleaseInput) NameAndChartSlice() []string {
 
 // ReleaserOptions placeholder for releaser directives
 type ReleaserOptions struct {
+	DryRun bool
+	//  TODO extend with other options, decide on where to populate it
 }
 
 // Releaser interface collecting operations related to releases
 type Releaser interface {
 	// Install installs the specified chart using to a cluster identified by the kubeConfig  argument
-	Install(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput ReleaseInput, options ReleaserOptions) (string, error)
+	Install(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) (string, error)
 }

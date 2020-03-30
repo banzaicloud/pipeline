@@ -29,7 +29,6 @@ import (
 	"helm.sh/helm/v3/pkg/getter"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/helm"
 )
 
 func Test_releaser_Install(t *testing.T) {
@@ -37,7 +36,7 @@ func Test_releaser_Install(t *testing.T) {
 	actionConfig := new(action.Configuration)
 
 	envSettings := cli.New()
-	envSettings.RepositoryConfig = helm.NewHelmEnv("/Users/puski/Library/Preferences/helm/repositories.yaml").GetHome()
+	//envSettings.RepositoryConfig = helm.NewHelmEnv("/Users/puski/Library/Preferences/helm/repositories.yaml").GetHome()
 
 	valueOpts := &values.Options{}
 
