@@ -705,6 +705,40 @@ func main() {
 				cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
 				cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
 				cRouter.HEAD("/deployments/:name", api.HelmDeploymentStatus)
+				// helm 3 setup - TODO optimize helm related assembly
+				{
+					repoStore := helmadapter.NewHelmRepoStore(db, commonLogger)
+					secretStore := helmadapter.NewSecretStore(commonSecretStore, commonLogger)
+					orgService := helmadapter.NewOrgService(commonLogger)
+					envResolver := helm.NewHelmEnvResolver(config.Helm.Home, orgService, commonLogger)
+					envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(config.Helm.Repositories), commonLogger)
+
+					validator := helm.NewHelmRepoValidator()
+					releaser := helmadapter.NewReleaser(commonLogger)
+					clusterService := helmadapter.NewClusterService(clusterManager)
+
+					// TODO setup helm2 <> helm3 based on config
+					service := helm.NewService(
+						repoStore,
+						secretStore,
+						validator,
+						envResolver,
+						envService,
+						releaser,
+						clusterService,
+						commonLogger)
+
+					endpoints := helmdriver.MakeEndpoints(
+						service,
+						kitxendpoint.Combine(endpointMiddleware...),
+					)
+					helmdriver.RegisterReleaserHTTPHandlers(endpoints,
+						clusterRouter.PathPrefix("/releases").Subrouter(),
+						kitxhttp.ServerOptions(httpServerOptions),
+					)
+
+					cRouter.POST("/releases", gin.WrapH(router))
+				}
 
 				cRouter.GET("/images", api.ListImages)
 				cRouter.GET("/images/:imageDigest/deployments", api.GetImageDeployments)
