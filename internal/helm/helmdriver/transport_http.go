@@ -35,7 +35,7 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 
 	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
 		endpoints.AddRepository,
-		decodeAddRepositoryHTTPRequest,
+		decodeInstallChartHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
 	))
@@ -67,6 +67,45 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
 	))
+}
+
+func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
+	errorEncoder := kitxhttp.NewJSONProblemErrorResponseEncoder(apphttp.NewDefaultProblemConverter())
+
+	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
+		endpoints.Install,
+		decodeInstallChartHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		options...,
+	))
+}
+
+func decodeInstallChartHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, e := extractOrgID(r)
+	if e != nil {
+		return nil, errors.WrapIf(e, "failed to decode add repository request")
+	}
+
+	clusterID, e := extractClusterID(r)
+	if e != nil {
+		return nil, errors.WrapIf(e, "failed to decode add repository request")
+	}
+
+	var request pipeline.CreateUpdateDeploymentRequest
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode request")
+	}
+
+	return InstallRequest{
+		OrganizationID: orgID,
+		ClusterID:      clusterID,
+		Release: helm.Release{
+			ReleaseName: request.ReleaseName,
+			ChartName:   request.Name,
+			Namespace:   request.Namespace,
+		}}, nil
 }
 
 func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -213,6 +252,22 @@ func extractOrgID(r *http.Request) (uint, error) {
 	}
 
 	return uint(orgID), nil
+}
+
+func extractClusterID(r *http.Request) (uint, error) {
+	vars := mux.Vars(r)
+
+	id, ok := vars["clusterId"]
+	if !ok || id == "" {
+		return 0, errors.NewWithDetails("missing path parameter", "param", "clusterId")
+	}
+
+	clusterID, e := strconv.ParseUint(id, 10, 32)
+	if e != nil {
+		return 0, errors.WrapIff(e, "failed to parse path param: %s, value:  %s", "id", id)
+	}
+
+	return uint(clusterID), nil
 }
 
 func extractHelmRepoName(r *http.Request) (string, error) {
