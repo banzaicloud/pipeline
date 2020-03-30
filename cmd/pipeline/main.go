@@ -1027,7 +1027,19 @@ func main() {
 				envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(config.Helm.Repositories), commonLogger)
 
 				validator := helm.NewHelmRepoValidator()
-				service := helm.NewService(repoStore, secretStore, validator, envResolver, envService, commonLogger)
+				releaser := helmadapter.NewReleaser(commonLogger)
+				clusterService := helmadapter.NewClusterService(clusterManager)
+
+				// TODO setup helm2 <> helm3 based on config
+				service := helm.NewService(
+					repoStore,
+					secretStore,
+					validator,
+					envResolver,
+					envService,
+					releaser,
+					clusterService,
+					commonLogger)
 
 				endpoints := helmdriver.MakeEndpoints(
 					service,
