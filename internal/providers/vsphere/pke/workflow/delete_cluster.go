@@ -96,7 +96,9 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 			err := workflow.ExecuteActivity(ctx, DeleteNodeActivityName, activityInput).Get(ctx, nil)
 			if err != nil {
-				return errors.WrapIff(err, "deleting node %q", node.Name)
+				e := errors.WrapIff(err, "deleting node %q", node.Name)
+				_ = setClusterErrorStatus(ctx, input.ClusterID, e)
+				return e
 			}
 		}
 	}
@@ -124,6 +126,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 
 		if err := errors.Combine(errs...); err != nil {
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}
@@ -135,7 +138,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			ClusterUID:     input.ClusterUID,
 		}
 		if err := workflow.ExecuteActivity(ctx, intClusterWorkflow.DeleteUnusedClusterSecretsActivityName, activityInput).Get(ctx, nil); err != nil {
-			setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, fmt.Sprintf("failed to delete unused cluster secrets: %v", err)) // nolint: errcheck
+			_ = setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, fmt.Sprintf("failed to delete unused cluster secrets: %v", err)) // nolint: errcheck
 		}
 	}
 
