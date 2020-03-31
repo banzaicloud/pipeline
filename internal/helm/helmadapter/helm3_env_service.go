@@ -96,6 +96,8 @@ func (h helm3EnvService) AddRepository(ctx context.Context, helmEnv helm.HelmEnv
 		return err
 	}
 
+	// override the wired repository cache
+	r.CachePath = envSettings.RepositoryCache
 	if _, err := r.DownloadIndexFile(); err != nil {
 		return errors.Wrapf(err, "looks like %q is not a valid chart repository or cannot be reached", repository.URL)
 	}
@@ -123,7 +125,8 @@ func (h helm3EnvService) DeleteRepository(ctx context.Context, helmEnv helm.Helm
 	}
 
 	if !r.Remove(repoName) {
-		return errors.Errorf("no repo named %q found", repoName)
+		h.logger.Debug("repository not  found", map[string]interface{}{"repository": repoName})
+		return nil
 	}
 	if err := r.WriteFile(repoFile, 0644); err != nil {
 		return err
@@ -155,6 +158,9 @@ func (h helm3EnvService) UpdateRepository(ctx context.Context, helmEnv helm.Helm
 		if err != nil {
 			return err
 		}
+
+		// override the wired cache location
+		r.CachePath = settings.RepositoryCache
 		repos = append(repos, r)
 	}
 
