@@ -73,7 +73,7 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 	errorEncoder := kitxhttp.NewJSONProblemErrorResponseEncoder(apphttp.NewDefaultProblemConverter())
 
 	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
-		endpoints.Install,
+		endpoints.InstallRelease,
 		decodeInstallChartHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
@@ -105,7 +105,7 @@ func decodeInstallChartHTTPRequest(_ context.Context, r *http.Request) (interfac
 		return nil, errors.WrapIf(err, "failed to decode request")
 	}
 
-	return InstallRequest{
+	return InstallReleaseRequest{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
 		Release: helm.Release{

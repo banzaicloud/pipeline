@@ -103,8 +103,8 @@ func (_m *MockService) DeleteRepository(ctx context.Context, organizationID uint
 	return r0
 }
 
-// Install provides a mock function.
-func (_m *MockService) Install(ctx context.Context, organizationID uint, clusterID uint, release Release) error {
+// InstallRelease provides a mock function.
+func (_m *MockService) InstallRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error {
 	ret := _m.Called(ctx, organizationID, clusterID, release)
 
 	var r0 error
