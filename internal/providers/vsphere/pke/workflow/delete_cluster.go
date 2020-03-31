@@ -96,9 +96,13 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 			err := workflow.ExecuteActivity(ctx, DeleteNodeActivityName, activityInput).Get(ctx, nil)
 			if err != nil {
-				e := errors.WrapIff(err, "deleting node %q", node.Name)
-				_ = setClusterErrorStatus(ctx, input.ClusterID, e)
-				return e
+				if input.Forced {
+					logger.Errorw("delete node failed", "error", err)
+				} else {
+					e := errors.WrapIff(err, "deleting node %q", node.Name)
+					_ = setClusterErrorStatus(ctx, input.ClusterID, e)
+					return e
+				}
 			}
 		}
 	}
@@ -126,8 +130,12 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 
 		if err := errors.Combine(errs...); err != nil {
-			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
-			return err
+			if input.Forced {
+				logger.Errorw("delete master node failed", "error", err)
+			} else {
+				_ = setClusterErrorStatus(ctx, input.ClusterID, err)
+				return err
+			}
 		}
 	}
 
@@ -148,8 +156,12 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			ClusterID: input.ClusterID,
 		}
 		if err := workflow.ExecuteActivity(ctx, pkeworkflow.DeleteDexClientActivityName, deleteDexClientActivityInput).Get(ctx, nil); err != nil {
-			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
-			return err
+			if input.Forced {
+				logger.Errorw("delete dex client failed", "error", err)
+			} else {
+				_ = setClusterErrorStatus(ctx, input.ClusterID, err)
+				return err
+			}
 		}
 	}
 
@@ -160,8 +172,12 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 		err := workflow.ExecuteActivity(ctx, DeleteClusterFromStoreActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
-			return err
+			if input.Forced {
+				logger.Errorw("delete cluster from data store", "error", err)
+			} else {
+				_ = setClusterErrorStatus(ctx, input.ClusterID, err)
+				return err
+			}
 		}
 	}
 
