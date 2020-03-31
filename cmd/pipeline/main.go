@@ -710,20 +710,23 @@ func main() {
 					repoStore := helmadapter.NewHelmRepoStore(db, commonLogger)
 					secretStore := helmadapter.NewSecretStore(commonSecretStore, commonLogger)
 					orgService := helmadapter.NewOrgService(commonLogger)
-					envResolver := helm.NewHelm2EnvResolver(config.Helm.Home, orgService, commonLogger)
-					h3EnvResolver := helm.NewHelm3EnvResolver(envResolver)
-					envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(config.Helm.Repositories), commonLogger)
-
 					validator := helm.NewHelmRepoValidator()
 					releaser := helmadapter.NewReleaser(commonLogger)
 					clusterService := helmadapter.NewClusterService(clusterManager)
+					envResolver := helm.NewHelm2EnvResolver(config.Helm.Home, orgService, commonLogger)
+					envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(config.Helm.Repositories), commonLogger)
 
-					// TODO setup helm2 <> helm3 based on config
+					switch config.Helm.Version {
+					case "helm3":
+						envResolver = helm.NewHelm3EnvResolver(envResolver)
+						envService = helmadapter.NewHelm3EnvService(commonLogger)
+					}
+
 					service := helm.NewService(
 						repoStore,
 						secretStore,
 						validator,
-						h3EnvResolver,
+						envResolver,
 						envService,
 						releaser,
 						clusterService,
@@ -1009,14 +1012,18 @@ func main() {
 				repoStore := helmadapter.NewHelmRepoStore(db, commonLogger)
 				secretStore := helmadapter.NewSecretStore(commonSecretStore, commonLogger)
 				orgService := helmadapter.NewOrgService(commonLogger)
-				envResolver := helm.NewHelm2EnvResolver(config.Helm.Home, orgService, commonLogger)
-				envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(config.Helm.Repositories), commonLogger)
-
 				validator := helm.NewHelmRepoValidator()
 				releaser := helmadapter.NewReleaser(commonLogger)
 				clusterService := helmadapter.NewClusterService(clusterManager)
+				envResolver := helm.NewHelm2EnvResolver(config.Helm.Home, orgService, commonLogger)
+				envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(config.Helm.Repositories), commonLogger)
 
-				// TODO setup helm2 <> helm3 based on config
+				switch config.Helm.Version {
+				case "helm3":
+					envResolver = helm.NewHelm3EnvResolver(envResolver)
+					envService = helmadapter.NewHelm3EnvService(commonLogger)
+				}
+
 				service := helm.NewService(
 					repoStore,
 					secretStore,
