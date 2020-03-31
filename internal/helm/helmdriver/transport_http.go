@@ -78,15 +78,22 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
 	))
+
+	router.Methods(http.MethodDelete).Path("/{name}").Handler(kithttp.NewServer(
+		endpoints.DeleteRelease,
+		decodeDeleteReleaseHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		options...,
+	))
 }
 
 func decodeInstallChartHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	orgID, e := extractOrgID(r)
+	orgID, e := extractUintParamFromRequest("orgId", r)
 	if e != nil {
 		return nil, errors.WrapIf(e, "failed to decode add repository request")
 	}
 
-	clusterID, e := extractClusterID(r)
+	clusterID, e := extractUintParamFromRequest("clusterId", r)
 	if e != nil {
 		return nil, errors.WrapIf(e, "failed to decode add repository request")
 	}
@@ -115,7 +122,7 @@ func decodeInstallChartHTTPRequest(_ context.Context, r *http.Request) (interfac
 }
 
 func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	orgID, e := extractOrgID(r)
+	orgID, e := extractUintParamFromRequest("orgId", r)
 	if e != nil {
 		return nil, errors.WrapIf(e, "failed to decode add repository request")
 	}
@@ -138,12 +145,12 @@ func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interfa
 }
 
 func decodePatchRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	orgID, e := extractOrgID(r)
+	orgID, e := extractUintParamFromRequest("orgId", r)
 	if e != nil {
 		return nil, errors.WrapIf(e, "failed to decode patch repository request")
 	}
 
-	repoName, err := extractHelmRepoName(r)
+	repoName, err := extractStringParamFromRequest("name", r)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to decode patch repository request")
 	}
@@ -167,12 +174,12 @@ func decodePatchRepositoryHTTPRequest(_ context.Context, r *http.Request) (inter
 }
 
 func decodeUpdateRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	orgID, e := extractOrgID(r)
+	orgID, e := extractUintParamFromRequest("orgId", r)
 	if e != nil {
 		return nil, errors.WrapIf(e, "failed to decode update repository request")
 	}
 
-	repoName, err := extractHelmRepoName(r)
+	repoName, err := extractStringParamFromRequest("name", r)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to decode update repository request")
 	}
@@ -196,7 +203,7 @@ func decodeUpdateRepositoryHTTPRequest(_ context.Context, r *http.Request) (inte
 }
 
 func decodeListRepositoriesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	orgID, err := extractOrgID(r)
+	orgID, err := extractUintParamFromRequest("orgId", r)
 	if err != nil {
 		return 0, errors.WrapIf(err, "failed to decode list request")
 	}
@@ -220,12 +227,12 @@ func encodeListRepositoriesHTTPResponse(ctx context.Context, w http.ResponseWrit
 }
 
 func decodeDeleteRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	orgID, err := extractOrgID(r)
+	orgID, err := extractUintParamFromRequest("orgId", r)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to decode list request")
 	}
 
-	repoName, err := extractHelmRepoName(r)
+	repoName, err := extractStringParamFromRequest("name", r)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to decode list request")
 	}
@@ -244,45 +251,54 @@ func encodeDeleteRepositoryHTTPResponse(ctx context.Context, w http.ResponseWrit
 	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
 }
 
-func extractOrgID(r *http.Request) (uint, error) {
-	vars := mux.Vars(r)
-
-	id, ok := vars["orgId"]
-	if !ok || id == "" {
-		return 0, errors.NewWithDetails("missing path parameter", "param", "orgId")
+func decodeDeleteReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, err := extractUintParamFromRequest("orgId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode delete release request")
 	}
 
-	orgID, e := strconv.ParseUint(id, 10, 32)
-	if e != nil {
-		return 0, errors.WrapIff(e, "failed to parse path param: %s, value:  %s", "id", id)
+	clusterID, err := extractUintParamFromRequest("clusterId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode delete release request")
 	}
 
-	return uint(orgID), nil
+	releaseName, err := extractStringParamFromRequest("name", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode delete release request")
+	}
+
+	return DeleteReleaseRequest{
+		OrganizationID: orgID,
+		ClusterID:      clusterID,
+		Release: helm.Release{
+			ReleaseName: releaseName,
+		},
+	}, nil
 }
 
-func extractClusterID(r *http.Request) (uint, error) {
+func extractStringParamFromRequest(key string, r *http.Request) (string, error) {
 	vars := mux.Vars(r)
 
-	id, ok := vars["clusterId"]
-	if !ok || id == "" {
-		return 0, errors.NewWithDetails("missing path parameter", "param", "clusterId")
-	}
-
-	clusterID, e := strconv.ParseUint(id, 10, 32)
-	if e != nil {
-		return 0, errors.WrapIff(e, "failed to parse path param: %s, value:  %s", "id", id)
-	}
-
-	return uint(clusterID), nil
-}
-
-func extractHelmRepoName(r *http.Request) (string, error) {
-	vars := mux.Vars(r)
-
-	repoName, ok := vars["name"]
+	repoName, ok := vars[key]
 	if !ok || repoName == "" {
 		return "", errors.NewWithDetails("missing path parameter", "param", "name")
 	}
 
 	return repoName, nil
+}
+
+func extractUintParamFromRequest(key string, r *http.Request) (uint, error) {
+	vars := mux.Vars(r)
+
+	strVal, ok := vars[key]
+	if !ok || strVal == "" {
+		return 0, errors.NewWithDetails("missing path parameter", "param", key)
+	}
+
+	uintVal, e := strconv.ParseUint(strVal, 10, 32)
+	if e != nil {
+		return 0, errors.WrapIff(e, "failed to parse path param: %s, value:  %s", "id", strVal)
+	}
+
+	return uint(uintVal), nil
 }

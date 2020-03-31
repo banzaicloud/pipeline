@@ -40,4 +40,6 @@ type ReleaserOptions struct {
 type Releaser interface {
 	// Install installs the specified chart using to a cluster identified by the kubeConfig  argument
 	Install(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) (string, error)
+	// Uninstall removes the  specified release from the cluster
+	Uninstall(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) error
 }

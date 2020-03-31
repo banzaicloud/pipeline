@@ -721,6 +721,7 @@ func main() {
 					)
 
 					cRouter.POST("/releases", gin.WrapH(router))
+					cRouter.DELETE("/releases/:name", gin.WrapH(router))
 				}
 
 				cRouter.GET("/images", api.ListImages)
