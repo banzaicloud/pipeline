@@ -30,6 +30,7 @@ type Endpoints struct {
 	DeleteRelease    endpoint.Endpoint
 	DeleteRepository endpoint.Endpoint
 	InstallRelease   endpoint.Endpoint
+	ListReleases     endpoint.Endpoint
 	ListRepositories endpoint.Endpoint
 	PatchRepository  endpoint.Endpoint
 	UpdateRepository endpoint.Endpoint
@@ -45,6 +46,7 @@ func MakeEndpoints(service helm.Service, middleware ...endpoint.Middleware) Endp
 		DeleteRelease:    kitxendpoint.OperationNameMiddleware("helm.DeleteRelease")(mw(MakeDeleteReleaseEndpoint(service))),
 		DeleteRepository: kitxendpoint.OperationNameMiddleware("helm.DeleteRepository")(mw(MakeDeleteRepositoryEndpoint(service))),
 		InstallRelease:   kitxendpoint.OperationNameMiddleware("helm.InstallRelease")(mw(MakeInstallReleaseEndpoint(service))),
+		ListReleases:     kitxendpoint.OperationNameMiddleware("helm.ListReleases")(mw(MakeListReleasesEndpoint(service))),
 		ListRepositories: kitxendpoint.OperationNameMiddleware("helm.ListRepositories")(mw(MakeListRepositoriesEndpoint(service))),
 		PatchRepository:  kitxendpoint.OperationNameMiddleware("helm.PatchRepository")(mw(MakePatchRepositoryEndpoint(service))),
 		UpdateRepository: kitxendpoint.OperationNameMiddleware("helm.UpdateRepository")(mw(MakeUpdateRepositoryEndpoint(service))),
@@ -186,6 +188,48 @@ func MakeInstallReleaseEndpoint(service helm.Service) endpoint.Endpoint {
 		}
 
 		return InstallReleaseResponse{}, nil
+	}
+}
+
+// ListReleasesRequest is a request struct for ListReleases endpoint.
+type ListReleasesRequest struct {
+	OrganizationID uint
+	ClusterID      uint
+	Filters        interface{}
+}
+
+// ListReleasesResponse is a response struct for ListReleases endpoint.
+type ListReleasesResponse struct {
+	R0  []helm.Release
+	Err error
+}
+
+func (r ListReleasesResponse) Failed() error {
+	return r.Err
+}
+
+// MakeListReleasesEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeListReleasesEndpoint(service helm.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(ListReleasesRequest)
+
+		r0, err := service.ListReleases(ctx, req.OrganizationID, req.ClusterID, req.Filters)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return ListReleasesResponse{
+					Err: err,
+					R0:  r0,
+				}, nil
+			}
+
+			return ListReleasesResponse{
+				Err: err,
+				R0:  r0,
+			}, err
+		}
+
+		return ListReleasesResponse{R0: r0}, nil
 	}
 }
 

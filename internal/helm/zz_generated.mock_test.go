@@ -117,6 +117,29 @@ func (_m *MockService) InstallRelease(ctx context.Context, organizationID uint, 
 	return r0
 }
 
+// ListReleases provides a mock function.
+func (_m *MockService) ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters interface{}) ([]Release, error) {
+	ret := _m.Called(ctx, organizationID, clusterID, filters)
+
+	var r0 []Release
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, interface{}) []Release); ok {
+		r0 = rf(ctx, organizationID, clusterID, filters)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]Release)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, interface{}) error); ok {
+		r1 = rf(ctx, organizationID, clusterID, filters)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListRepositories provides a mock function.
 func (_m *MockService) ListRepositories(ctx context.Context, organizationID uint) (repos []Repository, err error) {
 	ret := _m.Called(ctx, organizationID)

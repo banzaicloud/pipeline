@@ -16,6 +16,7 @@ package helm
 
 import (
 	"context"
+	"time"
 
 	"emperror.dev/errors"
 
@@ -45,6 +46,23 @@ type Repository struct {
 	TlsSecretID string `json:"tlsSecretId,omitempty"`
 }
 
+// ReleaseInfo copy of the struct form the helm library
+type ReleaseInfo struct {
+
+	// FirstDeployed is when the release was first deployed.
+	FirstDeployed time.Time `json:"first_deployed,omitempty"`
+	// LastDeployed is when the release was last deployed.
+	LastDeployed time.Time `json:"last_deployed,omitempty"`
+	// Deleted tracks when this object was deleted.
+	Deleted time.Time `json:"deleted"`
+	// Description is human-friendly "log entry" about this release.
+	Description string `json:"description,omitempty"`
+	// Status is the current state of the release
+	Status string
+	// Contains the rendered templates/NOTES.txt if available
+	Notes string
+}
+
 //  Release represents information related to a helm chart release
 type Release struct {
 	// ReleaseInput struct encapsulating information about the release to be created
@@ -53,6 +71,7 @@ type Release struct {
 	Namespace       string
 	Values          map[string]interface{} //json representation
 	Version         string
+	ReleaseInfo     ReleaseInfo
 	ReleaserOptions ReleaserOptions
 }
 
@@ -92,20 +111,20 @@ type releaser interface {
 	// Delete deletes the  specified release
 	DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error
 
-	// Upgrade upgrades the given release
-	//Upgrade(ctx context.Context, organizationID uint, clusterID uint, release Release) error
-	//
-	//// List retrieves  releases in a given namespace, eventually applies the passed in filters
-	//List(ctx context.Context, organizationID uint, clusterID uint, filters interface{}) ([]Release, error)
-	//
+	// List retrieves  releases in a given namespace, eventually applies the passed in filters
+	ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters interface{}) ([]Release, error)
+
 	//// Get retrieves the release details for the given  release
-	//Get(ctx context.Context, organizationID uint, clusterID uint, release Release) (Release, error)
+	//GetRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) (Release, error)
 	//
 	//// GetResources
 	//GetResources(ctx context.Context, organizationID uint, clusterID uint, release Release) (interface{}, error)
 	//
-	//// Get retrieves the release details for the given  release
-	//Status(ctx context.Context, organizationID uint, clusterID uint, release Release) (Release, error)
+	//// ReleaseStatus
+	//ReleaseStatus(ctx context.Context, organizationID uint, clusterID uint, release Release) (Release, error)
+	//
+	//// Upgrade upgrades the given release
+	//UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error
 }
 
 // +testify:mock:testOnly=true
@@ -428,6 +447,27 @@ func (s service) DeleteRelease(ctx context.Context, organizationID uint, cluster
 	}
 
 	return nil
+}
+
+func (s service) ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters interface{}) ([]Release, error) {
+	releaserOptions := ReleaserOptions{}
+
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	kubeKonfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get cluster configuration")
+	}
+
+	releases, err := s.releaser.List(ctx, helmEnv, kubeKonfig, releaserOptions)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to list releases")
+	}
+
+	return releases, nil
 }
 
 func (s service) repoExists(ctx context.Context, orgID uint, repository Repository) (bool, error) {
