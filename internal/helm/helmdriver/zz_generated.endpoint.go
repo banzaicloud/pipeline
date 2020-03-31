@@ -29,7 +29,7 @@ type Endpoints struct {
 	AddRepository    endpoint.Endpoint
 	DeleteRelease    endpoint.Endpoint
 	DeleteRepository endpoint.Endpoint
-	Install          endpoint.Endpoint
+	InstallRelease   endpoint.Endpoint
 	ListRepositories endpoint.Endpoint
 	PatchRepository  endpoint.Endpoint
 	UpdateRepository endpoint.Endpoint
@@ -44,7 +44,7 @@ func MakeEndpoints(service helm.Service, middleware ...endpoint.Middleware) Endp
 		AddRepository:    kitxendpoint.OperationNameMiddleware("helm.AddRepository")(mw(MakeAddRepositoryEndpoint(service))),
 		DeleteRelease:    kitxendpoint.OperationNameMiddleware("helm.DeleteRelease")(mw(MakeDeleteReleaseEndpoint(service))),
 		DeleteRepository: kitxendpoint.OperationNameMiddleware("helm.DeleteRepository")(mw(MakeDeleteRepositoryEndpoint(service))),
-		Install:          kitxendpoint.OperationNameMiddleware("helm.Install")(mw(MakeInstallEndpoint(service))),
+		InstallRelease:   kitxendpoint.OperationNameMiddleware("helm.InstallRelease")(mw(MakeInstallReleaseEndpoint(service))),
 		ListRepositories: kitxendpoint.OperationNameMiddleware("helm.ListRepositories")(mw(MakeListRepositoriesEndpoint(service))),
 		PatchRepository:  kitxendpoint.OperationNameMiddleware("helm.PatchRepository")(mw(MakePatchRepositoryEndpoint(service))),
 		UpdateRepository: kitxendpoint.OperationNameMiddleware("helm.UpdateRepository")(mw(MakeUpdateRepositoryEndpoint(service))),
@@ -154,38 +154,38 @@ func MakeDeleteRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
 	}
 }
 
-// InstallRequest is a request struct for Install endpoint.
-type InstallRequest struct {
+// InstallReleaseRequest is a request struct for InstallRelease endpoint.
+type InstallReleaseRequest struct {
 	OrganizationID uint
 	ClusterID      uint
 	Release        helm.Release
 }
 
-// InstallResponse is a response struct for Install endpoint.
-type InstallResponse struct {
+// InstallReleaseResponse is a response struct for InstallRelease endpoint.
+type InstallReleaseResponse struct {
 	Err error
 }
 
-func (r InstallResponse) Failed() error {
+func (r InstallReleaseResponse) Failed() error {
 	return r.Err
 }
 
-// MakeInstallEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeInstallEndpoint(service helm.Service) endpoint.Endpoint {
+// MakeInstallReleaseEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeInstallReleaseEndpoint(service helm.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(InstallRequest)
+		req := request.(InstallReleaseRequest)
 
-		err := service.Install(ctx, req.OrganizationID, req.ClusterID, req.Release)
+		err := service.InstallRelease(ctx, req.OrganizationID, req.ClusterID, req.Release)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
-				return InstallResponse{Err: err}, nil
+				return InstallReleaseResponse{Err: err}, nil
 			}
 
-			return InstallResponse{Err: err}, err
+			return InstallReleaseResponse{Err: err}, err
 		}
 
-		return InstallResponse{}, nil
+		return InstallReleaseResponse{}, nil
 	}
 }
 

@@ -87,7 +87,7 @@ type repository interface {
 // it's intended to be embedded in the "Helm Facade"
 type releaser interface {
 	// Install installs the release to the cluster with the given identifier
-	Install(ctx context.Context, organizationID uint, clusterID uint, release Release) error
+	InstallRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error
 
 	// Delete deletes the  specified release
 	DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error
@@ -388,7 +388,7 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 	return nil
 }
 
-func (s service) Install(ctx context.Context, organizationID uint, clusterID uint, release Release) error {
+func (s service) InstallRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error {
 	// TODO should this come from the api?
 	releaserOptions := ReleaserOptions{}
 
