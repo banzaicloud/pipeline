@@ -94,6 +94,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
+	common2 "github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/federation"
@@ -637,6 +638,9 @@ func main() {
 		}
 	}
 
+	// set up helm facade for later use
+	helmFacade := setupHelmFacade(config, db, commonSecretStore, clusterManager, commonLogger)
+
 	v1 := base.Group("api/v1")
 	apiRouter := router.PathPrefix("/api/v1").Subrouter()
 	{
@@ -705,37 +709,12 @@ func main() {
 				cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
 				cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
 				cRouter.HEAD("/deployments/:name", api.HelmDeploymentStatus)
-				// helm 3 setup - TODO optimize helm related assembly
 				{
-					repoStore := helmadapter.NewHelmRepoStore(db, commonLogger)
-					secretStore := helmadapter.NewSecretStore(commonSecretStore, commonLogger)
-					orgService := helmadapter.NewOrgService(commonLogger)
-					validator := helm.NewHelmRepoValidator()
-					releaser := helmadapter.NewReleaser(commonLogger)
-					clusterService := helmadapter.NewClusterService(clusterManager)
-					envResolver := helm.NewHelm2EnvResolver(config.Helm.Home, orgService, commonLogger)
-					envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(config.Helm.Repositories), commonLogger)
-
-					switch config.Helm.Version {
-					case "helm3":
-						envResolver = helm.NewHelm3EnvResolver(envResolver)
-						envService = helmadapter.NewHelm3EnvService(commonLogger)
-					}
-
-					service := helm.NewService(
-						repoStore,
-						secretStore,
-						validator,
-						envResolver,
-						envService,
-						releaser,
-						clusterService,
-						commonLogger)
-
 					endpoints := helmdriver.MakeEndpoints(
-						service,
+						helmFacade,
 						kitxendpoint.Combine(endpointMiddleware...),
 					)
+
 					helmdriver.RegisterReleaserHTTPHandlers(endpoints,
 						clusterRouter.PathPrefix("/releases").Subrouter(),
 						kitxhttp.ServerOptions(httpServerOptions),
@@ -1009,33 +988,8 @@ func main() {
 			orgs.GET("/:orgid/helm/charts", api.HelmCharts)
 			orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
 			{
-				repoStore := helmadapter.NewHelmRepoStore(db, commonLogger)
-				secretStore := helmadapter.NewSecretStore(commonSecretStore, commonLogger)
-				orgService := helmadapter.NewOrgService(commonLogger)
-				validator := helm.NewHelmRepoValidator()
-				releaser := helmadapter.NewReleaser(commonLogger)
-				clusterService := helmadapter.NewClusterService(clusterManager)
-				envResolver := helm.NewHelm2EnvResolver(config.Helm.Home, orgService, commonLogger)
-				envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(config.Helm.Repositories), commonLogger)
-
-				switch config.Helm.Version {
-				case "helm3":
-					envResolver = helm.NewHelm3EnvResolver(envResolver)
-					envService = helmadapter.NewHelm3EnvService(commonLogger)
-				}
-
-				service := helm.NewService(
-					repoStore,
-					secretStore,
-					validator,
-					envResolver,
-					envService,
-					releaser,
-					clusterService,
-					commonLogger)
-
 				endpoints := helmdriver.MakeEndpoints(
-					service,
+					helmFacade,
 					kitxendpoint.Combine(endpointMiddleware...),
 				)
 				helmdriver.RegisterHTTPHandlers(endpoints,
@@ -1272,4 +1226,35 @@ func createInternalAPIRouter(
 	internalGroup.GET("/:orgid/clusters/:id/nodepools", api.NewInternalClusterAPI(cloudinfoClient).GetNodePools)
 	internalGroup.PUT("/:orgid/clusters/:id/nodepools", clusterAPI.UpdateNodePools)
 	return internalRouter
+}
+
+// setupHelmFacade utility function for assembling the helm facade
+func setupHelmFacade(config configuration, db *gorm.DB, commonSecretStore common2.SecretStore,
+	clusterManager *cluster.Manager, logger helm.Logger) helm.Service {
+	repoStore := helmadapter.NewHelmRepoStore(db, logger)
+	secretStore := helmadapter.NewSecretStore(commonSecretStore, logger)
+	orgService := helmadapter.NewOrgService(logger)
+	validator := helm.NewHelmRepoValidator()
+	releaser := helmadapter.NewReleaser(logger)
+	clusterService := helmadapter.NewClusterService(clusterManager)
+	envResolver := helm.NewHelm2EnvResolver(config.Helm.Home, orgService, logger)
+	envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(config.Helm.Repositories), logger)
+
+	switch config.Helm.Version {
+	case "helm3":
+		envResolver = helm.NewHelm3EnvResolver(envResolver)
+		envService = helmadapter.NewHelm3EnvService(logger)
+	}
+
+	service := helm.NewService(
+		repoStore,
+		secretStore,
+		validator,
+		envResolver,
+		envService,
+		releaser,
+		clusterService,
+		logger)
+
+	return service
 }
