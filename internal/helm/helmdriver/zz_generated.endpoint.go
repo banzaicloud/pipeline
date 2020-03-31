@@ -27,6 +27,7 @@ type serviceError interface {
 // single parameter.
 type Endpoints struct {
 	AddRepository    endpoint.Endpoint
+	DeleteRelease    endpoint.Endpoint
 	DeleteRepository endpoint.Endpoint
 	Install          endpoint.Endpoint
 	ListRepositories endpoint.Endpoint
@@ -41,6 +42,7 @@ func MakeEndpoints(service helm.Service, middleware ...endpoint.Middleware) Endp
 
 	return Endpoints{
 		AddRepository:    kitxendpoint.OperationNameMiddleware("helm.AddRepository")(mw(MakeAddRepositoryEndpoint(service))),
+		DeleteRelease:    kitxendpoint.OperationNameMiddleware("helm.DeleteRelease")(mw(MakeDeleteReleaseEndpoint(service))),
 		DeleteRepository: kitxendpoint.OperationNameMiddleware("helm.DeleteRepository")(mw(MakeDeleteRepositoryEndpoint(service))),
 		Install:          kitxendpoint.OperationNameMiddleware("helm.Install")(mw(MakeInstallEndpoint(service))),
 		ListRepositories: kitxendpoint.OperationNameMiddleware("helm.ListRepositories")(mw(MakeListRepositoriesEndpoint(service))),
@@ -80,6 +82,41 @@ func MakeAddRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
 		}
 
 		return AddRepositoryResponse{}, nil
+	}
+}
+
+// DeleteReleaseRequest is a request struct for DeleteRelease endpoint.
+type DeleteReleaseRequest struct {
+	OrganizationID uint
+	ClusterID      uint
+	Release        helm.Release
+}
+
+// DeleteReleaseResponse is a response struct for DeleteRelease endpoint.
+type DeleteReleaseResponse struct {
+	Err error
+}
+
+func (r DeleteReleaseResponse) Failed() error {
+	return r.Err
+}
+
+// MakeDeleteReleaseEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeDeleteReleaseEndpoint(service helm.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(DeleteReleaseRequest)
+
+		err := service.DeleteRelease(ctx, req.OrganizationID, req.ClusterID, req.Release)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return DeleteReleaseResponse{Err: err}, nil
+			}
+
+			return DeleteReleaseResponse{Err: err}, err
+		}
+
+		return DeleteReleaseResponse{}, nil
 	}
 }
 

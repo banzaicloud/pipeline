@@ -52,6 +52,7 @@ type Release struct {
 	ChartName       string
 	Namespace       string
 	Values          map[string]interface{} //json representation
+	Version         string
 	ReleaserOptions ReleaserOptions
 }
 
@@ -87,6 +88,24 @@ type repository interface {
 type releaser interface {
 	// Install installs the release to the cluster with the given identifier
 	Install(ctx context.Context, organizationID uint, clusterID uint, release Release) error
+
+	// Delete deletes the  specified release
+	DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error
+
+	// Upgrade upgrades the given release
+	//Upgrade(ctx context.Context, organizationID uint, clusterID uint, release Release) error
+	//
+	//// List retrieves  releases in a given namespace, eventually applies the passed in filters
+	//List(ctx context.Context, organizationID uint, clusterID uint, filters interface{}) ([]Release, error)
+	//
+	//// Get retrieves the release details for the given  release
+	//Get(ctx context.Context, organizationID uint, clusterID uint, release Release) (Release, error)
+	//
+	//// GetResources
+	//GetResources(ctx context.Context, organizationID uint, clusterID uint, release Release) (interface{}, error)
+	//
+	//// Get retrieves the release details for the given  release
+	//Status(ctx context.Context, organizationID uint, clusterID uint, release Release) (Release, error)
 }
 
 // +testify:mock:testOnly=true
@@ -385,6 +404,27 @@ func (s service) Install(ctx context.Context, organizationID uint, clusterID uin
 
 	if _, err := s.releaser.Install(ctx, helmEnv, kubeKonfig, release, releaserOptions); err != nil {
 		return errors.WrapIf(err, "failed to install release")
+	}
+
+	return nil
+}
+
+func (s service) DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error {
+	// TODO should this come from the api?
+	releaserOptions := ReleaserOptions{}
+
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	kubeKonfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get cluster configuration")
+	}
+
+	if err := s.releaser.Uninstall(ctx, helmEnv, kubeKonfig, release, releaserOptions); err != nil {
+		return errors.WrapIf(err, "failed to uninstall release")
 	}
 
 	return nil

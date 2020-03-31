@@ -127,6 +127,33 @@ func (r releaser) Install(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 	return releasePtr.Name, nil
 }
 
+func (r releaser) Uninstall(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.ReleaserOptions) error {
+	// customize the settings passed forward
+	envSettings := r.processEnvSettings(helmEnv)
+
+	// component processing the kubeconfig
+	restClientGetter := NewCustomGetter(envSettings.RESTClientGetter(), kubeConfig, r.logger)
+
+	actionConfig, err := r.getActionConfiguration(restClientGetter, releaseInput)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get action configuration")
+	}
+
+	uninstallAction := action.NewUninstall(actionConfig)
+
+	res, err := uninstallAction.Run(releaseInput.ReleaseName)
+	if err != nil {
+		return err
+	}
+	if res != nil && res.Info != "" {
+		r.logger.Debug(res.Info)
+	}
+
+	r.logger.Info("release successfully uninstalled", map[string]interface{}{"releaseName": releaseInput.ReleaseName})
+
+	return nil
+}
+
 // processEnvSettings emulates an cli.EnvSettings instance based on the passed in data
 func (r releaser) processEnvSettings(helmEnv helm.HelmEnv) *cli.EnvSettings {
 	envSettings := cli.New()
@@ -153,9 +180,13 @@ func (r releaser) debugFnf(format string, v ...interface{}) {
 
 func (r releaser) getActionConfiguration(clientGetter genericclioptions.RESTClientGetter, input helm.Release) (*action.Configuration, error) {
 	actionConfig := new(action.Configuration)
-	if err := actionConfig.Init(clientGetter, input.Namespace, "", r.debugFnf); err != nil {
+	ns := "default"
+	if input.Namespace != "" {
+		ns = input.Namespace
+	}
+	if err := actionConfig.Init(clientGetter, ns, "", r.debugFnf); err != nil {
 		r.logger.Error("failed to initialize action config")
-		return nil, errors.WrapIf(err, "failed to initialize install action config")
+		return nil, errors.WrapIf(err, "failed to initialize  action config")
 	}
 
 	return actionConfig, nil
