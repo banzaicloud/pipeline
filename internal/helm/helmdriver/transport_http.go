@@ -26,6 +26,7 @@ import (
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
+	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 )
@@ -74,7 +75,7 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 
 	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
 		endpoints.InstallRelease,
-		decodeInstallChartHTTPRequest,
+		decodeInstallReleaseHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
 	))
@@ -85,9 +86,16 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
 	))
+
+	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
+		endpoints.ListReleases,
+		decodeListReleasesHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeListReleasesHTTPResponse, errorEncoder),
+		options...,
+	))
 }
 
-func decodeInstallChartHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeInstallReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	orgID, e := extractUintParamFromRequest("orgId", r)
 	if e != nil {
 		return nil, errors.WrapIf(e, "failed to decode add repository request")
@@ -274,6 +282,51 @@ func decodeDeleteReleaseHTTPRequest(_ context.Context, r *http.Request) (interfa
 			ReleaseName: releaseName,
 		},
 	}, nil
+}
+
+func decodeListReleasesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, err := extractUintParamFromRequest("orgId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode delete release request")
+	}
+
+	clusterID, err := extractUintParamFromRequest("clusterId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode delete release request")
+	}
+
+	return ListReleasesRequest{
+		OrganizationID: orgID,
+		ClusterID:      clusterID,
+		Filters:        nil,
+	}, nil
+}
+
+func encodeListReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	releases, ok := response.(ListReleasesResponse)
+	if !ok {
+		return errors.New("invalid  release list response")
+	}
+
+	if releases.Err != nil {
+		return errors.WrapIf(releases.Err, "failed to retrieve releases")
+	}
+
+	resp := make([]deployment.ListDeploymentResponse, 0, len(releases.R0))
+	for _, release := range releases.R0 {
+		resp = append(resp, deployment.ListDeploymentResponse{
+			Name:         release.ReleaseName,
+			Chart:        release.ChartName,
+			ChartName:    "",
+			ChartVersion: release.Version,
+			Version:      0,
+			UpdatedAt:    release.ReleaseInfo.LastDeployed,
+			Namespace:    release.Namespace,
+			CreatedAt:    release.ReleaseInfo.FirstDeployed,
+		})
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
 }
 
 func extractStringParamFromRequest(key string, r *http.Request) (string, error) {

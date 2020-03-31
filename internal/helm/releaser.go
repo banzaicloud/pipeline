@@ -34,6 +34,7 @@ type ReleaserOptions struct {
 	DryRun       bool
 	GenerateName bool
 	Wait         bool
+	Namespace    string
 }
 
 // Releaser interface collecting operations related to releases
@@ -42,4 +43,6 @@ type Releaser interface {
 	Install(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) (string, error)
 	// Uninstall removes the  specified release from the cluster
 	Uninstall(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) error
+	// Lists releases
+	List(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, options ReleaserOptions) ([]Release, error)
 }
