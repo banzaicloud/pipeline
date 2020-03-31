@@ -48,6 +48,7 @@ require (
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-kit/kit v0.10.0
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
+	github.com/gofrs/flock v0.7.1
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.4
 	github.com/gorilla/mux v1.7.3
@@ -130,6 +131,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.5.0
 	sigs.k8s.io/kubefed v0.2.0-alpha.1
 	sigs.k8s.io/testing_frameworks v0.1.2
+	sigs.k8s.io/yaml v1.1.0
 )
 
 replace (
