@@ -25,6 +25,7 @@ import (
 	"sync"
 	"time"
 
+	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/gofrs/flock"
 	"helm.sh/helm/v3/pkg/cli"
@@ -62,7 +63,8 @@ func (h helm3EnvService) AddRepository(ctx context.Context, helmEnv helm.HelmEnv
 	defer cancel()
 	locked, err := fileLock.TryLockContext(lockCtx, time.Second)
 	if err == nil && locked {
-		defer fileLock.Unlock()
+		// TODO inject an error handler! (alternatives?)
+		defer emperror.NoopHandler{}.Handle(fileLock.Unlock())
 	}
 	if err != nil {
 		return err
