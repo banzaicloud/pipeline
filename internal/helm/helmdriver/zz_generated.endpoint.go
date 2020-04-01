@@ -34,6 +34,7 @@ type Endpoints struct {
 	ListReleases     endpoint.Endpoint
 	ListRepositories endpoint.Endpoint
 	PatchRepository  endpoint.Endpoint
+	ReleaseStatus    endpoint.Endpoint
 	UpdateRepository endpoint.Endpoint
 	UpgradeRelease   endpoint.Endpoint
 }
@@ -52,6 +53,7 @@ func MakeEndpoints(service helm.Service, middleware ...endpoint.Middleware) Endp
 		ListReleases:     kitxendpoint.OperationNameMiddleware("helm.ListReleases")(mw(MakeListReleasesEndpoint(service))),
 		ListRepositories: kitxendpoint.OperationNameMiddleware("helm.ListRepositories")(mw(MakeListRepositoriesEndpoint(service))),
 		PatchRepository:  kitxendpoint.OperationNameMiddleware("helm.PatchRepository")(mw(MakePatchRepositoryEndpoint(service))),
+		ReleaseStatus:    kitxendpoint.OperationNameMiddleware("helm.ReleaseStatus")(mw(MakeReleaseStatusEndpoint(service))),
 		UpdateRepository: kitxendpoint.OperationNameMiddleware("helm.UpdateRepository")(mw(MakeUpdateRepositoryEndpoint(service))),
 		UpgradeRelease:   kitxendpoint.OperationNameMiddleware("helm.UpgradeRelease")(mw(MakeUpgradeReleaseEndpoint(service))),
 	}
@@ -350,6 +352,48 @@ func MakePatchRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
 		}
 
 		return PatchRepositoryResponse{}, nil
+	}
+}
+
+// ReleaseStatusRequest is a request struct for ReleaseStatus endpoint.
+type ReleaseStatusRequest struct {
+	OrganizationID uint
+	ClusterID      uint
+	ReleaseName    string
+}
+
+// ReleaseStatusResponse is a response struct for ReleaseStatus endpoint.
+type ReleaseStatusResponse struct {
+	R0  string
+	Err error
+}
+
+func (r ReleaseStatusResponse) Failed() error {
+	return r.Err
+}
+
+// MakeReleaseStatusEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeReleaseStatusEndpoint(service helm.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(ReleaseStatusRequest)
+
+		r0, err := service.ReleaseStatus(ctx, req.OrganizationID, req.ClusterID, req.ReleaseName)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return ReleaseStatusResponse{
+					Err: err,
+					R0:  r0,
+				}, nil
+			}
+
+			return ReleaseStatusResponse{
+				Err: err,
+				R0:  r0,
+			}, err
+		}
+
+		return ReleaseStatusResponse{R0: r0}, nil
 	}
 }
 

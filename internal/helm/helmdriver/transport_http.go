@@ -29,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
+	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
@@ -105,6 +106,13 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 		endpoints.GetRelease,
 		decodeGetReleaseHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(encodeGetReleaseHTTPResponse, errorEncoder),
+		options...,
+	))
+
+	router.Methods(http.MethodHead).Path("/{name}").Handler(kithttp.NewServer(
+		endpoints.ReleaseStatus,
+		decodeReleaseStatusHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeReleaseStatusHTTPResponse, errorEncoder),
 		options...,
 	))
 }
@@ -331,6 +339,48 @@ func decodeDeleteReleaseHTTPRequest(_ context.Context, r *http.Request) (interfa
 			ReleaseName: releaseName,
 		},
 	}, nil
+}
+
+func decodeReleaseStatusHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, err := extractUintParamFromRequest("orgId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	clusterID, err := extractUintParamFromRequest("clusterId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	releaseName, err := extractStringParamFromRequest("name", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	return ReleaseStatusRequest{
+		OrganizationID: orgID,
+		ClusterID:      clusterID,
+		ReleaseName:    releaseName,
+	}, nil
+}
+
+func encodeReleaseStatusHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	release, ok := response.(ReleaseStatusResponse)
+	if !ok {
+		return errors.New("invalid  release list response")
+	}
+
+	if release.Err != nil {
+		return errors.WrapIf(release.Err, "failed to retrieve releases")
+	}
+
+	// TODO add this to the api spec
+	resp := helm2.DeploymentStatusResponse{
+		Status:  http.StatusOK,
+		Message: release.R0,
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
 }
 
 func decodeGetReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
