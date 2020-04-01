@@ -27,6 +27,7 @@ import (
 	"helm.sh/helm/v3/pkg/cli/values"
 	"helm.sh/helm/v3/pkg/downloader"
 	"helm.sh/helm/v3/pkg/getter"
+	"helm.sh/helm/v3/pkg/storage/driver"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/discovery"
@@ -239,6 +240,85 @@ func (r releaser) Get(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm
 			Notes:         rawRelease.Info.Notes,
 		},
 	}, nil
+}
+
+func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.ReleaserOptions) (string, error) {
+	// customize the settings passed forward
+	envSettings := r.processEnvSettings(helmEnv)
+
+	// component processing the kubeconfig
+	restClientGetter := NewCustomGetter(envSettings.RESTClientGetter(), kubeConfig, r.logger)
+
+	ns := "default"
+	if releaseInput.Namespace != "" {
+		ns = releaseInput.Namespace
+	}
+
+	actionConfig, err := r.getActionConfiguration(restClientGetter, ns)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to get  action configuration")
+	}
+
+	upgradeAction := action.NewUpgrade(actionConfig)
+	upgradeAction.Namespace = releaseInput.Namespace // TODO ns comes from the options
+
+	if upgradeAction.Version == "" && upgradeAction.Devel {
+		r.logger.Debug("setting version to >0.0.0-0")
+		upgradeAction.Version = ">0.0.0-0"
+	}
+
+	p := getter.All(envSettings)
+	chartValues, err := r.processValues(p, releaseInput)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to merge values")
+	}
+
+	chartPath, err := upgradeAction.ChartPathOptions.LocateChart(releaseInput.ChartName, envSettings)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to locate chart")
+	}
+
+	if upgradeAction.Install {
+		// If a release does not exist, install it.
+		histClient := action.NewHistory(actionConfig)
+		histClient.Max = 1
+		if _, err := histClient.Run(releaseInput.ReleaseName); err == driver.ErrReleaseNotFound {
+			r.logger.Debug("release doesn't exist, installing it now", map[string]interface{}{"releaseName": releaseInput.ReleaseName})
+
+			rel, err := r.Install(ctx, helmEnv, kubeConfig, releaseInput, options)
+			if err != nil {
+				return "", errors.WrapIf(err, "failed to install release during upgrade")
+			}
+
+			return rel, nil
+		} else if err != nil {
+			return "", errors.WrapIf(err, "failed to install release during upgrade")
+		}
+	}
+
+	// Check chart dependencies to make sure all are present in /charts
+	ch, err := loader.Load(chartPath)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to load chart")
+	}
+	if req := ch.Metadata.Dependencies; req != nil {
+		if err := action.CheckDependencies(ch, req); err != nil {
+			return "", errors.WrapIf(err, "failed to check dependencies")
+		}
+	}
+
+	if ch.Metadata.Deprecated {
+		r.logger.Warn("This chart is deprecated", map[string]interface{}{"chart": ch.Name()})
+	}
+
+	rel, err := upgradeAction.Run(releaseInput.ReleaseName, ch, chartValues)
+	if err != nil {
+		return "", errors.Wrap(err, "UPGRADE FAILED")
+	}
+
+	r.logger.Info("release has been upgraded. Happy Helming!", map[string]interface{}{"releaseName": releaseInput.ReleaseName})
+
+	return rel.Name, nil
 }
 
 // processEnvSettings emulates an cli.EnvSettings instance based on the passed in data

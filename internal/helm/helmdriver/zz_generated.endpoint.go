@@ -35,6 +35,7 @@ type Endpoints struct {
 	ListRepositories endpoint.Endpoint
 	PatchRepository  endpoint.Endpoint
 	UpdateRepository endpoint.Endpoint
+	UpgradeRelease   endpoint.Endpoint
 }
 
 // MakeEndpoints returns a(n) Endpoints struct where each endpoint invokes
@@ -52,6 +53,7 @@ func MakeEndpoints(service helm.Service, middleware ...endpoint.Middleware) Endp
 		ListRepositories: kitxendpoint.OperationNameMiddleware("helm.ListRepositories")(mw(MakeListRepositoriesEndpoint(service))),
 		PatchRepository:  kitxendpoint.OperationNameMiddleware("helm.PatchRepository")(mw(MakePatchRepositoryEndpoint(service))),
 		UpdateRepository: kitxendpoint.OperationNameMiddleware("helm.UpdateRepository")(mw(MakeUpdateRepositoryEndpoint(service))),
+		UpgradeRelease:   kitxendpoint.OperationNameMiddleware("helm.UpgradeRelease")(mw(MakeUpgradeReleaseEndpoint(service))),
 	}
 }
 
@@ -382,5 +384,40 @@ func MakeUpdateRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
 		}
 
 		return UpdateRepositoryResponse{}, nil
+	}
+}
+
+// UpgradeReleaseRequest is a request struct for UpgradeRelease endpoint.
+type UpgradeReleaseRequest struct {
+	OrganizationID uint
+	ClusterID      uint
+	Release        helm.Release
+}
+
+// UpgradeReleaseResponse is a response struct for UpgradeRelease endpoint.
+type UpgradeReleaseResponse struct {
+	Err error
+}
+
+func (r UpgradeReleaseResponse) Failed() error {
+	return r.Err
+}
+
+// MakeUpgradeReleaseEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeUpgradeReleaseEndpoint(service helm.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(UpgradeReleaseRequest)
+
+		err := service.UpgradeRelease(ctx, req.OrganizationID, req.ClusterID, req.Release)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return UpgradeReleaseResponse{Err: err}, nil
+			}
+
+			return UpgradeReleaseResponse{Err: err}, err
+		}
+
+		return UpgradeReleaseResponse{}, nil
 	}
 }

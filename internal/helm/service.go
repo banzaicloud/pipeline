@@ -118,9 +118,9 @@ type releaser interface {
 	// Get retrieves the release details for the given  release
 	GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string) (Release, error)
 
-	//// Upgrade upgrades the given release
-	//UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error
-	//
+	// Upgrade upgrades the given release
+	UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error
+
 	//// GetResources
 	//GetResources(ctx context.Context, organizationID uint, clusterID uint, release Release) (interface{}, error)
 	//
@@ -410,7 +410,7 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 }
 
 func (s service) InstallRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error {
-	// TODO should this come from the api?
+	// TODO add the options to the argument list
 	releaserOptions := ReleaserOptions{}
 
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
@@ -474,7 +474,7 @@ func (s service) ListReleases(ctx context.Context, organizationID uint, clusterI
 }
 
 func (s service) GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string) (Release, error) {
-	// TODO add the options to theh argument list
+	// TODO add the options to the argument list
 	releaserOptions := ReleaserOptions{}
 
 	emptyRelease := Release{}
@@ -496,6 +496,27 @@ func (s service) GetRelease(ctx context.Context, organizationID uint, clusterID 
 	}
 
 	return release, nil
+}
+
+func (s service) UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error {
+	// TODO add the options to the argument list
+	releaserOptions := ReleaserOptions{}
+
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	kubeKonfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get cluster configuration")
+	}
+
+	if _, err := s.releaser.Upgrade(ctx, helmEnv, kubeKonfig, release, releaserOptions); err != nil {
+		return errors.WrapIfWithDetails(err, "failed to upgrade release", "releaseName", release.ReleaseName)
+	}
+
+	return nil
 }
 
 func (s service) repoExists(ctx context.Context, orgID uint, repository Repository) (bool, error) {

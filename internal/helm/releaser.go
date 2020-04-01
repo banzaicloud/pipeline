@@ -45,7 +45,8 @@ type Releaser interface {
 	Uninstall(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) error
 	// List lists releases
 	List(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, options ReleaserOptions) ([]Release, error)
-
 	// Get gets the given release details
 	Get(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) (Release, error)
+	// Upgrade upgrades the given release
+	Upgrade(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) (string, error)
 }
