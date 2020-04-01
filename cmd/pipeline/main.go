@@ -725,6 +725,7 @@ func main() {
 					cRouter.GET("/releases", gin.WrapH(router))
 					cRouter.GET("/releases/:name", gin.WrapH(router))
 					cRouter.PUT("/releases/:name", gin.WrapH(router))
+					cRouter.HEAD("/releases/:name", gin.WrapH(router))
 				}
 
 				cRouter.GET("/images", api.ListImages)

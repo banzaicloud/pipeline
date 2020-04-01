@@ -121,12 +121,11 @@ type releaser interface {
 	// Upgrade upgrades the given release
 	UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error
 
+	// ReleaseStatus
+	ReleaseStatus(ctx context.Context, organizationID uint, clusterID uint, releaseName string) (string, error)
+
 	//// GetResources
 	//GetResources(ctx context.Context, organizationID uint, clusterID uint, release Release) (interface{}, error)
-	//
-	//// ReleaseStatus
-	//ReleaseStatus(ctx context.Context, organizationID uint, clusterID uint, release Release) (Release, error)
-
 }
 
 // +testify:mock:testOnly=true
@@ -517,6 +516,15 @@ func (s service) UpgradeRelease(ctx context.Context, organizationID uint, cluste
 	}
 
 	return nil
+}
+
+func (s service) ReleaseStatus(ctx context.Context, organizationID uint, clusterID uint, releaseName string) (string, error) {
+	release, err := s.GetRelease(ctx, organizationID, clusterID, releaseName)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to retrieve release")
+	}
+
+	return release.ReleaseInfo.Status, nil
 }
 
 func (s service) repoExists(ctx context.Context, orgID uint, repository Repository) (bool, error) {
