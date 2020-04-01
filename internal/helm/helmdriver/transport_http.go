@@ -87,6 +87,13 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 		options...,
 	))
 
+	router.Methods(http.MethodPut).Path("/{name}").Handler(kithttp.NewServer(
+		endpoints.UpgradeRelease,
+		decodeUpgradeReleaseHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		options...,
+	))
+
 	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
 		endpoints.ListReleases,
 		decodeListReleasesHTTPRequest,
@@ -129,6 +136,41 @@ func decodeInstallReleaseHTTPRequest(_ context.Context, r *http.Request) (interf
 			Namespace:   request.Namespace,
 			Values:      request.Values,
 			ReleaserOptions: helm.ReleaserOptions{
+				DryRun:       request.DryRun,
+				GenerateName: request.ReleaseName == "",
+				Wait:         false,
+			},
+		}}, nil
+}
+
+func decodeUpgradeReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, e := extractUintParamFromRequest("orgId", r)
+	if e != nil {
+		return nil, errors.WrapIf(e, "failed to decode add repository request")
+	}
+
+	clusterID, e := extractUintParamFromRequest("clusterId", r)
+	if e != nil {
+		return nil, errors.WrapIf(e, "failed to decode add repository request")
+	}
+
+	var request pipeline.CreateUpdateDeploymentRequest
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode request")
+	}
+
+	return UpgradeReleaseRequest{
+		OrganizationID: orgID,
+		ClusterID:      clusterID,
+		Release: helm.Release{
+			ReleaseName: request.ReleaseName,
+			ChartName:   request.Name,
+			Namespace:   request.Namespace,
+			Values:      request.Values,
+			ReleaserOptions: helm.ReleaserOptions{
+				// TODO options to be extracted
 				DryRun:       request.DryRun,
 				GenerateName: request.ReleaseName == "",
 				Wait:         false,
