@@ -97,7 +97,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			err := workflow.ExecuteActivity(ctx, DeleteNodeActivityName, activityInput).Get(ctx, nil)
 			if err != nil {
 				if input.Forced {
-					logger.Errorw("delete node failed", "error", err)
+					logger.Errorw("delete node failed", "error", err, "node", node.Name)
 				} else {
 					e := errors.WrapIff(err, "deleting node %q", node.Name)
 					_ = setClusterErrorStatus(ctx, input.ClusterID, e)
