@@ -105,6 +105,7 @@ type repository interface {
 // releaser collects and groups release related operations
 // it's intended to be embedded in the "Helm Facade"
 type releaser interface {
+	// TODO infer releaser options to the  API for passing helm directives - analogue to flags (dryrun, wait)
 	// Install installs the release to the cluster with the given identifier
 	InstallRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error
 
@@ -114,17 +115,18 @@ type releaser interface {
 	// List retrieves  releases in a given namespace, eventually applies the passed in filters
 	ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters interface{}) ([]Release, error)
 
-	//// Get retrieves the release details for the given  release
-	//GetRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) (Release, error)
+	// Get retrieves the release details for the given  release
+	GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string) (Release, error)
+
+	//// Upgrade upgrades the given release
+	//UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error
 	//
 	//// GetResources
 	//GetResources(ctx context.Context, organizationID uint, clusterID uint, release Release) (interface{}, error)
 	//
 	//// ReleaseStatus
 	//ReleaseStatus(ctx context.Context, organizationID uint, clusterID uint, release Release) (Release, error)
-	//
-	//// Upgrade upgrades the given release
-	//UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error
+
 }
 
 // +testify:mock:testOnly=true
@@ -429,7 +431,7 @@ func (s service) InstallRelease(ctx context.Context, organizationID uint, cluste
 }
 
 func (s service) DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error {
-	// TODO should this come from the api?
+	// TODO add the options to the argument list
 	releaserOptions := ReleaserOptions{}
 
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
@@ -450,6 +452,7 @@ func (s service) DeleteRelease(ctx context.Context, organizationID uint, cluster
 }
 
 func (s service) ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters interface{}) ([]Release, error) {
+	// TODO add the options to the argument list
 	releaserOptions := ReleaserOptions{}
 
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
@@ -468,6 +471,31 @@ func (s service) ListReleases(ctx context.Context, organizationID uint, clusterI
 	}
 
 	return releases, nil
+}
+
+func (s service) GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string) (Release, error) {
+	// TODO add the options to theh argument list
+	releaserOptions := ReleaserOptions{}
+
+	emptyRelease := Release{}
+
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return emptyRelease, errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	kubeKonfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return emptyRelease, errors.WrapIf(err, "failed to get cluster configuration")
+	}
+
+	input := Release{ReleaseName: releaseName}
+	release, err := s.releaser.Get(ctx, helmEnv, kubeKonfig, input, releaserOptions)
+	if err != nil {
+		return emptyRelease, errors.WrapIfWithDetails(err, "failed to get release", "releaseName", releaseName)
+	}
+
+	return release, nil
 }
 
 func (s service) repoExists(ctx context.Context, orgID uint, repository Repository) (bool, error) {

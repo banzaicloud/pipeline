@@ -93,6 +93,13 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 		kitxhttp.ErrorResponseEncoder(encodeListReleasesHTTPResponse, errorEncoder),
 		options...,
 	))
+
+	router.Methods(http.MethodGet).Path("/{name}").Handler(kithttp.NewServer(
+		endpoints.GetRelease,
+		decodeGetReleaseHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeGetReleaseHTTPResponse, errorEncoder),
+		options...,
+	))
 }
 
 func decodeInstallReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -282,6 +289,56 @@ func decodeDeleteReleaseHTTPRequest(_ context.Context, r *http.Request) (interfa
 			ReleaseName: releaseName,
 		},
 	}, nil
+}
+
+func decodeGetReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, err := extractUintParamFromRequest("orgId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	clusterID, err := extractUintParamFromRequest("clusterId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	releaseName, err := extractStringParamFromRequest("name", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	return GetReleaseRequest{
+		OrganizationID: orgID,
+		ClusterID:      clusterID,
+		ReleaseName:    releaseName,
+	}, nil
+}
+
+func encodeGetReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	release, ok := response.(GetReleaseResponse)
+	if !ok {
+		return errors.New("invalid  release list response")
+	}
+
+	if release.Err != nil {
+		return errors.WrapIf(release.Err, "failed to retrieve releases")
+	}
+
+	resp := pipeline.GetDeploymentResponse{
+		ReleaseName:  release.R0.ReleaseName,
+		Chart:        release.R0.ChartName, // TODO what's this
+		ChartName:    release.R0.ChartName,
+		ChartVersion: release.R0.Version,
+		Namespace:    release.R0.Namespace,
+		Version:      0, // TODO populate it
+		UpdatedAt:    release.R0.ReleaseInfo.LastDeployed.String(),
+		Status:       release.R0.ReleaseInfo.Status,
+		CreatedAt:    release.R0.ReleaseInfo.FirstDeployed.String(),
+		Notes:        release.R0.ReleaseInfo.Notes,
+		Values:       nil, // TODO populate this
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
 }
 
 func decodeListReleasesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {

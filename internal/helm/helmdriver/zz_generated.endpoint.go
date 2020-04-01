@@ -29,6 +29,7 @@ type Endpoints struct {
 	AddRepository    endpoint.Endpoint
 	DeleteRelease    endpoint.Endpoint
 	DeleteRepository endpoint.Endpoint
+	GetRelease       endpoint.Endpoint
 	InstallRelease   endpoint.Endpoint
 	ListReleases     endpoint.Endpoint
 	ListRepositories endpoint.Endpoint
@@ -45,6 +46,7 @@ func MakeEndpoints(service helm.Service, middleware ...endpoint.Middleware) Endp
 		AddRepository:    kitxendpoint.OperationNameMiddleware("helm.AddRepository")(mw(MakeAddRepositoryEndpoint(service))),
 		DeleteRelease:    kitxendpoint.OperationNameMiddleware("helm.DeleteRelease")(mw(MakeDeleteReleaseEndpoint(service))),
 		DeleteRepository: kitxendpoint.OperationNameMiddleware("helm.DeleteRepository")(mw(MakeDeleteRepositoryEndpoint(service))),
+		GetRelease:       kitxendpoint.OperationNameMiddleware("helm.GetRelease")(mw(MakeGetReleaseEndpoint(service))),
 		InstallRelease:   kitxendpoint.OperationNameMiddleware("helm.InstallRelease")(mw(MakeInstallReleaseEndpoint(service))),
 		ListReleases:     kitxendpoint.OperationNameMiddleware("helm.ListReleases")(mw(MakeListReleasesEndpoint(service))),
 		ListRepositories: kitxendpoint.OperationNameMiddleware("helm.ListRepositories")(mw(MakeListRepositoriesEndpoint(service))),
@@ -153,6 +155,48 @@ func MakeDeleteRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
 		}
 
 		return DeleteRepositoryResponse{}, nil
+	}
+}
+
+// GetReleaseRequest is a request struct for GetRelease endpoint.
+type GetReleaseRequest struct {
+	OrganizationID uint
+	ClusterID      uint
+	ReleaseName    string
+}
+
+// GetReleaseResponse is a response struct for GetRelease endpoint.
+type GetReleaseResponse struct {
+	R0  helm.Release
+	Err error
+}
+
+func (r GetReleaseResponse) Failed() error {
+	return r.Err
+}
+
+// MakeGetReleaseEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeGetReleaseEndpoint(service helm.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(GetReleaseRequest)
+
+		r0, err := service.GetRelease(ctx, req.OrganizationID, req.ClusterID, req.ReleaseName)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return GetReleaseResponse{
+					Err: err,
+					R0:  r0,
+				}, nil
+			}
+
+			return GetReleaseResponse{
+				Err: err,
+				R0:  r0,
+			}, err
+		}
+
+		return GetReleaseResponse{R0: r0}, nil
 	}
 }
 

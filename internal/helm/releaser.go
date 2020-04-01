@@ -43,6 +43,9 @@ type Releaser interface {
 	Install(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) (string, error)
 	// Uninstall removes the  specified release from the cluster
 	Uninstall(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) error
-	// Lists releases
+	// List lists releases
 	List(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, options ReleaserOptions) ([]Release, error)
+
+	// Get gets the given release details
+	Get(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) (Release, error)
 }
