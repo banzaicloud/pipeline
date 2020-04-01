@@ -171,7 +171,6 @@ func (r releaser) List(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig hel
 	restClientGetter := NewCustomGetter(envSettings.RESTClientGetter(), kubeConfig, r.logger)
 
 	actionConfig, err := r.getActionConfiguration(restClientGetter, options.Namespace)
-
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get action configuration")
 	}
@@ -204,6 +203,42 @@ func (r releaser) List(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig hel
 	}
 
 	return releases, nil
+}
+
+func (r releaser) Get(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.ReleaserOptions) (helm.Release, error) {
+	// customize the settings passed forward
+	envSettings := r.processEnvSettings(helmEnv)
+
+	// component processing the kubeconfig
+	restClientGetter := NewCustomGetter(envSettings.RESTClientGetter(), kubeConfig, r.logger)
+
+	actionConfig, err := r.getActionConfiguration(restClientGetter, options.Namespace)
+	if err != nil {
+		return helm.Release{}, errors.WrapIf(err, "failed to get action configuration")
+	}
+
+	getAction := action.NewGet(actionConfig)
+
+	rawRelease, err := getAction.Run(releaseInput.ReleaseName)
+	if err != nil {
+		return helm.Release{}, errors.WrapIf(err, "failed to get release")
+	}
+
+	return helm.Release{
+		ReleaseName: rawRelease.Name,
+		ChartName:   rawRelease.Chart.Metadata.Name,
+		Namespace:   rawRelease.Namespace,
+		Values:      rawRelease.Chart.Values,
+		Version:     rawRelease.Chart.Metadata.Version,
+		ReleaseInfo: helm.ReleaseInfo{
+			FirstDeployed: rawRelease.Info.FirstDeployed.Time,
+			LastDeployed:  rawRelease.Info.LastDeployed.Time,
+			Deleted:       rawRelease.Info.Deleted.Time,
+			Description:   rawRelease.Info.Description,
+			Status:        rawRelease.Info.Status.String(),
+			Notes:         rawRelease.Info.Notes,
+		},
+	}, nil
 }
 
 // processEnvSettings emulates an cli.EnvSettings instance based on the passed in data

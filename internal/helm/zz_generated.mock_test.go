@@ -103,6 +103,27 @@ func (_m *MockService) DeleteRepository(ctx context.Context, organizationID uint
 	return r0
 }
 
+// GetRelease provides a mock function.
+func (_m *MockService) GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string) (Release, error) {
+	ret := _m.Called(ctx, organizationID, clusterID, releaseName)
+
+	var r0 Release
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, string) Release); ok {
+		r0 = rf(ctx, organizationID, clusterID, releaseName)
+	} else {
+		r0 = ret.Get(0).(Release)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, string) error); ok {
+		r1 = rf(ctx, organizationID, clusterID, releaseName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // InstallRelease provides a mock function.
 func (_m *MockService) InstallRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error {
 	ret := _m.Called(ctx, organizationID, clusterID, release)
