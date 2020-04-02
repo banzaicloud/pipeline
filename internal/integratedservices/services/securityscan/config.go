@@ -78,6 +78,7 @@ type ClusterAnchoreConfigProvider struct {
 	endpoint          string
 	userNameGenerator UserNameGenerator
 	userSecretStore   UserSecretStore
+	insecure          bool
 }
 
 // NewClusterAnchoreConfigProvider returns a new ClusterAnchoreConfigProvider.
@@ -85,11 +86,13 @@ func NewClusterAnchoreConfigProvider(
 	endpoint string,
 	userNameGenerator UserNameGenerator,
 	userSecretStore UserSecretStore,
+	insecure bool,
 ) ClusterAnchoreConfigProvider {
 	return ClusterAnchoreConfigProvider{
 		endpoint:          endpoint,
 		userNameGenerator: userNameGenerator,
 		userSecretStore:   userSecretStore,
+		insecure:          insecure,
 	}
 }
 
@@ -112,6 +115,7 @@ func (p ClusterAnchoreConfigProvider) GetConfiguration(ctx context.Context, clus
 		Endpoint: p.endpoint,
 		User:     userName,
 		Password: password,
+		Insecure: p.insecure,
 	}, nil
 }
 
@@ -167,6 +171,7 @@ func (p CustomAnchoreConfigProvider) GetConfiguration(ctx context.Context, clust
 		Endpoint: spec.CustomAnchore.Url,
 		User:     secret[secrettype.Username],
 		Password: secret[secrettype.Password],
+		Insecure: spec.CustomAnchore.Insecure,
 	}, nil
 }
 
