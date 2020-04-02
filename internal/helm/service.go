@@ -523,7 +523,6 @@ func (s service) UpgradeRelease(ctx context.Context, organizationID uint, cluste
 }
 
 func (s service) ReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release) ([]ReleaseResource, error) {
-
 	// TODO add the options to the argument list
 	releaserOptions := ReleaserOptions{}
 
