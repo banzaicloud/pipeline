@@ -52,7 +52,7 @@ func NewReleaser(logger Logger) helm.Releaser {
 	}
 }
 
-func (r releaser) Install(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.ReleaserOptions) (string, error) {
+func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) (string, error) {
 	// customize the settings passed forward
 	envSettings := r.processEnvSettings(helmEnv)
 
@@ -60,8 +60,8 @@ func (r releaser) Install(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 	restClientGetter := NewCustomGetter(envSettings.RESTClientGetter(), kubeConfig, r.logger)
 
 	ns := "default"
-	if releaseInput.Namespace != "" {
-		ns = releaseInput.Namespace
+	if options.Namespace != "" {
+		ns = options.Namespace
 	}
 
 	actionConfig, err := r.getActionConfiguration(restClientGetter, ns)
@@ -70,15 +70,15 @@ func (r releaser) Install(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 	}
 
 	installAction := action.NewInstall(actionConfig)
-	installAction.Namespace = releaseInput.Namespace
+	installAction.Namespace = options.Namespace
 
-	name, chart, err := installAction.NameAndChart(releaseInput.NameAndChartSlice())
+	name, chartRef, err := installAction.NameAndChart(releaseInput.NameAndChartSlice())
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to get  name  and chart")
 	}
 	installAction.ReleaseName = name
 
-	cp, err := installAction.ChartPathOptions.LocateChart(chart, envSettings)
+	cp, err := installAction.ChartPathOptions.LocateChart(chartRef, envSettings)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to locate chart")
 	}
@@ -136,7 +136,7 @@ func (r releaser) Install(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 	return releasePtr.Name, nil
 }
 
-func (r releaser) Uninstall(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.ReleaserOptions) error {
+func (r releaser) Uninstall(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseName string, options helm.Options) error {
 	// customize the settings passed forward
 	envSettings := r.processEnvSettings(helmEnv)
 
@@ -144,8 +144,8 @@ func (r releaser) Uninstall(ctx context.Context, helmEnv helm.HelmEnv, kubeConfi
 	restClientGetter := NewCustomGetter(envSettings.RESTClientGetter(), kubeConfig, r.logger)
 
 	ns := "default"
-	if releaseInput.Namespace != "" {
-		ns = releaseInput.Namespace
+	if options.Namespace != "" {
+		ns = options.Namespace
 	}
 	actionConfig, err := r.getActionConfiguration(restClientGetter, ns)
 	if err != nil {
@@ -154,7 +154,7 @@ func (r releaser) Uninstall(ctx context.Context, helmEnv helm.HelmEnv, kubeConfi
 
 	uninstallAction := action.NewUninstall(actionConfig)
 
-	res, err := uninstallAction.Run(releaseInput.ReleaseName)
+	res, err := uninstallAction.Run(releaseName)
 	if err != nil {
 		return err
 	}
@@ -162,12 +162,12 @@ func (r releaser) Uninstall(ctx context.Context, helmEnv helm.HelmEnv, kubeConfi
 		r.logger.Debug(res.Info)
 	}
 
-	r.logger.Info("release successfully uninstalled", map[string]interface{}{"releaseName": releaseInput.ReleaseName})
+	r.logger.Info("release successfully uninstalled", map[string]interface{}{"releaseName": releaseName})
 
 	return nil
 }
 
-func (r releaser) List(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, options helm.ReleaserOptions) ([]helm.Release, error) {
+func (r releaser) List(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, options helm.Options) ([]helm.Release, error) {
 	// customize the settings passed forward
 	envSettings := r.processEnvSettings(helmEnv)
 
@@ -209,7 +209,7 @@ func (r releaser) List(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig hel
 	return releases, nil
 }
 
-func (r releaser) Get(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.ReleaserOptions) (helm.Release, error) {
+func (r releaser) Get(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) (helm.Release, error) {
 	// customize the settings passed forward
 	envSettings := r.processEnvSettings(helmEnv)
 
@@ -245,7 +245,7 @@ func (r releaser) Get(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm
 	}, nil
 }
 
-func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.ReleaserOptions) (string, error) {
+func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) (string, error) {
 	// customize the settings passed forward
 	envSettings := r.processEnvSettings(helmEnv)
 
@@ -263,7 +263,7 @@ func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 	}
 
 	upgradeAction := action.NewUpgrade(actionConfig)
-	upgradeAction.Namespace = releaseInput.Namespace // TODO ns comes from the options
+	upgradeAction.Namespace = options.Namespace
 
 	if upgradeAction.Version == "" && upgradeAction.Devel {
 		r.logger.Debug("setting version to >0.0.0-0")
@@ -324,7 +324,7 @@ func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 	return rel.Name, nil
 }
 
-func (r releaser) Resources(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.ReleaserOptions) ([]helm.ReleaseResource, error) {
+func (r releaser) Resources(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) ([]helm.ReleaseResource, error) {
 	// customize the settings passed forward
 	envSettings := r.processEnvSettings(helmEnv)
 
@@ -367,7 +367,7 @@ func (r releaser) resourcesFromManifest(manifest string) ([]helm.ReleaseResource
 			Kind     string
 			Metadata struct {
 				Name string
-			} `mapstructure: ",squash"`
+			} `mapstructure: ",squash"` //do not change the tag!
 		}
 
 		// yaml fragment map into helper struct / metadata used to track conversion details - not yet used

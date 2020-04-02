@@ -18,7 +18,6 @@ import (
 	"context"
 )
 
-//  TODO is this exaggerate?
 type KubeConfigBytes = []byte
 
 // utility for providing input arguments ...
@@ -29,27 +28,18 @@ func (ri Release) NameAndChartSlice() []string {
 	return []string{ri.ReleaseName, ri.ChartName}
 }
 
-// ReleaserOptions placeholder for releaser directives
-type ReleaserOptions struct {
-	DryRun       bool
-	GenerateName bool
-	Wait         bool
-	Namespace    string
-}
-
 // Releaser interface collecting operations related to releases
 type Releaser interface {
 	// Install installs the specified chart using to a cluster identified by the kubeConfig  argument
-	Install(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) (string, error)
+	Install(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options Options) (string, error)
 	// Uninstall removes the  specified release from the cluster
-	Uninstall(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) error
+	Uninstall(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseName string, options Options) error
 	// List lists releases
-	List(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, options ReleaserOptions) ([]Release, error)
+	List(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, options Options) ([]Release, error)
 	// Get gets the given release details
-	Get(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) (Release, error)
+	Get(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options Options) (Release, error)
 	// Upgrade upgrades the given release
-	Upgrade(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) (string, error)
-
+	Upgrade(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options Options) (string, error)
 	// Resources retrieves the kubernetes resources belonging to the release
-	Resources(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) ([]ReleaseResource, error)
+	Resources(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options Options) ([]ReleaseResource, error)
 }

@@ -150,12 +150,13 @@ func decodeInstallReleaseHTTPRequest(_ context.Context, r *http.Request) (interf
 			ChartName:   request.Name,
 			Namespace:   request.Namespace,
 			Values:      request.Values,
-			ReleaserOptions: helm.ReleaserOptions{
-				DryRun:       request.DryRun,
-				GenerateName: request.ReleaseName == "",
-				Wait:         false,
-			},
-		}}, nil
+		},
+		Options: helm.Options{
+			DryRun:       request.DryRun,
+			GenerateName: request.ReleaseName == "",
+			Wait:         request.Wait,
+		},
+	}, nil
 }
 
 func decodeUpgradeReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -184,13 +185,12 @@ func decodeUpgradeReleaseHTTPRequest(_ context.Context, r *http.Request) (interf
 			ChartName:   request.Name,
 			Namespace:   request.Namespace,
 			Values:      request.Values,
-			ReleaserOptions: helm.ReleaserOptions{
-				// TODO options to be extracted
-				DryRun:       request.DryRun,
-				GenerateName: request.ReleaseName == "",
-				Wait:         false,
-			},
-		}}, nil
+		}, Options: helm.Options{
+			DryRun:       request.DryRun,
+			GenerateName: request.ReleaseName == "",
+			Wait:         request.Wait,
+		},
+	}, nil
 }
 
 func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -342,9 +342,7 @@ func decodeDeleteReleaseHTTPRequest(_ context.Context, r *http.Request) (interfa
 	return DeleteReleaseRequest{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
-		Release: helm.Release{
-			ReleaseName: releaseName,
-		},
+		ReleaseName:    releaseName,
 	}, nil
 }
 

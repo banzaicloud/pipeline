@@ -773,14 +773,14 @@ func main() {
 
 					default:
 						// helm 2 setup
-						cRouter.GET("/deployments", api.ListDeployments)
 						cRouter.POST("/deployments", api.CreateDeployment)
+						cRouter.GET("/deployments", api.ListDeployments)
 						cRouter.GET("/deployments/:name", api.GetDeployment)
-						cRouter.GET("/deployments/:name/resources", api.GetDeploymentResources)
-						cRouter.HEAD("/deployments", api.GetTillerStatus)
-						cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
 						cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
 						cRouter.HEAD("/deployments/:name", api.HelmDeploymentStatus)
+						cRouter.HEAD("/deployments", api.GetTillerStatus)
+						cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
+						cRouter.GET("/deployments/:name/resources", api.GetDeploymentResources)
 					}
 				}
 

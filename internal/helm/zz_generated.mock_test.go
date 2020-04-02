@@ -76,12 +76,12 @@ func (_m *MockService) AddRepository(ctx context.Context, organizationID uint, r
 }
 
 // DeleteRelease provides a mock function.
-func (_m *MockService) DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error {
-	ret := _m.Called(ctx, organizationID, clusterID, release)
+func (_m *MockService) DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) error {
+	ret := _m.Called(ctx, organizationID, clusterID, releaseName, options)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, Release) error); ok {
-		r0 = rf(ctx, organizationID, clusterID, release)
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, string, Options) error); ok {
+		r0 = rf(ctx, organizationID, clusterID, releaseName, options)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -104,19 +104,19 @@ func (_m *MockService) DeleteRepository(ctx context.Context, organizationID uint
 }
 
 // GetRelease provides a mock function.
-func (_m *MockService) GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string) (Release, error) {
-	ret := _m.Called(ctx, organizationID, clusterID, releaseName)
+func (_m *MockService) GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (Release, error) {
+	ret := _m.Called(ctx, organizationID, clusterID, releaseName, options)
 
 	var r0 Release
-	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, string) Release); ok {
-		r0 = rf(ctx, organizationID, clusterID, releaseName)
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, string, Options) Release); ok {
+		r0 = rf(ctx, organizationID, clusterID, releaseName, options)
 	} else {
 		r0 = ret.Get(0).(Release)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, string) error); ok {
-		r1 = rf(ctx, organizationID, clusterID, releaseName)
+	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, string, Options) error); ok {
+		r1 = rf(ctx, organizationID, clusterID, releaseName, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -125,12 +125,12 @@ func (_m *MockService) GetRelease(ctx context.Context, organizationID uint, clus
 }
 
 // InstallRelease provides a mock function.
-func (_m *MockService) InstallRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error {
-	ret := _m.Called(ctx, organizationID, clusterID, release)
+func (_m *MockService) InstallRelease(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) error {
+	ret := _m.Called(ctx, organizationID, clusterID, release, options)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, Release) error); ok {
-		r0 = rf(ctx, organizationID, clusterID, release)
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, Release, Options) error); ok {
+		r0 = rf(ctx, organizationID, clusterID, release, options)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -139,12 +139,12 @@ func (_m *MockService) InstallRelease(ctx context.Context, organizationID uint, 
 }
 
 // ListReleases provides a mock function.
-func (_m *MockService) ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters interface{}) ([]Release, error) {
-	ret := _m.Called(ctx, organizationID, clusterID, filters)
+func (_m *MockService) ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters interface{}, options Options) ([]Release, error) {
+	ret := _m.Called(ctx, organizationID, clusterID, filters, options)
 
 	var r0 []Release
-	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, interface{}) []Release); ok {
-		r0 = rf(ctx, organizationID, clusterID, filters)
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, interface{}, Options) []Release); ok {
+		r0 = rf(ctx, organizationID, clusterID, filters, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]Release)
@@ -152,8 +152,8 @@ func (_m *MockService) ListReleases(ctx context.Context, organizationID uint, cl
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, interface{}) error); ok {
-		r1 = rf(ctx, organizationID, clusterID, filters)
+	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, interface{}, Options) error); ok {
+		r1 = rf(ctx, organizationID, clusterID, filters, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -199,12 +199,12 @@ func (_m *MockService) PatchRepository(ctx context.Context, organizationID uint,
 }
 
 // ReleaseResources provides a mock function.
-func (_m *MockService) ReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release) ([]ReleaseResource, error) {
-	ret := _m.Called(ctx, organizationID, clusterID, release)
+func (_m *MockService) ReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) ([]ReleaseResource, error) {
+	ret := _m.Called(ctx, organizationID, clusterID, release, options)
 
 	var r0 []ReleaseResource
-	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, Release) []ReleaseResource); ok {
-		r0 = rf(ctx, organizationID, clusterID, release)
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, Release, Options) []ReleaseResource); ok {
+		r0 = rf(ctx, organizationID, clusterID, release, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]ReleaseResource)
@@ -212,8 +212,8 @@ func (_m *MockService) ReleaseResources(ctx context.Context, organizationID uint
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, Release) error); ok {
-		r1 = rf(ctx, organizationID, clusterID, release)
+	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, Release, Options) error); ok {
+		r1 = rf(ctx, organizationID, clusterID, release, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -222,19 +222,19 @@ func (_m *MockService) ReleaseResources(ctx context.Context, organizationID uint
 }
 
 // ReleaseStatus provides a mock function.
-func (_m *MockService) ReleaseStatus(ctx context.Context, organizationID uint, clusterID uint, releaseName string) (string, error) {
-	ret := _m.Called(ctx, organizationID, clusterID, releaseName)
+func (_m *MockService) ReleaseStatus(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (string, error) {
+	ret := _m.Called(ctx, organizationID, clusterID, releaseName, options)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, string) string); ok {
-		r0 = rf(ctx, organizationID, clusterID, releaseName)
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, string, Options) string); ok {
+		r0 = rf(ctx, organizationID, clusterID, releaseName, options)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, string) error); ok {
-		r1 = rf(ctx, organizationID, clusterID, releaseName)
+	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, string, Options) error); ok {
+		r1 = rf(ctx, organizationID, clusterID, releaseName, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -257,12 +257,12 @@ func (_m *MockService) UpdateRepository(ctx context.Context, organizationID uint
 }
 
 // UpgradeRelease provides a mock function.
-func (_m *MockService) UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release) error {
-	ret := _m.Called(ctx, organizationID, clusterID, release)
+func (_m *MockService) UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) error {
+	ret := _m.Called(ctx, organizationID, clusterID, release, options)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, Release) error); ok {
-		r0 = rf(ctx, organizationID, clusterID, release)
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, Release, Options) error); ok {
+		r0 = rf(ctx, organizationID, clusterID, release, options)
 	} else {
 		r0 = ret.Error(0)
 	}
