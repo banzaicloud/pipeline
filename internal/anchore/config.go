@@ -25,6 +25,7 @@ type Config struct {
 	Endpoint string
 	User     string
 	Password string
+	Insecure bool
 }
 
 // ErrConfigNotFound is returned by config providers to indicate it couldn't find any configuration.

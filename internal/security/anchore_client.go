@@ -16,6 +16,7 @@ package anchore
 
 import (
 	"context"
+	"crypto/tls"
 	"net/http"
 
 	"emperror.dev/errors"
@@ -46,14 +47,16 @@ type anchoreClient struct {
 	password string
 	endpoint string
 	logger   common.Logger
+	insecure bool
 }
 
-func NewAnchoreClient(userName string, password string, endpoint string, logger common.Logger) AnchoreClient {
+func NewAnchoreClient(userName string, password string, endpoint string, insecure bool, logger common.Logger) AnchoreClient {
 	return anchoreClient{
 		userName: userName,
 		password: password,
 		endpoint: endpoint,
 		logger:   logger.WithFields(map[string]interface{}{"anchore-client": ""}),
+		insecure: insecure,
 	}
 }
 
@@ -211,6 +214,13 @@ func (a anchoreClient) getRestClient() *anchore.APIClient {
 		BasePath:      a.endpoint,
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "Pipeline/go",
+		HTTPClient: &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: a.insecure,
+				},
+			},
+		},
 	})
 }
 

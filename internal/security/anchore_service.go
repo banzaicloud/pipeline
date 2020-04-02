@@ -304,7 +304,7 @@ func (a anchoreService) getAnchoreClient(ctx context.Context, clusterID uint) (A
 		return nil, err
 	}
 
-	return NewAnchoreClient(config.User, config.Password, config.Endpoint, a.logger), nil
+	return NewAnchoreClient(config.User, config.Password, config.Endpoint, config.Insecure, a.logger), nil
 }
 
 func (a anchoreService) deleteAccount(ctx context.Context, client AnchoreClient, accountName string) error {
