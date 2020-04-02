@@ -892,6 +892,7 @@ func main() {
 							config.Cluster.SecurityScan.Anchore.Endpoint,
 							securityscanadapter.NewUserNameGenerator(securityscanadapter.NewClusterService(clusterManager)),
 							securityscanadapter.NewUserSecretStore(commonSecretStore),
+							config.Cluster.SecurityScan.Anchore.Insecure,
 						))
 					}
 
