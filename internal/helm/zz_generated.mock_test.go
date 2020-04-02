@@ -198,6 +198,29 @@ func (_m *MockService) PatchRepository(ctx context.Context, organizationID uint,
 	return r0
 }
 
+// ReleaseResources provides a mock function.
+func (_m *MockService) ReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release) ([]ReleaseResource, error) {
+	ret := _m.Called(ctx, organizationID, clusterID, release)
+
+	var r0 []ReleaseResource
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, Release) []ReleaseResource); ok {
+		r0 = rf(ctx, organizationID, clusterID, release)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]ReleaseResource)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, Release) error); ok {
+		r1 = rf(ctx, organizationID, clusterID, release)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ReleaseStatus provides a mock function.
 func (_m *MockService) ReleaseStatus(ctx context.Context, organizationID uint, clusterID uint, releaseName string) (string, error) {
 	ret := _m.Called(ctx, organizationID, clusterID, releaseName)

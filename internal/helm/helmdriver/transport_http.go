@@ -109,6 +109,13 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 		options...,
 	))
 
+	router.Methods(http.MethodGet).Path("/{name}/resources").Handler(kithttp.NewServer(
+		endpoints.ReleaseResources,
+		decodeReleaseResourcesHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeReleaseResourcesHTTPResponse, errorEncoder),
+		options...,
+	))
+
 	router.Methods(http.MethodHead).Path("/{name}").Handler(kithttp.NewServer(
 		endpoints.ReleaseStatus,
 		decodeReleaseStatusHTTPRequest,
@@ -341,6 +348,19 @@ func decodeDeleteReleaseHTTPRequest(_ context.Context, r *http.Request) (interfa
 	}, nil
 }
 
+func encodeReleaseResourcesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp, ok := response.(ReleaseResourcesResponse)
+	if !ok {
+		return errors.NewWithDetails("failed to encode release resources response")
+	}
+
+	if resp.Err != nil {
+		return errors.NewWithDetails("failed to retrieve release resources")
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp.R0)
+}
+
 func decodeReleaseStatusHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	orgID, err := extractUintParamFromRequest("orgId", r)
 	if err != nil {
@@ -403,6 +423,30 @@ func decodeGetReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
 		ReleaseName:    releaseName,
+	}, nil
+}
+func decodeReleaseResourcesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, err := extractUintParamFromRequest("orgId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	clusterID, err := extractUintParamFromRequest("clusterId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	releaseName, err := extractStringParamFromRequest("name", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	return ReleaseResourcesRequest{
+		OrganizationID: orgID,
+		ClusterID:      clusterID,
+		Release: helm.Release{
+			ReleaseName: releaseName,
+		},
 	}, nil
 }
 

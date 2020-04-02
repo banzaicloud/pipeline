@@ -48,7 +48,6 @@ type Repository struct {
 
 // ReleaseInfo copy of the struct form the helm library
 type ReleaseInfo struct {
-
 	// FirstDeployed is when the release was first deployed.
 	FirstDeployed time.Time `json:"first_deployed,omitempty"`
 	// LastDeployed is when the release was last deployed.
@@ -61,6 +60,11 @@ type ReleaseInfo struct {
 	Status string
 	// Contains the rendered templates/NOTES.txt if available
 	Notes string
+}
+
+type ReleaseResource struct {
+	Name string `json:"name" yaml:"name"`
+	Kind string `json:"kind" yaml:"kind"`
 }
 
 //  Release represents information related to a helm chart release
@@ -124,8 +128,8 @@ type releaser interface {
 	// ReleaseStatus
 	ReleaseStatus(ctx context.Context, organizationID uint, clusterID uint, releaseName string) (string, error)
 
-	//// GetResources
-	//GetResources(ctx context.Context, organizationID uint, clusterID uint, release Release) (interface{}, error)
+	// ReleaseResources retrieves resources belonging to the release
+	ReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release) ([]ReleaseResource, error)
 }
 
 // +testify:mock:testOnly=true
@@ -518,6 +522,29 @@ func (s service) UpgradeRelease(ctx context.Context, organizationID uint, cluste
 	return nil
 }
 
+func (s service) ReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release) ([]ReleaseResource, error) {
+
+	// TODO add the options to the argument list
+	releaserOptions := ReleaserOptions{}
+
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	kubeKonfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get cluster configuration")
+	}
+
+	resources, err := s.releaser.Resources(ctx, helmEnv, kubeKonfig, release, releaserOptions)
+	if err != nil {
+		return nil, errors.WrapIfWithDetails(err, "failed to retrieve release resources ", "releaseName", release.ReleaseName)
+	}
+
+	return resources, nil
+}
+
 func (s service) ReleaseStatus(ctx context.Context, organizationID uint, clusterID uint, releaseName string) (string, error) {
 	release, err := s.GetRelease(ctx, organizationID, clusterID, releaseName)
 	if err != nil {
@@ -529,7 +556,6 @@ func (s service) ReleaseStatus(ctx context.Context, organizationID uint, cluster
 
 func (s service) repoExists(ctx context.Context, orgID uint, repository Repository) (bool, error) {
 	_, err := s.store.Get(ctx, orgID, repository)
-
 	if err != nil {
 		// TODO refine this implementation, separate results by error type
 		return false, nil
