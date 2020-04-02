@@ -701,32 +701,38 @@ func main() {
 				cRouter.GET("/nodes", api.GetClusterNodes)
 				cRouter.GET("/endpoints", api.MakeEndpointLister(logger).ListEndpoints)
 				cRouter.GET("/secrets", api.ListClusterSecrets)
-				cRouter.GET("/deployments", api.ListDeployments)
-				cRouter.POST("/deployments", api.CreateDeployment)
-				cRouter.GET("/deployments/:name", api.GetDeployment)
-				cRouter.GET("/deployments/:name/resources", api.GetDeploymentResources)
-				cRouter.HEAD("/deployments", api.GetTillerStatus)
-				cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
-				cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
-				cRouter.HEAD("/deployments/:name", api.HelmDeploymentStatus)
 				{
-					endpoints := helmdriver.MakeEndpoints(
-						helmFacade,
-						kitxendpoint.Combine(endpointMiddleware...),
-					)
+					switch config.Helm.Version {
+					case "helm3":
+						endpoints := helmdriver.MakeEndpoints(
+							helmFacade,
+							kitxendpoint.Combine(endpointMiddleware...),
+						)
 
-					helmdriver.RegisterReleaserHTTPHandlers(endpoints,
-						clusterRouter.PathPrefix("/releases").Subrouter(),
-						kitxhttp.ServerOptions(httpServerOptions),
-					)
+						helmdriver.RegisterReleaserHTTPHandlers(endpoints,
+							clusterRouter.PathPrefix("/deployments").Subrouter(),
+							kitxhttp.ServerOptions(httpServerOptions),
+						)
 
-					cRouter.POST("/releases", gin.WrapH(router))
-					cRouter.GET("/releases", gin.WrapH(router))
-					cRouter.GET("/releases/:name", gin.WrapH(router))
-					cRouter.PUT("/releases/:name", gin.WrapH(router))
-					cRouter.HEAD("/releases/:name", gin.WrapH(router))
-					cRouter.DELETE("/releases/:name", gin.WrapH(router))
-					cRouter.GET("/releases/:name/resources", gin.WrapH(router))
+						cRouter.POST("/deployments", gin.WrapH(router))
+						cRouter.GET("/deployments", gin.WrapH(router))
+						cRouter.GET("/deployments/:name", gin.WrapH(router))
+						cRouter.PUT("/deployments/:name", gin.WrapH(router))
+						cRouter.HEAD("/deployments/:name", gin.WrapH(router))
+						cRouter.DELETE("/deployments/:name", gin.WrapH(router))
+						cRouter.GET("/deployments/:name/resources", gin.WrapH(router))
+
+					default:
+						// helm 2 setup
+						cRouter.GET("/deployments", api.ListDeployments)
+						cRouter.POST("/deployments", api.CreateDeployment)
+						cRouter.GET("/deployments/:name", api.GetDeployment)
+						cRouter.GET("/deployments/:name/resources", api.GetDeploymentResources)
+						cRouter.HEAD("/deployments", api.GetTillerStatus)
+						cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
+						cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
+						cRouter.HEAD("/deployments/:name", api.HelmDeploymentStatus)
+					}
 				}
 
 				cRouter.GET("/images", api.ListImages)
