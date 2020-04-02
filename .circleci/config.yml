@@ -190,11 +190,15 @@ jobs:
 
             -
                 run:
-                    name: Test PostgreSQL database schema diff
+                    name: Install migra for PostgreSQL database diffs
                     command: |
-                        pg_dump -s -h localhost -U postgres -d pipeline_migrations > pipeline_migrations.txt
-                        pg_dump -s -h localhost -U postgres -d pipeline_automigrate > pipeline_automigrate.txt
-                        diff -U 10 pipeline_migrations.txt pipeline_automigrate.txt || exit 0
+                        apt-get install -y python-pip
+                        pip install migra[pg]
+            
+            -
+                run:
+                    name: Test PostgreSQL database schema diff
+                    command: migra postgresql://postgres:postgres@localhost/pipeline_automigrate postgresql://postgres:postgres@localhost/pipeline_migrations --unsafe
 
             -
                 run:
@@ -206,11 +210,7 @@ jobs:
             -
                 run:
                     name: Test PostgreSQL database schema diff again
-                    command: |
-                        pg_dump -s -h localhost -U postgres -d pipeline_migrations > pipeline_migrations.txt
-                        pg_dump -s -h localhost -U postgres -d pipeline_automigrate > pipeline_automigrate.txt
-                        diff -U 10 pipeline_migrations.txt pipeline_automigrate.txt || exit 0
-
+                    command: migra postgresql://postgres:postgres@localhost/pipeline_automigrate postgresql://postgres:postgres@localhost/pipeline_migrations --unsafe
             -
                 save_cache:
                     name: Save Go build cache
