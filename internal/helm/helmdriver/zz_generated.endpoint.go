@@ -99,7 +99,8 @@ func MakeAddRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
 type DeleteReleaseRequest struct {
 	OrganizationID uint
 	ClusterID      uint
-	Release        helm.Release
+	ReleaseName    string
+	Options        helm.Options
 }
 
 // DeleteReleaseResponse is a response struct for DeleteRelease endpoint.
@@ -116,7 +117,7 @@ func MakeDeleteReleaseEndpoint(service helm.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(DeleteReleaseRequest)
 
-		err := service.DeleteRelease(ctx, req.OrganizationID, req.ClusterID, req.Release)
+		err := service.DeleteRelease(ctx, req.OrganizationID, req.ClusterID, req.ReleaseName, req.Options)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
@@ -169,6 +170,7 @@ type GetReleaseRequest struct {
 	OrganizationID uint
 	ClusterID      uint
 	ReleaseName    string
+	Options        helm.Options
 }
 
 // GetReleaseResponse is a response struct for GetRelease endpoint.
@@ -186,7 +188,7 @@ func MakeGetReleaseEndpoint(service helm.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(GetReleaseRequest)
 
-		r0, err := service.GetRelease(ctx, req.OrganizationID, req.ClusterID, req.ReleaseName)
+		r0, err := service.GetRelease(ctx, req.OrganizationID, req.ClusterID, req.ReleaseName, req.Options)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
@@ -211,6 +213,7 @@ type InstallReleaseRequest struct {
 	OrganizationID uint
 	ClusterID      uint
 	Release        helm.Release
+	Options        helm.Options
 }
 
 // InstallReleaseResponse is a response struct for InstallRelease endpoint.
@@ -227,7 +230,7 @@ func MakeInstallReleaseEndpoint(service helm.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(InstallReleaseRequest)
 
-		err := service.InstallRelease(ctx, req.OrganizationID, req.ClusterID, req.Release)
+		err := service.InstallRelease(ctx, req.OrganizationID, req.ClusterID, req.Release, req.Options)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
@@ -246,6 +249,7 @@ type ListReleasesRequest struct {
 	OrganizationID uint
 	ClusterID      uint
 	Filters        interface{}
+	Options        helm.Options
 }
 
 // ListReleasesResponse is a response struct for ListReleases endpoint.
@@ -263,7 +267,7 @@ func MakeListReleasesEndpoint(service helm.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ListReleasesRequest)
 
-		r0, err := service.ListReleases(ctx, req.OrganizationID, req.ClusterID, req.Filters)
+		r0, err := service.ListReleases(ctx, req.OrganizationID, req.ClusterID, req.Filters, req.Options)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
@@ -362,6 +366,7 @@ type ReleaseResourcesRequest struct {
 	OrganizationID uint
 	ClusterID      uint
 	Release        helm.Release
+	Options        helm.Options
 }
 
 // ReleaseResourcesResponse is a response struct for ReleaseResources endpoint.
@@ -379,7 +384,7 @@ func MakeReleaseResourcesEndpoint(service helm.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ReleaseResourcesRequest)
 
-		r0, err := service.ReleaseResources(ctx, req.OrganizationID, req.ClusterID, req.Release)
+		r0, err := service.ReleaseResources(ctx, req.OrganizationID, req.ClusterID, req.Release, req.Options)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
@@ -404,6 +409,7 @@ type ReleaseStatusRequest struct {
 	OrganizationID uint
 	ClusterID      uint
 	ReleaseName    string
+	Options        helm.Options
 }
 
 // ReleaseStatusResponse is a response struct for ReleaseStatus endpoint.
@@ -421,7 +427,7 @@ func MakeReleaseStatusEndpoint(service helm.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ReleaseStatusRequest)
 
-		r0, err := service.ReleaseStatus(ctx, req.OrganizationID, req.ClusterID, req.ReleaseName)
+		r0, err := service.ReleaseStatus(ctx, req.OrganizationID, req.ClusterID, req.ReleaseName, req.Options)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
@@ -480,6 +486,7 @@ type UpgradeReleaseRequest struct {
 	OrganizationID uint
 	ClusterID      uint
 	Release        helm.Release
+	Options        helm.Options
 }
 
 // UpgradeReleaseResponse is a response struct for UpgradeRelease endpoint.
@@ -496,7 +503,7 @@ func MakeUpgradeReleaseEndpoint(service helm.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(UpgradeReleaseRequest)
 
-		err := service.UpgradeRelease(ctx, req.OrganizationID, req.ClusterID, req.Release)
+		err := service.UpgradeRelease(ctx, req.OrganizationID, req.ClusterID, req.Release, req.Options)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
