@@ -34,6 +34,7 @@ type Endpoints struct {
 	ListReleases     endpoint.Endpoint
 	ListRepositories endpoint.Endpoint
 	PatchRepository  endpoint.Endpoint
+	ReleaseResources endpoint.Endpoint
 	ReleaseStatus    endpoint.Endpoint
 	UpdateRepository endpoint.Endpoint
 	UpgradeRelease   endpoint.Endpoint
@@ -53,6 +54,7 @@ func MakeEndpoints(service helm.Service, middleware ...endpoint.Middleware) Endp
 		ListReleases:     kitxendpoint.OperationNameMiddleware("helm.ListReleases")(mw(MakeListReleasesEndpoint(service))),
 		ListRepositories: kitxendpoint.OperationNameMiddleware("helm.ListRepositories")(mw(MakeListRepositoriesEndpoint(service))),
 		PatchRepository:  kitxendpoint.OperationNameMiddleware("helm.PatchRepository")(mw(MakePatchRepositoryEndpoint(service))),
+		ReleaseResources: kitxendpoint.OperationNameMiddleware("helm.ReleaseResources")(mw(MakeReleaseResourcesEndpoint(service))),
 		ReleaseStatus:    kitxendpoint.OperationNameMiddleware("helm.ReleaseStatus")(mw(MakeReleaseStatusEndpoint(service))),
 		UpdateRepository: kitxendpoint.OperationNameMiddleware("helm.UpdateRepository")(mw(MakeUpdateRepositoryEndpoint(service))),
 		UpgradeRelease:   kitxendpoint.OperationNameMiddleware("helm.UpgradeRelease")(mw(MakeUpgradeReleaseEndpoint(service))),
@@ -352,6 +354,48 @@ func MakePatchRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
 		}
 
 		return PatchRepositoryResponse{}, nil
+	}
+}
+
+// ReleaseResourcesRequest is a request struct for ReleaseResources endpoint.
+type ReleaseResourcesRequest struct {
+	OrganizationID uint
+	ClusterID      uint
+	Release        helm.Release
+}
+
+// ReleaseResourcesResponse is a response struct for ReleaseResources endpoint.
+type ReleaseResourcesResponse struct {
+	R0  []helm.ReleaseResource
+	Err error
+}
+
+func (r ReleaseResourcesResponse) Failed() error {
+	return r.Err
+}
+
+// MakeReleaseResourcesEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeReleaseResourcesEndpoint(service helm.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(ReleaseResourcesRequest)
+
+		r0, err := service.ReleaseResources(ctx, req.OrganizationID, req.ClusterID, req.Release)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return ReleaseResourcesResponse{
+					Err: err,
+					R0:  r0,
+				}, nil
+			}
+
+			return ReleaseResourcesResponse{
+				Err: err,
+				R0:  r0,
+			}, err
+		}
+
+		return ReleaseResourcesResponse{R0: r0}, nil
 	}
 }
 

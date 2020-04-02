@@ -49,4 +49,7 @@ type Releaser interface {
 	Get(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) (Release, error)
 	// Upgrade upgrades the given release
 	Upgrade(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) (string, error)
+
+	// Resources retrieves the kubernetes resources belonging to the release
+	Resources(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options ReleaserOptions) ([]ReleaseResource, error)
 }

@@ -18,8 +18,11 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"emperror.dev/errors"
+	"github.com/mitchellh/mapstructure"
+	"gopkg.in/yaml.v2"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
@@ -319,6 +322,66 @@ func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 	r.logger.Info("release has been upgraded. Happy Helming!", map[string]interface{}{"releaseName": releaseInput.ReleaseName})
 
 	return rel.Name, nil
+}
+
+func (r releaser) Resources(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.ReleaserOptions) ([]helm.ReleaseResource, error) {
+	// customize the settings passed forward
+	envSettings := r.processEnvSettings(helmEnv)
+
+	// component processing the kubeconfig
+	restClientGetter := NewCustomGetter(envSettings.RESTClientGetter(), kubeConfig, r.logger)
+
+	actionConfig, err := r.getActionConfiguration(restClientGetter, options.Namespace)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get action configuration")
+	}
+
+	getAction := action.NewGet(actionConfig)
+
+	rawRelease, err := getAction.Run(releaseInput.ReleaseName)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get release")
+	}
+
+	resources, err := r.resourcesFromManifest(rawRelease.Manifest)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get release resources")
+	}
+
+	return resources, nil
+}
+
+// resourcesFromManifest digs out the resources from a release manifest
+func (r releaser) resourcesFromManifest(manifest string) ([]helm.ReleaseResource, error) {
+	var (
+		rawManifest map[string]interface{}
+		resources   []helm.ReleaseResource
+		metadata    mapstructure.Metadata
+	)
+
+	decoder := yaml.NewDecoder(strings.NewReader(manifest))
+	// iterate over yaml fragments in the manifest
+	for decoder.Decode(&rawManifest) == nil {
+		// helper struct to get the required information from the map
+		var resource struct {
+			Kind     string
+			Metadata struct {
+				Name string
+			} `mapstructure: ",squash"`
+		}
+
+		// yaml fragment map into helper struct / metadata used to track conversion details - not yet used
+		if err := mapstructure.DecodeMetadata(rawManifest, &resource, &metadata); err != nil {
+			return nil, errors.WrapIf(err, "failed to process release manifest")
+		}
+
+		resources = append(resources, helm.ReleaseResource{
+			Name: resource.Metadata.Name,
+			Kind: resource.Kind,
+		})
+	}
+
+	return resources, nil
 }
 
 // processEnvSettings emulates an cli.EnvSettings instance based on the passed in data
