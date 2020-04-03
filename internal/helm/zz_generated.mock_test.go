@@ -103,6 +103,29 @@ func (_m *MockService) DeleteRepository(ctx context.Context, organizationID uint
 	return r0
 }
 
+// GetChart provides a mock function.
+func (_m *MockService) GetChart(ctx context.Context, organizationID uint, chartName Chart, options Options) (repos []Repository, err error) {
+	ret := _m.Called(ctx, organizationID, chartName, options)
+
+	var r0 []Repository
+	if rf, ok := ret.Get(0).(func(context.Context, uint, Chart, Options) []Repository); ok {
+		r0 = rf(ctx, organizationID, chartName, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]Repository)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, uint, Chart, Options) error); ok {
+		r1 = rf(ctx, organizationID, chartName, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetRelease provides a mock function.
 func (_m *MockService) GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (Release, error) {
 	ret := _m.Called(ctx, organizationID, clusterID, releaseName, options)
@@ -136,6 +159,29 @@ func (_m *MockService) InstallRelease(ctx context.Context, organizationID uint, 
 	}
 
 	return r0
+}
+
+// ListCharts provides a mock function.
+func (_m *MockService) ListCharts(ctx context.Context, organizationID uint, repoName string, filter interface{}, options Options) (chart []string, err error) {
+	ret := _m.Called(ctx, organizationID, repoName, filter, options)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(context.Context, uint, string, interface{}, Options) []string); ok {
+		r0 = rf(ctx, organizationID, repoName, filter, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, uint, string, interface{}, Options) error); ok {
+		r1 = rf(ctx, organizationID, repoName, filter, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // ListReleases provides a mock function.
@@ -301,6 +347,50 @@ func (_m *MockEnvService) DeleteRepository(ctx context.Context, helmEnv HelmEnv,
 	}
 
 	return r0
+}
+
+// GetChart provides a mock function.
+func (_m *MockEnvService) GetChart(ctx context.Context, helmEnv HelmEnv, chart Chart) (Chart, error) {
+	ret := _m.Called(ctx, helmEnv, chart)
+
+	var r0 Chart
+	if rf, ok := ret.Get(0).(func(context.Context, HelmEnv, Chart) Chart); ok {
+		r0 = rf(ctx, helmEnv, chart)
+	} else {
+		r0 = ret.Get(0).(Chart)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, HelmEnv, Chart) error); ok {
+		r1 = rf(ctx, helmEnv, chart)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListCharts provides a mock function.
+func (_m *MockEnvService) ListCharts(ctx context.Context, helmEnv HelmEnv, repoName string) ([]string, error) {
+	ret := _m.Called(ctx, helmEnv, repoName)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(context.Context, HelmEnv, string) []string); ok {
+		r0 = rf(ctx, helmEnv, repoName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, HelmEnv, string) error); ok {
+		r1 = rf(ctx, helmEnv, repoName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // ListRepositories provides a mock function.

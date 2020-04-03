@@ -78,6 +78,13 @@ type Release struct {
 	ReleaseInfo ReleaseInfo
 }
 
+// Chart chart details
+type Chart struct {
+	Repo    string
+	Name    string
+	Version int
+}
+
 // Options struct holding directives for driving helm operations (similar to command line flags)
 // extend this as required eventually build a mor sophisticated solution for it
 type Options struct {
@@ -101,6 +108,9 @@ type Service interface {
 
 	// release management operations
 	releaser
+
+	// chart related operations
+	charter
 }
 
 // releaser collects and groups release related operations
@@ -116,6 +126,15 @@ type repository interface {
 	PatchRepository(ctx context.Context, organizationID uint, repository Repository) error
 	// UpdateRepository updates an existing repository
 	UpdateRepository(ctx context.Context, organizationID uint, repository Repository) error
+}
+
+// charter collects helm chars related operations
+type charter interface {
+	// List lists charts containing the given term, eventually applying the passed filter
+	ListCharts(ctx context.Context, organizationID uint, repoName string, filter interface{}, options Options) (chart []string, err error)
+
+	// GetChart retrieves the details for the given chart
+	GetChart(ctx context.Context, organizationID uint, chartName Chart, options Options) (repos []Repository, err error)
 }
 
 // releaser collects and groups release related operations
@@ -157,6 +176,12 @@ type EnvService interface {
 	PatchRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) error
 	// UpdateRepository updates an existing repository
 	UpdateRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) error
+
+	// ListCharts lists charts hahving the given term
+	ListCharts(ctx context.Context, helmEnv HelmEnv, repoName string) ([]string, error)
+
+	// GetChart retrieves the details of the passed in chart
+	GetChart(ctx context.Context, helmEnv HelmEnv, chart Chart) (Chart, error)
 }
 
 // +testify:mock:testOnly=true
@@ -516,6 +541,24 @@ func (s service) UpgradeRelease(ctx context.Context, organizationID uint, cluste
 	}
 
 	return nil
+}
+
+func (s service) ListCharts(ctx context.Context, organizationID uint, repoName string, filter interface{}, options Options) (chart []string, err error) {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	chartNames, err := s.envService.ListCharts(ctx, helmEnv, repoName)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to delete helm repository environment")
+	}
+
+	return chartNames, nil
+}
+
+func (s service) GetChart(ctx context.Context, organizationID uint, chartName Chart, options Options) (repos []Repository, err error) {
+	panic("implement me")
 }
 
 func (s service) ReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) ([]ReleaseResource, error) {
