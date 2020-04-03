@@ -245,6 +245,7 @@ dex:
 #            endpoint: ""
 #            user: ""
 #            password: ""
+#            insecure: false
 #
 #    expiry:
 #        enabled: true
