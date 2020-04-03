@@ -15,6 +15,8 @@
 package helmadapter
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -169,6 +171,43 @@ func (h helm3EnvService) UpdateRepository(ctx context.Context, helmEnv helm.Helm
 	return nil
 }
 
+func (h helm3EnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, repoName string) ([]string, error) {
+	settings := h.processEnvSettings(helmEnv)
+	// Provides the list of charts that are part of the specified repo, and that starts with 'prefix'.
+	var charts []string
+
+	path := filepath.Join(settings.RepositoryCache, helmpath.CacheChartsFile(repoName))
+	content, err := ioutil.ReadFile(path)
+	if err == nil {
+		scanner := bufio.NewScanner(bytes.NewReader(content))
+		for scanner.Scan() {
+			fullName := fmt.Sprintf("%s/%s", repoName, scanner.Text())
+			charts = append(charts, fullName)
+		}
+	}
+
+	if isNotExist(err) {
+		// If there is no cached charts file, fallback to the full index file.
+		// This is much slower but can happen after the caching feature is first
+		// installed but before the user  does a 'helm repo update' to generate the
+		// first cached charts file.
+		path = filepath.Join(settings.RepositoryCache, helmpath.CacheIndexFile(repoName))
+		if indexFile, err := repo.LoadIndexFile(path); err == nil {
+			for name := range indexFile.Entries {
+				fullName := fmt.Sprintf("%s/%s", repoName, name)
+				charts = append(charts, fullName)
+			}
+
+			return charts, nil
+		}
+	}
+	return charts, nil
+}
+
+func (h helm3EnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, chart helm.Chart) (helm.Chart, error) {
+	panic("implement me")
+}
+
 // processEnvSettings emulates an cli.EnvSettings instance based on the passed in data
 func (h helm3EnvService) processEnvSettings(helmEnv helm.HelmEnv) *cli.EnvSettings {
 	envSettings := cli.New()
@@ -209,4 +248,8 @@ func (h helm3EnvService) updateCharts(repos []*repo.ChartRepository, out io.Writ
 	}
 	wg.Wait()
 	fmt.Fprintln(out, "Update Complete. ⎈ Happy Helming!⎈ ")
+}
+
+func isNotExist(err error) bool {
+	return os.IsNotExist(errors.Cause(err))
 }

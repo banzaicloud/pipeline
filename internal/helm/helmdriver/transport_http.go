@@ -35,38 +35,45 @@ import (
 func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
 	errorEncoder := kitxhttp.NewJSONProblemErrorResponseEncoder(apphttp.NewDefaultProblemConverter())
 
-	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
+	router.Methods(http.MethodPost).Path("/repos").Handler(kithttp.NewServer(
 		endpoints.AddRepository,
 		decodeAddRepositoryHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
 	))
 
-	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
+	router.Methods(http.MethodGet).Path("/repos").Handler(kithttp.NewServer(
 		endpoints.ListRepositories,
 		decodeListRepositoriesHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(encodeListRepositoriesHTTPResponse, errorEncoder),
 		options...,
 	))
 
-	router.Methods(http.MethodDelete).Path("/{name}").Handler(kithttp.NewServer(
+	router.Methods(http.MethodDelete).Path("/repos/{name}").Handler(kithttp.NewServer(
 		endpoints.DeleteRepository,
 		decodeDeleteRepositoryHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(encodeDeleteRepositoryHTTPResponse, errorEncoder),
 		options...,
 	))
 
-	router.Methods(http.MethodPatch).Path("/{name}").Handler(kithttp.NewServer(
+	router.Methods(http.MethodPatch).Path("/repos/{name}").Handler(kithttp.NewServer(
 		endpoints.PatchRepository,
 		decodePatchRepositoryHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
 	))
 
-	router.Methods(http.MethodPut).Path("/{name}").Handler(kithttp.NewServer(
+	router.Methods(http.MethodPut).Path("/repos/{name}").Handler(kithttp.NewServer(
 		endpoints.UpdateRepository,
 		decodeUpdateRepositoryHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		options...,
+	))
+
+	router.Methods(http.MethodGet).Path("/charts/{repoName}").Handler(kithttp.NewServer(
+		endpoints.ListCharts,
+		decodeListChartsHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeListChartsHTTPResponse, errorEncoder),
 		options...,
 	))
 }
@@ -518,6 +525,38 @@ func encodeListReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, 
 	}
 
 	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
+}
+
+func decodeListChartsHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, e := extractUintParamFromRequest("orgId", r)
+	if e != nil {
+		return nil, errors.WrapIf(e, "failed to decode update repository request")
+	}
+
+	repoName, err := extractStringParamFromRequest("repoName", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode update repository request")
+	}
+
+	return ListChartsRequest{
+		OrganizationID: orgID,
+		RepoName:       repoName,
+		Filter:         nil,
+		Options:        helm.Options{},
+	}, nil
+}
+
+func encodeListChartsHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	charts, ok := response.(ListChartsResponse)
+	if !ok {
+		return errors.New("invalid  release list response")
+	}
+
+	if charts.Err != nil {
+		return errors.WrapIf(charts.Err, "failed to retrieve charts")
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, charts.Chart)
 }
 
 func extractStringParamFromRequest(key string, r *http.Request) (string, error) {

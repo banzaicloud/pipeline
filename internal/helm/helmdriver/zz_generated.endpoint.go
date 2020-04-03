@@ -29,8 +29,10 @@ type Endpoints struct {
 	AddRepository    endpoint.Endpoint
 	DeleteRelease    endpoint.Endpoint
 	DeleteRepository endpoint.Endpoint
+	GetChart         endpoint.Endpoint
 	GetRelease       endpoint.Endpoint
 	InstallRelease   endpoint.Endpoint
+	ListCharts       endpoint.Endpoint
 	ListReleases     endpoint.Endpoint
 	ListRepositories endpoint.Endpoint
 	PatchRepository  endpoint.Endpoint
@@ -49,8 +51,10 @@ func MakeEndpoints(service helm.Service, middleware ...endpoint.Middleware) Endp
 		AddRepository:    kitxendpoint.OperationNameMiddleware("helm.AddRepository")(mw(MakeAddRepositoryEndpoint(service))),
 		DeleteRelease:    kitxendpoint.OperationNameMiddleware("helm.DeleteRelease")(mw(MakeDeleteReleaseEndpoint(service))),
 		DeleteRepository: kitxendpoint.OperationNameMiddleware("helm.DeleteRepository")(mw(MakeDeleteRepositoryEndpoint(service))),
+		GetChart:         kitxendpoint.OperationNameMiddleware("helm.GetChart")(mw(MakeGetChartEndpoint(service))),
 		GetRelease:       kitxendpoint.OperationNameMiddleware("helm.GetRelease")(mw(MakeGetReleaseEndpoint(service))),
 		InstallRelease:   kitxendpoint.OperationNameMiddleware("helm.InstallRelease")(mw(MakeInstallReleaseEndpoint(service))),
+		ListCharts:       kitxendpoint.OperationNameMiddleware("helm.ListCharts")(mw(MakeListChartsEndpoint(service))),
 		ListReleases:     kitxendpoint.OperationNameMiddleware("helm.ListReleases")(mw(MakeListReleasesEndpoint(service))),
 		ListRepositories: kitxendpoint.OperationNameMiddleware("helm.ListRepositories")(mw(MakeListRepositoriesEndpoint(service))),
 		PatchRepository:  kitxendpoint.OperationNameMiddleware("helm.PatchRepository")(mw(MakePatchRepositoryEndpoint(service))),
@@ -165,6 +169,48 @@ func MakeDeleteRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
 	}
 }
 
+// GetChartRequest is a request struct for GetChart endpoint.
+type GetChartRequest struct {
+	OrganizationID uint
+	ChartName      helm.Chart
+	Options        helm.Options
+}
+
+// GetChartResponse is a response struct for GetChart endpoint.
+type GetChartResponse struct {
+	Repos []helm.Repository
+	Err   error
+}
+
+func (r GetChartResponse) Failed() error {
+	return r.Err
+}
+
+// MakeGetChartEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeGetChartEndpoint(service helm.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(GetChartRequest)
+
+		repos, err := service.GetChart(ctx, req.OrganizationID, req.ChartName, req.Options)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return GetChartResponse{
+					Err:   err,
+					Repos: repos,
+				}, nil
+			}
+
+			return GetChartResponse{
+				Err:   err,
+				Repos: repos,
+			}, err
+		}
+
+		return GetChartResponse{Repos: repos}, nil
+	}
+}
+
 // GetReleaseRequest is a request struct for GetRelease endpoint.
 type GetReleaseRequest struct {
 	OrganizationID uint
@@ -241,6 +287,49 @@ func MakeInstallReleaseEndpoint(service helm.Service) endpoint.Endpoint {
 		}
 
 		return InstallReleaseResponse{}, nil
+	}
+}
+
+// ListChartsRequest is a request struct for ListCharts endpoint.
+type ListChartsRequest struct {
+	OrganizationID uint
+	RepoName       string
+	Filter         interface{}
+	Options        helm.Options
+}
+
+// ListChartsResponse is a response struct for ListCharts endpoint.
+type ListChartsResponse struct {
+	Chart []string
+	Err   error
+}
+
+func (r ListChartsResponse) Failed() error {
+	return r.Err
+}
+
+// MakeListChartsEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeListChartsEndpoint(service helm.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(ListChartsRequest)
+
+		chart, err := service.ListCharts(ctx, req.OrganizationID, req.RepoName, req.Filter, req.Options)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return ListChartsResponse{
+					Chart: chart,
+					Err:   err,
+				}, nil
+			}
+
+			return ListChartsResponse{
+				Chart: chart,
+				Err:   err,
+			}, err
+		}
+
+		return ListChartsResponse{Chart: chart}, nil
 	}
 }
 

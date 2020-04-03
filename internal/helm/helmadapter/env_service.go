@@ -49,6 +49,18 @@ func NewHelmEnvService(config Config, logger Logger) helm.EnvService {
 	}
 }
 
+func (h helmEnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, repoName string) ([]string, error) {
+	// TODO implement me!
+	h.logger.Error("not yet implemented")
+	return nil, errors.New("not yet implemented")
+}
+
+func (h helmEnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, chart helm.Chart) (helm.Chart, error) {
+	// TODO implement me!
+	h.logger.Error("not yet implemented")
+	return helm.Chart{}, errors.New("not yet implemented")
+}
+
 func (h helmEnvService) AddRepository(_ context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
 	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
 

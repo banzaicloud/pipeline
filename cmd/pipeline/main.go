@@ -1046,7 +1046,7 @@ func main() {
 			clusterAuthAPI.RegisterRoutes(cRouter, engine)
 
 			orgs.PUT("/:orgid/helm/repos/:name/update", api.HelmReposUpdate)
-			orgs.GET("/:orgid/helm/charts", api.HelmCharts)
+			//orgs.GET("/:orgid/helm/charts", api.HelmCharts)
 			orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
 			{
 				endpoints := helmdriver.MakeEndpoints(
@@ -1054,7 +1054,7 @@ func main() {
 					kitxendpoint.Combine(endpointMiddleware...),
 				)
 				helmdriver.RegisterHTTPHandlers(endpoints,
-					orgRouter.PathPrefix("/helm/repos").Subrouter(),
+					orgRouter.PathPrefix("/helm").Subrouter(),
 					kitxhttp.ServerOptions(httpServerOptions),
 				)
 
@@ -1063,6 +1063,9 @@ func main() {
 				orgs.PATCH("/:orgid/helm/repos/:name", gin.WrapH(router))
 				orgs.PUT("/:orgid/helm/repos/:name", gin.WrapH(router))
 				orgs.DELETE("/:orgid/helm/repos/:name", gin.WrapH(router))
+
+				orgs.GET("/:orgid/helm/charts/:repoName", gin.WrapH(router))
+				//orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
 			}
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
 			orgs.GET("/:orgid/secrets/:id", api.GetSecret)
