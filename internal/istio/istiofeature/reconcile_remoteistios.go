@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"fmt"
 	"strconv"
 
 	"emperror.dev/errors"
@@ -26,14 +27,14 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
-func (m *MeshReconciler) ReconcileRemoteIstios(desiredState DesiredState) error {
+func (m *MeshReconciler) ReconcileRemoteIstios(desiredState DesiredState, c cluster.CommonCluster) error {
 	m.logger.Debug("reconciling Remote Istios")
 	defer m.logger.Debug("Remote Istios reconciled")
 
@@ -48,7 +49,7 @@ func (m *MeshReconciler) ReconcileRemoteIstios(desiredState DesiredState) error 
 		}
 	}
 
-	clustersByRemoteIstios, err := m.getRemoteClustersByExistingRemoteIstioCRs()
+	clustersByRemoteIstios, err := m.getRemoteClustersByExistingRemoteIstioCRs(c)
 	if err != nil {
 		return err
 	}
@@ -83,6 +84,12 @@ func (m *MeshReconciler) reconcileRemoteIstio(desiredState DesiredState, c clust
 			m.reconcileRemoteIstioClusterRoleBinding,
 			m.reconcileRemoteIstioSecret,
 			m.ReconcileRemoteIstio,
+			m.ReconcileBackyardsNamespace,
+			func(desiredState DesiredState, c cluster.CommonCluster) error {
+				return m.ReconcileBackyards(desiredState, c, true)
+			},
+			m.ReconcileNodeExporter,
+			m.reconcileRemoteIstioPrometheusService,
 		}
 	case DesiredStateAbsent:
 		reconcilers = []ReconcilerWithCluster{
@@ -92,6 +99,12 @@ func (m *MeshReconciler) reconcileRemoteIstio(desiredState DesiredState, c clust
 			m.reconcileRemoteIstioServiceAccount,
 			m.reconcileRemoteIstioNamespace,
 			m.reconcileRemoteIstioSecret,
+			func(desiredState DesiredState, c cluster.CommonCluster) error {
+				return m.ReconcileBackyards(desiredState, c, true)
+			},
+			m.ReconcileBackyardsNamespace,
+			m.ReconcileNodeExporter,
+			m.reconcileRemoteIstioPrometheusService,
 		}
 	}
 
@@ -108,18 +121,21 @@ func (m *MeshReconciler) reconcileRemoteIstio(desiredState DesiredState, c clust
 func (m *MeshReconciler) reconcileRemoteIstioSecret(desiredState DesiredState, c cluster.CommonCluster) error {
 	secretName := c.GetName()
 
-	client, err := m.getK8sClient(m.Master)
+	resource := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secretName,
+			Namespace: istioOperatorNamespace,
+		},
+		Data: make(map[string][]byte),
+	}
+
+	client, err := m.getRuntimeK8sClient(m.Master)
 	if err != nil {
 		return err
 	}
 
 	if desiredState == DesiredStateAbsent {
-		err := client.CoreV1().Secrets(istioOperatorNamespace).Delete(secretName, &metav1.DeleteOptions{})
-		if err != nil && !k8serrors.IsNotFound(err) {
-			return err
-		}
-
-		return nil
+		return errors.WithStack(m.deleteResource(client, resource))
 	}
 
 	kubeconfig, err := m.generateKubeconfig(c)
@@ -127,29 +143,9 @@ func (m *MeshReconciler) reconcileRemoteIstioSecret(desiredState DesiredState, c
 		return err
 	}
 
-	resource := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
-			Namespace: istioOperatorNamespace,
-		},
-		Data: map[string][]byte{
-			secretName: kubeconfig,
-		},
-	}
+	resource.Data[secretName] = kubeconfig
 
-	_, err = client.CoreV1().Secrets(istioOperatorNamespace).Get(secretName, metav1.GetOptions{})
-	if err != nil && !k8serrors.IsNotFound(err) {
-		return err
-	}
-	if err == nil {
-		return nil
-	}
-	_, err = client.CoreV1().Secrets(istioOperatorNamespace).Create(resource)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return errors.WithStack(m.applyResource(client, resource))
 }
 
 func (m *MeshReconciler) generateKubeconfig(c cluster.CommonCluster) ([]byte, error) {
@@ -160,17 +156,27 @@ func (m *MeshReconciler) generateKubeconfig(c cluster.CommonCluster) ([]byte, er
 
 	config, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
-		return nil, errors.WrapIf(err, "could not create rest config from kubeconfig")
+		return nil, errors.WrapIf(err, "cloud not create client from kubeconfig")
 	}
 
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	client, err := m.getRuntimeK8sClient(c)
 	if err != nil {
 		return nil, errors.WrapIf(err, "cloud not create client from kubeconfig")
 	}
 
-	sa, err := client.CoreV1().ServiceAccounts(istioOperatorNamespace).Get("istio-operator", metav1.GetOptions{})
+	sa := &corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "istio-operator",
+			Namespace: istioOperatorNamespace,
+		},
+	}
+
+	err = client.Get(context.Background(), runtimeclient.ObjectKey{
+		Name:      sa.Name,
+		Namespace: sa.Namespace,
+	}, sa)
 	if err != nil {
-		return nil, err
+		return nil, errors.WrapIf(err, "could not get service account")
 	}
 
 	if len(sa.Secrets) == 0 {
@@ -179,9 +185,18 @@ func (m *MeshReconciler) generateKubeconfig(c cluster.CommonCluster) ([]byte, er
 
 	secretName := sa.Secrets[0].Name
 
-	secret, err := client.CoreV1().Secrets(istioOperatorNamespace).Get(secretName, metav1.GetOptions{})
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secretName,
+			Namespace: istioOperatorNamespace,
+		},
+	}
+	err = client.Get(context.Background(), runtimeclient.ObjectKey{
+		Name:      secret.Name,
+		Namespace: secret.Namespace,
+	}, secret)
 	if err != nil {
-		return nil, err
+		return nil, errors.WrapIf(err, "could not get secret")
 	}
 
 	clusterName := c.GetName()
@@ -215,39 +230,10 @@ users:
 }
 
 func (m *MeshReconciler) reconcileRemoteIstioNamespace(desiredState DesiredState, c cluster.CommonCluster) error {
-	client, err := m.getK8sClient(c)
-	if err != nil {
-		return err
-	}
-
-	if desiredState == DesiredStatePresent {
-		_, err := client.CoreV1().Namespaces().Get(istioOperatorNamespace, metav1.GetOptions{})
-		if err != nil && !k8serrors.IsNotFound(err) {
-			return err
-		}
-		if err == nil {
-			return nil
-		}
-		err = k8sutil.EnsureNamespaceWithLabelWithRetry(client, istioOperatorNamespace, nil)
-		if err != nil {
-			return err
-		}
-	} else {
-		err := client.CoreV1().Namespaces().Delete(istioOperatorNamespace, &metav1.DeleteOptions{})
-		if err != nil && !k8serrors.IsNotFound(err) {
-			return err
-		}
-	}
-
-	return nil
+	return errors.WithStack(m.reconcileNamespace(istioOperatorNamespace, desiredState, c, nil))
 }
 
 func (m *MeshReconciler) reconcileRemoteIstioServiceAccount(desiredState DesiredState, c cluster.CommonCluster) error {
-	client, err := m.getK8sClient(c)
-	if err != nil {
-		return err
-	}
-
 	resource := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "istio-operator",
@@ -255,34 +241,19 @@ func (m *MeshReconciler) reconcileRemoteIstioServiceAccount(desiredState Desired
 		},
 	}
 
-	if desiredState == DesiredStatePresent {
-		_, err := client.CoreV1().ServiceAccounts(istioOperatorNamespace).Get("istio-operator", metav1.GetOptions{})
-		if err != nil && !k8serrors.IsNotFound(err) {
-			return err
-		}
-		if err == nil {
-			return nil
-		}
-		_, err = client.CoreV1().ServiceAccounts(istioOperatorNamespace).Create(resource)
-		if err != nil {
-			return err
-		}
-	} else {
-		err := client.CoreV1().ServiceAccounts(istioOperatorNamespace).Delete("istio-operator", &metav1.DeleteOptions{})
-		if err != nil && !k8serrors.IsNotFound(err) {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *MeshReconciler) reconcileRemoteIstioClusterRole(desiredState DesiredState, c cluster.CommonCluster) error {
-	client, err := m.getK8sClient(c)
+	client, err := m.getRuntimeK8sClient(c)
 	if err != nil {
 		return err
 	}
 
+	if desiredState == DesiredStatePresent {
+		return errors.WithStack(m.applyResource(client, resource))
+	}
+
+	return errors.WithStack(m.deleteResource(client, resource))
+}
+
+func (m *MeshReconciler) reconcileRemoteIstioClusterRole(desiredState DesiredState, c cluster.CommonCluster) error {
 	resource := &rbacv1.ClusterRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "istio-operator",
@@ -301,34 +272,58 @@ func (m *MeshReconciler) reconcileRemoteIstioClusterRole(desiredState DesiredSta
 		},
 	}
 
-	if desiredState == DesiredStatePresent {
-		_, err := client.RbacV1().ClusterRoles().Get("istio-operator", metav1.GetOptions{})
-		if err != nil && !k8serrors.IsNotFound(err) {
-			return err
-		}
-		if err == nil {
-			return nil
-		}
-		_, err = client.RbacV1().ClusterRoles().Create(resource)
-		if err != nil {
-			return err
-		}
-	} else {
-		err := client.RbacV1().ClusterRoles().Delete("istio-operator", &metav1.DeleteOptions{})
-		if err != nil && !k8serrors.IsNotFound(err) {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *MeshReconciler) reconcileRemoteIstioClusterRoleBinding(desiredState DesiredState, c cluster.CommonCluster) error {
-	client, err := m.getK8sClient(c)
+	client, err := m.getRuntimeK8sClient(c)
 	if err != nil {
 		return err
 	}
 
+	if desiredState == DesiredStatePresent {
+		return errors.WithStack(m.applyResource(client, resource))
+	}
+
+	return errors.WithStack(m.deleteResource(client, resource))
+}
+
+func (m *MeshReconciler) reconcileRemoteIstioPrometheusService(desiredState DesiredState, c cluster.CommonCluster) error {
+	resource := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-prometheus", c.GetName()),
+			Namespace: backyardsNamespace,
+			Labels: map[string]string{
+				"backyards.banzaicloud.io/federated-prometheus": "true",
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Type: corev1.ServiceTypeClusterIP,
+			Ports: []corev1.ServicePort{
+				{
+					Name:       "http-admin",
+					Port:       59090,
+					Protocol:   corev1.ProtocolTCP,
+					TargetPort: intstr.FromString("http"),
+				},
+			},
+			Selector: map[string]string{
+				"app.kubernetes.io/name":                fmt.Sprintf("%s-prometheus", backyardsReleaseName),
+				"app.kubernetes.io/instance":            backyardsReleaseName,
+				"backyards.banzaicloud.io/cluster-name": c.GetName(),
+			},
+		},
+	}
+
+	client, err := m.getRuntimeK8sClient(m.Master)
+	if err != nil {
+		return err
+	}
+
+	if desiredState == DesiredStatePresent {
+		return errors.WithStack(m.applyResource(client, resource))
+	}
+
+	return errors.WithStack(m.deleteResource(client, resource))
+}
+
+func (m *MeshReconciler) reconcileRemoteIstioClusterRoleBinding(desiredState DesiredState, c cluster.CommonCluster) error {
 	resource := &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "istio-operator",
@@ -348,32 +343,22 @@ func (m *MeshReconciler) reconcileRemoteIstioClusterRoleBinding(desiredState Des
 		},
 	}
 
-	if desiredState == DesiredStatePresent {
-		_, err := client.RbacV1().ClusterRoleBindings().Get("istio-operator", metav1.GetOptions{})
-		if err != nil && !k8serrors.IsNotFound(err) {
-			return err
-		}
-		if err == nil {
-			return nil
-		}
-		_, err = client.RbacV1().ClusterRoleBindings().Create(resource)
-		if err != nil {
-			return err
-		}
-	} else {
-		err := client.RbacV1().ClusterRoleBindings().Delete("istio-operator", &metav1.DeleteOptions{})
-		if err != nil && !k8serrors.IsNotFound(err) {
-			return err
-		}
+	client, err := m.getRuntimeK8sClient(c)
+	if err != nil {
+		return err
 	}
 
-	return nil
+	if desiredState == DesiredStatePresent {
+		return errors.WithStack(m.applyResource(client, resource))
+	}
+
+	return errors.WithStack(m.deleteResource(client, resource))
 }
 
-func (m *MeshReconciler) getRemoteClustersByExistingRemoteIstioCRs() (map[uint]cluster.CommonCluster, error) {
+func (m *MeshReconciler) getRemoteClustersByExistingRemoteIstioCRs(c cluster.CommonCluster) (map[uint]cluster.CommonCluster, error) {
 	clusters := make(map[uint]cluster.CommonCluster, 0)
 
-	client, err := m.getMasterRuntimeK8sClient()
+	client, err := m.getRuntimeK8sClient(c)
 	if err != nil {
 		return nil, err
 	}
@@ -400,7 +385,7 @@ func (m *MeshReconciler) getRemoteClustersByExistingRemoteIstioCRs() (map[uint]c
 			continue
 		}
 
-		c, err := m.clusterGetter.GetClusterByID(context.Background(), m.Master.GetOrganizationId(), uint(clusterID))
+		c, err := m.clusterGetter.GetClusterByID(context.Background(), c.GetOrganizationId(), uint(clusterID))
 		if err != nil {
 			m.errorHandler.Handle(errors.WithStack(err))
 			continue

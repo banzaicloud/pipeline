@@ -770,44 +770,48 @@ traefik:
 
 	// v.SetDefault("cluster::backyards::enabled", true)
 	v.SetDefault("cluster::backyards::istio::grafanaDashboardLocation", "./etc/dashboards/istio")
-	v.SetDefault("cluster::backyards::istio::pilotImage", "banzaicloud/istio-pilot:1.4.2-bzc")
-	v.SetDefault("cluster::backyards::istio::mixerImage", "banzaicloud/istio-mixer:1.4.2-bzc")
+	v.SetDefault("cluster::backyards::istio::pilotImage", "banzaicloud/istio-pilot:1.5.1-bzc.1")
+	v.SetDefault("cluster::backyards::istio::mixerImage", "banzaicloud/istio-mixer:1.5.1-bzc.1")
+	v.SetDefault("cluster::backyards::istio::proxyImage", "banzaicloud/istio-proxyv2:1.5.1-bzc.1")
+	v.SetDefault("cluster::backyards::istio::sidecarInjectorImage", "banzaicloud/istio-sidecar-injector:1.5.1-bzc.1")
 	v.SetDefault("cluster::backyards::charts::istioOperator::chart", "banzaicloud-stable/istio-operator")
-	v.SetDefault("cluster::backyards::charts::istioOperator::version", "0.0.32")
+	v.SetDefault("cluster::backyards::charts::istioOperator::version", "0.0.45")
 	v.SetDefault("cluster::backyards::charts::istioOperator::values", map[string]interface{}{
 		"operator": map[string]interface{}{
 			"image": map[string]interface{}{
 				"repository": "banzaicloud/istio-operator",
-				"tag":        "0.4.6",
+				"tag":        "0.5.5",
 			},
 		},
 	})
 	v.SetDefault("cluster::backyards::charts::backyards::chart", "banzaicloud-stable/backyards")
-	v.SetDefault("cluster::backyards::charts::backyards::version", "1.1.0")
+	v.SetDefault("cluster::backyards::charts::backyards::version", "1.2.11")
 	v.SetDefault("cluster::backyards::charts::backyards::values", map[string]interface{}{
 		"application": map[string]interface{}{
 			"image": map[string]interface{}{
 				"repository": "banzaicloud/backyards",
-				"tag":        "1.1.2",
+				"tag":        "1.2.2",
 			},
 		},
 		"web": map[string]interface{}{
 			"image": map[string]interface{}{
 				"repository": "banzaicloud/backyards-web",
-				"tag":        "1.1.2",
+				"tag":        "1.2.2",
 			},
 		},
 	})
 	v.SetDefault("cluster::backyards::charts::canaryOperator::chart", "banzaicloud-stable/canary-operator")
-	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.7")
+	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.9")
 	v.SetDefault("cluster::backyards::charts::canaryOperator::values", map[string]interface{}{
 		"operator": map[string]interface{}{
 			"image": map[string]interface{}{
 				"repository": "banzaicloud/canary-operator",
-				"tag":        "0.1.5",
+				"tag":        "0.1.7",
 			},
 		},
 	})
+	v.SetDefault("cluster::backyards::charts::nodeexporter::chart", "stable/prometheus-node-exporter")
+	v.SetDefault("cluster::backyards::charts::nodeexporter::version", "1.8.1")
 
 	v.SetDefault("cluster::federation::charts::kubefed::chart", "kubefed-charts/kubefed")
 	v.SetDefault("cluster::federation::charts::kubefed::version", "0.2.0-alpha.1")

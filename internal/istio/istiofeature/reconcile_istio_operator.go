@@ -23,35 +23,22 @@ import (
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
-func (m *MeshReconciler) ReconcileIstioOperator(desiredState DesiredState) error {
+func (m *MeshReconciler) ReconcileIstioOperator(desiredState DesiredState, c cluster.CommonCluster) error {
 	m.logger.Debug("reconciling Istio operator")
 	defer m.logger.Debug("Istio operator reconciled")
 
 	if desiredState == DesiredStatePresent {
-		err := m.installIstioOperator(m.Master)
-		if err != nil {
-			return errors.WrapIf(err, "could not install Istio operator")
-		}
-	} else {
-		err := m.uninstallIstioOperator(m.Master)
-		if err != nil {
-			return errors.WrapIf(err, "could not remove Istio operator")
-		}
+		return errors.WrapIf(m.installIstioOperator(c), "could not install Istio operator")
 	}
 
-	return nil
+	return errors.WrapIf(m.uninstallIstioOperator(c), "could not remove Istio operator")
 }
 
 // uninstallIstioOperator removes istio-operator from a cluster
 func (m *MeshReconciler) uninstallIstioOperator(c cluster.CommonCluster) error {
 	m.logger.Debug("removing Istio operator")
 
-	err := deleteDeployment(c, istioOperatorReleaseName)
-	if err != nil {
-		return errors.WrapIf(err, "could not remove Istio operator")
-	}
-
-	return nil
+	return errors.WrapIf(deleteDeployment(c, istioOperatorReleaseName), "could not remove Istio operator")
 }
 
 // installIstioOperator installs istio-operator on a cluster
@@ -64,14 +51,20 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
 	}
 
 	type Values struct {
-		Operator operator `json:"operator,omitempty"`
+		OperatorComponentSuffix string   `json:"operatorComponentSuffix"`
+		Operator                operator `json:"operator,omitempty"`
 	}
 
 	values := Values{
+		OperatorComponentSuffix: "-operator",
 		Operator: operator{
 			Image: imageChartValue{},
 			Resources: corev1.ResourceRequirements{
 				Requests: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse("200m"),
+					corev1.ResourceMemory: resource.MustParse("256Mi"),
+				},
+				Limits: corev1.ResourceList{
 					corev1.ResourceCPU:    resource.MustParse("200m"),
 					corev1.ResourceMemory: resource.MustParse("256Mi"),
 				},
@@ -103,9 +96,6 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
 		true,
 		true,
 	)
-	if err != nil {
-		return errors.WrapIf(err, "could not install Istio operator")
-	}
 
-	return nil
+	return errors.WrapIf(err, "could not install Istio operator")
 }

@@ -83,10 +83,6 @@ func (m *MeshReconciler) getRemoteClusters() []cluster.CommonCluster {
 	return remotes
 }
 
-func (m *MeshReconciler) getMasterK8sClient() (runtimeclient.Client, error) {
-	return m.getRuntimeK8sClient(m.Master)
-}
-
 func (m *MeshReconciler) getK8sClient(c cluster.CommonCluster) (*kubernetes.Clientset, error) {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
@@ -101,12 +97,8 @@ func (m *MeshReconciler) getK8sClient(c cluster.CommonCluster) (*kubernetes.Clie
 	return client, nil
 }
 
-func (m *MeshReconciler) getMasterRuntimeK8sClient() (runtimeclient.Client, error) {
-	return m.getRuntimeK8sClient(m.Master)
-}
-
 func (m *MeshReconciler) getRuntimeK8sClient(c cluster.CommonCluster) (runtimeclient.Client, error) {
-	kubeConfig, err := m.Master.GetK8sConfig()
+	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not get k8s config")
 	}

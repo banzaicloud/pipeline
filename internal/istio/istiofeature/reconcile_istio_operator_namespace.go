@@ -15,64 +15,14 @@
 package istiofeature
 
 import (
-	"context"
-
 	"emperror.dev/errors"
-	corev1 "k8s.io/api/core/v1"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
-func (m *MeshReconciler) ReconcileIstioOperatorNamespace(desiredState DesiredState) error {
+func (m *MeshReconciler) ReconcileIstioOperatorNamespace(desiredState DesiredState, c cluster.CommonCluster) error {
 	m.logger.Debug("reconciling istio operator namespace")
 	defer m.logger.Debug("istio operator namespace reconciled")
 
-	client, err := m.getMasterK8sClient()
-	if err != nil {
-		return err
-	}
-
-	k8sclient, err := m.getK8sClient(m.Master)
-	if err != nil {
-		return err
-	}
-
-	var namespace corev1.Namespace
-	if desiredState == DesiredStatePresent {
-		err = client.Get(context.Background(), types.NamespacedName{
-			Name: istioOperatorNamespace,
-		}, &namespace)
-		if k8serrors.IsNotFound(err) {
-			err := k8sutil.EnsureNamespaceWithLabelWithRetry(k8sclient, istioOperatorNamespace, nil)
-			if err != nil {
-				return errors.WrapIf(err, "could not create istio operator namespace")
-			}
-		}
-	} else {
-		err = client.Get(context.Background(), types.NamespacedName{
-			Name: istioOperatorNamespace,
-		}, &namespace)
-		if k8serrors.IsNotFound(err) {
-			return nil
-		}
-
-		if err != nil && !k8serrors.IsNotFound(err) {
-			return errors.WrapIf(err, "could not get istio operator namespace")
-		}
-
-		err = client.Delete(context.Background(), &namespace)
-		if err != nil {
-			return errors.WrapIf(err, "could not delete istio operator namespace")
-		}
-
-		m.logger.Debug("waiting for istio operator namespace to be deleted")
-		err = m.waitForNamespaceBeDeleted(client, istioOperatorNamespace)
-		if err != nil {
-			return errors.WrapIf(err, "timeout during waiting for istio operator namespace to be deleted")
-		}
-	}
-
-	return nil
+	return errors.WithStack(m.reconcileNamespace(istioOperatorNamespace, desiredState, c, nil))
 }

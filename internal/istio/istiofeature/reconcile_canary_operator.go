@@ -21,44 +21,31 @@ import (
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
-func (m *MeshReconciler) ReconcileCanaryOperator(desiredState DesiredState) error {
+func (m *MeshReconciler) ReconcileCanaryOperator(desiredState DesiredState, c cluster.CommonCluster) error {
 	m.logger.Debug("reconciling canary-operator")
 	defer m.logger.Debug("canary-operator reconciled")
 
 	if desiredState == DesiredStatePresent {
-		k8sclient, err := m.getMasterK8sClient()
+		k8sclient, err := m.getRuntimeK8sClient(c)
 		if err != nil {
 			return errors.WrapIf(err, "could not get k8s client")
 		}
-		err = m.waitForSidecarInjectorPod(k8sclient)
+		err = m.waitForPod(k8sclient, istioOperatorNamespace, map[string]string{"app": "istiod"}, "")
 		if err != nil {
 			return errors.WrapIf(err, "error while waiting for running sidecar injector")
 		}
 
-		err = m.installCanaryOperator(m.Master, prometheusURL)
-		if err != nil {
-			return errors.WrapIf(err, "could not install canary-operator")
-		}
-	} else {
-		err := m.uninstallCanaryOperator(m.Master)
-		if err != nil {
-			return errors.WrapIf(err, "could not remove canary-operator")
-		}
+		return errors.WrapIf(m.installCanaryOperator(c, prometheusURL), "could not install canary-operator")
 	}
 
-	return nil
+	return errors.WrapIf(m.uninstallCanaryOperator(c), "could not remove canary-operator")
 }
 
 // uninstallCanaryOperator removes canary-operator from a cluster
 func (m *MeshReconciler) uninstallCanaryOperator(c cluster.CommonCluster) error {
 	m.logger.Debug("removing istio release operator")
 
-	err := deleteDeployment(c, canaryOperatorReleaseName)
-	if err != nil {
-		return errors.WrapIf(err, "could not remove canary-operator")
-	}
-
-	return nil
+	return errors.WrapIf(deleteDeployment(c, canaryOperatorReleaseName), "could not remove canary-operator")
 }
 
 // installCanaryOperator installs canary-operator to a cluster
@@ -107,9 +94,6 @@ func (m *MeshReconciler) installCanaryOperator(c cluster.CommonCluster, promethe
 		true,
 		true,
 	)
-	if err != nil {
-		return errors.WrapIf(err, "could not install canary-operator")
-	}
 
-	return nil
+	return errors.WrapIf(err, "could not install canary-operator")
 }

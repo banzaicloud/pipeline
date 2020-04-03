@@ -15,68 +15,16 @@
 package istiofeature
 
 import (
-	"context"
-
 	"emperror.dev/errors"
-	corev1 "k8s.io/api/core/v1"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
-func (m *MeshReconciler) ReconcileBackyardsNamespace(desiredState DesiredState) error {
+func (m *MeshReconciler) ReconcileBackyardsNamespace(desiredState DesiredState, c cluster.CommonCluster) error {
 	m.logger.Debug("reconciling backyards namespace")
 	defer m.logger.Debug("backyards namespace reconciled")
 
-	client, err := m.getMasterK8sClient()
-	if err != nil {
-		return err
-	}
-
-	k8sclient, err := m.getK8sClient(m.Master)
-	if err != nil {
-		return err
-	}
-
-	var namespace corev1.Namespace
-
-	if desiredState == DesiredStatePresent {
-		err := client.Get(context.Background(), types.NamespacedName{
-			Name: backyardsNamespace,
-		}, &namespace)
-		if k8serrors.IsNotFound(err) {
-			err := k8sutil.EnsureNamespaceWithLabelWithRetry(k8sclient, backyardsNamespace,
-				map[string]string{
-					"istio-injection": "enabled",
-				})
-			if err != nil {
-				return errors.WrapIf(err, "could not create backyards namespace")
-			}
-		} else if err != nil {
-			return errors.WrapIf(err, "could not get backyards namespace")
-		}
-	} else {
-		err := client.Get(context.Background(), types.NamespacedName{
-			Name: backyardsNamespace,
-		}, &namespace)
-		if k8serrors.IsNotFound(err) {
-			return nil
-		} else if err != nil {
-			return errors.WrapIf(err, "could not get backyards namespace")
-		}
-
-		err = client.Delete(context.Background(), &namespace)
-		if err != nil {
-			return errors.WrapIf(err, "could not delete backyards namespace")
-		}
-
-		m.logger.Debug("waiting for backyards namespace to be deleted")
-		err = m.waitForNamespaceBeDeleted(client, backyardsNamespace)
-		if err != nil {
-			return errors.WrapIf(err, "timeout during waiting for backyards namespace to be deleted")
-		}
-	}
-
-	return nil
+	return errors.WithStack(m.reconcileNamespace(backyardsNamespace, desiredState, c, map[string]string{
+		"istio-injection": "enabled",
+	}))
 }

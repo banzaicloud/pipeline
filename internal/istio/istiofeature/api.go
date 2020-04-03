@@ -26,11 +26,12 @@ const (
 	FeatureName = "servicemesh"
 
 	istioOperatorReleaseName  = "istio-operator"
-	istioVersion              = "1.4"
+	istioVersion              = "1.5.1"
 	backyardsReleaseName      = "backyards"
 	canaryOperatorReleaseName = "canary"
+	nodeExporterReleaseName   = "backyards-node-exporter"
 	prometheusHostname        = "monitor-prometheus-server.pipeline-system.svc.cluster.local"
-	prometheusURL             = "http://backyards-prometheus.backyards-system:9090/prometheus"
+	prometheusURL             = "http://backyards-prometheus.backyards-system:59090/prometheus"
 	prometheusExternalURL     = "/prometheus"
 	labelPrefix               = "cluster.banzaicloud.io"
 	clusterIDLabel            = labelPrefix + "/id"
@@ -39,15 +40,16 @@ const (
 	backyardsNamespace        = "backyards-system"
 	canaryOperatorNamespace   = "backyards-canary"
 	istioOperatorNamespace    = "istio-system"
-	zipkinAddress             = "backyards-zipkin.backyards-system.svc.cluster.local:9411"
+	zipkinHost                = "backyards-zipkin.backyards-system.svc.cluster.local"
+	zipkinPort                = 59411
 	alsHost                   = "backyards-als.backyards-system.svc.cluster.local"
 	alsPort                   = 50600
 
-	backoffDelaySeconds = 10
-	backoffMaxretries   = 10
+	backoffDelaySeconds = 5
+	backoffMaxretries   = 60
 )
 
-type Reconciler func(desiredState DesiredState) error
+// type Reconciler func(desiredState DesiredState) error
 type ReconcilerWithCluster func(desiredState DesiredState, c cluster.CommonCluster) error
 
 type DesiredState string
@@ -93,4 +95,5 @@ type prometheusChartValue struct {
 	URL         string `json:"url,omitempty"`
 	Hostname    string `json:"host,omitempty"`
 	ExternalURL string `json:"externalUrl,omitempty"`
+	ClusterName string `json:"clusterName,omitempty"`
 }

@@ -16,6 +16,8 @@ package istiofeature
 
 import (
 	"emperror.dev/errors"
+
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 func (m *MeshReconciler) Reconcile() error {
@@ -24,37 +26,41 @@ func (m *MeshReconciler) Reconcile() error {
 		desiredState = DesiredStateAbsent
 	}
 
-	var reconcilers []Reconciler
-
-	// TODO - integrate with monitoring feature
+	var reconcilers []ReconcilerWithCluster
 
 	switch desiredState {
 	case DesiredStatePresent:
-		reconcilers = []Reconciler{
+		reconcilers = []ReconcilerWithCluster{
 			m.ReconcileIstioOperatorNamespace,
 			m.ReconcileIstioOperator,
 			m.ReconcileIstio,
-			m.ReconcileRemoteIstios,
 			m.ReconcileBackyardsNamespace,
-			m.ReconcileBackyards,
+			func(desiredState DesiredState, c cluster.CommonCluster) error {
+				return m.ReconcileBackyards(desiredState, c, false)
+			},
 			m.ReconcileCanaryOperatorNamespace,
 			m.ReconcileCanaryOperator,
+			m.ReconcileNodeExporter,
+			m.ReconcileRemoteIstios,
 		}
 	case DesiredStateAbsent:
-		reconcilers = []Reconciler{
+		reconcilers = []ReconcilerWithCluster{
 			m.ReconcileRemoteIstios,
 			m.ReconcileIstio,
 			m.ReconcileIstioOperator,
 			m.ReconcileCanaryOperator,
-			m.ReconcileBackyards,
+			func(desiredState DesiredState, c cluster.CommonCluster) error {
+				return m.ReconcileBackyards(desiredState, c, false)
+			},
 			m.ReconcileCanaryOperatorNamespace,
 			m.ReconcileBackyardsNamespace,
 			m.ReconcileIstioOperatorNamespace,
+			m.ReconcileNodeExporter,
 		}
 	}
 
 	for _, res := range reconcilers {
-		err := res(desiredState)
+		err := res(desiredState, m.Master)
 		if err != nil {
 			return errors.WrapIf(err, "could not reconcile")
 		}
