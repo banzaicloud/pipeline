@@ -42,7 +42,7 @@ worker:
   # Image configuration is taken from the root level if not specified otherwise
   image: {}
     # repository: banzaicloud/pipeline
-    # tag: 0.32.0
+    # tag: 0.40.0
     # pullPolicy: IfNotPresent
 
   resources:
@@ -58,7 +58,12 @@ service:
   type: ClusterIP
   internalPort: 9090
   externalPort:  9090
-  tls: true
+  # TLS is always enabled, when the following secrets names are
+  # not specified a Helm generated CA and certificate will be used.
+  tls:
+    # Name of the kubernetes.io/tls type Secret holding the
+    # client/server key pair for authentication and the CA certificate.
+    secretName: ""
 
 serviceInternal:
   name: pipeline-internal

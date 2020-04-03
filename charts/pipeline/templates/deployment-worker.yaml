@@ -114,10 +114,6 @@ spec:
       {{- if .Values.vault.tlsSecret }}
         - name: vault-tls
           mountPath: /vault/tls
-       {{ end }}
-      {{- if .Values.service.tls  }}
-        - name: pipeline-tls
-          mountPath: /tls
       {{ end }}
       {{- if eq .Values.configuration.cluster.ingress.cert.source "file" }}
         - name: sign-ca
@@ -132,11 +128,6 @@ spec:
       - name: vault-tls
         secret:
           secretName: {{ .Release.Name }}-vault-tls
-      {{ end }}
-      {{- if .Values.service.tls  }}
-      - name: pipeline-tls
-        secret:
-          secretName: {{ include "pipeline.fullname" . }}-tls
       {{ end }}
       {{- if eq .Values.configuration.cluster.ingress.cert.source "file" }}
       - name: sign-ca
