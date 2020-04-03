@@ -238,6 +238,7 @@ func (op IntegratedServiceOperator) getCustomAnchoreValues(ctx context.Context, 
 	}
 
 	anchoreValues.Host = customAnchore.Url
+	anchoreValues.Insecure = customAnchore.Insecure
 
 	return anchoreValues, nil
 }
@@ -265,6 +266,7 @@ func (op IntegratedServiceOperator) getDefaultAnchoreValues(ctx context.Context,
 	}
 
 	anchoreValues.Host = op.config.Anchore.Endpoint
+	anchoreValues.Insecure = op.config.Anchore.Insecure
 
 	return anchoreValues, nil
 }

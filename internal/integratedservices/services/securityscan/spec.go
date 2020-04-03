@@ -54,7 +54,7 @@ type anchoreSpec struct {
 	Enabled  bool   `json:"enabled" mapstructure:"enabled"`
 	Url      string `json:"url" mapstructure:"url"`
 	SecretID string `json:"secretId" mapstructure:"secretId"`
-	Insecure bool   `json:"insecure" mapstructure:"inscure"`
+	Insecure bool   `json:"insecure" mapstructure:"insecure"`
 }
 
 func (a anchoreSpec) Validate() error {
@@ -95,7 +95,6 @@ type webHookConfigSpec struct {
 	Enabled    bool     `json:"enabled" mapstructure:"enabled"`
 	Selector   string   `json:"selector" mapstructure:"selector"`
 	Namespaces []string `json:"namespaces" mapstructure:"namespaces"`
-	Insecure   bool     `json:"insecure" mapstructure:"insecure"`
 }
 
 func (w webHookConfigSpec) Validate(pipelineNamespace string) error {

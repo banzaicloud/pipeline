@@ -16,6 +16,7 @@ package api
 
 import (
 	"context"
+	"crypto/tls"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -85,6 +86,16 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 			return
 		}
 
+		config, err := ap.configProvider.GetConfiguration(c.Request.Context(), clusterID)
+		if err != nil {
+			ap.errorHandler.HandleContext(c.Request.Context(), err)
+
+			c.JSON(http.StatusInternalServerError, c.AbortWithError(http.StatusInternalServerError, err))
+			return
+		}
+
+		proxy.Transport = &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: config.Insecure}}
+
 		proxy.ServeHTTP(c.Writer, c.Request)
 	}
 }
@@ -149,7 +160,6 @@ func (ap AnchoreProxy) buildReverseProxy(ctx context.Context, proxyPath string, 
 			ap.logger.Error("failed to write error response body")
 		}
 	}
-
 	proxy := &httputil.ReverseProxy{
 		Director:       director,
 		ModifyResponse: modifyResponse,

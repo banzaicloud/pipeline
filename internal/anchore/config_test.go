@@ -38,6 +38,7 @@ func TestConfigProviderChain_GetConfiguration(t *testing.T) {
 			Endpoint: "https://example.anchore.com",
 			User:     "user",
 			Password: "password",
+			Insecure: false,
 		}
 
 		provider1.On("GetConfiguration", ctx, clusterID).Return(Config{}, ErrConfigNotFound)
@@ -103,6 +104,7 @@ func TestStaticConfigProvider_GetConfiguration(t *testing.T) {
 		Endpoint: "https://example.anchore.com",
 		User:     "user",
 		Password: "password",
+		Insecure: true,
 	}
 
 	provider := StaticConfigProvider{
