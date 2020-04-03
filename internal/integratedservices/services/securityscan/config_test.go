@@ -40,6 +40,7 @@ func TestCustomAnchoreConfigProvider_GetConfiguration(t *testing.T) {
 						"enabled":  true,
 						"url":      "https://anchore.example.com",
 						"secretId": "secretId",
+						"insecure": true,
 					},
 				},
 				Output: nil,
@@ -68,6 +69,7 @@ func TestCustomAnchoreConfigProvider_GetConfiguration(t *testing.T) {
 			Endpoint: "https://anchore.example.com",
 			User:     "user",
 			Password: "password",
+			Insecure: true,
 		},
 		config,
 	)
