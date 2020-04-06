@@ -85,6 +85,8 @@ func (m *MeshReconciler) reconcileRemoteIstio(desiredState DesiredState, c clust
 			m.reconcileRemoteIstioSecret,
 			m.ReconcileRemoteIstio,
 			m.ReconcileBackyardsNamespace,
+			m.reconcileRemoteIstioALSService,
+			m.reconcileRemoteIstioTracingService,
 			func(desiredState DesiredState, c cluster.CommonCluster) error {
 				return m.ReconcileBackyards(desiredState, c, true)
 			},
@@ -102,6 +104,8 @@ func (m *MeshReconciler) reconcileRemoteIstio(desiredState DesiredState, c clust
 			func(desiredState DesiredState, c cluster.CommonCluster) error {
 				return m.ReconcileBackyards(desiredState, c, true)
 			},
+			m.reconcileRemoteIstioALSService,
+			m.reconcileRemoteIstioTracingService,
 			m.ReconcileBackyardsNamespace,
 			m.ReconcileNodeExporter,
 			m.reconcileRemoteIstioPrometheusService,
@@ -344,6 +348,68 @@ func (m *MeshReconciler) reconcileRemoteIstioClusterRoleBinding(desiredState Des
 	}
 
 	client, err := m.getRuntimeK8sClient(c)
+	if err != nil {
+		return err
+	}
+
+	if desiredState == DesiredStatePresent {
+		return errors.WithStack(m.applyResource(client, resource))
+	}
+
+	return errors.WithStack(m.deleteResource(client, resource))
+}
+
+func (m *MeshReconciler) reconcileRemoteIstioALSService(desiredState DesiredState, c cluster.CommonCluster) error {
+	resource := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "backyards-als",
+			Namespace: backyardsNamespace,
+			Labels: map[string]string{
+				"app":                         "backyards-als",
+				"app.kubernetes.io/component": "als",
+				"app.kubernetes.io/instance":  "backyards",
+				"app.kubernetes.io/name":      "backyards-als",
+				"app.kubernetes.io/part-of":   "backyards",
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Type:         corev1.ServiceTypeExternalName,
+			ExternalName: fmt.Sprintf("istio-pilot.%s.svc.cluster.local", istioOperatorNamespace),
+		},
+	}
+
+	client, err := m.getRuntimeK8sClient(m.Master)
+	if err != nil {
+		return err
+	}
+
+	if desiredState == DesiredStatePresent {
+		return errors.WithStack(m.applyResource(client, resource))
+	}
+
+	return errors.WithStack(m.deleteResource(client, resource))
+}
+
+func (m *MeshReconciler) reconcileRemoteIstioTracingService(desiredState DesiredState, c cluster.CommonCluster) error {
+	resource := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "backyards-zipkin",
+			Namespace: backyardsNamespace,
+			Labels: map[string]string{
+				"app":                         "backyards-als",
+				"app.kubernetes.io/component": "tracing",
+				"app.kubernetes.io/instance":  "backyards",
+				"app.kubernetes.io/name":      "jaeger",
+				"app.kubernetes.io/part-of":   "backyards",
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Type:         corev1.ServiceTypeExternalName,
+			ExternalName: fmt.Sprintf("istio-pilot.%s.svc.cluster.local", istioOperatorNamespace),
+		},
+	}
+
+	client, err := m.getRuntimeK8sClient(m.Master)
 	if err != nil {
 		return err
 	}
