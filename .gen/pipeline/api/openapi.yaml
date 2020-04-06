@@ -17621,6 +17621,292 @@ paths:
       summary: Delete a node pool
       tags:
       - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/nodepools/{name}/update:
+    post:
+      operationId: UpdateNodePool
+      parameters:
+      - description: Organization identifier
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Cluster identifier
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Node pool name
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNodePoolRequest'
+        required: true
+      responses:
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateNodePoolResponse'
+          description: Node pool update in progress
+        default:
+          content:
+            application/json:
+              examples:
+                BadRequest:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: Failed to parse request.
+                Unauthorized:
+                  value:
+                    code: 401
+                    message: Unauthorized
+                    error: Unauthorized
+                OrganizationNotFound:
+                  value:
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+            application/problem+json:
+              examples:
+                BadRequest:
+                  value:
+                    type: about:blank
+                    title: Invalid request
+                    status: 400
+                    detail: Failed to parse request.
+                    instance: ""
+                    code: 400
+                    message: Failed to parse request.
+                    error: Invalid request
+                Unauthorized:
+                  value:
+                    type: about:blank
+                    title: Unauthorized
+                    status: 401
+                    detail: You are unauthorized to access this resource.
+                    instance: ""
+                    code: 401
+                    message: You are unauthorized to access this resource.
+                    error: Unauthorized
+                AccessDenied:
+                  value:
+                    type: about:blank
+                    title: Access denied
+                    status: 403
+                    detail: You are unauthorized to perform this action access this
+                      resource.
+                    instance: ""
+                    code: 403
+                    message: You are unauthorized to perform this action access this
+                      resource.
+                    error: Access denied
+                OrganizationNotFound:
+                  value:
+                    type: about:blank
+                    title: Organization not found
+                    status: 404
+                    detail: Organization not found
+                    instance: ""
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    type: about:blank
+                    title: Secret already exists
+                    status: 409
+                    detail: Secret already exists
+                    instance: ""
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    type: about:blank
+                    title: Internal server error
+                    status: 500
+                    detail: Something went wrong
+                    instance: ""
+                    code: 500
+                    message: Something went wrong
+                    error: Internal server error
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Update an existing node pool
+      tags:
+      - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/nodepools/{name}/cancel-update/{processId}:
+    post:
+      operationId: CancelNodePoolUpdate
+      parameters:
+      - description: Organization identifier
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Cluster identifier
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Node pool name
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Node pool update process ID
+        explode: false
+        in: path
+        name: processId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "202":
+          description: Node pool update is cancelled
+        default:
+          content:
+            application/json:
+              examples:
+                BadRequest:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: Failed to parse request.
+                Unauthorized:
+                  value:
+                    code: 401
+                    message: Unauthorized
+                    error: Unauthorized
+                OrganizationNotFound:
+                  value:
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+            application/problem+json:
+              examples:
+                BadRequest:
+                  value:
+                    type: about:blank
+                    title: Invalid request
+                    status: 400
+                    detail: Failed to parse request.
+                    instance: ""
+                    code: 400
+                    message: Failed to parse request.
+                    error: Invalid request
+                Unauthorized:
+                  value:
+                    type: about:blank
+                    title: Unauthorized
+                    status: 401
+                    detail: You are unauthorized to access this resource.
+                    instance: ""
+                    code: 401
+                    message: You are unauthorized to access this resource.
+                    error: Unauthorized
+                AccessDenied:
+                  value:
+                    type: about:blank
+                    title: Access denied
+                    status: 403
+                    detail: You are unauthorized to perform this action access this
+                      resource.
+                    instance: ""
+                    code: 403
+                    message: You are unauthorized to perform this action access this
+                      resource.
+                    error: Access denied
+                OrganizationNotFound:
+                  value:
+                    type: about:blank
+                    title: Organization not found
+                    status: 404
+                    detail: Organization not found
+                    instance: ""
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    type: about:blank
+                    title: Secret already exists
+                    status: 409
+                    detail: Secret already exists
+                    instance: ""
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    type: about:blank
+                    title: Internal server error
+                    status: 500
+                    detail: Something went wrong
+                    instance: ""
+                    code: 500
+                    message: Something went wrong
+                    error: Internal server error
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Cancel a running node pool update process
+      tags:
+      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/nodepool-labels:
     get:
       description: List cluster nodepool labels
@@ -18598,6 +18884,39 @@ components:
       - $ref: '#/components/schemas/GenericNodePool'
       - $ref: '#/components/schemas/EksNodePool_allOf'
       description: Node pool object for an EKS cluster.
+      type: object
+    UpdateNodePoolRequest:
+      oneOf:
+      - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
+    UpdateNodePoolResponse:
+      example:
+        processId: processId
+      properties:
+        processId:
+          description: Node pool update process ID.
+          type: string
+      type: object
+    BaseUpdateNodePoolRequest:
+      description: Base node pool update request object for all cluster distributions.
+      properties:
+        size:
+          description: Node pool size.
+          type: integer
+        labels:
+          additionalProperties:
+            type: string
+          description: Node pool labels.
+          example:
+            example.io/label1: value1
+          type: object
+      required:
+      - size
+      type: object
+    EksUpdateNodePoolRequest:
+      allOf:
+      - $ref: '#/components/schemas/BaseUpdateNodePoolRequest'
+      - $ref: '#/components/schemas/EksUpdateNodePoolRequest_allOf'
+      description: Node pool update request object for an EKS cluster.
       type: object
     EKSNodePool:
       properties:
@@ -22659,6 +22978,26 @@ components:
           example: subnet-xxxxxxxxxxxxxx
           type: string
       required:
+      - instanceType
+    EksUpdateNodePoolRequest_allOf:
+      properties:
+        autoscaling:
+          $ref: '#/components/schemas/NodePoolAutoScaling'
+        instanceType:
+          description: The instance type to use for your node pool.
+          example: m4.xlarge
+          type: string
+        image:
+          description: The instance AMI to use for your node pool.
+          example: ami-06d1667f
+          type: string
+        spotPrice:
+          description: The upper limit price for the requested spot instance. If this
+            field is empty or 0 on-demand instances are used instead of spot instances.
+          example: "0.2"
+          type: string
+      required:
+      - image
       - instanceType
     CreateEKSProperties_eks:
       properties:

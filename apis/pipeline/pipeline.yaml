@@ -3687,6 +3687,71 @@ paths:
                 default:
                     $ref: '#/components/responses/Error'
 
+    /api/v1/orgs/{orgId}/clusters/{id}/nodepools/{name}/update:
+        post:
+            operationId: UpdateNodePool
+            summary: Update an existing node pool
+            security:
+                - bearerAuth: []
+            tags:
+                - clusters
+            parameters:
+                - $ref: '#/components/parameters/orgId'
+                - $ref: '#/components/parameters/clusterId'
+                -
+                    name: name
+                    in: path
+                    description: Node pool name
+                    required: true
+                    schema:
+                        type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateNodePoolRequest'
+            responses:
+                202:
+                    description: Node pool update in progress
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateNodePoolResponse'
+                default:
+                    $ref: '#/components/responses/Error'
+
+    /api/v1/orgs/{orgId}/clusters/{id}/nodepools/{name}/cancel-update/{processId}:
+        post:
+            operationId: CancelNodePoolUpdate
+            summary: Cancel a running node pool update process
+            security:
+                - bearerAuth: []
+            tags:
+                - clusters
+            parameters:
+                - $ref: '#/components/parameters/orgId'
+                - $ref: '#/components/parameters/clusterId'
+                -
+                    name: name
+                    in: path
+                    description: Node pool name
+                    required: true
+                    schema:
+                        type: string
+                -
+                    name: processId
+                    in: path
+                    description: Node pool update process ID
+                    required: true
+                    schema:
+                        type: string
+            responses:
+                202:
+                    description: Node pool update is cancelled
+                default:
+                    $ref: '#/components/responses/Error'
+
     /api/v1/orgs/{orgId}/clusters/{id}/nodepool-labels:
         get:
             security:
@@ -4374,7 +4439,7 @@ components:
                     example: "Standard_B2ms"
 
                     #######
-        
+
         CreatePKEOnVsphereClusterRequest:
             allOf:
                 - $ref: '#/components/schemas/CreatePKEClusterRequestBase'
@@ -4536,6 +4601,60 @@ components:
                         subnetId:
                             type: string
                             example: "subnet-xxxxxxxxxxxxxx"
+
+        UpdateNodePoolRequest:
+            oneOf:
+                - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
+
+        UpdateNodePoolResponse:
+            type: object
+            properties:
+                processId:
+                    description: Node pool update process ID.
+                    type: string
+
+        BaseUpdateNodePoolRequest:
+            description: Base node pool update request object for all cluster distributions.
+            type: object
+            required:
+                - size
+            properties:
+                size:
+                    description: Node pool size.
+                    type: integer
+                labels:
+                    description: Node pool labels.
+                    type: object
+                    additionalProperties:
+                        type: string
+                    example:
+                        example.io/label1: value1
+
+        EksUpdateNodePoolRequest:
+            description: Node pool update request object for an EKS cluster.
+            type: object
+            allOf:
+                - $ref: '#/components/schemas/BaseUpdateNodePoolRequest'
+                -
+                    type: object
+                    required:
+                        - instanceType
+                        - image
+                    properties:
+                        autoscaling:
+                            $ref: '#/components/schemas/NodePoolAutoScaling'
+                        instanceType:
+                            description: The instance type to use for your node pool.
+                            type: string
+                            example: m4.xlarge
+                        image:
+                            description: The instance AMI to use for your node pool.
+                            type: string
+                            example: ami-06d1667f
+                        spotPrice:
+                            description: The upper limit price for the requested spot instance. If this field is empty or 0 on-demand instances are used instead of spot instances.
+                            type: string
+                            example: "0.2"
 
         EKSNodePool:
             type: object

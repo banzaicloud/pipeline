@@ -281,9 +281,11 @@ func main() {
 	emperror.Panic(errors.WithMessage(err, "failed to initialize db"))
 	global.SetDB(db)
 
-	// TODO: make this optional when CICD is disabled
-	cicdDB, err := database.Connect(config.CICD.Database)
-	emperror.Panic(errors.WithMessage(err, "failed to initialize CICD db"))
+	var cicdDB *gorm.DB
+	if config.CICD.Enabled {
+		cicdDB, err = database.Connect(config.CICD.Database)
+		emperror.Panic(errors.WithMessage(err, "failed to initialize CICD db"))
+	}
 
 	publisher, subscriber := watermill.NewPubSub(logger)
 	defer publisher.Close()
