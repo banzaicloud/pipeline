@@ -29,7 +29,7 @@ func registerVsphereWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerato
 
 	vsphereClientFactory := vsphereworkflow.NewVMOMIClientFactory(secretStore)
 
-	createNodeActivity := vsphereworkflow.MakeCreateNodeActivity(vsphereClientFactory, tokenGenerator)
+	createNodeActivity := vsphereworkflow.MakeCreateNodeActivity(vsphereClientFactory, tokenGenerator, secretStore)
 	activity.RegisterWithOptions(createNodeActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.CreateNodeActivityName})
 
 	waitForIpActivity := vsphereworkflow.MakeWaitForIPActivity(vsphereClientFactory)

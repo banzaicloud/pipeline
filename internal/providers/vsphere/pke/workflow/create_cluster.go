@@ -48,6 +48,7 @@ type CreateClusterWorkflowInput struct {
 	FolderName       string
 	DatastoreName    string
 	SecretID         string
+	StorageSecretID  string
 	OIDCEnabled      bool
 	PostHooks        pkgCluster.PostHooks
 	Nodes            []Node
@@ -130,6 +131,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 			activityInput := CreateNodeActivityInput{
 				OrganizationID:   input.OrganizationID,
 				SecretID:         input.SecretID,
+				StorageSecretID:  input.StorageSecretID,
 				ClusterID:        input.ClusterID,
 				ClusterName:      input.ClusterName,
 				ResourcePoolName: input.ResourcePoolName,

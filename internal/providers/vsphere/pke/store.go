@@ -26,6 +26,7 @@ type CreateParams struct {
 	OrganizationID    uint
 	CreatedBy         uint
 	SecretID          string
+	StorageSecretID   string
 	SSHSecretID       string
 	RBAC              bool
 	OIDC              bool
