@@ -43,7 +43,7 @@ func (m *MeshReconciler) ReconcileCanaryOperator(desiredState DesiredState, c cl
 
 // uninstallCanaryOperator removes canary-operator from a cluster
 func (m *MeshReconciler) uninstallCanaryOperator(c cluster.CommonCluster) error {
-	m.logger.Debug("removing istio release operator")
+	m.logger.Debug("removing canary-operator")
 
 	return errors.WrapIf(deleteDeployment(c, canaryOperatorReleaseName), "could not remove canary-operator")
 }
