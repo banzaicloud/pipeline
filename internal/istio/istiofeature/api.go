@@ -49,7 +49,6 @@ const (
 	backoffMaxretries   = 60
 )
 
-// type Reconciler func(desiredState DesiredState) error
 type ReconcilerWithCluster func(desiredState DesiredState, c cluster.CommonCluster) error
 
 type DesiredState string

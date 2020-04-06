@@ -160,12 +160,12 @@ func (m *MeshReconciler) generateKubeconfig(c cluster.CommonCluster) ([]byte, er
 
 	config, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
-		return nil, errors.WrapIf(err, "cloud not create client from kubeconfig")
+		return nil, errors.WrapIf(err, "could not create client from kubeconfig")
 	}
 
 	client, err := m.getRuntimeK8sClient(c)
 	if err != nil {
-		return nil, errors.WrapIf(err, "cloud not create client from kubeconfig")
+		return nil, errors.WrapIf(err, "could not create client from kubeconfig")
 	}
 
 	sa := &corev1.ServiceAccount{
@@ -396,7 +396,7 @@ func (m *MeshReconciler) reconcileRemoteIstioTracingService(desiredState Desired
 			Name:      "backyards-zipkin",
 			Namespace: backyardsNamespace,
 			Labels: map[string]string{
-				"app":                         "backyards-als",
+				"app":                         "jaeger",
 				"app.kubernetes.io/component": "tracing",
 				"app.kubernetes.io/instance":  "backyards",
 				"app.kubernetes.io/name":      "jaeger",

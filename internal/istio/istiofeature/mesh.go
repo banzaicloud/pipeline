@@ -91,7 +91,7 @@ func (m *MeshReconciler) getK8sClient(c cluster.CommonCluster) (*kubernetes.Clie
 
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		return nil, errors.WrapIf(err, "cloud not create client from kubeconfig")
+		return nil, errors.WrapIf(err, "could not create client from kubeconfig")
 	}
 
 	return client, nil
