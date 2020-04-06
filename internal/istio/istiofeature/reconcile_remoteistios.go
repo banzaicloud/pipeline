@@ -378,7 +378,7 @@ func (m *MeshReconciler) reconcileRemoteIstioALSService(desiredState DesiredStat
 		},
 	}
 
-	client, err := m.getRuntimeK8sClient(m.Master)
+	client, err := m.getRuntimeK8sClient(c)
 	if err != nil {
 		return err
 	}
@@ -409,7 +409,7 @@ func (m *MeshReconciler) reconcileRemoteIstioTracingService(desiredState Desired
 		},
 	}
 
-	client, err := m.getRuntimeK8sClient(m.Master)
+	client, err := m.getRuntimeK8sClient(c)
 	if err != nil {
 		return err
 	}
