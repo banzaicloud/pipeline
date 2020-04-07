@@ -84,6 +84,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterdriver"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksadapter"
 	eksDriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
@@ -791,6 +792,13 @@ func main() {
 						clusterStore,
 						clusteradapter.NewCadenceClusterManager(workflowClient),
 						clusterGroupManager,
+						map[string]intCluster.Service{
+							"eks": clusteradapter.NewEKSService(eks.NewService(
+								clusterStore,
+								eksadapter.NewNodePoolStore(db),
+								eksadapter.NewNodePoolManager(workflowClient),
+							)),
+						},
 						clusteradapter.NewNodePoolStore(db, clusterStore),
 						intCluster.NodePoolValidators{
 							intCluster.NewCommonNodePoolValidator(labelValidator),
@@ -830,6 +838,7 @@ func main() {
 					cRouter.DELETE("", gin.WrapH(router))
 					cRouter.Any("/nodepools", gin.WrapH(router))
 					cRouter.Any("/nodepools/:nodePoolName", gin.WrapH(router))
+					cRouter.Any("/nodepools/:nodePoolName/update", gin.WrapH(router))
 				}
 			}
 

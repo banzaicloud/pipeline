@@ -228,6 +228,74 @@ func TestRegisterHTTPHandlers_CreateNodePool(t *testing.T) {
 	}
 }
 
+func TestRegisterHTTPHandlers_UpdateNodePool(t *testing.T) {
+	tests := []struct {
+		name               string
+		endpointFunc       func(ctx context.Context, request interface{}) (response interface{}, err error)
+		expectedStatusCode int
+	}{
+		{
+			name: "NotFound",
+			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return UpdateNodePoolResponse{Err: cluster.NodePoolNotFoundError{
+					ClusterID: 1,
+					NodePool:  "pool0",
+				}}, nil
+			},
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "Invalid",
+			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return UpdateNodePoolResponse{Err: cluster.NewValidationError(
+					"invalid node pool update request",
+					[]string{"invalid instance type"},
+				)}, nil
+			},
+			expectedStatusCode: http.StatusUnprocessableEntity,
+		},
+		{
+			name: "success",
+			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return UpdateNodePoolResponse{}, nil
+			},
+			expectedStatusCode: http.StatusAccepted,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+
+		t.Run(test.name, func(t *testing.T) {
+			const clusterID = uint(1)
+
+			handler := mux.NewRouter()
+			RegisterHTTPHandlers(
+				Endpoints{
+					UpdateNodePool: test.endpointFunc,
+				},
+				handler.PathPrefix("/clusters/{clusterId}").Subrouter(),
+			)
+
+			ts := httptest.NewServer(handler)
+			defer ts.Close()
+
+			req, err := http.NewRequest(
+				http.MethodPost,
+				fmt.Sprintf("%s/clusters/%d/nodepools/%s/update", ts.URL, clusterID, "pool0"),
+				strings.NewReader(`{"instanceType": "some-instance-type"}`),
+			)
+			require.NoError(t, err)
+
+			resp, err := ts.Client().Do(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			assert.Equal(t, test.expectedStatusCode, resp.StatusCode)
+		})
+	}
+}
+
 func TestRegisterHTTPHandlers_DeleteNodePool(t *testing.T) {
 	tests := []struct {
 		name               string

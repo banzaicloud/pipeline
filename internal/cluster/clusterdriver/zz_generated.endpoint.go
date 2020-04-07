@@ -29,6 +29,7 @@ type Endpoints struct {
 	CreateNodePool endpoint.Endpoint
 	DeleteCluster  endpoint.Endpoint
 	DeleteNodePool endpoint.Endpoint
+	UpdateNodePool endpoint.Endpoint
 }
 
 // MakeEndpoints returns a(n) Endpoints struct where each endpoint invokes
@@ -40,6 +41,7 @@ func MakeEndpoints(service cluster.Service, middleware ...endpoint.Middleware) E
 		CreateNodePool: kitxendpoint.OperationNameMiddleware("cluster.CreateNodePool")(mw(MakeCreateNodePoolEndpoint(service))),
 		DeleteCluster:  kitxendpoint.OperationNameMiddleware("cluster.DeleteCluster")(mw(MakeDeleteClusterEndpoint(service))),
 		DeleteNodePool: kitxendpoint.OperationNameMiddleware("cluster.DeleteNodePool")(mw(MakeDeleteNodePoolEndpoint(service))),
+		UpdateNodePool: kitxendpoint.OperationNameMiddleware("cluster.UpdateNodePool")(mw(MakeUpdateNodePoolEndpoint(service))),
 	}
 }
 
@@ -156,5 +158,40 @@ func MakeDeleteNodePoolEndpoint(service cluster.Service) endpoint.Endpoint {
 		}
 
 		return DeleteNodePoolResponse{Deleted: deleted}, nil
+	}
+}
+
+// UpdateNodePoolRequest is a request struct for UpdateNodePool endpoint.
+type UpdateNodePoolRequest struct {
+	ClusterID         uint
+	NodePoolName      string
+	RawNodePoolUpdate cluster.RawNodePoolUpdate
+}
+
+// UpdateNodePoolResponse is a response struct for UpdateNodePool endpoint.
+type UpdateNodePoolResponse struct {
+	Err error
+}
+
+func (r UpdateNodePoolResponse) Failed() error {
+	return r.Err
+}
+
+// MakeUpdateNodePoolEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeUpdateNodePoolEndpoint(service cluster.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(UpdateNodePoolRequest)
+
+		err := service.UpdateNodePool(ctx, req.ClusterID, req.NodePoolName, req.RawNodePoolUpdate)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return UpdateNodePoolResponse{Err: err}, nil
+			}
+
+			return UpdateNodePoolResponse{Err: err}, err
+		}
+
+		return UpdateNodePoolResponse{}, nil
 	}
 }

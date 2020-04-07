@@ -144,13 +144,13 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
 
 		rawNewNodePool := NewRawNodePool{
 			"name": "pool0",
 		}
 
-		err := nodePoolService.CreateNodePool(ctx, 1, rawNewNodePool)
+		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.Error(t, err)
 
 		assert.True(t, errors.Is(err, NotFoundError{ClusterID: 1}))
@@ -184,13 +184,13 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
 
 		rawNewNodePool := NewRawNodePool{
 			"name": "pool0",
 		}
 
-		err := nodePoolService.CreateNodePool(ctx, 1, rawNewNodePool)
+		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.Error(t, err)
 
 		assert.True(t, errors.As(err, &NotSupportedDistributionError{}))
@@ -235,9 +235,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
 
-		err := nodePoolService.CreateNodePool(ctx, 1, rawNewNodePool)
+		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.Error(t, err)
 
 		assert.Equal(t, validationError, err)
@@ -281,9 +281,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
 
-		err := nodePoolService.CreateNodePool(ctx, 1, rawNewNodePool)
+		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.Error(t, err)
 
 		assert.True(t, errors.As(err, &NodePoolAlreadyExistsError{}))
@@ -332,9 +332,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
 
-		err := nodePoolService.CreateNodePool(ctx, 1, rawNewNodePool)
+		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.NoError(t, err)
 
 		clusterStore.AssertExpectations(t)
@@ -345,7 +345,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 	})
 }
 
-func TestNodePoolService_DeleteNodePool(t *testing.T) {
+func TestNodePoolService_UpdateNodePool(t *testing.T) {
 	t.Run("ClusterNotFound", func(t *testing.T) {
 		ctx := context.Background()
 
@@ -361,9 +361,11 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
 
-		_, err := nodePoolService.DeleteNodePool(ctx, 1, "pool0")
+		rawNodePoolUpdate := RawNodePoolUpdate{}
+
+		err := service.UpdateNodePool(ctx, 1, "pool0", rawNodePoolUpdate)
 		require.Error(t, err)
 
 		assert.True(t, errors.Is(err, NotFoundError{ClusterID: 1}))
@@ -397,9 +399,229 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, map[string]Service{}, nodePoolStore, validator, processor, manager)
 
-		_, err := nodePoolService.DeleteNodePool(ctx, 1, "pool0")
+		rawNodePoolUpdate := RawNodePoolUpdate{}
+
+		err := service.UpdateNodePool(ctx, 1, "pool0", rawNodePoolUpdate)
+		require.Error(t, err)
+
+		assert.True(t, errors.As(err, &NotSupportedDistributionError{}))
+
+		clusterStore.AssertExpectations(t)
+		nodePoolStore.AssertExpectations(t)
+		validator.AssertExpectations(t)
+		processor.AssertExpectations(t)
+		manager.AssertExpectations(t)
+	})
+
+	t.Run("NodePoolNotFound", func(t *testing.T) {
+		ctx := context.Background()
+
+		clusterStore := new(MockStore)
+
+		cluster := Cluster{
+			ID:            1,
+			UID:           "1",
+			Name:          "cluster",
+			Status:        Running,
+			StatusMessage: RunningMessage,
+			Cloud:         cloud.Amazon,
+			Distribution:  "eks",
+		}
+		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
+
+		const nodePoolName = "pool0"
+
+		nodePoolStore := new(MockNodePoolStore)
+
+		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(false, nil)
+
+		validator := new(MockNodePoolValidator)
+		processor := new(MockNodePoolProcessor)
+		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
+
+		distributions := map[string]Service{
+			cluster.Distribution: nil,
+		}
+
+		service := NewService(clusterStore, nil, clusterGroupManager, distributions, nodePoolStore, validator, processor, manager)
+
+		rawNodePoolUpdate := RawNodePoolUpdate{}
+
+		err := service.UpdateNodePool(ctx, 1, nodePoolName, rawNodePoolUpdate)
+		require.Error(t, err)
+
+		assert.True(t, errors.Is(err, NodePoolNotFoundError{ClusterID: 1, NodePool: nodePoolName}))
+
+		clusterStore.AssertExpectations(t)
+		nodePoolStore.AssertExpectations(t)
+		validator.AssertExpectations(t)
+		processor.AssertExpectations(t)
+		manager.AssertExpectations(t)
+	})
+
+	t.Run("Failure", func(t *testing.T) {
+		ctx := context.Background()
+
+		clusterStore := new(MockStore)
+
+		cluster := Cluster{
+			ID:            1,
+			UID:           "1",
+			Name:          "cluster",
+			Status:        Running,
+			StatusMessage: RunningMessage,
+			Cloud:         cloud.Amazon,
+			Distribution:  "eks",
+		}
+		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
+
+		const nodePoolName = "pool0"
+
+		nodePoolStore := new(MockNodePoolStore)
+
+		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(true, nil)
+
+		validator := new(MockNodePoolValidator)
+		processor := new(MockNodePoolProcessor)
+		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
+
+		distribution := new(MockService)
+
+		rawNodePoolUpdate := RawNodePoolUpdate{}
+
+		distErr := errors.NewPlain("distribution error")
+
+		distribution.On("UpdateNodePool", ctx, cluster.ID, nodePoolName, rawNodePoolUpdate).Return(distErr)
+
+		distributions := map[string]Service{
+			cluster.Distribution: distribution,
+		}
+
+		service := NewService(clusterStore, nil, clusterGroupManager, distributions, nodePoolStore, validator, processor, manager)
+
+		err := service.UpdateNodePool(ctx, cluster.ID, nodePoolName, rawNodePoolUpdate)
+		require.Error(t, err)
+
+		assert.Equal(t, distErr, err)
+
+		clusterStore.AssertExpectations(t)
+		nodePoolStore.AssertExpectations(t)
+		validator.AssertExpectations(t)
+		processor.AssertExpectations(t)
+		manager.AssertExpectations(t)
+		distribution.AssertExpectations(t)
+	})
+
+	t.Run("Success", func(t *testing.T) {
+		ctx := context.Background()
+
+		clusterStore := new(MockStore)
+
+		cluster := Cluster{
+			ID:            1,
+			UID:           "1",
+			Name:          "cluster",
+			Status:        Running,
+			StatusMessage: RunningMessage,
+			Cloud:         cloud.Amazon,
+			Distribution:  "eks",
+		}
+		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
+
+		const nodePoolName = "pool0"
+
+		nodePoolStore := new(MockNodePoolStore)
+
+		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(true, nil)
+
+		validator := new(MockNodePoolValidator)
+		processor := new(MockNodePoolProcessor)
+		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
+
+		distribution := new(MockService)
+
+		rawNodePoolUpdate := RawNodePoolUpdate{}
+
+		distribution.On("UpdateNodePool", ctx, cluster.ID, nodePoolName, rawNodePoolUpdate).Return(nil)
+
+		distributions := map[string]Service{
+			cluster.Distribution: distribution,
+		}
+
+		service := NewService(clusterStore, nil, clusterGroupManager, distributions, nodePoolStore, validator, processor, manager)
+
+		err := service.UpdateNodePool(ctx, cluster.ID, nodePoolName, rawNodePoolUpdate)
+		require.NoError(t, err)
+
+		clusterStore.AssertExpectations(t)
+		nodePoolStore.AssertExpectations(t)
+		validator.AssertExpectations(t)
+		processor.AssertExpectations(t)
+		manager.AssertExpectations(t)
+		distribution.AssertExpectations(t)
+	})
+}
+
+func TestNodePoolService_DeleteNodePool(t *testing.T) {
+	t.Run("ClusterNotFound", func(t *testing.T) {
+		ctx := context.Background()
+
+		clusterStore := new(MockStore)
+		{
+			err := NotFoundError{ClusterID: 1}
+			clusterStore.On("GetCluster", ctx, uint(1)).Return(Cluster{}, err)
+		}
+
+		nodePoolStore := new(MockNodePoolStore)
+		validator := new(MockNodePoolValidator)
+		processor := new(MockNodePoolProcessor)
+		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
+
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
+
+		_, err := service.DeleteNodePool(ctx, 1, "pool0")
+		require.Error(t, err)
+
+		assert.True(t, errors.Is(err, NotFoundError{ClusterID: 1}))
+
+		clusterStore.AssertExpectations(t)
+		nodePoolStore.AssertExpectations(t)
+		validator.AssertExpectations(t)
+		processor.AssertExpectations(t)
+		manager.AssertExpectations(t)
+	})
+
+	t.Run("DistributionNotSupported", func(t *testing.T) {
+		ctx := context.Background()
+
+		clusterStore := new(MockStore)
+
+		cluster := Cluster{
+			ID:            1,
+			UID:           "1",
+			Name:          "cluster",
+			Status:        Running,
+			StatusMessage: RunningMessage,
+			Cloud:         "something",
+			Distribution:  "xks",
+		}
+		clusterStore.On("GetCluster", ctx, cluster.ID).Return(cluster, nil)
+
+		nodePoolStore := new(MockNodePoolStore)
+		validator := new(MockNodePoolValidator)
+		processor := new(MockNodePoolProcessor)
+		manager := new(MockNodePoolManager)
+		clusterGroupManager := new(MockClusterGroupManager)
+
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
+
+		_, err := service.DeleteNodePool(ctx, 1, "pool0")
 		require.Error(t, err)
 
 		assert.True(t, errors.As(err, &NotSupportedDistributionError{}))
@@ -437,9 +659,9 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
 
-		deleted, err := nodePoolService.DeleteNodePool(ctx, 1, nodePoolName)
+		deleted, err := service.DeleteNodePool(ctx, 1, nodePoolName)
 		require.NoError(t, err)
 
 		assert.True(t, deleted)
@@ -481,9 +703,9 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		nodePoolService := NewService(clusterStore, nil, clusterGroupManager, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
 
-		deleted, err := nodePoolService.DeleteNodePool(ctx, 1, nodePoolName)
+		deleted, err := service.DeleteNodePool(ctx, 1, nodePoolName)
 		require.NoError(t, err)
 
 		assert.False(t, deleted)

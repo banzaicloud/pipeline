@@ -20,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 
+	"github.com/banzaicloud/pipeline/pkg/brn"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
@@ -41,6 +42,24 @@ func NewAWSSessionFactory(secretStore SecretStore) *AWSSessionFactory {
 // New creates a new AWS session.
 func (f *AWSSessionFactory) New(organizationID uint, secretID string, region string) (*session.Session, error) {
 	awsCred, err := f.GetAWSCredentials(organizationID, secretID, region)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return session.NewSession(&aws.Config{
+		Region:      aws.String(region),
+		Credentials: awsCred,
+	})
+}
+
+func (f *AWSSessionFactory) NewSession(secretID string, region string) (*session.Session, error) {
+	secretResource, err := brn.Parse(secretID)
+	if err != nil {
+		return nil, err
+	}
+
+	awsCred, err := f.GetAWSCredentials(secretResource.OrganizationID, secretResource.ResourceID, region)
 
 	if err != nil {
 		return nil, err
