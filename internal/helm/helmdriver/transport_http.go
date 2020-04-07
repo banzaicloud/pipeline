@@ -23,6 +23,7 @@ import (
 	"emperror.dev/errors"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	"github.com/mitchellh/mapstructure"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
@@ -70,7 +71,7 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 		options...,
 	))
 
-	router.Methods(http.MethodGet).Path("/charts/{repoName}").Handler(kithttp.NewServer(
+	router.Methods(http.MethodGet).Path("/charts").Handler(kithttp.NewServer(
 		endpoints.ListCharts,
 		decodeListChartsHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(encodeListChartsHTTPResponse, errorEncoder),
@@ -528,20 +529,21 @@ func encodeListReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, 
 }
 
 func decodeListChartsHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	orgID, e := extractUintParamFromRequest("orgId", r)
-	if e != nil {
-		return nil, errors.WrapIf(e, "failed to decode update repository request")
+	orgID, err := extractUintParamFromRequest("orgId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get charts request")
 	}
 
-	repoName, err := extractStringParamFromRequest("repoName", r)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to decode update repository request")
+	// WARN: this' struct behavior MUST be is analogue to query api.ChartQuery in order not to break the api
+	parsedQuery := helm.ChartFilter{}
+
+	if err := mapstructure.Decode(r.URL.Query(), &parsedQuery); err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get charts request")
 	}
 
 	return ListChartsRequest{
 		OrganizationID: orgID,
-		RepoName:       repoName,
-		Filter:         nil,
+		Filter:         parsedQuery,
 		Options:        helm.Options{},
 	}, nil
 }
@@ -556,7 +558,7 @@ func encodeListChartsHTTPResponse(ctx context.Context, w http.ResponseWriter, re
 		return errors.WrapIf(charts.Err, "failed to retrieve charts")
 	}
 
-	return kitxhttp.JSONResponseEncoder(ctx, w, charts.Chart)
+	return kitxhttp.JSONResponseEncoder(ctx, w, charts.Charts)
 }
 
 func extractStringParamFromRequest(key string, r *http.Request) (string, error) {

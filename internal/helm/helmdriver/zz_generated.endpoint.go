@@ -293,15 +293,14 @@ func MakeInstallReleaseEndpoint(service helm.Service) endpoint.Endpoint {
 // ListChartsRequest is a request struct for ListCharts endpoint.
 type ListChartsRequest struct {
 	OrganizationID uint
-	RepoName       string
-	Filter         interface{}
+	Filter         helm.ChartFilter
 	Options        helm.Options
 }
 
 // ListChartsResponse is a response struct for ListCharts endpoint.
 type ListChartsResponse struct {
-	Chart []string
-	Err   error
+	Charts map[string]interface{}
+	Err    error
 }
 
 func (r ListChartsResponse) Failed() error {
@@ -313,23 +312,23 @@ func MakeListChartsEndpoint(service helm.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ListChartsRequest)
 
-		chart, err := service.ListCharts(ctx, req.OrganizationID, req.RepoName, req.Filter, req.Options)
+		charts, err := service.ListCharts(ctx, req.OrganizationID, req.Filter, req.Options)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return ListChartsResponse{
-					Chart: chart,
-					Err:   err,
+					Charts: charts,
+					Err:    err,
 				}, nil
 			}
 
 			return ListChartsResponse{
-				Chart: chart,
-				Err:   err,
+				Charts: charts,
+				Err:    err,
 			}, err
 		}
 
-		return ListChartsResponse{Chart: chart}, nil
+		return ListChartsResponse{Charts: charts}, nil
 	}
 }
 

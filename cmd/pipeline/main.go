@@ -1064,7 +1064,7 @@ func main() {
 				orgs.PUT("/:orgid/helm/repos/:name", gin.WrapH(router))
 				orgs.DELETE("/:orgid/helm/repos/:name", gin.WrapH(router))
 
-				orgs.GET("/:orgid/helm/charts/:repoName", gin.WrapH(router))
+				orgs.GET("/:orgid/helm/charts", gin.WrapH(router))
 				//orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
 			}
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
