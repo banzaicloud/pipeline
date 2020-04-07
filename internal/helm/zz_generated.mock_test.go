@@ -162,21 +162,21 @@ func (_m *MockService) InstallRelease(ctx context.Context, organizationID uint, 
 }
 
 // ListCharts provides a mock function.
-func (_m *MockService) ListCharts(ctx context.Context, organizationID uint, repoName string, filter interface{}, options Options) (chart []string, err error) {
-	ret := _m.Called(ctx, organizationID, repoName, filter, options)
+func (_m *MockService) ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, options Options) (charts map[string]interface{}, err error) {
+	ret := _m.Called(ctx, organizationID, filter, options)
 
-	var r0 []string
-	if rf, ok := ret.Get(0).(func(context.Context, uint, string, interface{}, Options) []string); ok {
-		r0 = rf(ctx, organizationID, repoName, filter, options)
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(context.Context, uint, ChartFilter, Options) map[string]interface{}); ok {
+		r0 = rf(ctx, organizationID, filter, options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
+			r0 = ret.Get(0).(map[string]interface{})
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, uint, string, interface{}, Options) error); ok {
-		r1 = rf(ctx, organizationID, repoName, filter, options)
+	if rf, ok := ret.Get(1).(func(context.Context, uint, ChartFilter, Options) error); ok {
+		r1 = rf(ctx, organizationID, filter, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -371,21 +371,21 @@ func (_m *MockEnvService) GetChart(ctx context.Context, helmEnv HelmEnv, chart C
 }
 
 // ListCharts provides a mock function.
-func (_m *MockEnvService) ListCharts(ctx context.Context, helmEnv HelmEnv, repoName string) ([]string, error) {
-	ret := _m.Called(ctx, helmEnv, repoName)
+func (_m *MockEnvService) ListCharts(ctx context.Context, helmEnv HelmEnv, filter ChartFilter) (map[string]interface{}, error) {
+	ret := _m.Called(ctx, helmEnv, filter)
 
-	var r0 []string
-	if rf, ok := ret.Get(0).(func(context.Context, HelmEnv, string) []string); ok {
-		r0 = rf(ctx, helmEnv, repoName)
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(context.Context, HelmEnv, ChartFilter) map[string]interface{}); ok {
+		r0 = rf(ctx, helmEnv, filter)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
+			r0 = ret.Get(0).(map[string]interface{})
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, HelmEnv, string) error); ok {
-		r1 = rf(ctx, helmEnv, repoName)
+	if rf, ok := ret.Get(1).(func(context.Context, HelmEnv, ChartFilter) error); ok {
+		r1 = rf(ctx, helmEnv, filter)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -15,14 +15,14 @@
 package helmadapter
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -171,36 +171,66 @@ func (h helm3EnvService) UpdateRepository(ctx context.Context, helmEnv helm.Helm
 	return nil
 }
 
-func (h helm3EnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, repoName string) ([]string, error) {
-	settings := h.processEnvSettings(helmEnv)
-	// Provides the list of charts that are part of the specified repo, and that starts with 'prefix'.
-	var charts []string
+// ListCharts finds the charts based on the provided filter
+func (h helm3EnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (map[string]interface{}, error) {
+	// reponame -> chartversions
+	charts := make(map[string]interface{})
 
-	path := filepath.Join(settings.RepositoryCache, helmpath.CacheChartsFile(repoName))
-	content, err := ioutil.ReadFile(path)
-	if err == nil {
-		scanner := bufio.NewScanner(bytes.NewReader(content))
-		for scanner.Scan() {
-			fullName := fmt.Sprintf("%s/%s", repoName, scanner.Text())
-			charts = append(charts, fullName)
-		}
+	repoFile, err := repo.LoadFile(helmEnv.GetHome())
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to load repo file")
 	}
 
-	if isNotExist(err) {
-		// If there is no cached charts file, fallback to the full index file.
-		// This is much slower but can happen after the caching feature is first
-		// installed but before the user  does a 'helm repo update' to generate the
-		// first cached charts file.
-		path = filepath.Join(settings.RepositoryCache, helmpath.CacheIndexFile(repoName))
-		if indexFile, err := repo.LoadIndexFile(path); err == nil {
-			for name := range indexFile.Entries {
-				fullName := fmt.Sprintf("%s/%s", repoName, name)
-				charts = append(charts, fullName)
+	if filter.RepoFilter() != "" && !repoFile.Has(filter.RepoFilter()) {
+		return nil, errors.WrapIfWithDetails(err, "repository not found", "filter", filter)
+	}
+
+	for _, repoEntry := range repoFile.Repositories {
+		if !matchesFilter(filter.RepoFilter(), repoEntry.Name) {
+			h.logger.Debug("repository name doesn't match the filter",
+				map[string]interface{}{"filter": filter.RepoFilter(), "repoEntry": repoEntry.Name})
+			// skip further processing
+			continue
+		}
+
+		repoIndexFilePath := path.Join(helmEnv.GetRepoCache(), helmpath.CacheIndexFile(repoEntry.Name))
+		repoIndexFile, err := repo.LoadIndexFile(repoIndexFilePath)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to load index file for repo")
+		}
+
+		repoCharts := make([]interface{}, 0, 0)
+		for chartRepo, chartVersions := range repoIndexFile.Entries {
+			if !matchesFilter(filter.NameFilter(), chartRepo) {
+				h.logger.Debug("chart name doesn't match the filter, skipping the entry",
+					map[string]interface{}{"filter": filter.NameFilter(), "chart": chartRepo})
+				// skip further processing
+				continue
 			}
 
-			return charts, nil
+			for _, chartVersion := range chartVersions {
+				if !matchesFilter(filter.KeywordFilter(), strings.Join(chartVersion.Keywords, " ")) {
+					h.logger.Debug("chart keywords don't match the filter, skipping the version",
+						map[string]interface{}{"filter": filter.KeywordFilter(), "keywords": chartVersion.Keywords})
+					// skip further processing
+					continue
+				}
+
+				//  todo use semver for filtering versions
+				if !matchesFilter(filter.VersionFilter(), chartVersion.Version) {
+					h.logger.Debug("chart version doesn't match the filter, skipping the version",
+						map[string]interface{}{"filter": filter.VersionFilter(), "version": chartVersion.Version})
+					// skip further processing
+					continue
+				}
+
+				repoCharts = append(repoCharts, chartVersion)
+			}
 		}
+
+		charts[repoEntry.Name] = repoCharts
 	}
+
 	return charts, nil
 }
 
@@ -250,6 +280,19 @@ func (h helm3EnvService) updateCharts(repos []*repo.ChartRepository, out io.Writ
 	fmt.Fprintln(out, "Update Complete. ⎈ Happy Helming!⎈ ")
 }
 
-func isNotExist(err error) bool {
-	return os.IsNotExist(errors.Cause(err))
+// matchesFilter checks whether the passed in value matches the given filter
+// empty filter is considered "no filter"
+// the value is treated as a regexp
+func matchesFilter(filter string, value string) bool {
+	if filter == "" {
+		// there is no filter
+		return true
+	}
+
+	matches, err := regexp.MatchString(filter, strings.ToLower(value))
+	if err != nil {
+		return false
+	}
+
+	return matches
 }
