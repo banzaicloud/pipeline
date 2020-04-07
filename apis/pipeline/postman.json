@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "56c6ea66-7ad9-47c3-bcc1-68b059dbf308",
+		"_postman_id": "40f19762-33bb-4ab9-9877-71bc37aac137",
 		"name": "Pipeline API",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -1069,11 +1069,66 @@
 											"variable": [
 												{
 													"key": "orgId",
-													"value": ""
+													"value": "{{orgId}}"
 												},
 												{
 													"key": "clusterId",
-													"value": ""
+													"value": "{{clusterId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update node pool",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"type": "text",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"image\": \"\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/nodepools/:nodePoolName/update",
+											"host": [
+												"{{url}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"orgs",
+												":orgId",
+												"clusters",
+												":clusterId",
+												"nodepools",
+												":nodePoolName",
+												"update"
+											],
+											"variable": [
+												{
+													"key": "orgId",
+													"value": "{{orgId}}"
+												},
+												{
+													"key": "clusterId",
+													"value": "{{clusterId}}"
+												},
+												{
+													"key": "nodePoolName",
+													"value": "{{nodePoolName}}"
 												}
 											]
 										}
@@ -1093,7 +1148,7 @@
 											}
 										],
 										"url": {
-											"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/nodepools/:nodePool",
+											"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/nodepools/:nodePoolName",
 											"host": [
 												"{{url}}"
 											],
@@ -1105,20 +1160,20 @@
 												"clusters",
 												":clusterId",
 												"nodepools",
-												":nodePool"
+												":nodePoolName"
 											],
 											"variable": [
 												{
 													"key": "orgId",
-													"value": ""
+													"value": "{{orgId}}"
 												},
 												{
 													"key": "clusterId",
-													"value": ""
+													"value": "{{clusterId}}"
 												},
 												{
-													"key": "nodePool",
-													"value": ""
+													"key": "nodePoolName",
+													"value": "{{nodePoolName}}"
 												}
 											]
 										}
@@ -1807,9 +1862,9 @@
 											],
 											"variable": [
 												{
-													"description": "Organization identifier",
 													"key": "orgId",
-													"value": "{{orgId}}"
+													"value": "{{orgId}}",
+													"description": "Organization identifier"
 												}
 											]
 										},
