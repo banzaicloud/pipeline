@@ -21,6 +21,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	eksworkflow2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
@@ -134,6 +135,15 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *a
 
 	saveNodePoolsActivity := eksworkflow.NewSaveNodePoolsActivity(clusterManager)
 	activity.RegisterWithOptions(saveNodePoolsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveNodePoolsActivityName})
+
+	// Node pool upgrade
+	workflow.RegisterWithOptions(eksworkflow2.UpdateNodePoolWorkflow, workflow.RegisterOptions{Name: eksworkflow2.UpdateNodePoolWorkflowName})
+
+	updateNodeGroupActivity := eksworkflow2.NewUpdateNodeGroupActivity(awsSessionFactory, nodePoolTemplate)
+	activity.RegisterWithOptions(updateNodeGroupActivity.Execute, activity.RegisterOptions{Name: eksworkflow2.UpdateNodeGroupActivityName})
+
+	waitCloudFormationStackUpdateActivity := eksworkflow2.NewWaitCloudFormationStackUpdateActivity(awsSessionFactory)
+	activity.RegisterWithOptions(waitCloudFormationStackUpdateActivity.Execute, activity.RegisterOptions{Name: eksworkflow2.WaitCloudFormationStackUpdateActivityName})
 
 	return nil
 }

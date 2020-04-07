@@ -94,6 +94,9 @@ func (n NewRawNodePool) GetLabels() map[string]string {
 	return labels
 }
 
+// RawNodePoolUpdate is an unstructured, distribution specific descriptor for a node pool update.
+type RawNodePoolUpdate map[string]interface{}
+
 // NodePoolAlreadyExistsError is returned when a node pool already exists.
 type NodePoolAlreadyExistsError struct {
 	ClusterID uint
@@ -119,6 +122,34 @@ func (NodePoolAlreadyExistsError) Conflict() bool {
 // ServiceError tells the consumer whether this error is caused by invalid input supplied by the client.
 // Client errors are usually returned to the consumer without retrying the operation.
 func (NodePoolAlreadyExistsError) ServiceError() bool {
+	return true
+}
+
+// NodePoolNotFoundError is returned when a node pool already exists.
+type NodePoolNotFoundError struct {
+	ClusterID uint
+	NodePool  string
+}
+
+// Error implements the error interface.
+func (NodePoolNotFoundError) Error() string {
+	return "node pool not found"
+}
+
+// Details returns error details.
+func (e NodePoolNotFoundError) Details() []interface{} {
+	return []interface{}{"clusterId", e.ClusterID, "nodePool", e.NodePool}
+}
+
+// NotFound tells a client that this error is related to a resource being not found.
+// Can be used to translate the error to status codes for example.
+func (NodePoolNotFoundError) NotFound() bool {
+	return true
+}
+
+// ServiceError tells the consumer whether this error is caused by invalid input supplied by the client.
+// Client errors are usually returned to the consumer without retrying the operation.
+func (NodePoolNotFoundError) ServiceError() bool {
 	return true
 }
 
@@ -170,7 +201,7 @@ func (s service) CreateNodePool(
 		return err
 	}
 
-	if err := s.checkCluster(cluster); err != nil {
+	if err := s.checkClusterForNodePoolChange(cluster); err != nil {
 		return err
 	}
 
@@ -208,13 +239,49 @@ func (s service) CreateNodePool(
 	return nil
 }
 
+func (s service) UpdateNodePool(
+	ctx context.Context,
+	clusterID uint,
+	nodePoolName string,
+	rawNodePoolUpdate RawNodePoolUpdate,
+) error {
+	cluster, err := s.clusters.GetCluster(ctx, clusterID)
+	if err != nil {
+		return err
+	}
+
+	if err := s.checkCluster(cluster); err != nil {
+		return err
+	}
+
+	service, err := s.getDistributionService(cluster)
+	if err != nil {
+		return err
+	}
+
+	// TODO: move this to distribution level
+	exists, err := s.nodePools.NodePoolExists(ctx, clusterID, nodePoolName)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return errors.WithStack(NodePoolNotFoundError{
+			ClusterID: clusterID,
+			NodePool:  nodePoolName,
+		})
+	}
+
+	return service.UpdateNodePool(ctx, clusterID, nodePoolName, rawNodePoolUpdate)
+}
+
 func (s service) DeleteNodePool(ctx context.Context, clusterID uint, name string) (bool, error) {
 	cluster, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
 		return false, err
 	}
 
-	if err := s.checkCluster(cluster); err != nil {
+	if err := s.checkClusterForNodePoolChange(cluster); err != nil {
 		return false, err
 	}
 
@@ -242,15 +309,19 @@ func (s service) DeleteNodePool(ctx context.Context, clusterID uint, name string
 }
 
 func (s service) checkCluster(cluster Cluster) error {
-	if err := s.nodePoolSupported(cluster); err != nil {
-		return err
-	}
-
 	if cluster.Status != Running && cluster.Status != Warning {
 		return errors.WithStack(NotReadyError{ID: cluster.ID})
 	}
 
 	return nil
+}
+
+func (s service) checkClusterForNodePoolChange(cluster Cluster) error {
+	if err := s.nodePoolSupported(cluster); err != nil {
+		return err
+	}
+
+	return s.checkCluster(cluster)
 }
 
 func (s service) nodePoolSupported(cluster Cluster) error {

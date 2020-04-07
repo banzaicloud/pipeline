@@ -69,3 +69,17 @@ func (_m *MockService) DeleteNodePool(ctx context.Context, clusterID uint, name 
 
 	return r0, r1
 }
+
+// UpdateNodePool provides a mock function.
+func (_m *MockService) UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, rawNodePoolUpdate RawNodePoolUpdate) error {
+	ret := _m.Called(ctx, clusterID, nodePoolName, rawNodePoolUpdate)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint, string, RawNodePoolUpdate) error); ok {
+		r0 = rf(ctx, clusterID, nodePoolName, rawNodePoolUpdate)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
