@@ -1,19 +1,16 @@
 {{- if .Values.ingress.enabled -}}
 {{- $serviceName := include "pipeline.fullname" . -}}
 {{- $servicePort := .Values.service.externalPort -}}
-apiVersion: extensions/v1beta1
-kind: Ingress	
-metadata:	
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
   name: {{ include "pipeline.fullname" . }}
   labels:
-    app: {{ include "pipeline.name" . }}
-    chart: {{ include "pipeline.chart" . }}
-    release: "{{ .Release.Name }}"
-    heritage: "{{ .Release.Service }}"
-{{- with .Values.ingress.annotations }}
+    {{ include "pipeline.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
   annotations:
-{{ toYaml . | indent 4 }}
-{{- end }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   rules:
   {{- range .Values.ingress.hosts }}

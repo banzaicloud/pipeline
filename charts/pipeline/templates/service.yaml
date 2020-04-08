@@ -3,32 +3,26 @@ kind: Service
 metadata:
   name: {{ include "pipeline.fullname" . }}
   labels:
-    app: {{ include "pipeline.name" . }}
-    chart: {{ template "pipeline.chart" . }}
-    release: "{{ .Release.Name }}"
-    heritage: "{{ .Release.Service }}"
+    {{ include "pipeline.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
   - port: {{ .Values.service.externalPort }}
     targetPort: {{ .Values.service.internalPort }}
     protocol: TCP
-    #https://github.com/containous/traefik/issues/3806
+    # https://github.com/containous/traefik/issues/3806
     name: "https-{{ .Values.service.name }}"
   selector:
-    app: {{ include "pipeline.name" . }}
+    app.kubernetes.io/name: {{ include "pipeline.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
 
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "pipeline.fullname" . }}-internal
   labels:
-    app: {{ include "pipeline.name" . }}
-    chart: {{ template "pipeline.chart" . }}
-    release: "{{ .Release.Name }}"
-    heritage: "{{ .Release.Service }}"
+    {{ include "pipeline.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.serviceInternal.type }}
   ports:
@@ -36,10 +30,11 @@ spec:
     targetPort: {{ .Values.serviceInternal.internalPort }}
     protocol: TCP
   {{- if .Values.serviceInternal.tls  }}
-#https://github.com/containous/traefik/issues/3806
+  # https://github.com/containous/traefik/issues/3806
     name: "https-{{ .Values.serviceInternal.name }}"
   {{- else }}
     name: "{{ .Values.serviceInternal.name }}"
   {{ end }}
   selector:
-    app: {{ include "pipeline.name" . }}
+    app.kubernetes.io/name: {{ include "pipeline.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

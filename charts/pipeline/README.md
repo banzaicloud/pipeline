@@ -17,7 +17,7 @@ This chart bootstraps a [Pipeline](https://github.com/banzaicloud/pipeline) depl
 
 ## Prerequisites
 
-- Kubernetes 1.10+ with Beta APIs enabled
+- Kubernetes 1.12+
 
 ## Installing the Chart
 
@@ -41,68 +41,21 @@ The command removes all the Kubernetes components associated with the chart and 
 
 The following table lists the configurable parameters of the Pipeline chart database configuration and their default values.
 
-#### Postgres (default)
-
-Read more [stable/postgresql](https://github.com/helm/charts/tree/master/stable/postgresql)
-
-```yaml
-postgres:
-  enabled: true
-```
-
-| Parameter        | Description              | Default  |
-| ---------------- | ------------------------ | -------- |
-| postgres.enabled | Install postgresql chart | true     |
-
-#### Mysql
-
-Read more [stable/mysql](https://github.com/helm/charts/tree/master/stable/mysql)
-
-```yaml
-mysql:
-  enabled: true
-```
-
-| Parameter     | Description         | Default  |
-| ------------- | ------------------- | -------- |
-| mysql.enabled | Install mysql chart | false    |
-
-#### Custom settings (These `values` ​​are preferred against mysql or postgres `values`)
-
-| Parameter               | Description                                   | Default       |
-| ------------------------| --------------------------------------------- | ------------- |
-| database.driver         | Database driver (mysql, postgres)             | ``            |
-| database.host           | Database host                                 | ``            |
-| database.port           | Database port                                 | ``            |
-| database.tls            | Database TLS parameter                        | `turned off`  |
-| database.name           | Database name                                 | `pipeline`    |
-| database.username       | Database username                             | `pipeline-rw` |
-| database.password       | Database password                             | ``            |
-| database.existingSecret | Use an existing secret for database passwords | ``            |
-
-#### Setting up Google CloudSQL Proxy
-
-Read more [rimusz/gcloud-sqlproxy](https://github.com/rimusz/charts/tree/master/stable/gcloud-sqlproxy)
-
-```yaml
-cloudsql:
-  enabled: true
-    instances: []
-#      - project:
-#        region: 
-#        instance:
-#        port:
-```
-
-| Parameter        | Description            | Default  |
-| ---------------- | ---------------------- | -------- |
-| cloudsql.enabled | Install cloudsql chart | false    |
-
+| Parameter               | Description                                   | Default   |
+| ------------------------| --------------------------------------------- | --------- |
+| database.driver         | Database driver (mysql, postgres)             | ``        |
+| database.host           | Database host                                 | ``        |
+| database.port           | Database port                                 | ``        |
+| database.tls            | Database TLS parameter                        | ``        |
+| database.name           | Database name                                 | `pipeline`|
+| database.username       | Database username                             | `pipeline`|
+| database.password       | Database password                             | ``        |
+| database.existingSecret | Use an existing secret for database passwords | ``        |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example:
 
 ```console
-$ helm install --name my-release --set server.image.tag=0.17.0 banzaicloud-stable/pipeline
+$ helm install --name my-release --set server.image.tag=0.40.0 banzaicloud-stable/pipeline
 ```
 
 Alternatively, a YAML file that specifies the values for the parameters can be provided while
