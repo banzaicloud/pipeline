@@ -78,7 +78,8 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 		options...,
 	))
 
-	router.Methods(http.MethodGet).Path("/charts/{reponame}/{name}").Handler(kithttp.NewServer(
+	// TODO fix the path after migrating to h3 (use chartS instead of chart) - backwards  compatibility!
+	router.Methods(http.MethodGet).Path("/chart/{reponame}/{name}").Handler(kithttp.NewServer(
 		endpoints.GetChart,
 		decodeChartDetailsHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(encodeChartDetailsHTTPResponse, errorEncoder),
@@ -575,14 +576,16 @@ func decodeChartDetailsHTTPRequest(_ context.Context, r *http.Request) (interfac
 	}
 
 	var (
-		// inline type for binding request parameters
+		// inline type for binding request path parameters
 		pathData struct {
 			RepoName string
 			Name     string
 		}
-		// inline type for binding request parameters
+
+		// inline type for binding request query parameters
 		queryData helm.ChartFilter
 	)
+
 	if err := mapstructure.Decode(mux.Vars(r), &pathData); err != nil {
 		return nil, errors.WrapIf(err, "failed to decode get chart details path parameters")
 	}
@@ -590,9 +593,6 @@ func decodeChartDetailsHTTPRequest(_ context.Context, r *http.Request) (interfac
 	if err := mapstructure.Decode(r.URL.Query(), &queryData); err != nil {
 		return nil, errors.WrapIf(err, "failed to decode get chart details query parameters")
 	}
-
-	queryData.Name = []string{pathData.Name}
-	queryData.Repo = []string{pathData.RepoName}
 
 	return GetChartRequest{
 		OrganizationID: orgID,
