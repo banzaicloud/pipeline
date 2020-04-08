@@ -1045,9 +1045,8 @@ func main() {
 
 			clusterAuthAPI.RegisterRoutes(cRouter, engine)
 
+			//  TODO port this call to h3 as well
 			orgs.PUT("/:orgid/helm/repos/:name/update", api.HelmReposUpdate)
-			//orgs.GET("/:orgid/helm/charts", api.HelmCharts)
-			//orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
 			{
 				endpoints := helmdriver.MakeEndpoints(
 					helmFacade,
@@ -1065,7 +1064,9 @@ func main() {
 				orgs.DELETE("/:orgid/helm/repos/:name", gin.WrapH(router))
 
 				orgs.GET("/:orgid/helm/charts", gin.WrapH(router))
-				orgs.GET("/:orgid/helm/charts/:reponame/:name", gin.WrapH(router))
+
+				// TODO using "chart" instead of  "charts" for backwards compatibility
+				orgs.GET("/:orgid/helm/chart/:reponame/:name", gin.WrapH(router))
 			}
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
 			orgs.GET("/:orgid/secrets/:id", api.GetSecret)
