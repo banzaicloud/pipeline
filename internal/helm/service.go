@@ -16,7 +16,6 @@ package helm
 
 import (
 	"context"
-	"time"
 
 	"emperror.dev/errors"
 
@@ -44,38 +43,6 @@ type Repository struct {
 	// If there is a client key pair in the secret,
 	// it will be presented to the repository server.
 	TlsSecretID string `json:"tlsSecretId,omitempty"`
-}
-
-// ReleaseInfo copy of the struct form the helm library
-type ReleaseInfo struct {
-	// FirstDeployed is when the release was first deployed.
-	FirstDeployed time.Time `json:"first_deployed,omitempty"`
-	// LastDeployed is when the release was last deployed.
-	LastDeployed time.Time `json:"last_deployed,omitempty"`
-	// Deleted tracks when this object was deleted.
-	Deleted time.Time `json:"deleted"`
-	// Description is human-friendly "log entry" about this release.
-	Description string `json:"description,omitempty"`
-	// Status is the current state of the release
-	Status string
-	// Contains the rendered templates/NOTES.txt if available
-	Notes string
-}
-
-type ReleaseResource struct {
-	Name string `json:"name" yaml:"name"`
-	Kind string `json:"kind" yaml:"kind"`
-}
-
-//  Release represents information related to a helm chart release
-type Release struct {
-	// ReleaseInput struct encapsulating information about the release to be created
-	ReleaseName string
-	ChartName   string
-	Namespace   string
-	Values      map[string]interface{} //json representation
-	Version     string
-	ReleaseInfo ReleaseInfo
 }
 
 // Options struct holding directives for driving helm operations (similar to command line flags)
@@ -124,10 +91,9 @@ type repository interface {
 // charter collects helm chars related operations
 type charter interface {
 	// List lists charts containing the given term, eventually applying the passed filter
-	ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, options Options) (charts map[string]interface{}, err error)
-
+	ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, options Options) (charts ChartList, err error)
 	// GetChart retrieves the details for the given chart
-	GetChart(ctx context.Context, organizationID uint, chartName Chart, options Options) (repos []Repository, err error)
+	GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails ChartDetails, err error)
 }
 
 // releaser collects and groups release related operations
@@ -135,22 +101,16 @@ type charter interface {
 type releaser interface {
 	// Install installs the release to the cluster with the given identifier
 	InstallRelease(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) error
-
 	// Delete deletes the  specified release
 	DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) error
-
 	// List retrieves  releases in a given namespace, eventually applies the passed in filters
 	ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters interface{}, options Options) ([]Release, error)
-
 	// Get retrieves the release details for the given  release
 	GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (Release, error)
-
 	// Upgrade upgrades the given release
 	UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) error
-
 	// ReleaseStatus
 	ReleaseStatus(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (string, error)
-
 	// ReleaseResources retrieves resources belonging to the release
 	ReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) ([]ReleaseResource, error)
 }
@@ -169,13 +129,10 @@ type EnvService interface {
 	PatchRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) error
 	// UpdateRepository updates an existing repository
 	UpdateRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) error
-
 	// ListCharts lists charts matching the given filter
-	// todo: response should be an internal domain struct instead of this generic solution (backwards compatibility!)
-	ListCharts(ctx context.Context, helmEnv HelmEnv, filter ChartFilter) (map[string]interface{}, error)
-
+	ListCharts(ctx context.Context, helmEnv HelmEnv, chartFilter ChartFilter) (chartList ChartList, err error)
 	// GetChart retrieves the details of the passed in chart
-	GetChart(ctx context.Context, helmEnv HelmEnv, chart Chart) (Chart, error)
+	GetChart(ctx context.Context, helmEnv HelmEnv, chartFilter ChartFilter) (chartDetails ChartDetails, err error)
 }
 
 // +testify:mock:testOnly=true
@@ -551,8 +508,18 @@ func (s service) ListCharts(ctx context.Context, organizationID uint, filter Cha
 	return chartNames, nil
 }
 
-func (s service) GetChart(ctx context.Context, organizationID uint, chartName Chart, options Options) (repos []Repository, err error) {
-	panic("implement me")
+func (s service) GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails map[string]interface{}, err error) {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	details, err := s.envService.GetChart(ctx, helmEnv, chartFilter)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get helm chart details")
+	}
+
+	return details, nil
 }
 
 func (s service) ReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) ([]ReleaseResource, error) {

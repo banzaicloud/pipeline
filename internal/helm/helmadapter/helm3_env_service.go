@@ -15,6 +15,7 @@
 package helmadapter
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -30,6 +31,9 @@ import (
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/gofrs/flock"
+	"github.com/mitchellh/mapstructure"
+	"helm.sh/helm/v3/pkg/chart"
+	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/cli"
 	"helm.sh/helm/v3/pkg/getter"
 	"helm.sh/helm/v3/pkg/helmpath"
@@ -234,8 +238,68 @@ func (h helm3EnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, f
 	return charts, nil
 }
 
-func (h helm3EnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, chart helm.Chart) (helm.Chart, error) {
-	panic("implement me")
+func (h helm3EnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (map[string]interface{}, error) {
+	details, err := h.ListCharts(ctx, helmEnv, filter)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to look up chart")
+	}
+
+	if len(details) != 1 {
+		// todo differentiate errors
+		return nil, errors.New("found zero or more than one repositories")
+	}
+
+	// we have exactly 1 chart, decorate it w/ details
+	var foundCharts repo.ChartVersions
+	if err := mapstructure.Decode(details[filter.RepoFilter()], &foundCharts); err != nil {
+		return nil, errors.WrapIf(err, "failed to decode chart for its details")
+	}
+
+	if foundCharts.Len() != 1 {
+		// todo differentiate errors
+		return nil, errors.New("found zero or more than one chart")
+	}
+
+	// transform the response
+	foundChartPtr := foundCharts[0]
+
+	// get the chart' archive
+	chartRepo, err := repo.NewChartRepository(&repo.Entry{URL: "http://test"}, getter.All(h.processEnvSettings(helmEnv)))
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to setup downloader")
+	}
+
+	buffer, err := chartRepo.Client.Get(foundChartPtr.URLs[0])
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to setup downloader")
+	}
+
+	bufferedFilePtr, err := loader.LoadArchiveFiles(bytes.NewReader(buffer.Bytes()))
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to load archive")
+	}
+
+	detailedChart, err := loader.LoadFiles(bufferedFilePtr)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to load archive")
+	}
+
+	response := struct {
+		Chart  *repo.ChartVersion `json:"chart"`
+		Values string             `json:"values"`
+		Readme string             `json:"readme"`
+	}{
+		Chart:  foundChartPtr,
+		Values: h.getRawChartFileContent("values.yaml", detailedChart),
+		Readme: h.getRawChartFileContent("README.md", detailedChart), // TODO sanitize
+	}
+
+	detailsMap := make(map[string]interface{})
+	if err := mapstructure.Decode(response, &detailsMap); err != nil {
+		return nil, errors.WrapIf(err, "failed to encode chart details")
+	}
+
+	return detailsMap, nil
 }
 
 // processEnvSettings emulates an cli.EnvSettings instance based on the passed in data
@@ -295,4 +359,16 @@ func matchesFilter(filter string, value string) bool {
 	}
 
 	return matches
+}
+
+// getRawFileContent returns the content of the passed in file in the chart details reference
+func (h helm3EnvService) getRawChartFileContent(chartFileName string, chartPtr *chart.Chart) string {
+	for _, chartFile := range chartPtr.Raw {
+		if chartFile.Name == chartFileName {
+			return string(chartFile.Data)
+		}
+	}
+
+	h.logger.Debug("no chart file found", map[string]interface{}{"chartFile": chartFileName})
+	return ""
 }

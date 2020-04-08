@@ -172,14 +172,14 @@ func MakeDeleteRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
 // GetChartRequest is a request struct for GetChart endpoint.
 type GetChartRequest struct {
 	OrganizationID uint
-	ChartName      helm.Chart
+	ChartFilter    helm.ChartFilter
 	Options        helm.Options
 }
 
 // GetChartResponse is a response struct for GetChart endpoint.
 type GetChartResponse struct {
-	Repos []helm.Repository
-	Err   error
+	ChartDetails map[string]interface{}
+	Err          error
 }
 
 func (r GetChartResponse) Failed() error {
@@ -191,23 +191,23 @@ func MakeGetChartEndpoint(service helm.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(GetChartRequest)
 
-		repos, err := service.GetChart(ctx, req.OrganizationID, req.ChartName, req.Options)
+		chartDetails, err := service.GetChart(ctx, req.OrganizationID, req.ChartFilter, req.Options)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
 				return GetChartResponse{
-					Err:   err,
-					Repos: repos,
+					ChartDetails: chartDetails,
+					Err:          err,
 				}, nil
 			}
 
 			return GetChartResponse{
-				Err:   err,
-				Repos: repos,
+				ChartDetails: chartDetails,
+				Err:          err,
 			}, err
 		}
 
-		return GetChartResponse{Repos: repos}, nil
+		return GetChartResponse{ChartDetails: chartDetails}, nil
 	}
 }
 
