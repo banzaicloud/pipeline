@@ -96,7 +96,7 @@ func (m *FederationReconciler) reconcileMemberCluster(desiredState DesiredState,
 		if !m.Configuration.GlobalScope {
 			scope = apiextv1b1.NamespaceScoped
 		}
-		err := kubefedctl.JoinCluster(hostConfig, memberConfig,
+		_, err := kubefedctl.JoinCluster(hostConfig, memberConfig,
 			m.Configuration.TargetNamespace, m.Host.GetName(), c.GetName(),
 			fmt.Sprintf("%s-cluster", c.GetName()), scope, false, false,
 		)

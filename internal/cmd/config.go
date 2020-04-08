@@ -810,11 +810,11 @@ traefik:
 	})
 
 	v.SetDefault("cluster::federation::charts::kubefed::chart", "kubefed-charts/kubefed")
-	v.SetDefault("cluster::federation::charts::kubefed::version", "0.1.0-rc6")
+	v.SetDefault("cluster::federation::charts::kubefed::version", "0.2.0-alpha.1")
 	v.SetDefault("cluster::federation::charts::kubefed::values", map[string]interface{}{
 		"controllermanager": map[string]interface{}{
 			"repository": "banzaicloud",
-			"tag":        "v0.1.0-rc6.1",
+			"tag":        "0.2.0-alpha1.1",
 		},
 	})
 

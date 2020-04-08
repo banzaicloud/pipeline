@@ -142,7 +142,7 @@ require (
 	logur.dev/integration/zap v0.3.2
 	logur.dev/logur v0.16.2
 	sigs.k8s.io/controller-runtime v0.5.0
-	sigs.k8s.io/kubefed v0.1.0-rc6
+	sigs.k8s.io/kubefed v0.2.0-alpha.1
 	sigs.k8s.io/testing_frameworks v0.1.2
 )
 
@@ -182,5 +182,5 @@ replace (
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.17.3
 	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.17.3
 	k8s.io/sample-controller => k8s.io/sample-controller v0.17.3
-	sigs.k8s.io/kubefed => github.com/banzaicloud/kubefed v0.1.0-rc6.1.0.20200210184657-03ba7b7e85c9
+	sigs.k8s.io/kubefed => github.com/kubernetes-sigs/kubefed v0.2.0-alpha.1
 )
