@@ -18,12 +18,11 @@ import (
 	"fmt"
 )
 
-// Chart chart details
-type Chart struct {
-	Repo    string
-	Name    string
-	Version int
-}
+// decouple helm lib types from the api
+type ChartDetails = map[string]interface{}
+
+// decouple helm lib types from the api
+type ChartList = map[string]interface{}
 
 // ChartFilter filter data for chart retrieval
 type ChartFilter struct {

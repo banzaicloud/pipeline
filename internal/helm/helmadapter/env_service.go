@@ -55,10 +55,10 @@ func (h helmEnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, fi
 	return nil, errors.New("not yet implemented")
 }
 
-func (h helmEnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, chart helm.Chart) (helm.Chart, error) {
+func (h helmEnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, chartFilter helm.ChartFilter) (map[string]interface{}, error) {
 	// TODO implement me!
 	h.logger.Error("not yet implemented")
-	return helm.Chart{}, errors.New("not yet implemented")
+	return nil, errors.New("not yet implemented")
 }
 
 func (h helmEnvService) AddRepository(_ context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {

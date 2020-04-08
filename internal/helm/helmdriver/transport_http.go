@@ -77,6 +77,13 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 		kitxhttp.ErrorResponseEncoder(encodeListChartsHTTPResponse, errorEncoder),
 		options...,
 	))
+
+	router.Methods(http.MethodGet).Path("/charts/{reponame}/{name}").Handler(kithttp.NewServer(
+		endpoints.GetChart,
+		decodeChartDetailsHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeChartDetailsHTTPResponse, errorEncoder),
+		options...,
+	))
 }
 
 func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
@@ -559,6 +566,56 @@ func encodeListChartsHTTPResponse(ctx context.Context, w http.ResponseWriter, re
 	}
 
 	return kitxhttp.JSONResponseEncoder(ctx, w, charts.Charts)
+}
+
+func decodeChartDetailsHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, err := extractUintParamFromRequest("orgId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get charts request")
+	}
+
+	var (
+		// inline type for binding request parameters
+		pathData struct {
+			RepoName string
+			Name     string
+		}
+		// inline type for binding request parameters
+		queryData helm.ChartFilter
+	)
+	if err := mapstructure.Decode(mux.Vars(r), &pathData); err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get chart details path parameters")
+	}
+
+	if err := mapstructure.Decode(r.URL.Query(), &queryData); err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get chart details query parameters")
+	}
+
+	queryData.Name = []string{pathData.Name}
+	queryData.Repo = []string{pathData.RepoName}
+
+	return GetChartRequest{
+		OrganizationID: orgID,
+		ChartFilter: helm.ChartFilter{
+			Repo:    []string{pathData.RepoName},
+			Name:    []string{pathData.Name},
+			Version: queryData.Version,
+			Keyword: queryData.Keyword, // TODO is it used?
+		},
+	}, nil
+}
+
+func encodeChartDetailsHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	chart, ok := response.(GetChartResponse)
+	if !ok {
+		return errors.New("invalid  release list response")
+	}
+
+	if chart.Err != nil {
+		return errors.WrapIf(chart.Err, "failed to retrieve charts")
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, chart.ChartDetails)
 }
 
 func extractStringParamFromRequest(key string, r *http.Request) (string, error) {

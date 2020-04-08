@@ -104,21 +104,21 @@ func (_m *MockService) DeleteRepository(ctx context.Context, organizationID uint
 }
 
 // GetChart provides a mock function.
-func (_m *MockService) GetChart(ctx context.Context, organizationID uint, chartName Chart, options Options) (repos []Repository, err error) {
-	ret := _m.Called(ctx, organizationID, chartName, options)
+func (_m *MockService) GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails map[string]interface{}, err error) {
+	ret := _m.Called(ctx, organizationID, chartFilter, options)
 
-	var r0 []Repository
-	if rf, ok := ret.Get(0).(func(context.Context, uint, Chart, Options) []Repository); ok {
-		r0 = rf(ctx, organizationID, chartName, options)
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(context.Context, uint, ChartFilter, Options) map[string]interface{}); ok {
+		r0 = rf(ctx, organizationID, chartFilter, options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]Repository)
+			r0 = ret.Get(0).(map[string]interface{})
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, uint, Chart, Options) error); ok {
-		r1 = rf(ctx, organizationID, chartName, options)
+	if rf, ok := ret.Get(1).(func(context.Context, uint, ChartFilter, Options) error); ok {
+		r1 = rf(ctx, organizationID, chartFilter, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -350,33 +350,12 @@ func (_m *MockEnvService) DeleteRepository(ctx context.Context, helmEnv HelmEnv,
 }
 
 // GetChart provides a mock function.
-func (_m *MockEnvService) GetChart(ctx context.Context, helmEnv HelmEnv, chart Chart) (Chart, error) {
-	ret := _m.Called(ctx, helmEnv, chart)
-
-	var r0 Chart
-	if rf, ok := ret.Get(0).(func(context.Context, HelmEnv, Chart) Chart); ok {
-		r0 = rf(ctx, helmEnv, chart)
-	} else {
-		r0 = ret.Get(0).(Chart)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, HelmEnv, Chart) error); ok {
-		r1 = rf(ctx, helmEnv, chart)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// ListCharts provides a mock function.
-func (_m *MockEnvService) ListCharts(ctx context.Context, helmEnv HelmEnv, filter ChartFilter) (map[string]interface{}, error) {
-	ret := _m.Called(ctx, helmEnv, filter)
+func (_m *MockEnvService) GetChart(ctx context.Context, helmEnv HelmEnv, chartFilter ChartFilter) (chartDetails map[string]interface{}, err error) {
+	ret := _m.Called(ctx, helmEnv, chartFilter)
 
 	var r0 map[string]interface{}
 	if rf, ok := ret.Get(0).(func(context.Context, HelmEnv, ChartFilter) map[string]interface{}); ok {
-		r0 = rf(ctx, helmEnv, filter)
+		r0 = rf(ctx, helmEnv, chartFilter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]interface{})
@@ -385,7 +364,30 @@ func (_m *MockEnvService) ListCharts(ctx context.Context, helmEnv HelmEnv, filte
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, HelmEnv, ChartFilter) error); ok {
-		r1 = rf(ctx, helmEnv, filter)
+		r1 = rf(ctx, helmEnv, chartFilter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListCharts provides a mock function.
+func (_m *MockEnvService) ListCharts(ctx context.Context, helmEnv HelmEnv, chartFilter ChartFilter) (chartList map[string]interface{}, err error) {
+	ret := _m.Called(ctx, helmEnv, chartFilter)
+
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(context.Context, HelmEnv, ChartFilter) map[string]interface{}); ok {
+		r0 = rf(ctx, helmEnv, chartFilter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]interface{})
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, HelmEnv, ChartFilter) error); ok {
+		r1 = rf(ctx, helmEnv, chartFilter)
 	} else {
 		r1 = ret.Error(1)
 	}
