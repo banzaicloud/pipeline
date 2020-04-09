@@ -19,13 +19,15 @@ import (
 	"strings"
 )
 
-// decouple helm lib types from the api
+// decouples helm lib types from the api
 type ChartDetails = map[string]interface{}
 
-// decouple helm lib types from the api
+// decouples helm lib types from the api
 type ChartList = []interface{}
 
 // ChartFilter filter data for chart retrieval
+// all fields are slices in order to support forthcoming filtering on multiple values
+// Filter values are expected to be used through functions
 type ChartFilter struct {
 	Repo    []string
 	Name    []string
@@ -37,31 +39,19 @@ func (cf ChartFilter) String() string {
 	return fmt.Sprintf("repo: %s, chart: %s, version %s", cf.RepoFilter(), cf.NameFilter(), cf.VersionFilter())
 }
 
-// RepoFilter gets the string filter
+// RepoFilter gets the string filter eventually trims leading and trailing regexp chars
 func (cf ChartFilter) RepoFilter() string {
-
-	repoFilter := firstOrEmpty(cf.Repo)
-
-	// trim  regexp markers -if exist
-	return strings.TrimSuffix(strings.TrimPrefix(repoFilter, "^"), "$")
+	// trim regexp markers -if exist
+	return strings.TrimSuffix(strings.TrimPrefix(firstOrEmpty(cf.Repo), "^"), "$")
 }
 
 // StrictRepoFilter wraps the filter with regexp markers for exact match
 func (cf ChartFilter) StrictRepoFilter() string {
-	repoFilter := cf.RepoFilter()
-	if repoFilter != "" {
-		repoFilter = fmt.Sprintf("%s%s%s", "^", repoFilter, "$")
-	}
-	return repoFilter
+	return exactMatchRegexp(cf.RepoFilter())
 }
 
 func (cf ChartFilter) NameFilter() string {
-	// exact match always!
-	chartNameFilter := firstOrEmpty(cf.Name)
-	if chartNameFilter != "" {
-		chartNameFilter = fmt.Sprintf("%s%s%s", "^", chartNameFilter, "$")
-	}
-	return chartNameFilter
+	return exactMatchRegexp(firstOrEmpty(cf.Name))
 }
 
 func (cf ChartFilter) VersionFilter() string {
@@ -86,4 +76,11 @@ func firstOrEmpty(slice []string) string {
 		return ""
 	}
 	return slice[0]
+}
+
+func exactMatchRegexp(value string) string {
+	if value == "" {
+		return value
+	}
+	return fmt.Sprintf("%s%s%s", "^", value, "$")
 }
