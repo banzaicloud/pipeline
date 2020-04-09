@@ -16,13 +16,14 @@ package helm
 
 import (
 	"fmt"
+	"strings"
 )
 
 // decouple helm lib types from the api
 type ChartDetails = map[string]interface{}
 
 // decouple helm lib types from the api
-type ChartList = map[string]interface{}
+type ChartList = []interface{}
 
 // ChartFilter filter data for chart retrieval
 type ChartFilter struct {
@@ -36,8 +37,22 @@ func (cf ChartFilter) String() string {
 	return fmt.Sprintf("repo: %s, chart: %s, version %s", cf.RepoFilter(), cf.NameFilter(), cf.VersionFilter())
 }
 
+// RepoFilter gets the string filter
 func (cf ChartFilter) RepoFilter() string {
-	return firstOrEmpty(cf.Repo)
+
+	repoFilter := firstOrEmpty(cf.Repo)
+
+	// trim  regexp markers -if exist
+	return strings.TrimSuffix(strings.TrimPrefix(repoFilter, "^"), "$")
+}
+
+// StrictRepoFilter wraps the filter with regexp markers for exact match
+func (cf ChartFilter) StrictRepoFilter() string {
+	repoFilter := cf.RepoFilter()
+	if repoFilter != "" {
+		repoFilter = fmt.Sprintf("%s%s%s", "^", repoFilter, "$")
+	}
+	return repoFilter
 }
 
 func (cf ChartFilter) NameFilter() string {
@@ -51,6 +66,10 @@ func (cf ChartFilter) NameFilter() string {
 
 func (cf ChartFilter) VersionFilter() string {
 	versionFilter := firstOrEmpty(cf.Version)
+	// special case (backwards comp.)
+	if versionFilter == "all" {
+		return versionFilter
+	}
 	if versionFilter != "" {
 		versionFilter = fmt.Sprintf("%s%s", "^", versionFilter)
 	}

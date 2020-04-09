@@ -126,7 +126,8 @@ func (h helm3EnvService) DeleteRepository(ctx context.Context, helmEnv helm.Helm
 	r, err := repo.LoadFile(repoFile)
 	if err != nil {
 		if os.IsNotExist(errors.Cause(err)) || len(r.Repositories) == 0 {
-			return errors.New("no repositories configured")
+			h.logger.Warn("no  repositories configured, nothing to do")
+			return nil
 		}
 	}
 
@@ -176,82 +177,53 @@ func (h helm3EnvService) UpdateRepository(ctx context.Context, helmEnv helm.Helm
 }
 
 // ListCharts finds the charts based on the provided filter
-func (h helm3EnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (map[string]interface{}, error) {
-	// reponame -> chartversions
-	charts := make(map[string]interface{})
+func (h helm3EnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartList, error) {
 
-	repoFile, err := repo.LoadFile(helmEnv.GetHome())
+	// retrieve the list
+	chartVersionsSlice, err := h.listCharts(ctx, helmEnv, filter)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to load repo file")
+		return nil, errors.WrapIf(err, "failed to retrieve chart list")
 	}
 
-	if filter.RepoFilter() != "" && !repoFile.Has(filter.RepoFilter()) {
-		return nil, errors.WrapIfWithDetails(err, "repository not found", "filter", filter)
+	// adapt it to the existing api
+	type repoChartType struct {
+		Name   string        `json:"name"`
+		Charts []interface{} `json:"charts"`
 	}
 
-	for _, repoEntry := range repoFile.Repositories {
-		if !matchesFilter(filter.RepoFilter(), repoEntry.Name) {
-			h.logger.Debug("repository name doesn't match the filter",
-				map[string]interface{}{"filter": filter.RepoFilter(), "repoEntry": repoEntry.Name})
-			// skip further processing
-			continue
+	adaptedList := make(helm.ChartList, 0, 0)
+	var chartEntry repoChartType
+
+	for _, chartVersions := range chartVersionsSlice {
+		chartEntry = repoChartType{
+			Name:   filter.RepoFilter(),
+			Charts: make([]interface{}, 0, 0),
 		}
-
-		repoIndexFilePath := path.Join(helmEnv.GetRepoCache(), helmpath.CacheIndexFile(repoEntry.Name))
-		repoIndexFile, err := repo.LoadIndexFile(repoIndexFilePath)
-		if err != nil {
-			return nil, errors.WrapIf(err, "failed to load index file for repo")
+		for _, chartVersion := range chartVersions {
+			// omg!
+			chartEntry.Charts = append(chartEntry.Charts, []interface{}{chartVersion})
 		}
-
-		repoCharts := make([]interface{}, 0, 0)
-		for chartRepo, chartVersions := range repoIndexFile.Entries {
-			if !matchesFilter(filter.NameFilter(), chartRepo) {
-				h.logger.Debug("chart name doesn't match the filter, skipping the entry",
-					map[string]interface{}{"filter": filter.NameFilter(), "chart": chartRepo})
-				// skip further processing
-				continue
-			}
-
-			for _, chartVersion := range chartVersions {
-				if !matchesFilter(filter.KeywordFilter(), strings.Join(chartVersion.Keywords, " ")) {
-					h.logger.Debug("chart keywords don't match the filter, skipping the version",
-						map[string]interface{}{"filter": filter.KeywordFilter(), "keywords": chartVersion.Keywords})
-					// skip further processing
-					continue
-				}
-
-				//  todo use semver for filtering versions
-				if !matchesFilter(filter.VersionFilter(), chartVersion.Version) {
-					h.logger.Debug("chart version doesn't match the filter, skipping the version",
-						map[string]interface{}{"filter": filter.VersionFilter(), "version": chartVersion.Version})
-					// skip further processing
-					continue
-				}
-
-				repoCharts = append(repoCharts, chartVersion)
-			}
-		}
-
-		charts[repoEntry.Name] = repoCharts
 	}
 
-	return charts, nil
+	adaptedList = append(adaptedList, chartEntry)
+
+	return adaptedList, nil
 }
 
-func (h helm3EnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (map[string]interface{}, error) {
+func (h helm3EnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartDetails, error) {
 	details, err := h.ListCharts(ctx, helmEnv, filter)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to look up chart")
 	}
 
 	if len(details) != 1 {
-		// todo differentiate errors
+		// TODO differentiate errors
 		return nil, errors.New("found zero or more than one repositories")
 	}
 
 	// we have exactly 1 chart, decorate it w/ details
 	var foundCharts repo.ChartVersions
-	if err := mapstructure.Decode(details[filter.RepoFilter()], &foundCharts); err != nil {
+	if err := mapstructure.Decode(details[0], &foundCharts); err != nil {
 		return nil, errors.WrapIf(err, "failed to decode chart for its details")
 	}
 
@@ -371,4 +343,69 @@ func (h helm3EnvService) getRawChartFileContent(chartFileName string, chartPtr *
 
 	h.logger.Debug("no chart file found", map[string]interface{}{"chartFile": chartFileName})
 	return ""
+}
+
+// listCharts retrieves  charts based on the input data
+// operates with h3 lib types
+func (h helm3EnvService) listCharts(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) ([]repo.ChartVersions, error) {
+	chartListSlice := make([]repo.ChartVersions, 0, 0)
+
+	repoFile, err := repo.LoadFile(helmEnv.GetHome())
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to load repo file")
+	}
+
+	if filter.RepoFilter() != "" && !repoFile.Has(filter.RepoFilter()) {
+		return nil, errors.WrapIfWithDetails(err, "repository not found", "filter", filter)
+	}
+
+	for _, repoEntry := range repoFile.Repositories {
+		if !matchesFilter(fmt.Sprintf("%s%s%s", "^", filter.RepoFilter(), "$"), repoEntry.Name) {
+			h.logger.Debug("repository name doesn't match the filter",
+				map[string]interface{}{"filter": filter.RepoFilter(), "repoEntry": repoEntry.Name})
+			// skip further processing
+			continue
+		}
+
+		repoIndexFilePath := path.Join(helmEnv.GetRepoCache(), helmpath.CacheIndexFile(repoEntry.Name))
+		repoIndexFile, err := repo.LoadIndexFile(repoIndexFilePath)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to load index file for repo")
+		}
+
+		repoCharts := make(repo.ChartVersions, 0, 0)
+		for chartRepo, chartVersions := range repoIndexFile.Entries {
+			if !matchesFilter(filter.NameFilter(), chartRepo) {
+				h.logger.Debug("chart name doesn't match the filter, skipping the entry",
+					map[string]interface{}{"filter": filter.NameFilter(), "chart": chartRepo})
+				// skip further processing
+				continue
+			}
+
+			for _, chartVersion := range chartVersions {
+				if !matchesFilter(filter.KeywordFilter(), strings.Join(chartVersion.Keywords, " ")) {
+					h.logger.Debug("chart keywords don't match the filter, skipping the version",
+						map[string]interface{}{"filter": filter.KeywordFilter(), "keywords": chartVersion.Keywords})
+					// skip further processing
+					continue
+				}
+
+				switch filter.VersionFilter() {
+				case "all":
+					// special case: collect all versions for the chart Backwards compatibility!
+					repoCharts = append(repoCharts, chartVersion)
+				default:
+					if !matchesFilter(filter.VersionFilter(), chartVersion.Version) {
+						h.logger.Debug("chart version doesn't match the filter, skipping the version",
+							map[string]interface{}{"filter": filter.VersionFilter(), "version": chartVersion.Version})
+						// skip further processing
+						continue
+					}
+					repoCharts = append(repoCharts, chartVersion)
+				}
+			}
+		}
+		chartListSlice = append(chartListSlice, repoCharts)
+	}
+	return chartListSlice, nil
 }

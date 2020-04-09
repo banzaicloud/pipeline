@@ -566,7 +566,11 @@ func encodeListChartsHTTPResponse(ctx context.Context, w http.ResponseWriter, re
 		return errors.WrapIf(charts.Err, "failed to retrieve charts")
 	}
 
-	return kitxhttp.JSONResponseEncoder(ctx, w, charts.Charts)
+	if len(charts.Charts) == 0 {
+		return kitxhttp.JSONResponseEncoder(ctx, w, "")
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, []interface{}{charts.Charts[0]})
 }
 
 func decodeChartDetailsHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
