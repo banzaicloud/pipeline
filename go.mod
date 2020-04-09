@@ -182,5 +182,4 @@ replace (
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.17.3
 	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.17.3
 	k8s.io/sample-controller => k8s.io/sample-controller v0.17.3
-	sigs.k8s.io/kubefed => github.com/kubernetes-sigs/kubefed v0.2.0-alpha.1
 )
