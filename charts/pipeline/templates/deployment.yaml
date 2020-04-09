@@ -3,31 +3,25 @@ kind: Deployment
 metadata:
   name: {{ include "pipeline.fullname" . }}
   labels:
-    app: {{ include "pipeline.name" . }}
-    chart: {{ include "pipeline.chart" . }}
-    release: "{{ .Release.Name }}"
-    heritage: "{{ .Release.Service }}"
-    {{- if .Values.deploymentLabels }}
-{{ toYaml .Values.deploymentLabels | indent 4 }}
-    {{- end }}
+    {{ include "pipeline.labels" . | nindent 4 }}
   annotations:
-{{ toYaml .Values.deploymentAnnotations | indent 4 }}
+    {{- with .Values.deploymentAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
-  {{- if .Values.strategy }}
   strategy:
-{{ toYaml .Values.strategy | indent 4 }}
-  {{- end }}
+     {{ toYaml .Values.strategy | nindent 4 }}
   selector:
     matchLabels:
-      app: {{ include "pipeline.name" . }}
-      release: "{{ .Release.Name }}"
+      app.kubernetes.io/name: {{ include "pipeline.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       name: {{ include "pipeline.fullname" . }}
       labels:
-        app: {{ include "pipeline.name" . }}
-        release: "{{ .Release.Name }}"
+        app.kubernetes.io/name: {{ include "pipeline.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum | quote }}
       {{- if .Values.metrics.enabled  }}
@@ -35,128 +29,60 @@ spec:
         prometheus.io/path: "/metrics"
         prometheus.io/port: {{ .Values.metrics.port | quote }}
       {{- end }}
-
     spec:
       hostAliases:
         {{- toYaml .Values.hostAliases | nindent 8 }}
-      initContainers:
-      {{- if .Values.mysql.enabled  }}
-      - name: check-db-service
-        image: busybox
-        command: ['sh', '-c', 'until nslookup {{ .Release.Name }}-pipeline-db; do echo waiting for {{ .Release.Name }}-pipeline-db; sleep 1; done;']
-      - name: check-db-port
-        image: busybox
-        command: ['sh', '-c', 'echo STATUS nc -w 2 {{ .Release.Name }}-pipeline-db 3306']
-      {{- end }}
-
       containers:
       - name: pipeline
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         args: ["/pipeline", "--addr=0.0.0.0:{{ .Values.service.internalPort }}", "--telemetry-addr=0.0.0.0:9900"]
         env:
-        - name: PIPELINE_TELEMETRY_ENABLED
-          value: {{ .Values.metrics.enabled | quote }}
-        - name: PIPELINE_CONFIG_DIR
-          value: /config
-        # Database related section
-        - name: PIPELINE_DATABASE_HOST
-          value: {{ include "pipeline.database.host" . }}
-        - name: PIPELINE_DATABASE_PORT
-          value: {{ include "pipeline.database.port" . | quote }}
-        - name: PIPELINE_DATABASE_TLS
-          value: {{ include "pipeline.database.tls" . | quote }}
-        - name: PIPELINE_DATABASE_NAME
-          value: {{ include "pipeline.database.name" . }}
-        - name: PIPELINE_DATABASE_USER
-          value: {{ include "pipeline.database.username" . }}
-        - name : PIPELINE_DATABASE_DIALECT
-          value: {{ include "pipeline.database.driver" . }}
-        - name: PIPELINE_DATABASE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "pipeline.database.secretName" .}}
-              key: {{ include "pipeline.database.secretKey" .}}
-
-        - name: PIPELINE_CICD_DATABASE_HOST
-          value: {{ include "pipeline.database.host" . }}
-        - name: PIPELINE_CICD_DATABASE_PORT
-          value: {{ include "pipeline.database.port" . | quote }}
-        - name: PIPELINE_CICD_DATABASE_TLS
-          value: {{ include "pipeline.database.tls" . | quote }}
-        - name: PIPELINE_CICD_DATABASE_USER
-          value: {{ include "pipeline.database.username" . }}
-        - name : PIPELINE_CICD_DATABASE_DIALECT
-          value: {{ include "pipeline.database.driver" . }}
-        - name: PIPELINE_CICD_DATABASE_PASSWORD
-          valueFrom:
+          - name: PIPELINE_TELEMETRY_ENABLED
+            value: {{ .Values.metrics.enabled | quote }}
+          # Database password from secret
+          {{- if .Values.configuration.database.password }}
+          - name: PIPELINE_DATABASE_PASSWORD
+            valueFrom:
               secretKeyRef:
-                  name: {{ include "pipeline.database.secretName" .}}
-                  key: {{ include "pipeline.database.secretKey" .}}
+                name: {{ include "pipeline.fullname" . }}-database
+                key: password
+          {{- end }}
+          # Authentication configuration
+          - name: PIPELINE_AUTH_OIDC_CLIENTID
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pipeline.fullname" . }}
+                key: clientId
+          - name: PIPELINE_AUTH_OIDC_CLIENTSECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pipeline.fullname" . }}
+                key: clientSecret
+          - name: PIPELINE_AUTH_TOKEN_SIGNINGKEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pipeline.fullname" . }}
+                key: tokenSigningKey
 
-        # Authentication configuration
-        - name: PIPELINE_AUTH_OIDC_CLIENTID
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "pipeline.fullname" . }}
-              key: githubClientId
-        - name: PIPELINE_AUTH_OIDC_CLIENTSECRET
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "pipeline.fullname" . }}
-              key: githubClientSecret
-        - name: PIPELINE_AUTH_TOKEN_SIGNINGKEY
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "pipeline.fullname" . }}
-              key: tokenSigningKey
-        - name: PIPELINE_GITHUB_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "pipeline.fullname" . }}
-              key: githubToken
-        # Vault configuration
-        - name: VAULT_ADDR
-          value: {{ .Values.vault.serviceAddress }}
-        {{- if .Values.vault.tlsSecret }}
-        - name: VAULT_CACERT
-          value: /vault/tls/ca.crt
-        {{ else }}
-        - name: VAULT_SKIP_VERIFY
-          value: "true"
-        {{- end }}
+          # Vault configuration
+          - name: VAULT_ADDR
+            value: {{ .Values.configuration.vault.address }}
+          - name: VAULT_SKIP_VERIFY
+            value: {{ .Values.configuration.vault.insecure | quote }}
 
-        # Pipeline service and TLS
-        - name: PIPELINE_PIPELINE_CACERTFILE
-          value: /tls/ca.crt
-        - name: PIPELINE_PIPELINE_CERTFILE
-          value: /tls/tls.crt
-        - name: PIPELINE_PIPELINE_KEYFILE
-          value: /tls/tls.key
-        - name: PIPELINECTL_API_URL
-          value: "https://127.0.0.1:{{ .Values.service.internalPort }}"
-        - name: PIPELINECTL_API_VERIFY
-          value: "false"
-        # Anchore configuration
-        {{- if .Values.configuration.cluster.securityScan.anchore.enabled }}
-        - name: PIPELINE_CLUSTER_SECURITYSCAN_ANCHORE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.configuration.cluster.securityScan.anchore.secretName }}
-              key: {{ .Values.configuration.cluster.securityScan.anchore.secretKey }}
-        {{ end }}
-        # Additional environment variables
-        {{ range $key, $value := .Values.env }}
-        - name: {{ $key }}
-          value: {{ $value | quote }}
-        {{ end }}
-
+          # Additional environment variables
+          {{- if .Values.extraEnvs }}
+          {{ toYaml .Values.extraEnvs | nindent 10 }}
+          {{- end }}
         ports:
-        {{- if .Values.metrics.enabled }}
-        - name: metrics
-          containerPort: 9900
-        {{- end }}
-        - containerPort: {{ .Values.service.internalPort }}
+          {{- if .Values.metrics.enabled }}
+          - name: metrics
+            containerPort: {{ .Values.metrics.port }}
+          {{- end }}
+          - name: pipeline
+            containerPort: {{ .Values.service.internalPort }}
+
         livenessProbe:
           httpGet:
             path: {{ .Values.configuration.pipeline.basePath }}/api
@@ -170,38 +96,23 @@ spec:
             scheme: HTTPS
           initialDelaySeconds: 10
         resources:
-{{ toYaml .Values.resources | indent 12 }}
-
+          {{ toYaml .Values.resources | nindent 12 }}
         volumeMounts:
-        - name: config-volume
-          mountPath: /config
-
-      {{- if .Values.vault.tlsSecret }}
-        - name: vault-tls
-          mountPath: /vault/tls
-       {{ end }}
-        - name: pipeline-tls
-          mountPath: /tls
-      {{- if eq .Values.configuration.cluster.ingress.cert.source "file" }}
-        - name: sign-ca
-          mountPath: {{ .Values.configuration.cluster.ingress.cert.path }}
-      {{ end }}
+          - name: config-volume
+            mountPath: /config
+          - name: pipeline-tls
+            mountPath: /tls
+          {{- if .Values.extraVolumeMounts }}
+          {{ toYaml .Values.extraVolumeMounts | nindent 10 }}
+          {{- end }}
       volumes:
-      - name: config-volume
-        configMap:
-          name: {{ include "pipeline.fullname" . }}
-
-      {{- if .Values.vault.tlsSecret }}
-      - name: vault-tls
-        secret:
-          secretName: {{ .Release.Name }}-vault-tls
-      {{ end }}
-      - name: pipeline-tls
-        secret:
-          secretName: {{ include "pipeline-tls-secret-name" . }}
-      {{- if eq .Values.configuration.cluster.ingress.cert.source "file" }}
-      - name: sign-ca
-        secret:
-          secretName: {{ include "pipeline.fullname" . }}-sign-ca
-      {{ end }}
-      serviceAccountName: pipeline
+        - name: config-volume
+          configMap:
+            name: {{ include "pipeline.fullname" . }}
+        - name: pipeline-tls
+          secret:
+            secretName: {{ include "pipeline-tls-secret-name" . }}
+        {{- if .Values.extraVolumes }}
+        {{ toYaml .Values.extraVolumes | nindent 8}}
+        {{- end }}
+      serviceAccountName: {{ template "pipeline.serviceAccountName" . }}

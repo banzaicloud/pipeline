@@ -50,8 +50,26 @@ worker:
       cpu: 250m
       memory: 256Mi
 
-  deploymentLabels: {}
   deploymentAnnotations: {}
+
+  ## Additional environment variables to set
+  extraEnvs: []
+  # extraEnvs:
+  #   - name: FOO
+  #     valueFrom:
+  #       secretKeyRef:
+  #         key: FOO
+  #         name: secret-resource
+
+  extraVolumeMounts: []
+  ## Additional volumeMounts to the controller main container.
+  #  - name: copy-portal-skins
+  #   mountPath: /var/lib/lemonldap-ng/portal/skins
+
+  extraVolumes: []
+  ## Additional volumes to the controller pod.
+  #  - name: copy-portal-skins
+  #    emptyDir: {}
 
 service:
   name: pipeline
@@ -85,7 +103,24 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
-env: {}
+## Additional environment variables to set
+extraEnvs: []
+# extraEnvs:
+#   - name: FOO
+#     valueFrom:
+#       secretKeyRef:
+#         key: FOO
+#         name: secret-resource
+
+extraVolumeMounts: []
+## Additional volumeMounts to the controller main container.
+#  - name: copy-portal-skins
+#   mountPath: /var/lib/lemonldap-ng/portal/skins
+
+extraVolumes: []
+## Additional volumes to the controller pod.
+#  - name: copy-portal-skins
+#    emptyDir: {}
 
 ## Additional deployment labels and annotations
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
@@ -96,17 +131,26 @@ deploymentAnnotations: {}
 metrics:
   enabled: false
   port: 9900
-  serviceMonitor:
-    enabled: false
-    additionalLabels: {}
-  alertRulesEnabled: false
 
 ## The Pipeline configuration definition
 configuration:
+  # Authentication
+  auth:
+    oidc:
+      clientId: ""
+      clientSecret: ""
+
+    token:
+      signingKey: ""
+
   # Pipeline configs
   pipeline:
     basePath: /pipeline
+    caCertFile: /tls/ca.crt
+    certFile: /tls/tls.crt
+    keyFile: /tls/tls.key
 
+  # Cluster integration service settings
   cluster:
     ingress:
       cert:
@@ -123,75 +167,24 @@ configuration:
         secretName: ""
         secretKey: adminPassword
 
-  cicd:
-    url: http://cicd:8000
+  # Database configuration
+  database:
+    # mysql, postgres
+    driver: ""
+    host: ""
+    port: ""
+    tls: "false"
+    name: "pipeline"
+    user: "pipeline"
+    password: ""
 
-  github:
-    token: ""
+  # Vault related configuration
+  vault:
+    address: ""
+    insecure: false
 
-  # Authentication
-  auth:
-    oidc:
-      issuer: http://dex:5556/dex
-      clientId: ""
-      clientSecret: ""
+serviceAccount:
+  create: true
+  name:
 
-    token:
-      signingKey: ""
 
-  # Pipeline Helm related configuration
-  helm:
-    home: "/cache/helm"
-
-##
-## Vault connector settings
-##
-vault:
-  # Vault service endpoint
-  serviceAddress: "https://vault:8200"
-  # The secret that holds the Vault CA cert.
-  # If left empty SKIP_VERIFY will be used.
-  tlsSecret: ""
-
-##
-## MySQL configuration
-## Read more: https://github.com/helm/charts/tree/master/stable/mysql
-##
-mysql:
-  enabled: false
-
-## Postgres configuration
-## Read more: https://github.com/helm/charts/tree/master/stable/postgresql
-##
-postgres:
-  enabled: true
-  service: {}
-
-##
-## CloudSQL configuration
-## Read more: https://github.com/rimusz/charts/tree/master/stable/gcloud-sqlproxy
-##
-cloudsql:
-  enabled: false
-  cloudsql:
-    instances: []
-    # instances:
-    #   - project:
-    #     region:
-    #     instance:
-    #     port:
-
-# Database configuration
-database:
-  # mysql, postgres
-  driver: ""
-  host: ""
-  port: ""
-  tls: ""
-  name: "pipeline"
-  username: "pipeline-rw"
-  password: ""
-  existingSecret: ""
-
-global:
-  postgresql: {}
