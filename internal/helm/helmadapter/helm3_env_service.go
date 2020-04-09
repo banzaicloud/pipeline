@@ -17,6 +17,7 @@ package helmadapter
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -31,6 +32,7 @@ import (
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/gofrs/flock"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/mitchellh/mapstructure"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
@@ -211,29 +213,19 @@ func (h helm3EnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, f
 }
 
 func (h helm3EnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartDetails, error) {
-	details, err := h.ListCharts(ctx, helmEnv, filter)
+	chartInSlice, err := h.listCharts(ctx, helmEnv, filter)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to look up chart")
 	}
 
-	if len(details) != 1 {
+	if len(chartInSlice) != 1 {
 		// TODO differentiate errors
 		return nil, errors.New("found zero or more than one repositories")
 	}
 
-	// we have exactly 1 chart, decorate it w/ details
-	var foundCharts repo.ChartVersions
-	if err := mapstructure.Decode(details[0], &foundCharts); err != nil {
-		return nil, errors.WrapIf(err, "failed to decode chart for its details")
-	}
-
-	if foundCharts.Len() != 1 {
-		// todo differentiate errors
-		return nil, errors.New("found zero or more than one chart")
-	}
-
 	// transform the response
-	foundChartPtr := foundCharts[0]
+	//todo iterate over versions
+	foundChartPtr := chartInSlice[0][0]
 
 	// get the chart' archive
 	chartRepo, err := repo.NewChartRepository(&repo.Entry{URL: "http://test"}, getter.All(h.processEnvSettings(helmEnv)))
@@ -256,14 +248,28 @@ func (h helm3EnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, fil
 		return nil, errors.WrapIf(err, "failed to load archive")
 	}
 
-	response := struct {
-		Chart  *repo.ChartVersion `json:"chart"`
-		Values string             `json:"values"`
-		Readme string             `json:"readme"`
-	}{
-		Chart:  foundChartPtr,
-		Values: h.getRawChartFileContent("values.yaml", detailedChart),
-		Readme: h.getRawChartFileContent("README.md", detailedChart), // TODO sanitize
+	// adapt the response format to the API
+	type chartVersion struct {
+		Chart  *repo.ChartVersion `json:"chart" mapstructure:"chart"`
+		Values string             `json:"values" mapstructure:"values"`
+		Readme string             `json:"readme" mapstructure:"readme"`
+	}
+	type chartDetails struct {
+		Name     string          `json:"name" mapstructure:"name"`
+		Repo     string          `json:"repo" mapstructure:"repo"`
+		Versions []*chartVersion `json:"versions" mapstructure:"versions"`
+	}
+
+	response := chartDetails{
+		Name: foundChartPtr.Name,
+		Repo: filter.RepoFilter(),
+		Versions: []*chartVersion{
+			{
+				Chart:  foundChartPtr,
+				Values: h.getRawChartFileContent("values.yaml", detailedChart),
+				Readme: h.getRawChartFileContent("README.md", detailedChart), // TODO sanitize,
+			},
+		},
 	}
 
 	detailsMap := make(map[string]interface{})
@@ -337,7 +343,11 @@ func matchesFilter(filter string, value string) bool {
 func (h helm3EnvService) getRawChartFileContent(chartFileName string, chartPtr *chart.Chart) string {
 	for _, chartFile := range chartPtr.Raw {
 		if chartFile.Name == chartFileName {
-			return string(chartFile.Data)
+			content := chartFile.Data
+			if strings.HasSuffix(chartFileName, ".md") {
+				content = bluemonday.UGCPolicy().SanitizeBytes(content)
+			}
+			return base64.StdEncoding.EncodeToString(content)
 		}
 	}
 
@@ -408,4 +418,9 @@ func (h helm3EnvService) listCharts(ctx context.Context, helmEnv helm.HelmEnv, f
 		chartListSlice = append(chartListSlice, repoCharts)
 	}
 	return chartListSlice, nil
+}
+
+func (h helm3EnvService) getDetailedChart() (*chart.Chart, error) {
+
+	return nil, nil
 }
