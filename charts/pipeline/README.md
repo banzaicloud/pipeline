@@ -1,8 +1,8 @@
 # Pipeline
 
-Banzai Pipeline, or simply [Pipeline](https://banzaicloud.io) is a tabletop reef break located in Hawaii, Oahu's North Shore. The most famous and infamous reef in the universe is the benchmark by which all other waves are measured.
+Banzai Pipeline, or simply [Pipeline](https://banzaicloud.com/docs/pipeline/overview/) is a tabletop reef break located in Hawaii, Oahu's North Shore. The most famous and infamous reef in the universe is the benchmark by which all other waves are measured.
 
-Pipeline enables developers to go from commit to scale in minutes by turning Kubernetes into a feature rich application platform integrating CI/CD, centralized logging, monitoring, enterprise-grade security, cost management and autoscaling.
+Banzai Cloud Pipeline is a solution-oriented application platform which allows enterprises to develop, deploy and securely scale container-based applications in multi- and hybrid-cloud environments.
 
 ## TL;DR;
 
@@ -13,11 +13,17 @@ $ helm repo update
 
 ## Introduction
 
-This chart bootstraps a [Pipeline](https://github.com/banzaicloud/pipeline) deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
+This chart bootstraps a [Pipeline](https://github.com/banzaicloud/pipeline) deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager, but 
+**the recommended way to install the Pipeline ecosystem is using the [Banzai CLI tool](https://banzaicloud.com/docs/pipeline/quickstart/)**.
 
 ## Prerequisites
 
 - Kubernetes 1.12+
+- External services
+  - Vault
+  - Mysql or Postgres
+  - Cadence
+  - Dex
 
 ## Installing the Chart
 
