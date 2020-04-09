@@ -119,11 +119,11 @@ func (h helm3EnvService) AddRepository(ctx context.Context, helmEnv helm.HelmEnv
 	return nil
 }
 
-func (h helm3EnvService) ListRepositories(ctx context.Context, helmEnv helm.HelmEnv) ([]helm.Repository, error) {
+func (h helm3EnvService) ListRepositories(_ context.Context, helmEnv helm.HelmEnv) ([]helm.Repository, error) {
 	return []helm.Repository{}, nil
 }
 
-func (h helm3EnvService) DeleteRepository(ctx context.Context, helmEnv helm.HelmEnv, repoName string) error {
+func (h helm3EnvService) DeleteRepository(_ context.Context, helmEnv helm.HelmEnv, repoName string) error {
 	repoFile := helmEnv.GetHome()
 	r, err := repo.LoadFile(repoFile)
 	if err != nil {
@@ -154,7 +154,7 @@ func (h helm3EnvService) PatchRepository(ctx context.Context, helmEnv helm.HelmE
 	return h.UpdateRepository(ctx, helmEnv, repository)
 }
 
-func (h helm3EnvService) UpdateRepository(ctx context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
+func (h helm3EnvService) UpdateRepository(_ context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
 	settings := h.processEnvSettings(helmEnv)
 
 	f, err := repo.LoadFile(helmEnv.GetHome())
@@ -223,60 +223,12 @@ func (h helm3EnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, fil
 	}
 
 	// transform the response
-	//todo iterate over versions
-	foundChartPtr := chartInSlice[0][0]
-
-	// get the chart' archive
-	chartRepo, err := repo.NewChartRepository(&repo.Entry{URL: "http://test"}, getter.All(h.processEnvSettings(helmEnv)))
+	detailedCharts, err := h.getDetailedCharts(ctx, helmEnv, chartInSlice[0])
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to setup downloader")
+		return nil, errors.WrapIf(err, "failed to get detailed charts")
 	}
 
-	buffer, err := chartRepo.Client.Get(foundChartPtr.URLs[0])
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to setup downloader")
-	}
-
-	bufferedFilePtr, err := loader.LoadArchiveFiles(bytes.NewReader(buffer.Bytes()))
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to load archive")
-	}
-
-	detailedChart, err := loader.LoadFiles(bufferedFilePtr)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to load archive")
-	}
-
-	// adapt the response format to the API
-	type chartVersion struct {
-		Chart  *repo.ChartVersion `json:"chart" mapstructure:"chart"`
-		Values string             `json:"values" mapstructure:"values"`
-		Readme string             `json:"readme" mapstructure:"readme"`
-	}
-	type chartDetails struct {
-		Name     string          `json:"name" mapstructure:"name"`
-		Repo     string          `json:"repo" mapstructure:"repo"`
-		Versions []*chartVersion `json:"versions" mapstructure:"versions"`
-	}
-
-	response := chartDetails{
-		Name: foundChartPtr.Name,
-		Repo: filter.RepoFilter(),
-		Versions: []*chartVersion{
-			{
-				Chart:  foundChartPtr,
-				Values: h.getRawChartFileContent("values.yaml", detailedChart),
-				Readme: h.getRawChartFileContent("README.md", detailedChart), // TODO sanitize,
-			},
-		},
-	}
-
-	detailsMap := make(map[string]interface{})
-	if err := mapstructure.Decode(response, &detailsMap); err != nil {
-		return nil, errors.WrapIf(err, "failed to encode chart details")
-	}
-
-	return detailsMap, nil
+	return h.adaptChartDetailsResponse(detailedCharts, filter.RepoFilter(), chartInSlice[0])
 }
 
 // processEnvSettings emulates an cli.EnvSettings instance based on the passed in data
@@ -419,6 +371,74 @@ func (h helm3EnvService) listCharts(ctx context.Context, helmEnv helm.HelmEnv, f
 	return chartListSlice, nil
 }
 
-func (h helm3EnvService) getDetailedChart() (*chart.Chart, error) {
-	return nil, errors.New("implement me!")
+// getDetailedChart gets the chart details from the chart archive
+func (h helm3EnvService) getDetailedCharts(ctx context.Context, helmEnv helm.HelmEnv, repoVersions repo.ChartVersions) (map[string]*chart.Chart, error) {
+	// set up a "fake" chart repo to use it's getter capabilities
+	chartRepo, err := repo.NewChartRepository(&repo.Entry{URL: "http://test"}, getter.All(h.processEnvSettings(helmEnv)))
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to setup downloader")
+	}
+
+	detailedCharts := make(map[string]*chart.Chart)
+	for _, repoChartVersionPtr := range repoVersions {
+		// todo check the other urls, other checks?
+		buffer, err := chartRepo.Client.Get(repoChartVersionPtr.URLs[0])
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to get archive")
+		}
+
+		bufferedFilePtr, err := loader.LoadArchiveFiles(bytes.NewReader(buffer.Bytes()))
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to load archive files")
+		}
+
+		detailedChart, err := loader.LoadFiles(bufferedFilePtr)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to load archive")
+		}
+
+		detailedCharts[fmt.Sprintf("%s-%s", repoChartVersionPtr.Name, repoChartVersionPtr.Version)] = detailedChart
+	}
+
+	return detailedCharts, nil
+}
+
+func (h helm3EnvService) adaptChartDetailsResponse(charts map[string]*chart.Chart, repoName string, repoVersions repo.ChartVersions) (helm.ChartDetails, error) {
+	// internal types to facilitate transformations  /adapt the response format to the API
+	type (
+		chartVersion struct {
+			Chart  *repo.ChartVersion `json:"chart" mapstructure:"chart"`
+			Values string             `json:"values" mapstructure:"values"`
+			Readme string             `json:"readme" mapstructure:"readme"`
+		}
+
+		chartDetails struct {
+			Name     string          `json:"name" mapstructure:"name"`
+			Repo     string          `json:"repo" mapstructure:"repo"`
+			Versions []*chartVersion `json:"versions" mapstructure:"versions"`
+		}
+	)
+
+	response := chartDetails{
+		Repo:     repoName,
+		Versions: make([]*chartVersion, 0, 0),
+	}
+
+	for _, repoVersion := range repoVersions {
+		chartPtr := charts[fmt.Sprintf("%s-%s", repoVersion.Name, repoVersion.Version)]
+		repoChartVersion := chartVersion{
+			Chart:  repoVersion,
+			Values: h.getRawChartFileContent("values.yaml", chartPtr),
+			Readme: h.getRawChartFileContent("README.md", chartPtr),
+		}
+
+		response.Versions = append(response.Versions, &repoChartVersion)
+	}
+
+	responseMap := make(map[string]interface{})
+	if err := mapstructure.Decode(response, &responseMap); err != nil {
+		return nil, errors.WrapIf(err, "failed to transform chart details response")
+	}
+
+	return responseMap, nil
 }
