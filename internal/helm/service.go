@@ -88,7 +88,7 @@ type repository interface {
 	UpdateRepository(ctx context.Context, organizationID uint, repository Repository) error
 }
 
-// charter collects helm chars related operations
+// charter collects helm chart related operations
 type charter interface {
 	// List lists charts containing the given term, eventually applying the passed filter
 	ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, options Options) (charts ChartList, err error)
@@ -96,7 +96,7 @@ type charter interface {
 	GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails ChartDetails, err error)
 }
 
-// releaser collects and groups release related operations
+// releaser collects and groups helm release related operations
 // it's intended to be embedded in the "Helm Facade"
 type releaser interface {
 	// Install installs the release to the cluster with the given identifier
@@ -494,18 +494,18 @@ func (s service) UpgradeRelease(ctx context.Context, organizationID uint, cluste
 	return nil
 }
 
-func (s service) ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, options Options) (charts map[string]interface{}, err error) {
+func (s service) ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, options Options) (charts ChartList, err error) {
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 
-	chartNames, err := s.envService.ListCharts(ctx, helmEnv, filter)
+	chartList, err := s.envService.ListCharts(ctx, helmEnv, filter)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to delete helm repository environment")
+		return nil, errors.WrapIf(err, "failed to list charts")
 	}
 
-	return chartNames, nil
+	return chartList, nil
 }
 
 func (s service) GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails map[string]interface{}, err error) {

@@ -49,7 +49,7 @@ func NewHelmEnvService(config Config, logger Logger) helm.EnvService {
 	}
 }
 
-func (h helmEnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (map[string]interface{}, error) {
+func (h helmEnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartList, error) {
 	// TODO implement me!
 	h.logger.Error("not yet implemented")
 	return nil, errors.New("not yet implemented")

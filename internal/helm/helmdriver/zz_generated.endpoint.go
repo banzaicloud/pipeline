@@ -299,7 +299,7 @@ type ListChartsRequest struct {
 
 // ListChartsResponse is a response struct for ListCharts endpoint.
 type ListChartsResponse struct {
-	Charts map[string]interface{}
+	Charts []interface{}
 	Err    error
 }
 
