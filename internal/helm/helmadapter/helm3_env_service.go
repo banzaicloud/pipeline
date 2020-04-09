@@ -180,7 +180,6 @@ func (h helm3EnvService) UpdateRepository(ctx context.Context, helmEnv helm.Helm
 
 // ListCharts finds the charts based on the provided filter
 func (h helm3EnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartList, error) {
-
 	// retrieve the list
 	chartVersionsSlice, err := h.listCharts(ctx, helmEnv, filter)
 	if err != nil {
@@ -421,6 +420,5 @@ func (h helm3EnvService) listCharts(ctx context.Context, helmEnv helm.HelmEnv, f
 }
 
 func (h helm3EnvService) getDetailedChart() (*chart.Chart, error) {
-
-	return nil, nil
+	return nil, errors.New("implement me!")
 }
