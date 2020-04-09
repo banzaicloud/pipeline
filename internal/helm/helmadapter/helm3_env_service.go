@@ -56,7 +56,7 @@ func NewHelm3EnvService(logger Logger) helm.EnvService {
 	}
 }
 
-func (h helm3EnvService) AddRepository(ctx context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
+func (h helm3EnvService) AddRepository(_ context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
 	repoFile := helmEnv.GetHome() // TODO add another field to the env instead???
 
 	//Ensure the file directory exists as it is required for file locking
@@ -217,9 +217,13 @@ func (h helm3EnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, fil
 		return nil, errors.WrapIf(err, "failed to look up chart")
 	}
 
-	if len(chartInSlice) != 1 {
-		// TODO differentiate errors
-		return nil, errors.New("found zero or more than one repositories")
+	if len(chartInSlice) == 0 {
+		h.logger.Debug("chart not found", map[string]interface{}{"filter": filter})
+		return helm.ChartDetails{}, nil
+	}
+
+	if len(chartInSlice) > 1 {
+		return nil, errors.New("found more than one repositories")
 	}
 
 	// transform the response
@@ -308,7 +312,7 @@ func (h helm3EnvService) getRawChartFileContent(chartFileName string, chartPtr *
 
 // listCharts retrieves  charts based on the input data
 // operates with h3 lib types
-func (h helm3EnvService) listCharts(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) ([]repo.ChartVersions, error) {
+func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) ([]repo.ChartVersions, error) {
 	chartListSlice := make([]repo.ChartVersions, 0, 0)
 
 	repoFile, err := repo.LoadFile(helmEnv.GetHome())
@@ -372,7 +376,7 @@ func (h helm3EnvService) listCharts(ctx context.Context, helmEnv helm.HelmEnv, f
 }
 
 // getDetailedChart gets the chart details from the chart archive
-func (h helm3EnvService) getDetailedCharts(ctx context.Context, helmEnv helm.HelmEnv, repoVersions repo.ChartVersions) (map[string]*chart.Chart, error) {
+func (h helm3EnvService) getDetailedCharts(_ context.Context, helmEnv helm.HelmEnv, repoVersions repo.ChartVersions) (map[string]*chart.Chart, error) {
 	// set up a "fake" chart repo to use it's getter capabilities
 	chartRepo, err := repo.NewChartRepository(&repo.Entry{URL: "http://test"}, getter.All(h.processEnvSettings(helmEnv)))
 	if err != nil {
