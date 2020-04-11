@@ -103,8 +103,6 @@ func (NotFoundError) ServiceError() bool {
 	return true
 }
 
-// Conflict tells the consumer that this error is related to a conflicting request.
-// Can be used to translate the error to the consumer's response format (eg. status codes).
 func (NotFoundError) NotFound() bool {
 	return true
 }

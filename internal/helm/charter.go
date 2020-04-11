@@ -15,6 +15,7 @@
 package helm
 
 import (
+	"context"
 	"fmt"
 	"strings"
 )
@@ -24,6 +25,14 @@ type ChartDetails = map[string]interface{}
 
 // decouples helm lib types from the api
 type ChartList = []interface{}
+
+// charter collects helm chart related operations
+type charter interface {
+	// List lists charts containing the given term, eventually applying the passed filter
+	ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, options Options) (charts ChartList, err error)
+	// GetChart retrieves the details for the given chart
+	GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails ChartDetails, err error)
+}
 
 // ChartFilter filter data for chart retrieval
 // all fields are slices in order to support forthcoming filtering on multiple values
@@ -83,4 +92,26 @@ func exactMatchRegexp(value string) string {
 		return value
 	}
 	return fmt.Sprintf("%s%s%s", "^", value, "$")
+}
+
+// ChartNotFoundError signals that the chart is not found
+type ChartNotFoundError struct {
+	ChartName string
+	OrgID     uint
+}
+
+func (e ChartNotFoundError) Error() string {
+	return fmt.Sprintf("chart not found. OrgID: %s, ChartName: %s", e.OrgID, e.ChartName)
+}
+
+func (e ChartNotFoundError) Details() []interface{} {
+	return []interface{}{"organizationId", e.OrgID, "chartName", e.ChartName}
+}
+
+func (ChartNotFoundError) ServiceError() bool {
+	return true
+}
+
+func (ChartNotFoundError) NotFound() bool {
+	return true
 }
