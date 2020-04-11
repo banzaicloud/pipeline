@@ -88,25 +88,6 @@ type repository interface {
 	UpdateRepository(ctx context.Context, organizationID uint, repository Repository) error
 }
 
-// releaser collects and groups helm release related operations
-// it's intended to be embedded in the "Helm Facade"
-type releaser interface {
-	// Install installs the release to the cluster with the given identifier
-	InstallRelease(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) error
-	// Delete deletes the  specified release
-	DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) error
-	// List retrieves  releases in a given namespace, eventually applies the passed in filters
-	ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters interface{}, options Options) ([]Release, error)
-	// Get retrieves the release details for the given  release
-	GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (Release, error)
-	// Upgrade upgrades the given release
-	UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) error
-	// ReleaseStatus
-	ReleaseStatus(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (string, error)
-	// ReleaseResources retrieves resources belonging to the release
-	ReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) ([]ReleaseResource, error)
-}
-
 // +testify:mock:testOnly=true
 
 // Service manages Helm chart repositories.
