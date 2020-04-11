@@ -53,6 +53,26 @@ type Release struct {
 
 type KubeConfigBytes = []byte
 
+// releaser collects and groups helm release related operations
+// it's intended to be embedded in the "Helm Facade"
+// implementers are in charge to produce input for the Releaser component
+type releaser interface {
+	// Install installs the release to the cluster with the given identifier
+	InstallRelease(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) error
+	// Delete deletes the  specified release
+	DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) error
+	// List retrieves  releases in a given namespace, eventually applies the passed in filters
+	ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters interface{}, options Options) ([]Release, error)
+	// Get retrieves the release details for the given  release
+	GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (Release, error)
+	// Upgrade upgrades the given release
+	UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) error
+	// ReleaseStatus
+	ReleaseStatus(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (string, error)
+	// ReleaseResources retrieves resources belonging to the release
+	ReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) ([]ReleaseResource, error)
+}
+
 // utility for providing input arguments ...
 func (ri Release) NameAndChartSlice() []string {
 	if ri.ReleaseName == "" {
@@ -62,6 +82,7 @@ func (ri Release) NameAndChartSlice() []string {
 }
 
 // Releaser interface collecting operations related to releases
+// It manages releases on the cluster
 type Releaser interface {
 	// Install installs the specified chart using to a cluster identified by the kubeConfig  argument
 	Install(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options Options) (string, error)
