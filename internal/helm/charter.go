@@ -27,6 +27,7 @@ type ChartDetails = map[string]interface{}
 type ChartList = []interface{}
 
 // charter collects helm chart related operations
+// intended  to be embedded into the helm "facade"
 type charter interface {
 	// List lists charts containing the given term, eventually applying the passed filter
 	ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, options Options) (charts ChartList, err error)
@@ -96,16 +97,17 @@ func exactMatchRegexp(value string) string {
 
 // ChartNotFoundError signals that the chart is not found
 type ChartNotFoundError struct {
-	ChartName string
+	ChartInfo string
 	OrgID     uint
+	Filter    string
 }
 
 func (e ChartNotFoundError) Error() string {
-	return fmt.Sprintf("chart not found. OrgID: %s, ChartName: %s", e.OrgID, e.ChartName)
+	return fmt.Sprintf("chart not found. OrgID: %d, ChartInfo: %s", e.OrgID, e.ChartInfo)
 }
 
 func (e ChartNotFoundError) Details() []interface{} {
-	return []interface{}{"organizationId", e.OrgID, "chartName", e.ChartName}
+	return []interface{}{"organizationId", e.OrgID, "chartInfo", e.ChartInfo}
 }
 
 func (ChartNotFoundError) ServiceError() bool {
