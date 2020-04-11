@@ -481,7 +481,7 @@ func (s service) ListCharts(ctx context.Context, organizationID uint, filter Cha
 	return chartList, nil
 }
 
-func (s service) GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails map[string]interface{}, err error) {
+func (s service) GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails ChartDetails, err error) {
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
@@ -490,6 +490,13 @@ func (s service) GetChart(ctx context.Context, organizationID uint, chartFilter 
 	details, err := s.envService.GetChart(ctx, helmEnv, chartFilter)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get helm chart details")
+	}
+
+	if len(details) == 0 {
+		return nil, ChartNotFoundError{
+			ChartInfo: chartFilter.String(),
+			OrgID:     organizationID,
+		}
 	}
 
 	return details, nil

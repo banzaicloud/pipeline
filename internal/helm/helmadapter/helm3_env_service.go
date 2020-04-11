@@ -370,8 +370,12 @@ func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, fil
 				}
 			}
 		}
-		chartListSlice = append(chartListSlice, repoCharts)
+
+		if len(repoCharts) > 0 {
+			chartListSlice = append(chartListSlice, repoCharts)
+		}
 	}
+
 	return chartListSlice, nil
 }
 
