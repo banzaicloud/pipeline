@@ -206,7 +206,9 @@ func (h helm3EnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, f
 		}
 	}
 
-	adaptedList = append(adaptedList, chartEntry)
+	if len(chartEntry.Charts) > 0 {
+		adaptedList = append(adaptedList, chartEntry)
+	}
 
 	return adaptedList, nil
 }
