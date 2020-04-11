@@ -88,14 +88,6 @@ type repository interface {
 	UpdateRepository(ctx context.Context, organizationID uint, repository Repository) error
 }
 
-// charter collects helm chart related operations
-type charter interface {
-	// List lists charts containing the given term, eventually applying the passed filter
-	ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, options Options) (charts ChartList, err error)
-	// GetChart retrieves the details for the given chart
-	GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails ChartDetails, err error)
-}
-
 // releaser collects and groups helm release related operations
 // it's intended to be embedded in the "Helm Facade"
 type releaser interface {
