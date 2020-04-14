@@ -42,7 +42,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-const pkeVersion = "0.4.23"
+const pkeVersion = "0.4.24"
 const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
 func MakeClusterCreator(
