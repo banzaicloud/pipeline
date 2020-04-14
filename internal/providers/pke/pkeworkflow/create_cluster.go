@@ -48,26 +48,26 @@ func getDefaultImageID(region, kubernetesVersion, pkeVersion string, pkeImageNam
 		}
 	}
 
-	// PKE 0.4.19; K8s 1.13.10; OS Ubuntu
+	// latest ubuntu 18.04 ami version
 	return map[string]string{
-		"ap-east-1":      "ami-0ca8206236662e9ea", // Asia Pacific (Hong Kong).
-		"ap-northeast-1": "ami-029f1fff7d250aa95", // Asia Pacific (Tokyo).
-		"ap-northeast-2": "ami-0b2ea3e1fb7e0a0dc", // Asia Pacific (Seoul).
-		"ap-southeast-1": "ami-00d5d224c11f12854", // Asia Pacific (Singapore).
-		"ap-southeast-2": "ami-03ad7f293fb551d91", // Asia Pacific (Sydney).
-		"ap-south-1":     "ami-03f5be5363911cfd7", // Asia Pacific (Mumbai).
-		"ca-central-1":   "ami-0f45e7a3348941cd0", // Canada (Central).
-		"eu-central-1":   "ami-01a9d881b5eef8c78", // EU (Frankfurt).
-		"eu-north-1":     "ami-0152ce8be8bcc0c50", // EU (Stockholm).
-		"eu-west-1":      "ami-0284019fcb7ca3121", // EU (Ireland).
-		"eu-west-2":      "ami-0b4c70c59b14d97ba", // EU (London).
-		"eu-west-3":      "ami-084d0cc1bce975f4b", // EU (Paris).
-		"me-south-1":     "ami-0bab0d9b6142d8674", // Middle East (Bahrain).
-		"sa-east-1":      "ami-025c97e09ba50cb05", // South America (Sao Paulo).
-		"us-east-1":      "ami-0980e83ac34bbc3bb", // US East (N. Virginia).
-		"us-east-2":      "ami-07d087f4be161fa72", // US East (Ohio).
-		"us-west-1":      "ami-0c8ea5996aa18c15d", // US West (N. California).
-		"us-west-2":      "ami-0d441df4104cb772b", // US West (Oregon).
+		"ap-east-1":      "ami-c790d6b6",          // Asia Pacific (Hong Kong).
+		"ap-northeast-1": "ami-0278fe6949f6b1a06", // Asia Pacific (Tokyo).
+		"ap-northeast-2": "ami-00edfb46b107f643c", // Asia Pacific (Seoul).
+		"ap-southeast-1": "ami-0f7719e8b7ba25c61", // Asia Pacific (Singapore).
+		"ap-southeast-2": "ami-04fcc97b5f6edcd89", // Asia Pacific (Sydney).
+		"ap-south-1":     "ami-0b44050b2d893d5f7", // Asia Pacific (Mumbai).
+		"ca-central-1":   "ami-0edd51cc29813e254", // Canada (Central).
+		"eu-central-1":   "ami-0e342d72b12109f91", // EU (Frankfurt).
+		"eu-north-1":     "ami-050981837962d44ac", // EU (Stockholm).
+		"eu-west-1":      "ami-0701e7be9b2a77600", // EU (Ireland).
+		"eu-west-2":      "ami-0eb89db7593b5d434", // EU (London).
+		"eu-west-3":      "ami-08c757228751c5335", // EU (Paris).
+		"me-south-1":     "ami-051274f257aba97f9", // Middle East (Bahrain).
+		"sa-east-1":      "ami-077d5d3682940b34a", // South America (Sao Paulo).
+		"us-east-1":      "ami-085925f297f89fce1", // US East (N. Virginia).
+		"us-east-2":      "ami-07c1207a9d40bc3bd", // US East (Ohio).
+		"us-west-1":      "ami-0f56279347d2fa43e", // US West (N. California).
+		"us-west-2":      "ami-003634241a8fcdec0", // US West (Oregon).
 	}[region], nil
 }
 
