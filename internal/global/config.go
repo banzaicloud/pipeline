@@ -176,7 +176,8 @@ var Config struct {
 		External struct {
 			URL string
 		}
-		UUID string
+		UUID       string
+		Enterprise bool
 	}
 	Spotguide struct {
 		AllowPrereleases                bool

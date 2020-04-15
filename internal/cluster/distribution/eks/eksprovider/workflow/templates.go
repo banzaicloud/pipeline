@@ -15,10 +15,12 @@
 package workflow
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"text/template"
 
 	"emperror.dev/errors"
 
@@ -60,7 +62,21 @@ func getEksCloudFormationTemplate(name string) (string, error) {
 		return "", errors.WrapIf(err, fmt.Sprintf("failed to read CloudFormation template content from %s", templatePath))
 	}
 
-	return string(content), nil
+	t, err := template.New("cf").Parse(string(content))
+	if err != nil {
+		return "", errors.WrapIf(err, fmt.Sprintf("failed to parse CloudFormation template content from %s", templatePath))
+	}
+
+	buffer := bytes.NewBuffer(nil)
+	data := map[string]interface{}{
+		"UpdatePolicyEnabled": !global.Config.Pipeline.Enterprise,
+	}
+	err = t.Execute(buffer, data)
+	if err != nil {
+		return "", errors.WrapIf(err, fmt.Sprintf("failed to evaluate CloudFormation template content from %s", templatePath))
+	}
+
+	return buffer.String(), nil
 }
 
 // GetVPCTemplate returns the CloudFormation template for creating VPC for EKS cluster
