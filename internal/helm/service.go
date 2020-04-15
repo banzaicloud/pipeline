@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 
 	"github.com/banzaicloud/pipeline/internal/common"
 )
@@ -61,7 +62,7 @@ type Options struct {
 // +kit:endpoint:errorStrategy=service
 // +testify:mock:testOnly=true
 
-// Service manages Helm chart repositories.
+// Service manages Helm repositories, charts and releases
 type Service interface {
 	// helm repository management operations
 	repository
@@ -71,6 +72,38 @@ type Service interface {
 
 	// chart related operations
 	charter
+}
+
+// UnifiedReleaser unifies different helm release interfaces into a single interface
+type UnifiedReleaser interface {
+	// integrated services style
+	ApplyDeployment(
+		ctx context.Context,
+		clusterID uint,
+		namespace string,
+		chartName string,
+		releaseName string,
+		values []byte,
+		chartVersion string,
+	) error
+
+	// cluster setup style
+	InstallDeployment(
+		ctx context.Context,
+		clusterID uint,
+		namespace string,
+		chartName string,
+		releaseName string,
+		values []byte,
+		chartVersion string,
+		wait bool,
+	) error
+
+	// DeleteDeployment deletes a deployment from a specific cluster.
+	DeleteDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) error
+
+	// GetDeployment gets a deployment by release name from a specific cluster.
+	GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*pkgHelm.GetDeploymentResponse, error)
 }
 
 // releaser collects and groups release related operations

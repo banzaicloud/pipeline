@@ -50,6 +50,7 @@ type commonUpdater struct {
 	workflowClient           client.Client
 	externalBaseURL          string
 	externalBaseURLInsecure  bool
+	helmService              HelmService
 }
 
 type commonUpdateValidationError struct {
@@ -80,6 +81,7 @@ func NewCommonClusterUpdater(
 	workflowClient client.Client,
 	externalBaseURL string,
 	externalBaseURLInsecure bool,
+	helmService HelmService,
 ) *commonUpdater {
 	return &commonUpdater{
 		request:                 request,
@@ -89,6 +91,7 @@ func NewCommonClusterUpdater(
 		workflowClient:          workflowClient,
 		externalBaseURL:         externalBaseURL,
 		externalBaseURLInsecure: externalBaseURLInsecure,
+		helmService:             helmService,
 	}
 }
 
@@ -303,7 +306,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		return err
 	}
 
-	if err := DeployClusterAutoscaler(c.cluster); err != nil {
+	if err := DeployClusterAutoscaler(c.cluster, c.helmService); err != nil {
 		return errors.WrapIf(err, "deploying cluster autoscaler failed")
 	}
 

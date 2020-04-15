@@ -61,6 +61,8 @@ type ClusterAPI struct {
 	errorHandler    emperror.Handler
 	clusterCreators ClusterCreators
 	clusterUpdaters ClusterUpdaters
+
+	helmService cluster.HelmService
 }
 
 type ClusterCreators struct {
@@ -91,6 +93,7 @@ func NewClusterAPI(
 	clusterCreators ClusterCreators,
 	clusterUpdaters ClusterUpdaters,
 	clientFactory common.DynamicClientFactory,
+	helmService cluster.HelmService,
 ) *ClusterAPI {
 	return &ClusterAPI{
 		clusterManager:          clusterManager,
@@ -103,6 +106,7 @@ func NewClusterAPI(
 		clusterCreators:         clusterCreators,
 		clusterUpdaters:         clusterUpdaters,
 		clientFactory:           clientFactory,
+		helmService:             helmService,
 	}
 }
 
