@@ -24,13 +24,12 @@ import (
 	"go.uber.org/cadence/client"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	vspherePKE "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver/commoncluster"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/workflow"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -352,14 +351,15 @@ func (p VspherePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, pa
 }
 
 func (p VspherePKEClusterCreationParamsPreparer) verifySecretIsOfType(orgID uint, secretID string, secretType string) error {
-	if secretID != "" {
-		secret, err := p.secrets.Get(orgID, secretID)
-		if err != nil {
-			return validationErrorf("failed to get secret %s", secretID)
-		}
-		if secret.Type != secretType {
-			return validationErrorf("%s should be of type VSphere", secretID)
-		}
+	if secretID == "" {
+		return nil
+	}
+	secret, err := p.secrets.Get(orgID, secretID)
+	if err != nil {
+		return validationErrorf("failed to get secret %s", secretID)
+	}
+	if secret.Type != secretType {
+		return validationErrorf("%s should be of type VSphere", secretID)
 	}
 	return nil
 }

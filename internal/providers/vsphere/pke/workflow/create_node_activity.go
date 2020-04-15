@@ -20,6 +20,8 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"strings"
+	"text/template"
 
 	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
@@ -30,12 +32,8 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
-	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
-
-	"strings"
-	"text/template"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 )
 
 // CreateNodeActivityName is the default registration name of the activity
