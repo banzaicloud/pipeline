@@ -27,6 +27,7 @@ import (
 	"emperror.dev/errors/match"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
+	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
 	"github.com/oklog/run"
 	appkitrun "github.com/sagikazarmark/appkit/run"
@@ -57,9 +58,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
+	common2 "github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/helm"
+	helmadapter2 "github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/helm2"
 	"github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -259,7 +263,17 @@ func main() {
 		)
 		tokenGenerator := auth.NewClusterTokenGenerator(tokenManager, tokenStore)
 
-		helmService := helm2.NewHelmService(helmadapter.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
+		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+
+		var helmService integratedserviceadapter.AdaptedHelmService
+		switch config.Helm.Version {
+		case "helm3":
+			helmFacade := setupHelmFacade(config, db, commonSecretStore, clusterManager, commonLogger)
+			helmService = integratedserviceadapter.NewHelmService(helmFacade, commonLogger)
+
+		default:
+			helmService = helm2.NewHelmService(helmadapter.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
+		}
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
 		secretStore := pkeworkflowadapter.NewSecretStore(secret.Store)
@@ -296,7 +310,6 @@ func main() {
 			spotguide.PlatformData{},
 		)
 
-		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 		configFactory := kubernetes.NewConfigFactory(commonSecretStore)
 
 		// Cluster setup
@@ -704,4 +717,41 @@ func main() {
 
 	err = group.Run()
 	emperror.WithFilter(errorHandler, match.As(&run.SignalError{}).MatchError).Handle(err)
+}
+
+// setupHelmFacade utility function for assembling the helm facade
+func setupHelmFacade(config configuration, db *gorm.DB, commonSecretStore common2.SecretStore,
+	clusterManager *cluster.Manager, logger helm.Logger) helm.Service {
+	repoStore := helmadapter2.NewHelmRepoStore(db, logger)
+	secretStore := helmadapter2.NewSecretStore(commonSecretStore, logger)
+	orgService := helmadapter2.NewOrgService(logger)
+	validator := helm.NewHelmRepoValidator()
+	releaser := helmadapter2.NewReleaser(logger)
+	clusterService := helmadapter2.NewClusterService(clusterManager)
+
+	var (
+		envResolver helm.EnvResolver
+		envService  helm.EnvService
+	)
+	switch config.Helm.Version {
+	case "helm3":
+		envResolver = helm.NewHelm3EnvResolver(envResolver)
+		envService = helmadapter2.NewHelm3EnvService(logger)
+
+	default:
+		envResolver = helm.NewHelm2EnvResolver(config.Helm.Home, orgService, logger)
+		envService = helmadapter2.NewHelmEnvService(helmadapter2.NewConfig(config.Helm.Repositories), logger)
+	}
+
+	service := helm.NewService(
+		repoStore,
+		secretStore,
+		validator,
+		envResolver,
+		envService,
+		releaser,
+		clusterService,
+		logger)
+
+	return service
 }

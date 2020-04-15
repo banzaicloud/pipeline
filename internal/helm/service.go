@@ -46,7 +46,7 @@ type Repository struct {
 }
 
 // Options struct holding directives for driving helm operations (similar to command line flags)
-// extend this as required eventually build a mor sophisticated solution for it
+// extend this as required eventually build a more sophisticated solution for it
 type Options struct {
 	Namespace    string                 `json:"namespace,omitempty"`
 	DryRun       bool                   `json:"dryRun,omitempty"`

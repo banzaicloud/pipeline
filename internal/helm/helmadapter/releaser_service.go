@@ -84,10 +84,11 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 	}
 
 	p := getter.All(envSettings)
-	chartValues, err := r.processValues(p, releaseInput)
-	if err != nil {
-		return "", errors.WrapIf(err, "failed to merge values")
-	}
+
+	//chartValues, err := r.processValues(p, releaseInput)
+	//if err != nil {
+	//	return "", errors.WrapIf(err, "failed to merge values")
+	//}
 
 	// Check chart dependencies to make sure all are present in /charts
 	chartRequested, err := loader.Load(cp)
@@ -128,7 +129,7 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 		}
 	}
 
-	releasePtr, err := installAction.Run(chartRequested, chartValues)
+	releasePtr, err := installAction.Run(chartRequested, releaseInput.Values)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to install chart")
 	}
