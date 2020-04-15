@@ -269,7 +269,7 @@ func main() {
 		switch config.Helm.Version {
 		case "helm3":
 			helmFacade := setupHelmFacade(config, db, commonSecretStore, clusterManager, commonLogger)
-			helmService = integratedserviceadapter.NewHelmService(helmFacade, commonLogger)
+			helmService = integratedserviceadapter.NewHelmService(helmFacade, config.Cluster.Namespace, commonLogger)
 
 		default:
 			helmService = helm2.NewHelmService(helmadapter.NewClusterService(clusterManager), commonadapter.NewLogger(logger))

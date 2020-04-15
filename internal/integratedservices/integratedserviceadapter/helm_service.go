@@ -18,7 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/internal/common"
@@ -27,12 +27,6 @@ import (
 	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
-// helmServiceAdapter component providing helm3 implementation for integrated services
-type helmServiceAdapter struct {
-	helmService helm.Service
-	logger      common.Logger
-}
-
 // helper interface for integrating helm services
 // TODO revise and refactor these interfaces not to differ
 type AdaptedHelmService interface {
@@ -40,10 +34,19 @@ type AdaptedHelmService interface {
 	clustersetup.HelmService
 }
 
-func NewHelmService(service helm.Service, logger common.Logger) AdaptedHelmService {
+// helmServiceAdapter component providing helm3 implementation for integrated services
+type helmServiceAdapter struct {
+	systemNamespace string
+	helmService     helm.Service
+
+	logger common.Logger
+}
+
+func NewHelmService(service helm.Service, systemNamespace string, logger common.Logger) AdaptedHelmService {
 	return helmServiceAdapter{
-		helmService: service,
-		logger:      logger,
+		systemNamespace: systemNamespace,
+		helmService:     service,
+		logger:          logger,
 	}
 }
 
@@ -80,11 +83,29 @@ func (h helmServiceAdapter) ApplyDeployment(
 }
 
 func (h helmServiceAdapter) DeleteDeployment(ctx context.Context, clusterID uint, releaseName string) error {
-	panic("implement me")
+	return h.helmService.DeleteRelease(ctx, 0, clusterID, releaseName, helm.Options{
+		Namespace: h.systemNamespace,
+	})
 }
 
 func (h helmServiceAdapter) GetDeployment(ctx context.Context, clusterID uint, releaseName string) (*helm2.GetDeploymentResponse, error) {
-	panic("implement me")
+	release, err := h.helmService.GetRelease(ctx, 0, clusterID, releaseName, helm.Options{
+		Namespace: h.systemNamespace,
+	})
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to retrieve release")
+	}
+
+	// TODO identify the minimum set of required fields, map only those
+	return &helm2.GetDeploymentResponse{
+		ReleaseName:  release.ReleaseName,
+		Chart:        release.ChartName,
+		ChartName:    release.ChartName,
+		ChartVersion: release.Version,
+		Namespace:    release.Namespace,
+		Version:      0,
+		Status:       release.ReleaseInfo.Status,
+	}, nil
 }
 
 // for clustersetup!
