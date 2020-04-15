@@ -65,7 +65,7 @@ func (m traefikManager) Deploy(ctx context.Context, clusterID uint, spec Spec) e
 }
 
 func (m traefikManager) Remove(ctx context.Context, clusterID uint) error {
-	return errors.WrapIf(m.helmService.DeleteDeployment(ctx, clusterID, m.config.ReleaseName), "failed to delete deployment")
+	return errors.WrapIf(m.helmService.DeleteDeployment(ctx, clusterID, m.config.ReleaseName, m.config.Namespace), "failed to delete deployment")
 }
 
 func (m traefikManager) compileChartValues(ctx context.Context, clusterID uint, spec Spec) (interface{}, error) {

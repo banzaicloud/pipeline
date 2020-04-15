@@ -12,49 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package integratedserviceadapter
+package helmadapter
 
 import (
 	"context"
 
 	"emperror.dev/errors"
+	legacyHelm "github.com/banzaicloud/pipeline/src/helm"
+	"helm.sh/helm/v3/pkg/storage/driver"
 	"sigs.k8s.io/yaml"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
-// helper interface for integrating helm services
-// TODO revise and refactor these interfaces not to differ
-type AdaptedHelmService interface {
-	services.HelmService
-	clustersetup.HelmService
+// helm3UnifiedReleaser component providing helm3 implementation for integrated services
+type helm3UnifiedReleaser struct {
+	helmService helm.Service
+	logger      common.Logger
 }
 
-// helmServiceAdapter component providing helm3 implementation for integrated services
-type helmServiceAdapter struct {
-	systemNamespace string
-	helmService     helm.Service
-
-	logger common.Logger
-}
-
-func NewHelmService(service helm.Service, systemNamespace string, logger common.Logger) AdaptedHelmService {
-	return helmServiceAdapter{
-		systemNamespace: systemNamespace,
-		helmService:     service,
-		logger:          logger,
+func NewUnifiedHelm3Releaser(service helm.Service, logger common.Logger) helm.UnifiedReleaser {
+	return &helm3UnifiedReleaser{
+		helmService: service,
+		logger:      logger,
 	}
 }
 
-func (h helmServiceAdapter) ApplyDeployment(
+func (h helm3UnifiedReleaser) ApplyDeployment(
 	ctx context.Context,
 	clusterID uint,
 	namespace string,
-	deploymentName string,
+	chartName string,
 	releaseName string,
 	values []byte,
 	chartVersion string,
@@ -73,7 +63,41 @@ func (h helmServiceAdapter) ApplyDeployment(
 	}
 	release := helm.Release{
 		ReleaseName: releaseName,
-		ChartName:   deploymentName,
+		ChartName:   chartName,
+		Namespace:   namespace,
+		Version:     chartVersion,
+		Values:      valuesMap,
+	}
+
+	return h.helmService.UpgradeRelease(ctx, 0, clusterID, release, options)
+}
+
+// for clustersetup!
+func (h *helm3UnifiedReleaser) InstallDeployment(
+	ctx context.Context,
+	clusterID uint,
+	namespace string,
+	chartName string,
+	releaseName string,
+	values []byte,
+	chartVersion string,
+	wait bool,
+) error {
+	var valuesMap map[string]interface{}
+	if err := yaml.Unmarshal(values, &valuesMap); err != nil {
+		return errors.WrapIf(err, "failed to unmarshal values")
+	}
+
+	options := helm.Options{
+		Namespace:    namespace,
+		DryRun:       false,
+		GenerateName: false,
+		Wait:         wait,
+		ReuseValues:  false,
+	}
+	release := helm.Release{
+		ReleaseName: releaseName,
+		ChartName:   chartName,
 		Namespace:   namespace,
 		Version:     chartVersion,
 		Values:      valuesMap,
@@ -82,17 +106,23 @@ func (h helmServiceAdapter) ApplyDeployment(
 	return h.helmService.InstallRelease(ctx, 0, clusterID, release, options)
 }
 
-func (h helmServiceAdapter) DeleteDeployment(ctx context.Context, clusterID uint, releaseName string) error {
+func (h *helm3UnifiedReleaser) DeleteDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) error {
 	return h.helmService.DeleteRelease(ctx, 0, clusterID, releaseName, helm.Options{
-		Namespace: h.systemNamespace,
+		Namespace: namespace,
 	})
 }
 
-func (h helmServiceAdapter) GetDeployment(ctx context.Context, clusterID uint, releaseName string) (*helm2.GetDeploymentResponse, error) {
+func (h *helm3UnifiedReleaser) GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*helm2.GetDeploymentResponse, error) {
 	release, err := h.helmService.GetRelease(ctx, 0, clusterID, releaseName, helm.Options{
-		Namespace: h.systemNamespace,
+		Namespace: namespace,
 	})
 	if err != nil {
+		// return the same error as the helm2 implementation on release not found
+		if errors.Is(err, driver.ErrReleaseNotFound) {
+			return nil, &legacyHelm.DeploymentNotFoundError{
+				HelmError: err,
+			}
+		}
 		return nil, errors.WrapIf(err, "failed to retrieve release")
 	}
 
@@ -106,18 +136,4 @@ func (h helmServiceAdapter) GetDeployment(ctx context.Context, clusterID uint, r
 		Version:      0,
 		Status:       release.ReleaseInfo.Status,
 	}, nil
-}
-
-// for clustersetup!
-func (h helmServiceAdapter) InstallDeployment(
-	ctx context.Context,
-	clusterID uint,
-	namespace string,
-	chartName string,
-	releaseName string,
-	values []byte,
-	chartVersion string,
-	_ bool,
-) error {
-	return h.ApplyDeployment(ctx, clusterID, namespace, chartName, releaseName, values, chartVersion)
 }

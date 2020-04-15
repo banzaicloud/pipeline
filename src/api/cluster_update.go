@@ -86,6 +86,7 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 				a.workflowClient,
 				a.externalBaseURL,
 				a.externalBaseURLInsecure,
+				a.helmService,
 			)
 			err = a.clusterManager.UpdateCluster(ctx, updateCtx, updater)
 		}

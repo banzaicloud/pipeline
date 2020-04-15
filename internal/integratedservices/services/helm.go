@@ -28,15 +28,15 @@ type HelmService interface {
 		ctx context.Context,
 		clusterID uint,
 		namespace string,
-		deploymentName string,
+		chartName string,
 		releaseName string,
 		values []byte,
 		chartVersion string,
 	) error
 
 	// DeleteDeployment deletes a deployment from a specific cluster.
-	DeleteDeployment(ctx context.Context, clusterID uint, releaseName string) error
+	DeleteDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) error
 
 	// GetDeployment gets a deployment by release name from a specific cluster.
-	GetDeployment(ctx context.Context, clusterID uint, releaseName string) (*pkgHelm.GetDeploymentResponse, error)
+	GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*pkgHelm.GetDeploymentResponse, error)
 }

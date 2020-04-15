@@ -143,7 +143,7 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 		return err
 	}
 
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, ReleaseName); err != nil {
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, ReleaseName, op.config.Namespace); err != nil {
 		return errors.WrapIf(err, "failed to delete deployment")
 	}
 

@@ -287,7 +287,7 @@ func (s *HelmService) ApplyDeployment(
 }
 
 // DeleteDeployment deletes a deployment from a specific cluster.
-func (s *HelmService) DeleteDeployment(ctx context.Context, clusterID uint, releaseName string) error {
+func (s *HelmService) DeleteDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) error {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"release": releaseName})
 	logger.Info("deleting deployment")
 
@@ -316,7 +316,7 @@ func (s *HelmService) DeleteDeployment(ctx context.Context, clusterID uint, rele
 	return nil
 }
 
-func (s *HelmService) GetDeployment(ctx context.Context, clusterID uint, releaseName string) (*pkgHelm.GetDeploymentResponse, error) {
+func (s *HelmService) GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*pkgHelm.GetDeploymentResponse, error) {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"release": releaseName})
 	logger.Info("getting deployment")
 
