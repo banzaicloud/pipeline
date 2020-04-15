@@ -20,6 +20,6 @@ sources:
   - https://github.com/banzaicloud
   - https://github.com/banzaicloud/pipeline
 
-icon: https://banzaicloud.com/img/banzai-cloud-logo.png
+icon: https://raw.githubusercontent.com/banzaicloud/pipeline/master/.github/logo.png
 
 # type: application
