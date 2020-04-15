@@ -24,6 +24,7 @@ import (
 const (
 	PlatformHelmHome = "pipeline"
 	helmPostFix      = "helm"
+	noOrg            = 0 // signals that no organization id is provided
 )
 
 // OrgService interface for decoupling organization related operations
@@ -112,6 +113,10 @@ func NewHelm3EnvResolver(delegate EnvResolver) EnvResolver {
 }
 
 func (h3r helm3EnvResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (HelmEnv, error) {
+	if organizationID == noOrg {
+		// fallback to the platform / builtin helm env
+		return h3r.ResolvePlatformEnv(ctx)
+	}
 	env, err := h3r.delegate.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
 		return HelmEnv{}, errors.WrapIf(err, "failed to get helm env")
