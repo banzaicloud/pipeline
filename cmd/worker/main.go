@@ -711,9 +711,9 @@ func setupHelmFacade(config configuration, db *gorm.DB, commonSecretStore common
 	clusterService := helmadapter2.NewClusterService(clusterManager)
 
 	var (
-		envResolver helm.EnvResolver
-		envService  helm.EnvService
+		envService helm.EnvService
 	)
+	envResolver := helm.NewHelm2EnvResolver(config.Helm.Home, orgService, logger)
 	switch config.Helm.Version {
 	case "helm3":
 		envResolver = helm.NewHelm3EnvResolver(envResolver)
