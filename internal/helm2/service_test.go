@@ -97,6 +97,7 @@ func TestIntegration(t *testing.T) {
 		context.Background(),
 		1,
 		"helm-service-test",
+		"",
 	)
 	require.NoError(t, err)
 }

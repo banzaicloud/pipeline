@@ -199,12 +199,12 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 	}
 
 	// delete prometheus operator deployment
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, prometheusOperatorReleaseName); err != nil {
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, prometheusOperatorReleaseName, op.config.Namespace); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to delete deployment", "release", prometheusOperatorReleaseName)
 	}
 
 	// delete prometheus pushgateway deployment
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, prometheusPushgatewayReleaseName); err != nil {
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, prometheusPushgatewayReleaseName, op.config.Namespace); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to delete deployment", "release", prometheusPushgatewayReleaseName)
 	}
 

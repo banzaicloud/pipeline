@@ -65,7 +65,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/helm"
-	helmadapter2 "github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	helm3adapter "github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/helm2"
 	"github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -265,14 +265,13 @@ func main() {
 
 		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
-		var helmService integratedserviceadapter.AdaptedHelmService
+		var unifiedHelmReleaser helm.UnifiedReleaser
 		switch config.Helm.Version {
 		case "helm3":
 			helmFacade := setupHelmFacade(config, db, commonSecretStore, clusterManager, commonLogger)
-			helmService = integratedserviceadapter.NewHelmService(helmFacade, config.Cluster.Namespace, commonLogger)
-
+			unifiedHelmReleaser = helm3adapter.NewUnifiedHelm3Releaser(helmFacade, commonLogger)
 		default:
-			helmService = helm2.NewHelmService(helmadapter.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
+			unifiedHelmReleaser = helm2.NewHelmService(helmadapter.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
 		}
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
@@ -340,7 +339,7 @@ func main() {
 
 			installNodePoolLabelSetOperatorActivity := clustersetup.NewInstallNodePoolLabelSetOperatorActivity(
 				config.Cluster.Labels,
-				helmService,
+				unifiedHelmReleaser,
 			)
 			activity.RegisterWithOptions(installNodePoolLabelSetOperatorActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallNodePoolLabelSetOperatorActivityName})
 
@@ -364,7 +363,7 @@ func main() {
 
 		workflow.RegisterWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
 
-		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager)
+		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager, unifiedHelmReleaser)
 		activity.RegisterWithOptions(runPostHookActivity.Execute, activity.RegisterOptions{Name: cluster.RunPostHookActivityName})
 
 		updateClusterStatusActivity := cluster.NewUpdateClusterStatusActivity(clusterManager)
@@ -633,7 +632,7 @@ func main() {
 				integratedServiceDNS.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					logger,
 					orgDomainService,
 					commonSecretStore,
@@ -643,7 +642,7 @@ func main() {
 					config.Cluster.SecurityScan.Config,
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					commonSecretStore,
 					featureAnchoreService,
 					featureWhitelistService,
@@ -652,7 +651,7 @@ func main() {
 				),
 				integratedServiceVault.MakeIntegratedServicesOperator(clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					kubernetesService,
 					commonSecretStore,
 					config.Cluster.Vault.Config,
@@ -661,7 +660,7 @@ func main() {
 				integratedServiceMonitoring.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					kubernetesService,
 					config.Cluster.Monitoring.Config,
 					logger,
@@ -670,7 +669,7 @@ func main() {
 				integratedServiceLogging.MakeIntegratedServicesOperator(
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					kubernetesService,
 					endpointManager,
 					config.Cluster.Logging.Config,
@@ -682,7 +681,7 @@ func main() {
 					intsvcingressadapter.NewOperatorClusterStore(clusterStore),
 					clusterService,
 					config.Cluster.Ingress.Config,
-					helmService,
+					unifiedHelmReleaser,
 					intsvcingressadapter.NewOrgDomainService(config.Cluster.DNS.BaseDomain, orgGetter),
 				),
 			})
@@ -703,12 +702,12 @@ func main() {
 // setupHelmFacade utility function for assembling the helm facade
 func setupHelmFacade(config configuration, db *gorm.DB, commonSecretStore common2.SecretStore,
 	clusterManager *cluster.Manager, logger helm.Logger) helm.Service {
-	repoStore := helmadapter2.NewHelmRepoStore(db, logger)
-	secretStore := helmadapter2.NewSecretStore(commonSecretStore, logger)
-	orgService := helmadapter2.NewOrgService(logger)
+	repoStore := helm3adapter.NewHelmRepoStore(db, logger)
+	secretStore := helm3adapter.NewSecretStore(commonSecretStore, logger)
+	orgService := helm3adapter.NewOrgService(logger)
 	validator := helm.NewHelmRepoValidator()
-	releaser := helmadapter2.NewReleaser(logger)
-	clusterService := helmadapter2.NewClusterService(clusterManager)
+	releaser := helm3adapter.NewReleaser(logger)
+	clusterService := helm3adapter.NewClusterService(clusterManager)
 
 	var (
 		envService helm.EnvService
@@ -717,7 +716,7 @@ func setupHelmFacade(config configuration, db *gorm.DB, commonSecretStore common
 	switch config.Helm.Version {
 	case "helm3":
 		envResolver = helm.NewHelm3EnvResolver(envResolver)
-		envService = helmadapter2.NewHelm3EnvService(logger)
+		envService = helm3adapter.NewHelm3EnvService(logger)
 
 		// set up platform helm env
 		platformHelmEnv, _ := envResolver.ResolvePlatformEnv(context.Background())
@@ -728,7 +727,7 @@ func setupHelmFacade(config configuration, db *gorm.DB, commonSecretStore common
 
 	default:
 		envResolver = helm.NewHelm2EnvResolver(config.Helm.Home, orgService, logger)
-		envService = helmadapter2.NewHelmEnvService(helmadapter2.NewConfig(config.Helm.Repositories), logger)
+		envService = helm3adapter.NewHelmEnvService(helm3adapter.NewConfig(config.Helm.Repositories), logger)
 	}
 
 	service := helm.NewService(

@@ -25,16 +25,13 @@ import (
 // HookMap for api hook endpoints
 // nolint: gochecknoglobals
 var HookMap = map[string]PostFunctioner{
-	pkgCluster.InstallIngressControllerPostHook: &BasePostFunction{
-		f:            InstallIngressControllerPostHook,
+	pkgCluster.InstallIngressControllerPostHook: &IngressControllerPostHook{
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.InstallKubernetesDashboardPostHook: &BasePostFunction{
-		f:            InstallKubernetesDashboardPostHook,
+	pkgCluster.InstallKubernetesDashboardPostHook: &KubernetesDashboardPostHook{
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.InstallClusterAutoscalerPostHook: &BasePostFunction{
-		f:            InstallClusterAutoscalerPostHook,
+	pkgCluster.InstallClusterAutoscalerPostHook: &ClusterAutoscalerPostHook{
 		ErrorHandler: ErrorHandler{},
 	},
 	pkgCluster.InstallHorizontalPodAutoscalerPostHook: &BasePostFunction{

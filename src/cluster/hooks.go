@@ -15,7 +15,9 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
+	"sync"
 
 	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
@@ -95,7 +97,23 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 	return nil
 }
 
-func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
+type KubernetesDashboardPostHook struct {
+	helmService HelmService
+	Priority
+	ErrorHandler
+	sync.Mutex
+}
+
+func (ph *KubernetesDashboardPostHook) InjectHelmService(h HelmService) {
+	ph.Lock()
+	defer ph.Unlock()
+
+	if ph.helmService == nil {
+		ph.helmService = h
+	}
+}
+
+func (ph *KubernetesDashboardPostHook) Do(cluster CommonCluster) error {
 	var config = global.Config.Cluster.PostHook.Dashboard
 	if !config.Enabled {
 		return nil
@@ -205,12 +223,31 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 		}
 	}
 
-	return installDeployment(cluster, k8sDashboardNameSpace, config.Chart, k8sDashboardReleaseName, valuesJson, config.Version, false)
+	return ph.helmService.ApplyDeployment(context.Background(), cluster.GetID(), k8sDashboardNameSpace, config.Chart, k8sDashboardReleaseName, valuesJson, config.Version)
+}
+
+type ClusterAutoscalerPostHook struct {
+	helmService HelmService
+	Priority
+	ErrorHandler
+	sync.Mutex
+}
+
+func (ph *ClusterAutoscalerPostHook) InjectHelmService(h HelmService) {
+	ph.Lock()
+	defer ph.Unlock()
+
+	if ph.helmService == nil {
+		ph.helmService = h
+	}
 }
 
 // InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
-func InstallClusterAutoscalerPostHook(cluster CommonCluster) error {
-	return DeployClusterAutoscaler(cluster)
+func (ph *ClusterAutoscalerPostHook) Do(cluster CommonCluster) error {
+	if ph.helmService == nil {
+		return errors.New("missing helm service dependency")
+	}
+	return DeployClusterAutoscaler(cluster, ph.helmService)
 }
 
 func metricsServerIsInstalled(cluster CommonCluster) bool {

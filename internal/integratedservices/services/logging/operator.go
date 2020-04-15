@@ -143,12 +143,12 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 	}
 
 	// delete Loki deployment
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, lokiReleaseName); err != nil {
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, lokiReleaseName, op.config.Namespace); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to delete deployment", "release", lokiReleaseName)
 	}
 
 	// delete Logging-operator deployment
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, loggingOperatorReleaseName); err != nil {
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, loggingOperatorReleaseName, op.config.Namespace); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to delete deployment", "release", loggingOperatorReleaseName)
 	}
 

@@ -103,6 +103,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	helm3adapter "github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/helm/helmdriver"
 	"github.com/banzaicloud/pipeline/internal/helm2"
 	helmadapter2 "github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
@@ -507,19 +508,6 @@ func main() {
 	clientFactory := kubernetes.NewClientFactory(configFactory)
 	dynamicClientFactory := kubernetes.NewDynamicClientFactory(configFactory)
 
-	clusterAPI := api.NewClusterAPI(
-		clusterManager,
-		commonClusterGetter,
-		workflowClient,
-		logrusLogger,
-		errorHandler,
-		externalBaseURL,
-		externalURLInsecure,
-		clusterCreators,
-		clusterUpdaters,
-		dynamicClientFactory,
-	)
-
 	// Initialise Gin router
 	engine := gin.New()
 
@@ -638,8 +626,29 @@ func main() {
 		}
 	}
 
-	// set up helm facade for later use
 	helmFacade := setupHelmFacade(config, db, commonSecretStore, clusterManager, commonLogger)
+
+	var unifiedHelmReleaser helm.UnifiedReleaser
+	switch config.Helm.Version {
+	case "helm3":
+		unifiedHelmReleaser = helm3adapter.NewUnifiedHelm3Releaser(helmFacade, commonLogger)
+	default:
+		unifiedHelmReleaser = helm2.NewHelmService(helmadapter2.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
+	}
+
+	clusterAPI := api.NewClusterAPI(
+		clusterManager,
+		commonClusterGetter,
+		workflowClient,
+		logrusLogger,
+		errorHandler,
+		externalBaseURL,
+		externalURLInsecure,
+		clusterCreators,
+		clusterUpdaters,
+		dynamicClientFactory,
+		unifiedHelmReleaser,
+	)
 
 	v1 := base.Group("api/v1")
 	apiRouter := router.PathPrefix("/api/v1").Subrouter()
@@ -838,8 +847,6 @@ func main() {
 					securityscan.MakeIntegratedServiceManager(commonLogger, config.Cluster.SecurityScan.Config),
 				}
 
-				helmService := helm2.NewHelmService(helmadapter2.NewClusterService(clusterManager), commonLogger)
-
 				if config.Cluster.DNS.Enabled {
 					integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
 				}
@@ -853,7 +860,7 @@ func main() {
 						clusterGetter,
 						commonSecretStore,
 						endpointManager,
-						helmService,
+						unifiedHelmReleaser,
 						config.Cluster.Monitoring.Config,
 						commonLogger,
 					))
@@ -912,7 +919,7 @@ func main() {
 				if config.Cluster.Ingress.Enabled {
 					integratedServiceManagers = append(integratedServiceManagers, ingress.NewManager(
 						config.Cluster.Ingress.Config,
-						helmService,
+						unifiedHelmReleaser,
 						commonLogger,
 					))
 				}
