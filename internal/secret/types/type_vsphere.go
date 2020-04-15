@@ -21,9 +21,15 @@ import (
 const Vsphere = "vsphere"
 
 const (
-	FieldVsphereURL      = "url"
-	FieldVsphereUser     = "user"
-	FieldVspherePassword = "password"
+	FieldVsphereURL                 = "url"
+	FieldVsphereUser                = "user"
+	FieldVspherePassword            = "password"
+	FieldVsphereFingerprint         = "fingerprint"
+	FieldVsphereDatacenter          = "datacenter"
+	FieldVsphereDatastore           = "datastore"
+	FieldVsphereResourcePool        = "resourcePool"
+	FieldVsphereFolder              = "folder"
+	FieldVsphereDefaultNodeTemplate = "defaultNodeTemplate"
 )
 
 type VsphereType struct{}
@@ -38,6 +44,12 @@ func (VsphereType) Definition() secret.TypeDefinition {
 			{Name: FieldVsphereURL, Required: true, Description: "The URL endpoint of the vSphere instance to use (don't include auth info)"},
 			{Name: FieldVsphereUser, Required: true, Description: "Username to use for vSphere authentication"},
 			{Name: FieldVspherePassword, Required: true, Description: "Password to use for vSphere authentication"},
+			{Name: FieldVsphereFingerprint, Required: true, Description: "Fingerprint of the server certificate of vCenter"},
+			{Name: FieldVsphereDatacenter, Required: true, Description: "Datacenter to use to store persistent volumes"},
+			{Name: FieldVsphereDatastore, Required: true, Description: "Datastore that is in the given datacenter, and is available on all nodes"},
+			{Name: FieldVsphereResourcePool, Required: true, Description: "Resource pool to create  VMs"},
+			{Name: FieldVsphereFolder, Required: true, Description: "The name of the folder (aka blue folder) to create VMs"},
+			{Name: FieldVsphereDefaultNodeTemplate, Required: true, Description: "The name of the default template name for VMs"},
 		},
 	}
 }

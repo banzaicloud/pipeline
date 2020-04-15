@@ -76,11 +76,12 @@ func (nodePoolModel) TableName() string {
 }
 
 type vspherePkeCluster struct {
-	ID        uint                      `gorm:"primary_key"`
-	ClusterID uint                      `gorm:"unique_index:idx_vsphere_pke_cluster_id"`
-	Cluster   clustermodel.ClusterModel `gorm:"foreignkey:ClusterID"`
-	Spec      ProviderSpec              `gorm:"type:json"`
-	NodePools []nodePoolModel           `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
+	ID              uint                      `gorm:"primary_key"`
+	ClusterID       uint                      `gorm:"unique_index:idx_vsphere_pke_cluster_id"`
+	Cluster         clustermodel.ClusterModel `gorm:"foreignkey:ClusterID"`
+	Spec            ProviderSpec              `gorm:"type:json"`
+	NodePools       []nodePoolModel           `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
+	StorageSecretID string
 }
 
 func (vspherePkeCluster) TableName() string {

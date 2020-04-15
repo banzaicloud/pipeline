@@ -4447,9 +4447,17 @@ components:
                   required:
                         - resourceGroup
                   properties:
+                        storageSecretId:
+                            type: string
+                            example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
+                            description: "Secret ID used to setup VSphere storage classes. Overrides the default settings in main cluster secret."
+                        storageSecretName:
+                            type: string
+                            example: "my-vsphere-storage-secret"
+                            description: "Secret name used to setup VSphere storage classes. Overrides default value from the main cluster secret."
                         folder:
                             type: string
-                            description: "Folder to create nodes in."
+                            description: "Folder to create nodes in. Overrides default value from the main cluster secret."
                             example:
                                - simple:
                                      value: "my-folder"
@@ -4459,11 +4467,11 @@ components:
                                      summary: "Absolute path to the folder. Most vSphere installations use paths prefixed with /Datacenter/vm/."
                         datastore:
                             type: string
-                            description: "Name of datastore or datastore cluster to place VM disks on."
+                            description: "Name of datastore or datastore cluster to place VM disks on. Overrides default value from the main cluster secret."
                             example: Datastore-cluster
                         resourcePool:
                             type: string
-                            description: "Virtual machines will be created in this resource pool."
+                            description: "Virtual machines will be created in this resource pool. Overrides default value from the main cluster secret."
                             example: "my-resource-pool"
                         nodePools:
                             type: array
@@ -4505,7 +4513,7 @@ components:
                     description: MiBs of RAM to attach to each node.
                 template:
                     type: string
-                    description: "Name of VM template available on vSphere to clone as the base of nodes."
+                    description: "Name of VM template available on vSphere to clone as the base of nodes. Overrides default value from the main cluster secret."
                     example:
                         - simple:
                               value: "centos-7-pke-201910021808"
