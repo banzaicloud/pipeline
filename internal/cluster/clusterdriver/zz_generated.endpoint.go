@@ -170,7 +170,8 @@ type UpdateNodePoolRequest struct {
 
 // UpdateNodePoolResponse is a response struct for UpdateNodePool endpoint.
 type UpdateNodePoolResponse struct {
-	Err error
+	ProcessID string
+	Err       error
 }
 
 func (r UpdateNodePoolResponse) Failed() error {
@@ -182,16 +183,22 @@ func MakeUpdateNodePoolEndpoint(service cluster.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(UpdateNodePoolRequest)
 
-		err := service.UpdateNodePool(ctx, req.ClusterID, req.NodePoolName, req.RawNodePoolUpdate)
+		processID, err := service.UpdateNodePool(ctx, req.ClusterID, req.NodePoolName, req.RawNodePoolUpdate)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
-				return UpdateNodePoolResponse{Err: err}, nil
+				return UpdateNodePoolResponse{
+					Err:       err,
+					ProcessID: processID,
+				}, nil
 			}
 
-			return UpdateNodePoolResponse{Err: err}, err
+			return UpdateNodePoolResponse{
+				Err:       err,
+				ProcessID: processID,
+			}, err
 		}
 
-		return UpdateNodePoolResponse{}, nil
+		return UpdateNodePoolResponse{ProcessID: processID}, nil
 	}
 }

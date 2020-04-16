@@ -43,13 +43,13 @@ func (s eksService) CreateNodePool(ctx context.Context, clusterID uint, rawNodeP
 	panic("implement me")
 }
 
-func (s eksService) UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, rawNodePoolUpdate cluster.RawNodePoolUpdate) error {
+func (s eksService) UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, rawNodePoolUpdate cluster.RawNodePoolUpdate) (string, error) {
 	var nodePoolUpdate eks.NodePoolUpdate
 
 	err := mapstructure.Decode(rawNodePoolUpdate, &nodePoolUpdate)
 	if err != nil {
 		// TODO: return a service error
-		return errors.Wrap(err, "failed to decode node pool update")
+		return "", errors.Wrap(err, "failed to decode node pool update")
 	}
 
 	return s.service.UpdateNodePool(ctx, clusterID, nodePoolName, nodePoolUpdate)

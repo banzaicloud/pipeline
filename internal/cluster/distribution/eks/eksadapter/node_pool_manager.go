@@ -43,26 +43,27 @@ func (n nodePoolManager) UpdateNodePool(
 	c cluster.Cluster,
 	nodePoolName string,
 	nodePoolUpdate eks.NodePoolUpdate,
-) error {
+) (string, error) {
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
 		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,
 	}
 
 	input := eksworkflow.UpdateNodePoolWorkflowInput{
-		SecretID:     c.SecretID.String(),
-		Region:       c.Location,
-		ClusterID:    c.ID,
-		ClusterName:  c.Name,
-		NodePoolName: nodePoolName,
+		SecretID:       c.SecretID.String(),
+		Region:         c.Location,
+		ClusterID:      c.ID,
+		ClusterName:    c.Name,
+		NodePoolName:   nodePoolName,
+		OrganizationID: c.OrganizationID,
 
 		NodeImage: nodePoolUpdate.Image,
 	}
 
-	_, err := n.workflowClient.StartWorkflow(ctx, workflowOptions, eksworkflow.UpdateNodePoolWorkflowName, input)
+	e, err := n.workflowClient.StartWorkflow(ctx, workflowOptions, eksworkflow.UpdateNodePoolWorkflowName, input)
 	if err != nil {
-		return errors.WrapWithDetails(err, "failed to start workflow", "workflow", eksworkflow.UpdateNodePoolWorkflowName)
+		return "", errors.WrapWithDetails(err, "failed to start workflow", "workflow", eksworkflow.UpdateNodePoolWorkflowName)
 	}
 
-	return nil
+	return e.ID, nil
 }

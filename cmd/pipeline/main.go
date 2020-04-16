@@ -73,6 +73,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/cap/capdriver"
 	googleproject "github.com/banzaicloud/pipeline/internal/app/pipeline/cloud/google/project"
 	googleprojectdriver "github.com/banzaicloud/pipeline/internal/app/pipeline/cloud/google/project/projectdriver"
+	process "github.com/banzaicloud/pipeline/internal/app/pipeline/process/app"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/secrettype"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/secrettype/secrettypedriver"
 	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
@@ -1134,6 +1135,19 @@ func main() {
 			v1.Any("/secret-types/*path", gin.WrapH(router))
 		}
 
+		{
+			err := process.RegisterApp(
+				orgRouter,
+				db,
+				commonLogger,
+				commonErrorHandler,
+			)
+			emperror.Panic(err)
+
+			orgs.Any("/:orgid/processes", gin.WrapH(router))
+			orgs.Any("/:orgid/processes/*path", gin.WrapH(router))
+		}
+
 		backups.AddRoutes(orgs.Group("/:orgid/clusters/:id/backups"))
 		backupservice.AddRoutes(orgs.Group("/:orgid/clusters/:id/backupservice"))
 		restores.AddRoutes(orgs.Group("/:orgid/clusters/:id/restores"))
@@ -1195,10 +1209,10 @@ func main() {
 		}
 		defer server.Close()
 
-		logger.Info("listening on address", map[string]interface{}{"address": config.Pipeline.Addr})
-
 		ln, err := net.Listen("tcp", config.Pipeline.Addr)
 		emperror.Panic(err)
+
+		scheme := "http"
 
 		caCertFile, certFile, keyFile := config.Pipeline.CACertFile, config.Pipeline.CertFile, config.Pipeline.KeyFile
 		if certFile != "" && keyFile != "" {
@@ -1215,7 +1229,10 @@ func main() {
 			tlsConfig.Certificates = []tls.Certificate{serverCertificate}
 
 			ln = tls.NewListener(ln, tlsConfig)
+			scheme = "https"
 		}
+
+		logger.Info("listening on address", map[string]interface{}{"address": config.Pipeline.Addr, "scheme": scheme})
 
 		group.Add(appkitrun.LogServe(logger)(appkitrun.HTTPServe(server, ln, 5*time.Second)))
 	}

@@ -3774,6 +3774,79 @@ paths:
                 default:
                     $ref: '#/components/responses/Error'
 
+    /api/v1/orgs/{orgId}/processes:
+        get:
+            security:
+                - bearerAuth: []
+            tags:
+                - processes
+            summary: List processes in Pipeline
+            operationId: ListProcesses
+            description: List processes in Pipeline
+            parameters:
+                - $ref: '#/components/parameters/orgId'
+                -
+                    name: type
+                    in: query
+                    description: Type of processes to query
+                    schema:
+                        type: string
+                        enum: [cluster-upgrade]
+                -
+                    name: resourceId
+                    in: query
+                    description: The id of the resource to list processes for
+                    schema:
+                        type: string
+                -
+                    name: parentId
+                    in: query
+                    description: The id of the parent process
+                    schema:
+                        type: string
+                -
+                    name: status
+                    in: query
+                    description: The status of processes to query
+                    schema:
+                        $ref: '#/components/schemas/ProcessStatus'
+            responses:
+                200:
+                    description: "Processes listed"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListProcessesResponse'
+                default:
+                    $ref: '#/components/responses/Error'
+    /api/v1/orgs/{orgId}/processes/{id}:
+        get:
+            security:
+                - bearerAuth: []
+            tags:
+                - processes
+            summary: Get a process in Pipeline
+            operationId: GetProcess
+            description: Get a process in Pipeline
+            parameters:
+                - $ref: '#/components/parameters/orgId'
+                -
+                    name: id
+                    in: path
+                    description: Process id
+                    required: true
+                    schema:
+                        type: string
+            responses:
+                200:
+                    description: "The process"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Process'
+                default:
+                    $ref: '#/components/responses/Error'
+
 components:
     securitySchemes:
         bearerAuth:
@@ -8135,3 +8208,58 @@ components:
             properties:
                 name:
                     type: string
+
+        ListProcessesResponse:
+            type: array
+            items:
+                $ref: '#/components/schemas/Process'
+
+        Process:
+            type: object
+            properties:
+                id:
+                    type: string
+                parentId:
+                    type: string
+                orgId:
+                    type: integer
+                type:
+                    type: string
+                log:
+                    type: string
+                resourceId:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/ProcessStatus'
+                startedAt:
+                    type: string
+                    format: date-time
+                finishedAt:
+                    type: string
+                    nullable: true
+                    format: date-time
+                events:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ProcessEvent'
+
+        ProcessEvent:
+            type: object
+            properties:
+                id:
+                    type: integer
+                processId:
+                    type: string
+                type:
+                    type: string
+                log:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/ProcessStatus'
+                timestamp:
+                    type: string
+                    format: date-time
+
+        ProcessStatus:
+            title: ProcessStatus
+            enum: [running, failed, finished]
