@@ -276,58 +276,6 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 	return false
 }
 
-// InstallHorizontalPodAutoscalerPostHook
-func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
-	var config = global.Config.Cluster
-
-	if !config.PostHook.HPA.Enabled {
-		return nil
-	}
-
-	promServiceName := config.Autoscale.HPA.Prometheus.ServiceName
-	prometheusPort := global.Config.Cluster.Autoscale.HPA.Prometheus.LocalPort
-
-	infraNamespace := config.Autoscale.Namespace
-	serviceContext := config.Autoscale.HPA.Prometheus.ServiceContext
-
-	values := map[string]interface{}{
-		"kube-metrics-adapter": map[string]interface{}{
-			"prometheus": map[string]interface{}{
-				"url": fmt.Sprintf("http://%s.%s.svc:%d/%s", promServiceName, infraNamespace, prometheusPort, serviceContext),
-			},
-			"enableExternalMetricsApi": true,
-			"enableCustomMetricsApi":   false,
-		},
-	}
-
-	// install metricsServer only if metrics.k8s.io endpoint is not available already
-	if !metricsServerIsInstalled(cluster) {
-		log.Infof("Metrics Server is not installed, installing")
-
-		metricsServerValues := make(map[string]interface{}, 0)
-		metricsServerValues["enabled"] = true
-
-		// use InternalIP on VSphere
-		if cluster.GetCloud() == pkgCluster.Vsphere {
-			metricsServerValues["args"] = []string{
-				"--kubelet-preferred-address-types=InternalIP",
-			}
-		}
-
-		values["metrics-server"] = metricsServerValues
-	} else {
-		log.Infof("Metrics Server is already installed")
-	}
-
-	mergedValues, err := mergeValues(values, config.Autoscale.Charts.HPAOperator.Values)
-	if err != nil {
-		return errors.WrapIf(err, "failed to merge hpa-operator chart values with config")
-	}
-
-	return installDeployment(cluster, infraNamespace, config.Autoscale.Charts.HPAOperator.Chart,
-		"hpa-operator", mergedValues, config.Autoscale.Charts.HPAOperator.Version, true)
-}
-
 // RestoreFromBackup restores an ARK backup
 func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) error {
 	var params arkAPI.RestoreFromBackupParams
@@ -483,4 +431,69 @@ func initializeSpotConfigMap(client *kubernetes.Clientset, systemNs string) erro
 	}
 	log.Info("finished initializing spot ConfigMap")
 	return nil
+}
+
+type HorizontalPodAutoscalerPostHook struct {
+	helmService HelmService
+	Priority
+	ErrorHandler
+	sync.Mutex
+}
+
+func (hpa *HorizontalPodAutoscalerPostHook) Do(cluster CommonCluster) error {
+	var config = global.Config.Cluster
+
+	if !config.PostHook.HPA.Enabled {
+		return nil
+	}
+
+	promServiceName := config.Autoscale.HPA.Prometheus.ServiceName
+	prometheusPort := global.Config.Cluster.Autoscale.HPA.Prometheus.LocalPort
+
+	infraNamespace := config.Autoscale.Namespace
+	serviceContext := config.Autoscale.HPA.Prometheus.ServiceContext
+
+	values := map[string]interface{}{
+		"kube-metrics-adapter": map[string]interface{}{
+			"prometheus": map[string]interface{}{
+				"url": fmt.Sprintf("http://%s.%s.svc:%d/%s", promServiceName, infraNamespace, prometheusPort, serviceContext),
+			},
+			"enableExternalMetricsApi": true,
+			"enableCustomMetricsApi":   false,
+		},
+	}
+
+	// install metricsServer only if metrics.k8s.io endpoint is not available already
+	if !metricsServerIsInstalled(cluster) {
+		log.Infof("Metrics Server is not installed, installing")
+
+		metricsServerValues := make(map[string]interface{}, 0)
+		metricsServerValues["enabled"] = true
+
+		// use InternalIP on VSphere
+		if cluster.GetCloud() == pkgCluster.Vsphere {
+			metricsServerValues["args"] = []string{
+				"--kubelet-preferred-address-types=InternalIP",
+			}
+		}
+
+		values["metrics-server"] = metricsServerValues
+	} else {
+		log.Infof("Metrics Server is already installed")
+	}
+
+	mergedValues, err := mergeValues(values, config.Autoscale.Charts.HPAOperator.Values)
+	if err != nil {
+		return errors.WrapIf(err, "failed to merge hpa-operator chart values with config")
+	}
+	return hpa.helmService.ApplyDeployment(context.Background(), cluster.GetID(), infraNamespace, config.Autoscale.Charts.HPAOperator.Chart, "hpa-operator", mergedValues, config.Autoscale.Charts.HPAOperator.Version)
+}
+
+func (hpa *HorizontalPodAutoscalerPostHook) InjectHelmService(h HelmService) {
+	hpa.Lock()
+	defer hpa.Unlock()
+
+	if hpa.helmService == nil {
+		hpa.helmService = h
+	}
 }
