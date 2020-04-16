@@ -169,7 +169,7 @@ func NewBuiltinEnvReconciler(builtinRepos map[string]string, envService EnvServi
 func (b builtinEnvReconciler) Reconcile(ctx context.Context, helmEnv HelmEnv) error {
 	for repoName, repoURL := range b.defaultRepos {
 		if err := b.envService.AddRepository(ctx, helmEnv, Repository{Name: repoName, URL: repoURL}); err != nil {
-			return errors.WrapIf(err, "failed to add builtin repository reconciliation")
+			b.logger.Warn("failed to add builtin repository, it might already exist", map[string]interface{}{"repoName": repoName})
 		}
 	}
 
