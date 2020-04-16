@@ -7,7 +7,7 @@ CREATE TABLE `processes` (
   `resource_id` varchar(255) NOT NULL,
   `status` varchar(255) NOT NULL,
   `started_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `finished_at` timestamp,
+  `finished_at` timestamp NULL,
   PRIMARY KEY (`id`),
   KEY `idx_processes_parent_id` (`parent_id`),
   KEY `idx_start_time_end_time` (`started_at`,`finished_at`)
