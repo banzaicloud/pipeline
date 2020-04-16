@@ -61,6 +61,7 @@ func (h helm3UnifiedReleaser) ApplyDeployment(
 		GenerateName: false,
 		Wait:         false,
 		ReuseValues:  false,
+		Install:      true,
 	}
 	release := helm.Release{
 		ReleaseName: releaseName,
