@@ -163,11 +163,11 @@ func (d dummyHelmService) ApplyDeployment(
 	return nil
 }
 
-func (d dummyHelmService) DeleteDeployment(ctx context.Context, clusterID uint, releaseName string) error {
+func (d dummyHelmService) DeleteDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) error {
 	return nil
 }
 
-func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, releaseName string) (*helm.GetDeploymentResponse, error) {
+func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*helm.GetDeploymentResponse, error) {
 	return &helm.GetDeploymentResponse{
 		ReleaseName: releaseName,
 	}, nil
