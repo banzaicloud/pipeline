@@ -89,7 +89,7 @@ func (h helm3EnvService) AddRepository(_ context.Context, helmEnv helm.HelmEnv, 
 	}
 
 	if f.Has(repository.Name) {
-		return errors.NewWithDetails("repository name (%s) already exists, please specify a different name", repository.Name)
+		return errors.Errorf("repository name (%s) already exists, please specify a different name", repository.Name)
 	}
 
 	c := repo.Entry{ //TODO extend this with credentials
