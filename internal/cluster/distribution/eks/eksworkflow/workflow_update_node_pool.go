@@ -18,10 +18,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/banzaicloud/pipeline-sdk/process"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
-	"github.com/banzaicloud/pipeline-sdk/process"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
@@ -30,6 +30,8 @@ const UpdateNodePoolWorkflowName = "eks-update-node-pool"
 type UpdateNodePoolWorkflowInput struct {
 	SecretID string
 	Region   string
+
+	StackName string
 
 	OrganizationID uint
 	ClusterID      uint
@@ -48,15 +50,13 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 	processLog := process.NewProcessLog(ctx, input.OrganizationID, fmt.Sprint(input.ClusterID))
 	defer processLog.End(err)
 
-	stackName := GenerateNodePoolStackName(input.ClusterName, input.NodePoolName)
-
 	{
 		activityInput := UpdateNodeGroupActivityInput{
 			SecretID:     input.SecretID,
 			Region:       input.Region,
 			ClusterName:  input.ClusterName,
 			NodePoolName: input.NodePoolName,
-			StackName:    stackName,
+			StackName:    input.StackName,
 			NodeImage:    input.NodeImage,
 		}
 
@@ -88,7 +88,7 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 		activityInput := WaitCloudFormationStackUpdateActivityInput{
 			SecretID:  input.SecretID,
 			Region:    input.Region,
-			StackName: stackName,
+			StackName: input.StackName,
 		}
 
 		// TODO: improve

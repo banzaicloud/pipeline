@@ -27,6 +27,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline-sdk/process"
+
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
@@ -55,11 +56,6 @@ func getNodePoolStackTags(clusterName string) []*cloudformation.Tag {
 // ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure
 // TODO: this is temporary
 const ErrReasonStackFailed = "CLOUDFORMATION_STACK_FAILED"
-
-// TODO: this is temporary
-func GenerateNodePoolStackName(clusterName string, poolName string) string {
-	return "pipeline-eks-nodepool-" + clusterName + "-" + poolName
-}
 
 // TODO: this is temporary
 func setClusterStatus(ctx workflow.Context, clusterID uint, status, statusMessage string) error {
