@@ -356,7 +356,7 @@ func InitSpotConfig(cluster CommonCluster) error {
 // DeployInstanceTerminationHandler deploys the instance termination handler
 func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 	var config = global.Config.Cluster.PostHook.ITH
-	if !config.Enabled {
+	if !global.Config.Pipeline.Enterprise || !config.Enabled {
 		return nil
 	}
 
