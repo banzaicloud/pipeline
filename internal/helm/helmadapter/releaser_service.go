@@ -266,6 +266,7 @@ func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 
 	upgradeAction := action.NewUpgrade(actionConfig)
 	upgradeAction.Namespace = options.Namespace
+	upgradeAction.Install = options.Install
 
 	if upgradeAction.Version == "" && upgradeAction.Devel {
 		r.logger.Debug("setting version to >0.0.0-0")

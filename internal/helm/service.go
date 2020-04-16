@@ -57,6 +57,7 @@ type Options struct {
 	Timeout      int64                  `json:"timeout,omitempty"`
 	OdPcts       map[string]interface{} `json:"odPcts,omitempty"`
 	ReuseValues  bool                   `json:"reuseValues,omitempty"`
+	Install      bool                   `json:"install,omitempty"`
 	Optionals    map[string]interface{}
 }
 
