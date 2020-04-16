@@ -56,7 +56,8 @@ type configuration struct {
 	// it's really required here (i.e. used through global config that's
 	// initialized from this).
 	Pipeline struct {
-		External struct {
+		Enterprise bool
+		External   struct {
 			URL string
 		}
 		UUID string
@@ -176,5 +177,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cadence::workflowExecutionRetentionPeriodInDays", 3)
 
 	v.SetDefault("pipeline::uuid", "")
+	v.SetDefault("pipeline::enterprise", false)
 	v.SetDefault("pipeline::external::url", "")
 }

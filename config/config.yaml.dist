@@ -40,6 +40,8 @@ pipeline:
         url: ""
 #        insecure: false
 
+#   enterprise: false
+
 database:
     # dialect: "postgres"
     dialect: "mysql"

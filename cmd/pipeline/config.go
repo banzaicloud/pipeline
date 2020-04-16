@@ -122,6 +122,7 @@ type PipelineConfig struct {
 	CertFile     string
 	KeyFile      string
 	UUID         string
+	Enterprise   bool
 	External     struct {
 		URL      string
 		Insecure bool
