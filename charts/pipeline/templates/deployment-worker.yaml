@@ -4,6 +4,9 @@ metadata:
   name: {{ include "pipeline.fullname" . }}-worker
   labels:
     {{ include "pipeline-worker.labels" . | nindent 4 }}
+    {{- with .Values.worker.deploymentLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   annotations:
     {{- with .Values.worker.deploymentAnnotations }}
     {{- toYaml . | nindent 4 }}
