@@ -85,11 +85,6 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 
 	p := getter.All(envSettings)
 
-	//chartValues, err := r.processValues(p, releaseInput)
-	//if err != nil {
-	//	return "", errors.WrapIf(err, "failed to merge values")
-	//}
-
 	// Check chart dependencies to make sure all are present in /charts
 	chartRequested, err := loader.Load(cp)
 	if err != nil {
@@ -273,12 +268,6 @@ func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 		upgradeAction.Version = ">0.0.0-0"
 	}
 
-	p := getter.All(envSettings)
-	chartValues, err := r.processValues(p, releaseInput)
-	if err != nil {
-		return "", errors.WrapIf(err, "failed to merge values")
-	}
-
 	chartPath, err := upgradeAction.ChartPathOptions.LocateChart(releaseInput.ChartName, envSettings)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to locate chart")
@@ -317,7 +306,7 @@ func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 		r.logger.Warn("This chart is deprecated", map[string]interface{}{"chart": ch.Name()})
 	}
 
-	rel, err := upgradeAction.Run(releaseInput.ReleaseName, ch, chartValues)
+	rel, err := upgradeAction.Run(releaseInput.ReleaseName, ch, releaseInput.Values)
 	if err != nil {
 		return "", errors.Wrap(err, "UPGRADE FAILED")
 	}
