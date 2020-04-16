@@ -738,6 +738,13 @@ func setupHelmFacade(config configuration, db *gorm.DB, commonSecretStore common
 		envResolver = helm.NewHelm3EnvResolver(envResolver)
 		envService = helmadapter2.NewHelm3EnvService(logger)
 
+		// set up platform helm env
+		platformHelmEnv, _ := envResolver.ResolvePlatformEnv(context.Background())
+		reconciler := helm.NewBuiltinEnvReconciler(config.Helm.Repositories, envService, logger)
+		if err := reconciler.Reconcile(context.Background(), platformHelmEnv); err != nil {
+			emperror.Panic(errors.Wrap(err, "failed to set up platform helm environment"))
+		}
+
 	default:
 		envResolver = helm.NewHelm2EnvResolver(config.Helm.Home, orgService, logger)
 		envService = helmadapter2.NewHelmEnvService(helmadapter2.NewConfig(config.Helm.Repositories), logger)

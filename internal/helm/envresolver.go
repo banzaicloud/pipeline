@@ -139,3 +139,40 @@ func decorateEnv(env HelmEnv) HelmEnv {
 	newEnv.repoCacheDir = path.Join(env.home, "repository", "cache")
 	return newEnv
 }
+
+// EnvReconciler component interface for reconciling helm environments
+type EnvReconciler interface {
+	Reconcile(ctx context.Context, helmEnv HelmEnv) error
+}
+
+// Env reconciler for the builtin/platform helm env
+// - creates the helm home for the platform
+// - adds the configured default repositories
+type builtinEnvReconciler struct {
+	defaultRepos map[string]string
+	envService   EnvService
+
+	logger Logger
+}
+
+// NewBuiltinEnvReconciler creates a new platform helm env reconciler instance
+func NewBuiltinEnvReconciler(builtinRepos map[string]string, envService EnvService, logger Logger) EnvReconciler {
+	return builtinEnvReconciler{
+		defaultRepos: builtinRepos,
+		envService:   envService,
+
+		logger: logger,
+	}
+}
+
+// Reconcile adds the configured default repos to the platform helm env
+func (b builtinEnvReconciler) Reconcile(ctx context.Context, helmEnv HelmEnv) error {
+	for repoName, repoURL := range b.defaultRepos {
+		if err := b.envService.AddRepository(ctx, helmEnv, Repository{Name: repoName, URL: repoURL}); err != nil {
+			return errors.WrapIf(err, "failed to add builtin repository reconciliation")
+		}
+	}
+
+	b.logger.Info("platform helm environment set up, builtin repos added")
+	return nil
+}
