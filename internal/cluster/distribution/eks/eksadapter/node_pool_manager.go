@@ -50,8 +50,11 @@ func (n nodePoolManager) UpdateNodePool(
 	}
 
 	input := eksworkflow.UpdateNodePoolWorkflowInput{
-		SecretID:       c.SecretID.String(),
-		Region:         c.Location,
+		SecretID: c.SecretID.String(),
+		Region:   c.Location,
+
+		StackName: generateNodePoolStackName(c.Name, nodePoolName),
+
 		ClusterID:      c.ID,
 		ClusterName:    c.Name,
 		NodePoolName:   nodePoolName,
@@ -66,4 +69,9 @@ func (n nodePoolManager) UpdateNodePool(
 	}
 
 	return e.ID, nil
+}
+
+// TODO: this is temporary
+func generateNodePoolStackName(clusterName string, poolName string) string {
+	return "pipeline-eks-nodepool-" + clusterName + "-" + poolName
 }
