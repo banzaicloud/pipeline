@@ -18,8 +18,9 @@ import (
 	"net/http"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/gin-gonic/gin"
+
+	"github.com/banzaicloud/pipeline/internal/helm"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"

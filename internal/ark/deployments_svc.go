@@ -19,18 +19,14 @@ import (
 	"encoding/json"
 
 	"emperror.dev/errors"
+	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/ark/client"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/src/auth"
-	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
-)
-
-const (
-	// helm deployment timeout
-	deployTimeout = 90
 )
 
 // DeploymentsService is for managing ARK deployments
