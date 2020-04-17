@@ -539,3 +539,92 @@ func (hpa *HorizontalPodAutoscalerPostHook) InjectHelmService(h HelmService) {
 		hpa.helmService = h
 	}
 }
+
+type InstanceTerminationHandlerPostHook struct {
+	helmServiceInjector
+	Priority
+	ErrorHandler
+}
+
+func (i InstanceTerminationHandlerPostHook) Do(cluster CommonCluster) error {
+	var config = global.Config.Cluster.PostHook.ITH
+	if !config.Enabled {
+		return nil
+	}
+
+	cloud := cluster.GetCloud()
+
+	if cloud != pkgCluster.Amazon && cloud != pkgCluster.Google {
+		return nil
+	}
+
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
+
+	values := map[string]interface{}{
+		"tolerations": []v1.Toleration{
+			{
+				Operator: v1.TolerationOpExists,
+			},
+		},
+		"hollowtreesNotifier": map[string]interface{}{
+			"enabled": false,
+		},
+	}
+
+	scaleOptions := cluster.GetScaleOptions()
+	if scaleOptions != nil && scaleOptions.Enabled == true {
+		tokenSigningKey := global.Config.Hollowtrees.TokenSigningKey
+		if tokenSigningKey == "" {
+			err := errors.New("no Hollowtrees token signkey specified")
+			errorHandler.Handle(err)
+			return err
+		}
+
+		generator := hollowtrees.NewTokenGenerator(
+			global.Config.Auth.Token.Issuer,
+			global.Config.Auth.Token.Audience,
+			global.Config.Hollowtrees.TokenSigningKey,
+		)
+		_, token, err := generator.Generate(cluster.GetID(), cluster.GetOrganizationId(), nil)
+		if err != nil {
+			err = errors.WrapIf(err, "could not generate JWT token for instance termination handler")
+			errorHandler.Handle(err)
+			return err
+		}
+
+		values["hollowtreesNotifier"] = map[string]interface{}{
+			"enabled":        true,
+			"URL":            global.Config.Hollowtrees.Endpoint + "/alerts",
+			"organizationID": cluster.GetOrganizationId(),
+			"clusterID":      cluster.GetID(),
+			"clusterName":    cluster.GetName(),
+			"jwtToken":       token,
+		}
+	}
+
+	marshalledValues, err := yaml.Marshal(values)
+	if err != nil {
+		return errors.WrapIf(err, "failed to marshal yaml values")
+	}
+
+	return installDeployment(cluster, pipelineSystemNamespace, config.Chart, "ith", marshalledValues, config.Version, false)
+
+	return
+}
+
+// helmServiceInjector component implementing the helm service injector
+// designed to be embedded into posthook structs
+type helmServiceInjector struct {
+	helmService HelmService
+	sync.Mutex
+}
+
+func (h helmServiceInjector) InjectHelmService(HelmService) {
+	h.Lock()
+	defer h.Unlock()
+
+	if h.helmService == nil {
+		h.helmService = h
+	}
+
+}

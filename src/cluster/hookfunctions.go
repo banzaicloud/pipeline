@@ -43,8 +43,7 @@ var HookMap = map[string]PostFunctioner{
 	pkgCluster.InitSpotConfig: &InitSpotConfigPostHook{
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.DeployInstanceTerminationHandler: &BasePostFunction{
-		f:            DeployInstanceTerminationHandler,
+	pkgCluster.DeployInstanceTerminationHandler: &InstanceTerminationHandlerPostHook{
 		ErrorHandler: ErrorHandler{},
 	},
 }
