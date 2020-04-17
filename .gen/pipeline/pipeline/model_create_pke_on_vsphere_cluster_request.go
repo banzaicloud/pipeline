@@ -31,16 +31,16 @@ type CreatePkeOnVsphereClusterRequest struct {
 	// Secret ID used to setup VSphere storage classes. Overrides the default settings in main cluster secret.
 	StorageSecretId string `json:"storageSecretId,omitempty"`
 
-	// Secret name used to setup VSphere storage classes. Overrides the default one in main cluster secret.
+	// Secret name used to setup VSphere storage classes. Overrides default value from the main cluster secret.
 	StorageSecretName string `json:"storageSecretName,omitempty"`
 
-	// Folder to create nodes in. Overrides the default one in main cluster secret.
+	// Folder to create nodes in. Overrides default value from the main cluster secret.
 	Folder string `json:"folder,omitempty"`
 
-	// Name of datastore or datastore cluster to place VM disks on. Overrides the default one in main cluster secret.
+	// Name of datastore or datastore cluster to place VM disks on. Overrides default value from the main cluster secret.
 	Datastore string `json:"datastore,omitempty"`
 
-	// Virtual machines will be created in this resource pool. Overrides the default one in main cluster secret.
+	// Virtual machines will be created in this resource pool. Overrides default value from the main cluster secret.
 	ResourcePool string `json:"resourcePool,omitempty"`
 
 	NodePools []PkeOnVsphereNodePool `json:"nodePools,omitempty"`
