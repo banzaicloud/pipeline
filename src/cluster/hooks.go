@@ -319,8 +319,18 @@ func (ph *RestoreFromBackupPosthook) Do(cluster CommonCluster) error {
 	)
 }
 
+type InitSpotConfigPostHook struct {
+	helmService HelmService
+	Priority
+	ErrorHandler
+}
+
+func (ph *InitSpotConfigPostHook) InjectHelmService(h HelmService) {
+	ph.helmService = h
+}
+
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
-func InitSpotConfig(cluster CommonCluster) error {
+func (ph *InitSpotConfigPostHook) Do(cluster CommonCluster) error {
 	var config = global.Config.Cluster.PostHook.Spotconfig
 	if !config.Enabled {
 		return nil
@@ -359,11 +369,11 @@ func InitSpotConfig(cluster CommonCluster) error {
 		return errors.WrapIf(err, "failed to marshal yaml values")
 	}
 
-	err = installDeployment(cluster, pipelineSystemNamespace, config.Charts.Scheduler.Chart, "spot-scheduler", marshalledValues, config.Charts.Scheduler.Version, false)
+	err = ph.helmService.InstallDeployment(context.Background(), cluster.GetID(), pipelineSystemNamespace, config.Charts.Scheduler.Chart, "spot-scheduler", marshalledValues, config.Charts.Scheduler.Version, false)
 	if err != nil {
 		return errors.WrapIf(err, "failed to install the spot-scheduler deployment")
 	}
-	err = installDeployment(cluster, pipelineSystemNamespace, config.Charts.Webhook.Chart, "spot-webhook", marshalledValues, config.Charts.Webhook.Version, true)
+	err = ph.helmService.InstallDeployment(context.Background(), cluster.GetID(), pipelineSystemNamespace, config.Charts.Webhook.Chart, "spot-webhook", marshalledValues, config.Charts.Webhook.Version, true)
 	if err != nil {
 		return errors.WrapIf(err, "failed to install the spot-config-webhook deployment")
 	}
