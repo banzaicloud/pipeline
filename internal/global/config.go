@@ -179,12 +179,6 @@ var Config struct {
 		UUID       string
 		Enterprise bool
 	}
-	Spotguide struct {
-		AllowPrereleases                bool
-		AllowPrivateRepos               bool
-		SyncInterval                    time.Duration
-		SharedLibraryGitHubOrganization string
-	}
 	Telemetry struct {
 		Debug bool
 	}

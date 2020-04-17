@@ -468,12 +468,6 @@ cicd:
 #    url: "https://gitlab.com/"
 #    token: "YourPersonalAccessToken"
 
-#spotguide:
-#    allowPrereleases: false
-#    allowPrivateRepos: false
-#    syncInterval: "5m"
-#    sharedLibraryGitHubOrganization: "spotguides"
-
 #spotmetrics:
 #    enabled: false
 #    collectionInterval: "30s"

@@ -111,8 +111,6 @@ import (
 	legacyclusteradapter "github.com/banzaicloud/pipeline/src/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/src/dns"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/spotguide"
-	"github.com/banzaicloud/pipeline/src/spotguide/scm"
 )
 
 // Provisioned by ldflags
@@ -275,28 +273,6 @@ func main() {
 
 		clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
 		emperror.Panic(errors.Wrap(err, "failed to create DexClusterAuthService"))
-
-		scmProvider := config.CICD.SCM
-		var scmToken string
-		switch scmProvider {
-		case "github":
-			scmToken = config.Github.Token
-		case "gitlab":
-			scmToken = config.Gitlab.Token
-		default:
-			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
-		}
-
-		scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken, auth.SCMTokenStore{})
-		emperror.Panic(errors.WrapIf(err, "failed to create SCMFactory"))
-
-		spotguideManager := spotguide.NewSpotguideManager(
-			db,
-			version,
-			scmFactory,
-			nil,
-			spotguide.PlatformData{},
-		)
 
 		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 		configFactory := kubernetes.NewConfigFactory(commonSecretStore)
@@ -538,10 +514,6 @@ func main() {
 
 		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterSecretStore)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
-
-		scrapeSharedSpotguidesActivity := spotguide.NewScrapeSharedSpotguidesActivity(spotguideManager)
-		workflow.RegisterWithOptions(spotguide.ScrapeSharedSpotguidesWorkflow, workflow.RegisterOptions{Name: spotguide.ScrapeSharedSpotguidesWorkflowName})
-		activity.RegisterWithOptions(scrapeSharedSpotguidesActivity.Execute, activity.RegisterOptions{Name: spotguide.ScrapeSharedSpotguidesActivityName})
 
 		createDexClientActivity := pkeworkflow.NewCreateDexClientActivity(clusters, clusterAuthService)
 		activity.RegisterWithOptions(createDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateDexClientActivityName})

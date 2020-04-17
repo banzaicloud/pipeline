@@ -26,7 +26,7 @@ type PkeOnVsphereNodePool struct {
 	// MiBs of RAM to attach to each node.
 	Ram int32 `json:"ram"`
 
-	// Name of VM template available on vSphere to clone as the base of nodes. Overrides the default one in main cluster secret.
+	// Name of VM template available on vSphere to clone as the base of nodes. Overrides default value from the main cluster secret.
 	Template string `json:"template,omitempty"`
 
 	// Name of admin user to deploy the generated SSH public key for. No key will be deployed if omitted.
