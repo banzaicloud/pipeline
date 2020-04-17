@@ -509,7 +509,7 @@ type InstanceTerminationHandlerPostHook struct {
 
 func (ith InstanceTerminationHandlerPostHook) Do(cluster CommonCluster) error {
 	var config = global.Config.Cluster.PostHook.ITH
-	if !config.Enabled {
+	if !global.Config.Pipeline.Enterprise || !config.Enabled {
 		return nil
 	}
 
