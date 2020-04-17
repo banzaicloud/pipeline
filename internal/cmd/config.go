@@ -640,7 +640,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::ingress::namespace", "")
 	v.SetDefault("cluster::ingress::releaseName", "ingress")
 	v.SetDefault("cluster::ingress::charts::traefik::chart", "stable/traefik")
-	v.SetDefault("cluster::ingress::charts::traefik::version", "1.86.2")
+	v.SetDefault("cluster::ingress::charts::traefik::version", "1.86.1")
 	v.SetDefault("cluster::ingress::charts::traefik::values", `
 ssl:
   enabled: true
