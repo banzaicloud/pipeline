@@ -66,16 +66,3 @@ cloudinfo:
 hollowtrees:
     endpoint: "https://beta.banzaicloud.io/hollowtrees-alerts/api/v1"
     tokenSigningKey: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
-
-cicd:
-    database:
-        dialect: "mysql"
-        host: "localhost"
-        port: 3306
-        tls: "false"
-        user: "sparky"
-        password: "sparky123"
-        name: "cicd"
-
-        # Turn this to true to see all queries in the log
-        queryLog: false

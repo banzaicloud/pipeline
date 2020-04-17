@@ -282,12 +282,6 @@ func main() {
 	emperror.Panic(errors.WithMessage(err, "failed to initialize db"))
 	global.SetDB(db)
 
-	var cicdDB *gorm.DB
-	if config.CICD.Enabled {
-		cicdDB, err = database.Connect(config.CICD.Database)
-		emperror.Panic(errors.WithMessage(err, "failed to initialize CICD db"))
-	}
-
 	publisher, subscriber := watermill.NewPubSub(logger)
 	defer publisher.Close()
 	defer subscriber.Close()
@@ -343,7 +337,7 @@ func main() {
 	)
 	tokenManager := pkgAuth.NewTokenManager(tokenGenerator, tokenStore)
 	serviceAccountService := auth.NewServiceAccountService()
-	auth.Init(db, cicdDB, config.Auth, tokenStore, tokenManager, organizationSyncer, serviceAccountService)
+	auth.Init(db, config.Auth, tokenStore, tokenManager, organizationSyncer, serviceAccountService)
 
 	if config.Database.AutoMigrate {
 		logger.Info("running automatic schema migrations")
@@ -629,7 +623,7 @@ func main() {
 		dcGroup.GET("", dashboardAPI.GetClusterDashboard)
 	}
 
-	scmTokenStore := auth.NewSCMTokenStore(tokenStore, config.CICD.Enabled)
+	scmTokenStore := auth.NewSCMTokenStore(tokenStore)
 
 	organizationAPI := api.NewOrganizationAPI(organizationSyncer, auth.NewRefreshTokenStore(tokenStore))
 	userAPI := api.NewUserAPI(db, scmTokenStore, logrusLogger, errorHandler)

@@ -146,11 +146,13 @@ type Generator interface {
 }
 
 const (
-	// CICDUserTokenType is the CICD token type used for API sessions
-	CICDUserTokenType = "user"
+	// UserTokenType is the token type used for API sessions
+	UserTokenType = "user"
 
-	// CICDHookTokenType is the CICD token type used for API sessions
-	CICDHookTokenType = "hook"
+	// VirtualUserTokenType is the token type used for API sessions by external services
+	// Used by PKE at the moment
+	// Legacy token type (used by CICD build hook originally)
+	VirtualUserTokenType = "hook"
 )
 
 func (s service) CreateToken(ctx context.Context, tokenRequest NewTokenRequest) (NewToken, error) {
@@ -169,12 +171,12 @@ func (s service) CreateToken(ctx context.Context, tokenRequest NewTokenRequest) 
 	}
 
 	sub := fmt.Sprint(userID)
-	tokenType := CICDUserTokenType
+	tokenType := UserTokenType
 
 	if tokenRequest.VirtualUser != "" {
 		sub = tokenRequest.VirtualUser
 		userLogin = tokenRequest.VirtualUser
-		tokenType = CICDHookTokenType
+		tokenType = VirtualUserTokenType
 	}
 
 	expiresAt := int64(0)

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "40f19762-33bb-4ab9-9877-71bc37aac137",
+		"_postman_id": "5578e85e-1a09-4928-8613-bdecad590d28",
 		"name": "Pipeline API",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -4058,7 +4058,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
+								"id": "0eaa2399-26d9-4444-9e69-81b0cab2e045",
 								"exec": [
 									"if (responseCode.code === 201) {",
 									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -4072,7 +4072,8 @@
 									"    postman.setNextRequest(null);",
 									"}",
 									""
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -4086,7 +4087,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"banzaicloud-stable/cicd\",\n\t\"values\": {\n\t\t\"server\": {\n\t\t\t\"persistentVolume\": {\n\t\t\t\t\"enabled\": false\n\t\t\t}\n\t\t}\n\t}\n}"
+							"raw": "{\n\t\"name\": \"banzaicloud-stable/pipeline\",\n\t\"values\": {\n\t\t\"ingress\": {\n\t\t\t\"enabled\": true\n\t\t}\n\t}\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/deployments",

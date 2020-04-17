@@ -51,7 +51,7 @@ func TestService_CreateToken(t *testing.T) {
 	store.On("Store", ctx, userIDString, tokenID, tokenRequest.Name, tokenRequest.ExpiresAt).Return(nil)
 
 	generator := new(MockGenerator)
-	generator.On("GenerateToken", userIDString, int64(0), CICDUserTokenType, userLogin).Return(tokenID, tokenValue, nil)
+	generator.On("GenerateToken", userIDString, int64(0), UserTokenType, userLogin).Return(tokenID, tokenValue, nil)
 
 	service := NewService(userExtractor, store, generator)
 
@@ -91,7 +91,7 @@ func TestService_CreateToken_DefaultName(t *testing.T) {
 	store.On("Store", ctx, userIDString, tokenID, "generated", tokenRequest.ExpiresAt).Return(nil)
 
 	generator := new(MockGenerator)
-	generator.On("GenerateToken", userIDString, int64(0), CICDUserTokenType, userLogin).Return(tokenID, tokenValue, nil)
+	generator.On("GenerateToken", userIDString, int64(0), UserTokenType, userLogin).Return(tokenID, tokenValue, nil)
 
 	service := NewService(userExtractor, store, generator)
 
@@ -131,7 +131,7 @@ func TestService_VirtualUser(t *testing.T) {
 	store.On("Store", ctx, userID, tokenID, tokenRequest.Name, tokenRequest.ExpiresAt).Return(nil)
 
 	generator := new(MockGenerator)
-	generator.On("GenerateToken", "virtualUser", int64(0), CICDHookTokenType, "virtualUser").Return(tokenID, tokenValue, nil)
+	generator.On("GenerateToken", "virtualUser", int64(0), VirtualUserTokenType, "virtualUser").Return(tokenID, tokenValue, nil)
 
 	service := NewService(userExtractor, store, generator)
 
