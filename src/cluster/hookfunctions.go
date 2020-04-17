@@ -37,8 +37,7 @@ var HookMap = map[string]PostFunctioner{
 	pkgCluster.InstallHorizontalPodAutoscalerPostHook: &HorizontalPodAutoscalerPostHook{
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.RestoreFromBackup: &PostFunctionWithParam{
-		f:            RestoreFromBackup,
+	pkgCluster.RestoreFromBackup: &RestoreFromBackupPosthook{
 		ErrorHandler: ErrorHandler{},
 	},
 	pkgCluster.InitSpotConfig: &BasePostFunction{

@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	release2 "helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/storage/driver"
 	"sigs.k8s.io/yaml"
 
@@ -105,7 +106,25 @@ func (h *helm3UnifiedReleaser) InstallDeployment(
 		Values:      valuesMap,
 	}
 
-	return h.helmService.InstallRelease(ctx, 0, clusterID, release, options)
+	release, err := h.helmService.GetRelease(ctx, 0, clusterID, releaseName, helm.Options{
+		Namespace: namespace,
+	})
+	if err != nil {
+		if errors.Is(err, driver.ErrReleaseNotFound) {
+			return h.helmService.InstallRelease(ctx, 0, clusterID, release, options)
+		}
+		return errors.WrapIf(err, "failed to retrieve release")
+	}
+	if release.ReleaseInfo.Status == release2.StatusDeployed.String() {
+		return nil
+	}
+	if release.ReleaseInfo.Status == release2.StatusFailed.String() {
+		if err := h.DeleteDeployment(ctx, clusterID, releaseName, namespace); err != nil {
+			return errors.WrapIf(err, "unable to delete release")
+		}
+		return h.helmService.InstallRelease(ctx, 0, clusterID, release, options)
+	}
+	return errors.Errorf("release is in an invalid state: %s", release.ReleaseInfo.Status)
 }
 
 func (h *helm3UnifiedReleaser) DeleteDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) error {

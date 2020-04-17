@@ -276,15 +276,47 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 	return false
 }
 
+// make sure the injector interface is implemented
+var _ HookWithParamsFactory = &RestoreFromBackupPosthook{}
+
+type RestoreFromBackupPosthook struct {
+	Priority
+	ErrorHandler
+	helmService HelmService
+	params      pkgCluster.PostHookParam
+}
+
+func (ph *RestoreFromBackupPosthook) Create(params pkgCluster.PostHookParam) PostFunctioner {
+	return &RestoreFromBackupPosthook{
+		Priority:     ph.Priority,
+		ErrorHandler: ErrorHandler{},
+		params:       params,
+	}
+}
+
+func (ph *RestoreFromBackupPosthook) InjectHelmService(h HelmService) {
+	if ph.helmService == nil {
+		ph.helmService = h
+	}
+}
+
 // RestoreFromBackup restores an ARK backup
-func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) error {
+func (ph *RestoreFromBackupPosthook) Do(cluster CommonCluster) error {
 	var params arkAPI.RestoreFromBackupParams
-	err := castToPostHookParam(param, &params)
+	err := castToPostHookParam(ph.params, &params)
 	if err != nil {
 		return err
 	}
 
-	return arkPosthook.RestoreFromBackup(params, cluster, global.DB(), log, errorHandler, global.Config.Cluster.DisasterRecovery.Ark.RestoreWaitTimeout)
+	return arkPosthook.RestoreFromBackup(
+		params,
+		cluster,
+		global.DB(),
+		log,
+		errorHandler,
+		global.Config.Cluster.DisasterRecovery.Ark.RestoreWaitTimeout,
+		ph.helmService,
+	)
 }
 
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts

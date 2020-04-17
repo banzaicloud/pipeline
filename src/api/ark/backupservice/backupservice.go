@@ -15,6 +15,7 @@
 package backupservice
 
 import (
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -22,10 +23,10 @@ import (
 )
 
 // AddRoutes adds ARK backups related API routes
-func AddRoutes(group *gin.RouterGroup) {
+func AddRoutes(group *gin.RouterGroup, helmService helm.UnifiedReleaser) {
 	group.Use(common.ARKMiddleware(global.DB(), common.Log))
 	group.HEAD("/status", StatusDeprecated)
 	group.GET("/status", Status)
-	group.POST("/enable", Enable)
-	group.POST("/disable", Disable)
+	group.POST("/enable", Enable(helmService))
+	group.POST("/disable", Disable(helmService))
 }

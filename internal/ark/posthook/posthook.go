@@ -19,6 +19,7 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/labels"
@@ -50,6 +51,7 @@ func RestoreFromBackup(
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
 	waitTimeout time.Duration,
+	helmService helm.UnifiedReleaser,
 ) error {
 	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
 	if err != nil {
@@ -64,7 +66,7 @@ func RestoreFromBackup(
 		return err
 	}
 
-	err = svc.GetDeploymentsService().Deploy(&backup.Bucket, true)
+	err = svc.GetDeploymentsService().Deploy(helmService, &backup.Bucket, true)
 	if err != nil {
 		return err
 	}
@@ -87,7 +89,7 @@ func RestoreFromBackup(
 		errorHandler.Handle(errors.WrapIf(err, "could not restore"))
 	}
 
-	err = svc.GetDeploymentsService().Remove()
+	err = svc.GetDeploymentsService().Remove(helmService)
 	if err != nil {
 		return err
 	}
