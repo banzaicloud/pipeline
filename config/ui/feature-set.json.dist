@@ -2,12 +2,6 @@
   "issue": {
     "enabled": true
   },
-  "spotguides": {
-    "enabled": true,
-    "privateRepoCheckbox": {
-      "enabled": true
-    }
-  },
   "dashboard": {
     "enabled": true
   },
@@ -90,18 +84,12 @@
       "enabled": true,
       "createClusterFlow": {
         "enabled": true
-      },
-      "spotguides": {
-        "enabled": false
       }
     },
     "securityScan": {
       "enabled": true,
       "createClusterFlow": {
         "enabled": true
-      },
-      "spotguides": {
-        "enabled": false
       }
     },
     "vault": {
@@ -111,9 +99,6 @@
       "enabled": true,
       "createClusterFlow": {
         "enabled": true
-      },
-      "spotguides": {
-        "enabled": false
       }
     },
     "backup": {

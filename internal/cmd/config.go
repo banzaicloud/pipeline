@@ -128,13 +128,6 @@ type Config struct {
 		}
 	}
 
-	Spotguide struct {
-		AllowPrereleases                bool
-		AllowPrivateRepos               bool
-		SyncInterval                    time.Duration
-		SharedLibraryGitHubOrganization string
-	}
-
 	// Telemetry configuration
 	Telemetry TelemetryConfig
 }
@@ -849,12 +842,6 @@ traefik:
 	v.SetDefault("github::token", "")
 	v.SetDefault("gitlab::url", "https://gitlab.com/")
 	v.SetDefault("gitlab::token", "")
-
-	// Spotguide config
-	v.SetDefault("spotguide::allowPrereleases", false)
-	v.SetDefault("spotguide::allowPrivateRepos", false)
-	v.SetDefault("spotguide::syncInterval", 5*time.Minute)
-	v.SetDefault("spotguide::sharedLibraryGitHubOrganization", "spotguides")
 
 	v.SetDefault("secret::tls::defaultValidity", "8760h") // 1 year
 
