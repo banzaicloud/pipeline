@@ -19,10 +19,11 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/labels"
+
+	"github.com/banzaicloud/pipeline/internal/helm"
 
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
