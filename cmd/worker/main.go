@@ -287,7 +287,6 @@ func main() {
 		clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
 		emperror.Panic(errors.Wrap(err, "failed to create DexClusterAuthService"))
 
-		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 		configFactory := kubernetes.NewConfigFactory(commonSecretStore)
 
 		processService := process.NewService(processadapter.NewGormStore(db))
