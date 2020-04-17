@@ -92,10 +92,21 @@ type HelmService interface {
 		ctx context.Context,
 		clusterID uint,
 		namespace string,
-		deploymentName string,
+		chartName string,
 		releaseName string,
 		values []byte,
 		chartVersion string,
+	) error
+
+	InstallDeployment(
+		ctx context.Context,
+		clusterID uint,
+		namespace string,
+		chartName string,
+		releaseName string,
+		values []byte,
+		chartVersion string,
+		wait bool,
 	) error
 
 	// DeleteDeployment deletes a deployment from a specific cluster.
@@ -107,6 +118,10 @@ type HelmService interface {
 
 type HelmServiceInjector interface {
 	InjectHelmService(HelmService)
+}
+
+type HookWithParamsFactory interface {
+	Create(pkgCluster.PostHookParam) PostFunctioner
 }
 
 const RunPostHookActivityName = "run-posthook"
@@ -135,10 +150,8 @@ func (a *RunPostHookActivity) Execute(ctx context.Context, input RunPostHookActi
 		return errors.New("hook function not found")
 	}
 
-	if hookWithParam, ok := hook.(*PostFunctionWithParam); ok {
-		hookWithParamCopy := *hookWithParam // This is to avoid bugs caused by the global nature of posthooks
-		hookWithParamCopy.SetParams(input.HookParam)
-		hook = &hookWithParamCopy
+	if hookWithParam, ok := hook.(HookWithParamsFactory); ok {
+		hook = hookWithParam.Create(input.HookParam)
 	}
 
 	cluster, err := a.manager.GetClusterByIDOnly(ctx, input.ClusterID)

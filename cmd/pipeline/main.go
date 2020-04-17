@@ -1130,7 +1130,7 @@ func main() {
 		}
 
 		backups.AddRoutes(orgs.Group("/:orgid/clusters/:id/backups"))
-		backupservice.AddRoutes(orgs.Group("/:orgid/clusters/:id/backupservice"))
+		backupservice.AddRoutes(orgs.Group("/:orgid/clusters/:id/backupservice"), unifiedHelmReleaser)
 		restores.AddRoutes(orgs.Group("/:orgid/clusters/:id/restores"))
 		schedules.AddRoutes(orgs.Group("/:orgid/clusters/:id/schedules"))
 		buckets.AddRoutes(orgs.Group("/:orgid/backupbuckets"))
