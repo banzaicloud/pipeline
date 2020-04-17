@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"sync"
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
@@ -56,19 +55,9 @@ type serviceTraefikValues struct {
 }
 
 type IngressControllerPostHook struct {
-	helmService HelmService
+	helmServiceInjector
 	Priority
 	ErrorHandler
-	sync.Mutex
-}
-
-func (i *IngressControllerPostHook) InjectHelmService(h HelmService) {
-	i.Lock()
-	defer i.Unlock()
-
-	if i.helmService == nil {
-		i.helmService = h
-	}
 }
 
 func (i *IngressControllerPostHook) Do(cluster CommonCluster) error {

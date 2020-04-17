@@ -106,7 +106,7 @@ func (h *helm3UnifiedReleaser) InstallDeployment(
 		Values:      valuesMap,
 	}
 
-	release, err := h.helmService.GetRelease(ctx, 0, clusterID, releaseName, helm.Options{
+	retrievedRelease, err := h.helmService.GetRelease(ctx, 0, clusterID, releaseName, helm.Options{
 		Namespace: namespace,
 	})
 	if err != nil {
@@ -115,10 +115,10 @@ func (h *helm3UnifiedReleaser) InstallDeployment(
 		}
 		return errors.WrapIf(err, "failed to retrieve release")
 	}
-	if release.ReleaseInfo.Status == release2.StatusDeployed.String() {
+	if retrievedRelease.ReleaseInfo.Status == release2.StatusDeployed.String() {
 		return nil
 	}
-	if release.ReleaseInfo.Status == release2.StatusFailed.String() {
+	if retrievedRelease.ReleaseInfo.Status == release2.StatusFailed.String() {
 		if err := h.DeleteDeployment(ctx, clusterID, releaseName, namespace); err != nil {
 			return errors.WrapIf(err, "unable to delete release")
 		}

@@ -98,19 +98,9 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 }
 
 type KubernetesDashboardPostHook struct {
-	helmService HelmService
+	helmServiceInjector
 	Priority
 	ErrorHandler
-	sync.Mutex
-}
-
-func (ph *KubernetesDashboardPostHook) InjectHelmService(h HelmService) {
-	ph.Lock()
-	defer ph.Unlock()
-
-	if ph.helmService == nil {
-		ph.helmService = h
-	}
 }
 
 func (ph *KubernetesDashboardPostHook) Do(cluster CommonCluster) error {
@@ -227,19 +217,9 @@ func (ph *KubernetesDashboardPostHook) Do(cluster CommonCluster) error {
 }
 
 type ClusterAutoscalerPostHook struct {
-	helmService HelmService
+	helmServiceInjector
 	Priority
 	ErrorHandler
-	sync.Mutex
-}
-
-func (ph *ClusterAutoscalerPostHook) InjectHelmService(h HelmService) {
-	ph.Lock()
-	defer ph.Unlock()
-
-	if ph.helmService == nil {
-		ph.helmService = h
-	}
 }
 
 // InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
@@ -280,10 +260,11 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 var _ HookWithParamsFactory = &RestoreFromBackupPosthook{}
 
 type RestoreFromBackupPosthook struct {
+	helmServiceInjector
 	Priority
 	ErrorHandler
-	helmService HelmService
-	params      pkgCluster.PostHookParam
+
+	params pkgCluster.PostHookParam
 }
 
 func (ph *RestoreFromBackupPosthook) Create(params pkgCluster.PostHookParam) PostFunctioner {
@@ -291,12 +272,6 @@ func (ph *RestoreFromBackupPosthook) Create(params pkgCluster.PostHookParam) Pos
 		Priority:     ph.Priority,
 		ErrorHandler: ErrorHandler{},
 		params:       params,
-	}
-}
-
-func (ph *RestoreFromBackupPosthook) InjectHelmService(h HelmService) {
-	if ph.helmService == nil {
-		ph.helmService = h
 	}
 }
 
@@ -320,13 +295,9 @@ func (ph *RestoreFromBackupPosthook) Do(cluster CommonCluster) error {
 }
 
 type InitSpotConfigPostHook struct {
-	helmService HelmService
+	helmServiceInjector
 	Priority
 	ErrorHandler
-}
-
-func (ph *InitSpotConfigPostHook) InjectHelmService(h HelmService) {
-	ph.helmService = h
 }
 
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
@@ -476,10 +447,9 @@ func initializeSpotConfigMap(client *kubernetes.Clientset, systemNs string) erro
 }
 
 type HorizontalPodAutoscalerPostHook struct {
-	helmService HelmService
+	helmServiceInjector
 	Priority
 	ErrorHandler
-	sync.Mutex
 }
 
 func (hpa *HorizontalPodAutoscalerPostHook) Do(cluster CommonCluster) error {
@@ -531,22 +501,13 @@ func (hpa *HorizontalPodAutoscalerPostHook) Do(cluster CommonCluster) error {
 	return hpa.helmService.ApplyDeployment(context.Background(), cluster.GetID(), infraNamespace, config.Autoscale.Charts.HPAOperator.Chart, "hpa-operator", mergedValues, config.Autoscale.Charts.HPAOperator.Version)
 }
 
-func (hpa *HorizontalPodAutoscalerPostHook) InjectHelmService(h HelmService) {
-	hpa.Lock()
-	defer hpa.Unlock()
-
-	if hpa.helmService == nil {
-		hpa.helmService = h
-	}
-}
-
 type InstanceTerminationHandlerPostHook struct {
 	helmServiceInjector
 	Priority
 	ErrorHandler
 }
 
-func (i InstanceTerminationHandlerPostHook) Do(cluster CommonCluster) error {
+func (ith InstanceTerminationHandlerPostHook) Do(cluster CommonCluster) error {
 	var config = global.Config.Cluster.PostHook.ITH
 	if !config.Enabled {
 		return nil
@@ -607,9 +568,7 @@ func (i InstanceTerminationHandlerPostHook) Do(cluster CommonCluster) error {
 		return errors.WrapIf(err, "failed to marshal yaml values")
 	}
 
-	return installDeployment(cluster, pipelineSystemNamespace, config.Chart, "ith", marshalledValues, config.Version, false)
-
-	return
+	return ith.helmService.ApplyDeployment(context.Background(), cluster.GetID(), pipelineSystemNamespace, config.Chart, "ith", marshalledValues, config.Version)
 }
 
 // helmServiceInjector component implementing the helm service injector
@@ -619,12 +578,12 @@ type helmServiceInjector struct {
 	sync.Mutex
 }
 
-func (h helmServiceInjector) InjectHelmService(HelmService) {
+// InjectHelmService injects the service to be used by the "parent" struct
+func (h *helmServiceInjector) InjectHelmService(helmService HelmService) {
 	h.Lock()
 	defer h.Unlock()
 
 	if h.helmService == nil {
-		h.helmService = h
+		h.helmService = helmService
 	}
-
 }
