@@ -7443,8 +7443,6 @@ paths:
                 additionalProperties:
                   type: object
                 example:
-                  cicd:
-                    enabled: false
                   features:
                     monitoring:
                       enabled: true
@@ -19584,14 +19582,14 @@ components:
         values:
           ingress:
             enabled: "true"
-        name: banzaicloud-stable/cicd
+        name: banzaicloud-stable/pipeline
         namespace: default
         reuseValues: true
         version: 0.1.0
         timeout: 500
       properties:
         name:
-          example: banzaicloud-stable/cicd
+          example: banzaicloud-stable/pipeline
           type: string
         version:
           description: Version of the deployment. If not specified, the latest version

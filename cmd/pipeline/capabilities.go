@@ -21,9 +21,6 @@ import (
 // mapCapabilities maps configuration to capabilities.
 func mapCapabilities(config configuration) cap.Capabilities {
 	return cap.Capabilities{
-		"cicd": cap.Cap{
-			"enabled": config.CICD.Enabled,
-		},
 		"features": cap.Cap{
 			"vault": cap.Cap{
 				"enabled": config.Cluster.Vault.Enabled,

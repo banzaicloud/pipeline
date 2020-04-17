@@ -832,12 +832,6 @@ traefik:
 	v.SetDefault("hollowtrees::endpoint", "")
 	v.SetDefault("hollowtrees::tokenSigningKey", "")
 
-	// CICD config
-	v.SetDefault("cicd::enabled", false)
-	v.SetDefault("cicd::url", "http://localhost:8000")
-	v.SetDefault("cicd::insecure", false)
-	v.SetDefault("cicd::scm", "github")
-
 	// Auth provider (Gitlab/Github) settings
 	v.SetDefault("github::token", "")
 	v.SetDefault("gitlab::url", "https://gitlab.com/")
