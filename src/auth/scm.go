@@ -23,15 +23,13 @@ import (
 
 // SCMTokenStore stores SCM tokens in the underlying store.
 type SCMTokenStore struct {
-	tokenStore  auth.TokenStore
-	cicdEnabled bool
+	tokenStore auth.TokenStore
 }
 
 // NewSCMTokenStore returns a new SCMTokenStore.
-func NewSCMTokenStore(tokenStore auth.TokenStore, cicdEnabled bool) SCMTokenStore {
+func NewSCMTokenStore(tokenStore auth.TokenStore) SCMTokenStore {
 	return SCMTokenStore{
-		tokenStore:  tokenStore,
-		cicdEnabled: cicdEnabled,
+		tokenStore: tokenStore,
 	}
 }
 
@@ -80,16 +78,6 @@ func (s SCMTokenStore) SaveSCMToken(user *User, scmToken string, provider string
 		return errors.WrapIfWithDetails(err, "failed to store access token for user", "user", user.Login)
 	}
 
-	if s.cicdEnabled && (provider == GithubTokenID || provider == GitlabTokenID) {
-		// TODO CICD should use Vault as well, and this should be removed by then
-		err = updateUserInCICDDB(user, scmToken)
-		if err != nil {
-			return errors.WrapIfWithDetails(err, "failed to update access token for user in CICD", "user", user.Login)
-		}
-
-		synchronizeCICDRepos(user.Login)
-	}
-
 	return nil
 }
 
@@ -99,14 +87,6 @@ func (s SCMTokenStore) RemoveSCMToken(user *User, provider string) error {
 	err := s.tokenStore.Revoke(user.IDString(), provider)
 	if err != nil {
 		return errors.WrapIf(err, "failed to revoke old access token")
-	}
-
-	if s.cicdEnabled && (provider == GithubTokenID || provider == GitlabTokenID) {
-		// TODO CICD should use Vault as well, and this should be removed by then
-		err = updateUserInCICDDB(user, "")
-		if err != nil {
-			return errors.WrapIfWithDetails(err, "failed to update access token for user in CICD", "user", user.Login)
-		}
 	}
 
 	return nil

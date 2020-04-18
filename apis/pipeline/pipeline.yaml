@@ -1713,9 +1713,6 @@ paths:
                                 additionalProperties:
                                     type: object
                                 example: {
-                                    "cicd": {
-                                        "enabled": false
-                                    },
                                     "features": {
                                         "monitoring": {
                                             "enabled": true
@@ -5548,7 +5545,7 @@ components:
             properties:
                 name:
                     type: string
-                    example: "banzaicloud-stable/cicd"
+                    example: "banzaicloud-stable/pipeline"
                 version:
                     type: string
                     example: "0.1.0"

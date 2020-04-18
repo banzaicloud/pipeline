@@ -5,9 +5,6 @@
   "dashboard": {
     "enabled": true
   },
-  "cicd": {
-    "enabled": true
-  },
   "storage": {
     "enabled": true
   },

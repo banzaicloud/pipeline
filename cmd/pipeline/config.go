@@ -26,7 +26,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/cmd"
-	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/src/auth"
 )
 
@@ -42,14 +41,6 @@ type configuration struct {
 		Enabled   bool
 		Headers   []string
 		SkipPaths []string
-	}
-
-	CICD struct {
-		Enabled  bool
-		URL      string
-		Insecure bool
-		SCM      string
-		Database database.Config
 	}
 
 	CORS struct {
@@ -71,36 +62,7 @@ type configuration struct {
 
 // Validate validates the configuration.
 func (c configuration) Validate() error {
-	var errs error
-
-	if c.CICD.Enabled {
-		if c.CICD.URL == "" {
-			errs = errors.Append(errs, errors.New("cicd url is required"))
-		}
-
-		switch c.CICD.SCM {
-		case "github":
-			if c.Github.Token == "" {
-				errs = errors.Append(errs, errors.New("github token is required"))
-			}
-
-		case "gitlab":
-			if c.Gitlab.URL == "" {
-				errs = errors.Append(errs, errors.New("gitlab url is required"))
-			}
-
-			if c.Gitlab.Token == "" {
-				errs = errors.Append(errs, errors.New("gitlab token is required"))
-			}
-
-		default:
-			errs = errors.Append(errs, errors.New("cicd scm is required"))
-		}
-
-		errs = errors.Append(errs, c.CICD.Database.Validate())
-	}
-
-	return errors.Combine(errs, c.Auth.Validate(), c.Config.Validate(), c.Frontend.Validate())
+	return errors.Combine(c.Auth.Validate(), c.Config.Validate(), c.Frontend.Validate())
 }
 
 // Process post-processes the configuration after loading (before validation).
@@ -200,18 +162,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 		auth.RoleAdmin:  ".*",
 		auth.RoleMember: "",
 	})
-
-	v.SetDefault("cicd::database::dialect", "mysql")
-	v.SetDefault("cicd::database::host", "")
-	v.SetDefault("cicd::database::port", 3306)
-	v.SetDefault("cicd::database::tls", "")
-	v.SetDefault("cicd::database::user", "")
-	v.SetDefault("cicd::database::password", "")
-	v.SetDefault("cicd::database::name", "cicd")
-	v.SetDefault("cicd::database::params", map[string]string{
-		"charset": "utf8mb4",
-	})
-	v.SetDefault("cicd::database::queryLog", false)
 
 	// Database config
 	v.SetDefault("database::autoMigrate", false)

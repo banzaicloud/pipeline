@@ -21,8 +21,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -35,50 +35,51 @@ type monitoringConfig struct {
 	url      string
 }
 
-func (m *MeshReconciler) ReconcileBackyards(desiredState DesiredState) error {
+func (m *MeshReconciler) ReconcileBackyards(desiredState DesiredState, c cluster.CommonCluster, remote bool) error {
 	m.logger.Debug("reconciling Backyards")
 	defer m.logger.Debug("Backyards reconciled")
 
 	if desiredState == DesiredStatePresent {
-		client, err := m.getRuntimeK8sClient(m.Master)
+		client, err := m.getRuntimeK8sClient(c)
 		if err != nil {
 			return errors.WrapIf(err, "could not get api extension client")
 		}
 
-		err = m.waitForCRD("instances.config.istio.io", client)
-		if err != nil {
-			return errors.WrapIf(err, "error while waiting for metric CRD")
+		if !remote {
+			err = m.waitForCRD("instances.config.istio.io", client)
+			if err != nil {
+				return errors.WrapIf(err, "error while waiting for metric CRD")
+			}
 		}
 
-		k8sclient, err := m.getMasterK8sClient()
-		if err != nil {
-			return errors.WrapIf(err, "could not get k8s client")
+		podLabels := map[string]string{"app": "istiod"}
+		imageWithTag := m.Configuration.internalConfig.Istio.PilotImage
+		if remote {
+			podLabels = map[string]string{"app": "istio-sidecar-injector"}
+			imageWithTag = m.Configuration.internalConfig.Istio.SidecarInjectorImage
 		}
-		err = m.waitForSidecarInjectorPod(k8sclient)
+		err = m.waitForPod(client, istioOperatorNamespace, podLabels, imageWithTag)
 		if err != nil {
 			return errors.WrapIf(err, "error while waiting for running sidecar injector")
 		}
 
-		err = m.installBackyards(m.Master, monitoringConfig{
+		err = m.installBackyards(c, monitoringConfig{
 			hostname: prometheusHostname,
 			url:      prometheusURL,
-		})
+		}, remote)
 		if err != nil {
 			return errors.WrapIf(err, "could not install Backyards")
 		}
-	} else {
-		err := m.uninstallBackyards(m.Master)
-		if err != nil {
-			return errors.WrapIf(err, "could not remove Backyards")
-		}
+
+		return nil
 	}
 
-	return nil
+	return errors.WrapIf(m.uninstallBackyards(c), "could not remove Backyards")
 }
 
-// waitForSidecarInjectorPod waits for Sidecar Injector Pods to be running
-func (m *MeshReconciler) waitForSidecarInjectorPod(client runtimeclient.Client) error {
-	m.logger.Debug("waiting for sidecar injector pod")
+// waitForPod waits for pods to be running
+func (m *MeshReconciler) waitForPod(client runtimeclient.Client, namespace string, labels map[string]string, containerImageWithTag string) error {
+	m.logger.Debug("waiting for pod")
 
 	var backoffConfig = backoff.ConstantBackoffConfig{
 		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
@@ -88,16 +89,42 @@ func (m *MeshReconciler) waitForSidecarInjectorPod(client runtimeclient.Client) 
 
 	err := backoff.Retry(func() error {
 		var pods corev1.PodList
-		err := client.List(context.Background(), &pods, runtimeclient.MatchingLabels(map[string]string{"app": "istio-sidecar-injector"}), runtimeclient.MatchingFields(fields.Set(map[string]string{"status.phase": "Running"})))
+		o := &runtimeclient.ListOptions{}
+		runtimeclient.InNamespace(namespace).ApplyToList(o)
+		runtimeclient.MatchingLabels(labels).ApplyToList(o)
+
+		err := client.List(context.Background(), &pods, o)
 		if err != nil {
 			return errors.WrapIf(err, "could not list pods")
 		}
 
-		if len(pods.Items) == 0 {
-			return errors.New("could not find any running sidecar injector")
+		for _, pod := range pods.Items {
+			if containerImageWithTag != "" {
+				match := false
+				for _, container := range pod.Spec.Containers {
+					if container.Image == containerImageWithTag {
+						match = true
+						break
+					}
+				}
+				if !match {
+					continue
+				}
+			}
+			if pod.Status.Phase == v1.PodRunning {
+				readyContainers := 0
+				for _, cs := range pod.Status.ContainerStatuses {
+					if cs.Ready {
+						readyContainers++
+					}
+				}
+				if readyContainers == len(pod.Status.ContainerStatuses) {
+					return nil
+				}
+			}
 		}
 
-		return nil
+		return errors.New("could not find running and healthy pods")
 	}, backoffPolicy)
 
 	return err
@@ -122,7 +149,15 @@ func (m *MeshReconciler) waitForCRD(name string, client runtimeclient.Client) er
 			return errors.WrapIf(err, "could not get CRD")
 		}
 
-		return nil
+		for _, condition := range crd.Status.Conditions {
+			if condition.Type == apiextensionsv1beta1.Established {
+				if condition.Status == apiextensionsv1beta1.ConditionTrue {
+					return nil
+				}
+			}
+		}
+
+		return errors.New("CRD is not established yet")
 	}, backoffPolicy)
 
 	return err
@@ -132,16 +167,11 @@ func (m *MeshReconciler) waitForCRD(name string, client runtimeclient.Client) er
 func (m *MeshReconciler) uninstallBackyards(c cluster.CommonCluster) error {
 	m.logger.Debug("removing Backyards")
 
-	err := deleteDeployment(c, backyardsReleaseName)
-	if err != nil {
-		return errors.WrapIf(err, "could not remove Backyards")
-	}
-
-	return nil
+	return errors.WrapIf(deleteDeployment(c, backyardsReleaseName), "could not remove Backyards")
 }
 
 // installIstioOperator installs istio-operator on a cluster
-func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring monitoringConfig) error {
+func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring monitoringConfig, remote bool) error {
 	m.logger.Debug("installing Backyards")
 
 	type istio struct {
@@ -150,8 +180,9 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 	}
 
 	type application struct {
-		Image imageChartValue   `json:"image,omitempty"`
-		Env   map[string]string `json:"env,omitempty"`
+		Enabled bool              `json:"enabled"`
+		Image   imageChartValue   `json:"image,omitempty"`
+		Env     map[string]string `json:"env,omitempty"`
 	}
 
 	type Values struct {
@@ -176,6 +207,22 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 			} `json:"security"`
 			ExternalURL string `json:"externalUrl"`
 		} `json:"grafana"`
+		ALS struct {
+			Enabled bool `json:"enabled"`
+		} `json:"als,omitempty"`
+		IngressGateway struct {
+			Enabled bool `json:"enabled"`
+		} `json:"ingressgateway,omitempty"`
+		AuditSink struct {
+			Enabled bool `json:"enabled"`
+		} `json:"auditsink,omitempty"`
+		KubeStateMetrics struct {
+			Enabled bool `json:"enabled"`
+		} `json:"kubestatemetrics,omitempty"`
+		Tracing struct {
+			Enabled bool `json:"enabled"`
+		} `json:"tracing,omitempty"`
+		UseIstioResources bool `json:"useIstioResources"`
 	}
 
 	values := Values{
@@ -197,6 +244,7 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 	values.Autoscaling.Enabled = false
 	values.Prometheus.ExternalURL = prometheusExternalURL
 	values.Ingress.Enabled = false
+	values.Application.Enabled = true
 	values.Web.Enabled = true
 	values.Grafana.Enabled = true
 	values.Grafana.ExternalURL = "/grafana"
@@ -204,6 +252,12 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 	values.Web.Env = map[string]string{
 		"API_URL": "api",
 	}
+	values.IngressGateway.Enabled = true
+	values.KubeStateMetrics.Enabled = true
+	values.ALS.Enabled = true
+	values.Grafana.Enabled = true
+	values.Tracing.Enabled = true
+	values.UseIstioResources = true
 
 	backyardsChart := m.Configuration.internalConfig.Charts.Backyards
 
@@ -221,6 +275,20 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 		values.Web.Image.Tag = backyardsChart.Values.Web.Image.Tag
 	}
 
+	if remote {
+		values.Application.Enabled = false
+		values.IngressGateway.Enabled = false
+		values.ALS.Enabled = false
+		values.Web.Enabled = false
+		values.AuditSink.Enabled = false
+		values.Autoscaling.Enabled = false
+		values.Grafana.Enabled = false
+		values.Tracing.Enabled = false
+		values.Prometheus.Enabled = true
+		values.Prometheus.ClusterName = c.GetName()
+		values.UseIstioResources = false
+	}
+
 	valuesOverride, err := yaml.Marshal(values)
 	if err != nil {
 		return errors.WrapIf(err, "could not marshal chart value overrides")
@@ -236,9 +304,6 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 		true,
 		true,
 	)
-	if err != nil {
-		return errors.WrapIf(err, "could not install Backyards")
-	}
 
-	return nil
+	return errors.WrapIf(err, "could not install Backyards")
 }

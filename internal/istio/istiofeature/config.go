@@ -19,6 +19,8 @@ type StaticConfig struct {
 		GrafanaDashboardLocation string
 		PilotImage               string
 		MixerImage               string
+		ProxyImage               string
+		SidecarInjectorImage     string
 	}
 
 	Charts struct {
@@ -66,6 +68,11 @@ type StaticConfig struct {
 					}
 				}
 			}
+		}
+
+		NodeExporter struct {
+			Chart   string
+			Version string
 		}
 	}
 }
