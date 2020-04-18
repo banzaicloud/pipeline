@@ -150,9 +150,6 @@ var Config struct {
 			}
 		}
 	}
-	Gitlab struct {
-		URL string
-	}
 	Helm struct {
 		Home         string
 		Repositories map[string]string

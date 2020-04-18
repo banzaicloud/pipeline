@@ -89,15 +89,6 @@ type Config struct {
 	// Error handling configuration
 	Errors errorhandler.Config
 
-	Github struct {
-		Token string
-	}
-
-	Gitlab struct {
-		URL   string
-		Token string
-	}
-
 	Helm struct {
 		Tiller struct {
 			Version string
@@ -839,11 +830,6 @@ traefik:
 	v.SetDefault("cloudinfo::endpoint", "")
 	v.SetDefault("hollowtrees::endpoint", "")
 	v.SetDefault("hollowtrees::tokenSigningKey", "")
-
-	// Auth provider (Gitlab/Github) settings
-	v.SetDefault("github::token", "")
-	v.SetDefault("gitlab::url", "https://gitlab.com/")
-	v.SetDefault("gitlab::token", "")
 
 	v.SetDefault("secret::tls::defaultValidity", "8760h") // 1 year
 

@@ -1583,7 +1583,7 @@ paths:
                 - bearerAuth: []
             tags:
                 - organizations
-            summary: Synchronize Github organizations
+            summary: Synchronize organizations
             operationId: SyncOrgs
             responses:
                 200:
@@ -1673,26 +1673,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/User'
-                default:
-                    $ref: '#/components/responses/Error'
-
-        patch:
-            security:
-                - bearerAuth: []
-            tags:
-                - users
-            summary: Update current user's settings
-            operationId: UpdateCurrentUser
-            description: Update current user
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/UpdateUserRequest'
-            responses:
-                204:
-                    description: "Modifiying current user's settings succeeded"
                 default:
                     $ref: '#/components/responses/Error'
 
@@ -3981,16 +3961,6 @@ components:
                     type: string
                 "instance_uuid":
                     type: string
-
-        UpdateUserRequest:
-            type: object
-            properties:
-                gitHubToken:
-                    type: string
-                    example: "b8d9cfb5df15fd513bf3351719876ffff4b310d2"
-                gitLabToken:
-                    type: string
-                    example: "a_tguocsP6vqqHBh8vYQ"
 
         RequestedResources:
             type: object
@@ -6326,9 +6296,6 @@ components:
                 organizations:
                     type: object
                     example: null
-                gitHubTokenSet:
-                    type: boolean
-                    example: true
 
         SecretTypeResponse:
             type: object

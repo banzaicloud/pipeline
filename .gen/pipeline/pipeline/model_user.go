@@ -27,6 +27,4 @@ type User struct {
 	Image string `json:"image,omitempty"`
 
 	Organizations map[string]interface{} `json:"organizations,omitempty"`
-
-	GitHubTokenSet bool `json:"gitHubTokenSet,omitempty"`
 }

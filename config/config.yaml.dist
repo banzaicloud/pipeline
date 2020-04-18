@@ -439,13 +439,6 @@ hollowtrees:
     endpoint: ""
     tokenSigningKey: ""
 
-#github:
-#    token: "YourPersonalAccessToken"
-
-#gitlab:
-#    url: "https://gitlab.com/"
-#    token: "YourPersonalAccessToken"
-
 #spotmetrics:
 #    enabled: false
 #    collectionInterval: "30s"

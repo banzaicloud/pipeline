@@ -7122,7 +7122,7 @@ paths:
           description: Internal server error
       security:
       - bearerAuth: []
-      summary: Synchronize Github organizations
+      summary: Synchronize organizations
       tags:
       - organizations
   /api:
@@ -7314,121 +7314,6 @@ paths:
       security:
       - bearerAuth: []
       summary: Get current user
-      tags:
-      - users
-    patch:
-      description: Update current user
-      operationId: UpdateCurrentUser
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
-        required: true
-      responses:
-        "204":
-          description: Modifiying current user's settings succeeded
-        default:
-          content:
-            application/json:
-              examples:
-                BadRequest:
-                  value:
-                    code: 400
-                    message: Invalid request
-                    error: Failed to parse request.
-                Unauthorized:
-                  value:
-                    code: 401
-                    message: Unauthorized
-                    error: Unauthorized
-                OrganizationNotFound:
-                  value:
-                    code: 404
-                    message: Organization not found
-                    error: Organization not found
-                SecretAlreadyExists:
-                  value:
-                    code: 409
-                    message: Secret already exists
-                    error: Secret already exists
-                InternalServerError:
-                  value:
-                    code: 500
-                    message: Something went wrong
-                    error: Something went wrong
-              schema:
-                $ref: '#/components/schemas/CommonError'
-            application/problem+json:
-              examples:
-                BadRequest:
-                  value:
-                    type: about:blank
-                    title: Invalid request
-                    status: 400
-                    detail: Failed to parse request.
-                    instance: ""
-                    code: 400
-                    message: Failed to parse request.
-                    error: Invalid request
-                Unauthorized:
-                  value:
-                    type: about:blank
-                    title: Unauthorized
-                    status: 401
-                    detail: You are unauthorized to access this resource.
-                    instance: ""
-                    code: 401
-                    message: You are unauthorized to access this resource.
-                    error: Unauthorized
-                AccessDenied:
-                  value:
-                    type: about:blank
-                    title: Access denied
-                    status: 403
-                    detail: You are unauthorized to perform this action access this
-                      resource.
-                    instance: ""
-                    code: 403
-                    message: You are unauthorized to perform this action access this
-                      resource.
-                    error: Access denied
-                OrganizationNotFound:
-                  value:
-                    type: about:blank
-                    title: Organization not found
-                    status: 404
-                    detail: Organization not found
-                    instance: ""
-                    code: 404
-                    message: Organization not found
-                    error: Organization not found
-                SecretAlreadyExists:
-                  value:
-                    type: about:blank
-                    title: Secret already exists
-                    status: 409
-                    detail: Secret already exists
-                    instance: ""
-                    code: 409
-                    message: Secret already exists
-                    error: Secret already exists
-                InternalServerError:
-                  value:
-                    type: about:blank
-                    title: Internal server error
-                    status: 500
-                    detail: Something went wrong
-                    instance: ""
-                    code: 500
-                    message: Something went wrong
-                    error: Internal server error
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      summary: Update current user's settings
       tags:
       - users
   /api/v1/capabilities:
@@ -18342,18 +18227,6 @@ components:
         instance_uuid:
           type: string
       type: object
-    UpdateUserRequest:
-      example:
-        gitHubToken: b8d9cfb5df15fd513bf3351719876ffff4b310d2
-        gitLabToken: a_tguocsP6vqqHBh8vYQ
-      properties:
-        gitHubToken:
-          example: b8d9cfb5df15fd513bf3351719876ffff4b310d2
-          type: string
-        gitLabToken:
-          example: a_tguocsP6vqqHBh8vYQ
-          type: string
-      type: object
     RequestedResources:
       properties:
         sumCpu:
@@ -20418,7 +20291,6 @@ components:
       example:
         createdAt: 2018-03-09T13:24:49+01:00
         image: githubImageUrl.com/imageId/3
-        gitHubTokenSet: true
         name: myName
         organizations: '{}'
         id: 1
@@ -20449,9 +20321,6 @@ components:
           type: string
         organizations:
           type: object
-        gitHubTokenSet:
-          example: true
-          type: boolean
       type: object
     SecretTypeResponse:
       example:

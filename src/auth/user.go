@@ -42,11 +42,6 @@ const (
 	// SignUp is present if the current request is a signing up
 	SignUp utils.ContextKey = "signUp"
 
-	// GithubTokenID denotes the tokenID for the user's Github token, there can be only one
-	GithubTokenID = "github"
-	// GitlabTokenID denotes the tokenID for the user's Github token, there can be only one
-	GitlabTokenID = "gitlab"
-
 	// OAuthRefreshTokenID denotes the tokenID for the user's OAuth refresh token, there can be only one
 	OAuthRefreshTokenID = "oauth_refresh"
 )
