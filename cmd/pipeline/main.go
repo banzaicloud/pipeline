@@ -60,6 +60,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"go.uber.org/cadence/.gen/go/shared"
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
@@ -167,8 +168,6 @@ import (
 	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/dns"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/spotguide"
-	"github.com/banzaicloud/pipeline/src/spotguide/scm"
 )
 
 // Provisioned by ldflags
@@ -283,12 +282,6 @@ func main() {
 	emperror.Panic(errors.WithMessage(err, "failed to initialize db"))
 	global.SetDB(db)
 
-	var cicdDB *gorm.DB
-	if config.CICD.Enabled {
-		cicdDB, err = database.Connect(config.CICD.Database)
-		emperror.Panic(errors.WithMessage(err, "failed to initialize CICD db"))
-	}
-
 	publisher, subscriber := watermill.NewPubSub(logger)
 	defer publisher.Close()
 	defer subscriber.Close()
@@ -344,7 +337,7 @@ func main() {
 	)
 	tokenManager := pkgAuth.NewTokenManager(tokenGenerator, tokenStore)
 	serviceAccountService := auth.NewServiceAccountService()
-	auth.Init(db, cicdDB, config.Auth, tokenStore, tokenManager, organizationSyncer, serviceAccountService)
+	auth.Init(db, config.Auth, tokenStore, tokenManager, organizationSyncer, serviceAccountService)
 
 	if config.Database.AutoMigrate {
 		logger.Info("running automatic schema migrations")
@@ -630,56 +623,18 @@ func main() {
 		dcGroup.GET("", dashboardAPI.GetClusterDashboard)
 	}
 
-	scmTokenStore := auth.NewSCMTokenStore(tokenStore, config.CICD.Enabled)
+	scmTokenStore := auth.NewSCMTokenStore(tokenStore)
 
 	organizationAPI := api.NewOrganizationAPI(organizationSyncer, auth.NewRefreshTokenStore(tokenStore))
 	userAPI := api.NewUserAPI(db, scmTokenStore, logrusLogger, errorHandler)
 	networkAPI := api.NewNetworkAPI(logrusLogger)
 
-	var spotguideAPI *api.SpotguideAPI
-
-	if config.CICD.Enabled {
-		spotguidePlatformData := spotguide.PlatformData{
-			AutoDNSEnabled: config.Cluster.DNS.BaseDomain != "",
+	{
+		// cancel cancel shared spotguides sync workflow
+		err = workflowClient.CancelWorkflow(context.Background(), "scrape-shared-spotguides", "")
+		if _, ok := err.(*shared.EntityNotExistsError); err != nil && !ok {
+			errorHandler.Handle(errors.WrapIf(err, "failed to cancel shared spotguides sync workflow"))
 		}
-
-		scmProvider := config.CICD.SCM
-		var scmToken string
-		switch scmProvider {
-		case "github":
-			scmToken = config.Github.Token
-		case "gitlab":
-			scmToken = config.Gitlab.Token
-		default:
-			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
-		}
-
-		scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken, scmTokenStore)
-		emperror.Panic(errors.WrapIf(err, "failed to create SCMFactory"))
-
-		sharedSpotguideOrg, err := spotguide.EnsureSharedSpotguideOrganization(
-			db,
-			scmProvider,
-			config.Spotguide.SharedLibraryGitHubOrganization,
-		)
-		if err != nil {
-			errorHandler.Handle(errors.WrapIf(err, "failed to create shared Spotguide organization"))
-		}
-
-		spotguideManager := spotguide.NewSpotguideManager(
-			db,
-			version,
-			scmFactory,
-			sharedSpotguideOrg,
-			spotguidePlatformData,
-		)
-
-		// periodically sync shared spotguides
-		if err := spotguide.ScheduleScrapingSharedSpotguides(workflowClient); err != nil {
-			errorHandler.Handle(errors.WrapIf(err, "failed to schedule syncing shared spotguides"))
-		}
-
-		spotguideAPI = api.NewSpotguideAPI(logrusLogger, errorHandler, spotguideManager)
 	}
 
 	v1 := base.Group("api/v1")
@@ -715,11 +670,6 @@ func main() {
 		{
 			orgs.Use(api.OrganizationMiddleware)
 			orgs.Use(authorizationMiddleware)
-
-			if config.CICD.Enabled {
-				spotguides := orgs.Group("/:orgid/spotguides")
-				spotguideAPI.Install(spotguides)
-			}
 
 			orgs.POST("/:orgid/clusters", clusterAPI.CreateCluster)
 			orgs.GET("/:orgid/clusters", clusterAPI.GetClusters)

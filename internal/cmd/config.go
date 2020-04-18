@@ -128,13 +128,6 @@ type Config struct {
 		}
 	}
 
-	Spotguide struct {
-		AllowPrereleases                bool
-		AllowPrivateRepos               bool
-		SyncInterval                    time.Duration
-		SharedLibraryGitHubOrganization string
-	}
-
 	// Telemetry configuration
 	Telemetry TelemetryConfig
 }
@@ -843,22 +836,10 @@ traefik:
 	v.SetDefault("hollowtrees::endpoint", "")
 	v.SetDefault("hollowtrees::tokenSigningKey", "")
 
-	// CICD config
-	v.SetDefault("cicd::enabled", false)
-	v.SetDefault("cicd::url", "http://localhost:8000")
-	v.SetDefault("cicd::insecure", false)
-	v.SetDefault("cicd::scm", "github")
-
 	// Auth provider (Gitlab/Github) settings
 	v.SetDefault("github::token", "")
 	v.SetDefault("gitlab::url", "https://gitlab.com/")
 	v.SetDefault("gitlab::token", "")
-
-	// Spotguide config
-	v.SetDefault("spotguide::allowPrereleases", false)
-	v.SetDefault("spotguide::allowPrivateRepos", false)
-	v.SetDefault("spotguide::syncInterval", 5*time.Minute)
-	v.SetDefault("spotguide::sharedLibraryGitHubOrganization", "spotguides")
 
 	v.SetDefault("secret::tls::defaultValidity", "8760h") // 1 year
 

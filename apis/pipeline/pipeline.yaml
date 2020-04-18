@@ -19,9 +19,6 @@ tags:
         name: clusters
         description: Clusters related funtions
     -
-        name: spotguides
-        description: Application spotguides
-    -
         name: deployments
         description: Deployment related functions for a cluster
     -
@@ -80,86 +77,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/VersionResponse'
-
-    /api/v1/orgs/{orgId}/spotguides:
-        parameters:
-            - $ref: '#/components/parameters/orgId'
-
-        get:
-            security:
-                - bearerAuth: []
-            tags:
-                - spotguides
-            summary: List spotguides
-            description: List all available spotguides
-            operationId: ListSpotguides
-            responses:
-                200:
-                    description: Spotguide list
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ListSpotguidesResponse'
-
-        post:
-            security:
-                - bearerAuth: []
-            tags:
-                - spotguides
-            summary: Launch spotguide
-            description: Launch a spotguide
-            operationId: LaunchSpotguide
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/LaunchSpotguidesRequest'
-            responses:
-                202:
-                    description: Spotguide launch response
-
-        put:
-            security:
-                - bearerAuth: []
-            tags:
-                - spotguides
-            summary: Update spotguide repositories
-            operationId: UpdateSpotguides
-            responses:
-                202:
-                    description: Spotguides update
-
-    /api/v1/orgs/{orgId}/spotguides/{name}:
-        parameters:
-            - $ref: '#/components/parameters/orgId'
-
-        get:
-            security:
-                - bearerAuth: []
-            tags:
-                - spotguides
-            summary: Get spotguide details
-            description: Get details about specific spotguide
-            operationId: GetSpotguideDetail
-            parameters:
-                -
-                    name: name
-                    in: path
-                    required: true
-                    description: Spotguide name
-                    schema:
-                        type: string
-                        example: banzaicloud/spotguide-nodejs-mongodb
-            responses:
-                200:
-                    description: Spotguide details
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/SpotguideDetailsResponse'
-                default:
-                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters:
         parameters:
@@ -1796,9 +1713,6 @@ paths:
                                 additionalProperties:
                                     type: object
                                 example: {
-                                    "cicd": {
-                                        "enabled": false
-                                    },
                                     "features": {
                                         "monitoring": {
                                             "enabled": true
@@ -4078,100 +3992,6 @@ components:
                     type: string
                     example: "a_tguocsP6vqqHBh8vYQ"
 
-        SpotguideDetailsResponse:
-            type: object
-            properties:
-                name:
-                    type: string
-                    example: "banzaicloud/spotguide-nodejs-mongodb"
-                displayName:
-                    type: string
-                    example: "The spotguide for NodeJS and MongoDB"
-                createdAt:
-                    type: string
-                    example: "2018-06-11T14:28:13Z"
-                updatedAt:
-                    type: string
-                    example: "2018-06-11T14:28:24Z"
-                readme:
-                    type: string
-                    example: "# Spotguide for Node.js with MongoDB database"
-                version:
-                    type: string
-                    example: "v0.0.1"
-                tags:
-                    type: array
-                    items:
-                        type: string
-                resources:
-                    $ref: '#/components/schemas/RequestedResources'
-                questions:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/SpotguideOption'
-
-        LaunchSpotguidesRequest:
-            type: object
-            required:
-                - spotguideName
-                - repoOrganization
-                - repoName
-            properties:
-                repoOrganization:
-                    type: string
-                    example: "banzaicloud"
-                repoName:
-                    type: string
-                    example: "spotguide-nodejs-mongodb-test"
-                repoPrivate:
-                    type: boolean
-                    example: false
-                repoLatent:
-                    type: boolean
-                    example: false
-                spotguideName:
-                    type: string
-                    example: "banzaicloud/spotguide-nodejs-mongodb"
-                spotguideVersion:
-                    type: string
-                    example: "v0.3.2"
-                cluster:
-                    $ref: '#/components/schemas/CreateClusterRequest'
-                secrets:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/CreateSecretRequest'
-                pipeline:
-                    type: object
-
-        SpotguideOption:
-            type: object
-            properties:
-                name:
-                    type: string
-                    example: mysql_version
-                type:
-                    type: string
-                    example: "string"
-                info:
-                    type: string
-                    example: Mysql database version
-                default:
-                    type: string
-                    enum: [ "5.6", "5.7" ]
-                    example: "5.6"
-                readonly:
-                    type: boolean
-                    example: false
-                key:
-                    type: string
-                    example: mysql.version
-
-        ListSpotguidesResponse:
-            type: array
-            items:
-                $ref: '#/components/schemas/SpotguideDetailsResponse'
-
         RequestedResources:
             type: object
             properties:
@@ -5721,7 +5541,7 @@ components:
             properties:
                 name:
                     type: string
-                    example: "banzaicloud-stable/cicd"
+                    example: "banzaicloud-stable/pipeline"
                 version:
                     type: string
                     example: "0.1.0"

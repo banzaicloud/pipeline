@@ -439,40 +439,12 @@ hollowtrees:
     endpoint: ""
     tokenSigningKey: ""
 
-cicd:
-#    enabled: false
-#    url: "http://localhost:8000"
-#    insecure: false
-#    scm: "github"
-
-    database:
-        # dialect: "postgres"
-        dialect: "mysql"
-        host: "localhost"
-        # port: 5432
-        port: 3306
-        # tls: "disable"
-        tls: "false"
-        user: ""
-        # role: ""
-        password: ""
-        name: "cicd"
-
-        # Turn this to true to see all queries in the log
-#        queryLog: false
-
 #github:
 #    token: "YourPersonalAccessToken"
 
 #gitlab:
 #    url: "https://gitlab.com/"
 #    token: "YourPersonalAccessToken"
-
-#spotguide:
-#    allowPrereleases: false
-#    allowPrivateRepos: false
-#    syncInterval: "5m"
-#    sharedLibraryGitHubOrganization: "spotguides"
 
 #spotmetrics:
 #    enabled: false

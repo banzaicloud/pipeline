@@ -32,7 +32,6 @@ require (
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-00010101000000-000000000000 // indirect
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
 	github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.1
-	github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677
 	github.com/banzaicloud/gin-utilz v0.2.0
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
 	github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4
@@ -43,7 +42,6 @@ require (
 	github.com/denisenkom/go-mssqldb v0.0.0-20200206145737-bbfc9a55622e // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/didip/tollbooth v4.0.2+incompatible
-	github.com/docker/libcompose v0.4.0
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cors v1.3.0
@@ -52,7 +50,6 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.4
-	github.com/google/go-github v17.0.0+incompatible
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/sessions v1.2.0
 	github.com/gosimple/slug v1.9.0 // indirect
@@ -100,7 +97,6 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
 	github.com/vmware/govmomi v0.22.0
-	github.com/xanzy/go-gitlab v0.16.2-0.20190325100843-bbb1af7187c8
 	go.opencensus.io v0.22.2
 	go.uber.org/cadence v0.9.0
 	go.uber.org/yarpc v1.44.0

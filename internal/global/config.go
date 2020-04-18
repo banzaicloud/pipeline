@@ -36,12 +36,6 @@ var Config struct {
 			Issuer   string
 		}
 	}
-	CICD struct {
-		Enabled  bool
-		Insecure bool
-		SCM      string
-		URL      string
-	}
 	Cloud struct {
 		Alibaba struct {
 			DefaultRegion string
@@ -178,12 +172,6 @@ var Config struct {
 		}
 		UUID       string
 		Enterprise bool
-	}
-	Spotguide struct {
-		AllowPrereleases                bool
-		AllowPrivateRepos               bool
-		SyncInterval                    time.Duration
-		SharedLibraryGitHubOrganization string
 	}
 	Telemetry struct {
 		Debug bool
