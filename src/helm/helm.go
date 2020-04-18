@@ -352,7 +352,7 @@ func GetRequestedChart(releaseName, chartName, chartVersion string, chartPackage
 }
 
 // UpgradeDeployment upgrades a Helm deployment
-func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage []byte, values []byte, reuseValues bool, kubeConfig []byte, env helm_env.EnvSettings) (*rls.UpdateReleaseResponse, error) {
+func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage []byte, values []byte, reuseValues bool, kubeConfig []byte, env helm_env.EnvSettings, overrideOpts ...helm.UpdateOption) (*rls.UpdateReleaseResponse, error) {
 	chartRequested, err := GetRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
@@ -365,13 +365,18 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 	}
 	defer hClient.Close()
 
+	options := []helm.UpdateOption{
+		helm.UpdateValueOverrides(values),
+		helm.UpgradeDryRun(false),
+		helm.ReuseValues(reuseValues),
+	}
+
+	options = append(options, overrideOpts...)
+
 	upgradeRes, err := hClient.UpdateReleaseFromChart(
 		releaseName,
 		chartRequested,
-		helm.UpdateValueOverrides(values),
-		helm.UpgradeDryRun(false),
-		// helm.ResetValues(u.resetValues),
-		helm.ReuseValues(reuseValues),
+		options...,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "upgrade failed")

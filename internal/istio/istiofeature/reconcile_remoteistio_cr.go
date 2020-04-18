@@ -16,6 +16,7 @@ package istiofeature
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -35,50 +36,25 @@ func (m *MeshReconciler) ReconcileRemoteIstio(desiredState DesiredState, c clust
 	m.logger.Debug("reconciling Remote Istio CR")
 	defer m.logger.Debug("Remote Istio CR reconciled")
 
-	client, err := m.getMasterRuntimeK8sClient()
+	remoteIstio := m.generateRemoteIstioCR(m.Configuration, c)
+
+	client, err := m.getRuntimeK8sClient(m.Master)
 	if err != nil {
 		return err
 	}
 
 	if desiredState == DesiredStatePresent {
-		var remoteIstio v1beta1.RemoteIstio
-		err := client.Get(context.Background(), types.NamespacedName{
-			Name:      c.GetName(),
-			Namespace: istioOperatorNamespace,
-		}, &remoteIstio)
-		if err != nil && !k8serrors.IsNotFound(err) {
-			return errors.WrapIf(err, "could not check existence Remote Istio CR")
-		}
+		return errors.WithStack(m.applyResource(client, &remoteIstio))
+	}
 
-		if err == nil {
-			m.logger.Debug("Remote Istio CR already exists")
-			return nil
-		}
+	err = m.deleteResource(client, &remoteIstio)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 
-		remoteIstioCR := m.generateRemoteIstioCR(m.Configuration, c)
-		err = client.Create(context.Background(), &remoteIstioCR)
-		if err != nil {
-			return errors.WrapIf(err, "could not create Remote Istio CR")
-		}
-	} else {
-		var remoteIstio v1beta1.RemoteIstio
-		err := client.Get(context.Background(), types.NamespacedName{
-			Name:      c.GetName(),
-			Namespace: istioOperatorNamespace,
-		}, &remoteIstio)
-		if err != nil && !k8serrors.IsNotFound(err) {
-			return errors.WrapIf(err, "could not check existence Remote Istio CR")
-		}
-
-		err = client.Delete(context.Background(), &remoteIstio)
-		if err != nil && !k8serrors.IsNotFound(err) {
-			return errors.WrapIf(err, "could not remove Remote Istio CR")
-		}
-
-		err = m.waitForRemoteIstioCRToBeDeleted(c.GetName(), client)
-		if err != nil {
-			return errors.WrapIf(err, "timeout during waiting for Remote Istio CR to be deleted")
-		}
+	err = m.waitForRemoteIstioCRToBeDeleted(c.GetName(), client)
+	if err != nil {
+		return errors.WrapIf(err, "timeout during waiting for Remote Istio CR to be deleted")
 	}
 
 	return nil
@@ -168,6 +144,11 @@ func (m *MeshReconciler) generateRemoteIstioCR(config Config, c cluster.CommonCl
 
 	istioConfig.Spec.SidecarInjector.Enabled = &enabled
 	istioConfig.Spec.SidecarInjector.ReplicaCount = &replicaCount
-
+	istioConfig.Spec.SidecarInjector.InjectedContainerAdditionalEnvVars = []corev1.EnvVar{
+		{
+			Name:  "ISTIO_METAJSON_PLATFORM_METADATA",
+			Value: fmt.Sprintf(`{"PLATFORM_METADATA":{"cluster_id":"%s"}}`, c.GetName()),
+		},
+	}
 	return istioConfig
 }

@@ -20,6 +20,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/util/validation"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
 )
@@ -111,6 +112,11 @@ func (h *ServiceMeshFeatureHandler) ValidateProperties(clusterGroup api.ClusterG
 
 	if currentConfig.MasterClusterID > 0 && config.MasterClusterID != currentConfig.MasterClusterID {
 		return errors.New("master cluster ID cannot be changed")
+	}
+
+	errs := validation.IsDNS1123Subdomain(clusterGroup.Name)
+	if len(errs) > 0 {
+		return errors.WithDetails(errors.Errorf("invalid mesh name: %s", errs[0]), "name", clusterGroup.Name)
 	}
 
 	masterClusterIsAMember := false

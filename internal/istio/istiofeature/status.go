@@ -27,7 +27,7 @@ import (
 func (m *MeshReconciler) GetClusterStatus() (map[uint]string, error) {
 	status := make(map[uint]string, 0)
 
-	client, err := m.getMasterRuntimeK8sClient()
+	client, err := m.getRuntimeK8sClient(m.Master)
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not get istio operator client")
 	}
