@@ -612,10 +612,8 @@ func main() {
 		dcGroup.GET("", dashboardAPI.GetClusterDashboard)
 	}
 
-	scmTokenStore := auth.NewSCMTokenStore(tokenStore)
-
 	organizationAPI := api.NewOrganizationAPI(organizationSyncer, auth.NewRefreshTokenStore(tokenStore))
-	userAPI := api.NewUserAPI(db, scmTokenStore, logrusLogger, errorHandler)
+	userAPI := api.NewUserAPI(db, logrusLogger, errorHandler)
 	networkAPI := api.NewNetworkAPI(logrusLogger)
 
 	{
@@ -660,7 +658,6 @@ func main() {
 		v1.Use(auth.Handler)
 		capdriver.RegisterHTTPHandler(mapCapabilities(config), commonErrorHandler, v1)
 		v1.GET("/me", userAPI.GetCurrentUser)
-		v1.PATCH("/me", userAPI.UpdateCurrentUser)
 
 		endpointMiddleware := []endpoint.Middleware{
 			correlation.Middleware(),

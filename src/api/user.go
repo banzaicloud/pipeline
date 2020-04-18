@@ -31,22 +31,15 @@ import (
 
 // UserAPI implements user functions.
 type UserAPI struct {
-	db            *gorm.DB
-	scmTokenStore auth.SCMTokenStore
-	log           logrus.FieldLogger
-	errorHandler  emperror.Handler
+	db           *gorm.DB
+	log          logrus.FieldLogger
+	errorHandler emperror.Handler
 }
 
 // NewUserAPI returns a new UserAPI instance.
-func NewUserAPI(
-	db *gorm.DB,
-	scmTokenStore auth.SCMTokenStore,
-	log logrus.FieldLogger,
-	errorHandler emperror.Handler,
-) *UserAPI {
+func NewUserAPI(db *gorm.DB, log logrus.FieldLogger, errorHandler emperror.Handler) *UserAPI {
 	return &UserAPI{
-		db:            db,
-		scmTokenStore: scmTokenStore,
+		db: db,
 
 		log:          log,
 		errorHandler: errorHandler,
@@ -77,32 +70,7 @@ func (a *UserAPI) GetCurrentUser(c *gin.Context) {
 		return
 	}
 
-	scmToken, provider, err := a.scmTokenStore.GetSCMToken(user.ID)
-
-	if err != nil {
-		message := "failed to fetch user's scm token"
-		a.errorHandler.Handle(errors.WrapIf(err, message))
-		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: message,
-			Error:   message,
-		})
-		return
-	}
-	var response struct {
-		*auth.User
-		GitHubTokenSet bool `json:"gitHubTokenSet"`
-		GitLabTokenSet bool `json:"gitLabTokenSet"`
-	}
-
-	response.User = user
-	if provider == auth.GithubTokenID {
-		response.GitHubTokenSet = scmToken != ""
-	} else if provider == auth.GitlabTokenID {
-		response.GitLabTokenSet = scmToken != ""
-	}
-
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, user)
 }
 
 // GetUsers gets a user or lists all users from an organization depending on the presence of the id parameter.
@@ -155,73 +123,4 @@ func (a *UserAPI) GetUsers(c *gin.Context) {
 			Error:   message,
 		})
 	}
-}
-
-type updateUserRequest struct {
-	GitHubToken *string `json:"gitHubToken,omitempty"`
-	GitLabToken *string `json:"gitLabToken,omitempty"`
-}
-
-// UpdateCurrentUser updates the authenticated user's settings
-func (a *UserAPI) UpdateCurrentUser(c *gin.Context) {
-	user := auth.GetCurrentUser(c.Request)
-	if user == nil {
-		c.JSON(http.StatusUnauthorized, common.ErrorResponse{
-			Code:    http.StatusUnauthorized,
-			Message: "failed to get current user",
-		})
-		return
-	}
-
-	var updateUserRequest updateUserRequest
-	err := c.BindJSON(&updateUserRequest)
-
-	if err != nil {
-		message := "failed to bind update user request"
-		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: message,
-			Error:   message,
-		})
-		return
-	}
-
-	err = a.db.Find(user).Error
-
-	if err != nil {
-		message := "failed to fetch user"
-		a.errorHandler.Handle(errors.WrapIf(err, message))
-		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: message,
-			Error:   message,
-		})
-		return
-	}
-
-	var provider string
-	var scmToken string
-	if updateUserRequest.GitHubToken != nil {
-		provider = auth.GithubTokenID
-		scmToken = *updateUserRequest.GitHubToken
-	} else if updateUserRequest.GitLabToken != nil {
-		provider = auth.GitlabTokenID
-		scmToken = *updateUserRequest.GitLabToken
-	}
-
-	if scmToken == "" {
-		err = a.scmTokenStore.RemoveSCMToken(user, provider)
-	} else {
-		err = a.scmTokenStore.SaveSCMToken(user, scmToken, provider)
-	}
-	if err != nil {
-		a.errorHandler.Handle(err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: err.Error(),
-			Error:   err.Error(),
-		})
-	}
-
-	c.Status(http.StatusNoContent)
 }
