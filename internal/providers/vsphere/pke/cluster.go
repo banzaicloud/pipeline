@@ -47,7 +47,7 @@ type PKEOnVsphereCluster struct {
 	ActiveWorkflowID    string
 	HTTPProxy           intPKE.HTTPProxy
 	StorageSecretID     string
-	LoadBalancerIpRange string
+	LoadBalancerIPRange string
 }
 
 func (c PKEOnVsphereCluster) HasActiveWorkflow() bool {

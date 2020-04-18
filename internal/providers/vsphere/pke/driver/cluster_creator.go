@@ -142,7 +142,7 @@ type VspherePKEClusterCreationParams struct {
 	DatastoreName       string
 	Kubernetes          intPKE.Kubernetes
 	ActiveWorkflowID    string
-	LoadBalancerIpRange string
+	LoadBalancerIPRange string
 }
 
 // Create
@@ -185,7 +185,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 		FolderName:          params.FolderName,
 		DatastoreName:       params.DatastoreName,
 		Kubernetes:          params.Kubernetes,
-		LoadBalancerIpRange: params.LoadBalancerIpRange,
+		LoadBalancerIPRange: params.LoadBalancerIPRange,
 	}
 	cl, err = cc.store.Create(createParams)
 	if err != nil {
@@ -208,7 +208,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 		PipelineExternalURLInsecure: cc.config.PipelineExternalURLInsecure,
 		SingleNodePool:              len(cl.NodePools) == 1,
 		SSHPublicKey:                sshKeyPair.PublicKeyData,
-		LoadBalancerIpRange:         cl.LoadBalancerIpRange,
+		LoadBalancerIPRange:         cl.LoadBalancerIPRange,
 	}
 
 	if cl.Kubernetes.OIDC.Enabled {
@@ -421,7 +421,7 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --vsphere-folder="{{ .Folder }}" \
 --vsphere-username="{{ .Username }}" \
 --vsphere-password="{{ .Password }}" \
---lb-range="{{ .LoadBalancerIpRange }}"`
+--lb-range="{{ .LoadBalancerIPRange }}"`
 
 const workerUserDataScriptTemplate = `#!/bin/sh
 export HTTP_PROXY="{{ .HttpProxy }}"

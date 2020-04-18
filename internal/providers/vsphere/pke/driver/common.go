@@ -41,7 +41,7 @@ type nodeTemplateFactory struct {
 	OIDCClientID                string
 	OIDCIssuerURL               string
 	NoProxy                     string
-	LoadBalancerIpRange         string
+	LoadBalancerIPRange         string
 }
 
 func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
@@ -104,7 +104,7 @@ func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
 		"KubernetesVersion":    f.KubernetesVersion,
 		"KubernetesMasterMode": k8sMasterMode,
 		"NoProxy":              f.NoProxy,
-		"LoadBalancerIpRange":  f.LoadBalancerIpRange,
+		"LoadBalancerIPRange":  f.LoadBalancerIPRange,
 	}
 	return node
 }

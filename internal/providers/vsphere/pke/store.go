@@ -39,7 +39,7 @@ type CreateParams struct {
 	FolderName          string
 	DatastoreName       string
 	Kubernetes          intPKE.Kubernetes
-	LoadBalancerIpRange string
+	LoadBalancerIPRange string
 }
 
 // ClusterStore defines behaviors of PKEOnVsphereCluster persistent storage

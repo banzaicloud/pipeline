@@ -82,7 +82,7 @@ type vspherePkeCluster struct {
 	Spec                ProviderSpec              `gorm:"type:json"`
 	NodePools           []nodePoolModel           `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
 	StorageSecretID     string
-	LoadBalancerIpRange string
+	LoadBalancerIPRange string
 }
 
 func (vspherePkeCluster) TableName() string {
@@ -159,7 +159,7 @@ func fillClusterFromModel(cluster *pke.PKEOnVsphereCluster, model vspherePkeClus
 	cluster.ResourcePool = model.Spec.ResourcePoolName
 	cluster.HTTPProxy = model.Spec.HTTPProxy
 	cluster.StorageSecretID = model.StorageSecretID
-	cluster.LoadBalancerIpRange = model.LoadBalancerIpRange
+	cluster.LoadBalancerIPRange = model.LoadBalancerIPRange
 
 	return nil
 }
@@ -227,7 +227,7 @@ func (s gormVspherePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOn
 		},
 		NodePools:           nodePools,
 		StorageSecretID:     params.StorageSecretID,
-		LoadBalancerIpRange: params.LoadBalancerIpRange,
+		LoadBalancerIPRange: params.LoadBalancerIPRange,
 	}
 
 	if err = getError(s.db.Preload("Cluster").Create(&model), "failed to create cluster model"); err != nil {

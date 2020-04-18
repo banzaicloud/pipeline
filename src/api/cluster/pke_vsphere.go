@@ -75,7 +75,7 @@ func (req CreatePKEOnVsphereClusterRequest) ToVspherePKEClusterCreationParams(or
 		ResourcePoolName:    req.ResourcePool,
 		FolderName:          req.Folder,
 		DatastoreName:       req.Datastore,
-		LoadBalancerIpRange: req.LoadBalancerIpRange,
+		LoadBalancerIPRange: req.LoadBalancerIPRange,
 	}
 }
 
