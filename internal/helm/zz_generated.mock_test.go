@@ -349,6 +349,27 @@ func (_m *MockEnvService) DeleteRepository(ctx context.Context, helmEnv HelmEnv,
 	return r0
 }
 
+// EnsureEnv provides a mock function.
+func (_m *MockEnvService) EnsureEnv(ctx context.Context, helmEnv HelmEnv) (HelmEnv, error) {
+	ret := _m.Called(ctx, helmEnv)
+
+	var r0 HelmEnv
+	if rf, ok := ret.Get(0).(func(context.Context, HelmEnv) HelmEnv); ok {
+		r0 = rf(ctx, helmEnv)
+	} else {
+		r0 = ret.Get(0).(HelmEnv)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, HelmEnv) error); ok {
+		r1 = rf(ctx, helmEnv)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChart provides a mock function.
 func (_m *MockEnvService) GetChart(ctx context.Context, helmEnv HelmEnv, chartFilter ChartFilter) (chartDetails map[string]interface{}, err error) {
 	ret := _m.Called(ctx, helmEnv, chartFilter)

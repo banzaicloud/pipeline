@@ -16,12 +16,12 @@ type MockHelmService struct {
 }
 
 // ApplyDeployment provides a mock function.
-func (_m *MockHelmService) ApplyDeployment(ctx context.Context, clusterID uint, namespace string, deploymentName string, releaseName string, values []uint8, chartVersion string) error {
-	ret := _m.Called(ctx, clusterID, namespace, deploymentName, releaseName, values, chartVersion)
+func (_m *MockHelmService) ApplyDeployment(ctx context.Context, clusterID uint, namespace string, chartName string, releaseName string, values []uint8, chartVersion string) error {
+	ret := _m.Called(ctx, clusterID, namespace, chartName, releaseName, values, chartVersion)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, uint, string, string, string, []uint8, string) error); ok {
-		r0 = rf(ctx, clusterID, namespace, deploymentName, releaseName, values, chartVersion)
+		r0 = rf(ctx, clusterID, namespace, chartName, releaseName, values, chartVersion)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -30,12 +30,12 @@ func (_m *MockHelmService) ApplyDeployment(ctx context.Context, clusterID uint, 
 }
 
 // DeleteDeployment provides a mock function.
-func (_m *MockHelmService) DeleteDeployment(ctx context.Context, clusterID uint, releaseName string) error {
-	ret := _m.Called(ctx, clusterID, releaseName)
+func (_m *MockHelmService) DeleteDeployment(ctx context.Context, clusterID uint, releaseName string, namespace string) error {
+	ret := _m.Called(ctx, clusterID, releaseName, namespace)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint, string) error); ok {
-		r0 = rf(ctx, clusterID, releaseName)
+	if rf, ok := ret.Get(0).(func(context.Context, uint, string, string) error); ok {
+		r0 = rf(ctx, clusterID, releaseName, namespace)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -44,12 +44,12 @@ func (_m *MockHelmService) DeleteDeployment(ctx context.Context, clusterID uint,
 }
 
 // GetDeployment provides a mock function.
-func (_m *MockHelmService) GetDeployment(ctx context.Context, clusterID uint, releaseName string) (*helm.GetDeploymentResponse, error) {
-	ret := _m.Called(ctx, clusterID, releaseName)
+func (_m *MockHelmService) GetDeployment(ctx context.Context, clusterID uint, releaseName string, namespace string) (*helm.GetDeploymentResponse, error) {
+	ret := _m.Called(ctx, clusterID, releaseName, namespace)
 
 	var r0 *helm.GetDeploymentResponse
-	if rf, ok := ret.Get(0).(func(context.Context, uint, string) *helm.GetDeploymentResponse); ok {
-		r0 = rf(ctx, clusterID, releaseName)
+	if rf, ok := ret.Get(0).(func(context.Context, uint, string, string) *helm.GetDeploymentResponse); ok {
+		r0 = rf(ctx, clusterID, releaseName, namespace)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*helm.GetDeploymentResponse)
@@ -57,8 +57,8 @@ func (_m *MockHelmService) GetDeployment(ctx context.Context, clusterID uint, re
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, uint, string) error); ok {
-		r1 = rf(ctx, clusterID, releaseName)
+	if rf, ok := ret.Get(1).(func(context.Context, uint, string, string) error); ok {
+		r1 = rf(ctx, clusterID, releaseName, namespace)
 	} else {
 		r1 = ret.Error(1)
 	}

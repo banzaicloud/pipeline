@@ -217,7 +217,6 @@ func NewService(
 	releaser Releaser,
 	clusterService ClusterService,
 	logger Logger) Service {
-
 	// wrap the envresolver
 	ensuringEnvResolver := NewEnsuringEnvResolver(envResolver, envService, logger)
 	return service{

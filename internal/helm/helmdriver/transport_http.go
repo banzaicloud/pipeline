@@ -71,6 +71,13 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 		options...,
 	))
 
+	router.Methods(http.MethodPut).Path("/repos/{name}/update").Handler(kithttp.NewServer(
+		endpoints.UpdateRepository,
+		decodeUpdateRepositoryHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		options...,
+	))
+
 	router.Methods(http.MethodGet).Path("/charts").Handler(kithttp.NewServer(
 		endpoints.ListCharts,
 		decodeListChartsHTTPRequest,
