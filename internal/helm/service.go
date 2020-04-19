@@ -141,6 +141,10 @@ type EnvService interface {
 	ListCharts(ctx context.Context, helmEnv HelmEnv, chartFilter ChartFilter) (chartList ChartList, err error)
 	// GetChart retrieves the details of the passed in chart
 	GetChart(ctx context.Context, helmEnv HelmEnv, chartFilter ChartFilter) (chartDetails ChartDetails, err error)
+
+	// EnsureEnv ensures the helm environment represented by the input.
+	// If theh environment exists (on the filesystem) it does nothing
+	EnsureEnv(ctx context.Context, helmEnv HelmEnv) (HelmEnv, error)
 }
 
 // +testify:mock:testOnly=true
@@ -213,11 +217,14 @@ func NewService(
 	releaser Releaser,
 	clusterService ClusterService,
 	logger Logger) Service {
+
+	// wrap the envresolver
+	ensuringEnvResolver := NewEnsuringEnvResolver(envResolver, envService, logger)
 	return service{
 		store:          store,
 		secretStore:    secretStore,
 		repoValidator:  validator,
-		envResolver:    envResolver,
+		envResolver:    ensuringEnvResolver,
 		envService:     envService,
 		releaser:       releaser,
 		clusterService: clusterService,
@@ -399,7 +406,7 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 		return errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 
-	if err := s.envService.PatchRepository(ctx, helmEnv, repository); err != nil {
+	if err := s.envService.UpdateRepository(ctx, helmEnv, repository); err != nil {
 		return errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 

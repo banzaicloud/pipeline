@@ -452,3 +452,51 @@ func (h helm3EnvService) adaptChartDetailsResponse(charts map[string]*chart.Char
 
 	return responseMap, nil
 }
+
+func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv) (helm.HelmEnv, error) {
+	repoFile := helmEnv.GetHome()
+
+	//Ensure the file directory exists as it is required for file locking
+	err := os.MkdirAll(filepath.Dir(helmEnv.GetHome()), os.ModePerm)
+	if err != nil && !os.IsExist(err) {
+		return helm.HelmEnv{}, errors.WrapIf(err, "failed to ensure helm env")
+	}
+
+	// check the repofile
+	if fileExists(repoFile) {
+		return helmEnv, nil
+	}
+
+	// creating the repo file
+	// Acquire a file lock for process synchronization
+	fileLock := flock.New(strings.Replace(repoFile, filepath.Ext(repoFile), ".lock", 1))
+	lockCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	locked, err := fileLock.TryLockContext(lockCtx, time.Second)
+	if err == nil && locked {
+		// file successfully locked
+		defer emperror.NoopHandler{}.Handle(fileLock.Unlock())
+	}
+	if err != nil {
+		return helm.HelmEnv{}, errors.WrapIf(err, "failed to lock the helm home dir for creating repo file")
+	}
+
+	f := repo.NewFile()
+	if err := f.WriteFile(helmEnv.GetHome(), 0644); err != nil {
+		return helm.HelmEnv{}, errors.WrapIf(err, "failed to create the repo file")
+	}
+
+	h.logger.Info("successfully ensured helm env")
+	return helmEnv, nil
+}
+
+// fileExists checks if a file exists and is not a directory before we
+// try using it to prevent further errors.
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
+}

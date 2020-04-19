@@ -121,6 +121,8 @@ func (h3r helm3EnvResolver) ResolveHelmEnv(ctx context.Context, organizationID u
 	if err != nil {
 		return HelmEnv{}, errors.WrapIf(err, "failed to get helm env")
 	}
+
+	// add helm3 setup to the env
 	return decorateEnv(env), nil
 }
 
@@ -175,4 +177,51 @@ func (b builtinEnvReconciler) Reconcile(ctx context.Context, helmEnv HelmEnv) er
 
 	b.logger.Info("platform helm environment set up, builtin repos added")
 	return nil
+}
+
+// ensuringEnvResolver component that ensures the resolved environment is set up (on the filesystem)
+// it decorates an existing envResolver decorated with env service logic that checks and sets up the environement
+type ensuringEnvResolver struct {
+	// envresolver instance that gets decorated with the new functionality
+	envResolver EnvResolver
+	envService  EnvService
+	logger      Logger
+}
+
+func NewEnsuringEnvResolver(envResolver EnvResolver, envService EnvService, logger Logger) EnvResolver {
+	return ensuringEnvResolver{
+		envResolver: envResolver,
+		envService:  envService,
+		logger:      logger,
+	}
+}
+
+// ResolveHelmEnv resolves the helm environment for theh passed in organization; it also creates it if required
+func (e ensuringEnvResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (HelmEnv, error) {
+	helmEnv, err := e.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return HelmEnv{}, errors.WrapIf(err, "failed to resolve helm env")
+	}
+
+	env, err := e.envService.EnsureEnv(ctx, helmEnv)
+	if err != nil {
+		return HelmEnv{}, errors.WrapIf(err, "failed to ensure helm environment")
+	}
+	e.logger.Debug("successfully resolved helm environment", map[string]interface{}{"orgID": organizationID, "helmEnv": helmEnv})
+	return env, nil
+}
+
+func (e ensuringEnvResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
+	helmEnv, err := e.envResolver.ResolvePlatformEnv(ctx)
+	if err != nil {
+		return HelmEnv{}, errors.WrapIf(err, "failed to resolve platform helm env")
+	}
+
+	env, err := e.envService.EnsureEnv(ctx, helmEnv)
+	if err != nil {
+		return HelmEnv{}, errors.WrapIf(err, "failed to ensure platform helm environment")
+	}
+
+	e.logger.Debug("successfully resolved platform helm environment")
+	return env, nil
 }
