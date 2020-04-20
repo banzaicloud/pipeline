@@ -943,16 +943,16 @@ func ChartsGet(env helm_env.EnvSettings, queryName, queryRepo, queryVersion, que
 
 // ChartDetails describes a chart details
 type ChartDetails struct {
-	Name     string          `json:"name"`
-	Repo     string          `json:"repo"`
-	Versions []*ChartVersion `json:"versions"`
+	Name     string          `json:"name" mapstructure:"name"`
+	Repo     string          `json:"repo" mapstructure:"repo"`
+	Versions []*ChartVersion `json:"versions" mapstructure:"versions"`
 }
 
 // ChartVersion describes a chart verion
 type ChartVersion struct {
-	Chart  *repo.ChartVersion `json:"chart"`
-	Values string             `json:"values"`
-	Readme string             `json:"readme"`
+	Chart  *repo.ChartVersion `json:"chart" mapstructure:"chart"`
+	Values string             `json:"values" mapstructure:"values"`
+	Readme string             `json:"readme" mapstructure:"readme"`
 }
 
 // ChartGet returns chart details
