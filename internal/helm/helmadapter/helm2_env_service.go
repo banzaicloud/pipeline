@@ -50,7 +50,7 @@ func NewHelmEnvService(config Config, logger Logger) helm.EnvService {
 	}
 }
 
-func (h helmEnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartList, error) {
+func (h helmEnvService) ListCharts(_ context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartList, error) {
 	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
 
 	legacyChartSlice, err := legacyHelm.ChartsGet(envSettings, filter.StrictNameFilter(), filter.RepoFilter(), filter.VersionFilter(), filter.KeywordFilter())
@@ -68,7 +68,7 @@ func (h helmEnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, fi
 	return chartList, nil
 }
 
-func (h helmEnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartDetails, error) {
+func (h helmEnvService) GetChart(_ context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartDetails, error) {
 	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
 
 	legacyChart, err := legacyHelm.ChartGet(envSettings, filter.RepoFilter(), filter.NameFilter(), filter.VersionFilter())
@@ -180,7 +180,7 @@ func (h helmEnvService) repositoryToEntry(repository helm.Repository) (repo.Entr
 	return entry, nil
 }
 
-func (h helmEnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv) (helm.HelmEnv, error) {
+func (h helmEnvService) EnsureEnv(_ context.Context, helmEnv helm.HelmEnv) (helm.HelmEnv, error) {
 	// no op implementation / helm 2
 	return helmEnv, nil
 }
