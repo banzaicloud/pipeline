@@ -51,10 +51,12 @@ type UpdateNodeGroupActivityInput struct {
 	SecretID string
 	Region   string
 
-	ClusterName  string
-	NodePoolName string
+	ClusterName string
 
 	StackName string
+
+	NodePoolName    string
+	NodePoolVersion string
 
 	NodeImage string
 }
@@ -83,7 +85,10 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 
 	nodeLabels := []string{
 		fmt.Sprintf("%v=%v", nodePoolNameLabelKey, input.NodePoolName),
-		fmt.Sprintf("%v=%v", nodePoolVersionLabelKey, input.NodeImage),
+	}
+
+	if input.NodePoolVersion != "" {
+		nodeLabels = append(nodeLabels, fmt.Sprintf("%v=%v", nodePoolVersionLabelKey, input.NodePoolVersion))
 	}
 
 	stackParams := []*cloudformation.Parameter{
