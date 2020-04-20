@@ -62,6 +62,8 @@ const SessionCookieHTTPOnly = true
 // SessionCookieName is the name of the token that is stored in the session cookie
 const SessionCookieName = "Pipeline session token"
 
+const BanzaiCLIClient = "banzai-cli"
+
 // Init authorization
 // nolint: gochecknoglobals
 var (
@@ -311,11 +313,16 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 		return err
 	}
 
-	// Set the pipeline cookie
+	// Set the token as a pipeline session cookie
 	err = sessionStorer.SessionManager.Add(w, req, sessionStorer.SessionName, cookieToken)
 	if err != nil {
 		errorHandler.Handle(errors.Wrap(err, "failed to add user's session cookie to store"))
 		return err
+	}
+
+	// Add the token in a header to the CLI
+	if req.Header.Get("Client") == BanzaiCLIClient {
+		w.Header().Add("Authorization", cookieToken)
 	}
 
 	return nil
