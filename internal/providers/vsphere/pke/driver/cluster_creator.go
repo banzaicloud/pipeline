@@ -434,7 +434,8 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --vsphere-folder="{{ .Folder }}" \
 --vsphere-username="{{ .Username }}" \
 --vsphere-password="{{ .Password }}" \
---lb-range="{{ .LoadBalancerIPRange }}"`
+--lb-range="{{ .LoadBalancerIPRange }}" \
+${PKE_EXTRA_ARGS:-}`
 
 const workerUserDataScriptTemplate = `#!/bin/sh
 {{ if .HttpProxy }}export HTTP_PROXY="{{ .HttpProxy }}"{{ end }}
@@ -460,4 +461,4 @@ pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-api-server={{ .PublicAddress }}:6443 \
 --kubernetes-infrastructure-cidr=$PRIVATE_IP/32 \
 --kubernetes-version={{ .KubernetesVersion }} \
---kubernetes-pod-network-cidr=""`
+--kubernetes-pod-network-cidr="" ${PKE_EXTRA_ARGS:-}`
