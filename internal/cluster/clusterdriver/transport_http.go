@@ -230,6 +230,16 @@ func decodeUpdateNodePoolHTTPRequest(_ context.Context, r *http.Request) (interf
 	}, nil
 }
 
+func encodeUpdateNodePoolHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(UpdateNodePoolResponse)
+
+	apiResp := pipeline.UpdateNodePoolResponse{
+		ProcessId: resp.ProcessID,
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, kitxhttp.WithStatusCode(apiResp, http.StatusAccepted))
+}
+
 func decodeDeleteNodePoolHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	vars := mux.Vars(r)
 
@@ -262,12 +272,4 @@ func encodeDeleteNodePoolHTTPResponse(_ context.Context, w http.ResponseWriter, 
 	w.WriteHeader(http.StatusAccepted)
 
 	return nil
-}
-
-func encodeUpdateNodePoolHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	resp := response.(UpdateNodePoolResponse)
-
-	w.WriteHeader(http.StatusAccepted)
-
-	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
 }
