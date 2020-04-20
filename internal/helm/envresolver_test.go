@@ -90,7 +90,9 @@ func Test_helm2EnvResolver_ResolveHelmEnv(t *testing.T) {
 
 func Test_helm3EnvResolver_ResolveHelmEnv(t *testing.T) {
 	type fields struct {
-		delegate EnvResolver
+		helmHomesDir string
+		orgService   OrgService
+		logger       Logger
 	}
 	type args struct {
 		ctx            context.Context
@@ -102,12 +104,14 @@ func Test_helm3EnvResolver_ResolveHelmEnv(t *testing.T) {
 		args       args
 		want       HelmEnv
 		wantErr    bool
-		setupMocks func(envResolver *EnvResolver, arguments args)
+		setupMocks func(orgService *OrgService, arguments args)
 	}{
 		{
 			name: "successfully resolve helm3 environment for orgID",
 			fields: fields{
-				delegate: &MockEnvResolver{},
+				helmHomesDir: "testHomesDir",
+				orgService:   &MockOrgService{},
+				logger:       common.NoopLogger{},
 			},
 			args: args{
 				ctx:            context.Background(),
@@ -119,22 +123,23 @@ func Test_helm3EnvResolver_ResolveHelmEnv(t *testing.T) {
 				platform:     false,
 			},
 			wantErr: false,
-			setupMocks: func(envResolver *EnvResolver, arguments args) {
-				envResolverMock := (*envResolver).(*MockEnvResolver)
-				envResolverMock.On("ResolveHelmEnv", arguments.ctx, arguments.organizationID).
-					Return(HelmEnv{
-						home:         "testHomesDir/testOrg/helm",
-						platform:     false,
-						repoCacheDir: "",
-					}, nil)
+			setupMocks: func(orgService *OrgService, arguments args) {
+				orgServiceMock := (*orgService).(*MockOrgService)
+				orgServiceMock.On("GetOrgNameByOrgID", arguments.ctx, arguments.organizationID).
+					Return("testOrg", nil)
 			},
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			tt.setupMocks(&tt.fields.delegate, tt.args)
+			tt.setupMocks(&tt.fields.orgService, tt.args)
 			h3r := helm3EnvResolver{
-				delegate: tt.fields.delegate,
+				envResolver{
+					helmHomesDir: tt.fields.helmHomesDir,
+					orgService:   tt.fields.orgService,
+					logger:       tt.fields.logger,
+				},
 			}
 			got, err := h3r.ResolveHelmEnv(tt.args.ctx, tt.args.organizationID)
 			if (err != nil) != tt.wantErr {
