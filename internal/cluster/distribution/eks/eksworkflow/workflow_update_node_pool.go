@@ -97,7 +97,6 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 		}
 	}
 
-	// TODO: get current count of the ASG to calculate a timeout
 	{
 		activityInput := WaitCloudFormationStackUpdateActivityInput{
 			SecretID:  input.SecretID,
@@ -106,7 +105,7 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 		}
 
 		activityOptions := activityOptions
-		activityOptions.StartToCloseTimeout = 40 * time.Minute // TODO: calculate based on desired node count
+		activityOptions.StartToCloseTimeout = 100 * 10 * time.Minute // TODO: calculate based on desired node count (limited to around 100 nodes now)
 		activityOptions.HeartbeatTimeout = time.Minute
 		activityOptions.RetryPolicy = &cadence.RetryPolicy{
 			InitialInterval:          20 * time.Second,
