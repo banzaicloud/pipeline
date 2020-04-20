@@ -577,7 +577,12 @@ func encodeListChartsHTTPResponse(ctx context.Context, w http.ResponseWriter, re
 		return kitxhttp.JSONResponseEncoder(ctx, w, "")
 	}
 
-	return kitxhttp.JSONResponseEncoder(ctx, w, []interface{}{charts.Charts[0]})
+	chartsResponse := make([]interface{}, 0, len(charts.Charts))
+	for _, repoCharts := range charts.Charts {
+		chartsResponse = append(chartsResponse, repoCharts)
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, chartsResponse)
 }
 
 func decodeChartDetailsHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
