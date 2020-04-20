@@ -66,6 +66,7 @@ type EnvResolver interface {
 	// if the orgName parameter is empty the platform helm env home is returned
 	ResolveHelmEnv(ctx context.Context, organizationID uint) (HelmEnv, error)
 
+	// ResolvePlatformEnv resolves the helm environment dedicated for the platform user
 	ResolvePlatformEnv(ctx context.Context) (HelmEnv, error)
 }
 
@@ -113,11 +114,17 @@ func NewHelm2EnvResolver(helmHomesDir string, orgService OrgService, logger Logg
 
 // helm3EnvResolver helm env resolver to be used for resolving helm 3 environments
 type helm3EnvResolver struct {
-	delegate EnvResolver
+	envResolver
 }
 
-func NewHelm3EnvResolver(delegate EnvResolver) EnvResolver {
-	return helm3EnvResolver{delegate: delegate}
+func NewHelm3EnvResolver(helmHomesDir string, orgService OrgService, logger Logger) EnvResolver {
+	return helm3EnvResolver{
+		envResolver{
+			helmHomesDir: helmHomesDir,
+			orgService:   orgService,
+			logger:       logger,
+		},
+	}
 }
 
 func (h3r helm3EnvResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (HelmEnv, error) {
@@ -126,7 +133,7 @@ func (h3r helm3EnvResolver) ResolveHelmEnv(ctx context.Context, organizationID u
 		return h3r.ResolvePlatformEnv(ctx)
 	}
 
-	env, err := h3r.delegate.ResolveHelmEnv(ctx, organizationID)
+	env, err := h3r.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
 		return HelmEnv{}, errors.WrapIf(err, "failed to get helm env")
 	}
@@ -136,7 +143,7 @@ func (h3r helm3EnvResolver) ResolveHelmEnv(ctx context.Context, organizationID u
 }
 
 func (h3r helm3EnvResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
-	env, err := h3r.delegate.ResolvePlatformEnv(ctx)
+	env, err := h3r.envResolver.ResolvePlatformEnv(ctx)
 	if err != nil {
 		return HelmEnv{}, errors.WrapIf(err, "failed to get helm env")
 	}

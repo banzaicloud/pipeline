@@ -1265,7 +1265,7 @@ func setupHelmFacade(config configuration, db *gorm.DB, commonSecretStore common
 
 	switch config.Helm.Version {
 	case "helm3":
-		envResolver = helm.NewHelm3EnvResolver(envResolver)
+		envResolver = helm.NewHelm3EnvResolver(config.Helm.Home, orgService, logger)
 		envService = helmadapter.NewHelm3EnvService(logger)
 
 		// set up platform helm env
