@@ -27,7 +27,6 @@ import (
 	"emperror.dev/errors/match"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
-	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/mitchellh/mapstructure"
 	"github.com/oklog/run"
 	appkitrun "github.com/sagikazarmark/appkit/run"
@@ -37,6 +36,8 @@ import (
 	"go.uber.org/cadence/workflow"
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
+
+	"github.com/banzaicloud/pipeline/internal/cmd"
 
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"

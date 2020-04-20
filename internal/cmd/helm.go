@@ -19,6 +19,8 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	"github.com/jinzhu/gorm"
+
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/helm"
@@ -26,7 +28,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/helm2"
 	helmadapter2 "github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
 	"github.com/banzaicloud/pipeline/src/cluster"
-	"github.com/jinzhu/gorm"
 )
 
 // CreateUnifiedHelmReleaser utility function for assembling the helm releaser
@@ -37,7 +38,6 @@ func CreateUnifiedHelmReleaser(
 	clusterManager *cluster.Manager,
 	logger helm.Logger,
 ) (helm.UnifiedReleaser, helm.Service) {
-
 	repoStore := helmadapter.NewHelmRepoStore(db, logger)
 	secretStore := helmadapter.NewSecretStore(commonSecretStore, logger)
 	orgService := helmadapter.NewOrgService(logger)

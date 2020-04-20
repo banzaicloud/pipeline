@@ -23,9 +23,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
+
+	"github.com/banzaicloud/pipeline/internal/global"
 
 	"github.com/banzaicloud/pipeline/internal/common"
 )
@@ -47,6 +48,9 @@ func TestIntegration(t *testing.T) {
 
 	var err error
 	global.Config.Helm.Home, err = ioutil.TempDir("", "")
+	if err != nil {
+		t.Fatalf("%+v", err)
+	}
 
 	kubeConfigFile := os.Getenv("KUBECONFIG")
 	if kubeConfigFile == "" {

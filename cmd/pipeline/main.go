@@ -38,7 +38,6 @@ import (
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
-	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/endpoint"
@@ -64,6 +63,8 @@ import (
 	"go.uber.org/cadence/.gen/go/shared"
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
+
+	"github.com/banzaicloud/pipeline/internal/cmd"
 
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
