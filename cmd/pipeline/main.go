@@ -94,6 +94,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
+	common2 "github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/federation"
@@ -102,6 +103,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	helm3adapter "github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/helm/helmdriver"
 	"github.com/banzaicloud/pipeline/internal/helm2"
 	helmadapter2 "github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
@@ -506,19 +508,6 @@ func main() {
 	clientFactory := kubernetes.NewClientFactory(configFactory)
 	dynamicClientFactory := kubernetes.NewDynamicClientFactory(configFactory)
 
-	clusterAPI := api.NewClusterAPI(
-		clusterManager,
-		commonClusterGetter,
-		workflowClient,
-		logrusLogger,
-		errorHandler,
-		externalBaseURL,
-		externalURLInsecure,
-		clusterCreators,
-		clusterUpdaters,
-		dynamicClientFactory,
-	)
-
 	// Initialise Gin router
 	engine := gin.New()
 
@@ -637,6 +626,30 @@ func main() {
 		}
 	}
 
+	helmFacade := setupHelmFacade(config, db, commonSecretStore, clusterManager, commonLogger)
+
+	var unifiedHelmReleaser helm.UnifiedReleaser
+	switch config.Helm.Version {
+	case "helm3":
+		unifiedHelmReleaser = helm3adapter.NewUnifiedHelm3Releaser(helmFacade, commonLogger)
+	default:
+		unifiedHelmReleaser = helm2.NewHelmService(helmadapter2.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
+	}
+
+	clusterAPI := api.NewClusterAPI(
+		clusterManager,
+		commonClusterGetter,
+		workflowClient,
+		logrusLogger,
+		errorHandler,
+		externalBaseURL,
+		externalURLInsecure,
+		clusterCreators,
+		clusterUpdaters,
+		dynamicClientFactory,
+		unifiedHelmReleaser,
+	)
+
 	v1 := base.Group("api/v1")
 	apiRouter := router.PathPrefix("/api/v1").Subrouter()
 	{
@@ -697,14 +710,39 @@ func main() {
 				cRouter.GET("/nodes", api.GetClusterNodes)
 				cRouter.GET("/endpoints", api.MakeEndpointLister(logger).ListEndpoints)
 				cRouter.GET("/secrets", api.ListClusterSecrets)
-				cRouter.GET("/deployments", api.ListDeployments)
-				cRouter.POST("/deployments", api.CreateDeployment)
-				cRouter.GET("/deployments/:name", api.GetDeployment)
-				cRouter.GET("/deployments/:name/resources", api.GetDeploymentResources)
-				cRouter.HEAD("/deployments", api.GetTillerStatus)
-				cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
-				cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
-				cRouter.HEAD("/deployments/:name", api.HelmDeploymentStatus)
+				{
+					switch config.Helm.Version {
+					case "helm3":
+						endpoints := helmdriver.MakeEndpoints(
+							helmFacade,
+							kitxendpoint.Combine(endpointMiddleware...),
+						)
+
+						helmdriver.RegisterReleaserHTTPHandlers(endpoints,
+							clusterRouter.PathPrefix("/deployments").Subrouter(),
+							kitxhttp.ServerOptions(httpServerOptions),
+						)
+
+						cRouter.POST("/deployments", gin.WrapH(router))
+						cRouter.GET("/deployments", gin.WrapH(router))
+						cRouter.GET("/deployments/:name", gin.WrapH(router))
+						cRouter.PUT("/deployments/:name", gin.WrapH(router))
+						cRouter.HEAD("/deployments/:name", gin.WrapH(router))
+						cRouter.DELETE("/deployments/:name", gin.WrapH(router))
+						cRouter.GET("/deployments/:name/resources", gin.WrapH(router))
+
+					default:
+						// helm 2 setup
+						cRouter.POST("/deployments", api.CreateDeployment)
+						cRouter.GET("/deployments", api.ListDeployments)
+						cRouter.GET("/deployments/:name", api.GetDeployment)
+						cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
+						cRouter.HEAD("/deployments/:name", api.HelmDeploymentStatus)
+						cRouter.HEAD("/deployments", api.GetTillerStatus)
+						cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
+						cRouter.GET("/deployments/:name/resources", api.GetDeploymentResources)
+					}
+				}
 
 				cRouter.GET("/images", api.ListImages)
 				cRouter.GET("/images/:imageDigest/deployments", api.GetImageDeployments)
@@ -809,8 +847,6 @@ func main() {
 					securityscan.MakeIntegratedServiceManager(commonLogger, config.Cluster.SecurityScan.Config),
 				}
 
-				helmService := helm2.NewHelmService(helmadapter2.NewClusterService(clusterManager), commonLogger)
-
 				if config.Cluster.DNS.Enabled {
 					integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
 				}
@@ -824,7 +860,7 @@ func main() {
 						clusterGetter,
 						commonSecretStore,
 						endpointManager,
-						helmService,
+						unifiedHelmReleaser,
 						config.Cluster.Monitoring.Config,
 						commonLogger,
 					))
@@ -883,7 +919,7 @@ func main() {
 				if config.Cluster.Ingress.Enabled {
 					integratedServiceManagers = append(integratedServiceManagers, ingress.NewManager(
 						config.Cluster.Ingress.Config,
-						helmService,
+						unifiedHelmReleaser,
 						commonLogger,
 					))
 				}
@@ -967,25 +1003,15 @@ func main() {
 
 			clusterAuthAPI.RegisterRoutes(cRouter, engine)
 
+			//  TODO port this call to h3 as well
 			orgs.PUT("/:orgid/helm/repos/:name/update", api.HelmReposUpdate)
-			orgs.GET("/:orgid/helm/charts", api.HelmCharts)
-			orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
 			{
-				repoStore := helmadapter.NewHelmRepoStore(db, commonLogger)
-				secretStore := helmadapter.NewSecretStore(commonSecretStore, commonLogger)
-				orgService := helmadapter.NewOrgService(commonLogger)
-				envResolver := helm.NewHelmEnvResolver(config.Helm.Home, orgService, commonLogger)
-				envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(config.Helm.Repositories), commonLogger)
-
-				validator := helm.NewHelmRepoValidator()
-				service := helm.NewService(repoStore, secretStore, validator, envResolver, envService, commonLogger)
-
 				endpoints := helmdriver.MakeEndpoints(
-					service,
+					helmFacade,
 					kitxendpoint.Combine(endpointMiddleware...),
 				)
 				helmdriver.RegisterHTTPHandlers(endpoints,
-					orgRouter.PathPrefix("/helm/repos").Subrouter(),
+					orgRouter.PathPrefix("/helm").Subrouter(),
 					kitxhttp.ServerOptions(httpServerOptions),
 				)
 
@@ -994,6 +1020,11 @@ func main() {
 				orgs.PATCH("/:orgid/helm/repos/:name", gin.WrapH(router))
 				orgs.PUT("/:orgid/helm/repos/:name", gin.WrapH(router))
 				orgs.DELETE("/:orgid/helm/repos/:name", gin.WrapH(router))
+
+				orgs.GET("/:orgid/helm/charts", gin.WrapH(router))
+
+				// TODO using "chart" instead of  "charts" for backwards compatibility
+				orgs.GET("/:orgid/helm/chart/:reponame/:name", gin.WrapH(router))
 			}
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
 			orgs.GET("/:orgid/secrets/:id", api.GetSecret)
@@ -1099,7 +1130,7 @@ func main() {
 		}
 
 		backups.AddRoutes(orgs.Group("/:orgid/clusters/:id/backups"))
-		backupservice.AddRoutes(orgs.Group("/:orgid/clusters/:id/backupservice"))
+		backupservice.AddRoutes(orgs.Group("/:orgid/clusters/:id/backupservice"), unifiedHelmReleaser)
 		restores.AddRoutes(orgs.Group("/:orgid/clusters/:id/restores"))
 		schedules.AddRoutes(orgs.Group("/:orgid/clusters/:id/schedules"))
 		buckets.AddRoutes(orgs.Group("/:orgid/backupbuckets"))
@@ -1218,4 +1249,42 @@ func createInternalAPIRouter(
 	internalGroup.GET("/:orgid/clusters/:id/nodepools", api.NewInternalClusterAPI(cloudinfoClient).GetNodePools)
 	internalGroup.PUT("/:orgid/clusters/:id/nodepools", clusterAPI.UpdateNodePools)
 	return internalRouter
+}
+
+// setupHelmFacade utility function for assembling the helm facade
+func setupHelmFacade(config configuration, db *gorm.DB, commonSecretStore common2.SecretStore,
+	clusterManager *cluster.Manager, logger helm.Logger) helm.Service {
+	repoStore := helmadapter.NewHelmRepoStore(db, logger)
+	secretStore := helmadapter.NewSecretStore(commonSecretStore, logger)
+	orgService := helmadapter.NewOrgService(logger)
+	validator := helm.NewHelmRepoValidator()
+	releaser := helmadapter.NewReleaser(logger)
+	clusterService := helmadapter.NewClusterService(clusterManager)
+	envResolver := helm.NewHelm2EnvResolver(config.Helm.Home, orgService, logger)
+	envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(config.Helm.Repositories), logger)
+
+	switch config.Helm.Version {
+	case "helm3":
+		envResolver = helm.NewHelm3EnvResolver(envResolver)
+		envService = helmadapter.NewHelm3EnvService(logger)
+
+		// set up platform helm env
+		platformHelmEnv, _ := envResolver.ResolvePlatformEnv(context.Background())
+		reconciler := helm.NewBuiltinEnvReconciler(config.Helm.Repositories, envService, logger)
+		if err := reconciler.Reconcile(context.Background(), platformHelmEnv); err != nil {
+			emperror.Panic(errors.Wrap(err, "failed to set up platform helm environment"))
+		}
+	}
+
+	service := helm.NewService(
+		repoStore,
+		secretStore,
+		validator,
+		envResolver,
+		envService,
+		releaser,
+		clusterService,
+		logger)
+
+	return service
 }

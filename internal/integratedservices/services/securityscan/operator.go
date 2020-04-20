@@ -160,7 +160,7 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 		return errors.WrapIf(err, "failed to apply integrated service")
 	}
 
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, op.config.Webhook.Release); err != nil {
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, op.config.Webhook.Release, op.config.Webhook.Namespace); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to uninstall integrated service", "integrated service", IntegratedServiceName,
 			"clusterID", clusterID)
 	}

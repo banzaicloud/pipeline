@@ -23,6 +23,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/labels"
 
+	"github.com/banzaicloud/pipeline/internal/helm"
+
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/ark/sync"
@@ -50,6 +52,7 @@ func RestoreFromBackup(
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
 	waitTimeout time.Duration,
+	helmService helm.UnifiedReleaser,
 ) error {
 	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
 	if err != nil {
@@ -64,7 +67,7 @@ func RestoreFromBackup(
 		return err
 	}
 
-	err = svc.GetDeploymentsService().Deploy(&backup.Bucket, true)
+	err = svc.GetDeploymentsService().Deploy(helmService, &backup.Bucket, true)
 	if err != nil {
 		return err
 	}
@@ -87,7 +90,7 @@ func RestoreFromBackup(
 		errorHandler.Handle(errors.WrapIf(err, "could not restore"))
 	}
 
-	err = svc.GetDeploymentsService().Remove()
+	err = svc.GetDeploymentsService().Remove(helmService)
 	if err != nil {
 		return err
 	}

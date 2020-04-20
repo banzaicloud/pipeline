@@ -106,6 +106,9 @@ type Config struct {
 		Home string
 
 		Repositories map[string]string
+
+		// flag signaling the helm version
+		Version string
 	}
 
 	Hollowtrees struct {
@@ -529,7 +532,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 		"storagetier",
 	})
 	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::chart", "banzaicloud-stable/nodepool-labels-operator")
-	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::version", "0.0.3")
+	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::version", "0.0.4")
 	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::values", map[string]interface{}{})
 
 	v.SetDefault("cluster::vault::enabled", true)
@@ -610,7 +613,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::logging::images::operator::repository", "banzaicloud/logging-operator")
 	v.SetDefault("cluster::logging::images::operator::tag", "2.7.0")
 	v.SetDefault("cluster::logging::charts::loki::chart", "banzaicloud-stable/loki")
-	v.SetDefault("cluster::logging::charts::loki::version", "0.17.3")
+	v.SetDefault("cluster::logging::charts::loki::version", "0.17.4")
 	v.SetDefault("cluster::logging::charts::loki::values", map[string]interface{}{})
 	v.SetDefault("cluster::logging::images::loki::repository", "grafana/loki")
 	v.SetDefault("cluster::logging::images::loki::tag", "v1.3.0")
@@ -724,14 +727,14 @@ traefik:
 	// Kubernetes Dashboard
 	v.SetDefault("cluster::posthook::dashboard::enabled", true)
 	v.SetDefault("cluster::posthook::dashboard::chart", "banzaicloud-stable/kubernetes-dashboard")
-	v.SetDefault("cluster::posthook::dashboard::version", "0.9.1")
+	v.SetDefault("cluster::posthook::dashboard::version", "0.9.2")
 
 	// Init spot config
 	v.SetDefault("cluster::posthook::spotconfig::enabled", false)
 	v.SetDefault("cluster::posthook::spotconfig::charts::scheduler::chart", "banzaicloud-stable/spot-scheduler")
-	v.SetDefault("cluster::posthook::spotconfig::charts::scheduler::version", "0.1.0")
+	v.SetDefault("cluster::posthook::spotconfig::charts::scheduler::version", "0.1.2")
 	v.SetDefault("cluster::posthook::spotconfig::charts::webhook::chart", "banzaicloud-stable/spot-config-webhook")
-	v.SetDefault("cluster::posthook::spotconfig::charts::webhook::version", "0.1.5")
+	v.SetDefault("cluster::posthook::spotconfig::charts::webhook::version", "0.1.6")
 
 	// Instance Termination Handler
 	v.SetDefault("cluster::posthook::ith::enabled", true)
@@ -818,6 +821,7 @@ traefik:
 	// Helm configuration
 	v.SetDefault("helm::tiller::version", "v2.16.3")
 	v.SetDefault("helm::home", "./var/cache")
+	v.SetDefault("helm::version", "helm2")
 	v.SetDefault("helm::repositories::stable", "https://kubernetes-charts.storage.googleapis.com")
 	v.SetDefault("helm::repositories::banzaicloud-stable", "https://kubernetes-charts.banzaicloud.com")
 	v.SetDefault("helm::repositories::loki", "https://grafana.github.io/loki/charts")

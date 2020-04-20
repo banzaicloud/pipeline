@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	"github.com/mitchellh/mapstructure"
 	"k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/repo"
@@ -47,6 +48,42 @@ func NewHelmEnvService(config Config, logger Logger) helm.EnvService {
 		config: config,
 		logger: logger,
 	}
+}
+
+// TODO do we want to port these calls too?
+func (h helmEnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartList, error) {
+	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
+
+	legacyChartSlice, err := legacyHelm.ChartsGet(envSettings, filter.StrictNameFilter(), filter.RepoFilter(), filter.VersionFilter(), filter.KeywordFilter())
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get chart list")
+	}
+
+	// transform the list
+	var chartList helm.ChartList
+	for _, legacyChart := range legacyChartSlice {
+		chartList = append(chartList, legacyChart)
+	}
+
+	h.logger.Debug("successfully retrieved chart list", map[string]interface{}{"filter": filter})
+	return chartList, nil
+}
+
+func (h helmEnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartDetails, error) {
+	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
+
+	legacyChart, err := legacyHelm.ChartGet(envSettings, filter.RepoFilter(), filter.NameFilter(), filter.VersionFilter())
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get chart list")
+	}
+
+	var chart helm.ChartDetails
+	if err := mapstructure.Decode(*legacyChart, &chart); err != nil {
+		return nil, errors.WrapIf(err, "failed to transform legacy chart details")
+	}
+
+	h.logger.Debug("successfully retrieved chart details", map[string]interface{}{"filter": filter})
+	return chart, nil
 }
 
 func (h helmEnvService) AddRepository(_ context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
@@ -142,4 +179,9 @@ func (h helmEnvService) repositoryToEntry(repository helm.Repository) (repo.Entr
 	}
 
 	return entry, nil
+}
+
+func (h helmEnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv) (helm.HelmEnv, error) {
+	// no op implementation / helm 2
+	return helmEnv, nil
 }

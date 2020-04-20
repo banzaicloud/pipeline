@@ -20,25 +20,29 @@ import (
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
+	"github.com/banzaicloud/pipeline/internal/helm"
+
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/src/api/ark/common"
 )
 
 // Disable removes ARK deployment from the cluster
-func Disable(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
-	logger.Info("removing backup service from cluster")
+func Disable(helmService helm.UnifiedReleaser) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		logger := correlationid.Logger(common.Log, c)
+		logger.Info("removing backup service from cluster")
 
-	err := common.GetARKService(c.Request).GetDeploymentsService().Remove()
-	if err != nil {
-		err = errors.WrapIf(err, "could not remove backup service")
-		common.ErrorHandler.Handle(err)
-		common.ErrorResponse(c, err)
-		return
+		err := common.GetARKService(c.Request).GetDeploymentsService().Remove(helmService)
+		if err != nil {
+			err = errors.WrapIf(err, "could not remove backup service")
+			common.ErrorHandler.Handle(err)
+			common.ErrorResponse(c, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, api.DisableBackupServiceResponse{
+			Status: http.StatusOK,
+		})
 	}
-
-	c.JSON(http.StatusOK, api.DisableBackupServiceResponse{
-		Status: http.StatusOK,
-	})
 }

@@ -15,7 +15,9 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
+	"sync"
 
 	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
@@ -95,7 +97,13 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 	return nil
 }
 
-func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
+type KubernetesDashboardPostHook struct {
+	helmServiceInjector
+	Priority
+	ErrorHandler
+}
+
+func (ph *KubernetesDashboardPostHook) Do(cluster CommonCluster) error {
 	var config = global.Config.Cluster.PostHook.Dashboard
 	if !config.Enabled {
 		return nil
@@ -205,12 +213,21 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 		}
 	}
 
-	return installDeployment(cluster, k8sDashboardNameSpace, config.Chart, k8sDashboardReleaseName, valuesJson, config.Version, false)
+	return ph.helmService.ApplyDeployment(context.Background(), cluster.GetID(), k8sDashboardNameSpace, config.Chart, k8sDashboardReleaseName, valuesJson, config.Version)
+}
+
+type ClusterAutoscalerPostHook struct {
+	helmServiceInjector
+	Priority
+	ErrorHandler
 }
 
 // InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
-func InstallClusterAutoscalerPostHook(cluster CommonCluster) error {
-	return DeployClusterAutoscaler(cluster)
+func (ph *ClusterAutoscalerPostHook) Do(cluster CommonCluster) error {
+	if ph.helmService == nil {
+		return errors.New("missing helm service dependency")
+	}
+	return DeployClusterAutoscaler(cluster, ph.helmService)
 }
 
 func metricsServerIsInstalled(cluster CommonCluster) bool {
@@ -239,71 +256,52 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 	return false
 }
 
-// InstallHorizontalPodAutoscalerPostHook
-func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
-	var config = global.Config.Cluster
+// make sure the injector interface is implemented
+var _ HookWithParamsFactory = &RestoreFromBackupPosthook{}
 
-	if !config.PostHook.HPA.Enabled {
-		return nil
+type RestoreFromBackupPosthook struct {
+	helmServiceInjector
+	Priority
+	ErrorHandler
+
+	params pkgCluster.PostHookParam
+}
+
+func (ph *RestoreFromBackupPosthook) Create(params pkgCluster.PostHookParam) PostFunctioner {
+	return &RestoreFromBackupPosthook{
+		Priority:     ph.Priority,
+		ErrorHandler: ErrorHandler{},
+		params:       params,
 	}
-
-	promServiceName := config.Autoscale.HPA.Prometheus.ServiceName
-	prometheusPort := global.Config.Cluster.Autoscale.HPA.Prometheus.LocalPort
-
-	infraNamespace := config.Autoscale.Namespace
-	serviceContext := config.Autoscale.HPA.Prometheus.ServiceContext
-
-	values := map[string]interface{}{
-		"kube-metrics-adapter": map[string]interface{}{
-			"prometheus": map[string]interface{}{
-				"url": fmt.Sprintf("http://%s.%s.svc:%d/%s", promServiceName, infraNamespace, prometheusPort, serviceContext),
-			},
-			"enableExternalMetricsApi": true,
-			"enableCustomMetricsApi":   false,
-		},
-	}
-
-	// install metricsServer only if metrics.k8s.io endpoint is not available already
-	if !metricsServerIsInstalled(cluster) {
-		log.Infof("Metrics Server is not installed, installing")
-
-		metricsServerValues := make(map[string]interface{}, 0)
-		metricsServerValues["enabled"] = true
-
-		// use InternalIP on VSphere
-		if cluster.GetCloud() == pkgCluster.Vsphere {
-			metricsServerValues["args"] = []string{
-				"--kubelet-preferred-address-types=InternalIP",
-			}
-		}
-
-		values["metrics-server"] = metricsServerValues
-	} else {
-		log.Infof("Metrics Server is already installed")
-	}
-
-	mergedValues, err := mergeValues(values, config.Autoscale.Charts.HPAOperator.Values)
-	if err != nil {
-		return errors.WrapIf(err, "failed to merge hpa-operator chart values with config")
-	}
-
-	return installDeployment(cluster, infraNamespace, config.Autoscale.Charts.HPAOperator.Chart,
-		"hpa-operator", mergedValues, config.Autoscale.Charts.HPAOperator.Version, true)
 }
 
 // RestoreFromBackup restores an ARK backup
-func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) error {
+func (ph *RestoreFromBackupPosthook) Do(cluster CommonCluster) error {
 	var params arkAPI.RestoreFromBackupParams
-	err := castToPostHookParam(param, &params)
+	err := castToPostHookParam(ph.params, &params)
 	if err != nil {
 		return err
 	}
 
-	return arkPosthook.RestoreFromBackup(params, cluster, global.DB(), log, errorHandler, global.Config.Cluster.DisasterRecovery.Ark.RestoreWaitTimeout)
+	return arkPosthook.RestoreFromBackup(
+		params,
+		cluster,
+		global.DB(),
+		log,
+		errorHandler,
+		global.Config.Cluster.DisasterRecovery.Ark.RestoreWaitTimeout,
+		ph.helmService,
+	)
+}
+
+type InitSpotConfigPostHook struct {
+	helmServiceInjector
+	Priority
+	ErrorHandler
 }
 
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
-func InitSpotConfig(cluster CommonCluster) error {
+func (ph *InitSpotConfigPostHook) Do(cluster CommonCluster) error {
 	var config = global.Config.Cluster.PostHook.Spotconfig
 	if !config.Enabled {
 		return nil
@@ -342,11 +340,11 @@ func InitSpotConfig(cluster CommonCluster) error {
 		return errors.WrapIf(err, "failed to marshal yaml values")
 	}
 
-	err = installDeployment(cluster, pipelineSystemNamespace, config.Charts.Scheduler.Chart, "spot-scheduler", marshalledValues, config.Charts.Scheduler.Version, false)
+	err = ph.helmService.InstallDeployment(context.Background(), cluster.GetID(), pipelineSystemNamespace, config.Charts.Scheduler.Chart, "spot-scheduler", marshalledValues, config.Charts.Scheduler.Version, false)
 	if err != nil {
 		return errors.WrapIf(err, "failed to install the spot-scheduler deployment")
 	}
-	err = installDeployment(cluster, pipelineSystemNamespace, config.Charts.Webhook.Chart, "spot-webhook", marshalledValues, config.Charts.Webhook.Version, true)
+	err = ph.helmService.InstallDeployment(context.Background(), cluster.GetID(), pipelineSystemNamespace, config.Charts.Webhook.Chart, "spot-webhook", marshalledValues, config.Charts.Webhook.Version, true)
 	if err != nil {
 		return errors.WrapIf(err, "failed to install the spot-config-webhook deployment")
 	}
@@ -446,4 +444,146 @@ func initializeSpotConfigMap(client *kubernetes.Clientset, systemNs string) erro
 	}
 	log.Info("finished initializing spot ConfigMap")
 	return nil
+}
+
+type HorizontalPodAutoscalerPostHook struct {
+	helmServiceInjector
+	Priority
+	ErrorHandler
+}
+
+func (hpa *HorizontalPodAutoscalerPostHook) Do(cluster CommonCluster) error {
+	var config = global.Config.Cluster
+
+	if !config.PostHook.HPA.Enabled {
+		return nil
+	}
+
+	promServiceName := config.Autoscale.HPA.Prometheus.ServiceName
+	prometheusPort := global.Config.Cluster.Autoscale.HPA.Prometheus.LocalPort
+
+	infraNamespace := config.Autoscale.Namespace
+	serviceContext := config.Autoscale.HPA.Prometheus.ServiceContext
+
+	values := map[string]interface{}{
+		"kube-metrics-adapter": map[string]interface{}{
+			"prometheus": map[string]interface{}{
+				"url": fmt.Sprintf("http://%s.%s.svc:%d/%s", promServiceName, infraNamespace, prometheusPort, serviceContext),
+			},
+			"enableExternalMetricsApi": true,
+			"enableCustomMetricsApi":   false,
+		},
+	}
+
+	// install metricsServer only if metrics.k8s.io endpoint is not available already
+	if !metricsServerIsInstalled(cluster) {
+		log.Infof("Metrics Server is not installed, installing")
+
+		metricsServerValues := make(map[string]interface{}, 0)
+		metricsServerValues["enabled"] = true
+
+		// use InternalIP on VSphere
+		if cluster.GetCloud() == pkgCluster.Vsphere {
+			metricsServerValues["args"] = []string{
+				"--kubelet-preferred-address-types=InternalIP",
+			}
+		}
+
+		values["metrics-server"] = metricsServerValues
+	} else {
+		log.Infof("Metrics Server is already installed")
+	}
+
+	mergedValues, err := mergeValues(values, config.Autoscale.Charts.HPAOperator.Values)
+	if err != nil {
+		return errors.WrapIf(err, "failed to merge hpa-operator chart values with config")
+	}
+	return hpa.helmService.ApplyDeployment(context.Background(), cluster.GetID(), infraNamespace, config.Autoscale.Charts.HPAOperator.Chart, "hpa-operator", mergedValues, config.Autoscale.Charts.HPAOperator.Version)
+}
+
+type InstanceTerminationHandlerPostHook struct {
+	helmServiceInjector
+	Priority
+	ErrorHandler
+}
+
+func (ith InstanceTerminationHandlerPostHook) Do(cluster CommonCluster) error {
+	var config = global.Config.Cluster.PostHook.ITH
+	if !global.Config.Pipeline.Enterprise || !config.Enabled {
+		return nil
+	}
+
+	cloud := cluster.GetCloud()
+
+	if cloud != pkgCluster.Amazon && cloud != pkgCluster.Google {
+		return nil
+	}
+
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
+
+	values := map[string]interface{}{
+		"tolerations": []v1.Toleration{
+			{
+				Operator: v1.TolerationOpExists,
+			},
+		},
+		"hollowtreesNotifier": map[string]interface{}{
+			"enabled": false,
+		},
+	}
+
+	scaleOptions := cluster.GetScaleOptions()
+	if scaleOptions != nil && scaleOptions.Enabled == true {
+		tokenSigningKey := global.Config.Hollowtrees.TokenSigningKey
+		if tokenSigningKey == "" {
+			err := errors.New("no Hollowtrees token signkey specified")
+			errorHandler.Handle(err)
+			return err
+		}
+
+		generator := hollowtrees.NewTokenGenerator(
+			global.Config.Auth.Token.Issuer,
+			global.Config.Auth.Token.Audience,
+			global.Config.Hollowtrees.TokenSigningKey,
+		)
+		_, token, err := generator.Generate(cluster.GetID(), cluster.GetOrganizationId(), nil)
+		if err != nil {
+			err = errors.WrapIf(err, "could not generate JWT token for instance termination handler")
+			errorHandler.Handle(err)
+			return err
+		}
+
+		values["hollowtreesNotifier"] = map[string]interface{}{
+			"enabled":        true,
+			"URL":            global.Config.Hollowtrees.Endpoint + "/alerts",
+			"organizationID": cluster.GetOrganizationId(),
+			"clusterID":      cluster.GetID(),
+			"clusterName":    cluster.GetName(),
+			"jwtToken":       token,
+		}
+	}
+
+	marshalledValues, err := yaml.Marshal(values)
+	if err != nil {
+		return errors.WrapIf(err, "failed to marshal yaml values")
+	}
+
+	return ith.helmService.ApplyDeployment(context.Background(), cluster.GetID(), pipelineSystemNamespace, config.Chart, "ith", marshalledValues, config.Version)
+}
+
+// helmServiceInjector component implementing the helm service injector
+// designed to be embedded into posthook structs
+type helmServiceInjector struct {
+	helmService HelmService
+	sync.Mutex
+}
+
+// InjectHelmService injects the service to be used by the "parent" struct
+func (h *helmServiceInjector) InjectHelmService(helmService HelmService) {
+	h.Lock()
+	defer h.Unlock()
+
+	if h.helmService == nil {
+		h.helmService = helmService
+	}
 }

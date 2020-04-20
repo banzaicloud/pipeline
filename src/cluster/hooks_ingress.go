@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -53,8 +54,16 @@ type serviceTraefikValues struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
-// InstallIngressControllerPostHook post hooks can't return value, they can log error and/or update state?
-func InstallIngressControllerPostHook(cluster CommonCluster) error {
+type IngressControllerPostHook struct {
+	helmServiceInjector
+	Priority
+	ErrorHandler
+}
+
+func (i *IngressControllerPostHook) Do(cluster CommonCluster) error {
+	if i.helmService == nil {
+		return errors.New("missing helm service dependency")
+	}
 	var config = global.Config.Cluster.PostHook
 	if !config.Ingress.Enabled {
 		return nil
@@ -136,7 +145,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 
 	namespace := global.Config.Cluster.Namespace
 
-	return installDeployment(cluster, namespace, config.Ingress.Chart, "ingress", valuesBytes, config.Ingress.Version, false)
+	return i.helmService.ApplyDeployment(context.Background(), cluster.GetID(), namespace, config.Ingress.Chart, "ingress", valuesBytes, config.Ingress.Version)
 }
 
 func mergeValues(chartValues interface{}, configValues interface{}) ([]byte, error) {

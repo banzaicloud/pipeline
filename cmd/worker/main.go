@@ -27,6 +27,7 @@ import (
 	"emperror.dev/errors/match"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
+	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
 	"github.com/oklog/run"
 	appkitrun "github.com/sagikazarmark/appkit/run"
@@ -59,9 +60,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
+	common2 "github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/helm"
+	helm3adapter "github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/helm2"
 	"github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -259,7 +263,16 @@ func main() {
 		)
 		tokenGenerator := auth.NewClusterTokenGenerator(tokenManager, tokenStore)
 
-		helmService := helm2.NewHelmService(helmadapter.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
+		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+
+		var unifiedHelmReleaser helm.UnifiedReleaser
+		switch config.Helm.Version {
+		case "helm3":
+			helmFacade := setupHelmFacade(config, db, commonSecretStore, clusterManager, commonLogger)
+			unifiedHelmReleaser = helm3adapter.NewUnifiedHelm3Releaser(helmFacade, commonLogger)
+		default:
+			unifiedHelmReleaser = helm2.NewHelmService(helmadapter.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
+		}
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
 		secretStore := pkeworkflowadapter.NewSecretStore(secret.Store)
@@ -274,7 +287,6 @@ func main() {
 		clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
 		emperror.Panic(errors.Wrap(err, "failed to create DexClusterAuthService"))
 
-		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 		configFactory := kubernetes.NewConfigFactory(commonSecretStore)
 
 		processService := process.NewService(processadapter.NewGormStore(db))
@@ -326,7 +338,7 @@ func main() {
 
 			installNodePoolLabelSetOperatorActivity := clustersetup.NewInstallNodePoolLabelSetOperatorActivity(
 				config.Cluster.Labels,
-				helmService,
+				unifiedHelmReleaser,
 			)
 			activity.RegisterWithOptions(installNodePoolLabelSetOperatorActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallNodePoolLabelSetOperatorActivityName})
 
@@ -350,7 +362,7 @@ func main() {
 
 		workflow.RegisterWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
 
-		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager)
+		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager, unifiedHelmReleaser)
 		activity.RegisterWithOptions(runPostHookActivity.Execute, activity.RegisterOptions{Name: cluster.RunPostHookActivityName})
 
 		updateClusterStatusActivity := cluster.NewUpdateClusterStatusActivity(clusterManager)
@@ -619,7 +631,7 @@ func main() {
 				integratedServiceDNS.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					logger,
 					orgDomainService,
 					commonSecretStore,
@@ -629,7 +641,7 @@ func main() {
 					config.Cluster.SecurityScan.Config,
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					commonSecretStore,
 					featureAnchoreService,
 					featureWhitelistService,
@@ -638,7 +650,7 @@ func main() {
 				),
 				integratedServiceVault.MakeIntegratedServicesOperator(clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					kubernetesService,
 					commonSecretStore,
 					config.Cluster.Vault.Config,
@@ -647,7 +659,7 @@ func main() {
 				integratedServiceMonitoring.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					kubernetesService,
 					config.Cluster.Monitoring.Config,
 					logger,
@@ -656,7 +668,7 @@ func main() {
 				integratedServiceLogging.MakeIntegratedServicesOperator(
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					kubernetesService,
 					endpointManager,
 					config.Cluster.Logging.Config,
@@ -668,7 +680,7 @@ func main() {
 					intsvcingressadapter.NewOperatorClusterStore(clusterStore),
 					clusterService,
 					config.Cluster.Ingress.Config,
-					helmService,
+					unifiedHelmReleaser,
 					intsvcingressadapter.NewOrgDomainService(config.Cluster.DNS.BaseDomain, orgGetter),
 				),
 			})
@@ -684,4 +696,48 @@ func main() {
 
 	err = group.Run()
 	emperror.WithFilter(errorHandler, match.As(&run.SignalError{}).MatchError).Handle(err)
+}
+
+// setupHelmFacade utility function for assembling the helm facade
+func setupHelmFacade(config configuration, db *gorm.DB, commonSecretStore common2.SecretStore,
+	clusterManager *cluster.Manager, logger helm.Logger) helm.Service {
+	repoStore := helm3adapter.NewHelmRepoStore(db, logger)
+	secretStore := helm3adapter.NewSecretStore(commonSecretStore, logger)
+	orgService := helm3adapter.NewOrgService(logger)
+	validator := helm.NewHelmRepoValidator()
+	releaser := helm3adapter.NewReleaser(logger)
+	clusterService := helm3adapter.NewClusterService(clusterManager)
+
+	var (
+		envService helm.EnvService
+	)
+	envResolver := helm.NewHelm2EnvResolver(config.Helm.Home, orgService, logger)
+	switch config.Helm.Version {
+	case "helm3":
+		envResolver = helm.NewHelm3EnvResolver(envResolver)
+		envService = helm3adapter.NewHelm3EnvService(logger)
+
+		// set up platform helm env
+		platformHelmEnv, _ := envResolver.ResolvePlatformEnv(context.Background())
+		reconciler := helm.NewBuiltinEnvReconciler(config.Helm.Repositories, envService, logger)
+		if err := reconciler.Reconcile(context.Background(), platformHelmEnv); err != nil {
+			emperror.Panic(errors.Wrap(err, "failed to set up platform helm environment"))
+		}
+
+	default:
+		envResolver = helm.NewHelm2EnvResolver(config.Helm.Home, orgService, logger)
+		envService = helm3adapter.NewHelmEnvService(helm3adapter.NewConfig(config.Helm.Repositories), logger)
+	}
+
+	service := helm.NewService(
+		repoStore,
+		secretStore,
+		validator,
+		envResolver,
+		envService,
+		releaser,
+		clusterService,
+		logger)
+
+	return service
 }

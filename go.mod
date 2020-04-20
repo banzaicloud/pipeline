@@ -48,6 +48,7 @@ require (
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-kit/kit v0.10.0
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
+	github.com/gofrs/flock v0.7.1
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.4
 	github.com/gorilla/mux v1.7.3
@@ -101,7 +102,7 @@ require (
 	go.uber.org/cadence v0.9.0
 	go.uber.org/yarpc v1.44.0
 	go.uber.org/zap v1.14.1
-	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
+	golang.org/x/crypto v0.0.0-20200128174031-69ecbb4d6d5d
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.15.0
@@ -111,9 +112,11 @@ require (
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/yaml.v2 v2.2.8
+	helm.sh/helm/v3 v3.1.2
 	k8s.io/api v0.17.3
 	k8s.io/apiextensions-apiserver v0.17.3
 	k8s.io/apimachinery v0.17.3
+	k8s.io/cli-runtime v0.17.3
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/cluster-bootstrap v0.17.3
 	k8s.io/helm v2.16.3+incompatible
@@ -124,12 +127,15 @@ require (
 	logur.dev/integration/watermill v0.4.2
 	logur.dev/integration/zap v0.3.2
 	logur.dev/logur v0.16.2
+	rsc.io/letsencrypt v0.0.3 // indirect
 	sigs.k8s.io/controller-runtime v0.5.0
 	sigs.k8s.io/kubefed v0.2.0-alpha.1
 	sigs.k8s.io/testing_frameworks v0.1.2
+	sigs.k8s.io/yaml v1.1.0
 )
 
 replace (
+	github.com/Azure/go-autorest => github.com/Azure/go-autorest v14.0.0+incompatible
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.4.2
 	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08
 	github.com/baiyubin/aliyun-sts-go-sdk => github.com/banzaicloud/aliyun-sts-go-sdk v0.0.0-20191023142834-57827dd1486a

@@ -15,24 +15,18 @@
 package ark
 
 import (
+	"context"
 	"encoding/json"
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
-	k8sHelm "k8s.io/helm/pkg/helm"
-	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/ark/client"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/src/auth"
-	"github.com/banzaicloud/pipeline/src/helm"
-)
-
-const (
-	// helm deployment timeout
-	deployTimeout = 90
 )
 
 // DeploymentsService is for managing ARK deployments
@@ -107,7 +101,7 @@ func (s *DeploymentsService) GetActiveDeployment() (*ClusterBackupDeploymentsMod
 }
 
 // Deploy deploys ARK with helm configured to use the given bucket and mode
-func (s *DeploymentsService) Deploy(bucket *ClusterBackupBucketsModel, restoreMode bool) error {
+func (s *DeploymentsService) Deploy(helmService helm.UnifiedReleaser, bucket *ClusterBackupBucketsModel, restoreMode bool) error {
 	var deployment *ClusterBackupDeploymentsModel
 	if !restoreMode {
 		_, err := s.GetActiveDeployment()
@@ -173,14 +167,15 @@ func (s *DeploymentsService) Deploy(bucket *ClusterBackupBucketsModel, restoreMo
 		return errors.Wrap(err, "error persisting deployment")
 	}
 
-	err = s.installDeployment(
+	err = helmService.InstallDeployment(
+		context.Background(),
+		s.cluster.GetID(),
 		config.Namespace,
 		config.Chart,
 		config.Name,
 		config.ValueOverrides,
-		"InstallArk",
 		config.Version,
-		deployTimeout,
+		true,
 	)
 	if err != nil {
 		err = errors.Wrap(err, "error deploying ark")
@@ -195,20 +190,13 @@ func (s *DeploymentsService) Deploy(bucket *ClusterBackupBucketsModel, restoreMo
 }
 
 // Remove deletes an ARK deployment
-func (s *DeploymentsService) Remove() error {
+func (s *DeploymentsService) Remove(helmService helm.UnifiedReleaser) error {
 	deployment, err := s.GetActiveDeployment()
 	if err == gorm.ErrRecordNotFound {
 		return errors.New("not deployed")
 	}
 
-	config, err := s.cluster.GetK8sConfig()
-	if err != nil {
-		err = errors.Wrap(err, "error getting k8s config")
-		_ = s.repository.UpdateStatus(deployment, "ERROR", err.Error())
-		return err
-	}
-
-	err = helm.DeleteDeployment(deployment.Name, config)
+	err = helmService.DeleteDeployment(context.Background(), deployment.ClusterID, deployment.Name, deployment.Namespace)
 	if err != nil {
 		_ = s.repository.UpdateStatus(deployment, "ERROR", err.Error())
 		return errors.Wrap(err, "error deleting deployment")
@@ -235,74 +223,4 @@ func (s *DeploymentsService) getChartConfig(req ConfigRequest) (config ChartConf
 	config.ValueOverrides = arkJSON
 
 	return
-}
-
-func (s *DeploymentsService) installDeployment(
-	namespace string,
-	deploymentName string,
-	releaseName string,
-	values []byte,
-	actionName string,
-	chartVersion string,
-	timeout int64,
-) error {
-	kubeConfig, err := s.cluster.GetK8sConfig()
-	if err != nil {
-		return errors.WrapIf(err, "unable to fetch k8s config")
-	}
-
-	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
-	if err != nil {
-		return errors.WrapIf(err, "unable to fetch deployments from helm")
-	}
-
-	var foundRelease *pkgHelmRelease.Release
-	if deployments != nil {
-		for _, release := range deployments.Releases {
-			if release.Name == releaseName {
-				foundRelease = release
-				break
-			}
-		}
-	}
-
-	if foundRelease != nil {
-		switch foundRelease.GetInfo().GetStatus().GetCode() {
-		case pkgHelmRelease.Status_DEPLOYED:
-			s.logger.Infof("'%s' is already installed", deploymentName)
-			return nil
-		case pkgHelmRelease.Status_FAILED:
-			err = helm.DeleteDeployment(releaseName, kubeConfig)
-			if err != nil {
-				s.logger.Errorf("Failed to deleted failed deployment '%s' due to: %s", deploymentName, err.Error())
-				return err
-			}
-		}
-	}
-
-	options := []k8sHelm.InstallOption{
-		k8sHelm.InstallWait(true),
-		k8sHelm.ValueOverrides(values),
-	}
-
-	_, err = helm.CreateDeployment(
-		deploymentName,
-		chartVersion,
-		nil,
-		namespace,
-		releaseName,
-		false,
-		nil,
-		kubeConfig,
-		helm.GeneratePlatformHelmRepoEnv(),
-		options...,
-	)
-	if err != nil {
-		s.logger.Errorf("Deploying '%s' failed due to: %s", deploymentName, err.Error())
-		return err
-	}
-
-	s.logger.Infof("'%s' installed", deploymentName)
-
-	return nil
 }

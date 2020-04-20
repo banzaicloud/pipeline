@@ -19,6 +19,8 @@ import (
 
 	"emperror.dev/errors"
 
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
@@ -45,11 +47,70 @@ type Repository struct {
 	TlsSecretID string `json:"tlsSecretId,omitempty"`
 }
 
+// Options struct holding directives for driving helm operations (similar to command line flags)
+// extend this as required eventually build a more sophisticated solution for it
+type Options struct {
+	Namespace    string                 `json:"namespace,omitempty"`
+	DryRun       bool                   `json:"dryRun,omitempty"`
+	GenerateName bool                   `json:"generateName,omitempty"`
+	Wait         bool                   `json:"wait,omitempty"`
+	Timeout      int64                  `json:"timeout,omitempty"`
+	OdPcts       map[string]interface{} `json:"odPcts,omitempty"`
+	ReuseValues  bool                   `json:"reuseValues,omitempty"`
+	Install      bool                   `json:"install,omitempty"`
+	Optionals    map[string]interface{}
+}
+
 // +kit:endpoint:errorStrategy=service
 // +testify:mock:testOnly=true
 
-// Service manages Helm chart repositories.
+// Service manages Helm repositories, charts and releases
 type Service interface {
+	// helm repository management operations
+	repository
+
+	// release management operations
+	releaser
+
+	// chart related operations
+	charter
+}
+
+// UnifiedReleaser unifies different helm release interfaces into a single interface
+type UnifiedReleaser interface {
+	// integrated services style
+	ApplyDeployment(
+		ctx context.Context,
+		clusterID uint,
+		namespace string,
+		chartName string,
+		releaseName string,
+		values []byte,
+		chartVersion string,
+	) error
+
+	// cluster setup style
+	InstallDeployment(
+		ctx context.Context,
+		clusterID uint,
+		namespace string,
+		chartName string,
+		releaseName string,
+		values []byte,
+		chartVersion string,
+		wait bool,
+	) error
+
+	// DeleteDeployment deletes a deployment from a specific cluster.
+	DeleteDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) error
+
+	// GetDeployment gets a deployment by release name from a specific cluster.
+	GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*pkgHelm.GetDeploymentResponse, error)
+}
+
+// releaser collects and groups release related operations
+// it's intended to be embedded in the "Helm Facade"
+type repository interface {
 	// AddRepository adds a new Helm chart repository.
 	AddRepository(ctx context.Context, organizationID uint, repository Repository) error
 	// ListRepositories lists Helm repositories.
@@ -76,6 +137,14 @@ type EnvService interface {
 	PatchRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) error
 	// UpdateRepository updates an existing repository
 	UpdateRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) error
+	// ListCharts lists charts matching the given filter
+	ListCharts(ctx context.Context, helmEnv HelmEnv, chartFilter ChartFilter) (chartList ChartList, err error)
+	// GetChart retrieves the details of the passed in chart
+	GetChart(ctx context.Context, helmEnv HelmEnv, chartFilter ChartFilter) (chartDetails ChartDetails, err error)
+
+	// EnsureEnv ensures the helm environment represented by the input.
+	// If theh environment exists (on the filesystem) it does nothing
+	EnsureEnv(ctx context.Context, helmEnv HelmEnv) (HelmEnv, error)
 }
 
 // +testify:mock:testOnly=true
@@ -121,13 +190,21 @@ type SecretStore interface {
 	ResolveTlsSecrets(ctx context.Context, secretID string) (TlsSecret, error)
 }
 
+// Cluster collects operations to extract  cluster related information
+type ClusterService interface {
+	// Retrieves the kuebernetes configuration as a slice of bytes
+	GetKubeConfig(ctx context.Context, clusterID uint) ([]byte, error)
+}
+
 type service struct {
-	store         Store
-	secretStore   SecretStore
-	repoValidator RepoValidator
-	envResolver   EnvResolver
-	envService    EnvService
-	logger        Logger
+	store          Store
+	secretStore    SecretStore
+	repoValidator  RepoValidator
+	envResolver    EnvResolver
+	envService     EnvService
+	releaser       Releaser
+	clusterService ClusterService
+	logger         Logger
 }
 
 // NewService returns a new Service.
@@ -137,14 +214,20 @@ func NewService(
 	validator RepoValidator,
 	envResolver EnvResolver,
 	envService EnvService,
+	releaser Releaser,
+	clusterService ClusterService,
 	logger Logger) Service {
+	// wrap the envresolver
+	ensuringEnvResolver := NewEnsuringEnvResolver(envResolver, envService, logger)
 	return service{
-		store:         store,
-		secretStore:   secretStore,
-		repoValidator: validator,
-		envResolver:   envResolver,
-		envService:    envService,
-		logger:        logger,
+		store:          store,
+		secretStore:    secretStore,
+		repoValidator:  validator,
+		envResolver:    ensuringEnvResolver,
+		envService:     envService,
+		releaser:       releaser,
+		clusterService: clusterService,
+		logger:         logger,
 	}
 }
 
@@ -200,7 +283,7 @@ func (s service) ListRepositories(ctx context.Context, organizationID uint) (rep
 		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 
-	defaultRepos, err := s.envService.ListRepositories(ctx, helmEnv)
+	envRepos, err := s.envService.ListRepositories(ctx, helmEnv)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to retrieve default repositories")
 	}
@@ -210,7 +293,7 @@ func (s service) ListRepositories(ctx context.Context, organizationID uint) (rep
 		return nil, errors.WrapIf(err, "failed to retrieve persisted repositories")
 	}
 
-	return mergeDefaults(defaultRepos, persistedRepos), nil
+	return mergeDefaults(envRepos, persistedRepos), nil
 }
 
 func (s service) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {
@@ -322,7 +405,7 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 		return errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 
-	if err := s.envService.PatchRepository(ctx, helmEnv, repository); err != nil {
+	if err := s.envService.UpdateRepository(ctx, helmEnv, repository); err != nil {
 		return errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 
@@ -330,9 +413,166 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 	return nil
 }
 
+func (s service) InstallRelease(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) error {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	kubeKonfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get cluster configuration")
+	}
+
+	if _, err := s.releaser.Install(ctx, helmEnv, kubeKonfig, release, options); err != nil {
+		return errors.WrapIf(err, "failed to install release")
+	}
+
+	return nil
+}
+
+func (s service) DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) error {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	kubeKonfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get cluster configuration")
+	}
+
+	if err := s.releaser.Uninstall(ctx, helmEnv, kubeKonfig, releaseName, options); err != nil {
+		return errors.WrapIf(err, "failed to uninstall release")
+	}
+
+	return nil
+}
+
+func (s service) ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters interface{}, options Options) ([]Release, error) {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	kubeKonfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get cluster configuration")
+	}
+
+	releases, err := s.releaser.List(ctx, helmEnv, kubeKonfig, options)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to list releases")
+	}
+
+	return releases, nil
+}
+
+func (s service) GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (Release, error) {
+	emptyRelease := Release{}
+
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return emptyRelease, errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	kubeKonfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return emptyRelease, errors.WrapIf(err, "failed to get cluster configuration")
+	}
+
+	input := Release{ReleaseName: releaseName}
+	release, err := s.releaser.Get(ctx, helmEnv, kubeKonfig, input, options)
+	if err != nil {
+		return emptyRelease, errors.WrapIfWithDetails(err, "failed to get release", "releaseName", releaseName)
+	}
+
+	return release, nil
+}
+
+func (s service) UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) error {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	kubeKonfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get cluster configuration")
+	}
+
+	if _, err := s.releaser.Upgrade(ctx, helmEnv, kubeKonfig, release, options); err != nil {
+		return errors.WrapIfWithDetails(err, "failed to upgrade release", "releaseName", release.ReleaseName)
+	}
+
+	return nil
+}
+
+func (s service) ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, options Options) (charts ChartList, err error) {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	chartList, err := s.envService.ListCharts(ctx, helmEnv, filter)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to list charts")
+	}
+
+	return chartList, nil
+}
+
+func (s service) GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails ChartDetails, err error) {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	details, err := s.envService.GetChart(ctx, helmEnv, chartFilter)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get helm chart details")
+	}
+
+	if len(details) == 0 {
+		return nil, ChartNotFoundError{
+			ChartInfo: chartFilter.String(),
+			OrgID:     organizationID,
+		}
+	}
+
+	return details, nil
+}
+
+func (s service) GetReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) ([]ReleaseResource, error) {
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
+	}
+
+	kubeKonfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get cluster configuration")
+	}
+
+	resources, err := s.releaser.Resources(ctx, helmEnv, kubeKonfig, release, options)
+	if err != nil {
+		return nil, errors.WrapIfWithDetails(err, "failed to retrieve release resources ", "releaseName", release.ReleaseName)
+	}
+
+	return resources, nil
+}
+
+func (s service) CheckRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (string, error) {
+	release, err := s.GetRelease(ctx, organizationID, clusterID, releaseName, options)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to retrieve release")
+	}
+
+	return release.ReleaseInfo.Status, nil
+}
+
 func (s service) repoExists(ctx context.Context, orgID uint, repository Repository) (bool, error) {
 	_, err := s.store.Get(ctx, orgID, repository)
-
 	if err != nil {
 		// TODO refine this implementation, separate results by error type
 		return false, nil

@@ -25,32 +25,25 @@ import (
 // HookMap for api hook endpoints
 // nolint: gochecknoglobals
 var HookMap = map[string]PostFunctioner{
-	pkgCluster.InstallIngressControllerPostHook: &BasePostFunction{
-		f:            InstallIngressControllerPostHook,
+	pkgCluster.InstallIngressControllerPostHook: &IngressControllerPostHook{
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.InstallKubernetesDashboardPostHook: &BasePostFunction{
-		f:            InstallKubernetesDashboardPostHook,
+	pkgCluster.InstallKubernetesDashboardPostHook: &KubernetesDashboardPostHook{
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.InstallClusterAutoscalerPostHook: &BasePostFunction{
-		f:            InstallClusterAutoscalerPostHook,
+	pkgCluster.InstallClusterAutoscalerPostHook: &ClusterAutoscalerPostHook{
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.InstallHorizontalPodAutoscalerPostHook: &BasePostFunction{
-		f:            InstallHorizontalPodAutoscalerPostHook,
+	pkgCluster.InstallHorizontalPodAutoscalerPostHook: &HorizontalPodAutoscalerPostHook{
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.RestoreFromBackup: &PostFunctionWithParam{
-		f:            RestoreFromBackup,
+	pkgCluster.RestoreFromBackup: &RestoreFromBackupPosthook{
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.InitSpotConfig: &BasePostFunction{
-		f:            InitSpotConfig,
+	pkgCluster.InitSpotConfig: &InitSpotConfigPostHook{
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.DeployInstanceTerminationHandler: &BasePostFunction{
-		f:            DeployInstanceTerminationHandler,
+	pkgCluster.DeployInstanceTerminationHandler: &InstanceTerminationHandlerPostHook{
 		ErrorHandler: ErrorHandler{},
 	},
 }
