@@ -35,10 +35,11 @@ type CreateParams struct {
 	NodePools         []NodePool
 	HTTPProxy         intPKE.HTTPProxy
 
-	ResourcePoolName string
-	FolderName       string
-	DatastoreName    string
-	Kubernetes       intPKE.Kubernetes
+	ResourcePoolName    string
+	FolderName          string
+	DatastoreName       string
+	Kubernetes          intPKE.Kubernetes
+	LoadBalancerIPRange string
 }
 
 // ClusterStore defines behaviors of PKEOnVsphereCluster persistent storage

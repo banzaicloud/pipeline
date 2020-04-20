@@ -72,9 +72,10 @@ func (req CreatePKEOnVsphereClusterRequest) ToVspherePKEClusterCreationParams(or
 			HTTPS:      clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(req.Proxy.Https),
 			Exceptions: req.Proxy.Exceptions,
 		},
-		ResourcePoolName: req.ResourcePool,
-		FolderName:       req.Folder,
-		DatastoreName:    req.Datastore,
+		ResourcePoolName:    req.ResourcePool,
+		FolderName:          req.Folder,
+		DatastoreName:       req.Datastore,
+		LoadBalancerIPRange: req.LoadBalancerIPRange,
 	}
 }
 

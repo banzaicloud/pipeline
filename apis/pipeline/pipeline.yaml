@@ -4370,6 +4370,10 @@ components:
                             type: array
                             items:
                                 $ref: '#/components/schemas/PKEOnVsphereNodePool'
+                        loadBalancerIPRange:
+                            type: string
+                            example: "192.168.23.150-192.168.23.180"
+                            description: "IPv4 range to allocate addresses for LoadBalancer Services (MetalLB)"
 
         PKEOnVsphereNodePool:
             type: object

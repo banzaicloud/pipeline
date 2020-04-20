@@ -22877,6 +22877,11 @@ components:
           items:
             $ref: '#/components/schemas/PKEOnVsphereNodePool'
           type: array
+        loadBalancerIPRange:
+          description: IPv4 range to allocate addresses for LoadBalancer Services
+            (MetalLB)
+          example: 192.168.23.150-192.168.23.180
+          type: string
       required:
       - resourceGroup
     EksNodePool_allOf:

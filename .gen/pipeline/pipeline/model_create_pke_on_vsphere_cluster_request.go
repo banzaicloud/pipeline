@@ -44,4 +44,7 @@ type CreatePkeOnVsphereClusterRequest struct {
 	ResourcePool string `json:"resourcePool,omitempty"`
 
 	NodePools []PkeOnVsphereNodePool `json:"nodePools,omitempty"`
+
+	// IPv4 range to allocate addresses for LoadBalancer Services (MetalLB)
+	LoadBalancerIPRange string `json:"loadBalancerIPRange,omitempty"`
 }

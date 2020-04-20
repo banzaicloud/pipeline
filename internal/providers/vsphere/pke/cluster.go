@@ -39,13 +39,15 @@ func (np NodePool) InstanceType() string {
 type PKEOnVsphereCluster struct {
 	clusterbase.ClusterBase
 
-	NodePools        []NodePool
-	ResourcePool     string
-	Datastore        string
-	Folder           string
-	Kubernetes       intPKE.Kubernetes
-	ActiveWorkflowID string
-	HTTPProxy        intPKE.HTTPProxy
+	NodePools           []NodePool
+	ResourcePool        string
+	Datastore           string
+	Folder              string
+	Kubernetes          intPKE.Kubernetes
+	ActiveWorkflowID    string
+	HTTPProxy           intPKE.HTTPProxy
+	StorageSecretID     string
+	LoadBalancerIPRange string
 }
 
 func (c PKEOnVsphereCluster) HasActiveWorkflow() bool {
