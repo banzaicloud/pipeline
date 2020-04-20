@@ -15,7 +15,7 @@ linters-settings:
     gocyclo:
         min-complexity: 15
     goimports:
-        local-prefixes: github.com/banzaicloud/pipeline
+        local-prefixes: github.com/banzaicloud/pipeline/
     depguard:
         list-type: blacklist
         include-go-root: false
