@@ -543,7 +543,7 @@ func (s service) GetChart(ctx context.Context, organizationID uint, chartFilter 
 	return details, nil
 }
 
-func (s service) ReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) ([]ReleaseResource, error) {
+func (s service) GetReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) ([]ReleaseResource, error) {
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
@@ -562,7 +562,7 @@ func (s service) ReleaseResources(ctx context.Context, organizationID uint, clus
 	return resources, nil
 }
 
-func (s service) ReleaseStatus(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (string, error) {
+func (s service) CheckRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (string, error) {
 	release, err := s.GetRelease(ctx, organizationID, clusterID, releaseName, options)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to retrieve release")

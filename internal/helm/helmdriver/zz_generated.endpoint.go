@@ -26,20 +26,20 @@ type serviceError interface {
 // meant to be used as a helper struct, to collect all of the endpoints into a
 // single parameter.
 type Endpoints struct {
-	AddRepository    endpoint.Endpoint
-	DeleteRelease    endpoint.Endpoint
-	DeleteRepository endpoint.Endpoint
-	GetChart         endpoint.Endpoint
-	GetRelease       endpoint.Endpoint
-	InstallRelease   endpoint.Endpoint
-	ListCharts       endpoint.Endpoint
-	ListReleases     endpoint.Endpoint
-	ListRepositories endpoint.Endpoint
-	PatchRepository  endpoint.Endpoint
-	ReleaseResources endpoint.Endpoint
-	ReleaseStatus    endpoint.Endpoint
-	UpdateRepository endpoint.Endpoint
-	UpgradeRelease   endpoint.Endpoint
+	AddRepository       endpoint.Endpoint
+	CheckRelease        endpoint.Endpoint
+	DeleteRelease       endpoint.Endpoint
+	DeleteRepository    endpoint.Endpoint
+	GetChart            endpoint.Endpoint
+	GetRelease          endpoint.Endpoint
+	GetReleaseResources endpoint.Endpoint
+	InstallRelease      endpoint.Endpoint
+	ListCharts          endpoint.Endpoint
+	ListReleases        endpoint.Endpoint
+	ListRepositories    endpoint.Endpoint
+	PatchRepository     endpoint.Endpoint
+	UpdateRepository    endpoint.Endpoint
+	UpgradeRelease      endpoint.Endpoint
 }
 
 // MakeEndpoints returns a(n) Endpoints struct where each endpoint invokes
@@ -48,20 +48,20 @@ func MakeEndpoints(service helm.Service, middleware ...endpoint.Middleware) Endp
 	mw := kitxendpoint.Combine(middleware...)
 
 	return Endpoints{
-		AddRepository:    kitxendpoint.OperationNameMiddleware("helm.AddRepository")(mw(MakeAddRepositoryEndpoint(service))),
-		DeleteRelease:    kitxendpoint.OperationNameMiddleware("helm.DeleteRelease")(mw(MakeDeleteReleaseEndpoint(service))),
-		DeleteRepository: kitxendpoint.OperationNameMiddleware("helm.DeleteRepository")(mw(MakeDeleteRepositoryEndpoint(service))),
-		GetChart:         kitxendpoint.OperationNameMiddleware("helm.GetChart")(mw(MakeGetChartEndpoint(service))),
-		GetRelease:       kitxendpoint.OperationNameMiddleware("helm.GetRelease")(mw(MakeGetReleaseEndpoint(service))),
-		InstallRelease:   kitxendpoint.OperationNameMiddleware("helm.InstallRelease")(mw(MakeInstallReleaseEndpoint(service))),
-		ListCharts:       kitxendpoint.OperationNameMiddleware("helm.ListCharts")(mw(MakeListChartsEndpoint(service))),
-		ListReleases:     kitxendpoint.OperationNameMiddleware("helm.ListReleases")(mw(MakeListReleasesEndpoint(service))),
-		ListRepositories: kitxendpoint.OperationNameMiddleware("helm.ListRepositories")(mw(MakeListRepositoriesEndpoint(service))),
-		PatchRepository:  kitxendpoint.OperationNameMiddleware("helm.PatchRepository")(mw(MakePatchRepositoryEndpoint(service))),
-		ReleaseResources: kitxendpoint.OperationNameMiddleware("helm.ReleaseResources")(mw(MakeReleaseResourcesEndpoint(service))),
-		ReleaseStatus:    kitxendpoint.OperationNameMiddleware("helm.ReleaseStatus")(mw(MakeReleaseStatusEndpoint(service))),
-		UpdateRepository: kitxendpoint.OperationNameMiddleware("helm.UpdateRepository")(mw(MakeUpdateRepositoryEndpoint(service))),
-		UpgradeRelease:   kitxendpoint.OperationNameMiddleware("helm.UpgradeRelease")(mw(MakeUpgradeReleaseEndpoint(service))),
+		AddRepository:       kitxendpoint.OperationNameMiddleware("helm.AddRepository")(mw(MakeAddRepositoryEndpoint(service))),
+		CheckRelease:        kitxendpoint.OperationNameMiddleware("helm.CheckRelease")(mw(MakeCheckReleaseEndpoint(service))),
+		DeleteRelease:       kitxendpoint.OperationNameMiddleware("helm.DeleteRelease")(mw(MakeDeleteReleaseEndpoint(service))),
+		DeleteRepository:    kitxendpoint.OperationNameMiddleware("helm.DeleteRepository")(mw(MakeDeleteRepositoryEndpoint(service))),
+		GetChart:            kitxendpoint.OperationNameMiddleware("helm.GetChart")(mw(MakeGetChartEndpoint(service))),
+		GetRelease:          kitxendpoint.OperationNameMiddleware("helm.GetRelease")(mw(MakeGetReleaseEndpoint(service))),
+		GetReleaseResources: kitxendpoint.OperationNameMiddleware("helm.GetReleaseResources")(mw(MakeGetReleaseResourcesEndpoint(service))),
+		InstallRelease:      kitxendpoint.OperationNameMiddleware("helm.InstallRelease")(mw(MakeInstallReleaseEndpoint(service))),
+		ListCharts:          kitxendpoint.OperationNameMiddleware("helm.ListCharts")(mw(MakeListChartsEndpoint(service))),
+		ListReleases:        kitxendpoint.OperationNameMiddleware("helm.ListReleases")(mw(MakeListReleasesEndpoint(service))),
+		ListRepositories:    kitxendpoint.OperationNameMiddleware("helm.ListRepositories")(mw(MakeListRepositoriesEndpoint(service))),
+		PatchRepository:     kitxendpoint.OperationNameMiddleware("helm.PatchRepository")(mw(MakePatchRepositoryEndpoint(service))),
+		UpdateRepository:    kitxendpoint.OperationNameMiddleware("helm.UpdateRepository")(mw(MakeUpdateRepositoryEndpoint(service))),
+		UpgradeRelease:      kitxendpoint.OperationNameMiddleware("helm.UpgradeRelease")(mw(MakeUpgradeReleaseEndpoint(service))),
 	}
 }
 
@@ -96,6 +96,49 @@ func MakeAddRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
 		}
 
 		return AddRepositoryResponse{}, nil
+	}
+}
+
+// CheckReleaseRequest is a request struct for CheckRelease endpoint.
+type CheckReleaseRequest struct {
+	OrganizationID uint
+	ClusterID      uint
+	ReleaseName    string
+	Options        helm.Options
+}
+
+// CheckReleaseResponse is a response struct for CheckRelease endpoint.
+type CheckReleaseResponse struct {
+	R0  string
+	Err error
+}
+
+func (r CheckReleaseResponse) Failed() error {
+	return r.Err
+}
+
+// MakeCheckReleaseEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeCheckReleaseEndpoint(service helm.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(CheckReleaseRequest)
+
+		r0, err := service.CheckRelease(ctx, req.OrganizationID, req.ClusterID, req.ReleaseName, req.Options)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return CheckReleaseResponse{
+					Err: err,
+					R0:  r0,
+				}, nil
+			}
+
+			return CheckReleaseResponse{
+				Err: err,
+				R0:  r0,
+			}, err
+		}
+
+		return CheckReleaseResponse{R0: r0}, nil
 	}
 }
 
@@ -251,6 +294,49 @@ func MakeGetReleaseEndpoint(service helm.Service) endpoint.Endpoint {
 		}
 
 		return GetReleaseResponse{R0: r0}, nil
+	}
+}
+
+// GetReleaseResourcesRequest is a request struct for GetReleaseResources endpoint.
+type GetReleaseResourcesRequest struct {
+	OrganizationID uint
+	ClusterID      uint
+	Release        helm.Release
+	Options        helm.Options
+}
+
+// GetReleaseResourcesResponse is a response struct for GetReleaseResources endpoint.
+type GetReleaseResourcesResponse struct {
+	R0  []helm.ReleaseResource
+	Err error
+}
+
+func (r GetReleaseResourcesResponse) Failed() error {
+	return r.Err
+}
+
+// MakeGetReleaseResourcesEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeGetReleaseResourcesEndpoint(service helm.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(GetReleaseResourcesRequest)
+
+		r0, err := service.GetReleaseResources(ctx, req.OrganizationID, req.ClusterID, req.Release, req.Options)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return GetReleaseResourcesResponse{
+					Err: err,
+					R0:  r0,
+				}, nil
+			}
+
+			return GetReleaseResourcesResponse{
+				Err: err,
+				R0:  r0,
+			}, err
+		}
+
+		return GetReleaseResourcesResponse{R0: r0}, nil
 	}
 }
 
@@ -446,92 +532,6 @@ func MakePatchRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
 		}
 
 		return PatchRepositoryResponse{}, nil
-	}
-}
-
-// ReleaseResourcesRequest is a request struct for ReleaseResources endpoint.
-type ReleaseResourcesRequest struct {
-	OrganizationID uint
-	ClusterID      uint
-	Release        helm.Release
-	Options        helm.Options
-}
-
-// ReleaseResourcesResponse is a response struct for ReleaseResources endpoint.
-type ReleaseResourcesResponse struct {
-	R0  []helm.ReleaseResource
-	Err error
-}
-
-func (r ReleaseResourcesResponse) Failed() error {
-	return r.Err
-}
-
-// MakeReleaseResourcesEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeReleaseResourcesEndpoint(service helm.Service) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(ReleaseResourcesRequest)
-
-		r0, err := service.ReleaseResources(ctx, req.OrganizationID, req.ClusterID, req.Release, req.Options)
-
-		if err != nil {
-			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
-				return ReleaseResourcesResponse{
-					Err: err,
-					R0:  r0,
-				}, nil
-			}
-
-			return ReleaseResourcesResponse{
-				Err: err,
-				R0:  r0,
-			}, err
-		}
-
-		return ReleaseResourcesResponse{R0: r0}, nil
-	}
-}
-
-// ReleaseStatusRequest is a request struct for ReleaseStatus endpoint.
-type ReleaseStatusRequest struct {
-	OrganizationID uint
-	ClusterID      uint
-	ReleaseName    string
-	Options        helm.Options
-}
-
-// ReleaseStatusResponse is a response struct for ReleaseStatus endpoint.
-type ReleaseStatusResponse struct {
-	R0  string
-	Err error
-}
-
-func (r ReleaseStatusResponse) Failed() error {
-	return r.Err
-}
-
-// MakeReleaseStatusEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeReleaseStatusEndpoint(service helm.Service) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(ReleaseStatusRequest)
-
-		r0, err := service.ReleaseStatus(ctx, req.OrganizationID, req.ClusterID, req.ReleaseName, req.Options)
-
-		if err != nil {
-			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
-				return ReleaseStatusResponse{
-					Err: err,
-					R0:  r0,
-				}, nil
-			}
-
-			return ReleaseStatusResponse{
-				Err: err,
-				R0:  r0,
-			}, err
-		}
-
-		return ReleaseStatusResponse{R0: r0}, nil
 	}
 }
 

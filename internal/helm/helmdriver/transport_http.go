@@ -133,16 +133,16 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 	))
 
 	router.Methods(http.MethodGet).Path("/{name}/resources").Handler(kithttp.NewServer(
-		endpoints.ReleaseResources,
-		decodeReleaseResourcesHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(encodeReleaseResourcesHTTPResponse, errorEncoder),
+		endpoints.GetReleaseResources,
+		decodeGetReleaseResourcesHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeGetReleaseResourcesHTTPResponse, errorEncoder),
 		options...,
 	))
 
 	router.Methods(http.MethodHead).Path("/{name}").Handler(kithttp.NewServer(
-		endpoints.ReleaseStatus,
-		decodeReleaseStatusHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(encodeReleaseStatusHTTPResponse, errorEncoder),
+		endpoints.CheckRelease,
+		decodeCheckReleaseHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeCheckReleaseHTTPResponse, errorEncoder),
 		options...,
 	))
 }
@@ -369,8 +369,8 @@ func decodeDeleteReleaseHTTPRequest(_ context.Context, r *http.Request) (interfa
 	}, nil
 }
 
-func encodeReleaseResourcesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	resp, ok := response.(ReleaseResourcesResponse)
+func encodeGetReleaseResourcesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp, ok := response.(GetReleaseResourcesResponse)
 	if !ok {
 		return errors.NewWithDetails("failed to encode release resources response")
 	}
@@ -382,7 +382,7 @@ func encodeReleaseResourcesHTTPResponse(ctx context.Context, w http.ResponseWrit
 	return kitxhttp.JSONResponseEncoder(ctx, w, resp.R0)
 }
 
-func decodeReleaseStatusHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeCheckReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	orgID, err := extractUintParamFromRequest("orgId", r)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to decode get release request")
@@ -398,15 +398,15 @@ func decodeReleaseStatusHTTPRequest(_ context.Context, r *http.Request) (interfa
 		return nil, errors.WrapIf(err, "failed to decode get release request")
 	}
 
-	return ReleaseStatusRequest{
+	return CheckReleaseRequest{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
 		ReleaseName:    releaseName,
 	}, nil
 }
 
-func encodeReleaseStatusHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	release, ok := response.(ReleaseStatusResponse)
+func encodeCheckReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	release, ok := response.(CheckReleaseResponse)
 	if !ok {
 		return errors.New("invalid  release list response")
 	}
@@ -446,7 +446,7 @@ func decodeGetReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{
 		ReleaseName:    releaseName,
 	}, nil
 }
-func decodeReleaseResourcesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeGetReleaseResourcesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	orgID, err := extractUintParamFromRequest("orgId", r)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to decode get release request")
@@ -462,7 +462,7 @@ func decodeReleaseResourcesHTTPRequest(_ context.Context, r *http.Request) (inte
 		return nil, errors.WrapIf(err, "failed to decode get release request")
 	}
 
-	return ReleaseResourcesRequest{
+	return GetReleaseResourcesRequest{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
 		Release: helm.Release{

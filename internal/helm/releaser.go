@@ -67,10 +67,10 @@ type releaser interface {
 	GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (Release, error)
 	// Upgrade upgrades the given release
 	UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) error
-	// ReleaseStatus
-	ReleaseStatus(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (string, error)
+	// CheckRelease
+	CheckRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (string, error)
 	// ReleaseResources retrieves resources belonging to the release
-	ReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) ([]ReleaseResource, error)
+	GetReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) ([]ReleaseResource, error)
 }
 
 // utility for providing input arguments ...
