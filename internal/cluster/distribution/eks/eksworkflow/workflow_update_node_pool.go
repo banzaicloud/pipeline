@@ -54,6 +54,17 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 		fmt.Sprint(input.ClusterID),
 	)
 	defer processLog.End(err)
+	defer func(err error) {
+		status := cluster.Running
+		statusMessage := cluster.RunningMessage
+
+		if err != nil {
+			status = cluster.Warning
+			statusMessage = fmt.Sprintf("failed to update node pool: %s", err.Error())
+		}
+
+		_ = setClusterStatus(ctx, input.ClusterID, status, statusMessage)
+	}(err)
 
 	{
 		activityInput := UpdateNodeGroupActivityInput{
@@ -82,8 +93,6 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 		).Get(ctx, nil)
 		processEvent.End(err)
 		if err != nil {
-			_ = setClusterStatus(ctx, input.ClusterID, cluster.Warning, fmt.Sprintf("failed to update node pool: %s", err.Error()))
-
 			return err
 		}
 	}
@@ -112,18 +121,11 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 			workflow.WithActivityOptions(ctx, activityOptions),
 			WaitCloudFormationStackUpdateActivityName,
 			activityInput,
-		).Get(ctx,nil)
+		).Get(ctx, nil)
 		processEvent.End(err)
 		if err != nil {
-			_ = setClusterStatus(ctx, input.ClusterID, cluster.Warning, fmt.Sprintf("failed to update node pool: %s", err.Error()))
-
 			return err
 		}
-	}
-
-	err = setClusterStatus(ctx, input.ClusterID, cluster.Running, cluster.RunningMessage)
-	if err != nil {
-		return err
 	}
 
 	return nil
