@@ -70,9 +70,11 @@ func Test_helm2EnvResolver_ResolveHelmEnv(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setupMocks(&tt.fields.orgService, tt.args)
 			h2r := helm2EnvResolver{
-				helmHomesDir: tt.fields.helmHomesDir,
-				orgService:   tt.fields.orgService,
-				logger:       tt.fields.logger,
+				envResolver{
+					helmHomesDir: tt.fields.helmHomesDir,
+					orgService:   tt.fields.orgService,
+					logger:       tt.fields.logger,
+				},
 			}
 			got, err := h2r.ResolveHelmEnv(tt.args.ctx, tt.args.organizationID)
 			if (err != nil) != tt.wantErr {
