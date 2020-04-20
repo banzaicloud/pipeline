@@ -215,7 +215,7 @@ dex:
 #
 #            loki:
 #                chart: "banzaicloud-stable/loki"
-#                version: "0.17.3"
+#                version: "0.17.4"
 #
 #                # See https://github.com/banzaicloud/banzai-charts/tree/master/loki for details
 #                values: {}
@@ -381,10 +381,10 @@ dex:
 #            charts:
 #                scheduler:
 #                    chart: "banzaicloud-stable/spot-scheduler"
-#                    version: "0.1.0"
+#                    version: "0.1.2"
 #                webhook:
 #                    chart: "banzaicloud-stable/spot-config-webhook"
-#                    version: "0.1.5"
+#                    version: "0.1.6"
 #
 #        ith:
 #            enabled: true
