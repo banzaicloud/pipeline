@@ -367,22 +367,6 @@ func (s service) PatchRepository(ctx context.Context, organizationID uint, repos
 }
 
 func (s service) UpdateRepository(ctx context.Context, organizationID uint, repository Repository) error {
-	if err := s.repoValidator.Validate(ctx, repository); err != nil {
-		return errors.WrapIf(err, "failed to add new helm repository")
-	}
-
-	if repository.PasswordSecretID != "" {
-		if err := s.secretStore.CheckPasswordSecret(ctx, repository.PasswordSecretID); err != nil {
-			return ValidationError{message: err.Error(), violations: []string{"password secret must exist"}}
-		}
-	}
-
-	if repository.TlsSecretID != "" {
-		if err := s.secretStore.CheckTLSSecret(ctx, repository.TlsSecretID); err != nil {
-			return ValidationError{message: err.Error(), violations: []string{"tls secret must exist"}}
-		}
-	}
-
 	exists, err := s.repoExists(ctx, organizationID, Repository{Name: repository.Name})
 	if err != nil {
 		return errors.WrapIfWithDetails(err, "failed to retrieve helm repository",
@@ -402,7 +386,7 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
-		return errors.WrapIf(err, "failed to set up helm repository environment")
+		return errors.WrapIf(err, "failed to resolve helm repository environment")
 	}
 
 	if err := s.envService.UpdateRepository(ctx, helmEnv, repository); err != nil {
