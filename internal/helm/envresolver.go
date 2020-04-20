@@ -69,40 +69,46 @@ type EnvResolver interface {
 	ResolvePlatformEnv(ctx context.Context) (HelmEnv, error)
 }
 
-type helm2EnvResolver struct {
-	// helmHomes the configurable directory location where helm homes are to be set up
+// envResolver generic env resolver to be embedded into EnvResolver implementations
+type envResolver struct {
 	helmHomesDir string
 	orgService   OrgService
 	logger       Logger
 }
 
-func NewHelm2EnvResolver(helmHomesDir string, orgService OrgService, logger Logger) EnvResolver {
-	return helm2EnvResolver{
-		helmHomesDir: helmHomesDir,
-		orgService:   orgService,
-		logger:       logger,
-	}
-}
-
-func (h2r helm2EnvResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (HelmEnv, error) {
-	h2r.logger.Debug("resolving organization helm env home")
-	orgName, err := h2r.orgService.GetOrgNameByOrgID(ctx, organizationID)
+func (er envResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (HelmEnv, error) {
+	er.logger.Debug("resolving organization helm env home")
+	orgName, err := er.orgService.GetOrgNameByOrgID(ctx, organizationID)
 	if err != nil {
 		return HelmEnv{}, errors.WrapIfWithDetails(err, "failed to get organization name for ID",
 			"organizationID", organizationID)
 	}
 
 	return HelmEnv{
-		home:     path.Join(h2r.helmHomesDir, orgName, helmPostFix),
+		home:     path.Join(er.helmHomesDir, orgName, helmPostFix),
 		platform: false,
 	}, nil
 }
 
-func (h2r helm2EnvResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
+func (er envResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
 	return HelmEnv{
-		home:     path.Join(h2r.helmHomesDir, PlatformHelmHome, helmPostFix),
+		home:     path.Join(er.helmHomesDir, PlatformHelmHome, helmPostFix),
 		platform: true,
 	}, nil
+}
+
+type helm2EnvResolver struct {
+	envResolver
+}
+
+func NewHelm2EnvResolver(helmHomesDir string, orgService OrgService, logger Logger) EnvResolver {
+	return helm2EnvResolver{
+		envResolver{
+			helmHomesDir: helmHomesDir,
+			orgService:   orgService,
+			logger:       logger,
+		},
+	}
 }
 
 // helm3EnvResolver helm env resolver to be used for resolving helm 3 environments
@@ -119,6 +125,7 @@ func (h3r helm3EnvResolver) ResolveHelmEnv(ctx context.Context, organizationID u
 		// fallback to the platform / builtin helm env
 		return h3r.ResolvePlatformEnv(ctx)
 	}
+
 	env, err := h3r.delegate.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
 		return HelmEnv{}, errors.WrapIf(err, "failed to get helm env")
@@ -182,7 +189,7 @@ func (b builtinEnvReconciler) Reconcile(ctx context.Context, helmEnv HelmEnv) er
 }
 
 // ensuringEnvResolver component that ensures the resolved environment is set up (on the filesystem)
-// it decorates an existing envResolver with env service logic that checks and sets up the environement
+// it decorates an existing envResolver with env service logic that checks and sets up the environment
 type ensuringEnvResolver struct {
 	// envresolver instance that gets decorated with the new functionality
 	envResolver EnvResolver
