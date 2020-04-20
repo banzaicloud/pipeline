@@ -999,9 +999,6 @@ func main() {
 			emperror.Panic(errors.WrapIf(err, "failed to create ClusterAuthAPI"))
 
 			clusterAuthAPI.RegisterRoutes(cRouter, engine)
-
-			//  TODO port this call to h3 as well
-			orgs.PUT("/:orgid/helm/repos/:name/update", api.HelmReposUpdate)
 			{
 				endpoints := helmdriver.MakeEndpoints(
 					helmFacade,
@@ -1017,6 +1014,7 @@ func main() {
 				orgs.PATCH("/:orgid/helm/repos/:name", gin.WrapH(router))
 				orgs.PUT("/:orgid/helm/repos/:name", gin.WrapH(router))
 				orgs.DELETE("/:orgid/helm/repos/:name", gin.WrapH(router))
+				orgs.PUT("/:orgid/helm/repos/:name/update", gin.WrapH(router))
 
 				orgs.GET("/:orgid/helm/charts", gin.WrapH(router))
 
