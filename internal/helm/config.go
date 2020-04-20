@@ -14,6 +14,8 @@
 
 package helm
 
+import "path/filepath"
+
 type Config struct {
 	Tiller struct {
 		Version string
@@ -34,4 +36,8 @@ func (c Config) IsHelm2() bool {
 // Validate validates the configuration.
 func (c Config) Validate() error {
 	return nil
+}
+
+func (c Config) GetPath(organizationName string) string {
+	return filepath.Join(c.Home, organizationName)
 }

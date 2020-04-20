@@ -609,7 +609,7 @@ func main() {
 
 	scmTokenStore := auth.NewSCMTokenStore(tokenStore)
 
-	organizationAPI := api.NewOrganizationAPI(organizationSyncer, auth.NewRefreshTokenStore(tokenStore))
+	organizationAPI := api.NewOrganizationAPI(organizationSyncer, auth.NewRefreshTokenStore(tokenStore), config.Helm)
 	userAPI := api.NewUserAPI(db, scmTokenStore, logrusLogger, errorHandler)
 	networkAPI := api.NewNetworkAPI(logrusLogger)
 

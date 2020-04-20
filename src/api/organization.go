@@ -18,15 +18,16 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/src/auth"
-	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 // OrganizationMiddleware parses the organization id from the request,
@@ -69,13 +70,15 @@ func OrganizationMiddleware(c *gin.Context) {
 type OrganizationAPI struct {
 	organizationSyncer auth.OIDCOrganizationSyncer
 	refreshTokenStore  auth.RefreshTokenStore
+	helmConfig         helm.Config
 }
 
 // NewOrganizationAPI returns a new OrganizationAPI instance.
-func NewOrganizationAPI(organizationSyncer auth.OIDCOrganizationSyncer, refreshTokenStore auth.RefreshTokenStore) *OrganizationAPI {
+func NewOrganizationAPI(organizationSyncer auth.OIDCOrganizationSyncer, refreshTokenStore auth.RefreshTokenStore, helmConfig helm.Config) *OrganizationAPI {
 	return &OrganizationAPI{
 		organizationSyncer: organizationSyncer,
 		refreshTokenStore:  refreshTokenStore,
+		helmConfig:         helmConfig,
 	}
 }
 
@@ -200,7 +203,7 @@ func (a *OrganizationAPI) DeleteOrganization(c *gin.Context) {
 		})
 	} else {
 		log.Infof("Clean org's helm home folder %s", deleteName)
-		if err := cluster.CleanHelmFolder(deleteName); err != nil {
+		if err := os.RemoveAll(a.helmConfig.GetPath(deleteName)); err != nil {
 			log.Errorf("Helm home cleaning failed: %s", err.Error())
 		} else {
 			log.Info("Org's helm home folder cleaned")
