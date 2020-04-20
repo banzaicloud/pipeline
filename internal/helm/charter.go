@@ -46,7 +46,7 @@ type ChartFilter struct {
 }
 
 func (cf ChartFilter) String() string {
-	return fmt.Sprintf("repo: %s, chart: %s, version %s", cf.RepoFilter(), cf.NameFilter(), cf.VersionFilter())
+	return fmt.Sprintf("repo: %s, chart: %s, version %s", cf.RepoFilter(), cf.StrictNameFilter(), cf.VersionFilter())
 }
 
 // RepoFilter gets the string filter eventually trims leading and trailing regexp chars
@@ -60,8 +60,12 @@ func (cf ChartFilter) StrictRepoFilter() string {
 	return exactMatchRegexp(cf.RepoFilter())
 }
 
-func (cf ChartFilter) NameFilter() string {
+func (cf ChartFilter) StrictNameFilter() string {
 	return exactMatchRegexp(firstOrEmpty(cf.Name))
+}
+
+func (cf ChartFilter) NameFilter() string {
+	return firstOrEmpty(cf.Name)
 }
 
 func (cf ChartFilter) VersionFilter() string {

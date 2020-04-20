@@ -283,7 +283,7 @@ func (s service) ListRepositories(ctx context.Context, organizationID uint) (rep
 		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 
-	defaultRepos, err := s.envService.ListRepositories(ctx, helmEnv)
+	envRepos, err := s.envService.ListRepositories(ctx, helmEnv)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to retrieve default repositories")
 	}
@@ -293,7 +293,7 @@ func (s service) ListRepositories(ctx context.Context, organizationID uint) (rep
 		return nil, errors.WrapIf(err, "failed to retrieve persisted repositories")
 	}
 
-	return mergeDefaults(defaultRepos, persistedRepos), nil
+	return mergeDefaults(envRepos, persistedRepos), nil
 }
 
 func (s service) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {

@@ -120,7 +120,20 @@ func (h helm3EnvService) AddRepository(_ context.Context, helmEnv helm.HelmEnv, 
 }
 
 func (h helm3EnvService) ListRepositories(_ context.Context, helmEnv helm.HelmEnv) ([]helm.Repository, error) {
-	return []helm.Repository{}, nil
+	f, err := repo.LoadFile(helmEnv.GetHome())
+	if isNotExist(err) || len(f.Repositories) == 0 {
+		return nil, nil
+	}
+
+	repos := make([]helm.Repository, 0, len(f.Repositories))
+	for _, entry := range f.Repositories {
+		repos = append(repos, helm.Repository{
+			Name: entry.Name,
+			URL:  entry.URL,
+		})
+	}
+
+	return repos, nil
 }
 
 func (h helm3EnvService) DeleteRepository(_ context.Context, helmEnv helm.HelmEnv, repoName string) error {
@@ -342,9 +355,9 @@ func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, fil
 
 		repoCharts := make(repo.ChartVersions, 0, 0)
 		for chartRepo, chartVersions := range repoIndexFile.Entries {
-			if !matchesFilter(filter.NameFilter(), chartRepo) {
+			if !matchesFilter(filter.StrictNameFilter(), chartRepo) {
 				h.logger.Debug("chart name doesn't match the filter, skipping the entry",
-					map[string]interface{}{"filter": filter.NameFilter(), "chart": chartRepo})
+					map[string]interface{}{"filter": filter.StrictNameFilter(), "chart": chartRepo})
 				// skip further processing
 				continue
 			}
@@ -499,4 +512,8 @@ func fileExists(filename string) bool {
 		return false
 	}
 	return !info.IsDir()
+}
+
+func isNotExist(err error) bool {
+	return os.IsNotExist(errors.Cause(err))
 }
