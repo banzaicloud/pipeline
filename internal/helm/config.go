@@ -25,12 +25,8 @@ type Config struct {
 
 	Repositories map[string]string
 
-	// flag signaling the helm version
-	Version string
-}
-
-func (c Config) IsHelm2() bool {
-	return c.Version == "helm2"
+	// flag signaling if helm3 is enabled or not
+	V3 bool
 }
 
 // Validate validates the configuration.

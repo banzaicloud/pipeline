@@ -38,6 +38,7 @@ import (
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/endpoint"
@@ -622,7 +623,13 @@ func main() {
 		}
 	}
 
-	unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(config.Helm, db, commonSecretStore, clusterManager, commonLogger)
+	unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
+		config.Helm,
+		db,
+		commonSecretStore,
+		helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc()),
+		commonLogger,
+	)
 
 	clusterAPI := api.NewClusterAPI(
 		clusterManager,
@@ -699,7 +706,7 @@ func main() {
 				cRouter.GET("/endpoints", api.MakeEndpointLister(logger).ListEndpoints)
 				cRouter.GET("/secrets", api.ListClusterSecrets)
 				{
-					if config.Helm.IsHelm2() {
+					if !config.Helm.V3 {
 						cRouter.POST("/deployments", api.CreateDeployment)
 						cRouter.GET("/deployments", api.ListDeployments)
 						cRouter.GET("/deployments/:name", api.GetDeployment)

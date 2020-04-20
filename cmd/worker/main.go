@@ -27,6 +27,7 @@ import (
 	"emperror.dev/errors/match"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/mitchellh/mapstructure"
 	"github.com/oklog/run"
 	appkitrun "github.com/sagikazarmark/appkit/run"
@@ -261,7 +262,13 @@ func main() {
 
 		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
-		unifiedHelmReleaser, _ := cmd.CreateUnifiedHelmReleaser(config.Helm, db, commonSecretStore, clusterManager, commonLogger)
+		unifiedHelmReleaser, _ := cmd.CreateUnifiedHelmReleaser(
+			config.Helm,
+			db,
+			commonSecretStore,
+			helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc()),
+			commonLogger,
+		)
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
 		secretStore := pkeworkflowadapter.NewSecretStore(secret.Store)
@@ -313,7 +320,7 @@ func main() {
 			)
 			activity.RegisterWithOptions(labelKubeSystemNamespaceActivity.Execute, activity.RegisterOptions{Name: clustersetup.LabelKubeSystemNamespaceActivityName})
 
-			if config.Helm.IsHelm2() {
+			if !config.Helm.V3 {
 				installTillerActivity := clustersetup.NewInstallTillerActivity(
 					config.Helm.Tiller.Version,
 					kubernetes.NewClientFactory(configFactory),

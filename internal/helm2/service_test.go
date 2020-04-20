@@ -23,6 +23,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
@@ -30,16 +31,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/common"
 )
-
-const organizationName = "banzaicloud"
-
-type clusterServiceStub struct {
-	cluster Cluster
-}
-
-func (s *clusterServiceStub) GetCluster(ctx context.Context, clusterID uint) (*Cluster, error) {
-	return &s.cluster, nil
-}
 
 func TestIntegration(t *testing.T) {
 	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
@@ -57,16 +48,11 @@ func TestIntegration(t *testing.T) {
 		t.Skip("skipping as Kubernetes config was not provided")
 	}
 
-	kubeConfigBytes, err := ioutil.ReadFile(kubeConfigFile)
-	require.NoError(t, err)
+	kubeConfigProvider := helm.ClusterKubeConfigFunc(func(ctx context.Context, clusterID uint) ([]byte, error) {
+		return ioutil.ReadFile(kubeConfigFile)
+	})
 
-	clusterService := &clusterServiceStub{
-		cluster: Cluster{
-			OrganizationName: organizationName,
-			KubeConfig:       kubeConfigBytes,
-		},
-	}
-	service := NewHelmService(clusterService, common.NoopLogger{})
+	service := NewHelmService(kubeConfigProvider, common.NoopLogger{})
 
 	err = service.InstallDeployment(
 		context.Background(),

@@ -26,16 +26,19 @@ import (
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/helm2"
-	helmadapter2 "github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
+
+type ClusterGetter interface {
+	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
+}
 
 // CreateUnifiedHelmReleaser utility function for assembling the helm releaser
 func CreateUnifiedHelmReleaser(
 	helmConfig helm.Config,
 	db *gorm.DB,
 	commonSecretStore common.SecretStore,
-	clusterManager *cluster.Manager,
+	clusterService helm.ClusterService,
 	logger helm.Logger,
 ) (helm.UnifiedReleaser, helm.Service) {
 	repoStore := helmadapter.NewHelmRepoStore(db, logger)
@@ -43,11 +46,9 @@ func CreateUnifiedHelmReleaser(
 	orgService := helmadapter.NewOrgService(logger)
 	validator := helm.NewHelmRepoValidator()
 	releaser := helmadapter.NewReleaser(logger)
-	clusterService := helmadapter.NewClusterService(clusterManager)
-
 	helm2EnvResolver := helm.NewHelm2EnvResolver(helmConfig.Home, orgService, logger)
 
-	if helmConfig.IsHelm2() {
+	if !helmConfig.V3 {
 		service := helm.NewService(
 			repoStore,
 			secretStore,
@@ -57,7 +58,7 @@ func CreateUnifiedHelmReleaser(
 			releaser,
 			clusterService,
 			logger)
-		return helm2.NewHelmService(helmadapter2.NewClusterService(clusterManager), commonadapter.NewLogger(logger)), service
+		return helm2.NewHelmService(clusterService, commonadapter.NewLogger(logger)), service
 	}
 
 	envResolver := helm.NewHelm3EnvResolver(helmConfig.Home, orgService, logger)
