@@ -27,6 +27,8 @@ const (
 	noOrg            = 0 // signals that no organization id is provided
 )
 
+// +testify:mock:testOnly=true
+
 // OrgService interface for decoupling organization related operations
 type OrgService interface {
 	// GetOrgNameByOrgID retrieves organization name for the provided ID
@@ -69,16 +71,16 @@ type EnvResolver interface {
 
 type helm2EnvResolver struct {
 	// helmHomes the configurable directory location where helm homes are to be set up
-	helmHomes  string
-	orgService OrgService
-	logger     Logger
+	helmHomesDir string
+	orgService   OrgService
+	logger       Logger
 }
 
-func NewHelm2EnvResolver(helmHome string, orgService OrgService, logger Logger) EnvResolver {
+func NewHelm2EnvResolver(helmHomesDir string, orgService OrgService, logger Logger) EnvResolver {
 	return helm2EnvResolver{
-		helmHomes:  helmHome,
-		orgService: orgService,
-		logger:     logger,
+		helmHomesDir: helmHomesDir,
+		orgService:   orgService,
+		logger:       logger,
 	}
 }
 
@@ -91,14 +93,14 @@ func (h2r helm2EnvResolver) ResolveHelmEnv(ctx context.Context, organizationID u
 	}
 
 	return HelmEnv{
-		home:     path.Join(h2r.helmHomes, orgName, helmPostFix),
+		home:     path.Join(h2r.helmHomesDir, orgName, helmPostFix),
 		platform: false,
 	}, nil
 }
 
 func (h2r helm2EnvResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
 	return HelmEnv{
-		home:     path.Join(h2r.helmHomes, PlatformHelmHome, helmPostFix),
+		home:     path.Join(h2r.helmHomesDir, PlatformHelmHome, helmPostFix),
 		platform: true,
 	}, nil
 }
@@ -180,7 +182,7 @@ func (b builtinEnvReconciler) Reconcile(ctx context.Context, helmEnv HelmEnv) er
 }
 
 // ensuringEnvResolver component that ensures the resolved environment is set up (on the filesystem)
-// it decorates an existing envResolver decorated with env service logic that checks and sets up the environement
+// it decorates an existing envResolver with env service logic that checks and sets up the environement
 type ensuringEnvResolver struct {
 	// envresolver instance that gets decorated with the new functionality
 	envResolver EnvResolver
