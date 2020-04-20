@@ -124,7 +124,6 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 		}
 	}
 
-	installAction.DisableOpenAPIValidation = true // TODO remove this!
 	releasePtr, err := installAction.Run(chartRequested, releaseInput.Values)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to install chart")
