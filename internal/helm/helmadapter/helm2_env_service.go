@@ -157,12 +157,7 @@ func (h helmEnvService) PatchRepository(_ context.Context, helmEnv helm.HelmEnv,
 func (h helmEnvService) UpdateRepository(_ context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
 	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
 
-	entry, err := h.repositoryToEntry(repository)
-	if err != nil {
-		return errors.WrapIf(err, "failed to resolve helm entry data")
-	}
-
-	if err = legacyHelm.ReposModify(envSettings, repository.Name, &entry); err != nil {
+	if err := legacyHelm.ReposUpdate(envSettings, repository.Name); err != nil {
 		return errors.WrapIf(err, "failed to set up environment for repository")
 	}
 

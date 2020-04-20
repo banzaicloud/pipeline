@@ -65,7 +65,7 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 	))
 
 	router.Methods(http.MethodPut).Path("/repos/{name}").Handler(kithttp.NewServer(
-		endpoints.UpdateRepository,
+		endpoints.PatchRepository,
 		decodeUpdateRepositoryHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
@@ -279,20 +279,10 @@ func decodeUpdateRepositoryHTTPRequest(_ context.Context, r *http.Request) (inte
 		return nil, errors.WrapIf(err, "failed to decode update repository request")
 	}
 
-	var request pipeline.HelmReposAddRequest
-
-	dErr := json.NewDecoder(r.Body).Decode(&request)
-	if dErr != nil {
-		return nil, errors.WrapIf(dErr, "failed to decode update repository request")
-	}
-
 	return UpdateRepositoryRequest{
 		OrganizationID: orgID,
 		Repository: helm.Repository{
-			Name:             repoName,
-			URL:              request.Url,
-			PasswordSecretID: request.PasswordSecretRef,
-			TlsSecretID:      request.TlsSecretRef,
+			Name: repoName,
 		},
 	}, nil
 }
