@@ -71,8 +71,8 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 			SecretID:     input.SecretID,
 			Region:       input.Region,
 			ClusterName:  input.ClusterName,
-			NodePoolName: input.NodePoolName,
 			StackName:    input.StackName,
+			NodePoolName: input.NodePoolName,
 			NodeImage:    input.NodeImage,
 		}
 
