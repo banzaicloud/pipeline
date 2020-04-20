@@ -50,7 +50,6 @@ func NewHelmEnvService(config Config, logger Logger) helm.EnvService {
 	}
 }
 
-// TODO do we want to port these calls too?
 func (h helmEnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartList, error) {
 	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
 
