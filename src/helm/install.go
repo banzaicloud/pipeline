@@ -46,7 +46,9 @@ func GenerateHelmRepoEnv(orgName string) helmEnv.EnvSettings {
 	// check local helm
 	if _, err := os.Stat(helmPath); os.IsNotExist(err) {
 		log.Infof("Helm directories [%s] not exists", helmPath)
-		InstallLocalHelm(env) // nolint: errcheck
+		if err := InstallLocalHelm(env); err != nil {
+			log.Errorf("local helm env setup failed err: %+v env: %+v", err, env)
+		}
 	}
 
 	return env
@@ -120,21 +122,28 @@ func EnsureDirectories(env helmEnv.EnvSettings) error {
 }
 
 func ensureDefaultRepos(env helmEnv.EnvSettings) error {
+	repoUrl := func(config map[string]string, key, def string) string {
+		if url, ok := config[key]; ok {
+			return url
+		}
+		return def
+	}
+
 	var repos = []struct {
 		name string
 		url  string
 	}{
 		{
 			name: phelm.StableRepository,
-			url:  global.Config.Helm.Repositories[phelm.StableRepository],
+			url:  repoUrl(global.Config.Helm.Repositories, phelm.StableRepository, "https://kubernetes-charts.storage.googleapis.com"),
 		},
 		{
 			name: phelm.BanzaiRepository,
-			url:  global.Config.Helm.Repositories[phelm.BanzaiRepository],
+			url:  repoUrl(global.Config.Helm.Repositories, phelm.BanzaiRepository, "https://kubernetes-charts.banzaicloud.com"),
 		},
 		{
 			name: phelm.LokiRepository,
-			url:  global.Config.Helm.Repositories[phelm.LokiRepository],
+			url:  repoUrl(global.Config.Helm.Repositories, phelm.LokiRepository, "https://grafana.github.io/loki/charts"),
 		},
 	}
 

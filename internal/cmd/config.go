@@ -24,6 +24,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterconfig"
 	"github.com/banzaicloud/pipeline/internal/federation"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
@@ -98,18 +99,7 @@ type Config struct {
 		Token string
 	}
 
-	Helm struct {
-		Tiller struct {
-			Version string
-		}
-
-		Home string
-
-		Repositories map[string]string
-
-		// flag signaling the helm version
-		Version string
-	}
+	Helm helm.Config
 
 	Hollowtrees struct {
 		Endpoint        string
@@ -149,6 +139,8 @@ func (c Config) Validate() error {
 	err = errors.Append(err, c.Errors.Validate())
 
 	err = errors.Append(err, c.Telemetry.Validate())
+
+	err = errors.Append(err, c.Helm.Validate())
 
 	return err
 }

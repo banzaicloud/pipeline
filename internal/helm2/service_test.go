@@ -23,6 +23,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
@@ -43,6 +44,9 @@ func TestIntegration(t *testing.T) {
 	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
 		t.Skip("skipping as execution was not requested explicitly using go test -run")
 	}
+
+	var err error
+	global.Config.Helm.Home, err = ioutil.TempDir("", "")
 
 	kubeConfigFile := os.Getenv("KUBECONFIG")
 	if kubeConfigFile == "" {
@@ -67,7 +71,7 @@ func TestIntegration(t *testing.T) {
 		"banzaicloud-stable/banzaicloud-docs",
 		"helm-service-test",
 		[]byte{},
-		"0.1.1",
+		"0.1.2",
 		true,
 	)
 	require.NoError(t, err)
@@ -86,7 +90,7 @@ func TestIntegration(t *testing.T) {
 		"banzaicloud-stable/banzaicloud-docs",
 		"helm-service-test",
 		valuesBytes,
-		"0.1.1",
+		"0.1.2",
 	)
 	require.NoError(t, err)
 
