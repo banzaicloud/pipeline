@@ -198,17 +198,23 @@ func (b builtinEnvReconciler) Reconcile(ctx context.Context, helmEnv HelmEnv) er
 // ensuringEnvResolver component that ensures the resolved environment is set up (on the filesystem)
 // it decorates an existing envResolver with env service logic that checks and sets up the environment
 type ensuringEnvResolver struct {
+	defaultRepos []Repository
 	// envresolver instance that gets decorated with the new functionality
 	envResolver EnvResolver
 	envService  EnvService
 	logger      Logger
 }
 
-func NewEnsuringEnvResolver(envResolver EnvResolver, envService EnvService, logger Logger) EnvResolver {
+func NewEnsuringEnvResolver(envResolver EnvResolver, envService EnvService, defaultRepos map[string]string, logger Logger) EnvResolver {
+	repos := make([]Repository, 0, len(defaultRepos))
+	for repo, url := range defaultRepos {
+		repos = append(repos, Repository{Name: repo, URL: url})
+	}
 	return ensuringEnvResolver{
-		envResolver: envResolver,
-		envService:  envService,
-		logger:      logger,
+		defaultRepos: repos,
+		envResolver:  envResolver,
+		envService:   envService,
+		logger:       logger,
 	}
 }
 
@@ -219,11 +225,14 @@ func (e ensuringEnvResolver) ResolveHelmEnv(ctx context.Context, organizationID 
 		return HelmEnv{}, errors.WrapIf(err, "failed to resolve helm env")
 	}
 
-	env, err := e.envService.EnsureEnv(ctx, helmEnv)
+	// make sure the env is created on the filesystem
+	env, err := e.envService.EnsureEnv(ctx, helmEnv, e.defaultRepos)
 	if err != nil {
 		return HelmEnv{}, errors.WrapIf(err, "failed to ensure helm environment")
 	}
 	e.logger.Debug("successfully resolved helm environment", map[string]interface{}{"orgID": organizationID, "helmEnv": helmEnv})
+
+	//add defaults
 	return env, nil
 }
 
@@ -233,7 +242,7 @@ func (e ensuringEnvResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, e
 		return HelmEnv{}, errors.WrapIf(err, "failed to resolve platform helm env")
 	}
 
-	env, err := e.envService.EnsureEnv(ctx, helmEnv)
+	env, err := e.envService.EnsureEnv(ctx, helmEnv, e.defaultRepos)
 	if err != nil {
 		return HelmEnv{}, errors.WrapIf(err, "failed to ensure platform helm environment")
 	}

@@ -63,6 +63,8 @@ func CreateUnifiedHelmReleaser(
 
 	envResolver := helm.NewHelm3EnvResolver(helmConfig.Home, orgService, logger)
 	envService := helmadapter.NewHelm3EnvService(logger)
+	// wrap the envresolver
+	ensuringEnvResolver := helm.NewEnsuringEnvResolver(envResolver, envService, helmConfig.Repositories, logger)
 
 	// set up platform helm env
 	platformHelmEnv, _ := envResolver.ResolvePlatformEnv(context.Background())
@@ -75,7 +77,7 @@ func CreateUnifiedHelmReleaser(
 		repoStore,
 		secretStore,
 		validator,
-		envResolver,
+		ensuringEnvResolver,
 		envService,
 		releaser,
 		clusterService,
