@@ -321,19 +321,17 @@ func main() {
 			)
 			activity.RegisterWithOptions(labelKubeSystemNamespaceActivity.Execute, activity.RegisterOptions{Name: clustersetup.LabelKubeSystemNamespaceActivityName})
 
-			if !config.Helm.V3 {
-				installTillerActivity := clustersetup.NewInstallTillerActivity(
-					config.Helm.Tiller.Version,
-					kubernetes.NewClientFactory(configFactory),
-				)
-				activity.RegisterWithOptions(installTillerActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerActivityName})
+			installTillerActivity := clustersetup.NewInstallTillerActivity(
+				config.Helm.Tiller.Version,
+				kubernetes.NewClientFactory(configFactory),
+			)
+			activity.RegisterWithOptions(installTillerActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerActivityName})
 
-				installTillerWaitActivity := clustersetup.NewInstallTillerWaitActivity(
-					config.Helm.Tiller.Version,
-					kubernetes.NewHelmClientFactory(configFactory, commonadapter.NewLogger(logger)),
-				)
-				activity.RegisterWithOptions(installTillerWaitActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerWaitActivityName})
-			}
+			installTillerWaitActivity := clustersetup.NewInstallTillerWaitActivity(
+				config.Helm.Tiller.Version,
+				kubernetes.NewHelmClientFactory(configFactory, commonadapter.NewLogger(logger)),
+			)
+			activity.RegisterWithOptions(installTillerWaitActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerWaitActivityName})
 
 			installNodePoolLabelSetOperatorActivity := clustersetup.NewInstallNodePoolLabelSetOperatorActivity(
 				config.Cluster.Labels,
