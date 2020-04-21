@@ -144,7 +144,7 @@ type EnvService interface {
 
 	// EnsureEnv ensures the helm environment represented by the input.
 	// If theh environment exists (on the filesystem) it does nothing
-	EnsureEnv(ctx context.Context, helmEnv HelmEnv) (HelmEnv, error)
+	EnsureEnv(ctx context.Context, helmEnv HelmEnv, defaultRepos []Repository) (HelmEnv, error)
 }
 
 // +testify:mock:testOnly=true
@@ -223,13 +223,11 @@ func NewService(
 	releaser Releaser,
 	clusterService ClusterService,
 	logger Logger) Service {
-	// wrap the envresolver
-	ensuringEnvResolver := NewEnsuringEnvResolver(envResolver, envService, logger)
 	return service{
 		store:          store,
 		secretStore:    secretStore,
 		repoValidator:  validator,
-		envResolver:    ensuringEnvResolver,
+		envResolver:    envResolver,
 		envService:     envService,
 		releaser:       releaser,
 		clusterService: clusterService,
@@ -294,11 +292,14 @@ func (s service) ListRepositories(ctx context.Context, organizationID uint) (rep
 		return nil, errors.WrapIf(err, "failed to retrieve default repositories")
 	}
 
+	// TODO this call is not required unless the reconciliation is to be performed here
+	// TODO only the set up (env) repos make sense for this call
 	persistedRepos, err := s.store.List(ctx, organizationID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to retrieve persisted repositories")
 	}
 
+	// TODO defaults are added to the org envs (by the ensuring helm resolver) but they are not persisted
 	return mergeDefaults(envRepos, persistedRepos), nil
 }
 

@@ -376,19 +376,19 @@ func (_m *MockEnvService) DeleteRepository(ctx context.Context, helmEnv HelmEnv,
 }
 
 // EnsureEnv provides a mock function.
-func (_m *MockEnvService) EnsureEnv(ctx context.Context, helmEnv HelmEnv) (HelmEnv, error) {
-	ret := _m.Called(ctx, helmEnv)
+func (_m *MockEnvService) EnsureEnv(ctx context.Context, helmEnv HelmEnv, defaultRepos []Repository) (HelmEnv, error) {
+	ret := _m.Called(ctx, helmEnv, defaultRepos)
 
 	var r0 HelmEnv
-	if rf, ok := ret.Get(0).(func(context.Context, HelmEnv) HelmEnv); ok {
-		r0 = rf(ctx, helmEnv)
+	if rf, ok := ret.Get(0).(func(context.Context, HelmEnv, []Repository) HelmEnv); ok {
+		r0 = rf(ctx, helmEnv, defaultRepos)
 	} else {
 		r0 = ret.Get(0).(HelmEnv)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, HelmEnv) error); ok {
-		r1 = rf(ctx, helmEnv)
+	if rf, ok := ret.Get(1).(func(context.Context, HelmEnv, []Repository) error); ok {
+		r1 = rf(ctx, helmEnv, defaultRepos)
 	} else {
 		r1 = ret.Error(1)
 	}

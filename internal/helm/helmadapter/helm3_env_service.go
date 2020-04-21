@@ -466,7 +466,7 @@ func (h helm3EnvService) adaptChartDetailsResponse(charts map[string]*chart.Char
 	return responseMap, nil
 }
 
-func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv) (helm.HelmEnv, error) {
+func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv, defaultRepos []helm.Repository) (helm.HelmEnv, error) {
 	repoFile := helmEnv.GetHome()
 
 	//Ensure the file directory exists as it is required for file locking
@@ -477,6 +477,7 @@ func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv) (h
 
 	// check the repofile
 	if fileExists(repoFile) {
+		h.logger.Debug("helm env ensured, helm env was already set up")
 		return helmEnv, nil
 	}
 
@@ -498,6 +499,13 @@ func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv) (h
 	f := repo.NewFile()
 	if err := f.WriteFile(helmEnv.GetHome(), 0644); err != nil {
 		return helm.HelmEnv{}, errors.WrapIf(err, "failed to create the repo file")
+	}
+
+	for _, repo := range defaultRepos {
+		if err := h.AddRepository(ctx, helmEnv, repo); err != nil {
+			// Notice the error, and proceed forward
+			h.logger.Warn("failed to add default repository", map[string]interface{}{"helmEnv": helmEnv, "repo": repo})
+		}
 	}
 
 	h.logger.Info("successfully ensured helm env")
