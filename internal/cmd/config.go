@@ -24,6 +24,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterconfig"
 	"github.com/banzaicloud/pipeline/internal/federation"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
@@ -89,18 +90,16 @@ type Config struct {
 	// Error handling configuration
 	Errors errorhandler.Config
 
-	Helm struct {
-		Tiller struct {
-			Version string
-		}
-
-		Home string
-
-		Repositories map[string]string
-
-		// flag signaling the helm version
-		Version string
+	Github struct {
+		Token string
 	}
+
+	Gitlab struct {
+		URL   string
+		Token string
+	}
+
+	Helm helm.Config
 
 	Hollowtrees struct {
 		Endpoint        string
@@ -140,6 +139,8 @@ func (c Config) Validate() error {
 	err = errors.Append(err, c.Errors.Validate())
 
 	err = errors.Append(err, c.Telemetry.Validate())
+
+	err = errors.Append(err, c.Helm.Validate())
 
 	return err
 }
@@ -812,7 +813,7 @@ traefik:
 	// Helm configuration
 	v.SetDefault("helm::tiller::version", "v2.16.3")
 	v.SetDefault("helm::home", "./var/cache")
-	v.SetDefault("helm::version", "helm2")
+	v.SetDefault("helm::v3", false)
 	v.SetDefault("helm::repositories::stable", "https://kubernetes-charts.storage.googleapis.com")
 	v.SetDefault("helm::repositories::banzaicloud-stable", "https://kubernetes-charts.banzaicloud.com")
 	v.SetDefault("helm::repositories::loki", "https://grafana.github.io/loki/charts")

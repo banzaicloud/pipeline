@@ -27,8 +27,6 @@ import (
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	k8sHelm "k8s.io/helm/pkg/helm"
-	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
 	arkPosthook "github.com/banzaicloud/pipeline/internal/ark/posthook"
@@ -38,63 +36,10 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
-	"github.com/banzaicloud/pipeline/src/helm"
 )
 
 func castToPostHookParam(data pkgCluster.PostHookParam, output interface{}) error {
 	return mapstructure.Decode(data, output)
-}
-
-func installDeployment(cluster CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, chartVersion string, wait bool) error {
-	// --- [ Get K8S Config ] --- //
-	kubeConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
-		return err
-	}
-
-	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
-	if err != nil {
-		log.Errorln("Unable to fetch deployments from helm:", err)
-		return err
-	}
-
-	var foundRelease *pkgHelmRelease.Release
-
-	if deployments != nil {
-		for _, release := range deployments.Releases {
-			if release.Name == releaseName {
-				foundRelease = release
-				break
-			}
-		}
-	}
-
-	if foundRelease != nil {
-		switch foundRelease.GetInfo().GetStatus().GetCode() {
-		case pkgHelmRelease.Status_DEPLOYED:
-			log.Infof("'%s' is already installed", deploymentName)
-			return nil
-		case pkgHelmRelease.Status_FAILED:
-			err = helm.DeleteDeployment(releaseName, kubeConfig)
-			if err != nil {
-				log.Errorf("Failed to deleted failed deployment '%s' due to: %s", deploymentName, err.Error())
-				return err
-			}
-		}
-	}
-
-	options := []k8sHelm.InstallOption{
-		k8sHelm.InstallWait(wait),
-		k8sHelm.ValueOverrides(values),
-	}
-	_, err = helm.CreateDeployment(deploymentName, chartVersion, nil, namespace, releaseName, false, nil, kubeConfig, helm.GeneratePlatformHelmRepoEnv(), options...)
-	if err != nil {
-		log.Errorf("Deploying '%s' failed due to: %s", deploymentName, err.Error())
-		return err
-	}
-	log.Infof("'%s' installed", deploymentName)
-	return nil
 }
 
 type KubernetesDashboardPostHook struct {
@@ -349,71 +294,6 @@ func (ph *InitSpotConfigPostHook) Do(cluster CommonCluster) error {
 		return errors.WrapIf(err, "failed to install the spot-config-webhook deployment")
 	}
 	return nil
-}
-
-// DeployInstanceTerminationHandler deploys the instance termination handler
-func DeployInstanceTerminationHandler(cluster CommonCluster) error {
-	var config = global.Config.Cluster.PostHook.ITH
-	if !global.Config.Pipeline.Enterprise || !config.Enabled {
-		return nil
-	}
-
-	cloud := cluster.GetCloud()
-
-	if cloud != pkgCluster.Amazon && cloud != pkgCluster.Google {
-		return nil
-	}
-
-	pipelineSystemNamespace := global.Config.Cluster.Namespace
-
-	values := map[string]interface{}{
-		"tolerations": []v1.Toleration{
-			{
-				Operator: v1.TolerationOpExists,
-			},
-		},
-		"hollowtreesNotifier": map[string]interface{}{
-			"enabled": false,
-		},
-	}
-
-	scaleOptions := cluster.GetScaleOptions()
-	if scaleOptions != nil && scaleOptions.Enabled == true {
-		tokenSigningKey := global.Config.Hollowtrees.TokenSigningKey
-		if tokenSigningKey == "" {
-			err := errors.New("no Hollowtrees token signkey specified")
-			errorHandler.Handle(err)
-			return err
-		}
-
-		generator := hollowtrees.NewTokenGenerator(
-			global.Config.Auth.Token.Issuer,
-			global.Config.Auth.Token.Audience,
-			global.Config.Hollowtrees.TokenSigningKey,
-		)
-		_, token, err := generator.Generate(cluster.GetID(), cluster.GetOrganizationId(), nil)
-		if err != nil {
-			err = errors.WrapIf(err, "could not generate JWT token for instance termination handler")
-			errorHandler.Handle(err)
-			return err
-		}
-
-		values["hollowtreesNotifier"] = map[string]interface{}{
-			"enabled":        true,
-			"URL":            global.Config.Hollowtrees.Endpoint + "/alerts",
-			"organizationID": cluster.GetOrganizationId(),
-			"clusterID":      cluster.GetID(),
-			"clusterName":    cluster.GetName(),
-			"jwtToken":       token,
-		}
-	}
-
-	marshalledValues, err := yaml.Marshal(values)
-	if err != nil {
-		return errors.WrapIf(err, "failed to marshal yaml values")
-	}
-
-	return installDeployment(cluster, pipelineSystemNamespace, config.Chart, "ith", marshalledValues, config.Version, false)
 }
 
 func isSpotCluster(cluster CommonCluster) (bool, error) {
