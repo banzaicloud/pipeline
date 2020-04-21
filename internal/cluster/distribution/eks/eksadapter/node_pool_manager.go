@@ -28,13 +28,15 @@ import (
 
 type nodePoolManager struct {
 	workflowClient client.Client
+	enterprise     bool
 }
 
 // NewNodePoolManager returns a new eks.NodePoolManager
 // that manages node pools asynchronously via Cadence workflows.
-func NewNodePoolManager(workflowClient client.Client) eks.NodePoolManager {
+func NewNodePoolManager(workflowClient client.Client, enterprise bool) eks.NodePoolManager {
 	return nodePoolManager{
 		workflowClient: workflowClient,
+		enterprise:     enterprise,
 	}
 }
 
@@ -44,8 +46,13 @@ func (n nodePoolManager) UpdateNodePool(
 	nodePoolName string,
 	nodePoolUpdate eks.NodePoolUpdate,
 ) (string, error) {
+	taskList := "pipeline"
+	if n.enterprise {
+		taskList = "pipeline-enterprise"
+	}
+
 	workflowOptions := client.StartWorkflowOptions{
-		TaskList:                     "pipeline",
+		TaskList:                     taskList,
 		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,
 	}
 
@@ -56,6 +63,7 @@ func (n nodePoolManager) UpdateNodePool(
 		StackName: generateNodePoolStackName(c.Name, nodePoolName),
 
 		ClusterID:      c.ID,
+		KubeSecretID:   c.ConfigSecretID.String(),
 		ClusterName:    c.Name,
 		NodePoolName:   nodePoolName,
 		OrganizationID: c.OrganizationID,
