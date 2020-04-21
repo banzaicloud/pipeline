@@ -18,7 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	helm2 "github.com/banzaicloud/pipeline/internal/helm"
+	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/release"
 
@@ -35,13 +35,13 @@ type Cluster struct {
 
 // HelmService provides an interface for using Helm on a specific cluster.
 type HelmService struct {
-	clusters helm2.ClusterService
+	clusters internalhelm.ClusterService
 
 	logger common.Logger
 }
 
 // NewHelmService returns a new HelmService.
-func NewHelmService(clusters helm2.ClusterService, logger common.Logger) *HelmService {
+func NewHelmService(clusters internalhelm.ClusterService, logger common.Logger) *HelmService {
 	return &HelmService{
 		clusters: clusters,
 		logger:   logger.WithFields(map[string]interface{}{"component": "helm"}),

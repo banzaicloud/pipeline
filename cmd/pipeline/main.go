@@ -706,16 +706,7 @@ func main() {
 				cRouter.GET("/endpoints", api.MakeEndpointLister(logger).ListEndpoints)
 				cRouter.GET("/secrets", api.ListClusterSecrets)
 				{
-					if !config.Helm.V3 {
-						cRouter.POST("/deployments", api.CreateDeployment)
-						cRouter.GET("/deployments", api.ListDeployments)
-						cRouter.GET("/deployments/:name", api.GetDeployment)
-						cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
-						cRouter.HEAD("/deployments/:name", api.HelmDeploymentStatus)
-						cRouter.HEAD("/deployments", api.GetTillerStatus)
-						cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
-						cRouter.GET("/deployments/:name/resources", api.GetDeploymentResources)
-					} else {
+					if config.Helm.V3 {
 						endpoints := helmdriver.MakeEndpoints(
 							helmFacade,
 							kitxendpoint.Combine(endpointMiddleware...),
@@ -733,6 +724,15 @@ func main() {
 						cRouter.HEAD("/deployments/:name", gin.WrapH(router))
 						cRouter.DELETE("/deployments/:name", gin.WrapH(router))
 						cRouter.GET("/deployments/:name/resources", gin.WrapH(router))
+					} else {
+						cRouter.POST("/deployments", api.CreateDeployment)
+						cRouter.GET("/deployments", api.ListDeployments)
+						cRouter.GET("/deployments/:name", api.GetDeployment)
+						cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
+						cRouter.HEAD("/deployments/:name", api.HelmDeploymentStatus)
+						cRouter.HEAD("/deployments", api.GetTillerStatus)
+						cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
+						cRouter.GET("/deployments/:name/resources", api.GetDeploymentResources)
 					}
 				}
 
