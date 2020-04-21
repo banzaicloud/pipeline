@@ -702,8 +702,10 @@ func main() {
 				cRouter.HEAD("", clusterAPI.ClusterCheck)
 				cRouter.GET("/config", api.GetClusterConfig)
 				cRouter.GET("/nodes", api.GetClusterNodes)
-				cRouter.GET("/endpoints", api.MakeEndpointLister(logger).ListEndpoints)
+
 				cRouter.GET("/secrets", api.ListClusterSecrets)
+				cs := helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc())
+
 				{
 					if config.Helm.V3 {
 						endpoints := helmdriver.MakeEndpoints(
@@ -723,6 +725,9 @@ func main() {
 						cRouter.HEAD("/deployments/:name", gin.WrapH(router))
 						cRouter.DELETE("/deployments/:name", gin.WrapH(router))
 						cRouter.GET("/deployments/:name/resources", gin.WrapH(router))
+
+						// other version dependant operations
+						cRouter.GET("/endpoints", api.MakeEndpointLister(cs, helmFacade, logger).ListEndpoints)
 					} else {
 						cRouter.POST("/deployments", api.CreateDeployment)
 						cRouter.GET("/deployments", api.ListDeployments)
@@ -732,6 +737,10 @@ func main() {
 						cRouter.HEAD("/deployments", api.GetTillerStatus)
 						cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
 						cRouter.GET("/deployments/:name/resources", api.GetDeploymentResources)
+
+						// other version dependant operations
+						releaseChecker := api.NewReleaseChecker(cs)
+						cRouter.GET("/endpoints", api.MakeEndpointLister(cs, releaseChecker, logger).ListEndpoints)
 					}
 				}
 
