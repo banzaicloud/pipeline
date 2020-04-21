@@ -175,7 +175,7 @@ func (h helmEnvService) repositoryToEntry(repository helm.Repository) (repo.Entr
 	return entry, nil
 }
 
-func (h helmEnvService) EnsureEnv(_ context.Context, helmEnv helm.HelmEnv) (helm.HelmEnv, error) {
+func (h helmEnvService) EnsureEnv(_ context.Context, helmEnv helm.HelmEnv, defaultRepos []helm.Repository) (helm.HelmEnv, error) {
 	// no op implementation / helm 2
 	return helmEnv, nil
 }
