@@ -23,9 +23,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
+
+	"github.com/banzaicloud/pipeline/internal/helm"
 
 	"github.com/banzaicloud/pipeline/internal/global"
 

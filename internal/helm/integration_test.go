@@ -22,6 +22,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"github.com/stretchr/testify/require"
+
 	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
@@ -30,9 +34,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	helm2 "github.com/banzaicloud/pipeline/src/helm"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/stretchr/testify/require"
 )
 
 func setupDatabase(t *testing.T) *gorm.DB {
@@ -75,7 +76,6 @@ func TestIntegration(t *testing.T) {
 	kubeConfig := clusterKubeConfig(t)
 
 	t.Run("helmv3install", func(t *testing.T) {
-
 		home, err := ioutil.TempDir("", "")
 		if err != nil {
 			t.Fatalf("%+v", err)
