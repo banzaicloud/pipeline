@@ -782,7 +782,7 @@ func main() {
 							"eks": clusteradapter.NewEKSService(eks.NewService(
 								clusterStore,
 								eksadapter.NewNodePoolStore(db),
-								eksadapter.NewNodePoolManager(workflowClient),
+								eksadapter.NewNodePoolManager(workflowClient, config.Pipeline.Enterprise),
 							)),
 						},
 						clusteradapter.NewNodePoolStore(db, clusterStore),

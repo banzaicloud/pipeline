@@ -35,6 +35,7 @@ type UpdateNodePoolWorkflowInput struct {
 
 	OrganizationID uint
 	ClusterID      uint
+	KubeSecretID   string
 	ClusterName    string
 	NodePoolName   string
 
