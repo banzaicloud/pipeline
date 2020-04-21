@@ -57,8 +57,8 @@ func (n nodePoolManager) UpdateNodePool(
 	}
 
 	input := eksworkflow.UpdateNodePoolWorkflowInput{
-		SecretID: c.SecretID.String(),
-		Region:   c.Location,
+		ProviderSecretID: c.SecretID.String(),
+		Region:           c.Location,
 
 		StackName: generateNodePoolStackName(c.Name, nodePoolName),
 

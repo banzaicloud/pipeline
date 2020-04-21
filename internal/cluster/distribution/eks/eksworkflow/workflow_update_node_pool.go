@@ -28,8 +28,8 @@ import (
 const UpdateNodePoolWorkflowName = "eks-update-node-pool"
 
 type UpdateNodePoolWorkflowInput struct {
-	SecretID string
-	Region   string
+	ProviderSecretID string
+	Region           string
 
 	StackName string
 
@@ -69,7 +69,7 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 
 	{
 		activityInput := UpdateNodeGroupActivityInput{
-			SecretID:     input.SecretID,
+			SecretID:     input.ProviderSecretID,
 			Region:       input.Region,
 			ClusterName:  input.ClusterName,
 			StackName:    input.StackName,
@@ -100,7 +100,7 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 
 	{
 		activityInput := WaitCloudFormationStackUpdateActivityInput{
-			SecretID:  input.SecretID,
+			SecretID:  input.ProviderSecretID,
 			Region:    input.Region,
 			StackName: input.StackName,
 		}
