@@ -462,24 +462,6 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context, commonCluster cluster.Co
 	return pdr, nil
 }
 
-// HelmReposGet listing helm repositories in the cluster
-func HelmReposGet(c *gin.Context) {
-	log.Info("Get helm repository")
-
-	response, err := helm.ReposGet(helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name))
-	if err != nil {
-		log.Errorf("Error during get helm repo list: %s", err.Error())
-		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error listing helm repos",
-			Error:   err.Error(),
-		})
-		return
-	}
-	c.JSON(http.StatusOK, response)
-	return
-}
-
 // HelmReposUpdate update the helm repo
 func HelmReposUpdate(c *gin.Context) {
 	log.Info("update helm repository")
@@ -500,76 +482,6 @@ func HelmReposUpdate(c *gin.Context) {
 
 	sendResponseWithRepo(c, helmEnv, repoName)
 
-	return
-}
-
-// HelmCharts get available helm chart's list
-func HelmCharts(c *gin.Context) {
-	log.Info("Get helm repository charts")
-
-	var query ChartQuery
-	err := c.BindQuery(&query)
-	if err != nil {
-		log.Errorf("Error parsing request: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "error parsing request",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	log.Info(query)
-	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
-	response, err := helm.ChartsGet(helmEnv, query.Name, query.Repo, query.Version, query.Keyword)
-	if err != nil {
-		log.Error("Error during get helm repo chart list.", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error listing helm repo charts",
-			Error:   err.Error(),
-		})
-		return
-	}
-	c.JSON(http.StatusOK, response)
-	return
-}
-
-// HelmChart get helm chart details
-func HelmChart(c *gin.Context) {
-	log.Info("Get helm chart")
-
-	log.Debugf("%#v", c)
-	chartRepo := c.Param("reponame")
-	log.Debugln("chartRepo:", chartRepo)
-
-	chartName := c.Param("name")
-	log.Debugln("chartName:", chartName)
-
-	chartVersion := c.DefaultQuery("version", "")
-	log.Debugln("version:", chartVersion)
-
-	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
-	response, err := helm.ChartGet(helmEnv, chartRepo, chartName, chartVersion)
-	if err != nil {
-		log.Error("Error during get helm chart information.", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during get helm chart information.",
-			Error:   err.Error(),
-		})
-		return
-	}
-	if response == nil {
-		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Error:   "Chart Not Found!",
-			Message: "Chart Not Found!",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, response)
 	return
 }
 

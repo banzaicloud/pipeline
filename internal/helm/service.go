@@ -196,6 +196,12 @@ type ClusterService interface {
 	GetKubeConfig(ctx context.Context, clusterID uint) ([]byte, error)
 }
 
+type ClusterKubeConfigFunc func(ctx context.Context, clusterID uint) ([]byte, error)
+
+func (c ClusterKubeConfigFunc) GetKubeConfig(ctx context.Context, clusterID uint) ([]byte, error) {
+	return c(ctx, clusterID)
+}
+
 type service struct {
 	store          Store
 	secretStore    SecretStore

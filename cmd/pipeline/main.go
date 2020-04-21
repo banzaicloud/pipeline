@@ -64,6 +64,10 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
+	"github.com/banzaicloud/pipeline/internal/helm"
+
+	"github.com/banzaicloud/pipeline/internal/cmd"
+
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
@@ -94,19 +98,13 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
-	common2 "github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
-	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
-	helm3adapter "github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/helm/helmdriver"
-	"github.com/banzaicloud/pipeline/internal/helm2"
-	helmadapter2 "github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicesdriver"
@@ -612,8 +610,9 @@ func main() {
 		dcGroup.GET("", dashboardAPI.GetClusterDashboard)
 	}
 
-	organizationAPI := api.NewOrganizationAPI(organizationSyncer, auth.NewRefreshTokenStore(tokenStore))
+	organizationAPI := api.NewOrganizationAPI(organizationSyncer, auth.NewRefreshTokenStore(tokenStore), config.Helm)
 	userAPI := api.NewUserAPI(db, logrusLogger, errorHandler)
+
 	networkAPI := api.NewNetworkAPI(logrusLogger)
 
 	{
@@ -624,15 +623,13 @@ func main() {
 		}
 	}
 
-	helmFacade := setupHelmFacade(config, db, commonSecretStore, clusterManager, commonLogger)
-
-	var unifiedHelmReleaser helm.UnifiedReleaser
-	switch config.Helm.Version {
-	case "helm3":
-		unifiedHelmReleaser = helm3adapter.NewUnifiedHelm3Releaser(helmFacade, commonLogger)
-	default:
-		unifiedHelmReleaser = helm2.NewHelmService(helmadapter2.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
-	}
+	unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
+		config.Helm,
+		db,
+		commonSecretStore,
+		helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc()),
+		commonLogger,
+	)
 
 	clusterAPI := api.NewClusterAPI(
 		clusterManager,
@@ -708,8 +705,7 @@ func main() {
 				cRouter.GET("/endpoints", api.MakeEndpointLister(logger).ListEndpoints)
 				cRouter.GET("/secrets", api.ListClusterSecrets)
 				{
-					switch config.Helm.Version {
-					case "helm3":
+					if config.Helm.V3 {
 						endpoints := helmdriver.MakeEndpoints(
 							helmFacade,
 							kitxendpoint.Combine(endpointMiddleware...),
@@ -727,9 +723,7 @@ func main() {
 						cRouter.HEAD("/deployments/:name", gin.WrapH(router))
 						cRouter.DELETE("/deployments/:name", gin.WrapH(router))
 						cRouter.GET("/deployments/:name/resources", gin.WrapH(router))
-
-					default:
-						// helm 2 setup
+					} else {
 						cRouter.POST("/deployments", api.CreateDeployment)
 						cRouter.GET("/deployments", api.ListDeployments)
 						cRouter.GET("/deployments/:name", api.GetDeployment)
@@ -1244,42 +1238,4 @@ func createInternalAPIRouter(
 	internalGroup.GET("/:orgid/clusters/:id/nodepools", api.NewInternalClusterAPI(cloudinfoClient).GetNodePools)
 	internalGroup.PUT("/:orgid/clusters/:id/nodepools", clusterAPI.UpdateNodePools)
 	return internalRouter
-}
-
-// setupHelmFacade utility function for assembling the helm facade
-func setupHelmFacade(config configuration, db *gorm.DB, commonSecretStore common2.SecretStore,
-	clusterManager *cluster.Manager, logger helm.Logger) helm.Service {
-	repoStore := helmadapter.NewHelmRepoStore(db, logger)
-	secretStore := helmadapter.NewSecretStore(commonSecretStore, logger)
-	orgService := helmadapter.NewOrgService(logger)
-	validator := helm.NewHelmRepoValidator()
-	releaser := helmadapter.NewReleaser(logger)
-	clusterService := helmadapter.NewClusterService(clusterManager)
-	envResolver := helm.NewHelm2EnvResolver(config.Helm.Home, orgService, logger)
-	envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(config.Helm.Repositories), logger)
-
-	switch config.Helm.Version {
-	case "helm3":
-		envResolver = helm.NewHelm3EnvResolver(config.Helm.Home, orgService, logger)
-		envService = helmadapter.NewHelm3EnvService(logger)
-
-		// set up platform helm env
-		platformHelmEnv, _ := envResolver.ResolvePlatformEnv(context.Background())
-		reconciler := helm.NewBuiltinEnvReconciler(config.Helm.Repositories, envService, logger)
-		if err := reconciler.Reconcile(context.Background(), platformHelmEnv); err != nil {
-			emperror.Panic(errors.Wrap(err, "failed to set up platform helm environment"))
-		}
-	}
-
-	service := helm.NewService(
-		repoStore,
-		secretStore,
-		validator,
-		envResolver,
-		envService,
-		releaser,
-		clusterService,
-		logger)
-
-	return service
 }

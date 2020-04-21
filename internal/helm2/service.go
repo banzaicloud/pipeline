@@ -21,16 +21,12 @@ import (
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/release"
 
+	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
+
 	"github.com/banzaicloud/pipeline/internal/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/src/helm"
 )
-
-// ClusterService provides a thin access layer to clusters.
-type ClusterService interface {
-	// GetCluster retrieves the cluster representation based on the cluster identifier.
-	GetCluster(ctx context.Context, clusterID uint) (*Cluster, error)
-}
 
 // Cluster represents a Kubernetes cluster.
 type Cluster struct {
@@ -40,17 +36,16 @@ type Cluster struct {
 
 // HelmService provides an interface for using Helm on a specific cluster.
 type HelmService struct {
-	clusters ClusterService
+	clusters internalhelm.ClusterService
 
 	logger common.Logger
 }
 
 // NewHelmService returns a new HelmService.
-func NewHelmService(clusters ClusterService, logger common.Logger) *HelmService {
+func NewHelmService(clusters internalhelm.ClusterService, logger common.Logger) *HelmService {
 	return &HelmService{
 		clusters: clusters,
-
-		logger: logger.WithFields(map[string]interface{}{"component": "helm"}),
+		logger:   logger.WithFields(map[string]interface{}{"component": "helm"}),
 	}
 }
 
@@ -70,12 +65,12 @@ func (s *HelmService) InstallDeployment(
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"chart": chartName, "release": releaseName})
 	logger.Info("installing deployment")
 
-	cluster, err := s.clusters.GetCluster(ctx, clusterID)
+	kubeConfig, err := s.clusters.GetKubeConfig(ctx, clusterID)
 	if err != nil {
 		return err
 	}
 
-	foundRelease, err := findRelease(releaseName, cluster.KubeConfig)
+	foundRelease, err := findRelease(releaseName, kubeConfig)
 	if err != nil {
 		return errors.WithDetails(err, "chart", chartName)
 	}
@@ -87,7 +82,7 @@ func (s *HelmService) InstallDeployment(
 
 			return nil
 		case release.Status_FAILED:
-			err := helm.DeleteDeployment(releaseName, cluster.KubeConfig)
+			err := helm.DeleteDeployment(releaseName, kubeConfig)
 			if err != nil {
 				return errors.WrapIfWithDetails(
 					err, "failed to delete deployment",
@@ -110,7 +105,7 @@ func (s *HelmService) InstallDeployment(
 		releaseName,
 		false,
 		nil,
-		cluster.KubeConfig,
+		kubeConfig,
 		helm.GeneratePlatformHelmRepoEnv(), // TODO: refactor!!!!!!
 		options...,
 	)
@@ -141,12 +136,12 @@ func (s *HelmService) UpdateDeployment(
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"chart": chartName, "release": releaseName})
 	logger.Info("updating deployment")
 
-	cluster, err := s.clusters.GetCluster(ctx, clusterID)
+	kubeConfig, err := s.clusters.GetKubeConfig(ctx, clusterID)
 	if err != nil {
 		return err
 	}
 
-	foundRelease, err := findRelease(releaseName, cluster.KubeConfig)
+	foundRelease, err := findRelease(releaseName, kubeConfig)
 	if err != nil {
 		return errors.WithDetails(err, "chart", chartName)
 	}
@@ -161,7 +156,7 @@ func (s *HelmService) UpdateDeployment(
 				nil,
 				values,
 				false,
-				cluster.KubeConfig,
+				kubeConfig,
 				helm.GeneratePlatformHelmRepoEnv(), // TODO: refactor!!!!!!
 			)
 			if err != nil {
@@ -191,12 +186,12 @@ func (s *HelmService) ApplyDeployment(
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"chart": chartName, "release": releaseName})
 	logger.Info("applying deployment")
 
-	cluster, err := s.clusters.GetCluster(ctx, clusterID)
+	kubeConfig, err := s.clusters.GetKubeConfig(ctx, clusterID)
 	if err != nil {
 		return err
 	}
 
-	foundRelease, err := findRelease(releaseName, cluster.KubeConfig)
+	foundRelease, err := findRelease(releaseName, kubeConfig)
 	if err != nil {
 		return errors.WithDetails(err, "chart", chartName)
 	}
@@ -211,7 +206,7 @@ func (s *HelmService) ApplyDeployment(
 				nil,
 				values,
 				false,
-				cluster.KubeConfig,
+				kubeConfig,
 				helm.GeneratePlatformHelmRepoEnv(), // TODO: refactor!!!!!!
 			)
 			if err != nil {
@@ -223,7 +218,7 @@ func (s *HelmService) ApplyDeployment(
 			}
 
 		case release.Status_FAILED:
-			if err := helm.DeleteDeployment(releaseName, cluster.KubeConfig); err != nil {
+			if err := helm.DeleteDeployment(releaseName, kubeConfig); err != nil {
 				return errors.WrapIfWithDetails(
 					err, "failed to delete deployment",
 					"chart", chartName,
@@ -243,7 +238,7 @@ func (s *HelmService) ApplyDeployment(
 				releaseName,
 				false,
 				nil,
-				cluster.KubeConfig,
+				kubeConfig,
 				helm.GeneratePlatformHelmRepoEnv(), // TODO: refactor!!!!!!
 				options...,
 			)
@@ -268,7 +263,7 @@ func (s *HelmService) ApplyDeployment(
 			releaseName,
 			false,
 			nil,
-			cluster.KubeConfig,
+			kubeConfig,
 			helm.GeneratePlatformHelmRepoEnv(), // TODO: refactor!!!!!!
 			options...,
 		)
@@ -291,18 +286,18 @@ func (s *HelmService) DeleteDeployment(ctx context.Context, clusterID uint, rele
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"release": releaseName})
 	logger.Info("deleting deployment")
 
-	cluster, err := s.clusters.GetCluster(ctx, clusterID)
+	kubeConfig, err := s.clusters.GetKubeConfig(ctx, clusterID)
 	if err != nil {
 		return err
 	}
 
-	foundRelease, err := findRelease(releaseName, cluster.KubeConfig)
+	foundRelease, err := findRelease(releaseName, kubeConfig)
 	if err != nil {
 		return err
 	}
 
 	if foundRelease != nil {
-		err = helm.DeleteDeployment(releaseName, cluster.KubeConfig)
+		err = helm.DeleteDeployment(releaseName, kubeConfig)
 		if err != nil {
 			return errors.WrapIfWithDetails(
 				err, "failed to delete deployment",
@@ -320,12 +315,12 @@ func (s *HelmService) GetDeployment(ctx context.Context, clusterID uint, release
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"release": releaseName})
 	logger.Info("getting deployment")
 
-	cluster, err := s.clusters.GetCluster(ctx, clusterID)
+	kubeConfig, err := s.clusters.GetKubeConfig(ctx, clusterID)
 	if err != nil {
 		return nil, err
 	}
 
-	return helm.GetDeployment(releaseName, cluster.KubeConfig)
+	return helm.GetDeployment(releaseName, kubeConfig)
 }
 
 func findRelease(releaseName string, k8sConfig []byte) (*release.Release, error) {
