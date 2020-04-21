@@ -107,6 +107,16 @@ func (m *Manager) getErrorHandler(ctx context.Context) emperror.Handler {
 	return pipelineContext.ErrorHandlerWithCorrelationID(ctx, m.errorHandler)
 }
 
+func (m *Manager) KubeConfigFunc() func(ctx context.Context, clusterID uint) ([]byte, error) {
+	return func(ctx context.Context, clusterID uint) ([]byte, error) {
+		cluster, err := m.GetClusterByIDOnly(ctx, clusterID)
+		if err != nil {
+			return nil, err
+		}
+		return cluster.GetK8sConfig()
+	}
+}
+
 type clusterErrorHandler struct {
 	handler       emperror.Handler
 	status        string

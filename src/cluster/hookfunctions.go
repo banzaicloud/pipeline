@@ -15,10 +15,6 @@
 package cluster
 
 import (
-	"reflect"
-	"runtime"
-	"strings"
-
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -82,50 +78,4 @@ type Priority struct {
 // Priority returns the priority value of a posthook - the lower the value, the sooner the posthook will run
 func (p *Priority) GetPriority() int {
 	return p.priority
-}
-
-// BasePostFunction describe a default posthook function
-type BasePostFunction struct {
-	f func(CommonCluster) error
-	Priority
-	ErrorHandler
-}
-
-// PostFunctionWithParam describes a posthook function with params
-type PostFunctionWithParam struct {
-	f      func(CommonCluster, pkgCluster.PostHookParam) error
-	params pkgCluster.PostHookParam
-	Priority
-	ErrorHandler
-}
-
-// Do call function and pass CommonCluster and posthookParams
-func (p *PostFunctionWithParam) Do(cluster CommonCluster) error {
-	return p.f(cluster, p.params)
-}
-
-// Do call function and pass CommonCluster as param
-func (b *BasePostFunction) Do(cluster CommonCluster) error {
-	return b.f(cluster)
-}
-
-func (b *BasePostFunction) String() string {
-	return getFunctionName(b.f)
-}
-
-func getFunctionName(f interface{}) string {
-	function := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
-	packageEnd := strings.LastIndex(function, ".")
-	functionName := function[packageEnd+1:]
-
-	return functionName
-}
-
-func (p *PostFunctionWithParam) String() string {
-	return getFunctionName(p.f)
-}
-
-// SetParams sets posthook params
-func (p *PostFunctionWithParam) SetParams(params pkgCluster.PostHookParam) {
-	p.params = params
 }
