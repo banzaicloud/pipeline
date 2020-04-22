@@ -297,6 +297,12 @@ func (s service) ListRepositories(ctx context.Context, organizationID uint) (rep
 }
 
 func (s service) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {
+	for defaultRepoName, _ := range s.config.Repositories {
+		if defaultRepoName == repoName {
+			return NewValidationError("default repositories cannot be deleted", nil)
+		}
+	}
+
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to set up helm repository environment")
@@ -328,6 +334,18 @@ func (s service) ModifyRepository(ctx context.Context, organizationID uint, repo
 	for repoName, _ := range s.config.Repositories {
 		if repoName == repository.Name {
 			return NewValidationError("default repositories cannot be modified", nil)
+		}
+	}
+
+	if repository.PasswordSecretID != "" {
+		if err := s.secretStore.CheckPasswordSecret(ctx, repository.PasswordSecretID); err != nil {
+			return ValidationError{message: err.Error(), violations: []string{"password secret must exist"}}
+		}
+	}
+
+	if repository.TlsSecretID != "" {
+		if err := s.secretStore.CheckTLSSecret(ctx, repository.TlsSecretID); err != nil {
+			return ValidationError{message: err.Error(), violations: []string{"tls secret must exist"}}
 		}
 	}
 
