@@ -747,7 +747,7 @@ traefik:
 	v.SetDefault("cluster::disasterRecovery::ark::backupSyncInterval", "20s")
 	v.SetDefault("cluster::disasterRecovery::ark::restoreWaitTimeout", "5m")
 	v.SetDefault("cluster::disasterRecovery::charts::ark::chart", "banzaicloud-stable/ark")
-	v.SetDefault("cluster::disasterRecovery::charts::ark::version", "1.2.2")
+	v.SetDefault("cluster::disasterRecovery::charts::ark::version", "1.2.3")
 	v.SetDefault("cluster::disasterRecovery::charts::ark::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"repository": "banzaicloud/ark",
