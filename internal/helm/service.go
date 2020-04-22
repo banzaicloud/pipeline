@@ -144,7 +144,7 @@ type EnvService interface {
 
 	// EnsureEnv ensures the helm environment represented by the input.
 	// If theh environment exists (on the filesystem) it does nothing
-	EnsureEnv(ctx context.Context, helmEnv HelmEnv, defaultRepos []Repository) (HelmEnv, error)
+	EnsureEnv(ctx context.Context, helmEnv HelmEnv, defaultRepos []Repository) (HelmEnv, bool, error)
 }
 
 // +testify:mock:testOnly=true
