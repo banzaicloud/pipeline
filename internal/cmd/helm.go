@@ -55,7 +55,7 @@ func CreateUnifiedHelmReleaser(
 			repoStore,
 			secretStore,
 			validator,
-			helm.NewEnsuringEnvResolver(helm2EnvResolver, envService, helmConfig.Repositories, logger),
+			helm.NewEnsuringEnvResolver(helm2EnvResolver, envService, repoStore, helmConfig.Repositories, logger),
 			envService,
 			releaser,
 			clusterService,
