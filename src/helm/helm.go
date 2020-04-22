@@ -763,10 +763,13 @@ func ReposAdd(env helm_env.EnvSettings, Hrepo *repo.Entry) (bool, error) {
 	}
 
 	c := repo.Entry{
-		Name:  Hrepo.Name,
-		URL:   Hrepo.URL,
-		Cache: env.Home.CacheIndex(Hrepo.Name),
+		Name:     Hrepo.Name,
+		Cache:    env.Home.CacheIndex(Hrepo.Name),
+		URL:      Hrepo.URL,
+		Username: Hrepo.Username,
+		Password: Hrepo.Password,
 	}
+
 	r, err := repo.NewChartRepository(&c, getter.All(env))
 	if err != nil {
 		return false, errors.Wrap(err, "Cannot create a new ChartRepo")
