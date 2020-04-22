@@ -38,14 +38,16 @@ func NewConfig(defaultRepos map[string]string) Config {
 
 // helmEnvService component in charge to operate the helm env on the filesystem
 type helmEnvService struct {
-	config Config
-	logger Logger
+	config      Config
+	secretStore helm.SecretStore
+	logger      Logger
 }
 
-func NewHelmEnvService(config Config, logger Logger) helm.EnvService {
+func NewHelmEnvService(config Config, secretStore helm.SecretStore, logger Logger) helm.EnvService {
 	return helmEnvService{
-		config: config,
-		logger: logger,
+		config:      config,
+		secretStore: secretStore,
+		logger:      logger,
 	}
 }
 
@@ -170,9 +172,16 @@ func (h helmEnvService) UpdateRepository(_ context.Context, helmEnv helm.HelmEnv
 }
 
 func (h helmEnvService) repositoryToEntry(repository helm.Repository) (repo.Entry, error) {
+	passwordSecret, err := h.secretStore.ResolvePasswordSecrets(context.Background(), repository.PasswordSecretID)
+	if err != nil {
+		return repo.Entry{}, errors.WrapIf(err, "failed to resolve password secret")
+	}
+
 	entry := repo.Entry{
-		Name: repository.Name,
-		URL:  repository.URL,
+		Name:     repository.Name,
+		URL:      repository.URL,
+		Username: passwordSecret.UserName,
+		Password: passwordSecret.Password,
 	}
 
 	return entry, nil
