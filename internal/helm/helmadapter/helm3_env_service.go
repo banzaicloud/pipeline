@@ -47,16 +47,18 @@ import (
 
 // helm3EnvService component struct for helm3 repository management
 type helm3EnvService struct {
-	logger Logger
+	secretStore helm.SecretStore
+	logger      Logger
 }
 
-func NewHelm3EnvService(logger Logger) helm.EnvService {
+func NewHelm3EnvService(secretStore helm.SecretStore, logger Logger) helm.EnvService {
 	return helm3EnvService{
-		logger: logger,
+		secretStore: secretStore,
+		logger:      logger,
 	}
 }
 
-func (h helm3EnvService) AddRepository(_ context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
+func (h helm3EnvService) AddRepository(ctx context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
 	repoFile := helmEnv.GetHome() // TODO add another field to the env instead???
 
 	//Ensure the file directory exists as it is required for file locking
@@ -92,10 +94,15 @@ func (h helm3EnvService) AddRepository(_ context.Context, helmEnv helm.HelmEnv, 
 		return errors.Errorf("repository name (%s) already exists, please specify a different name", repository.Name)
 	}
 
-	c := repo.Entry{ //TODO extend this with credentials
-		Name: repository.Name,
-		URL:  repository.URL,
-		//InsecureSkipTLSverify: o.insecureSkipTLSverify,
+	passwordSecret, err := h.secretStore.ResolvePasswordSecrets(ctx, repository.PasswordSecretID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to resolve repo credentials")
+	}
+	c := repo.Entry{
+		Name:     repository.Name,
+		URL:      repository.URL,
+		Username: passwordSecret.UserName,
+		Password: passwordSecret.Password,
 	}
 
 	envSettings := h.processEnvSettings(helmEnv)

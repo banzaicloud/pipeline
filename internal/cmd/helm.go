@@ -49,7 +49,7 @@ func CreateUnifiedHelmReleaser(
 	helm2EnvResolver := helm.NewHelm2EnvResolver(helmConfig.Home, orgService, logger)
 
 	if !helmConfig.V3 {
-		envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(helmConfig.Repositories), logger)
+		envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(helmConfig.Repositories), secretStore, logger)
 		service := helm.NewService(
 			helmConfig,
 			repoStore,
@@ -64,7 +64,7 @@ func CreateUnifiedHelmReleaser(
 	}
 
 	envResolver := helm.NewHelm3EnvResolver(helmConfig.Home, orgService, logger)
-	envService := helmadapter.NewHelm3EnvService(logger)
+	envService := helmadapter.NewHelm3EnvService(secretStore, logger)
 	// wrap the envresolver
 	ensuringEnvResolver := helm.NewEnsuringEnvResolver(envResolver, envService, repoStore, helmConfig.Repositories, logger)
 
