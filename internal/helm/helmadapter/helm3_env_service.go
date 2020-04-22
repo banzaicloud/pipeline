@@ -466,19 +466,19 @@ func (h helm3EnvService) adaptChartDetailsResponse(charts map[string]*chart.Char
 	return responseMap, nil
 }
 
-func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv, defaultRepos []helm.Repository) (helm.HelmEnv, error) {
+func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv, defaultRepos []helm.Repository) (helm.HelmEnv, bool, error) {
 	repoFile := helmEnv.GetHome()
 
 	//Ensure the file directory exists as it is required for file locking
 	err := os.MkdirAll(filepath.Dir(helmEnv.GetHome()), os.ModePerm)
 	if err != nil && !os.IsExist(err) {
-		return helm.HelmEnv{}, errors.WrapIf(err, "failed to ensure helm env")
+		return helm.HelmEnv{}, false, errors.WrapIf(err, "failed to ensure helm env")
 	}
 
 	// check the repofile
 	if fileExists(repoFile) {
 		h.logger.Debug("helm env ensured, helm env was already set up")
-		return helmEnv, nil
+		return helmEnv, false, nil
 	}
 
 	// creating the repo file
@@ -493,12 +493,12 @@ func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv, de
 		defer emperror.NoopHandler{}.Handle(fileLock.Unlock())
 	}
 	if err != nil {
-		return helm.HelmEnv{}, errors.WrapIf(err, "failed to lock the helm home dir for creating repo file")
+		return helm.HelmEnv{}, false, errors.WrapIf(err, "failed to lock the helm home dir for creating repo file")
 	}
 
 	f := repo.NewFile()
 	if err := f.WriteFile(helmEnv.GetHome(), 0644); err != nil {
-		return helm.HelmEnv{}, errors.WrapIf(err, "failed to create the repo file")
+		return helm.HelmEnv{}, false, errors.WrapIf(err, "failed to create the repo file")
 	}
 
 	for _, repo := range defaultRepos {
@@ -509,7 +509,7 @@ func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv, de
 	}
 
 	h.logger.Info("successfully ensured helm env")
-	return helmEnv, nil
+	return helmEnv, true, nil
 }
 
 // fileExists checks if a file exists and is not a directory before we
