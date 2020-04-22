@@ -94,15 +94,18 @@ func (h helm3EnvService) AddRepository(ctx context.Context, helmEnv helm.HelmEnv
 		return errors.Errorf("repository name (%s) already exists, please specify a different name", repository.Name)
 	}
 
-	passwordSecret, err := h.secretStore.ResolvePasswordSecrets(ctx, repository.PasswordSecretID)
-	if err != nil {
-		return errors.WrapIf(err, "failed to resolve repo credentials")
-	}
 	c := repo.Entry{
-		Name:     repository.Name,
-		URL:      repository.URL,
-		Username: passwordSecret.UserName,
-		Password: passwordSecret.Password,
+		Name: repository.Name,
+		URL:  repository.URL,
+	}
+	if repository.PasswordSecretID != "" {
+		passwordSecret, err := h.secretStore.ResolvePasswordSecrets(ctx, repository.PasswordSecretID)
+		if err != nil {
+			return errors.WrapIf(err, "failed to resolve repo credentials")
+		}
+
+		c.Username = passwordSecret.UserName
+		c.Password = passwordSecret.Password
 	}
 
 	envSettings := h.processEnvSettings(helmEnv)
