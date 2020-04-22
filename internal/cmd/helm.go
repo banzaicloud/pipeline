@@ -51,6 +51,7 @@ func CreateUnifiedHelmReleaser(
 	if !helmConfig.V3 {
 		envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(helmConfig.Repositories), logger)
 		service := helm.NewService(
+			helmConfig,
 			repoStore,
 			secretStore,
 			validator,
@@ -75,6 +76,7 @@ func CreateUnifiedHelmReleaser(
 	}
 
 	service := helm.NewService(
+		helmConfig,
 		repoStore,
 		secretStore,
 		validator,
