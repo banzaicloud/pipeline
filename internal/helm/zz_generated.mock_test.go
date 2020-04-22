@@ -300,8 +300,8 @@ func (_m *MockService) ListRepositories(ctx context.Context, organizationID uint
 	return r0, r1
 }
 
-// PatchRepository provides a mock function.
-func (_m *MockService) PatchRepository(ctx context.Context, organizationID uint, repository Repository) error {
+// ModifyRepository provides a mock function.
+func (_m *MockService) ModifyRepository(ctx context.Context, organizationID uint, repository Repository) error {
 	ret := _m.Called(ctx, organizationID, repository)
 
 	var r0 error
@@ -568,20 +568,6 @@ func (_m *MockStore) List(ctx context.Context, organizationID uint) ([]Repositor
 	}
 
 	return r0, r1
-}
-
-// Patch provides a mock function.
-func (_m *MockStore) Patch(ctx context.Context, organizationID uint, repository Repository) error {
-	ret := _m.Called(ctx, organizationID, repository)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint, Repository) error); ok {
-		r0 = rf(ctx, organizationID, repository)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }
 
 // Update provides a mock function.

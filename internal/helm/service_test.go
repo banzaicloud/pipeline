@@ -255,58 +255,6 @@ func Test_service_ListRepositories(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name: "merge default repos with user added repos",
-			fields: fields{
-				store:         &MockStore{},
-				secretStore:   &MockSecretStore{},
-				repoValidator: NewHelmRepoValidator(),
-				envResolver:   &MockEnvResolver{},
-				envService:    &MockEnvService{},
-				logger:        common.NoopLogger{},
-			},
-			args: args{
-				ctx:            context.Background(),
-				organizationID: 2,
-			},
-			wantRepos: []Repository{
-				{
-					Name: "user-repo",
-					URL:  "https://userdomain.io/userrepo/charts",
-				},
-				{
-					Name: "stable",
-					URL:  "https://kubernetes-charts.storage.googleapis.com",
-				},
-			},
-			setupMocks: func(store *Store, secretStore *SecretStore, envResolver *EnvResolver, envService *EnvService, arguments args) {
-				storeMock := (*store).(*MockStore)
-				storeMock.On("List", arguments.ctx, arguments.organizationID).Return(
-					[]Repository{
-						{
-							Name: "user-repo",
-							URL:  "https://userdomain.io/userrepo/charts",
-						},
-					},
-					nil,
-				)
-
-				envResolverMock := (*envResolver).(*MockEnvResolver)
-				envResolverMock.On("ResolveHelmEnv", arguments.ctx, arguments.organizationID).Return(HelmEnv{home: "/test"}, nil)
-
-				envServiceMock := (*envService).(*MockEnvService)
-				envServiceMock.On("ListRepositories", arguments.ctx, HelmEnv{home: "/test"}).Return(
-					[]Repository{
-						{
-							Name: "stable",
-							URL:  "https://kubernetes-charts.storage.googleapis.com",
-						},
-					},
-					nil,
-				)
-			},
-			wantErr: false,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
