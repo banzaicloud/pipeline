@@ -4512,9 +4512,6 @@ components:
                 - $ref: '#/components/schemas/BaseUpdateNodePoolRequest'
                 -
                     type: object
-                    required:
-                        - instanceType
-                        - image
                     properties:
                         autoscaling:
                             $ref: '#/components/schemas/NodePoolAutoScaling'
