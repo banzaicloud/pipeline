@@ -24,7 +24,6 @@ import (
 	"k8s.io/helm/pkg/repo"
 
 	"github.com/banzaicloud/pipeline/internal/helm"
-	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
 	legacyHelm "github.com/banzaicloud/pipeline/src/helm"
 )
 
@@ -106,20 +105,24 @@ func (h helmEnvService) AddRepository(_ context.Context, helmEnv helm.HelmEnv, r
 	return nil
 }
 
-func (h helmEnvService) ListRepositories(_ context.Context, helmEnv helm.HelmEnv) (repos []helm.Repository, err error) {
+func (h helmEnvService) ListRepositories(_ context.Context, helmEnv helm.HelmEnv) ([]helm.Repository, error) {
 	h.logger.Debug("returning default helm repository list", map[string]interface{}{"helmEnv": helmEnv.GetHome()})
 
-	// TODO workaround to decorate org repositories with defaults
-	return []helm.Repository{
-		{
-			Name: helm2.StableRepository,
-			URL:  h.config.Repositories[helm2.StableRepository],
-		},
-		{
-			Name: helm2.BanzaiRepository,
-			URL:  h.config.Repositories[helm2.BanzaiRepository],
-		},
-	}, nil
+	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
+
+	filesystemRepos, err := legacyHelm.ReposGet(envSettings)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to list helm repos")
+	}
+
+	repos := make([]helm.Repository, 0, len(filesystemRepos))
+	for _, r := range filesystemRepos {
+		repos = append(repos, helm.Repository{
+			Name: r.Name,
+			URL:  r.URL,
+		})
+	}
+	return repos, nil
 }
 
 func (h helmEnvService) DeleteRepository(_ context.Context, helmEnv helm.HelmEnv, repoName string) error {
@@ -176,6 +179,6 @@ func (h helmEnvService) repositoryToEntry(repository helm.Repository) (repo.Entr
 }
 
 func (h helmEnvService) EnsureEnv(_ context.Context, helmEnv helm.HelmEnv, defaultRepos []helm.Repository) (helm.HelmEnv, error) {
-	// no op implementation / helm 2
-	return helmEnv, nil
+	_, err := legacyHelm.GenerateHelmRepoEnvOnPath(helmEnv.GetHome())
+	return helmEnv, err
 }

@@ -37,7 +37,7 @@ type Endpoints struct {
 	ListCharts          endpoint.Endpoint
 	ListReleases        endpoint.Endpoint
 	ListRepositories    endpoint.Endpoint
-	PatchRepository     endpoint.Endpoint
+	ModifyRepository    endpoint.Endpoint
 	UpdateRepository    endpoint.Endpoint
 	UpgradeRelease      endpoint.Endpoint
 }
@@ -59,7 +59,7 @@ func MakeEndpoints(service helm.Service, middleware ...endpoint.Middleware) Endp
 		ListCharts:          kitxendpoint.OperationNameMiddleware("helm.ListCharts")(mw(MakeListChartsEndpoint(service))),
 		ListReleases:        kitxendpoint.OperationNameMiddleware("helm.ListReleases")(mw(MakeListReleasesEndpoint(service))),
 		ListRepositories:    kitxendpoint.OperationNameMiddleware("helm.ListRepositories")(mw(MakeListRepositoriesEndpoint(service))),
-		PatchRepository:     kitxendpoint.OperationNameMiddleware("helm.PatchRepository")(mw(MakePatchRepositoryEndpoint(service))),
+		ModifyRepository:    kitxendpoint.OperationNameMiddleware("helm.ModifyRepository")(mw(MakeModifyRepositoryEndpoint(service))),
 		UpdateRepository:    kitxendpoint.OperationNameMiddleware("helm.UpdateRepository")(mw(MakeUpdateRepositoryEndpoint(service))),
 		UpgradeRelease:      kitxendpoint.OperationNameMiddleware("helm.UpgradeRelease")(mw(MakeUpgradeReleaseEndpoint(service))),
 	}
@@ -501,37 +501,37 @@ func MakeListRepositoriesEndpoint(service helm.Service) endpoint.Endpoint {
 	}
 }
 
-// PatchRepositoryRequest is a request struct for PatchRepository endpoint.
-type PatchRepositoryRequest struct {
+// ModifyRepositoryRequest is a request struct for ModifyRepository endpoint.
+type ModifyRepositoryRequest struct {
 	OrganizationID uint
 	Repository     helm.Repository
 }
 
-// PatchRepositoryResponse is a response struct for PatchRepository endpoint.
-type PatchRepositoryResponse struct {
+// ModifyRepositoryResponse is a response struct for ModifyRepository endpoint.
+type ModifyRepositoryResponse struct {
 	Err error
 }
 
-func (r PatchRepositoryResponse) Failed() error {
+func (r ModifyRepositoryResponse) Failed() error {
 	return r.Err
 }
 
-// MakePatchRepositoryEndpoint returns an endpoint for the matching method of the underlying service.
-func MakePatchRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
+// MakeModifyRepositoryEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeModifyRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(PatchRepositoryRequest)
+		req := request.(ModifyRepositoryRequest)
 
-		err := service.PatchRepository(ctx, req.OrganizationID, req.Repository)
+		err := service.ModifyRepository(ctx, req.OrganizationID, req.Repository)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
-				return PatchRepositoryResponse{Err: err}, nil
+				return ModifyRepositoryResponse{Err: err}, nil
 			}
 
-			return PatchRepositoryResponse{Err: err}, err
+			return ModifyRepositoryResponse{Err: err}, err
 		}
 
-		return PatchRepositoryResponse{}, nil
+		return ModifyRepositoryResponse{}, nil
 	}
 }
 
