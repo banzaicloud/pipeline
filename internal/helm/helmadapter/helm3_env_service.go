@@ -137,6 +137,7 @@ func (h helm3EnvService) ListRepositories(_ context.Context, helmEnv helm.HelmEn
 		repos = append(repos, helm.Repository{
 			Name: entry.Name,
 			URL:  entry.URL,
+			// TODO warning! do not propagate sensitive data!
 		})
 	}
 
