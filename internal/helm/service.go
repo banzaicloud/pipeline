@@ -201,6 +201,7 @@ func (c ClusterKubeConfigFunc) GetKubeConfig(ctx context.Context, clusterID uint
 }
 
 type service struct {
+	config         Config
 	store          Store
 	secretStore    SecretStore
 	repoValidator  RepoValidator
@@ -213,6 +214,7 @@ type service struct {
 
 // NewService returns a new Service.
 func NewService(
+	config Config,
 	store Store,
 	secretStore SecretStore,
 	validator RepoValidator,
@@ -222,6 +224,7 @@ func NewService(
 	clusterService ClusterService,
 	logger Logger) Service {
 	return service{
+		config:         config,
 		store:          store,
 		secretStore:    secretStore,
 		repoValidator:  validator,
@@ -322,6 +325,12 @@ func (s service) DeleteRepository(ctx context.Context, organizationID uint, repo
 }
 
 func (s service) ModifyRepository(ctx context.Context, organizationID uint, repository Repository) error {
+	for repoName, _ := range s.config.Repositories {
+		if repoName == repository.Name {
+			return NewValidationError("default repositories cannot be modified", nil)
+		}
+	}
+
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to resolve helm repository environment")
