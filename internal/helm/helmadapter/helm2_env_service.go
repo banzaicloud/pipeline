@@ -178,7 +178,7 @@ func (h helmEnvService) repositoryToEntry(repository helm.Repository) (repo.Entr
 	return entry, nil
 }
 
-func (h helmEnvService) EnsureEnv(_ context.Context, helmEnv helm.HelmEnv, defaultRepos []helm.Repository) (helm.HelmEnv, error) {
+func (h helmEnvService) EnsureEnv(_ context.Context, helmEnv helm.HelmEnv, defaultRepos []helm.Repository) (helm.HelmEnv, bool, error) {
 	_, err := legacyHelm.GenerateHelmRepoEnvOnPath(helmEnv.GetHome())
-	return helmEnv, err
+	return helmEnv, false, err
 }
