@@ -297,7 +297,7 @@ func (s service) ListRepositories(ctx context.Context, organizationID uint) (rep
 }
 
 func (s service) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {
-	for defaultRepoName, _ := range s.config.Repositories {
+	for defaultRepoName := range s.config.Repositories {
 		if defaultRepoName == repoName {
 			return NewValidationError("default repositories cannot be deleted", nil)
 		}
@@ -331,7 +331,7 @@ func (s service) DeleteRepository(ctx context.Context, organizationID uint, repo
 }
 
 func (s service) ModifyRepository(ctx context.Context, organizationID uint, repository Repository) error {
-	for repoName, _ := range s.config.Repositories {
+	for repoName := range s.config.Repositories {
 		if repoName == repository.Name {
 			return NewValidationError("default repositories cannot be modified", nil)
 		}
@@ -578,13 +578,4 @@ func (s service) repoExists(ctx context.Context, repository Repository, helmEnv 
 	}
 
 	return false, nil
-}
-
-func contains(repoName string, repos []Repository) bool {
-	for _, repo := range repos {
-		if repo.Name == repoName {
-			return true
-		}
-	}
-	return false
 }
