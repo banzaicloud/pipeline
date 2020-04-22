@@ -22793,9 +22793,6 @@ components:
             field is empty or 0 on-demand instances are used instead of spot instances.
           example: "0.2"
           type: string
-      required:
-      - image
-      - instanceType
     CreateEKSProperties_eks:
       properties:
         version:
