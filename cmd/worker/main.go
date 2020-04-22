@@ -285,10 +285,10 @@ func main() {
 		configFactory := kubernetes.NewConfigFactory(commonSecretStore)
 
 		processService := process.NewService(processadapter.NewGormStore(db))
-		processLogActivity := process.NewProcessLogActivity(processService)
+		processActivity := process.NewProcessActivity(processService)
 
-		activity.RegisterWithOptions(processLogActivity.ExecuteProcessLog, activity.RegisterOptions{Name: process.ProcessLogActivityName})
-		activity.RegisterWithOptions(processLogActivity.ExecuteProcessEvent, activity.RegisterOptions{Name: process.ProcessEventActivityName})
+		activity.RegisterWithOptions(processActivity.ExecuteProcess, activity.RegisterOptions{Name: process.ProcessActivityName})
+		activity.RegisterWithOptions(processActivity.ExecuteProcessEvent, activity.RegisterOptions{Name: process.ProcessEventActivityName})
 
 		// Cluster setup
 		{

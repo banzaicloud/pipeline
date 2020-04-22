@@ -16,23 +16,50 @@ package process
 
 import (
 	"context"
-
-	"github.com/banzaicloud/pipeline-sdk/process"
+	"time"
 )
 
-const ProcessLogActivityName = "process-log"
+const ProcessActivityName = "process"
 
 const ProcessEventActivityName = "process-event"
 
-type ProcessLogActivity struct {
+type Status string
+
+const (
+	Running  Status = "running"
+	Failed   Status = "failed"
+	Finished Status = "finished"
+)
+
+type ProcessActivityInput struct {
+	ID         string
+	ParentID   string
+	OrgID      int32
+	Type       string
+	Log        string
+	ResourceID string
+	Status     Status
+	StartedAt  time.Time
+	FinishedAt *time.Time
+}
+
+type ProcessEventActivityInput struct {
+	ProcessID string
+	Type      string
+	Log       string
+	Status    Status
+	Timestamp time.Time
+}
+
+type ProcessActivity struct {
 	service Service
 }
 
-func NewProcessLogActivity(service Service) ProcessLogActivity {
-	return ProcessLogActivity{service: service}
+func NewProcessActivity(service Service) ProcessActivity {
+	return ProcessActivity{service: service}
 }
 
-func (a ProcessLogActivity) ExecuteProcessLog(ctx context.Context, input process.ProcessLogActivityInput) error {
+func (a ProcessActivity) ExecuteProcess(ctx context.Context, input ProcessActivityInput) error {
 	_, err := a.service.LogProcess(ctx, Process{
 		Id:         input.ID,
 		ParentId:   input.ParentID,
@@ -48,7 +75,7 @@ func (a ProcessLogActivity) ExecuteProcessLog(ctx context.Context, input process
 	return err
 }
 
-func (a ProcessLogActivity) ExecuteProcessEvent(ctx context.Context, input process.ProcessEventActivityInput) error {
+func (a ProcessActivity) ExecuteProcessEvent(ctx context.Context, input ProcessEventActivityInput) error {
 	_, err := a.service.LogProcessEvent(ctx, ProcessEvent{
 		ProcessId: input.ProcessID,
 		Type:      input.Type,
