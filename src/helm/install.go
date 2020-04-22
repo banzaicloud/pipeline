@@ -40,18 +40,26 @@ func CreateEnvSettings(helmRepoHome string) helmEnv.EnvSettings {
 
 // GenerateHelmRepoEnv Generate helm path based on orgName
 func GenerateHelmRepoEnv(orgName string) helmEnv.EnvSettings {
-	var helmPath = global.GetHelmPath(orgName)
-	env := CreateEnvSettings(fmt.Sprintf("%s/%s", helmPath, phelm.HelmPostFix))
+	env, err := GenerateHelmRepoEnvOnPath(global.GetHelmPath(fmt.Sprintf("%s/%s", orgName, phelm.HelmPostFix)))
+	if err != nil {
+		log.Errorf("local helm env setup failed err: %+v env: %+v", err, env)
+	}
+	return env
+}
+
+// GenerateHelmRepoEnv Generate helm to the given path
+func GenerateHelmRepoEnvOnPath(path string) (helmEnv.EnvSettings, error) {
+	env := CreateEnvSettings(path)
 
 	// check local helm
-	if _, err := os.Stat(helmPath); os.IsNotExist(err) {
-		log.Infof("Helm directories [%s] not exists", helmPath)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		log.Infof("Helm directories [%s] not exists", path)
 		if err := InstallLocalHelm(env); err != nil {
-			log.Errorf("local helm env setup failed err: %+v env: %+v", err, env)
+			return helmEnv.EnvSettings{}, errors.Wrap(err, "unable to install local helm env")
 		}
 	}
 
-	return env
+	return env, nil
 }
 
 func GeneratePlatformHelmRepoEnv() helmEnv.EnvSettings {
