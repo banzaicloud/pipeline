@@ -90,15 +90,6 @@ type Config struct {
 	// Error handling configuration
 	Errors errorhandler.Config
 
-	Github struct {
-		Token string
-	}
-
-	Gitlab struct {
-		URL   string
-		Token string
-	}
-
 	Helm helm.Config
 
 	Hollowtrees struct {

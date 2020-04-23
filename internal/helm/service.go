@@ -336,7 +336,6 @@ func (s service) PatchRepository(ctx context.Context, organizationID uint, repos
 			return ValidationError{message: err.Error(), violations: []string{"password secret must exist"}}
 		}
 	}
-
 	if repository.TlsSecretID != "" {
 		if err := s.secretStore.CheckTLSSecret(ctx, repository.TlsSecretID); err != nil {
 			return ValidationError{message: err.Error(), violations: []string{"tls secret must exist"}}

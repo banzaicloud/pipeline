@@ -37,10 +37,6 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
-	"github.com/banzaicloud/pipeline/internal/helm"
-
-	"github.com/banzaicloud/pipeline/internal/cmd"
-
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/process"
@@ -63,9 +59,11 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
+	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
