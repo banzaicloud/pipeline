@@ -70,8 +70,13 @@ func newDexClient(hostAndPort, caPath string) (*dexClient, error) {
 type ClusterAuthService interface {
 	RegisterCluster(context.Context, string, uint, string) error
 	UnRegisterCluster(context.Context, string) error
-	GetClusterClientSecret(context.Context, uint) (ClusterClientSecret, error)
 	GetClusterConfig(context.Context, uint) (*k8sClientApi.Config, error)
+
+	ClusterClientSecretGetter
+}
+
+type ClusterClientSecretGetter interface {
+	GetClusterClientSecret(context.Context, uint) (ClusterClientSecret, error)
 }
 
 type noOpClusterAuthService struct {

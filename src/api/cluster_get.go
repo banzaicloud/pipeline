@@ -24,6 +24,7 @@ import (
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/oidc"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -95,6 +96,20 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 		CreatedAt:   clusterStatus.CreatedAt,
 		CreatorName: clusterStatus.CreatorName,
 		CreatorID:   clusterStatus.CreatorId,
+	}
+
+	// set oidc field on response
+	var oidcCreator = oidc.NewCreator(a.authConfig.OIDC, a.clientSecretGetter)
+	oidcResponse, err := oidcCreator.CreateNewOIDCResponse(c.Request.Context(), clusterStatus.OIDCEnabled, commonCluster.GetID())
+	if err != nil {
+		errorHandler.Handle(err)
+	} else {
+		response.OIDC = OIDC{
+			Enabled:      oidcResponse.Enabled,
+			IdpURL:       oidcResponse.IdpURL,
+			ClientSecret: oidcResponse.ClientSecret,
+			ClientID:     oidcResponse.ClientID,
+		}
 	}
 
 	for name, nodePool := range clusterStatus.NodePools {
@@ -241,6 +256,7 @@ type GetClusterResponse struct {
 	Cloud        string `json:"cloud"`
 	Distribution string `json:"distribution"`
 	Spot         bool   `json:"spot,omitempty"`
+	OIDC         OIDC   `json:"oidc"`
 
 	Logging      bool                     `json:"logging"`
 	Monitoring   bool                     `json:"monitoring"`
@@ -300,4 +316,11 @@ type Resource struct {
 	Allocatable string `json:"allocatable,omitempty"`
 	Limit       string `json:"limit,omitempty"`
 	Request     string `json:"request,omitempty"`
+}
+
+type OIDC struct {
+	Enabled      bool   `json:"enabled"`
+	IdpURL       string `json:"idpUrl,omitempty"`
+	ClientSecret string `json:"clientSecret,omitempty"`
+	ClientID     string `json:"clientId,omitempty"`
 }
