@@ -40,20 +40,30 @@ func CreateEnvSettings(helmRepoHome string) helmEnv.EnvSettings {
 
 // GenerateHelmRepoEnv Generate helm path based on orgName
 func GenerateHelmRepoEnv(orgName string) helmEnv.EnvSettings {
-	var helmPath = global.GetHelmPath(orgName)
-	env := CreateEnvSettings(fmt.Sprintf("%s/%s", helmPath, phelm.HelmPostFix))
-
-	// check local helm
-	if _, err := os.Stat(helmPath); os.IsNotExist(err) {
-		log.Infof("Helm directories [%s] not exists", helmPath)
-		InstallLocalHelm(env) // nolint: errcheck
+	env, err := GenerateHelmRepoEnvOnPath(global.GetHelmPath(fmt.Sprintf("%s/%s", orgName, phelm.HelmPostFix)))
+	if err != nil {
+		log.Errorf("local helm env setup failed err: %+v env: %+v", err, env)
 	}
-
 	return env
 }
 
+// GenerateHelmRepoEnv Generate helm to the given path
+func GenerateHelmRepoEnvOnPath(path string) (helmEnv.EnvSettings, error) {
+	env := CreateEnvSettings(path)
+
+	// check local helm
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		log.Infof("Helm directories [%s] not exists", path)
+		if err := InstallLocalHelm(env); err != nil {
+			return helmEnv.EnvSettings{}, errors.Wrap(err, "unable to install local helm env")
+		}
+	}
+
+	return env, nil
+}
+
 func GeneratePlatformHelmRepoEnv() helmEnv.EnvSettings {
-	return GenerateHelmRepoEnv(helm.PlatformHelmHome)
+	return GenerateHelmRepoEnv(fmt.Sprintf("%s-%s/%s", global.Config.Helm.Home, helm.PlatformHelmHome, phelm.HelmPostFix))
 }
 
 // DownloadChartFromRepo download a given chart
@@ -120,21 +130,28 @@ func EnsureDirectories(env helmEnv.EnvSettings) error {
 }
 
 func ensureDefaultRepos(env helmEnv.EnvSettings) error {
+	repoUrl := func(config map[string]string, key, def string) string {
+		if url, ok := config[key]; ok {
+			return url
+		}
+		return def
+	}
+
 	var repos = []struct {
 		name string
 		url  string
 	}{
 		{
 			name: phelm.StableRepository,
-			url:  global.Config.Helm.Repositories[phelm.StableRepository],
+			url:  repoUrl(global.Config.Helm.Repositories, phelm.StableRepository, "https://kubernetes-charts.storage.googleapis.com"),
 		},
 		{
 			name: phelm.BanzaiRepository,
-			url:  global.Config.Helm.Repositories[phelm.BanzaiRepository],
+			url:  repoUrl(global.Config.Helm.Repositories, phelm.BanzaiRepository, "https://kubernetes-charts.banzaicloud.com"),
 		},
 		{
 			name: phelm.LokiRepository,
-			url:  global.Config.Helm.Repositories[phelm.LokiRepository],
+			url:  repoUrl(global.Config.Helm.Repositories, phelm.LokiRepository, "https://grafana.github.io/loki/charts"),
 		},
 	}
 

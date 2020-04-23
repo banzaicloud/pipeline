@@ -26,22 +26,22 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
+	"github.com/banzaicloud/pipeline/internal/helm"
+
+	"github.com/banzaicloud/pipeline/internal/global"
+
 	"github.com/banzaicloud/pipeline/internal/common"
 )
-
-const organizationName = "banzaicloud"
-
-type clusterServiceStub struct {
-	cluster Cluster
-}
-
-func (s *clusterServiceStub) GetCluster(ctx context.Context, clusterID uint) (*Cluster, error) {
-	return &s.cluster, nil
-}
 
 func TestIntegration(t *testing.T) {
 	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
 		t.Skip("skipping as execution was not requested explicitly using go test -run")
+	}
+
+	var err error
+	global.Config.Helm.Home, err = ioutil.TempDir("", "")
+	if err != nil {
+		t.Fatalf("%+v", err)
 	}
 
 	kubeConfigFile := os.Getenv("KUBECONFIG")
@@ -49,16 +49,11 @@ func TestIntegration(t *testing.T) {
 		t.Skip("skipping as Kubernetes config was not provided")
 	}
 
-	kubeConfigBytes, err := ioutil.ReadFile(kubeConfigFile)
-	require.NoError(t, err)
+	kubeConfigProvider := helm.ClusterKubeConfigFunc(func(ctx context.Context, clusterID uint) ([]byte, error) {
+		return ioutil.ReadFile(kubeConfigFile)
+	})
 
-	clusterService := &clusterServiceStub{
-		cluster: Cluster{
-			OrganizationName: organizationName,
-			KubeConfig:       kubeConfigBytes,
-		},
-	}
-	service := NewHelmService(clusterService, common.NoopLogger{})
+	service := NewHelmService(kubeConfigProvider, common.NoopLogger{})
 
 	err = service.InstallDeployment(
 		context.Background(),
@@ -67,7 +62,7 @@ func TestIntegration(t *testing.T) {
 		"banzaicloud-stable/banzaicloud-docs",
 		"helm-service-test",
 		[]byte{},
-		"0.1.1",
+		"0.1.2",
 		true,
 	)
 	require.NoError(t, err)
@@ -86,7 +81,7 @@ func TestIntegration(t *testing.T) {
 		"banzaicloud-stable/banzaicloud-docs",
 		"helm-service-test",
 		valuesBytes,
-		"0.1.1",
+		"0.1.2",
 	)
 	require.NoError(t, err)
 

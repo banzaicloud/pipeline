@@ -57,16 +57,9 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 		options...,
 	))
 
-	router.Methods(http.MethodPatch).Path("/repos/{name}").Handler(kithttp.NewServer(
-		endpoints.PatchRepository,
-		decodePatchRepositoryHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
-		options...,
-	))
-
 	router.Methods(http.MethodPut).Path("/repos/{name}").Handler(kithttp.NewServer(
-		endpoints.UpdateRepository,
-		decodeUpdateRepositoryHTTPRequest,
+		endpoints.ModifyRepository,
+		decodeModifyRepositoryHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
 	))
@@ -239,25 +232,25 @@ func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interfa
 		}}, nil
 }
 
-func decodePatchRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeModifyRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	orgID, e := extractUintParamFromRequest("orgId", r)
 	if e != nil {
-		return nil, errors.WrapIf(e, "failed to decode patch repository request")
+		return nil, errors.WrapIf(e, "failed to decode modify repository request")
 	}
 
 	repoName, err := extractStringParamFromRequest("name", r)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to decode patch repository request")
+		return nil, errors.WrapIf(err, "failed to decode modify repository request")
 	}
 
 	var request pipeline.HelmReposAddRequest
 
 	dErr := json.NewDecoder(r.Body).Decode(&request)
 	if dErr != nil {
-		return nil, errors.WrapIf(dErr, "failed to decode patch repository request")
+		return nil, errors.WrapIf(dErr, "failed to decode modify repository request")
 	}
 
-	return PatchRepositoryRequest{
+	return ModifyRepositoryRequest{
 		OrganizationID: orgID,
 		Repository: helm.Repository{
 			Name:             repoName,
@@ -279,20 +272,10 @@ func decodeUpdateRepositoryHTTPRequest(_ context.Context, r *http.Request) (inte
 		return nil, errors.WrapIf(err, "failed to decode update repository request")
 	}
 
-	var request pipeline.HelmReposAddRequest
-
-	dErr := json.NewDecoder(r.Body).Decode(&request)
-	if dErr != nil {
-		return nil, errors.WrapIf(dErr, "failed to decode update repository request")
-	}
-
 	return UpdateRepositoryRequest{
 		OrganizationID: orgID,
 		Repository: helm.Repository{
-			Name:             repoName,
-			URL:              request.Url,
-			PasswordSecretID: request.PasswordSecretRef,
-			TlsSecretID:      request.TlsSecretRef,
+			Name: repoName,
 		},
 	}, nil
 }
@@ -577,7 +560,12 @@ func encodeListChartsHTTPResponse(ctx context.Context, w http.ResponseWriter, re
 		return kitxhttp.JSONResponseEncoder(ctx, w, "")
 	}
 
-	return kitxhttp.JSONResponseEncoder(ctx, w, []interface{}{charts.Charts[0]})
+	chartsResponse := make([]interface{}, 0, len(charts.Charts))
+	for _, repoCharts := range charts.Charts {
+		chartsResponse = append(chartsResponse, repoCharts)
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, chartsResponse)
 }
 
 func decodeChartDetailsHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {

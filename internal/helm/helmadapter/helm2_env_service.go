@@ -24,7 +24,6 @@ import (
 	"k8s.io/helm/pkg/repo"
 
 	"github.com/banzaicloud/pipeline/internal/helm"
-	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
 	legacyHelm "github.com/banzaicloud/pipeline/src/helm"
 )
 
@@ -50,8 +49,7 @@ func NewHelmEnvService(config Config, logger Logger) helm.EnvService {
 	}
 }
 
-// TODO do we want to port these calls too?
-func (h helmEnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartList, error) {
+func (h helmEnvService) ListCharts(_ context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartList, error) {
 	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
 
 	legacyChartSlice, err := legacyHelm.ChartsGet(envSettings, filter.StrictNameFilter(), filter.RepoFilter(), filter.VersionFilter(), filter.KeywordFilter())
@@ -69,7 +67,7 @@ func (h helmEnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, fi
 	return chartList, nil
 }
 
-func (h helmEnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartDetails, error) {
+func (h helmEnvService) GetChart(_ context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartDetails, error) {
 	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
 
 	legacyChart, err := legacyHelm.ChartGet(envSettings, filter.RepoFilter(), filter.NameFilter(), filter.VersionFilter())
@@ -107,20 +105,24 @@ func (h helmEnvService) AddRepository(_ context.Context, helmEnv helm.HelmEnv, r
 	return nil
 }
 
-func (h helmEnvService) ListRepositories(_ context.Context, helmEnv helm.HelmEnv) (repos []helm.Repository, err error) {
+func (h helmEnvService) ListRepositories(_ context.Context, helmEnv helm.HelmEnv) ([]helm.Repository, error) {
 	h.logger.Debug("returning default helm repository list", map[string]interface{}{"helmEnv": helmEnv.GetHome()})
 
-	// TODO workaround to decorate org repositories with defaults
-	return []helm.Repository{
-		{
-			Name: helm2.StableRepository,
-			URL:  h.config.Repositories[helm2.StableRepository],
-		},
-		{
-			Name: helm2.BanzaiRepository,
-			URL:  h.config.Repositories[helm2.BanzaiRepository],
-		},
-	}, nil
+	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
+
+	filesystemRepos, err := legacyHelm.ReposGet(envSettings)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to list helm repos")
+	}
+
+	repos := make([]helm.Repository, 0, len(filesystemRepos))
+	for _, r := range filesystemRepos {
+		repos = append(repos, helm.Repository{
+			Name: r.Name,
+			URL:  r.URL,
+		})
+	}
+	return repos, nil
 }
 
 func (h helmEnvService) DeleteRepository(_ context.Context, helmEnv helm.HelmEnv, repoName string) error {
@@ -158,12 +160,7 @@ func (h helmEnvService) PatchRepository(_ context.Context, helmEnv helm.HelmEnv,
 func (h helmEnvService) UpdateRepository(_ context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
 	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
 
-	entry, err := h.repositoryToEntry(repository)
-	if err != nil {
-		return errors.WrapIf(err, "failed to resolve helm entry data")
-	}
-
-	if err = legacyHelm.ReposModify(envSettings, repository.Name, &entry); err != nil {
+	if err := legacyHelm.ReposUpdate(envSettings, repository.Name); err != nil {
 		return errors.WrapIf(err, "failed to set up environment for repository")
 	}
 
@@ -181,7 +178,7 @@ func (h helmEnvService) repositoryToEntry(repository helm.Repository) (repo.Entr
 	return entry, nil
 }
 
-func (h helmEnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv) (helm.HelmEnv, error) {
-	// no op implementation / helm 2
-	return helmEnv, nil
+func (h helmEnvService) EnsureEnv(_ context.Context, helmEnv helm.HelmEnv, defaultRepos []helm.Repository) (helm.HelmEnv, error) {
+	_, err := legacyHelm.GenerateHelmRepoEnvOnPath(helmEnv.GetHome())
+	return helmEnv, err
 }
