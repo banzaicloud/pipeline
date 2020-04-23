@@ -86,15 +86,17 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 			NonRetriableErrorReasons: []string{"cadenceInternal:Panic"},
 		}
 
+		var output UpdateNodeGroupActivityOutput
+
 		processEvent := process.NewProcessEvent(workflow.WithStartToCloseTimeout(ctx, 10*time.Minute), UpdateNodeGroupActivityName)
 		err = workflow.ExecuteActivity(
 			workflow.WithActivityOptions(ctx, activityOptions),
 			UpdateNodeGroupActivityName,
 			activityInput,
-		).Get(ctx, nil)
+		).Get(ctx, &output)
 		processEvent.End(err)
-		if err != nil {
-			return err
+		if err != nil || !output.NodePoolChanged {
+			return
 		}
 	}
 
