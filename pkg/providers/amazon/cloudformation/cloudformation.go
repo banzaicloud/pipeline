@@ -104,7 +104,11 @@ func NewAwsStackFailure(awsStackError error, stackName, clientRequestToken strin
 	isFinalErr := false
 
 	switch aws.StringValue(stacksOutput.Stacks[0].StackStatus) {
-	case cloudformation.StackStatusCreateFailed, cloudformation.StackStatusDeleteFailed, cloudformation.StackStatusRollbackFailed, cloudformation.StackStatusUpdateRollbackFailed:
+	case cloudformation.StackStatusCreateFailed,
+		cloudformation.StackStatusDeleteFailed,
+		cloudformation.StackStatusRollbackFailed,
+		cloudformation.StackStatusUpdateRollbackFailed,
+		cloudformation.StackStatusUpdateRollbackComplete:
 		isFinalErr = true
 	}
 
