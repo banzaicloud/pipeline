@@ -62,11 +62,11 @@ func (n nodePoolManager) UpdateNodePool(
 
 		StackName: generateNodePoolStackName(c.Name, nodePoolName),
 
-		ClusterID:      c.ID,
-		KubeSecretID:   c.ConfigSecretID.String(),
-		ClusterName:    c.Name,
-		NodePoolName:   nodePoolName,
-		OrganizationID: c.OrganizationID,
+		ClusterID:       c.ID,
+		ClusterSecretID: c.ConfigSecretID.String(),
+		ClusterName:     c.Name,
+		NodePoolName:    nodePoolName,
+		OrganizationID:  c.OrganizationID,
 
 		NodeImage: nodePoolUpdate.Image,
 	}
