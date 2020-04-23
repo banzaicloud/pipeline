@@ -55,7 +55,7 @@ func GenerateHelmRepoEnv(orgName string) helmEnv.EnvSettings {
 }
 
 func GeneratePlatformHelmRepoEnv() helmEnv.EnvSettings {
-	return GenerateHelmRepoEnv(helm.PlatformHelmHome)
+	return GenerateHelmRepoEnv(fmt.Sprintf("%s-%s/%s", global.Config.Helm.Home, helm.PlatformHelmHome, phelm.HelmPostFix))
 }
 
 // DownloadChartFromRepo download a given chart

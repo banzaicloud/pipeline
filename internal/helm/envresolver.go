@@ -16,6 +16,7 @@ package helm
 
 import (
 	"context"
+	"fmt"
 	"path"
 
 	"emperror.dev/errors"
@@ -93,7 +94,7 @@ func (er envResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (
 
 func (er envResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
 	return HelmEnv{
-		home:     path.Join(er.helmHomesDir, PlatformHelmHome, helmPostFix),
+		home:     path.Join(fmt.Sprintf("%s-%s", er.helmHomesDir, PlatformHelmHome), helmPostFix),
 		platform: true,
 	}, nil
 }
