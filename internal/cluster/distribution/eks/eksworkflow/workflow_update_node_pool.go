@@ -55,7 +55,7 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 		fmt.Sprint(input.ClusterID),
 	)
 	defer proc.RecordEnd(err)
-	defer func(err error) {
+	defer func() {
 		status := cluster.Running
 		statusMessage := cluster.RunningMessage
 
@@ -65,7 +65,7 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 		}
 
 		_ = setClusterStatus(ctx, input.ClusterID, status, statusMessage)
-	}(err)
+	}()
 
 	{
 		activityInput := UpdateNodeGroupActivityInput{
