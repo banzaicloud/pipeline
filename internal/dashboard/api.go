@@ -216,8 +216,8 @@ func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonClust
 		clusterInfo.OIDC = OIDC{
 			Enabled:      oidcResponse.Enabled,
 			IdpURL:       oidcResponse.IdpURL,
-			ClientSecret: oidcResponse.ClientSecret,
 			ClientID:     oidcResponse.ClientID,
+			ClientSecret: oidcResponse.ClientSecret,
 		}
 	}
 

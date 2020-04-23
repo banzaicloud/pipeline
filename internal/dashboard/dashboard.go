@@ -103,8 +103,8 @@ type ClusterInfo struct {
 type OIDC struct {
 	Enabled      bool   `json:"enabled"`
 	IdpURL       string `json:"idpUrl,omitempty"`
-	ClientSecret string `json:"clientSecret,omitempty"`
 	ClientID     string `json:"clientId,omitempty"`
+	ClientSecret string `json:"clientSecret,omitempty"`
 }
 
 // GetDashboardResponse Api object to be mapped to Get dashboard request

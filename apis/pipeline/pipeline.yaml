@@ -6369,7 +6369,7 @@ components:
                     type: string
                     example: "us-central1"
                 oidc:
-                    $ref: '#/components/schemas/OIDCResponse'
+                    $ref: '#/components/schemas/OIDCConfig'
                 nodePools:
                     type: object
                     additionalProperties:
@@ -6814,16 +6814,16 @@ components:
                     type: string
                     example: "2018-08-01T07:04:37Z"
 
-        OIDCResponse:
+        OIDCConfig:
             type: object
             properties:
                 enabled:
                     type: boolean
                 idpUrl:
                     type: string
-                clientSecret:
-                    type: string
                 clientId:
+                    type: string
+                clientSecret:
                     type: string
 
         ResourceSummary:
