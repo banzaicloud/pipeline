@@ -154,6 +154,7 @@ type GetClusterStatusResponse struct {
 	Cloud         string                     `json:"cloud"`
 	Distribution  string                     `json:"distribution"`
 	Spot          bool                       `json:"spot,omitempty"`
+	OIDCEnabled   bool                       `json:"oidcEnabled,omitempty"`
 	Version       string                     `json:"version,omitempty"`
 	ResourceID    uint                       `json:"id"`
 	NodePools     map[string]*NodePoolStatus `json:"nodePools"`
