@@ -97,6 +97,14 @@ type ClusterInfo struct {
 	CpuUsagePercent     float64             `json:"cpuUsagePercent"`
 	StorageUsagePercent float64             `json:"storageUsagePercent"`
 	MemoryUsagePercent  float64             `json:"memoryUsagePercent"`
+	OIDC                OIDC                `json:"oidc"`
+}
+
+type OIDC struct {
+	Enabled      bool   `json:"enabled"`
+	IdpURL       string `json:"idpUrl,omitempty"`
+	ClientSecret string `json:"clientSecret,omitempty"`
+	ClientID     string `json:"clientId,omitempty"`
 }
 
 // GetDashboardResponse Api object to be mapped to Get dashboard request
