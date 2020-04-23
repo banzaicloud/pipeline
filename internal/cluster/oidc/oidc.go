@@ -31,8 +31,8 @@ type Creator struct {
 type OIDC struct {
 	Enabled      bool
 	IdpURL       string
-	ClientSecret string
 	ClientID     string
+	ClientSecret string
 }
 
 func NewCreator(config auth.OIDCConfig, secretGetter clusterAuth.ClusterClientSecretGetter) *Creator {
@@ -42,22 +42,21 @@ func NewCreator(config auth.OIDCConfig, secretGetter clusterAuth.ClusterClientSe
 	}
 }
 
-func (c *Creator) CreateNewOIDCResponse(context context.Context, isEnabled bool, clusterID uint) (response OIDC, err error) {
-	response = OIDC{Enabled: isEnabled}
-
+func (c *Creator) CreateNewOIDCResponse(context context.Context, isEnabled bool, clusterID uint) (OIDC, error) {
 	if isEnabled {
-		response.IdpURL = c.config.Issuer
-
 		var secret clusterAuth.ClusterClientSecret
 		secret, secretError := c.secretGetter.GetClusterClientSecret(context, clusterID)
 		if secretError != nil {
-			err = errors.WrapIf(secretError, "error getting cluster client secret")
-			return
+			return OIDC{}, errors.WrapIf(secretError, "error getting cluster client secret")
 		}
 
-		response.ClientID = secret.ClientID
-		response.ClientSecret = secret.ClientSecret
+		return OIDC{
+			Enabled:      isEnabled,
+			IdpURL:       c.config.Issuer,
+			ClientID:     secret.ClientID,
+			ClientSecret: secret.ClientSecret,
+		}, nil
 	}
 
-	return
+	return OIDC{Enabled: false}, nil
 }

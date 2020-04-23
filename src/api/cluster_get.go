@@ -107,8 +107,8 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 		response.OIDC = OIDC{
 			Enabled:      oidcResponse.Enabled,
 			IdpURL:       oidcResponse.IdpURL,
-			ClientSecret: oidcResponse.ClientSecret,
 			ClientID:     oidcResponse.ClientID,
+			ClientSecret: oidcResponse.ClientSecret,
 		}
 	}
 
@@ -321,6 +321,6 @@ type Resource struct {
 type OIDC struct {
 	Enabled      bool   `json:"enabled"`
 	IdpURL       string `json:"idpUrl,omitempty"`
-	ClientSecret string `json:"clientSecret,omitempty"`
 	ClientID     string `json:"clientId,omitempty"`
+	ClientSecret string `json:"clientSecret,omitempty"`
 }
