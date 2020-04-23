@@ -63,7 +63,11 @@ func GenerateHelmRepoEnvOnPath(path string) (helmEnv.EnvSettings, error) {
 }
 
 func GeneratePlatformHelmRepoEnv() helmEnv.EnvSettings {
-	return GenerateHelmRepoEnv(fmt.Sprintf("%s-%s/%s", global.Config.Helm.Home, helm.PlatformHelmHome, phelm.HelmPostFix))
+	env, err := GenerateHelmRepoEnvOnPath(fmt.Sprintf("%s-%s/%s", global.Config.Helm.Home, helm.PlatformHelmHome, phelm.HelmPostFix))
+	if err != nil {
+		log.Errorf("platform helm env setup failed err: %+v env: %+v", err, env)
+	}
+	return env
 }
 
 // DownloadChartFromRepo download a given chart

@@ -152,3 +152,55 @@ func Test_helm3EnvResolver_ResolveHelmEnv(t *testing.T) {
 		})
 	}
 }
+
+func Test_envResolver_ResolvePlatformEnv(t *testing.T) {
+	type fields struct {
+		helmHomesDir string
+		orgService   OrgService
+		logger       Logger
+	}
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    HelmEnv
+		wantErr bool
+	}{
+		{
+			name: "resolv the pipeline env",
+			fields: fields{
+				helmHomesDir: "testHomesDir",
+				orgService:   &MockOrgService{},
+				logger:       common.NoopLogger{},
+			},
+			args: args{
+				ctx: context.Background(),
+			},
+			want: HelmEnv{
+				home:     "testHomesDir-pipeline/helm",
+				platform: true,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			er := envResolver{
+				helmHomesDir: tt.fields.helmHomesDir,
+				orgService:   tt.fields.orgService,
+				logger:       tt.fields.logger,
+			}
+			got, err := er.ResolvePlatformEnv(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ResolvePlatformEnv() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ResolvePlatformEnv() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
