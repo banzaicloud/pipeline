@@ -61,6 +61,10 @@ type UpdateNodeGroupActivityInput struct {
 	NodeImage string
 }
 
+type UpdateNodeGroupActivityOutput struct {
+	NodePoolChanged bool
+}
+
 // NewUpdateNodeGroupActivity creates a new UpdateNodeGroupActivity instance.
 func NewUpdateNodeGroupActivity(sessionFactory AWSSessionFactory, cloudFormationTemplate string) UpdateNodeGroupActivity {
 	return UpdateNodeGroupActivity{
@@ -74,11 +78,11 @@ func (a UpdateNodeGroupActivity) Register() {
 	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: UpdateNodeGroupActivityName})
 }
 
-// Execute is the main body of the activity.
-func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGroupActivityInput) error {
+// Execute is the main body of the activity, returns true if there was any update and that was successful.
+func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGroupActivityInput) (UpdateNodeGroupActivityOutput, error) {
 	sess, err := a.sessionFactory.NewSession(input.SecretID, input.Region)
 	if err = errors.WrapIf(err, "failed to create AWS session"); err != nil { // internal error?
-		return err
+		return UpdateNodeGroupActivityOutput{}, err
 	}
 
 	cloudformationClient := cloudformation.New(sess)
@@ -185,9 +189,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 	_, err = cloudformationClient.UpdateStack(updateStackInput)
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ValidationError" && strings.HasPrefix(awsErr.Message(), awsNoUpdatesError) {
-			// Get error details
-			activity.GetLogger(ctx).Warn("nothing changed during update!")
-			return nil
+			return UpdateNodeGroupActivityOutput{}, nil
 		}
 
 		var awsErr awserr.Error
@@ -196,12 +198,12 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, activity.GetInfo(ctx).WorkflowExecution.ID, cloudformationClient)
 				err = errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
 				if pkgCloudformation.IsErrorFinal(err) {
-					return cadence.NewCustomError(ErrReasonStackFailed, err.Error())
+					return UpdateNodeGroupActivityOutput{}, cadence.NewCustomError(ErrReasonStackFailed, err.Error())
 				}
-				return errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
+				return UpdateNodeGroupActivityOutput{}, errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
 			}
 		}
 	}
 
-	return nil
+	return UpdateNodeGroupActivityOutput{NodePoolChanged: true}, nil
 }
