@@ -83,7 +83,7 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 			InitialInterval:          20 * time.Second,
 			BackoffCoefficient:       1.1,
 			MaximumAttempts:          10,
-			NonRetriableErrorReasons: []string{"cadenceInternal:Panic"},
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", ErrReasonStackFailed},
 		}
 
 		processEvent := process.NewProcessEvent(workflow.WithStartToCloseTimeout(ctx, 10*time.Minute), UpdateNodeGroupActivityName)

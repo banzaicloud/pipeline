@@ -75,7 +75,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 			BackoffCoefficient:       1.5,
 			MaximumInterval:          30 * time.Second,
 			MaximumAttempts:          5,
-			NonRetriableErrorReasons: []string{"cadenceInternal:Panic"},
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", eksWorkflow.ErrReasonStackFailed},
 		},
 	}
 
@@ -89,7 +89,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 			BackoffCoefficient:       1.5,
 			MaximumInterval:          30 * time.Second,
 			MaximumAttempts:          5,
-			NonRetriableErrorReasons: []string{"cadenceInternal:Panic"},
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", eksWorkflow.ErrReasonStackFailed},
 		},
 	}
 
