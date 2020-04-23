@@ -33,11 +33,11 @@ type UpdateNodePoolWorkflowInput struct {
 
 	StackName string
 
-	OrganizationID uint
-	ClusterID      uint
-	KubeSecretID   string
-	ClusterName    string
-	NodePoolName   string
+	OrganizationID  uint
+	ClusterID       uint
+	ClusterSecretID string
+	ClusterName     string
+	NodePoolName    string
 
 	NodeImage string
 }
