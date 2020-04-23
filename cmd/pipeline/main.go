@@ -593,7 +593,6 @@ func main() {
 	enforcer := auth.NewRbacEnforcer(organizationStore, serviceAccountService, commonLogger)
 	authorizationMiddleware := ginauth.NewMiddleware(enforcer, basePath, errorHandler)
 
-	dashboardAPI := dashboard.NewDashboardAPI(clusterManager, clusterGroupManager, logrusLogger, errorHandler)
 	clusterSecretStore := clustersecret.NewStore(
 		clustersecretadapter.NewClusterManagerAdapter(clusterManager),
 		clustersecretadapter.NewSecretStore(secret.Store),
@@ -601,6 +600,8 @@ func main() {
 
 	clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
 	emperror.Panic(errors.WrapIf(err, "failed to create DexClusterAuthService"))
+
+	dashboardAPI := dashboard.NewDashboardAPI(clusterManager, clusterGroupManager, logrusLogger, errorHandler, config.Auth, clusterAuthService)
 	dgroup := base.Group(path.Join("dashboard", "orgs"))
 	dgroup.Use(auth.InternalHandler)
 	dgroup.Use(auth.Handler)
