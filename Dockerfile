@@ -16,6 +16,7 @@ RUN mkdir -p /build
 WORKDIR /build
 
 COPY go.* /build/
+COPY pkg/sdk/go.* /build/pkg/sdk/
 RUN go mod download
 
 ARG VERSION
