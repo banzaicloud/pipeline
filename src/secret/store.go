@@ -366,12 +366,7 @@ func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretItemRes
 func (ss *secretStore) GetByName(organizationID uint, name string) (*SecretItemResponse, error) {
 	secretID := GenerateSecretIDFromName(name)
 
-	secret, err := ss.Get(organizationID, secretID)
-	if err != nil {
-		return nil, ErrSecretNotExists
-	}
-
-	return secret, nil
+	return ss.Get(organizationID, secretID)
 }
 
 // List secret secret/orgs/:orgid:/ scope

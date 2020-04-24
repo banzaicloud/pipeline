@@ -37,7 +37,7 @@ require (
 	github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4
 	github.com/banzaicloud/logging-operator/pkg/sdk v0.1.1
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
-	github.com/banzaicloud/pipeline-sdk v0.0.6
+	github.com/banzaicloud/pipeline/pkg/sdk v0.0.1
 	github.com/coreos/go-oidc v2.1.0+incompatible
 	github.com/denisenkom/go-mssqldb v0.0.0-20200206145737-bbfc9a55622e // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -95,15 +95,15 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.1
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
 	github.com/vmware/govmomi v0.22.0
 	go.opencensus.io v0.22.2
 	go.uber.org/cadence v0.9.0
-	go.uber.org/yarpc v1.44.0
+	go.uber.org/yarpc v1.45.0
 	go.uber.org/zap v1.14.1
 	golang.org/x/crypto v0.0.0-20200128174031-69ecbb4d6d5d
-	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
+	golang.org/x/net v0.0.0-20200421231249-e086a090c8fd
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.15.0
 	google.golang.org/genproto v0.0.0-20200212174721-66ed5ce911ce
@@ -139,6 +139,7 @@ replace (
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.4.2
 	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08
 	github.com/baiyubin/aliyun-sts-go-sdk => github.com/banzaicloud/aliyun-sts-go-sdk v0.0.0-20191023142834-57827dd1486a
+	github.com/banzaicloud/pipeline/pkg/sdk => ./pkg/sdk
 
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
 	github.com/qor/auth => github.com/banzaicloud/auth v0.1.3
