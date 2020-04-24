@@ -484,18 +484,23 @@ func encodeGetReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter, re
 func decodeListReleasesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	orgID, err := extractUintParamFromRequest("orgId", r)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to decode delete release request")
+		return nil, errors.WrapIf(err, "failed to decode list release request")
 	}
 
 	clusterID, err := extractUintParamFromRequest("clusterId", r)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to decode delete release request")
+		return nil, errors.WrapIf(err, "failed to decode list release request")
+	}
+
+	var releaseFilter helm.ReleaseFilter
+	if err := mapstructure.Decode(mux.Vars(r), &releaseFilter); err != nil {
+		return nil, errors.WrapIf(err, "failed to decode list release request")
 	}
 
 	return ListReleasesRequest{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
-		Filters:        nil,
+		Filters:        releaseFilter,
 	}, nil
 }
 

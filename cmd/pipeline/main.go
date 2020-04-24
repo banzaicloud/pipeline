@@ -765,7 +765,9 @@ func main() {
 				}
 
 				cRouter.GET("/images", api.ListImages)
-				cRouter.GET("/images/:imageDigest/deployments", api.GetImageDeployments)
+
+				imageDeploymentHandler := api.NewImageDeploymentsHandler(api.NewHelm2ReleaseLister(cs), cs, logger)
+				cRouter.GET("/images/:imageDigest/deployments", imageDeploymentHandler.GetImageDeployments)
 				cRouter.GET("/deployments/:name/images", api.GetDeploymentImages)
 
 				{
