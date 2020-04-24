@@ -4200,6 +4200,9 @@ components:
                 secretId:
                     description: "ID of the secret containing the username and password for the proxy"
                     type: string
+                scheme:
+                    description: "Scheme of the proxy"
+                    type: string
 
         CreatePKEOnAzureClusterRequest:
             allOf:

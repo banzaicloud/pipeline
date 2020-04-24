@@ -142,6 +142,7 @@ type httpProxyOptionsModel struct {
 	Host     string `json:"host"`
 	Port     uint16 `json:"port,omitempty"`
 	SecretID string `json:"secretId,omitempty"`
+	Scheme   string `json:"scheme,omitempty"`
 }
 
 func (m *httpProxyOptionsModel) fromEntity(e intPKE.HTTPProxyOptions) {
@@ -155,6 +156,7 @@ func (m httpProxyOptionsModel) toEntity() intPKE.HTTPProxyOptions {
 		Host:     m.Host,
 		Port:     m.Port,
 		SecretID: m.SecretID,
+		Scheme:   m.Scheme,
 	}
 }
 

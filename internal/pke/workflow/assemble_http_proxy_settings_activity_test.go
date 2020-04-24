@@ -51,9 +51,11 @@ func TestAssembleHTTPProxySettings(t *testing.T) {
 			Input: AssembleHTTPProxySettingsActivityInput{
 				OrganizationID:     orgID,
 				HTTPProxyHostPort:  "http-proxy.org:1234",
+				HTTPProxyScheme:    "http",
 				HTTPProxySecretID:  httpSecretID,
 				HTTPSProxyHostPort: "https-proxy.org:2345",
 				HTTPSProxySecretID: httpsSecretID,
+				HTTPSProxyScheme:   "https",
 			},
 			Output: HTTPProxy{
 				HTTPProxyURL:  "http://http-username:http-password@http-proxy.org:1234",
@@ -96,6 +98,17 @@ func TestAssembleHTTPProxySettings(t *testing.T) {
 			},
 			Output: HTTPProxy{
 				HTTPSProxyURL: "https://https-proxy.org:2345",
+			},
+		},
+		"https with http scheme": {
+			Input: AssembleHTTPProxySettingsActivityInput{
+				OrganizationID:     orgID,
+				HTTPSProxyHostPort: "https-proxy.org:2345",
+				HTTPSProxySecretID: httpsSecretID,
+				HTTPSProxyScheme:   "http",
+			},
+			Output: HTTPProxy{
+				HTTPSProxyURL: "http://https-username:https-password@https-proxy.org:2345",
 			},
 		},
 		"empty": {
