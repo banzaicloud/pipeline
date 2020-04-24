@@ -255,11 +255,11 @@ func (_m *MockService) ListCharts(ctx context.Context, organizationID uint, filt
 }
 
 // ListReleases provides a mock function.
-func (_m *MockService) ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters interface{}, options Options) ([]Release, error) {
+func (_m *MockService) ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters ReleaseFilter, options Options) ([]Release, error) {
 	ret := _m.Called(ctx, organizationID, clusterID, filters, options)
 
 	var r0 []Release
-	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, interface{}, Options) []Release); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, ReleaseFilter, Options) []Release); ok {
 		r0 = rf(ctx, organizationID, clusterID, filters, options)
 	} else {
 		if ret.Get(0) != nil {
@@ -268,7 +268,7 @@ func (_m *MockService) ListReleases(ctx context.Context, organizationID uint, cl
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, interface{}, Options) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, ReleaseFilter, Options) error); ok {
 		r1 = rf(ctx, organizationID, clusterID, filters, options)
 	} else {
 		r1 = ret.Error(1)
