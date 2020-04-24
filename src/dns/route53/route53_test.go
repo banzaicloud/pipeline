@@ -15,19 +15,23 @@
 package route53
 
 import (
+	"flag"
 	"fmt"
+	"os"
 	"reflect"
+	"regexp"
 	"testing"
 	"time"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/route53/route53iface"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
-	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -41,11 +45,18 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-func init() {
-	global.Config.Cluster.DNS.BaseDomain = "example.org"
-}
+func TestIntegration(t *testing.T) {
+	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
+		t.Skip("skipping as execution was not requested explicitly using go test -run")
+	}
 
-func init() {
+	vaultAddr := os.Getenv("VAULT_ADDR")
+	if vaultAddr == "" {
+		t.Skip("skipping as VAULT_ADDR is not explicitly defined")
+	}
+
+	global.Config.Cluster.DNS.BaseDomain = "example.org"
+
 	vaultClient, err := vault.NewClient("pipeline")
 	emperror.Panic(err)
 	global.SetVault(vaultClient)
@@ -58,6 +69,13 @@ func init() {
 	})
 	secret.InitSecretStore(secretStore, secretTypes)
 	restricted.InitSecretStore(secret.Store)
+
+	t.Run("testNameServerMatch", testNameServerMatch)
+	t.Run("testAwsRoute53RegisterDomain", testAwsRoute53RegisterDomain)
+	t.Run("testAwsRoute53RegisterDomainFail", testAwsRoute53RegisterDomainFail)
+	t.Run("testAwsRoute53RegisterDomainRerun", testAwsRoute53RegisterDomainRerun)
+	t.Run("testAwsRoute53UnregisterDomain", testAwsRoute53UnregisterDomain)
+	t.Run("testAwsRoute53Cleanup", testAwsRoute53Cleanup)
 }
 
 const (
@@ -690,7 +708,7 @@ func (*mockIamSvcWithCreateAccessKeyFailing) CreateAccessKey(*iam.CreateAccessKe
 	return nil, errors.New(testSomeErrMsg)
 }
 
-func TestAwsRoute53_RegisterDomain(t *testing.T) {
+func testAwsRoute53RegisterDomain(t *testing.T) {
 	stateStore := &inMemoryStateStore{
 		orgDomains: make(map[string]*domainState),
 	}
@@ -747,7 +765,7 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 	}
 }
 
-func TestAwsRoute53_RegisterDomain_Fail(t *testing.T) {
+func testAwsRoute53RegisterDomainFail(t *testing.T) {
 	route53Svc := &mockRoute53Svc{}
 	route53SvcWithCreateHostedZoneFailing := &mockRoute53SvcWithCreateHostedZoneFailing{}
 	iamSvcWithCreatePolicyFailing := &mockIamSvcWithCreatePolicyFailing{}
@@ -884,7 +902,7 @@ func TestAwsRoute53_RegisterDomain_Fail(t *testing.T) {
 	}
 }
 
-func TestAwsRoute53_UnregisterDomain(t *testing.T) {
+func testAwsRoute53UnregisterDomain(t *testing.T) {
 	key := stateKey(testOrgId, testDomain)
 
 	stateStore := &inMemoryStateStore{
@@ -937,7 +955,7 @@ func TestAwsRoute53_UnregisterDomain(t *testing.T) {
 	cleanupVaultTestSecrets()
 }
 
-func TestAwsRoute53_Cleanup(t *testing.T) {
+func testAwsRoute53Cleanup(t *testing.T) {
 	key := stateKey(testOrgId, testDomain)
 
 	route53Svc := &mockRoute53Svc{testCaseName: tcCleanup}
@@ -1046,7 +1064,7 @@ func TestAwsRoute53_Cleanup(t *testing.T) {
 	}
 }
 
-func TestAwsRoute53_RegisterDomainRerun(t *testing.T) {
+func testAwsRoute53RegisterDomainRerun(t *testing.T) {
 	key := stateKey(testOrgId, testDomain)
 
 	tests := []struct {
@@ -1101,7 +1119,7 @@ func TestAwsRoute53_RegisterDomainRerun(t *testing.T) {
 	}
 }
 
-func Test_nameServerMatch(t *testing.T) {
+func testNameServerMatch(t *testing.T) {
 	tests := []struct {
 		name     string
 		ds       *route53.DelegationSet
