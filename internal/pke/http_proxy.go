@@ -26,4 +26,5 @@ type HTTPProxyOptions struct {
 	Host     string
 	Port     uint16
 	SecretID string
+	Scheme   string
 }

@@ -46,8 +46,10 @@ type AssembleHTTPProxySettingsActivityInput struct {
 	OrganizationID     uint
 	HTTPProxyHostPort  string
 	HTTPProxySecretID  string
+	HTTPProxyScheme    string
 	HTTPSProxyHostPort string
 	HTTPSProxySecretID string
+	HTTPSProxyScheme   string
 }
 
 type AssembleHTTPProxySettingsActivityOutput struct {
@@ -63,12 +65,20 @@ func (a AssembleHTTPProxySettingsActivity) Execute(
 	ctx context.Context,
 	input AssembleHTTPProxySettingsActivityInput,
 ) (output AssembleHTTPProxySettingsActivityOutput, err error) {
-	output.Settings.HTTPProxyURL, err = a.assembleProxyURL(ctx, "http", input.HTTPProxyHostPort, input.OrganizationID, input.HTTPProxySecretID)
+	var httpScheme = input.HTTPProxyScheme
+	if httpScheme == "" {
+		httpScheme = "http"
+	}
+	output.Settings.HTTPProxyURL, err = a.assembleProxyURL(ctx, httpScheme, input.HTTPProxyHostPort, input.OrganizationID, input.HTTPProxySecretID)
 	if err != nil {
 		return
 	}
 
-	output.Settings.HTTPSProxyURL, err = a.assembleProxyURL(ctx, "https", input.HTTPSProxyHostPort, input.OrganizationID, input.HTTPSProxySecretID)
+	var httpsScheme = input.HTTPSProxyScheme
+	if httpsScheme == "" {
+		httpsScheme = "https"
+	}
+	output.Settings.HTTPSProxyURL, err = a.assembleProxyURL(ctx, httpsScheme, input.HTTPSProxyHostPort, input.OrganizationID, input.HTTPSProxySecretID)
 	if err != nil {
 		return
 	}
