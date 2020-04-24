@@ -42,7 +42,7 @@ func TestCreateNodeActivity_GenerateVMConfig(t *testing.T) {
 				"KubernetesVersion":    "1.15.3",
 				"NodePoolName":         "pool1",
 				"OrgID":                "2",
-				"PKEVersion":           "0.4.25",
+				"PKEVersion":           "0.4.26",
 				"PipelineToken":        "###token###",
 				"PipelineURL":          "https://externalAddress/pipeline",
 				"PipelineURLInsecure":  "false",
@@ -62,7 +62,7 @@ func TestCreateNodeActivity_GenerateVMConfig(t *testing.T) {
 	expectedConfig := map[string]string{
 		"disk.enableUUID":                        "true",
 		"guestinfo.userdata.encoding":            "gzip+base64",
-		"guestinfo.userdata":                     "H4sIAAAAAAAA/3yTb0/7NhDHn+dV3BIe/NDkhLTQ0WyZFv5MMEWlQLUNCQm58ZWaurY524VWvPifUkCgFvGglc/fz50uvu8ljTJBsMboibyPJo9CF7CYP3FC5tF51useMmuMytleHk2N85rP8RvEEjqkBd59sBOuHEYUdDMXRcTghUUAyS/ZWOrMTdszPltDHs5Go+Hd8Ori/5sy/kMbWHAV8M94g7j+HhlcfKVHAEF7qaAJpIAtYOq9dUWWjblecbl+hLQx80yYJ60MFy6zM2x/bC/dTzsHwAxkwVGmTMPVunc7w99BGHAK0UK+1wYaI4BmOjcCfn3+IiECeOtzWI3Oyp32v9jA2maHV+f/VqPTu/NhufPj/SmBncMLNMEDEzHEwCaQ77a0nSFI7TxXCp4MzZCAMSstKqmRBVJl/P69+OyRNFeVEITOZe9UDLcRfM6S2mETCMt4Pb8t3ZsZ6jJOkmR9SpJkCzF0z6QoO5v3jQrOI621Xn9T1UZga6dy7ak31XOpvSvfolkYI2n06NirfS2ZhRRI5cLZKRJuc9xKtjYmlXm/k+a9w7TbTTv9ore/393GpZ4Qd55C4wMha6SgcudjKFm3s52zQHLS6DJP84P0i5rWCKbRtwN6LRjHUXBIrl2K11X55MYIwLkp48FPDckVCjbDpSvaohC3CjkOVVVVR93Bih/ny6Zz2oYn1WV11F5Xl8fN+GE11u7v2nqU90qK2tzo5W+u3715OHo86Jt/TgegDSO0avnXxirArW73ygVhCqjquvxR1fUuDC6G1fX1fydFVdfRzwAAAP//SnRQZT4EAAA=",
+		"guestinfo.userdata":                     "H4sIAAAAAAAA/3yTb0/7NhDHn+dV3BIe/NDkhLTQ0WyZFv5MMEWlQLUNCQm58ZWaurY524VWvPifUkCgFvGglc/fz50uvu8ljTJBsMboibyPJo9CF7CYP3FC5tF51useMmuMytleHk2N85rP8RvEEjqkBd59sBOuHEYUdDMXRcTghUUAyS/ZWOrMTdszPltDHs5Go+Hd8Ori/5sy/kMbWHAV8M94g7j+HhlcfKVHAEF7qaAJpIAtYOq9dUWWjblecbl+hLQx80yYJ60MFy6zM2x/bC/dTzs9YAay4ChTpuFq3bud4e8gDDiFaCHfawONEUAznRsBvz5/kRABvPU5rEZn5U77X2xgbbPDq/N/q9Hp3fmw3Pnx/pTAzuEFmuCBiRhiYBPId1vazhCkdp4rBU+GZkjAmJUWldTIAqkyfv9efPZImqtKCELnsncqhtsIPmdJ7bAJhGW8nt+W7s0MdRknSbI+JUmyhRi6Z1KUnc37RgXnkdZar7+paiOwtVO59tSb6rnU3pVv0SyMkTR6dOzVvpbMQgqkcuHsFAm3OW4lWxuTyrzfSfPeYdrtpp1+0dvf727jUk+IO0+h8YGQNVJQufMxlKzb2c5ZIDlpdJmn+UH6RU1rBNPo2wG9FozjKDgk1y7F66p8cmME4NyU8eCnhuQKBZvh0hVtUYhbhRyHqqqqo+5gxY/zZdM5bcOT6rI6aq+ry+Nm/LAaa/d3bT3KeyVFbW708jfX7948HD0e9M0/pwPQhhFatfxrYxXgVrd75YIwBVR1Xf6o6noXBhfD6vr6v5OiquvoZwAAAP//9s3hwz4EAAA=",
 		"guestinfo.banzaicloud-pipeline-managed": "true",
 		"guestinfo.banzaicloud-cluster":          "vmware-test-638-pool1-01",
 		"guestinfo.banzaicloud-nodepool":         "pool1",
