@@ -464,7 +464,7 @@ func main() {
 		),
 		PKEOnVsphere: vspherePKEDriver.MakeVspherePKEClusterCreator(
 			commonLogger,
-			vspherePKEDriver.ClusterCreatorConfig{
+			vspherePKEDriver.ClusterConfig{
 				OIDCIssuerURL:               config.Auth.OIDC.Issuer,
 				PipelineExternalURL:         externalBaseURL,
 				PipelineExternalURLInsecure: externalURLInsecure,
@@ -496,6 +496,18 @@ func main() {
 		),
 		EKSAmazon: eksDriver.NewEksClusterUpdater(
 			logrusLogger,
+			workflowClient,
+		),
+		PKEOnVsphere: vspherePKEDriver.MakeClusterUpdater(
+			commonLogger,
+			vspherePKEDriver.ClusterConfig{
+				OIDCIssuerURL:               config.Auth.OIDC.Issuer,
+				PipelineExternalURL:         externalBaseURL,
+				PipelineExternalURLInsecure: externalURLInsecure,
+			},
+			authdriver.NewOrganizationGetter(db),
+			secret.Store,
+			gormVspherePKEClusterStore,
 			workflowClient,
 		),
 	}

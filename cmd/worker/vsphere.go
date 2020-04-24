@@ -42,4 +42,9 @@ func registerVsphereWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerato
 
 	deleteClusterFromStoreActivity := vsphereworkflow.MakeDeleteClusterFromStoreActivity(store)
 	activity.RegisterWithOptions(deleteClusterFromStoreActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.DeleteClusterFromStoreActivityName})
+
+	workflow.RegisterWithOptions(vsphereworkflow.UpdateClusterWorkflow, workflow.RegisterOptions{Name: vsphereworkflow.UpdateClusterWorkflowName})
+
+	getPublicAddressActivity := vsphereworkflow.MakeGetPublicAddressActivity(vsphereClientFactory)
+	activity.RegisterWithOptions(getPublicAddressActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.GetPublicAddressActivityName})
 }

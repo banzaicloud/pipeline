@@ -18962,11 +18962,19 @@ components:
     UpdateClusterRequestV2:
       oneOf:
       - $ref: '#/components/schemas/UpdatePKEOnAzureClusterRequest'
+      - $ref: '#/components/schemas/UpdatePKEOnVsphereClusterRequest'
     UpdatePKEOnAzureClusterRequest:
       properties:
         nodepools:
           items:
             $ref: '#/components/schemas/PKEOnAzureNodePool'
+          type: array
+      type: object
+    UpdatePKEOnVsphereClusterRequest:
+      properties:
+        nodePools:
+          items:
+            $ref: '#/components/schemas/PKEOnVsphereNodePool'
           type: array
       type: object
     UpdateClusterRequest:

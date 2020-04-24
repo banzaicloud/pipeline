@@ -5043,6 +5043,7 @@ components:
         UpdateClusterRequestV2:
             oneOf:
                 - $ref: '#/components/schemas/UpdatePKEOnAzureClusterRequest'
+                - $ref: '#/components/schemas/UpdatePKEOnVsphereClusterRequest'
 
         UpdatePKEOnAzureClusterRequest:
             type: object
@@ -5051,6 +5052,14 @@ components:
                     type: array
                     items:
                       $ref: '#/components/schemas/PKEOnAzureNodePool'
+
+        UpdatePKEOnVsphereClusterRequest:
+            type: object
+            properties:
+                nodePools:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PKEOnVsphereNodePool'
 
         UpdateClusterRequest:
             type: object

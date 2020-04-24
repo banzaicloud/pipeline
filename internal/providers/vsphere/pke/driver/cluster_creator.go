@@ -42,7 +42,7 @@ const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectN
 
 func MakeVspherePKEClusterCreator(
 	logger Logger,
-	config ClusterCreatorConfig,
+	config ClusterConfig,
 	k8sPreparer intPKE.KubernetesPreparer,
 	organizations OrganizationStore,
 	secrets ClusterCreatorSecretStore,
@@ -63,7 +63,7 @@ func MakeVspherePKEClusterCreator(
 // VspherePKEClusterCreator creates new PKE-on-Vsphere clusters
 type VspherePKEClusterCreator struct {
 	logger           Logger
-	config           ClusterCreatorConfig
+	config           ClusterConfig
 	creationPreparer VspherePKEClusterCreationParamsPreparer
 	organizations    OrganizationStore
 	secrets          ClusterCreatorSecretStore
@@ -81,7 +81,7 @@ type ClusterCreatorSecretStore interface {
 	GetByName(organizationID uint, secretName string) (*secret.SecretItemResponse, error)
 }
 
-type ClusterCreatorConfig struct {
+type ClusterConfig struct {
 	OIDCIssuerURL               string
 	PipelineExternalURL         string
 	PipelineExternalURLInsecure bool
@@ -115,9 +115,11 @@ func (np NodePool) hasRole(role pkgPKE.Role) bool {
 func (np NodePool) toPke() (pnp pke.NodePool) {
 	pnp.Size = np.Size
 	pnp.VCPU = np.VCPU
-	pnp.Ram = np.RAM
+	pnp.RAM = np.RAM
 	pnp.Name = np.Name
 	pnp.Roles = np.Roles
+	pnp.AdminUsername = np.AdminUsername
+	pnp.TemplateName = np.TemplateName
 	return
 }
 
@@ -166,7 +168,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 			Roles:     np.Roles,
 			Size:      np.Size,
 			VCPU:      np.VCPU,
-			Ram:       np.RAM,
+			RAM:       np.RAM,
 		}
 	}
 	createParams := pke.CreateParams{
@@ -217,13 +219,13 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 	}
 
 	var nodes []workflow.Node
-	for _, np := range params.NodePools {
+	for _, np := range cl.NodePools {
 		for i := 1; i <= np.Size; i++ {
 			nodes = append(nodes, tf.getNode(np, i))
 		}
 	}
 
-	org, err := cc.organizations.Get(ctx, params.OrganizationID)
+	org, err := cc.organizations.Get(ctx, cl.OrganizationID)
 	if err != nil {
 		return cl, errors.WrapIf(err, "failed to get organization")
 	}
@@ -243,7 +245,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 				NodePoolName: np.Name,
 				Existing:     false,
 				//TODO setup instance name, memory, vcpu
-				InstanceType: np.TemplateName,
+				InstanceType: np.InstanceType(),
 				CustomLabels: np.Labels,
 			})
 		}
@@ -259,10 +261,10 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 		ClusterID:        cl.ID,
 		ClusterName:      cl.Name,
 		ClusterUID:       cl.UID,
-		OrganizationID:   org.ID,
+		OrganizationID:   cl.OrganizationID,
 		OrganizationName: org.Name,
-		SecretID:         params.SecretID,
-		StorageSecretID:  params.StorageSecretID,
+		SecretID:         cl.SecretID,
+		StorageSecretID:  cl.StorageSecretID,
 		OIDCEnabled:      cl.Kubernetes.OIDC.Enabled,
 		Nodes:            nodes,
 		HTTPProxy:        cl.HTTPProxy,
