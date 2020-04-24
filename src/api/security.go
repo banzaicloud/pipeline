@@ -115,8 +115,9 @@ type imageDeploymentsHandler struct {
 
 func NewImageDeploymentsHandler(releaseLister ReleaseLister, clusterService ClusterService, logger internalCommon.Logger) imageDeploymentsHandler {
 	return imageDeploymentsHandler{
-		releaseLister: releaseLister,
-		logger:        logger,
+		releaseLister:  releaseLister,
+		clusterService: clusterService,
+		logger:         logger,
 	}
 }
 
