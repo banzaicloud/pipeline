@@ -100,7 +100,7 @@ var (
 	}
 )
 
-func TestACKClusterStatus(t *testing.T) {
+func testACKClusterStatus(t *testing.T) {
 	testCases := []struct {
 		name           string
 		model          *model.ClusterModel
