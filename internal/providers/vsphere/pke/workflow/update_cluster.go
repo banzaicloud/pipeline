@@ -45,7 +45,6 @@ type UpdateClusterWorkflowInput struct {
 	StorageSecretID  string
 	K8sSecretID      string
 	OIDCEnabled      bool
-	PostHooks        pkgCluster.PostHooks
 	MasterNodeNames  []string
 	NodesToCreate    []Node
 	NodesToDelete    []Node
@@ -151,32 +150,66 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
+	}
 
-		// Delete nodes
-		{
-			for _, node := range input.NodesToDelete {
-				activityInput := DeleteNodeActivityInput{
-					OrganizationID: input.OrganizationID,
-					SecretID:       input.SecretID,
-					ClusterID:      input.ClusterID,
-					ClusterName:    input.ClusterName,
-					Node:           node,
-				}
+	// Delete k8s nodes
+	{
+		futures := make(map[string]workflow.Future)
 
-				err := workflow.ExecuteActivity(ctx, DeleteNodeActivityName, activityInput).Get(ctx, nil)
-				if err != nil {
-					e := errors.WrapIff(err, "deleting node %q", node.Name)
-					_ = setClusterErrorStatus(ctx, input.ClusterID, e)
-					return e
-				}
+		for _, node := range input.NodesToDelete {
+			activityInput := DeleteK8sNodeActivityInput{
+				OrganizationID: input.OrganizationID,
+				ClusterName:    input.ClusterName,
+				Name:           node.Name,
 			}
+
+			futures[node.Name] = workflow.ExecuteActivity(ctx, DeleteK8sNodeActivityName, activityInput)
 		}
 
-		err = setClusterStatus(ctx, input.ClusterID, pkgCluster.Running, pkgCluster.RunningMessage)
-		if err != nil {
+		errs := []error{}
+
+		for i := range futures {
+			errs = append(errs, errors.WrapIff(futures[i].Get(ctx, nil), "deleting kubernetes node %q", i))
+		}
+
+		if err := errors.Combine(errs...); err != nil {
 			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
+	}
+
+	// Delete VM's
+	{
+		futures := make(map[string]workflow.Future)
+
+		for _, node := range input.NodesToDelete {
+			activityInput := DeleteNodeActivityInput{
+				OrganizationID: input.OrganizationID,
+				SecretID:       input.SecretID,
+				ClusterID:      input.ClusterID,
+				ClusterName:    input.ClusterName,
+				Node:           node,
+			}
+
+			futures[node.Name] = workflow.ExecuteActivity(ctx, DeleteNodeActivityName, activityInput)
+		}
+
+		errs := []error{}
+
+		for i := range futures {
+			errs = append(errs, errors.WrapIff(futures[i].Get(ctx, nil), "deleting node %q", i))
+		}
+
+		if err := errors.Combine(errs...); err != nil {
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
+			return err
+		}
+	}
+
+	err = setClusterStatus(ctx, input.ClusterID, pkgCluster.Running, pkgCluster.RunningMessage)
+	if err != nil {
+		_ = setClusterErrorStatus(ctx, input.ClusterID, err)
+		return err
 	}
 
 	return nil

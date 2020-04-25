@@ -92,7 +92,6 @@ func (cu ClusterUpdater) Update(ctx context.Context, params VspherePKEClusterUpd
 		return errors.WrapIf(err, "failed to get cluster by ID")
 	}
 
-
 	nodePoolsToCreate, nodePoolsToUpdate, nodePoolsToDelete := sortNodePools(params.NodePools, cluster.NodePools)
 	var nodePoolLabels []pipCluster.NodePoolLabels
 
@@ -218,7 +217,7 @@ func (cu ClusterUpdater) Update(ctx context.Context, params VspherePKEClusterUpd
 		return errors.WrapIf(err, "failed to get organization")
 	}
 
-	labelsMap := make(map[string]map[string]string)
+	var labelsMap map[string]map[string]string
 	{
 		commonCluster, err := commoncluster.MakeCommonClusterGetter(cu.secrets, cu.store).GetByID(cluster.ID)
 		if err != nil {

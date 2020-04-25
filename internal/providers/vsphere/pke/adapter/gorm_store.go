@@ -280,7 +280,7 @@ func (s gormVspherePKEClusterStore) UpdateNodePoolSize(clusterID uint, nodePoolN
 		return err
 	}
 	fields := map[string]interface{}{
-		"size":        size,
+		"size": size,
 	}
 
 	return getError(s.db.Model(&model).Updates(fields), "failed to update model in database")

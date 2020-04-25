@@ -18,13 +18,15 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
+	"github.com/banzaicloud/pipeline/internal/secret/kubesecret"
+
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	vsphereworkflow "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/workflow"
 )
 
-func registerVsphereWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator pkeworkflowadapter.TokenGenerator, store pke.ClusterStore) {
+func registerVsphereWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator pkeworkflowadapter.TokenGenerator, store pke.ClusterStore, kubeSecretStore kubesecret.KubeSecretStore) {
 	workflow.RegisterWithOptions(vsphereworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: vsphereworkflow.CreateClusterWorkflowName})
 
 	vsphereClientFactory := vsphereworkflow.NewVMOMIClientFactory(secretStore)
@@ -47,4 +49,7 @@ func registerVsphereWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerato
 
 	getPublicAddressActivity := vsphereworkflow.MakeGetPublicAddressActivity(vsphereClientFactory)
 	activity.RegisterWithOptions(getPublicAddressActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.GetPublicAddressActivityName})
+
+	deleteK8sNodeActivity := vsphereworkflow.MakeDeleteK8sNodeActivity(kubeSecretStore)
+	activity.RegisterWithOptions(deleteK8sNodeActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.DeleteK8sNodeActivityName})
 }
