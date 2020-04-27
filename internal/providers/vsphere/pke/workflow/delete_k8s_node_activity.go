@@ -18,6 +18,9 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+
+	"go.uber.org/cadence/activity"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -47,6 +50,12 @@ func MakeDeleteK8sNodeActivity(k8sConfigGetter K8sConfigGetter) DeleteK8sNodeAct
 }
 
 func (a DeleteK8sNodeActivity) Execute(ctx context.Context, input DeleteK8sNodeActivityInput) error {
+	logger := activity.GetLogger(ctx).Sugar().With(
+		"organization", input.OrganizationID,
+		"cluster", input.ClusterName,
+		"node", input.Name,
+	)
+
 	k8sConfig, err := a.k8sConfigGetter.Get(input.OrganizationID, input.K8sSecretID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to get k8s config")
@@ -55,6 +64,12 @@ func (a DeleteK8sNodeActivity) Execute(ctx context.Context, input DeleteK8sNodeA
 	client, err := k8sclient.NewClientFromKubeConfig(k8sConfig)
 	if err != nil {
 		return err
+	}
+
+	_, err = client.CoreV1().Nodes().Get(input.Name, metav1.GetOptions{})
+	if k8serrors.IsNotFound(err) {
+		logger.Info("node already deleted from Kubernetes")
+		return nil
 	}
 
 	err = client.CoreV1().Nodes().Delete(input.Name, &metav1.DeleteOptions{})

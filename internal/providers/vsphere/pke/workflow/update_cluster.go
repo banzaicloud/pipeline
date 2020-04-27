@@ -33,23 +33,24 @@ const UpdateClusterWorkflowName = "pke-vsphere-update-cluster"
 
 // UpdateClusterWorkflowInput
 type UpdateClusterWorkflowInput struct {
-	ClusterID        uint
-	ClusterName      string
-	ClusterUID       string
-	OrganizationID   uint
-	OrganizationName string
-	ResourcePoolName string
-	FolderName       string
-	DatastoreName    string
-	SecretID         string
-	StorageSecretID  string
-	K8sSecretID      string
-	OIDCEnabled      bool
-	MasterNodeNames  []string
-	NodesToCreate    []Node
-	NodesToDelete    []Node
-	HTTPProxy        intPKE.HTTPProxy
-	NodePoolLabels   map[string]map[string]string
+	ClusterID         uint
+	ClusterName       string
+	ClusterUID        string
+	OrganizationID    uint
+	OrganizationName  string
+	ResourcePoolName  string
+	FolderName        string
+	DatastoreName     string
+	SecretID          string
+	StorageSecretID   string
+	K8sSecretID       string
+	OIDCEnabled       bool
+	MasterNodeNames   []string
+	NodesToCreate     []Node
+	NodesToDelete     []Node
+	NodePoolsToDelete []NodePool
+	HTTPProxy         intPKE.HTTPProxy
+	NodePoolLabels    map[string]map[string]string
 }
 
 func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInput) error {
@@ -201,6 +202,32 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			errs = append(errs, errors.WrapIff(futures[i].Get(ctx, nil), "deleting node %q", i))
 		}
 
+		if err := errors.Combine(errs...); err != nil {
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
+			return err
+		}
+	}
+
+	// Delete node pools
+	if len(input.NodePoolsToDelete) > 0 {
+		futures := make(map[string]workflow.Future)
+		for _, np := range input.NodePoolsToDelete {
+			workflowInput := DeleteNodePoolWorkflowInput{
+				ClusterID:      input.ClusterID,
+				ClusterName:    input.ClusterName,
+				OrganizationID: input.OrganizationID,
+				SecretID:       input.SecretID,
+				K8sSecretID:    input.K8sSecretID,
+				NodePool:       np,
+			}
+
+			futures[np.Name] = workflow.ExecuteChildWorkflow(ctx, DeleteNodePoolWorkflowName, workflowInput)
+		}
+
+		errs := []error{}
+		for i := range futures {
+			errs = append(errs, errors.WrapIff(futures[i].Get(ctx, nil), "deleting node pool %q", i))
+		}
 		if err := errors.Combine(errs...); err != nil {
 			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err

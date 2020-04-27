@@ -47,9 +47,14 @@ func registerVsphereWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerato
 
 	workflow.RegisterWithOptions(vsphereworkflow.UpdateClusterWorkflow, workflow.RegisterOptions{Name: vsphereworkflow.UpdateClusterWorkflowName})
 
+	workflow.RegisterWithOptions(vsphereworkflow.DeleteNodePoolWorkflow, workflow.RegisterOptions{Name: vsphereworkflow.DeleteNodePoolWorkflowName})
+
 	getPublicAddressActivity := vsphereworkflow.MakeGetPublicAddressActivity(vsphereClientFactory)
 	activity.RegisterWithOptions(getPublicAddressActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.GetPublicAddressActivityName})
 
 	deleteK8sNodeActivity := vsphereworkflow.MakeDeleteK8sNodeActivity(kubeSecretStore)
 	activity.RegisterWithOptions(deleteK8sNodeActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.DeleteK8sNodeActivityName})
+
+	deleteNodePoolFromStoreActivity := vsphereworkflow.MakeDeleteNodePoolFromStoreActivity(store)
+	activity.RegisterWithOptions(deleteNodePoolFromStoreActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.DeleteNodePoolFromStoreActivityName})
 }

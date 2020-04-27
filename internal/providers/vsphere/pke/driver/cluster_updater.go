@@ -93,6 +93,7 @@ func (cu ClusterUpdater) Update(ctx context.Context, params VspherePKEClusterUpd
 	}
 
 	nodePoolsToCreate, nodePoolsToUpdate, nodePoolsToDelete := sortNodePools(params.NodePools, cluster.NodePools)
+	nodesToDelete := make([]workflow.Node, 0)
 	var nodePoolLabels []pipCluster.NodePoolLabels
 
 	sshKeyPair, err := GetOrCreateSSHKeyPair(cluster, cu.secrets, cu.store)
@@ -143,23 +144,6 @@ func (cu ClusterUpdater) Update(ctx context.Context, params VspherePKEClusterUpd
 			err := cu.store.CreateNodePool(cluster.ID, nodePool)
 			if err != nil {
 				err = errors.WrapIfWithDetails(err, "failed to create new node pool", "clusterID", cluster.ID, "nodePoolName", np.Name)
-				_ = cu.handleError(cluster.ID, err)
-			}
-		}
-	}
-
-	nodesToDelete := make([]workflow.Node, 0)
-	if len(nodePoolsToDelete) > 0 {
-		for _, np := range nodePoolsToDelete {
-			for j := 1; j <= np.Size; j++ {
-				nodesToDelete = append(nodesToDelete, workflow.Node{
-					Name: pke.GetVMName(cluster.Name, np.Name, j),
-				})
-			}
-
-			err := cu.store.DeleteNodePool(cluster.ID, np.Name)
-			if err != nil {
-				err = errors.WrapIfWithDetails(err, "failed to delete node pool", "clusterID", cluster.ID, "nodePoolName", np.Name)
 				_ = cu.handleError(cluster.ID, err)
 			}
 		}
@@ -231,23 +215,24 @@ func (cu ClusterUpdater) Update(ctx context.Context, params VspherePKEClusterUpd
 	}
 
 	input := workflow.UpdateClusterWorkflowInput{
-		ClusterID:        cluster.ID,
-		ClusterName:      cluster.Name,
-		ClusterUID:       cluster.UID,
-		OrganizationID:   cluster.OrganizationID,
-		OrganizationName: org.Name,
-		SecretID:         cluster.SecretID,
-		K8sSecretID:      cluster.K8sSecretID,
-		StorageSecretID:  cluster.StorageSecretID,
-		OIDCEnabled:      cluster.Kubernetes.OIDC.Enabled,
-		MasterNodeNames:  getMasterNodeVMNames(cluster),
-		NodesToCreate:    nodesToCreate,
-		NodesToDelete:    nodesToDelete,
-		HTTPProxy:        cluster.HTTPProxy,
-		NodePoolLabels:   labelsMap,
-		ResourcePoolName: cluster.ResourcePool,
-		DatastoreName:    cluster.Datastore,
-		FolderName:       cluster.Folder,
+		ClusterID:         cluster.ID,
+		ClusterName:       cluster.Name,
+		ClusterUID:        cluster.UID,
+		OrganizationID:    cluster.OrganizationID,
+		OrganizationName:  org.Name,
+		SecretID:          cluster.SecretID,
+		K8sSecretID:       cluster.K8sSecretID,
+		StorageSecretID:   cluster.StorageSecretID,
+		OIDCEnabled:       cluster.Kubernetes.OIDC.Enabled,
+		MasterNodeNames:   getMasterNodeVMNames(cluster),
+		NodesToCreate:     nodesToCreate,
+		NodesToDelete:     nodesToDelete,
+		NodePoolsToDelete: nodePoolsToDelete,
+		HTTPProxy:         cluster.HTTPProxy,
+		NodePoolLabels:    labelsMap,
+		ResourcePoolName:  cluster.ResourcePool,
+		DatastoreName:     cluster.Datastore,
+		FolderName:        cluster.Folder,
 	}
 
 	workflowOptions := client.StartWorkflowOptions{
@@ -278,7 +263,7 @@ func (cu ClusterUpdater) handleError(clusterID uint, err error) error {
 	return handleClusterError(cu.logger, cu.store, pkgCluster.Warning, clusterID, err)
 }
 
-func sortNodePools(incoming []NodePool, clusterNodePools []pke.NodePool) (toCreate, toUpdate []NodePool, toDelete []pke.NodePool) {
+func sortNodePools(incoming []NodePool, clusterNodePools []pke.NodePool) (toCreate, toUpdate []NodePool, toDelete []workflow.NodePool) {
 	existingNodePoolSet := make(map[string]pke.NodePool)
 	for _, np := range clusterNodePools {
 		existingNodePoolSet[np.Name] = np
@@ -291,9 +276,12 @@ func sortNodePools(incoming []NodePool, clusterNodePools []pke.NodePool) (toCrea
 			toCreate = append(toCreate, np)
 		}
 	}
-	toDelete = make([]pke.NodePool, 0, len(existingNodePoolSet))
+	toDelete = make([]workflow.NodePool, 0, len(existingNodePoolSet))
 	for _, np := range existingNodePoolSet {
-		toDelete = append(toDelete, np)
+		toDelete = append(toDelete, workflow.NodePool{
+			Name: np.Name,
+			Size: np.Size,
+		})
 	}
 	return
 }
