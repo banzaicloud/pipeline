@@ -58,7 +58,6 @@ type Options struct {
 	OdPcts       map[string]interface{} `json:"odPcts,omitempty"`
 	ReuseValues  bool                   `json:"reuseValues,omitempty"`
 	Install      bool                   `json:"install,omitempty"`
-	Optionals    map[string]interface{}
 }
 
 // +kit:endpoint:errorStrategy=service

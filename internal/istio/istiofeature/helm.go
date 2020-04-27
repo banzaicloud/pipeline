@@ -18,11 +18,52 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
+	ghodss "github.com/ghodss/yaml"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
+	"sigs.k8s.io/yaml"
 
+	internalHelm "github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/src/helm"
 )
+
+type HelmService interface {
+	InstallOrUpgrade(
+		c clusterProvider,
+		release internalHelm.Release,
+		opts internalHelm.Options,
+	) error
+
+	Delete(c clusterProvider, releaseName, namespace string) error
+}
+
+type LegacyV2HelmService struct {
+}
+
+func (l *LegacyV2HelmService) InstallOrUpgrade(
+	c clusterProvider,
+	release internalHelm.Release,
+	opts internalHelm.Options,
+) error {
+	values, err := yaml.Marshal(release.Values)
+	if err != nil {
+		return errors.WrapIf(err, "failed to marshal release values")
+	}
+	return installOrUpgradeDeployment(
+		c,
+		release.Namespace,
+		release.ChartName,
+		release.ReleaseName,
+		values,
+		release.Version,
+		opts.Wait,
+		opts.Install,
+	)
+}
+
+func (l *LegacyV2HelmService) Delete(c clusterProvider, releaseName, namespace string) error {
+	return deleteDeployment(c, releaseName)
+}
 
 type clusterProvider interface {
 	GetK8sConfig() ([]byte, error)
@@ -125,4 +166,19 @@ func installOrUpgradeDeployment(
 	}
 
 	return nil
+}
+
+func convertStructure(in interface{}) (map[string]interface{}, error) {
+	valuesOverride, err := ghodss.Marshal(in)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to marshal values")
+	}
+
+	// convert back to map[string]interface{}
+	var mapStringValues map[string]interface{}
+	err = yaml.UnmarshalStrict(valuesOverride, &mapStringValues)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to unmarshal values")
+	}
+	return mapStringValues, nil
 }

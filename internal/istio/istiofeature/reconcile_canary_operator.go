@@ -16,7 +16,8 @@ package istiofeature
 
 import (
 	"emperror.dev/errors"
-	"github.com/ghodss/yaml"
+
+	"github.com/banzaicloud/pipeline/internal/helm"
 
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
@@ -45,7 +46,7 @@ func (m *MeshReconciler) ReconcileCanaryOperator(desiredState DesiredState, c cl
 func (m *MeshReconciler) uninstallCanaryOperator(c cluster.CommonCluster) error {
 	m.logger.Debug("removing canary-operator")
 
-	return errors.WrapIf(deleteDeployment(c, canaryOperatorReleaseName), "could not remove canary-operator")
+	return errors.WrapIf(m.helmService.Delete(c, canaryOperatorReleaseName, canaryOperatorNamespace), "could not remove canary-operator")
 }
 
 // installCanaryOperator installs canary-operator to a cluster
@@ -79,20 +80,28 @@ func (m *MeshReconciler) installCanaryOperator(c cluster.CommonCluster, promethe
 		values.Operator.Image.Tag = canaryChart.Values.Operator.Image.Tag
 	}
 
-	valuesOverride, err := yaml.Marshal(values)
+	valuesOverride, err := convertStructure(values)
 	if err != nil {
 		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}
 
-	err = installOrUpgradeDeployment(
+	err = m.helmService.InstallOrUpgrade(
 		c,
-		canaryOperatorNamespace,
-		canaryChart.Chart,
-		canaryOperatorReleaseName,
-		valuesOverride,
-		canaryChart.Version,
-		true,
-		true,
+		helm.Release{
+			ReleaseName: canaryOperatorReleaseName,
+			ChartName:   canaryChart.Chart,
+			Namespace:   canaryOperatorNamespace,
+			Values:      valuesOverride,
+			Version:     canaryChart.Version,
+		},
+		helm.Options{
+			Namespace:   canaryOperatorNamespace,
+			Wait:        true,
+			Timeout:     0,
+			OdPcts:      nil,
+			ReuseValues: false,
+			Install:     false,
+		},
 	)
 
 	return errors.WrapIf(err, "could not install canary-operator")

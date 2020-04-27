@@ -19,13 +19,13 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/ghodss/yaml"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
+	internalHelm "github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/pkg/backoff"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
@@ -167,7 +167,7 @@ func (m *MeshReconciler) waitForCRD(name string, client runtimeclient.Client) er
 func (m *MeshReconciler) uninstallBackyards(c cluster.CommonCluster) error {
 	m.logger.Debug("removing Backyards")
 
-	return errors.WrapIf(deleteDeployment(c, backyardsReleaseName), "could not remove Backyards")
+	return errors.WrapIf(m.helmService.Delete(c, backyardsReleaseName, backyardsNamespace), "could not remove Backyards")
 }
 
 // installIstioOperator installs istio-operator on a cluster
@@ -289,20 +289,25 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 		values.UseIstioResources = false
 	}
 
-	valuesOverride, err := yaml.Marshal(values)
+	mapStringValues, err := convertStructure(values)
 	if err != nil {
-		return errors.WrapIf(err, "could not marshal chart value overrides")
+		return errors.WrapIf(err, "failed to convert backyards chart values")
 	}
 
-	err = installOrUpgradeDeployment(
+	err = m.helmService.InstallOrUpgrade(
 		c,
-		backyardsNamespace,
-		backyardsChart.Chart,
-		backyardsReleaseName,
-		valuesOverride,
-		backyardsChart.Version,
-		true,
-		true,
+		internalHelm.Release{
+			ReleaseName: backyardsReleaseName,
+			ChartName:   backyardsChart.Chart,
+			Namespace:   backyardsNamespace,
+			Values:      mapStringValues,
+			Version:     backyardsChart.Version,
+		},
+		internalHelm.Options{
+			Namespace: backyardsNamespace,
+			Wait:      true,
+			Install:   true,
+		},
 	)
 
 	return errors.WrapIf(err, "could not install Backyards")

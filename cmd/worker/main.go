@@ -398,7 +398,13 @@ func main() {
 
 			federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config)
 			deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler)
-			serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler, config.Cluster.Backyards)
+			var helmService cgFeatureIstio.HelmService
+			if config.Helm.V3 {
+				panic("helm service not implemented for v3")
+			} else {
+				helmService = &cgFeatureIstio.LegacyV2HelmService{}
+			}
+			serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler, config.Cluster.Backyards, helmService)
 			clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)
 			clusterGroupManager.RegisterFeatureHandler(deployment.FeatureName, deploymentManager)
 			clusterGroupManager.RegisterFeatureHandler(cgFeatureIstio.FeatureName, serviceMeshFeatureHandler)

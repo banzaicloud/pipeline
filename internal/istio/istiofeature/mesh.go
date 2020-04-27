@@ -35,10 +35,16 @@ func init() {
 }
 
 // NewMeshReconciler crates a new mesh feature reconciler
-func NewMeshReconciler(config Config, clusterGetter api.ClusterGetter, logger logrus.FieldLogger, errorHandler emperror.Handler) *MeshReconciler {
+func NewMeshReconciler(
+	config Config,
+	clusterGetter api.ClusterGetter,
+	logger logrus.FieldLogger,
+	errorHandler emperror.Handler,
+	helmService HelmService) *MeshReconciler {
 	reconciler := &MeshReconciler{
 		Configuration: config,
 
+		helmService:   helmService,
 		clusterGetter: clusterGetter,
 		logger:        logger,
 		errorHandler:  errorHandler,

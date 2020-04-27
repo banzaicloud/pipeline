@@ -16,9 +16,10 @@ package istiofeature
 
 import (
 	"emperror.dev/errors"
-	"github.com/ghodss/yaml"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+
+	"github.com/banzaicloud/pipeline/internal/helm"
 
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
@@ -38,7 +39,7 @@ func (m *MeshReconciler) ReconcileIstioOperator(desiredState DesiredState, c clu
 func (m *MeshReconciler) uninstallIstioOperator(c cluster.CommonCluster) error {
 	m.logger.Debug("removing Istio operator")
 
-	return errors.WrapIf(deleteDeployment(c, istioOperatorReleaseName), "could not remove Istio operator")
+	return errors.WrapIf(m.helmService.Delete(c, istioOperatorReleaseName, istioOperatorNamespace), "could not remove Istio operator")
 }
 
 // installIstioOperator installs istio-operator on a cluster
@@ -81,20 +82,24 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
 		values.Operator.Image.Tag = istioChart.Values.Operator.Image.Tag
 	}
 
-	valuesOverride, err := yaml.Marshal(values)
+	valuesOverride, err := convertStructure(values)
 	if err != nil {
 		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}
 
-	err = installOrUpgradeDeployment(
-		c,
-		istioOperatorNamespace,
-		istioChart.Chart,
-		istioOperatorReleaseName,
-		valuesOverride,
-		istioChart.Version,
-		true,
-		true,
+	err = m.helmService.InstallOrUpgrade(c,
+		helm.Release{
+			ReleaseName: istioOperatorReleaseName,
+			ChartName:   istioChart.Chart,
+			Namespace:   istioOperatorNamespace,
+			Values:      valuesOverride,
+			Version:     istioChart.Version,
+		},
+		helm.Options{
+			Namespace: istioOperatorNamespace,
+			Wait:      true,
+			Install:   true,
+		},
 	)
 
 	return errors.WrapIf(err, "could not install Istio operator")
