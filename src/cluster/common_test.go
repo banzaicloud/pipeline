@@ -16,8 +16,11 @@ package cluster_test
 
 import (
 	"crypto/sha256"
+	"flag"
 	"fmt"
+	"os"
 	"reflect"
+	"regexp"
 	"testing"
 	"time"
 
@@ -74,7 +77,16 @@ var (
 	}
 )
 
-func init() {
+func TestIntegration(t *testing.T) {
+	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
+		t.Skip("skipping as execution was not requested explicitly using go test -run")
+	}
+
+	vaultAddr := os.Getenv("VAULT_ADDR")
+	if vaultAddr == "" {
+		t.Skip("skipping as VAULT_ADDR is not explicitly defined")
+	}
+
 	vaultClient, err := vault.NewClient("pipeline")
 	emperror.Panic(err)
 	global.SetVault(vaultClient)
@@ -87,9 +99,13 @@ func init() {
 	})
 	secret.InitSecretStore(secretStore, secretTypes)
 	restricted.InitSecretStore(secret.Store)
+
+	t.Run("testACKClusterStatus", testACKClusterStatus)
+	t.Run("testCreateCommonClusterFromRequest", testCreateCommonClusterFromRequest)
+	t.Run("testGKEKubernetesVersion", testGKEKubernetesVersion)
 }
 
-func TestCreateCommonClusterFromRequest(t *testing.T) {
+func testCreateCommonClusterFromRequest(t *testing.T) {
 	labelValidator := kubernetes2.LabelValidator{
 		ForbiddenDomains: []string{},
 	}
@@ -143,7 +159,7 @@ func TestCreateCommonClusterFromRequest(t *testing.T) {
 	}
 }
 
-func TestGKEKubernetesVersion(t *testing.T) {
+func testGKEKubernetesVersion(t *testing.T) {
 	testCases := []struct {
 		name    string
 		version string
