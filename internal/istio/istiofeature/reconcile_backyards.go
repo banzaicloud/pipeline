@@ -289,7 +289,7 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 		values.UseIstioResources = false
 	}
 
-	mapStringValues, err := convertStructure(values)
+	mapStringValues, err := ConvertStructure(values)
 	if err != nil {
 		return errors.WrapIf(err, "failed to convert backyards chart values")
 	}

@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
@@ -31,7 +32,9 @@ import (
 	"helm.sh/helm/v3/pkg/downloader"
 	"helm.sh/helm/v3/pkg/getter"
 	"helm.sh/helm/v3/pkg/storage/driver"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
@@ -77,6 +80,8 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 		return "", errors.WrapIf(err, "failed to get  name  and chart")
 	}
 	installAction.ReleaseName = name
+	installAction.Wait = options.Wait
+	installAction.Timeout = time.Minute * 5
 
 	cp, err := installAction.ChartPathOptions.LocateChart(chartRef, envSettings)
 	if err != nil {
@@ -124,6 +129,33 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 		}
 	}
 
+	clientSet, err := k8sclient.NewClientFromKubeConfigWithTimeout(kubeConfig, time.Second*10)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to create kubernetes client")
+	}
+
+	namespaces, err := clientSet.CoreV1().Namespaces().List(metav1.ListOptions{})
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to list kubernetes namespaces")
+	}
+
+	foundNs := false
+	for _, ns := range namespaces.Items {
+		if ns.Name == installAction.Namespace {
+			foundNs = true
+		}
+	}
+
+	if !foundNs {
+		if _, err := clientSet.CoreV1().Namespaces().Create(&v1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: installAction.Namespace,
+			},
+		}); err != nil {
+			return "", errors.WrapIf(err, "failed to create release namespace")
+		}
+	}
+
 	releasePtr, err := installAction.Run(chartRequested, releaseInput.Values)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to install chart")
@@ -149,6 +181,7 @@ func (r releaser) Uninstall(ctx context.Context, helmEnv helm.HelmEnv, kubeConfi
 	}
 
 	uninstallAction := action.NewUninstall(actionConfig)
+	uninstallAction.Timeout = time.Minute * 5
 
 	res, err := uninstallAction.Run(releaseName)
 	if err != nil {
@@ -261,6 +294,8 @@ func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 	upgradeAction := action.NewUpgrade(actionConfig)
 	upgradeAction.Namespace = options.Namespace
 	upgradeAction.Install = options.Install
+	upgradeAction.Wait = options.Wait
+	upgradeAction.Timeout = time.Minute * 5
 
 	if upgradeAction.Version == "" && upgradeAction.Devel {
 		r.logger.Debug("setting version to >0.0.0-0")

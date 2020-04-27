@@ -477,6 +477,14 @@ func main() {
 		),
 	}
 
+	unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
+		config.Helm,
+		db,
+		commonSecretStore,
+		helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc()),
+		commonLogger,
+	)
+
 	cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
 	clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
 	federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config)
@@ -484,7 +492,7 @@ func main() {
 
 	var helmService cgFeatureIstio.HelmService
 	if config.Helm.V3 {
-		panic("helm service not implemented for v3")
+		helmService = cgFeatureIstio.NewHelmV3Service(helmFacade)
 	} else {
 		helmService = &cgFeatureIstio.LegacyV2HelmService{}
 	}
@@ -647,14 +655,6 @@ func main() {
 			errorHandler.Handle(errors.WrapIf(err, "failed to cancel shared spotguides sync workflow"))
 		}
 	}
-
-	unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
-		config.Helm,
-		db,
-		commonSecretStore,
-		helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc()),
-		commonLogger,
-	)
 
 	clusterAPI := api.NewClusterAPI(
 		clusterManager,

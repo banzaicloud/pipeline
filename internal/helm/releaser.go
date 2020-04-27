@@ -16,7 +16,10 @@ package helm
 
 import (
 	"context"
+	"strings"
 	"time"
+
+	"emperror.dev/errors"
 )
 
 // ReleaseInfo copy of the struct form the helm library
@@ -103,4 +106,8 @@ type Releaser interface {
 	Upgrade(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options Options) (string, error)
 	// Resources retrieves the kubernetes resources belonging to the release
 	Resources(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options Options) ([]ReleaseResource, error)
+}
+
+func ErrReleaseNotFound(err error) bool {
+	return strings.Contains(errors.Cause(err).Error(), "not found")
 }

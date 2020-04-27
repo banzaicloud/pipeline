@@ -261,7 +261,7 @@ func main() {
 
 		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
-		unifiedHelmReleaser, _ := cmd.CreateUnifiedHelmReleaser(
+		unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
 			config.Helm,
 			db,
 			commonSecretStore,
@@ -400,7 +400,7 @@ func main() {
 			deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler)
 			var helmService cgFeatureIstio.HelmService
 			if config.Helm.V3 {
-				panic("helm service not implemented for v3")
+				helmService = cgFeatureIstio.NewHelmV3Service(helmFacade)
 			} else {
 				helmService = &cgFeatureIstio.LegacyV2HelmService{}
 			}

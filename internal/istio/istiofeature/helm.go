@@ -15,10 +15,12 @@
 package istiofeature
 
 import (
+	"context"
 	"strings"
 
 	"emperror.dev/errors"
 	ghodss "github.com/ghodss/yaml"
+	release2 "helm.sh/helm/v3/pkg/release"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 	"sigs.k8s.io/yaml"
@@ -29,19 +31,37 @@ import (
 
 type HelmService interface {
 	InstallOrUpgrade(
-		c clusterProvider,
+		c ClusterProvider,
 		release internalHelm.Release,
 		opts internalHelm.Options,
 	) error
 
-	Delete(c clusterProvider, releaseName, namespace string) error
+	Delete(c ClusterProvider, releaseName, namespace string) error
+}
+
+type ClusterProvider interface {
+	GetK8sConfig() ([]byte, error)
+	GetID() uint
+}
+
+type ClusterProviderData struct {
+	K8sConfig []byte
+	ID        uint
+}
+
+func (c *ClusterProviderData) GetID() uint {
+	return c.ID
+}
+
+func (c *ClusterProviderData) GetK8sConfig() ([]byte, error) {
+	return c.K8sConfig, nil
 }
 
 type LegacyV2HelmService struct {
 }
 
 func (l *LegacyV2HelmService) InstallOrUpgrade(
-	c clusterProvider,
+	c ClusterProvider,
 	release internalHelm.Release,
 	opts internalHelm.Options,
 ) error {
@@ -61,23 +81,64 @@ func (l *LegacyV2HelmService) InstallOrUpgrade(
 	)
 }
 
-func (l *LegacyV2HelmService) Delete(c clusterProvider, releaseName, namespace string) error {
+func (l *LegacyV2HelmService) Delete(c ClusterProvider, releaseName, namespace string) error {
 	return deleteDeployment(c, releaseName)
 }
 
-type clusterProvider interface {
-	GetK8sConfig() ([]byte, error)
+type HelmV3Service struct {
+	service internalHelm.Service
 }
 
-type clusterProviderData struct {
-	k8sConfig []byte
+func NewHelmV3Service(service internalHelm.Service) HelmService {
+	return &HelmV3Service{service: service}
 }
 
-func (c *clusterProviderData) GetK8sConfig() ([]byte, error) {
-	return c.k8sConfig, nil
+func (h *HelmV3Service) InstallOrUpgrade(
+	c ClusterProvider,
+	release internalHelm.Release,
+	opts internalHelm.Options,
+) error {
+	ctx := context.Background()
+	retrievedRelease, err := h.service.GetRelease(
+		ctx,
+		0,
+		c.GetID(),
+		release.ReleaseName,
+		opts,
+	)
+	if err != nil {
+		if internalHelm.ErrReleaseNotFound(err) {
+			return h.service.InstallRelease(ctx, 0, c.GetID(), release, opts)
+		}
+		return errors.WrapIf(err, "failed to retrieve release")
+	}
+	if retrievedRelease.ReleaseInfo.Status == release2.StatusDeployed.String() {
+		return h.service.UpgradeRelease(ctx, 0, c.GetID(), release, opts)
+	}
+	if retrievedRelease.ReleaseInfo.Status == release2.StatusFailed.String() {
+		if err := h.service.DeleteRelease(ctx, 0, c.GetID(), release.ReleaseName, opts); err != nil {
+			if !internalHelm.ErrReleaseNotFound(err) {
+				return errors.WrapIf(err, "unable to delete release")
+			}
+		}
+		return h.service.InstallRelease(ctx, 0, c.GetID(), release, opts)
+	}
+	return errors.Errorf("Release is in invalid state unable to upgrade: %s", retrievedRelease.ReleaseInfo.Status)
 }
 
-func deleteDeployment(c clusterProvider, releaseName string) error {
+func (h *HelmV3Service) Delete(c ClusterProvider, releaseName, namespace string) error {
+	if err := h.service.DeleteRelease(context.Background(), 0, c.GetID(), releaseName, internalHelm.Options{
+		Namespace: namespace,
+	}); err != nil {
+		if internalHelm.ErrReleaseNotFound(err) {
+			return nil
+		}
+		return errors.WrapIf(err, "unable to delete release")
+	}
+	return nil
+}
+
+func deleteDeployment(c ClusterProvider, releaseName string) error {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return errors.WrapIf(err, "could not get k8s config")
@@ -96,7 +157,7 @@ func deleteDeployment(c clusterProvider, releaseName string) error {
 }
 
 func installOrUpgradeDeployment(
-	c clusterProvider,
+	c ClusterProvider,
 	namespace string,
 	deploymentName string,
 	releaseName string,
@@ -168,7 +229,7 @@ func installOrUpgradeDeployment(
 	return nil
 }
 
-func convertStructure(in interface{}) (map[string]interface{}, error) {
+func ConvertStructure(in interface{}) (map[string]interface{}, error) {
 	valuesOverride, err := ghodss.Marshal(in)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to marshal values")
