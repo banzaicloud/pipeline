@@ -112,9 +112,6 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *a
 	deleteSshKeyActivity := eksworkflow.NewDeleteSshKeyActivity(awsSessionFactory)
 	activity.RegisterWithOptions(deleteSshKeyActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteSshKeyActivityName})
 
-	deleteClusterUserAccessKeyActivity := eksworkflow.NewDeleteClusterUserAccessKeyActivity(awsSessionFactory)
-	activity.RegisterWithOptions(deleteClusterUserAccessKeyActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteClusterUserAccessKeyActivityName})
-
 	getOrphanNicsActivity := eksworkflow.NewGetOrphanNICsActivity(awsSessionFactory)
 	activity.RegisterWithOptions(getOrphanNicsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetOrphanNICsActivityName})
 

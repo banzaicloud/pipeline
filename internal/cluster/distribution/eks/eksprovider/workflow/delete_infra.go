@@ -282,19 +282,5 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 		}
 	}
 
-	// delete cluster user acess key & sercret from secret store
-	var deleteClusterUserAccessKeyActivityFeature workflow.Future
-	{
-		activityInput := DeleteClusterUserAccessKeyActivityInput{
-			EKSActivityInput: eksActivityInput,
-			DefaultUser:      input.DefaultUser,
-		}
-		deleteClusterUserAccessKeyActivityFeature = workflow.ExecuteActivity(ctx, DeleteClusterUserAccessKeyActivityName, activityInput)
-	}
-
-	if err := deleteClusterUserAccessKeyActivityFeature.Get(ctx, nil); err != nil {
-		return err
-	}
-
 	return nil
 }
