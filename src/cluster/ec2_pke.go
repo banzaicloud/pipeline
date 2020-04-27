@@ -664,6 +664,7 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 		ResourceID:        c.model.Cluster.ID,
 		NodePools:         nodePools,
 		Version:           c.model.Kubernetes.Version,
+		OIDCEnabled:       c.model.Cluster.OidcEnabled,
 		CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),
 		Region:            c.model.Cluster.Location,
 		StartedAt:         c.model.Cluster.StartedAt,

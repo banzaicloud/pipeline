@@ -231,6 +231,7 @@ func (a *VspherePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, e
 		Distribution:  a.GetDistribution(),
 		ResourceID:    a.model.ID,
 		Version:       a.model.Kubernetes.Version,
+		OIDCEnabled:   a.model.Kubernetes.OIDC.Enabled,
 		NodePools:     nodePools,
 		CreatorBaseFields: pkgCommon.CreatorBaseFields{
 			CreatedAt:   a.model.CreationTime,
