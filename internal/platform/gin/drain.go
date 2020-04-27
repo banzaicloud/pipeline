@@ -87,7 +87,6 @@ func (m *DrainModeMiddleware) Middleware(c *gin.Context) {
 	}
 
 	m.mu.RLock()
-	defer m.mu.RUnlock()
 	if m.enabled && isWriteOperation(c) && !isException(c, m.basePath) {
 		c.AbortWithStatusJSON(
 			http.StatusServiceUnavailable,
@@ -99,6 +98,7 @@ func (m *DrainModeMiddleware) Middleware(c *gin.Context) {
 
 		return
 	}
+	m.mu.RUnlock()
 
 	c.Next()
 }
