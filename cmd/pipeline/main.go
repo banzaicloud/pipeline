@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/pprof"
 	"net/url"
 	"os"
 	"path"
@@ -410,6 +411,33 @@ func main() {
 	commonClusterGetter := common.NewClusterGetter(clusterManager, logrusLogger, errorHandler)
 
 	var group run.Group
+
+	telemetryRouter := http.NewServeMux()
+
+	telemetryRouter.HandleFunc("/debug/pprof/", pprof.Index)
+	telemetryRouter.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	telemetryRouter.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	telemetryRouter.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	telemetryRouter.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+	// Set up telemetry server
+	{
+		const name = "telemetry"
+		logger := logur.WithField(logger, "server", name)
+
+		logger.Info("listening on address", map[string]interface{}{"address": ":10000"})
+
+		ln, err := net.Listen("tcp", ":10000")
+		emperror.Panic(err)
+
+		server := &http.Server{
+			Handler:  telemetryRouter,
+			ErrorLog: log.NewErrorStandardLogger(logger),
+		}
+		defer server.Close()
+
+		group.Add(appkitrun.HTTPServe(server, ln, 0))
+	}
 
 	if config.SpotMetrics.Enabled {
 		ctx, cancel := context.WithCancel(context.Background())
