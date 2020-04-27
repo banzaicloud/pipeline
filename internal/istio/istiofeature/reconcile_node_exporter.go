@@ -16,7 +16,8 @@ package istiofeature
 
 import (
 	"emperror.dev/errors"
-	"github.com/ghodss/yaml"
+
+	"github.com/banzaicloud/pipeline/internal/helm"
 
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
@@ -36,7 +37,7 @@ func (m *MeshReconciler) ReconcileNodeExporter(desiredState DesiredState, c clus
 func (m *MeshReconciler) uninstallNodeExporter(c cluster.CommonCluster) error {
 	m.logger.Debug("removing Node exporter")
 
-	return errors.WrapIf(deleteDeployment(c, nodeExporterReleaseName), "could not remove Node exporter")
+	return errors.WrapIf(m.helmService.Delete(c, nodeExporterReleaseName, backyardsNamespace), "could not remove Node exporter")
 }
 
 // installNodeExporter installs node exporter on a cluster
@@ -57,22 +58,27 @@ func (m *MeshReconciler) installNodeExporter(c cluster.CommonCluster) error {
 	values.Service.Port = 19100
 	values.Service.TargetPort = 19100
 
-	valuesOverride, err := yaml.Marshal(values)
+	valuesOverride, err := convertStructure(values)
 	if err != nil {
 		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}
 
 	nodeExporterConfig := m.Configuration.internalConfig.Charts.NodeExporter
 
-	err = installOrUpgradeDeployment(
+	err = m.helmService.InstallOrUpgrade(
 		c,
-		backyardsNamespace,
-		nodeExporterConfig.Chart,
-		nodeExporterReleaseName,
-		valuesOverride,
-		nodeExporterConfig.Version,
-		true,
-		true,
+		helm.Release{
+			ReleaseName: nodeExporterReleaseName,
+			ChartName:   nodeExporterConfig.Chart,
+			Namespace:   backyardsNamespace,
+			Values:      valuesOverride,
+			Version:     nodeExporterConfig.Version,
+		},
+		helm.Options{
+			Namespace: backyardsNamespace,
+			Wait:      true,
+			Install:   true,
+		},
 	)
 
 	return errors.WrapIf(err, "could not install Node exporter")

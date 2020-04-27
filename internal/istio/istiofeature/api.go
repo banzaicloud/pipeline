@@ -79,6 +79,7 @@ type MeshReconciler struct {
 	Master        cluster.CommonCluster
 	Remotes       []cluster.CommonCluster
 
+	helmService   HelmService
 	clusterGetter api.ClusterGetter
 	logger        logrus.FieldLogger
 	errorHandler  emperror.Handler

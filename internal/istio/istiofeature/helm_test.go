@@ -21,11 +21,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/ghodss/yaml"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
 func TestIntegration(t *testing.T) {
@@ -51,19 +52,20 @@ func TestIntegration(t *testing.T) {
 
 	testNamespace := "istiofeature-helm"
 
-	t.Run("testDeleteNodeExporter", testDeleteNodeExporter(kubeConfig, testNamespace))
-	t.Run("testCreateNodeExporter", testCreateNodeExporter(kubeConfig, testNamespace))
-	t.Run("testUpgradeNodeExporter", testUpgradeNodeExporter(kubeConfig, testNamespace))
-	t.Run("testHandleFailedDeployment", testUpgradeFailedNodeExporter(kubeConfig, testNamespace))
-	t.Run("testDeleteNodeExporterAfterSuite", testDeleteNodeExporter(kubeConfig, testNamespace))
+	helmService := &LegacyV2HelmService{}
 
+	t.Run("testCreateNodeExporter", testCreateNodeExporter(helmService, kubeConfig, testNamespace))
+	t.Run("testUpgradeNodeExporter", testUpgradeNodeExporter(helmService, kubeConfig, testNamespace))
+	t.Run("testHandleFailedDeployment", testUpgradeFailedNodeExporter(helmService, kubeConfig, testNamespace))
+	t.Run("testDeleteNodeExporterAfterSuite", testDeleteNodeExporter(helmService, kubeConfig, testNamespace))
 }
 
-func testDeleteNodeExporter(kubeConfig []byte, testNamespace string) func(*testing.T) {
+func testDeleteNodeExporter(helmService HelmService, kubeConfig []byte, testNamespace string) func(*testing.T) {
 	return func(t *testing.T) {
-		err := deleteDeployment(
+		err := helmService.Delete(
 			&clusterProviderData{k8sConfig: kubeConfig},
 			"node-exporter",
+			testNamespace,
 		)
 		if err != nil {
 			t.Fatalf("%+v", err)
@@ -73,16 +75,23 @@ func testDeleteNodeExporter(kubeConfig []byte, testNamespace string) func(*testi
 	}
 }
 
-func testCreateNodeExporter(kubeConfig []byte, testNamespace string) func(*testing.T) {
+func testCreateNodeExporter(helmService HelmService, kubeConfig []byte, testNamespace string) func(*testing.T) {
 	return func(t *testing.T) {
-		err := installOrUpgradeDeployment(
+		err := helmService.InstallOrUpgrade(
 			&clusterProviderData{k8sConfig: kubeConfig},
-			testNamespace,
-			"stable/prometheus-node-exporter",
-			"node-exporter",
-			nil,
-			"1.8.1",
-			true, true)
+			helm.Release{
+				ReleaseName: "node-exporter",
+				ChartName:   "stable/prometheus-node-exporter",
+				Namespace:   testNamespace,
+				Values:      nil,
+				Version:     "1.8.1",
+			},
+			helm.Options{
+				Namespace: testNamespace,
+				Wait:      true,
+				Install:   true,
+			},
+		)
 		if err != nil {
 			t.Fatalf("%+v", err)
 		}
@@ -91,7 +100,7 @@ func testCreateNodeExporter(kubeConfig []byte, testNamespace string) func(*testi
 	}
 }
 
-func testUpgradeNodeExporter(kubeConfig []byte, testNamespace string) func(*testing.T) {
+func testUpgradeNodeExporter(helmService HelmService, kubeConfig []byte, testNamespace string) func(*testing.T) {
 	return func(t *testing.T) {
 		var expectPort int32 = 19191
 
@@ -108,19 +117,26 @@ func testUpgradeNodeExporter(kubeConfig []byte, testNamespace string) func(*test
 		values := Values{}
 		values.Service.Port = int(expectPort)
 
-		serializedValues, err := yaml.Marshal(values)
+		serializedValues, err := convertStructure(values)
 		if err != nil {
 			t.Fatalf("%+v", serializedValues)
 		}
 
-		err = installOrUpgradeDeployment(
+		err = helmService.InstallOrUpgrade(
 			&clusterProviderData{k8sConfig: kubeConfig},
-			testNamespace,
-			"stable/prometheus-node-exporter",
-			"node-exporter",
-			serializedValues,
-			"1.8.1",
-			true, true)
+			helm.Release{
+				ReleaseName: "node-exporter",
+				ChartName:   "stable/prometheus-node-exporter",
+				Namespace:   testNamespace,
+				Values:      serializedValues,
+				Version:     "1.8.1",
+			},
+			helm.Options{
+				Namespace: testNamespace,
+				Wait:      true,
+				Install:   true,
+			},
+		)
 		if err != nil {
 			t.Fatalf("%+v", err)
 		}
@@ -129,7 +145,7 @@ func testUpgradeNodeExporter(kubeConfig []byte, testNamespace string) func(*test
 	}
 }
 
-func testUpgradeFailedNodeExporter(kubeConfig []byte, testNamespace string) func(*testing.T) {
+func testUpgradeFailedNodeExporter(helmService HelmService, kubeConfig []byte, testNamespace string) func(*testing.T) {
 	return func(t *testing.T) {
 		// invalid port will fail the release
 		var expectPort int32 = 1111111
@@ -147,19 +163,26 @@ func testUpgradeFailedNodeExporter(kubeConfig []byte, testNamespace string) func
 		values := Values{}
 		values.Service.Port = int(expectPort)
 
-		serializedValues, err := yaml.Marshal(values)
+		serializedValues, err := convertStructure(values)
 		if err != nil {
 			t.Fatalf("%+v", serializedValues)
 		}
 
-		err = installOrUpgradeDeployment(
+		err = helmService.InstallOrUpgrade(
 			&clusterProviderData{k8sConfig: kubeConfig},
-			testNamespace,
-			"stable/prometheus-node-exporter",
-			"node-exporter",
-			serializedValues,
-			"1.8.1",
-			true, true)
+			helm.Release{
+				ReleaseName: "node-exporter",
+				ChartName:   "stable/prometheus-node-exporter",
+				Namespace:   testNamespace,
+				Values:      serializedValues,
+				Version:     "1.8.1",
+			},
+			helm.Options{
+				Namespace: testNamespace,
+				Wait:      true,
+				Install:   true,
+			},
+		)
 		if err == nil {
 			t.Fatalf("this upgrade should fail because of the invalid port")
 		}

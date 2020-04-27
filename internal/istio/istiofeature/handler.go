@@ -30,6 +30,7 @@ type ServiceMeshFeatureHandler struct {
 	logger        logrus.FieldLogger
 	errorHandler  emperror.Handler
 	staticConfig  StaticConfig
+	helmService   HelmService
 }
 
 // NewServiceMeshFeatureHandler returns a new ServiceMeshFeatureHandler instance.
@@ -38,12 +39,14 @@ func NewServiceMeshFeatureHandler(
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
 	staticConfig StaticConfig,
+	helmService HelmService,
 ) *ServiceMeshFeatureHandler {
 	return &ServiceMeshFeatureHandler{
 		clusterGetter: clusterGetter,
 		logger:        logger,
 		errorHandler:  errorHandler,
 		staticConfig:  staticConfig,
+		helmService:   helmService,
 	}
 }
 
@@ -67,7 +70,7 @@ func (h *ServiceMeshFeatureHandler) ReconcileState(featureState api.Feature) err
 		return errors.WithStack(err)
 	}
 
-	mesh := NewMeshReconciler(*config, h.clusterGetter, logger, h.errorHandler)
+	mesh := NewMeshReconciler(*config, h.clusterGetter, logger, h.errorHandler, h.helmService)
 	err = mesh.Reconcile()
 	if err != nil {
 		h.errorHandler.Handle(err)
@@ -142,7 +145,7 @@ func (h *ServiceMeshFeatureHandler) GetMembersStatus(featureState api.Feature) (
 		return nil, errors.WithStack(err)
 	}
 
-	mesh := NewMeshReconciler(*config, h.clusterGetter, h.logger, h.errorHandler)
+	mesh := NewMeshReconciler(*config, h.clusterGetter, h.logger, h.errorHandler, h.helmService)
 	statusMap, err = mesh.GetClusterStatus()
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not get clusters status")
