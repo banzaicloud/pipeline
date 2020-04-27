@@ -216,6 +216,9 @@ func (r releaser) List(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.
 	listAction := action.NewList(actionConfig)
 	listAction.SetStateMask()
 
+	// applies options if any
+	listAction = r.processOptions(listAction, options)
+
 	results, err := listAction.Run()
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to list releases")
@@ -224,11 +227,12 @@ func (r releaser) List(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.
 	releases := make([]helm.Release, 0, len(results))
 	for _, result := range results {
 		releases = append(releases, helm.Release{
-			ReleaseName: result.Name,
-			ChartName:   result.Chart.Name(),
-			Namespace:   result.Namespace,
-			Values:      result.Chart.Values,
-			Version:     result.Chart.Metadata.Version,
+			ReleaseName:    result.Name,
+			ChartName:      result.Chart.Name(),
+			Namespace:      result.Namespace,
+			Values:         result.Chart.Values,
+			Version:        result.Chart.Metadata.Version,
+			ReleaseVersion: int32(result.Version),
 			ReleaseInfo: helm.ReleaseInfo{
 				FirstDeployed: result.Info.FirstDeployed.Time,
 				LastDeployed:  result.Info.LastDeployed.Time,
@@ -448,6 +452,16 @@ func (r releaser) getActionConfiguration(clientGetter genericclioptions.RESTClie
 	}
 
 	return actionConfig, nil
+}
+
+// processOptions applies options to the command
+func (r releaser) processOptions(listAction *action.List, options helm.Options) *action.List {
+	action := listAction
+	if options.Filter != nil {
+		action.Filter = *options.Filter
+	}
+	// apply other options here
+	return action
 }
 
 // isChartInstallable validates if a chart can be installed

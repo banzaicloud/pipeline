@@ -492,22 +492,33 @@ func decodeListReleasesHTTPRequest(_ context.Context, r *http.Request) (interfac
 		return nil, errors.WrapIf(err, "failed to decode list release request")
 	}
 
-	var releaseFilter helm.ReleaseFilter
-	if err := mapstructure.Decode(mux.Vars(r), &releaseFilter); err != nil {
+	var queryData = struct {
+		TagFilters []string `json:"tag" mapstructure:"tag"`
+		Filters    []string `json:"filter,omitempty" mapstructure:"filter"`
+	}{}
+	if err := mapstructure.Decode(r.URL.Query(), &queryData); err != nil {
 		return nil, errors.WrapIf(err, "failed to decode list release request")
+	}
+
+	filter := helm.ReleaseFilter{}
+	if len(queryData.TagFilters) > 1 {
+		filter.TagFilter = queryData.TagFilters[0]
+	}
+	if queryData.Filters != nil {
+		filter.Filter = &queryData.Filters[0]
 	}
 
 	return ListReleasesRequest{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
-		Filters:        releaseFilter,
+		Filters:        filter,
 	}, nil
 }
 
 func encodeListReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	releases, ok := response.(ListReleasesResponse)
 	if !ok {
-		return errors.New("invalid  release list response")
+		return errors.New("invalid release list response")
 	}
 
 	if releases.Err != nil {
@@ -519,9 +530,9 @@ func encodeListReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, 
 		resp = append(resp, deployment.ListDeploymentResponse{
 			Name:         release.ReleaseName,
 			Chart:        release.ChartName,
-			ChartName:    "",
+			ChartName:    release.ChartName,
 			ChartVersion: release.Version,
-			Version:      0,
+			Version:      release.ReleaseVersion,
 			UpdatedAt:    release.ReleaseInfo.LastDeployed,
 			Namespace:    release.Namespace,
 			CreatedAt:    release.ReleaseInfo.FirstDeployed,
