@@ -58,7 +58,7 @@ func (m *MeshReconciler) installNodeExporter(c cluster.CommonCluster) error {
 	values.Service.Port = 19100
 	values.Service.TargetPort = 19100
 
-	valuesOverride, err := convertStructure(values)
+	valuesOverride, err := ConvertStructure(values)
 	if err != nil {
 		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}

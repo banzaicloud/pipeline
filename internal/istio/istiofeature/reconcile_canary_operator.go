@@ -80,7 +80,7 @@ func (m *MeshReconciler) installCanaryOperator(c cluster.CommonCluster, promethe
 		values.Operator.Image.Tag = canaryChart.Values.Operator.Image.Tag
 	}
 
-	valuesOverride, err := convertStructure(values)
+	valuesOverride, err := ConvertStructure(values)
 	if err != nil {
 		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}

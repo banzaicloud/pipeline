@@ -49,7 +49,7 @@ func TestFromValues(t *testing.T) {
 		},
 	}
 
-	mapStringValues, err := convertStructure(values)
+	mapStringValues, err := ConvertStructure(values)
 	if err != nil {
 		t.Fatalf("%+v", err)
 	}
