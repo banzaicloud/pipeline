@@ -174,6 +174,13 @@ func (cu ClusterUpdater) Update(ctx context.Context, params VspherePKEClusterUpd
 		for _, np := range nodePoolsToUpdate {
 			existingNodePool := existingNodePoolSet[np.Name]
 
+			nodePoolLabels = append(nodePoolLabels, pipCluster.NodePoolLabels{
+				NodePoolName: np.Name,
+				Existing:     true,
+				InstanceType: np.InstanceType(),
+				CustomLabels: np.Labels,
+			})
+
 			if np.Size != existingNodePool.Size {
 				// check existing nodes are fine, create new vm otherwise
 				for i := 1; i <= np.Size; i++ {
@@ -186,13 +193,6 @@ func (cu ClusterUpdater) Update(ctx context.Context, params VspherePKEClusterUpd
 						RAM:       np.RAM,
 					}, i))
 				}
-
-				nodePoolLabels = append(nodePoolLabels, pipCluster.NodePoolLabels{
-					NodePoolName: np.Name,
-					Existing:     false,
-					InstanceType: np.InstanceType(),
-					CustomLabels: np.Labels,
-				})
 
 				if existingNodePool.Size > np.Size {
 					// delete unnecessary nodes

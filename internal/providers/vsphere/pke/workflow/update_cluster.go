@@ -160,6 +160,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			activityInput := DeleteK8sNodeActivityInput{
 				OrganizationID: input.OrganizationID,
 				ClusterName:    input.ClusterName,
+				K8sSecretID:    input.K8sSecretID,
 				Name:           node.Name,
 			}
 
