@@ -351,7 +351,7 @@ commands:
                     name: Run integration tests
                     command: |
                         make config/config.yaml
-                        KUBECONFIG=$PWD/build/kubeconfig PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=2" test-integration
+                        KUBECONFIG=$PWD/build/kubeconfig PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=1" test-integration
                     environment:
                         VAULT_ADDR: http://localhost:8200
                         VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
