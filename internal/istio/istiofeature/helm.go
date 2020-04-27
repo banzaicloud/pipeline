@@ -21,12 +21,22 @@ import (
 	k8sHelm "k8s.io/helm/pkg/helm"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 
-	"github.com/banzaicloud/pipeline/src/auth"
-	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/helm"
 )
 
-func deleteDeployment(c cluster.CommonCluster, releaseName string) error {
+type clusterProvider interface {
+	GetK8sConfig() ([]byte, error)
+}
+
+type clusterProviderData struct {
+	k8sConfig []byte
+}
+
+func (c *clusterProviderData) GetK8sConfig() ([]byte, error) {
+	return c.k8sConfig, nil
+}
+
+func deleteDeployment(c clusterProvider, releaseName string) error {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return errors.WrapIf(err, "could not get k8s config")
@@ -45,7 +55,7 @@ func deleteDeployment(c cluster.CommonCluster, releaseName string) error {
 }
 
 func installOrUpgradeDeployment(
-	c cluster.CommonCluster,
+	c clusterProvider,
 	namespace string,
 	deploymentName string,
 	releaseName string,
@@ -57,11 +67,6 @@ func installOrUpgradeDeployment(
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return errors.WrapIf(err, "could not get k8s config")
-	}
-
-	org, err := auth.GetOrganizationById(c.GetOrganizationId())
-	if err != nil {
-		return errors.WrapIf(err, "could not get organization")
 	}
 
 	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
@@ -85,7 +90,7 @@ func installOrUpgradeDeployment(
 			if !upgrade {
 				return nil
 			}
-			_, err = helm.UpgradeDeployment(releaseName, deploymentName, chartVersion, nil, values, false, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), k8sHelm.UpgradeForce(true))
+			_, err = helm.UpgradeDeployment(releaseName, deploymentName, chartVersion, nil, values, false, kubeConfig, helm.GeneratePlatformHelmRepoEnv(), k8sHelm.UpgradeForce(true))
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "could not upgrade deployment", "deploymentName", deploymentName)
 			}
