@@ -78,7 +78,7 @@ func TestConfigure_DefaultValueBinding(t *testing.T) {
 					Charts: ingress.ChartsConfig{
 						Traefik: ingress.TraefikChartConfig{
 							Chart:   "stable/traefik",
-							Version: "1.86.1",
+							Version: "1.86.2",
 							Values: values.Config(map[string]interface{}{
 								"ssl": map[string]interface{}{
 									"enabled":     true,
