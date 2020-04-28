@@ -43,11 +43,6 @@ type Values struct {
 	Service struct {
 		ExternalPort int `json:"externalPort,omitempty"`
 	} `json:"service,omitempty"`
-	UpdateStrategy struct {
-		RollingUpdate struct {
-			MaxUnavailable int `json:"maxUnavailable,omitempty"`
-		} `json:"rollingUpdate,omitempty"`
-	} `json:"updateStrategy,omitempty"`
 }
 
 func TestIntegration(t *testing.T) {
@@ -71,7 +66,7 @@ func TestIntegration(t *testing.T) {
 		t.Fatalf("%+v", err)
 	}
 
-	t.Run("helmV2", testIntegrationV2(kubeConfig, "istiofeature-helm"))
+	// t.Run("helmV2", testIntegrationV2(kubeConfig, "istiofeature-helm"))
 	t.Run("helmV3", testIntegrationV3(kubeConfig, global.Config.Helm.Home, "istiofeature-helm-v3"))
 }
 
