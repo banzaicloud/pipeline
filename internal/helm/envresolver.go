@@ -25,6 +25,7 @@ import (
 const (
 	PlatformHelmHome = "pipeline"
 	helmPostFix      = "helm"
+	cacheDir         = "cache"
 	noOrg            = 0 // signals that no organization id is provided
 )
 
@@ -45,10 +46,16 @@ type HelmEnv struct {
 	platform bool
 
 	repoCacheDir string
+
+	cacheDir string
 }
 
 func (e HelmEnv) GetHome() string {
 	return e.home
+}
+
+func (e HelmEnv) GetCacheDir() string {
+	return e.cacheDir
 }
 
 func (e HelmEnv) IsPlatform() bool {
@@ -88,6 +95,7 @@ func (er envResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (
 
 	return HelmEnv{
 		home:     path.Join(er.helmHomesDir, orgName, helmPostFix),
+		cacheDir: path.Join(er.helmHomesDir, orgName, cacheDir),
 		platform: false,
 	}, nil
 }
@@ -95,6 +103,7 @@ func (er envResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (
 func (er envResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
 	return HelmEnv{
 		home:     path.Join(fmt.Sprintf("%s-%s", er.helmHomesDir, PlatformHelmHome), helmPostFix),
+		cacheDir: path.Join(fmt.Sprintf("%s-%s", er.helmHomesDir, PlatformHelmHome), cacheDir),
 		platform: true,
 	}, nil
 }
