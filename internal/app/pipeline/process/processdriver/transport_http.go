@@ -46,6 +46,13 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 		kitxhttp.ErrorResponseEncoder(encodeGetProcessHTTPResponse, errorEncoder),
 		options...,
 	))
+
+	router.Methods(http.MethodPost).Path("/{id}/cancel").Handler(kithttp.NewServer(
+		endpoints.CancelProcess,
+		decodeCancelProcessHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		options...,
+	))
 }
 
 func encodeListProcessesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
@@ -62,9 +69,18 @@ func decodeGetProcessHTTPRequest(_ context.Context, r *http.Request) (interface{
 		return nil, errors.NewWithDetails("missing parameter from the URL", "param", "id")
 	}
 
-	org := auth.GetCurrentOrganization(r)
+	return GetProcessRequest{Id: id}, nil
+}
 
-	return GetProcessRequest{Org: *org, Id: id}, nil
+func decodeCancelProcessHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+
+	id, ok := vars["id"]
+	if !ok || id == "" {
+		return nil, errors.NewWithDetails("missing parameter from the URL", "param", "id")
+	}
+
+	return CancelProcessRequest{Id: id}, nil
 }
 
 func encodeGetProcessHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {

@@ -54,12 +54,18 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 		input.OrganizationID,
 		fmt.Sprint(input.ClusterID),
 	)
-	defer proc.RecordEnd(err)
+	defer func() {
+		proc.RecordEnd(err)
+	}()
 	defer func() {
 		status := cluster.Running
 		statusMessage := cluster.RunningMessage
 
 		if err != nil {
+			if cadence.IsCanceledError(err) {
+				ctx, _ = workflow.NewDisconnectedContext(ctx)
+			}
+
 			status = cluster.Warning
 			statusMessage = fmt.Sprintf("failed to update node pool: %s", err.Error())
 		}

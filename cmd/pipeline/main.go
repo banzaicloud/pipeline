@@ -1118,6 +1118,7 @@ func main() {
 			err := process.RegisterApp(
 				orgRouter,
 				db,
+				workflowClient,
 				commonLogger,
 				commonErrorHandler,
 			)

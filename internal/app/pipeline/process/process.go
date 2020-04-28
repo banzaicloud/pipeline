@@ -18,7 +18,9 @@ import (
 	"context"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
-	"github.com/banzaicloud/pipeline/src/auth"
+
+	"go.uber.org/cadence/.gen/go/shared"
+	cadence "go.uber.org/cadence/client"
 )
 
 // Process represents an pipeline process.
@@ -45,16 +47,20 @@ type Service interface {
 	ListProcesses(ctx context.Context, query Process) (processes []Process, err error)
 
 	// GetProcess returns a single process.
-	GetProcess(ctx context.Context, org auth.Organization, id string) (process Process, err error)
+	GetProcess(ctx context.Context, id string) (process Process, err error)
+
+	// CancelProcess cancels a single process.
+	CancelProcess(ctx context.Context, id string) (err error)
 }
 
 // NewService returns a new Service.
-func NewService(store Store) Service {
-	return service{store: store}
+func NewService(store Store, cadenceClient cadence.Client) Service {
+	return service{store: store, cadenceClient: cadenceClient}
 }
 
 type service struct {
-	store Store
+	store         Store
+	cadenceClient cadence.Client
 }
 
 // Store persists access processes in a persistent store.
@@ -103,7 +109,7 @@ func (s service) ListProcesses(ctx context.Context, query Process) ([]Process, e
 	return s.store.ListProcesses(ctx, query)
 }
 
-func (s service) GetProcess(ctx context.Context, org auth.Organization, id string) (Process, error) {
+func (s service) GetProcess(ctx context.Context, id string) (Process, error) {
 	return s.store.GetProcess(ctx, id)
 }
 
@@ -113,4 +119,13 @@ func (s service) LogProcess(ctx context.Context, p Process) (Process, error) {
 
 func (s service) LogProcessEvent(ctx context.Context, p ProcessEvent) (ProcessEvent, error) {
 	return p, s.store.LogProcessEvent(ctx, p)
+}
+
+func (s service) CancelProcess(ctx context.Context, id string) error {
+	err := s.cadenceClient.CancelWorkflow(ctx, id, "")
+	if _, ok := err.(*shared.EntityNotExistsError); ok {
+		return NotFoundError{ID: id}
+	}
+
+	return err
 }

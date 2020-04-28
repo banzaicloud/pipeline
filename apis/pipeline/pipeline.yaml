@@ -3713,6 +3713,7 @@ paths:
                                 $ref: '#/components/schemas/ListProcessesResponse'
                 default:
                     $ref: '#/components/responses/Error'
+
     /api/v1/orgs/{orgId}/processes/{id}:
         get:
             security:
@@ -3738,6 +3739,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Process'
+                default:
+                    $ref: '#/components/responses/Error'
+
+    /api/v1/orgs/{orgId}/processes/{id}/cancel:
+        post:
+            security:
+                - bearerAuth: []
+            tags:
+                - processes
+            summary: Cancel a process in Pipeline
+            operationId: CancelProcess
+            description: Cancel a process in Pipeline
+            parameters:
+                - $ref: '#/components/parameters/orgId'
+                -
+                    name: id
+                    in: path
+                    description: Process id
+                    required: true
+                    schema:
+                        type: string
+            responses:
+                202:
+                    description: "The process is being canceled"
                 default:
                     $ref: '#/components/responses/Error'
 
@@ -8064,4 +8089,4 @@ components:
 
         ProcessStatus:
             title: ProcessStatus
-            enum: [running, failed, finished]
+            enum: [running, failed, finished, canceled]

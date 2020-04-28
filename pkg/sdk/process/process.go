@@ -17,6 +17,7 @@ package process
 import (
 	"time"
 
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 )
 
@@ -30,6 +31,7 @@ const (
 	Running  Status = "running"
 	Failed   Status = "failed"
 	Finished Status = "finished"
+	Canceled Status = "canceled"
 )
 
 type ProcessActivityInput struct {
@@ -94,7 +96,12 @@ func (p *process) RecordEnd(err error) {
 	finishedAt := workflow.Now(p.ctx)
 	p.activityInput.FinishedAt = &finishedAt
 	if err != nil {
-		p.activityInput.Status = Failed
+		if cadence.IsCanceledError(err) {
+			p.ctx, _ = workflow.NewDisconnectedContext(p.ctx)
+			p.activityInput.Status = Canceled
+		} else {
+			p.activityInput.Status = Failed
+		}
 		p.activityInput.Log = err.Error()
 	} else {
 		p.activityInput.Status = Finished
@@ -134,7 +141,12 @@ func NewEvent(ctx workflow.Context, activityName string) Event {
 func (p *processEvent) RecordEnd(err error) {
 	p.activityInput.Timestamp = workflow.Now(p.ctx)
 	if err != nil {
-		p.activityInput.Status = Failed
+		if cadence.IsCanceledError(err) {
+			p.ctx, _ = workflow.NewDisconnectedContext(p.ctx)
+			p.activityInput.Status = Canceled
+		} else {
+			p.activityInput.Status = Failed
+		}
 		p.activityInput.Log = err.Error()
 	} else {
 		p.activityInput.Status = Finished

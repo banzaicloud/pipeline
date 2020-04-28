@@ -9,7 +9,6 @@ import (
 	"errors"
 	pipeline "github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/process"
-	auth "github.com/banzaicloud/pipeline/src/auth"
 	"github.com/go-kit/kit/endpoint"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 )
@@ -28,6 +27,7 @@ type serviceError interface {
 // meant to be used as a helper struct, to collect all of the endpoints into a
 // single parameter.
 type Endpoints struct {
+	CancelProcess   endpoint.Endpoint
 	GetProcess      endpoint.Endpoint
 	ListProcesses   endpoint.Endpoint
 	LogProcess      endpoint.Endpoint
@@ -40,6 +40,7 @@ func MakeEndpoints(service process.Service, middleware ...endpoint.Middleware) E
 	mw := kitxendpoint.Combine(middleware...)
 
 	return Endpoints{
+		CancelProcess:   kitxendpoint.OperationNameMiddleware("process.CancelProcess")(mw(MakeCancelProcessEndpoint(service))),
 		GetProcess:      kitxendpoint.OperationNameMiddleware("process.GetProcess")(mw(MakeGetProcessEndpoint(service))),
 		ListProcesses:   kitxendpoint.OperationNameMiddleware("process.ListProcesses")(mw(MakeListProcessesEndpoint(service))),
 		LogProcess:      kitxendpoint.OperationNameMiddleware("process.LogProcess")(mw(MakeLogProcessEndpoint(service))),
@@ -47,10 +48,42 @@ func MakeEndpoints(service process.Service, middleware ...endpoint.Middleware) E
 	}
 }
 
+// CancelProcessRequest is a request struct for CancelProcess endpoint.
+type CancelProcessRequest struct {
+	Id string
+}
+
+// CancelProcessResponse is a response struct for CancelProcess endpoint.
+type CancelProcessResponse struct {
+	Err error
+}
+
+func (r CancelProcessResponse) Failed() error {
+	return r.Err
+}
+
+// MakeCancelProcessEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeCancelProcessEndpoint(service process.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(CancelProcessRequest)
+
+		err := service.CancelProcess(ctx, req.Id)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return CancelProcessResponse{Err: err}, nil
+			}
+
+			return CancelProcessResponse{Err: err}, err
+		}
+
+		return CancelProcessResponse{}, nil
+	}
+}
+
 // GetProcessRequest is a request struct for GetProcess endpoint.
 type GetProcessRequest struct {
-	Org auth.Organization
-	Id  string
+	Id string
 }
 
 // GetProcessResponse is a response struct for GetProcess endpoint.
@@ -68,7 +101,7 @@ func MakeGetProcessEndpoint(service process.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(GetProcessRequest)
 
-		process, err := service.GetProcess(ctx, req.Org, req.Id)
+		process, err := service.GetProcess(ctx, req.Id)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
