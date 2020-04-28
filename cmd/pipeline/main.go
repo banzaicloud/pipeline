@@ -605,7 +605,15 @@ func main() {
 	enforcer := auth.NewRbacEnforcer(organizationStore, serviceAccountService, commonLogger)
 	authorizationMiddleware := ginauth.NewMiddleware(enforcer, basePath, errorHandler)
 
-	dashboardAPI := dashboard.NewDashboardAPI(clusterManager, clusterGroupManager, logrusLogger, errorHandler)
+	clusterSecretStore := clustersecret.NewStore(
+		clustersecretadapter.NewClusterManagerAdapter(clusterManager),
+		clustersecretadapter.NewSecretStore(secret.Store),
+	)
+
+	clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
+	emperror.Panic(errors.WrapIf(err, "failed to create DexClusterAuthService"))
+
+	dashboardAPI := dashboard.NewDashboardAPI(clusterManager, clusterGroupManager, logrusLogger, errorHandler, config.Auth, clusterAuthService)
 	dgroup := base.Group(path.Join("dashboard", "orgs"))
 	dgroup.Use(auth.InternalHandler)
 	dgroup.Use(auth.Handler)
@@ -653,6 +661,8 @@ func main() {
 		clusterUpdaters,
 		dynamicClientFactory,
 		unifiedHelmReleaser,
+		config.Auth,
+		clusterAuthService,
 	)
 
 	v1 := base.Group("api/v1")
@@ -841,11 +851,6 @@ func main() {
 				}
 			}
 
-			clusterSecretStore := clustersecret.NewStore(
-				clustersecretadapter.NewClusterManagerAdapter(clusterManager),
-				clustersecretadapter.NewSecretStore(secret.Store),
-			)
-
 			// Cluster IntegratedService API
 			var integratedServicesService integratedservices.Service
 			{
@@ -992,9 +997,6 @@ func main() {
 				leaderRepository,
 			)
 			pkeAPI.RegisterRoutes(pkeGroup)
-
-			clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
-			emperror.Panic(errors.WrapIf(err, "failed to create DexClusterAuthService"))
 
 			pipelineExternalURL, err := url.Parse(externalBaseURL)
 			emperror.Panic(errors.WrapIf(err, "failed to parse pipeline externalBaseURL"))

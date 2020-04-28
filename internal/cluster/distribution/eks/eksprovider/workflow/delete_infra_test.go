@@ -55,9 +55,6 @@ func TestDeleteClusterInfraWorkflowTestSuite(t *testing.T) {
 	deleteSshKeyActivity := NewDeleteSshKeyActivity(nil)
 	activity.RegisterWithOptions(deleteSshKeyActivity.Execute, activity.RegisterOptions{Name: DeleteSshKeyActivityName})
 
-	deleteClusterUserAccessKeyActivity := NewDeleteClusterUserAccessKeyActivity(nil)
-	activity.RegisterWithOptions(deleteClusterUserAccessKeyActivity.Execute, activity.RegisterOptions{Name: DeleteClusterUserAccessKeyActivityName})
-
 	getOrphanNicsActivity := NewGetOrphanNICsActivity(nil)
 	activity.RegisterWithOptions(getOrphanNicsActivity.Execute, activity.RegisterOptions{Name: GetOrphanNICsActivityName})
 
@@ -180,10 +177,6 @@ func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
 	s.env.OnActivity(DeleteStackActivityName, mock.Anything, DeleteStackActivityInput{
 		EKSActivityInput: eksActivityInput,
 		StackName:        generateStackNameForIam(eksActivityInput.ClusterName),
-	}).Return(nil).Once()
-
-	s.env.OnActivity(DeleteClusterUserAccessKeyActivityName, mock.Anything, DeleteClusterUserAccessKeyActivityInput{
-		EKSActivityInput: eksActivityInput,
 	}).Return(nil).Once()
 
 	s.env.ExecuteWorkflow(DeleteInfraWorkflowName, workflowInput)

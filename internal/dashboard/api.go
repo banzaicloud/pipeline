@@ -30,6 +30,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/scheduler/nodeinfo"
 
+	clusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
+	"github.com/banzaicloud/pipeline/internal/cluster/oidc"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
@@ -46,6 +48,9 @@ type DashboardAPI struct {
 	clusterGroupManager *clustergroup.Manager
 	logger              logrus.FieldLogger
 	errorHandler        emperror.Handler
+
+	authConfig         auth.Config
+	clientSecretGetter clusterAuth.ClusterClientSecretGetter
 }
 
 func NewDashboardAPI(
@@ -53,12 +58,16 @@ func NewDashboardAPI(
 	clusterGroupManager *clustergroup.Manager,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
+	authConfig auth.Config,
+	clientSecretGetter clusterAuth.ClusterClientSecretGetter,
 ) *DashboardAPI {
 	return &DashboardAPI{
 		clusterManager:      clusterManager,
 		clusterGroupManager: clusterGroupManager,
 		logger:              logger,
 		errorHandler:        errorHandler,
+		authConfig:          authConfig,
+		clientSecretGetter:  clientSecretGetter,
 	}
 }
 
@@ -197,6 +206,20 @@ func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonClust
 	clusterInfo.Region = clusterStatus.Region
 	clusterInfo.Location = clusterStatus.Location
 	clusterInfo.MasterVersion = clusterStatus.Version
+
+	// set oidc field on response
+	oidcCreator := oidc.NewCreator(d.authConfig.OIDC, d.clientSecretGetter)
+	oidcResponse, err := oidcCreator.CreateNewOIDCResponse(context.Background(), clusterStatus.OIDCEnabled, commonCluster.GetID())
+	if err != nil {
+		d.logger.Warn(err.Error())
+	} else {
+		clusterInfo.OIDC = OIDC{
+			Enabled:      oidcResponse.Enabled,
+			IdpURL:       oidcResponse.IdpURL,
+			ClientID:     oidcResponse.ClientID,
+			ClientSecret: oidcResponse.ClientSecret,
+		}
+	}
 
 	endPoint, err := commonCluster.GetAPIEndpoint()
 	if err != nil {

@@ -160,6 +160,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			EKSActivityInput: commonActivityInput,
 			UserName:         input.ClusterName,
 			UseDefaultUser:   input.DefaultUser,
+			ClusterUID:       input.ClusterUID,
 		}
 		userAccessKeyActivityFeature = workflow.ExecuteActivity(ctx, CreateClusterUserAccessKeyActivityName, activityInput)
 	}

@@ -6377,6 +6377,8 @@ components:
                 region:
                     type: string
                     example: "us-central1"
+                oidc:
+                    $ref: '#/components/schemas/OIDCConfig'
                 nodePools:
                     type: object
                     additionalProperties:
@@ -6820,6 +6822,18 @@ components:
                 lastTransitionTime:
                     type: string
                     example: "2018-08-01T07:04:37Z"
+
+        OIDCConfig:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                idpUrl:
+                    type: string
+                clientId:
+                    type: string
+                clientSecret:
+                    type: string
 
         ResourceSummary:
             type: object

@@ -29,6 +29,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	clusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	eksdriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
@@ -62,7 +63,9 @@ type ClusterAPI struct {
 	clusterCreators ClusterCreators
 	clusterUpdaters ClusterUpdaters
 
-	helmService cluster.HelmService
+	helmService        cluster.HelmService
+	authConfig         auth.Config
+	clientSecretGetter clusterAuth.ClusterClientSecretGetter
 }
 
 type ClusterCreators struct {
@@ -95,6 +98,8 @@ func NewClusterAPI(
 	clusterUpdaters ClusterUpdaters,
 	clientFactory common.DynamicClientFactory,
 	helmService cluster.HelmService,
+	authConfig auth.Config,
+	clientSecretGetter clusterAuth.ClusterClientSecretGetter,
 ) *ClusterAPI {
 	return &ClusterAPI{
 		clusterManager:          clusterManager,
@@ -108,6 +113,8 @@ func NewClusterAPI(
 		clusterUpdaters:         clusterUpdaters,
 		clientFactory:           clientFactory,
 		helmService:             helmService,
+		authConfig:              authConfig,
+		clientSecretGetter:      clientSecretGetter,
 	}
 }
 
