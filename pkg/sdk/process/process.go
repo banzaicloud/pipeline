@@ -66,6 +66,8 @@ type process struct {
 }
 
 func Start(ctx workflow.Context, orgID uint, resourceID string) Process {
+	ctx = workflow.WithTaskList(ctx, "pipeline")
+
 	winfo := workflow.GetInfo(ctx)
 	parentID := ""
 	if winfo.ParentWorkflowExecution != nil {
@@ -110,6 +112,8 @@ type processEvent struct {
 }
 
 func NewEvent(ctx workflow.Context, activityName string) Event {
+	ctx = workflow.WithTaskList(ctx, "pipeline")
+
 	winfo := workflow.GetInfo(ctx)
 
 	activityInput := ProcessEventActivityInput{
