@@ -227,6 +227,7 @@ func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, err
 		ResourceID:    a.model.ID,
 		Version:       a.model.Kubernetes.Version,
 		NodePools:     nodePools,
+		OIDCEnabled:   a.model.Kubernetes.OIDC.Enabled,
 		CreatorBaseFields: pkgCommon.CreatorBaseFields{
 			CreatedAt:   a.model.CreationTime,
 			CreatorName: auth.GetUserNickNameById(a.model.CreatedBy),

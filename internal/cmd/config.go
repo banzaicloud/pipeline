@@ -623,7 +623,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::ingress::namespace", "")
 	v.SetDefault("cluster::ingress::releaseName", "ingress")
 	v.SetDefault("cluster::ingress::charts::traefik::chart", "stable/traefik")
-	v.SetDefault("cluster::ingress::charts::traefik::version", "1.86.1")
+	v.SetDefault("cluster::ingress::charts::traefik::version", "1.86.2")
 	v.SetDefault("cluster::ingress::charts::traefik::values", `
 ssl:
   enabled: true
@@ -699,7 +699,7 @@ ssl:
 	// ingress controller config
 	v.SetDefault("cluster::posthook::ingress::enabled", true)
 	v.SetDefault("cluster::posthook::ingress::chart", "banzaicloud-stable/pipeline-cluster-ingress")
-	v.SetDefault("cluster::posthook::ingress::version", "0.0.8")
+	v.SetDefault("cluster::posthook::ingress::version", "0.0.10")
 	v.SetDefault("cluster::posthook::ingress::values", `
 traefik:
   ssl:

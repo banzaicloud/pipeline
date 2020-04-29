@@ -27,6 +27,7 @@ import (
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 	kitxtransport "github.com/sagikazarmark/kitx/transport"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
+	cadence "go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/process"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/process/processadapter"
@@ -34,10 +35,11 @@ import (
 	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 )
 
-// RegisterApp registers a new HTTP and GRPC application for processes.
+// RegisterApp registers a new HTTP application for processes.
 func RegisterApp(
 	router *mux.Router,
 	db *gorm.DB,
+	cadenceClient cadence.Client,
 	logger process.Logger,
 	errorHandler process.ErrorHandler,
 ) error {
@@ -51,7 +53,7 @@ func RegisterApp(
 		appkitendpoint.LoggingMiddleware(logger),
 	}
 
-	service := process.NewService(processadapter.NewGormStore(db))
+	service := process.NewService(processadapter.NewGormStore(db), cadenceClient)
 
 	endpoints := processdriver.MakeEndpoints(
 		service,
