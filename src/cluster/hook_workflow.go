@@ -173,7 +173,7 @@ func (a *RunPostHookActivity) Execute(ctx context.Context, input RunPostHookActi
 
 	logger.Infow("starting posthook function", "param", input.HookParam)
 
-	statusMsg := fmt.Sprintf("running %s", hook)
+	statusMsg := fmt.Sprintf("running %s", input.HookName)
 	if err := hook.Do(cluster); err != nil {
 		err := errors.WrapIf(err, "posthook failed")
 		hook.Error(cluster, err)
