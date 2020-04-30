@@ -446,8 +446,10 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			OrganizationID:     input.OrganizationID,
 			HTTPProxyHostPort:  getHostPort(input.HTTPProxy.HTTP),
 			HTTPProxySecretID:  input.HTTPProxy.HTTP.SecretID,
+			HTTPProxyScheme:    input.HTTPProxy.HTTP.Scheme,
 			HTTPSProxyHostPort: getHostPort(input.HTTPProxy.HTTPS),
 			HTTPSProxySecretID: input.HTTPProxy.HTTPS.SecretID,
+			HTTPSProxyScheme:   input.HTTPProxy.HTTPS.Scheme,
 		}
 		var output intPKEWorkflow.AssembleHTTPProxySettingsActivityOutput
 		if err := workflow.ExecuteActivity(ctx, intPKEWorkflow.AssembleHTTPProxySettingsActivityName, activityInput).Get(ctx, &output); err != nil {
