@@ -12,5 +12,5 @@ package pipeline
 
 type UpdatePkeOnVsphereClusterRequest struct {
 
-	NodePools []PkeOnVsphereNodePool `json:"nodePools,omitempty"`
+	Nodepools []PkeOnVsphereNodePool `json:"nodepools,omitempty"`
 }

@@ -10,7 +10,13 @@
 
 package pipeline
 
-type UpdateClusterRequestV2 struct {
+type OidcConfig struct {
 
-	Nodepools []PkeOnVsphereNodePool `json:"nodepools,omitempty"`
+	Enabled bool `json:"enabled,omitempty"`
+
+	IdpUrl string `json:"idpUrl,omitempty"`
+
+	ClientId string `json:"clientId,omitempty"`
+
+	ClientSecret string `json:"clientSecret,omitempty"`
 }

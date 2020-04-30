@@ -23,7 +23,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
-const SetClusterStatusActivityName = "pke-azure-set-cluster-status"
+const SetClusterStatusActivityName = "pke-vsphere-set-cluster-status"
 
 type SetClusterStatusActivity struct {
 	store pke.ClusterStore

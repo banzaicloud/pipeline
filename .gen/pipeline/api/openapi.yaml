@@ -18972,7 +18972,7 @@ components:
       type: object
     UpdatePKEOnVsphereClusterRequest:
       properties:
-        nodePools:
+        nodepools:
           items:
             $ref: '#/components/schemas/PKEOnVsphereNodePool'
           type: array
@@ -20358,6 +20358,11 @@ components:
         distribution: gke
         monitoring: false
         version: 1.12.6-gke.10
+        oidc:
+          clientId: clientId
+          idpUrl: idpUrl
+          clientSecret: clientSecret
+          enabled: true
         statusMessage: Cluster is running
         cloud: google
         createdAt: 2018-07-03T14:23:19+02:00
@@ -20436,6 +20441,8 @@ components:
         region:
           example: us-central1
           type: string
+        oidc:
+          $ref: '#/components/schemas/OIDCConfig'
         nodePools:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolStatus'
@@ -20947,6 +20954,22 @@ components:
           type: string
         lastTransitionTime:
           example: 2018-08-01T07:04:37Z
+          type: string
+      type: object
+    OIDCConfig:
+      example:
+        clientId: clientId
+        idpUrl: idpUrl
+        clientSecret: clientSecret
+        enabled: true
+      properties:
+        enabled:
+          type: boolean
+        idpUrl:
+          type: string
+        clientId:
+          type: string
+        clientSecret:
           type: string
       type: object
     ResourceSummary:
@@ -22750,7 +22773,7 @@ components:
             default value from the main cluster secret.
           example: my-resource-pool
           type: string
-        nodePools:
+        nodepools:
           items:
             $ref: '#/components/schemas/PKEOnVsphereNodePool'
           type: array

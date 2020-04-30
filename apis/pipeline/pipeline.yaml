@@ -4336,7 +4336,7 @@ components:
                             type: string
                             description: "Virtual machines will be created in this resource pool. Overrides default value from the main cluster secret."
                             example: "my-resource-pool"
-                        nodePools:
+                        nodepools:
                             type: array
                             items:
                                 $ref: '#/components/schemas/PKEOnVsphereNodePool'
@@ -5056,7 +5056,7 @@ components:
         UpdatePKEOnVsphereClusterRequest:
             type: object
             properties:
-                nodePools:
+                nodepools:
                     type: array
                     items:
                         $ref: '#/components/schemas/PKEOnVsphereNodePool'
