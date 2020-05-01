@@ -37,6 +37,9 @@ func registerVsphereWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerato
 	waitForIpActivity := vsphereworkflow.MakeWaitForIPActivity(vsphereClientFactory)
 	activity.RegisterWithOptions(waitForIpActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.WaitForIPActivityName})
 
+	setClusterStatusActivity := vsphereworkflow.MakeSetClusterStatusActivity(store)
+	activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.SetClusterStatusActivityName})
+
 	workflow.RegisterWithOptions(vsphereworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: vsphereworkflow.DeleteClusterWorkflowName})
 
 	deleteNodeActivity := vsphereworkflow.MakeDeleteNodeActivity(vsphereClientFactory)
