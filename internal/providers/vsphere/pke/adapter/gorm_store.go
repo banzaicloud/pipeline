@@ -58,17 +58,19 @@ func (m rolesModel) Value() (driver.Value, error) {
 }
 
 type nodePoolModel struct {
-	ID          uint `gorm:"primary_key"`
-	Autoscaling bool
-	ClusterID   uint `gorm:"unique_index:idx_vsphere_pke_np_cluster_id_name"`
-	CreatedBy   uint
-	Size        int
-	MaxSize     uint
-	MinSize     uint
-	VCPU        int `gorm:"column:vcpu"`
-	RAM         int
-	Name        string     `gorm:"unique_index:idx_vsphere_pke_np_cluster_id_name"`
-	Roles       rolesModel `gorm:"type:json"`
+	ID            uint `gorm:"primary_key"`
+	Autoscaling   bool
+	ClusterID     uint `gorm:"unique_index:idx_vsphere_pke_np_cluster_id_name"`
+	CreatedBy     uint
+	Size          int
+	MaxSize       uint
+	MinSize       uint
+	VCPU          int `gorm:"column:vcpu"`
+	RAM           int
+	Name          string     `gorm:"unique_index:idx_vsphere_pke_np_cluster_id_name"`
+	Roles         rolesModel `gorm:"type:json"`
+	AdminUsername string
+	TemplateName  string
 }
 
 func (nodePoolModel) TableName() string {
@@ -168,18 +170,22 @@ func fillNodePoolFromModel(nodePool *pke.NodePool, model nodePoolModel) {
 	nodePool.CreatedBy = model.CreatedBy
 	nodePool.Size = model.Size
 	nodePool.VCPU = model.VCPU
-	nodePool.Ram = model.RAM
+	nodePool.RAM = model.RAM
 	nodePool.Name = model.Name
 	nodePool.Roles = model.Roles
+	nodePool.TemplateName = model.TemplateName
+	nodePool.AdminUsername = model.AdminUsername
 }
 
 func fillModelFromNodePool(model *nodePoolModel, nodePool pke.NodePool) {
 	model.CreatedBy = nodePool.CreatedBy
 	model.Size = nodePool.Size
 	model.VCPU = nodePool.VCPU
-	model.RAM = nodePool.Ram
+	model.RAM = nodePool.RAM
 	model.Name = nodePool.Name
 	model.Roles = nodePool.Roles
+	model.TemplateName = nodePool.TemplateName
+	model.AdminUsername = nodePool.AdminUsername
 }
 
 func (s gormVspherePKEClusterStore) CreateNodePool(clusterID uint, nodePool pke.NodePool) error {
@@ -256,6 +262,28 @@ func (s gormVspherePKEClusterStore) DeleteNodePool(clusterID uint, nodePoolName 
 	}
 
 	return getError(s.db.Delete(model), "failed to delete model from database")
+}
+
+func (s gormVspherePKEClusterStore) UpdateNodePoolSize(clusterID uint, nodePoolName string, size int) error {
+	if err := validateClusterID(clusterID); err != nil {
+		return errors.WrapIf(err, "invalid cluster ID")
+	}
+	if nodePoolName == "" {
+		return errors.New("empty node pool name")
+	}
+
+	model := nodePoolModel{
+		ClusterID: clusterID,
+		Name:      nodePoolName,
+	}
+	if err := getError(s.db.Where(model).First(&model), "failed to load model from database"); err != nil {
+		return err
+	}
+	fields := map[string]interface{}{
+		"size": size,
+	}
+
+	return getError(s.db.Model(&model).Updates(fields), "failed to update model in database")
 }
 
 func (s gormVspherePKEClusterStore) Delete(clusterID uint) error {

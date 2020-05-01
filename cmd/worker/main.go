@@ -515,9 +515,11 @@ func main() {
 			activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.SetClusterStatusActivityName})
 		}
 
+		k8sConfigGetter := kubesecret.MakeKubeSecretStore(secret.Store)
+
 		// Register vsphere specific workflows
 
-		registerVsphereWorkflows(secretStore, tokenGenerator, vsphereClusterStore)
+		registerVsphereWorkflows(secretStore, tokenGenerator, vsphereClusterStore, k8sConfigGetter)
 
 		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterSecretStore)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
@@ -535,8 +537,6 @@ func main() {
 		activity.RegisterWithOptions(deleteUnusedClusterSecretsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteUnusedClusterSecretsActivityName})
 
 		workflow.RegisterWithOptions(intClusterWorkflow.DeleteK8sResourcesWorkflow, workflow.RegisterOptions{Name: intClusterWorkflow.DeleteK8sResourcesWorkflowName})
-
-		k8sConfigGetter := kubesecret.MakeKubeSecretStore(secret.Store)
 
 		deleteHelmDeploymentsActivity := intClusterWorkflow.MakeDeleteHelmDeploymentsActivity(k8sConfigGetter, logrusLogger)
 		activity.RegisterWithOptions(deleteHelmDeploymentsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteHelmDeploymentsActivityName})

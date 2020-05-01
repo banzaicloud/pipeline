@@ -10,7 +10,7 @@
 
 package pipeline
 
-type UpdateClusterRequestV2 struct {
+type UpdatePkeOnVsphereClusterRequest struct {
 
 	Nodepools []PkeOnVsphereNodePool `json:"nodepools,omitempty"`
 }

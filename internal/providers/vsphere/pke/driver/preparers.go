@@ -120,9 +120,76 @@ func (p NodePoolPreparer) prepareNewNodePool(ctx context.Context, nodePool *Node
 }
 
 func (p NodePoolPreparer) prepareExistingNodePool(ctx context.Context, nodePool *NodePool, existing pke.NodePool) error {
-	nodePool.CreatedBy = existing.CreatedBy
-	nodePool.Roles = existing.Roles
+	if nodePool.CreatedBy != existing.CreatedBy {
+		if nodePool.CreatedBy != 0 {
+			p.logMismatch("CreatedBy", existing.CreatedBy, nodePool.CreatedBy)
+		}
+		nodePool.CreatedBy = existing.CreatedBy
+	}
+	if !stringSliceSetEqual(nodePool.Roles, existing.Roles) {
+		if nodePool.Roles != nil {
+			p.logMismatch("Roles", existing.Roles, nodePool.Roles)
+		}
+		nodePool.Roles = existing.Roles
+	}
+	if nodePool.AdminUsername != existing.AdminUsername {
+		if nodePool.AdminUsername != "" {
+			p.logMismatch("AdminUsername", existing.AdminUsername, nodePool.AdminUsername)
+		}
+		nodePool.AdminUsername = existing.AdminUsername
+	}
+	if nodePool.RAM != existing.RAM {
+		if nodePool.RAM > 0 {
+			p.logMismatch("RAM", existing.RAM, nodePool.RAM)
+		}
+		nodePool.RAM = existing.RAM
+	}
+	if nodePool.VCPU != existing.VCPU {
+		if nodePool.VCPU > 0 {
+			p.logMismatch("VCPU", existing.VCPU, nodePool.VCPU)
+		}
+		nodePool.VCPU = existing.VCPU
+	}
+	if nodePool.TemplateName != existing.TemplateName {
+		if nodePool.TemplateName != "" {
+			p.logMismatch("TemplateName", existing.TemplateName, nodePool.TemplateName)
+		}
+		nodePool.TemplateName = existing.TemplateName
+	}
+
 	return nil
+}
+
+func (p NodePoolPreparer) logMismatch(fieldName string, currentValue, incomingValue interface{}) {
+	p.logger.Warn(fmt.Sprintf("%s.%s does not match existing value", p.namespace, fieldName), map[string]interface{}{"current": currentValue, "incoming": incomingValue})
+}
+
+func stringSliceSetEqual(lhs, rhs []string) bool {
+	lset := make(map[string]bool, len(lhs))
+	for _, e := range lhs {
+		lset[e] = true
+	}
+	if len(lhs) != len(lset) {
+		return false // duplicates in lhs
+	}
+
+	rset := make(map[string]bool, len(rhs))
+	for _, e := range rhs {
+		rset[e] = true
+	}
+	if len(rhs) != len(rset) {
+		return false // duplicates in rhs
+	}
+
+	if len(lset) != len(rset) {
+		return false // different element counts
+	}
+	for e := range lset {
+		if !rset[e] {
+			return false // element in lhs missing from rhs
+		}
+	}
+	return true
 }
 
 type validationError struct {

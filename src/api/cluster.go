@@ -80,8 +80,9 @@ type ClusterDeleters struct {
 }
 
 type ClusterUpdaters struct {
-	PKEOnAzure azureDriver.ClusterUpdater
-	EKSAmazon  eksdriver.EksClusterUpdater
+	PKEOnAzure   azureDriver.ClusterUpdater
+	EKSAmazon    eksdriver.EksClusterUpdater
+	PKEOnVsphere vsphereDriver.ClusterUpdater
 }
 
 // NewClusterAPI returns a new ClusterAPI instance.

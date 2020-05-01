@@ -43,7 +43,7 @@ type CreatePkeOnVsphereClusterRequest struct {
 	// Virtual machines will be created in this resource pool. Overrides default value from the main cluster secret.
 	ResourcePool string `json:"resourcePool,omitempty"`
 
-	NodePools []PkeOnVsphereNodePool `json:"nodePools,omitempty"`
+	Nodepools []PkeOnVsphereNodePool `json:"nodepools,omitempty"`
 
 	// IPv4 range to allocate addresses for LoadBalancer Services (MetalLB)
 	LoadBalancerIPRange string `json:"loadBalancerIPRange,omitempty"`

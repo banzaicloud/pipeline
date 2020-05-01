@@ -42,19 +42,35 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 	}
 
 	var err error
-	if commonCluster.GetCloud() == pkgCluster.Azure && commonCluster.GetDistribution() == pkgCluster.PKE {
-		var updateRequest *apicluster.UpdatePKEOnAzureClusterRequest
-		if err := c.BindJSON(&updateRequest); err != nil {
-			a.logger.Errorf("Error parsing request: %s", err.Error())
-			c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-				Code:    http.StatusBadRequest,
-				Message: "Error parsing request",
-				Error:   err.Error(),
-			})
-			return
+	if commonCluster.GetDistribution() == pkgCluster.PKE {
+		switch commonCluster.GetCloud() {
+		case pkgCluster.Azure:
+			var updateRequest *apicluster.UpdatePKEOnAzureClusterRequest
+			if err := c.BindJSON(&updateRequest); err != nil {
+				a.logger.Errorf("Error parsing request: %s", err.Error())
+				c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+					Code:    http.StatusBadRequest,
+					Message: "Error parsing request",
+					Error:   err.Error(),
+				})
+				return
+			}
+			params := updateRequest.ToAzurePKEClusterUpdateParams(commonCluster.GetID(), auth.GetCurrentUser(c.Request).ID)
+			err = a.clusterUpdaters.PKEOnAzure.Update(c, params)
+		case pkgCluster.Vsphere:
+			var updateRequest *apicluster.UpdatePKEOnVsphereClusterRequest
+			if err := c.BindJSON(&updateRequest); err != nil {
+				a.logger.Errorf("Error parsing request: %s", err.Error())
+				c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+					Code:    http.StatusBadRequest,
+					Message: "Error parsing request",
+					Error:   err.Error(),
+				})
+				return
+			}
+			params := updateRequest.ToVspherePKEClusterUpdateParams(commonCluster.GetID(), auth.GetCurrentUser(c.Request).ID)
+			err = a.clusterUpdaters.PKEOnVsphere.Update(c, params)
 		}
-		params := updateRequest.ToAzurePKEClusterUpdateParams(commonCluster.GetID(), auth.GetCurrentUser(c.Request).ID)
-		err = a.clusterUpdaters.PKEOnAzure.Update(c, params)
 	} else {
 		// bind request body to UpdateClusterRequest struct
 		var updateRequest *pkgCluster.UpdateClusterRequest

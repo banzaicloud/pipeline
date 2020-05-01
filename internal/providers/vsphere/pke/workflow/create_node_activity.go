@@ -124,9 +124,47 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 		"secret", input.SecretID,
 		"node", input.Name,
 	)
-
-	logger.Info("create virtual machine")
 	vmRef := types.ManagedObjectReference{}
+
+	c, err := a.vmomiClientFactory.New(input.OrganizationID, input.SecretID)
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
+		return vmRef, err
+	}
+	finder := find.NewFinder(c.Client)
+
+	// first check if VM already exists and is in right power state
+	vms, err := finder.VirtualMachineList(ctx, input.Name)
+	if err != nil {
+		if _, ok := err.(*find.NotFoundError); ok {
+			logger.Infof("VM named %q not found", input.Name)
+		} else {
+			logger.Warnf("couldn't find a VM named %q: %s", input.Name, err.Error())
+		}
+	} else if len(vms) > 0 {
+		vm := vms[0]
+		powerState, err := vm.PowerState(ctx)
+		if err != nil {
+			return vmRef, err
+		}
+		logger.Infof("VM named %q found, power state: %q", input.Name, powerState)
+
+		if powerState != types.VirtualMachinePowerStatePoweredOn {
+			task, err := vm.PowerOn(ctx)
+			if err != nil {
+				return vmRef, errors.WrapIf(err, "failed to power on VM")
+			}
+
+			logger.Info("wait for VM to power on", "task", task.String())
+			err = vm.WaitForPowerState(ctx, types.VirtualMachinePowerStatePoweredOn)
+			if err != nil {
+				return vmRef, errors.WrapIf(err, "failed to power on VM")
+			}
+		}
+		return vm.Reference(), nil
+	}
+
+	// create new VM
+	logger.Info("create virtual machine")
 
 	_, token, err := a.tokenGenerator.GenerateClusterToken(input.OrganizationID, input.ClusterID)
 	if err != nil {
@@ -163,16 +201,12 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 		PowerOn: true,
 	}
 
-	c, err := a.vmomiClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
-		return vmRef, err
-	}
-
 	folderName := input.FolderName
 	if folderName == "" {
-		folderName = secretValues[secrettype.VsphereFolder]
+		folderName =
+			secretValues[secrettype.VsphereFolder]
 	}
-	finder := find.NewFinder(c.Client)
+
 	folder, err := finder.FolderOrDefault(ctx, folderName)
 	if err != nil {
 		return vmRef, err
@@ -257,15 +291,15 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 		return vmRef, err
 	}
 
-	logger.Info("cloning template task: ", task.String())
-	progressLogger := newProgressLogger("cloning template progress ", logger)
+	logger.Info("cloning VM template task: ", task.String())
+	progressLogger := newProgressLogger("cloning VM template progress ", logger)
 	defer progressLogger.Wait()
 	taskInfo, err := task.WaitForResult(ctx, progressLogger)
 	if err != nil {
 		return vmRef, err
 	}
 
-	logger.Infof("vm created: %+v\n", taskInfo)
+	logger.Infof("VM created: %+v\n", taskInfo)
 
 	if ref, ok := taskInfo.Result.(types.ManagedObjectReference); ok {
 		vmRef = ref

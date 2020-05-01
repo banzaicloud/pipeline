@@ -66,7 +66,7 @@ func (req CreatePKEOnVsphereClusterRequest) ToVspherePKEClusterCreationParams(or
 				Enabled: req.Kubernetes.Oidc.Enabled,
 			},
 		},
-		NodePools: vsphereRequestToClusterNodepools(req.NodePools, userID),
+		NodePools: vsphereRequestToClusterNodepools(req.Nodepools, userID),
 		HTTPProxy: intPKE.HTTPProxy{
 			HTTP:       clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(req.Proxy.Http),
 			HTTPS:      clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(req.Proxy.Https),
@@ -76,6 +76,15 @@ func (req CreatePKEOnVsphereClusterRequest) ToVspherePKEClusterCreationParams(or
 		FolderName:          req.Folder,
 		DatastoreName:       req.Datastore,
 		LoadBalancerIPRange: req.LoadBalancerIPRange,
+	}
+}
+
+type UpdatePKEOnVsphereClusterRequest pipeline.UpdatePkeOnVsphereClusterRequest
+
+func (req UpdatePKEOnVsphereClusterRequest) ToVspherePKEClusterUpdateParams(clusterID, userID uint) driver.VspherePKEClusterUpdateParams {
+	return driver.VspherePKEClusterUpdateParams{
+		ClusterID: clusterID,
+		NodePools: vsphereRequestToClusterNodepools(req.Nodepools, userID),
 	}
 }
 

@@ -48,6 +48,7 @@ type ClusterStore interface {
 	CreateNodePool(clusterID uint, nodePool NodePool) error
 	Delete(clusterID uint) error
 	DeleteNodePool(clusterID uint, nodePoolName string) error
+	UpdateNodePoolSize(clusterID uint, nodePoolName string, size int) error
 	GetByID(clusterID uint) (PKEOnVsphereCluster, error)
 	SetStatus(clusterID uint, status, message string) error
 	SetActiveWorkflowID(clusterID uint, workflowID string) error
