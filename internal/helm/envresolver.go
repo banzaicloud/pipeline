@@ -320,7 +320,7 @@ func (o orgEnvReconciler) Reconcile(ctx context.Context, helmEnv HelmEnv) error 
 
 	for _, missingRepo := range missingRepos {
 		if err := o.envService.AddRepository(ctx, helmEnv, missingRepo); err != nil {
-			return errors.WrapIfWithDetails(err, "failed to reconcile persisted repositorys")
+			return errors.WrapIfWithDetails(err, "failed to reconcile persisted repositories")
 		}
 	}
 
