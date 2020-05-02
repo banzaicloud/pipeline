@@ -422,7 +422,7 @@ func MakeListChartsEndpoint(service helm.Service) endpoint.Endpoint {
 type ListReleasesRequest struct {
 	OrganizationID uint
 	ClusterID      uint
-	Filters        interface{}
+	Filters        helm.ReleaseFilter
 	Options        helm.Options
 }
 

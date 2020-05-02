@@ -15,9 +15,11 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"emperror.dev/errors"
@@ -27,13 +29,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	internalCommon "github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
-	"github.com/banzaicloud/pipeline/pkg/common"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/security"
 	apiCommon "github.com/banzaicloud/pipeline/src/api/common"
-	"github.com/banzaicloud/pipeline/src/helm"
+	legacyHelm "github.com/banzaicloud/pipeline/src/helm"
 )
 
 func init() {
@@ -48,10 +51,10 @@ func getClusterClient(c *gin.Context) client.Client {
 
 	config, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
-		log.Errorf("Error getting K8s config: %s", err.Error())
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
+		log.Errorf("failed to create k8s client config for cluster: %s", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error getting K8s config",
+			Message: "failed to create k8s client config",
 			Error:   err.Error(),
 		})
 		return nil
@@ -59,10 +62,10 @@ func getClusterClient(c *gin.Context) client.Client {
 
 	cli, err := client.New(config, client.Options{})
 	if err != nil {
-		log.Errorf("Error creating new K8s client: %s", err.Error())
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
+		log.Errorf("failed to create k8s client for cluster: %s", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error creatig K8s Client",
+			Message: "failed to create k8s client for cluster",
 			Error:   err.Error(),
 		})
 		return nil
@@ -71,34 +74,101 @@ func getClusterClient(c *gin.Context) client.Client {
 	return cli
 }
 
-// GetImageDeployments list deployments by image
-func GetImageDeployments(c *gin.Context) {
-	imageDigest := c.Param("imageDigest")
-	releaseMap := make(map[string]bool)
+// ReleaseLister helm operation abstraction interface
+type ReleaseLister interface {
+	// ListReleases lists helm releases for the given input parameters
+	ListReleases(ctx context.Context, organizationID uint, clusterID uint, releaseFilter helm.ReleaseFilter, options helm.Options) ([]helm.Release, error)
+}
 
-	re := regexp.MustCompile("^sha256:[a-f0-9]{64}$")
-	if !re.MatchString(imageDigest) {
-		err := fmt.Errorf("Invalid imageID format: %s", imageDigest)
-		log.Error(err)
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
+// helm2ReleaseLister helm 2 (legacy) release lister
+type helm2ReleaseLister struct {
+	clusterService ClusterService
+}
+
+func (d helm2ReleaseLister) ListReleases(ctx context.Context, _ uint, clusterID uint, releaseFilter helm.ReleaseFilter, options helm.Options) ([]helm.Release, error) {
+	kubeConfig, err := d.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to retrieve kube  config")
+	}
+
+	legacyReleasesResponse, err := legacyHelm.ListDeployments(releaseFilter.Filter, releaseFilter.TagFilter, kubeConfig)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to retrieve releases config")
+	}
+
+	retReleases := getDomainReleases(legacyReleasesResponse)
+	return retReleases, nil
+}
+
+func NewHelm2ReleaseLister(clusterService ClusterService) ReleaseLister {
+	return helm2ReleaseLister{
+		clusterService: clusterService,
+	}
+}
+
+// imageDeploymentsHandler providing helm abstraction to the handler
+type imageDeploymentsHandler struct {
+	clusterService ClusterService
+	releaseLister  ReleaseLister
+	logger         internalCommon.Logger
+}
+
+func NewImageDeploymentsHandler(releaseLister ReleaseLister, clusterService ClusterService, logger internalCommon.Logger) imageDeploymentsHandler {
+	return imageDeploymentsHandler{
+		releaseLister:  releaseLister,
+		clusterService: clusterService,
+		logger:         logger,
+	}
+}
+
+func (i imageDeploymentsHandler) GetImageDeployments(c *gin.Context) {
+	orgID, err := strconv.ParseUint(c.Param("orgid"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error getting K8s config",
+			Message: "failed to get path param",
 			Error:   err.Error(),
 		})
 		return
 	}
 
-	kubeConfig, ok := GetK8sConfig(c)
-	if !ok {
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "failed to get path param",
+			Error:   err.Error(),
+		})
 		return
 	}
 
-	// Get active helm deployments
-	log.Info("Get deployments")
-	activeReleases, err := helm.ListDeployments(nil, c.Query("tag"), kubeConfig)
+	imageDigest := c.Param("imageDigest")
+	re := regexp.MustCompile("^sha256:[a-f0-9]{64}$")
+	if !re.MatchString(imageDigest) {
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "invalid image digest format",
+			Error:   fmt.Sprintf("invalid imageID format: %s", imageDigest),
+		})
+		return
+	}
+
+	kubeConfig, err := i.clusterService.GetKubeConfig(c.Request.Context(), uint(clusterID))
 	if err != nil {
-		log.Error("Error listing deployments: ", err.Error())
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
+		i.logger.Error("failed to retrieve kubernetes configuration for cluster", map[string]interface{}{"clusterID": clusterID, "messageDigesr": imageDigest})
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "failed to retrieve kubernetes configuration for cluster",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	activeReleases, err := i.releaseLister.ListReleases(c.Request.Context(), uint(orgID), uint(clusterID),
+		helm.ReleaseFilter{TagFilter: c.Query("tag")}, helm.Options{})
+	if err != nil {
+		i.logger.Error("failed to list releases", map[string]interface{}{"clusterID": clusterID, "messageDigesr": imageDigest})
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error listing deployments",
 			Error:   err.Error(),
@@ -109,7 +179,7 @@ func GetImageDeployments(c *gin.Context) {
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		log.Errorf("Error getting K8s config: %s", err.Error())
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting K8s config",
 			Error:   err.Error(),
@@ -120,7 +190,7 @@ func GetImageDeployments(c *gin.Context) {
 	pods, err := listPods(client, "", "")
 	if err != nil {
 		log.Errorf("Error getting pods from cluster: %s", err.Error())
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting pods from cluster",
 			Error:   err.Error(),
@@ -131,6 +201,7 @@ func GetImageDeployments(c *gin.Context) {
 	//	- containerID: docker://a8130dc313a40b0eb9151685ba41f84cd0e4bb7e2888c52691590ff8a22a2e6b
 	//	image: banzaicloud/pipeline:0.4.0-dev29
 	//	imageID: docker-pullable://banzaicloud/pipeline@sha256:5042ef1a5415dae8330583448584be2bb592053416b7db5fc41389a717cc52ab
+	releaseMap := make(map[string]bool)
 	for _, p := range pods {
 		for _, status := range p.Status.ContainerStatuses {
 			if getImageDigest(status.ImageID) == imageDigest {
@@ -245,7 +316,7 @@ func (s securityHandlers) GetWhiteLists(c *gin.Context) {
 	if err != nil {
 		s.errorHandler.HandleContext(c.Request.Context(), err)
 
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error while retrieving whitelists",
 			Error:   errors.Cause(err).Error(),
@@ -278,7 +349,7 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 	if err := c.BindJSON(&whiteListItem); err != nil {
 		s.errorHandler.HandleContext(c.Request.Context(), err)
 
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
 			Error:   errors.Cause(err).Error(),
@@ -289,7 +360,7 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 	if _, err := s.resourceService.CreateWhitelist(c.Request.Context(), cluster, *whiteListItem); err != nil {
 		s.errorHandler.HandleContext(c.Request.Context(), err)
 
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error while creating whitelist",
 			Error:   errors.Cause(err).Error(),
@@ -303,7 +374,7 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 func (s securityHandlers) DeleteWhiteList(c *gin.Context) {
 	whitelisItemtName := c.Param("name")
 	if whitelisItemtName == "" {
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "WhiteList name is required!",
 			Error:   "WhiteList name is required!",
@@ -321,7 +392,7 @@ func (s securityHandlers) DeleteWhiteList(c *gin.Context) {
 	if err := s.resourceService.DeleteWhitelist(c.Request.Context(), cluster, whitelisItemtName); err != nil {
 		s.errorHandler.HandleContext(c.Request.Context(), err)
 
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error while deleting whitelist",
 			Error:   errors.Cause(err).Error(),
@@ -344,7 +415,7 @@ func (s securityHandlers) ListScanLogs(c *gin.Context) {
 	if err != nil {
 		s.errorHandler.HandleContext(c.Request.Context(), err)
 
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "failed to list scan logs",
 			Error:   errors.Cause(err).Error(),
@@ -369,7 +440,7 @@ func (s securityHandlers) GetScanLogs(c *gin.Context) {
 	if err != nil {
 		s.errorHandler.HandleContext(c.Request.Context(), err)
 
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "failed to retrieve scan logs",
 			Error:   errors.Cause(err).Error(),
