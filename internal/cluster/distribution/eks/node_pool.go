@@ -16,6 +16,8 @@ package eks
 
 import (
 	"context"
+	"crypto/sha1"
+	"fmt"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
@@ -69,4 +71,14 @@ func (n NewNodePool) Validate() error {
 type NodePoolStore interface {
 	// CreateNodePool saves a new node pool.
 	CreateNodePool(ctx context.Context, clusterID uint, createdBy uint, nodePool NewNodePool) error
+}
+
+func CalculateNodePoolVersion(input ...string) string {
+	h := sha1.New() // #nosec
+
+	for _, i := range input {
+		_, _ = h.Write([]byte(i))
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil))
 }

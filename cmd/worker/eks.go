@@ -136,11 +136,9 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *a
 	// Node pool upgrade
 	workflow.RegisterWithOptions(eksworkflow2.UpdateNodePoolWorkflow, workflow.RegisterOptions{Name: eksworkflow2.UpdateNodePoolWorkflowName})
 
-	updateNodeGroupActivity := eksworkflow2.NewUpdateNodeGroupActivity(awsSessionFactory, nodePoolTemplate)
-	activity.RegisterWithOptions(updateNodeGroupActivity.Execute, activity.RegisterOptions{Name: eksworkflow2.UpdateNodeGroupActivityName})
-
-	waitCloudFormationStackUpdateActivity := eksworkflow2.NewWaitCloudFormationStackUpdateActivity(awsSessionFactory)
-	activity.RegisterWithOptions(waitCloudFormationStackUpdateActivity.Execute, activity.RegisterOptions{Name: eksworkflow2.WaitCloudFormationStackUpdateActivityName})
+	eksworkflow2.NewCalculateNodePoolVersionActivity().Register()
+	eksworkflow2.NewUpdateNodeGroupActivity(awsSessionFactory, nodePoolTemplate).Register()
+	eksworkflow2.NewWaitCloudFormationStackUpdateActivity(awsSessionFactory).Register()
 
 	return nil
 }
