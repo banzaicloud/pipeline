@@ -21,6 +21,14 @@ import (
 	"emperror.dev/errors"
 )
 
+// Common node pool label constants
+const (
+	NodePoolNameLabelKey    = "nodepool.banzaicloud.io/name"
+	NodePoolVersionLabelKey = "nodepool.banzaicloud.io/version"
+
+	nodeOnDemandLabelKey = "node.banzaicloud.io/ondemand"
+)
+
 // +testify:mock:testOnly=true
 
 // NodePoolLabelSource returns a set of labels that should be applied to every node in the pool.
@@ -56,12 +64,6 @@ func (s NodePoolLabelSources) GetLabels(ctx context.Context, cluster Cluster, no
 	return labels, errors.Combine(errs...)
 }
 
-// Common node pool label constants
-const (
-	nodePoolNameLabelKey     = "nodepool.banzaicloud.io/name"
-	nodePoolOnDemandLabelKey = "node.banzaicloud.io/ondemand"
-)
-
 type commonNodePoolLabelSource struct{}
 
 // NewCommonNodePoolLabelSource returns a new NodePoolLabelSource
@@ -72,8 +74,8 @@ func NewCommonNodePoolLabelSource() NodePoolLabelSource {
 
 func (s commonNodePoolLabelSource) GetLabels(_ context.Context, _ Cluster, nodePool NodePool) (map[string]string, error) {
 	return map[string]string{
-		nodePoolNameLabelKey:     nodePool.GetName(),
-		nodePoolOnDemandLabelKey: strconv.FormatBool(nodePool.IsOnDemand()),
+		NodePoolNameLabelKey: nodePool.GetName(),
+		nodeOnDemandLabelKey: strconv.FormatBool(nodePool.IsOnDemand()),
 	}, nil
 }
 
