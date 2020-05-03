@@ -73,14 +73,43 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 		_ = setClusterStatus(ctx, input.ClusterID, status, statusMessage)
 	}()
 
+	var nodePoolVersion string
+	{
+		activityInput := CalculateNodePoolVersionActivityInput{
+			Image: input.NodeImage,
+		}
+
+		activityOptions := activityOptions
+		activityOptions.StartToCloseTimeout = 30 * time.Second
+		activityOptions.RetryPolicy = &cadence.RetryPolicy{
+			InitialInterval:    10 * time.Second,
+			BackoffCoefficient: 1.01,
+			MaximumInterval:    10 * time.Minute,
+		}
+
+		var output CalculateNodePoolVersionActivityOutput
+
+		err = workflow.ExecuteActivity(
+			workflow.WithActivityOptions(ctx, activityOptions),
+			CalculateNodePoolVersionActivityName,
+			activityInput,
+		).Get(ctx, &output)
+		if err != nil {
+			return
+		}
+
+		nodePoolVersion = output.Version
+	}
+
 	{
 		activityInput := UpdateNodeGroupActivityInput{
-			SecretID:     input.ProviderSecretID,
-			Region:       input.Region,
-			ClusterName:  input.ClusterName,
-			StackName:    input.StackName,
-			NodePoolName: input.NodePoolName,
-			NodeImage:    input.NodeImage,
+			SecretID:        input.ProviderSecretID,
+			Region:          input.Region,
+			ClusterName:     input.ClusterName,
+			StackName:       input.StackName,
+			NodePoolName:    input.NodePoolName,
+			NodePoolVersion: nodePoolVersion,
+			NodeImage:       input.NodeImage,
 		}
 
 		activityOptions := activityOptions

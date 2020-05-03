@@ -27,16 +27,13 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
 const awsNoUpdatesError = "No updates are to be performed."
 
 const UpdateNodeGroupActivityName = "eks-update-node-group"
-
-// TODO: move these to a better place
-const nodePoolNameLabelKey = "nodepool.banzaicloud.io/name"
-const nodePoolVersionLabelKey = "nodepool.banzaicloud.io/version"
 
 // UpdateNodeGroupActivity updates an existing node group.
 type UpdateNodeGroupActivity struct {
@@ -88,11 +85,11 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 	cloudformationClient := cloudformation.New(sess)
 
 	nodeLabels := []string{
-		fmt.Sprintf("%v=%v", nodePoolNameLabelKey, input.NodePoolName),
+		fmt.Sprintf("%v=%v", cluster.NodePoolNameLabelKey, input.NodePoolName),
 	}
 
 	if input.NodePoolVersion != "" {
-		nodeLabels = append(nodeLabels, fmt.Sprintf("%v=%v", nodePoolVersionLabelKey, input.NodePoolVersion))
+		nodeLabels = append(nodeLabels, fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, input.NodePoolVersion))
 	}
 
 	stackParams := []*cloudformation.Parameter{

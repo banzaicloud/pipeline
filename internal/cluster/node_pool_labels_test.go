@@ -68,8 +68,8 @@ func TestCommonNodePoolLabelSource_GetLabels(t *testing.T) {
 	assert.Equal(
 		t,
 		map[string]string{
-			nodePoolNameLabelKey:     "pool0",
-			nodePoolOnDemandLabelKey: "true",
+			NodePoolNameLabelKey: "pool0",
+			nodeOnDemandLabelKey: "true",
 		},
 		labels,
 	)
