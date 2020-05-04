@@ -31,9 +31,6 @@ type Process interface {
 
 	// StartActivity records a new activity of a process.
 	StartActivity(ctx workflow.Context, typ string) Activity
-
-	// RecordEvent records a new event that happened at a single point in time during the execution of a process.
-	RecordEvent(ctx workflow.Context, typ string, err error)
 }
 
 // Activity is a short lived part of a Process.
