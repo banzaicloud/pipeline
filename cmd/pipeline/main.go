@@ -765,9 +765,16 @@ func main() {
 				}
 
 				cRouter.GET("/images", api.ListImages)
-				cRouter.GET("/images/:imageDigest/deployments", api.GetImageDeployments)
-				cRouter.GET("/deployments/:name/images", api.GetDeploymentImages)
 
+				if config.Helm.V3 {
+					imageDeploymentHandler := api.NewImageDeploymentsHandler(helmFacade, cs, logger)
+					cRouter.GET("/images/:imageDigest/deployments", imageDeploymentHandler.GetImageDeployments)
+				} else {
+					imageDeploymentHandler := api.NewImageDeploymentsHandler(api.NewHelm2ReleaseLister(cs), cs, logger)
+					cRouter.GET("/images/:imageDigest/deployments", imageDeploymentHandler.GetImageDeployments)
+				}
+
+				cRouter.GET("/deployments/:name/images", api.GetDeploymentImages)
 				{
 					clusterStore := clusteradapter.NewStore(db, clusters)
 
