@@ -30,6 +30,7 @@ import (
 	"github.com/vmware/govmomi/vim25/soap"
 	"github.com/vmware/govmomi/vim25/types"
 	"go.uber.org/cadence/activity"
+	"go.uber.org/zap"
 
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
@@ -80,6 +81,28 @@ type Node struct {
 	TemplateName           string
 	NodePoolName           string
 	Master                 bool
+}
+
+func ensureVMIsRunning(ctx context.Context, logger *zap.SugaredLogger, vm *object.VirtualMachine) error {
+	powerState, err := vm.PowerState(ctx)
+	if err != nil {
+		return err
+	}
+	logger.Infof("VM named %q found, power state: %q", vm.Name(), powerState)
+
+	if powerState != types.VirtualMachinePowerStatePoweredOn {
+		task, err := vm.PowerOn(ctx)
+		if err != nil {
+			return errors.WrapIf(err, "failed to power on VM")
+		}
+
+		logger.Info("wait for VM to power on", "task", task.String())
+		err = vm.WaitForPowerState(ctx, types.VirtualMachinePowerStatePoweredOn)
+		if err != nil {
+			return errors.WrapIf(err, "failed to power on VM")
+		}
+	}
+	return nil
 }
 
 func generateVMConfigs(input CreateNodeActivityInput) (*types.VirtualMachineConfigSpec, error) {
@@ -142,23 +165,9 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 		}
 	} else if len(vms) > 0 {
 		vm := vms[0]
-		powerState, err := vm.PowerState(ctx)
+		err = ensureVMIsRunning(ctx, logger, vm)
 		if err != nil {
-			return vmRef, err
-		}
-		logger.Infof("VM named %q found, power state: %q", input.Name, powerState)
-
-		if powerState != types.VirtualMachinePowerStatePoweredOn {
-			task, err := vm.PowerOn(ctx)
-			if err != nil {
-				return vmRef, errors.WrapIf(err, "failed to power on VM")
-			}
-
-			logger.Info("wait for VM to power on", "task", task.String())
-			err = vm.WaitForPowerState(ctx, types.VirtualMachinePowerStatePoweredOn)
-			if err != nil {
-				return vmRef, errors.WrapIf(err, "failed to power on VM")
-			}
+			return vm.Reference(), err
 		}
 		return vm.Reference(), nil
 	}
@@ -304,6 +313,13 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 	if ref, ok := taskInfo.Result.(types.ManagedObjectReference); ok {
 		vmRef = ref
 	}
+
+	vm := object.NewVirtualMachine(c.Client, vmRef)
+	err = ensureVMIsRunning(ctx, logger, vm)
+	if err != nil {
+		return vm.Reference(), err
+	}
+
 	return vmRef, nil
 }
 
