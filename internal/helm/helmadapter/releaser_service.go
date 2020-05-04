@@ -78,7 +78,7 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 	}
 
 	installAction := action.NewInstall(actionConfig)
-	installAction.Namespace = options.Namespace
+	installAction.Namespace = ns
 
 	name, chartRef, err := installAction.NameAndChart(releaseInput.NameAndChartSlice())
 	if err != nil {

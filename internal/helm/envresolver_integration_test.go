@@ -27,7 +27,6 @@ func TestEnvresolver(t *testing.T) {
 
 	t.Run("platformEnvResolver", testPlatformEnvResolver())
 	t.Run("orgEnvResolver", testOrgEnvResolver())
-
 }
 
 func testPlatformEnvResolver() func(t *testing.T) {

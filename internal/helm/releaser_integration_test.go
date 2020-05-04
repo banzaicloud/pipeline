@@ -38,18 +38,36 @@ func TestReleaser(t *testing.T) {
 
 	// TODO try to test the helm 2 operations as well
 	t.Run("testReleaserHelmV3", testReleaserHelmV3())
-
 }
 
 func testReleaserHelmV3() func(t *testing.T) {
-
 	return func(t *testing.T) {
 		helmFacade := getHelmFacade(t)
-		t.Run("deleteRelease", testDeleteRelease(context.Background(), helmFacade, getTestReleases()[0].ReleaseName, helm.Options{}))
-		t.Run("installRelease", testInstallRelease(context.Background(), helmFacade, getTestReleases()[0], helm.Options{}))
-		t.Run("getRelease", testGetRelease(context.Background(), helmFacade, getTestReleases()[0].ReleaseName, helm.Options{}))
+		hasRun := t.Run("deleteReleaseBefore", testDeleteRelease(context.Background(), helmFacade, getTestReleases()[0].ReleaseName, helm.Options{}))
+		if !hasRun {
+			t.Fatal("failed to delete release")
+		}
+
+		hasRun = t.Run("installRelease", testInstallRelease(context.Background(), helmFacade, getTestReleases()[0], helm.Options{}))
+		if !hasRun {
+			t.Fatal("failed to install release")
+		}
+
+		hasRun = t.Run("getRelease", testGetRelease(context.Background(), helmFacade, getTestReleases()[0].ReleaseName, helm.Options{}))
+		if !hasRun {
+			t.Fatal("failed to get release")
+		}
+
 		filter := "a"
-		t.Run("listReleasesWithFilter", testListReleaseWithFilter(context.Background(), helmFacade, helm.ReleaseFilter{Filter: &filter}, helm.Options{}))
+		hasRun = t.Run("listReleasesWithFilter", testListReleaseWithFilter(context.Background(), helmFacade, helm.ReleaseFilter{Filter: &filter}, helm.Options{}))
+		if !hasRun {
+			t.Fatal("failed list release with filter")
+		}
+
+		hasRun = t.Run("deleteReleaseAfter", testDeleteRelease(context.Background(), helmFacade, getTestReleases()[0].ReleaseName, helm.Options{}))
+		if !hasRun {
+			t.Fatal("failed to delete release")
+		}
 	}
 }
 func setUpHelmConfig(t *testing.T) helm.Config {
@@ -111,7 +129,11 @@ func testInstallRelease(ctx context.Context, helmFacade helm.Service, releaseInp
 		if err := helmFacade.InstallRelease(ctx, 1, 1, releaseInput, options); err != nil {
 			t.Fatalf("failed to install release %#v", releaseInput)
 		}
-		//TODO assertions on successful installation
+
+		// assertions
+		rel, err := helmFacade.GetRelease(ctx, 1, 1, releaseInput.ReleaseName, options)
+		assert.Nil(t, err)
+		assert.Equal(t, "deployed", rel.ReleaseInfo.Status)
 	}
 }
 
@@ -124,7 +146,16 @@ func testListReleaseWithFilter(ctx context.Context, helmFacade helm.Service, fil
 			t.Fatalf("failed to list releases; filter %#v", filter)
 		}
 
+		// we assume there is a single result
 		assert.Equal(t, 1, len(releases), "found more then one release")
+
+		// fake filter
+		inexistingFilter := "InexistingReleaseName"
+		filter.Filter = &inexistingFilter
+		releases, notFound := helmFacade.ListReleases(ctx, 1, 1, filter, options)
+
+		assert.Nil(t, notFound)
+		assert.Equal(t, 0, len(releases), "no release should match the filter")
 	}
 }
 
@@ -132,25 +163,29 @@ func testDeleteRelease(ctx context.Context, helmFacade helm.Service, releaseName
 	return func(t *testing.T) {
 		t.Logf("deleting release %#v", releaseName)
 		if err := helmFacade.DeleteRelease(ctx, 1, 1, releaseName, options); err != nil {
-			if !ErrReleaseNotFound(err) {
+			if !errReleaseNotFound(err) {
 				t.Fatalf("failed to delete release %#v", releaseName)
 			}
 		}
-		//TODO assertions successful deletion
+
+		// the release can't be found
+		_, err := helmFacade.GetRelease(ctx, 1, 1, releaseName, options)
+		assert.True(t, errReleaseNotFound(err))
 	}
 }
 
 func testGetRelease(ctx context.Context, helmFacade helm.Service, releaseName string, options helm.Options) func(t *testing.T) {
 	return func(t *testing.T) {
 		t.Logf("deleting release %#v", releaseName)
-		if _, err := helmFacade.GetRelease(ctx, 1, 1, releaseName, options); err != nil {
-			t.Fatalf("failed to delete release %#v", releaseName)
+		release, err := helmFacade.GetRelease(ctx, 1, 1, releaseName, options)
+		if err != nil {
+			t.Fatalf("failed to retrieve release %#v", releaseName)
 		}
-		//TODO assertions successful deletion
+
+		assert.Equal(t, getTestReleases()[0].ReleaseName, release.ReleaseName)
 	}
 }
 
-// TODO make this more robust
-func ErrReleaseNotFound(err error) bool {
+func errReleaseNotFound(err error) bool {
 	return strings.Contains(errors.Cause(err).Error(), "not found")
 }
