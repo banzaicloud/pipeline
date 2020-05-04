@@ -38,14 +38,16 @@ func NewConfig(defaultRepos map[string]string) Config {
 
 // helmEnvService component in charge to operate the helm env on the filesystem
 type helmEnvService struct {
-	config Config
-	logger Logger
+	config      Config
+	secretStore helm.SecretStore
+	logger      Logger
 }
 
-func NewHelmEnvService(config Config, logger Logger) helm.EnvService {
+func NewHelmEnvService(config Config, secretStore helm.SecretStore, logger Logger) helm.EnvService {
 	return helmEnvService{
-		config: config,
-		logger: logger,
+		config:      config,
+		secretStore: secretStore,
+		logger:      logger,
 	}
 }
 
@@ -84,14 +86,14 @@ func (h helmEnvService) GetChart(_ context.Context, helmEnv helm.HelmEnv, filter
 	return chart, nil
 }
 
-func (h helmEnvService) AddRepository(_ context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
+func (h helmEnvService) AddRepository(ctx context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
 	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
 
 	if err := legacyHelm.EnsureDirectories(envSettings); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to install helm environment", "path", helmEnv.GetHome())
 	}
 
-	entry, err := h.repositoryToEntry(repository)
+	entry, err := h.repositoryToEntry(ctx, repository)
 	if err != nil {
 		return errors.WrapIf(err, "failed to resolve helm entry data")
 	}
@@ -140,10 +142,10 @@ func (h helmEnvService) DeleteRepository(_ context.Context, helmEnv helm.HelmEnv
 	return nil
 }
 
-func (h helmEnvService) PatchRepository(_ context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
+func (h helmEnvService) PatchRepository(ctx context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
 	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
 
-	entry, err := h.repositoryToEntry(repository)
+	entry, err := h.repositoryToEntry(ctx, repository)
 	if err != nil {
 		return errors.WrapIf(err, "failed to resolve helm entry data")
 	}
@@ -169,16 +171,26 @@ func (h helmEnvService) UpdateRepository(_ context.Context, helmEnv helm.HelmEnv
 	return nil
 }
 
-func (h helmEnvService) repositoryToEntry(repository helm.Repository) (repo.Entry, error) {
+func (h helmEnvService) repositoryToEntry(ctx context.Context, repository helm.Repository) (repo.Entry, error) {
 	entry := repo.Entry{
 		Name: repository.Name,
 		URL:  repository.URL,
 	}
 
+	if repository.PasswordSecretID != "" {
+		passwordSecret, err := h.secretStore.ResolvePasswordSecrets(ctx, repository.PasswordSecretID)
+		if err != nil {
+			return repo.Entry{}, errors.WrapIf(err, "failed to resolve password secret")
+		}
+
+		entry.Username = passwordSecret.UserName
+		entry.Password = passwordSecret.Password
+	}
+
 	return entry, nil
 }
 
-func (h helmEnvService) EnsureEnv(_ context.Context, helmEnv helm.HelmEnv, defaultRepos []helm.Repository) (helm.HelmEnv, error) {
-	_, err := legacyHelm.GenerateHelmRepoEnvOnPath(helmEnv.GetHome())
-	return helmEnv, err
+func (h helmEnvService) EnsureEnv(_ context.Context, helmEnv helm.HelmEnv, defaultRepos []helm.Repository) (helm.HelmEnv, bool, error) {
+	_, isNew, err := legacyHelm.GenerateHelmRepoEnvOnPath(helmEnv.GetHome())
+	return helmEnv, isNew, err
 }

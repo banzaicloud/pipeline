@@ -255,11 +255,11 @@ func (_m *MockService) ListCharts(ctx context.Context, organizationID uint, filt
 }
 
 // ListReleases provides a mock function.
-func (_m *MockService) ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters interface{}, options Options) ([]Release, error) {
+func (_m *MockService) ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters ReleaseFilter, options Options) ([]Release, error) {
 	ret := _m.Called(ctx, organizationID, clusterID, filters, options)
 
 	var r0 []Release
-	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, interface{}, Options) []Release); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, ReleaseFilter, Options) []Release); ok {
 		r0 = rf(ctx, organizationID, clusterID, filters, options)
 	} else {
 		if ret.Get(0) != nil {
@@ -268,7 +268,7 @@ func (_m *MockService) ListReleases(ctx context.Context, organizationID uint, cl
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, interface{}, Options) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, ReleaseFilter, Options) error); ok {
 		r1 = rf(ctx, organizationID, clusterID, filters, options)
 	} else {
 		r1 = ret.Error(1)
@@ -376,7 +376,7 @@ func (_m *MockEnvService) DeleteRepository(ctx context.Context, helmEnv HelmEnv,
 }
 
 // EnsureEnv provides a mock function.
-func (_m *MockEnvService) EnsureEnv(ctx context.Context, helmEnv HelmEnv, defaultRepos []Repository) (HelmEnv, error) {
+func (_m *MockEnvService) EnsureEnv(ctx context.Context, helmEnv HelmEnv, defaultRepos []Repository) (HelmEnv, bool, error) {
 	ret := _m.Called(ctx, helmEnv, defaultRepos)
 
 	var r0 HelmEnv
@@ -386,14 +386,21 @@ func (_m *MockEnvService) EnsureEnv(ctx context.Context, helmEnv HelmEnv, defaul
 		r0 = ret.Get(0).(HelmEnv)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, HelmEnv, []Repository) error); ok {
+	var r1 bool
+	if rf, ok := ret.Get(1).(func(context.Context, HelmEnv, []Repository) bool); ok {
 		r1 = rf(ctx, helmEnv, defaultRepos)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(bool)
 	}
 
-	return r0, r1
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, HelmEnv, []Repository) error); ok {
+		r2 = rf(ctx, helmEnv, defaultRepos)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // GetChart provides a mock function.

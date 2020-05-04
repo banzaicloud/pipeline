@@ -29,6 +29,8 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
@@ -169,6 +171,11 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 
 	tags := getNodePoolStackTags(input.ClusterName)
 
+	nodeLabels := []string{
+		fmt.Sprintf("%v=%v", cluster.NodePoolNameLabelKey, input.Name),
+		fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, eks.CalculateNodePoolVersion(input.NodeImage)),
+	}
+
 	stackParams := []*cloudformation.Parameter{
 		{
 			ParameterKey:     aws.String("KeyName"),
@@ -235,8 +242,8 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 			ParameterValue: aws.String(fmt.Sprint(terminationDetachEnabled)),
 		},
 		{
-			ParameterKey:     aws.String("BootstrapArguments"),
-			UsePreviousValue: aws.Bool(true),
+			ParameterKey:   aws.String("BootstrapArguments"),
+			ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v'", strings.Join(nodeLabels, ","))),
 		},
 	}
 

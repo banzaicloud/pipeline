@@ -25,7 +25,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
 
-	"github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 )
 
 const CreateAsgActivityName = "eks-create-asg"
@@ -119,7 +120,8 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	// do not update node labels via kubelet boostrap params as that induces node reboot or replacement
 	// we only add node pool name here, all other labels will be added by NodePoolLabelSet operator
 	nodeLabels := []string{
-		fmt.Sprintf("%v=%v", common.LabelKey, input.Name),
+		fmt.Sprintf("%v=%v", cluster.NodePoolNameLabelKey, input.Name),
+		fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, eks.CalculateNodePoolVersion(input.NodeImage)),
 	}
 
 	var subnetIDs []string

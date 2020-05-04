@@ -261,7 +261,7 @@ func main() {
 
 		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
-		unifiedHelmReleaser, _ := cmd.CreateUnifiedHelmReleaser(
+		unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
 			config.Helm,
 			db,
 			commonSecretStore,
@@ -398,7 +398,13 @@ func main() {
 
 			federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config)
 			deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler)
-			serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler, config.Cluster.Backyards)
+			var helmService cgFeatureIstio.HelmService
+			if config.Helm.V3 {
+				helmService = cgFeatureIstio.NewHelmV3Service(helmFacade)
+			} else {
+				helmService = &cgFeatureIstio.LegacyV2HelmService{}
+			}
+			serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler, config.Cluster.Backyards, helmService)
 			clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)
 			clusterGroupManager.RegisterFeatureHandler(deployment.FeatureName, deploymentManager)
 			clusterGroupManager.RegisterFeatureHandler(cgFeatureIstio.FeatureName, serviceMeshFeatureHandler)

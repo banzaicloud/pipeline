@@ -16,9 +16,12 @@ package helmadapter
 
 import (
 	"context"
+	"crypto/sha1"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
@@ -31,11 +34,16 @@ import (
 	"helm.sh/helm/v3/pkg/downloader"
 	"helm.sh/helm/v3/pkg/getter"
 	"helm.sh/helm/v3/pkg/storage/driver"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/discovery/cached/disk"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -56,13 +64,13 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 	// customize the settings passed forward
 	envSettings := r.processEnvSettings(helmEnv)
 
-	// component processing the kubeconfig
-	restClientGetter := NewCustomGetter(envSettings.RESTClientGetter(), kubeConfig, r.logger)
-
 	ns := "default"
 	if options.Namespace != "" {
 		ns = options.Namespace
 	}
+
+	// component processing the kubeconfig
+	restClientGetter := NewCustomGetter(ns, kubeConfig, helmEnv.GetCacheDir(), r.logger)
 
 	actionConfig, err := r.getActionConfiguration(restClientGetter, ns)
 	if err != nil {
@@ -77,6 +85,8 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 		return "", errors.WrapIf(err, "failed to get  name  and chart")
 	}
 	installAction.ReleaseName = name
+	installAction.Wait = options.Wait
+	installAction.Timeout = time.Minute * 5
 
 	cp, err := installAction.ChartPathOptions.LocateChart(chartRef, envSettings)
 	if err != nil {
@@ -124,6 +134,33 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 		}
 	}
 
+	clientSet, err := k8sclient.NewClientFromKubeConfigWithTimeout(kubeConfig, time.Second*10)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to create kubernetes client")
+	}
+
+	namespaces, err := clientSet.CoreV1().Namespaces().List(metav1.ListOptions{})
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to list kubernetes namespaces")
+	}
+
+	foundNs := false
+	for _, ns := range namespaces.Items {
+		if ns.Name == installAction.Namespace {
+			foundNs = true
+		}
+	}
+
+	if !foundNs {
+		if _, err := clientSet.CoreV1().Namespaces().Create(&v1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: installAction.Namespace,
+			},
+		}); err != nil {
+			return "", errors.WrapIf(err, "failed to create release namespace")
+		}
+	}
+
 	releasePtr, err := installAction.Run(chartRequested, releaseInput.Values)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to install chart")
@@ -133,22 +170,21 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 }
 
 func (r releaser) Uninstall(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseName string, options helm.Options) error {
-	// customize the settings passed forward
-	envSettings := r.processEnvSettings(helmEnv)
-
-	// component processing the kubeconfig
-	restClientGetter := NewCustomGetter(envSettings.RESTClientGetter(), kubeConfig, r.logger)
-
 	ns := "default"
 	if options.Namespace != "" {
 		ns = options.Namespace
 	}
+
+	// component processing the kubeconfig
+	restClientGetter := NewCustomGetter(ns, kubeConfig, helmEnv.GetCacheDir(), r.logger)
+
 	actionConfig, err := r.getActionConfiguration(restClientGetter, ns)
 	if err != nil {
 		return errors.WrapIf(err, "failed to get action configuration")
 	}
 
 	uninstallAction := action.NewUninstall(actionConfig)
+	uninstallAction.Timeout = time.Minute * 5
 
 	res, err := uninstallAction.Run(releaseName)
 	if err != nil {
@@ -164,11 +200,13 @@ func (r releaser) Uninstall(ctx context.Context, helmEnv helm.HelmEnv, kubeConfi
 }
 
 func (r releaser) List(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, options helm.Options) ([]helm.Release, error) {
-	// customize the settings passed forward
-	envSettings := r.processEnvSettings(helmEnv)
+	ns := "default"
+	if options.Namespace != "" {
+		ns = options.Namespace
+	}
 
 	// component processing the kubeconfig
-	restClientGetter := NewCustomGetter(envSettings.RESTClientGetter(), kubeConfig, r.logger)
+	restClientGetter := NewCustomGetter(ns, kubeConfig, helmEnv.GetCacheDir(), r.logger)
 
 	actionConfig, err := r.getActionConfiguration(restClientGetter, options.Namespace)
 	if err != nil {
@@ -206,13 +244,15 @@ func (r releaser) List(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.
 }
 
 func (r releaser) Get(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) (helm.Release, error) {
-	// customize the settings passed forward
-	envSettings := r.processEnvSettings(helmEnv)
+	ns := "default"
+	if options.Namespace != "" {
+		ns = options.Namespace
+	}
 
 	// component processing the kubeconfig
-	restClientGetter := NewCustomGetter(envSettings.RESTClientGetter(), kubeConfig, r.logger)
+	restClientGetter := NewCustomGetter(ns, kubeConfig, helmEnv.GetCacheDir(), r.logger)
 
-	actionConfig, err := r.getActionConfiguration(restClientGetter, options.Namespace)
+	actionConfig, err := r.getActionConfiguration(restClientGetter, ns)
 	if err != nil {
 		return helm.Release{}, errors.WrapIf(err, "failed to get action configuration")
 	}
@@ -242,16 +282,13 @@ func (r releaser) Get(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.K
 }
 
 func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) (string, error) {
-	// customize the settings passed forward
-	envSettings := r.processEnvSettings(helmEnv)
+	ns := "default"
+	if options.Namespace != "" {
+		ns = options.Namespace
+	}
 
 	// component processing the kubeconfig
-	restClientGetter := NewCustomGetter(envSettings.RESTClientGetter(), kubeConfig, r.logger)
-
-	ns := "default"
-	if releaseInput.Namespace != "" {
-		ns = releaseInput.Namespace
-	}
+	restClientGetter := NewCustomGetter(ns, kubeConfig, helmEnv.GetCacheDir(), r.logger)
 
 	actionConfig, err := r.getActionConfiguration(restClientGetter, ns)
 	if err != nil {
@@ -259,15 +296,17 @@ func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 	}
 
 	upgradeAction := action.NewUpgrade(actionConfig)
-	upgradeAction.Namespace = options.Namespace
+	upgradeAction.Namespace = ns
 	upgradeAction.Install = options.Install
+	upgradeAction.Wait = options.Wait
+	upgradeAction.Timeout = time.Minute * 5
 
 	if upgradeAction.Version == "" && upgradeAction.Devel {
 		r.logger.Debug("setting version to >0.0.0-0")
 		upgradeAction.Version = ">0.0.0-0"
 	}
 
-	chartPath, err := upgradeAction.ChartPathOptions.LocateChart(releaseInput.ChartName, envSettings)
+	chartPath, err := upgradeAction.ChartPathOptions.LocateChart(releaseInput.ChartName, r.processEnvSettings(helmEnv))
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to locate chart")
 	}
@@ -316,11 +355,13 @@ func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 }
 
 func (r releaser) Resources(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) ([]helm.ReleaseResource, error) {
-	// customize the settings passed forward
-	envSettings := r.processEnvSettings(helmEnv)
+	ns := "default"
+	if releaseInput.Namespace != "" {
+		ns = releaseInput.Namespace
+	}
 
 	// component processing the kubeconfig
-	restClientGetter := NewCustomGetter(envSettings.RESTClientGetter(), kubeConfig, r.logger)
+	restClientGetter := NewCustomGetter(ns, kubeConfig, helmEnv.GetCacheDir(), r.logger)
 
 	actionConfig, err := r.getActionConfiguration(restClientGetter, options.Namespace)
 	if err != nil {
@@ -421,30 +462,61 @@ func isChartInstallable(ch *chart.Chart) (bool, error) {
 }
 
 type customGetter struct {
-	delegate        genericclioptions.RESTClientGetter
 	kubeConfigBytes []byte
 	logger          Logger
+	namespace       string
+	cacheDir        string
 }
 
-func NewCustomGetter(delegate genericclioptions.RESTClientGetter, kubeconfig []byte, logger Logger) genericclioptions.RESTClientGetter {
+func NewCustomGetter(namespace string, kubeconfig []byte, cacheDir string, logger Logger) genericclioptions.RESTClientGetter {
 	return customGetter{
-		delegate:        delegate,
 		kubeConfigBytes: kubeconfig,
 		logger:          logger,
+		namespace:       namespace,
+		cacheDir:        cacheDir,
 	}
 }
 
 func (c customGetter) ToRESTConfig() (*rest.Config, error) {
-	return k8sclient.NewClientConfig(c.kubeConfigBytes)
+	return c.ToRawKubeConfigLoader().ClientConfig()
 }
+
 func (c customGetter) ToDiscoveryClient() (discovery.CachedDiscoveryInterface, error) {
-	return c.delegate.ToDiscoveryClient()
+	config, err := c.ToRESTConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	// The more groups you have, the more discovery requests you need to make.
+	// given 25 groups (our groups + a few custom resources) with one-ish version each, discovery needs to make 50 requests
+	// double it just so we don't end up here again for a while.  This config is only used for discovery.
+	config.Burst = 100
+
+	return disk.NewCachedDiscoveryClientForConfig(
+		config,
+		filepath.Join(c.cacheDir, "discovery-cache", fmt.Sprintf("%x", sha1.Sum([]byte(config.Host)))),
+		filepath.Join(c.cacheDir, "http-cache"),
+		time.Minute*10,
+	)
 }
 
 func (c customGetter) ToRESTMapper() (meta.RESTMapper, error) {
-	return c.delegate.ToRESTMapper()
+	discoveryClient, err := c.ToDiscoveryClient()
+	if err != nil {
+		return nil, err
+	}
+
+	mapper := restmapper.NewDeferredDiscoveryRESTMapper(discoveryClient)
+	expander := restmapper.NewShortcutExpander(mapper, discoveryClient)
+	return expander, nil
 }
 
 func (c customGetter) ToRawKubeConfigLoader() clientcmd.ClientConfig {
-	return c.delegate.ToRawKubeConfigLoader()
+	loader, err := k8sclient.NewRawKubeConfigLoader(c.kubeConfigBytes, &clientcmd.ConfigOverrides{Context: clientcmdapi.Context{
+		Namespace: c.namespace,
+	}})
+	if err != nil {
+		c.logger.Error("error constructing the kubeconfig loader", map[string]interface{}{"err": err})
+	}
+	return loader
 }

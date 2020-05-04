@@ -58,7 +58,6 @@ type Options struct {
 	OdPcts       map[string]interface{} `json:"odPcts,omitempty"`
 	ReuseValues  bool                   `json:"reuseValues,omitempty"`
 	Install      bool                   `json:"install,omitempty"`
-	Optionals    map[string]interface{}
 }
 
 // +kit:endpoint:errorStrategy=service
@@ -144,7 +143,7 @@ type EnvService interface {
 
 	// EnsureEnv ensures the helm environment represented by the input.
 	// If theh environment exists (on the filesystem) it does nothing
-	EnsureEnv(ctx context.Context, helmEnv HelmEnv, defaultRepos []Repository) (HelmEnv, error)
+	EnsureEnv(ctx context.Context, helmEnv HelmEnv, defaultRepos []Repository) (HelmEnv, bool, error)
 }
 
 // +testify:mock:testOnly=true
@@ -293,7 +292,7 @@ func (s service) ListRepositories(ctx context.Context, organizationID uint) (rep
 		return nil, errors.WrapIf(err, "failed to retrieve default repositories")
 	}
 
-	return envRepos, nil
+	return s.decorateRepos(ctx, organizationID, envRepos), nil
 }
 
 func (s service) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {
@@ -452,7 +451,7 @@ func (s service) DeleteRelease(ctx context.Context, organizationID uint, cluster
 	return nil
 }
 
-func (s service) ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters interface{}, options Options) ([]Release, error) {
+func (s service) ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters ReleaseFilter, options Options) ([]Release, error) {
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
@@ -588,4 +587,30 @@ func (s service) repoExists(ctx context.Context, repository Repository, helmEnv 
 	}
 
 	return false, nil
+}
+
+// decorateRepos retrieves secretReferences for the repo
+func (s service) decorateRepos(ctx context.Context, orgID uint, repos []Repository) []Repository {
+	persistedRepos, err := s.store.List(ctx, orgID)
+	if err != nil {
+		s.logger.Warn("failed to decorate repositories with secret references")
+		return repos
+	}
+
+	if len(persistedRepos) == 0 {
+		s.logger.Debug("no persisted repos found, no secret references to add to the repo list")
+		return repos
+	}
+
+	decorated := make([]Repository, 0, len(repos))
+	for _, repo := range repos {
+		for _, persistedRepo := range persistedRepos {
+			if repo.Name == persistedRepo.Name {
+				repo.PasswordSecretID = persistedRepo.PasswordSecretID
+			}
+		}
+		decorated = append(decorated, repo)
+	}
+
+	return decorated
 }

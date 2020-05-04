@@ -16,7 +16,10 @@ package helm
 
 import (
 	"context"
+	"strings"
 	"time"
+
+	"emperror.dev/errors"
 )
 
 // ReleaseInfo copy of the struct form the helm library
@@ -43,15 +46,22 @@ type ReleaseResource struct {
 //  Release represents information related to a helm chart release
 type Release struct {
 	// ReleaseInput struct encapsulating information about the release to be created
-	ReleaseName string
-	ChartName   string
-	Namespace   string
-	Values      map[string]interface{} //json representation
-	Version     string
-	ReleaseInfo ReleaseInfo
+	ReleaseName    string
+	ChartName      string
+	Namespace      string
+	Values         map[string]interface{} //json representation
+	Version        string
+	ReleaseInfo    ReleaseInfo
+	ReleaseVersion int32
 }
 
 type KubeConfigBytes = []byte
+
+// ReleaseFilter struct for release filter data
+type ReleaseFilter struct {
+	TagFilter string  `json:"tag" mapstructure:"tag"`
+	Filter    *string `json:"filter,omitempty" mapstructure:"filter"`
+}
 
 // releaser collects and groups helm release related operations
 // it's intended to be embedded in the "Helm Facade"
@@ -62,7 +72,7 @@ type releaser interface {
 	// Delete deletes the  specified release
 	DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) error
 	// List retrieves  releases in a given namespace, eventually applies the passed in filters
-	ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters interface{}, options Options) ([]Release, error)
+	ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters ReleaseFilter, options Options) ([]Release, error)
 	// Get retrieves the release details for the given  release
 	GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (Release, error)
 	// Upgrade upgrades the given release
@@ -96,4 +106,8 @@ type Releaser interface {
 	Upgrade(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options Options) (string, error)
 	// Resources retrieves the kubernetes resources belonging to the release
 	Resources(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options Options) ([]ReleaseResource, error)
+}
+
+func ErrReleaseNotFound(err error) bool {
+	return strings.Contains(errors.Cause(err).Error(), "not found")
 }

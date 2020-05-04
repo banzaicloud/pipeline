@@ -25,6 +25,7 @@ import (
 const (
 	PlatformHelmHome = "pipeline"
 	helmPostFix      = "helm"
+	cacheDir         = "cache"
 	noOrg            = 0 // signals that no organization id is provided
 )
 
@@ -45,10 +46,16 @@ type HelmEnv struct {
 	platform bool
 
 	repoCacheDir string
+
+	cacheDir string
 }
 
 func (e HelmEnv) GetHome() string {
 	return e.home
+}
+
+func (e HelmEnv) GetCacheDir() string {
+	return e.cacheDir
 }
 
 func (e HelmEnv) IsPlatform() bool {
@@ -88,6 +95,7 @@ func (er envResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (
 
 	return HelmEnv{
 		home:     path.Join(er.helmHomesDir, orgName, helmPostFix),
+		cacheDir: path.Join(er.helmHomesDir, orgName, cacheDir),
 		platform: false,
 	}, nil
 }
@@ -95,6 +103,7 @@ func (er envResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (
 func (er envResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
 	return HelmEnv{
 		home:     path.Join(fmt.Sprintf("%s-%s", er.helmHomesDir, PlatformHelmHome), helmPostFix),
+		cacheDir: path.Join(fmt.Sprintf("%s-%s", er.helmHomesDir, PlatformHelmHome), cacheDir),
 		platform: true,
 	}, nil
 }
@@ -203,10 +212,11 @@ type ensuringEnvResolver struct {
 	// envresolver instance that gets decorated with the new functionality
 	envResolver EnvResolver
 	envService  EnvService
+	store       Store
 	logger      Logger
 }
 
-func NewEnsuringEnvResolver(envResolver EnvResolver, envService EnvService, defaultRepos map[string]string, logger Logger) EnvResolver {
+func NewEnsuringEnvResolver(envResolver EnvResolver, envService EnvService, store Store, defaultRepos map[string]string, logger Logger) EnvResolver {
 	repos := make([]Repository, 0, len(defaultRepos))
 	for repo, url := range defaultRepos {
 		repos = append(repos, Repository{Name: repo, URL: url})
@@ -215,6 +225,7 @@ func NewEnsuringEnvResolver(envResolver EnvResolver, envService EnvService, defa
 		defaultRepos: repos,
 		envResolver:  envResolver,
 		envService:   envService,
+		store:        store,
 		logger:       logger,
 	}
 }
@@ -227,13 +238,18 @@ func (e ensuringEnvResolver) ResolveHelmEnv(ctx context.Context, organizationID 
 	}
 
 	// make sure the env is created on the filesystem
-	env, err := e.envService.EnsureEnv(ctx, helmEnv, e.defaultRepos)
+	env, isNewEnv, err := e.envService.EnsureEnv(ctx, helmEnv, e.defaultRepos)
 	if err != nil {
 		return HelmEnv{}, errors.WrapIf(err, "failed to ensure helm environment")
 	}
-	e.logger.Debug("successfully resolved helm environment", map[string]interface{}{"orgID": organizationID, "helmEnv": helmEnv})
 
-	//add defaults
+	if isNewEnv {
+		if err := newOrgEnvReconciler(organizationID, e.envService, e.store, e.logger).Reconcile(ctx, helmEnv); err != nil {
+			return HelmEnv{}, errors.WrapIfWithDetails(err, "failed to reconcile persisted repositories")
+		}
+	}
+
+	e.logger.Debug("successfully resolved helm environment", map[string]interface{}{"orgID": organizationID, "helmEnv": helmEnv})
 	return env, nil
 }
 
@@ -243,11 +259,71 @@ func (e ensuringEnvResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, e
 		return HelmEnv{}, errors.WrapIf(err, "failed to resolve platform helm env")
 	}
 
-	env, err := e.envService.EnsureEnv(ctx, helmEnv, e.defaultRepos)
+	env, _, err := e.envService.EnsureEnv(ctx, helmEnv, e.defaultRepos)
 	if err != nil {
 		return HelmEnv{}, errors.WrapIf(err, "failed to ensure platform helm environment")
 	}
 
 	e.logger.Debug("successfully resolved platform helm environment")
 	return env, nil
+}
+
+// component for synchronizing persisted repositories with the helm repos
+type orgEnvReconciler struct {
+	orgID      uint
+	envService EnvService
+	repoStore  Store
+
+	logger Logger
+}
+
+func newOrgEnvReconciler(orgID uint, envService EnvService, repoStore Store, logger Logger) EnvReconciler {
+	return orgEnvReconciler{
+		orgID:      orgID,
+		envService: envService,
+		repoStore:  repoStore,
+		logger:     logger,
+	}
+}
+
+// Reconcile checks the database for persisted repos and adds them to the org's helm repo if required
+func (o orgEnvReconciler) Reconcile(ctx context.Context, helmEnv HelmEnv) error {
+	persistedRepos, err := o.repoStore.List(ctx, o.orgID)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to get persisted repositories during repo reconciliation", "orgID", o.orgID, "helmEnv", helmEnv)
+	}
+	if len(persistedRepos) == 0 {
+		o.logger.Debug("no reconcile needed, no persisted repos found")
+		return nil
+	}
+
+	envRepos, err := o.envService.ListRepositories(ctx, helmEnv)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to get persisted repositories", "orgID", o.orgID, "helmEnv", helmEnv)
+	}
+
+	missingRepos := make([]Repository, 0, len(persistedRepos))
+	for _, persistedRepo := range persistedRepos {
+		for _, envRepo := range envRepos {
+			if persistedRepo == envRepo {
+				o.logger.Debug("repo already added")
+				continue
+			}
+		}
+		missingRepos = append(missingRepos, persistedRepo)
+	}
+
+	if len(missingRepos) == 0 {
+		o.logger.Debug("reconciliation succeeded - no repos to reconcile")
+		return nil
+	}
+
+	for _, missingRepo := range missingRepos {
+		if err := o.envService.AddRepository(ctx, helmEnv, missingRepo); err != nil {
+			return errors.WrapIfWithDetails(err, "failed to reconcile persisted repositorys")
+		}
+	}
+
+	o.logger.Debug("helm repo reconciliation succeeded")
+	return nil
 }

@@ -477,11 +477,26 @@ func main() {
 		),
 	}
 
+	unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
+		config.Helm,
+		db,
+		commonSecretStore,
+		helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc()),
+		commonLogger,
+	)
+
 	cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
 	clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
 	federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config)
 	deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler)
-	serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler, config.Cluster.Backyards)
+
+	var helmService cgFeatureIstio.HelmService
+	if config.Helm.V3 {
+		helmService = cgFeatureIstio.NewHelmV3Service(helmFacade)
+	} else {
+		helmService = &cgFeatureIstio.LegacyV2HelmService{}
+	}
+	serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler, config.Cluster.Backyards, helmService)
 	clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)
 	clusterGroupManager.RegisterFeatureHandler(deployment.FeatureName, deploymentManager)
 	clusterGroupManager.RegisterFeatureHandler(cgFeatureIstio.FeatureName, serviceMeshFeatureHandler)
@@ -641,14 +656,6 @@ func main() {
 		}
 	}
 
-	unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
-		config.Helm,
-		db,
-		commonSecretStore,
-		helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc()),
-		commonLogger,
-	)
-
 	clusterAPI := api.NewClusterAPI(
 		clusterManager,
 		commonClusterGetter,
@@ -765,9 +772,16 @@ func main() {
 				}
 
 				cRouter.GET("/images", api.ListImages)
-				cRouter.GET("/images/:imageDigest/deployments", api.GetImageDeployments)
-				cRouter.GET("/deployments/:name/images", api.GetDeploymentImages)
 
+				if config.Helm.V3 {
+					imageDeploymentHandler := api.NewImageDeploymentsHandler(helmFacade, cs, logger)
+					cRouter.GET("/images/:imageDigest/deployments", imageDeploymentHandler.GetImageDeployments)
+				} else {
+					imageDeploymentHandler := api.NewImageDeploymentsHandler(api.NewHelm2ReleaseLister(cs), cs, logger)
+					cRouter.GET("/images/:imageDigest/deployments", imageDeploymentHandler.GetImageDeployments)
+				}
+
+				cRouter.GET("/deployments/:name/images", api.GetDeploymentImages)
 				{
 					clusterStore := clusteradapter.NewStore(db, clusters)
 

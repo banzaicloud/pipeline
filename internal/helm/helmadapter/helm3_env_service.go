@@ -47,16 +47,18 @@ import (
 
 // helm3EnvService component struct for helm3 repository management
 type helm3EnvService struct {
-	logger Logger
+	secretStore helm.SecretStore
+	logger      Logger
 }
 
-func NewHelm3EnvService(logger Logger) helm.EnvService {
+func NewHelm3EnvService(secretStore helm.SecretStore, logger Logger) helm.EnvService {
 	return helm3EnvService{
-		logger: logger,
+		secretStore: secretStore,
+		logger:      logger,
 	}
 }
 
-func (h helm3EnvService) AddRepository(_ context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
+func (h helm3EnvService) AddRepository(ctx context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
 	repoFile := helmEnv.GetHome() // TODO add another field to the env instead???
 
 	//Ensure the file directory exists as it is required for file locking
@@ -92,10 +94,18 @@ func (h helm3EnvService) AddRepository(_ context.Context, helmEnv helm.HelmEnv, 
 		return errors.Errorf("repository name (%s) already exists, please specify a different name", repository.Name)
 	}
 
-	c := repo.Entry{ //TODO extend this with credentials
+	c := repo.Entry{
 		Name: repository.Name,
 		URL:  repository.URL,
-		//InsecureSkipTLSverify: o.insecureSkipTLSverify,
+	}
+	if repository.PasswordSecretID != "" {
+		passwordSecret, err := h.secretStore.ResolvePasswordSecrets(ctx, repository.PasswordSecretID)
+		if err != nil {
+			return errors.WrapIf(err, "failed to resolve repo credentials")
+		}
+
+		c.Username = passwordSecret.UserName
+		c.Password = passwordSecret.Password
 	}
 
 	envSettings := h.processEnvSettings(helmEnv)
@@ -130,6 +140,7 @@ func (h helm3EnvService) ListRepositories(_ context.Context, helmEnv helm.HelmEn
 		repos = append(repos, helm.Repository{
 			Name: entry.Name,
 			URL:  entry.URL,
+			// TODO warning! do not propagate sensitive data!
 		})
 	}
 
@@ -466,19 +477,19 @@ func (h helm3EnvService) adaptChartDetailsResponse(charts map[string]*chart.Char
 	return responseMap, nil
 }
 
-func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv, defaultRepos []helm.Repository) (helm.HelmEnv, error) {
+func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv, defaultRepos []helm.Repository) (helm.HelmEnv, bool, error) {
 	repoFile := helmEnv.GetHome()
 
 	//Ensure the file directory exists as it is required for file locking
 	err := os.MkdirAll(filepath.Dir(helmEnv.GetHome()), os.ModePerm)
 	if err != nil && !os.IsExist(err) {
-		return helm.HelmEnv{}, errors.WrapIf(err, "failed to ensure helm env")
+		return helm.HelmEnv{}, false, errors.WrapIf(err, "failed to ensure helm env")
 	}
 
 	// check the repofile
 	if fileExists(repoFile) {
 		h.logger.Debug("helm env ensured, helm env was already set up")
-		return helmEnv, nil
+		return helmEnv, false, nil
 	}
 
 	// creating the repo file
@@ -493,12 +504,12 @@ func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv, de
 		defer emperror.NoopHandler{}.Handle(fileLock.Unlock())
 	}
 	if err != nil {
-		return helm.HelmEnv{}, errors.WrapIf(err, "failed to lock the helm home dir for creating repo file")
+		return helm.HelmEnv{}, false, errors.WrapIf(err, "failed to lock the helm home dir for creating repo file")
 	}
 
 	f := repo.NewFile()
 	if err := f.WriteFile(helmEnv.GetHome(), 0644); err != nil {
-		return helm.HelmEnv{}, errors.WrapIf(err, "failed to create the repo file")
+		return helm.HelmEnv{}, false, errors.WrapIf(err, "failed to create the repo file")
 	}
 
 	for _, repo := range defaultRepos {
@@ -509,7 +520,7 @@ func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv, de
 	}
 
 	h.logger.Info("successfully ensured helm env")
-	return helmEnv, nil
+	return helmEnv, true, nil
 }
 
 // fileExists checks if a file exists and is not a directory before we
