@@ -73,7 +73,7 @@ func testOrgEnvResolver() func(t *testing.T) {
 		envService := helmadapter.NewHelm3EnvService(secretStore, logger)
 		ensuringEnvResolver := helm.NewEnsuringEnvResolver(envResolver, envService, repoStore, helmConfig.Repositories, logger)
 
-		// add user-defined repository to the database
+		// add (one) user-defined repository to the database
 		if err := repoStore.Create(testCtx, 1, helm.Repository{
 			Name: "banzai-stable",
 			URL:  "https://kubernetes-charts.banzaicloud.com",
@@ -90,6 +90,6 @@ func testOrgEnvResolver() func(t *testing.T) {
 		platformRepos, err := envService.ListRepositories(testCtx, helmEnv)
 		assert.Nil(t, err, "the list repositories call must succeed")
 
-		assert.Equal(t, len(helmConfig.Repositories)+1, len(platformRepos), "defaul;t repositories must be installed")
+		assert.Equal(t, len(helmConfig.Repositories)+1, len(platformRepos), "default repositories must be installed along with the user registered ones")
 	}
 }
