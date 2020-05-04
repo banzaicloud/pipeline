@@ -182,3 +182,56 @@ func (s *WorkflowTestSuite) Test_Success_InstallInitManifest() {
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())
 }
+
+func (s *WorkflowTestSuite) Test_Success_HelmV3() {
+	wf := Workflow{
+		InstallInitManifest: true,
+		HelmV3:              true,
+	}
+	workflow.RegisterWithOptions(wf.Execute, workflow.RegisterOptions{Name: s.T().Name()})
+
+	s.env.OnActivity(
+		InitManifestActivityName,
+		mock.Anything,
+		InitManifestActivityInput{ConfigSecretID: "secret", Cluster: testCluster, Organization: testOrganization},
+	).Return(nil)
+
+	s.env.OnActivity(
+		CreatePipelineNamespaceActivityName,
+		mock.Anything,
+		CreatePipelineNamespaceActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
+	s.env.OnActivity(
+		LabelKubeSystemNamespaceActivityName,
+		mock.Anything,
+		LabelKubeSystemNamespaceActivityInput{ConfigSecretID: "secret"},
+	).Return(nil)
+
+	s.env.OnActivity(
+		InstallNodePoolLabelSetOperatorActivityName,
+		mock.Anything,
+		InstallNodePoolLabelSetOperatorActivityInput{ClusterID: 1},
+	).Return(nil)
+
+	s.env.OnActivity(
+		ConfigureNodePoolLabelsActivityName,
+		mock.Anything,
+		ConfigureNodePoolLabelsActivityInput{
+			ConfigSecretID: "secret",
+			Labels:         testNodePoolLabels,
+		},
+	).Return(nil)
+
+	workflowInput := WorkflowInput{
+		ConfigSecretID: "secret",
+		Cluster:        testCluster,
+		Organization:   testOrganization,
+		NodePoolLabels: testNodePoolLabels,
+	}
+
+	s.env.ExecuteWorkflow(s.T().Name(), workflowInput)
+
+	s.True(s.env.IsWorkflowCompleted())
+	s.NoError(s.env.GetWorkflowError())
+}

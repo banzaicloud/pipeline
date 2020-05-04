@@ -294,6 +294,7 @@ func main() {
 		{
 			wf := clustersetup.Workflow{
 				InstallInitManifest: config.Cluster.Manifest != "",
+				HelmV3:              config.Helm.V3,
 			}
 			workflow.RegisterWithOptions(wf.Execute, workflow.RegisterOptions{Name: clustersetup.WorkflowName})
 

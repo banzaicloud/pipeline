@@ -29,6 +29,9 @@ const WorkflowName = "cluster-setup"
 type Workflow struct {
 	// InstallInit
 	InstallInitManifest bool
+
+	// temporary flag indicating the helm version (false means helm2)
+	HelmV3 bool
 }
 
 // WorkflowInput is the input for a cluster setup workflow.
@@ -109,38 +112,40 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 		}
 	}
 
-	{
-		activityInput := InstallTillerActivityInput{
-			ConfigSecretID: input.ConfigSecretID,
-			Distribution:   input.Cluster.Distribution,
-		}
-
-		err := workflow.ExecuteActivity(ctx, InstallTillerActivityName, activityInput).Get(ctx, nil)
-		if err != nil {
-			return err
-		}
-	}
-
-	{
-		activityInput := InstallTillerWaitActivityInput{
-			ConfigSecretID: input.ConfigSecretID,
-		}
-
-		aop := activityOptions
-		aop.HeartbeatTimeout = 1 * time.Minute
-		ctx := workflow.WithActivityOptions(ctx, aop)
-
-		err := workflow.ExecuteActivity(ctx, InstallTillerWaitActivityName, activityInput).Get(ctx, nil)
-		if err != nil {
-			if cadence.IsTimeoutError(err) {
-				return errors.New(
-					"Cluster setup failed because Tiller couldn't start. " +
-						"Usually this happens when worker nodes are not able to join the cluster. " +
-						"Check your network settings to make sure the worker nodes can communicate with the Kubernetes API server.",
-				)
+	if !w.HelmV3 {
+		{
+			activityInput := InstallTillerActivityInput{
+				ConfigSecretID: input.ConfigSecretID,
+				Distribution:   input.Cluster.Distribution,
 			}
 
-			return err
+			err := workflow.ExecuteActivity(ctx, InstallTillerActivityName, activityInput).Get(ctx, nil)
+			if err != nil {
+				return err
+			}
+		}
+
+		{
+			activityInput := InstallTillerWaitActivityInput{
+				ConfigSecretID: input.ConfigSecretID,
+			}
+
+			aop := activityOptions
+			aop.HeartbeatTimeout = 1 * time.Minute
+			ctx := workflow.WithActivityOptions(ctx, aop)
+
+			err := workflow.ExecuteActivity(ctx, InstallTillerWaitActivityName, activityInput).Get(ctx, nil)
+			if err != nil {
+				if cadence.IsTimeoutError(err) {
+					return errors.New(
+						"Cluster setup failed because Tiller couldn't start. " +
+							"Usually this happens when worker nodes are not able to join the cluster. " +
+							"Check your network settings to make sure the worker nodes can communicate with the Kubernetes API server.",
+					)
+				}
+
+				return err
+			}
 		}
 	}
 
