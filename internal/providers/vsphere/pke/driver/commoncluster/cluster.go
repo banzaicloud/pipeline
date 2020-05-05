@@ -218,6 +218,9 @@ func (a *VspherePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, e
 		nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 			Count:        np.Size,
 			InstanceType: np.InstanceType(),
+			Vcpu:         np.VCPU,
+			Ram:          np.RAM,
+			Template:     np.TemplateName,
 		}
 	}
 

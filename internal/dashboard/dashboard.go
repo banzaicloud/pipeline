@@ -69,6 +69,9 @@ type NodePool struct {
 	Version         string                         `json:"version,omitempty"`
 	Labels          map[string]string              `json:"labels,omitempty"`
 	ResourceSummary map[string]NodeResourceSummary `json:"resourceSummary,omitempty"`
+	Vcpu            int                            `json:"vcpu,omitempty"`
+	Ram             int                            `json:"ram,omitempty"`
+	Template        string                         `json:"template,omitempty"`
 	CreatedAt       time.Time                      `json:"createdAt,omitempty"`
 	CreatorName     string                         `json:"creatorName,omitempty"`
 	CreatorID       uint                           `json:"creatorId,omitempty"`
