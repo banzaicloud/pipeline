@@ -95,12 +95,9 @@ func (m *MeshReconciler) installCanaryOperator(c cluster.CommonCluster, promethe
 			Version:     canaryChart.Version,
 		},
 		helm.Options{
-			Namespace:   canaryOperatorNamespace,
-			Wait:        true,
-			Timeout:     0,
-			OdPcts:      nil,
-			ReuseValues: false,
-			Install:     false,
+			Namespace: canaryOperatorNamespace,
+			Wait:      true,
+			Install:   true,
 		},
 	)
 
