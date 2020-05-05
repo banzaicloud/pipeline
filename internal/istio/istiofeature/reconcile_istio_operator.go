@@ -87,7 +87,8 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
 		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}
 
-	err = m.helmService.InstallOrUpgrade(c,
+	err = m.helmService.InstallOrUpgrade(
+		c,
 		helm.Release{
 			ReleaseName: istioOperatorReleaseName,
 			ChartName:   istioChart.Chart,
