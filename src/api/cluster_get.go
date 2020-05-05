@@ -124,6 +124,9 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 			Image:        nodePool.Image,
 			Version:      nodePool.Version,
 			Labels:       nodePool.Labels,
+			Vcpu:         nodePool.Vcpu,
+			Ram:          nodePool.Ram,
+			Template:     nodePool.Template,
 
 			CreatedAt:   nodePool.CreatedAt,
 			CreatorName: nodePool.CreatorName,
@@ -292,6 +295,9 @@ type GetClusterNodePool struct {
 	Version         string                         `json:"version,omitempty"`
 	ResourceSummary map[string]NodeResourceSummary `json:"resourceSummary,omitempty"`
 	Labels          map[string]string              `json:"labels,omitempty"`
+	Vcpu            int                            `json:"vcpu,omitempty"`
+	Ram             int                            `json:"ram,omitempty"`
+	Template        string                         `json:"template,omitempty"`
 
 	CreatedAt   time.Time `json:"createdAt,omitempty"`
 	CreatorName string    `json:"creatorName,omitempty"`

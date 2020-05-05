@@ -177,6 +177,9 @@ type NodePoolStatus struct {
 	Image        string            `json:"image,omitempty"`
 	Version      string            `json:"version,omitempty"`
 	Labels       map[string]string `json:"labels,omitempty"`
+	Vcpu         int               `json:"vcpu,omitempty"`
+	Ram          int               `json:"ram,omitempty"`
+	Template     string            `json:"template,omitempty"`
 
 	pkgCommon.CreatorBaseFields
 }
