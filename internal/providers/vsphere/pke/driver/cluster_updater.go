@@ -123,12 +123,13 @@ func (cu ClusterUpdater) Update(ctx context.Context, params VspherePKEClusterUpd
 
 		for _, np := range nodePoolsToCreate {
 			nodePool := pke.NodePool{
-				CreatedBy: np.CreatedBy,
-				Name:      np.Name,
-				Roles:     np.Roles,
-				Size:      np.Size,
-				VCPU:      np.VCPU,
-				RAM:       np.RAM,
+				CreatedBy:    np.CreatedBy,
+				Name:         np.Name,
+				Roles:        np.Roles,
+				Size:         np.Size,
+				VCPU:         np.VCPU,
+				RAM:          np.RAM,
+				TemplateName: np.TemplateName,
 			}
 			for i := 1; i <= np.Size; i++ {
 				nodesToCreate = append(nodesToCreate, tf.getNode(nodePool, i))
@@ -169,12 +170,13 @@ func (cu ClusterUpdater) Update(ctx context.Context, params VspherePKEClusterUpd
 				// check existing nodes are fine, create new vm otherwise
 				for i := 1; i <= np.Size; i++ {
 					nodesToCreate = append(nodesToCreate, tf.getNode(pke.NodePool{
-						CreatedBy: np.CreatedBy,
-						Name:      np.Name,
-						Roles:     np.Roles,
-						Size:      np.Size,
-						VCPU:      np.VCPU,
-						RAM:       np.RAM,
+						CreatedBy:    np.CreatedBy,
+						Name:         np.Name,
+						Roles:        np.Roles,
+						Size:         np.Size,
+						VCPU:         np.VCPU,
+						RAM:          np.RAM,
+						TemplateName: np.TemplateName,
 					}, i))
 				}
 

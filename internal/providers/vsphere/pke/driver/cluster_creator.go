@@ -163,12 +163,14 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 	nodePools := make([]pke.NodePool, len(params.NodePools))
 	for i, np := range params.NodePools {
 		nodePools[i] = pke.NodePool{
-			CreatedBy: np.CreatedBy,
-			Name:      np.Name,
-			Roles:     np.Roles,
-			Size:      np.Size,
-			VCPU:      np.VCPU,
-			RAM:       np.RAM,
+			CreatedBy:    np.CreatedBy,
+			Name:         np.Name,
+			Roles:        np.Roles,
+			Size:         np.Size,
+			VCPU:         np.VCPU,
+			RAM:          np.RAM,
+			TemplateName: np.TemplateName,
+		}
 		}
 	}
 	createParams := pke.CreateParams{
