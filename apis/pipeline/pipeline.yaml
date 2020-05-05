@@ -6424,6 +6424,8 @@ components:
                     $ref: '#/components/schemas/NodePoolStatusGoogle'
                 -
                     $ref: '#/components/schemas/NodePoolStatusOracle'
+                -
+                    $ref: '#/components/schemas/NodePoolStatusVSphere'
             example:
                 count: 1
                 instanceType: "n1-standard-1"
@@ -6530,6 +6532,23 @@ components:
                 autoscaling:
                     type: boolean
                     example: false
+                resourceSummary:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/ResourceSummary'
+
+        NodePoolStatusVSphere:
+            type: object
+            properties:
+                count:
+                    type: integer
+                    example: 1
+                ram:
+                    type: integer
+                    example: 4096
+                vpcu:
+                    type: integer
+                    example: 2
                 resourceSummary:
                     type: object
                     additionalProperties:
