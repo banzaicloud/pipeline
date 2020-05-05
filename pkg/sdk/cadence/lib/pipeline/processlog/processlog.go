@@ -52,7 +52,7 @@ func New() ProcessLogger {
 type processLogger struct{}
 
 func (p processLogger) StartProcess(ctx workflow.Context, resourceID string) Process {
-	ctx = workflow.WithTaskList(ctx, "pipeline")
+	ctx = withContext(ctx)
 
 	winfo := workflow.GetInfo(ctx)
 	parentID := ""
@@ -115,6 +115,8 @@ type process struct {
 }
 
 func (p process) Finish(ctx workflow.Context, err error) {
+	ctx = withContext(ctx)
+
 	finishedAt := workflow.Now(ctx)
 
 	activityInput := p.activityInput
@@ -141,7 +143,7 @@ func (p process) Finish(ctx workflow.Context, err error) {
 }
 
 func (p process) StartActivity(ctx workflow.Context, typ string) Activity {
-	ctx = workflow.WithTaskList(ctx, "pipeline")
+	ctx = withContext(ctx)
 
 	winfo := workflow.GetInfo(ctx)
 
@@ -175,6 +177,8 @@ type processActivity struct {
 }
 
 func (a processActivity) Finish(ctx workflow.Context, err error) {
+	ctx = withContext(ctx)
+
 	activityInput := a.activityInput
 
 	activityInput.Timestamp = workflow.Now(ctx)
@@ -196,4 +200,19 @@ func (a processActivity) Finish(ctx workflow.Context, err error) {
 	if err != nil {
 		workflow.GetLogger(ctx).Sugar().Warnf("failed to log process activity end: %s", err)
 	}
+}
+
+func withContext(ctx workflow.Context) workflow.Context {
+	return workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		TaskList:               "pipeline",
+		ScheduleToStartTimeout: time.Duration(workflow.GetInfo(ctx).ExecutionStartToCloseTimeoutSeconds) * time.Second,
+		StartToCloseTimeout:    30 * time.Second,
+		WaitForCancellation:    true,
+		RetryPolicy: &cadence.RetryPolicy{
+			InitialInterval:    10 * time.Second,
+			BackoffCoefficient: 1.4,
+			MaximumInterval:    3 * time.Minute,
+			MaximumAttempts:    10,
+		},
+	})
 }
