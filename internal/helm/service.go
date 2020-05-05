@@ -76,6 +76,11 @@ type Service interface {
 	charter
 }
 
+type ClusterProvider interface {
+	GetK8sConfig() ([]byte, error)
+	GetID() uint
+}
+
 // UnifiedReleaser unifies different helm release interfaces into a single interface
 type UnifiedReleaser interface {
 	// integrated services style
@@ -106,6 +111,15 @@ type UnifiedReleaser interface {
 
 	// GetDeployment gets a deployment by release name from a specific cluster.
 	GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*pkgHelm.GetDeploymentResponse, error)
+
+	// Covers Federation and Backyards style implementation
+	InstallOrUpgrade(
+		c ClusterProvider,
+		release Release,
+		opts Options,
+	) error
+
+	Delete(c ClusterProvider, releaseName, namespace string) error
 }
 
 // releaser collects and groups release related operations

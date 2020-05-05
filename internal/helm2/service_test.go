@@ -74,7 +74,7 @@ func TestIntegration(t *testing.T) {
 	valuesBytes, err := yaml.Marshal(values)
 	require.NoError(t, err)
 
-	err = service.UpdateDeployment(
+	err = service.ApplyDeployment(
 		context.Background(),
 		1,
 		"default",

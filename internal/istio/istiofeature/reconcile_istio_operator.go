@@ -82,7 +82,7 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
 		values.Operator.Image.Tag = istioChart.Values.Operator.Image.Tag
 	}
 
-	valuesOverride, err := ConvertStructure(values)
+	valuesOverride, err := helm.ConvertStructure(values)
 	if err != nil {
 		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}

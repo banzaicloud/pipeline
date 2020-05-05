@@ -16,10 +16,12 @@ package helm2
 
 import (
 	"context"
+	"strings"
 
 	"emperror.dev/errors"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/release"
+	"sigs.k8s.io/yaml"
 
 	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
 
@@ -42,7 +44,7 @@ type HelmService struct {
 }
 
 // NewHelmService returns a new HelmService.
-func NewHelmService(clusters internalhelm.ClusterService, logger common.Logger) *HelmService {
+func NewHelmService(clusters internalhelm.ClusterService, logger common.Logger) internalhelm.UnifiedReleaser {
 	return &HelmService{
 		clusters: clusters,
 		logger:   logger.WithFields(map[string]interface{}{"component": "helm"}),
@@ -341,4 +343,116 @@ func findRelease(releaseName string, k8sConfig []byte) (*release.Release, error)
 	}
 
 	return foundRelease, nil
+}
+
+func (l *HelmService) InstallOrUpgrade(
+	c internalhelm.ClusterProvider,
+	release internalhelm.Release,
+	opts internalhelm.Options,
+) error {
+	values, err := yaml.Marshal(release.Values)
+	if err != nil {
+		return errors.WrapIf(err, "failed to marshal release values")
+	}
+	return installOrUpgradeDeployment(
+		c,
+		release.Namespace,
+		release.ChartName,
+		release.ReleaseName,
+		values,
+		release.Version,
+		opts.Wait,
+		opts.Install,
+	)
+}
+
+func installOrUpgradeDeployment(
+	c internalhelm.ClusterProvider,
+	namespace string,
+	deploymentName string,
+	releaseName string,
+	values []byte,
+	chartVersion string,
+	wait bool,
+	upgrade bool,
+) error {
+	kubeConfig, err := c.GetK8sConfig()
+	if err != nil {
+		return errors.WrapIf(err, "could not get k8s config")
+	}
+
+	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
+	if err != nil {
+		return errors.WrapIf(err, "unable to fetch deployments from helm")
+	}
+
+	var foundRelease *release.Release
+	if deployments != nil {
+		for _, release := range deployments.Releases {
+			if release.Name == releaseName {
+				foundRelease = release
+				break
+			}
+		}
+	}
+
+	if foundRelease != nil {
+		switch foundRelease.GetInfo().GetStatus().GetCode() {
+		case release.Status_DEPLOYED:
+			if !upgrade {
+				return nil
+			}
+			_, err = helm.UpgradeDeployment(releaseName, deploymentName, chartVersion, nil, values, false, kubeConfig, helm.GeneratePlatformHelmRepoEnv(), k8sHelm.UpgradeForce(true))
+			if err != nil {
+				return errors.WrapIfWithDetails(err, "could not upgrade deployment", "deploymentName", deploymentName)
+			}
+			return nil
+		case release.Status_FAILED:
+			err = helm.DeleteDeployment(releaseName, kubeConfig)
+			if err != nil {
+				return errors.WrapIfWithDetails(err, "failed to delete failed deployment", "deploymentName", deploymentName)
+			}
+		}
+	}
+
+	options := []k8sHelm.InstallOption{
+		k8sHelm.InstallWait(wait),
+		k8sHelm.ValueOverrides(values),
+	}
+
+	_, err = helm.CreateDeployment(
+		deploymentName,
+		chartVersion,
+		nil,
+		namespace,
+		releaseName,
+		false,
+		nil,
+		kubeConfig,
+		helm.GeneratePlatformHelmRepoEnv(),
+		options...,
+	)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "could not deploy", "deploymentName", deploymentName)
+	}
+
+	return nil
+}
+
+func (s *HelmService) Delete(c internalhelm.ClusterProvider, releaseName, namespace string) error {
+	kubeConfig, err := c.GetK8sConfig()
+	if err != nil {
+		return errors.WrapIf(err, "could not get k8s config")
+	}
+
+	err = helm.DeleteDeployment(releaseName, kubeConfig)
+	if err != nil {
+		e := errors.Cause(err)
+		if e != nil && strings.Contains(e.Error(), "not found") {
+			return nil
+		}
+		return errors.WrapIf(err, "could not remove deployment")
+	}
+
+	return nil
 }
