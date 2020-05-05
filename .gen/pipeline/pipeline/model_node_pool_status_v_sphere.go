@@ -10,27 +10,13 @@
 
 package pipeline
 
-type NodePoolStatus struct {
-
-	InstanceType string `json:"instanceType,omitempty"`
-
-	SpotPrice string `json:"spotPrice,omitempty"`
-
-	Autoscaling bool `json:"autoscaling,omitempty"`
+type NodePoolStatusVSphere struct {
 
 	Count int32 `json:"count,omitempty"`
-
-	MinCount int32 `json:"minCount,omitempty"`
-
-	MaxCount int32 `json:"maxCount,omitempty"`
-
-	Image string `json:"image,omitempty"`
-
-	Labels map[string]string `json:"labels,omitempty"`
-
-	ResourceSummary map[string]ResourceSummary `json:"resourceSummary,omitempty"`
 
 	Ram int32 `json:"ram,omitempty"`
 
 	Vpcu int32 `json:"vpcu,omitempty"`
+
+	ResourceSummary map[string]ResourceSummary `json:"resourceSummary,omitempty"`
 }

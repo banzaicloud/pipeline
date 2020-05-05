@@ -20589,6 +20589,7 @@ components:
       - $ref: '#/components/schemas/NodePoolStatusAzure'
       - $ref: '#/components/schemas/NodePoolStatusGoogle'
       - $ref: '#/components/schemas/NodePoolStatusOracle'
+      - $ref: '#/components/schemas/NodePoolStatusVSphere'
     NodePoolStatusAmazon:
       properties:
         instanceType:
@@ -20686,6 +20687,22 @@ components:
         autoscaling:
           example: false
           type: boolean
+        resourceSummary:
+          additionalProperties:
+            $ref: '#/components/schemas/ResourceSummary'
+          type: object
+      type: object
+    NodePoolStatusVSphere:
+      properties:
+        count:
+          example: 1
+          type: integer
+        ram:
+          example: 4096
+          type: integer
+        vpcu:
+          example: 2
+          type: integer
         resourceSummary:
           additionalProperties:
             $ref: '#/components/schemas/ResourceSummary'
