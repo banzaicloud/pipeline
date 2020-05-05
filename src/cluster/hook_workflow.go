@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
@@ -114,6 +115,15 @@ type HelmService interface {
 
 	// GetDeployment gets a deployment by release name from a specific cluster.
 	GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*pkgHelm.GetDeploymentResponse, error)
+
+	// Covers Federation and Backyards style implementation
+	InstallOrUpgrade(
+		c helm.ClusterProvider,
+		release helm.Release,
+		opts helm.Options,
+	) error
+
+	Delete(c helm.ClusterProvider, releaseName, namespace string) error
 }
 
 type HelmServiceInjector interface {

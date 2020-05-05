@@ -128,9 +128,16 @@ func (h *helm3UnifiedReleaser) InstallDeployment(
 }
 
 func (h *helm3UnifiedReleaser) DeleteDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) error {
-	return h.helmService.DeleteRelease(ctx, 0, clusterID, releaseName, helm.Options{
+	err := h.helmService.DeleteRelease(ctx, 0, clusterID, releaseName, helm.Options{
 		Namespace: namespace,
 	})
+	if err != nil {
+		if helm.ErrReleaseNotFound(err) {
+			return nil
+		}
+		return errors.WrapIf(err, "unable to delete release")
+	}
+	return nil
 }
 
 func (h *helm3UnifiedReleaser) GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*helm2.GetDeploymentResponse, error) {
@@ -157,4 +164,49 @@ func (h *helm3UnifiedReleaser) GetDeployment(ctx context.Context, clusterID uint
 		Version:      0,
 		Status:       release.ReleaseInfo.Status,
 	}, nil
+}
+
+func (h *helm3UnifiedReleaser) InstallOrUpgrade(
+	c helm.ClusterProvider,
+	release helm.Release,
+	opts helm.Options,
+) error {
+	ctx := context.Background()
+	retrievedRelease, err := h.helmService.GetRelease(
+		ctx,
+		0,
+		c.GetID(),
+		release.ReleaseName,
+		opts,
+	)
+	if err != nil {
+		if helm.ErrReleaseNotFound(err) {
+			return h.helmService.InstallRelease(ctx, 0, c.GetID(), release, opts)
+		}
+		return errors.WrapIf(err, "failed to retrieve release")
+	}
+	if retrievedRelease.ReleaseInfo.Status == release2.StatusDeployed.String() {
+		return h.helmService.UpgradeRelease(ctx, 0, c.GetID(), release, opts)
+	}
+	if retrievedRelease.ReleaseInfo.Status == release2.StatusFailed.String() {
+		if err := h.helmService.DeleteRelease(ctx, 0, c.GetID(), release.ReleaseName, opts); err != nil {
+			if !helm.ErrReleaseNotFound(err) {
+				return errors.WrapIf(err, "unable to delete release")
+			}
+		}
+		return h.helmService.InstallRelease(ctx, 0, c.GetID(), release, opts)
+	}
+	return errors.Errorf("Release is in invalid state unable to upgrade: %s", retrievedRelease.ReleaseInfo.Status)
+}
+
+func (h *helm3UnifiedReleaser) Delete(c helm.ClusterProvider, releaseName, namespace string) error {
+	if err := h.helmService.DeleteRelease(context.Background(), 0, c.GetID(), releaseName, helm.Options{
+		Namespace: namespace,
+	}); err != nil {
+		if helm.ErrReleaseNotFound(err) {
+			return nil
+		}
+		return errors.WrapIf(err, "unable to delete release")
+	}
+	return nil
 }
