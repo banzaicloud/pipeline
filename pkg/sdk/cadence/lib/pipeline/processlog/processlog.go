@@ -20,8 +20,8 @@ import (
 
 // ProcessLogger keeps track of long-running processes.
 type ProcessLogger interface {
-	// Start records the beginning of a process.
-	Start(ctx workflow.Context, typ string, resourceID string)
+	// StartProcess records the beginning of a process.
+	StartProcess(ctx workflow.Context, typ string, resourceID string)
 }
 
 // Process is a long-running job/workflow/whatever that includes activities.
