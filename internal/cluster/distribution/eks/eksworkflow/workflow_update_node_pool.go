@@ -22,10 +22,22 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/pkg/sdk/process"
+	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
+	"github.com/banzaicloud/pipeline/pkg/sdk/cadence/lib/pipeline/processlog"
 )
 
 const UpdateNodePoolWorkflowName = "eks-update-node-pool"
+
+type UpdateNodePoolWorkflow struct {
+	processLogger processlog.ProcessLogger
+}
+
+// NewUpdateNodePoolWorkflow returns a new UpdateNodePoolWorkflow.
+func NewUpdateNodePoolWorkflow(processLogger processlog.ProcessLogger) UpdateNodePoolWorkflow {
+	return UpdateNodePoolWorkflow{
+		processLogger: processLogger,
+	}
+}
 
 type UpdateNodePoolWorkflowInput struct {
 	ProviderSecretID string
@@ -42,20 +54,22 @@ type UpdateNodePoolWorkflowInput struct {
 	NodeImage string
 }
 
-func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowInput) (err error) {
+func (w UpdateNodePoolWorkflow) Register() {
+	workflow.RegisterWithOptions(w.Execute, workflow.RegisterOptions{Name: UpdateNodePoolWorkflowName})
+}
+
+func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePoolWorkflowInput) (err error) {
 	activityOptions := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Duration(workflow.GetInfo(ctx).ExecutionStartToCloseTimeoutSeconds) * time.Second,
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, activityOptions)
 
-	proc := process.Start(
-		workflow.WithStartToCloseTimeout(ctx, 10*time.Minute),
-		input.OrganizationID,
-		fmt.Sprint(input.ClusterID),
-	)
+	clusterID := brn.New(input.OrganizationID, brn.ClusterResourceType, fmt.Sprint(input.ClusterID))
+
+	process := w.processLogger.StartProcess(workflow.WithStartToCloseTimeout(ctx, 10*time.Minute), clusterID.String())
 	defer func() {
-		proc.RecordEnd(err)
+		process.Finish(ctx, err)
 	}()
 	defer func() {
 		status := cluster.Running
@@ -123,13 +137,13 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 
 		var output UpdateNodeGroupActivityOutput
 
-		processEvent := process.NewEvent(workflow.WithStartToCloseTimeout(ctx, 10*time.Minute), UpdateNodeGroupActivityName)
+		a := process.StartActivity(workflow.WithStartToCloseTimeout(ctx, 10*time.Minute), UpdateNodeGroupActivityName)
 		err = workflow.ExecuteActivity(
 			workflow.WithActivityOptions(ctx, activityOptions),
 			UpdateNodeGroupActivityName,
 			activityInput,
 		).Get(ctx, &output)
-		processEvent.RecordEnd(err)
+		a.Finish(ctx, err)
 		if err != nil || !output.NodePoolChanged {
 			return
 		}
@@ -152,13 +166,13 @@ func UpdateNodePoolWorkflow(ctx workflow.Context, input UpdateNodePoolWorkflowIn
 			NonRetriableErrorReasons: []string{"cadenceInternal:Panic"},
 		}
 
-		processEvent := process.NewEvent(workflow.WithStartToCloseTimeout(ctx, 10*time.Minute), WaitCloudFormationStackUpdateActivityName)
+		a := process.StartActivity(workflow.WithStartToCloseTimeout(ctx, 10*time.Minute), WaitCloudFormationStackUpdateActivityName)
 		err = workflow.ExecuteActivity(
 			workflow.WithActivityOptions(ctx, activityOptions),
 			WaitCloudFormationStackUpdateActivityName,
 			activityInput,
 		).Get(ctx, nil)
-		processEvent.RecordEnd(err)
+		a.Finish(ctx, err)
 		if err != nil {
 			return err
 		}

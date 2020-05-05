@@ -22,6 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	eksworkflow2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
+	"github.com/banzaicloud/pipeline/pkg/sdk/cadence/lib/pipeline/processlog"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
@@ -134,7 +135,7 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *a
 	activity.RegisterWithOptions(saveNodePoolsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveNodePoolsActivityName})
 
 	// Node pool upgrade
-	workflow.RegisterWithOptions(eksworkflow2.UpdateNodePoolWorkflow, workflow.RegisterOptions{Name: eksworkflow2.UpdateNodePoolWorkflowName})
+	eksworkflow2.NewUpdateNodePoolWorkflow(processlog.New()).Register()
 
 	eksworkflow2.NewCalculateNodePoolVersionActivity().Register()
 	eksworkflow2.NewUpdateNodeGroupActivity(awsSessionFactory, nodePoolTemplate).Register()
