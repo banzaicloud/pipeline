@@ -263,7 +263,7 @@ func main() {
 		)
 		tokenGenerator := auth.NewClusterTokenGenerator(tokenManager, tokenStore)
 
-		unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
+		unifiedHelmReleaser, _ := cmd.CreateUnifiedHelmReleaser(
 			config.Helm,
 			db,
 			commonSecretStore,
@@ -401,7 +401,7 @@ func main() {
 		{
 			workflow.RegisterWithOptions(clusterworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: clusterworkflow.DeleteClusterWorkflowName})
 
-			federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config)
+			federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config, unifiedHelmReleaser)
 			deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler)
 			serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler, config.Cluster.Backyards, unifiedHelmReleaser)
 			clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)

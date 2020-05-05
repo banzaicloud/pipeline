@@ -30,6 +30,8 @@ import (
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
 	ctlutil "sigs.k8s.io/kubefed/pkg/controller/util"
 
+	internalHelm "github.com/banzaicloud/pipeline/internal/helm"
+
 	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/helm"
 )
@@ -244,7 +246,7 @@ func (m *FederationReconciler) removeFederationCRDs(all bool) error {
 func (m *FederationReconciler) uninstallFederationController(c cluster.CommonCluster, logger logrus.FieldLogger) error {
 	logger.Debug("removing Federation controller")
 
-	err := DeleteDeployment(c, federationReleaseName)
+	err := m.helmService.Delete(c, federationReleaseName, m.Configuration.TargetNamespace)
 	if err != nil {
 		return errors.WrapIf(err, "could not remove Federation controller")
 	}
@@ -303,15 +305,25 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 		return errors.WrapIf(err, "failed to add kube-chart repo")
 	}
 
-	err = InstallOrUpgradeDeployment(
+	valuesOverridesConverted, err := internalHelm.ConvertStructure(valuesOverride)
+	if err != nil {
+		return errors.WrapIf(err, "failed to convert")
+	}
+
+	err = m.helmService.InstallOrUpgrade(
 		c,
-		m.Configuration.TargetNamespace,
-		m.Configuration.staticConfig.Charts.Kubefed.Chart,
-		federationReleaseName,
-		valuesOverride,
-		m.Configuration.staticConfig.Charts.Kubefed.Version,
-		true,
-		true,
+		internalHelm.Release{
+			ReleaseName: federationReleaseName,
+			ChartName:   m.Configuration.staticConfig.Charts.Kubefed.Chart,
+			Namespace:   m.Configuration.TargetNamespace,
+			Values:      valuesOverridesConverted,
+			Version:     m.Configuration.staticConfig.Charts.Kubefed.Version,
+		},
+		internalHelm.Options{
+			Namespace: m.Configuration.TargetNamespace,
+			Wait:      true,
+			Install:   true,
+		},
 	)
 	if err != nil {
 		return errors.WrapIf(err, "could not install Federation controller")
