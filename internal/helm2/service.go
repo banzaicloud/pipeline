@@ -345,7 +345,7 @@ func findRelease(releaseName string, k8sConfig []byte) (*release.Release, error)
 	return foundRelease, nil
 }
 
-func (l *HelmService) InstallOrUpgrade(
+func (s *HelmService) InstallOrUpgrade(
 	c internalhelm.ClusterProvider,
 	release internalhelm.Release,
 	opts internalhelm.Options,

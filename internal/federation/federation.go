@@ -68,6 +68,8 @@ type FederationReconciler struct {
 	errorHandler             emperror.Handler
 	serviceDNSRecordResource *metav1.APIResource
 	ingressDNSRecordResource *metav1.APIResource
+
+	helmService HelmService
 }
 
 type Reconciler func(desiredState DesiredState) error
@@ -99,6 +101,7 @@ func NewFederationReconciler(
 	infraNamespace string,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
+	helmService HelmService,
 ) *FederationReconciler {
 	reconciler := &FederationReconciler{
 		Configuration:    config,
@@ -107,6 +110,7 @@ func NewFederationReconciler(
 		InfraNamespace:   infraNamespace,
 		logger:           logger,
 		errorHandler:     errorHandler,
+		helmService:      helmService,
 	}
 
 	reconciler.init() // nolint: errcheck

@@ -32,6 +32,7 @@ type Handler struct {
 	errorHandler   emperror.Handler
 	staticConfig   StaticConfig
 	dnsConfig      dns.Config
+	helmService    HelmService
 }
 
 const FeatureName = "federation"
@@ -44,6 +45,7 @@ func NewFederationHandler(
 	errorHandler emperror.Handler,
 	staticConfig StaticConfig,
 	dnsConfig dns.Config,
+	helmService HelmService,
 ) *Handler {
 	return &Handler{
 		clusterGetter:  clusterGetter,
@@ -52,6 +54,7 @@ func NewFederationHandler(
 		errorHandler:   errorHandler,
 		staticConfig:   staticConfig,
 		dnsConfig:      dnsConfig,
+		helmService:    helmService,
 	}
 }
 
@@ -75,7 +78,7 @@ func (f *Handler) ReconcileState(featureState api.Feature) error {
 		return errors.WithStack(err)
 	}
 
-	fedv2 := NewFederationReconciler(featureState.ClusterGroup.Name, *config, f.clusterGetter, f.infraNamespace, logger, f.errorHandler)
+	fedv2 := NewFederationReconciler(featureState.ClusterGroup.Name, *config, f.clusterGetter, f.infraNamespace, logger, f.errorHandler, f.helmService)
 	err = fedv2.Reconcile()
 	if err != nil {
 		f.errorHandler.Handle(err)
@@ -142,7 +145,7 @@ func (f *Handler) GetMembersStatus(featureState api.Feature) (map[uint]string, e
 		return nil, errors.WithStack(err)
 	}
 
-	fedv2 := NewFederationReconciler(featureState.ClusterGroup.Name, *config, f.clusterGetter, f.infraNamespace, f.logger, f.errorHandler)
+	fedv2 := NewFederationReconciler(featureState.ClusterGroup.Name, *config, f.clusterGetter, f.infraNamespace, f.logger, f.errorHandler, f.helmService)
 	statusMap, err = fedv2.GetStatus()
 	if err != nil {
 		f.errorHandler.Handle(err)
