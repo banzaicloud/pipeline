@@ -67,7 +67,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 
 	clusterID := brn.New(input.OrganizationID, brn.ClusterResourceType, fmt.Sprint(input.ClusterID))
 
-	process := w.processLogger.StartProcess(workflow.WithStartToCloseTimeout(ctx, 10*time.Minute), clusterID.String())
+	process := w.processLogger.StartProcess(ctx, clusterID.String())
 	defer func() {
 		process.Finish(ctx, err)
 	}()
@@ -137,13 +137,13 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 
 		var output UpdateNodeGroupActivityOutput
 
-		a := process.StartActivity(workflow.WithStartToCloseTimeout(ctx, 10*time.Minute), UpdateNodeGroupActivityName)
+		processActivity := process.StartActivity(ctx, UpdateNodeGroupActivityName)
 		err = workflow.ExecuteActivity(
 			workflow.WithActivityOptions(ctx, activityOptions),
 			UpdateNodeGroupActivityName,
 			activityInput,
 		).Get(ctx, &output)
-		a.Finish(ctx, err)
+		processActivity.Finish(ctx, err)
 		if err != nil || !output.NodePoolChanged {
 			return
 		}
@@ -166,13 +166,13 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			NonRetriableErrorReasons: []string{"cadenceInternal:Panic"},
 		}
 
-		a := process.StartActivity(workflow.WithStartToCloseTimeout(ctx, 10*time.Minute), WaitCloudFormationStackUpdateActivityName)
+		processActivity := process.StartActivity(ctx, WaitCloudFormationStackUpdateActivityName)
 		err = workflow.ExecuteActivity(
 			workflow.WithActivityOptions(ctx, activityOptions),
 			WaitCloudFormationStackUpdateActivityName,
 			activityInput,
 		).Get(ctx, nil)
-		a.Finish(ctx, err)
+		processActivity.Finish(ctx, err)
 		if err != nil {
 			return err
 		}
