@@ -96,6 +96,11 @@ func exactMatchRegexp(value string) string {
 	if value == "" {
 		return value
 	}
+
+	// the value gets cleaned (aggressively) before applying the exact match regexp boundaries
+	value = strings.TrimSuffix(value, "$")
+	value = strings.TrimPrefix(value, "^")
+
 	return fmt.Sprintf("%s%s%s", "^", value, "$")
 }
 

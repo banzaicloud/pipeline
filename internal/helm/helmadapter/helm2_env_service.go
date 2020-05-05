@@ -54,7 +54,7 @@ func NewHelmEnvService(config Config, secretStore helm.SecretStore, logger Logge
 func (h helmEnvService) ListCharts(_ context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartList, error) {
 	envSettings := environment.EnvSettings{Home: helmpath.Home(helmEnv.GetHome())}
 
-	legacyChartSlice, err := legacyHelm.ChartsGet(envSettings, filter.StrictNameFilter(), filter.RepoFilter(), filter.VersionFilter(), filter.KeywordFilter())
+	legacyChartSlice, err := legacyHelm.ChartsGet(envSettings, filter.StrictNameFilter(), filter.StrictRepoFilter(), filter.VersionFilter(), filter.KeywordFilter())
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get chart list")
 	}
