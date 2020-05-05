@@ -58,6 +58,7 @@ type Options struct {
 	OdPcts       map[string]interface{} `json:"odPcts,omitempty"`
 	ReuseValues  bool                   `json:"reuseValues,omitempty"`
 	Install      bool                   `json:"install,omitempty"`
+	Filter       *string                `json:"filter,omitempty"`
 }
 
 // +kit:endpoint:errorStrategy=service
@@ -462,6 +463,9 @@ func (s service) ListReleases(ctx context.Context, organizationID uint, clusterI
 		return nil, errors.WrapIf(err, "failed to get cluster configuration")
 	}
 
+	if filters.Filter != nil {
+		options.Filter = filters.Filter
+	}
 	releases, err := s.releaser.List(ctx, helmEnv, kubeKonfig, options)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to list releases")
