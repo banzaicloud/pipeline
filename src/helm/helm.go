@@ -177,7 +177,7 @@ func GetChartFile(file []byte, fileName string) (string, error) {
 
 // DeleteAllDeployment deletes all Helm deployment
 // namespaces - if provided than delete all helm deployments only from the provided namespaces
-func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte, namespaces *v1.NamespaceList) error {
+func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte, namespaces []string) error {
 	log.Info("getting deployments....")
 	filter := ""
 	releaseResp, err := ListDeployments(&filter, "", kubeconfig)
@@ -188,10 +188,10 @@ func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte, namespaces *
 	if releaseResp != nil {
 		var nsFilter map[string]bool
 		if namespaces != nil {
-			nsFilter = make(map[string]bool, len(namespaces.Items))
+			nsFilter = make(map[string]bool, len(namespaces))
 
-			for _, ns := range namespaces.Items {
-				nsFilter[ns.Name] = true
+			for _, ns := range namespaces {
+				nsFilter[ns] = true
 			}
 		}
 
