@@ -105,11 +105,13 @@ func getHelmFacade(t *testing.T) helm.Service {
 	testCtx := context.Background()
 	db := setupDatabase(t)
 	helmConfig := setUpHelmConfig(t)
-	secretStore := helmadapter.NewSecretStore(setupSecretStore(t), logger)
+	secretStore := helmadapter.NewSecretStore(setupSecretStore(), logger)
 	repoStore := helmadapter.NewHelmRepoStore(db, logger)
 	envResolver := helm.NewHelm3EnvResolver(helmConfig.Home, setupOrgService(testCtx, t), logger)
 	envService := helmadapter.NewHelm3EnvService(secretStore, logger)
 	ensuringEnvResolver := helm.NewEnsuringEnvResolver(envResolver, envService, repoStore, helmConfig.Repositories, logger)
+
+	_, clusterConfigProvider := clusterKubeConfig(t)
 
 	return helm.NewService(
 		helmConfig,
@@ -119,7 +121,7 @@ func getHelmFacade(t *testing.T) helm.Service {
 		ensuringEnvResolver,
 		envService,
 		helmadapter.NewReleaser(logger),
-		clusterKubeConfig(t),
+		clusterConfigProvider,
 		logger)
 }
 

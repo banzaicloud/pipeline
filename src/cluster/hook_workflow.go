@@ -20,10 +20,11 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
+
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )

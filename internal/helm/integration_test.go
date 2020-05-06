@@ -68,27 +68,17 @@ func TestIntegration(t *testing.T) {
 		t.Fatalf("%+v", err)
 	}
 
-	kubeConfigFile := os.Getenv("KUBECONFIG")
-	if kubeConfigFile == "" {
-		t.Skip("skipping as Kubernetes config was not provided")
-	}
-
-	kubeConfig, err := ioutil.ReadFile(kubeConfigFile)
-	if err != nil {
-		t.Fatalf("%+v", err)
-	}
-
-	t.Run("helmV2", testIntegrationV2(kubeConfig, global.Config.Helm.Home, "istiofeature-helm-v2"))
-	t.Run("helmV3", testIntegrationV3(kubeConfig, global.Config.Helm.Home, "istiofeature-helm-v3"))
-	t.Run("helmInstallV2", testIntegrationInstall(kubeConfig, false, global.Config.Helm.Home, "helm-v2-install"))
-	t.Run("helmInstallV3", testIntegrationInstall(kubeConfig, true, global.Config.Helm.Home, "helm-v3-install"))
+	t.Run("helmV2", testIntegrationV2(global.Config.Helm.Home, "istiofeature-helm-v2"))
+	t.Run("helmV3", testIntegrationV3(global.Config.Helm.Home, "istiofeature-helm-v3"))
+	t.Run("helmInstallV2", testIntegrationInstall(false, global.Config.Helm.Home, "helm-v2-install"))
+	t.Run("helmInstallV3", testIntegrationInstall(true, global.Config.Helm.Home, "helm-v3-install"))
 }
 
-func testIntegrationV2(kubeConfig []byte, home, testNamespace string) func(t *testing.T) {
+func testIntegrationV2(home, testNamespace string) func(t *testing.T) {
 	return func(t *testing.T) {
 		db := setupDatabase(t)
 		secretStore := setupSecretStore()
-		clusterService := clusterKubeConfig(t, kubeConfig)
+		kubeConfig, clusterService := clusterKubeConfig(t)
 
 		config := helm.Config{
 			Home: home,
@@ -108,11 +98,11 @@ func testIntegrationV2(kubeConfig []byte, home, testNamespace string) func(t *te
 	}
 }
 
-func testIntegrationV3(kubeConfig []byte, home, testNamespace string) func(t *testing.T) {
+func testIntegrationV3(home, testNamespace string) func(t *testing.T) {
 	return func(t *testing.T) {
 		db := setupDatabase(t)
 		secretStore := setupSecretStore()
-		clusterService := clusterKubeConfig(t, kubeConfig)
+		kubeConfig, clusterService := clusterKubeConfig(t)
 
 		config := helm.Config{
 			Home: home,
@@ -132,11 +122,11 @@ func testIntegrationV3(kubeConfig []byte, home, testNamespace string) func(t *te
 	}
 }
 
-func testIntegrationInstall(kubeConfig []byte, v3 bool, home, testNamespace string) func(t *testing.T) {
+func testIntegrationInstall(v3 bool, home, testNamespace string) func(t *testing.T) {
 	return func(t *testing.T) {
 		db := setupDatabase(t)
 		secretStore := setupSecretStore()
-		clusterService := clusterKubeConfig(t, kubeConfig)
+		_, clusterService := clusterKubeConfig(t)
 
 		config := helm.Config{
 			Home: home,
@@ -375,8 +365,16 @@ func setupSecretStore() common.SecretStore {
 	}))
 }
 
-func clusterKubeConfig(t *testing.T, kubeConfigBytes []byte) helm.ClusterService {
-	return helm.ClusterKubeConfigFunc(func(ctx context.Context, clusterID uint) ([]byte, error) {
+func clusterKubeConfig(t *testing.T) ([]byte, helm.ClusterService) {
+	kubeConfigFile := os.Getenv("KUBECONFIG")
+	if kubeConfigFile == "" {
+		t.Skip("skipping as Kubernetes config was not provided")
+	}
+	kubeConfigBytes, err := ioutil.ReadFile(kubeConfigFile)
+	if err != nil {
+		t.Fatalf("%+v", err)
+	}
+	return kubeConfigBytes, helm.ClusterKubeConfigFunc(func(ctx context.Context, clusterID uint) ([]byte, error) {
 		return kubeConfigBytes, nil
 	})
 }
