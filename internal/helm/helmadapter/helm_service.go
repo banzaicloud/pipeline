@@ -210,3 +210,16 @@ func (h *helm3UnifiedReleaser) Delete(c helm.ClusterProvider, releaseName, names
 	}
 	return nil
 }
+
+func (h *helm3UnifiedReleaser) AddRepositoryIfNotExists(repository helm.Repository) error {
+	repos, err := h.helmService.ListRepositories(context.Background(), 0)
+	if err != nil {
+		return err
+	}
+	for _, r := range repos {
+		if r.URL == repository.URL {
+			return nil
+		}
+	}
+	return h.helmService.AddRepository(context.Background(), 0, repository)
+}

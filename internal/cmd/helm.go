@@ -60,7 +60,7 @@ func CreateUnifiedHelmReleaser(
 			releaser,
 			clusterService,
 			logger)
-		return helm2.NewHelmService(clusterService, commonadapter.NewLogger(logger)), service
+		return helm2.NewLegacyHelmService(clusterService, service, commonadapter.NewLogger(logger)), service
 	}
 
 	envResolver := helm.NewHelm3EnvResolver(helmConfig.Home, orgService, logger)

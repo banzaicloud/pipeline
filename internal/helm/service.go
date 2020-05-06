@@ -120,6 +120,8 @@ type UnifiedReleaser interface {
 	) error
 
 	Delete(c ClusterProvider, releaseName, namespace string) error
+
+	AddRepositoryIfNotExists(repository Repository) error
 }
 
 // releaser collects and groups release related operations

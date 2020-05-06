@@ -20,14 +20,12 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
-	"github.com/banzaicloud/pipeline/internal/helm"
-
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 const RunPostHooksWorkflowName = "run-posthooks"
@@ -116,15 +114,6 @@ type HelmService interface {
 
 	// GetDeployment gets a deployment by release name from a specific cluster.
 	GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*pkgHelm.GetDeploymentResponse, error)
-
-	// Covers Federation and Backyards style implementation
-	InstallOrUpgrade(
-		c helm.ClusterProvider,
-		release helm.Release,
-		opts helm.Options,
-	) error
-
-	Delete(c helm.ClusterProvider, releaseName, namespace string) error
 }
 
 type HelmServiceInjector interface {

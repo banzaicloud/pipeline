@@ -36,25 +36,26 @@ type Cluster struct {
 	KubeConfig       []byte
 }
 
-// HelmService provides an interface for using Helm on a specific cluster.
-type HelmService struct {
-	clusters internalhelm.ClusterService
-
-	logger common.Logger
+// LegacyHelmService provides an interface for using Helm on a specific cluster.
+type LegacyHelmService struct {
+	clusters      internalhelm.ClusterService
+	serviceFacade internalhelm.Service
+	logger        common.Logger
 }
 
-// NewHelmService returns a new HelmService.
-func NewHelmService(clusters internalhelm.ClusterService, logger common.Logger) internalhelm.UnifiedReleaser {
-	return &HelmService{
-		clusters: clusters,
-		logger:   logger.WithFields(map[string]interface{}{"component": "helm"}),
+// NewLegacyHelmService returns a new LegacyHelmService.
+func NewLegacyHelmService(clusters internalhelm.ClusterService, service internalhelm.Service, logger common.Logger) internalhelm.UnifiedReleaser {
+	return &LegacyHelmService{
+		clusters:      clusters,
+		serviceFacade: service,
+		logger:        logger.WithFields(map[string]interface{}{"component": "helm"}),
 	}
 }
 
 // InstallDeployment installs a deployment on a specific cluster.
 // If it's already installed, InstallDeployment does nothing.
 // If it's in a FAILED state, InstallDeployment attempts to delete it first.
-func (s *HelmService) InstallDeployment(
+func (s *LegacyHelmService) InstallDeployment(
 	ctx context.Context,
 	clusterID uint,
 	namespace string,
@@ -126,7 +127,7 @@ func (s *HelmService) InstallDeployment(
 
 // UpdateDeployment updates an existing deployment on a specific cluster.
 // If the deployment is not installed yet, UpdateDeployment does nothing.
-func (s *HelmService) UpdateDeployment(
+func (s *LegacyHelmService) UpdateDeployment(
 	ctx context.Context,
 	clusterID uint,
 	namespace string,
@@ -176,7 +177,7 @@ func (s *HelmService) UpdateDeployment(
 	return nil
 }
 
-func (s *HelmService) ApplyDeployment(
+func (s *LegacyHelmService) ApplyDeployment(
 	ctx context.Context,
 	clusterID uint,
 	namespace string,
@@ -284,7 +285,7 @@ func (s *HelmService) ApplyDeployment(
 }
 
 // DeleteDeployment deletes a deployment from a specific cluster.
-func (s *HelmService) DeleteDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) error {
+func (s *LegacyHelmService) DeleteDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) error {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"release": releaseName})
 	logger.Info("deleting deployment")
 
@@ -313,7 +314,7 @@ func (s *HelmService) DeleteDeployment(ctx context.Context, clusterID uint, rele
 	return nil
 }
 
-func (s *HelmService) GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*pkgHelm.GetDeploymentResponse, error) {
+func (s *LegacyHelmService) GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*pkgHelm.GetDeploymentResponse, error) {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"release": releaseName})
 	logger.Info("getting deployment")
 
@@ -345,7 +346,7 @@ func findRelease(releaseName string, k8sConfig []byte) (*release.Release, error)
 	return foundRelease, nil
 }
 
-func (s *HelmService) InstallOrUpgrade(
+func (s *LegacyHelmService) InstallOrUpgrade(
 	c internalhelm.ClusterProvider,
 	release internalhelm.Release,
 	opts internalhelm.Options,
@@ -439,7 +440,7 @@ func installOrUpgradeDeployment(
 	return nil
 }
 
-func (s *HelmService) Delete(c internalhelm.ClusterProvider, releaseName, namespace string) error {
+func (s *LegacyHelmService) Delete(c internalhelm.ClusterProvider, releaseName, namespace string) error {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return errors.WrapIf(err, "could not get k8s config")
@@ -455,4 +456,17 @@ func (s *HelmService) Delete(c internalhelm.ClusterProvider, releaseName, namesp
 	}
 
 	return nil
+}
+
+func (s *LegacyHelmService) AddRepositoryIfNotExists(repository internalhelm.Repository) error {
+	repos, err := s.serviceFacade.ListRepositories(context.Background(), 0)
+	if err != nil {
+		return err
+	}
+	for _, r := range repos {
+		if r.URL == repository.URL {
+			return nil
+		}
+	}
+	return s.serviceFacade.AddRepository(context.Background(), 0, repository)
 }
