@@ -94,6 +94,7 @@ func CreateReleaseDeleter(helmConfig helm.Config, logger helm.Logger) helm.Relea
 	orgService := helmadapter.NewOrgService(logger)
 	if helmConfig.V3 {
 		releaser := helmadapter.NewReleaser(logger)
+		// TODO ensuring envresolver
 		helm3EnvResolver := helm.NewHelm3EnvResolver(helmConfig.Home, orgService, logger)
 		return helmadapter.NewReleaseDeleter(helm3EnvResolver, releaser, logger)
 	}

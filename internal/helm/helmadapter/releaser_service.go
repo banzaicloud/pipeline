@@ -245,7 +245,7 @@ func (r releaser) List(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.
 }
 
 func (r releaser) Get(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) (helm.Release, error) {
-	ns := "default"
+	ns := ""
 	if options.Namespace != "" {
 		ns = options.Namespace
 	}
