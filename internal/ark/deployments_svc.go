@@ -24,7 +24,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/ark/client"
-	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/src/auth"
 )
@@ -101,7 +100,7 @@ func (s *DeploymentsService) GetActiveDeployment() (*ClusterBackupDeploymentsMod
 }
 
 // Deploy deploys ARK with helm configured to use the given bucket and mode
-func (s *DeploymentsService) Deploy(helmService helm.UnifiedReleaser, bucket *ClusterBackupBucketsModel, restoreMode bool) error {
+func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBackupBucketsModel, restoreMode bool) error {
 	var deployment *ClusterBackupDeploymentsModel
 	if !restoreMode {
 		_, err := s.GetActiveDeployment()
@@ -190,7 +189,7 @@ func (s *DeploymentsService) Deploy(helmService helm.UnifiedReleaser, bucket *Cl
 }
 
 // Remove deletes an ARK deployment
-func (s *DeploymentsService) Remove(helmService helm.UnifiedReleaser) error {
+func (s *DeploymentsService) Remove(helmService HelmService) error {
 	deployment, err := s.GetActiveDeployment()
 	if err == gorm.ErrRecordNotFound {
 		return errors.New("not deployed")
