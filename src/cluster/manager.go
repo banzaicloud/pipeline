@@ -85,11 +85,11 @@ func NewManager(
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
 	clusterStore interface {
-	SetStatus(ctx context.Context, id uint, status, message string) error
-},
+		SetStatus(ctx context.Context, id uint, status, message string) error
+	},
 	releaseDeleter interface {
-	DeleteReleases(ctx context.Context, orgID uint, kubeConfig []byte, namespaces []string) error
-},
+		DeleteReleases(ctx context.Context, orgID uint, kubeConfig []byte, namespaces []string) error
+	},
 ) *Manager {
 	return &Manager{
 		clusters:                   clusters,

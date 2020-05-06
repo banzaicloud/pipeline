@@ -202,7 +202,6 @@ func (r releaser) Uninstall(ctx context.Context, helmEnv helm.HelmEnv, kubeConfi
 }
 
 func (r releaser) List(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, options helm.Options) ([]helm.Release, error) {
-
 	// component processing the kubeconfig
 	restClientGetter := NewCustomGetter(options.Namespace, kubeConfig, helmEnv.GetCacheDir(), r.logger)
 

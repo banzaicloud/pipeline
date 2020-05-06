@@ -236,7 +236,7 @@ func main() {
 			errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
 		}
 
-		releaseDeleter := cmd.CreateReleaseDeleter(config.Helm, logger)
+		releaseDeleter := cmd.CreateReleaseDeleter(config.Helm, commonLogger)
 		clusterRepo := clusteradapter.NewClusters(db)
 		clusterManager := cluster.NewManager(
 			clusterRepo,
