@@ -568,7 +568,7 @@ func (r releaseDeleter) DeleteReleases(ctx context.Context, orgID uint, kubeConf
 
 	var uninstallErrs error
 	for _, release := range filteredReleases {
-		err := r.releaser.Uninstall(ctx, helmEnv, kubeConfig, release.ReleaseName, helm.Options{})
+		err := r.releaser.Uninstall(ctx, helmEnv, kubeConfig, release.ReleaseName, helm.Options{Namespace: release.Namespace})
 		if err != nil {
 			r.logger.Debug("failed to uninstall release", map[string]interface{}{"release": release.ReleaseName})
 			uninstallErrs = errors.Combine(err, uninstallErrs)

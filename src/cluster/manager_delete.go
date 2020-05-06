@@ -215,12 +215,14 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			}
 		}
 
-		namespaceFilter := make([]string, len(namespaceList.Items))
-		for _, ns := range namespaceList.Items {
-			namespaceFilter = append(namespaceFilter, ns.Name)
+		var namespaceFilter []string
+		if namespaceList != nil {
+			namespaceFilter = make([]string, 0, len(namespaceList.Items))
+			for _, ns := range namespaceList.Items {
+				namespaceFilter = append(namespaceFilter, ns.Name)
+			}
 		}
 
-		//err = helm.DeleteAllDeployment(logger, config, namespaceList)
 		err := m.releaseDeleter.DeleteReleases(ctx, cluster.GetOrganizationId(), config, namespaceFilter)
 		if err != nil {
 			err = errors.WrapIf(err, "failed to delete deployments")
