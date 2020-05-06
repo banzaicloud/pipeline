@@ -406,7 +406,9 @@ func main() {
 		errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
 	}
 
-	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, logrusLogger, errorHandler, clusteradapter.NewStore(db, clusters))
+	releaseDeleter := cmd.CreateReleaseDeleter(config.Helm, commonLogger)
+
+	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, logrusLogger, errorHandler, clusteradapter.NewStore(db, clusters), releaseDeleter)
 	commonClusterGetter := common.NewClusterGetter(clusterManager, logrusLogger, errorHandler)
 
 	var group run.Group

@@ -236,6 +236,7 @@ func main() {
 			errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
 		}
 
+		releaseDeleter := cmd.CreateReleaseDeleter(config.Helm, logger)
 		clusterRepo := clusteradapter.NewClusters(db)
 		clusterManager := cluster.NewManager(
 			clusterRepo,
@@ -247,6 +248,7 @@ func main() {
 			logrusLogger,
 			errorHandler,
 			clusteradapter.NewStore(db, clusterRepo),
+			releaseDeleter,
 		)
 		tokenStore := bauth.NewVaultTokenStore("pipeline")
 		tokenManager := pkgAuth.NewTokenManager(

@@ -30,7 +30,6 @@ import (
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/src/helm"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
@@ -216,7 +215,13 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			}
 		}
 
-		err = helm.DeleteAllDeployment(logger, config, namespaceList)
+		namespaceFilter := make([]string, len(namespaceList.Items))
+		for _, ns := range namespaceList.Items {
+			namespaceFilter = append(namespaceFilter, ns.Name)
+		}
+
+		//err = helm.DeleteAllDeployment(logger, config, namespaceList)
+		err := m.releaseDeleter.DeleteReleases(ctx, cluster.GetOrganizationId(), config, namespaceFilter)
 		if err != nil {
 			err = errors.WrapIf(err, "failed to delete deployments")
 
