@@ -68,10 +68,44 @@ func TestIntegration(t *testing.T) {
 		t.Fatalf("%+v", err)
 	}
 
+	// istio install/delete use cases, now also used by federation
 	t.Run("helmV2", testIntegrationV2(global.Config.Helm.Home, "istiofeature-helm-v2"))
 	t.Run("helmV3", testIntegrationV3(global.Config.Helm.Home, "istiofeature-helm-v3"))
+
+	// cluster setup and posthook style use cases
 	t.Run("helmInstallV2", testIntegrationInstall(false, global.Config.Helm.Home, "helm-v2-install"))
 	t.Run("helmInstallV3", testIntegrationInstall(true, global.Config.Helm.Home, "helm-v3-install"))
+
+	// covers the federation use case for adding a custom platform repository on the fly
+	t.Run("addPlatformRepositoryV3", testAddPlatformRepository(global.Config.Helm.Home, true))
+	t.Run("addPlatformRepositoryV2", testAddPlatformRepository(global.Config.Helm.Home, false))
+}
+
+func testAddPlatformRepository(home string, v3 bool) func(t *testing.T) {
+	return func(t *testing.T) {
+		db := setupDatabase(t)
+		secretStore := setupSecretStore()
+		_, clusterService := clusterKubeConfig(t)
+		config := helm.Config{
+			Home: home,
+			V3:   v3,
+			Repositories: map[string]string{
+				"stable": "https://kubernetes-charts.storage.googleapis.com",
+			},
+		}
+
+		helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, common.NoopLogger{})
+
+		for i := 0; i < 2; i++ {
+			err := helmService.AddRepositoryIfNotExists(helm.Repository{
+				Name: "kubefed",
+				URL:  "https://raw.githubusercontent.com/banzaicloud/kubefed/helm_chart/charts",
+			})
+			if err != nil {
+				t.Fatalf("%+v", err)
+			}
+		}
+	}
 }
 
 func testIntegrationV2(home, testNamespace string) func(t *testing.T) {
