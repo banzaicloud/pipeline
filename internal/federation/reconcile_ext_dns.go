@@ -19,10 +19,11 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
+	helm2 "github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/ghodss/yaml"
+	"github.com/sirupsen/logrus"
 
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/dns"
 	"github.com/banzaicloud/pipeline/src/helm"
 )
@@ -35,26 +36,27 @@ func (m *FederationReconciler) ReconcileExternalDNSController(desiredState Desir
 	chartName := m.Configuration.dnsConfig.Charts.ExternalDNS.Chart
 	const releaseName = "dns"
 
-	err := m.ensureCRDSourceForExtDNS(m.Host, infraNamespace, chartName, releaseName, desiredState)
+	err := ensureCRDSourceForExtDNS(m.Host, infraNamespace, chartName, releaseName, desiredState, m.logger)
 	if err != nil {
 		return errors.WrapIf(err, "could not update ExternalDNS controller")
 	}
 	return nil
 }
 
-func (m *FederationReconciler) ensureCRDSourceForExtDNS(
-	c cluster.CommonCluster,
+func ensureCRDSourceForExtDNS(
+	c helm2.ClusterProvider,
 	namespace string,
 	deploymentName string,
 	releaseName string,
 	desiredState DesiredState,
+	logger logrus.FieldLogger,
 ) error {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return errors.WrapIf(err, "could not get k8s config")
 	}
 
-	hClient, err := pkgHelm.NewClient(kubeConfig, m.logger)
+	hClient, err := pkgHelm.NewClient(kubeConfig, logger)
 	if err != nil {
 		return err
 	}
@@ -63,7 +65,7 @@ func (m *FederationReconciler) ensureCRDSourceForExtDNS(
 	resp, err := hClient.ReleaseContent(releaseName)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			m.logger.Debug("externalDNS deployment not found")
+			logger.Debug("externalDNS deployment not found")
 			return nil
 		}
 		return err
