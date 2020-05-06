@@ -25,6 +25,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
@@ -47,6 +48,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	legacyHelm "github.com/banzaicloud/pipeline/src/helm"
 )
 
 // Components in charge for implementing release helm related operations.
@@ -533,4 +535,74 @@ func (c customGetter) ToRawKubeConfigLoader() clientcmd.ClientConfig {
 		c.logger.Error("error constructing the kubeconfig loader", map[string]interface{}{"err": err})
 	}
 	return loader
+}
+
+// releaseDeleter component implementing the ReleaseDeleter logic
+// replaces the helm.DeleteAllDeployment(logger, config, namespaceList) functionality
+type releaseDeleter struct {
+	envResolver helm.EnvResolver
+	releaser    helm.ListerUninstaller
+
+	logger Logger
+}
+
+func NewReleaseDeleter(envResolver helm.EnvResolver, releaser helm.ListerUninstaller, logger Logger) helm.ReleaseDeleter {
+	return releaseDeleter{
+		envResolver: envResolver,
+		releaser:    releaser,
+		logger:      logger,
+	}
+}
+
+func (r releaseDeleter) DeleteReleases(ctx context.Context, orgID uint, kubeConfig []byte, namespaces []string) error {
+	helmEnv, err := r.envResolver.ResolveHelmEnv(ctx, orgID)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to delete releases", "namespaces", namespaces)
+	}
+	// list releases in all namespaces and filter them later
+	releases, err := r.releaser.List(ctx, helmEnv, kubeConfig, helm.Options{})
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to list releases for deletion", "namespaces", namespaces)
+	}
+
+	filteredReleases := r.filterReleases(releases, namespaces)
+
+	var uninstallErrs error
+	for _, release := range filteredReleases {
+		err := r.releaser.Uninstall(ctx, helmEnv, kubeConfig, release.ReleaseName, helm.Options{})
+		if err != nil {
+			r.logger.Debug("failed to uninstall release", map[string]interface{}{"release": release.ReleaseName})
+			uninstallErrs = errors.Combine(err, uninstallErrs)
+		}
+	}
+
+	return uninstallErrs
+}
+
+func (r releaseDeleter) filterReleases(releases []helm.Release, namespaces []string) []helm.Release {
+	if len(namespaces) == 0 || len(releases) == 0 {
+		return releases
+	}
+
+	filtered := make([]helm.Release, 0, len(releases))
+	for _, release := range releases {
+		for _, namespace := range namespaces {
+			if release.Namespace == namespace {
+				filtered = append(filtered, release)
+			}
+		}
+	}
+
+	return filtered
+}
+
+type h2ReleaseDeleter struct {
+}
+
+func (h2ReleaseDeleter) DeleteReleases(ctx context.Context, orgID uint, kubeConfig []byte, namespaces []string) error {
+	return legacyHelm.DeleteAllDeployment(logrus.New(), kubeConfig, namespaces)
+}
+
+func NewHelm2ReleaseDeleter() helm.ReleaseDeleter {
+	return h2ReleaseDeleter{}
 }
