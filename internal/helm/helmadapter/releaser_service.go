@@ -200,13 +200,9 @@ func (r releaser) Uninstall(ctx context.Context, helmEnv helm.HelmEnv, kubeConfi
 }
 
 func (r releaser) List(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, options helm.Options) ([]helm.Release, error) {
-	ns := "default"
-	if options.Namespace != "" {
-		ns = options.Namespace
-	}
 
 	// component processing the kubeconfig
-	restClientGetter := NewCustomGetter(ns, kubeConfig, helmEnv.GetCacheDir(), r.logger)
+	restClientGetter := NewCustomGetter(options.Namespace, kubeConfig, helmEnv.GetCacheDir(), r.logger)
 
 	actionConfig, err := r.getActionConfiguration(restClientGetter, options.Namespace)
 	if err != nil {
@@ -459,6 +455,10 @@ func (r releaser) processOptions(listAction *action.List, options helm.Options) 
 	action := listAction
 	if options.Filter != nil {
 		action.Filter = *options.Filter
+	}
+
+	if options.Namespace == "" {
+		action.AllNamespaces = true
 	}
 	// apply other options here
 	return action
