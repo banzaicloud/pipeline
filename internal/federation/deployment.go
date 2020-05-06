@@ -15,13 +15,7 @@
 package federation
 
 import (
-	"strings"
-
-	"emperror.dev/errors"
-
 	internalHelm "github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/src/cluster"
-	"github.com/banzaicloud/pipeline/src/helm"
 )
 
 type HelmService interface {
@@ -32,22 +26,6 @@ type HelmService interface {
 	) error
 
 	Delete(c internalHelm.ClusterProvider, releaseName, namespace string) error
-}
 
-func DeleteDeployment(c cluster.CommonCluster, releaseName string) error {
-	kubeConfig, err := c.GetK8sConfig()
-	if err != nil {
-		return errors.WrapIf(err, "could not get k8s config")
-	}
-
-	err = helm.DeleteDeployment(releaseName, kubeConfig)
-	if err != nil {
-		e := errors.Cause(err)
-		if e != nil && strings.Contains(e.Error(), "not found") {
-			return nil
-		}
-		return errors.WrapIf(err, "could not remove deployment")
-	}
-
-	return nil
+	AddRepositoryIfNotExists(repository internalHelm.Repository) error
 }

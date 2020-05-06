@@ -26,14 +26,12 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/helm/pkg/repo"
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
 	ctlutil "sigs.k8s.io/kubefed/pkg/controller/util"
 
 	internalHelm "github.com/banzaicloud/pipeline/internal/helm"
 
 	"github.com/banzaicloud/pipeline/src/cluster"
-	"github.com/banzaicloud/pipeline/src/helm"
 )
 
 type OperatorImage struct {
@@ -296,13 +294,11 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}
 
-	env := helm.GeneratePlatformHelmRepoEnv()
-	_, err = helm.ReposAdd(env, &repo.Entry{
+	if err = m.helmService.AddRepositoryIfNotExists(internalHelm.Repository{
 		Name: "kubefed-charts",
 		URL:  "https://raw.githubusercontent.com/banzaicloud/kubefed/helm_chart/charts",
-	})
-	if err != nil {
-		return errors.WrapIf(err, "failed to add kube-chart repo")
+	}); err != nil {
+		return errors.WrapIf(err, "failed to add kubefed-charts repo")
 	}
 
 	valuesOverridesConverted, err := internalHelm.ConvertStructure(valuesOverride)

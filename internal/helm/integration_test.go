@@ -80,7 +80,8 @@ func TestIntegration(t *testing.T) {
 
 	t.Run("helmV2", testIntegrationV2(kubeConfig, global.Config.Helm.Home, "istiofeature-helm-v2"))
 	t.Run("helmV3", testIntegrationV3(kubeConfig, global.Config.Helm.Home, "istiofeature-helm-v3"))
-	t.Run("helmV3Install", testIntegrationV3Install(kubeConfig, global.Config.Helm.Home, "helm-v3-install"))
+	t.Run("helmInstallV2", testIntegrationInstall(kubeConfig, false, global.Config.Helm.Home, "helm-v2-install"))
+	t.Run("helmInstallV3", testIntegrationInstall(kubeConfig, true, global.Config.Helm.Home, "helm-v3-install"))
 }
 
 func testIntegrationV2(kubeConfig []byte, home, testNamespace string) func(t *testing.T) {
@@ -131,7 +132,7 @@ func testIntegrationV3(kubeConfig []byte, home, testNamespace string) func(t *te
 	}
 }
 
-func testIntegrationV3Install(kubeConfig []byte, home, testNamespace string) func(t *testing.T) {
+func testIntegrationInstall(kubeConfig []byte, v3 bool, home, testNamespace string) func(t *testing.T) {
 	return func(t *testing.T) {
 		db := setupDatabase(t)
 		secretStore := setupSecretStore()
@@ -139,7 +140,7 @@ func testIntegrationV3Install(kubeConfig []byte, home, testNamespace string) fun
 
 		config := helm.Config{
 			Home: home,
-			V3:   true,
+			V3:   v3,
 			Repositories: map[string]string{
 				"stable":             "https://kubernetes-charts.storage.googleapis.com",
 				"banzaicloud-stable": "https://kubernetes-charts.banzaicloud.com",
