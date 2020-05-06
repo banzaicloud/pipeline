@@ -95,7 +95,7 @@ func CreateReleaseDeleter(helmConfig helm.Config, logger helm.Logger) helm.Relea
 	if helmConfig.V3 {
 		releaser := helmadapter.NewReleaser(logger)
 		helm3EnvResolver := helm.NewHelm3EnvResolver(helmConfig.Home, orgService, logger)
-		return helm.NewReleaseDeleter(helm3EnvResolver, releaser, logger)
+		return helmadapter.NewReleaseDeleter(helm3EnvResolver, releaser, logger)
 	}
 
 	return helmadapter.NewHelm2ReleaseDeleter()
