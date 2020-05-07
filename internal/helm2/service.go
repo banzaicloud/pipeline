@@ -347,7 +347,7 @@ func findRelease(releaseName string, k8sConfig []byte) (*release.Release, error)
 }
 
 func (s *LegacyHelmService) InstallOrUpgrade(
-	c internalhelm.ClusterProvider,
+	c internalhelm.ClusterDataProvider,
 	release internalhelm.Release,
 	opts internalhelm.Options,
 ) error {
@@ -368,7 +368,7 @@ func (s *LegacyHelmService) InstallOrUpgrade(
 }
 
 func installOrUpgradeDeployment(
-	c internalhelm.ClusterProvider,
+	c internalhelm.ClusterDataProvider,
 	namespace string,
 	deploymentName string,
 	releaseName string,
@@ -440,7 +440,7 @@ func installOrUpgradeDeployment(
 	return nil
 }
 
-func (s *LegacyHelmService) Delete(c internalhelm.ClusterProvider, releaseName, namespace string) error {
+func (s *LegacyHelmService) Delete(c internalhelm.ClusterDataProvider, releaseName, namespace string) error {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return errors.WrapIf(err, "could not get k8s config")

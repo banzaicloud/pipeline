@@ -22,6 +22,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	testing2 "github.com/banzaicloud/pipeline/internal/helm/testing"
+
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
@@ -40,9 +42,9 @@ func testPlatformEnvResolver() func(t *testing.T) {
 	return func(t *testing.T) {
 		logger := common.NoopLogger{}
 		testCtx := context.Background()
-		db := setupDatabase(t)
+		db := testing2.SetupDatabase(t)
 		helmConfig := setUpHelmConfig(t)
-		secretStore := helmadapter.NewSecretStore(setupSecretStore(), logger)
+		secretStore := helmadapter.NewSecretStore(testing2.SetupSecretStore(), logger)
 		repoStore := helmadapter.NewHelmRepoStore(db, logger)
 		envResolver := helm.NewHelm3EnvResolver(helmConfig.Home, setupOrgService(testCtx, t), logger)
 		envService := helmadapter.NewHelm3EnvService(secretStore, logger)
@@ -65,9 +67,9 @@ func testOrgEnvResolver() func(t *testing.T) {
 	return func(t *testing.T) {
 		logger := common.NoopLogger{}
 		testCtx := context.Background()
-		db := setupDatabase(t)
+		db := testing2.SetupDatabase(t)
 		helmConfig := setUpHelmConfig(t)
-		secretStore := helmadapter.NewSecretStore(setupSecretStore(), logger)
+		secretStore := helmadapter.NewSecretStore(testing2.SetupSecretStore(), logger)
 		repoStore := helmadapter.NewHelmRepoStore(db, logger)
 		envResolver := helm.NewHelm3EnvResolver(helmConfig.Home, setupOrgService(testCtx, t), logger)
 		envService := helmadapter.NewHelm3EnvService(secretStore, logger)

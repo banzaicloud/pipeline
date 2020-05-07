@@ -64,6 +64,8 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
+	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
@@ -479,11 +481,14 @@ func main() {
 		),
 	}
 
+	orgService := helmadapter.NewOrgService(commonLogger)
+
 	unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
 		config.Helm,
 		db,
 		commonSecretStore,
 		helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc()),
+		orgService,
 		commonLogger,
 	)
 

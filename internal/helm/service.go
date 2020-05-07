@@ -76,7 +76,7 @@ type Service interface {
 	charter
 }
 
-type ClusterProvider interface {
+type ClusterDataProvider interface {
 	GetK8sConfig() ([]byte, error)
 	GetID() uint
 }
@@ -114,12 +114,12 @@ type UnifiedReleaser interface {
 
 	// Covers Federation and Backyards style implementation
 	InstallOrUpgrade(
-		c ClusterProvider,
+		c ClusterDataProvider,
 		release Release,
 		opts Options,
 	) error
 
-	Delete(c ClusterProvider, releaseName, namespace string) error
+	Delete(c ClusterDataProvider, releaseName, namespace string) error
 
 	AddRepositoryIfNotExists(repository Repository) error
 }

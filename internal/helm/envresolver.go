@@ -86,6 +86,10 @@ type envResolver struct {
 }
 
 func (er envResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (HelmEnv, error) {
+	if organizationID == noOrg {
+		return er.ResolvePlatformEnv(ctx)
+	}
+
 	er.logger.Debug("resolving organization helm env home")
 	orgName, err := er.orgService.GetOrgNameByOrgID(ctx, organizationID)
 	if err != nil {

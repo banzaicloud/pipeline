@@ -25,6 +25,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/stretchr/testify/assert"
 
+	helmtesting "github.com/banzaicloud/pipeline/internal/helm/testing"
+
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
@@ -103,15 +105,15 @@ func getTestReleases() []helm.Release {
 func getHelmFacade(t *testing.T) helm.Service {
 	logger := common.NoopLogger{}
 	testCtx := context.Background()
-	db := setupDatabase(t)
+	db := helmtesting.SetupDatabase(t)
 	helmConfig := setUpHelmConfig(t)
-	secretStore := helmadapter.NewSecretStore(setupSecretStore(), logger)
+	secretStore := helmadapter.NewSecretStore(helmtesting.SetupSecretStore(), logger)
 	repoStore := helmadapter.NewHelmRepoStore(db, logger)
 	envResolver := helm.NewHelm3EnvResolver(helmConfig.Home, setupOrgService(testCtx, t), logger)
 	envService := helmadapter.NewHelm3EnvService(secretStore, logger)
 	ensuringEnvResolver := helm.NewEnsuringEnvResolver(envResolver, envService, repoStore, helmConfig.Repositories, logger)
 
-	_, clusterConfigProvider := clusterKubeConfig(t)
+	_, clusterConfigProvider := helmtesting.ClusterKubeConfig(t, clusterId)
 
 	return helm.NewService(
 		helmConfig,

@@ -20,10 +20,10 @@ import (
 
 type HelmService interface {
 	InstallOrUpgrade(
-		c internalHelm.ClusterProvider,
+		c internalHelm.ClusterDataProvider,
 		release internalHelm.Release,
 		opts internalHelm.Options,
 	) error
 
-	Delete(c internalHelm.ClusterProvider, releaseName, namespace string) error
+	Delete(c internalHelm.ClusterDataProvider, releaseName, namespace string) error
 }

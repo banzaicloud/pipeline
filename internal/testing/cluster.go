@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package federation
+package testing
 
-import (
-	internalHelm "github.com/banzaicloud/pipeline/internal/helm"
-)
+type ClusterData struct {
+	K8sConfig []byte
+	ID        uint
+}
 
-type HelmService interface {
-	InstallOrUpgrade(
-		c internalHelm.ClusterDataProvider,
-		release internalHelm.Release,
-		opts internalHelm.Options,
-	) error
+func (c *ClusterData) GetID() uint {
+	return c.ID
+}
 
-	Delete(c internalHelm.ClusterDataProvider, releaseName, namespace string) error
-
-	AddRepositoryIfNotExists(repository internalHelm.Repository) error
+func (c *ClusterData) GetK8sConfig() ([]byte, error) {
+	return c.K8sConfig, nil
 }

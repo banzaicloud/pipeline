@@ -167,7 +167,7 @@ func (h *helm3UnifiedReleaser) GetDeployment(ctx context.Context, clusterID uint
 }
 
 func (h *helm3UnifiedReleaser) InstallOrUpgrade(
-	c helm.ClusterProvider,
+	c helm.ClusterDataProvider,
 	release helm.Release,
 	opts helm.Options,
 ) error {
@@ -199,7 +199,7 @@ func (h *helm3UnifiedReleaser) InstallOrUpgrade(
 	return errors.Errorf("Release is in invalid state unable to upgrade: %s", retrievedRelease.ReleaseInfo.Status)
 }
 
-func (h *helm3UnifiedReleaser) Delete(c helm.ClusterProvider, releaseName, namespace string) error {
+func (h *helm3UnifiedReleaser) Delete(c helm.ClusterDataProvider, releaseName, namespace string) error {
 	if err := h.helmService.DeleteRelease(context.Background(), 0, c.GetID(), releaseName, helm.Options{
 		Namespace: namespace,
 	}); err != nil {
