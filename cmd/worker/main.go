@@ -236,7 +236,9 @@ func main() {
 			errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
 		}
 
-		releaseDeleter := cmd.CreateReleaseDeleter(config.Helm, commonLogger)
+		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+
+		releaseDeleter := cmd.CreateReleaseDeleter(config.Helm, db, commonSecretStore, commonLogger)
 		clusterRepo := clusteradapter.NewClusters(db)
 		clusterManager := cluster.NewManager(
 			clusterRepo,
@@ -260,8 +262,6 @@ func main() {
 			tokenStore,
 		)
 		tokenGenerator := auth.NewClusterTokenGenerator(tokenManager, tokenStore)
-
-		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
 		unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
 			config.Helm,
