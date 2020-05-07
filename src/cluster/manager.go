@@ -70,6 +70,9 @@ type Manager struct {
 	clusterStore               interface {
 		SetStatus(ctx context.Context, id uint, status, message string) error
 	}
+	releaseDeleter interface {
+		DeleteReleases(ctx context.Context, orgID uint, kubeConfig []byte, namespaces []string) error
+	}
 }
 
 func NewManager(
@@ -84,6 +87,9 @@ func NewManager(
 	clusterStore interface {
 		SetStatus(ctx context.Context, id uint, status, message string) error
 	},
+	releaseDeleter interface {
+		DeleteReleases(ctx context.Context, orgID uint, kubeConfig []byte, namespaces []string) error
+	},
 ) *Manager {
 	return &Manager{
 		clusters:                   clusters,
@@ -96,6 +102,7 @@ func NewManager(
 		logger:                     logger,
 		errorHandler:               errorHandler,
 		clusterStore:               clusterStore,
+		releaseDeleter:             releaseDeleter,
 	}
 }
 

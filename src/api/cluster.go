@@ -125,7 +125,7 @@ func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	clusters := clusteradapter.NewClusters(global.DB())
 	secretValidator := providers.NewSecretValidator(secret.Store)
 	clusterStore := clusteradapter.NewStore(global.DB(), clusters)
-	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler, clusterStore)
+	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler, clusterStore, nil)
 	clusterGetter := common.NewClusterGetter(clusterManager, log, errorHandler)
 
 	return clusterGetter.GetClusterFromRequest(c)

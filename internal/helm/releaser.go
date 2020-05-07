@@ -111,3 +111,14 @@ type Releaser interface {
 func ErrReleaseNotFound(err error) bool {
 	return strings.Contains(errors.Cause(err).Error(), "not found")
 }
+
+// ReleaseDeleter abstraction of the operations
+type ReleaseDeleter interface {
+	// DeleteReleases deletes all releases in the provided namespaces; all namespaces are considered when no namespaces provided
+	DeleteReleases(ctx context.Context, orgID uint, kubeConfig []byte, namespaces []string) error
+}
+
+type ListerUninstaller interface {
+	Uninstall(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseName string, options Options) error
+	List(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, options Options) ([]Release, error)
+}

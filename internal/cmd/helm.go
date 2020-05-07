@@ -88,3 +88,23 @@ func CreateUnifiedHelmReleaser(
 
 	return helmadapter.NewUnifiedHelm3Releaser(service, logger), service
 }
+
+// CreateReleaseDeleter creates a new (helm2 or helm3 specific) deleter instance based on the provided argunments
+func CreateReleaseDeleter(helmConfig helm.Config, db *gorm.DB, secretStore helmadapter.SecretStore, logger helm.Logger) helm.ReleaseDeleter {
+	logger.Debug("assembling helm release deleter...")
+	if helmConfig.V3 {
+		repoStore := helmadapter.NewHelmRepoStore(db, logger)
+		secretStore := helmadapter.NewSecretStore(secretStore, logger)
+		envService := helmadapter.NewHelm3EnvService(secretStore, logger)
+		orgService := helmadapter.NewOrgService(logger)
+		releaser := helmadapter.NewReleaser(logger)
+		helm3EnvResolver := helm.NewHelm3EnvResolver(helmConfig.Home, orgService, logger)
+		ensuringEnvResolver := helm.NewEnsuringEnvResolver(helm3EnvResolver, envService, repoStore, helmConfig.Repositories, logger)
+
+		logger.Debug("assembled helm 3 release deleter")
+		return helmadapter.NewReleaseDeleter(ensuringEnvResolver, releaser, logger)
+	}
+
+	logger.Debug("assembled helm 2 release deleter")
+	return helmadapter.NewHelm2ReleaseDeleter()
+}

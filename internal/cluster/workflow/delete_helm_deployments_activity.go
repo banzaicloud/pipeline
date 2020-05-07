@@ -20,7 +20,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/src/helm"
+	"github.com/banzaicloud/pipeline/internal/helm"
 )
 
 const DeleteHelmDeploymentsActivityName = "delete-helm-deployments"
@@ -33,21 +33,23 @@ type DeleteHelmDeploymentsActivityInput struct {
 
 type DeleteHelmDeploymentsActivity struct {
 	k8sConfigGetter K8sConfigGetter
+	releaseDeleter  helm.ReleaseDeleter
 	logger          logrus.FieldLogger
 }
 
-func MakeDeleteHelmDeploymentsActivity(k8sConfigGetter K8sConfigGetter, logger logrus.FieldLogger) DeleteHelmDeploymentsActivity {
+func MakeDeleteHelmDeploymentsActivity(k8sConfigGetter K8sConfigGetter, releaseDeleter helm.ReleaseDeleter, logger logrus.FieldLogger) DeleteHelmDeploymentsActivity {
 	return DeleteHelmDeploymentsActivity{
 		k8sConfigGetter: k8sConfigGetter,
+		releaseDeleter:  releaseDeleter,
 		logger:          logger,
 	}
 }
 
 func (a DeleteHelmDeploymentsActivity) Execute(ctx context.Context, input DeleteHelmDeploymentsActivityInput) error {
-	logger := a.logger.WithField("organizationID", input.OrganizationID).WithField("clusterName", input.ClusterName)
 	k8sConfig, err := a.k8sConfigGetter.Get(input.OrganizationID, input.K8sSecretID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to get k8s config")
 	}
-	return errors.WrapIf(helm.DeleteAllDeployment(logger, k8sConfig, nil), "failed to delete all Helm deployments")
+
+	return errors.WrapIf(a.releaseDeleter.DeleteReleases(ctx, input.OrganizationID, k8sConfig, nil), "failed to delete all Helm deployments")
 }
