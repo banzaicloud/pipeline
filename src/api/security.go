@@ -96,8 +96,7 @@ func (d helm2ReleaseLister) ListReleases(ctx context.Context, _ uint, clusterID 
 		return nil, errors.WrapIf(err, "failed to retrieve releases config")
 	}
 
-	retReleases := getDomainReleases(legacyReleasesResponse)
-	return retReleases, nil
+	return getDomainReleases(legacyReleasesResponse)
 }
 
 func NewHelm2ReleaseLister(clusterService ClusterService) ReleaseLister {

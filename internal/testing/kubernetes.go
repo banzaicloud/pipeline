@@ -18,6 +18,11 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
+
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/kubernetes"
 )
 
 func KubeConfigFromEnv(t *testing.T) []byte {
@@ -30,4 +35,36 @@ func KubeConfigFromEnv(t *testing.T) []byte {
 		t.Fatalf("%+v", err)
 	}
 	return kubeConfigBytes
+}
+
+func EnsureNamespaceRemoved(client *kubernetes.Clientset, namespace string, timeout time.Duration) error {
+	nsList, err := client.CoreV1().Namespaces().List(v1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	for _, ns := range nsList.Items {
+		if ns.Name == namespace {
+			err := client.CoreV1().Namespaces().Delete(namespace, &v1.DeleteOptions{})
+			if err != nil {
+				return err
+			}
+			err = wait.Poll(time.Second, timeout, func() (done bool, err error) {
+				nsList, err := client.CoreV1().Namespaces().List(v1.ListOptions{})
+				if err != nil {
+					return false, err
+				}
+				for _, ns := range nsList.Items {
+					if ns.Name == namespace {
+						return false, nil
+					}
+				}
+				return true, nil
+			})
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

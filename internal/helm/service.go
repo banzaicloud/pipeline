@@ -119,6 +119,8 @@ type UnifiedReleaser interface {
 		opts Options,
 	) error
 
+	GetRelease(c ClusterDataProvider, releaseName, namespace string) (Release, error)
+
 	Delete(c ClusterDataProvider, releaseName, namespace string) error
 
 	AddRepositoryIfNotExists(repository Repository) error

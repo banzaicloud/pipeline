@@ -223,3 +223,9 @@ func (h *helm3UnifiedReleaser) AddRepositoryIfNotExists(repository helm.Reposito
 	}
 	return h.helmService.AddRepository(context.Background(), 0, repository)
 }
+
+func (h *helm3UnifiedReleaser) GetRelease(c helm.ClusterDataProvider, releaseName, namespace string) (helm.Release, error) {
+	return h.helmService.GetRelease(context.TODO(), 0, c.GetID(), releaseName, helm.Options{
+		Namespace: namespace,
+	})
+}

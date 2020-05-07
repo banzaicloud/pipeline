@@ -237,6 +237,7 @@ func (r releaser) List(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.
 				Description:   result.Info.Description,
 				Status:        result.Info.Status.String(),
 				Notes:         result.Info.Notes,
+				Values:        result.Config,
 			},
 		})
 	}
@@ -266,11 +267,12 @@ func (r releaser) Get(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.K
 	}
 
 	return helm.Release{
-		ReleaseName: rawRelease.Name,
-		ChartName:   rawRelease.Chart.Metadata.Name,
-		Namespace:   rawRelease.Namespace,
-		Values:      rawRelease.Chart.Values,
-		Version:     rawRelease.Chart.Metadata.Version,
+		ReleaseName:    rawRelease.Name,
+		ChartName:      rawRelease.Chart.Metadata.Name,
+		Namespace:      rawRelease.Namespace,
+		Values:         rawRelease.Chart.Values,
+		Version:        rawRelease.Chart.Metadata.Version,
+		ReleaseVersion: int32(rawRelease.Version),
 		ReleaseInfo: helm.ReleaseInfo{
 			FirstDeployed: rawRelease.Info.FirstDeployed.Time,
 			LastDeployed:  rawRelease.Info.LastDeployed.Time,
@@ -278,6 +280,7 @@ func (r releaser) Get(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.K
 			Description:   rawRelease.Info.Description,
 			Status:        rawRelease.Info.Status.String(),
 			Notes:         rawRelease.Info.Notes,
+			Values:        rawRelease.Config,
 		},
 	}, nil
 }

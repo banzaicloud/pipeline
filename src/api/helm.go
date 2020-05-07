@@ -21,9 +21,11 @@ import (
 	"strings"
 	"time"
 
+	errors2 "emperror.dev/errors"
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"k8s.io/helm/pkg/chartutil"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"
@@ -175,8 +177,19 @@ func ListDeployments(c *gin.Context) {
 			}
 		}
 	}
+	deployments, err := getDomainReleases(response)
+	if err != nil {
+		log.Error("Error listing deployments: ", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error listing deployments",
+			Error:   err.Error(),
+		})
+		return
+	}
+
 	// transform the result
-	releases := ListHelmReleases(c, getDomainReleases(response), supportedCharts)
+	releases := ListHelmReleases(c, deployments, supportedCharts)
 
 	c.JSON(http.StatusOK, releases)
 	return
@@ -570,22 +583,35 @@ func ListHelmReleases(c *gin.Context, releases []intlHelm.Release, optparam inte
 }
 
 // getDomainReleases transforms helm2 representation into domain specific representation in order to decouple the legacy library from service logic
-func getDomainReleases(legacyReleasesResponse *rls.ListReleasesResponse) []intlHelm.Release {
+func getDomainReleases(legacyReleasesResponse *rls.ListReleasesResponse) ([]intlHelm.Release, error) {
 	retReleases := make([]intlHelm.Release, 0, len(legacyReleasesResponse.Releases))
 	for _, legacyReleasePtr := range legacyReleasesResponse.Releases {
-		domainRelease := transformLegacyRelease(legacyReleasePtr)
+		domainRelease, err := transformLegacyRelease(legacyReleasePtr)
+		if err != nil {
+			return nil, err
+		}
 		retReleases = append(retReleases, domainRelease)
 	}
-	return retReleases
+	return retReleases, nil
 }
 
 // transformLegacyRelease transforms helm2 representation into domain specific representation in order to decouple the legacy library from service logic
-func transformLegacyRelease(legacyReleasePtr *release.Release) intlHelm.Release {
+func transformLegacyRelease(legacyReleasePtr *release.Release) (intlHelm.Release, error) {
+	defaultValues, err := chartutil.ReadValues([]byte(legacyReleasePtr.Chart.Values.Raw))
+	if err != nil {
+		return intlHelm.Release{}, errors2.WrapIf(err, "failed to read default values")
+	}
+
+	overrideValues, err := chartutil.ReadValues([]byte(legacyReleasePtr.Config.Raw))
+	if err != nil {
+		return intlHelm.Release{}, errors2.WrapIf(err, "failed to read override values")
+	}
+
 	domainRelease := intlHelm.Release{
 		ReleaseName: legacyReleasePtr.Name,
 		ChartName:   legacyReleasePtr.Chart.Metadata.Name,
 		Namespace:   legacyReleasePtr.Namespace,
-		Values:      nil,
+		Values:      defaultValues,
 		Version:     legacyReleasePtr.Chart.Metadata.Version,
 		ReleaseInfo: intlHelm.ReleaseInfo{
 			FirstDeployed: time.Unix(legacyReleasePtr.Info.FirstDeployed.GetSeconds(), 0),
@@ -594,8 +620,9 @@ func transformLegacyRelease(legacyReleasePtr *release.Release) intlHelm.Release 
 			Description:   legacyReleasePtr.Info.GetDescription(),
 			Status:        legacyReleasePtr.Info.GetStatus().GetCode().String(),
 			Notes:         legacyReleasePtr.Info.GetStatus().GetNotes(),
+			Values:        overrideValues,
 		},
-		ReleaseVersion: 0,
+		ReleaseVersion: legacyReleasePtr.Version,
 	}
-	return domainRelease
+	return domainRelease, nil
 }

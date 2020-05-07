@@ -30,6 +30,6 @@ func TestIntegration(t *testing.T) {
 		t.Skip("skipping as execution was not requested explicitly using go test -run")
 	}
 
-	t.Run("testEnsureCRDSourceForExtDNSv2", testEnsureCRDSourceForExtDNS(v2))
-	t.Run("testEnsureCRDSourceForExtDNSv3", testEnsureCRDSourceForExtDNS(v3))
+	t.Run("testEnsureCRDSourceForExtDNSv2", testEnsureCRDSourceForExtDNS(v2, "test-fed-ext-dns-v2"))
+	t.Run("testEnsureCRDSourceForExtDNSv3", testEnsureCRDSourceForExtDNS(v3, "test-fed-ext-dns-v3"))
 }

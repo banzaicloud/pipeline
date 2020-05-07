@@ -16,29 +16,39 @@ package federation_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	helmtesting "github.com/banzaicloud/pipeline/internal/helm/testing"
 	internaltesting "github.com/banzaicloud/pipeline/internal/testing"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
-func testEnsureCRDSourceForExtDNS(v3 bool) func(t *testing.T) {
+func testEnsureCRDSourceForExtDNS(v3 bool, testNamespace string) func(t *testing.T) {
 	return func(t *testing.T) {
-		testNamespace := "test-fed-ext-dns"
 		chartName := "stable/external-dns"
 		releaseName := "fed-ext-dns"
 		chartVersion := "2.15.2"
 
-		org := uint(0)
 		clusterId := uint(1)
 
 		kubeConfig, clusterService := helmtesting.ClusterKubeConfig(t, clusterId)
 
+		client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+		if err != nil {
+			t.Fatalf("%+v", err)
+		}
+
+		err = internaltesting.EnsureNamespaceRemoved(client, testNamespace, time.Second*20)
+		if err != nil {
+			t.Fatalf("%+v", err)
+		}
+
 		clusterConfig := internaltesting.ClusterData{
 			K8sConfig: kubeConfig,
-			ID:        org,
+			ID:        clusterId,
 		}
 
 		db := helmtesting.SetupDatabase(t)
@@ -65,7 +75,7 @@ func testEnsureCRDSourceForExtDNS(v3 bool) func(t *testing.T) {
 		if err := unifiedReleaser.Delete(&clusterConfig, releaseName, testNamespace); err != nil {
 			t.Fatalf("%+v", err)
 		}
-		err := unifiedReleaser.InstallOrUpgrade(&clusterConfig, helm.Release{
+		err = unifiedReleaser.InstallOrUpgrade(&clusterConfig, helm.Release{
 			ReleaseName: releaseName,
 			ChartName:   chartName,
 			Namespace:   testNamespace,
@@ -82,7 +92,7 @@ func testEnsureCRDSourceForExtDNS(v3 bool) func(t *testing.T) {
 		var desiredState federation.DesiredState
 
 		desiredState = federation.DesiredStateAbsent
-		upgraded, err := federation.EnsureCRDSourceForExtDNS(&clusterConfig, testNamespace, chartName, releaseName, desiredState, logrusLogger)
+		upgraded, err := federation.EnsureCRDSourceForExtDNS(&clusterConfig, unifiedReleaser, testNamespace, chartName, releaseName, desiredState, logrusLogger)
 		if err != nil {
 			t.Fatalf("%+v", err)
 		}
@@ -91,7 +101,7 @@ func testEnsureCRDSourceForExtDNS(v3 bool) func(t *testing.T) {
 		}
 
 		desiredState = federation.DesiredStatePresent
-		upgraded, err = federation.EnsureCRDSourceForExtDNS(&clusterConfig, testNamespace, chartName, releaseName, desiredState, logrusLogger)
+		upgraded, err = federation.EnsureCRDSourceForExtDNS(&clusterConfig, unifiedReleaser, testNamespace, chartName, releaseName, desiredState, logrusLogger)
 		if err != nil {
 			t.Fatalf("%+v", err)
 		}
@@ -100,7 +110,7 @@ func testEnsureCRDSourceForExtDNS(v3 bool) func(t *testing.T) {
 		}
 
 		desiredState = federation.DesiredStatePresent
-		upgraded, err = federation.EnsureCRDSourceForExtDNS(&clusterConfig, testNamespace, chartName, releaseName, desiredState, logrusLogger)
+		upgraded, err = federation.EnsureCRDSourceForExtDNS(&clusterConfig, unifiedReleaser, testNamespace, chartName, releaseName, desiredState, logrusLogger)
 		if err != nil {
 			t.Fatalf("%+v", err)
 		}
@@ -109,7 +119,7 @@ func testEnsureCRDSourceForExtDNS(v3 bool) func(t *testing.T) {
 		}
 
 		desiredState = federation.DesiredStateAbsent
-		upgraded, err = federation.EnsureCRDSourceForExtDNS(&clusterConfig, testNamespace, chartName, releaseName, desiredState, logrusLogger)
+		upgraded, err = federation.EnsureCRDSourceForExtDNS(&clusterConfig, unifiedReleaser, testNamespace, chartName, releaseName, desiredState, logrusLogger)
 		if err != nil {
 			t.Fatalf("%+v", err)
 		}
