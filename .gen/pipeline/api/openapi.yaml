@@ -18536,10 +18536,12 @@ components:
     PKEClusterHTTPProxyOptions:
       properties:
         host:
+          deprecated: true
           description: host of the proxy
           example: proxy.example.org
           type: string
         port:
+          deprecated: true
           description: port the proxy is available on
           example: 12345
           maximum: 65535
@@ -18550,7 +18552,11 @@ components:
             proxy
           type: string
         scheme:
+          deprecated: true
           description: Scheme of the proxy
+          type: string
+        url:
+          description: url of the proxy
           type: string
       required:
       - host

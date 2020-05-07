@@ -98,13 +98,19 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	var httpProxy intPKEWorkflow.HTTPProxy
 	{
 		activityInput := intPKEWorkflow.AssembleHTTPProxySettingsActivityInput{
-			OrganizationID:     input.OrganizationID,
-			HTTPProxyHostPort:  getHostPort(input.HTTPProxy.HTTP),
-			HTTPProxySecretID:  input.HTTPProxy.HTTP.SecretID,
-			HTTPProxyScheme:    input.HTTPProxy.HTTP.Scheme,
-			HTTPSProxyHostPort: getHostPort(input.HTTPProxy.HTTPS),
-			HTTPSProxySecretID: input.HTTPProxy.HTTPS.SecretID,
-			HTTPSProxyScheme:   input.HTTPProxy.HTTPS.Scheme,
+			OrganizationID: input.OrganizationID,
+			HTTP: intPKEWorkflow.ProxyOptions{
+				HostPort: getHostPort(input.HTTPProxy.HTTP),
+				SecretID: input.HTTPProxy.HTTP.SecretID,
+				Scheme:   input.HTTPProxy.HTTP.Scheme,
+				URL:      input.HTTPProxy.HTTP.URL,
+			},
+			HTTPS: intPKEWorkflow.ProxyOptions{
+				HostPort: getHostPort(input.HTTPProxy.HTTPS),
+				SecretID: input.HTTPProxy.HTTPS.SecretID,
+				Scheme:   input.HTTPProxy.HTTPS.Scheme,
+				URL:      input.HTTPProxy.HTTPS.URL,
+			},
 		}
 		var output intPKEWorkflow.AssembleHTTPProxySettingsActivityOutput
 		if err := workflow.ExecuteActivity(ctx, intPKEWorkflow.AssembleHTTPProxySettingsActivityName, activityInput).Get(ctx, &output); err != nil {

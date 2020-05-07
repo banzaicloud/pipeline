@@ -43,13 +43,18 @@ func NewAssembleHTTPProxySettingsActivity(secrets PasswordSecretStore) AssembleH
 }
 
 type AssembleHTTPProxySettingsActivityInput struct {
-	OrganizationID     uint
-	HTTPProxyHostPort  string
-	HTTPProxySecretID  string
-	HTTPProxyScheme    string
-	HTTPSProxyHostPort string
-	HTTPSProxySecretID string
-	HTTPSProxyScheme   string
+	OrganizationID uint
+	HTTP           ProxyOptions
+	HTTPS          ProxyOptions
+}
+
+type ProxyOptions struct {
+	// Deprecated: use URL field instead
+	HostPort string
+	SecretID string
+	// Deprecated: use URL field instead
+	Scheme string
+	URL    string
 }
 
 type AssembleHTTPProxySettingsActivityOutput struct {
@@ -65,20 +70,19 @@ func (a AssembleHTTPProxySettingsActivity) Execute(
 	ctx context.Context,
 	input AssembleHTTPProxySettingsActivityInput,
 ) (output AssembleHTTPProxySettingsActivityOutput, err error) {
-	var httpScheme = input.HTTPProxyScheme
-	if httpScheme == "" {
-		httpScheme = "http"
+	if input.HTTP.Scheme == "" {
+		input.HTTP.Scheme = "http"
 	}
-	output.Settings.HTTPProxyURL, err = a.assembleProxyURL(ctx, httpScheme, input.HTTPProxyHostPort, input.OrganizationID, input.HTTPProxySecretID)
+
+	output.Settings.HTTPProxyURL, err = a.assembleProxyURL(ctx, input.OrganizationID, input.HTTP)
 	if err != nil {
 		return
 	}
 
-	var httpsScheme = input.HTTPSProxyScheme
-	if httpsScheme == "" {
-		httpsScheme = "https"
+	if input.HTTPS.Scheme == "" {
+		input.HTTPS.Scheme = "https"
 	}
-	output.Settings.HTTPSProxyURL, err = a.assembleProxyURL(ctx, httpsScheme, input.HTTPSProxyHostPort, input.OrganizationID, input.HTTPSProxySecretID)
+	output.Settings.HTTPSProxyURL, err = a.assembleProxyURL(ctx, input.OrganizationID, input.HTTPS)
 	if err != nil {
 		return
 	}
@@ -88,27 +92,38 @@ func (a AssembleHTTPProxySettingsActivity) Execute(
 
 func (a AssembleHTTPProxySettingsActivity) assembleProxyURL(
 	ctx context.Context,
-	scheme string,
-	hostPort string,
 	organizationID uint,
-	secretID string,
+	options ProxyOptions,
 ) (string, error) {
-	if hostPort == "" {
-		return "", nil
-	}
-
+	var proxyURL *url.URL
 	var user *url.Userinfo
-	if secretID != "" {
-		s, err := a.secrets.GetSecret(ctx, organizationID, secretID)
+
+	// get user info
+	if options.SecretID != "" {
+		s, err := a.secrets.GetSecret(ctx, organizationID, options.SecretID)
 		if err != nil {
 			return "", errors.WrapIf(err, "failed to get secret")
 		}
 		user = url.UserPassword(s.Username(), s.Password())
 	}
 
-	return (&url.URL{
-		Scheme: scheme,
-		User:   user,
-		Host:   hostPort,
-	}).String(), nil
+	if options.URL == "" {
+		if options.HostPort == "" {
+			return "", nil
+		}
+
+		proxyURL = &url.URL{
+			Scheme: options.Scheme,
+			Host:   options.HostPort,
+		}
+	} else {
+		var err error
+		proxyURL, err = url.Parse(options.URL)
+		if err != nil {
+			return "", errors.WrapIfWithDetails(err, "failed to parse proxy url", "url", options.URL)
+		}
+	}
+
+	proxyURL.User = user
+	return proxyURL.String(), nil
 }

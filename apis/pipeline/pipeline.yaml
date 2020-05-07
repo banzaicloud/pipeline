@@ -4215,10 +4215,12 @@ components:
                 host:
                     description: "host of the proxy"
                     type: string
+                    deprecated: true
                     example: "proxy.example.org"
                 port:
                     description: "port the proxy is available on"
                     type: integer
+                    deprecated: true
                     minimum: 0
                     maximum: 65535
                     example: 12345
@@ -4227,6 +4229,10 @@ components:
                     type: string
                 scheme:
                     description: "Scheme of the proxy"
+                    type: string
+                    deprecated: true
+                url:
+                    description: "url of the proxy"
                     type: string
 
         CreatePKEOnAzureClusterRequest:

@@ -92,6 +92,7 @@ func clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(o pipeline.PkeCluster
 		Port:     uint16(o.Port),
 		SecretID: o.SecretId,
 		Scheme:   o.Scheme,
+		URL:      o.Url,
 	}
 }
 

@@ -23,4 +23,7 @@ type PkeClusterHttpProxyOptions struct {
 
 	// Scheme of the proxy
 	Scheme string `json:"scheme,omitempty"`
+
+	// url of the proxy
+	Url string `json:"url,omitempty"`
 }

@@ -23,8 +23,12 @@ type HTTPProxy struct {
 
 // HTTPProxyOptions define the options of a HTTP(S) proxy
 type HTTPProxyOptions struct {
-	Host     string
+	// Deprecated: use URL field instead
+	Host string
+	// Deprecated: use URL field instead
 	Port     uint16
 	SecretID string
-	Scheme   string
+	// Deprecated: use URL field instead
+	Scheme string
+	URL    string
 }
