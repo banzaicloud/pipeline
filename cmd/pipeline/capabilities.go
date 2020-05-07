@@ -48,5 +48,8 @@ func mapCapabilities(config configuration) cap.Capabilities {
 				"controllers": config.Cluster.Ingress.Controllers,
 			},
 		},
+		"helm": cap.Cap{
+			"version": "3.1.2", // TODO: determine based on go.mod build time
+		},
 	}
 }

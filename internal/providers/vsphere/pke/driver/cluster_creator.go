@@ -149,10 +149,13 @@ type VspherePKEClusterCreationParams struct {
 
 // Create
 func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKEClusterCreationParams) (cl pke.PKEOnVsphereCluster, err error) {
-	_, err = cc.secrets.Get(params.OrganizationID, params.SecretID)
+	var vsphereSecret *secret.SecretItemResponse
+	vsphereSecret, err = cc.secrets.Get(params.OrganizationID, params.SecretID)
 	if err = errors.WrapIf(err, "failed to get secret"); err != nil {
 		return
 	}
+
+	var defaultNodeTemplate = vsphereSecret.Values[secrettype.VsphereDefaultNodeTemplate]
 
 	// TODO maybe check the connection here, OR don't fetch the secret at all
 
@@ -163,12 +166,16 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 	nodePools := make([]pke.NodePool, len(params.NodePools))
 	for i, np := range params.NodePools {
 		nodePools[i] = pke.NodePool{
-			CreatedBy: np.CreatedBy,
-			Name:      np.Name,
-			Roles:     np.Roles,
-			Size:      np.Size,
-			VCPU:      np.VCPU,
-			RAM:       np.RAM,
+			CreatedBy:    np.CreatedBy,
+			Name:         np.Name,
+			Roles:        np.Roles,
+			Size:         np.Size,
+			VCPU:         np.VCPU,
+			RAM:          np.RAM,
+			TemplateName: np.TemplateName,
+		}
+		if nodePools[i].TemplateName == "" {
+			nodePools[i].TemplateName = defaultNodeTemplate
 		}
 	}
 	createParams := pke.CreateParams{

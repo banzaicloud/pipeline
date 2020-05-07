@@ -21,6 +21,7 @@ import (
 
 	"emperror.dev/errors"
 
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/src/utils"
 
 	"go.uber.org/cadence/client"
@@ -101,6 +102,12 @@ func (cu ClusterUpdater) Update(ctx context.Context, params VspherePKEClusterUpd
 		return errors.WrapIf(err, "failed to get or create SSH key pair")
 	}
 
+	vsphereSecret, err := cu.secrets.Get(cluster.OrganizationID, cluster.SecretID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get cluster's secret")
+	}
+	var defaultNodeTemplate = vsphereSecret.Values[secrettype.VsphereDefaultNodeTemplate]
+
 	tf := nodeTemplateFactory{
 		ClusterID:                   cluster.ID,
 		ClusterName:                 cluster.Name,
@@ -123,13 +130,18 @@ func (cu ClusterUpdater) Update(ctx context.Context, params VspherePKEClusterUpd
 
 		for _, np := range nodePoolsToCreate {
 			nodePool := pke.NodePool{
-				CreatedBy: np.CreatedBy,
-				Name:      np.Name,
-				Roles:     np.Roles,
-				Size:      np.Size,
-				VCPU:      np.VCPU,
-				RAM:       np.RAM,
+				CreatedBy:    np.CreatedBy,
+				Name:         np.Name,
+				Roles:        np.Roles,
+				Size:         np.Size,
+				VCPU:         np.VCPU,
+				RAM:          np.RAM,
+				TemplateName: np.TemplateName,
 			}
+			if nodePool.TemplateName == "" {
+				nodePool.TemplateName = defaultNodeTemplate
+			}
+
 			for i := 1; i <= np.Size; i++ {
 				nodesToCreate = append(nodesToCreate, tf.getNode(nodePool, i))
 			}
@@ -168,13 +180,18 @@ func (cu ClusterUpdater) Update(ctx context.Context, params VspherePKEClusterUpd
 			if np.Size != existingNodePool.Size {
 				// check existing nodes are fine, create new vm otherwise
 				for i := 1; i <= np.Size; i++ {
+					var templateName = np.TemplateName
+					if templateName == "" {
+						templateName = defaultNodeTemplate
+					}
 					nodesToCreate = append(nodesToCreate, tf.getNode(pke.NodePool{
-						CreatedBy: np.CreatedBy,
-						Name:      np.Name,
-						Roles:     np.Roles,
-						Size:      np.Size,
-						VCPU:      np.VCPU,
-						RAM:       np.RAM,
+						CreatedBy:    np.CreatedBy,
+						Name:         np.Name,
+						Roles:        np.Roles,
+						Size:         np.Size,
+						VCPU:         np.VCPU,
+						RAM:          np.RAM,
+						TemplateName: templateName,
 					}, i))
 				}
 
