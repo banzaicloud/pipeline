@@ -193,6 +193,7 @@ func (s *GormStore) LogProcess(ctx context.Context, p process.Process) error {
 		return err
 	}
 
+	existing.Log = p.Log
 	existing.Status = string(p.Status)
 	existing.FinishedAt = p.FinishedAt
 
