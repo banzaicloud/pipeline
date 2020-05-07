@@ -40,6 +40,11 @@ type Values struct {
 	} `json:"service,omitempty"`
 }
 
+const (
+	v2 = false
+	v3 = true
+)
+
 var clusterId = uint(123) //nolint:gochecknoglobals
 
 func TestIntegration(t *testing.T) {
@@ -50,16 +55,16 @@ func TestIntegration(t *testing.T) {
 	helmHome := helmtesting.HelmHome(t)
 
 	// istio install/delete use cases, now also used by federation
-	t.Run("helmV2", testIntegrationV2(helmHome, "istiofeature-helm-v2"))
-	t.Run("helmV3", testIntegrationV3(helmHome, "istiofeature-helm-v3"))
+	t.Run("helmV2", testIntegration(v2, helmHome, "istiofeature-helm-v2"))
+	t.Run("helmV3", testIntegration(v3, helmHome, "istiofeature-helm-v3"))
 
 	// cluster setup and posthook style use cases
-	t.Run("helmInstallV2", testIntegrationInstall(false, helmHome, "helm-v2-install"))
-	t.Run("helmInstallV3", testIntegrationInstall(true, helmHome, "helm-v3-install"))
+	t.Run("helmInstallV2", testIntegrationInstall(v2, helmHome, "helm-v2-install"))
+	t.Run("helmInstallV3", testIntegrationInstall(v3, helmHome, "helm-v3-install"))
 
 	// covers the federation use case for adding a custom platform repository on the fly
-	t.Run("addPlatformRepositoryV3", testAddPlatformRepository(helmHome, true))
-	t.Run("addPlatformRepositoryV2", testAddPlatformRepository(helmHome, false))
+	t.Run("addPlatformRepositoryV3", testAddPlatformRepository(helmHome, v3))
+	t.Run("addPlatformRepositoryV2", testAddPlatformRepository(helmHome, v2))
 }
 
 func testAddPlatformRepository(home string, v3 bool) func(t *testing.T) {
@@ -90,7 +95,7 @@ func testAddPlatformRepository(home string, v3 bool) func(t *testing.T) {
 	}
 }
 
-func testIntegrationV2(home, testNamespace string) func(t *testing.T) {
+func testIntegration(v3 bool, home, testNamespace string) func(t *testing.T) {
 	return func(t *testing.T) {
 		db := helmtesting.SetupDatabase(t)
 		secretStore := helmtesting.SetupSecretStore()
@@ -98,7 +103,7 @@ func testIntegrationV2(home, testNamespace string) func(t *testing.T) {
 
 		config := helm.Config{
 			Home: home,
-			V3:   false,
+			V3:   v3,
 			Repositories: map[string]string{
 				"stable": "https://kubernetes-charts.storage.googleapis.com",
 			},
@@ -107,36 +112,11 @@ func testIntegrationV2(home, testNamespace string) func(t *testing.T) {
 		logger := common.NoopLogger{}
 		helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
 
-		t.Run("testDeleteChartmuseumBeforeSuite", testDeleteChartmuseum(helmService, kubeConfig, testNamespace))
-		t.Run("testCreateChartmuseum", testCreateChartmuseum(helmService, kubeConfig, testNamespace))
-		t.Run("testUpgradeChartmuseum", testUpgradeChartmuseum(helmService, kubeConfig, testNamespace))
-		t.Run("testHandleFailedDeployment", testUpgradeFailedChartmuseum(helmService, kubeConfig, testNamespace))
-		t.Run("testDeleteChartmuseumAfterSuite", testDeleteChartmuseum(helmService, kubeConfig, testNamespace))
-	}
-}
-
-func testIntegrationV3(home, testNamespace string) func(t *testing.T) {
-	return func(t *testing.T) {
-		db := helmtesting.SetupDatabase(t)
-		secretStore := helmtesting.SetupSecretStore()
-		kubeConfig, clusterService := helmtesting.ClusterKubeConfig(t, clusterId)
-
-		config := helm.Config{
-			Home: home,
-			V3:   true,
-			Repositories: map[string]string{
-				"stable": "https://kubernetes-charts.storage.googleapis.com",
-			},
-		}
-
-		logger := common.NoopLogger{}
-		helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
-
-		t.Run("testDeleteChartmuseumBeforeSuite", testDeleteChartmuseum(helmService, kubeConfig, testNamespace))
-		t.Run("testCreateChartmuseum", testCreateChartmuseum(helmService, kubeConfig, testNamespace))
-		t.Run("testUpgradeChartmuseum", testUpgradeChartmuseum(helmService, kubeConfig, testNamespace))
-		t.Run("testHandleFailedDeployment", testUpgradeFailedChartmuseum(helmService, kubeConfig, testNamespace))
-		t.Run("testDeleteChartmuseumAfterSuite", testDeleteChartmuseum(helmService, kubeConfig, testNamespace))
+		t.Run("testDeleteChartBeforeSuite", testDeleteChart(helmService, kubeConfig, testNamespace))
+		t.Run("testCreateChart", testCreateChart(helmService, kubeConfig, testNamespace))
+		t.Run("testUpgradeChart", testUpgradeChart(helmService, kubeConfig, testNamespace))
+		t.Run("testHandleFailedDeployment", testUpgradeFailedChart(helmService, kubeConfig, testNamespace))
+		t.Run("testDeleteChartAfterSuite", testDeleteChart(helmService, kubeConfig, testNamespace))
 	}
 }
 
@@ -161,7 +141,7 @@ func testIntegrationInstall(v3 bool, home, testNamespace string) func(t *testing
 
 			err := releaser.InstallDeployment(
 				context.Background(),
-				1,
+				clusterId,
 				testNamespace,
 				"banzaicloud-stable/banzaicloud-docs",
 				"helm-service-test-v3",
@@ -173,7 +153,7 @@ func testIntegrationInstall(v3 bool, home, testNamespace string) func(t *testing
 
 			err = releaser.DeleteDeployment(
 				context.Background(),
-				1,
+				clusterId,
 				"helm-service-test-v3",
 				testNamespace,
 			)
@@ -182,10 +162,10 @@ func testIntegrationInstall(v3 bool, home, testNamespace string) func(t *testing
 	}
 }
 
-func testDeleteChartmuseum(helmService helm.UnifiedReleaser, kubeConfig []byte, testNamespace string) func(*testing.T) {
+func testDeleteChart(helmService helm.UnifiedReleaser, kubeConfig []byte, testNamespace string) func(*testing.T) {
 	return func(t *testing.T) {
 		err := helmService.Delete(
-			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: 1},
+			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: clusterId},
 			"chartmuseum",
 			testNamespace,
 		)
@@ -197,10 +177,10 @@ func testDeleteChartmuseum(helmService helm.UnifiedReleaser, kubeConfig []byte, 
 	}
 }
 
-func testCreateChartmuseum(helmService helm.UnifiedReleaser, kubeConfig []byte, testNamespace string) func(*testing.T) {
+func testCreateChart(helmService helm.UnifiedReleaser, kubeConfig []byte, testNamespace string) func(*testing.T) {
 	return func(t *testing.T) {
 		err := helmService.InstallOrUpgrade(
-			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: 1},
+			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: clusterId},
 			helm.Release{
 				ReleaseName: "chartmuseum",
 				ChartName:   "stable/chartmuseum",
@@ -222,7 +202,7 @@ func testCreateChartmuseum(helmService helm.UnifiedReleaser, kubeConfig []byte, 
 	}
 }
 
-func testUpgradeChartmuseum(helmService helm.UnifiedReleaser, kubeConfig []byte, testNamespace string) func(*testing.T) {
+func testUpgradeChart(helmService helm.UnifiedReleaser, kubeConfig []byte, testNamespace string) func(*testing.T) {
 	return func(t *testing.T) {
 		var expectPort int32 = 19191
 
@@ -235,7 +215,7 @@ func testUpgradeChartmuseum(helmService helm.UnifiedReleaser, kubeConfig []byte,
 		}
 
 		err = helmService.InstallOrUpgrade(
-			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: 1},
+			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: clusterId},
 			helm.Release{
 				ReleaseName: "chartmuseum",
 				ChartName:   "stable/chartmuseum",
@@ -257,7 +237,7 @@ func testUpgradeChartmuseum(helmService helm.UnifiedReleaser, kubeConfig []byte,
 	}
 }
 
-func testUpgradeFailedChartmuseum(helmService helm.UnifiedReleaser, kubeConfig []byte, testNamespace string) func(*testing.T) {
+func testUpgradeFailedChart(helmService helm.UnifiedReleaser, kubeConfig []byte, testNamespace string) func(*testing.T) {
 	return func(t *testing.T) {
 		// invalid port will fail the release
 		var expectPort int32 = 1111111
@@ -271,7 +251,7 @@ func testUpgradeFailedChartmuseum(helmService helm.UnifiedReleaser, kubeConfig [
 		}
 
 		err = helmService.InstallOrUpgrade(
-			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: 1},
+			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: clusterId},
 			helm.Release{
 				ReleaseName: "chartmuseum",
 				ChartName:   "stable/chartmuseum",
@@ -291,7 +271,7 @@ func testUpgradeFailedChartmuseum(helmService helm.UnifiedReleaser, kubeConfig [
 
 		// restore with original values
 		err = helmService.InstallOrUpgrade(
-			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: 1},
+			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: clusterId},
 			helm.Release{
 				ReleaseName: "chartmuseum",
 				ChartName:   "stable/chartmuseum",
