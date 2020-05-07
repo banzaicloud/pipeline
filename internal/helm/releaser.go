@@ -36,6 +36,8 @@ type ReleaseInfo struct {
 	Status string
 	// Contains the rendered templates/NOTES.txt if available
 	Notes string
+	// Contains override values provided to the release
+	Values map[string]interface{}
 }
 
 type ReleaseResource struct {

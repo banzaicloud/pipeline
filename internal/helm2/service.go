@@ -470,3 +470,24 @@ func (s *LegacyHelmService) AddRepositoryIfNotExists(repository internalhelm.Rep
 	}
 	return s.serviceFacade.AddRepository(context.Background(), 0, repository)
 }
+
+func (s *LegacyHelmService) GetRelease(c internalhelm.ClusterDataProvider, releaseName, namespace string) (internalhelm.Release, error) {
+	deployment, err := s.GetDeployment(context.TODO(), c.GetID(), releaseName, namespace)
+	if err != nil {
+		return internalhelm.Release{}, errors.WrapIf(err, "failed to get release")
+	}
+	return internalhelm.Release{
+		ReleaseName:    deployment.ReleaseName,
+		ChartName:      deployment.ChartName,
+		Namespace:      deployment.Namespace,
+		Values:         deployment.Values,
+		Version:        deployment.ChartVersion,
+		ReleaseVersion: deployment.Version,
+		ReleaseInfo: internalhelm.ReleaseInfo{
+			Description: deployment.Description,
+			Status:      deployment.Status,
+			Notes:       deployment.Notes,
+			Values:      deployment.Values,
+		},
+	}, nil
+}
