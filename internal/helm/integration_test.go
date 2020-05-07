@@ -17,39 +17,22 @@ package helm_test
 import (
 	"context"
 	"flag"
-	"io/ioutil"
-	"os"
 	"regexp"
 	"testing"
 
-	"github.com/banzaicloud/pipeline/internal/cmd"
-	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
-	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/src/secret"
-
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/banzaicloud/pipeline/internal/cmd"
+	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	helmtesting "github.com/banzaicloud/pipeline/internal/helm/testing"
+	internaltesting "github.com/banzaicloud/pipeline/internal/testing"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
-
-type ClusterProviderData struct {
-	K8sConfig []byte
-	ID        uint
-}
-
-func (c *ClusterProviderData) GetID() uint {
-	return c.ID
-}
-
-func (c *ClusterProviderData) GetK8sConfig() ([]byte, error) {
-	return c.K8sConfig, nil
-}
 
 type Values struct {
 	Service struct {
@@ -57,35 +40,33 @@ type Values struct {
 	} `json:"service,omitempty"`
 }
 
+var clusterId = uint(123) //nolint:gochecknoglobals
+
 func TestIntegration(t *testing.T) {
 	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
 		t.Skip("skipping as execution was not requested explicitly using go test -run")
 	}
 
-	var err error
-	global.Config.Helm.Home, err = ioutil.TempDir("", "")
-	if err != nil {
-		t.Fatalf("%+v", err)
-	}
+	helmHome := helmtesting.HelmHome(t)
 
 	// istio install/delete use cases, now also used by federation
-	t.Run("helmV2", testIntegrationV2(global.Config.Helm.Home, "istiofeature-helm-v2"))
-	t.Run("helmV3", testIntegrationV3(global.Config.Helm.Home, "istiofeature-helm-v3"))
+	t.Run("helmV2", testIntegrationV2(helmHome, "istiofeature-helm-v2"))
+	t.Run("helmV3", testIntegrationV3(helmHome, "istiofeature-helm-v3"))
 
 	// cluster setup and posthook style use cases
-	t.Run("helmInstallV2", testIntegrationInstall(false, global.Config.Helm.Home, "helm-v2-install"))
-	t.Run("helmInstallV3", testIntegrationInstall(true, global.Config.Helm.Home, "helm-v3-install"))
+	t.Run("helmInstallV2", testIntegrationInstall(false, helmHome, "helm-v2-install"))
+	t.Run("helmInstallV3", testIntegrationInstall(true, helmHome, "helm-v3-install"))
 
 	// covers the federation use case for adding a custom platform repository on the fly
-	t.Run("addPlatformRepositoryV3", testAddPlatformRepository(global.Config.Helm.Home, true))
-	t.Run("addPlatformRepositoryV2", testAddPlatformRepository(global.Config.Helm.Home, false))
+	t.Run("addPlatformRepositoryV3", testAddPlatformRepository(helmHome, true))
+	t.Run("addPlatformRepositoryV2", testAddPlatformRepository(helmHome, false))
 }
 
 func testAddPlatformRepository(home string, v3 bool) func(t *testing.T) {
 	return func(t *testing.T) {
-		db := setupDatabase(t)
-		secretStore := setupSecretStore()
-		_, clusterService := clusterKubeConfig(t)
+		db := helmtesting.SetupDatabase(t)
+		secretStore := helmtesting.SetupSecretStore()
+		_, clusterService := helmtesting.ClusterKubeConfig(t, clusterId)
 		config := helm.Config{
 			Home: home,
 			V3:   v3,
@@ -94,7 +75,8 @@ func testAddPlatformRepository(home string, v3 bool) func(t *testing.T) {
 			},
 		}
 
-		helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, common.NoopLogger{})
+		logger := common.NoopLogger{}
+		helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
 
 		for i := 0; i < 2; i++ {
 			err := helmService.AddRepositoryIfNotExists(helm.Repository{
@@ -110,9 +92,9 @@ func testAddPlatformRepository(home string, v3 bool) func(t *testing.T) {
 
 func testIntegrationV2(home, testNamespace string) func(t *testing.T) {
 	return func(t *testing.T) {
-		db := setupDatabase(t)
-		secretStore := setupSecretStore()
-		kubeConfig, clusterService := clusterKubeConfig(t)
+		db := helmtesting.SetupDatabase(t)
+		secretStore := helmtesting.SetupSecretStore()
+		kubeConfig, clusterService := helmtesting.ClusterKubeConfig(t, clusterId)
 
 		config := helm.Config{
 			Home: home,
@@ -122,7 +104,8 @@ func testIntegrationV2(home, testNamespace string) func(t *testing.T) {
 			},
 		}
 
-		helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, common.NoopLogger{})
+		logger := common.NoopLogger{}
+		helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
 
 		t.Run("testDeleteChartmuseumBeforeSuite", testDeleteChartmuseum(helmService, kubeConfig, testNamespace))
 		t.Run("testCreateChartmuseum", testCreateChartmuseum(helmService, kubeConfig, testNamespace))
@@ -134,9 +117,9 @@ func testIntegrationV2(home, testNamespace string) func(t *testing.T) {
 
 func testIntegrationV3(home, testNamespace string) func(t *testing.T) {
 	return func(t *testing.T) {
-		db := setupDatabase(t)
-		secretStore := setupSecretStore()
-		kubeConfig, clusterService := clusterKubeConfig(t)
+		db := helmtesting.SetupDatabase(t)
+		secretStore := helmtesting.SetupSecretStore()
+		kubeConfig, clusterService := helmtesting.ClusterKubeConfig(t, clusterId)
 
 		config := helm.Config{
 			Home: home,
@@ -146,7 +129,8 @@ func testIntegrationV3(home, testNamespace string) func(t *testing.T) {
 			},
 		}
 
-		helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, common.NoopLogger{})
+		logger := common.NoopLogger{}
+		helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
 
 		t.Run("testDeleteChartmuseumBeforeSuite", testDeleteChartmuseum(helmService, kubeConfig, testNamespace))
 		t.Run("testCreateChartmuseum", testCreateChartmuseum(helmService, kubeConfig, testNamespace))
@@ -158,9 +142,9 @@ func testIntegrationV3(home, testNamespace string) func(t *testing.T) {
 
 func testIntegrationInstall(v3 bool, home, testNamespace string) func(t *testing.T) {
 	return func(t *testing.T) {
-		db := setupDatabase(t)
-		secretStore := setupSecretStore()
-		_, clusterService := clusterKubeConfig(t)
+		db := helmtesting.SetupDatabase(t)
+		secretStore := helmtesting.SetupSecretStore()
+		_, clusterService := helmtesting.ClusterKubeConfig(t, clusterId)
 
 		config := helm.Config{
 			Home: home,
@@ -172,7 +156,8 @@ func testIntegrationInstall(v3 bool, home, testNamespace string) func(t *testing
 		}
 
 		t.Run("helmv3install", func(t *testing.T) {
-			releaser, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, common.NoopLogger{})
+			logger := common.NoopLogger{}
+			releaser, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
 
 			err := releaser.InstallDeployment(
 				context.Background(),
@@ -200,7 +185,7 @@ func testIntegrationInstall(v3 bool, home, testNamespace string) func(t *testing
 func testDeleteChartmuseum(helmService helm.UnifiedReleaser, kubeConfig []byte, testNamespace string) func(*testing.T) {
 	return func(t *testing.T) {
 		err := helmService.Delete(
-			&ClusterProviderData{K8sConfig: kubeConfig, ID: 1},
+			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: 1},
 			"chartmuseum",
 			testNamespace,
 		)
@@ -215,7 +200,7 @@ func testDeleteChartmuseum(helmService helm.UnifiedReleaser, kubeConfig []byte, 
 func testCreateChartmuseum(helmService helm.UnifiedReleaser, kubeConfig []byte, testNamespace string) func(*testing.T) {
 	return func(t *testing.T) {
 		err := helmService.InstallOrUpgrade(
-			&ClusterProviderData{K8sConfig: kubeConfig, ID: 1},
+			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: 1},
 			helm.Release{
 				ReleaseName: "chartmuseum",
 				ChartName:   "stable/chartmuseum",
@@ -250,7 +235,7 @@ func testUpgradeChartmuseum(helmService helm.UnifiedReleaser, kubeConfig []byte,
 		}
 
 		err = helmService.InstallOrUpgrade(
-			&ClusterProviderData{K8sConfig: kubeConfig, ID: 1},
+			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: 1},
 			helm.Release{
 				ReleaseName: "chartmuseum",
 				ChartName:   "stable/chartmuseum",
@@ -286,7 +271,7 @@ func testUpgradeFailedChartmuseum(helmService helm.UnifiedReleaser, kubeConfig [
 		}
 
 		err = helmService.InstallOrUpgrade(
-			&ClusterProviderData{K8sConfig: kubeConfig, ID: 1},
+			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: 1},
 			helm.Release{
 				ReleaseName: "chartmuseum",
 				ChartName:   "stable/chartmuseum",
@@ -306,7 +291,7 @@ func testUpgradeFailedChartmuseum(helmService helm.UnifiedReleaser, kubeConfig [
 
 		// restore with original values
 		err = helmService.InstallOrUpgrade(
-			&ClusterProviderData{K8sConfig: kubeConfig, ID: 1},
+			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: 1},
 			helm.Release{
 				ReleaseName: "chartmuseum",
 				ChartName:   "stable/chartmuseum",
@@ -381,34 +366,4 @@ func assertChartmuseumRemoved(t *testing.T, kubeConfig []byte, testNamespace str
 	if len(dsList.Items) > 0 {
 		t.Fatalf("no deployments expected, chartmuseum should be removed")
 	}
-}
-
-func setupDatabase(t *testing.T) *gorm.DB {
-	db, err := gorm.Open("sqlite3", "file::memory:")
-	require.NoError(t, err)
-
-	err = helmadapter.Migrate(db, common.NoopLogger{})
-	require.NoError(t, err)
-
-	return db
-}
-
-func setupSecretStore() common.SecretStore {
-	return commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(func(ctx context.Context) (uint, bool) {
-		return 0, false
-	}))
-}
-
-func clusterKubeConfig(t *testing.T) ([]byte, helm.ClusterService) {
-	kubeConfigFile := os.Getenv("KUBECONFIG")
-	if kubeConfigFile == "" {
-		t.Skip("skipping as Kubernetes config was not provided")
-	}
-	kubeConfigBytes, err := ioutil.ReadFile(kubeConfigFile)
-	if err != nil {
-		t.Fatalf("%+v", err)
-	}
-	return kubeConfigBytes, helm.ClusterKubeConfigFunc(func(ctx context.Context, clusterID uint) ([]byte, error) {
-		return kubeConfigBytes, nil
-	})
 }

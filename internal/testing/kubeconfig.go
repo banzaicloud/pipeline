@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package federation
+package testing
 
 import (
-	internalHelm "github.com/banzaicloud/pipeline/internal/helm"
+	"io/ioutil"
+	"os"
+	"testing"
 )
 
-type HelmService interface {
-	InstallOrUpgrade(
-		c internalHelm.ClusterDataProvider,
-		release internalHelm.Release,
-		opts internalHelm.Options,
-	) error
-
-	Delete(c internalHelm.ClusterDataProvider, releaseName, namespace string) error
-
-	AddRepositoryIfNotExists(repository internalHelm.Repository) error
+func KubeConfigFromEnv(t *testing.T) []byte {
+	kubeConfigFile := os.Getenv("KUBECONFIG")
+	if kubeConfigFile == "" {
+		t.Skip("skipping as Kubernetes config was not provided")
+	}
+	kubeConfigBytes, err := ioutil.ReadFile(kubeConfigFile)
+	if err != nil {
+		t.Fatalf("%+v", err)
+	}
+	return kubeConfigBytes
 }

@@ -39,11 +39,11 @@ func CreateUnifiedHelmReleaser(
 	db *gorm.DB,
 	commonSecretStore common.SecretStore,
 	clusterService helm.ClusterService,
+	orgService helm.OrgService,
 	logger helm.Logger,
 ) (helm.UnifiedReleaser, helm.Service) {
 	repoStore := helmadapter.NewHelmRepoStore(db, logger)
 	secretStore := helmadapter.NewSecretStore(commonSecretStore, logger)
-	orgService := helmadapter.NewOrgService(logger)
 	validator := helm.NewHelmRepoValidator()
 	releaser := helmadapter.NewReleaser(logger)
 	helm2EnvResolver := helm.NewHelm2EnvResolver(helmConfig.Home, orgService, logger)
