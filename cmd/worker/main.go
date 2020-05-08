@@ -236,6 +236,9 @@ func main() {
 			errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
 		}
 
+		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+
+		releaseDeleter := cmd.CreateReleaseDeleter(config.Helm, db, commonSecretStore, commonLogger)
 		clusterRepo := clusteradapter.NewClusters(db)
 		clusterManager := cluster.NewManager(
 			clusterRepo,
@@ -247,6 +250,7 @@ func main() {
 			logrusLogger,
 			errorHandler,
 			clusteradapter.NewStore(db, clusterRepo),
+			releaseDeleter,
 		)
 		tokenStore := bauth.NewVaultTokenStore("pipeline")
 		tokenManager := pkgAuth.NewTokenManager(
@@ -258,8 +262,6 @@ func main() {
 			tokenStore,
 		)
 		tokenGenerator := auth.NewClusterTokenGenerator(tokenManager, tokenStore)
-
-		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
 		unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
 			config.Helm,
@@ -294,6 +296,7 @@ func main() {
 		{
 			wf := clustersetup.Workflow{
 				InstallInitManifest: config.Cluster.Manifest != "",
+				HelmV3:              config.Helm.V3,
 			}
 			workflow.RegisterWithOptions(wf.Execute, workflow.RegisterOptions{Name: clustersetup.WorkflowName})
 
@@ -323,14 +326,16 @@ func main() {
 				config.Helm.Tiller.Version,
 				kubernetes.NewClientFactory(configFactory),
 			)
-			activity.RegisterWithOptions(installTillerActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerActivityName})
 
-			installTillerWaitActivity := clustersetup.NewInstallTillerWaitActivity(
-				config.Helm.Tiller.Version,
-				kubernetes.NewHelmClientFactory(configFactory, commonadapter.NewLogger(logger)),
-			)
-			activity.RegisterWithOptions(installTillerWaitActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerWaitActivityName})
+			if !config.Helm.V3 {
+				activity.RegisterWithOptions(installTillerActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerActivityName})
 
+				installTillerWaitActivity := clustersetup.NewInstallTillerWaitActivity(
+					config.Helm.Tiller.Version,
+					kubernetes.NewHelmClientFactory(configFactory, commonadapter.NewLogger(logger)),
+				)
+				activity.RegisterWithOptions(installTillerWaitActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerWaitActivityName})
+			}
 			installNodePoolLabelSetOperatorActivity := clustersetup.NewInstallNodePoolLabelSetOperatorActivity(
 				config.Cluster.Labels,
 				unifiedHelmReleaser,
@@ -544,7 +549,7 @@ func main() {
 
 		workflow.RegisterWithOptions(intClusterWorkflow.DeleteK8sResourcesWorkflow, workflow.RegisterOptions{Name: intClusterWorkflow.DeleteK8sResourcesWorkflowName})
 
-		deleteHelmDeploymentsActivity := intClusterWorkflow.MakeDeleteHelmDeploymentsActivity(k8sConfigGetter, logrusLogger)
+		deleteHelmDeploymentsActivity := intClusterWorkflow.MakeDeleteHelmDeploymentsActivity(k8sConfigGetter, releaseDeleter, logrusLogger)
 		activity.RegisterWithOptions(deleteHelmDeploymentsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteHelmDeploymentsActivityName})
 
 		deleteUserNamespacesActivity := intClusterWorkflow.MakeDeleteUserNamespacesActivity(intClusterK8s.MakeUserNamespaceDeleter(logrusLogger), k8sConfigGetter)

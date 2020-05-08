@@ -470,7 +470,7 @@ func checkClustersBeforeDelete(orgId uint, secretId string) error {
 	secretValidator := providers.NewSecretValidator(secret.Store)
 	clusterRepo := clusteradapter.NewClusters(global.DB())
 	clusterStore := clusteradapter.NewStore(global.DB(), clusterRepo)
-	clusterManager := cluster.NewManager(clusterRepo, secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler, clusterStore)
+	clusterManager := cluster.NewManager(clusterRepo, secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler, clusterStore, nil)
 
 	clusters, err := clusterManager.GetClustersBySecretID(context.Background(), orgId, secretId)
 	if err != nil {
