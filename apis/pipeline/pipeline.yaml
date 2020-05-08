@@ -6546,9 +6546,12 @@ components:
                 ram:
                     type: integer
                     example: 4096
-                vpcu:
+                vcpu:
                     type: integer
                     example: 2
+                template:
+                    type: string
+                    example: "centos-7-pke-202001171452"
                 resourceSummary:
                     type: object
                     additionalProperties:

@@ -20700,9 +20700,12 @@ components:
         ram:
           example: 4096
           type: integer
-        vpcu:
+        vcpu:
           example: 2
           type: integer
+        template:
+          example: centos-7-pke-202001171452
+          type: string
         resourceSummary:
           additionalProperties:
             $ref: '#/components/schemas/ResourceSummary'
