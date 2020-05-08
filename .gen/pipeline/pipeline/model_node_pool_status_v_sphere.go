@@ -16,7 +16,9 @@ type NodePoolStatusVSphere struct {
 
 	Ram int32 `json:"ram,omitempty"`
 
-	Vpcu int32 `json:"vpcu,omitempty"`
+	Vcpu int32 `json:"vcpu,omitempty"`
+
+	Template string `json:"template,omitempty"`
 
 	ResourceSummary map[string]ResourceSummary `json:"resourceSummary,omitempty"`
 }
