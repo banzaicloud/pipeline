@@ -305,6 +305,7 @@ func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 	upgradeAction.Install = options.Install
 	upgradeAction.Wait = options.Wait
 	upgradeAction.Timeout = time.Minute * 5
+	upgradeAction.Version = releaseInput.Version
 
 	if upgradeAction.Version == "" && upgradeAction.Devel {
 		r.logger.Debug("setting version to >0.0.0-0")
