@@ -124,6 +124,8 @@ type UnifiedReleaser interface {
 	Delete(c ClusterDataProvider, releaseName, namespace string) error
 
 	AddRepositoryIfNotExists(repository Repository) error
+
+	IsV3() bool
 }
 
 // releaser collects and groups release related operations

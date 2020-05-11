@@ -28,4 +28,6 @@ type HelmService interface {
 	Delete(c internalHelm.ClusterDataProvider, releaseName, namespace string) error
 
 	GetRelease(c internalHelm.ClusterDataProvider, releaseName, namespace string) (internalHelm.Release, error)
+
+	IsV3() bool
 }

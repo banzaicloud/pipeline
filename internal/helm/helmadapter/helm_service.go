@@ -229,3 +229,7 @@ func (h *helm3UnifiedReleaser) GetRelease(c helm.ClusterDataProvider, releaseNam
 		Namespace: namespace,
 	})
 }
+
+func (h *helm3UnifiedReleaser) IsV3() bool {
+	return true
+}
