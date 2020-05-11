@@ -792,8 +792,8 @@ traefik:
 	v.SetDefault("cluster::backyards::charts::nodeexporter::chart", "stable/prometheus-node-exporter")
 	v.SetDefault("cluster::backyards::charts::nodeexporter::version", "1.8.1")
 
-	v.SetDefault("cluster::federation::charts::kubefed::chart", "kubefed-charts/kubefed")
-	v.SetDefault("cluster::federation::charts::kubefed::version", "0.2.0-alpha.1")
+	v.SetDefault("cluster::federation::charts::kubefed::chart", "banzaicloud-stable/kubefed")
+	v.SetDefault("cluster::federation::charts::kubefed::version", "0.2.0-banzai.1")
 	v.SetDefault("cluster::federation::charts::kubefed::values", map[string]interface{}{
 		"controllermanager": map[string]interface{}{
 			"repository": "banzaicloud",
