@@ -491,3 +491,7 @@ func (s *LegacyHelmService) GetRelease(c internalhelm.ClusterDataProvider, relea
 		},
 	}, nil
 }
+
+func (s *LegacyHelmService) IsV3() bool {
+	return false
+}
