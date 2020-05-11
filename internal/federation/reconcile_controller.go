@@ -19,7 +19,6 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/ghodss/yaml"
 	"github.com/sirupsen/logrus"
 	apiextv1b1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
@@ -289,30 +288,13 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 		},
 	}
 
-	valuesOverride, err := yaml.Marshal(values)
-	if err != nil {
-		return errors.WrapIf(err, "could not marshal chart value overrides")
-	}
-
-	if err = m.helmService.AddRepositoryIfNotExists(internalHelm.Repository{
-		Name: "kubefed-charts",
-		URL:  "https://raw.githubusercontent.com/banzaicloud/kubefed/helm_chart/charts",
-	}); err != nil {
-		return errors.WrapIf(err, "failed to add kubefed-charts repo")
-	}
-
-	valuesOverridesConverted, err := internalHelm.ConvertStructure(valuesOverride)
-	if err != nil {
-		return errors.WrapIf(err, "failed to convert")
-	}
-
-	err = m.helmService.InstallOrUpgrade(
+	err := m.helmService.InstallOrUpgrade(
 		c,
 		internalHelm.Release{
 			ReleaseName: federationReleaseName,
 			ChartName:   m.Configuration.staticConfig.Charts.Kubefed.Chart,
 			Namespace:   m.Configuration.TargetNamespace,
-			Values:      valuesOverridesConverted,
+			Values:      values,
 			Version:     m.Configuration.staticConfig.Charts.Kubefed.Version,
 		},
 		internalHelm.Options{
