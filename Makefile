@@ -83,6 +83,11 @@ run: GOTAGS += dev
 run: build-pipeline ## Build and execute a binary
 	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/${BINARY_NAME} ${ARGS}
 
+.PHONY: debug
+debug: GOTAGS += dev
+debug: builddebug-pipeline
+	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" dlv --listen=:40000 --log --headless=true --api-version=2 exec build/debug/pipeline -- $(ARGS)
+
 .PHONY: run-worker
 run-worker: GOTAGS += dev
 run-worker: build-worker ## Build and execute a binary
@@ -100,6 +105,10 @@ endif
 .PHONY: build-%
 build-%: goversion ## Build a binary
 	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/$* ./cmd/$*
+
+.PHONY: builddebug-%
+builddebug-%: goversion ## Build a binary
+	@${MAKE} GOARGS="${GOARGS} -gcflags \"all=-N -l\"" BUILD_DIR="${BUILD_DIR}/debug" build-$*
 
 .PHONY: build
 build: goversion ## Build all binaries
