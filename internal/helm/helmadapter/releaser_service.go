@@ -89,6 +89,7 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 	installAction.ReleaseName = name
 	installAction.Wait = options.Wait
 	installAction.Timeout = time.Minute * 5
+	installAction.Version = releaseInput.Version
 
 	cp, err := installAction.ChartPathOptions.LocateChart(chartRef, envSettings)
 	if err != nil {
