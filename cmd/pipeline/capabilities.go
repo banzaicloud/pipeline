@@ -49,7 +49,7 @@ func mapCapabilities(config configuration) cap.Capabilities {
 			},
 		},
 		"helm": cap.Cap{
-			"version": "3.1.2", // TODO: determine based on go.mod build time
+			"version": "3.1.3", // TODO: determine based on go.mod build time
 		},
 	}
 }
