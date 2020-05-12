@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
 	pkgDep "github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
@@ -68,6 +69,11 @@ func (n *API) Create(c *gin.Context) {
 	var deployment *pkgDep.ClusterGroupDeployment
 	if err := c.ShouldBindJSON(&deployment); err != nil {
 		n.errorHandler.Handle(c, c.Error(err).SetType(gin.ErrorTypeBind))
+		return
+	}
+
+	if deployment.Package != nil {
+		n.errorHandler.Handle(c, errors.New("deployment using custom chart content is unsupported"))
 		return
 	}
 

@@ -18,13 +18,41 @@ import (
 	"context"
 	"fmt"
 	"strings"
+
+	"emperror.dev/errors"
+	"github.com/mitchellh/mapstructure"
 )
 
 // decouples helm lib types from the api
-type ChartDetails = map[string]interface{}
+type ChartDetails map[string]interface{}
 
 // decouples helm lib types from the api
 type ChartList = []interface{}
+
+func (c ChartDetails) GetDescription(version string) (string, error) {
+	type ChartDetail struct {
+		Versions []struct {
+			Chart struct {
+				Metadata struct {
+					Description string
+					Version     string
+				}
+			}
+		}
+	}
+
+	detail := &ChartDetail{}
+	err := mapstructure.Decode(&c, detail)
+	if err != nil {
+		return "", errors.WrapIf(err, "Unable to decode chart metadata information from chart details")
+	}
+	for _, cv := range detail.Versions {
+		if cv.Chart.Metadata.Version == version {
+			return cv.Chart.Metadata.Description, nil
+		}
+	}
+	return "", errors.Errorf("chart version %s not found", version)
+}
 
 // charter collects helm chart related operations
 // intended  to be embedded into the helm "facade"
@@ -46,7 +74,7 @@ type ChartFilter struct {
 }
 
 func (cf ChartFilter) String() string {
-	return fmt.Sprintf("repo: %s, chart: %s, version %s", cf.RepoFilter(), cf.StrictNameFilter(), cf.VersionFilter())
+	return fmt.Sprintf("repo: %s, chart: %s, version %s", cf.RepoFilter(), cf.StrictNameFilter(), cf.StrictVersionFilter())
 }
 
 // RepoFilter gets the string filter eventually trims leading and trailing regexp chars
@@ -68,7 +96,7 @@ func (cf ChartFilter) NameFilter() string {
 	return firstOrEmpty(cf.Name)
 }
 
-func (cf ChartFilter) VersionFilter() string {
+func (cf ChartFilter) StrictVersionFilter() string {
 	versionFilter := firstOrEmpty(cf.Version)
 	// special cases (backwards comp.)
 	if versionFilter == "all" || versionFilter == "latest" {
@@ -79,6 +107,10 @@ func (cf ChartFilter) VersionFilter() string {
 	}
 
 	return versionFilter
+}
+
+func (cf ChartFilter) VersionFilter() string {
+	return firstOrEmpty(cf.Version)
 }
 
 func (cf ChartFilter) KeywordFilter() string {
