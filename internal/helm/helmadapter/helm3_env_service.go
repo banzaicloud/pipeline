@@ -224,10 +224,12 @@ func (h helm3EnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, f
 			Name:   filter.RepoFilter(),
 			Charts: make([]interface{}, 0, 0),
 		}
+
+		versions := make([]interface{}, 0, len(chartVersions))
 		for _, chartVersion := range chartVersions {
-			// omg!
-			chartEntry.Charts = append(chartEntry.Charts, []interface{}{chartVersion})
+			chartEntry.Charts = append(versions, chartVersion)
 		}
+		chartEntry.Charts = append(chartEntry.Charts, versions)
 	}
 
 	if len(chartEntry.Charts) > 0 {
@@ -351,7 +353,7 @@ func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, fil
 	}
 
 	for _, repoEntry := range repoFile.Repositories {
-		if !matchesFilter(fmt.Sprintf("%s%s%s", "^", filter.RepoFilter(), "$"), repoEntry.Name) {
+		if !matchesFilter(filter.StrictRepoFilter(), repoEntry.Name) {
 			h.logger.Debug("repository name doesn't match the filter",
 				map[string]interface{}{"filter": filter.RepoFilter(), "repoEntry": repoEntry.Name})
 			// skip further processing
