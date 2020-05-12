@@ -151,15 +151,15 @@ func (_m *MockService) DeleteRepository(ctx context.Context, organizationID uint
 }
 
 // GetChart provides a mock function.
-func (_m *MockService) GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails map[string]interface{}, err error) {
+func (_m *MockService) GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails ChartDetails, err error) {
 	ret := _m.Called(ctx, organizationID, chartFilter, options)
 
-	var r0 map[string]interface{}
-	if rf, ok := ret.Get(0).(func(context.Context, uint, ChartFilter, Options) map[string]interface{}); ok {
+	var r0 ChartDetails
+	if rf, ok := ret.Get(0).(func(context.Context, uint, ChartFilter, Options) ChartDetails); ok {
 		r0 = rf(ctx, organizationID, chartFilter, options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]interface{})
+			r0 = ret.Get(0).(ChartDetails)
 		}
 	}
 
@@ -404,15 +404,15 @@ func (_m *MockEnvService) EnsureEnv(ctx context.Context, helmEnv HelmEnv, defaul
 }
 
 // GetChart provides a mock function.
-func (_m *MockEnvService) GetChart(ctx context.Context, helmEnv HelmEnv, chartFilter ChartFilter) (chartDetails map[string]interface{}, err error) {
+func (_m *MockEnvService) GetChart(ctx context.Context, helmEnv HelmEnv, chartFilter ChartFilter) (chartDetails ChartDetails, err error) {
 	ret := _m.Called(ctx, helmEnv, chartFilter)
 
-	var r0 map[string]interface{}
-	if rf, ok := ret.Get(0).(func(context.Context, HelmEnv, ChartFilter) map[string]interface{}); ok {
+	var r0 ChartDetails
+	if rf, ok := ret.Get(0).(func(context.Context, HelmEnv, ChartFilter) ChartDetails); ok {
 		r0 = rf(ctx, helmEnv, chartFilter)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]interface{})
+			r0 = ret.Get(0).(ChartDetails)
 		}
 	}
 

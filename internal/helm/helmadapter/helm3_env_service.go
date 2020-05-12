@@ -400,7 +400,7 @@ func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, fil
 					continue
 				}
 
-				if !matchesFilter(filter.VersionFilter(), chartVersion.Version) {
+				if !matchesFilter(filter.StrictVersionFilter(), chartVersion.Version) {
 					h.logger.Debug("chart version doesn't match the filter, skipping the version",
 						map[string]interface{}{"filter": filter.VersionFilter(), "version": chartVersion.Version})
 					// skip further processing

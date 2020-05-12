@@ -221,7 +221,7 @@ type GetChartRequest struct {
 
 // GetChartResponse is a response struct for GetChart endpoint.
 type GetChartResponse struct {
-	ChartDetails map[string]interface{}
+	ChartDetails helm.ChartDetails
 	Err          error
 }
 
