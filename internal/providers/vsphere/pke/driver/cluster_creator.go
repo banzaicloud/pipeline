@@ -394,7 +394,8 @@ func (p clusterCreatorNodePoolPreparerDataProvider) getExistingNodePoolByName(ct
 	return pke.NodePool{}, notExistsYetError{}
 }
 
-const masterUserDataScriptTemplate = `#!/bin/sh
+const masterUserDataScriptTemplate = `
+set -x
 {{ if .HttpProxy }}export HTTP_PROXY="{{ .HttpProxy }}"{{ end }}
 {{ if .HttpsProxy }}export HTTPS_PROXY="{{ .HttpsProxy }}"{{ end }}
 {{ if .NoProxy }}export NO_PROXY="{{ .NoProxy }}"{{ end }}
@@ -408,7 +409,7 @@ if ! command -v pke > /dev/null 2>&1; then
 	chmod +x /usr/local/bin/pke
 fi
 
-if [ -r /etc/pke.rc ]; then . /etc/pke.rc; fi
+if [ -r /etc/banzaicloud/pke.rc ]; then . /etc/banzaicloud/pke.rc; fi
 
 pke install master --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-insecure="{{ .PipelineURLInsecure }}" \
@@ -437,18 +438,21 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --lb-range="{{ .LoadBalancerIPRange }}" \
 ${PKE_EXTRA_ARGS:-}`
 
-const workerUserDataScriptTemplate = `#!/bin/sh
+const workerUserDataScriptTemplate = `
+set -x
 {{ if .HttpProxy }}export HTTP_PROXY="{{ .HttpProxy }}"{{ end }}
 {{ if .HttpsProxy }}export HTTPS_PROXY="{{ .HttpsProxy }}"{{ end }}
 {{ if .NoProxy }}export NO_PROXY="{{ .NoProxy }}"{{ end }}
 
+export PATH=$PATH:/usr/local/bin/
+if ! command -v pke > /dev/null 2>&1; then
 until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 chmod +x /usr/local/bin/pke
-export PATH=$PATH:/usr/local/bin/
+fi
 
 PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
 
-if [ -r /etc/pke.rc ]; then . /etc/pke.rc; fi
+if [ -r /etc/banzaicloud/pke.rc ]; then . /etc/banzaicloud/pke.rc; fi
 
 pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-insecure="{{ .PipelineURLInsecure }}" \
@@ -461,4 +465,5 @@ pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-api-server={{ .PublicAddress }}:6443 \
 --kubernetes-infrastructure-cidr=$PRIVATE_IP/32 \
 --kubernetes-version={{ .KubernetesVersion }} \
---kubernetes-pod-network-cidr="" ${PKE_EXTRA_ARGS:-}`
+--kubernetes-pod-network-cidr="" \
+${PKE_EXTRA_ARGS:-}`
