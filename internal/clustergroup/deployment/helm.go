@@ -36,11 +36,16 @@ type HelmService interface {
 		release helm.Release,
 		opts helm.Options,
 	) error
+	GetRelease(c helm.ClusterDataProvider, releaseName, namespace string) (helm.Release, error)
 }
 
 type Helm3Service struct {
 	facade   helm.Service
 	releaser helm.UnifiedReleaser
+}
+
+func (h *Helm3Service) GetRelease(c helm.ClusterDataProvider, releaseName, namespace string) (helm.Release, error) {
+	return h.releaser.GetRelease(c, releaseName, namespace)
 }
 
 func NewHelmService(facade helm.Service, releaser helm.UnifiedReleaser) HelmService {

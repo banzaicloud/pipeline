@@ -81,7 +81,7 @@ func (n *API) Create(c *gin.Context) {
 		deployment.ReleaseName = n.deploymentManager.GenerateReleaseName(clusterGroup)
 	}
 
-	if !n.deploymentManager.IsReleaseNameAvailable(clusterGroup, deployment.ReleaseName) {
+	if !n.deploymentManager.IsReleaseNameAvailable(clusterGroup, deployment.ReleaseName, deployment.Namespace) {
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: fmt.Sprintf("release name %s not available on all target clusters", deployment.ReleaseName),
