@@ -34,3 +34,13 @@ func ConvertStructure(in interface{}) (map[string]interface{}, error) {
 	}
 	return mapStringValues, nil
 }
+
+func ConvertBytes(b []byte) (map[string]interface{}, error) {
+	// convert back to map[string]interface{}
+	var mapStringValues map[string]interface{}
+	err := yaml.UnmarshalStrict(b, &mapStringValues)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to unmarshal values to map[string]interface{}")
+	}
+	return mapStringValues, nil
+}

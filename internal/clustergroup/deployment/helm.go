@@ -23,18 +23,35 @@ import (
 	"github.com/banzaicloud/pipeline/internal/helm"
 )
 
-type HelmService interface {
-	GetChartDescription(name, version string) (string, error)
+type ChartMeta struct {
+	Name        string
+	Version     string
+	Description string
 }
 
-func NewHelmService(facade helm.Service) HelmService {
-	return &Helm3Service{
-		facade: facade,
-	}
+type HelmService interface {
+	GetChartDescription(name, version string) (string, error)
+	InstallOrUpgrade(
+		c helm.ClusterDataProvider,
+		release helm.Release,
+		opts helm.Options,
+	) error
 }
 
 type Helm3Service struct {
-	facade helm.Service
+	facade   helm.Service
+	releaser helm.UnifiedReleaser
+}
+
+func NewHelmService(facade helm.Service, releaser helm.UnifiedReleaser) HelmService {
+	return &Helm3Service{
+		facade:   facade,
+		releaser: releaser,
+	}
+}
+
+func (h *Helm3Service) InstallOrUpgrade(c helm.ClusterDataProvider, release helm.Release, opts helm.Options) error {
+	return h.releaser.InstallOrUpgrade(c, release, opts)
 }
 
 func (h *Helm3Service) GetChartDescription(name, version string) (string, error) {

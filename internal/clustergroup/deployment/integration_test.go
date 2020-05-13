@@ -65,9 +65,9 @@ func testGetChartDesc(home string, v3 bool) func(*testing.T) {
 		}
 
 		logger := common.NoopLogger{}
-		_, facade := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
+		releaser, facade := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
 
-		helmService := deployment.NewHelmService(facade)
+		helmService := deployment.NewHelmService(facade, releaser)
 
 		description, err := helmService.GetChartDescription("stable/mysql", "1.6.3")
 		if err != nil {
