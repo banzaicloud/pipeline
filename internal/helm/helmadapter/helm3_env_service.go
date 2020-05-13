@@ -227,7 +227,7 @@ func (h helm3EnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, f
 
 		versions := make([]interface{}, 0, len(chartVersions))
 		for _, chartVersion := range chartVersions {
-			chartEntry.Charts = append(versions, chartVersion)
+			versions = append(versions, chartVersion)
 		}
 		chartEntry.Charts = append(chartEntry.Charts, versions)
 	}
@@ -404,6 +404,7 @@ func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, fil
 		}
 	}
 
+	// slice of slices (elements of the slice are slices of charts, one slice per repo)
 	return chartListSlice, nil
 }
 
