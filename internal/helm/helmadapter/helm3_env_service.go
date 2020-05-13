@@ -212,28 +212,26 @@ func (h helm3EnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, f
 
 	// adapt it to the existing api
 	type repoChartType struct {
-		Name   string        `json:"name"`
-		Charts []interface{} `json:"charts"`
+		Name   string        `json:"name" mapstructure:"name"`
+		Charts []interface{} `json:"charts" mapstructure:"charts"`
 	}
 
 	adaptedList := make(helm.ChartList, 0, 0)
-	var chartEntry repoChartType
+	repoCharts := repoChartType{
+		Name:   filter.RepoFilter(),
+		Charts: make([]interface{}, 0, 0),
+	}
 
 	for _, chartVersions := range chartVersionsSlice {
-		chartEntry = repoChartType{
-			Name:   filter.RepoFilter(),
-			Charts: make([]interface{}, 0, 0),
-		}
-
 		versions := make([]interface{}, 0, len(chartVersions))
 		for _, chartVersion := range chartVersions {
 			versions = append(versions, chartVersion)
 		}
-		chartEntry.Charts = append(chartEntry.Charts, versions)
+		repoCharts.Charts = append(repoCharts.Charts, versions)
 	}
 
-	if len(chartEntry.Charts) > 0 {
-		adaptedList = append(adaptedList, chartEntry)
+	if len(repoCharts.Charts) > 0 {
+		adaptedList = append(adaptedList, repoCharts)
 	}
 
 	return adaptedList, nil
@@ -341,7 +339,7 @@ func (h helm3EnvService) getRawChartFileContent(chartFileName string, chartPtr *
 // listCharts retrieves  charts based on the input data
 // operates with h3 lib types
 func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) ([]repo.ChartVersions, error) {
-	chartListSlice := make([]repo.ChartVersions, 0, 0)
+	chartVersionsSlice := make([]repo.ChartVersions, 0, 0)
 
 	repoFile, err := repo.LoadFile(helmEnv.GetHome())
 	if err != nil {
@@ -366,11 +364,12 @@ func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, fil
 			return nil, errors.WrapIf(err, "failed to load index file for repo")
 		}
 
-		repoCharts := make(repo.ChartVersions, 0, 0)
-		for chartRepo, chartVersions := range repoIndexFile.Entries {
-			if !matchesFilter(filter.StrictNameFilter(), chartRepo) {
+		for chartName, chartVersions := range repoIndexFile.Entries {
+			filteredChartVersions := make(repo.ChartVersions, 0, 0)
+
+			if !matchesFilter(filter.StrictNameFilter(), chartName) {
 				h.logger.Debug("chart name doesn't match the filter, skipping the entry",
-					map[string]interface{}{"filter": filter.StrictNameFilter(), "chart": chartRepo})
+					map[string]interface{}{"filter": filter.StrictNameFilter(), "chart": chartName})
 				// skip further processing
 				continue
 			}
@@ -386,7 +385,7 @@ func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, fil
 				switch filter.VersionFilter() {
 				case "all":
 					// special case: collect all versions for the chart Backwards compatibility!
-					repoCharts = append(repoCharts, chartVersion)
+					filteredChartVersions = append(filteredChartVersions, chartVersion)
 				default:
 					if !matchesFilter(filter.VersionFilter(), chartVersion.Version) {
 						h.logger.Debug("chart version doesn't match the filter, skipping the version",
@@ -394,18 +393,16 @@ func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, fil
 						// skip further processing
 						continue
 					}
-					repoCharts = append(repoCharts, chartVersion)
+					filteredChartVersions = append(filteredChartVersions, chartVersion)
 				}
 			}
-		}
-
-		if len(repoCharts) > 0 {
-			chartListSlice = append(chartListSlice, repoCharts)
+			if len(filteredChartVersions) > 0 {
+				chartVersionsSlice = append(chartVersionsSlice, filteredChartVersions)
+			}
 		}
 	}
 
-	// slice of slices (elements of the slice are slices of charts, one slice per repo)
-	return chartListSlice, nil
+	return chartVersionsSlice, nil
 }
 
 // getDetailedChart gets the chart details from the chart archive
