@@ -247,15 +247,10 @@ func (r releaser) List(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.
 }
 
 func (r releaser) Get(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) (helm.Release, error) {
-	ns := ""
-	if options.Namespace != "" {
-		ns = options.Namespace
-	}
-
 	// component processing the kubeconfig
-	restClientGetter := NewCustomGetter(ns, kubeConfig, helmEnv.GetCacheDir(), r.logger)
+	restClientGetter := NewCustomGetter(options.Namespace, kubeConfig, helmEnv.GetCacheDir(), r.logger)
 
-	actionConfig, err := r.getActionConfiguration(restClientGetter, ns)
+	actionConfig, err := r.getActionConfiguration(restClientGetter, options.Namespace)
 	if err != nil {
 		return helm.Release{}, errors.WrapIf(err, "failed to get action configuration")
 	}

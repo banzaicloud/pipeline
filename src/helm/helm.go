@@ -906,42 +906,42 @@ func ChartsGet(env helm_env.EnvSettings, queryName, queryRepo, queryVersion, que
 	if len(f.Repositories) == 0 {
 		return nil, nil
 	}
-	cl := make([]ChartList, 0)
+	retChartList := make([]ChartList, 0)
 
 	for _, r := range f.Repositories {
 		log.Debugf("Repository: %s", r.Name)
-		i, errIndx := repo.LoadIndexFile(r.Cache)
+		repoIndex, errIndx := repo.LoadIndexFile(r.Cache)
 		if errIndx != nil {
 			return nil, errIndx
 		}
 		repoMatched, _ := regexp.MatchString(queryRepo, strings.ToLower(r.Name))
 		if repoMatched || queryRepo == "" {
 			log.Debugf("Repository: %s Matched", r.Name)
-			c := ChartList{
+			chartList := ChartList{
 				Name:   r.Name,
 				Charts: make([]repo.ChartVersions, 0),
 			}
-			for n := range i.Entries {
-				log.Debugf("Chart: %s", n)
-				chartMatched, _ := regexp.MatchString("^"+queryName+"$", strings.ToLower(n))
+			for chartName := range repoIndex.Entries {
+				log.Debugf("Chart: %s", chartName)
+				chartMatched, _ := regexp.MatchString("^"+queryName+"$", strings.ToLower(chartName))
 
-				kwString := strings.ToLower(strings.Join(i.Entries[n][0].Keywords, " "))
+				kwString := strings.ToLower(strings.Join(repoIndex.Entries[chartName][0].Keywords, " "))
 				log.Debugf("kwString: %s", kwString)
 
 				kwMatched, _ := regexp.MatchString(queryKeyword, kwString)
 				if (chartMatched || queryName == "") && (kwMatched || queryKeyword == "") {
-					log.Debugf("Chart: %s Matched", n)
+					log.Debugf("Chart: %s Matched", chartName)
 					if queryVersion == "latest" {
-						c.Charts = append(c.Charts, repo.ChartVersions{i.Entries[n][0]})
+						chartList.Charts = append(chartList.Charts, repo.ChartVersions{repoIndex.Entries[chartName][0]})
 					} else {
-						c.Charts = append(c.Charts, i.Entries[n])
+						chartList.Charts = append(chartList.Charts, repoIndex.Entries[chartName])
 					}
 				}
 			}
-			cl = append(cl, c)
+			retChartList = append(retChartList, chartList)
 		}
 	}
-	return cl, nil
+	return retChartList, nil
 }
 
 // ChartDetails describes a chart details
