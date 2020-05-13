@@ -22,15 +22,14 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	"github.com/ghodss/yaml"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"github.com/technosophos/moniker"
-	hapi_release5 "k8s.io/helm/pkg/proto/hapi/release"
 
 	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/src/helm"
 )
 
@@ -201,26 +200,13 @@ func (m CGDeploymentManager) upgradeOrInstallDeploymentOnCluster(apiCluster api.
 	return nil
 }
 
-func (m CGDeploymentManager) findRelease(apiCluster api.Cluster, name string) (*hapi_release5.Release, error) {
-	k8sConfig, err := apiCluster.GetK8sConfig()
+func (m CGDeploymentManager) findRelease(apiCluster api.Cluster, name, namespace string) (*internalhelm.Release, error) {
+	release, err := m.helmService.GetRelease(apiCluster, name, namespace)
 	if err != nil {
 		return nil, err
 	}
 
-	hClient, err := pkgHelm.NewClient(k8sConfig, m.logger)
-	if err != nil {
-		return nil, err
-	}
-	defer hClient.Close()
-
-	resp, err := hClient.ReleaseContent(name)
-	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return resp.Release, nil
+	return &release, nil
 }
 
 func (m CGDeploymentManager) getClusterDeploymentStatus(apiCluster api.Cluster, name string, depInfo *DeploymentInfo) (TargetClusterStatus, error) {
@@ -233,15 +219,15 @@ func (m CGDeploymentManager) getClusterDeploymentStatus(apiCluster api.Cluster, 
 		Stale:        true,
 		Status:       UnknownStatus,
 	}
-	release, err := m.findRelease(apiCluster, name)
+	release, err := m.findRelease(apiCluster, name, depInfo.Namespace)
 	if err != nil {
 		deploymentStatus.Error = err.Error()
 		return deploymentStatus, err
 	}
 	if release != nil {
-		deploymentStatus.Version = release.Chart.Metadata.Version
-		deploymentStatus.Status = release.Info.Status.Code.String()
-		deploymentStatus.Stale = m.isStaleDeployment(release, depInfo, apiCluster)
+		deploymentStatus.Version = release.Version
+		deploymentStatus.Status = release.ReleaseInfo.Status
+		deploymentStatus.Stale = m.isStaleDeployment(*release, depInfo, apiCluster)
 		if deploymentStatus.Stale {
 			deploymentStatus.Status = StaleStatus
 		}
@@ -253,20 +239,25 @@ func (m CGDeploymentManager) getClusterDeploymentStatus(apiCluster api.Cluster, 
 	return deploymentStatus, nil
 }
 
-func (m CGDeploymentManager) isStaleDeployment(release *hapi_release5.Release, depInfo *DeploymentInfo, apiCluster api.Cluster) bool {
-	if release.Chart.Metadata.Name != depInfo.ChartName {
+func (m CGDeploymentManager) isStaleDeployment(release internalhelm.Release, depInfo *DeploymentInfo, apiCluster api.Cluster) bool {
+	if release.ChartName != depInfo.ChartName {
 		return true
 	}
-	if release.Chart.Metadata.Version != depInfo.ChartVersion {
+	if release.Version != depInfo.ChartVersion {
 		return true
 	}
 	values, err := depInfo.GetValuesForCluster(apiCluster.GetName())
 	if err != nil {
 		return false
 	}
-	m.logger.Debugf("%s release values: \n%s \nuser values:\n%s ", apiCluster.GetName(), release.Config.Raw, string(values))
+	m.logger.Debugf("%s release values: \n%s \nuser values:\n%s ", apiCluster.GetName(), release.ReleaseInfo.Values, string(values))
 
-	if len(release.Config.Raw) != len(string(values)) || release.Config.Raw != string(values) {
+	marshalledValues, err := yaml.Marshal(release.ReleaseInfo.Values)
+	if err != nil {
+		return true
+	}
+
+	if len(marshalledValues) != len(string(values)) || string(marshalledValues) != string(values) {
 		return true
 	}
 	return false
@@ -792,7 +783,7 @@ func (m CGDeploymentManager) UpdateDeployment(clusterGroup *api.ClusterGroup, cg
 	return targetClusterStatus, nil
 }
 
-func (m *CGDeploymentManager) IsReleaseNameAvailable(clusterGroup *api.ClusterGroup, releaseName string) bool {
+func (m *CGDeploymentManager) IsReleaseNameAvailable(clusterGroup *api.ClusterGroup, releaseName string, namespace string) bool {
 	count := 0
 	releaseNameAvailable := true
 	statusChan := make(chan bool)
@@ -801,8 +792,8 @@ func (m *CGDeploymentManager) IsReleaseNameAvailable(clusterGroup *api.ClusterGr
 	for _, apiCluster := range clusterGroup.Clusters {
 		count++
 		go func(apiCluster api.Cluster, name string) {
-			status, _ := m.findRelease(apiCluster, name)
-			if status != nil && status.Info.Deleted == nil {
+			status, _ := m.findRelease(apiCluster, name, namespace)
+			if status != nil && status.ReleaseInfo.Deleted.IsZero() {
 				statusChan <- true
 			} else {
 				statusChan <- false
