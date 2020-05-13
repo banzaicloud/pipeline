@@ -29,7 +29,7 @@ DEX_VERSION = 2.19.0
 # TODO: use an exact version
 ANCHORE_VERSION = 156836d
 
-GOLANGCI_VERSION = 1.23.6
+GOLANGCI_VERSION = 1.25.0
 LICENSEI_VERSION = 0.2.0
 OPENAPI_GENERATOR_VERSION = v4.2.3
 PROTOC_VERSION = 3.11.4
@@ -151,11 +151,13 @@ bin/golangci-lint-${GOLANGCI_VERSION}:
 lint: export CGO_ENABLED = 1
 lint: bin/golangci-lint ## Run linter
 	bin/golangci-lint run
+	cd pkg/sdk && ../../bin/golangci-lint run
 
 .PHONY: fix
 fix: export CGO_ENABLED = 1
 fix: bin/golangci-lint ## Fix lint violations
 	bin/golangci-lint run --fix
+	cd pkg/sdk && ../../bin/golangci-lint run --fix
 
 bin/licensei: bin/licensei-${LICENSEI_VERSION}
 	@ln -sf licensei-${LICENSEI_VERSION} bin/licensei
@@ -190,6 +192,7 @@ test: export CGO_ENABLED = 1
 test: bin/gotestsum ## Run tests
 	@mkdir -p ${BUILD_DIR}/test_results/${TEST_REPORT}
 	bin/gotestsum --no-summary=skipped --junitfile ${BUILD_DIR}/test_results/${TEST_REPORT}/${TEST_REPORT_NAME} --format ${TEST_FORMAT} -- $(filter-out -v,${GOARGS})  $(if ${TEST_PKGS},${TEST_PKGS},./...)
+	cd pkg/sdk && ../../bin/gotestsum --no-summary=skipped --junitfile ../../${BUILD_DIR}/test_results/${TEST_REPORT}/${TEST_REPORT_NAME} --format ${TEST_FORMAT} -- $(filter-out -v,${GOARGS}) $(if ${TEST_PKGS},${TEST_PKGS},./...)
 
 .PHONY: test-all
 test-all: ## Run all tests
