@@ -590,6 +590,9 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 
 	v.SetDefault("cluster::logging::enabled", true)
 	v.SetDefault("cluster::logging::namespace", "")
+	v.SetDefault("cluster::logging::elastic::allInOneYAML", "https://download.elastic.co/downloads/eck/1.1.0/all-in-one.yaml")
+	v.SetDefault("cluster::logging::elastic::version", "7.6.2")
+	v.SetDefault("cluster::logging::elastic::kibana::version", "7.6.2")
 	v.SetDefault("cluster::logging::charts::operator::chart", "banzaicloud-stable/logging-operator")
 	v.SetDefault("cluster::logging::charts::operator::version", "2.7.2")
 	v.SetDefault("cluster::logging::charts::operator::values", map[string]interface{}{})

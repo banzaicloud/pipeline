@@ -23,9 +23,15 @@ import (
 )
 
 type integratedServiceSpec struct {
+	ElasticSearch elasticSpec       `json:"elastic" mapstructure:"elastic"`
 	Loki          lokiSpec          `json:"loki" mapstructure:"loki"`
 	Logging       loggingSpec       `json:"logging" mapstructure:"logging"`
 	ClusterOutput clusterOutputSpec `json:"clusterOutput" mapstructure:"clusterOutput"`
+}
+
+type elasticSpec struct {
+	Enabled  bool   `json:"enabled" mapstructure:"enabled"`
+	SecretID string `json:"secretId" mapstructure:"secretId"`
 }
 
 type lokiSpec struct {

@@ -55,6 +55,12 @@ func (op IntegratedServiceOperator) createClusterOutputDefinitions(ctx context.C
 		})
 	}
 
+	if spec.ElasticSearch.Enabled {
+		creators = append(creators, outputManagerCreator{
+			name: providerElasticSearch,
+		})
+	}
+
 	// remove old output definitions with integrated service labels
 	var outputList v1beta1.ClusterOutputList
 	if err := op.kubernetesService.List(ctx, cl.GetID(), map[string]string{resourceLabelKey: integratedServiceName}, &outputList); err != nil {
@@ -110,7 +116,7 @@ func (op IntegratedServiceOperator) installSecretForOutput(ctx context.Context, 
 		return errors.WrapIf(err, "failed to generate install secret request")
 	}
 
-	if _, err := op.installSecret(ctx, cl, sourceSecretName, *installSecretRequest); err != nil {
+	if _, err := op.installSecret(cl, sourceSecretName, *installSecretRequest); err != nil {
 		return errors.WrapIf(err, "failed to install secret to cluster")
 	}
 

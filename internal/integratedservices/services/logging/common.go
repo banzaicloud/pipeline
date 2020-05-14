@@ -21,11 +21,12 @@ import (
 const (
 	integratedServiceName = "logging"
 
-	providerAmazonS3   = "s3"
-	providerGoogleGCS  = "gcs"
-	providerAlibabaOSS = "oss"
-	providerAzure      = "azure"
-	providerLoki       = "loki"
+	providerAmazonS3      = "s3"
+	providerGoogleGCS     = "gcs"
+	providerAlibabaOSS    = "oss"
+	providerAzure         = "azure"
+	providerLoki          = "loki"
+	providerElasticSearch = "elastic"
 
 	tlsSecretName              = "logging-tls-secret"
 	loggingOperatorReleaseName = "logging-operator"
@@ -44,11 +45,13 @@ const (
 	outputDefinitionSecretKeyGCS                 = "credentials.json"
 	outputDefinitionSecretKeyAzureStorageAccount = "azureStorageAccount"
 	outputDefinitionSecretKeyAzureStorageAccess  = "azureStorageAccessKey"
+	outputDefinitionSecretKeyElasticSearch       = "elastic"
 
-	lokiOutputDefinitionName = "loki-output"
-	flowResourceName         = "banzai-logging-flow"
-	resourceLabelKey         = "banzaicloud.io/service"
-	loggingResourceName      = "banzai-logging"
+	elasticOutputDefinitionName = "es-output"
+	lokiOutputDefinitionName    = "loki-output"
+	flowResourceName            = "banzai-logging-flow"
+	resourceLabelKey            = "banzaicloud.io/service"
+	loggingResourceName         = "banzai-logging"
 )
 
 func getLokiSecretName(clusterID uint) string {

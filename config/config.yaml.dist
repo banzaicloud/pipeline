@@ -205,6 +205,12 @@ dex:
 #        # Inherited from cluster.namespace when empty
 #        namespace: ""
 #
+#        elastic:
+#            version: "7.6.2"
+#            allInOneYAML: "https://download.elastic.co/downloads/eck/1.1.0/all-in-one.yaml"
+#            kibana:
+#                version: "7.6.2"
+#
 #        charts:
 #            operator:
 #                chart: "banzaicloud-stable/logging-operator"

@@ -54,6 +54,8 @@ func newOutputDefinitionManager(creators []outputManagerCreator) (managers []out
 			managers = append(managers, outputDefinitionManagerOSS{baseOutputManager: baseManager})
 		case providerLoki:
 			managers = append(managers, outputDefinitionManagerLoki{serviceURL: creator.serviceURL})
+		case providerElasticSearch:
+			managers = append(managers, outputDefinitionManagerElastic{})
 		}
 	}
 

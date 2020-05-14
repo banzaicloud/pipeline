@@ -21,6 +21,7 @@ import (
 // Config contains configuration for the logging integrated service.
 type Config struct {
 	Namespace string
+	Elastic   ElasticConfig
 	Charts    ChartsConfig
 	Images    ImagesConfig
 }
@@ -55,6 +56,16 @@ func (c Config) Validate() error {
 	}
 
 	return nil
+}
+
+type ElasticConfig struct {
+	AllInOneYAML string
+	Kibana       KibanaConfig
+	Version      string
+}
+
+type KibanaConfig struct {
+	Version string
 }
 
 type ChartsConfig struct {

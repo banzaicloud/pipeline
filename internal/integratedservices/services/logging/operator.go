@@ -103,7 +103,7 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		return errors.WrapIf(err, "failed to get cluster")
 	}
 
-	if err := op.processTLS(ctx, boundSpec, cl); err != nil {
+	if err := op.processTLS(boundSpec, cl); err != nil {
 		return errors.WrapIf(err, "failed to generate and install TLS secret to the cluster")
 	}
 
@@ -113,6 +113,10 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 
 	if err := op.processLoki(ctx, boundSpec.Loki, cl); err != nil {
 		return errors.WrapIf(err, "failed to install Loki")
+	}
+
+	if err := op.processElasticsearch(ctx, boundSpec.ElasticSearch, cl); err != nil {
+		return errors.WrapIf(err, "failed to install Elasticsearch")
 	}
 
 	if err := op.createLoggingResource(ctx, clusterID, boundSpec); err != nil {
@@ -137,7 +141,15 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 		return err
 	}
 
-	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
+	boundSpec, err := bindIntegratedServiceSpec(spec)
+	if err != nil {
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: integratedServiceName,
+			Problem:               err.Error(),
+		}
+	}
+
+	ctx, err = op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
 		return err
 	}
@@ -145,6 +157,11 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 	// delete Loki deployment
 	if err := op.helmService.DeleteDeployment(ctx, clusterID, lokiReleaseName, op.config.Namespace); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to delete deployment", "release", lokiReleaseName)
+	}
+
+	// delete Elasticsearch resources
+	if err := op.deleteElasticsearchResource(ctx, clusterID, boundSpec.ElasticSearch); err != nil {
+		return errors.WrapIf(err, "failed to delete elastic resources")
 	}
 
 	// delete Logging-operator deployment
@@ -166,7 +183,7 @@ func (op IntegratedServiceOperator) ensureOrgIDInContext(ctx context.Context, cl
 	return ctx, nil
 }
 
-func (op IntegratedServiceOperator) processTLS(ctx context.Context, spec integratedServiceSpec, cl integratedserviceadapter.Cluster) error {
+func (op IntegratedServiceOperator) processTLS(spec integratedServiceSpec, cl integratedserviceadapter.Cluster) error {
 	if spec.Logging.TLS {
 		// generate TLS secret and save to Vault
 		if err := op.generateTLSSecret(cl); err != nil {
@@ -174,7 +191,7 @@ func (op IntegratedServiceOperator) processTLS(ctx context.Context, spec integra
 		}
 
 		// install secret to cluster
-		if err := op.installTLSSecretsToCluster(ctx, cl); err != nil {
+		if err := op.installTLSSecretsToCluster(cl); err != nil {
 			return errors.WrapIf(err, "failed to install TLS secret to the cluster")
 		}
 	}
@@ -209,7 +226,7 @@ func (op IntegratedServiceOperator) generateTLSSecret(cl integratedserviceadapte
 
 	return nil
 }
-func (op IntegratedServiceOperator) generateHTPasswordSecretForLoki(ctx context.Context, cl integratedserviceadapter.Cluster) error {
+func (op IntegratedServiceOperator) generateHTPasswordSecretForLoki(cl integratedserviceadapter.Cluster) error {
 	var clusterNameSecretTag = generateClusterNameSecretTag(cl.GetName())
 	var clusterUIDSecretTag = generateClusterUIDSecretTag(cl.GetUID())
 
@@ -243,7 +260,7 @@ func (op IntegratedServiceOperator) generateHTPasswordSecretForLoki(ctx context.
 	return nil
 }
 
-func (op IntegratedServiceOperator) installTLSSecretsToCluster(ctx context.Context, cl integratedserviceadapter.Cluster) error {
+func (op IntegratedServiceOperator) installTLSSecretsToCluster(cl integratedserviceadapter.Cluster) error {
 	const kubeCaCertKey = "ca.crt"
 	const kubeTlsCertKey = "tls.crt"
 	const kubeTlsKeyKey = "tls.key"
@@ -261,7 +278,7 @@ func (op IntegratedServiceOperator) installTLSSecretsToCluster(ctx context.Conte
 	}
 
 	// install TLS shared secret
-	if _, err := op.installSecret(ctx, cl, fluentSharedSecretName, installSecretRequest); err != nil {
+	if _, err := op.installSecret(cl, fluentSharedSecretName, installSecretRequest); err != nil {
 		return errors.WrapIfWithDetails(err,
 			"failed to install fluent shared secret to the cluster",
 			"clusterID", cl.GetID())
@@ -282,7 +299,7 @@ func (op IntegratedServiceOperator) processLoki(ctx context.Context, spec lokiSp
 				return errors.WrapIf(err, "failed to get Loki secret")
 			}
 
-			if err := op.installLokiSecret(ctx, secretName, cl); err != nil {
+			if err := op.installLokiSecret(secretName, cl); err != nil {
 				return errors.WrapIf(err, "failed to install Loki secret to cluster")
 			}
 
@@ -331,7 +348,7 @@ func (op IntegratedServiceOperator) processLoki(ctx context.Context, spec lokiSp
 	return nil
 }
 
-func (op IntegratedServiceOperator) installLokiSecret(ctx context.Context, secretName string, cl integratedserviceadapter.Cluster) error {
+func (op IntegratedServiceOperator) installLokiSecret(secretName string, cl integratedserviceadapter.Cluster) error {
 	installSecretRequest := pkgCluster.InstallSecretRequest{
 		SourceSecretName: secretName,
 		Namespace:        op.config.Namespace,
@@ -341,7 +358,7 @@ func (op IntegratedServiceOperator) installLokiSecret(ctx context.Context, secre
 		Update: true,
 	}
 
-	if _, err := op.installSecret(ctx, cl, secretName, installSecretRequest); err != nil {
+	if _, err := op.installSecret(cl, secretName, installSecretRequest); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to install Loki secret to cluster")
 	}
 
@@ -362,7 +379,7 @@ func (op IntegratedServiceOperator) getLokiSecret(
 			return secretName, nil
 		} else if isSecretNotFoundError(err) {
 			// generate and store secret
-			err = op.generateHTPasswordSecretForLoki(ctx, cl)
+			err = op.generateHTPasswordSecretForLoki(cl)
 			if err != nil {
 				return "", errors.WrapIf(err, "failed to generate Loki secret")
 			}
@@ -381,6 +398,94 @@ func (op IntegratedServiceOperator) getLokiSecret(
 	return secretName, nil
 }
 
+func (op IntegratedServiceOperator) deleteElasticsearchResource(
+	ctx context.Context,
+	clusterID uint,
+	spec elasticSpec,
+) error {
+	if !spec.Enabled {
+		return nil
+	}
+
+	var installer = elasticSearchInstaller{
+		clusterID:         clusterID,
+		config:            op.config.Elastic,
+		kubernetesService: op.kubernetesService,
+	}
+
+	if err := installer.removeKibana(ctx); err != nil {
+		return errors.WrapIf(err, "failed to delete Kibana")
+	}
+
+	if err := installer.removeElasticsearchCluster(ctx); err != nil {
+		return errors.WrapIf(err, "failed to delete Elasticsearch cluster")
+	}
+
+	if err := installer.removeElasticsearchOperator(ctx); err != nil {
+		return errors.WrapIf(err, "failed to delete Elasticsearch operator")
+	}
+
+	return nil
+}
+
+func (op IntegratedServiceOperator) processElasticsearch(
+	ctx context.Context,
+	spec elasticSpec,
+	cl integratedserviceadapter.Cluster,
+) error {
+	if !spec.Enabled {
+		return nil
+	}
+
+	var installer = elasticSearchInstaller{
+		clusterID:         cl.GetID(),
+		config:            op.config.Elastic,
+		kubernetesService: op.kubernetesService,
+	}
+
+	if err := op.installElasticsearchSecret(ctx, spec.SecretID, cl); err != nil {
+		return errors.WrapIfWithDetails(err, "failed to elastic install secret", "secretID", spec.SecretID)
+	}
+
+	if err := installer.installElasticsearchOperator(ctx); err != nil {
+		return errors.WrapIf(err, "failed to install Elasticsearch operator")
+	}
+
+	if err := installer.installElasticsearchCluster(ctx); err != nil {
+		return errors.WrapIf(err, "failed to install Elasticsearch cluster")
+	}
+
+	if err := installer.installKibana(ctx); err != nil {
+		return errors.WrapIf(err, "failed to install Kibana")
+	}
+
+	return nil
+}
+
+func (op IntegratedServiceOperator) installElasticsearchSecret(
+	ctx context.Context,
+	secretID string,
+	cl integratedserviceadapter.Cluster,
+) error {
+	secretName, err := op.secretStore.GetNameByID(ctx, secretID)
+	if err != nil {
+		return errors.WrapIfWithDetails(err,
+			"failed to get Elasticsearch secret",
+			"secretID", secretID)
+	}
+
+	_, err = op.installSecret(cl, secretName, pkgCluster.InstallSecretRequest{
+		SourceSecretName: secretName,
+		Namespace:        elasticsearchNamespace,
+		Spec: map[string]pkgCluster.InstallSecretRequestSpecItem{
+			outputDefinitionSecretKeyElasticSearch: {Source: secrettype.Password},
+		},
+		Update: true,
+	})
+
+	return errors.WrapIf(err, "failed to install secret")
+}
+
 func isSecretNotFoundError(err error) bool {
 	errCause := errors.Cause(err)
 	if errCause == secret.ErrSecretNotExists {
@@ -389,7 +494,7 @@ func isSecretNotFoundError(err error) bool {
 	return false
 }
 
-func (op IntegratedServiceOperator) installSecret(ctx context.Context, cl integratedserviceadapter.Cluster, secretName string, secretRequest pkgCluster.InstallSecretRequest) (string, error) {
+func (op IntegratedServiceOperator) installSecret(cl integratedserviceadapter.Cluster, secretName string, secretRequest pkgCluster.InstallSecretRequest) (string, error) {
 	k8sSecName, err := pkgCluster.InstallSecret(cl, secretName, secretRequest)
 	if err != nil {
 		return "", errors.WrapIfWithDetails(err, "failed to install secret to the cluster", "clusterID", cl.GetID())
