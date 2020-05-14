@@ -204,8 +204,8 @@ func (h helm3EnvService) UpdateRepository(_ context.Context, helmEnv helm.HelmEn
 
 // ListCharts finds the charts based on the provided filter
 func (h helm3EnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartList, error) {
-	// retrieve the list
-	chartVersionsSlice, err := h.listCharts(ctx, helmEnv, filter)
+	// map: {repoName -> [[{chart1:v1},..,{chart1:vn}],.., [{chartm:v1},..,{chartm:vp}]}
+	repoChartVersionsSliceMap, err := h.listCharts(ctx, helmEnv, filter)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to retrieve chart list")
 	}
@@ -217,48 +217,60 @@ func (h helm3EnvService) ListCharts(ctx context.Context, helmEnv helm.HelmEnv, f
 	}
 
 	adaptedList := make(helm.ChartList, 0, 0)
-	repoCharts := repoChartType{
-		Name:   filter.RepoFilter(),
-		Charts: make([]interface{}, 0, 0),
-	}
 
-	for _, chartVersions := range chartVersionsSlice {
-		versions := make([]interface{}, 0, len(chartVersions))
-		for _, chartVersion := range chartVersions {
-			versions = append(versions, chartVersion)
+	for repoName, repoChartVersionsSlice := range repoChartVersionsSliceMap {
+		repoCharts := repoChartType{
+			Name:   repoName,
+			Charts: make([]interface{}, 0, 0),
 		}
-		repoCharts.Charts = append(repoCharts.Charts, versions)
-	}
 
-	if len(repoCharts.Charts) > 0 {
-		adaptedList = append(adaptedList, repoCharts)
+		//[[{chart1:v1},..,{chart1:vn}],..,[{chartm:v1},..,{chartm:vp}]}
+		for _, chartVersions := range repoChartVersionsSlice {
+			versions := make([]interface{}, 0, len(chartVersions))
+
+			// [{chart1:v1},..,{chart1:vn}]
+			for _, chartVersion := range chartVersions {
+				versions = append(versions, chartVersion)
+			}
+
+			repoCharts.Charts = append(repoCharts.Charts, versions)
+		}
+
+		if len(repoCharts.Charts) > 0 {
+			adaptedList = append(adaptedList, repoCharts)
+		}
 	}
 
 	return adaptedList, nil
 }
 
 func (h helm3EnvService) GetChart(ctx context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (helm.ChartDetails, error) {
-	chartInSlice, err := h.listCharts(ctx, helmEnv, filter)
+	repoChartsSlice, err := h.listCharts(ctx, helmEnv, filter)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to look up chart")
+		return nil, errors.WrapIfWithDetails(err, "failed to look up charts in repo", "repo", filter.RepoFilter())
 	}
 
-	if len(chartInSlice) == 0 {
+	chartsInSlice, ok := repoChartsSlice[filter.RepoFilter()]
+	if !ok {
+		return nil, errors.WrapIfWithDetails(err, "failed get charts for repo", "repo", filter.RepoFilter())
+	}
+
+	if len(chartsInSlice) == 0 {
 		h.logger.Debug("chart not found", map[string]interface{}{"filter": filter})
 		return helm.ChartDetails{}, nil
 	}
 
-	if len(chartInSlice) > 1 {
+	if len(chartsInSlice) > 1 {
 		return nil, errors.New("found more than one repositories")
 	}
 
 	// transform the response
-	detailedCharts, err := h.getDetailedCharts(ctx, helmEnv, chartInSlice[0])
+	detailedCharts, err := h.getDetailedCharts(ctx, helmEnv, chartsInSlice[0])
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get detailed charts")
 	}
 
-	return h.adaptChartDetailsResponse(detailedCharts, filter.RepoFilter(), chartInSlice[0])
+	return h.adaptChartDetailsResponse(detailedCharts, filter.RepoFilter(), chartsInSlice[0])
 }
 
 // processEnvSettings emulates an cli.EnvSettings instance based on the passed in data
@@ -338,8 +350,8 @@ func (h helm3EnvService) getRawChartFileContent(chartFileName string, chartPtr *
 
 // listCharts retrieves  charts based on the input data
 // operates with h3 lib types
-func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) ([]repo.ChartVersions, error) {
-	chartVersionsSlice := make([]repo.ChartVersions, 0, 0)
+func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, filter helm.ChartFilter) (map[string][]repo.ChartVersions, error) {
+	chartVersionsSlice := make(map[string][]repo.ChartVersions)
 
 	repoFile, err := repo.LoadFile(helmEnv.GetHome())
 	if err != nil {
@@ -377,14 +389,14 @@ func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, fil
 			// special case: latest versions to be returned only, no need to iterate over versions
 			if filter.VersionFilter() == "latest" {
 				filteredChartVersions = append(filteredChartVersions, chartVersions[0])
-				chartVersionsSlice = append(chartVersionsSlice, filteredChartVersions)
+				chartVersionsSlice[repoEntry.Name] = append(chartVersionsSlice[repoEntry.Name], filteredChartVersions)
 				continue
 			}
 
 			// special case: all
 			if filter.VersionFilter() == "all" {
 				filteredChartVersions = append(filteredChartVersions, chartVersions...)
-				chartVersionsSlice = append(chartVersionsSlice, filteredChartVersions)
+				chartVersionsSlice[repoEntry.Name] = append(chartVersionsSlice[repoEntry.Name], filteredChartVersions)
 				continue
 			}
 
@@ -406,7 +418,7 @@ func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, fil
 				filteredChartVersions = append(filteredChartVersions, chartVersion)
 			}
 			if len(filteredChartVersions) > 0 {
-				chartVersionsSlice = append(chartVersionsSlice, filteredChartVersions)
+				chartVersionsSlice[repoEntry.Name] = append(chartVersionsSlice[repoEntry.Name], filteredChartVersions)
 			}
 		}
 	}
