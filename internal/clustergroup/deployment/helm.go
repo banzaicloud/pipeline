@@ -30,7 +30,7 @@ type ChartMeta struct {
 }
 
 type HelmService interface {
-	GetChartDescription(name, version string) (string, error)
+	GetChartMeta(name, version string) (ChartMeta, error)
 	InstallOrUpgrade(
 		c helm.ClusterDataProvider,
 		release helm.Release,
@@ -64,10 +64,10 @@ func (h *Helm3Service) InstallOrUpgrade(c helm.ClusterDataProvider, release helm
 	return h.releaser.InstallOrUpgrade(c, release, opts)
 }
 
-func (h *Helm3Service) GetChartDescription(name, version string) (string, error) {
+func (h *Helm3Service) GetChartMeta(name, version string) (ChartMeta, error) {
 	repoAndChart := strings.Split(name, "/")
 	if len(repoAndChart) != 2 {
-		return "", errors.Errorf("missing repo ref from chart name %s", name)
+		return ChartMeta{}, errors.Errorf("missing repo ref from chart name %s", name)
 	}
 	chart, err := h.facade.GetChart(context.TODO(), 0, helm.ChartFilter{
 		Repo:    []string{repoAndChart[0]},
@@ -75,7 +75,15 @@ func (h *Helm3Service) GetChartDescription(name, version string) (string, error)
 		Version: []string{version},
 	}, helm.Options{})
 	if err != nil {
-		return "", err
+		return ChartMeta{}, err
 	}
-	return chart.GetDescription(version)
+	desc, err := chart.GetDescription(version)
+	if err != nil {
+		return ChartMeta{}, err
+	}
+	return ChartMeta{
+		Name:        repoAndChart[1],
+		Version:     version,
+		Description: desc,
+	}, nil
 }

@@ -19,6 +19,7 @@ import (
 	"regexp"
 	"testing"
 
+	helm2 "github.com/banzaicloud/pipeline/src/helm"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
@@ -47,6 +48,18 @@ func TestIntegration(t *testing.T) {
 
 	helmHomeV2 := helmtesting.HelmHome(t)
 	t.Run("testGetChartDescV2", testGetChartDesc(helmHomeV2, v2))
+
+	t.Run("testLegacyGetRequestedChart", testLegacyGetRequestedChart)
+}
+
+func testLegacyGetRequestedChart(t *testing.T) {
+	global.Config.Helm.Home = helmtesting.HelmHome(t)
+	env := helm2.GeneratePlatformHelmRepoEnv()
+	chart, err := helm2.GetRequestedChart("mysql", "stable/mysql", "", nil, env)
+	if err != nil {
+		t.Fatalf("%+v", err)
+	}
+	assert.Equal(t, "mysql", chart.Metadata.Name)
 }
 
 func testGetChartDesc(home string, v3 bool) func(*testing.T) {
@@ -69,11 +82,13 @@ func testGetChartDesc(home string, v3 bool) func(*testing.T) {
 
 		helmService := deployment.NewHelmService(facade, releaser)
 
-		description, err := helmService.GetChartDescription("stable/mysql", "1.6.3")
+		chartMeta, err := helmService.GetChartMeta("stable/mysql", "1.6.3")
 		if err != nil {
 			t.Fatalf("%+v", err)
 		}
 
-		assert.Equal(t, "Fast, reliable, scalable, and easy to use open-source relational database system.", description)
+		assert.Equal(t, "mysql", chartMeta.Name)
+		assert.Equal(t, "1.6.3", chartMeta.Version)
+		assert.Equal(t, "Fast, reliable, scalable, and easy to use open-source relational database system.", chartMeta.Description)
 	}
 }
