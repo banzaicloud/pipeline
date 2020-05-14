@@ -21,10 +21,11 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/internal/global"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/release"
 	"sigs.k8s.io/yaml"
+
+	"github.com/banzaicloud/pipeline/internal/global"
 
 	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
 

@@ -21,11 +21,12 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
-	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/ghodss/yaml"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"github.com/technosophos/moniker"
+
+	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
 	"github.com/banzaicloud/pipeline/src/helm"
