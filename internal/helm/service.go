@@ -373,16 +373,6 @@ func (s service) ModifyRepository(ctx context.Context, organizationID uint, repo
 	if err != nil {
 		return errors.WrapIf(err, "failed to resolve helm repository environment")
 	}
-	if repository.PasswordSecretID != "" {
-		if err := s.secretStore.CheckPasswordSecret(ctx, repository.PasswordSecretID); err != nil {
-			return ValidationError{message: err.Error(), violations: []string{"password secret must exist"}}
-		}
-	}
-	if repository.TlsSecretID != "" {
-		if err := s.secretStore.CheckTLSSecret(ctx, repository.TlsSecretID); err != nil {
-			return ValidationError{message: err.Error(), violations: []string{"tls secret must exist"}}
-		}
-	}
 
 	exists, err := s.repoExists(ctx, Repository{Name: repository.Name}, helmEnv)
 	if err != nil {
