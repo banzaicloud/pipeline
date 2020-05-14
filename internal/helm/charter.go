@@ -70,8 +70,8 @@ func (cf ChartFilter) NameFilter() string {
 
 func (cf ChartFilter) VersionFilter() string {
 	versionFilter := firstOrEmpty(cf.Version)
-	// special case (backwards comp.)
-	if versionFilter == "all" {
+	// special cases (backwards comp.)
+	if versionFilter == "all" || versionFilter == "latest" {
 		return versionFilter
 	}
 	if versionFilter != "" {
