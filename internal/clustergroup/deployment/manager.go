@@ -21,12 +21,11 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/ghodss/yaml"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"github.com/technosophos/moniker"
-
-	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
 	"github.com/banzaicloud/pipeline/src/helm"
@@ -248,16 +247,20 @@ func (m CGDeploymentManager) isStaleDeployment(release internalhelm.Release, dep
 	if release.Version != depInfo.ChartVersion {
 		return true
 	}
+
+	allValues := helm.MergeValues(release.Values, release.ReleaseInfo.Values)
+
+	marshalledValues, err := yaml.Marshal(allValues)
+	if err != nil {
+		return true
+	}
+
 	values, err := depInfo.GetValuesForCluster(apiCluster.GetName())
 	if err != nil {
 		return false
 	}
-	m.logger.Debugf("%s release values: \n%s \nuser values:\n%s ", apiCluster.GetName(), release.ReleaseInfo.Values, string(values))
 
-	marshalledValues, err := yaml.Marshal(release.ReleaseInfo.Values)
-	if err != nil {
-		return true
-	}
+	m.logger.Debugf("%s release values: \n%s \nuser values:\n%s ", apiCluster.GetName(), marshalledValues, string(values))
 
 	if len(marshalledValues) != len(string(values)) || string(marshalledValues) != string(values) {
 		return true
