@@ -405,6 +405,7 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 		return errors.WrapIf(err, "failed to resolve helm repository environment")
 	}
 
+	// repo exists under the orgs helm env
 	exists, err := s.repoExists(ctx, Repository{Name: repository.Name}, helmEnv)
 	if err != nil {
 		return errors.WrapIfWithDetails(err, "failed to retrieve helm repository",
@@ -418,11 +419,18 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 		}
 	}
 
-	if err := s.envService.UpdateRepository(ctx, helmEnv, repository); err != nil {
-		return errors.WrapIf(err, "failed to set up helm repository environment")
+	repoToUpdate, err := s.store.Get(ctx, organizationID, repository)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to retrieve repository to update",
+			"orgID", organizationID, "repoName", repository.Name)
 	}
 
-	s.logger.Debug("created helm repository", map[string]interface{}{"orgID": organizationID, "helm repository": repository.Name})
+	if err := s.envService.UpdateRepository(ctx, helmEnv, repoToUpdate); err != nil {
+		errors.WrapIfWithDetails(err, "failed to update repository",
+			"orgID", organizationID, "repoName", repository.Name)
+	}
+
+	s.logger.Debug("helm repository successfully updated", map[string]interface{}{"orgID": organizationID, "helm repository": repository.Name})
 	return nil
 }
 

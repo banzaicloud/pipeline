@@ -179,6 +179,9 @@ func (h helm3EnvService) PatchRepository(ctx context.Context, helmEnv helm.HelmE
 }
 
 func (h helm3EnvService) UpdateRepository(ctx context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
+	if repository.URL == "" {
+		return errors.NewWithDetails("failed to update repository; missing repository URL")
+	}
 
 	if err := h.DeleteRepository(ctx, helmEnv, repository.Name); err != nil {
 		return errors.WrapIf(err, "failed to remove repo before update")
