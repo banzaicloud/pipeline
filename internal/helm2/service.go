@@ -16,9 +16,12 @@ package helm2
 
 import (
 	"context"
+	"encoding/base64"
 	"strings"
+	"time"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/pipeline/internal/global"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/release"
 	"sigs.k8s.io/yaml"
@@ -472,22 +475,51 @@ func (s *LegacyHelmService) AddRepositoryIfNotExists(repository internalhelm.Rep
 }
 
 func (s *LegacyHelmService) GetRelease(c internalhelm.ClusterDataProvider, releaseName, namespace string) (internalhelm.Release, error) {
-	deployment, err := s.GetDeployment(context.TODO(), c.GetID(), releaseName, namespace)
+	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
-		return internalhelm.Release{}, errors.WrapIf(err, "failed to get release")
+		return internalhelm.Release{}, err
 	}
+
+	helmClient, err := pkgHelm.NewClient(kubeConfig, global.LogrusLogger())
+	if err != nil {
+		return internalhelm.Release{}, err
+	}
+	defer helmClient.Close()
+
+	releaseContent, err := helmClient.ReleaseContent(releaseName)
+	if err != nil {
+		return internalhelm.Release{}, err
+	}
+
+	createdAt := time.Unix(releaseContent.GetRelease().GetInfo().GetFirstDeployed().GetSeconds(), 0)
+	updatedAt := time.Unix(releaseContent.GetRelease().GetInfo().GetLastDeployed().GetSeconds(), 0)
+
+	notes := base64.StdEncoding.EncodeToString([]byte(releaseContent.GetRelease().GetInfo().GetStatus().GetNotes()))
+
+	chartValues, err := internalhelm.ConvertBytes([]byte(releaseContent.GetRelease().GetChart().GetValues().GetRaw()))
+	if err != nil {
+		return internalhelm.Release{}, errors.WrapIf(err, "failed to decode chart values")
+	}
+
+	overrideValues, err := internalhelm.ConvertBytes([]byte(releaseContent.GetRelease().GetConfig().GetRaw()))
+	if err != nil {
+		return internalhelm.Release{}, errors.WrapIf(err, "failed to decode override values")
+	}
+
 	return internalhelm.Release{
-		ReleaseName:    deployment.ReleaseName,
-		ChartName:      deployment.ChartName,
-		Namespace:      deployment.Namespace,
-		Values:         deployment.Values,
-		Version:        deployment.ChartVersion,
-		ReleaseVersion: deployment.Version,
+		ReleaseName:    releaseContent.GetRelease().GetName(),
+		ChartName:      releaseContent.GetRelease().GetChart().GetMetadata().GetName(),
+		Namespace:      releaseContent.GetRelease().GetNamespace(),
+		Values:         chartValues,
+		Version:        releaseContent.GetRelease().GetChart().GetMetadata().GetVersion(),
+		ReleaseVersion: releaseContent.GetRelease().GetVersion(),
 		ReleaseInfo: internalhelm.ReleaseInfo{
-			Description: deployment.Description,
-			Status:      deployment.Status,
-			Notes:       deployment.Notes,
-			Values:      deployment.Values,
+			FirstDeployed: createdAt,
+			LastDeployed:  updatedAt,
+			Description:   releaseContent.GetRelease().GetInfo().GetDescription(),
+			Status:        releaseContent.GetRelease().GetInfo().GetStatus().GetCode().String(),
+			Notes:         notes,
+			Values:        overrideValues,
 		},
 	}, nil
 }
