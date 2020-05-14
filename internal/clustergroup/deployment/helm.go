@@ -37,6 +37,7 @@ type HelmService interface {
 		opts helm.Options,
 	) error
 	GetRelease(c helm.ClusterDataProvider, releaseName, namespace string) (helm.Release, error)
+	DeleteRelease(c helm.ClusterDataProvider, releaseName, namespace string) error
 }
 
 type Helm3Service struct {
@@ -53,6 +54,10 @@ func NewHelmService(facade helm.Service, releaser helm.UnifiedReleaser) HelmServ
 		facade:   facade,
 		releaser: releaser,
 	}
+}
+
+func (h *Helm3Service) DeleteRelease(c helm.ClusterDataProvider, releaseName, namespace string) error {
+	return h.releaser.Delete(c, releaseName, namespace)
 }
 
 func (h *Helm3Service) InstallOrUpgrade(c helm.ClusterDataProvider, release helm.Release, opts helm.Options) error {

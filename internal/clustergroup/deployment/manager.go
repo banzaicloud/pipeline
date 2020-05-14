@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
@@ -203,6 +202,9 @@ func (m CGDeploymentManager) upgradeOrInstallDeploymentOnCluster(apiCluster api.
 func (m CGDeploymentManager) findRelease(apiCluster api.Cluster, name, namespace string) (*internalhelm.Release, error) {
 	release, err := m.helmService.GetRelease(apiCluster, name, namespace)
 	if err != nil {
+		if internalhelm.ErrReleaseNotFound(err) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -502,7 +504,7 @@ func (m CGDeploymentManager) GetAllDeployments(clusterGroup *api.ClusterGroup) (
 	return resultList, nil
 }
 
-func (m CGDeploymentManager) deleteDeploymentFromCluster(clusterId uint, apiCluster api.Cluster, releaseName string) error {
+func (m CGDeploymentManager) deleteDeploymentFromCluster(clusterId uint, apiCluster api.Cluster, releaseName, namespace string) error {
 	var log *logrus.Entry
 	if apiCluster == nil {
 		log = m.logger.WithFields(logrus.Fields{"releaseName": releaseName, "clusterId": clusterId})
@@ -521,18 +523,9 @@ func (m CGDeploymentManager) deleteDeploymentFromCluster(clusterId uint, apiClus
 	apiCluster = cluster
 
 	log.Info("deleting cluster group deployment from cluster")
-	k8sConfig, err := apiCluster.GetK8sConfig()
-	if err != nil {
-		return err
-	}
 
-	err = helm.DeleteDeployment(releaseName, k8sConfig)
-	if err != nil {
-		// deployment not found error is ok in this case
-		if !strings.Contains(err.Error(), "not found") {
-			log.Error(errors.WrapIf(err, "failed to delete cluster group deployment from cluster").Error())
-			return err
-		}
+	if err := m.helmService.DeleteRelease(apiCluster, releaseName, namespace); err != nil {
+		return errors.WrapIf(err, "failed to delete cluster group deployment from cluster")
 	}
 	return nil
 }
@@ -604,7 +597,7 @@ func (m CGDeploymentManager) deleteDeploymentFromTargetClusters(clusterGroup *ap
 		if deleteAll || !exists {
 			deploymentCount++
 			go func(clusterID uint, apiCluster api.Cluster, name string) {
-				clErr := m.deleteDeploymentFromCluster(clusterID, apiCluster, name)
+				clErr := m.deleteDeploymentFromCluster(clusterID, apiCluster, name, deploymentModel.Namespace)
 				opStatus := TargetClusterStatus{
 					ClusterId: clusterID,
 					Status:    OperationSucceededStatus,
