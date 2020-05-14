@@ -178,26 +178,15 @@ func (h helm3EnvService) PatchRepository(ctx context.Context, helmEnv helm.HelmE
 	return h.UpdateRepository(ctx, helmEnv, repository)
 }
 
-func (h helm3EnvService) UpdateRepository(_ context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
-	settings := h.processEnvSettings(helmEnv)
+func (h helm3EnvService) UpdateRepository(ctx context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
 
-	f, err := repo.LoadFile(helmEnv.GetHome())
-	if os.IsNotExist(errors.Cause(err)) || len(f.Repositories) == 0 {
-		return errors.New("no repositories found. You must add one before updating")
-	}
-	var repos []*repo.ChartRepository
-	for _, cfg := range f.Repositories {
-		r, err := repo.NewChartRepository(cfg, getter.All(settings))
-		if err != nil {
-			return err
-		}
-
-		// override the wired cache location
-		r.CachePath = settings.RepositoryCache
-		repos = append(repos, r)
+	if err := h.DeleteRepository(ctx, helmEnv, repository.Name); err != nil {
+		return errors.WrapIf(err, "failed to remove repo before update")
 	}
 
-	h.updateCharts(repos, os.Stdin)
+	if err := h.AddRepository(ctx, helmEnv, repository); err != nil {
+		return errors.WrapIf(err, "failed re-add repository during update")
+	}
 
 	return nil
 }
