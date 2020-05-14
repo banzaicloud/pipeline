@@ -374,6 +374,20 @@ func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, fil
 				continue
 			}
 
+			// special case: latest versions to be returned only, no need to iterate over versions
+			if filter.VersionFilter() == "latest" {
+				filteredChartVersions = append(filteredChartVersions, chartVersions[0])
+				chartVersionsSlice = append(chartVersionsSlice, filteredChartVersions)
+				continue
+			}
+
+			// special case: all
+			if filter.VersionFilter() == "all" {
+				filteredChartVersions = append(filteredChartVersions, chartVersions...)
+				chartVersionsSlice = append(chartVersionsSlice, filteredChartVersions)
+				continue
+			}
+
 			for _, chartVersion := range chartVersions {
 				if !matchesFilter(filter.KeywordFilter(), strings.Join(chartVersion.Keywords, " ")) {
 					h.logger.Debug("chart keywords don't match the filter, skipping the version",
@@ -382,19 +396,14 @@ func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, fil
 					continue
 				}
 
-				switch filter.VersionFilter() {
-				case "all":
-					// special case: collect all versions for the chart Backwards compatibility!
-					filteredChartVersions = append(filteredChartVersions, chartVersion)
-				default:
-					if !matchesFilter(filter.VersionFilter(), chartVersion.Version) {
-						h.logger.Debug("chart version doesn't match the filter, skipping the version",
-							map[string]interface{}{"filter": filter.VersionFilter(), "version": chartVersion.Version})
-						// skip further processing
-						continue
-					}
-					filteredChartVersions = append(filteredChartVersions, chartVersion)
+				if !matchesFilter(filter.VersionFilter(), chartVersion.Version) {
+					h.logger.Debug("chart version doesn't match the filter, skipping the version",
+						map[string]interface{}{"filter": filter.VersionFilter(), "version": chartVersion.Version})
+					// skip further processing
+					continue
 				}
+
+				filteredChartVersions = append(filteredChartVersions, chartVersion)
 			}
 			if len(filteredChartVersions) > 0 {
 				chartVersionsSlice = append(chartVersionsSlice, filteredChartVersions)
