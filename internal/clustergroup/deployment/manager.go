@@ -123,7 +123,7 @@ func (m CGDeploymentManager) installDeploymentOnCluster(log *logrus.Entry, apiCl
 
 	err = m.helmService.InstallOrUpgrade(apiCluster, internalhelm.Release{
 		ReleaseName: depInfo.ReleaseName,
-		ChartName:   requestedChart.Name,
+		ChartName:   depInfo.Chart,
 		Namespace:   depInfo.Namespace,
 		Values:      convertedValues,
 		Version:     requestedChart.Version,
@@ -155,7 +155,7 @@ func (m CGDeploymentManager) upgradeDeploymentOnCluster(log *logrus.Entry, apiCl
 
 	err = m.helmService.InstallOrUpgrade(apiCluster, internalhelm.Release{
 		ReleaseName: depInfo.ReleaseName,
-		ChartName:   requestedChart.Name,
+		ChartName:   depInfo.Chart,
 		Namespace:   depInfo.Namespace,
 		Values:      convertedValues,
 		Version:     requestedChart.Version,
@@ -248,9 +248,7 @@ func (m CGDeploymentManager) isStaleDeployment(release internalhelm.Release, dep
 		return true
 	}
 
-	allValues := helm.MergeValues(release.Values, release.ReleaseInfo.Values)
-
-	marshalledValues, err := yaml.Marshal(allValues)
+	marshalledValues, err := yaml.Marshal(release.ReleaseInfo.Values)
 	if err != nil {
 		return true
 	}
@@ -563,15 +561,11 @@ func (m CGDeploymentManager) SyncDeployment(clusterGroup *api.ClusterGroup, orgN
 	// get deployment status for each cluster group member
 	response := make([]TargetClusterStatus, 0)
 
-	requestedChartDescription, err := m.helmService.GetChartDescription(depInfo.Chart, depInfo.ChartVersion)
+	requestedChart, err := m.helmService.GetChartMeta(depInfo.Chart, depInfo.ChartVersion)
 	if err != nil {
 		return nil, errors.WrapIf(err, "error getting chart description")
 	}
-	targetClustersStatus := m.upgradeOrInstallDeploymentToTargetClusters(clusterGroup, depInfo, ChartMeta{
-		Name:        depInfo.Chart,
-		Version:     depInfo.ChartVersion,
-		Description: requestedChartDescription,
-	}, false)
+	targetClustersStatus := m.upgradeOrInstallDeploymentToTargetClusters(clusterGroup, depInfo, requestedChart, false)
 	response = append(response, targetClustersStatus...)
 
 	targetClustersStatus, err = m.deleteDeploymentFromTargetClusters(clusterGroup, releaseName, deploymentModel, false, false)
@@ -696,15 +690,9 @@ func (m CGDeploymentManager) CreateDeployment(clusterGroup *api.ClusterGroup, or
 		}
 	}
 
-	requestedChartDescription, err := m.helmService.GetChartDescription(cgDeployment.Name, cgDeployment.Version)
+	requestedChart, err := m.helmService.GetChartMeta(cgDeployment.Name, cgDeployment.Version)
 	if err != nil {
 		return nil, errors.WrapIf(err, "error getting chart description")
-	}
-
-	requestedChart := ChartMeta{
-		Name:        cgDeployment.Name,
-		Version:     cgDeployment.Version,
-		Description: requestedChartDescription,
 	}
 
 	if cgDeployment.Namespace == "" {
@@ -736,7 +724,7 @@ func (m CGDeploymentManager) CreateDeployment(clusterGroup *api.ClusterGroup, or
 // UpdateDeployment upgrades deployment using provided values or using already provided values if ReUseValues = true.
 // The deployment is installed on a member cluster in case it's was not installed previously.
 func (m CGDeploymentManager) UpdateDeployment(clusterGroup *api.ClusterGroup, cgDeployment *ClusterGroupDeployment) ([]TargetClusterStatus, error) {
-	requestedChartDescription, err := m.helmService.GetChartDescription(cgDeployment.Name, cgDeployment.Version)
+	requestedChart, err := m.helmService.GetChartMeta(cgDeployment.Name, cgDeployment.Version)
 	if err != nil {
 		return nil, errors.WrapIf(err, "error getting chart description")
 	}
@@ -750,12 +738,6 @@ func (m CGDeploymentManager) UpdateDeployment(clusterGroup *api.ClusterGroup, cg
 	deploymentModel, err := m.repository.FindByName(clusterGroup.Id, cgDeployment.ReleaseName)
 	if err != nil {
 		return nil, err
-	}
-
-	requestedChart := ChartMeta{
-		Name:        cgDeployment.Name,
-		Version:     cgDeployment.Version,
-		Description: requestedChartDescription,
 	}
 
 	// if reUseValues = false update values / valueOverrides from request
