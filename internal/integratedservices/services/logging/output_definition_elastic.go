@@ -15,11 +15,12 @@
 package logging
 
 import (
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	"github.com/banzaicloud/pipeline/src/secret"
+
 	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	"github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
 	loggingSecret "github.com/banzaicloud/logging-operator/pkg/sdk/model/secret"
-	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 type outputDefinitionManagerElastic struct {

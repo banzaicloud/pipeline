@@ -24,7 +24,7 @@ import (
 	esCommon "github.com/elastic/cloud-on-k8s/pkg/apis/common/v1"
 	esType "github.com/elastic/cloud-on-k8s/pkg/apis/elasticsearch/v1"
 	kibanaType "github.com/elastic/cloud-on-k8s/pkg/apis/kibana/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
@@ -102,7 +102,7 @@ func (esi elasticSearchInstaller) getECKResourceYaml() ([]string, error) {
 
 func (esi elasticSearchInstaller) removeElasticsearchCluster(ctx context.Context) error {
 	return esi.kubernetesService.DeleteObject(ctx, esi.clusterID, &esType.Elasticsearch{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metaV1.ObjectMeta{
 			Name:      elasticObjectNames,
 			Namespace: elasticsearchNamespace,
 		},
@@ -111,7 +111,7 @@ func (esi elasticSearchInstaller) removeElasticsearchCluster(ctx context.Context
 
 func (esi elasticSearchInstaller) installElasticsearchCluster(ctx context.Context) error {
 	return esi.kubernetesService.EnsureObject(ctx, esi.clusterID, &esType.Elasticsearch{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metaV1.ObjectMeta{
 			Name:      elasticObjectNames,
 			Namespace: elasticsearchNamespace,
 		},
@@ -139,7 +139,7 @@ func (esi elasticSearchInstaller) removeKibana(
 	ctx context.Context,
 ) error {
 	return esi.kubernetesService.EnsureObject(ctx, esi.clusterID, &kibanaType.Kibana{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metaV1.ObjectMeta{
 			Name:      elasticObjectNames,
 			Namespace: elasticsearchNamespace,
 		},
@@ -148,7 +148,7 @@ func (esi elasticSearchInstaller) removeKibana(
 
 func (esi elasticSearchInstaller) installKibana(ctx context.Context) error {
 	return esi.kubernetesService.EnsureObject(ctx, esi.clusterID, &kibanaType.Kibana{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metaV1.ObjectMeta{
 			Name:      elasticObjectNames,
 			Namespace: elasticsearchNamespace,
 		},
