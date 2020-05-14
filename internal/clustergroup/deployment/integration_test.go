@@ -19,8 +19,9 @@ import (
 	"regexp"
 	"testing"
 
-	helm2 "github.com/banzaicloud/pipeline/src/helm"
 	"github.com/stretchr/testify/assert"
+
+	helm2 "github.com/banzaicloud/pipeline/src/helm"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/cmd"
