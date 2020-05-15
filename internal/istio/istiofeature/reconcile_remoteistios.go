@@ -99,16 +99,16 @@ func (m *MeshReconciler) reconcileRemoteIstio(desiredState DesiredState, c clust
 			m.reconcileRemoteIstioClusterRoleBinding,
 			m.reconcileRemoteIstioClusterRole,
 			m.reconcileRemoteIstioServiceAccount,
-			m.reconcileRemoteIstioNamespace,
 			m.reconcileRemoteIstioSecret,
 			func(desiredState DesiredState, c cluster.CommonCluster) error {
 				return m.ReconcileBackyards(desiredState, c, true)
 			},
 			m.reconcileRemoteIstioALSService,
 			m.reconcileRemoteIstioTracingService,
-			m.ReconcileBackyardsNamespace,
 			m.ReconcileNodeExporter,
 			m.reconcileRemoteIstioPrometheusService,
+			m.reconcileRemoteIstioNamespace,
+			m.ReconcileBackyardsNamespace,
 		}
 	}
 

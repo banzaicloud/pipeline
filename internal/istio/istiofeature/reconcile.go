@@ -52,10 +52,10 @@ func (m *MeshReconciler) Reconcile() error {
 			func(desiredState DesiredState, c cluster.CommonCluster) error {
 				return m.ReconcileBackyards(desiredState, c, false)
 			},
+			m.ReconcileNodeExporter,
 			m.ReconcileCanaryOperatorNamespace,
 			m.ReconcileBackyardsNamespace,
 			m.ReconcileIstioOperatorNamespace,
-			m.ReconcileNodeExporter,
 		}
 	}
 
