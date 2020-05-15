@@ -404,6 +404,7 @@ func (op IntegratedServiceOperator) installLoggingOperator(ctx context.Context, 
 			Repository: op.config.Images.Operator.Repository,
 			Tag:        op.config.Images.Operator.Tag,
 		},
+		CreateCustomResource: !op.helmService.IsV3(),
 	}
 
 	operatorConfigValues, err := copystructure.Copy(op.config.Charts.Operator.Values)
