@@ -25,7 +25,7 @@ import (
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
-const pkeVersion = "0.4.26"
+const pkeVersion = "0.5.0-dev.1"
 
 // TODO: add support for GPU nodes
 type PKEImageNameGetter interface {
