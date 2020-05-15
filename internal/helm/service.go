@@ -373,16 +373,6 @@ func (s service) ModifyRepository(ctx context.Context, organizationID uint, repo
 	if err != nil {
 		return errors.WrapIf(err, "failed to resolve helm repository environment")
 	}
-	if repository.PasswordSecretID != "" {
-		if err := s.secretStore.CheckPasswordSecret(ctx, repository.PasswordSecretID); err != nil {
-			return ValidationError{message: err.Error(), violations: []string{"password secret must exist"}}
-		}
-	}
-	if repository.TlsSecretID != "" {
-		if err := s.secretStore.CheckTLSSecret(ctx, repository.TlsSecretID); err != nil {
-			return ValidationError{message: err.Error(), violations: []string{"tls secret must exist"}}
-		}
-	}
 
 	exists, err := s.repoExists(ctx, Repository{Name: repository.Name}, helmEnv)
 	if err != nil {
@@ -415,6 +405,7 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 		return errors.WrapIf(err, "failed to resolve helm repository environment")
 	}
 
+	// repo exists under the orgs helm env
 	exists, err := s.repoExists(ctx, Repository{Name: repository.Name}, helmEnv)
 	if err != nil {
 		return errors.WrapIfWithDetails(err, "failed to retrieve helm repository",
@@ -428,11 +419,18 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 		}
 	}
 
-	if err := s.envService.UpdateRepository(ctx, helmEnv, repository); err != nil {
-		return errors.WrapIf(err, "failed to set up helm repository environment")
+	repoToUpdate, err := s.getRepoForUpdate(ctx, organizationID, repository)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to retrieve repository to update",
+			"orgID", organizationID, "repoName", repository.Name)
 	}
 
-	s.logger.Debug("created helm repository", map[string]interface{}{"orgID": organizationID, "helm repository": repository.Name})
+	if err := s.envService.UpdateRepository(ctx, helmEnv, repoToUpdate); err != nil {
+		return errors.WrapIfWithDetails(err, "failed to update repository",
+			"orgID", organizationID, "repoName", repository.Name)
+	}
+
+	s.logger.Debug("helm repository successfully updated", map[string]interface{}{"orgID": organizationID, "helm repository": repository.Name})
 	return nil
 }
 
@@ -637,4 +635,22 @@ func (s service) decorateRepos(ctx context.Context, orgID uint, repos []Reposito
 	}
 
 	return decorated
+}
+
+func (s service) getRepoForUpdate(ctx context.Context, orgID uint, repository Repository) (Repository, error) {
+	repoURL, ok := s.config.Repositories[repository.Name]
+	if ok {
+		s.logger.Debug("updating builtin helm repo", map[string]interface{}{"repoName": repository.Name})
+		return Repository{
+			Name: repository.Name,
+			URL:  repoURL,
+		}, nil
+	}
+
+	repo, err := s.store.Get(ctx, orgID, repository)
+	if err != nil {
+		return Repository{}, errors.WrapIf(err, "failed to get persisted repo for update")
+	}
+	s.logger.Debug("updating org helm repo", map[string]interface{}{"repoName": repository.Name})
+	return repo, nil
 }
