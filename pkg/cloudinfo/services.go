@@ -48,7 +48,6 @@ func (c *Client) PKEImageName(cloudProvider, service, os, kubeVersion, pkeVersio
 		Os:         optional.NewString(os),
 		PkeVersion: optional.NewString(pkeVersion),
 		LatestOnly: optional.NewString("true"),
-		Gpu:        optional.NewString("false"),
 	}
 	images, _, err := c.apiClient.ImagesApi.GetImages(context.Background(), cloudProvider, service, region, opts)
 	if err != nil {
