@@ -138,6 +138,10 @@ func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, rel
 	}, nil
 }
 
+func (d dummyHelmService) IsV3() bool {
+	return false
+}
+
 type dummyKubernetesService struct {
 }
 

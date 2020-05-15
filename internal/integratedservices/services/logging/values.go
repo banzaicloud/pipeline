@@ -15,7 +15,8 @@
 package logging
 
 type loggingOperatorValues struct {
-	Image imageValues `json:"image" mapstructure:"image"`
+	Image                imageValues `json:"image" mapstructure:"image"`
+	CreateCustomResource bool        `json:"createCustomResource" mapstructure:"createCustomResource"`
 }
 
 type imageValues struct {
