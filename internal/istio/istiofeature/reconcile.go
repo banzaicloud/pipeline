@@ -45,14 +45,14 @@ func (m *MeshReconciler) Reconcile() error {
 		}
 	case DesiredStateAbsent:
 		reconcilers = []ReconcilerWithCluster{
-			m.ReconcileRemoteIstios,
-			m.ReconcileIstio,
-			m.ReconcileIstioOperator,
-			m.ReconcileCanaryOperator,
+			m.ReconcileNodeExporter,
 			func(desiredState DesiredState, c cluster.CommonCluster) error {
 				return m.ReconcileBackyards(desiredState, c, false)
 			},
-			m.ReconcileNodeExporter,
+			m.ReconcileCanaryOperator,
+			m.ReconcileRemoteIstios,
+			m.ReconcileIstio,
+			m.ReconcileIstioOperator,
 			m.ReconcileCanaryOperatorNamespace,
 			m.ReconcileBackyardsNamespace,
 			m.ReconcileIstioOperatorNamespace,
