@@ -136,6 +136,9 @@ require (
 )
 
 replace (
+        // helm 3.1.3 + fix uninstall for missing types
+	helm.sh/helm/v3 => github.com/pepov/helm/v3 v3.0.0-20200516203950-a5c4e1dd7628
+
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v14.0.0+incompatible
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.4.2
 	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08
