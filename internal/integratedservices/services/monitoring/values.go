@@ -28,6 +28,7 @@ type prometheusOperatorValues struct {
 type operatorSpecValues struct {
 	Image                 imageValues `json:"image"`
 	CleanupCustomResource bool        `json:"cleanupCustomResource"`
+	CreateCustomResource  bool        `json:"createCustomResource"`
 }
 
 type imageValues struct {

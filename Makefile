@@ -89,6 +89,11 @@ debug: GOTAGS += dev
 debug: builddebug-pipeline
 	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" dlv --listen=:40000 --log --headless=true --api-version=2 exec build/debug/pipeline -- $(ARGS)
 
+.PHONY: debug-worker
+debug-worker: GOTAGS += dev
+debug-worker: builddebug-worker
+	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" dlv --listen=:40000 --log --headless=true --api-version=2 exec build/debug/worker -- $(ARGS)
+
 .PHONY: run-worker
 run-worker: GOTAGS += dev
 run-worker: build-worker ## Build and execute a binary

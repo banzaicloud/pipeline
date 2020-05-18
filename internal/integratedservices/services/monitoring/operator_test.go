@@ -31,7 +31,7 @@ import (
 )
 
 func TestIntegratedServiceOperator_Name(t *testing.T) {
-	op := MakeIntegratedServiceOperator(nil, nil, nil, nil, Config{}, nil, nil)
+	op := MakeIntegratedServiceOperator(nil, nil, nil, nil, Config{}, nil, nil, nil)
 
 	assert.Equal(t, "monitoring", op.Name())
 }
@@ -81,7 +81,7 @@ func TestIntegratedServiceOperator_Apply(t *testing.T) {
 				Values: map[string]interface{}{},
 			},
 		},
-	}, logger, secretStore)
+	}, logger, secretStore, nil)
 
 	cases := map[string]struct {
 		Spec    integratedservices.IntegratedServiceSpec
@@ -166,7 +166,7 @@ func TestIntegratedServiceOperator_Deactivate(t *testing.T) {
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	logger := services.NoopLogger{}
 	kubernetesService := dummyKubernetesService{}
-	op := MakeIntegratedServiceOperator(clusterGetter, clusterService, helmService, &kubernetesService, Config{}, logger, secretStore)
+	op := MakeIntegratedServiceOperator(clusterGetter, clusterService, helmService, &kubernetesService, Config{}, logger, secretStore, nil)
 
 	ctx := context.Background()
 
