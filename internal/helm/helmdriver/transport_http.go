@@ -27,7 +27,6 @@ import (
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
-	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
@@ -470,12 +469,12 @@ func encodeGetReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter, re
 		ChartName:    release.R0.ChartName,
 		ChartVersion: release.R0.Version,
 		Namespace:    release.R0.Namespace,
-		Version:      0, // TODO populate it
+		Version:      release.R0.ReleaseVersion,
 		UpdatedAt:    release.R0.ReleaseInfo.LastDeployed.String(),
 		Status:       release.R0.ReleaseInfo.Status,
 		CreatedAt:    release.R0.ReleaseInfo.FirstDeployed.String(),
 		Notes:        release.R0.ReleaseInfo.Notes,
-		Values:       nil, // TODO populate this
+		Values:       release.R0.Values,
 	}
 
 	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
