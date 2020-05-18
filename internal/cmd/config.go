@@ -535,7 +535,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::monitoring::namespace", "")
 	v.SetDefault("cluster::monitoring::grafana::adminUser", "admin")
 	v.SetDefault("cluster::monitoring::charts::operator::chart", "stable/prometheus-operator")
-	v.SetDefault("cluster::monitoring::charts::operator::version", "8.5.14")
+	v.SetDefault("cluster::monitoring::charts::operator::version", "8.13.8")
 	v.SetDefault("cluster::monitoring::charts::operator::values", map[string]interface{}{
 		"prometheus": map[string]interface{}{
 			"ingress": map[string]interface{}{

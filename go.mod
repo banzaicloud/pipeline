@@ -50,7 +50,7 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/gofrs/flock v0.7.1
 	github.com/gofrs/uuid v3.2.0+incompatible
-	github.com/golang/protobuf v1.3.4
+	github.com/golang/protobuf v1.3.5
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/sessions v1.2.0
 	github.com/gosimple/slug v1.9.0 // indirect
@@ -145,6 +145,9 @@ replace (
 	github.com/qor/auth => github.com/banzaicloud/auth v0.1.3
 
 	gopkg.in/yaml.v2 => github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182
+
+    // release-3.1
+	helm.sh/helm/v3 => github.com/pepov/helm/v3 v3.0.0-20200519142412-df65965032e2
 
 	// Kubernetes
 	k8s.io/api => k8s.io/api v0.17.5

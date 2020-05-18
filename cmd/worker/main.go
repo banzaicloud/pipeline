@@ -670,6 +670,7 @@ func main() {
 					config.Cluster.Monitoring.Config,
 					logger,
 					commonSecretStore,
+					integratedServiceMonitoring.Migrate,
 				),
 				integratedServiceLogging.MakeIntegratedServicesOperator(
 					clusterGetter,
