@@ -146,6 +146,8 @@ type VspherePKEClusterCreationParams struct {
 	Kubernetes          intPKE.Kubernetes
 	ActiveWorkflowID    string
 	LoadBalancerIPRange string
+	UUID                string
+	VirtualIP           string
 }
 
 // Create
@@ -436,6 +438,9 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --vsphere-folder="{{ .Folder }}" \
 --vsphere-username="{{ .Username }}" \
 --vsphere-password="{{ .Password }}" \
+--virtual-ip="{{ if .VirtualIP }}{{ .PublicAddress }}{{ end }}" \
+--virtual-ip-interface="${{VIP_IFACE:-eth0}}" \
+--cluster-uuid="{{ .UUID }}" \
 --lb-range="{{ .LoadBalancerIPRange }}" \
 ${PKE_EXTRA_ARGS:-}`
 
