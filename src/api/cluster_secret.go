@@ -95,7 +95,8 @@ func InstallSecretToCluster(c *gin.Context) {
 		secretRequest.SourceSecretName = secretName
 	}
 
-	installedSecretName, err := cluster.InstallSecret(commonCluster, secretName, secretRequest)
+	var secretManager = cluster.SecretInstaller{}
+	installedSecretName, err := secretManager.InstallSecret(commonCluster, secretName, secretRequest)
 
 	if err == cluster.ErrSecretNotFound {
 		ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{

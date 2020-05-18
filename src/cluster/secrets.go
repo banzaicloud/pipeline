@@ -141,13 +141,22 @@ type InstallSecretRequestSpecItem struct {
 	Value     string
 }
 
+type ClusterSecretManager interface {
+	InstallSecret(cc interface {
+		GetK8sConfig() ([]byte, error)
+		GetOrganizationId() uint
+	}, secretName string, req InstallSecretRequest) (string, error)
+}
+
+type SecretInstaller struct{}
+
 var ErrSecretNotFound = stderrors.New("secret not found")
 var ErrKubernetesSecretNotFound = stderrors.New("kubernetes secret not found")
 var ErrKubernetesSecretAlreadyExists = stderrors.New("kubernetes secret already exists")
 
 // InstallSecret installs a new secret under the name into namespace of a Kubernetes cluster.
 // It returns the installed secret name and meta about how to mount it.
-func InstallSecret(cc interface {
+func (si SecretInstaller) InstallSecret(cc interface {
 	GetK8sConfig() ([]byte, error)
 	GetOrganizationId() uint
 }, secretName string, req InstallSecretRequest) (string, error) {
@@ -156,11 +165,11 @@ func InstallSecret(cc interface {
 		return "", errors.Wrap(err, "failed to get k8s config")
 	}
 
-	return InstallSecretByK8SConfig(kubeConfig, cc.GetOrganizationId(), secretName, req)
+	return si.InstallSecretByK8SConfig(kubeConfig, cc.GetOrganizationId(), secretName, req)
 }
 
 // InstallSecretByK8SConfig is the same as InstallSecret but use this if you already have a K8S config at hand.
-func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, req InstallSecretRequest) (string, error) {
+func (SecretInstaller) InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, req InstallSecretRequest) (string, error) {
 	clusterClient, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to create kubernetes client")

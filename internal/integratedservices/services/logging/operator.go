@@ -49,6 +49,7 @@ type IntegratedServiceOperator struct {
 	config            Config
 	logger            common.Logger
 	secretStore       services.SecretStore
+	secretInstaller   pkgCluster.ClusterSecretManager
 }
 
 // MakeIntegratedServicesOperator returns a Logging integrated service operator
@@ -61,6 +62,7 @@ func MakeIntegratedServicesOperator(
 	config Config,
 	logger common.Logger,
 	secretStore services.SecretStore,
+	secretInstaller pkgCluster.ClusterSecretManager,
 ) IntegratedServiceOperator {
 	return IntegratedServiceOperator{
 		clusterGetter:     clusterGetter,
@@ -71,6 +73,7 @@ func MakeIntegratedServicesOperator(
 		config:            config,
 		logger:            logger,
 		secretStore:       secretStore,
+		secretInstaller:   secretInstaller,
 	}
 }
 
@@ -495,7 +498,7 @@ func isSecretNotFoundError(err error) bool {
 }
 
 func (op IntegratedServiceOperator) installSecret(cl integratedserviceadapter.Cluster, secretName string, secretRequest pkgCluster.InstallSecretRequest) (string, error) {
-	k8sSecName, err := pkgCluster.InstallSecret(cl, secretName, secretRequest)
+	k8sSecName, err := op.secretInstaller.InstallSecret(cl, secretName, secretRequest)
 	if err != nil {
 		return "", errors.WrapIfWithDetails(err, "failed to install secret to the cluster", "clusterID", cl.GetID())
 	}

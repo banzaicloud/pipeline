@@ -45,6 +45,7 @@ type IntegratedServiceOperator struct {
 	config            Config
 	logger            common.Logger
 	secretStore       services.SecretStore
+	secretInstaller   pkgCluster.ClusterSecretManager
 }
 
 type chartValuesManager struct {
@@ -61,6 +62,7 @@ func MakeIntegratedServiceOperator(
 	config Config,
 	logger common.Logger,
 	secretStore services.SecretStore,
+	secretInstaller pkgCluster.ClusterSecretManager,
 ) IntegratedServiceOperator {
 	return IntegratedServiceOperator{
 		clusterGetter:     clusterGetter,
@@ -70,6 +72,7 @@ func MakeIntegratedServiceOperator(
 		config:            config,
 		logger:            logger,
 		secretStore:       secretStore,
+		secretInstaller:   secretInstaller,
 	}
 }
 
@@ -405,7 +408,7 @@ func (op IntegratedServiceOperator) installSecret(ctx context.Context, clusterID
 		return "", errors.WrapIfWithDetails(err, "failed to get cluster", "clusterID", clusterID)
 	}
 
-	k8sSecName, err := pkgCluster.InstallSecret(cl, secretName, secretRequest)
+	k8sSecName, err := op.secretInstaller.InstallSecret(cl, secretName, secretRequest)
 	if err != nil {
 		return "", errors.WrapIfWithDetails(err, "failed to install secret to the cluster", "clusterID", clusterID)
 	}

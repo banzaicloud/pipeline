@@ -43,6 +43,7 @@ type IntegratedServiceOperator struct {
 	orgDomainService OrgDomainService
 	secretStore      services.SecretStore
 	config           Config
+	secretInstaller  cluster.ClusterSecretManager
 }
 
 // OrgDomainService interface for abstracting DNS provider related operations
@@ -61,6 +62,7 @@ func MakeIntegratedServiceOperator(
 	orgDomainService OrgDomainService,
 	secretStore services.SecretStore,
 	config Config,
+	secretInstaller cluster.ClusterSecretManager,
 ) IntegratedServiceOperator {
 	return IntegratedServiceOperator{
 		clusterGetter:    clusterGetter,
@@ -70,6 +72,7 @@ func MakeIntegratedServiceOperator(
 		orgDomainService: orgDomainService,
 		secretStore:      secretStore,
 		config:           config,
+		secretInstaller:  secretInstaller,
 	}
 }
 
@@ -209,7 +212,7 @@ func (op IntegratedServiceOperator) getChartValues(ctx context.Context, clusterI
 			return nil, errors.WrapIf(err, "failed to decode secret values")
 		}
 
-		secretName, err := installSecret(cl, op.config.Namespace, externaldns.AzureSecretName, externaldns.AzureSecretDataKey, secret)
+		secretName, err := op.installSecret(cl, op.config.Namespace, externaldns.AzureSecretName, externaldns.AzureSecretDataKey, secret)
 		if err != nil {
 			return nil, errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
 		}
@@ -220,7 +223,7 @@ func (op IntegratedServiceOperator) getChartValues(ctx context.Context, clusterI
 		}
 
 	case dnsGoogle:
-		secretName, err := installSecret(cl, op.config.Namespace, externaldns.GoogleSecretName, externaldns.GoogleSecretDataKey, secretValues)
+		secretName, err := op.installSecret(cl, op.config.Namespace, externaldns.GoogleSecretName, externaldns.GoogleSecretDataKey, secretValues)
 		if err != nil {
 			return nil, errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
 		}
@@ -255,7 +258,7 @@ func getProviderNameForChart(p string) string {
 }
 
 // installSecret installs a secret to the specified cluster
-func installSecret(
+func (op IntegratedServiceOperator) installSecret(
 	cl interface {
 		GetK8sConfig() ([]byte, error)
 		GetOrganizationId() uint
@@ -281,7 +284,7 @@ func installSecret(
 		},
 	}
 
-	k8sSecName, err := cluster.InstallSecret(cl, secretName, req)
+	k8sSecName, err := op.secretInstaller.InstallSecret(cl, secretName, req)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to install secret to cluster")
 	}

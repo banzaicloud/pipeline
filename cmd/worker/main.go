@@ -631,6 +631,7 @@ func main() {
 
 			expirerService := adapter.NewAsyncExpiryService(workflowClient, logger)
 
+			commonSecretInstaller := cluster.SecretInstaller{}
 			featureOperatorRegistry := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
 				integratedServiceDNS.MakeIntegratedServiceOperator(
 					clusterGetter,
@@ -640,6 +641,7 @@ func main() {
 					orgDomainService,
 					commonSecretStore,
 					config.Cluster.DNS.Config,
+					commonSecretInstaller,
 				),
 				securityscan.MakeIntegratedServiceOperator(
 					config.Cluster.SecurityScan.Config,
@@ -668,6 +670,7 @@ func main() {
 					config.Cluster.Monitoring.Config,
 					logger,
 					commonSecretStore,
+					commonSecretInstaller,
 				),
 				integratedServiceLogging.MakeIntegratedServicesOperator(
 					clusterGetter,
@@ -678,6 +681,7 @@ func main() {
 					config.Cluster.Logging.Config,
 					logger,
 					commonSecretStore,
+					commonSecretInstaller,
 				),
 				expiry.NewExpiryServiceOperator(expirerService, services.BindIntegratedServiceSpec, logger),
 				intsvcingress.NewOperator(
