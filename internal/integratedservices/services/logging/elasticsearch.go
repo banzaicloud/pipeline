@@ -39,6 +39,18 @@ type elasticSearchInstaller struct {
 	kubernetesService KubernetesService
 }
 
+func makeElasticSearchInstaller(
+	clusterID uint,
+	config ElasticConfig,
+	kubernetesService KubernetesService,
+) elasticSearchInstaller {
+	return elasticSearchInstaller{
+		clusterID:         clusterID,
+		config:            config,
+		kubernetesService: kubernetesService,
+	}
+}
+
 func (esi elasticSearchInstaller) installElasticsearchOperator(ctx context.Context) error {
 	// Install custom resource definitions and the operator with its RBAC rules
 	objectYamls, err := esi.getECKResourceYaml()

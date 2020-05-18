@@ -410,11 +410,7 @@ func (op IntegratedServiceOperator) deleteElasticsearchResource(
 		return nil
 	}
 
-	var installer = elasticSearchInstaller{
-		clusterID:         clusterID,
-		config:            op.config.Elastic,
-		kubernetesService: op.kubernetesService,
-	}
+	var installer = makeElasticSearchInstaller(clusterID, op.config.Elastic, op.kubernetesService)
 
 	if err := installer.removeKibana(ctx); err != nil {
 		return errors.WrapIf(err, "failed to delete Kibana")
@@ -440,11 +436,7 @@ func (op IntegratedServiceOperator) processElasticsearch(
 		return nil
 	}
 
-	var installer = elasticSearchInstaller{
-		clusterID:         cl.GetID(),
-		config:            op.config.Elastic,
-		kubernetesService: op.kubernetesService,
-	}
+	var installer = makeElasticSearchInstaller(cl.GetID(), op.config.Elastic, op.kubernetesService)
 
 	if err := op.installElasticsearchSecret(ctx, spec.SecretID, cl); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to elastic install secret", "secretID", spec.SecretID)
