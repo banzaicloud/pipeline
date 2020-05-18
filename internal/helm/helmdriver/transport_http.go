@@ -524,17 +524,21 @@ func encodeListReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, 
 		return errors.WrapIf(releases.Err, "failed to retrieve releases")
 	}
 
-	resp := make([]deployment.ListDeploymentResponse, 0, len(releases.R0))
+	resp := make([]helm2.ListDeploymentResponse, 0, len(releases.R0))
 	for _, release := range releases.R0 {
-		resp = append(resp, deployment.ListDeploymentResponse{
+		resp = append(resp, helm2.ListDeploymentResponse{
 			Name:         release.ReleaseName,
 			Chart:        release.ChartName,
 			ChartName:    release.ChartName,
 			ChartVersion: release.Version,
 			Version:      release.ReleaseVersion,
 			UpdatedAt:    release.ReleaseInfo.LastDeployed,
+			Status:       release.ReleaseInfo.Status,
 			Namespace:    release.Namespace,
 			CreatedAt:    release.ReleaseInfo.FirstDeployed,
+			Supported:    true,
+			//WhiteListed:  false,
+			//Rejected:     false,
 		})
 	}
 
