@@ -19,6 +19,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	"k8s.io/client-go/kubernetes/scheme"
 
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -31,7 +33,7 @@ import (
 )
 
 func TestIntegratedServiceOperator_Name(t *testing.T) {
-	op := MakeIntegratedServicesOperator(nil, nil, nil, nil, nil, Config{}, nil, nil)
+	op := MakeIntegratedServicesOperator(nil, nil, nil, nil, nil, Config{}, nil, nil, nil)
 
 	assert.Equal(t, "logging", op.Name())
 }
@@ -73,7 +75,13 @@ func TestIntegratedServiceOperator_Apply(t *testing.T) {
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	kubernetesService := dummyKubernetesService{}
 	endpointService := dummyEndpointService{}
-	op := MakeIntegratedServicesOperator(clusterGetter, clusterService, helmService, &kubernetesService, endpointService, Config{}, logger, secretStore)
+	dummySecretInstaller := DummyClusterSecretInstaller{}
+	dummyConfig := Config{
+		Elastic: ElasticConfig{
+			AllInOneYAML: "https://download.elastic.co/downloads/eck/1.1.0/all-in-one.yaml",
+		},
+	}
+	op := MakeIntegratedServicesOperator(clusterGetter, clusterService, helmService, &kubernetesService, endpointService, dummyConfig, logger, secretStore, dummySecretInstaller)
 
 	cases := map[string]struct {
 		Spec    integratedservices.IntegratedServiceSpec
@@ -114,7 +122,49 @@ func TestIntegratedServiceOperator_Apply(t *testing.T) {
 			},
 			Error: false,
 		},
+		"enable Loki with ingress": {
+			Spec: integratedservices.IntegratedServiceSpec{
+				"loki": obj{
+					"enabled": true,
+					"ingress": obj{
+						"enabled":  true,
+						"path":     "/loki",
+						"secretId": lokiSecretID,
+					},
+				},
+				"logging": obj{
+					"metrics": true,
+					"tls":     false,
+				},
+				"clusterOutput": obj{
+					"enabled": false,
+				},
+			},
+			Cluster: dummyCluster{
+				OrgID:  orgID,
+				Status: pkgCluster.Running,
+				ID:     clusterID,
+			},
+			Error: false,
+		},
+		"enable Elasticsearch": {
+			Spec: integratedservices.IntegratedServiceSpec{
+				"elastic": obj{
+					"enabled":  true,
+					"secretId": lokiSecretID,
+				},
+			},
+			Cluster: dummyCluster{
+				OrgID:  orgID,
+				Status: pkgCluster.Running,
+				ID:     clusterID,
+			},
+			Error: false,
+		},
 	}
+
+	_ = apiextensionsv1beta1.AddToScheme(scheme.Scheme)
+
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			clusterGetter.Clusters[clusterID] = tc.Cluster
@@ -149,6 +199,7 @@ func TestIntegratedServiceOperator_Deactivate(t *testing.T) {
 	clusterService := integratedserviceadapter.NewClusterService(clusterGetter)
 	helmService := dummyHelmService{}
 	endpointService := dummyEndpointService{}
+	dummySecretInstaller := DummyClusterSecretInstaller{}
 	orgSecretStore := dummyOrganizationalSecretStore{
 		Secrets: map[uint]map[string]*secret.SecretItemResponse{
 			orgID: nil,
@@ -157,7 +208,7 @@ func TestIntegratedServiceOperator_Deactivate(t *testing.T) {
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	logger := services.NoopLogger{}
 	kubernetesService := dummyKubernetesService{}
-	op := MakeIntegratedServicesOperator(clusterGetter, clusterService, helmService, &kubernetesService, endpointService, Config{}, logger, secretStore)
+	op := MakeIntegratedServicesOperator(clusterGetter, clusterService, helmService, &kubernetesService, endpointService, Config{}, logger, secretStore, dummySecretInstaller)
 
 	ctx := context.Background()
 

@@ -31,7 +31,7 @@ import (
 )
 
 func TestIntegratedServiceOperator_Name(t *testing.T) {
-	op := MakeIntegratedServiceOperator(nil, nil, nil, nil, Config{}, nil, nil)
+	op := MakeIntegratedServiceOperator(nil, nil, nil, nil, Config{}, nil, nil, nil)
 
 	assert.Equal(t, "monitoring", op.Name())
 }
@@ -72,6 +72,7 @@ func TestIntegratedServiceOperator_Apply(t *testing.T) {
 	logger := services.NoopLogger{}
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	kubernetesService := dummyKubernetesService{}
+	secretInstaller := DummyClusterSecretInstaller{}
 	op := MakeIntegratedServiceOperator(clusterGetter, clusterService, helmService, &kubernetesService, Config{
 		Charts: ChartsConfig{
 			Operator: ChartConfig{
@@ -81,7 +82,7 @@ func TestIntegratedServiceOperator_Apply(t *testing.T) {
 				Values: map[string]interface{}{},
 			},
 		},
-	}, logger, secretStore)
+	}, logger, secretStore, secretInstaller)
 
 	cases := map[string]struct {
 		Spec    integratedservices.IntegratedServiceSpec
@@ -166,7 +167,8 @@ func TestIntegratedServiceOperator_Deactivate(t *testing.T) {
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	logger := services.NoopLogger{}
 	kubernetesService := dummyKubernetesService{}
-	op := MakeIntegratedServiceOperator(clusterGetter, clusterService, helmService, &kubernetesService, Config{}, logger, secretStore)
+	secretInstaller := DummyClusterSecretInstaller{}
+	op := MakeIntegratedServiceOperator(clusterGetter, clusterService, helmService, &kubernetesService, Config{}, logger, secretStore, secretInstaller)
 
 	ctx := context.Background()
 

@@ -33,7 +33,7 @@ import (
 )
 
 func TestIntegratedServiceOperator_Name(t *testing.T) {
-	op := MakeIntegratedServiceOperator(nil, nil, nil, nil, nil, nil, Config{})
+	op := MakeIntegratedServiceOperator(nil, nil, nil, nil, nil, nil, Config{}, nil)
 
 	assert.Equal(t, "dns", op.Name())
 }
@@ -76,12 +76,13 @@ func TestIntegratedServiceOperator_Apply(t *testing.T) {
 	clusterService := integratedserviceadapter.NewClusterService(clusterGetter)
 	helmService := dummyHelmService{}
 	logger := services.NoopLogger{}
+	secretInstaller := DummyClusterSecretInstaller{}
 	orgDomainService := dummyOrgDomainService{
 		Domain: "the.domain",
 		OrgID:  orgID,
 	}
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-	op := MakeIntegratedServiceOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, secretStore, Config{})
+	op := MakeIntegratedServiceOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, secretStore, Config{}, secretInstaller)
 
 	cases := map[string]struct {
 		Spec    integratedservices.IntegratedServiceSpec
@@ -197,7 +198,8 @@ func TestIntegratedServiceOperator_Deactivate(t *testing.T) {
 	clusterService := integratedserviceadapter.NewClusterService(clusterGetter)
 	helmService := dummyHelmService{}
 	logger := services.NoopLogger{}
-	op := MakeIntegratedServiceOperator(clusterGetter, clusterService, helmService, logger, nil, nil, Config{})
+	secretInstaller := DummyClusterSecretInstaller{}
+	op := MakeIntegratedServiceOperator(clusterGetter, clusterService, helmService, logger, nil, nil, Config{}, secretInstaller)
 
 	ctx := context.Background()
 

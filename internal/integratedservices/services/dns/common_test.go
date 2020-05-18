@@ -21,6 +21,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
@@ -152,4 +153,13 @@ func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, rel
 
 func (d dummyHelmService) IsV3() bool {
 	return false
+}
+
+type DummyClusterSecretInstaller struct{}
+
+func (DummyClusterSecretInstaller) InstallSecret(_ interface {
+	GetK8sConfig() ([]byte, error)
+	GetOrganizationId() uint
+}, secretName string, _ cluster.InstallSecretRequest) (string, error) {
+	return secretName, nil
 }
