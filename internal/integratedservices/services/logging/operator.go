@@ -427,6 +427,7 @@ func (op IntegratedServiceOperator) deleteElasticsearchResource(
 	return nil
 }
 
+// processElasticsearch deploys: ECK, Elasticsearch cluster, Kibana instance
 func (op IntegratedServiceOperator) processElasticsearch(
 	ctx context.Context,
 	spec elasticSpec,
@@ -438,18 +439,22 @@ func (op IntegratedServiceOperator) processElasticsearch(
 
 	var installer = makeElasticSearchInstaller(cl.GetID(), op.config.Elastic, op.kubernetesService)
 
+	// Install Elasticsearch secret to the cluster, specified from the user
 	if err := op.installElasticsearchSecret(ctx, spec.SecretID, cl); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to elastic install secret", "secretID", spec.SecretID)
 	}
 
+	// Install the Elasticsearch operator
 	if err := installer.installElasticsearchOperator(ctx); err != nil {
 		return errors.WrapIf(err, "failed to install Elasticsearch operator")
 	}
 
+	// Install the Elasticsearch cluster
 	if err := installer.installElasticsearchCluster(ctx); err != nil {
 		return errors.WrapIf(err, "failed to install Elasticsearch cluster")
 	}
 
+	// Install Kibana
 	if err := installer.installKibana(ctx); err != nil {
 		return errors.WrapIf(err, "failed to install Kibana")
 	}

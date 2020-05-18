@@ -51,6 +51,8 @@ func makeElasticSearchInstaller(
 	}
 }
 
+// installElasticsearchOperator installs custom resource definitions and the operator with its RBAC rules
+// default all-in-one YAML: https://download.elastic.co/downloads/eck/1.1.1/all-in-one.yaml
 func (esi elasticSearchInstaller) installElasticsearchOperator(ctx context.Context) error {
 	// Install custom resource definitions and the operator with its RBAC rules
 	objectYamls, err := esi.getECKResourceYaml()
@@ -74,6 +76,8 @@ func (esi elasticSearchInstaller) installElasticsearchOperator(ctx context.Conte
 	return nil
 }
 
+// removeElasticsearchOperator removes all CRDs and and the operator which installed with
+// all-in-one YAML
 func (esi elasticSearchInstaller) removeElasticsearchOperator(ctx context.Context) error {
 	// remove CRDs
 	objectYamls, err := esi.getECKResourceYaml()
@@ -96,6 +100,8 @@ func (esi elasticSearchInstaller) removeElasticsearchOperator(ctx context.Contex
 	return nil
 }
 
+// getECKResourceYaml returns with the custom resource definitions and the operator with its RBAC rules,
+// separated with ---
 func (esi elasticSearchInstaller) getECKResourceYaml() ([]string, error) {
 	response, err := http.Get(esi.config.AllInOneYAML)
 	if err != nil {
@@ -112,6 +118,7 @@ func (esi elasticSearchInstaller) getECKResourceYaml() ([]string, error) {
 	return strings.Split(string(body), "---"), nil
 }
 
+// removeElasticsearchCluster removes Elasticsearch cluster specification
 func (esi elasticSearchInstaller) removeElasticsearchCluster(ctx context.Context) error {
 	return esi.kubernetesService.DeleteObject(ctx, esi.clusterID, &esType.Elasticsearch{
 		ObjectMeta: metaV1.ObjectMeta{
@@ -121,6 +128,7 @@ func (esi elasticSearchInstaller) removeElasticsearchCluster(ctx context.Context
 	})
 }
 
+// installElasticsearchCluster applies a simple Elasticsearch cluster specification, with one Elasticsearch node
 func (esi elasticSearchInstaller) installElasticsearchCluster(ctx context.Context) error {
 	return esi.kubernetesService.EnsureObject(ctx, esi.clusterID, &esType.Elasticsearch{
 		ObjectMeta: metaV1.ObjectMeta{
@@ -147,6 +155,7 @@ func (esi elasticSearchInstaller) installElasticsearchCluster(ctx context.Contex
 	})
 }
 
+// removeKibana deletes Kibana instance
 func (esi elasticSearchInstaller) removeKibana(
 	ctx context.Context,
 ) error {
@@ -158,6 +167,7 @@ func (esi elasticSearchInstaller) removeKibana(
 	})
 }
 
+// installKibana specifies a Kibana instance and associate it with Elasticsearch cluster
 func (esi elasticSearchInstaller) installKibana(ctx context.Context) error {
 	return esi.kubernetesService.EnsureObject(ctx, esi.clusterID, &kibanaType.Kibana{
 		ObjectMeta: metaV1.ObjectMeta{
