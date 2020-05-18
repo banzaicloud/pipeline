@@ -883,6 +883,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 			"--pipeline-nodepool=%q "+
 			"--kubernetes-cloud-provider=aws "+
 			"--kubernetes-version=%q "+
+			"--kubernetes-container-runtime=%q "+
 			"--kubernetes-network-provider=%q "+
 			"--kubernetes-service-cidr=10.10.0.0/16 "+
 			"--kubernetes-pod-network-cidr=10.20.0.0/16 "+
@@ -899,6 +900,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 			c.model.Cluster.ID,
 			nodePoolName,
 			version,
+			c.model.CRI.Runtime,
 			kubernetesNetworkProvider,
 			infrastructureCIDR,
 			apiAddress,
@@ -931,6 +933,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		"--pipeline-nodepool=%q "+
 		"--kubernetes-cloud-provider=aws "+
 		"--kubernetes-version=%q "+
+		"--kubernetes-container-runtime=%q "+
 		"--kubernetes-infrastructure-cidr=%q",
 		subcommand,
 		url,
@@ -940,6 +943,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		c.model.Cluster.ID,
 		nodePoolName,
 		version,
+		c.model.CRI.Runtime,
 		infrastructureCIDR,
 	), nil
 }
