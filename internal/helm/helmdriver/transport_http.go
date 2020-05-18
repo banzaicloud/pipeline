@@ -93,7 +93,7 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
 		endpoints.InstallRelease,
 		decodeInstallReleaseHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusCreated), errorEncoder),
 		options...,
 	))
 
