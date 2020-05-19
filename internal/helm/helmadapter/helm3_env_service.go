@@ -536,6 +536,43 @@ func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv, de
 	return helmEnv, true, nil
 }
 
+func (h helm3EnvService) CheckReleaseCharts(ctx context.Context, helmEnv helm.HelmEnv, releases []helm.Release) (map[string]bool, error) {
+	// build chart version index
+	repoCharts, err := h.listCharts(ctx, helmEnv, helm.ChartFilter{})
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to retrieve charts")
+	}
+
+	// chartName -> chartVersions
+	supportedCharts := map[string]repo.ChartVersions{}
+	for _, charts := range repoCharts {
+		for _, chart := range charts {
+			for _, chartVersion := range chart {
+				supportedCharts[chartVersion.Name] = append(supportedCharts[chartVersion.Name], chartVersion)
+			}
+		}
+	}
+
+	// releaseName -> supported
+	supportedMap := make(map[string]bool)
+	for _, release := range releases {
+		supportedMap[release.ReleaseName] = false
+		releaseChartVersions, ok := supportedCharts[release.ChartName]
+		if !ok {
+			continue
+		}
+
+		for _, releaseChartVersion := range releaseChartVersions {
+			if release.Version == releaseChartVersion.Version {
+				supportedMap[release.ReleaseName] = true
+				continue
+			}
+		}
+	}
+
+	return supportedMap, nil
+}
+
 // fileExists checks if a file exists and is not a directory before we
 // try using it to prevent further errors.
 func fileExists(filename string) bool {
