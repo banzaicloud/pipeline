@@ -111,9 +111,9 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 	))
 
 	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
-		endpoints.ListReleases,
-		decodeListReleasesHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(encodeListReleasesHTTPResponse, errorEncoder),
+		endpoints.GetReleases,
+		decodeGetReleasesHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeGetReleasesHTTPResponse, errorEncoder),
 		options...,
 	))
 
@@ -480,7 +480,7 @@ func encodeGetReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter, re
 	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
 }
 
-func decodeListReleasesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeGetReleasesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	orgID, err := extractUintParamFromRequest("orgId", r)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to decode list release request")
@@ -507,15 +507,15 @@ func decodeListReleasesHTTPRequest(_ context.Context, r *http.Request) (interfac
 		filter.Filter = &queryData.Filters[0]
 	}
 
-	return ListReleasesRequest{
+	return GetReleasesRequest{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
 		Filters:        filter,
 	}, nil
 }
 
-func encodeListReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	releases, ok := response.(ListReleasesResponse)
+func encodeGetReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	releases, ok := response.(GetReleasesResponse)
 	if !ok {
 		return errors.New("invalid release list response")
 	}
@@ -524,8 +524,8 @@ func encodeListReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, 
 		return errors.WrapIf(releases.Err, "failed to retrieve releases")
 	}
 
-	resp := make([]helm2.ListDeploymentResponse, 0, len(releases.R0))
-	for _, release := range releases.R0 {
+	resp := make([]helm2.ListDeploymentResponse, 0, len(releases.ReleaseList))
+	for _, release := range releases.ReleaseList {
 		resp = append(resp, helm2.ListDeploymentResponse{
 			Name:         release.ReleaseName,
 			Chart:        release.ChartName,
@@ -536,7 +536,7 @@ func encodeListReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, 
 			Status:       release.ReleaseInfo.Status,
 			Namespace:    release.Namespace,
 			CreatedAt:    release.ReleaseInfo.FirstDeployed,
-			Supported:    true,
+			Supported:    release.Supported,
 			//WhiteListed:  false,
 			//Rejected:     false,
 		})

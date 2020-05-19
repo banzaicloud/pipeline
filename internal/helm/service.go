@@ -607,7 +607,12 @@ func (s service) GetReleases(ctx context.Context, organizationID uint, clusterID
 	}
 
 	ret := make([]DetailedRelease, 0, len(releases))
-	supportedChartMap, err := s.envService.CheckReleaseCharts(ctx, HelmEnv{}, releases)
+	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to resolve helm env releases")
+	}
+
+	supportedChartMap, err := s.envService.CheckReleaseCharts(ctx, helmEnv, releases)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to retrieve charts")
 	}

@@ -172,7 +172,6 @@ func (h helmEnvService) UpdateRepository(_ context.Context, helmEnv helm.HelmEnv
 }
 
 func (h helmEnvService) CheckReleaseCharts(ctx context.Context, helmEnv helm.HelmEnv, releases []helm.Release) (map[string]bool, error) {
-
 	// noop in case of helm 2
 	return nil, nil
 }
