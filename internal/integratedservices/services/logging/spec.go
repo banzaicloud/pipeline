@@ -32,6 +32,7 @@ type integratedServiceSpec struct {
 type elasticSpec struct {
 	Enabled  bool   `json:"enabled" mapstructure:"enabled"`
 	SecretID string `json:"secretId" mapstructure:"secretId"`
+	Demo     bool   `json:"demo" mapstructure:"demo"`
 }
 
 type lokiSpec struct {

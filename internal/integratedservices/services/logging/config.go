@@ -69,8 +69,9 @@ type KibanaConfig struct {
 }
 
 type ChartsConfig struct {
-	Operator ChartConfig
-	Loki     ChartConfig
+	Operator    ChartConfig
+	Loki        ChartConfig
+	LoggingDemo ChartConfig
 }
 
 type ChartConfig struct {

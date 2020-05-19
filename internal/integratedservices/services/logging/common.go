@@ -31,6 +31,7 @@ const (
 	tlsSecretName              = "logging-tls-secret"
 	loggingOperatorReleaseName = "logging-operator"
 	lokiReleaseName            = "loki"
+	loggingDemoReleaseName     = "logging-demo"
 	lokiServiceName            = "loki"
 	releaseSecretTag           = "release:logging"
 	integratedServiceSecretTag = "feature:logging"

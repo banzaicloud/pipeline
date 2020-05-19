@@ -410,18 +410,34 @@ func (op IntegratedServiceOperator) deleteElasticsearchResource(
 		return nil
 	}
 
-	var installer = makeElasticSearchInstaller(clusterID, op.config.Elastic, op.kubernetesService)
+	var installer = makeElasticSearchInstaller(
+		clusterID,
+		op.config.Elastic,
+		op.config.Charts.LoggingDemo,
+		op.kubernetesService,
+		op.helmService,
+	)
 
+	// remove Kibana instance
 	if err := installer.removeKibana(ctx); err != nil {
 		return errors.WrapIf(err, "failed to delete Kibana")
 	}
 
+	// remove Elasticsearch cluster
 	if err := installer.removeElasticsearchCluster(ctx); err != nil {
 		return errors.WrapIf(err, "failed to delete Elasticsearch cluster")
 	}
 
+	// remove Elasticsearch operator
 	if err := installer.removeElasticsearchOperator(ctx); err != nil {
 		return errors.WrapIf(err, "failed to delete Elasticsearch operator")
+	}
+
+	// remove logging-demo app
+	if spec.Demo {
+		if err := installer.removeLoggingDemo(ctx); err != nil {
+			return errors.WrapIf(err, "failed to remove logging-demo")
+		}
 	}
 
 	return nil
@@ -437,7 +453,13 @@ func (op IntegratedServiceOperator) processElasticsearch(
 		return nil
 	}
 
-	var installer = makeElasticSearchInstaller(cl.GetID(), op.config.Elastic, op.kubernetesService)
+	var installer = makeElasticSearchInstaller(
+		cl.GetID(),
+		op.config.Elastic,
+		op.config.Charts.LoggingDemo,
+		op.kubernetesService,
+		op.helmService,
+	)
 
 	// Install Elasticsearch secret to the cluster, specified from the user
 	if err := op.installElasticsearchSecret(ctx, spec.SecretID, cl); err != nil {
@@ -457,6 +479,13 @@ func (op IntegratedServiceOperator) processElasticsearch(
 	// Install Kibana
 	if err := installer.installKibana(ctx); err != nil {
 		return errors.WrapIf(err, "failed to install Kibana")
+	}
+
+	// install logging-demo app
+	if spec.Demo {
+		if err := installer.installLoggingDemo(ctx); err != nil {
+			return errors.WrapIf(err, "failed to install logging-demo")
+		}
 	}
 
 	return nil

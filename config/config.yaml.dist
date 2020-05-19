@@ -226,6 +226,13 @@ dex:
 #                # See https://github.com/banzaicloud/banzai-charts/tree/master/loki for details
 #                values: {}
 #
+#            loggingDemo:
+#                chart: "banzaicloud-stable/logging-demo"
+#                version: "3.1.0"
+#
+#                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-demo for details
+#                values: {}
+#
 #    dns:
 #        enabled: true
 #

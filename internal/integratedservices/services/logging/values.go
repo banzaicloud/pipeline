@@ -36,3 +36,11 @@ type ingressValues struct {
 	Path        string                 `json:"path,omitempty" mapstructure:"path"`
 	Annotations map[string]interface{} `json:"annotations,omitempty" mapstructure:"annotations"`
 }
+
+type loggingDemoValues struct {
+	Elasticsearch elasticValues `json:"elasticsearch" mapstructure:"elasticsearch"`
+}
+
+type elasticValues struct {
+	Enabled bool `json:"enabled" mapstructure:"enabled"`
+}

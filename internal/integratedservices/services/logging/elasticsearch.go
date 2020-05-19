@@ -24,8 +24,11 @@ import (
 	esCommon "github.com/elastic/cloud-on-k8s/pkg/apis/common/v1"
 	esType "github.com/elastic/cloud-on-k8s/pkg/apis/elasticsearch/v1"
 	kibanaType "github.com/elastic/cloud-on-k8s/pkg/apis/kibana/v1"
+	"github.com/mitchellh/copystructure"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
+
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 )
 
 const (
@@ -36,18 +39,24 @@ const (
 type elasticSearchInstaller struct {
 	clusterID         uint
 	config            ElasticConfig
+	demoConfig        ChartConfig
 	kubernetesService KubernetesService
+	helmService       services.HelmService
 }
 
 func makeElasticSearchInstaller(
 	clusterID uint,
 	config ElasticConfig,
+	demoConfig ChartConfig,
 	kubernetesService KubernetesService,
+	helmService services.HelmService,
 ) elasticSearchInstaller {
 	return elasticSearchInstaller{
 		clusterID:         clusterID,
 		config:            config,
+		demoConfig:        demoConfig,
 		kubernetesService: kubernetesService,
+		helmService:       helmService,
 	}
 }
 
@@ -182,4 +191,35 @@ func (esi elasticSearchInstaller) installKibana(ctx context.Context) error {
 			},
 		},
 	})
+}
+
+func (esi elasticSearchInstaller) installLoggingDemo(ctx context.Context) error {
+	var chartValues = &loggingDemoValues{
+		Elasticsearch: elasticValues{
+			Enabled: true,
+		},
+	}
+
+	demoConfigValues, err := copystructure.Copy(esi.demoConfig.Values)
+	if err != nil {
+		return errors.WrapIf(err, "failed to copy logging-demo values")
+	}
+	valuesBytes, err := mergeValuesWithConfig(chartValues, demoConfigValues)
+	if err != nil {
+		return errors.WrapIf(err, "failed to merge logging-demo values with config")
+	}
+
+	return esi.helmService.ApplyDeployment(
+		ctx,
+		esi.clusterID,
+		elasticsearchNamespace,
+		esi.demoConfig.Chart,
+		loggingDemoReleaseName,
+		valuesBytes,
+		esi.demoConfig.Version,
+	)
+}
+
+func (esi elasticSearchInstaller) removeLoggingDemo(ctx context.Context) error {
+	return esi.helmService.DeleteDeployment(ctx, esi.clusterID, loggingDemoReleaseName, elasticsearchNamespace)
 }
