@@ -74,6 +74,9 @@ type Service interface {
 
 	// chart related operations
 	charter
+
+	// additional abstraction layer to encapsulate api specific logic
+	RestAPI
 }
 
 type ClusterDataProvider interface {
@@ -161,6 +164,8 @@ type EnvService interface {
 	ListCharts(ctx context.Context, helmEnv HelmEnv, chartFilter ChartFilter) (chartList ChartList, err error)
 	// GetChart retrieves the details of the passed in chart
 	GetChart(ctx context.Context, helmEnv HelmEnv, chartFilter ChartFilter) (chartDetails ChartDetails, err error)
+	// CheckReleaseCharts checks whether the charts for the passed in release can be found in the org's helm env
+	CheckReleaseCharts(ctx context.Context, helmEnv HelmEnv, releases []Release) (map[string]bool, error)
 
 	// EnsureEnv ensures the helm environment represented by the input.
 	// If theh environment exists (on the filesystem) it does nothing
@@ -593,6 +598,29 @@ func (s service) CheckRelease(ctx context.Context, organizationID uint, clusterI
 	}
 
 	return release.ReleaseInfo.Status, nil
+}
+
+func (s service) GetReleases(ctx context.Context, organizationID uint, clusterID uint, filters ReleaseFilter, options Options) ([]DetailedRelease, error) {
+	releases, err := s.ListReleases(ctx, organizationID, clusterID, filters, options)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to retrieve releases")
+	}
+
+	ret := make([]DetailedRelease, 0, len(releases))
+	supportedChartMap, err := s.envService.CheckReleaseCharts(ctx, HelmEnv{}, releases)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to retrieve charts")
+	}
+
+	for _, release := range releases {
+		detailedRelease := DetailedRelease{Release: release}
+		if supportedChartMap != nil {
+			detailedRelease.Supported = supportedChartMap[release.ReleaseName]
+		}
+		ret = append(ret, detailedRelease)
+	}
+
+	return ret, nil
 }
 
 func (s service) repoExists(ctx context.Context, repository Repository, helmEnv HelmEnv) (bool, error) {
