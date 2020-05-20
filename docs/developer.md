@@ -41,7 +41,7 @@ which removes everything.
 Create a `config/config.yaml` and `etc/config/dex.yml` config file based on their `config/*.dist` counterparts with:
 
 ```bash
-$ make config/config.yaml config/dex.yml
+$ make config/config.yaml etc/config/dex.yml
 ```
 
 **Note:** If you followed the quick start guide this file should already exist.
