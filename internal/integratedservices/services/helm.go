@@ -39,6 +39,4 @@ type HelmService interface {
 
 	// GetDeployment gets a deployment by release name from a specific cluster.
 	GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*pkgHelm.GetDeploymentResponse, error)
-
-	IsV3() bool
 }
