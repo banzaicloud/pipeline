@@ -81,7 +81,7 @@ func testAddPlatformRepository(home string, v3 bool) func(t *testing.T) {
 		}
 
 		logger := common.NoopLogger{}
-		helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
+		helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), nil, logger)
 
 		for i := 0; i < 2; i++ {
 			err := helmService.AddRepositoryIfNotExists(helm.Repository{
@@ -110,7 +110,7 @@ func testIntegration(v3 bool, home, testNamespace string) func(t *testing.T) {
 		}
 
 		logger := common.NoopLogger{}
-		helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
+		helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), nil, logger)
 
 		t.Run("testDeleteChartBeforeSuite", testDeleteChart(helmService, kubeConfig, testNamespace))
 		t.Run("testCreateChart", testCreateChart(helmService, kubeConfig, testNamespace))
@@ -137,7 +137,7 @@ func testIntegrationInstall(v3 bool, home, testNamespace string) func(t *testing
 
 		t.Run("helmv3install", func(t *testing.T) {
 			logger := common.NoopLogger{}
-			releaser, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
+			releaser, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), nil, logger)
 
 			err := releaser.InstallDeployment(
 				context.Background(),

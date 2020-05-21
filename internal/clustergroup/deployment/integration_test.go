@@ -79,7 +79,7 @@ func testGetChartDesc(home string, v3 bool) func(*testing.T) {
 		}
 
 		logger := common.NoopLogger{}
-		releaser, facade := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
+		releaser, facade := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), nil, logger)
 
 		helmService := deployment.NewHelmService(facade, releaser)
 

@@ -540,7 +540,7 @@ func (s service) UpgradeRelease(ctx context.Context, organizationID uint, cluste
 	return nil
 }
 
-func (s service) ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, options Options) (charts ChartList, err error) {
+func (s service) ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, _ Options) (charts ChartList, err error) {
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
@@ -554,7 +554,7 @@ func (s service) ListCharts(ctx context.Context, organizationID uint, filter Cha
 	return chartList, nil
 }
 
-func (s service) GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails ChartDetails, err error) {
+func (s service) GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, _options Options) (chartDetails ChartDetails, err error) {
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
