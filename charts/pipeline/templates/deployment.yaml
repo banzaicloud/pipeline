@@ -68,6 +68,11 @@ spec:
                 name: {{ include "pipeline.fullname" . }}
                 key: tokenSigningKey
 
+          - name: PIPELINECTL_API_URL
+            value: https://127.0.0.1:9090
+          - name: PIPELINECTL_API_VERIFY
+            value: "false"
+
           # Vault configuration
           - name: VAULT_ADDR
             value: {{ .Values.configuration.vault.address }}
