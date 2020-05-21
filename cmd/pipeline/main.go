@@ -486,12 +486,13 @@ func main() {
 
 	orgService := helmadapter.NewOrgService(commonLogger)
 
-	securityInfoService := helmadapter.NewSecurityService(anchore.NewSecurityResourceService(commonLogger))
+	clusterSvc := helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc())
+	securityInfoService := helmadapter.NewSecurityService(clusterSvc, anchore.NewSecurityResourceService(commonLogger))
 	unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
 		config.Helm,
 		db,
 		commonSecretStore,
-		helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc()),
+		clusterSvc,
 		orgService,
 		securityInfoService,
 		commonLogger,
@@ -745,8 +746,18 @@ func main() {
 							helmFacade,
 							kitxendpoint.Combine(endpointMiddleware...),
 						)
+						restAPI := helm.NewRestAPIService(helmFacade, securityInfoService)
+						restEndpoints := helmdriver.MakeRestAPIEndpoints(
+							restAPI,
+							kitxendpoint.Combine(endpointMiddleware...),
+						)
 
 						helmdriver.RegisterReleaserHTTPHandlers(endpoints,
+							clusterRouter.PathPrefix("/deployments").Subrouter(),
+							kitxhttp.ServerOptions(httpServerOptions),
+						)
+
+						helmdriver.RegisterRestAPI(restEndpoints,
 							clusterRouter.PathPrefix("/deployments").Subrouter(),
 							kitxhttp.ServerOptions(httpServerOptions),
 						)

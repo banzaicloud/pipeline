@@ -34,17 +34,23 @@ type SecurityResourcer interface {
 
 // component struct to provide security information about helm releases
 type securityService struct {
-	resourcer SecurityResourcer
+	resourcer      SecurityResourcer
+	clusterService helm.ClusterService
 }
 
-func NewSecurityService(resourcer SecurityResourcer) securityService {
+func NewSecurityService(clusterService helm.ClusterService, resourcer SecurityResourcer) securityService {
 	_ = securityV1Alpha.AddToScheme(scheme.Scheme)
 	return securityService{
-		resourcer: resourcer,
+		resourcer:      resourcer,
+		clusterService: clusterService,
 	}
 }
 
-func (s securityService) GetSecurityInfo(ctx context.Context, clusterID uint, kubeConfig []byte, releases []helm.Release) (map[string]helm.ReleaseSecurityInfo, error) {
+func (s securityService) GetSecurityInfo(ctx context.Context, clusterID uint, releases []helm.Release) (map[string]helm.ReleaseSecurityInfo, error) {
+	kubeConfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get kubeConfig for cluster")
+	}
 	clusterData := NewClusterData(clusterID, kubeConfig)
 
 	whiteListItems, err := s.resourcer.GetWhitelists(ctx, clusterData)

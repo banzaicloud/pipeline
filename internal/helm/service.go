@@ -74,9 +74,6 @@ type Service interface {
 
 	// chart related operations
 	charter
-
-	// additional abstraction layer to encapsulate api specific logic
-	RestAPI
 }
 
 type ClusterDataProvider interface {
@@ -603,13 +600,7 @@ func (s service) CheckRelease(ctx context.Context, organizationID uint, clusterI
 	return release.ReleaseInfo.Status, nil
 }
 
-func (s service) GetReleases(ctx context.Context, organizationID uint, clusterID uint, filters ReleaseFilter, options Options) ([]DetailedRelease, error) {
-	releases, err := s.ListReleases(ctx, organizationID, clusterID, filters, options)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to retrieve releases")
-	}
-
-	ret := make([]DetailedRelease, 0, len(releases))
+func (s service) CheckReleases(ctx context.Context, organizationID uint, releases []Release) (map[string]bool, error) {
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to resolve helm env releases")
@@ -620,30 +611,7 @@ func (s service) GetReleases(ctx context.Context, organizationID uint, clusterID
 		return nil, errors.WrapIf(err, "failed to retrieve charts")
 	}
 
-	kubeConfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to retrieve charts")
-	}
-
-	securityInfoMap, err := s.securityInfoService.GetSecurityInfo(ctx, clusterID, kubeConfig, releases)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to retrieve security information for releases")
-	}
-
-	for _, release := range releases {
-		detailedRelease := DetailedRelease{Release: release}
-		if supportedChartMap != nil {
-			detailedRelease.Supported = supportedChartMap[release.ReleaseName]
-		}
-
-		if securityInfoMap != nil {
-			detailedRelease.Rejected = securityInfoMap[release.ReleaseName].Rejected
-			detailedRelease.Whitelisted = securityInfoMap[release.ReleaseName].Whitelisted
-		}
-		ret = append(ret, detailedRelease)
-	}
-
-	return ret, nil
+	return supportedChartMap, nil
 }
 
 func (s service) repoExists(ctx context.Context, repository Repository, helmEnv HelmEnv) (bool, error) {

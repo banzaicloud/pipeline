@@ -22,18 +22,76 @@ type serviceError interface {
 	ServiceError() bool
 }
 
+// RestAPIEndpoints collects all of the endpoints that compose the underlying service. It's
+// meant to be used as a helper struct, to collect all of the endpoints into a
+// single parameter.
+type RestAPIEndpoints struct {
+	GetReleases endpoint.Endpoint
+}
+
+// MakeRestAPIEndpoints returns a(n) RestAPIEndpoints struct where each endpoint invokes
+// the corresponding method on the provided service.
+func MakeRestAPIEndpoints(service helm.RestAPI, middleware ...endpoint.Middleware) RestAPIEndpoints {
+	mw := kitxendpoint.Combine(middleware...)
+
+	return RestAPIEndpoints{GetReleases: kitxendpoint.OperationNameMiddleware("helm.RestAPI.GetReleases")(mw(MakeGetReleasesRestAPIEndpoint(service)))}
+}
+
+// GetReleasesRestAPIRequest is a request struct for GetReleases endpoint.
+type GetReleasesRestAPIRequest struct {
+	OrganizationID uint
+	ClusterID      uint
+	Filters        helm.ReleaseFilter
+	Options        helm.Options
+}
+
+// GetReleasesRestAPIResponse is a response struct for GetReleases endpoint.
+type GetReleasesRestAPIResponse struct {
+	ReleaseList []helm.DetailedRelease
+	Err         error
+}
+
+func (r GetReleasesRestAPIResponse) Failed() error {
+	return r.Err
+}
+
+// MakeGetReleasesRestAPIEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeGetReleasesRestAPIEndpoint(service helm.RestAPI) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(GetReleasesRestAPIRequest)
+
+		releaseList, err := service.GetReleases(ctx, req.OrganizationID, req.ClusterID, req.Filters, req.Options)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return GetReleasesRestAPIResponse{
+					Err:         err,
+					ReleaseList: releaseList,
+				}, nil
+			}
+
+			return GetReleasesRestAPIResponse{
+				Err:         err,
+				ReleaseList: releaseList,
+			}, err
+		}
+
+		return GetReleasesRestAPIResponse{ReleaseList: releaseList}, nil
+	}
+}
+
 // Endpoints collects all of the endpoints that compose the underlying service. It's
 // meant to be used as a helper struct, to collect all of the endpoints into a
 // single parameter.
 type Endpoints struct {
 	AddRepository       endpoint.Endpoint
 	CheckRelease        endpoint.Endpoint
+	CheckReleases       endpoint.Endpoint
 	DeleteRelease       endpoint.Endpoint
 	DeleteRepository    endpoint.Endpoint
 	GetChart            endpoint.Endpoint
 	GetRelease          endpoint.Endpoint
 	GetReleaseResources endpoint.Endpoint
-	GetReleases         endpoint.Endpoint
 	InstallRelease      endpoint.Endpoint
 	ListCharts          endpoint.Endpoint
 	ListReleases        endpoint.Endpoint
@@ -51,12 +109,12 @@ func MakeEndpoints(service helm.Service, middleware ...endpoint.Middleware) Endp
 	return Endpoints{
 		AddRepository:       kitxendpoint.OperationNameMiddleware("helm.AddRepository")(mw(MakeAddRepositoryEndpoint(service))),
 		CheckRelease:        kitxendpoint.OperationNameMiddleware("helm.CheckRelease")(mw(MakeCheckReleaseEndpoint(service))),
+		CheckReleases:       kitxendpoint.OperationNameMiddleware("helm.CheckReleases")(mw(MakeCheckReleasesEndpoint(service))),
 		DeleteRelease:       kitxendpoint.OperationNameMiddleware("helm.DeleteRelease")(mw(MakeDeleteReleaseEndpoint(service))),
 		DeleteRepository:    kitxendpoint.OperationNameMiddleware("helm.DeleteRepository")(mw(MakeDeleteRepositoryEndpoint(service))),
 		GetChart:            kitxendpoint.OperationNameMiddleware("helm.GetChart")(mw(MakeGetChartEndpoint(service))),
 		GetRelease:          kitxendpoint.OperationNameMiddleware("helm.GetRelease")(mw(MakeGetReleaseEndpoint(service))),
 		GetReleaseResources: kitxendpoint.OperationNameMiddleware("helm.GetReleaseResources")(mw(MakeGetReleaseResourcesEndpoint(service))),
-		GetReleases:         kitxendpoint.OperationNameMiddleware("helm.GetReleases")(mw(MakeGetReleasesEndpoint(service))),
 		InstallRelease:      kitxendpoint.OperationNameMiddleware("helm.InstallRelease")(mw(MakeInstallReleaseEndpoint(service))),
 		ListCharts:          kitxendpoint.OperationNameMiddleware("helm.ListCharts")(mw(MakeListChartsEndpoint(service))),
 		ListReleases:        kitxendpoint.OperationNameMiddleware("helm.ListReleases")(mw(MakeListReleasesEndpoint(service))),
@@ -141,6 +199,47 @@ func MakeCheckReleaseEndpoint(service helm.Service) endpoint.Endpoint {
 		}
 
 		return CheckReleaseResponse{R0: r0}, nil
+	}
+}
+
+// CheckReleasesRequest is a request struct for CheckReleases endpoint.
+type CheckReleasesRequest struct {
+	OrganizationID uint
+	Releases       []helm.Release
+}
+
+// CheckReleasesResponse is a response struct for CheckReleases endpoint.
+type CheckReleasesResponse struct {
+	R0  map[string]bool
+	Err error
+}
+
+func (r CheckReleasesResponse) Failed() error {
+	return r.Err
+}
+
+// MakeCheckReleasesEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeCheckReleasesEndpoint(service helm.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(CheckReleasesRequest)
+
+		r0, err := service.CheckReleases(ctx, req.OrganizationID, req.Releases)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return CheckReleasesResponse{
+					Err: err,
+					R0:  r0,
+				}, nil
+			}
+
+			return CheckReleasesResponse{
+				Err: err,
+				R0:  r0,
+			}, err
+		}
+
+		return CheckReleasesResponse{R0: r0}, nil
 	}
 }
 
@@ -339,49 +438,6 @@ func MakeGetReleaseResourcesEndpoint(service helm.Service) endpoint.Endpoint {
 		}
 
 		return GetReleaseResourcesResponse{R0: r0}, nil
-	}
-}
-
-// GetReleasesRequest is a request struct for GetReleases endpoint.
-type GetReleasesRequest struct {
-	OrganizationID uint
-	ClusterID      uint
-	Filters        helm.ReleaseFilter
-	Options        helm.Options
-}
-
-// GetReleasesResponse is a response struct for GetReleases endpoint.
-type GetReleasesResponse struct {
-	ReleaseList []helm.DetailedRelease
-	Err         error
-}
-
-func (r GetReleasesResponse) Failed() error {
-	return r.Err
-}
-
-// MakeGetReleasesEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeGetReleasesEndpoint(service helm.Service) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(GetReleasesRequest)
-
-		releaseList, err := service.GetReleases(ctx, req.OrganizationID, req.ClusterID, req.Filters, req.Options)
-
-		if err != nil {
-			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
-				return GetReleasesResponse{
-					Err:         err,
-					ReleaseList: releaseList,
-				}, nil
-			}
-
-			return GetReleasesResponse{
-				Err:         err,
-				ReleaseList: releaseList,
-			}, err
-		}
-
-		return GetReleasesResponse{ReleaseList: releaseList}, nil
 	}
 }
 

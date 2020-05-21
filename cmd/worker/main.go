@@ -266,13 +266,14 @@ func main() {
 		tokenGenerator := auth.NewClusterTokenGenerator(tokenManager, tokenStore)
 
 		orgService := helmadapter.NewOrgService(commonLogger)
-		securityInfoService := helmadapter.NewSecurityService(anchore.NewSecurityResourceService(commonLogger))
+		clusterSvc := helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc())
+		securityInfoService := helmadapter.NewSecurityService(clusterSvc, anchore.NewSecurityResourceService(commonLogger))
 
 		unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
 			config.Helm,
 			db,
 			commonSecretStore,
-			helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc()),
+			clusterSvc,
 			orgService,
 			securityInfoService,
 			commonLogger,
