@@ -17,6 +17,7 @@ package helmadapter
 import (
 	"context"
 	"crypto/sha1"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -275,7 +276,7 @@ func (r releaser) Get(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.K
 			Deleted:       rawRelease.Info.Deleted.Time,
 			Description:   rawRelease.Info.Description,
 			Status:        rawRelease.Info.Status.String(),
-			Notes:         rawRelease.Info.Notes,
+			Notes:         base64.StdEncoding.EncodeToString([]byte(rawRelease.Info.Notes)),
 			Values:        rawRelease.Config,
 		},
 	}, nil

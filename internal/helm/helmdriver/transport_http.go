@@ -27,7 +27,6 @@ import (
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
-	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
 	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
@@ -112,9 +111,9 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 	))
 
 	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
-		endpoints.ListReleases,
-		decodeListReleasesHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(encodeListReleasesHTTPResponse, errorEncoder),
+		endpoints.GetReleases,
+		decodeGetReleasesHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeGetReleasesHTTPResponse, errorEncoder),
 		options...,
 	))
 
@@ -470,18 +469,18 @@ func encodeGetReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter, re
 		ChartName:    release.R0.ChartName,
 		ChartVersion: release.R0.Version,
 		Namespace:    release.R0.Namespace,
-		Version:      0, // TODO populate it
+		Version:      release.R0.ReleaseVersion,
 		UpdatedAt:    release.R0.ReleaseInfo.LastDeployed.String(),
 		Status:       release.R0.ReleaseInfo.Status,
 		CreatedAt:    release.R0.ReleaseInfo.FirstDeployed.String(),
 		Notes:        release.R0.ReleaseInfo.Notes,
-		Values:       nil, // TODO populate this
+		Values:       release.R0.Values,
 	}
 
 	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
 }
 
-func decodeListReleasesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeGetReleasesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	orgID, err := extractUintParamFromRequest("orgId", r)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to decode list release request")
@@ -508,15 +507,15 @@ func decodeListReleasesHTTPRequest(_ context.Context, r *http.Request) (interfac
 		filter.Filter = &queryData.Filters[0]
 	}
 
-	return ListReleasesRequest{
+	return GetReleasesRequest{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
 		Filters:        filter,
 	}, nil
 }
 
-func encodeListReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	releases, ok := response.(ListReleasesResponse)
+func encodeGetReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	releases, ok := response.(GetReleasesResponse)
 	if !ok {
 		return errors.New("invalid release list response")
 	}
@@ -525,17 +524,21 @@ func encodeListReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, 
 		return errors.WrapIf(releases.Err, "failed to retrieve releases")
 	}
 
-	resp := make([]deployment.ListDeploymentResponse, 0, len(releases.R0))
-	for _, release := range releases.R0 {
-		resp = append(resp, deployment.ListDeploymentResponse{
+	resp := make([]helm2.ListDeploymentResponse, 0, len(releases.ReleaseList))
+	for _, release := range releases.ReleaseList {
+		resp = append(resp, helm2.ListDeploymentResponse{
 			Name:         release.ReleaseName,
 			Chart:        release.ChartName,
 			ChartName:    release.ChartName,
 			ChartVersion: release.Version,
 			Version:      release.ReleaseVersion,
 			UpdatedAt:    release.ReleaseInfo.LastDeployed,
+			Status:       release.ReleaseInfo.Status,
 			Namespace:    release.Namespace,
 			CreatedAt:    release.ReleaseInfo.FirstDeployed,
+			Supported:    release.Supported,
+			//WhiteListed:  false,
+			//Rejected:     false,
 		})
 	}
 

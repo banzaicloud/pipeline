@@ -42,8 +42,9 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 	}
 
 	var err error
-	if commonCluster.GetDistribution() == pkgCluster.PKE {
-		switch commonCluster.GetCloud() {
+	var cloud = commonCluster.GetCloud()
+	if cloud != pkgCluster.Amazon && commonCluster.GetDistribution() == pkgCluster.PKE {
+		switch cloud {
 		case pkgCluster.Azure:
 			var updateRequest *apicluster.UpdatePKEOnAzureClusterRequest
 			if err := c.BindJSON(&updateRequest); err != nil {
