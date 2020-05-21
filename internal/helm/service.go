@@ -226,15 +226,16 @@ func (c ClusterKubeConfigFunc) GetKubeConfig(ctx context.Context, clusterID uint
 }
 
 type service struct {
-	config         Config
-	store          Store
-	secretStore    SecretStore
-	repoValidator  RepoValidator
-	envResolver    EnvResolver
-	envService     EnvService
-	releaser       Releaser
-	clusterService ClusterService
-	logger         Logger
+	config              Config
+	store               Store
+	secretStore         SecretStore
+	repoValidator       RepoValidator
+	envResolver         EnvResolver
+	envService          EnvService
+	releaser            Releaser
+	clusterService      ClusterService
+	securityInfoService SecurityInfoService
+	logger              Logger
 }
 
 // NewService returns a new Service.
@@ -247,17 +248,19 @@ func NewService(
 	envService EnvService,
 	releaser Releaser,
 	clusterService ClusterService,
+	securityInfoService SecurityInfoService,
 	logger Logger) Service {
 	return service{
-		config:         config,
-		store:          store,
-		secretStore:    secretStore,
-		repoValidator:  validator,
-		envResolver:    envResolver,
-		envService:     envService,
-		releaser:       releaser,
-		clusterService: clusterService,
-		logger:         logger,
+		config:              config,
+		store:               store,
+		secretStore:         secretStore,
+		repoValidator:       validator,
+		envResolver:         envResolver,
+		envService:          envService,
+		releaser:            releaser,
+		clusterService:      clusterService,
+		securityInfoService: securityInfoService,
+		logger:              logger,
 	}
 }
 
@@ -617,10 +620,25 @@ func (s service) GetReleases(ctx context.Context, organizationID uint, clusterID
 		return nil, errors.WrapIf(err, "failed to retrieve charts")
 	}
 
+	kubeConfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to retrieve charts")
+	}
+
+	securityInfoMap, err := s.securityInfoService.GetSecurityInfo(ctx, clusterID, kubeConfig, releases)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to retrieve security information for releases")
+	}
+
 	for _, release := range releases {
 		detailedRelease := DetailedRelease{Release: release}
 		if supportedChartMap != nil {
 			detailedRelease.Supported = supportedChartMap[release.ReleaseName]
+		}
+
+		if securityInfoMap != nil {
+			detailedRelease.Rejected = securityInfoMap[release.ReleaseName].Rejected
+			detailedRelease.Whitelisted = securityInfoMap[release.ReleaseName].Whitelisted
 		}
 		ret = append(ret, detailedRelease)
 	}

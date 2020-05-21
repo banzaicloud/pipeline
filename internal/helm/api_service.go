@@ -27,5 +27,18 @@ type RestAPI interface {
 // DetailedRelease wraps a release and adds additional information to it
 type DetailedRelease struct {
 	Release
-	Supported bool `json:"supported"`
+	Supported   bool `json:"supported"`
+	Whitelisted bool `json:"whitelisted"`
+	Rejected    bool `json:"rejected"`
+}
+
+type ReleaseSecurityInfo struct {
+	Rejected    bool
+	Whitelisted bool
+}
+
+// SecurityInfoService provides security resource information for releases
+type SecurityInfoService interface {
+	// GetSecurityInfo gets security information for the provided releases
+	GetSecurityInfo(ctx context.Context, clusterId uint, kubeConfig []byte, releases []Release) (map[string]ReleaseSecurityInfo, error)
 }
