@@ -65,6 +65,7 @@ import (
 	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	anchore "github.com/banzaicloud/pipeline/internal/security"
 
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
@@ -485,12 +486,14 @@ func main() {
 
 	orgService := helmadapter.NewOrgService(commonLogger)
 
+	securityInfoService := helmadapter.NewSecurityService(anchore.NewSecurityResourceService(commonLogger))
 	unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
 		config.Helm,
 		db,
 		commonSecretStore,
 		helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc()),
 		orgService,
+		securityInfoService,
 		commonLogger,
 	)
 
