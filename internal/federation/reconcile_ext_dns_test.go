@@ -70,7 +70,7 @@ func testEnsureCRDSourceForExtDNS(v3 bool, testNamespace string) func(t *testing
 			OrgName: "",
 		}
 
-		unifiedReleaser, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, orgService, nil, helmLogger)
+		unifiedReleaser, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, orgService, helmLogger)
 
 		if err := unifiedReleaser.Delete(&clusterConfig, releaseName, testNamespace); err != nil {
 			t.Fatalf("%+v", err)

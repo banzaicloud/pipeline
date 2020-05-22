@@ -40,7 +40,6 @@ func CreateUnifiedHelmReleaser(
 	commonSecretStore common.SecretStore,
 	clusterService helm.ClusterService,
 	orgService helm.OrgService,
-	securityInfoService helm.SecurityInfoService,
 	logger helm.Logger,
 ) (helm.UnifiedReleaser, helm.Service) {
 	repoStore := helmadapter.NewHelmRepoStore(db, logger)
@@ -60,7 +59,6 @@ func CreateUnifiedHelmReleaser(
 			envService,
 			releaser,
 			clusterService,
-			securityInfoService,
 			logger)
 		return helm2.NewLegacyHelmService(clusterService, service, commonadapter.NewLogger(logger)), service
 	}
@@ -86,7 +84,6 @@ func CreateUnifiedHelmReleaser(
 		envService,
 		releaser,
 		clusterService,
-		securityInfoService,
 		logger)
 
 	return helmadapter.NewUnifiedHelm3Releaser(service, logger), service

@@ -86,8 +86,10 @@ func (r restService) GetReleases(ctx context.Context, organizationID uint, clust
 		}
 
 		if securityInfoMap != nil {
-			detailedRelease.Rejected = securityInfoMap[release.ReleaseName].Rejected
-			detailedRelease.Whitelisted = securityInfoMap[release.ReleaseName].Whitelisted
+			if secInfo, ok := securityInfoMap[release.ReleaseName]; ok {
+				detailedRelease.Rejected = secInfo.Rejected
+				detailedRelease.Whitelisted = secInfo.Whitelisted
+			}
 		}
 		ret = append(ret, detailedRelease)
 	}

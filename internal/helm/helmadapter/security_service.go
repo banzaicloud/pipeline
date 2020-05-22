@@ -19,7 +19,6 @@ import (
 
 	"emperror.dev/errors"
 	securityV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
-	"k8s.io/client-go/kubernetes/scheme"
 
 	"github.com/banzaicloud/pipeline/internal/helm"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
@@ -36,13 +35,15 @@ type SecurityResourcer interface {
 type securityService struct {
 	resourcer      SecurityResourcer
 	clusterService helm.ClusterService
+
+	logger Logger
 }
 
-func NewSecurityService(clusterService helm.ClusterService, resourcer SecurityResourcer) securityService {
-	_ = securityV1Alpha.AddToScheme(scheme.Scheme)
+func NewSecurityService(clusterService helm.ClusterService, resourcer SecurityResourcer, logger Logger) securityService {
 	return securityService{
 		resourcer:      resourcer,
 		clusterService: clusterService,
+		logger:         logger,
 	}
 }
 
@@ -55,7 +56,9 @@ func (s securityService) GetSecurityInfo(ctx context.Context, clusterID uint, re
 
 	whiteListItems, err := s.resourcer.GetWhitelists(ctx, clusterData)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to retrieve whitelist items")
+		s.logger.Warn("failed to retrieve whitelist information")
+		// swallow the error deliberately here
+		return nil, nil
 	}
 
 	releaseToWhitelistMap := make(map[string]bool, len(whiteListItems))
@@ -65,7 +68,9 @@ func (s securityService) GetSecurityInfo(ctx context.Context, clusterID uint, re
 
 	scanLogs, err := s.resourcer.ListScanLogs(ctx, clusterData)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to retrieve scan logs")
+		s.logger.Warn("failed to retrieve scanlogs information")
+		// swallow the error deliberately here
+		return nil, nil
 	}
 
 	castScanLogs := scanLogs.([]securityV1Alpha.AuditSpec)

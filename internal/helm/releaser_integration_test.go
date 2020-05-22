@@ -124,7 +124,6 @@ func getHelmFacade(t *testing.T) helm.Service {
 		envService,
 		helmadapter.NewReleaser(logger),
 		clusterConfigProvider,
-		nil,
 		logger)
 }
 

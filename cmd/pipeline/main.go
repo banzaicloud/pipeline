@@ -487,14 +487,13 @@ func main() {
 	orgService := helmadapter.NewOrgService(commonLogger)
 
 	clusterSvc := helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc())
-	securityInfoService := helmadapter.NewSecurityService(clusterSvc, anchore.NewSecurityResourceService(commonLogger))
+	securityInfoService := helmadapter.NewSecurityService(clusterSvc, anchore.NewSecurityResourceService(commonLogger), commonLogger)
 	unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
 		config.Helm,
 		db,
 		commonSecretStore,
 		clusterSvc,
 		orgService,
-		securityInfoService,
 		commonLogger,
 	)
 

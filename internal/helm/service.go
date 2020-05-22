@@ -223,16 +223,15 @@ func (c ClusterKubeConfigFunc) GetKubeConfig(ctx context.Context, clusterID uint
 }
 
 type service struct {
-	config              Config
-	store               Store
-	secretStore         SecretStore
-	repoValidator       RepoValidator
-	envResolver         EnvResolver
-	envService          EnvService
-	releaser            Releaser
-	clusterService      ClusterService
-	securityInfoService SecurityInfoService
-	logger              Logger
+	config         Config
+	store          Store
+	secretStore    SecretStore
+	repoValidator  RepoValidator
+	envResolver    EnvResolver
+	envService     EnvService
+	releaser       Releaser
+	clusterService ClusterService
+	logger         Logger
 }
 
 // NewService returns a new Service.
@@ -245,19 +244,17 @@ func NewService(
 	envService EnvService,
 	releaser Releaser,
 	clusterService ClusterService,
-	securityInfoService SecurityInfoService,
 	logger Logger) Service {
 	return service{
-		config:              config,
-		store:               store,
-		secretStore:         secretStore,
-		repoValidator:       validator,
-		envResolver:         envResolver,
-		envService:          envService,
-		releaser:            releaser,
-		clusterService:      clusterService,
-		securityInfoService: securityInfoService,
-		logger:              logger,
+		config:         config,
+		store:          store,
+		secretStore:    secretStore,
+		repoValidator:  validator,
+		envResolver:    envResolver,
+		envService:     envService,
+		releaser:       releaser,
+		clusterService: clusterService,
+		logger:         logger,
 	}
 }
 
