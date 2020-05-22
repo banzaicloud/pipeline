@@ -11,9 +11,15 @@ pipeline:
     # Default is "/pipeline" in the development environment to allow using the UI locally
     basePath: "/pipeline"
 
+    caCertFile: "config/certs/ca.pem"
+    certFile: "config/certs/server.pem"
+    keyFile: "config/certs/server-key.pem"
+
     external:
         # Base URL where the end users can reach this pipeline instance
         url: "https://example.com/pipeline"
+
+    enterprise: false
 
 database:
     dialect: "mysql"

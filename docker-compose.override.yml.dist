@@ -51,7 +51,7 @@ services:
         environment:
             CLOUDINFO_URL: http://localhost:4200/cloudinfo
             RECOMMENDER_URL: http://localhost:4200/recommender
-            API_URL: http://localhost:9090
+            API_URL: https://localhost:9090
 
     uiproxy:
         build: etc/docker/uiproxy

@@ -71,6 +71,8 @@ staticClients:
   redirectURIs:
   - 'http://127.0.0.1:9090/auth/dex/callback'
   - 'http://localhost:9090/auth/dex/callback'
+  - 'https://127.0.0.1:9090/auth/dex/callback'
+  - 'https://localhost:9090/auth/dex/callback'
   name: 'Pipeline'
   secret: ZXhhbXBsZS1hcHAtc2VjcmV0
 - id: banzai-cli
