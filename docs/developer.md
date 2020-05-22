@@ -17,7 +17,7 @@ At least one of the followings has to be configured:
 - Setup your Pipeline GitLab OAuth application according to [this guide](auth/gitlab.md)
 - Setup your Pipeline Google OAuth application according to [this guide](auth/google.md)
 - Setup your Pipeline with LDAP authentication according to [this guide](auth/ldap.md)
-- Use static Email/Password authentication following the example in `config/dex.yml.example` (staticPasswords sections)
+- Use static Email/Password authentication following the example in `etc/config/dex.yml` (staticPasswords sections)
 
 ### Quick start
 
@@ -38,10 +38,10 @@ which removes everything.
 
 ### Configuration
 
-Create a `config/config.yaml` and `config/dex.yml` config file based on their `config/*.dist` counterparts with:
+Create a `config/config.yaml` and `etc/config/dex.yml` config file based on their `config/*.dist` counterparts with:
 
 ```bash
-$ make config/config.yaml config/dex.yml
+$ make config/config.yaml etc/config/dex.yml
 ```
 
 **Note:** If you followed the quick start guide this file should already exist.
@@ -50,7 +50,7 @@ As of now the example config enables OAuth2 based authentication. It can be chan
 
 OAuth2 based authentication requires a GitHub/Google OAuth2 application, this can be created by following this 
 [GitHub](auth/github.md), [GitLab](auth/gitlab.md) or the [Google](auth/google.md) tutorial.
-Please set the `token` in the `[github]` section, the `baseURL` in the `[gitlab]` section in `config.yml`, and the `clientId` and the `clientSecret` in `dex.yml`'s `connectors:` section.
+Please set the `clientId` and the `clientSecret` in `dex.yml`'s `connectors:` section.
 
 > If you are not using HTTPS set auth.cookie.secure = false, otherwise you won't be able to login via HTTP and you might be getting 401 errors, locally you should set it to `false`.
 

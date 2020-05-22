@@ -20,7 +20,7 @@ import (
 
 // mapCapabilities maps configuration to capabilities.
 func mapCapabilities(config configuration) cap.Capabilities {
-	return cap.Capabilities{
+	caps := cap.Capabilities{
 		"features": cap.Cap{
 			"vault": cap.Cap{
 				"enabled": config.Cluster.Vault.Enabled,
@@ -48,8 +48,13 @@ func mapCapabilities(config configuration) cap.Capabilities {
 				"controllers": config.Cluster.Ingress.Controllers,
 			},
 		},
-		"helm": cap.Cap{
-			"version": "3.1.3", // TODO: determine based on go.mod build time
-		},
 	}
+
+	if config.Helm.V3 {
+		caps["helm"] = cap.Cap{
+			"version": "3.1.3", // TODO: determine based on go.mod build time
+		}
+	}
+
+	return caps
 }
