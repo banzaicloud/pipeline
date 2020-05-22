@@ -98,16 +98,19 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		activityOptions.RetryPolicy = &cadence.RetryPolicy{
 			InitialInterval:    10 * time.Second,
 			BackoffCoefficient: 1.01,
+			MaximumAttempts:    10,
 			MaximumInterval:    10 * time.Minute,
 		}
 
 		var output CalculateNodePoolVersionActivityOutput
 
+		processActivity := process.StartActivity(ctx, CalculateNodePoolVersionActivityName)
 		err = workflow.ExecuteActivity(
 			workflow.WithActivityOptions(ctx, activityOptions),
 			CalculateNodePoolVersionActivityName,
 			activityInput,
 		).Get(ctx, &output)
+		processActivity.Finish(ctx, err)
 		if err != nil {
 			return
 		}
