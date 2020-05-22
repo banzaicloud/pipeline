@@ -17,7 +17,7 @@ At least one of the followings has to be configured:
 - Setup your Pipeline GitLab OAuth application according to [this guide](auth/gitlab.md)
 - Setup your Pipeline Google OAuth application according to [this guide](auth/google.md)
 - Setup your Pipeline with LDAP authentication according to [this guide](auth/ldap.md)
-- Use static Email/Password authentication following the example in `config/dex.yml.example` (staticPasswords sections)
+- Use static Email/Password authentication following the example in `etc/config/dex.yml` (staticPasswords sections)
 
 ### Quick start
 
