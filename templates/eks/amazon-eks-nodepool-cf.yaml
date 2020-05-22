@@ -114,6 +114,11 @@ Parameters:
     Description: The initial size of Node Group ASG.
     Default: 1
 
+  NodeAutoScalingGroupMaxBatchSize:
+    Type: Number
+    Description: Minimum size of Node Group ASG.
+    Default: 2
+
   NodeVolumeSize:
     Type: Number
     Description: Node volume size
@@ -182,6 +187,7 @@ Metadata:
           - NodeAutoScalingGroupMinSize
           - NodeAutoScalingGroupMaxSize
           - NodeAutoScalingInitSize
+          - NodeAutoScalingGroupMaxBatchSize
           - NodeVolumeSize
           - NodeSpotPrice
           - NodeInstanceType
@@ -283,7 +289,7 @@ Resources:
     {{- if .UpdatePolicyEnabled }}
     UpdatePolicy:
       AutoScalingRollingUpdate:
-        MaxBatchSize: '1'
+        MaxBatchSize: !Ref NodeAutoScalingGroupMaxBatchSize
         PauseTime: PT5M
     {{- end}}
 

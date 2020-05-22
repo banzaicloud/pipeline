@@ -28,4 +28,6 @@ type UpdateNodePoolRequest struct {
 
 	// The upper limit price for the requested spot instance. If this field is empty or 0 on-demand instances are used instead of spot instances.
 	SpotPrice string `json:"spotPrice,omitempty"`
+
+	Options BaseUpdateNodePoolOptions `json:"options,omitempty"`
 }

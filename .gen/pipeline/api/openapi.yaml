@@ -18750,6 +18750,42 @@ components:
       - $ref: '#/components/schemas/EksUpdateNodePoolRequest_allOf'
       description: Node pool update request object for an EKS cluster.
       type: object
+    BaseUpdateNodePoolOptions:
+      description: Base node pool update options object for all cluster distributions.
+      properties:
+        maxSurge:
+          default: 0
+          description: Maximum number of extra nodes that can be created during the
+            update.
+          type: integer
+        maxBatchSize:
+          default: 2
+          description: Maximum number of nodes that can be updated simultaneously.
+          type: integer
+        maxUnavailable:
+          default: 0
+          description: Maximum number of nodes that can be unavailable during the
+            update.
+          type: integer
+        drain:
+          $ref: '#/components/schemas/UpdateNodePoolDrainOptions'
+      type: object
+    UpdateNodePoolDrainOptions:
+      description: Drain options for old nodes.
+      properties:
+        timeout:
+          default: 0
+          description: How long should drain wait for pod eviction (in seconds)
+          type: integer
+        failOnError:
+          default: false
+          description: Whether the process should fail if draining fails/times out.
+          type: boolean
+        podSelector:
+          default: ""
+          description: Only evict those pods that matches this selector.
+          type: string
+      type: object
     EKSNodePool:
       properties:
         instanceType:
@@ -22975,6 +23011,8 @@ components:
             field is empty or 0 on-demand instances are used instead of spot instances.
           example: "0.2"
           type: string
+        options:
+          $ref: '#/components/schemas/BaseUpdateNodePoolOptions'
     CreateEKSProperties_eks:
       properties:
         version:
