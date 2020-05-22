@@ -171,6 +171,11 @@ func (h helmEnvService) UpdateRepository(_ context.Context, helmEnv helm.HelmEnv
 	return nil
 }
 
+func (h helmEnvService) CheckReleaseCharts(ctx context.Context, helmEnv helm.HelmEnv, releases []helm.Release) (map[string]bool, error) {
+	// noop in case of helm 2
+	return nil, nil
+}
+
 func (h helmEnvService) repositoryToEntry(ctx context.Context, repository helm.Repository) (repo.Entry, error) {
 	entry := repo.Entry{
 		Name: repository.Name,
