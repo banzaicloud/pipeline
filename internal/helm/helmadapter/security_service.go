@@ -56,9 +56,8 @@ func (s securityService) GetSecurityInfo(ctx context.Context, clusterID uint, re
 
 	whiteListItems, err := s.resourcer.GetWhitelists(ctx, clusterData)
 	if err != nil {
-		s.logger.Warn("failed to retrieve whitelist information")
 		// swallow the error deliberately here
-		return nil, nil
+		s.logger.Warn("no security scan whitelist information available...")
 	}
 
 	releaseToWhitelistMap := make(map[string]bool, len(whiteListItems))
@@ -68,16 +67,18 @@ func (s securityService) GetSecurityInfo(ctx context.Context, clusterID uint, re
 
 	scanLogs, err := s.resourcer.ListScanLogs(ctx, clusterData)
 	if err != nil {
-		s.logger.Warn("failed to retrieve scanlogs information")
 		// swallow the error deliberately here
-		return nil, nil
+		s.logger.Warn("no security scan log information available...")
 	}
 
-	castScanLogs := scanLogs.([]securityV1Alpha.AuditSpec)
 	releaseToScanLogsMap := make(map[string]bool)
-	for _, audit := range castScanLogs {
-		if audit.Action == "reject" {
-			releaseToScanLogsMap[audit.ReleaseName] = true
+	if scanLogs != nil {
+		castScanLogs := scanLogs.([]securityV1Alpha.AuditSpec)
+
+		for _, audit := range castScanLogs {
+			if audit.Action == "reject" {
+				releaseToScanLogsMap[audit.ReleaseName] = true
+			}
 		}
 	}
 
