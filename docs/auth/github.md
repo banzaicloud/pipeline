@@ -24,6 +24,6 @@ Fill in `Authorization callback URL`. This field has to be updated once the Cont
     http://{control_plane_public_address}/dex/callback
     ```
 
-Take note of the `Client ID` and `Client Secret` as these will be required for launching the Pipeline Control Plane and fill them into the `config/dex.yml` file (or into environment variables, see that file for details).
+Take note of the `Client ID` and `Client Secret` as these will be required for launching the Pipeline Control Plane and fill them into the `etc/config/dex.yml` file (or into environment variables, see that file for details).
 
 ![github oauth app id](images/GithubOAuthAppId.png)
