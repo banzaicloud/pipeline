@@ -112,7 +112,6 @@ require (
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/yaml.v2 v2.2.8
-	// must be in sync with the capabilities API at cmd/pipeline/capabilities.go
 	helm.sh/helm/v3 v3.1.3
 	k8s.io/api v0.17.5
 	k8s.io/apiextensions-apiserver v0.17.5
