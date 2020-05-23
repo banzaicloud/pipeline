@@ -104,13 +104,11 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 
 		var output CalculateNodePoolVersionActivityOutput
 
-		processActivity := process.StartActivity(ctx, CalculateNodePoolVersionActivityName)
 		err = workflow.ExecuteActivity(
 			workflow.WithActivityOptions(ctx, activityOptions),
 			CalculateNodePoolVersionActivityName,
 			activityInput,
 		).Get(ctx, &output)
-		processActivity.Finish(ctx, err)
 		if err != nil {
 			return
 		}
