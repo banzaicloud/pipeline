@@ -176,6 +176,8 @@ var (
 	version    string
 	commitHash string
 	buildDate  string
+
+	helmVersion string
 )
 
 func main() {
