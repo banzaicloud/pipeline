@@ -24,8 +24,7 @@
 <!-- Place an '[x]' (no spaces) in all applicable fields. Please remove unrelated fields. -->
 
 - [ ] Implementation tested (with at least one cloud provider)
-- [ ] Error handling code meets the [guideline](https://github.com/banzaicloud/pipeline/blob/master/docs/error-handling-guide.md)
-- [ ] Logging code meets the guideline (TODO)
+- [ ] Code meets the [Developer Guide](https://github.com/banzaicloud/developer-guide)
 - [ ] OpenAPI and Postman files updated (if needed)
 - [ ] User guide and development docs updated (if needed)
 - [ ] Related Helm chart(s) updated (if needed)
