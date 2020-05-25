@@ -19,12 +19,12 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/ghodss/yaml"
+	"github.com/mitchellh/mapstructure"
+	"github.com/sirupsen/logrus"
 
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
+
 	"github.com/banzaicloud/pipeline/src/dns"
-	"github.com/banzaicloud/pipeline/src/helm"
 )
 
 func (m *FederationReconciler) ReconcileExternalDNSController(desiredState DesiredState) error {
@@ -35,59 +35,52 @@ func (m *FederationReconciler) ReconcileExternalDNSController(desiredState Desir
 	chartName := m.Configuration.dnsConfig.Charts.ExternalDNS.Chart
 	const releaseName = "dns"
 
-	err := m.ensureCRDSourceForExtDNS(m.Host, infraNamespace, chartName, releaseName, desiredState)
+	_, err := EnsureCRDSourceForExtDNS(m.Host, m.helmService, infraNamespace, chartName, releaseName, desiredState, m.logger)
 	if err != nil {
 		return errors.WrapIf(err, "could not update ExternalDNS controller")
 	}
 	return nil
 }
 
-func (m *FederationReconciler) ensureCRDSourceForExtDNS(
-	c cluster.CommonCluster,
+func EnsureCRDSourceForExtDNS(
+	c internalhelm.ClusterDataProvider,
+	helmService HelmService,
 	namespace string,
 	deploymentName string,
 	releaseName string,
 	desiredState DesiredState,
-) error {
-	kubeConfig, err := c.GetK8sConfig()
-	if err != nil {
-		return errors.WrapIf(err, "could not get k8s config")
-	}
-
-	hClient, err := pkgHelm.NewClient(kubeConfig, m.logger)
-	if err != nil {
-		return err
-	}
-	defer hClient.Close()
-
-	resp, err := hClient.ReleaseContent(releaseName)
+	logger logrus.FieldLogger,
+) (upgraded bool, err error) {
+	resp, err := helmService.GetRelease(c, releaseName, namespace)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			m.logger.Debug("externalDNS deployment not found")
-			return nil
+			logger.Debug("externalDNS deployment not found")
+			return false, nil
 		}
-		return err
+		return false, err
 	}
 
 	crdPresent := false
 
 	currentValues := &dns.ExternalDnsChartValues{}
-	err = yaml.Unmarshal([]byte(resp.Release.Config.Raw), &currentValues)
+	err = mapstructure.Decode(&resp.ReleaseInfo.Values, currentValues)
 	if err != nil {
-		return err
+		return false, err
 	}
-	sources := currentValues.Sources
-	for _, src := range sources {
-		if src == "crd" {
-			crdPresent = true
+	if currentValues != nil {
+		sources := currentValues.Sources
+		for _, src := range sources {
+			if src == "crd" {
+				crdPresent = true
+			}
 		}
 	}
 
 	if desiredState == DesiredStatePresent && crdPresent {
-		return nil
+		return false, nil
 	}
 	if desiredState == DesiredStateAbsent && !crdPresent {
-		return nil
+		return false, nil
 	}
 
 	values := dns.ExternalDnsChartValues{
@@ -112,14 +105,29 @@ func (m *FederationReconciler) ensureCRDSourceForExtDNS(
 			ExtraArgs: map[string]string{},
 		}
 	}
-	valuesOverride, err := yaml.Marshal(values)
+
+	var valuesOverride map[string]interface{}
+	err = mapstructure.Decode(&values, &valuesOverride)
 	if err != nil {
-		return errors.WrapIf(err, "could not marshal chart value overrides")
+		return false, errors.WrapIf(err, "could not decode chart value overrides")
 	}
 
-	_, err = helm.UpgradeDeployment(releaseName, deploymentName, resp.Release.Chart.Metadata.Version, nil, valuesOverride, true, kubeConfig, helm.GeneratePlatformHelmRepoEnv())
+	err = helmService.InstallOrUpgrade(
+		c,
+		internalhelm.Release{
+			ReleaseName: releaseName,
+			ChartName:   deploymentName,
+			Namespace:   namespace,
+			Values:      valuesOverride,
+			Version:     resp.Version,
+		}, internalhelm.Options{
+			Namespace:   namespace,
+			ReuseValues: true,
+			Install:     true,
+		},
+	)
 	if err != nil {
-		return errors.WrapIfWithDetails(err, "could not upgrade deployment", "deploymentName", deploymentName)
+		return false, errors.WrapIfWithDetails(err, "could not upgrade deployment", "deploymentName", deploymentName)
 	}
-	return nil
+	return true, nil
 }

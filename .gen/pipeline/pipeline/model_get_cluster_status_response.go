@@ -46,6 +46,8 @@ type GetClusterStatusResponse struct {
 
 	Region string `json:"region,omitempty"`
 
+	Oidc OidcConfig `json:"oidc,omitempty"`
+
 	NodePools map[string]NodePoolStatus `json:"nodePools,omitempty"`
 
 	TotalSummary ResourceSummary `json:"totalSummary,omitempty"`

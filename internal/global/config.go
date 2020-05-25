@@ -36,12 +36,6 @@ var Config struct {
 			Issuer   string
 		}
 	}
-	CICD struct {
-		Enabled  bool
-		Insecure bool
-		SCM      string
-		URL      string
-	}
 	Cloud struct {
 		Alibaba struct {
 			DefaultRegion string
@@ -156,9 +150,6 @@ var Config struct {
 			}
 		}
 	}
-	Gitlab struct {
-		URL string
-	}
 	Helm struct {
 		Home         string
 		Repositories map[string]string
@@ -176,13 +167,8 @@ var Config struct {
 		External struct {
 			URL string
 		}
-		UUID string
-	}
-	Spotguide struct {
-		AllowPrereleases                bool
-		AllowPrivateRepos               bool
-		SyncInterval                    time.Duration
-		SharedLibraryGitHubOrganization string
+		UUID       string
+		Enterprise bool
 	}
 	Telemetry struct {
 		Debug bool

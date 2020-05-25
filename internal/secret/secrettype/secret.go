@@ -87,9 +87,15 @@ const (
 
 // vSphere keys
 const (
-	VsphereURL      = "url"
-	VsphereUser     = "user"
-	VspherePassword = "password"
+	VsphereURL                 = "url"
+	VsphereUser                = "user"
+	VspherePassword            = "password"
+	VsphereFingerprint         = "fingerprint"
+	VsphereDatacenter          = "datacenter"
+	VsphereDatastore           = "datastore"
+	VsphereResourcePool        = "resourcePool"
+	VsphereFolder              = "folder"
+	VsphereDefaultNodeTemplate = "defaultNodeTemplate"
 )
 
 // Kubernetes keys
@@ -273,6 +279,12 @@ var DefaultRules = map[string]Meta{
 			{Name: VsphereURL, Required: true, Description: "The URL endpoint of the vSphere instance to use (don't include auth info)"},
 			{Name: VsphereUser, Required: true, Description: "Username to use for vSphere authentication"},
 			{Name: VspherePassword, Required: true, Description: "Password to use for vSphere authentication"},
+			{Name: VsphereFingerprint, Required: true, Description: "Fingerprint of the server certificate of vCenter"},
+			{Name: VsphereDatacenter, Required: true, Description: "Datacenter to use to store persistent volumes"},
+			{Name: VsphereDatastore, Required: true, Description: "Datastore that is in the given datacenter, and is available on all nodes"},
+			{Name: VsphereResourcePool, Required: true, Description: "Resource pool to create  VMs"},
+			{Name: VsphereFolder, Required: true, Description: "The name of the folder (aka blue folder) to create VMs"},
+			{Name: VsphereDefaultNodeTemplate, Required: true, Description: "The name of the default template name for VMs"},
 		},
 	},
 	SSHSecretType: {

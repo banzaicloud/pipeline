@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "56c6ea66-7ad9-47c3-bcc1-68b059dbf308",
+		"_postman_id": "87253952-855a-441d-85c1-aac8cdba194c",
 		"name": "Pipeline API",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -1069,11 +1069,66 @@
 											"variable": [
 												{
 													"key": "orgId",
-													"value": ""
+													"value": "{{orgId}}"
 												},
 												{
 													"key": "clusterId",
-													"value": ""
+													"value": "{{clusterId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update node pool",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"type": "text",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"image\": \"\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/nodepools/:nodePoolName/update",
+											"host": [
+												"{{url}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"orgs",
+												":orgId",
+												"clusters",
+												":clusterId",
+												"nodepools",
+												":nodePoolName",
+												"update"
+											],
+											"variable": [
+												{
+													"key": "orgId",
+													"value": "{{orgId}}"
+												},
+												{
+													"key": "clusterId",
+													"value": "{{clusterId}}"
+												},
+												{
+													"key": "nodePoolName",
+													"value": "{{nodePoolName}}"
 												}
 											]
 										}
@@ -1093,7 +1148,7 @@
 											}
 										],
 										"url": {
-											"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/nodepools/:nodePool",
+											"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/nodepools/:nodePoolName",
 											"host": [
 												"{{url}}"
 											],
@@ -1105,20 +1160,20 @@
 												"clusters",
 												":clusterId",
 												"nodepools",
-												":nodePool"
+												":nodePoolName"
 											],
 											"variable": [
 												{
 													"key": "orgId",
-													"value": ""
+													"value": "{{orgId}}"
 												},
 												{
 													"key": "clusterId",
-													"value": ""
+													"value": "{{clusterId}}"
 												},
 												{
-													"key": "nodePool",
-													"value": ""
+													"key": "nodePoolName",
+													"value": "{{nodePoolName}}"
 												}
 											]
 										}
@@ -1709,7 +1764,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"cloud\": \"oracle\",\n    \"properties\": {\n        \"oke\": {\n            \"version\":\"v1.10.3\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.10.3\",\n                \t\"count\": 3,\n                \t\"labels\": {\n                \t\t\"type\": \"compute\"\n                \t}\n                },\n                \"pool2\": {\n                \t\"version\":\"v1.10.3\",\n                \t\"count\": 1,\n                \t\"image\": \"Oracle-Linux-7.5\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"compute\"\n                \t}\n                }\n            }\n        }\n    }\n}\n"
+											"raw": "{\n  \"nodepools\": [\n      {\n        \"name\": \"master\",\n        \"size\": 1\n      },\n      {\n        \"name\": \"pool1\",\n        \"size\": 2,\n         \"labels\": {\n            \"userlabelx\":\"uservaluex\"\n         }\n      }\n    ]\n}"
 										},
 										"url": {
 											"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId",
@@ -1791,7 +1846,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"kubernetes\": {\n    \"cri\": {},\n    \"network\": {},\n    \"oidc\": {\n    \t\"enabled\": false\n    },\n    \"version\": \"1.15.3\",\n    \"rbac\": true\n  },\n  \"type\": \"pke-on-vsphere\",\n  \"name\": \"vmware-{{username}}-{{$randomInt}}\",\n  \"secretName\": \"vmware\",\n  \"datastore\": \"DatastoreCluster\",\n  \"resourcepool\": \"resource-pool\",\n  \"folder\": \"folderName\",\n  \"network\": {},\n  \"nodePools\": [\n      {\n        \"name\": \"master\",\n        \"roles\": [\n          \"master\"\n        ],\n        \"size\": 1,\n        \"vcpu\": 2,\n        \"ram\": 1024,\n        \"template\": \"centos-7-pke-202001171452\"\n      },\n      {\n        \"name\": \"pool1\",\n        \"template\": \"centos-7-pke-202001171452\",\n        \"roles\": [\n          \"worker\"\n        ],\n        \"labels\": {\n            \"userLabel1\":\"userValue1\"\n        },\n        \"size\": 1,\n        \"vcpu\": 2,\n        \"ram\": 1024\n      },\n      {\n        \"name\": \"pool2\",\n        \"template\": \"centos-7-pke-202001171452\",\n        \"roles\": [\n          \"worker\"\n        ],\n        \"labels\": {\n            \"userLabel2\":\"userValue2\"\n        },\n        \"size\": 1,\n        \"vcpu\": 2,\n        \"ram\": 1024\n      }      \n    ]\n}"
+											"raw": "{\n  \"kubernetes\": {\n    \"cri\": {},\n    \"network\": {},\n    \"oidc\": {\n    \t\"enabled\": false\n    },\n    \"version\": \"1.15.3\",\n    \"rbac\": true\n  },\n  \"type\": \"pke-on-vsphere\",\n  \"name\": \"vmware-{{username}}-{{$randomInt}}\",\n  \"secretName\": \"vmware\",\n  \"datastore\": \"DatastoreCluster\",\n  \"resourcepool\": \"resource-pool\",\n  \"folder\": \"folderName\",\n  \"nodepools\": [\n      {\n        \"name\": \"master\",\n        \"roles\": [\n          \"master\"\n        ],\n        \"size\": 1,\n        \"vcpu\": 2,\n        \"ram\": 1024,\n        \"template\": \"centos-7-pke-202001171452\"\n      },\n      {\n        \"name\": \"pool1\",\n        \"template\": \"centos-7-pke-202001171452\",\n        \"roles\": [\n          \"worker\"\n        ],\n        \"labels\": {\n            \"userLabel1\":\"userValue1\"\n        },\n        \"size\": 1,\n        \"vcpu\": 2,\n        \"ram\": 1024\n      },\n      {\n        \"name\": \"pool2\",\n        \"template\": \"centos-7-pke-202001171452\",\n        \"roles\": [\n          \"worker\"\n        ],\n        \"labels\": {\n            \"userLabel2\":\"userValue2\"\n        },\n        \"size\": 1,\n        \"vcpu\": 2,\n        \"ram\": 1024\n      }      \n    ]\n}"
 										},
 										"url": {
 											"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
@@ -1807,13 +1862,76 @@
 											],
 											"variable": [
 												{
-													"description": "Organization identifier",
 													"key": "orgId",
-													"value": "{{orgId}}"
+													"value": "{{orgId}}",
+													"description": "Organization identifier"
 												}
 											]
 										},
 										"description": "Creates a Kubernetes cluster on vSphere"
+									},
+									"response": []
+								},
+								{
+									"name": "Update cluster",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "20fd8550-787b-4cc6-a7ad-644a2e7b93d4",
+												"exec": [
+													"",
+													"if (responseCode.code === 202) {",
+													"    tests[\"Response Code 202\"] = responseCode.code == 202;",
+													"} else {",
+													"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+													"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+													"    postman.setNextRequest(null);",
+													"}",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"nodepools\": [\n      {\n        \"name\": \"master\",\n        \"size\": 1\n      },\n      {\n        \"name\": \"pool1\",\n        \"size\": 2,\n         \"labels\": {\n            \"userlabelx\":\"uservaluex\"\n         }\n      }\n    ]\n}"
+										},
+										"url": {
+											"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId",
+											"host": [
+												"{{url}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"orgs",
+												":orgId",
+												"clusters",
+												":clusterId"
+											],
+											"variable": [
+												{
+													"key": "orgId",
+													"value": "{{orgId}}",
+													"description": "Organization identifier"
+												},
+												{
+													"key": "clusterId",
+													"value": "{{clusterId}}",
+													"description": "Cluster identifier"
+												}
+											]
+										}
 									},
 									"response": []
 								}
@@ -3995,148 +4113,6 @@
 			"protocolProfileBehavior": {}
 		},
 		{
-			"name": "Spotguides",
-			"item": [
-				{
-					"name": "Spotguide List",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/spotguides",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"spotguides"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization identifier"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Spotguide Create",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"spotguideName\": \"banzaicloud/spotguide-nodejs-mongodb\",\n\t\"repoOrganization\": \"banzaicloud\",\n\t\"repoName\": \"nodejs-spotguide-test\"\n}\n"
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/spotguides",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"spotguides"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization identifier"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Spotguide Sync Repos",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/spotguides",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"spotguides"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization identifier"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Spotguide Details",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/spotguides/:spotguideName",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"spotguides",
-								":spotguideName"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization identifier"
-								},
-								{
-									"key": "spotguideName",
-									"value": "banzaicloud/spotguide-nodejs-mongodb",
-									"description": "Spotguide name"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
 			"name": "Deployments",
 			"item": [
 				{
@@ -4145,7 +4121,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
+								"id": "0eaa2399-26d9-4444-9e69-81b0cab2e045",
 								"exec": [
 									"if (responseCode.code === 201) {",
 									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -4159,7 +4135,8 @@
 									"    postman.setNextRequest(null);",
 									"}",
 									""
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -4173,7 +4150,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"banzaicloud-stable/cicd\",\n\t\"values\": {\n\t\t\"server\": {\n\t\t\t\"persistentVolume\": {\n\t\t\t\t\"enabled\": false\n\t\t\t}\n\t\t}\n\t}\n}"
+							"raw": "{\n\t\"name\": \"banzaicloud-stable/pipeline\",\n\t\"values\": {\n\t\t\"ingress\": {\n\t\t\t\"enabled\": true\n\t\t}\n\t}\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/deployments",
@@ -7742,6 +7719,75 @@
 										{
 											"key": "secretIdPagerDuty",
 											"value": "{{secretIdPagerDuty}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "vSphere",
+					"item": [
+						{
+							"name": "Add secret vSphere",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3e431145-1a1f-4061-ab99-245f653d77a7",
+										"exec": [
+											"if (responseCode.code === 201) {",
+											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+											"",
+											"    pm.environment.set(\"timestampHeader\", new Date());",
+											"    var dataJSON = JSON.parse(responseBody);",
+											"    pm.environment.set(\"secretIdAmazon\", dataJSON.id);",
+											"    tests[\"Secret ID: \" + dataJSON.id] = true;",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    console.warn(responseBody);",
+											"    postman.setNextRequest(null);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\": \"my-vsphere-secret-{{$randomInt}}\",\n\t\"type\": \"vsphere\",\n\t\"values\": {\n\t\t\"url\": \"{{VCenterURL}}\",\n\t\t\"user\": \"{{VCenterUserName}}\",\n\t\t\"password\": \"{{VCenterPassword}}\",\n\t\t\"fingerprint\": \"{{VCenterCertFingerprint}}\",\n\t\t\"datacenter\": \"{{VSphereDatacenter}}\",\n\t\t\"datastore\": \"{{VSphereDatastore}}\",\n\t\t\"resourcePool\": \"{{VSphereResourcePool}}\",\n\t\t\"folder\": \"{{VSphereFolder}}\",\n\t\t\"defaultNodeTemplate\": \"{{VSphereDefaultNodeTemplate}}\"\n\t}\n}"
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/secrets",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"secrets"
+									],
+									"variable": [
+										{
+											"description": "Organization identifier",
+											"key": "orgId",
+											"value": "{{orgId}}"
 										}
 									]
 								}

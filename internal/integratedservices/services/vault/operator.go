@@ -348,7 +348,7 @@ func (op IntegratedServicesOperator) Deactivate(ctx context.Context, clusterID u
 	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "integrated service": integratedServiceName})
 
 	// delete deployment
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, vaultWebhookReleaseName); err != nil {
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, vaultWebhookReleaseName, op.config.Namespace); err != nil {
 		logger.Info("failed to delete integrated service deployment")
 
 		return errors.WrapIf(err, "failed to uninstall integrated service")

@@ -16,49 +16,37 @@ package istiofeature
 
 import (
 	"emperror.dev/errors"
-	"github.com/ghodss/yaml"
+
+	"github.com/banzaicloud/pipeline/internal/helm"
 
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
-func (m *MeshReconciler) ReconcileCanaryOperator(desiredState DesiredState) error {
+func (m *MeshReconciler) ReconcileCanaryOperator(desiredState DesiredState, c cluster.CommonCluster) error {
 	m.logger.Debug("reconciling canary-operator")
 	defer m.logger.Debug("canary-operator reconciled")
 
 	if desiredState == DesiredStatePresent {
-		k8sclient, err := m.getMasterK8sClient()
+		k8sclient, err := m.getRuntimeK8sClient(c)
 		if err != nil {
 			return errors.WrapIf(err, "could not get k8s client")
 		}
-		err = m.waitForSidecarInjectorPod(k8sclient)
+		err = m.waitForPod(k8sclient, istioOperatorNamespace, map[string]string{"app": "istiod"}, "")
 		if err != nil {
 			return errors.WrapIf(err, "error while waiting for running sidecar injector")
 		}
 
-		err = m.installCanaryOperator(m.Master, prometheusURL)
-		if err != nil {
-			return errors.WrapIf(err, "could not install canary-operator")
-		}
-	} else {
-		err := m.uninstallCanaryOperator(m.Master)
-		if err != nil {
-			return errors.WrapIf(err, "could not remove canary-operator")
-		}
+		return errors.WrapIf(m.installCanaryOperator(c, prometheusURL), "could not install canary-operator")
 	}
 
-	return nil
+	return errors.WrapIf(m.uninstallCanaryOperator(c), "could not remove canary-operator")
 }
 
 // uninstallCanaryOperator removes canary-operator from a cluster
 func (m *MeshReconciler) uninstallCanaryOperator(c cluster.CommonCluster) error {
-	m.logger.Debug("removing istio release operator")
+	m.logger.Debug("removing canary-operator")
 
-	err := deleteDeployment(c, canaryOperatorReleaseName)
-	if err != nil {
-		return errors.WrapIf(err, "could not remove canary-operator")
-	}
-
-	return nil
+	return errors.WrapIf(m.helmService.Delete(c, canaryOperatorReleaseName, canaryOperatorNamespace), "could not remove canary-operator")
 }
 
 // installCanaryOperator installs canary-operator to a cluster
@@ -92,24 +80,26 @@ func (m *MeshReconciler) installCanaryOperator(c cluster.CommonCluster, promethe
 		values.Operator.Image.Tag = canaryChart.Values.Operator.Image.Tag
 	}
 
-	valuesOverride, err := yaml.Marshal(values)
+	valuesOverride, err := helm.ConvertStructure(values)
 	if err != nil {
 		return errors.WrapIf(err, "could not marshal chart value overrides")
 	}
 
-	err = installOrUpgradeDeployment(
+	err = m.helmService.InstallOrUpgrade(
 		c,
-		canaryOperatorNamespace,
-		canaryChart.Chart,
-		canaryOperatorReleaseName,
-		valuesOverride,
-		canaryChart.Version,
-		true,
-		true,
+		helm.Release{
+			ReleaseName: canaryOperatorReleaseName,
+			ChartName:   canaryChart.Chart,
+			Namespace:   canaryOperatorNamespace,
+			Values:      valuesOverride,
+			Version:     canaryChart.Version,
+		},
+		helm.Options{
+			Namespace: canaryOperatorNamespace,
+			Wait:      true,
+			Install:   true,
+		},
 	)
-	if err != nil {
-		return errors.WrapIf(err, "could not install canary-operator")
-	}
 
-	return nil
+	return errors.WrapIf(err, "could not install canary-operator")
 }

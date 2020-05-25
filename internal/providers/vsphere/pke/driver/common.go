@@ -41,9 +41,10 @@ type nodeTemplateFactory struct {
 	OIDCClientID                string
 	OIDCIssuerURL               string
 	NoProxy                     string
+	LoadBalancerIPRange         string
 }
 
-func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
+func (f nodeTemplateFactory) getNode(np pke.NodePool, number int) workflow.Node {
 	node := workflow.Node{
 		Name:                   pke.GetVMName(f.ClusterName, np.Name, number),
 		VCPU:                   np.VCPU,
@@ -53,13 +54,13 @@ func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
 		UserDataScriptTemplate: workerUserDataScriptTemplate,
 		TemplateName:           np.TemplateName,
 		NodePoolName:           np.Name,
-		Master:                 np.hasRole(pkgPKE.RoleMaster),
+		Master:                 np.HasRole(pkgPKE.RoleMaster),
 	}
 
 	k8sMasterMode := "default"
 	taints := ""
 
-	if np.hasRole(pkgPKE.RoleMaster) {
+	if np.HasRole(pkgPKE.RoleMaster) {
 		if f.SingleNodePool {
 			taints = "," // do not taint single node pool cluster's master node
 		} else {
@@ -83,7 +84,7 @@ func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
 		}
 	}
 
-	if np.hasRole(pkgPKE.RolePipelineSystem) {
+	if np.HasRole(pkgPKE.RolePipelineSystem) {
 		if !f.SingleNodePool {
 			taints = fmt.Sprintf("%s=%s:%s", pkgCommon.NodePoolNameTaintKey, np.Name, corev1.TaintEffectPreferNoSchedule)
 		}
@@ -103,6 +104,7 @@ func (f nodeTemplateFactory) getNode(np NodePool, number int) workflow.Node {
 		"KubernetesVersion":    f.KubernetesVersion,
 		"KubernetesMasterMode": k8sMasterMode,
 		"NoProxy":              f.NoProxy,
+		"LoadBalancerIPRange":  f.LoadBalancerIPRange,
 	}
 	return node
 }

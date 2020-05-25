@@ -24,6 +24,7 @@ import (
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/oidc"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -97,6 +98,20 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 		CreatorID:   clusterStatus.CreatorId,
 	}
 
+	// set oidc field on response
+	var oidcCreator = oidc.NewCreator(a.authConfig.OIDC, a.clientSecretGetter)
+	oidcResponse, err := oidcCreator.CreateNewOIDCResponse(c.Request.Context(), clusterStatus.OIDCEnabled, commonCluster.GetID())
+	if err != nil {
+		errorHandler.Handle(err)
+	} else {
+		response.OIDC = OIDC{
+			Enabled:      oidcResponse.Enabled,
+			IdpURL:       oidcResponse.IdpURL,
+			ClientID:     oidcResponse.ClientID,
+			ClientSecret: oidcResponse.ClientSecret,
+		}
+	}
+
 	for name, nodePool := range clusterStatus.NodePools {
 		response.NodePools[name] = GetClusterNodePool{
 			Autoscaling:  nodePool.Autoscaling,
@@ -109,6 +124,9 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 			Image:        nodePool.Image,
 			Version:      nodePool.Version,
 			Labels:       nodePool.Labels,
+			Vcpu:         nodePool.Vcpu,
+			Ram:          nodePool.Ram,
+			Template:     nodePool.Template,
 
 			CreatedAt:   nodePool.CreatedAt,
 			CreatorName: nodePool.CreatorName,
@@ -241,6 +259,7 @@ type GetClusterResponse struct {
 	Cloud        string `json:"cloud"`
 	Distribution string `json:"distribution"`
 	Spot         bool   `json:"spot,omitempty"`
+	OIDC         OIDC   `json:"oidc"`
 
 	Logging      bool                     `json:"logging"`
 	Monitoring   bool                     `json:"monitoring"`
@@ -276,6 +295,9 @@ type GetClusterNodePool struct {
 	Version         string                         `json:"version,omitempty"`
 	ResourceSummary map[string]NodeResourceSummary `json:"resourceSummary,omitempty"`
 	Labels          map[string]string              `json:"labels,omitempty"`
+	Vcpu            int                            `json:"vcpu,omitempty"`
+	Ram             int                            `json:"ram,omitempty"`
+	Template        string                         `json:"template,omitempty"`
 
 	CreatedAt   time.Time `json:"createdAt,omitempty"`
 	CreatorName string    `json:"creatorName,omitempty"`
@@ -300,4 +322,11 @@ type Resource struct {
 	Allocatable string `json:"allocatable,omitempty"`
 	Limit       string `json:"limit,omitempty"`
 	Request     string `json:"request,omitempty"`
+}
+
+type OIDC struct {
+	Enabled      bool   `json:"enabled"`
+	IdpURL       string `json:"idpUrl,omitempty"`
+	ClientID     string `json:"clientId,omitempty"`
+	ClientSecret string `json:"clientSecret,omitempty"`
 }

@@ -20,6 +20,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/util/validation"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
 )
@@ -29,6 +30,7 @@ type ServiceMeshFeatureHandler struct {
 	logger        logrus.FieldLogger
 	errorHandler  emperror.Handler
 	staticConfig  StaticConfig
+	helmService   HelmService
 }
 
 // NewServiceMeshFeatureHandler returns a new ServiceMeshFeatureHandler instance.
@@ -37,12 +39,14 @@ func NewServiceMeshFeatureHandler(
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
 	staticConfig StaticConfig,
+	helmService HelmService,
 ) *ServiceMeshFeatureHandler {
 	return &ServiceMeshFeatureHandler{
 		clusterGetter: clusterGetter,
 		logger:        logger,
 		errorHandler:  errorHandler,
 		staticConfig:  staticConfig,
+		helmService:   helmService,
 	}
 }
 
@@ -66,7 +70,7 @@ func (h *ServiceMeshFeatureHandler) ReconcileState(featureState api.Feature) err
 		return errors.WithStack(err)
 	}
 
-	mesh := NewMeshReconciler(*config, h.clusterGetter, logger, h.errorHandler)
+	mesh := NewMeshReconciler(*config, h.clusterGetter, logger, h.errorHandler, h.helmService)
 	err = mesh.Reconcile()
 	if err != nil {
 		h.errorHandler.Handle(err)
@@ -113,6 +117,11 @@ func (h *ServiceMeshFeatureHandler) ValidateProperties(clusterGroup api.ClusterG
 		return errors.New("master cluster ID cannot be changed")
 	}
 
+	errs := validation.IsDNS1123Subdomain(clusterGroup.Name)
+	if len(errs) > 0 {
+		return errors.WithDetails(errors.Errorf("invalid mesh name: %s", errs[0]), "name", clusterGroup.Name)
+	}
+
 	masterClusterIsAMember := false
 	for _, member := range clusterGroup.Members {
 		if member.ID == config.MasterClusterID {
@@ -136,7 +145,7 @@ func (h *ServiceMeshFeatureHandler) GetMembersStatus(featureState api.Feature) (
 		return nil, errors.WithStack(err)
 	}
 
-	mesh := NewMeshReconciler(*config, h.clusterGetter, h.logger, h.errorHandler)
+	mesh := NewMeshReconciler(*config, h.clusterGetter, h.logger, h.errorHandler, h.helmService)
 	statusMap, err = mesh.GetClusterStatus()
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not get clusters status")

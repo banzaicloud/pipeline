@@ -26,6 +26,7 @@ type AnchoreValues struct {
 	Host     string `json:"anchoreHost" mapstructure:"host"`
 	User     string `json:"anchoreUser" mapstructure:"username"`
 	Password string `json:"anchorePass" mapstructure:"password"`
+	Insecure bool   `json:"insecureSkipVerify" mapstructure:"insecure"`
 }
 
 type MatchExpression struct {

@@ -38,13 +38,6 @@ type configuration struct {
 	// Meaningful values are recommended (eg. production, development, staging, release/123, etc)
 	Environment string
 
-	CICD struct {
-		Enabled  bool
-		Insecure bool
-		SCM      string
-		URL      string
-	}
-
 	// Turns on some debug functionality
 	Debug bool
 
@@ -56,7 +49,8 @@ type configuration struct {
 	// it's really required here (i.e. used through global config that's
 	// initialized from this).
 	Pipeline struct {
-		External struct {
+		Enterprise bool
+		External   struct {
 			URL string
 		}
 		UUID string
@@ -68,32 +62,6 @@ func (c configuration) Validate() error {
 	var errs error
 
 	errs = errors.Append(errs, c.Auth.Validate())
-
-	if c.CICD.Enabled {
-		if c.CICD.URL == "" {
-			errs = errors.Append(errs, errors.New("cicd url is required"))
-		}
-
-		switch c.CICD.SCM {
-		case "github":
-			if c.Github.Token == "" {
-				errs = errors.Append(errs, errors.New("github token is required"))
-			}
-
-		case "gitlab":
-			if c.Gitlab.URL == "" {
-				errs = errors.Append(errs, errors.New("gitlab url is required"))
-			}
-
-			if c.Gitlab.Token == "" {
-				errs = errors.Append(errs, errors.New("gitlab token is required"))
-			}
-
-		default:
-			errs = errors.Append(errs, errors.New("cicd scm is required"))
-		}
-	}
-
 	errs = errors.Append(errs, c.Config.Validate())
 
 	if c.Environment == "" {
@@ -176,5 +144,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cadence::workflowExecutionRetentionPeriodInDays", 3)
 
 	v.SetDefault("pipeline::uuid", "")
+	v.SetDefault("pipeline::enterprise", false)
 	v.SetDefault("pipeline::external::url", "")
 }

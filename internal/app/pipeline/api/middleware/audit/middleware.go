@@ -32,7 +32,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/spotguide"
 )
 
 // LogWriter instance is a Gin Middleware which logs all request data into MySQL audit_events table.
@@ -83,10 +82,9 @@ func LogWriter(
 				return
 			}
 
-			if strings.Contains(path, "/secrets") || strings.Contains(path, "/spotguides") {
+			if strings.Contains(path, "/secrets") {
 				var request struct {
 					*secret.CreateSecretRequest
-					*spotguide.LaunchRequest
 				}
 
 				err := json.Unmarshal(rawBody, &request)
@@ -105,8 +103,6 @@ func LogWriter(
 
 				if request.CreateSecretRequest != nil {
 					newBody, err = json.Marshal(&request.CreateSecretRequest)
-				} else if request.LaunchRequest != nil {
-					newBody, err = json.Marshal(&request.LaunchRequest)
 				}
 
 				if err != nil {

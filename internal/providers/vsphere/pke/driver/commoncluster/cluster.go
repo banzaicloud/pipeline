@@ -218,6 +218,9 @@ func (a *VspherePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, e
 		nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 			Count:        np.Size,
 			InstanceType: np.InstanceType(),
+			Vcpu:         np.VCPU,
+			Ram:          np.RAM,
+			Template:     np.TemplateName,
 		}
 	}
 
@@ -231,6 +234,7 @@ func (a *VspherePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, e
 		Distribution:  a.GetDistribution(),
 		ResourceID:    a.model.ID,
 		Version:       a.model.Kubernetes.Version,
+		OIDCEnabled:   a.model.Kubernetes.OIDC.Enabled,
 		NodePools:     nodePools,
 		CreatorBaseFields: pkgCommon.CreatorBaseFields{
 			CreatedAt:   a.model.CreationTime,

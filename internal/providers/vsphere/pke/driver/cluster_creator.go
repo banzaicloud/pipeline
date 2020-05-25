@@ -29,6 +29,7 @@ import (
 	vspherePKE "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver/commoncluster"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/workflow"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -36,12 +37,12 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-const pkeVersion = "0.4.14"
+const pkeVersion = "0.5.0"
 const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
 func MakeVspherePKEClusterCreator(
 	logger Logger,
-	config ClusterCreatorConfig,
+	config ClusterConfig,
 	k8sPreparer intPKE.KubernetesPreparer,
 	organizations OrganizationStore,
 	secrets ClusterCreatorSecretStore,
@@ -51,7 +52,7 @@ func MakeVspherePKEClusterCreator(
 	return VspherePKEClusterCreator{
 		logger:           logger,
 		config:           config,
-		creationPreparer: MakeVspherePKEClusterCreationParamsPreparer(logger, k8sPreparer),
+		creationPreparer: MakeVspherePKEClusterCreationParamsPreparer(logger, k8sPreparer, secrets),
 		organizations:    organizations,
 		secrets:          secrets,
 		store:            store,
@@ -62,7 +63,7 @@ func MakeVspherePKEClusterCreator(
 // VspherePKEClusterCreator creates new PKE-on-Vsphere clusters
 type VspherePKEClusterCreator struct {
 	logger           Logger
-	config           ClusterCreatorConfig
+	config           ClusterConfig
 	creationPreparer VspherePKEClusterCreationParamsPreparer
 	organizations    OrganizationStore
 	secrets          ClusterCreatorSecretStore
@@ -80,7 +81,7 @@ type ClusterCreatorSecretStore interface {
 	GetByName(organizationID uint, secretName string) (*secret.SecretItemResponse, error)
 }
 
-type ClusterCreatorConfig struct {
+type ClusterConfig struct {
 	OIDCIssuerURL               string
 	PipelineExternalURL         string
 	PipelineExternalURLInsecure bool
@@ -114,9 +115,11 @@ func (np NodePool) hasRole(role pkgPKE.Role) bool {
 func (np NodePool) toPke() (pnp pke.NodePool) {
 	pnp.Size = np.Size
 	pnp.VCPU = np.VCPU
-	pnp.Ram = np.RAM
+	pnp.RAM = np.RAM
 	pnp.Name = np.Name
 	pnp.Roles = np.Roles
+	pnp.AdminUsername = np.AdminUsername
+	pnp.TemplateName = np.TemplateName
 	return
 }
 
@@ -127,27 +130,32 @@ type Subnet struct {
 
 // VspherePKEClusterCreationParams defines parameters for PKE-on-Vsphere cluster creation
 type VspherePKEClusterCreationParams struct {
-	CreatedBy        uint
-	Name             string
-	NodePools        []NodePool
-	OrganizationID   uint
-	ScaleOptions     pkgCluster.ScaleOptions
-	SecretID         string
-	SSHSecretID      string
-	HTTPProxy        intPKE.HTTPProxy
-	ResourcePoolName string
-	FolderName       string
-	DatastoreName    string
-	Kubernetes       intPKE.Kubernetes
-	ActiveWorkflowID string
+	CreatedBy           uint
+	Name                string
+	NodePools           []NodePool
+	OrganizationID      uint
+	ScaleOptions        pkgCluster.ScaleOptions
+	SecretID            string
+	StorageSecretID     string
+	SSHSecretID         string
+	HTTPProxy           intPKE.HTTPProxy
+	ResourcePoolName    string
+	FolderName          string
+	DatastoreName       string
+	Kubernetes          intPKE.Kubernetes
+	ActiveWorkflowID    string
+	LoadBalancerIPRange string
 }
 
 // Create
 func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKEClusterCreationParams) (cl pke.PKEOnVsphereCluster, err error) {
-	_, err = cc.secrets.Get(params.OrganizationID, params.SecretID)
+	var vsphereSecret *secret.SecretItemResponse
+	vsphereSecret, err = cc.secrets.Get(params.OrganizationID, params.SecretID)
 	if err = errors.WrapIf(err, "failed to get secret"); err != nil {
 		return
 	}
+
+	var defaultNodeTemplate = vsphereSecret.Values[secrettype.VsphereDefaultNodeTemplate]
 
 	// TODO maybe check the connection here, OR don't fetch the secret at all
 
@@ -158,29 +166,35 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 	nodePools := make([]pke.NodePool, len(params.NodePools))
 	for i, np := range params.NodePools {
 		nodePools[i] = pke.NodePool{
-			CreatedBy: np.CreatedBy,
-			Name:      np.Name,
-			Roles:     np.Roles,
-			Size:      np.Size,
-			VCPU:      np.VCPU,
-			Ram:       np.RAM,
+			CreatedBy:    np.CreatedBy,
+			Name:         np.Name,
+			Roles:        np.Roles,
+			Size:         np.Size,
+			VCPU:         np.VCPU,
+			RAM:          np.RAM,
+			TemplateName: np.TemplateName,
+		}
+		if nodePools[i].TemplateName == "" {
+			nodePools[i].TemplateName = defaultNodeTemplate
 		}
 	}
 	createParams := pke.CreateParams{
-		Name:             params.Name,
-		OrganizationID:   params.OrganizationID,
-		CreatedBy:        params.CreatedBy,
-		SecretID:         params.SecretID,
-		SSHSecretID:      params.SSHSecretID,
-		RBAC:             params.Kubernetes.RBAC,
-		OIDC:             params.Kubernetes.OIDC.Enabled,
-		ScaleOptions:     params.ScaleOptions,
-		NodePools:        nodePools,
-		HTTPProxy:        params.HTTPProxy,
-		ResourcePoolName: params.ResourcePoolName,
-		FolderName:       params.FolderName,
-		DatastoreName:    params.DatastoreName,
-		Kubernetes:       params.Kubernetes,
+		Name:                params.Name,
+		OrganizationID:      params.OrganizationID,
+		CreatedBy:           params.CreatedBy,
+		SecretID:            params.SecretID,
+		StorageSecretID:     params.StorageSecretID,
+		SSHSecretID:         params.SSHSecretID,
+		RBAC:                params.Kubernetes.RBAC,
+		OIDC:                params.Kubernetes.OIDC.Enabled,
+		ScaleOptions:        params.ScaleOptions,
+		NodePools:           nodePools,
+		HTTPProxy:           params.HTTPProxy,
+		ResourcePoolName:    params.ResourcePoolName,
+		FolderName:          params.FolderName,
+		DatastoreName:       params.DatastoreName,
+		Kubernetes:          params.Kubernetes,
+		LoadBalancerIPRange: params.LoadBalancerIPRange,
 	}
 	cl, err = cc.store.Create(createParams)
 	if err != nil {
@@ -203,6 +217,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 		PipelineExternalURLInsecure: cc.config.PipelineExternalURLInsecure,
 		SingleNodePool:              len(cl.NodePools) == 1,
 		SSHPublicKey:                sshKeyPair.PublicKeyData,
+		LoadBalancerIPRange:         cl.LoadBalancerIPRange,
 	}
 
 	if cl.Kubernetes.OIDC.Enabled {
@@ -211,13 +226,13 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 	}
 
 	var nodes []workflow.Node
-	for _, np := range params.NodePools {
+	for _, np := range cl.NodePools {
 		for i := 1; i <= np.Size; i++ {
 			nodes = append(nodes, tf.getNode(np, i))
 		}
 	}
 
-	org, err := cc.organizations.Get(ctx, params.OrganizationID)
+	org, err := cc.organizations.Get(ctx, cl.OrganizationID)
 	if err != nil {
 		return cl, errors.WrapIf(err, "failed to get organization")
 	}
@@ -237,7 +252,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 				NodePoolName: np.Name,
 				Existing:     false,
 				//TODO setup instance name, memory, vcpu
-				InstanceType: np.TemplateName,
+				InstanceType: np.InstanceType(),
 				CustomLabels: np.Labels,
 			})
 		}
@@ -253,9 +268,10 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 		ClusterID:        cl.ID,
 		ClusterName:      cl.Name,
 		ClusterUID:       cl.UID,
-		OrganizationID:   org.ID,
+		OrganizationID:   cl.OrganizationID,
 		OrganizationName: org.Name,
-		SecretID:         params.SecretID,
+		SecretID:         cl.SecretID,
+		StorageSecretID:  cl.StorageSecretID,
 		OIDCEnabled:      cl.Kubernetes.OIDC.Enabled,
 		Nodes:            nodes,
 		HTTPProxy:        cl.HTTPProxy,
@@ -291,13 +307,15 @@ func (cc VspherePKEClusterCreator) handleError(clusterID uint, err error) error 
 type VspherePKEClusterCreationParamsPreparer struct {
 	k8sPreparer intPKE.KubernetesPreparer
 	logger      Logger
+	secrets     ClusterCreatorSecretStore
 }
 
 // MakeVspherePKEClusterCreationParamsPreparer returns an instance of VspherePKEClusterCreationParamsPreparer
-func MakeVspherePKEClusterCreationParamsPreparer(logger Logger, k8sPreparer intPKE.KubernetesPreparer) VspherePKEClusterCreationParamsPreparer {
+func MakeVspherePKEClusterCreationParamsPreparer(logger Logger, k8sPreparer intPKE.KubernetesPreparer, secrets ClusterCreatorSecretStore) VspherePKEClusterCreationParamsPreparer {
 	return VspherePKEClusterCreationParamsPreparer{
 		k8sPreparer: k8sPreparer,
 		logger:      logger,
+		secrets:     secrets,
 	}
 }
 
@@ -315,12 +333,23 @@ func (p VspherePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, pa
 		return validationErrorf("OrganizationID cannot be found %s", err.Error())
 	}
 
-	// TODO check creator user exists if present
+	// validate secretID
 	if params.SecretID == "" {
 		return validationErrorf("SecretID cannot be empty")
 	}
-	// TODO validate secret ID
-	// TODO validate SSH secret ID if present
+	if err := p.verifySecretIsOfType(params.OrganizationID, params.SecretID, secrettype.Vsphere); err != nil {
+		return err
+	}
+
+	// validate storageSecretID if present
+	if err := p.verifySecretIsOfType(params.OrganizationID, params.StorageSecretID, secrettype.Vsphere); err != nil {
+		return err
+	}
+
+	// validate SSH secret ID if present
+	if err := p.verifySecretIsOfType(params.OrganizationID, params.SSHSecretID, secrettype.SSHSecretType); err != nil {
+		return err
+	}
 
 	if err := p.k8sPreparer.Prepare(&params.Kubernetes); err != nil {
 		return errors.WrapIf(err, "failed to prepare k8s network")
@@ -330,6 +359,20 @@ func (p VspherePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, pa
 		return errors.WrapIf(err, "failed to prepare node pools")
 	}
 
+	return nil
+}
+
+func (p VspherePKEClusterCreationParamsPreparer) verifySecretIsOfType(orgID uint, secretID string, secretType string) error {
+	if secretID == "" {
+		return nil
+	}
+	secret, err := p.secrets.Get(orgID, secretID)
+	if err != nil {
+		return validationErrorf("failed to get secret %s", secretID)
+	}
+	if secret.Type != secretType {
+		return validationErrorf("%s should be of type VSphere", secretID)
+	}
 	return nil
 }
 
@@ -351,7 +394,6 @@ func (p clusterCreatorNodePoolPreparerDataProvider) getExistingNodePoolByName(ct
 	return pke.NodePool{}, notExistsYetError{}
 }
 
-// TODO add vsphere params
 const masterUserDataScriptTemplate = `#!/bin/sh
 export HTTP_PROXY="{{ .HttpProxy }}"
 export HTTPS_PROXY="{{ .HttpsProxy }}"
@@ -377,20 +419,18 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-infrastructure-cidr=$PRIVATE_IP/32 \
 --kubernetes-version={{ .KubernetesVersion }} \
 --kubernetes-master-mode={{ .KubernetesMasterMode }} \
---kubernetes-api-server-cert-sans="${PUBLIC_ADDRESS}"`
-
-/*
-#--kubernetes-cloud-provider=vsphere \
-#--vsphere-server=$server               \
-#--vsphere-port=$port                   \
-#--vsphere-fingerprint=$fingerprint     \
-#--vsphere-datacenter=$datacenter       \
-#--vsphere-datastore=$datastore         \
-#--vsphere-resourcepool=$resourcepool   \
-#--vsphere-folder=$folder               \
-#--vsphere-username=$username           \
-#--vsphere-password=$password           \
-#--lb-range=$lbrange                    */
+--kubernetes-api-server-cert-sans="${PUBLIC_ADDRESS}" \
+--kubernetes-cloud-provider=vsphere \
+--vsphere-server="{{ .VCenterServer }}" \
+--vsphere-port={{ .VCenterPort }} \
+--vsphere-fingerprint="{{ .VCenterFingerprint }}" \
+--vsphere-datacenter="{{ .Datacenter }}" \
+--vsphere-datastore="{{ .Datastore }}" \
+--vsphere-resourcepool="{{ .ResourcePool }}" \
+--vsphere-folder="{{ .Folder }}" \
+--vsphere-username="{{ .Username }}" \
+--vsphere-password="{{ .Password }}" \
+--lb-range="{{ .LoadBalancerIPRange }}"`
 
 const workerUserDataScriptTemplate = `#!/bin/sh
 export HTTP_PROXY="{{ .HttpProxy }}"

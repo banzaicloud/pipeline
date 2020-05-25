@@ -37,8 +37,12 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
+	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/process"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/process/processadapter"
 	cluster2 "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
@@ -57,11 +61,11 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
+	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/internal/helm2"
-	"github.com/banzaicloud/pipeline/internal/helm2/helmadapter"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
@@ -109,8 +113,6 @@ import (
 	legacyclusteradapter "github.com/banzaicloud/pipeline/src/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/src/dns"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/banzaicloud/pipeline/src/spotguide"
-	"github.com/banzaicloud/pipeline/src/spotguide/scm"
 )
 
 // Provisioned by ldflags
@@ -236,6 +238,9 @@ func main() {
 			errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
 		}
 
+		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+
+		releaseDeleter := cmd.CreateReleaseDeleter(config.Helm, db, commonSecretStore, commonLogger)
 		clusterRepo := clusteradapter.NewClusters(db)
 		clusterManager := cluster.NewManager(
 			clusterRepo,
@@ -247,6 +252,7 @@ func main() {
 			logrusLogger,
 			errorHandler,
 			clusteradapter.NewStore(db, clusterRepo),
+			releaseDeleter,
 		)
 		tokenStore := bauth.NewVaultTokenStore("pipeline")
 		tokenManager := pkgAuth.NewTokenManager(
@@ -259,7 +265,17 @@ func main() {
 		)
 		tokenGenerator := auth.NewClusterTokenGenerator(tokenManager, tokenStore)
 
-		helmService := helm2.NewHelmService(helmadapter.NewClusterService(clusterManager), commonadapter.NewLogger(logger))
+		orgService := helmadapter.NewOrgService(commonLogger)
+		clusterSvc := helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc())
+
+		unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
+			config.Helm,
+			db,
+			commonSecretStore,
+			clusterSvc,
+			orgService,
+			commonLogger,
+		)
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
 		secretStore := pkeworkflowadapter.NewSecretStore(secret.Store)
@@ -274,35 +290,19 @@ func main() {
 		clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
 		emperror.Panic(errors.Wrap(err, "failed to create DexClusterAuthService"))
 
-		scmProvider := config.CICD.SCM
-		var scmToken string
-		switch scmProvider {
-		case "github":
-			scmToken = config.Github.Token
-		case "gitlab":
-			scmToken = config.Gitlab.Token
-		default:
-			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
-		}
-
-		scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken, auth.SCMTokenStore{})
-		emperror.Panic(errors.WrapIf(err, "failed to create SCMFactory"))
-
-		spotguideManager := spotguide.NewSpotguideManager(
-			db,
-			version,
-			scmFactory,
-			nil,
-			spotguide.PlatformData{},
-		)
-
-		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 		configFactory := kubernetes.NewConfigFactory(commonSecretStore)
+
+		processService := process.NewService(processadapter.NewGormStore(db), workflowClient)
+		processActivity := process.NewProcessActivity(processService)
+
+		activity.RegisterWithOptions(processActivity.ExecuteProcess, activity.RegisterOptions{Name: process.ProcessActivityName})
+		activity.RegisterWithOptions(processActivity.ExecuteProcessEvent, activity.RegisterOptions{Name: process.ProcessEventActivityName})
 
 		// Cluster setup
 		{
 			wf := clustersetup.Workflow{
 				InstallInitManifest: config.Cluster.Manifest != "",
+				HelmV3:              config.Helm.V3,
 			}
 			workflow.RegisterWithOptions(wf.Execute, workflow.RegisterOptions{Name: clustersetup.WorkflowName})
 
@@ -332,17 +332,19 @@ func main() {
 				config.Helm.Tiller.Version,
 				kubernetes.NewClientFactory(configFactory),
 			)
-			activity.RegisterWithOptions(installTillerActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerActivityName})
 
-			installTillerWaitActivity := clustersetup.NewInstallTillerWaitActivity(
-				config.Helm.Tiller.Version,
-				kubernetes.NewHelmClientFactory(configFactory, commonadapter.NewLogger(logger)),
-			)
-			activity.RegisterWithOptions(installTillerWaitActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerWaitActivityName})
+			if !config.Helm.V3 {
+				activity.RegisterWithOptions(installTillerActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerActivityName})
 
+				installTillerWaitActivity := clustersetup.NewInstallTillerWaitActivity(
+					config.Helm.Tiller.Version,
+					kubernetes.NewHelmClientFactory(configFactory, commonadapter.NewLogger(logger)),
+				)
+				activity.RegisterWithOptions(installTillerWaitActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerWaitActivityName})
+			}
 			installNodePoolLabelSetOperatorActivity := clustersetup.NewInstallNodePoolLabelSetOperatorActivity(
 				config.Cluster.Labels,
-				helmService,
+				unifiedHelmReleaser,
 			)
 			activity.RegisterWithOptions(installNodePoolLabelSetOperatorActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallNodePoolLabelSetOperatorActivityName})
 
@@ -366,7 +368,7 @@ func main() {
 
 		workflow.RegisterWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
 
-		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager)
+		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager, unifiedHelmReleaser)
 		activity.RegisterWithOptions(runPostHookActivity.Execute, activity.RegisterOptions{Name: cluster.RunPostHookActivityName})
 
 		updateClusterStatusActivity := cluster.NewUpdateClusterStatusActivity(clusterManager)
@@ -405,9 +407,9 @@ func main() {
 		{
 			workflow.RegisterWithOptions(clusterworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: clusterworkflow.DeleteClusterWorkflowName})
 
-			federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config)
-			deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler)
-			serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler, config.Cluster.Backyards)
+			federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config, unifiedHelmReleaser)
+			deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler, deployment.NewHelmService(helmFacade, unifiedHelmReleaser))
+			serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler, config.Cluster.Backyards, unifiedHelmReleaser)
 			clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)
 			clusterGroupManager.RegisterFeatureHandler(deployment.FeatureName, deploymentManager)
 			clusterGroupManager.RegisterFeatureHandler(cgFeatureIstio.FeatureName, serviceMeshFeatureHandler)
@@ -524,16 +526,14 @@ func main() {
 			activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.SetClusterStatusActivityName})
 		}
 
+		k8sConfigGetter := kubesecret.MakeKubeSecretStore(secret.Store)
+
 		// Register vsphere specific workflows
 
-		registerVsphereWorkflows(secretStore, tokenGenerator, vsphereClusterStore)
+		registerVsphereWorkflows(secretStore, tokenGenerator, vsphereClusterStore, k8sConfigGetter)
 
 		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterSecretStore)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
-
-		scrapeSharedSpotguidesActivity := spotguide.NewScrapeSharedSpotguidesActivity(spotguideManager)
-		workflow.RegisterWithOptions(spotguide.ScrapeSharedSpotguidesWorkflow, workflow.RegisterOptions{Name: spotguide.ScrapeSharedSpotguidesWorkflowName})
-		activity.RegisterWithOptions(scrapeSharedSpotguidesActivity.Execute, activity.RegisterOptions{Name: spotguide.ScrapeSharedSpotguidesActivityName})
 
 		createDexClientActivity := pkeworkflow.NewCreateDexClientActivity(clusters, clusterAuthService)
 		activity.RegisterWithOptions(createDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateDexClientActivityName})
@@ -549,9 +549,7 @@ func main() {
 
 		workflow.RegisterWithOptions(intClusterWorkflow.DeleteK8sResourcesWorkflow, workflow.RegisterOptions{Name: intClusterWorkflow.DeleteK8sResourcesWorkflowName})
 
-		k8sConfigGetter := kubesecret.MakeKubeSecretStore(secret.Store)
-
-		deleteHelmDeploymentsActivity := intClusterWorkflow.MakeDeleteHelmDeploymentsActivity(k8sConfigGetter, logrusLogger)
+		deleteHelmDeploymentsActivity := intClusterWorkflow.MakeDeleteHelmDeploymentsActivity(k8sConfigGetter, releaseDeleter, logrusLogger)
 		activity.RegisterWithOptions(deleteHelmDeploymentsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteHelmDeploymentsActivityName})
 
 		deleteUserNamespacesActivity := intClusterWorkflow.MakeDeleteUserNamespacesActivity(intClusterK8s.MakeUserNamespaceDeleter(logrusLogger), k8sConfigGetter)
@@ -639,7 +637,7 @@ func main() {
 				integratedServiceDNS.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					logger,
 					orgDomainService,
 					commonSecretStore,
@@ -649,7 +647,7 @@ func main() {
 					config.Cluster.SecurityScan.Config,
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					commonSecretStore,
 					featureAnchoreService,
 					featureWhitelistService,
@@ -658,7 +656,7 @@ func main() {
 				),
 				integratedServiceVault.MakeIntegratedServicesOperator(clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					kubernetesService,
 					commonSecretStore,
 					config.Cluster.Vault.Config,
@@ -667,16 +665,17 @@ func main() {
 				integratedServiceMonitoring.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					kubernetesService,
 					config.Cluster.Monitoring.Config,
 					logger,
 					commonSecretStore,
+					integratedServiceMonitoring.Migrate,
 				),
 				integratedServiceLogging.MakeIntegratedServicesOperator(
 					clusterGetter,
 					clusterService,
-					helmService,
+					unifiedHelmReleaser,
 					kubernetesService,
 					endpointManager,
 					config.Cluster.Logging.Config,
@@ -688,7 +687,7 @@ func main() {
 					intsvcingressadapter.NewOperatorClusterStore(clusterStore),
 					clusterService,
 					config.Cluster.Ingress.Config,
-					helmService,
+					unifiedHelmReleaser,
 					intsvcingressadapter.NewOrgDomainService(config.Cluster.DNS.BaseDomain, orgGetter),
 				),
 			})

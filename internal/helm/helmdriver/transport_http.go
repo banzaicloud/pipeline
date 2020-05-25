@@ -23,54 +23,197 @@ import (
 	"emperror.dev/errors"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	"github.com/mitchellh/mapstructure"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
+	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
 	errorEncoder := kitxhttp.NewJSONProblemErrorResponseEncoder(apphttp.NewDefaultProblemConverter())
 
-	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
+	router.Methods(http.MethodPost).Path("/repos").Handler(kithttp.NewServer(
 		endpoints.AddRepository,
 		decodeAddRepositoryHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
 	))
 
-	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
+	router.Methods(http.MethodGet).Path("/repos").Handler(kithttp.NewServer(
 		endpoints.ListRepositories,
 		decodeListRepositoriesHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(encodeListRepositoriesHTTPResponse, errorEncoder),
 		options...,
 	))
 
-	router.Methods(http.MethodDelete).Path("/{name}").Handler(kithttp.NewServer(
+	router.Methods(http.MethodDelete).Path("/repos/{name}").Handler(kithttp.NewServer(
 		endpoints.DeleteRepository,
 		decodeDeleteRepositoryHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(encodeDeleteRepositoryHTTPResponse, errorEncoder),
 		options...,
 	))
 
-	router.Methods(http.MethodPatch).Path("/{name}").Handler(kithttp.NewServer(
-		endpoints.PatchRepository,
-		decodePatchRepositoryHTTPRequest,
+	router.Methods(http.MethodPut).Path("/repos/{name}").Handler(kithttp.NewServer(
+		endpoints.ModifyRepository,
+		decodeModifyRepositoryHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
 	))
 
-	router.Methods(http.MethodPut).Path("/{name}").Handler(kithttp.NewServer(
+	router.Methods(http.MethodPut).Path("/repos/{name}/update").Handler(kithttp.NewServer(
 		endpoints.UpdateRepository,
 		decodeUpdateRepositoryHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
 	))
+
+	router.Methods(http.MethodGet).Path("/charts").Handler(kithttp.NewServer(
+		endpoints.ListCharts,
+		decodeListChartsHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeListChartsHTTPResponse, errorEncoder),
+		options...,
+	))
+
+	// TODO fix the path after migrating to h3 (use chartS instead of chart) - backwards  compatibility!
+	router.Methods(http.MethodGet).Path("/chart/{reponame}/{name}").Handler(kithttp.NewServer(
+		endpoints.GetChart,
+		decodeChartDetailsHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeChartDetailsHTTPResponse, errorEncoder),
+		options...,
+	))
+}
+
+func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
+	errorEncoder := kitxhttp.NewJSONProblemErrorResponseEncoder(apphttp.NewDefaultProblemConverter())
+
+	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
+		endpoints.InstallRelease,
+		decodeInstallReleaseHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		options...,
+	))
+
+	router.Methods(http.MethodDelete).Path("/{name}").Handler(kithttp.NewServer(
+		endpoints.DeleteRelease,
+		decodeDeleteReleaseHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		options...,
+	))
+
+	router.Methods(http.MethodPut).Path("/{name}").Handler(kithttp.NewServer(
+		endpoints.UpgradeRelease,
+		decodeUpgradeReleaseHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		options...,
+	))
+
+	router.Methods(http.MethodGet).Path("/{name}").Handler(kithttp.NewServer(
+		endpoints.GetRelease,
+		decodeGetReleaseHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeGetReleaseHTTPResponse, errorEncoder),
+		options...,
+	))
+
+	router.Methods(http.MethodGet).Path("/{name}/resources").Handler(kithttp.NewServer(
+		endpoints.GetReleaseResources,
+		decodeGetReleaseResourcesHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeGetReleaseResourcesHTTPResponse, errorEncoder),
+		options...,
+	))
+
+	router.Methods(http.MethodHead).Path("/{name}").Handler(kithttp.NewServer(
+		endpoints.CheckRelease,
+		decodeCheckReleaseHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeCheckReleaseHTTPResponse, errorEncoder),
+		options...,
+	))
+}
+
+func RegisterRestAPI(endpoints RestAPIEndpoints, router *mux.Router, options ...kithttp.ServerOption) {
+	errorEncoder := kitxhttp.NewJSONProblemErrorResponseEncoder(apphttp.NewDefaultProblemConverter())
+
+	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
+		endpoints.GetReleases,
+		decodeGetReleasesHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeGetReleasesHTTPResponse, errorEncoder),
+		options...,
+	))
+}
+
+func decodeInstallReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, e := extractUintParamFromRequest("orgId", r)
+	if e != nil {
+		return nil, errors.WrapIf(e, "failed to decode add repository request")
+	}
+
+	clusterID, e := extractUintParamFromRequest("clusterId", r)
+	if e != nil {
+		return nil, errors.WrapIf(e, "failed to decode add repository request")
+	}
+
+	var request pipeline.CreateUpdateDeploymentRequest
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode request")
+	}
+
+	return InstallReleaseRequest{
+		OrganizationID: orgID,
+		ClusterID:      clusterID,
+		Release: helm.Release{
+			ReleaseName: request.ReleaseName,
+			ChartName:   request.Name,
+			Namespace:   request.Namespace,
+			Values:      request.Values,
+		},
+		Options: helm.Options{
+			DryRun:       request.DryRun,
+			GenerateName: request.ReleaseName == "",
+			Wait:         request.Wait,
+		},
+	}, nil
+}
+
+func decodeUpgradeReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, e := extractUintParamFromRequest("orgId", r)
+	if e != nil {
+		return nil, errors.WrapIf(e, "failed to decode add repository request")
+	}
+
+	clusterID, e := extractUintParamFromRequest("clusterId", r)
+	if e != nil {
+		return nil, errors.WrapIf(e, "failed to decode add repository request")
+	}
+
+	var request pipeline.CreateUpdateDeploymentRequest
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode request")
+	}
+
+	return UpgradeReleaseRequest{
+		OrganizationID: orgID,
+		ClusterID:      clusterID,
+		Release: helm.Release{
+			ReleaseName: request.ReleaseName,
+			ChartName:   request.Name,
+			Namespace:   request.Namespace,
+			Values:      request.Values,
+		}, Options: helm.Options{
+			DryRun:       request.DryRun,
+			GenerateName: request.ReleaseName == "",
+			Wait:         request.Wait,
+		},
+	}, nil
 }
 
 func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	orgID, e := extractOrgID(r)
+	orgID, e := extractUintParamFromRequest("orgId", r)
 	if e != nil {
 		return nil, errors.WrapIf(e, "failed to decode add repository request")
 	}
@@ -92,25 +235,25 @@ func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interfa
 		}}, nil
 }
 
-func decodePatchRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	orgID, e := extractOrgID(r)
+func decodeModifyRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, e := extractUintParamFromRequest("orgId", r)
 	if e != nil {
-		return nil, errors.WrapIf(e, "failed to decode patch repository request")
+		return nil, errors.WrapIf(e, "failed to decode modify repository request")
 	}
 
-	repoName, err := extractHelmRepoName(r)
+	repoName, err := extractStringParamFromRequest("name", r)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to decode patch repository request")
+		return nil, errors.WrapIf(err, "failed to decode modify repository request")
 	}
 
 	var request pipeline.HelmReposAddRequest
 
 	dErr := json.NewDecoder(r.Body).Decode(&request)
 	if dErr != nil {
-		return nil, errors.WrapIf(dErr, "failed to decode patch repository request")
+		return nil, errors.WrapIf(dErr, "failed to decode modify repository request")
 	}
 
-	return PatchRepositoryRequest{
+	return ModifyRepositoryRequest{
 		OrganizationID: orgID,
 		Repository: helm.Repository{
 			Name:             repoName,
@@ -122,36 +265,26 @@ func decodePatchRepositoryHTTPRequest(_ context.Context, r *http.Request) (inter
 }
 
 func decodeUpdateRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	orgID, e := extractOrgID(r)
+	orgID, e := extractUintParamFromRequest("orgId", r)
 	if e != nil {
 		return nil, errors.WrapIf(e, "failed to decode update repository request")
 	}
 
-	repoName, err := extractHelmRepoName(r)
+	repoName, err := extractStringParamFromRequest("name", r)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to decode update repository request")
-	}
-
-	var request pipeline.HelmReposAddRequest
-
-	dErr := json.NewDecoder(r.Body).Decode(&request)
-	if dErr != nil {
-		return nil, errors.WrapIf(dErr, "failed to decode update repository request")
 	}
 
 	return UpdateRepositoryRequest{
 		OrganizationID: orgID,
 		Repository: helm.Repository{
-			Name:             repoName,
-			URL:              request.Url,
-			PasswordSecretID: request.PasswordSecretRef,
-			TlsSecretID:      request.TlsSecretRef,
+			Name: repoName,
 		},
 	}, nil
 }
 
 func decodeListRepositoriesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	orgID, err := extractOrgID(r)
+	orgID, err := extractUintParamFromRequest("orgId", r)
 	if err != nil {
 		return 0, errors.WrapIf(err, "failed to decode list request")
 	}
@@ -175,12 +308,12 @@ func encodeListRepositoriesHTTPResponse(ctx context.Context, w http.ResponseWrit
 }
 
 func decodeDeleteRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	orgID, err := extractOrgID(r)
+	orgID, err := extractUintParamFromRequest("orgId", r)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to decode list request")
 	}
 
-	repoName, err := extractHelmRepoName(r)
+	repoName, err := extractStringParamFromRequest("name", r)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to decode list request")
 	}
@@ -199,29 +332,337 @@ func encodeDeleteRepositoryHTTPResponse(ctx context.Context, w http.ResponseWrit
 	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
 }
 
-func extractOrgID(r *http.Request) (uint, error) {
-	vars := mux.Vars(r)
-
-	id, ok := vars["orgId"]
-	if !ok || id == "" {
-		return 0, errors.NewWithDetails("missing path parameter", "param", "orgId")
+func decodeDeleteReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, err := extractUintParamFromRequest("orgId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode delete release request")
 	}
 
-	orgID, e := strconv.ParseUint(id, 10, 32)
-	if e != nil {
-		return 0, errors.WrapIff(e, "failed to parse path param: %s, value:  %s", "id", id)
+	clusterID, err := extractUintParamFromRequest("clusterId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode delete release request")
 	}
 
-	return uint(orgID), nil
+	releaseName, err := extractStringParamFromRequest("name", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode delete release request")
+	}
+
+	return DeleteReleaseRequest{
+		OrganizationID: orgID,
+		ClusterID:      clusterID,
+		ReleaseName:    releaseName,
+	}, nil
 }
 
-func extractHelmRepoName(r *http.Request) (string, error) {
+func encodeGetReleaseResourcesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp, ok := response.(GetReleaseResourcesResponse)
+	if !ok {
+		return errors.NewWithDetails("failed to encode release resources response")
+	}
+
+	if resp.Err != nil {
+		return errors.NewWithDetails("failed to retrieve release resources")
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp.R0)
+}
+
+func decodeCheckReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, err := extractUintParamFromRequest("orgId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	clusterID, err := extractUintParamFromRequest("clusterId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	releaseName, err := extractStringParamFromRequest("name", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	return CheckReleaseRequest{
+		OrganizationID: orgID,
+		ClusterID:      clusterID,
+		ReleaseName:    releaseName,
+	}, nil
+}
+
+func encodeCheckReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	release, ok := response.(CheckReleaseResponse)
+	if !ok {
+		return errors.New("invalid  release list response")
+	}
+
+	if release.Err != nil {
+		return errors.WrapIf(release.Err, "failed to retrieve releases")
+	}
+
+	// TODO add this to the api spec
+	resp := helm2.DeploymentStatusResponse{
+		Status:  http.StatusOK,
+		Message: release.R0,
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
+}
+
+func decodeGetReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, err := extractUintParamFromRequest("orgId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	clusterID, err := extractUintParamFromRequest("clusterId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	releaseName, err := extractStringParamFromRequest("name", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	return GetReleaseRequest{
+		OrganizationID: orgID,
+		ClusterID:      clusterID,
+		ReleaseName:    releaseName,
+	}, nil
+}
+func decodeGetReleaseResourcesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, err := extractUintParamFromRequest("orgId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	clusterID, err := extractUintParamFromRequest("clusterId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	releaseName, err := extractStringParamFromRequest("name", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get release request")
+	}
+
+	return GetReleaseResourcesRequest{
+		OrganizationID: orgID,
+		ClusterID:      clusterID,
+		Release: helm.Release{
+			ReleaseName: releaseName,
+		},
+	}, nil
+}
+
+func encodeGetReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	release, ok := response.(GetReleaseResponse)
+	if !ok {
+		return errors.New("invalid  release list response")
+	}
+
+	if release.Err != nil {
+		return errors.WrapIf(release.Err, "failed to retrieve releases")
+	}
+
+	resp := pipeline.GetDeploymentResponse{
+		ReleaseName:  release.R0.ReleaseName,
+		Chart:        release.R0.ChartName, // TODO what's this
+		ChartName:    release.R0.ChartName,
+		ChartVersion: release.R0.Version,
+		Namespace:    release.R0.Namespace,
+		Version:      release.R0.ReleaseVersion,
+		UpdatedAt:    release.R0.ReleaseInfo.LastDeployed.String(),
+		Status:       release.R0.ReleaseInfo.Status,
+		CreatedAt:    release.R0.ReleaseInfo.FirstDeployed.String(),
+		Notes:        release.R0.ReleaseInfo.Notes,
+		Values:       release.R0.Values,
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
+}
+
+func decodeGetReleasesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, err := extractUintParamFromRequest("orgId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode list release request")
+	}
+
+	clusterID, err := extractUintParamFromRequest("clusterId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode list release request")
+	}
+
+	var queryData = struct {
+		TagFilters []string `json:"tag" mapstructure:"tag"`
+		Filters    []string `json:"filter,omitempty" mapstructure:"filter"`
+	}{}
+	if err := mapstructure.Decode(r.URL.Query(), &queryData); err != nil {
+		return nil, errors.WrapIf(err, "failed to decode list release request")
+	}
+
+	filter := helm.ReleaseFilter{}
+	if len(queryData.TagFilters) > 1 {
+		filter.TagFilter = queryData.TagFilters[0]
+	}
+	if queryData.Filters != nil {
+		filter.Filter = &queryData.Filters[0]
+	}
+
+	return GetReleasesRestAPIRequest{
+		OrganizationID: orgID,
+		ClusterID:      clusterID,
+		Filters:        filter,
+	}, nil
+}
+
+func encodeGetReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	releases, ok := response.(GetReleasesRestAPIResponse)
+	if !ok {
+		return errors.New("invalid release list response")
+	}
+
+	if releases.Err != nil {
+		return errors.WrapIf(releases.Err, "failed to retrieve releases")
+	}
+
+	resp := make([]helm2.ListDeploymentResponse, 0, len(releases.ReleaseList))
+	for _, release := range releases.ReleaseList {
+		resp = append(resp, helm2.ListDeploymentResponse{
+			Name:         release.ReleaseName,
+			Chart:        release.ChartName,
+			ChartName:    release.ChartName,
+			ChartVersion: release.Version,
+			Version:      release.ReleaseVersion,
+			UpdatedAt:    release.ReleaseInfo.LastDeployed,
+			Status:       release.ReleaseInfo.Status,
+			Namespace:    release.Namespace,
+			CreatedAt:    release.ReleaseInfo.FirstDeployed,
+			Supported:    release.Supported,
+			WhiteListed:  release.Whitelisted,
+			Rejected:     release.Rejected,
+		})
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
+}
+
+func decodeListChartsHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, err := extractUintParamFromRequest("orgId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get charts request")
+	}
+
+	// WARN: this' struct behavior MUST be is analogue to query api.ChartQuery in order not to break the api
+	parsedQuery := helm.ChartFilter{}
+
+	if err := mapstructure.Decode(r.URL.Query(), &parsedQuery); err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get charts request")
+	}
+
+	return ListChartsRequest{
+		OrganizationID: orgID,
+		Filter:         parsedQuery,
+		Options:        helm.Options{},
+	}, nil
+}
+
+func encodeListChartsHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	charts, ok := response.(ListChartsResponse)
+	if !ok {
+		return errors.New("invalid  release list response")
+	}
+
+	if charts.Err != nil {
+		return errors.WrapIf(charts.Err, "failed to retrieve charts")
+	}
+
+	if len(charts.Charts) == 0 {
+		return kitxhttp.JSONResponseEncoder(ctx, w, "")
+	}
+
+	chartsResponse := make([]interface{}, 0, len(charts.Charts))
+	for _, repoCharts := range charts.Charts {
+		chartsResponse = append(chartsResponse, repoCharts)
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, chartsResponse)
+}
+
+func decodeChartDetailsHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, err := extractUintParamFromRequest("orgId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get charts request")
+	}
+
+	var (
+		// inline type for binding request path parameters
+		pathData struct {
+			RepoName string
+			Name     string
+		}
+
+		// inline type for binding request query parameters
+		queryData helm.ChartFilter
+	)
+
+	if err := mapstructure.Decode(mux.Vars(r), &pathData); err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get chart details path parameters")
+	}
+
+	if err := mapstructure.Decode(r.URL.Query(), &queryData); err != nil {
+		return nil, errors.WrapIf(err, "failed to decode get chart details query parameters")
+	}
+
+	return GetChartRequest{
+		OrganizationID: orgID,
+		ChartFilter: helm.ChartFilter{
+			Repo:    []string{pathData.RepoName},
+			Name:    []string{pathData.Name},
+			Version: queryData.Version,
+			Keyword: queryData.Keyword, // TODO is it used?
+		},
+	}, nil
+}
+
+func encodeChartDetailsHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	chart, ok := response.(GetChartResponse)
+	if !ok {
+		return errors.New("invalid  release list response")
+	}
+
+	if chart.Err != nil {
+		return errors.WrapIf(chart.Err, "failed to retrieve charts")
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, chart.ChartDetails)
+}
+
+func extractStringParamFromRequest(key string, r *http.Request) (string, error) {
 	vars := mux.Vars(r)
 
-	repoName, ok := vars["name"]
+	repoName, ok := vars[key]
 	if !ok || repoName == "" {
 		return "", errors.NewWithDetails("missing path parameter", "param", "name")
 	}
 
 	return repoName, nil
+}
+
+func extractUintParamFromRequest(key string, r *http.Request) (uint, error) {
+	vars := mux.Vars(r)
+
+	strVal, ok := vars[key]
+	if !ok || strVal == "" {
+		return 0, errors.NewWithDetails("missing path parameter", "param", key)
+	}
+
+	uintVal, e := strconv.ParseUint(strVal, 10, 32)
+	if e != nil {
+		return 0, errors.WrapIff(e, "failed to parse path param: %s, value:  %s", "id", strVal)
+	}
+
+	return uint(uintVal), nil
 }

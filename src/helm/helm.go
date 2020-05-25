@@ -177,7 +177,7 @@ func GetChartFile(file []byte, fileName string) (string, error) {
 
 // DeleteAllDeployment deletes all Helm deployment
 // namespaces - if provided than delete all helm deployments only from the provided namespaces
-func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte, namespaces *v1.NamespaceList) error {
+func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte, namespaces []string) error {
 	log.Info("getting deployments....")
 	filter := ""
 	releaseResp, err := ListDeployments(&filter, "", kubeconfig)
@@ -188,10 +188,10 @@ func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte, namespaces *
 	if releaseResp != nil {
 		var nsFilter map[string]bool
 		if namespaces != nil {
-			nsFilter = make(map[string]bool, len(namespaces.Items))
+			nsFilter = make(map[string]bool, len(namespaces))
 
-			for _, ns := range namespaces.Items {
-				nsFilter[ns.Name] = true
+			for _, ns := range namespaces {
+				nsFilter[ns] = true
 			}
 		}
 
@@ -352,7 +352,7 @@ func GetRequestedChart(releaseName, chartName, chartVersion string, chartPackage
 }
 
 // UpgradeDeployment upgrades a Helm deployment
-func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage []byte, values []byte, reuseValues bool, kubeConfig []byte, env helm_env.EnvSettings) (*rls.UpdateReleaseResponse, error) {
+func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage []byte, values []byte, reuseValues bool, kubeConfig []byte, env helm_env.EnvSettings, overrideOpts ...helm.UpdateOption) (*rls.UpdateReleaseResponse, error) {
 	chartRequested, err := GetRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
@@ -365,13 +365,18 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 	}
 	defer hClient.Close()
 
+	options := []helm.UpdateOption{
+		helm.UpdateValueOverrides(values),
+		helm.UpgradeDryRun(false),
+		helm.ReuseValues(reuseValues),
+	}
+
+	options = append(options, overrideOpts...)
+
 	upgradeRes, err := hClient.UpdateReleaseFromChart(
 		releaseName,
 		chartRequested,
-		helm.UpdateValueOverrides(values),
-		helm.UpgradeDryRun(false),
-		// helm.ResetValues(u.resetValues),
-		helm.ReuseValues(reuseValues),
+		options...,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "upgrade failed")
@@ -758,10 +763,13 @@ func ReposAdd(env helm_env.EnvSettings, Hrepo *repo.Entry) (bool, error) {
 	}
 
 	c := repo.Entry{
-		Name:  Hrepo.Name,
-		URL:   Hrepo.URL,
-		Cache: env.Home.CacheIndex(Hrepo.Name),
+		Name:     Hrepo.Name,
+		Cache:    env.Home.CacheIndex(Hrepo.Name),
+		URL:      Hrepo.URL,
+		Username: Hrepo.Username,
+		Password: Hrepo.Password,
 	}
+
 	r, err := repo.NewChartRepository(&c, getter.All(env))
 	if err != nil {
 		return false, errors.Wrap(err, "Cannot create a new ChartRepo")
@@ -898,56 +906,56 @@ func ChartsGet(env helm_env.EnvSettings, queryName, queryRepo, queryVersion, que
 	if len(f.Repositories) == 0 {
 		return nil, nil
 	}
-	cl := make([]ChartList, 0)
+	retChartList := make([]ChartList, 0)
 
 	for _, r := range f.Repositories {
 		log.Debugf("Repository: %s", r.Name)
-		i, errIndx := repo.LoadIndexFile(r.Cache)
+		repoIndex, errIndx := repo.LoadIndexFile(r.Cache)
 		if errIndx != nil {
 			return nil, errIndx
 		}
 		repoMatched, _ := regexp.MatchString(queryRepo, strings.ToLower(r.Name))
 		if repoMatched || queryRepo == "" {
 			log.Debugf("Repository: %s Matched", r.Name)
-			c := ChartList{
+			chartList := ChartList{
 				Name:   r.Name,
 				Charts: make([]repo.ChartVersions, 0),
 			}
-			for n := range i.Entries {
-				log.Debugf("Chart: %s", n)
-				chartMatched, _ := regexp.MatchString("^"+queryName+"$", strings.ToLower(n))
+			for chartName := range repoIndex.Entries {
+				log.Debugf("Chart: %s", chartName)
+				chartMatched, _ := regexp.MatchString("^"+queryName+"$", strings.ToLower(chartName))
 
-				kwString := strings.ToLower(strings.Join(i.Entries[n][0].Keywords, " "))
+				kwString := strings.ToLower(strings.Join(repoIndex.Entries[chartName][0].Keywords, " "))
 				log.Debugf("kwString: %s", kwString)
 
 				kwMatched, _ := regexp.MatchString(queryKeyword, kwString)
 				if (chartMatched || queryName == "") && (kwMatched || queryKeyword == "") {
-					log.Debugf("Chart: %s Matched", n)
+					log.Debugf("Chart: %s Matched", chartName)
 					if queryVersion == "latest" {
-						c.Charts = append(c.Charts, repo.ChartVersions{i.Entries[n][0]})
+						chartList.Charts = append(chartList.Charts, repo.ChartVersions{repoIndex.Entries[chartName][0]})
 					} else {
-						c.Charts = append(c.Charts, i.Entries[n])
+						chartList.Charts = append(chartList.Charts, repoIndex.Entries[chartName])
 					}
 				}
 			}
-			cl = append(cl, c)
+			retChartList = append(retChartList, chartList)
 		}
 	}
-	return cl, nil
+	return retChartList, nil
 }
 
 // ChartDetails describes a chart details
 type ChartDetails struct {
-	Name     string          `json:"name"`
-	Repo     string          `json:"repo"`
-	Versions []*ChartVersion `json:"versions"`
+	Name     string          `json:"name" mapstructure:"name"`
+	Repo     string          `json:"repo" mapstructure:"repo"`
+	Versions []*ChartVersion `json:"versions" mapstructure:"versions"`
 }
 
 // ChartVersion describes a chart verion
 type ChartVersion struct {
-	Chart  *repo.ChartVersion `json:"chart"`
-	Values string             `json:"values"`
-	Readme string             `json:"readme"`
+	Chart  *repo.ChartVersion `json:"chart" mapstructure:"chart"`
+	Values string             `json:"values" mapstructure:"values"`
+	Readme string             `json:"readme" mapstructure:"readme"`
 }
 
 // ChartGet returns chart details

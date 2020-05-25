@@ -18,11 +18,11 @@ import (
 	"context"
 	"net/http"
 
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
 	pkgDep "github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/src/auth"
 )
 
@@ -58,24 +58,20 @@ func (n *API) Upgrade(c *gin.Context) {
 		return
 	}
 
-	organization, err := auth.GetOrganizationById(clusterGroup.OrganizationID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error  getting organization",
-			Error:   err.Error(),
-		})
-		return
-	}
 	var deployment *pkgDep.ClusterGroupDeployment
 	if err := c.ShouldBindJSON(&deployment); err != nil {
 		n.errorHandler.Handle(c, c.Error(err).SetType(gin.ErrorTypeBind))
 		return
 	}
 
+	if deployment.Package != nil {
+		n.errorHandler.Handle(c, errors.New("deployment using custom chart content is unsupported"))
+		return
+	}
+
 	deployment.ReleaseName = name
 
-	targetClusterStatus, err := n.deploymentManager.UpdateDeployment(clusterGroup, organization.Name, deployment)
+	targetClusterStatus, err := n.deploymentManager.UpdateDeployment(clusterGroup, deployment)
 	if err != nil {
 		n.errorHandler.Handle(c, err)
 		return

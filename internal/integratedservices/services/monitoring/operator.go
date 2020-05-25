@@ -23,6 +23,9 @@ import (
 	"github.com/mitchellh/copystructure"
 	"github.com/mitchellh/mapstructure"
 	"k8s.io/api/storage/v1beta1"
+	"k8s.io/client-go/kubernetes"
+
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -45,6 +48,7 @@ type IntegratedServiceOperator struct {
 	config            Config
 	logger            common.Logger
 	secretStore       services.SecretStore
+	migrator          Migrator
 }
 
 type chartValuesManager struct {
@@ -61,6 +65,7 @@ func MakeIntegratedServiceOperator(
 	config Config,
 	logger common.Logger,
 	secretStore services.SecretStore,
+	migrator Migrator,
 ) IntegratedServiceOperator {
 	return IntegratedServiceOperator{
 		clusterGetter:     clusterGetter,
@@ -70,6 +75,7 @@ func MakeIntegratedServiceOperator(
 		config:            config,
 		logger:            logger,
 		secretStore:       secretStore,
+		migrator:          migrator,
 	}
 }
 
@@ -199,12 +205,12 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 	}
 
 	// delete prometheus operator deployment
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, prometheusOperatorReleaseName); err != nil {
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, prometheusOperatorReleaseName, op.config.Namespace); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to delete deployment", "release", prometheusOperatorReleaseName)
 	}
 
 	// delete prometheus pushgateway deployment
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, prometheusPushgatewayReleaseName); err != nil {
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, prometheusPushgatewayReleaseName, op.config.Namespace); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to delete deployment", "release", prometheusPushgatewayReleaseName)
 	}
 
@@ -286,10 +292,17 @@ func (op IntegratedServiceOperator) installPrometheusOperator(
 				Tag:        op.config.Images.Operator.Tag,
 			},
 			CleanupCustomResource: true,
+			CreateCustomResource:  true,
 		},
 		Grafana:      valuesManager.generateGrafanaChartValues(spec.Grafana, grafanaUser, grafanaPass, op.config.Images.Grafana),
 		Alertmanager: alertmanagerValues,
 		Prometheus:   valuesManager.generatePrometheusChartValues(ctx, spec.Prometheus, prometheusSecretName, op.config.Images.Prometheus),
+	}
+
+	if op.helmService.IsV3() {
+		// todo consider disabling cleanup in favor of installing crds from the chart's crds folder, but will need to take care of upgrades in that case
+		//chartValues.PrometheusOperator.CleanupCustomResource = false
+		chartValues.PrometheusOperator.CreateCustomResource = false
 	}
 
 	if spec.Exporters.Enabled {
@@ -317,6 +330,30 @@ func (op IntegratedServiceOperator) installPrometheusOperator(
 	valuesBytes, err := mergeOperatorValuesWithConfig(*chartValues, operatorConfigValues)
 	if err != nil {
 		return errors.WrapIf(err, "failed to merge operator values with config")
+	}
+
+	if op.migrator != nil {
+		release, err := op.helmService.GetDeployment(ctx, cluster.GetID(), prometheusOperatorReleaseName, op.config.Namespace)
+		if err != nil {
+			return err
+		}
+
+		k8sClientFactory := func() (kubernetes.Interface, error) {
+			kubeConfig, err := cluster.GetK8sConfig()
+			if err != nil {
+				return nil, err
+			}
+			client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+			if err != nil {
+				return nil, err
+			}
+			return client, nil
+		}
+
+		err = op.migrator(k8sClientFactory, op.config.Namespace, release.ChartVersion, op.config.Charts.Operator.Version)
+		if err != nil {
+			return err
+		}
 	}
 
 	return op.helmService.ApplyDeployment(

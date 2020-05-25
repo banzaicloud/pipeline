@@ -12,5 +12,5 @@ package pipeline
 
 type UpdateClusterRequestV2 struct {
 
-	Nodepools []PkeOnAzureNodePool `json:"nodepools,omitempty"`
+	Nodepools []PkeOnVsphereNodePool `json:"nodepools,omitempty"`
 }

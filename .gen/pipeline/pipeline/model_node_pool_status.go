@@ -29,4 +29,10 @@ type NodePoolStatus struct {
 	Labels map[string]string `json:"labels,omitempty"`
 
 	ResourceSummary map[string]ResourceSummary `json:"resourceSummary,omitempty"`
+
+	Ram int32 `json:"ram,omitempty"`
+
+	Vcpu int32 `json:"vcpu,omitempty"`
+
+	Template string `json:"template,omitempty"`
 }

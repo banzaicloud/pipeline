@@ -35,10 +35,16 @@ func init() {
 }
 
 // NewMeshReconciler crates a new mesh feature reconciler
-func NewMeshReconciler(config Config, clusterGetter api.ClusterGetter, logger logrus.FieldLogger, errorHandler emperror.Handler) *MeshReconciler {
+func NewMeshReconciler(
+	config Config,
+	clusterGetter api.ClusterGetter,
+	logger logrus.FieldLogger,
+	errorHandler emperror.Handler,
+	helmService HelmService) *MeshReconciler {
 	reconciler := &MeshReconciler{
 		Configuration: config,
 
+		helmService:   helmService,
 		clusterGetter: clusterGetter,
 		logger:        logger,
 		errorHandler:  errorHandler,
@@ -83,10 +89,6 @@ func (m *MeshReconciler) getRemoteClusters() []cluster.CommonCluster {
 	return remotes
 }
 
-func (m *MeshReconciler) getMasterK8sClient() (runtimeclient.Client, error) {
-	return m.getRuntimeK8sClient(m.Master)
-}
-
 func (m *MeshReconciler) getK8sClient(c cluster.CommonCluster) (*kubernetes.Clientset, error) {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
@@ -95,18 +97,14 @@ func (m *MeshReconciler) getK8sClient(c cluster.CommonCluster) (*kubernetes.Clie
 
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		return nil, errors.WrapIf(err, "cloud not create client from kubeconfig")
+		return nil, errors.WrapIf(err, "could not create client from kubeconfig")
 	}
 
 	return client, nil
 }
 
-func (m *MeshReconciler) getMasterRuntimeK8sClient() (runtimeclient.Client, error) {
-	return m.getRuntimeK8sClient(m.Master)
-}
-
 func (m *MeshReconciler) getRuntimeK8sClient(c cluster.CommonCluster) (runtimeclient.Client, error) {
-	kubeConfig, err := m.Master.GetK8sConfig()
+	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not get k8s config")
 	}

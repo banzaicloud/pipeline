@@ -16,6 +16,7 @@ package secretadapter
 
 import (
 	"flag"
+	"os"
 	"regexp"
 	"testing"
 )
@@ -23,6 +24,11 @@ import (
 func TestIntegration(t *testing.T) {
 	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
 		t.Skip("skipping as execution was not requested explicitly using go test -run")
+	}
+
+	vaultAddr := os.Getenv("VAULT_ADDR")
+	if vaultAddr == "" {
+		t.Skip("skipping as VAULT_ADDR is not explicitly defined")
 	}
 
 	t.Run("VaultStore", testVaultStore)

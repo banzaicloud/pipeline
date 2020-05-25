@@ -16,15 +16,19 @@ package api_test
 
 import (
 	"crypto/sha256"
+	"flag"
 	"fmt"
+	"os"
 	"reflect"
+	"regexp"
 	"sort"
 	"testing"
 	"time"
 
 	"emperror.dev/emperror"
-	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	"github.com/stretchr/testify/require"
+
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -37,7 +41,16 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-func init() {
+func TestIntegration(t *testing.T) {
+	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
+		t.Skip("skipping as execution was not requested explicitly using go test -run")
+	}
+
+	vaultAddr := os.Getenv("VAULT_ADDR")
+	if vaultAddr == "" {
+		t.Skip("skipping as VAULT_ADDR is not explicitly defined")
+	}
+
 	vaultClient, err := vault.NewClient("pipeline")
 	emperror.Panic(err)
 	global.SetVault(vaultClient)
@@ -50,9 +63,13 @@ func init() {
 	})
 	secret.InitSecretStore(secretStore, secretTypes)
 	restricted.InitSecretStore(secret.Store)
+
+	t.Run("testAddSecret", testAddSecret)
+	t.Run("testDeleteSecrets", testDeleteSecrets)
+	t.Run("testListSecrets", testListSecrets)
 }
 
-func TestAddSecret(t *testing.T) {
+func testAddSecret(t *testing.T) {
 	cases := []struct {
 		name    string
 		request secret.CreateSecretRequest
@@ -81,7 +98,7 @@ func TestAddSecret(t *testing.T) {
 	}
 }
 
-func TestListSecrets(t *testing.T) {
+func testListSecrets(t *testing.T) {
 	_, _ = secret.Store.Store(orgId, &awsCreateSecretRequest)
 	_, _ = secret.Store.Store(orgId, &aksCreateSecretRequest)
 	_, _ = secret.Store.Store(orgId, &gkeCreateSecretRequest)
@@ -120,7 +137,7 @@ func TestListSecrets(t *testing.T) {
 	}
 }
 
-func TestDeleteSecrets(t *testing.T) {
+func testDeleteSecrets(t *testing.T) {
 	cases := []struct {
 		name     string
 		secretId string

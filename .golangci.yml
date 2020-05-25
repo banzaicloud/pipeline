@@ -15,7 +15,7 @@ linters-settings:
     gocyclo:
         min-complexity: 15
     goimports:
-        local-prefixes: github.com/banzaicloud/pipeline
+        local-prefixes: github.com/banzaicloud/pipeline/
     depguard:
         list-type: blacklist
         include-go-root: false
@@ -31,6 +31,7 @@ linters:
         - maligned
         - wsl
         - gomnd
+        - godot
 
         # TODO: fixme
         - gosec
@@ -39,6 +40,9 @@ linters:
 
         # Disable govet for now because it fails on Circle
         - govet
+
+        # TODO: fixme
+        - nestif
 
         - bodyclose
         - dupl
@@ -54,6 +58,7 @@ linters:
         - prealloc
         - scopelint
         - stylecheck
+        - testpackage
         - unparam
 
     fast: false

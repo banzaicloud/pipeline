@@ -15,50 +15,117 @@
 package api
 
 import (
+	"context"
+	"fmt"
 	"net/http"
+	"strconv"
 
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	"github.com/banzaicloud/pipeline/internal/common"
+	intlHelm "github.com/banzaicloud/pipeline/internal/helm"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/src/helm"
 )
 
-type EndpointLister struct {
-	logger common.Logger
+// Cluster collects operations to extract  cluster related information
+type ClusterService interface {
+	// Retrieves the kuebernetes configuration as a slice of bytes
+	GetKubeConfig(ctx context.Context, clusterID uint) ([]byte, error)
 }
 
-func MakeEndpointLister(logger common.Logger) EndpointLister {
+type ReleaseChecker interface {
+	CheckRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options intlHelm.Options) (string, error)
+}
+
+type helm2ReleaseChecker struct {
+	clusterService ClusterService
+}
+
+func NewReleaseChecker(service ClusterService) ReleaseChecker {
+	return helm2ReleaseChecker{clusterService: service}
+}
+func (h helm2ReleaseChecker) CheckRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options intlHelm.Options) (string, error) {
+	kubeConfig, err := h.clusterService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to get kubeconfig")
+	}
+
+	if releaseName != "" {
+		status, err := helm.GetDeploymentStatus(releaseName, kubeConfig)
+		if err != nil {
+			return "", errors.WrapIf(err, "failed to retrieve release status")
+		}
+		return string(status), nil
+	}
+
+	return "", nil
+}
+
+type EndpointLister struct {
+	clusterService ClusterService
+	releaseChecker ReleaseChecker
+	logger         common.Logger
+}
+
+func MakeEndpointLister(clusterService ClusterService, releaseChecker ReleaseChecker, logger common.Logger) EndpointLister {
 	return EndpointLister{
-		logger: logger,
+		clusterService: clusterService,
+		releaseChecker: releaseChecker,
+		logger:         logger,
 	}
 }
 
 // ListEndpoints lists service public endpoints
 func (el EndpointLister) ListEndpoints(c *gin.Context) {
+	orgID, err := strconv.ParseUint(c.Param("orgid"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+			Error:   err.Error(),
+		})
+		return
+	}
+
 	releaseName := c.Query("releaseName")
 	log.Infof("Filtering for helm release name: %s", releaseName)
 	log.Info("if empty(\"\") all the endpoints will be returned")
 
-	kubeConfig, ok := GetK8sConfig(c)
-	if ok != true {
-		return
-	}
 	if releaseName != "" {
-		status, err := helm.GetDeploymentStatus(releaseName, kubeConfig)
+		status, err := el.releaseChecker.CheckRelease(c.Request.Context(), uint(orgID), uint(clusterID), releaseName,
+			intlHelm.Options{})
 		if err != nil {
-			c.JSON(int(status), pkgCommon.ErrorResponse{
-				Code:    int(status),
-				Message: err.Error(),
+			c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
+				Message: fmt.Sprintf("status: %s", status),
 				Error:   err.Error(),
 			})
 			return
 		}
+	}
+
+	kubeConfig, err := el.clusterService.GetKubeConfig(c.Request.Context(), uint(clusterID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
+			Message: fmt.Sprintf("failed to retrieve k8s config for cluster: %d", clusterID),
+			Error:   err.Error(),
+		})
+		return
 	}
 
 	logger := el.logger.WithContext(c)

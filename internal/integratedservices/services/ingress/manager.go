@@ -56,7 +56,7 @@ func (m Manager) GetOutput(ctx context.Context, clusterID uint, spec integrateds
 	case ControllerTraefik:
 		traefikOutput := make(map[string]interface{})
 
-		rel, err := m.helmService.GetDeployment(ctx, clusterID, m.config.ReleaseName)
+		rel, err := m.helmService.GetDeployment(ctx, clusterID, m.config.ReleaseName, m.config.Namespace)
 		if err != nil {
 			m.logger.Warn(err.Error(), map[string]interface{}{
 				"clusterId":   clusterID,

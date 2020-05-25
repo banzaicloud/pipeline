@@ -43,6 +43,7 @@ type CreateClusterUserAccessKeyActivityInput struct {
 
 	UserName       string
 	UseDefaultUser bool
+	ClusterUID     string
 }
 
 type CreateClusterUserAccessKeyActivityOutput struct {
@@ -159,6 +160,7 @@ func (a *CreateClusterUserAccessKeyActivity) Execute(ctx context.Context, input 
 		Tags: []string{
 			fmt.Sprintf("eksClusterUserAccessKey:%s", input.ClusterName),
 			secret.TagBanzaiHidden,
+			"clusterUID:" + input.ClusterUID,
 		},
 	}
 

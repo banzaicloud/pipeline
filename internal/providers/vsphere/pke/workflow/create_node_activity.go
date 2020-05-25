@@ -20,18 +20,21 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"strings"
+	"text/template"
 
 	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
+	"github.com/vmware/govmomi/vim25/soap"
 	"github.com/vmware/govmomi/vim25/types"
 	"go.uber.org/cadence/activity"
+	"go.uber.org/zap"
 
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
-
-	"strings"
-	"text/template"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 )
 
 // CreateNodeActivityName is the default registration name of the activity
@@ -41,13 +44,15 @@ const CreateNodeActivityName = "pke-vsphere-create-node"
 type CreateNodeActivity struct {
 	vmomiClientFactory *VMOMIClientFactory
 	tokenGenerator     pkeworkflowadapter.TokenGenerator
+	secretStore        pkeworkflow.SecretStore
 }
 
 // MakeCreateNodeActivity returns a new CreateNodeActivity
-func MakeCreateNodeActivity(vmomiClientFactory *VMOMIClientFactory, tokenGenerator pkeworkflowadapter.TokenGenerator) CreateNodeActivity {
+func MakeCreateNodeActivity(vmomiClientFactory *VMOMIClientFactory, tokenGenerator pkeworkflowadapter.TokenGenerator, secretStore pkeworkflow.SecretStore) CreateNodeActivity {
 	return CreateNodeActivity{
 		vmomiClientFactory: vmomiClientFactory,
 		tokenGenerator:     tokenGenerator,
+		secretStore:        secretStore,
 	}
 }
 
@@ -56,6 +61,7 @@ type CreateNodeActivityInput struct {
 	OrganizationID   uint
 	ClusterID        uint
 	SecretID         string
+	StorageSecretID  string
 	ClusterName      string
 	ResourcePoolName string
 	FolderName       string
@@ -75,6 +81,28 @@ type Node struct {
 	TemplateName           string
 	NodePoolName           string
 	Master                 bool
+}
+
+func ensureVMIsRunning(ctx context.Context, logger *zap.SugaredLogger, vm *object.VirtualMachine) error {
+	powerState, err := vm.PowerState(ctx)
+	if err != nil {
+		return err
+	}
+	logger.Infof("VM named %q found, power state: %q", vm.Name(), powerState)
+
+	if powerState != types.VirtualMachinePowerStatePoweredOn {
+		task, err := vm.PowerOn(ctx)
+		if err != nil {
+			return errors.WrapIf(err, "failed to power on VM")
+		}
+
+		logger.Info("wait for VM to power on", "task", task.String())
+		err = vm.WaitForPowerState(ctx, types.VirtualMachinePowerStatePoweredOn)
+		if err != nil {
+			return errors.WrapIf(err, "failed to power on VM")
+		}
+	}
+	return nil
 }
 
 func generateVMConfigs(input CreateNodeActivityInput) (*types.VirtualMachineConfigSpec, error) {
@@ -119,19 +147,58 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 		"secret", input.SecretID,
 		"node", input.Name,
 	)
-
-	logger.Info("create virtual machine")
-
-	logger.Info("http= " + input.UserDataScriptParams["HttpProxy"])
-	logger.Info("https= " + input.UserDataScriptParams["HttpsProxy"])
-
 	vmRef := types.ManagedObjectReference{}
+
+	c, err := a.vmomiClientFactory.New(input.OrganizationID, input.SecretID)
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
+		return vmRef, err
+	}
+	finder := find.NewFinder(c.Client)
+
+	// first check if VM already exists and is in right power state
+	vms, err := finder.VirtualMachineList(ctx, input.Name)
+	if err != nil {
+		if _, ok := err.(*find.NotFoundError); ok {
+			logger.Infof("VM named %q not found", input.Name)
+		} else {
+			logger.Warnf("couldn't find a VM named %q: %s", input.Name, err.Error())
+		}
+	} else if len(vms) > 0 {
+		vm := vms[0]
+		err = ensureVMIsRunning(ctx, logger, vm)
+		if err != nil {
+			return vm.Reference(), err
+		}
+		return vm.Reference(), nil
+	}
+
+	// create new VM
+	logger.Info("create virtual machine")
 
 	_, token, err := a.tokenGenerator.GenerateClusterToken(input.OrganizationID, input.ClusterID)
 	if err != nil {
 		return vmRef, err
 	}
 	input.UserDataScriptParams["PipelineToken"] = token
+
+	// use storageSecretId if provided, or secretId otherwise for setting up storage params
+	secretID := input.StorageSecretID
+	if secretID == "" {
+		secretID = input.SecretID
+	}
+	err = a.setStorageParamsFromSecret(input.OrganizationID, secretID, input.UserDataScriptParams)
+	if err != nil {
+		return vmRef, errors.WrapIf(err, "failed to set storage params")
+	}
+
+	s, err := a.secretStore.GetSecret(input.OrganizationID, input.SecretID)
+	if err != nil {
+		return vmRef, errors.WrapIf(err, "failed to get secret")
+	}
+	if err := s.ValidateSecretType(secrettype.Vsphere); err != nil {
+		return vmRef, err
+	}
+	secretValues := s.GetValues()
 
 	vmConfig, err := generateVMConfigs(input)
 	if err != nil {
@@ -143,25 +210,33 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 		PowerOn: true,
 	}
 
-	c, err := a.vmomiClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
-		return vmRef, err
+	folderName := input.FolderName
+	if folderName == "" {
+		folderName =
+			secretValues[secrettype.VsphereFolder]
 	}
 
-	finder := find.NewFinder(c.Client)
-	folder, err := finder.FolderOrDefault(ctx, input.FolderName)
+	folder, err := finder.FolderOrDefault(ctx, folderName)
 	if err != nil {
 		return vmRef, err
 	}
 	folderRef := folder.Reference()
 
-	template, err := finder.VirtualMachine(ctx, input.TemplateName)
+	templateName := input.TemplateName
+	if templateName == "" {
+		templateName = secretValues[secrettype.VsphereDefaultNodeTemplate]
+	}
+	template, err := finder.VirtualMachine(ctx, templateName)
 	if err != nil {
 		return vmRef, err
 	}
 	templateRef := template.Reference()
 
-	pool, err := finder.ResourcePoolOrDefault(ctx, input.ResourcePoolName)
+	resourcePoolName := input.ResourcePoolName
+	if resourcePoolName == "" {
+		resourcePoolName = secretValues[secrettype.VsphereResourcePool]
+	}
+	pool, err := finder.ResourcePoolOrDefault(ctx, resourcePoolName)
 	if err != nil {
 		return vmRef, err
 	}
@@ -169,7 +244,11 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 	poolRef := pool.Reference()
 	cloneSpec.Location.Pool = &poolRef
 
-	ds, err := finder.DatastoreOrDefault(ctx, input.DatastoreName)
+	dataStoreName := input.DatastoreName
+	if dataStoreName == "" {
+		dataStoreName = secretValues[secrettype.VsphereDatastore]
+	}
+	ds, err := finder.DatastoreOrDefault(ctx, dataStoreName)
 	if err == nil {
 		dsRef := ds.Reference()
 		cloneSpec.Location.Datastore = &dsRef
@@ -178,11 +257,11 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 			return vmRef, err
 		}
 
-		logger.Debugf("ds %s not found, fallback to drs", input.DatastoreName)
-		storagePod, err := finder.DatastoreCluster(ctx, input.DatastoreName)
+		logger.Debugf("ds %s not found, fallback to drs", dataStoreName)
+		storagePod, err := finder.DatastoreCluster(ctx, dataStoreName)
 		if err != nil {
 			if _, ok := err.(*find.NotFoundError); ok {
-				return vmRef, fmt.Errorf("neither a datastore nor a datastore cluster named %q found", input.DatastoreName)
+				return vmRef, fmt.Errorf("neither a datastore nor a datastore cluster named %q found", dataStoreName)
 			}
 			return vmRef, err
 		}
@@ -221,20 +300,63 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 		return vmRef, err
 	}
 
-	logger.Info("cloning template task: ", task.String())
-	progressLogger := newProgressLogger("cloning template progress ", logger)
+	logger.Info("cloning VM template task: ", task.String())
+	progressLogger := newProgressLogger("cloning VM template progress ", logger)
 	defer progressLogger.Wait()
 	taskInfo, err := task.WaitForResult(ctx, progressLogger)
 	if err != nil {
 		return vmRef, err
 	}
 
-	logger.Infof("vm created: %+v\n", taskInfo)
+	logger.Infof("VM created: %+v\n", taskInfo)
 
 	if ref, ok := taskInfo.Result.(types.ManagedObjectReference); ok {
 		vmRef = ref
 	}
+
+	vm := object.NewVirtualMachine(c.Client, vmRef)
+	err = ensureVMIsRunning(ctx, logger, vm)
+	if err != nil {
+		return vm.Reference(), err
+	}
+
 	return vmRef, nil
+}
+
+func (a CreateNodeActivity) setStorageParamsFromSecret(orgID uint, secretID string, userDataScriptParams map[string]string) error {
+	s, err := a.secretStore.GetSecret(orgID, secretID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get secret")
+	}
+
+	if err := s.ValidateSecretType(secrettype.Vsphere); err != nil {
+		return err
+	}
+
+	values := s.GetValues()
+
+	u, err := soap.ParseURL(values[secrettype.VsphereURL])
+	if err != nil {
+		return err
+	}
+	uA := strings.Split(u.Host, ":")
+	vCenterServer := uA[0]
+	vCenterPort := "443"
+	if len(uA) > 1 {
+		vCenterPort = uA[1]
+	}
+
+	userDataScriptParams["VCenterServer"] = vCenterServer
+	userDataScriptParams["VCenterPort"] = vCenterPort
+	userDataScriptParams["VCenterFingerprint"] = values[secrettype.VsphereFingerprint]
+	userDataScriptParams["Datacenter"] = values[secrettype.VsphereDatacenter]
+	userDataScriptParams["Datastore"] = values[secrettype.VsphereDatastore]
+	userDataScriptParams["ResourcePool"] = values[secrettype.VsphereResourcePool]
+	userDataScriptParams["Folder"] = values[secrettype.VsphereFolder]
+	userDataScriptParams["Username"] = values[secrettype.VsphereUser]
+	userDataScriptParams["Password"] = values[secrettype.VspherePassword]
+
+	return nil
 }
 
 func encodeGuestInfo(data string) (string, error) {

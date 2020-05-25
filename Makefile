@@ -15,7 +15,8 @@ BUILD_PACKAGE = ${PACKAGE}/cmd/pipeline
 VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || git symbolic-ref -q --short HEAD)
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
-LDFLAGS += -X main.version=${VERSION} -X main.commitHash=${COMMIT_HASH} -X main.buildDate=${BUILD_DATE}
+HELM_VERSION = $(shell cat go.mod | grep helm.sh/helm/v3 | grep -v "=>" | cut -d" " -f2 | sed s/^v//)
+LDFLAGS += -X main.version=${VERSION} -X main.commitHash=${COMMIT_HASH} -X main.buildDate=${BUILD_DATE} -X main.helmVersion=${HELM_VERSION}
 export CGO_ENABLED ?= 0
 ifeq ($(VERBOSE), 1)
 ifeq ($(filter -v,${GOARGS}),)
@@ -29,7 +30,7 @@ DEX_VERSION = 2.19.0
 # TODO: use an exact version
 ANCHORE_VERSION = 156836d
 
-GOLANGCI_VERSION = 1.23.6
+GOLANGCI_VERSION = 1.25.0
 LICENSEI_VERSION = 0.2.0
 OPENAPI_GENERATOR_VERSION = v4.2.3
 PROTOC_VERSION = 3.11.4
@@ -83,6 +84,16 @@ run: GOTAGS += dev
 run: build-pipeline ## Build and execute a binary
 	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/${BINARY_NAME} ${ARGS}
 
+.PHONY: debug
+debug: GOTAGS += dev
+debug: builddebug-pipeline
+	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" dlv --listen=:40000 --log --headless=true --api-version=2 exec build/debug/pipeline -- $(ARGS)
+
+.PHONY: debug-worker
+debug-worker: GOTAGS += dev
+debug-worker: builddebug-worker
+	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" dlv --listen=:40000 --log --headless=true --api-version=2 exec build/debug/worker -- $(ARGS)
+
 .PHONY: run-worker
 run-worker: GOTAGS += dev
 run-worker: build-worker ## Build and execute a binary
@@ -100,6 +111,10 @@ endif
 .PHONY: build-%
 build-%: goversion ## Build a binary
 	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/$* ./cmd/$*
+
+.PHONY: builddebug-%
+builddebug-%: goversion ## Build a binary
+	@${MAKE} GOARGS="${GOARGS} -gcflags \"all=-N -l\"" BUILD_DIR="${BUILD_DIR}/debug" build-$*
 
 .PHONY: build
 build: goversion ## Build all binaries
@@ -142,11 +157,13 @@ bin/golangci-lint-${GOLANGCI_VERSION}:
 lint: export CGO_ENABLED = 1
 lint: bin/golangci-lint ## Run linter
 	bin/golangci-lint run
+	cd pkg/sdk && ../../bin/golangci-lint run
 
 .PHONY: fix
 fix: export CGO_ENABLED = 1
 fix: bin/golangci-lint ## Fix lint violations
 	bin/golangci-lint run --fix
+	cd pkg/sdk && ../../bin/golangci-lint run --fix
 
 bin/licensei: bin/licensei-${LICENSEI_VERSION}
 	@ln -sf licensei-${LICENSEI_VERSION} bin/licensei
@@ -181,6 +198,7 @@ test: export CGO_ENABLED = 1
 test: bin/gotestsum ## Run tests
 	@mkdir -p ${BUILD_DIR}/test_results/${TEST_REPORT}
 	bin/gotestsum --no-summary=skipped --junitfile ${BUILD_DIR}/test_results/${TEST_REPORT}/${TEST_REPORT_NAME} --format ${TEST_FORMAT} -- $(filter-out -v,${GOARGS})  $(if ${TEST_PKGS},${TEST_PKGS},./...)
+	cd pkg/sdk && ../../bin/gotestsum --no-summary=skipped --junitfile ../../${BUILD_DIR}/test_results/${TEST_REPORT}/${TEST_REPORT_NAME} --format ${TEST_FORMAT} -- $(filter-out -v,${GOARGS}) $(if ${TEST_PKGS},${TEST_PKGS},./...)
 
 .PHONY: test-all
 test-all: ## Run all tests

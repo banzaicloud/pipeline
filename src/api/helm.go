@@ -21,15 +21,18 @@ import (
 	"strings"
 	"time"
 
+	errors2 "emperror.dev/errors"
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"k8s.io/helm/pkg/chartutil"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
 	"k8s.io/helm/pkg/repo"
 
+	intlHelm "github.com/banzaicloud/pipeline/internal/helm"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -174,7 +177,19 @@ func ListDeployments(c *gin.Context) {
 			}
 		}
 	}
-	releases := ListHelmReleases(c, response, supportedCharts)
+	deployments, err := getDomainReleases(response)
+	if err != nil {
+		log.Error("Error listing deployments: ", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error listing deployments",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	// transform the result
+	releases := ListHelmReleases(c, deployments, supportedCharts)
 
 	c.JSON(http.StatusOK, releases)
 	return
@@ -462,24 +477,6 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context, commonCluster cluster.Co
 	return pdr, nil
 }
 
-// HelmReposGet listing helm repositories in the cluster
-func HelmReposGet(c *gin.Context) {
-	log.Info("Get helm repository")
-
-	response, err := helm.ReposGet(helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name))
-	if err != nil {
-		log.Errorf("Error during get helm repo list: %s", err.Error())
-		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error listing helm repos",
-			Error:   err.Error(),
-		})
-		return
-	}
-	c.JSON(http.StatusOK, response)
-	return
-}
-
 // HelmReposUpdate update the helm repo
 func HelmReposUpdate(c *gin.Context) {
 	log.Info("update helm repository")
@@ -500,76 +497,6 @@ func HelmReposUpdate(c *gin.Context) {
 
 	sendResponseWithRepo(c, helmEnv, repoName)
 
-	return
-}
-
-// HelmCharts get available helm chart's list
-func HelmCharts(c *gin.Context) {
-	log.Info("Get helm repository charts")
-
-	var query ChartQuery
-	err := c.BindQuery(&query)
-	if err != nil {
-		log.Errorf("Error parsing request: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "error parsing request",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	log.Info(query)
-	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
-	response, err := helm.ChartsGet(helmEnv, query.Name, query.Repo, query.Version, query.Keyword)
-	if err != nil {
-		log.Error("Error during get helm repo chart list.", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error listing helm repo charts",
-			Error:   err.Error(),
-		})
-		return
-	}
-	c.JSON(http.StatusOK, response)
-	return
-}
-
-// HelmChart get helm chart details
-func HelmChart(c *gin.Context) {
-	log.Info("Get helm chart")
-
-	log.Debugf("%#v", c)
-	chartRepo := c.Param("reponame")
-	log.Debugln("chartRepo:", chartRepo)
-
-	chartName := c.Param("name")
-	log.Debugln("chartName:", chartName)
-
-	chartVersion := c.DefaultQuery("version", "")
-	log.Debugln("version:", chartVersion)
-
-	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
-	response, err := helm.ChartGet(helmEnv, chartRepo, chartName, chartVersion)
-	if err != nil {
-		log.Error("Error during get helm chart information.", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during get helm chart information.",
-			Error:   err.Error(),
-		})
-		return
-	}
-	if response == nil {
-		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Error:   "Chart Not Found!",
-			Message: "Chart Not Found!",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, response)
 	return
 }
 
@@ -599,7 +526,7 @@ func sendResponseWithRepo(c *gin.Context, helmEnv environment.EnvSettings, repoN
 }
 
 // ListHelmReleases list helm releases
-func ListHelmReleases(c *gin.Context, response *rls.ListReleasesResponse, optparam interface{}) []pkgHelm.ListDeploymentResponse {
+func ListHelmReleases(c *gin.Context, releases []intlHelm.Release, optparam interface{}) []pkgHelm.ListDeploymentResponse {
 	// Get WhiteList set
 	releaseWhitelist, ok := GetWhitelistSet(c)
 	if !ok {
@@ -610,22 +537,22 @@ func ListHelmReleases(c *gin.Context, response *rls.ListReleasesResponse, optpar
 		log.Warnf("scanlog data is not valid: %#v", releaseScanLogReject)
 	}
 
-	releases := make([]pkgHelm.ListDeploymentResponse, 0)
-	if response != nil && len(response.Releases) > 0 {
-		for _, r := range response.Releases {
-			createdAt := time.Unix(r.Info.FirstDeployed.Seconds, 0)
-			updated := time.Unix(r.Info.LastDeployed.Seconds, 0)
-			chartName := r.GetChart().GetMetadata().GetName()
+	releasesResponse := make([]pkgHelm.ListDeploymentResponse, 0)
+	if releases != nil && len(releases) > 0 {
+		for _, release := range releases {
+			createdAt := release.ReleaseInfo.FirstDeployed
+			updated := release.ReleaseInfo.LastDeployed
+			chartName := release.ChartName
 
 			body := pkgHelm.ListDeploymentResponse{
-				Name:         r.Name,
-				Chart:        helm.GetVersionedChartName(r.Chart.Metadata.Name, r.Chart.Metadata.Version),
+				Name:         release.ReleaseName,
+				Chart:        helm.GetVersionedChartName(release.ChartName, release.Version),
 				ChartName:    chartName,
-				ChartVersion: r.GetChart().GetMetadata().GetVersion(),
-				Version:      r.Version,
+				ChartVersion: release.Version,
+				Version:      release.ReleaseVersion,
 				UpdatedAt:    updated,
-				Status:       r.Info.Status.Code.String(),
-				Namespace:    r.Namespace,
+				Status:       release.ReleaseInfo.Status,
+				Namespace:    release.Namespace,
 				CreatedAt:    createdAt,
 			}
 			optparamType := fmt.Sprintf("%T", optparam)
@@ -634,23 +561,68 @@ func ListHelmReleases(c *gin.Context, response *rls.ListReleasesResponse, optpar
 				body.Supported = supportedCharts[chartName] != nil
 			}
 			// Add WhiteListed flag if present
-			if _, ok := releaseWhitelist[r.Name]; ok {
+			if _, ok := releaseWhitelist[release.ReleaseName]; ok {
 				body.WhiteListed = ok
 			}
-			if _, ok := releaseScanLogReject[r.Name]; ok {
+			if _, ok := releaseScanLogReject[release.ReleaseName]; ok {
 				body.Rejected = ok
 			}
 			if optparamType == "map[string]bool" {
 				releaseMap := optparam.(map[string]bool)
-				if _, ok := releaseMap[r.Name]; ok {
-					releases = append(releases, body)
+				if _, ok := releaseMap[release.ReleaseName]; ok {
+					releasesResponse = append(releasesResponse, body)
 				}
 			} else {
-				releases = append(releases, body)
+				releasesResponse = append(releasesResponse, body)
 			}
 		}
 	} else {
 		log.Info("There are no installed charts.")
 	}
-	return releases
+	return releasesResponse
+}
+
+// getDomainReleases transforms helm2 representation into domain specific representation in order to decouple the legacy library from service logic
+func getDomainReleases(legacyReleasesResponse *rls.ListReleasesResponse) ([]intlHelm.Release, error) {
+	retReleases := make([]intlHelm.Release, 0, len(legacyReleasesResponse.Releases))
+	for _, legacyReleasePtr := range legacyReleasesResponse.Releases {
+		domainRelease, err := transformLegacyRelease(legacyReleasePtr)
+		if err != nil {
+			return nil, err
+		}
+		retReleases = append(retReleases, domainRelease)
+	}
+	return retReleases, nil
+}
+
+// transformLegacyRelease transforms helm2 representation into domain specific representation in order to decouple the legacy library from service logic
+func transformLegacyRelease(legacyReleasePtr *release.Release) (intlHelm.Release, error) {
+	defaultValues, err := chartutil.ReadValues([]byte(legacyReleasePtr.Chart.Values.Raw))
+	if err != nil {
+		return intlHelm.Release{}, errors2.WrapIf(err, "failed to read default values")
+	}
+
+	overrideValues, err := chartutil.ReadValues([]byte(legacyReleasePtr.Config.Raw))
+	if err != nil {
+		return intlHelm.Release{}, errors2.WrapIf(err, "failed to read override values")
+	}
+
+	domainRelease := intlHelm.Release{
+		ReleaseName: legacyReleasePtr.Name,
+		ChartName:   legacyReleasePtr.Chart.Metadata.Name,
+		Namespace:   legacyReleasePtr.Namespace,
+		Values:      defaultValues,
+		Version:     legacyReleasePtr.Chart.Metadata.Version,
+		ReleaseInfo: intlHelm.ReleaseInfo{
+			FirstDeployed: time.Unix(legacyReleasePtr.Info.FirstDeployed.GetSeconds(), 0),
+			LastDeployed:  time.Unix(legacyReleasePtr.Info.LastDeployed.GetSeconds(), 0),
+			Deleted:       time.Unix(legacyReleasePtr.Info.Deleted.GetSeconds(), 0),
+			Description:   legacyReleasePtr.Info.GetDescription(),
+			Status:        legacyReleasePtr.Info.GetStatus().GetCode().String(),
+			Notes:         legacyReleasePtr.Info.GetStatus().GetNotes(),
+			Values:        overrideValues,
+		},
+		ReleaseVersion: legacyReleasePtr.Version,
+	}
+	return domainRelease, nil
 }

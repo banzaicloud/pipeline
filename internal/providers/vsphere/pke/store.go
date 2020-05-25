@@ -26,6 +26,7 @@ type CreateParams struct {
 	OrganizationID    uint
 	CreatedBy         uint
 	SecretID          string
+	StorageSecretID   string
 	SSHSecretID       string
 	RBAC              bool
 	OIDC              bool
@@ -34,10 +35,11 @@ type CreateParams struct {
 	NodePools         []NodePool
 	HTTPProxy         intPKE.HTTPProxy
 
-	ResourcePoolName string
-	FolderName       string
-	DatastoreName    string
-	Kubernetes       intPKE.Kubernetes
+	ResourcePoolName    string
+	FolderName          string
+	DatastoreName       string
+	Kubernetes          intPKE.Kubernetes
+	LoadBalancerIPRange string
 }
 
 // ClusterStore defines behaviors of PKEOnVsphereCluster persistent storage
@@ -46,6 +48,7 @@ type ClusterStore interface {
 	CreateNodePool(clusterID uint, nodePool NodePool) error
 	Delete(clusterID uint) error
 	DeleteNodePool(clusterID uint, nodePoolName string) error
+	UpdateNodePoolSize(clusterID uint, nodePoolName string, size int) error
 	GetByID(clusterID uint) (PKEOnVsphereCluster, error)
 	SetStatus(clusterID uint, status, message string) error
 	SetActiveWorkflowID(clusterID uint, workflowID string) error

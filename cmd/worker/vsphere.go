@@ -18,22 +18,27 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
+	"github.com/banzaicloud/pipeline/internal/secret/kubesecret"
+
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	vsphereworkflow "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/workflow"
 )
 
-func registerVsphereWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator pkeworkflowadapter.TokenGenerator, store pke.ClusterStore) {
+func registerVsphereWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator pkeworkflowadapter.TokenGenerator, store pke.ClusterStore, kubeSecretStore kubesecret.KubeSecretStore) {
 	workflow.RegisterWithOptions(vsphereworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: vsphereworkflow.CreateClusterWorkflowName})
 
 	vsphereClientFactory := vsphereworkflow.NewVMOMIClientFactory(secretStore)
 
-	createNodeActivity := vsphereworkflow.MakeCreateNodeActivity(vsphereClientFactory, tokenGenerator)
+	createNodeActivity := vsphereworkflow.MakeCreateNodeActivity(vsphereClientFactory, tokenGenerator, secretStore)
 	activity.RegisterWithOptions(createNodeActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.CreateNodeActivityName})
 
 	waitForIpActivity := vsphereworkflow.MakeWaitForIPActivity(vsphereClientFactory)
 	activity.RegisterWithOptions(waitForIpActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.WaitForIPActivityName})
+
+	setClusterStatusActivity := vsphereworkflow.MakeSetClusterStatusActivity(store)
+	activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.SetClusterStatusActivityName})
 
 	workflow.RegisterWithOptions(vsphereworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: vsphereworkflow.DeleteClusterWorkflowName})
 
@@ -42,4 +47,17 @@ func registerVsphereWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerato
 
 	deleteClusterFromStoreActivity := vsphereworkflow.MakeDeleteClusterFromStoreActivity(store)
 	activity.RegisterWithOptions(deleteClusterFromStoreActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.DeleteClusterFromStoreActivityName})
+
+	workflow.RegisterWithOptions(vsphereworkflow.UpdateClusterWorkflow, workflow.RegisterOptions{Name: vsphereworkflow.UpdateClusterWorkflowName})
+
+	workflow.RegisterWithOptions(vsphereworkflow.DeleteNodePoolWorkflow, workflow.RegisterOptions{Name: vsphereworkflow.DeleteNodePoolWorkflowName})
+
+	getPublicAddressActivity := vsphereworkflow.MakeGetPublicAddressActivity(vsphereClientFactory)
+	activity.RegisterWithOptions(getPublicAddressActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.GetPublicAddressActivityName})
+
+	deleteK8sNodeActivity := vsphereworkflow.MakeDeleteK8sNodeActivity(kubeSecretStore)
+	activity.RegisterWithOptions(deleteK8sNodeActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.DeleteK8sNodeActivityName})
+
+	deleteNodePoolFromStoreActivity := vsphereworkflow.MakeDeleteNodePoolFromStoreActivity(store)
+	activity.RegisterWithOptions(deleteNodePoolFromStoreActivity.Execute, activity.RegisterOptions{Name: vsphereworkflow.DeleteNodePoolFromStoreActivityName})
 }

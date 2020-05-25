@@ -40,6 +40,8 @@ pipeline:
         url: ""
 #        insecure: false
 
+#   enterprise: false
+
 database:
     # dialect: "postgres"
     dialect: "mysql"
@@ -213,7 +215,7 @@ dex:
 #
 #            loki:
 #                chart: "banzaicloud-stable/loki"
-#                version: "0.17.3"
+#                version: "0.17.4"
 #
 #                # See https://github.com/banzaicloud/banzai-charts/tree/master/loki for details
 #                values: {}
@@ -245,6 +247,7 @@ dex:
 #            endpoint: ""
 #            user: ""
 #            password: ""
+#            insecure: false
 #
 #    expiry:
 #        enabled: true
@@ -378,10 +381,10 @@ dex:
 #            charts:
 #                scheduler:
 #                    chart: "banzaicloud-stable/spot-scheduler"
-#                    version: "0.1.0"
+#                    version: "0.1.2"
 #                webhook:
 #                    chart: "banzaicloud-stable/spot-config-webhook"
-#                    version: "0.1.5"
+#                    version: "0.1.6"
 #
 #        ith:
 #            enabled: true
@@ -435,41 +438,6 @@ hollowtrees:
     # Format: {baseUrl}/api/v1
     endpoint: ""
     tokenSigningKey: ""
-
-cicd:
-#    enabled: false
-#    url: "http://localhost:8000"
-#    insecure: false
-#    scm: "github"
-
-    database:
-        # dialect: "postgres"
-        dialect: "mysql"
-        host: "localhost"
-        # port: 5432
-        port: 3306
-        # tls: "disable"
-        tls: "false"
-        user: ""
-        # role: ""
-        password: ""
-        name: "cicd"
-
-        # Turn this to true to see all queries in the log
-#        queryLog: false
-
-#github:
-#    token: "YourPersonalAccessToken"
-
-#gitlab:
-#    url: "https://gitlab.com/"
-#    token: "YourPersonalAccessToken"
-
-#spotguide:
-#    allowPrereleases: false
-#    allowPrivateRepos: false
-#    syncInterval: "5m"
-#    sharedLibraryGitHubOrganization: "spotguides"
 
 #spotmetrics:
 #    enabled: false

@@ -54,6 +54,7 @@ type anchoreSpec struct {
 	Enabled  bool   `json:"enabled" mapstructure:"enabled"`
 	Url      string `json:"url" mapstructure:"url"`
 	SecretID string `json:"secretId" mapstructure:"secretId"`
+	Insecure bool   `json:"insecure" mapstructure:"insecure"`
 }
 
 func (a anchoreSpec) Validate() error {

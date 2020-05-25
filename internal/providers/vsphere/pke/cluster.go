@@ -19,33 +19,47 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterbase"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
+	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 )
 
 const PKEOnVsphere = "pke-on-vsphere"
 
 type NodePool struct {
-	CreatedBy uint
-	Size      int
-	VCPU      int
-	Ram       int
-	Name      string
-	Roles     []string
+	CreatedBy     uint
+	Size          int
+	VCPU          int
+	RAM           int
+	Name          string
+	Roles         []string
+	AdminUsername string
+	TemplateName  string
 }
 
 func (np NodePool) InstanceType() string {
-	return fmt.Sprintf("%dvcpu-%dmb", np.VCPU, np.Ram)
+	return fmt.Sprintf("%dvcpu-%dmb", np.VCPU, np.RAM)
+}
+
+func (np NodePool) HasRole(role pkgPKE.Role) bool {
+	for _, r := range np.Roles {
+		if r == string(role) {
+			return true
+		}
+	}
+	return false
 }
 
 type PKEOnVsphereCluster struct {
 	clusterbase.ClusterBase
 
-	NodePools        []NodePool
-	ResourcePool     string
-	Datastore        string
-	Folder           string
-	Kubernetes       intPKE.Kubernetes
-	ActiveWorkflowID string
-	HTTPProxy        intPKE.HTTPProxy
+	NodePools           []NodePool
+	ResourcePool        string
+	Datastore           string
+	Folder              string
+	Kubernetes          intPKE.Kubernetes
+	ActiveWorkflowID    string
+	HTTPProxy           intPKE.HTTPProxy
+	StorageSecretID     string
+	LoadBalancerIPRange string
 }
 
 func (c PKEOnVsphereCluster) HasActiveWorkflow() bool {

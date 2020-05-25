@@ -20,10 +20,7 @@ import (
 
 // mapCapabilities maps configuration to capabilities.
 func mapCapabilities(config configuration) cap.Capabilities {
-	return cap.Capabilities{
-		"cicd": cap.Cap{
-			"enabled": config.CICD.Enabled,
-		},
+	caps := cap.Capabilities{
 		"features": cap.Cap{
 			"vault": cap.Cap{
 				"enabled": config.Cluster.Vault.Enabled,
@@ -52,4 +49,12 @@ func mapCapabilities(config configuration) cap.Capabilities {
 			},
 		},
 	}
+
+	if config.Helm.V3 {
+		caps["helm"] = cap.Cap{
+			"version": helmVersion,
+		}
+	}
+
+	return caps
 }

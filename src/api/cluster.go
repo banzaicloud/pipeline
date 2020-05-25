@@ -29,6 +29,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	clusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	eksdriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
@@ -61,6 +62,10 @@ type ClusterAPI struct {
 	errorHandler    emperror.Handler
 	clusterCreators ClusterCreators
 	clusterUpdaters ClusterUpdaters
+
+	helmService        cluster.HelmService
+	authConfig         auth.Config
+	clientSecretGetter clusterAuth.ClusterClientSecretGetter
 }
 
 type ClusterCreators struct {
@@ -75,8 +80,9 @@ type ClusterDeleters struct {
 }
 
 type ClusterUpdaters struct {
-	PKEOnAzure azureDriver.ClusterUpdater
-	EKSAmazon  eksdriver.EksClusterUpdater
+	PKEOnAzure   azureDriver.ClusterUpdater
+	EKSAmazon    eksdriver.EksClusterUpdater
+	PKEOnVsphere vsphereDriver.ClusterUpdater
 }
 
 // NewClusterAPI returns a new ClusterAPI instance.
@@ -91,6 +97,9 @@ func NewClusterAPI(
 	clusterCreators ClusterCreators,
 	clusterUpdaters ClusterUpdaters,
 	clientFactory common.DynamicClientFactory,
+	helmService cluster.HelmService,
+	authConfig auth.Config,
+	clientSecretGetter clusterAuth.ClusterClientSecretGetter,
 ) *ClusterAPI {
 	return &ClusterAPI{
 		clusterManager:          clusterManager,
@@ -103,6 +112,9 @@ func NewClusterAPI(
 		clusterCreators:         clusterCreators,
 		clusterUpdaters:         clusterUpdaters,
 		clientFactory:           clientFactory,
+		helmService:             helmService,
+		authConfig:              authConfig,
+		clientSecretGetter:      clientSecretGetter,
 	}
 }
 
@@ -113,7 +125,7 @@ func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	clusters := clusteradapter.NewClusters(global.DB())
 	secretValidator := providers.NewSecretValidator(secret.Store)
 	clusterStore := clusteradapter.NewStore(global.DB(), clusters)
-	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler, clusterStore)
+	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler, clusterStore, nil)
 	clusterGetter := common.NewClusterGetter(clusterManager, log, errorHandler)
 
 	return clusterGetter.GetClusterFromRequest(c)

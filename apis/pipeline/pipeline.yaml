@@ -19,9 +19,6 @@ tags:
         name: clusters
         description: Clusters related funtions
     -
-        name: spotguides
-        description: Application spotguides
-    -
         name: deployments
         description: Deployment related functions for a cluster
     -
@@ -80,86 +77,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/VersionResponse'
-
-    /api/v1/orgs/{orgId}/spotguides:
-        parameters:
-            - $ref: '#/components/parameters/orgId'
-
-        get:
-            security:
-                - bearerAuth: []
-            tags:
-                - spotguides
-            summary: List spotguides
-            description: List all available spotguides
-            operationId: ListSpotguides
-            responses:
-                200:
-                    description: Spotguide list
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ListSpotguidesResponse'
-
-        post:
-            security:
-                - bearerAuth: []
-            tags:
-                - spotguides
-            summary: Launch spotguide
-            description: Launch a spotguide
-            operationId: LaunchSpotguide
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/LaunchSpotguidesRequest'
-            responses:
-                202:
-                    description: Spotguide launch response
-
-        put:
-            security:
-                - bearerAuth: []
-            tags:
-                - spotguides
-            summary: Update spotguide repositories
-            operationId: UpdateSpotguides
-            responses:
-                202:
-                    description: Spotguides update
-
-    /api/v1/orgs/{orgId}/spotguides/{name}:
-        parameters:
-            - $ref: '#/components/parameters/orgId'
-
-        get:
-            security:
-                - bearerAuth: []
-            tags:
-                - spotguides
-            summary: Get spotguide details
-            description: Get details about specific spotguide
-            operationId: GetSpotguideDetail
-            parameters:
-                -
-                    name: name
-                    in: path
-                    required: true
-                    description: Spotguide name
-                    schema:
-                        type: string
-                        example: banzaicloud/spotguide-nodejs-mongodb
-            responses:
-                200:
-                    description: Spotguide details
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/SpotguideDetailsResponse'
-                default:
-                    $ref: '#/components/responses/Error'
 
     /api/v1/orgs/{orgId}/clusters:
         parameters:
@@ -1666,7 +1583,7 @@ paths:
                 - bearerAuth: []
             tags:
                 - organizations
-            summary: Synchronize Github organizations
+            summary: Synchronize organizations
             operationId: SyncOrgs
             responses:
                 200:
@@ -1759,26 +1676,6 @@ paths:
                 default:
                     $ref: '#/components/responses/Error'
 
-        patch:
-            security:
-                - bearerAuth: []
-            tags:
-                - users
-            summary: Update current user's settings
-            operationId: UpdateCurrentUser
-            description: Update current user
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/UpdateUserRequest'
-            responses:
-                204:
-                    description: "Modifiying current user's settings succeeded"
-                default:
-                    $ref: '#/components/responses/Error'
-
     /api/v1/capabilities:
         get:
             tags:
@@ -1796,9 +1693,6 @@ paths:
                                 additionalProperties:
                                     type: object
                                 example: {
-                                    "cicd": {
-                                        "enabled": false
-                                    },
                                     "features": {
                                         "monitoring": {
                                             "enabled": true
@@ -3774,6 +3668,104 @@ paths:
                 default:
                     $ref: '#/components/responses/Error'
 
+    /api/v1/orgs/{orgId}/processes:
+        get:
+            security:
+                - bearerAuth: []
+            tags:
+                - processes
+            summary: List processes in Pipeline
+            operationId: ListProcesses
+            description: List processes in Pipeline
+            parameters:
+                - $ref: '#/components/parameters/orgId'
+                -
+                    name: type
+                    in: query
+                    description: Type of processes to query
+                    schema:
+                        type: string
+                        enum: [cluster-upgrade]
+                -
+                    name: resourceId
+                    in: query
+                    description: The id of the resource to list processes for
+                    schema:
+                        type: string
+                -
+                    name: parentId
+                    in: query
+                    description: The id of the parent process
+                    schema:
+                        type: string
+                -
+                    name: status
+                    in: query
+                    description: The status of processes to query
+                    schema:
+                        $ref: '#/components/schemas/ProcessStatus'
+            responses:
+                200:
+                    description: "Processes listed"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListProcessesResponse'
+                default:
+                    $ref: '#/components/responses/Error'
+
+    /api/v1/orgs/{orgId}/processes/{id}:
+        get:
+            security:
+                - bearerAuth: []
+            tags:
+                - processes
+            summary: Get a process in Pipeline
+            operationId: GetProcess
+            description: Get a process in Pipeline
+            parameters:
+                - $ref: '#/components/parameters/orgId'
+                -
+                    name: id
+                    in: path
+                    description: Process id
+                    required: true
+                    schema:
+                        type: string
+            responses:
+                200:
+                    description: "The process"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Process'
+                default:
+                    $ref: '#/components/responses/Error'
+
+    /api/v1/orgs/{orgId}/processes/{id}/cancel:
+        post:
+            security:
+                - bearerAuth: []
+            tags:
+                - processes
+            summary: Cancel a process in Pipeline
+            operationId: CancelProcess
+            description: Cancel a process in Pipeline
+            parameters:
+                - $ref: '#/components/parameters/orgId'
+                -
+                    name: id
+                    in: path
+                    description: Process id
+                    required: true
+                    schema:
+                        type: string
+            responses:
+                202:
+                    description: "The process is being canceled"
+                default:
+                    $ref: '#/components/responses/Error'
+
 components:
     securitySchemes:
         bearerAuth:
@@ -3994,110 +3986,6 @@ components:
                     type: string
                 "instance_uuid":
                     type: string
-
-        UpdateUserRequest:
-            type: object
-            properties:
-                gitHubToken:
-                    type: string
-                    example: "b8d9cfb5df15fd513bf3351719876ffff4b310d2"
-                gitLabToken:
-                    type: string
-                    example: "a_tguocsP6vqqHBh8vYQ"
-
-        SpotguideDetailsResponse:
-            type: object
-            properties:
-                name:
-                    type: string
-                    example: "banzaicloud/spotguide-nodejs-mongodb"
-                displayName:
-                    type: string
-                    example: "The spotguide for NodeJS and MongoDB"
-                createdAt:
-                    type: string
-                    example: "2018-06-11T14:28:13Z"
-                updatedAt:
-                    type: string
-                    example: "2018-06-11T14:28:24Z"
-                readme:
-                    type: string
-                    example: "# Spotguide for Node.js with MongoDB database"
-                version:
-                    type: string
-                    example: "v0.0.1"
-                tags:
-                    type: array
-                    items:
-                        type: string
-                resources:
-                    $ref: '#/components/schemas/RequestedResources'
-                questions:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/SpotguideOption'
-
-        LaunchSpotguidesRequest:
-            type: object
-            required:
-                - spotguideName
-                - repoOrganization
-                - repoName
-            properties:
-                repoOrganization:
-                    type: string
-                    example: "banzaicloud"
-                repoName:
-                    type: string
-                    example: "spotguide-nodejs-mongodb-test"
-                repoPrivate:
-                    type: boolean
-                    example: false
-                repoLatent:
-                    type: boolean
-                    example: false
-                spotguideName:
-                    type: string
-                    example: "banzaicloud/spotguide-nodejs-mongodb"
-                spotguideVersion:
-                    type: string
-                    example: "v0.3.2"
-                cluster:
-                    $ref: '#/components/schemas/CreateClusterRequest'
-                secrets:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/CreateSecretRequest'
-                pipeline:
-                    type: object
-
-        SpotguideOption:
-            type: object
-            properties:
-                name:
-                    type: string
-                    example: mysql_version
-                type:
-                    type: string
-                    example: "string"
-                info:
-                    type: string
-                    example: Mysql database version
-                default:
-                    type: string
-                    enum: [ "5.6", "5.7" ]
-                    example: "5.6"
-                readonly:
-                    type: boolean
-                    example: false
-                key:
-                    type: string
-                    example: mysql.version
-
-        ListSpotguidesResponse:
-            type: array
-            items:
-                $ref: '#/components/schemas/SpotguideDetailsResponse'
 
         RequestedResources:
             type: object
@@ -4337,6 +4225,9 @@ components:
                 secretId:
                     description: "ID of the secret containing the username and password for the proxy"
                     type: string
+                scheme:
+                    description: "Scheme of the proxy"
+                    type: string
 
         CreatePKEOnAzureClusterRequest:
             allOf:
@@ -4447,9 +4338,17 @@ components:
                   required:
                         - resourceGroup
                   properties:
+                        storageSecretId:
+                            type: string
+                            example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
+                            description: "Secret ID used to setup VSphere storage classes. Overrides the default settings in main cluster secret."
+                        storageSecretName:
+                            type: string
+                            example: "my-vsphere-storage-secret"
+                            description: "Secret name used to setup VSphere storage classes. Overrides default value from the main cluster secret."
                         folder:
                             type: string
-                            description: "Folder to create nodes in."
+                            description: "Folder to create nodes in. Overrides default value from the main cluster secret."
                             example:
                                - simple:
                                      value: "my-folder"
@@ -4459,16 +4358,20 @@ components:
                                      summary: "Absolute path to the folder. Most vSphere installations use paths prefixed with /Datacenter/vm/."
                         datastore:
                             type: string
-                            description: "Name of datastore or datastore cluster to place VM disks on."
+                            description: "Name of datastore or datastore cluster to place VM disks on. Overrides default value from the main cluster secret."
                             example: Datastore-cluster
                         resourcePool:
                             type: string
-                            description: "Virtual machines will be created in this resource pool."
+                            description: "Virtual machines will be created in this resource pool. Overrides default value from the main cluster secret."
                             example: "my-resource-pool"
-                        nodePools:
+                        nodepools:
                             type: array
                             items:
                                 $ref: '#/components/schemas/PKEOnVsphereNodePool'
+                        loadBalancerIPRange:
+                            type: string
+                            example: "192.168.23.150-192.168.23.180"
+                            description: "IPv4 range to allocate addresses for LoadBalancer Services (MetalLB)"
 
         PKEOnVsphereNodePool:
             type: object
@@ -4505,7 +4408,7 @@ components:
                     description: MiBs of RAM to attach to each node.
                 template:
                     type: string
-                    description: "Name of VM template available on vSphere to clone as the base of nodes."
+                    description: "Name of VM template available on vSphere to clone as the base of nodes. Overrides default value from the main cluster secret."
                     example:
                         - simple:
                               value: "centos-7-pke-201910021808"
@@ -4637,9 +4540,6 @@ components:
                 - $ref: '#/components/schemas/BaseUpdateNodePoolRequest'
                 -
                     type: object
-                    required:
-                        - instanceType
-                        - image
                     properties:
                         autoscaling:
                             $ref: '#/components/schemas/NodePoolAutoScaling'
@@ -5171,6 +5071,7 @@ components:
         UpdateClusterRequestV2:
             oneOf:
                 - $ref: '#/components/schemas/UpdatePKEOnAzureClusterRequest'
+                - $ref: '#/components/schemas/UpdatePKEOnVsphereClusterRequest'
 
         UpdatePKEOnAzureClusterRequest:
             type: object
@@ -5179,6 +5080,14 @@ components:
                     type: array
                     items:
                       $ref: '#/components/schemas/PKEOnAzureNodePool'
+
+        UpdatePKEOnVsphereClusterRequest:
+            type: object
+            properties:
+                nodepools:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PKEOnVsphereNodePool'
 
         UpdateClusterRequest:
             type: object
@@ -5640,7 +5549,7 @@ components:
             properties:
                 name:
                     type: string
-                    example: "banzaicloud-stable/cicd"
+                    example: "banzaicloud-stable/pipeline"
                 version:
                     type: string
                     example: "0.1.0"
@@ -6421,9 +6330,6 @@ components:
                 organizations:
                     type: object
                     example: null
-                gitHubTokenSet:
-                    type: boolean
-                    example: true
 
         SecretTypeResponse:
             type: object
@@ -6499,6 +6405,8 @@ components:
                 region:
                     type: string
                     example: "us-central1"
+                oidc:
+                    $ref: '#/components/schemas/OIDCConfig'
                 nodePools:
                     type: object
                     additionalProperties:
@@ -6516,6 +6424,8 @@ components:
                     $ref: '#/components/schemas/NodePoolStatusGoogle'
                 -
                     $ref: '#/components/schemas/NodePoolStatusOracle'
+                -
+                    $ref: '#/components/schemas/NodePoolStatusVSphere'
             example:
                 count: 1
                 instanceType: "n1-standard-1"
@@ -6622,6 +6532,26 @@ components:
                 autoscaling:
                     type: boolean
                     example: false
+                resourceSummary:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/ResourceSummary'
+
+        NodePoolStatusVSphere:
+            type: object
+            properties:
+                count:
+                    type: integer
+                    example: 1
+                ram:
+                    type: integer
+                    example: 4096
+                vcpu:
+                    type: integer
+                    example: 2
+                template:
+                    type: string
+                    example: "centos-7-pke-202001171452"
                 resourceSummary:
                     type: object
                     additionalProperties:
@@ -6942,6 +6872,18 @@ components:
                 lastTransitionTime:
                     type: string
                     example: "2018-08-01T07:04:37Z"
+
+        OIDCConfig:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                idpUrl:
+                    type: string
+                clientId:
+                    type: string
+                clientSecret:
+                    type: string
 
         ResourceSummary:
             type: object
@@ -8127,3 +8069,58 @@ components:
             properties:
                 name:
                     type: string
+
+        ListProcessesResponse:
+            type: array
+            items:
+                $ref: '#/components/schemas/Process'
+
+        Process:
+            type: object
+            properties:
+                id:
+                    type: string
+                parentId:
+                    type: string
+                orgId:
+                    type: integer
+                type:
+                    type: string
+                log:
+                    type: string
+                resourceId:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/ProcessStatus'
+                startedAt:
+                    type: string
+                    format: date-time
+                finishedAt:
+                    type: string
+                    nullable: true
+                    format: date-time
+                events:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ProcessEvent'
+
+        ProcessEvent:
+            type: object
+            properties:
+                id:
+                    type: integer
+                processId:
+                    type: string
+                type:
+                    type: string
+                log:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/ProcessStatus'
+                timestamp:
+                    type: string
+                    format: date-time
+
+        ProcessStatus:
+            title: ProcessStatus
+            enum: [running, failed, finished, canceled]

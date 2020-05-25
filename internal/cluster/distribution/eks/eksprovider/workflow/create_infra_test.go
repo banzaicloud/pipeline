@@ -166,6 +166,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 		EKSActivityInput: eksActivity,
 		UserName:         "test-cluster-name",
 		UseDefaultUser:   false,
+		ClusterUID:       "cluster-id",
 	}).Return(&CreateClusterUserAccessKeyActivityOutput{SecretID: "userSecretId"}, nil)
 
 	s.env.OnActivity(UploadSSHKeyActivityName, mock.Anything, UploadSSHKeyActivityInput{

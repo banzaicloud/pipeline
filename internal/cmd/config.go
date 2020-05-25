@@ -24,6 +24,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterconfig"
 	"github.com/banzaicloud/pipeline/internal/federation"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
@@ -89,24 +90,7 @@ type Config struct {
 	// Error handling configuration
 	Errors errorhandler.Config
 
-	Github struct {
-		Token string
-	}
-
-	Gitlab struct {
-		URL   string
-		Token string
-	}
-
-	Helm struct {
-		Tiller struct {
-			Version string
-		}
-
-		Home string
-
-		Repositories map[string]string
-	}
+	Helm helm.Config
 
 	Hollowtrees struct {
 		Endpoint        string
@@ -128,13 +112,6 @@ type Config struct {
 		}
 	}
 
-	Spotguide struct {
-		AllowPrereleases                bool
-		AllowPrivateRepos               bool
-		SyncInterval                    time.Duration
-		SharedLibraryGitHubOrganization string
-	}
-
 	// Telemetry configuration
 	Telemetry TelemetryConfig
 }
@@ -153,6 +130,8 @@ func (c Config) Validate() error {
 	err = errors.Append(err, c.Errors.Validate())
 
 	err = errors.Append(err, c.Telemetry.Validate())
+
+	err = errors.Append(err, c.Helm.Validate())
 
 	return err
 }
@@ -536,7 +515,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 		"storagetier",
 	})
 	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::chart", "banzaicloud-stable/nodepool-labels-operator")
-	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::version", "0.0.3")
+	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::version", "0.0.4")
 	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::values", map[string]interface{}{})
 
 	v.SetDefault("cluster::vault::enabled", true)
@@ -556,7 +535,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::monitoring::namespace", "")
 	v.SetDefault("cluster::monitoring::grafana::adminUser", "admin")
 	v.SetDefault("cluster::monitoring::charts::operator::chart", "stable/prometheus-operator")
-	v.SetDefault("cluster::monitoring::charts::operator::version", "8.5.14")
+	v.SetDefault("cluster::monitoring::charts::operator::version", "8.13.8")
 	v.SetDefault("cluster::monitoring::charts::operator::values", map[string]interface{}{
 		"prometheus": map[string]interface{}{
 			"ingress": map[string]interface{}{
@@ -617,7 +596,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::logging::images::operator::repository", "banzaicloud/logging-operator")
 	v.SetDefault("cluster::logging::images::operator::tag", "2.7.0")
 	v.SetDefault("cluster::logging::charts::loki::chart", "banzaicloud-stable/loki")
-	v.SetDefault("cluster::logging::charts::loki::version", "0.17.3")
+	v.SetDefault("cluster::logging::charts::loki::version", "0.17.4")
 	v.SetDefault("cluster::logging::charts::loki::values", map[string]interface{}{})
 	v.SetDefault("cluster::logging::images::loki::repository", "grafana/loki")
 	v.SetDefault("cluster::logging::images::loki::tag", "v1.3.0")
@@ -644,7 +623,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::ingress::namespace", "")
 	v.SetDefault("cluster::ingress::releaseName", "ingress")
 	v.SetDefault("cluster::ingress::charts::traefik::chart", "stable/traefik")
-	v.SetDefault("cluster::ingress::charts::traefik::version", "1.86.1")
+	v.SetDefault("cluster::ingress::charts::traefik::version", "1.86.2")
 	v.SetDefault("cluster::ingress::charts::traefik::values", `
 ssl:
   enabled: true
@@ -702,8 +681,9 @@ ssl:
 	v.SetDefault("cluster::securityScan::anchore::endpoint", "")
 	v.SetDefault("cluster::securityScan::anchore::user", "")
 	v.SetDefault("cluster::securityScan::anchore::password", "")
+	v.SetDefault("cluster::securityScan::anchore::insecure", false)
 	v.SetDefault("cluster::securityScan::webhook::chart", "banzaicloud-stable/anchore-policy-validator")
-	v.SetDefault("cluster::securityScan::webhook::version", "0.5.6")
+	v.SetDefault("cluster::securityScan::webhook::version", "0.5.8")
 	v.SetDefault("cluster::securityScan::webhook::release", "anchore")
 	v.SetDefault("cluster::securityScan::webhook::namespace", "pipeline-system")
 	// v.SetDefault("cluster::securityScan::webhook::values", map[string]interface{}{
@@ -719,7 +699,7 @@ ssl:
 	// ingress controller config
 	v.SetDefault("cluster::posthook::ingress::enabled", true)
 	v.SetDefault("cluster::posthook::ingress::chart", "banzaicloud-stable/pipeline-cluster-ingress")
-	v.SetDefault("cluster::posthook::ingress::version", "0.0.8")
+	v.SetDefault("cluster::posthook::ingress::version", "0.0.10")
 	v.SetDefault("cluster::posthook::ingress::values", `
 traefik:
   ssl:
@@ -730,14 +710,14 @@ traefik:
 	// Kubernetes Dashboard
 	v.SetDefault("cluster::posthook::dashboard::enabled", true)
 	v.SetDefault("cluster::posthook::dashboard::chart", "banzaicloud-stable/kubernetes-dashboard")
-	v.SetDefault("cluster::posthook::dashboard::version", "0.9.1")
+	v.SetDefault("cluster::posthook::dashboard::version", "0.9.2")
 
 	// Init spot config
 	v.SetDefault("cluster::posthook::spotconfig::enabled", false)
 	v.SetDefault("cluster::posthook::spotconfig::charts::scheduler::chart", "banzaicloud-stable/spot-scheduler")
-	v.SetDefault("cluster::posthook::spotconfig::charts::scheduler::version", "0.1.0")
+	v.SetDefault("cluster::posthook::spotconfig::charts::scheduler::version", "0.1.2")
 	v.SetDefault("cluster::posthook::spotconfig::charts::webhook::chart", "banzaicloud-stable/spot-config-webhook")
-	v.SetDefault("cluster::posthook::spotconfig::charts::webhook::version", "0.1.5")
+	v.SetDefault("cluster::posthook::spotconfig::charts::webhook::version", "0.1.6")
 
 	// Instance Termination Handler
 	v.SetDefault("cluster::posthook::ith::enabled", true)
@@ -758,7 +738,7 @@ traefik:
 	v.SetDefault("cluster::disasterRecovery::ark::backupSyncInterval", "20s")
 	v.SetDefault("cluster::disasterRecovery::ark::restoreWaitTimeout", "5m")
 	v.SetDefault("cluster::disasterRecovery::charts::ark::chart", "banzaicloud-stable/ark")
-	v.SetDefault("cluster::disasterRecovery::charts::ark::version", "1.2.2")
+	v.SetDefault("cluster::disasterRecovery::charts::ark::version", "1.2.3")
 	v.SetDefault("cluster::disasterRecovery::charts::ark::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"repository": "banzaicloud/ark",
@@ -769,57 +749,62 @@ traefik:
 
 	// v.SetDefault("cluster::backyards::enabled", true)
 	v.SetDefault("cluster::backyards::istio::grafanaDashboardLocation", "./etc/dashboards/istio")
-	v.SetDefault("cluster::backyards::istio::pilotImage", "banzaicloud/istio-pilot:1.4.2-bzc")
-	v.SetDefault("cluster::backyards::istio::mixerImage", "banzaicloud/istio-mixer:1.4.2-bzc")
+	v.SetDefault("cluster::backyards::istio::pilotImage", "banzaicloud/istio-pilot:1.5.1-bzc.3")
+	v.SetDefault("cluster::backyards::istio::mixerImage", "banzaicloud/istio-mixer:1.5.1-bzc.3")
+	v.SetDefault("cluster::backyards::istio::proxyImage", "banzaicloud/istio-proxyv2:1.5.1-bzc.3")
+	v.SetDefault("cluster::backyards::istio::sidecarInjectorImage", "banzaicloud/istio-sidecar-injector:1.5.1-bzc.3")
 	v.SetDefault("cluster::backyards::charts::istioOperator::chart", "banzaicloud-stable/istio-operator")
-	v.SetDefault("cluster::backyards::charts::istioOperator::version", "0.0.32")
+	v.SetDefault("cluster::backyards::charts::istioOperator::version", "0.0.45")
 	v.SetDefault("cluster::backyards::charts::istioOperator::values", map[string]interface{}{
 		"operator": map[string]interface{}{
 			"image": map[string]interface{}{
 				"repository": "banzaicloud/istio-operator",
-				"tag":        "0.4.6",
+				"tag":        "0.5.5",
 			},
 		},
 	})
 	v.SetDefault("cluster::backyards::charts::backyards::chart", "banzaicloud-stable/backyards")
-	v.SetDefault("cluster::backyards::charts::backyards::version", "1.1.0")
+	v.SetDefault("cluster::backyards::charts::backyards::version", "1.2.12")
 	v.SetDefault("cluster::backyards::charts::backyards::values", map[string]interface{}{
 		"application": map[string]interface{}{
 			"image": map[string]interface{}{
 				"repository": "banzaicloud/backyards",
-				"tag":        "1.1.2",
+				"tag":        "1.2.3",
 			},
 		},
 		"web": map[string]interface{}{
 			"image": map[string]interface{}{
 				"repository": "banzaicloud/backyards-web",
-				"tag":        "1.1.2",
+				"tag":        "1.2.3",
 			},
 		},
 	})
 	v.SetDefault("cluster::backyards::charts::canaryOperator::chart", "banzaicloud-stable/canary-operator")
-	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.7")
+	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.11")
 	v.SetDefault("cluster::backyards::charts::canaryOperator::values", map[string]interface{}{
 		"operator": map[string]interface{}{
 			"image": map[string]interface{}{
 				"repository": "banzaicloud/canary-operator",
-				"tag":        "0.1.5",
+				"tag":        "0.1.9",
 			},
 		},
 	})
+	v.SetDefault("cluster::backyards::charts::nodeexporter::chart", "stable/prometheus-node-exporter")
+	v.SetDefault("cluster::backyards::charts::nodeexporter::version", "1.8.1")
 
-	v.SetDefault("cluster::federation::charts::kubefed::chart", "kubefed-charts/kubefed")
-	v.SetDefault("cluster::federation::charts::kubefed::version", "0.1.0-rc6")
+	v.SetDefault("cluster::federation::charts::kubefed::chart", "banzaicloud-stable/kubefed")
+	v.SetDefault("cluster::federation::charts::kubefed::version", "0.2.0-banzai.1")
 	v.SetDefault("cluster::federation::charts::kubefed::values", map[string]interface{}{
 		"controllermanager": map[string]interface{}{
 			"repository": "banzaicloud",
-			"tag":        "v0.1.0-rc6.1",
+			"tag":        "0.2.0-alpha1.1",
 		},
 	})
 
 	// Helm configuration
 	v.SetDefault("helm::tiller::version", "v2.16.3")
 	v.SetDefault("helm::home", "./var/cache")
+	v.SetDefault("helm::v3", false)
 	v.SetDefault("helm::repositories::stable", "https://kubernetes-charts.storage.googleapis.com")
 	v.SetDefault("helm::repositories::banzaicloud-stable", "https://kubernetes-charts.banzaicloud.com")
 	v.SetDefault("helm::repositories::loki", "https://grafana.github.io/loki/charts")
@@ -837,23 +822,6 @@ traefik:
 	v.SetDefault("cloudinfo::endpoint", "")
 	v.SetDefault("hollowtrees::endpoint", "")
 	v.SetDefault("hollowtrees::tokenSigningKey", "")
-
-	// CICD config
-	v.SetDefault("cicd::enabled", false)
-	v.SetDefault("cicd::url", "http://localhost:8000")
-	v.SetDefault("cicd::insecure", false)
-	v.SetDefault("cicd::scm", "github")
-
-	// Auth provider (Gitlab/Github) settings
-	v.SetDefault("github::token", "")
-	v.SetDefault("gitlab::url", "https://gitlab.com/")
-	v.SetDefault("gitlab::token", "")
-
-	// Spotguide config
-	v.SetDefault("spotguide::allowPrereleases", false)
-	v.SetDefault("spotguide::allowPrivateRepos", false)
-	v.SetDefault("spotguide::syncInterval", 5*time.Minute)
-	v.SetDefault("spotguide::sharedLibraryGitHubOrganization", "spotguides")
 
 	v.SetDefault("secret::tls::defaultValidity", "8760h") // 1 year
 

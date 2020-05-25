@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 
 	"emperror.dev/errors"
@@ -22,14 +23,12 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/sirupsen/logrus"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8sHelm "k8s.io/helm/pkg/helm"
 
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/helm"
 )
 
@@ -278,7 +277,7 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 }
 
 // DeployClusterAutoscaler post hook only for AWS & EKS & Azure for now
-func DeployClusterAutoscaler(cluster CommonCluster) error {
+func DeployClusterAutoscaler(cluster CommonCluster, helmService HelmService) error {
 	var config = global.Config.Cluster.PostHook.Autoscaler
 	if !config.Enabled {
 		return nil
@@ -301,27 +300,21 @@ func DeployClusterAutoscaler(cluster CommonCluster) error {
 		return errors.Wrap(err, "unable to fetch node pools")
 	}
 
-	kubeConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("Unable to fetch K8S config %s", err.Error())
-		return err
-	}
-
-	if isAutoscalerDeployedAlready(releaseName, kubeConfig) {
+	if isAutoscalerDeployedAlready(releaseName, cluster.GetID(), helmService) {
 		// no need to upgrade in case of EKS since we're using nodepool autodiscovery
 		if _, isEks := cluster.(*EKSCluster); isEks {
 			return nil
 		}
 		if len(nodeGroups) == 0 {
 			// delete
-			err := helm.DeleteDeployment(releaseName, kubeConfig)
+			err := helmService.DeleteDeployment(context.TODO(), cluster.GetID(), releaseName, global.Config.Cluster.Namespace)
 			if err != nil {
 				log.Errorf("DeleteDeployment '%s' failed due to: %s", global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.Chart, err.Error())
 				return err
 			}
 		} else {
 			// upgrade
-			return deployAutoscalerChart(cluster, nodeGroups, kubeConfig, upgrade)
+			return deployAutoscalerChart(cluster, nodeGroups, helmService, upgrade)
 		}
 	} else {
 		if len(nodeGroups) == 0 {
@@ -330,27 +323,26 @@ func DeployClusterAutoscaler(cluster CommonCluster) error {
 			return nil
 		}
 		// install
-		return deployAutoscalerChart(cluster, nodeGroups, kubeConfig, install)
+		return deployAutoscalerChart(cluster, nodeGroups, helmService, install)
 	}
 
 	return nil
 }
 
-func isAutoscalerDeployedAlready(releaseName string, kubeConfig []byte) bool {
-	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
+func isAutoscalerDeployedAlready(releaseName string, clusterId uint, helmDeployer HelmService) bool {
+	_, err := helmDeployer.GetDeployment(context.TODO(), clusterId, releaseName, global.Config.Cluster.Namespace)
 	if err != nil {
+		var notFoundErr *helm.DeploymentNotFoundError
+		if errors.As(err, &notFoundErr) {
+			return false
+		}
 		log.Errorf("ListDeployments for '%s' failed due to: %s", global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.Chart, err.Error())
 		return false
 	}
-	for _, release := range deployments.GetReleases() {
-		if release.Name == releaseName {
-			return true
-		}
-	}
-	return false
+	return true
 }
 
-func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeConfig []byte, action deploymentAction) error {
+func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, helmService HelmService, action deploymentAction) error {
 	var values *autoscalingInfo
 	switch cluster.GetDistribution() {
 	case pkgCluster.EKS:
@@ -382,20 +374,15 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 		log.Errorf("Error during values marshal: %s", err.Error())
 		return err
 	}
-	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
-	if err != nil {
-		log.Errorf("Error during getting organization: %s", err.Error())
-		return err
-	}
 
 	chartName := global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.Chart
 	chartVersion := global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.Version
 
 	switch action {
 	case install:
-		_, err = helm.CreateDeployment(chartName, chartVersion, nil, helm.SystemNamespace, releaseName, false, nil, kubeConfig, helm.GeneratePlatformHelmRepoEnv(), k8sHelm.ValueOverrides(yamlValues))
+		err = helmService.ApplyDeployment(context.TODO(), cluster.GetID(), global.Config.Cluster.Namespace, chartName, releaseName, yamlValues, chartVersion)
 	case upgrade:
-		_, err = helm.UpgradeDeployment(releaseName, chartName, chartVersion, nil, yamlValues, false, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
+		err = helmService.ApplyDeployment(context.TODO(), cluster.GetID(), global.Config.Cluster.Namespace, chartName, releaseName, yamlValues, chartVersion)
 	default:
 		return err
 	}

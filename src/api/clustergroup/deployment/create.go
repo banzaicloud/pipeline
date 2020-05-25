@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
 	pkgDep "github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
@@ -71,11 +72,16 @@ func (n *API) Create(c *gin.Context) {
 		return
 	}
 
+	if deployment.Package != nil {
+		n.errorHandler.Handle(c, errors.New("deployment using custom chart content is unsupported"))
+		return
+	}
+
 	if len(deployment.ReleaseName) == 0 {
 		deployment.ReleaseName = n.deploymentManager.GenerateReleaseName(clusterGroup)
 	}
 
-	if !n.deploymentManager.IsReleaseNameAvailable(clusterGroup, deployment.ReleaseName) {
+	if !n.deploymentManager.IsReleaseNameAvailable(clusterGroup, deployment.ReleaseName, deployment.Namespace) {
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: fmt.Sprintf("release name %s not available on all target clusters", deployment.ReleaseName),

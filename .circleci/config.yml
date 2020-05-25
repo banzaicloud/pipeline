@@ -7,6 +7,18 @@ orbs:
 helm-repositories: &helm_repositories
     - run: helm repo add rimusz https://charts.rimusz.net
 
+executors:
+    vm:
+        machine:
+            resource_class: large
+            image: ubuntu-1604:201903-01
+        environment:
+            GOPATH: /home/circleci/go
+            GO_VERSION: '1.14.2'
+            VAULT_VERSION: '1.3.2'
+            KIND_VERSION: 'v0.7.0'
+            HELM_VERSION: 'v2.16.3'
+
 jobs:
     build:
         resource_class: large
@@ -27,7 +39,7 @@ jobs:
                     POSTGRES_HOST_AUTH_METHOD: "trust"
 
             -
-                image: vault:1.1.0
+                image: vault:1.3.2
                 environment:
                     SKIP_SETCAP: true
                     VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
@@ -99,16 +111,6 @@ jobs:
                     command: |
                         make config/config.yaml
                         PIPELINE_CONFIG_DIR=$PWD/config GOARGS="-p=2" make test
-                    environment:
-                        VAULT_ADDR: http://localhost:8200
-                        VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
-
-            -
-                run:
-                    name: Run integration tests
-                    command: |
-                        make config/config.yaml
-                        PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=2" test-integration
                     environment:
                         VAULT_ADDR: http://localhost:8200
                         VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
@@ -194,11 +196,11 @@ jobs:
                     command: |
                         apt-get install -y python-pip
                         pip install migra[pg]
-            
+
             -
                 run:
                     name: Test PostgreSQL database schema diff
-                    command: migra postgresql://postgres:postgres@localhost/pipeline_automigrate postgresql://postgres:postgres@localhost/pipeline_migrations --unsafe
+                    command: migra postgresql://postgres:postgres@localhost/pipeline_migrations postgresql://postgres:postgres@localhost/pipeline_automigrate --unsafe
 
             -
                 run:
@@ -210,7 +212,7 @@ jobs:
             -
                 run:
                     name: Test PostgreSQL database schema diff again
-                    command: migra postgresql://postgres:postgres@localhost/pipeline_automigrate postgresql://postgres:postgres@localhost/pipeline_migrations --unsafe
+                    command: migra postgresql://postgres:postgres@localhost/pipeline_migrations postgresql://postgres:postgres@localhost/pipeline_automigrate --unsafe
             -
                 save_cache:
                     name: Save Go build cache
@@ -295,11 +297,77 @@ jobs:
                     image: <<parameters.image>>
                     tag: latest
 
+    integration-test-k8s-1-17-4:
+        executor: vm
+        steps:
+            - integration:
+                k8s_version: v1.17.4
+
+commands:
+    integration:
+        parameters:
+            k8s_version:
+                description: kubernetes version
+                type: string
+                default: ""
+        steps:
+            -   checkout
+            -   restore_cache:
+                    name: Restore build dependencies
+                    keys:
+                        - integration-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+            -   run:
+                    name: Setup golang
+                    command: |
+                        sudo rm -rf /usr/local/go
+                        curl -sSL "https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz" | sudo tar -xz -C /usr/local/
+                        mkdir -p /home/circleci/go/bin
+            -   run:
+                    name: Setup kind and create cluster
+                    command: |
+                        curl -Lo ./kind https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-linux-amd64
+                        chmod +x ./kind
+                        ./kind create cluster --kubeconfig build/kubeconfig
+            -   run:
+                    name: Setup kubectl
+                    command: |
+                        curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/<< parameters.k8s_version >>/bin/linux/amd64/kubectl
+                        chmod +x kubectl
+                        sudo mv kubectl /usr/local/bin/
+            -   run:
+                    name: Setup helm
+                    command: |
+                        bash <(curl -L https://git.io/get_helm.sh) -v ${HELM_VERSION}
+                        kubectl create serviceaccount tiller --namespace kube-system
+                        kubectl create clusterrolebinding --clusterrole cluster-admin --serviceaccount=kube-system:tiller tiller
+                        helm init --service-account tiller
+                    environment:
+                        KUBECONFIG: build/kubeconfig
+            -   run:
+                    name: Start Vault
+                    command: |
+                        docker run --name vault -p 127.0.0.1:8200:8200 -d -e VAULT_DEV_ROOT_TOKEN_ID=227e1cce-6bf7-30bb-2d2a-acc854318caf -e SKIP_SETCAP=true vault:${VAULT_VERSION} server -dev
+            -   run:
+                    name: Run integration tests
+                    command: |
+                        make config/config.yaml
+                        KUBECONFIG=$PWD/build/kubeconfig PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=2" test-integration
+                    environment:
+                        VAULT_ADDR: http://localhost:8200
+                        VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+            -   save_cache:
+                    name: Save build dependencies
+                    key: integration-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+                    paths:
+                        - bin/
+
 workflows:
     ci:
         jobs:
             -
                 build
+            -
+                integration-test-k8s-1-17-4
             -
                 docker/publish:
                     name: Build docker image

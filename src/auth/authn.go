@@ -45,14 +45,13 @@ import (
 // PipelineSessionCookie holds the name of the Cookie Pipeline sets in the browser
 const PipelineSessionCookie = "_banzai_session"
 
-// CICDSessionCookie holds the name of the Cookie CICD sets in the browser
-const CICDSessionCookie = "user_sess"
+// UserTokenType is the token type used for API sessions
+const UserTokenType pkgAuth.TokenType = "user"
 
-// CICDUserTokenType is the CICD token type used for API sessions
-const CICDUserTokenType pkgAuth.TokenType = "user"
-
-// CICDHookTokenType is the CICD token type used for API sessions
-const CICDHookTokenType pkgAuth.TokenType = "hook"
+// VirtualUserTokenType is the token type used for API sessions by external services
+// Used by PKE at the moment
+// Legacy token type (used by CICD build hook originally)
+const VirtualUserTokenType pkgAuth.TokenType = "hook"
 
 // SessionCookieMaxAge holds long an authenticated session should be valid in seconds
 const SessionCookieMaxAge = 30 * 24 * 60 * 60
@@ -63,22 +62,12 @@ const SessionCookieHTTPOnly = true
 // SessionCookieName is the name of the token that is stored in the session cookie
 const SessionCookieName = "Pipeline session token"
 
-// Auth provider names
-const (
-	ProviderDexGithub = "dex:github"
-	ProviderGithub    = "github"
-	ProviderDexGitlab = "dex:gitlab"
-	ProviderGitlab    = "gitlab"
-)
+const BanzaiCLIClient = "banzai-cli"
 
 // Init authorization
 // nolint: gochecknoglobals
 var (
-	cicdDB *gorm.DB
-
 	Auth *auth.Auth
-
-	signingKeyBase32 string
 
 	// CookieDomain is the domain field for cookies
 	CookieDomain string
@@ -106,13 +95,6 @@ func init() {
 	})
 }
 
-// CICDClaims struct to store the cicd claim related things
-type CICDClaims struct {
-	*claims.Claims
-	Type ginauth.TokenType `json:"type,omitempty"`
-	Text string            `json:"text,omitempty"`
-}
-
 type cookieExtractor struct {
 	sessionStorer *BanzaiSessionStorer
 }
@@ -137,12 +119,11 @@ func (r redirector) Redirect(w http.ResponseWriter, req *http.Request, action st
 }
 
 // Init initializes the auth
-func Init(db *gorm.DB, cdb *gorm.DB, config Config, tokenStore bauth.TokenStore, tokenManager TokenManager, orgSyncer OIDCOrganizationSyncer, serviceAccountService ServiceAccountService) {
+func Init(db *gorm.DB, config Config, tokenStore bauth.TokenStore, tokenManager TokenManager, orgSyncer OIDCOrganizationSyncer, serviceAccountService ServiceAccountService) {
 	CookieDomain = config.Cookie.Domain
 
 	signingKey := config.Token.SigningKey
 	signingKeyBytes := []byte(signingKey)
-	signingKeyBase32 = base32.StdEncoding.EncodeToString(signingKeyBytes)
 
 	cookieAuthenticationKey := signingKeyBytes
 	cookieEncryptionKey := signingKeyBytes[:32]
@@ -157,14 +138,12 @@ func Init(db *gorm.DB, cdb *gorm.DB, config Config, tokenStore bauth.TokenStore,
 
 	SessionManager = gorilla.New(PipelineSessionCookie, cookieStore)
 
-	cicdDB = cdb
-
 	sessionStorer := &BanzaiSessionStorer{
 		SessionStorer: auth.SessionStorer{
 			SessionName:    "_auth_session",
 			SessionManager: SessionManager,
 			SigningMethod:  jwt.SigningMethodHS256,
-			SignedString:   signingKeyBase32,
+			SignedString:   base32.StdEncoding.EncodeToString(signingKeyBytes),
 		},
 		tokenManager: tokenManager,
 	}
@@ -181,10 +160,8 @@ func Init(db *gorm.DB, cdb *gorm.DB, config Config, tokenStore bauth.TokenStore,
 		ViewPaths:         []string{"views"},
 		SessionStorer:     sessionStorer,
 		UserStorer: BanzaiUserStorer{
-			signingKeyBase32: signingKeyBase32,
-			db:               db,
-			cicdDB:           cicdDB,
-			orgSyncer:        orgSyncer,
+			db:        db,
+			orgSyncer: orgSyncer,
 		},
 		LoginHandler:      banzaiLoginHandler,
 		LogoutHandler:     banzaiLogoutHandler,
@@ -208,8 +185,8 @@ func Init(db *gorm.DB, cdb *gorm.DB, config Config, tokenStore bauth.TokenStore,
 
 			return &User{
 				ID:      uint(userID),
-				Login:   claims.Text, // This is needed for CICD virtual user tokens
-				Virtual: claims.Type == ginauth.TokenType(CICDHookTokenType),
+				Login:   claims.Text, // This is needed for virtual user tokens
+				Virtual: claims.Type == ginauth.TokenType(VirtualUserTokenType),
 			}
 		},
 		func(ctx context.Context, value interface{}) context.Context {
@@ -326,7 +303,7 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 	_, cookieToken, err := sessionStorer.tokenManager.GenerateToken(
 		claims.UserID,
 		&expiresAt,
-		CICDUserTokenType,
+		UserTokenType,
 		currentUser.Login,
 		SessionCookieName,
 		false,
@@ -336,15 +313,17 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 		return err
 	}
 
-	// Set the pipeline cookie
+	// Set the token as a pipeline session cookie
 	err = sessionStorer.SessionManager.Add(w, req, sessionStorer.SessionName, cookieToken)
 	if err != nil {
 		errorHandler.Handle(errors.Wrap(err, "failed to add user's session cookie to store"))
 		return err
 	}
 
-	// Set the CICD cookie as well, but that cookie's value is actually a Pipeline API token
-	SetCookie(w, req, CICDSessionCookie, cookieToken)
+	// Add the token in a header to the CLI
+	if req.Header.Get("Client") == BanzaiCLIClient {
+		w.Header().Add("Authorization", cookieToken)
+	}
 
 	return nil
 }
@@ -369,9 +348,8 @@ func banzaiLoginHandler(context *auth.Context, authorize func(*auth.Context) (*c
 	httpJSONError(context.Writer, err, http.StatusUnauthorized)
 }
 
-// BanzaiLogoutHandler does the qor/auth DefaultLogoutHandler default logout behavior + deleting the CICD cookie
+// BanzaiLogoutHandler does the qor/auth DefaultLogoutHandler default logout behavior
 func banzaiLogoutHandler(context *auth.Context) {
-	DelCookie(context.Writer, context.Request, CICDSessionCookie)
 	DelCookie(context.Writer, context.Request, PipelineSessionCookie)
 }
 
@@ -422,17 +400,6 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 		errorHandler.Handle(errors.Wrap(err, "failed delete user's auth_identity from DB"))
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
 		return
-	}
-
-	if global.Config.CICD.Enabled {
-		cicdUser := CICDUser{Login: user.Login}
-		// We need to pass cicdUser as well as the where clause, because Delete() filters by primary
-		// key by default: http://doc.gorm.io/crud.html#delete but here we need to delete by the Login
-		if err := cicdDB.Delete(cicdUser, cicdUser).Error; err != nil {
-			errorHandler.Handle(errors.Wrap(err, "failed delete user from CICD"))
-			http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
-			return
-		}
 	}
 
 	// Delete Tokens

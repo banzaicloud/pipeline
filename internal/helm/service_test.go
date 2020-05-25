@@ -118,8 +118,13 @@ func Test_service_AddRepository(t *testing.T) {
 				secretStoreMock := (*secretStore).(*MockSecretStore)
 				secretStoreMock.On("CheckPasswordSecret", arguments.ctx, arguments.repository.PasswordSecretID).Return(nil)
 
-				storeMock := (*store).(*MockStore)
-				storeMock.On("Get", arguments.ctx, arguments.organizationID, arguments.repository).Return(Repository{}, nil)
+				envResolverMock := (*envResolver).(*MockEnvResolver)
+				envResolverMock.On("ResolveHelmEnv", arguments.ctx, arguments.organizationID).Return(HelmEnv{home: "/test"}, nil)
+
+				envServiceMock := (*envService).(*MockEnvService)
+				envServiceMock.On("ListRepositories", arguments.ctx, HelmEnv{home: "/test"}).Return([]Repository{
+					{Name: "test-repo"},
+				}, nil)
 			},
 			wantErr: true,
 		},
@@ -154,6 +159,7 @@ func Test_service_AddRepository(t *testing.T) {
 				envResolverMock.On("ResolveHelmEnv", arguments.ctx, arguments.organizationID).Return(HelmEnv{home: "/test"}, nil)
 
 				envServiceMock := (*envService).(*MockEnvService)
+				envServiceMock.On("ListRepositories", arguments.ctx, HelmEnv{home: "/test"}).Return([]Repository{}, nil)
 				envServiceMock.On("AddRepository", arguments.ctx, HelmEnv{home: "/test"}, arguments.repository).Return(nil)
 			},
 			wantErr: false,
@@ -248,58 +254,6 @@ func Test_service_ListRepositories(t *testing.T) {
 						{
 							Name: "loki",
 							URL:  "https://grafana.github.io/loki/charts",
-						},
-					},
-					nil,
-				)
-			},
-			wantErr: false,
-		},
-		{
-			name: "merge default repos with user added repos",
-			fields: fields{
-				store:         &MockStore{},
-				secretStore:   &MockSecretStore{},
-				repoValidator: NewHelmRepoValidator(),
-				envResolver:   &MockEnvResolver{},
-				envService:    &MockEnvService{},
-				logger:        common.NoopLogger{},
-			},
-			args: args{
-				ctx:            context.Background(),
-				organizationID: 2,
-			},
-			wantRepos: []Repository{
-				{
-					Name: "user-repo",
-					URL:  "https://userdomain.io/userrepo/charts",
-				},
-				{
-					Name: "stable",
-					URL:  "https://kubernetes-charts.storage.googleapis.com",
-				},
-			},
-			setupMocks: func(store *Store, secretStore *SecretStore, envResolver *EnvResolver, envService *EnvService, arguments args) {
-				storeMock := (*store).(*MockStore)
-				storeMock.On("List", arguments.ctx, arguments.organizationID).Return(
-					[]Repository{
-						{
-							Name: "user-repo",
-							URL:  "https://userdomain.io/userrepo/charts",
-						},
-					},
-					nil,
-				)
-
-				envResolverMock := (*envResolver).(*MockEnvResolver)
-				envResolverMock.On("ResolveHelmEnv", arguments.ctx, arguments.organizationID).Return(HelmEnv{home: "/test"}, nil)
-
-				envServiceMock := (*envService).(*MockEnvService)
-				envServiceMock.On("ListRepositories", arguments.ctx, HelmEnv{home: "/test"}).Return(
-					[]Repository{
-						{
-							Name: "stable",
-							URL:  "https://kubernetes-charts.storage.googleapis.com",
 						},
 					},
 					nil,

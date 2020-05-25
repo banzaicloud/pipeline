@@ -197,6 +197,10 @@ func (r dbEKSClusterRepository) DeleteNodePool(model *eksmodel.AmazonNodePoolsMo
 	return r.db.Delete(model).Error
 }
 
+func (r dbEKSClusterRepository) DeleteSubnet(model *eksmodel.EKSSubnetModel) error {
+	return r.db.Delete(model).Error
+}
+
 func (r dbEKSClusterRepository) SaveModel(model *eksmodel.EKSClusterModel) error {
 	return r.db.Save(model).Error
 }
@@ -220,6 +224,7 @@ type EKSClusterRepository interface {
 	DeleteClusterModel(model *clustermodel.ClusterModel) error
 	DeleteModel(model *eksmodel.EKSClusterModel) error
 	DeleteNodePool(model *eksmodel.AmazonNodePoolsModel) error
+	DeleteSubnet(model *eksmodel.EKSSubnetModel) error
 	SaveModel(model *eksmodel.EKSClusterModel) error
 	SaveStatusHistory(model *clustermodel.StatusHistoryModel) error
 }
@@ -543,17 +548,23 @@ func (c *EKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 // DeleteFromDatabase deletes model from the database
 func (c *EKSCluster) DeleteFromDatabase() error {
-	if err := c.repository.DeleteClusterModel(&c.model.Cluster); err != nil {
-		return err
-	}
-
 	for _, nodePool := range c.model.NodePools {
 		if err := c.repository.DeleteNodePool(nodePool); err != nil {
 			return err
 		}
 	}
 
+	for _, subnet := range c.model.Subnets {
+		if err := c.repository.DeleteSubnet(subnet); err != nil {
+			return err
+		}
+	}
+
 	if err := c.repository.DeleteModel(c.model); err != nil {
+		return err
+	}
+
+	if err := c.repository.DeleteClusterModel(&c.model.Cluster); err != nil {
 		return err
 	}
 

@@ -19,11 +19,12 @@ import (
 
 	"go.uber.org/cadence/workflow"
 
-	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
+	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
+
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
-const SetClusterStatusActivityName = "pke-azure-set-cluster-status"
+const SetClusterStatusActivityName = "pke-vsphere-set-cluster-status"
 
 type SetClusterStatusActivity struct {
 	store pke.ClusterStore

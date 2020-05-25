@@ -118,37 +118,18 @@ func (h helmRepoStore) Get(_ context.Context, organizationID uint, repository he
 	return toDomain(repoModel), nil
 }
 
-func (h helmRepoStore) Patch(ctx context.Context, organizationID uint, repository helm.Repository) error {
-	var model repositoryModel
-	repoModel := toModel(organizationID, repository)
-
-	if err := h.db.Where(&repositoryModel{Name: repoModel.Name}).First(&model).Updates(repoModel).Error; err != nil {
-		return errors.WrapIfWithDetails(err, "failed to update the helm repository",
+func (h helmRepoStore) Update(_ context.Context, organizationID uint, repository helm.Repository) error {
+	repoModel := &repositoryModel{Name: repository.Name, OrganizationID: organizationID}
+	if err := h.db.First(repoModel).Error; err != nil {
+		return errors.WrapIfWithDetails(err, "failed to get existing helm repository from the db",
 			"orgID", organizationID, "repoName", repoModel.Name)
 	}
 
-	h.logger.Debug(
-		"patched helm repository record",
-		map[string]interface{}{
-			"organizationID": organizationID,
-			"repoName":       repository.Name,
-		},
-	)
+	repoModel.URL = repository.URL
+	repoModel.PasswordSecretID = repository.PasswordSecretID
+	repoModel.TlsSecretID = repository.TlsSecretID
 
-	return nil
-}
-
-func (h helmRepoStore) Update(ctx context.Context, organizationID uint, repository helm.Repository) error {
-	var model repositoryModel
-	repoModel := toModel(organizationID, repository)
-
-	if err := h.db.Where(&repositoryModel{Name: repoModel.Name}).First(&model).Error; err != nil {
-		return errors.WrapIfWithDetails(err, "failed to retrieve the helm repository for update",
-			"orgID", organizationID, "repoName", repoModel.Name)
-	}
-
-	repoModel.ID = model.ID // the ID needs to be set for the gorm operation
-	if err := h.db.Save(&repoModel).Error; err != nil {
+	if err := h.db.Save(repoModel).Error; err != nil {
 		return errors.WrapIfWithDetails(err, "failed to update the helm repository",
 			"orgID", organizationID, "repoName", repoModel.Name)
 	}

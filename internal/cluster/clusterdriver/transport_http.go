@@ -49,6 +49,13 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 		options...,
 	))
 
+	router.Methods(http.MethodPost).Path("/nodepools/{nodePoolName}/update").Handler(kithttp.NewServer(
+		endpoints.UpdateNodePool,
+		decodeUpdateNodePoolHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeUpdateNodePoolHTTPResponse, errorEncoder),
+		options...,
+	))
+
 	router.Methods(http.MethodDelete).Path("/nodepools/{nodePoolName}").Handler(kithttp.NewServer(
 		endpoints.DeleteNodePool,
 		decodeDeleteNodePoolHTTPRequest,
@@ -173,6 +180,64 @@ func decodeCreateNodePoolHTTPRequest(_ context.Context, r *http.Request) (interf
 	}
 
 	return CreateNodePoolRequest{ClusterID: uint(clusterID), RawNodePool: spec}, nil
+}
+
+func decodeUpdateNodePoolHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+
+	rawClusterID, ok := vars["clusterId"]
+	if !ok || rawClusterID == "" {
+		return nil, errors.NewWithDetails("missing parameter from the URL", "param", "clusterId")
+	}
+
+	clusterID, err := strconv.ParseUint(rawClusterID, 10, 32)
+	if err != nil {
+		return nil, errors.NewWithDetails("invalid cluster ID", "rawClusterId", rawClusterID)
+	}
+
+	nodePoolName, ok := vars["nodePoolName"]
+	if !ok || nodePoolName == "" {
+		return nil, errors.NewWithDetails("missing parameter from the URL", "param", "nodePoolName")
+	}
+
+	var rawNodePoolUpdate pipeline.UpdateNodePoolRequest
+
+	err = json.NewDecoder(r.Body).Decode(&rawNodePoolUpdate)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to decode request")
+	}
+
+	var update map[string]interface{}
+
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Metadata: nil,
+		Result:   &update,
+		TagName:  "json",
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create decoder")
+	}
+
+	err = decoder.Decode(rawNodePoolUpdate)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to decode request")
+	}
+
+	return UpdateNodePoolRequest{
+		ClusterID:         uint(clusterID),
+		NodePoolName:      nodePoolName,
+		RawNodePoolUpdate: update,
+	}, nil
+}
+
+func encodeUpdateNodePoolHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(UpdateNodePoolResponse)
+
+	apiResp := pipeline.UpdateNodePoolResponse{
+		ProcessId: resp.ProcessID,
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, kitxhttp.WithStatusCode(apiResp, http.StatusAccepted))
 }
 
 func decodeDeleteNodePoolHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {

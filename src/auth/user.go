@@ -17,7 +17,6 @@ package auth
 import (
 	"context"
 	"crypto/md5"
-	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -25,15 +24,11 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/cicd-go/cicd"
-	ginauth "github.com/banzaicloud/gin-utilz/auth"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/qor/utils"
-	"golang.org/x/oauth2"
 
 	"github.com/banzaicloud/pipeline/internal/global"
 )
@@ -46,11 +41,6 @@ const (
 
 	// SignUp is present if the current request is a signing up
 	SignUp utils.ContextKey = "signUp"
-
-	// GithubTokenID denotes the tokenID for the user's Github token, there can be only one
-	GithubTokenID = "github"
-	// GitlabTokenID denotes the tokenID for the user's Github token, there can be only one
-	GitlabTokenID = "gitlab"
 
 	// OAuthRefreshTokenID denotes the tokenID for the user's OAuth refresh token, there can be only one
 	OAuthRefreshTokenID = "oauth_refresh"
@@ -171,54 +161,16 @@ func SetCurrentOrganizationID(ctx context.Context, orgID uint) context.Context {
 	return context.WithValue(ctx, currentOrganizationID, orgID)
 }
 
-// NewCICDClient creates an authenticated CICD client for the user specified by the JWT in the HTTP request
-func NewCICDClient(apiToken string) cicd.Client {
-	cicdURL := global.Config.CICD.URL
-	config := new(oauth2.Config)
-	httpClient := http.Client{
-		Timeout: time.Second * 10,
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: global.Config.CICD.Insecure,
-			},
-		},
-	}
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, oauth2.HTTPClient, &httpClient)
-	client := config.Client(
-		ctx,
-		&oauth2.Token{
-			AccessToken: apiToken,
-		},
-	)
-	return cicd.NewClient(cicdURL, client)
-}
-
-// NewTemporaryCICDClient creates an authenticated CICD client for the user specified by login
-func NewTemporaryCICDClient(login string) (cicd.Client, error) {
-	// Create a temporary CICD API token
-	claims := &CICDClaims{Type: ginauth.TokenType(CICDUserTokenType), Text: login}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	cicdAPIToken, err := token.SignedString([]byte(signingKeyBase32))
-	if err != nil {
-		log.Errorln("Failed to create temporary CICD token", err.Error())
-		return nil, err
-	}
-
-	return NewCICDClient(cicdAPIToken), nil
-}
-
 // BanzaiUserStorer struct
 type BanzaiUserStorer struct {
 	auth.UserStorer
-	signingKeyBase32 string // CICD uses base32 Hash
-	db               *gorm.DB
-	cicdDB           *gorm.DB
-	orgSyncer        OIDCOrganizationSyncer
+
+	db        *gorm.DB
+	orgSyncer OIDCOrganizationSyncer
 }
 
 // Save differs from the default UserStorer.Save() in that it
-// extracts Token and Login and saves to CICD DB as well
+// extracts Token and Login
 func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (user interface{}, userID string, err error) {
 	currentUser := &User{}
 	err = copier.Copy(currentUser, schema)
@@ -238,14 +190,6 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 
 	// TODO: leave this to the UI?
 	currentUser.Image = checkGravatarImage(currentUser.Email)
-
-	// TODO we should call the Drone API instead and insert the token later on manually by the user
-	if global.Config.CICD.Enabled && (schema.Provider == ProviderDexGithub || schema.Provider == ProviderDexGitlab) {
-		err = bus.createUserInCICDDB(currentUser)
-		if err != nil {
-			return nil, "", errors.WrapIf(err, "failed to create user in CICD database")
-		}
-	}
 
 	err = bus.db.Create(currentUser).Error
 	if err != nil {
@@ -295,42 +239,6 @@ func (bus BanzaiUserStorer) Update(schema *auth.Schema, authCtx *auth.Context) (
 	}
 
 	return bus.orgSyncer.SyncOrganizations(authCtx.Request.Context(), currentUser, schema.RawInfo.(*IDTokenClaims))
-}
-
-func (bus BanzaiUserStorer) createUserInCICDDB(user *User) error {
-	cicdUser := &CICDUser{
-		Login:  user.Login,
-		Email:  user.Email,
-		Hash:   bus.signingKeyBase32,
-		Image:  user.Image,
-		Active: true,
-		Admin:  true,
-		Synced: time.Now().Unix(),
-	}
-	return bus.cicdDB.Where(cicdUser).FirstOrCreate(cicdUser).Error
-}
-
-func updateUserInCICDDB(user *User, scmAccessToken string) error {
-	where := &CICDUser{
-		Login: user.Login,
-	}
-	update := map[string]interface{}{
-		"user_token":  scmAccessToken,
-		"user_synced": time.Now().Unix(),
-	}
-	return cicdDB.Model(&CICDUser{}).Where(where).Update(update).Error
-}
-
-// This method tries to call the CICD API on a best effort basis to fetch all repos before the user navigates there.
-func synchronizeCICDRepos(login string) {
-	cicdClient, err := NewTemporaryCICDClient(login)
-	if err != nil {
-		log.Warnln("failed to create CICD client", err.Error())
-	}
-	_, err = cicdClient.RepoListOpts(true, true)
-	if err != nil {
-		log.Warnln("failed to sync CICD repositories", err.Error())
-	}
 }
 
 // GetOrganizationById returns an organization from database by ID

@@ -69,6 +69,9 @@ type NodePool struct {
 	Version         string                         `json:"version,omitempty"`
 	Labels          map[string]string              `json:"labels,omitempty"`
 	ResourceSummary map[string]NodeResourceSummary `json:"resourceSummary,omitempty"`
+	Vcpu            int                            `json:"vcpu,omitempty"`
+	Ram             int                            `json:"ram,omitempty"`
+	Template        string                         `json:"template,omitempty"`
 	CreatedAt       time.Time                      `json:"createdAt,omitempty"`
 	CreatorName     string                         `json:"creatorName,omitempty"`
 	CreatorID       uint                           `json:"creatorId,omitempty"`
@@ -97,6 +100,14 @@ type ClusterInfo struct {
 	CpuUsagePercent     float64             `json:"cpuUsagePercent"`
 	StorageUsagePercent float64             `json:"storageUsagePercent"`
 	MemoryUsagePercent  float64             `json:"memoryUsagePercent"`
+	OIDC                OIDC                `json:"oidc"`
+}
+
+type OIDC struct {
+	Enabled      bool   `json:"enabled"`
+	IdpURL       string `json:"idpUrl,omitempty"`
+	ClientID     string `json:"clientId,omitempty"`
+	ClientSecret string `json:"clientSecret,omitempty"`
 }
 
 // GetDashboardResponse Api object to be mapped to Get dashboard request

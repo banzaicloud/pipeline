@@ -31,12 +31,12 @@ import (
 	"github.com/banzaicloud/pipeline/src/model"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/process/processadapter"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	"github.com/banzaicloud/pipeline/internal/providers"
 	"github.com/banzaicloud/pipeline/src/auth"
 	route53model "github.com/banzaicloud/pipeline/src/dns/route53/model"
-	"github.com/banzaicloud/pipeline/src/spotguide"
 )
 
 // Migrate runs migrations for the application.
@@ -73,10 +73,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger, commonLogger common.Logger)
 		return err
 	}
 
-	if err := spotguide.Migrate(db, logger); err != nil {
-		return err
-	}
-
 	if err := audit.Migrate(db, logger); err != nil {
 		return err
 	}
@@ -106,6 +102,10 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger, commonLogger common.Logger)
 	}
 
 	if err := helmadapter.Migrate(db, commonLogger); err != nil {
+		return err
+	}
+
+	if err := processadapter.Migrate(db, commonLogger); err != nil {
 		return err
 	}
 

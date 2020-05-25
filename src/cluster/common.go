@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -482,12 +481,6 @@ func createCommonClusterWithDistributionFromModel(modelCluster *model.ClusterMod
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
-}
-
-// CleanHelmFolder deletes helm path
-func CleanHelmFolder(organizationName string) error {
-	helmPath := global.GetHelmPath(organizationName)
-	return os.RemoveAll(helmPath)
 }
 
 // GetUserIdAndName returns userId and userName from DB

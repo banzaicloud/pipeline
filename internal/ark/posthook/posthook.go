@@ -50,6 +50,7 @@ func RestoreFromBackup(
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
 	waitTimeout time.Duration,
+	helmService ark.HelmService,
 ) error {
 	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
 	if err != nil {
@@ -64,7 +65,7 @@ func RestoreFromBackup(
 		return err
 	}
 
-	err = svc.GetDeploymentsService().Deploy(&backup.Bucket, true)
+	err = svc.GetDeploymentsService().Deploy(helmService, &backup.Bucket, true)
 	if err != nil {
 		return err
 	}
@@ -87,7 +88,7 @@ func RestoreFromBackup(
 		errorHandler.Handle(errors.WrapIf(err, "could not restore"))
 	}
 
-	err = svc.GetDeploymentsService().Remove()
+	err = svc.GetDeploymentsService().Remove(helmService)
 	if err != nil {
 		return err
 	}

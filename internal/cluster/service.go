@@ -185,48 +185,6 @@ func (NotReadyError) ServiceError() bool {
 	return true
 }
 
-// NotSupportedDistributionError is returned if an API does not support a certain distribution.
-type NotSupportedDistributionError struct {
-	ID           uint
-	Cloud        string
-	Distribution string
-
-	Message string
-}
-
-// Error implements the error interface.
-func (e NotSupportedDistributionError) Error() string {
-	return e.Message
-}
-
-// Details returns error details.
-func (e NotSupportedDistributionError) Details() []interface{} {
-	return []interface{}{
-		"clusterId", e.ID,
-		"cloud", e.Cloud,
-		"distribution", e.Distribution,
-	}
-}
-
-// BadRequest tells a client that this error is related to an invalid request.
-// Can be used to translate the error to status codes for example.
-func (NotSupportedDistributionError) BadRequest() bool {
-	return true
-}
-
-// IsBusinessError tells the transport layer whether this error should be translated into the transport format
-// or an internal error should be returned instead.
-// Deprecated: use ServiceError instead.
-func (NotSupportedDistributionError) IsBusinessError() bool {
-	return true
-}
-
-// ServiceError tells the consumer whether this error is caused by invalid input supplied by the client.
-// Client errors are usually returned to the consumer without retrying the operation.
-func (NotSupportedDistributionError) ServiceError() bool {
-	return true
-}
-
 // +kit:endpoint:errorStrategy=service
 // +testify:mock
 
@@ -237,6 +195,9 @@ type Service interface {
 
 	// CreateNodePool creates a new node pool in a cluster.
 	CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) error
+
+	// UpdateNodePool updates an existing node pool in a cluster.
+	UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, rawNodePoolUpdate RawNodePoolUpdate) (processID string, err error)
 
 	// DeleteNodePool deletes a node pool from a cluster.
 	DeleteNodePool(ctx context.Context, clusterID uint, name string) (deleted bool, err error)
@@ -251,6 +212,8 @@ type service struct {
 	clusters            Store
 	clusterManager      Manager
 	clusterGroupManager ClusterGroupManager
+
+	distributions map[string]Service
 
 	nodePools         NodePoolStore
 	nodePoolValidator NodePoolValidator
@@ -274,6 +237,7 @@ func NewService(
 	clusters Store,
 	clusterManager Manager,
 	clusterGroupManager ClusterGroupManager,
+	distributions map[string]Service,
 	nodePools NodePoolStore,
 	nodePoolValidator NodePoolValidator,
 	nodePoolProcessor NodePoolProcessor,
@@ -283,6 +247,8 @@ func NewService(
 		clusters:            clusters,
 		clusterManager:      clusterManager,
 		clusterGroupManager: clusterGroupManager,
+
+		distributions: distributions,
 
 		nodePools:         nodePools,
 		nodePoolValidator: nodePoolValidator,
@@ -330,4 +296,61 @@ func (s service) DeleteCluster(ctx context.Context, clusterIdentifier Identifier
 	}
 
 	return false, nil
+}
+
+// NotSupportedDistributionError is returned if an API does not support a certain distribution.
+type NotSupportedDistributionError struct {
+	ID           uint
+	Cloud        string
+	Distribution string
+
+	Message string
+}
+
+// Error implements the error interface.
+func (e NotSupportedDistributionError) Error() string {
+	return e.Message
+}
+
+// Details returns error details.
+func (e NotSupportedDistributionError) Details() []interface{} {
+	return []interface{}{
+		"clusterId", e.ID,
+		"cloud", e.Cloud,
+		"distribution", e.Distribution,
+	}
+}
+
+// BadRequest tells a client that this error is related to an invalid request.
+// Can be used to translate the error to status codes for example.
+func (NotSupportedDistributionError) BadRequest() bool {
+	return true
+}
+
+// IsBusinessError tells the transport layer whether this error should be translated into the transport format
+// or an internal error should be returned instead.
+// Deprecated: use ServiceError instead.
+func (NotSupportedDistributionError) IsBusinessError() bool {
+	return true
+}
+
+// ServiceError tells the consumer whether this error is caused by invalid input supplied by the client.
+// Client errors are usually returned to the consumer without retrying the operation.
+func (NotSupportedDistributionError) ServiceError() bool {
+	return true
+}
+
+func (s service) getDistributionService(cluster Cluster) (Service, error) {
+	service, ok := s.distributions[cluster.Distribution]
+	if !ok {
+		return nil, errors.WithStack(NotSupportedDistributionError{
+			ID:           cluster.ID,
+			Cloud:        cluster.Cloud,
+			Distribution: cluster.Distribution,
+
+			Message: "not supported distribution",
+		})
+	}
+
+	return service, nil
 }

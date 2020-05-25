@@ -20,6 +20,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 const PKEOnVsphere = pke.PKEOnVsphere
@@ -27,6 +28,11 @@ const PKEOnVsphere = pke.PKEOnVsphere
 type CreatePKEOnVsphereClusterRequest pipeline.CreatePkeOnVsphereClusterRequest
 
 func (req CreatePKEOnVsphereClusterRequest) ToVspherePKEClusterCreationParams(organizationID, userID uint) driver.VspherePKEClusterCreationParams {
+	storagetSecretID := req.StorageSecretId
+	if storagetSecretID == "" && req.StorageSecretName != "" {
+		storagetSecretID = secret.GenerateSecretIDFromName(req.StorageSecretName)
+	}
+
 	return driver.VspherePKEClusterCreationParams{
 		Name:           req.Name,
 		OrganizationID: organizationID,
@@ -40,8 +46,9 @@ func (req CreatePKEOnVsphereClusterRequest) ToVspherePKEClusterCreationParams(or
 			Excludes:            req.ScaleOptions.Excludes,
 			KeepDesiredCapacity: req.ScaleOptions.KeepDesiredCapacity,
 		},
-		SecretID:    req.SecretId,
-		SSHSecretID: req.SshSecretId,
+		SecretID:        req.SecretId,
+		StorageSecretID: storagetSecretID,
+		SSHSecretID:     req.SshSecretId,
 		Kubernetes: intPKE.Kubernetes{
 			Version: req.Kubernetes.Version,
 			RBAC:    req.Kubernetes.Rbac,
@@ -59,15 +66,25 @@ func (req CreatePKEOnVsphereClusterRequest) ToVspherePKEClusterCreationParams(or
 				Enabled: req.Kubernetes.Oidc.Enabled,
 			},
 		},
-		NodePools: vsphereRequestToClusterNodepools(req.NodePools, userID),
+		NodePools: vsphereRequestToClusterNodepools(req.Nodepools, userID),
 		HTTPProxy: intPKE.HTTPProxy{
 			HTTP:       clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(req.Proxy.Http),
 			HTTPS:      clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(req.Proxy.Https),
 			Exceptions: req.Proxy.Exceptions,
 		},
-		ResourcePoolName: req.ResourcePool,
-		FolderName:       req.Folder,
-		DatastoreName:    req.Datastore,
+		ResourcePoolName:    req.ResourcePool,
+		FolderName:          req.Folder,
+		DatastoreName:       req.Datastore,
+		LoadBalancerIPRange: req.LoadBalancerIPRange,
+	}
+}
+
+type UpdatePKEOnVsphereClusterRequest pipeline.UpdatePkeOnVsphereClusterRequest
+
+func (req UpdatePKEOnVsphereClusterRequest) ToVspherePKEClusterUpdateParams(clusterID, userID uint) driver.VspherePKEClusterUpdateParams {
+	return driver.VspherePKEClusterUpdateParams{
+		ClusterID: clusterID,
+		NodePools: vsphereRequestToClusterNodepools(req.Nodepools, userID),
 	}
 }
 

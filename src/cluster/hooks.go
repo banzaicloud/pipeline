@@ -15,7 +15,9 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
+	"sync"
 
 	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
@@ -25,8 +27,6 @@ import (
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	k8sHelm "k8s.io/helm/pkg/helm"
-	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
 	arkPosthook "github.com/banzaicloud/pipeline/internal/ark/posthook"
@@ -36,66 +36,19 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
-	"github.com/banzaicloud/pipeline/src/helm"
 )
 
 func castToPostHookParam(data pkgCluster.PostHookParam, output interface{}) error {
 	return mapstructure.Decode(data, output)
 }
 
-func installDeployment(cluster CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, chartVersion string, wait bool) error {
-	// --- [ Get K8S Config ] --- //
-	kubeConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
-		return err
-	}
-
-	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
-	if err != nil {
-		log.Errorln("Unable to fetch deployments from helm:", err)
-		return err
-	}
-
-	var foundRelease *pkgHelmRelease.Release
-
-	if deployments != nil {
-		for _, release := range deployments.Releases {
-			if release.Name == releaseName {
-				foundRelease = release
-				break
-			}
-		}
-	}
-
-	if foundRelease != nil {
-		switch foundRelease.GetInfo().GetStatus().GetCode() {
-		case pkgHelmRelease.Status_DEPLOYED:
-			log.Infof("'%s' is already installed", deploymentName)
-			return nil
-		case pkgHelmRelease.Status_FAILED:
-			err = helm.DeleteDeployment(releaseName, kubeConfig)
-			if err != nil {
-				log.Errorf("Failed to deleted failed deployment '%s' due to: %s", deploymentName, err.Error())
-				return err
-			}
-		}
-	}
-
-	options := []k8sHelm.InstallOption{
-		k8sHelm.InstallWait(wait),
-		k8sHelm.ValueOverrides(values),
-	}
-	_, err = helm.CreateDeployment(deploymentName, chartVersion, nil, namespace, releaseName, false, nil, kubeConfig, helm.GeneratePlatformHelmRepoEnv(), options...)
-	if err != nil {
-		log.Errorf("Deploying '%s' failed due to: %s", deploymentName, err.Error())
-		return err
-	}
-	log.Infof("'%s' installed", deploymentName)
-	return nil
+type KubernetesDashboardPostHook struct {
+	helmServiceInjector
+	Priority
+	ErrorHandler
 }
 
-func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
+func (ph *KubernetesDashboardPostHook) Do(cluster CommonCluster) error {
 	var config = global.Config.Cluster.PostHook.Dashboard
 	if !config.Enabled {
 		return nil
@@ -205,12 +158,21 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 		}
 	}
 
-	return installDeployment(cluster, k8sDashboardNameSpace, config.Chart, k8sDashboardReleaseName, valuesJson, config.Version, false)
+	return ph.helmService.ApplyDeployment(context.Background(), cluster.GetID(), k8sDashboardNameSpace, config.Chart, k8sDashboardReleaseName, valuesJson, config.Version)
+}
+
+type ClusterAutoscalerPostHook struct {
+	helmServiceInjector
+	Priority
+	ErrorHandler
 }
 
 // InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
-func InstallClusterAutoscalerPostHook(cluster CommonCluster) error {
-	return DeployClusterAutoscaler(cluster)
+func (ph *ClusterAutoscalerPostHook) Do(cluster CommonCluster) error {
+	if ph.helmService == nil {
+		return errors.New("missing helm service dependency")
+	}
+	return DeployClusterAutoscaler(cluster, ph.helmService)
 }
 
 func metricsServerIsInstalled(cluster CommonCluster) bool {
@@ -239,8 +201,138 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 	return false
 }
 
-// InstallHorizontalPodAutoscalerPostHook
-func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
+// make sure the injector interface is implemented
+var _ HookWithParamsFactory = &RestoreFromBackupPosthook{}
+
+type RestoreFromBackupPosthook struct {
+	helmServiceInjector
+	Priority
+	ErrorHandler
+
+	params pkgCluster.PostHookParam
+}
+
+func (ph *RestoreFromBackupPosthook) Create(params pkgCluster.PostHookParam) PostFunctioner {
+	return &RestoreFromBackupPosthook{
+		Priority:     ph.Priority,
+		ErrorHandler: ErrorHandler{},
+		params:       params,
+	}
+}
+
+// RestoreFromBackup restores an ARK backup
+func (ph *RestoreFromBackupPosthook) Do(cluster CommonCluster) error {
+	var params arkAPI.RestoreFromBackupParams
+	err := castToPostHookParam(ph.params, &params)
+	if err != nil {
+		return err
+	}
+
+	return arkPosthook.RestoreFromBackup(
+		params,
+		cluster,
+		global.DB(),
+		log,
+		errorHandler,
+		global.Config.Cluster.DisasterRecovery.Ark.RestoreWaitTimeout,
+		ph.helmService,
+	)
+}
+
+type InitSpotConfigPostHook struct {
+	helmServiceInjector
+	Priority
+	ErrorHandler
+}
+
+// InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
+func (ph *InitSpotConfigPostHook) Do(cluster CommonCluster) error {
+	var config = global.Config.Cluster.PostHook.Spotconfig
+	if !config.Enabled {
+		return nil
+	}
+
+	spot, err := isSpotCluster(cluster)
+	if err != nil {
+		return errors.WrapIf(err, "failed to check if cluster has spot instances")
+	}
+
+	if !spot {
+		log.Debug("cluster doesn't have spot priced instances, spot post hook won't run")
+		return nil
+	}
+
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
+
+	kubeConfig, err := cluster.GetK8sConfig()
+	if err != nil {
+		return errors.WrapIf(err, "failed to get Kubernetes config")
+	}
+
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get Kubernetes clientset from kubeconfig")
+	}
+
+	err = initializeSpotConfigMap(client, pipelineSystemNamespace)
+	if err != nil {
+		return errors.WrapIf(err, "failed to initialize spot ConfigMap")
+	}
+
+	values := map[string]interface{}{}
+	marshalledValues, err := yaml.Marshal(values)
+	if err != nil {
+		return errors.WrapIf(err, "failed to marshal yaml values")
+	}
+
+	err = ph.helmService.InstallDeployment(context.Background(), cluster.GetID(), pipelineSystemNamespace, config.Charts.Scheduler.Chart, "spot-scheduler", marshalledValues, config.Charts.Scheduler.Version, false)
+	if err != nil {
+		return errors.WrapIf(err, "failed to install the spot-scheduler deployment")
+	}
+	err = ph.helmService.InstallDeployment(context.Background(), cluster.GetID(), pipelineSystemNamespace, config.Charts.Webhook.Chart, "spot-webhook", marshalledValues, config.Charts.Webhook.Version, true)
+	if err != nil {
+		return errors.WrapIf(err, "failed to install the spot-config-webhook deployment")
+	}
+	return nil
+}
+
+func isSpotCluster(cluster CommonCluster) (bool, error) {
+	status, err := cluster.GetStatus()
+	if err != nil {
+		return false, errors.WrapIf(err, "failed to get cluster status")
+	}
+	return status.Spot, nil
+}
+
+func initializeSpotConfigMap(client *kubernetes.Clientset, systemNs string) error {
+	log.Debug("initializing ConfigMap to store spot configuration")
+	_, err := client.CoreV1().ConfigMaps(systemNs).Get(pkgCommon.SpotConfigMapKey, metav1.GetOptions{})
+	if err != nil {
+		if apiErrors.IsNotFound(err) {
+			_, err = client.CoreV1().ConfigMaps(systemNs).Create(&v1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: pkgCommon.SpotConfigMapKey,
+				},
+				Data: make(map[string]string),
+			})
+			if err != nil {
+				return errors.WrapIf(err, "failed to create spot ConfigMap")
+			}
+		} else {
+			return errors.WrapIf(err, "failed to retrieve spot ConfigMap")
+		}
+	}
+	log.Info("finished initializing spot ConfigMap")
+	return nil
+}
+
+type HorizontalPodAutoscalerPostHook struct {
+	helmServiceInjector
+	Priority
+	ErrorHandler
+}
+
+func (hpa *HorizontalPodAutoscalerPostHook) Do(cluster CommonCluster) error {
 	var config = global.Config.Cluster
 
 	if !config.PostHook.HPA.Enabled {
@@ -286,77 +378,18 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 	if err != nil {
 		return errors.WrapIf(err, "failed to merge hpa-operator chart values with config")
 	}
-
-	return installDeployment(cluster, infraNamespace, config.Autoscale.Charts.HPAOperator.Chart,
-		"hpa-operator", mergedValues, config.Autoscale.Charts.HPAOperator.Version, true)
+	return hpa.helmService.ApplyDeployment(context.Background(), cluster.GetID(), infraNamespace, config.Autoscale.Charts.HPAOperator.Chart, "hpa-operator", mergedValues, config.Autoscale.Charts.HPAOperator.Version)
 }
 
-// RestoreFromBackup restores an ARK backup
-func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) error {
-	var params arkAPI.RestoreFromBackupParams
-	err := castToPostHookParam(param, &params)
-	if err != nil {
-		return err
-	}
-
-	return arkPosthook.RestoreFromBackup(params, cluster, global.DB(), log, errorHandler, global.Config.Cluster.DisasterRecovery.Ark.RestoreWaitTimeout)
+type InstanceTerminationHandlerPostHook struct {
+	helmServiceInjector
+	Priority
+	ErrorHandler
 }
 
-// InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
-func InitSpotConfig(cluster CommonCluster) error {
-	var config = global.Config.Cluster.PostHook.Spotconfig
-	if !config.Enabled {
-		return nil
-	}
-
-	spot, err := isSpotCluster(cluster)
-	if err != nil {
-		return errors.WrapIf(err, "failed to check if cluster has spot instances")
-	}
-
-	if !spot {
-		log.Debug("cluster doesn't have spot priced instances, spot post hook won't run")
-		return nil
-	}
-
-	pipelineSystemNamespace := global.Config.Cluster.Namespace
-
-	kubeConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		return errors.WrapIf(err, "failed to get Kubernetes config")
-	}
-
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		return errors.WrapIf(err, "failed to get Kubernetes clientset from kubeconfig")
-	}
-
-	err = initializeSpotConfigMap(client, pipelineSystemNamespace)
-	if err != nil {
-		return errors.WrapIf(err, "failed to initialize spot ConfigMap")
-	}
-
-	values := map[string]interface{}{}
-	marshalledValues, err := yaml.Marshal(values)
-	if err != nil {
-		return errors.WrapIf(err, "failed to marshal yaml values")
-	}
-
-	err = installDeployment(cluster, pipelineSystemNamespace, config.Charts.Scheduler.Chart, "spot-scheduler", marshalledValues, config.Charts.Scheduler.Version, false)
-	if err != nil {
-		return errors.WrapIf(err, "failed to install the spot-scheduler deployment")
-	}
-	err = installDeployment(cluster, pipelineSystemNamespace, config.Charts.Webhook.Chart, "spot-webhook", marshalledValues, config.Charts.Webhook.Version, true)
-	if err != nil {
-		return errors.WrapIf(err, "failed to install the spot-config-webhook deployment")
-	}
-	return nil
-}
-
-// DeployInstanceTerminationHandler deploys the instance termination handler
-func DeployInstanceTerminationHandler(cluster CommonCluster) error {
+func (ith InstanceTerminationHandlerPostHook) Do(cluster CommonCluster) error {
 	var config = global.Config.Cluster.PostHook.ITH
-	if !config.Enabled {
+	if !global.Config.Pipeline.Enterprise || !config.Enabled {
 		return nil
 	}
 
@@ -415,35 +448,22 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 		return errors.WrapIf(err, "failed to marshal yaml values")
 	}
 
-	return installDeployment(cluster, pipelineSystemNamespace, config.Chart, "ith", marshalledValues, config.Version, false)
+	return ith.helmService.ApplyDeployment(context.Background(), cluster.GetID(), pipelineSystemNamespace, config.Chart, "ith", marshalledValues, config.Version)
 }
 
-func isSpotCluster(cluster CommonCluster) (bool, error) {
-	status, err := cluster.GetStatus()
-	if err != nil {
-		return false, errors.WrapIf(err, "failed to get cluster status")
-	}
-	return status.Spot, nil
+// helmServiceInjector component implementing the helm service injector
+// designed to be embedded into posthook structs
+type helmServiceInjector struct {
+	helmService HelmService
+	sync.Mutex
 }
 
-func initializeSpotConfigMap(client *kubernetes.Clientset, systemNs string) error {
-	log.Debug("initializing ConfigMap to store spot configuration")
-	_, err := client.CoreV1().ConfigMaps(systemNs).Get(pkgCommon.SpotConfigMapKey, metav1.GetOptions{})
-	if err != nil {
-		if apiErrors.IsNotFound(err) {
-			_, err = client.CoreV1().ConfigMaps(systemNs).Create(&v1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: pkgCommon.SpotConfigMapKey,
-				},
-				Data: make(map[string]string),
-			})
-			if err != nil {
-				return errors.WrapIf(err, "failed to create spot ConfigMap")
-			}
-		} else {
-			return errors.WrapIf(err, "failed to retrieve spot ConfigMap")
-		}
+// InjectHelmService injects the service to be used by the "parent" struct
+func (h *helmServiceInjector) InjectHelmService(helmService HelmService) {
+	h.Lock()
+	defer h.Unlock()
+
+	if h.helmService == nil {
+		h.helmService = helmService
 	}
-	log.Info("finished initializing spot ConfigMap")
-	return nil
 }

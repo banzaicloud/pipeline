@@ -24,6 +24,8 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -85,6 +87,44 @@ func RunPostHooksWorkflow(ctx workflow.Context, input RunPostHooksWorkflowInput)
 	return nil
 }
 
+// A generic interface for using Helm for hooks
+type HelmService interface {
+	ApplyDeployment(
+		ctx context.Context,
+		clusterID uint,
+		namespace string,
+		chartName string,
+		releaseName string,
+		values []byte,
+		chartVersion string,
+	) error
+
+	InstallDeployment(
+		ctx context.Context,
+		clusterID uint,
+		namespace string,
+		chartName string,
+		releaseName string,
+		values []byte,
+		chartVersion string,
+		wait bool,
+	) error
+
+	// DeleteDeployment deletes a deployment from a specific cluster.
+	DeleteDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) error
+
+	// GetDeployment gets a deployment by release name from a specific cluster.
+	GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*pkgHelm.GetDeploymentResponse, error)
+}
+
+type HelmServiceInjector interface {
+	InjectHelmService(HelmService)
+}
+
+type HookWithParamsFactory interface {
+	Create(pkgCluster.PostHookParam) PostFunctioner
+}
+
 const RunPostHookActivityName = "run-posthook"
 
 type RunPostHookActivityInput struct {
@@ -95,12 +135,14 @@ type RunPostHookActivityInput struct {
 }
 
 type RunPostHookActivity struct {
-	manager *Manager
+	manager     *Manager
+	helmService HelmService
 }
 
-func NewRunPostHookActivity(manager *Manager) *RunPostHookActivity {
+func NewRunPostHookActivity(manager *Manager, helmService HelmService) *RunPostHookActivity {
 	return &RunPostHookActivity{
-		manager: manager,
+		manager:     manager,
+		helmService: helmService,
 	}
 }
 func (a *RunPostHookActivity) Execute(ctx context.Context, input RunPostHookActivityInput) error {
@@ -109,10 +151,8 @@ func (a *RunPostHookActivity) Execute(ctx context.Context, input RunPostHookActi
 		return errors.New("hook function not found")
 	}
 
-	if hookWithParam, ok := hook.(*PostFunctionWithParam); ok {
-		hookWithParamCopy := *hookWithParam // This is to avoid bugs caused by the global nature of posthooks
-		hookWithParamCopy.SetParams(input.HookParam)
-		hook = &hookWithParamCopy
+	if hookWithParam, ok := hook.(HookWithParamsFactory); ok {
+		hook = hookWithParam.Create(input.HookParam)
 	}
 
 	cluster, err := a.manager.GetClusterByIDOnly(ctx, input.ClusterID)
@@ -128,9 +168,13 @@ func (a *RunPostHookActivity) Execute(ctx context.Context, input RunPostHookActi
 		"workflowRunID", info.WorkflowExecution.RunID,
 	)
 
+	if helmHook, ok := hook.(HelmServiceInjector); ok {
+		helmHook.InjectHelmService(a.helmService)
+	}
+
 	logger.Infow("starting posthook function", "param", input.HookParam)
 
-	statusMsg := fmt.Sprintf("running %s", hook)
+	statusMsg := fmt.Sprintf("running %s", input.HookName)
 	if err := hook.Do(cluster); err != nil {
 		err := errors.WrapIf(err, "posthook failed")
 		hook.Error(cluster, err)

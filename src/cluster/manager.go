@@ -70,6 +70,9 @@ type Manager struct {
 	clusterStore               interface {
 		SetStatus(ctx context.Context, id uint, status, message string) error
 	}
+	releaseDeleter interface {
+		DeleteReleases(ctx context.Context, orgID uint, kubeConfig []byte, namespaces []string) error
+	}
 }
 
 func NewManager(
@@ -84,6 +87,9 @@ func NewManager(
 	clusterStore interface {
 		SetStatus(ctx context.Context, id uint, status, message string) error
 	},
+	releaseDeleter interface {
+		DeleteReleases(ctx context.Context, orgID uint, kubeConfig []byte, namespaces []string) error
+	},
 ) *Manager {
 	return &Manager{
 		clusters:                   clusters,
@@ -96,6 +102,7 @@ func NewManager(
 		logger:                     logger,
 		errorHandler:               errorHandler,
 		clusterStore:               clusterStore,
+		releaseDeleter:             releaseDeleter,
 	}
 }
 
@@ -105,6 +112,16 @@ func (m *Manager) getLogger(ctx context.Context) logrus.FieldLogger {
 
 func (m *Manager) getErrorHandler(ctx context.Context) emperror.Handler {
 	return pipelineContext.ErrorHandlerWithCorrelationID(ctx, m.errorHandler)
+}
+
+func (m *Manager) KubeConfigFunc() func(ctx context.Context, clusterID uint) ([]byte, error) {
+	return func(ctx context.Context, clusterID uint) ([]byte, error) {
+		cluster, err := m.GetClusterByIDOnly(ctx, clusterID)
+		if err != nil {
+			return nil, err
+		}
+		return cluster.GetK8sConfig()
+	}
 }
 
 type clusterErrorHandler struct {
