@@ -68,7 +68,7 @@ func (n *API) Sync(c *gin.Context) {
 		return
 	}
 
-	response, err := n.deploymentManager.SyncDeployment(clusterGroup, organization.Name, name)
+	response, err := n.deploymentManager.SyncDeployment(clusterGroup, organization.ID, name)
 	if err != nil {
 		n.errorHandler.Handle(c, err)
 		return

@@ -71,7 +71,7 @@ func (n *API) Upgrade(c *gin.Context) {
 
 	deployment.ReleaseName = name
 
-	targetClusterStatus, err := n.deploymentManager.UpdateDeployment(clusterGroup, deployment)
+	targetClusterStatus, err := n.deploymentManager.UpdateDeployment(clusterGroup, orgID, deployment)
 	if err != nil {
 		n.errorHandler.Handle(c, err)
 		return

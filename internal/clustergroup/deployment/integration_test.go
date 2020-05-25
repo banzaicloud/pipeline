@@ -28,7 +28,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	helmtesting "github.com/banzaicloud/pipeline/internal/helm/testing"
 )
 
@@ -69,6 +68,9 @@ func testGetChartDesc(home string, v3 bool) func(*testing.T) {
 		secretStore := helmtesting.SetupSecretStore()
 		_, clusterService := helmtesting.ClusterKubeConfig(t, clusterId)
 
+		fakeOrgId := uint(123)
+		fakeOrgName := "asd"
+
 		global.Config.Helm.Home = home
 		config := helm.Config{
 			Home: home,
@@ -79,11 +81,14 @@ func testGetChartDesc(home string, v3 bool) func(*testing.T) {
 		}
 
 		logger := common.NoopLogger{}
-		releaser, facade := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
+		releaser, facade := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmtesting.FakeOrg{
+			OrgId:   fakeOrgId,
+			OrgName: fakeOrgName,
+		}, logger)
 
 		helmService := deployment.NewHelmService(facade, releaser)
 
-		chartMeta, err := helmService.GetChartMeta("stable/mysql", "1.6.3")
+		chartMeta, err := helmService.GetChartMeta(fakeOrgId, "stable/mysql", "1.6.3")
 		if err != nil {
 			t.Fatalf("%+v", err)
 		}
