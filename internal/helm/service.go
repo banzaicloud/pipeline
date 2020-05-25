@@ -74,9 +74,6 @@ type Service interface {
 
 	// chart related operations
 	charter
-
-	// additional abstraction layer to encapsulate api specific logic
-	RestAPI
 }
 
 type ClusterDataProvider interface {
@@ -537,7 +534,7 @@ func (s service) UpgradeRelease(ctx context.Context, organizationID uint, cluste
 	return nil
 }
 
-func (s service) ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, options Options) (charts ChartList, err error) {
+func (s service) ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, _ Options) (charts ChartList, err error) {
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
@@ -551,7 +548,7 @@ func (s service) ListCharts(ctx context.Context, organizationID uint, filter Cha
 	return chartList, nil
 }
 
-func (s service) GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails ChartDetails, err error) {
+func (s service) GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, _options Options) (chartDetails ChartDetails, err error) {
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to set up helm repository environment")
@@ -600,13 +597,7 @@ func (s service) CheckRelease(ctx context.Context, organizationID uint, clusterI
 	return release.ReleaseInfo.Status, nil
 }
 
-func (s service) GetReleases(ctx context.Context, organizationID uint, clusterID uint, filters ReleaseFilter, options Options) ([]DetailedRelease, error) {
-	releases, err := s.ListReleases(ctx, organizationID, clusterID, filters, options)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to retrieve releases")
-	}
-
-	ret := make([]DetailedRelease, 0, len(releases))
+func (s service) CheckReleases(ctx context.Context, organizationID uint, releases []Release) (map[string]bool, error) {
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to resolve helm env releases")
@@ -617,15 +608,7 @@ func (s service) GetReleases(ctx context.Context, organizationID uint, clusterID
 		return nil, errors.WrapIf(err, "failed to retrieve charts")
 	}
 
-	for _, release := range releases {
-		detailedRelease := DetailedRelease{Release: release}
-		if supportedChartMap != nil {
-			detailedRelease.Supported = supportedChartMap[release.ReleaseName]
-		}
-		ret = append(ret, detailedRelease)
-	}
-
-	return ret, nil
+	return supportedChartMap, nil
 }
 
 func (s service) repoExists(ctx context.Context, repository Repository, helmEnv HelmEnv) (bool, error) {

@@ -110,13 +110,6 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 		options...,
 	))
 
-	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
-		endpoints.GetReleases,
-		decodeGetReleasesHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(encodeGetReleasesHTTPResponse, errorEncoder),
-		options...,
-	))
-
 	router.Methods(http.MethodGet).Path("/{name}").Handler(kithttp.NewServer(
 		endpoints.GetRelease,
 		decodeGetReleaseHTTPRequest,
@@ -135,6 +128,17 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 		endpoints.CheckRelease,
 		decodeCheckReleaseHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(encodeCheckReleaseHTTPResponse, errorEncoder),
+		options...,
+	))
+}
+
+func RegisterRestAPI(endpoints RestAPIEndpoints, router *mux.Router, options ...kithttp.ServerOption) {
+	errorEncoder := kitxhttp.NewJSONProblemErrorResponseEncoder(apphttp.NewDefaultProblemConverter())
+
+	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
+		endpoints.GetReleases,
+		decodeGetReleasesHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeGetReleasesHTTPResponse, errorEncoder),
 		options...,
 	))
 }
@@ -507,7 +511,7 @@ func decodeGetReleasesHTTPRequest(_ context.Context, r *http.Request) (interface
 		filter.Filter = &queryData.Filters[0]
 	}
 
-	return GetReleasesRequest{
+	return GetReleasesRestAPIRequest{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
 		Filters:        filter,
@@ -515,7 +519,7 @@ func decodeGetReleasesHTTPRequest(_ context.Context, r *http.Request) (interface
 }
 
 func encodeGetReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	releases, ok := response.(GetReleasesResponse)
+	releases, ok := response.(GetReleasesRestAPIResponse)
 	if !ok {
 		return errors.New("invalid release list response")
 	}
@@ -537,8 +541,8 @@ func encodeGetReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, r
 			Namespace:    release.Namespace,
 			CreatedAt:    release.ReleaseInfo.FirstDeployed,
 			Supported:    release.Supported,
-			//WhiteListed:  false,
-			//Rejected:     false,
+			WhiteListed:  release.Whitelisted,
+			Rejected:     release.Rejected,
 		})
 	}
 

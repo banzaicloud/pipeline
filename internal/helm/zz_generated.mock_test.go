@@ -122,6 +122,29 @@ func (_m *MockService) CheckRelease(ctx context.Context, organizationID uint, cl
 	return r0, r1
 }
 
+// CheckReleases provides a mock function.
+func (_m *MockService) CheckReleases(ctx context.Context, organizationID uint, releases []Release) (map[string]bool, error) {
+	ret := _m.Called(ctx, organizationID, releases)
+
+	var r0 map[string]bool
+	if rf, ok := ret.Get(0).(func(context.Context, uint, []Release) map[string]bool); ok {
+		r0 = rf(ctx, organizationID, releases)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]bool)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, uint, []Release) error); ok {
+		r1 = rf(ctx, organizationID, releases)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteRelease provides a mock function.
 func (_m *MockService) DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) error {
 	ret := _m.Called(ctx, organizationID, clusterID, releaseName, options)
@@ -210,29 +233,6 @@ func (_m *MockService) GetReleaseResources(ctx context.Context, organizationID u
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, Release, Options) error); ok {
 		r1 = rf(ctx, organizationID, clusterID, release, options)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetReleases provides a mock function.
-func (_m *MockService) GetReleases(ctx context.Context, organizationID uint, clusterID uint, filters ReleaseFilter, options Options) (releaseList []DetailedRelease, err error) {
-	ret := _m.Called(ctx, organizationID, clusterID, filters, options)
-
-	var r0 []DetailedRelease
-	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, ReleaseFilter, Options) []DetailedRelease); ok {
-		r0 = rf(ctx, organizationID, clusterID, filters, options)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]DetailedRelease)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, ReleaseFilter, Options) error); ok {
-		r1 = rf(ctx, organizationID, clusterID, filters, options)
 	} else {
 		r1 = ret.Error(1)
 	}

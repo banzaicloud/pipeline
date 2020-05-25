@@ -65,6 +65,7 @@ import (
 	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	anchore "github.com/banzaicloud/pipeline/internal/security"
 
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
@@ -485,11 +486,13 @@ func main() {
 
 	orgService := helmadapter.NewOrgService(commonLogger)
 
+	clusterSvc := helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc())
+	securityInfoService := helmadapter.NewSecurityService(clusterSvc, anchore.NewSecurityResourceService(commonLogger), commonLogger)
 	unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
 		config.Helm,
 		db,
 		commonSecretStore,
-		helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc()),
+		clusterSvc,
 		orgService,
 		commonLogger,
 	)
@@ -742,8 +745,18 @@ func main() {
 							helmFacade,
 							kitxendpoint.Combine(endpointMiddleware...),
 						)
+						restAPI := helm.NewRestAPIService(helmFacade, securityInfoService)
+						restEndpoints := helmdriver.MakeRestAPIEndpoints(
+							restAPI,
+							kitxendpoint.Combine(endpointMiddleware...),
+						)
 
 						helmdriver.RegisterReleaserHTTPHandlers(endpoints,
+							clusterRouter.PathPrefix("/deployments").Subrouter(),
+							kitxhttp.ServerOptions(httpServerOptions),
+						)
+
+						helmdriver.RegisterRestAPI(restEndpoints,
 							clusterRouter.PathPrefix("/deployments").Subrouter(),
 							kitxhttp.ServerOptions(httpServerOptions),
 						)

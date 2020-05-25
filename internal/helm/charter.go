@@ -61,6 +61,8 @@ type charter interface {
 	ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, options Options) (charts ChartList, err error)
 	// GetChart retrieves the details for the given chart
 	GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails ChartDetails, err error)
+
+	CheckReleases(ctx context.Context, organizationID uint, releases []Release) (map[string]bool, error)
 }
 
 // ChartFilter filter data for chart retrieval
