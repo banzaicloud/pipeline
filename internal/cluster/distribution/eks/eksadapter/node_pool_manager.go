@@ -69,6 +69,17 @@ func (n nodePoolManager) UpdateNodePool(
 		OrganizationID:  c.OrganizationID,
 
 		NodeImage: nodePoolUpdate.Image,
+
+		Options: eks.NodePoolUpdateOptions{
+			MaxSurge:       nodePoolUpdate.Options.MaxSurge,
+			MaxBatchSize:   nodePoolUpdate.Options.MaxBatchSize,
+			MaxUnavailable: nodePoolUpdate.Options.MaxUnavailable,
+			Drain: eks.NodePoolUpdateDrainOptions{
+				Timeout:     nodePoolUpdate.Options.Drain.Timeout,
+				FailOnError: nodePoolUpdate.Options.Drain.FailOnError,
+				PodSelector: nodePoolUpdate.Options.Drain.PodSelector,
+			},
+		},
 	}
 
 	e, err := n.workflowClient.StartWorkflow(ctx, workflowOptions, eksworkflow.UpdateNodePoolWorkflowName, input)

@@ -4555,6 +4555,44 @@ components:
                             description: The upper limit price for the requested spot instance. If this field is empty or 0 on-demand instances are used instead of spot instances.
                             type: string
                             example: "0.2"
+                        options:
+                            $ref: '#/components/schemas/BaseUpdateNodePoolOptions'
+
+        BaseUpdateNodePoolOptions:
+            description: Base node pool update options object for all cluster distributions.
+            type: object
+            properties:
+                maxSurge:
+                    description: Maximum number of extra nodes that can be created during the update.
+                    type: integer
+                    default: 0
+                maxBatchSize:
+                    description: Maximum number of nodes that can be updated simultaneously.
+                    type: integer
+                    default: 2
+                maxUnavailable:
+                    description: Maximum number of nodes that can be unavailable during the update.
+                    type: integer
+                    default: 0
+                drain:
+                    $ref: '#/components/schemas/UpdateNodePoolDrainOptions'
+
+        UpdateNodePoolDrainOptions:
+            description: Drain options for old nodes.
+            type: object
+            properties:
+                timeout:
+                    description: How long should drain wait for pod eviction (in seconds)
+                    type: integer
+                    default: 0
+                failOnError:
+                    description: Whether the process should fail if draining fails/times out.
+                    type: boolean
+                    default: false
+                podSelector:
+                    description: Only evict those pods that matches this selector.
+                    type: string
+                    default: ""
 
         EKSNodePool:
             type: object

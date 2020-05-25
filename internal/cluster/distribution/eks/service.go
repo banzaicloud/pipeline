@@ -34,6 +34,31 @@ type Service interface {
 // updating only the changed values.
 type NodePoolUpdate struct {
 	Image string `mapstructure:"image"`
+
+	Options NodePoolUpdateOptions `mapstructure:"options"`
+}
+
+type NodePoolUpdateOptions struct {
+
+	// Maximum number of extra nodes that can be created during the update.
+	MaxSurge int `mapstructure:"maxSurge"`
+
+	// Maximum number of nodes that can be updated simultaneously.
+	MaxBatchSize int `mapstructure:"maxBatchSize"`
+
+	// Maximum number of nodes that can be unavailable during the update.
+	MaxUnavailable int `mapstructure:"maxUnavailable"`
+
+	// Kubernetes node drain specific options.
+	Drain NodePoolUpdateDrainOptions `mapstructure:"drain"`
+}
+
+type NodePoolUpdateDrainOptions struct {
+	Timeout int `mapstructure:"timeout"`
+
+	FailOnError bool `mapstructure:"failOnError"`
+
+	PodSelector string `mapstructure:"podSelector"`
 }
 
 // NewService returns a new Service instance.
