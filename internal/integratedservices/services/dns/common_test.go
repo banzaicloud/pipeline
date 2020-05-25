@@ -149,3 +149,7 @@ func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, rel
 		ReleaseName: releaseName,
 	}, nil
 }
+
+func (d dummyHelmService) IsV3() bool {
+	return false
+}
