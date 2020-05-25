@@ -402,9 +402,11 @@ export NO_PROXY="{{ .NoProxy }}"
 PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
 PUBLIC_ADDRESS="{{ if .PublicAddress }}{{ .PublicAddress }}{{ else }}$PRIVATE_IP{{ end }}"
 
-until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
-chmod +x /usr/local/bin/pke
-export PATH=$PATH:/usr/local/bin/
+if ! command -v pke > /dev/null 2>&1; then
+	until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
+	chmod +x /usr/local/bin/pke
+	export PATH=$PATH:/usr/local/bin/
+fi
 
 pke install master --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-insecure="{{ .PipelineURLInsecure }}" \
