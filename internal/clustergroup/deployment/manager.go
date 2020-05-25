@@ -548,7 +548,7 @@ func (m CGDeploymentManager) DeleteDeployment(clusterGroup *api.ClusterGroup, re
 }
 
 // SyncDeployment deletes deployments from target clusters not belonging to the group anymore, installs or upgrades to member clusters
-func (m CGDeploymentManager) SyncDeployment(clusterGroup *api.ClusterGroup, orgName string, releaseName string) ([]TargetClusterStatus, error) {
+func (m CGDeploymentManager) SyncDeployment(clusterGroup *api.ClusterGroup, orgId uint, releaseName string) ([]TargetClusterStatus, error) {
 	deploymentModel, err := m.repository.FindByName(clusterGroup.Id, releaseName)
 	if err != nil {
 		return nil, err
@@ -562,7 +562,7 @@ func (m CGDeploymentManager) SyncDeployment(clusterGroup *api.ClusterGroup, orgN
 	// get deployment status for each cluster group member
 	response := make([]TargetClusterStatus, 0)
 
-	requestedChart, err := m.helmService.GetChartMeta(depInfo.Chart, depInfo.ChartVersion)
+	requestedChart, err := m.helmService.GetChartMeta(orgId, depInfo.Chart, depInfo.ChartVersion)
 	if err != nil {
 		return nil, errors.WrapIf(err, "error getting chart description")
 	}
@@ -672,7 +672,7 @@ func (m CGDeploymentManager) upgradeOrInstallDeploymentToTargetClusters(clusterG
 	return targetClusterStatus
 }
 
-func (m CGDeploymentManager) CreateDeployment(clusterGroup *api.ClusterGroup, orgName string, cgDeployment *ClusterGroupDeployment) ([]TargetClusterStatus, error) {
+func (m CGDeploymentManager) CreateDeployment(clusterGroup *api.ClusterGroup, orgId uint, orgName string, cgDeployment *ClusterGroupDeployment) ([]TargetClusterStatus, error) {
 	if len(cgDeployment.ReleaseName) == 0 {
 		return nil, errors.Errorf("release name is mandatory")
 	}
@@ -691,7 +691,7 @@ func (m CGDeploymentManager) CreateDeployment(clusterGroup *api.ClusterGroup, or
 		}
 	}
 
-	requestedChart, err := m.helmService.GetChartMeta(cgDeployment.Name, cgDeployment.Version)
+	requestedChart, err := m.helmService.GetChartMeta(orgId, cgDeployment.Name, cgDeployment.Version)
 	if err != nil {
 		return nil, errors.WrapIf(err, "error getting chart description")
 	}
@@ -724,8 +724,8 @@ func (m CGDeploymentManager) CreateDeployment(clusterGroup *api.ClusterGroup, or
 
 // UpdateDeployment upgrades deployment using provided values or using already provided values if ReUseValues = true.
 // The deployment is installed on a member cluster in case it's was not installed previously.
-func (m CGDeploymentManager) UpdateDeployment(clusterGroup *api.ClusterGroup, cgDeployment *ClusterGroupDeployment) ([]TargetClusterStatus, error) {
-	requestedChart, err := m.helmService.GetChartMeta(cgDeployment.Name, cgDeployment.Version)
+func (m CGDeploymentManager) UpdateDeployment(clusterGroup *api.ClusterGroup, orgId uint, cgDeployment *ClusterGroupDeployment) ([]TargetClusterStatus, error) {
+	requestedChart, err := m.helmService.GetChartMeta(orgId, cgDeployment.Name, cgDeployment.Version)
 	if err != nil {
 		return nil, errors.WrapIf(err, "error getting chart description")
 	}
