@@ -42,30 +42,6 @@ var defaultImageMap = []struct {
 	images     map[string]string
 }{
 	{
-		constraintForVersion("1.13"),
-		map[string]string{
-			// Kubernetes Version 1.13.11
-			"ap-east-1":      "ami-061c919d6ecc3fdb4", // Asia Pacific (Hong Kong).
-			"ap-northeast-1": "ami-01fd7f32ab8a9e032", // Asia Pacific (Tokyo).
-			"ap-northeast-2": "ami-053959c7a4a9cb654", // Asia Pacific (Seoul).
-			"ap-southeast-1": "ami-0baa81231c278c1ac", // Asia Pacific (Mumbai).
-			"ap-southeast-2": "ami-091a252b3e9cabcc2", // Asia Pacific (Singapore).
-			"ap-south-1":     "ami-0b667ccbbae9214e3", // Asia Pacific (Sydney).
-			"ca-central-1":   "ami-0808a5ff743eb2806", // Canada (Central).
-			"eu-central-1":   "ami-0a9ad7a4ae50e8e77", // EU (Frankfurt).
-			"eu-north-1":     "ami-0b9403c917e4f92b5", // EU (Stockholm).
-			"eu-west-1":      "ami-08684dce117829aa8", // EU (Ireland).
-			"eu-west-2":      "ami-07bf4afe6ca486eeb", // EU (London).
-			"eu-west-3":      "ami-095de5b6bd8b1acf0", // EU (Paris).
-			"me-south-1":     "ami-02ec1b153ae90c2c3", // Middle East (Bahrain).
-			"sa-east-1":      "ami-035e63ad35c591df8", // South America (Sao Paulo).
-			"us-east-1":      "ami-0795ae6584e7f8070", // US East (N. Virginia).
-			"us-east-2":      "ami-01505c630227fa3f8", // US East (Ohio).
-			"us-west-1":      "ami-02f3579ca4683a2ed", // US West (N. California).
-			"us-west-2":      "ami-04e247c4613de71fa", // US West (Oregon).
-		},
-	},
-	{
 		constraintForVersion("1.14"),
 		map[string]string{
 			// Kubernetes Version 1.14.9
