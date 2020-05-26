@@ -94,6 +94,13 @@ type UnifiedReleaser interface {
 		chartVersion string,
 	) error
 
+	ApplyDeploymentV3(
+		ctx context.Context,
+		clusterID uint,
+		release Release,
+		options Options,
+	) error
+
 	// cluster setup style
 	InstallDeployment(
 		ctx context.Context,

@@ -92,6 +92,7 @@ func (r releaser) Install(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 	installAction.Wait = options.Wait
 	installAction.Timeout = time.Minute * 5
 	installAction.Version = releaseInput.Version
+	installAction.SkipCRDs = options.SkipCRDs
 
 	cp, err := installAction.ChartPathOptions.LocateChart(chartRef, envSettings)
 	if err != nil {
@@ -328,6 +329,7 @@ func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 	upgradeAction.Wait = options.Wait
 	upgradeAction.Timeout = time.Minute * 5
 	upgradeAction.Version = releaseInput.Version
+	upgradeAction.SkipCRDs = options.SkipCRDs
 
 	if upgradeAction.Version == "" && upgradeAction.Devel {
 		r.logger.Debug("setting version to >0.0.0-0")
