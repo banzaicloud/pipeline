@@ -29,7 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
-	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
@@ -92,7 +92,7 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
 		endpoints.InstallRelease,
 		decodeInstallReleaseHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		kitxhttp.ErrorResponseEncoder(encodeInstallReleaseHTTPResponse, errorEncoder),
 		options...,
 	))
 
@@ -106,7 +106,7 @@ func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, optio
 	router.Methods(http.MethodPut).Path("/{name}").Handler(kithttp.NewServer(
 		endpoints.UpgradeRelease,
 		decodeUpgradeReleaseHTTPRequest,
-		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		kitxhttp.ErrorResponseEncoder(encodeUpgradeReleaseHTTPResponse, errorEncoder),
 		options...,
 	))
 
@@ -164,7 +164,7 @@ func decodeInstallReleaseHTTPRequest(_ context.Context, r *http.Request) (interf
 	return InstallReleaseRequest{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
-		Release: helm.Release{
+		ReleaseInput: helm.Release{
 			ReleaseName: request.ReleaseName,
 			ChartName:   request.Name,
 			Namespace:   request.Namespace,
@@ -176,6 +176,30 @@ func decodeInstallReleaseHTTPRequest(_ context.Context, r *http.Request) (interf
 			Wait:         request.Wait,
 		},
 	}, nil
+}
+
+func encodeInstallReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp, ok := response.(InstallReleaseResponse)
+	if !ok {
+		return errors.NewWithDetails("failed to encode release resources response")
+	}
+
+	if resp.Err != nil {
+		return errors.NewWithDetails("failed to retrieve release resources")
+	}
+
+	// backwards compatibility!
+	oldResponse := struct {
+		ReleaseName string                 `json:"releaseName"`
+		Notes       string                 `json:"notes"`
+		Resources   []helm.ReleaseResource `json:"resources"`
+	}{
+		ReleaseName: resp.Release.ReleaseName,
+		Notes:       resp.Release.ReleaseInfo.Notes,
+		Resources:   resp.Release.ReleaseResources,
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, kitxhttp.WithStatusCode(oldResponse, http.StatusCreated))
 }
 
 func decodeUpgradeReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -199,7 +223,7 @@ func decodeUpgradeReleaseHTTPRequest(_ context.Context, r *http.Request) (interf
 	return UpgradeReleaseRequest{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
-		Release: helm.Release{
+		ReleaseInput: helm.Release{
 			ReleaseName: request.ReleaseName,
 			ChartName:   request.Name,
 			Namespace:   request.Namespace,
@@ -210,6 +234,30 @@ func decodeUpgradeReleaseHTTPRequest(_ context.Context, r *http.Request) (interf
 			Wait:         request.Wait,
 		},
 	}, nil
+}
+
+func encodeUpgradeReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp, ok := response.(UpgradeReleaseResponse)
+	if !ok {
+		return errors.NewWithDetails("failed to encode release resources response")
+	}
+
+	if resp.Err != nil {
+		return errors.NewWithDetails("failed to retrieve release resources")
+	}
+
+	// backwards compatibility!
+	oldResponse := struct {
+		ReleaseName string                 `json:"releaseName"`
+		Notes       string                 `json:"notes"`
+		Resources   []helm.ReleaseResource `json:"resources"`
+	}{
+		ReleaseName: resp.Release.ReleaseName,
+		Notes:       resp.Release.ReleaseInfo.Notes,
+		//Resources:   resp.Release.ReleaseResources,
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, kitxhttp.WithStatusCode(oldResponse, http.StatusCreated))
 }
 
 func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -402,7 +450,7 @@ func encodeCheckReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter, 
 	}
 
 	// TODO add this to the api spec
-	resp := helm2.DeploymentStatusResponse{
+	resp := pkgHelm.DeploymentStatusResponse{
 		Status:  http.StatusOK,
 		Message: release.R0,
 	}
@@ -528,9 +576,9 @@ func encodeGetReleasesHTTPResponse(ctx context.Context, w http.ResponseWriter, r
 		return errors.WrapIf(releases.Err, "failed to retrieve releases")
 	}
 
-	resp := make([]helm2.ListDeploymentResponse, 0, len(releases.ReleaseList))
+	resp := make([]pkgHelm.ListDeploymentResponse, 0, len(releases.ReleaseList))
 	for _, release := range releases.ReleaseList {
-		resp = append(resp, helm2.ListDeploymentResponse{
+		resp = append(resp, pkgHelm.ListDeploymentResponse{
 			Name:         release.ReleaseName,
 			Chart:        release.ChartName,
 			ChartName:    release.ChartName,

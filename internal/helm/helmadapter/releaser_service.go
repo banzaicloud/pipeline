@@ -35,6 +35,7 @@ import (
 	"helm.sh/helm/v3/pkg/cli/values"
 	"helm.sh/helm/v3/pkg/downloader"
 	"helm.sh/helm/v3/pkg/getter"
+	"helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/storage/driver"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -63,7 +64,7 @@ func NewReleaser(logger Logger) helm.Releaser {
 	}
 }
 
-func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) (string, error) {
+func (r releaser) Install(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) (helm.Release, error) {
 	// customize the settings passed forward
 	envSettings := r.processEnvSettings(helmEnv)
 
@@ -77,7 +78,7 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 
 	actionConfig, err := r.getActionConfiguration(restClientGetter, ns)
 	if err != nil {
-		return "", errors.WrapIf(err, "failed to get  action configuration")
+		return helm.Release{}, errors.WrapIf(err, "failed to get  action configuration")
 	}
 
 	installAction := action.NewInstall(actionConfig)
@@ -85,7 +86,7 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 
 	name, chartRef, err := installAction.NameAndChart(releaseInput.NameAndChartSlice())
 	if err != nil {
-		return "", errors.WrapIf(err, "failed to get  name  and chart")
+		return helm.Release{}, errors.WrapIf(err, "failed to get  name  and chart")
 	}
 	installAction.ReleaseName = name
 	installAction.Wait = options.Wait
@@ -94,7 +95,7 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 
 	cp, err := installAction.ChartPathOptions.LocateChart(chartRef, envSettings)
 	if err != nil {
-		return "", errors.WrapIf(err, "failed to locate chart")
+		return helm.Release{}, errors.WrapIf(err, "failed to locate chart")
 	}
 
 	p := getter.All(envSettings)
@@ -102,12 +103,12 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 	// Check chart dependencies to make sure all are present in /charts
 	chartRequested, err := loader.Load(cp)
 	if err != nil {
-		return "", errors.WrapIf(err, "failed to load chart")
+		return helm.Release{}, errors.WrapIf(err, "failed to load chart")
 	}
 
 	validInstallableChart, err := isChartInstallable(chartRequested)
 	if !validInstallableChart {
-		return "", errors.WrapIf(err, "chart is not installable")
+		return helm.Release{}, errors.WrapIf(err, "chart is not installable")
 	}
 
 	if chartRequested.Metadata.Deprecated {
@@ -130,22 +131,22 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 					RepositoryCache:  envSettings.RepositoryCache,
 				}
 				if err := man.Update(); err != nil {
-					return "", errors.WrapIf(err, "failed to update chart dependencies")
+					return helm.Release{}, errors.WrapIf(err, "failed to update chart dependencies")
 				}
 			} else {
-				return "", errors.WrapIf(err, "failed to check chart dependencies")
+				return helm.Release{}, errors.WrapIf(err, "failed to check chart dependencies")
 			}
 		}
 	}
 
 	clientSet, err := k8sclient.NewClientFromKubeConfigWithTimeout(kubeConfig, time.Second*10)
 	if err != nil {
-		return "", errors.WrapIf(err, "failed to create kubernetes client")
+		return helm.Release{}, errors.WrapIf(err, "failed to create kubernetes client")
 	}
 
 	namespaces, err := clientSet.CoreV1().Namespaces().List(metav1.ListOptions{})
 	if err != nil {
-		return "", errors.WrapIf(err, "failed to list kubernetes namespaces")
+		return helm.Release{}, errors.WrapIf(err, "failed to list kubernetes namespaces")
 	}
 
 	foundNs := false
@@ -161,16 +162,41 @@ func (r releaser) Install(_ context.Context, helmEnv helm.HelmEnv, kubeConfig he
 				Name: installAction.Namespace,
 			},
 		}); err != nil {
-			return "", errors.WrapIf(err, "failed to create release namespace")
+			return helm.Release{}, errors.WrapIf(err, "failed to create release namespace")
 		}
 	}
 
 	releasePtr, err := installAction.Run(chartRequested, releaseInput.Values)
 	if err != nil {
-		return "", errors.WrapIf(err, "failed to install chart")
+		return helm.Release{}, errors.WrapIf(err, "failed to install chart")
 	}
 
-	return releasePtr.Name, nil
+	return r.adaptReleasePtr(releasePtr), nil
+}
+
+func (r releaser) adaptReleasePtr(rawRelease *release.Release) helm.Release {
+	releaseResources, err := r.resourcesFromManifest(rawRelease.Manifest)
+	if err != nil {
+		r.logger.Warn("failed to get release resources")
+	}
+	return helm.Release{
+		ReleaseName:    rawRelease.Name,
+		ChartName:      rawRelease.Chart.Metadata.Name,
+		Namespace:      rawRelease.Namespace,
+		Values:         rawRelease.Chart.Values,
+		Version:        rawRelease.Chart.Metadata.Version,
+		ReleaseVersion: int32(rawRelease.Version),
+		ReleaseInfo: helm.ReleaseInfo{
+			FirstDeployed: rawRelease.Info.FirstDeployed.Time,
+			LastDeployed:  rawRelease.Info.LastDeployed.Time,
+			Deleted:       rawRelease.Info.Deleted.Time,
+			Description:   rawRelease.Info.Description,
+			Status:        rawRelease.Info.Status.String(),
+			Notes:         base64.StdEncoding.EncodeToString([]byte(rawRelease.Info.Notes)),
+			Values:        rawRelease.Config,
+		},
+		ReleaseResources: releaseResources,
+	}
 }
 
 func (r releaser) Uninstall(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseName string, options helm.Options) error {
@@ -282,7 +308,7 @@ func (r releaser) Get(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.K
 	}, nil
 }
 
-func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) (string, error) {
+func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) (helm.Release, error) {
 	ns := "default"
 	if options.Namespace != "" {
 		ns = options.Namespace
@@ -293,7 +319,7 @@ func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 
 	actionConfig, err := r.getActionConfiguration(restClientGetter, ns)
 	if err != nil {
-		return "", errors.WrapIf(err, "failed to get  action configuration")
+		return helm.Release{}, errors.WrapIf(err, "failed to get  action configuration")
 	}
 
 	upgradeAction := action.NewUpgrade(actionConfig)
@@ -310,7 +336,7 @@ func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 
 	chartPath, err := upgradeAction.ChartPathOptions.LocateChart(releaseInput.ChartName, r.processEnvSettings(helmEnv))
 	if err != nil {
-		return "", errors.WrapIf(err, "failed to locate chart")
+		return helm.Release{}, errors.WrapIf(err, "failed to locate chart")
 	}
 
 	if upgradeAction.Install {
@@ -322,23 +348,23 @@ func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 
 			rel, err := r.Install(ctx, helmEnv, kubeConfig, releaseInput, options)
 			if err != nil {
-				return "", errors.WrapIf(err, "failed to install release during upgrade")
+				return helm.Release{}, errors.WrapIf(err, "failed to install release during upgrade")
 			}
 
 			return rel, nil
 		} else if err != nil {
-			return "", errors.WrapIf(err, "failed to install release during upgrade")
+			return helm.Release{}, errors.WrapIf(err, "failed to install release during upgrade")
 		}
 	}
 
 	// Check chart dependencies to make sure all are present in /charts
 	ch, err := loader.Load(chartPath)
 	if err != nil {
-		return "", errors.WrapIf(err, "failed to load chart")
+		return helm.Release{}, errors.WrapIf(err, "failed to load chart")
 	}
 	if req := ch.Metadata.Dependencies; req != nil {
 		if err := action.CheckDependencies(ch, req); err != nil {
-			return "", errors.WrapIf(err, "failed to check dependencies")
+			return helm.Release{}, errors.WrapIf(err, "failed to check dependencies")
 		}
 	}
 
@@ -348,12 +374,12 @@ func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 
 	rel, err := upgradeAction.Run(releaseInput.ReleaseName, ch, releaseInput.Values)
 	if err != nil {
-		return "", errors.Wrap(err, "UPGRADE FAILED")
+		return helm.Release{}, errors.Wrap(err, "UPGRADE FAILED")
 	}
 
 	r.logger.Info("release has been upgraded. Happy Helming!", map[string]interface{}{"releaseName": releaseInput.ReleaseName})
 
-	return rel.Name, nil
+	return r.adaptReleasePtr(rel), nil
 }
 
 func (r releaser) Resources(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) ([]helm.ReleaseResource, error) {
