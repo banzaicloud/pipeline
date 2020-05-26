@@ -35,8 +35,9 @@ require (
 	github.com/banzaicloud/gin-utilz v0.2.0
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
 	github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4
-	github.com/banzaicloud/logging-operator/pkg/sdk v0.1.1
+	github.com/banzaicloud/logging-operator/pkg/sdk v0.3.15
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
+	github.com/banzaicloud/operator-tools v0.10.2
 	github.com/banzaicloud/pipeline/pkg/sdk v0.0.1
 	github.com/coreos/go-oidc v2.1.0+incompatible
 	github.com/denisenkom/go-mssqldb v0.0.0-20200206145737-bbfc9a55622e // indirect
@@ -56,7 +57,6 @@ require (
 	github.com/gosimple/slug v1.9.0 // indirect
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/heptio/ark v0.9.3
-	github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0 // indirect
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/jinzhu/gorm v1.9.10
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -146,7 +146,7 @@ replace (
 
 	gopkg.in/yaml.v2 => github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182
 
-    // https://github.com/helm/helm/compare/release-3.1...pepov:release-3.1
+	// https://github.com/helm/helm/compare/release-3.1...pepov:release-3.1
 	helm.sh/helm/v3 => github.com/pepov/helm/v3 v3.0.0-20200519142412-df65965032e2
 
 	// Kubernetes
