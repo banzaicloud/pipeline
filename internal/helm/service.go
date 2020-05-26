@@ -436,22 +436,23 @@ func (s service) UpdateRepository(ctx context.Context, organizationID uint, repo
 	return nil
 }
 
-func (s service) InstallRelease(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) error {
+func (s service) InstallRelease(ctx context.Context, organizationID uint, clusterID uint, releaseInput Release, options Options) (release Release, err error) {
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
-		return errors.WrapIf(err, "failed to set up helm repository environment")
+		return release, errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 
 	kubeKonfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
 	if err != nil {
-		return errors.WrapIf(err, "failed to get cluster configuration")
+		return release, errors.WrapIf(err, "failed to get cluster configuration")
 	}
 
-	if _, err := s.releaser.Install(ctx, helmEnv, kubeKonfig, release, options); err != nil {
-		return errors.WrapIf(err, "failed to install release")
+	release, err = s.releaser.Install(ctx, helmEnv, kubeKonfig, releaseInput, options)
+	if err != nil {
+		return Release{}, errors.WrapIf(err, "failed to install release")
 	}
 
-	return nil
+	return release, nil
 }
 
 func (s service) DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) error {
@@ -495,43 +496,42 @@ func (s service) ListReleases(ctx context.Context, organizationID uint, clusterI
 }
 
 func (s service) GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (Release, error) {
-	emptyRelease := Release{}
-
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
-		return emptyRelease, errors.WrapIf(err, "failed to set up helm repository environment")
+		return Release{}, errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 
 	kubeKonfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
 	if err != nil {
-		return emptyRelease, errors.WrapIf(err, "failed to get cluster configuration")
+		return Release{}, errors.WrapIf(err, "failed to get cluster configuration")
 	}
 
 	input := Release{ReleaseName: releaseName}
 	release, err := s.releaser.Get(ctx, helmEnv, kubeKonfig, input, options)
 	if err != nil {
-		return emptyRelease, errors.WrapIfWithDetails(err, "failed to get release", "releaseName", releaseName)
+		return Release{}, errors.WrapIfWithDetails(err, "failed to get release", "releaseName", releaseName)
 	}
 
 	return release, nil
 }
 
-func (s service) UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) error {
+func (s service) UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, releaseInput Release, options Options) (Release, error) {
 	helmEnv, err := s.envResolver.ResolveHelmEnv(ctx, organizationID)
 	if err != nil {
-		return errors.WrapIf(err, "failed to set up helm repository environment")
+		return Release{}, errors.WrapIf(err, "failed to set up helm repository environment")
 	}
 
 	kubeKonfig, err := s.clusterService.GetKubeConfig(ctx, clusterID)
 	if err != nil {
-		return errors.WrapIf(err, "failed to get cluster configuration")
+		return Release{}, errors.WrapIf(err, "failed to get cluster configuration")
 	}
 
-	if _, err := s.releaser.Upgrade(ctx, helmEnv, kubeKonfig, release, options); err != nil {
-		return errors.WrapIfWithDetails(err, "failed to upgrade release", "releaseName", release.ReleaseName)
+	release, err := s.releaser.Upgrade(ctx, helmEnv, kubeKonfig, releaseInput, options)
+	if err != nil {
+		return Release{}, errors.WrapIfWithDetails(err, "failed to upgrade release", "releaseName", releaseInput.ReleaseName)
 	}
 
-	return nil
+	return release, nil
 }
 
 func (s service) ListCharts(ctx context.Context, organizationID uint, filter ChartFilter, _ Options) (charts ChartList, err error) {

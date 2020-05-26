@@ -130,7 +130,7 @@ func getHelmFacade(t *testing.T) helm.Service {
 func testInstallRelease(ctx context.Context, helmFacade helm.Service, releaseInput helm.Release, options helm.Options) func(t *testing.T) {
 	return func(t *testing.T) {
 		t.Logf("installing release %#v", releaseInput)
-		if err := helmFacade.InstallRelease(ctx, 1, 1, releaseInput, options); err != nil {
+		if _, err := helmFacade.InstallRelease(ctx, 1, 1, releaseInput, options); err != nil {
 			t.Fatalf("failed to install release %#v", releaseInput)
 		}
 
@@ -166,7 +166,7 @@ func testListReleaseWithFilter(ctx context.Context, helmFacade helm.Service, fil
 func testDeleteRelease(ctx context.Context, helmFacade helm.Service, releaseName string, options helm.Options) func(t *testing.T) {
 	return func(t *testing.T) {
 		t.Logf("deleting release %#v", releaseName)
-		if err := helmFacade.DeleteRelease(ctx, 1, 1, releaseName, options); err != nil {
+		if err := helmFacade.DeleteRelease(ctx, 1, 123, releaseName, options); err != nil {
 			if !errReleaseNotFound(err) {
 				t.Fatalf("failed to delete release %#v", releaseName)
 			}

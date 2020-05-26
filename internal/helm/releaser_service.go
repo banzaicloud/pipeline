@@ -48,13 +48,14 @@ type ReleaseResource struct {
 //  Release represents information related to a helm chart release
 type Release struct {
 	// ReleaseInput struct encapsulating information about the release to be created
-	ReleaseName    string
-	ChartName      string
-	Namespace      string
-	Values         map[string]interface{} //json representation
-	Version        string
-	ReleaseInfo    ReleaseInfo
-	ReleaseVersion int32
+	ReleaseName      string
+	ChartName        string
+	Namespace        string
+	Values           map[string]interface{} //json representation
+	Version          string
+	ReleaseInfo      ReleaseInfo
+	ReleaseVersion   int32
+	ReleaseResources []ReleaseResource
 }
 
 type KubeConfigBytes = []byte
@@ -70,7 +71,7 @@ type ReleaseFilter struct {
 // implementers are in charge to produce input for the Releaser component
 type releaser interface {
 	// Install installs the release to the cluster with the given identifier
-	InstallRelease(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) error
+	InstallRelease(ctx context.Context, organizationID uint, clusterID uint, releaseInput Release, options Options) (release Release, err error)
 	// Delete deletes the  specified release
 	DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) error
 	// List retrieves  releases in a given namespace, eventually applies the passed in filters
@@ -78,7 +79,7 @@ type releaser interface {
 	// Get retrieves the release details for the given  release
 	GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (Release, error)
 	// Upgrade upgrades the given release
-	UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) error
+	UpgradeRelease(ctx context.Context, organizationID uint, clusterID uint, releaseInput Release, options Options) (release Release, err error)
 	// CheckRelease
 	CheckRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (string, error)
 	// ReleaseResources retrieves resources belonging to the release
@@ -97,7 +98,7 @@ func (ri Release) NameAndChartSlice() []string {
 // It manages releases on the cluster
 type Releaser interface {
 	// Install installs the specified chart using to a cluster identified by the kubeConfig  argument
-	Install(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options Options) (string, error)
+	Install(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options Options) (Release, error)
 	// Uninstall removes the  specified release from the cluster
 	Uninstall(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseName string, options Options) error
 	// List lists releases
@@ -105,7 +106,7 @@ type Releaser interface {
 	// Get gets the given release details
 	Get(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options Options) (Release, error)
 	// Upgrade upgrades the given release
-	Upgrade(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options Options) (string, error)
+	Upgrade(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options Options) (release Release, err error)
 	// Resources retrieves the kubernetes resources belonging to the release
 	Resources(ctx context.Context, helmEnv HelmEnv, kubeConfig KubeConfigBytes, releaseInput Release, options Options) ([]ReleaseResource, error)
 }
