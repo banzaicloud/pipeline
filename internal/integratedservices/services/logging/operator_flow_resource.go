@@ -61,8 +61,12 @@ func (op IntegratedServiceOperator) generateFlowResource(definitions []outputDef
 			Namespace: op.config.Namespace,
 			Labels:    map[string]string{resourceLabelKey: integratedServiceName},
 		},
-		Spec: v1beta1.FlowSpec{
-			Selectors:  map[string]string{},
+		Spec: v1beta1.ClusterFlowSpec{
+			Match: []v1beta1.ClusterMatch{
+				{
+					ClusterSelect: &v1beta1.ClusterSelect{},
+				},
+			},
 			OutputRefs: outputRefs,
 		},
 	}
