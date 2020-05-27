@@ -36,6 +36,19 @@ Parameters:
     Description: The path of the provided role to set for the EKS nodes.
     Default: "/"
 
+Mappings:
+    PartitionMap:
+        aws:
+            EC2ServicePrincipal: "ec2.amazonaws.com"
+        aws-us-gov:
+            EC2ServicePrincipal: "ec2.amazonaws.com"
+        aws-cn:
+            EC2ServicePrincipal: "ec2.amazonaws.com.cn"
+        aws-iso:
+            EC2ServicePrincipal: "ec2.c2s.ic.gov"
+        aws-iso-b:
+            EC2ServicePrincipal: "ec2.sc2s.sgov.gov"
+
 Conditions:
   CreateUser: !Equals [ !Ref UserId, "" ]
   CreateClusterRole: !Equals [ !Ref ClusterRoleId, "" ]
@@ -77,14 +90,14 @@ Resources:
         - Effect: Allow
           Principal:
             Service:
-            - ec2.amazonaws.com
+                - !FindInMap [PartitionMap, !Ref "AWS::Partition", EC2ServicePrincipal]
           Action:
           - sts:AssumeRole
       Path: "/"
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
-        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEKS_CNI_Policy"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
       Policies:
         -
           PolicyName: NodePolicy
