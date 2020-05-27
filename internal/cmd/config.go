@@ -586,7 +586,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::logging::enabled", true)
 	v.SetDefault("cluster::logging::namespace", "")
 	v.SetDefault("cluster::logging::charts::operator::chart", "banzaicloud-stable/logging-operator")
-	v.SetDefault("cluster::logging::charts::operator::version", "3.2.0")
+	v.SetDefault("cluster::logging::charts::operator::version", "3.2.2")
 	v.SetDefault("cluster::logging::charts::operator::values", map[string]interface{}{})
 	v.SetDefault("cluster::logging::images::operator::repository", "banzaicloud/logging-operator")
 	v.SetDefault("cluster::logging::images::operator::tag", "3.2.0")
