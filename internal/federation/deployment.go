@@ -20,6 +20,7 @@ import (
 
 type HelmService interface {
 	InstallOrUpgrade(
+		orgID uint,
 		c internalHelm.ClusterDataProvider,
 		release internalHelm.Release,
 		opts internalHelm.Options,
