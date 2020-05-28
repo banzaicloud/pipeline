@@ -351,6 +351,7 @@ func findRelease(releaseName string, k8sConfig []byte) (*release.Release, error)
 }
 
 func (s *LegacyHelmService) InstallOrUpgrade(
+	orgID uint,
 	c internalhelm.ClusterDataProvider,
 	release internalhelm.Release,
 	opts internalhelm.Options,

@@ -295,6 +295,7 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 	}
 
 	err = m.helmService.InstallOrUpgrade(
+		noOrgID,
 		c,
 		internalHelm.Release{
 			ReleaseName: backyardsReleaseName,
