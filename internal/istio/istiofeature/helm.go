@@ -18,8 +18,11 @@ import (
 	internalHelm "github.com/banzaicloud/pipeline/internal/helm"
 )
 
+const noOrgID = 0 // represents the platform org
+
 type HelmService interface {
 	InstallOrUpgrade(
+		orgID uint,
 		c internalHelm.ClusterDataProvider,
 		release internalHelm.Release,
 		opts internalHelm.Options,

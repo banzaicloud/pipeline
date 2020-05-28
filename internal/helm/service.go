@@ -114,6 +114,7 @@ type UnifiedReleaser interface {
 
 	// Covers Federation and Backyards style implementation
 	InstallOrUpgrade(
+		orgID uint,
 		c ClusterDataProvider,
 		release Release,
 		opts Options,

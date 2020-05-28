@@ -86,6 +86,7 @@ func (m *MeshReconciler) installCanaryOperator(c cluster.CommonCluster, promethe
 	}
 
 	err = m.helmService.InstallOrUpgrade(
+		noOrgID,
 		c,
 		helm.Release{
 			ReleaseName: canaryOperatorReleaseName,

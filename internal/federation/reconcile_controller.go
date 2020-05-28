@@ -40,6 +40,10 @@ type OperatorImage struct {
 	Tag        string `json:"tag,omitempty"`
 }
 
+const (
+	noOrgID = 0 //represents the platform org
+)
+
 func (m *FederationReconciler) ReconcileController(desiredState DesiredState) error {
 	m.logger.Debug("start reconciling Federation controller")
 	defer m.logger.Debug("finished reconciling Federation controller")
@@ -305,6 +309,7 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 	}
 
 	err := m.helmService.InstallOrUpgrade(
+		noOrgID,
 		c,
 		internalHelm.Release{
 			ReleaseName: federationReleaseName,
