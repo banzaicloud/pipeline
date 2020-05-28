@@ -26,6 +26,7 @@ const (
 	cacheDir         = "cache"
 	noOrg            = 0 // signals that no organization id is provided
 
+	helmBaseDir = "helm"
 	orgsHomeDir = "orgs"
 )
 
@@ -98,16 +99,16 @@ func (er envResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (
 	}
 
 	return HelmEnv{
-		home:     path.Join(er.helmHomesDir, orgsHomeDir, orgName),
-		cacheDir: path.Join(er.helmHomesDir, orgsHomeDir, orgName, cacheDir),
+		home:     path.Join(er.helmHomesDir, helmBaseDir, orgsHomeDir, orgName),
+		cacheDir: path.Join(er.helmHomesDir, helmBaseDir, orgsHomeDir, orgName, cacheDir),
 		platform: false,
 	}, nil
 }
 
 func (er envResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
 	return HelmEnv{
-		home:     path.Join(er.helmHomesDir, PlatformHelmHome),
-		cacheDir: path.Join(er.helmHomesDir, PlatformHelmHome, cacheDir),
+		home:     path.Join(er.helmHomesDir, helmBaseDir, PlatformHelmHome),
+		cacheDir: path.Join(er.helmHomesDir, helmBaseDir, PlatformHelmHome, cacheDir),
 		platform: true,
 	}, nil
 }
