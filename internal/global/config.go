@@ -15,7 +15,6 @@
 package global
 
 import (
-	"path/filepath"
 	"time"
 )
 
@@ -173,9 +172,4 @@ var Config struct {
 	Telemetry struct {
 		Debug bool
 	}
-}
-
-// GetHelmPath returns local helm path
-func GetHelmPath(organizationName string) string {
-	return filepath.Join(Config.Helm.Home, organizationName)
 }
