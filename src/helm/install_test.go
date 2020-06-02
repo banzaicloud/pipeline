@@ -30,7 +30,7 @@ func TestIntegration(t *testing.T) {
 	t.Run("platform helm home", func(t *testing.T) {
 		global.Config.Helm.Home = "var/cache/test"
 
-		expected := "var/cache/test-pipeline/helm"
+		expected := "var/cache/test/helm/platform"
 
 		env := GeneratePlatformHelmRepoEnv()
 		if env.Home.String() != expected {

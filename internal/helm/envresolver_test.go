@@ -52,9 +52,9 @@ func Test_helm2EnvResolver_ResolveHelmEnv(t *testing.T) {
 				organizationID: 1,
 			},
 			want: HelmEnv{
-				home:         "testHomesDir/testOrg/helm",
+				home:         "testHomesDir/helm/orgs/testOrg",
 				platform:     false,
-				cacheDir:     "testHomesDir/testOrg/cache",
+				cacheDir:     "testHomesDir/helm/orgs/testOrg/cache",
 				repoCacheDir: "",
 			},
 			wantErr: false,
@@ -119,10 +119,10 @@ func Test_helm3EnvResolver_ResolveHelmEnv(t *testing.T) {
 				organizationID: 1,
 			},
 			want: HelmEnv{
-				home:         "testHomesDir/testOrg/helm/repository/repositories.yaml",
-				repoCacheDir: "testHomesDir/testOrg/helm/repository/cache",
+				home:         "testHomesDir/helm/orgs/testOrg/repository/repositories.yaml",
+				repoCacheDir: "testHomesDir/helm/orgs/testOrg/repository/cache",
 				platform:     false,
-				cacheDir:     "testHomesDir/testOrg/cache",
+				cacheDir:     "testHomesDir/helm/orgs/testOrg/cache",
 			},
 			wantErr: false,
 			setupMocks: func(orgService *OrgService, arguments args) {
@@ -182,9 +182,9 @@ func Test_envResolver_ResolvePlatformEnv(t *testing.T) {
 				ctx: context.Background(),
 			},
 			want: HelmEnv{
-				home:     "testHomesDir-pipeline/helm",
+				home:     "testHomesDir/helm/platform",
 				platform: true,
-				cacheDir: "testHomesDir-pipeline/cache",
+				cacheDir: "testHomesDir/helm/platform/cache",
 			},
 			wantErr: false,
 		},
