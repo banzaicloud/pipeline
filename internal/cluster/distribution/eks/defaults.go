@@ -89,6 +89,30 @@ var defaultImageMap = []struct {
 			"us-west-2":      "ami-065418523a44331e5", // US West (Oregon).
 		},
 	},
+	{
+		constraintForVersion("1.16"),
+		map[string]string{
+			// Kubernetes Version 1.16.8
+			"ap-east-1":      "ami-024ec7439d902ac50", // Asia Pacific (Hong Kong).
+			"ap-northeast-1": "ami-0ca8e5c318b118092", // Asia Pacific (Tokyo).
+			"ap-northeast-2": "ami-0da70348effa9af72", // Asia Pacific (Seoul).
+			"ap-southeast-1": "ami-093fffbd1480f8c72", // Asia Pacific (Mumbai).
+			"ap-southeast-2": "ami-0ed6c012b2bd57b73", // Asia Pacific (Singapore).
+			"ap-south-1":     "ami-00725375bc29d9601", // Asia Pacific (Sydney).
+			"ca-central-1":   "ami-0139a5bcca4fd37a9", // Canada (Central).
+			"eu-central-1":   "ami-0bf7306240d09dcdd", // EU (Frankfurt).
+			"eu-north-1":     "ami-030f9071e0d32b989", // EU (Stockholm).
+			"eu-west-1":      "ami-03c5e686287fd90e9", // EU (Ireland).
+			"eu-west-2":      "ami-02e571568d897dcab", // EU (London).
+			"eu-west-3":      "ami-0170bd57fa0c260da", // EU (Paris).
+			"me-south-1":     "ami-08bf7870510670f47", // Middle East (Bahrain).
+			"sa-east-1":      "ami-0ed2cc7e74c7bc2e2", // South America (Sao Paulo).
+			"us-east-1":      "ami-05ac566a7ec2378db", // US East (N. Virginia).
+			"us-east-2":      "ami-0edc51bc2f03c9dc2", // US East (Ohio).
+			"us-west-1":      "ami-015fd1269b5bc0c23", // US West (N. California).
+			"us-west-2":      "ami-0809659d79ce80260", // US West (Oregon).
+		},
+	},
 }
 
 // GetDefaultImageID returns the EKS optimized AMI for given Kubernetes version and region.
