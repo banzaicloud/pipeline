@@ -15,8 +15,8 @@
 package helm
 
 import (
-	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/pkg/errors"
@@ -31,16 +31,10 @@ import (
 	phelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
-// CreateEnvSettings Create env settings on a given path
-func CreateEnvSettings(helmRepoHome string) helmEnv.EnvSettings {
-	var settings helmEnv.EnvSettings
-	settings.Home = helmpath.Home(helmRepoHome)
-	return settings
-}
-
 // GenerateHelmRepoEnv Generate helm path based on orgName
 func GenerateHelmRepoEnv(orgName string) helmEnv.EnvSettings {
-	env, _, err := GenerateHelmRepoEnvOnPath(global.GetHelmPath(fmt.Sprintf("%s/%s", orgName, phelm.HelmPostFix)))
+	// new layout of the local helm env!
+	env, _, err := GenerateHelmRepoEnvOnPath(path.Join(global.Config.Helm.Home, "helm", "orgs", orgName))
 	if err != nil {
 		log.Errorf("local helm env setup failed err: %+v env: %+v", err, env)
 	}
@@ -49,7 +43,9 @@ func GenerateHelmRepoEnv(orgName string) helmEnv.EnvSettings {
 
 // GenerateHelmRepoEnv Generate helm to the given path
 func GenerateHelmRepoEnvOnPath(path string) (helmEnv.EnvSettings, bool, error) {
-	env := CreateEnvSettings(path)
+	var env helmEnv.EnvSettings
+	env.Home = helmpath.Home(path)
+
 	isNewEnv := false
 	// check local helm
 	if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -64,7 +60,7 @@ func GenerateHelmRepoEnvOnPath(path string) (helmEnv.EnvSettings, bool, error) {
 }
 
 func GeneratePlatformHelmRepoEnv() helmEnv.EnvSettings {
-	env, _, err := GenerateHelmRepoEnvOnPath(fmt.Sprintf("%s-%s/%s", global.Config.Helm.Home, helm.PlatformHelmHome, phelm.HelmPostFix))
+	env, _, err := GenerateHelmRepoEnvOnPath(path.Join(global.Config.Helm.Home, "helm", helm.PlatformHelmHome))
 	if err != nil {
 		log.Errorf("platform helm env setup failed err: %+v env: %+v", err, env)
 	}

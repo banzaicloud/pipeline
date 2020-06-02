@@ -16,17 +16,18 @@ package helm
 
 import (
 	"context"
-	"fmt"
 	"path"
 
 	"emperror.dev/errors"
 )
 
 const (
-	PlatformHelmHome = "pipeline"
-	helmPostFix      = "helm"
+	PlatformHelmHome = "platform"
 	cacheDir         = "cache"
 	noOrg            = 0 // signals that no organization id is provided
+
+	helmBaseDir = "helm"
+	orgsHomeDir = "orgs"
 )
 
 // +testify:mock:testOnly=true
@@ -98,16 +99,16 @@ func (er envResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (
 	}
 
 	return HelmEnv{
-		home:     path.Join(er.helmHomesDir, orgName, helmPostFix),
-		cacheDir: path.Join(er.helmHomesDir, orgName, cacheDir),
+		home:     path.Join(er.helmHomesDir, helmBaseDir, orgsHomeDir, orgName),
+		cacheDir: path.Join(er.helmHomesDir, helmBaseDir, orgsHomeDir, orgName, cacheDir),
 		platform: false,
 	}, nil
 }
 
 func (er envResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
 	return HelmEnv{
-		home:     path.Join(fmt.Sprintf("%s-%s", er.helmHomesDir, PlatformHelmHome), helmPostFix),
-		cacheDir: path.Join(fmt.Sprintf("%s-%s", er.helmHomesDir, PlatformHelmHome), cacheDir),
+		home:     path.Join(er.helmHomesDir, helmBaseDir, PlatformHelmHome),
+		cacheDir: path.Join(er.helmHomesDir, helmBaseDir, PlatformHelmHome, cacheDir),
 		platform: true,
 	}, nil
 }

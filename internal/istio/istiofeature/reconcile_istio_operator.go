@@ -88,6 +88,7 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
 	}
 
 	err = m.helmService.InstallOrUpgrade(
+		noOrgID,
 		c,
 		helm.Release{
 			ReleaseName: istioOperatorReleaseName,

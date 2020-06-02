@@ -75,7 +75,7 @@ func testEnsureCRDSourceForExtDNS(v3 bool, testNamespace string) func(t *testing
 		if err := unifiedReleaser.Delete(&clusterConfig, releaseName, testNamespace); err != nil {
 			t.Fatalf("%+v", err)
 		}
-		err = unifiedReleaser.InstallOrUpgrade(&clusterConfig, helm.Release{
+		err = unifiedReleaser.InstallOrUpgrade(0, &clusterConfig, helm.Release{
 			ReleaseName: releaseName,
 			ChartName:   chartName,
 			Namespace:   testNamespace,

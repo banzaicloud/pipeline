@@ -32,6 +32,7 @@ type ChartMeta struct {
 type HelmService interface {
 	GetChartMeta(orgId uint, name, version string) (ChartMeta, error)
 	InstallOrUpgrade(
+		orgID uint,
 		c helm.ClusterDataProvider,
 		release helm.Release,
 		opts helm.Options,
@@ -40,31 +41,31 @@ type HelmService interface {
 	DeleteRelease(c helm.ClusterDataProvider, releaseName, namespace string) error
 }
 
-type Helm3Service struct {
+type helm3Service struct {
 	facade   helm.Service
 	releaser helm.UnifiedReleaser
 }
 
-func (h *Helm3Service) GetRelease(c helm.ClusterDataProvider, releaseName, namespace string) (helm.Release, error) {
+func (h *helm3Service) GetRelease(c helm.ClusterDataProvider, releaseName, namespace string) (helm.Release, error) {
 	return h.releaser.GetRelease(c, releaseName, namespace)
 }
 
 func NewHelmService(facade helm.Service, releaser helm.UnifiedReleaser) HelmService {
-	return &Helm3Service{
+	return &helm3Service{
 		facade:   facade,
 		releaser: releaser,
 	}
 }
 
-func (h *Helm3Service) DeleteRelease(c helm.ClusterDataProvider, releaseName, namespace string) error {
+func (h *helm3Service) DeleteRelease(c helm.ClusterDataProvider, releaseName, namespace string) error {
 	return h.releaser.Delete(c, releaseName, namespace)
 }
 
-func (h *Helm3Service) InstallOrUpgrade(c helm.ClusterDataProvider, release helm.Release, opts helm.Options) error {
-	return h.releaser.InstallOrUpgrade(c, release, opts)
+func (h *helm3Service) InstallOrUpgrade(orgID uint, c helm.ClusterDataProvider, release helm.Release, opts helm.Options) error {
+	return h.releaser.InstallOrUpgrade(orgID, c, release, opts)
 }
 
-func (h *Helm3Service) GetChartMeta(orgId uint, name, version string) (ChartMeta, error) {
+func (h *helm3Service) GetChartMeta(orgId uint, name, version string) (ChartMeta, error) {
 	repoAndChart := strings.Split(name, "/")
 	if len(repoAndChart) != 2 {
 		return ChartMeta{}, errors.Errorf("missing repo ref from chart name %s", name)

@@ -169,6 +169,7 @@ func (h *helm3UnifiedReleaser) GetDeployment(ctx context.Context, clusterID uint
 }
 
 func (h *helm3UnifiedReleaser) InstallOrUpgrade(
+	orgID uint,
 	c helm.ClusterDataProvider,
 	release helm.Release,
 	opts helm.Options,
@@ -176,29 +177,29 @@ func (h *helm3UnifiedReleaser) InstallOrUpgrade(
 	ctx := context.Background()
 	retrievedRelease, err := h.helmService.GetRelease(
 		ctx,
-		0,
+		orgID,
 		c.GetID(),
 		release.ReleaseName,
 		opts,
 	)
 	if err != nil {
 		if helm.ErrReleaseNotFound(err) {
-			_, err := h.helmService.InstallRelease(ctx, 0, c.GetID(), release, opts)
+			_, err := h.helmService.InstallRelease(ctx, orgID, c.GetID(), release, opts)
 			return err
 		}
 		return errors.WrapIf(err, "failed to retrieve release")
 	}
 	if retrievedRelease.ReleaseInfo.Status == release2.StatusDeployed.String() {
-		_, err := h.helmService.UpgradeRelease(ctx, 0, c.GetID(), release, opts)
+		_, err := h.helmService.UpgradeRelease(ctx, orgID, c.GetID(), release, opts)
 		return err
 	}
 	if retrievedRelease.ReleaseInfo.Status == release2.StatusFailed.String() {
-		if err := h.helmService.DeleteRelease(ctx, 0, c.GetID(), release.ReleaseName, opts); err != nil {
+		if err := h.helmService.DeleteRelease(ctx, orgID, c.GetID(), release.ReleaseName, opts); err != nil {
 			if !helm.ErrReleaseNotFound(err) {
 				return errors.WrapIf(err, "unable to delete release")
 			}
 		}
-		_, err := h.helmService.InstallRelease(ctx, 0, c.GetID(), release, opts)
+		_, err := h.helmService.InstallRelease(ctx, orgID, c.GetID(), release, opts)
 		return err
 	}
 	return errors.Errorf("Release is in invalid state unable to upgrade: %s", retrievedRelease.ReleaseInfo.Status)
