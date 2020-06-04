@@ -21,11 +21,12 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
-	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/mitchellh/copystructure"
 	corev1 "k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/banzaicloud/pipeline/internal/helm"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	"github.com/banzaicloud/pipeline/internal/common"
@@ -436,17 +437,16 @@ func (op IntegratedServiceOperator) installLoggingOperator(ctx context.Context, 
 				Install:   true,
 				SkipCRDs:  true,
 			})
-	} else {
-		return op.helmService.ApplyDeployment(
-			ctx,
-			clusterID,
-			op.config.Namespace,
-			op.config.Charts.Operator.Chart,
-			loggingOperatorReleaseName,
-			valuesBytes,
-			op.config.Charts.Operator.Version,
-		)
 	}
+	return op.helmService.ApplyDeployment(
+		ctx,
+		clusterID,
+		op.config.Namespace,
+		op.config.Charts.Operator.Chart,
+		loggingOperatorReleaseName,
+		valuesBytes,
+		op.config.Charts.Operator.Version,
+	)
 }
 
 func mergeValuesWithConfig(chartValues interface{}, configValues interface{}) ([]byte, error) {

@@ -18,9 +18,10 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"

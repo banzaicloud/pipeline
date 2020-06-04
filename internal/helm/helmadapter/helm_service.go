@@ -81,7 +81,8 @@ func (h helm3UnifiedReleaser) ApplyDeploymentV3(
 	release helm.Release,
 	options helm.Options,
 ) error {
-	return h.helmService.UpgradeRelease(ctx, 0, clusterID, release, options)
+	_, err := h.helmService.UpgradeRelease(ctx, 0, clusterID, release, options)
+	return err
 }
 
 // for clustersetup!
