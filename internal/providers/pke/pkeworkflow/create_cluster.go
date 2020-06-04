@@ -15,17 +15,22 @@
 package pkeworkflow
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
 const pkeVersion = "0.5.0"
+
+// ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure
+const ErrReasonStackFailed = "CLOUDFORMATION_STACK_FAILED"
 
 type PKEImageNameGetter interface {
 	PKEImageName(cloudProvider, service, os, kubeVersion, pkeVersion, region string) (string, error)
@@ -100,6 +105,20 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		WaitForCancellation:    true,
 	}
 
+	aoWithHeartbeat := workflow.ActivityOptions{
+		ScheduleToStartTimeout: 10 * time.Minute,
+		StartToCloseTimeout:    5 * time.Minute,
+		WaitForCancellation:    true,
+		HeartbeatTimeout:       45 * time.Second,
+		RetryPolicy: &cadence.RetryPolicy{
+			InitialInterval:          2 * time.Second,
+			BackoffCoefficient:       1.5,
+			MaximumInterval:          30 * time.Second,
+			MaximumAttempts:          5,
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", ErrReasonStackFailed},
+		},
+	}
+
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	// Generate CA certificates
@@ -148,6 +167,45 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		}
 	}
 
+	var nodePools []NodePool
+
+	// List node pools
+	{
+		activityInput := ListNodePoolsActivityInput{ClusterID: input.ClusterID}
+		err := workflow.ExecuteActivity(ctx, ListNodePoolsActivityName, activityInput).Get(ctx, &nodePools)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Collect all AZs
+	var master NodePool
+	for _, np := range nodePools {
+		if np.Master {
+			master = np
+			if len(np.AvailabilityZones) <= 0 || np.AvailabilityZones[0] == "" {
+				return errors.Errorf("missing availability zone for nodepool %q", np.Name)
+			}
+			break
+		}
+	}
+	// Collect relevant AZs from NodePools without subnets
+	availabilityZoneSet := make(map[string]bool)
+	for _, np := range nodePools {
+		// We only look AZ when no subnet is set
+		if len(np.Subnets) < 1 {
+			for _, az := range np.AvailabilityZones {
+				availabilityZoneSet[az] = true
+			}
+		}
+	}
+	// Create AZ and Address map
+	availabilityZoneMap := make(map[string]string)
+	id := 0
+	for zone, _ := range availabilityZoneSet {
+		availabilityZoneMap[zone] = fmt.Sprintf("192.168.%d.0/24", id*16)
+	}
+
 	var vpcStackID string
 
 	// Create VPC
@@ -157,7 +215,6 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 			ClusterID:        input.ClusterID,
 			ClusterName:      input.ClusterName,
 			VPCID:            input.VPCID,
-			SubnetID:         input.SubnetID,
 		}
 		err := workflow.ExecuteActivity(ctx, CreateVPCActivityName, activityInput).Get(ctx, &vpcStackID)
 		if err != nil {
@@ -198,26 +255,38 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		return errors.Errorf("couldn't get the default security group of the VPC %q", vpcOutput["VpcId"])
 	}
 
-	var nodePools []NodePool
+	// Create subnets map nodepools with subnet?
 
-	// List node pools
 	{
-		activityInput := ListNodePoolsActivityInput{ClusterID: input.ClusterID}
-		err := workflow.ExecuteActivity(ctx, ListNodePoolsActivityName, activityInput).Get(ctx, &nodePools)
-		if err != nil {
-			return err
-		}
-	}
+		// We need a Zone - SubnetID map
+		subnetIDMap := make(map[string]string)
+		var createSubnetFutures []workflow.Future
+		for zone, ip := range availabilityZoneMap {
+			activityInput := CreateSubnetActivityInput{
 
-	var master NodePool
-	for _, np := range nodePools {
-		if np.Master {
-			master = np
-			if len(np.AvailabilityZones) <= 0 || np.AvailabilityZones[0] == "" {
-				return errors.Errorf("missing availability zone for nodepool %q", np.Name)
+				AWSActivityInput: awsActivityInput,
+				ClusterID:        input.ClusterID,
+				ClusterName:      input.ClusterName,
+				VpcID:            vpcOutput["VpcId"],
+				RouteTableID:     vpcOutput["RouteTableId"],
+				Cidr:             ip,
+				AvailabilityZone: zone,
 			}
-			break
+			ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
+			createSubnetFutures = append(createSubnetFutures, workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput))
 		}
+
+		// wait for info about newly created subnets
+		errs := make([]error, len(createSubnetFutures))
+		for i, future := range createSubnetFutures {
+			var activityOutput CreateSubnetActivityOutput
+
+			errs[i] = future.Get(ctx, &activityOutput)
+			if errs[i] == nil {
+				subnetIDMap[activityOutput.AvailabilityZone] = activityOutput.SubnetID
+			}
+		}
+
 	}
 
 	var keyOut UploadSSHKeyPairActivityOutput
@@ -248,7 +317,12 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 
 	multiMaster := master.MaxCount > 1
 
-	masterNodeSubnetID := strings.Split(vpcOutput["SubnetIds"], ",")[0]
+	var masterNodeSubnetIDs []string
+	// We don't use ASG for master so only 1 subnet is available
+	for _, subnetID := range subnetIDMap {
+		masterNodeSubnetIDs = append(masterNodeSubnetIDs, subnetID)
+	}
+	masterNodeSubnetID := masterNodeSubnetIDs[0]
 	if len(master.Subnets) > 0 {
 		masterNodeSubnetID = master.Subnets[0]
 	}
@@ -263,7 +337,6 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		ExternalBaseUrlInsecure:   input.PipelineExternalURLInsecure,
 		Pool:                      master,
 		SSHKeyName:                keyOut.KeyName,
-		AvailabilityZone:          master.AvailabilityZones[0],
 	}
 
 	if multiMaster {
@@ -274,7 +347,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 			ClusterID:        input.ClusterID,
 			ClusterName:      input.ClusterName,
 			VPCID:            vpcOutput["VpcId"],
-			SubnetIds:        []string{masterNodeSubnetID},
+			SubnetIds:        masterNodeSubnetIDs,
 		}
 
 		err := workflow.ExecuteActivity(ctx, CreateNLBActivityName, activityInput).Get(ctx, &activityOutput)

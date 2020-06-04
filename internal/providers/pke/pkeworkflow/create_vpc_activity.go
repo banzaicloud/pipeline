@@ -41,10 +41,19 @@ func NewCreateVPCActivity(awsClientFactory *AWSClientFactory) *CreateVPCActivity
 
 type CreateVPCActivityInput struct {
 	AWSActivityInput
-	ClusterID   uint
-	ClusterName string
-	VPCID       string
-	SubnetID    string
+	ClusterID        uint
+	ClusterName      string
+	VPCID            string
+	AvailabilityZone string
+}
+
+// CreateVpcActivityOutput holds the output data of the CreateVpcActivity
+type CreateVpcActivityOutput struct {
+	VpcID               string
+	RouteTableID        string
+	SecurityGroupID     string
+	NodeSecurityGroupID string
+	StackID             string
 }
 
 func (a *CreateVPCActivity) Execute(ctx context.Context, input CreateVPCActivityInput) (string, error) {
@@ -77,8 +86,8 @@ func (a *CreateVPCActivity) Execute(ctx context.Context, input CreateVPCActivity
 				ParameterValue: aws.String(input.VPCID),
 			},
 			{
-				ParameterKey:   aws.String("Subnets"),
-				ParameterValue: aws.String(input.SubnetID),
+				ParameterKey:   aws.String("AvailabilityZoneName"),
+				ParameterValue: aws.String(input.AvailabilityZone),
 			},
 		},
 		Tags: amazon.PipelineTags(),

@@ -47,7 +47,6 @@ func NewCreateMasterActivity(clusters Clusters, tokenGenerator TokenGenerator, c
 
 type CreateMasterActivityInput struct {
 	ClusterID                 uint
-	AvailabilityZone          string
 	VPCID                     string
 	VPCDefaultSecurityGroupID string
 	SubnetID                  string
