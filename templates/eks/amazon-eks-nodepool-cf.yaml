@@ -79,7 +79,7 @@ Parameters:
 
   NodeImageId:
       Type: String
-      Description: (Optional) Specify your own custom image ID. This value overrides any AWS Systems Manager Parameter Store value specified above.
+      Description: Specify your own custom image ID. This value overrides any AWS Systems Manager Parameter Store value specified above.
 
   NodeInstanceType:
     Description: EC2 instance type for the node instances
