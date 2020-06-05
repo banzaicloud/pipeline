@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strconv"
+	"strings"
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
@@ -51,7 +52,7 @@ type CreateWorkerPoolActivityInput struct {
 	Pool                      NodePool
 	VPCID                     string
 	VPCDefaultSecurityGroupID string
-	SubnetID                  string
+	SubnetID                  []string
 	WorkerInstanceProfile     string
 	ClusterSecurityGroup      string
 	ExternalBaseUrl           string
@@ -129,11 +130,6 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		desired = input.Pool.MaxCount
 	}
 
-	subnetID := input.SubnetID
-	if len(input.Pool.Subnets) > 0 {
-		subnetID = input.Pool.Subnets[0]
-	}
-
 	stackInput := &cloudformation.CreateStackInput{
 		StackName:    aws.String(stackName),
 		TemplateBody: aws.String(string(buf)),
@@ -165,7 +161,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 			},
 			{
 				ParameterKey:   aws.String("SubnetIds"),
-				ParameterValue: &subnetID,
+				ParameterValue: aws.String(strings.Join(input.SubnetID, ",")),
 			},
 			{
 				ParameterKey:   aws.String("IamInstanceProfile"),

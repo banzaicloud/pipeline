@@ -82,12 +82,12 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 		return nil, err
 	}
 
-	buf, err := ioutil.ReadFile("templates/pke/vpc.cf.yaml")
+	buf, err := ioutil.ReadFile("templates/pke/subnet.cf.yaml")
 	if err != nil {
 		return nil, errors.WrapIf(err, "loading CF template")
 	}
 
-	stackName := aws.String("pke-subnet-" + input.AvailabilityZone)
+	stackName := aws.String("pke-subnet-" + input.ClusterName + "-" + input.AvailabilityZone)
 
 	if input.Cidr != "" {
 		logger.Debug("creating subnet")

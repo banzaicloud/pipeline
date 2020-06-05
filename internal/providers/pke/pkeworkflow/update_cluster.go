@@ -196,7 +196,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 				WorkerInstanceProfile:     PkeGlobalStackName + "-worker-profile",
 				VPCID:                     input.VPCID,
 				VPCDefaultSecurityGroupID: vpcDefaultSecurityGroupID,
-				SubnetID:                  input.SubnetIDs[0],
+				SubnetID:                  input.SubnetIDs,
 				ClusterSecurityGroup:      clusterSecurityGroup,
 				ExternalBaseUrl:           input.PipelineExternalURL,
 				ExternalBaseUrlInsecure:   input.PipelineExternalURLInsecure,

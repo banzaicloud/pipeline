@@ -16,7 +16,6 @@ package pkeworkflow
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -256,10 +255,9 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 	}
 
 	// Create subnets map nodepools with subnet?
-
+	// We need a Zone - SubnetID map
+	subnetIDMap := make(map[string]string)
 	{
-		// We need a Zone - SubnetID map
-		subnetIDMap := make(map[string]string)
 		var createSubnetFutures []workflow.Future
 		for zone, ip := range availabilityZoneMap {
 			activityInput := CreateSubnetActivityInput{
@@ -317,12 +315,12 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 
 	multiMaster := master.MaxCount > 1
 
-	var masterNodeSubnetIDs []string
+	var subnetIDs []string
 	// We don't use ASG for master so only 1 subnet is available
 	for _, subnetID := range subnetIDMap {
-		masterNodeSubnetIDs = append(masterNodeSubnetIDs, subnetID)
+		subnetIDs = append(subnetIDs, subnetID)
 	}
-	masterNodeSubnetID := masterNodeSubnetIDs[0]
+	masterNodeSubnetID := subnetIDs[0]
 	if len(master.Subnets) > 0 {
 		masterNodeSubnetID = master.Subnets[0]
 	}
@@ -347,7 +345,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 			ClusterID:        input.ClusterID,
 			ClusterName:      input.ClusterName,
 			VPCID:            vpcOutput["VpcId"],
-			SubnetIds:        masterNodeSubnetIDs,
+			SubnetIds:        subnetIDs,
 		}
 
 		err := workflow.ExecuteActivity(ctx, CreateNLBActivityName, activityInput).Get(ctx, &activityOutput)
@@ -381,7 +379,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 			ClusterID:       input.ClusterID,
 			APISeverAddress: externalAddress,
 			VPCID:           vpcOutput["VpcId"],
-			Subnets:         vpcOutput["SubnetIds"],
+			Subnets:         subnetIDs,
 		}
 		err := workflow.ExecuteActivity(ctx, UpdateClusterNetworkActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
@@ -438,15 +436,17 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 
 		for i, np := range nodePools {
 			if !np.Master {
-				subnetID := strings.Split(vpcOutput["SubnetIds"], ",")[0]
-
+				var subnetIDs []string
+				for _, az := range np.AvailabilityZones {
+					subnetIDs = append(subnetIDs, subnetIDMap[az])
+				}
 				createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
 					ClusterID:                 input.ClusterID,
 					Pool:                      np,
 					WorkerInstanceProfile:     rolesOutput["WorkerInstanceProfile"],
 					VPCID:                     vpcOutput["VpcId"],
 					VPCDefaultSecurityGroupID: vpcDefaultSecurityGroupID,
-					SubnetID:                  subnetID,
+					SubnetID:                  subnetIDs,
 					ClusterSecurityGroup:      masterOutput["ClusterSecurityGroup"],
 					ExternalBaseUrl:           input.PipelineExternalURL,
 					ExternalBaseUrlInsecure:   input.PipelineExternalURLInsecure,
