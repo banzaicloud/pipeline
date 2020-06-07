@@ -80,6 +80,7 @@ func (n nodePoolManager) UpdateNodePool(
 				PodSelector: nodePoolUpdate.Options.Drain.PodSelector,
 			},
 		},
+		ClusterTags: c.Tags,
 	}
 
 	e, err := n.workflowClient.StartWorkflow(ctx, workflowOptions, eksworkflow.UpdateNodePoolWorkflowName, input)

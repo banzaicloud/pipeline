@@ -63,6 +63,7 @@ type UpdateAsgActivityInput struct {
 	NodeImage        string
 	NodeInstanceType string
 	Labels           map[string]string
+	Tags             map[string]string
 }
 
 // UpdateAsgActivityOutput holds the output data of the UpdateAsgActivityOutput
@@ -169,7 +170,7 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		terminationDetachEnabled = true
 	}
 
-	tags := getNodePoolStackTags(input.ClusterName)
+	tags := getNodePoolStackTags(input.ClusterName, input.Tags)
 
 	nodeLabels := []string{
 		fmt.Sprintf("%v=%v", cluster.NodePoolNameLabelKey, input.Name),

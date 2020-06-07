@@ -53,6 +53,7 @@ type ClusterModel struct {
 	OidcEnabled    bool         `gorm:"default:false;not null"`
 	StatusMessage  string       `sql:"type:text;"`
 	ScaleOptions   ScaleOptions `gorm:"foreignkey:ClusterID"`
+	Tags           []ClusterTag `gorm:"foreignkey:ClusterID"`
 }
 
 // TableName changes the default table name.

@@ -24,6 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
@@ -152,6 +153,16 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 		},
 		PostHooks:        createRequest.PostHooks,
 		OrganizationName: org.Name,
+	}
+
+	if modelCluster.Cluster.Tags != nil {
+		tags := make(map[string]string, 0)
+		for _, tag := range modelCluster.Cluster.Tags {
+			tags[tag.Key] = tag.Value
+		}
+		if len(tags) > 0 {
+			input.Tags = tags
+		}
 	}
 
 	for _, mode := range modelCluster.APIServerAccessPoints {
@@ -465,6 +476,24 @@ func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, logger 
 		if r.Properties.CreateClusterEKS.RouteTableId != "" {
 			return errors.New("Route Table ID should be provided only when VPC ID and CIDR for Subnets are specified")
 		}
+	}
+
+	tagValidationErrs := make([]error, 0)
+	if r.Properties.CreateClusterEKS.Tags != nil {
+		for k, v := range r.Properties.CreateClusterEKS.Tags {
+			tag := &cloudformation.Tag{
+				Key:   aws.String(k),
+				Value: aws.String(v),
+			}
+			err := tag.Validate()
+			if err != nil {
+				tagValidationErrs = append(tagValidationErrs, errors.WrapIff(err, "invalid cluster tag %v", k))
+			}
+		}
+	}
+
+	if err := errors.Combine(tagValidationErrs...); err != nil {
+		return err
 	}
 
 	return nil

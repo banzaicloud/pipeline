@@ -23,7 +23,6 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"go.uber.org/cadence/activity"
@@ -49,6 +48,7 @@ type CreateEksControlPlaneActivityInput struct {
 	SecurityGroupID       string
 	LogTypes              []string
 	Subnets               []Subnet
+	Tags                  map[string]string
 }
 
 // CreateEksControlPlaneActivityOutput holds the output data of the CreateEksControlPlaneActivityOutput
@@ -143,6 +143,9 @@ func (a *CreateEksControlPlaneActivity) Execute(ctx context.Context, input Creat
 		tags := make(map[string]*string)
 		for _, pipTag := range internalAmazon.PipelineTags() {
 			tags[aws.StringValue(pipTag.Key)] = pipTag.Value
+		}
+		for k, v := range input.Tags {
+			tags[k] = &v
 		}
 
 		requestToken := generateRequestToken(input.AWSClientRequestTokenBase, CreateEksControlPlaneActivityName)

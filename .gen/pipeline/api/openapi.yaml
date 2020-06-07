@@ -23058,6 +23058,11 @@ components:
             - public
             type: string
           type: array
+        tags:
+          additionalProperties:
+            example: '{"customTagKey":"customTagValue"}'
+            type: string
+          type: object
       required:
       - nodePools
     CreateACKProperties_ack:

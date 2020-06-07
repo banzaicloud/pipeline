@@ -59,6 +59,7 @@ type ClusterModel struct {
 	Kubernetes     kubernetesadapter.KubernetesClusterModel `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
 	CreatedBy      uint
+	Tags           []clustermodel.ClusterTag `gorm:"foreignkey:ClusterID"`
 }
 
 // TableName sets ClusterModel's table name

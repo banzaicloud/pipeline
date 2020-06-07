@@ -30,6 +30,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		&ClusterModel{},
 		&ScaleOptions{},
 		&StatusHistoryModel{},
+		&ClusterTag{},
 	}
 
 	var tableNames string

@@ -40,15 +40,23 @@ type AWSSessionFactory interface {
 // getStackTags returns the tags that are placed onto CF template stacks.
 // These tags  are propagated onto the resources created by the CF template.
 // TODO: move these to a better place
-func getStackTags(clusterName, stackType string) []*cloudformation.Tag {
-	return append([]*cloudformation.Tag{
+func getStackTags(clusterName, stackType string, clusterTags map[string]string) []*cloudformation.Tag {
+	tags := append([]*cloudformation.Tag{
 		{Key: aws.String("banzaicloud-pipeline-cluster-name"), Value: aws.String(clusterName)},
 		{Key: aws.String("banzaicloud-pipeline-stack-type"), Value: aws.String(stackType)},
 	}, internalAmazon.PipelineTags()...)
+
+	for k, v := range clusterTags {
+		tags = append(tags, &cloudformation.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		})
+	}
+	return tags
 }
 
-func getNodePoolStackTags(clusterName string) []*cloudformation.Tag {
-	return getStackTags(clusterName, "nodepool")
+func getNodePoolStackTags(clusterName string, clusterTags map[string]string) []*cloudformation.Tag {
+	return getStackTags(clusterName, "nodepool", clusterTags)
 }
 
 // ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure

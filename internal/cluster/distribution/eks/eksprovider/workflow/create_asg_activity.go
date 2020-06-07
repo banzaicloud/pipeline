@@ -63,6 +63,7 @@ type CreateAsgActivityInput struct {
 	SecurityGroupID     string
 	NodeSecurityGroupID string
 	NodeInstanceRoleID  string
+	Tags                map[string]string
 }
 
 // CreateAsgActivityOutput holds the output data of the CreateAsgActivityOutput
@@ -114,7 +115,7 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		terminationDetachEnabled = true
 	}
 
-	tags := getNodePoolStackTags(input.ClusterName)
+	tags := getNodePoolStackTags(input.ClusterName, input.Tags)
 	var stackParams []*cloudformation.Parameter
 
 	// do not update node labels via kubelet boostrap params as that induces node reboot or replacement

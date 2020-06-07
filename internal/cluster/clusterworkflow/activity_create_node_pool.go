@@ -102,7 +102,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 
 		err = a.db.
 			Where(eksmodel.EKSClusterModel{ClusterID: c.ID}).
-			Preload("Subnets").
+			Preload("Subnets").Preload("Cluster.Tags").
 			First(&eksCluster).Error
 		if gorm.IsRecordNotFoundError(err) {
 			return cadence.NewClientError(errors.NewWithDetails(
@@ -116,6 +116,14 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 				"clusterId", c.ID,
 				"nodePoolName", nodePool.Name,
 			)
+		}
+
+		var clusterTags map[string]string
+		if eksCluster.Cluster.Tags != nil {
+			clusterTags = make(map[string]string, len(eksCluster.Cluster.Tags))
+			for _, tag := range eksCluster.Cluster.Tags {
+				clusterTags[tag.Key] = tag.Value
+			}
 		}
 
 		minSize := nodePool.Size
@@ -175,6 +183,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			NodeImage:        nodePool.Image,
 			NodeInstanceType: nodePool.InstanceType,
 			Labels:           nodePool.Labels,
+			Tags:             clusterTags,
 		}
 
 		var eksConfig = global.Config.Distribution.EKS
