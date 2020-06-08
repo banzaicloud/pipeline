@@ -310,7 +310,13 @@ func (r releaser) Get(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.K
 }
 
 func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) (helm.Release, error) {
+	// this is the value coming from env settings in the CLI
 	ns := "default"
+
+	if releaseInput.Namespace != "" {
+		ns = releaseInput.Namespace
+	}
+
 	if options.Namespace != "" {
 		ns = options.Namespace
 	}
