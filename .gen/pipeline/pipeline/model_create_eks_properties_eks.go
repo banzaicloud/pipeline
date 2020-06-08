@@ -31,5 +31,6 @@ type CreateEksPropertiesEks struct {
 	// List of access point types for the API server; public and private are the only valid values
 	ApiServerAccessPoints []string `json:"apiServerAccessPoints,omitempty"`
 
+	// User definied tags to be added to created AWS resources
 	Tags map[string]string `json:"tags,omitempty"`
 }
