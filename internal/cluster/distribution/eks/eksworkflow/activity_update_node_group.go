@@ -57,6 +57,8 @@ type UpdateNodeGroupActivityInput struct {
 
 	NodeImage       string
 	DesiredCapacity int64
+
+	MaxBatchSize int
 }
 
 type UpdateNodeGroupActivityOutput struct {
@@ -177,6 +179,20 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 
 		if input.DesiredCapacity > 0 {
 			param.ParameterValue = aws.String(fmt.Sprintf("%d", input.DesiredCapacity))
+		} else {
+			param.UsePreviousValue = aws.Bool(true)
+		}
+
+		stackParams = append(stackParams, param)
+	}
+
+	{
+		param := &cloudformation.Parameter{
+			ParameterKey: aws.String("NodeAutoScalingGroupMaxBatchSize"),
+		}
+
+		if input.MaxBatchSize > 0 {
+			param.ParameterValue = aws.String(fmt.Sprintf("%d", input.MaxBatchSize))
 		} else {
 			param.UsePreviousValue = aws.Bool(true)
 		}

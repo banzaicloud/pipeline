@@ -90,7 +90,7 @@ func (n *API) Create(c *gin.Context) {
 		return
 	}
 
-	targetClusterStatus, err := n.deploymentManager.CreateDeployment(clusterGroup, organization.Name, deployment)
+	targetClusterStatus, err := n.deploymentManager.CreateDeployment(clusterGroup, organization.ID, organization.Name, deployment)
 	if err != nil {
 		n.errorHandler.Handle(c, err)
 		return

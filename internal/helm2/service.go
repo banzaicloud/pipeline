@@ -288,6 +288,15 @@ func (s *LegacyHelmService) ApplyDeployment(
 	return nil
 }
 
+func (s *LegacyHelmService) ApplyDeploymentV3(
+	ctx context.Context,
+	clusterID uint,
+	release internalhelm.Release,
+	options internalhelm.Options,
+) error {
+	return errors.New("not implemented for v2")
+}
+
 // DeleteDeployment deletes a deployment from a specific cluster.
 func (s *LegacyHelmService) DeleteDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) error {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"release": releaseName})
@@ -351,6 +360,7 @@ func findRelease(releaseName string, k8sConfig []byte) (*release.Release, error)
 }
 
 func (s *LegacyHelmService) InstallOrUpgrade(
+	orgID uint,
 	c internalhelm.ClusterDataProvider,
 	release internalhelm.Release,
 	opts internalhelm.Options,

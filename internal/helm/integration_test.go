@@ -41,8 +41,9 @@ type Values struct {
 }
 
 const (
-	v2 = false
-	v3 = true
+	v2      = false
+	v3      = true
+	noOrgID = 0 // implicitly means platform helm env
 )
 
 var clusterId = uint(123) //nolint:gochecknoglobals
@@ -180,6 +181,7 @@ func testDeleteChart(helmService helm.UnifiedReleaser, kubeConfig []byte, testNa
 func testCreateChart(helmService helm.UnifiedReleaser, kubeConfig []byte, testNamespace string) func(*testing.T) {
 	return func(t *testing.T) {
 		err := helmService.InstallOrUpgrade(
+			noOrgID,
 			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: clusterId},
 			helm.Release{
 				ReleaseName: "chartmuseum",
@@ -215,6 +217,7 @@ func testUpgradeChart(helmService helm.UnifiedReleaser, kubeConfig []byte, testN
 		}
 
 		err = helmService.InstallOrUpgrade(
+			noOrgID,
 			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: clusterId},
 			helm.Release{
 				ReleaseName: "chartmuseum",
@@ -251,6 +254,7 @@ func testUpgradeFailedChart(helmService helm.UnifiedReleaser, kubeConfig []byte,
 		}
 
 		err = helmService.InstallOrUpgrade(
+			noOrgID,
 			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: clusterId},
 			helm.Release{
 				ReleaseName: "chartmuseum",
@@ -271,6 +275,7 @@ func testUpgradeFailedChart(helmService helm.UnifiedReleaser, kubeConfig []byte,
 
 		// restore with original values
 		err = helmService.InstallOrUpgrade(
+			noOrgID,
 			&internaltesting.ClusterData{K8sConfig: kubeConfig, ID: clusterId},
 			helm.Release{
 				ReleaseName: "chartmuseum",

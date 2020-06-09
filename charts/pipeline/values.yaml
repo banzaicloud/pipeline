@@ -19,7 +19,7 @@ hostAliases: []
 
 image:
   repository: banzaicloud/pipeline
-  tag: 0.40.0
+  tag: 0.45.0
   pullPolicy: IfNotPresent
 
 resources:

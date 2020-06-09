@@ -21,6 +21,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
+
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -145,6 +147,15 @@ func (dummyEndpointService) GetServiceURL(kubeConfig []byte, serviceName string,
 }
 
 type dummyHelmService struct{}
+
+func (d dummyHelmService) ApplyDeploymentV3(
+	ctx context.Context,
+	clusterID uint,
+	release internalhelm.Release,
+	options internalhelm.Options,
+) error {
+	return nil
+}
 
 func (d dummyHelmService) ApplyDeployment(
 	ctx context.Context,

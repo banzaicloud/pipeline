@@ -66,6 +66,7 @@ func (m *MeshReconciler) installNodeExporter(c cluster.CommonCluster) error {
 	nodeExporterConfig := m.Configuration.internalConfig.Charts.NodeExporter
 
 	err = m.helmService.InstallOrUpgrade(
+		noOrgID,
 		c,
 		helm.Release{
 			ReleaseName: nodeExporterReleaseName,

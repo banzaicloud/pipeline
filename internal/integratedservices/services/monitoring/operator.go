@@ -25,15 +25,15 @@ import (
 	"k8s.io/api/storage/v1beta1"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/any"
 	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/src/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -335,24 +335,26 @@ func (op IntegratedServiceOperator) installPrometheusOperator(
 	if op.migrator != nil {
 		release, err := op.helmService.GetDeployment(ctx, cluster.GetID(), prometheusOperatorReleaseName, op.config.Namespace)
 		if err != nil {
-			return err
-		}
-
-		k8sClientFactory := func() (kubernetes.Interface, error) {
-			kubeConfig, err := cluster.GetK8sConfig()
-			if err != nil {
-				return nil, err
+			if !helm.ErrReleaseNotFound(err) {
+				return err
 			}
-			client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-			if err != nil {
-				return nil, err
+		} else {
+			k8sClientFactory := func() (kubernetes.Interface, error) {
+				kubeConfig, err := cluster.GetK8sConfig()
+				if err != nil {
+					return nil, err
+				}
+				client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+				if err != nil {
+					return nil, err
+				}
+				return client, nil
 			}
-			return client, nil
-		}
 
-		err = op.migrator(k8sClientFactory, op.config.Namespace, release.ChartVersion, op.config.Charts.Operator.Version)
-		if err != nil {
-			return err
+			err = op.migrator(k8sClientFactory, op.config.Namespace, release.ChartVersion, op.config.Charts.Operator.Version)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

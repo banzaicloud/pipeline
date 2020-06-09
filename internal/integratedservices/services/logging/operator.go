@@ -26,6 +26,8 @@ import (
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/banzaicloud/pipeline/internal/helm"
+
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -415,6 +417,27 @@ func (op IntegratedServiceOperator) installLoggingOperator(ctx context.Context, 
 		return errors.WrapIf(err, "failed to merge operator values with config")
 	}
 
+	values, err := helm.ConvertBytes(valuesBytes)
+	if err != nil {
+		return err
+	}
+
+	if op.helmService.IsV3() {
+		// used a custom method here because we needed SkipCRDs: true
+		// but wanted to avoid a change in all services
+		return op.helmService.ApplyDeploymentV3(
+			ctx, clusterID, helm.Release{
+				ReleaseName: loggingOperatorReleaseName,
+				ChartName:   op.config.Charts.Operator.Chart,
+				Namespace:   op.config.Namespace,
+				Values:      values,
+				Version:     op.config.Charts.Operator.Version,
+			}, helm.Options{
+				Namespace: op.config.Namespace,
+				Install:   true,
+				SkipCRDs:  true,
+			})
+	}
 	return op.helmService.ApplyDeployment(
 		ctx,
 		clusterID,

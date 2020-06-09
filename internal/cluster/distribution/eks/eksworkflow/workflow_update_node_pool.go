@@ -22,6 +22,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 	"github.com/banzaicloud/pipeline/pkg/sdk/cadence/lib/pipeline/processlog"
 )
@@ -52,6 +53,8 @@ type UpdateNodePoolWorkflowInput struct {
 	NodePoolName    string
 
 	NodeImage string
+
+	Options eks.NodePoolUpdateOptions
 }
 
 func (w UpdateNodePoolWorkflow) Register() {
@@ -125,6 +128,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			NodePoolName:    input.NodePoolName,
 			NodePoolVersion: nodePoolVersion,
 			NodeImage:       input.NodeImage,
+			MaxBatchSize:    input.Options.MaxBatchSize,
 		}
 
 		activityOptions := activityOptions

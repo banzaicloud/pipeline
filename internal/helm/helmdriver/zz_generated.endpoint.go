@@ -445,13 +445,14 @@ func MakeGetReleaseResourcesEndpoint(service helm.Service) endpoint.Endpoint {
 type InstallReleaseRequest struct {
 	OrganizationID uint
 	ClusterID      uint
-	Release        helm.Release
+	ReleaseInput   helm.Release
 	Options        helm.Options
 }
 
 // InstallReleaseResponse is a response struct for InstallRelease endpoint.
 type InstallReleaseResponse struct {
-	Err error
+	Release helm.Release
+	Err     error
 }
 
 func (r InstallReleaseResponse) Failed() error {
@@ -463,17 +464,23 @@ func MakeInstallReleaseEndpoint(service helm.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(InstallReleaseRequest)
 
-		err := service.InstallRelease(ctx, req.OrganizationID, req.ClusterID, req.Release, req.Options)
+		release, err := service.InstallRelease(ctx, req.OrganizationID, req.ClusterID, req.ReleaseInput, req.Options)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
-				return InstallReleaseResponse{Err: err}, nil
+				return InstallReleaseResponse{
+					Err:     err,
+					Release: release,
+				}, nil
 			}
 
-			return InstallReleaseResponse{Err: err}, err
+			return InstallReleaseResponse{
+				Err:     err,
+				Release: release,
+			}, err
 		}
 
-		return InstallReleaseResponse{}, nil
+		return InstallReleaseResponse{Release: release}, nil
 	}
 }
 
@@ -674,13 +681,14 @@ func MakeUpdateRepositoryEndpoint(service helm.Service) endpoint.Endpoint {
 type UpgradeReleaseRequest struct {
 	OrganizationID uint
 	ClusterID      uint
-	Release        helm.Release
+	ReleaseInput   helm.Release
 	Options        helm.Options
 }
 
 // UpgradeReleaseResponse is a response struct for UpgradeRelease endpoint.
 type UpgradeReleaseResponse struct {
-	Err error
+	Release helm.Release
+	Err     error
 }
 
 func (r UpgradeReleaseResponse) Failed() error {
@@ -692,16 +700,22 @@ func MakeUpgradeReleaseEndpoint(service helm.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(UpgradeReleaseRequest)
 
-		err := service.UpgradeRelease(ctx, req.OrganizationID, req.ClusterID, req.Release, req.Options)
+		release, err := service.UpgradeRelease(ctx, req.OrganizationID, req.ClusterID, req.ReleaseInput, req.Options)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
-				return UpgradeReleaseResponse{Err: err}, nil
+				return UpgradeReleaseResponse{
+					Err:     err,
+					Release: release,
+				}, nil
 			}
 
-			return UpgradeReleaseResponse{Err: err}, err
+			return UpgradeReleaseResponse{
+				Err:     err,
+				Release: release,
+			}, err
 		}
 
-		return UpgradeReleaseResponse{}, nil
+		return UpgradeReleaseResponse{Release: release}, nil
 	}
 }
