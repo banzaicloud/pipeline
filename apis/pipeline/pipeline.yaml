@@ -4680,7 +4680,7 @@ components:
                                 type: string
                                 example:
                                     customTagKey: customTagValue
-                            description: User definied tags to be added to created AWS resources
+                            description: User definied tags to be added to created AWS resources. Empty keys and values are not permitted.
         CreateACKProperties:
             type: object
             required:

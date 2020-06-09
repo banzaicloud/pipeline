@@ -53,7 +53,7 @@ func (s Store) GetCluster(ctx context.Context, id uint) (cluster.Cluster, error)
 
 func clusterModelToEntity(m *model.ClusterModel) cluster.Cluster {
 	var tags map[string]string
-	if m.Tags != nil {
+	if len(m.Tags) > 0 {
 		tags = make(map[string]string, len(m.Tags))
 		for _, tag := range m.Tags {
 			tags[tag.Key] = tag.Value

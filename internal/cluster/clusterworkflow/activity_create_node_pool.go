@@ -119,7 +119,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 		}
 
 		var clusterTags map[string]string
-		if eksCluster.Cluster.Tags != nil {
+		if len(eksCluster.Cluster.Tags) > 0 {
 			clusterTags = make(map[string]string, len(eksCluster.Cluster.Tags))
 			for _, tag := range eksCluster.Cluster.Tags {
 				clusterTags[tag.Key] = tag.Value

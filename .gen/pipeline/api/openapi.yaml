@@ -23062,7 +23062,8 @@ components:
           additionalProperties:
             example: '{"customTagKey":"customTagValue"}'
             type: string
-          description: User definied tags to be added to created AWS resources
+          description: User definied tags to be added to created AWS resources. Empty
+            keys and values are not permitted.
           type: object
       required:
       - nodePools
