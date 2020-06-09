@@ -83,6 +83,10 @@ func (r releaser) Install(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 
 	installAction := action.NewInstall(actionConfig)
 	installAction.Namespace = ns
+	// TODO the generate name is already coded into the options; revisit this after h2 is removed
+	if releaseInput.ReleaseName == "" {
+		installAction.GenerateName = true
+	}
 
 	name, chartRef, err := installAction.NameAndChart(releaseInput.NameAndChartSlice())
 	if err != nil {
@@ -310,7 +314,13 @@ func (r releaser) Get(_ context.Context, helmEnv helm.HelmEnv, kubeConfig helm.K
 }
 
 func (r releaser) Upgrade(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig helm.KubeConfigBytes, releaseInput helm.Release, options helm.Options) (helm.Release, error) {
+	// this is the value coming from env settings in the CLI
 	ns := "default"
+
+	if releaseInput.Namespace != "" {
+		ns = releaseInput.Namespace
+	}
+
 	if options.Namespace != "" {
 		ns = options.Namespace
 	}
