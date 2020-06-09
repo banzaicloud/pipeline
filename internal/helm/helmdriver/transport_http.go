@@ -25,6 +25,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mitchellh/mapstructure"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
+	"helm.sh/helm/v3/pkg/chartutil"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/helm"
@@ -515,6 +516,8 @@ func encodeGetReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter, re
 		return errors.WrapIf(release.Err, "failed to retrieve releases")
 	}
 
+	mergedValues := chartutil.CoalesceTables(release.R0.Values, release.R0.ReleaseInfo.Values)
+
 	resp := pipeline.GetDeploymentResponse{
 		ReleaseName:  release.R0.ReleaseName,
 		Chart:        release.R0.ChartName, // TODO what's this
@@ -526,7 +529,7 @@ func encodeGetReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter, re
 		Status:       release.R0.ReleaseInfo.Status,
 		CreatedAt:    release.R0.ReleaseInfo.FirstDeployed.String(),
 		Notes:        release.R0.ReleaseInfo.Notes,
-		Values:       release.R0.Values,
+		Values:       mergedValues,
 	}
 
 	return kitxhttp.JSONResponseEncoder(ctx, w, resp)
