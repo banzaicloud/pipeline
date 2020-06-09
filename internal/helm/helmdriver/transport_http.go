@@ -170,6 +170,7 @@ func decodeInstallReleaseHTTPRequest(_ context.Context, r *http.Request) (interf
 			ChartName:   request.Name,
 			Namespace:   request.Namespace,
 			Values:      request.Values,
+			Version:     request.Version,
 		},
 		Options: helm.Options{
 			DryRun:       request.DryRun,
