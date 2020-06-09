@@ -83,6 +83,7 @@ func (r releaser) Install(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 
 	installAction := action.NewInstall(actionConfig)
 	installAction.Namespace = ns
+	// TODO the generate name is already coded into the options; revisit this after h2 is removed
 	if releaseInput.ReleaseName == "" {
 		installAction.GenerateName = true
 	}
