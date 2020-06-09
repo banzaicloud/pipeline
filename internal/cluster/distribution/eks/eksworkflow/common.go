@@ -41,17 +41,17 @@ type AWSSessionFactory interface {
 // These tags  are propagated onto the resources created by the CF template.
 // TODO: move these to a better place
 func getStackTags(clusterName, stackType string, clusterTags map[string]string) []*cloudformation.Tag {
-	tags := append([]*cloudformation.Tag{
-		{Key: aws.String("banzaicloud-pipeline-cluster-name"), Value: aws.String(clusterName)},
-		{Key: aws.String("banzaicloud-pipeline-stack-type"), Value: aws.String(stackType)},
-	}, internalAmazon.PipelineTags()...)
-
+	tags := make([]*cloudformation.Tag, 0)
 	for k, v := range clusterTags {
 		tags = append(tags, &cloudformation.Tag{
 			Key:   aws.String(k),
 			Value: aws.String(v),
 		})
 	}
+	tags = append([]*cloudformation.Tag{
+		{Key: aws.String("banzaicloud-pipeline-cluster-name"), Value: aws.String(clusterName)},
+		{Key: aws.String("banzaicloud-pipeline-stack-type"), Value: aws.String(stackType)},
+	}, internalAmazon.PipelineTags()...)
 	return tags
 }
 
