@@ -70,11 +70,13 @@ services:
         image: banzaicloud/dex-shim:0.6.0
         command: serve /dex.yml
         restart: on-failure
+        depends_on:
+            - mysql
         volumes:
             - ./etc/config/dex.yml:/dex.yml
 
     cadence:
-        image: ubercadence/server:0.7.1-auto-setup
+        image: ubercadence/server:0.9.0-auto-setup
         environment:
             LOG_LEVEL: debug,info
             DB: mysql
