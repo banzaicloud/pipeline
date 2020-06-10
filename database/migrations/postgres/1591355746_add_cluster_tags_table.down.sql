@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS "public"."cluster_tags";
+ALTER TABLE "clusters" DROP COLUMN  "tags";

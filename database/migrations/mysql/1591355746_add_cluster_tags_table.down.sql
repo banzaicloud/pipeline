@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS `cluster_tags`;
+ALTER TABLE `clusters` DROP COLUMN `tags`;

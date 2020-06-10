@@ -26,7 +26,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
-
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh"
@@ -150,16 +149,10 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 			KubernetesVersion:  modelCluster.Version,
 			LogTypes:           modelCluster.LogTypes,
 			UseGeneratedSSHKey: modelCluster.SSHGenerated,
+			Tags:               modelCluster.Cluster.Tags,
 		},
 		PostHooks:        createRequest.PostHooks,
 		OrganizationName: org.Name,
-	}
-
-	if l := len(modelCluster.Cluster.Tags); l > 0 {
-		input.Tags = make(map[string]string, l)
-		for _, tag := range modelCluster.Cluster.Tags {
-			input.Tags[tag.Key] = tag.Value
-		}
 	}
 
 	for _, mode := range modelCluster.APIServerAccessPoints {

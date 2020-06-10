@@ -16,6 +16,7 @@ package model
 
 import (
 	"bytes"
+	"database/sql/driver"
 	"fmt"
 	"time"
 
@@ -29,6 +30,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
+	"github.com/banzaicloud/pipeline/internal/database/sql/json"
 )
 
 const unknown = "unknown"
@@ -59,8 +61,10 @@ type ClusterModel struct {
 	Kubernetes     kubernetesadapter.KubernetesClusterModel `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
 	CreatedBy      uint
-	Tags           []clustermodel.ClusterTag `gorm:"foreignkey:ClusterID"`
+	Tags           ClusterTags `gorm:"type:json"`
 }
+
+type ClusterTags map[string]string
 
 // TableName sets ClusterModel's table name
 func (ClusterModel) TableName() string {
@@ -172,4 +176,12 @@ func (cs *ClusterModel) UpdateConfigSecret(configSecretId string) error {
 func (cs *ClusterModel) UpdateSshSecret(sshSecretId string) error {
 	cs.SshSecretId = sshSecretId
 	return cs.Save()
+}
+
+func (fs *ClusterTags) Scan(src interface{}) error {
+	return json.Scan(src, fs)
+}
+
+func (fs ClusterTags) Value() (driver.Value, error) {
+	return json.Value(fs)
 }

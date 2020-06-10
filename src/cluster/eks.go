@@ -85,14 +85,7 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 	}
 
 	if request.Properties.CreateClusterEKS.Tags != nil {
-		clusterTags := make([]clustermodel.ClusterTag, 0)
-		for k, v := range request.Properties.CreateClusterEKS.Tags {
-			clusterTags = append(clusterTags, clustermodel.ClusterTag{
-				Key:   k,
-				Value: v,
-			})
-		}
-		cluster.model.Cluster.Tags = clusterTags
+		cluster.model.Cluster.Tags = request.Properties.CreateClusterEKS.Tags
 	}
 
 	updateScaleOptions(&cluster.model.Cluster.ScaleOptions, request.ScaleOptions)
@@ -323,7 +316,7 @@ func CreateEKSClusterFromModel(clusterModel *model.ClusterModel) (*EKSCluster, e
 		ClusterID: clusterModel.ID,
 	}
 
-	err := db.Where(m).Preload("Cluster").Preload("NodePools").Preload("Subnets").Preload("Cluster.ScaleOptions").Preload("Cluster.Tags").First(&m).Error
+	err := db.Where(m).Preload("Cluster").Preload("NodePools").Preload("Subnets").Preload("Cluster.ScaleOptions").First(&m).Error
 	if err != nil {
 		return nil, err
 	}

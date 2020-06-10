@@ -15,9 +15,11 @@
 package clustermodel
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"time"
 
+	"github.com/banzaicloud/pipeline/internal/database/sql/json"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
@@ -53,8 +55,10 @@ type ClusterModel struct {
 	OidcEnabled    bool         `gorm:"default:false;not null"`
 	StatusMessage  string       `sql:"type:text;"`
 	ScaleOptions   ScaleOptions `gorm:"foreignkey:ClusterID"`
-	Tags           []ClusterTag `gorm:"foreignkey:ClusterID"`
+	Tags           ClusterTags `gorm:"type:json"`
 }
+
+type ClusterTags map[string]string
 
 // TableName changes the default table name.
 func (ClusterModel) TableName() string {
@@ -95,4 +99,12 @@ func (m ClusterModel) BeforeDelete(tx *gorm.DB) (err error) {
 	}
 
 	return
+}
+
+func (fs *ClusterTags) Scan(src interface{}) error {
+	return json.Scan(src, fs)
+}
+
+func (fs ClusterTags) Value() (driver.Value, error) {
+	return json.Value(fs)
 }

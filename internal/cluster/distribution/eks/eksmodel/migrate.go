@@ -57,10 +57,5 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		return err
 	}
 
-	err = gormhelper.AddForeignKey(db, logger, &clustermodel.ClusterModel{}, &clustermodel.ClusterTag{}, "ClusterID")
-	if err != nil {
-		return err
-	}
-
 	return nil
 }

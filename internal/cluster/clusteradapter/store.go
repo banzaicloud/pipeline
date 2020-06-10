@@ -52,14 +52,6 @@ func (s Store) GetCluster(ctx context.Context, id uint) (cluster.Cluster, error)
 }
 
 func clusterModelToEntity(m *model.ClusterModel) cluster.Cluster {
-	var tags map[string]string
-	if len(m.Tags) > 0 {
-		tags = make(map[string]string, len(m.Tags))
-		for _, tag := range m.Tags {
-			tags[tag.Key] = tag.Value
-		}
-	}
-
 	return cluster.Cluster{
 		ID:             m.ID,
 		UID:            m.UID,
@@ -72,7 +64,7 @@ func clusterModelToEntity(m *model.ClusterModel) cluster.Cluster {
 		Location:       m.Location,
 		SecretID:       brn.New(m.OrganizationId, brn.SecretResourceType, m.SecretId),
 		ConfigSecretID: brn.New(m.OrganizationId, brn.SecretResourceType, m.ConfigSecretId),
-		Tags:           tags,
+		Tags:           m.Tags,
 	}
 }
 
