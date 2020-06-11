@@ -48,6 +48,9 @@ func registerAwsWorkflows(
 	createPKESubnetActivity := pkeworkflow.NewCreateSubnetActivity(awsClientFactory)
 	activity.RegisterWithOptions(createPKESubnetActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateSubnetActivityName})
 
+	deletePKESubnetActivity := pkeworkflow.NewDeleteSubnetActivity(clusters)
+	activity.RegisterWithOptions(deletePKESubnetActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteSubnetActivityName})
+
 	getVpcDefaultSecurityGroupActivity := pkeworkflow.NewGetVpcDefaultSecurityGroupActivity(awsClientFactory)
 	activity.RegisterWithOptions(getVpcDefaultSecurityGroupActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GetVpcDefaultSecurityGroupActivityName})
 

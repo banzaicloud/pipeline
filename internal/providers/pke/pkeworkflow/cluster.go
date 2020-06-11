@@ -41,6 +41,7 @@ type AWSCluster interface {
 	GetBootstrapCommand(string, string, bool, string) (string, error)
 	GetKubernetesVersion() (string, error)
 	GetKubernetesNetworkProvider() (string, error)
+	GetNetworkCloudProvider() (cloudProvider, vpcID string, subnets []string, err error)
 	SaveNetworkCloudProvider(string, string, []string) error
 	SaveNetworkApiServerAddress(string, string) error
 }

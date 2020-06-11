@@ -52,6 +52,18 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		return err
 	}
 
+	// Create availability zone set
+	// Collect relevant AZs from NodePools without subnets
+	availabilityZoneSet := make(map[string]bool)
+	for _, np := range nodePools {
+		// We only look AZ when no subnet is set
+		if len(np.Subnets) < 1 {
+			for _, az := range np.AvailabilityZones {
+				availabilityZoneSet[az] = true
+			}
+		}
+	}
+
 	// terminate worker nodes
 	{
 		futures := make([]workflow.Future, 0, len(nodePools))
@@ -164,6 +176,30 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	}
 	if err := workflow.ExecuteActivity(ctx, DeleteElasticIPActivityName, deleteElasticIPActivityInput).Get(ctx, nil); err != nil {
 		return err
+	}
+
+	// Remove subnets
+
+	{
+		var deleteSubnetFutures []workflow.Future
+		for zone, _ := range availabilityZoneSet {
+			activityInput := DeleteSubnetActivityInput{
+				ClusterID:        input.ClusterID,
+				AvailabilityZone: zone,
+			}
+			ctx := workflow.WithActivityOptions(ctx, ao)
+			deleteSubnetFutures = append(deleteSubnetFutures, workflow.ExecuteActivity(ctx, DeleteSubnetActivityName, activityInput))
+		}
+
+		// wait for info about newly created subnets
+		errs := make([]error, len(deleteSubnetFutures))
+		for i, future := range deleteSubnetFutures {
+			errs[i] = future.Get(ctx, nil)
+		}
+		if err := errors.Combine(errs...); err != nil {
+			return err
+		}
+
 	}
 
 	// remove vpc (if we created it)
