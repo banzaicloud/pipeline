@@ -24,13 +24,13 @@ import (
 	"github.com/gofrs/uuid"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
+	"github.com/banzaicloud/pipeline/internal/database/sql/json"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
-	"github.com/banzaicloud/pipeline/internal/database/sql/json"
 )
 
 const unknown = "unknown"

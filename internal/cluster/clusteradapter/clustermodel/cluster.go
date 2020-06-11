@@ -19,10 +19,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/banzaicloud/pipeline/internal/database/sql/json"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/internal/database/sql/json"
 
 	"github.com/banzaicloud/pipeline/src/secret"
 )
@@ -55,7 +56,7 @@ type ClusterModel struct {
 	OidcEnabled    bool         `gorm:"default:false;not null"`
 	StatusMessage  string       `sql:"type:text;"`
 	ScaleOptions   ScaleOptions `gorm:"foreignkey:ClusterID"`
-	Tags           ClusterTags `gorm:"type:json"`
+	Tags           ClusterTags  `gorm:"type:json"`
 }
 
 type ClusterTags map[string]string
