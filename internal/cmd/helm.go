@@ -108,3 +108,14 @@ func CreateReleaseDeleter(helmConfig helm.Config, db *gorm.DB, secretStore helma
 	logger.Debug("assembled helm 2 release deleter")
 	return helmadapter.NewHelm2ReleaseDeleter()
 }
+
+func NewEnsuringEnvResolver(helmConfig helm.Config, db *gorm.DB, secretStore helmadapter.SecretStore, logger helm.Logger) helm.EnvResolver {
+	repoStore := helmadapter.NewHelmRepoStore(db, logger)
+	secret := helmadapter.NewSecretStore(secretStore, logger)
+	envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(helmConfig.Repositories), secret, logger)
+	orgService := helmadapter.NewOrgService(logger)
+
+	helm2EnvResolver := helm.NewHelm2EnvResolver(helmConfig.Home, orgService, logger)
+
+	return helm.NewEnsuringEnvResolver(helm2EnvResolver, envService, repoStore, helmConfig.Repositories, logger)
+}

@@ -772,14 +772,20 @@ func main() {
 						// other version dependant operations
 						cRouter.GET("/endpoints", api.MakeEndpointLister(cs, helmFacade, logger).ListEndpoints)
 					} else {
-						cRouter.POST("/deployments", api.CreateDeployment)
-						cRouter.GET("/deployments", api.ListDeployments)
-						cRouter.GET("/deployments/:name", api.GetDeployment)
-						cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
-						cRouter.HEAD("/deployments/:name", api.HelmDeploymentStatus)
-						cRouter.HEAD("/deployments", api.GetTillerStatus)
-						cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
-						cRouter.GET("/deployments/:name/resources", api.GetDeploymentResources)
+						// set up the middleware for ensuring helm environments for orgs
+						ensuringHelmResolver := cmd.NewEnsuringEnvResolver(config.Helm, db, commonSecretStore, commonLogger)
+						helmEnvMW := helmadapter.NewHelmEnvEnsurerMiddleware(ensuringHelmResolver, commonLogger)
+
+						deploymentsRouter := cRouter.Group("/deployments")
+						deploymentsRouter.Use(helmEnvMW.Middleware)
+						deploymentsRouter.POST("", api.CreateDeployment)
+						deploymentsRouter.GET("", api.ListDeployments)
+						deploymentsRouter.GET(":name", api.GetDeployment)
+						deploymentsRouter.PUT(":name", api.UpgradeDeployment)
+						deploymentsRouter.HEAD(":name", api.HelmDeploymentStatus)
+						deploymentsRouter.HEAD("", api.GetTillerStatus)
+						deploymentsRouter.DELETE(":name", api.DeleteDeployment)
+						deploymentsRouter.GET(":name/resources", api.GetDeploymentResources)
 
 						// other version dependant operations
 						releaseChecker := api.NewReleaseChecker(cs)
