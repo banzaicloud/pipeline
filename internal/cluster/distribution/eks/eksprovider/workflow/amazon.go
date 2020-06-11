@@ -58,10 +58,11 @@ func getStackTags(clusterName, stackType string, customTagsMap map[string]string
 			Value: aws.String(v),
 		})
 	}
-	tags = append([]*cloudformation.Tag{
+	tags = append(tags, []*cloudformation.Tag{
 		{Key: aws.String("banzaicloud-pipeline-cluster-name"), Value: aws.String(clusterName)},
 		{Key: aws.String("banzaicloud-pipeline-stack-type"), Value: aws.String(stackType)},
-	}, internalAmazon.PipelineTags()...)
+	}...)
+	tags = append(tags, internalAmazon.PipelineTags()...)
 	return tags
 }
 
