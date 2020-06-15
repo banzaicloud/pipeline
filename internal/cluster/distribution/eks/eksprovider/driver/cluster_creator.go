@@ -469,7 +469,7 @@ func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, logger 
 		}
 	}
 
-	tagValidationErrs := make([]error, 0)
+	tagValidationErrs := make([]error, 0, len(r.Properties.CreateClusterEKS.Tags))
 	if r.Properties.CreateClusterEKS.Tags != nil {
 		for k, v := range r.Properties.CreateClusterEKS.Tags {
 			tag := &cloudformation.Tag{
