@@ -145,7 +145,7 @@ func (a *CreateEksControlPlaneActivity) Execute(ctx context.Context, input Creat
 			tags[aws.StringValue(pipTag.Key)] = pipTag.Value
 		}
 		for k, v := range input.Tags {
-			tags[k] = &v
+			tags[k] = aws.String(v)
 		}
 
 		requestToken := generateRequestToken(input.AWSClientRequestTokenBase, CreateEksControlPlaneActivityName)
