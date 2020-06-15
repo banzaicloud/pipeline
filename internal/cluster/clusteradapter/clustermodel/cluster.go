@@ -24,7 +24,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/database/sql/json"
-
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
