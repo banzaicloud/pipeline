@@ -176,6 +176,7 @@ func decodeInstallReleaseHTTPRequest(_ context.Context, r *http.Request) (interf
 			DryRun:       request.DryRun,
 			GenerateName: request.ReleaseName == "",
 			Wait:         request.Wait,
+			Namespace:    request.Namespace,
 		},
 	}, nil
 }
