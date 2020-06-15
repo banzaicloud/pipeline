@@ -400,10 +400,16 @@ func decodeDeleteReleaseHTTPRequest(_ context.Context, r *http.Request) (interfa
 		return nil, errors.WrapIf(err, "failed to decode delete release request")
 	}
 
+	// namespace is passed as query parameter - quickfix, revisit this and decide on a final solution (eg introduce the namespace rest resource)
+	namespace := r.URL.Query().Get("namespace")
+
 	return DeleteReleaseRequest{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
 		ReleaseName:    releaseName,
+		Options: helm.Options{
+			Namespace: namespace,
+		},
 	}, nil
 }
 
@@ -478,10 +484,16 @@ func decodeGetReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{
 		return nil, errors.WrapIf(err, "failed to decode get release request")
 	}
 
+	// namespace is passed as query parameter - quickfix, revisit this and decide on a final solution (eg introduce the namespace rest resource)
+	namespace := r.URL.Query().Get("namespace")
+
 	return GetReleaseRequest{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
 		ReleaseName:    releaseName,
+		Options: helm.Options{
+			Namespace: namespace,
+		},
 	}, nil
 }
 func decodeGetReleaseResourcesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
