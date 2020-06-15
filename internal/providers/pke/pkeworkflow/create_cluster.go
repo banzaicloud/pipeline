@@ -199,7 +199,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		}
 	}
 	// Create AZ and Address map
-	availabilityZoneMap := make(map[string]string)
+	availabilityZoneMap := make(map[string]string, len(availabilityZoneSet)
 	id := 0
 	for zone, _ := range availabilityZoneSet {
 		availabilityZoneMap[zone] = fmt.Sprintf("192.168.%d.0/24", id*16)
