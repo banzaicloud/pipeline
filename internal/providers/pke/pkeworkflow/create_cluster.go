@@ -203,6 +203,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 	id := 0
 	for zone, _ := range availabilityZoneSet {
 		availabilityZoneMap[zone] = fmt.Sprintf("192.168.%d.0/24", id*16)
+		id++
 	}
 
 	var vpcStackID string
