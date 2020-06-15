@@ -458,10 +458,14 @@ Resources:
               IamInstanceProfile:
                   Arn: !GetAtt NodeInstanceProfile.Arn
               InstanceMarketOptions:
-                  MarketType: spot
-                  SpotOptions:
-                      MaxPrice: !If [ IsSpotInstance, !Ref NodeSpotPrice, !Ref "AWS::NoValue" ]
+                !If
+                  - IsSpotInstance
+                  -
+                    MarketType: spot
+                    SpotOptions:
+                      MaxPrice: !Ref NodeSpotPrice
                       SpotInstanceType: one-time
+                  - !Ref "AWS::NoValue"
               ImageId: !Ref NodeImageId
               InstanceType: !Ref NodeInstanceType
               KeyName: !If [ HasKeyName, !Ref KeyName, !Ref "AWS::NoValue" ]
