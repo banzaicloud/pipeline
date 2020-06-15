@@ -481,11 +481,7 @@ func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, logger 
 		}
 	}
 
-	if err := errors.Combine(tagValidationErrs...); err != nil {
-		return err
-	}
-
-	return nil
+	return errors.Combine(tagValidationErrs...)
 }
 
 func (c *EksClusterCreator) assertNotExists(orgID uint, name string) error {
