@@ -761,13 +761,14 @@ func main() {
 							kitxhttp.ServerOptions(httpServerOptions),
 						)
 
-						cRouter.POST("/deployments", gin.WrapH(router))
-						cRouter.GET("/deployments", gin.WrapH(router))
-						cRouter.GET("/deployments/:name", gin.WrapH(router))
-						cRouter.PUT("/deployments/:name", gin.WrapH(router))
-						cRouter.HEAD("/deployments/:name", gin.WrapH(router))
-						cRouter.DELETE("/deployments/:name", gin.WrapH(router))
-						cRouter.GET("/deployments/:name/resources", gin.WrapH(router))
+						deploymentsRouter := cRouter.Group("/deployments")
+						deploymentsRouter.POST("", gin.WrapH(router))
+						deploymentsRouter.GET("", gin.WrapH(router))
+						deploymentsRouter.GET(":name", gin.WrapH(router))
+						deploymentsRouter.PUT(":name", gin.WrapH(router))
+						deploymentsRouter.HEAD(":name", gin.WrapH(router))
+						deploymentsRouter.DELETE(":name", gin.WrapH(router))
+						deploymentsRouter.GET(":name/resources", gin.WrapH(router))
 
 						// other version dependant operations
 						cRouter.GET("/endpoints", api.MakeEndpointLister(cs, helmFacade, logger).ListEndpoints)
