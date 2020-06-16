@@ -17,6 +17,7 @@ package services
 import (
 	"context"
 
+	"github.com/banzaicloud/pipeline/internal/helm"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
@@ -32,6 +33,13 @@ type HelmService interface {
 		releaseName string,
 		values []byte,
 		chartVersion string,
+	) error
+
+	ApplyDeploymentV3(
+		ctx context.Context,
+		clusterID uint,
+		release helm.Release,
+		options helm.Options,
 	) error
 
 	// DeleteDeployment deletes a deployment from a specific cluster.

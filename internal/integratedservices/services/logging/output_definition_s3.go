@@ -17,7 +17,8 @@ package logging
 import (
 	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
 	"github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
-	loggingSecret "github.com/banzaicloud/logging-operator/pkg/sdk/model/secret"
+	loggingSecret "github.com/banzaicloud/operator-tools/pkg/secret"
+	v1 "k8s.io/api/core/v1"
 )
 
 type outputDefinitionManagerS3 struct {
@@ -34,17 +35,21 @@ func (m outputDefinitionManagerS3) getOutputSpec(spec bucketSpec, op bucketOptio
 			S3OutputConfig: &output.S3OutputConfig{
 				AwsAccessKey: &loggingSecret.Secret{
 					ValueFrom: &loggingSecret.ValueFrom{
-						SecretKeyRef: &loggingSecret.KubernetesSecret{
-							Name: m.sourceSecretName,
-							Key:  outputDefinitionSecretKeyS3AccessKeyID,
+						SecretKeyRef: &v1.SecretKeySelector{
+							LocalObjectReference: v1.LocalObjectReference{
+								Name: m.sourceSecretName,
+							},
+							Key: outputDefinitionSecretKeyS3AccessKeyID,
 						},
 					},
 				},
 				AwsSecretKey: &loggingSecret.Secret{
 					ValueFrom: &loggingSecret.ValueFrom{
-						SecretKeyRef: &loggingSecret.KubernetesSecret{
-							Name: m.sourceSecretName,
-							Key:  outputDefinitionSecretKeyS3AccessKey,
+						SecretKeyRef: &v1.SecretKeySelector{
+							LocalObjectReference: v1.LocalObjectReference{
+								Name: m.sourceSecretName,
+							},
+							Key: outputDefinitionSecretKeyS3AccessKey,
 						},
 					},
 				},

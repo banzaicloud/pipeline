@@ -19,6 +19,8 @@ import (
 
 	"emperror.dev/errors"
 
+	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
+
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -126,6 +128,15 @@ func (d dummyOrganizationalSecretStore) Delete(organizationID uint, secretID str
 }
 
 type dummyHelmService struct {
+}
+
+func (d dummyHelmService) ApplyDeploymentV3(
+	ctx context.Context,
+	clusterID uint,
+	release internalhelm.Release,
+	options internalhelm.Options,
+) error {
+	return nil
 }
 
 func (d dummyHelmService) ApplyDeployment(

@@ -75,6 +75,16 @@ func (h helm3UnifiedReleaser) ApplyDeployment(
 	return err
 }
 
+func (h helm3UnifiedReleaser) ApplyDeploymentV3(
+	ctx context.Context,
+	clusterID uint,
+	release helm.Release,
+	options helm.Options,
+) error {
+	_, err := h.helmService.UpgradeRelease(ctx, 0, clusterID, release, options)
+	return err
+}
+
 // for clustersetup!
 func (h *helm3UnifiedReleaser) InstallDeployment(
 	ctx context.Context,

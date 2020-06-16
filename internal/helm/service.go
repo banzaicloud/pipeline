@@ -50,15 +50,15 @@ type Repository struct {
 // Options struct holding directives for driving helm operations (similar to command line flags)
 // extend this as required eventually build a more sophisticated solution for it
 type Options struct {
-	Namespace    string                 `json:"namespace,omitempty"`
-	DryRun       bool                   `json:"dryRun,omitempty"`
-	GenerateName bool                   `json:"generateName,omitempty"`
-	Wait         bool                   `json:"wait,omitempty"`
-	Timeout      int64                  `json:"timeout,omitempty"`
-	OdPcts       map[string]interface{} `json:"odPcts,omitempty"`
-	ReuseValues  bool                   `json:"reuseValues,omitempty"`
-	Install      bool                   `json:"install,omitempty"`
-	Filter       *string                `json:"filter,omitempty"`
+	Namespace    string  `json:"namespace,omitempty"`
+	DryRun       bool    `json:"dryRun,omitempty"`
+	GenerateName bool    `json:"generateName,omitempty"`
+	Wait         bool    `json:"wait,omitempty"`
+	Timeout      int64   `json:"timeout,omitempty"`
+	ReuseValues  bool    `json:"reuseValues,omitempty"`
+	Install      bool    `json:"install,omitempty"`
+	Filter       *string `json:"filter,omitempty"`
+	SkipCRDs     bool    `json:"skipCRDs,omitempty"`
 }
 
 // +kit:endpoint:errorStrategy=service
@@ -92,6 +92,13 @@ type UnifiedReleaser interface {
 		releaseName string,
 		values []byte,
 		chartVersion string,
+	) error
+
+	ApplyDeploymentV3(
+		ctx context.Context,
+		clusterID uint,
+		release Release,
+		options Options,
 	) error
 
 	// cluster setup style

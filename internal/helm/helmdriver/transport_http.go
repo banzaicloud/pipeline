@@ -25,6 +25,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mitchellh/mapstructure"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
+	"helm.sh/helm/v3/pkg/chartutil"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/helm"
@@ -169,11 +170,13 @@ func decodeInstallReleaseHTTPRequest(_ context.Context, r *http.Request) (interf
 			ChartName:   request.Name,
 			Namespace:   request.Namespace,
 			Values:      request.Values,
+			Version:     request.Version,
 		},
 		Options: helm.Options{
 			DryRun:       request.DryRun,
 			GenerateName: request.ReleaseName == "",
 			Wait:         request.Wait,
+			Namespace:    request.Namespace,
 		},
 	}, nil
 }
@@ -228,6 +231,7 @@ func decodeUpgradeReleaseHTTPRequest(_ context.Context, r *http.Request) (interf
 			ChartName:   request.Name,
 			Namespace:   request.Namespace,
 			Values:      request.Values,
+			Version:     request.Version,
 		}, Options: helm.Options{
 			DryRun:       request.DryRun,
 			GenerateName: request.ReleaseName == "",
@@ -396,10 +400,16 @@ func decodeDeleteReleaseHTTPRequest(_ context.Context, r *http.Request) (interfa
 		return nil, errors.WrapIf(err, "failed to decode delete release request")
 	}
 
+	// namespace is passed as query parameter - quickfix, revisit this and decide on a final solution (eg introduce the namespace rest resource)
+	namespace := r.URL.Query().Get("namespace")
+
 	return DeleteReleaseRequest{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
 		ReleaseName:    releaseName,
+		Options: helm.Options{
+			Namespace: namespace,
+		},
 	}, nil
 }
 
@@ -474,10 +484,16 @@ func decodeGetReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{
 		return nil, errors.WrapIf(err, "failed to decode get release request")
 	}
 
+	// namespace is passed as query parameter - quickfix, revisit this and decide on a final solution (eg introduce the namespace rest resource)
+	namespace := r.URL.Query().Get("namespace")
+
 	return GetReleaseRequest{
 		OrganizationID: orgID,
 		ClusterID:      clusterID,
 		ReleaseName:    releaseName,
+		Options: helm.Options{
+			Namespace: namespace,
+		},
 	}, nil
 }
 func decodeGetReleaseResourcesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -515,6 +531,8 @@ func encodeGetReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter, re
 		return errors.WrapIf(release.Err, "failed to retrieve releases")
 	}
 
+	mergedValues := chartutil.CoalesceTables(release.R0.Values, release.R0.ReleaseInfo.Values)
+
 	resp := pipeline.GetDeploymentResponse{
 		ReleaseName:  release.R0.ReleaseName,
 		Chart:        release.R0.ChartName, // TODO what's this
@@ -526,7 +544,7 @@ func encodeGetReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter, re
 		Status:       release.R0.ReleaseInfo.Status,
 		CreatedAt:    release.R0.ReleaseInfo.FirstDeployed.String(),
 		Notes:        release.R0.ReleaseInfo.Notes,
-		Values:       release.R0.Values,
+		Values:       mergedValues,
 	}
 
 	return kitxhttp.JSONResponseEncoder(ctx, w, resp)

@@ -79,13 +79,7 @@ Parameters:
 
   NodeImageId:
       Type: String
-      Default: ""
-      Description: (Optional) Specify your own custom image ID. This value overrides any AWS Systems Manager Parameter Store value specified above.
-
-  NodeImageIdSSMParam:
-      Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
-      Default: /aws/service/eks/optimized-ami/1.14/amazon-linux-2/recommended/image_id
-      Description: AWS Systems Manager Parameter Store parameter of the AMI ID for the worker node instances.
+      Description: Specify your own custom image ID. This value overrides any AWS Systems Manager Parameter Store value specified above.
 
   NodeInstanceType:
     Description: EC2 instance type for the node instances
@@ -392,10 +386,6 @@ Conditions:
   IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
   AutoscalerEnabled:  !Equals [ !Ref ClusterAutoscalerEnabled, "true" ]
   HasKeyName: !Not [ !Equals [ !Ref KeyName, "" ] ]
-  HasNodeImageId: !Not
-      - "Fn::Equals":
-            - Ref: NodeImageId
-            - ""
 
 Resources:
   NodeInstanceProfile:
@@ -468,14 +458,15 @@ Resources:
               IamInstanceProfile:
                   Arn: !GetAtt NodeInstanceProfile.Arn
               InstanceMarketOptions:
-                  MarketType: spot
-                  SpotOptions:
-                      MaxPrice: !If [ IsSpotInstance, !Ref NodeSpotPrice, !Ref "AWS::NoValue" ]
+                !If
+                  - IsSpotInstance
+                  -
+                    MarketType: spot
+                    SpotOptions:
+                      MaxPrice: !Ref NodeSpotPrice
                       SpotInstanceType: one-time
-              ImageId: !If
-                  - HasNodeImageId
-                  - Ref: NodeImageId
-                  - Ref: NodeImageIdSSMParam
+                  - !Ref "AWS::NoValue"
+              ImageId: !Ref NodeImageId
               InstanceType: !Ref NodeInstanceType
               KeyName: !If [ HasKeyName, !Ref KeyName, !Ref "AWS::NoValue" ]
               SecurityGroupIds:

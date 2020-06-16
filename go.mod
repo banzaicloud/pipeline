@@ -31,12 +31,13 @@ require (
 	github.com/aws/aws-sdk-go v1.28.0
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-00010101000000-000000000000 // indirect
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
-	github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.1
+	github.com/banzaicloud/bank-vaults/pkg/sdk v0.3.1
 	github.com/banzaicloud/gin-utilz v0.2.0
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
 	github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4
-	github.com/banzaicloud/logging-operator/pkg/sdk v0.1.1
+	github.com/banzaicloud/logging-operator/pkg/sdk v0.3.15
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
+	github.com/banzaicloud/operator-tools v0.10.2
 	github.com/banzaicloud/pipeline/pkg/sdk v0.0.1
 	github.com/coreos/go-oidc v2.1.0+incompatible
 	github.com/denisenkom/go-mssqldb v0.0.0-20200206145737-bbfc9a55622e // indirect
@@ -56,7 +57,6 @@ require (
 	github.com/gosimple/slug v1.9.0 // indirect
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/heptio/ark v0.9.3
-	github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0 // indirect
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/jinzhu/gorm v1.9.10
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -90,11 +90,11 @@ require (
 	github.com/sagikazarmark/appkit v0.8.0
 	github.com/sagikazarmark/kitx v0.12.0
 	github.com/sagikazarmark/ocmux v0.2.0
-	github.com/sirupsen/logrus v1.5.0
+	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cast v1.3.1
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.6.2
+	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.5.1
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
 	github.com/vmware/govmomi v0.22.0
@@ -128,7 +128,7 @@ require (
 	logur.dev/integration/zap v0.3.2
 	logur.dev/logur v0.16.2
 	rsc.io/letsencrypt v0.0.3 // indirect
-	sigs.k8s.io/controller-runtime v0.5.0
+	sigs.k8s.io/controller-runtime v0.5.2
 	sigs.k8s.io/kubefed v0.2.0-alpha.1
 	sigs.k8s.io/testing_frameworks v0.1.2
 	sigs.k8s.io/yaml v1.1.0
