@@ -17,6 +17,9 @@ package adapter
 import (
 	"database/sql/driver"
 	"fmt"
+	"net"
+	"net/url"
+	"strconv"
 	"strings"
 
 	"emperror.dev/errors"
@@ -139,31 +142,36 @@ func (m httpProxyModel) toEntity() intPKE.HTTPProxy {
 }
 
 type httpProxyOptionsModel struct {
-	// Deprecated: use URL field instead
-	Host string `json:"host"`
-	// Deprecated: use URL field instead
-	Port     uint16 `json:"port,omitempty"`
 	SecretID string `json:"secretId,omitempty"`
-	// Deprecated: use URL field instead
-	Scheme string `json:"scheme,omitempty"`
-	Url    string `json:"url,omitempty"`
+	Url      string `json:"url,omitempty"`
 }
 
 func (m *httpProxyOptionsModel) fromEntity(e intPKE.HTTPProxyOptions) {
-	m.Host = e.Host
-	m.Port = e.Port
 	m.SecretID = e.SecretID
-	m.Scheme = e.Scheme
 	m.Url = e.URL
+	if m.Url == "" {
+		u := url.URL{
+			Scheme: e.Scheme,
+			Host:   getHostPort(e),
+		}
+
+		m.Url = u.String()
+	}
+}
+
+func getHostPort(o intPKE.HTTPProxyOptions) string {
+	if o.Host == "" {
+		return ""
+	}
+	if o.Port == 0 {
+		return o.Host
+	}
+	return net.JoinHostPort(o.Host, strconv.FormatUint(uint64(o.Port), 10))
 }
 
 func (m httpProxyOptionsModel) toEntity() intPKE.HTTPProxyOptions {
 	return intPKE.HTTPProxyOptions{
-		Host:     m.Host,
-		Port:     m.Port,
-		SecretID: m.SecretID,
-		Scheme:   m.Scheme,
-		URL:      m.Url,
+		URL: m.Url,
 	}
 }
 
