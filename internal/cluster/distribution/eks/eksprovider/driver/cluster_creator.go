@@ -24,6 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
@@ -149,6 +150,7 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 			KubernetesVersion:  modelCluster.Version,
 			LogTypes:           modelCluster.LogTypes,
 			UseGeneratedSSHKey: modelCluster.SSHGenerated,
+			Tags:               modelCluster.Cluster.Tags,
 		},
 		PostHooks:        createRequest.PostHooks,
 		OrganizationName: org.Name,
@@ -467,7 +469,19 @@ func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, logger 
 		}
 	}
 
-	return nil
+	tagValidationErrs := make([]error, 0, len(r.Properties.CreateClusterEKS.Tags))
+	for k, v := range r.Properties.CreateClusterEKS.Tags {
+		tag := &cloudformation.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		}
+		err := tag.Validate()
+		if err != nil {
+			tagValidationErrs = append(tagValidationErrs, errors.WrapIff(err, "invalid cluster tag %v", k))
+		}
+	}
+
+	return errors.Combine(tagValidationErrs...)
 }
 
 func (c *EksClusterCreator) assertNotExists(orgID uint, name string) error {

@@ -54,6 +54,8 @@ type CreateSubnetActivityInput struct {
 
 	// name of the cloud formation template stack
 	StackName string
+
+	Tags map[string]string
 }
 
 // CreateSubnetActivityOutput holds the output data of the CreateSubnetActivity
@@ -118,7 +120,7 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 			DisableRollback:    aws.Bool(true),
 			StackName:          aws.String(input.StackName),
 			Parameters:         stackParams,
-			Tags:               getSubnetStackTags(input.ClusterName),
+			Tags:               getSubnetStackTags(input.ClusterName, input.Tags),
 			TemplateBody:       aws.String(a.cloudFormationTemplate),
 			TimeoutInMinutes:   aws.Int64(10),
 		}
@@ -160,6 +162,6 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 	return nil, nil
 }
 
-func getSubnetStackTags(clusterName string) []*cloudformation.Tag {
-	return getStackTags(clusterName, "subnet")
+func getSubnetStackTags(clusterName string, customTagsMap map[string]string) []*cloudformation.Tag {
+	return getStackTags(clusterName, "subnet", customTagsMap)
 }

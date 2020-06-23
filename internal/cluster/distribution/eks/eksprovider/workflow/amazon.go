@@ -49,15 +49,25 @@ const asgFulfillmentWaitInterval = asgWaitLoopSleep
 
 // getStackTags returns the tags that are placed onto CF template stacks.
 // These tags  are propagated onto the resources created by the CF template.
-func getStackTags(clusterName, stackType string) []*cloudformation.Tag {
-	return append([]*cloudformation.Tag{
+func getStackTags(clusterName, stackType string, customTagsMap map[string]string) []*cloudformation.Tag {
+	tags := make([]*cloudformation.Tag, 0)
+
+	for k, v := range customTagsMap {
+		tags = append(tags, &cloudformation.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		})
+	}
+	tags = append(tags, []*cloudformation.Tag{
 		{Key: aws.String("banzaicloud-pipeline-cluster-name"), Value: aws.String(clusterName)},
 		{Key: aws.String("banzaicloud-pipeline-stack-type"), Value: aws.String(stackType)},
-	}, internalAmazon.PipelineTags()...)
+	}...)
+	tags = append(tags, internalAmazon.PipelineTags()...)
+	return tags
 }
 
-func getNodePoolStackTags(clusterName string) []*cloudformation.Tag {
-	return getStackTags(clusterName, "nodepool")
+func getNodePoolStackTags(clusterName string, customTagsMap map[string]string) []*cloudformation.Tag {
+	return getStackTags(clusterName, "nodepool", customTagsMap)
 }
 
 func GenerateStackNameForCluster(clusterName string) string {
