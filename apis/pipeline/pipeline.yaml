@@ -4674,7 +4674,13 @@ components:
                               enum: [private, public]
                             default: ["public"]
                             description: List of access point types for the API server; public and private are the only valid values
-
+                        tags:
+                            type: object
+                            additionalProperties:
+                                type: string
+                                example:
+                                    customTagKey: customTagValue
+                            description: User definied tags to be added to created AWS resources. Empty keys and values are not permitted.
         CreateACKProperties:
             type: object
             required:

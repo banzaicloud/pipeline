@@ -281,6 +281,7 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 		NodeInstanceRoleID: modelCluster.NodeInstanceRoleId,
 		NodePoolLabels:     nodePoolLabelMap,
 		UseGeneratedSSHKey: eksCluster.IsSSHGenerated(),
+		Tags:               modelCluster.Cluster.Tags,
 	}
 
 	input.Subnets = subnets

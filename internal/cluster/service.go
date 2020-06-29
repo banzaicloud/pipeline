@@ -54,6 +54,7 @@ type Cluster struct {
 
 	SecretID       brn.ResourceName
 	ConfigSecretID brn.ResourceName
+	Tags           map[string]string
 }
 
 type Identifier struct {

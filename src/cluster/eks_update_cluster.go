@@ -40,6 +40,7 @@ type EKSUpdateClusterstructureWorkflowInput struct {
 	ClusterUID   string
 	ClusterName  string
 	ScaleEnabled bool
+	Tags         map[string]string
 
 	Subnets          []eksWorkflow.Subnet
 	ASGSubnetMapping map[string][]eksWorkflow.Subnet
@@ -207,6 +208,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				NodeImage:        nodePool.NodeImage,
 				NodeInstanceType: nodePool.NodeInstanceType,
 				Labels:           nodePool.Labels,
+				Tags:             input.Tags,
 			}
 			if input.UseGeneratedSSHKey {
 				activityInput.SSHKeyName = eksWorkflow.GenerateSSHKeyNameForCluster(input.ClusterName)
@@ -233,6 +235,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				NodeImage:        nodePool.NodeImage,
 				NodeInstanceType: nodePool.NodeInstanceType,
 				Labels:           nodePool.Labels,
+				Tags:             input.Tags,
 			}
 			ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
 			f := workflow.ExecuteActivity(ctx, eksWorkflow.UpdateAsgActivityName, activityInput)

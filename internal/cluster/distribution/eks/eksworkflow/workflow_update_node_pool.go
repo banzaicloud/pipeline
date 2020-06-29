@@ -55,6 +55,8 @@ type UpdateNodePoolWorkflowInput struct {
 	NodeImage string
 
 	Options eks.NodePoolUpdateOptions
+
+	ClusterTags map[string]string
 }
 
 func (w UpdateNodePoolWorkflow) Register() {
@@ -129,6 +131,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			NodePoolVersion: nodePoolVersion,
 			NodeImage:       input.NodeImage,
 			MaxBatchSize:    input.Options.MaxBatchSize,
+			ClusterTags:     input.ClusterTags,
 		}
 
 		activityOptions := activityOptions

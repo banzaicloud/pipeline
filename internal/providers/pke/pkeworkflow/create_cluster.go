@@ -26,7 +26,7 @@ import (
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
-const pkeVersion = "0.5.0"
+const pkeVersion = "0.5.1"
 
 // ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure
 const ErrReasonStackFailed = "CLOUDFORMATION_STACK_FAILED"
