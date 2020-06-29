@@ -66,10 +66,7 @@ func (a *DeleteSubnetActivity) Execute(ctx context.Context, input DeleteSubnetAc
 
 	_, err = cfClient.DeleteStack(stackInput)
 	if err, ok := err.(awserr.Error); ok {
-		switch err.Code() {
-		default:
-			return err
-		}
+		return err
 	}
 
 	return nil

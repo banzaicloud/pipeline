@@ -183,23 +183,23 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		if np.Master {
 			master = np
 			if len(np.AvailabilityZones) <= 0 || np.AvailabilityZones[0] == "" {
-				return errors.Errorf("missing availability zone for nodepool %q", np.Name)
+				return errors.NewWithDetails("missing availability zone for nodepool %q", np.Name)
 			}
 			break
 		}
 	}
 	// Collect relevant AZs from NodePools without subnets
-	availabilityZoneSet := make(map[string]bool)
+	availabilityZoneSet := make(map[string]struct{})
 	for _, np := range nodePools {
 		// We only look AZ when no subnet is set
 		if len(np.Subnets) < 1 {
 			for _, az := range np.AvailabilityZones {
-				availabilityZoneSet[az] = true
+				availabilityZoneSet[az] = struct{}{}
 			}
 		}
 	}
 	// Create AZ and Address map
-	availabilityZoneMap := make(map[string]string, len(availabilityZoneSet)
+	availabilityZoneMap := make(map[string]string, len(availabilityZoneSet))
 	id := 0
 	for zone, _ := range availabilityZoneSet {
 		availabilityZoneMap[zone] = fmt.Sprintf("192.168.%d.0/24", id*16)
@@ -447,7 +447,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 					WorkerInstanceProfile:     rolesOutput["WorkerInstanceProfile"],
 					VPCID:                     vpcOutput["VpcId"],
 					VPCDefaultSecurityGroupID: vpcDefaultSecurityGroupID,
-					SubnetID:                  subnetIDs,
+					SubnetIDs:                 subnetIDs,
 					ClusterSecurityGroup:      masterOutput["ClusterSecurityGroup"],
 					ExternalBaseUrl:           input.PipelineExternalURL,
 					ExternalBaseUrlInsecure:   input.PipelineExternalURLInsecure,

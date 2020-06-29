@@ -15,15 +15,7 @@
 package workflow
 
 import (
-	"bytes"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"text/template"
-
-	"emperror.dev/errors"
-
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
 	"github.com/banzaicloud/pipeline/internal/global"
 )
 
@@ -34,67 +26,24 @@ const (
 	eksNodePoolTemplateName = "amazon-eks-nodepool-cf.yaml"
 )
 
-// getEksCloudFormationTemplate returns CloudFormation template with given name
-func getEksCloudFormationTemplate(name string) (string, error) {
-	// location to retrieve the Cloud Formation template from
-	templatePath := global.Config.Distribution.EKS.TemplateLocation + "/" + name
-
-	u, err := url.Parse(templatePath)
-	if err != nil {
-		return "", errors.WrapIf(err, fmt.Sprintf("failed to read CloudFormation template from %s", templatePath))
-	}
-
-	var content []byte
-	if u.Scheme == "file" || u.Scheme == "" {
-		content, err = ioutil.ReadFile(templatePath)
-	} else if u.Scheme == "http" || u.Scheme == "https" {
-		var resp *http.Response
-		resp, err = http.Get(u.String())
-		if err == nil {
-			content, err = ioutil.ReadAll(resp.Body)
-			defer resp.Body.Close()
-		}
-	} else {
-		err = fmt.Errorf("not supported scheme: %s", u.Scheme)
-	}
-
-	if err != nil {
-		return "", errors.WrapIf(err, fmt.Sprintf("failed to read CloudFormation template content from %s", templatePath))
-	}
-
-	t, err := template.New("cf").Parse(string(content))
-	if err != nil {
-		return "", errors.WrapIf(err, fmt.Sprintf("failed to parse CloudFormation template content from %s", templatePath))
-	}
-
-	buffer := bytes.NewBuffer(nil)
-	data := map[string]interface{}{
-		"UpdatePolicyEnabled": !global.Config.Pipeline.Enterprise,
-	}
-	err = t.Execute(buffer, data)
-	if err != nil {
-		return "", errors.WrapIf(err, fmt.Sprintf("failed to evaluate CloudFormation template content from %s", templatePath))
-	}
-
-	return buffer.String(), nil
-}
+var templateBasePath = global.Config.Distribution.EKS.TemplateLocation
 
 // GetVPCTemplate returns the CloudFormation template for creating VPC for EKS cluster
 func GetVPCTemplate() (string, error) {
-	return getEksCloudFormationTemplate(eksVPCTemplateName)
+	return distribution.GetCloudFormationTemplate(templateBasePath, eksVPCTemplateName)
 }
 
 // GetNodePoolTemplate returns the CloudFormation template for creating node pools for EKS cluster
 func GetNodePoolTemplate() (string, error) {
-	return getEksCloudFormationTemplate(eksNodePoolTemplateName)
+	return distribution.GetCloudFormationTemplate(templateBasePath, eksNodePoolTemplateName)
 }
 
 // GetSubnetTemplate returns the CloudFormation template for creating a Subnet
 func GetSubnetTemplate() (string, error) {
-	return getEksCloudFormationTemplate(eksSubnetTemplateName)
+	return distribution.GetCloudFormationTemplate(templateBasePath, eksSubnetTemplateName)
 }
 
 // GetIAMTemplate returns the CloudFormation template for creating IAM roles for the EKS cluster
 func GetIAMTemplate() (string, error) {
-	return getEksCloudFormationTemplate(eksIAMTemplateName)
+	return distribution.GetCloudFormationTemplate(templateBasePath, eksIAMTemplateName)
 }
