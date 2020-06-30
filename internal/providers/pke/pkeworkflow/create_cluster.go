@@ -102,13 +102,6 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		ScheduleToStartTimeout: 10 * time.Minute,
 		StartToCloseTimeout:    20 * time.Minute,
 		WaitForCancellation:    true,
-	}
-
-	aoWithHeartbeat := workflow.ActivityOptions{
-		ScheduleToStartTimeout: 10 * time.Minute,
-		StartToCloseTimeout:    5 * time.Minute,
-		WaitForCancellation:    true,
-		HeartbeatTimeout:       45 * time.Second,
 		RetryPolicy: &cadence.RetryPolicy{
 			InitialInterval:          2 * time.Second,
 			BackoffCoefficient:       1.5,
@@ -271,7 +264,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 				Cidr:             ip,
 				AvailabilityZone: zone,
 			}
-			ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
+			ctx := workflow.WithActivityOptions(ctx, ao)
 			createSubnetFutures = append(createSubnetFutures, workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput))
 		}
 
