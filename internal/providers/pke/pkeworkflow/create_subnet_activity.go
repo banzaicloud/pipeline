@@ -16,11 +16,11 @@ package pkeworkflow
 
 import (
 	"context"
-	"io/ioutil"
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
 	"go.uber.org/cadence/activity"
 
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
@@ -28,6 +28,8 @@ import (
 )
 
 const CreateSubnetActivityName = "pke-create-subnet"
+
+const SubnetCloudFormationTemplate = "subnet.cf.yaml"
 
 func NewCreateSubnetActivity(awsClientFactory *AWSClientFactory) *CreateSubnetActivity {
 	return &CreateSubnetActivity{
@@ -82,7 +84,7 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 		return nil, err
 	}
 
-	buf, err := ioutil.ReadFile("templates/pke/subnet.cf.yaml")
+	template, err := distribution.GetCloudFormationTemplate(PKECloudFormationTemplateBasePath, SubnetCloudFormationTemplate)
 	if err != nil {
 		return nil, errors.WrapIf(err, "loading CF template")
 	}
@@ -117,7 +119,7 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 			StackName:        stackName,
 			Parameters:       stackParams,
 			Tags:             getSubnetStackTags(input.ClusterName),
-			TemplateBody:     aws.String(string(buf)),
+			TemplateBody:     aws.String(template),
 			TimeoutInMinutes: aws.Int64(10),
 		}
 
