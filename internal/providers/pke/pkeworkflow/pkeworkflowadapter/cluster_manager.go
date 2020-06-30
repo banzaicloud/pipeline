@@ -146,5 +146,4 @@ func (c *Cluster) GetNetworkCloudProvider() (cloudProvider, vpcID string, subnet
 		return pke.GetNetworkCloudProvider()
 	}
 	return "", "", nil, errors.New(fmt.Sprintf("failed to cast cluster to EC2ClusterPKE, got type: %T", c.CommonCluster))
-
 }

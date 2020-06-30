@@ -182,7 +182,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 	{
 		var deleteSubnetFutures []workflow.Future
-		for zone, _ := range availabilityZoneSet {
+		for zone := range availabilityZoneSet {
 			activityInput := DeleteSubnetActivityInput{
 				ClusterID:        input.ClusterID,
 				AvailabilityZone: zone,
@@ -199,7 +199,6 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		if err := errors.Combine(errs...); err != nil {
 			return err
 		}
-
 	}
 
 	// remove vpc (if we created it)

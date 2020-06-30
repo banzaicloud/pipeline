@@ -26,24 +26,22 @@ const (
 	eksNodePoolTemplateName = "amazon-eks-nodepool-cf.yaml"
 )
 
-var templateBasePath = global.Config.Distribution.EKS.TemplateLocation
-
 // GetVPCTemplate returns the CloudFormation template for creating VPC for EKS cluster
 func GetVPCTemplate() (string, error) {
-	return distribution.GetCloudFormationTemplate(templateBasePath, eksVPCTemplateName)
+	return distribution.GetCloudFormationTemplate(global.Config.Distribution.EKS.TemplateLocation, eksVPCTemplateName)
 }
 
 // GetNodePoolTemplate returns the CloudFormation template for creating node pools for EKS cluster
 func GetNodePoolTemplate() (string, error) {
-	return distribution.GetCloudFormationTemplate(templateBasePath, eksNodePoolTemplateName)
+	return distribution.GetCloudFormationTemplate(global.Config.Distribution.EKS.TemplateLocation, eksNodePoolTemplateName)
 }
 
 // GetSubnetTemplate returns the CloudFormation template for creating a Subnet
 func GetSubnetTemplate() (string, error) {
-	return distribution.GetCloudFormationTemplate(templateBasePath, eksSubnetTemplateName)
+	return distribution.GetCloudFormationTemplate(global.Config.Distribution.EKS.TemplateLocation, eksSubnetTemplateName)
 }
 
 // GetIAMTemplate returns the CloudFormation template for creating IAM roles for the EKS cluster
 func GetIAMTemplate() (string, error) {
-	return distribution.GetCloudFormationTemplate(templateBasePath, eksIAMTemplateName)
+	return distribution.GetCloudFormationTemplate(global.Config.Distribution.EKS.TemplateLocation, eksIAMTemplateName)
 }
