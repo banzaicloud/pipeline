@@ -119,6 +119,9 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		return errors.WrapIf(err, "failed to assemble chart values")
 	}
 
+	// TODO temporary solution until helm2 gets phased out
+	ctx = context.WithValue(ctx, "helmWait", true)
+
 	if err = op.helmService.ApplyDeployment(ctx, clusterID, op.config.Webhook.Namespace, op.config.Webhook.Chart, op.config.Webhook.Release,
 		values, op.config.Webhook.Version); err != nil {
 		return errors.WrapIf(err, "failed to deploy integrated service")
