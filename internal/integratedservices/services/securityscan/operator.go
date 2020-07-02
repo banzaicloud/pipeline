@@ -120,7 +120,7 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 	}
 
 	// TODO temporary solution until helm2 gets phased out
-	ctx = context.WithValue(ctx, "helmWait", true)
+	ctx = context.WithValue(ctx, "helmWait", true) // nolint
 
 	if err = op.helmService.ApplyDeployment(ctx, clusterID, op.config.Webhook.Namespace, op.config.Webhook.Chart, op.config.Webhook.Release,
 		values, op.config.Webhook.Version); err != nil {
@@ -137,11 +137,11 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 
 	activePolicyID := boundSpec.Policy.PolicyID
 	if activePolicyID == "" {
-		if policyID, err := anchoreClient.CreatePolicy(ctx, boundSpec.Policy.CustomPolicy.Policy); err != nil {
+		policyID, err := anchoreClient.CreatePolicy(ctx, boundSpec.Policy.CustomPolicy.Policy)
+		if err != nil {
 			return errors.WrapIf(err, "failed to create policy")
-		} else {
-			activePolicyID = policyID
 		}
+		activePolicyID = policyID
 	}
 
 	if err := anchoreClient.ActivatePolicy(ctx, activePolicyID); err != nil {

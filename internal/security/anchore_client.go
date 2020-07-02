@@ -17,11 +17,11 @@ package anchore
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"net/http"
 
 	"emperror.dev/errors"
 	"github.com/antihax/optional"
-	"github.com/mitchellh/mapstructure"
 	"gopkg.in/resty.v1"
 
 	"github.com/banzaicloud/pipeline/.gen/anchore"
@@ -239,11 +239,15 @@ func (a anchoreClient) CreatePolicy(ctx context.Context, policyRaw map[string]in
 	fnCtx := map[string]interface{}{"policy": policyRaw}
 	a.logger.Info("creating anchore policy", fnCtx)
 
-	var policy anchore.PolicyBundle
-
-	err := transform(policyRaw, &policy)
+	rawPolicyData, err := json.Marshal(policyRaw)
 	if err != nil {
-		return "", errors.WrapIfWithDetails(err, "failed to decode policy", fnCtx)
+		return "", errors.WrapIfWithDetails(err, "failed to marshal policy", fnCtx)
+	}
+
+	var policy anchore.PolicyBundle
+	err = json.Unmarshal(rawPolicyData, &policy)
+	if err != nil {
+		return "", errors.WrapIfWithDetails(err, "failed to unmarshal policy", fnCtx)
 	}
 
 	policyRecord, resp, err := a.getRestClient().PoliciesApi.AddPolicy(a.authorizedContext(ctx), policy, nil)
@@ -279,18 +283,6 @@ func (a anchoreClient) getRestClient() *anchore.APIClient {
 			},
 		},
 	})
-}
-
-// transform quick and dirty solution for transformations between anchore types and pipeline types
-// static casting doesn't work recursively, plain json transformation fails due to snake notation and camel case
-// notation differences
-// WARNING: Time values are lost during transformation, possible fix: https://github.com/mitchellh/mapstructure/issues/159
-func transform(fromType interface{}, toType interface{}) error {
-	if err := mapstructure.Decode(fromType, toType); err != nil {
-		return errors.WrapIf(err, "failed to unmarshal to 'toType' type")
-	}
-
-	return nil
 }
 
 // authenticatedResty sets up an authenticated resty client (this might be cached probably)
