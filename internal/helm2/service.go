@@ -234,9 +234,13 @@ func (s *LegacyHelmService) ApplyDeployment(
 			}
 
 			options := []k8sHelm.InstallOption{
-				// k8sHelm.InstallWait(wait),
 				k8sHelm.ValueOverrides(values),
 			}
+
+			if value := ctx.Value("helmWait"); value != nil {
+				options = append(options, k8sHelm.InstallWait(true))
+			}
+
 			_, err = helm.CreateDeployment(
 				chartName,
 				chartVersion,
@@ -259,9 +263,13 @@ func (s *LegacyHelmService) ApplyDeployment(
 		}
 	} else {
 		options := []k8sHelm.InstallOption{
-			// k8sHelm.InstallWait(wait),
 			k8sHelm.ValueOverrides(values),
 		}
+
+		if value := ctx.Value("helmWait"); value != nil {
+			options = append(options, k8sHelm.InstallWait(true))
+		}
+
 		_, err = helm.CreateDeployment(
 			chartName,
 			chartVersion,
