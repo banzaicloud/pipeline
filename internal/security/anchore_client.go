@@ -20,6 +20,7 @@ import (
 	"net/http"
 
 	"emperror.dev/errors"
+	"github.com/antihax/optional"
 	"github.com/mitchellh/mapstructure"
 	"gopkg.in/resty.v1"
 
@@ -37,9 +38,15 @@ type UserManagementClient interface {
 	GetUserCredentials(ctx context.Context, userName string) (string, error)
 }
 
+type PolicyClient interface {
+	ActivatePolicy(ctx context.Context, policyID string) error
+	CreatePolicy(ctx context.Context, policyRaw map[string]interface{}) (string, error)
+}
+
 // AnchoreClient "facade" for supported Anchore operations, decouples anchore specifics from the application
 type AnchoreClient interface {
 	UserManagementClient
+	PolicyClient
 }
 
 type anchoreClient struct {
@@ -200,6 +207,56 @@ func (a anchoreClient) DeleteUser(ctx context.Context, accountName string, userN
 	return nil
 }
 
+func (a anchoreClient) ActivatePolicy(ctx context.Context, policyID string) error {
+	fnCtx := map[string]interface{}{"policyId": policyID}
+	a.logger.Info("activating anchore policy", fnCtx)
+
+	getOpts := &anchore.GetPolicyOpts{Detail: optional.NewBool(true)}
+
+	policyBundle, resp, err := a.getRestClient().PoliciesApi.GetPolicy(a.authorizedContext(ctx), policyID, getOpts)
+	if err != nil || (resp.StatusCode != http.StatusOK) {
+		a.logger.Debug("failed to get anchore policy", fnCtx)
+
+		return errors.WrapIfWithDetails(err, "failed to get anchore policy", fnCtx)
+	}
+
+	policyBundle[0].Active = true
+
+	updateOpts := &anchore.UpdatePolicyOpts{Active: optional.NewBool(true)}
+
+	_, resp, err = a.getRestClient().PoliciesApi.UpdatePolicy(a.authorizedContext(ctx), policyID, policyBundle[0], updateOpts)
+	if err != nil || (resp.StatusCode != http.StatusOK) {
+		a.logger.Debug("failed to activate policy", fnCtx)
+
+		return errors.WrapIfWithDetails(err, "failed to activate policy", fnCtx)
+	}
+
+	a.logger.Info("anchore policy activated", fnCtx)
+	return nil
+}
+
+func (a anchoreClient) CreatePolicy(ctx context.Context, policyRaw map[string]interface{}) (string, error) {
+	fnCtx := map[string]interface{}{"policy": policyRaw}
+	a.logger.Info("creating anchore policy", fnCtx)
+
+	var policy anchore.PolicyBundle
+
+	err := transform(policyRaw, &policy)
+	if err != nil {
+		return "", errors.WrapIfWithDetails(err, "failed to decode policy", fnCtx)
+	}
+
+	policyRecord, resp, err := a.getRestClient().PoliciesApi.AddPolicy(a.authorizedContext(ctx), policy, nil)
+	if err != nil || (resp.StatusCode != http.StatusOK) {
+		a.logger.Debug("failed to create anchore policy", fnCtx)
+
+		return "", errors.WrapIfWithDetails(err, "failed to create anchore policy", fnCtx)
+	}
+
+	a.logger.Info("anchore policy created", fnCtx)
+	return policyRecord.PolicyId, nil
+}
+
 func (a anchoreClient) authorizedContext(ctx context.Context) context.Context {
 	basicAuth := anchore.BasicAuth{
 		UserName: a.userName,
@@ -228,7 +285,7 @@ func (a anchoreClient) getRestClient() *anchore.APIClient {
 // static casting doesn't work recursively, plain json transformation fails due to snake notation and camel case
 // notation differences
 // WARNING: Time values are lost during transformation, possible fix: https://github.com/mitchellh/mapstructure/issues/159
-func (a anchoreClient) transform(fromType interface{}, toType interface{}) error {
+func transform(fromType interface{}, toType interface{}) error {
 	if err := mapstructure.Decode(fromType, toType); err != nil {
 		return errors.WrapIf(err, "failed to unmarshal to 'toType' type")
 	}

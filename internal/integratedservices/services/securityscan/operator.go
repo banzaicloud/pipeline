@@ -25,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
+	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
@@ -127,6 +128,21 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		if err = op.whiteListService.EnsureReleaseWhiteList(ctx, clusterID, boundSpec.ReleaseWhiteList); err != nil {
 			return errors.WrapIf(err, "failed to install release white list")
 		}
+	}
+
+	anchoreClient := anchore.NewAnchoreClient(anchoreValues.User, anchoreValues.Password, anchoreValues.Host, anchoreValues.Insecure, logger)
+
+	activePolicyID := boundSpec.Policy.PolicyID
+	if activePolicyID == "" {
+		if policyID, err := anchoreClient.CreatePolicy(ctx, boundSpec.Policy.CustomPolicy.Policy); err != nil {
+			return errors.WrapIf(err, "failed to create policy")
+		} else {
+			activePolicyID = policyID
+		}
+	}
+
+	if err := anchoreClient.ActivatePolicy(ctx, activePolicyID); err != nil {
+		return errors.WrapIf(err, "failed to activate policy")
 	}
 
 	if boundSpec.WebhookConfig.Enabled {
