@@ -52,6 +52,9 @@ type Option interface {
 	apply(o *middlewareOptions)
 }
 
+// In the future, sensitivePaths and userIDExtractor might be replaced by request matchers and propagators/decorators
+// respectively to generalize them for multiple use cases, but for now this solution (borrowed from the previous one)
+// should be fine.
 type middlewareOptions struct {
 	clock           Clock
 	sensitivePaths  []*regexp.Regexp
@@ -115,7 +118,6 @@ func Middleware(driver Driver, opts ...Option) gin.HandlerFunc {
 		entry := Entry{
 			Time:          options.clock.Now(),
 			CorrelationID: c.GetString(correlationid.ContextKey),
-			UserID:        options.userIDExtractor(c.Request),
 			HTTP: HTTPEntry{
 				ClientIP:  c.ClientIP(),
 				UserAgent: c.Request.UserAgent(),
@@ -146,6 +148,8 @@ func Middleware(driver Driver, opts ...Option) gin.HandlerFunc {
 		}
 
 		c.Next() // process request
+
+		entry.UserID = options.userIDExtractor(c.Request)
 
 		// Consider making this configurable if you need to log unauthorized requests,
 		// but keep in mind that in case of a public installation it's a potential DoS attack vector.
