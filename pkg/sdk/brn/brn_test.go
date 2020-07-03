@@ -124,6 +124,11 @@ func TestResourceName_String(t *testing.T) {
 	}
 }
 
+func TestIsBRN(t *testing.T) {
+	assert.True(t, IsBRN("brn:"))
+	assert.False(t, IsBRN("asd:"))
+}
+
 func ExampleParse() {
 	resourceName, err := Parse("brn:1:secret:dc460da4ad72c482231e28e688e01f2778a88ce31a08826899d54ef7183998b5")
 	if err != nil {

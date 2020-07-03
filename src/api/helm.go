@@ -27,7 +27,6 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/helm/pkg/chartutil"
 	k8sHelm "k8s.io/helm/pkg/helm"
-	"k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
 	"k8s.io/helm/pkg/repo"
@@ -475,54 +474,6 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context, commonCluster cluster.Co
 	}
 	log.Debug("Custom values: ", string(pdr.values))
 	return pdr, nil
-}
-
-// HelmReposUpdate update the helm repo
-func HelmReposUpdate(c *gin.Context) {
-	log.Info("update helm repository")
-
-	repoName := c.Param("name")
-	log.Debugf("repoName: %s", repoName)
-	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
-	errUpdate := helm.ReposUpdate(helmEnv, repoName)
-	if errUpdate != nil {
-		log.Errorf("Error during helm repo update. %s", errUpdate.Error())
-		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Error:   errUpdate.Error(),
-			Message: "repository update failed",
-		})
-		return
-	}
-
-	sendResponseWithRepo(c, helmEnv, repoName)
-
-	return
-}
-
-func sendResponseWithRepo(c *gin.Context, helmEnv environment.EnvSettings, repoName string) {
-	entries, err := helm.ReposGet(helmEnv)
-	if err != nil {
-		log.Errorf("Error during getting helm repo: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during getting helm repo",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	for _, entry := range entries {
-		if entry.Name == repoName {
-			c.JSON(http.StatusOK, entry)
-			return
-		}
-	}
-
-	c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
-		Code:    http.StatusNotFound,
-		Message: "Helm repo not found",
-	})
 }
 
 // ListHelmReleases list helm releases

@@ -79,29 +79,6 @@ type ClusterClientSecretGetter interface {
 	GetClusterClientSecret(context.Context, uint) (ClusterClientSecret, error)
 }
 
-type noOpClusterAuthService struct {
-}
-
-func NewNoOpClusterAuthService() (ClusterAuthService, error) {
-	return &noOpClusterAuthService{}, nil
-}
-
-func (*noOpClusterAuthService) RegisterCluster(tx context.Context, clusterName string, clusterID uint, clusterUID string) error {
-	return nil
-}
-
-func (*noOpClusterAuthService) UnRegisterCluster(tx context.Context, clusterUID string) error {
-	return nil
-}
-
-func (*noOpClusterAuthService) GetClusterClientSecret(ctx context.Context, clusterID uint) (ClusterClientSecret, error) {
-	return ClusterClientSecret{}, nil
-}
-
-func (*noOpClusterAuthService) GetClusterConfig(ctx context.Context, clusterID uint) (*k8sClientApi.Config, error) {
-	return nil, nil
-}
-
 type dexClusterAuthService struct {
 	dexClient           *dexClient
 	secretStore         *clustersecret.Store
