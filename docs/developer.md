@@ -45,10 +45,10 @@ $ make config/config.yaml etc/config/dex.yml
 ```
 
 **Note:** If you followed the quick start guide this file should already exist.
- 
+
 As of now the example config enables OAuth2 based authentication. It can be changed by modifying the example.
 
-OAuth2 based authentication requires a GitHub/Google OAuth2 application, this can be created by following this 
+OAuth2 based authentication requires a GitHub/Google OAuth2 application, this can be created by following this
 [GitHub](auth/github.md), [GitLab](auth/gitlab.md) or the [Google](auth/google.md) tutorial.
 Please set the `clientId` and the `clientSecret` in `dex.yml`'s `connectors:` section.
 
@@ -58,14 +58,13 @@ Please set the `clientId` and the `clientSecret` in `dex.yml`'s `connectors:` se
 
 The development environment uses Docker Compose to create an isolated area for Pipeline.
 
-You can easily start it by executing: 
+You can easily start it by executing:
 
 ```bash
 $ make start
-``` 
+```
 
-This will create a `mysql`, `adminer` and `vault` container:
- - Adminer MySQL GUI: <http://localhost:8080>, login to Server/Database `mysql`/`pipeline` with Username/Password `sparky`/`sparky123`
+This will create a `mysql` and `vault` container:
  - Vault GUI: http://localhost:8200 login with token found in `cat ~/.vault-token`
 
 **Note:** If you want to customize mount points and port mappings, create a `docker-compose.override.yml` file via
