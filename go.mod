@@ -94,7 +94,7 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
 	github.com/vmware/govmomi v0.22.0
 	go.opencensus.io v0.22.2
