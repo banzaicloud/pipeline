@@ -50,7 +50,7 @@ func (d logDriver) Store(entry auditlog.Entry) error {
 	data := make(map[string]interface{})
 
 	if d.config.Verbosity >= 1 {
-		data["time"] = entry.Time
+		data["timestamp"] = entry.Time
 		data["correlationID"] = entry.CorrelationID
 		data["userID"] = entry.UserID
 	}

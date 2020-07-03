@@ -59,16 +59,6 @@ type dbDriver struct {
 }
 
 func (d dbDriver) Store(entry auditlog.Entry) error {
-	var errs string
-	if len(entry.HTTP.Errors) > 0 {
-		e, err := json.Marshal(entry.HTTP.Errors)
-		if err != nil {
-			return errors.Wrap(err, "audit log")
-		}
-
-		errs = string(e)
-	}
-
 	model := EntryModel{
 		Time:          entry.Time,
 		CorrelationID: entry.CorrelationID,
@@ -78,11 +68,26 @@ func (d dbDriver) Store(entry auditlog.Entry) error {
 		Method:        entry.HTTP.Method,
 		UserID:        entry.UserID,
 		StatusCode:    entry.HTTP.StatusCode,
-		Body:          entry.HTTP.RequestBody,
 		Headers:       "{}",
 		ResponseTime:  entry.HTTP.ResponseTime,
 		ResponseSize:  entry.HTTP.ResponseSize,
-		Errors:        &errs,
+	}
+
+	// Saving the model fails when the body is not valid JSON (and not empty).
+	// The previous implementation transparently suppressed these errors, so this should be fine for now.
+	// The Body column should probably accept a raw body instead of enforcing JSON.
+	if entry.HTTP.RequestBody != nil && len(*entry.HTTP.RequestBody) > 0 {
+		model.Body = entry.HTTP.RequestBody
+	}
+
+	if len(entry.HTTP.Errors) > 0 {
+		e, err := json.Marshal(entry.HTTP.Errors)
+		if err != nil {
+			return errors.Wrap(err, "audit log")
+		}
+
+		errs := string(e)
+		model.Errors = &errs
 	}
 
 	if err := d.db.Save(&model).Error; err != nil {

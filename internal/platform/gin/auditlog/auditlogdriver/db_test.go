@@ -66,8 +66,6 @@ func TestDatabaseDriver(t *testing.T) {
 	err := driver.Store(entry)
 	require.NoError(t, err)
 
-	var errors string
-
 	model := EntryModel{
 		ID:            1,
 		Time:          entry.Time,
@@ -82,7 +80,7 @@ func TestDatabaseDriver(t *testing.T) {
 		Headers:       "{}",
 		ResponseTime:  entry.HTTP.ResponseTime,
 		ResponseSize:  entry.HTTP.ResponseSize,
-		Errors:        &errors,
+		Errors:        nil,
 	}
 
 	var expectedModel EntryModel

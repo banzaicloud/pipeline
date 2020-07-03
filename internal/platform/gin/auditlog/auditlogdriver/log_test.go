@@ -55,7 +55,7 @@ func TestLogDriver(t *testing.T) {
 		Line:  "audit log event",
 		Level: logur.Info,
 		Fields: map[string]interface{}{
-			"time":              entry.Time,
+			"timestamp":         entry.Time,
 			"correlationID":     entry.CorrelationID,
 			"userID":            entry.UserID,
 			"http.method":       entry.HTTP.Method,
