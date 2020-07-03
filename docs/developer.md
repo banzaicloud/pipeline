@@ -116,12 +116,12 @@ Tokens can be generated only with a browser (for now), to do that please use the
 
 - For local usage:
     ```bash
-    http://localhost:9090/auth/dex/login
+    https://localhost:9090/auth/dex/login
     ```
 
 - For on-cloud usage:
     ```bash
-    http://{control_plane_public_ip}/auth/dex/login
+    https://{control_plane_public_ip}/auth/dex/login
     ```
 
 Please authenticate yourself with Dex. If everything is done correctly you will be redirected.
@@ -129,12 +129,12 @@ The browser session already contains the generated token in a cookie. An API tok
 
 - For local usage:
     ```bash
-    http://localhost:9090/pipeline/api/v1/token
+    https://localhost:9090/pipeline/api/v1/token
     ```
 
 - For on-cloud usage:
     ```bash
-    http://{control_plane_public_ip}/pipeline/api/v1/token
+    https://{control_plane_public_ip}/pipeline/api/v1/token
     ```
 
 
