@@ -42,7 +42,6 @@ require (
 	github.com/coreos/go-oidc v2.1.0+incompatible
 	github.com/denisenkom/go-mssqldb v0.0.0-20200206145737-bbfc9a55622e // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/didip/tollbooth v4.0.2+incompatible
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cors v1.3.0
