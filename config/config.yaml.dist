@@ -67,6 +67,17 @@ cadence:
 #    createNonexistentDomain: false
 #    workflowExecutionRetentionPeriodInDays: 3
 
+#auditLog:
+#    enabled: true
+#
+#    driver:
+#        log:
+#            enabled: false
+#            verbosity: 1
+#
+#        database:
+#            enabled: true
+
 #cors:
 #    # Note: this should be disabled in production!
 #    # TODO: disable all orgins by default?
