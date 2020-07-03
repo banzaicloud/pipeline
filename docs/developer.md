@@ -129,12 +129,12 @@ The browser session already contains the generated token in a cookie. An API tok
 
 - For local usage:
     ```bash
-    https://localhost:9090/pipeline/api/v1/token
+    https://localhost:9090/pipeline/api/v1/tokens
     ```
 
 - For on-cloud usage:
     ```bash
-    https://{control_plane_public_ip}/pipeline/api/v1/token
+    https://{control_plane_public_ip}/pipeline/api/v1/tokens
     ```
 
 
