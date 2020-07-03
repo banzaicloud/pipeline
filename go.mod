@@ -144,8 +144,6 @@ replace (
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
 	github.com/qor/auth => github.com/banzaicloud/auth v0.1.3
 
-	gopkg.in/yaml.v2 => github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182
-
 	// https://github.com/helm/helm/compare/release-3.1...pepov:release-3.1
 	helm.sh/helm/v3 => github.com/pepov/helm/v3 v3.0.0-20200519142412-df65965032e2
 
