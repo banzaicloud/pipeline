@@ -44,7 +44,6 @@ import (
 	"github.com/go-kit/kit/tracing/opencensus"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
@@ -72,7 +71,6 @@ import (
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
-	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token/tokenadapter"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token/tokendriver"
@@ -547,9 +545,8 @@ func main() {
 	router.Use(ocmux.Middleware())
 
 	// These two paths can contain sensitive information, so it is advised not to log them out.
-	skipPaths := config.Audit.SkipPaths
 	engine.Use(correlationid.Middleware())
-	engine.Use(ginlog.Middleware(logrusLogger, skipPaths...))
+	engine.Use(ginlog.Middleware(logrusLogger, []string{"/auth/dex/callback", "/pipeline/api"}...))
 
 	// Add prometheus metric endpoint
 	if config.Telemetry.Enabled {
@@ -610,13 +607,12 @@ func main() {
 			driver,
 			auditlog.WithUserIDExtractor(auth.GetCurrentUserID),
 			auditlog.WithSensitivePaths([]*regexp.Regexp{
+				regexp.MustCompile("/auth/dex(?:/.*)?"),
 				regexp.MustCompile("/.*/api/v1/orgs/.*/secrets(?:/.*)?"),
 				regexp.MustCompile("/.*/api/v1/orgs/.*/clusters/.*/pke/ready"),
 			}),
 			auditlog.WithErrorHandler(errorHandler),
 		))
-
-		engine.Use(audit.LogWriter(skipPaths, config.Audit.Headers, db, logrusLogger))
 	}
 
 	engine.Use(func(c *gin.Context) { // TODO: move to middleware
@@ -1244,7 +1240,7 @@ func main() {
 		logger := logur.WithField(logger, "server", "internal")
 
 		server := &http.Server{
-			Handler:  createInternalAPIRouter(config, db, basePath, clusterAPI, cloudinfoClient, logger, logrusLogger),
+			Handler:  createInternalAPIRouter(basePath, clusterAPI, cloudinfoClient, logrusLogger),
 			ErrorLog: log.NewErrorStandardLogger(logger),
 		}
 		defer server.Close()
@@ -1302,23 +1298,16 @@ func main() {
 }
 
 func createInternalAPIRouter(
-	conf configuration,
-	db *gorm.DB,
 	basePath string,
 	clusterAPI *api.ClusterAPI,
 	cloudinfoClient *cloudinfo.Client,
-	logger logur.Logger,
 	logrusLogger logrus.FieldLogger,
 ) *gin.Engine {
 	// Initialise Gin router for Internal API
 	internalRouter := gin.New()
 	internalRouter.Use(correlationid.Middleware())
-	internalRouter.Use(ginlog.Middleware(logrusLogger, conf.Audit.SkipPaths...))
+	internalRouter.Use(ginlog.Middleware(logrusLogger, []string{"/auth/dex/callback", "/pipeline/api"}...))
 	internalRouter.Use(gin.Recovery())
-	if conf.Audit.Enabled {
-		logger.Info("Audit enabled, installing Gin audit middleware to internal router")
-		internalRouter.Use(audit.LogWriter(conf.Audit.SkipPaths, conf.Audit.Headers, db, logrusLogger))
-	}
 	internalGroup := internalRouter.Group(path.Join(basePath, "api", "v1/", "orgs"))
 	internalGroup.Use(auth.InternalUserHandler)
 	internalGroup.Use(api.OrganizationMiddleware)
