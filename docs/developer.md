@@ -102,7 +102,7 @@ If you happen to get an error similar to this on the first run:
 Error 1146: Table 'pipeline.amazon_eks_profiles' doesn't exist
 ```
 
-You should set `autoMigrateEnabled = true` in the database section in the `config/config.yaml` file.
+You should set `autoMigrate = true` in the database section in the `config/config.yaml` file.
 
 You should now be able to log in on the Pipeline UI: http://localhost:4200/ui
 
