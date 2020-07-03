@@ -483,13 +483,6 @@ func createCommonClusterWithDistributionFromModel(modelCluster *model.ClusterMod
 	}
 }
 
-// GetUserIdAndName returns userId and userName from DB
-func GetUserIdAndName(modelCluster *model.ClusterModel) (userId uint, userName string) {
-	userId = modelCluster.CreatedBy
-	userName = auth.GetUserNickNameById(userId)
-	return
-}
-
 // NewCreatorBaseFields creates a new CreatorBaseFields instance from createdAt and createdBy
 func NewCreatorBaseFields(createdAt time.Time, createdBy uint) *pkgCommon.CreatorBaseFields {
 	var userName string

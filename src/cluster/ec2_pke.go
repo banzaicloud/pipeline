@@ -28,7 +28,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
@@ -309,11 +308,6 @@ func (c *EC2ClusterPKE) RegisterNode(name, nodePoolName, ip string, master, work
 	c.log.WithField("node", name).Info("node registered")
 	*/
 
-	return nil
-}
-
-// Create master CF template
-func CreateMasterCF(formation *cloudformation.CloudFormation) error {
 	return nil
 }
 
