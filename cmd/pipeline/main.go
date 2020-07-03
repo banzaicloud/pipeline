@@ -65,6 +65,8 @@ import (
 	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/auditlog"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/auditlog/auditlogdriver"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
@@ -588,10 +590,35 @@ func main() {
 
 	engine.Use(cors.New(corsConfig))
 
-	if config.Audit.Enabled {
+	if config.AuditLog.Enabled {
 		logger.Info("Audit enabled, installing Gin audit middleware")
+
+		driver := auditlog.Drivers{}
+
+		if config.AuditLog.Driver.Log.Enabled {
+			driver = append(driver, auditlogdriver.NewLogDriver(
+				config.AuditLog.Driver.Log.Config,
+				logur.WithField(logger, "channel", "audit"),
+			))
+		}
+
+		if config.AuditLog.Driver.Database.Enabled {
+			driver = append(driver, auditlogdriver.NewDatabaseDriver(db))
+		}
+
+		engine.Use(auditlog.Middleware(
+			driver,
+			auditlog.WithUserIDExtractor(auth.GetCurrentUserID),
+			auditlog.WithSensitivePaths([]*regexp.Regexp{
+				regexp.MustCompile("/.*/api/v1/orgs/.*/secrets(?:/.*)?"),
+				regexp.MustCompile("/.*/api/v1/orgs/.*/clusters/.*/pke/ready"),
+			}),
+			auditlog.WithErrorHandler(errorHandler),
+		))
+
 		engine.Use(audit.LogWriter(skipPaths, config.Audit.Headers, db, logrusLogger))
 	}
+
 	engine.Use(func(c *gin.Context) { // TODO: move to middleware
 		c.Request = c.Request.WithContext(ctxutil.WithParams(c.Request.Context(), ginutils.ParamsToMap(c.Params)))
 	})

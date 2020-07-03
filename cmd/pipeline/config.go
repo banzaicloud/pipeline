@@ -113,9 +113,9 @@ type auditLogConfig struct {
 
 	Driver struct {
 		Log struct {
-			auditlogdriver.LogDriverConfig `mapstructure:",squash"`
-
 			Enabled bool
+
+			Config auditlogdriver.LogDriverConfig `mapstructure:",squash"`
 		}
 
 		Database struct {
