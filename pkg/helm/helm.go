@@ -17,7 +17,6 @@ package helm
 import (
 	"time"
 
-	"github.com/technosophos/moniker"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -27,8 +26,6 @@ const (
 	BanzaiRepository = "banzaicloud-stable"
 	LokiRepository   = "loki"
 )
-
-const releaseNameMaxLen = 53
 
 // the label Helm places on Kubernetes objects for differentiating between
 // different instances: https://helm.sh/docs/chart_best_practices/#standard-labels
@@ -192,14 +189,4 @@ type GetDeploymentResourcesResponse struct {
 type DeploymentResource struct {
 	Name string `json:"name"`
 	Kind string `json:"kind"`
-}
-
-// GenerateReleaseName Generate Helm like release name
-func GenerateReleaseName() string {
-	namer := moniker.New()
-	name := namer.NameSep("-")
-	if len(name) > releaseNameMaxLen {
-		name = name[:releaseNameMaxLen]
-	}
-	return name
 }
