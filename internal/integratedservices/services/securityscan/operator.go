@@ -135,6 +135,26 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 
 	anchoreClient := anchore.NewAnchoreClient(anchoreValues.User, anchoreValues.Password, anchoreValues.Host, anchoreValues.Insecure, logger)
 
+	if boundSpec.Registry != nil {
+		secret, err := op.secretStore.GetSecretValues(ctx, boundSpec.Registry.SecretID)
+		if err != nil {
+			return errors.WrapWithDetails(err, "failed to get anchore registry secret", "secretId", boundSpec.CustomAnchore.SecretID)
+		}
+
+		registry := anchore.Registry{
+			Type:     boundSpec.Registry.Type,
+			Registry: boundSpec.Registry.Registry,
+			Username: secret["username"],
+			Password: secret["password"],
+			Verify:   !boundSpec.Registry.Insecure,
+		}
+
+		err = anchoreClient.AddRegistry(ctx, registry)
+		if err != nil {
+			return errors.WrapWithDetails(err, "failed to add anchore registry")
+		}
+	}
+
 	activePolicyID := boundSpec.Policy.PolicyID
 	if activePolicyID == "" {
 		policyID, err := anchoreClient.CreatePolicy(ctx, boundSpec.Policy.CustomPolicy.Policy)

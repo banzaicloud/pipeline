@@ -27,6 +27,7 @@ type integratedServiceSpec struct {
 	Policy           policySpec        `json:"policy" mapstructure:"policy"`
 	ReleaseWhiteList []releaseSpec     `json:"releaseWhiteList,omitempty" mapstructure:"releaseWhiteList"`
 	WebhookConfig    webHookConfigSpec `json:"webhookConfig" mapstructure:"webhookConfig"`
+	Registry         *registrySpec     `json:"registry" mapstructure:"registry"`
 }
 
 // Validate validates the input security scan specification.
@@ -46,6 +47,10 @@ func (s integratedServiceSpec) Validate(pipelineNamespace string) error {
 	}
 
 	validationErrors = errors.Combine(validationErrors, s.WebhookConfig.Validate(pipelineNamespace))
+
+	if s.Registry != nil {
+		validationErrors = errors.Combine(validationErrors, s.Registry.Validate())
+	}
 
 	return validationErrors
 }
@@ -115,6 +120,21 @@ func (w webHookConfigSpec) Validate(pipelineNamespace string) error {
 
 func (w webHookConfigSpec) allNamespaces() bool {
 	return (len(w.Namespaces) == 1) && w.Namespaces[0] == selectedAllStar
+}
+
+type registrySpec struct {
+	Type     string `json:"type" mapstructure:"type"`
+	Registry string `json:"registry" mapstructure:"registry"`
+	SecretID string `json:"secretId" mapstructure:"secretId"`
+	Insecure bool   `json:"insecure" mapstructure:"insecure"`
+}
+
+func (s registrySpec) Validate() error {
+	if s.Registry == "" || s.SecretID == "" {
+		return errors.New("both registry and secretId are required")
+	}
+
+	return nil
 }
 
 func bindIntegratedServiceSpec(spec integratedservices.IntegratedServiceSpec) (integratedServiceSpec, error) {

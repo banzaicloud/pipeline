@@ -19,6 +19,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"net/http"
+	"regexp"
 
 	"emperror.dev/errors"
 	"github.com/antihax/optional"
@@ -27,6 +28,8 @@ import (
 	"github.com/banzaicloud/pipeline/.gen/anchore"
 	"github.com/banzaicloud/pipeline/internal/common"
 )
+
+var ecrRegexp = regexp.MustCompile("[0-9]+\\.dkr\\.ecr\\..*\\.amazonaws\\.com") // nolint
 
 type UserManagementClient interface {
 	CreateAccount(ctx context.Context, accountName string, email string) error
@@ -43,10 +46,23 @@ type PolicyClient interface {
 	CreatePolicy(ctx context.Context, policyRaw map[string]interface{}) (string, error)
 }
 
+type RegistryClient interface {
+	AddRegistry(ctx context.Context, registry Registry) error
+}
+
+type Registry struct {
+	Username string
+	Password string
+	Type     string
+	Registry string
+	Verify   bool
+}
+
 // AnchoreClient "facade" for supported Anchore operations, decouples anchore specifics from the application
 type AnchoreClient interface {
 	UserManagementClient
 	PolicyClient
+	RegistryClient
 }
 
 type anchoreClient struct {
@@ -259,6 +275,42 @@ func (a anchoreClient) CreatePolicy(ctx context.Context, policyRaw map[string]in
 
 	a.logger.Info("anchore policy created", fnCtx)
 	return policyRecord.PolicyId, nil
+}
+
+func (a anchoreClient) AddRegistry(ctx context.Context, registry Registry) error {
+	fnCtx := map[string]interface{}{"registry": registry.Registry}
+	a.logger.Info("adding anchore registry", fnCtx)
+
+	registryType := ""
+	if registry.Type == "" {
+		if ecrRegexp.MatchString(registry.Registry) {
+			registryType = "awsecr"
+		} else {
+			registryType = "docker_v2"
+		}
+	}
+
+	request := anchore.RegistryConfigurationRequest{
+		Registry:       registry.Registry,
+		RegistryName:   registry.Registry,
+		RegistryUser:   registry.Username,
+		RegistryPass:   registry.Password,
+		RegistryType:   registryType,
+		RegistryVerify: registry.Verify,
+	}
+
+	opts := &anchore.CreateRegistryOpts{Validate: optional.NewBool(true)}
+
+	_, resp, err := a.getRestClient().RegistriesApi.CreateRegistry(a.authorizedContext(ctx), request, opts)
+
+	if err != nil || (resp.StatusCode != http.StatusOK) {
+		a.logger.Debug("failed to add anchore registry", fnCtx)
+
+		return errors.WrapIfWithDetails(err, "failed to add anchore registry", fnCtx)
+	}
+
+	a.logger.Info("anchore registry added", fnCtx)
+	return nil
 }
 
 func (a anchoreClient) authorizedContext(ctx context.Context) context.Context {
