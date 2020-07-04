@@ -274,6 +274,7 @@ func main() {
 	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
 	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, commonLogger)
 	secretTypes := types.NewDefaultTypeList(types.DefaultTypeListConfig{
+		AmazonRegion:       config.Cloud.Amazon.DefaultRegion,
 		TLSDefaultValidity: config.Secret.TLS.DefaultValidity,
 		PkeSecreter:        pkeSecreter,
 	})
