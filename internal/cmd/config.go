@@ -44,15 +44,7 @@ type Config struct {
 	// Cadence configuration
 	Cadence cadence.Config
 
-	Cloud struct {
-		Amazon struct {
-			DefaultRegion string
-		}
-
-		Alibaba struct {
-			DefaultRegion string
-		}
-	}
+	Cloud CloudConfig
 
 	Cloudinfo CloudinfoConfig
 
@@ -142,6 +134,36 @@ func (c *Config) Process() error {
 	err = errors.Append(err, c.Cluster.Process())
 
 	return err
+}
+
+type CloudConfig struct {
+	Amazon AmazonCloudConfig
+
+	Alibaba struct {
+		DefaultRegion string
+	}
+}
+
+func (c CloudConfig) Validate() error {
+	var errs error
+
+	errs = errors.Append(errs, c.Amazon.Validate())
+
+	return errs
+}
+
+type AmazonCloudConfig struct {
+	DefaultRegion string
+}
+
+func (c AmazonCloudConfig) Validate() error {
+	var errs error
+
+	if c.DefaultRegion == "" {
+		errs = errors.Append(errs, errors.New("amazon default region is required"))
+	}
+
+	return errs
 }
 
 type CloudinfoConfig struct {
