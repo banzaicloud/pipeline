@@ -31,7 +31,10 @@ const (
 	FieldAmazonSecretAccessKey = "AWS_SECRET_ACCESS_KEY"
 )
 
-type AmazonType struct{}
+type AmazonType struct {
+	// Region is used for secret verification.
+	Region string
+}
 
 func (AmazonType) Name() string {
 	return Amazon
@@ -51,10 +54,8 @@ func (t AmazonType) Validate(data map[string]string) error {
 	return validateDefinition(data, t.Definition())
 }
 
-const defaultAmazonRegion = "us-west-2"
-
 // TODO: rewrite this function!
-func (AmazonType) Verify(data map[string]string) error {
+func (t AmazonType) Verify(data map[string]string) error {
 	creds := credentials.NewStaticCredentials(
 		data[FieldAmazonAccessKeyId],
 		data[FieldAmazonSecretAccessKey],
@@ -63,7 +64,7 @@ func (AmazonType) Verify(data map[string]string) error {
 
 	sess, err := session.NewSession(&aws.Config{
 		Credentials: creds,
-		Region:      aws.String(defaultAmazonRegion),
+		Region:      aws.String(t.Region),
 	})
 	if err != nil {
 		return err
