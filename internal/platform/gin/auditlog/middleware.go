@@ -159,7 +159,7 @@ func Middleware(driver Driver, opts ...Option) gin.HandlerFunc {
 
 		entry.HTTP.StatusCode = c.Writer.Status()
 		entry.HTTP.ResponseSize = c.Writer.Size()
-		entry.HTTP.ResponseTime = int(options.clock.Since(entry.Time).Nanoseconds() / 1000 / 1000) // ms
+		entry.HTTP.ResponseTime = int(options.clock.Since(entry.Time).Milliseconds())
 
 		if saveBody {
 			// Make sure everything is read from the body.
