@@ -156,7 +156,7 @@ vault kv put secret/banzaicloud/aws \
 Creating and using EKS clusters requires to you to have the [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) installed on your machine:
 
 ```bash
-go get github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
+go get -u -v sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator
 ```
 
 #### EKS ami image query script
