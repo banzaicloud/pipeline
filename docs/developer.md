@@ -163,10 +163,9 @@ go get -u -v sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator
 
 ```
 K8S_VERSIONS=(
-  "1.11"
-  "1.12"
-  "1.13"
   "1.14"
+  "1.15"
+  "1.16"
 )
 
 for version in ${K8S_VERSIONS[@]}; do
