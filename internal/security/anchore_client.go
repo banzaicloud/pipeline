@@ -58,6 +58,10 @@ type Registry struct {
 	Verify   bool
 }
 
+func IsEcrRegistry(registry string) bool {
+	return ecrRegexp.MatchString(registry)
+}
+
 // AnchoreClient "facade" for supported Anchore operations, decouples anchore specifics from the application
 type AnchoreClient interface {
 	UserManagementClient
@@ -283,7 +287,7 @@ func (a anchoreClient) AddRegistry(ctx context.Context, registry Registry) error
 
 	registryType := ""
 	if registry.Type == "" {
-		if ecrRegexp.MatchString(registry.Registry) {
+		if IsEcrRegistry(registry.Registry) {
 			registryType = "awsecr"
 		} else {
 			registryType = "docker_v2"
