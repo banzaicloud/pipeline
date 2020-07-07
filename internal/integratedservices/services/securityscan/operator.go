@@ -25,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -144,9 +145,15 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		registry := anchore.Registry{
 			Type:     boundSpec.Registry.Type,
 			Registry: boundSpec.Registry.Registry,
-			Username: secret["username"],
-			Password: secret["password"],
 			Verify:   !boundSpec.Registry.Insecure,
+		}
+
+		if anchore.IsEcrRegistry(boundSpec.Registry.Registry) {
+			registry.Username = secret[secrettype.AwsAccessKeyId]
+			registry.Password = secret[secrettype.AwsSecretAccessKey]
+		} else {
+			registry.Username = secret[secrettype.Username]
+			registry.Password = secret[secrettype.Password]
 		}
 
 		err = anchoreClient.AddRegistry(ctx, registry)
