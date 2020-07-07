@@ -285,8 +285,8 @@ func (a anchoreClient) AddRegistry(ctx context.Context, registry Registry) error
 	fnCtx := map[string]interface{}{"registry": registry.Registry}
 	a.logger.Info("adding anchore registry", fnCtx)
 
-	registryType := ""
-	if registry.Type == "" {
+	registryType := registry.Type
+	if registryType == "" {
 		if IsEcrRegistry(registry.Registry) {
 			registryType = "awsecr"
 		} else {
