@@ -18,11 +18,13 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipelinectl/cli/commands/drain"
+	"github.com/banzaicloud/pipeline/internal/app/pipelinectl/cli/commands/telemetry"
 )
 
 // AddCommands adds all the commands from cli/command to the root command
 func AddCommands(cmd *cobra.Command) {
 	cmd.AddCommand(
 		drain.NewDrainCommand(),
+		telemetry.NewTelemetryCommand(),
 	)
 }
