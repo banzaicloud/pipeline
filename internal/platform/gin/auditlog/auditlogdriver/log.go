@@ -21,6 +21,7 @@ import (
 // LogDriverConfig configures a standard output audit log driver.
 type LogDriverConfig struct {
 	Verbosity int
+	Fields    []string
 }
 
 // Logger is the fundamental interface for all log operations.
@@ -43,40 +44,66 @@ type logDriver struct {
 }
 
 func (d logDriver) Store(entry auditlog.Entry) error {
-	if d.config.Verbosity == 0 {
-		return nil
-	}
-
 	data := make(map[string]interface{})
 
-	if d.config.Verbosity >= 1 {
-		data["timestamp"] = entry.Time
-		data["correlationID"] = entry.CorrelationID
-		data["userID"] = entry.UserID
-	}
+	if len(d.config.Fields) > 0 {
+		appendFields(data, entry, d.config.Fields)
+	} else {
+		if d.config.Verbosity == 0 {
+			return nil
+		}
 
-	if d.config.Verbosity >= 2 {
-		data["http.method"] = entry.HTTP.Method
-		data["http.path"] = entry.HTTP.Path
-		data["http.clientIP"] = entry.HTTP.ClientIP
-	}
+		if d.config.Verbosity >= 1 {
+			appendFields(data, entry, []string{"timestamp", "correlationID", "userID"})
+		}
 
-	if d.config.Verbosity >= 3 {
-		data["http.userAgent"] = entry.HTTP.UserAgent
-		data["http.statusCode"] = entry.HTTP.StatusCode
-	}
+		if d.config.Verbosity >= 2 {
+			appendFields(data, entry, []string{"http.method", "http.path", "http.clientIP"})
+		}
 
-	if d.config.Verbosity >= 4 {
-		data["http.responseTime"] = entry.HTTP.ResponseTime
-		data["http.responseSize"] = entry.HTTP.ResponseSize
-		data["http.requestBody"] = entry.HTTP.RequestBody
+		if d.config.Verbosity >= 3 {
+			appendFields(data, entry, []string{"http.userAgent", "http.statusCode", "http.responseTime", "http.responseSize"})
+		}
 
-		if len(entry.HTTP.Errors) > 0 {
-			data["http.errors"] = entry.HTTP.Errors
+		if d.config.Verbosity >= 4 {
+			appendFields(data, entry, []string{"http.requestBody", "http.errors"})
 		}
 	}
 
 	d.logger.Info("audit log event", data)
 
 	return nil
+}
+
+func appendFields(data map[string]interface{}, entry auditlog.Entry, fields []string) {
+	for _, field := range fields {
+		switch field {
+		case "timestamp":
+			data[field] = entry.Time
+		case "correlationID":
+			data[field] = entry.CorrelationID
+		case "userID":
+			data[field] = entry.UserID
+		case "http.method":
+			data[field] = entry.HTTP.Method
+		case "http.path":
+			data[field] = entry.HTTP.Path
+		case "http.clientIP":
+			data[field] = entry.HTTP.ClientIP
+		case "http.userAgent":
+			data[field] = entry.HTTP.UserAgent
+		case "http.statusCode":
+			data[field] = entry.HTTP.StatusCode
+		case "http.responseTime":
+			data[field] = entry.HTTP.ResponseTime
+		case "http.responseSize":
+			data[field] = entry.HTTP.ResponseSize
+		case "http.requestBody":
+			data[field] = entry.HTTP.RequestBody
+		case "http.errors":
+			if len(entry.HTTP.Errors) > 0 {
+				data[field] = entry.HTTP.Errors
+			}
+		}
+	}
 }

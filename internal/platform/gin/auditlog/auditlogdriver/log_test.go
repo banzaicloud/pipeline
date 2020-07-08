@@ -43,31 +43,55 @@ func TestLogDriver(t *testing.T) {
 		},
 	}
 
-	config := LogDriverConfig{Verbosity: 4}
-	logger := &logur.TestLogger{}
+	t.Run("Verbosity", func(t *testing.T) {
+		config := LogDriverConfig{Verbosity: 4}
+		logger := &logur.TestLogger{}
 
-	driver := NewLogDriver(config, logger)
+		driver := NewLogDriver(config, logger)
 
-	err := driver.Store(entry)
-	require.NoError(t, err)
+		err := driver.Store(entry)
+		require.NoError(t, err)
 
-	event := logur.LogEvent{
-		Line:  "audit log event",
-		Level: logur.Info,
-		Fields: map[string]interface{}{
-			"timestamp":         entry.Time,
-			"correlationID":     entry.CorrelationID,
-			"userID":            entry.UserID,
-			"http.method":       entry.HTTP.Method,
-			"http.path":         entry.HTTP.Path,
-			"http.clientIP":     entry.HTTP.ClientIP,
-			"http.userAgent":    entry.HTTP.UserAgent,
-			"http.statusCode":   entry.HTTP.StatusCode,
-			"http.responseTime": entry.HTTP.ResponseTime,
-			"http.responseSize": entry.HTTP.ResponseSize,
-			"http.requestBody":  entry.HTTP.RequestBody,
-		},
-	}
+		event := logur.LogEvent{
+			Line:  "audit log event",
+			Level: logur.Info,
+			Fields: map[string]interface{}{
+				"timestamp":         entry.Time,
+				"correlationID":     entry.CorrelationID,
+				"userID":            entry.UserID,
+				"http.method":       entry.HTTP.Method,
+				"http.path":         entry.HTTP.Path,
+				"http.clientIP":     entry.HTTP.ClientIP,
+				"http.userAgent":    entry.HTTP.UserAgent,
+				"http.statusCode":   entry.HTTP.StatusCode,
+				"http.responseTime": entry.HTTP.ResponseTime,
+				"http.responseSize": entry.HTTP.ResponseSize,
+				"http.requestBody":  entry.HTTP.RequestBody,
+			},
+		}
 
-	logtesting.AssertLogEventsEqual(t, event, *(logger.LastEvent()))
+		logtesting.AssertLogEventsEqual(t, event, *(logger.LastEvent()))
+	})
+
+	t.Run("FieldList", func(t *testing.T) {
+		config := LogDriverConfig{Fields: []string{"userID", "http.method", "http.path"}}
+		logger := &logur.TestLogger{}
+
+		driver := NewLogDriver(config, logger)
+
+		err := driver.Store(entry)
+		require.NoError(t, err)
+
+		event := logur.LogEvent{
+			Line:  "audit log event",
+			Level: logur.Info,
+			Fields: map[string]interface{}{
+				"userID":      entry.UserID,
+				"http.method": entry.HTTP.Method,
+				"http.path":   entry.HTTP.Path,
+			},
+		}
+
+		logtesting.AssertLogEventsEqual(t, event, *(logger.LastEvent()))
+	})
 }
