@@ -53,6 +53,12 @@ func main() {
 	flags.Bool("verify", true, "Verify root CA")
 	_ = viper.BindPFlag("api.verify", flags.Lookup("verify"))
 
+	flags.String("telemetry-url", "http://127.0.0.1:9900", "Pipeline telemetry URL")
+	_ = viper.BindPFlag("telemetry.url", flags.Lookup("telemetry-url"))
+
+	flags.Bool("telemetry-verify", true, "Verify root CA for telemetry")
+	_ = viper.BindPFlag("telemetry.verify", flags.Lookup("telemetry-verify"))
+
 	viper.SetEnvPrefix(envPrefix)
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 	viper.AutomaticEnv()
@@ -60,6 +66,8 @@ func main() {
 	// Pipeline configuration
 	viper.SetDefault("api.url", "http://127.0.0.1:9090")
 	viper.SetDefault("api.verify", true)
+	viper.SetDefault("telemetry.url", "http://127.0.0.1:9900/metrics")
+	viper.SetDefault("telemetry.verify", true)
 
 	cobra.OnInitialize(func() {
 		if !viper.GetBool("api.verify") {
