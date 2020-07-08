@@ -179,6 +179,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("auditLog::enabled", true)
 	v.SetDefault("auditLog::driver::log::enabled", false)
 	v.SetDefault("auditLog::driver::log::verbosity", 1)
+	v.SetDefault("auditLog::driver::log::fields", []string{})
 	v.SetDefault("auditLog::driver::database::enabled", true)
 
 	// Database config
