@@ -150,10 +150,7 @@ dex:
 #    namespace: "pipeline-system"
 #
 #    ingress:
-#        # Certificate CA for signing default ingress certs
-#        cert:
-#            source: "file"
-#            path: "config/certs"
+#        enabled: true
 #
 #    labels:
 #        # Inherited from cluster.namespace when empty
