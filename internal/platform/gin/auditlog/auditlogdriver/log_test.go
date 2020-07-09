@@ -66,7 +66,7 @@ func TestLogDriver(t *testing.T) {
 				"http.statusCode":   entry.HTTP.StatusCode,
 				"http.responseTime": entry.HTTP.ResponseTime,
 				"http.responseSize": entry.HTTP.ResponseSize,
-				"http.requestBody":  entry.HTTP.RequestBody,
+				"http.requestBody":  "",
 			},
 		}
 
