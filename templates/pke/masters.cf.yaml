@@ -103,7 +103,7 @@ Resources:
       BlockDeviceMappings:
       - DeviceName: /dev/sda1
         Ebs:
-          VolumeSize: '50' # TODO make it configurable or fine tune
+          VolumeSize: '150' # TODO make it configurable or fine tune
       UserData:
         Fn::Base64:
           Fn::Sub:

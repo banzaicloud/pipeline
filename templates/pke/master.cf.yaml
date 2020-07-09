@@ -54,7 +54,7 @@ Resources:
       BlockDeviceMappings:
       - DeviceName: /dev/sda1
         Ebs:
-          VolumeSize: '50'
+          VolumeSize: '150'
       UserData:
         Fn::Base64:
           Fn::Sub:
