@@ -56,7 +56,7 @@ func waitForActivities(asgFutures []workflow.Future, ctx workflow.Context, clust
 	errs := make([]error, len(asgFutures))
 	for i, future := range asgFutures {
 		var activityOutput eksWorkflow.CreateAsgActivityOutput
-		errs[i] = future.Get(ctx, &activityOutput)
+		errs[i] = decodeCloudFormationError(future.Get(ctx, &activityOutput))
 	}
 	if err := errors.Combine(errs...); err != nil {
 		_ = eksWorkflow.SetClusterStatus(ctx, clusterID, pkgCluster.Warning, err.Error())
