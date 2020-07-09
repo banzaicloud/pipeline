@@ -88,13 +88,6 @@ func TestConfigure_DefaultValueBinding(t *testing.T) {
 						},
 					},
 				},
-				Cert: struct {
-					Source string
-					Path   string
-				}{
-					Source: "file",
-					Path:   "config/certs",
-				},
 			},
 		},
 	}
