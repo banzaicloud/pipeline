@@ -487,7 +487,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("auth::token::issuer", "")
 	v.SetDefault("auth::token::audience", "")
 
-	v.SetDefault("log::format", "logfmt")
+	v.SetDefault("log::format", "json")
 	v.SetDefault("log::level", "info")
 	v.RegisterAlias("log::noColor", "no_color")
 

@@ -3,6 +3,7 @@
 # Pipeline logging configuration
 log:
     level: "debug"
+    format: "logfmt"
 
 pipeline:
     uuid: ""
