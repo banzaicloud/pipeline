@@ -55,6 +55,8 @@ type CreateInfrastructureWorkflowInput struct {
 	AsgList  []AutoscaleGroup
 
 	UseGeneratedSSHKey bool
+
+	AuthConfigMap string
 }
 
 type CreateInfrastructureWorkflowOutput struct {
@@ -296,6 +298,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			KubernetesVersion:   input.KubernetesVersion,
 			NodeInstanceRoleArn: iamRolesActivityOutput.NodeInstanceRoleArn,
 			ClusterUserArn:      iamRolesActivityOutput.ClusterUserArn,
+			AuthConfigMap:       input.AuthConfigMap,
 		}
 		bootstrapActivityFeature = workflow.ExecuteActivity(ctx, BootstrapActivityName, activityInput)
 	}

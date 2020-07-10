@@ -53,6 +53,8 @@ type EKSClusterModel struct {
 	CurrentWorkflowID string
 
 	SSHGenerated bool `gorm:"default:true"`
+
+	AuthConfigMap string
 }
 
 // TableName sets EKSClusterModel's table name
