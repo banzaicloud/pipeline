@@ -102,6 +102,7 @@ require (
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+	golang.org/x/tools v0.0.0-20200216192241-b320d3a0f5a2
 	google.golang.org/api v0.15.0
 	google.golang.org/genproto v0.0.0-20200212174721-66ed5ce911ce
 	google.golang.org/grpc v1.27.1

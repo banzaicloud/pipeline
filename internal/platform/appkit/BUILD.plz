@@ -1,0 +1,9 @@
+go_library(
+    name = "appkit",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:go.opencensus.io",
+        "//third_party/go/github.com/sagikazarmark:kitx",
+    ],
+)

@@ -1,0 +1,13 @@
+go_library(
+    name = "azure",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/secret/secrettype",
+        "//pkg/cluster",
+        "//third_party/go/github.com/Azure:azure-sdk-for-go",
+        "//third_party/go/github.com/Azure/go-autorest:autorest",
+        "//third_party/go/github.com/Azure/go-autorest/autorest:adal",
+        "//third_party/go/github.com/gofrs:uuid",
+    ],
+)

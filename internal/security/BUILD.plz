@@ -1,0 +1,20 @@
+go_library(
+    name = "security",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//.gen/anchore",
+        "//internal/anchore",
+        "//internal/common",
+        "//pkg/k8sclient",
+        "//pkg/security",
+        "//src/secret",
+        "//third_party/go/emperror.dev:errors",
+        "//third_party/go/github.com/antihax:optional",
+        "//third_party/go/github.com/banzaicloud:anchore-image-validator",
+        "//third_party/go/gopkg.in:resty.v1",
+        "//third_party/go/k8s.io:apimachinery",
+        "//third_party/go/k8s.io:client-go",
+        "//third_party/go/sigs.k8s.io:controller-runtime",
+    ],
+)

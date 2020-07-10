@@ -1,0 +1,10 @@
+go_library(
+    name = "oci",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/emperror.dev:errors",
+        "//third_party/go/github.com/oracle:oci-go-sdk",
+        "//third_party/go/github.com/sirupsen:logrus",
+    ],
+)

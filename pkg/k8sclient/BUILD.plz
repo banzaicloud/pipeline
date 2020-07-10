@@ -1,0 +1,12 @@
+go_library(
+    name = "k8sclient",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/global",
+        "//third_party/go/emperror.dev:errors",
+        "//third_party/go/k8s.io:apimachinery",
+        "//third_party/go/k8s.io:client-go",
+        "//third_party/go/sigs.k8s.io:controller-runtime",
+    ],
+)

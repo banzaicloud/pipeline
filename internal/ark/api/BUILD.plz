@@ -1,0 +1,12 @@
+go_library(
+    name = "api",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/cluster",
+        "//src/secret",
+        "//third_party/go/github.com/heptio:ark",
+        "//third_party/go/k8s.io:apimachinery",
+        "//third_party/go/k8s.io:kubernetes",
+    ],
+)

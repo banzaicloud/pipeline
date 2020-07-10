@@ -1,0 +1,9 @@
+go_library(
+    name = "network",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/providers/oracle/oci",
+        "//third_party/go/github.com/oracle:oci-go-sdk",
+    ],
+)

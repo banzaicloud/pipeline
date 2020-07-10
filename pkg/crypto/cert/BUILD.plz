@@ -1,0 +1,23 @@
+go_library(
+    name = "cert",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/banzaicloud/bank-vaults/pkg:sdk",
+        "//third_party/go/github.com/hashicorp/vault:api",
+        "//third_party/go/github.com/pkg:errors",
+        "//third_party/go/github.com/spf13:cast",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//third_party/go/github.com/banzaicloud/bank-vaults/pkg:sdk",
+        "//third_party/go/github.com/hashicorp/vault:api",
+        "//third_party/go/github.com/pkg:errors",
+        "//third_party/go/github.com/spf13:cast",
+        "//third_party/go/github.com/stretchr:testify",
+    ],
+)

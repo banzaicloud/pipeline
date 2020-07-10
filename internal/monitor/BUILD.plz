@@ -1,0 +1,16 @@
+go_library(
+    name = "monitor",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/cluster",
+        "//pkg/providers/amazon",
+        "//pkg/providers/amazon/ec2",
+        "//src/cluster",
+        "//third_party/go/emperror.dev:emperror",
+        "//third_party/go/emperror.dev:errors",
+        "//third_party/go/github.com/aws:aws-sdk-go",
+        "//third_party/go/github.com/prometheus:client_golang",
+        "//third_party/go/github.com/sirupsen:logrus",
+    ],
+)

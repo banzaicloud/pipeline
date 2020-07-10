@@ -1,0 +1,23 @@
+go_library(
+    name = "eks",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster",
+        "//third_party/go/emperror.dev:emperror",
+        "//third_party/go/emperror.dev:errors",
+        "//third_party/go/github.com/Masterminds/semver:v3",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/cluster",
+        "//third_party/go/emperror.dev:emperror",
+        "//third_party/go/emperror.dev:errors",
+        "//third_party/go/github.com/Masterminds/semver:v3",
+        "//third_party/go/github.com/stretchr:testify",
+    ],
+)

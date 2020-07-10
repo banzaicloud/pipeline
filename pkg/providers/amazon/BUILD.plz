@@ -1,0 +1,9 @@
+go_library(
+    name = "amazon",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/secret/secrettype",
+        "//third_party/go/github.com/aws:aws-sdk-go",
+    ],
+)

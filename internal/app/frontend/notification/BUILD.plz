@@ -1,0 +1,18 @@
+go_library(
+    name = "notification",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//third_party/go/github.com/stretchr:testify",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/common",
+        "//third_party/go/github.com/stretchr:testify",
+    ],
+)

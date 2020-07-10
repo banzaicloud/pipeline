@@ -1,0 +1,43 @@
+go_library(
+    name = "route53",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/global",
+        "//internal/secret/secrettype",
+        "//pkg/cluster",
+        "//pkg/providers/amazon",
+        "//src/auth",
+        "//src/dns/route53/model",
+        "//src/secret",
+        "//third_party/go/emperror.dev:errors",
+        "//third_party/go/github.com/aws:aws-sdk-go",
+        "//third_party/go/github.com/jinzhu:now",
+        "//third_party/go/github.com/sirupsen:logrus",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/common",
+        "//internal/global",
+        "//internal/secret/pkesecret",
+        "//internal/secret/restricted",
+        "//internal/secret/secretadapter",
+        "//internal/secret/secrettype",
+        "//internal/secret/types",
+        "//pkg/cluster",
+        "//pkg/providers/amazon",
+        "//src/auth",
+        "//src/dns/route53/model",
+        "//src/secret",
+        "//third_party/go/emperror.dev:emperror",
+        "//third_party/go/emperror.dev:errors",
+        "//third_party/go/github.com/aws:aws-sdk-go",
+        "//third_party/go/github.com/banzaicloud/bank-vaults/pkg:sdk",
+        "//third_party/go/github.com/jinzhu:now",
+        "//third_party/go/github.com/sirupsen:logrus",
+    ],
+)

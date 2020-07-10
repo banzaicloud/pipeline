@@ -1,0 +1,17 @@
+go_library(
+    name = "app",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/app/pipeline/process",
+        "//internal/app/pipeline/process/processadapter",
+        "//internal/app/pipeline/process/processdriver",
+        "//internal/platform/appkit/transport/http",
+        "//third_party/go/github.com/go-kit:kit",
+        "//third_party/go/github.com/gorilla:mux",
+        "//third_party/go/github.com/jinzhu:gorm",
+        "//third_party/go/github.com/sagikazarmark:appkit",
+        "//third_party/go/github.com/sagikazarmark:kitx",
+        "//third_party/go/go.uber.org:cadence",
+    ],
+)

@@ -1,0 +1,28 @@
+go_library(
+    name = "endpoints",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//pkg/helm",
+        "//pkg/k8sclient",
+        "//third_party/go/emperror.dev:errors",
+        "//third_party/go/k8s.io:api",
+        "//third_party/go/k8s.io:apimachinery",
+        "//third_party/go/k8s.io:kubernetes",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/common",
+        "//pkg/helm",
+        "//pkg/k8sclient",
+        "//third_party/go/emperror.dev:errors",
+        "//third_party/go/k8s.io:api",
+        "//third_party/go/k8s.io:apimachinery",
+        "//third_party/go/k8s.io:kubernetes",
+    ],
+)

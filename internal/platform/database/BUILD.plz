@@ -1,0 +1,20 @@
+go_library(
+    name = "database",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/banzaicloud/bank-vaults/pkg:sdk",
+        "//third_party/go/github.com/jinzhu:gorm",
+        "//third_party/go/github.com/pkg:errors",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//third_party/go/github.com/banzaicloud/bank-vaults/pkg:sdk",
+        "//third_party/go/github.com/jinzhu:gorm",
+        "//third_party/go/github.com/pkg:errors",
+    ],
+)

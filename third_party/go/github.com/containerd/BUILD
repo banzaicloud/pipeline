@@ -1,0 +1,37 @@
+package(default_visibility = ["PUBLIC"])
+
+go_get(
+    name = "containerd",
+    get = "github.com/containerd/containerd",
+    install = [
+        "errdefs",
+        "content",
+        "log",
+        "platforms",
+        "images",
+        "remotes",
+        "labels",
+        "reference",
+        "archive/compression",
+        "remotes/docker/schema1",
+        "version",
+        "remotes/docker",
+        "filters",
+        "sys",
+        "content/local",
+    ],
+    sum = "h1:ForxmXkA6tPIvffbrDAcPUIB32QgXkt2XFj+F0UxetA=",
+    version = "v1.3.2",
+    deps = [
+        "//third_party/go/github.com/docker:distribution",
+        "//third_party/go/github.com/opencontainers:go-digest",
+        "//third_party/go/github.com/opencontainers:image-spec",
+        "//third_party/go/github.com/opencontainers:runc",
+        "//third_party/go/github.com/pkg:errors",
+        "//third_party/go/github.com/sirupsen:logrus",
+        "//third_party/go/golang.org/x:net",
+        "//third_party/go/golang.org/x:sync",
+        "//third_party/go/golang.org/x:sys",
+        "//third_party/go/google.golang.org:grpc",
+    ],
+)

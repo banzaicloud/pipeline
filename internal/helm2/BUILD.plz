@@ -1,0 +1,15 @@
+go_library(
+    name = "helm2",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//internal/global",
+        "//internal/helm",
+        "//pkg/helm",
+        "//src/helm",
+        "//third_party/go/emperror.dev:errors",
+        "//third_party/go/k8s.io:helm",
+        "//third_party/go/sigs.k8s.io:yaml",
+    ],
+)

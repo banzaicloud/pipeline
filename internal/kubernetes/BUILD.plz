@@ -1,0 +1,20 @@
+go_library(
+    name = "kubernetes",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//internal/secret/secrettype",
+        "//pkg/helm",
+        "//pkg/k8sclient",
+        "//pkg/kubernetes",
+        "//third_party/go/emperror.dev:errors",
+        "//third_party/go/github.com/banzaicloud/logging-operator/pkg:sdk",
+        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go/k8s.io:api",
+        "//third_party/go/k8s.io:apimachinery",
+        "//third_party/go/k8s.io:client-go",
+        "//third_party/go/k8s.io:helm",
+        "//third_party/go/sigs.k8s.io:controller-runtime",
+    ],
+)

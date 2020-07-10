@@ -1,0 +1,14 @@
+go_library(
+    name = "workflow",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/helm",
+        "//pkg/k8sclient",
+        "//third_party/go/emperror.dev:errors",
+        "//third_party/go/github.com/sirupsen:logrus",
+        "//third_party/go/go.uber.org:cadence",
+        "//third_party/go/k8s.io:api",
+        "//third_party/go/k8s.io:apimachinery",
+    ],
+)
