@@ -42,6 +42,7 @@ type CreateClusterEKS struct {
 	// Default: ["public"]
 	APIServerAccessPoints []string          `json:"apiServerAccessPoints,omitempty" yaml:"apiServerAccessPoints,omitempty"`
 	Tags                  map[string]string `json:"tags,omitempty" yaml:"tags,omitempty"`
+	AuthConfigMap         string            `json:"authConfigMap,omitempty" yaml:"authConfigMap,omitempty"`
 }
 
 // UpdateClusterAmazonEKS describes Amazon EKS's node fields of an UpdateCluster request
