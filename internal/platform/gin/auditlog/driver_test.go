@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,19 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package viperx
+package auditlog
 
 import (
-	"github.com/spf13/viper"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// RegisterAlias provides another accessor for the same key.
-// It's useful for backward compatible configuration changes.
-//
-// Compared to the original RegisterAlias function, this one works on nested keys.
-func RegisterAlias(v *viper.Viper, alias string, key string) {
-	if v.IsSet(alias) {
-		v.Set(key, v.Get(alias))
-		v.RegisterAlias(alias, key)
+func TestDrivers(t *testing.T) {
+	driver1 := &inmemDriver{}
+	driver2 := &inmemDriver{}
+
+	driver := Drivers{driver1, driver2}
+
+	entry := Entry{
+		Time:          time.Now(),
+		CorrelationID: "cid",
+		UserID:        1,
+		HTTP:          HTTPEntry{},
 	}
+
+	// TODO: write test for the error path
+	err := driver.Store(entry)
+	require.NoError(t, err)
+
+	assert.Equal(t, entry, driver1.entries[0])
+	assert.Equal(t, entry, driver2.entries[0])
 }

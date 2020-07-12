@@ -283,6 +283,8 @@ apis/anchore/swagger.yaml:
 .PHONY: generate-anchore-client
 generate-anchore-client: apis/anchore/swagger.yaml ## Generate client from Anchore OpenAPI spec
 	$(call generate_openapi_client,apis/anchore/swagger.yaml,anchore,.gen/anchore)
+	sed -i '' 's/whitelist_ids,omitempty/whitelist_ids/' .gen/anchore/model_mapping_rule.go
+	sed -i '' 's/params,omitempty/params/' .gen/anchore/model_policy_rule.go
 
 apis/dex/api.proto:
 	@mkdir -p apis/dex

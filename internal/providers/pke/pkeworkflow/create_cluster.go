@@ -25,7 +25,7 @@ import (
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
-const pkeVersion = "0.5.0"
+const pkeVersion = "0.5.1"
 
 type PKEImageNameGetter interface {
 	PKEImageName(cloudProvider, service, os, kubeVersion, pkeVersion, region string) (string, error)

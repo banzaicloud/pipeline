@@ -64,6 +64,7 @@ func clusterModelToEntity(m *model.ClusterModel) cluster.Cluster {
 		Location:       m.Location,
 		SecretID:       brn.New(m.OrganizationId, brn.SecretResourceType, m.SecretId),
 		ConfigSecretID: brn.New(m.OrganizationId, brn.SecretResourceType, m.ConfigSecretId),
+		Tags:           m.Tags,
 	}
 }
 

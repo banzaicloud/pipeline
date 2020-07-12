@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,21 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusteradapter
+package auditlog
 
 import (
-	"github.com/sirupsen/logrus"
-
-	"github.com/banzaicloud/pipeline/internal/global"
+	"time"
 )
 
-// nolint: gochecknoglobals
-var log logrus.FieldLogger
+// Entry holds all information related to an API call event.
+type Entry struct {
+	Time          time.Time
+	CorrelationID string
+	UserID        uint
+	HTTP          HTTPEntry
+}
 
-func init() {
-	log = global.LogrusLogger()
-
-	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
-		log = l
-	})
+// HTTPEntry contains details related to an HTTP call for an audit log entry.
+type HTTPEntry struct {
+	ClientIP     string
+	UserAgent    string
+	Method       string
+	Path         string
+	RequestBody  *string
+	StatusCode   int
+	ResponseTime int
+	ResponseSize int
+	Errors       []string
 }

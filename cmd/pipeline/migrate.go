@@ -25,12 +25,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/auditlog/auditlogdriver"
 	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
 	"github.com/banzaicloud/pipeline/src/model"
 
-	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/process/processadapter"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
@@ -73,7 +73,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger, commonLogger common.Logger)
 		return err
 	}
 
-	if err := audit.Migrate(db, logger); err != nil {
+	if err := auditlogdriver.Migrate(db, commonLogger); err != nil {
 		return err
 	}
 

@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,21 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ack
+package auditlog
 
 import (
-	"github.com/sirupsen/logrus"
-
-	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
-// nolint: gochecknoglobals
-var log logrus.FieldLogger
+// These interfaces are aliased so that the module code is separated from the rest of the application.
+// If the module is moved out of the app, copy the aliased interfaces here.
 
-func init() {
-	log = global.LogrusLogger()
+// ErrorHandler is the fundamental interface for error handling.
+type ErrorHandler = common.ErrorHandler
 
-	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
-		log = l
-	})
-}
+// NoopErrorHandler is an error handler that discards every error.
+type NoopErrorHandler = common.NoopErrorHandler

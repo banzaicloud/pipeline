@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,25 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cadence
+package workflow
 
 import (
+	"fmt"
+
 	"emperror.dev/errors"
-	"go.uber.org/cadence/client"
-	"go.uber.org/zap"
+	"go.uber.org/cadence"
 )
 
-// NewDomainClient returns a new Cadence domain client.
-func NewDomainClient(config Config, logger *zap.Logger) (client.DomainClient, error) {
-	serviceClient, err := newServiceClient("cadence-domain-client", config, logger)
-	if err != nil {
-		return nil, errors.WrapIf(err, "could not create cadence domain client")
+// decodeCloudFormationError decodes a Cloud Formation cadence.CustomError into
+// a simplified object which returns a detailed error message on its Error()
+// (message string) function implementation.
+func decodeCloudFormationError(err error) error {
+	if customError, ok := err.(*cadence.CustomError); ok && customError.Reason() == ErrReasonStackFailed {
+		var details string
+		_ = customError.Details(&details)
+
+		return errors.NewPlain(fmt.Sprintf("%s: %s", customError.Reason(), details))
 	}
 
-	return client.NewDomainClient(
-		serviceClient,
-		&client.Options{
-			Identity: config.Identity,
-		},
-	), nil
+	return err
 }

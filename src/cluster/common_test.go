@@ -27,7 +27,6 @@ import (
 	"emperror.dev/emperror"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/nplabels"
@@ -49,24 +48,20 @@ import (
 )
 
 const (
-	clusterRequestName          = "testName"
-	clusterRequestLocation      = "eu-west-1"
-	clusterRequestNodeInstance  = "testInstance"
-	clusterRequestNodeCount     = 1
-	clusterRequestRG            = "testResourceGroup"
-	clusterRequestKubernetes    = "1.9.6"
-	clusterRequestKubernetesEKS = "1.11"
-	clusterRequestAgentName     = "testAgent"
-	clusterRequestSpotPrice     = "1.2"
-	clusterRequestNodeMinCount  = 1
-	clusterRequestNodeMaxCount  = 2
-	clusterRequestNodeImage     = "testImage"
-	organizationId              = 1
-	userId                      = 1
-	clusterKubeMetaKey          = "metaKey"
-	clusterKubeMetaValue        = "metaValue"
-	secretName                  = "test-secret-name"
-	pool1Name                   = "pool1"
+	clusterRequestName         = "testName"
+	clusterRequestLocation     = "eu-west-1"
+	clusterRequestNodeInstance = "testInstance"
+	clusterRequestNodeCount    = 1
+	clusterRequestRG           = "testResourceGroup"
+	clusterRequestKubernetes   = "1.9.6"
+	clusterRequestAgentName    = "testAgent"
+	clusterRequestNodeMaxCount = 2
+	organizationId             = 1
+	userId                     = 1
+	clusterKubeMetaKey         = "metaKey"
+	clusterKubeMetaValue       = "metaValue"
+	secretName                 = "test-secret-name"
+	pool1Name                  = "pool1"
 )
 
 // nolint: gochecknoglobals
@@ -239,29 +234,6 @@ var (
 					clusterRequestAgentName: {
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
-					},
-				},
-			},
-		},
-	}
-
-	eksCreateFull = &pkgCluster.CreateClusterRequest{ // nolint deadcode
-		Name:     clusterRequestName,
-		Location: clusterRequestLocation,
-		Cloud:    pkgCluster.Amazon,
-		SecretId: clusterRequestSecretId,
-		Properties: &pkgCluster.CreateClusterProperties{
-			CreateClusterEKS: &ekscluster.CreateClusterEKS{
-				Version: clusterRequestKubernetesEKS,
-				NodePools: map[string]*ekscluster.NodePool{
-					pool1Name: {
-						InstanceType: clusterRequestNodeInstance,
-						SpotPrice:    clusterRequestSpotPrice,
-						Autoscaling:  true,
-						MinCount:     clusterRequestNodeMinCount,
-						MaxCount:     clusterRequestNodeMaxCount,
-						Count:        clusterRequestNodeCount,
-						Image:        clusterRequestNodeImage,
 					},
 				},
 			},

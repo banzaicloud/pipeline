@@ -22,6 +22,7 @@ import (
 
 // DefaultTypeListConfig contains the required configuration for the default type list.
 type DefaultTypeListConfig struct {
+	AmazonRegion       string
 	TLSDefaultValidity time.Duration
 	PkeSecreter        PkeSecreter
 }
@@ -30,7 +31,7 @@ type DefaultTypeListConfig struct {
 func NewDefaultTypeList(config DefaultTypeListConfig) secret.TypeList {
 	return secret.NewTypeList([]secret.Type{
 		AlibabaType{},
-		AmazonType{},
+		AmazonType{Region: config.AmazonRegion},
 		AzureType{},
 		AzureStorageAccountType{},
 		CloudflareType{},

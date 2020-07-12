@@ -40,7 +40,8 @@ type CreateClusterEKS struct {
 
 	// List of access point references for the API server; currently, public and private are the only valid values.
 	// Default: ["public"]
-	APIServerAccessPoints []string `json:"apiServerAccessPoints,omitempty" yaml:"apiServerAccessPoints,omitempty"`
+	APIServerAccessPoints []string          `json:"apiServerAccessPoints,omitempty" yaml:"apiServerAccessPoints,omitempty"`
+	Tags                  map[string]string `json:"tags,omitempty" yaml:"tags,omitempty"`
 }
 
 // UpdateClusterAmazonEKS describes Amazon EKS's node fields of an UpdateCluster request

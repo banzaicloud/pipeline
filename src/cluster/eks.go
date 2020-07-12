@@ -84,6 +84,10 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		APIServerAccessPoints: createAPIServerAccessPointsFromRequest(request),
 	}
 
+	if request.Properties.CreateClusterEKS.Tags != nil {
+		cluster.model.Cluster.Tags = request.Properties.CreateClusterEKS.Tags
+	}
+
 	updateScaleOptions(&cluster.model.Cluster.ScaleOptions, request.ScaleOptions)
 
 	// subnet mapping

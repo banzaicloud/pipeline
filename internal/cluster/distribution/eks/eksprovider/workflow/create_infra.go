@@ -38,6 +38,7 @@ type CreateInfrastructureWorkflowInput struct {
 	RouteTableID string
 	VpcCidr      string
 	ScaleEnabled bool
+	Tags         map[string]string
 
 	Subnets          []Subnet
 	ASGSubnetMapping map[string][]Subnet
@@ -112,6 +113,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			DefaultUser:        input.DefaultUser,
 			ClusterRoleID:      input.ClusterRoleID,
 			NodeInstanceRoleID: input.NodeInstanceRoleID,
+			Tags:               input.Tags,
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		iamRolesCreateActivityFuture = workflow.ExecuteActivity(ctx, CreateIamRolesActivityName, activityInput)
@@ -140,6 +142,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			RouteTableID:     input.RouteTableID,
 			VpcCidr:          input.VpcCidr,
 			StackName:        GenerateStackNameForCluster(input.ClusterName),
+			Tags:             input.Tags,
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		if err := workflow.ExecuteActivity(ctx, CreateVpcActivityName, activityInput).Get(ctx, &vpcActivityOutput); err != nil {
@@ -149,7 +152,8 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 
 	// wait for IAM roles to created before starting user access key creation
 	iamRolesActivityOutput := &CreateIamRolesActivityOutput{}
-	if err := iamRolesCreateActivityFuture.Get(ctx, &iamRolesActivityOutput); err != nil {
+	err := decodeCloudFormationError(iamRolesCreateActivityFuture.Get(ctx, &iamRolesActivityOutput))
+	if err != nil {
 		return nil, err
 	}
 
@@ -182,6 +186,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 					Cidr:             subnet.Cidr,
 					AvailabilityZone: subnet.AvailabilityZone,
 					StackName:        generateStackNameForSubnet(input.ClusterName, subnet.Cidr),
+					Tags:             input.Tags,
 				}
 				ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 				createSubnetFutures = append(createSubnetFutures, workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput))
@@ -207,7 +212,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 		for i, future := range createSubnetFutures {
 			var activityOutput CreateSubnetActivityOutput
 
-			errs[i] = future.Get(ctx, &activityOutput)
+			errs[i] = decodeCloudFormationError(future.Get(ctx, &activityOutput))
 			if errs[i] == nil {
 				existingAndNewSubnets = append(existingAndNewSubnets, Subnet{
 					SubnetID:         activityOutput.SubnetID,
@@ -261,6 +266,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			SecurityGroupID:       vpcActivityOutput.SecurityGroupID,
 			LogTypes:              input.LogTypes,
 			Subnets:               existingAndNewSubnets,
+			Tags:                  input.Tags,
 		}
 
 		ao := workflow.ActivityOptions{
@@ -331,6 +337,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			NodeImage:        asg.NodeImage,
 			NodeInstanceType: asg.NodeInstanceType,
 			Labels:           asg.Labels,
+			Tags:             input.Tags,
 		}
 		if input.UseGeneratedSSHKey {
 			activityInput.SSHKeyName = sshKeyName
@@ -344,7 +351,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 	errs := make([]error, len(asgFutures))
 	for i, future := range asgFutures {
 		var activityOutput CreateAsgActivityOutput
-		errs[i] = future.Get(ctx, &activityOutput)
+		errs[i] = decodeCloudFormationError(future.Get(ctx, &activityOutput))
 	}
 	if err := errors.Combine(errs...); err != nil {
 		return nil, err

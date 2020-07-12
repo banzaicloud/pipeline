@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package alibaba
+package auditlog
 
 import (
-	"github.com/sirupsen/logrus"
-
-	"github.com/banzaicloud/pipeline/internal/global"
+	"emperror.dev/errors"
 )
 
-// nolint: gochecknoglobals
-var log logrus.FieldLogger
+// Drivers combine multiple drivers into a single instance.
+type Drivers []Driver
 
-func init() {
-	log = global.LogrusLogger()
+func (d Drivers) Store(entry Entry) error {
+	var errs []error
 
-	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
-		log = l
-	})
+	for _, driver := range d {
+		errs = append(errs, driver.Store(entry))
+	}
+
+	return errors.Combine(errs...)
 }

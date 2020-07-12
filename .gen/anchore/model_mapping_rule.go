@@ -14,7 +14,7 @@ package anchore
 type MappingRule struct {
 	Id string `json:"id,omitempty"`
 	Name string `json:"name"`
-	WhitelistIds []string `json:"whitelist_ids,omitempty"`
+	WhitelistIds []string `json:"whitelist_ids"`
 	// Optional single policy to evalute, if set will override any value in policy_ids, for backwards compatibility. Generally, policy_ids should be used even with a array of length 1.
 	PolicyId string `json:"policy_id,omitempty"`
 	// List of policyIds to evaluate in order, to completion

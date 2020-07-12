@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package audit
+package auditlogdriver
 
 import (
 	"fmt"
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
 // Migrate executes the table migrations for the audit model.
-func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
+func Migrate(db *gorm.DB, logger common.Logger) error {
 	tables := []interface{}{
-		&AuditEvent{},
+		&EntryModel{},
 	}
 
 	var tableNames string
@@ -33,9 +34,9 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
 	}
 
-	logger.WithFields(logrus.Fields{
+	logger.WithFields(map[string]interface{}{
 		"table_names": strings.TrimSpace(tableNames),
-	}).Info("migrating audit tables")
+	}).Info("migrating audit log tables")
 
 	return db.AutoMigrate(tables...).Error
 }

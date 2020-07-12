@@ -59,6 +59,8 @@ type UpdateNodeGroupActivityInput struct {
 	DesiredCapacity int64
 
 	MaxBatchSize int
+
+	ClusterTags map[string]string
 }
 
 type UpdateNodeGroupActivityOutput struct {
@@ -206,7 +208,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		StackName:          aws.String(input.StackName),
 		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
 		Parameters:         stackParams,
-		Tags:               getNodePoolStackTags(input.ClusterName),
+		Tags:               getNodePoolStackTags(input.ClusterName, input.ClusterTags),
 		TemplateBody:       aws.String(a.cloudFormationTemplate),
 	}
 

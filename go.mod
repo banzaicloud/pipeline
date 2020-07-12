@@ -31,7 +31,7 @@ require (
 	github.com/aws/aws-sdk-go v1.28.0
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-00010101000000-000000000000 // indirect
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
-	github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.1
+	github.com/banzaicloud/bank-vaults/pkg/sdk v0.3.1
 	github.com/banzaicloud/gin-utilz v0.2.0
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
 	github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4
@@ -42,7 +42,6 @@ require (
 	github.com/coreos/go-oidc v2.1.0+incompatible
 	github.com/denisenkom/go-mssqldb v0.0.0-20200206145737-bbfc9a55622e // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/didip/tollbooth v4.0.2+incompatible
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cors v1.3.0
@@ -63,6 +62,7 @@ require (
 	github.com/jinzhu/now v1.1.1
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/jmoiron/sqlx v1.2.0 // indirect
+	github.com/jonboulle/clockwork v0.2.0
 	github.com/lestrrat-go/backoff v1.0.0
 	github.com/lib/pq v1.3.0 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
@@ -90,17 +90,17 @@ require (
 	github.com/sagikazarmark/appkit v0.8.0
 	github.com/sagikazarmark/kitx v0.12.0
 	github.com/sagikazarmark/ocmux v0.2.0
-	github.com/sirupsen/logrus v1.5.0
+	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cast v1.3.1
-	github.com/spf13/cobra v0.0.5
+	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.6.2
-	github.com/stretchr/testify v1.5.1
+	github.com/spf13/viper v1.7.0
+	github.com/stretchr/testify v1.6.1
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
 	github.com/vmware/govmomi v0.22.0
 	go.opencensus.io v0.22.2
-	go.uber.org/cadence v0.12.1
-	go.uber.org/yarpc v1.46.0
+	go.uber.org/cadence v0.9.0
+	go.uber.org/yarpc v1.45.0
 	go.uber.org/zap v1.14.1
 	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
 	golang.org/x/net v0.0.0-20200421231249-e086a090c8fd
@@ -117,18 +117,18 @@ require (
 	k8s.io/apiextensions-apiserver v0.17.5
 	k8s.io/apimachinery v0.17.5
 	k8s.io/cli-runtime v0.17.5
-	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
+	k8s.io/client-go v0.17.5
 	k8s.io/cluster-bootstrap v0.17.5
 	k8s.io/helm v2.16.3+incompatible
 	k8s.io/klog v1.0.0
-	k8s.io/kubernetes v1.17.3
+	k8s.io/kubernetes v1.17.5
 	logur.dev/adapter/logrus v0.4.1
 	logur.dev/adapter/zap v0.4.1
 	logur.dev/integration/watermill v0.4.2
 	logur.dev/integration/zap v0.3.2
 	logur.dev/logur v0.16.2
 	rsc.io/letsencrypt v0.0.3 // indirect
-	sigs.k8s.io/controller-runtime v0.5.0
+	sigs.k8s.io/controller-runtime v0.5.2
 	sigs.k8s.io/kubefed v0.2.0-alpha.1
 	sigs.k8s.io/testing_frameworks v0.1.2
 	sigs.k8s.io/yaml v1.1.0
@@ -136,15 +136,12 @@ require (
 
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v14.0.0+incompatible
-	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.4.2
 	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08
 	github.com/baiyubin/aliyun-sts-go-sdk => github.com/banzaicloud/aliyun-sts-go-sdk v0.0.0-20191023142834-57827dd1486a
 	github.com/banzaicloud/pipeline/pkg/sdk => ./pkg/sdk
 
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
 	github.com/qor/auth => github.com/banzaicloud/auth v0.1.3
-
-	gopkg.in/yaml.v2 => github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182
 
 	// https://github.com/helm/helm/compare/release-3.1...pepov:release-3.1
 	helm.sh/helm/v3 => github.com/pepov/helm/v3 v3.0.0-20200519142412-df65965032e2

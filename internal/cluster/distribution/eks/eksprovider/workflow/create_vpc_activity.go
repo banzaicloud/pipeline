@@ -53,6 +53,8 @@ type CreateVpcActivityInput struct {
 
 	// the CIDR to create new VPC with
 	VpcCidr string
+
+	Tags map[string]string
 }
 
 // CreateVpcActivityOutput holds the output data of the CreateVpcActivity
@@ -124,7 +126,7 @@ func (a *CreateVpcActivity) Execute(ctx context.Context, input CreateVpcActivity
 		DisableRollback:    aws.Bool(true),
 		StackName:          aws.String(input.StackName),
 		Parameters:         stackParams,
-		Tags:               getVPCStackTags(input.ClusterName),
+		Tags:               getVPCStackTags(input.ClusterName, input.Tags),
 		TemplateBody:       aws.String(a.cloudFormationTemplate),
 		TimeoutInMinutes:   aws.Int64(10),
 	}
@@ -171,6 +173,6 @@ func (a *CreateVpcActivity) Execute(ctx context.Context, input CreateVpcActivity
 	return &outParams, nil
 }
 
-func getVPCStackTags(clusterName string) []*cloudformation.Tag {
-	return getStackTags(clusterName, "vpc")
+func getVPCStackTags(clusterName string, customTagsMap map[string]string) []*cloudformation.Tag {
+	return getStackTags(clusterName, "vpc", customTagsMap)
 }
