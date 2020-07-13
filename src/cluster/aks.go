@@ -17,14 +17,11 @@ package cluster
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 	"strings"
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-09-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
@@ -269,11 +266,6 @@ func (c *AKSCluster) CreateCluster() error {
 	}
 	c.log.Info("Cluster ready")
 
-	if err = c.assignStorageAccountContributorRole(); err != nil {
-		return errors.WrapIf(err, "failed to assign storage account contributor role")
-	}
-	c.log.Info("Role assigned successfully")
-
 	return nil
 }
 
@@ -288,132 +280,6 @@ func (c *AKSCluster) getInfrastructureResourceGroupName() string {
 
 func makeInfrastructureResourceGroupName(resourceGroupName, clusterName, location string) string {
 	return fmt.Sprintf("MC_%s_%s_%s", resourceGroupName, clusterName, location)
-}
-
-func makeResourceGroupScope(subscriptionID, resourceGroupName string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", subscriptionID, resourceGroupName)
-}
-
-func (c *AKSCluster) assignStorageAccountContributorRole() error {
-	c.log.Infof("Assign %s role to all VMs in %s cluster", StorageAccountContributor, c.GetName())
-
-	cc, err := c.getCloudConnection()
-	if err != nil {
-		return errors.WrapIf(err, "failed to get cloud connection")
-	}
-
-	irgName := c.getInfrastructureResourceGroupName()
-	c.log.Infof("Checking infrastructure resource group [%s] existence", irgName)
-	resp, err := cc.GetGroupsClient().CheckExistence(context.TODO(), irgName)
-	if err != nil {
-		return errors.WrapIf(err, "failed to check resource group existence")
-	}
-	if resp.StatusCode == http.StatusNotFound {
-		return errors.WrapIf(ErrNoInfrastructureRG, "resource group not found")
-	}
-
-	scope := makeResourceGroupScope(cc.GetSubscriptionID(), irgName)
-	c.log.Debugf("Resource group scope: %s", scope)
-
-	c.log.Infof("Search for %s role", StorageAccountContributor)
-	role, err := cc.GetRoleDefinitionsClient().FindByRoleName(context.TODO(), scope, StorageAccountContributor)
-	if err != nil {
-		return errors.WrapIf(err, "failed to assign storage account contributor role to cluster nodes")
-	}
-	if role == nil {
-		return fmt.Errorf("no role found with the given name[%s]", StorageAccountContributor)
-	}
-	c.log.Debugf("Role ID: %s", *role.ID)
-
-	vmClient := cc.GetVirtualMachinesClient()
-
-	c.log.Infof("List virtual machines in resource group [%s]", irgName)
-	virtualMachines, err := vmClient.ListAll(context.TODO(), irgName)
-	if err != nil {
-		return errors.WrapIf(err, "failed to list virtual machines in resource group")
-	}
-
-	if err := enableVMsManagedServiceIdentity(c.log, vmClient, irgName, virtualMachines); err != nil {
-		return errors.WrapIf(err, "failed to enable managed service identity for VMs")
-	}
-
-	if err := assignRoleToVMs(c.log, cc.GetRoleAssignmentsClient(), virtualMachines, role, scope); err != nil {
-		return errors.WrapIf(err, fmt.Sprintf("failed to assign %s role to VMs", StorageAccountContributor))
-	}
-
-	c.log.Info("Role assign succeeded")
-
-	return nil
-}
-
-func enableVMManagedServiceIdentity(log logrus.FieldLogger, client *pkgAzure.VirtualMachinesClient, resourceGroupName string, vm *compute.VirtualMachine) (*compute.VirtualMachine, error) {
-	log = log.WithField("vm", *vm.ID)
-
-	if vm.Identity == nil || vm.Identity.Type != compute.ResourceIdentityTypeSystemAssigned {
-		log.Info("Enabling MSI for VM")
-
-		vm.Resources = nil
-		vm.Identity = &compute.VirtualMachineIdentity{
-			Type: compute.ResourceIdentityTypeSystemAssigned,
-		}
-
-		return client.CreateOrUpdateAndWaitForIt(context.TODO(), resourceGroupName, vm)
-	}
-
-	log.Info("MSI already enabled for VM")
-	return vm, nil
-}
-
-func enableVMsManagedServiceIdentity(log logrus.FieldLogger, client *pkgAzure.VirtualMachinesClient, resourceGroupName string, vms []compute.VirtualMachine) error {
-	for idx, vm := range vms {
-		newVM, err := enableVMManagedServiceIdentity(log, client, resourceGroupName, &vm)
-		if err != nil {
-			return errors.WrapIf(err, "failed to enable managed service identity on vm")
-		}
-		vms[idx] = *newVM
-	}
-
-	return nil
-}
-
-func assignRoleToVMs(log logrus.FieldLogger, roleAssignClient *pkgAzure.RoleAssignmentsClient, virtualMachines []compute.VirtualMachine, role *authorization.RoleDefinition, scope string) error {
-	log.Debug("List all role assignments")
-	roleAssignments, err := roleAssignClient.ListAll(context.TODO(), "")
-	if err != nil {
-		return errors.WrapIf(err, "failed to list role assignments")
-	}
-
-	for _, vm := range virtualMachines {
-		log := log.WithField("vm", *vm.ID)
-
-		principalID := *vm.Identity.PrincipalID
-		roleID := *role.ID
-
-		if isRoleAssigned(roleAssignments, scope, roleID, principalID) {
-			log.Info("The role assignment already exists")
-		} else {
-			log.Infof("Assign role [%s] with scope [%s] to VM [%s] with principalId [%s]", roleID, scope, *vm.Name, principalID)
-			_, err := roleAssignClient.AssignRole(context.TODO(), scope, roleID, principalID)
-			if err != nil {
-				return errors.WrapIf(err, "failed to assign role")
-			}
-		}
-	}
-
-	return nil
-}
-
-func isRoleAssigned(roleAssignments []authorization.RoleAssignment, scope, roleID, principalID string) bool {
-	for _, assignment := range roleAssignments {
-		if assignment.Properties != nil &&
-			*assignment.Properties.RoleDefinitionID == roleID &&
-			*assignment.Properties.Scope == scope &&
-			*assignment.Properties.PrincipalID == principalID {
-			return true
-		}
-	}
-
-	return false
 }
 
 // Persist saves the cluster model
