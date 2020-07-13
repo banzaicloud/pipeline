@@ -371,11 +371,6 @@ type ClusterIngressConfig struct {
 	Enabled bool
 
 	ingress.Config `mapstructure:",squash"`
-
-	Cert struct {
-		Source string
-		Path   string
-	}
 }
 
 func (c ClusterIngressConfig) Validate() error {
@@ -646,8 +641,6 @@ ssl:
   enabled: true
   generateTLS: true
 `)
-	v.SetDefault("cluster::ingress::cert::source", "file")
-	v.SetDefault("cluster::ingress::cert::path", "config/certs")
 
 	v.SetDefault("cluster::autoscale::namespace", "")
 	v.SetDefault("cluster::autoscale::hpa::prometheus::serviceName", "monitor-prometheus-operato-prometheus")

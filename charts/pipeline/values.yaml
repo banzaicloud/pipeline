@@ -153,16 +153,8 @@ configuration:
     certFile: /tls/tls.crt
     keyFile: /tls/tls.key
 
-  # Cluster integration service settings
+  # Cluster integrated service settings
   cluster:
-    ingress:
-      cert:
-        source: file
-        path: /sign-ca
-        ca:
-          key: ""
-          cert: ""
-
     securityScan:
       anchore:
         enabled: false
