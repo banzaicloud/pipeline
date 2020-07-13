@@ -166,6 +166,7 @@ K8S_VERSIONS=(
   "1.14"
   "1.15"
   "1.16"
+  "1.17"
 )
 
 for version in ${K8S_VERSIONS[@]}; do
