@@ -27,7 +27,7 @@ import (
 	"emperror.dev/errors"
 )
 
-// getEksCloudFormationTemplate returns CloudFormation template with given name
+// GetCloudFormationTemplate returns CloudFormation template with given name
 func GetCloudFormationTemplate(path, name string) (string, error) {
 	templatePath := path + "/" + name
 	u, err := url.Parse(templatePath)
