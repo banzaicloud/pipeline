@@ -22,6 +22,8 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
+
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
@@ -44,6 +46,12 @@ func getDefaultImageID(region, kubernetesVersion, pkeVersion string, pkeImageNam
 			// fail silently
 		}
 		if ami != "" {
+			return ami, nil
+		}
+	}
+
+	if len(global.Config.Distribution.PKE.Amazon.DefaultImages) > 0 {
+		if ami, ok := global.Config.Distribution.PKE.Amazon.DefaultImages[region]; ok && ami != "" {
 			return ami, nil
 		}
 	}

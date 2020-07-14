@@ -148,6 +148,12 @@ var Config struct {
 				Generate bool
 			}
 		}
+
+		PKE struct {
+			Amazon struct {
+				DefaultImages map[string]string
+			}
+		}
 	}
 	Helm struct {
 		Home         string
