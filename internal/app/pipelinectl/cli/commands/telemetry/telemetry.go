@@ -39,7 +39,6 @@ type options struct {
 	telemetryFile string
 }
 
-// NewTelemetryCommand creates a new cobra.Command for `pipelinectl status`.
 func NewTelemetryCommand() *cobra.Command {
 	options := options{}
 	cmd := &cobra.Command{
