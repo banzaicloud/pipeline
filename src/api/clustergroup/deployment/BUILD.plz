@@ -9,9 +9,9 @@ go_library(
         "//pkg/common",
         "//src/api/clustergroup/common",
         "//src/auth",
-        "//third_party/go/emperror.dev:emperror",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/gin-gonic:gin",
-        "//third_party/go/github.com/sirupsen:logrus",
+        "//third_party/go:emperror.dev_emperror",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_gin-gonic_gin",
+        "//third_party/go:github.com_sirupsen_logrus",
     ],
 )

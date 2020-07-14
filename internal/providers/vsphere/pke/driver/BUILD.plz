@@ -21,8 +21,8 @@ go_library(
         "//src/cluster",
         "//src/secret",
         "//src/utils",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/go.uber.org:cadence",
-        "//third_party/go/k8s.io:api",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:go.uber.org_cadence",
+        "//third_party/go:k8s.io_api",
     ],
 )

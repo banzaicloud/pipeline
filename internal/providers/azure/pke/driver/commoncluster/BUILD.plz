@@ -9,6 +9,6 @@ go_library(
         "//pkg/common",
         "//src/auth",
         "//src/secret",
-        "//third_party/go/emperror.dev:errors",
+        "//third_party/go:emperror.dev_errors",
     ],
 )

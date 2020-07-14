@@ -3,11 +3,11 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go/cloud.google.com/go:errorreporting",
-        "//third_party/go/emperror.dev:emperror",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/emperror.dev/handler:logur",
-        "//third_party/go/emperror.dev/handler:stackdriver",
-        "//third_party/go/logur.dev:logur",
+        "//third_party/go:cloud.google.com_go_errorreporting",
+        "//third_party/go:emperror.dev_emperror",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:emperror.dev_handler_logur",
+        "//third_party/go:emperror.dev_handler_stackdriver",
+        "//third_party/go:logur.dev_logur",
     ],
 )

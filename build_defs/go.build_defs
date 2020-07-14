@@ -621,7 +621,7 @@ def cgo_test(name:str, srcs:list, data:list=None, deps:list=None, visibility:lis
         size = size,
     )
 
-def go_get(name:str, get:str|list, repo:str='', deps:list=[], exported_deps:list=None,
+def go_get2(name:str, get:str|list, repo:str='', deps:list=[], exported_deps:list=None,
            visibility:list=None, patch:str=None, binary:bool=False, test_only:bool&testonly=False,
            install:list=None, revision:str|list=None, version:str|list=None, sum:str|list=None, replace:str|list=None, strip:list=None, hashes:list=None,
            extra_outs:list=[], licences:list=None):

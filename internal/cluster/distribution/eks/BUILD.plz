@@ -4,9 +4,9 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/cluster",
-        "//third_party/go/emperror.dev:emperror",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/Masterminds/semver:v3",
+        "//third_party/go:emperror.dev_emperror",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_Masterminds_semver_v3",
     ],
 )
 
@@ -15,9 +15,9 @@ go_test(
     srcs = glob(["*.go"]),
     deps = [
         "//internal/cluster",
-        "//third_party/go/emperror.dev:emperror",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/Masterminds/semver:v3",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:emperror.dev_emperror",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_Masterminds_semver_v3",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )

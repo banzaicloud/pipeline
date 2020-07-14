@@ -4,6 +4,6 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/app/pipeline/cap",
-        "//third_party/go/github.com/gin-gonic:gin",
+        "//third_party/go:github.com_gin-gonic_gin",
     ],
 )

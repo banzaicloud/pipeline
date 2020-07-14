@@ -2,15 +2,15 @@ go_library(
     name = "utils",
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
-    deps = ["//third_party/go/github.com/sirupsen:logrus"],
+    deps = ["//third_party/go:github.com_sirupsen_logrus"],
 )
 
 go_test(
     name = "test",
     srcs = glob(["*.go"]),
     deps = [
-        "//third_party/go/github.com/pkg:errors",
-        "//third_party/go/github.com/sirupsen:logrus",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:github.com_pkg_errors",
+        "//third_party/go:github.com_sirupsen_logrus",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )

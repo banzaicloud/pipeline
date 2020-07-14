@@ -4,6 +4,6 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/secret/secrettype",
-        "//third_party/go/github.com/aws:aws-sdk-go",
+        "//third_party/go:github.com_aws_aws-sdk-go",
     ],
 )

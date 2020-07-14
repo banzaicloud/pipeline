@@ -4,7 +4,7 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/platform/gin/correlationid",
-        "//third_party/go/github.com/gin-gonic:gin",
-        "//third_party/go/github.com/sirupsen:logrus",
+        "//third_party/go:github.com_gin-gonic_gin",
+        "//third_party/go:github.com_sirupsen_logrus",
     ],
 )

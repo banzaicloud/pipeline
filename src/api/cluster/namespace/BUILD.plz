@@ -6,9 +6,9 @@ go_library(
         "//pkg/brn",
         "//pkg/common",
         "//src/api/common",
-        "//third_party/go/emperror.dev:emperror",
-        "//third_party/go/github.com/gin-gonic:gin",
-        "//third_party/go/github.com/pkg:errors",
-        "//third_party/go/k8s.io:apimachinery",
+        "//third_party/go:emperror.dev_emperror",
+        "//third_party/go:github.com_gin-gonic_gin",
+        "//third_party/go:github.com_pkg_errors",
+        "//third_party/go:k8s.io_apimachinery",
     ],
 )

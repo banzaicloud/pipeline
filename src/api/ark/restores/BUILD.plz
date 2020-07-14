@@ -10,8 +10,8 @@ go_library(
         "//internal/platform/gin/correlationid",
         "//internal/platform/gin/utils",
         "//src/api/ark/common",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/gin-gonic:gin",
-        "//third_party/go/github.com/sirupsen:logrus",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_gin-gonic_gin",
+        "//third_party/go:github.com_sirupsen_logrus",
     ],
 )

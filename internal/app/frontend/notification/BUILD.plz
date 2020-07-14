@@ -4,7 +4,7 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/common",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )
 
@@ -13,6 +13,6 @@ go_test(
     srcs = glob(["*.go"]),
     deps = [
         "//internal/common",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )

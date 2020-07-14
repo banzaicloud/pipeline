@@ -4,6 +4,6 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/cluster/clusteradapter",
-        "//third_party/go/emperror.dev:errors",
+        "//third_party/go:emperror.dev_errors",
     ],
 )

@@ -8,6 +8,6 @@ go_library(
         "//pkg/objectstore",
         "//pkg/providers/google/objectstore",
         "//src/secret",
-        "//third_party/go/github.com/heptio:ark",
+        "//third_party/go:github.com_heptio_ark",
     ],
 )

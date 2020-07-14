@@ -4,6 +4,6 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//pkg/cluster",
-        "//third_party/go/github.com/pkg:errors",
+        "//third_party/go:github.com_pkg_errors",
     ],
 )

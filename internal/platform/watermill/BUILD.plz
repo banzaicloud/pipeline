@@ -3,8 +3,8 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go/github.com/ThreeDotsLabs:watermill",
-        "//third_party/go/logur.dev:logur",
-        "//third_party/go/logur.dev/integration:watermill",
+        "//third_party/go:github.com_ThreeDotsLabs_watermill",
+        "//third_party/go:logur.dev_integration_watermill",
+        "//third_party/go:logur.dev_logur",
     ],
 )

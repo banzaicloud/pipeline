@@ -3,9 +3,9 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go/emperror.dev:emperror",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/gin-gonic:gin",
-        "//third_party/go/github.com/prometheus:client_golang",
+        "//third_party/go:emperror.dev_emperror",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_gin-gonic_gin",
+        "//third_party/go:github.com_prometheus_client_golang",
     ],
 )

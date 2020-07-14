@@ -5,6 +5,6 @@ go_library(
     deps = [
         "//internal/clustergroup/api",
         "//src/cluster",
-        "//third_party/go/github.com/pkg:errors",
+        "//third_party/go:github.com_pkg_errors",
     ],
 )

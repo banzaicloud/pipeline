@@ -5,10 +5,10 @@ go_library(
     deps = [
         "//pkg/providers/amazon",
         "//pkg/providers/amazon/ec2",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/aws:aws-sdk-go",
-        "//third_party/go/github.com/pkg:errors",
-        "//third_party/go/github.com/prometheus:client_golang",
-        "//third_party/go/logur.dev:logur",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_aws_aws-sdk-go",
+        "//third_party/go:github.com_pkg_errors",
+        "//third_party/go:github.com_prometheus_client_golang",
+        "//third_party/go:logur.dev_logur",
     ],
 )

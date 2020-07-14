@@ -1,9 +1,9 @@
 go_library(
     name = "dex",
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
-    visibility = ["//.gen/..."],
+    visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go/github.com/golang:protobuf",
-        "//third_party/go/google.golang.org:grpc",
+        "//third_party/go:github.com_golang_protobuf",
+        "//third_party/go:google.golang.org_grpc",
     ],
 )

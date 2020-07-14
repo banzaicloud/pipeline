@@ -6,7 +6,7 @@ go_library(
         "//internal/common",
         "//src/auth",
         "//src/cluster",
-        "//third_party/go/emperror.dev:errors",
+        "//third_party/go:emperror.dev_errors",
     ],
 )
 
@@ -18,7 +18,7 @@ go_test(
         "//internal/integratedservices/services",
         "//src/auth",
         "//src/cluster",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )

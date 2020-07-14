@@ -5,11 +5,11 @@ go_library(
     deps = [
         "//internal/ark/api",
         "//pkg/k8sclient",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/heptio:ark",
-        "//third_party/go/github.com/sirupsen:logrus",
-        "//third_party/go/k8s.io:apimachinery",
-        "//third_party/go/k8s.io:client-go",
-        "//third_party/go/sigs.k8s.io:controller-runtime",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_heptio_ark",
+        "//third_party/go:github.com_sirupsen_logrus",
+        "//third_party/go:k8s.io_apimachinery",
+        "//third_party/go:k8s.io_client-go",
+        "//third_party/go:sigs.k8s.io_controller-runtime",
     ],
 )

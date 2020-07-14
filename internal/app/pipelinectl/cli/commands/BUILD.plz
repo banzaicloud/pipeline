@@ -4,6 +4,6 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/app/pipelinectl/cli/commands/drain",
-        "//third_party/go/github.com/spf13:cobra",
+        "//third_party/go:github.com_spf13_cobra",
     ],
 )

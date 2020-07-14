@@ -3,8 +3,8 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go/github.com/pkg:errors",
-        "//third_party/go/github.com/spf13:cobra",
-        "//third_party/go/github.com/spf13:viper",
+        "//third_party/go:github.com_pkg_errors",
+        "//third_party/go:github.com_spf13_cobra",
+        "//third_party/go:github.com_spf13_viper",
     ],
 )

@@ -2,5 +2,5 @@ go_library(
     name = "objectstore",
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
-    deps = ["//third_party/go/github.com/pkg:errors"],
+    deps = ["//third_party/go:github.com_pkg_errors"],
 )

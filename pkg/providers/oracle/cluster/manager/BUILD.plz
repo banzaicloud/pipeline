@@ -6,7 +6,7 @@ go_library(
         "//pkg/common",
         "//pkg/providers/oracle/model",
         "//pkg/providers/oracle/oci",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/oracle:oci-go-sdk",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_oracle_oci-go-sdk",
     ],
 )

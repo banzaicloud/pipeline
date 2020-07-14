@@ -8,7 +8,7 @@ go_library(
         "//pkg/objectstore",
         "//pkg/providers/amazon/objectstore",
         "//src/secret",
-        "//third_party/go/github.com/heptio:ark",
-        "//third_party/go/github.com/pelletier:go-toml",
+        "//third_party/go:github.com_heptio_ark",
+        "//third_party/go:github.com_pelletier_go-toml",
     ],
 )

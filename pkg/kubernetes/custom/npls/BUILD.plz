@@ -3,9 +3,9 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/mitchellh:mapstructure",
-        "//third_party/go/k8s.io:apimachinery",
-        "//third_party/go/k8s.io:client-go",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_mitchellh_mapstructure",
+        "//third_party/go:k8s.io_apimachinery",
+        "//third_party/go:k8s.io_client-go",
     ],
 )

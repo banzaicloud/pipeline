@@ -4,7 +4,7 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//src/auth",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/jinzhu:gorm",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_jinzhu_gorm",
     ],
 )

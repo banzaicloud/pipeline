@@ -8,7 +8,7 @@ go_library(
         "//internal/platform/gin/utils",
         "//pkg/common",
         "//src/api",
-        "//third_party/go/emperror.dev:emperror",
-        "//third_party/go/github.com/gin-gonic:gin",
+        "//third_party/go:emperror.dev_emperror",
+        "//third_party/go:github.com_gin-gonic_gin",
     ],
 )

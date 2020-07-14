@@ -1,0 +1,91 @@
+def go_vendor(name:str="vendor", modfile:str="go.mod", deps:list=[]):
+    """Downloads Go modules.
+
+    This is not a perfect usage of Please, but brings Go modules closer to it.
+
+    The downside of this rule that it triggers rebuilds every time a dependency changes.
+
+    Args:
+      name (str): Name of the rule
+      modfile (str): The go.mod file to use.
+      deps (list): Dependencies (like go_vendor rules for submodules)
+    """
+    gomod = go_mod(
+        name = name,
+        tag = "vendor",
+        modfile = modfile,
+    )
+
+    cmd = [
+        "mkdir -p tmp",
+        "export TMPDIR=$TMP_DIR/tmp", # Required because go mod doesn't run in TMPDIR
+        f'"$TOOLS_GO" mod vendor -v -modcacherw -modfile {modfile} 2>&1',
+    ]
+
+    return build_rule(
+        name = name,
+        srcs = [gomod],
+        deps = deps,
+        outs = ["vendor"],
+        cmd = " && ".join(cmd),
+        tools = {
+            "go": [CONFIG.GO_TOOL],
+        },
+        visibility = ["PUBLIC"],
+    )
+
+def go_mod_download(name:str="modvendor", modfile:str="go.mod", deps:list=[]):
+    """Downloads Go modules.
+
+    This is not a perfect usage of Please, but brings Go modules closer to it.
+
+    The downside of this rule that it triggers rebuilds every time a dependency changes.
+
+    Args:
+      name (str): Name of the rule
+      modfile (str): The go.mod file to use.
+      deps (list): Dependencies (like go_vendor rules for submodules)
+    """
+    gomod = go_mod(
+        name = name,
+        tag = "modvendor",
+        modfile = modfile,
+    )
+
+    cmd = [
+        "mkdir -p tmp",
+        "export TMPDIR=$TMP_DIR/tmp", # Required because go mod doesn't run in TMPDIR
+        f'"$TOOLS_GO" mod download -x -modcacherw -modfile {modfile} 2>&1',
+    ]
+
+    return build_rule(
+        name = name,
+        srcs = [gomod],
+        deps = deps,
+        outs = ["go/pkg/mod"],
+        cmd = " && ".join(cmd),
+        tools = {
+            "go": [CONFIG.GO_TOOL],
+        },
+        visibility = ["PUBLIC"],
+    )
+
+def go_mod(name:str="gomod", modfile:str="go.mod", deps:list=[], tag:str=None):
+    """References the go.mod and go.sum files of submodules.
+
+    Args:
+      name (str): Name of the rule
+      modfile (str): The go.mod file to use.
+      deps (list): Dependencies (like other go_mod rules for submodules)
+    """
+    assert modfile.endswith(".mod"), "Modfile must have .mod extension"
+
+    sumfile = modfile[:-4] + ".sum"
+
+    return filegroup(
+        name = name,
+        tag = tag,
+        srcs = [modfile, sumfile],
+        deps = deps,
+        visibility = ["PUBLIC"],
+    )

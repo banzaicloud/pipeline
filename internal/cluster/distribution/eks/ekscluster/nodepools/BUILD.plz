@@ -4,9 +4,9 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//pkg/providers/amazon/autoscaling",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/aws:aws-sdk-go",
-        "//third_party/go/github.com/sirupsen:logrus",
-        "//third_party/go/logur.dev/adapter:logrus",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_aws_aws-sdk-go",
+        "//third_party/go:github.com_sirupsen_logrus",
+        "//third_party/go:logur.dev_adapter_logrus",
     ],
 )

@@ -4,8 +4,8 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/app/pipeline/auth/token",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/banzaicloud/bank-vaults/pkg:sdk",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_banzaicloud_bank-vaults_pkg_sdk",
     ],
 )
 
@@ -14,8 +14,8 @@ go_test(
     srcs = glob(["*.go"]),
     deps = [
         "//internal/app/pipeline/auth/token",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/banzaicloud/bank-vaults/pkg:sdk",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_banzaicloud_bank-vaults_pkg_sdk",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )

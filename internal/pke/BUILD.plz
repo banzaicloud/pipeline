@@ -2,5 +2,5 @@ go_library(
     name = "pke",
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
-    deps = ["//third_party/go/github.com/sirupsen:logrus"],
+    deps = ["//third_party/go:github.com_sirupsen_logrus"],
 )

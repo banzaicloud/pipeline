@@ -4,10 +4,10 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//pkg/errors",
-        "//third_party/go/cloud.google.com/go:storage",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/golang.org/x:oauth2",
-        "//third_party/go/google.golang.org:api",
+        "//third_party/go:cloud.google.com_go_storage",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:golang.org_x_oauth2",
+        "//third_party/go:google.golang.org_api",
     ],
 )
 
@@ -16,12 +16,12 @@ go_test(
     srcs = glob(["*.go"]),
     deps = [
         "//pkg/errors",
-        "//third_party/go/cloud.google.com/go:storage",
-        "//third_party/go/emperror.dev:emperror",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/pkg:errors",
-        "//third_party/go/github.com/stretchr:testify",
-        "//third_party/go/golang.org/x:oauth2",
-        "//third_party/go/google.golang.org:api",
+        "//third_party/go:cloud.google.com_go_storage",
+        "//third_party/go:emperror.dev_emperror",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_pkg_errors",
+        "//third_party/go:github.com_stretchr_testify",
+        "//third_party/go:golang.org_x_oauth2",
+        "//third_party/go:google.golang.org_api",
     ],
 )

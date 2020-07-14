@@ -7,7 +7,7 @@ go_library(
         "//internal/integratedservices/services/ingress",
         "//src/auth",
         "//src/dns",
-        "//third_party/go/emperror.dev:errors",
+        "//third_party/go:emperror.dev_errors",
     ],
 )
 
@@ -19,7 +19,7 @@ go_test(
         "//internal/integratedservices/services/ingress",
         "//src/auth",
         "//src/dns",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )

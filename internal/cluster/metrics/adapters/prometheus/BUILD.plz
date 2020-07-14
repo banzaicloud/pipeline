@@ -4,6 +4,6 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/cluster/metrics",
-        "//third_party/go/github.com/prometheus:client_golang",
+        "//third_party/go:github.com_prometheus_client_golang",
     ],
 )

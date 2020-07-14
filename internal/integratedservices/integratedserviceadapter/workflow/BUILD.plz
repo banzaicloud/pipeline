@@ -4,8 +4,8 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/integratedservices",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/go.uber.org:cadence",
-        "//third_party/go/go.uber.org:zap",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:go.uber.org_cadence",
+        "//third_party/go:go.uber.org_zap",
     ],
 )

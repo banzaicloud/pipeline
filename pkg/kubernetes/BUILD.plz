@@ -3,9 +3,9 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/stretchr:testify",
-        "//third_party/go/k8s.io:apimachinery",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_stretchr_testify",
+        "//third_party/go:k8s.io_apimachinery",
     ],
 )
 
@@ -13,8 +13,8 @@ go_test(
     name = "test",
     srcs = glob(["*.go"]),
     deps = [
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/stretchr:testify",
-        "//third_party/go/k8s.io:apimachinery",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_stretchr_testify",
+        "//third_party/go:k8s.io_apimachinery",
     ],
 )

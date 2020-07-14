@@ -2,14 +2,14 @@ go_library(
     name = "problems",
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
-    deps = ["//third_party/go/github.com/moogar0880:problems"],
+    deps = ["//third_party/go:github.com_moogar0880_problems"],
 )
 
 go_test(
     name = "test",
     srcs = glob(["*.go"]),
     deps = [
-        "//third_party/go/github.com/moogar0880:problems",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:github.com_moogar0880_problems",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )

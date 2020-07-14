@@ -4,9 +4,9 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//src/auth",
-        "//third_party/go/emperror.dev:emperror",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/gin-gonic:gin",
+        "//third_party/go:emperror.dev_emperror",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_gin-gonic_gin",
     ],
 )
 
@@ -15,10 +15,10 @@ go_test(
     srcs = glob(["*.go"]),
     deps = [
         "//src/auth",
-        "//third_party/go/emperror.dev:emperror",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/gin-gonic:gin",
-        "//third_party/go/github.com/qor:auth",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:emperror.dev_emperror",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_gin-gonic_gin",
+        "//third_party/go:github.com_qor_auth",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )

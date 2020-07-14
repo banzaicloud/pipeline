@@ -5,7 +5,7 @@ go_library(
     deps = [
         "//internal/common",
         "//internal/platform/gin/correlationid",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/gin-gonic:gin",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_gin-gonic_gin",
     ],
 )

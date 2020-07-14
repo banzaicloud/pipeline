@@ -7,8 +7,8 @@ go_library(
         "//internal/global",
         "//internal/platform/gin/correlationid",
         "//src/api/ark/common",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/gin-gonic:gin",
-        "//third_party/go/k8s.io:apimachinery",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_gin-gonic_gin",
+        "//third_party/go:k8s.io_apimachinery",
     ],
 )

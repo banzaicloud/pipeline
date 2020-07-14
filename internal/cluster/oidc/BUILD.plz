@@ -5,7 +5,7 @@ go_library(
     deps = [
         "//internal/cluster/auth",
         "//src/auth",
-        "//third_party/go/emperror.dev:errors",
+        "//third_party/go:emperror.dev_errors",
     ],
 )
 
@@ -17,6 +17,6 @@ go_test(
         ":oidc",
         "//internal/cluster/auth",
         "//src/auth",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )

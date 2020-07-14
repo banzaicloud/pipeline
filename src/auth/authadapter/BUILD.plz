@@ -4,8 +4,8 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//src/auth",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/jinzhu:gorm",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_jinzhu_gorm",
     ],
 )
 
@@ -15,10 +15,10 @@ go_test(
     deps = [
         "//internal/common",
         "//src/auth",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/ThreeDotsLabs:watermill",
-        "//third_party/go/github.com/jinzhu:gorm",
-        "//third_party/go/github.com/sirupsen:logrus",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_ThreeDotsLabs_watermill",
+        "//third_party/go:github.com_jinzhu_gorm",
+        "//third_party/go:github.com_sirupsen_logrus",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )

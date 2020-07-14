@@ -4,7 +4,7 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//.gen/cloudinfo",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/antihax:optional",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_antihax_optional",
     ],
 )

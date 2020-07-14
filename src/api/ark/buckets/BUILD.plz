@@ -12,8 +12,8 @@ go_library(
         "//pkg/providers",
         "//src/api/ark/common",
         "//src/auth",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/gin-gonic:gin",
-        "//third_party/go/github.com/jinzhu:gorm",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_gin-gonic_gin",
+        "//third_party/go:github.com_jinzhu_gorm",
     ],
 )

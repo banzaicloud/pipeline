@@ -5,6 +5,6 @@ go_library(
     deps = [
         "//pkg/common",
         "//pkg/errors",
-        "//third_party/go/emperror.dev:errors",
+        "//third_party/go:emperror.dev_errors",
     ],
 )

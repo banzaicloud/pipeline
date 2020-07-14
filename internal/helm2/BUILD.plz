@@ -8,8 +8,8 @@ go_library(
         "//internal/helm",
         "//pkg/helm",
         "//src/helm",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/k8s.io:helm",
-        "//third_party/go/sigs.k8s.io:yaml",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:k8s.io_helm",
+        "//third_party/go:sigs.k8s.io_yaml",
     ],
 )

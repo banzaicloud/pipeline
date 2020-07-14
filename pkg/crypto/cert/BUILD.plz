@@ -3,10 +3,10 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go/github.com/banzaicloud/bank-vaults/pkg:sdk",
-        "//third_party/go/github.com/hashicorp/vault:api",
-        "//third_party/go/github.com/pkg:errors",
-        "//third_party/go/github.com/spf13:cast",
+        "//third_party/go:github.com_banzaicloud_bank-vaults_pkg_sdk",
+        "//third_party/go:github.com_hashicorp_vault_api",
+        "//third_party/go:github.com_pkg_errors",
+        "//third_party/go:github.com_spf13_cast",
     ],
 )
 
@@ -14,10 +14,10 @@ go_test(
     name = "test",
     srcs = glob(["*.go"]),
     deps = [
-        "//third_party/go/github.com/banzaicloud/bank-vaults/pkg:sdk",
-        "//third_party/go/github.com/hashicorp/vault:api",
-        "//third_party/go/github.com/pkg:errors",
-        "//third_party/go/github.com/spf13:cast",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:github.com_banzaicloud_bank-vaults_pkg_sdk",
+        "//third_party/go:github.com_hashicorp_vault_api",
+        "//third_party/go:github.com_pkg_errors",
+        "//third_party/go:github.com_spf13_cast",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )

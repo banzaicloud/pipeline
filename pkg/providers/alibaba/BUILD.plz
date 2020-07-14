@@ -4,6 +4,6 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/secret/secrettype",
-        "//third_party/go/github.com/aliyun:alibaba-cloud-sdk-go",
+        "//third_party/go:github.com_aliyun_alibaba-cloud-sdk-go",
     ],
 )

@@ -3,7 +3,7 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go/github.com/jinzhu:gorm",
-        "//third_party/go/github.com/sirupsen:logrus",
+        "//third_party/go:github.com_jinzhu_gorm",
+        "//third_party/go:github.com_sirupsen_logrus",
     ],
 )

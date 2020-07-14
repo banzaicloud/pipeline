@@ -1,0 +1,247 @@
+def go_module_download(name:str, module:str, version:str, tag:str=None, sum:str=None, replace:str=None,
+                       patch:str=None, strip:list=None, licences:list=None, visibility:list=None, test_only:bool&testonly=False):
+    """Downloads the source of a Go module.
+
+    go_module_download uses `go mod download` under the hood to download the module source to the cache.
+    It does not compile anything, just downloads the source.
+
+    It's useful in situations when there are circular dependencies between modules
+    and they can't be compiled into a single dependency.
+
+    Args:
+      name (str): Name of the rule
+      module (str): Target module to download (eg. "github.com/gorilla/mux").
+      version (str): Module version.
+      sum (str): Module dir sum.
+      replace (str): Module replacement to download instead (eg. "github.com/mygorilla/mux").
+      patch (str): Patch file to apply.
+      strip (list): List of paths to strip from the target.
+      licences (list): Licences this rule is subject to.
+      visibility (list): Visibility specification
+      test_only (bool): If true this rule will only be visible to tests.
+    """
+
+    labels = [f"go_get:{module}@{version}"]
+    dest = "src/" + module
+
+    tools = {
+        "go": [CONFIG.GO_TOOL],
+        "moddown": ["//cmd/moddown"],
+    }
+
+    download_module = replace or module
+
+    cmd = [
+        "export GO111MODULE=on", # Needed by module mode.
+        "go mod init download", # Do not interfere with any parent module
+        f"mkdir -p {dest}", # TODO: Should be done my moddown?
+        f'"$TOOLS_MODDOWN" -dest {dest} -sum={sum} {download_module}@{version}',
+    ]
+
+    if patch:
+        cmd += [f'patch -s -d {dest} -p1 < "$TMP_DIR"/$SRCS_PATCH']
+
+    if strip:
+        cmd += [f"rm -rf {dest}/{s}" for s in strip]
+
+    return build_rule(
+        name = name,
+        tag = tag,
+        srcs = {
+            "patch": [patch],
+        },
+        outs = [dest],
+        tools = tools,
+        building_description = "Fetching...",
+        cmd = " && ".join(cmd),
+        requires = ["go"],
+        test_only = test_only,
+        labels = labels + ["link:plz-out/go"],
+        sandbox = False,
+        licences = licences,
+    )
+
+def go_module_install(name:str, module:str, src:str, deps:list=[], install:list=None,
+                      visibility:list=None, binary:bool=False, test_only:bool&testonly=False, provide_src:bool=False):
+    """Builds a Go module from previously downloaded sources.
+
+    This is the compilation counterpart of the go_module_download rule.
+
+    Args:
+      name (str): Name of the rule
+      module (str): Target module to download (eg. "github.com/gorilla/mux").
+      src (list): Module source rule
+      deps (list): Dependencies
+      install (list): Allows specifying the exact list of packages to install. If this is not passed,
+                      the module's root package is installed. If you pass this for subpackages, you
+                      will need to explicitly add an empty string to the list if you want to install
+                      the root package from this module.
+      visibility (list): Visibility specification
+      binary (bool): True if the output of the rule is a binary.
+      test_only (bool): If true this rule will only be visible to tests.
+    """
+
+    all_installs = []
+    outs = [module] # TODO: simplify
+
+    if install:
+        all_installs += [(module + '/' + i if i else module) for i in install]
+    else:
+        all_installs += [module]
+
+    cmd = [
+        'export GOPATH="$(find \"$TMP_DIR\" \( -name src -o -name pkg \) -exec dirname {} \; | sort | uniq | tr \'\\n\' \':\' | sed \'s/:$//\')" GO111MODULE="off"',
+        #'"$TOOLS_GO" install ' + ' '.join(all_installs or install),
+        f'"$TOOLS_GO" install -pkgdir pkg/{CONFIG.GOOS}_{CONFIG.GOARCH} ' + ' '.join(all_installs or install),
+    ]
+
+    #if package_name():
+    #    cmd += [
+    #        # The outputs tend to end up in subdirectories (Go seems to match them to the location the source came from)
+    #        "rm -rf bin" if binary else "rm -rf pkg",
+    #        'mv "$PKG_DIR/bin" .' if binary else 'mv "$PKG_DIR/pkg" .',
+    #    ]
+
+    outs = []
+
+    if binary:
+        outs = ["bin/" + name]
+    else:
+        outs = [f"pkg/{CONFIG.GOOS}_{CONFIG.GOARCH}/{out}.a" for out in all_installs]
+        #outs = [f"pkg/{CONFIG.GOOS}_{CONFIG.GOARCH}/{out}/" + basename(out) + ".a" for out in all_installs]
+        #real_outs = [f"pkg/{CONFIG.GOOS}_{CONFIG.GOARCH}/{out}" for out in all_installs]
+        #outs = [f"pkg/{CONFIG.GOOS}_{CONFIG.GOARCH}/{out}" for out in outs]
+        # Outputs are created one directory down from where we want them.
+        # For most it doesn't matter but the top-level one will get lost.
+        #cmd += [f" if [ -f {out}.a ]; then mkdir -p {out} && mv {out}.a {out}; fi" for out in real_outs]
+
+    provides = {"go": ":" + name}
+    if provide_src:
+        provides["go_src"] = src
+
+
+    return build_rule(
+        name = name,
+        outs = outs,
+        #deps = deps,
+        exported_deps = deps,
+        srcs = [src] + deps,
+        tools = {
+            "go": [CONFIG.GO_TOOL],
+        },
+        visibility = visibility,
+        building_description = "Compiling...",
+        cmd = " && ".join(cmd),
+        binary = binary,
+        requires = ["go", "go_src"],
+        test_only = test_only,
+        labels = ["link:plz-out/go"],
+        sandbox = False,
+        needs_transitive_deps = True,
+        provides = provides,
+    )
+
+
+def go_module_get(name:str, module:str, version:str, sum:str=None, replace:str=None, deps:list=[], install:list=None,
+                  patch:str=None, strip:list=None, licences:list=None,
+                  visibility:list=None, binary:bool=False, test_only:bool&testonly=False):
+    """Defines a dependency on a third-party Go module.
+
+    This rule combines go_module_download and go_module_install
+
+    Args:
+      name (str): Name of the rule
+      module (str): Target module to download (eg. "github.com/gorilla/mux").
+      version (str): Module version.
+      sum (str): Module dir sum.
+      replace (str): Module replacement (eg. "github.com/mygorilla/mux").
+      deps (list): Dependencies
+      install (list): Allows specifying the exact list of packages to install. If this is not passed,
+                      the module's root package is installed. If you pass this for subpackages, you
+                      will need to explicitly add an empty string to the list if you want to install
+                      the root package from this module.
+      patch (str): Patch file to apply.
+      strip (list): List of paths to strip from the target.
+      licences (list): Licences this rule is subject to.
+      visibility (list): Visibility specification
+      binary (bool): True if the output of the rule is a binary.
+      test_only (bool): If true this rule will only be visible to tests.
+    """
+
+    download = go_module_download(
+        name = name,
+        tag = "download",
+        module = module,
+        version = version,
+        sum = sum,
+        replace = replace,
+        patch = patch,
+        strip = strip,
+        licences = licences,
+        visibility = visibility,
+        test_only = test_only,
+    )
+
+    return go_module_install(
+        name = name,
+        module = module,
+        src = download,
+        deps = deps,
+        install = install,
+        visibility = visibility,
+        binary = binary,
+        test_only = test_only,
+        provide_src = True,
+    )
+
+def go_get(name:str, module:str, version:str=None, sum:str=None, replace:str=None, src:str=None, deps:list=[], install:list=None,
+                  patch:str=None, strip:list=None, licences:list=None,
+                  visibility:list=None, binary:bool=False, test_only:bool&testonly=False):
+    """Defines a dependency on a third-party Go module.
+
+    This rule combines go_module_download and go_module_install
+
+    Args:
+      name (str): Name of the rule
+      module (str): Target module to download (eg. "github.com/gorilla/mux").
+      version (str): Module version.
+      sum (str): Module dir sum.
+      replace (str): Module replacement (eg. "github.com/mygorilla/mux").
+      deps (list): Dependencies
+      install (list): Allows specifying the exact list of packages to install. If this is not passed,
+                      the module's root package is installed. If you pass this for subpackages, you
+                      will need to explicitly add an empty string to the list if you want to install
+                      the root package from this module.
+      patch (str): Patch file to apply.
+      strip (list): List of paths to strip from the target.
+      licences (list): Licences this rule is subject to.
+      visibility (list): Visibility specification
+      binary (bool): True if the output of the rule is a binary.
+      test_only (bool): If true this rule will only be visible to tests.
+    """
+
+    src = src or go_module_download(
+        name = name,
+        tag = "download",
+        module = module,
+        version = version,
+        sum = sum,
+        replace = replace,
+        patch = patch,
+        strip = strip,
+        licences = licences,
+        visibility = visibility,
+        test_only = test_only,
+    )
+
+    return go_module_install(
+        name = name,
+        module = module,
+        src = src,
+        deps = deps,
+        install = install,
+        visibility = visibility,
+        binary = binary,
+        test_only = test_only,
+        provide_src = True,
+    )

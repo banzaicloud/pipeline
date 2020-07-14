@@ -3,7 +3,7 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
     deps = [
+        "//third_party/go:github.com_sagikazarmark_kitx",
         "//third_party/go:go.opencensus.io",
-        "//third_party/go/github.com/sagikazarmark:kitx",
     ],
 )

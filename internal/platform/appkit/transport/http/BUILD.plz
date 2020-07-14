@@ -4,7 +4,7 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//pkg/problems",
-        "//third_party/go/github.com/sagikazarmark:appkit",
+        "//third_party/go:github.com_sagikazarmark_appkit",
     ],
 )
 
@@ -13,7 +13,7 @@ go_test(
     srcs = glob(["*.go"]),
     deps = [
         "//pkg/problems",
-        "//third_party/go/github.com/sagikazarmark:appkit",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:github.com_sagikazarmark_appkit",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )

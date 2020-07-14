@@ -19,8 +19,8 @@ go_library(
         "//pkg/providers",
         "//src/auth",
         "//src/secret",
-        "//third_party/go/github.com/jinzhu:gorm",
-        "//third_party/go/github.com/sirupsen:logrus",
-        "//third_party/go/logur.dev/adapter:logrus",
+        "//third_party/go:github.com_jinzhu_gorm",
+        "//third_party/go:github.com_sirupsen_logrus",
+        "//third_party/go:logur.dev_adapter_logrus",
     ],
 )

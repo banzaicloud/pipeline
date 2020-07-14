@@ -3,9 +3,9 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go/github.com/banzaicloud:gin-utilz",
-        "//third_party/go/github.com/dgrijalva:jwt-go",
-        "//third_party/go/github.com/gofrs:uuid",
-        "//third_party/go/github.com/pkg:errors",
+        "//third_party/go:github.com_banzaicloud_gin-utilz",
+        "//third_party/go:github.com_dgrijalva_jwt-go",
+        "//third_party/go:github.com_gofrs_uuid",
+        "//third_party/go:github.com_pkg_errors",
     ],
 )

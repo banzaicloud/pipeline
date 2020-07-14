@@ -13,8 +13,8 @@ go_library(
         "//pkg/errors",
         "//pkg/providers/oracle/cluster",
         "//pkg/values",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/gopkg.in:yaml.v2",
-        "//third_party/go/k8s.io:api",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:gopkg.in_yaml.v2",
+        "//third_party/go:k8s.io_api",
     ],
 )

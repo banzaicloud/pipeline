@@ -7,9 +7,9 @@ go_library(
         "//internal/helm",
         "//internal/integratedservices",
         "//pkg/helm",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/mitchellh:mapstructure",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_mitchellh_mapstructure",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )
 
@@ -22,8 +22,8 @@ go_test(
         "//internal/integratedservices",
         "//internal/integratedservices/services/expiry",
         "//pkg/helm",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/mitchellh:mapstructure",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_mitchellh_mapstructure",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )

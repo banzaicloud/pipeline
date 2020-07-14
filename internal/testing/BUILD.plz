@@ -3,7 +3,7 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go/k8s.io:apimachinery",
-        "//third_party/go/k8s.io:client-go",
+        "//third_party/go:k8s.io_apimachinery",
+        "//third_party/go:k8s.io_client-go",
     ],
 )

@@ -3,8 +3,8 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/oracle:oci-go-sdk",
-        "//third_party/go/github.com/sirupsen:logrus",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_oracle_oci-go-sdk",
+        "//third_party/go:github.com_sirupsen_logrus",
     ],
 )

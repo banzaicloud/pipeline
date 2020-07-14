@@ -5,7 +5,7 @@ go_library(
     deps = [
         "//internal/common",
         "//internal/integratedservices",
-        "//third_party/go/emperror.dev:errors",
+        "//third_party/go:emperror.dev_errors",
     ],
 )
 
@@ -15,6 +15,6 @@ go_test(
     deps = [
         "//internal/common",
         "//internal/integratedservices",
-        "//third_party/go/emperror.dev:errors",
+        "//third_party/go:emperror.dev_errors",
     ],
 )

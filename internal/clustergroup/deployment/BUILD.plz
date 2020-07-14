@@ -8,13 +8,13 @@ go_library(
         "//internal/helm",
         "//pkg/jsonstructure",
         "//src/helm",
-        "//third_party/go/emperror.dev:emperror",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/ghodss:yaml",
-        "//third_party/go/github.com/jinzhu:gorm",
-        "//third_party/go/github.com/pkg:errors",
-        "//third_party/go/github.com/sirupsen:logrus",
-        "//third_party/go/github.com/technosophos:moniker",
+        "//third_party/go:emperror.dev_emperror",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_ghodss_yaml",
+        "//third_party/go:github.com_jinzhu_gorm",
+        "//third_party/go:github.com_pkg_errors",
+        "//third_party/go:github.com_sirupsen_logrus",
+        "//third_party/go:github.com_technosophos_moniker",
     ],
 )
 
@@ -30,6 +30,6 @@ go_test(
         "//internal/helm",
         "//internal/helm/testing",
         "//src/helm",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )

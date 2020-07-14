@@ -6,6 +6,6 @@ go_library(
         "//internal/platform/context",
         "//internal/platform/gin/correlationid",
         "//pkg/common",
-        "//third_party/go/github.com/gin-gonic:gin",
+        "//third_party/go:github.com_gin-gonic_gin",
     ],
 )

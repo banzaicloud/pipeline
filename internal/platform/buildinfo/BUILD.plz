@@ -5,6 +5,6 @@ go_library(
     deps = [
         "//.gen/pipeline/pipeline",
         "//internal/global",
-        "//third_party/go/github.com/pkg:errors",
+        "//third_party/go:github.com_pkg_errors",
     ],
 )

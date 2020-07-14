@@ -26,6 +26,6 @@ go_test(
         "//internal/providers/vsphere/pke/driver",
         "//pkg/cluster",
         "//src/secret",
-        "//third_party/go/github.com/stretchr:testify",
+        "//third_party/go:github.com_stretchr_testify",
     ],
 )

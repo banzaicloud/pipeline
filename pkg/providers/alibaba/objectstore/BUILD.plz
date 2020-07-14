@@ -4,8 +4,8 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//pkg/errors",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/aliyun:aliyun-oss-go-sdk",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_aliyun_aliyun-oss-go-sdk",
     ],
 )
 
@@ -14,8 +14,8 @@ go_test(
     srcs = glob(["*.go"]),
     deps = [
         "//pkg/errors",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/aliyun:aliyun-oss-go-sdk",
-        "//third_party/go/github.com/pkg:errors",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_aliyun_aliyun-oss-go-sdk",
+        "//third_party/go:github.com_pkg_errors",
     ],
 )

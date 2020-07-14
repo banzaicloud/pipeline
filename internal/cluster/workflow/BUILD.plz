@@ -5,10 +5,10 @@ go_library(
     deps = [
         "//internal/helm",
         "//pkg/k8sclient",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/sirupsen:logrus",
-        "//third_party/go/go.uber.org:cadence",
-        "//third_party/go/k8s.io:api",
-        "//third_party/go/k8s.io:apimachinery",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_sirupsen_logrus",
+        "//third_party/go:go.uber.org_cadence",
+        "//third_party/go:k8s.io_api",
+        "//third_party/go:k8s.io_apimachinery",
     ],
 )

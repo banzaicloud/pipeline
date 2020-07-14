@@ -4,9 +4,9 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/ark",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/jinzhu:gorm",
-        "//third_party/go/github.com/sirupsen:logrus",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_jinzhu_gorm",
+        "//third_party/go:github.com_sirupsen_logrus",
     ],
 )
 
@@ -16,9 +16,9 @@ go_test(
     deps = [
         "//internal/ark",
         "//src/cluster",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/asaskevich:EventBus",
-        "//third_party/go/github.com/jinzhu:gorm",
-        "//third_party/go/github.com/sirupsen:logrus",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_asaskevich_EventBus",
+        "//third_party/go:github.com_jinzhu_gorm",
+        "//third_party/go:github.com_sirupsen_logrus",
     ],
 )

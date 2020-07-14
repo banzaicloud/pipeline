@@ -9,7 +9,7 @@ go_library(
         "//pkg/providers/azure",
         "//pkg/providers/azure/objectstore",
         "//src/secret",
-        "//third_party/go/emperror.dev:errors",
-        "//third_party/go/github.com/heptio:ark",
+        "//third_party/go:emperror.dev_errors",
+        "//third_party/go:github.com_heptio_ark",
     ],
 )

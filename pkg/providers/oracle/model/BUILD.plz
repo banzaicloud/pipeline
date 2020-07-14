@@ -7,6 +7,6 @@ go_library(
         "//pkg/cluster",
         "//pkg/errors",
         "//pkg/providers/oracle/cluster",
-        "//third_party/go/github.com/sirupsen:logrus",
+        "//third_party/go:github.com_sirupsen_logrus",
     ],
 )

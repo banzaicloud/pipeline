@@ -10,6 +10,6 @@ go_library(
         "//pkg/providers/google",
         "//pkg/providers/oracle",
         "//src/secret",
-        "//third_party/go/github.com/pkg:errors",
+        "//third_party/go:github.com_pkg_errors",
     ],
 )

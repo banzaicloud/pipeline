@@ -5,9 +5,9 @@ go_library(
     deps = [
         "//internal/secret/secrettype",
         "//pkg/cluster",
-        "//third_party/go/github.com/Azure:azure-sdk-for-go",
-        "//third_party/go/github.com/Azure/go-autorest:autorest",
-        "//third_party/go/github.com/Azure/go-autorest/autorest:adal",
-        "//third_party/go/github.com/gofrs:uuid",
+        "//third_party/go:github.com_Azure_azure-sdk-for-go",
+        "//third_party/go:github.com_Azure_go-autorest_autorest",
+        "//third_party/go:github.com_Azure_go-autorest_autorest_adal",
+        "//third_party/go:github.com_gofrs_uuid",
     ],
 )
