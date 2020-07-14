@@ -24,6 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// nolint: gochecknoglobals
 var update = flag.Bool("update", false, "update .golden files")
 
 func TestParseTelemetryFromFile(t *testing.T) {
