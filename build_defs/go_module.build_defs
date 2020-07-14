@@ -35,8 +35,12 @@ def go_module_download(name:str, module:str, version:str, tag:str=None, sum:str=
         "export GO111MODULE=on", # Needed by module mode.
         "go mod init download", # Do not interfere with any parent module
         f"mkdir -p {dest}", # TODO: Should be done my moddown?
-        f'"$TOOLS_MODDOWN" -dest {dest} -sum={sum} {download_module}@{version}',
     ]
+
+    if sum: # The sum is provided so we don't have to look it up from sum DB
+        cmd += ["export GOSUMDB=off"]
+
+    cmd += [f'"$TOOLS_MODDOWN" -dest {dest} -sum={sum} {download_module}@{version}',]
 
     if patch:
         cmd += [f'patch -s -d {dest} -p1 < "$TMP_DIR"/$SRCS_PATCH']
@@ -123,9 +127,9 @@ def go_module_install(name:str, module:str, src:str, deps:list=[], install:list=
     return build_rule(
         name = name,
         outs = outs,
-        #deps = deps,
+        deps = deps,
         exported_deps = deps,
-        srcs = [src] + deps,
+        srcs = [src],# + deps,
         tools = {
             "go": [CONFIG.GO_TOOL],
         },
