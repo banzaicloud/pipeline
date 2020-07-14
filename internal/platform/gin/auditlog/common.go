@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,21 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cert
+package auditlog
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
-func TestFileCALoader_Load(t *testing.T) {
-	signingSource := NewFileCALoader("testdata/ca.crt", "testdata/ca.key")
+// These interfaces are aliased so that the module code is separated from the rest of the application.
+// If the module is moved out of the app, copy the aliased interfaces here.
 
-	cert, key, err := signingSource.Load()
+// ErrorHandler is the fundamental interface for error handling.
+type ErrorHandler = common.ErrorHandler
 
-	require.NoError(t, err)
-	assert.NotNil(t, cert)
-	assert.NotNil(t, key)
-}
+// NoopErrorHandler is an error handler that discards every error.
+type NoopErrorHandler = common.NoopErrorHandler

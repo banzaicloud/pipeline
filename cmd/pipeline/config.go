@@ -26,6 +26,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/cmd"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/auditlog/auditlogdriver"
 	"github.com/banzaicloud/pipeline/src/auth"
 )
 
@@ -37,11 +38,7 @@ type configuration struct {
 	// Auth configuration
 	Auth auth.Config
 
-	Audit struct {
-		Enabled   bool
-		Headers   []string
-		SkipPaths []string
-	}
+	AuditLog auditLogConfig
 
 	CORS struct {
 		AllowAllOrigins    bool
@@ -105,6 +102,22 @@ func (c PipelineConfig) Validate() error {
 	return err
 }
 
+type auditLogConfig struct {
+	Enabled bool
+
+	Driver struct {
+		Log struct {
+			Enabled bool
+
+			Config auditlogdriver.LogDriverConfig `mapstructure:",squash"`
+		}
+
+		Database struct {
+			Enabled bool
+		}
+	}
+}
+
 // configure configures some defaults in the Viper instance.
 func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.AllowEmptyEnv(true)
@@ -163,6 +176,12 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 		auth.RoleMember: "",
 	})
 
+	v.SetDefault("auditLog::enabled", true)
+	v.SetDefault("auditLog::driver::log::enabled", false)
+	v.SetDefault("auditLog::driver::log::verbosity", 1)
+	v.SetDefault("auditLog::driver::log::fields", []string{})
+	v.SetDefault("auditLog::driver::database::enabled", true)
+
 	// Database config
 	v.SetDefault("database::autoMigrate", false)
 
@@ -172,8 +191,4 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 
 	v.SetDefault("spotmetrics::enabled", false)
 	v.SetDefault("spotmetrics::collectionInterval", 30*time.Second)
-
-	v.SetDefault("audit::enabled", true)
-	v.SetDefault("audit::headers", []string{"secretId"})
-	v.SetDefault("audit::skipPaths", []string{"/auth/dex/callback", "/pipeline/api"})
 }

@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,28 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cert
+package auditlog
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"emperror.dev/errors"
 )
 
-func TestCACache_Load(t *testing.T) {
-	signingSource := NewCACache(NewFileCALoader("testdata/ca.crt", "testdata/ca.key"))
+// Drivers combine multiple drivers into a single instance.
+type Drivers []Driver
 
-	cert, key, err := signingSource.Load()
+func (d Drivers) Store(entry Entry) error {
+	var errs []error
 
-	require.NoError(t, err)
+	for _, driver := range d {
+		errs = append(errs, driver.Store(entry))
+	}
 
-	signingSource.loader = nil
-
-	cert2, key2, err := signingSource.Load()
-
-	require.NoError(t, err)
-
-	assert.Equal(t, cert, cert2)
-	assert.Equal(t, key, key2)
+	return errors.Combine(errs...)
 }

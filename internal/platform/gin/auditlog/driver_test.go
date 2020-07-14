@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,21 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package alibaba
+package auditlog
 
 import (
-	"github.com/sirupsen/logrus"
+	"testing"
+	"time"
 
-	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// nolint: gochecknoglobals
-var log logrus.FieldLogger
+func TestDrivers(t *testing.T) {
+	driver1 := &inmemDriver{}
+	driver2 := &inmemDriver{}
 
-func init() {
-	log = global.LogrusLogger()
+	driver := Drivers{driver1, driver2}
 
-	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
-		log = l
-	})
+	entry := Entry{
+		Time:          time.Now(),
+		CorrelationID: "cid",
+		UserID:        1,
+		HTTP:          HTTPEntry{},
+	}
+
+	// TODO: write test for the error path
+	err := driver.Store(entry)
+	require.NoError(t, err)
+
+	assert.Equal(t, entry, driver1.entries[0])
+	assert.Equal(t, entry, driver2.entries[0])
 }

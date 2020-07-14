@@ -152,7 +152,8 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 
 	// wait for IAM roles to created before starting user access key creation
 	iamRolesActivityOutput := &CreateIamRolesActivityOutput{}
-	if err := iamRolesCreateActivityFuture.Get(ctx, &iamRolesActivityOutput); err != nil {
+	err := decodeCloudFormationError(iamRolesCreateActivityFuture.Get(ctx, &iamRolesActivityOutput))
+	if err != nil {
 		return nil, err
 	}
 
@@ -211,7 +212,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 		for i, future := range createSubnetFutures {
 			var activityOutput CreateSubnetActivityOutput
 
-			errs[i] = future.Get(ctx, &activityOutput)
+			errs[i] = decodeCloudFormationError(future.Get(ctx, &activityOutput))
 			if errs[i] == nil {
 				existingAndNewSubnets = append(existingAndNewSubnets, Subnet{
 					SubnetID:         activityOutput.SubnetID,
@@ -350,7 +351,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 	errs := make([]error, len(asgFutures))
 	for i, future := range asgFutures {
 		var activityOutput CreateAsgActivityOutput
-		errs[i] = future.Get(ctx, &activityOutput)
+		errs[i] = decodeCloudFormationError(future.Get(ctx, &activityOutput))
 	}
 	if err := errors.Combine(errs...); err != nil {
 		return nil, err

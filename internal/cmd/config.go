@@ -44,15 +44,7 @@ type Config struct {
 	// Cadence configuration
 	Cadence cadence.Config
 
-	Cloud struct {
-		Amazon struct {
-			DefaultRegion string
-		}
-
-		Alibaba struct {
-			DefaultRegion string
-		}
-	}
+	Cloud CloudConfig
 
 	Cloudinfo CloudinfoConfig
 
@@ -142,6 +134,36 @@ func (c *Config) Process() error {
 	err = errors.Append(err, c.Cluster.Process())
 
 	return err
+}
+
+type CloudConfig struct {
+	Amazon AmazonCloudConfig
+
+	Alibaba struct {
+		DefaultRegion string
+	}
+}
+
+func (c CloudConfig) Validate() error {
+	var errs error
+
+	errs = errors.Append(errs, c.Amazon.Validate())
+
+	return errs
+}
+
+type AmazonCloudConfig struct {
+	DefaultRegion string
+}
+
+func (c AmazonCloudConfig) Validate() error {
+	var errs error
+
+	if c.DefaultRegion == "" {
+		errs = errors.Append(errs, errors.New("amazon default region is required"))
+	}
+
+	return errs
 }
 
 type CloudinfoConfig struct {
@@ -349,11 +371,6 @@ type ClusterIngressConfig struct {
 	Enabled bool
 
 	ingress.Config `mapstructure:",squash"`
-
-	Cert struct {
-		Source string
-		Path   string
-	}
 }
 
 func (c ClusterIngressConfig) Validate() error {
@@ -465,7 +482,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("auth::token::issuer", "")
 	v.SetDefault("auth::token::audience", "")
 
-	v.SetDefault("log::format", "logfmt")
+	v.SetDefault("log::format", "json")
 	v.SetDefault("log::level", "info")
 	v.RegisterAlias("log::noColor", "no_color")
 
@@ -624,8 +641,6 @@ ssl:
   enabled: true
   generateTLS: true
 `)
-	v.SetDefault("cluster::ingress::cert::source", "file")
-	v.SetDefault("cluster::ingress::cert::path", "config/certs")
 
 	v.SetDefault("cluster::autoscale::namespace", "")
 	v.SetDefault("cluster::autoscale::hpa::prometheus::serviceName", "monitor-prometheus-operato-prometheus")

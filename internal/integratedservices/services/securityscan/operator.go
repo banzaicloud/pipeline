@@ -25,6 +25,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
@@ -118,6 +120,9 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		return errors.WrapIf(err, "failed to assemble chart values")
 	}
 
+	// TODO temporary solution until helm2 gets phased out
+	ctx = context.WithValue(ctx, "helmWait", true) // nolint
+
 	if err = op.helmService.ApplyDeployment(ctx, clusterID, op.config.Webhook.Namespace, op.config.Webhook.Chart, op.config.Webhook.Release,
 		values, op.config.Webhook.Version); err != nil {
 		return errors.WrapIf(err, "failed to deploy integrated service")
@@ -127,6 +132,47 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		if err = op.whiteListService.EnsureReleaseWhiteList(ctx, clusterID, boundSpec.ReleaseWhiteList); err != nil {
 			return errors.WrapIf(err, "failed to install release white list")
 		}
+	}
+
+	anchoreClient := anchore.NewAnchoreClient(anchoreValues.User, anchoreValues.Password, anchoreValues.Host, anchoreValues.Insecure, logger)
+
+	if boundSpec.Registry != nil {
+		secret, err := op.secretStore.GetSecretValues(ctx, boundSpec.Registry.SecretID)
+		if err != nil {
+			return errors.WrapWithDetails(err, "failed to get anchore registry secret", "secretId", boundSpec.CustomAnchore.SecretID)
+		}
+
+		registry := anchore.Registry{
+			Type:     boundSpec.Registry.Type,
+			Registry: boundSpec.Registry.Registry,
+			Verify:   !boundSpec.Registry.Insecure,
+		}
+
+		if anchore.IsEcrRegistry(boundSpec.Registry.Registry) {
+			registry.Username = secret[secrettype.AwsAccessKeyId]
+			registry.Password = secret[secrettype.AwsSecretAccessKey]
+		} else {
+			registry.Username = secret[secrettype.Username]
+			registry.Password = secret[secrettype.Password]
+		}
+
+		err = anchoreClient.AddRegistry(ctx, registry)
+		if err != nil {
+			return errors.WrapWithDetails(err, "failed to add anchore registry")
+		}
+	}
+
+	activePolicyID := boundSpec.Policy.PolicyID
+	if activePolicyID == "" {
+		policyID, err := anchoreClient.CreatePolicy(ctx, boundSpec.Policy.CustomPolicy.Policy)
+		if err != nil {
+			return errors.WrapIf(err, "failed to create policy")
+		}
+		activePolicyID = policyID
+	}
+
+	if err := anchoreClient.ActivatePolicy(ctx, activePolicyID); err != nil {
+		return errors.WrapIf(err, "failed to activate policy")
 	}
 
 	if boundSpec.WebhookConfig.Enabled {

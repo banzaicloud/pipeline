@@ -175,11 +175,11 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		}
 
 		processActivity := process.StartActivity(ctx, WaitCloudFormationStackUpdateActivityName)
-		err = workflow.ExecuteActivity(
+		err = decodeCloudFormationError(workflow.ExecuteActivity(
 			workflow.WithActivityOptions(ctx, activityOptions),
 			WaitCloudFormationStackUpdateActivityName,
 			activityInput,
-		).Get(ctx, nil)
+		).Get(ctx, nil))
 		processActivity.Finish(ctx, err)
 		if err != nil {
 			return err
