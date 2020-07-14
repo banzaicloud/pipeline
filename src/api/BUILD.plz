@@ -71,28 +71,23 @@ go_library(
 
 go_test(
     name = "test",
-    srcs = ["bucket_test.go", "cluster_create_test.go"],
+    srcs = [
+        "bucket_test.go",
+        "cluster_create_test.go",
+    ],
     deps = [
         ":api",
-        "//internal/common",
-        "//internal/global",
-        "//internal/secret/pkesecret",
-        "//internal/secret/restricted",
-        "//internal/secret/secretadapter",
-        "//internal/secret/secrettype",
-        "//internal/secret/types",
-        "//pkg/cluster",
         "//src/api/cluster",
-        "//src/secret",
-        "//third_party/go:emperror.dev_emperror",
-        "//third_party/go:github.com_banzaicloud_bank-vaults_pkg_sdk",
         "//third_party/go:github.com_stretchr_testify",
     ],
 )
 
 go_test(
     name = "external_test",
-    srcs = glob(["*_test.go"], exclude = ["bucket_test.go", "cluster_create_test.go"]),
+    srcs = glob(["*_test.go"], exclude = [
+        "bucket_test.go",
+        "cluster_create_test.go",
+    ]),
     external = True,
     deps = [
         "//internal/common",
@@ -103,7 +98,6 @@ go_test(
         "//internal/secret/secrettype",
         "//internal/secret/types",
         "//pkg/cluster",
-        "//src/api/cluster",
         "//src/secret",
         "//third_party/go:emperror.dev_emperror",
         "//third_party/go:github.com_banzaicloud_bank-vaults_pkg_sdk",
