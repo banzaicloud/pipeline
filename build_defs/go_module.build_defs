@@ -1,4 +1,4 @@
-def go_module_download(name:str, module:str, version:str, tag:str=None, sum:str=None, replace:str=None,
+def go_module_download(name:str, module:str, version:str, tag:str=None, sum:str=None, replace:str=None, deps:list=[],
                        patch:str=None, strip:list=None, licences:list=None, visibility:list=None, test_only:bool&testonly=False):
     """Downloads the source of a Go module.
 
@@ -14,6 +14,7 @@ def go_module_download(name:str, module:str, version:str, tag:str=None, sum:str=
       version (str): Module version.
       sum (str): Module dir sum.
       replace (str): Module replacement to download instead (eg. "github.com/mygorilla/mux").
+      deps (list): Dependencies
       patch (str): Patch file to apply.
       strip (list): List of paths to strip from the target.
       licences (list): Licences this rule is subject to.
@@ -26,13 +27,15 @@ def go_module_download(name:str, module:str, version:str, tag:str=None, sum:str=
 
     tools = {
         "go": [CONFIG.GO_TOOL],
-        "moddown": ["//cmd/moddown"],
+        #"moddown": ["//cmd/moddown"],
+        "jq": [CONFIG.JQ_TOOL],
     }
 
     download_module = replace or module
 
     cmd = [
         "export GO111MODULE=on", # Needed by module mode.
+        "export TMPDIR=$TMPDIR/tmp && mkdir -p $TMPDIR", # Go modules doesn't tolerate being inside $TMPDIR
         "go mod init download", # Do not interfere with any parent module
         f"mkdir -p {dest}", # TODO: Should be done my moddown?
     ]
@@ -40,7 +43,18 @@ def go_module_download(name:str, module:str, version:str, tag:str=None, sum:str=
     if sum: # The sum is provided so we don't have to look it up from sum DB
         cmd += ["export GOSUMDB=off"]
 
-    cmd += [f'"$TOOLS_MODDOWN" -dest {dest} -sum={sum} {download_module}@{version}',]
+    #cmd += [f'"$TOOLS_MODDOWN" -dest {dest} -sum={sum} {download_module}@{version}',]
+
+    cmd += [
+        f'"$TOOLS_GO" mod download -x -modcacherw -json {download_module}@{version} > "$TMP_DIR/_module.json"',
+        '! jq -e -r ".Error // empty" "$TMP_DIR/_module.json"',
+        #'export MODULE_ERROR=$(cat "$TMP_DIR/_module.json" | jq -r ".Error")',
+        #'if [ ! -z "$MODULE_ERROR" ]; then echo "$MODULE_ERROR" && exit 1; fi',
+        f'cp -r $(jq -e -r ".Dir" "$TMP_DIR/_module.json")/. {dest}',
+    ]
+
+    if sum: # The sum is provided so compare it
+        cmd += [f'(if [ $(jq -e -r ".Sum" "$TMP_DIR/_module.json") != "{sum}" ]; then echo "verifying {download_module}@{version}: checksum mismatch\n        downloaded: $(jq -e -r ".Sum" "$TMP_DIR/_module.json")\n        sum:        {sum}"; exit 1; fi)']
 
     if patch:
         cmd += [f'patch -s -d {dest} -p1 < "$TMP_DIR"/$SRCS_PATCH']
@@ -54,6 +68,8 @@ def go_module_download(name:str, module:str, version:str, tag:str=None, sum:str=
         srcs = {
             "patch": [patch],
         },
+        deps = deps,
+        #exported_deps = deps,
         outs = [dest],
         tools = tools,
         building_description = "Fetching...",
@@ -129,7 +145,7 @@ def go_module_install(name:str, module:str, src:str, deps:list=[], install:list=
         outs = outs,
         deps = deps,
         exported_deps = deps,
-        srcs = [src],# + deps,
+        srcs = [src],
         tools = {
             "go": [CONFIG.GO_TOOL],
         },
@@ -146,7 +162,7 @@ def go_module_install(name:str, module:str, src:str, deps:list=[], install:list=
     )
 
 
-def go_module_get(name:str, module:str, version:str, sum:str=None, replace:str=None, deps:list=[], install:list=None,
+def go_module_get(name:str, module:str, version:str, sum:str=None, replace:str=None, deps:list=[], download_deps:list=[], install:list=None,
                   patch:str=None, strip:list=None, licences:list=None,
                   visibility:list=None, binary:bool=False, test_only:bool&testonly=False):
     """Defines a dependency on a third-party Go module.
@@ -179,6 +195,7 @@ def go_module_get(name:str, module:str, version:str, sum:str=None, replace:str=N
         version = version,
         sum = sum,
         replace = replace,
+        deps = download_deps,
         patch = patch,
         strip = strip,
         licences = licences,
@@ -198,7 +215,7 @@ def go_module_get(name:str, module:str, version:str, sum:str=None, replace:str=N
         provide_src = True,
     )
 
-def go_get(name:str, module:str, version:str=None, sum:str=None, replace:str=None, src:str=None, deps:list=[], install:list=None,
+def go_get(name:str, module:str, version:str=None, sum:str=None, replace:str=None, src:str=None, deps:list=[], download_deps:list=[], install:list=None,
                   patch:str=None, strip:list=None, licences:list=None,
                   visibility:list=None, binary:bool=False, test_only:bool&testonly=False):
     """Defines a dependency on a third-party Go module.
@@ -231,6 +248,7 @@ def go_get(name:str, module:str, version:str=None, sum:str=None, replace:str=Non
         version = version,
         sum = sum,
         replace = replace,
+        deps = download_deps,
         patch = patch,
         strip = strip,
         licences = licences,
@@ -249,3 +267,41 @@ def go_get(name:str, module:str, version:str=None, sum:str=None, replace:str=Non
         test_only = test_only,
         provide_src = True,
     )
+
+_JQ_BINARIES = {
+    "1.6": {
+        "linux": {
+            "url": "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64",
+            "hash": "056ba5d6bbc617c29d37158ce11fd5a443093949",
+        },
+        "darwin": {
+            "url": "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-osx-amd64",
+            "hash": "8673400d1886ed051b40fe8dee09d89237936502",
+        },
+    }
+}
+
+def jq_binary(name:str, version:str, visibility:list=None):
+    """Downloads a precompiled JQ binary.
+
+    Args:
+      name (str): Name of the rule.
+      version (str): Version of JQ to download (e.g. '1.27.0').
+      visibility (list): Visibility of the rule.
+    """
+    return remote_file(
+        name = name,
+        url = _JQ_BINARIES[version][CONFIG.GOOS]["url"],
+        out = "jq",
+        hashes = [_JQ_BINARIES[version][CONFIG.GOOS]["hash"]],
+        visibility = visibility,
+    )
+
+CONFIG.setdefault('JQ_TOOL', '//:jq')
+CONFIG.setdefault('JQ_VERSION', '1.6')
+
+#jq_binary(
+#    name = "jq",
+#    version = check_config(key='JQ_VERSION', example='1.6'),
+#    visibility = ["PUBLIC"],
+#)

@@ -6,6 +6,7 @@ go_module_download(
     sum = "h1:PvKAVQWCtlGUSlZkGW3QLelKaWq7KYv/MW1EboG8bfM=",
     tag = "download",
     version = "v0.51.0",
+    deps = [],
 )
 
 go_get(
@@ -113,6 +114,7 @@ go_get(
 
 go_get(
     name = "cloud.google.com_go_storage",
+    download_deps = [":_cloud.google.com_go#download"],
     install = [""],
     module = "cloud.google.com/go/storage",
     sum = "h1:VV2nUM3wwLLGh9lSABFgZMjInyUbJeaRSE64WuAIQ+4=",
@@ -131,6 +133,7 @@ go_get(
 
 go_get(
     name = "emperror.dev_emperror",
+    download_deps = [],
     install = [""],
     module = "emperror.dev/emperror",
     sum = "h1:DWdD6gwPaY1FYVmtfBhX/cP+u8g4/W0FdE6w32IerNc=",
@@ -140,6 +143,7 @@ go_get(
 
 go_get(
     name = "emperror.dev_errors",
+    download_deps = [],
     install = [
         "",
         "match",
@@ -156,6 +160,7 @@ go_get(
 
 go_get(
     name = "emperror.dev_handler_logur",
+    download_deps = [],
     install = [""],
     module = "emperror.dev/handler/logur",
     sum = "h1:mo12Nr3Ke3llow2lNi9PuS0h4vy24yDoAQ8bw98v1pY=",
@@ -168,6 +173,7 @@ go_get(
 
 go_get(
     name = "emperror.dev_handler_stackdriver",
+    download_deps = [],
     install = [""],
     module = "emperror.dev/handler/stackdriver",
     sum = "h1:wUoZUU7ee/UsDWLnwLpkOPrNp7lQpZ1pQfN507QNGfs=",
@@ -180,6 +186,7 @@ go_get(
 
 go_get(
     name = "github.com_Azure_azure-pipeline-go",
+    download_deps = [],
     install = ["pipeline"],
     module = "github.com/Azure/azure-pipeline-go",
     sum = "h1:6oiIS9yaG6XCCzhgAgKFfIWyo4LLCiDhZot6ltoThhY=",
@@ -189,6 +196,7 @@ go_get(
 
 go_get(
     name = "github.com_Azure_azure-sdk-for-go",
+    download_deps = [],
     install = [
         "version",
         "services/authorization/mgmt/2015-07-01/authorization",
@@ -215,6 +223,7 @@ go_get(
 
 go_get(
     name = "github.com_Azure_azure-storage-blob-go",
+    download_deps = [],
     install = ["azblob"],
     module = "github.com/Azure/azure-storage-blob-go",
     sum = "h1:53qhf0Oxa0nOjgbDeeYPUeyiNmafAFEY95rZLK0Tj6o=",
@@ -224,6 +233,7 @@ go_get(
 
 go_get(
     name = "github.com_Azure_go-autorest_autorest",
+    download_deps = [],
     install = [
         "",
         "azure",
@@ -240,6 +250,7 @@ go_get(
 
 go_get(
     name = "github.com_Azure_go-autorest_autorest_adal",
+    download_deps = [":_github.com_Azure_go-autorest_autorest#download"],
     install = [""],
     module = "github.com/Azure/go-autorest/autorest/adal",
     sum = "h1:pZdL8o72rK+avFWl+p9nE8RWi1JInZrWJYlnpfXJwHk=",
@@ -253,6 +264,7 @@ go_get(
 
 go_get(
     name = "github.com_Azure_go-autorest_autorest_azure_auth",
+    download_deps = [":_github.com_Azure_go-autorest_autorest#download"],
     install = [""],
     module = "github.com/Azure/go-autorest/autorest/azure/auth",
     sum = "h1:iM6UAvjR97ZIeR93qTcwpKNMpV+/FTWjwEbuPD495Tk=",
@@ -268,6 +280,7 @@ go_get(
 
 go_get(
     name = "github.com_Azure_go-autorest_autorest_azure_cli",
+    download_deps = [":_github.com_Azure_go-autorest_autorest#download"],
     install = [""],
     module = "github.com/Azure/go-autorest/autorest/azure/cli",
     sum = "h1:LXl088ZQlP0SBppGFsRZonW6hSvwgL5gRByMbvUbx8U=",
@@ -282,6 +295,7 @@ go_get(
 
 go_get(
     name = "github.com_Azure_go-autorest_autorest_date",
+    download_deps = [":_github.com_Azure_go-autorest_autorest#download"],
     install = [""],
     module = "github.com/Azure/go-autorest/autorest/date",
     sum = "h1:yW+Zlqf26583pE43KhfnhFcdmSWlm5Ew6bxipnr/tbM=",
@@ -291,6 +305,7 @@ go_get(
 
 go_get(
     name = "github.com_Azure_go-autorest_autorest_to",
+    download_deps = [":_github.com_Azure_go-autorest_autorest#download"],
     install = [""],
     module = "github.com/Azure/go-autorest/autorest/to",
     sum = "h1:zebkZaadz7+wIQYgC7GXaz3Wb28yKYfVkkBKwc38VF8=",
@@ -300,6 +315,7 @@ go_get(
 
 go_get(
     name = "github.com_Azure_go-autorest_autorest_validation",
+    download_deps = [":_github.com_Azure_go-autorest_autorest#download"],
     install = [""],
     module = "github.com/Azure/go-autorest/autorest/validation",
     sum = "h1:15vMO4y76dehZSq7pAaOLQxC6dZYsSrj2GQpflyM/L4=",
@@ -309,6 +325,7 @@ go_get(
 
 go_get(
     name = "github.com_Azure_go-autorest_logger",
+    download_deps = [],
     install = [""],
     module = "github.com/Azure/go-autorest/logger",
     sum = "h1:ruG4BSDXONFRrZZJ2GUXDiUyVpayPmb1GnWeHDdaNKY=",
@@ -318,6 +335,7 @@ go_get(
 
 go_get(
     name = "github.com_Azure_go-autorest_tracing",
+    download_deps = [],
     install = [""],
     module = "github.com/Azure/go-autorest/tracing",
     sum = "h1:TRn4WjSnkcSy5AEG3pnbtFSwNtwzjr4VYyQflFE619k=",
@@ -327,6 +345,7 @@ go_get(
 
 go_get(
     name = "github.com_BurntSushi_toml",
+    download_deps = [],
     install = [""],
     module = "github.com/BurntSushi/toml",
     sum = "h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=",
@@ -336,6 +355,7 @@ go_get(
 
 go_get(
     name = "github.com_MakeNowJust_heredoc",
+    download_deps = [],
     install = [""],
     module = "github.com/MakeNowJust/heredoc",
     sum = "h1:cXCdzVdstXyiTqTvfqk9SDHpKNjxuom+DOlyEeQ4pzQ=",
@@ -345,6 +365,7 @@ go_get(
 
 go_get(
     name = "github.com_Masterminds_goutils",
+    download_deps = [],
     install = [""],
     module = "github.com/Masterminds/goutils",
     sum = "h1:zukEsf/1JZwCMgHiK3GZftabmxiCw4apj3a28RPBiVg=",
@@ -354,6 +375,7 @@ go_get(
 
 go_get(
     name = "github.com_Masterminds_semver",
+    download_deps = [],
     install = [""],
     module = "github.com/Masterminds/semver",
     sum = "h1:H65muMkzWKEuNDnfl9d70GUjFniHKHRbFPGBuZ3QEww=",
@@ -363,6 +385,7 @@ go_get(
 
 go_get(
     name = "github.com_Masterminds_semver_v3",
+    download_deps = [":_github.com_Masterminds_semver#download"],
     install = [""],
     module = "github.com/Masterminds/semver/v3",
     sum = "h1:znjIyLfpXEDQjOIEWh+ehwpTU14UzUPub3c3sm36u14=",
@@ -372,6 +395,7 @@ go_get(
 
 go_get(
     name = "github.com_Masterminds_sprig",
+    download_deps = [],
     install = [""],
     module = "github.com/Masterminds/sprig",
     sum = "h1:z4yfnGrZ7netVz+0EDJ0Wi+5VZCSYp4Z0m2dk6cEM60=",
@@ -389,6 +413,7 @@ go_get(
 
 go_get(
     name = "github.com_Masterminds_sprig_v3",
+    download_deps = [":_github.com_Masterminds_sprig#download"],
     install = [""],
     module = "github.com/Masterminds/sprig/v3",
     sum = "h1:wz22D0CiSctrliXiI9ZO3HoNApweeRGftyDN+BQa3B8=",
@@ -407,6 +432,7 @@ go_get(
 
 go_get(
     name = "github.com_PuerkitoBio_purell",
+    download_deps = [],
     install = [""],
     module = "github.com/PuerkitoBio/purell",
     sum = "h1:WEQqlqaGbrPkxLJWfBwQmfEAE1Z7ONdDLqrN38tNFfI=",
@@ -420,6 +446,7 @@ go_get(
 
 go_get(
     name = "github.com_PuerkitoBio_urlesc",
+    download_deps = [],
     install = [""],
     module = "github.com/PuerkitoBio/urlesc",
     sum = "h1:d+Bc7a5rLufV/sSk/8dngufqelfh6jnri85riMAaF/M=",
@@ -429,6 +456,7 @@ go_get(
 
 go_get(
     name = "github.com_ThreeDotsLabs_watermill",
+    download_deps = [],
     install = [
         "",
         "internal",
@@ -454,6 +482,7 @@ go_get(
 
 go_get(
     name = "github.com_aliyun_alibaba-cloud-sdk-go",
+    download_deps = [],
     install = [
         "sdk/auth/credentials",
         "sdk/utils",
@@ -482,6 +511,7 @@ go_get(
 
 go_get(
     name = "github.com_aliyun_aliyun-oss-go-sdk",
+    download_deps = [],
     install = ["oss"],
     module = "github.com/aliyun/aliyun-oss-go-sdk",
     sum = "h1:A3oZlWPD/Poa19FvNbw+Zu4yKAurDBTjlRDilYGBiS4=",
@@ -491,6 +521,7 @@ go_get(
 
 go_get(
     name = "github.com_antihax_optional",
+    download_deps = [],
     install = [""],
     module = "github.com/antihax/optional",
     sum = "h1:xK2lYat7ZLaVVcIuj82J8kIro4V6kDe0AUDFboUCwcg=",
@@ -500,6 +531,7 @@ go_get(
 
 go_get(
     name = "github.com_aokoli_goutils",
+    download_deps = [],
     install = [""],
     module = "github.com/aokoli/goutils",
     sum = "h1:jy4ghdcYvs5EIoGssZNslIASX5m+KNMfyyKvRQ0TEVE=",
@@ -509,6 +541,7 @@ go_get(
 
 go_get(
     name = "github.com_apache_thrift",
+    download_deps = [],
     install = ["lib/go/thrift"],
     module = "github.com/apache/thrift",
     replace = "github.com/apache/thrift",
@@ -519,6 +552,7 @@ go_get(
 
 go_get(
     name = "github.com_asaskevich_EventBus",
+    download_deps = [],
     install = [""],
     module = "github.com/asaskevich/EventBus",
     sum = "h1:Shem5lRG4gJyrrg9YMIl7dOQazyWCq0Daz4LjompZ28=",
@@ -528,6 +562,7 @@ go_get(
 
 go_get(
     name = "github.com_asaskevich_govalidator",
+    download_deps = [],
     install = [""],
     module = "github.com/asaskevich/govalidator",
     sum = "h1:zV3ejI06GQ59hwDQAvmK1qxOQGB3WuVTRoY0okPTAv0=",
@@ -537,6 +572,7 @@ go_get(
 
 go_get(
     name = "github.com_aws_aws-sdk-go",
+    download_deps = [],
     install = [
         "aws/awserr",
         "internal/ini",
@@ -602,6 +638,7 @@ go_get(
 
 go_get(
     name = "github.com_banzaicloud_anchore-image-validator",
+    download_deps = [],
     install = ["pkg/apis/security/v1alpha1"],
     module = "github.com/banzaicloud/anchore-image-validator",
     sum = "h1:wlvTg+btN2gyZrKDOoCpAz+tJLnc072UbTfFTtEdnZk=",
@@ -611,6 +648,7 @@ go_get(
 
 go_get(
     name = "github.com_banzaicloud_bank-vaults_pkg_sdk",
+    download_deps = [],
     install = [
         "vault",
         "auth",
@@ -639,6 +677,7 @@ go_get(
 
 go_get(
     name = "github.com_banzaicloud_gin-utilz",
+    download_deps = [],
     install = ["auth"],
     module = "github.com/banzaicloud/gin-utilz",
     sum = "h1:j6wLdZSlw36g63yklk11ihnIKqoU2zFfXIcaL1dumuM=",
@@ -652,6 +691,7 @@ go_get(
 
 go_get(
     name = "github.com_banzaicloud_go-gin-prometheus",
+    download_deps = [],
     install = [""],
     module = "github.com/banzaicloud/go-gin-prometheus",
     sum = "h1:zetacN1k3svVc7DtzGfpHA49uO0G8cwsiP5qSuUUQKs=",
@@ -665,6 +705,7 @@ go_get(
 
 go_get(
     name = "github.com_banzaicloud_istio-operator",
+    download_deps = [],
     install = [
         "pkg/util",
         "pkg/apis/istio/v1beta1",
@@ -681,6 +722,7 @@ go_get(
 
 go_get(
     name = "github.com_banzaicloud_k8s-objectmatcher",
+    download_deps = [],
     install = ["patch"],
     module = "github.com/banzaicloud/k8s-objectmatcher",
     sum = "h1:HhXkOWg4xmAW203p3G4Av9ylUfkUJF1+8MK90XQAaJw=",
@@ -696,6 +738,7 @@ go_get(
 
 go_get(
     name = "github.com_banzaicloud_logging-operator_pkg_sdk",
+    download_deps = [],
     install = [
         "model/types",
         "model/filter",
@@ -718,6 +761,7 @@ go_get(
 
 go_get(
     name = "github.com_banzaicloud_logrus-runtime-formatter",
+    download_deps = [],
     install = [""],
     module = "github.com/banzaicloud/logrus-runtime-formatter",
     sum = "h1:WeGZeO6I+lI1IG2vm1iXTeMrHLcMUjfoYm+rubBM5c4=",
@@ -727,6 +771,7 @@ go_get(
 
 go_get(
     name = "github.com_banzaicloud_operator-tools",
+    download_deps = [],
     install = [
         "pkg/secret",
         "pkg/utils",
@@ -748,6 +793,7 @@ go_get(
 
 go_get(
     name = "github.com_beorn7_perks",
+    download_deps = [],
     install = ["quantile"],
     module = "github.com/beorn7/perks",
     sum = "h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=",
@@ -757,6 +803,7 @@ go_get(
 
 go_get(
     name = "github.com_cenkalti_backoff_v3",
+    download_deps = [],
     install = [""],
     module = "github.com/cenkalti/backoff/v3",
     sum = "h1:ske+9nBpD9qZsTBoF41nW5L+AIuFBKMeze18XQ3eG1c=",
@@ -766,6 +813,7 @@ go_get(
 
 go_get(
     name = "github.com_cespare_xxhash_v2",
+    download_deps = [],
     install = [""],
     module = "github.com/cespare/xxhash/v2",
     sum = "h1:6MnRN8NT7+YBpUIWxHtefFZOKTAPgGjpQSxqLNn0+qY=",
@@ -775,6 +823,7 @@ go_get(
 
 go_get(
     name = "github.com_chai2010_gettext-go",
+    download_deps = [],
     install = [
         "gettext/mo",
         "gettext/plural",
@@ -789,6 +838,7 @@ go_get(
 
 go_get(
     name = "github.com_containerd_containerd",
+    download_deps = [],
     install = [
         "errdefs",
         "content",
@@ -825,6 +875,7 @@ go_get(
 
 go_get(
     name = "github.com_coreos_go-oidc",
+    download_deps = [],
     install = [""],
     module = "github.com/coreos/go-oidc",
     sum = "h1:sdJrfw8akMnCuUlaZU3tE/uYXFgfqom8DBE9so9EBsM=",
@@ -838,6 +889,7 @@ go_get(
 
 go_get(
     name = "github.com_cyphar_filepath-securejoin",
+    download_deps = [],
     install = [""],
     module = "github.com/cyphar/filepath-securejoin",
     sum = "h1:jCwT2GTP+PY5nBz3c/YL5PAIbusElVrPujOBSCj8xRg=",
@@ -847,6 +899,7 @@ go_get(
 
 go_get(
     name = "github.com_davecgh_go-spew",
+    download_deps = [],
     install = ["spew"],
     module = "github.com/davecgh/go-spew",
     sum = "h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=",
@@ -856,6 +909,7 @@ go_get(
 
 go_get(
     name = "github.com_deislabs_oras",
+    download_deps = [],
     install = [
         "pkg/auth",
         "pkg/auth/docker",
@@ -881,6 +935,7 @@ go_get(
 
 go_get(
     name = "github.com_dgrijalva_jwt-go",
+    download_deps = [],
     install = [
         "",
         "request",
@@ -893,6 +948,7 @@ go_get(
 
 go_get(
     name = "github.com_dimchansky_utfbom",
+    download_deps = [],
     install = [""],
     module = "github.com/dimchansky/utfbom",
     sum = "h1:FcM3g+nofKgUteL8dm/UpdRXNC9KmADgTpLKsu0TRo4=",
@@ -902,6 +958,7 @@ go_get(
 
 go_get(
     name = "github.com_docker_cli",
+    download_deps = [],
     install = [
         "cli/config/types",
         "cli/config/credentials",
@@ -920,6 +977,7 @@ go_get(
 
 go_get(
     name = "github.com_docker_distribution",
+    download_deps = [],
     install = [
         "digestset",
         "reference",
@@ -947,6 +1005,7 @@ go_get(
 
 go_get(
     name = "github.com_docker_docker",
+    download_deps = [],
     install = [
         "pkg/term",
         "pkg/homedir",
@@ -990,6 +1049,7 @@ go_get(
 
 go_get(
     name = "github.com_docker_docker-credential-helpers",
+    download_deps = [],
     install = [
         "credentials",
         "client",
@@ -1002,6 +1062,7 @@ go_get(
 
 go_get(
     name = "github.com_docker_go-connections",
+    download_deps = [],
     install = [
         "nat",
         "tlsconfig",
@@ -1014,6 +1075,7 @@ go_get(
 
 go_get(
     name = "github.com_docker_go-metrics",
+    download_deps = [],
     install = [""],
     module = "github.com/docker/go-metrics",
     sum = "h1:yWHOI+vFjEsAakUTSrtqc/SAHrhSkmn48pqjidZX3QA=",
@@ -1023,6 +1085,7 @@ go_get(
 
 go_get(
     name = "github.com_docker_go-units",
+    download_deps = [],
     install = [""],
     module = "github.com/docker/go-units",
     sum = "h1:3uh0PgVws3nIA0Q+MwDC8yjEPf9zjRfZZWXZYDct3Tw=",
@@ -1032,6 +1095,7 @@ go_get(
 
 go_get(
     name = "github.com_docker_spdystream",
+    download_deps = [],
     install = [
         "spdy",
         "",
@@ -1044,6 +1108,7 @@ go_get(
 
 go_get(
     name = "github.com_emicklei_go-restful",
+    download_deps = [],
     install = [
         "log",
         "",
@@ -1056,6 +1121,7 @@ go_get(
 
 go_get(
     name = "github.com_evanphx_json-patch",
+    download_deps = [],
     install = [""],
     module = "github.com/evanphx/json-patch",
     sum = "h1:ouOWdg56aJriqS0huScTkVXPC5IcNrDCXZ6OoTAWu7M=",
@@ -1065,6 +1131,7 @@ go_get(
 
 go_get(
     name = "github.com_exponent-io_jsonpath",
+    download_deps = [],
     install = [""],
     module = "github.com/exponent-io/jsonpath",
     sum = "h1:105gxyaGwCFad8crR9dcMQWvV9Hvulu6hwUh4tWPJnM=",
@@ -1074,6 +1141,7 @@ go_get(
 
 go_get(
     name = "github.com_facebookgo_clock",
+    download_deps = [],
     install = [""],
     module = "github.com/facebookgo/clock",
     sum = "h1:yDWHCSQ40h88yih2JAcL6Ls/kVkSE8GFACTGVnMPruw=",
@@ -1083,6 +1151,7 @@ go_get(
 
 go_get(
     name = "github.com_fatih_color",
+    download_deps = [],
     install = [""],
     module = "github.com/fatih/color",
     sum = "h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=",
@@ -1095,6 +1164,7 @@ go_get(
 
 go_get(
     name = "github.com_fsnotify_fsnotify",
+    download_deps = [],
     install = [""],
     module = "github.com/fsnotify/fsnotify",
     sum = "h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=",
@@ -1104,6 +1174,7 @@ go_get(
 
 go_get(
     name = "github.com_ghodss_yaml",
+    download_deps = [],
     install = [""],
     module = "github.com/ghodss/yaml",
     sum = "h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=",
@@ -1113,6 +1184,7 @@ go_get(
 
 go_get(
     name = "github.com_gin-contrib_cors",
+    download_deps = [],
     install = [""],
     module = "github.com/gin-contrib/cors",
     sum = "h1:PolezCc89peu+NgkIWt9OB01Kbzt6IP0J/JvkG6xxlg=",
@@ -1122,6 +1194,7 @@ go_get(
 
 go_get(
     name = "github.com_gin-contrib_sse",
+    download_deps = [],
     install = [""],
     module = "github.com/gin-contrib/sse",
     sum = "h1:Y/yl/+YNO8GZSjAhjMsSuLt29uWRFHdHYUb5lYOV9qE=",
@@ -1131,6 +1204,7 @@ go_get(
 
 go_get(
     name = "github.com_gin-gonic_gin",
+    download_deps = [],
     install = [
         "internal/json",
         "binding",
@@ -1152,6 +1226,7 @@ go_get(
 
 go_get(
     name = "github.com_go-kit_kit",
+    download_deps = [],
     install = [
         "endpoint",
         "log",
@@ -1174,6 +1249,7 @@ go_get(
 
 go_get(
     name = "github.com_go-logfmt_logfmt",
+    download_deps = [],
     install = [""],
     module = "github.com/go-logfmt/logfmt",
     sum = "h1:TrB8swr/68K7m9CcGut2g3UOihhbcbiMAYiuTXdEih4=",
@@ -1183,6 +1259,7 @@ go_get(
 
 go_get(
     name = "github.com_go-logr_logr",
+    download_deps = [],
     install = [""],
     module = "github.com/go-logr/logr",
     sum = "h1:M1Tv3VzNlEHg6uyACnRdtrploV2P7wZqH8BoQMtz0cg=",
@@ -1192,6 +1269,7 @@ go_get(
 
 go_get(
     name = "github.com_go-openapi_jsonpointer",
+    download_deps = [],
     install = [""],
     module = "github.com/go-openapi/jsonpointer",
     sum = "h1:gihV7YNZK1iK6Tgwwsxo2rJbD1GTbdm72325Bq8FI3w=",
@@ -1201,6 +1279,7 @@ go_get(
 
 go_get(
     name = "github.com_go-openapi_jsonreference",
+    download_deps = [],
     install = [""],
     module = "github.com/go-openapi/jsonreference",
     sum = "h1:5cxNfTy0UVC3X8JL5ymxzyoUZmo8iZb+jeTWn7tUa8o=",
@@ -1213,6 +1292,7 @@ go_get(
 
 go_get(
     name = "github.com_go-openapi_spec",
+    download_deps = [],
     install = [""],
     module = "github.com/go-openapi/spec",
     sum = "h1:0XRyw8kguri6Yw4SxhsQA/atC88yqrk0+G4YhI2wabc=",
@@ -1226,6 +1306,7 @@ go_get(
 
 go_get(
     name = "github.com_go-openapi_swag",
+    download_deps = [],
     install = [""],
     module = "github.com/go-openapi/swag",
     sum = "h1:lTz6Ys4CmqqCQmZPBlbQENR1/GucA2bzYTE12Pw4tFY=",
@@ -1238,6 +1319,7 @@ go_get(
 
 go_get(
     name = "github.com_go-playground_locales",
+    download_deps = [],
     install = [
         "currency",
         "",
@@ -1250,6 +1332,7 @@ go_get(
 
 go_get(
     name = "github.com_go-playground_universal-translator",
+    download_deps = [],
     install = [""],
     module = "github.com/go-playground/universal-translator",
     sum = "h1:X++omBR/4cE2MNg91AoC3rmGrCjJ8eAeUP/K/EKx4DM=",
@@ -1259,6 +1342,7 @@ go_get(
 
 go_get(
     name = "github.com_go-sql-driver_mysql",
+    download_deps = [],
     install = [""],
     module = "github.com/go-sql-driver/mysql",
     sum = "h1:ozyZYNQW3x3HtqT1jira07DN2PArx2v7/mN66gGcHOs=",
@@ -1268,6 +1352,7 @@ go_get(
 
 go_get(
     name = "github.com_gobwas_glob",
+    download_deps = [],
     install = [
         "util/runes",
         "util/strings",
@@ -1286,6 +1371,7 @@ go_get(
 
 go_get(
     name = "github.com_gofrs_flock",
+    download_deps = [],
     install = [""],
     module = "github.com/gofrs/flock",
     sum = "h1:DP+LD/t0njgoPBvT5MJLeliUIVQR03hiKR6vezdwHlc=",
@@ -1295,6 +1381,7 @@ go_get(
 
 go_get(
     name = "github.com_gofrs_uuid",
+    download_deps = [],
     install = [""],
     module = "github.com/gofrs/uuid",
     sum = "h1:y12jRkkFxsd7GpqdSZ+/KCs/fJbqpEXSGd4+jfEaewE=",
@@ -1304,6 +1391,7 @@ go_get(
 
 go_get(
     name = "github.com_gogo_protobuf",
+    download_deps = [],
     install = [
         "proto",
         "sortkeys",
@@ -1316,6 +1404,7 @@ go_get(
 
 go_get(
     name = "github.com_golang_groupcache",
+    download_deps = [],
     install = ["lru"],
     module = "github.com/golang/groupcache",
     sum = "h1:5ZkaAPbicIKTF2I64qf5Fh8Aa83Q/dnOafMYV0OMwjA=",
@@ -1325,6 +1414,7 @@ go_get(
 
 go_get(
     name = "github.com_golang_mock",
+    download_deps = [],
     install = ["gomock"],
     module = "github.com/golang/mock",
     sum = "h1:GV+pQPG/EUUbkh47niozDcADz6go/dUwhVzdUQHIVRw=",
@@ -1334,6 +1424,7 @@ go_get(
 
 go_get(
     name = "github.com_golang_protobuf",
+    download_deps = [],
     install = [
         "proto",
         "ptypes/any",
@@ -1350,6 +1441,7 @@ go_get(
 
 go_get(
     name = "github.com_golang_snappy",
+    download_deps = [],
     install = [""],
     module = "github.com/golang/snappy",
     sum = "h1:Qgr9rKW7uDUkrbSmQeiDsGa8SjGyCOGtuasMWwvp2P4=",
@@ -1359,6 +1451,7 @@ go_get(
 
 go_get(
     name = "github.com_google_btree",
+    download_deps = [],
     install = [""],
     module = "github.com/google/btree",
     sum = "h1:0udJVsspx3VBr5FwtLhQQtuAsVc79tTq0ocGIPAU6qo=",
@@ -1368,6 +1461,7 @@ go_get(
 
 go_get(
     name = "github.com_google_go-cmp",
+    download_deps = [],
     install = [
         "cmp/internal/diff",
         "cmp/internal/flags",
@@ -1383,6 +1477,7 @@ go_get(
 
 go_get(
     name = "github.com_google_gofuzz",
+    download_deps = [],
     install = [""],
     module = "github.com/google/gofuzz",
     sum = "h1:A8PeW59pxE9IoFRqBp37U+mSNaQoZ46F1f0f863XSXw=",
@@ -1392,6 +1487,7 @@ go_get(
 
 go_get(
     name = "github.com_google_uuid",
+    download_deps = [],
     install = [""],
     module = "github.com/google/uuid",
     sum = "h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=",
@@ -1401,6 +1497,7 @@ go_get(
 
 go_get(
     name = "github.com_googleapis_gax-go_v2",
+    download_deps = [],
     install = [""],
     module = "github.com/googleapis/gax-go/v2",
     sum = "h1:sjZBwGj9Jlw33ImPtvFviGYvseOtDM7hkSKB7+Tv3SM=",
@@ -1410,6 +1507,7 @@ go_get(
 
 go_get(
     name = "github.com_googleapis_gnostic",
+    download_deps = [],
     install = [
         "extensions",
         "compiler",
@@ -1426,6 +1524,7 @@ go_get(
 
 go_get(
     name = "github.com_goph_emperror",
+    download_deps = [],
     install = [""],
     module = "github.com/goph/emperror",
     sum = "h1:yLapQcmEsO0ipe9p5TaN22djm3OFV/TfM/fcYP0/J18=",
@@ -1435,6 +1534,7 @@ go_get(
 
 go_get(
     name = "github.com_gorilla_context",
+    download_deps = [],
     install = [""],
     module = "github.com/gorilla/context",
     sum = "h1:AWwleXJkX/nhcU9bZSnZoi3h/qGYqQAGhq6zZe/aQW8=",
@@ -1444,6 +1544,7 @@ go_get(
 
 go_get(
     name = "github.com_gorilla_mux",
+    download_deps = [],
     install = [""],
     module = "github.com/gorilla/mux",
     sum = "h1:gnP5JzjVOuiZD07fKKToCAOjS0yOpj/qPETTXCCS6hw=",
@@ -1453,6 +1554,7 @@ go_get(
 
 go_get(
     name = "github.com_gorilla_securecookie",
+    download_deps = [],
     install = [""],
     module = "github.com/gorilla/securecookie",
     sum = "h1:miw7JPhV+b/lAHSXz4qd/nN9jRiAFV5FwjeKyCS8BvQ=",
@@ -1462,6 +1564,7 @@ go_get(
 
 go_get(
     name = "github.com_gorilla_sessions",
+    download_deps = [],
     install = [""],
     module = "github.com/gorilla/sessions",
     sum = "h1:S7P+1Hm5V/AT9cjEcUD5uDaQSX0OE577aCXgoaKpYbQ=",
@@ -1471,6 +1574,7 @@ go_get(
 
 go_get(
     name = "github.com_gosimple_slug",
+    download_deps = [],
     install = [""],
     module = "github.com/gosimple/slug",
     sum = "h1:r5vDcYrFz9BmfIAMC829un9hq7hKM4cHUrsv36LbEqs=",
@@ -1480,6 +1584,7 @@ go_get(
 
 go_get(
     name = "github.com_gosuri_uitable",
+    download_deps = [],
     install = [
         "util/strutil",
         "util/wordwrap",
@@ -1496,6 +1601,7 @@ go_get(
 
 go_get(
     name = "github.com_gregjones_httpcache",
+    download_deps = [],
     install = [
         "",
         "diskcache",
@@ -1508,6 +1614,7 @@ go_get(
 
 go_get(
     name = "github.com_hashicorp_errwrap",
+    download_deps = [],
     install = [""],
     module = "github.com/hashicorp/errwrap",
     sum = "h1:hLrqtEDnRye3+sgx6z4qVLNuviH3MR5aQ0ykNJa/UYA=",
@@ -1517,6 +1624,7 @@ go_get(
 
 go_get(
     name = "github.com_hashicorp_go-cleanhttp",
+    download_deps = [],
     install = [""],
     module = "github.com/hashicorp/go-cleanhttp",
     sum = "h1:dH3aiDG9Jvb5r5+bYHsikaOUIpcM0xvgMXVoDkXMzJM=",
@@ -1526,6 +1634,7 @@ go_get(
 
 go_get(
     name = "github.com_hashicorp_go-multierror",
+    download_deps = [],
     install = [""],
     module = "github.com/hashicorp/go-multierror",
     sum = "h1:iVjPR7a6H0tWELX5NxNe7bYopibicUzc7uPribsnS6o=",
@@ -1535,6 +1644,7 @@ go_get(
 
 go_get(
     name = "github.com_hashicorp_go-retryablehttp",
+    download_deps = [],
     install = [""],
     module = "github.com/hashicorp/go-retryablehttp",
     sum = "h1:1BZvpawXoJCWX6pNtow9+rpEj+3itIlutiqnntI6jOE=",
@@ -1544,6 +1654,7 @@ go_get(
 
 go_get(
     name = "github.com_hashicorp_go-rootcerts",
+    download_deps = [],
     install = [""],
     module = "github.com/hashicorp/go-rootcerts",
     sum = "h1:DMo4fmknnz0E0evoNYnV48RjWndOsmd6OW+09R3cEP8=",
@@ -1553,6 +1664,7 @@ go_get(
 
 go_get(
     name = "github.com_hashicorp_go-sockaddr",
+    download_deps = [],
     install = [""],
     module = "github.com/hashicorp/go-sockaddr",
     sum = "h1:ztczhD1jLxIRjVejw8gFomI1BQZOe2WoVOu0SyteCQc=",
@@ -1562,6 +1674,7 @@ go_get(
 
 go_get(
     name = "github.com_hashicorp_golang-lru",
+    download_deps = [],
     install = [
         "simplelru",
         "",
@@ -1574,6 +1687,7 @@ go_get(
 
 go_get(
     name = "github.com_hashicorp_hcl",
+    download_deps = [],
     install = [
         "hcl/strconv",
         "hcl/token",
@@ -1594,6 +1708,7 @@ go_get(
 
 go_get(
     name = "github.com_hashicorp_vault_api",
+    download_deps = [],
     install = [""],
     module = "github.com/hashicorp/vault/api",
     sum = "h1:j08Or/wryXT4AcHj1oCbMd7IijXcKzYUGw59LGu9onU=",
@@ -1615,6 +1730,7 @@ go_get(
 
 go_get(
     name = "github.com_hashicorp_vault_sdk",
+    download_deps = [],
     install = [
         "helper/consts",
         "helper/hclutil",
@@ -1640,6 +1756,7 @@ go_get(
 
 go_get(
     name = "github.com_heptio_ark",
+    download_deps = [],
     install = [
         "pkg/apis/ark/v1",
         "pkg/generated/clientset/versioned/scheme",
@@ -1658,6 +1775,7 @@ go_get(
 
 go_get(
     name = "github.com_huandu_xstrings",
+    download_deps = [],
     install = [""],
     module = "github.com/huandu/xstrings",
     sum = "h1:yPeWdRnmynF7p+lLYz0H2tthW9lqhMJrQV/U7yy4wX0=",
@@ -1667,6 +1785,7 @@ go_get(
 
 go_get(
     name = "github.com_iancoleman_orderedmap",
+    download_deps = [],
     install = [""],
     module = "github.com/iancoleman/orderedmap",
     sum = "h1:i462o439ZjprVSFSZLZxcsoAe592sZB1rci2Z8j4wdk=",
@@ -1676,6 +1795,7 @@ go_get(
 
 go_get(
     name = "github.com_imdario_mergo",
+    download_deps = [],
     install = [""],
     module = "github.com/imdario/mergo",
     sum = "h1:Y+UAYTZ7gDEuOfhxKWy+dvb5dRQ6rJjFSdX2HZY1/gI=",
@@ -1685,6 +1805,7 @@ go_get(
 
 go_get(
     name = "github.com_jinzhu_copier",
+    download_deps = [],
     install = [""],
     module = "github.com/jinzhu/copier",
     sum = "h1:zPPuIq2jAWWPTrGt70eK/BSch+gFAGrNzecsoENgu2o=",
@@ -1694,6 +1815,7 @@ go_get(
 
 go_get(
     name = "github.com_jinzhu_gorm",
+    download_deps = [],
     install = [
         "",
         "dialects/mysql",
@@ -1714,6 +1836,7 @@ go_get(
 
 go_get(
     name = "github.com_jinzhu_inflection",
+    download_deps = [],
     install = [""],
     module = "github.com/jinzhu/inflection",
     sum = "h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=",
@@ -1723,6 +1846,7 @@ go_get(
 
 go_get(
     name = "github.com_jinzhu_now",
+    download_deps = [],
     install = [""],
     module = "github.com/jinzhu/now",
     sum = "h1:g39TucaRWyV3dwDO++eEc6qf8TVIQ/Da48WmqjZ3i7E=",
@@ -1732,6 +1856,7 @@ go_get(
 
 go_get(
     name = "github.com_jmespath_go-jmespath",
+    download_deps = [],
     install = [""],
     module = "github.com/jmespath/go-jmespath",
     sum = "h1:pmfjZENx5imkbgOkpRUYLnmbU7UEFbjtDA2hxJ1ichM=",
@@ -1741,6 +1866,7 @@ go_get(
 
 go_get(
     name = "github.com_jmoiron_sqlx",
+    download_deps = [],
     install = [
         "reflectx",
         "",
@@ -1753,6 +1879,7 @@ go_get(
 
 go_get(
     name = "github.com_json-iterator_go",
+    download_deps = [],
     install = [""],
     module = "github.com/json-iterator/go",
     sum = "h1:9yzud/Ht36ygwatGx56VwCZtlI/2AD15T1X2sjSuGns=",
@@ -1765,6 +1892,7 @@ go_get(
 
 go_get(
     name = "github.com_leodido_go-urn",
+    download_deps = [],
     install = [""],
     module = "github.com/leodido/go-urn",
     sum = "h1:Sm1gr51B1kKyfD2BlRcLSiEkffoG96g6TPv6eRoEiB8=",
@@ -1774,6 +1902,7 @@ go_get(
 
 go_get(
     name = "github.com_lestrrat-go_backoff",
+    download_deps = [],
     install = [""],
     module = "github.com/lestrrat-go/backoff",
     sum = "h1:nR+UgAhdhwfw2i+xznuHRlj81oMYa7u3lXun0xcsXUU=",
@@ -1783,6 +1912,7 @@ go_get(
 
 go_get(
     name = "github.com_lib_pq",
+    download_deps = [],
     install = [
         "oid",
         "scram",
@@ -1797,6 +1927,7 @@ go_get(
 
 go_get(
     name = "github.com_liggitt_tabwriter",
+    download_deps = [],
     install = [""],
     module = "github.com/liggitt/tabwriter",
     sum = "h1:9TO3cAIGXtEhnIaL+V+BEER86oLrvS+kWobKpbJuye0=",
@@ -1806,6 +1937,7 @@ go_get(
 
 go_get(
     name = "github.com_lithammer_shortuuid_v3",
+    download_deps = [],
     install = [""],
     module = "github.com/lithammer/shortuuid/v3",
     sum = "h1:uj4xhotfY92Y1Oa6n6HUiFn87CdoEHYUlTy0+IgbLrs=",
@@ -1815,6 +1947,7 @@ go_get(
 
 go_get(
     name = "github.com_magiconair_properties",
+    download_deps = [],
     install = [""],
     module = "github.com/magiconair/properties",
     sum = "h1:ZC2Vc7/ZFkGmsVC9KvOjumD+G5lXy2RtTKyzRKO2BQ4=",
@@ -1824,6 +1957,7 @@ go_get(
 
 go_get(
     name = "github.com_mailru_easyjson",
+    download_deps = [],
     install = [
         "jlexer",
         "buffer",
@@ -1837,6 +1971,7 @@ go_get(
 
 go_get(
     name = "github.com_mattn_go-colorable",
+    download_deps = [],
     install = [""],
     module = "github.com/mattn/go-colorable",
     sum = "h1:UVL0vNpWh04HeJXV0KLcaT7r06gOH2l4OW6ddYRUIY4=",
@@ -1846,6 +1981,7 @@ go_get(
 
 go_get(
     name = "github.com_mattn_go-ieproxy",
+    download_deps = [],
     install = [""],
     module = "github.com/mattn/go-ieproxy",
     sum = "h1:oNAwILwmgWKFpuU+dXvI6dl9jG2mAWAZLX3r9s0PPiw=",
@@ -1855,6 +1991,7 @@ go_get(
 
 go_get(
     name = "github.com_mattn_go-isatty",
+    download_deps = [],
     install = [""],
     module = "github.com/mattn/go-isatty",
     sum = "h1:d5US/mDsogSGW37IV293h//ZFaeajb69h+EHFsv2xGg=",
@@ -1864,6 +2001,7 @@ go_get(
 
 go_get(
     name = "github.com_mattn_go-runewidth",
+    download_deps = [],
     install = [""],
     module = "github.com/mattn/go-runewidth",
     sum = "h1:2BvfKmzob6Bmd4YsL0zygOqfdFnK7GR4QL06Do4/p7Y=",
@@ -1873,6 +2011,7 @@ go_get(
 
 go_get(
     name = "github.com_mattn_go-sqlite3",
+    download_deps = [],
     install = [""],
     module = "github.com/mattn/go-sqlite3",
     sum = "h1:gXHsfypPkaMZrKbD5209QV9jbUTJKjyR5WD3HYQSd+U=",
@@ -1882,6 +2021,7 @@ go_get(
 
 go_get(
     name = "github.com_matttproud_golang_protobuf_extensions",
+    download_deps = [],
     install = ["pbutil"],
     module = "github.com/matttproud/golang_protobuf_extensions",
     sum = "h1:I0XW9+e1XWDxdcEniV4rQAIOPUGDq67JSCiRCgGCZLI=",
@@ -1891,6 +2031,7 @@ go_get(
 
 go_get(
     name = "github.com_microcosm-cc_bluemonday",
+    download_deps = [],
     install = [""],
     module = "github.com/microcosm-cc/bluemonday",
     sum = "h1:5lPfLTTAvAbtS0VqT+94yOtFnGfUWYyx0+iToC3Os3s=",
@@ -1900,6 +2041,7 @@ go_get(
 
 go_get(
     name = "github.com_mitchellh_copystructure",
+    download_deps = [],
     install = [""],
     module = "github.com/mitchellh/copystructure",
     sum = "h1:Laisrj+bAB6b/yJwB5Bt3ITZhGJdqmxquMKeZ+mmkFQ=",
@@ -1909,6 +2051,7 @@ go_get(
 
 go_get(
     name = "github.com_mitchellh_go-homedir",
+    download_deps = [],
     install = [""],
     module = "github.com/mitchellh/go-homedir",
     sum = "h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=",
@@ -1918,6 +2061,7 @@ go_get(
 
 go_get(
     name = "github.com_mitchellh_go-wordwrap",
+    download_deps = [],
     install = [""],
     module = "github.com/mitchellh/go-wordwrap",
     sum = "h1:6GlHJ/LTGMrIJbwgdqdl2eEH8o+Exx/0m8ir9Gns0u4=",
@@ -1927,6 +2071,7 @@ go_get(
 
 go_get(
     name = "github.com_mitchellh_mapstructure",
+    download_deps = [],
     install = [""],
     module = "github.com/mitchellh/mapstructure",
     sum = "h1:fmNYVwqnSfB9mZU6OS2O6GsXM+wcskZDuKQzvN1EDeE=",
@@ -1936,6 +2081,7 @@ go_get(
 
 go_get(
     name = "github.com_mitchellh_reflectwalk",
+    download_deps = [],
     install = [""],
     module = "github.com/mitchellh/reflectwalk",
     sum = "h1:9D+8oIskB4VJBN5SFlmc27fSlIBZaov1Wpk/IfikLNY=",
@@ -1945,6 +2091,7 @@ go_get(
 
 go_get(
     name = "github.com_modern-go_concurrent",
+    download_deps = [],
     install = [""],
     module = "github.com/modern-go/concurrent",
     sum = "h1:TRLaZ9cD/w8PVh93nsPXa1VrQ6jlwL5oN8l14QlcNfg=",
@@ -1954,6 +2101,7 @@ go_get(
 
 go_get(
     name = "github.com_modern-go_reflect2",
+    download_deps = [],
     install = [""],
     module = "github.com/modern-go/reflect2",
     sum = "h1:9f412s+6RmYXLWZSEzVVgPGK7C2PphHj5RJrvfx9AWI=",
@@ -1963,6 +2111,7 @@ go_get(
 
 go_get(
     name = "github.com_moogar0880_problems",
+    download_deps = [],
     install = [""],
     module = "github.com/moogar0880/problems",
     sum = "h1:bktLhq8NDG/czU2ZziYNigBFksx13RaYe5AVdNmHDT4=",
@@ -1972,6 +2121,7 @@ go_get(
 
 go_get(
     name = "github.com_morikuni_aec",
+    download_deps = [],
     install = [""],
     module = "github.com/morikuni/aec",
     sum = "h1:nP9CBfwrvYnBRgY6qfDQkygYDmYwOilePFkwzv4dU8A=",
@@ -1981,6 +2131,7 @@ go_get(
 
 go_get(
     name = "github.com_mxk_go-flowrate",
+    download_deps = [],
     install = ["flowrate"],
     module = "github.com/mxk/go-flowrate",
     sum = "h1:y5//uYreIhSUg3J1GEMiLbxo1LJaP8RfCpH6pymGZus=",
@@ -1990,6 +2141,7 @@ go_get(
 
 go_get(
     name = "github.com_oklog_run",
+    download_deps = [],
     install = [""],
     module = "github.com/oklog/run",
     sum = "h1:GEenZ1cK0+q0+wsJew9qUg/DyD8k3JzYsZAi5gYi2mA=",
@@ -1999,6 +2151,7 @@ go_get(
 
 go_get(
     name = "github.com_oklog_ulid",
+    download_deps = [],
     install = [""],
     module = "github.com/oklog/ulid",
     sum = "h1:EGfNDEx6MqHz8B3uNV6QAib1UR2Lm97sHi3ocA6ESJ4=",
@@ -2008,6 +2161,7 @@ go_get(
 
 go_get(
     name = "github.com_opencontainers_go-digest",
+    download_deps = [],
     install = [""],
     module = "github.com/opencontainers/go-digest",
     sum = "h1:WzifXhOVOEOuFYOJAW6aQqW0TooG2iki3E3Ii+WN7gQ=",
@@ -2017,6 +2171,7 @@ go_get(
 
 go_get(
     name = "github.com_opencontainers_image-spec",
+    download_deps = [],
     install = [
         "specs-go",
         "specs-go/v1",
@@ -2029,6 +2184,7 @@ go_get(
 
 go_get(
     name = "github.com_opencontainers_runc",
+    download_deps = [],
     install = [
         "libcontainer/user",
         "libcontainer/system",
@@ -2041,6 +2197,7 @@ go_get(
 
 go_get(
     name = "github.com_opentracing_opentracing-go",
+    download_deps = [],
     install = [
         "log",
         "",
@@ -2054,6 +2211,7 @@ go_get(
 
 go_get(
     name = "github.com_oracle_oci-go-sdk",
+    download_deps = [],
     install = [
         "common",
         "containerengine",
@@ -2069,6 +2227,7 @@ go_get(
 
 go_get(
     name = "github.com_patrickmn_go-cache",
+    download_deps = [],
     install = [""],
     module = "github.com/patrickmn/go-cache",
     sum = "h1:HRMgzkcYKYpi3C8ajMPV8OFXaaRUnok+kx1WdO15EQc=",
@@ -2078,6 +2237,7 @@ go_get(
 
 go_get(
     name = "github.com_pborman_uuid",
+    download_deps = [],
     install = [""],
     module = "github.com/pborman/uuid",
     sum = "h1:J7Q5mO4ysT1dv8hyrUGHb9+ooztCXu1D8MY8DZYsu3g=",
@@ -2087,6 +2247,7 @@ go_get(
 
 go_get(
     name = "github.com_pelletier_go-toml",
+    download_deps = [],
     install = [""],
     module = "github.com/pelletier/go-toml",
     sum = "h1:aetoXYr0Tv7xRU/V4B4IZJ2QcbtMUFoNb3ORp7TzIK4=",
@@ -2096,6 +2257,7 @@ go_get(
 
 go_get(
     name = "github.com_peterbourgon_diskv",
+    download_deps = [],
     install = [""],
     module = "github.com/peterbourgon/diskv",
     sum = "h1:UBdAOUP5p4RWqPBg048CAvpKN+vxiaj6gdUUzhl4XmI=",
@@ -2105,6 +2267,7 @@ go_get(
 
 go_get(
     name = "github.com_pierrec_lz4",
+    download_deps = [],
     install = [
         "internal/xxh32",
         "",
@@ -2117,6 +2280,7 @@ go_get(
 
 go_get(
     name = "github.com_pkg_errors",
+    download_deps = [],
     install = [""],
     module = "github.com/pkg/errors",
     sum = "h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=",
@@ -2126,6 +2290,7 @@ go_get(
 
 go_get(
     name = "github.com_pmezard_go-difflib",
+    download_deps = [],
     install = ["difflib"],
     module = "github.com/pmezard/go-difflib",
     sum = "h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=",
@@ -2135,6 +2300,7 @@ go_get(
 
 go_get(
     name = "github.com_pquerna_cachecontrol",
+    download_deps = [],
     install = [
         "cacheobject",
         "",
@@ -2147,6 +2313,7 @@ go_get(
 
 go_get(
     name = "github.com_prometheus_client_golang",
+    download_deps = [],
     install = [
         "prometheus/internal",
         "prometheus",
@@ -2170,6 +2337,7 @@ go_get(
 
 go_get(
     name = "github.com_prometheus_client_model",
+    download_deps = [],
     install = ["go"],
     module = "github.com/prometheus/client_model",
     sum = "h1:uq5h0d+GuxiXLJLNABMgp2qUWDPiLvgCzz2dUR+/W/M=",
@@ -2179,6 +2347,7 @@ go_get(
 
 go_get(
     name = "github.com_prometheus_common",
+    download_deps = [],
     install = [
         "internal/bitbucket.org/ww/goautoneg",
         "model",
@@ -2196,6 +2365,7 @@ go_get(
 
 go_get(
     name = "github.com_prometheus_procfs",
+    download_deps = [],
     install = [
         "internal/fs",
         "internal/util",
@@ -2209,6 +2379,7 @@ go_get(
 
 go_get(
     name = "github.com_qor_assetfs",
+    download_deps = [],
     install = [""],
     module = "github.com/qor/assetfs",
     sum = "h1:JRpyNNSRAkwNHd4WgyPcalTAhxOCh3eFNMoQkxWhjSw=",
@@ -2218,6 +2389,7 @@ go_get(
 
 go_get(
     name = "github.com_qor_auth",
+    download_deps = [],
     install = [
         "claims",
         "auth_identity",
@@ -2242,6 +2414,7 @@ go_get(
 
 go_get(
     name = "github.com_qor_mailer",
+    download_deps = [],
     install = [
         "",
         "logger",
@@ -2258,6 +2431,7 @@ go_get(
 
 go_get(
     name = "github.com_qor_middlewares",
+    download_deps = [],
     install = [""],
     module = "github.com/qor/middlewares",
     sum = "h1:+WCc1IigwWpWBxMFsmLUsIF230TakGHstDajd8aKDAc=",
@@ -2267,6 +2441,7 @@ go_get(
 
 go_get(
     name = "github.com_qor_qor",
+    download_deps = [],
     install = [
         "",
         "utils",
@@ -2284,6 +2459,7 @@ go_get(
 
 go_get(
     name = "github.com_qor_redirect_back",
+    download_deps = [],
     install = [""],
     module = "github.com/qor/redirect_back",
     sum = "h1:p8fFfW3hQzNMqXxr+LBrr82MIXoUi1HCXbeM8oCgfnw=",
@@ -2297,6 +2473,7 @@ go_get(
 
 go_get(
     name = "github.com_qor_render",
+    download_deps = [],
     install = [""],
     module = "github.com/qor/render",
     sum = "h1:4aq245m+d7ulq2cMQitfRP32qII5MwgE5tEe+UjfcEw=",
@@ -2309,6 +2486,7 @@ go_get(
 
 go_get(
     name = "github.com_qor_responder",
+    download_deps = [],
     install = [""],
     module = "github.com/qor/responder",
     sum = "h1:g77aB9KGnuMC2kNSUWO2KN8k2RzgbI0HqOvWA+AlKX8=",
@@ -2318,6 +2496,7 @@ go_get(
 
 go_get(
     name = "github.com_qor_session",
+    download_deps = [],
     install = [
         "",
         "gorilla",
@@ -2336,6 +2515,7 @@ go_get(
 
 go_get(
     name = "github.com_rainycape_unidecode",
+    download_deps = [],
     install = [""],
     module = "github.com/rainycape/unidecode",
     sum = "h1:ta7tUOvsPHVHGom5hKW5VXNc2xZIkfCKP8iaqOyYtUQ=",
@@ -2345,6 +2525,7 @@ go_get(
 
 go_get(
     name = "github.com_robfig_cron",
+    download_deps = [],
     install = [""],
     module = "github.com/robfig/cron",
     sum = "h1:ZjScXvvxeQ63Dbyxy76Fj3AT3Ut0aKsyd2/tl3DTMuQ=",
@@ -2354,6 +2535,7 @@ go_get(
 
 go_get(
     name = "github.com_rubenv_sql-migrate",
+    download_deps = [],
     install = [
         "sqlparse",
         "",
@@ -2366,6 +2548,7 @@ go_get(
 
 go_get(
     name = "github.com_russross_blackfriday",
+    download_deps = [],
     install = [""],
     module = "github.com/russross/blackfriday",
     sum = "h1:HyvC0ARfnZBqnXwABFeSZHpKvJHJJfPz81GNueLj0oo=",
@@ -2375,6 +2558,7 @@ go_get(
 
 go_get(
     name = "github.com_ryanuber_go-glob",
+    download_deps = [],
     install = [""],
     module = "github.com/ryanuber/go-glob",
     sum = "h1:iQh3xXAumdQ+4Ufa5b25cRpC5TYKlno6hsv6Cb3pkBk=",
@@ -2384,6 +2568,7 @@ go_get(
 
 go_get(
     name = "github.com_sagikazarmark_appkit",
+    download_deps = [],
     install = [
         "errors",
         "transport/http",
@@ -2401,6 +2586,7 @@ go_get(
 
 go_get(
     name = "github.com_sagikazarmark_kitx",
+    download_deps = [],
     install = [
         "endpoint",
         "transport/http",
@@ -2420,6 +2606,7 @@ go_get(
 
 go_get(
     name = "github.com_sagikazarmark_ocmux",
+    download_deps = [],
     install = [""],
     module = "github.com/sagikazarmark/ocmux",
     sum = "h1:YmxEdmIFCeM9NO99U3DBvLRq+cIy2gQJ4zDyifhOqWU=",
@@ -2432,6 +2619,7 @@ go_get(
 
 go_get(
     name = "github.com_sirupsen_logrus",
+    download_deps = [],
     install = [""],
     module = "github.com/sirupsen/logrus",
     sum = "h1:UBcNElsrwanuuMsnGSlYmtmgbb23qDR5dG+6X6Oo89I=",
@@ -2441,6 +2629,7 @@ go_get(
 
 go_get(
     name = "github.com_spf13_afero",
+    download_deps = [],
     install = [
         "mem",
         "",
@@ -2453,6 +2642,7 @@ go_get(
 
 go_get(
     name = "github.com_spf13_cast",
+    download_deps = [],
     install = [""],
     module = "github.com/spf13/cast",
     sum = "h1:nFm6S0SMdyzrzcmThSipiEubIDy8WEXKNZ0UOgiRpng=",
@@ -2462,6 +2652,7 @@ go_get(
 
 go_get(
     name = "github.com_spf13_cobra",
+    download_deps = [],
     install = [""],
     module = "github.com/spf13/cobra",
     sum = "h1:6m/oheQuQ13N9ks4hubMG6BnvwOeaJrqSPLahSnczz8=",
@@ -2471,6 +2662,7 @@ go_get(
 
 go_get(
     name = "github.com_spf13_jwalterweatherman",
+    download_deps = [],
     install = [""],
     module = "github.com/spf13/jwalterweatherman",
     sum = "h1:ue6voC5bR5F8YxI5S67j9i582FU4Qvo2bmqnqMYADFk=",
@@ -2480,6 +2672,7 @@ go_get(
 
 go_get(
     name = "github.com_spf13_pflag",
+    download_deps = [],
     install = [""],
     module = "github.com/spf13/pflag",
     sum = "h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=",
@@ -2489,6 +2682,7 @@ go_get(
 
 go_get(
     name = "github.com_spf13_viper",
+    download_deps = [],
     install = [""],
     module = "github.com/spf13/viper",
     sum = "h1:xVKxvI7ouOI5I+U9s2eeiUfMaWBVoXA3AWskkrqK0VM=",
@@ -2511,6 +2705,7 @@ go_get(
 
 go_get(
     name = "github.com_stretchr_objx",
+    download_deps = [],
     install = [""],
     module = "github.com/stretchr/objx",
     sum = "h1:Hbg2NidpLE8veEBkEZTL3CvlkUIVzuU9jDplZO54c48=",
@@ -2520,6 +2715,7 @@ go_get(
 
 go_get(
     name = "github.com_stretchr_testify",
+    download_deps = [],
     install = [
         "assert",
         "mock",
@@ -2538,6 +2734,7 @@ go_get(
 
 go_get(
     name = "github.com_subosito_gotenv",
+    download_deps = [],
     install = [""],
     module = "github.com/subosito/gotenv",
     sum = "h1:Slr1R9HxAlEKefgq5jn9U+DnETlIUa6HfgEzj0g5d7s=",
@@ -2547,6 +2744,7 @@ go_get(
 
 go_get(
     name = "github.com_technosophos_moniker",
+    download_deps = [],
     install = [""],
     module = "github.com/technosophos/moniker",
     sum = "h1:DNVk+NIkGS0RbLkjQOLCJb/759yfCysThkMbl7EXxyY=",
@@ -2556,6 +2754,7 @@ go_get(
 
 go_get(
     name = "github.com_uber-go_mapdecode",
+    download_deps = [],
     install = [
         "internal/mapstructure",
         "",
@@ -2568,6 +2767,7 @@ go_get(
 
 go_get(
     name = "github.com_uber-go_tally",
+    download_deps = [],
     install = [""],
     module = "github.com/uber-go/tally",
     sum = "h1:9hLSgNBP28CjIaDmAuRTq9qV+UZY+9PcvAkXO4nNMwg=",
@@ -2577,6 +2777,7 @@ go_get(
 
 go_get(
     name = "github.com_uber_tchannel-go",
+    download_deps = [],
     install = [
         "internal/argreader",
         "thrift/arg2",
@@ -2601,6 +2802,7 @@ go_get(
 
 go_get(
     name = "github.com_ugorji_go_codec",
+    download_deps = [],
     install = [""],
     module = "github.com/ugorji/go/codec",
     sum = "h1:2SvQaVZ1ouYrrKKwoSk2pzd4A9evlKJb9oTL+OaLUSs=",
@@ -2610,6 +2812,7 @@ go_get(
 
 go_get(
     name = "github.com_vmware_govmomi",
+    download_deps = [],
     install = [
         "vim25/debug",
         "vim25/progress",
@@ -2636,6 +2839,7 @@ go_get(
 
 go_get(
     name = "github.com_xeipuuv_gojsonpointer",
+    download_deps = [],
     install = [""],
     module = "github.com/xeipuuv/gojsonpointer",
     sum = "h1:J9EGpcZtP0E/raorCMxlFGSTBrsSlaDGf3jU/qvAE2c=",
@@ -2645,6 +2849,7 @@ go_get(
 
 go_get(
     name = "github.com_xeipuuv_gojsonreference",
+    download_deps = [],
     install = [""],
     module = "github.com/xeipuuv/gojsonreference",
     sum = "h1:EzJWgHovont7NscjpAxXsDA8S8BMYve8Y5+7cuRE7R0=",
@@ -2654,6 +2859,7 @@ go_get(
 
 go_get(
     name = "github.com_xeipuuv_gojsonschema",
+    download_deps = [],
     install = [""],
     module = "github.com/xeipuuv/gojsonschema",
     sum = "h1:ngVtJC9TY/lg0AA/1k48FYhBrhRoFlEmWzsehpNAaZg=",
@@ -2663,6 +2869,7 @@ go_get(
 
 go_get(
     name = "go.opencensus.io",
+    download_deps = [],
     install = [
         "",
         "internal",
@@ -2693,6 +2900,7 @@ go_get(
 
 go_get(
     name = "go.uber.org_atomic",
+    download_deps = [],
     install = [""],
     module = "go.uber.org/atomic",
     sum = "h1:Ezj3JGmsOnG1MoRWQkPBsKLe9DwWD9QeXzTRzzldNVk=",
@@ -2702,6 +2910,7 @@ go_get(
 
 go_get(
     name = "go.uber.org_cadence",
+    download_deps = [],
     install = [
         ".gen/go/shared",
         ".gen/go/cadence",
@@ -2742,6 +2951,7 @@ go_get(
 
 go_get(
     name = "go.uber.org_multierr",
+    download_deps = [],
     install = [""],
     module = "go.uber.org/multierr",
     sum = "h1:KCa4XfM8CWFCpxXRGok+Q0SS/0XBhMDbHHGABQLvD2A=",
@@ -2751,6 +2961,7 @@ go_get(
 
 go_get(
     name = "go.uber.org_net_metrics",
+    download_deps = [],
     install = [
         "push",
         "",
@@ -2770,6 +2981,7 @@ go_get(
 
 go_get(
     name = "go.uber.org_thriftrw",
+    download_deps = [],
     install = [
         "thriftreflect",
         "wire",
@@ -2790,6 +3002,7 @@ go_get(
 
 go_get(
     name = "go.uber.org_yarpc",
+    download_deps = [],
     install = [
         "yarpcerrors",
         "api/transport",
@@ -2848,6 +3061,7 @@ go_get(
 
 go_get(
     name = "go.uber.org_zap",
+    download_deps = [],
     install = [
         "buffer",
         "internal/bufferpool",
@@ -2867,6 +3081,7 @@ go_get(
 
 go_get(
     name = "golang.org_x_crypto",
+    download_deps = [],
     install = [
         "ed25519",
         "pbkdf2",
@@ -2899,6 +3114,7 @@ go_get(
 
 go_get(
     name = "golang.org_x_net",
+    download_deps = [],
     install = [
         "idna",
         "http/httpguts",
@@ -2928,6 +3144,7 @@ go_get(
 
 go_get(
     name = "golang.org_x_oauth2",
+    download_deps = [],
     install = [
         "internal",
         "",
@@ -2946,6 +3163,7 @@ go_get(
 
 go_get(
     name = "golang.org_x_sync",
+    download_deps = [],
     install = [
         "errgroup",
         "semaphore",
@@ -2958,6 +3176,7 @@ go_get(
 
 go_get(
     name = "golang.org_x_sys",
+    download_deps = [],
     install = ["unix"],
     module = "golang.org/x/sys",
     sum = "h1:xhmwyvizuTgC2qz7ZlMluP20uW+C3Rm0FD/WLDX8884=",
@@ -2967,6 +3186,7 @@ go_get(
 
 go_get(
     name = "golang.org_x_text",
+    download_deps = [],
     install = [
         "transform",
         "unicode/bidi",
@@ -2988,6 +3208,7 @@ go_get(
 
 go_get(
     name = "golang.org_x_time",
+    download_deps = [],
     install = ["rate"],
     module = "golang.org/x/time",
     sum = "h1:NusfzzA6yGQ+ua51ck7E3omNUX/JuqbFSaRGqU8CcLI=",
@@ -2997,6 +3218,7 @@ go_get(
 
 go_get(
     name = "golang.org_x_tools",
+    download_deps = [],
     install = ["go/vcs"],
     module = "golang.org/x/tools",
     sum = "h1:0sfSpGSa544Fwnbot3Oxq/U6SXqjty6Jy/3wRhVS7ig=",
@@ -3006,6 +3228,7 @@ go_get(
 
 go_get(
     name = "google.golang.org_api",
+    download_deps = [],
     install = [
         "internal/third_party/uritemplates",
         "googleapi",
@@ -3043,6 +3266,7 @@ go_module_download(
     sum = "h1:1mbrb1tUU+Zmt5C94IGKADBTJZjZXAd+BubWi7r9EiI=",
     tag = "download",
     version = "v0.0.0-20200212174721-66ed5ce911ce",
+    deps = [],
 )
 
 go_get(
@@ -3116,6 +3340,7 @@ go_get(
 
 go_get(
     name = "google.golang.org_grpc",
+    download_deps = [],
     install = [
         "backoff",
         "grpclog",
@@ -3180,6 +3405,7 @@ go_get(
 
 go_get(
     name = "gopkg.in_go-playground_validator.v9",
+    download_deps = [],
     install = [""],
     module = "gopkg.in/go-playground/validator.v9",
     sum = "h1:SvGtYmN60a5CVKTOzMSyfzWDeZRxRuGvRQyEAKbw1xc=",
@@ -3192,6 +3418,7 @@ go_get(
 
 go_get(
     name = "gopkg.in_gomail.v2",
+    download_deps = [],
     install = [""],
     module = "gopkg.in/gomail.v2",
     sum = "h1:n7WqCuqOuCbNr617RXOY0AWRXxgwEyPp2z+p0+hgMuE=",
@@ -3201,6 +3428,7 @@ go_get(
 
 go_get(
     name = "gopkg.in_gorp.v1",
+    download_deps = [],
     install = [""],
     module = "gopkg.in/gorp.v1",
     sum = "h1:j3DWlAyGVv8whO7AcIWznQ2Yj7yJkn34B8s63GViAAw=",
@@ -3210,6 +3438,7 @@ go_get(
 
 go_get(
     name = "gopkg.in_inf.v0",
+    download_deps = [],
     install = [""],
     module = "gopkg.in/inf.v0",
     sum = "h1:73M5CoZyi3ZLMOyDlQh031Cx6N9NDJ2Vvfl76EDAgDc=",
@@ -3219,6 +3448,7 @@ go_get(
 
 go_get(
     name = "gopkg.in_ini.v1",
+    download_deps = [],
     install = [""],
     module = "gopkg.in/ini.v1",
     sum = "h1:AQvPpx3LzTDM0AjnIRlVFwFFGC+npRopjZxLJj6gdno=",
@@ -3228,6 +3458,7 @@ go_get(
 
 go_get(
     name = "gopkg.in_resty.v1",
+    download_deps = [],
     install = [""],
     module = "gopkg.in/resty.v1",
     sum = "h1:CuXP0Pjfw9rOuY6EP+UvtNvt5DSqHpIxILZKT/quCZI=",
@@ -3237,6 +3468,7 @@ go_get(
 
 go_get(
     name = "gopkg.in_square_go-jose.v2",
+    download_deps = [],
     install = [
         "cipher",
         "json",
@@ -3251,6 +3483,7 @@ go_get(
 
 go_get(
     name = "gopkg.in_yaml.v2",
+    download_deps = [],
     install = [""],
     module = "gopkg.in/yaml.v2",
     sum = "h1:obN1ZagJSUGI0Ek/LBmuj4SNLPfIny3KsKFopxRdj10=",
@@ -3260,6 +3493,7 @@ go_get(
 
 go_get(
     name = "gopkg.in_yaml.v3",
+    download_deps = [],
     install = [""],
     module = "gopkg.in/yaml.v3",
     sum = "h1:dUUwHk2QECo/6vqA44rthZ8ie2QXMNeKRTHCNY2nXvo=",
@@ -3269,6 +3503,7 @@ go_get(
 
 go_get(
     name = "helm.sh_helm_v3",
+    download_deps = [],
     install = [
         "pkg/chart",
         "internal/ignore",
@@ -3343,6 +3578,7 @@ go_get(
 
 go_get(
     name = "k8s.io_api",
+    download_deps = [],
     install = [
         "core/v1",
         "admissionregistration/v1",
@@ -3400,6 +3636,7 @@ go_get(
 
 go_get(
     name = "k8s.io_apiextensions-apiserver",
+    download_deps = [],
     install = [
         "pkg/features",
         "pkg/apis/apiextensions",
@@ -3424,6 +3661,7 @@ go_get(
 
 go_get(
     name = "k8s.io_apimachinery",
+    download_deps = [],
     install = [
         "pkg/api/resource",
         "third_party/forked/golang/reflect",
@@ -3506,6 +3744,7 @@ go_get(
 
 go_get(
     name = "k8s.io_apiserver",
+    download_deps = [],
     install = [
         "pkg/util/feature",
         "pkg/features",
@@ -3525,6 +3764,7 @@ go_get(
 
 go_get(
     name = "k8s.io_cli-runtime",
+    download_deps = [],
     install = [
         "pkg/printers",
         "pkg/kustomize/k8sdeps/kv",
@@ -3560,6 +3800,7 @@ go_get(
 
 go_get(
     name = "k8s.io_client-go",
+    download_deps = [],
     install = [
         "pkg/version",
         "pkg/apis/clientauthentication",
@@ -3772,6 +4013,7 @@ go_get(
 
 go_get(
     name = "k8s.io_cluster-bootstrap",
+    download_deps = [],
     install = [
         "token/api",
         "token/util",
@@ -3790,6 +4032,7 @@ go_get(
 
 go_get(
     name = "k8s.io_component-base",
+    download_deps = [],
     install = [
         "featuregate",
         "version",
@@ -3811,6 +4054,7 @@ go_get(
 
 go_get(
     name = "k8s.io_helm",
+    download_deps = [],
     install = [
         "pkg/ignore",
         "pkg/proto/hapi/chart",
@@ -3878,6 +4122,7 @@ go_get(
 
 go_get(
     name = "k8s.io_klog",
+    download_deps = [],
     install = [""],
     module = "k8s.io/klog",
     sum = "h1:Pt+yjF5aB1xDSVbau4VsWe+dQNzA0qv1LlXdC2dF6Q8=",
@@ -3887,6 +4132,7 @@ go_get(
 
 go_get(
     name = "k8s.io_kube-openapi",
+    download_deps = [],
     install = [
         "pkg/util/proto",
         "pkg/common",
@@ -3905,6 +4151,7 @@ go_get(
 
 go_get(
     name = "k8s.io_kube-proxy",
+    download_deps = [],
     install = ["config/v1alpha1"],
     module = "k8s.io/kube-proxy",
     replace = "k8s.io/kube-proxy",
@@ -3918,6 +4165,7 @@ go_get(
 
 go_get(
     name = "k8s.io_kubectl",
+    download_deps = [],
     install = [
         "pkg/scheme",
         "pkg/util/openapi",
@@ -3965,6 +4213,7 @@ go_get(
 
 go_get(
     name = "k8s.io_kubelet",
+    download_deps = [],
     install = ["config/v1beta1"],
     module = "k8s.io/kubelet",
     replace = "k8s.io/kubelet",
@@ -3978,6 +4227,7 @@ go_get(
 
 go_get(
     name = "k8s.io_kubernetes",
+    download_deps = [],
     install = [
         "pkg/apis/core",
         "pkg/apis/storage",
@@ -4038,6 +4288,7 @@ go_get(
 
 go_get(
     name = "k8s.io_utils",
+    download_deps = [],
     install = [
         "integer",
         "pointer",
@@ -4055,6 +4306,7 @@ go_get(
 
 go_get(
     name = "logur.dev_adapter_logrus",
+    download_deps = [],
     install = [""],
     module = "logur.dev/adapter/logrus",
     sum = "h1:qBw5g87m++zoFOq6K30J+UnQC7bZrPAwpmoF3G7Oxo8=",
@@ -4067,6 +4319,7 @@ go_get(
 
 go_get(
     name = "logur.dev_adapter_zap",
+    download_deps = [],
     install = [
         "internal/keyvals",
         "",
@@ -4082,6 +4335,7 @@ go_get(
 
 go_get(
     name = "logur.dev_integration_watermill",
+    download_deps = [],
     install = [""],
     module = "logur.dev/integration/watermill",
     sum = "h1:y9MhXxJB7Igm712L24mSEUvEdsfa8KQ7ZTT4vObROUg=",
@@ -4094,6 +4348,7 @@ go_get(
 
 go_get(
     name = "logur.dev_integration_zap",
+    download_deps = [],
     install = [""],
     module = "logur.dev/integration/zap",
     sum = "h1:fz3Bjuqn0mcxfas7ff12rS+frH1KnBsZI3ye6+8e5T8=",
@@ -4106,6 +4361,7 @@ go_get(
 
 go_get(
     name = "logur.dev_logur",
+    download_deps = [],
     install = [""],
     module = "logur.dev/logur",
     sum = "h1:q4MxivaiTXiDHrQyeCH5WkwBLUrd6rM2lZlyztYvi4o=",
@@ -4115,6 +4371,7 @@ go_get(
 
 go_get(
     name = "sigs.k8s.io_controller-runtime",
+    download_deps = [],
     install = [
         "pkg/client/apiutil",
         "pkg/client",
@@ -4138,6 +4395,7 @@ go_get(
 
 go_get(
     name = "sigs.k8s.io_kubefed",
+    download_deps = [],
     install = [
         "pkg/apis/core/common",
         "pkg/apis/core/v1beta1",
@@ -4182,6 +4440,7 @@ go_get(
 
 go_get(
     name = "sigs.k8s.io_kustomize",
+    download_deps = [],
     install = [
         "pkg/gvk",
         "pkg/image",
@@ -4221,6 +4480,7 @@ go_get(
 
 go_get(
     name = "sigs.k8s.io_yaml",
+    download_deps = [],
     install = [""],
     module = "sigs.k8s.io/yaml",
     sum = "h1:4A07+ZFc2wgJwo8YNlQpr1rVlgUDlxXHhPJciaPY5gs=",
@@ -4230,6 +4490,7 @@ go_get(
 
 go_get(
     name = "vbom.ml_util",
+    download_deps = [],
     install = ["sortorder"],
     module = "vbom.ml/util",
     sum = "h1:MksmcCZQWAQJCTA5T0jgI/0sJ51AVm4Z41MrmfczEoc=",

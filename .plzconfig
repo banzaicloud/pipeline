@@ -18,6 +18,9 @@ licensei-version = 0.2.0
 migrate-version = 4.9.1
 kubectl-version = 1.17.4
 
+jq-tool = //:jq
+jq-version = 1.6
+
 [alias "make"]
 desc = Build and export the outputs of targets
 cmd = export outputs -o .

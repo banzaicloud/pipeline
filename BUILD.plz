@@ -79,3 +79,9 @@ remote_file(
     out = "bin/etcd",
     binary = True,
 )
+
+jq_binary(
+    name = "jq",
+    version = check_config(key='JQ_VERSION', example='1.6'),
+    visibility = ["PUBLIC"],
+)
