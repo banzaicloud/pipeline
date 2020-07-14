@@ -104,6 +104,7 @@ go_test(
     name = "test",
     srcs = glob(["*.go"]),
     deps = [
+        "//config",
         "//.gen/cloudinfo",
         "//internal/anchore",
         "//internal/app/pipeline/process",

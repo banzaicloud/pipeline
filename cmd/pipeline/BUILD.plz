@@ -155,6 +155,7 @@ go_test(
     name = "test",
     srcs = glob(["*.go"], exclude = ["automigrate.go"]),
     deps = [
+        "//config",
         "//.gen/cloudinfo",
         "//internal/anchore",
         "//internal/app/frontend",

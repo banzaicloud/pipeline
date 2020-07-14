@@ -22,6 +22,7 @@ go_test(
     name = "test",
     srcs = glob(["*_test.go"]),
     external = True,
+    labels = ["integration"],
     deps = [
         ":deployment",
         "//internal/cmd",

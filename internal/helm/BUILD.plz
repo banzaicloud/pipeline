@@ -30,4 +30,5 @@ go_test(
         "//third_party/go:k8s.io_apimachinery",
         "//third_party/go:k8s.io_client-go",
     ],
+    labels = ["nope"],
 )

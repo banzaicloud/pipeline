@@ -25,6 +25,7 @@ go_library(
 go_test(
     name = "test",
     srcs = glob(["*_test.go"]),
+    labels = ["integration"],
     external = True,
     deps = [
         ":federation",

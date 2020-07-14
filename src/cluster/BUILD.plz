@@ -114,7 +114,35 @@ go_library(
 
 go_test(
     name = "test",
-    srcs = glob(["*_test.go"]),
+    srcs = ["autoscale_test.go", "eks_test.go", "gke_test.go"],
+    deps = [
+        ":cluster",
+        "//internal/common",
+        "//internal/global",
+        "//internal/global/nplabels",
+        "//internal/providers/alibaba/alibabaadapter",
+        "//internal/providers/azure/azureadapter",
+        "//internal/providers/kubernetes/kubernetesadapter",
+        "//internal/secret/pkesecret",
+        "//internal/secret/restricted",
+        "//internal/secret/secretadapter",
+        "//internal/secret/types",
+        "//pkg/cluster",
+        "//pkg/cluster/aks",
+        "//pkg/cluster/gke",
+        "//pkg/cluster/kubernetes",
+        "//pkg/errors",
+        "//pkg/kubernetes",
+        "//src/model",
+        "//src/secret",
+        "//third_party/go:emperror.dev_emperror",
+        "//third_party/go:github.com_banzaicloud_bank-vaults_pkg_sdk",
+    ],
+)
+
+go_test(
+    name = "external_test",
+    srcs = glob(["*_test.go"], exclude = ["autoscale_test.go", "eks_test.go", "gke_test.go"]),
     external = True,
     deps = [
         ":cluster",
