@@ -162,6 +162,9 @@ func main() {
 	err = mapstructure.Decode(config, &global.Config)
 	emperror.Panic(errors.Wrap(err, "failed to bind configuration to global configuration"))
 
+	// I don't know what's going on
+	global.Config.Distribution.PKE.Amazon.DefaultImages = v.GetStringMapString("distribution::pke::amazon::defaultImages")
+
 	// Create logger (first thing after configuration loading)
 	logger := log.NewLogger(config.Log)
 
