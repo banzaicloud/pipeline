@@ -39,7 +39,8 @@ func TestConfigure(t *testing.T) {
 
 	configure(v, p)
 
-	file, err := os.Open("../../config/config.dev.yaml")
+	// file, err := os.Open("../../config/config.dev.yaml")
+	file, err := os.Open("config/config.dev.yaml")
 	require.NoError(t, err)
 
 	v.SetConfigType("yaml")

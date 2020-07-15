@@ -103,8 +103,8 @@ go_binary(
 go_test(
     name = "test",
     srcs = glob(["*.go"]),
+    data = ["//config"],
     deps = [
-        "//config",
         "//.gen/cloudinfo",
         "//internal/anchore",
         "//internal/app/pipeline/process",
