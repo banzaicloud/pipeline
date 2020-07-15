@@ -223,6 +223,9 @@ func main() {
 	// Create logger (first thing after configuration loading)
 	logger := log.NewLogger(config.Log)
 
+	// I don't know what's going on
+	global.Config.Distribution.PKE.Amazon.DefaultImages = v.GetStringMapString("distribution::pke::amazon::defaultImages")
+
 	// Legacy logger instance
 	logrusLogger := log.NewLogrusLogger(log.Config{
 		Level:  config.Log.Level,

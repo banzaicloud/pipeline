@@ -828,7 +828,10 @@ traefik:
 	v.SetDefault("distribution::eks::ssh::generate", true)
 
 	v.SetDefault("distribution::pke::amazon::globalRegion", "us-east-1")
-	v.SetDefault("distribution::pke::amazon::defaultImages", map[string]string{})
+	v.SetDefault("distribution::pke::amazon::defaultImages", map[string]string{
+		"us-gov-west-1": "ami-adecdbcc",
+		"us-gov-east-1": "ami-c29975b3",
+	})
 
 	v.SetDefault("cloudinfo::endpoint", "")
 	v.SetDefault("hollowtrees::endpoint", "")
