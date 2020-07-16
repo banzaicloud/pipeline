@@ -372,6 +372,29 @@ func (_m *MockService) DeleteNodePool(ctx context.Context, clusterID uint, name 
 	return r0, r1
 }
 
+// ListNodePools provides a mock function.
+func (_m *MockService) ListNodePools(ctx context.Context, clusterID uint) (nodePoolList RawNodePoolList, err error) {
+	ret := _m.Called(ctx, clusterID)
+
+	var r0 RawNodePoolList
+	if rf, ok := ret.Get(0).(func(context.Context, uint) RawNodePoolList); ok {
+		r0 = rf(ctx, clusterID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(RawNodePoolList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = rf(ctx, clusterID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateNodePool provides a mock function.
 func (_m *MockService) UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, rawNodePoolUpdate RawNodePoolUpdate) (processID string, err error) {
 	ret := _m.Called(ctx, clusterID, nodePoolName, rawNodePoolUpdate)
