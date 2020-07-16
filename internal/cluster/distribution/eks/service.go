@@ -61,6 +61,23 @@ type NodePoolUpdateDrainOptions struct {
 	PodSelector string `mapstructure:"podSelector"`
 }
 
+// NodePool encapsulates information about a cluster node pool.
+type NodePool struct {
+	Name         string            `mapstructure:"name"`
+	Labels       map[string]string `mapstructure:"labels"`
+	Size         int               `mapstructure:"size"`
+	Autoscaling  Autoscaling       `mapstructure:"autoscaling"`
+	InstanceType string            `mapstructure:"instanceType"`
+	Image        string            `mapstructure:"image"`
+	SpotPrice    string            `mapstructure:"spotPrice"`
+}
+
+// Autoscaling describes the EKS node pool's autoscaling settings.
+type Autoscaling struct {
+	Enabled bool `mapstructure:"enabled"`
+	MinSize int  `mapstructure:"minSize"`
+	MaxSize int  `mapstructure:"maxSize"`
+}
 // NewService returns a new Service instance.
 func NewService(
 	genericClusters cluster.Store,
@@ -84,6 +101,9 @@ type service struct {
 type NodePoolManager interface {
 	// UpdateNodePool updates an existing node pool in a cluster.
 	UpdateNodePool(ctx context.Context, c cluster.Cluster, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
+
+	// ListNodePools lists node pools from a cluster.
+	ListNodePools(ctx context.Context, c cluster.Cluster, nodePoolNames []string) ([]NodePool, error)
 }
 
 func (s service) UpdateNodePool(
