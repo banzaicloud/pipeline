@@ -15,7 +15,7 @@ type MockConfigProvider struct {
 }
 
 // GetConfiguration provides a mock function.
-func (_m *MockConfigProvider) GetConfiguration(ctx context.Context, clusterID uint) (Config, error) {
+func (_m *MockConfigProvider) GetConfiguration(ctx context.Context, clusterID uint) (_result_0 Config, _result_1 error) {
 	ret := _m.Called(ctx, clusterID)
 
 	var r0 Config

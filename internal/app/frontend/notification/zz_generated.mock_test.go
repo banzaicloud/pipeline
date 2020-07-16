@@ -15,7 +15,7 @@ type MockStore struct {
 }
 
 // GetActiveNotifications provides a mock function.
-func (_m *MockStore) GetActiveNotifications(ctx context.Context) ([]Notification, error) {
+func (_m *MockStore) GetActiveNotifications(ctx context.Context) (_result_0 []Notification, _result_1 error) {
 	ret := _m.Called(ctx)
 
 	var r0 []Notification

@@ -15,7 +15,7 @@ type MockDynamicFileClient struct {
 }
 
 // Create provides a mock function.
-func (_m *MockDynamicFileClient) Create(ctx context.Context, file []uint8) error {
+func (_m *MockDynamicFileClient) Create(ctx context.Context, file []uint8) (_result_0 error) {
 	ret := _m.Called(ctx, file)
 
 	var r0 error

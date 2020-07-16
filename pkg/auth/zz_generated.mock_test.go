@@ -12,7 +12,7 @@ type MockTokenGenerator struct {
 }
 
 // GenerateToken provides a mock function.
-func (_m *MockTokenGenerator) GenerateToken(sub string, expiresAt int64, tokenType string, tokenText string) (string, string, error) {
+func (_m *MockTokenGenerator) GenerateToken(sub string, expiresAt int64, tokenType string, tokenText string) (_result_0 string, _result_1 string, _result_2 error) {
 	ret := _m.Called(sub, expiresAt, tokenType, tokenText)
 
 	var r0 string
