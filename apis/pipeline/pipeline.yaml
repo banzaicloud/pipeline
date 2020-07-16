@@ -3553,6 +3553,23 @@ paths:
                 default:
                     $ref: '#/components/responses/Error'
 
+        get:
+            operationId: ListNodePools
+            summary: List node pools
+            security:
+                - bearerAuth: []
+            tags:
+                - clusters
+            responses:
+                200:
+                    description: Node pool list
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListNodePoolsResponse'
+                default:
+                    $ref: '#/components/responses/Error'
+
     /api/v1/orgs/{orgId}/clusters/{id}/nodepools/{name}:
         parameters:
             - $ref: '#/components/parameters/orgId'
@@ -4515,6 +4532,11 @@ components:
                 processId:
                     description: Node pool update process ID.
                     type: string
+
+        ListNodePoolsResponse:
+            type: array
+            items:
+                $ref: '#/components/schemas/NodePool'
 
         BaseUpdateNodePoolRequest:
             description: Base node pool update request object for all cluster distributions.
