@@ -1,2 +1,7 @@
 [buildconfig]
+golangci-lint-version = 1.25.0
 openapi-generator-version = v4.2.3
+
+[alias "lint"]
+desc = Runs linters for this repo
+cmd = run ///pleasings2//tools/go:golangci-lint -- run
