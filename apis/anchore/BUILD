@@ -37,3 +37,8 @@ genrule(
         'mv "$SRCS" "$OUTS"',
     ]),
 )
+
+openapi_validate(
+    name = "validate",
+    spec = ":spec",
+)
