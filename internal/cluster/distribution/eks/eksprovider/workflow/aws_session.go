@@ -25,6 +25,8 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
+// +testify:mock
+
 type AWSFactory interface {
 	New(organizationID uint, secretID string, region string) (*session.Session, error)
 }

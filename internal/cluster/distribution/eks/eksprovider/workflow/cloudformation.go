@@ -21,6 +21,18 @@ import (
 	cfi "github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 )
 
+// +testify:mock
+
+// cloudFormationAPI redefines the cloudformationiface.CloudFormationAPI
+// interface in order to generate mock for it.
+// nolint:deadcode // Used for mock generation and only the original interface
+// is referenced.
+type cloudFormationAPI interface {
+	cfi.CloudFormationAPI
+}
+
+// +testify:mock
+
 // CloudFormationFactory provides an interface for instantiating AWS
 // CloudFormation API objects.
 type CloudFormationAPIFactory interface {
