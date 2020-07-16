@@ -36,3 +36,7 @@ test.txt
 !/.idea/runConfigurations/
 !/.idea/scopes/
 
+
+# Please output directory and local config
+plz-out
+.plzconfig.local
