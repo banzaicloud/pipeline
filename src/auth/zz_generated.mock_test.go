@@ -15,7 +15,7 @@ type MockRoleSource struct {
 }
 
 // FindUserRole provides a mock function.
-func (_m *MockRoleSource) FindUserRole(ctx context.Context, organizationID uint, userID uint) (string, bool, error) {
+func (_m *MockRoleSource) FindUserRole(ctx context.Context, organizationID uint, userID uint) (_result_0 string, _result_1 bool, _result_2 error) {
 	ret := _m.Called(ctx, organizationID, userID)
 
 	var r0 string
@@ -48,7 +48,7 @@ type MockOIDCOrganizationSyncer struct {
 }
 
 // SyncOrganizations provides a mock function.
-func (_m *MockOIDCOrganizationSyncer) SyncOrganizations(ctx context.Context, user User, idTokenClaims *IDTokenClaims) error {
+func (_m *MockOIDCOrganizationSyncer) SyncOrganizations(ctx context.Context, user User, idTokenClaims *IDTokenClaims) (_result_0 error) {
 	ret := _m.Called(ctx, user, idTokenClaims)
 
 	var r0 error
@@ -67,7 +67,7 @@ type MockOrganizationSyncer struct {
 }
 
 // SyncOrganizations provides a mock function.
-func (_m *MockOrganizationSyncer) SyncOrganizations(ctx context.Context, user User, upstreamMemberships []UpstreamOrganizationMembership) error {
+func (_m *MockOrganizationSyncer) SyncOrganizations(ctx context.Context, user User, upstreamMemberships []UpstreamOrganizationMembership) (_result_0 error) {
 	ret := _m.Called(ctx, user, upstreamMemberships)
 
 	var r0 error
@@ -86,7 +86,7 @@ type MockOrganizationStore struct {
 }
 
 // ApplyUserMembership provides a mock function.
-func (_m *MockOrganizationStore) ApplyUserMembership(ctx context.Context, organizationID uint, userID uint, role string) error {
+func (_m *MockOrganizationStore) ApplyUserMembership(ctx context.Context, organizationID uint, userID uint, role string) (_result_0 error) {
 	ret := _m.Called(ctx, organizationID, userID, role)
 
 	var r0 error
@@ -100,7 +100,7 @@ func (_m *MockOrganizationStore) ApplyUserMembership(ctx context.Context, organi
 }
 
 // EnsureOrganizationExists provides a mock function.
-func (_m *MockOrganizationStore) EnsureOrganizationExists(ctx context.Context, name string, provider string) (bool, uint, error) {
+func (_m *MockOrganizationStore) EnsureOrganizationExists(ctx context.Context, name string, provider string) (_result_0 bool, _result_1 uint, _result_2 error) {
 	ret := _m.Called(ctx, name, provider)
 
 	var r0 bool
@@ -128,7 +128,7 @@ func (_m *MockOrganizationStore) EnsureOrganizationExists(ctx context.Context, n
 }
 
 // GetOrganizationMembershipsOf provides a mock function.
-func (_m *MockOrganizationStore) GetOrganizationMembershipsOf(ctx context.Context, userID uint) ([]UserOrganization, error) {
+func (_m *MockOrganizationStore) GetOrganizationMembershipsOf(ctx context.Context, userID uint) (_result_0 []UserOrganization, _result_1 error) {
 	ret := _m.Called(ctx, userID)
 
 	var r0 []UserOrganization
@@ -151,7 +151,7 @@ func (_m *MockOrganizationStore) GetOrganizationMembershipsOf(ctx context.Contex
 }
 
 // RemoveUserFromOrganization provides a mock function.
-func (_m *MockOrganizationStore) RemoveUserFromOrganization(ctx context.Context, organizationID uint, userID uint) error {
+func (_m *MockOrganizationStore) RemoveUserFromOrganization(ctx context.Context, organizationID uint, userID uint) (_result_0 error) {
 	ret := _m.Called(ctx, organizationID, userID)
 
 	var r0 error
@@ -170,7 +170,7 @@ type MockOrganizationEvents struct {
 }
 
 // OrganizationCreated provides a mock function.
-func (_m *MockOrganizationEvents) OrganizationCreated(ctx context.Context, event OrganizationCreated) error {
+func (_m *MockOrganizationEvents) OrganizationCreated(ctx context.Context, event OrganizationCreated) (_result_0 error) {
 	ret := _m.Called(ctx, event)
 
 	var r0 error

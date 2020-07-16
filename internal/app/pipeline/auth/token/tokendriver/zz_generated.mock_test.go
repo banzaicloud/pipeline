@@ -15,7 +15,7 @@ type MockAuthorizer struct {
 }
 
 // Authorize provides a mock function.
-func (_m *MockAuthorizer) Authorize(ctx context.Context, action string, object interface{}) (bool, error) {
+func (_m *MockAuthorizer) Authorize(ctx context.Context, action string, object interface{}) (_result_0 bool, _result_1 error) {
 	ret := _m.Called(ctx, action, object)
 
 	var r0 bool

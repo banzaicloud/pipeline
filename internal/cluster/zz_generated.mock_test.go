@@ -15,7 +15,7 @@ type MockNodePoolLabelSource struct {
 }
 
 // GetLabels provides a mock function.
-func (_m *MockNodePoolLabelSource) GetLabels(ctx context.Context, cluster Cluster, nodePool NodePool) (map[string]string, error) {
+func (_m *MockNodePoolLabelSource) GetLabels(ctx context.Context, cluster Cluster, nodePool NodePool) (_result_0 map[string]string, _result_1 error) {
 	ret := _m.Called(ctx, cluster, nodePool)
 
 	var r0 map[string]string
@@ -43,7 +43,7 @@ type MockLabelValidator struct {
 }
 
 // ValidateKey provides a mock function.
-func (_m *MockLabelValidator) ValidateKey(key string) error {
+func (_m *MockLabelValidator) ValidateKey(key string) (_result_0 error) {
 	ret := _m.Called(key)
 
 	var r0 error
@@ -57,7 +57,7 @@ func (_m *MockLabelValidator) ValidateKey(key string) error {
 }
 
 // ValidateValue provides a mock function.
-func (_m *MockLabelValidator) ValidateValue(value string) error {
+func (_m *MockLabelValidator) ValidateValue(value string) (_result_0 error) {
 	ret := _m.Called(value)
 
 	var r0 error
@@ -76,7 +76,7 @@ type MockStore struct {
 }
 
 // GetCluster provides a mock function.
-func (_m *MockStore) GetCluster(ctx context.Context, id uint) (Cluster, error) {
+func (_m *MockStore) GetCluster(ctx context.Context, id uint) (_result_0 Cluster, _result_1 error) {
 	ret := _m.Called(ctx, id)
 
 	var r0 Cluster
@@ -97,7 +97,7 @@ func (_m *MockStore) GetCluster(ctx context.Context, id uint) (Cluster, error) {
 }
 
 // GetClusterByName provides a mock function.
-func (_m *MockStore) GetClusterByName(ctx context.Context, orgID uint, clusterName string) (Cluster, error) {
+func (_m *MockStore) GetClusterByName(ctx context.Context, orgID uint, clusterName string) (_result_0 Cluster, _result_1 error) {
 	ret := _m.Called(ctx, orgID, clusterName)
 
 	var r0 Cluster
@@ -118,7 +118,7 @@ func (_m *MockStore) GetClusterByName(ctx context.Context, orgID uint, clusterNa
 }
 
 // SetStatus provides a mock function.
-func (_m *MockStore) SetStatus(ctx context.Context, id uint, status string, statusMessage string) error {
+func (_m *MockStore) SetStatus(ctx context.Context, id uint, status string, statusMessage string) (_result_0 error) {
 	ret := _m.Called(ctx, id, status, statusMessage)
 
 	var r0 error
@@ -137,7 +137,7 @@ type MockClusterGroupManager struct {
 }
 
 // ValidateClusterRemoval provides a mock function.
-func (_m *MockClusterGroupManager) ValidateClusterRemoval(ctx context.Context, clusterID uint) error {
+func (_m *MockClusterGroupManager) ValidateClusterRemoval(ctx context.Context, clusterID uint) (_result_0 error) {
 	ret := _m.Called(ctx, clusterID)
 
 	var r0 error
@@ -156,7 +156,7 @@ type MockNodePoolStore struct {
 }
 
 // DeleteNodePool provides a mock function.
-func (_m *MockNodePoolStore) DeleteNodePool(ctx context.Context, clusterID uint, name string) error {
+func (_m *MockNodePoolStore) DeleteNodePool(ctx context.Context, clusterID uint, name string) (_result_0 error) {
 	ret := _m.Called(ctx, clusterID, name)
 
 	var r0 error
@@ -170,7 +170,7 @@ func (_m *MockNodePoolStore) DeleteNodePool(ctx context.Context, clusterID uint,
 }
 
 // NodePoolExists provides a mock function.
-func (_m *MockNodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name string) (bool, error) {
+func (_m *MockNodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name string) (_result_0 bool, _result_1 error) {
 	ret := _m.Called(ctx, clusterID, name)
 
 	var r0 bool
@@ -196,7 +196,7 @@ type MockNodePoolValidator struct {
 }
 
 // ValidateNew provides a mock function.
-func (_m *MockNodePoolValidator) ValidateNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) error {
+func (_m *MockNodePoolValidator) ValidateNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) (_result_0 error) {
 	ret := _m.Called(ctx, cluster, rawNodePool)
 
 	var r0 error
@@ -215,7 +215,7 @@ type MockNodePoolProcessor struct {
 }
 
 // ProcessNew provides a mock function.
-func (_m *MockNodePoolProcessor) ProcessNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) (NewRawNodePool, error) {
+func (_m *MockNodePoolProcessor) ProcessNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) (_result_0 NewRawNodePool, _result_1 error) {
 	ret := _m.Called(ctx, cluster, rawNodePool)
 
 	var r0 NewRawNodePool
@@ -243,7 +243,7 @@ type MockNodePoolManager struct {
 }
 
 // CreateNodePool provides a mock function.
-func (_m *MockNodePoolManager) CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) error {
+func (_m *MockNodePoolManager) CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) (_result_0 error) {
 	ret := _m.Called(ctx, clusterID, rawNodePool)
 
 	var r0 error
@@ -257,7 +257,7 @@ func (_m *MockNodePoolManager) CreateNodePool(ctx context.Context, clusterID uin
 }
 
 // DeleteNodePool provides a mock function.
-func (_m *MockNodePoolManager) DeleteNodePool(ctx context.Context, clusterID uint, name string) error {
+func (_m *MockNodePoolManager) DeleteNodePool(ctx context.Context, clusterID uint, name string) (_result_0 error) {
 	ret := _m.Called(ctx, clusterID, name)
 
 	var r0 error
