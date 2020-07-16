@@ -62,3 +62,23 @@ func (s nodePoolStore) CreateNodePool(
 
 	return nil
 }
+
+// ListNodePoolNames retrieves the node pool names for the cluster specified by
+// its cluster ID.
+func (s nodePoolStore) ListNodePoolNames(ctx context.Context, clusterID uint) (nodePoolNames []string, err error) {
+	var eksCluster eksmodel.EKSClusterModel
+	err = s.db.
+		Where(eksmodel.EKSClusterModel{ClusterID: clusterID}).
+		Preload("NodePools").
+		First(&eksCluster).Error
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "fetching node pools from database failed", "clusterID", clusterID)
+	}
+
+	nodePoolNames = make([]string, 0, len(eksCluster.NodePools))
+	for _, nodePoolModel := range eksCluster.NodePools {
+		nodePoolNames = append(nodePoolNames, nodePoolModel.Name)
+	}
+
+	return nodePoolNames, nil
+}

@@ -71,6 +71,10 @@ func (n NewNodePool) Validate() error {
 type NodePoolStore interface {
 	// CreateNodePool saves a new node pool.
 	CreateNodePool(ctx context.Context, clusterID uint, createdBy uint, nodePool NewNodePool) error
+
+	// ListNodePoolNames retrieves the node pool names for the cluster specified
+	// by its cluster ID.
+	ListNodePoolNames(ctx context.Context, clusterID uint) (nodePoolNames []string, err error)
 }
 
 func CalculateNodePoolVersion(input ...string) string {
