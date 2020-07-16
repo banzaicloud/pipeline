@@ -12,3 +12,8 @@ openapi_library(
     },
     strip = ["{Dockerfile,go.*,README.md,main.go,pipeline/api*.go,pipeline/logger.go,pipeline/routers.go}"],
 )
+
+openapi_validate(
+    name = "validate",
+    spec = "pipeline.yaml",
+)

@@ -27,3 +27,8 @@ openapi_library(
     },
     strip = ["{.travis.yml,git_push.sh,go.*,docs}"],
 )
+
+openapi_validate(
+    name = "validate",
+    spec = ":spec",
+)
