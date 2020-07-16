@@ -103,6 +103,8 @@ type service struct {
 	nodePoolManager NodePoolManager
 }
 
+// +testify:mock:testOnly=true
+
 // NodePoolManager is responsible for managing node pools.
 type NodePoolManager interface {
 	// UpdateNodePool updates an existing node pool in a cluster.
@@ -152,6 +154,8 @@ func (s service) ListNodePools(ctx context.Context, clusterID uint) ([]NodePool,
 
 	return nodePools, nil
 }
+
+// +testify:mock:testOnly=true
 
 // Store provides an interface to the generic Cluster model persistence.
 type Store interface {

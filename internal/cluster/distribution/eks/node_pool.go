@@ -67,6 +67,8 @@ func (n NewNodePool) Validate() error {
 	return nil
 }
 
+// +testify:mock:testOnly=true
+
 // NodePoolStore provides an interface for EKS node pool persistence.
 type NodePoolStore interface {
 	// CreateNodePool saves a new node pool.
