@@ -29,6 +29,7 @@ type Endpoints struct {
 	CreateNodePool endpoint.Endpoint
 	DeleteCluster  endpoint.Endpoint
 	DeleteNodePool endpoint.Endpoint
+	ListNodePools  endpoint.Endpoint
 	UpdateNodePool endpoint.Endpoint
 }
 
@@ -41,6 +42,7 @@ func MakeEndpoints(service cluster.Service, middleware ...endpoint.Middleware) E
 		CreateNodePool: kitxendpoint.OperationNameMiddleware("cluster.CreateNodePool")(mw(MakeCreateNodePoolEndpoint(service))),
 		DeleteCluster:  kitxendpoint.OperationNameMiddleware("cluster.DeleteCluster")(mw(MakeDeleteClusterEndpoint(service))),
 		DeleteNodePool: kitxendpoint.OperationNameMiddleware("cluster.DeleteNodePool")(mw(MakeDeleteNodePoolEndpoint(service))),
+		ListNodePools:  kitxendpoint.OperationNameMiddleware("cluster.ListNodePools")(mw(MakeListNodePoolsEndpoint(service))),
 		UpdateNodePool: kitxendpoint.OperationNameMiddleware("cluster.UpdateNodePool")(mw(MakeUpdateNodePoolEndpoint(service))),
 	}
 }
@@ -158,6 +160,46 @@ func MakeDeleteNodePoolEndpoint(service cluster.Service) endpoint.Endpoint {
 		}
 
 		return DeleteNodePoolResponse{Deleted: deleted}, nil
+	}
+}
+
+// ListNodePoolsRequest is a request struct for ListNodePools endpoint.
+type ListNodePoolsRequest struct {
+	ClusterID uint
+}
+
+// ListNodePoolsResponse is a response struct for ListNodePools endpoint.
+type ListNodePoolsResponse struct {
+	NodePoolList cluster.RawNodePoolList
+	Err          error
+}
+
+func (r ListNodePoolsResponse) Failed() error {
+	return r.Err
+}
+
+// MakeListNodePoolsEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeListNodePoolsEndpoint(service cluster.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(ListNodePoolsRequest)
+
+		nodePoolList, err := service.ListNodePools(ctx, req.ClusterID)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return ListNodePoolsResponse{
+					Err:          err,
+					NodePoolList: nodePoolList,
+				}, nil
+			}
+
+			return ListNodePoolsResponse{
+				Err:          err,
+				NodePoolList: nodePoolList,
+			}, err
+		}
+
+		return ListNodePoolsResponse{NodePoolList: nodePoolList}, nil
 	}
 }
 
