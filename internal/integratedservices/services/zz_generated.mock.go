@@ -6,7 +6,8 @@ package services
 
 import (
 	"context"
-	"github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/internal/helm"
+	helm1 "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -16,7 +17,7 @@ type MockHelmService struct {
 }
 
 // ApplyDeployment provides a mock function.
-func (_m *MockHelmService) ApplyDeployment(ctx context.Context, clusterID uint, namespace string, chartName string, releaseName string, values []uint8, chartVersion string) error {
+func (_m *MockHelmService) ApplyDeployment(ctx context.Context, clusterID uint, namespace string, chartName string, releaseName string, values []uint8, chartVersion string) (_result_0 error) {
 	ret := _m.Called(ctx, clusterID, namespace, chartName, releaseName, values, chartVersion)
 
 	var r0 error
@@ -29,8 +30,22 @@ func (_m *MockHelmService) ApplyDeployment(ctx context.Context, clusterID uint, 
 	return r0
 }
 
+// ApplyDeploymentV3 provides a mock function.
+func (_m *MockHelmService) ApplyDeploymentV3(ctx context.Context, clusterID uint, release helm.Release, options helm.Options) (_result_0 error) {
+	ret := _m.Called(ctx, clusterID, release, options)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint, helm.Release, helm.Options) error); ok {
+		r0 = rf(ctx, clusterID, release, options)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeleteDeployment provides a mock function.
-func (_m *MockHelmService) DeleteDeployment(ctx context.Context, clusterID uint, releaseName string, namespace string) error {
+func (_m *MockHelmService) DeleteDeployment(ctx context.Context, clusterID uint, releaseName string, namespace string) (_result_0 error) {
 	ret := _m.Called(ctx, clusterID, releaseName, namespace)
 
 	var r0 error
@@ -44,15 +59,15 @@ func (_m *MockHelmService) DeleteDeployment(ctx context.Context, clusterID uint,
 }
 
 // GetDeployment provides a mock function.
-func (_m *MockHelmService) GetDeployment(ctx context.Context, clusterID uint, releaseName string, namespace string) (*helm.GetDeploymentResponse, error) {
+func (_m *MockHelmService) GetDeployment(ctx context.Context, clusterID uint, releaseName string, namespace string) (_result_0 *helm1.GetDeploymentResponse, _result_1 error) {
 	ret := _m.Called(ctx, clusterID, releaseName, namespace)
 
-	var r0 *helm.GetDeploymentResponse
-	if rf, ok := ret.Get(0).(func(context.Context, uint, string, string) *helm.GetDeploymentResponse); ok {
+	var r0 *helm1.GetDeploymentResponse
+	if rf, ok := ret.Get(0).(func(context.Context, uint, string, string) *helm1.GetDeploymentResponse); ok {
 		r0 = rf(ctx, clusterID, releaseName, namespace)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*helm.GetDeploymentResponse)
+			r0 = ret.Get(0).(*helm1.GetDeploymentResponse)
 		}
 	}
 
@@ -67,7 +82,7 @@ func (_m *MockHelmService) GetDeployment(ctx context.Context, clusterID uint, re
 }
 
 // IsV3 provides a mock function.
-func (_m *MockHelmService) IsV3() bool {
+func (_m *MockHelmService) IsV3() (_result_0 bool) {
 	ret := _m.Called()
 
 	var r0 bool

@@ -15,7 +15,7 @@ type MockService struct {
 }
 
 // CreateNodePool provides a mock function.
-func (_m *MockService) CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) error {
+func (_m *MockService) CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) (_result_0 error) {
 	ret := _m.Called(ctx, clusterID, rawNodePool)
 
 	var r0 error

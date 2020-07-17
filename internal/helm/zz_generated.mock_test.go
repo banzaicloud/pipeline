@@ -15,7 +15,7 @@ type MockOrgService struct {
 }
 
 // GetOrgNameByOrgID provides a mock function.
-func (_m *MockOrgService) GetOrgNameByOrgID(ctx context.Context, orgID uint) (string, error) {
+func (_m *MockOrgService) GetOrgNameByOrgID(ctx context.Context, orgID uint) (_result_0 string, _result_1 error) {
 	ret := _m.Called(ctx, orgID)
 
 	var r0 string
@@ -41,7 +41,7 @@ type MockEnvResolver struct {
 }
 
 // ResolveHelmEnv provides a mock function.
-func (_m *MockEnvResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (HelmEnv, error) {
+func (_m *MockEnvResolver) ResolveHelmEnv(ctx context.Context, organizationID uint) (_result_0 HelmEnv, _result_1 error) {
 	ret := _m.Called(ctx, organizationID)
 
 	var r0 HelmEnv
@@ -62,7 +62,7 @@ func (_m *MockEnvResolver) ResolveHelmEnv(ctx context.Context, organizationID ui
 }
 
 // ResolvePlatformEnv provides a mock function.
-func (_m *MockEnvResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
+func (_m *MockEnvResolver) ResolvePlatformEnv(ctx context.Context) (_result_0 HelmEnv, _result_1 error) {
 	ret := _m.Called(ctx)
 
 	var r0 HelmEnv
@@ -88,7 +88,7 @@ type MockService struct {
 }
 
 // AddRepository provides a mock function.
-func (_m *MockService) AddRepository(ctx context.Context, organizationID uint, repository Repository) error {
+func (_m *MockService) AddRepository(ctx context.Context, organizationID uint, repository Repository) (_result_0 error) {
 	ret := _m.Called(ctx, organizationID, repository)
 
 	var r0 error
@@ -102,7 +102,7 @@ func (_m *MockService) AddRepository(ctx context.Context, organizationID uint, r
 }
 
 // CheckRelease provides a mock function.
-func (_m *MockService) CheckRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (string, error) {
+func (_m *MockService) CheckRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (_result_0 string, _result_1 error) {
 	ret := _m.Called(ctx, organizationID, clusterID, releaseName, options)
 
 	var r0 string
@@ -123,7 +123,7 @@ func (_m *MockService) CheckRelease(ctx context.Context, organizationID uint, cl
 }
 
 // CheckReleases provides a mock function.
-func (_m *MockService) CheckReleases(ctx context.Context, organizationID uint, releases []Release) (map[string]bool, error) {
+func (_m *MockService) CheckReleases(ctx context.Context, organizationID uint, releases []Release) (_result_0 map[string]bool, _result_1 error) {
 	ret := _m.Called(ctx, organizationID, releases)
 
 	var r0 map[string]bool
@@ -146,7 +146,7 @@ func (_m *MockService) CheckReleases(ctx context.Context, organizationID uint, r
 }
 
 // DeleteRelease provides a mock function.
-func (_m *MockService) DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) error {
+func (_m *MockService) DeleteRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (_result_0 error) {
 	ret := _m.Called(ctx, organizationID, clusterID, releaseName, options)
 
 	var r0 error
@@ -160,7 +160,7 @@ func (_m *MockService) DeleteRelease(ctx context.Context, organizationID uint, c
 }
 
 // DeleteRepository provides a mock function.
-func (_m *MockService) DeleteRepository(ctx context.Context, organizationID uint, repoName string) error {
+func (_m *MockService) DeleteRepository(ctx context.Context, organizationID uint, repoName string) (_result_0 error) {
 	ret := _m.Called(ctx, organizationID, repoName)
 
 	var r0 error
@@ -197,7 +197,7 @@ func (_m *MockService) GetChart(ctx context.Context, organizationID uint, chartF
 }
 
 // GetRelease provides a mock function.
-func (_m *MockService) GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (Release, error) {
+func (_m *MockService) GetRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options Options) (_result_0 Release, _result_1 error) {
 	ret := _m.Called(ctx, organizationID, clusterID, releaseName, options)
 
 	var r0 Release
@@ -218,7 +218,7 @@ func (_m *MockService) GetRelease(ctx context.Context, organizationID uint, clus
 }
 
 // GetReleaseResources provides a mock function.
-func (_m *MockService) GetReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) ([]ReleaseResource, error) {
+func (_m *MockService) GetReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) (_result_0 []ReleaseResource, _result_1 error) {
 	ret := _m.Called(ctx, organizationID, clusterID, release, options)
 
 	var r0 []ReleaseResource
@@ -285,7 +285,7 @@ func (_m *MockService) ListCharts(ctx context.Context, organizationID uint, filt
 }
 
 // ListReleases provides a mock function.
-func (_m *MockService) ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters ReleaseFilter, options Options) ([]Release, error) {
+func (_m *MockService) ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters ReleaseFilter, options Options) (_result_0 []Release, _result_1 error) {
 	ret := _m.Called(ctx, organizationID, clusterID, filters, options)
 
 	var r0 []Release
@@ -331,7 +331,7 @@ func (_m *MockService) ListRepositories(ctx context.Context, organizationID uint
 }
 
 // ModifyRepository provides a mock function.
-func (_m *MockService) ModifyRepository(ctx context.Context, organizationID uint, repository Repository) error {
+func (_m *MockService) ModifyRepository(ctx context.Context, organizationID uint, repository Repository) (_result_0 error) {
 	ret := _m.Called(ctx, organizationID, repository)
 
 	var r0 error
@@ -345,7 +345,7 @@ func (_m *MockService) ModifyRepository(ctx context.Context, organizationID uint
 }
 
 // UpdateRepository provides a mock function.
-func (_m *MockService) UpdateRepository(ctx context.Context, organizationID uint, repository Repository) error {
+func (_m *MockService) UpdateRepository(ctx context.Context, organizationID uint, repository Repository) (_result_0 error) {
 	ret := _m.Called(ctx, organizationID, repository)
 
 	var r0 error
@@ -385,7 +385,7 @@ type MockEnvService struct {
 }
 
 // AddRepository provides a mock function.
-func (_m *MockEnvService) AddRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) error {
+func (_m *MockEnvService) AddRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) (_result_0 error) {
 	ret := _m.Called(ctx, helmEnv, repository)
 
 	var r0 error
@@ -399,7 +399,7 @@ func (_m *MockEnvService) AddRepository(ctx context.Context, helmEnv HelmEnv, re
 }
 
 // CheckReleaseCharts provides a mock function.
-func (_m *MockEnvService) CheckReleaseCharts(ctx context.Context, helmEnv HelmEnv, releases []Release) (map[string]bool, error) {
+func (_m *MockEnvService) CheckReleaseCharts(ctx context.Context, helmEnv HelmEnv, releases []Release) (_result_0 map[string]bool, _result_1 error) {
 	ret := _m.Called(ctx, helmEnv, releases)
 
 	var r0 map[string]bool
@@ -422,7 +422,7 @@ func (_m *MockEnvService) CheckReleaseCharts(ctx context.Context, helmEnv HelmEn
 }
 
 // DeleteRepository provides a mock function.
-func (_m *MockEnvService) DeleteRepository(ctx context.Context, helmEnv HelmEnv, repoName string) error {
+func (_m *MockEnvService) DeleteRepository(ctx context.Context, helmEnv HelmEnv, repoName string) (_result_0 error) {
 	ret := _m.Called(ctx, helmEnv, repoName)
 
 	var r0 error
@@ -436,7 +436,7 @@ func (_m *MockEnvService) DeleteRepository(ctx context.Context, helmEnv HelmEnv,
 }
 
 // EnsureEnv provides a mock function.
-func (_m *MockEnvService) EnsureEnv(ctx context.Context, helmEnv HelmEnv, defaultRepos []Repository) (HelmEnv, bool, error) {
+func (_m *MockEnvService) EnsureEnv(ctx context.Context, helmEnv HelmEnv, defaultRepos []Repository) (_result_0 HelmEnv, _result_1 bool, _result_2 error) {
 	ret := _m.Called(ctx, helmEnv, defaultRepos)
 
 	var r0 HelmEnv
@@ -533,7 +533,7 @@ func (_m *MockEnvService) ListRepositories(ctx context.Context, helmEnv HelmEnv)
 }
 
 // PatchRepository provides a mock function.
-func (_m *MockEnvService) PatchRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) error {
+func (_m *MockEnvService) PatchRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) (_result_0 error) {
 	ret := _m.Called(ctx, helmEnv, repository)
 
 	var r0 error
@@ -547,7 +547,7 @@ func (_m *MockEnvService) PatchRepository(ctx context.Context, helmEnv HelmEnv, 
 }
 
 // UpdateRepository provides a mock function.
-func (_m *MockEnvService) UpdateRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) error {
+func (_m *MockEnvService) UpdateRepository(ctx context.Context, helmEnv HelmEnv, repository Repository) (_result_0 error) {
 	ret := _m.Called(ctx, helmEnv, repository)
 
 	var r0 error
@@ -566,7 +566,7 @@ type MockStore struct {
 }
 
 // Create provides a mock function.
-func (_m *MockStore) Create(ctx context.Context, organizationID uint, repository Repository) error {
+func (_m *MockStore) Create(ctx context.Context, organizationID uint, repository Repository) (_result_0 error) {
 	ret := _m.Called(ctx, organizationID, repository)
 
 	var r0 error
@@ -580,7 +580,7 @@ func (_m *MockStore) Create(ctx context.Context, organizationID uint, repository
 }
 
 // Delete provides a mock function.
-func (_m *MockStore) Delete(ctx context.Context, organizationID uint, repository Repository) error {
+func (_m *MockStore) Delete(ctx context.Context, organizationID uint, repository Repository) (_result_0 error) {
 	ret := _m.Called(ctx, organizationID, repository)
 
 	var r0 error
@@ -594,7 +594,7 @@ func (_m *MockStore) Delete(ctx context.Context, organizationID uint, repository
 }
 
 // Get provides a mock function.
-func (_m *MockStore) Get(ctx context.Context, organizationID uint, repository Repository) (Repository, error) {
+func (_m *MockStore) Get(ctx context.Context, organizationID uint, repository Repository) (_result_0 Repository, _result_1 error) {
 	ret := _m.Called(ctx, organizationID, repository)
 
 	var r0 Repository
@@ -615,7 +615,7 @@ func (_m *MockStore) Get(ctx context.Context, organizationID uint, repository Re
 }
 
 // List provides a mock function.
-func (_m *MockStore) List(ctx context.Context, organizationID uint) ([]Repository, error) {
+func (_m *MockStore) List(ctx context.Context, organizationID uint) (_result_0 []Repository, _result_1 error) {
 	ret := _m.Called(ctx, organizationID)
 
 	var r0 []Repository
@@ -638,7 +638,7 @@ func (_m *MockStore) List(ctx context.Context, organizationID uint) ([]Repositor
 }
 
 // Update provides a mock function.
-func (_m *MockStore) Update(ctx context.Context, organizationID uint, repository Repository) error {
+func (_m *MockStore) Update(ctx context.Context, organizationID uint, repository Repository) (_result_0 error) {
 	ret := _m.Called(ctx, organizationID, repository)
 
 	var r0 error
@@ -657,7 +657,7 @@ type MockSecretStore struct {
 }
 
 // CheckPasswordSecret provides a mock function.
-func (_m *MockSecretStore) CheckPasswordSecret(ctx context.Context, secretID string) error {
+func (_m *MockSecretStore) CheckPasswordSecret(ctx context.Context, secretID string) (_result_0 error) {
 	ret := _m.Called(ctx, secretID)
 
 	var r0 error
@@ -671,7 +671,7 @@ func (_m *MockSecretStore) CheckPasswordSecret(ctx context.Context, secretID str
 }
 
 // CheckTLSSecret provides a mock function.
-func (_m *MockSecretStore) CheckTLSSecret(ctx context.Context, secretID string) error {
+func (_m *MockSecretStore) CheckTLSSecret(ctx context.Context, secretID string) (_result_0 error) {
 	ret := _m.Called(ctx, secretID)
 
 	var r0 error
@@ -685,7 +685,7 @@ func (_m *MockSecretStore) CheckTLSSecret(ctx context.Context, secretID string) 
 }
 
 // ResolvePasswordSecrets provides a mock function.
-func (_m *MockSecretStore) ResolvePasswordSecrets(ctx context.Context, secretID string) (PasswordSecret, error) {
+func (_m *MockSecretStore) ResolvePasswordSecrets(ctx context.Context, secretID string) (_result_0 PasswordSecret, _result_1 error) {
 	ret := _m.Called(ctx, secretID)
 
 	var r0 PasswordSecret
@@ -706,7 +706,7 @@ func (_m *MockSecretStore) ResolvePasswordSecrets(ctx context.Context, secretID 
 }
 
 // ResolveTlsSecrets provides a mock function.
-func (_m *MockSecretStore) ResolveTlsSecrets(ctx context.Context, secretID string) (TlsSecret, error) {
+func (_m *MockSecretStore) ResolveTlsSecrets(ctx context.Context, secretID string) (_result_0 TlsSecret, _result_1 error) {
 	ret := _m.Called(ctx, secretID)
 
 	var r0 TlsSecret

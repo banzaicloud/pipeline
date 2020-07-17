@@ -15,7 +15,7 @@ type MockClusterGetter struct {
 }
 
 // GetClusterByIDOnly provides a mock function.
-func (_m *MockClusterGetter) GetClusterByIDOnly(ctx context.Context, clusterID uint) (Cluster, error) {
+func (_m *MockClusterGetter) GetClusterByIDOnly(ctx context.Context, clusterID uint) (_result_0 Cluster, _result_1 error) {
 	ret := _m.Called(ctx, clusterID)
 
 	var r0 Cluster

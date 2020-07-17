@@ -36,7 +36,7 @@ func (_m *MockService) CreateToken(ctx context.Context, tokenRequest NewTokenReq
 }
 
 // DeleteToken provides a mock function.
-func (_m *MockService) DeleteToken(ctx context.Context, id string) error {
+func (_m *MockService) DeleteToken(ctx context.Context, id string) (_result_0 error) {
 	ret := _m.Called(ctx, id)
 
 	var r0 error

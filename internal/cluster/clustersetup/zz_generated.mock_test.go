@@ -19,7 +19,7 @@ type MockClientFactory struct {
 }
 
 // FromSecret provides a mock function.
-func (_m *MockClientFactory) FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error) {
+func (_m *MockClientFactory) FromSecret(ctx context.Context, secretID string) (_result_0 kubernetes.Interface, _result_1 error) {
 	ret := _m.Called(ctx, secretID)
 
 	var r0 kubernetes.Interface
@@ -47,7 +47,7 @@ type MockDynamicClientFactory struct {
 }
 
 // FromSecret provides a mock function.
-func (_m *MockDynamicClientFactory) FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error) {
+func (_m *MockDynamicClientFactory) FromSecret(ctx context.Context, secretID string) (_result_0 dynamic.Interface, _result_1 error) {
 	ret := _m.Called(ctx, secretID)
 
 	var r0 dynamic.Interface
@@ -75,7 +75,7 @@ type MockHelmClientFactory struct {
 }
 
 // FromSecret provides a mock function.
-func (_m *MockHelmClientFactory) FromSecret(ctx context.Context, secretID string) (*helm.Client, error) {
+func (_m *MockHelmClientFactory) FromSecret(ctx context.Context, secretID string) (_result_0 *helm.Client, _result_1 error) {
 	ret := _m.Called(ctx, secretID)
 
 	var r0 *helm.Client
@@ -103,7 +103,7 @@ type MockDynamicFileClientFactory struct {
 }
 
 // FromSecret provides a mock function.
-func (_m *MockDynamicFileClientFactory) FromSecret(ctx context.Context, secretID string) (kubernetes1.DynamicFileClient, error) {
+func (_m *MockDynamicFileClientFactory) FromSecret(ctx context.Context, secretID string) (_result_0 kubernetes1.DynamicFileClient, _result_1 error) {
 	ret := _m.Called(ctx, secretID)
 
 	var r0 kubernetes1.DynamicFileClient

@@ -15,7 +15,7 @@ type MockReadWriteOrganizationalSecretStore struct {
 }
 
 // Delete provides a mock function.
-func (_m *MockReadWriteOrganizationalSecretStore) Delete(organizationID uint, secretID string) error {
+func (_m *MockReadWriteOrganizationalSecretStore) Delete(organizationID uint, secretID string) (_result_0 error) {
 	ret := _m.Called(organizationID, secretID)
 
 	var r0 error
@@ -29,7 +29,7 @@ func (_m *MockReadWriteOrganizationalSecretStore) Delete(organizationID uint, se
 }
 
 // Get provides a mock function.
-func (_m *MockReadWriteOrganizationalSecretStore) Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error) {
+func (_m *MockReadWriteOrganizationalSecretStore) Get(organizationID uint, secretID string) (_result_0 *secret.SecretItemResponse, _result_1 error) {
 	ret := _m.Called(organizationID, secretID)
 
 	var r0 *secret.SecretItemResponse
@@ -52,7 +52,7 @@ func (_m *MockReadWriteOrganizationalSecretStore) Get(organizationID uint, secre
 }
 
 // GetByName provides a mock function.
-func (_m *MockReadWriteOrganizationalSecretStore) GetByName(organizationID uint, name string) (*secret.SecretItemResponse, error) {
+func (_m *MockReadWriteOrganizationalSecretStore) GetByName(organizationID uint, name string) (_result_0 *secret.SecretItemResponse, _result_1 error) {
 	ret := _m.Called(organizationID, name)
 
 	var r0 *secret.SecretItemResponse
@@ -75,7 +75,7 @@ func (_m *MockReadWriteOrganizationalSecretStore) GetByName(organizationID uint,
 }
 
 // Store provides a mock function.
-func (_m *MockReadWriteOrganizationalSecretStore) Store(organizationID uint, request *secret.CreateSecretRequest) (string, error) {
+func (_m *MockReadWriteOrganizationalSecretStore) Store(organizationID uint, request *secret.CreateSecretRequest) (_result_0 string, _result_1 error) {
 	ret := _m.Called(organizationID, request)
 
 	var r0 string
