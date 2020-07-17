@@ -99,7 +99,7 @@ require (
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
 	github.com/vmware/govmomi v0.22.0
 	go.opencensus.io v0.22.2
-	go.uber.org/cadence v0.9.0
+	go.uber.org/cadence v0.9.3
 	go.uber.org/yarpc v1.45.0
 	go.uber.org/zap v1.14.1
 	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
