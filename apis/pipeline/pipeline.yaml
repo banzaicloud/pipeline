@@ -7435,21 +7435,25 @@ components:
                 type: string
             example: []
         RestoreResultNamespaces:
-            type: array
-            items:
-                type: object
+            type: object
+            additionalProperties:
+                type: array
+                items:
+                    type: string
+                    example: []
         RestoreResultNamespacesWarnings:
-            type: array
-            items:
-                type: object
-                additionalProperties: true
-                description: "warnings during restoration process"
-                example: { "default": [
-                                    "not restored: services \"kubernetes\" already exists and is different from backed up version.",
-                                    "not restored: services \"pipeline-traefik-metrics-prometheus\" already exists and is different from backed up version.",
-                                    "not restored: services \"pipeline-traefik\" already exists and is different from backed up version."
-                            ]
-                }
+            type: object
+            additionalProperties:
+                type: array
+                items:
+                    type: string
+                    description: "warnings during restoration process"
+                    example: { "default": [
+                                        "not restored: services \"kubernetes\" already exists and is different from backed up version.",
+                                        "not restored: services \"pipeline-traefik-metrics-prometheus\" already exists and is different from backed up version.",
+                                        "not restored: services \"pipeline-traefik\" already exists and is different from backed up version."
+                                ]
+                    }
         RestoreResultErrors:
             type: object
             properties:
