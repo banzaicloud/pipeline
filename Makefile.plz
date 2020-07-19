@@ -19,8 +19,6 @@ endif
 TEST_FORMAT = short-verbose
 endif
 
-DEX_VERSION = 2.19.0
-
 LICENSEI_VERSION = 0.2.0
 PROTOC_VERSION = 3.11.4
 BUF_VERSION = 0.7.0
@@ -224,8 +222,7 @@ generate-anchore-client: ## Generate client from Anchore OpenAPI spec
 	./pleasew make //apis/anchore
 
 apis/dex/api.proto:
-	@mkdir -p apis/dex
-	curl https://raw.githubusercontent.com/dexidp/dex/v${DEX_VERSION}/api/api.proto > apis/dex/api.proto
+	./pleasew make //apis/dex:spec
 
 .PHONY: _download-protos
 _download-protos: apis/dex/api.proto
