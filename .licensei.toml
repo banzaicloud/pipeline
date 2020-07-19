@@ -27,7 +27,7 @@ ignored = [
 ]
 
 [header]
-ignorePaths = ["vendor", "client", ".gen"]
+ignorePaths = ["vendor", "client", ".gen", "plz-out"]
 ignoreFiles = ["mock_*.go", "*_gen.go", "zz_generated.*.go", "SecretStore_test.go"]
 template = """// Copyright © :YEAR: Banzai Cloud
 //

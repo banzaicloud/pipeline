@@ -23,6 +23,22 @@ remote_file(
     binary = True,
 )
 
+licensei_version = "0.2.0"
+
+genrule(
+    name = "licensei",
+    srcs = [remote_file(
+        name = "licensei",
+        _tag = "download",
+        url = f"https://github.com/goph/licensei/releases/download/v{licensei_version}/licensei_{CONFIG.HOSTOS}_{CONFIG.HOSTARCH}.tar.gz",
+        out = f"licensei-{licensei_version}.tar.gz",
+    )],
+    outs = ["licensei"],
+    binary = True,
+    cmd = '"$TOOL" x "$SRCS" licensei -o tmp && mv $(find tmp -name "licensei") "$OUT"',
+    tools = [CONFIG.JARCAT_TOOL],
+)
+
 genrule(
     name = "docker-compose.override.yml",
     srcs = ["docker-compose.override.yml.dist"],
