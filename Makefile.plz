@@ -19,7 +19,6 @@ endif
 TEST_FORMAT = short-verbose
 endif
 
-LICENSEI_VERSION = 0.2.0
 MIGRATE_VERSION = 4.9.1
 
 .PHONY: up
@@ -125,21 +124,18 @@ fix: ## Fix lint violations
 	./pleasew lint --fix
 	cd pkg/sdk && ../../$(shell ./pleasew query output ///pleasings2//tools/go:golangci-lint) run --fix
 
-bin/licensei: bin/licensei-${LICENSEI_VERSION}
-	@ln -sf licensei-${LICENSEI_VERSION} bin/licensei
-bin/licensei-${LICENSEI_VERSION}:
-	@mkdir -p bin
-	curl -sfL https://git.io/licensei | bash -s v${LICENSEI_VERSION}
-	@mv bin/licensei $@
+bin/licensei:
+	./pleasew build :licensei
+	cp $(shell ./pleasew query output :licensei) bin/licensei
 
 .PHONY: license-check
-license-check: bin/licensei ## Run license check
-	bin/licensei check
-	bin/licensei header
+license-check: ## Run license check
+	./pleasew run :licensei -- check
+	./pleasew run :licensei -- header
 
 .PHONY: license-cache
-license-cache: bin/licensei ## Generate license cache
-	bin/licensei cache
+license-cache: ## Generate license cache
+	./pleasew run :licensei -- cache
 
 # Remove once fully migrated
 bin/gotestsum:
