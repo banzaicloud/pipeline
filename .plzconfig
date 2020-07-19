@@ -2,6 +2,8 @@
 go-home = "$(eval echo ~$(whoami))"
 golangci-lint-version = 1.25.0
 openapi-generator-version = v4.2.3
+gotestsum-version = 0.4.1
+mga-version = 0.2.1
 
 [alias "make"]
 desc = Build and export the outputs of targets

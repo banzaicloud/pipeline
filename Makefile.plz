@@ -1,0 +1,283 @@
+# A Self-Documenting Makefile: http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+
+SHELL = /bin/bash
+OS = $(shell uname | tr A-Z a-z)
+export PATH := $(abspath bin/):${PATH}
+
+# Build variables
+BUILD_DIR ?= build
+VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || git symbolic-ref -q --short HEAD)
+COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
+BUILD_DATE ?= $(shell date +%FT%T%z)
+HELM_VERSION = $(shell cat go.mod | grep helm.sh/helm/v3 | grep -v "=>" | cut -d" " -f2 | sed s/^v//)
+LDFLAGS += -X main.version=${VERSION} -X main.commitHash=${COMMIT_HASH} -X main.buildDate=${BUILD_DATE} -X main.helmVersion=${HELM_VERSION}
+export CGO_ENABLED ?= 0
+ifeq ($(VERBOSE), 1)
+ifeq ($(filter -v,${GOARGS}),)
+	GOARGS += -v
+endif
+TEST_FORMAT = short-verbose
+endif
+
+DEX_VERSION = 2.19.0
+
+LICENSEI_VERSION = 0.2.0
+PROTOC_VERSION = 3.11.4
+BUF_VERSION = 0.7.0
+MIGRATE_VERSION = 4.9.1
+
+.PHONY: up
+up: ## Set up the development environment
+	./pleasew up
+
+.PHONY: down
+down: ## Destroy the development environment
+	./pleasew down
+
+# No replacement: not really useful
+.PHONY: reset
+reset: down up ## Reset the development environment
+
+# No replacement: binaries will be stored in plz-out
+.PHONY: clean
+clean: ## Clean the working area and the project
+	rm -rf bin/ ${BUILD_DIR}/
+	rm -rf pipeline
+
+.PHONY: start
+start: ## Start docker development environment
+	./pleasew start
+
+.PHONY: stop
+stop: ## Stop docker development environment
+	./pleasew stop
+
+config/config.yaml:
+	./pleasew make //config:config.yaml
+
+config/ui/feature-set.json:
+	./pleasew make //config/ui:feature-set.json
+
+etc/config/dex.yml:
+	./pleasew make //etc/config:dex.yml
+
+.PHONY: run
+run: GOTAGS += dev
+run: ## Build and execute a binary
+	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ./pleasew run --rebuild //cmd/pipeline ${ARGS}
+
+.PHONY: debug
+debug: GOTAGS += dev
+debug:
+	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" dlv --listen=:40000 --log --headless=true --api-version=2 exec $(shell ./pleasew build --rebuild -c dbg //cmd/pipeline && ./pleasew query output -c dbg //cmd/pipeline) -- $(ARGS)
+
+.PHONY: debug-worker
+debug-worker: GOTAGS += dev
+debug-worker: builddebug-worker
+	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" dlv --listen=:40000 --log --headless=true --api-version=2 exec $(shell ./pleasew build --rebuild -c dbg //cmd/worker && ./pleasew query output -c dbg //cmd/worker) -- $(ARGS)
+
+.PHONY: run-worker
+run-worker: GOTAGS += dev
+run-worker: ## Build and execute a binary
+	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ./pleasew run --rebuild //cmd/worker ${ARGS}
+
+.PHONY: runall ## Run worker and pipeline in foreground. Use with make -j.
+runall:
+	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ./pleasew run --rebuild parallel //cmd/pipeline //cmd/worker
+
+.PHONY: build
+build: ## Build all binaries
+	@mkdir -p ${BUILD_DIR}
+	./pleasew build --rebuild //cmd/...
+	./pleasew export outputs -o ${BUILD_DIR} //cmd/...
+
+.PHONY: build-release
+build-release: ## Build all binaries without debug information
+	@${MAKE} BUILD_DIR="${BUILD_DIR}/release" build
+
+.PHONY: build-debug
+build-debug: ## Build all binaries with remote debugging capabilities
+	@${MAKE} BUILD_DIR="${BUILD_DIR}/debug" build
+
+.PHONY: docker
+docker: ## Build a Docker image
+	@${MAKE} GOOS=linux GOARCH=amd64 build-release
+	docker build -t banzaicloud/pipeline:local -f Dockerfile.local .
+
+.PHONY: docker-debug
+docker-debug: ## Build a Docker image with remote debugging capabilities
+	@${MAKE} GOOS=linux GOARCH=amd64 build-debug
+	docker build -t banzaicloud/pipeline:debug -f Dockerfile.debug .
+
+.PHONY: check
+check: test lint ## Run tests and linters
+
+# Remove once fully migrated
+bin/golangci-lint:
+	./pleasew build ///pleasings2//tools/go:golangci-lint
+	cp $(shell ./pleasew query output ///pleasings2//tools/go:golangci-lint) bin/golangci-lint
+
+.PHONY: lint
+lint: export CGO_ENABLED = 1
+lint: ## Run linter
+	./pleasew lint
+	cd pkg/sdk && ../../$(shell ./pleasew query output ///pleasings2//tools/go:golangci-lint) run
+
+.PHONY: fix
+fix: export CGO_ENABLED = 1
+fix: ## Fix lint violations
+	./pleasew lint --fix
+	cd pkg/sdk && ../../$(shell ./pleasew query output ///pleasings2//tools/go:golangci-lint) run --fix
+
+bin/licensei: bin/licensei-${LICENSEI_VERSION}
+	@ln -sf licensei-${LICENSEI_VERSION} bin/licensei
+bin/licensei-${LICENSEI_VERSION}:
+	@mkdir -p bin
+	curl -sfL https://git.io/licensei | bash -s v${LICENSEI_VERSION}
+	@mv bin/licensei $@
+
+.PHONY: license-check
+license-check: bin/licensei ## Run license check
+	bin/licensei check
+	bin/licensei header
+
+.PHONY: license-cache
+license-cache: bin/licensei ## Generate license cache
+	bin/licensei cache
+
+# Remove once fully migrated
+bin/gotestsum:
+	./pleasew build ///pleasings2//tools/go:gotestsum
+	cp $(shell ./pleasew query output ///pleasings2//tools/go:gotestsum) bin/gotestsum
+
+.PHONY: test
+TEST_PKGS ?= ./...
+TEST_REPORT_NAME ?= results.xml
+.PHONY: test
+test: TEST_REPORT ?= main
+test: TEST_FORMAT ?= short
+test: SHELL = /bin/bash
+test: export CGO_ENABLED = 1
+test: ## Run tests
+	@mkdir -p ${BUILD_DIR}/test_results/${TEST_REPORT}
+	./pleasew run ///pleasings2//tools/go:gotestsum -- --no-summary=skipped --junitfile ${BUILD_DIR}/test_results/${TEST_REPORT}/${TEST_REPORT_NAME} --format ${TEST_FORMAT} -- $(filter-out -v,${GOARGS})  $(if ${TEST_PKGS},${TEST_PKGS},./...)
+	cd pkg/sdk && ../../$(shell ./pleasew query output ///pleasings2//tools/go:gotestsum) --no-summary=skipped --junitfile ../../${BUILD_DIR}/test_results/${TEST_REPORT}/${TEST_REPORT_NAME} --format ${TEST_FORMAT} -- $(filter-out -v,${GOARGS}) $(if ${TEST_PKGS},${TEST_PKGS},./...)
+
+.PHONY: test-all
+test-all: ## Run all tests
+	@${MAKE} GOARGS="${GOARGS} -run .\*" TEST_REPORT=all test
+
+.PHONY: test-integration
+test-integration: bin/test/kube-apiserver bin/test/etcd ## Run integration tests
+	@${MAKE} TEST_ASSET_KUBE_APISERVER=$(abspath bin/test/kube-apiserver) TEST_ASSET_ETCD=$(abspath bin/test/etcd) GOARGS="${GOARGS} -run ^TestIntegration\$$\$$" TEST_REPORT=integration test
+
+bin/test/kube-apiserver:
+	@mkdir -p bin/test
+	curl -L https://storage.googleapis.com/k8s-c10s-test-binaries/kube-apiserver-$(shell uname)-x86_64 > bin/test/kube-apiserver
+	chmod +x bin/test/kube-apiserver
+
+bin/test/etcd:
+	@mkdir -p bin/test
+	curl -L https://storage.googleapis.com/k8s-c10s-test-binaries/etcd-$(shell uname)-x86_64 > bin/test/etcd
+	chmod +x bin/test/etcd
+
+bin/migrate: bin/migrate-${MIGRATE_VERSION}
+	@ln -sf migrate-${MIGRATE_VERSION} bin/migrate
+bin/migrate-${MIGRATE_VERSION}:
+	@mkdir -p bin
+	curl -L https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.${OS}-amd64.tar.gz | tar xvz -C bin
+	@mv bin/migrate.${OS}-amd64 $@
+
+# Remove once fully migrated
+bin/mga:
+	./pleasew build ///pleasings2//tools/go:mga
+	cp $(shell ./pleasew query output ///pleasings2//tools/go:mga) bin/mga
+
+.PHONY: generate
+generate: ## Generate code
+	go generate -x ./...
+	./pleasew run ///pleasings2//tools/go:mga gen kit endpoint ./...
+	./pleasew run ///pleasings2//tools/go:mga gen ev dispatcher ./...
+	./pleasew run ///pleasings2//tools/go:mga gen ev handler ./...
+	./pleasew run ///pleasings2//tools/go:mga gen testify mock ./...
+
+.PHONY: validate-openapi
+validate-openapi: ## Validate the openapi description
+	./pleasew test //apis/pipeline:validate
+
+.PHONY: generate-openapi
+generate-openapi: ## Generate go server based on openapi description
+	./pleasew make //apis/pipeline
+
+apis/cloudinfo/openapi.yaml:
+	./pleasew make //apis/cloudinfo:spec
+
+.PHONY: generate-cloudinfo-client
+generate-cloudinfo-client: ## Generate client from Cloudinfo OpenAPI spec
+	./pleasew make //apis/cloudinfo
+
+apis/anchore/swagger.yaml:
+	./pleasew make //apis/anchore:spec
+
+.PHONY: generate-anchore-client
+generate-anchore-client: ## Generate client from Anchore OpenAPI spec
+	./pleasew make //apis/anchore
+
+apis/dex/api.proto:
+	@mkdir -p apis/dex
+	curl https://raw.githubusercontent.com/dexidp/dex/v${DEX_VERSION}/api/api.proto > apis/dex/api.proto
+
+.PHONY: _download-protos
+_download-protos: apis/dex/api.proto
+
+bin/protoc: bin/protoc-${PROTOC_VERSION}
+	@ln -sf protoc-${PROTOC_VERSION}/bin/protoc bin/protoc
+bin/protoc-${PROTOC_VERSION}:
+	@mkdir -p bin/protoc-${PROTOC_VERSION}
+ifeq ($(OS), darwin)
+	curl -L https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-osx-x86_64.zip > bin/protoc.zip
+endif
+ifeq ($(OS), linux)
+	curl -L https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip > bin/protoc.zip
+endif
+	unzip bin/protoc.zip -d bin/protoc-${PROTOC_VERSION}
+	rm bin/protoc.zip
+
+bin/protoc-gen-go: go.mod
+	@mkdir -p bin
+	go build -o bin/protoc-gen-go github.com/golang/protobuf/protoc-gen-go
+
+bin/buf: bin/buf-${BUF_VERSION}
+	@ln -sf buf-${BUF_VERSION} bin/buf
+bin/buf-${BUF_VERSION}:
+	@mkdir -p bin
+	curl -L https://github.com/bufbuild/buf/releases/download/v${BUF_VERSION}/buf-${OS}-x86_64 -o ./bin/buf-${BUF_VERSION} && chmod +x ./bin/buf-${BUF_VERSION}
+
+.PHONY: buf
+buf: bin/buf _download-protos ## Generate client and server stubs from the protobuf definition
+	bin/buf image build -o /dev/null
+	bin/buf check lint
+
+.PHONY: proto
+# proto: buf
+proto: bin/protoc bin/protoc-gen-go ## Generate client and server stubs from the protobuf definition
+	bin/protoc -I bin/protoc-${PROTOC_VERSION} -I apis/dex --go_out=plugins=grpc,import_path=dex:.gen/dex $(shell find apis/dex -name '*.proto')
+
+snapshot: SNAPSHOT_REF ?= $(shell git symbolic-ref -q --short HEAD || git rev-parse HEAD)
+snapshot:
+	@git rev-parse --verify $(SNAPSHOT_REF) > /dev/null
+	@test -n "${SNAPSHOT_VERSION}" || (echo "Missing snapshot version" && exit 1)
+	curl -X POST -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" -H "Authorization: token ${GITHUB_TOKEN}" --data '{"event_type": "snapshot", "client_payload": {"version": "$(SNAPSHOT_VERSION)", "ref": "$(SNAPSHOT_REF)"}}' https://api.github.com/repos/banzaicloud/pipeline/dispatches
+
+.PHONY: list
+list: ## List all make targets
+	@$(MAKE) -pRrn : -f $(MAKEFILE_LIST) 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | egrep -v -e '^[^[:alnum:]]' -e '^$@$$' | sort
+
+.PHONY: help
+.DEFAULT_GOAL := help
+help:
+	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+# Variable outputting/exporting rules
+var-%: ; @echo $($*)
+varexport-%: ; @echo $*=$($*)
