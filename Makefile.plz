@@ -66,7 +66,7 @@ debug:
 
 .PHONY: debug-worker
 debug-worker: GOTAGS += dev
-debug-worker: builddebug-worker
+debug-worker:
 	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" dlv --listen=:40000 --log --headless=true --api-version=2 exec $(shell ./pleasew build --rebuild -c dbg //cmd/worker && ./pleasew query output -c dbg //cmd/worker) -- $(ARGS)
 
 .PHONY: run-worker
@@ -229,7 +229,7 @@ bin/buf:
 	cp $(shell ./pleasew query output :buf) bin/buf
 
 .PHONY: buf
-buf: bin/buf _download-protos ## Generate client and server stubs from the protobuf definition
+buf: _download-protos ## Generate client and server stubs from the protobuf definition
 	bin/buf image build -o /dev/null
 	bin/buf check lint
 
