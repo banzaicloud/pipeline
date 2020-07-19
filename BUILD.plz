@@ -10,3 +10,17 @@ genrule(
     outs = ["docker-compose.override.yml"],
     cmd = 'cat docker-compose.override.yml.dist | sed -e "s/# user: \\"\\\${uid}:\\\${gid}\\"/user: \\"$(id -u):$(id -g)\\"/" > "$OUTS"' if CONFIG.HOSTOS == "linux" else 'cp docker-compose.override.yml.dist "$OUTS"',
 )
+
+sh_cmd(
+    name = "start",
+    cmd = [
+        "if [ ! -f docker-compose.override.yml ]; then plz make :docker-compose.override.yml; fi",
+        "mkdir -p .docker/volumes/{mysql,vault/file,vault/keys}",
+        "docker-compose up -d",
+    ],
+)
+
+sh_cmd(
+    name = "stop",
+    cmd = "docker-compose stop",
+)
