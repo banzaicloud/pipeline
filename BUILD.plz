@@ -12,6 +12,25 @@ genrule(
 )
 
 sh_cmd(
+    name = "up",
+    deps = [":start"],
+    cmd = [
+        "if [ ! -f etc/config/dex.yml ]; then plz make //etc/config:dex.yml; fi",
+        "if [ ! -f config/ui/feature-set.json ]; then plz make //config/ui:feature-set.json; fi",
+        "if [ ! -f config/config.yaml ]; then plz make //config:config.yaml; fi",
+        "$(out_location :start)",
+    ],
+)
+
+sh_cmd(
+    name = "down",
+    cmd = [
+        "docker-compose down -v",
+        "sudo rm -rf .docker/" if CONFIG.HOSTOS == "linux" else "rm -rf .docker/",
+    ],
+)
+
+sh_cmd(
     name = "start",
     cmd = [
         "if [ ! -f docker-compose.override.yml ]; then plz make :docker-compose.override.yml; fi",
