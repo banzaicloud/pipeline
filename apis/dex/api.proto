@@ -1,8 +1,7 @@
 syntax = "proto3";
+option java_package = "com.coreos.dex.api";
 
 package api;
-
-option java_package = "com.coreos.dex.api";
 
 // Client represents an OAuth2 client.
 message Client {
@@ -23,7 +22,7 @@ message CreateClientReq {
 // CreateClientResp returns the response from creating a client.
 message CreateClientResp {
   bool already_exists = 1;
-  Client client = 2;
+  Client client = 2; 
 }
 
 // DeleteClientReq is a request to delete a client.
@@ -32,23 +31,23 @@ message DeleteClientReq {
   string id = 1;
 }
 
-// DeleteClientResp determines if the client is deleted successfully.
+// DeleteClientResp determines if the client is deleted successfully. 
 message DeleteClientResp {
   bool not_found = 1;
 }
 
 // UpdateClientReq is a request to update an exisitng client.
 message UpdateClientReq {
-  string id = 1;
-  repeated string redirect_uris = 2;
-  repeated string trusted_peers = 3;
-  string name = 4;
-  string logo_url = 5;
+    string id = 1;
+    repeated string redirect_uris = 2;
+    repeated string trusted_peers = 3;
+    string name = 4;
+    string logo_url = 5;
 }
 
 // UpdateClientResp returns the reponse form updating a client.
 message UpdateClientResp {
-  bool not_found = 1;
+    bool not_found = 1;
 }
 
 // TODO(ericchiang): expand this.
@@ -56,6 +55,7 @@ message UpdateClientResp {
 // Password is an email for password mapping managed by the storage.
 message Password {
   string email = 1;
+
   // Currently we do not accept plain text passwords. Could be an option in the future.
   bytes hash = 2;
   string username = 3;
@@ -80,7 +80,7 @@ message UpdatePasswordReq {
   string new_username = 3;
 }
 
-// UpdatePasswordResp returns the response from modifying an existing password.
+// UpdatePasswordResp returns the response from modifying an existing password. 
 message UpdatePasswordResp {
   bool not_found = 1;
 }
@@ -90,7 +90,7 @@ message DeletePasswordReq {
   string email = 1;
 }
 
-// DeletePasswordResp returns the response from deleting a password.
+// DeletePasswordResp returns the response from deleting a password. 
 message DeletePasswordResp {
   bool not_found = 1;
 }
@@ -142,7 +142,7 @@ message RevokeRefreshReq {
   string client_id = 2;
 }
 
-// RevokeRefreshResp determines if the refresh token is revoked successfully.
+// RevokeRefreshResp determines if the refresh token is revoked successfully. 
 message RevokeRefreshResp {
   // Set to true is refresh token was not found and token could not be revoked.
   bool not_found = 1;
@@ -161,27 +161,27 @@ message VerifyPasswordResp {
 // Dex represents the dex gRPC service.
 service Dex {
   // CreateClient creates a client.
-  rpc CreateClient(CreateClientReq) returns (CreateClientResp);
+  rpc CreateClient(CreateClientReq) returns (CreateClientResp) {};
   // UpdateClient updates an existing client
-  rpc UpdateClient(UpdateClientReq) returns (UpdateClientResp);
+  rpc UpdateClient(UpdateClientReq) returns (UpdateClientResp) {};
   // DeleteClient deletes the provided client.
-  rpc DeleteClient(DeleteClientReq) returns (DeleteClientResp);
+  rpc DeleteClient(DeleteClientReq) returns (DeleteClientResp) {};
   // CreatePassword creates a password.
-  rpc CreatePassword(CreatePasswordReq) returns (CreatePasswordResp);
+  rpc CreatePassword(CreatePasswordReq) returns (CreatePasswordResp) {};
   // UpdatePassword modifies existing password.
-  rpc UpdatePassword(UpdatePasswordReq) returns (UpdatePasswordResp);
+  rpc UpdatePassword(UpdatePasswordReq) returns (UpdatePasswordResp) {};
   // DeletePassword deletes the password.
-  rpc DeletePassword(DeletePasswordReq) returns (DeletePasswordResp);
+  rpc DeletePassword(DeletePasswordReq) returns (DeletePasswordResp) {};
   // ListPassword lists all password entries.
-  rpc ListPasswords(ListPasswordReq) returns (ListPasswordResp);
+  rpc ListPasswords(ListPasswordReq) returns (ListPasswordResp) {};
   // GetVersion returns version information of the server.
-  rpc GetVersion(VersionReq) returns (VersionResp);
+  rpc GetVersion(VersionReq) returns (VersionResp) {};
   // ListRefresh lists all the refresh token entries for a particular user.
-  rpc ListRefresh(ListRefreshReq) returns (ListRefreshResp);
+  rpc ListRefresh(ListRefreshReq) returns (ListRefreshResp) {};
   // RevokeRefresh revokes the refresh token for the provided user-client pair.
   //
   // Note that each user-client pair can have only one refresh token at a time.
-  rpc RevokeRefresh(RevokeRefreshReq) returns (RevokeRefreshResp);
+  rpc RevokeRefresh(RevokeRefreshReq) returns (RevokeRefreshResp) {};
   // VerifyPassword returns whether a password matches a hash for a specific email or not.
-  rpc VerifyPassword(VerifyPasswordReq) returns (VerifyPasswordResp);
+  rpc VerifyPassword(VerifyPasswordReq) returns (VerifyPasswordResp) {};
 }
