@@ -3,3 +3,10 @@ github_repo(
     repo = "sagikazarmark/mypleasings",
     revision = "master",
 )
+
+genrule(
+    name = "docker-compose.override.yml",
+    srcs = ["docker-compose.override.yml.dist"],
+    outs = ["docker-compose.override.yml"],
+    cmd = 'cat docker-compose.override.yml.dist | sed -e "s/# user: \\"\\\${uid}:\\\${gid}\\"/user: \\"$(id -u):$(id -g)\\"/" > "$OUTS"' if CONFIG.HOSTOS == "linux" else 'cp docker-compose.override.yml.dist "$OUTS"',
+)
