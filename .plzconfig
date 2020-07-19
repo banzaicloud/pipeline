@@ -10,6 +10,14 @@ cmd = export outputs -o .
 desc = Runs linters for this repo
 cmd = run ///pleasings2//tools/go:golangci-lint -- run
 
+[alias "up"]
+desc = Set up and start the development environment
+cmd = run :up
+
+[alias "down"]
+desc = Destroy the development environment
+cmd = run :down
+
 [alias "start"]
 desc = Start the development environment
 cmd = run :start
