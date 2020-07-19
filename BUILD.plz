@@ -39,6 +39,22 @@ genrule(
     tools = [CONFIG.JARCAT_TOOL],
 )
 
+migrate_version = "4.9.1"
+
+genrule(
+    name = "migrate",
+    srcs = [remote_file(
+        name = "migrate",
+        _tag = "download",
+        url = f"https://github.com/golang-migrate/migrate/releases/download/v{migrate_version}/migrate.{CONFIG.HOSTOS}-{CONFIG.HOSTARCH}.tar.gz",
+        out = f"migrate-{migrate_version}.tar.gz",
+    )],
+    outs = ["migrate"],
+    binary = True,
+    cmd = f'"$TOOL" x "$SRCS" migrate -o tmp && mv $(find tmp -name "migrate.{CONFIG.HOSTOS}-{CONFIG.HOSTARCH}") "$OUT"',
+    tools = [CONFIG.JARCAT_TOOL],
+)
+
 genrule(
     name = "docker-compose.override.yml",
     srcs = ["docker-compose.override.yml.dist"],

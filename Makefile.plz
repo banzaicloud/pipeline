@@ -19,8 +19,6 @@ endif
 TEST_FORMAT = short-verbose
 endif
 
-MIGRATE_VERSION = 4.9.1
-
 .PHONY: up
 up: ## Set up the development environment
 	./pleasew up
@@ -173,12 +171,9 @@ bin/test/etcd:
 	curl -L https://storage.googleapis.com/k8s-c10s-test-binaries/etcd-$(shell uname)-x86_64 > bin/test/etcd
 	chmod +x bin/test/etcd
 
-bin/migrate: bin/migrate-${MIGRATE_VERSION}
-	@ln -sf migrate-${MIGRATE_VERSION} bin/migrate
-bin/migrate-${MIGRATE_VERSION}:
-	@mkdir -p bin
-	curl -L https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.${OS}-amd64.tar.gz | tar xvz -C bin
-	@mv bin/migrate.${OS}-amd64 $@
+bin/migrate:
+	./pleasew build :migrate
+	cp $(shell ./pleasew query output :migrate) bin/migrate
 
 # Remove once fully migrated
 bin/mga:
