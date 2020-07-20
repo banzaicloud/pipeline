@@ -33,8 +33,10 @@ genrule(
     )],
     outs = [".gen/anchore"],
     cmd = " && ".join([
-        "sed -i '' 's/whitelist_ids,omitempty/whitelist_ids/' \"$SRCS/model_mapping_rule.go\"",
-        "sed -i '' 's/params,omitempty/params/' \"$SRCS/model_policy_rule.go\"",
+        "sed 's/whitelist_ids,omitempty/whitelist_ids/' \"$SRCS/model_mapping_rule.go\" > \"$SRCS/model_mapping_rule.go.new\"",
+        'mv "$SRCS/model_mapping_rule.go.new" "$SRCS/model_mapping_rule.go"',
+        "sed 's/params,omitempty/params/' \"$SRCS/model_policy_rule.go\" > \"$SRCS/model_policy_rule.go.new\"",
+        'mv "$SRCS/model_policy_rule.go.new" "$SRCS/model_policy_rule.go"',
         'mv "$SRCS" "$OUTS"',
     ]),
 )
