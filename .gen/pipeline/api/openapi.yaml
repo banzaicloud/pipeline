@@ -23146,6 +23146,8 @@ components:
           $ref: '#/components/schemas/BaseUpdateNodePoolOptions'
     CreateEKSProperties_eks:
       properties:
+        authConfigMap:
+          type: string
         version:
           example: "1.10"
           type: string
