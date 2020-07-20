@@ -43,3 +43,31 @@ sh_cmd(
     name = "stop",
     cmd = "docker-compose stop",
 )
+
+subinclude("///pleasings2//k8s:tools")
+
+helm_binary(
+    name = "helm2",
+    version = "2.16.3",
+    out = "helm2",
+    visibility = ["PUBLIC"],
+)
+
+_os = {
+    "darwin": "Darwin",
+    "linux": "Linux",
+}
+
+remote_file(
+    name = "kube-apiserver",
+    url = "https://storage.googleapis.com/k8s-c10s-test-binaries/kube-apiserver-%s-x86_64" % (_os[CONFIG.HOSTOS]),
+    out = "bin/kube-apiserver",
+    binary = True,
+)
+
+remote_file(
+    name = "etcd",
+    url = "https://storage.googleapis.com/k8s-c10s-test-binaries/etcd-%s-x86_64" % (_os[CONFIG.HOSTOS]),
+    out = "bin/etcd",
+    binary = True,
+)
