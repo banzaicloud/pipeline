@@ -40,24 +40,22 @@ import (
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
-	"github.com/banzaicloud/pipeline/pkg/any"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
-	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
 const BootstrapActivityName = "eks-bootstrap"
 
 const mapRolesTemplate = `- rolearn: %s
-    username: system:node:{{EC2PrivateDNSName}}
-    groups:
+      username: system:node:{{EC2PrivateDNSName}}
+      groups:
       - system:bootstrappers
       - system:nodes
 `
 
 const mapUsersTemplate = `- userarn: %s
-    username: %s
-    groups:
+      username: %s
+      groups:
       - system:masters
 `
 
@@ -124,7 +122,7 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 
 	constraint, err := semver.NewConstraint(">= 1.12")
 	if err != nil {
-		return nil, errors.WrapIf(err, "could not set  1.12 constraint for semver")
+		return nil, errors.WrapIf(err, "could not set 1.12 constraint for semver")
 	}
 	kubeVersion, err := semver.NewVersion(input.KubernetesVersion)
 	if err != nil {
@@ -178,31 +176,16 @@ data:
   mapUsers: |
     %s`, mapRoles, mapUsers)
 
-	result, err := mergeAWSAuthConfig(defaultAWSConfigMap, input.AuthConfigMap)
+	mergedConfigMap, err := mergeAuthConfigMaps(defaultAWSConfigMap, input.AuthConfigMap)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to merge AWS auth config")
+		return nil, errors.WrapIf(err, "failed to merge config map")
 	}
 
-	var replacedYaml = strings.TrimSpace(string(result))
-	if strings.HasPrefix(replacedYaml, "|-") {
-		replacedYaml = strings.Replace(replacedYaml, "|-", "", 1)
-	}
-
-	if strings.HasPrefix(replacedYaml, "|") {
-		replacedYaml = strings.Replace(replacedYaml, "|", "", 1)
-	}
-
-	var mergedConfigMap v1.ConfigMap
-	_, _, err = scheme.Codecs.UniversalDeserializer().Decode([]byte(replacedYaml), nil, &mergedConfigMap)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to decode config map")
-	}
-
-	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(&mergedConfigMap)
+	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(mergedConfigMap)
 	if k8serr.ReasonForError(err) == metav1.StatusReasonAlreadyExists {
-		_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Update(&mergedConfigMap)
+		_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Update(mergedConfigMap)
 		if err != nil {
-			return nil, errors.WrapIfWithDetails(err, "failed to create config map", "configmap", mergedConfigMap.Name)
+			return nil, errors.WrapIfWithDetails(err, "failed to update config map", "configmap", mergedConfigMap.Name)
 		}
 	} else if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "failed to create config map", "configmap", mergedConfigMap.Name)
@@ -332,16 +315,47 @@ func userNameFromArn(arn string) string {
 	return arn[idx+1:]
 }
 
-func mergeAWSAuthConfig(defaultConfig interface{}, newConfig interface{}) ([]byte, error) {
-	out, err := jsonstructure.Encode(defaultConfig)
+func mergeAuthConfigMaps(defaultConfigMap, inputConfigMap string) (*v1.ConfigMap, error) {
+	var defaultAWSConfigMap v1.ConfigMap
+	_, _, err := scheme.Codecs.UniversalDeserializer().Decode([]byte(defaultConfigMap), nil, &defaultAWSConfigMap)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("failed to encode chart values: %s", err.Error()))
+		return nil, errors.WrapIf(err, "failed to decode default config map")
 	}
 
-	result, err := any.Merge(newConfig, out, jsonstructure.DefaultMergeOptions())
+	var inputAWSConfigMap v1.ConfigMap
+	_, _, err = scheme.Codecs.UniversalDeserializer().Decode([]byte(inputConfigMap), nil, &inputAWSConfigMap)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("failed to merge values: %s", err.Error()))
+		return nil, errors.WrapIf(err, "failed to decode input config map")
 	}
 
-	return yaml.Marshal(result)
+	mergedConfigMap := defaultAWSConfigMap
+
+	for _, key := range []string{"mapUsers", "mapRoles", "mapAccounts"} {
+		var defaultValue []map[string]interface{}
+		data := defaultAWSConfigMap.Data[key]
+		err = yaml.Unmarshal([]byte(data), &defaultValue)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to unmarshal "+key+" from: "+data)
+		}
+
+		var inputValue []map[string]interface{}
+		data = inputAWSConfigMap.Data[key]
+		err = yaml.Unmarshal([]byte(data), &inputValue)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to unmarshal "+key+" from: "+data)
+		}
+
+		value := append(defaultValue, inputValue...)
+
+		if value != nil {
+			mergedValue, err := yaml.Marshal(value)
+			if err != nil {
+				return nil, errors.WrapIf(err, "failed to marhshal "+key+" to yaml")
+			}
+
+			mergedConfigMap.Data[key] = string(mergedValue)
+		}
+	}
+
+	return &mergedConfigMap, nil
 }
