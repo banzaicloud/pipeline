@@ -54,7 +54,7 @@ type EKSClusterModel struct {
 
 	SSHGenerated bool `gorm:"default:true"`
 
-	AuthConfigMap string
+	AuthConfigMap string `gorm:"type:text"`
 }
 
 // TableName sets EKSClusterModel's table name
