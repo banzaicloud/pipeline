@@ -21725,30 +21725,32 @@ components:
         type: string
       type: array
     RestoreResultNamespaces:
-      items:
-        type: object
-      type: array
+      additionalProperties:
+        items:
+          example: '[]'
+          type: string
+        type: array
+      type: object
     RestoreResultNamespacesWarnings:
-      items:
-        additionalProperties: true
-        description: warnings during restoration process
-        example:
-          default:
-          - 'not restored: services "kubernetes" already exists and is different from
-            backed up version.'
-          - 'not restored: services "pipeline-traefik-metrics-prometheus" already
-            exists and is different from backed up version.'
-          - 'not restored: services "pipeline-traefik" already exists and is different
-            from backed up version.'
-        type: object
-      type: array
+      additionalProperties:
+        items:
+          description: warnings during restoration process
+          example: '{"default":["not restored: services \"kubernetes\" already exists
+            and is different from backed up version.","not restored: services \"pipeline-traefik-metrics-prometheus\"
+            already exists and is different from backed up version.","not restored:
+            services \"pipeline-traefik\" already exists and is different from backed
+            up version."]}'
+          type: string
+        type: array
+      type: object
     RestoreResultErrors:
       example:
         cluster: []
         ark: []
         namespaces:
-        - '{}'
-        - '{}'
+          key:
+          - '[]'
+          - '[]'
       properties:
         ark:
           example: []
@@ -21761,29 +21763,29 @@ components:
             type: string
           type: array
         namespaces:
-          items:
-            type: object
-          type: array
+          additionalProperties:
+            items:
+              example: '[]'
+              type: string
+            type: array
+          type: object
       type: object
     RestoreResultWarnings:
       example:
         cluster: []
         ark: []
         namespaces:
-        - default:
-          - 'not restored: services "kubernetes" already exists and is different from
-            backed up version.'
-          - 'not restored: services "pipeline-traefik-metrics-prometheus" already
-            exists and is different from backed up version.'
-          - 'not restored: services "pipeline-traefik" already exists and is different
-            from backed up version.'
-        - default:
-          - 'not restored: services "kubernetes" already exists and is different from
-            backed up version.'
-          - 'not restored: services "pipeline-traefik-metrics-prometheus" already
-            exists and is different from backed up version.'
-          - 'not restored: services "pipeline-traefik" already exists and is different
-            from backed up version.'
+          key:
+          - '{"default":["not restored: services \"kubernetes\" already exists and
+            is different from backed up version.","not restored: services \"pipeline-traefik-metrics-prometheus\"
+            already exists and is different from backed up version.","not restored:
+            services \"pipeline-traefik\" already exists and is different from backed
+            up version."]}'
+          - '{"default":["not restored: services \"kubernetes\" already exists and
+            is different from backed up version.","not restored: services \"pipeline-traefik-metrics-prometheus\"
+            already exists and is different from backed up version.","not restored:
+            services \"pipeline-traefik\" already exists and is different from backed
+            up version."]}'
       properties:
         ark:
           example: []
@@ -21796,19 +21798,17 @@ components:
             type: string
           type: array
         namespaces:
-          items:
-            additionalProperties: true
-            description: warnings during restoration process
-            example:
-              default:
-              - 'not restored: services "kubernetes" already exists and is different
-                from backed up version.'
-              - 'not restored: services "pipeline-traefik-metrics-prometheus" already
-                exists and is different from backed up version.'
-              - 'not restored: services "pipeline-traefik" already exists and is different
-                from backed up version.'
-            type: object
-          type: array
+          additionalProperties:
+            items:
+              description: warnings during restoration process
+              example: '{"default":["not restored: services \"kubernetes\" already
+                exists and is different from backed up version.","not restored: services
+                \"pipeline-traefik-metrics-prometheus\" already exists and is different
+                from backed up version.","not restored: services \"pipeline-traefik\"
+                already exists and is different from backed up version."]}'
+              type: string
+            type: array
+          type: object
       type: object
     RestoreResultsResponse:
       example:
@@ -21816,26 +21816,24 @@ components:
           cluster: []
           ark: []
           namespaces:
-          - default:
-            - 'not restored: services "kubernetes" already exists and is different
-              from backed up version.'
-            - 'not restored: services "pipeline-traefik-metrics-prometheus" already
-              exists and is different from backed up version.'
-            - 'not restored: services "pipeline-traefik" already exists and is different
-              from backed up version.'
-          - default:
-            - 'not restored: services "kubernetes" already exists and is different
-              from backed up version.'
-            - 'not restored: services "pipeline-traefik-metrics-prometheus" already
-              exists and is different from backed up version.'
-            - 'not restored: services "pipeline-traefik" already exists and is different
-              from backed up version.'
+            key:
+            - '{"default":["not restored: services \"kubernetes\" already exists and
+              is different from backed up version.","not restored: services \"pipeline-traefik-metrics-prometheus\"
+              already exists and is different from backed up version.","not restored:
+              services \"pipeline-traefik\" already exists and is different from backed
+              up version."]}'
+            - '{"default":["not restored: services \"kubernetes\" already exists and
+              is different from backed up version.","not restored: services \"pipeline-traefik-metrics-prometheus\"
+              already exists and is different from backed up version.","not restored:
+              services \"pipeline-traefik\" already exists and is different from backed
+              up version."]}'
         errors:
           cluster: []
           ark: []
           namespaces:
-          - '{}'
-          - '{}'
+            key:
+            - '[]'
+            - '[]'
       properties:
         errors:
           $ref: '#/components/schemas/RestoreResultErrors'

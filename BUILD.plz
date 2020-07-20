@@ -1,0 +1,96 @@
+github_repo(
+    name = "pleasings2",
+    repo = "sagikazarmark/mypleasings",
+    revision = "master",
+)
+
+protoc_binary(
+    name = "protoc",
+    version = "3.11.4",
+    visibility = ["PUBLIC"],
+)
+
+buf_version = "0.7.0"
+buf_os = {
+    "darwin": "Darwin",
+    "linux": "Linux",
+}
+
+remote_file(
+    name = "buf",
+    url = f"https://github.com/bufbuild/buf/releases/download/v%s/buf-%s-x86_64" % (buf_version, buf_os[CONFIG.HOSTOS]),
+    out = "bin/buf",
+    binary = True,
+)
+
+licensei_version = "0.2.0"
+
+genrule(
+    name = "licensei",
+    srcs = [remote_file(
+        name = "licensei",
+        _tag = "download",
+        url = f"https://github.com/goph/licensei/releases/download/v{licensei_version}/licensei_{CONFIG.HOSTOS}_{CONFIG.HOSTARCH}.tar.gz",
+        out = f"licensei-{licensei_version}.tar.gz",
+    )],
+    outs = ["licensei"],
+    binary = True,
+    cmd = '"$TOOL" x "$SRCS" licensei -o tmp && mv $(find tmp -name "licensei") "$OUT"',
+    tools = [CONFIG.JARCAT_TOOL],
+)
+
+migrate_version = "4.9.1"
+
+genrule(
+    name = "migrate",
+    srcs = [remote_file(
+        name = "migrate",
+        _tag = "download",
+        url = f"https://github.com/golang-migrate/migrate/releases/download/v{migrate_version}/migrate.{CONFIG.HOSTOS}-{CONFIG.HOSTARCH}.tar.gz",
+        out = f"migrate-{migrate_version}.tar.gz",
+    )],
+    outs = ["migrate"],
+    binary = True,
+    cmd = f'"$TOOL" x "$SRCS" migrate -o tmp && mv $(find tmp -name "migrate.{CONFIG.HOSTOS}-{CONFIG.HOSTARCH}") "$OUT"',
+    tools = [CONFIG.JARCAT_TOOL],
+)
+
+genrule(
+    name = "docker-compose.override.yml",
+    srcs = ["docker-compose.override.yml.dist"],
+    outs = ["docker-compose.override.yml"],
+    cmd = 'cat docker-compose.override.yml.dist | sed -e "s/# user: \\"\\\${uid}:\\\${gid}\\"/user: \\"$(id -u):$(id -g)\\"/" > "$OUTS"' if CONFIG.HOSTOS == "linux" else 'cp docker-compose.override.yml.dist "$OUTS"',
+)
+
+sh_cmd(
+    name = "up",
+    deps = [":start"],
+    cmd = [
+        "if [ ! -f etc/config/dex.yml ]; then plz make //etc/config:dex.yml; fi",
+        "if [ ! -f config/ui/feature-set.json ]; then plz make //config/ui:feature-set.json; fi",
+        "if [ ! -f config/config.yaml ]; then plz make //config:config.yaml; fi",
+        "$(out_location :start)",
+    ],
+)
+
+sh_cmd(
+    name = "down",
+    cmd = [
+        "docker-compose down -v",
+        "sudo rm -rf .docker/" if CONFIG.HOSTOS == "linux" else "rm -rf .docker/",
+    ],
+)
+
+sh_cmd(
+    name = "start",
+    cmd = [
+        "if [ ! -f docker-compose.override.yml ]; then plz make :docker-compose.override.yml; fi",
+        "mkdir -p .docker/volumes/{mysql,vault/file,vault/keys}",
+        "docker-compose up -d",
+    ],
+)
+
+sh_cmd(
+    name = "stop",
+    cmd = "docker-compose stop",
+)
