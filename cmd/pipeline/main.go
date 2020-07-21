@@ -247,7 +247,7 @@ func main() {
 		os.Exit(3)
 	}
 
-	errorHandler, err := errorhandler.New(config.Errors, logger)
+	errorHandler, err := errorhandler.New(logger)
 	if err != nil {
 		logger.Error(err.Error())
 
