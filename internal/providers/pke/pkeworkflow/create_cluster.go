@@ -175,7 +175,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 	for _, np := range nodePools {
 		if np.Master {
 			master = np
-			if len(np.AvailabilityZones) <= 0 || np.AvailabilityZones[0] == "" {
+			if len(np.AvailabilityZones) == 0 || np.AvailabilityZones[0] == "" {
 				return errors.NewWithDetails("missing availability zone for nodepool %q", np.Name)
 			}
 			break
@@ -185,7 +185,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 	availabilityZoneSet := make(map[string]struct{})
 	for _, np := range nodePools {
 		// We only look AZ when no subnet is set
-		if len(np.Subnets) < 1 {
+		if len(np.Subnets) == 0 {
 			for _, az := range np.AvailabilityZones {
 				availabilityZoneSet[az] = struct{}{}
 			}
