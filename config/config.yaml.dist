@@ -5,12 +5,6 @@
 #    level: "info"
 #    format: "json"
 
-# Pipeline error handling configuration
-#errors:
-#    stackdriver:
-#        enabled: false
-#        projectId: ""
-
 #telemetry:
 #    enabled: false
 #    addr: "127.0.0.1:9900"
