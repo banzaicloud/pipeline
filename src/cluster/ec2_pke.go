@@ -1114,7 +1114,7 @@ func createEC2PKENetworkFromRequest(network pke.Network, userId uint) internalPk
 	}
 	n.CreatedBy = userId
 
-	n.CloudProvider.Scan(network.ProviderConfig)
+	_ = n.CloudProvider.Scan(network.ProviderConfig)
 	return n
 }
 
