@@ -36,7 +36,7 @@ func TestIntegratedServiceManager_Name(t *testing.T) {
 	assert.Equal(t, "vault", mng.Name())
 }
 
-func TestIntegratedServiceManager_GetOutput(t *testing.T) {
+func testIntegratedServiceManagerGetOutput(t *testing.T) {
 	orgID := uint(13)
 	clusterID := uint(42)
 	clusterName := "the-cluster"

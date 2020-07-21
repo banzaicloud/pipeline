@@ -138,10 +138,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Load common configuration
 	cmd.Configure(v, p)
 
-	// ErrorHandler configuration
-	v.Set("errors::serviceName", appName)
-	v.Set("errors::serviceVersion", version)
-
 	// Pipeline configuration
 	p.String("addr", "127.0.0.1:9090", "Pipeline HTTP server address")
 	_ = v.BindPFlag("pipeline::addr", p.Lookup("addr"))

@@ -34,7 +34,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
-	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/values"
@@ -79,9 +78,6 @@ type Config struct {
 		}
 	}
 
-	// Error handling configuration
-	Errors errorhandler.Config
-
 	Helm helm.Config
 
 	Hollowtrees struct {
@@ -118,8 +114,6 @@ func (c Config) Validate() error {
 	err = errors.Append(err, c.Cluster.Validate())
 
 	err = errors.Append(err, c.Database.Validate())
-
-	err = errors.Append(err, c.Errors.Validate())
 
 	err = errors.Append(err, c.Telemetry.Validate())
 
@@ -485,10 +479,6 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("log::format", "json")
 	v.SetDefault("log::level", "info")
 	v.RegisterAlias("log::noColor", "no_color")
-
-	// ErrorHandler configuration
-	v.SetDefault("errors::stackdriver::enabled", false)
-	v.SetDefault("errors::stackdriver::projectId", false)
 
 	// Dex configuration
 	v.SetDefault("dex::apiAddr", "")

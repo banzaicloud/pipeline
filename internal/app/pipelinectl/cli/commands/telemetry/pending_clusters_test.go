@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package telemetry
 
-import (
-	"github.com/spf13/cobra"
+import "testing"
 
-	"github.com/banzaicloud/pipeline/internal/app/pipelinectl/cli/commands/drain"
-	"github.com/banzaicloud/pipeline/internal/app/pipelinectl/cli/commands/telemetry"
-)
+func TestSumPendingClusters(t *testing.T) {
+	telemetry, err := getTelemetry(options{
+		telemetryUrl: "file://testdata/pending.example",
+	})
+	if err != nil {
+		t.Fatalf("%+v", err)
+	}
 
-// AddCommands adds all the commands from cli/command to the root command
-func AddCommands(cmd *cobra.Command) {
-	cmd.AddCommand(
-		drain.NewDrainCommand(),
-		telemetry.NewTelemetryCommand(),
-		telemetry.NewPendingClustersCommand(),
-	)
+	sum := sumPendingClusters(telemetry)
+	if sum != 1 {
+		t.Fatalf("Expected one pending cluster, got %d", sum)
+	}
 }
