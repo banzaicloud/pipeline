@@ -309,19 +309,15 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 	multiMaster := master.MaxCount > 1
 
 	var subnetIDs []string
-	// We don't use ASG for master so only 1 subnet is available
-	for _, subnetID := range subnetIDMap {
-		subnetIDs = append(subnetIDs, subnetID)
+	for _, az := range master.AvailabilityZones {
+		subnetIDs = append(subnetIDs, subnetIDMap[az])
 	}
-	masterNodeSubnetID := subnetIDs[0]
-	if len(master.Subnets) > 0 {
-		masterNodeSubnetID = master.Subnets[0]
-	}
+
 	masterInput := CreateMasterActivityInput{
 		ClusterID:                 input.ClusterID,
 		VPCID:                     vpcOutput["VpcId"],
 		VPCDefaultSecurityGroupID: vpcDefaultSecurityGroupID,
-		SubnetID:                  masterNodeSubnetID,
+		SubnetIDs:                 subnetIDs,
 		MultiMaster:               multiMaster,
 		MasterInstanceProfile:     rolesOutput["MasterInstanceProfile"],
 		ExternalBaseUrl:           input.PipelineExternalURL,

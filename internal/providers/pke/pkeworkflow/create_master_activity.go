@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
@@ -49,7 +50,7 @@ type CreateMasterActivityInput struct {
 	ClusterID                 uint
 	VPCID                     string
 	VPCDefaultSecurityGroupID string
-	SubnetID                  string
+	SubnetIDs                 []string
 	MultiMaster               bool
 	MasterInstanceProfile     string
 	ExternalBaseUrl           string
@@ -167,8 +168,8 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 					ParameterKey:   aws.String("TargetGroup"),
 					ParameterValue: aws.String(input.TargetGroup),
 				}, {
-					ParameterKey:   aws.String("SubnetIds"), // TODO: support multiple
-					ParameterValue: &input.SubnetID,
+					ParameterKey:   aws.String("SubnetIds"),
+					ParameterValue: aws.String(strings.Join(input.SubnetIDs, ",")),
 				},
 			}...)
 	} else {
@@ -179,7 +180,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 					ParameterValue: aws.String(input.EIPAllocationID),
 				}, {
 					ParameterKey:   aws.String("SubnetId"),
-					ParameterValue: &input.SubnetID,
+					ParameterValue: aws.String(input.SubnetIDs[0]),
 				},
 			}...)
 	}
