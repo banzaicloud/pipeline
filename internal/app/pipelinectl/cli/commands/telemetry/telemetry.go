@@ -20,7 +20,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"path/filepath"
 	"time"
 
 	"emperror.dev/errors"
@@ -34,9 +36,6 @@ import (
 type options struct {
 	telemetryUrl string
 	verify       bool
-
-	// for tests
-	telemetryFile string
 }
 
 func NewTelemetryCommand() *cobra.Command {
@@ -77,8 +76,13 @@ func NewTelemetryCommand() *cobra.Command {
 func getTelemetry(options options) ([]*prom2json.Family, error) {
 	mfChan := make(chan *dto.MetricFamily, 1024)
 
-	if options.telemetryFile != "" {
-		input, err := os.Open(options.telemetryFile)
+	u, err := url.Parse(options.telemetryUrl)
+	if err != nil {
+		return nil, errors.WrapIf(err, "parsing url")
+	}
+
+	if u.Scheme == "file" {
+		input, err := os.Open(filepath.Join(u.Host, u.Path))
 		if err != nil {
 			return nil, errors.WrapIf(err, "opening telemetry file")
 		}

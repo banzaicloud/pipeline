@@ -18,7 +18,7 @@ import "testing"
 
 func TestSumPendingClusters(t *testing.T) {
 	telemetry, err := getTelemetry(options{
-		telemetryFile: "testdata/pending.example",
+		telemetryUrl: "file://testdata/pending.example",
 	})
 	if err != nil {
 		t.Fatalf("%+v", err)

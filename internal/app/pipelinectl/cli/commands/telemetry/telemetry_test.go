@@ -31,7 +31,7 @@ func TestParseTelemetryFromFile(t *testing.T) {
 	golden := "testdata/telemetry.golden"
 
 	telemetry, err := getTelemetry(options{
-		telemetryFile: "testdata/telemetry.example",
+		telemetryUrl: "file://testdata/telemetry.example",
 	})
 	if err != nil {
 		t.Fatalf("%+v", err)
