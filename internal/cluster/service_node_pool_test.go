@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/banzaicloud/pipeline/pkg/brn"
 	"github.com/banzaicloud/pipeline/pkg/cloud"
 )
 
@@ -716,4 +717,195 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		processor.AssertExpectations(t)
 		manager.AssertExpectations(t)
 	})
+}
+
+func TestNodePoolService_ListNodePools(t *testing.T) {
+	exampleCluster := Cluster{
+		ID:             1,
+		UID:            "55956737-a76a-4fb3-a717-f679f1340b41",
+		Name:           "cluster-name",
+		OrganizationID: 2,
+		Status:         "status",
+		StatusMessage:  "status message",
+		Cloud:          "cloud",
+		Distribution:   "eks",
+		Location:       "location",
+		SecretID:       brn.ResourceName{},
+		ConfigSecretID: brn.ResourceName{},
+		Tags:           map[string]string{},
+	}
+
+	exampleNodePools := RawNodePoolList{
+		map[string]interface{}{ // Note: to avoid import cycle of importing eks.NodePool.
+			"name": "cluster-node-pool-name-2",
+			"labels": map[string]string{
+				"label-1": "value-1",
+				"label-2": "value-2",
+			},
+			"size": 4,
+			"autoscaling": map[string]interface{}{
+				"enabled": true,
+				"minSize": 1,
+				"maxSize": 2,
+			},
+			"instanceType": "instance-type",
+			"image":        "image",
+			"spotPrice":    "5",
+		},
+		map[string]interface{}{ // Note: to avoid import cycle of importing eks.NodePool.
+			"name": "cluster-node-pool-name-3",
+			"labels": map[string]string{
+				"label-3": "value-3",
+			},
+			"size": 6,
+			"autoscaling": map[string]interface{}{
+				"enabled": false,
+				"minSize": 0,
+				"maxSize": 0,
+			},
+			"instanceType": "instance-type",
+			"image":        "image",
+			"spotPrice":    "7",
+		},
+	}
+
+	type constructionArgumentType struct {
+		clusters            Store
+		clusterManager      Manager
+		clusterGroupManager ClusterGroupManager
+		distributions       map[string]Service
+		nodePools           NodePoolStore
+		nodePoolValidator   NodePoolValidator
+		nodePoolProcessor   NodePoolProcessor
+		nodePoolManager     NodePoolManager
+	}
+	type functionCallArgumentType struct {
+		ctx       context.Context
+		clusterID uint
+	}
+	testCases := []struct {
+		caseName              string
+		constructionArguments constructionArgumentType
+		expectedNodePools     RawNodePoolList
+		expectedNotNilError   bool
+		functionCallArguments functionCallArgumentType
+		setupMockFunction     func(constructionArgumentType, functionCallArgumentType)
+	}{
+		{
+			caseName: "StoreGetClusterFailed",
+			constructionArguments: constructionArgumentType{
+				clusters:            &MockStore{},
+				clusterManager:      &MockManager{},
+				clusterGroupManager: &MockClusterGroupManager{},
+				distributions: map[string]Service{
+					"eks": &MockService{},
+				},
+				nodePools:         &MockNodePoolStore{},
+				nodePoolValidator: &MockNodePoolValidator{},
+				nodePoolProcessor: &MockNodePoolProcessor{},
+				nodePoolManager:   &MockNodePoolManager{},
+			},
+			expectedNodePools:   nil,
+			expectedNotNilError: true,
+			functionCallArguments: functionCallArgumentType{
+				ctx:       context.Background(),
+				clusterID: 1,
+			},
+			setupMockFunction: func(
+				constructionArguments constructionArgumentType,
+				functionCallArguments functionCallArgumentType,
+			) {
+				clustersMock := constructionArguments.clusters.(*MockStore)
+				clustersMock.On("GetCluster", functionCallArguments.ctx, functionCallArguments.clusterID).Return(Cluster{}, errors.NewPlain("StoreGetClusterFailed"))
+			},
+		},
+		{
+			caseName: "ServiceGetDistributionServiceFailed",
+			constructionArguments: constructionArgumentType{
+				clusters:            &MockStore{},
+				clusterManager:      &MockManager{},
+				clusterGroupManager: &MockClusterGroupManager{},
+				distributions: map[string]Service{
+					"eks": &MockService{},
+				},
+				nodePools:         &MockNodePoolStore{},
+				nodePoolValidator: &MockNodePoolValidator{},
+				nodePoolProcessor: &MockNodePoolProcessor{},
+				nodePoolManager:   &MockNodePoolManager{},
+			},
+			expectedNodePools:   nil,
+			expectedNotNilError: true,
+			functionCallArguments: functionCallArgumentType{
+				ctx:       context.Background(),
+				clusterID: 1,
+			},
+			setupMockFunction: func(
+				constructionArguments constructionArgumentType,
+				functionCallArguments functionCallArgumentType,
+			) {
+				unsupportedDistributionCluster := exampleCluster
+				unsupportedDistributionCluster.Distribution = "unsupported"
+
+				clustersMock := constructionArguments.clusters.(*MockStore)
+				clustersMock.On("GetCluster", functionCallArguments.ctx, functionCallArguments.clusterID).Return(unsupportedDistributionCluster, (error)(nil))
+			},
+		},
+		{
+			caseName: "NodePoolServiceListNodePoolsSuccess",
+			constructionArguments: constructionArgumentType{
+				clusters:            &MockStore{},
+				clusterManager:      &MockManager{},
+				clusterGroupManager: &MockClusterGroupManager{},
+				distributions: map[string]Service{
+					"eks": &MockService{},
+				},
+				nodePools:         &MockNodePoolStore{},
+				nodePoolValidator: &MockNodePoolValidator{},
+				nodePoolProcessor: &MockNodePoolProcessor{},
+				nodePoolManager:   &MockNodePoolManager{},
+			},
+			expectedNodePools:   exampleNodePools,
+			expectedNotNilError: false,
+			functionCallArguments: functionCallArgumentType{
+				ctx:       context.Background(),
+				clusterID: 1,
+			},
+			setupMockFunction: func(
+				constructionArguments constructionArgumentType,
+				functionCallArguments functionCallArgumentType,
+			) {
+				clustersMock := constructionArguments.clusters.(*MockStore)
+				clustersMock.On("GetCluster", functionCallArguments.ctx, functionCallArguments.clusterID).Return(exampleCluster, (error)(nil))
+
+				distributionServiceMock := constructionArguments.distributions[exampleCluster.Distribution].(*MockService)
+				distributionServiceMock.On("ListNodePools", functionCallArguments.ctx, functionCallArguments.clusterID).Return(exampleNodePools, (error)(nil))
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.caseName, func(t *testing.T) {
+			testCase.setupMockFunction(testCase.constructionArguments, testCase.functionCallArguments)
+
+			object := service{
+				clusters:            testCase.constructionArguments.clusters,
+				clusterManager:      testCase.constructionArguments.clusterManager,
+				clusterGroupManager: testCase.constructionArguments.clusterGroupManager,
+				distributions:       testCase.constructionArguments.distributions,
+				nodePools:           testCase.constructionArguments.nodePools,
+				nodePoolValidator:   testCase.constructionArguments.nodePoolValidator,
+				nodePoolProcessor:   testCase.constructionArguments.nodePoolProcessor,
+				nodePoolManager:     testCase.constructionArguments.nodePoolManager,
+			}
+
+			actualNodePools, actualError := object.ListNodePools(
+				testCase.functionCallArguments.ctx,
+				testCase.functionCallArguments.clusterID,
+			)
+
+			require.Truef(t, (actualError != nil) == testCase.expectedNotNilError,
+				"error value doesn't match the expectation, is expected: %+v, actual error value: %+v", testCase.expectedNotNilError, actualError)
+			require.Equal(t, testCase.expectedNodePools, actualNodePools)
+		})
+	}
 }
