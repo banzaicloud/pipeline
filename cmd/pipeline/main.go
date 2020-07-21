@@ -608,8 +608,8 @@ func main() {
 			auditlog.WithUserIDExtractor(auth.GetCurrentUserID),
 			auditlog.WithSensitivePaths([]*regexp.Regexp{
 				regexp.MustCompile("^/auth/dex(?:/[^/]+)*"),
-				regexp.MustCompile("^/(?:[^/]+/)*api/v1/orgs/[0-9]+/secrets(?:/[^/]+)*"),
-				regexp.MustCompile("^/(?:[^/]+/)*api/v1/orgs/[0-9]+/clusters/[^/]+/pke/ready"),
+				regexp.MustCompile("^/(?:[^/]*/)*api/v1/orgs/[0-9]+/secrets(?:/[^/]+)*"),
+				regexp.MustCompile("^/(?:[^/]*/)*api/v1/orgs/[0-9]+/clusters/[^/]+/pke/ready"),
 			}),
 			auditlog.WithErrorHandler(errorHandler),
 		))
