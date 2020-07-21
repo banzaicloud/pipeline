@@ -225,6 +225,8 @@ type service struct {
 	nodePoolManager   NodePoolManager
 }
 
+// +testify:mock:testOnly=true
+
 // Manager provides lower level cluster operations for Service.
 type Manager interface {
 	Deleter

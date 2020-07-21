@@ -22,6 +22,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
+// +testify:mock
+
 // Service provides an interface to EKS clusters.
 type Service interface {
 	// UpdateNodePool updates an existing node pool in a cluster.
