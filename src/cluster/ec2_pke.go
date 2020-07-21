@@ -28,7 +28,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
@@ -45,7 +44,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
-	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
@@ -1152,6 +1150,8 @@ func createEC2PKENetworkFromRequest(network pke.Network, userId uint) internalPk
 		APIServerAddress: network.APIServerAddress,
 	}
 	n.CreatedBy = userId
+
+	n.CloudProvider.Scan(network.ProviderConfig)
 	return n
 }
 

@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -90,7 +90,6 @@ type CreateClusterWorkflowInput struct {
 	PipelineExternalURLInsecure bool
 	OIDCEnabled                 bool
 	VPCID                       string
-	SubnetID                    string
 }
 
 type CreateClusterWorkflow struct {
@@ -308,9 +307,11 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 
 	multiMaster := master.MaxCount > 1
 
-	var subnetIDs []string
-	for _, az := range master.AvailabilityZones {
-		subnetIDs = append(subnetIDs, subnetIDMap[az])
+	subnetIDs := master.Subnets
+	if len(master.Subnets) == 0 {
+		for _, az := range master.AvailabilityZones {
+			subnetIDs = append(subnetIDs, subnetIDMap[az])
+		}
 	}
 
 	masterInput := CreateMasterActivityInput{
@@ -425,10 +426,13 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 
 		for i, np := range nodePools {
 			if !np.Master {
-				var subnetIDs []string
-				for _, az := range np.AvailabilityZones {
-					subnetIDs = append(subnetIDs, subnetIDMap[az])
+				subnetIDs := np.Subnets
+				if len(np.Subnets) == 0 {
+					for _, az := range np.AvailabilityZones {
+						subnetIDs = append(subnetIDs, subnetIDMap[az])
+					}
 				}
+
 				createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
 					ClusterID:                 input.ClusterID,
 					Pool:                      np,
