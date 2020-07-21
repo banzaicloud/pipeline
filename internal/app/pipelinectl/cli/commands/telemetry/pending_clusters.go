@@ -28,7 +28,7 @@ func NewPendingClustersCommand() *cobra.Command {
 	options := options{}
 	cmd := &cobra.Command{
 		Use:   "pending-clusters",
-		Short: "Get the list of clusters in pending status",
+		Short: "Get the count of clusters in pending (creating, deleting, or updating) status",
 		Long: heredoc.Doc(`
 			Get the list of clusters in pending status
 		`),
