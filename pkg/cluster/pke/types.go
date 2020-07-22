@@ -153,7 +153,7 @@ func (pke *CreateClusterPKE) AddDefaults() error {
 		pke.Network.ServiceCIDR = "10.32.0.0/24"
 	}
 	if pke.Network.Provider == "" {
-		pke.Network.Provider = NPCilium
+		pke.Network.Provider = NPCalico
 	}
 
 	return nil
