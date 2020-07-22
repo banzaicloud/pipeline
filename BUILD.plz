@@ -1,7 +1,7 @@
 github_repo(
     name = "pleasings2",
     repo = "sagikazarmark/mypleasings",
-    revision = "master",
+    revision = "6dd14093a1098eaff7844d8e6111030f36f963ba",
 )
 
 protoc_binary(
