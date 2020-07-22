@@ -111,11 +111,11 @@ auth:
 #        domain: ""
 #        setDomain: false
 
-#        role:
-#            default: "admin"
-#            binding:
-#                admin: ".*"
-#                member: ""
+#    role:
+#        default: "admin"
+#        binding:
+#            admin: ".*"
+#            member: ""
 
     token:
         signingKey: ""
