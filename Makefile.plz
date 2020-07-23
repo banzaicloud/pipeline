@@ -210,35 +210,6 @@ apis/anchore/swagger.yaml:
 generate-anchore-client: ## Generate client from Anchore OpenAPI spec
 	./pleasew make //apis/anchore
 
-apis/dex/api.proto:
-	./pleasew make //apis/dex:spec
-
-.PHONY: _download-protos
-_download-protos: apis/dex/api.proto
-
-bin/protoc:
-	./pleasew build ///pleasings2//tools/proto:protoc
-	cp $(shell ./pleasew query output ///pleasings2//tools/proto:protoc) bin/protoc
-
-bin/protoc-gen-go: go.mod
-	@mkdir -p bin
-	go build -o bin/protoc-gen-go github.com/golang/protobuf/protoc-gen-go
-
-bin/buf:
-	./pleasew build ///pleasings2//tools/proto:buf
-	cp $(shell ./pleasew query output ///pleasings2//tools/proto:buf) bin/buf
-
-.PHONY: buf
-buf: _download-protos ## Generate client and server stubs from the protobuf definition
-	./pleasew run ///pleasings2//tools/proto:buf -- image build -o /dev/null
-	./pleasew run ///pleasings2//tools/proto:buf -- check lint
-
-.PHONY: proto
-# proto: buf
-proto: bin/protoc-gen-go ## Generate client and server stubs from the protobuf definition
-	@mkdir -p .gen/dex
-	./pleasew run ///pleasings2//tools/proto:protoc -- -I apis/dex --go_out=plugins=grpc,import_path=dex:.gen/dex $(shell find apis/dex -name '*.proto')
-
 snapshot: SNAPSHOT_REF ?= $(shell git symbolic-ref -q --short HEAD || git rev-parse HEAD)
 snapshot:
 	@git rev-parse --verify $(SNAPSHOT_REF) > /dev/null
