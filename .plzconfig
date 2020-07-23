@@ -4,8 +4,6 @@ golangci-lint-version = 1.25.0
 openapi-generator-version = v4.2.3
 gotestsum-version = 0.4.1
 mga-version = 0.2.1
-protoc-version = 3.11.4
-buf-version = 0.7.0
 licensei-version = 0.2.0
 migrate-version = 4.9.1
 
