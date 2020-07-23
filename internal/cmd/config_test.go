@@ -80,6 +80,9 @@ func TestConfigure_DefaultValueBinding(t *testing.T) {
 							Chart:   "stable/traefik",
 							Version: "1.86.2",
 							Values: values.Config(map[string]interface{}{
+								"rbac": map[string]interface{}{
+									"enabled": true,
+								},
 								"ssl": map[string]interface{}{
 									"enabled":     true,
 									"generateTLS": true,
