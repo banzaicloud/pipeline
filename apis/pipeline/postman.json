@@ -1131,7 +1131,7 @@
 												":orgId",
 												"clusters",
 												":clusterId",
-												":nodepools"
+												"nodepools"
 											],
 											"variable": [
 												{
