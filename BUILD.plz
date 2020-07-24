@@ -1,7 +1,7 @@
 github_repo(
     name = "pleasings2",
     repo = "sagikazarmark/mypleasings",
-    revision = "6dd14093a1098eaff7844d8e6111030f36f963ba",
+    revision = "f650cfdc327a582563ceec2d97293dd1e8dfaf12",
 )
 
 genrule(
