@@ -1,5 +1,7 @@
 [buildconfig]
 go-home = "$(eval echo ~$(whoami))"
+helm-tool = "///pleasings2//tools/k8s:helm"
+
 golangci-lint-version = 1.25.0
 openapi-generator-version = v4.2.3
 gotestsum-version = 0.4.1
