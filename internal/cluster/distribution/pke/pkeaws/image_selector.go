@@ -16,9 +16,12 @@ package pkeaws
 
 import (
 	"context"
+
+	"emperror.dev/errors"
 )
 
-// ImageSelector chooses an image based on the provided criteria.
+// ImageSelector chooses an image based on the selection criteria.
+// It returns an ImageNotFoundError when no images can be found matching the provided criteria.
 type ImageSelector interface {
 	SelectImage(ctx context.Context, criteria ImageSelectionCriteria) (string, error)
 }
@@ -32,3 +35,6 @@ type ImageSelectionCriteria struct {
 	OperatingSystem   string
 	ContainerRuntime  string
 }
+
+// ImageNotFoundError is returned by an ImageSelector when it cannot find an image matching the provided criteria.
+const ImageNotFoundError = errors.Sentinel("no images found matching the selection criteria")
