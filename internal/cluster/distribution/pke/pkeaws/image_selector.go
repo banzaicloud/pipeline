@@ -38,3 +38,15 @@ type ImageSelectionCriteria struct {
 
 // ImageNotFoundError is returned by an ImageSelector when it cannot find an image matching the provided criteria.
 const ImageNotFoundError = errors.Sentinel("no images found matching the selection criteria")
+
+// RegionMapImageSelector selects an image based on the region in the selection criteria.
+type RegionMapImageSelector map[string]string
+
+func (r RegionMapImageSelector) SelectImage(_ context.Context, criteria ImageSelectionCriteria) (string, error) {
+	image, ok := r[criteria.Region]
+	if !ok {
+		return "", ImageNotFoundError
+	}
+
+	return image, nil
+}
