@@ -16,12 +16,8 @@ require (
 	github.com/Azure/go-autorest/autorest/azure/auth v0.4.2
 	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/Azure/go-autorest/autorest/validation v0.2.0
-	github.com/DATA-DOG/go-sqlmock v1.4.1 // indirect
 	github.com/MakeNowJust/heredoc v1.0.0
-	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/semver/v3 v3.0.3
-	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
-	github.com/Masterminds/sprig/v3 v3.0.2
 	github.com/ThreeDotsLabs/watermill v1.1.0
 	github.com/aliyun/alibaba-cloud-sdk-go v1.60.327
 	github.com/aliyun/aliyun-oss-go-sdk v2.0.5+incompatible
@@ -62,11 +58,11 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.1
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
-	github.com/jmoiron/sqlx v1.2.0 // indirect
 	github.com/jonboulle/clockwork v0.2.0
 	github.com/json-iterator/go v1.1.9
 	github.com/lestrrat-go/backoff v1.0.0
 	github.com/lib/pq v1.3.0 // indirect
+	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/microcosm-cc/bluemonday v1.0.2
 	github.com/mitchellh/copystructure v1.0.0
@@ -90,7 +86,6 @@ require (
 	github.com/qor/render v0.0.0-20171201033449-63566e46f01b // indirect
 	github.com/qor/responder v0.0.0-20160314063933-ecae0be66c1a // indirect
 	github.com/qor/session v0.0.0-20170907035918-8206b0adab70
-	github.com/rubenv/sql-migrate v0.0.0-20200212082348-64f95ea68aa3 // indirect
 	github.com/sagikazarmark/appkit v0.8.0
 	github.com/sagikazarmark/kitx v0.12.0
 	github.com/sagikazarmark/ocmux v0.2.0
@@ -123,7 +118,6 @@ require (
 	k8s.io/cli-runtime v0.17.5
 	k8s.io/client-go v0.17.5
 	k8s.io/cluster-bootstrap v0.17.5
-	k8s.io/helm v2.16.3+incompatible
 	k8s.io/klog v1.0.0
 	k8s.io/kubernetes v1.17.5
 	logur.dev/adapter/logrus v0.4.1
@@ -163,7 +157,6 @@ replace (
 	k8s.io/component-base => k8s.io/component-base v0.17.5
 	k8s.io/cri-api => k8s.io/cri-api v0.17.5
 	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.17.5
-	k8s.io/helm => github.com/banzaicloud/helm v2.7.1-0.20200228123321-c4355aab74fc+incompatible
 	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.17.5
 	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.17.5
 	k8s.io/kube-proxy => k8s.io/kube-proxy v0.17.5
