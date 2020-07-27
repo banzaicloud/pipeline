@@ -15,12 +15,14 @@
 package ekscluster
 
 import (
+	"context"
 	"fmt"
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
 
 	eks2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/global/globaleks"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
@@ -225,11 +227,6 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
 	}
 
-	defaultImage, err := eks2.GetDefaultImageID(location, eks.Version)
-	if err != nil {
-		return errors.WrapIff(err, "couldn't get EKS AMI for Kubernetes version %q in region %q", eks.Version, location)
-	}
-
 	if len(eks.NodePools) == 0 {
 		return pkgErrors.ErrorAmazonEksNodePoolFieldIsEmpty
 	}
@@ -254,8 +251,19 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 	}
 
 	for i, np := range eks.NodePools {
-		if len(np.Image) == 0 {
-			eks.NodePools[i].Image = defaultImage
+		if np.Image == "" {
+			criteria := eks2.ImageSelectionCriteria{
+				Region:            location,
+				InstanceType:      np.InstanceType,
+				KubernetesVersion: eks.Version,
+			}
+
+			image, err := globaleks.ImageSelector().SelectImage(context.Background(), criteria)
+			if err != nil {
+				return err
+			}
+
+			eks.NodePools[i].Image = image
 		}
 
 		if np != nil && np.Subnet == nil {
