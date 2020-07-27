@@ -17,7 +17,6 @@ executors:
             GO_VERSION: '1.14.2'
             VAULT_VERSION: '1.4.2'
             KIND_VERSION: 'v0.7.0'
-            HELM_VERSION: 'v2.16.3'
 
 jobs:
     build:
@@ -336,21 +335,6 @@ commands:
                         curl -Lo ./kind https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-linux-amd64
                         chmod +x ./kind
                         ./kind create cluster --kubeconfig build/kubeconfig
-            -   run:
-                    name: Setup kubectl
-                    command: |
-                        curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/<< parameters.k8s_version >>/bin/linux/amd64/kubectl
-                        chmod +x kubectl
-                        sudo mv kubectl /usr/local/bin/
-            -   run:
-                    name: Setup helm
-                    command: |
-                        bash <(curl -L https://git.io/get_helm.sh) -v ${HELM_VERSION}
-                        kubectl create serviceaccount tiller --namespace kube-system
-                        kubectl create clusterrolebinding --clusterrole cluster-admin --serviceaccount=kube-system:tiller tiller
-                        helm init --service-account tiller
-                    environment:
-                        KUBECONFIG: build/kubeconfig
             -   run:
                     name: Start Vault
                     command: |
