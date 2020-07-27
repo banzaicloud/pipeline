@@ -70,8 +70,8 @@ type ImageSelectorChain struct {
 }
 
 // NewImageSelectorChain returns a new ImageSelectorChain.
-func NewImageSelectorChain(logger Logger, errorHandler ErrorHandler) ImageSelectorChain {
-	return ImageSelectorChain{
+func NewImageSelectorChain(logger Logger, errorHandler ErrorHandler) *ImageSelectorChain {
+	return &ImageSelectorChain{
 		logger:       logger,
 		errorHandler: errorHandler,
 	}

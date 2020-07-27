@@ -18,16 +18,16 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
-	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 )
 
 func registerAwsWorkflows(
 	clusters *pkeworkflowadapter.ClusterManagerAdapter,
 	tokenGenerator pkeworkflowadapter.TokenGenerator,
 	secretStore pkeworkflow.SecretStore,
-	cloudInfoClient *cloudinfo.Client,
+	imageSelector pkeaws.ImageSelector,
 	pkeGlobalRegion string,
 ) {
 	workflow.RegisterWithOptions(pkeworkflow.CreateClusterWorkflow{GlobalRegion: pkeGlobalRegion}.Execute, workflow.RegisterOptions{Name: pkeworkflow.CreateClusterWorkflowName})
@@ -66,13 +66,13 @@ func registerAwsWorkflows(
 	createNLBActivity := pkeworkflow.NewCreateNLBActivity(awsClientFactory)
 	activity.RegisterWithOptions(createNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateNLBActivityName})
 
-	createMasterActivity := pkeworkflow.NewCreateMasterActivity(clusters, tokenGenerator, cloudInfoClient)
+	createMasterActivity := pkeworkflow.NewCreateMasterActivity(clusters, tokenGenerator, imageSelector)
 	activity.RegisterWithOptions(createMasterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateMasterActivityName})
 
 	listNodePoolsActivity := pkeworkflow.NewListNodePoolsActivity(clusters)
 	activity.RegisterWithOptions(listNodePoolsActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.ListNodePoolsActivityName})
 
-	createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters, tokenGenerator, cloudInfoClient)
+	createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters, tokenGenerator, imageSelector)
 	activity.RegisterWithOptions(createWorkerPoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateWorkerPoolActivityName})
 
 	deletePoolActivity := pkeworkflow.NewDeletePoolActivity(clusters)

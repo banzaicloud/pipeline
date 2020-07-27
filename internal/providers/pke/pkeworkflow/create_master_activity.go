@@ -26,23 +26,27 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
-	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 )
 
 const CreateMasterActivityName = "pke-create-master-activity"
 
 type CreateMasterActivity struct {
-	clusters        Clusters
-	tokenGenerator  TokenGenerator
-	cloudInfoClient *cloudinfo.Client
+	clusters       Clusters
+	tokenGenerator TokenGenerator
+	imageSelector  pkeaws.ImageSelector
 }
 
-func NewCreateMasterActivity(clusters Clusters, tokenGenerator TokenGenerator, cloudInfoClient *cloudinfo.Client) *CreateMasterActivity {
+func NewCreateMasterActivity(
+	clusters Clusters,
+	tokenGenerator TokenGenerator,
+	imageSelector pkeaws.ImageSelector,
+) *CreateMasterActivity {
 	return &CreateMasterActivity{
-		clusters:        clusters,
-		tokenGenerator:  tokenGenerator,
-		cloudInfoClient: cloudInfoClient,
+		clusters:       clusters,
+		tokenGenerator: tokenGenerator,
+		imageSelector:  imageSelector,
 	}
 }
 
@@ -80,12 +84,25 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 		return "", errors.WrapIf(err, "can't get Kubernetes version")
 	}
 
-	imageID, err := getDefaultImageID(cluster.GetLocation(), ver, pkeVersion, a.cloudInfoClient)
-	if err != nil {
-		return "", errors.WrapIff(err, "failed to get default image for Kubernetes version %s", ver)
-	}
-	if input.Pool.ImageID != "" {
-		imageID = input.Pool.ImageID
+	imageID := input.Pool.ImageID
+	if imageID == "" {
+		cri, _ := awsCluster.GetKubernetesContainerRuntime()
+
+		criteria := pkeaws.ImageSelectionCriteria{
+			Region:            cluster.GetLocation(),
+			InstanceType:      input.Pool.InstanceType,
+			PKEVersion:        pkeaws.Version,
+			KubernetesVersion: ver,
+			OperatingSystem:   "ubuntu",
+			ContainerRuntime:  cri,
+		}
+
+		image, err := a.imageSelector.SelectImage(ctx, criteria)
+		if err != nil {
+			return "", errors.WrapIff(err, "failed to get default image for Kubernetes version %s", ver)
+		}
+
+		imageID = image
 	}
 
 	_, signedToken, err := a.tokenGenerator.GenerateClusterToken(cluster.GetOrganizationId(), cluster.GetID())
@@ -151,7 +168,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 		},
 		{
 			ParameterKey:   aws.String("PkeVersion"),
-			ParameterValue: aws.String(pkeVersion),
+			ParameterValue: aws.String(pkeaws.Version),
 		},
 		{
 			ParameterKey:   aws.String("KeyName"),

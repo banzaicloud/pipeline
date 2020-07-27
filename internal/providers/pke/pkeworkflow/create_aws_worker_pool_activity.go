@@ -27,6 +27,7 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
@@ -36,16 +37,20 @@ const CreateWorkerPoolActivityName = "pke-create-aws-worker-pool-activity"
 const WorkerCloudFormationTemplate = "worker.cf.yaml"
 
 type CreateWorkerPoolActivity struct {
-	clusters           Clusters
-	tokenGenerator     TokenGenerator
-	pkeImageNameGetter PKEImageNameGetter
+	clusters       Clusters
+	tokenGenerator TokenGenerator
+	imageSelector  pkeaws.ImageSelector
 }
 
-func NewCreateWorkerPoolActivity(clusters Clusters, tokenGenerator TokenGenerator, cloudInfoClient PKEImageNameGetter) *CreateWorkerPoolActivity {
+func NewCreateWorkerPoolActivity(
+	clusters Clusters,
+	tokenGenerator TokenGenerator,
+	imageSelector pkeaws.ImageSelector,
+) *CreateWorkerPoolActivity {
 	return &CreateWorkerPoolActivity{
-		clusters:           clusters,
-		tokenGenerator:     tokenGenerator,
-		pkeImageNameGetter: cloudInfoClient,
+		clusters:       clusters,
+		tokenGenerator: tokenGenerator,
+		imageSelector:  imageSelector,
 	}
 }
 
@@ -82,12 +87,25 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		return "", errors.WrapIf(err, "can't get Kubernetes version")
 	}
 
-	imageID, err := getDefaultImageID(cluster.GetLocation(), ver, pkeVersion, a.pkeImageNameGetter)
-	if err != nil {
-		return "", errors.WrapIff(err, "failed to get default image for Kubernetes version %s", ver)
-	}
-	if input.Pool.ImageID != "" {
-		imageID = input.Pool.ImageID
+	imageID := input.Pool.ImageID
+	if imageID == "" {
+		cri, _ := awsCluster.GetKubernetesContainerRuntime()
+
+		criteria := pkeaws.ImageSelectionCriteria{
+			Region:            cluster.GetLocation(),
+			InstanceType:      input.Pool.InstanceType,
+			PKEVersion:        pkeaws.Version,
+			KubernetesVersion: ver,
+			OperatingSystem:   "ubuntu",
+			ContainerRuntime:  cri,
+		}
+
+		image, err := a.imageSelector.SelectImage(ctx, criteria)
+		if err != nil {
+			return "", errors.WrapIff(err, "failed to get default image for Kubernetes version %s", ver)
+		}
+
+		imageID = image
 	}
 
 	_, signedToken, err := a.tokenGenerator.GenerateClusterToken(cluster.GetOrganizationId(), cluster.GetID())
@@ -175,7 +193,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 			},
 			{
 				ParameterKey:   aws.String("PkeVersion"),
-				ParameterValue: aws.String(pkeVersion),
+				ParameterValue: aws.String(pkeaws.Version),
 			},
 			{
 				ParameterKey:   aws.String("KeyName"),

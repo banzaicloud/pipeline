@@ -16,7 +16,7 @@ package pkeaws
 
 // Default PKE image: Ubuntu 18.04
 // These are plain images, so PKE will be installed during the node bootstrapping.
-// nolint: gochecknoglobals, deadcode
+// nolint: gochecknoglobals
 var defaultImages = RegionMapImageSelector{
 	// AWS partition
 	"ap-east-1":      "ami-c790d6b6",          // Asia Pacific (Hong Kong).
@@ -41,4 +41,10 @@ var defaultImages = RegionMapImageSelector{
 	// AWS GovCloud (US) partition
 	"us-gov-east-1": "ami-c29975b3", // GovCloud (US-East)
 	"us-gov-west-1": "ami-adecdbcc", // GovCloud (US-West)
+}
+
+// DefaultImages returns an image selector that returns fallback images if no other images are found.
+// These are plain images, so PKE will be installed during the node bootstrapping.
+func DefaultImages() ImageSelector {
+	return defaultImages
 }
