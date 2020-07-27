@@ -39,6 +39,6 @@ var defaultImages = RegionMapImageSelector{
 	"us-west-2":      "ami-003634241a8fcdec0", // US West (Oregon).
 
 	// AWS GovCloud (US) partition
-	"us-gov-west-1": "ami-adecdbcc", // GovCloud (US-West)
 	"us-gov-east-1": "ami-c29975b3", // GovCloud (US-East)
+	"us-gov-west-1": "ami-adecdbcc", // GovCloud (US-West)
 }
