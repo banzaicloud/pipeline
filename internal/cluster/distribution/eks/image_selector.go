@@ -73,3 +73,20 @@ func (s KubernetesVersionImageSelector) SelectImage(ctx context.Context, criteri
 
 	return s.ImageSelector.SelectImage(ctx, criteria)
 }
+
+// ImageSelectors select an image using a number of selectors.
+// When one fails, it moves onto the next.
+type ImageSelectors []ImageSelector
+
+func (s ImageSelectors) SelectImage(ctx context.Context, criteria ImageSelectionCriteria) (string, error) {
+	for _, selector := range s {
+		image, err := selector.SelectImage(ctx, criteria)
+		if err != nil {
+			continue
+		}
+
+		return image, nil
+	}
+
+	return "", errors.WithStack(ImageNotFoundError)
+}
