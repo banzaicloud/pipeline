@@ -41,12 +41,10 @@ type Values struct {
 }
 
 const (
-	v2      = false
-	v3      = true
 	noOrgID = 0 // implicitly means platform helm env
 )
 
-var clusterId = uint(123) //nolint:gochecknoglobals
+var clusterId = uint(123) // nolint:gochecknoglobals
 
 func TestIntegration(t *testing.T) {
 	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
@@ -56,26 +54,22 @@ func TestIntegration(t *testing.T) {
 	helmHome := helmtesting.HelmHome(t)
 
 	// istio install/delete use cases, now also used by federation
-	t.Run("helmV2", testIntegration(v2, helmHome, "istiofeature-helm-v2"))
-	t.Run("helmV3", testIntegration(v3, helmHome, "istiofeature-helm-v3"))
+	t.Run("helmV3", testIntegration(helmHome, "istiofeature-helm-v3"))
 
 	// cluster setup and posthook style use cases
-	t.Run("helmInstallV2", testIntegrationInstall(v2, helmHome, "helm-v2-install"))
-	t.Run("helmInstallV3", testIntegrationInstall(v3, helmHome, "helm-v3-install"))
+	t.Run("helmInstallV3", testIntegrationInstall(helmHome, "helm-v3-install"))
 
 	// covers the federation use case for adding a custom platform repository on the fly
-	t.Run("addPlatformRepositoryV3", testAddPlatformRepository(helmHome, v3))
-	t.Run("addPlatformRepositoryV2", testAddPlatformRepository(helmHome, v2))
+	t.Run("addPlatformRepositoryV3", testAddPlatformRepository(helmHome))
 }
 
-func testAddPlatformRepository(home string, v3 bool) func(t *testing.T) {
+func testAddPlatformRepository(home string) func(t *testing.T) {
 	return func(t *testing.T) {
 		db := helmtesting.SetupDatabase(t)
 		secretStore := helmtesting.SetupSecretStore()
 		_, clusterService := helmtesting.ClusterKubeConfig(t, clusterId)
 		config := helm.Config{
 			Home: home,
-			V3:   v3,
 			Repositories: map[string]string{
 				"stable": "https://kubernetes-charts.storage.googleapis.com",
 			},
@@ -96,7 +90,7 @@ func testAddPlatformRepository(home string, v3 bool) func(t *testing.T) {
 	}
 }
 
-func testIntegration(v3 bool, home, testNamespace string) func(t *testing.T) {
+func testIntegration(home, testNamespace string) func(t *testing.T) {
 	return func(t *testing.T) {
 		db := helmtesting.SetupDatabase(t)
 		secretStore := helmtesting.SetupSecretStore()
@@ -104,7 +98,6 @@ func testIntegration(v3 bool, home, testNamespace string) func(t *testing.T) {
 
 		config := helm.Config{
 			Home: home,
-			V3:   v3,
 			Repositories: map[string]string{
 				"stable": "https://kubernetes-charts.storage.googleapis.com",
 			},
@@ -121,7 +114,7 @@ func testIntegration(v3 bool, home, testNamespace string) func(t *testing.T) {
 	}
 }
 
-func testIntegrationInstall(v3 bool, home, testNamespace string) func(t *testing.T) {
+func testIntegrationInstall(home, testNamespace string) func(t *testing.T) {
 	return func(t *testing.T) {
 		db := helmtesting.SetupDatabase(t)
 		secretStore := helmtesting.SetupSecretStore()
@@ -129,7 +122,6 @@ func testIntegrationInstall(v3 bool, home, testNamespace string) func(t *testing
 
 		config := helm.Config{
 			Home: home,
-			V3:   v3,
 			Repositories: map[string]string{
 				"stable":             "https://kubernetes-charts.storage.googleapis.com",
 				"banzaicloud-stable": "https://kubernetes-charts.banzaicloud.com",

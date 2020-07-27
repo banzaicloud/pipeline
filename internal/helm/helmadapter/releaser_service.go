@@ -26,7 +26,6 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
@@ -50,7 +49,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	legacyHelm "github.com/banzaicloud/pipeline/src/helm"
 )
 
 // Components in charge for implementing release helm related operations.
@@ -632,15 +630,4 @@ func (r releaseDeleter) filterReleases(releases []helm.Release, namespaces []str
 	}
 
 	return filtered
-}
-
-type h2ReleaseDeleter struct {
-}
-
-func (h2ReleaseDeleter) DeleteReleases(ctx context.Context, orgID uint, kubeConfig []byte, namespaces []string) error {
-	return legacyHelm.DeleteAllDeployment(logrus.New(), kubeConfig, namespaces)
-}
-
-func NewHelm2ReleaseDeleter() helm.ReleaseDeleter {
-	return h2ReleaseDeleter{}
 }

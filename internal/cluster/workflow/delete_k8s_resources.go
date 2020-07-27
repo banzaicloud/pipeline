@@ -15,7 +15,6 @@
 package workflow
 
 import (
-	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -61,11 +60,7 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 			K8sSecretID:    input.K8sSecretID,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteHelmDeploymentsActivityName, activityInput).Get(ctx, nil); err != nil {
-			if strings.Contains(err.Error(), "could not find tiller") {
-				logger.Info("could not delete helm deployment because tiller is not running")
-			} else {
-				return errors.WrapIf(err, "failed to delete Helm deployments")
-			}
+			return errors.WrapIf(err, "failed to delete Helm deployments")
 		}
 	}
 

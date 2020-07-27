@@ -22,10 +22,8 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
-	"github.com/banzaicloud/pipeline/internal/helm2"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
@@ -46,22 +44,6 @@ func CreateUnifiedHelmReleaser(
 	secretStore := helmadapter.NewSecretStore(commonSecretStore, logger)
 	validator := helm.NewHelmRepoValidator()
 	releaser := helmadapter.NewReleaser(logger)
-	helm2EnvResolver := helm.NewHelm2EnvResolver(helmConfig.Home, orgService, logger)
-
-	if !helmConfig.V3 {
-		envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(helmConfig.Repositories), secretStore, logger)
-		service := helm.NewService(
-			helmConfig,
-			repoStore,
-			secretStore,
-			validator,
-			helm.NewEnsuringEnvResolver(helm2EnvResolver, envService, repoStore, helmConfig.Repositories, logger),
-			envService,
-			releaser,
-			clusterService,
-			logger)
-		return helm2.NewLegacyHelmService(clusterService, service, commonadapter.NewLogger(logger)), service
-	}
 
 	envResolver := helm.NewHelm3EnvResolver(helmConfig.Home, orgService, logger)
 	envService := helmadapter.NewHelm3EnvService(secretStore, logger)
@@ -89,33 +71,17 @@ func CreateUnifiedHelmReleaser(
 	return helmadapter.NewUnifiedHelm3Releaser(service, logger), service
 }
 
-// CreateReleaseDeleter creates a new (helm2 or helm3 specific) deleter instance based on the provided argunments
+// CreateReleaseDeleter creates a new helm3 specific deleter instance based on the provided argunments
 func CreateReleaseDeleter(helmConfig helm.Config, db *gorm.DB, secretStore helmadapter.SecretStore, logger helm.Logger) helm.ReleaseDeleter {
 	logger.Debug("assembling helm release deleter...")
-	if helmConfig.V3 {
-		repoStore := helmadapter.NewHelmRepoStore(db, logger)
-		secretStore := helmadapter.NewSecretStore(secretStore, logger)
-		envService := helmadapter.NewHelm3EnvService(secretStore, logger)
-		orgService := helmadapter.NewOrgService(logger)
-		releaser := helmadapter.NewReleaser(logger)
-		helm3EnvResolver := helm.NewHelm3EnvResolver(helmConfig.Home, orgService, logger)
-		ensuringEnvResolver := helm.NewEnsuringEnvResolver(helm3EnvResolver, envService, repoStore, helmConfig.Repositories, logger)
 
-		logger.Debug("assembled helm 3 release deleter")
-		return helmadapter.NewReleaseDeleter(ensuringEnvResolver, releaser, logger)
-	}
-
-	logger.Debug("assembled helm 2 release deleter")
-	return helmadapter.NewHelm2ReleaseDeleter()
-}
-
-func NewEnsuringEnvResolver(helmConfig helm.Config, db *gorm.DB, secretStore helmadapter.SecretStore, logger helm.Logger) helm.EnvResolver {
 	repoStore := helmadapter.NewHelmRepoStore(db, logger)
-	secret := helmadapter.NewSecretStore(secretStore, logger)
-	envService := helmadapter.NewHelmEnvService(helmadapter.NewConfig(helmConfig.Repositories), secret, logger)
+	envService := helmadapter.NewHelm3EnvService(helmadapter.NewSecretStore(secretStore, logger), logger)
 	orgService := helmadapter.NewOrgService(logger)
+	releaser := helmadapter.NewReleaser(logger)
+	helm3EnvResolver := helm.NewHelm3EnvResolver(helmConfig.Home, orgService, logger)
+	ensuringEnvResolver := helm.NewEnsuringEnvResolver(helm3EnvResolver, envService, repoStore, helmConfig.Repositories, logger)
 
-	helm2EnvResolver := helm.NewHelm2EnvResolver(helmConfig.Home, orgService, logger)
-
-	return helm.NewEnsuringEnvResolver(helm2EnvResolver, envService, repoStore, helmConfig.Repositories, logger)
+	logger.Debug("assembled helm 3 release deleter")
+	return helmadapter.NewReleaseDeleter(ensuringEnvResolver, releaser, logger)
 }
