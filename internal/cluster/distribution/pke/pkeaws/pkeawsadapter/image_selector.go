@@ -43,9 +43,13 @@ func (s CloudinfoImageSelector) SelectImage(ctx context.Context, criteria pkeaws
 		return "", errors.New("cloudinfo: client not configured")
 	}
 
+	// TODO: validate kubernetes version earlier
 	kubeVersion, err := semver.NewVersion(criteria.KubernetesVersion)
 	if err != nil {
-		return "", errors.WrapWithDetails(err, "cloudinfo", "kubernetesVersion", criteria.KubernetesVersion)
+		return "", errors.WrapWithDetails(
+			err, "parse kubernetes version",
+			"kubernetesVersion", criteria.KubernetesVersion,
+		)
 	}
 
 	opts := &cloudinfo.GetImagesOpts{
@@ -63,16 +67,16 @@ func (s CloudinfoImageSelector) SelectImage(ctx context.Context, criteria pkeaws
 	images, _, err := s.client.ImagesApi.GetImages(ctx, cloudProvider, serviceName, criteria.Region, opts)
 	if err != nil {
 		return "", errors.WrapIfWithDetails(
-			err, "cloudinfo",
+			err, "get images from cloudinfo",
 			"cloudProvider", cloudProvider,
 			"service", serviceName,
 			"region", criteria.Region,
 			"getImagesOpts", opts,
 		)
 	}
-	if len(images) <= 0 {
-		return "", errors.WrapWithDetails(
-			pkeaws.ImageNotFoundError, "cloudinfo",
+	if len(images) == 0 {
+		return "", errors.WithDetails(
+			errors.WithStack(pkeaws.ImageNotFoundError),
 			"cloudProvider", cloudProvider,
 			"service", serviceName,
 			"region", criteria.Region,
