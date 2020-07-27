@@ -18,7 +18,10 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	"github.com/Masterminds/semver/v3"
 )
+
+// +testify:mock:testOnly=true
 
 // ImageSelector chooses an image based on the selection criteria.
 // It returns an ImageNotFoundError when no images can be found matching the provided criteria.
@@ -46,4 +49,27 @@ func (r RegionMapImageSelector) SelectImage(_ context.Context, criteria ImageSel
 	}
 
 	return image, nil
+}
+
+// KubernetesVersionImageSelector selects an image from the delegated selector if the kubernetes version criteria
+// matches the constraint.
+type KubernetesVersionImageSelector struct {
+	Constraint    *semver.Constraints
+	ImageSelector ImageSelector
+}
+
+func (s KubernetesVersionImageSelector) SelectImage(ctx context.Context, criteria ImageSelectionCriteria) (string, error) {
+	kubeVersion, err := semver.NewVersion(criteria.KubernetesVersion)
+	if err != nil {
+		return "", errors.WrapWithDetails(
+			err, "parse kubernetes version",
+			"kubernetesVersion", criteria.KubernetesVersion,
+		)
+	}
+
+	if !s.Constraint.Check(kubeVersion) {
+		return "", errors.WithStack(ImageNotFoundError)
+	}
+
+	return s.ImageSelector.SelectImage(ctx, criteria)
 }
