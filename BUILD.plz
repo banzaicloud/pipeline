@@ -44,15 +44,6 @@ sh_cmd(
     cmd = "docker-compose stop",
 )
 
-subinclude("///pleasings2//k8s:tools")
-
-helm_binary(
-    name = "helm2",
-    version = "2.16.3",
-    out = "helm2",
-    visibility = ["PUBLIC"],
-)
-
 _os = {
     "darwin": "Darwin",
     "linux": "Linux",
