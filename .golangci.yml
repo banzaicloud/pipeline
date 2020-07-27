@@ -7,7 +7,7 @@ run:
         - ".*_gen\\.go$"
         - "zz_generated\\..*\\.go$"
 
-    timeout: 2m
+    timeout: 5m
 
 linters-settings:
     golint:
