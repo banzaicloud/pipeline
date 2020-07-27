@@ -93,3 +93,73 @@ func TestKubernetesVersionImageSelector(t *testing.T) {
 		assert.Equal(t, ImageNotFoundError, errors.Cause(err))
 	})
 }
+
+func TestImageSelectors(t *testing.T) {
+	t.Run("OK", func(t *testing.T) {
+		criteria := ImageSelectionCriteria{
+			Region: "us-east-1",
+		}
+
+		imageSelector1 := new(MockImageSelector)
+		imageSelector1.On("SelectImage", mock.Anything, criteria).Return("ami-xxxxxxxxxx", nil)
+
+		imageSelector := ImageSelectors{imageSelector1}
+
+		image, err := imageSelector.SelectImage(context.Background(), criteria)
+		require.NoError(t, err)
+
+		assert.Equal(t, "ami-xxxxxxxxxx", image)
+	})
+
+	t.Run("Empty", func(t *testing.T) {
+		criteria := ImageSelectionCriteria{
+			Region: "us-east-1",
+		}
+
+		imageSelector := ImageSelectors{}
+
+		image, err := imageSelector.SelectImage(context.Background(), criteria)
+		require.Error(t, err)
+
+		assert.Equal(t, "", image)
+		assert.Equal(t, ImageNotFoundError, errors.Cause(err))
+	})
+
+	t.Run("FallbackIfNotFound", func(t *testing.T) {
+		criteria := ImageSelectionCriteria{
+			Region: "us-east-1",
+		}
+
+		imageSelector1 := new(MockImageSelector)
+		imageSelector1.On("SelectImage", mock.Anything, criteria).Return("", errors.Wrap(ImageNotFoundError, "selector1"))
+
+		imageSelector2 := new(MockImageSelector)
+		imageSelector2.On("SelectImage", mock.Anything, criteria).Return("ami-xxxxxxxxxx", nil)
+
+		imageSelector := ImageSelectors{imageSelector1, imageSelector2}
+
+		image, err := imageSelector.SelectImage(context.Background(), criteria)
+		require.NoError(t, err)
+
+		assert.Equal(t, "ami-xxxxxxxxxx", image)
+	})
+
+	t.Run("FallbackIfError", func(t *testing.T) {
+		criteria := ImageSelectionCriteria{
+			Region: "us-east-1",
+		}
+
+		imageSelector1 := new(MockImageSelector)
+		imageSelector1.On("SelectImage", mock.Anything, criteria).Return("", errors.New("fatal error"))
+
+		imageSelector2 := new(MockImageSelector)
+		imageSelector2.On("SelectImage", mock.Anything, criteria).Return("ami-xxxxxxxxxx", nil)
+
+		imageSelector := ImageSelectors{imageSelector1, imageSelector2}
+
+		image, err := imageSelector.SelectImage(context.Background(), criteria)
+		require.NoError(t, err)
+
+		assert.Equal(t, "ami-xxxxxxxxxx", image)
+	})
+}
