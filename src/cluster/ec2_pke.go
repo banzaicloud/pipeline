@@ -907,6 +907,10 @@ func (c *EC2ClusterPKE) GetKubernetesVersion() (string, error) {
 	return c.model.Kubernetes.Version, nil
 }
 
+func (c *EC2ClusterPKE) GetKubernetesContainerRuntime() (string, error) {
+	return string(c.model.CRI.Runtime), nil
+}
+
 func (c *EC2ClusterPKE) GetKubernetesNetworkProvider() (string, error) {
 	return string(c.model.Network.Provider), nil
 }
