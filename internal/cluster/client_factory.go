@@ -56,6 +56,28 @@ func (f ClientFactory) FromSecret(ctx context.Context, secretID string) (kuberne
 	return f.kubeClientFactory.FromSecret(ctx, secretID)
 }
 
+// +testify:mock
+
+// dynamicInterface redefines the dynamic.Interface in order to generate mock
+// for it.
+// nolint:deadcode // Used for mock generation and only the original interface
+// is referenced.
+type dynamicInterface interface {
+	dynamic.Interface
+}
+
+// +testify:mock
+
+// dynamicNamespacedResourceInterface redefines the
+// dynamic.NamespaceableResourceInterface in order to generate mock for it.
+// nolint:deadcode // Used for mock generation and only a derived interface
+// is referenced.
+type dynamicNamespaceableResourceInterface interface {
+	dynamic.NamespaceableResourceInterface
+}
+
+// +testify:mock
+
 // DynamicKubeClientFactory returns a dynamic Kubernetes client.
 type DynamicKubeClientFactory interface {
 	// FromSecret creates a dynamic Kubernetes client for a cluster from a secret.

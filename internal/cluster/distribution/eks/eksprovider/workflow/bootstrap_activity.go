@@ -25,6 +25,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
 	"go.uber.org/cadence/activity"
+	"k8s.io/client-go/kubernetes/scheme"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
@@ -46,16 +47,16 @@ import (
 const BootstrapActivityName = "eks-bootstrap"
 
 const mapRolesTemplate = `- rolearn: %s
-  username: system:node:{{EC2PrivateDNSName}}
-  groups:
-  - system:bootstrappers
-  - system:nodes
+      username: system:node:{{EC2PrivateDNSName}}
+      groups:
+      - system:bootstrappers
+      - system:nodes
 `
 
 const mapUsersTemplate = `- userarn: %s
-  username: %s
-  groups:
-  - system:masters
+      username: %s
+      groups:
+      - system:masters
 `
 
 // nolint: gochecknoglobals
@@ -78,6 +79,7 @@ type BootstrapActivityInput struct {
 	KubernetesVersion   string
 	NodeInstanceRoleArn string
 	ClusterUserArn      string
+	AuthConfigMap       string
 }
 
 // BootstrapActivityOutput holds the output data
@@ -120,7 +122,7 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 
 	constraint, err := semver.NewConstraint(">= 1.12")
 	if err != nil {
-		return nil, errors.WrapIf(err, "could not set  1.12 constraint for semver")
+		return nil, errors.WrapIf(err, "could not set 1.12 constraint for semver")
 	}
 	kubeVersion, err := semver.NewVersion(input.KubernetesVersion)
 	if err != nil {
@@ -162,22 +164,31 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 		mapRoles += fmt.Sprintf(mapRolesTemplate, roleMeta+"/"+roleID)
 	}
 
-	awsAuthConfigMap := v1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{Name: "aws-auth"},
-		Data: map[string]string{
-			"mapRoles": mapRoles,
-			"mapUsers": fmt.Sprintf(mapUsersTemplate, input.ClusterUserArn, userNameFromArn(input.ClusterUserArn)),
-		},
+	var mapUsers = fmt.Sprintf(mapUsersTemplate, input.ClusterUserArn, userNameFromArn(input.ClusterUserArn))
+	var defaultAWSConfigMap = fmt.Sprintf(`apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
+data:
+  mapRoles: |
+    %s
+  mapUsers: |
+    %s`, mapRoles, mapUsers)
+
+	mergedConfigMap, err := mergeAuthConfigMaps(defaultAWSConfigMap, input.AuthConfigMap)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to merge config map")
 	}
 
-	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(&awsAuthConfigMap)
+	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(mergedConfigMap)
 	if k8serr.ReasonForError(err) == metav1.StatusReasonAlreadyExists {
-		_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Update(&awsAuthConfigMap)
+		_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Update(mergedConfigMap)
 		if err != nil {
-			return nil, errors.WrapIfWithDetails(err, "failed to create config map", "configmap", awsAuthConfigMap.Name)
+			return nil, errors.WrapIfWithDetails(err, "failed to update config map", "configmap", mergedConfigMap.Name)
 		}
 	} else if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to create config map", "configmap", awsAuthConfigMap.Name)
+		return nil, errors.WrapIfWithDetails(err, "failed to create config map", "configmap", mergedConfigMap.Name)
 	}
 
 	ds, err := kubeClient.AppsV1().DaemonSets("kube-system").Get("aws-node", metav1.GetOptions{})
@@ -302,4 +313,49 @@ func userNameFromArn(arn string) string {
 	idx := strings.LastIndex(arn, "/")
 
 	return arn[idx+1:]
+}
+
+func mergeAuthConfigMaps(defaultConfigMap, inputConfigMap string) (*v1.ConfigMap, error) {
+	var defaultAWSConfigMap v1.ConfigMap
+	_, _, err := scheme.Codecs.UniversalDeserializer().Decode([]byte(defaultConfigMap), nil, &defaultAWSConfigMap)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode default config map")
+	}
+
+	var inputAWSConfigMap v1.ConfigMap
+	_, _, err = scheme.Codecs.UniversalDeserializer().Decode([]byte(inputConfigMap), nil, &inputAWSConfigMap)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode input config map")
+	}
+
+	mergedConfigMap := defaultAWSConfigMap
+
+	for _, key := range []string{"mapUsers", "mapRoles", "mapAccounts"} {
+		var defaultValue []map[string]interface{}
+		data := defaultAWSConfigMap.Data[key]
+		err = yaml.Unmarshal([]byte(data), &defaultValue)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to unmarshal "+key+" from: "+data)
+		}
+
+		var inputValue []map[string]interface{}
+		data = inputAWSConfigMap.Data[key]
+		err = yaml.Unmarshal([]byte(data), &inputValue)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to unmarshal "+key+" from: "+data)
+		}
+
+		value := append(defaultValue, inputValue...)
+
+		if value != nil {
+			mergedValue, err := yaml.Marshal(value)
+			if err != nil {
+				return nil, errors.WrapIf(err, "failed to marhshal "+key+" to yaml")
+			}
+
+			mergedConfigMap.Data[key] = string(mergedValue)
+		}
+	}
+
+	return &mergedConfigMap, nil
 }

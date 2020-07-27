@@ -630,6 +630,8 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 ssl:
   enabled: true
   generateTLS: true
+rbac:
+  enabled: true
 `)
 
 	v.SetDefault("cluster::autoscale::namespace", "")

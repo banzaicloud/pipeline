@@ -20,12 +20,12 @@ import (
 	"net/url"
 
 	"emperror.dev/errors"
+	dex "github.com/dexidp/dex/api/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	k8sClient "k8s.io/client-go/tools/clientcmd"
 	k8sClientApi "k8s.io/client-go/tools/clientcmd/api"
 
-	"github.com/banzaicloud/pipeline/.gen/dex"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"

@@ -1,58 +1,7 @@
 github_repo(
     name = "pleasings2",
     repo = "sagikazarmark/mypleasings",
-    revision = "master",
-)
-
-protoc_binary(
-    name = "protoc",
-    version = "3.11.4",
-    visibility = ["PUBLIC"],
-)
-
-buf_version = "0.7.0"
-buf_os = {
-    "darwin": "Darwin",
-    "linux": "Linux",
-}
-
-remote_file(
-    name = "buf",
-    url = f"https://github.com/bufbuild/buf/releases/download/v%s/buf-%s-x86_64" % (buf_version, buf_os[CONFIG.HOSTOS]),
-    out = "bin/buf",
-    binary = True,
-)
-
-licensei_version = "0.2.0"
-
-genrule(
-    name = "licensei",
-    srcs = [remote_file(
-        name = "licensei",
-        _tag = "download",
-        url = f"https://github.com/goph/licensei/releases/download/v{licensei_version}/licensei_{CONFIG.HOSTOS}_{CONFIG.HOSTARCH}.tar.gz",
-        out = f"licensei-{licensei_version}.tar.gz",
-    )],
-    outs = ["licensei"],
-    binary = True,
-    cmd = '"$TOOL" x "$SRCS" licensei -o tmp && mv $(find tmp -name "licensei") "$OUT"',
-    tools = [CONFIG.JARCAT_TOOL],
-)
-
-migrate_version = "4.9.1"
-
-genrule(
-    name = "migrate",
-    srcs = [remote_file(
-        name = "migrate",
-        _tag = "download",
-        url = f"https://github.com/golang-migrate/migrate/releases/download/v{migrate_version}/migrate.{CONFIG.HOSTOS}-{CONFIG.HOSTARCH}.tar.gz",
-        out = f"migrate-{migrate_version}.tar.gz",
-    )],
-    outs = ["migrate"],
-    binary = True,
-    cmd = f'"$TOOL" x "$SRCS" migrate -o tmp && mv $(find tmp -name "migrate.{CONFIG.HOSTOS}-{CONFIG.HOSTARCH}") "$OUT"',
-    tools = [CONFIG.JARCAT_TOOL],
+    revision = "eabddd60c960f47dac736c02602123ae6e210dd2",
 )
 
 genrule(

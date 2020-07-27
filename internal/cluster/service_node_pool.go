@@ -94,6 +94,10 @@ func (n NewRawNodePool) GetLabels() map[string]string {
 	return labels
 }
 
+// RawNodePoolList is an unstructured, distribution specific descriptor for a node
+// pool list.
+type RawNodePoolList []interface{}
+
 // RawNodePoolUpdate is an unstructured, distribution specific descriptor for a node pool update.
 type RawNodePoolUpdate map[string]interface{}
 
@@ -337,4 +341,19 @@ func (s service) nodePoolSupported(cluster Cluster) error {
 
 		Message: "the node pool API does not support this distribution yet",
 	})
+}
+
+// ListNodePools lists node pools from a cluster.
+func (s service) ListNodePools(ctx context.Context, clusterID uint) (nodePoolList RawNodePoolList, err error) {
+	cluster, err := s.clusters.GetCluster(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "retrieving cluster failed", "clusterID", clusterID)
+	}
+
+	distributionService, err := s.getDistributionService(cluster)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "retrieving distribution service failed", "cluster", cluster)
+	}
+
+	return distributionService.ListNodePools(ctx, clusterID)
 }

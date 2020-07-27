@@ -17,6 +17,7 @@ package vault
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -110,7 +111,7 @@ func testIntegratedServiceManagerGetOutput(t *testing.T) {
 			spec: obj{
 				"customVault": obj{
 					"enabled": true,
-					"address": "http://localhost:8200/",
+					"address": os.Getenv("VAULT_ADDR"),
 					"policy":  getDefaultPolicy(orgID),
 				},
 				"settings": obj{

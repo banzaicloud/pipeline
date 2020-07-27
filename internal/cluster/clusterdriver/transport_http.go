@@ -42,6 +42,13 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 		options...,
 	))
 
+	router.Methods(http.MethodGet).Path("/nodepools").Handler(kithttp.NewServer(
+		endpoints.ListNodePools,
+		decodeListNodePoolsHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeListNodePoolsHTTPResponse, errorEncoder),
+		options...,
+	))
+
 	router.Methods(http.MethodPost).Path("/nodepools").Handler(kithttp.NewServer(
 		endpoints.CreateNodePool,
 		decodeCreateNodePoolHTTPRequest,
@@ -141,6 +148,22 @@ func encodeDeleteClusterHTTPResponse(_ context.Context, w http.ResponseWriter, r
 	w.WriteHeader(http.StatusAccepted)
 
 	return nil
+}
+
+func decodeListNodePoolsHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+
+	rawClusterID, ok := vars["clusterId"]
+	if !ok || rawClusterID == "" {
+		return nil, errors.NewWithDetails("missing parameter from the URL", "param", "clusterId")
+	}
+
+	clusterID, err := strconv.ParseUint(rawClusterID, 10, 32)
+	if err != nil {
+		return nil, errors.NewWithDetails("invalid cluster ID", "rawClusterId", rawClusterID)
+	}
+
+	return ListNodePoolsRequest{ClusterID: uint(clusterID)}, nil
 }
 
 func decodeCreateNodePoolHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -272,4 +295,21 @@ func encodeDeleteNodePoolHTTPResponse(_ context.Context, w http.ResponseWriter, 
 	w.WriteHeader(http.StatusAccepted)
 
 	return nil
+}
+
+func encodeListNodePoolsHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(ListNodePoolsResponse)
+
+	var apiResp []pipeline.NodePool
+	for _, nodePool := range resp.NodePoolList {
+		var result pipeline.NodePool
+		err := mapstructure.Decode(nodePool, &result)
+		if err != nil {
+			return errors.Wrap(err, "failed to decode service response")
+		}
+
+		apiResp = append(apiResp, result)
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, kitxhttp.WithStatusCode(apiResp, http.StatusOK))
 }

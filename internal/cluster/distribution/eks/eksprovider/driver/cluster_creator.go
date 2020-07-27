@@ -151,6 +151,7 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 			LogTypes:           modelCluster.LogTypes,
 			UseGeneratedSSHKey: modelCluster.SSHGenerated,
 			Tags:               modelCluster.Cluster.Tags,
+			AuthConfigMap:      modelCluster.AuthConfigMap,
 		},
 		PostHooks:        createRequest.PostHooks,
 		OrganizationName: org.Name,

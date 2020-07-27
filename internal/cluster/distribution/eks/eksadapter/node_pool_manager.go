@@ -16,27 +16,54 @@ package eksadapter
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"emperror.dev/errors"
 	"go.uber.org/cadence/client"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
+
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
+	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
+)
+
+const (
+	// nodePoolStackNamePrefix is the prefix of CloudFormation stack names of
+	// node pools managed by the pipeline.
+	nodePoolStackNamePrefix = "pipeline-eks-nodepool-"
 )
 
 type nodePoolManager struct {
-	workflowClient client.Client
-	enterprise     bool
+	awsFactory            workflow.AWSFactory
+	cloudFormationFactory workflow.CloudFormationAPIFactory
+	dynamicClientFactory  cluster.DynamicKubeClientFactory
+	enterprise            bool
+	namespace             string
+	workflowClient        client.Client
 }
 
 // NewNodePoolManager returns a new eks.NodePoolManager
 // that manages node pools asynchronously via Cadence workflows.
-func NewNodePoolManager(workflowClient client.Client, enterprise bool) eks.NodePoolManager {
+func NewNodePoolManager(
+	awsFactory workflow.AWSFactory,
+	cloudFormationFactory workflow.CloudFormationAPIFactory,
+	dynamicClientFactory cluster.DynamicKubeClientFactory,
+	enterprise bool,
+	namespace string,
+	workflowClient client.Client,
+) eks.NodePoolManager {
 	return nodePoolManager{
-		workflowClient: workflowClient,
-		enterprise:     enterprise,
+		awsFactory:            awsFactory,
+		cloudFormationFactory: cloudFormationFactory,
+		dynamicClientFactory:  dynamicClientFactory,
+		enterprise:            enterprise,
+		namespace:             namespace,
+		workflowClient:        workflowClient,
 	}
 }
 
@@ -93,5 +120,141 @@ func (n nodePoolManager) UpdateNodePool(
 
 // TODO: this is temporary
 func generateNodePoolStackName(clusterName string, poolName string) string {
-	return "pipeline-eks-nodepool-" + clusterName + "-" + poolName
+	return nodePoolStackNamePrefix + clusterName + "-" + poolName
+}
+
+// ListNodePools lists node pools from a cluster.
+func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Cluster, nodePoolNames []string) ([]eks.NodePool, error) {
+	clusterClient, err := n.dynamicClientFactory.FromSecret(ctx, cluster.ConfigSecretID.String())
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "creating dynamic Kubernetes client factory failed", "cluster", cluster)
+	}
+
+	manager := npls.NewManager(clusterClient, n.namespace)
+	labelSets, err := manager.GetAll()
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "retrieving node pool label sets failed",
+			"cluster", cluster,
+			"namespace", n.namespace,
+		)
+	}
+
+	awsClient, err := n.awsFactory.New(cluster.OrganizationID, cluster.SecretID.ResourceID, cluster.Location)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "creating aws factory failed", "cluster", cluster)
+	}
+
+	cfClient := n.cloudFormationFactory.New(awsClient)
+	describeStacksInput := cloudformation.DescribeStacksInput{}
+	nodePools := make([]eks.NodePool, 0, len(nodePoolNames))
+	for _, nodePoolName := range nodePoolNames {
+		stackName := generateNodePoolStackName(cluster.Name, nodePoolName)
+		describeStacksInput.StackName = &stackName
+		stackDescriptions, err := cfClient.DescribeStacks(&describeStacksInput)
+		if err != nil {
+			return nil, errors.WrapWithDetails(err, "retrieving node pool cloudformation stack failed",
+				"cluster", cluster,
+				"input", describeStacksInput,
+			)
+		} else if len(stackDescriptions.Stacks) == 0 {
+			return nil, errors.NewWithDetails("missing required node pool cloudformation stack",
+				"cluster", cluster,
+				"stackName", stackName,
+			)
+		}
+
+		stack := stackDescriptions.Stacks[0]
+
+		parameterMap := make(map[string]string, len(stack.Parameters))
+		for _, parameter := range stack.Parameters {
+			parameterMap[aws.StringValue(parameter.ParameterKey)] = aws.StringValue(parameter.ParameterValue)
+		}
+
+		var clusterAutoscalerEnabled bool
+		var nodeAutoScalingGroupMaxSize int
+		var nodeAutoScalingGroupMinSize int
+		var nodeAutoScalingInitSize int
+		nodePoolParameters := map[string]interface{}{
+			"ClusterAutoscalerEnabled":    &clusterAutoscalerEnabled,
+			"NodeAutoScalingGroupMaxSize": &nodeAutoScalingGroupMaxSize,
+			"NodeAutoScalingGroupMinSize": &nodeAutoScalingGroupMinSize,
+			"NodeAutoScalingInitSize":     &nodeAutoScalingInitSize,
+		}
+
+		err = parseStackParameters(parameterMap, nodePoolParameters)
+		if err != nil {
+			return nil, errors.WrapWithDetails(err, "parsing node pool stack parameters failed",
+				"stackName", stackName)
+		}
+
+		nodePool := eks.NodePool{
+			Name:   nodePoolName,
+			Labels: labelSets[nodePoolName],
+			Size:   nodeAutoScalingInitSize,
+			Autoscaling: eks.Autoscaling{
+				Enabled: clusterAutoscalerEnabled,
+				MinSize: nodeAutoScalingGroupMinSize,
+				MaxSize: nodeAutoScalingGroupMaxSize,
+			},
+			InstanceType: parameterMap["NodeInstanceType"],
+			Image:        parameterMap["NodeImageId"],
+			SpotPrice:    parameterMap["NodeSpotPrice"],
+		}
+
+		nodePools = append(nodePools, nodePool)
+	}
+
+	return nodePools, nil
+}
+
+func parseStackParameters(parameterMap map[string]string, resultPointerMap map[string]interface{}) (err error) {
+	parseErrors := make([]error, 0)
+	for parameterKey, resultPointer := range resultPointerMap {
+		parameterRawValue, isExisting := parameterMap[parameterKey]
+		if !isExisting {
+			parseErrors = append(parseErrors, errors.NewWithDetails("missing stack parameter",
+				"parameterKey", parameterKey))
+		}
+
+		err = parseStringValue(parameterRawValue, resultPointer)
+		if err != nil {
+			parseErrors = append(parseErrors, errors.WrapWithDetails(err, "parsing node pool cloudformation stack parameter failed",
+				"parameterKey", parameterKey))
+		}
+	}
+
+	if len(parseErrors) != 0 {
+		return errors.Combine(parseErrors...)
+	}
+
+	return nil
+}
+
+// parseStringValue parses a string value to a strongly typed target result
+// object or returns error on failure.
+func parseStringValue(rawValue string, resultPointer interface{}) (err error) {
+	switch typedPointer := resultPointer.(type) {
+	case *bool:
+		if typedPointer == nil {
+			return errors.NewWithDetails("parsing raw string value received nil result pointer", "type", "bool")
+		}
+
+		*typedPointer, err = strconv.ParseBool(rawValue)
+		if err != nil {
+			return errors.NewWithDetails("parsing raw string value failed", "rawValue", rawValue, "type", "bool")
+		}
+	case *int:
+		if typedPointer == nil {
+			return errors.NewWithDetails("parsing raw string value received nil result pointer", "type", "int")
+		}
+
+		*typedPointer, err = strconv.Atoi(rawValue)
+		if err != nil {
+			return errors.NewWithDetails("parsing raw string value failed", "rawValue", rawValue, "type", "int")
+		}
+	default:
+		return errors.NewWithDetails("parsing raw string value type not implemented")
+	}
+
+	return nil
 }

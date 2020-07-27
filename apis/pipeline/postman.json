@@ -1081,6 +1081,76 @@
 									"response": []
 								},
 								{
+									"name": "List node pools",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"",
+													"if (responseCode.code === 200) {",
+													"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+													"",
+													"}",
+													"else if (responseCode.code === 404) {",
+													"    tests[\"Cluster Node Pool Found!\"] = false",
+													"    postman.setNextRequest(null);",
+													"} else {",
+													"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+													"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+													"    postman.setNextRequest(null);",
+													"",
+													"    ",
+													"}",
+													" ",
+													"",
+													"",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/nodepools",
+											"host": [
+												"{{url}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"orgs",
+												":orgId",
+												"clusters",
+												":clusterId",
+												"nodepools"
+											],
+											"variable": [
+												{
+													"key": "orgId",
+													"value": "{{orgId}}",
+													"description": "Organization identifier"
+												},
+												{
+													"key": "clusterId",
+													"value": "{{clusterId}}",
+													"description": "Cluster identifier"
+												}
+											]
+										},
+										"description": "List the cluster's node pools"
+									},
+									"response": []
+								},
+								{
 									"name": "Update node pool",
 									"request": {
 										"method": "POST",

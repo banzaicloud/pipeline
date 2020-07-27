@@ -202,6 +202,9 @@ type Service interface {
 
 	// DeleteNodePool deletes a node pool from a cluster.
 	DeleteNodePool(ctx context.Context, clusterID uint, name string) (deleted bool, err error)
+
+	// ListNodePools lists node pools from a cluster.
+	ListNodePools(ctx context.Context, clusterID uint) (nodePoolList RawNodePoolList, err error)
 }
 
 // DeleteClusterOptions represents cluster deletion options.
@@ -221,6 +224,8 @@ type service struct {
 	nodePoolProcessor NodePoolProcessor
 	nodePoolManager   NodePoolManager
 }
+
+// +testify:mock:testOnly=true
 
 // Manager provides lower level cluster operations for Service.
 type Manager interface {

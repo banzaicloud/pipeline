@@ -6,4 +6,6 @@ Dockerfile.*
 docker-compose.*
 docs/
 orgs/
+.plz-cache/
+plz-out/
 vendor/

@@ -92,6 +92,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksadapter"
 	eksDriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	prometheusMetrics "github.com/banzaicloud/pipeline/internal/cluster/metrics/adapters/prometheus"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
@@ -866,7 +867,14 @@ func main() {
 							"eks": clusteradapter.NewEKSService(eks.NewService(
 								clusterStore,
 								eksadapter.NewNodePoolStore(db),
-								eksadapter.NewNodePoolManager(workflowClient, config.Pipeline.Enterprise),
+								eksadapter.NewNodePoolManager(
+									workflow.NewAWSSessionFactory(secret.Store),
+									workflow.NewCloudFormationFactory(),
+									dynamicClientFactory,
+									config.Pipeline.Enterprise,
+									config.Cluster.Namespace,
+									workflowClient,
+								),
 							)),
 						},
 						clusteradapter.NewNodePoolStore(db, clusterStore),
