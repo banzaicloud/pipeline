@@ -30,7 +30,6 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/src/helm"
 )
 
 // Cluster collects operations to extract  cluster related information
@@ -41,30 +40,6 @@ type ClusterService interface {
 
 type ReleaseChecker interface {
 	CheckRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options intlHelm.Options) (string, error)
-}
-
-type helm2ReleaseChecker struct {
-	clusterService ClusterService
-}
-
-func NewReleaseChecker(service ClusterService) ReleaseChecker {
-	return helm2ReleaseChecker{clusterService: service}
-}
-func (h helm2ReleaseChecker) CheckRelease(ctx context.Context, organizationID uint, clusterID uint, releaseName string, options intlHelm.Options) (string, error) {
-	kubeConfig, err := h.clusterService.GetKubeConfig(ctx, clusterID)
-	if err != nil {
-		return "", errors.WrapIf(err, "failed to get kubeconfig")
-	}
-
-	if releaseName != "" {
-		status, err := helm.GetDeploymentStatus(releaseName, kubeConfig)
-		if err != nil {
-			return "", errors.WrapIf(err, "failed to retrieve release status")
-		}
-		return string(status), nil
-	}
-
-	return "", nil
 }
 
 type EndpointLister struct {

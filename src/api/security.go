@@ -36,7 +36,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/security"
 	apiCommon "github.com/banzaicloud/pipeline/src/api/common"
-	legacyHelm "github.com/banzaicloud/pipeline/src/helm"
 )
 
 func init() {
@@ -78,31 +77,6 @@ func getClusterClient(c *gin.Context) client.Client {
 type ReleaseLister interface {
 	// ListReleases lists helm releases for the given input parameters
 	ListReleases(ctx context.Context, organizationID uint, clusterID uint, releaseFilter helm.ReleaseFilter, options helm.Options) ([]helm.Release, error)
-}
-
-// helm2ReleaseLister helm 2 (legacy) release lister
-type helm2ReleaseLister struct {
-	clusterService ClusterService
-}
-
-func (d helm2ReleaseLister) ListReleases(ctx context.Context, _ uint, clusterID uint, releaseFilter helm.ReleaseFilter, options helm.Options) ([]helm.Release, error) {
-	kubeConfig, err := d.clusterService.GetKubeConfig(ctx, clusterID)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to retrieve kube  config")
-	}
-
-	legacyReleasesResponse, err := legacyHelm.ListDeployments(releaseFilter.Filter, releaseFilter.TagFilter, kubeConfig)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to retrieve releases config")
-	}
-
-	return getDomainReleases(legacyReleasesResponse)
-}
-
-func NewHelm2ReleaseLister(clusterService ClusterService) ReleaseLister {
-	return helm2ReleaseLister{
-		clusterService: clusterService,
-	}
 }
 
 // imageDeploymentsHandler providing helm abstraction to the handler

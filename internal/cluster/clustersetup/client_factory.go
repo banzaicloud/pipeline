@@ -20,7 +20,6 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/banzaicloud/pipeline/pkg/helm"
 	k8s "github.com/banzaicloud/pipeline/pkg/kubernetes"
 )
 
@@ -38,14 +37,6 @@ type ClientFactory interface {
 type DynamicClientFactory interface {
 	// FromSecret creates a Kubernetes client for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (dynamic.Interface, error)
-}
-
-// +testify:mock:testOnly=true
-
-// HelmClientFactory returns a Kubernetes client.
-type HelmClientFactory interface {
-	// FromSecret creates a Kubernetes client for a cluster from a secret.
-	FromSecret(ctx context.Context, secretID string) (*helm.Client, error)
 }
 
 // +testify:mock:testOnly=true

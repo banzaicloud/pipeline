@@ -21,8 +21,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	helm2 "github.com/banzaicloud/pipeline/src/helm"
-
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/banzaicloud/pipeline/internal/common"
@@ -33,36 +31,16 @@ import (
 
 var clusterId = uint(123) // nolint:gochecknoglobals
 
-const (
-	v3 = true
-	v2 = false
-)
-
 func TestIntegration(t *testing.T) {
 	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
 		t.Skip("skipping as execution was not requested explicitly using go test -run")
 	}
 
 	helmHome := helmtesting.HelmHome(t)
-	t.Run("testGetChartDescV3", testGetChartDesc(helmHome, v3))
-
-	helmHomeV2 := helmtesting.HelmHome(t)
-	t.Run("testGetChartDescV2", testGetChartDesc(helmHomeV2, v2))
-
-	t.Run("testLegacyGetRequestedChart", testLegacyGetRequestedChart)
+	t.Run("testGetChartDesc", testGetChartDesc(helmHome))
 }
 
-func testLegacyGetRequestedChart(t *testing.T) {
-	global.Config.Helm.Home = helmtesting.HelmHome(t)
-	env := helm2.GeneratePlatformHelmRepoEnv()
-	chart, err := helm2.GetRequestedChart("mysql", "stable/mysql", "", nil, env)
-	if err != nil {
-		t.Fatalf("%+v", err)
-	}
-	assert.Equal(t, "mysql", chart.Metadata.Name)
-}
-
-func testGetChartDesc(home string, v3 bool) func(*testing.T) {
+func testGetChartDesc(home string) func(*testing.T) {
 	return func(t *testing.T) {
 		db := helmtesting.SetupDatabase(t)
 		secretStore := helmtesting.SetupSecretStore()
@@ -74,7 +52,6 @@ func testGetChartDesc(home string, v3 bool) func(*testing.T) {
 		global.Config.Helm.Home = home
 		config := helm.Config{
 			Home: home,
-			V3:   v3,
 			Repositories: map[string]string{
 				"stable": "https://kubernetes-charts.storage.googleapis.com",
 			},

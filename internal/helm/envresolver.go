@@ -113,20 +113,6 @@ func (er envResolver) ResolvePlatformEnv(ctx context.Context) (HelmEnv, error) {
 	}, nil
 }
 
-type helm2EnvResolver struct {
-	envResolver
-}
-
-func NewHelm2EnvResolver(helmHomesDir string, orgService OrgService, logger Logger) EnvResolver {
-	return helm2EnvResolver{
-		envResolver{
-			helmHomesDir: helmHomesDir,
-			orgService:   orgService,
-			logger:       logger,
-		},
-	}
-}
-
 // helm3EnvResolver helm env resolver to be used for resolving helm 3 environments
 type helm3EnvResolver struct {
 	envResolver

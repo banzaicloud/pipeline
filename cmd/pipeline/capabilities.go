@@ -48,12 +48,9 @@ func mapCapabilities(config configuration) cap.Capabilities {
 				"controllers": config.Cluster.Ingress.Controllers,
 			},
 		},
-	}
-
-	if config.Helm.V3 {
-		caps["helm"] = cap.Cap{
+		"helm": cap.Cap{
 			"version": helmVersion,
-		}
+		},
 	}
 
 	return caps

@@ -17,16 +17,9 @@ package helm
 import "path/filepath"
 
 type Config struct {
-	Tiller struct {
-		Version string
-	}
-
 	Home string
 
 	Repositories map[string]string
-
-	// flag signaling if helm3 is enabled or not
-	V3 bool
 }
 
 // Validate validates the configuration.

@@ -766,69 +766,43 @@ func main() {
 				cs := helm.ClusterKubeConfigFunc(clusterManager.KubeConfigFunc())
 
 				{
-					if config.Helm.V3 {
-						endpoints := helmdriver.MakeEndpoints(
-							helmFacade,
-							kitxendpoint.Combine(endpointMiddleware...),
-						)
-						restAPI := helm.NewRestAPIService(helmFacade, securityInfoService)
-						restEndpoints := helmdriver.MakeRestAPIEndpoints(
-							restAPI,
-							kitxendpoint.Combine(endpointMiddleware...),
-						)
+					endpoints := helmdriver.MakeEndpoints(
+						helmFacade,
+						kitxendpoint.Combine(endpointMiddleware...),
+					)
+					restAPI := helm.NewRestAPIService(helmFacade, securityInfoService)
+					restEndpoints := helmdriver.MakeRestAPIEndpoints(
+						restAPI,
+						kitxendpoint.Combine(endpointMiddleware...),
+					)
 
-						helmdriver.RegisterReleaserHTTPHandlers(endpoints,
-							clusterRouter.PathPrefix("/deployments").Subrouter(),
-							kitxhttp.ServerOptions(httpServerOptions),
-						)
+					helmdriver.RegisterReleaserHTTPHandlers(endpoints,
+						clusterRouter.PathPrefix("/deployments").Subrouter(),
+						kitxhttp.ServerOptions(httpServerOptions),
+					)
 
-						helmdriver.RegisterRestAPI(restEndpoints,
-							clusterRouter.PathPrefix("/deployments").Subrouter(),
-							kitxhttp.ServerOptions(httpServerOptions),
-						)
+					helmdriver.RegisterRestAPI(restEndpoints,
+						clusterRouter.PathPrefix("/deployments").Subrouter(),
+						kitxhttp.ServerOptions(httpServerOptions),
+					)
 
-						deploymentsRouter := cRouter.Group("/deployments")
-						deploymentsRouter.POST("", gin.WrapH(router))
-						deploymentsRouter.GET("", gin.WrapH(router))
-						deploymentsRouter.GET(":name", gin.WrapH(router))
-						deploymentsRouter.PUT(":name", gin.WrapH(router))
-						deploymentsRouter.HEAD(":name", gin.WrapH(router))
-						deploymentsRouter.DELETE(":name", gin.WrapH(router))
-						deploymentsRouter.GET(":name/resources", gin.WrapH(router))
+					deploymentsRouter := cRouter.Group("/deployments")
+					deploymentsRouter.POST("", gin.WrapH(router))
+					deploymentsRouter.GET("", gin.WrapH(router))
+					deploymentsRouter.GET(":name", gin.WrapH(router))
+					deploymentsRouter.PUT(":name", gin.WrapH(router))
+					deploymentsRouter.HEAD(":name", gin.WrapH(router))
+					deploymentsRouter.DELETE(":name", gin.WrapH(router))
+					deploymentsRouter.GET(":name/resources", gin.WrapH(router))
 
-						// other version dependant operations
-						cRouter.GET("/endpoints", api.MakeEndpointLister(cs, helmFacade, logger).ListEndpoints)
-					} else {
-						// set up the middleware for ensuring helm environments for orgs
-						ensuringHelmResolver := cmd.NewEnsuringEnvResolver(config.Helm, db, commonSecretStore, commonLogger)
-						helmEnvMW := helmadapter.NewHelmEnvEnsurerMiddleware(ensuringHelmResolver, commonLogger)
-
-						deploymentsRouter := cRouter.Group("/deployments")
-						deploymentsRouter.Use(helmEnvMW.Middleware)
-						deploymentsRouter.POST("", api.CreateDeployment)
-						deploymentsRouter.GET("", api.ListDeployments)
-						deploymentsRouter.GET(":name", api.GetDeployment)
-						deploymentsRouter.PUT(":name", api.UpgradeDeployment)
-						deploymentsRouter.HEAD(":name", api.HelmDeploymentStatus)
-						deploymentsRouter.HEAD("", api.GetTillerStatus)
-						deploymentsRouter.DELETE(":name", api.DeleteDeployment)
-						deploymentsRouter.GET(":name/resources", api.GetDeploymentResources)
-
-						// other version dependant operations
-						releaseChecker := api.NewReleaseChecker(cs)
-						cRouter.GET("/endpoints", api.MakeEndpointLister(cs, releaseChecker, logger).ListEndpoints)
-					}
+					// other version dependant operations
+					cRouter.GET("/endpoints", api.MakeEndpointLister(cs, helmFacade, logger).ListEndpoints)
 				}
 
 				cRouter.GET("/images", api.ListImages)
 
-				if config.Helm.V3 {
-					imageDeploymentHandler := api.NewImageDeploymentsHandler(helmFacade, cs, logger)
-					cRouter.GET("/images/:imageDigest/deployments", imageDeploymentHandler.GetImageDeployments)
-				} else {
-					imageDeploymentHandler := api.NewImageDeploymentsHandler(api.NewHelm2ReleaseLister(cs), cs, logger)
-					cRouter.GET("/images/:imageDigest/deployments", imageDeploymentHandler.GetImageDeployments)
-				}
+				imageDeploymentHandler := api.NewImageDeploymentsHandler(helmFacade, cs, logger)
+				cRouter.GET("/images/:imageDigest/deployments", imageDeploymentHandler.GetImageDeployments)
 
 				cRouter.GET("/deployments/:name/images", api.GetDeploymentImages)
 				{

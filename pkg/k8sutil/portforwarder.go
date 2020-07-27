@@ -24,7 +24,7 @@ import (
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 
-	"k8s.io/helm/pkg/kube"
+	"github.com/banzaicloud/pipeline/pkg/helm/kube"
 )
 
 type TunnelDestinationNotFoundError error
@@ -39,7 +39,7 @@ func NewKubeTunnel(namespace string, client kubernetes.Interface, config *rest.C
 	return t, t.ForwardPort()
 }
 
-// GetTillerPodName fetches the name of tiller pod running in the given namespace.
+// GetPodName fetches the name of a pod running in the given namespace.
 func GetPodName(client corev1.PodsGetter, namespace string, selector labels.Selector) (string, error) {
 	pod, err := getFirstRunningPod(client, namespace, selector)
 	if err != nil {

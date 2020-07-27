@@ -20,16 +20,10 @@ import (
 	"testing"
 )
 
-const (
-	v3 = true
-	v2 = false
-)
-
 func TestIntegration(t *testing.T) {
 	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
 		t.Skip("skipping as execution was not requested explicitly using go test -run")
 	}
 
-	t.Run("testEnsureCRDSourceForExtDNSv2", testEnsureCRDSourceForExtDNS(v2, "test-fed-ext-dns-v2"))
-	t.Run("testEnsureCRDSourceForExtDNSv3", testEnsureCRDSourceForExtDNS(v3, "test-fed-ext-dns-v3"))
+	t.Run("testEnsureCRDSourceForExtDNSv3", testEnsureCRDSourceForExtDNS("test-fed-ext-dns-v3"))
 }

@@ -26,7 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
-func testEnsureCRDSourceForExtDNS(v3 bool, testNamespace string) func(t *testing.T) {
+func testEnsureCRDSourceForExtDNS(testNamespace string) func(t *testing.T) {
 	return func(t *testing.T) {
 		chartName := "stable/external-dns"
 		releaseName := "fed-ext-dns"
@@ -59,7 +59,6 @@ func testEnsureCRDSourceForExtDNS(v3 bool, testNamespace string) func(t *testing
 
 		config := helm.Config{
 			Home: home,
-			V3:   v3,
 			Repositories: map[string]string{
 				"stable": "https://kubernetes-charts.storage.googleapis.com",
 			},
