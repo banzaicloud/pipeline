@@ -63,6 +63,7 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
+	"github.com/banzaicloud/pipeline/internal/global/globaleks"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/auditlog"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/auditlog/auditlogdriver"
@@ -858,6 +859,9 @@ func main() {
 						intCluster.NewFilterValidNodePoolLabelSource(labelValidator),
 						labelSource,
 					})
+
+					// Used by legacy cluster create and update code
+					globaleks.SetImageSelector(eks.DefaultImages())
 
 					service := intCluster.NewService(
 						clusterStore,

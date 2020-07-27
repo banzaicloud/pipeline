@@ -12,29 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package eks
+package globaleks
 
 import (
-	"testing"
+	"sync"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 )
 
-func TestGetDefaultImageID(t *testing.T) {
-	const testVersion = "1.14.0"
-	const nonExistingVersion = "1.8.0"
+// nolint: gochecknoglobals
+var imageSelector eks.ImageSelector
 
-	const region = "us-east-1"
+// nolint: gochecknoglobals
+var imageSelectorMu sync.Mutex
 
-	image, err := GetDefaultImageID(region, testVersion)
-	require.NoError(t, err)
+// ImageSelector returns an initialized ImageSelector instance.
+func ImageSelector() eks.ImageSelector {
+	imageSelectorMu.Lock()
+	defer imageSelectorMu.Unlock()
 
-	assert.NotEmpty(t, image)
+	return imageSelector
+}
 
-	_, err = GetDefaultImageID(region, nonExistingVersion)
-	require.Error(t, err)
+// SetImageSelector configures an ImageSelector instance.
+func SetImageSelector(is eks.ImageSelector) {
+	imageSelectorMu.Lock()
+	defer imageSelectorMu.Unlock()
 
-	_, err = GetDefaultImageID(region, "INVALID")
-	require.Error(t, err)
+	imageSelector = is
 }
