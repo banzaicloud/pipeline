@@ -84,5 +84,18 @@ func (s CloudinfoImageSelector) SelectImage(ctx context.Context, criteria pkeaws
 		)
 	}
 
+	// As a result of a bug in cloudinfo,
+	// the returned item might be empty
+	// See https://github.com/banzaicloud/cloudinfo/pull/356
+	if images[0].Name == "" {
+		return "", errors.WithDetails(
+			errors.WithStack(pkeaws.ImageNotFoundError),
+			"cloudProvider", cloudProvider,
+			"service", serviceName,
+			"region", criteria.Region,
+			"getImagesOpts", opts,
+		)
+	}
+
 	return images[0].Name, nil
 }
