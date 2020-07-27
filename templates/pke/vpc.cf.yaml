@@ -23,15 +23,15 @@ Parameters:
     Default: 192.168.0.0/16
     Description: The CIDR range for the VPC. This should be a valid private (RFC 1918) CIDR range. Used only when new VPC is created.
 
-  Subnet01Block:
-    Type: String
-    Default: 192.168.64.0/20
-    Description: CidrBlock for subnet 01 within the VPC
-
   Subnets:
     Description: The subnets where workers can be created.
     Type: String
     Default: ""
+
+  AvailabilityZoneName:
+      Type: String
+      Description: The AZ of the subnet
+      Default: ""
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -97,38 +97,12 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
 
-  Subnet01:
-    Type: "AWS::EC2::Subnet"
-    Condition: CreateSubnets
-    Metadata:
-      Comment: Subnet 01
-    Properties:
-      AvailabilityZone:
-        Fn::Select:
-        - '0'
-        - Fn::GetAZs:
-            Ref: AWS::Region
-      CidrBlock:
-        Ref: Subnet01Block
-      VpcId: !If [ CreateVpc, !Ref VPC,  !Ref VpcId ]
-      MapPublicIpOnLaunch: true
-      Tags:
-      - Key: Name
-        Value: !Sub "${AWS::StackName}-Subnet01"
-
-  Subnet01RouteTableAssociation:
-    Type: "AWS::EC2::SubnetRouteTableAssociation"
-    Condition: CreateSubnets
-    Properties:
-      SubnetId: !Ref Subnet01
-      RouteTableId: !If [ CreateVpc, !Ref RouteTable,  !Ref RouteTableId ]
-
 Outputs:
-
-  SubnetIds:
-    Description: All subnets in the VPC
-    Value:  !If [ CreateSubnets, !Ref Subnet01, !Ref Subnets ]
 
   VpcId:
     Description: The VPC Id
     Value: !If [ CreateVpc, !Ref VPC, !Ref VpcId ]
+    
+  RouteTableId:
+      Description: Route table Id
+      Value: !If [ CreateVpc, !Ref RouteTable,  !Ref RouteTableId ]

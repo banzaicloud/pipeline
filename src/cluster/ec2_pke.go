@@ -28,7 +28,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
@@ -45,7 +44,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
-	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
@@ -815,45 +813,10 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 	if version[0] == 'v' {
 		version = version[1:]
 	}
-	infrastructureCIDR := ""
 
 	kubernetesNetworkProvider, err := c.GetKubernetesNetworkProvider()
 	if err != nil {
 		return "", errors.WrapIf(err, "couldn't get Kubernetes network provider config")
-	}
-
-	// determine the CIDR of the subnet of the node pool
-	subnetId := ""
-	if len(nodePoolAmazonConfig.AutoScalingGroup.Subnets) > 0 {
-		subnetId = string(nodePoolAmazonConfig.AutoScalingGroup.Subnets[0])
-	} else {
-		// subnet not provided for nodepool. fall back to global provider network config
-		_, _, subnets, err := c.GetNetworkCloudProvider()
-		if err != nil {
-			return "", errors.WrapIf(err, "couldn't get cloud provider network config")
-		}
-
-		if len(subnets) > 0 {
-			subnetId = subnets[0]
-		}
-	}
-
-	if subnetId != "" {
-		// query subnet CIDR from amazon
-		awsClient, err := c.GetAWSClient()
-		if err != nil {
-			return "", err
-		}
-
-		netSvc := pkgEC2.NewNetworkSvc(ec2.New(awsClient), NewLogurLogger(c.log))
-		infrastructureCIDR, err = netSvc.GetSubnetCidr(subnetId)
-		if err != nil {
-			return "", errors.WrapIff(err, "couldn't get CIDR for subnet %q", subnetId)
-		}
-	}
-
-	if infrastructureCIDR == "" {
-		return "", errors.WrapIff(err, "couldn't get CIDR for subnet %q", subnetId)
 	}
 
 	apiAddress, _, err := c.GetNetworkApiServerAddress()
@@ -881,7 +844,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 			"--kubernetes-network-provider=%q "+
 			"--kubernetes-service-cidr=10.10.0.0/16 "+
 			"--kubernetes-pod-network-cidr=10.20.0.0/16 "+
-			"--kubernetes-infrastructure-cidr=%q "+
+			"--kubernetes-infrastructure-cidr=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)/32 "+
 			"--kubernetes-api-server=%q "+
 			"--kubernetes-cluster-name=%q "+
 			"--kubernetes-master-mode=%q "+
@@ -896,7 +859,6 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 			version,
 			c.model.CRI.Runtime,
 			kubernetesNetworkProvider,
-			infrastructureCIDR,
 			apiAddress,
 			c.GetName(),
 			masterMode,
@@ -928,7 +890,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		"--kubernetes-cloud-provider=aws "+
 		"--kubernetes-version=%q "+
 		"--kubernetes-container-runtime=%q "+
-		"--kubernetes-infrastructure-cidr=%q",
+		"--kubernetes-infrastructure-cidr=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)/32 ",
 		subcommand,
 		url,
 		strconv.FormatBool(urlInsecure),
@@ -938,7 +900,6 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		nodePoolName,
 		version,
 		c.model.CRI.Runtime,
-		infrastructureCIDR,
 	), nil
 }
 
@@ -1152,6 +1113,8 @@ func createEC2PKENetworkFromRequest(network pke.Network, userId uint) internalPk
 		APIServerAddress: network.APIServerAddress,
 	}
 	n.CreatedBy = userId
+
+	_ = n.CloudProvider.Scan(network.ProviderConfig)
 	return n
 }
 

@@ -22,6 +22,8 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 )
 
+const PKECloudFormationTemplateBasePath = "templates/pke"
+
 type AWSActivityInput struct {
 	OrganizationID uint
 	SecretID       string

@@ -19,6 +19,4 @@ require (
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1 // indirect
 )
 
-replace (
-	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08
-)
+replace github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08

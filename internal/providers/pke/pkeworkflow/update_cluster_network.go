@@ -17,7 +17,6 @@ package pkeworkflow
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/pkg/errors"
 
@@ -40,7 +39,7 @@ type UpdateClusterNetworkActivityInput struct {
 	ClusterID       uint
 	APISeverAddress string
 	VPCID           string
-	Subnets         string
+	Subnets         []string
 }
 
 func (a *UpdateClusterNetworkActivity) Execute(ctx context.Context, input UpdateClusterNetworkActivityInput) error {
@@ -54,8 +53,7 @@ func (a *UpdateClusterNetworkActivity) Execute(ctx context.Context, input Update
 		return errors.New(fmt.Sprintf("can't update Network for cluster type %t", c))
 	}
 
-	subnets := strings.Split(input.Subnets, ",")
-	err = awsCluster.SaveNetworkCloudProvider(string(internalPke.CNPAmazon), input.VPCID, subnets)
+	err = awsCluster.SaveNetworkCloudProvider(string(internalPke.CNPAmazon), input.VPCID, input.Subnets)
 	if err != nil {
 		return err
 	}
