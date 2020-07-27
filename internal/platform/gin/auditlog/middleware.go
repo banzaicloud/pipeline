@@ -168,8 +168,7 @@ func Middleware(driver Driver, opts ...Option) gin.HandlerFunc {
 				options.errorHandler.HandleContext(c.Request.Context(), errors.WithStack(err))
 			}
 
-			rawBody := string(buf.Bytes())
-			entry.HTTP.RequestBody = &rawBody
+			entry.HTTP.RequestBody = string(buf.Bytes())
 		}
 
 		if c.IsAborted() {

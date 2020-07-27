@@ -99,12 +99,7 @@ func appendFields(data map[string]interface{}, entry auditlog.Entry, fields []st
 		case "http.responseSize":
 			data[field] = entry.HTTP.ResponseSize
 		case "http.requestBody":
-			var body string
-			if entry.HTTP.RequestBody != nil {
-				body = *entry.HTTP.RequestBody
-			}
-
-			data[field] = body
+			data[field] = entry.HTTP.RequestBody
 		case "http.errors":
 			if len(entry.HTTP.Errors) > 0 {
 				data[field] = entry.HTTP.Errors

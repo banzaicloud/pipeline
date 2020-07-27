@@ -76,8 +76,8 @@ func (d dbDriver) Store(entry auditlog.Entry) error {
 	// Saving the model fails when the body is not valid JSON (and not empty).
 	// The previous implementation transparently suppressed these errors, so this should be fine for now.
 	// The Body column should probably accept a raw body instead of enforcing JSON.
-	if entry.HTTP.RequestBody != nil && len(*entry.HTTP.RequestBody) > 0 {
-		model.Body = entry.HTTP.RequestBody
+	if entry.HTTP.RequestBody != "" {
+		model.Body = &entry.HTTP.RequestBody
 	}
 
 	if len(entry.HTTP.Errors) > 0 {

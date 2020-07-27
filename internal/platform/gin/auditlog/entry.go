@@ -32,7 +32,7 @@ type HTTPEntry struct {
 	UserAgent    string
 	Method       string
 	Path         string
-	RequestBody  *string
+	RequestBody  string
 	StatusCode   int
 	ResponseTime int
 	ResponseSize int
