@@ -144,3 +144,8 @@ var defaultImages = ImageSelectors{
 		},
 	},
 }
+
+// DefaultImages returns an image selector that returns fallback images if no other images are found.
+func DefaultImages() ImageSelector {
+	return defaultImages
+}

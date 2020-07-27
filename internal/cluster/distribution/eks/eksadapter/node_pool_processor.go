@@ -27,7 +27,8 @@ import (
 )
 
 type nodePoolProcessor struct {
-	db *gorm.DB
+	db            *gorm.DB
+	imageSelector eks.ImageSelector
 }
 
 // NewNodePoolProcessor returns a new cluster.NodePoolProcessor
@@ -36,14 +37,15 @@ type nodePoolProcessor struct {
 // Note: once persistence is properly separated from Gorm,
 // this should be moved to the EKS package,
 // since it contains business processing rules.
-func NewNodePoolProcessor(db *gorm.DB) cluster.NodePoolProcessor {
+func NewNodePoolProcessor(db *gorm.DB, imageSelector eks.ImageSelector) cluster.NodePoolProcessor {
 	return nodePoolProcessor{
-		db: db,
+		db:            db,
+		imageSelector: imageSelector,
 	}
 }
 
 func (p nodePoolProcessor) ProcessNew(
-	_ context.Context,
+	ctx context.Context,
 	cluster cluster.Cluster,
 	rawNodePool cluster.NewRawNodePool,
 ) (cluster.NewRawNodePool, error) {
@@ -76,7 +78,13 @@ func (p nodePoolProcessor) ProcessNew(
 
 	// Default node pool image
 	if nodePool.Image == "" {
-		image, err := eks.GetDefaultImageID(cluster.Location, eksCluster.Version)
+		criteria := eks.ImageSelectionCriteria{
+			Region:            cluster.Location,
+			InstanceType:      nodePool.InstanceType,
+			KubernetesVersion: eksCluster.Version,
+		}
+
+		image, err := p.imageSelector.SelectImage(ctx, criteria)
 		if err != nil {
 			return rawNodePool, err
 		}
