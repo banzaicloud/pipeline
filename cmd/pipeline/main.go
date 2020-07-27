@@ -887,7 +887,7 @@ func main() {
 						intCluster.NodePoolProcessors{
 							intCluster.NewCommonNodePoolProcessor(labelSource),
 							intCluster.NewDistributionNodePoolProcessor(map[string]intCluster.NodePoolProcessor{
-								"eks": eksadapter.NewNodePoolProcessor(db),
+								"eks": eksadapter.NewNodePoolProcessor(db, eks.DefaultImages()),
 							}),
 						},
 						clusteradapter.NewNodePoolManager(
