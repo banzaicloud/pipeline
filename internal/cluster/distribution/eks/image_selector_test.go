@@ -19,7 +19,9 @@ import (
 	"testing"
 
 	"emperror.dev/errors"
+	"github.com/Masterminds/semver/v3"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,6 +43,51 @@ func TestRegionMapImageSelector(t *testing.T) {
 		}
 
 		image, err := imageSelector.SelectImage(context.Background(), ImageSelectionCriteria{Region: "us-east-2"})
+
+		assert.Equal(t, "", image)
+		assert.Equal(t, ImageNotFoundError, errors.Cause(err))
+	})
+}
+
+func TestKubernetesVersionImageSelector(t *testing.T) {
+	t.Run("OK", func(t *testing.T) {
+		constraint, err := semver.NewConstraint("~1.17")
+		require.NoError(t, err)
+
+		criteria := ImageSelectionCriteria{
+			Region:            "us-east-1",
+			KubernetesVersion: "1.17.7",
+		}
+
+		delegatedImageSelector := new(MockImageSelector)
+		delegatedImageSelector.On("SelectImage", mock.Anything, criteria).Return("ami-xxxxxxxxxx", nil)
+
+		imageSelector := KubernetesVersionImageSelector{
+			Constraint:    constraint,
+			ImageSelector: delegatedImageSelector,
+		}
+
+		image, err := imageSelector.SelectImage(context.Background(), criteria)
+		require.NoError(t, err)
+
+		assert.Equal(t, "ami-xxxxxxxxxx", image)
+	})
+
+	t.Run("ConstraintDoesNotMatch", func(t *testing.T) {
+		constraint, err := semver.NewConstraint("~1.17")
+		require.NoError(t, err)
+
+		criteria := ImageSelectionCriteria{
+			Region:            "us-east-1",
+			KubernetesVersion: "1.16.6",
+		}
+
+		imageSelector := KubernetesVersionImageSelector{
+			Constraint: constraint,
+		}
+
+		image, err := imageSelector.SelectImage(context.Background(), criteria)
+		require.Error(t, err)
 
 		assert.Equal(t, "", image)
 		assert.Equal(t, ImageNotFoundError, errors.Cause(err))
