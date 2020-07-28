@@ -15,6 +15,7 @@
 package monitoring
 
 import (
+	"context"
 	"testing"
 
 	"k8s.io/api/extensions/v1beta1"
@@ -58,12 +59,12 @@ func TestMigrateIngress(t *testing.T) {
 			return clientset, nil
 		}
 
-		err := Migrate(clientsetFactory, releaseNamespace, oldVersion, newVersion)
+		err := Migrate(context.Background(), clientsetFactory, releaseNamespace, oldVersion, newVersion)
 		if err != nil {
 			t.Fatalf("%+v", err)
 		}
 
-		ingresses, err := clientset.ExtensionsV1beta1().Ingresses(releaseNamespace).List(v1.ListOptions{})
+		ingresses, err := clientset.ExtensionsV1beta1().Ingresses(releaseNamespace).List(context.Background(), v1.ListOptions{})
 		if err != nil {
 			t.Fatalf("%+v", err)
 		}
@@ -86,12 +87,12 @@ func TestMigrateIngress(t *testing.T) {
 			return clientset, nil
 		}
 
-		err := Migrate(clientsetFactory, releaseNamespace, oldVersion, oldVersion)
+		err := Migrate(context.Background(), clientsetFactory, releaseNamespace, oldVersion, oldVersion)
 		if err != nil {
 			t.Fatalf("%+v", err)
 		}
 
-		ingresses, err := clientset.ExtensionsV1beta1().Ingresses(releaseNamespace).List(v1.ListOptions{})
+		ingresses, err := clientset.ExtensionsV1beta1().Ingresses(releaseNamespace).List(context.Background(), v1.ListOptions{})
 		if err != nil {
 			t.Fatalf("%+v", err)
 		}

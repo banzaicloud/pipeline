@@ -52,7 +52,7 @@ func (a DeleteNodePoolLabelSetActivity) Execute(ctx context.Context, input Delet
 
 	manager := npls.NewManager(client, a.namespace)
 
-	err = manager.Delete(input.NodePoolName)
+	err = manager.Delete(ctx, input.NodePoolName)
 	if err != nil {
 		return err
 	}

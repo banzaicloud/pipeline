@@ -142,7 +142,7 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 
 	if storageClassConstraint.Check(kubeVersion) {
 		// create default storage class
-		err = createDefaultStorageClass(kubeClient, "kubernetes.io/aws-ebs", volumeBindingMode, nil)
+		err = createDefaultStorageClass(ctx, kubeClient, "kubernetes.io/aws-ebs", volumeBindingMode, nil)
 		if err != nil {
 			return nil, errors.WrapIfWithDetails(err, "failed to create default storage class",
 				"provisioner", "kubernetes.io/aws-ebs",
@@ -181,9 +181,9 @@ data:
 		return nil, errors.WrapIf(err, "failed to merge config map")
 	}
 
-	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(mergedConfigMap)
+	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(ctx, mergedConfigMap, metav1.CreateOptions{})
 	if k8serr.ReasonForError(err) == metav1.StatusReasonAlreadyExists {
-		_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Update(mergedConfigMap)
+		_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Update(ctx, mergedConfigMap, metav1.UpdateOptions{})
 		if err != nil {
 			return nil, errors.WrapIfWithDetails(err, "failed to update config map", "configmap", mergedConfigMap.Name)
 		}
@@ -191,7 +191,7 @@ data:
 		return nil, errors.WrapIfWithDetails(err, "failed to create config map", "configmap", mergedConfigMap.Name)
 	}
 
-	ds, err := kubeClient.AppsV1().DaemonSets("kube-system").Get("aws-node", metav1.GetOptions{})
+	ds, err := kubeClient.AppsV1().DaemonSets("kube-system").Get(ctx, "aws-node", metav1.GetOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get CNI driver daemonset")
 	}
@@ -225,7 +225,7 @@ data:
 		Value: string(tagBody),
 	})
 
-	_, err = kubeClient.AppsV1().DaemonSets("kube-system").Update(ds)
+	_, err = kubeClient.AppsV1().DaemonSets("kube-system").Update(ctx, ds, metav1.UpdateOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update CNI driver daemonset")
 	}
@@ -285,7 +285,7 @@ func (a *BootstrapActivity) getKubeClient(eksSvc *eks.EKS, input BootstrapActivi
 
 // CreateDefaultStorageClass creates a default storage class as some clusters are not created with
 // any storage classes or with default one
-func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provisioner string, volumeBindingMode storagev1.VolumeBindingMode, parameters map[string]string) error {
+func createDefaultStorageClass(ctx context.Context, kubernetesClient *kubernetes.Clientset, provisioner string, volumeBindingMode storagev1.VolumeBindingMode, parameters map[string]string) error {
 	defaultStorageClass := storagev1.StorageClass{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "default",
@@ -298,9 +298,9 @@ func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provision
 		Parameters:        parameters,
 	}
 
-	_, err := kubernetesClient.StorageV1().StorageClasses().Create(&defaultStorageClass)
+	_, err := kubernetesClient.StorageV1().StorageClasses().Create(ctx, &defaultStorageClass, metav1.CreateOptions{})
 	if k8serr.ReasonForError(err) == metav1.StatusReasonAlreadyExists {
-		_, err = kubernetesClient.StorageV1().StorageClasses().Update(&defaultStorageClass)
+		_, err = kubernetesClient.StorageV1().StorageClasses().Update(ctx, &defaultStorageClass, metav1.UpdateOptions{})
 		if err != nil {
 			return errors.WrapIf(err, "create storage class failed")
 		}

@@ -21,6 +21,7 @@ import (
 
 	"emperror.dev/errors"
 	"go.uber.org/cadence/client"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
@@ -291,7 +292,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 
 	manager := npls.NewManager(dclient, global.Config.Cluster.Labels.Namespace)
 
-	if err = manager.Sync(labelsMap); err != nil {
+	if err = manager.Sync(ctx, labelsMap); err != nil {
 		return err
 	}
 
@@ -311,7 +312,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 	}
 
 	// on certain clouds like Alibaba we still need to add node pool name labels
-	if err := labelNodesWithNodePoolName(c.cluster); err != nil {
+	if err := labelNodesWithNodePoolName(ctx, c.cluster); err != nil {
 		return errors.WrapIf(err, "adding labels to nodes failed")
 	}
 	return nil
@@ -319,7 +320,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 
 // labelNodesWithNodePoolName add node pool name labels for all nodes.
 // It's used only used in case of ACK etc. when we're not able to add labels via API.
-func labelNodesWithNodePoolName(commonCluster CommonCluster) error {
+func labelNodesWithNodePoolName(ctx context.Context, commonCluster CommonCluster) error {
 	switch commonCluster.GetDistribution() {
 	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE, pkgCluster.PKE, pkgCluster.AKS:
 		log.Infof("nodes are already labelled on : %v", commonCluster.GetDistribution())
@@ -357,7 +358,7 @@ func labelNodesWithNodePoolName(commonCluster CommonCluster) error {
 			log.Infof("add label to node [%s]", nodeName)
 			labels := map[string]string{pkgCommon.LabelKey: poolName}
 
-			if err := addLabelsToNode(client, nodeName, labels); err != nil {
+			if err := addLabelsToNode(ctx, client, nodeName, labels); err != nil {
 				log.Warnf("error during adding label to node [%s]: %s", nodeName, err.Error())
 			}
 		}
@@ -369,7 +370,7 @@ func labelNodesWithNodePoolName(commonCluster CommonCluster) error {
 }
 
 // addLabelsToNode add label to the given node
-func addLabelsToNode(client *kubernetes.Clientset, nodeName string, labels map[string]string) (err error) {
+func addLabelsToNode(ctx context.Context, client *kubernetes.Clientset, nodeName string, labels map[string]string) (err error) {
 	tokens := make([]string, 0, len(labels))
 	for k, v := range labels {
 		tokens = append(tokens, "\""+k+"\":\""+v+"\"")
@@ -377,6 +378,6 @@ func addLabelsToNode(client *kubernetes.Clientset, nodeName string, labels map[s
 	labelString := "{" + strings.Join(tokens, ",") + "}"
 	patch := fmt.Sprintf(`{"metadata":{"labels":%v}}`, labelString)
 
-	_, err = client.CoreV1().Nodes().Patch(nodeName, types.MergePatchType, []byte(patch))
+	_, err = client.CoreV1().Nodes().Patch(ctx, nodeName, types.MergePatchType, []byte(patch), metav1.PatchOptions{})
 	return
 }

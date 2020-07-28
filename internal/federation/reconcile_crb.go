@@ -15,11 +15,12 @@
 package federation
 
 import (
+	"context"
 	"strings"
 
 	"emperror.dev/errors"
 	v1 "k8s.io/api/rbac/v1"
-	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
 )
 
@@ -49,6 +50,8 @@ func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
 	m.logger.Debug("start creating ClusterRoleBinding for ExternalDNS")
 	defer m.logger.Debug("finished creating ClusterRoleBinding for ExternalDNS")
 
+	ctx := context.Background()
+
 	clientConfig, err := m.getClientConfig(m.Host)
 	if err != nil {
 		return errors.WithStackIf(err)
@@ -58,7 +61,7 @@ func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
 		return errors.WithStackIf(err)
 	}
 
-	crb, err := cl.ClusterRoleBindings().Get(federationClusterRoleBindingName, apiv1.GetOptions{})
+	crb, err := cl.ClusterRoleBindings().Get(ctx, federationClusterRoleBindingName, metav1.GetOptions{})
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			m.logger.Warnf("ClusterRoleBinding for ExternalDNS not found, will try to create")
@@ -76,7 +79,7 @@ func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
 	}
 
 	crb = &v1.ClusterRoleBinding{
-		ObjectMeta: apiv1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name: federationClusterRoleBindingName,
 		},
 		RoleRef: v1.RoleRef{
@@ -92,7 +95,7 @@ func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
 			},
 		},
 	}
-	_, err = cl.ClusterRoleBindings().Create(crb)
+	_, err = cl.ClusterRoleBindings().Create(ctx, crb, metav1.CreateOptions{})
 	if err != nil {
 		return errors.WithStackIf(err)
 	}
@@ -104,6 +107,8 @@ func (m *FederationReconciler) deleteClusterRoleBindingForExternalDNS() error {
 	m.logger.Debug("start deleting ClusterRoleBinding for ExternalDNS")
 	defer m.logger.Debug("finished deleting ClusterRoleBinding for ExternalDNS")
 
+	ctx := context.Background()
+
 	clientConfig, err := m.getClientConfig(m.Host)
 	if err != nil {
 		return err
@@ -112,7 +117,7 @@ func (m *FederationReconciler) deleteClusterRoleBindingForExternalDNS() error {
 	if err != nil {
 		return err
 	}
-	err = cl.ClusterRoleBindings().Delete(federationClusterRoleBindingName, &apiv1.DeleteOptions{})
+	err = cl.ClusterRoleBindings().Delete(ctx, federationClusterRoleBindingName, metav1.DeleteOptions{})
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			m.logger.Warnf("crb for externalDND not found")

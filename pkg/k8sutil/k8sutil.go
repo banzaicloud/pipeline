@@ -15,6 +15,7 @@
 package k8sutil
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"strconv"
@@ -34,7 +35,9 @@ import (
 func GetOrCreateClusterRole(log logrus.FieldLogger, client *kubernetes.Clientset, name string, rules []rbacv1.PolicyRule) (*rbacv1.ClusterRole, error) {
 	fieldSelector := fields.SelectorFromSet(fields.Set{"metadata.name": name})
 
-	clusterRoles, err := client.RbacV1().ClusterRoles().List(metav1.ListOptions{FieldSelector: fieldSelector.String()})
+	ctx := context.Background()
+
+	clusterRoles, err := client.RbacV1().ClusterRoles().List(ctx, metav1.ListOptions{FieldSelector: fieldSelector.String()})
 	if err != nil {
 		log.Errorf("querying cluster roles failed: %s", err.Error())
 		return nil, err
@@ -51,12 +54,15 @@ func GetOrCreateClusterRole(log logrus.FieldLogger, client *kubernetes.Clientset
 	}
 
 	clusterRole, err := client.RbacV1().ClusterRoles().Create(
+		ctx,
 		&rbacv1.ClusterRole{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: name,
 			},
 			Rules: rules,
-		})
+		},
+		metav1.CreateOptions{},
+	)
 
 	if err != nil {
 		log.Errorf("creating cluster role %q failed: %s", name, err.Error())
@@ -73,7 +79,9 @@ func GetOrCreateClusterRole(log logrus.FieldLogger, client *kubernetes.Clientset
 func GetOrCreateServiceAccount(log logrus.FieldLogger, client *kubernetes.Clientset, namespace, name string) (*v1.ServiceAccount, error) {
 	fieldSelector := fields.SelectorFromSet(fields.Set{"metadata.name": name})
 
-	serviceAccounts, err := client.CoreV1().ServiceAccounts(namespace).List(metav1.ListOptions{FieldSelector: fieldSelector.String()})
+	ctx := context.Background()
+
+	serviceAccounts, err := client.CoreV1().ServiceAccounts(namespace).List(ctx, metav1.ListOptions{FieldSelector: fieldSelector.String()})
 	if err != nil {
 		log.Errorf("querying service accounts in namespace %q failed: %s", namespace, err.Error())
 		return nil, err
@@ -90,11 +98,14 @@ func GetOrCreateServiceAccount(log logrus.FieldLogger, client *kubernetes.Client
 	}
 
 	serviceAccount, err := client.CoreV1().ServiceAccounts(namespace).Create(
+		ctx,
 		&v1.ServiceAccount{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: name,
 			},
-		})
+		},
+		metav1.CreateOptions{},
+	)
 
 	if err != nil {
 		log.Errorf("creating service account '%s/%s' failed: %s", namespace, name, err.Error())
@@ -114,7 +125,9 @@ func GetOrCreateClusterRoleBinding(log logrus.FieldLogger,
 	clusterRole *rbacv1.ClusterRole) (*rbacv1.ClusterRoleBinding, error) {
 	fieldSelector := fields.SelectorFromSet(fields.Set{"metadata.name": name})
 
-	clusterRoleBindings, err := client.RbacV1().ClusterRoleBindings().List(metav1.ListOptions{FieldSelector: fieldSelector.String()})
+	ctx := context.Background()
+
+	clusterRoleBindings, err := client.RbacV1().ClusterRoleBindings().List(ctx, metav1.ListOptions{FieldSelector: fieldSelector.String()})
 	if err != nil {
 		log.Errorf("querying cluster role bindings failed: %s", err.Error())
 		return nil, err
@@ -131,6 +144,7 @@ func GetOrCreateClusterRoleBinding(log logrus.FieldLogger,
 	}
 
 	clusterRoleBinding, err := client.RbacV1().ClusterRoleBindings().Create(
+		ctx,
 		&rbacv1.ClusterRoleBinding{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: name,
@@ -146,7 +160,9 @@ func GetOrCreateClusterRoleBinding(log logrus.FieldLogger,
 				Kind: "ClusterRole",
 				Name: clusterRole.Name,
 			},
-		})
+		},
+		metav1.CreateOptions{},
+	)
 
 	if err != nil {
 		log.Errorf("creating cluster role binding %q failed: %s", name, err.Error())

@@ -15,6 +15,7 @@
 package kubernetes
 
 import (
+	"context"
 	"fmt"
 
 	"emperror.dev/errors"
@@ -35,7 +36,7 @@ func MakeNamespaceResourcesDeleter(logger logrus.FieldLogger) NamespaceResources
 	}
 }
 
-func (d NamespaceResourcesDeleter) Delete(organizationID uint, clusterName string, k8sConfig []byte, namespace string) error {
+func (d NamespaceResourcesDeleter) Delete(ctx context.Context, organizationID uint, clusterName string, k8sConfig []byte, namespace string) error {
 	logger := d.logger.WithField("organizationID", organizationID).WithField("clusterName", clusterName).WithField("namespace", namespace)
 
 	client, err := k8sclient.NewClientFromKubeConfig(k8sConfig)
@@ -44,7 +45,7 @@ func (d NamespaceResourcesDeleter) Delete(organizationID uint, clusterName strin
 	}
 	resourceTypes := []struct {
 		Resource interface {
-			DeleteCollection(*metav1.DeleteOptions, metav1.ListOptions) error
+			DeleteCollection(context.Context, metav1.DeleteOptions, metav1.ListOptions) error
 		}
 		Name  string
 		Check func(interface{}) error
@@ -58,8 +59,8 @@ func (d NamespaceResourcesDeleter) Delete(organizationID uint, clusterName strin
 			"PersistentVolumeClaims",
 			func(pvcs interface{}) error {
 				res, err := pvcs.(interface {
-					List(opts metav1.ListOptions) (*corev1.PersistentVolumeClaimList, error)
-				}).List(metav1.ListOptions{})
+					List(ctx context.Context, opts metav1.ListOptions) (*corev1.PersistentVolumeClaimList, error)
+				}).List(ctx, metav1.ListOptions{})
 				if err != nil {
 					return err
 				}
@@ -73,7 +74,7 @@ func (d NamespaceResourcesDeleter) Delete(organizationID uint, clusterName strin
 	for _, resourceType := range resourceTypes {
 		err := retry(func() error {
 			logger.Debugf("deleting %s", resourceType.Name)
-			err := resourceType.Resource.DeleteCollection(&metav1.DeleteOptions{}, metav1.ListOptions{})
+			err := resourceType.Resource.DeleteCollection(ctx, metav1.DeleteOptions{}, metav1.ListOptions{})
 			if err != nil {
 				logger.Infof("could not delete %s: %v", resourceType.Name, err)
 			}

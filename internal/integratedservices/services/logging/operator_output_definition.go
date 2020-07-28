@@ -44,7 +44,7 @@ func (op IntegratedServiceOperator) createClusterOutputDefinitions(ctx context.C
 	}
 
 	if spec.Loki.Enabled {
-		serviceURL, err := op.getLokiServiceURL(cl)
+		serviceURL, err := op.getLokiServiceURL(ctx, cl)
 		if err != nil {
 			return nil, errors.WrapIf(err, "failed to get Loki service url")
 		}
@@ -85,13 +85,13 @@ func (op IntegratedServiceOperator) createClusterOutputDefinitions(ctx context.C
 	return managers, nil
 }
 
-func (op IntegratedServiceOperator) getLokiServiceURL(cl integratedserviceadapter.Cluster) (string, error) {
+func (op IntegratedServiceOperator) getLokiServiceURL(ctx context.Context, cl integratedserviceadapter.Cluster) (string, error) {
 	k8sConfig, err := cl.GetK8sConfig()
 	if err != nil {
 		return "", errors.WrapIfWithDetails(err, "failed to get kubeconfig", "cluster", cl.GetID())
 	}
 
-	return op.endpointsService.GetServiceURL(k8sConfig, lokiServiceName, op.config.Namespace)
+	return op.endpointsService.GetServiceURL(ctx, k8sConfig, lokiServiceName, op.config.Namespace)
 }
 
 func (op IntegratedServiceOperator) installSecretForOutput(ctx context.Context, spec clusterOutputSpec, sourceSecretName string, cl integratedserviceadapter.Cluster) error {

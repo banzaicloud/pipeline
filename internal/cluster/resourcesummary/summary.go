@@ -15,6 +15,8 @@
 package resourcesummary
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -62,13 +64,13 @@ type Resource struct {
 }
 
 // GetTotalSummary calculates all resource summary for a cluster.
-func GetTotalSummary(client kubernetes.Interface) (*Summary, error) {
-	nodeList, err := client.CoreV1().Nodes().List(metav1.ListOptions{})
+func GetTotalSummary(ctx context.Context, client kubernetes.Interface) (*Summary, error) {
+	nodeList, err := client.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to list nodes")
 	}
 
-	podList, err := client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
+	podList, err := client.CoreV1().Pods(metav1.NamespaceAll).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to list pods")
 	}

@@ -1314,7 +1314,9 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 		},
 	}
 
-	_, err := clientset.CoreV1().ServiceAccounts(adminSANamespace).Create(serviceAccount)
+	ctx := context.Background()
+
+	_, err := clientset.CoreV1().ServiceAccounts(adminSANamespace).Create(ctx, serviceAccount, metav1.CreateOptions{})
 	if err != nil && !k8sErrors.IsAlreadyExists(err) {
 		return "", errors.WrapIfWithDetails(err, "creating service account failed", "namespace", adminSANamespace, "service account", serviceAccount)
 	}
@@ -1335,9 +1337,9 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 			},
 		},
 	}
-	clusterAdminRole, err := clientset.RbacV1().ClusterRoles().Get(adminSARoleName, metav1.GetOptions{})
+	clusterAdminRole, err := clientset.RbacV1().ClusterRoles().Get(ctx, adminSARoleName, metav1.GetOptions{})
 	if err != nil {
-		clusterAdminRole, err = clientset.RbacV1().ClusterRoles().Create(adminRole)
+		clusterAdminRole, err = clientset.RbacV1().ClusterRoles().Create(ctx, adminRole, metav1.CreateOptions{})
 		if err != nil {
 			return "", errors.WrapIfWithDetails(err, "creating cluster role failed", "cluster role", adminRole.Name)
 		}
@@ -1359,17 +1361,17 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 			Name: clusterAdminRole.Name,
 		},
 	}
-	if _, err = clientset.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding); err != nil && !k8sErrors.IsAlreadyExists(err) {
+	if _, err = clientset.RbacV1().ClusterRoleBindings().Create(ctx, clusterRoleBinding, metav1.CreateOptions{}); err != nil && !k8sErrors.IsAlreadyExists(err) {
 		return "", errors.WrapIfWithDetails(err, "creating cluster role binding failed", "cluster role", clusterAdminRole.Name, "service account", serviceAccount.Name)
 	}
 
-	if serviceAccount, err = clientset.CoreV1().ServiceAccounts(adminSANamespace).Get(serviceAccount.Name, metav1.GetOptions{}); err != nil {
+	if serviceAccount, err = clientset.CoreV1().ServiceAccounts(adminSANamespace).Get(ctx, serviceAccount.Name, metav1.GetOptions{}); err != nil {
 		return "", errors.WrapIfWithDetails(err, "retrieving service account failed", "namespace", adminSANamespace, "service account", serviceAccount.Name)
 	}
 
 	if len(serviceAccount.Secrets) > 0 {
 		secret := serviceAccount.Secrets[0]
-		secretObj, err := clientset.CoreV1().Secrets(adminSANamespace).Get(secret.Name, metav1.GetOptions{})
+		secretObj, err := clientset.CoreV1().Secrets(adminSANamespace).Get(ctx, secret.Name, metav1.GetOptions{})
 		if err != nil {
 			return "", errors.WrapIfWithDetails(err, "retrieving kubernetes secret found", "namespace", adminSANamespace, "secret", secret.Name)
 		}

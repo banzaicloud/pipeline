@@ -278,7 +278,7 @@ func collectPublicIPAddressNames(
 
 	names = gatherClusterPublicIPAddressNames(pips, cluster.Name, names)
 
-	names, err = gatherK8sServicePublicIPs(pips, cluster, secrets, names)
+	names, err = gatherK8sServicePublicIPs(ctx, pips, cluster, secrets, names)
 	if err = errors.WrapIf(err, "failed to gather k8s services' public IP addresses"); err != nil {
 		if forced {
 			logger.Warning(err)
@@ -332,7 +332,7 @@ func gatherClusterPublicIPAddressNames(publicAddresses []network.PublicIPAddress
 	return names
 }
 
-func gatherK8sServicePublicIPs(publicAddresses []network.PublicIPAddress, cluster pke.Cluster, secrets SecretStore, names map[string]bool) (map[string]bool, error) {
+func gatherK8sServicePublicIPs(ctx context.Context, publicAddresses []network.PublicIPAddress, cluster pke.Cluster, secrets SecretStore, names map[string]bool) (map[string]bool, error) {
 	if cluster.K8sSecretID == "" {
 		return names, nil
 	}
@@ -354,7 +354,7 @@ func gatherK8sServicePublicIPs(publicAddresses []network.PublicIPAddress, cluste
 		return names, errors.WrapIf(err, "failed to create a new Kubernetes client")
 	}
 
-	serviceList, err := k8sClient.CoreV1().Services(metav1.NamespaceAll).List(metav1.ListOptions{})
+	serviceList, err := k8sClient.CoreV1().Services(metav1.NamespaceAll).List(ctx, metav1.ListOptions{})
 	if serviceList == nil || err != nil {
 		return names, errors.WrapIf(err, "failed to retrieve service list")
 	}

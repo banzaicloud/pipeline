@@ -15,6 +15,7 @@
 package federation
 
 import (
+	"context"
 	"strings"
 
 	"emperror.dev/errors"
@@ -42,6 +43,8 @@ func (m *FederationReconciler) createClusterRoleForExternalDNS() error {
 	m.logger.Debug("start creating ClusterRole for ExternalDNS")
 	defer m.logger.Debug("finished creating ClusterRole for ExternalDNS")
 
+	ctx := context.Background()
+
 	clientConfig, err := m.getClientConfig(m.Host)
 	if err != nil {
 		return errors.WithStackIf(err)
@@ -51,7 +54,7 @@ func (m *FederationReconciler) createClusterRoleForExternalDNS() error {
 		return errors.WithStackIf(err)
 	}
 
-	rb, err := cl.ClusterRoles().Get(federationDNSClusterRoleName, apiv1.GetOptions{})
+	rb, err := cl.ClusterRoles().Get(ctx, federationDNSClusterRoleName, apiv1.GetOptions{})
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			m.logger.Warnf("ClusterRole for ExternalDNS not found, will try to create")
@@ -75,7 +78,7 @@ func (m *FederationReconciler) createClusterRoleForExternalDNS() error {
 			},
 		},
 	}
-	_, err = cl.ClusterRoles().Create(rb)
+	_, err = cl.ClusterRoles().Create(ctx, rb, apiv1.CreateOptions{})
 	if err != nil {
 		return errors.WithStackIf(err)
 	}
@@ -87,6 +90,8 @@ func (m *FederationReconciler) deleteClusterRoleForExternalDNS() error {
 	m.logger.Debug("start deleting ClusterRole for ExternalDNS")
 	defer m.logger.Debug("finished deleting ClusterRole for ExternalDNS")
 
+	ctx := context.Background()
+
 	clientConfig, err := m.getClientConfig(m.Host)
 	if err != nil {
 		return errors.WithStackIf(err)
@@ -95,7 +100,7 @@ func (m *FederationReconciler) deleteClusterRoleForExternalDNS() error {
 	if err != nil {
 		return errors.WithStackIf(err)
 	}
-	err = cl.ClusterRoles().Delete(federationDNSClusterRoleName, &apiv1.DeleteOptions{})
+	err = cl.ClusterRoles().Delete(ctx, federationDNSClusterRoleName, apiv1.DeleteOptions{})
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			m.logger.Warnf("ClusterRole for externalDNS not found")

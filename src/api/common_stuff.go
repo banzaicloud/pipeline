@@ -15,6 +15,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -37,14 +38,14 @@ import (
 )
 
 // listPods returns list of pods in all namespaces.
-func listPods(client *kubernetes.Clientset, fieldSelector string, labelSelector string) ([]v1.Pod, error) {
+func listPods(ctx context.Context, client *kubernetes.Clientset, fieldSelector string, labelSelector string) ([]v1.Pod, error) {
 	log := log.WithFields(logrus.Fields{
 		"fieldSelector": fieldSelector,
 		"labelSelector": labelSelector,
 	})
 
 	log.Debug("List pods")
-	podList, err := client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{
+	podList, err := client.CoreV1().Pods(metav1.NamespaceAll).List(ctx, metav1.ListOptions{
 		FieldSelector: fieldSelector,
 		LabelSelector: labelSelector,
 	})

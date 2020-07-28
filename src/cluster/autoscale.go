@@ -202,7 +202,7 @@ func getNodeResourceGroup(cluster CommonCluster) *string {
 		return nil
 	}
 
-	response, err := client.CoreV1().Nodes().List(meta_v1.ListOptions{})
+	response, err := client.CoreV1().Nodes().List(context.Background(), meta_v1.ListOptions{})
 	log.Debugf("%s", response.String())
 	if err != nil {
 		log.Errorf("Error listing nodes: %s", err.Error())

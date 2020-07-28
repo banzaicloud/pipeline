@@ -105,7 +105,7 @@ func (el EndpointLister) ListEndpoints(c *gin.Context) {
 
 	logger := el.logger.WithContext(c)
 	endpointManager := endpoints.NewEndpointManager(logger)
-	endpointList, err := endpointManager.List(kubeConfig, releaseName)
+	endpointList, err := endpointManager.List(c.Request.Context(), kubeConfig, releaseName)
 	if err != nil {
 		var code int
 		switch errors.Cause(err).(type) {
@@ -149,7 +149,7 @@ func GetClusterNodes(c *gin.Context) {
 		return
 	}
 
-	response, err := client.CoreV1().Nodes().List(metav1.ListOptions{})
+	response, err := client.CoreV1().Nodes().List(c.Request.Context(), metav1.ListOptions{})
 	if err != nil {
 		log.Errorf("Error listing nodes: %s", err.Error())
 		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{

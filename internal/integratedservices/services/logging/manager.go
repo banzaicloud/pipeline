@@ -79,7 +79,7 @@ func (m IntegratedServicesManager) GetOutput(ctx context.Context, clusterID uint
 		return nil, errors.WrapIf(err, "failed to get K8S config")
 	}
 
-	endpoints, err := m.endpointsService.List(kubeConfig, lokiReleaseName)
+	endpoints, err := m.endpointsService.List(ctx, kubeConfig, lokiReleaseName)
 	if err != nil {
 		m.logger.Warn(fmt.Sprintf("failed to list endpoints: %s", err.Error()))
 	}
@@ -102,7 +102,7 @@ func (m IntegratedServicesManager) getLokiOutput(
 	clusterID uint,
 ) map[string]interface{} {
 	if spec.Loki.Enabled {
-		serviceUrl, err := getLokiServiceURL(spec.Loki, kubeConfig, m.endpointsService, m.config.Namespace)
+		serviceUrl, err := getLokiServiceURL(ctx, spec.Loki, kubeConfig, m.endpointsService, m.config.Namespace)
 		if err != nil {
 			m.logger.Warn("failed to get Loki service url")
 		}
@@ -135,13 +135,14 @@ func getEndpointUrl(endpoints []*pkgHelm.EndpointItem, path, releaseName string)
 }
 
 func getLokiServiceURL(
+	ctx context.Context,
 	spec lokiSpec,
 	k8sConfig []byte,
 	service endpoints.EndpointService,
 	pipelineSystemNamespace string,
 ) (string, error) {
 	if spec.Enabled {
-		url, err := service.GetServiceURL(k8sConfig, lokiServiceName, pipelineSystemNamespace)
+		url, err := service.GetServiceURL(ctx, k8sConfig, lokiServiceName, pipelineSystemNamespace)
 		if err != nil {
 			return "", errors.WrapIf(err, "failed to get service")
 		}

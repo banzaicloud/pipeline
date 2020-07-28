@@ -35,7 +35,7 @@ type DeleteNamespaceResourcesActivity struct {
 }
 
 type NamespaceResourcesDeleter interface {
-	Delete(organizationID uint, clusterName string, k8sConfig []byte, namespace string) error
+	Delete(ctx context.Context, organizationID uint, clusterName string, k8sConfig []byte, namespace string) error
 }
 
 func MakeDeleteNamespaceResourcesActivity(deleter NamespaceResourcesDeleter, k8sConfigGetter K8sConfigGetter) DeleteNamespaceResourcesActivity {
@@ -50,5 +50,5 @@ func (a DeleteNamespaceResourcesActivity) Execute(ctx context.Context, input Del
 	if err != nil {
 		return errors.WrapIf(err, "failed to get k8s config")
 	}
-	return errors.WrapIff(a.deleter.Delete(input.OrganizationID, input.ClusterName, k8sConfig, input.Namespace), "failed to delete resources in namespace %q", input.Namespace)
+	return errors.WrapIff(a.deleter.Delete(ctx, input.OrganizationID, input.ClusterName, k8sConfig, input.Namespace), "failed to delete resources in namespace %q", input.Namespace)
 }

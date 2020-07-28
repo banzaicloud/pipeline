@@ -15,6 +15,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -48,7 +49,7 @@ func ListImages(c *gin.Context) {
 		return
 	}
 
-	imageList, err := listAllImages(client, "")
+	imageList, err := listAllImages(c.Request.Context(), client, "")
 	if err != nil {
 		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
@@ -87,7 +88,7 @@ func GetDeploymentImages(c *gin.Context) {
 	selector := fmt.Sprintf("%s=%s", pkgHelm.HelmReleaseNameLabel, release)
 	log.Infof("Label selector: %s", selector)
 
-	imageList, err := listAllImages(client, selector)
+	imageList, err := listAllImages(c.Request.Context(), client, selector)
 	if err != nil {
 		err := errors.Wrap(err, "error during request processing")
 		log.Error(err.Error())
@@ -105,7 +106,7 @@ func GetDeploymentImages(c *gin.Context) {
 		selector = fmt.Sprintf("%s=%s", pkgHelm.HelmReleaseNameLabelLegacy, release)
 		log.Infof("Label selector: %s", selector)
 
-		imageList, err = listAllImages(client, selector)
+		imageList, err = listAllImages(c.Request.Context(), client, selector)
 
 		if err != nil {
 			err := errors.Wrap(err, "error during request processing")
@@ -124,10 +125,10 @@ func GetDeploymentImages(c *gin.Context) {
 	c.JSON(http.StatusOK, imageList)
 }
 
-func listAllImages(client *kubernetes.Clientset, labelSelector string) ([]*pipeline.ClusterImage, error) {
+func listAllImages(ctx context.Context, client *kubernetes.Clientset, labelSelector string) ([]*pipeline.ClusterImage, error) {
 	var err error
 	var podList []v1.Pod
-	podList, err = listPods(client, "", labelSelector)
+	podList, err = listPods(ctx, client, "", labelSelector)
 	if err != nil {
 		return nil, err
 	}

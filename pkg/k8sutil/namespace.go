@@ -15,6 +15,7 @@
 package k8sutil
 
 import (
+	"context"
 	"fmt"
 
 	"emperror.dev/errors"
@@ -45,12 +46,12 @@ func EnsureNamespaceWithLabel(client kubernetes.Interface, namespace string, lab
 	}
 	mergedLabels[ownerLabel] = ownerLabelValue
 
-	_, err := client.CoreV1().Namespaces().Create(&corev1.Namespace{
+	_, err := client.CoreV1().Namespaces().Create(context.Background(), &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   namespace,
 			Labels: mergedLabels,
 		},
-	})
+	}, metav1.CreateOptions{})
 
 	if err != nil && k8sapierrors.IsAlreadyExists(err) {
 		return nil

@@ -15,6 +15,7 @@
 package monitoring
 
 import (
+	"context"
 	"fmt"
 
 	"emperror.dev/errors"
@@ -26,9 +27,9 @@ import (
 )
 
 type K8sClientFactory func() (kubernetes.Interface, error)
-type Migrator func(configFactory K8sClientFactory, namespace, oldChartVersion, newChartVersion string) error
+type Migrator func(ctx context.Context, configFactory K8sClientFactory, namespace, oldChartVersion, newChartVersion string) error
 
-func Migrate(clientFactory K8sClientFactory, namespace, oldChartVersion, newChartVersion string) error {
+func Migrate(ctx context.Context, clientFactory K8sClientFactory, namespace, oldChartVersion, newChartVersion string) error {
 	referenceVersion, err := semver.NewVersion("8.13.0")
 	if err != nil {
 		return errors.WrapIf(err, "invalid reference version")
@@ -51,6 +52,7 @@ func Migrate(clientFactory K8sClientFactory, namespace, oldChartVersion, newChar
 		}
 
 		ingresses, err := clientset.ExtensionsV1beta1().Ingresses(namespace).List(
+			ctx,
 			v1.ListOptions{
 				LabelSelector: labels.SelectorFromSet(map[string]string{"release": prometheusOperatorReleaseName}).String(),
 			})
@@ -58,7 +60,7 @@ func Migrate(clientFactory K8sClientFactory, namespace, oldChartVersion, newChar
 			return errors.WrapIf(err, "unable to remove legacy ingresses")
 		}
 		for _, i := range ingresses.Items {
-			err = clientset.ExtensionsV1beta1().Ingresses(namespace).Delete(i.Name, &v1.DeleteOptions{})
+			err = clientset.ExtensionsV1beta1().Ingresses(namespace).Delete(ctx, i.Name, v1.DeleteOptions{})
 			if err != nil {
 				if apierrors.IsNotFound(err) {
 					continue
@@ -66,7 +68,7 @@ func Migrate(clientFactory K8sClientFactory, namespace, oldChartVersion, newChar
 				return errors.WrapIf(err, "unable to remove ingress")
 			}
 		}
-		err = clientset.AppsV1().Deployments(namespace).Delete(fmt.Sprintf("%s-grafana", prometheusOperatorReleaseName), &v1.DeleteOptions{})
+		err = clientset.AppsV1().Deployments(namespace).Delete(ctx, fmt.Sprintf("%s-grafana", prometheusOperatorReleaseName), v1.DeleteOptions{})
 		if err != nil {
 			if !apierrors.IsNotFound(err) {
 				return errors.WrapIf(err, "unable to remove grafana deployment")

@@ -22,6 +22,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/cadence/client"
 	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -231,7 +232,7 @@ func TestListNodePools(t *testing.T) {
 			setupMocks: func(constructionArguments constructionArgumentType, functionCallArguments functionCallArgumentType) {
 				dynamicResourceInterfaceMock := &cluster.MockdynamicNamespaceableResourceInterface{}
 				dynamicResourceInterfaceMock.On("Namespace", exampleNamespace).Return(dynamicResourceInterfaceMock)
-				dynamicResourceInterfaceMock.On("List", k8smetav1.ListOptions{}).Return(nil, errors.NewWithDetails("NodePoolLabelSetManagerGetAllError"))
+				dynamicResourceInterfaceMock.On("List", mock.Anything, k8smetav1.ListOptions{}).Return(nil, errors.NewWithDetails("NodePoolLabelSetManagerGetAllError"))
 
 				dynamicInterfaceMock := &cluster.MockdynamicInterface{}
 				dynamicInterfaceMock.On("Resource", exampleSchemaGroupVersionResource).Return(dynamicResourceInterfaceMock)
@@ -260,7 +261,7 @@ func TestListNodePools(t *testing.T) {
 			setupMocks: func(constructionArguments constructionArgumentType, functionCallArguments functionCallArgumentType) {
 				dynamicResourceInterfaceMock := &cluster.MockdynamicNamespaceableResourceInterface{}
 				dynamicResourceInterfaceMock.On("Namespace", exampleNamespace).Return(dynamicResourceInterfaceMock)
-				dynamicResourceInterfaceMock.On("List", k8smetav1.ListOptions{}).Return(&unstructured.UnstructuredList{Items: exampleUnstructuredList}, (error)(nil))
+				dynamicResourceInterfaceMock.On("List", mock.Anything, k8smetav1.ListOptions{}).Return(&unstructured.UnstructuredList{Items: exampleUnstructuredList}, (error)(nil))
 
 				dynamicInterfaceMock := &cluster.MockdynamicInterface{}
 				dynamicInterfaceMock.On("Resource", exampleSchemaGroupVersionResource).Return(dynamicResourceInterfaceMock)
@@ -292,7 +293,7 @@ func TestListNodePools(t *testing.T) {
 			setupMocks: func(constructionArguments constructionArgumentType, functionCallArguments functionCallArgumentType) {
 				dynamicResourceInterfaceMock := &cluster.MockdynamicNamespaceableResourceInterface{}
 				dynamicResourceInterfaceMock.On("Namespace", exampleNamespace).Return(dynamicResourceInterfaceMock)
-				dynamicResourceInterfaceMock.On("List", k8smetav1.ListOptions{}).Return(&unstructured.UnstructuredList{Items: exampleUnstructuredList}, (error)(nil))
+				dynamicResourceInterfaceMock.On("List", mock.Anything, k8smetav1.ListOptions{}).Return(&unstructured.UnstructuredList{Items: exampleUnstructuredList}, (error)(nil))
 
 				dynamicInterfaceMock := &cluster.MockdynamicInterface{}
 				dynamicInterfaceMock.On("Resource", exampleSchemaGroupVersionResource).Return(dynamicResourceInterfaceMock)
@@ -335,7 +336,7 @@ func TestListNodePools(t *testing.T) {
 			setupMocks: func(constructionArguments constructionArgumentType, functionCallArguments functionCallArgumentType) {
 				dynamicResourceInterfaceMock := &cluster.MockdynamicNamespaceableResourceInterface{}
 				dynamicResourceInterfaceMock.On("Namespace", exampleNamespace).Return(dynamicResourceInterfaceMock)
-				dynamicResourceInterfaceMock.On("List", k8smetav1.ListOptions{}).Return(&unstructured.UnstructuredList{Items: exampleUnstructuredList}, (error)(nil))
+				dynamicResourceInterfaceMock.On("List", mock.Anything, k8smetav1.ListOptions{}).Return(&unstructured.UnstructuredList{Items: exampleUnstructuredList}, (error)(nil))
 
 				dynamicInterfaceMock := &cluster.MockdynamicInterface{}
 				dynamicInterfaceMock.On("Resource", exampleSchemaGroupVersionResource).Return(dynamicResourceInterfaceMock)
@@ -378,7 +379,7 @@ func TestListNodePools(t *testing.T) {
 			setupMocks: func(constructionArguments constructionArgumentType, functionCallArguments functionCallArgumentType) {
 				dynamicResourceInterfaceMock := &cluster.MockdynamicNamespaceableResourceInterface{}
 				dynamicResourceInterfaceMock.On("Namespace", exampleNamespace).Return(dynamicResourceInterfaceMock)
-				dynamicResourceInterfaceMock.On("List", k8smetav1.ListOptions{}).Return(&unstructured.UnstructuredList{Items: exampleUnstructuredList}, (error)(nil))
+				dynamicResourceInterfaceMock.On("List", mock.Anything, k8smetav1.ListOptions{}).Return(&unstructured.UnstructuredList{Items: exampleUnstructuredList}, (error)(nil))
 
 				dynamicInterfaceMock := &cluster.MockdynamicInterface{}
 				dynamicInterfaceMock.On("Resource", exampleSchemaGroupVersionResource).Return(dynamicResourceInterfaceMock)
@@ -429,7 +430,7 @@ func TestListNodePools(t *testing.T) {
 			setupMocks: func(constructionArguments constructionArgumentType, functionCallArguments functionCallArgumentType) {
 				dynamicResourceInterfaceMock := &cluster.MockdynamicNamespaceableResourceInterface{}
 				dynamicResourceInterfaceMock.On("Namespace", exampleNamespace).Return(dynamicResourceInterfaceMock)
-				dynamicResourceInterfaceMock.On("List", k8smetav1.ListOptions{}).Return(&unstructured.UnstructuredList{Items: exampleUnstructuredList}, (error)(nil))
+				dynamicResourceInterfaceMock.On("List", mock.Anything, k8smetav1.ListOptions{}).Return(&unstructured.UnstructuredList{Items: exampleUnstructuredList}, (error)(nil))
 
 				dynamicInterfaceMock := &cluster.MockdynamicInterface{}
 				dynamicInterfaceMock.On("Resource", exampleSchemaGroupVersionResource).Return(dynamicResourceInterfaceMock)

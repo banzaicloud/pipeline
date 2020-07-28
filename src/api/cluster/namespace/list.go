@@ -45,7 +45,7 @@ func (a *API) List(c *gin.Context) {
 		return
 	}
 
-	nsList, err := client.CoreV1().Namespaces().List(v1.ListOptions{})
+	nsList, err := client.CoreV1().Namespaces().List(c.Request.Context(), v1.ListOptions{})
 	if err != nil && !k8serrors.IsNotFound(err) {
 		a.errorHandler.Handle(errors.Wrap(err, "failed to list namespaces"))
 
