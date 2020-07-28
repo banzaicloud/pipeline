@@ -5,6 +5,22 @@ github_repo(
 )
 
 genrule(
+    name = "go.mod",
+    outs = ["go.mod"],
+    cmd = [
+        """cat > $OUTS << EOF
+module plz-out
+
+go 1.14
+EOF
+      """
+    ],
+    labels = [
+        "link:plz-out/"
+    ]
+)
+
+genrule(
     name = "docker-compose.override.yml",
     srcs = ["docker-compose.override.yml.dist"],
     outs = ["docker-compose.override.yml"],
