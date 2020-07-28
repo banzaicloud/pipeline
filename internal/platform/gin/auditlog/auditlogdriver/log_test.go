@@ -35,7 +35,7 @@ func TestLogDriver(t *testing.T) {
 			UserAgent:    "go-test",
 			Method:       "POST",
 			Path:         "/",
-			RequestBody:  nil,
+			RequestBody:  "",
 			StatusCode:   200,
 			ResponseTime: 1000,
 			ResponseSize: 10,
