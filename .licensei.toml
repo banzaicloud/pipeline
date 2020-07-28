@@ -24,6 +24,7 @@ ignored = [
   "cloud.google.com/go",
   "cloud.google.com/go/storage",
   "google.golang.org/api",
+  "google.golang.org/protobuf",
 ]
 
 [header]
