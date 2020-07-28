@@ -39,6 +39,17 @@ func TestNodePoolSizeValidation(t *testing.T) {
 		assert.IsType(t, cluster.ValidationError{}, errors.Cause(err))
 	})
 
+	t.Run("PoolMinSizeNegative", func(t *testing.T) {
+		pool := base
+		pool.Size = 1
+		pool.Autoscaling.Enabled = true
+		pool.Autoscaling.MinSize = -1
+		pool.Autoscaling.MaxSize = 2
+
+		err := pool.Validate()
+		assert.IsType(t, cluster.ValidationError{}, errors.Cause(err))
+	})
+
 	t.Run("PoolSizeUnderMin", func(t *testing.T) {
 		pool := base
 		pool.Size = 0
@@ -83,7 +94,18 @@ func TestNodePoolSizeValidation(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("PoolValidNoAS", func(t *testing.T) {
+	t.Run("PoolZeroAutoscaling", func(t *testing.T) {
+		pool := base
+		pool.Size = 0
+		pool.Autoscaling.Enabled = true
+		pool.Autoscaling.MinSize = 0
+		pool.Autoscaling.MaxSize = 2
+
+		err := pool.Validate()
+		assert.NoError(t, err)
+	})
+
+	t.Run("PoolValidNoAutoscaling", func(t *testing.T) {
 		pool := base
 		pool.Size = 1
 		pool.Autoscaling.Enabled = false

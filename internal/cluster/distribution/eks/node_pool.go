@@ -45,8 +45,8 @@ func (n NewNodePool) Validate() error {
 	var violations []string
 
 	if n.Autoscaling.Enabled {
-		if n.Autoscaling.MinSize < 1 {
-			violations = append(violations, "minimum autoscaling size cannot be lower than one")
+		if n.Autoscaling.MinSize < 0 {
+			violations = append(violations, "minimum autoscaling size cannot be lower than zero")
 		}
 
 		if n.Autoscaling.MaxSize <= n.Autoscaling.MinSize {
@@ -54,11 +54,11 @@ func (n NewNodePool) Validate() error {
 		}
 
 		if n.Size < n.Autoscaling.MinSize {
-			violations = append(violations, "desired size cannot be lower than the autoscaling minimum")
+			violations = append(violations, "node pool size cannot be lower than the autoscaling minimum size")
 		}
 
 		if n.Size > n.Autoscaling.MaxSize {
-			violations = append(violations, "desired size cannot be higher than the autoscaling maximum")
+			violations = append(violations, "node pool size cannot be higher than the autoscaling maximum size")
 		}
 	} else if n.Size < 1 {
 		violations = append(violations, "size cannot be lower than one")
