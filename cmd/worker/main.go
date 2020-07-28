@@ -37,6 +37,8 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsadapter"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
@@ -104,7 +106,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/types"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
-	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/hook"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -375,14 +376,19 @@ func main() {
 		updateClusterStatusActivity := cluster.NewUpdateClusterStatusActivity(clusterManager)
 		activity.RegisterWithOptions(updateClusterStatusActivity.Execute, activity.RegisterOptions{Name: cluster.UpdateClusterStatusActivityName})
 
-		cloudinfoClient := cloudinfo.NewClient(cloudinfoapi.NewAPIClient(&cloudinfoapi.Configuration{
+		cloudinfoClient := cloudinfoapi.NewAPIClient(&cloudinfoapi.Configuration{
 			BasePath:      config.Cloudinfo.Endpoint,
 			DefaultHeader: make(map[string]string),
 			UserAgent:     fmt.Sprintf("Pipeline/%s", version),
-		}))
+		})
+
+		imageSelector := pkeaws.NewImageSelectorChain(commonLogger, errorHandler)
+
+		imageSelector.AddSelector("cloudinfo", pkeawsadapter.NewCloudinfoImageSelector(cloudinfoClient))
+		imageSelector.AddSelector("defaults", pkeaws.DefaultImages())
 
 		// Register amazon specific workflows and activities
-		registerAwsWorkflows(clusters, tokenGenerator, secretStore, cloudinfoClient, config.Distribution.PKE.Amazon.GlobalRegion)
+		registerAwsWorkflows(clusters, tokenGenerator, secretStore, imageSelector, config.Distribution.PKE.Amazon.GlobalRegion)
 
 		azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonadapter.NewLogger(logger))
 
