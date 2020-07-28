@@ -19,61 +19,15 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/Masterminds/semver/v3"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
-const pkeVersion = "0.5.1"
 
 // ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure
 const ErrReasonStackFailed = "CLOUDFORMATION_STACK_FAILED"
-
-type PKEImageNameGetter interface {
-	PKEImageName(cloudProvider, service, os, kubeVersion, pkeVersion, region string) (string, error)
-}
-
-func getDefaultImageID(region, kubernetesVersion, pkeVersion string, pkeImageNameGetter PKEImageNameGetter) (string, error) {
-	kubeVersion, err := semver.NewVersion(kubernetesVersion)
-	if err != nil {
-		return "", errors.WithDetails(err, "could not create semver from Kubernetes version", "kubernetesVersion", kubernetesVersion)
-	}
-	_ = kubeVersion
-
-	if pkeImageNameGetter != nil {
-		ami, err := pkeImageNameGetter.PKEImageName("amazon", "pke", "ubuntu", kubeVersion.String(), pkeVersion, region)
-		if err != nil {
-			// fail silently
-		}
-		if ami != "" {
-			return ami, nil
-		}
-	}
-
-	// latest ubuntu 18.04 ami version
-	return map[string]string{
-		"ap-east-1":      "ami-c790d6b6",          // Asia Pacific (Hong Kong).
-		"ap-northeast-1": "ami-0278fe6949f6b1a06", // Asia Pacific (Tokyo).
-		"ap-northeast-2": "ami-00edfb46b107f643c", // Asia Pacific (Seoul).
-		"ap-southeast-1": "ami-0f7719e8b7ba25c61", // Asia Pacific (Singapore).
-		"ap-southeast-2": "ami-04fcc97b5f6edcd89", // Asia Pacific (Sydney).
-		"ap-south-1":     "ami-0b44050b2d893d5f7", // Asia Pacific (Mumbai).
-		"ca-central-1":   "ami-0edd51cc29813e254", // Canada (Central).
-		"eu-central-1":   "ami-0e342d72b12109f91", // EU (Frankfurt).
-		"eu-north-1":     "ami-050981837962d44ac", // EU (Stockholm).
-		"eu-west-1":      "ami-0701e7be9b2a77600", // EU (Ireland).
-		"eu-west-2":      "ami-0eb89db7593b5d434", // EU (London).
-		"eu-west-3":      "ami-08c757228751c5335", // EU (Paris).
-		"me-south-1":     "ami-051274f257aba97f9", // Middle East (Bahrain).
-		"sa-east-1":      "ami-077d5d3682940b34a", // South America (Sao Paulo).
-		"us-east-1":      "ami-085925f297f89fce1", // US East (N. Virginia).
-		"us-east-2":      "ami-07c1207a9d40bc3bd", // US East (Ohio).
-		"us-west-1":      "ami-0f56279347d2fa43e", // US West (N. California).
-		"us-west-2":      "ami-003634241a8fcdec0", // US West (Oregon).
-	}[region], nil
-}
 
 type TokenGenerator interface {
 	GenerateClusterToken(orgID, clusterID uint) (string, string, error)

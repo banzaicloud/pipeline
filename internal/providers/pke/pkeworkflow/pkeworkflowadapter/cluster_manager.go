@@ -113,6 +113,13 @@ func (c *Cluster) GetKubernetesVersion() (string, error) {
 	return "", errors.New(fmt.Sprintf("failed to cast cluster to AWSCluster, got type: %T", c.CommonCluster))
 }
 
+func (c *Cluster) GetKubernetesContainerRuntime() (string, error) {
+	if awscluster, ok := c.CommonCluster.(pkeworkflow.AWSCluster); ok {
+		return awscluster.GetKubernetesContainerRuntime()
+	}
+	return "", errors.New(fmt.Sprintf("failed to cast cluster to AWSCluster, got type: %T", c.CommonCluster))
+}
+
 func (c *Cluster) GetKubernetesNetworkProvider() (string, error) {
 	if awscluster, ok := c.CommonCluster.(pkeworkflow.AWSCluster); ok {
 		return awscluster.GetKubernetesNetworkProvider()

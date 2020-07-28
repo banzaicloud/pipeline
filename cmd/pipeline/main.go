@@ -63,6 +63,7 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
+	"github.com/banzaicloud/pipeline/internal/global/globaleks"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/auditlog"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/auditlog/auditlogdriver"
@@ -859,6 +860,9 @@ func main() {
 						labelSource,
 					})
 
+					// Used by legacy cluster create and update code
+					globaleks.SetImageSelector(eks.DefaultImages())
+
 					service := intCluster.NewService(
 						clusterStore,
 						clusteradapter.NewCadenceClusterManager(workflowClient),
@@ -887,7 +891,7 @@ func main() {
 						intCluster.NodePoolProcessors{
 							intCluster.NewCommonNodePoolProcessor(labelSource),
 							intCluster.NewDistributionNodePoolProcessor(map[string]intCluster.NodePoolProcessor{
-								"eks": eksadapter.NewNodePoolProcessor(db),
+								"eks": eksadapter.NewNodePoolProcessor(db, eks.DefaultImages()),
 							}),
 						},
 						clusteradapter.NewNodePoolManager(

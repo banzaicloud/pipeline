@@ -290,6 +290,27 @@ jobs:
             - integration:
                 k8s_version: v1.17.4
 
+    trigger-api-docs-update:
+        resource_class: small
+        docker:
+            -   image: cimg/base:stable
+        steps:
+            -   checkout
+            -   run:
+                    name: Trigger api docs update
+                    command: |
+                        curl \
+                            -u "${CIRCLE_TOKEN}:" \
+                            -X POST \
+                            --header "Content-Type: application/json" \
+                            -d "{
+                                \"branch\": \"gh-pages\",
+                                \"parameters\": {
+                                    \"remote-trigger\": true,
+                                    \"api-release-tag\": \"${CIRCLE_TAG}\"
+                                }
+                            }" "https://circleci.com/api/v2/project/gh/banzaicloud/banzaicloud.github.io/pipeline"
+
 commands:
     integration:
         parameters:
@@ -391,6 +412,16 @@ workflows:
                     filters:
                         tags:
                             only: /^[0-9]+\.[0-9]+\.[0-9]+(?:-(?:dev|rc)\.[0-9]+)?$/
+                        branches:
+                            ignore: /.*/
+            -
+                trigger-api-docs-update:
+                    name: Trigger API docs update
+                    requires:
+                      - Publish tagged & latest docker image
+                    filters:
+                        tags:
+                            only: /^[0-9]+\.[0-9]+\.[0-9]+$/
                         branches:
                             ignore: /.*/
 

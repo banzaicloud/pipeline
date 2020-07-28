@@ -36,6 +36,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster/nodepools"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/global/globaleks"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
@@ -539,13 +540,20 @@ func (c *EKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 
 // AddDefaultsToUpdate adds defaults to update request
 func (c *EKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
-	defaultImage, _ := eks2.GetDefaultImageID(c.model.Cluster.Location, c.model.Version)
-
 	// add default node image(s) if needed
 	if r != nil && r.EKS != nil && r.EKS.NodePools != nil {
 		for _, np := range r.EKS.NodePools {
-			if len(np.Image) == 0 {
-				np.Image = defaultImage
+			if np.Image == "" {
+				criteria := eks2.ImageSelectionCriteria{
+					Region:            c.model.Cluster.Location,
+					InstanceType:      np.InstanceType,
+					KubernetesVersion: c.model.Version,
+				}
+
+				// TODO: need to return an error
+				image, _ := globaleks.ImageSelector().SelectImage(context.Background(), criteria)
+
+				np.Image = image
 			}
 		}
 	}

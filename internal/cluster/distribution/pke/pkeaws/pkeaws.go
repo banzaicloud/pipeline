@@ -12,29 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package eks
+package pkeaws
 
-import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-)
-
-func TestGetDefaultImageID(t *testing.T) {
-	const testVersion = "1.14.0"
-	const nonExistingVersion = "1.8.0"
-
-	const region = "us-east-1"
-
-	image, err := GetDefaultImageID(region, testVersion)
-	require.NoError(t, err)
-
-	assert.NotEmpty(t, image)
-
-	_, err = GetDefaultImageID(region, nonExistingVersion)
-	require.Error(t, err)
-
-	_, err = GetDefaultImageID(region, "INVALID")
-	require.Error(t, err)
-}
+// Version is the currently supported PKE version.
+const Version = "0.5.1"
