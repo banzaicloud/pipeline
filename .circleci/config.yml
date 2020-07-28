@@ -290,7 +290,7 @@ jobs:
             - integration:
                 k8s_version: v1.17.4
 
-    trrigger-api-docs-update:
+    trigger-api-docs-update:
         resource_class: small
         docker:
             -
@@ -416,7 +416,7 @@ workflows:
                         branches:
                             ignore: /.*/
             -
-                trrigger-api-docs-update:
+                trigger-api-docs-update:
                     name: Trigger API docs update
                     requires:
                       - Publish tagged & latest docker image
