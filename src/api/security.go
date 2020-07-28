@@ -160,7 +160,7 @@ func (i imageDeploymentsHandler) GetImageDeployments(c *gin.Context) {
 		return
 	}
 	// Get all pods from cluster
-	pods, err := listPods(client, "", "")
+	pods, err := listPods(c.Request.Context(), client, "", "")
 	if err != nil {
 		log.Errorf("Error getting pods from cluster: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{

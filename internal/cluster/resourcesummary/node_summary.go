@@ -15,6 +15,7 @@
 package resourcesummary
 
 import (
+	"context"
 	"fmt"
 
 	"emperror.dev/errors"
@@ -33,13 +34,13 @@ type NodeSummary struct {
 }
 
 // GetNodeSummary returns resource summary for the given node.
-func GetNodeSummary(client kubernetes.Interface, node v1.Node) (*NodeSummary, error) {
+func GetNodeSummary(ctx context.Context, client kubernetes.Interface, node v1.Node) (*NodeSummary, error) {
 	fieldSelector, err := fields.ParseSelector(fmt.Sprintf("spec.nodeName=%s", node.Name))
 	if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "cannot parse field selector for node", "node", node.Name)
 	}
 
-	podList, err := client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{FieldSelector: fieldSelector.String()})
+	podList, err := client.CoreV1().Pods(metav1.NamespaceAll).List(ctx, metav1.ListOptions{FieldSelector: fieldSelector.String()})
 	if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "cannot parse list pods for node", "node", node.Name)
 	}

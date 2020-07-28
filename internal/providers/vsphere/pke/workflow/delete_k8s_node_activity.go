@@ -66,12 +66,12 @@ func (a DeleteK8sNodeActivity) Execute(ctx context.Context, input DeleteK8sNodeA
 		return err
 	}
 
-	_, err = client.CoreV1().Nodes().Get(input.Name, metav1.GetOptions{})
+	_, err = client.CoreV1().Nodes().Get(ctx, input.Name, metav1.GetOptions{})
 	if k8serrors.IsNotFound(err) {
 		logger.Info("node already deleted from Kubernetes")
 		return nil
 	}
 
-	err = client.CoreV1().Nodes().Delete(input.Name, &metav1.DeleteOptions{})
+	err = client.CoreV1().Nodes().Delete(ctx, input.Name, metav1.DeleteOptions{})
 	return errors.WrapIff(err, "failed to delete node %q", input.Name)
 }

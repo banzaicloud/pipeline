@@ -54,5 +54,5 @@ func (a ConfigureNodePoolLabelsActivity) Execute(ctx context.Context, input Conf
 
 	manager := npls.NewManager(client, a.namespace)
 
-	return manager.Sync(input.Labels)
+	return manager.Sync(ctx, input.Labels)
 }

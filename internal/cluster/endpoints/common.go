@@ -15,10 +15,12 @@
 package endpoints
 
 import (
+	"context"
+
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 type EndpointService interface {
-	List(kubeConfig []byte, releaseName string) ([]*pkgHelm.EndpointItem, error)
-	GetServiceURL(kubeConfig []byte, serviceName string, namespace string) (string, error)
+	List(ctx context.Context, kubeConfig []byte, releaseName string) ([]*pkgHelm.EndpointItem, error)
+	GetServiceURL(ctx context.Context, kubeConfig []byte, serviceName string, namespace string) (string, error)
 }

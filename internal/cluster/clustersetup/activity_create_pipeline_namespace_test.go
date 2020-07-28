@@ -106,7 +106,7 @@ func (s *CreatePipelineNamespaceActivityTestSuite) Test_Execute() {
 
 	s.Require().NoError(err)
 
-	namespace, err := s.client.CoreV1().Namespaces().Get(pipelineNamespace, metav1.GetOptions{})
+	namespace, err := s.client.CoreV1().Namespaces().Get(context.Background(), pipelineNamespace, metav1.GetOptions{})
 	s.Require().NoError(err)
 
 	s.Assert().Equal(pipelineNamespace, namespace.Name)
@@ -129,14 +129,18 @@ func (s *CreatePipelineNamespaceActivityTestSuite) Test_Execute_AlreadyExists() 
 	const pipelineNamespace = "pipeline-system2"
 	createPipelineNamespaceTestActivity = NewCreatePipelineNamespaceActivity(pipelineNamespace, clientFactory)
 
-	existingNamespace, err := s.client.CoreV1().Namespaces().Create(&corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: pipelineNamespace,
-			Labels: map[string]string{
-				"some": "label",
+	existingNamespace, err := s.client.CoreV1().Namespaces().Create(
+		context.Background(),
+		&corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: pipelineNamespace,
+				Labels: map[string]string{
+					"some": "label",
+				},
 			},
 		},
-	})
+		metav1.CreateOptions{},
+	)
 	s.Require().NoError(err)
 
 	_, err = s.env.ExecuteActivity(
@@ -148,7 +152,7 @@ func (s *CreatePipelineNamespaceActivityTestSuite) Test_Execute_AlreadyExists() 
 
 	s.Require().NoError(err)
 
-	namespace, err := s.client.CoreV1().Namespaces().Get(pipelineNamespace, metav1.GetOptions{})
+	namespace, err := s.client.CoreV1().Namespaces().Get(context.Background(), pipelineNamespace, metav1.GetOptions{})
 	s.Require().NoError(err)
 
 	s.Assert().Equal(existingNamespace, namespace)

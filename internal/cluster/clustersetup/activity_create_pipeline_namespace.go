@@ -53,16 +53,20 @@ func (a CreatePipelineNamespaceActivity) Execute(ctx context.Context, input Crea
 		return err
 	}
 
-	_, err = client.CoreV1().Namespaces().Create(&corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: a.namespace,
-			Labels: map[string]string{
-				"scan":  "noscan",
-				"name":  a.namespace,
-				"owner": "pipeline",
+	_, err = client.CoreV1().Namespaces().Create(
+		ctx,
+		&corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: a.namespace,
+				Labels: map[string]string{
+					"scan":  "noscan",
+					"name":  a.namespace,
+					"owner": "pipeline",
+				},
 			},
 		},
-	})
+		metav1.CreateOptions{},
+	)
 
 	if err != nil && k8sapierrors.IsAlreadyExists(err) {
 		return nil

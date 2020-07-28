@@ -301,7 +301,7 @@ func assertChartmuseum(t *testing.T, kubeConfig []byte, testNamespace string, ex
 		t.Fatalf("%+v", err)
 	}
 
-	ds, err := clientSet.AppsV1().Deployments(testNamespace).Get("chartmuseum-chartmuseum", metav1.GetOptions{})
+	ds, err := clientSet.AppsV1().Deployments(testNamespace).Get(context.Background(), "chartmuseum-chartmuseum", metav1.GetOptions{})
 	if err != nil {
 		t.Fatalf("%+v", err)
 	}
@@ -310,7 +310,7 @@ func assertChartmuseum(t *testing.T, kubeConfig []byte, testNamespace string, ex
 		t.Fatalf("chartmuseum is not running")
 	}
 
-	svc, err := clientSet.CoreV1().Services(testNamespace).Get("chartmuseum-chartmuseum", metav1.GetOptions{})
+	svc, err := clientSet.CoreV1().Services(testNamespace).Get(context.Background(), "chartmuseum-chartmuseum", metav1.GetOptions{})
 	if err != nil {
 		t.Fatalf("%+v", err)
 	}
@@ -335,7 +335,7 @@ func assertChartmuseumRemoved(t *testing.T, kubeConfig []byte, testNamespace str
 		t.Fatalf("%+v", err)
 	}
 
-	dsList, err := clientSet.AppsV1().Deployments(testNamespace).List(metav1.ListOptions{})
+	dsList, err := clientSet.AppsV1().Deployments(testNamespace).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		t.Fatalf("%+v", err)
 	}

@@ -101,7 +101,7 @@ func (n *NodepoolManagerAPI) GetNodepoolLabelSets(c *gin.Context) {
 
 	manager := npls.NewManager(client, global.Config.Cluster.Labels.Namespace)
 
-	sets, err := manager.GetAll()
+	sets, err := manager.GetAll(c.Request.Context())
 	if err != nil {
 		errorHandler.Handle(err)
 

@@ -15,6 +15,7 @@
 package endpoints
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -39,18 +40,18 @@ func NewEndpointManager(logger common.Logger) *EndpointManager {
 	}
 }
 
-func (m *EndpointManager) List(kubeConfig []byte, releaseName string) ([]*pkgHelm.EndpointItem, error) {
+func (m *EndpointManager) List(ctx context.Context, kubeConfig []byte, releaseName string) ([]*pkgHelm.EndpointItem, error) {
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to create K8S client")
 	}
 
-	serviceList, err := client.CoreV1().Services(metav1.NamespaceAll).List(metav1.ListOptions{})
+	serviceList, err := client.CoreV1().Services(metav1.NamespaceAll).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to list services")
 	}
 
-	ingressList, err := client.ExtensionsV1beta1().Ingresses(metav1.NamespaceAll).List(metav1.ListOptions{})
+	ingressList, err := client.ExtensionsV1beta1().Ingresses(metav1.NamespaceAll).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to list ingress")
 	}
@@ -78,13 +79,13 @@ func (m *EndpointManager) List(kubeConfig []byte, releaseName string) ([]*pkgHel
 	return m.getLoadBalancersWithIngressPaths(serviceList, ingressList), nil
 }
 
-func (m *EndpointManager) GetServiceURL(kubeConfig []byte, serviceName string, namespace string) (string, error) {
+func (m *EndpointManager) GetServiceURL(ctx context.Context, kubeConfig []byte, serviceName string, namespace string) (string, error) {
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to create K8S client")
 	}
 
-	service, err := client.CoreV1().Services(namespace).Get(serviceName, metav1.GetOptions{})
+	service, err := client.CoreV1().Services(namespace).Get(ctx, serviceName, metav1.GetOptions{})
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to list services")
 	}

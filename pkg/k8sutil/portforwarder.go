@@ -15,6 +15,7 @@
 package k8sutil
 
 import (
+	"context"
 	"fmt"
 
 	v1 "k8s.io/api/core/v1"
@@ -50,7 +51,7 @@ func GetPodName(client corev1.PodsGetter, namespace string, selector labels.Sele
 
 func getFirstRunningPod(client corev1.PodsGetter, namespace string, selector labels.Selector) (*v1.Pod, error) {
 	options := metav1.ListOptions{LabelSelector: selector.String()}
-	pods, err := client.Pods(namespace).List(options)
+	pods, err := client.Pods(namespace).List(context.Background(), options)
 	if err != nil {
 		return nil, err
 	}

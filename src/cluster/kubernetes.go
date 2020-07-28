@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"context"
 	"encoding/base64"
 	"strings"
 
@@ -116,7 +117,7 @@ func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provision
 		Parameters:        parameters,
 	}
 
-	_, err := kubernetesClient.StorageV1().StorageClasses().Create(&defaultStorageClass)
+	_, err := kubernetesClient.StorageV1().StorageClasses().Create(context.Background(), &defaultStorageClass, metav1.CreateOptions{})
 
 	return errors.WrapIf(err, "create storage class failed")
 }

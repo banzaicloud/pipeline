@@ -351,7 +351,7 @@ func (op IntegratedServiceOperator) installPrometheusOperator(
 				return client, nil
 			}
 
-			err = op.migrator(k8sClientFactory, op.config.Namespace, release.ChartVersion, op.config.Charts.Operator.Version)
+			err = op.migrator(ctx, k8sClientFactory, op.config.Namespace, release.ChartVersion, op.config.Charts.Operator.Version)
 			if err != nil {
 				return err
 			}

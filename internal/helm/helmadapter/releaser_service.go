@@ -147,7 +147,7 @@ func (r releaser) Install(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 		return helm.Release{}, errors.WrapIf(err, "failed to create kubernetes client")
 	}
 
-	namespaces, err := clientSet.CoreV1().Namespaces().List(metav1.ListOptions{})
+	namespaces, err := clientSet.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return helm.Release{}, errors.WrapIf(err, "failed to list kubernetes namespaces")
 	}
@@ -160,11 +160,13 @@ func (r releaser) Install(ctx context.Context, helmEnv helm.HelmEnv, kubeConfig 
 	}
 
 	if !foundNs {
-		if _, err := clientSet.CoreV1().Namespaces().Create(&v1.Namespace{
+		if _, err := clientSet.CoreV1().Namespaces().Create(ctx, &v1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: installAction.Namespace,
 			},
-		}); err != nil {
+		},
+			metav1.CreateOptions{},
+		); err != nil {
 			return helm.Release{}, errors.WrapIf(err, "failed to create release namespace")
 		}
 	}
@@ -437,7 +439,7 @@ func (r releaser) resourcesFromManifest(manifest string) ([]helm.ReleaseResource
 			Kind     string
 			Metadata struct {
 				Name string
-			} `mapstructure: ",squash"` //do not change the tag!
+			} `mapstructure: ",squash"` // do not change the tag!
 		}
 
 		// yaml fragment map into helper struct / metadata used to track conversion details - not yet used

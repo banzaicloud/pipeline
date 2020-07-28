@@ -104,7 +104,7 @@ func (s *LabelKubeSystemNamespaceActivityTestSuite) Test_Execute() {
 
 	s.Require().NoError(err)
 
-	namespace, err := s.client.CoreV1().Namespaces().Get("kube-system", metav1.GetOptions{})
+	namespace, err := s.client.CoreV1().Namespaces().Get(context.Background(), "kube-system", metav1.GetOptions{})
 	s.Require().NoError(err)
 
 	s.Assert().Equal(
