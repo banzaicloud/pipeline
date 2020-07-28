@@ -293,24 +293,23 @@ jobs:
     trigger-api-docs-update:
         resource_class: small
         docker:
-            -
-                image: cimg/base:stable
+            -   image: cimg/base:stable
         steps:
-            - checkout
-            - run:
-                name: Trigger api docs update
-                command: |
-                  curl \
-                      -u "${CIRCLE_TOKEN}:" \
-                      -X POST \
-                      --header "Content-Type: application/json" \
-                      -d "{
-                          \"branch\": \"gh-pages\",
-                          \"parameters\": {
-                              \"remote-trigger\": true,
-                              \"api-release-tag\": \"${CIRCLE_TAG}\"
-                          }
-                      }" "https://circleci.com/api/v2/project/gh/banzaicloud/banzaicloud.github.io/pipeline"
+            -   checkout
+            -   run:
+                    name: Trigger api docs update
+                    command: |
+                        curl \
+                            -u "${CIRCLE_TOKEN}:" \
+                            -X POST \
+                            --header "Content-Type: application/json" \
+                            -d "{
+                                \"branch\": \"gh-pages\",
+                                \"parameters\": {
+                                    \"remote-trigger\": true,
+                                    \"api-release-tag\": \"${CIRCLE_TAG}\"
+                                }
+                            }" "https://circleci.com/api/v2/project/gh/banzaicloud/banzaicloud.github.io/pipeline"
 
 commands:
     integration:
