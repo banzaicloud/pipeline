@@ -15,7 +15,7 @@ type MockClusterService struct {
 }
 
 // CheckClusterReady provides a mock function.
-func (_m *MockClusterService) CheckClusterReady(ctx context.Context, clusterID uint) error {
+func (_m *MockClusterService) CheckClusterReady(ctx context.Context, clusterID uint) (_result_0 error) {
 	ret := _m.Called(ctx, clusterID)
 
 	var r0 error
@@ -34,7 +34,7 @@ type MockService struct {
 }
 
 // Activate provides a mock function.
-func (_m *MockService) Activate(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error {
+func (_m *MockService) Activate(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) (_result_0 error) {
 	ret := _m.Called(ctx, clusterID, serviceName, spec)
 
 	var r0 error
@@ -48,7 +48,7 @@ func (_m *MockService) Activate(ctx context.Context, clusterID uint, serviceName
 }
 
 // Deactivate provides a mock function.
-func (_m *MockService) Deactivate(ctx context.Context, clusterID uint, serviceName string) error {
+func (_m *MockService) Deactivate(ctx context.Context, clusterID uint, serviceName string) (_result_0 error) {
 	ret := _m.Called(ctx, clusterID, serviceName)
 
 	var r0 error
@@ -106,7 +106,7 @@ func (_m *MockService) List(ctx context.Context, clusterID uint) (services []Int
 }
 
 // Update provides a mock function.
-func (_m *MockService) Update(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error {
+func (_m *MockService) Update(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) (_result_0 error) {
 	ret := _m.Called(ctx, clusterID, serviceName, spec)
 
 	var r0 error

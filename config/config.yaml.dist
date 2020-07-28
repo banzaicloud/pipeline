@@ -3,13 +3,7 @@
 # Pipeline logging configuration
 #log:
 #    level: "info"
-#    format: "logfmt"
-
-# Pipeline error handling configuration
-#errors:
-#    stackdriver:
-#        enabled: false
-#        projectId: ""
+#    format: "json"
 
 #telemetry:
 #    enabled: false
@@ -67,6 +61,30 @@ cadence:
 #    createNonexistentDomain: false
 #    workflowExecutionRetentionPeriodInDays: 3
 
+#auditLog:
+#    enabled: true
+#
+#    driver:
+#        log:
+#            enabled: false
+#            verbosity: 1
+#            fields:
+#                - timestamp
+#                - correlationID
+#                - userID
+#                - http.method
+#                - http.path
+#                - http.clientIP
+#                - http.userAgent
+#                - http.statusCode
+#                - http.responseTime
+#                - http.responseSize
+#                - http.requestBody
+#                - http.errors
+#
+#        database:
+#            enabled: true
+
 #cors:
 #    # Note: this should be disabled in production!
 #    # TODO: disable all orgins by default?
@@ -93,11 +111,11 @@ auth:
 #        domain: ""
 #        setDomain: false
 
-#        role:
-#            default: "admin"
-#            binding:
-#                admin: ".*"
-#                member: ""
+#    role:
+#        default: "admin"
+#        binding:
+#            admin: ".*"
+#            member: ""
 
     token:
         signingKey: ""
@@ -126,10 +144,7 @@ dex:
 #    namespace: "pipeline-system"
 #
 #    ingress:
-#        # Certificate CA for signing default ingress certs
-#        cert:
-#            source: "file"
-#            path: "config/certs"
+#        enabled: true
 #
 #    labels:
 #        # Inherited from cluster.namespace when empty

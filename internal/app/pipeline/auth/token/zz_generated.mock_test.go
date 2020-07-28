@@ -16,7 +16,7 @@ type MockUserExtractor struct {
 }
 
 // GetUserID provides a mock function.
-func (_m *MockUserExtractor) GetUserID(ctx context.Context) (uint, bool) {
+func (_m *MockUserExtractor) GetUserID(ctx context.Context) (_result_0 uint, _result_1 bool) {
 	ret := _m.Called(ctx)
 
 	var r0 uint
@@ -37,7 +37,7 @@ func (_m *MockUserExtractor) GetUserID(ctx context.Context) (uint, bool) {
 }
 
 // GetUserLogin provides a mock function.
-func (_m *MockUserExtractor) GetUserLogin(ctx context.Context) (string, bool) {
+func (_m *MockUserExtractor) GetUserLogin(ctx context.Context) (_result_0 string, _result_1 bool) {
 	ret := _m.Called(ctx)
 
 	var r0 string
@@ -63,7 +63,7 @@ type MockStore struct {
 }
 
 // List provides a mock function.
-func (_m *MockStore) List(ctx context.Context, userID string) ([]Token, error) {
+func (_m *MockStore) List(ctx context.Context, userID string) (_result_0 []Token, _result_1 error) {
 	ret := _m.Called(ctx, userID)
 
 	var r0 []Token
@@ -86,7 +86,7 @@ func (_m *MockStore) List(ctx context.Context, userID string) ([]Token, error) {
 }
 
 // Lookup provides a mock function.
-func (_m *MockStore) Lookup(ctx context.Context, userID string, tokenID string) (Token, error) {
+func (_m *MockStore) Lookup(ctx context.Context, userID string, tokenID string) (_result_0 Token, _result_1 error) {
 	ret := _m.Called(ctx, userID, tokenID)
 
 	var r0 Token
@@ -107,7 +107,7 @@ func (_m *MockStore) Lookup(ctx context.Context, userID string, tokenID string) 
 }
 
 // Revoke provides a mock function.
-func (_m *MockStore) Revoke(ctx context.Context, userID string, tokenID string) error {
+func (_m *MockStore) Revoke(ctx context.Context, userID string, tokenID string) (_result_0 error) {
 	ret := _m.Called(ctx, userID, tokenID)
 
 	var r0 error
@@ -121,7 +121,7 @@ func (_m *MockStore) Revoke(ctx context.Context, userID string, tokenID string) 
 }
 
 // Store provides a mock function.
-func (_m *MockStore) Store(ctx context.Context, userID string, tokenID string, name string, expiresAt *time.Time) error {
+func (_m *MockStore) Store(ctx context.Context, userID string, tokenID string, name string, expiresAt *time.Time) (_result_0 error) {
 	ret := _m.Called(ctx, userID, tokenID, name, expiresAt)
 
 	var r0 error
@@ -140,7 +140,7 @@ type MockGenerator struct {
 }
 
 // GenerateToken provides a mock function.
-func (_m *MockGenerator) GenerateToken(sub string, expiresAt int64, tokenType string, value string) (string, string, error) {
+func (_m *MockGenerator) GenerateToken(sub string, expiresAt int64, tokenType string, value string) (_result_0 string, _result_1 string, _result_2 error) {
 	ret := _m.Called(sub, expiresAt, tokenType, value)
 
 	var r0 string

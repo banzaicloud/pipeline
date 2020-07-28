@@ -82,6 +82,11 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		ClusterRoleId:         request.Properties.CreateClusterEKS.IAM.ClusterRoleID,
 		NodeInstanceRoleId:    request.Properties.CreateClusterEKS.IAM.NodeInstanceRoleID,
 		APIServerAccessPoints: createAPIServerAccessPointsFromRequest(request),
+		AuthConfigMap:         request.Properties.CreateClusterEKS.AuthConfigMap,
+	}
+
+	if request.Properties.CreateClusterEKS.Tags != nil {
+		cluster.model.Cluster.Tags = request.Properties.CreateClusterEKS.Tags
 	}
 
 	updateScaleOptions(&cluster.model.Cluster.ScaleOptions, request.ScaleOptions)

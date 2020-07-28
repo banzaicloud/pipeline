@@ -1,0 +1,35 @@
+[buildconfig]
+go-home = "$(eval echo ~$(whoami))"
+helm-tool = "///pleasings2//tools/k8s:helm"
+
+golangci-lint-version = 1.25.0
+openapi-generator-version = v4.2.3
+gotestsum-version = 0.4.1
+mga-version = 0.2.1
+licensei-version = 0.2.0
+migrate-version = 4.9.1
+kubectl-version = 1.17.4
+
+[alias "make"]
+desc = Build and export the outputs of targets
+cmd = export outputs -o .
+
+[alias "lint"]
+desc = Runs linters for this repo
+cmd = run ///pleasings2//tools/go:golangci-lint -- run
+
+[alias "up"]
+desc = Set up and start the development environment
+cmd = run :up
+
+[alias "down"]
+desc = Destroy the development environment
+cmd = run :down
+
+[alias "start"]
+desc = Start the development environment
+cmd = run :start
+
+[alias "stop"]
+desc = Stop the development environment
+cmd = run :stop

@@ -43,6 +43,7 @@ type CreateIamRolesActivityInput struct {
 	DefaultUser        bool
 	ClusterRoleID      string
 	NodeInstanceRoleID string
+	Tags               map[string]string
 }
 
 // CreateIamRolesActivityOutput holds the output data of the CreateIamRolesActivityOutput
@@ -126,7 +127,7 @@ func (a *CreateIamRolesActivity) Execute(ctx context.Context, input CreateIamRol
 		},
 		StackName:        aws.String(input.StackName),
 		Parameters:       stackParams,
-		Tags:             getVPCStackTags(input.ClusterName),
+		Tags:             getVPCStackTags(input.ClusterName, input.Tags),
 		TemplateBody:     aws.String(a.cloudFormationTemplate),
 		TimeoutInMinutes: aws.Int64(10),
 	}

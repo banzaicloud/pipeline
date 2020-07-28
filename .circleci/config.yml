@@ -15,7 +15,7 @@ executors:
         environment:
             GOPATH: /home/circleci/go
             GO_VERSION: '1.14.2'
-            VAULT_VERSION: '1.3.2'
+            VAULT_VERSION: '1.4.2'
             KIND_VERSION: 'v0.7.0'
             HELM_VERSION: 'v2.16.3'
 
@@ -37,12 +37,6 @@ jobs:
                 image: postgres:9.6
                 environment:
                     POSTGRES_HOST_AUTH_METHOD: "trust"
-
-            -
-                image: vault:1.3.2
-                environment:
-                    SKIP_SETCAP: true
-                    VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
         steps:
             - checkout
@@ -111,9 +105,6 @@ jobs:
                     command: |
                         make config/config.yaml
                         PIPELINE_CONFIG_DIR=$PWD/config GOARGS="-p=2" make test
-                    environment:
-                        VAULT_ADDR: http://localhost:8200
-                        VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
             -
                 run:
@@ -139,8 +130,6 @@ jobs:
                         PIPELINE_DATABASE_PASSWORD: ""
                         PIPELINE_DATABASE_ROLE: ""
                         PIPELINE_DATABASE_NAME: pipeline_automigrate
-                        VAULT_ADDR: http://localhost:8200
-                        VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
             -
                 run:
@@ -187,15 +176,13 @@ jobs:
                         PIPELINE_DATABASE_PASSWORD: postgres
                         PIPELINE_DATABASE_ROLE: ""
                         PIPELINE_DATABASE_NAME: pipeline_automigrate
-                        VAULT_ADDR: http://localhost:8200
-                        VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
             -
                 run:
                     name: Install migra for PostgreSQL database diffs
                     command: |
-                        apt-get install -y python-pip
-                        pip install migra[pg]
+                        apt-get install -y python3-pip
+                        pip3 install migra[pg]
 
             -
                 run:

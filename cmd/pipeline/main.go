@@ -44,7 +44,6 @@ import (
 	"github.com/go-kit/kit/tracing/opencensus"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
@@ -65,12 +64,13 @@ import (
 	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/auditlog"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/auditlog/auditlogdriver"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
-	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token/tokenadapter"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token/tokendriver"
@@ -92,6 +92,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksadapter"
 	eksDriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	prometheusMetrics "github.com/banzaicloud/pipeline/internal/cluster/metrics/adapters/prometheus"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
@@ -247,7 +248,7 @@ func main() {
 		os.Exit(3)
 	}
 
-	errorHandler, err := errorhandler.New(config.Errors, logger)
+	errorHandler, err := errorhandler.New(logger)
 	if err != nil {
 		logger.Error(err.Error())
 
@@ -274,6 +275,7 @@ func main() {
 	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
 	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, commonLogger)
 	secretTypes := types.NewDefaultTypeList(types.DefaultTypeListConfig{
+		AmazonRegion:       config.Cloud.Amazon.DefaultRegion,
 		TLSDefaultValidity: config.Secret.TLS.DefaultValidity,
 		PkeSecreter:        pkeSecreter,
 	})
@@ -544,9 +546,8 @@ func main() {
 	router.Use(ocmux.Middleware())
 
 	// These two paths can contain sensitive information, so it is advised not to log them out.
-	skipPaths := config.Audit.SkipPaths
 	engine.Use(correlationid.Middleware())
-	engine.Use(ginlog.Middleware(logrusLogger, skipPaths...))
+	engine.Use(ginlog.Middleware(logrusLogger, []string{"/auth/dex/callback", "/pipeline/api"}...))
 
 	// Add prometheus metric endpoint
 	if config.Telemetry.Enabled {
@@ -587,10 +588,34 @@ func main() {
 
 	engine.Use(cors.New(corsConfig))
 
-	if config.Audit.Enabled {
+	if config.AuditLog.Enabled {
 		logger.Info("Audit enabled, installing Gin audit middleware")
-		engine.Use(audit.LogWriter(skipPaths, config.Audit.Headers, db, logrusLogger))
+
+		driver := auditlog.Drivers{}
+
+		if config.AuditLog.Driver.Log.Enabled {
+			driver = append(driver, auditlogdriver.NewLogDriver(
+				config.AuditLog.Driver.Log.Config,
+				logur.WithField(logger, "channel", "audit"),
+			))
+		}
+
+		if config.AuditLog.Driver.Database.Enabled {
+			driver = append(driver, auditlogdriver.NewDatabaseDriver(db))
+		}
+
+		engine.Use(auditlog.Middleware(
+			driver,
+			auditlog.WithUserIDExtractor(auth.GetCurrentUserID),
+			auditlog.WithSensitivePaths([]*regexp.Regexp{
+				regexp.MustCompile("^/auth/dex(?:/[^/]+)*"),
+				regexp.MustCompile("^/(?:[^/]*/)*api/v1/orgs/[0-9]+/secrets(?:/[^/]+)*"),
+				regexp.MustCompile("^/(?:[^/]*/)*api/v1/orgs/[0-9]+/clusters/[^/]+/pke/ready"),
+			}),
+			auditlog.WithErrorHandler(errorHandler),
+		))
 	}
+
 	engine.Use(func(c *gin.Context) { // TODO: move to middleware
 		c.Request = c.Request.WithContext(ctxutil.WithParams(c.Request.Context(), ginutils.ParamsToMap(c.Params)))
 	})
@@ -761,25 +786,32 @@ func main() {
 							kitxhttp.ServerOptions(httpServerOptions),
 						)
 
-						cRouter.POST("/deployments", gin.WrapH(router))
-						cRouter.GET("/deployments", gin.WrapH(router))
-						cRouter.GET("/deployments/:name", gin.WrapH(router))
-						cRouter.PUT("/deployments/:name", gin.WrapH(router))
-						cRouter.HEAD("/deployments/:name", gin.WrapH(router))
-						cRouter.DELETE("/deployments/:name", gin.WrapH(router))
-						cRouter.GET("/deployments/:name/resources", gin.WrapH(router))
+						deploymentsRouter := cRouter.Group("/deployments")
+						deploymentsRouter.POST("", gin.WrapH(router))
+						deploymentsRouter.GET("", gin.WrapH(router))
+						deploymentsRouter.GET(":name", gin.WrapH(router))
+						deploymentsRouter.PUT(":name", gin.WrapH(router))
+						deploymentsRouter.HEAD(":name", gin.WrapH(router))
+						deploymentsRouter.DELETE(":name", gin.WrapH(router))
+						deploymentsRouter.GET(":name/resources", gin.WrapH(router))
 
 						// other version dependant operations
 						cRouter.GET("/endpoints", api.MakeEndpointLister(cs, helmFacade, logger).ListEndpoints)
 					} else {
-						cRouter.POST("/deployments", api.CreateDeployment)
-						cRouter.GET("/deployments", api.ListDeployments)
-						cRouter.GET("/deployments/:name", api.GetDeployment)
-						cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
-						cRouter.HEAD("/deployments/:name", api.HelmDeploymentStatus)
-						cRouter.HEAD("/deployments", api.GetTillerStatus)
-						cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
-						cRouter.GET("/deployments/:name/resources", api.GetDeploymentResources)
+						// set up the middleware for ensuring helm environments for orgs
+						ensuringHelmResolver := cmd.NewEnsuringEnvResolver(config.Helm, db, commonSecretStore, commonLogger)
+						helmEnvMW := helmadapter.NewHelmEnvEnsurerMiddleware(ensuringHelmResolver, commonLogger)
+
+						deploymentsRouter := cRouter.Group("/deployments")
+						deploymentsRouter.Use(helmEnvMW.Middleware)
+						deploymentsRouter.POST("", api.CreateDeployment)
+						deploymentsRouter.GET("", api.ListDeployments)
+						deploymentsRouter.GET(":name", api.GetDeployment)
+						deploymentsRouter.PUT(":name", api.UpgradeDeployment)
+						deploymentsRouter.HEAD(":name", api.HelmDeploymentStatus)
+						deploymentsRouter.HEAD("", api.GetTillerStatus)
+						deploymentsRouter.DELETE(":name", api.DeleteDeployment)
+						deploymentsRouter.GET(":name/resources", api.GetDeploymentResources)
 
 						// other version dependant operations
 						releaseChecker := api.NewReleaseChecker(cs)
@@ -835,7 +867,14 @@ func main() {
 							"eks": clusteradapter.NewEKSService(eks.NewService(
 								clusterStore,
 								eksadapter.NewNodePoolStore(db),
-								eksadapter.NewNodePoolManager(workflowClient, config.Pipeline.Enterprise),
+								eksadapter.NewNodePoolManager(
+									workflow.NewAWSSessionFactory(secret.Store),
+									workflow.NewCloudFormationFactory(),
+									dynamicClientFactory,
+									config.Pipeline.Enterprise,
+									config.Cluster.Namespace,
+									workflowClient,
+								),
 							)),
 						},
 						clusteradapter.NewNodePoolStore(db, clusterStore),
@@ -1209,7 +1248,7 @@ func main() {
 		logger := logur.WithField(logger, "server", "internal")
 
 		server := &http.Server{
-			Handler:  createInternalAPIRouter(config, db, basePath, clusterAPI, cloudinfoClient, logger, logrusLogger),
+			Handler:  createInternalAPIRouter(basePath, clusterAPI, cloudinfoClient, logrusLogger),
 			ErrorLog: log.NewErrorStandardLogger(logger),
 		}
 		defer server.Close()
@@ -1267,23 +1306,16 @@ func main() {
 }
 
 func createInternalAPIRouter(
-	conf configuration,
-	db *gorm.DB,
 	basePath string,
 	clusterAPI *api.ClusterAPI,
 	cloudinfoClient *cloudinfo.Client,
-	logger logur.Logger,
 	logrusLogger logrus.FieldLogger,
 ) *gin.Engine {
 	// Initialise Gin router for Internal API
 	internalRouter := gin.New()
 	internalRouter.Use(correlationid.Middleware())
-	internalRouter.Use(ginlog.Middleware(logrusLogger, conf.Audit.SkipPaths...))
+	internalRouter.Use(ginlog.Middleware(logrusLogger, []string{"/auth/dex/callback", "/pipeline/api"}...))
 	internalRouter.Use(gin.Recovery())
-	if conf.Audit.Enabled {
-		logger.Info("Audit enabled, installing Gin audit middleware to internal router")
-		internalRouter.Use(audit.LogWriter(conf.Audit.SkipPaths, conf.Audit.Headers, db, logrusLogger))
-	}
 	internalGroup := internalRouter.Group(path.Join(basePath, "api", "v1/", "orgs"))
 	internalGroup.Use(auth.InternalUserHandler)
 	internalGroup.Use(api.OrganizationMiddleware)

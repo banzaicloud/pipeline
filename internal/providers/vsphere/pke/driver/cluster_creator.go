@@ -37,7 +37,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-const pkeVersion = "0.5.0"
+const pkeVersion = "0.5.1"
 const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
 func MakeVspherePKEClusterCreator(
@@ -394,10 +394,11 @@ func (p clusterCreatorNodePoolPreparerDataProvider) getExistingNodePoolByName(ct
 	return pke.NodePool{}, notExistsYetError{}
 }
 
-const masterUserDataScriptTemplate = `#!/bin/sh
-export HTTP_PROXY="{{ .HttpProxy }}"
-export HTTPS_PROXY="{{ .HttpsProxy }}"
-export NO_PROXY="{{ .NoProxy }}"
+const masterUserDataScriptTemplate = `
+set -x
+{{ if .HttpProxy }}export HTTP_PROXY="{{ .HttpProxy }}"{{ end }}
+{{ if .HttpsProxy }}export HTTPS_PROXY="{{ .HttpsProxy }}"{{ end }}
+{{ if .NoProxy }}export NO_PROXY="{{ .NoProxy }}"{{ end }}
 
 PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
 PUBLIC_ADDRESS="{{ if .PublicAddress }}{{ .PublicAddress }}{{ else }}$PRIVATE_IP{{ end }}"
@@ -407,6 +408,8 @@ if ! command -v pke > /dev/null 2>&1; then
 	until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 	chmod +x /usr/local/bin/pke
 fi
+
+if [ -r /etc/banzaicloud/pke.rc ]; then . /etc/banzaicloud/pke.rc; fi
 
 pke install master --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-insecure="{{ .PipelineURLInsecure }}" \
@@ -432,18 +435,24 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --vsphere-folder="{{ .Folder }}" \
 --vsphere-username="{{ .Username }}" \
 --vsphere-password="{{ .Password }}" \
---lb-range="{{ .LoadBalancerIPRange }}"`
+--lb-range="{{ .LoadBalancerIPRange }}" \
+${PKE_EXTRA_ARGS:-}`
 
-const workerUserDataScriptTemplate = `#!/bin/sh
-export HTTP_PROXY="{{ .HttpProxy }}"
-export HTTPS_PROXY="{{ .HttpsProxy }}"
-export NO_PROXY="{{ .NoProxy }}"
+const workerUserDataScriptTemplate = `
+set -x
+{{ if .HttpProxy }}export HTTP_PROXY="{{ .HttpProxy }}"{{ end }}
+{{ if .HttpsProxy }}export HTTPS_PROXY="{{ .HttpsProxy }}"{{ end }}
+{{ if .NoProxy }}export NO_PROXY="{{ .NoProxy }}"{{ end }}
 
+export PATH=$PATH:/usr/local/bin/
+if ! command -v pke > /dev/null 2>&1; then
 until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 chmod +x /usr/local/bin/pke
-export PATH=$PATH:/usr/local/bin/
+fi
 
 PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
+
+if [ -r /etc/banzaicloud/pke.rc ]; then . /etc/banzaicloud/pke.rc; fi
 
 pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-insecure="{{ .PipelineURLInsecure }}" \
@@ -456,4 +465,5 @@ pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-api-server={{ .PublicAddress }}:6443 \
 --kubernetes-infrastructure-cidr=$PRIVATE_IP/32 \
 --kubernetes-version={{ .KubernetesVersion }} \
---kubernetes-pod-network-cidr=""`
+--kubernetes-pod-network-cidr="" \
+${PKE_EXTRA_ARGS:-}`

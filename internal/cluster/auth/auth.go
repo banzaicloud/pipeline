@@ -20,12 +20,12 @@ import (
 	"net/url"
 
 	"emperror.dev/errors"
+	dex "github.com/dexidp/dex/api/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	k8sClient "k8s.io/client-go/tools/clientcmd"
 	k8sClientApi "k8s.io/client-go/tools/clientcmd/api"
 
-	"github.com/banzaicloud/pipeline/.gen/dex"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
@@ -77,29 +77,6 @@ type ClusterAuthService interface {
 
 type ClusterClientSecretGetter interface {
 	GetClusterClientSecret(context.Context, uint) (ClusterClientSecret, error)
-}
-
-type noOpClusterAuthService struct {
-}
-
-func NewNoOpClusterAuthService() (ClusterAuthService, error) {
-	return &noOpClusterAuthService{}, nil
-}
-
-func (*noOpClusterAuthService) RegisterCluster(tx context.Context, clusterName string, clusterID uint, clusterUID string) error {
-	return nil
-}
-
-func (*noOpClusterAuthService) UnRegisterCluster(tx context.Context, clusterUID string) error {
-	return nil
-}
-
-func (*noOpClusterAuthService) GetClusterClientSecret(ctx context.Context, clusterID uint) (ClusterClientSecret, error) {
-	return ClusterClientSecret{}, nil
-}
-
-func (*noOpClusterAuthService) GetClusterConfig(ctx context.Context, clusterID uint) (*k8sClientApi.Config, error) {
-	return nil, nil
 }
 
 type dexClusterAuthService struct {

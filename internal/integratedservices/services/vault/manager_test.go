@@ -17,6 +17,7 @@ package vault
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -36,7 +37,7 @@ func TestIntegratedServiceManager_Name(t *testing.T) {
 	assert.Equal(t, "vault", mng.Name())
 }
 
-func TestIntegratedServiceManager_GetOutput(t *testing.T) {
+func testIntegratedServiceManagerGetOutput(t *testing.T) {
 	orgID := uint(13)
 	clusterID := uint(42)
 	clusterName := "the-cluster"
@@ -110,7 +111,7 @@ func TestIntegratedServiceManager_GetOutput(t *testing.T) {
 			spec: obj{
 				"customVault": obj{
 					"enabled": true,
-					"address": "http://localhost:8200/",
+					"address": os.Getenv("VAULT_ADDR"),
 					"policy":  getDefaultPolicy(orgID),
 				},
 				"settings": obj{

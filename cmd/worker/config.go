@@ -135,10 +135,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("debug", false)
 	v.SetDefault("shutdownTimeout", 15*time.Second)
 
-	// ErrorHandler configuration
-	v.Set("errors::serviceName", appName)
-	v.Set("errors::serviceVersion", version)
-
 	// Cadence configuration
 	v.SetDefault("cadence::createNonexistentDomain", false)
 	v.SetDefault("cadence::workflowExecutionRetentionPeriodInDays", 3)

@@ -3553,6 +3553,23 @@ paths:
                 default:
                     $ref: '#/components/responses/Error'
 
+        get:
+            operationId: ListNodePools
+            summary: List node pools
+            security:
+                - bearerAuth: []
+            tags:
+                - clusters
+            responses:
+                200:
+                    description: Node pool list
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListNodePoolsResponse'
+                default:
+                    $ref: '#/components/responses/Error'
+
     /api/v1/orgs/{orgId}/clusters/{id}/nodepools/{name}:
         parameters:
             - $ref: '#/components/parameters/orgId'
@@ -4516,6 +4533,11 @@ components:
                     description: Node pool update process ID.
                     type: string
 
+        ListNodePoolsResponse:
+            type: array
+            items:
+                $ref: '#/components/schemas/NodePool'
+
         BaseUpdateNodePoolRequest:
             description: Base node pool update request object for all cluster distributions.
             type: object
@@ -4642,6 +4664,8 @@ components:
                     required:
                         - nodePools
                     properties:
+                        authConfigMap:
+                            type: string
                         version:
                             type: string
                             example: "1.10"
@@ -4674,7 +4698,13 @@ components:
                               enum: [private, public]
                             default: ["public"]
                             description: List of access point types for the API server; public and private are the only valid values
-
+                        tags:
+                            type: object
+                            additionalProperties:
+                                type: string
+                                example:
+                                    customTagKey: customTagValue
+                            description: User definied tags to be added to created AWS resources. Empty keys and values are not permitted.
         CreateACKProperties:
             type: object
             required:
@@ -7429,21 +7459,25 @@ components:
                 type: string
             example: []
         RestoreResultNamespaces:
-            type: array
-            items:
-                type: object
+            type: object
+            additionalProperties:
+                type: array
+                items:
+                    type: string
+                    example: []
         RestoreResultNamespacesWarnings:
-            type: array
-            items:
-                type: object
-                additionalProperties: true
-                description: "warnings during restoration process"
-                example: { "default": [
-                                    "not restored: services \"kubernetes\" already exists and is different from backed up version.",
-                                    "not restored: services \"pipeline-traefik-metrics-prometheus\" already exists and is different from backed up version.",
-                                    "not restored: services \"pipeline-traefik\" already exists and is different from backed up version."
-                            ]
-                }
+            type: object
+            additionalProperties:
+                type: array
+                items:
+                    type: string
+                    description: "warnings during restoration process"
+                    example: { "default": [
+                                        "not restored: services \"kubernetes\" already exists and is different from backed up version.",
+                                        "not restored: services \"pipeline-traefik-metrics-prometheus\" already exists and is different from backed up version.",
+                                        "not restored: services \"pipeline-traefik\" already exists and is different from backed up version."
+                                ]
+                    }
         RestoreResultErrors:
             type: object
             properties:

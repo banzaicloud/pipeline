@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,17 +15,21 @@
 package pkeworkflow
 
 import (
-	"strings"
+	"fmt"
 	"time"
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
-const pkeVersion = "0.5.0"
+const pkeVersion = "0.5.1"
+
+// ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure
+const ErrReasonStackFailed = "CLOUDFORMATION_STACK_FAILED"
 
 type PKEImageNameGetter interface {
 	PKEImageName(cloudProvider, service, os, kubeVersion, pkeVersion, region string) (string, error)
@@ -86,7 +90,6 @@ type CreateClusterWorkflowInput struct {
 	PipelineExternalURLInsecure bool
 	OIDCEnabled                 bool
 	VPCID                       string
-	SubnetID                    string
 }
 
 type CreateClusterWorkflow struct {
@@ -98,6 +101,13 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		ScheduleToStartTimeout: 10 * time.Minute,
 		StartToCloseTimeout:    20 * time.Minute,
 		WaitForCancellation:    true,
+		RetryPolicy: &cadence.RetryPolicy{
+			InitialInterval:          2 * time.Second,
+			BackoffCoefficient:       1.5,
+			MaximumInterval:          30 * time.Second,
+			MaximumAttempts:          5,
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", ErrReasonStackFailed},
+		},
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
@@ -148,6 +158,46 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		}
 	}
 
+	var nodePools []NodePool
+
+	// List node pools
+	{
+		activityInput := ListNodePoolsActivityInput{ClusterID: input.ClusterID}
+		err := workflow.ExecuteActivity(ctx, ListNodePoolsActivityName, activityInput).Get(ctx, &nodePools)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Collect all AZs
+	var master NodePool
+	for _, np := range nodePools {
+		if np.Master {
+			master = np
+			if len(np.AvailabilityZones) == 0 || np.AvailabilityZones[0] == "" {
+				return errors.NewWithDetails("missing availability zone for nodepool %q", np.Name)
+			}
+			break
+		}
+	}
+	// Collect relevant AZs from NodePools without subnets
+	availabilityZoneSet := make(map[string]struct{})
+	for _, np := range nodePools {
+		// We only look AZ when no subnet is set
+		if len(np.Subnets) == 0 {
+			for _, az := range np.AvailabilityZones {
+				availabilityZoneSet[az] = struct{}{}
+			}
+		}
+	}
+	// Create AZ and Address map
+	availabilityZoneMap := make(map[string]string, len(availabilityZoneSet))
+	id := 0
+	for zone := range availabilityZoneSet {
+		availabilityZoneMap[zone] = fmt.Sprintf("192.168.%d.0/20", id*16)
+		id++
+	}
+
 	var vpcStackID string
 
 	// Create VPC
@@ -157,7 +207,6 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 			ClusterID:        input.ClusterID,
 			ClusterName:      input.ClusterName,
 			VPCID:            input.VPCID,
-			SubnetID:         input.SubnetID,
 		}
 		err := workflow.ExecuteActivity(ctx, CreateVPCActivityName, activityInput).Get(ctx, &vpcStackID)
 		if err != nil {
@@ -198,25 +247,35 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		return errors.Errorf("couldn't get the default security group of the VPC %q", vpcOutput["VpcId"])
 	}
 
-	var nodePools []NodePool
-
-	// List node pools
+	// Create subnets map nodepools with subnet?
+	// We need a Zone - SubnetID map
+	subnetIDMap := make(map[string]string)
 	{
-		activityInput := ListNodePoolsActivityInput{ClusterID: input.ClusterID}
-		err := workflow.ExecuteActivity(ctx, ListNodePoolsActivityName, activityInput).Get(ctx, &nodePools)
-		if err != nil {
-			return err
-		}
-	}
+		var createSubnetFutures []workflow.Future
+		for zone, ip := range availabilityZoneMap {
+			activityInput := CreateSubnetActivityInput{
 
-	var master NodePool
-	for _, np := range nodePools {
-		if np.Master {
-			master = np
-			if len(np.AvailabilityZones) <= 0 || np.AvailabilityZones[0] == "" {
-				return errors.Errorf("missing availability zone for nodepool %q", np.Name)
+				AWSActivityInput: awsActivityInput,
+				ClusterID:        input.ClusterID,
+				ClusterName:      input.ClusterName,
+				VpcID:            vpcOutput["VpcId"],
+				RouteTableID:     vpcOutput["RouteTableId"],
+				Cidr:             ip,
+				AvailabilityZone: zone,
 			}
-			break
+			ctx := workflow.WithActivityOptions(ctx, ao)
+			createSubnetFutures = append(createSubnetFutures, workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput))
+		}
+
+		// wait for info about newly created subnets
+		errs := make([]error, len(createSubnetFutures))
+		for i, future := range createSubnetFutures {
+			var activityOutput CreateSubnetActivityOutput
+
+			errs[i] = future.Get(ctx, &activityOutput)
+			if errs[i] == nil {
+				subnetIDMap[activityOutput.AvailabilityZone] = activityOutput.SubnetID
+			}
 		}
 	}
 
@@ -248,22 +307,24 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 
 	multiMaster := master.MaxCount > 1
 
-	masterNodeSubnetID := strings.Split(vpcOutput["SubnetIds"], ",")[0]
-	if len(master.Subnets) > 0 {
-		masterNodeSubnetID = master.Subnets[0]
+	subnetIDs := master.Subnets
+	if len(master.Subnets) == 0 {
+		for _, az := range master.AvailabilityZones {
+			subnetIDs = append(subnetIDs, subnetIDMap[az])
+		}
 	}
+
 	masterInput := CreateMasterActivityInput{
 		ClusterID:                 input.ClusterID,
 		VPCID:                     vpcOutput["VpcId"],
 		VPCDefaultSecurityGroupID: vpcDefaultSecurityGroupID,
-		SubnetID:                  masterNodeSubnetID,
+		SubnetIDs:                 subnetIDs,
 		MultiMaster:               multiMaster,
 		MasterInstanceProfile:     rolesOutput["MasterInstanceProfile"],
 		ExternalBaseUrl:           input.PipelineExternalURL,
 		ExternalBaseUrlInsecure:   input.PipelineExternalURLInsecure,
 		Pool:                      master,
 		SSHKeyName:                keyOut.KeyName,
-		AvailabilityZone:          master.AvailabilityZones[0],
 	}
 
 	if multiMaster {
@@ -274,7 +335,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 			ClusterID:        input.ClusterID,
 			ClusterName:      input.ClusterName,
 			VPCID:            vpcOutput["VpcId"],
-			SubnetIds:        []string{masterNodeSubnetID},
+			SubnetIds:        subnetIDs,
 		}
 
 		err := workflow.ExecuteActivity(ctx, CreateNLBActivityName, activityInput).Get(ctx, &activityOutput)
@@ -308,7 +369,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 			ClusterID:       input.ClusterID,
 			APISeverAddress: externalAddress,
 			VPCID:           vpcOutput["VpcId"],
-			Subnets:         vpcOutput["SubnetIds"],
+			Subnets:         subnetIDs,
 		}
 		err := workflow.ExecuteActivity(ctx, UpdateClusterNetworkActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
@@ -365,7 +426,12 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 
 		for i, np := range nodePools {
 			if !np.Master {
-				subnetID := strings.Split(vpcOutput["SubnetIds"], ",")[0]
+				subnetIDs := np.Subnets
+				if len(np.Subnets) == 0 {
+					for _, az := range np.AvailabilityZones {
+						subnetIDs = append(subnetIDs, subnetIDMap[az])
+					}
+				}
 
 				createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
 					ClusterID:                 input.ClusterID,
@@ -373,7 +439,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 					WorkerInstanceProfile:     rolesOutput["WorkerInstanceProfile"],
 					VPCID:                     vpcOutput["VpcId"],
 					VPCDefaultSecurityGroupID: vpcDefaultSecurityGroupID,
-					SubnetID:                  subnetID,
+					SubnetIDs:                 subnetIDs,
 					ClusterSecurityGroup:      masterOutput["ClusterSecurityGroup"],
 					ExternalBaseUrl:           input.PipelineExternalURL,
 					ExternalBaseUrlInsecure:   input.PipelineExternalURLInsecure,

@@ -58,3 +58,18 @@ func (s eksService) UpdateNodePool(ctx context.Context, clusterID uint, nodePool
 func (s eksService) DeleteNodePool(ctx context.Context, clusterID uint, name string) (deleted bool, err error) {
 	panic("implement me")
 }
+
+// ListNodePools lists node pools from a cluster.
+func (s eksService) ListNodePools(ctx context.Context, clusterID uint) (nodePoolList cluster.RawNodePoolList, err error) {
+	nodePools, err := s.service.ListNodePools(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "listing node pools through EKS service failed", "clusterID", clusterID)
+	}
+
+	nodePoolList = make([]interface{}, 0, len(nodePools))
+	for _, nodePool := range nodePools {
+		nodePoolList = append(nodePoolList, nodePool)
+	}
+
+	return nodePoolList, nil
+}

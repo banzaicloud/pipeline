@@ -140,3 +140,10 @@ func (c *Cluster) GetSshPublicKey() (string, error) {
 	}
 	return "", errors.New(fmt.Sprintf("failed to cast cluster to EC2ClusterPKE, got type: %T", c.CommonCluster))
 }
+
+func (c *Cluster) GetNetworkCloudProvider() (cloudProvider, vpcID string, subnets []string, err error) {
+	if pke, ok := c.CommonCluster.(*cluster.EC2ClusterPKE); ok {
+		return pke.GetNetworkCloudProvider()
+	}
+	return "", "", nil, errors.New(fmt.Sprintf("failed to cast cluster to EC2ClusterPKE, got type: %T", c.CommonCluster))
+}

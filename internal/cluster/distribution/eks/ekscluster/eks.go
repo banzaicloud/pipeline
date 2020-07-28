@@ -40,7 +40,9 @@ type CreateClusterEKS struct {
 
 	// List of access point references for the API server; currently, public and private are the only valid values.
 	// Default: ["public"]
-	APIServerAccessPoints []string `json:"apiServerAccessPoints,omitempty" yaml:"apiServerAccessPoints,omitempty"`
+	APIServerAccessPoints []string          `json:"apiServerAccessPoints,omitempty" yaml:"apiServerAccessPoints,omitempty"`
+	Tags                  map[string]string `json:"tags,omitempty" yaml:"tags,omitempty"`
+	AuthConfigMap         string            `json:"authConfigMap,omitempty" yaml:"authConfigMap,omitempty"`
 }
 
 // UpdateClusterAmazonEKS describes Amazon EKS's node fields of an UpdateCluster request
@@ -288,7 +290,7 @@ func (eks *UpdateClusterAmazonEKS) Validate() error {
 
 // isValidVersion validates the given K8S version
 func isValidVersion(version string) (bool, error) {
-	constraint, err := semver.NewConstraint(">= 1.14, <= 1.16")
+	constraint, err := semver.NewConstraint(">= 1.14, <= 1.17")
 	if err != nil {
 		return false, errors.WrapIf(err, "couldn't create semver Kubernetes version check constraint")
 	}

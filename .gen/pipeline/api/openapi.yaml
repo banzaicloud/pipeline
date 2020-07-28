@@ -17031,6 +17031,135 @@ paths:
       tags:
       - integrated services
   /api/v1/orgs/{orgId}/clusters/{id}/nodepools:
+    get:
+      operationId: ListNodePools
+      parameters:
+      - description: Organization identifier
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Cluster identifier
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListNodePoolsResponse'
+          description: Node pool list
+        default:
+          content:
+            application/json:
+              examples:
+                BadRequest:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: Failed to parse request.
+                Unauthorized:
+                  value:
+                    code: 401
+                    message: Unauthorized
+                    error: Unauthorized
+                OrganizationNotFound:
+                  value:
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+            application/problem+json:
+              examples:
+                BadRequest:
+                  value:
+                    type: about:blank
+                    title: Invalid request
+                    status: 400
+                    detail: Failed to parse request.
+                    instance: ""
+                    code: 400
+                    message: Failed to parse request.
+                    error: Invalid request
+                Unauthorized:
+                  value:
+                    type: about:blank
+                    title: Unauthorized
+                    status: 401
+                    detail: You are unauthorized to access this resource.
+                    instance: ""
+                    code: 401
+                    message: You are unauthorized to access this resource.
+                    error: Unauthorized
+                AccessDenied:
+                  value:
+                    type: about:blank
+                    title: Access denied
+                    status: 403
+                    detail: You are unauthorized to perform this action access this
+                      resource.
+                    instance: ""
+                    code: 403
+                    message: You are unauthorized to perform this action access this
+                      resource.
+                    error: Access denied
+                OrganizationNotFound:
+                  value:
+                    type: about:blank
+                    title: Organization not found
+                    status: 404
+                    detail: Organization not found
+                    instance: ""
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    type: about:blank
+                    title: Secret already exists
+                    status: 409
+                    detail: Secret already exists
+                    instance: ""
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    type: about:blank
+                    title: Internal server error
+                    status: 500
+                    detail: Something went wrong
+                    instance: ""
+                    code: 500
+                    message: Something went wrong
+                    error: Internal server error
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List node pools
+      tags:
+      - clusters
     post:
       description: Add new node pool to a cluster
       operationId: CreateNodePool
@@ -18728,6 +18857,10 @@ components:
           description: Node pool update process ID.
           type: string
       type: object
+    ListNodePoolsResponse:
+      items:
+        $ref: '#/components/schemas/NodePool'
+      type: array
     BaseUpdateNodePoolRequest:
       description: Base node pool update request object for all cluster distributions.
       properties:
@@ -21725,30 +21858,32 @@ components:
         type: string
       type: array
     RestoreResultNamespaces:
-      items:
-        type: object
-      type: array
+      additionalProperties:
+        items:
+          example: '[]'
+          type: string
+        type: array
+      type: object
     RestoreResultNamespacesWarnings:
-      items:
-        additionalProperties: true
-        description: warnings during restoration process
-        example:
-          default:
-          - 'not restored: services "kubernetes" already exists and is different from
-            backed up version.'
-          - 'not restored: services "pipeline-traefik-metrics-prometheus" already
-            exists and is different from backed up version.'
-          - 'not restored: services "pipeline-traefik" already exists and is different
-            from backed up version.'
-        type: object
-      type: array
+      additionalProperties:
+        items:
+          description: warnings during restoration process
+          example: '{"default":["not restored: services \"kubernetes\" already exists
+            and is different from backed up version.","not restored: services \"pipeline-traefik-metrics-prometheus\"
+            already exists and is different from backed up version.","not restored:
+            services \"pipeline-traefik\" already exists and is different from backed
+            up version."]}'
+          type: string
+        type: array
+      type: object
     RestoreResultErrors:
       example:
         cluster: []
         ark: []
         namespaces:
-        - '{}'
-        - '{}'
+          key:
+          - '[]'
+          - '[]'
       properties:
         ark:
           example: []
@@ -21761,29 +21896,29 @@ components:
             type: string
           type: array
         namespaces:
-          items:
-            type: object
-          type: array
+          additionalProperties:
+            items:
+              example: '[]'
+              type: string
+            type: array
+          type: object
       type: object
     RestoreResultWarnings:
       example:
         cluster: []
         ark: []
         namespaces:
-        - default:
-          - 'not restored: services "kubernetes" already exists and is different from
-            backed up version.'
-          - 'not restored: services "pipeline-traefik-metrics-prometheus" already
-            exists and is different from backed up version.'
-          - 'not restored: services "pipeline-traefik" already exists and is different
-            from backed up version.'
-        - default:
-          - 'not restored: services "kubernetes" already exists and is different from
-            backed up version.'
-          - 'not restored: services "pipeline-traefik-metrics-prometheus" already
-            exists and is different from backed up version.'
-          - 'not restored: services "pipeline-traefik" already exists and is different
-            from backed up version.'
+          key:
+          - '{"default":["not restored: services \"kubernetes\" already exists and
+            is different from backed up version.","not restored: services \"pipeline-traefik-metrics-prometheus\"
+            already exists and is different from backed up version.","not restored:
+            services \"pipeline-traefik\" already exists and is different from backed
+            up version."]}'
+          - '{"default":["not restored: services \"kubernetes\" already exists and
+            is different from backed up version.","not restored: services \"pipeline-traefik-metrics-prometheus\"
+            already exists and is different from backed up version.","not restored:
+            services \"pipeline-traefik\" already exists and is different from backed
+            up version."]}'
       properties:
         ark:
           example: []
@@ -21796,19 +21931,17 @@ components:
             type: string
           type: array
         namespaces:
-          items:
-            additionalProperties: true
-            description: warnings during restoration process
-            example:
-              default:
-              - 'not restored: services "kubernetes" already exists and is different
-                from backed up version.'
-              - 'not restored: services "pipeline-traefik-metrics-prometheus" already
-                exists and is different from backed up version.'
-              - 'not restored: services "pipeline-traefik" already exists and is different
-                from backed up version.'
-            type: object
-          type: array
+          additionalProperties:
+            items:
+              description: warnings during restoration process
+              example: '{"default":["not restored: services \"kubernetes\" already
+                exists and is different from backed up version.","not restored: services
+                \"pipeline-traefik-metrics-prometheus\" already exists and is different
+                from backed up version.","not restored: services \"pipeline-traefik\"
+                already exists and is different from backed up version."]}'
+              type: string
+            type: array
+          type: object
       type: object
     RestoreResultsResponse:
       example:
@@ -21816,26 +21949,24 @@ components:
           cluster: []
           ark: []
           namespaces:
-          - default:
-            - 'not restored: services "kubernetes" already exists and is different
-              from backed up version.'
-            - 'not restored: services "pipeline-traefik-metrics-prometheus" already
-              exists and is different from backed up version.'
-            - 'not restored: services "pipeline-traefik" already exists and is different
-              from backed up version.'
-          - default:
-            - 'not restored: services "kubernetes" already exists and is different
-              from backed up version.'
-            - 'not restored: services "pipeline-traefik-metrics-prometheus" already
-              exists and is different from backed up version.'
-            - 'not restored: services "pipeline-traefik" already exists and is different
-              from backed up version.'
+            key:
+            - '{"default":["not restored: services \"kubernetes\" already exists and
+              is different from backed up version.","not restored: services \"pipeline-traefik-metrics-prometheus\"
+              already exists and is different from backed up version.","not restored:
+              services \"pipeline-traefik\" already exists and is different from backed
+              up version."]}'
+            - '{"default":["not restored: services \"kubernetes\" already exists and
+              is different from backed up version.","not restored: services \"pipeline-traefik-metrics-prometheus\"
+              already exists and is different from backed up version.","not restored:
+              services \"pipeline-traefik\" already exists and is different from backed
+              up version."]}'
         errors:
           cluster: []
           ark: []
           namespaces:
-          - '{}'
-          - '{}'
+            key:
+            - '[]'
+            - '[]'
       properties:
         errors:
           $ref: '#/components/schemas/RestoreResultErrors'
@@ -23015,6 +23146,8 @@ components:
           $ref: '#/components/schemas/BaseUpdateNodePoolOptions'
     CreateEKSProperties_eks:
       properties:
+        authConfigMap:
+          type: string
         version:
           example: "1.10"
           type: string
@@ -23058,6 +23191,13 @@ components:
             - public
             type: string
           type: array
+        tags:
+          additionalProperties:
+            example: '{"customTagKey":"customTagValue"}'
+            type: string
+          description: User definied tags to be added to created AWS resources. Empty
+            keys and values are not permitted.
+          type: object
       required:
       - nodePools
     CreateACKProperties_ack:

@@ -136,6 +136,16 @@ func GetCurrentUser(req *http.Request) *User {
 	return nil
 }
 
+// GetCurrentUserID returns the current user ID.
+func GetCurrentUserID(req *http.Request) uint {
+	user := GetCurrentUser(req)
+	if user != nil {
+		return user.ID
+	}
+
+	return 0
+}
+
 // GetCurrentOrganization return the user's organization
 func GetCurrentOrganization(req *http.Request) *Organization {
 	if organization := req.Context().Value(CurrentOrganization); organization != nil {

@@ -190,7 +190,7 @@ func main() {
 	}
 
 	// Configure error handler
-	errorHandler, err := errorhandler.New(config.Errors, logger)
+	errorHandler, err := errorhandler.New(logger)
 	if err != nil {
 		logger.Error(err.Error())
 
@@ -213,6 +213,7 @@ func main() {
 	secretStore := secretadapter.NewVaultStore(vaultClient, "secret")
 	pkeSecreter := pkesecret.NewPkeSecreter(vaultClient, commonLogger)
 	secretTypes := types.NewDefaultTypeList(types.DefaultTypeListConfig{
+		AmazonRegion:       config.Cloud.Amazon.DefaultRegion,
 		TLSDefaultValidity: config.Secret.TLS.DefaultValidity,
 		PkeSecreter:        pkeSecreter,
 	})

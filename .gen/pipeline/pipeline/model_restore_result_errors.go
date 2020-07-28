@@ -16,5 +16,5 @@ type RestoreResultErrors struct {
 
 	Cluster []string `json:"cluster,omitempty"`
 
-	Namespaces []map[string]interface{} `json:"namespaces,omitempty"`
+	Namespaces map[string][]string `json:"namespaces,omitempty"`
 }

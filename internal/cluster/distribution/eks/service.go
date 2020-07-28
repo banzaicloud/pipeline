@@ -17,8 +17,12 @@ package eks
 import (
 	"context"
 
+	"emperror.dev/errors"
+
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
+
+// +testify:mock
 
 // Service provides an interface to EKS clusters.
 type Service interface {
@@ -26,6 +30,9 @@ type Service interface {
 	//
 	// This method accepts a partial body representation.
 	UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
+
+	// ListNodePools lists node pools from a cluster.
+	ListNodePools(ctx context.Context, clusterID uint) ([]NodePool, error)
 }
 
 // NodePoolUpdate describes a node pool update request.
@@ -61,9 +68,27 @@ type NodePoolUpdateDrainOptions struct {
 	PodSelector string `mapstructure:"podSelector"`
 }
 
+// NodePool encapsulates information about a cluster node pool.
+type NodePool struct {
+	Name         string            `mapstructure:"name"`
+	Labels       map[string]string `mapstructure:"labels"`
+	Size         int               `mapstructure:"size"`
+	Autoscaling  Autoscaling       `mapstructure:"autoscaling"`
+	InstanceType string            `mapstructure:"instanceType"`
+	Image        string            `mapstructure:"image"`
+	SpotPrice    string            `mapstructure:"spotPrice"`
+}
+
+// Autoscaling describes the EKS node pool's autoscaling settings.
+type Autoscaling struct {
+	Enabled bool `mapstructure:"enabled"`
+	MinSize int  `mapstructure:"minSize"`
+	MaxSize int  `mapstructure:"maxSize"`
+}
+
 // NewService returns a new Service instance.
 func NewService(
-	genericClusters cluster.Store,
+	genericClusters Store,
 	nodePools NodePoolStore,
 	nodePoolManager NodePoolManager,
 ) Service {
@@ -75,15 +100,20 @@ func NewService(
 }
 
 type service struct {
-	genericClusters cluster.Store
+	genericClusters Store
 	nodePools       NodePoolStore
 	nodePoolManager NodePoolManager
 }
+
+// +testify:mock:testOnly=true
 
 // NodePoolManager is responsible for managing node pools.
 type NodePoolManager interface {
 	// UpdateNodePool updates an existing node pool in a cluster.
 	UpdateNodePool(ctx context.Context, c cluster.Cluster, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
+
+	// ListNodePools lists node pools from a cluster.
+	ListNodePools(ctx context.Context, c cluster.Cluster, nodePoolNames []string) ([]NodePool, error)
 }
 
 func (s service) UpdateNodePool(
@@ -105,4 +135,36 @@ func (s service) UpdateNodePool(
 	}
 
 	return s.nodePoolManager.UpdateNodePool(ctx, c, nodePoolName, nodePoolUpdate)
+}
+
+// ListNodePools lists node pools from a cluster.
+func (s service) ListNodePools(ctx context.Context, clusterID uint) ([]NodePool, error) {
+	c, err := s.genericClusters.GetCluster(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "retrieving cluster failed", "clusterID", clusterID)
+	}
+
+	nodePoolNames, err := s.nodePools.ListNodePoolNames(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "listing node pool names failed", "clusterID", clusterID)
+	}
+
+	nodePools, err := s.nodePoolManager.ListNodePools(ctx, c, nodePoolNames)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "listing node pools failed", "cluster", c, "nodePoolNames", nodePoolNames)
+	}
+
+	return nodePools, nil
+}
+
+// +testify:mock:testOnly=true
+
+// Store provides an interface to the generic Cluster model persistence.
+type Store interface {
+	// GetCluster returns a generic Cluster.
+	// Returns an error with the NotFound behavior when the cluster cannot be found.
+	GetCluster(ctx context.Context, id uint) (cluster.Cluster, error)
+
+	// SetStatus sets the cluster status.
+	SetStatus(ctx context.Context, id uint, status string, statusMessage string) error
 }

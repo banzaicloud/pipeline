@@ -34,7 +34,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
-	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/values"
@@ -44,15 +43,7 @@ type Config struct {
 	// Cadence configuration
 	Cadence cadence.Config
 
-	Cloud struct {
-		Amazon struct {
-			DefaultRegion string
-		}
-
-		Alibaba struct {
-			DefaultRegion string
-		}
-	}
+	Cloud CloudConfig
 
 	Cloudinfo CloudinfoConfig
 
@@ -86,9 +77,6 @@ type Config struct {
 			}
 		}
 	}
-
-	// Error handling configuration
-	Errors errorhandler.Config
 
 	Helm helm.Config
 
@@ -127,8 +115,6 @@ func (c Config) Validate() error {
 
 	err = errors.Append(err, c.Database.Validate())
 
-	err = errors.Append(err, c.Errors.Validate())
-
 	err = errors.Append(err, c.Telemetry.Validate())
 
 	err = errors.Append(err, c.Helm.Validate())
@@ -142,6 +128,36 @@ func (c *Config) Process() error {
 	err = errors.Append(err, c.Cluster.Process())
 
 	return err
+}
+
+type CloudConfig struct {
+	Amazon AmazonCloudConfig
+
+	Alibaba struct {
+		DefaultRegion string
+	}
+}
+
+func (c CloudConfig) Validate() error {
+	var errs error
+
+	errs = errors.Append(errs, c.Amazon.Validate())
+
+	return errs
+}
+
+type AmazonCloudConfig struct {
+	DefaultRegion string
+}
+
+func (c AmazonCloudConfig) Validate() error {
+	var errs error
+
+	if c.DefaultRegion == "" {
+		errs = errors.Append(errs, errors.New("amazon default region is required"))
+	}
+
+	return errs
 }
 
 type CloudinfoConfig struct {
@@ -349,11 +365,6 @@ type ClusterIngressConfig struct {
 	Enabled bool
 
 	ingress.Config `mapstructure:",squash"`
-
-	Cert struct {
-		Source string
-		Path   string
-	}
 }
 
 func (c ClusterIngressConfig) Validate() error {
@@ -465,13 +476,9 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("auth::token::issuer", "")
 	v.SetDefault("auth::token::audience", "")
 
-	v.SetDefault("log::format", "logfmt")
+	v.SetDefault("log::format", "json")
 	v.SetDefault("log::level", "info")
 	v.RegisterAlias("log::noColor", "no_color")
-
-	// ErrorHandler configuration
-	v.SetDefault("errors::stackdriver::enabled", false)
-	v.SetDefault("errors::stackdriver::projectId", false)
 
 	// Dex configuration
 	v.SetDefault("dex::apiAddr", "")
@@ -623,9 +630,9 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 ssl:
   enabled: true
   generateTLS: true
+rbac:
+  enabled: true
 `)
-	v.SetDefault("cluster::ingress::cert::source", "file")
-	v.SetDefault("cluster::ingress::cert::path", "config/certs")
 
 	v.SetDefault("cluster::autoscale::namespace", "")
 	v.SetDefault("cluster::autoscale::hpa::prometheus::serviceName", "monitor-prometheus-operato-prometheus")

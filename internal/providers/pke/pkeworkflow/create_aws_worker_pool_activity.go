@@ -17,8 +17,8 @@ package pkeworkflow
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"strconv"
+	"strings"
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
@@ -26,11 +26,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
 const CreateWorkerPoolActivityName = "pke-create-aws-worker-pool-activity"
+
+const WorkerCloudFormationTemplate = "worker.cf.yaml"
 
 type CreateWorkerPoolActivity struct {
 	clusters           Clusters
@@ -51,7 +54,7 @@ type CreateWorkerPoolActivityInput struct {
 	Pool                      NodePool
 	VPCID                     string
 	VPCDefaultSecurityGroupID string
-	SubnetID                  string
+	SubnetIDs                 []string
 	WorkerInstanceProfile     string
 	ClusterSecurityGroup      string
 	ExternalBaseUrl           string
@@ -104,7 +107,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 
 	cfClient := cloudformation.New(client)
 
-	buf, err := ioutil.ReadFile("templates/pke/worker.cf.yaml")
+	template, err := distribution.GetCloudFormationTemplate(PKECloudFormationTemplateBasePath, WorkerCloudFormationTemplate)
 	if err != nil {
 		return "", errors.WrapIf(err, "loading CF template")
 	}
@@ -129,14 +132,9 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		desired = input.Pool.MaxCount
 	}
 
-	subnetID := input.SubnetID
-	if len(input.Pool.Subnets) > 0 {
-		subnetID = input.Pool.Subnets[0]
-	}
-
 	stackInput := &cloudformation.CreateStackInput{
 		StackName:    aws.String(stackName),
-		TemplateBody: aws.String(string(buf)),
+		TemplateBody: aws.String(template),
 		// ClientRequestToken: aws.String(string(activity.GetInfo(ctx).ActivityID)),
 		Parameters: []*cloudformation.Parameter{
 			{
@@ -165,7 +163,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 			},
 			{
 				ParameterKey:   aws.String("SubnetIds"),
-				ParameterValue: &subnetID,
+				ParameterValue: aws.String(strings.Join(input.SubnetIDs, ",")),
 			},
 			{
 				ParameterKey:   aws.String("IamInstanceProfile"),

@@ -35,7 +35,7 @@ func TestIntegratedServiceOperator_Name(t *testing.T) {
 	assert.Equal(t, "vault", op.Name())
 }
 
-func TestIntegratedServiceOperator_Apply(t *testing.T) {
+func testIntegratedServiceOperatorApply(t *testing.T) {
 	clusterID := uint(42)
 	orgID := uint(13)
 

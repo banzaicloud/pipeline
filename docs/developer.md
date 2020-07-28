@@ -45,10 +45,10 @@ $ make config/config.yaml etc/config/dex.yml
 ```
 
 **Note:** If you followed the quick start guide this file should already exist.
- 
+
 As of now the example config enables OAuth2 based authentication. It can be changed by modifying the example.
 
-OAuth2 based authentication requires a GitHub/Google OAuth2 application, this can be created by following this 
+OAuth2 based authentication requires a GitHub/Google OAuth2 application, this can be created by following this
 [GitHub](auth/github.md), [GitLab](auth/gitlab.md) or the [Google](auth/google.md) tutorial.
 Please set the `clientId` and the `clientSecret` in `dex.yml`'s `connectors:` section.
 
@@ -58,14 +58,13 @@ Please set the `clientId` and the `clientSecret` in `dex.yml`'s `connectors:` se
 
 The development environment uses Docker Compose to create an isolated area for Pipeline.
 
-You can easily start it by executing: 
+You can easily start it by executing:
 
 ```bash
 $ make start
-``` 
+```
 
-This will create a `mysql`, `adminer` and `vault` container:
- - Adminer MySQL GUI: <http://localhost:8080>, login to Server/Database `mysql`/`pipeline` with Username/Password `sparky`/`sparky123`
+This will create a `mysql` and `vault` container:
  - Vault GUI: http://localhost:8200 login with token found in `cat ~/.vault-token`
 
 **Note:** If you want to customize mount points and port mappings, create a `docker-compose.override.yml` file via
@@ -103,7 +102,7 @@ If you happen to get an error similar to this on the first run:
 Error 1146: Table 'pipeline.amazon_eks_profiles' doesn't exist
 ```
 
-You should set `autoMigrateEnabled = true` in the database section in the `config/config.yaml` file.
+You should set `autoMigrate = true` in the database section in the `config/config.yaml` file.
 
 You should now be able to log in on the Pipeline UI: http://localhost:4200/ui
 
@@ -117,12 +116,12 @@ Tokens can be generated only with a browser (for now), to do that please use the
 
 - For local usage:
     ```bash
-    http://localhost:9090/auth/dex/login
+    https://localhost:9090/auth/dex/login
     ```
 
 - For on-cloud usage:
     ```bash
-    http://{control_plane_public_ip}/auth/dex/login
+    https://{control_plane_public_ip}/auth/dex/login
     ```
 
 Please authenticate yourself with Dex. If everything is done correctly you will be redirected.
@@ -130,12 +129,12 @@ The browser session already contains the generated token in a cookie. An API tok
 
 - For local usage:
     ```bash
-    http://localhost:9090/pipeline/api/v1/token
+    https://localhost:9090/pipeline/api/v1/tokens
     ```
 
 - For on-cloud usage:
     ```bash
-    http://{control_plane_public_ip}/pipeline/api/v1/token
+    https://{control_plane_public_ip}/pipeline/api/v1/tokens
     ```
 
 
@@ -157,22 +156,22 @@ vault kv put secret/banzaicloud/aws \
 Creating and using EKS clusters requires to you to have the [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) installed on your machine:
 
 ```bash
-go get github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
+go get -u -v sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator
 ```
 
 #### EKS ami image query script
 
 ```
 K8S_VERSIONS=(
-  "1.11"
-  "1.12"
-  "1.13"
   "1.14"
+  "1.15"
+  "1.16"
+  "1.17"
 )
 
 for version in ${K8S_VERSIONS[@]}; do
 	echo "K8S Version:" $version
-	for region in `aws ec2 describe-regions --output text | cut -f3 | sort -V`; do
+	for region in `aws ec2 describe-regions --output text | cut -f4 | sort -V`; do
 	    aws ssm get-parameter --name /aws/service/eks/optimized-ami/${version}/amazon-linux-2/recommended/image_id --region ${region} --query Parameter.Value --output text | xargs -I "{}" echo \"$region\": \"{}\",
 	done
 done

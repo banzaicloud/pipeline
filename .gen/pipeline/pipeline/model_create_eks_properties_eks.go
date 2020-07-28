@@ -12,6 +12,8 @@ package pipeline
 
 type CreateEksPropertiesEks struct {
 
+	AuthConfigMap string `json:"authConfigMap,omitempty"`
+
 	Version string `json:"version,omitempty"`
 
 	LogTypes []string `json:"logTypes,omitempty"`
@@ -30,4 +32,7 @@ type CreateEksPropertiesEks struct {
 
 	// List of access point types for the API server; public and private are the only valid values
 	ApiServerAccessPoints []string `json:"apiServerAccessPoints,omitempty"`
+
+	// User definied tags to be added to created AWS resources. Empty keys and values are not permitted.
+	Tags map[string]string `json:"tags,omitempty"`
 }

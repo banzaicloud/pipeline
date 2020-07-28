@@ -16,15 +16,12 @@ package k8sutil
 
 import (
 	"fmt"
-	"time"
 
 	"emperror.dev/errors"
 	corev1 "k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-
-	"github.com/banzaicloud/pipeline/pkg/backoff"
 )
 
 // EnsureNamespace creates a namespace on a cluster if it does not exist.
@@ -62,22 +59,4 @@ func EnsureNamespaceWithLabel(client kubernetes.Interface, namespace string, lab
 	}
 
 	return nil
-}
-
-// EnsureNamespaceWithLabelWithRetry creates a namespace with optional labels and retries if fails because of etcd timeout
-func EnsureNamespaceWithLabelWithRetry(client kubernetes.Interface, namespace string, labels map[string]string) (err error) {
-	var backoffConfig = backoff.ConstantBackoffConfig{
-		Delay:      10 * time.Second,
-		MaxRetries: 5,
-	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
-	err = backoff.Retry(func() error {
-		if err := EnsureNamespaceWithLabel(client, namespace, labels); err != nil {
-			if IsK8sErrorPermanent(err) {
-				return backoff.MarkErrorPermanent(err)
-			}
-		}
-		return nil
-	}, backoffPolicy)
-	return
 }

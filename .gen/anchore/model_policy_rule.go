@@ -16,5 +16,5 @@ type PolicyRule struct {
 	Gate string `json:"gate"`
 	Trigger string `json:"trigger"`
 	Action string `json:"action"`
-	Params []PolicyRuleParams `json:"params,omitempty"`
+	Params []PolicyRuleParams `json:"params"`
 }

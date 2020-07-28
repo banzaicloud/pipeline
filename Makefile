@@ -33,11 +33,9 @@ ANCHORE_VERSION = 156836d
 GOLANGCI_VERSION = 1.25.0
 LICENSEI_VERSION = 0.2.0
 OPENAPI_GENERATOR_VERSION = v4.2.3
-PROTOC_VERSION = 3.11.4
-BUF_VERSION = 0.7.0
 MIGRATE_VERSION = 4.9.1
 GOTESTSUM_VERSION = 0.4.1
-MGA_VERSION = 0.2.0
+MGA_VERSION = 0.2.1
 
 GOLANG_VERSION = 1.14
 
@@ -283,46 +281,8 @@ apis/anchore/swagger.yaml:
 .PHONY: generate-anchore-client
 generate-anchore-client: apis/anchore/swagger.yaml ## Generate client from Anchore OpenAPI spec
 	$(call generate_openapi_client,apis/anchore/swagger.yaml,anchore,.gen/anchore)
-
-apis/dex/api.proto:
-	@mkdir -p apis/dex
-	curl https://raw.githubusercontent.com/dexidp/dex/v${DEX_VERSION}/api/api.proto > apis/dex/api.proto
-
-.PHONY: _download-protos
-_download-protos: apis/dex/api.proto
-
-bin/protoc: bin/protoc-${PROTOC_VERSION}
-	@ln -sf protoc-${PROTOC_VERSION}/bin/protoc bin/protoc
-bin/protoc-${PROTOC_VERSION}:
-	@mkdir -p bin/protoc-${PROTOC_VERSION}
-ifeq ($(OS), darwin)
-	curl -L https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-osx-x86_64.zip > bin/protoc.zip
-endif
-ifeq ($(OS), linux)
-	curl -L https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip > bin/protoc.zip
-endif
-	unzip bin/protoc.zip -d bin/protoc-${PROTOC_VERSION}
-	rm bin/protoc.zip
-
-bin/protoc-gen-go: go.mod
-	@mkdir -p bin
-	go build -o bin/protoc-gen-go github.com/golang/protobuf/protoc-gen-go
-
-bin/buf: bin/buf-${BUF_VERSION}
-	@ln -sf buf-${BUF_VERSION} bin/buf
-bin/buf-${BUF_VERSION}:
-	@mkdir -p bin
-	curl -L https://github.com/bufbuild/buf/releases/download/v${BUF_VERSION}/buf-${OS}-x86_64 -o ./bin/buf-${BUF_VERSION} && chmod +x ./bin/buf-${BUF_VERSION}
-
-.PHONY: buf
-buf: bin/buf _download-protos ## Generate client and server stubs from the protobuf definition
-	bin/buf image build -o /dev/null
-	bin/buf check lint
-
-.PHONY: proto
-# proto: buf
-proto: bin/protoc bin/protoc-gen-go ## Generate client and server stubs from the protobuf definition
-	bin/protoc -I bin/protoc-${PROTOC_VERSION} -I apis/dex --go_out=plugins=grpc,import_path=dex:.gen/dex $(shell find apis/dex -name '*.proto')
+	sed -i '' 's/whitelist_ids,omitempty/whitelist_ids/' .gen/anchore/model_mapping_rule.go
+	sed -i '' 's/params,omitempty/params/' .gen/anchore/model_policy_rule.go
 
 snapshot: SNAPSHOT_REF ?= $(shell git symbolic-ref -q --short HEAD || git rev-parse HEAD)
 snapshot:
