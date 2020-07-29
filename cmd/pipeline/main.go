@@ -835,7 +835,7 @@ func main() {
 					})
 
 					// Used by legacy cluster create and update code
-					globaleks.SetImageSelector(eks.DefaultImages())
+					globaleks.SetImageSelector(eks.NewDefaultImageSelector())
 
 					service := intCluster.NewService(
 						clusterStore,
@@ -865,7 +865,7 @@ func main() {
 						intCluster.NodePoolProcessors{
 							intCluster.NewCommonNodePoolProcessor(labelSource),
 							intCluster.NewDistributionNodePoolProcessor(map[string]intCluster.NodePoolProcessor{
-								"eks": eksadapter.NewNodePoolProcessor(db, eks.DefaultImages()),
+								"eks": eksadapter.NewNodePoolProcessor(db, eks.NewDefaultImageSelector()),
 							}),
 						},
 						clusteradapter.NewNodePoolManager(
