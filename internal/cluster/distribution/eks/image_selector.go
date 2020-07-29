@@ -100,6 +100,14 @@ type DefaultImageSelector struct {
 	DefaultAcceleratedImages ImageSelector
 }
 
+// NewDefaultImageSelector returns a new DefaultImageSelector.
+func NewDefaultImageSelector() DefaultImageSelector {
+	return DefaultImageSelector{
+		DefaultImages:            defaultImages,
+		DefaultAcceleratedImages: defaultAcceleratedImages,
+	}
+}
+
 func (s DefaultImageSelector) SelectImage(ctx context.Context, criteria ImageSelectionCriteria) (string, error) {
 	var image string
 
