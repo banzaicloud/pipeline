@@ -23,8 +23,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/gofrs/uuid"
+	"go.uber.org/cadence/activity"
 
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
@@ -60,12 +61,11 @@ func (a *DeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCActivity
 	}
 
 	cfClient := cloudformation.New(client)
-	clientRequestToken := uuid.Must(uuid.NewV4()).String()
 
 	clusterName := c.GetName()
 	stackName := "pke-vpc-" + clusterName
 	stackInput := &cloudformation.DeleteStackInput{
-		ClientRequestToken: aws.String(clientRequestToken),
+		ClientRequestToken: aws.String(pkgAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID)),
 		StackName:          &stackName,
 	}
 
@@ -110,7 +110,6 @@ func (a *WaitForDeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCA
 	}
 
 	cfClient := cloudformation.New(client)
-	clientRequestToken := uuid.Must(uuid.NewV4()).String()
 
 	clusterName := c.GetName()
 	stackName := "pke-vpc-" + clusterName
@@ -119,5 +118,5 @@ func (a *WaitForDeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCA
 		&cloudformation.DescribeStacksInput{StackName: &stackName},
 		request.WithWaiterRequestOptions(WithHeartBeatOption(ctx)))
 
-	return errors.WrapIf(pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cfClient), "failure while waiting for vpc stack deletion to complete")
+	return errors.WrapIf(pkgCloudformation.NewAwsStackFailure(err, stackName, "", cfClient), "failure while waiting for vpc stack deletion to complete")
 }

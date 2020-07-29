@@ -28,6 +28,7 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
@@ -204,7 +205,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 
 	// we don't reuse the creation time template, since it may have changed
 	updateStackInput := &cloudformation.UpdateStackInput{
-		ClientRequestToken: aws.String(activity.GetInfo(ctx).WorkflowExecution.ID),
+		ClientRequestToken: aws.String(pkgAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID)),
 		StackName:          aws.String(input.StackName),
 		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
 		Parameters:         stackParams,
@@ -221,7 +222,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		var awsErr awserr.Error
 		if errors.As(err, &awsErr) {
 			if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
-				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, activity.GetInfo(ctx).WorkflowExecution.ID, cloudformationClient)
+				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, aws.StringValue(updateStackInput.ClientRequestToken), cloudformationClient)
 				err = errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
 				if pkgCloudformation.IsErrorFinal(err) {
 					return UpdateNodeGroupActivityOutput{}, cadence.NewCustomError(ErrReasonStackFailed, err.Error())

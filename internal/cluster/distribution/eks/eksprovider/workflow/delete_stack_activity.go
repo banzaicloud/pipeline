@@ -25,6 +25,7 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
@@ -69,7 +70,7 @@ func (a *DeleteStackActivity) Execute(ctx context.Context, input DeleteStackActi
 
 	logger.Info("deleting stack")
 
-	clientRequestToken := generateRequestToken(input.AWSClientRequestTokenBase, DeleteStackActivityName)
+	clientRequestToken := pkgAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, DeleteStackActivityName)
 	deleteStackInput := &cloudformation.DeleteStackInput{
 		ClientRequestToken: aws.String(clientRequestToken),
 		StackName:          aws.String(input.StackName),

@@ -28,6 +28,7 @@ import (
 	"go.uber.org/cadence/activity"
 
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 )
 
 const CreateEksControlPlaneActivityName = "eks-create-control-plane"
@@ -148,7 +149,7 @@ func (a *CreateEksControlPlaneActivity) Execute(ctx context.Context, input Creat
 			tags[k] = aws.String(v)
 		}
 
-		requestToken := generateRequestToken(input.AWSClientRequestTokenBase, CreateEksControlPlaneActivityName)
+		requestToken := pkgAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateEksControlPlaneActivityName)
 
 		logger.Info("create EKS cluster")
 		logger.Debug("clientRequestToken: ", requestToken)

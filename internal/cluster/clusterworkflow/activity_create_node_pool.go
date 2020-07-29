@@ -20,6 +20,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
+	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
@@ -28,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/providers"
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/src/model"
 )
 
@@ -132,7 +134,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			SecretID:                  c.SecretID.ResourceID, // TODO: the underlying secret store is the legacy one
 			Region:                    c.Location,
 			ClusterName:               c.Name,
-			AWSClientRequestTokenBase: c.UID,
+			AWSClientRequestTokenBase: pkgAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID),
 		}
 
 		var vpcActivityOutput *eksworkflow.GetVpcConfigActivityOutput

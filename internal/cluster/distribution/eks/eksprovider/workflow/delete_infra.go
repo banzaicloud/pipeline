@@ -20,6 +20,8 @@ import (
 	"emperror.dev/errors"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
+
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 )
 
 const DeleteInfraWorkflowName = "eks-delete-infra"
@@ -78,7 +80,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 		SecretID:                  input.SecretID,
 		Region:                    input.Region,
 		ClusterName:               input.ClusterName,
-		AWSClientRequestTokenBase: input.ClusterUID,
+		AWSClientRequestTokenBase: pkgAmazon.NewNormalizedClientRequestToken(workflow.GetInfo(ctx).WorkflowExecution.ID),
 	}
 
 	// get VPC ID

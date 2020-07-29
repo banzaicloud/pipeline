@@ -145,7 +145,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 		SecretID:                  workflowInput.SecretID,
 		Region:                    workflowInput.Region,
 		ClusterName:               workflowInput.ClusterName,
-		AWSClientRequestTokenBase: workflowInput.ClusterUID,
+		AWSClientRequestTokenBase: "default-test-workflow-id",
 	}
 
 	s.env.OnActivity(CreateIamRolesActivityName, mock.Anything, CreateIamRolesActivityInput{
