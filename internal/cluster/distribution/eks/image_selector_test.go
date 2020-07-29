@@ -71,6 +71,7 @@ func TestKubernetesVersionImageSelector(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, "ami-xxxxxxxxxx", image)
+		delegatedImageSelector.AssertExpectations(t)
 	})
 
 	t.Run("ConstraintDoesNotMatch", func(t *testing.T) {
@@ -109,6 +110,7 @@ func TestImageSelectors(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, "ami-xxxxxxxxxx", image)
+		imageSelector1.AssertExpectations(t)
 	})
 
 	t.Run("Empty", func(t *testing.T) {
@@ -142,6 +144,8 @@ func TestImageSelectors(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, "ami-xxxxxxxxxx", image)
+		imageSelector1.AssertExpectations(t)
+		imageSelector2.AssertExpectations(t)
 	})
 
 	t.Run("FallbackIfError", func(t *testing.T) {
@@ -161,5 +165,7 @@ func TestImageSelectors(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, "ami-xxxxxxxxxx", image)
+		imageSelector1.AssertExpectations(t)
+		imageSelector2.AssertExpectations(t)
 	})
 }

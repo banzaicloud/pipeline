@@ -64,6 +64,7 @@ func TestImageSelectorChain(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, "ami-xxxxxxxxxx", image)
+		imageSelector1.AssertExpectations(t)
 	})
 
 	t.Run("Empty", func(t *testing.T) {
@@ -99,6 +100,8 @@ func TestImageSelectorChain(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, "ami-xxxxxxxxxx", image)
+		imageSelector1.AssertExpectations(t)
+		imageSelector2.AssertExpectations(t)
 	})
 
 	t.Run("FallbackIfError", func(t *testing.T) {
@@ -120,5 +123,7 @@ func TestImageSelectorChain(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, "ami-xxxxxxxxxx", image)
+		imageSelector1.AssertExpectations(t)
+		imageSelector2.AssertExpectations(t)
 	})
 }
