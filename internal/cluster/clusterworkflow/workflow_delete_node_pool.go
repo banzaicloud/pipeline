@@ -21,7 +21,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	_cadence "github.com/banzaicloud/pipeline/pkg/cadence"
+	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 )
 
 const DeleteNodePoolWorkflowName = "delete-node-pool"
@@ -40,7 +40,7 @@ func DeleteNodePoolWorkflow(ctx workflow.Context, input DeleteNodePoolWorkflowIn
 			InitialInterval:          15 * time.Second,
 			BackoffCoefficient:       1.0,
 			MaximumAttempts:          30,
-			NonRetriableErrorReasons: []string{_cadence.ClientErrorReason, "cadenceInternal:Panic"},
+			NonRetriableErrorReasons: []string{pkgCadence.ClientErrorReason, "cadenceInternal:Panic"},
 		},
 	}
 	_ctx := ctx
@@ -54,7 +54,7 @@ func DeleteNodePoolWorkflow(ctx workflow.Context, input DeleteNodePoolWorkflowIn
 
 		err := workflow.ExecuteActivity(ctx, DeleteNodePoolActivityName, input).Get(ctx, nil)
 		if err != nil {
-			_ = setClusterStatus(_ctx, input.ClusterID, cluster.Warning, err.Error())
+			_ = setClusterStatus(_ctx, input.ClusterID, cluster.Warning, pkgCadence.UnwrapError(err).Error())
 
 			return err
 		}
@@ -68,7 +68,7 @@ func DeleteNodePoolWorkflow(ctx workflow.Context, input DeleteNodePoolWorkflowIn
 
 		err := workflow.ExecuteActivity(ctx, DeleteNodePoolLabelSetActivityName, input).Get(ctx, nil)
 		if err != nil {
-			_ = setClusterStatus(_ctx, input.ClusterID, cluster.Warning, err.Error())
+			_ = setClusterStatus(_ctx, input.ClusterID, cluster.Warning, pkgCadence.UnwrapError(err).Error())
 
 			return err
 		}
@@ -83,7 +83,7 @@ func DeleteNodePoolWorkflow(ctx workflow.Context, input DeleteNodePoolWorkflowIn
 
 		err := workflow.ExecuteActivity(ctx, SetClusterStatusActivityName, input).Get(ctx, nil)
 		if err != nil {
-			_ = setClusterStatus(_ctx, input.ClusterID, cluster.Warning, err.Error())
+			_ = setClusterStatus(_ctx, input.ClusterID, cluster.Warning, pkgCadence.UnwrapError(err).Error())
 
 			return err
 		}
