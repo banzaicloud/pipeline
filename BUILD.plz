@@ -6,12 +6,13 @@ github_repo(
 
 genrule(
     name = "go.mod",
+    srcs = ["go.mod"],
     outs = ["go.mod"],
     cmd = [
-        """cat > $OUTS << EOF
+        """export GO=$(cat "$SRC" | grep '^go .*$') && cat > $OUT << EOF
 module plz-out
 
-go 1.14
+$GO
 EOF
       """
     ],
