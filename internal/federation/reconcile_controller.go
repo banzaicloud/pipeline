@@ -41,7 +41,7 @@ type OperatorImage struct {
 }
 
 const (
-	noOrgID = 0 //represents the platform org
+	noOrgID = 0 // represents the platform org
 )
 
 func (m *FederationReconciler) ReconcileController(desiredState DesiredState) error {
@@ -295,21 +295,25 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 		federatedIngress = "Disabled"
 	}
 
+	// TODO: refactor to use chart values
 	fedImageTag := m.Configuration.staticConfig.Charts.Kubefed.Values.ControllerManager.Tag
-	fedImageRepo := m.Configuration.staticConfig.Charts.Kubefed.Values.ControllerManager.Repository
 	values := map[string]interface{}{
 		"global": map[string]interface{}{
 			"scope": scope,
 		},
 		"controllermanager": map[string]interface{}{
-			"repository": fedImageRepo,
-			"tag":        fedImageTag,
+			"tag": fedImageTag,
 			"featureGates": map[string]interface{}{
 				"SchedulerPreferences":         schedulerPreferences,
 				"CrossClusterServiceDiscovery": crossClusterServiceDiscovery,
 				"FederatedIngress":             federatedIngress,
 			},
 		},
+	}
+
+	fedImageRepo := m.Configuration.staticConfig.Charts.Kubefed.Values.ControllerManager.Repository
+	if fedImageRepo != "" {
+		values["controllermanager"].(map[string]interface{})["repository"] = fedImageRepo
 	}
 
 	err := m.helmService.InstallOrUpgrade(

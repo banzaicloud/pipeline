@@ -367,8 +367,8 @@ dex:
 #    federation:
 #        charts:
 #            kubefed:
-#                chart: "kubefed-charts/kubefed"
-#                version: "0.1.0-rc5"
+#                chart: "banzaicloud-stable/kubefed"
+#                version: "0.3.1-banzai.1"
 #
 #                # See https://github.com/kubernetes-sigs/kubefed/tree/master/charts/kubefed for details
 #                values: {}
