@@ -304,7 +304,6 @@ func main() {
 		{
 			wf := clustersetup.Workflow{
 				InstallInitManifest: config.Cluster.Manifest != "",
-				HelmV3:              config.Helm.V3,
 			}
 			workflow.RegisterWithOptions(wf.Execute, workflow.RegisterOptions{Name: clustersetup.WorkflowName})
 
@@ -330,20 +329,6 @@ func main() {
 			)
 			activity.RegisterWithOptions(labelKubeSystemNamespaceActivity.Execute, activity.RegisterOptions{Name: clustersetup.LabelKubeSystemNamespaceActivityName})
 
-			installTillerActivity := clustersetup.NewInstallTillerActivity(
-				config.Helm.Tiller.Version,
-				kubernetes.NewClientFactory(configFactory),
-			)
-
-			if !config.Helm.V3 {
-				activity.RegisterWithOptions(installTillerActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerActivityName})
-
-				installTillerWaitActivity := clustersetup.NewInstallTillerWaitActivity(
-					config.Helm.Tiller.Version,
-					kubernetes.NewHelmClientFactory(configFactory, commonadapter.NewLogger(logger)),
-				)
-				activity.RegisterWithOptions(installTillerWaitActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallTillerWaitActivityName})
-			}
 			installNodePoolLabelSetOperatorActivity := clustersetup.NewInstallNodePoolLabelSetOperatorActivity(
 				config.Cluster.Labels,
 				unifiedHelmReleaser,

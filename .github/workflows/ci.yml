@@ -167,12 +167,6 @@ jobs:
           ./pleasew run ///pleasings2//tools/k8s:kind -- create cluster --kubeconfig $HOME/.kube/config
           echo "::set-env name=KUBECONFIG::$HOME/.kube/config"
 
-      - name: Setup Helm
-        run: |
-          ./pleasew run ///pleasings2//tools/k8s:kubectl -- create serviceaccount tiller --namespace kube-system
-          ./pleasew run ///pleasings2//tools/k8s:kubectl -- create clusterrolebinding --clusterrole cluster-admin --serviceaccount=kube-system:tiller tiller
-          ./pleasew run :helm2 -- init --service-account tiller
-
       - name: Test
         run: |
           ./pleasew build :kube-apiserver :etcd

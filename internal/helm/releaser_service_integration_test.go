@@ -81,7 +81,6 @@ func setUpHelmConfig(t *testing.T) helm.Config {
 	config := helm.Config{
 		Home:         home,
 		Repositories: map[string]string{"stable": "https://kubernetes-charts.storage.googleapis.com"},
-		V3:           true,
 	}
 	return config
 }

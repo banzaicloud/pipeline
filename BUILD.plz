@@ -5,6 +5,23 @@ github_repo(
 )
 
 genrule(
+    name = "go.mod",
+    srcs = ["go.mod"],
+    outs = ["go.mod"],
+    cmd = [
+        """export GO=$(cat "$SRC" | grep '^go .*$') && cat > $OUT << EOF
+module plz-out
+
+$GO
+EOF
+      """
+    ],
+    labels = [
+        "link:plz-out/"
+    ]
+)
+
+genrule(
     name = "docker-compose.override.yml",
     srcs = ["docker-compose.override.yml.dist"],
     outs = ["docker-compose.override.yml"],
@@ -42,15 +59,6 @@ sh_cmd(
 sh_cmd(
     name = "stop",
     cmd = "docker-compose stop",
-)
-
-subinclude("///pleasings2//k8s:tools")
-
-helm_binary(
-    name = "helm2",
-    version = "2.16.3",
-    out = "helm2",
-    visibility = ["PUBLIC"],
 )
 
 _os = {

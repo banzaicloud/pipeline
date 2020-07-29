@@ -56,16 +56,10 @@ func (h helm3UnifiedReleaser) ApplyDeployment(
 		return errors.WrapIf(err, "failed to unmarshal values")
 	}
 
-	wait := false
-	if value := ctx.Value("helmWait"); value != nil {
-		wait = value.(bool)
-	}
-
 	options := helm.Options{
 		Namespace:    namespace,
 		DryRun:       false,
 		GenerateName: false,
-		Wait:         wait,
 		ReuseValues:  false,
 		Install:      true,
 	}
