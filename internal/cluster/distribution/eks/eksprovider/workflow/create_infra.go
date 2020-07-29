@@ -20,6 +20,8 @@ import (
 	"emperror.dev/errors"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
+
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 )
 
 const CreateInfraWorkflowName = "eks-create-infra"
@@ -101,7 +103,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 		SecretID:                  input.SecretID,
 		Region:                    input.Region,
 		ClusterName:               input.ClusterName,
-		AWSClientRequestTokenBase: input.ClusterUID,
+		AWSClientRequestTokenBase: pkgAmazon.NewNormalizedClientRequestToken(workflow.GetInfo(ctx).WorkflowExecution.ID),
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)

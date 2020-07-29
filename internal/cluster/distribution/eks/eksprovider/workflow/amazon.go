@@ -141,14 +141,6 @@ func generateK8sConfig(clusterName string, apiEndpoint string, certificateAuthor
 	}
 }
 
-func generateRequestToken(uuid string, activityName string) string {
-	token := uuid + "-" + activityName
-	if len(token) > 64 {
-		token = token[0:63]
-	}
-	return token
-}
-
 func packageCFError(err error, stackName string, clientRequestToken string, cloudformationClient *cloudformation.CloudFormation, errMessage string) error {
 	var awsErr awserr.Error
 	if errors.As(err, &awsErr) {

@@ -21,6 +21,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
+
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 )
 
 const CreateSubnetActivityName = "eks-create-subnet"
@@ -114,7 +116,7 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 			},
 		}
 
-		clientRequestToken := generateRequestToken(input.AWSClientRequestTokenBase, CreateSubnetActivityName)
+		clientRequestToken := pkgAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateSubnetActivityName)
 		createStackInput := &cloudformation.CreateStackInput{
 			ClientRequestToken: aws.String(input.AWSClientRequestTokenBase),
 			DisableRollback:    aws.Bool(true),

@@ -23,7 +23,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"go.uber.org/cadence/activity"
 
+	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
@@ -71,8 +73,8 @@ func (a *DeletePoolActivity) Execute(ctx context.Context, input DeletePoolActivi
 	}
 
 	stackInput := &cloudformation.DeleteStackInput{
-		StackName: aws.String(stackName),
-		// ClientRequestToken: aws.String(string(activity.GetInfo(ctx).ActivityID)),
+		StackName:          aws.String(stackName),
+		ClientRequestToken: aws.String(pkgAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID)),
 	}
 
 	_, err = cfClient.DeleteStack(stackInput)
