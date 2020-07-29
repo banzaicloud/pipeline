@@ -169,3 +169,72 @@ func TestImageSelectors(t *testing.T) {
 		imageSelector2.AssertExpectations(t)
 	})
 }
+
+func TestDefaultImageSelector(t *testing.T) {
+	t.Run("GPU", func(t *testing.T) {
+		criteria := ImageSelectionCriteria{
+			Region:       "us-east-1",
+			InstanceType: "p2.xlarge",
+		}
+
+		defaultAcceleratedImageSelector := new(MockImageSelector)
+		defaultAcceleratedImageSelector.On("SelectImage", mock.Anything, criteria).Return("ami-xxxxxxxxxx", nil)
+
+		imageSelector := DefaultImageSelector{
+			DefaultImages:            nil,
+			DefaultAcceleratedImages: defaultAcceleratedImageSelector,
+		}
+
+		image, err := imageSelector.SelectImage(context.Background(), criteria)
+		require.NoError(t, err)
+
+		assert.Equal(t, "ami-xxxxxxxxxx", image)
+		defaultAcceleratedImageSelector.AssertExpectations(t)
+	})
+
+	t.Run("GPUNotFound", func(t *testing.T) {
+		criteria := ImageSelectionCriteria{
+			Region:       "us-east-1",
+			InstanceType: "p2.xlarge",
+		}
+
+		defaultAcceleratedImageSelector := new(MockImageSelector)
+		defaultAcceleratedImageSelector.On("SelectImage", mock.Anything, criteria).Return("", ImageNotFoundError)
+
+		defaultImageSelector := new(MockImageSelector)
+		defaultImageSelector.On("SelectImage", mock.Anything, criteria).Return("ami-xxxxxxxxxx", nil)
+
+		imageSelector := DefaultImageSelector{
+			DefaultImages:            defaultImageSelector,
+			DefaultAcceleratedImages: defaultAcceleratedImageSelector,
+		}
+
+		image, err := imageSelector.SelectImage(context.Background(), criteria)
+		require.NoError(t, err)
+
+		assert.Equal(t, "ami-xxxxxxxxxx", image)
+		defaultAcceleratedImageSelector.AssertExpectations(t)
+		defaultImageSelector.AssertExpectations(t)
+	})
+
+	t.Run("NonGPU", func(t *testing.T) {
+		criteria := ImageSelectionCriteria{
+			Region:       "us-east-1",
+			InstanceType: "t2.medium",
+		}
+
+		defaultImageSelector := new(MockImageSelector)
+		defaultImageSelector.On("SelectImage", mock.Anything, criteria).Return("ami-xxxxxxxxxx", nil)
+
+		imageSelector := DefaultImageSelector{
+			DefaultImages:            defaultImageSelector,
+			DefaultAcceleratedImages: nil,
+		}
+
+		image, err := imageSelector.SelectImage(context.Background(), criteria)
+		require.NoError(t, err)
+
+		assert.Equal(t, "ami-xxxxxxxxxx", image)
+		defaultImageSelector.AssertExpectations(t)
+	})
+}
