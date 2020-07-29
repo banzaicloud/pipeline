@@ -67,6 +67,8 @@ type CreateNodePoolActivityInput struct {
 }
 
 func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoolActivityInput) error {
+	activityInformation := activity.GetInfo(ctx)
+
 	c, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
 		return cadence.WrapClientError(err)
@@ -137,6 +139,13 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			AWSClientRequestTokenBase: pkgAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID),
 		}
 
+		if activityInformation.Attempt == 0 {
+			err = a.eksNodePools.CreateNodePool(ctx, eksCluster.ID, input.UserID, nodePool)
+			if err != nil {
+				return err
+			}
+		}
+
 		var vpcActivityOutput *eksworkflow.GetVpcConfigActivityOutput
 		{
 			input := eksworkflow.GetVpcConfigActivityInput{
@@ -195,12 +204,6 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 		if err != nil {
 			return cadence.WrapClientError(err)
 		}
-
-		err = a.eksNodePools.CreateNodePool(ctx, eksCluster.ID, input.UserID, nodePool)
-		if err != nil {
-			return err
-		}
-
 	default:
 		return cadence.WrapClientError(errors.WithStack(cluster.NotSupportedDistributionError{
 			ID:           c.ID,
