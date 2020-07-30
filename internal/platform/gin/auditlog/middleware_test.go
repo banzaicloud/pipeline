@@ -65,7 +65,7 @@ func TestMiddleware(t *testing.T) {
 				UserAgent:    "go-test",
 				Method:       http.MethodPost,
 				Path:         "/?a=b",
-				RequestBody:  &body,
+				RequestBody:  body,
 				StatusCode:   http.StatusOK,
 				ResponseTime: 1000,
 				ResponseSize: 18,
@@ -123,8 +123,8 @@ func TestMiddleware(t *testing.T) {
 			engine.ServeHTTP(w, req)
 		}
 
-		assert.Equal(t, "Hello, World!", *driver.entries[0].HTTP.RequestBody)
-		assert.Nil(t, driver.entries[1].HTTP.RequestBody)
+		assert.Equal(t, "Hello, World!", driver.entries[0].HTTP.RequestBody)
+		assert.Empty(t, driver.entries[1].HTTP.RequestBody)
 	})
 
 	t.Run("SkipsUnauthorizedRequests", func(t *testing.T) {
@@ -160,7 +160,7 @@ func TestMiddleware(t *testing.T) {
 
 		engine.ServeHTTP(w, req)
 
-		assert.Nil(t, driver.entries[0].HTTP.RequestBody)
+		assert.Empty(t, driver.entries[0].HTTP.RequestBody)
 	})
 
 	t.Run("LogsAbortedRequests", func(t *testing.T) {
