@@ -56,6 +56,13 @@ Parameters:
     Type: Number
     Default: 3
     Description: Initial count of nodes in the pool
+  VolumeSize:
+    Type: Number
+    Description: Size of EBS volume to create in GB. Zero means to use the the AMI snapshot size.
+    Default: 0
+
+Conditions:
+  VolumeSizeAuto: !Equals [ !Ref VolumeSize, 0 ]
 
 #NodeSpotPrice:
 #Type: String
@@ -103,7 +110,7 @@ Resources:
       BlockDeviceMappings:
       - DeviceName: /dev/sda1
         Ebs:
-          VolumeSize: '50' # TODO make it configurable or fine tune
+          VolumeSize: !If [ VolumeSizeAuto, !Ref 'AWS::NoValue', !Ref VolumeSize ]
       UserData:
         Fn::Base64:
           Fn::Sub:

@@ -59,10 +59,15 @@ Parameters:
     Description: Enable Cluster Autoscaler (true/false)
     Default: "false"
     Type: String
+  VolumeSize:
+    Type: Number
+    Description: Size of EBS volume to create in GB. Zero means to use the the AMI snapshot size.
+    Default: 0
 
 Conditions:
   IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
   AutoscalerEnabled:  !Equals [ !Ref ClusterAutoscalerEnabled, "true" ]
+  VolumeSizeAuto: !Equals [ !Ref VolumeSize, 0 ]
 
 Resources:
   LaunchConfiguration:
@@ -80,7 +85,7 @@ Resources:
       BlockDeviceMappings:
       - DeviceName: /dev/sda1
         Ebs:
-          VolumeSize: '50'
+          VolumeSize: !If [ VolumeSizeAuto, !Ref 'AWS::NoValue', !Ref VolumeSize ]
       UserData:
         Fn::Base64:
           Fn::Sub:
