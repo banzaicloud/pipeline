@@ -18840,6 +18840,33 @@ components:
       - maxSize
       - minSize
       type: object
+    AWSAuthConfigMap:
+      properties:
+        data:
+          $ref: '#/components/schemas/AWSAuthConfigMap_data'
+      type: object
+    AWSAuthConfigMapUsers:
+      properties:
+        group:
+          items:
+            type: string
+          type: array
+        username:
+          type: string
+        userarn:
+          type: string
+      type: object
+    AWSAuthConfigMapRoles:
+      properties:
+        group:
+          items:
+            type: string
+          type: array
+        username:
+          type: string
+        rolearn:
+          type: string
+      type: object
     EksNodePool:
       allOf:
       - $ref: '#/components/schemas/GenericNodePool'
@@ -23102,6 +23129,16 @@ components:
           type: string
       required:
       - resourceGroup
+    AWSAuthConfigMap_data:
+      properties:
+        mapRoles:
+          items:
+            $ref: '#/components/schemas/AWSAuthConfigMapRoles'
+          type: array
+        mapUsers:
+          items:
+            $ref: '#/components/schemas/AWSAuthConfigMapUsers'
+          type: array
     EksNodePool_allOf:
       properties:
         autoscaling:
@@ -23147,7 +23184,7 @@ components:
     CreateEKSProperties_eks:
       properties:
         authConfigMap:
-          type: string
+          $ref: '#/components/schemas/AWSAuthConfigMap'
         version:
           example: "1.10"
           type: string

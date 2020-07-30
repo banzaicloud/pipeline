@@ -4494,6 +4494,45 @@ components:
                     type: integer
                     example: 5
 
+        AWSAuthConfigMap:
+            type: object
+            properties:
+                data:
+                    type: object
+                    properties:
+                        mapRoles:
+                            type: array
+                            items:
+                                $ref: '#/components/schemas/AWSAuthConfigMapRoles'
+                        mapUsers:
+                            type: array
+                            items:
+                                $ref: '#/components/schemas/AWSAuthConfigMapUsers'
+
+        AWSAuthConfigMapUsers:
+            type: object
+            properties:
+                group:
+                    type: array
+                    items:
+                        type: string
+                username:
+                    type: string
+                userarn:
+                    type: string
+
+        AWSAuthConfigMapRoles:
+            type: object
+            properties:
+                group:
+                    type: array
+                    items:
+                        type: string
+                username:
+                    type: string
+                rolearn:
+                    type: string
+
         EksNodePool:
             description: Node pool object for an EKS cluster.
             type: object
@@ -4665,7 +4704,7 @@ components:
                         - nodePools
                     properties:
                         authConfigMap:
-                            type: string
+                            $ref: '#/components/schemas/AWSAuthConfigMap'
                         version:
                             type: string
                             example: "1.10"
