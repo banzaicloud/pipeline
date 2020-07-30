@@ -38,6 +38,13 @@ Parameters:
     Type: 'AWS::EC2::KeyPair::KeyName'
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
     Default: ""
+  VolumeSize:
+    Type: Number
+    Description: Size of EBS volume to create in GB. Zero means to use the the AMI snapshot size.
+    Default: 0
+
+Conditions:
+  VolumeSizeAuto: !Equals [ !Ref VolumeSize, 0 ]
 
 Resources:
   Ec2Instance:
@@ -54,7 +61,7 @@ Resources:
       BlockDeviceMappings:
       - DeviceName: /dev/sda1
         Ebs:
-          VolumeSize: '50'
+          VolumeSize: !If [ VolumeSizeAuto, !Ref 'AWS::NoValue', !Ref VolumeSize ]
       UserData:
         Fn::Base64:
           Fn::Sub:
