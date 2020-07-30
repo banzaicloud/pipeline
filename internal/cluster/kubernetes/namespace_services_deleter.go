@@ -15,6 +15,8 @@
 package kubernetes
 
 import (
+	"context"
+
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,14 +34,14 @@ func MakeNamespaceServicesDeleter(logger logrus.FieldLogger) NamespaceServicesDe
 	}
 }
 
-func (d NamespaceServicesDeleter) Delete(organizationID uint, clusterName string, k8sConfig []byte, namespace string) error {
+func (d NamespaceServicesDeleter) Delete(ctx context.Context, organizationID uint, clusterName string, k8sConfig []byte, namespace string) error {
 	logger := d.logger.WithField("organizationID", organizationID).WithField("clusterName", clusterName).WithField("namespace", namespace)
 
 	client, err := k8sclient.NewClientFromKubeConfig(k8sConfig)
 	if err != nil {
 		return err
 	}
-	services, err := client.CoreV1().Services(namespace).List(metav1.ListOptions{})
+	services, err := client.CoreV1().Services(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return errors.WrapIf(err, "could not list services to delete")
 	}
@@ -51,7 +53,7 @@ func (d NamespaceServicesDeleter) Delete(organizationID uint, clusterName string
 		}
 		err := retry(func() error {
 			logger.Infof("deleting kubernetes service %q", service.Name)
-			err := client.CoreV1().Services(namespace).Delete(service.Name, &metav1.DeleteOptions{})
+			err := client.CoreV1().Services(namespace).Delete(ctx, service.Name, metav1.DeleteOptions{})
 			if err != nil {
 				return errors.WrapIff(err, "failed to delete %q service", service.Name)
 			}
@@ -62,7 +64,7 @@ func (d NamespaceServicesDeleter) Delete(organizationID uint, clusterName string
 		}
 	}
 	err = retry(func() error {
-		services, err := client.CoreV1().Services(namespace).List(metav1.ListOptions{})
+		services, err := client.CoreV1().Services(namespace).List(ctx, metav1.ListOptions{})
 		if err != nil {
 			return errors.WrapIf(err, "could not list remaining services")
 		}

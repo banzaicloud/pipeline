@@ -285,7 +285,7 @@ func (a SetupPrivilegesActivity) Execute(ctx context.Context, input SetupPrivile
 
 	log.Info("creating cluster role")
 
-	_, err = client.RbacV1().ClusterRoleBindings().Create(&rbacv1.ClusterRoleBinding{
+	_, err = client.RbacV1().ClusterRoleBindings().Create(ctx, &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},
@@ -299,7 +299,7 @@ func (a SetupPrivilegesActivity) Execute(ctx context.Context, input SetupPrivile
 			Kind: "ClusterRole",
 			Name: "cluster-admin",
 		},
-	})
+	}, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}
@@ -371,7 +371,7 @@ func (a LabelNodesWithNodepoolNameActivity) Execute(ctx context.Context, input L
 			labelString := "{" + strings.Join(tokens, ",") + "}"
 			patch := fmt.Sprintf(`{"metadata":{"labels":%v}}`, labelString)
 
-			_, err = client.CoreV1().Nodes().Patch(nodeName, types.MergePatchType, []byte(patch))
+			_, err = client.CoreV1().Nodes().Patch(ctx, nodeName, types.MergePatchType, []byte(patch), metav1.PatchOptions{})
 
 			if err != nil {
 				logger.Warnf("error during adding label to node: %s", err.Error())

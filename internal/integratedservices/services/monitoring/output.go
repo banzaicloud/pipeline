@@ -95,9 +95,9 @@ func writeURL(m outputManager, endpoints []*pkgHelm.EndpointItem, releaseName st
 	}
 }
 
-func writeServiceURL(m outputManager, service endpoints.EndpointService, pipelineSystemNamespace string, output map[string]interface{}) error {
+func writeServiceURL(ctx context.Context, m outputManager, service endpoints.EndpointService, pipelineSystemNamespace string, output map[string]interface{}) error {
 	if m.isEnabled() {
-		url, err := service.GetServiceURL(m.getK8SConfig(), m.getServiceName(), pipelineSystemNamespace)
+		url, err := service.GetServiceURL(ctx, m.getK8SConfig(), m.getServiceName(), pipelineSystemNamespace)
 		if err != nil {
 			return errors.WrapIf(err, "failed to get service")
 		}

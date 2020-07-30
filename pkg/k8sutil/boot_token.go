@@ -15,6 +15,7 @@
 package k8sutil
 
 import (
+	"context"
 	"time"
 
 	"emperror.dev/errors"
@@ -31,12 +32,12 @@ const TokenSecretTypeFieldSelector = "type=bootstrap.kubernetes.io/token"
 // GetOrCreateBootstrapToken
 // This function will ensure to have at least 1 token that expire at least 1 hour from now
 // GetOrCreateBootstrapToken returns a token for joining the cluster, creating a new one if there isn't any with enough time until expiration
-func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interface) (string, error) {
+func GetOrCreateBootstrapToken(ctx context.Context, log logrus.FieldLogger, client kubernetes.Interface) (string, error) {
 	namespace := KubeSystemNamespace
 	options := metav1.ListOptions{
 		FieldSelector: TokenSecretTypeFieldSelector,
 	}
-	secrets, err := client.CoreV1().Secrets(namespace).List(options)
+	secrets, err := client.CoreV1().Secrets(namespace).List(ctx, options)
 	if err != nil {
 		return "", errors.WrapIfWithDetails(err, "namespace", namespace)
 	}
@@ -68,7 +69,7 @@ func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interfa
 		Usages:      []string{"authentication", "signing"},
 		Groups:      []string{"system:bootstrappers:kubeadm:default-node-token"},
 	}
-	_, err = client.CoreV1().Secrets(namespace).Create(token.ToSecret())
+	_, err = client.CoreV1().Secrets(namespace).Create(ctx, token.ToSecret(), metav1.CreateOptions{})
 	if err != nil {
 		return "", errors.WrapIf(err, "unable to create token")
 	}

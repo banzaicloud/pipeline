@@ -49,7 +49,7 @@ func (a LabelKubeSystemNamespaceActivity) Execute(ctx context.Context, input Lab
 		return err
 	}
 
-	namespace, err := client.CoreV1().Namespaces().Get("kube-system", metav1.GetOptions{})
+	namespace, err := client.CoreV1().Namespaces().Get(ctx, "kube-system", metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to get namespace")
 	}
@@ -64,7 +64,7 @@ func (a LabelKubeSystemNamespaceActivity) Execute(ctx context.Context, input Lab
 		namespace.Labels[k] = v
 	}
 
-	_, err = client.CoreV1().Namespaces().Update(namespace)
+	_, err = client.CoreV1().Namespaces().Update(ctx, namespace, metav1.UpdateOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to update namespace")
 	}

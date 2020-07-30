@@ -15,6 +15,8 @@
 package npls
 
 import (
+	"context"
+
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -47,10 +49,10 @@ func NewManager(client dynamic.Interface, namespace string) Manager {
 	}
 }
 
-func (m Manager) GetAll() (map[string]map[string]string, error) {
+func (m Manager) GetAll(ctx context.Context) (map[string]map[string]string, error) {
 	client := m.client.Resource(labelsetGVR).Namespace(m.namespace)
 
-	list, err := client.List(metav1.ListOptions{})
+	list, err := client.List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -75,14 +77,14 @@ func (m Manager) GetAll() (map[string]map[string]string, error) {
 	return labelSets, nil
 }
 
-func (m Manager) Sync(labels map[string]map[string]string) error {
+func (m Manager) Sync(ctx context.Context, labels map[string]map[string]string) error {
 	client := m.client.Resource(labelsetGVR).Namespace(m.namespace)
 
 	errs := make([]error, 0, len(labels))
 
 	for poolName, labelSet := range labels {
 		if len(labelSet) == 0 {
-			err := client.Delete(poolName, nil)
+			err := client.Delete(ctx, poolName, metav1.DeleteOptions{})
 			if k8serrors.IsNotFound(err) {
 				continue
 			}
@@ -92,7 +94,7 @@ func (m Manager) Sync(labels map[string]map[string]string) error {
 			continue
 		}
 
-		currentLabelSetObj, err := client.Get(poolName, metav1.GetOptions{})
+		currentLabelSetObj, err := client.Get(ctx, poolName, metav1.GetOptions{})
 		if err != nil && k8serrors.IsNotFound(errors.Cause(err)) {
 			labelSetObj := unstructured.Unstructured{
 				Object: map[string]interface{}{
@@ -107,7 +109,7 @@ func (m Manager) Sync(labels map[string]map[string]string) error {
 				},
 			}
 
-			_, err := client.Create(&labelSetObj, metav1.CreateOptions{})
+			_, err := client.Create(ctx, &labelSetObj, metav1.CreateOptions{})
 			if err != nil {
 				errs = append(errs, err)
 			}
@@ -133,7 +135,7 @@ func (m Manager) Sync(labels map[string]map[string]string) error {
 			},
 		}
 
-		_, err = client.Update(&labelSetObj, metav1.UpdateOptions{})
+		_, err = client.Update(ctx, &labelSetObj, metav1.UpdateOptions{})
 		if err != nil {
 			errs = append(errs, err)
 		}
@@ -142,10 +144,10 @@ func (m Manager) Sync(labels map[string]map[string]string) error {
 	return errors.Combine(errs...)
 }
 
-func (m Manager) SyncOne(poolName string, labels map[string]string) error {
+func (m Manager) SyncOne(ctx context.Context, poolName string, labels map[string]string) error {
 	client := m.client.Resource(labelsetGVR).Namespace(m.namespace)
 
-	currentLabelSetObj, err := client.Get(poolName, metav1.GetOptions{})
+	currentLabelSetObj, err := client.Get(ctx, poolName, metav1.GetOptions{})
 	if err != nil && k8serrors.IsNotFound(errors.Cause(err)) {
 		labelSetObj := unstructured.Unstructured{
 			Object: map[string]interface{}{
@@ -160,7 +162,7 @@ func (m Manager) SyncOne(poolName string, labels map[string]string) error {
 			},
 		}
 
-		_, err := client.Create(&labelSetObj, metav1.CreateOptions{})
+		_, err := client.Create(ctx, &labelSetObj, metav1.CreateOptions{})
 		if err != nil {
 			return err
 		}
@@ -184,7 +186,7 @@ func (m Manager) SyncOne(poolName string, labels map[string]string) error {
 		},
 	}
 
-	_, err = client.Update(&labelSetObj, metav1.UpdateOptions{})
+	_, err = client.Update(ctx, &labelSetObj, metav1.UpdateOptions{})
 	if err != nil {
 		return err
 	}
@@ -192,10 +194,10 @@ func (m Manager) SyncOne(poolName string, labels map[string]string) error {
 	return nil
 }
 
-func (m Manager) Delete(poolName string) error {
+func (m Manager) Delete(ctx context.Context, poolName string) error {
 	client := m.client.Resource(labelsetGVR).Namespace(m.namespace)
 
-	err := client.Delete(poolName, nil)
+	err := client.Delete(ctx, poolName, metav1.DeleteOptions{})
 	if k8serrors.IsNotFound(err) {
 		return nil
 	}

@@ -61,7 +61,7 @@ func (a *SetMasterTaintActivity) Execute(ctx context.Context, input SetMasterTai
 		return err
 	}
 
-	nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{LabelSelector: pke.TaintKeyMaster})
+	nodes, err := client.CoreV1().Nodes().List(ctx, metav1.ListOptions{LabelSelector: pke.TaintKeyMaster})
 	if err != nil {
 		return errors.WrapIf(err, "failed to list master nodes")
 	}
@@ -86,7 +86,7 @@ func (a *SetMasterTaintActivity) Execute(ctx context.Context, input SetMasterTai
 		delete(node.ObjectMeta.Labels, pke.TaintKeyMaster)
 		node.ObjectMeta.Labels[pke.NodeLabelKeyMasterWorker] = ""
 
-		_, err = client.CoreV1().Nodes().Update(&node)
+		_, err = client.CoreV1().Nodes().Update(ctx, &node, metav1.UpdateOptions{})
 		if err != nil {
 			return errors.WrapIff(err, "failed to update node %q", node.ObjectMeta.Name)
 		}

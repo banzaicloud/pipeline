@@ -179,7 +179,7 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 		}
 	}
 
-	err = setDeploymentAutoscalingInfo(client, *scalingRequest)
+	err = setDeploymentAutoscalingInfo(c.Request.Context(), client, *scalingRequest)
 	if err != nil {
 		httpStatusCode := http.StatusBadRequest
 		if _, ok := err.(*scaleTargetNotFoundError); ok {
@@ -289,7 +289,7 @@ func (a HPAAPI) DeleteHpaResource(c *gin.Context) {
 		return
 	}
 
-	err = deleteDeploymentAutoscalingInfo(client, scaleTarget)
+	err = deleteDeploymentAutoscalingInfo(c.Request.Context(), client, scaleTarget)
 	if err != nil {
 		httpStatusCode := http.StatusInternalServerError
 		if _, ok := err.(*scaleTargetNotFoundError); ok {
@@ -335,7 +335,7 @@ func (a HPAAPI) GetHpaResource(c *gin.Context) {
 		return
 	}
 
-	deploymentResponse, err := getHpaResources(scaleTarget, client)
+	deploymentResponse, err := getHpaResources(c.Request.Context(), scaleTarget, client)
 	if err != nil {
 		httpStatusCode := http.StatusInternalServerError
 		if _, ok := err.(*scaleTargetNotFoundError); ok {
@@ -355,14 +355,14 @@ func (a HPAAPI) GetHpaResource(c *gin.Context) {
 	c.JSON(http.StatusOK, deploymentResponse)
 }
 
-func getHpaResources(scaleTargetRef string, client kubernetes.Interface) (*hpa.DeploymentScalingInfo, error) {
+func getHpaResources(ctx context.Context, scaleTargetRef string, client kubernetes.Interface) (*hpa.DeploymentScalingInfo, error) {
 	listOption := metav1.ListOptions{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "HorizontalPodAutoscaler",
 			APIVersion: "autoscaling/v1",
 		},
 	}
-	hpaList, err := client.AutoscalingV2beta1().HorizontalPodAutoscalers(metav1.NamespaceAll).List(listOption)
+	hpaList, err := client.AutoscalingV2beta1().HorizontalPodAutoscalers(metav1.NamespaceAll).List(ctx, listOption)
 	if err != nil {
 		return nil, err
 	}
@@ -471,7 +471,7 @@ func hpaBelongsToDeployment(hpa v2beta1.HorizontalPodAutoscaler, scaleTragetRef 
 	return true
 }
 
-func deleteDeploymentAutoscalingInfo(client kubernetes.Interface, scaleTarget string) error {
+func deleteDeploymentAutoscalingInfo(ctx context.Context, client kubernetes.Interface, scaleTarget string) error {
 	// find deployment & update hpa annotations
 	// get doesn't work with metav1.NamespaceAll only if you specify the namespace exactly
 	// deployment, err := client.AppsV1().Deployments(metav1.NamespaceAll).Get(request.Name, metav1.GetOptions{})
@@ -479,7 +479,7 @@ func deleteDeploymentAutoscalingInfo(client kubernetes.Interface, scaleTarget st
 	listOptions := metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("metadata.name=%v", scaleTarget),
 	}
-	deploymentList, err := client.AppsV1().Deployments(metav1.NamespaceAll).List(listOptions)
+	deploymentList, err := client.AppsV1().Deployments(metav1.NamespaceAll).List(ctx, listOptions)
 	if err != nil {
 		return err
 	}
@@ -488,7 +488,7 @@ func deleteDeploymentAutoscalingInfo(client kubernetes.Interface, scaleTarget st
 			scaleTargetFound = true
 			log.Debugf("remove annotations on deployment: %v", dep.Name)
 			dep.Annotations = removeHpaAnnotations(dep.Annotations)
-			_, err = client.AppsV1().Deployments(dep.Namespace).Update(&dep)
+			_, err = client.AppsV1().Deployments(dep.Namespace).Update(ctx, &dep, metav1.UpdateOptions{})
 			if err != nil {
 				return err
 			}
@@ -496,7 +496,7 @@ func deleteDeploymentAutoscalingInfo(client kubernetes.Interface, scaleTarget st
 	}
 
 	// find statefulset & update hpa annotations
-	statefulSetList, err := client.AppsV1().StatefulSets(metav1.NamespaceAll).List(listOptions)
+	statefulSetList, err := client.AppsV1().StatefulSets(metav1.NamespaceAll).List(ctx, listOptions)
 	if err != nil {
 		return err
 	}
@@ -505,7 +505,7 @@ func deleteDeploymentAutoscalingInfo(client kubernetes.Interface, scaleTarget st
 			scaleTargetFound = true
 			log.Debugf("remove annotations on statefulset: %v", stsset.Name)
 			stsset.Annotations = removeHpaAnnotations(stsset.Annotations)
-			_, err = client.AppsV1().StatefulSets(stsset.Namespace).Update(&stsset)
+			_, err = client.AppsV1().StatefulSets(stsset.Namespace).Update(ctx, &stsset, metav1.UpdateOptions{})
 			if err != nil {
 				return err
 			}
@@ -519,7 +519,7 @@ func deleteDeploymentAutoscalingInfo(client kubernetes.Interface, scaleTarget st
 	return nil
 }
 
-func setDeploymentAutoscalingInfo(client kubernetes.Interface, request hpa.DeploymentScalingRequest) error {
+func setDeploymentAutoscalingInfo(ctx context.Context, client kubernetes.Interface, request hpa.DeploymentScalingRequest) error {
 	// find deployment & update hpa annotations
 	// get doesn't work with metav1.NamespaceAll only if you specify the namespace exactly
 	// deployment, err := client.AppsV1().Deployments(metav1.NamespaceAll).Get(request.Name, metav1.GetOptions{})
@@ -527,7 +527,7 @@ func setDeploymentAutoscalingInfo(client kubernetes.Interface, request hpa.Deplo
 	listOptions := metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("metadata.name=%v", request.ScaleTarget),
 	}
-	deploymentList, err := client.AppsV1().Deployments(metav1.NamespaceAll).List(listOptions)
+	deploymentList, err := client.AppsV1().Deployments(metav1.NamespaceAll).List(ctx, listOptions)
 	if err != nil {
 		return err
 	}
@@ -537,7 +537,7 @@ func setDeploymentAutoscalingInfo(client kubernetes.Interface, request hpa.Deplo
 			log.Debugf("set annotations on deployment: %v", dep.Name)
 			dep.Annotations = removeHpaAnnotations(dep.Annotations)
 			setupHpaAnnotations(request, dep.Annotations)
-			_, err = client.AppsV1().Deployments(dep.Namespace).Update(&dep)
+			_, err = client.AppsV1().Deployments(dep.Namespace).Update(ctx, &dep, metav1.UpdateOptions{})
 			if err != nil {
 				return err
 			}
@@ -545,7 +545,7 @@ func setDeploymentAutoscalingInfo(client kubernetes.Interface, request hpa.Deplo
 	}
 
 	// find statefulset & update hpa annotations
-	statefulSetList, err := client.AppsV1().StatefulSets(metav1.NamespaceAll).List(listOptions)
+	statefulSetList, err := client.AppsV1().StatefulSets(metav1.NamespaceAll).List(ctx, listOptions)
 	if err != nil {
 		return err
 	}
@@ -555,7 +555,7 @@ func setDeploymentAutoscalingInfo(client kubernetes.Interface, request hpa.Deplo
 			log.Debugf("set annotations on statefulset: %v", stsset.Name)
 			stsset.Annotations = removeHpaAnnotations(stsset.Annotations)
 			setupHpaAnnotations(request, stsset.Annotations)
-			_, err = client.AppsV1().StatefulSets(stsset.Namespace).Update(&stsset)
+			_, err = client.AppsV1().StatefulSets(stsset.Namespace).Update(ctx, &stsset, metav1.UpdateOptions{})
 			if err != nil {
 				return err
 			}

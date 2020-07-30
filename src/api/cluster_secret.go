@@ -187,7 +187,7 @@ func MergeSecretInCluster(c *gin.Context) {
 		secretRequest.SourceSecretName = secretName
 	}
 
-	installedSecretName, err := cluster.MergeSecret(commonCluster, secretName, secretRequest)
+	installedSecretName, err := cluster.MergeSecret(c.Request.Context(), commonCluster, secretName, secretRequest)
 
 	if err == cluster.ErrSecretNotFound {
 		ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{

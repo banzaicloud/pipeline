@@ -20,7 +20,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -46,7 +46,7 @@ func (a *API) Delete(c *gin.Context) {
 		return
 	}
 
-	err = client.CoreV1().Namespaces().Delete(c.Param("namespace"), &meta_v1.DeleteOptions{})
+	err = client.CoreV1().Namespaces().Delete(c.Request.Context(), c.Param("namespace"), metav1.DeleteOptions{})
 	if err != nil && !k8serrors.IsNotFound(err) {
 		a.errorHandler.Handle(errors.Wrap(err, "failed to delete namespace"))
 

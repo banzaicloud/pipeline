@@ -16,6 +16,7 @@ package eks
 
 import (
 	"context"
+	"strings"
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
@@ -89,4 +90,39 @@ func (s ImageSelectors) SelectImage(ctx context.Context, criteria ImageSelection
 	}
 
 	return "", errors.WithStack(ImageNotFoundError)
+}
+
+// DefaultImageSelector selects an image from the local fallback images based on the instance type (ie. GPU or not).
+//
+// Note: this process should be refactored once image sourcing is improved (eg. move to cloudinfo).
+type DefaultImageSelector struct {
+	DefaultImages            ImageSelector
+	DefaultAcceleratedImages ImageSelector
+}
+
+// NewDefaultImageSelector returns a new DefaultImageSelector.
+func NewDefaultImageSelector() DefaultImageSelector {
+	return DefaultImageSelector{
+		DefaultImages:            defaultImages,
+		DefaultAcceleratedImages: defaultAcceleratedImages,
+	}
+}
+
+func (s DefaultImageSelector) SelectImage(ctx context.Context, criteria ImageSelectionCriteria) (string, error) {
+	var image string
+
+	if isGPUInstance(criteria.InstanceType) {
+		image, _ = s.DefaultAcceleratedImages.SelectImage(ctx, criteria)
+	}
+
+	if image == "" {
+		return s.DefaultImages.SelectImage(ctx, criteria)
+	}
+
+	return image, nil
+}
+
+func isGPUInstance(instanceType string) bool {
+	return strings.HasPrefix(instanceType, "p2.") || strings.HasPrefix(instanceType, "p3.") ||
+		strings.HasPrefix(instanceType, "g3.") || strings.HasPrefix(instanceType, "g4.")
 }

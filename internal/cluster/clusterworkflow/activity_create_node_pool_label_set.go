@@ -53,7 +53,7 @@ func (a CreateNodePoolLabelSetActivity) Execute(ctx context.Context, input Creat
 
 	manager := npls.NewManager(client, a.namespace)
 
-	err = manager.SyncOne(input.RawNodePool.GetName(), input.RawNodePool.GetLabels())
+	err = manager.SyncOne(ctx, input.RawNodePool.GetName(), input.RawNodePool.GetLabels())
 	if err != nil {
 		return err
 	}

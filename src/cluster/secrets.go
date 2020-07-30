@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"context"
 	stderrors "errors"
 
 	"emperror.dev/errors"
@@ -30,18 +31,18 @@ import (
 
 // InstallSecrets installs or updates secrets that matches the query under the name into namespace of a Kubernetes cluster.
 // It returns the list of installed secret names and meta about how to mount them.
-func InstallSecrets(cc CommonCluster, query *secret.ListSecretsQuery, namespace string) ([]string, error) {
+func InstallSecrets(ctx context.Context, cc CommonCluster, query *secret.ListSecretsQuery, namespace string) ([]string, error) {
 	kubeConfig, err := cc.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Error during getting config: %s", err.Error())
 		return nil, err
 	}
 
-	return InstallSecretsByK8SConfig(kubeConfig, cc.GetOrganizationId(), query, namespace)
+	return InstallSecretsByK8SConfig(ctx, kubeConfig, cc.GetOrganizationId(), query, namespace)
 }
 
 // InstallSecretsByK8SConfig is the same as InstallSecrets but use this if you already have a K8S config at hand.
-func InstallSecretsByK8SConfig(kubeConfig []byte, orgID uint, query *secret.ListSecretsQuery, namespace string) ([]string, error) {
+func InstallSecretsByK8SConfig(ctx context.Context, kubeConfig []byte, orgID uint, query *secret.ListSecretsQuery, namespace string) ([]string, error) {
 	// Values are always needed in this case
 	query.Values = true
 
@@ -57,7 +58,7 @@ func InstallSecretsByK8SConfig(kubeConfig []byte, orgID uint, query *secret.List
 		return nil, err
 	}
 
-	clusterSecretList, err := clusterClient.CoreV1().Secrets(namespace).List(metav1.ListOptions{})
+	clusterSecretList, err := clusterClient.CoreV1().Secrets(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		log.Errorf("Error during getting k8s secrets of the cluster: %s", err.Error())
 		return nil, err
@@ -109,12 +110,12 @@ func InstallSecretsByK8SConfig(kubeConfig []byte, orgID uint, query *secret.List
 		if create {
 			newK8sSecret.ObjectMeta.Namespace = namespace
 
-			_, err = clusterClient.CoreV1().Secrets(namespace).Create(&newK8sSecret)
+			_, err = clusterClient.CoreV1().Secrets(namespace).Create(ctx, &newK8sSecret, metav1.CreateOptions{})
 		} else {
 			k8sSecret.Data = nil // Clear data so that it is created from string data again
 			k8sSecret.StringData = newK8sSecret.StringData
 
-			_, err = clusterClient.CoreV1().Secrets(namespace).Update(&k8sSecret)
+			_, err = clusterClient.CoreV1().Secrets(namespace).Update(ctx, &k8sSecret, metav1.UpdateOptions{})
 		}
 
 		if err != nil {
@@ -201,10 +202,12 @@ func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, 
 		return "", errors.WrapIf(err, "failed to ensure that namespace exists")
 	}
 
-	_, err = clusterClient.CoreV1().Secrets(req.Namespace).Create(&kubeSecret)
+	ctx := context.Background()
+
+	_, err = clusterClient.CoreV1().Secrets(req.Namespace).Create(ctx, &kubeSecret, metav1.CreateOptions{})
 	if err != nil && k8sapierrors.IsAlreadyExists(err) {
 		if req.Update {
-			_, err = clusterClient.CoreV1().Secrets(req.Namespace).Update(&kubeSecret)
+			_, err = clusterClient.CoreV1().Secrets(req.Namespace).Update(ctx, &kubeSecret, metav1.UpdateOptions{})
 			return secretName, err
 		}
 		return "", ErrKubernetesSecretAlreadyExists
@@ -217,17 +220,17 @@ func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, 
 
 // MergeSecret merges a secret with an already existing one in a Kubernetes cluster.
 // It returns the installed secret name and meta about how to mount it.
-func MergeSecret(cc CommonCluster, secretName string, req InstallSecretRequest) (string, error) {
+func MergeSecret(ctx context.Context, cc CommonCluster, secretName string, req InstallSecretRequest) (string, error) {
 	kubeConfig, err := cc.GetK8sConfig()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get k8s config")
 	}
 
-	return MergeSecretByK8SConfig(kubeConfig, cc.GetOrganizationId(), secretName, req)
+	return MergeSecretByK8SConfig(ctx, kubeConfig, cc.GetOrganizationId(), secretName, req)
 }
 
 // MergeSecretByK8SConfig is the same as MergeSecret but use this if you already have a K8S config at hand.
-func MergeSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, req InstallSecretRequest) (string, error) {
+func MergeSecretByK8SConfig(ctx context.Context, kubeConfig []byte, orgID uint, secretName string, req InstallSecretRequest) (string, error) {
 	clusterClient, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to create kubernetes client")
@@ -251,7 +254,7 @@ func MergeSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, re
 		kubeSecretRequest.Values = secretItem.Values
 	}
 
-	clusterSecret, err := clusterClient.CoreV1().Secrets(req.Namespace).Get(secretName, metav1.GetOptions{})
+	clusterSecret, err := clusterClient.CoreV1().Secrets(req.Namespace).Get(ctx, secretName, metav1.GetOptions{})
 	if err != nil && k8sapierrors.IsNotFound(err) {
 		return "", ErrKubernetesSecretNotFound
 	} else if err != nil {
@@ -279,7 +282,7 @@ func MergeSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, re
 		}
 	}
 
-	_, err = clusterClient.CoreV1().Secrets(req.Namespace).Update(clusterSecret)
+	_, err = clusterClient.CoreV1().Secrets(req.Namespace).Update(ctx, clusterSecret, metav1.UpdateOptions{})
 	if err != nil && k8sapierrors.IsNotFound(err) {
 		return "", ErrKubernetesSecretNotFound
 	} else if err != nil {

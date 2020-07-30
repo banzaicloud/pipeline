@@ -83,7 +83,7 @@ func (m IntegratedServiceManager) GetOutput(ctx context.Context, clusterID uint,
 		return nil, errors.WrapIf(err, "failed to get K8S config")
 	}
 
-	endpoints, err := m.endpointsService.List(kubeConfig, prometheusOperatorReleaseName)
+	endpoints, err := m.endpointsService.List(ctx, kubeConfig, prometheusOperatorReleaseName)
 	if err != nil {
 		m.logger.Warn(fmt.Sprintf("failed to list endpoints: %s", err.Error()))
 	}
@@ -147,7 +147,7 @@ func (m IntegratedServiceManager) getComponentOutput(
 	// TODO (colin): put back after the values can came from config
 	// writeVersion(o, values, out)
 	out[versionKey] = config.Tag
-	if err := writeServiceURL(o, m.endpointsService, pipelineSystemNamespace, out); err != nil {
+	if err := writeServiceURL(ctx, o, m.endpointsService, pipelineSystemNamespace, out); err != nil {
 		m.logger.Warn(fmt.Sprintf("failed to get service url: %s", err.Error()))
 	}
 

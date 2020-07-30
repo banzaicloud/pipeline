@@ -42,19 +42,20 @@ type MockdynamicNamespaceableResourceInterface struct {
 }
 
 // Create provides a mock function.
-func (_m *MockdynamicNamespaceableResourceInterface) Create(obj *unstructured.Unstructured, options v1.CreateOptions, subresources ...string) (_result_0 *unstructured.Unstructured, _result_1 error) {
-	varParams := make([]interface{}, 2+len(subresources))
-	varParams[0] = obj
-	varParams[1] = options
+func (_m *MockdynamicNamespaceableResourceInterface) Create(ctx context.Context, obj *unstructured.Unstructured, options v1.CreateOptions, subresources ...string) (_result_0 *unstructured.Unstructured, _result_1 error) {
+	varParams := make([]interface{}, 3+len(subresources))
+	varParams[0] = ctx
+	varParams[1] = obj
+	varParams[2] = options
 	for varIndex, varParam := range subresources {
-		varParams[2+varIndex] = varParam
+		varParams[3+varIndex] = varParam
 	}
 
 	ret := _m.Called(varParams...)
 
 	var r0 *unstructured.Unstructured
-	if rf, ok := ret.Get(0).(func(*unstructured.Unstructured, v1.CreateOptions, ...string) *unstructured.Unstructured); ok {
-		r0 = rf(obj, options, subresources...)
+	if rf, ok := ret.Get(0).(func(context.Context, *unstructured.Unstructured, v1.CreateOptions, ...string) *unstructured.Unstructured); ok {
+		r0 = rf(ctx, obj, options, subresources...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*unstructured.Unstructured)
@@ -62,8 +63,8 @@ func (_m *MockdynamicNamespaceableResourceInterface) Create(obj *unstructured.Un
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*unstructured.Unstructured, v1.CreateOptions, ...string) error); ok {
-		r1 = rf(obj, options, subresources...)
+	if rf, ok := ret.Get(1).(func(context.Context, *unstructured.Unstructured, v1.CreateOptions, ...string) error); ok {
+		r1 = rf(ctx, obj, options, subresources...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -72,19 +73,20 @@ func (_m *MockdynamicNamespaceableResourceInterface) Create(obj *unstructured.Un
 }
 
 // Delete provides a mock function.
-func (_m *MockdynamicNamespaceableResourceInterface) Delete(name string, options *v1.DeleteOptions, subresources ...string) (_result_0 error) {
-	varParams := make([]interface{}, 2+len(subresources))
-	varParams[0] = name
-	varParams[1] = options
+func (_m *MockdynamicNamespaceableResourceInterface) Delete(ctx context.Context, name string, options v1.DeleteOptions, subresources ...string) (_result_0 error) {
+	varParams := make([]interface{}, 3+len(subresources))
+	varParams[0] = ctx
+	varParams[1] = name
+	varParams[2] = options
 	for varIndex, varParam := range subresources {
-		varParams[2+varIndex] = varParam
+		varParams[3+varIndex] = varParam
 	}
 
 	ret := _m.Called(varParams...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, *v1.DeleteOptions, ...string) error); ok {
-		r0 = rf(name, options, subresources...)
+	if rf, ok := ret.Get(0).(func(context.Context, string, v1.DeleteOptions, ...string) error); ok {
+		r0 = rf(ctx, name, options, subresources...)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -93,12 +95,12 @@ func (_m *MockdynamicNamespaceableResourceInterface) Delete(name string, options
 }
 
 // DeleteCollection provides a mock function.
-func (_m *MockdynamicNamespaceableResourceInterface) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) (_result_0 error) {
-	ret := _m.Called(options, listOptions)
+func (_m *MockdynamicNamespaceableResourceInterface) DeleteCollection(ctx context.Context, options v1.DeleteOptions, listOptions v1.ListOptions) (_result_0 error) {
+	ret := _m.Called(ctx, options, listOptions)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*v1.DeleteOptions, v1.ListOptions) error); ok {
-		r0 = rf(options, listOptions)
+	if rf, ok := ret.Get(0).(func(context.Context, v1.DeleteOptions, v1.ListOptions) error); ok {
+		r0 = rf(ctx, options, listOptions)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -107,19 +109,20 @@ func (_m *MockdynamicNamespaceableResourceInterface) DeleteCollection(options *v
 }
 
 // Get provides a mock function.
-func (_m *MockdynamicNamespaceableResourceInterface) Get(name string, options v1.GetOptions, subresources ...string) (_result_0 *unstructured.Unstructured, _result_1 error) {
-	varParams := make([]interface{}, 2+len(subresources))
-	varParams[0] = name
-	varParams[1] = options
+func (_m *MockdynamicNamespaceableResourceInterface) Get(ctx context.Context, name string, options v1.GetOptions, subresources ...string) (_result_0 *unstructured.Unstructured, _result_1 error) {
+	varParams := make([]interface{}, 3+len(subresources))
+	varParams[0] = ctx
+	varParams[1] = name
+	varParams[2] = options
 	for varIndex, varParam := range subresources {
-		varParams[2+varIndex] = varParam
+		varParams[3+varIndex] = varParam
 	}
 
 	ret := _m.Called(varParams...)
 
 	var r0 *unstructured.Unstructured
-	if rf, ok := ret.Get(0).(func(string, v1.GetOptions, ...string) *unstructured.Unstructured); ok {
-		r0 = rf(name, options, subresources...)
+	if rf, ok := ret.Get(0).(func(context.Context, string, v1.GetOptions, ...string) *unstructured.Unstructured); ok {
+		r0 = rf(ctx, name, options, subresources...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*unstructured.Unstructured)
@@ -127,8 +130,8 @@ func (_m *MockdynamicNamespaceableResourceInterface) Get(name string, options v1
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, v1.GetOptions, ...string) error); ok {
-		r1 = rf(name, options, subresources...)
+	if rf, ok := ret.Get(1).(func(context.Context, string, v1.GetOptions, ...string) error); ok {
+		r1 = rf(ctx, name, options, subresources...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -137,12 +140,12 @@ func (_m *MockdynamicNamespaceableResourceInterface) Get(name string, options v1
 }
 
 // List provides a mock function.
-func (_m *MockdynamicNamespaceableResourceInterface) List(opts v1.ListOptions) (_result_0 *unstructured.UnstructuredList, _result_1 error) {
-	ret := _m.Called(opts)
+func (_m *MockdynamicNamespaceableResourceInterface) List(ctx context.Context, opts v1.ListOptions) (_result_0 *unstructured.UnstructuredList, _result_1 error) {
+	ret := _m.Called(ctx, opts)
 
 	var r0 *unstructured.UnstructuredList
-	if rf, ok := ret.Get(0).(func(v1.ListOptions) *unstructured.UnstructuredList); ok {
-		r0 = rf(opts)
+	if rf, ok := ret.Get(0).(func(context.Context, v1.ListOptions) *unstructured.UnstructuredList); ok {
+		r0 = rf(ctx, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*unstructured.UnstructuredList)
@@ -150,8 +153,8 @@ func (_m *MockdynamicNamespaceableResourceInterface) List(opts v1.ListOptions) (
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(v1.ListOptions) error); ok {
-		r1 = rf(opts)
+	if rf, ok := ret.Get(1).(func(context.Context, v1.ListOptions) error); ok {
+		r1 = rf(ctx, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -176,21 +179,22 @@ func (_m *MockdynamicNamespaceableResourceInterface) Namespace(_parameter_0 stri
 }
 
 // Patch provides a mock function.
-func (_m *MockdynamicNamespaceableResourceInterface) Patch(name string, pt types.PatchType, data []uint8, options v1.PatchOptions, subresources ...string) (_result_0 *unstructured.Unstructured, _result_1 error) {
-	varParams := make([]interface{}, 4+len(subresources))
-	varParams[0] = name
-	varParams[1] = pt
-	varParams[2] = data
-	varParams[3] = options
+func (_m *MockdynamicNamespaceableResourceInterface) Patch(ctx context.Context, name string, pt types.PatchType, data []uint8, options v1.PatchOptions, subresources ...string) (_result_0 *unstructured.Unstructured, _result_1 error) {
+	varParams := make([]interface{}, 5+len(subresources))
+	varParams[0] = ctx
+	varParams[1] = name
+	varParams[2] = pt
+	varParams[3] = data
+	varParams[4] = options
 	for varIndex, varParam := range subresources {
-		varParams[4+varIndex] = varParam
+		varParams[5+varIndex] = varParam
 	}
 
 	ret := _m.Called(varParams...)
 
 	var r0 *unstructured.Unstructured
-	if rf, ok := ret.Get(0).(func(string, types.PatchType, []uint8, v1.PatchOptions, ...string) *unstructured.Unstructured); ok {
-		r0 = rf(name, pt, data, options, subresources...)
+	if rf, ok := ret.Get(0).(func(context.Context, string, types.PatchType, []uint8, v1.PatchOptions, ...string) *unstructured.Unstructured); ok {
+		r0 = rf(ctx, name, pt, data, options, subresources...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*unstructured.Unstructured)
@@ -198,8 +202,8 @@ func (_m *MockdynamicNamespaceableResourceInterface) Patch(name string, pt types
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, types.PatchType, []uint8, v1.PatchOptions, ...string) error); ok {
-		r1 = rf(name, pt, data, options, subresources...)
+	if rf, ok := ret.Get(1).(func(context.Context, string, types.PatchType, []uint8, v1.PatchOptions, ...string) error); ok {
+		r1 = rf(ctx, name, pt, data, options, subresources...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -208,19 +212,20 @@ func (_m *MockdynamicNamespaceableResourceInterface) Patch(name string, pt types
 }
 
 // Update provides a mock function.
-func (_m *MockdynamicNamespaceableResourceInterface) Update(obj *unstructured.Unstructured, options v1.UpdateOptions, subresources ...string) (_result_0 *unstructured.Unstructured, _result_1 error) {
-	varParams := make([]interface{}, 2+len(subresources))
-	varParams[0] = obj
-	varParams[1] = options
+func (_m *MockdynamicNamespaceableResourceInterface) Update(ctx context.Context, obj *unstructured.Unstructured, options v1.UpdateOptions, subresources ...string) (_result_0 *unstructured.Unstructured, _result_1 error) {
+	varParams := make([]interface{}, 3+len(subresources))
+	varParams[0] = ctx
+	varParams[1] = obj
+	varParams[2] = options
 	for varIndex, varParam := range subresources {
-		varParams[2+varIndex] = varParam
+		varParams[3+varIndex] = varParam
 	}
 
 	ret := _m.Called(varParams...)
 
 	var r0 *unstructured.Unstructured
-	if rf, ok := ret.Get(0).(func(*unstructured.Unstructured, v1.UpdateOptions, ...string) *unstructured.Unstructured); ok {
-		r0 = rf(obj, options, subresources...)
+	if rf, ok := ret.Get(0).(func(context.Context, *unstructured.Unstructured, v1.UpdateOptions, ...string) *unstructured.Unstructured); ok {
+		r0 = rf(ctx, obj, options, subresources...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*unstructured.Unstructured)
@@ -228,8 +233,8 @@ func (_m *MockdynamicNamespaceableResourceInterface) Update(obj *unstructured.Un
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*unstructured.Unstructured, v1.UpdateOptions, ...string) error); ok {
-		r1 = rf(obj, options, subresources...)
+	if rf, ok := ret.Get(1).(func(context.Context, *unstructured.Unstructured, v1.UpdateOptions, ...string) error); ok {
+		r1 = rf(ctx, obj, options, subresources...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -238,12 +243,12 @@ func (_m *MockdynamicNamespaceableResourceInterface) Update(obj *unstructured.Un
 }
 
 // UpdateStatus provides a mock function.
-func (_m *MockdynamicNamespaceableResourceInterface) UpdateStatus(obj *unstructured.Unstructured, options v1.UpdateOptions) (_result_0 *unstructured.Unstructured, _result_1 error) {
-	ret := _m.Called(obj, options)
+func (_m *MockdynamicNamespaceableResourceInterface) UpdateStatus(ctx context.Context, obj *unstructured.Unstructured, options v1.UpdateOptions) (_result_0 *unstructured.Unstructured, _result_1 error) {
+	ret := _m.Called(ctx, obj, options)
 
 	var r0 *unstructured.Unstructured
-	if rf, ok := ret.Get(0).(func(*unstructured.Unstructured, v1.UpdateOptions) *unstructured.Unstructured); ok {
-		r0 = rf(obj, options)
+	if rf, ok := ret.Get(0).(func(context.Context, *unstructured.Unstructured, v1.UpdateOptions) *unstructured.Unstructured); ok {
+		r0 = rf(ctx, obj, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*unstructured.Unstructured)
@@ -251,8 +256,8 @@ func (_m *MockdynamicNamespaceableResourceInterface) UpdateStatus(obj *unstructu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*unstructured.Unstructured, v1.UpdateOptions) error); ok {
-		r1 = rf(obj, options)
+	if rf, ok := ret.Get(1).(func(context.Context, *unstructured.Unstructured, v1.UpdateOptions) error); ok {
+		r1 = rf(ctx, obj, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -261,12 +266,12 @@ func (_m *MockdynamicNamespaceableResourceInterface) UpdateStatus(obj *unstructu
 }
 
 // Watch provides a mock function.
-func (_m *MockdynamicNamespaceableResourceInterface) Watch(opts v1.ListOptions) (_result_0 watch.Interface, _result_1 error) {
-	ret := _m.Called(opts)
+func (_m *MockdynamicNamespaceableResourceInterface) Watch(ctx context.Context, opts v1.ListOptions) (_result_0 watch.Interface, _result_1 error) {
+	ret := _m.Called(ctx, opts)
 
 	var r0 watch.Interface
-	if rf, ok := ret.Get(0).(func(v1.ListOptions) watch.Interface); ok {
-		r0 = rf(opts)
+	if rf, ok := ret.Get(0).(func(context.Context, v1.ListOptions) watch.Interface); ok {
+		r0 = rf(ctx, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(watch.Interface)
@@ -274,8 +279,8 @@ func (_m *MockdynamicNamespaceableResourceInterface) Watch(opts v1.ListOptions) 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(v1.ListOptions) error); ok {
-		r1 = rf(opts)
+	if rf, ok := ret.Get(1).(func(context.Context, v1.ListOptions) error); ok {
+		r1 = rf(ctx, opts)
 	} else {
 		r1 = ret.Error(1)
 	}

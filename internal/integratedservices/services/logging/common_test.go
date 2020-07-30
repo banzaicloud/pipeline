@@ -127,7 +127,7 @@ func (d dummyOrganizationalSecretStore) Delete(organizationID uint, secretID str
 
 type dummyEndpointService struct{}
 
-func (dummyEndpointService) List(kubeConfig []byte, releaseName string) ([]*helm.EndpointItem, error) {
+func (dummyEndpointService) List(ctx context.Context, kubeConfig []byte, releaseName string) ([]*helm.EndpointItem, error) {
 	return []*helm.EndpointItem{
 		{
 			Name: "ingress-traefik",
@@ -142,7 +142,7 @@ func (dummyEndpointService) List(kubeConfig []byte, releaseName string) ([]*helm
 	}, nil
 }
 
-func (dummyEndpointService) GetServiceURL(kubeConfig []byte, serviceName string, namespace string) (string, error) {
+func (dummyEndpointService) GetServiceURL(ctx context.Context, kubeConfig []byte, serviceName string, namespace string) (string, error) {
 	return lokiServiceUrl, nil
 }
 

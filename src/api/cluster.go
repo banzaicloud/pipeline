@@ -243,7 +243,7 @@ func GetPodDetails(c *gin.Context) {
 		return
 	}
 
-	response, err := describePods(commonCluster)
+	response, err := describePods(c.Request.Context(), commonCluster)
 	if err != nil {
 		log.Errorf("Error during getting pod details: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
@@ -257,7 +257,7 @@ func GetPodDetails(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDetailsResponse, err error) {
+func describePods(ctx context.Context, commonCluster cluster.CommonCluster) (items []pkgCluster.PodDetailsResponse, err error) {
 	log.Info("get K8S config")
 	var kubeConfig []byte
 	kubeConfig, err = commonCluster.GetK8sConfig()
@@ -273,7 +273,7 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 
 	log.Info("list pods")
 	var pods []v1.Pod
-	pods, err = listPods(client, "", "")
+	pods, err = listPods(ctx, client, "", "")
 	if err != nil {
 		return
 	}
@@ -340,7 +340,7 @@ func (a InternalClusterAPI) GetNodePools(c *gin.Context) {
 
 	autoScaleEnabled := commonCluster.GetScaleOptions() != nil && commonCluster.GetScaleOptions().Enabled
 	if autoScaleEnabled {
-		nodePoolCounts, err := getActualNodeCounts(commonCluster)
+		nodePoolCounts, err := getActualNodeCounts(c.Request.Context(), commonCluster)
 		if err != nil {
 			err = errors.WrapIf(err, "could not get actual node count for node pool info")
 			errorHandler.Handle(err)
@@ -393,7 +393,7 @@ func (a InternalClusterAPI) GetNodePools(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func getActualNodeCounts(commonCluster cluster.CommonCluster) (map[string]int, error) {
+func getActualNodeCounts(ctx context.Context, commonCluster cluster.CommonCluster) (map[string]int, error) {
 	nodePoolCounts := make(map[string]int)
 	kubeConfig, err := commonCluster.GetK8sConfig()
 	if err != nil {
@@ -405,7 +405,7 @@ func getActualNodeCounts(commonCluster cluster.CommonCluster) (map[string]int, e
 		return nil, errors.WrapIf(err, "could not create new k8s client")
 	}
 
-	nodes, err := client.CoreV1().Nodes().List(meta_v1.ListOptions{})
+	nodes, err := client.CoreV1().Nodes().List(ctx, meta_v1.ListOptions{})
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not get nodes list from cluster")
 	}
@@ -454,7 +454,7 @@ func InstallSecretsToCluster(c *gin.Context) {
 		return
 	}
 
-	secretSources, err := cluster.InstallSecrets(commonCluster, &request.Query, request.Namespace)
+	secretSources, err := cluster.InstallSecrets(c.Request.Context(), commonCluster, &request.Query, request.Namespace)
 
 	if err != nil {
 		log.Errorf("Error installing secrets [%v] into cluster [%d]: %s", request.Query, commonCluster.GetID(), err.Error())
@@ -649,7 +649,7 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 		return
 	}
 	// Get an active token
-	token, err := k8sutil.GetOrCreateBootstrapToken(log, client)
+	token, err := k8sutil.GetOrCreateBootstrapToken(c.Request.Context(), log, client)
 	if err != nil {
 		message := "Failed to create bootstrap token"
 		logger.Info(errors.WrapIf(err, message))

@@ -177,7 +177,7 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 	go func() {
 		defer func() { done <- struct{}{} }()
 
-		totalSummary, err := resourcesummary.GetTotalSummary(client)
+		totalSummary, err := resourcesummary.GetTotalSummary(c.Request.Context(), client)
 		if err != nil {
 			errorHandler.Handle(err)
 
@@ -194,7 +194,7 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 		for name, nodePool := range response.NodePools {
 			selector := fmt.Sprintf("%s=%s", common.LabelKey, name)
 
-			nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{
+			nodes, err := client.CoreV1().Nodes().List(c.Request.Context(), metav1.ListOptions{
 				LabelSelector: selector,
 			})
 			if err != nil {
@@ -208,7 +208,7 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 			nodePool.ResourceSummary = make(map[string]NodeResourceSummary, len(nodes.Items))
 
 			for _, node := range nodes.Items {
-				nodeSummary, err := resourcesummary.GetNodeSummary(client, node)
+				nodeSummary, err := resourcesummary.GetNodeSummary(c.Request.Context(), client, node)
 				if err != nil {
 					errorHandler.Handle(errors.WithMessage(err, "failed to get node resource summary"))
 

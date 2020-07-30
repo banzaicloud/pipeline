@@ -100,15 +100,15 @@ func (d *DashboardAPI) GetDashboard(c *gin.Context) {
 	partialResponse := false
 
 	i := 0
-	for _, c := range clusters {
+	for _, cl := range clusters {
 		go func(commonCluster cluster.CommonCluster) {
 			logger := d.logger.WithField("clusterId", commonCluster.GetID())
-			cluster, partial := d.getClusterDashboardInfo(logger, commonCluster, organizationID)
+			cluster, partial := d.getClusterDashboardInfo(c.Request.Context(), logger, commonCluster, organizationID)
 			if partial {
 				partialResponse = true
 			}
 			clusterResponseChan <- cluster
-		}(c)
+		}(cl)
 		i++
 	}
 
@@ -156,7 +156,7 @@ func (d *DashboardAPI) GetClusterDashboard(c *gin.Context) {
 	}
 
 	logger := d.logger.WithField("clusterId", cluster.GetID())
-	clusterInfo, partialResponse := d.getClusterDashboardInfo(logger, cluster, organizationID)
+	clusterInfo, partialResponse := d.getClusterDashboardInfo(c.Request.Context(), logger, cluster, organizationID)
 	if partialResponse {
 		c.JSON(http.StatusPartialContent, clusterInfo)
 		return
@@ -178,7 +178,7 @@ func createNodeInfoMap(pods []v1.Pod, nodes []v1.Node) map[string]*nodeinfo.Node
 	return nodeInfoMap
 }
 
-func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonCluster cluster.CommonCluster, orgID uint) (clusterInfo ClusterInfo, partialResponse bool) {
+func (d *DashboardAPI) getClusterDashboardInfo(ctx context.Context, logger *logrus.Entry, commonCluster cluster.CommonCluster, orgID uint) (clusterInfo ClusterInfo, partialResponse bool) {
 	logger.WithField("clusterName", commonCluster.GetName()).Debug("getClusterDashboardInfo for cluster")
 
 	nodeStates := make([]Node, 0)
@@ -289,20 +289,20 @@ func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonClust
 		return
 	}
 
-	nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{})
+	nodes, err := client.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		partialResponse = true
 		return
 	}
 
 	logger.Debug("List pods")
-	podList, err := client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
+	podList, err := client.CoreV1().Pods(metav1.NamespaceAll).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		partialResponse = true
 		return
 	}
 
-	if partial := addResourceSummary(client, clusterInfo); partial {
+	if partial := addResourceSummary(ctx, client, clusterInfo); partial {
 		partialResponse = true
 	}
 
@@ -447,12 +447,12 @@ func calculateClusterResourceUsage(
 	return usagePercent
 }
 
-func addResourceSummary(client *kubernetes.Clientset, response ClusterInfo) bool {
+func addResourceSummary(ctx context.Context, client *kubernetes.Clientset, response ClusterInfo) bool {
 	var partialResponse bool
 	for name, nodePool := range response.NodePools {
 		selector := fmt.Sprintf("%s=%s", pkgCommon.LabelKey, name)
 
-		nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{
+		nodes, err := client.CoreV1().Nodes().List(ctx, metav1.ListOptions{
 			LabelSelector: selector,
 		})
 		if err != nil {
@@ -463,7 +463,7 @@ func addResourceSummary(client *kubernetes.Clientset, response ClusterInfo) bool
 		nodePool.ResourceSummary = make(map[string]NodeResourceSummary, len(nodes.Items))
 
 		for _, node := range nodes.Items {
-			nodeSummary, err := resourcesummary.GetNodeSummary(client, node)
+			nodeSummary, err := resourcesummary.GetNodeSummary(ctx, client, node)
 			if err != nil {
 				partialResponse = true
 				continue

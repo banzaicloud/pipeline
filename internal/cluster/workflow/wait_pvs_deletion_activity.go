@@ -63,18 +63,18 @@ func (a WaitPersistentVolumesDeletionActivity) Execute(ctx context.Context, inpu
 	}
 
 	// watch persistent volumes
-	watcher, err := client.CoreV1().PersistentVolumes().Watch(metav1.ListOptions{})
+	watcher, err := client.CoreV1().PersistentVolumes().Watch(ctx, metav1.ListOptions{})
 	if err = errors.WrapIf(err, "failed start watcher for persistent volumes"); err != nil {
 		return
 	}
 	defer watcher.Stop()
 
-	pvcList, err := client.CoreV1().PersistentVolumeClaims(corev1.NamespaceAll).List(metav1.ListOptions{})
+	pvcList, err := client.CoreV1().PersistentVolumeClaims(corev1.NamespaceAll).List(ctx, metav1.ListOptions{})
 	if err = errors.WrapIf(err, "failed to retrieve persistent volume claims"); err != nil {
 		return
 	}
 
-	pvList, err := client.CoreV1().PersistentVolumes().List(metav1.ListOptions{})
+	pvList, err := client.CoreV1().PersistentVolumes().List(ctx, metav1.ListOptions{})
 	if err = errors.WrapIf(err, "failed to retrieve persistent volumes"); err != nil {
 		return
 	}

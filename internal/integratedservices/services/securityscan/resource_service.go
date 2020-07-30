@@ -178,7 +178,7 @@ func (nss *namespaceService) LabelNamespaces(ctx context.Context, clusterID uint
 	var combinedErr error
 	for _, namespace := range namespaces {
 		nss.logger.Debug("label namespace", map[string]interface{}{"namespace": namespace})
-		ns, err := namespacesCli.Get(namespace, metav1.GetOptions{})
+		ns, err := namespacesCli.Get(ctx, namespace, metav1.GetOptions{})
 		if err != nil {
 			// notice the error and let the operation succeed
 			nss.logger.Warn("failed to retrieve namespace", map[string]interface{}{"namespace": namespace})
@@ -191,7 +191,7 @@ func (nss *namespaceService) LabelNamespaces(ctx context.Context, clusterID uint
 
 		// update
 		ns.SetLabels(freshLabels)
-		ns, err = namespacesCli.Update(ns)
+		ns, err = namespacesCli.Update(ctx, ns, metav1.UpdateOptions{})
 		if err != nil {
 			nss.logger.Debug("failed to label namespace", map[string]interface{}{"namespace": namespace, "labels": freshLabels})
 			combinedErr = errors.Append(combinedErr, errors.WrapIff(err, "failed to get namespace %s", ns))
@@ -226,7 +226,7 @@ func (nss *namespaceService) RemoveLabels(ctx context.Context, clusterID uint, n
 
 	for _, namespace := range namespaces {
 		nss.logger.Debug("remove labels from namespace", map[string]interface{}{"namespace": namespace})
-		ns, err := namespacesCli.Get(namespace, metav1.GetOptions{})
+		ns, err := namespacesCli.Get(ctx, namespace, metav1.GetOptions{})
 		if err != nil {
 			// record error, step forward
 			nss.logger.Debug("failed to get namespace", map[string]interface{}{"namespace": namespace})
@@ -240,7 +240,7 @@ func (nss *namespaceService) RemoveLabels(ctx context.Context, clusterID uint, n
 		}
 
 		ns.SetLabels(freshLabels)
-		ns, err = namespacesCli.Update(ns)
+		ns, err = namespacesCli.Update(ctx, ns, metav1.UpdateOptions{})
 		if err != nil {
 			nss.logger.Debug("failed to remove labels form namespace", map[string]interface{}{"namespace": namespace, "labels": freshLabels})
 			combinedErr = errors.Append(combinedErr, errors.WrapIff(err, "failed to get namespace %s", ns))
@@ -258,7 +258,7 @@ func (nss *namespaceService) CleanupLabels(ctx context.Context, clusterID uint, 
 	}
 
 	// selects all namespaces labeled with the passed in labels (label Exists)
-	nsListPtr, err := namespacesCli.List(metav1.ListOptions{LabelSelector: strings.Join(labelsIn, ",")})
+	nsListPtr, err := namespacesCli.List(ctx, metav1.ListOptions{LabelSelector: strings.Join(labelsIn, ",")})
 	if err != nil {
 		return errors.WrapIf(err, "failed to retrieve labeled namespaces")
 	}

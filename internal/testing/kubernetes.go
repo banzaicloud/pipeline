@@ -15,6 +15,7 @@
 package testing
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -38,18 +39,20 @@ func KubeConfigFromEnv(t *testing.T) []byte {
 }
 
 func EnsureNamespaceRemoved(client *kubernetes.Clientset, namespace string, timeout time.Duration) error {
-	nsList, err := client.CoreV1().Namespaces().List(v1.ListOptions{})
+	ctx := context.Background()
+
+	nsList, err := client.CoreV1().Namespaces().List(ctx, v1.ListOptions{})
 	if err != nil {
 		return err
 	}
 	for _, ns := range nsList.Items {
 		if ns.Name == namespace {
-			err := client.CoreV1().Namespaces().Delete(namespace, &v1.DeleteOptions{})
+			err := client.CoreV1().Namespaces().Delete(ctx, namespace, v1.DeleteOptions{})
 			if err != nil {
 				return err
 			}
 			err = wait.Poll(time.Second, timeout, func() (done bool, err error) {
-				nsList, err := client.CoreV1().Namespaces().List(v1.ListOptions{})
+				nsList, err := client.CoreV1().Namespaces().List(ctx, v1.ListOptions{})
 				if err != nil {
 					return false, err
 				}

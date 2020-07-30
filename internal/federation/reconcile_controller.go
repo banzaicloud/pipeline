@@ -41,7 +41,7 @@ type OperatorImage struct {
 }
 
 const (
-	noOrgID = 0 //represents the platform org
+	noOrgID = 0 // represents the platform org
 )
 
 func (m *FederationReconciler) ReconcileController(desiredState DesiredState) error {
@@ -165,7 +165,7 @@ func (m *FederationReconciler) federatedResourcesExists(resource *metav1.APIReso
 		return false, err
 	}
 
-	list, err := client.Resources("").List(metav1.ListOptions{})
+	list, err := client.Resources("").List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			m.logger.Debugf("no %s found", resource.Name)
@@ -184,6 +184,8 @@ func (m *FederationReconciler) deleteFederatedResources(resource *metav1.APIReso
 	m.logger.Debugf("start deleting resource %s", resource.Name)
 	defer m.logger.Debugf("finished deleting resource %s", resource.Name)
 
+	ctx := context.Background()
+
 	clientConfig, err := m.getClientConfig(m.Host)
 	if err != nil {
 		return err
@@ -194,7 +196,7 @@ func (m *FederationReconciler) deleteFederatedResources(resource *metav1.APIReso
 		return err
 	}
 
-	list, err := client.Resources(namespace).List(metav1.ListOptions{})
+	list, err := client.Resources(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			m.logger.Debugf("no %s found", resource.Name)
@@ -207,7 +209,7 @@ func (m *FederationReconciler) deleteFederatedResources(resource *metav1.APIReso
 	} else {
 		for _, fn := range list.Items {
 			m.logger.Debugf("delete %s %s", fn.GetName(), fn.GetKind())
-			err = client.Resources(fn.GetNamespace()).Delete(fn.GetName(), &metav1.DeleteOptions{}, "")
+			err = client.Resources(fn.GetNamespace()).Delete(ctx, fn.GetName(), metav1.DeleteOptions{}, "")
 			if err != nil {
 				return err
 			}
@@ -221,6 +223,8 @@ func (m *FederationReconciler) removeFederationCRDs(all bool) error {
 	m.logger.Debug("start deleting Federation CRD's")
 	defer m.logger.Debug("finished deleting Federation CRD's")
 
+	ctx := context.Background()
+
 	clientConfig, err := m.getClientConfig(m.Host)
 	if err != nil {
 		return err
@@ -230,7 +234,7 @@ func (m *FederationReconciler) removeFederationCRDs(all bool) error {
 	if err != nil {
 		return err
 	}
-	crdList, err := cl.CustomResourceDefinitions().List(apiv1.ListOptions{})
+	crdList, err := cl.CustomResourceDefinitions().List(ctx, apiv1.ListOptions{})
 	if err != nil {
 		if strings.Contains(err.Error(), "no matches for kind") {
 			m.logger.Warnf("no CRD's found")
@@ -246,7 +250,7 @@ func (m *FederationReconciler) removeFederationCRDs(all bool) error {
 			var secs int64
 			secs = 180
 			m.logger.Debugf("removing CRD %s", crd.Name)
-			err = cl.CustomResourceDefinitions().Delete(crd.Name, &apiv1.DeleteOptions{
+			err = cl.CustomResourceDefinitions().Delete(ctx, crd.Name, apiv1.DeleteOptions{
 				PropagationPolicy:  &pp,
 				GracePeriodSeconds: &secs,
 			})
@@ -291,21 +295,25 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 		federatedIngress = "Disabled"
 	}
 
+	// TODO: refactor to use chart values
 	fedImageTag := m.Configuration.staticConfig.Charts.Kubefed.Values.ControllerManager.Tag
-	fedImageRepo := m.Configuration.staticConfig.Charts.Kubefed.Values.ControllerManager.Repository
 	values := map[string]interface{}{
 		"global": map[string]interface{}{
 			"scope": scope,
 		},
 		"controllermanager": map[string]interface{}{
-			"repository": fedImageRepo,
-			"tag":        fedImageTag,
+			"tag": fedImageTag,
 			"featureGates": map[string]interface{}{
 				"SchedulerPreferences":         schedulerPreferences,
 				"CrossClusterServiceDiscovery": crossClusterServiceDiscovery,
 				"FederatedIngress":             federatedIngress,
 			},
 		},
+	}
+
+	fedImageRepo := m.Configuration.staticConfig.Charts.Kubefed.Values.ControllerManager.Repository
+	if fedImageRepo != "" {
+		values["controllermanager"].(map[string]interface{})["repository"] = fedImageRepo
 	}
 
 	err := m.helmService.InstallOrUpgrade(

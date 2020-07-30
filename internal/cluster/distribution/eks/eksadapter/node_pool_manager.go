@@ -131,7 +131,7 @@ func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Clus
 	}
 
 	manager := npls.NewManager(clusterClient, n.namespace)
-	labelSets, err := manager.GetAll()
+	labelSets, err := manager.GetAll(ctx)
 	if err != nil {
 		return nil, errors.WrapWithDetails(err, "retrieving node pool label sets failed",
 			"cluster", cluster,

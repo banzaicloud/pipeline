@@ -15,6 +15,8 @@
 package kubernetes
 
 import (
+	"context"
+
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
@@ -34,7 +36,7 @@ func MakeUserNamespaceDeleter(logger logrus.FieldLogger) UserNamespaceDeleter {
 	}
 }
 
-func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, namespaces *corev1.NamespaceList, k8sConfig []byte) ([]string, error) {
+func (d UserNamespaceDeleter) Delete(ctx context.Context, organizationID uint, clusterName string, namespaces *corev1.NamespaceList, k8sConfig []byte) ([]string, error) {
 	logger := d.logger.WithField("organizationID", organizationID).WithField("clusterName", clusterName)
 
 	client, err := k8sclient.NewClientFromKubeConfig(k8sConfig)
@@ -45,7 +47,7 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, na
 	err = retry(func() error {
 		nsList := namespaces
 		if nsList == nil {
-			nsList, err = client.CoreV1().Namespaces().List(metav1.ListOptions{})
+			nsList, err = client.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 			if err != nil {
 				return errors.WrapIf(err, "could not list namespaces")
 			}
@@ -58,11 +60,11 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, na
 				continue
 			}
 			logger.Info("deleting kubernetes namespace")
-			err := client.CoreV1().Namespaces().Delete(ns.Name, &metav1.DeleteOptions{})
+			err := client.CoreV1().Namespaces().Delete(ctx, ns.Name, metav1.DeleteOptions{})
 			if err != nil && !k8sapierrors.IsNotFound(err) {
 				// check if the namespace transitioned into 'Terminating' phase, if so
 				// ignore the error
-				namespace, errGet := client.CoreV1().Namespaces().Get(ns.Name, metav1.GetOptions{})
+				namespace, errGet := client.CoreV1().Namespaces().Get(ctx, ns.Name, metav1.GetOptions{})
 				if errGet != nil {
 					return errors.WrapIff(err, "could not get %q namespace details (%v) after failed deletion", ns.Name, errGet)
 				}
@@ -80,7 +82,7 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, na
 
 	var left, gaveUp []string
 	err = retry(func() error {
-		remainingNamespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
+		remainingNamespaces, err := client.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 		if err != nil {
 			return errors.WrapIf(err, "could not list remaining namespaces")
 		}

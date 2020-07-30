@@ -306,15 +306,18 @@ func isSpotCluster(cluster CommonCluster) (bool, error) {
 
 func initializeSpotConfigMap(client *kubernetes.Clientset, systemNs string) error {
 	log.Debug("initializing ConfigMap to store spot configuration")
-	_, err := client.CoreV1().ConfigMaps(systemNs).Get(pkgCommon.SpotConfigMapKey, metav1.GetOptions{})
+
+	ctx := context.Background()
+
+	_, err := client.CoreV1().ConfigMaps(systemNs).Get(ctx, pkgCommon.SpotConfigMapKey, metav1.GetOptions{})
 	if err != nil {
 		if apiErrors.IsNotFound(err) {
-			_, err = client.CoreV1().ConfigMaps(systemNs).Create(&v1.ConfigMap{
+			_, err = client.CoreV1().ConfigMaps(systemNs).Create(ctx, &v1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: pkgCommon.SpotConfigMapKey,
 				},
 				Data: make(map[string]string),
-			})
+			}, metav1.CreateOptions{})
 			if err != nil {
 				return errors.WrapIf(err, "failed to create spot ConfigMap")
 			}
