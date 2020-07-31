@@ -6,9 +6,6 @@ on:
       - master
   pull_request:
 
-env:
-  PLZ_ARGS: "-p --profile ci"
-
 jobs:
   build:
     name: Build
@@ -54,7 +51,7 @@ jobs:
         run: go mod download
 
       - name: Build
-        run: ./pleasew build //...
+        run: ./pleasew -p --profile ci build //...
 
       - name: Save Please log output
         uses: actions/upload-artifact@v1
@@ -103,7 +100,7 @@ jobs:
             ${{ runner.os }}-go-build-test-
 
       - name: Test
-        run: ./pleasew test --exclude integration //...
+        run: ./pleasew -p --profile ci test --exclude integration //...
 
       - name: Save Please log output
         uses: actions/upload-artifact@v1
@@ -162,15 +159,15 @@ jobs:
 
       - name: Start kind cluster
         run: |
-          ./pleasew run ///pleasings2//tools/k8s:kind -- create cluster --kubeconfig $HOME/.kube/config
+          ./pleasew -p --profile ci run ///pleasings2//tools/k8s:kind -- create cluster --kubeconfig $HOME/.kube/config
           echo "::set-env name=KUBECONFIG::$HOME/.kube/config"
 
       - name: Test
         run: |
-          ./pleasew build :kube-apiserver :etcd
-          export TEST_ASSET_KUBE_APISERVER=$PWD/$(./pleasew query output :kube-apiserver)
-          export TEST_ASSET_ETCD=$PWD/$(./pleasew query output :etcd)
-          ./pleasew test --include integration //...
+          ./pleasew -p --profile ci build :kube-apiserver :etcd
+          export TEST_ASSET_KUBE_APISERVER=$PWD/$(./pleasew -p --profile ci query output :kube-apiserver)
+          export TEST_ASSET_ETCD=$PWD/$(./pleasew -p --profile ci query output :etcd)
+          ./pleasew -p --profile ci test --include integration //...
         env:
           VAULT_ADDR: http://127.0.0.1:${{ job.services.vault.ports[8200] }}
           VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
@@ -222,7 +219,7 @@ jobs:
             ${{ runner.os }}-go-build-
 
       - name: Lint
-        run: ./pleasew lint
+        run: ./pleasew -p --profile ci lint
 
       - name: Save Please log output
         uses: actions/upload-artifact@v1
