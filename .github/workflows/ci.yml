@@ -66,11 +66,6 @@ jobs:
     needs: build
 
     steps:
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.14
-
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -82,22 +77,6 @@ jobs:
           key: ${{ runner.os }}-plz-v2-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*') }}
           restore-keys: |
             ${{ runner.os }}-plz-v2-
-
-      - name: Go module cache
-        uses: actions/cache@v2
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-mod-
-
-      - name: Go build cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/go-build
-          key: ${{ runner.os }}-go-build-test-${{ hashFiles('**/*.go', '**/go.mod', '**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-build-test-
 
       - name: Test
         run: ./pleasew -p --profile ci test --exclude integration //...
@@ -124,11 +103,6 @@ jobs:
           - 8200
 
     steps:
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.14
-
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -140,22 +114,6 @@ jobs:
           key: ${{ runner.os }}-plz-v2-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*') }}
           restore-keys: |
             ${{ runner.os }}-plz-v2-
-
-      - name: Go module cache
-        uses: actions/cache@v2
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-mod-
-
-      - name: Go build cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/go-build
-          key: ${{ runner.os }}-go-build-integration-test-${{ hashFiles('**/*.go', '**/go.mod', '**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-build-integration-test-
 
       - name: Start kind cluster
         run: |
