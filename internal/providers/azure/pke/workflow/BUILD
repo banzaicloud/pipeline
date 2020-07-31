@@ -1,0 +1,31 @@
+subinclude("///pleasings2//go:compat")
+
+filegroup(
+    name = "workflow",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster/clustersetup",
+        "//internal/cluster/workflow",
+        "//internal/pke",
+        "//internal/pke/workflow",
+        "//internal/providers/azure",
+        "//internal/providers/azure/pke",
+        "//internal/providers/pke/pkeworkflow",
+        "//internal/providers/pke/pkeworkflow/pkeworkflowadapter",
+        "//pkg/brn",
+        "//pkg/cluster",
+        "//pkg/cluster/pke",
+        "//pkg/providers/azure",
+        "//src/cluster",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = [":workflow"],
+    deps = [],
+)

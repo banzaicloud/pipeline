@@ -1,0 +1,43 @@
+subinclude("///pleasings2//go:compat")
+
+filegroup(
+    name = "dns",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//internal/integratedservices",
+        "//internal/integratedservices/integratedserviceadapter",
+        "//internal/integratedservices/services",
+        "//internal/integratedservices/services/dns/externaldns",
+        "//internal/secret/secrettype",
+        "//pkg/any",
+        "//pkg/brn",
+        "//pkg/validation",
+        "//src/auth",
+        "//src/cluster",
+        "//src/dns/route53",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = [":dns"],
+    deps = [
+        "//internal/common/commonadapter",
+        "//internal/helm",
+        "//internal/integratedservices",
+        "//internal/integratedservices/integratedserviceadapter",
+        "//internal/integratedservices/services",
+        "//internal/secret/secrettype",
+        "//pkg/brn",
+        "//pkg/cluster",
+        "//pkg/helm",
+        "//src/auth",
+        "//src/dns/route53",
+        "//src/secret",
+    ],
+)
