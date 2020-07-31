@@ -379,6 +379,7 @@ func createNodePoolsFromPKENodePools(pkeNodePools []PKENodePool) []pkeworkflow.N
 				InstanceType:      np.InstanceType,
 				AvailabilityZones: np.AvailabilityZones,
 				ImageID:           np.ImageID,
+				VolumeSize:        np.VolumeSize,
 				SpotPrice:         np.SpotPrice,
 			})
 	}
@@ -481,6 +482,7 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 			providerConfig.AutoScalingGroup.InstanceType = np.InstanceType
 			providerConfig.AutoScalingGroup.LaunchConfigurationName = np.Name
 			providerConfig.AutoScalingGroup.Image = np.ImageID
+			providerConfig.AutoScalingGroup.VolumeSize = np.VolumeSize
 			providerConfig.AutoScalingGroup.Size.Min = np.MinCount
 			providerConfig.AutoScalingGroup.Size.Max = np.MaxCount
 			providerConfig.AutoScalingGroup.Size.Desired = np.Count
@@ -685,6 +687,7 @@ type PKENodePool struct {
 	InstanceType      string
 	AvailabilityZones []string
 	ImageID           string
+	VolumeSize        int
 	SpotPrice         string
 	Subnets           []string
 }
@@ -713,10 +716,12 @@ func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
 			InstanceType:      amazonPool.AutoScalingGroup.InstanceType,
 			AvailabilityZones: azs,
 			ImageID:           amazonPool.AutoScalingGroup.Image,
+			VolumeSize:        amazonPool.AutoScalingGroup.VolumeSize,
 			SpotPrice:         amazonPool.AutoScalingGroup.SpotPrice,
 			Autoscaling:       np.Autoscaling,
 			Subnets:           subnets,
 		}
+
 		for _, role := range np.Roles {
 			if role == "master" {
 				pools[i].Master = true
