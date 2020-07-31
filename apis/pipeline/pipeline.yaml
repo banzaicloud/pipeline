@@ -5110,6 +5110,9 @@ components:
                 image:
                     type: string
                     example: "ami-dd3c0f36"
+                volumeSize:
+                    type: integer
+                    description: Size of root EBS volume to attach to the nodes in GBs. Zero means that the size is determined automatically.
                 zones:
                     type: array
                     items:
