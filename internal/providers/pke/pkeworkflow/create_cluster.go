@@ -123,6 +123,28 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		}
 	}
 
+	// Select images (if not specified)
+	{
+		activityInput := SelectImagesActivityInput{ClusterID: input.ClusterID, NodePools: nodePools}
+		err := workflow.ExecuteActivity(ctx, SelectImagesActivityName, activityInput).Get(ctx, &nodePools)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Select volume sizes
+	{
+		activityInput := SelectVolumeSizesActivityInput{
+			AWSActivityInput: awsActivityInput,
+			NodePools:        nodePools,
+		}
+
+		err := workflow.ExecuteActivity(ctx, SelectVolumeSizesActivityName, activityInput).Get(ctx, &nodePools)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Collect all AZs
 	var master NodePool
 	for _, np := range nodePools {

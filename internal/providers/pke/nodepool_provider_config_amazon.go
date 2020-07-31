@@ -18,6 +18,7 @@ type NodePoolProviderConfigAmazon struct {
 	AutoScalingGroup struct {
 		Name                    string  `yaml:"name"`
 		Image                   string  `yaml:"image"`
+		VolumeSize              int     `yaml:"volumeSize"`
 		Zones                   Zones   `yaml:"zones"`
 		InstanceType            string  `yaml:"instanceType"`
 		LaunchConfigurationName string  `yaml:"launchConfigurationName"`
