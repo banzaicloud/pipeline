@@ -85,6 +85,7 @@ func (c *Cluster) GetNodePools() []pkeworkflow.NodePool {
 			InstanceType:      np.InstanceType,
 			AvailabilityZones: np.AvailabilityZones,
 			ImageID:           np.ImageID,
+			VolumeSize:        np.VolumeSize,
 			SpotPrice:         np.SpotPrice,
 			Subnets:           np.Subnets,
 		}

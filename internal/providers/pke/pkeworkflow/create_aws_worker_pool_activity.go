@@ -39,18 +39,15 @@ const WorkerCloudFormationTemplate = "worker.cf.yaml"
 type CreateWorkerPoolActivity struct {
 	clusters       Clusters
 	tokenGenerator TokenGenerator
-	imageSelector  pkeaws.ImageSelector
 }
 
 func NewCreateWorkerPoolActivity(
 	clusters Clusters,
 	tokenGenerator TokenGenerator,
-	imageSelector pkeaws.ImageSelector,
 ) *CreateWorkerPoolActivity {
 	return &CreateWorkerPoolActivity{
 		clusters:       clusters,
 		tokenGenerator: tokenGenerator,
-		imageSelector:  imageSelector,
 	}
 }
 
@@ -80,42 +77,6 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 	awsCluster, ok := cluster.(AWSCluster)
 	if !ok {
 		return "", errors.New(fmt.Sprintf("can't get AWS client for %t", cluster))
-	}
-
-	ver, err := awsCluster.GetKubernetesVersion()
-	if err != nil {
-		return "", errors.WrapIf(err, "can't get Kubernetes version")
-	}
-
-	imageID := input.Pool.ImageID
-	if imageID == "" {
-		cri, _ := awsCluster.GetKubernetesContainerRuntime()
-
-		isGPUInstance := func(instanceType string) bool {
-			return strings.HasPrefix(instanceType, "p2.") || strings.HasPrefix(instanceType, "p3.") ||
-				strings.HasPrefix(instanceType, "g3.") || strings.HasPrefix(instanceType, "g4.")
-		}
-
-		// Special logic if the instance type is a GPU instance
-		if isGPUInstance(input.Pool.InstanceType) {
-			cri = "docker"
-		}
-
-		criteria := pkeaws.ImageSelectionCriteria{
-			Region:            cluster.GetLocation(),
-			InstanceType:      input.Pool.InstanceType,
-			PKEVersion:        pkeaws.Version,
-			KubernetesVersion: ver,
-			OperatingSystem:   "ubuntu",
-			ContainerRuntime:  cri,
-		}
-
-		image, err := a.imageSelector.SelectImage(ctx, criteria)
-		if err != nil {
-			return "", errors.WrapIff(err, "failed to get default image for Kubernetes version %s", ver)
-		}
-
-		imageID = image
 	}
 
 	_, signedToken, err := a.tokenGenerator.GenerateClusterToken(cluster.GetOrganizationId(), cluster.GetID())
@@ -199,7 +160,11 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 			},
 			{
 				ParameterKey:   aws.String("ImageId"),
-				ParameterValue: aws.String(imageID),
+				ParameterValue: aws.String(input.Pool.ImageID),
+			},
+			{
+				ParameterKey:   aws.String("VolumeSize"),
+				ParameterValue: aws.String(strconv.Itoa(input.Pool.VolumeSize)),
 			},
 			{
 				ParameterKey:   aws.String("PkeVersion"),

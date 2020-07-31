@@ -185,6 +185,28 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 		}
 	}
 
+	// Select images for new nodepools (if not specified)
+	{
+		activityInput := SelectImagesActivityInput{ClusterID: input.ClusterID, NodePools: input.NodePoolsToAdd}
+		err := workflow.ExecuteActivity(ctx, SelectImagesActivityName, activityInput).Get(ctx, &input.NodePoolsToAdd)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Select volume sizes
+	{
+		activityInput := SelectVolumeSizesActivityInput{
+			AWSActivityInput: awsActivityInput,
+			NodePools:        input.NodePoolsToAdd,
+		}
+
+		err := workflow.ExecuteActivity(ctx, SelectVolumeSizesActivityName, activityInput).Get(ctx, &input.NodePoolsToAdd)
+		if err != nil {
+			return err
+		}
+	}
+
 	{
 		futures := make([]workflow.Future, len(input.NodePoolsToAdd))
 

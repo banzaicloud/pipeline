@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"strconv"
 	"strings"
 
 	"emperror.dev/errors"
@@ -35,18 +36,15 @@ const CreateMasterActivityName = "pke-create-master-activity"
 type CreateMasterActivity struct {
 	clusters       Clusters
 	tokenGenerator TokenGenerator
-	imageSelector  pkeaws.ImageSelector
 }
 
 func NewCreateMasterActivity(
 	clusters Clusters,
 	tokenGenerator TokenGenerator,
-	imageSelector pkeaws.ImageSelector,
 ) *CreateMasterActivity {
 	return &CreateMasterActivity{
 		clusters:       clusters,
 		tokenGenerator: tokenGenerator,
-		imageSelector:  imageSelector,
 	}
 }
 
@@ -77,32 +75,6 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 	awsCluster, ok := cluster.(AWSCluster)
 	if !ok {
 		return "", errors.New(fmt.Sprintf("can't create VPC for cluster type %t", cluster))
-	}
-
-	ver, err := awsCluster.GetKubernetesVersion()
-	if err != nil {
-		return "", errors.WrapIf(err, "can't get Kubernetes version")
-	}
-
-	imageID := input.Pool.ImageID
-	if imageID == "" {
-		cri, _ := awsCluster.GetKubernetesContainerRuntime()
-
-		criteria := pkeaws.ImageSelectionCriteria{
-			Region:            cluster.GetLocation(),
-			InstanceType:      input.Pool.InstanceType,
-			PKEVersion:        pkeaws.Version,
-			KubernetesVersion: ver,
-			OperatingSystem:   "ubuntu",
-			ContainerRuntime:  cri,
-		}
-
-		image, err := a.imageSelector.SelectImage(ctx, criteria)
-		if err != nil {
-			return "", errors.WrapIff(err, "failed to get default image for Kubernetes version %s", ver)
-		}
-
-		imageID = image
 	}
 
 	_, signedToken, err := a.tokenGenerator.GenerateClusterToken(cluster.GetOrganizationId(), cluster.GetID())
@@ -164,7 +136,11 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 		},
 		{
 			ParameterKey:   aws.String("ImageId"),
-			ParameterValue: aws.String(imageID),
+			ParameterValue: aws.String(input.Pool.ImageID),
+		},
+		{
+			ParameterKey:   aws.String("VolumeSize"),
+			ParameterValue: aws.String(strconv.Itoa(input.Pool.VolumeSize)),
 		},
 		{
 			ParameterKey:   aws.String("PkeVersion"),
