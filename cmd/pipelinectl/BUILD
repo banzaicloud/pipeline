@@ -10,4 +10,6 @@ go_build(
     pass_env = ["VERSION"],
     stamp = True,
     trimpath = True,
+    in_tree = False,
+    deps = ["//internal/app/pipelinectl/cli/commands"],
 )
