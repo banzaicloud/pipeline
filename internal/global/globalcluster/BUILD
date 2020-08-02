@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "globalcluster",
     srcs = glob(
         ["*.go"],

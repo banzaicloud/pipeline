@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "objectstore",
     srcs = glob(
         ["*.go"],
@@ -15,14 +15,20 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":objectstore"],
-    deps = ["//pkg/providers/azure"],
+    srcs = glob(["*_test.go"]),
+    deps = [
+        ":objectstore",
+        "//pkg/providers/azure",
+    ],
 )
 
 go_test(
     name = "integration_test",
-    srcs = [":objectstore"],
+    srcs = glob(["*_test.go"]),
     flags = "-test.run ^TestIntegration$",
     labels = ["integration"],
-    deps = ["//pkg/providers/azure"],
+    deps = [
+        ":objectstore",
+        "//pkg/providers/azure",
+    ],
 )

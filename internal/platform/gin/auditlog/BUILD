@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "auditlog",
     srcs = glob(
         ["*.go"],
@@ -15,6 +15,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":auditlog"],
-    deps = ["//internal/platform/gin/correlationid"],
+    srcs = glob(["*_test.go"]),
+    deps = [
+        ":auditlog",
+        "//internal/platform/gin/correlationid",
+    ],
 )

@@ -1,5 +1,10 @@
+[Go]
+GoPath = ""
+
 [buildconfig]
 go-home = "$(eval echo ~$(whoami))"
+gomod = //:go.mod
+
 helm-tool = "///pleasings2//tools/k8s:helm"
 
 golangci-lint-version = 1.25.0

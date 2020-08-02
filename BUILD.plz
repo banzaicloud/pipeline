@@ -1,24 +1,14 @@
 github_repo(
     name = "pleasings2",
     repo = "sagikazarmark/mypleasings",
-    revision = "446eaa1ff5ce24a45abbdb9aab0403a889b86f30",
+    revision = "ca7de4899da485f81cd865327bbe5ebb09431fbe",
 )
 
-genrule(
+filegroup(
     name = "go.mod",
-    srcs = ["go.mod"],
-    outs = ["go.mod"],
-    cmd = [
-        """export GO=$(cat "$SRC" | grep '^go .*$') && cat > $OUT << EOF
-module plz-out
-
-$GO
-EOF
-      """
-    ],
-    labels = [
-        "link:plz-out/"
-    ]
+    srcs = ["go.mod", "go.sum"],
+    deps = ["//pkg/sdk:go.mod", "//.plz:go.mod"],
+    visibility = ["PUBLIC"],
 )
 
 genrule(

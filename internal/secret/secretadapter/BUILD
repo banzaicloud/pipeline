@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "secretadapter",
     srcs = glob(
         ["*.go"],
@@ -12,14 +12,20 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":secretadapter"],
-    deps = ["//internal/secret"],
+    srcs = glob(["*_test.go"]),
+    deps = [
+        ":secretadapter",
+        "//internal/secret",
+    ],
 )
 
 go_test(
     name = "integration_test",
-    srcs = [":secretadapter"],
+    srcs = glob(["*_test.go"]),
     flags = "-test.run ^TestIntegration$",
     labels = ["integration"],
-    deps = ["//internal/secret"],
+    deps = [
+        ":secretadapter",
+        "//internal/secret",
+    ],
 )

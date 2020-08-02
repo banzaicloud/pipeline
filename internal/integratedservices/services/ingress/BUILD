@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "ingress",
     srcs = glob(
         ["*.go"],
@@ -21,8 +21,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":ingress"],
+    srcs = glob(["*_test.go"]),
     deps = [
+        ":ingress",
         "//internal/integratedservices",
         "//internal/integratedservices/services",
         "//pkg/jsonstructure",

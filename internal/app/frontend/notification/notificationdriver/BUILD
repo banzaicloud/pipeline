@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "notificationdriver",
     srcs = glob(
         ["*.go"],
@@ -15,6 +15,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":notificationdriver"],
-    deps = ["//internal/app/frontend/notification"],
+    srcs = glob(["*_test.go"]),
+    deps = [
+        ":notificationdriver",
+        "//internal/app/frontend/notification",
+    ],
 )

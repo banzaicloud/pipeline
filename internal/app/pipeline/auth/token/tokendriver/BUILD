@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "tokendriver",
     srcs = glob(
         ["*.go"],
@@ -15,6 +15,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":tokendriver"],
-    deps = ["//internal/app/pipeline/auth/token"],
+    srcs = glob(["*_test.go"]),
+    deps = [
+        ":tokendriver",
+        "//internal/app/pipeline/auth/token",
+    ],
 )
