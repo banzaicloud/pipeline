@@ -78,6 +78,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-plz-v2-
 
+      - name: Please test results
+        uses: actions/cache@v2
+        with:
+          path: |
+            plz-out/log/test_results.xml
+          key: ${{ runner.os }}-plz-test-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/*.go') }}
+          restore-keys: |
+            ${{ runner.os }}-plz-test-
+
       - name: Test
         run: ./pleasew -p --profile ci test --exclude integration //...
 
@@ -114,6 +123,15 @@ jobs:
           key: ${{ runner.os }}-plz-v2-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*') }}
           restore-keys: |
             ${{ runner.os }}-plz-v2-
+
+      - name: Please test results
+        uses: actions/cache@v2
+        with:
+          path: |
+            plz-out/log/test_results.xml
+          key: ${{ runner.os }}-plz-integration-test-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/*.go') }}
+          restore-keys: |
+            ${{ runner.os }}-plz-integration-test-
 
       - name: Start kind cluster
         run: |
