@@ -32,7 +32,8 @@ const CreateVpcActivityName = "eks-create-vpc"
 
 // CreateVpcActivity responsible for setting up a VPC for an EKS cluster
 type CreateVpcActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory        *AWSSessionFactory
+	cloudFormationAPIFactory CloudFormationAPIFactory
 	// body of the cloud formation template for setting up the VPC
 	cloudFormationTemplate string
 }
@@ -66,10 +67,11 @@ type CreateVpcActivityOutput struct {
 }
 
 // NewCreateVPCActivity instantiates a new CreateVpcActivity
-func NewCreateVPCActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *CreateVpcActivity {
+func NewCreateVPCActivity(awsSessionFactory *AWSSessionFactory, cloudFormationAPIFactory CloudFormationAPIFactory, cloudFormationTemplate string) *CreateVpcActivity {
 	return &CreateVpcActivity{
-		awsSessionFactory:      awsSessionFactory,
-		cloudFormationTemplate: cloudFormationTemplate,
+		awsSessionFactory:        awsSessionFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
+		cloudFormationTemplate:   cloudFormationTemplate,
 	}
 }
 
@@ -118,7 +120,7 @@ func (a *CreateVpcActivity) Execute(ctx context.Context, input CreateVpcActivity
 	if err = errors.WrapIf(err, "failed to create AWS session"); err != nil {
 		return nil, err
 	}
-	cloudformationClient := cloudformation.New(session)
+	cloudformationClient := a.cloudFormationAPIFactory.New(session)
 
 	clientRequestToken := generateRequestToken(input.AWSClientRequestTokenBase, CreateVpcActivityName)
 	createStackInput := &cloudformation.CreateStackInput{
@@ -136,7 +138,7 @@ func (a *CreateVpcActivity) Execute(ctx context.Context, input CreateVpcActivity
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-	err = WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
+	err = WaitUntilStackCreateCompleteWithContext(session, cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
 		var awsErr awserr.Error
 		if errors.As(err, &awsErr) {

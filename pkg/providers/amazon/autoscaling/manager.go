@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"logur.dev/logur"
 )
@@ -33,7 +34,7 @@ type Manager struct {
 	logger         logur.Logger
 
 	asSvc  *autoscaling.AutoScaling
-	cfSvc  *cloudformation.CloudFormation
+	cfSvc  cloudformationiface.CloudFormationAPI
 	ec2Svc *ec2.EC2
 }
 

@@ -34,11 +34,12 @@ import (
 const CreateNodePoolActivityName = "create-node-pool"
 
 type CreateNodePoolActivity struct {
-	clusters          cluster.Store
-	db                *gorm.DB
-	nodePools         cluster.NodePoolStore
-	eksNodePools      eks.NodePoolStore
-	awsSessionFactory AWSSessionFactory
+	clusters                 cluster.Store
+	db                       *gorm.DB
+	nodePools                cluster.NodePoolStore
+	eksNodePools             eks.NodePoolStore
+	awsSessionFactory        AWSSessionFactory
+	cloudFormationAPIFactory eksworkflow.CloudFormationAPIFactory
 }
 
 // NewCreateNodePoolActivity returns a new CreateNodePoolActivity.
@@ -48,13 +49,15 @@ func NewCreateNodePoolActivity(
 	nodePools cluster.NodePoolStore,
 	eksNodePools eks.NodePoolStore,
 	awsSessionFactory AWSSessionFactory,
+	cloudFormationAPIFactory eksworkflow.CloudFormationAPIFactory,
 ) CreateNodePoolActivity {
 	return CreateNodePoolActivity{
-		clusters:          clusters,
-		db:                db,
-		nodePools:         nodePools,
-		eksNodePools:      eksNodePools,
-		awsSessionFactory: awsSessionFactory,
+		clusters:                 clusters,
+		db:                       db,
+		nodePools:                nodePools,
+		eksNodePools:             eksNodePools,
+		awsSessionFactory:        awsSessionFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -144,7 +147,10 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 
 			var err error
 
-			vpcActivityOutput, err = eksworkflow.NewGetVpcConfigActivity(a.awsSessionFactory).Execute(ctx, input)
+			vpcActivityOutput, err = eksworkflow.NewGetVpcConfigActivity(
+				a.awsSessionFactory,
+				a.cloudFormationAPIFactory,
+			).Execute(ctx, input)
 			if err != nil {
 				return err
 			}
@@ -189,7 +195,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			return errors.WrapIf(err, "failed to get CloudFormation template for node pools")
 		}
 
-		_, err = eksworkflow.NewCreateAsgActivity(a.awsSessionFactory, nodePoolTemplate).Execute(ctx, subinput)
+		_, err = eksworkflow.NewCreateAsgActivity(a.awsSessionFactory, a.cloudFormationAPIFactory, nodePoolTemplate).Execute(ctx, subinput)
 		if err != nil {
 			return cadence.WrapClientError(err)
 		}

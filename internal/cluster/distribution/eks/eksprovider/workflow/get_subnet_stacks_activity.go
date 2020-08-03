@@ -18,7 +18,6 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -29,7 +28,8 @@ const GetSubnetStacksActivityName = "eks-get-subnet-stacks"
 
 // GetSubnetStacksActivity collects all subnet stack names
 type GetSubnetStacksActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory        *AWSSessionFactory
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
 type GetSubnetStacksActivityInput struct {
@@ -40,9 +40,10 @@ type GetSubnetStacksActivityOutput struct {
 	StackNames []string
 }
 
-func NewGetSubnetStacksActivity(awsSessionFactory *AWSSessionFactory) *GetSubnetStacksActivity {
+func NewGetSubnetStacksActivity(awsSessionFactory *AWSSessionFactory, cloudFormationAPIFactory CloudFormationAPIFactory) *GetSubnetStacksActivity {
 	return &GetSubnetStacksActivity{
-		awsSessionFactory: awsSessionFactory,
+		awsSessionFactory:        awsSessionFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -64,7 +65,8 @@ func (a *GetSubnetStacksActivity) Execute(ctx context.Context, input GetSubnetSt
 		"banzaicloud-pipeline-stack-type":   "subnet",
 	}
 
-	cfStackNames, err := pkgCloudformation.GetExistingTaggedStackNames(cloudformation.New(session), tags)
+	cloudFormationClient := a.cloudFormationAPIFactory.New(session)
+	cfStackNames, err := pkgCloudformation.GetExistingTaggedStackNames(cloudFormationClient, tags)
 	if err != nil {
 		return nil, err
 	}

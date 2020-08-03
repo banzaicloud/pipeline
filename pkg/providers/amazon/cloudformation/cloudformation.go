@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 )
 
 // +testify:mock
@@ -67,7 +68,7 @@ func (factory *CloudFormationFactory) New(
 }
 
 // GetExistingTaggedStackNames gives back existing CF stacks which have the given tags
-func GetExistingTaggedStackNames(cfSvc *cloudformation.CloudFormation, tags map[string]string) ([]string, error) {
+func GetExistingTaggedStackNames(cfSvc cloudformationiface.CloudFormationAPI, tags map[string]string) ([]string, error) {
 	names := make([]string, 0)
 
 	err := cfSvc.DescribeStacksPages(&cloudformation.DescribeStacksInput{}, func(page *cloudformation.DescribeStacksOutput, lastPage bool) bool {
@@ -134,7 +135,7 @@ func IsErrorFinal(err error) bool {
 	return false
 }
 
-func NewAwsStackFailure(awsStackError error, stackName, clientRequestToken string, cloudformationSrv *cloudformation.CloudFormation) error {
+func NewAwsStackFailure(awsStackError error, stackName, clientRequestToken string, cloudformationSrv cloudformationiface.CloudFormationAPI) error {
 	if awsStackError == nil {
 		return nil
 	}
@@ -176,7 +177,7 @@ func NewAwsStackFailure(awsStackError error, stackName, clientRequestToken strin
 	}
 }
 
-func collectFailedStackEvents(stackName, clientRequestToken string, cloudformationSrv *cloudformation.CloudFormation) ([]*cloudformation.StackEvent, error) {
+func collectFailedStackEvents(stackName, clientRequestToken string, cloudformationSrv cloudformationiface.CloudFormationAPI) ([]*cloudformation.StackEvent, error) {
 	var failedStackEvents []*cloudformation.StackEvent
 
 	describeStackEventsInput := &cloudformation.DescribeStackEventsInput{StackName: aws.String(stackName)}

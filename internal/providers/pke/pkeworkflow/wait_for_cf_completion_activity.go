@@ -27,12 +27,14 @@ import (
 const WaitCFCompletionActivityName = "pke-wait-cf-completion-activity"
 
 type WaitCFCompletionActivity struct {
-	awsClientFactory *AWSClientFactory
+	awsClientFactory         *AWSClientFactory
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
-func NewWaitCFCompletionActivity(awsClientFactory *AWSClientFactory) *WaitCFCompletionActivity {
+func NewWaitCFCompletionActivity(awsClientFactory *AWSClientFactory, cloudFormationAPIFactory CloudFormationAPIFactory) *WaitCFCompletionActivity {
 	return &WaitCFCompletionActivity{
-		awsClientFactory: awsClientFactory,
+		awsClientFactory:         awsClientFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -47,7 +49,7 @@ func (a *WaitCFCompletionActivity) Execute(ctx context.Context, input WaitCFComp
 		return nil, err
 	}
 
-	cfClient := cloudformation.New(client)
+	cfClient := a.cloudFormationAPIFactory.New(client)
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackID)}
 

@@ -494,6 +494,7 @@ func main() {
 				clusteradapter.NewNodePoolStore(db, clusterStore),
 				eksadapter.NewNodePoolStore(db),
 				eksworkflow.NewAWSSessionFactory(secret.Store),
+				eksworkflow.NewCloudFormationFactory(),
 			)
 			activity.RegisterWithOptions(createNodePoolActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.CreateNodePoolActivityName})
 
@@ -509,6 +510,7 @@ func main() {
 				clusterStore,
 				clusteradapter.NewNodePoolStore(db, clusterStore),
 				eksworkflow.NewAWSSessionFactory(secret.Store),
+				eksworkflow.NewCloudFormationFactory(),
 			)
 			activity.RegisterWithOptions(deleteNodePoolActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.DeleteNodePoolActivityName})
 

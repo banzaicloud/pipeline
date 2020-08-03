@@ -34,17 +34,20 @@ import (
 const CreateMasterActivityName = "pke-create-master-activity"
 
 type CreateMasterActivity struct {
-	clusters       Clusters
-	tokenGenerator TokenGenerator
+	clusters                 Clusters
+	tokenGenerator           TokenGenerator
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
 func NewCreateMasterActivity(
 	clusters Clusters,
 	tokenGenerator TokenGenerator,
+	cloudFormationAPIFactory CloudFormationAPIFactory,
 ) *CreateMasterActivity {
 	return &CreateMasterActivity{
-		clusters:       clusters,
-		tokenGenerator: tokenGenerator,
+		clusters:                 clusters,
+		tokenGenerator:           tokenGenerator,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -92,7 +95,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 		return "", errors.WrapIf(err, "failed to connect to AWS")
 	}
 
-	cfClient := cloudformation.New(client)
+	cfClient := a.cloudFormationAPIFactory.New(client)
 
 	target := "master"
 	if input.MultiMaster {

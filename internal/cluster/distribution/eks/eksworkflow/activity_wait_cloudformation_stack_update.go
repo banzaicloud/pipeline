@@ -23,13 +23,16 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
+
+	eksproviderworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 )
 
 const WaitCloudFormationStackUpdateActivityName = "eks-wait-cloudformation-stack-update"
 
 // WaitCloudFormationStackUpdateActivity updates an existing node group.
 type WaitCloudFormationStackUpdateActivity struct {
-	sessionFactory AWSSessionFactory
+	sessionFactory           AWSSessionFactory
+	cloudFormationAPIFactory eksproviderworkflow.CloudFormationAPIFactory
 }
 
 // WaitCloudFormationStackUpdateActivityInput holds the parameters for the node group update.
@@ -40,9 +43,10 @@ type WaitCloudFormationStackUpdateActivityInput struct {
 }
 
 // NewWaitCloudFormationStackUpdateActivity creates a new WaitCloudFormationStackUpdateActivity instance.
-func NewWaitCloudFormationStackUpdateActivity(sessionFactory AWSSessionFactory) WaitCloudFormationStackUpdateActivity {
+func NewWaitCloudFormationStackUpdateActivity(sessionFactory AWSSessionFactory, cloudFormationAPIFactory eksproviderworkflow.CloudFormationAPIFactory) WaitCloudFormationStackUpdateActivity {
 	return WaitCloudFormationStackUpdateActivity{
-		sessionFactory: sessionFactory,
+		sessionFactory:           sessionFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -58,7 +62,7 @@ func (a WaitCloudFormationStackUpdateActivity) Execute(ctx context.Context, inpu
 		return err
 	}
 
-	cloudformationClient := cloudformation.New(sess)
+	cloudformationClient := a.cloudFormationAPIFactory.New(sess)
 
 	count := 0
 	if activity.HasHeartbeatDetails(ctx) {
@@ -96,7 +100,7 @@ func (a WaitCloudFormationStackUpdateActivity) Execute(ctx context.Context, inpu
 				Expected: "ValidationError",
 			},
 		},
-		Logger: cloudformationClient.Config.Logger,
+		Logger: sess.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
 			count++
 			activity.RecordHeartbeat(ctx, count)

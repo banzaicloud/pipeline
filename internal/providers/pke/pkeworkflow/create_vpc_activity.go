@@ -30,12 +30,14 @@ import (
 const CreateVPCActivityName = "pke-create-vpc-activity"
 
 type CreateVPCActivity struct {
-	awsClientFactory *AWSClientFactory
+	awsClientFactory         *AWSClientFactory
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
-func NewCreateVPCActivity(awsClientFactory *AWSClientFactory) *CreateVPCActivity {
+func NewCreateVPCActivity(awsClientFactory *AWSClientFactory, cloudFormationAPIFactory CloudFormationAPIFactory) *CreateVPCActivity {
 	return &CreateVPCActivity{
-		awsClientFactory: awsClientFactory,
+		awsClientFactory:         awsClientFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -64,7 +66,7 @@ func (a *CreateVPCActivity) Execute(ctx context.Context, input CreateVPCActivity
 		return "", err
 	}
 
-	cfClient := cloudformation.New(client)
+	cfClient := a.cloudFormationAPIFactory.New(client)
 
 	buf, err := ioutil.ReadFile("templates/pke/vpc.cf.yaml")
 	if err != nil {

@@ -31,15 +31,17 @@ const CreateSubnetActivityName = "pke-create-subnet"
 
 const SubnetCloudFormationTemplate = "subnet.cf.yaml"
 
-func NewCreateSubnetActivity(awsClientFactory *AWSClientFactory) *CreateSubnetActivity {
+func NewCreateSubnetActivity(awsClientFactory *AWSClientFactory, cloudFormationAPIFactory CloudFormationAPIFactory) *CreateSubnetActivity {
 	return &CreateSubnetActivity{
-		awsClientFactory: awsClientFactory,
+		awsClientFactory:         awsClientFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
 // CreateSubnetActivity responsible for setting up a Subnet for an EKS cluster
 type CreateSubnetActivity struct {
-	awsClientFactory *AWSClientFactory
+	awsClientFactory         *AWSClientFactory
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
 // CreateSubnetActivityInput holds data needed for setting up
@@ -94,7 +96,7 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 	if input.Cidr != "" {
 		logger.Debug("creating subnet")
 
-		cloudformationClient := cloudformation.New(client)
+		cloudformationClient := a.cloudFormationAPIFactory.New(client)
 
 		stackParams := []*cloudformation.Parameter{
 			{
@@ -129,7 +131,7 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 		}
 
 		describeStacksInput := &cloudformation.DescribeStacksInput{StackName: stackName}
-		err = eksWorkflow.WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
+		err = eksWorkflow.WaitUntilStackCreateCompleteWithContext(client, cloudformationClient, ctx, describeStacksInput)
 
 		if err != nil {
 			return nil, err

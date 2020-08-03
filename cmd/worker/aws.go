@@ -35,21 +35,22 @@ func registerAwsWorkflows(
 	workflow.RegisterWithOptions(pkeworkflow.UpdateClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.UpdateClusterWorkflowName})
 
 	awsClientFactory := pkeworkflow.NewAWSClientFactory(secretStore)
+	cloudFormationAPIFactory := pkeworkflow.NewCloudFormationFactory()
 	ec2Factory := pkeworkflow.NewEC2Factory()
 
-	createAWSRolesActivity := pkeworkflow.NewCreateAWSRolesActivity(awsClientFactory)
+	createAWSRolesActivity := pkeworkflow.NewCreateAWSRolesActivity(awsClientFactory, cloudFormationAPIFactory)
 	activity.RegisterWithOptions(createAWSRolesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateAWSRolesActivityName})
 
-	waitCFCompletionActivity := pkeworkflow.NewWaitCFCompletionActivity(awsClientFactory)
+	waitCFCompletionActivity := pkeworkflow.NewWaitCFCompletionActivity(awsClientFactory, cloudFormationAPIFactory)
 	activity.RegisterWithOptions(waitCFCompletionActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitCFCompletionActivityName})
 
-	createPKEVPCActivity := pkeworkflow.NewCreateVPCActivity(awsClientFactory)
+	createPKEVPCActivity := pkeworkflow.NewCreateVPCActivity(awsClientFactory, cloudFormationAPIFactory)
 	activity.RegisterWithOptions(createPKEVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateVPCActivityName})
 
-	createPKESubnetActivity := pkeworkflow.NewCreateSubnetActivity(awsClientFactory)
+	createPKESubnetActivity := pkeworkflow.NewCreateSubnetActivity(awsClientFactory, cloudFormationAPIFactory)
 	activity.RegisterWithOptions(createPKESubnetActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateSubnetActivityName})
 
-	deletePKESubnetActivity := pkeworkflow.NewDeleteSubnetActivity(clusters)
+	deletePKESubnetActivity := pkeworkflow.NewDeleteSubnetActivity(clusters, cloudFormationAPIFactory)
 	activity.RegisterWithOptions(deletePKESubnetActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteSubnetActivityName})
 
 	getVpcDefaultSecurityGroupActivity := pkeworkflow.NewGetVpcDefaultSecurityGroupActivity(awsClientFactory)
@@ -64,10 +65,10 @@ func registerAwsWorkflows(
 	createElasticIPActivity := pkeworkflow.NewCreateElasticIPActivity(awsClientFactory)
 	activity.RegisterWithOptions(createElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateElasticIPActivityName})
 
-	createNLBActivity := pkeworkflow.NewCreateNLBActivity(awsClientFactory)
+	createNLBActivity := pkeworkflow.NewCreateNLBActivity(awsClientFactory, cloudFormationAPIFactory)
 	activity.RegisterWithOptions(createNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateNLBActivityName})
 
-	createMasterActivity := pkeworkflow.NewCreateMasterActivity(clusters, tokenGenerator)
+	createMasterActivity := pkeworkflow.NewCreateMasterActivity(clusters, tokenGenerator, cloudFormationAPIFactory)
 	activity.RegisterWithOptions(createMasterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateMasterActivityName})
 
 	listNodePoolsActivity := pkeworkflow.NewListNodePoolsActivity(clusters)
@@ -76,13 +77,13 @@ func registerAwsWorkflows(
 	selectImageActivity := pkeworkflow.NewSelectImageActivity(clusters, imageSelector)
 	activity.RegisterWithOptions(selectImageActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SelectImageActivityName})
 
-	createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters, tokenGenerator)
+	createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters, tokenGenerator, cloudFormationAPIFactory)
 	activity.RegisterWithOptions(createWorkerPoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateWorkerPoolActivityName})
 
-	deletePoolActivity := pkeworkflow.NewDeletePoolActivity(clusters)
+	deletePoolActivity := pkeworkflow.NewDeletePoolActivity(clusters, cloudFormationAPIFactory)
 	activity.RegisterWithOptions(deletePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeletePoolActivityName})
 
-	waitForDeletePoolActivity := pkeworkflow.NewWaitForDeletePoolActivity(clusters)
+	waitForDeletePoolActivity := pkeworkflow.NewWaitForDeletePoolActivity(clusters, cloudFormationAPIFactory)
 	activity.RegisterWithOptions(waitForDeletePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitForDeletePoolActivityName})
 
 	updatePoolActivity := pkeworkflow.NewUpdatePoolActivity(awsClientFactory)
@@ -91,16 +92,16 @@ func registerAwsWorkflows(
 	deleteElasticIPActivity := pkeworkflow.NewDeleteElasticIPActivity(clusters)
 	activity.RegisterWithOptions(deleteElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteElasticIPActivityName})
 
-	deleteNLBActivity := pkeworkflow.NewDeleteNLBActivity(clusters)
+	deleteNLBActivity := pkeworkflow.NewDeleteNLBActivity(clusters, cloudFormationAPIFactory)
 	activity.RegisterWithOptions(deleteNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteNLBActivityName})
 
-	waitForDeleteNLBActivity := pkeworkflow.NewWaitForDeleteNLBActivity(clusters)
+	waitForDeleteNLBActivity := pkeworkflow.NewWaitForDeleteNLBActivity(clusters, cloudFormationAPIFactory)
 	activity.RegisterWithOptions(waitForDeleteNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitForDeleteNLBActivityName})
 
-	deleteVPCActivity := pkeworkflow.NewDeleteVPCActivity(clusters)
+	deleteVPCActivity := pkeworkflow.NewDeleteVPCActivity(clusters, cloudFormationAPIFactory)
 	activity.RegisterWithOptions(deleteVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteVPCActivityName})
 
-	waitForDeleteVPCActivity := pkeworkflow.NewWaitForDeleteVPCActivity(clusters)
+	waitForDeleteVPCActivity := pkeworkflow.NewWaitForDeleteVPCActivity(clusters, cloudFormationAPIFactory)
 	activity.RegisterWithOptions(waitForDeleteVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitForDeleteVPCActivityName})
 
 	uploadSshKeyPairActivity := pkeworkflow.NewUploadSSHKeyPairActivity(clusters)

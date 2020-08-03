@@ -35,16 +35,16 @@ type CreateInfraWorkflowTestSuite struct {
 func TestCreateInfraWorkflowTestSuite(t *testing.T) {
 	workflow.RegisterWithOptions(CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: CreateInfraWorkflowName})
 
-	createVPCActivity := NewCreateVPCActivity(nil, "")
+	createVPCActivity := NewCreateVPCActivity(nil, nil, "")
 	activity.RegisterWithOptions(createVPCActivity.Execute, activity.RegisterOptions{Name: CreateVpcActivityName})
 
-	createSubnetActivity := NewCreateSubnetActivity(nil, "")
+	createSubnetActivity := NewCreateSubnetActivity(nil, nil, "")
 	activity.RegisterWithOptions(createSubnetActivity.Execute, activity.RegisterOptions{Name: CreateSubnetActivityName})
 
 	getSubnetsDetailsActivity := NewGetSubnetsDetailsActivity(nil)
 	activity.RegisterWithOptions(getSubnetsDetailsActivity.Execute, activity.RegisterOptions{Name: GetSubnetsDetailsActivityName})
 
-	createIamRolesActivity := NewCreateIamRolesActivity(nil, "")
+	createIamRolesActivity := NewCreateIamRolesActivity(nil, nil, "")
 	activity.RegisterWithOptions(createIamRolesActivity.Execute, activity.RegisterOptions{Name: CreateIamRolesActivityName})
 
 	uploadSSHActivityActivity := NewUploadSSHKeyActivity(nil)
@@ -56,7 +56,7 @@ func TestCreateInfraWorkflowTestSuite(t *testing.T) {
 	saveK8sConfigActivity := NewSaveK8sConfigActivity(nil, nil)
 	activity.RegisterWithOptions(saveK8sConfigActivity.Execute, activity.RegisterOptions{Name: SaveK8sConfigActivityName})
 
-	createAsgActivity := NewCreateAsgActivity(nil, "")
+	createAsgActivity := NewCreateAsgActivity(nil, nil, "")
 	activity.RegisterWithOptions(createAsgActivity.Execute, activity.RegisterOptions{Name: CreateAsgActivityName})
 
 	createUserAccessKeyActivity := NewCreateClusterUserAccessKeyActivity(nil)

@@ -33,7 +33,8 @@ const CreateAsgActivityName = "eks-create-asg"
 
 // CreateAsgActivity responsible for creating IAM roles
 type CreateAsgActivity struct {
-	awsSessionFactory AWSFactory
+	awsSessionFactory        AWSFactory
+	cloudFormationAPIFactory CloudFormationAPIFactory
 	// body of the cloud formation template for setting up the VPC
 	cloudFormationTemplate string
 }
@@ -71,10 +72,11 @@ type CreateAsgActivityOutput struct {
 }
 
 // CreateAsgActivity instantiates a new CreateAsgActivity
-func NewCreateAsgActivity(awsSessionFactory AWSFactory, cloudFormationTemplate string) *CreateAsgActivity {
+func NewCreateAsgActivity(awsSessionFactory AWSFactory, cloudFormationAPIFactory CloudFormationAPIFactory, cloudFormationTemplate string) *CreateAsgActivity {
 	return &CreateAsgActivity{
-		awsSessionFactory:      awsSessionFactory,
-		cloudFormationTemplate: cloudFormationTemplate,
+		awsSessionFactory:        awsSessionFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
+		cloudFormationTemplate:   cloudFormationTemplate,
 	}
 }
 
@@ -93,7 +95,7 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		return nil, err
 	}
 
-	cloudformationClient := cloudformation.New(awsSession)
+	cloudformationClient := a.cloudFormationAPIFactory.New(awsSession)
 
 	logger.With("stackName", input.StackName).Info("creating stack")
 
@@ -221,7 +223,7 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-	err = WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
+	err = WaitUntilStackCreateCompleteWithContext(awsSession, cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
 		return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "waiting for CF stack create operation to complete failed")
 	}

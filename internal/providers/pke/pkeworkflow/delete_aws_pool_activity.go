@@ -33,12 +33,14 @@ const (
 )
 
 type DeletePoolActivity struct {
-	clusters Clusters
+	clusters                 Clusters
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
-func NewDeletePoolActivity(clusters Clusters) *DeletePoolActivity {
+func NewDeletePoolActivity(clusters Clusters, cloudFormationAPIFactory CloudFormationAPIFactory) *DeletePoolActivity {
 	return &DeletePoolActivity{
-		clusters: clusters,
+		clusters:                 clusters,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -63,7 +65,7 @@ func (a *DeletePoolActivity) Execute(ctx context.Context, input DeletePoolActivi
 		return errors.WrapIf(err, "failed to connect to AWS")
 	}
 
-	cfClient := cloudformation.New(client)
+	cfClient := a.cloudFormationAPIFactory.New(client)
 
 	stackName := fmt.Sprintf("pke-pool-%s-worker-%s", cluster.GetName(), input.Pool.Name)
 	if input.Pool.Master {
@@ -89,12 +91,14 @@ func (a *DeletePoolActivity) Execute(ctx context.Context, input DeletePoolActivi
 }
 
 type WaitForDeletePoolActivity struct {
-	clusters Clusters
+	clusters                 Clusters
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
-func NewWaitForDeletePoolActivity(clusters Clusters) *WaitForDeletePoolActivity {
+func NewWaitForDeletePoolActivity(clusters Clusters, cloudFormationAPIFactory CloudFormationAPIFactory) *WaitForDeletePoolActivity {
 	return &WaitForDeletePoolActivity{
-		clusters: clusters,
+		clusters:                 clusters,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -114,7 +118,7 @@ func (a *WaitForDeletePoolActivity) Execute(ctx context.Context, input DeletePoo
 		return errors.WrapIf(err, "failed to connect to AWS")
 	}
 
-	cfClient := cloudformation.New(client)
+	cfClient := a.cloudFormationAPIFactory.New(client)
 
 	stackName := fmt.Sprintf("pke-pool-%s-worker-%s", cluster.GetName(), input.Pool.Name)
 	if input.Pool.Master {

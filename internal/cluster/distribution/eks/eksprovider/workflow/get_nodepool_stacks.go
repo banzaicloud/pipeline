@@ -18,7 +18,6 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -28,7 +27,8 @@ import (
 const GetNodepoolStacksActivityName = "eks-get-nodepool-stacks"
 
 type GetNodepoolStacksActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory        *AWSSessionFactory
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
 type GetNodepoolStacksActivityInput struct {
@@ -40,9 +40,10 @@ type GetNodepoolStacksActivityOutput struct {
 	StackNames []string
 }
 
-func NewGetNodepoolStacksActivity(awsSessionFactory *AWSSessionFactory) *GetNodepoolStacksActivity {
+func NewGetNodepoolStacksActivity(awsSessionFactory *AWSSessionFactory, cloudFormationAPIFactory CloudFormationAPIFactory) *GetNodepoolStacksActivity {
 	return &GetNodepoolStacksActivity{
-		awsSessionFactory: awsSessionFactory,
+		awsSessionFactory:        awsSessionFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -79,13 +80,15 @@ func (a *GetNodepoolStacksActivity) Execute(ctx context.Context, input GetNodepo
 		"banzaicloud-pipeline-stack-type":   "nodepool",
 	}
 
+	cloudFormationClient := a.cloudFormationAPIFactory.New(awsSession)
+
 	// for backward compatibility looks for node pool stacks tagged by earlier version of Pipeline
-	cfStackNamesByOldTags, err := pkgCloudformation.GetExistingTaggedStackNames(cloudformation.New(awsSession), oldTags)
+	cfStackNamesByOldTags, err := pkgCloudformation.GetExistingTaggedStackNames(cloudFormationClient, oldTags)
 	if err != nil {
 		return nil, err
 	}
 
-	cfStackNames, err := pkgCloudformation.GetExistingTaggedStackNames(cloudformation.New(awsSession), tags)
+	cfStackNames, err := pkgCloudformation.GetExistingTaggedStackNames(cloudFormationClient, tags)
 	if err != nil {
 		return nil, err
 	}

@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 
@@ -40,7 +41,8 @@ const awsNoUpdatesError = "No updates are to be performed."
 
 // UpdateAsgActivity responsible for creating IAM roles
 type UpdateAsgActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory        *AWSSessionFactory
+	cloudFormationAPIFactory CloudFormationAPIFactory
 	// body of the cloud formation template for setting up the VPC
 	cloudFormationTemplate     string
 	asgFulfillmentWaitAttempts int
@@ -71,16 +73,17 @@ type UpdateAsgActivityOutput struct {
 }
 
 // UpdateAsgActivity instantiates a new UpdateAsgActivity
-func NewUpdateAsgActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *UpdateAsgActivity {
+func NewUpdateAsgActivity(awsSessionFactory *AWSSessionFactory, cloudFormationAPIFactory CloudFormationAPIFactory, cloudFormationTemplate string) *UpdateAsgActivity {
 	return &UpdateAsgActivity{
 		awsSessionFactory:          awsSessionFactory,
+		cloudFormationAPIFactory:   cloudFormationAPIFactory,
 		cloudFormationTemplate:     cloudFormationTemplate,
 		asgFulfillmentWaitAttempts: int(asgFulfillmentWaitAttempts),
 		asgFulfillmentWaitInterval: asgFulfillmentWaitInterval,
 	}
 }
 
-func getAutoScalingGroup(cloudformationSrv *cloudformation.CloudFormation, autoscalingSrv *autoscaling.AutoScaling, stackName string) (*autoscaling.Group, error) {
+func getAutoScalingGroup(cloudformationSrv cloudformationiface.CloudFormationAPI, autoscalingSrv *autoscaling.AutoScaling, stackName string) (*autoscaling.Group, error) {
 	describeStackResourceInput := &cloudformation.DescribeStackResourcesInput{
 		StackName: aws.String(stackName),
 	}
@@ -128,7 +131,7 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		return nil, err
 	}
 
-	cloudformationClient := cloudformation.New(awsSession)
+	cloudformationClient := a.cloudFormationAPIFactory.New(awsSession)
 
 	if input.Autoscaling {
 		autoscalingSrv := autoscaling.New(awsSession)
@@ -284,7 +287,7 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-	err = WaitUntilStackUpdateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
+	err = WaitUntilStackUpdateCompleteWithContext(awsSession, cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
 		return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "waiting for CF stack create operation to complete failed")
 	}

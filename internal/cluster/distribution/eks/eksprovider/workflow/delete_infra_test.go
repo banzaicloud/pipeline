@@ -34,7 +34,7 @@ type DeleteClusterInfraWorkflowTestSuite struct {
 func TestDeleteClusterInfraWorkflowTestSuite(t *testing.T) {
 	workflow.RegisterWithOptions(DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: DeleteInfraWorkflowName})
 
-	getVpcConfigActivity := NewGetVpcConfigActivity(nil)
+	getVpcConfigActivity := NewGetVpcConfigActivity(nil, nil)
 	activity.RegisterWithOptions(getVpcConfigActivity.Execute, activity.RegisterOptions{Name: GetVpcConfigActivityName})
 
 	getOwnedELBsActivity := NewGetOwnedELBsActivity(nil)
@@ -43,10 +43,10 @@ func TestDeleteClusterInfraWorkflowTestSuite(t *testing.T) {
 	waitELBsDeletionActivity := NewWaitELBsDeletionActivity(nil)
 	activity.RegisterWithOptions(waitELBsDeletionActivity.Execute, activity.RegisterOptions{Name: WaitELBsDeletionActivityName})
 
-	getNodepoolStacksActivity := NewGetNodepoolStacksActivity(nil)
+	getNodepoolStacksActivity := NewGetNodepoolStacksActivity(nil, nil)
 	activity.RegisterWithOptions(getNodepoolStacksActivity.Execute, activity.RegisterOptions{Name: GetNodepoolStacksActivityName})
 
-	deleteStackActivity := NewDeleteStackActivity(nil)
+	deleteStackActivity := NewDeleteStackActivity(nil, nil)
 	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: DeleteStackActivityName})
 
 	deleteControlPlaneActivity := NewDeleteControlPlaneActivity(nil)
@@ -61,7 +61,7 @@ func TestDeleteClusterInfraWorkflowTestSuite(t *testing.T) {
 	deleteOrphanNicActivity := NewDeleteOrphanNICActivity(nil)
 	activity.RegisterWithOptions(deleteOrphanNicActivity.Execute, activity.RegisterOptions{Name: DeleteOrphanNICActivityName})
 
-	getSubnetStacksActivity := NewGetSubnetStacksActivity(nil)
+	getSubnetStacksActivity := NewGetSubnetStacksActivity(nil, nil)
 	activity.RegisterWithOptions(getSubnetStacksActivity.Execute, activity.RegisterOptions{Name: GetSubnetStacksActivityName})
 
 	suite.Run(t, new(DeleteClusterInfraWorkflowTestSuite))

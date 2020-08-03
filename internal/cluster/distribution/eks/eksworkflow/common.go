@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
@@ -81,7 +82,7 @@ func setClusterStatus(ctx workflow.Context, clusterID uint, status, statusMessag
 }
 
 // TODO: this is temporary
-func packageCFError(err error, stackName string, clientRequestToken string, cloudformationClient *cloudformation.CloudFormation, errMessage string) error {
+func packageCFError(err error, stackName string, clientRequestToken string, cloudformationClient cloudformationiface.CloudFormationAPI, errMessage string) error {
 	var awsErr awserr.Error
 	if errors.As(err, &awsErr) {
 		if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {

@@ -32,7 +32,8 @@ const DeleteStackActivityName = "eks-delete-stack"
 
 // DeleteStackActivity responsible for deleting asg
 type DeleteStackActivity struct {
-	awsSessionFactory AWSFactory
+	awsSessionFactory        AWSFactory
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
 type DeleteStackActivityInput struct {
@@ -47,9 +48,10 @@ type DeleteStackActivityOutput struct {
 }
 
 // NewDeleteStackActivity instantiates a new DeleteStackActivity
-func NewDeleteStackActivity(awsSessionFactory AWSFactory) *DeleteStackActivity {
+func NewDeleteStackActivity(awsSessionFactory AWSFactory, cloudFormationAPIFactory CloudFormationAPIFactory) *DeleteStackActivity {
 	return &DeleteStackActivity{
-		awsSessionFactory: awsSessionFactory,
+		awsSessionFactory:        awsSessionFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -65,7 +67,7 @@ func (a *DeleteStackActivity) Execute(ctx context.Context, input DeleteStackActi
 		return err
 	}
 
-	cloudformationClient := cloudformation.New(awsSession)
+	cloudformationClient := a.cloudFormationAPIFactory.New(awsSession)
 
 	logger.Info("deleting stack")
 
@@ -85,7 +87,7 @@ func (a *DeleteStackActivity) Execute(ctx context.Context, input DeleteStackActi
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-	err = WaitUntilStackDeleteCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
+	err = WaitUntilStackDeleteCompleteWithContext(awsSession, cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
 		var awsErr awserr.Error
 		if errors.As(err, &awsErr) {

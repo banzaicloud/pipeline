@@ -27,12 +27,14 @@ import (
 const DeleteSubnetActivityName = "pke-delete-subnet-activity"
 
 type DeleteSubnetActivity struct {
-	clusters Clusters
+	clusters                 Clusters
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
-func NewDeleteSubnetActivity(clusters Clusters) *DeleteSubnetActivity {
+func NewDeleteSubnetActivity(clusters Clusters, cloudFormationAPIFactory CloudFormationAPIFactory) *DeleteSubnetActivity {
 	return &DeleteSubnetActivity{
-		clusters: clusters,
+		clusters:                 clusters,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -56,7 +58,7 @@ func (a *DeleteSubnetActivity) Execute(ctx context.Context, input DeleteSubnetAc
 		return errors.WrapIf(err, "failed to connect to AWS")
 	}
 
-	cfClient := cloudformation.New(client)
+	cfClient := a.cloudFormationAPIFactory.New(client)
 
 	clusterName := c.GetName()
 	stackName := "pke-subnet-" + clusterName + "-" + input.AvailabilityZone
@@ -75,13 +77,15 @@ func (a *DeleteSubnetActivity) Execute(ctx context.Context, input DeleteSubnetAc
 const WaitForDeleteSubnetActivityName = "wait-for-pke-delete-subnet-activity"
 
 type WaitForDeleteSubnetActivity struct {
-	clusters         Clusters
-	AvailabilityZone string
+	clusters                 Clusters
+	AvailabilityZone         string
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
-func NewWaitForDeleteSubnetActivity(clusters Clusters) *WaitForDeleteSubnetActivity {
+func NewWaitForDeleteSubnetActivity(clusters Clusters, cloudFormationAPIFactory CloudFormationAPIFactory) *WaitForDeleteSubnetActivity {
 	return &WaitForDeleteSubnetActivity{
-		clusters: clusters,
+		clusters:                 clusters,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -100,7 +104,7 @@ func (a *WaitForDeleteSubnetActivity) Execute(ctx context.Context, input DeleteS
 		return errors.WrapIf(err, "failed to connect to AWS")
 	}
 
-	cfClient := cloudformation.New(client)
+	cfClient := a.cloudFormationAPIFactory.New(client)
 
 	clusterName := c.GetName()
 	stackName := "pke-subnet-" + clusterName + "-" + input.AvailabilityZone

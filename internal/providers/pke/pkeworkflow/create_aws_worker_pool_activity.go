@@ -37,17 +37,20 @@ const CreateWorkerPoolActivityName = "pke-create-aws-worker-pool-activity"
 const WorkerCloudFormationTemplate = "worker.cf.yaml"
 
 type CreateWorkerPoolActivity struct {
-	clusters       Clusters
-	tokenGenerator TokenGenerator
+	clusters                 Clusters
+	tokenGenerator           TokenGenerator
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
 func NewCreateWorkerPoolActivity(
 	clusters Clusters,
 	tokenGenerator TokenGenerator,
+	cloudFormationAPIFactory CloudFormationAPIFactory,
 ) *CreateWorkerPoolActivity {
 	return &CreateWorkerPoolActivity{
-		clusters:       clusters,
-		tokenGenerator: tokenGenerator,
+		clusters:                 clusters,
+		tokenGenerator:           tokenGenerator,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -94,7 +97,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		return "", errors.WrapIf(err, "failed to connect to AWS")
 	}
 
-	cfClient := cloudformation.New(client)
+	cfClient := a.cloudFormationAPIFactory.New(client)
 
 	template, err := cloudformation2.GetCloudFormationTemplate(PKECloudFormationTemplateBasePath, WorkerCloudFormationTemplate)
 	if err != nil {

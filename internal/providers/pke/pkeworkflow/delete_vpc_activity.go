@@ -31,12 +31,14 @@ import (
 const DeleteVPCActivityName = "pke-delete-vpc-activity"
 
 type DeleteVPCActivity struct {
-	clusters Clusters
+	clusters                 Clusters
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
-func NewDeleteVPCActivity(clusters Clusters) *DeleteVPCActivity {
+func NewDeleteVPCActivity(clusters Clusters, cloudFormationAPIFactory CloudFormationAPIFactory) *DeleteVPCActivity {
 	return &DeleteVPCActivity{
-		clusters: clusters,
+		clusters:                 clusters,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -59,7 +61,7 @@ func (a *DeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCActivity
 		return errors.WrapIf(err, "failed to connect to AWS")
 	}
 
-	cfClient := cloudformation.New(client)
+	cfClient := a.cloudFormationAPIFactory.New(client)
 	clientRequestToken := uuid.Must(uuid.NewV4()).String()
 
 	clusterName := c.GetName()
@@ -86,10 +88,11 @@ type WaitForDeleteVPCActivity struct {
 	DeleteVPCActivity
 }
 
-func NewWaitForDeleteVPCActivity(clusters Clusters) *WaitForDeleteVPCActivity {
+func NewWaitForDeleteVPCActivity(clusters Clusters, cloudFormationAPIFactory CloudFormationAPIFactory) *WaitForDeleteVPCActivity {
 	return &WaitForDeleteVPCActivity{
 		DeleteVPCActivity{
-			clusters: clusters,
+			clusters:                 clusters,
+			cloudFormationAPIFactory: cloudFormationAPIFactory,
 		},
 	}
 }
@@ -109,7 +112,7 @@ func (a *WaitForDeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCA
 		return errors.WrapIf(err, "failed to connect to AWS")
 	}
 
-	cfClient := cloudformation.New(client)
+	cfClient := a.DeleteVPCActivity.cloudFormationAPIFactory.New(client)
 	clientRequestToken := uuid.Must(uuid.NewV4()).String()
 
 	clusterName := c.GetName()

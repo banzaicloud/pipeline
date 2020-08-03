@@ -28,7 +28,8 @@ const CreateIamRolesActivityName = "eks-create-iam-roles"
 
 // CreateIamRolesActivity responsible for creating IAM roles
 type CreateIamRolesActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory        *AWSSessionFactory
+	cloudFormationAPIFactory CloudFormationAPIFactory
 	// body of the cloud formation template for setting up the VPC
 	cloudFormationTemplate string
 }
@@ -55,10 +56,11 @@ type CreateIamRolesActivityOutput struct {
 }
 
 // CreateIamRolesActivity instantiates a new CreateIamRolesActivity
-func NewCreateIamRolesActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *CreateIamRolesActivity {
+func NewCreateIamRolesActivity(awsSessionFactory *AWSSessionFactory, cloudFormationAPIFactory CloudFormationAPIFactory, cloudFormationTemplate string) *CreateIamRolesActivity {
 	return &CreateIamRolesActivity{
-		awsSessionFactory:      awsSessionFactory,
-		cloudFormationTemplate: cloudFormationTemplate,
+		awsSessionFactory:        awsSessionFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
+		cloudFormationTemplate:   cloudFormationTemplate,
 	}
 }
 
@@ -114,7 +116,7 @@ func (a *CreateIamRolesActivity) Execute(ctx context.Context, input CreateIamRol
 		},
 	}
 
-	cloudformationClient := cloudformation.New(session)
+	cloudformationClient := a.cloudFormationAPIFactory.New(session)
 
 	clientRequestToken := generateRequestToken(input.AWSClientRequestTokenBase, CreateIamRolesActivityName)
 
@@ -137,7 +139,7 @@ func (a *CreateIamRolesActivity) Execute(ctx context.Context, input CreateIamRol
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-	err = WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
+	err = WaitUntilStackCreateCompleteWithContext(session, cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
 		return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "failed to describe stack")
 	}

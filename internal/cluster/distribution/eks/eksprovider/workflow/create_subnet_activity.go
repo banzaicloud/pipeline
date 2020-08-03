@@ -27,7 +27,8 @@ const CreateSubnetActivityName = "eks-create-subnet"
 
 // CreateSubnetActivity responsible for setting up a Subnet for an EKS cluster
 type CreateSubnetActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory        *AWSSessionFactory
+	cloudFormationAPIFactory CloudFormationAPIFactory
 	// body of the cloud formation template for setting up the Subnet
 	cloudFormationTemplate string
 }
@@ -66,10 +67,11 @@ type CreateSubnetActivityOutput struct {
 }
 
 // NewCreateSubnetActivity instantiates a new CreateSubnetActivity
-func NewCreateSubnetActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *CreateSubnetActivity {
+func NewCreateSubnetActivity(awsSessionFactory *AWSSessionFactory, cloudFormationAPIFactory CloudFormationAPIFactory, cloudFormationTemplate string) *CreateSubnetActivity {
 	return &CreateSubnetActivity{
-		awsSessionFactory:      awsSessionFactory,
-		cloudFormationTemplate: cloudFormationTemplate,
+		awsSessionFactory:        awsSessionFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
+		cloudFormationTemplate:   cloudFormationTemplate,
 	}
 }
 
@@ -93,7 +95,7 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 	if input.SubnetID == "" && input.Cidr != "" {
 		logger.Debug("creating subnet")
 
-		cloudformationClient := cloudformation.New(session)
+		cloudformationClient := a.cloudFormationAPIFactory.New(session)
 
 		stackParams := []*cloudformation.Parameter{
 			{
@@ -131,7 +133,7 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 		}
 
 		describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-		err = WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
+		err = WaitUntilStackCreateCompleteWithContext(session, cloudformationClient, ctx, describeStacksInput)
 
 		if err != nil {
 			return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "failed to create subnet with cidr")

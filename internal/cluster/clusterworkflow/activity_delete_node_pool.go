@@ -28,9 +28,10 @@ import (
 const DeleteNodePoolActivityName = "delete-node-pool"
 
 type DeleteNodePoolActivity struct {
-	clusters          cluster.Store
-	nodePools         cluster.NodePoolStore
-	awsSessionFactory AWSSessionFactory
+	clusters                 cluster.Store
+	nodePools                cluster.NodePoolStore
+	awsSessionFactory        AWSSessionFactory
+	cloudFormationAPIFactory eksworkflow.CloudFormationAPIFactory
 }
 
 // NewDeleteNodePoolActivity returns a new DeleteNodePoolActivity.
@@ -38,11 +39,13 @@ func NewDeleteNodePoolActivity(
 	clusters cluster.Store,
 	nodePools cluster.NodePoolStore,
 	awsSessionFactory AWSSessionFactory,
+	cloudFormationAPIFactory eksworkflow.CloudFormationAPIFactory,
 ) DeleteNodePoolActivity {
 	return DeleteNodePoolActivity{
-		clusters:          clusters,
-		nodePools:         nodePools,
-		awsSessionFactory: awsSessionFactory,
+		clusters:                 clusters,
+		nodePools:                nodePools,
+		awsSessionFactory:        awsSessionFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -70,7 +73,7 @@ func (a DeleteNodePoolActivity) Execute(ctx context.Context, input DeleteNodePoo
 			StackName: eksworkflow.GenerateNodePoolStackName(c.Name, input.NodePoolName),
 		}
 
-		err := eksworkflow.NewDeleteStackActivity(a.awsSessionFactory).Execute(ctx, input)
+		err := eksworkflow.NewDeleteStackActivity(a.awsSessionFactory, a.cloudFormationAPIFactory).Execute(ctx, input)
 		if err != nil {
 			return cadence.WrapClientError(err)
 		}

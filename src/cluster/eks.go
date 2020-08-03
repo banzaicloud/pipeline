@@ -24,6 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
@@ -449,7 +450,7 @@ func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 	return errors.Combine(caughtErrors...)
 }
 
-func (c *EKSCluster) getAutoScalingGroupName(cloudformationSrv *cloudformation.CloudFormation, autoscalingSrv *autoscaling.AutoScaling, nodePoolName string) (*string, error) {
+func (c *EKSCluster) getAutoScalingGroupName(cloudformationSrv cloudformationiface.CloudFormationAPI, autoscalingSrv *autoscaling.AutoScaling, nodePoolName string) (*string, error) {
 	logResourceId := "NodeGroup"
 	stackName := nodepools.GenerateNodePoolStackName(c.model.Cluster.Name, nodePoolName)
 	describeStackResourceInput := &cloudformation.DescribeStackResourceInput{

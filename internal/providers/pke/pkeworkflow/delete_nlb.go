@@ -27,12 +27,14 @@ import (
 const DeleteNLBActivityName = "pke-delete-nlb-activity"
 
 type DeleteNLBActivity struct {
-	clusters Clusters
+	clusters                 Clusters
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
-func NewDeleteNLBActivity(clusters Clusters) *DeleteNLBActivity {
+func NewDeleteNLBActivity(clusters Clusters, cloudFormationAPIFactory CloudFormationAPIFactory) *DeleteNLBActivity {
 	return &DeleteNLBActivity{
-		clusters: clusters,
+		clusters:                 clusters,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -55,7 +57,7 @@ func (a *DeleteNLBActivity) Execute(ctx context.Context, input DeleteNLBActivity
 		return errors.WrapIf(err, "failed to connect to AWS")
 	}
 
-	cfClient := cloudformation.New(client)
+	cfClient := a.cloudFormationAPIFactory.New(client)
 
 	clusterName := c.GetName()
 	stackName := "pke-nlb-" + clusterName
@@ -77,12 +79,14 @@ func (a *DeleteNLBActivity) Execute(ctx context.Context, input DeleteNLBActivity
 const WaitForDeleteNLBActivityName = "wait-for-pke-delete-nlb-activity"
 
 type WaitForDeleteNLBActivity struct {
-	clusters Clusters
+	clusters                 Clusters
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
-func NewWaitForDeleteNLBActivity(clusters Clusters) *WaitForDeleteNLBActivity {
+func NewWaitForDeleteNLBActivity(clusters Clusters, cloudFormationAPIFactory CloudFormationAPIFactory) *WaitForDeleteNLBActivity {
 	return &WaitForDeleteNLBActivity{
-		clusters: clusters,
+		clusters:                 clusters,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -101,7 +105,7 @@ func (a *WaitForDeleteNLBActivity) Execute(ctx context.Context, input DeleteNLBA
 		return errors.WrapIf(err, "failed to connect to AWS")
 	}
 
-	cfClient := cloudformation.New(client)
+	cfClient := a.cloudFormationAPIFactory.New(client)
 
 	clusterName := c.GetName()
 	stackName := "pke-nlb-" + clusterName

@@ -32,12 +32,14 @@ import (
 const CreateNLBActivityName = "pke-create-nlb-activity"
 
 type CreateNLBActivity struct {
-	awsClientFactory *AWSClientFactory
+	awsClientFactory         *AWSClientFactory
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
-func NewCreateNLBActivity(awsClientFactory *AWSClientFactory) *CreateNLBActivity {
+func NewCreateNLBActivity(awsClientFactory *AWSClientFactory, cloudFormationAPIFactory CloudFormationAPIFactory) *CreateNLBActivity {
 	return &CreateNLBActivity{
-		awsClientFactory: awsClientFactory,
+		awsClientFactory:         awsClientFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -62,7 +64,7 @@ func (a *CreateNLBActivity) Execute(ctx context.Context, input CreateNLBActivity
 		return nil, err
 	}
 
-	cfClient := cloudformation.New(client)
+	cfClient := a.cloudFormationAPIFactory.New(client)
 
 	buf, err := ioutil.ReadFile("templates/pke/nlb.cf.yaml")
 	if err != nil {

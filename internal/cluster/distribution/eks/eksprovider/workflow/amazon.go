@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/zap"
@@ -149,7 +150,7 @@ func generateRequestToken(uuid string, activityName string) string {
 	return token
 }
 
-func packageCFError(err error, stackName string, clientRequestToken string, cloudformationClient *cloudformation.CloudFormation, errMessage string) error {
+func packageCFError(err error, stackName string, clientRequestToken string, cloudformationClient cloudformationiface.CloudFormationAPI, errMessage string) error {
 	var awsErr awserr.Error
 	if errors.As(err, &awsErr) {
 		if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
@@ -220,7 +221,7 @@ type EksCluster interface {
 	SaveConfigSecretId(secretID string) error
 }
 
-func WaitUntilStackCreateCompleteWithContext(cf *cloudformation.CloudFormation, ctx aws.Context, input *cloudformation.DescribeStacksInput, opts ...request.WaiterOption) error {
+func WaitUntilStackCreateCompleteWithContext(session *session.Session, cf cloudformationiface.CloudFormationAPI, ctx aws.Context, input *cloudformation.DescribeStacksInput, opts ...request.WaiterOption) error {
 	count := 0
 	w := request.Waiter{
 		Name:        "WaitUntilStackCreateComplete",
@@ -263,7 +264,7 @@ func WaitUntilStackCreateCompleteWithContext(cf *cloudformation.CloudFormation, 
 				Expected: "ValidationError",
 			},
 		},
-		Logger: cf.Config.Logger,
+		Logger: session.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
 			count++
 			activity.RecordHeartbeat(ctx, count)
@@ -284,7 +285,7 @@ func WaitUntilStackCreateCompleteWithContext(cf *cloudformation.CloudFormation, 
 	return w.WaitWithContext(ctx)
 }
 
-func WaitUntilStackUpdateCompleteWithContext(cf *cloudformation.CloudFormation, ctx aws.Context, input *cloudformation.DescribeStacksInput, opts ...request.WaiterOption) error {
+func WaitUntilStackUpdateCompleteWithContext(session *session.Session, cf cloudformationiface.CloudFormationAPI, ctx aws.Context, input *cloudformation.DescribeStacksInput, opts ...request.WaiterOption) error {
 	count := 0
 	w := request.Waiter{
 		Name:        "WaitUntilStackUpdateComplete",
@@ -317,7 +318,7 @@ func WaitUntilStackUpdateCompleteWithContext(cf *cloudformation.CloudFormation, 
 				Expected: "ValidationError",
 			},
 		},
-		Logger: cf.Config.Logger,
+		Logger: session.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
 			count++
 			activity.RecordHeartbeat(ctx, count)
@@ -338,7 +339,7 @@ func WaitUntilStackUpdateCompleteWithContext(cf *cloudformation.CloudFormation, 
 	return w.WaitWithContext(ctx)
 }
 
-func WaitUntilStackDeleteCompleteWithContext(cf *cloudformation.CloudFormation, ctx aws.Context, input *cloudformation.DescribeStacksInput, opts ...request.WaiterOption) error {
+func WaitUntilStackDeleteCompleteWithContext(session *session.Session, cf cloudformationiface.CloudFormationAPI, ctx aws.Context, input *cloudformation.DescribeStacksInput, opts ...request.WaiterOption) error {
 	count := 0
 	w := request.Waiter{
 		Name:        "WaitUntilStackDeleteComplete",
@@ -386,7 +387,7 @@ func WaitUntilStackDeleteCompleteWithContext(cf *cloudformation.CloudFormation, 
 				Expected: "UPDATE_ROLLBACK_COMPLETE",
 			},
 		},
-		Logger: cf.Config.Logger,
+		Logger: session.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
 			count++
 			activity.RecordHeartbeat(ctx, count)

@@ -28,7 +28,8 @@ const GetVpcConfigActivityName = "eks-get-vpc-cfg"
 
 // GetVpcConfigActivity responsible for creating IAM roles
 type GetVpcConfigActivity struct {
-	awsSessionFactory AWSFactory
+	awsSessionFactory        AWSFactory
+	cloudFormationAPIFactory CloudFormationAPIFactory
 }
 
 // GetVpcConfigActivityInput holds data needed for setting up IAM roles
@@ -47,9 +48,10 @@ type GetVpcConfigActivityOutput struct {
 }
 
 // GetVpcConfigActivity instantiates a new GetVpcConfigActivity
-func NewGetVpcConfigActivity(awsSessionFactory AWSFactory) *GetVpcConfigActivity {
+func NewGetVpcConfigActivity(awsSessionFactory AWSFactory, cloudFormationAPIFactory CloudFormationAPIFactory) *GetVpcConfigActivity {
 	return &GetVpcConfigActivity{
-		awsSessionFactory: awsSessionFactory,
+		awsSessionFactory:        awsSessionFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
 	}
 }
 
@@ -62,7 +64,7 @@ func (a *GetVpcConfigActivity) Execute(ctx context.Context, input GetVpcConfigAc
 		return nil, err
 	}
 
-	cloudformationClient := cloudformation.New(session)
+	cloudformationClient := a.cloudFormationAPIFactory.New(session)
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
 	describeStacksOutput, err := cloudformationClient.DescribeStacksWithContext(ctx, describeStacksInput)

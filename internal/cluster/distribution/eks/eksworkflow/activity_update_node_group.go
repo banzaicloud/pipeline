@@ -28,6 +28,7 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	eksproviderworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
@@ -37,8 +38,8 @@ const UpdateNodeGroupActivityName = "eks-update-node-group"
 
 // UpdateNodeGroupActivity updates an existing node group.
 type UpdateNodeGroupActivity struct {
-	sessionFactory AWSSessionFactory
-
+	sessionFactory           AWSSessionFactory
+	cloudFormationAPIFactory eksproviderworkflow.CloudFormationAPIFactory
 	// body of the cloud formation template
 	cloudFormationTemplate string
 }
@@ -68,10 +69,11 @@ type UpdateNodeGroupActivityOutput struct {
 }
 
 // NewUpdateNodeGroupActivity creates a new UpdateNodeGroupActivity instance.
-func NewUpdateNodeGroupActivity(sessionFactory AWSSessionFactory, cloudFormationTemplate string) UpdateNodeGroupActivity {
+func NewUpdateNodeGroupActivity(sessionFactory AWSSessionFactory, cloudFormationAPIFactory eksproviderworkflow.CloudFormationAPIFactory, cloudFormationTemplate string) UpdateNodeGroupActivity {
 	return UpdateNodeGroupActivity{
-		sessionFactory:         sessionFactory,
-		cloudFormationTemplate: cloudFormationTemplate,
+		sessionFactory:           sessionFactory,
+		cloudFormationAPIFactory: cloudFormationAPIFactory,
+		cloudFormationTemplate:   cloudFormationTemplate,
 	}
 }
 
@@ -87,7 +89,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		return UpdateNodeGroupActivityOutput{}, err
 	}
 
-	cloudformationClient := cloudformation.New(sess)
+	cloudformationClient := a.cloudFormationAPIFactory.New(sess)
 
 	nodeLabels := []string{
 		fmt.Sprintf("%v=%v", cluster.NodePoolNameLabelKey, input.NodePoolName),
