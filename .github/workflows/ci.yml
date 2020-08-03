@@ -25,7 +25,7 @@ jobs:
         with:
           path: |
             .plz-cache
-          key: ${{ runner.os }}-plz-v2-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*') }}
+          key: ${{ runner.os }}-plz-v2-${{ runner.os }}-plz-v2-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/go.mod', '**/go.sum', '**/*.go') }}
           restore-keys: |
             ${{ runner.os }}-plz-v2-
 
@@ -74,7 +74,7 @@ jobs:
         with:
           path: |
             .plz-cache
-          key: ${{ runner.os }}-plz-v2-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*') }}
+          key: ${{ runner.os }}-plz-v2-${{ runner.os }}-plz-v2-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/go.mod', '**/go.sum', '**/*.go') }}
           restore-keys: |
             ${{ runner.os }}-plz-v2-
 
@@ -111,7 +111,7 @@ jobs:
         with:
           path: |
             .plz-cache
-          key: ${{ runner.os }}-plz-v2-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*') }}
+          key: ${{ runner.os }}-plz-v2-${{ runner.os }}-plz-v2-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/go.mod', '**/go.sum', '**/*.go') }}
           restore-keys: |
             ${{ runner.os }}-plz-v2-
 
@@ -156,7 +156,7 @@ jobs:
         with:
           path: |
             .plz-cache
-          key: ${{ runner.os }}-plz-v2-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*') }}
+          key: ${{ runner.os }}-plz-v2-${{ runner.os }}-plz-v2-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/go.mod', '**/go.sum', '**/*.go') }}
           restore-keys: |
             ${{ runner.os }}-plz-v2-
 
