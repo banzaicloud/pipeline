@@ -63,7 +63,7 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 
 	modelNodePools := createNodePoolsFromRequest(request.Properties.CreateClusterEKS.NodePools, userId)
 
-	configMapString, err := request.Properties.CreateClusterEKS.AuthConfigMap.ConvertToString()
+	configMapString, err := request.Properties.CreateClusterEKS.AuthConfig.ConvertToString()
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to convert config map to string")
 	}

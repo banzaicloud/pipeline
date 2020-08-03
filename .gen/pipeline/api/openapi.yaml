@@ -23183,7 +23183,7 @@ components:
           $ref: '#/components/schemas/BaseUpdateNodePoolOptions'
     CreateEKSProperties_eks:
       properties:
-        authConfigMap:
+        authConfig:
           $ref: '#/components/schemas/AWSAuthConfig'
         version:
           example: "1.10"

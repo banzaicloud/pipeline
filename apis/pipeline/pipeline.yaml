@@ -4704,7 +4704,7 @@ components:
                     required:
                         - nodePools
                     properties:
-                        authConfigMap:
+                        authConfig:
                             $ref: '#/components/schemas/AWSAuthConfig'
                         version:
                             type: string

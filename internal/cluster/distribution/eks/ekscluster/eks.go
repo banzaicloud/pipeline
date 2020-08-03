@@ -46,7 +46,7 @@ type CreateClusterEKS struct {
 	// Default: ["public"]
 	APIServerAccessPoints []string           `json:"apiServerAccessPoints,omitempty" yaml:"apiServerAccessPoints,omitempty"`
 	Tags                  map[string]string  `json:"tags,omitempty" yaml:"tags,omitempty"`
-	AuthConfigMap         *AuthConfigMapData `json:"authConfigMap,omitempty" yaml:"authConfigMap,omitempty"`
+	AuthConfig            *AuthConfigMapData `json:"authConfig,omitempty" yaml:"authConfig,omitempty"`
 }
 
 func (cm *AuthConfigMapData) ConvertToString() (string, error) {
