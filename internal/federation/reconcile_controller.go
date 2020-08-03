@@ -24,14 +24,12 @@ import (
 	apiextv1b1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
 	ctlutil "sigs.k8s.io/kubefed/pkg/controller/util"
 
 	internalHelm "github.com/banzaicloud/pipeline/internal/helm"
-
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
@@ -234,7 +232,7 @@ func (m *FederationReconciler) removeFederationCRDs(all bool) error {
 	if err != nil {
 		return err
 	}
-	crdList, err := cl.CustomResourceDefinitions().List(ctx, apiv1.ListOptions{})
+	crdList, err := cl.CustomResourceDefinitions().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		if strings.Contains(err.Error(), "no matches for kind") {
 			m.logger.Warnf("no CRD's found")
@@ -246,11 +244,11 @@ func (m *FederationReconciler) removeFederationCRDs(all bool) error {
 	for _, crd := range crdList.Items {
 		if strings.HasSuffix(crd.Name, federationCRDSuffix) &&
 			(strings.HasPrefix(crd.Name, "federated") || all) {
-			pp := apiv1.DeletePropagationBackground
+			pp := metav1.DeletePropagationBackground
 			var secs int64
 			secs = 180
 			m.logger.Debugf("removing CRD %s", crd.Name)
-			err = cl.CustomResourceDefinitions().Delete(ctx, crd.Name, apiv1.DeleteOptions{
+			err = cl.CustomResourceDefinitions().Delete(ctx, crd.Name, metav1.DeleteOptions{
 				PropagationPolicy:  &pp,
 				GracePeriodSeconds: &secs,
 			})

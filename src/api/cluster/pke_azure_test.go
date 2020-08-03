@@ -83,7 +83,7 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 		}
 	)
 
-	var conversionTest = []struct {
+	conversionTest := []struct {
 		Name string
 		in   CreatePKEOnAzureClusterRequest
 		out  driver.ClusterCreationParams

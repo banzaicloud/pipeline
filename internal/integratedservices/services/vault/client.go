@@ -20,7 +20,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	"github.com/hashicorp/vault/api"
-	vaultapi "github.com/hashicorp/vault/api"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 )
@@ -41,11 +40,11 @@ func newVaultManager(
 ) (*vaultManager, error) {
 	vaultAddress := spec.getVaultAddress()
 
-	clientConfig := vaultapi.DefaultConfig()
+	clientConfig := api.DefaultConfig()
 	clientConfig.Address = vaultAddress
 
-	var roleName = getRoleName(spec.CustomVault.Enabled)
-	var clientOptions = []vault.ClientOption{
+	roleName := getRoleName(spec.CustomVault.Enabled)
+	clientOptions := []vault.ClientOption{
 		vault.ClientRole(roleName),
 	}
 
@@ -102,7 +101,7 @@ func (m vaultManager) enableAuth(path, authType string) error {
 		})
 }
 
-func (m vaultManager) configureAuth(tokenReviewerJWT, kubernetesHost string, caCert []byte) (*vaultapi.Secret, error) {
+func (m vaultManager) configureAuth(tokenReviewerJWT, kubernetesHost string, caCert []byte) (*api.Secret, error) {
 	configData := map[string]interface{}{
 		"token_reviewer_jwt": tokenReviewerJWT,
 		"kubernetes_host":    kubernetesHost,
@@ -114,7 +113,7 @@ func (m vaultManager) configureAuth(tokenReviewerJWT, kubernetesHost string, caC
 	return m.vaultClient.RawClient().Logical().Write(getAuthMethodConfigPath(m.orgID, m.clusterID), configData)
 }
 
-func (m vaultManager) createRole(serviceAccounts, namespaces []string) (*vaultapi.Secret, error) {
+func (m vaultManager) createRole(serviceAccounts, namespaces []string) (*api.Secret, error) {
 	roleData := map[string]interface{}{
 		"bound_service_account_names":      serviceAccounts,
 		"bound_service_account_namespaces": namespaces,

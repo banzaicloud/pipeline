@@ -19,11 +19,9 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-
-	"github.com/banzaicloud/pipeline/internal/global"
-
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 

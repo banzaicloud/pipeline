@@ -23,9 +23,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/banzaicloud/pipeline/internal/helm"
-
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -102,7 +101,7 @@ func (a *OrganizationAPI) GetOrganizations(c *gin.Context) {
 		return
 	}
 
-	var organization = auth.Organization{ID: uint(id)}
+	organization := auth.Organization{ID: uint(id)}
 	var organizations []auth.Organization
 
 	db := global.DB()

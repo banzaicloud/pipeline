@@ -58,7 +58,6 @@ func (t KubernetesType) Process(data map[string]string) (map[string]string, erro
 // TODO: rewrite this function!
 func (KubernetesType) Verify(data map[string]string) error {
 	err := kubernetesVerify(data)
-
 	if err != nil {
 		return secret.NewValidationError(err.Error(), nil)
 	}

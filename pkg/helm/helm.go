@@ -20,8 +20,10 @@ import (
 
 // the label Helm places on Kubernetes objects for differentiating between
 // different instances: https://helm.sh/docs/chart_best_practices/#standard-labels
-const HelmReleaseNameLabelLegacy = "release"
-const HelmReleaseNameLabel = "app.kubernetes.io/instance"
+const (
+	HelmReleaseNameLabelLegacy = "release"
+	HelmReleaseNameLabel       = "app.kubernetes.io/instance"
+)
 
 // GetHelmReleaseName returns the helm release name placed by helm deployment Kubernetes objects
 // it checks for label with key `HelmReleaseNameLabel`, if no such label is present than falls back

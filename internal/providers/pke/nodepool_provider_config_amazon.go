@@ -35,10 +35,14 @@ type NodePoolProviderConfigAmazon struct {
 	} `yaml:"autoScalingGroup"`
 }
 
-type Zones []Zone
-type Zone string
+type (
+	Zones []Zone
+	Zone  string
+)
 
-type Subnets []Subnet
-type Subnet string
+type (
+	Subnets []Subnet
+	Subnet  string
+)
 
 type Tags map[string]string

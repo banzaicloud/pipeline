@@ -68,7 +68,7 @@ func (op IntegratedServiceOperator) createClusterOutputDefinitions(ctx context.C
 	}
 
 	// create output definition managers
-	var managers = newOutputDefinitionManager(creators)
+	managers := newOutputDefinitionManager(creators)
 	for _, m := range managers {
 		// generate output definition
 		outputDefinition, err := generateOutputDefinition(ctx, m, op.secretStore, op.config.Namespace, cl.GetOrganizationId())

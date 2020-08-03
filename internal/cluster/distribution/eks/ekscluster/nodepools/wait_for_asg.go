@@ -22,7 +22,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/sirupsen/logrus"
-
 	logrusadapter "logur.dev/adapter/logrus"
 
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"

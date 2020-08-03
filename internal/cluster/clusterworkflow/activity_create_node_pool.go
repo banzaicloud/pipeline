@@ -179,7 +179,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			Tags:             eksCluster.Cluster.Tags,
 		}
 
-		var eksConfig = global.Config.Distribution.EKS
+		eksConfig := global.Config.Distribution.EKS
 		if eksConfig.SSH.Generate {
 			subinput.SSHKeyName = eksworkflow.GenerateSSHKeyNameForCluster(c.Name)
 		}

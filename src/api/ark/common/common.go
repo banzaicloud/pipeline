@@ -17,8 +17,6 @@ package common
 import (
 	"net/http"
 
-	"github.com/banzaicloud/pipeline/internal/secret/restricted"
-
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -26,6 +24,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers"
+	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
 

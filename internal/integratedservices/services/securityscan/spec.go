@@ -21,7 +21,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-//integratedServiceSpec security scan cluster integrated service specific specification
+// integratedServiceSpec security scan cluster integrated service specific specification
 type integratedServiceSpec struct {
 	CustomAnchore    anchoreSpec       `json:"customAnchore" mapstructure:"customAnchore"`
 	Policy           policySpec        `json:"policy" mapstructure:"policy"`

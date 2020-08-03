@@ -37,10 +37,6 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsadapter"
-	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
-
 	cloudinfoapi "github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/process"
@@ -56,6 +52,8 @@ import (
 	eksClusterAdapter "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
 	eksClusterDriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsadapter"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
@@ -68,6 +66,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"

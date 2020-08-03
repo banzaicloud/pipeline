@@ -19,8 +19,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
-
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
@@ -28,9 +26,9 @@ import (
 	"k8s.io/client-go/rest"
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
 	"sigs.k8s.io/kubefed/pkg/client/generic"
-	genericclient "sigs.k8s.io/kubefed/pkg/client/generic"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
@@ -287,7 +285,7 @@ func (m *FederationReconciler) getGenericClient() (generic.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	client, err := genericclient.New(clientConfig)
+	client, err := generic.New(clientConfig)
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not get kubefed clientset")
 	}

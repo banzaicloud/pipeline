@@ -93,8 +93,10 @@ const (
 	NPPAmazon NodePoolProvider = "amazon"
 )
 
-type Roles []Role
-type Role string
+type (
+	Roles []Role
+	Role  string
+)
 
 const (
 	RoleMaster               Role   = "master"
@@ -104,20 +106,24 @@ const (
 	NodeLabelKeyMasterWorker string = "node-role.kubernetes.io/master-worker"
 )
 
-type Hosts []Host
-type Host struct {
-	Name             string `json:"name" yaml:"name" binding:"required"`
-	PrivateIP        string `json:"privateIP" yaml:"privateIP" binding:"required"`
-	NetworkInterface string `json:"networkInterface" yaml:"networkInterface" binding:"required"`
-	Roles            Roles  `json:"roles" yaml:"roles" binding:"required"`
-	Labels           Labels `json:"labels" yaml:"labels" binding:"required"`
-	Taints           Taints `json:"taints" yaml:"taints" binding:"required"`
-}
+type (
+	Hosts []Host
+	Host  struct {
+		Name             string `json:"name" yaml:"name" binding:"required"`
+		PrivateIP        string `json:"privateIP" yaml:"privateIP" binding:"required"`
+		NetworkInterface string `json:"networkInterface" yaml:"networkInterface" binding:"required"`
+		Roles            Roles  `json:"roles" yaml:"roles" binding:"required"`
+		Labels           Labels `json:"labels" yaml:"labels" binding:"required"`
+		Taints           Taints `json:"taints" yaml:"taints" binding:"required"`
+	}
+)
 
 type Labels map[string]string
 
-type Taints []Taint
-type Taint string
+type (
+	Taints []Taint
+	Taint  string
+)
 
 // TODO add required field to LaunchTemplate if applicable
 type AmazonProviderConfig struct {
@@ -159,11 +165,15 @@ func (pke *CreateClusterPKE) AddDefaults() error {
 	return nil
 }
 
-type Zones []Zone
-type Zone string
+type (
+	Zones []Zone
+	Zone  string
+)
 
-type Subnets []Subnet
-type Subnet string
+type (
+	Subnets []Subnet
+	Subnet  string
+)
 
 type Tags map[string]string
 
@@ -198,5 +208,7 @@ type KubeADM struct {
 	ExtraArgs ExtraArgs `json:"extraArgs" yaml:"extraArgs"`
 }
 
-type ExtraArgs []ExtraArg
-type ExtraArg string
+type (
+	ExtraArgs []ExtraArg
+	ExtraArg  string
+)

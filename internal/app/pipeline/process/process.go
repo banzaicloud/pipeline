@@ -17,10 +17,10 @@ package process
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
-
 	"go.uber.org/cadence/.gen/go/shared"
 	cadence "go.uber.org/cadence/client"
+
+	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 )
 
 // Process represents an pipeline process.

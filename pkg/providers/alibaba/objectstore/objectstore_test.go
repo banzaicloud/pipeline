@@ -29,9 +29,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-const bucketName = "banzaicloud-test-bucket"
-const nonExistingBucketName = "a-asd8908sad-nonexisting-bucketname"
-const existingBucket = "demo-bucket"
+const (
+	bucketName            = "banzaicloud-test-bucket"
+	nonExistingBucketName = "a-asd8908sad-nonexisting-bucketname"
+	existingBucket        = "demo-bucket"
+)
 
 func getObjectStore(t *testing.T) *objectStore {
 	t.Helper()

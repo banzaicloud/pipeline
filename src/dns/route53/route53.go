@@ -96,7 +96,6 @@ func (ctx *context) rollback() {
 	errCount := 0
 	for i := len(ctx.rollbackFunctions) - 1; i >= 0; i-- {
 		err := ctx.rollbackFunctions[i]()
-
 		if err != nil {
 			errCount++
 		}
@@ -159,7 +158,6 @@ func NewAwsRoute53(region, awsSecretId, awsSecretKey, baseDomain string, notific
 		WithCredentials(creds)
 
 	session, err := session.NewSession(config)
-
 	if err != nil {
 		log.Errorf("creating new Amazon session failed: %s", err.Error())
 		return nil, err
@@ -685,7 +683,7 @@ func (dns *awsRoute53) setupAmazonAccess(iamUser string, ctx *context) error {
 		return err
 	}
 
-	var userAccessKeyMap = make(map[string]*iam.AccessKeyMetadata)
+	userAccessKeyMap := make(map[string]*iam.AccessKeyMetadata)
 	for _, userAccessKey := range userAccessKeys {
 		userAccessKeyMap[aws.StringValue(userAccessKey.AccessKeyId)] = userAccessKey
 	}
@@ -693,7 +691,7 @@ func (dns *awsRoute53) setupAmazonAccess(iamUser string, ctx *context) error {
 	// if either the Amazon access key or it's corresponding secret from Vault
 	// we need to create(re-create in case of re-run) the Amazon access key
 	// as the Amazon access secret can be obtained only at creation
-	var createNewAccessKey = true
+	createNewAccessKey := true
 	var accessKeyId string
 
 	if route53Secret != nil {
@@ -820,7 +818,6 @@ func (dns *awsRoute53) storeRoute53Secret(updateSecret *secret.SecretItemRespons
 func (dns *awsRoute53) getOrgDomain(orgId uint) (string, error) {
 	state := domainState{}
 	found, err := dns.stateStore.findByOrgId(orgId, &state)
-
 	if err != nil {
 		return "", err
 	}

@@ -188,7 +188,7 @@ func (op IntegratedServicesOperator) configureClusterTokenReviewer(
 
 	var tokenReviewerJWT string
 
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoff.ConstantBackoffConfig{
+	backoffPolicy := backoff.NewConstantBackoffPolicy(backoff.ConstantBackoffConfig{
 		Delay:      5 * time.Second,
 		MaxRetries: 5,
 	})
@@ -295,7 +295,7 @@ func (op IntegratedServicesOperator) installOrUpdateWebhook(
 	}
 
 	pipelineSystemNamespace := op.config.Namespace
-	var chartValues = &webhookValues{
+	chartValues := &webhookValues{
 		Env: map[string]string{
 			vaultAddressEnvKey: vaultExternalAddress,
 			vaultPathEnvKey:    getAuthMethodPath(orgID, clusterID),

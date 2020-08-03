@@ -44,7 +44,6 @@ func NewAWSSessionFactory(secretStore SecretStore) *AWSSessionFactory {
 // New creates a new AWS session.
 func (f *AWSSessionFactory) New(organizationID uint, secretID string, region string) (*session.Session, error) {
 	awsCred, err := f.GetAWSCredentials(organizationID, secretID, region)
-
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +61,6 @@ func (f *AWSSessionFactory) NewSession(secretID string, region string) (*session
 	}
 
 	awsCred, err := f.GetAWSCredentials(secretResource.OrganizationID, secretResource.ResourceID, region)
-
 	if err != nil {
 		return nil, err
 	}

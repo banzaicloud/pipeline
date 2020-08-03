@@ -38,7 +38,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/pkg/brn"
-	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/hpa"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
@@ -92,7 +91,7 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 	if err != nil {
 		err := errors.Wrap(err, "Error parsing request:")
 		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
 			Error:   err.Error(),
@@ -104,7 +103,7 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 	if err != nil {
 		err := errors.Wrap(err, "Error parsing request:")
 		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
 			Error:   err.Error(),
@@ -146,7 +145,7 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 				"clusterId", cluster.GetID(),
 			)
 			log.Error(err.Error())
-			c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
+			c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 				Code: http.StatusInternalServerError,
 			})
 			return
@@ -155,7 +154,7 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 		if !ok {
 			err := errors.New("Monitoring should be enabled on cluster to be able to setup custom metrics")
 			log.Error(err.Error())
-			c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 				Code:    http.StatusBadRequest,
 				Message: "Monitoring is not deployed on cluster",
 				Error:   err.Error(),
@@ -167,7 +166,7 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 		value, err := runPrometheusQuery(config, client, cm.Query)
 		if err != nil {
 			log.Error(err.Error())
-			c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 				Code:    http.StatusBadRequest,
 				Message: "Error validating custom metrics query!",
 				Error:   err.Error(),
@@ -175,7 +174,6 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 			return
 		}
 		if len(value.String()) == 0 {
-
 		}
 	}
 
@@ -188,7 +186,7 @@ func (a HPAAPI) PutHpaResource(c *gin.Context) {
 
 		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+		c.JSON(httpStatusCode, pkgCommon.ErrorResponse{
 			Code:    httpStatusCode,
 			Message: "Error during request processing!",
 			Error:   err.Error(),
@@ -298,7 +296,7 @@ func (a HPAAPI) DeleteHpaResource(c *gin.Context) {
 
 		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+		c.JSON(httpStatusCode, pkgCommon.ErrorResponse{
 			Code:    httpStatusCode,
 			Message: "Error during request processing!",
 			Error:   errors.Cause(err).Error(),
@@ -344,7 +342,7 @@ func (a HPAAPI) GetHpaResource(c *gin.Context) {
 
 		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+		c.JSON(httpStatusCode, pkgCommon.ErrorResponse{
 			Code:    httpStatusCode,
 			Message: "Error getting deployment",
 			Error:   err.Error(),
@@ -610,7 +608,6 @@ func setupCustomMetricAnnotation(annotations map[string]string, customMetricName
 	}
 
 	if len(customMetric.TargetAverageValue) > 0 {
-
 	}
 	annotations[fmt.Sprintf("prometheus.%v.%v/query", customMetricName, hpaAnnotationPrefix)] = customMetric.Query
 }

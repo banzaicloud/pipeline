@@ -29,7 +29,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
@@ -153,7 +152,7 @@ func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
 	return c.cluster, c.cluster.Persist()
 }
 
-func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgCluster.UpdateClusterRequest) ([]NodePoolLabels, error) {
+func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *cluster.UpdateClusterRequest) ([]NodePoolLabels, error) {
 	// we need to retrieve existing node pools, as update request doesn't necessary contains instanceType, spot price etc.
 	clStatus, err := commonCluster.GetStatus()
 	if err != nil {
@@ -185,7 +184,7 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgClus
 	}
 
 	switch cloudType {
-	case pkgCluster.Alibaba:
+	case cluster.Alibaba:
 		for name, np := range updateRequest.ACK.NodePools {
 			if np != nil {
 				npls := NodePoolLabels{
@@ -203,7 +202,7 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgClus
 			}
 		}
 
-	case pkgCluster.Azure:
+	case cluster.Azure:
 		for name, np := range updateRequest.AKS.NodePools {
 			if np != nil {
 				npls := NodePoolLabels{
@@ -220,7 +219,7 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgClus
 			}
 		}
 
-	case pkgCluster.Google:
+	case cluster.Google:
 		for name, np := range updateRequest.GKE.NodePools {
 			if np != nil {
 				npls := NodePoolLabels{
@@ -240,7 +239,7 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgClus
 			}
 		}
 
-	case pkgCluster.Oracle:
+	case cluster.Oracle:
 		for name, np := range updateRequest.OKE.NodePools {
 			if np != nil {
 				npls := NodePoolLabels{
@@ -258,7 +257,7 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *pkgClus
 			}
 		}
 
-	case pkgCluster.Kubernetes:
+	case cluster.Kubernetes:
 	}
 
 	return nodePools, nil
@@ -322,7 +321,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 // It's used only used in case of ACK etc. when we're not able to add labels via API.
 func labelNodesWithNodePoolName(ctx context.Context, commonCluster CommonCluster) error {
 	switch commonCluster.GetDistribution() {
-	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE, pkgCluster.PKE, pkgCluster.AKS:
+	case cluster.EKS, cluster.OKE, cluster.GKE, cluster.PKE, cluster.AKS:
 		log.Infof("nodes are already labelled on : %v", commonCluster.GetDistribution())
 		return nil
 	}

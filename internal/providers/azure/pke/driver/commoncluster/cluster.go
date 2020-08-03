@@ -232,7 +232,8 @@ func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, err
 			CreatedAt:   a.model.CreationTime,
 			CreatorName: auth.GetUserNickNameById(a.model.CreatedBy),
 			CreatorId:   a.model.CreatedBy,
-		}}, nil
+		},
+	}, nil
 }
 
 func (a *AzurePkeCluster) IsReady() (bool, error) {
@@ -245,7 +246,7 @@ func (a *AzurePkeCluster) IsReady() (bool, error) {
 
 // ListNodePools returns node pool names.
 func (a *AzurePkeCluster) ListNodePools() ([]string, error) {
-	var nodePools = make([]string, 0, len(a.model.NodePools))
+	nodePools := make([]string, 0, len(a.model.NodePools))
 
 	for _, nodePool := range a.model.NodePools {
 		nodePools = append(nodePools, nodePool.Name)

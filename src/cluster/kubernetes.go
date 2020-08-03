@@ -222,7 +222,6 @@ func (c *KubeCluster) CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) er
 
 // AddDefaultsToUpdate adds defaults to update request, in this case no update function
 func (c *KubeCluster) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
-
 }
 
 // GetAPIEndpoint returns the Kubernetes Api endpoint

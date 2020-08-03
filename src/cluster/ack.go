@@ -198,7 +198,7 @@ func createACKNodePoolsFromRequest(pools ack.NodePools, userId uint) ([]*alibaba
 		return nil, pkgErrors.ErrorNodePoolNotProvided
 	}
 
-	var res = make([]*alibabaadapter.ACKNodePoolModel, len(pools))
+	res := make([]*alibabaadapter.ACKNodePoolModel, len(pools))
 	var i int
 	for name, pool := range pools {
 		res[i] = &alibabaadapter.ACKNodePoolModel{
@@ -325,6 +325,7 @@ func CreateACKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 
 	return &cluster, nil
 }
+
 func (c *ACKCluster) CreateCluster() error {
 	c.log.Info("Start create cluster (Alibaba)")
 
@@ -1020,10 +1021,7 @@ func (c *ACKCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 	}
 
 	for npName, np := range r.Properties.CreateClusterACK.NodePools {
-		var (
-			instanceType = np.InstanceType
-			// diskCategory = np.SystemDiskCategory
-		)
+		instanceType := np.InstanceType // diskCategory = np.SystemDiskCategory
 
 		err = c.validateInstanceType(region, zone, instanceType)
 		if err != nil {

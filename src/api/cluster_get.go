@@ -99,7 +99,7 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 	}
 
 	// set oidc field on response
-	var oidcCreator = oidc.NewCreator(a.authConfig.OIDC, a.clientSecretGetter)
+	oidcCreator := oidc.NewCreator(a.authConfig.OIDC, a.clientSecretGetter)
 	oidcResponse, err := oidcCreator.CreateNewOIDCResponse(c.Request.Context(), clusterStatus.OIDCEnabled, commonCluster.GetID())
 	if err != nil {
 		errorHandler.Handle(err)

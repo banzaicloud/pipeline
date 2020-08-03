@@ -79,11 +79,11 @@ func (m *MeshReconciler) ReconcileIstio(desiredState DesiredState, c cluster.Com
 func (m *MeshReconciler) waitForIstioCRToBeDeleted(client client.Client) error {
 	m.logger.Debug("waiting for Istio CR to be deleted")
 
-	var backoffConfig = backoff.ConstantBackoffConfig{
+	backoffConfig := backoff.ConstantBackoffConfig{
 		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
 		MaxRetries: backoffMaxretries,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
+	backoffPolicy := backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	err := backoff.Retry(func() error {
 		var istio v1beta1.Istio

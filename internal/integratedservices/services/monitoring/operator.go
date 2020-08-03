@@ -127,7 +127,7 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 	var prometheusSecretName string
 	if boundSpec.Prometheus.Enabled && boundSpec.Prometheus.Ingress.Enabled {
 		// get Prometheus secret from spec or generate
-		var manager = secretManager{
+		manager := secretManager{
 			operator: op,
 			cluster:  cluster,
 			tags:     []string{prometheusSecretTag},
@@ -143,7 +143,7 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 	var alertmanagerSecretName string
 	if boundSpec.Alertmanager.Enabled && boundSpec.Alertmanager.Ingress.Enabled {
 		// get Alertmanager secret from spec or generate
-		var manager = secretManager{
+		manager := secretManager{
 			operator: op,
 			cluster:  cluster,
 			tags:     []string{alertmanagerSecretTag},
@@ -223,7 +223,7 @@ func (op IntegratedServiceOperator) installPrometheusPushGateway(
 	spec pushgatewaySpec,
 	logger common.Logger,
 ) error {
-	var chartValues = &prometheusPushgatewayValues{
+	chartValues := &prometheusPushgatewayValues{
 		Image: imageValues{
 			Repository: op.config.Images.Pushgateway.Repository,
 			Tag:        op.config.Images.Pushgateway.Tag,
@@ -274,7 +274,7 @@ func (op IntegratedServiceOperator) installPrometheusOperator(
 		grafanaPass = grafanaSecret[secrettype.Password]
 	}
 
-	var valuesManager = chartValuesManager{
+	valuesManager := chartValuesManager{
 		operator:  op,
 		clusterID: cluster.GetID(),
 	}
@@ -285,7 +285,7 @@ func (op IntegratedServiceOperator) installPrometheusOperator(
 	}
 
 	// create chart values
-	var chartValues = &prometheusOperatorValues{
+	chartValues := &prometheusOperatorValues{
 		PrometheusOperator: operatorSpecValues{
 			Image: imageValues{
 				Repository: op.config.Images.Operator.Repository,
@@ -301,7 +301,7 @@ func (op IntegratedServiceOperator) installPrometheusOperator(
 
 	if op.helmService.IsV3() {
 		// todo consider disabling cleanup in favor of installing crds from the chart's crds folder, but will need to take care of upgrades in that case
-		//chartValues.PrometheusOperator.CleanupCustomResource = false
+		// chartValues.PrometheusOperator.CleanupCustomResource = false
 		chartValues.PrometheusOperator.CreateCustomResource = false
 	}
 
@@ -458,7 +458,7 @@ func (op IntegratedServiceOperator) getGrafanaSecret(
 	spec integratedServiceSpec,
 	logger common.Logger,
 ) (string, error) {
-	var secretID = spec.Grafana.SecretId
+	secretID := spec.Grafana.SecretId
 	if secretID == "" {
 		// check Grafana secret exists
 		existingSecretID, err := op.secretStore.GetIDByName(ctx, getGrafanaSecretName(cluster.GetID()))
@@ -526,11 +526,11 @@ func (op IntegratedServiceOperator) generateAlertManagerProvidersConfig(ctx cont
 		}
 	}
 
-	var receiverName = alertManagerNullReceiverName
+	receiverName := alertManagerNullReceiverName
 	if hasProvider {
 		receiverName = alertManagerProviderConfigName
 	}
-	var result = &configValues{
+	result := &configValues{
 		Receivers: []receiverItemValues{
 			{
 				Name: receiverName,
@@ -579,12 +579,12 @@ func (op IntegratedServiceOperator) generatePagerdutyConfig(ctx context.Context,
 			return nil, errors.WrapIf(err, "failed to get PagerDuty secret")
 		}
 
-		var pdConfig = pagerdutyConfigValues{
+		pdConfig := pagerdutyConfigValues{
 			Url:          config.URL,
 			SendResolved: config.SendResolved,
 		}
 
-		var integrationKey = pdSecret[secrettype.PagerDutyIntegrationKey]
+		integrationKey := pdSecret[secrettype.PagerDutyIntegrationKey]
 		if config.IntegrationType == pagerDutyIntegrationEventApiV2 {
 			pdConfig.RoutingKey = integrationKey
 		} else {
@@ -704,7 +704,7 @@ func (m chartValuesManager) generatePrometheusChartValues(
 	config ImageConfig,
 ) *prometheusValues {
 	if spec.Enabled {
-		var defaultStorageClassName = spec.Storage.Class
+		defaultStorageClassName := spec.Storage.Class
 		if defaultStorageClassName == "" {
 			var err error
 			defaultStorageClassName, err = m.operator.getDefaultStorageClassName(ctx, m.clusterID)

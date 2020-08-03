@@ -119,7 +119,6 @@ func GetPolicyByName(svc iamiface.IAMAPI, policyName, scope string) (*iam.Policy
 
 			return true
 		})
-
 	if err != nil {
 		return nil, err
 	}

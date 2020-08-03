@@ -154,7 +154,7 @@ func getLokiServiceURL(
 
 func (m IntegratedServicesManager) getLokiSecretID(ctx context.Context, spec lokiSpec, clusterID uint) string {
 	if spec.Enabled && spec.Ingress.Enabled {
-		var generatedSecretName = getLokiSecretName(clusterID)
+		generatedSecretName := getLokiSecretName(clusterID)
 		if spec.Ingress.SecretID == "" && generatedSecretName != "" {
 			secretID, err := m.secretStore.GetIDByName(ctx, generatedSecretName)
 			if err != nil {

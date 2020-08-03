@@ -57,7 +57,6 @@ func (s *SecretStore) EnsureSecretExists(organizationID uint, sec clustersecret.
 // GetSecret gets a secret by name if it exists
 func (s *SecretStore) GetSecret(organizationID uint, name string) (clustersecret.SecretResponse, error) {
 	sec, err := s.secrets.GetByName(organizationID, name)
-
 	if err != nil {
 		return clustersecret.SecretResponse{}, err
 	}

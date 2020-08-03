@@ -283,7 +283,7 @@ func GetUserNickNameById(userId uint) (userName string) {
 }
 
 func parseRawTokenFromRequest(r *http.Request) (string, error) {
-	var token = r.Header.Get("Authorization")
+	token := r.Header.Get("Authorization")
 
 	// first we attempt to get the token from the
 	// authorization header.

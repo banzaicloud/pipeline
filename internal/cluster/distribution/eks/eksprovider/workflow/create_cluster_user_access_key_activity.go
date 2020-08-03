@@ -92,7 +92,7 @@ func (a *CreateClusterUserAccessKeyActivity) Execute(ctx context.Context, input 
 		// if either the Amazon access key or it's corresponding secret is missing from secret store
 		// we need to create(re-create in case of re-run) the Amazon access key
 		// as the Amazon access secret can be obtained only at creation
-		var userAccessKeyMap = make(map[string]*iam.AccessKeyMetadata)
+		userAccessKeyMap := make(map[string]*iam.AccessKeyMetadata)
 		for _, userAccessKey := range userAccessKeys {
 			userAccessKeyMap[aws.StringValue(userAccessKey.AccessKeyId)] = userAccessKey
 		}

@@ -90,6 +90,7 @@ type imageChartValue struct {
 	Tag        string `json:"tag,omitempty"`
 	PullPolicy string `json:"pullPolicy,omitempty"`
 }
+
 type prometheusChartValue struct {
 	Enabled     bool   `json:"enabled,omitempty"`
 	URL         string `json:"url,omitempty"`

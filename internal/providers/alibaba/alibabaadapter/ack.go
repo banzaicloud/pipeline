@@ -48,7 +48,6 @@ func (a *ACKClusterModel) AfterUpdate(scope *gorm.Scope) error {
 	for _, nodePoolModel := range a.NodePools {
 		if nodePoolModel.Delete {
 			err := scope.DB().Delete(nodePoolModel).Error
-
 			if err != nil {
 				return err
 			}

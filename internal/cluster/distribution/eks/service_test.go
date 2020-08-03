@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	"emperror.dev/errors"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"

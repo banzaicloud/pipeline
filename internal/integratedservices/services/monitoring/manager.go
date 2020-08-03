@@ -88,8 +88,8 @@ func (m IntegratedServiceManager) GetOutput(ctx context.Context, clusterID uint,
 		m.logger.Warn(fmt.Sprintf("failed to list endpoints: %s", err.Error()))
 	}
 
-	var operatorValues = m.config.Charts.Operator.Values
-	var pushgatewayValues = m.config.Charts.Pushgateway.Values
+	operatorValues := m.config.Charts.Operator.Values
+	pushgatewayValues := m.config.Charts.Pushgateway.Values
 
 	out := integratedservices.IntegratedServiceOutput{
 		"grafana":      m.getComponentOutput(ctx, clusterID, newGrafanaOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues, m.config.Images.Grafana),
@@ -134,7 +134,7 @@ func (m IntegratedServiceManager) getComponentOutput(
 	values map[string]interface{},
 	config ImageConfig,
 ) map[string]interface{} {
-	var out = make(map[string]interface{})
+	out := make(map[string]interface{})
 
 	o := outputManager{
 		outputHelper: helper,

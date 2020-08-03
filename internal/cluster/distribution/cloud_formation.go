@@ -22,9 +22,9 @@ import (
 	"net/url"
 	"text/template"
 
-	"github.com/banzaicloud/pipeline/internal/global"
-
 	"emperror.dev/errors"
+
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // GetCloudFormationTemplate returns CloudFormation template with given name

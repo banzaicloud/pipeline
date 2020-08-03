@@ -20,9 +20,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
-	"github.com/banzaicloud/pipeline/internal/helm"
-
 	"github.com/banzaicloud/pipeline/internal/ark/api"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/src/api/ark/common"
 )

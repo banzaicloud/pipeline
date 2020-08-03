@@ -44,7 +44,6 @@ func TestBlockingTags(t *testing.T) {
 			}
 
 			secretID, err := store.Store(orgID, tc.request)
-
 			if err != nil {
 				t.Errorf("error during storing readonly secret: %s", err.Error())
 				t.FailNow()

@@ -47,8 +47,10 @@ type CreationContext struct {
 
 type contextKey string
 
-const ExternalBaseURLKey = contextKey("ExternalBaseURL")
-const ExternalBaseURLInsecureKey = contextKey("ExternalBaseURLInsecure")
+const (
+	ExternalBaseURLKey         = contextKey("ExternalBaseURL")
+	ExternalBaseURLInsecureKey = contextKey("ExternalBaseURLInsecure")
+)
 
 var ErrAlreadyExists = stderrors.New("cluster already exists with this name")
 

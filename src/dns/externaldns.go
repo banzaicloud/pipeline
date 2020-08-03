@@ -29,7 +29,6 @@ import (
 // nolint: gochecknoglobals
 var once sync.Once
 
-// nolint: gochecknoglobals
 var errCreate error
 
 // dnsServiceClient is the DnsServiceClient singleton instance if this functionality is enabled
@@ -128,7 +127,6 @@ func newExternalDnsServiceClientInstance() {
 
 	// initiate and start DNS garbage collector
 	garbageCollector, err := newGarbageCollector(dnsServiceClient, gcInterval)
-
 	if err != nil {
 		errCreate = err
 		close(dnsNotificationsChannel)

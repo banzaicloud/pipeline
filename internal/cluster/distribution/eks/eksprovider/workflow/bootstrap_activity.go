@@ -24,20 +24,17 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
-	"go.uber.org/cadence/activity"
-	"k8s.io/client-go/kubernetes/scheme"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/ghodss/yaml"
+	"go.uber.org/cadence/activity"
 	v1 "k8s.io/api/core/v1"
-
 	storagev1 "k8s.io/api/storage/v1"
+	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	storageUtil "k8s.io/kubernetes/pkg/apis/storage/util"
-
-	k8serr "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
@@ -164,8 +161,8 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 		mapRoles += fmt.Sprintf(mapRolesTemplate, roleMeta+"/"+roleID)
 	}
 
-	var mapUsers = fmt.Sprintf(mapUsersTemplate, input.ClusterUserArn, userNameFromArn(input.ClusterUserArn))
-	var defaultAWSConfigMap = fmt.Sprintf(`apiVersion: v1
+	mapUsers := fmt.Sprintf(mapUsersTemplate, input.ClusterUserArn, userNameFromArn(input.ClusterUserArn))
+	defaultAWSConfigMap := fmt.Sprintf(`apiVersion: v1
 kind: ConfigMap
 metadata:
   name: aws-auth

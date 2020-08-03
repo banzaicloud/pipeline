@@ -26,9 +26,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/technosophos/moniker"
 
-	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
-
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
+	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/src/helm"
 )
 
@@ -41,12 +40,16 @@ type CGDeploymentManager struct {
 	helmService   HelmService
 }
 
-const OperationSucceededStatus = "SUCCEEDED"
-const OperationFailedStatus = "FAILED"
+const (
+	OperationSucceededStatus = "SUCCEEDED"
+	OperationFailedStatus    = "FAILED"
+)
 
-const NotInstalledStatus = "NOT INSTALLED"
-const StaleStatus = "STALE"
-const UnknownStatus = "UNKNOWN"
+const (
+	NotInstalledStatus = "NOT INSTALLED"
+	StaleStatus        = "STALE"
+	UnknownStatus      = "UNKNOWN"
+)
 
 const releaseNameMaxLen = 53
 

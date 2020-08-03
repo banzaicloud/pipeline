@@ -19,9 +19,8 @@ import (
 
 	"emperror.dev/errors"
 
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-
 	"github.com/banzaicloud/pipeline/internal/common"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 type Logger = common.Logger
@@ -185,9 +184,9 @@ type Store interface {
 	Create(ctx context.Context, organizationID uint, repository Repository) error
 	// Delete persists the repository item for the given organisation
 	Delete(ctx context.Context, organizationID uint, repository Repository) error
-	//List retrieves persisted repositories for the given organisation
+	// List retrieves persisted repositories for the given organisation
 	List(ctx context.Context, organizationID uint) ([]Repository, error)
-	//Getretrieves a repository entry
+	// Getretrieves a repository entry
 	Get(ctx context.Context, organizationID uint, repository Repository) (Repository, error)
 	// Update patches the given repository
 	Update(ctx context.Context, organizationID uint, repository Repository) error

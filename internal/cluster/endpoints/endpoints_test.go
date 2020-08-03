@@ -141,88 +141,98 @@ const (
 // nolint: gochecknoglobals
 var (
 	serviceForIngress = &v1.ServiceList{
-		Items: []v1.Service{{
-			ObjectMeta: v1meta.ObjectMeta{
-				Name:   "serviceForIngress",
-				Labels: map[string]string{pkgHelm.HelmReleaseNameLabel: dummyReleaseName},
+		Items: []v1.Service{
+			{
+				ObjectMeta: v1meta.ObjectMeta{
+					Name:   "serviceForIngress",
+					Labels: map[string]string{pkgHelm.HelmReleaseNameLabel: dummyReleaseName},
+				},
 			},
-		},
 		},
 	}
 	serviceListWithoutLoadBalancer = &v1.ServiceList{
-		Items: []v1.Service{{
-			ObjectMeta: v1meta.ObjectMeta{
-				Name: "withoutLoadBalancer",
-			},
-			Status: v1.ServiceStatus{
-				LoadBalancer: v1.LoadBalancerStatus{
-					Ingress: nil,
+		Items: []v1.Service{
+			{
+				ObjectMeta: v1meta.ObjectMeta{
+					Name: "withoutLoadBalancer",
+				},
+				Status: v1.ServiceStatus{
+					LoadBalancer: v1.LoadBalancerStatus{
+						Ingress: nil,
+					},
 				},
 			},
-		},
 		},
 	}
 	serviceListWithHostName = &v1.ServiceList{
-		Items: []v1.Service{{
-			ObjectMeta: v1meta.ObjectMeta{
-				Name: "serviceListWithHostName",
-			},
-			Status: v1.ServiceStatus{
-				LoadBalancer: v1.LoadBalancerStatus{
-					Ingress: []v1.LoadBalancerIngress{{
-						Hostname: dummyLoadBalancer,
-					},
+		Items: []v1.Service{
+			{
+				ObjectMeta: v1meta.ObjectMeta{
+					Name: "serviceListWithHostName",
+				},
+				Status: v1.ServiceStatus{
+					LoadBalancer: v1.LoadBalancerStatus{
+						Ingress: []v1.LoadBalancerIngress{
+							{
+								Hostname: dummyLoadBalancer,
+							},
+						},
 					},
 				},
 			},
-		},
 		},
 	}
 	serviceListWithIP = &v1.ServiceList{
-		Items: []v1.Service{{
-			ObjectMeta: v1meta.ObjectMeta{
-				Name: "serviceListWithIP",
-			},
-			Status: v1.ServiceStatus{
-				LoadBalancer: v1.LoadBalancerStatus{
-					Ingress: []v1.LoadBalancerIngress{{
-						IP: dummyIP,
-					},
+		Items: []v1.Service{
+			{
+				ObjectMeta: v1meta.ObjectMeta{
+					Name: "serviceListWithIP",
+				},
+				Status: v1.ServiceStatus{
+					LoadBalancer: v1.LoadBalancerStatus{
+						Ingress: []v1.LoadBalancerIngress{
+							{
+								IP: dummyIP,
+							},
+						},
 					},
 				},
 			},
-		},
 		},
 	}
 	serviceListWithMultipleLoadBalancer = &v1.ServiceList{
-		Items: []v1.Service{{
-			ObjectMeta: v1meta.ObjectMeta{
-				Name: "loadBalancerWithIngress",
-			},
-			Spec: v1.ServiceSpec{
-				Selector: map[string]string{"app": traefik},
-			},
-			Status: v1.ServiceStatus{
-				LoadBalancer: v1.LoadBalancerStatus{
-					Ingress: []v1.LoadBalancerIngress{{
-						Hostname: dummyLoadBalancer,
-					},
+		Items: []v1.Service{
+			{
+				ObjectMeta: v1meta.ObjectMeta{
+					Name: "loadBalancerWithIngress",
+				},
+				Spec: v1.ServiceSpec{
+					Selector: map[string]string{"app": traefik},
+				},
+				Status: v1.ServiceStatus{
+					LoadBalancer: v1.LoadBalancerStatus{
+						Ingress: []v1.LoadBalancerIngress{
+							{
+								Hostname: dummyLoadBalancer,
+							},
+						},
 					},
 				},
 			},
-		}, {
-			ObjectMeta: v1meta.ObjectMeta{
-				Name: "loadBalancerWithoutIngress",
-			},
-			Status: v1.ServiceStatus{
-				LoadBalancer: v1.LoadBalancerStatus{
-					Ingress: []v1.LoadBalancerIngress{{
-						Hostname: dummyLoadBalancer2,
-					},
+			{
+				ObjectMeta: v1meta.ObjectMeta{
+					Name: "loadBalancerWithoutIngress",
+				},
+				Status: v1.ServiceStatus{
+					LoadBalancer: v1.LoadBalancerStatus{
+						Ingress: []v1.LoadBalancerIngress{
+							{
+								Hostname: dummyLoadBalancer2,
+							},
+						},
 					},
 				},
 			},
-		},
 			{
 				ObjectMeta: v1meta.ObjectMeta{
 					Name:   "serviceForIngress",
@@ -232,29 +242,32 @@ var (
 		},
 	}
 	serviceListWithPort = &v1.ServiceList{
-		Items: []v1.Service{{
-			ObjectMeta: v1meta.ObjectMeta{
-				Name: "loadBalancerWithPort",
-			},
-			Spec: v1.ServiceSpec{
-				Ports: []v1.ServicePort{{
-					Name: "UI",
-					Port: 80,
-				}, {
-					Name: "API",
-					Port: 3000,
+		Items: []v1.Service{
+			{
+				ObjectMeta: v1meta.ObjectMeta{
+					Name: "loadBalancerWithPort",
 				},
-				},
-			},
-			Status: v1.ServiceStatus{
-				LoadBalancer: v1.LoadBalancerStatus{
-					Ingress: []v1.LoadBalancerIngress{{
-						Hostname: dummyLoadBalancer,
-					},
+				Spec: v1.ServiceSpec{
+					Ports: []v1.ServicePort{
+						{
+							Name: "UI",
+							Port: 80,
+						}, {
+							Name: "API",
+							Port: 3000,
+						},
 					},
 				},
+				Status: v1.ServiceStatus{
+					LoadBalancer: v1.LoadBalancerStatus{
+						Ingress: []v1.LoadBalancerIngress{
+							{
+								Hostname: dummyLoadBalancer,
+							},
+						},
+					},
+				},
 			},
-		},
 		},
 	}
 )
@@ -333,15 +346,16 @@ var (
 		Ports:        make(map[string]int32),
 		EndPointURLs: nil,
 	}}
-	expectedEndpointListWithPort = []*pkgHelm.EndpointItem{{
-		Name: "loadBalancerWithPort",
-		Host: "dummy.loadbalancer",
-		Ports: map[string]int32{
-			"UI":  80,
-			"API": 3000,
+	expectedEndpointListWithPort = []*pkgHelm.EndpointItem{
+		{
+			Name: "loadBalancerWithPort",
+			Host: "dummy.loadbalancer",
+			Ports: map[string]int32{
+				"UI":  80,
+				"API": 3000,
+			},
+			EndPointURLs: nil,
 		},
-		EndPointURLs: nil,
-	},
 	}
 )
 
@@ -355,8 +369,10 @@ func TestLoadBalancersWithIngressPaths(t *testing.T) {
 		{testName: "withoutLoadBalancer", inputServiceList: serviceListWithoutLoadBalancer, inputIngressList: nil, expectedEndPointList: nil},
 		{testName: "serviceWithHostName", inputServiceList: serviceListWithHostName, inputIngressList: nil, expectedEndPointList: expectedEndpointListWithHostName},
 		{testName: "serviceWithIP", inputServiceList: serviceListWithIP, inputIngressList: nil, expectedEndPointList: expectedEndpointListWithIP},
-		{testName: "serviceWithMultipleLoadBalancer", inputServiceList: serviceListWithMultipleLoadBalancer,
-			inputIngressList: ingressListWithMultipleLoadBalancer, expectedEndPointList: expectedEndpointWithMultipleLoadBalancer},
+		{
+			testName: "serviceWithMultipleLoadBalancer", inputServiceList: serviceListWithMultipleLoadBalancer,
+			inputIngressList: ingressListWithMultipleLoadBalancer, expectedEndPointList: expectedEndpointWithMultipleLoadBalancer,
+		},
 		{testName: "serviceWithPorts", inputServiceList: serviceListWithPort, inputIngressList: nil, expectedEndPointList: expectedEndpointListWithPort},
 	}
 	logger := common.NoopLogger{}
@@ -375,58 +391,63 @@ func TestLoadBalancersWithIngressPaths(t *testing.T) {
 // nolint: gochecknoglobals
 var (
 	serviceListWithPendingLoadBalancer = &v1.ServiceList{
-		Items: []v1.Service{{
-			ObjectMeta: v1meta.ObjectMeta{
-				Name: "serviceListWithPendingLoadBalancer",
+		Items: []v1.Service{
+			{
+				ObjectMeta: v1meta.ObjectMeta{
+					Name: "serviceListWithPendingLoadBalancer",
+				},
+				Status: v1.ServiceStatus{
+					LoadBalancer: v1.LoadBalancerStatus{},
+				},
+				Spec: v1.ServiceSpec{
+					Type: "LoadBalancer",
+				},
 			},
-			Status: v1.ServiceStatus{
-				LoadBalancer: v1.LoadBalancerStatus{},
-			},
-			Spec: v1.ServiceSpec{
-				Type: "LoadBalancer",
-			},
-		},
 		},
 	}
 
 	serviceListReadyLoadBalancer = &v1.ServiceList{
-		Items: []v1.Service{{
-			ObjectMeta: v1meta.ObjectMeta{
-				Name: "serviceListWithReadyLoadBalancer",
-			},
-			Status: v1.ServiceStatus{
-				LoadBalancer: v1.LoadBalancerStatus{
-					Ingress: []v1.LoadBalancerIngress{{
-						Hostname: dummyLoadBalancer,
-					},
+		Items: []v1.Service{
+			{
+				ObjectMeta: v1meta.ObjectMeta{
+					Name: "serviceListWithReadyLoadBalancer",
+				},
+				Status: v1.ServiceStatus{
+					LoadBalancer: v1.LoadBalancerStatus{
+						Ingress: []v1.LoadBalancerIngress{
+							{
+								Hostname: dummyLoadBalancer,
+							},
+						},
 					},
 				},
 			},
 		},
-		},
 	}
 
 	serviceListWithPendingReadyLoadBalancer = &v1.ServiceList{
-		Items: []v1.Service{{
-			ObjectMeta: v1meta.ObjectMeta{
-				Name: "serviceWithPendingLoadBalancer",
+		Items: []v1.Service{
+			{
+				ObjectMeta: v1meta.ObjectMeta{
+					Name: "serviceWithPendingLoadBalancer",
+				},
+				Status: v1.ServiceStatus{
+					LoadBalancer: v1.LoadBalancerStatus{},
+				},
+				Spec: v1.ServiceSpec{
+					Type: "LoadBalancer",
+				},
 			},
-			Status: v1.ServiceStatus{
-				LoadBalancer: v1.LoadBalancerStatus{},
-			},
-			Spec: v1.ServiceSpec{
-				Type: "LoadBalancer",
-			},
-		},
 			{
 				ObjectMeta: v1meta.ObjectMeta{
 					Name: "serviceWithReadyLoadBalancer",
 				},
 				Status: v1.ServiceStatus{
 					LoadBalancer: v1.LoadBalancerStatus{
-						Ingress: []v1.LoadBalancerIngress{{
-							Hostname: dummyLoadBalancer,
-						},
+						Ingress: []v1.LoadBalancerIngress{
+							{
+								Hostname: dummyLoadBalancer,
+							},
 						},
 					},
 				},

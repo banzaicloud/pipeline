@@ -130,7 +130,7 @@ func (el EndpointLister) ListEndpoints(c *gin.Context) {
 	})
 }
 
-//GetClusterNodes Get node information
+// GetClusterNodes Get node information
 func GetClusterNodes(c *gin.Context) {
 	kubeConfig, ok := GetK8sConfig(c)
 	if !ok {

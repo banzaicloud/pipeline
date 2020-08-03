@@ -26,17 +26,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/pkg/errors"
 )
 
-const bucketName = "banzaicloud-test-bucket"
-const nonExistingBucketName = "a-asd8908sad-nonexisting-bucketname"
+const (
+	bucketName            = "banzaicloud-test-bucket"
+	nonExistingBucketName = "a-asd8908sad-nonexisting-bucketname"
+)
 
 func getObjectStore(t *testing.T) *objectStore {
 	t.Helper()

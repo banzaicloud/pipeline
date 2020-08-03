@@ -26,8 +26,10 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-type K8sClientFactory func() (kubernetes.Interface, error)
-type Migrator func(ctx context.Context, configFactory K8sClientFactory, namespace, oldChartVersion, newChartVersion string) error
+type (
+	K8sClientFactory func() (kubernetes.Interface, error)
+	Migrator         func(ctx context.Context, configFactory K8sClientFactory, namespace, oldChartVersion, newChartVersion string) error
+)
 
 func Migrate(ctx context.Context, clientFactory K8sClientFactory, namespace, oldChartVersion, newChartVersion string) error {
 	referenceVersion, err := semver.NewVersion("8.13.0")

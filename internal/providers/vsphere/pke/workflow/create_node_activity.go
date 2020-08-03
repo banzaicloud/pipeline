@@ -391,7 +391,9 @@ func generateCloudConfig(user, publicKey, script, hostname string) string {
 			{
 				"name":                user,
 				"sudo":                "ALL=(ALL) NOPASSWD:ALL",
-				"ssh-authorized-keys": []string{publicKey}}}
+				"ssh-authorized-keys": []string{publicKey},
+			},
+		}
 	}
 
 	out, _ := yaml.Marshal(data)

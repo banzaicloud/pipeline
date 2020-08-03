@@ -85,7 +85,8 @@ func (h helmRepoStore) List(_ context.Context, organizationID uint) ([]helm.Repo
 		"retrieved helm repository records",
 		map[string]interface{}{
 			"organizationID":  organizationID,
-			"repositoryCount": len(repos)})
+			"repositoryCount": len(repos),
+		})
 
 	return repos, nil
 }
@@ -101,7 +102,8 @@ func (h helmRepoStore) Create(_ context.Context, organizationID uint, repository
 		"persisted new helm repository record",
 		map[string]interface{}{
 			"organizationID": organizationID,
-			"repoName":       repository.Name})
+			"repoName":       repository.Name,
+		})
 
 	return nil
 }
@@ -155,7 +157,7 @@ func toDomain(model repositoryModel) helm.Repository {
 	}
 }
 
-//toModel transforms a domain struct to gorm model representation
+// toModel transforms a domain struct to gorm model representation
 func toModel(orgID uint, repository helm.Repository) repositoryModel {
 	return repositoryModel{
 		OrganizationID:   orgID,

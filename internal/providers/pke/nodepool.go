@@ -79,8 +79,10 @@ func (n *NodePoolProvider) Scan(src interface{}) error {
 	return err
 }
 
-type Roles []Role
-type Role string
+type (
+	Roles []Role
+	Role  string
+)
 
 const (
 	RoleMaster         Role = "master"
@@ -109,21 +111,23 @@ func (r *Role) Scan(src interface{}) error {
 	return nil
 }
 
-type Hosts []Host
-type Host struct {
-	ID        uint `gorm:"primary_key"`
-	CreatedAt time.Time
-	CreatedBy uint
+type (
+	Hosts []Host
+	Host  struct {
+		ID        uint `gorm:"primary_key"`
+		CreatedAt time.Time
+		CreatedBy uint
 
-	NodePoolID uint `gorm:"name:nodepool_id;foreignkey:NodePoolID"`
+		NodePoolID uint `gorm:"name:nodepool_id;foreignkey:NodePoolID"`
 
-	Name             string `yaml:"name"`
-	PrivateIP        string `yaml:"privateIP"`
-	NetworkInterface string `yaml:"networkInterface"`
-	Roles            Roles  `yaml:"roles" gorm:"type:varchar(255)"`
-	Labels           Labels `yaml:"labels" gorm:"type:varchar(255)"`
-	Taints           Taints `yaml:"taint" gorm:"type:varchar(255)"`
-}
+		Name             string `yaml:"name"`
+		PrivateIP        string `yaml:"privateIP"`
+		NetworkInterface string `yaml:"networkInterface"`
+		Roles            Roles  `yaml:"roles" gorm:"type:varchar(255)"`
+		Labels           Labels `yaml:"labels" gorm:"type:varchar(255)"`
+		Taints           Taints `yaml:"taint" gorm:"type:varchar(255)"`
+	}
+)
 
 // TableName changes the default table name.
 func (Host) TableName() string {
@@ -159,8 +163,10 @@ func (n *Labels) Scan(src interface{}) error {
 	return json.Scan(src, n)
 }
 
-type Taints []Taint
-type Taint string
+type (
+	Taints []Taint
+	Taint  string
+)
 
 // Value implements the driver.Valuer interface
 func (n Taints) Value() (driver.Value, error) {

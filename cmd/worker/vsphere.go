@@ -18,12 +18,11 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
-	"github.com/banzaicloud/pipeline/internal/secret/kubesecret"
-
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	vsphereworkflow "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/workflow"
+	"github.com/banzaicloud/pipeline/internal/secret/kubesecret"
 )
 
 func registerVsphereWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator pkeworkflowadapter.TokenGenerator, store pke.ClusterStore, kubeSecretStore kubesecret.KubeSecretStore) {

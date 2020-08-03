@@ -44,7 +44,7 @@ func (m secretManager) generateHTPasswordSecret(ctx context.Context) error {
 	clusterUIDSecretTag := getClusterUIDSecretTag(m.cluster.GetUID())
 	releaseSecretTag := getReleaseSecretTag()
 
-	var secretTags = []string{
+	secretTags := []string{
 		clusterNameSecretTag,
 		clusterUIDSecretTag,
 		releaseSecretTag,

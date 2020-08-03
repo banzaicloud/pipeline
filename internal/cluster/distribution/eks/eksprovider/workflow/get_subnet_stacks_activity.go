@@ -18,12 +18,10 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/global"
-
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 

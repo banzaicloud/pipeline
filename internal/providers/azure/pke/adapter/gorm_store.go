@@ -207,6 +207,7 @@ type apiServerAccessPointModel string
 func (m *apiServerAccessPointModel) fromEntity(e pke.APIServerAccessPoint) {
 	*m = apiServerAccessPointModel(e)
 }
+
 func (m apiServerAccessPointModel) toEntity() pke.APIServerAccessPoint {
 	return pke.APIServerAccessPoint(m)
 }

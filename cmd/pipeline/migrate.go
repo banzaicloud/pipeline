@@ -19,24 +19,23 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend/notification/notificationadapter"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/process/processadapter"
+	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
+	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/auditlog/auditlogdriver"
+	"github.com/banzaicloud/pipeline/internal/providers"
 	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
-	"github.com/banzaicloud/pipeline/src/model"
-
-	"github.com/banzaicloud/pipeline/internal/app/pipeline/process/processadapter"
-	"github.com/banzaicloud/pipeline/internal/ark"
-	"github.com/banzaicloud/pipeline/internal/clustergroup"
-	"github.com/banzaicloud/pipeline/internal/providers"
 	"github.com/banzaicloud/pipeline/src/auth"
 	route53model "github.com/banzaicloud/pipeline/src/dns/route53/model"
+	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // Migrate runs migrations for the application.

@@ -22,7 +22,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
-
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/src/secret"

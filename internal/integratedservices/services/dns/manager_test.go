@@ -80,6 +80,7 @@ func TestIntegratedServiceManager_ValidateSpec_ValidSpec(t *testing.T) {
 	err := mng.ValidateSpec(context.Background(), spec)
 	require.NoError(t, err)
 }
+
 func TestIntegratedServiceManager_ValidateSpec_InvalidSpec(t *testing.T) {
 	mng := NewIntegratedServicesManager(nil, nil, Config{})
 

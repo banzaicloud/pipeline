@@ -32,18 +32,22 @@ import (
 	"github.com/banzaicloud/pipeline/src/helm"
 )
 
-const cloudProviderAzure = "azure"
-const cloudProviderAws = "aws"
-const expanderStrategy = "least-waste"
-const logLevel = "5"
-const AzureVirtualMachineScaleSet = "vmss"
+const (
+	cloudProviderAzure          = "azure"
+	cloudProviderAws            = "aws"
+	expanderStrategy            = "least-waste"
+	logLevel                    = "5"
+	AzureVirtualMachineScaleSet = "vmss"
+)
 
 const releaseName = "autoscaler"
 
 type deploymentAction string
 
-const install deploymentAction = "Install"
-const upgrade deploymentAction = "Upgrade"
+const (
+	install deploymentAction = "Install"
+	upgrade deploymentAction = "Upgrade"
+)
 
 type nodeGroup struct {
 	Name    string `json:"name"`
@@ -278,7 +282,7 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 
 // DeployClusterAutoscaler post hook only for AWS & EKS & Azure for now
 func DeployClusterAutoscaler(cluster CommonCluster, helmService HelmService) error {
-	var config = global.Config.Cluster.PostHook.Autoscaler
+	config := global.Config.Cluster.PostHook.Autoscaler
 	if !config.Enabled {
 		return nil
 	}

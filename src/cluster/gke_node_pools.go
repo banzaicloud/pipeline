@@ -51,7 +51,7 @@ func createNodePoolsModelFromRequest(nodePoolsData map[string]*pkgClusterGoogle.
 	return nodePoolsModel, nil
 }
 
-//createNodePoolsFromClusterModel creates an array of gke NodePool from the given cluster model
+// createNodePoolsFromClusterModel creates an array of gke NodePool from the given cluster model
 func createNodePoolsFromClusterModel(clusterModel *google.GKEClusterModel) ([]*gke.NodePool, error) {
 	nodePoolsCount := len(clusterModel.NodePools)
 	if nodePoolsCount == 0 {

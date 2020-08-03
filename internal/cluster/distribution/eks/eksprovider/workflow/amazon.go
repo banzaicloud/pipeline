@@ -42,10 +42,12 @@ import (
 // ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure
 const ErrReasonStackFailed = "CLOUDFORMATION_STACK_FAILED"
 
-const asgWaitLoopSleep = 5 * time.Second
-const asgFulfillmentTimeout = 2 * time.Minute
-const asgFulfillmentWaitAttempts = asgFulfillmentTimeout / asgWaitLoopSleep
-const asgFulfillmentWaitInterval = asgWaitLoopSleep
+const (
+	asgWaitLoopSleep           = 5 * time.Second
+	asgFulfillmentTimeout      = 2 * time.Minute
+	asgFulfillmentWaitAttempts = asgFulfillmentTimeout / asgWaitLoopSleep
+	asgFulfillmentWaitInterval = asgWaitLoopSleep
+)
 
 // getStackTags returns the tags that are placed onto CF template stacks.
 // These tags  are propagated onto the resources created by the CF template.

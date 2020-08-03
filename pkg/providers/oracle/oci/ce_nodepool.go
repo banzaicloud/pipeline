@@ -113,7 +113,6 @@ func (ce *ContainerEngine) GetNodePool(id *string) (nodepool containerengine.Nod
 	response, err := ce.client.GetNodePool(context.Background(), containerengine.GetNodePoolRequest{
 		NodePoolId: id,
 	})
-
 	if err != nil {
 		return nodepool, err
 	}

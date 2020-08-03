@@ -20,10 +20,9 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"go.uber.org/cadence/client"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"

@@ -20,7 +20,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/banzaicloud/pipeline/internal/helm"
-
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 

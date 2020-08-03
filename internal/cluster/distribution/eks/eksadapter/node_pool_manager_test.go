@@ -166,6 +166,7 @@ func TestListNodePools(t *testing.T) {
 	//
 	exampleClusterClientObjects := make([]runtime.Object, len(exampleUnstructuredList))
 	for objectIndex, object := range exampleUnstructuredList {
+		object := object
 		exampleClusterClientObjects[objectIndex] = &object
 	}
 

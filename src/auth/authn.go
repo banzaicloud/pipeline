@@ -427,10 +427,12 @@ func GetOrgNameFromVirtualUser(virtualUser string) string {
 	return strings.Split(virtualUser, "/")[0]
 }
 
-const internalUserLogin = "internal"
-const internalUserEmail = "internal@pipeline.banzaicloud.com"
-const internalUserID = 99999
-const internalUserName = "Internal user"
+const (
+	internalUserLogin = "internal"
+	internalUserEmail = "internal@pipeline.banzaicloud.com"
+	internalUserID    = 99999
+	internalUserName  = "Internal user"
+)
 
 func InternalUserHandler(ctx *gin.Context) {
 	user := &User{

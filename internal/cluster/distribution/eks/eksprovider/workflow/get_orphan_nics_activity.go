@@ -19,9 +19,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/service/ec2"
-
 	"go.uber.org/cadence/activity"
-
 	zapadapter "logur.dev/adapter/zap"
 
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"

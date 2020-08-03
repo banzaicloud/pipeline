@@ -258,11 +258,11 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 				return errors.New("no API server address available")
 			}
 
-			var backendAddressPoolIDProviders = make([]ResourceIDByNameProvider, len(providers.BackendAddressPoolIDProviders))
+			backendAddressPoolIDProviders := make([]ResourceIDByNameProvider, len(providers.BackendAddressPoolIDProviders))
 			for i := range providers.BackendAddressPoolIDProviders {
 				backendAddressPoolIDProviders[i] = providers.BackendAddressPoolIDProviders[i]
 			}
-			var inboundNATPoolIDProviders = make([]ResourceIDByNameProvider, len(providers.InboundNATPoolIDProviders))
+			inboundNATPoolIDProviders := make([]ResourceIDByNameProvider, len(providers.InboundNATPoolIDProviders))
 			for i := range providers.InboundNATPoolIDProviders {
 				inboundNATPoolIDProviders[i] = providers.InboundNATPoolIDProviders[i]
 			}

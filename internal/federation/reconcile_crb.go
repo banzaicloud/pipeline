@@ -24,11 +24,15 @@ import (
 	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
 )
 
-const federationClusterRoleBindingName = "feddns-crb"
-const externalDNSServiceAccount = "dns-external-dns"
+const (
+	federationClusterRoleBindingName = "feddns-crb"
+	externalDNSServiceAccount        = "dns-external-dns"
+)
 
-const federationClusterRoleName = "kubefed-role"
-const federationDNSClusterRoleName = "kubefed-dns-role"
+const (
+	federationClusterRoleName    = "kubefed-role"
+	federationDNSClusterRoleName = "kubefed-dns-role"
+)
 
 func (m *FederationReconciler) ReconcileClusterRoleBindingForExtDNS(desiredState DesiredState) error {
 	if desiredState == DesiredStatePresent {

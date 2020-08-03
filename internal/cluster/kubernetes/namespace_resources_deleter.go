@@ -55,7 +55,8 @@ func (d NamespaceResourcesDeleter) Delete(ctx context.Context, organizationID ui
 		{client.AppsV1().StatefulSets(namespace), "StatefulSets", nil},
 		{client.AppsV1().ReplicaSets(namespace), "ReplicaSets", nil},
 		{client.CoreV1().Pods(namespace), "Pods", nil},
-		{client.CoreV1().PersistentVolumeClaims(namespace),
+		{
+			client.CoreV1().PersistentVolumeClaims(namespace),
 			"PersistentVolumeClaims",
 			func(pvcs interface{}) error {
 				res, err := pvcs.(interface {
@@ -68,7 +69,8 @@ func (d NamespaceResourcesDeleter) Delete(ctx context.Context, organizationID ui
 					return fmt.Errorf("PVC remained present after deletion: %v", res.Items)
 				}
 				return nil
-			}},
+			},
+		},
 	}
 
 	for _, resourceType := range resourceTypes {

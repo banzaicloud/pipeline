@@ -32,10 +32,12 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-const authSecretName = "dex-client"
-const configSecretName = "config"
-const clientIDKey = "clientID"
-const clientSecretKey = "clientSecret"
+const (
+	authSecretName   = "dex-client"
+	configSecretName = "config"
+	clientIDKey      = "clientID"
+	clientSecretKey  = "clientSecret"
+)
 
 type ClusterClientSecret struct {
 	ClientID     string
@@ -138,7 +140,6 @@ func (a *dexClusterAuthService) RegisterCluster(ctx context.Context, clusterName
 	}
 
 	_, err := a.secretStore.EnsureSecretExists(ctx, clusterID, secretRequest)
-
 	if err != nil {
 		return errors.WrapIff(err, "failed to create secret for dex clientID/clientSecret for cluster: %s", clusterUID)
 	}
@@ -162,7 +163,6 @@ func (a *dexClusterAuthService) UnRegisterCluster(ctx context.Context, clusterUI
 
 func (a *dexClusterAuthService) GetClusterClientSecret(ctx context.Context, clusterID uint) (ClusterClientSecret, error) {
 	secret, err := a.secretStore.GetSecret(ctx, clusterID, authSecretName)
-
 	if err != nil {
 		return ClusterClientSecret{}, errors.WrapIff(err, "failed to get dex client for cluster: %d", clusterID)
 	}

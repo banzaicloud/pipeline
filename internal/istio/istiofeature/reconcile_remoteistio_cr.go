@@ -64,11 +64,11 @@ func (m *MeshReconciler) ReconcileRemoteIstio(desiredState DesiredState, c clust
 func (m *MeshReconciler) waitForRemoteIstioCRToBeDeleted(name string, client client.Client) error {
 	m.logger.WithField("name", name).Debug("waiting for Remote Istio CR to be deleted")
 
-	var backoffConfig = backoff.ConstantBackoffConfig{
+	backoffConfig := backoff.ConstantBackoffConfig{
 		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
 		MaxRetries: backoffMaxretries,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
+	backoffPolicy := backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	err := backoff.Retry(func() error {
 		var remoteIstio v1beta1.RemoteIstio

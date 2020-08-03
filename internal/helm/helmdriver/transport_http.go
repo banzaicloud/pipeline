@@ -258,7 +258,7 @@ func encodeUpgradeReleaseHTTPResponse(ctx context.Context, w http.ResponseWriter
 	}{
 		ReleaseName: resp.Release.ReleaseName,
 		Notes:       resp.Release.ReleaseInfo.Notes,
-		//Resources:   resp.Release.ReleaseResources,
+		// Resources:   resp.Release.ReleaseResources,
 	}
 
 	return kitxhttp.JSONResponseEncoder(ctx, w, kitxhttp.WithStatusCode(oldResponse, http.StatusCreated))
@@ -284,7 +284,8 @@ func decodeAddRepositoryHTTPRequest(_ context.Context, r *http.Request) (interfa
 			URL:              request.Url,
 			PasswordSecretID: request.PasswordSecretRef,
 			TlsSecretID:      request.TlsSecretRef,
-		}}, nil
+		},
+	}, nil
 }
 
 func decodeModifyRepositoryHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -496,6 +497,7 @@ func decodeGetReleaseHTTPRequest(_ context.Context, r *http.Request) (interface{
 		},
 	}, nil
 }
+
 func decodeGetReleaseResourcesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	orgID, err := extractUintParamFromRequest("orgId", r)
 	if err != nil {
@@ -561,7 +563,7 @@ func decodeGetReleasesHTTPRequest(_ context.Context, r *http.Request) (interface
 		return nil, errors.WrapIf(err, "failed to decode list release request")
 	}
 
-	var queryData = struct {
+	queryData := struct {
 		TagFilters []string `json:"tag" mapstructure:"tag"`
 		Filters    []string `json:"filter,omitempty" mapstructure:"filter"`
 	}{}

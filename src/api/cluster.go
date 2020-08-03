@@ -455,7 +455,6 @@ func InstallSecretsToCluster(c *gin.Context) {
 	}
 
 	secretSources, err := cluster.InstallSecrets(c.Request.Context(), commonCluster, &request.Query, request.Namespace)
-
 	if err != nil {
 		log.Errorf("Error installing secrets [%v] into cluster [%d]: %s", request.Query, commonCluster.GetID(), err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
