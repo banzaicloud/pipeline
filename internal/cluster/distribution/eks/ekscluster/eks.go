@@ -44,26 +44,22 @@ type CreateClusterEKS struct {
 
 	// List of access point references for the API server; currently, public and private are the only valid values.
 	// Default: ["public"]
-	APIServerAccessPoints []string          `json:"apiServerAccessPoints,omitempty" yaml:"apiServerAccessPoints,omitempty"`
-	Tags                  map[string]string `json:"tags,omitempty" yaml:"tags,omitempty"`
-	AuthConfigMap         *AuthConfigMap    `json:"authConfigMap,omitempty" yaml:"authConfigMap,omitempty"`
+	APIServerAccessPoints []string           `json:"apiServerAccessPoints,omitempty" yaml:"apiServerAccessPoints,omitempty"`
+	Tags                  map[string]string  `json:"tags,omitempty" yaml:"tags,omitempty"`
+	AuthConfigMap         *AuthConfigMapData `json:"authConfigMap,omitempty" yaml:"authConfigMap,omitempty"`
 }
 
-type AuthConfigMap struct {
-	Data AuthConfigMapData `json:"data,omitempty" yaml:"data,omitempty"`
-}
-
-func (cm *AuthConfigMap) ConvertToString() (string, error) {
+func (cm *AuthConfigMapData) ConvertToString() (string, error) {
 	if cm == nil {
 		return "", nil
 	}
 
-	mapRoles, err := yaml.Marshal(cm.Data.MapRoles)
+	mapRoles, err := yaml.Marshal(cm.MapRoles)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to marshal map roles")
 	}
 
-	mapUsers, err := yaml.Marshal(cm.Data.MapUsers)
+	mapUsers, err := yaml.Marshal(cm.MapUsers)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to marshal map users")
 	}

@@ -10,7 +10,7 @@
 
 package pipeline
 
-type AwsAuthConfigMapData struct {
+type AwsAuthConfig struct {
 
 	MapRoles []AwsAuthConfigMapRoles `json:"mapRoles,omitempty"`
 

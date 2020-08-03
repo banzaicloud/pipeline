@@ -4494,20 +4494,21 @@ components:
                     type: integer
                     example: 5
 
-        AWSAuthConfigMap:
+        AWSAuthConfig:
             type: object
             properties:
-                data:
-                    type: object
-                    properties:
-                        mapRoles:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/AWSAuthConfigMapRoles'
-                        mapUsers:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/AWSAuthConfigMapUsers'
+                mapRoles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/AWSAuthConfigMapRoles'
+                mapUsers:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/AWSAuthConfigMapUsers'
+                mapAccounts:
+                    type: array
+                    items:
+                        type: string
 
         AWSAuthConfigMapUsers:
             type: object
@@ -4704,7 +4705,7 @@ components:
                         - nodePools
                     properties:
                         authConfigMap:
-                            $ref: '#/components/schemas/AWSAuthConfigMap'
+                            $ref: '#/components/schemas/AWSAuthConfig'
                         version:
                             type: string
                             example: "1.10"
