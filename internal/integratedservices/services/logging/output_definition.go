@@ -39,7 +39,7 @@ type outputDefinitionManager interface {
 
 func newOutputDefinitionManager(creators []outputManagerCreator) (managers []outputDefinitionManager) {
 	for _, creator := range creators {
-		var baseManager = baseOutputManager{
+		baseManager := baseOutputManager{
 			sourceSecretName: creator.sourceSecretName,
 			providerSpec:     creator.providerSpec,
 		}
@@ -67,8 +67,8 @@ func generateOutputDefinition(
 	namespace string,
 	orgID uint,
 ) (*v1beta1.ClusterOutput, error) {
-	var spec = m.getProviderSpec()
-	var bucketOptions = &bucketOptions{}
+	spec := m.getProviderSpec()
+	bucketOptions := &bucketOptions{}
 	if spec.SecretID != "" {
 		secretValues, err := secretStore.GetSecretValues(ctx, spec.SecretID)
 		if err != nil {

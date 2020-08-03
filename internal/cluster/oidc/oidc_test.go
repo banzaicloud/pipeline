@@ -43,11 +43,11 @@ func (dummyClusterClientSecretGetter) GetClusterClientSecret(_ context.Context, 
 }
 
 func TestOIDC_CreateNewOIDCResponse(t *testing.T) {
-	var dummyAuthConfig = auth.OIDCConfig{
+	dummyAuthConfig := auth.OIDCConfig{
 		Issuer: oidcIssuer,
 	}
 
-	var testCases = []struct {
+	testCases := []struct {
 		name             string
 		oidcEnabled      bool
 		expectedResponse oidc.OIDC
@@ -73,7 +73,7 @@ func TestOIDC_CreateNewOIDCResponse(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var creator = oidc.NewCreator(dummyAuthConfig, dummyClusterClientSecretGetter{})
+			creator := oidc.NewCreator(dummyAuthConfig, dummyClusterClientSecretGetter{})
 
 			response, err := creator.CreateNewOIDCResponse(context.TODO(), tc.oidcEnabled, clusterID)
 

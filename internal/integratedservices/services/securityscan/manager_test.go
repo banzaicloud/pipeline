@@ -47,16 +47,16 @@ func TestIntegratedServiceManager_ValidateSpec(t *testing.T) {
 			spec: integratedservices.IntegratedServiceSpec{
 				"customAnchore": obj{
 					"enabled":  true,
-					"url":      "anchore.example.com", //mandatory
+					"url":      "anchore.example.com", // mandatory
 					"secretId": "mysecretid",          // mandatory
 				},
 				"policy": obj{
 					"policyId": "myPolicyID, select, from backend",
 				},
-				"releaseWhiteList": []obj{ //optional
+				"releaseWhiteList": []obj{ // optional
 					{
-						"name":   "name of release 1",                        //mandatory
-						"reason": "reason of whitelisting",                   //mandatory
+						"name":   "name of release 1",                        // mandatory
+						"reason": "reason of whitelisting",                   // mandatory
 						"regexp": "whitelisted-[0-1]{2}.[a-z]{2,3}-releases", // optional
 					},
 					{
@@ -67,7 +67,7 @@ func TestIntegratedServiceManager_ValidateSpec(t *testing.T) {
 				},
 				"webhookConfig": obj{
 					"enabled":    true,                 //
-					"selector":   "include or exclude", //mandatory
+					"selector":   "include or exclude", // mandatory
 					"namespaces": []string{"default", "test"},
 				},
 			},

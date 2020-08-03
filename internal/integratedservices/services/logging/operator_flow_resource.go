@@ -30,7 +30,7 @@ func (op IntegratedServiceOperator) createClusterFlowResource(ctx context.Contex
 		return nil
 	}
 
-	var flowResource = op.generateFlowResource(managers)
+	flowResource := op.generateFlowResource(managers)
 
 	var oldFlow v1beta1.ClusterFlow
 	if err := op.kubernetesService.GetObject(ctx, clusterID, corev1.ObjectReference{

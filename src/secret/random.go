@@ -23,7 +23,7 @@ import (
 // DefaultPasswordFormat is the format of passwords if not specified otherwise
 const DefaultPasswordFormat = "randAlphaNum,12"
 
-//RandomString creates a random string whose length is the number of characters specified.
+// RandomString creates a random string whose length is the number of characters specified.
 func RandomString(genType string, length int) (res string, err error) {
 	gen := secret.NewCryptoPasswordGenerator()
 

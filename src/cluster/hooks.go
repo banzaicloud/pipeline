@@ -49,7 +49,7 @@ type KubernetesDashboardPostHook struct {
 }
 
 func (ph *KubernetesDashboardPostHook) Do(cluster CommonCluster) error {
-	var config = global.Config.Cluster.PostHook.Dashboard
+	config := global.Config.Cluster.PostHook.Dashboard
 	if !config.Enabled {
 		return nil
 	}
@@ -247,7 +247,7 @@ type InitSpotConfigPostHook struct {
 
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
 func (ph *InitSpotConfigPostHook) Do(cluster CommonCluster) error {
-	var config = global.Config.Cluster.PostHook.Spotconfig
+	config := global.Config.Cluster.PostHook.Spotconfig
 	if !config.Enabled {
 		return nil
 	}
@@ -336,7 +336,7 @@ type HorizontalPodAutoscalerPostHook struct {
 }
 
 func (hpa *HorizontalPodAutoscalerPostHook) Do(cluster CommonCluster) error {
-	var config = global.Config.Cluster
+	config := global.Config.Cluster
 
 	if !config.PostHook.HPA.Enabled {
 		return nil
@@ -391,7 +391,7 @@ type InstanceTerminationHandlerPostHook struct {
 }
 
 func (ith InstanceTerminationHandlerPostHook) Do(cluster CommonCluster) error {
-	var config = global.Config.Cluster.PostHook.ITH
+	config := global.Config.Cluster.PostHook.ITH
 	if !global.Config.Pipeline.Enterprise || !config.Enabled {
 		return nil
 	}

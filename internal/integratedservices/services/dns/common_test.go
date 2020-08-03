@@ -20,14 +20,15 @@ import (
 	"emperror.dev/errors"
 
 	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
-
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-type arr = []interface{}
-type obj = map[string]interface{}
+type (
+	arr = []interface{}
+	obj = map[string]interface{}
+)
 
 type dummyClusterGetter struct {
 	Clusters map[uint]dummyCluster
@@ -56,7 +57,6 @@ type dummyCluster struct {
 }
 
 func (d dummyCluster) SetSecurityScan(scan bool) {
-
 }
 
 func (d dummyCluster) GetK8sConfig() ([]byte, error) {

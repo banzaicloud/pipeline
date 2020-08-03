@@ -19,10 +19,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mitchellh/mapstructure"
-
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
@@ -40,7 +39,6 @@ func decodeRequest(input map[string]interface{}, output interface{}) error {
 		Result:  output,
 		TagName: "json",
 	})
-
 	if err != nil {
 		return err
 	}

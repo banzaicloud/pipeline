@@ -124,7 +124,6 @@ func ListBuckets(c *gin.Context) {
 	}
 
 	bucketList, err := objectStore.ListBuckets()
-
 	if err != nil {
 		logger.Errorf("retrieving object store buckets failed: %s", err.Error())
 		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
@@ -526,7 +525,6 @@ func (err SecretNotFoundError) Error() string {
 // it also verifies if the found secret is of appropriate type for the given cloud provider
 func getValidatedSecret(organizationId uint, secretId string, cloudType string) (*secret.SecretItemResponse, error) {
 	retrievedSecret, err := secret.Store.Get(organizationId, secretId)
-
 	if err != nil {
 		if err == secret.ErrSecretNotExists {
 			return nil, SecretNotFoundError{errMessage: err.Error()}
@@ -722,7 +720,8 @@ func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, orgid uint,
 			SecretId:         bi.SecretRef,
 			AccessSecretId:   bi.AccessSecretRef,
 			AccessSecretName: accessSecretName,
-		}}
+		},
+	}
 	return &ret
 }
 

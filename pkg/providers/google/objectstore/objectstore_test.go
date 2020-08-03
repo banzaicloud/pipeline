@@ -32,8 +32,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const bucketName = "banzaicloud-test-bucket"
-const nonExistingBucketName = "a-asd8908sad-nonexisting-bucketname"
+const (
+	bucketName            = "banzaicloud-test-bucket"
+	nonExistingBucketName = "a-asd8908sad-nonexisting-bucketname"
+)
 
 func getObjectStore(t *testing.T) *objectStore {
 	t.Helper()

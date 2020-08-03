@@ -42,7 +42,7 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 	}
 
 	var err error
-	var cloud = commonCluster.GetCloud()
+	cloud := commonCluster.GetCloud()
 	if cloud != pkgCluster.Amazon && commonCluster.GetDistribution() == pkgCluster.PKE {
 		switch cloud {
 		case pkgCluster.Azure:

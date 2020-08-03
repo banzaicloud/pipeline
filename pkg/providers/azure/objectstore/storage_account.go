@@ -17,12 +17,12 @@ package objectstore
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/pkg/providers/azure"
-
 	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 )
 
 const storageAccountResourceType = "Microsoft.Storage/storageAccounts"
@@ -135,7 +135,6 @@ func (s *storageAccount) CreateStorageAccount(resourceGroup, storageAccount, loc
 			},
 		},
 	)
-
 	if err != nil {
 		return errors.Wrap(err, "cannot create storage account")
 	}

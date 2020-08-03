@@ -137,11 +137,11 @@ func (wls *integratedServiceWhiteListService) installItems(ctx context.Context, 
 func (wls *integratedServiceWhiteListService) runWithBackoff(f func() error) error {
 	// it may take some time until the WhiteListItem CRD is created, thus the first attempt to create
 	// a whitelist cr may fail. Retry the whitelist creation in case of failure
-	var backoffConfig = backoff.ConstantBackoffConfig{
+	backoffConfig := backoff.ConstantBackoffConfig{
 		Delay:      5 * time.Second,
 		MaxRetries: 3,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
+	backoffPolicy := backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	return backoff.Retry(f, backoffPolicy)
 }

@@ -65,7 +65,7 @@ func (a *API) List(c *gin.Context) {
 		Namespaces []nsItem `json:"namespaces"`
 	}
 
-	var namespaces = make([]nsItem, 0, len(nsList.Items))
+	namespaces := make([]nsItem, 0, len(nsList.Items))
 	for _, ns := range nsList.Items {
 		namespaces = append(namespaces, nsItem{Name: ns.Name})
 	}

@@ -20,19 +20,16 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-
-	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	"github.com/banzaicloud/pipeline/src/utils"
-
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
-	vspherePKE "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver/commoncluster"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/workflow"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pipCluster "github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/secret"
+	"github.com/banzaicloud/pipeline/src/utils"
 )
 
 type ClusterUpdater struct {
@@ -106,7 +103,7 @@ func (cu ClusterUpdater) Update(ctx context.Context, params VspherePKEClusterUpd
 	if err != nil {
 		return errors.WrapIf(err, "failed to get cluster's secret")
 	}
-	var defaultNodeTemplate = vsphereSecret.Values[secrettype.VsphereDefaultNodeTemplate]
+	defaultNodeTemplate := vsphereSecret.Values[secrettype.VsphereDefaultNodeTemplate]
 
 	tf := nodeTemplateFactory{
 		ClusterID:                   cluster.ID,
@@ -180,7 +177,7 @@ func (cu ClusterUpdater) Update(ctx context.Context, params VspherePKEClusterUpd
 			if np.Size != existingNodePool.Size {
 				// check existing nodes are fine, create new vm otherwise
 				for i := 1; i <= np.Size; i++ {
-					var templateName = np.TemplateName
+					templateName := np.TemplateName
 					if templateName == "" {
 						templateName = defaultNodeTemplate
 					}
@@ -335,7 +332,7 @@ func (p ClusterUpdateParamsPreparer) Prepare(ctx context.Context, params *Vspher
 }
 
 type clusterUpdaterNodePoolPreparerDataProvider struct {
-	cluster vspherePKE.PKEOnVsphereCluster
+	cluster pke.PKEOnVsphereCluster
 }
 
 func (p clusterUpdaterNodePoolPreparerDataProvider) getExistingNodePools(ctx context.Context) ([]pke.NodePool, error) {

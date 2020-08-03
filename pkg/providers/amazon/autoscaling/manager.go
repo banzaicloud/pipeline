@@ -102,7 +102,8 @@ func (m *Manager) GetAutoscalingGroupByStackName(stackName string) (*Group, erro
 
 	describeStackResourceInput := &cloudformation.DescribeStackResourceInput{
 		LogicalResourceId: &logResourceId,
-		StackName:         aws.String(stackName)}
+		StackName:         aws.String(stackName),
+	}
 	describeStacksOutput, err := m.cfSvc.DescribeStackResource(describeStackResourceInput)
 	if err != nil {
 		return nil, err

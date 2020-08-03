@@ -240,7 +240,8 @@ func (a *VspherePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, e
 			CreatedAt:   a.model.CreationTime,
 			CreatorName: auth.GetUserNickNameById(a.model.CreatedBy),
 			CreatorId:   a.model.CreatedBy,
-		}}, nil
+		},
+	}, nil
 }
 
 func (a *VspherePkeCluster) IsReady() (bool, error) {

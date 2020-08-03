@@ -24,7 +24,6 @@ import (
 	k8srest "k8s.io/client-go/rest"
 
 	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
-
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/src/secret"

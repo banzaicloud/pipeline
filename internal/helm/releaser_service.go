@@ -51,7 +51,7 @@ type Release struct {
 	ReleaseName      string
 	ChartName        string
 	Namespace        string
-	Values           map[string]interface{} //json representation
+	Values           map[string]interface{} // json representation
 	Version          string
 	ReleaseInfo      ReleaseInfo
 	ReleaseVersion   int32

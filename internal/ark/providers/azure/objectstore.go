@@ -17,12 +17,11 @@ package azure
 import (
 	"time"
 
-	"github.com/banzaicloud/pipeline/pkg/providers/azure"
-
 	"github.com/heptio/ark/pkg/cloudprovider"
 
 	"github.com/banzaicloud/pipeline/internal/providers"
 	"github.com/banzaicloud/pipeline/pkg/objectstore"
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
 )
 

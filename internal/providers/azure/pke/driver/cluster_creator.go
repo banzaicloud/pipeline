@@ -42,8 +42,10 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-const pkeVersion = "0.5.1"
-const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
+const (
+	pkeVersion      = "0.5.1"
+	MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
+)
 
 func MakeClusterCreator(
 	config ClusterCreatorConfig,
@@ -309,14 +311,12 @@ func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParam
 	var pip workflow.PublicIPAddress
 	loadBalancerTemplates := make([]workflow.LoadBalancerTemplate, len(params.AccessPoints))
 	for i, accessPoint := range params.AccessPoints {
-		var (
-			subnetName,
+		var subnetName,
 			publicIPAddressName,
 			outboundBackendAddressPoolName,
 			backendAddressPoolName,
 			inboundNATPoolName,
 			lbName string
-		)
 
 		if accessPoint.Name == "private" {
 			lbName = pke.GetInternalLoadBalancerName(params.Name)

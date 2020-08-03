@@ -18,12 +18,12 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/banzaicloud/pipeline/pkg/providers/azure"
-
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 )
 
 type resourceGroup struct {

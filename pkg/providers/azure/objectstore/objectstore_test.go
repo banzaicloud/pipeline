@@ -26,13 +26,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/banzaicloud/pipeline/pkg/providers/azure"
-
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 )
 
-const bucketName = "banzaicloud-test-bucket"
-const nonExistingBucketName = "a-asd8908sad-nonexisting-bucketname"
+const (
+	bucketName            = "banzaicloud-test-bucket"
+	nonExistingBucketName = "a-asd8908sad-nonexisting-bucketname"
+)
 
 func getObjectStore(t *testing.T) *objectStore {
 	t.Helper()

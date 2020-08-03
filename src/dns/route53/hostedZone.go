@@ -42,7 +42,6 @@ func (dns *awsRoute53) createHostedZone(domain string) (*route53.HostedZone, err
 	}
 
 	hostedZoneOutput, err := dns.route53Svc.CreateHostedZone(hostedZoneInput)
-
 	if err != nil {
 		log.Errorf("creating Route53 hosted zone failed: %s", extractErrorMessage(err))
 		return nil, err
@@ -83,7 +82,8 @@ func (dns *awsRoute53) setHostedZoneSoaNTTL(id *string, nttl uint) error {
 		HostedZoneId: id,
 		ChangeBatch: &route53.ChangeBatch{
 			Changes: []*route53.Change{
-				{Action: aws.String(route53.ChangeActionUpsert),
+				{
+					Action:            aws.String(route53.ChangeActionUpsert),
 					ResourceRecordSet: soaSet,
 				},
 			},
@@ -198,7 +198,7 @@ func (dns *awsRoute53) deleteHostedZoneResourceRecordSetsOwnedBy(hostedZoneId *s
 
 	ownerReference := "external-dns/owner=" + ownerId
 
-	var ownedRecordNames = make(map[string]bool)
+	ownedRecordNames := make(map[string]bool)
 
 	for _, resourceRecordSet := range resourceRecordSets.ResourceRecordSets {
 		if aws.StringValue(resourceRecordSet.Type) == route53.RRTypeTxt {

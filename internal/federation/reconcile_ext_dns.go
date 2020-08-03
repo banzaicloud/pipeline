@@ -23,7 +23,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
-
 	"github.com/banzaicloud/pipeline/src/dns"
 )
 

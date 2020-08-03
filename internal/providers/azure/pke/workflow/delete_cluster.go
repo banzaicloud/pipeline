@@ -18,11 +18,11 @@ import (
 	"fmt"
 	"time"
 
+	"go.uber.org/cadence/workflow"
+
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-
-	"go.uber.org/cadence/workflow"
 )
 
 const DeleteClusterWorkflowName = "pke-azure-delete-cluster"

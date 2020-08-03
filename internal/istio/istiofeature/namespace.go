@@ -31,11 +31,11 @@ import (
 
 // waitForNamespaceBeDeleted wait for a k8s namespace to be deleted
 func (m *MeshReconciler) waitForNamespaceBeDeleted(client runtimeclient.Client, name string) error {
-	var backoffConfig = backoff.ConstantBackoffConfig{
+	backoffConfig := backoff.ConstantBackoffConfig{
 		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
 		MaxRetries: backoffMaxretries,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
+	backoffPolicy := backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	var namespace corev1.Namespace
 	err := backoff.Retry(func() error {

@@ -22,11 +22,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	testing2 "github.com/banzaicloud/pipeline/internal/helm/testing"
-
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	testing2 "github.com/banzaicloud/pipeline/internal/helm/testing"
 )
 
 func TestEnvresolver(t *testing.T) {

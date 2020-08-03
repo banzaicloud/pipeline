@@ -20,7 +20,6 @@ import (
 
 	"emperror.dev/errors"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -81,11 +80,11 @@ func (m *MeshReconciler) ReconcileBackyards(desiredState DesiredState, c cluster
 func (m *MeshReconciler) waitForPod(client runtimeclient.Client, namespace string, labels map[string]string, containerImageWithTag string) error {
 	m.logger.Debug("waiting for pod")
 
-	var backoffConfig = backoff.ConstantBackoffConfig{
+	backoffConfig := backoff.ConstantBackoffConfig{
 		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
 		MaxRetries: backoffMaxretries,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
+	backoffPolicy := backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	err := backoff.Retry(func() error {
 		var pods corev1.PodList
@@ -111,7 +110,7 @@ func (m *MeshReconciler) waitForPod(client runtimeclient.Client, namespace strin
 					continue
 				}
 			}
-			if pod.Status.Phase == v1.PodRunning {
+			if pod.Status.Phase == corev1.PodRunning {
 				readyContainers := 0
 				for _, cs := range pod.Status.ContainerStatuses {
 					if cs.Ready {
@@ -134,11 +133,11 @@ func (m *MeshReconciler) waitForPod(client runtimeclient.Client, namespace strin
 func (m *MeshReconciler) waitForCRD(name string, client runtimeclient.Client) error {
 	m.logger.WithField("name", name).Debug("waiting for CRD")
 
-	var backoffConfig = backoff.ConstantBackoffConfig{
+	backoffConfig := backoff.ConstantBackoffConfig{
 		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
 		MaxRetries: backoffMaxretries,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
+	backoffPolicy := backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	var crd apiextensionsv1beta1.CustomResourceDefinition
 	err := backoff.Retry(func() error {

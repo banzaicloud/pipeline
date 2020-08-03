@@ -27,8 +27,10 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 )
 
-const CreateAWSRolesActivityName = "pke-create-aws-roles-activity"
-const PkeGlobalStackName = "pke-global"
+const (
+	CreateAWSRolesActivityName = "pke-create-aws-roles-activity"
+	PkeGlobalStackName         = "pke-global"
+)
 
 type CreateAWSRolesActivity struct {
 	awsClientFactory *AWSClientFactory

@@ -36,7 +36,7 @@ type bucketOptions struct {
 }
 
 func generateBucketOptions(spec providerSpec, secretValues map[string]string, orgID uint) (*bucketOptions, error) {
-	var secretItems = &secret.SecretItemResponse{
+	secretItems := &secret.SecretItemResponse{
 		Values: secretValues,
 	}
 	switch spec.Name {

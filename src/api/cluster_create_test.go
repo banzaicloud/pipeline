@@ -113,8 +113,10 @@ func TestDecodeRequest(t *testing.T) {
 	})
 }
 
-type obj = map[string]interface{}
-type arr = []interface{}
+type (
+	obj = map[string]interface{}
+	arr = []interface{}
+)
 
 func get(o interface{}, key string) interface{} {
 	m := o.(map[string]interface{})

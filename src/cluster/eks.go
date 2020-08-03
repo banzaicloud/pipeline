@@ -44,8 +44,10 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-const asgWaitLoopSleepSeconds = 5
-const asgFulfillmentTimeout = 10 * time.Minute
+const (
+	asgWaitLoopSleepSeconds = 5
+	asgFulfillmentTimeout   = 10 * time.Minute
+)
 
 // CreateEKSClusterFromRequest creates ClusterModel struct from the request
 func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EKSCluster, error) {
@@ -106,7 +108,7 @@ func createAPIServerAccessPointsFromRequest(request *pkgCluster.CreateClusterReq
 }
 
 func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId uint) []*eksmodel.AmazonNodePoolsModel {
-	var modelNodePools = make([]*eksmodel.AmazonNodePoolsModel, len(nodePools))
+	modelNodePools := make([]*eksmodel.AmazonNodePoolsModel, len(nodePools))
 	i := 0
 	for nodePoolName, nodePool := range nodePools {
 		modelNodePools[i] = &eksmodel.AmazonNodePoolsModel{
@@ -448,7 +450,8 @@ func (c *EKSCluster) getAutoScalingGroupName(cloudformationSrv *cloudformation.C
 	stackName := nodepools.GenerateNodePoolStackName(c.model.Cluster.Name, nodePoolName)
 	describeStackResourceInput := &cloudformation.DescribeStackResourceInput{
 		LogicalResourceId: &logResourceId,
-		StackName:         aws.String(stackName)}
+		StackName:         aws.String(stackName),
+	}
 	describeStacksOutput, err := cloudformationSrv.DescribeStackResource(describeStackResourceInput)
 	if err != nil {
 		return nil, err

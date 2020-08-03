@@ -167,7 +167,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
-	_ = setClusterStatus(ctx, input.ClusterID, pkgCluster.Creating, "waiting for Kubernetes master") // nolint: errcheck
+	_ = setClusterStatus(ctx, input.ClusterID, pkgCluster.Creating, "waiting for Kubernetes master")
 
 	// Create worker nodes
 	{

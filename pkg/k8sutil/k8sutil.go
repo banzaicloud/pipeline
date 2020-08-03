@@ -63,7 +63,6 @@ func GetOrCreateClusterRole(log logrus.FieldLogger, client *kubernetes.Clientset
 		},
 		metav1.CreateOptions{},
 	)
-
 	if err != nil {
 		log.Errorf("creating cluster role %q failed: %s", name, err.Error())
 		return nil, err
@@ -106,7 +105,6 @@ func GetOrCreateServiceAccount(log logrus.FieldLogger, client *kubernetes.Client
 		},
 		metav1.CreateOptions{},
 	)
-
 	if err != nil {
 		log.Errorf("creating service account '%s/%s' failed: %s", namespace, name, err.Error())
 		return nil, err
@@ -163,7 +161,6 @@ func GetOrCreateClusterRoleBinding(log logrus.FieldLogger,
 		},
 		metav1.CreateOptions{},
 	)
-
 	if err != nil {
 		log.Errorf("creating cluster role binding %q failed: %s", name, err.Error())
 		return nil, err

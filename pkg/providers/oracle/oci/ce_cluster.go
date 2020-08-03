@@ -174,8 +174,10 @@ func (ce *ContainerEngine) GetClusters() (clusters []containerengine.ClusterSumm
 	return clusters, err
 }
 
-const okeWaitAttemptsForNodepoolActive = 60
-const okeSleepForNodepoolActive = 30 * time.Second
+const (
+	okeWaitAttemptsForNodepoolActive = 60
+	okeSleepForNodepoolActive        = 30 * time.Second
+)
 
 // WaitingForClusterNodePoolActiveState waits until every node in the existing pools is in ACTIVE state
 // only checks node pools specified in nodepoolNamesToCheck if any

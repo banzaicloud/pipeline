@@ -39,7 +39,9 @@ import (
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp" // required by GCP authentication at runtime
+
+	//  required by GCP authentication at runtime
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd/api"
 
@@ -295,7 +297,6 @@ func (c *GKECluster) CreateCluster() error {
 
 	log.Debugf("cluster create request: %v", ccr)
 	createCall, err := svc.Projects.Zones.Clusters.Create(cc.ProjectID, cc.Zone, ccr).Context(context.Background()).Do()
-
 	if err != nil {
 		if gErr, ok := err.(*googleapi.Error); ok && gErr.Code == http.StatusConflict {
 			// cluster already exists. check if it was created by Pipeline
@@ -475,8 +476,10 @@ func (c *GKECluster) DeleteCluster() error {
 	return nil
 }
 
-const gkeResourceDeleteMaxAttempts = 12
-const gkeResourceDeleteSleep = 5 * time.Second
+const (
+	gkeResourceDeleteMaxAttempts = 12
+	gkeResourceDeleteSleep       = 5 * time.Second
+)
 
 // waitForResourcesDelete waits until the Kubernetes destroys all the resources which it had created
 func (c *GKECluster) waitForResourcesDelete() error {
@@ -1130,7 +1133,6 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 			svc.Projects.Zones.Clusters.NodePools.Create(cc.ProjectID, cc.Zone, cc.Name, &gke.CreateNodePoolRequest{
 				NodePool: nodePoolToCreate,
 			}).Context(context.Background()).Do()
-
 		if err != nil {
 			return nil, err
 		}
@@ -1152,7 +1154,6 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 		deleteCall, err :=
 			svc.Projects.Zones.Clusters.NodePools.Delete(cc.ProjectID, cc.Zone, cc.Name, nodePoolName).Context(
 				context.Background()).Do()
-
 		if err != nil {
 			return nil, err
 		}
@@ -1206,7 +1207,6 @@ func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 		ProjectID: secretItem.Values[secrettype.ProjectId],
 		Zone:      c.model.Cluster.Location,
 	})
-
 	if err != nil {
 		return nil, errors.WrapIf(err, "retrieving GKE cluster provider failed")
 	}

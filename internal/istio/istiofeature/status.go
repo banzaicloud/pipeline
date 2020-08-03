@@ -19,9 +19,8 @@ import (
 	"strconv"
 
 	"emperror.dev/errors"
-	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
-
 	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (m *MeshReconciler) GetClusterStatus() (map[uint]string, error) {

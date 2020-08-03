@@ -25,11 +25,10 @@ import (
 	"emperror.dev/errors"
 	"github.com/stretchr/testify/assert"
 
-	helmtesting "github.com/banzaicloud/pipeline/internal/helm/testing"
-
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	helmtesting "github.com/banzaicloud/pipeline/internal/helm/testing"
 )
 
 // TestReleaser integration test for releaser operations
@@ -72,6 +71,7 @@ func testReleaserHelmV3() func(t *testing.T) {
 		}
 	}
 }
+
 func setUpHelmConfig(t *testing.T) helm.Config {
 	home, err := ioutil.TempDir("", "")
 	if err != nil {

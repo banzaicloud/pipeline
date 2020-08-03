@@ -26,25 +26,22 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/sirupsen/logrus"
+	"go.uber.org/cadence/client"
+	logrusadapter "logur.dev/adapter/logrus"
 
+	pkgEks "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshdriver"
-	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
-	"github.com/banzaicloud/pipeline/src/auth"
-
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/sirupsen/logrus"
-	logrusadapter "logur.dev/adapter/logrus"
-
-	"go.uber.org/cadence/client"
-
-	pkgEks "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
+	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
@@ -172,7 +169,8 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 		subnet := workflow.Subnet{
 			SubnetID:         aws.StringValue(eksSubnetModel.SubnetId),
 			Cidr:             aws.StringValue(eksSubnetModel.Cidr),
-			AvailabilityZone: aws.StringValue(eksSubnetModel.AvailabilityZone)}
+			AvailabilityZone: aws.StringValue(eksSubnetModel.AvailabilityZone),
+		}
 
 		subnets = append(subnets, subnet)
 
@@ -330,7 +328,6 @@ func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, logger 
 		if r.Properties.CreateClusterEKS.Vpc.VpcId != "" {
 			// verify that the provided VPC exists and is in available state
 			exists, err := netSvc.VpcAvailable(r.Properties.CreateClusterEKS.Vpc.VpcId)
-
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "failed to check if VPC is available", "vpc", *r.Properties.CreateClusterEKS.Vpc)
 			}

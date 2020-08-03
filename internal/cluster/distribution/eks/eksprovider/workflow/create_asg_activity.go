@@ -181,7 +181,8 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		{
 			ParameterKey:   aws.String("VpcId"),
 			ParameterValue: aws.String(input.VpcID),
-		}, {
+		},
+		{
 			ParameterKey:   aws.String("Subnets"),
 			ParameterValue: aws.String(strings.Join(subnetIDs, ",")),
 		},

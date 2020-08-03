@@ -65,7 +65,7 @@ func (a AssembleHTTPProxySettingsActivity) Execute(
 	ctx context.Context,
 	input AssembleHTTPProxySettingsActivityInput,
 ) (output AssembleHTTPProxySettingsActivityOutput, err error) {
-	var httpScheme = input.HTTPProxyScheme
+	httpScheme := input.HTTPProxyScheme
 	if httpScheme == "" {
 		httpScheme = "http"
 	}
@@ -74,7 +74,7 @@ func (a AssembleHTTPProxySettingsActivity) Execute(
 		return
 	}
 
-	var httpsScheme = input.HTTPSProxyScheme
+	httpsScheme := input.HTTPSProxyScheme
 	if httpsScheme == "" {
 		httpsScheme = "https"
 	}

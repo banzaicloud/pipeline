@@ -53,7 +53,6 @@ func (svc *NetworkSvc) VpcAvailable(vpcId string) (bool, error) {
 			},
 		},
 	})
-
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
@@ -92,7 +91,6 @@ func (svc *NetworkSvc) RouteTableAvailable(routeTableId, vpcId string) (bool, er
 			},
 		},
 	})
-
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
@@ -129,7 +127,6 @@ func (svc *NetworkSvc) SubnetAvailable(subnetId, vpcId string) (bool, error) {
 			},
 		},
 	})
-
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
@@ -164,7 +161,6 @@ func (svc *NetworkSvc) GetVpcDefaultSecurityGroup(vpcId string) (string, error) 
 			},
 		},
 	})
-
 	if err != nil {
 		return "", errors.WrapIfWithDetails(err, "failed to describe default security group of the VPC", "vpcId", vpcId)
 	}
@@ -182,7 +178,6 @@ func (svc *NetworkSvc) GetSubnetCidr(subnetId string) (string, error) {
 	result, err := svc.ec2Api.DescribeSubnets(&ec2.DescribeSubnetsInput{
 		SubnetIds: []*string{aws.String(subnetId)},
 	})
-
 	if err != nil {
 		return "", errors.WrapIfWithDetails(err, "failed to describe subnet", "subnetId", subnetId)
 	}
@@ -271,7 +266,6 @@ func (svc *NetworkSvc) GetUnusedNetworkInterfaces(vpcId string, securityGroupIds
 			}
 			return lastPage
 		})
-
 	if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "couldn't query network interfaces", "vpcId", vpcId, "securityGroups", securityGroupIds)
 	}

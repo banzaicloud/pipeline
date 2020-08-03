@@ -16,8 +16,12 @@ package database
 
 import (
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"    // import mysql driver
-	_ "github.com/jinzhu/gorm/dialects/postgres" // import postgres driver
+
+	//  import mysql driver
+	_ "github.com/jinzhu/gorm/dialects/mysql"
+
+	//  import postgres driver
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/pkg/errors"
 )
 

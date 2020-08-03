@@ -142,9 +142,11 @@ type InstallSecretRequestSpecItem struct {
 	Value     string
 }
 
-var ErrSecretNotFound = stderrors.New("secret not found")
-var ErrKubernetesSecretNotFound = stderrors.New("kubernetes secret not found")
-var ErrKubernetesSecretAlreadyExists = stderrors.New("kubernetes secret already exists")
+var (
+	ErrSecretNotFound                = stderrors.New("secret not found")
+	ErrKubernetesSecretNotFound      = stderrors.New("kubernetes secret not found")
+	ErrKubernetesSecretAlreadyExists = stderrors.New("kubernetes secret already exists")
+)
 
 // InstallSecret installs a new secret under the name into namespace of a Kubernetes cluster.
 // It returns the installed secret name and meta about how to mount it.

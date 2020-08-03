@@ -96,7 +96,6 @@ func (ce *ContainerEngine) GetK8SConfig(OCID string) ([]byte, error) {
 	response, err := ce.client.CreateKubeconfig(context.Background(), containerengine.CreateKubeconfigRequest{
 		ClusterId: &OCID,
 	})
-
 	if err != nil {
 		return nil, err
 	}

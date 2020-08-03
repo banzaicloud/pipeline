@@ -25,7 +25,6 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
@@ -716,7 +715,6 @@ func testAwsRoute53RegisterDomain(t *testing.T) {
 	awsRoute53 := &awsRoute53{route53Svc: &mockRoute53Svc{}, iamSvc: &mockIamSvc{}, stateStore: stateStore, getOrganization: getTestOrgById, baseHostedZoneId: testBaseHostedZoneId}
 
 	err := awsRoute53.RegisterDomain(testOrgId, testDomain)
-
 	if err != nil {
 		t.Fatalf("Register domain should succeed: %s", err.Error())
 	}
@@ -739,7 +737,6 @@ func testAwsRoute53RegisterDomain(t *testing.T) {
 		Tags:   []string{secret.TagBanzaiHidden},
 		Values: true,
 	})
-
 	if err != nil {
 		t.Fatalf("Failed to list '%s' in Vault: %s", IAMUserAccessKeySecretName, err.Error())
 	}

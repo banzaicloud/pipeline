@@ -145,7 +145,7 @@ func (m EndpointManager) getLoadBalancersWithIngressPaths(serviceList *v1.Servic
 		var endpointURLs []*pkgHelm.EndPointURLs
 		logger := m.logger.WithFields(map[string]interface{}{"serviceName": service.Name, "serviceNamespace": service.Namespace})
 		if len(service.Status.LoadBalancer.Ingress) > 0 {
-			//TODO we should avoid differences on kubernetes level
+			// TODO we should avoid differences on kubernetes level
 			publicEndpoint := service.Status.LoadBalancer.Ingress[0].Hostname
 			if publicEndpoint == "" {
 				publicEndpoint = service.Status.LoadBalancer.Ingress[0].IP

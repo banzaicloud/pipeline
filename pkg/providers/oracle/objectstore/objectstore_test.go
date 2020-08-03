@@ -33,8 +33,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const bucketName = "banzaicloud-test-bucket"
-const nonExistingBucketName = "a-asd8908sad-nonexisting-bucketname"
+const (
+	bucketName            = "banzaicloud-test-bucket"
+	nonExistingBucketName = "a-asd8908sad-nonexisting-bucketname"
+)
 
 func getObjectStore(t *testing.T) *objectStore {
 	t.Helper()
@@ -60,7 +62,7 @@ func getObjectStore(t *testing.T) *objectStore {
 	privateRSAKey, _ := configuration.PrivateRSAKey()
 	APIKeyFingerprint, _ := configuration.KeyFingerprint()
 
-	var privateKey = &pem.Block{
+	privateKey := &pem.Block{
 		Type:  "PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(privateRSAKey),
 	}

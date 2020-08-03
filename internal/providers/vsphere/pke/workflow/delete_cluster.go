@@ -18,14 +18,13 @@ import (
 	"fmt"
 	"time"
 
+	"emperror.dev/errors"
 	"go.uber.org/cadence"
+	"go.uber.org/cadence/workflow"
 
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-
-	"emperror.dev/errors"
-	"go.uber.org/cadence/workflow"
 )
 
 const DeleteClusterWorkflowName = "pke-vsphere-delete-cluster"
@@ -146,7 +145,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			ClusterUID:     input.ClusterUID,
 		}
 		if err := workflow.ExecuteActivity(ctx, intClusterWorkflow.DeleteUnusedClusterSecretsActivityName, activityInput).Get(ctx, nil); err != nil {
-			_ = setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, fmt.Sprintf("failed to delete unused cluster secrets: %v", err)) // nolint: errcheck
+			_ = setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, fmt.Sprintf("failed to delete unused cluster secrets: %v", err))
 		}
 	}
 

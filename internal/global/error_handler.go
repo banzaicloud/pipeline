@@ -23,10 +23,12 @@ import (
 	logrusadapter "logur.dev/adapter/logrus"
 )
 
-var errorHandler emperror.Handler
-var errorHandlerOnce sync.Once
-var errorHandlerMu sync.RWMutex
-var errorHandlerSubscribers []func(h emperror.Handler)
+var (
+	errorHandler            emperror.Handler
+	errorHandlerOnce        sync.Once
+	errorHandlerMu          sync.RWMutex
+	errorHandlerSubscribers []func(h emperror.Handler)
+)
 
 // ErrorHandler returns an error handler.
 func ErrorHandler() emperror.Handler {

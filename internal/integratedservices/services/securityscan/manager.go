@@ -33,7 +33,7 @@ func (f IntegratedServiceManager) Name() string {
 	return IntegratedServiceName
 }
 
-//MakeIntegratedServiceManager creates asecurity scan integrated service manager instance
+// MakeIntegratedServiceManager creates asecurity scan integrated service manager instance
 func MakeIntegratedServiceManager(logger common.Logger, config Config) IntegratedServiceManager {
 	return IntegratedServiceManager{
 		config: config,

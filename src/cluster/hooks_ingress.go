@@ -64,7 +64,7 @@ func (i *IngressControllerPostHook) Do(cluster CommonCluster) error {
 	if i.helmService == nil {
 		return errors.New("missing helm service dependency")
 	}
-	var config = global.Config.Cluster.PostHook
+	config := global.Config.Cluster.PostHook
 	if !config.Ingress.Enabled {
 		return nil
 	}
@@ -77,7 +77,7 @@ func (i *IngressControllerPostHook) Do(cluster CommonCluster) error {
 
 	var orgDomainName string
 	var wildcardOrgDomainName string
-	var baseDomain = strings.ToLower(global.Config.Cluster.DNS.BaseDomain)
+	baseDomain := strings.ToLower(global.Config.Cluster.DNS.BaseDomain)
 	if baseDomain != "" {
 		orgDomainName = strings.ToLower(fmt.Sprintf("%s.%s", organization.NormalizedName, baseDomain))
 		err = dns.ValidateSubdomain(orgDomainName)
@@ -92,7 +92,7 @@ func (i *IngressControllerPostHook) Do(cluster CommonCluster) error {
 		}
 	}
 
-	var defaultCN = orgDomainName
+	defaultCN := orgDomainName
 	var defaultSANList []string
 	if orgDomainName != "" {
 		defaultSANList = append(defaultSANList, orgDomainName)
@@ -114,7 +114,7 @@ func (i *IngressControllerPostHook) Do(cluster CommonCluster) error {
 		}
 	}
 
-	var ingressValues = ingressControllerValues{
+	ingressValues := ingressControllerValues{
 		Traefik: traefikValues{
 			SSL: sslTraefikValues{
 				Enabled:        true,

@@ -20,7 +20,6 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
-
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 

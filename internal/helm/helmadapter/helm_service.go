@@ -22,11 +22,10 @@ import (
 	"helm.sh/helm/v3/pkg/storage/driver"
 	"sigs.k8s.io/yaml"
 
-	legacyHelm "github.com/banzaicloud/pipeline/src/helm"
-
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	helm2 "github.com/banzaicloud/pipeline/pkg/helm"
+	legacyHelm "github.com/banzaicloud/pipeline/src/helm"
 )
 
 // helm3UnifiedReleaser component providing helm3 implementation for integrated services

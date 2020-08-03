@@ -43,10 +43,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/utils"
 )
 
-// nolint: gochecknoglobals
-var (
-	ErrNoInfrastructureRG = errors.New("no infrastructure resource group found")
-)
+var ErrNoInfrastructureRG = errors.New("no infrastructure resource group found")
 
 // AKSCluster represents an AKS cluster
 type AKSCluster struct {
@@ -57,7 +54,7 @@ type AKSCluster struct {
 
 // CreateAKSClusterFromRequest returns an AKS cluster instance created from the specified request
 func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID uint, userID uint) (*AKSCluster, error) {
-	var nodePools = make([]*azureadapter.AKSNodePoolModel, 0, len(request.Properties.CreateClusterAKS.NodePools))
+	nodePools := make([]*azureadapter.AKSNodePoolModel, 0, len(request.Properties.CreateClusterAKS.NodePools))
 	for name, np := range request.Properties.CreateClusterAKS.NodePools {
 		nodePools = append(nodePools, &azureadapter.AKSNodePoolModel{
 			CreatedBy:        userID,
@@ -956,7 +953,6 @@ func (c *AKSCluster) collectActivityLogsWithErrors(filter string) ([]insights.Ev
 		context.TODO(),
 		filter,
 		"")
-
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to query activity log")
 	}

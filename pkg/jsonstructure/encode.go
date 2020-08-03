@@ -150,9 +150,7 @@ func (e encoder) encodeField(obj Object, field reflect.StructField, value reflec
 
 	jsonTags := strings.Split(jsonTag, ",")
 
-	var (
-		omitempty bool
-	)
+	var omitempty bool
 
 	if len(jsonTags) > 1 {
 		for _, t := range jsonTags[1:] {

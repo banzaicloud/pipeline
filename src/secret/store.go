@@ -121,7 +121,6 @@ func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
 		&ListSecretsQuery{
 			Tags: []string{clusterUIDTag},
 		})
-
 	if err != nil {
 		log.Errorf("Error during list secrets: %s", err.Error())
 		return err

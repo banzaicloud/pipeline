@@ -67,7 +67,7 @@ func (n *API) Get(c *gin.Context) {
 	response.ReconcileState = feature.ReconcileState
 	response.LastReconcileError = feature.LastReconcileError
 
-	//call feature handler to get statuses
+	// call feature handler to get statuses
 	if feature.Enabled {
 		status, err := n.clusterGroupManager.GetFeatureStatus(*feature)
 		if err != nil {

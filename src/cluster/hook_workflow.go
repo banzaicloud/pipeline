@@ -24,9 +24,8 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 const RunPostHooksWorkflowName = "run-posthooks"
@@ -145,6 +144,7 @@ func NewRunPostHookActivity(manager *Manager, helmService HelmService) *RunPostH
 		helmService: helmService,
 	}
 }
+
 func (a *RunPostHookActivity) Execute(ctx context.Context, input RunPostHookActivityInput) error {
 	hook, ok := HookMap[input.HookName]
 	if !ok {

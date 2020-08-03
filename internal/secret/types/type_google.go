@@ -76,7 +76,6 @@ func (t GoogleType) Validate(data map[string]string) error {
 // TODO: rewrite this function!
 func (GoogleType) Verify(data map[string]string) error {
 	err := googleCheckProject(googleCreateServiceAccount(data))
-
 	if err != nil {
 		return secret.NewValidationError(err.Error(), nil)
 	}

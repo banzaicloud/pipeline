@@ -42,8 +42,10 @@ var (
 
 // Default storage account name when none is provided.
 // This must between 3-23 letters and can only contain small letters and numbers.
-const defaultStorageAccountName = "pipelinegenstorageacc"
-const defaultResourceGroupName = "pipelinegenresourcegroup"
+const (
+	defaultStorageAccountName = "pipelinegenstorageacc"
+	defaultResourceGroupName  = "pipelinegenresourcegroup"
+)
 
 type azureObjectStore interface {
 	commonObjectstore.ObjectStore

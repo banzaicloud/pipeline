@@ -79,7 +79,7 @@ func (a WaitPersistentVolumesDeletionActivity) Execute(ctx context.Context, inpu
 		return
 	}
 
-	var pvsToWatch = make(map[types.UID]corev1.PersistentVolume)
+	pvsToWatch := make(map[types.UID]corev1.PersistentVolume)
 	for _, pvc := range pvcList.Items {
 		if pvc.Status.Phase == corev1.ClaimBound {
 			for _, pv := range pvList.Items {

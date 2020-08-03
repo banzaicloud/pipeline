@@ -151,7 +151,6 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 
 		RestoreMode: restoreMode,
 	})
-
 	if err != nil {
 		return errors.Wrap(err, "error service getting config")
 	}

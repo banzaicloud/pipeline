@@ -152,7 +152,8 @@ func (m *Manager) RegisterSpotFulfillmentDuration(instance *Instance, group *Gro
 				m.logger.Debug("register fulfillment duration",
 					map[string]interface{}{
 						"instance-id": *instance.InstanceId,
-						"seconds":     sr.Status.UpdateTime.Sub(*sr.CreateTime).Seconds()})
+						"seconds":     sr.Status.UpdateTime.Sub(*sr.CreateTime).Seconds(),
+					})
 				ec2SpotInstanceFulfillmentDuration.WithLabelValues(amazon.Provider, region, availabilityZone, instanceType).Observe(sr.Status.UpdateTime.Sub(*sr.CreateTime).Seconds())
 				break
 			}

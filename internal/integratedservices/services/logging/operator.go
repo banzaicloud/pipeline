@@ -26,10 +26,9 @@ import (
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/banzaicloud/pipeline/internal/helm"
-
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
@@ -184,10 +183,10 @@ func (op IntegratedServiceOperator) processTLS(ctx context.Context, spec integra
 }
 
 func (op IntegratedServiceOperator) generateTLSSecret(cl integratedserviceadapter.Cluster) error {
-	var namespace = op.config.Namespace
-	var clusterUIDSecretTag = generateClusterUIDSecretTag(cl.GetUID())
-	var clusterNameSecretTag = generateClusterNameSecretTag(cl.GetName())
-	var tlsHost = "fluentd." + namespace + ".svc.cluster.local"
+	namespace := op.config.Namespace
+	clusterUIDSecretTag := generateClusterUIDSecretTag(cl.GetUID())
+	clusterNameSecretTag := generateClusterNameSecretTag(cl.GetName())
+	tlsHost := "fluentd." + namespace + ".svc.cluster.local"
 
 	req := &secret.CreateSecretRequest{
 		Name: tlsSecretName,
@@ -211,11 +210,12 @@ func (op IntegratedServiceOperator) generateTLSSecret(cl integratedserviceadapte
 
 	return nil
 }
-func (op IntegratedServiceOperator) generateHTPasswordSecretForLoki(ctx context.Context, cl integratedserviceadapter.Cluster) error {
-	var clusterNameSecretTag = generateClusterNameSecretTag(cl.GetName())
-	var clusterUIDSecretTag = generateClusterUIDSecretTag(cl.GetUID())
 
-	var secretTags = []string{
+func (op IntegratedServiceOperator) generateHTPasswordSecretForLoki(ctx context.Context, cl integratedserviceadapter.Cluster) error {
+	clusterNameSecretTag := generateClusterNameSecretTag(cl.GetName())
+	clusterUIDSecretTag := generateClusterUIDSecretTag(cl.GetUID())
+
+	secretTags := []string{
 		clusterNameSecretTag,
 		clusterUIDSecretTag,
 		releaseSecretTag,
@@ -250,8 +250,8 @@ func (op IntegratedServiceOperator) installTLSSecretsToCluster(ctx context.Conte
 	const kubeTlsCertKey = "tls.crt"
 	const kubeTlsKeyKey = "tls.key"
 
-	var namespace = op.config.Namespace
-	var installSecretRequest = pkgCluster.InstallSecretRequest{
+	namespace := op.config.Namespace
+	installSecretRequest := pkgCluster.InstallSecretRequest{
 		SourceSecretName: tlsSecretName,
 		Namespace:        namespace,
 		Update:           true,
@@ -274,8 +274,8 @@ func (op IntegratedServiceOperator) installTLSSecretsToCluster(ctx context.Conte
 
 func (op IntegratedServiceOperator) processLoki(ctx context.Context, spec lokiSpec, cl integratedserviceadapter.Cluster) error {
 	if spec.Enabled {
-		var chartName = op.config.Charts.Loki.Chart
-		var chartVersion = op.config.Charts.Loki.Version
+		chartName := op.config.Charts.Loki.Chart
+		chartVersion := op.config.Charts.Loki.Version
 
 		var annotations map[string]interface{}
 		if spec.Ingress.Enabled {
@@ -291,12 +291,12 @@ func (op IntegratedServiceOperator) processLoki(ctx context.Context, spec lokiSp
 			annotations = generateAnnotations(secretName)
 		}
 
-		var domain = spec.Ingress.Domain
+		domain := spec.Ingress.Domain
 		if domain == "" {
 			domain = "/"
 		}
 
-		var chartValues = &lokiValues{
+		chartValues := &lokiValues{
 			Ingress: ingressValues{
 				Enabled:     spec.Ingress.Enabled,
 				Hosts:       []string{path.Join(domain, spec.Ingress.Path)},
@@ -401,7 +401,7 @@ func (op IntegratedServiceOperator) installSecret(ctx context.Context, cl integr
 }
 
 func (op IntegratedServiceOperator) installLoggingOperator(ctx context.Context, clusterID uint) error {
-	var chartValues = loggingOperatorValues{
+	chartValues := loggingOperatorValues{
 		Image: imageValues{
 			Repository: op.config.Images.Operator.Repository,
 			Tag:        op.config.Images.Operator.Tag,
@@ -464,8 +464,8 @@ func mergeValuesWithConfig(chartValues interface{}, configValues interface{}) ([
 }
 
 func (op IntegratedServiceOperator) createLoggingResource(ctx context.Context, clusterID uint, spec integratedServiceSpec) error {
-	var tlsEnabled = spec.Logging.TLS
-	var loggingResource = &v1beta1.Logging{
+	tlsEnabled := spec.Logging.TLS
+	loggingResource := &v1beta1.Logging{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      loggingResourceName,
 			Namespace: op.config.Namespace,
@@ -503,7 +503,7 @@ func (op IntegratedServiceOperator) createLoggingResource(ctx context.Context, c
 	}
 
 	if tlsEnabled {
-		var sharedKey = "fluentSharedKey"
+		sharedKey := "fluentSharedKey"
 		loggingResource.Spec.FluentdSpec.TLS.SecretName = fluentSharedSecretName
 		loggingResource.Spec.FluentdSpec.TLS.SharedKey = sharedKey
 		loggingResource.Spec.FluentbitSpec.TLS.SecretName = fluentSharedSecretName

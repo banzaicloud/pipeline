@@ -23,8 +23,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const clusterGroupDeploymentTableName = "clustergroup_deployments"
-const clusterGroupDeploymentOverridesTableName = "clustergroup_deployment_target_clusters"
+const (
+	clusterGroupDeploymentTableName          = "clustergroup_deployments"
+	clusterGroupDeploymentOverridesTableName = "clustergroup_deployment_target_clusters"
+)
 
 // TableName changes the default table name.
 func (ClusterGroupDeploymentModel) TableName() string {

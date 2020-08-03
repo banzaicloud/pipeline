@@ -76,8 +76,8 @@ func (a DeleteNodeActivity) Execute(ctx context.Context, input DeleteNodeActivit
 	vm := vms[0]
 
 	// TODO check tags
-	//config, err := vm.QueryConfigTarget()
-	//expectedTags := getClusterTags(input.Name, input.NodePoolName)
+	// config, err := vm.QueryConfigTarget()
+	// expectedTags := getClusterTags(input.Name, input.NodePoolName)
 
 	// Power off the VM.
 	powerState, err := vm.PowerState(ctx)

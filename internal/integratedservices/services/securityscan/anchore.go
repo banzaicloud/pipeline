@@ -47,29 +47,37 @@ func NewIntegratedServiceAnchoreService(anchoreUserService anchore.AnchoreUserSe
 func (a anchoreService) GenerateUser(ctx context.Context, orgID uint, clusterID uint) (string, error) {
 	userName, err := a.anchoreUserService.EnsureUser(ctx, orgID, clusterID)
 	if err != nil {
-		a.logger.Debug("error creating anchore user", map[string]interface{}{"organization": orgID,
-			"clusterGUID": clusterID})
+		a.logger.Debug("error creating anchore user", map[string]interface{}{
+			"organization": orgID,
+			"clusterGUID":  clusterID,
+		})
 
 		return "", errors.WrapWithDetails(err, "error creating anchore user", "organization", orgID,
 			"clusterGUID", clusterID)
 	}
 
-	a.logger.Debug("anchore user ensured", map[string]interface{}{"organization": orgID,
-		"clusterGUID": clusterID})
+	a.logger.Debug("anchore user ensured", map[string]interface{}{
+		"organization": orgID,
+		"clusterGUID":  clusterID,
+	})
 
 	return userName, nil
 }
 
 func (a anchoreService) DeleteUser(ctx context.Context, orgID uint, clusterID uint) error {
 	if err := a.anchoreUserService.RemoveUser(ctx, orgID, clusterID); err != nil {
-		a.logger.Debug("error deleting anchore user", map[string]interface{}{"organization": orgID,
-			"clusterID": clusterID})
+		a.logger.Debug("error deleting anchore user", map[string]interface{}{
+			"organization": orgID,
+			"clusterID":    clusterID,
+		})
 
 		return errors.WrapWithDetails(err, "error deleting anchore user", "organization", orgID,
 			"clusterID", clusterID)
 	}
 
-	a.logger.Info("anchore user deleted", map[string]interface{}{"organization": orgID,
-		"clusterID": clusterID})
+	a.logger.Info("anchore user deleted", map[string]interface{}{
+		"organization": orgID,
+		"clusterID":    clusterID,
+	})
 	return nil
 }

@@ -57,7 +57,6 @@ func (m *GKEClusterModel) AfterUpdate(scope *gorm.Scope) error {
 		if nodePoolModel.Delete {
 			// TODO: use transaction?
 			err := scope.DB().Delete(nodePoolModel).Error
-
 			if err != nil {
 				return err
 			}

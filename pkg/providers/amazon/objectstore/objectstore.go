@@ -213,7 +213,6 @@ func (s *objectStore) ListObjects(bucketName string) ([]string, error) {
 		}
 		return !lastPage
 	})
-
 	if err != nil {
 		err = s.convertError(err)
 		return nil, errors.WrapIfWithDetails(err, "error listing object for bucket", "bucket", bucketName)
@@ -234,7 +233,6 @@ func (s *objectStore) ListObjectsWithPrefix(bucketName, prefix string) ([]string
 		}
 		return !lastPage
 	})
-
 	if err != nil {
 		err = s.convertError(err)
 		return nil, errors.WrapIfWithDetails(err, "error listing object for bucket", "bucket", bucketName, "prefix", prefix)
@@ -258,7 +256,6 @@ func (s *objectStore) ListObjectKeyPrefixes(bucketName string, delimiter string)
 		}
 		return !lastPage
 	})
-
 	if err != nil {
 		err = s.convertError(err)
 		return nil, errors.WrapIfWithDetails(err, "error getting prefixes for bucket", "bucket", bucketName, "delimeter", delimiter)

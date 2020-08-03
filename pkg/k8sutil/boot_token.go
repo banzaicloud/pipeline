@@ -26,8 +26,10 @@ import (
 	"k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 )
 
-const KubeSystemNamespace = "kube-system"
-const TokenSecretTypeFieldSelector = "type=bootstrap.kubernetes.io/token"
+const (
+	KubeSystemNamespace          = "kube-system"
+	TokenSecretTypeFieldSelector = "type=bootstrap.kubernetes.io/token"
+)
 
 // GetOrCreateBootstrapToken
 // This function will ensure to have at least 1 token that expire at least 1 hour from now

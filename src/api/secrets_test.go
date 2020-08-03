@@ -26,9 +26,8 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
-	"github.com/stretchr/testify/require"
-
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
+	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -397,14 +396,16 @@ var (
 			Values:  toHiddenValues(clusterTypes.Azure),
 			Tags:    []string{},
 			Version: 1,
-		}, {
+		},
+		{
 			ID:      secretIdAmazon,
 			Name:    secretNameAmazon,
 			Type:    clusterTypes.Amazon,
 			Values:  toHiddenValues(clusterTypes.Amazon),
 			Tags:    awsCreateSecretRequest.Tags,
 			Version: 1,
-		}, {
+		},
+		{
 			ID:      secretIdOracle,
 			Name:    secretNameOracle,
 			Type:    clusterTypes.Oracle,

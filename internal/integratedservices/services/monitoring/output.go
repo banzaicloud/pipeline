@@ -109,7 +109,7 @@ func writeServiceURL(ctx context.Context, m outputManager, service endpoints.End
 
 func writeSecretID(ctx context.Context, m outputManager, clusterID uint, output map[string]interface{}) {
 	if m.isEnabled() {
-		var generatedSecretName = m.getGeneratedSecretName(clusterID)
+		generatedSecretName := m.getGeneratedSecretName(clusterID)
 		if m.getSecretID() == "" && generatedSecretName != "" {
 			secretID, err := m.secretStore.GetIDByName(ctx, generatedSecretName)
 			if err != nil {
@@ -123,9 +123,9 @@ func writeSecretID(ctx context.Context, m outputManager, clusterID uint, output 
 }
 
 func (m *outputManager) getVersionFromValues(values map[string]interface{}) string {
-	var specValues = values
-	var parentKey = m.getDeploymentValueParentKey()
-	var ok = true
+	specValues := values
+	parentKey := m.getDeploymentValueParentKey()
+	ok := true
 	if parentKey != "" {
 		specValues, ok = values[parentKey].(map[string]interface{})
 	}

@@ -20,17 +20,15 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/ghodss/yaml"
+	"go.uber.org/cadence/activity"
 	"go.uber.org/zap"
 
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/utils"
-
-	"go.uber.org/cadence/activity"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/ghodss/yaml"
 )
 
 const SaveK8sConfigActivityName = "eks-save-k8s-config"

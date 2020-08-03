@@ -149,7 +149,7 @@ func (s PkeSecreter) GeneratePkeSecret(organizationID uint, tags []string) (map[
 	}
 
 	// Encryption Secret
-	var rnd = make([]byte, 32)
+	rnd := make([]byte, 32)
 	_, err = rand.Read(rnd)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to encrypt secret")

@@ -326,7 +326,7 @@ func (c *EC2ClusterPKE) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) er
 }
 
 func createNodePoolsFromPKERequest(nodePools pke.UpdateNodePools) []pkeworkflow.NodePool {
-	var out = make([]pkeworkflow.NodePool, len(nodePools))
+	out := make([]pkeworkflow.NodePool, len(nodePools))
 	i := 0
 	for nodePoolName, nodePool := range nodePools {
 		count := nodePool.Count
@@ -495,7 +495,8 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 				Autoscaling: np.Autoscaling,
 				Provider:    internalPke.NPPAmazon,
 				ProviderConfig: internalPke.Config{
-					"autoScalingGroup": providerConfig.AutoScalingGroup},
+					"autoScalingGroup": providerConfig.AutoScalingGroup,
+				},
 			}
 			newModelNodePools = append(newModelNodePools, modelNodepool)
 		}
@@ -729,7 +730,7 @@ func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
 
 // ListNodePools returns node pool names.
 func (c *EC2ClusterPKE) ListNodePools() ([]string, error) {
-	var nodePools = make([]string, 0, len(c.model.NodePools))
+	nodePools := make([]string, 0, len(c.model.NodePools))
 
 	for _, nodePool := range c.model.NodePools {
 		nodePools = append(nodePools, nodePool.Name)
@@ -781,6 +782,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 	var np *internalPke.NodePool
 	for _, nodePool := range c.model.NodePools {
 		if nodePool.Name == nodePoolName {
+			nodePool := nodePool
 			np = &nodePool
 			break
 		}

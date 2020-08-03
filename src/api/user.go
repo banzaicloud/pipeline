@@ -58,7 +58,6 @@ func (a *UserAPI) GetCurrentUser(c *gin.Context) {
 	}
 
 	err := a.db.Find(user).Error
-
 	if err != nil {
 		message := "failed to fetch user"
 		a.errorHandler.Handle(errors.WrapIf(err, message))

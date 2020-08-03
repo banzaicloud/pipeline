@@ -61,7 +61,7 @@ func NewHelm3EnvService(secretStore helm.SecretStore, logger Logger) helm.EnvSer
 func (h helm3EnvService) AddRepository(ctx context.Context, helmEnv helm.HelmEnv, repository helm.Repository) error {
 	repoFile := helmEnv.GetHome() // TODO add another field to the env instead???
 
-	//Ensure the file directory exists as it is required for file locking
+	// Ensure the file directory exists as it is required for file locking
 	err := os.MkdirAll(filepath.Dir(helmEnv.GetHome()), os.ModePerm)
 	if err != nil && !os.IsExist(err) {
 		return err
@@ -493,7 +493,7 @@ func (h helm3EnvService) adaptChartDetailsResponse(charts map[string]*chart.Char
 func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv, defaultRepos []helm.Repository) (helm.HelmEnv, bool, error) {
 	repoFile := helmEnv.GetHome()
 
-	//Ensure the file directory exists as it is required for file locking
+	// Ensure the file directory exists as it is required for file locking
 	err := os.MkdirAll(filepath.Dir(helmEnv.GetHome()), os.ModePerm)
 	if err != nil && !os.IsExist(err) {
 		return helm.HelmEnv{}, false, errors.WrapIf(err, "failed to ensure helm env")

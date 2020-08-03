@@ -22,10 +22,9 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
-	"github.com/banzaicloud/pipeline/pkg/brn"
-
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	intPKEWorkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
+	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 

@@ -26,7 +26,6 @@ import (
 
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
-	vspherePKE "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver/commoncluster"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/workflow"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
@@ -37,8 +36,10 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-const pkeVersion = "0.5.1"
-const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
+const (
+	pkeVersion      = "0.5.1"
+	MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
+)
 
 func MakeVspherePKEClusterCreator(
 	logger Logger,
@@ -67,7 +68,7 @@ type VspherePKEClusterCreator struct {
 	creationPreparer VspherePKEClusterCreationParamsPreparer
 	organizations    OrganizationStore
 	secrets          ClusterCreatorSecretStore
-	store            vspherePKE.ClusterStore
+	store            pke.ClusterStore
 	workflowClient   client.Client
 }
 
@@ -155,7 +156,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 		return
 	}
 
-	var defaultNodeTemplate = vsphereSecret.Values[secrettype.VsphereDefaultNodeTemplate]
+	defaultNodeTemplate := vsphereSecret.Values[secrettype.VsphereDefaultNodeTemplate]
 
 	// TODO maybe check the connection here, OR don't fetch the secret at all
 
@@ -251,7 +252,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 			nodePoolLabels = append(nodePoolLabels, cluster.NodePoolLabels{
 				NodePoolName: np.Name,
 				Existing:     false,
-				//TODO setup instance name, memory, vcpu
+				// TODO setup instance name, memory, vcpu
 				InstanceType: np.InstanceType(),
 				CustomLabels: np.Labels,
 			})
