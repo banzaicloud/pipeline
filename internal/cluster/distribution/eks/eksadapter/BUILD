@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "eksadapter",
     srcs = glob(
         ["*.go"],
@@ -19,8 +19,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":eksadapter"],
+    srcs = glob(["*_test.go"]),
     deps = [
+        ":eksadapter",
         "//internal/cluster",
         "//internal/cluster/distribution/eks",
         "//internal/cluster/distribution/eks/eksmodel",

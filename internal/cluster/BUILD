@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "cluster",
     srcs = glob(
         ["*.go"],
@@ -15,8 +15,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":cluster"],
+    srcs = glob(["*_test.go"]),
     deps = [
+        ":cluster",
         "//pkg/brn",
         "//pkg/cloud",
     ],

@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "clustersetup",
     srcs = glob(
         ["*.go"],
@@ -17,8 +17,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":clustersetup"],
+    srcs = glob(["*_test.go"]),
     deps = [
+        ":clustersetup",
         "//pkg/k8sclient",
         "//pkg/kubernetes",
     ],
@@ -26,10 +27,11 @@ go_test(
 
 go_test(
     name = "integration_test",
-    srcs = [":clustersetup"],
+    srcs = glob(["*_test.go"]),
     flags = "-test.run ^TestIntegration$",
     labels = ["integration"],
     deps = [
+        ":clustersetup",
         "//pkg/k8sclient",
         "//pkg/kubernetes",
     ],

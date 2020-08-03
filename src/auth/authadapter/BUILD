@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "authadapter",
     srcs = glob(
         ["*.go"],
@@ -12,8 +12,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":authadapter"],
+    srcs = glob(["*_test.go"]),
     deps = [
+        ":authadapter",
         "//internal/common",
         "//src/auth",
     ],

@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "integratedservicesdriver",
     srcs = glob(
         ["*.go"],
@@ -16,8 +16,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":integratedservicesdriver"],
+    srcs = glob(["*_test.go"]),
     deps = [
+        ":integratedservicesdriver",
         "//.gen/pipeline/pipeline",
         "//internal/integratedservices",
     ],

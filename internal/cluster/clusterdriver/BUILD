@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "clusterdriver",
     srcs = glob(
         ["*.go"],
@@ -16,6 +16,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":clusterdriver"],
-    deps = ["//internal/cluster"],
+    srcs = glob(["*_test.go"]),
+    deps = [
+        ":clusterdriver",
+        "//internal/cluster",
+    ],
 )
