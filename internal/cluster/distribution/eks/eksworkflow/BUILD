@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "eksworkflow",
     srcs = glob(
         ["*.go"],
@@ -20,6 +20,6 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":eksworkflow"],
-    deps = [],
+    srcs = glob(["*_test.go"]),
+    deps = [":eksworkflow"],
 )

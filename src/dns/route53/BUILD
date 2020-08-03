@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "route53",
     srcs = glob(
         ["*.go"],
@@ -20,8 +20,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":route53"],
+    srcs = glob(["*_test.go"]),
     deps = [
+        ":route53",
         "//internal/common",
         "//internal/global",
         "//internal/secret/pkesecret",
@@ -37,10 +38,11 @@ go_test(
 
 go_test(
     name = "integration_test",
-    srcs = [":route53"],
+    srcs = glob(["*_test.go"]),
     flags = "-test.run ^TestIntegration$",
     labels = ["integration"],
     deps = [
+        ":route53",
         "//internal/common",
         "//internal/global",
         "//internal/secret/pkesecret",

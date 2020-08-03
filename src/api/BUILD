@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "api",
     srcs = glob(
         ["*.go"],
@@ -51,8 +51,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":api"],
+    srcs = glob(["*_test.go"]),
     deps = [
+        ":api",
         "//internal/common",
         "//internal/global",
         "//internal/secret/pkesecret",
@@ -68,10 +69,11 @@ go_test(
 
 go_test(
     name = "integration_test",
-    srcs = [":api"],
+    srcs = glob(["*_test.go"]),
     flags = "-test.run ^TestIntegration$",
     labels = ["integration"],
     deps = [
+        ":api",
         "//internal/common",
         "//internal/global",
         "//internal/secret/pkesecret",

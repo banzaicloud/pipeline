@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "dnsadapter",
     srcs = glob(
         ["*.go"],
@@ -16,8 +16,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":dnsadapter"],
+    srcs = glob(["*_test.go"]),
     deps = [
+        ":dnsadapter",
         "//internal/integratedservices/services",
         "//src/auth",
     ],

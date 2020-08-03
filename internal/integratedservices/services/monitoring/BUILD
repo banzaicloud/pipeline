@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "monitoring",
     srcs = glob(
         ["*.go"],
@@ -28,8 +28,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":monitoring"],
+    srcs = glob(["*_test.go"]),
     deps = [
+        ":monitoring",
         "//internal/common/commonadapter",
         "//internal/helm",
         "//internal/integratedservices",

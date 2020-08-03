@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "driver",
     srcs = glob(
         ["*.go"],
@@ -29,8 +29,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":driver"],
+    srcs = glob(["*_test.go"]),
     deps = [
+        ":driver",
         "//internal/cluster/distribution/eks/ekscluster",
         "//internal/cluster/distribution/eks/eksprovider/workflow",
     ],

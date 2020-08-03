@@ -1,3 +1,6 @@
+[Go]
+GoPath = ""
+
 [buildconfig]
 go-home = "$(eval echo ~$(whoami))"
 helm-tool = "///pleasings2//tools/k8s:helm"

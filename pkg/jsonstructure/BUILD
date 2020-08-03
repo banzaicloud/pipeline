@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "jsonstructure",
     srcs = glob(
         ["*.go"],
@@ -15,6 +15,9 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":jsonstructure"],
-    deps = ["//pkg/any"],
+    srcs = glob(["*_test.go"]),
+    deps = [
+        ":jsonstructure",
+        "//pkg/any",
+    ],
 )

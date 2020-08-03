@@ -1,6 +1,6 @@
 subinclude("///pleasings2//go:compat")
 
-filegroup(
+go_library(
     name = "expiry",
     srcs = glob(
         ["*.go"],
@@ -15,6 +15,6 @@ filegroup(
 
 go_test(
     name = "test",
-    srcs = [":expiry"],
-    deps = [],
+    srcs = glob(["*_test.go"]),
+    deps = [":expiry"],
 )
