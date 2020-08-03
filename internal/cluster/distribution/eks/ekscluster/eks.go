@@ -64,8 +64,14 @@ func (cm *AuthConfigMapData) ConvertToString() (string, error) {
 		return "", errors.WrapIf(err, "failed to marshal map users")
 	}
 
+	mapAccounts, err := yaml.Marshal(cm.MapAccounts)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to marshal map accounts")
+	}
+
 	var mrIndent = strings.ReplaceAll(string(mapRoles), "\n", "\n  ")
 	var muIndent = strings.ReplaceAll(string(mapUsers), "\n", "\n  ")
+	var maIndent = strings.ReplaceAll(string(mapAccounts), "\n", "\n  ")
 
 	return fmt.Sprintf(`apiVersion: v1
 kind: ConfigMap
@@ -76,12 +82,15 @@ data:
  mapRoles: |
   %s
  mapUsers: |
-  %s`, mrIndent, muIndent), nil
+  %s
+ mapAccounts: |
+  %s`, mrIndent, muIndent, maIndent), nil
 }
 
 type AuthConfigMapData struct {
-	MapRoles []MapRoles `json:"mapRoles,omitempty" yaml:"mapRoles,omitempty"`
-	MapUsers []MapUsers `json:"mapUsers,omitempty" yaml:"mapUsers,omitempty"`
+	MapRoles    []MapRoles `json:"mapRoles,omitempty" yaml:"mapRoles,omitempty"`
+	MapUsers    []MapUsers `json:"mapUsers,omitempty" yaml:"mapUsers,omitempty"`
+	MapAccounts []string   `json:"mapAccounts,omitempty" yaml:"mapAccounts,omitempty"`
 }
 
 type BaseMapFields struct {

@@ -18850,6 +18850,10 @@ components:
           items:
             $ref: '#/components/schemas/AWSAuthConfigMapUsers'
           type: array
+        mapAccounts:
+          items:
+            type: string
+          type: array
       type: object
     AWSAuthConfigMapUsers:
       properties:

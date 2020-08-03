@@ -15,4 +15,6 @@ type AwsAuthConfig struct {
 	MapRoles []AwsAuthConfigMapRoles `json:"mapRoles,omitempty"`
 
 	MapUsers []AwsAuthConfigMapUsers `json:"mapUsers,omitempty"`
+
+	MapAccounts []string `json:"mapAccounts,omitempty"`
 }
