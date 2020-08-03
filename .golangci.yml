@@ -2,6 +2,7 @@ run:
     skip-dirs:
         - .gen
         - client
+        - plz-out
 
     skip-files:
         - ".*_gen\\.go$"
@@ -43,7 +44,11 @@ linters:
 
         # TODO: fixme
         - nestif
+        - exhaustive
+        - nlreturn
+        - noctx
 
+        - goerr113
         - bodyclose
         - dupl
         - gochecknoinits
