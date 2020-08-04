@@ -368,6 +368,7 @@ func main() {
 
 		imageSelector := pkeaws.NewImageSelectorChain(commonLogger, errorHandler)
 
+		imageSelector.AddSelector("gpu", pkeaws.NewGPUImageSelector(pkeaws.GPUImages()))
 		imageSelector.AddSelector("cloudinfo", pkeawsadapter.NewCloudinfoImageSelector(cloudinfoClient))
 		imageSelector.AddSelector("defaults", pkeaws.DefaultImages())
 
