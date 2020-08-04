@@ -25,9 +25,9 @@ jobs:
         with:
           path: |
             .plz-cache
-          key: ${{ runner.os }}-plz-v2-${{ runner.os }}-plz-v2-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/go.mod', '**/go.sum', '**/*.go') }}
+          key: ${{ runner.os }}-plz-v3-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/go.mod', '**/go.sum', '**/*.go') }}
           restore-keys: |
-            ${{ runner.os }}-plz-v2-
+            ${{ runner.os }}-plz-v3-
 
       - name: Go module cache
         id: go-module-cache
@@ -74,9 +74,9 @@ jobs:
         with:
           path: |
             .plz-cache
-          key: ${{ runner.os }}-plz-v2-${{ runner.os }}-plz-v2-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/go.mod', '**/go.sum', '**/*.go') }}
+          key: ${{ runner.os }}-plz-v3-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/go.mod', '**/go.sum', '**/*.go') }}
           restore-keys: |
-            ${{ runner.os }}-plz-v2-
+            ${{ runner.os }}-plz-v3-
 
       - name: Test
         run: ./pleasew -p --profile ci test --exclude integration //...
@@ -111,9 +111,9 @@ jobs:
         with:
           path: |
             .plz-cache
-          key: ${{ runner.os }}-plz-v2-${{ runner.os }}-plz-v2-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/go.mod', '**/go.sum', '**/*.go') }}
+          key: ${{ runner.os }}-plz-v3-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/go.mod', '**/go.sum', '**/*.go') }}
           restore-keys: |
-            ${{ runner.os }}-plz-v2-
+            ${{ runner.os }}-plz-v3-
 
       - name: Start kind cluster
         run: |
@@ -156,9 +156,9 @@ jobs:
         with:
           path: |
             .plz-cache
-          key: ${{ runner.os }}-plz-v2-${{ runner.os }}-plz-v2-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/go.mod', '**/go.sum', '**/*.go') }}
+          key: ${{ runner.os }}-plz-v3-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/go.mod', '**/go.sum', '**/*.go') }}
           restore-keys: |
-            ${{ runner.os }}-plz-v2-
+            ${{ runner.os }}-plz-v3-
 
       - name: Go module cache
         uses: actions/cache@v2
