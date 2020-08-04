@@ -26,7 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
+	cloudformation2 "github.com/banzaicloud/pipeline/internal/cloudformation"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
@@ -125,7 +125,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 
 	cfClient := cloudformation.New(client)
 
-	template, err := distribution.GetCloudFormationTemplate(PKECloudFormationTemplateBasePath, WorkerCloudFormationTemplate)
+	template, err := cloudformation2.GetCloudFormationTemplate(PKECloudFormationTemplateBasePath, WorkerCloudFormationTemplate)
 	if err != nil {
 		return "", errors.WrapIf(err, "loading CF template")
 	}
