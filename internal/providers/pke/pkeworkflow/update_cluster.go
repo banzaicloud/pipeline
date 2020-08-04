@@ -16,6 +16,7 @@ package pkeworkflow
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"emperror.dev/errors"
@@ -185,25 +186,39 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 		}
 	}
 
-	// Select images for new nodepools (if not specified)
-	{
-		activityInput := SelectImagesActivityInput{ClusterID: input.ClusterID, NodePools: input.NodePoolsToAdd}
-		err := workflow.ExecuteActivity(ctx, SelectImagesActivityName, activityInput).Get(ctx, &input.NodePoolsToAdd)
-		if err != nil {
-			return err
-		}
-	}
+	for nodePoolIndex, nodePool := range input.NodePoolsToAdd {
+		// Select image for new nodepool (if not specified)
+		if nodePool.ImageID == "" {
+			activityInput := SelectImageActivityInput{
+				ClusterID:    input.ClusterID,
+				InstanceType: nodePool.InstanceType,
+			}
+			var activityOutput SelectImageActivityOutput
+			err := workflow.ExecuteActivity(ctx, SelectImageActivityName, activityInput).Get(ctx, &activityOutput)
+			if err != nil {
+				return err
+			}
 
-	// Select volume sizes
-	{
-		activityInput := SelectVolumeSizesActivityInput{
-			AWSActivityInput: awsActivityInput,
-			NodePools:        input.NodePoolsToAdd,
+			input.NodePoolsToAdd[nodePoolIndex].ImageID = activityOutput.ImageID
 		}
 
-		err := workflow.ExecuteActivity(ctx, SelectVolumeSizesActivityName, activityInput).Get(ctx, &input.NodePoolsToAdd)
-		if err != nil {
-			return err
+		// Select volume size
+		{
+			activityInput := SelectVolumeSizeActivityInput{
+				AWSActivityInput: awsActivityInput,
+				ImageID:          nodePool.ImageID,
+			}
+			var activityOutput SelectVolumeSizeActivityOutput
+			err := workflow.ExecuteActivity(ctx, SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
+			if err != nil {
+				return err
+			}
+
+			if nodePool.VolumeSize == 0 { // Note: not set, using autodefault.
+				input.NodePoolsToAdd[nodePoolIndex].VolumeSize = int(math.Max(float64(MinimalVolumeSize), float64(activityOutput.VolumeSize)))
+			} else if nodePool.VolumeSize < activityOutput.VolumeSize {
+				return errors.Combine(err, errors.Errorf("specified volume size of %dGB for %q is less than the AMI image size of %dGB", nodePool.VolumeSize, nodePool.Name, activityOutput.VolumeSize))
+			}
 		}
 	}
 

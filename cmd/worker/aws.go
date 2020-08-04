@@ -35,6 +35,7 @@ func registerAwsWorkflows(
 	workflow.RegisterWithOptions(pkeworkflow.UpdateClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.UpdateClusterWorkflowName})
 
 	awsClientFactory := pkeworkflow.NewAWSClientFactory(secretStore)
+	ec2Factory := pkeworkflow.NewEC2Factory()
 
 	createAWSRolesActivity := pkeworkflow.NewCreateAWSRolesActivity(awsClientFactory)
 	activity.RegisterWithOptions(createAWSRolesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateAWSRolesActivityName})
@@ -72,8 +73,8 @@ func registerAwsWorkflows(
 	listNodePoolsActivity := pkeworkflow.NewListNodePoolsActivity(clusters)
 	activity.RegisterWithOptions(listNodePoolsActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.ListNodePoolsActivityName})
 
-	selectImagesActivity := pkeworkflow.NewSelectImagesActivity(clusters, imageSelector)
-	activity.RegisterWithOptions(selectImagesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SelectImagesActivityName})
+	selectImageActivity := pkeworkflow.NewSelectImageActivity(clusters, imageSelector)
+	activity.RegisterWithOptions(selectImageActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SelectImageActivityName})
 
 	createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters, tokenGenerator)
 	activity.RegisterWithOptions(createWorkerPoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateWorkerPoolActivityName})
@@ -108,6 +109,6 @@ func registerAwsWorkflows(
 	deleteSshKeyPairActivity := pkeworkflow.NewDeleteSSHKeyPairActivity(clusters)
 	activity.RegisterWithOptions(deleteSshKeyPairActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteSSHKeyPairActivityName})
 
-	selectVolumeSizesActivity := pkeworkflow.NewSelectVolumeSizesActivity(awsClientFactory)
-	activity.RegisterWithOptions(selectVolumeSizesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SelectVolumeSizesActivityName})
+	selectVolumeSizeActivity := pkeworkflow.NewSelectVolumeSizeActivity(awsClientFactory, ec2Factory)
+	activity.RegisterWithOptions(selectVolumeSizeActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SelectVolumeSizeActivityName})
 }

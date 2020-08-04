@@ -40,6 +40,12 @@ func NewAWSClientFactory(secrets SecretStore) *AWSClientFactory {
 	return &AWSClientFactory{secrets: secrets}
 }
 
+// AWSFactory provides an interface for instantiating AWS client objects.
+type AWSFactory interface {
+	// New instantiates an AWS client object.
+	New(organizationID uint, secretID string, region string) (*session.Session, error)
+}
+
 // SecretStore accesses secrets.
 type SecretStore interface {
 	// GetSecret returns a secret from an organization.
