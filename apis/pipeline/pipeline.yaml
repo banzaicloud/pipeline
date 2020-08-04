@@ -4513,7 +4513,7 @@ components:
         EKSAuthConfigUsers:
             type: object
             properties:
-                group:
+                groups:
                     type: array
                     items:
                         type: string
@@ -4525,7 +4525,7 @@ components:
         EKSAuthConfigRoles:
             type: object
             properties:
-                group:
+                groups:
                     type: array
                     items:
                         type: string

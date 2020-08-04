@@ -12,7 +12,7 @@ package pipeline
 
 type EksAuthConfigUsers struct {
 
-	Group []string `json:"group,omitempty"`
+	Groups []string `json:"groups,omitempty"`
 
 	Username string `json:"username,omitempty"`
 

@@ -18857,7 +18857,7 @@ components:
       type: object
     EKSAuthConfigUsers:
       properties:
-        group:
+        groups:
           items:
             type: string
           type: array
@@ -18868,7 +18868,7 @@ components:
       type: object
     EKSAuthConfigRoles:
       properties:
-        group:
+        groups:
           items:
             type: string
           type: array
