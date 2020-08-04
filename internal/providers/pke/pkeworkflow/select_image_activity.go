@@ -23,32 +23,34 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 )
 
-const SelectImagesActivityName = "pke-select-images-activity"
+const SelectImageActivityName = "pke-select-image-activity"
 
-type SelectImagesActivity struct {
+type SelectImageActivity struct {
 	clusters      Clusters
 	imageSelector pkeaws.ImageSelector
 }
 
-func NewSelectImagesActivity(clusters Clusters, imageSelector pkeaws.ImageSelector) *SelectImagesActivity {
-	return &SelectImagesActivity{
+func NewSelectImageActivity(clusters Clusters, imageSelector pkeaws.ImageSelector) *SelectImageActivity {
+	return &SelectImageActivity{
 		clusters:      clusters,
 		imageSelector: imageSelector,
 	}
 }
 
-type SelectImagesActivityInput struct {
-	ClusterID uint
-	NodePools []NodePool
+type SelectImageActivityInput struct {
+	ClusterID    uint
+	InstanceType string
 }
 
-func (a *SelectImagesActivity) Execute(ctx context.Context, input SelectImagesActivityInput) ([]NodePool, error) {
+type SelectImageActivityOutput struct {
+	ImageID string
+}
+
+func (a *SelectImageActivity) Execute(ctx context.Context, input SelectImageActivityInput) (*SelectImageActivityOutput, error) {
 	c, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
 		return nil, err
 	}
-
-	pools := input.NodePools
 
 	awsCluster, ok := c.(AWSCluster)
 	if !ok {
@@ -70,30 +72,26 @@ func (a *SelectImagesActivity) Execute(ctx context.Context, input SelectImagesAc
 			strings.HasPrefix(instanceType, "g3.") || strings.HasPrefix(instanceType, "g4.")
 	}
 
-	for i, pool := range pools {
-		if pool.ImageID == "" {
-			// Special logic if the instance type is a GPU instance
-			if isGPUInstance(pool.InstanceType) {
-				cri = "docker"
-			}
-
-			criteria := pkeaws.ImageSelectionCriteria{
-				Region:            c.GetLocation(),
-				InstanceType:      pool.InstanceType,
-				PKEVersion:        pkeaws.Version,
-				KubernetesVersion: ver,
-				OperatingSystem:   "ubuntu",
-				ContainerRuntime:  cri,
-			}
-
-			image, err := a.imageSelector.SelectImage(ctx, criteria)
-			if err != nil {
-				return nil, errors.WrapIff(err, "failed to get default image for Kubernetes version %s", ver)
-			}
-
-			pools[i].ImageID = image
-		}
+	// Special logic if the instance type is a GPU instance
+	if isGPUInstance(input.InstanceType) {
+		cri = "docker"
 	}
 
-	return pools, nil
+	criteria := pkeaws.ImageSelectionCriteria{
+		Region:            c.GetLocation(),
+		InstanceType:      input.InstanceType,
+		PKEVersion:        pkeaws.Version,
+		KubernetesVersion: ver,
+		OperatingSystem:   "ubuntu",
+		ContainerRuntime:  cri,
+	}
+
+	image, err := a.imageSelector.SelectImage(ctx, criteria)
+	if err != nil {
+		return nil, errors.WrapIff(err, "failed to get default image for Kubernetes version %s", ver)
+	}
+
+	return &SelectImageActivityOutput{
+		ImageID: image,
+	}, nil
 }
