@@ -14,29 +14,29 @@ module plz-out
 
 $GO
 EOF
-      """
+      """,
     ],
     labels = [
-        "link:plz-out/"
-    ]
+        "link:plz-out/",
+    ],
 )
 
 genrule(
     name = "docker-compose.override.yml",
     srcs = ["docker-compose.override.yml.dist"],
     outs = ["docker-compose.override.yml"],
-    cmd = 'cat docker-compose.override.yml.dist | sed -e "s/# user: \\"\\\${uid}:\\\${gid}\\"/user: \\"$(id -u):$(id -g)\\"/" > "$OUTS"' if CONFIG.HOSTOS == "linux" else 'cp docker-compose.override.yml.dist "$OUTS"',
+    cmd = "cat docker-compose.override.yml.dist | sed -e \"s/# user: \\\"\\\\${uid}:\\\\${gid}\\\"/user: \\\"$(id -u):$(id -g)\\\"/\" > \"$OUTS\"" if CONFIG.HOSTOS == "linux" else 'cp docker-compose.override.yml.dist "$OUTS"',
 )
 
 sh_cmd(
     name = "up",
-    deps = [":start"],
     cmd = [
         "if [ ! -f etc/config/dex.yml ]; then plz make //etc/config:dex.yml; fi",
         "if [ ! -f config/ui/feature-set.json ]; then plz make //config/ui:feature-set.json; fi",
         "if [ ! -f config/config.yaml ]; then plz make //config:config.yaml; fi",
         "$(out_location :start)",
     ],
+    deps = [":start"],
 )
 
 sh_cmd(
@@ -68,14 +68,14 @@ _os = {
 
 remote_file(
     name = "kube-apiserver",
-    url = "https://storage.googleapis.com/k8s-c10s-test-binaries/kube-apiserver-%s-x86_64" % (_os[CONFIG.HOSTOS]),
     out = "bin/kube-apiserver",
     binary = True,
+    url = "https://storage.googleapis.com/k8s-c10s-test-binaries/kube-apiserver-%s-x86_64" % (_os[CONFIG.HOSTOS]),
 )
 
 remote_file(
     name = "etcd",
-    url = "https://storage.googleapis.com/k8s-c10s-test-binaries/etcd-%s-x86_64" % (_os[CONFIG.HOSTOS]),
     out = "bin/etcd",
     binary = True,
+    url = "https://storage.googleapis.com/k8s-c10s-test-binaries/etcd-%s-x86_64" % (_os[CONFIG.HOSTOS]),
 )
