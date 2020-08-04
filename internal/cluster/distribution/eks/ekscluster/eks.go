@@ -93,19 +93,16 @@ type AuthConfig struct {
 	MapAccounts []string   `json:"mapAccounts,omitempty" yaml:"mapAccounts,omitempty"`
 }
 
-type AuthConfigBaseFields struct {
-	Username string   `json:"username,omitempty" yaml:"username,omitempty"`
-	Groups   []string `json:"groups,omitempty" yaml:"groups,omitempty"`
-}
-
 type MapRoles struct {
-	AuthConfigBaseFields
-	RoleARN string `json:"rolearn,omitempty" yaml:"rolearn,omitempty"`
+	Groups   []string `json:"groups,omitempty" yaml:"groups,omitempty"`
+	RoleARN  string   `json:"rolearn,omitempty" yaml:"rolearn,omitempty"`
+	Username string   `json:"username,omitempty" yaml:"username,omitempty"`
 }
 
 type MapUsers struct {
-	AuthConfigBaseFields
-	UserARN string `json:"userarn,omitempty" yaml:"userarn,omitempty"`
+	Groups   []string `json:"groups,omitempty" yaml:"groups,omitempty"`
+	UserARN  string   `json:"userarn,omitempty" yaml:"userarn,omitempty"`
+	Username string   `json:"username,omitempty" yaml:"username,omitempty"`
 }
 
 // UpdateClusterAmazonEKS describes Amazon EKS's node fields of an UpdateCluster request
