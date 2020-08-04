@@ -8,8 +8,8 @@ go_library(
     ),
     visibility = ["PUBLIC"],
     deps = [
+        "//internal/cloudformation",
         "//internal/cluster",
-        "//internal/cluster/distribution",
         "//internal/cluster/distribution/eks",
         "//internal/cluster/distribution/eks/eksmodel",
         "//internal/global",

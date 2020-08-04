@@ -22,7 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
+	cloudformation2 "github.com/banzaicloud/pipeline/internal/cloudformation"
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 )
@@ -84,7 +84,7 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 		return nil, err
 	}
 
-	template, err := distribution.GetCloudFormationTemplate(PKECloudFormationTemplateBasePath, SubnetCloudFormationTemplate)
+	template, err := cloudformation2.GetCloudFormationTemplate(PKECloudFormationTemplateBasePath, SubnetCloudFormationTemplate)
 	if err != nil {
 		return nil, errors.WrapIf(err, "loading CF template")
 	}

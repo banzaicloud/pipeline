@@ -15,7 +15,7 @@
 package workflow
 
 import (
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution"
+	"github.com/banzaicloud/pipeline/internal/cloudformation"
 	"github.com/banzaicloud/pipeline/internal/global"
 )
 
@@ -28,20 +28,20 @@ const (
 
 // GetVPCTemplate returns the CloudFormation template for creating VPC for EKS cluster
 func GetVPCTemplate() (string, error) {
-	return distribution.GetCloudFormationTemplate(global.Config.Distribution.EKS.TemplateLocation, eksVPCTemplateName)
+	return cloudformation.GetCloudFormationTemplate(global.Config.Distribution.EKS.TemplateLocation, eksVPCTemplateName)
 }
 
 // GetNodePoolTemplate returns the CloudFormation template for creating node pools for EKS cluster
 func GetNodePoolTemplate() (string, error) {
-	return distribution.GetCloudFormationTemplate(global.Config.Distribution.EKS.TemplateLocation, eksNodePoolTemplateName)
+	return cloudformation.GetCloudFormationTemplate(global.Config.Distribution.EKS.TemplateLocation, eksNodePoolTemplateName)
 }
 
 // GetSubnetTemplate returns the CloudFormation template for creating a Subnet
 func GetSubnetTemplate() (string, error) {
-	return distribution.GetCloudFormationTemplate(global.Config.Distribution.EKS.TemplateLocation, eksSubnetTemplateName)
+	return cloudformation.GetCloudFormationTemplate(global.Config.Distribution.EKS.TemplateLocation, eksSubnetTemplateName)
 }
 
 // GetIAMTemplate returns the CloudFormation template for creating IAM roles for the EKS cluster
 func GetIAMTemplate() (string, error) {
-	return distribution.GetCloudFormationTemplate(global.Config.Distribution.EKS.TemplateLocation, eksIAMTemplateName)
+	return cloudformation.GetCloudFormationTemplate(global.Config.Distribution.EKS.TemplateLocation, eksIAMTemplateName)
 }
