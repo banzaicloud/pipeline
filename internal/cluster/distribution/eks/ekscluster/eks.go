@@ -69,9 +69,9 @@ func (cm *AuthConfig) ConvertToString() (string, error) {
 		return "", errors.WrapIf(err, "failed to marshal map accounts")
 	}
 
-	var mrIndent = strings.ReplaceAll(string(mapRoles), "\n", "\n  ")
-	var muIndent = strings.ReplaceAll(string(mapUsers), "\n", "\n  ")
-	var maIndent = strings.ReplaceAll(string(mapAccounts), "\n", "\n  ")
+	mrIndent := strings.ReplaceAll(string(mapRoles), "\n", "\n  ")
+	muIndent := strings.ReplaceAll(string(mapUsers), "\n", "\n  ")
+	maIndent := strings.ReplaceAll(string(mapAccounts), "\n", "\n  ")
 
 	return fmt.Sprintf(`apiVersion: v1
 kind: ConfigMap
