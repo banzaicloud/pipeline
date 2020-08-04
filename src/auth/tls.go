@@ -37,6 +37,7 @@ func TLSConfigForClientAuth(caCertFile string) (*tls.Config, error) {
 	config := tls.Config{
 		ClientAuth: tls.VerifyClientCertIfGiven,
 		ClientCAs:  clientCertCAs,
+		MinVersion: tls.VersionTLS13,
 	}
 
 	return &config, nil

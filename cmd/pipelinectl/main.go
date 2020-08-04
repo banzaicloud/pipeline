@@ -71,7 +71,10 @@ func main() {
 
 	cobra.OnInitialize(func() {
 		if !viper.GetBool("api.verify") {
-			http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+			http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{
+				InsecureSkipVerify: true,
+				MinVersion:         tls.VersionTLS13,
+			}
 		}
 	})
 

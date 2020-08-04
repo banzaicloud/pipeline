@@ -115,7 +115,10 @@ func getTelemetry(options options) ([]*prom2json.Family, error) {
 func makeTransport(skipServerCertCheck bool) (*http.Transport, error) {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.ResponseHeaderTimeout = time.Second
-	tlsConfig := &tls.Config{InsecureSkipVerify: skipServerCertCheck}
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: skipServerCertCheck,
+		MinVersion:         tls.VersionTLS13,
+	}
 	transport.TLSClientConfig = tlsConfig
 	return transport, nil
 }
