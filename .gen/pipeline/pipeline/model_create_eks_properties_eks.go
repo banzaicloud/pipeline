@@ -12,7 +12,7 @@ package pipeline
 
 type CreateEksPropertiesEks struct {
 
-	AuthConfig AwsAuthConfig `json:"authConfig,omitempty"`
+	AuthConfig EksAuthConfig `json:"authConfig,omitempty"`
 
 	Version string `json:"version,omitempty"`
 

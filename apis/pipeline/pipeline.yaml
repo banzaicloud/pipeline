@@ -4494,23 +4494,23 @@ components:
                     type: integer
                     example: 5
 
-        AWSAuthConfig:
+        EKSAuthConfig:
             type: object
             properties:
                 mapRoles:
                     type: array
                     items:
-                        $ref: '#/components/schemas/AWSAuthConfigMapRoles'
+                        $ref: '#/components/schemas/EKSAuthConfigRoles'
                 mapUsers:
                     type: array
                     items:
-                        $ref: '#/components/schemas/AWSAuthConfigMapUsers'
+                        $ref: '#/components/schemas/EKSAuthConfigUsers'
                 mapAccounts:
                     type: array
                     items:
                         type: string
 
-        AWSAuthConfigMapUsers:
+        EKSAuthConfigUsers:
             type: object
             properties:
                 group:
@@ -4522,7 +4522,7 @@ components:
                 userarn:
                     type: string
 
-        AWSAuthConfigMapRoles:
+        EKSAuthConfigRoles:
             type: object
             properties:
                 group:
@@ -4705,7 +4705,7 @@ components:
                         - nodePools
                     properties:
                         authConfig:
-                            $ref: '#/components/schemas/AWSAuthConfig'
+                            $ref: '#/components/schemas/EKSAuthConfig'
                         version:
                             type: string
                             example: "1.10"

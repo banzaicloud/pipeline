@@ -10,11 +10,11 @@
 
 package pipeline
 
-type AwsAuthConfig struct {
+type EksAuthConfigUsers struct {
 
-	MapRoles []AwsAuthConfigMapRoles `json:"mapRoles,omitempty"`
+	Group []string `json:"group,omitempty"`
 
-	MapUsers []AwsAuthConfigMapUsers `json:"mapUsers,omitempty"`
+	Username string `json:"username,omitempty"`
 
-	MapAccounts []string `json:"mapAccounts,omitempty"`
+	Userarn string `json:"userarn,omitempty"`
 }

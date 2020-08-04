@@ -18840,22 +18840,22 @@ components:
       - maxSize
       - minSize
       type: object
-    AWSAuthConfig:
+    EKSAuthConfig:
       properties:
         mapRoles:
           items:
-            $ref: '#/components/schemas/AWSAuthConfigMapRoles'
+            $ref: '#/components/schemas/EKSAuthConfigRoles'
           type: array
         mapUsers:
           items:
-            $ref: '#/components/schemas/AWSAuthConfigMapUsers'
+            $ref: '#/components/schemas/EKSAuthConfigUsers'
           type: array
         mapAccounts:
           items:
             type: string
           type: array
       type: object
-    AWSAuthConfigMapUsers:
+    EKSAuthConfigUsers:
       properties:
         group:
           items:
@@ -18866,7 +18866,7 @@ components:
         userarn:
           type: string
       type: object
-    AWSAuthConfigMapRoles:
+    EKSAuthConfigRoles:
       properties:
         group:
           items:
@@ -23184,7 +23184,7 @@ components:
     CreateEKSProperties_eks:
       properties:
         authConfig:
-          $ref: '#/components/schemas/AWSAuthConfig'
+          $ref: '#/components/schemas/EKSAuthConfig'
         version:
           example: "1.10"
           type: string

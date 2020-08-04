@@ -44,12 +44,12 @@ type CreateClusterEKS struct {
 
 	// List of access point references for the API server; currently, public and private are the only valid values.
 	// Default: ["public"]
-	APIServerAccessPoints []string           `json:"apiServerAccessPoints,omitempty" yaml:"apiServerAccessPoints,omitempty"`
-	Tags                  map[string]string  `json:"tags,omitempty" yaml:"tags,omitempty"`
-	AuthConfig            *AuthConfigMapData `json:"authConfig,omitempty" yaml:"authConfig,omitempty"`
+	APIServerAccessPoints []string          `json:"apiServerAccessPoints,omitempty" yaml:"apiServerAccessPoints,omitempty"`
+	Tags                  map[string]string `json:"tags,omitempty" yaml:"tags,omitempty"`
+	AuthConfig            *AuthConfig       `json:"authConfig,omitempty" yaml:"authConfig,omitempty"`
 }
 
-func (cm *AuthConfigMapData) ConvertToString() (string, error) {
+func (cm *AuthConfig) ConvertToString() (string, error) {
 	if cm == nil {
 		return "", nil
 	}
@@ -87,24 +87,24 @@ data:
   %s`, mrIndent, muIndent, maIndent), nil
 }
 
-type AuthConfigMapData struct {
+type AuthConfig struct {
 	MapRoles    []MapRoles `json:"mapRoles,omitempty" yaml:"mapRoles,omitempty"`
 	MapUsers    []MapUsers `json:"mapUsers,omitempty" yaml:"mapUsers,omitempty"`
 	MapAccounts []string   `json:"mapAccounts,omitempty" yaml:"mapAccounts,omitempty"`
 }
 
-type BaseMapFields struct {
+type AuthConfigBaseFields struct {
 	Username string   `json:"username,omitempty" yaml:"username,omitempty"`
 	Groups   []string `json:"groups,omitempty" yaml:"groups,omitempty"`
 }
 
 type MapRoles struct {
-	BaseMapFields
+	AuthConfigBaseFields
 	RoleARN string `json:"rolearn,omitempty" yaml:"rolearn,omitempty"`
 }
 
 type MapUsers struct {
-	BaseMapFields
+	AuthConfigBaseFields
 	UserARN string `json:"userarn,omitempty" yaml:"userarn,omitempty"`
 }
 
