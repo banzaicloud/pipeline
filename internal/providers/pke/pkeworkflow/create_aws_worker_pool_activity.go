@@ -91,6 +91,16 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 	if imageID == "" {
 		cri, _ := awsCluster.GetKubernetesContainerRuntime()
 
+		isGPUInstance := func(instanceType string) bool {
+			return strings.HasPrefix(instanceType, "p2.") || strings.HasPrefix(instanceType, "p3.") ||
+				strings.HasPrefix(instanceType, "g3.") || strings.HasPrefix(instanceType, "g4.")
+		}
+
+		// Special logic if the instance type is a GPU instance
+		if isGPUInstance(input.Pool.InstanceType) {
+			cri = "docker"
+		}
+
 		criteria := pkeaws.ImageSelectionCriteria{
 			Region:            cluster.GetLocation(),
 			InstanceType:      input.Pool.InstanceType,

@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -881,6 +882,19 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		return command, nil
 	}
 
+	isGPUInstance := func(instanceType string) bool {
+		return strings.HasPrefix(instanceType, "p2.") || strings.HasPrefix(instanceType, "p3.") ||
+			strings.HasPrefix(instanceType, "g3.") || strings.HasPrefix(instanceType, "g4.")
+	}
+
+	asg := nodePoolAmazonConfig.AutoScalingGroup
+	cri := c.model.CRI.Runtime
+
+	// Special logic if the instance type is a GPU instance and the node image is not defined
+	if isGPUInstance(asg.InstanceType) && asg.Image == "" {
+		cri = "docker"
+	}
+
 	// worker
 	return fmt.Sprintf("pke install %s "+
 		"--pipeline-url=%q "+
@@ -901,7 +915,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		c.model.Cluster.ID,
 		nodePoolName,
 		version,
-		c.model.CRI.Runtime,
+		cri,
 	), nil
 }
 
