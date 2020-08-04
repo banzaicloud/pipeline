@@ -63,6 +63,10 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 
 	modelNodePools := createNodePoolsFromRequest(request.Properties.CreateClusterEKS.NodePools, userId)
 
+	authConfigMap, err := request.Properties.CreateClusterEKS.AuthConfig.ConvertToString()
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to convert config map to string")
+	}
 	cluster.model = &eksmodel.EKSClusterModel{
 		Cluster: clustermodel.ClusterModel{
 			Name:           request.Name,
@@ -85,7 +89,7 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		ClusterRoleId:         request.Properties.CreateClusterEKS.IAM.ClusterRoleID,
 		NodeInstanceRoleId:    request.Properties.CreateClusterEKS.IAM.NodeInstanceRoleID,
 		APIServerAccessPoints: createAPIServerAccessPointsFromRequest(request),
-		AuthConfigMap:         request.Properties.CreateClusterEKS.AuthConfigMap,
+		AuthConfigMap:         authConfigMap,
 	}
 
 	if request.Properties.CreateClusterEKS.Tags != nil {

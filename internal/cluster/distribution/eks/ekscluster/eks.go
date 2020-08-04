@@ -17,9 +17,11 @@ package ekscluster
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
+	"github.com/ghodss/yaml"
 
 	eks2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/global/globaleks"
@@ -44,7 +46,66 @@ type CreateClusterEKS struct {
 	// Default: ["public"]
 	APIServerAccessPoints []string          `json:"apiServerAccessPoints,omitempty" yaml:"apiServerAccessPoints,omitempty"`
 	Tags                  map[string]string `json:"tags,omitempty" yaml:"tags,omitempty"`
-	AuthConfigMap         string            `json:"authConfigMap,omitempty" yaml:"authConfigMap,omitempty"`
+	AuthConfig            *AuthConfig       `json:"authConfig,omitempty" yaml:"authConfig,omitempty"`
+}
+
+func (cm *AuthConfig) ConvertToString() (string, error) {
+	if cm == nil {
+		return "", nil
+	}
+
+	mapRoles, err := yaml.Marshal(cm.MapRoles)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to marshal map roles")
+	}
+
+	mapUsers, err := yaml.Marshal(cm.MapUsers)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to marshal map users")
+	}
+
+	mapAccounts, err := yaml.Marshal(cm.MapAccounts)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to marshal map accounts")
+	}
+
+	mrIndent := strings.ReplaceAll(string(mapRoles), "\n", "\n  ")
+	muIndent := strings.ReplaceAll(string(mapUsers), "\n", "\n  ")
+	maIndent := strings.ReplaceAll(string(mapAccounts), "\n", "\n  ")
+
+	return fmt.Sprintf(`apiVersion: v1
+kind: ConfigMap
+metadata:
+ name: aws-auth
+ namespace: kube-system
+data:
+ mapRoles: |
+  %s
+ mapUsers: |
+  %s
+ mapAccounts: |
+  %s`, mrIndent, muIndent, maIndent), nil
+}
+
+type AuthConfig struct {
+	MapRoles    []MapRoles `json:"mapRoles,omitempty" yaml:"mapRoles,omitempty"`
+	MapUsers    []MapUsers `json:"mapUsers,omitempty" yaml:"mapUsers,omitempty"`
+	MapAccounts []string   `json:"mapAccounts,omitempty" yaml:"mapAccounts,omitempty"`
+}
+
+type AuthConfigBaseFields struct {
+	Username string   `json:"username,omitempty" yaml:"username,omitempty"`
+	Groups   []string `json:"groups,omitempty" yaml:"groups,omitempty"`
+}
+
+type MapRoles struct {
+	AuthConfigBaseFields
+	RoleARN string `json:"rolearn,omitempty" yaml:"rolearn,omitempty"`
+}
+
+type MapUsers struct {
+	AuthConfigBaseFields
+	UserARN string `json:"userarn,omitempty" yaml:"userarn,omitempty"`
 }
 
 // UpdateClusterAmazonEKS describes Amazon EKS's node fields of an UpdateCluster request

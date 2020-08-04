@@ -4494,6 +4494,46 @@ components:
                     type: integer
                     example: 5
 
+        EKSAuthConfig:
+            type: object
+            properties:
+                mapRoles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EKSAuthConfigRoles'
+                mapUsers:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EKSAuthConfigUsers'
+                mapAccounts:
+                    type: array
+                    items:
+                        type: string
+
+        EKSAuthConfigUsers:
+            type: object
+            properties:
+                group:
+                    type: array
+                    items:
+                        type: string
+                username:
+                    type: string
+                userarn:
+                    type: string
+
+        EKSAuthConfigRoles:
+            type: object
+            properties:
+                group:
+                    type: array
+                    items:
+                        type: string
+                username:
+                    type: string
+                rolearn:
+                    type: string
+
         EksNodePool:
             description: Node pool object for an EKS cluster.
             type: object
@@ -4664,8 +4704,8 @@ components:
                     required:
                         - nodePools
                     properties:
-                        authConfigMap:
-                            type: string
+                        authConfig:
+                            $ref: '#/components/schemas/EKSAuthConfig'
                         version:
                             type: string
                             example: "1.10"
