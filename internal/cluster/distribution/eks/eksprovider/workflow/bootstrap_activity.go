@@ -312,6 +312,8 @@ func userNameFromArn(arn string) string {
 	return arn[idx+1:]
 }
 
+type mergeFunc func(key, defaultData, inputData string) ([]byte, error)
+
 func mergeAuthConfigMaps(defaultConfigMap, inputConfigMap string) (*v1.ConfigMap, error) {
 	var defaultAWSConfigMap v1.ConfigMap
 	_, _, err := scheme.Codecs.UniversalDeserializer().Decode([]byte(defaultConfigMap), nil, &defaultAWSConfigMap)
@@ -327,32 +329,70 @@ func mergeAuthConfigMaps(defaultConfigMap, inputConfigMap string) (*v1.ConfigMap
 
 	mergedConfigMap := defaultAWSConfigMap
 
-	for _, key := range []string{"mapUsers", "mapRoles", "mapAccounts"} {
-		var defaultValue []map[string]interface{}
-		data := defaultAWSConfigMap.Data[key]
-		err = yaml.Unmarshal([]byte(data), &defaultValue)
+	functions := map[string]mergeFunc{
+		"mapUsers":    mergeDefaultMapWithInput,
+		"mapRoles":    mergeDefaultMapWithInput,
+		"mapAccounts": mergeDefaultStrArrayWithInput,
+	}
+
+	for key, merge := range functions {
+		mergedValue, err := merge(key, defaultAWSConfigMap.Data[key], inputAWSConfigMap.Data[key])
 		if err != nil {
-			return nil, errors.WrapIf(err, "failed to unmarshal "+key+" from: "+data)
+			return nil, errors.WrapIf(err, "failed to merge "+key+" default value and input")
 		}
 
-		var inputValue []map[string]interface{}
-		data = inputAWSConfigMap.Data[key]
-		err = yaml.Unmarshal([]byte(data), &inputValue)
-		if err != nil {
-			return nil, errors.WrapIf(err, "failed to unmarshal "+key+" from: "+data)
-		}
-
-		value := append(defaultValue, inputValue...)
-
-		if value != nil {
-			mergedValue, err := yaml.Marshal(value)
-			if err != nil {
-				return nil, errors.WrapIf(err, "failed to marhshal "+key+" to yaml")
-			}
-
-			mergedConfigMap.Data[key] = string(mergedValue)
-		}
+		mergedConfigMap.Data[key] = string(mergedValue)
 	}
 
 	return &mergedConfigMap, nil
+}
+
+func mergeDefaultStrArrayWithInput(key, defaultData, inputData string) ([]byte, error) {
+	var defaultValue []string
+	err := yaml.Unmarshal([]byte(defaultData), &defaultValue)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to unmarshal "+key+" from: "+defaultData)
+	}
+
+	var inputValue []string
+	err = yaml.Unmarshal([]byte(inputData), &inputValue)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to unmarshal "+key+" from: "+inputData)
+	}
+
+	var result []byte
+	value := append(defaultValue, inputValue...)
+	if value != nil {
+		result, err = yaml.Marshal(value)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to marshal "+key+" to yaml")
+		}
+	}
+
+	return result, nil
+}
+
+func mergeDefaultMapWithInput(key, defaultData, inputData string) ([]byte, error) {
+	var defaultValue []map[string]interface{}
+	err := yaml.Unmarshal([]byte(defaultData), &defaultValue)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to unmarshal "+key+" from: "+defaultData)
+	}
+
+	var inputValue []map[string]interface{}
+	err = yaml.Unmarshal([]byte(inputData), &inputValue)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to unmarshal "+key+" from: "+inputData)
+	}
+
+	var result []byte
+	value := append(defaultValue, inputValue...)
+	if value != nil {
+		result, err = yaml.Marshal(value)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to marshal "+key+" to yaml")
+		}
+	}
+
+	return result, nil
 }
