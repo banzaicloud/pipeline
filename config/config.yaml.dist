@@ -442,6 +442,7 @@ dex:
 #    pke:
 #        amazon:
 #            globalRegion: us-east-1
+#            defaultImages: {}
 
 cloudinfo:
     # Format: {baseUrl}/api/v1
