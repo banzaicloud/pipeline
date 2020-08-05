@@ -335,7 +335,6 @@ func (a anchoreClient) getRestClient() *anchore.APIClient {
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
 					InsecureSkipVerify: a.insecure,
-					MinVersion:         tls.VersionTLS13,
 				},
 			},
 		},

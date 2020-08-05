@@ -96,7 +96,6 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 
 		proxy.Transport = &http.Transport{TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: config.Insecure,
-			MinVersion:         tls.VersionTLS13,
 		}}
 
 		proxy.ServeHTTP(c.Writer, c.Request)

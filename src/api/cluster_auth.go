@@ -65,7 +65,6 @@ func NewClusterAuthAPI(
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: insecureSkipVerify,
-				MinVersion:         tls.VersionTLS13,
 			},
 		},
 	}

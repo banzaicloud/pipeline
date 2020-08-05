@@ -117,7 +117,6 @@ func makeTransport(skipServerCertCheck bool) (*http.Transport, error) {
 	transport.ResponseHeaderTimeout = time.Second
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: skipServerCertCheck,
-		MinVersion:         tls.VersionTLS13,
 	}
 	transport.TLSClientConfig = tlsConfig
 	return transport, nil

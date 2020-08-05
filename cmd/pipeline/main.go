@@ -1254,9 +1254,7 @@ func main() {
 
 		caCertFile, certFile, keyFile := config.Pipeline.CACertFile, config.Pipeline.CertFile, config.Pipeline.KeyFile
 		if certFile != "" && keyFile != "" {
-			tlsConfig := &tls.Config{
-				MinVersion: tls.VersionTLS13,
-			}
+			tlsConfig := &tls.Config{}
 
 			if caCertFile != "" {
 				tlsConfig, err = auth.TLSConfigForClientAuth(caCertFile)
