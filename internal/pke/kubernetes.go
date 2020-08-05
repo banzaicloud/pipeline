@@ -19,6 +19,8 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 const (
@@ -137,7 +139,7 @@ func (p NetworkPreparer) Prepare(n *Network) error {
 		p.logger.Debugf("%s.ServiceCIDR not specified, defaulting to [%s]", p.namespace, n.ServiceCIDR)
 	}
 	if n.Provider == "" {
-		n.Provider = DefaultNetwork
+		n.Provider = global.Config.Distribution.PKE.Amazon.DefaultNetworkProvider
 		p.logger.Debugf("%s.Provider not specified, defaulting to [%s]", p.namespace, n.Provider)
 	}
 	// TODO: ProviderConfig defaults

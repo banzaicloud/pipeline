@@ -73,8 +73,9 @@ type Config struct {
 
 		PKE struct {
 			Amazon struct {
-				GlobalRegion  string
-				DefaultImages map[string]string
+				GlobalRegion           string
+				DefaultImages          map[string]string
+				DefaultNetworkProvider string
 			}
 		}
 	}
@@ -121,6 +122,15 @@ func (c Config) Validate() error {
 	err = errors.Append(err, c.Helm.Validate())
 
 	return err
+}
+
+func (c Config) validateDistribution() error {
+	pkeDefaultNP := c.Distribution.PKE.Amazon.DefaultNetworkProvider
+	if pkeDefaultNP != "calico" && pkeDefaultNP != "cilium" {
+		return errors.New("pke aws: default network provider must be calico or cilium")
+	}
+
+	return nil
 }
 
 func (c *Config) Process() error {
@@ -818,6 +828,8 @@ traefik:
 	v.SetDefault("distribution::eks::ssh::generate", true)
 
 	v.SetDefault("distribution::pke::amazon::globalRegion", "us-east-1")
+	v.SetDefault("distribution::pke::amazon::defaultImages", map[string]string{})
+	v.SetDefault("distribution::pke::amazon::defaultNetworkProvider", "cilium")
 
 	v.SetDefault("cloudinfo::endpoint", "")
 	v.SetDefault("hollowtrees::endpoint", "")
