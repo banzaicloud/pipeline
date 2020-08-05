@@ -63,6 +63,8 @@ start: docker-compose.override.yml ## Start docker development environment
 	@ if [ docker-compose.override.yml -ot docker-compose.override.yml.dist ]; then diff -u docker-compose.override.yml* || (echo "!!! The distributed docker-compose.override.yml example changed. Please update your file accordingly (or at least touch it). !!!" && false); fi
 	mkdir -p .docker/volumes/{mysql,vault/file,vault/keys}
 	docker-compose up -d
+	# Waiting for Dex to initialize with potential container restarts.
+	@ while ! docker-compose logs dex | grep -q "listening (http)" ; do sleep 1 ; echo "." ; done
 
 .PHONY: stop
 stop: ## Stop docker development environment
