@@ -148,6 +148,11 @@ var Config struct {
 				Generate bool
 			}
 		}
+		PKE struct {
+			Amazon struct {
+				DefaultNetworkProvider string
+			}
+		}
 	}
 	Helm struct {
 		Home         string

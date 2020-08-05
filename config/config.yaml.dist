@@ -443,6 +443,7 @@ dex:
 #        amazon:
 #            globalRegion: us-east-1
 #            defaultImages: {}
+#            defaultNetworkProvider: "cilium"
 
 cloudinfo:
     # Format: {baseUrl}/api/v1
