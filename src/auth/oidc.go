@@ -92,7 +92,7 @@ func newOIDCProvider(config *OIDCProviderConfig, refreshTokenStore RefreshTokenS
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: config.InsecureSkipVerify,
-				MinVersion:         tls.VersionTLS13,
+				MinVersion:         tls.VersionTLS12,
 			},
 		},
 	}
