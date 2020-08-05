@@ -370,7 +370,11 @@ func main() {
 
 		imageSelector.AddSelector("gpu", pkeaws.NewGPUImageSelector(pkeaws.GPUImages()))
 		imageSelector.AddSelector("cloudinfo", pkeawsadapter.NewCloudinfoImageSelector(cloudinfoClient))
-		imageSelector.AddSelector("defaults", pkeaws.DefaultImages())
+		if len(config.Distribution.PKE.Amazon.DefaultImages) > 0 {
+			imageSelector.AddSelector("defaults", pkeaws.RegionMapImageSelector(config.Distribution.PKE.Amazon.DefaultImages))
+		} else {
+			imageSelector.AddSelector("defaults", pkeaws.DefaultImages())
+		}
 
 		// Register amazon specific workflows and activities
 		registerAwsWorkflows(clusters, tokenGenerator, secretStore, imageSelector, config.Distribution.PKE.Amazon.GlobalRegion)

@@ -73,7 +73,8 @@ type Config struct {
 
 		PKE struct {
 			Amazon struct {
-				GlobalRegion string
+				GlobalRegion  string
+				DefaultImages map[string]string
 			}
 		}
 	}
