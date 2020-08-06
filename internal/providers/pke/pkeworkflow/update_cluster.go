@@ -16,7 +16,6 @@ package pkeworkflow
 
 import (
 	"fmt"
-	"math"
 	"time"
 
 	"emperror.dev/errors"
@@ -186,40 +185,20 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 		}
 	}
 
-	for nodePoolIndex, nodePool := range input.NodePoolsToAdd {
-		// Select image for new nodepool (if not specified)
-		if nodePool.ImageID == "" {
-			activityInput := SelectImageActivityInput{
-				ClusterID:    input.ClusterID,
-				InstanceType: nodePool.InstanceType,
-			}
-			var activityOutput SelectImageActivityOutput
-			err := workflow.ExecuteActivity(ctx, SelectImageActivityName, activityInput).Get(ctx, &activityOutput)
-			if err != nil {
-				return err
-			}
+	err = forEachNodePool(input.NodePoolsToAdd, func(nodePool *NodePool) (err error) {
+		nodePool.ImageID, nodePool.VolumeSize, err = SelectImageAndVolumeSize(
+			ctx,
+			awsActivityInput,
+			input.ClusterID,
+			nodePool.InstanceType,
+			nodePool.ImageID,
+			nodePool.VolumeSize,
+		)
 
-			input.NodePoolsToAdd[nodePoolIndex].ImageID = activityOutput.ImageID
-		}
-
-		// Select volume size
-		{
-			activityInput := SelectVolumeSizeActivityInput{
-				AWSActivityInput: awsActivityInput,
-				ImageID:          nodePool.ImageID,
-			}
-			var activityOutput SelectVolumeSizeActivityOutput
-			err := workflow.ExecuteActivity(ctx, SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
-			if err != nil {
-				return err
-			}
-
-			if nodePool.VolumeSize == 0 { // Note: not set, using autodefault.
-				input.NodePoolsToAdd[nodePoolIndex].VolumeSize = int(math.Max(float64(MinimalVolumeSize), float64(activityOutput.VolumeSize)))
-			} else if nodePool.VolumeSize < activityOutput.VolumeSize {
-				return errors.Combine(err, errors.Errorf("specified volume size of %dGB for %q is less than the AMI image size of %dGB", nodePool.VolumeSize, nodePool.Name, activityOutput.VolumeSize))
-			}
-		}
+		return err
+	})
+	if err != nil {
+		return err
 	}
 
 	{
