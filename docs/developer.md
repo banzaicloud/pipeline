@@ -192,9 +192,11 @@ and restart the environment with `make start`.
 #### Accessing Pipeline API from the cluster
 
 If you want to launch PKE clusters, you will need to ensure that the pke-tool running on the cluster will access the Pipeline API.
-In a development environment you can do this for example with the following [ngrok](https://ngrok.com/) command: `ngrok http 9090`.
+In a development environment you can do this for example with the following
+[ngrok](https://ngrok.com/) command: `ngrok http https://localhost:9090` (HTTPS
+requires free registration).
 
-You will also need to adjust the `pipeline.externalURL` configuration value.
+You will also need to adjust the `pipeline.external.url` configuration value.
 In the `pipeline` section of `config/config.yaml` you can add the value like below:
 
 ```yaml
