@@ -16,7 +16,6 @@ package pkeworkflow
 
 import (
 	"fmt"
-	"math"
 	"time"
 
 	"emperror.dev/errors"
@@ -124,40 +123,20 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		}
 	}
 
-	for nodePoolIndex, nodePool := range nodePools {
-		// Select image (if not specified)
-		if nodePool.ImageID == "" {
-			activityInput := SelectImageActivityInput{
-				ClusterID:    input.ClusterID,
-				InstanceType: nodePool.InstanceType,
-			}
-			var activityOutput SelectImageActivityOutput
-			err := workflow.ExecuteActivity(ctx, SelectImageActivityName, activityInput).Get(ctx, &activityOutput)
-			if err != nil {
-				return err
-			}
+	err := forEachNodePool(nodePools, func(nodePool *NodePool) (err error) {
+		nodePool.ImageID, nodePool.VolumeSize, err = SelectImageAndVolumeSize(
+			ctx,
+			awsActivityInput,
+			input.ClusterID,
+			nodePool.InstanceType,
+			nodePool.ImageID,
+			nodePool.VolumeSize,
+		)
 
-			nodePools[nodePoolIndex].ImageID = activityOutput.ImageID
-		}
-
-		// Select volume size
-		{
-			activityInput := SelectVolumeSizeActivityInput{
-				AWSActivityInput: awsActivityInput,
-				ImageID:          nodePool.ImageID,
-			}
-			var activityOutput SelectVolumeSizeActivityOutput
-			err := workflow.ExecuteActivity(ctx, SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
-			if err != nil {
-				return err
-			}
-
-			if nodePool.VolumeSize == 0 { // Note: not set, using autodefault.
-				nodePools[nodePoolIndex].VolumeSize = int(math.Max(float64(MinimalVolumeSize), float64(activityOutput.VolumeSize)))
-			} else if nodePool.VolumeSize < activityOutput.VolumeSize {
-				return errors.Combine(err, errors.Errorf("specified volume size of %dGB for %q is less than the AMI image size of %dGB", nodePool.VolumeSize, nodePool.Name, activityOutput.VolumeSize))
-			}
-		}
+		return err
+	})
+	if err != nil {
+		return err
 	}
 
 	// Collect all AZs
@@ -229,7 +208,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		ClusterID:        input.ClusterID,
 		VpcID:            vpcOutput["VpcId"],
 	}
-	err := workflow.ExecuteActivity(ctx, GetVpcDefaultSecurityGroupActivityName, activityInput).Get(ctx, &vpcDefaultSecurityGroupID)
+	err = workflow.ExecuteActivity(ctx, GetVpcDefaultSecurityGroupActivityName, activityInput).Get(ctx, &vpcDefaultSecurityGroupID)
 	if err != nil {
 		return err
 	}
