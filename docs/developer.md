@@ -198,6 +198,8 @@ You will also need to adjust the `pipeline.externalURL` configuration value.
 In the `pipeline` section of `config/config.yaml` you can add the value like below:
 
 ```yaml
-# Base URL where the end users can reach this pipeline instance
-externalURL = "http://abcd1234.ngrok.io/pipeline"
+pipeline:
+    external:
+        # Base URL where the end users can reach this pipeline instance
+        url: "http://<YOUR_NGROK_NUMBER>.ngrok.io/pipeline"
 ```
