@@ -12,6 +12,12 @@ spec:
     protocol: TCP
     # https://github.com/containous/traefik/issues/3806
     name: "https-{{ .Values.service.name }}"
+  {{- if .Values.metrics.enabled }}
+  - port: {{ .Values.metrics.port }}
+    targetPort: {{ .Values.metrics.port }}
+    protocol: TCP
+    name: "metrics"
+  {{- end }}
   selector:
     app.kubernetes.io/name: {{ include "pipeline.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
