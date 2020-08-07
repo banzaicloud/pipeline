@@ -20,6 +20,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 )
 
 const DeleteClusterWorkflowName = "delete-cluster"
@@ -41,7 +42,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 		err := workflow.ExecuteActivity(ctx, RemoveClusterFromGroupActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			_ = setClusterStatus(ctx, input.ClusterID, cluster.Error, err.Error())
+			_ = setClusterStatus(ctx, input.ClusterID, cluster.Error, pkgCadence.UnwrapError(err).Error())
 			return err
 		}
 	}
@@ -58,7 +59,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 		err := workflow.ExecuteActivity(ctx, DeleteClusterActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			_ = setClusterStatus(ctx, input.ClusterID, cluster.Error, err.Error())
+			_ = setClusterStatus(ctx, input.ClusterID, cluster.Error, pkgCadence.UnwrapError(err).Error())
 			return err
 		}
 	}

@@ -23,6 +23,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/workflow"
+	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
@@ -111,7 +112,7 @@ func (f nodeTemplateFactory) getNode(np pke.NodePool, number int) workflow.Node 
 
 func handleClusterError(logger Logger, store pke.ClusterStore, status string, clusterID uint, err error) error {
 	if clusterID != 0 && err != nil {
-		if err := store.SetStatus(clusterID, status, err.Error()); err != nil {
+		if err := store.SetStatus(clusterID, status, pkgCadence.UnwrapError(err).Error()); err != nil {
 			logger.Error("failed to set cluster error status: " + err.Error())
 		}
 	}

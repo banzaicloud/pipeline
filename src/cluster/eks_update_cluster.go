@@ -24,6 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/pkg/brn"
+	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 )
@@ -57,7 +58,7 @@ func waitForActivities(asgFutures []workflow.Future, ctx workflow.Context, clust
 	errs := make([]error, len(asgFutures))
 	for i, future := range asgFutures {
 		var activityOutput eksWorkflow.CreateAsgActivityOutput
-		errs[i] = decodeCloudFormationError(future.Get(ctx, &activityOutput))
+		errs[i] = pkgCadence.UnwrapError(future.Get(ctx, &activityOutput))
 	}
 	if err := errors.Combine(errs...); err != nil {
 		_ = eksWorkflow.SetClusterStatus(ctx, clusterID, pkgCluster.Warning, err.Error())
@@ -118,7 +119,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 		}
 		err := workflow.ExecuteActivity(ctx, clustersetup.ConfigureNodePoolLabelsActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			err = errors.WrapIff(err, "%q activity failed", clustersetup.ConfigureNodePoolLabelsActivityName)
+			err = errors.WrapIff(pkgCadence.UnwrapError(err), "%q activity failed", clustersetup.ConfigureNodePoolLabelsActivityName)
 			eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
 			return err
 		}
@@ -132,7 +133,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 		}
 		err := workflow.ExecuteActivity(ctx, eksWorkflow.GetVpcConfigActivityName, activityInput).Get(ctx, &vpcActivityOutput)
 		if err != nil {
-			eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
+			eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
 			return err
 		}
 	}
@@ -260,7 +261,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 
 		err := workflow.ExecuteActivity(ctx, eksWorkflow.SaveNodePoolsActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
+			eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
 			return err
 		}
 	}
@@ -275,7 +276,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 
 		err := workflow.ExecuteActivity(ctx, RunPostHookActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			err = errors.WrapIff(err, "%q activity failed", RunPostHookActivityName)
+			err = errors.WrapIff(pkgCadence.UnwrapError(err), "%q activity failed", RunPostHookActivityName)
 			eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
 			return err
 		}

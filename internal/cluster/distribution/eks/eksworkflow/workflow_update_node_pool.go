@@ -23,6 +23,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 	"github.com/banzaicloud/pipeline/pkg/sdk/cadence/lib/pipeline/processlog"
 )
@@ -175,7 +176,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		}
 
 		processActivity := process.StartActivity(ctx, WaitCloudFormationStackUpdateActivityName)
-		err = decodeCloudFormationError(workflow.ExecuteActivity(
+		err = pkgCadence.UnwrapError(workflow.ExecuteActivity(
 			workflow.WithActivityOptions(ctx, activityOptions),
 			WaitCloudFormationStackUpdateActivityName,
 			activityInput,

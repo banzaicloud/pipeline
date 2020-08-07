@@ -21,6 +21,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 
+	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -100,7 +101,7 @@ func (m *Manager) updateCluster(ctx context.Context, updateCtx UpdateContext, cl
 	logger.Info("updating cluster")
 
 	if err := updater.Update(ctx); err != nil {
-		if setErr := cluster.SetStatus(pkgCluster.Warning, err.Error()); setErr != nil {
+		if setErr := cluster.SetStatus(pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()); setErr != nil {
 			log.Error(setErr, "could not set cluster status")
 		} else {
 			m.events.ClusterUpdated(updateCtx.ClusterID)
