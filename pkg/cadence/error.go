@@ -16,33 +16,22 @@ package cadence
 
 import (
 	"errors"
-
-	"go.uber.org/cadence"
+	"fmt"
 )
 
-// Cadence client error reason.
-const ClientErrorReason = "ClientError"
-
-// ClientError defines a bahavior based error type for Cadence client issues.
-type ClientError interface {
-	ClientError() (isClientError bool)
-}
-
-// NewClientError returns a new client error.
-func NewClientError(err error) error {
-	return cadence.NewCustomError(ClientErrorReason, err.Error())
-}
-
-// WrapClientError wraps an error into a custom cadence error if it's a client
-// error.
-func WrapClientError(err error) error {
+// UnwrapError returns a new detailed error based on the wrapped string, or the
+// original error otherwise
+func UnwrapError(err error) error {
 	if err == nil {
 		return nil
 	}
 
-	var clientError ClientError
-	if errors.As(err, &clientError) && clientError.ClientError() {
-		return NewClientError(err)
+	var detailedError DetailedError
+	if errors.As(err, &detailedError) {
+		var details string
+		if detailedError.Details(&details) == nil {
+			return fmt.Errorf("%s: %s", err.Error(), details) // Note: detailed errors return their reason on Error().
+		}
 	}
 
 	return err
