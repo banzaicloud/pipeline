@@ -17,10 +17,9 @@ package workflow
 import (
 	"context"
 
-	"emperror.dev/errors"
-	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
+	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -58,21 +57,6 @@ func SetClusterStatus(ctx workflow.Context, clusterID uint, status, statusMessag
 	}).Get(ctx, nil)
 }
 
-func extractErrorDetail(err error) error {
-	if cadence.IsCustomError(err) {
-		cerr := err.(*cadence.CustomError)
-		if cerr.HasDetails() {
-			var errDetails string
-			if err = errors.WrapIf(cerr.Details(&errDetails), "couldn't get error details"); err != nil {
-				return err
-			}
-
-			return errors.New(errDetails)
-		}
-	}
-	return err
-}
-
 func SetClusterErrorStatus(ctx workflow.Context, clusterID uint, err error) error {
-	return SetClusterStatus(ctx, clusterID, pkgCluster.Error, extractErrorDetail(err).Error())
+	return SetClusterStatus(ctx, clusterID, pkgCluster.Error, pkgCadence.UnwrapError(err).Error())
 }

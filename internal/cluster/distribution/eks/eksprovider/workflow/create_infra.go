@@ -21,6 +21,7 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
+	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 )
 
@@ -156,7 +157,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 
 	// wait for IAM roles to created before starting user access key creation
 	iamRolesActivityOutput := &CreateIamRolesActivityOutput{}
-	err := decodeCloudFormationError(iamRolesCreateActivityFuture.Get(ctx, &iamRolesActivityOutput))
+	err := pkgCadence.UnwrapError(iamRolesCreateActivityFuture.Get(ctx, &iamRolesActivityOutput))
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +217,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 		for i, future := range createSubnetFutures {
 			var activityOutput CreateSubnetActivityOutput
 
-			errs[i] = decodeCloudFormationError(future.Get(ctx, &activityOutput))
+			errs[i] = pkgCadence.UnwrapError(future.Get(ctx, &activityOutput))
 			if errs[i] == nil {
 				existingAndNewSubnets = append(existingAndNewSubnets, Subnet{
 					SubnetID:         activityOutput.SubnetID,
@@ -356,7 +357,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 	errs := make([]error, len(asgFutures))
 	for i, future := range asgFutures {
 		var activityOutput CreateAsgActivityOutput
-		errs[i] = decodeCloudFormationError(future.Get(ctx, &activityOutput))
+		errs[i] = pkgCadence.UnwrapError(future.Get(ctx, &activityOutput))
 	}
 	if err := errors.Combine(errs...); err != nil {
 		return nil, err

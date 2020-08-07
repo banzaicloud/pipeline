@@ -16,12 +16,6 @@ package cluster
 
 import (
 	"errors"
-	"fmt"
-
-	emperrors "emperror.dev/errors"
-	"go.uber.org/cadence"
-
-	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 )
 
 var ErrInvalidClusterInstance = errors.New("invalid cluster instance")
@@ -36,18 +30,4 @@ func (e *invalidError) Error() string {
 
 func (invalidError) IsInvalid() bool {
 	return true
-}
-
-// decodeCloudFormationError decodes a Cloud Formation cadence.CustomError into
-// a simplified object which returns a detailed error message on its Error()
-// (message string) function implementation.
-func decodeCloudFormationError(err error) error {
-	if customError, ok := err.(*cadence.CustomError); ok && customError.Reason() == eksWorkflow.ErrReasonStackFailed {
-		var details string
-		_ = customError.Details(&details)
-
-		return emperrors.NewPlain(fmt.Sprintf("%s: %s", customError.Reason(), details))
-	}
-
-	return err
 }
