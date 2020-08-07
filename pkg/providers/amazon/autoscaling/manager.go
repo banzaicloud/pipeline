@@ -31,7 +31,6 @@ import (
 type Manager struct {
 	metricsEnabled bool
 	logger         logur.Logger
-	session        *session.Session
 
 	asSvc  *autoscaling.AutoScaling
 	cfSvc  *cloudformation.CloudFormation
@@ -41,10 +40,9 @@ type Manager struct {
 // NewManager initialises and gives back a new Manager
 func NewManager(session *session.Session, opts ...Option) *Manager {
 	m := &Manager{
-		session: session,
-		asSvc:   autoscaling.New(session),
-		cfSvc:   cloudformation.New(session),
-		ec2Svc:  ec2.New(session),
+		asSvc:  autoscaling.New(session),
+		cfSvc:  cloudformation.New(session),
+		ec2Svc: ec2.New(session),
 	}
 
 	for _, o := range opts {
@@ -62,8 +60,7 @@ func NewManager(session *session.Session, opts ...Option) *Manager {
 func (m *Manager) GetAutoscalingGroups() ([]*Group, error) {
 	input := &autoscaling.DescribeAutoScalingGroupsInput{}
 
-	svc := autoscaling.New(m.session)
-	result, err := svc.DescribeAutoScalingGroups(input)
+	result, err := m.asSvc.DescribeAutoScalingGroups(input)
 	if err != nil {
 		return nil, err
 	}
