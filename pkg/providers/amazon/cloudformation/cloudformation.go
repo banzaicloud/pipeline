@@ -20,8 +20,51 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 )
+
+// +testify:mock
+
+// cloudFormationAPI redefines the cloudformationiface.CloudFormationAPI
+// interface in order to generate mock for it.
+// nolint:deadcode // Used for mock generation and only the original interface
+// is referenced.
+type cloudFormationAPI interface {
+	cloudformationiface.CloudFormationAPI
+}
+
+// +testify:mock
+
+// CloudFormationFactory provides an interface for instantiating AWS
+// CloudFormation API objects.
+type CloudFormationAPIFactory interface {
+	// New instantiates an AWS CloudFormation API object based on the specified
+	// configurations.
+	New(
+		configProvider client.ConfigProvider,
+		configs ...*aws.Config,
+	) (cloudFormationAPI cloudformationiface.CloudFormationAPI)
+}
+
+// CloudFormationFactory can instantiate a cloudformation.CloudFormation object.
+// Implements the workflow.CloudFormationAPIFactory interface.
+type CloudFormationFactory struct{}
+
+// NewCloudFormationFactory instantiates a CloudFormationFactory object.
+func NewCloudFormationFactory() (factory *CloudFormationFactory) {
+	return &CloudFormationFactory{}
+}
+
+// New instantiates an AWS CloudFormation API object based on the specified
+// configurations.
+// Implements the workflow.CloudFormationAPIFactory interface.
+func (factory *CloudFormationFactory) New(
+	configProvider client.ConfigProvider,
+	configs ...*aws.Config,
+) (cloudFormationAPI cloudformationiface.CloudFormationAPI) {
+	return cloudformation.New(configProvider, configs...)
+}
 
 // GetExistingTaggedStackNames gives back existing CF stacks which have the given tags
 func GetExistingTaggedStackNames(cfSvc *cloudformation.CloudFormation, tags map[string]string) ([]string, error) {
