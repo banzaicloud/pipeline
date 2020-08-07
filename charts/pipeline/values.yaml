@@ -93,6 +93,10 @@ serviceInternal:
   internalPort: 9091
   tls: true
 
+serviceMonitor:
+  enabled: false
+  labels: {}
+
 ingress:
   enabled: false
   annotations: {}
