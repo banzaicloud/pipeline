@@ -133,7 +133,11 @@ jobs:
             -
                 run:
                     name: Test MySQL database schema diff
-                    command: mysqldiff --skip-table-options --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
+                    command: |
+                        go run ./cmd/mysqldiff/main.go \
+                            --databases pipeline_migrations,pipeline_automigrate \
+                            --host 127.0.0.1 --password "" --port 3306 --user root \
+                            --options ignore-comments,ignore-table-options
 
             -
                 run:
