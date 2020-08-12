@@ -1,13 +1,13 @@
-ARG GO_VERSION=1.14
+ARG GO_VERSION=1.15
 ARG FROM_IMAGE=scratch
 
-FROM golang:${GO_VERSION}-alpine3.11 AS builder
+FROM golang:${GO_VERSION}-alpine3.12 AS builder
 
 # set up nsswitch.conf for Go's "netgo" implementation
 # https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-424546457
 RUN echo 'hosts: files dns' > /etc/nsswitch.conf.build
 
-RUN apk add --update --no-cache bash ca-certificates make curl git mercurial bzr tzdata
+RUN apk add --update --no-cache bash ca-certificates make curl git mercurial tzdata
 
 ENV GOFLAGS="-mod=readonly"
 ARG GOPROXY
@@ -25,7 +25,7 @@ COPY . /build
 RUN make build-release
 
 
-FROM alpine:3.11 AS iamauth
+FROM alpine:3.12 AS iamauth
 
 WORKDIR /tmp
 
@@ -39,7 +39,7 @@ RUN set -xe \
     && mv aws-iam-authenticator_${IAM_AUTH_VERSION}_linux_amd64 aws-iam-authenticator
 
 
-FROM alpine:3.11 AS migrate
+FROM alpine:3.12 AS migrate
 
 ENV MIGRATE_VERSION v4.9.1
 
