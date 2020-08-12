@@ -37,7 +37,7 @@ MIGRATE_VERSION = 4.9.1
 GOTESTSUM_VERSION = 0.4.1
 MGA_VERSION = 0.2.1
 
-GOLANG_VERSION = 1.14
+GOLANG_VERSION = 1.15
 
 .PHONY: up
 up: etc/config/dex.yml config/ui/feature-set.json start config/config.yaml ## Set up the development environment
