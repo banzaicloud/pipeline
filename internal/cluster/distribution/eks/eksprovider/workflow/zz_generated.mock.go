@@ -929,6 +929,42 @@ func (_m *MockcloudFormationAPI) DescribeAccountLimits(_parameter_0 *cloudformat
 	return r0, r1
 }
 
+// DescribeAccountLimitsPages provides a mock function.
+func (_m *MockcloudFormationAPI) DescribeAccountLimitsPages(_parameter_0 *cloudformation.DescribeAccountLimitsInput, _parameter_1 func(*cloudformation.DescribeAccountLimitsOutput, bool) bool) (_result_0 error) {
+	ret := _m.Called(_parameter_0, _parameter_1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudformation.DescribeAccountLimitsInput, func(*cloudformation.DescribeAccountLimitsOutput, bool) bool) error); ok {
+		r0 = rf(_parameter_0, _parameter_1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeAccountLimitsPagesWithContext provides a mock function.
+func (_m *MockcloudFormationAPI) DescribeAccountLimitsPagesWithContext(_parameter_0 context.Context, _parameter_1 *cloudformation.DescribeAccountLimitsInput, _parameter_2 func(*cloudformation.DescribeAccountLimitsOutput, bool) bool, _parameter_3 ...request.Option) (_result_0 error) {
+	varParams := make([]interface{}, 3+len(_parameter_3))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	varParams[2] = _parameter_2
+	for varIndex, varParam := range _parameter_3 {
+		varParams[3+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeAccountLimitsInput, func(*cloudformation.DescribeAccountLimitsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2, _parameter_3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeAccountLimitsRequest provides a mock function.
 func (_m *MockcloudFormationAPI) DescribeAccountLimitsRequest(_parameter_0 *cloudformation.DescribeAccountLimitsInput) (_result_0 *request.Request, _result_1 *cloudformation.DescribeAccountLimitsOutput) {
 	ret := _m.Called(_parameter_0)
@@ -2675,6 +2711,42 @@ func (_m *MockcloudFormationAPI) ListChangeSets(_parameter_0 *cloudformation.Lis
 	return r0, r1
 }
 
+// ListChangeSetsPages provides a mock function.
+func (_m *MockcloudFormationAPI) ListChangeSetsPages(_parameter_0 *cloudformation.ListChangeSetsInput, _parameter_1 func(*cloudformation.ListChangeSetsOutput, bool) bool) (_result_0 error) {
+	ret := _m.Called(_parameter_0, _parameter_1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudformation.ListChangeSetsInput, func(*cloudformation.ListChangeSetsOutput, bool) bool) error); ok {
+		r0 = rf(_parameter_0, _parameter_1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListChangeSetsPagesWithContext provides a mock function.
+func (_m *MockcloudFormationAPI) ListChangeSetsPagesWithContext(_parameter_0 context.Context, _parameter_1 *cloudformation.ListChangeSetsInput, _parameter_2 func(*cloudformation.ListChangeSetsOutput, bool) bool, _parameter_3 ...request.Option) (_result_0 error) {
+	varParams := make([]interface{}, 3+len(_parameter_3))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	varParams[2] = _parameter_2
+	for varIndex, varParam := range _parameter_3 {
+		varParams[3+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListChangeSetsInput, func(*cloudformation.ListChangeSetsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2, _parameter_3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListChangeSetsRequest provides a mock function.
 func (_m *MockcloudFormationAPI) ListChangeSetsRequest(_parameter_0 *cloudformation.ListChangeSetsInput) (_result_0 *request.Request, _result_1 *cloudformation.ListChangeSetsOutput) {
 	ret := _m.Called(_parameter_0)
@@ -2981,6 +3053,42 @@ func (_m *MockcloudFormationAPI) ListStackInstances(_parameter_0 *cloudformation
 	return r0, r1
 }
 
+// ListStackInstancesPages provides a mock function.
+func (_m *MockcloudFormationAPI) ListStackInstancesPages(_parameter_0 *cloudformation.ListStackInstancesInput, _parameter_1 func(*cloudformation.ListStackInstancesOutput, bool) bool) (_result_0 error) {
+	ret := _m.Called(_parameter_0, _parameter_1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudformation.ListStackInstancesInput, func(*cloudformation.ListStackInstancesOutput, bool) bool) error); ok {
+		r0 = rf(_parameter_0, _parameter_1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListStackInstancesPagesWithContext provides a mock function.
+func (_m *MockcloudFormationAPI) ListStackInstancesPagesWithContext(_parameter_0 context.Context, _parameter_1 *cloudformation.ListStackInstancesInput, _parameter_2 func(*cloudformation.ListStackInstancesOutput, bool) bool, _parameter_3 ...request.Option) (_result_0 error) {
+	varParams := make([]interface{}, 3+len(_parameter_3))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	varParams[2] = _parameter_2
+	for varIndex, varParam := range _parameter_3 {
+		varParams[3+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStackInstancesInput, func(*cloudformation.ListStackInstancesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2, _parameter_3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListStackInstancesRequest provides a mock function.
 func (_m *MockcloudFormationAPI) ListStackInstancesRequest(_parameter_0 *cloudformation.ListStackInstancesInput) (_result_0 *request.Request, _result_1 *cloudformation.ListStackInstancesOutput) {
 	ret := _m.Called(_parameter_0)
@@ -3173,6 +3281,42 @@ func (_m *MockcloudFormationAPI) ListStackSetOperationResults(_parameter_0 *clou
 	return r0, r1
 }
 
+// ListStackSetOperationResultsPages provides a mock function.
+func (_m *MockcloudFormationAPI) ListStackSetOperationResultsPages(_parameter_0 *cloudformation.ListStackSetOperationResultsInput, _parameter_1 func(*cloudformation.ListStackSetOperationResultsOutput, bool) bool) (_result_0 error) {
+	ret := _m.Called(_parameter_0, _parameter_1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudformation.ListStackSetOperationResultsInput, func(*cloudformation.ListStackSetOperationResultsOutput, bool) bool) error); ok {
+		r0 = rf(_parameter_0, _parameter_1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListStackSetOperationResultsPagesWithContext provides a mock function.
+func (_m *MockcloudFormationAPI) ListStackSetOperationResultsPagesWithContext(_parameter_0 context.Context, _parameter_1 *cloudformation.ListStackSetOperationResultsInput, _parameter_2 func(*cloudformation.ListStackSetOperationResultsOutput, bool) bool, _parameter_3 ...request.Option) (_result_0 error) {
+	varParams := make([]interface{}, 3+len(_parameter_3))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	varParams[2] = _parameter_2
+	for varIndex, varParam := range _parameter_3 {
+		varParams[3+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStackSetOperationResultsInput, func(*cloudformation.ListStackSetOperationResultsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2, _parameter_3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListStackSetOperationResultsRequest provides a mock function.
 func (_m *MockcloudFormationAPI) ListStackSetOperationResultsRequest(_parameter_0 *cloudformation.ListStackSetOperationResultsInput) (_result_0 *request.Request, _result_1 *cloudformation.ListStackSetOperationResultsOutput) {
 	ret := _m.Called(_parameter_0)
@@ -3251,6 +3395,42 @@ func (_m *MockcloudFormationAPI) ListStackSetOperations(_parameter_0 *cloudforma
 	return r0, r1
 }
 
+// ListStackSetOperationsPages provides a mock function.
+func (_m *MockcloudFormationAPI) ListStackSetOperationsPages(_parameter_0 *cloudformation.ListStackSetOperationsInput, _parameter_1 func(*cloudformation.ListStackSetOperationsOutput, bool) bool) (_result_0 error) {
+	ret := _m.Called(_parameter_0, _parameter_1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudformation.ListStackSetOperationsInput, func(*cloudformation.ListStackSetOperationsOutput, bool) bool) error); ok {
+		r0 = rf(_parameter_0, _parameter_1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListStackSetOperationsPagesWithContext provides a mock function.
+func (_m *MockcloudFormationAPI) ListStackSetOperationsPagesWithContext(_parameter_0 context.Context, _parameter_1 *cloudformation.ListStackSetOperationsInput, _parameter_2 func(*cloudformation.ListStackSetOperationsOutput, bool) bool, _parameter_3 ...request.Option) (_result_0 error) {
+	varParams := make([]interface{}, 3+len(_parameter_3))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	varParams[2] = _parameter_2
+	for varIndex, varParam := range _parameter_3 {
+		varParams[3+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStackSetOperationsInput, func(*cloudformation.ListStackSetOperationsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2, _parameter_3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListStackSetOperationsRequest provides a mock function.
 func (_m *MockcloudFormationAPI) ListStackSetOperationsRequest(_parameter_0 *cloudformation.ListStackSetOperationsInput) (_result_0 *request.Request, _result_1 *cloudformation.ListStackSetOperationsOutput) {
 	ret := _m.Called(_parameter_0)
@@ -3327,6 +3507,42 @@ func (_m *MockcloudFormationAPI) ListStackSets(_parameter_0 *cloudformation.List
 	}
 
 	return r0, r1
+}
+
+// ListStackSetsPages provides a mock function.
+func (_m *MockcloudFormationAPI) ListStackSetsPages(_parameter_0 *cloudformation.ListStackSetsInput, _parameter_1 func(*cloudformation.ListStackSetsOutput, bool) bool) (_result_0 error) {
+	ret := _m.Called(_parameter_0, _parameter_1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudformation.ListStackSetsInput, func(*cloudformation.ListStackSetsOutput, bool) bool) error); ok {
+		r0 = rf(_parameter_0, _parameter_1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListStackSetsPagesWithContext provides a mock function.
+func (_m *MockcloudFormationAPI) ListStackSetsPagesWithContext(_parameter_0 context.Context, _parameter_1 *cloudformation.ListStackSetsInput, _parameter_2 func(*cloudformation.ListStackSetsOutput, bool) bool, _parameter_3 ...request.Option) (_result_0 error) {
+	varParams := make([]interface{}, 3+len(_parameter_3))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	varParams[2] = _parameter_2
+	for varIndex, varParam := range _parameter_3 {
+		varParams[3+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStackSetsInput, func(*cloudformation.ListStackSetsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2, _parameter_3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // ListStackSetsRequest provides a mock function.
@@ -4854,6 +5070,41 @@ func (_m *MockcloudFormationAPI) WaitUntilStackImportComplete(_parameter_0 *clou
 
 // WaitUntilStackImportCompleteWithContext provides a mock function.
 func (_m *MockcloudFormationAPI) WaitUntilStackImportCompleteWithContext(_parameter_0 context.Context, _parameter_1 *cloudformation.DescribeStacksInput, _parameter_2 ...request.WaiterOption) (_result_0 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStacksInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilStackRollbackComplete provides a mock function.
+func (_m *MockcloudFormationAPI) WaitUntilStackRollbackComplete(_parameter_0 *cloudformation.DescribeStacksInput) (_result_0 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudformation.DescribeStacksInput) error); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilStackRollbackCompleteWithContext provides a mock function.
+func (_m *MockcloudFormationAPI) WaitUntilStackRollbackCompleteWithContext(_parameter_0 context.Context, _parameter_1 *cloudformation.DescribeStacksInput, _parameter_2 ...request.WaiterOption) (_result_0 error) {
 	varParams := make([]interface{}, 2+len(_parameter_2))
 	varParams[0] = _parameter_0
 	varParams[1] = _parameter_1
