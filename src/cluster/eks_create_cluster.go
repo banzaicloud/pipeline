@@ -67,6 +67,7 @@ func EKSCreateClusterWorkflow(ctx workflow.Context, input EKSCreateClusterWorkfl
 		AsgList:               input.AsgList,
 		LogTypes:              input.LogTypes,
 		KubernetesVersion:     input.KubernetesVersion,
+		EncryptionConfig:      input.EncryptionConfig,
 		ASGSubnetMapping:      input.ASGSubnetMapping,
 		ClusterRoleID:         input.ClusterRoleID,
 		NodeInstanceRoleID:    input.NodeInstanceRoleID,

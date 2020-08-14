@@ -16,6 +16,9 @@ type CreateEksPropertiesEks struct {
 
 	Version string `json:"version,omitempty"`
 
+	// List of encryption config objects to define the encryption providers and their corresponding resources to encrypt. More information can be found at https://docs.aws.amazon.com/eks/latest/userguide/create-cluster.html and https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateCluster.html.
+	EncryptionConfig []EksEncryptionConfig `json:"encryptionConfig,omitempty"`
+
 	LogTypes []string `json:"logTypes,omitempty"`
 
 	NodePools map[string]EksNodePool `json:"nodePools"`

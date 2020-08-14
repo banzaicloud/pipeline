@@ -81,21 +81,31 @@ func (s *CreateInfraWorkflowTestSuite) AfterTest(suiteName, testName string) {
 
 func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	workflowInput := CreateInfrastructureWorkflowInput{
-		Region:                "us-west-1",
-		OrganizationID:        1,
-		SecretID:              "my-secret-id",
-		SSHSecretID:           "ssh-secret-id",
-		ClusterID:             1,
-		ClusterUID:            "cluster-id",
-		ClusterName:           "test-cluster-name",
-		VpcID:                 "",
-		RouteTableID:          "",
-		VpcCidr:               "",
-		ScaleEnabled:          false,
-		DefaultUser:           false,
-		ClusterRoleID:         "test-cluster-role-id",
-		NodeInstanceRoleID:    "test-node-instance-role-id",
-		KubernetesVersion:     "1.14",
+		Region:             "us-west-1",
+		OrganizationID:     1,
+		SecretID:           "my-secret-id",
+		SSHSecretID:        "ssh-secret-id",
+		ClusterID:          1,
+		ClusterUID:         "cluster-id",
+		ClusterName:        "test-cluster-name",
+		VpcID:              "",
+		RouteTableID:       "",
+		VpcCidr:            "",
+		ScaleEnabled:       false,
+		DefaultUser:        false,
+		ClusterRoleID:      "test-cluster-role-id",
+		NodeInstanceRoleID: "test-node-instance-role-id",
+		KubernetesVersion:  "1.14",
+		EncryptionConfig: []EncryptionConfig{
+			{
+				Provider: Provider{
+					KeyARN: "test-encryption-key-arn-or-alias",
+				},
+				Resources: []string{
+					"test-resource-kind-1",
+				},
+			},
+		},
 		LogTypes:              []string{"test-log-type"},
 		EndpointPublicAccess:  true,
 		EndpointPrivateAccess: false,
@@ -229,8 +239,18 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	}, nil).Once()
 
 	s.env.OnActivity(CreateEksControlPlaneActivityName, mock.Anything, CreateEksControlPlaneActivityInput{
-		EKSActivityInput:      eksActivity,
-		KubernetesVersion:     "1.14",
+		EKSActivityInput:  eksActivity,
+		KubernetesVersion: "1.14",
+		EncryptionConfig: []EncryptionConfig{
+			{
+				Provider: Provider{
+					KeyARN: "test-encryption-key-arn-or-alias",
+				},
+				Resources: []string{
+					"test-resource-kind-1",
+				},
+			},
+		},
 		EndpointPrivateAccess: false,
 		EndpointPublicAccess:  true,
 		ClusterRoleArn:        "cluster-role-arn",
@@ -341,20 +361,30 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 
 func (s *CreateInfraWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
 	workflowInput := CreateInfrastructureWorkflowInput{
-		Region:                "us-west-1",
-		OrganizationID:        1,
-		SecretID:              "my-secret-id",
-		SSHSecretID:           "ssh-secret-id",
-		ClusterUID:            "cluster-id",
-		ClusterName:           "test-cluster-name",
-		VpcID:                 "",
-		RouteTableID:          "",
-		VpcCidr:               "",
-		ScaleEnabled:          false,
-		DefaultUser:           false,
-		ClusterRoleID:         "test-cluster-role-id",
-		NodeInstanceRoleID:    "test-node-instance-role-id",
-		KubernetesVersion:     "1.14",
+		Region:             "us-west-1",
+		OrganizationID:     1,
+		SecretID:           "my-secret-id",
+		SSHSecretID:        "ssh-secret-id",
+		ClusterUID:         "cluster-id",
+		ClusterName:        "test-cluster-name",
+		VpcID:              "",
+		RouteTableID:       "",
+		VpcCidr:            "",
+		ScaleEnabled:       false,
+		DefaultUser:        false,
+		ClusterRoleID:      "test-cluster-role-id",
+		NodeInstanceRoleID: "test-node-instance-role-id",
+		KubernetesVersion:  "1.14",
+		EncryptionConfig: []EncryptionConfig{
+			{
+				Provider: Provider{
+					KeyARN: "test-encryption-key-arn-or-alias",
+				},
+				Resources: []string{
+					"test-resource-kind-1",
+				},
+			},
+		},
 		LogTypes:              []string{"test-log-type"},
 		EndpointPublicAccess:  true,
 		EndpointPrivateAccess: false,

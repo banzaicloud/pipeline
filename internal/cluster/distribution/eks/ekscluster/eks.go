@@ -31,10 +31,11 @@ import (
 
 // CreateClusterEKS describes Pipeline's Amazon EKS fields of a CreateCluster request
 type CreateClusterEKS struct {
-	Version      string               `json:"version,omitempty" yaml:"version,omitempty"`
-	NodePools    map[string]*NodePool `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
-	Vpc          *ClusterVPC          `json:"vpc,omitempty" yaml:"vpc,omitempty"`
-	RouteTableId string               `json:"routeTableId,omitempty" yaml:"routeTableId,omitempty"`
+	Version          string               `json:"version,omitempty" yaml:"version,omitempty"`
+	EncryptionConfig []EncryptionConfig   `json:"encryptionConfig,omitempty" yaml:"encryptionConfig,omitempty"`
+	NodePools        map[string]*NodePool `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
+	Vpc              *ClusterVPC          `json:"vpc,omitempty" yaml:"vpc,omitempty"`
+	RouteTableId     string               `json:"routeTableId,omitempty" yaml:"routeTableId,omitempty"`
 	// Subnets for EKS master and worker nodes. All worker nodes will be launched in the same subnet
 	// (the first subnet in the list - which may not coincide with first subnet in the cluster create request payload as
 	// the deserialization may change the order) unless a subnet is specified for the workers that belong to a node pool at node pool level.
@@ -137,6 +138,15 @@ type ClusterIAM struct {
 type ClusterVPC struct {
 	VpcId string `json:"vpcId,omitempty" yaml:"vpcId,omitempty"`
 	Cidr  string `json:"cidr,omitempty" yaml:"cidr,omitempty"`
+}
+
+type EncryptionConfig struct {
+	Provider  Provider
+	Resources []string
+}
+
+type Provider struct {
+	KeyARN string
 }
 
 // Subnet describes a subnet for EKS cluster

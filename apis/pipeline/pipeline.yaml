@@ -4534,6 +4534,46 @@ components:
                 rolearn:
                     type: string
 
+        EKSEncryptionConfig:
+            description: EKS encryption configuration object describing an encryption provider and the corresponding resources to encrypt. More information can be found at https://docs.aws.amazon.com/eks/latest/APIReference/API_EncryptionConfig.html.
+            example: |
+                {
+                    "provider": {
+                        "keyARN": "arn:aws:kms:<REGION>:000000000000:key/00000000-0000-0000-0000-000000000000"
+                    },
+                    "resources": [
+                        "secrets"
+                    ]
+                }
+            properties:
+                provider:
+                    $ref: '#/components/schemas/EKSEncryptionConfigProvider'
+                resources:
+                    description: Resource kinds to encrypt with the corresponding encryption provider.
+                    example: |
+                        [
+                            "secrets"
+                        ]
+                    items:
+                        description: Resource kind to encrypt.
+                        example: secrets
+                        type: string
+                    type: array
+            type: object
+
+        EKSEncryptionConfigProvider:
+            description: EKS encryption provider.
+            example: |
+                {
+                    "keyARN": "arn:aws:kms:<REGION>:000000000000:key/00000000-0000-0000-0000-000000000000"
+                }
+            properties:
+                keyARN:
+                    description: A customer master key to use for encryption. More information can be found at https://docs.aws.amazon.com/kms/latest/developerguide/create-keys.html.
+                    example: arn:aws:kms:<REGION>:000000000000:key/00000000-0000-0000-0000-000000000000
+                    type: string
+            type: object
+
         EksNodePool:
             description: Node pool object for an EKS cluster.
             type: object
@@ -4709,6 +4749,22 @@ components:
                         version:
                             type: string
                             example: "1.10"
+                        encryptionConfig:
+                            description: List of encryption config objects to define the encryption providers and their corresponding resources to encrypt. More information can be found at https://docs.aws.amazon.com/eks/latest/userguide/create-cluster.html and https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateCluster.html.
+                            example: |
+                                [
+                                    {
+                                        "provider": {
+                                            "keyARN": "arn:aws:kms:<REGION>:000000000000:key/00000000-0000-0000-0000-000000000000"
+                                        },
+                                        "resources": [
+                                            "secrets"
+                                        ]
+                                    }
+                                ]
+                            items:
+                                $ref: '#/components/schemas/EKSEncryptionConfig'
+                            type: array
                         logTypes:
                             type: array
                             items:
