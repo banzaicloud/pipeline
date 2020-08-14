@@ -117,7 +117,8 @@ func getNodePoolsForSubnet(subnetMapping map[string][]*pkgEks.Subnet, eksSubnet 
 // Create implements the clusterCreator interface.
 func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogger, commonCluster cluster.CommonCluster, createRequest *pkgCluster.CreateClusterRequest) (cluster.CommonCluster, error) {
 	logger.Info("start creating EKS Cluster")
-	modelCluster := commonCluster.(*cluster.EKSCluster).GetModel()
+	eksCluster := commonCluster.(*cluster.EKSCluster)
+	modelCluster := eksCluster.GetModel()
 
 	if createRequest.PostHooks == nil {
 		createRequest.PostHooks = make(pkgCluster.PostHooks)
@@ -153,6 +154,17 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 		PostHooks:        createRequest.PostHooks,
 		OrganizationName: org.Name,
 	}
+
+	encryptionConfig := make([]workflow.EncryptionConfig, 0, len(eksCluster.EncryptionConfig))
+	for _, encryptionConfigItem := range eksCluster.EncryptionConfig {
+		encryptionConfig = append(encryptionConfig, workflow.EncryptionConfig{
+			Provider: workflow.Provider{
+				KeyARN: encryptionConfigItem.Provider.KeyARN,
+			},
+			Resources: encryptionConfigItem.Resources,
+		})
+	}
+	input.CreateInfrastructureWorkflowInput.EncryptionConfig = encryptionConfig
 
 	for _, mode := range modelCluster.APIServerAccessPoints {
 		switch mode {
@@ -263,6 +275,7 @@ func CreateAWSCredentialsFromSecret(eksCluster *cluster.EKSCluster) (*credential
 // ValidateCreationFields validates all fields
 func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, logger logrus.FieldLogger, commonCluster cluster.CommonCluster) error {
 	eksCluster := commonCluster.(*cluster.EKSCluster)
+	modelCluster := eksCluster.GetModel()
 
 	logger.Debug("validating secretIDs")
 	if len(r.SecretIds) > 0 {
@@ -299,6 +312,11 @@ func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, logger 
 
 	if !regionFound {
 		return pkgErrors.ErrorNotValidLocation
+	}
+
+	err = validateEncryptionConfiguration(eksCluster.EncryptionConfig, modelCluster.Cluster.Location)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "cluster encryption is invalid", "location", modelCluster.Cluster.Location, "encryptionConfig", eksCluster.EncryptionConfig)
 	}
 
 	// validate VPC
@@ -560,4 +578,46 @@ func (c *EksClusterCreator) CreateCluster(ctx context.Context, commonCluster clu
 	}
 
 	return c.create(ctx, logger, commonCluster, createRequest)
+}
+
+// validateEncryptionConfiguration returns an error in case the specified
+// encryption configuration is invalid.
+func validateEncryptionConfiguration(encryptionConfig []pkgEks.EncryptionConfig, clusterLocation string) (err error) {
+	if len(encryptionConfig) == 0 { // Note: no encryption config specified means deliberately unencrypted cluster.
+		return nil
+	}
+
+	if len(encryptionConfig) > 1 {
+		return errors.NewWithDetails("invalid encryption configuration item count",
+			"expectedCount", 1, "actualCount", len(encryptionConfig), "encryptionConfig", encryptionConfig)
+	}
+
+	encryptionConfigItem := encryptionConfig[0]
+	keyARN := encryptionConfigItem.Provider.KeyARN
+	resources := encryptionConfigItem.Resources
+
+	if keyARN == "" {
+		return errors.NewWithDetails("invalid empty value", "key", "encryptionConfig[0].Provider.KeyARN")
+	} else if !strings.HasPrefix(keyARN, "arn:aws:kms") {
+		return errors.NewWithDetails("invalid non-KMS ARN or non-ARN value specified",
+			"keyARN", keyARN)
+	}
+
+	if resources == nil {
+		return errors.NewWithDetails("invalid nil value", "key", "encryptionConfig[0].Resources")
+	} else if len(resources) != 1 {
+		return errors.NewWithDetails("invalid encryption configuration resource count",
+			"expectedCount", 1, "actualCount", len(resources), "encryptionConfig[0].Resources", resources)
+	} else if resources[0] != "secrets" {
+		return errors.NewWithDetails("invalid encryption config resource, only allowed value is 'secrets'",
+			"resources[0]", resources)
+	}
+
+	if clusterLocation == "" {
+		return errors.New("invalid empty cluster location")
+	} else if !strings.Contains(keyARN, clusterLocation) {
+		return errors.NewWithDetails("invalid key, cluster and key locations mismatch", "clusterLocation", clusterLocation, "keyARN", keyARN)
+	}
+
+	return nil
 }

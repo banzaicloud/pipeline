@@ -117,6 +117,7 @@ func TestListNodePoolNames(t *testing.T) {
 			DefaultUser:           false,
 			ClusterRoleId:         "",
 			NodeInstanceRoleId:    "node-instance-role-id",
+			LogTypes:              []string{"log-type-1", "log-type-2"},
 			APIServerAccessPoints: eksmodel.JSONStringArray{"public"},
 			CurrentWorkflowID:     "b63db127-3242-4544-8f62-7306d435977a",
 			SSHGenerated:          true,

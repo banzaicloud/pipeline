@@ -43,6 +43,7 @@ type CreateEksControlPlaneActivityInput struct {
 	EKSActivityInput
 
 	KubernetesVersion     string
+	EncryptionConfig      []EncryptionConfig
 	EndpointPrivateAccess bool
 	EndpointPublicAccess  bool
 	ClusterRoleArn        string
@@ -154,8 +155,19 @@ func (a *CreateEksControlPlaneActivity) Execute(ctx context.Context, input Creat
 		logger.Info("create EKS cluster")
 		logger.Debug("clientRequestToken: ", requestToken)
 
+		encryptionConfig := make([]*eks.EncryptionConfig, 0, len(input.EncryptionConfig))
+		for encryptionConfigIndex := range input.EncryptionConfig {
+			encryptionConfig = append(encryptionConfig, &eks.EncryptionConfig{
+				Provider: &eks.Provider{
+					KeyArn: aws.String(input.EncryptionConfig[encryptionConfigIndex].Provider.KeyARN),
+				},
+				Resources: aws.StringSlice(input.EncryptionConfig[encryptionConfigIndex].Resources),
+			})
+		}
+
 		createClusterInput := &eks.CreateClusterInput{
 			ClientRequestToken: aws.String(requestToken),
+			EncryptionConfig:   encryptionConfig,
 			Name:               aws.String(input.ClusterName),
 			ResourcesVpcConfig: vpcConfigRequest,
 			RoleArn:            &roleArn,

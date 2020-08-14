@@ -51,6 +51,7 @@ type CreateInfrastructureWorkflowInput struct {
 	NodeInstanceRoleID string
 
 	KubernetesVersion     string
+	EncryptionConfig      []EncryptionConfig
 	EndpointPrivateAccess bool
 	EndpointPublicAccess  bool
 
@@ -265,6 +266,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 		activityInput := &CreateEksControlPlaneActivityInput{
 			EKSActivityInput:      commonActivityInput,
 			KubernetesVersion:     input.KubernetesVersion,
+			EncryptionConfig:      input.EncryptionConfig,
 			EndpointPrivateAccess: input.EndpointPrivateAccess,
 			EndpointPublicAccess:  input.EndpointPublicAccess,
 			ClusterRoleArn:        iamRolesActivityOutput.ClusterRoleArn,
