@@ -56,7 +56,7 @@ func (GoogleType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
 			{Name: FieldGoogleType, Required: true, Description: "service_account"},
-			{Name: FieldGoogleProjectId, Required: true, Description: "Google Could Project Id. Find more about, Google Cloud secret fields here: https://beta.banzaicloud.io/docs/cloud-provider-credentials/google/gke_auth_credentials/#method-2-command-line"},
+			{Name: FieldGoogleProjectId, Required: true, Description: "Google Could Project Id. Find more about, Google Cloud secret fields here: https://banzaicloud.com/docs/pipeline/secrets/providers/gke_auth_credentials/#method-2-command-line"},
 			{Name: FieldGooglePrivateKeyId, Required: true, Description: "Id of you private key"},
 			{Name: FieldGooglePrivateKey, Required: true, Description: "Your private key "},
 			{Name: FieldGoogleClientEmail, Required: true, Description: "Google service account client email"},

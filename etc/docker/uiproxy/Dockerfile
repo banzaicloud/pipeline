@@ -10,8 +10,8 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
 COPY nginx.conf /etc/nginx/nginx.tmpl
 RUN rm /etc/nginx/conf.d/default.conf
 
-ENV CLOUDINFO_URL=https://beta.banzaicloud.io/cloudinfo
-ENV RECOMMENDER_URL=https://beta.banzaicloud.io/recommender
+ENV CLOUDINFO_URL=https://try.pipeline.banzai.cloud/cloudinfo
+ENV RECOMMENDER_URL=https://try.pipeline.banzai.cloud/recommender
 ENV UI_URL=http://ui/ui
 
 CMD dockerize -template /etc/nginx/nginx.tmpl:/etc/nginx/nginx.conf -stdout /var/log/nginx/access.log -stderr /var/log/nginx/error.log nginx

@@ -248,7 +248,7 @@ var DefaultRules = map[string]Meta{
 	Google: {
 		Fields: []FieldMeta{
 			{Name: Type, Required: true, Description: "service_account"},
-			{Name: ProjectId, Required: true, Description: "Google Could Project Id. Find more about, Google Cloud secret fields here: https://beta.banzaicloud.io/docs/cloud-provider-credentials/google/gke_auth_credentials/#method-2-command-line"},
+			{Name: ProjectId, Required: true, Description: "Google Could Project Id. Find more about, Google Cloud secret fields here: https://banzaicloud.com/docs/pipeline/secrets/providers/gke_auth_credentials/#method-2-command-line"},
 			{Name: PrivateKeyId, Required: true, Description: "Id of you private key"},
 			{Name: PrivateKey, Required: true, Description: "Your private key "},
 			{Name: ClientEmail, Required: true, Description: "Google service account client email"},
@@ -266,7 +266,7 @@ var DefaultRules = map[string]Meta{
 	},
 	Oracle: {
 		Fields: []FieldMeta{
-			{Name: OracleUserOCID, Required: true, Description: "Your Oracle user OCID. Find more about, generating public key and fingerprint here: https://beta.banzaicloud.io/docs/cloud-provider-credentials/oracle/oke_auth_credentials/#generate-api-token"},
+			{Name: OracleUserOCID, Required: true, Description: "Your Oracle user OCID. Find more about, generating public key and fingerprint here: https://banzaicloud.com/docs/pipeline/secrets/providers/oci_auth_credentials/"},
 			{Name: OracleTenancyOCID, Required: true, Description: "Your tenancy OCID"},
 			{Name: OracleAPIKey, Required: true, Description: "Your public key"},
 			{Name: OracleAPIKeyFingerprint, Required: true, Description: "Fingerprint of you public key"},

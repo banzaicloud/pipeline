@@ -68,8 +68,8 @@ dex:
     apiAddr: "127.0.0.1:5557"
 
 cloudinfo:
-    endpoint: "https://beta.banzaicloud.io/cloudinfo/api/v1"
+    endpoint: "https://try.pipeline.banzai.cloud/cloudinfo/api/v1"
 
 hollowtrees:
-    endpoint: "https://beta.banzaicloud.io/hollowtrees-alerts/api/v1"
+    endpoint: "https://try.pipeline.banzai.cloud/hollowtrees-alerts/api/v1"
     tokenSigningKey: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"

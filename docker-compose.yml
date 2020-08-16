@@ -63,8 +63,8 @@ services:
         depends_on:
             - ui
         environment:
-            CLOUDINFO_URL: https://beta.banzaicloud.io/cloudinfo
-            RECOMMENDER_URL: https://beta.banzaicloud.io/recommender
+            CLOUDINFO_URL: https://try.pipeline.banzai.cloud/cloudinfo
+            RECOMMENDER_URL: https://try.pipeline.banzai.cloud/recommender
 
     dex:
         image: banzaicloud/dex-shim:0.6.0
