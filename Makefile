@@ -65,10 +65,6 @@ start: docker-compose.override.yml ## Start docker development environment
 	docker-compose up -d
 	# Waiting for Dex to initialize with potential container restarts.
 	@ while ! docker-compose logs dex | grep -q "listening (http)" ; do sleep 1 ; echo "." ; done
-	# Note: remove the code below once Cadence 0.11.0 is used in docker compose.
-	# Issue: https://github.com/uber/cadence/issues/2764 in local/worker environment.
-	# Waiting for Cadence to initialize with potential container stops.
-	@ while ! docker-compose logs cadence | grep -q "cadence-sys-tl-scanner-workflow workflow successfully started" ; do if ! docker-compose ps | grep "pipeline_cadence_1" | awk '{print $5}' | grep -q "Up"; then docker-compose up -d ; fi ; sleep 1 ; echo "." ; done
 
 .PHONY: stop
 stop: ## Stop docker development environment
