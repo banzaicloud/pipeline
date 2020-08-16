@@ -39,7 +39,7 @@ func (OracleType) Name() string {
 func (OracleType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
-			{Name: FieldOracleUserOCID, Required: true, Description: "Your Oracle user OCID. Find more about, generating public key and fingerprint here: https://beta.banzaicloud.io/docs/cloud-provider-credentials/oracle/oke_auth_credentials/#generate-api-token"},
+			{Name: FieldOracleUserOCID, Required: true, Description: "Your Oracle user OCID. Find more about, generating public key and fingerprint here: https://banzaicloud.com/docs/pipeline/secrets/providers/oci_auth_credentials/"},
 			{Name: FieldOracleTenancyOCID, Required: true, Description: "Your tenancy OCID"},
 			{Name: FieldOracleAPIKey, Required: true, Description: "Your public key"},
 			{Name: FieldOracleAPIKeyFingerprint, Required: true, Description: "Fingerprint of you public key"},

@@ -22,9 +22,9 @@ The main features of the platform are:
 * **Integrates cluster services:** _Automated solutions for DNS, observability, private registries, security scans, DR and lots more_
 * **Hook in:** _Go from commit to scale in minutes using the in-built container-native CI/CD workflow engine_
 
-Check out the developer beta if you would like to try out the platform:
+Check out the developer preview environment if you would like to try out the platform:
 <p align="center">
-  <a href="https://beta.banzaicloud.io">
+  <a href="https://try.pipeline.banzai.cloud">
   <img src="https://camo.githubusercontent.com/a487fb3128bcd1ef9fc1bf97ead8d6d6a442049a/68747470733a2f2f62616e7a6169636c6f75642e636f6d2f696d672f7472795f706970656c696e655f627574746f6e2e737667">
   </a>
 </p>
