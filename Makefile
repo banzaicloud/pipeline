@@ -12,6 +12,7 @@ OPENAPI_DESCRIPTOR = apis/pipeline/pipeline.yaml
 # Build variables
 BUILD_DIR ?= build
 BUILD_PACKAGE = ${PACKAGE}/cmd/pipeline
+TEMPORARY_DIRECTORY = tmp
 VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || git symbolic-ref -q --short HEAD)
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
@@ -246,6 +247,7 @@ validate-openapi: ## Validate the openapi description
 
 .PHONY: generate-openapi
 generate-openapi: validate-openapi ## Generate go server based on openapi description
+	$(call back_up_file,.gen/pipeline/pipeline/BUILD)
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ./.gen/pipeline; else rm -rf ./.gen/pipeline/; fi
 	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
 	--additional-properties packageName=pipeline \
@@ -256,6 +258,7 @@ generate-openapi: validate-openapi ## Generate go server based on openapi descri
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) .gen/pipeline/; fi
 	rm .gen/pipeline/{Dockerfile,go.*,README.md,main.go,go/api*.go,go/logger.go,go/routers.go}
 	mv .gen/pipeline/go .gen/pipeline/pipeline
+	$(call restore_backup_file,.gen/pipeline/pipeline/BUILD)
 
 define generate_openapi_client
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ${3}; else rm -rf ${3}; fi
@@ -304,3 +307,68 @@ help:
 # Variable outputting/exporting rules
 var-%: ; @echo $($*)
 varexport-%: ; @echo $*=$($*)
+
+# back_up_file copies the specified file into the temporary directory
+# $(TEMPORARY_DIRECTORY) under the path it was located relative to the
+# repository root. This method has a pair and inverse operation named
+# `restore_backup_file` which restores the backed up file to its original place.
+# The original entity is left in place during backup.
+#
+# $1 - source file path to back up.
+define back_up_file
+	@echo "- Backing up $(source_file_path)."
+
+	$(call check_binary,realpath,coreutils)
+	$(eval source_file_path := $(1))
+
+	$(eval source_file_path := $(shell realpath --relative-to=. $(source_file_path)))
+	$(eval backup_file_path := $(shell echo "$(TEMPORARY_DIRECTORY)/$(source_file_path)"))
+	$(eval backup_directory := $(shell dirname $(backup_file_path)))
+
+	@mkdir -p $(backup_directory)
+	@cp -p $(source_file_path) $(backup_file_path)
+
+	@echo "- Backup completed."
+endef
+
+# check_binary checks for the specified binary to exist and errors if it is
+# missing.
+#
+# $1 - binary to check.
+#
+# $2 - package name.
+define check_binary
+	$(eval binary_name := $(1))
+	$(eval package_name := $(2))
+
+	$(eval binary_path := $(shell which $(binary_name)))
+	$(if $(binary_path),,$(error $(binary_name) binary not found, please install it with 'brew install $(package_name)' or a similar command regarding other package managers))
+endef
+
+# restore_backup_file restores the specified file's backup from the temporary
+# directory $(TEMPORARY_DIRECTORY) to its original path by taking its relative
+# path under the temporary directory and moving it into the repository root
+# directory without the temporary directory fragment. This method is the pair
+# and inverse operation of back_up_file. The copy entity in the temporary
+# directory is then removed and all empty directories in and including the
+# temporary directory are also removed.
+#
+# $1 - target file path whose backup is to be restored from the temporary
+# directory.
+define restore_backup_file
+	@echo "- Restoring $(target_file_path)."
+
+	$(call check_binary,realpath,coreutils)
+	$(eval target_file_path := $(1))
+
+	$(eval target_file_path := $(shell realpath --relative-to=. $(target_file_path)))
+	$(eval backup_file_path := $(shell echo "$(TEMPORARY_DIRECTORY)/$(target_file_path)"))
+	$(eval target_directory := $(shell dirname $(target_file_path)))
+
+	@mkdir -p $(target_directory)
+	@cp -p $(backup_file_path) $(target_file_path)
+	@rm $(backup_file_path)
+	@find $(TEMPORARY_DIRECTORY) -type d -empty -delete
+
+	@echo "- Restore completed."
+endef
