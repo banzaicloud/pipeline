@@ -10,7 +10,7 @@ genrule(
         _tag = "download",
         url = f"https://raw.githubusercontent.com/anchore/anchore-engine/{anchore_version}/anchore_engine/services/apiext/swagger/swagger.yaml",
         out = "swagger.yml", # important to avoid file name collision
-        hashes = ["c774047663ee445823cadf10bc0da8b0a223f894b3da54db5b94f691df1b1971"],
+        hashes = ["68a026c241503c521b9aa15aba94e1915ebcd755c1e44692c917b2f7b6c10d45"],
         licences = ["Apache-2.0"],
     )],
     outs = ["apis/anchore/swagger.yaml"],
