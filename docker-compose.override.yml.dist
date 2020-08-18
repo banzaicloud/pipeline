@@ -77,20 +77,10 @@ services:
             - 127.0.0.1:8088:8088
 
 # Uncomment the following two services to enable Anchore.
-#    anchore-db:
-#        image: "postgres:9"
-#        environment:
-#            - POSTGRES_PASSWORD=mysecretpassword
-#            - PGDATA=/var/lib/postgresql/data/pgdata/
-#        ports:
-#            - "5432:5432"
-#        volumes:
-#            - ./.docker/volumes/anchore-db:/var/lib/postgresql/data/pgdata/:z
-#
 #    anchore-engine:
 #        image: docker.io/anchore/anchore-engine:v0.5.1
 #        depends_on:
-#            - anchore-db
+#            - postgres
 #        environment:
 #            - ANCHORE_HOST_ID=dockerhostid-anchore-engine
 #            - ANCHORE_ENDPOINT_HOSTNAME=anchore-engine
