@@ -285,9 +285,11 @@ apis/anchore/swagger.yaml:
 
 .PHONY: generate-anchore-client
 generate-anchore-client: apis/anchore/swagger.yaml ## Generate client from Anchore OpenAPI spec
+	$(call back_up_file,.gen/anchore/BUILD)
 	$(call generate_openapi_client,apis/anchore/swagger.yaml,anchore,.gen/anchore)
 	sed -i '' 's/whitelist_ids,omitempty/whitelist_ids/' .gen/anchore/model_mapping_rule.go
 	sed -i '' 's/params,omitempty/params/' .gen/anchore/model_policy_rule.go
+	$(call restore_backup_file,.gen/anchore/BUILD)
 
 snapshot: SNAPSHOT_REF ?= $(shell git symbolic-ref -q --short HEAD || git rev-parse HEAD)
 snapshot:
