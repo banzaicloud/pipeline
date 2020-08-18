@@ -320,10 +320,10 @@ varexport-%: ; @echo $*=$($*)
 #
 # $1 - source file path to back up.
 define back_up_file
+	$(eval source_file_path := $(1))
 	@echo "- Backing up $(source_file_path)."
 
 	$(call check_binary,realpath,coreutils)
-	$(eval source_file_path := $(1))
 
 	$(eval source_file_path := $(shell realpath --relative-to=. $(source_file_path)))
 	$(eval backup_file_path := $(shell echo "$(TEMPORARY_DIRECTORY)/$(source_file_path)"))
@@ -360,10 +360,10 @@ endef
 # $1 - target file path whose backup is to be restored from the temporary
 # directory.
 define restore_backup_file
+	$(eval target_file_path := $(1))
 	@echo "- Restoring $(target_file_path)."
 
 	$(call check_binary,realpath,coreutils)
-	$(eval target_file_path := $(1))
 
 	$(eval target_file_path := $(shell realpath --relative-to=. $(target_file_path)))
 	$(eval backup_file_path := $(shell echo "$(TEMPORARY_DIRECTORY)/$(target_file_path)"))
