@@ -22,7 +22,7 @@ auto_restart_services: True
 # anchore-engine (enables metric gathering and /metrics route for all
 # services)
 #
-#metrics: 
+#metrics:
 #  enabled: True
 #
 
@@ -80,7 +80,7 @@ credentials:
        #auto_policy_sync: True
 
   database:
-    db_connect: 'postgresql+pg8000://postgres:mysecretpassword@anchore-db:5432/postgres'
+    db_connect: 'postgresql+pg8000://sparky:sparky123@postgres:5432/postgres'
     db_connect_args:
       timeout: 120
       ssl: False
