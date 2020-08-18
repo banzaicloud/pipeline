@@ -278,16 +278,20 @@ apis/cloudinfo/openapi.yaml:
 
 .PHONY: generate-cloudinfo-client
 generate-cloudinfo-client: apis/cloudinfo/openapi.yaml ## Generate client from Cloudinfo OpenAPI spec
+	$(call back_up_file,.gen/cloudinfo/BUILD)
 	$(call generate_openapi_client,apis/cloudinfo/openapi.yaml,cloudinfo,.gen/cloudinfo)
+	$(call restore_backup_file,.gen/cloudinfo/BUILD)
 
 apis/anchore/swagger.yaml:
 	curl https://raw.githubusercontent.com/anchore/anchore-engine/${ANCHORE_VERSION}/anchore_engine/services/apiext/swagger/swagger.yaml | tr '\n' '\r' | sed $$'s/- Images\r      - Vulnerabilities/- Images/g' | tr '\r' '\n' | sed '/- Image Content/d; /- Policy Evaluation/d; /- Queries/d' > apis/anchore/swagger.yaml
 
 .PHONY: generate-anchore-client
 generate-anchore-client: apis/anchore/swagger.yaml ## Generate client from Anchore OpenAPI spec
+	$(call back_up_file,.gen/anchore/BUILD)
 	$(call generate_openapi_client,apis/anchore/swagger.yaml,anchore,.gen/anchore)
 	sed -i '' 's/whitelist_ids,omitempty/whitelist_ids/' .gen/anchore/model_mapping_rule.go
 	sed -i '' 's/params,omitempty/params/' .gen/anchore/model_policy_rule.go
+	$(call restore_backup_file,.gen/anchore/BUILD)
 
 snapshot: SNAPSHOT_REF ?= $(shell git symbolic-ref -q --short HEAD || git rev-parse HEAD)
 snapshot:
