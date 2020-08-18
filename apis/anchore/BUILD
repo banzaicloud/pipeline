@@ -1,7 +1,6 @@
 subinclude("///pleasings2//openapi")
 
-# TODO: use an exact version
-anchore_version = "fdc8379"
+anchore_version = "v0.8.0"
 
 genrule(
     name = "spec",
