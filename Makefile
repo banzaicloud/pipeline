@@ -278,7 +278,9 @@ apis/cloudinfo/openapi.yaml:
 
 .PHONY: generate-cloudinfo-client
 generate-cloudinfo-client: apis/cloudinfo/openapi.yaml ## Generate client from Cloudinfo OpenAPI spec
+	$(call back_up_file,.gen/cloudinfo/BUILD)
 	$(call generate_openapi_client,apis/cloudinfo/openapi.yaml,cloudinfo,.gen/cloudinfo)
+	$(call restore_backup_file,.gen/cloudinfo/BUILD)
 
 apis/anchore/swagger.yaml:
 	curl https://raw.githubusercontent.com/anchore/anchore-engine/${ANCHORE_VERSION}/anchore_engine/services/apiext/swagger/swagger.yaml | tr '\n' '\r' | sed $$'s/- Images\r      - Vulnerabilities/- Images/g' | tr '\r' '\n' | sed '/- Image Content/d; /- Policy Evaluation/d; /- Queries/d' > apis/anchore/swagger.yaml
@@ -318,10 +320,10 @@ varexport-%: ; @echo $*=$($*)
 #
 # $1 - source file path to back up.
 define back_up_file
+	$(eval source_file_path := $(1))
 	@echo "- Backing up $(source_file_path)."
 
 	$(call check_binary,realpath,coreutils)
-	$(eval source_file_path := $(1))
 
 	$(eval source_file_path := $(shell realpath --relative-to=. $(source_file_path)))
 	$(eval backup_file_path := $(shell echo "$(TEMPORARY_DIRECTORY)/$(source_file_path)"))
@@ -358,10 +360,10 @@ endef
 # $1 - target file path whose backup is to be restored from the temporary
 # directory.
 define restore_backup_file
+	$(eval target_file_path := $(1))
 	@echo "- Restoring $(target_file_path)."
 
 	$(call check_binary,realpath,coreutils)
-	$(eval target_file_path := $(1))
 
 	$(eval target_file_path := $(shell realpath --relative-to=. $(target_file_path)))
 	$(eval backup_file_path := $(shell echo "$(TEMPORARY_DIRECTORY)/$(target_file_path)"))
