@@ -51,6 +51,7 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *a
 	workflow.RegisterWithOptions(eksworkflow.CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: eksworkflow.CreateInfraWorkflowName})
 
 	awsSessionFactory := eksworkflow.NewAWSSessionFactory(secretStore)
+	eksFactory := eksworkflow.NewEKSFactory()
 
 	createVPCActivity := eksworkflow.NewCreateVPCActivity(awsSessionFactory, vpcTemplate)
 	activity.RegisterWithOptions(createVPCActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateVpcActivityName})
@@ -72,6 +73,9 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *a
 
 	createEksClusterActivity := eksworkflow.NewCreateEksClusterActivity(awsSessionFactory)
 	activity.RegisterWithOptions(createEksClusterActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateEksControlPlaneActivityName})
+
+	saveClusterVersionActivity := eksworkflow.NewSaveClusterVersionActivity(clusterManager)
+	activity.RegisterWithOptions(saveClusterVersionActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveClusterVersionActivityName})
 
 	createAsgActivity := eksworkflow.NewCreateAsgActivity(awsSessionFactory, nodePoolTemplate)
 	activity.RegisterWithOptions(createAsgActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateAsgActivityName})
@@ -140,6 +144,12 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *a
 	eksworkflow2.NewCalculateNodePoolVersionActivity().Register()
 	eksworkflow2.NewUpdateNodeGroupActivity(awsSessionFactory, nodePoolTemplate).Register()
 	eksworkflow2.NewWaitCloudFormationStackUpdateActivity(awsSessionFactory).Register()
+
+	// New cluster update
+	eksworkflow2.NewUpdateClusterWorkflow().Register()
+
+	eksworkflow2.NewUpdateClusterVersionActivity(awsSessionFactory, eksFactory).Register()
+	eksworkflow2.NewWaitUpdateClusterVersionActivity(awsSessionFactory, eksFactory).Register()
 
 	return nil
 }

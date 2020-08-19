@@ -2662,6 +2662,31 @@ paths:
                 default:
                     $ref: '#/components/responses/Error'
 
+    /api/v1/orgs/{orgId}/clusters/{id}/update:
+        parameters:
+            - $ref: '#/components/parameters/orgId'
+            - $ref: '#/components/parameters/clusterId'
+
+        put:
+            security:
+                - bearerAuth: []
+            tags:
+                - cluster-update
+            summary: Update a cluster
+            description: Update a cluster
+            operationId: ClusterUpdate
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ClusterUpdateRequest'
+            responses:
+                202:
+                    description: Accepted
+                default:
+                    $ref: '#/components/responses/Error'
+
     /api/v1/orgs/{orgId}/clusters/{id}/backups:
         parameters:
             - $ref: '#/components/parameters/orgId'
@@ -5295,14 +5320,13 @@ components:
             properties:
                 eks:
                     type: object
-                    required:
-                        - nodePools
                     properties:
                         nodePools:
                             type: object
                             additionalProperties:
                                 $ref: '#/components/schemas/EKSNodePool'
-
+                    required:
+                        - nodePools
 
         UpdateACKProperties:
             type: object
@@ -7502,6 +7526,13 @@ components:
                 ip:
                     type: string
                     example: 10.20.30.40
+
+        ClusterUpdateRequest:
+            type: object
+            properties:
+                version:
+                    type: string
+                    example: "1.17"
 
         PostLeaderElectionResponse:
             type: object

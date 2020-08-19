@@ -30,6 +30,7 @@ type Endpoints struct {
 	DeleteCluster  endpoint.Endpoint
 	DeleteNodePool endpoint.Endpoint
 	ListNodePools  endpoint.Endpoint
+	UpdateCluster  endpoint.Endpoint
 	UpdateNodePool endpoint.Endpoint
 }
 
@@ -43,6 +44,7 @@ func MakeEndpoints(service cluster.Service, middleware ...endpoint.Middleware) E
 		DeleteCluster:  kitxendpoint.OperationNameMiddleware("cluster.DeleteCluster")(mw(MakeDeleteClusterEndpoint(service))),
 		DeleteNodePool: kitxendpoint.OperationNameMiddleware("cluster.DeleteNodePool")(mw(MakeDeleteNodePoolEndpoint(service))),
 		ListNodePools:  kitxendpoint.OperationNameMiddleware("cluster.ListNodePools")(mw(MakeListNodePoolsEndpoint(service))),
+		UpdateCluster:  kitxendpoint.OperationNameMiddleware("cluster.UpdateCluster")(mw(MakeUpdateClusterEndpoint(service))),
 		UpdateNodePool: kitxendpoint.OperationNameMiddleware("cluster.UpdateNodePool")(mw(MakeUpdateNodePoolEndpoint(service))),
 	}
 }
@@ -200,6 +202,40 @@ func MakeListNodePoolsEndpoint(service cluster.Service) endpoint.Endpoint {
 		}
 
 		return ListNodePoolsResponse{NodePoolList: nodePoolList}, nil
+	}
+}
+
+// UpdateClusterRequest is a request struct for UpdateCluster endpoint.
+type UpdateClusterRequest struct {
+	ClusterIdentifier cluster.Identifier
+	ClusterUpdate     cluster.ClusterUpdate
+}
+
+// UpdateClusterResponse is a response struct for UpdateCluster endpoint.
+type UpdateClusterResponse struct {
+	Err error
+}
+
+func (r UpdateClusterResponse) Failed() error {
+	return r.Err
+}
+
+// MakeUpdateClusterEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeUpdateClusterEndpoint(service cluster.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(UpdateClusterRequest)
+
+		err := service.UpdateCluster(ctx, req.ClusterIdentifier, req.ClusterUpdate)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return UpdateClusterResponse{Err: err}, nil
+			}
+
+			return UpdateClusterResponse{Err: err}, err
+		}
+
+		return UpdateClusterResponse{}, nil
 	}
 }
 

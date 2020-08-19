@@ -191,6 +191,9 @@ func (NotReadyError) ServiceError() bool {
 
 // Service provides an interface to clusters.
 type Service interface {
+	// UpdateCluster updates the specified cluster.
+	UpdateCluster(ctx context.Context, clusterIdentifier Identifier, clusterUpdate ClusterUpdate) (err error)
+
 	// DeleteCluster deletes the specified cluster. It returns true if the cluster is already deleted.
 	DeleteCluster(ctx context.Context, clusterIdentifier Identifier, options DeleteClusterOptions) (deleted bool, err error)
 
@@ -210,6 +213,11 @@ type Service interface {
 // DeleteClusterOptions represents cluster deletion options.
 type DeleteClusterOptions struct {
 	Force bool
+}
+
+// ClusterUpdate represents cluster update parameters.
+type ClusterUpdate struct {
+	Version string
 }
 
 type service struct {

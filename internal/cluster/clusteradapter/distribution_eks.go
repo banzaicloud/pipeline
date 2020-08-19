@@ -35,6 +35,18 @@ type eksService struct {
 	service eks.Service
 }
 
+func (s eksService) UpdateCluster(ctx context.Context, clusterIdentifier cluster.Identifier, rawUpdate cluster.ClusterUpdate) error {
+	var clusterUpdate eks.ClusterUpdate
+
+	err := mapstructure.Decode(rawUpdate, &clusterUpdate)
+	if err != nil {
+		// TODO: return a service error
+		return errors.Wrap(err, "failed to decode cluster update")
+	}
+
+	return s.service.UpdateCluster(ctx, clusterIdentifier.ClusterID, clusterUpdate)
+}
+
 func (s eksService) DeleteCluster(ctx context.Context, clusterIdentifier cluster.Identifier, options cluster.DeleteClusterOptions) (deleted bool, err error) {
 	panic("implement me")
 }

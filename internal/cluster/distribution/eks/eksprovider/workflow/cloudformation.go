@@ -33,7 +33,7 @@ type cloudFormationAPI interface {
 
 // +testify:mock
 
-// CloudFormationFactory provides an interface for instantiating AWS
+// CloudFormationAPIFactory provides an interface for instantiating AWS
 // CloudFormation API objects.
 type CloudFormationAPIFactory interface {
 	// New instantiates an AWS CloudFormation API object based on the specified

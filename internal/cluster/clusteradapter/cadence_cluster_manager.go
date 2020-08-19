@@ -41,7 +41,7 @@ func (m CadenceClusterManager) DeleteCluster(ctx context.Context, clusterID uint
 		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,
 	}
 
-	input := clusterworkflow.DeleteClusterActivityInput{
+	input := clusterworkflow.DeleteClusterWorkflowInput{
 		ClusterID: clusterID,
 		Force:     options.Force,
 	}

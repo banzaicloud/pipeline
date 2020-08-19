@@ -42,6 +42,13 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 		options...,
 	))
 
+	router.Methods(http.MethodPut).Path("/update").Handler(kithttp.NewServer(
+		endpoints.UpdateCluster,
+		decodeUpdateClusterHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
+		options...,
+	))
+
 	router.Methods(http.MethodGet).Path("/nodepools").Handler(kithttp.NewServer(
 		endpoints.ListNodePools,
 		decodeListNodePoolsHTTPRequest,
@@ -312,4 +319,41 @@ func encodeListNodePoolsHTTPResponse(ctx context.Context, w http.ResponseWriter,
 	}
 
 	return kitxhttp.JSONResponseEncoder(ctx, w, kitxhttp.WithStatusCode(apiResp, http.StatusOK))
+}
+
+func decodeUpdateClusterHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	clusterID, err := getClusterID(r)
+	if err != nil {
+		return nil, err
+	}
+
+	var rawClusterUpdate pipeline.ClusterUpdateRequest
+
+	err = json.NewDecoder(r.Body).Decode(&rawClusterUpdate)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to decode request")
+	}
+
+	var update cluster.ClusterUpdate
+
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Metadata: nil,
+		Result:   &update,
+		TagName:  "json",
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create decoder")
+	}
+
+	err = decoder.Decode(rawClusterUpdate)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to decode request")
+	}
+
+	return UpdateClusterRequest{
+		ClusterIdentifier: cluster.Identifier{
+			ClusterID: clusterID,
+		},
+		ClusterUpdate: update,
+	}, nil
 }
