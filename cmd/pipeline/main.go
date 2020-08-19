@@ -843,6 +843,7 @@ func main() {
 						map[string]intCluster.Service{
 							"eks": clusteradapter.NewEKSService(eks.NewService(
 								clusterStore,
+								eksadapter.NewClusterManager(workflowClient),
 								eksadapter.NewNodePoolStore(db),
 								eksadapter.NewNodePoolManager(
 									workflow.NewAWSSessionFactory(secret.Store),
@@ -891,6 +892,7 @@ func main() {
 					)
 
 					cRouter.DELETE("", gin.WrapH(router))
+					cRouter.PUT("/update", gin.WrapH(router))
 					cRouter.Any("/nodepools", gin.WrapH(router))
 					cRouter.Any("/nodepools/:nodePoolName", gin.WrapH(router))
 					cRouter.Any("/nodepools/:nodePoolName/update", gin.WrapH(router))

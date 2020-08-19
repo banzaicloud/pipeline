@@ -26,6 +26,11 @@ import (
 
 // Service provides an interface to EKS clusters.
 type Service interface {
+	// UpdateCluster updates a cluster.
+	//
+	// This method accepts a partial body representation.
+	UpdateCluster(ctx context.Context, clusterID uint, clusterUpdate ClusterUpdate) error
+
 	// UpdateNodePool updates an existing node pool in a cluster.
 	//
 	// This method accepts a partial body representation.
@@ -33,6 +38,14 @@ type Service interface {
 
 	// ListNodePools lists node pools from a cluster.
 	ListNodePools(ctx context.Context, clusterID uint) ([]NodePool, error)
+}
+
+// ClusterUpdate describes a cluster update request.
+//
+// A cluster update contains a partial representation of the cluster resource,
+// updating only the changed values.
+type ClusterUpdate struct {
+	Version string `mapstructure:"version"`
 }
 
 // NodePoolUpdate describes a node pool update request.
@@ -89,11 +102,13 @@ type Autoscaling struct {
 // NewService returns a new Service instance.
 func NewService(
 	genericClusters Store,
+	clusterManager ClusterManager,
 	nodePools NodePoolStore,
 	nodePoolManager NodePoolManager,
 ) Service {
 	return service{
 		genericClusters: genericClusters,
+		clusterManager:  clusterManager,
 		nodePools:       nodePools,
 		nodePoolManager: nodePoolManager,
 	}
@@ -101,6 +116,7 @@ func NewService(
 
 type service struct {
 	genericClusters Store
+	clusterManager  ClusterManager
 	nodePools       NodePoolStore
 	nodePoolManager NodePoolManager
 }
@@ -114,6 +130,30 @@ type NodePoolManager interface {
 
 	// ListNodePools lists node pools from a cluster.
 	ListNodePools(ctx context.Context, c cluster.Cluster, nodePoolNames []string) ([]NodePool, error)
+}
+
+// ClusterManager is responsible for managing clusters.
+type ClusterManager interface {
+	// UpdateCluster updates an existing cluster.
+	UpdateCluster(ctx context.Context, c cluster.Cluster, clusterUpdate ClusterUpdate) error
+}
+
+func (s service) UpdateCluster(
+	ctx context.Context,
+	clusterID uint,
+	clusterUpdate ClusterUpdate,
+) error {
+	c, err := s.genericClusters.GetCluster(ctx, clusterID)
+	if err != nil {
+		return err
+	}
+
+	err = s.genericClusters.SetStatus(ctx, clusterID, cluster.Updating, "updating cluster")
+	if err != nil {
+		return err
+	}
+
+	return s.clusterManager.UpdateCluster(ctx, c, clusterUpdate)
 }
 
 func (s service) UpdateNodePool(

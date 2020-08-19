@@ -400,6 +400,20 @@ func (_m *MockService) ListNodePools(ctx context.Context, clusterID uint) (nodeP
 	return r0, r1
 }
 
+// UpdateCluster provides a mock function.
+func (_m *MockService) UpdateCluster(ctx context.Context, clusterIdentifier Identifier, clusterUpdate ClusterUpdate) (err error) {
+	ret := _m.Called(ctx, clusterIdentifier, clusterUpdate)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, Identifier, ClusterUpdate) error); ok {
+		r0 = rf(ctx, clusterIdentifier, clusterUpdate)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateNodePool provides a mock function.
 func (_m *MockService) UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, rawNodePoolUpdate RawNodePoolUpdate) (processID string, err error) {
 	ret := _m.Called(ctx, clusterID, nodePoolName, rawNodePoolUpdate)
