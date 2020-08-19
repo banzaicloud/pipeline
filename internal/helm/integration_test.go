@@ -81,7 +81,7 @@ func testAddPlatformRepository(home string) func(t *testing.T) {
 		for i := 0; i < 2; i++ {
 			err := helmService.AddRepositoryIfNotExists(helm.Repository{
 				Name: "kubefed",
-				URL:  "https://raw.githubusercontent.com/banzaicloud/kubefed/helm_chart/charts",
+				URL:  "https://raw.githubusercontent.com/kubernetes-sigs/kubefed/master/charts",
 			})
 			if err != nil {
 				t.Fatalf("%+v", err)

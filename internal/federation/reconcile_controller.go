@@ -294,27 +294,45 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 	}
 
 	// TODO: refactor to use chart values
-	fedImageTag := m.Configuration.staticConfig.Charts.Kubefed.Values.ControllerManager.Tag
+	fedControllerManager := m.Configuration.staticConfig.Charts.Kubefed.Values.ControllerManager
 	values := map[string]interface{}{
 		"global": map[string]interface{}{
 			"scope": scope,
 		},
 		"controllermanager": map[string]interface{}{
-			"tag": fedImageTag,
+			"controller": map[string]interface{}{
+				"tag": fedControllerManager.Controller.Tag,
+			},
 			"featureGates": map[string]interface{}{
 				"SchedulerPreferences":         schedulerPreferences,
 				"CrossClusterServiceDiscovery": crossClusterServiceDiscovery,
 				"FederatedIngress":             federatedIngress,
 			},
+			"webhook": map[string]interface{}{
+				"tag": fedControllerManager.Webhook.Tag,
+			},
 		},
 	}
 
-	fedImageRepo := m.Configuration.staticConfig.Charts.Kubefed.Values.ControllerManager.Repository
-	if fedImageRepo != "" {
-		values["controllermanager"].(map[string]interface{})["repository"] = fedImageRepo
+	if fedControllerManager.Controller.Repository != "" {
+		values["controllermanager"].(map[string]interface{})["controller"].(map[string]interface{})["repository"] =
+			fedControllerManager.Controller.Repository
 	}
 
-	err := m.helmService.InstallOrUpgrade(
+	if fedControllerManager.Webhook.Repository != "" {
+		values["controllermanager"].(map[string]interface{})["webhook"].(map[string]interface{})["repository"] =
+			fedControllerManager.Webhook.Repository
+	}
+
+	err := m.helmService.AddRepositoryIfNotExists(internalHelm.Repository{
+		Name: "kubefed-charts",
+		URL:  "https://raw.githubusercontent.com/kubernetes-sigs/kubefed/master/charts",
+	})
+	if err != nil {
+		return errors.WrapIf(err, "failed to add kubefed-charts repo")
+	}
+
+	err = m.helmService.InstallOrUpgrade(
 		noOrgID,
 		c,
 		internalHelm.Release{

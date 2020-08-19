@@ -21,8 +21,14 @@ type StaticConfig struct {
 			Version string
 			Values  struct {
 				ControllerManager struct {
-					Repository string
-					Tag        string
+					Controller struct {
+						Repository string
+						Tag        string
+					}
+					Webhook struct {
+						Repository string
+						Tag        string
+					}
 				}
 			}
 		}
