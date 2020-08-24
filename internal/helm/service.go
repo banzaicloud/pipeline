@@ -93,11 +93,14 @@ type UnifiedReleaser interface {
 		upgradeschartVersion string,
 	) error
 
-	ApplyDeploymentV3(
+	ApplyDeploymentSkipCRDs(
 		ctx context.Context,
 		clusterID uint,
-		release Release,
-		options Options,
+		namespace string,
+		chartName string,
+		releaseName string,
+		values []byte,
+		upgradeschartVersion string,
 	) error
 
 	// cluster setup style

@@ -50,11 +50,6 @@ func (h helm3UnifiedReleaser) ApplyDeployment(
 	values []byte,
 	chartVersion string,
 ) error {
-	var valuesMap map[string]interface{}
-	if err := yaml.Unmarshal(values, &valuesMap); err != nil {
-		return errors.WrapIf(err, "failed to unmarshal values")
-	}
-
 	options := helm.Options{
 		Namespace:    namespace,
 		DryRun:       false,
@@ -62,6 +57,44 @@ func (h helm3UnifiedReleaser) ApplyDeployment(
 		ReuseValues:  false,
 		Install:      true,
 	}
+	return h.applyDeployment(ctx, clusterID, namespace, chartName, releaseName, values, chartVersion, options)
+}
+
+func (h helm3UnifiedReleaser) ApplyDeploymentSkipCRDs(
+	ctx context.Context,
+	clusterID uint,
+	namespace string,
+	chartName string,
+	releaseName string,
+	values []byte,
+	chartVersion string,
+) error {
+	options := helm.Options{
+		Namespace:    namespace,
+		DryRun:       false,
+		GenerateName: false,
+		ReuseValues:  false,
+		Install:      true,
+		SkipCRDs:     true,
+	}
+	return h.applyDeployment(ctx, clusterID, namespace, chartName, releaseName, values, chartVersion, options)
+}
+
+func (h helm3UnifiedReleaser) applyDeployment(
+	ctx context.Context,
+	clusterID uint,
+	namespace string,
+	chartName string,
+	releaseName string,
+	values []byte,
+	chartVersion string,
+	options helm.Options,
+) error {
+	var valuesMap map[string]interface{}
+	if err := yaml.Unmarshal(values, &valuesMap); err != nil {
+		return errors.WrapIf(err, "failed to unmarshal values")
+	}
+
 	release := helm.Release{
 		ReleaseName: releaseName,
 		ChartName:   chartName,
@@ -69,16 +102,6 @@ func (h helm3UnifiedReleaser) ApplyDeployment(
 		Version:     chartVersion,
 		Values:      valuesMap,
 	}
-	_, err := h.helmService.UpgradeRelease(ctx, 0, clusterID, release, options)
-	return err
-}
-
-func (h helm3UnifiedReleaser) ApplyDeploymentV3(
-	ctx context.Context,
-	clusterID uint,
-	release helm.Release,
-	options helm.Options,
-) error {
 	_, err := h.helmService.UpgradeRelease(ctx, 0, clusterID, release, options)
 	return err
 }

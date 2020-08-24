@@ -17,8 +17,7 @@ package services
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/internal/helm"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 // +testify:mock
@@ -35,17 +34,19 @@ type HelmService interface {
 		chartVersion string,
 	) error
 
-	// ApplyDeploymentV3 upgrades a helm deployment with all options exposed
-	ApplyDeploymentV3(
+	ApplyDeploymentSkipCRDs(
 		ctx context.Context,
 		clusterID uint,
-		release helm.Release,
-		options helm.Options,
+		namespace string,
+		chartName string,
+		releaseName string,
+		values []byte,
+		chartVersion string,
 	) error
 
 	// DeleteDeployment deletes a deployment from a specific cluster.
 	DeleteDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) error
 
 	// GetDeployment gets a deployment by release name from a specific cluster.
-	GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*pkgHelm.GetDeploymentResponse, error)
+	GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*helm.GetDeploymentResponse, error)
 }

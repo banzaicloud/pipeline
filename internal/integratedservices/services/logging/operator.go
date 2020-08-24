@@ -28,7 +28,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
@@ -417,25 +416,8 @@ func (op IntegratedServiceOperator) installLoggingOperator(ctx context.Context, 
 		return errors.WrapIf(err, "failed to merge operator values with config")
 	}
 
-	values, err := helm.ConvertBytes(valuesBytes)
-	if err != nil {
-		return err
-	}
-
-	// used a custom method here because we needed SkipCRDs: true
-	// but wanted to avoid a change in all services
-	return op.helmService.ApplyDeploymentV3(
-		ctx, clusterID, helm.Release{
-			ReleaseName: loggingOperatorReleaseName,
-			ChartName:   op.config.Charts.Operator.Chart,
-			Namespace:   op.config.Namespace,
-			Values:      values,
-			Version:     op.config.Charts.Operator.Version,
-		}, helm.Options{
-			Namespace: op.config.Namespace,
-			Install:   true,
-			SkipCRDs:  true,
-		})
+	return op.helmService.ApplyDeploymentSkipCRDs(
+		ctx, clusterID, op.config.Namespace, op.config.Charts.Operator.Chart, loggingOperatorReleaseName, valuesBytes, op.config.Charts.Operator.Version)
 }
 
 func mergeValuesWithConfig(chartValues interface{}, configValues interface{}) ([]byte, error) {
