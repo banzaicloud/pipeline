@@ -597,14 +597,14 @@ func validateEncryptionConfiguration(encryptionConfig []pkgEks.EncryptionConfig,
 	resources := encryptionConfigItem.Resources
 
 	if keyARN == "" {
-		return errors.NewWithDetails("invalid empty value", "key", "encryptionConfig[0].Provider.KeyARN")
+		return errors.NewWithDetails("invalid empty keyARN value", "key", "encryptionConfig[0].Provider.KeyARN")
 	} else if !strings.HasPrefix(keyARN, "arn:aws:kms") {
 		return errors.NewWithDetails("invalid non-KMS ARN or non-ARN value specified",
 			"keyARN", keyARN)
 	}
 
 	if resources == nil {
-		return errors.NewWithDetails("invalid nil value", "key", "encryptionConfig[0].Resources")
+		return errors.NewWithDetails("invalid nil resources value", "key", "encryptionConfig[0].Resources")
 	} else if len(resources) != 1 {
 		return errors.NewWithDetails("invalid encryption configuration resource count",
 			"expectedCount", 1, "actualCount", len(resources), "encryptionConfig[0].Resources", resources)
