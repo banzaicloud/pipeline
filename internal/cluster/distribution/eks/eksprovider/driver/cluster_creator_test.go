@@ -86,7 +86,7 @@ func TestValidateEncryptionConfiguration(t *testing.T) {
 				},
 			},
 			output: outputType{
-				expectedError: errors.NewWithDetails("invalid empty value"),
+				expectedError: errors.NewWithDetails("invalid empty keyARN value"),
 			},
 		},
 		{
@@ -119,7 +119,7 @@ func TestValidateEncryptionConfiguration(t *testing.T) {
 				},
 			},
 			output: outputType{
-				expectedError: errors.NewWithDetails("invalid nil value"),
+				expectedError: errors.NewWithDetails("invalid nil resources value"),
 			},
 		},
 		{
