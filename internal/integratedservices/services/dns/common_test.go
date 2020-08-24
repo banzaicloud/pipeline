@@ -19,7 +19,6 @@ import (
 
 	"emperror.dev/errors"
 
-	internalhelm "github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -130,16 +129,19 @@ func (d dummyOrganizationalSecretStore) Delete(organizationID uint, secretID str
 type dummyHelmService struct {
 }
 
-func (d dummyHelmService) ApplyDeploymentV3(
+func (d dummyHelmService) ApplyDeployment(
 	ctx context.Context,
 	clusterID uint,
-	release internalhelm.Release,
-	options internalhelm.Options,
+	namespace string,
+	deploymentName string,
+	releaseName string,
+	values []byte,
+	chartVersion string,
 ) error {
 	return nil
 }
 
-func (d dummyHelmService) ApplyDeployment(
+func (d dummyHelmService) ApplyDeploymentSkipCRDs(
 	ctx context.Context,
 	clusterID uint,
 	namespace string,
@@ -159,8 +161,4 @@ func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, rel
 	return &helm.GetDeploymentResponse{
 		ReleaseName: releaseName,
 	}, nil
-}
-
-func (d dummyHelmService) IsV3() bool {
-	return false
 }
