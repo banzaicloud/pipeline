@@ -35,6 +35,7 @@ type HelmService interface {
 		chartVersion string,
 	) error
 
+	// ApplyDeploymentV3 upgrades a helm deployment with all options exposed
 	ApplyDeploymentV3(
 		ctx context.Context,
 		clusterID uint,
@@ -47,6 +48,4 @@ type HelmService interface {
 
 	// GetDeployment gets a deployment by release name from a specific cluster.
 	GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*pkgHelm.GetDeploymentResponse, error)
-
-	IsV3() bool
 }
