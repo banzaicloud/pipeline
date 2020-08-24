@@ -90,7 +90,7 @@ type UnifiedReleaser interface {
 		chartName string,
 		releaseName string,
 		values []byte,
-		chartVersion string,
+		upgradeschartVersion string,
 	) error
 
 	ApplyDeploymentV3(
@@ -131,8 +131,6 @@ type UnifiedReleaser interface {
 	Delete(c ClusterDataProvider, releaseName, namespace string) error
 
 	AddRepositoryIfNotExists(repository Repository) error
-
-	IsV3() bool
 }
 
 // releaser collects and groups release related operations

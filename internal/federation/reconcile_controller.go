@@ -92,13 +92,6 @@ func (m *FederationReconciler) ReconcileFederatedTypes(desiredState DesiredState
 		return errors.WrapIf(err, "could not remove Federation resources and typeConfigs")
 	}
 
-	if !m.helmService.IsV3() {
-		err = m.removeFederationCRDs(true)
-		if err != nil {
-			return errors.WrapIf(err, "could not remove Federation CRD's")
-		}
-	}
-
 	return nil
 }
 

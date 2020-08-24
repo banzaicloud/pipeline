@@ -422,31 +422,20 @@ func (op IntegratedServiceOperator) installLoggingOperator(ctx context.Context, 
 		return err
 	}
 
-	if op.helmService.IsV3() {
-		// used a custom method here because we needed SkipCRDs: true
-		// but wanted to avoid a change in all services
-		return op.helmService.ApplyDeploymentV3(
-			ctx, clusterID, helm.Release{
-				ReleaseName: loggingOperatorReleaseName,
-				ChartName:   op.config.Charts.Operator.Chart,
-				Namespace:   op.config.Namespace,
-				Values:      values,
-				Version:     op.config.Charts.Operator.Version,
-			}, helm.Options{
-				Namespace: op.config.Namespace,
-				Install:   true,
-				SkipCRDs:  true,
-			})
-	}
-	return op.helmService.ApplyDeployment(
-		ctx,
-		clusterID,
-		op.config.Namespace,
-		op.config.Charts.Operator.Chart,
-		loggingOperatorReleaseName,
-		valuesBytes,
-		op.config.Charts.Operator.Version,
-	)
+	// used a custom method here because we needed SkipCRDs: true
+	// but wanted to avoid a change in all services
+	return op.helmService.ApplyDeploymentV3(
+		ctx, clusterID, helm.Release{
+			ReleaseName: loggingOperatorReleaseName,
+			ChartName:   op.config.Charts.Operator.Chart,
+			Namespace:   op.config.Namespace,
+			Values:      values,
+			Version:     op.config.Charts.Operator.Version,
+		}, helm.Options{
+			Namespace: op.config.Namespace,
+			Install:   true,
+			SkipCRDs:  true,
+		})
 }
 
 func mergeValuesWithConfig(chartValues interface{}, configValues interface{}) ([]byte, error) {

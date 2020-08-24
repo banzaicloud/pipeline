@@ -299,11 +299,8 @@ func (op IntegratedServiceOperator) installPrometheusOperator(
 		Prometheus:   valuesManager.generatePrometheusChartValues(ctx, spec.Prometheus, prometheusSecretName, op.config.Images.Prometheus),
 	}
 
-	if op.helmService.IsV3() {
-		// todo consider disabling cleanup in favor of installing crds from the chart's crds folder, but will need to take care of upgrades in that case
-		// chartValues.PrometheusOperator.CleanupCustomResource = false
-		chartValues.PrometheusOperator.CreateCustomResource = false
-	}
+	// todo consider disabling cleanup in favor of installing crds from the chart's crds folder, but will need to take care of upgrades in that case
+	chartValues.PrometheusOperator.CreateCustomResource = false
 
 	if spec.Exporters.Enabled {
 		chartValues.KubeStateMetrics = valuesManager.generateKubeStateMetricsChartValues(spec.Exporters.KubeStateMetrics)
