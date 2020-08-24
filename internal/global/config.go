@@ -154,10 +154,6 @@ var Config struct {
 			}
 		}
 	}
-	Helm struct {
-		Home         string
-		Repositories map[string]string
-	}
 	Hollowtrees struct {
 		Endpoint        string
 		TokenSigningKey string

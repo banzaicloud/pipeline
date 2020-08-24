@@ -24,7 +24,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	helmtesting "github.com/banzaicloud/pipeline/internal/helm/testing"
 )
@@ -49,7 +48,6 @@ func testGetChartDesc(home string) func(*testing.T) {
 		fakeOrgId := uint(123)
 		fakeOrgName := "asd"
 
-		global.Config.Helm.Home = home
 		config := helm.Config{
 			Home: home,
 			Repositories: map[string]string{

@@ -29,7 +29,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
@@ -76,12 +75,11 @@ func ClusterKubeConfig(t *testing.T, clusterId uint) ([]byte, helm.ClusterServic
 }
 
 func HelmHome(t *testing.T) string {
-	var err error
-	global.Config.Helm.Home, err = ioutil.TempDir("", "")
+	home, err := ioutil.TempDir("", "")
 	if err != nil {
 		t.Fatalf("%+v", err)
 	}
-	return global.Config.Helm.Home
+	return home
 }
 
 func Loggers() (helm.Logger, logrus.FieldLogger) {
