@@ -352,7 +352,7 @@ Parameters:
   NodeVolumeSize:
     Type: Number
     Description: Node volume size
-    Default: 20
+    Default: 50
 
   Subnets:
     Description: The subnets where workers can be created.
