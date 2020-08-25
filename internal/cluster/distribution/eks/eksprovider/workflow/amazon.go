@@ -169,6 +169,15 @@ type EKSActivityInput struct {
 	AWSClientRequestTokenBase string
 }
 
+type EncryptionConfig struct {
+	Provider  Provider
+	Resources []string
+}
+
+type Provider struct {
+	KeyARN string
+}
+
 // Subnet holds the fields of a Amazon subnet
 type Subnet struct {
 	SubnetID         string

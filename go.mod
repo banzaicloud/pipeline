@@ -70,9 +70,9 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.4.1
+	github.com/prometheus/client_golang v1.7.1
 	github.com/prometheus/client_model v0.2.0
-	github.com/prometheus/common v0.9.1
+	github.com/prometheus/common v0.10.0
 	github.com/prometheus/prom2json v1.3.0
 	github.com/qor/assetfs v0.0.0-20170713023933-ff57fdc13a14 // indirect
 	github.com/qor/auth v0.0.0-20190103025640-46aae9fa92fa
@@ -123,8 +123,8 @@ require (
 	logur.dev/integration/zap v0.3.2
 	logur.dev/logur v0.16.2
 	rsc.io/letsencrypt v0.0.3 // indirect
-	sigs.k8s.io/controller-runtime v0.6.1
-	sigs.k8s.io/kubefed v0.3.1
+	sigs.k8s.io/controller-runtime v0.6.2
+	sigs.k8s.io/kubefed v0.4.0
 	sigs.k8s.io/testing_frameworks v0.1.2
 	sigs.k8s.io/yaml v1.2.0
 )

@@ -55,6 +55,8 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		log: log.WithField("cluster", request.Name),
 	}
 
+	cluster.EncryptionConfig = request.Properties.CreateClusterEKS.EncryptionConfig
+
 	var err error
 	cluster.repository, err = NewDBEKSClusterRepository(global.DB())
 	if err != nil {
@@ -243,8 +245,9 @@ type EKSClusterRepository interface {
 
 // EKSCluster struct for EKS cluster
 type EKSCluster struct {
-	repository EKSClusterRepository
-	model      *eksmodel.EKSClusterModel
+	EncryptionConfig []pkgEks.EncryptionConfig
+	repository       EKSClusterRepository
+	model            *eksmodel.EKSClusterModel
 
 	// maps node pools to subnets. The subnets identified by the "default" key represent the subnets provided in
 	// request.Properties.CreateClusterEKS.Subnets
