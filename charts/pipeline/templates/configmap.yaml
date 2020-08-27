@@ -6,4 +6,10 @@ metadata:
     {{ include "pipeline.labels" . | nindent 4 }}
 data:
   config.yaml: |
-   {{ toYaml .Values.configuration | nindent 4 }}
+    {{- with (omit .Values.configuration "database") }}
+    {{- toYaml . | nindent 4  }}
+    {{- end }}
+    database:
+      {{- with (omit .Values.configuration.database "password") }}
+      {{- toYaml . | nindent 6  }}
+      {{- end }}
