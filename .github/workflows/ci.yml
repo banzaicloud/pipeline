@@ -50,6 +50,12 @@ jobs:
         if: steps.go-module-cache.outputs.cache-hit != 'true'
         run: go mod download
 
+      - name: Check generated file integrity
+        run: |
+          make generate-all \
+          && test "$(git diff --name-only)" == "" \
+          || ( printf >&2 "\ngenerated files are not up to date with the configured dependency versions or current source code files, differences:\n\n%s\n\n" "$(git diff)" ; exit 1 ; )
+
       - name: Build
         run: ./pleasew -p --profile ci build //...
 
@@ -184,7 +190,6 @@ jobs:
         with:
           name: lint-log
           path: plz-out/log
-
 
   docker:
     name: Docker
