@@ -10,7 +10,9 @@
 
 package pipeline
 
-type ClusterUpdateRequest struct {
+type UpdateClusterRequestDeprecated struct {
 
-	Version string `json:"version,omitempty"`
+	Cloud string `json:"cloud"`
+
+	Properties map[string]interface{} `json:"properties"`
 }

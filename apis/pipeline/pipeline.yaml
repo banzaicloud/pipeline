@@ -180,7 +180,7 @@ paths:
                 - clusters
             summary: Update cluster
             description: Updating an existing K8S cluster
-            operationId: UpdateCluster
+            operationId: UpdateClusterDeprecated
             requestBody:
                 required: true
                 content:
@@ -189,7 +189,7 @@ paths:
                             type: object
                             ## oneOf not properly supported by generator
                             #oneOf:
-                            #    - $ref: '#/components/schemas/UpdateClusterRequest'
+                            #    - $ref: '#/components/schemas/UpdateClusterRequestDeprecated'
                             #    - $ref: '#/components/schemas/UpdateClusterRequestV2'
             responses:
                 202:
@@ -2671,16 +2671,18 @@ paths:
             security:
                 - bearerAuth: []
             tags:
-                - cluster-update
-            summary: Update a cluster
-            description: Update a cluster
-            operationId: ClusterUpdate
+                - clusters
+            summary: Update an existing cluster
+            description: |
+                Update the settings of an existing cluster.
+                Changing some settings (like Kubernetes version) might trigger a rolling update.
+            operationId: UpdateCluster
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/ClusterUpdateRequest'
+                            $ref: '#/components/schemas/UpdateClusterRequest'
             responses:
                 202:
                     description: Accepted
@@ -5281,7 +5283,7 @@ components:
                     items:
                         $ref: '#/components/schemas/PKEOnVsphereNodePool'
 
-        UpdateClusterRequest:
+        UpdateClusterRequestDeprecated:
             type: object
             required:
                 - cloud
@@ -7527,7 +7529,11 @@ components:
                     type: string
                     example: 10.20.30.40
 
-        ClusterUpdateRequest:
+        UpdateClusterRequest:
+            oneOf:
+                - $ref: '#/components/schemas/EksUpdateClusterRequest'
+
+        EksUpdateClusterRequest:
             type: object
             properties:
                 version:

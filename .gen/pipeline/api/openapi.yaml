@@ -727,7 +727,7 @@ paths:
       - clusters
     put:
       description: Updating an existing K8S cluster
-      operationId: UpdateCluster
+      operationId: UpdateClusterDeprecated
       parameters:
       - description: Organization identifier
         explode: false
@@ -11815,8 +11815,10 @@ paths:
       - ark-backups
   /api/v1/orgs/{orgId}/clusters/{id}/update:
     put:
-      description: Update a cluster
-      operationId: ClusterUpdate
+      description: |
+        Update the settings of an existing cluster.
+        Changing some settings (like Kubernetes version) might trigger a rolling update.
+      operationId: UpdateCluster
       parameters:
       - description: Organization identifier
         explode: false
@@ -11838,7 +11840,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ClusterUpdateRequest'
+              $ref: '#/components/schemas/UpdateClusterRequest'
         required: true
       responses:
         "202":
@@ -11943,9 +11945,9 @@ paths:
           description: Internal server error
       security:
       - bearerAuth: []
-      summary: Update a cluster
+      summary: Update an existing cluster
       tags:
-      - cluster-update
+      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/backups:
     get:
       description: List ARK backups of a cluster
@@ -19492,7 +19494,7 @@ components:
             $ref: '#/components/schemas/PKEOnVsphereNodePool'
           type: array
       type: object
-    UpdateClusterRequest:
+    UpdateClusterRequestDeprecated:
       properties:
         cloud:
           example: google
@@ -22021,9 +22023,10 @@ components:
       required:
       - hostname
       type: object
-    ClusterUpdateRequest:
-      example:
-        version: "1.17"
+    UpdateClusterRequest:
+      oneOf:
+      - $ref: '#/components/schemas/EksUpdateClusterRequest'
+    EksUpdateClusterRequest:
       properties:
         version:
           example: "1.17"
