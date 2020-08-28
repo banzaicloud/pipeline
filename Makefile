@@ -233,6 +233,9 @@ bin/mga-${MGA_VERSION}:
 	curl -sfL https://git.io/mgatool | bash -s v${MGA_VERSION}
 	@mv bin/mga $@
 
+.PHONY: generate-all
+generate-all: generate-anchore-client generate-cloudinfo-client generate generate-openapi
+
 .PHONY: generate
 generate: bin/mga ## Generate code
 	go generate -x ./...
