@@ -84,6 +84,7 @@ Arguments:
 
 Options:
   -r, --ref              The ref to create the tag for.
+  --major                Bump a major version on master instead of a minor version.
   -n, --dry-run          Print the commands to be executed.
   -h, --help             Print this help message.
 
@@ -112,6 +113,7 @@ function error {
 
 # Default values of arguments
 REF=""
+MAJOR=false
 DRY_RUN=false
 HELP=false
 ARGS=()
@@ -123,6 +125,10 @@ do
         -r|--ref)
         REF="\\\$2"
         shift 2 # Remove argument name and value from processing
+        ;;
+        --major)
+        MAJOR=true
+        shift # Remove --major from processing
         ;;
         -n|--dry-run)
         DRY_RUN=true
@@ -182,7 +188,12 @@ if [[ "\\\$TAG" == "" ]]; then
             error "failed to determine latest version"
         fi
 
-        TAG="\\\$($(out_location ///pleasings2//tools/misc:semver) bump minor \\\$LATEST_VERSION)-snapshot.\\\\$(date +%s)"
+        VERSION_TO_BUMP="minor"
+        if [[ \\\$MAJOR == true ]]; then
+            VERSION_TO_BUMP="major"
+        fi
+
+        TAG="\\\$($(out_location ///pleasings2//tools/misc:semver) bump \\\$VERSION_TO_BUMP \\\$LATEST_VERSION)-snapshot.\\\\$(date +%s)"
     elif [[ "\\\$CURRENT_BRANCH" == "" ]]; then
         error "failed to automatically determine tag: not currently on a branch"
     else
