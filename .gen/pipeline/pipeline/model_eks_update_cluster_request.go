@@ -10,7 +10,7 @@
 
 package pipeline
 
-type UpdateClusterRequest struct {
+type EksUpdateClusterRequest struct {
 
 	Version string `json:"version,omitempty"`
 }

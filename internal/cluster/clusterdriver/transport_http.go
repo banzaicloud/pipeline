@@ -327,7 +327,7 @@ func decodeUpdateClusterHTTPRequest(_ context.Context, r *http.Request) (interfa
 		return nil, err
 	}
 
-	var rawClusterUpdate pipeline.ClusterUpdateRequest
+	var rawClusterUpdate pipeline.UpdateClusterRequest
 
 	err = json.NewDecoder(r.Body).Decode(&rawClusterUpdate)
 	if err != nil {
