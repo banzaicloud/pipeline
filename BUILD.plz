@@ -217,19 +217,17 @@ fi
 
 info "triggering snapshot build for \\"\\\$TAG\\" at ref \\"\\\$REF\\""
 
-GITHUB_PAYLOAD=\\\$($(out_location ///pleasings2//tools/misc:jq) -n --arg tag "\\\$TAG" --arg ref "\\\$REF" '{"event_type": "snapshot", "client_payload": {"version": \\\$tag, "ref": \\\$ref}}')
+GITHUB_PAYLOAD=\\\$($(out_location ///pleasings2//tools/misc:jq) -n --arg tag "\\\$TAG" --arg ref "\\\$REF" '{"ref": \\\$ref, "inputs": {"tag": \\\$tag}}')
 
 \\\$CMD git update-ref refs/snapshots/\\\$TAG \\\$REF
 \\\$CMD git push origin refs/snapshots/\\\$TAG
 
-# TODO: switch to workflow_dispatch event instead
-# https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
 \\\$CMD curl -X POST \
     -H "Accept: application/vnd.github.everest-preview+json" \
     -H "Content-Type: application/json" \
     -H "Authorization: token \\\$GITHUB_TOKEN" \
     --data "\\\$GITHUB_PAYLOAD" \
-    https://api.github.com/repos/banzaicloud/pipeline/dispatches
+    https://api.github.com/repos/banzaicloud/pipeline/actions/workflows/snapshot.yml/dispatches
 """,
     deps = ["///pleasings2//tools/misc:semver", "///pleasings2//tools/misc:jq"],
 )
