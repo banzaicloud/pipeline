@@ -10,7 +10,7 @@
 
 package pipeline
 
-type AmazonPoviderConfig struct {
+type AmazonProviderConfig struct {
 
 	AutoScalingGroup AmazonAutoScalingGroup `json:"autoScalingGroup"`
 }
