@@ -351,8 +351,8 @@ Parameters:
 
   NodeVolumeSize:
     Type: Number
-    Description: Node volume size
-    Default: 50
+    Description: Size of EBS volume to create in GB. Zero means to use the the AMI snapshot size.
+    Default: 0
 
   Subnets:
     Description: The subnets where workers can be created.
@@ -386,6 +386,7 @@ Conditions:
   IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
   AutoscalerEnabled:  !Equals [ !Ref ClusterAutoscalerEnabled, "true" ]
   HasKeyName: !Not [ !Equals [ !Ref KeyName, "" ] ]
+  NodeVolumeSizeAuto: !Equals [ !Ref NodeVolumeSize, 0 ]
 
 Resources:
   NodeInstanceProfile:
@@ -453,7 +454,7 @@ Resources:
                   - DeviceName: /dev/xvda
                     Ebs:
                         DeleteOnTermination: true
-                        VolumeSize: !Ref NodeVolumeSize
+                        VolumeSize: !If [ NodeVolumeSizeAuto, !Ref 'AWS::NoValue', !Ref NodeVolumeSize ]
                         VolumeType: gp2
               IamInstanceProfile:
                   Arn: !GetAtt NodeInstanceProfile.Arn
