@@ -17,7 +17,7 @@ servers:
 tags:
     -
         name: clusters
-        description: Clusters related funtions
+        description: Clusters related functions
     -
         name: deployments
         description: Deployment related functions for a cluster
@@ -358,9 +358,9 @@ paths:
                 - bearerAuth: []
             tags:
                 - clusters
-            summary: List cluser nodes
+            summary: List cluster nodes
             operationId: ListNodes
-            description: List cluser nodes
+            description: List cluster nodes
             parameters:
                 - $ref: '#/components/parameters/orgId'
                 - $ref: '#/components/parameters/clusterId'
@@ -1025,7 +1025,7 @@ paths:
                     name: resourceTypes
                     in: query
                     required: false
-                    description: K8s reource type
+                    description: K8s resource type
                     schema:
                         type: string
             responses:
@@ -1609,7 +1609,7 @@ paths:
                                     type: string
                                 example: [
                                     "/api/v1/orgs",
-                                    "/api/v1/orgs/:orgid",
+                                    "/api/v1/orgs/:orgId",
                                 ]
 
     /api/v1/orgs/{orgId}/users:
@@ -2416,7 +2416,7 @@ paths:
                 - google
             summary: Retrieves projects visible for the user identified by the secret id
             operationId: ListProjects
-            description: Retrieves projects visible by the user represented by the secretid header from the google cloud
+            description: Retrieves projects visible by the user represented by the secretId header from the google cloud
             parameters:
                 - $ref: '#/components/parameters/orgId'
                 -
@@ -3696,7 +3696,7 @@ paths:
                 - bearerAuth: []
             tags:
                 - clusters
-            summary: List cluser nodepool labels
+            summary: List cluster nodepool labels
             operationId: ListNodepoolLabels
             description: List cluster nodepool labels
             parameters:
@@ -4396,7 +4396,7 @@ components:
                             example:
                                - simple:
                                      value: "my-folder"
-                                     summary: "The name of the folder anywhere in the hierarchy when it's unambigious."
+                                     summary: "The name of the folder anywhere in the hierarchy when it's unambiguous."
                                - absolute:
                                      value: "/Datacenter/vm/my-folder"
                                      summary: "Absolute path to the folder. Most vSphere installations use paths prefixed with /Datacenter/vm/."
@@ -4456,7 +4456,7 @@ components:
                     example:
                         - simple:
                               value: "centos-7-pke-201910021808"
-                              summary: "Name of template to use when it's unambigious."
+                              summary: "Name of template to use when it's unambiguous."
                         - absolute:
                               value: "/Datacenter/vm/centos-7-pke-201910021808"
                 adminUsername:
@@ -4827,7 +4827,7 @@ components:
                                 type: string
                                 example:
                                     customTagKey: customTagValue
-                            description: User definied tags to be added to created AWS resources. Empty keys and values are not permitted.
+                            description: User defined tags to be added to created AWS resources. Empty keys and values are not permitted.
         CreateACKProperties:
             type: object
             required:
@@ -5465,7 +5465,7 @@ components:
                 count:
                     type: integer
                     example: 1
-                    description: If cluster autoscaler is not enabled this specifies the desired ndoe count in the node pool. If cluster autoscaler is enabled this specifies the initial node count in the ndoe pool.
+                    description: If cluster autoscaler is not enabled this specifies the desired node count in the node pool. If cluster autoscaler is enabled this specifies the initial node count in the node pool.
                 subnets:
                     type: array
                     items:
@@ -6024,7 +6024,7 @@ components:
                                         example: "v1"
                                     deprecated:
                                         type: boolean
-                                        example: flase
+                                        example: false
                                     urls:
                                         type: array
                                         items:
@@ -6101,7 +6101,7 @@ components:
                                         example: "v1"
                                     deprecated:
                                         type: boolean
-                                        example: flase
+                                        example: false
                                     urls:
                                         type: array
                                         items:
@@ -7241,7 +7241,7 @@ components:
                     status:
                         currentReplicas: 1
                         desiredReplicas: 1
-                        message: 'ScalingActive = true, lastTransitionTime: 2018-00-22T15:31:16Z, the HPA was able to succesfully calculate a replica count from memory resource'
+                        message: 'ScalingActive = true, lastTransitionTime: 2018-00-22T15:31:16Z, the HPA was able to successfully calculate a replica count from memory resource'
             type: array
             items:
                 type: object
@@ -7309,7 +7309,7 @@ components:
                     type: integer
                     format: int32
                 message:
-                    example: 'ScalingActive = true, lastTransitionTime: 2018-08-22T15:31:16Z, the HPA was able to succesfully calculate a replica count from memory resource'
+                    example: 'ScalingActive = true, lastTransitionTime: 2018-08-22T15:31:16Z, the HPA was able to successfully calculate a replica count from memory resource'
                     type: string
 
         ScanLogList:
@@ -7331,7 +7331,7 @@ components:
                     items:
                         $ref: "#/components/schemas/ScanLogItemImage"
                 result:
-                    example: ['nginx:latest policy check failed', 'busybox:latest policy sheck success']
+                    example: ['nginx:latest policy check failed', 'busybox:latest policy check success']
                     type: array
                     items:
                         type: string
