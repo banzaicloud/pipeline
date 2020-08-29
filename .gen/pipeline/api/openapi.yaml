@@ -14,7 +14,7 @@ info:
 servers:
 - url: http://localhost:9090
 tags:
-- description: Clusters related funtions
+- description: Clusters related functions
   name: clusters
 - description: Deployment related functions for a cluster
   name: deployments
@@ -1426,7 +1426,7 @@ paths:
       - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/nodes:
     get:
-      description: List cluser nodes
+      description: List cluster nodes
       operationId: ListNodes
       parameters:
       - description: Organization identifier
@@ -1552,7 +1552,7 @@ paths:
           description: Internal server error
       security:
       - bearerAuth: []
-      summary: List cluser nodes
+      summary: List cluster nodes
       tags:
       - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/secrets:
@@ -4274,7 +4274,7 @@ paths:
         schema:
           type: string
         style: simple
-      - description: K8s reource type
+      - description: K8s resource type
         explode: true
         in: query
         name: resourceTypes
@@ -7136,7 +7136,7 @@ paths:
               schema:
                 example:
                 - /api/v1/orgs
-                - /api/v1/orgs/:orgid
+                - /api/v1/orgs/:orgId
                 items:
                   type: string
                 type: array
@@ -10285,7 +10285,7 @@ paths:
       - clusters
   /api/v1/orgs/{orgId}/cloud/google/projects:
     get:
-      description: Retrieves projects visible by the user represented by the secretid
+      description: Retrieves projects visible by the user represented by the secretId
         header from the google cloud
       operationId: ListProjects
       parameters:
@@ -17978,7 +17978,7 @@ paths:
           description: Internal server error
       security:
       - bearerAuth: []
-      summary: List cluser nodepool labels
+      summary: List cluster nodepool labels
       tags:
       - clusters
   /api/v1/orgs/{orgId}/processes:
@@ -18917,7 +18917,7 @@ components:
           description: Name of VM template available on vSphere to clone as the base
             of nodes. Overrides default value from the main cluster secret.
           example: '[{"simple":{"value":"centos-7-pke-201910021808","summary":"Name
-            of template to use when it''s unambigious."}},{"absolute":{"value":"/Datacenter/vm/centos-7-pke-201910021808"}}]'
+            of template to use when it''s unambiguous."}},{"absolute":{"value":"/Datacenter/vm/centos-7-pke-201910021808"}}]'
           type: string
         adminUsername:
           description: Name of admin user to deploy the generated SSH public key for.
@@ -19632,8 +19632,8 @@ components:
           type: integer
         count:
           description: If cluster autoscaler is not enabled this specifies the desired
-            ndoe count in the node pool. If cluster autoscaler is enabled this specifies
-            the initial node count in the ndoe pool.
+            node count in the node pool. If cluster autoscaler is enabled this specifies
+            the initial node count in the node pool.
           example: 1
           type: integer
         subnets:
@@ -21685,7 +21685,7 @@ components:
           currentReplicas: 1
           desiredReplicas: 1
           message: 'ScalingActive = true, lastTransitionTime: 2018-00-22T15:31:16Z,
-            the HPA was able to succesfully calculate a replica count from memory
+            the HPA was able to successfully calculate a replica count from memory
             resource'
       items:
         properties:
@@ -21754,7 +21754,7 @@ components:
           type: integer
         message:
           example: 'ScalingActive = true, lastTransitionTime: 2018-08-22T15:31:16Z,
-            the HPA was able to succesfully calculate a replica count from memory
+            the HPA was able to successfully calculate a replica count from memory
             resource'
           type: string
       type: object
@@ -21766,7 +21766,7 @@ components:
       example:
         result:
         - nginx:latest policy check failed
-        - busybox:latest policy sheck success
+        - busybox:latest policy check success
         image:
         - lastUpdated: 2018-11-11T14:35:38Z
           imageName: docker.io/redis
@@ -21793,7 +21793,7 @@ components:
         result:
           example:
           - nginx:latest policy check failed
-          - busybox:latest policy sheck success
+          - busybox:latest policy check success
           items:
             type: string
           type: array
@@ -23304,7 +23304,7 @@ components:
           description: Folder to create nodes in. Overrides default value from the
             main cluster secret.
           example: '[{"simple":{"value":"my-folder","summary":"The name of the folder
-            anywhere in the hierarchy when it''s unambigious."}},{"absolute":{"value":"/Datacenter/vm/my-folder","summary":"Absolute
+            anywhere in the hierarchy when it''s unambiguous."}},{"absolute":{"value":"/Datacenter/vm/my-folder","summary":"Absolute
             path to the folder. Most vSphere installations use paths prefixed with
             /Datacenter/vm/."}}]'
           type: string
@@ -23441,7 +23441,7 @@ components:
           additionalProperties:
             example: '{"customTagKey":"customTagValue"}'
             type: string
-          description: User definied tags to be added to created AWS resources. Empty
+          description: User defined tags to be added to created AWS resources. Empty
             keys and values are not permitted.
           type: object
       required:
