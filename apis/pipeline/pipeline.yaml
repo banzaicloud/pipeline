@@ -5139,13 +5139,13 @@ components:
                     type: object
                     # oneOf:
                     #     -
-                    #         $ref: '#/components/schemas/AmazonPoviderConfig'
+                    #         $ref: '#/components/schemas/AmazonProviderConfig'
                 hosts:
                     type: array
                     items:
                         $ref: '#/components/schemas/PKEHosts'
 
-        AmazonPoviderConfig:
+        AmazonProviderConfig:
             type: object
             required:
                 - autoScalingGroup
