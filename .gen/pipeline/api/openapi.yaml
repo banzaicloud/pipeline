@@ -19360,7 +19360,7 @@ components:
       - providerConfig
       - roles
       type: object
-    AmazonPoviderConfig:
+    AmazonProviderConfig:
       properties:
         autoScalingGroup:
           $ref: '#/components/schemas/AmazonAutoScalingGroup'
