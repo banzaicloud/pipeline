@@ -28,23 +28,33 @@ import (
 
 type clusterManager struct {
 	workflowClient client.Client
+	enterprise     bool
 }
 
 // NewClusterManager returns a new eks.ClusterManager
 // that manages clusters asynchronously via Cadence workflows.
-func NewClusterManager(workflowClient client.Client) eks.ClusterManager {
+func NewClusterManager(workflowClient client.Client, enterprise bool) eks.ClusterManager {
 	return clusterManager{
 		workflowClient: workflowClient,
+		enterprise:     enterprise,
 	}
 }
 
-func (n clusterManager) UpdateCluster(
+func (m clusterManager) UpdateCluster(
 	ctx context.Context,
 	c cluster.Cluster,
 	clusterUpdate eks.ClusterUpdate,
 ) error {
+	taskList := "pipeline"
+	workflowName := eksworkflow.UpdateClusterWorkflowName
+
+	if m.enterprise {
+		taskList = "pipeline-enterprise"
+		workflowName = "eks-update-cluster"
+	}
+
 	workflowOptions := client.StartWorkflowOptions{
-		TaskList:                     "pipeline",
+		TaskList:                     taskList,
 		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,
 	}
 
@@ -54,12 +64,13 @@ func (n clusterManager) UpdateCluster(
 
 		ClusterID:      c.ID,
 		ClusterName:    c.Name,
+		ConfigSecretID: c.ConfigSecretID.String(),
 		OrganizationID: c.OrganizationID,
 
 		Version: clusterUpdate.Version,
 	}
 
-	_, err := n.workflowClient.StartWorkflow(ctx, workflowOptions, eksworkflow.UpdateClusterWorkflowName, input)
+	_, err := m.workflowClient.StartWorkflow(ctx, workflowOptions, workflowName, input)
 	if err != nil {
 		return errors.WrapWithDetails(err, "failed to start workflow", "workflow", eksworkflow.UpdateNodePoolWorkflowName)
 	}
