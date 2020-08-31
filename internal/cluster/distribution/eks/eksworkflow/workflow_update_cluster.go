@@ -35,13 +35,13 @@ type UpdateClusterWorkflowInput struct {
 	ConfigSecretID   string
 
 	ClusterID   uint
-	ClusterUID  string
 	ClusterName string
 
 	Version string
 }
 
-type UpdateClusterWorkflow struct{}
+type UpdateClusterWorkflow struct {
+}
 
 func NewUpdateClusterWorkflow() UpdateClusterWorkflow {
 	return UpdateClusterWorkflow{}

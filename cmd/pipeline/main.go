@@ -846,7 +846,7 @@ func main() {
 						map[string]intCluster.Service{
 							"eks": clusteradapter.NewEKSService(eks.NewService(
 								clusterStore,
-								eksadapter.NewClusterManager(workflowClient),
+								eksadapter.NewClusterManager(workflowClient, config.Pipeline.Enterprise),
 								eksadapter.NewNodePoolStore(db),
 								eksadapter.NewNodePoolManager(
 									workflow.NewAWSSessionFactory(secret.Store),
