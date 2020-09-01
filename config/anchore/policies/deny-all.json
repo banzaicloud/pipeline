@@ -1,0 +1,40 @@
+{
+    "blacklisted_images": [],
+    "comment": "Deny all images",
+    "id": "deny_all",
+    "mappings": [
+        {
+            "id": "7062bffa-edae-4589-b863-99c8859849f1",
+            "image": {
+                "type": "tag",
+                "value": "*"
+            },
+            "name": "deny_all",
+            "policy_id": "f2d6b64b-8205-4a78-aa5c-580aa6bee9b9",
+            "registry": "*",
+            "repository": "*",
+            "whitelist_ids": []
+        }
+    ],
+    "name": "Deny all images",
+    "policies": [
+        {
+            "comment": "Deny all images",
+            "id": "f2d6b64b-8205-4a78-aa5c-580aa6bee9b9",
+            "name": "DenyAll",
+            "rules": [
+                {
+                    "action": "STOP",
+                    "gate": "always",
+                    "id": "6724b63b-0de9-4c58-9fab-e4db692c5ae4",
+                    "params": [],
+                    "trigger": "always"
+                }
+            ],
+            "version": "1_0"
+        }
+    ],
+    "version": "1_0",
+    "whitelisted_images": [],
+    "whitelists": []
+}

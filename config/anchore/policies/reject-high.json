@@ -1,0 +1,104 @@
+{
+    "blacklisted_images": [],
+    "comment": "Reject images contais high or critical vulnerabilities",
+    "id": "reject_high",
+    "mappings": [
+        {
+            "id": "b5aa3f09-c27e-4818-9572-dc1fe31fa87a",
+            "image": {
+                "type": "tag",
+                "value": "*"
+            },
+            "name": "reject_high",
+            "policy_id": "4e70a9b0-b6f0-4821-aea3-c2d0dde1e618",
+            "registry": "*",
+            "repository": "*",
+            "whitelist_ids": []
+        }
+    ],
+    "name": "Reject high bundle",
+    "policies": [
+        {
+            "comment": "Reject high policy",
+            "id": "4e70a9b0-b6f0-4821-aea3-c2d0dde1e618",
+            "name": "RejectHigh",
+            "rules": [
+                {
+                    "action": "WARN",
+                    "gate": "dockerfile",
+                    "id": "61d29a9e-6f71-4c34-83aa-93e2a6bc5e1a",
+                    "params": [
+                        {
+                            "name": "ports",
+                            "value": "22"
+                        },
+                        {
+                            "name": "type",
+                            "value": "blacklist"
+                        }
+                    ],
+                    "trigger": "exposed_ports"
+                },
+                {
+                    "action": "WARN",
+                    "gate": "dockerfile",
+                    "id": "deb8fa86-f0d5-4405-97bd-c380bcd2ddbd",
+                    "params": [
+                        {
+                            "name": "instruction",
+                            "value": "HEALTHCHECK"
+                        },
+                        {
+                            "name": "check",
+                            "value": "not_exists"
+                        }
+                    ],
+                    "trigger": "instruction"
+                },
+                {
+                    "action": "STOP",
+                    "gate": "vulnerabilities",
+                    "id": "9ddc5cc8-c0d6-45f1-97af-9b5ce5f9b789",
+                    "params": [
+                        {
+                            "name": "max_days_since_sync",
+                            "value": "2"
+                        }
+                    ],
+                    "trigger": "stale_feed_data"
+                },
+                {
+                    "action": "STOP",
+                    "gate": "vulnerabilities",
+                    "id": "85e42c4d-d2a4-48db-a6dd-b2fb5bee4d3e",
+                    "params": [],
+                    "trigger": "vulnerability_data_unavailable"
+                },
+                {
+                    "action": "STOP",
+                    "gate": "vulnerabilities",
+                    "id": "08c1d5ce-9ce8-4275-84ad-9c7fe2a320ab",
+                    "params": [
+                        {
+                            "name": "package_type",
+                            "value": "all"
+                        },
+                        {
+                            "name": "severity_comparison",
+                            "value": ">"
+                        },
+                        {
+                            "name": "severity",
+                            "value": "medium"
+                        }
+                    ],
+                    "trigger": "package"
+                }
+            ],
+            "version": "1_0"
+        }
+    ],
+    "version": "1_0",
+    "whitelisted_images": [],
+    "whitelists": []
+}
