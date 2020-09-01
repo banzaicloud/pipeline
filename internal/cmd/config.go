@@ -65,6 +65,7 @@ type Config struct {
 	Distribution struct {
 		EKS struct {
 			TemplateLocation      string
+			DefaultNodeVolumeSize int
 			ExposeAdminKubeconfig bool
 			SSH                   struct {
 				Generate bool
