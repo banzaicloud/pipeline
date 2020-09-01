@@ -76,10 +76,15 @@ spec:
         volumeMounts:
           - name: config-volume
             mountPath: /config
+          - name: policies-volume
+            mountPath: /policies
       volumes:
         - name: config-volume
           configMap:
             name: {{ include "pipeline.fullname" . }}
+        - name: policies-volume
+          configMap:
+            name: {{ include "pipeline.fullname" . }}-policies
         {{- if .Values.worker.extraVolumes }}
         {{ toYaml .Values.worker.extraVolumes | nindent 8 }}
         {{- end }}
