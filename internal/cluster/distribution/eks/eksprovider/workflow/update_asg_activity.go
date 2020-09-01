@@ -208,6 +208,10 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 			ParameterValue: aws.String(fmt.Sprintf("%d", input.Count)),
 		},
 		{
+			ParameterKey:     aws.String("NodeVolumeSize"),
+			UsePreviousValue: aws.Bool(true),
+		},
+		{
 			ParameterKey:     aws.String("ClusterName"),
 			UsePreviousValue: aws.Bool(true),
 		},

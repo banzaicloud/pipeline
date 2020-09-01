@@ -120,6 +120,10 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			UsePreviousValue: aws.Bool(true),
 		},
 		{
+			ParameterKey:     aws.String("NodeVolumeSize"),
+			UsePreviousValue: aws.Bool(true),
+		},
+		{
 			ParameterKey:     aws.String("ClusterName"),
 			UsePreviousValue: aws.Bool(true),
 		},
