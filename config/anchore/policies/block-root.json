@@ -1,0 +1,101 @@
+{
+    "blacklisted_images": [],
+    "comment": "Block root user",
+    "id": "block_root",
+    "mappings": [
+        {
+            "id": "78771a5d-ca24-4e54-89c2-a3b4fbb20a08",
+            "image": {
+                "type": "tag",
+                "value": "*"
+            },
+            "name": "block_root",
+            "policy_id": "efbeea5c-98c5-421f-92ed-720149203429",
+            "registry": "*",
+            "repository": "*",
+            "whitelist_ids": []
+        }
+    ],
+    "name": "Block root bundle",
+    "policies": [
+        {
+            "comment": "Block root policy",
+            "id": "efbeea5c-98c5-421f-92ed-720149203429",
+            "name": "BlockRoot",
+            "rules": [
+                {
+                    "action": "STOP",
+                    "gate": "dockerfile",
+                    "id": "15961eba-1ebc-4a67-8b45-0cfd8f2cb165",
+                    "params": [
+                        {
+                            "name": "ports",
+                            "value": "22"
+                        },
+                        {
+                            "name": "type",
+                            "value": "blacklist"
+                        }
+                    ],
+                    "trigger": "exposed_ports"
+                },
+                {
+                  "action": "STOP",
+                  "gate": "dockerfile",
+                  "id": "78e1ba12-aee3-437d-b6d3-72bbd1e969e7",
+                  "params": [
+                      {
+                          "name": "users",
+                          "value": "root"
+                      },
+                      {
+                          "name": "type",
+                          "value": "blacklist"
+                      }
+                  ],
+                  "trigger": "effective_user"
+              },
+                {
+                    "action": "WARN",
+                    "gate": "dockerfile",
+                    "id": "612101a5-5438-4990-bce3-8bf4cf370228",
+                    "params": [
+                        {
+                            "name": "instruction",
+                            "value": "HEALTHCHECK"
+                        },
+                        {
+                            "name": "check",
+                            "value": "not_exists"
+                        }
+                    ],
+                    "trigger": "instruction"
+                },
+                {
+                    "action": "WARN",
+                    "gate": "vulnerabilities",
+                    "id": "74e68ecb-010c-4e24-b9d6-1fe1d5343dac",
+                    "params": [
+                        {
+                            "name": "package_type",
+                            "value": "all"
+                        },
+                        {
+                            "name": "severity_comparison",
+                            "value": ">"
+                        },
+                        {
+                            "name": "severity",
+                            "value": "medium"
+                        }
+                    ],
+                    "trigger": "package"
+                }
+            ],
+            "version": "1_0"
+        }
+    ],
+    "version": "1_0",
+    "whitelisted_images": [],
+    "whitelists": []
+}
