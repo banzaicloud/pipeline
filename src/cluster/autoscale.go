@@ -305,10 +305,6 @@ func DeployClusterAutoscaler(cluster CommonCluster, helmService HelmService) err
 	}
 
 	if isAutoscalerDeployedAlready(releaseName, cluster.GetID(), helmService) {
-		// no need to upgrade in case of EKS since we're using nodepool autodiscovery
-		if _, isEks := cluster.(*EKSCluster); isEks {
-			return nil
-		}
 		if len(nodeGroups) == 0 {
 			// delete
 			err := helmService.DeleteDeployment(context.TODO(), cluster.GetID(), releaseName, global.Config.Cluster.Namespace)
