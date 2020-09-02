@@ -6,7 +6,7 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceRoot}/cmd/pipeline/main.go",
+            "program": "${workspaceRoot}/cmd/pipeline/",
             "cwd": "${workspaceRoot}",
             "env": {
                 "PIPELINE_CONFIG_DIR": "${workspaceRoot}/config",
@@ -19,7 +19,7 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceRoot}/cmd/worker/main.go",
+            "program": "${workspaceRoot}/cmd/worker/",
             "cwd": "${workspaceRoot}",
             "env": {
                 "PIPELINE_CONFIG_DIR": "${workspaceRoot}/config",
@@ -35,7 +35,7 @@
             "remotePath": "/pipeline-debug",
             "port": 40000,
             "host": "127.0.0.1",
-             "program": "${workspaceRoot}/cmd/pipeline/main.go",
+             "program": "${workspaceRoot}/cmd/pipeline/",
              "env": {},
              "args": []
         }
