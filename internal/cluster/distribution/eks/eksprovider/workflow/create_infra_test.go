@@ -56,6 +56,12 @@ func TestCreateInfraWorkflowTestSuite(t *testing.T) {
 	saveK8sConfigActivity := NewSaveK8sConfigActivity(nil, nil)
 	activity.RegisterWithOptions(saveK8sConfigActivity.Execute, activity.RegisterOptions{Name: SaveK8sConfigActivityName})
 
+	getAMISizeActivity := NewGetAMISizeActivity(nil, nil)
+	activity.RegisterWithOptions(getAMISizeActivity.Execute, activity.RegisterOptions{Name: GetAMISizeActivityName})
+
+	selectVolumeSizeActivity := NewSelectVolumeSizeActivity(0)
+	activity.RegisterWithOptions(selectVolumeSizeActivity.Execute, activity.RegisterOptions{Name: SelectVolumeSizeActivityName})
+
 	createAsgActivity := NewCreateAsgActivity(nil, "")
 	activity.RegisterWithOptions(createAsgActivity.Execute, activity.RegisterOptions{Name: CreateAsgActivityName})
 
@@ -277,6 +283,16 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 		},
 	}).Return(&CreateEksControlPlaneActivityOutput{}, nil)
 
+	s.env.OnActivity(GetAMISizeActivityName, mock.Anything, GetAMISizeActivityInput{
+		EKSActivityInput: eksActivity,
+		ImageID:          "ami-test1",
+	}).Return(&GetAMISizeActivityOutput{AMISize: 4}, nil)
+
+	s.env.OnActivity(SelectVolumeSizeActivityName, mock.Anything, SelectVolumeSizeActivityInput{
+		EKSActivityInput: eksActivity,
+		AMISize:          4,
+	}).Return(&SelectVolumeSizeActivityOutput{VolumeSize: 50}, nil)
+
 	s.env.OnActivity(CreateAsgActivityName, mock.Anything, CreateAsgActivityInput{
 		EKSActivityInput:    eksActivity,
 		StackName:           "pipeline-eks-nodepool-test-cluster-name-pool1",
@@ -291,6 +307,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 		NodeMinCount:        2,
 		NodeMaxCount:        3,
 		Count:               2,
+		NodeVolumeSize:      50,
 		NodeImage:           "ami-test1",
 		NodeInstanceType:    "vm-type1-test",
 		Labels: map[string]string{
@@ -311,6 +328,16 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 		},
 	}).Return(&CreateAsgActivityOutput{}, nil).Once()
 
+	s.env.OnActivity(GetAMISizeActivityName, mock.Anything, GetAMISizeActivityInput{
+		EKSActivityInput: eksActivity,
+		ImageID:          "ami-test2",
+	}).Return(&GetAMISizeActivityOutput{AMISize: 8}, nil)
+
+	s.env.OnActivity(SelectVolumeSizeActivityName, mock.Anything, SelectVolumeSizeActivityInput{
+		EKSActivityInput: eksActivity,
+		AMISize:          8,
+	}).Return(&SelectVolumeSizeActivityOutput{VolumeSize: 50}, nil)
+
 	s.env.OnActivity(CreateAsgActivityName, mock.Anything, CreateAsgActivityInput{
 		EKSActivityInput:    eksActivity,
 		StackName:           "pipeline-eks-nodepool-test-cluster-name-pool2",
@@ -325,6 +352,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 		NodeMinCount:        3,
 		NodeMaxCount:        3,
 		Count:               3,
+		NodeVolumeSize:      50,
 		NodeImage:           "ami-test2",
 		NodeInstanceType:    "vm-type2-test",
 		Subnets: []Subnet{

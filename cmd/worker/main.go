@@ -491,6 +491,7 @@ func main() {
 			createNodePoolActivity := clusterworkflow.NewCreateNodePoolActivity(
 				clusterStore,
 				db,
+				config.Distribution.EKS.DefaultNodeVolumeSize,
 				clusteradapter.NewNodePoolStore(db, clusterStore),
 				eksadapter.NewNodePoolStore(db),
 				eksworkflow.NewAWSSessionFactory(secret.Store),

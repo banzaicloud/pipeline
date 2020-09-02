@@ -323,6 +323,36 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			}
 		}
 
+		var amiSize int
+		{
+			activityInput := GetAMISizeActivityInput{
+				EKSActivityInput: commonActivityInput,
+				ImageID:          asg.NodeImage,
+			}
+			var activityOutput GetAMISizeActivityOutput
+			err = workflow.ExecuteActivity(ctx, GetAMISizeActivityName, activityInput).Get(ctx, &activityOutput)
+			if err != nil {
+				return nil, err
+			}
+
+			amiSize = activityOutput.AMISize
+		}
+
+		var volumeSize int
+		{
+			activityInput := SelectVolumeSizeActivityInput{
+				EKSActivityInput: commonActivityInput,
+				AMISize:          amiSize,
+			}
+			var activityOutput SelectVolumeSizeActivityOutput
+			err = workflow.ExecuteActivity(ctx, SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
+			if err != nil {
+				return nil, err
+			}
+
+			volumeSize = activityOutput.VolumeSize
+		}
+
 		activityInput := CreateAsgActivityInput{
 			EKSActivityInput: commonActivityInput,
 			StackName:        GenerateNodePoolStackName(input.ClusterName, asg.Name),
@@ -342,6 +372,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			NodeMinCount:     asg.NodeMinCount,
 			NodeMaxCount:     asg.NodeMaxCount,
 			Count:            asg.Count,
+			NodeVolumeSize:   volumeSize,
 			NodeImage:        asg.NodeImage,
 			NodeInstanceType: asg.NodeInstanceType,
 			Labels:           asg.Labels,

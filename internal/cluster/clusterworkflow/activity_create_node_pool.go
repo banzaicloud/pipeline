@@ -38,6 +38,7 @@ const CreateNodePoolActivityName = "create-node-pool"
 type CreateNodePoolActivity struct {
 	clusters          cluster.Store
 	db                *gorm.DB
+	defaultVolumeSize int
 	nodePools         cluster.NodePoolStore
 	eksNodePools      eks.NodePoolStore
 	awsSessionFactory AWSSessionFactory
@@ -47,6 +48,7 @@ type CreateNodePoolActivity struct {
 func NewCreateNodePoolActivity(
 	clusters cluster.Store,
 	db *gorm.DB,
+	defaultVolumeSize int,
 	nodePools cluster.NodePoolStore,
 	eksNodePools eks.NodePoolStore,
 	awsSessionFactory AWSSessionFactory,
@@ -54,6 +56,7 @@ func NewCreateNodePoolActivity(
 	return CreateNodePoolActivity{
 		clusters:          clusters,
 		db:                db,
+		defaultVolumeSize: defaultVolumeSize,
 		nodePools:         nodePools,
 		eksNodePools:      eksNodePools,
 		awsSessionFactory: awsSessionFactory,
@@ -161,6 +164,43 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			}
 		}
 
+		var amiSize int
+		{
+			activityOutput, err := eksworkflow.NewGetAMISizeActivity(
+				a.awsSessionFactory,
+				eksworkflow.NewEC2Factory(),
+			).Execute(
+				ctx,
+				eksworkflow.GetAMISizeActivityInput{
+					EKSActivityInput: commonActivityInput,
+					ImageID:          nodePool.Image,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			amiSize = activityOutput.AMISize
+		}
+
+		var volumeSize int
+		{
+			activityOutput, err := eksworkflow.NewSelectVolumeSizeActivity(
+				a.defaultVolumeSize,
+			).Execute(
+				ctx,
+				eksworkflow.SelectVolumeSizeActivityInput{
+					EKSActivityInput: commonActivityInput,
+					AMISize:          amiSize,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			volumeSize = activityOutput.VolumeSize
+		}
+
 		subinput := eksworkflow.CreateAsgActivityInput{
 			EKSActivityInput: commonActivityInput,
 			StackName:        eksworkflow.GenerateNodePoolStackName(c.Name, nodePool.Name),
@@ -184,6 +224,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			NodeMinCount:     minSize,
 			NodeMaxCount:     maxSize,
 			Count:            nodePool.Size,
+			NodeVolumeSize:   volumeSize,
 			NodeImage:        nodePool.Image,
 			NodeInstanceType: nodePool.InstanceType,
 			Labels:           nodePool.Labels,
