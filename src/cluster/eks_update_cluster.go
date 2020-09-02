@@ -187,6 +187,36 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				}
 			}
 
+			var amiSize int
+			{
+				activityInput := eksWorkflow.GetAMISizeActivityInput{
+					EKSActivityInput: commonActivityInput,
+					ImageID:          nodePool.NodeImage,
+				}
+				var activityOutput eksWorkflow.GetAMISizeActivityOutput
+				err = workflow.ExecuteActivity(ctx, eksWorkflow.GetAMISizeActivityName, activityInput).Get(ctx, &activityOutput)
+				if err != nil {
+					return err
+				}
+
+				amiSize = activityOutput.AMISize
+			}
+
+			var volumeSize int
+			{
+				activityInput := eksWorkflow.SelectVolumeSizeActivityInput{
+					EKSActivityInput: commonActivityInput,
+					AMISize:          amiSize,
+				}
+				var activityOutput eksWorkflow.SelectVolumeSizeActivityOutput
+				err = workflow.ExecuteActivity(ctx, eksWorkflow.SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
+				if err != nil {
+					return err
+				}
+
+				volumeSize = activityOutput.VolumeSize
+			}
+
 			activityInput := eksWorkflow.CreateAsgActivityInput{
 				EKSActivityInput: commonActivityInput,
 				StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
@@ -206,6 +236,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				NodeMinCount:     nodePool.NodeMinCount,
 				NodeMaxCount:     nodePool.NodeMaxCount,
 				Count:            nodePool.Count,
+				NodeVolumeSize:   volumeSize,
 				NodeImage:        nodePool.NodeImage,
 				NodeInstanceType: nodePool.NodeInstanceType,
 				Labels:           nodePool.Labels,

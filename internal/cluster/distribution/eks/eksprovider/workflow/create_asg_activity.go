@@ -55,6 +55,7 @@ type CreateAsgActivityInput struct {
 	NodeMinCount     int
 	NodeMaxCount     int
 	Count            int
+	NodeVolumeSize   int
 	NodeImage        string
 	NodeInstanceType string
 	Labels           map[string]string
@@ -162,6 +163,10 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		{
 			ParameterKey:   aws.String("NodeAutoScalingInitSize"),
 			ParameterValue: aws.String(fmt.Sprintf("%d", input.Count)),
+		},
+		{
+			ParameterKey:   aws.String("NodeVolumeSize"),
+			ParameterValue: aws.String(fmt.Sprintf("%d", input.NodeVolumeSize)),
 		},
 		{
 			ParameterKey:   aws.String("ClusterName"),
