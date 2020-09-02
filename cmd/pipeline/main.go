@@ -268,7 +268,10 @@ func main() {
 		appkiterrors.IsServiceError, // filter out client errors
 	)
 
-	vaultClient, err := vault.NewClient("pipeline")
+	vaultClient, err := vault.NewClientWithOptions(
+		vault.ClientRole("pipeline"),
+		vault.ClientLogger(logger),
+	)
 	emperror.Panic(err)
 	global.SetVault(vaultClient)
 
@@ -334,7 +337,7 @@ func main() {
 	}
 
 	// Initialize auth
-	tokenStore := bauth.NewVaultTokenStore("pipeline")
+	tokenStore := bauth.NewVaultTokenStoreFromClient(vaultClient)
 	tokenGenerator := pkgAuth.NewJWTTokenGenerator(
 		config.Auth.Token.Issuer,
 		config.Auth.Token.Audience,
