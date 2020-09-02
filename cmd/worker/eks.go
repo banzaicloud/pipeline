@@ -26,7 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
-func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *adapter.ClusterManagerAdapter) error {
+func registerEKSWorkflows(config configuration, secretStore eksworkflow.SecretStore, clusterManager *adapter.ClusterManagerAdapter) error {
 	vpcTemplate, err := eksworkflow.GetVPCTemplate()
 	if err != nil {
 		return errors.WrapIf(err, "failed to get CloudFormation template for VPC")
@@ -51,6 +51,7 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *a
 	workflow.RegisterWithOptions(eksworkflow.CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: eksworkflow.CreateInfraWorkflowName})
 
 	awsSessionFactory := eksworkflow.NewAWSSessionFactory(secretStore)
+	ec2Factory := eksworkflow.NewEC2Factory()
 	eksFactory := eksworkflow.NewEKSFactory()
 
 	createVPCActivity := eksworkflow.NewCreateVPCActivity(awsSessionFactory, vpcTemplate)
@@ -99,6 +100,9 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *a
 	workflow.RegisterWithOptions(cluster.EKSDeleteClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSDeleteClusterWorkflowName})
 	workflow.RegisterWithOptions(eksworkflow.DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: eksworkflow.DeleteInfraWorkflowName})
 
+	getAMISizeActivity := eksworkflow.NewGetAMISizeActivity(awsSessionFactory, ec2Factory)
+	activity.RegisterWithOptions(getAMISizeActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetAMISizeActivityName})
+
 	getOwnedELBsActivity := eksworkflow.NewGetOwnedELBsActivity(awsSessionFactory)
 	activity.RegisterWithOptions(getOwnedELBsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetOwnedELBsActivityName})
 
@@ -125,6 +129,9 @@ func registerEKSWorkflows(secretStore eksworkflow.SecretStore, clusterManager *a
 
 	getSubnetStacksActivity := eksworkflow.NewGetSubnetStacksActivity(awsSessionFactory)
 	activity.RegisterWithOptions(getSubnetStacksActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetSubnetStacksActivityName})
+
+	selectVolumeSizeActivity := eksworkflow.NewSelectVolumeSizeActivity(config.Distribution.EKS.DefaultNodeVolumeSize)
+	activity.RegisterWithOptions(selectVolumeSizeActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SelectVolumeSizeActivityName})
 
 	setClusterStatusActivity := eksworkflow.NewSetClusterStatusActivity(clusterManager)
 	activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SetClusterStatusActivityName})
