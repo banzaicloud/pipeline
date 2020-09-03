@@ -28,7 +28,6 @@ const (
 
 	// unsetVolumeSize is the substituted value for 0/unspecified default volume
 	// size.
-	// nolint:gochecknoglobals // Note: this is a one time configuration, we decided to have in the context of this struct and it is more visible up here than in the middle of the corresponding function.
 	unsetVolumeSize = 50
 )
 
