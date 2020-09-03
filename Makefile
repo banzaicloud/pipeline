@@ -296,11 +296,8 @@ generate-anchore-client: apis/anchore/swagger.yaml ## Generate client from Ancho
 	@ sed -i~ 's/params,omitempty/params/' .gen/anchore/model_policy_rule.go && rm .gen/anchore/model_policy_rule.go~
 	$(call restore_backup_file,.gen/anchore/BUILD)
 
-snapshot: SNAPSHOT_REF ?= $(shell git symbolic-ref -q --short HEAD || git rev-parse HEAD)
 snapshot:
-	@git rev-parse --verify $(SNAPSHOT_REF) > /dev/null
-	@test -n "${SNAPSHOT_VERSION}" || (echo "Missing snapshot version" && exit 1)
-	curl -X POST -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" -H "Authorization: token ${GITHUB_TOKEN}" --data '{"event_type": "snapshot", "client_payload": {"version": "$(SNAPSHOT_VERSION)", "ref": "$(SNAPSHOT_REF)"}}' https://api.github.com/repos/banzaicloud/pipeline/dispatches
+	./pleasew snapshot
 
 .PHONY: list
 list: ## List all make targets
