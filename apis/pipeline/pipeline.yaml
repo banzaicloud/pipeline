@@ -4613,6 +4613,10 @@ components:
                     properties:
                         autoscaling:
                             $ref: '#/components/schemas/NodePoolAutoScaling'
+                        volumeSize:
+                            description: Size of the EBS volume in GBs of the nodes in the pool.
+                            type: number
+                            example: 50
                         instanceType:
                             description: Machine instance type.
                             type: string

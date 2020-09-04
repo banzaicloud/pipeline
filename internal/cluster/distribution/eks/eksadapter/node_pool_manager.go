@@ -173,11 +173,13 @@ func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Clus
 		var nodeAutoScalingGroupMaxSize int
 		var nodeAutoScalingGroupMinSize int
 		var nodeAutoScalingInitSize int
+		var nodeVolumeSize int
 		nodePoolParameters := map[string]interface{}{
 			"ClusterAutoscalerEnabled":    &clusterAutoscalerEnabled,
 			"NodeAutoScalingGroupMaxSize": &nodeAutoScalingGroupMaxSize,
 			"NodeAutoScalingGroupMinSize": &nodeAutoScalingGroupMinSize,
 			"NodeAutoScalingInitSize":     &nodeAutoScalingInitSize,
+			"NodeVolumeSize":              &nodeVolumeSize,
 		}
 
 		err = parseStackParameters(parameterMap, nodePoolParameters)
@@ -195,6 +197,7 @@ func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Clus
 				MinSize: nodeAutoScalingGroupMinSize,
 				MaxSize: nodeAutoScalingGroupMaxSize,
 			},
+			VolumeSize:   nodeVolumeSize,
 			InstanceType: parameterMap["NodeInstanceType"],
 			Image:        parameterMap["NodeImageId"],
 			SpotPrice:    parameterMap["NodeSpotPrice"],
