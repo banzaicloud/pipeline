@@ -36,7 +36,8 @@ type SelectVolumeSizeActivity struct {
 }
 
 type SelectVolumeSizeActivityInput struct {
-	AMISize int
+	AMISize            int
+	OptionalVolumeSize int
 }
 
 type SelectVolumeSizeActivityOutput struct {
@@ -51,16 +52,22 @@ func NewSelectVolumeSizeActivity(defaultVolumeSize int) (activity *SelectVolumeS
 
 func (activity *SelectVolumeSizeActivity) Execute(ctx context.Context, input SelectVolumeSizeActivityInput) (output *SelectVolumeSizeActivityOutput, err error) {
 	output = &SelectVolumeSizeActivityOutput{}
-	if activity.defaultVolumeSize > 0 {
+	valueSource := ""
+	if input.OptionalVolumeSize > 0 {
+		output.VolumeSize = input.OptionalVolumeSize
+		valueSource = "explicitly set"
+	} else if activity.defaultVolumeSize > 0 {
 		output.VolumeSize = activity.defaultVolumeSize
+		valueSource = "default configured"
 	} else {
 		output.VolumeSize = int(math.Max(float64(fallbackVolumeSize), float64(input.AMISize)))
+		valueSource = "fallback value"
 	}
 
 	if output.VolumeSize < input.AMISize {
 		return nil, errors.New(fmt.Sprintf(
-			"selected volume size of %d GB (default configuration) is less than the AMI size of %d GB",
-			output.VolumeSize, input.AMISize,
+			"selected volume size of %d GB (source: %s) is less than the AMI size of %d GB",
+			output.VolumeSize, valueSource, input.AMISize,
 		))
 	}
 
