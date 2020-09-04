@@ -38,6 +38,7 @@ var defaultImages = ImageSelectors{
 		Constraint: mustConstraint("1.14"),
 		ImageSelector: RegionMapImageSelector{
 			// AWS partition
+			"af-south-1":     "ami-0f8ab65580bd719d2", // Africa (Cape Town).
 			"ap-east-1":      "ami-0ab30874529fd3e50", // Asia Pacific (Hong Kong).
 			"ap-northeast-1": "ami-04bc347166d9e3aaf", // Asia Pacific (Tokyo).
 			"ap-northeast-2": "ami-04c89465bba8798a1", // Asia Pacific (Seoul).
@@ -47,6 +48,7 @@ var defaultImages = ImageSelectors{
 			"ca-central-1":   "ami-087df22a5ead73e75", // Canada (Central).
 			"eu-central-1":   "ami-04c7280dc86f28713", // EU (Frankfurt).
 			"eu-north-1":     "ami-0787d367983b3e798", // EU (Stockholm).
+			"eu-south-1":     "ami-0eacd9f01f2d144bd", // Europe (Milan).
 			"eu-west-1":      "ami-014bfbba28f19774e", // EU (Ireland).
 			"eu-west-2":      "ami-064c1a4ee9bbfe23a", // EU (London).
 			"eu-west-3":      "ami-0c2da9177c519bc2f", // EU (Paris).
@@ -65,6 +67,7 @@ var defaultImages = ImageSelectors{
 	KubernetesVersionImageSelector{ // Kubernetes Version 1.15.11
 		Constraint: mustConstraint("1.15"),
 		ImageSelector: RegionMapImageSelector{
+			"af-south-1":     "ami-0578b807b719cabdd", // Africa (Cape Town).
 			"ap-east-1":      "ami-06c4a53520070412d", // Asia Pacific (Hong Kong).
 			"ap-northeast-1": "ami-0e263d94d831d6e3f", // Asia Pacific (Tokyo).
 			"ap-northeast-2": "ami-0696aab7814e872d5", // Asia Pacific (Seoul).
@@ -74,6 +77,7 @@ var defaultImages = ImageSelectors{
 			"ca-central-1":   "ami-032072399f84866fa", // Canada (Central).
 			"eu-central-1":   "ami-05acf7139b3fa4195", // EU (Frankfurt).
 			"eu-north-1":     "ami-0cc9a5fbe0fb4846f", // EU (Stockholm).
+			"eu-south-1":     "ami-0ef9a055d02891de6", // Europe (Milan).
 			"eu-west-1":      "ami-0b4cbc24e98bbe268", // EU (Ireland).
 			"eu-west-2":      "ami-051e5ec4ed42120bf", // EU (London).
 			"eu-west-3":      "ami-0fced5d71992f332d", // EU (Paris).
@@ -92,6 +96,7 @@ var defaultImages = ImageSelectors{
 	KubernetesVersionImageSelector{ // Kubernetes Version 1.16.13
 		Constraint: mustConstraint("1.16"),
 		ImageSelector: RegionMapImageSelector{
+			"af-south-1":     "ami-074166677c8aa1d39", // Africa (Cape Town).
 			"ap-east-1":      "ami-005b3839f2d9dbb28", // Asia Pacific (Hong Kong).
 			"ap-northeast-1": "ami-05db606f27c208dff", // Asia Pacific (Tokyo).
 			"ap-northeast-2": "ami-07a4a6b54bac7e1e5", // Asia Pacific (Seoul).
@@ -101,6 +106,7 @@ var defaultImages = ImageSelectors{
 			"ca-central-1":   "ami-06f9642a643dc1ef7", // Canada (Central).
 			"eu-central-1":   "ami-0a2a6ee03ded5168d", // EU (Frankfurt).
 			"eu-north-1":     "ami-0e342b3155c477ea2", // EU (Stockholm).
+			"eu-south-1":     "ami-0a7dab74109ffc60e", // Europe (Milan).
 			"eu-west-1":      "ami-03156acdb42eb5a2b", // EU (Ireland).
 			"eu-west-2":      "ami-03bf20b3bb5d00e90", // EU (London).
 			"eu-west-3":      "ami-098270d0b239917a7", // EU (Paris).
@@ -119,6 +125,7 @@ var defaultImages = ImageSelectors{
 	KubernetesVersionImageSelector{ // Kubernetes Version 1.17.9
 		Constraint: mustConstraint("1.17"),
 		ImageSelector: RegionMapImageSelector{
+			"af-south-1":     "ami-0f9cc438e5b3bf53e", // Africa (Cape Town).
 			"ap-east-1":      "ami-092dc7701bd03af3e", // Asia Pacific (Hong Kong).
 			"ap-northeast-1": "ami-095dcd341e28f2599", // Asia Pacific (Tokyo).
 			"ap-northeast-2": "ami-06a3ded9b6c463c6f", // Asia Pacific (Seoul).
@@ -128,6 +135,7 @@ var defaultImages = ImageSelectors{
 			"ca-central-1":   "ami-00a3415fa128f17c5", // Canada (Central).
 			"eu-central-1":   "ami-0c28233a2bd46bd3e", // EU (Frankfurt).
 			"eu-north-1":     "ami-043dbb11ff9b5a350", // EU (Stockholm).
+			"eu-south-1":     "ami-090d32cb702e21337", // Europe (Milan).
 			"eu-west-1":      "ami-0cb5f54d0d7b2ed21", // EU (Ireland).
 			"eu-west-2":      "ami-05f8e36acad8edc61", // EU (London).
 			"eu-west-3":      "ami-0d6f4cc928f18710e", // EU (Paris).
@@ -157,6 +165,7 @@ var defaultAcceleratedImages = ImageSelectors{
 		Constraint: mustConstraint("1.14"),
 		ImageSelector: RegionMapImageSelector{
 			// AWS partition
+			"af-south-1":     "ami-06b33f1fcb42c30f0", // Africa (Cape Town).
 			"ap-east-1":      "ami-0d1958622c517346f", // Asia Pacific (Hong Kong).
 			"ap-northeast-1": "ami-07e301e03da3319f3", // Asia Pacific (Tokyo).
 			"ap-northeast-2": "ami-0fd619ba341300167", // Asia Pacific (Seoul).
@@ -166,6 +175,7 @@ var defaultAcceleratedImages = ImageSelectors{
 			"ca-central-1":   "ami-0394f13f19967131b", // Canada (Central).
 			"eu-central-1":   "ami-0ecee9dd826b230b6", // EU (Frankfurt).
 			"eu-north-1":     "ami-072d5ea6d03dc8c09", // EU (Stockholm).
+			"eu-south-1":     "ami-08a0e1c5cdacd5dcd", // Europe (Milan).
 			"eu-west-1":      "ami-066903732fc23a2e4", // EU (Ireland).
 			"eu-west-2":      "ami-0783c8b0ad1de348e", // EU (London).
 			"eu-west-3":      "ami-0924711cb4fb44cce", // EU (Paris).
@@ -184,6 +194,7 @@ var defaultAcceleratedImages = ImageSelectors{
 	KubernetesVersionImageSelector{ // Kubernetes Version 1.15.11
 		Constraint: mustConstraint("1.15"),
 		ImageSelector: RegionMapImageSelector{
+			"af-south-1":     "ami-01e400dbc00003039", // Africa (Cape Town).
 			"ap-east-1":      "ami-0a6615f20d77dd2e5", // Asia Pacific (Hong Kong).
 			"ap-northeast-1": "ami-043d72ae536bd5293", // Asia Pacific (Tokyo).
 			"ap-northeast-2": "ami-03fe62d12d775bf63", // Asia Pacific (Seoul).
@@ -193,6 +204,7 @@ var defaultAcceleratedImages = ImageSelectors{
 			"ca-central-1":   "ami-0a003a9bde1726f95", // Canada (Central).
 			"eu-central-1":   "ami-0f24657c73b143b60", // EU (Frankfurt).
 			"eu-north-1":     "ami-0a794b7d8ba8368e8", // EU (Stockholm).
+			"eu-south-1":     "ami-0f81db845d6ae473c", // Europe (Milan).
 			"eu-west-1":      "ami-0364b330834baf4c5", // EU (Ireland).
 			"eu-west-2":      "ami-024819c1515b46487", // EU (London).
 			"eu-west-3":      "ami-02dc47aa0ab7c5a10", // EU (Paris).
@@ -211,6 +223,7 @@ var defaultAcceleratedImages = ImageSelectors{
 	KubernetesVersionImageSelector{ // Kubernetes Version 1.16.13
 		Constraint: mustConstraint("1.16"),
 		ImageSelector: RegionMapImageSelector{
+			"af-south-1":     "ami-09b848d1965bcac64", // Africa (Cape Town).
 			"ap-east-1":      "ami-01db0920866e0f0ad", // Asia Pacific (Hong Kong).
 			"ap-northeast-1": "ami-06230430bebda15a8", // Asia Pacific (Tokyo).
 			"ap-northeast-2": "ami-0f9d30fda91df8653", // Asia Pacific (Seoul).
@@ -220,6 +233,7 @@ var defaultAcceleratedImages = ImageSelectors{
 			"ca-central-1":   "ami-0045dbb2271c7e6de", // Canada (Central).
 			"eu-central-1":   "ami-0f6aed1e4f28e3d63", // EU (Frankfurt).
 			"eu-north-1":     "ami-02862db333e97aa8a", // EU (Stockholm).
+			"eu-south-1":     "ami-05c24691f0d47980c", // Europe (Milan).
 			"eu-west-1":      "ami-082231ade5abed30e", // EU (Ireland).
 			"eu-west-2":      "ami-02b3e5829790666a2", // EU (London).
 			"eu-west-3":      "ami-0657a6eea4c661de9", // EU (Paris).
@@ -238,6 +252,7 @@ var defaultAcceleratedImages = ImageSelectors{
 	KubernetesVersionImageSelector{ // Kubernetes Version 1.17.9
 		Constraint: mustConstraint("1.17"),
 		ImageSelector: RegionMapImageSelector{
+			"af-south-1":     "ami-00fa48e5cb996201e", // Africa (Cape Town).
 			"ap-east-1":      "ami-02191058f6453df6e", // Asia Pacific (Hong Kong).
 			"ap-northeast-1": "ami-05600b311209422cd", // Asia Pacific (Tokyo).
 			"ap-northeast-2": "ami-0c80e45f9bbe6f3d7", // Asia Pacific (Seoul).
@@ -247,6 +262,7 @@ var defaultAcceleratedImages = ImageSelectors{
 			"ca-central-1":   "ami-02767736c3709b006", // Canada (Central).
 			"eu-central-1":   "ami-0f75c48417c106c6a", // EU (Frankfurt).
 			"eu-north-1":     "ami-0026f3fc0f2998e6f", // EU (Stockholm).
+			"eu-south-1":     "ami-0ba4c1f6187438c65", // Europe (Milan).
 			"eu-west-1":      "ami-0b461894afc1fd111", // EU (Ireland).
 			"eu-west-2":      "ami-03b564fa6003eb099", // EU (London).
 			"eu-west-3":      "ami-0521ef2b027adbe4f", // EU (Paris).
