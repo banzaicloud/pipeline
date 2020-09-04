@@ -26,9 +26,9 @@ const (
 	// SelectVolumeSizeActivityName is the unique name of the activity.
 	SelectVolumeSizeActivityName = "eks-select-volume-size-activity"
 
-	// unsetVolumeSize is the substituted value for 0/unspecified default volume
-	// size.
-	unsetVolumeSize = 50
+	// fallbackVolumeSize is the substituted value for 0/unspecified default
+	// volume size.
+	fallbackVolumeSize = 50
 )
 
 type SelectVolumeSizeActivity struct {
@@ -55,7 +55,7 @@ func (activity *SelectVolumeSizeActivity) Execute(ctx context.Context, input Sel
 	if activity.defaultVolumeSize > 0 {
 		output.VolumeSize = activity.defaultVolumeSize
 	} else {
-		output.VolumeSize = int(math.Max(float64(unsetVolumeSize), float64(input.AMISize)))
+		output.VolumeSize = int(math.Max(float64(fallbackVolumeSize), float64(input.AMISize)))
 	}
 
 	if output.VolumeSize < input.AMISize {

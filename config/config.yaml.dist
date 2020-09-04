@@ -435,7 +435,7 @@ dex:
 #        # EKS Cloud Formation template location
 #        templateLocation: ./templates/eks
 #
-#        defaultNodeVolumeSize: 0 # GB, unset/0: max(50, AMISize)
+#        defaultNodeVolumeSize: 0 # GB, 0/fallback: max(50, AMISize)
 #
 #        # Expose admin kubeconfig over the API by default.
 #        # Set this to false to remove credentials from the config and make the user responsible for how they authenticate.
