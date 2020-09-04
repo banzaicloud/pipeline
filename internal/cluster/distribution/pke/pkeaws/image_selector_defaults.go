@@ -19,6 +19,7 @@ package pkeaws
 // nolint: gochecknoglobals
 var defaultImages = RegionMapImageSelector{
 	// AWS partition
+	"af-south-1":     "ami-063a57e81279c601b", // Africa (Cape Town).
 	"ap-east-1":      "ami-c790d6b6",          // Asia Pacific (Hong Kong).
 	"ap-northeast-1": "ami-0278fe6949f6b1a06", // Asia Pacific (Tokyo).
 	"ap-northeast-2": "ami-00edfb46b107f643c", // Asia Pacific (Seoul).
@@ -28,6 +29,7 @@ var defaultImages = RegionMapImageSelector{
 	"ca-central-1":   "ami-0edd51cc29813e254", // Canada (Central).
 	"eu-central-1":   "ami-0e342d72b12109f91", // EU (Frankfurt).
 	"eu-north-1":     "ami-050981837962d44ac", // EU (Stockholm).
+	"eu-south-1":     "ami-027305c8710c4e8b5", // EU (Milan).
 	"eu-west-1":      "ami-0701e7be9b2a77600", // EU (Ireland).
 	"eu-west-2":      "ami-0eb89db7593b5d434", // EU (London).
 	"eu-west-3":      "ami-08c757228751c5335", // EU (Paris).
