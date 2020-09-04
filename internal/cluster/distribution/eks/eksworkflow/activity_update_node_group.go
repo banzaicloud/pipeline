@@ -29,7 +29,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
-	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
+	pkgCloudFormation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
+	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
 )
 
 const awsNoUpdatesError = "No updates are to be performed."
@@ -103,6 +104,11 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			ParameterKey:     aws.String("KeyName"),
 			UsePreviousValue: aws.Bool(true),
 		},
+		sdkCloudFormation.NewOptionalStackParameter(
+			"NodeImageId",
+			input.NodeImage != "",
+			input.NodeImage,
+		),
 		{
 			ParameterKey:     aws.String("NodeInstanceType"),
 			UsePreviousValue: aws.Bool(true),
@@ -119,6 +125,16 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			ParameterKey:     aws.String("NodeAutoScalingGroupMaxSize"),
 			UsePreviousValue: aws.Bool(true),
 		},
+		sdkCloudFormation.NewOptionalStackParameter(
+			"NodeAutoScalingGroupMaxBatchSize",
+			input.MaxBatchSize > 0,
+			fmt.Sprintf("%d", input.MaxBatchSize),
+		),
+		sdkCloudFormation.NewOptionalStackParameter(
+			"NodeAutoScalingInitSize",
+			input.DesiredCapacity > 0,
+			fmt.Sprintf("%d", input.DesiredCapacity),
+		),
 		{
 			ParameterKey:     aws.String("NodeVolumeSize"),
 			UsePreviousValue: aws.Bool(true),
@@ -165,48 +181,6 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		},
 	}
 
-	{
-		param := &cloudformation.Parameter{
-			ParameterKey: aws.String("NodeImageId"),
-		}
-
-		if input.NodeImage != "" {
-			param.ParameterValue = aws.String(input.NodeImage)
-		} else {
-			param.UsePreviousValue = aws.Bool(true)
-		}
-
-		stackParams = append(stackParams, param)
-	}
-
-	{
-		param := &cloudformation.Parameter{
-			ParameterKey: aws.String("NodeAutoScalingInitSize"),
-		}
-
-		if input.DesiredCapacity > 0 {
-			param.ParameterValue = aws.String(fmt.Sprintf("%d", input.DesiredCapacity))
-		} else {
-			param.UsePreviousValue = aws.Bool(true)
-		}
-
-		stackParams = append(stackParams, param)
-	}
-
-	{
-		param := &cloudformation.Parameter{
-			ParameterKey: aws.String("NodeAutoScalingGroupMaxBatchSize"),
-		}
-
-		if input.MaxBatchSize > 0 {
-			param.ParameterValue = aws.String(fmt.Sprintf("%d", input.MaxBatchSize))
-		} else {
-			param.UsePreviousValue = aws.Bool(true)
-		}
-
-		stackParams = append(stackParams, param)
-	}
-
 	// we don't reuse the creation time template, since it may have changed
 	updateStackInput := &cloudformation.UpdateStackInput{
 		ClientRequestToken: aws.String(pkgAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID)),
@@ -226,9 +200,9 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		var awsErr awserr.Error
 		if errors.As(err, &awsErr) {
 			if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
-				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, aws.StringValue(updateStackInput.ClientRequestToken), cloudformationClient)
+				err = pkgCloudFormation.NewAwsStackFailure(err, input.StackName, aws.StringValue(updateStackInput.ClientRequestToken), cloudformationClient)
 				err = errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
-				if pkgCloudformation.IsErrorFinal(err) {
+				if pkgCloudFormation.IsErrorFinal(err) {
 					return UpdateNodeGroupActivityOutput{}, cadence.NewCustomError(ErrReasonStackFailed, err.Error())
 				}
 				return UpdateNodeGroupActivityOutput{}, errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
