@@ -71,6 +71,7 @@ func TestServiceListNodePools(t *testing.T) {
 				MinSize: 1,
 				MaxSize: 2,
 			},
+			VolumeSize:   50,
 			InstanceType: "instance-type",
 			Image:        "image",
 			SpotPrice:    "5",

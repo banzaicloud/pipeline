@@ -87,6 +87,7 @@ type NodePool struct {
 	Labels       map[string]string `mapstructure:"labels"`
 	Size         int               `mapstructure:"size"`
 	Autoscaling  Autoscaling       `mapstructure:"autoscaling"`
+	VolumeSize   int               `mapstructure:"volumeSize"`
 	InstanceType string            `mapstructure:"instanceType"`
 	Image        string            `mapstructure:"image"`
 	SpotPrice    string            `mapstructure:"spotPrice"`
