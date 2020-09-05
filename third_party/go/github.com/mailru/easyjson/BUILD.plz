@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "easyjson",
+    module = "github.com/mailru/easyjson",
+    sum = "h1:aizVhC/NAAcKWb+5QsU1iNOZb4Yws5UO2I+aIprQITM=",
+    tag = "download",
+    version = "v0.7.0",
+    visibility = ["//third_party/go/github.com/mailru/easyjson/..."],
+)

@@ -1,0 +1,28 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-isatty",
+    module = "github.com/mattn/go-isatty",
+    sum = "h1:d5US/mDsogSGW37IV293h//ZFaeajb69h+EHFsv2xGg=",
+    tag = "download",
+    version = "v0.0.9",
+    visibility = ["//third_party/go/github.com/mattn/go-isatty/..."],
+)
+
+fileexport(
+    name = "go-isatty",
+    srcs = [
+        "doc.go",
+        "isatty_bsd.go",
+    ],
+    tag = "go_source",
+    deps = [":_go-isatty#download"],
+)
+
+go_library(
+    name = "go-isatty",
+    srcs = [":_go-isatty#go_source"],
+    import_path = "github.com/mattn/go-isatty",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

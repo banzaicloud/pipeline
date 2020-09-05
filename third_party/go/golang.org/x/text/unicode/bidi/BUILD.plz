@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "bidi",
+    srcs = [
+        "unicode/bidi/bidi.go",
+        "unicode/bidi/bracket.go",
+        "unicode/bidi/core.go",
+        "unicode/bidi/prop.go",
+        "unicode/bidi/tables12.0.0.go",
+        "unicode/bidi/trieval.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/text:_text#download"],
+)
+
+go_library(
+    name = "bidi",
+    srcs = [":_bidi#go_source"],
+    import_path = "golang.org/x/text/unicode/bidi",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -1,0 +1,16 @@
+go_library(
+    name = "clustergroup",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/clustergroup/api",
+        "//internal/clustergroup/deployment",
+        "//pkg/cluster",
+        "//third_party/go/emperror.dev/emperror",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/gofrs/uuid",
+        "//third_party/go/github.com/jinzhu/gorm",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/github.com/sirupsen/logrus",
+    ],
+)

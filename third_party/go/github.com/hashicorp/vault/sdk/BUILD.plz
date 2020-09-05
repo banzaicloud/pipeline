@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "sdk",
+    module = "github.com/hashicorp/vault/sdk",
+    sum = "h1:mOEPeOhT7jl0J4AMl1E705+BcmeRs1VmKNb9F0sMLy8=",
+    tag = "download",
+    version = "v0.1.13",
+    visibility = ["//third_party/go/github.com/hashicorp/vault/sdk/..."],
+)

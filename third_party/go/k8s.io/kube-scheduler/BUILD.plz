@@ -1,0 +1,11 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "kube-scheduler",
+    module = "k8s.io/kube-scheduler",
+    replace = "k8s.io/kube-scheduler",
+    sum = "h1:m6p3dclIffw3LgClcg8D16JOCYZl4h0uwaqpuTQgnb4=",
+    tag = "download",
+    version = "v0.18.6",
+    visibility = ["//third_party/go/k8s.io/kube-scheduler/..."],
+)

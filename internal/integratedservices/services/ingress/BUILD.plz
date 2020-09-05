@@ -1,0 +1,38 @@
+go_library(
+    name = "ingress",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/integratedservices",
+        "//internal/integratedservices/services",
+        "//internal/providers/amazon",
+        "//pkg/any",
+        "//pkg/cluster",
+        "//pkg/errors",
+        "//pkg/jsonstructure",
+        "//pkg/values",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/mitchellh/mapstructure",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/integratedservices",
+        "//internal/integratedservices/services",
+        "//internal/providers/amazon",
+        "//pkg/any",
+        "//pkg/cluster",
+        "//pkg/errors",
+        "//pkg/jsonstructure",
+        "//pkg/values",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/mitchellh/mapstructure",
+        "//third_party/go/github.com/stretchr/testify/assert",
+        "//third_party/go/github.com/stretchr/testify/require",
+    ],
+)

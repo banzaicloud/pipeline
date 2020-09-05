@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "protobuf",
+    module = "github.com/golang/protobuf",
+    sum = "h1:+Z5KGCizgyZCbGh1KZqA0fcLLkwbsjIzS4aV2v7wJX0=",
+    tag = "download",
+    version = "v1.4.2",
+    visibility = ["//third_party/go/github.com/golang/protobuf/..."],
+)

@@ -1,0 +1,10 @@
+go_library(
+    name = "model",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//src/auth",
+        "//third_party/go/github.com/jinzhu/gorm",
+        "//third_party/go/github.com/sirupsen/logrus",
+    ],
+)

@@ -1,0 +1,11 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "apiserver",
+    module = "k8s.io/apiserver",
+    replace = "k8s.io/apiserver",
+    sum = "h1:HcWwcOfhj4Yv6y2igP4ZUuovyPjVLGoZcG0Tsph4Mxo=",
+    tag = "download",
+    version = "v0.18.6",
+    visibility = ["//third_party/go/k8s.io/apiserver/..."],
+)

@@ -1,0 +1,46 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "ipv4",
+    srcs = [
+        "ipv4/batch.go",
+        "ipv4/control.go",
+        "ipv4/control_bsd.go",
+        "ipv4/control_pktinfo.go",
+        "ipv4/control_unix.go",
+        "ipv4/dgramopt.go",
+        "ipv4/doc.go",
+        "ipv4/endpoint.go",
+        "ipv4/genericopt.go",
+        "ipv4/header.go",
+        "ipv4/helper.go",
+        "ipv4/iana.go",
+        "ipv4/icmp.go",
+        "ipv4/icmp_stub.go",
+        "ipv4/packet.go",
+        "ipv4/payload.go",
+        "ipv4/payload_cmsg.go",
+        "ipv4/sockopt.go",
+        "ipv4/sockopt_posix.go",
+        "ipv4/sys_asmreq.go",
+        "ipv4/sys_asmreqn.go",
+        "ipv4/sys_bpf_stub.go",
+        "ipv4/sys_darwin.go",
+        "ipv4/sys_ssmreq.go",
+        "ipv4/zsys_darwin.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/net:_net#download"],
+)
+
+go_library(
+    name = "ipv4",
+    srcs = [":_ipv4#go_source"],
+    import_path = "golang.org/x/net/ipv4",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/net/bpf",
+        "//third_party/go/golang.org/x/net/internal/iana",
+        "//third_party/go/golang.org/x/net/internal/socket",
+    ],
+)

@@ -1,0 +1,16 @@
+go_library(
+    name = "cadence",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/go.uber.org/cadence/.gen/go/cadence/workflowserviceclient",
+        "//third_party/go/go.uber.org/cadence/.gen/go/shared",
+        "//third_party/go/go.uber.org/cadence/client",
+        "//third_party/go/go.uber.org/cadence/worker",
+        "//third_party/go/go.uber.org/yarpc",
+        "//third_party/go/go.uber.org/yarpc/transport/tchannel",
+        "//third_party/go/go.uber.org/zap",
+    ],
+)

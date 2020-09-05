@@ -1,0 +1,10 @@
+go_library(
+    name = "common",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/global/nplabels",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/gin-gonic/gin",
+    ],
+)

@@ -1,0 +1,44 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "socket",
+    srcs = [
+        "internal/socket/cmsghdr.go",
+        "internal/socket/cmsghdr_bsd.go",
+        "internal/socket/error_unix.go",
+        "internal/socket/iovec_64bit.go",
+        "internal/socket/mmsghdr_stub.go",
+        "internal/socket/msghdr_bsd.go",
+        "internal/socket/msghdr_bsdvar.go",
+        "internal/socket/norace.go",
+        "internal/socket/rawconn.go",
+        "internal/socket/rawconn_msg.go",
+        "internal/socket/rawconn_nommsg.go",
+        "internal/socket/socket.go",
+        "internal/socket/sys.go",
+        "internal/socket/sys_bsd.go",
+        "internal/socket/sys_const_unix.go",
+        "internal/socket/sys_darwin.go",
+        "internal/socket/sys_linkname.go",
+        "internal/socket/sys_posix.go",
+        "internal/socket/zsys_darwin_amd64.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/net:_net#download"],
+)
+
+fileexport(
+    name = "socket",
+    srcs = ["internal/socket/empty.s"],
+    tag = "s_source",
+    deps = ["//third_party/go/golang.org/x/net:_net#download"],
+)
+
+go_library(
+    name = "socket",
+    srcs = [":_socket#go_source"],
+    asm_srcs = [":_socket#s_source"],
+    import_path = "golang.org/x/net/internal/socket",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/golang.org/x/sys/unix"],
+)

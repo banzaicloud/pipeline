@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "api",
+    module = "google.golang.org/api",
+    sum = "h1:yzlyyDW/J0w8yNFJIhiAJy4kq74S+1DOLdawELNxFMA=",
+    tag = "download",
+    version = "v0.15.0",
+    visibility = ["//third_party/go/google.golang.org/api/..."],
+)

@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "oras",
+    module = "github.com/deislabs/oras",
+    sum = "h1:If674KraJVpujYR00rzdi0QAmW4BxzMJPVAZJKuhQ0c=",
+    tag = "download",
+    version = "v0.8.1",
+    visibility = ["//third_party/go/github.com/deislabs/oras/..."],
+)

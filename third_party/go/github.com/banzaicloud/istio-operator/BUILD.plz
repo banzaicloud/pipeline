@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "istio-operator",
+    module = "github.com/banzaicloud/istio-operator",
+    sum = "h1:nz020decQ0q8AkYzrnc/NZTbcuzw9B8N+s7LW5DA+3E=",
+    tag = "download",
+    version = "v0.0.0-20200330114955-d15bdd228ae4",
+    visibility = ["//third_party/go/github.com/banzaicloud/istio-operator/..."],
+)

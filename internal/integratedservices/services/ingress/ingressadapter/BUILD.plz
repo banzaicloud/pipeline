@@ -1,0 +1,26 @@
+go_library(
+    name = "ingressadapter",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster",
+        "//internal/integratedservices/services/ingress",
+        "//src/auth",
+        "//src/dns",
+        "//third_party/go/emperror.dev/errors",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/cluster",
+        "//internal/integratedservices/services/ingress",
+        "//src/auth",
+        "//src/dns",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/stretchr/testify/assert",
+        "//third_party/go/github.com/stretchr/testify/require",
+    ],
+)

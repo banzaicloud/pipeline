@@ -1,0 +1,58 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "unix",
+    srcs = [
+        "unix/aliases.go",
+        "unix/constants.go",
+        "unix/dev_darwin.go",
+        "unix/dirent.go",
+        "unix/endian_little.go",
+        "unix/env_unix.go",
+        "unix/fcntl_darwin.go",
+        "unix/fdset.go",
+        "unix/ioctl.go",
+        "unix/pagesize_unix.go",
+        "unix/race0.go",
+        "unix/readdirent_getdirentries.go",
+        "unix/sockcmsg_unix.go",
+        "unix/sockcmsg_unix_other.go",
+        "unix/str.go",
+        "unix/syscall.go",
+        "unix/syscall_bsd.go",
+        "unix/syscall_darwin.1_13.go",
+        "unix/syscall_darwin.go",
+        "unix/syscall_darwin_amd64.go",
+        "unix/syscall_darwin_libSystem.go",
+        "unix/syscall_unix.go",
+        "unix/syscall_unix_gc.go",
+        "unix/timestruct.go",
+        "unix/zerrors_darwin_amd64.go",
+        "unix/zsyscall_darwin_amd64.1_13.go",
+        "unix/zsyscall_darwin_amd64.go",
+        "unix/zsysnum_darwin_amd64.go",
+        "unix/ztypes_darwin_amd64.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/sys:_sys#download"],
+)
+
+fileexport(
+    name = "unix",
+    srcs = [
+        "unix/asm_darwin_amd64.s",
+        "unix/zsyscall_darwin_amd64.1_13.s",
+        "unix/zsyscall_darwin_amd64.s",
+    ],
+    tag = "s_source",
+    deps = ["//third_party/go/golang.org/x/sys:_sys#download"],
+)
+
+go_library(
+    name = "unix",
+    srcs = [":_unix#go_source"],
+    asm_srcs = [":_unix#s_source"],
+    import_path = "golang.org/x/sys/unix",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/golang.org/x/sys/internal/unsafeheader"],
+)

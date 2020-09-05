@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "groupcache",
+    module = "github.com/golang/groupcache",
+    sum = "h1:5ZkaAPbicIKTF2I64qf5Fh8Aa83Q/dnOafMYV0OMwjA=",
+    tag = "download",
+    version = "v0.0.0-20191227052852-215e87163ea7",
+    visibility = ["//third_party/go/github.com/golang/groupcache/..."],
+)

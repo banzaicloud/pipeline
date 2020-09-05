@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "crypto",
+    module = "golang.org/x/crypto",
+    sum = "h1:psW17arqaxU48Z5kZ0CQnkZWQJsqcURM6tKiBApRjXI=",
+    tag = "download",
+    version = "v0.0.0-20200622213623-75b288015ac9",
+    visibility = ["//third_party/go/golang.org/x/crypto/..."],
+)

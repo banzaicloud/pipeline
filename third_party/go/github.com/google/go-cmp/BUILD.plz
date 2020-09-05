@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-cmp",
+    module = "github.com/google/go-cmp",
+    sum = "h1:xsAVV57WRhGj6kEIi8ReJzQlHHqcBYCElAvkovg3B/4=",
+    tag = "download",
+    version = "v0.4.0",
+    visibility = ["//third_party/go/github.com/google/go-cmp/..."],
+)

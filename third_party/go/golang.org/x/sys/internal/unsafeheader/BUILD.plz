@@ -1,0 +1,16 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "unsafeheader",
+    srcs = ["internal/unsafeheader/unsafeheader.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/sys:_sys#download"],
+)
+
+go_library(
+    name = "unsafeheader",
+    srcs = [":_unsafeheader#go_source"],
+    import_path = "golang.org/x/sys/internal/unsafeheader",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -1,0 +1,19 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "sdkrand",
+    srcs = [
+        "internal/sdkrand/locked_source.go",
+        "internal/sdkrand/read.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "sdkrand",
+    srcs = [":_sdkrand#go_source"],
+    import_path = "github.com/aws/aws-sdk-go/internal/sdkrand",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

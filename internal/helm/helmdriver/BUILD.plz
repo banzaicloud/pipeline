@@ -1,0 +1,40 @@
+go_library(
+    name = "helmdriver",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//.gen/pipeline/pipeline",
+        "//internal/helm",
+        "//internal/platform/appkit/transport/http",
+        "//pkg/helm",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/go-kit/kit/endpoint",
+        "//third_party/go/github.com/go-kit/kit/transport/http",
+        "//third_party/go/github.com/gorilla/mux",
+        "//third_party/go/github.com/mitchellh/mapstructure",
+        "//third_party/go/github.com/sagikazarmark/kitx/endpoint",
+        "//third_party/go/github.com/sagikazarmark/kitx/transport/http",
+        "//third_party/go/helm.sh/helm/v3/pkg/chartutil",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//.gen/pipeline/pipeline",
+        "//internal/helm",
+        "//internal/platform/appkit/transport/http",
+        "//pkg/helm",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/go-kit/kit/endpoint",
+        "//third_party/go/github.com/go-kit/kit/transport/http",
+        "//third_party/go/github.com/gorilla/mux",
+        "//third_party/go/github.com/mitchellh/mapstructure",
+        "//third_party/go/github.com/sagikazarmark/kitx/endpoint",
+        "//third_party/go/github.com/sagikazarmark/kitx/transport/http",
+        "//third_party/go/github.com/stretchr/testify/assert",
+        "//third_party/go/github.com/stretchr/testify/require",
+        "//third_party/go/helm.sh/helm/v3/pkg/chartutil",
+    ],
+)

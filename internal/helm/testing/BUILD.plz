@@ -1,0 +1,19 @@
+go_library(
+    name = "testing",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//internal/common/commonadapter",
+        "//internal/helm",
+        "//internal/helm/helmadapter",
+        "//internal/platform/log",
+        "//internal/testing",
+        "//src/secret",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/jinzhu/gorm",
+        "//third_party/go/github.com/jinzhu/gorm/dialects/sqlite",
+        "//third_party/go/github.com/sirupsen/logrus",
+        "//third_party/go/github.com/stretchr/testify/require",
+    ],
+)

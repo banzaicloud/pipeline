@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "net",
+    module = "golang.org/x/net",
+    sum = "h1:AeiKBIuRw3UomYXSbLy0Mc2dDLfdtbT/IVn4keq83P0=",
+    tag = "download",
+    version = "v0.0.0-20200520004742-59133d7f0dd7",
+    visibility = ["//third_party/go/golang.org/x/net/..."],
+)

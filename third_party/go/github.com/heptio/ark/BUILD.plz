@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "ark",
+    module = "github.com/heptio/ark",
+    sum = "h1:LcyHwxub/geleuL6xEUk1xOBa6Fa8uT+/a7h2HEYBmc=",
+    tag = "download",
+    version = "v0.9.3",
+    visibility = ["//third_party/go/github.com/heptio/ark/..."],
+)

@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "testing_frameworks",
+    module = "sigs.k8s.io/testing_frameworks",
+    sum = "h1:vK0+tvjF0BZ/RYFeZ1E6BYBwHJJXhjuZ3TdsEKH+UQM=",
+    tag = "download",
+    version = "v0.1.2",
+    visibility = ["//third_party/go/sigs.k8s.io/testing_frameworks/..."],
+)

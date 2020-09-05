@@ -1,0 +1,19 @@
+go_library(
+    name = "model",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster/clusteradapter/clustermodel",
+        "//internal/database/sql/json",
+        "//internal/global",
+        "//internal/providers/alibaba/alibabaadapter",
+        "//internal/providers/azure/azureadapter",
+        "//internal/providers/kubernetes/kubernetesadapter",
+        "//pkg/cluster",
+        "//pkg/providers/oracle/model",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/gofrs/uuid",
+        "//third_party/go/github.com/jinzhu/gorm",
+        "//third_party/go/github.com/sirupsen/logrus",
+    ],
+)

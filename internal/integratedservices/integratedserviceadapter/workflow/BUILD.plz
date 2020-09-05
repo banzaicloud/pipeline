@@ -1,0 +1,12 @@
+go_library(
+    name = "workflow",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/integratedservices",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/go.uber.org/cadence/activity",
+        "//third_party/go/go.uber.org/cadence/workflow",
+        "//third_party/go/go.uber.org/zap",
+    ],
+)

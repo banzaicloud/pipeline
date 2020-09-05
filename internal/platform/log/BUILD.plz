@@ -1,0 +1,14 @@
+go_library(
+    name = "log",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/emperror.dev/handler/logur",
+        "//third_party/go/github.com/sirupsen/logrus",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/runtime",
+        "//third_party/go/k8s.io/klog",
+        "//third_party/go/logur.dev/adapter/logrus",
+        "//third_party/go/logur.dev/logur",
+    ],
+)

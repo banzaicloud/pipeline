@@ -1,0 +1,16 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "iana",
+    srcs = ["internal/iana/const.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/net:_net#download"],
+)
+
+go_library(
+    name = "iana",
+    srcs = [":_iana#go_source"],
+    import_path = "golang.org/x/net/internal/iana",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

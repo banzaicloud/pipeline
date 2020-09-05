@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "perks",
+    module = "github.com/beorn7/perks",
+    sum = "h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=",
+    tag = "download",
+    version = "v1.0.1",
+    visibility = ["//third_party/go/github.com/beorn7/perks/..."],
+)

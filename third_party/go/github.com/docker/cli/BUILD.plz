@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "cli",
+    module = "github.com/docker/cli",
+    sum = "h1:FwssHbCDJD025h+BchanCwE1Q8fyMgqDr2mOQAWOLGw=",
+    tag = "download",
+    version = "v0.0.0-20200130152716-5d0cf8839492",
+    visibility = ["//third_party/go/github.com/docker/cli/..."],
+)

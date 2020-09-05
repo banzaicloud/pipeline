@@ -1,0 +1,6 @@
+go_library(
+    name = "hpa",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/k8s.io/apimachinery/pkg/api/resource"],
+)

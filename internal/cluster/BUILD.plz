@@ -1,0 +1,40 @@
+go_library(
+    name = "cluster",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/brn",
+        "//pkg/cloud",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/mitchellh/mapstructure",
+        "//third_party/go/github.com/stretchr/testify/mock",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/types",
+        "//third_party/go/k8s.io/apimachinery/pkg/watch",
+        "//third_party/go/k8s.io/client-go/dynamic",
+        "//third_party/go/k8s.io/client-go/kubernetes",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//pkg/brn",
+        "//pkg/cloud",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/mitchellh/mapstructure",
+        "//third_party/go/github.com/stretchr/testify/assert",
+        "//third_party/go/github.com/stretchr/testify/mock",
+        "//third_party/go/github.com/stretchr/testify/require",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/types",
+        "//third_party/go/k8s.io/apimachinery/pkg/watch",
+        "//third_party/go/k8s.io/client-go/dynamic",
+        "//third_party/go/k8s.io/client-go/kubernetes",
+    ],
+)

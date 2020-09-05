@@ -1,8 +1,11 @@
-[Go]
-GoPath = ""
+[please]
+version = 15.2.1-beta.1
+
+[go]
+importpath = github.com/banzaicloud/pipeline
 
 [buildconfig]
-go-home = "$(eval echo ~$(whoami))"
+#go-home = "$(eval echo ~$(whoami))"
 helm-tool = "///pleasings2//tools/k8s:helm"
 
 golangci-lint-version = 1.30.0
@@ -12,6 +15,13 @@ mga-version = 0.2.1
 licensei-version = 0.2.0
 migrate-version = 4.9.1
 kubectl-version = 1.17.4
+
+moddown-tool = ///pleasegomod//:moddown
+
+[alias "godeps"]
+desc = Generate third-party dependency rules for a Go project
+cmd = run ///pleasegomod//:gogetgen -- -dir third_party/go -clean -genpkg -subinclude "///pleasegomod//:build_defs"
+
 
 [alias "make"]
 desc = Build and export the outputs of targets

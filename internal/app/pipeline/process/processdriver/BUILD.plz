@@ -1,0 +1,17 @@
+go_library(
+    name = "processdriver",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//.gen/pipeline/pipeline",
+        "//internal/app/pipeline/process",
+        "//internal/platform/appkit/transport/http",
+        "//src/auth",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/go-kit/kit/endpoint",
+        "//third_party/go/github.com/go-kit/kit/transport/http",
+        "//third_party/go/github.com/gorilla/mux",
+        "//third_party/go/github.com/sagikazarmark/kitx/endpoint",
+        "//third_party/go/github.com/sagikazarmark/kitx/transport/http",
+    ],
+)

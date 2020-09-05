@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "genproto",
+    module = "google.golang.org/genproto",
+    sum = "h1:1mbrb1tUU+Zmt5C94IGKADBTJZjZXAd+BubWi7r9EiI=",
+    tag = "download",
+    version = "v0.0.0-20200212174721-66ed5ce911ce",
+    visibility = ["//third_party/go/google.golang.org/genproto/..."],
+)

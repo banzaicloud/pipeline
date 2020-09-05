@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "operator-tools",
+    module = "github.com/banzaicloud/operator-tools",
+    sum = "h1:Nv+nhPs2EjO5L4YjgSsuMVJKl81xMZh/T3zGNBKahFE=",
+    tag = "download",
+    version = "v0.10.2",
+    visibility = ["//third_party/go/github.com/banzaicloud/operator-tools/..."],
+)

@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "anchore-image-validator",
+    module = "github.com/banzaicloud/anchore-image-validator",
+    sum = "h1:wlvTg+btN2gyZrKDOoCpAz+tJLnc072UbTfFTtEdnZk=",
+    tag = "download",
+    version = "v0.0.0-20190823121528-918b9fa6af62",
+    visibility = ["//third_party/go/github.com/banzaicloud/anchore-image-validator/..."],
+)

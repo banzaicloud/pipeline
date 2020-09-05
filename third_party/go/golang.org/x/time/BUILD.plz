@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "time",
+    module = "golang.org/x/time",
+    sum = "h1:NusfzzA6yGQ+ua51ck7E3omNUX/JuqbFSaRGqU8CcLI=",
+    tag = "download",
+    version = "v0.0.0-20200416051211-89c76fbcd5d1",
+    visibility = ["//third_party/go/golang.org/x/time/..."],
+)

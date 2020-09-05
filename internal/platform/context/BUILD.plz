@@ -1,0 +1,9 @@
+go_library(
+    name = "context",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/emperror.dev/emperror",
+        "//third_party/go/github.com/sirupsen/logrus",
+    ],
+)

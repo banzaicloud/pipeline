@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "runc",
+    module = "github.com/opencontainers/runc",
+    sum = "h1:AbmCEuSZXVflng0/cboQkpdEOeBsPMjz6tmq4Pv8MZw=",
+    tag = "download",
+    version = "v1.0.0-rc10",
+    visibility = ["//third_party/go/github.com/opencontainers/runc/..."],
+)

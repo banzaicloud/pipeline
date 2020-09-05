@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "sdk",
+    module = "github.com/banzaicloud/bank-vaults/pkg/sdk",
+    sum = "h1:gr0sjF+PEnqltxQ8ypwRC6cSi69Nto+1sZuQ6bOzHGg=",
+    tag = "download",
+    version = "v0.4.0",
+    visibility = ["//third_party/go/github.com/banzaicloud/bank-vaults/pkg/sdk/..."],
+)

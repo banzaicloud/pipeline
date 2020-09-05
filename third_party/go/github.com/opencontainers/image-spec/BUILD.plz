@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "image-spec",
+    module = "github.com/opencontainers/image-spec",
+    sum = "h1:JMemWkRwHx4Zj+fVxWoMCFm/8sYGGrUVojFA6h/TRcI=",
+    tag = "download",
+    version = "v1.0.1",
+    visibility = ["//third_party/go/github.com/opencontainers/image-spec/..."],
+)

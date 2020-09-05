@@ -1,0 +1,59 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "codec",
+    module = "github.com/ugorji/go/codec",
+    sum = "h1:2SvQaVZ1ouYrrKKwoSk2pzd4A9evlKJb9oTL+OaLUSs=",
+    tag = "download",
+    version = "v1.1.7",
+    visibility = ["//third_party/go/github.com/ugorji/go/codec/..."],
+)
+
+fileexport(
+    name = "codec",
+    srcs = [
+        "0_importpath.go",
+        "binc.go",
+        "cbor.go",
+        "decode.go",
+        "doc.go",
+        "encode.go",
+        "fast-path.generated.go",
+        "float.go",
+        "gen-helper.generated.go",
+        "goversion_arrayof_gte_go15.go",
+        "goversion_fmt_time_gte_go15.go",
+        "goversion_makemap_gte_go19.go",
+        "goversion_unexportedembeddedptr_gte_go110.go",
+        "goversion_vendor_gte_go17.go",
+        "helper.go",
+        "helper_internal.go",
+        "helper_unsafe.go",
+        "json.go",
+        "msgpack.go",
+        "reader.go",
+        "register_ext.go",
+        "rpc.go",
+        "simple.go",
+        "sort-slice.generated.go",
+        "writer.go",
+    ],
+    tag = "go_source",
+    deps = [":_codec#download"],
+)
+
+fileexport(
+    name = "codec",
+    srcs = ["helper.s"],
+    tag = "s_source",
+    deps = [":_codec#download"],
+)
+
+go_library(
+    name = "codec",
+    srcs = [":_codec#go_source"],
+    asm_srcs = [":_codec#s_source"],
+    import_path = "github.com/ugorji/go/codec",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

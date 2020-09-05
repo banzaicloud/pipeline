@@ -1,0 +1,20 @@
+go_library(
+    name = "cluster",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster/distribution/eks/ekscluster",
+        "//pkg/cluster/ack",
+        "//pkg/cluster/aks",
+        "//pkg/cluster/gke",
+        "//pkg/cluster/kubernetes",
+        "//pkg/cluster/pke",
+        "//pkg/common",
+        "//pkg/errors",
+        "//pkg/providers/oracle/cluster",
+        "//pkg/values",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/gopkg.in/yaml.v2",
+        "//third_party/go/k8s.io/api/core/v1",
+    ],
+)

@@ -1,0 +1,19 @@
+go_library(
+    name = "integratedserviceadapter",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//internal/database/sql/json",
+        "//internal/integratedservices",
+        "//internal/integratedservices/integratedserviceadapter/workflow",
+        "//pkg/cluster",
+        "//src/cluster",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/jinzhu/gorm",
+        "//third_party/go/github.com/sirupsen/logrus",
+        "//third_party/go/github.com/stretchr/testify/mock",
+        "//third_party/go/go.uber.org/cadence/client",
+        "//third_party/go/logur.dev/logur",
+    ],
+)

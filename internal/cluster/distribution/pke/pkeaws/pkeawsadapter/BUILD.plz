@@ -1,0 +1,12 @@
+go_library(
+    name = "pkeawsadapter",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//.gen/cloudinfo",
+        "//internal/cluster/distribution/pke/pkeaws",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/Masterminds/semver/v3",
+        "//third_party/go/github.com/antihax/optional",
+    ],
+)

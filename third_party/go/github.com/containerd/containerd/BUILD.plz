@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "containerd",
+    module = "github.com/containerd/containerd",
+    sum = "h1:ForxmXkA6tPIvffbrDAcPUIB32QgXkt2XFj+F0UxetA=",
+    tag = "download",
+    version = "v1.3.2",
+    visibility = ["//third_party/go/github.com/containerd/containerd/..."],
+)

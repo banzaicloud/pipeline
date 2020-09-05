@@ -1,0 +1,15 @@
+go_library(
+    name = "workflow",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/emperror.dev/errors"],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/stretchr/testify/require",
+    ],
+)

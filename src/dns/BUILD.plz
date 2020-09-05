@@ -1,0 +1,15 @@
+go_library(
+    name = "dns",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/global",
+        "//internal/secret/secrettype",
+        "//src/dns/route53",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/gofrs/uuid",
+        "//third_party/go/github.com/sirupsen/logrus",
+        "//third_party/go/github.com/spf13/cast",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/validation",
+    ],
+)

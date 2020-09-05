@@ -1,0 +1,31 @@
+go_library(
+    name = "cluster",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//.gen/pipeline/pipeline",
+        "//internal/pke",
+        "//internal/providers/azure/pke",
+        "//internal/providers/azure/pke/driver",
+        "//internal/providers/vsphere/pke",
+        "//internal/providers/vsphere/pke/driver",
+        "//pkg/cluster",
+        "//src/secret",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//.gen/pipeline/pipeline",
+        "//internal/pke",
+        "//internal/providers/azure/pke",
+        "//internal/providers/azure/pke/driver",
+        "//internal/providers/vsphere/pke",
+        "//internal/providers/vsphere/pke/driver",
+        "//pkg/cluster",
+        "//src/secret",
+        "//third_party/go/github.com/stretchr/testify/assert",
+    ],
+)

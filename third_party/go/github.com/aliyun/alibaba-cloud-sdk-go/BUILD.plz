@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "alibaba-cloud-sdk-go",
+    module = "github.com/aliyun/alibaba-cloud-sdk-go",
+    sum = "h1:MZrGWhrO7yXMOv+Ul0V/yXzxQ3Pso6WGy+SNP2102+c=",
+    tag = "download",
+    version = "v1.60.327",
+    visibility = ["//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/..."],
+)

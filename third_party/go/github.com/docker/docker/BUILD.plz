@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "docker",
+    module = "github.com/docker/docker",
+    sum = "h1:KXS1Jg+ddGcWA8e1N7cupxaHHZhit5rB9tfDU+mfjyY=",
+    tag = "download",
+    version = "v1.4.2-0.20200203170920-46ec8731fbce",
+    visibility = ["//third_party/go/github.com/docker/docker/..."],
+)

@@ -1,0 +1,24 @@
+go_library(
+    name = "events",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/ark",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/jinzhu/gorm",
+        "//third_party/go/github.com/sirupsen/logrus",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/ark",
+        "//src/cluster",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/asaskevich/EventBus",
+        "//third_party/go/github.com/jinzhu/gorm",
+        "//third_party/go/github.com/sirupsen/logrus",
+    ],
+)

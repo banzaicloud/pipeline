@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "docker-credential-helpers",
+    module = "github.com/docker/docker-credential-helpers",
+    sum = "h1:zI2p9+1NQYdnG6sMU26EX4aVGlqbInSQxQXLvzJ4RPQ=",
+    tag = "download",
+    version = "v0.6.3",
+    visibility = ["//third_party/go/github.com/docker/docker-credential-helpers/..."],
+)

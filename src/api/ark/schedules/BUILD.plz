@@ -1,0 +1,14 @@
+go_library(
+    name = "schedules",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/ark/api",
+        "//internal/global",
+        "//internal/platform/gin/correlationid",
+        "//src/api/ark/common",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/gin-gonic/gin",
+        "//third_party/go/k8s.io/apimachinery/pkg/labels",
+    ],
+)

@@ -1,0 +1,20 @@
+go_library(
+    name = "token",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/stretchr/testify/mock",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/stretchr/testify/assert",
+        "//third_party/go/github.com/stretchr/testify/mock",
+        "//third_party/go/github.com/stretchr/testify/require",
+    ],
+)
