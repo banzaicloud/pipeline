@@ -6,6 +6,8 @@ fileexport(
         "pkg/helmpath/home.go",
         "pkg/helmpath/lazypath.go",
         "pkg/helmpath/lazypath_darwin.go",
+        "pkg/helmpath/lazypath_unix.go",
+        "pkg/helmpath/lazypath_windows.go",
     ],
     tag = "go_source",
     deps = ["//third_party/go/helm.sh/helm/v3:_v3#download"],
@@ -14,6 +16,7 @@ fileexport(
 go_library(
     name = "helmpath",
     srcs = [":_helmpath#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/pkg/helmpath",
     visibility = ["PUBLIC"],
     deps = [

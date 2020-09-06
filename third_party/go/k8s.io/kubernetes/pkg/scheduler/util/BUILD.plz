@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "util",
     srcs = [":_util#go_source"],
+    cover = False,
     import_path = "k8s.io/kubernetes/pkg/scheduler/util",
     visibility = ["PUBLIC"],
     deps = [

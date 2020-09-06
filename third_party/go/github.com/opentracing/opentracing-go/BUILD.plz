@@ -26,6 +26,7 @@ fileexport(
 go_library(
     name = "opentracing-go",
     srcs = [":_opentracing-go#go_source"],
+    cover = False,
     import_path = "github.com/opentracing/opentracing-go",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/opentracing/opentracing-go/log"],

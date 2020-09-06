@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "rules",
     srcs = [":_rules#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/pkg/lint/rules",
     visibility = ["PUBLIC"],
     deps = [

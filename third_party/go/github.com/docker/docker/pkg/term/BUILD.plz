@@ -7,7 +7,9 @@ fileexport(
         "pkg/term/proxy.go",
         "pkg/term/tc.go",
         "pkg/term/term.go",
+        "pkg/term/term_windows.go",
         "pkg/term/termios_bsd.go",
+        "pkg/term/termios_linux.go",
         "pkg/term/winsize.go",
     ],
     tag = "go_source",
@@ -17,6 +19,7 @@ fileexport(
 go_library(
     name = "term",
     srcs = [":_term#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker/pkg/term",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/golang.org/x/sys/unix"],

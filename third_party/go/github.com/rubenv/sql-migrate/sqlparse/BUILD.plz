@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "sqlparse",
     srcs = [":_sqlparse#go_source"],
+    cover = False,
     import_path = "github.com/rubenv/sql-migrate/sqlparse",
     visibility = ["PUBLIC"],
     deps = [],

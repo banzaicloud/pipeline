@@ -21,6 +21,7 @@ fileexport(
         "flag.go",
         "global.go",
         "global_go112.go",
+        "global_prego112.go",
         "http_handler.go",
         "level.go",
         "logger.go",
@@ -38,6 +39,7 @@ fileexport(
 go_library(
     name = "zap",
     srcs = [":_zap#go_source"],
+    cover = False,
     import_path = "go.uber.org/zap",
     visibility = ["PUBLIC"],
     deps = [

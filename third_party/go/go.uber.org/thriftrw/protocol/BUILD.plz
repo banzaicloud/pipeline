@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "protocol",
     srcs = [":_protocol#go_source"],
+    cover = False,
     import_path = "go.uber.org/thriftrw/protocol",
     visibility = ["PUBLIC"],
     deps = [

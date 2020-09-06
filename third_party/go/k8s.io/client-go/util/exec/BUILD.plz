@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "exec",
     srcs = [":_exec#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/util/exec",
     visibility = ["PUBLIC"],
     deps = [],

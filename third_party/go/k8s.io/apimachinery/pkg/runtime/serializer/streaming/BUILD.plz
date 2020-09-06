@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "streaming",
     srcs = [":_streaming#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/runtime/serializer/streaming",
     visibility = ["PUBLIC"],
     deps = [

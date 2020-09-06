@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "roundrobin",
     srcs = [":_roundrobin#go_source"],
+    cover = False,
     import_path = "google.golang.org/grpc/balancer/roundrobin",
     visibility = ["PUBLIC"],
     deps = [

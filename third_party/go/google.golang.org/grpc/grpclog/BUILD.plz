@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "grpclog",
     srcs = [":_grpclog#go_source"],
+    cover = False,
     import_path = "google.golang.org/grpc/grpclog",
     visibility = ["PUBLIC"],
     deps = [],

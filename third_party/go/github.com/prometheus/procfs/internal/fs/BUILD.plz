@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "fs",
     srcs = [":_fs#go_source"],
+    cover = False,
     import_path = "github.com/prometheus/procfs/internal/fs",
     visibility = ["PUBLIC"],
     deps = [],

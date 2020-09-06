@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "disk",
     srcs = [":_disk#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/discovery/cached/disk",
     visibility = ["PUBLIC"],
     deps = [

@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "mailer",
     srcs = [":_mailer#go_source"],
+    cover = False,
     import_path = "github.com/qor/mailer",
     visibility = ["PUBLIC"],
     deps = [

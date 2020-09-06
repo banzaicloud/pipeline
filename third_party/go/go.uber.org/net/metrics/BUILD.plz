@@ -25,6 +25,7 @@ fileexport(
         "snapshot.go",
         "spec.go",
         "tag.go",
+        "tools.go",
         "value.go",
         "version.go",
     ],
@@ -35,6 +36,7 @@ fileexport(
 go_library(
     name = "metrics",
     srcs = [":_metrics#go_source"],
+    cover = False,
     import_path = "go.uber.org/net/metrics",
     visibility = ["PUBLIC"],
     deps = [

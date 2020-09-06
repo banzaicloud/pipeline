@@ -29,6 +29,7 @@ fileexport(
 go_library(
     name = "packet",
     srcs = [":_packet#go_source"],
+    cover = False,
     import_path = "golang.org/x/crypto/openpgp/packet",
     visibility = ["PUBLIC"],
     deps = [

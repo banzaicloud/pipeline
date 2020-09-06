@@ -17,6 +17,7 @@ fileexport(
         "middleware.go",
         "redirect.go",
         "request.go",
+        "request16.go",
         "request17.go",
         "response.go",
         "resty.go",
@@ -30,6 +31,7 @@ fileexport(
 go_library(
     name = "resty.v1",
     srcs = [":_resty.v1#go_source"],
+    cover = False,
     import_path = "gopkg.in/resty.v1",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/golang.org/x/net/publicsuffix"],

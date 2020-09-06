@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "go-units",
     srcs = [":_go-units#go_source"],
+    cover = False,
     import_path = "github.com/docker/go-units",
     visibility = ["PUBLIC"],
     deps = [],

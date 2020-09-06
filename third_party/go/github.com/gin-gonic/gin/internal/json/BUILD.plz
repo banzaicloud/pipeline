@@ -2,7 +2,10 @@ subinclude("///pleasegomod//:build_defs")
 
 fileexport(
     name = "json",
-    srcs = ["internal/json/json.go"],
+    srcs = [
+        "internal/json/json.go",
+        "internal/json/jsoniter.go",
+    ],
     tag = "go_source",
     deps = ["//third_party/go/github.com/gin-gonic/gin:_gin#download"],
 )
@@ -10,6 +13,7 @@ fileexport(
 go_library(
     name = "json",
     srcs = [":_json#go_source"],
+    cover = False,
     import_path = "github.com/gin-gonic/gin/internal/json",
     visibility = ["PUBLIC"],
     deps = [],

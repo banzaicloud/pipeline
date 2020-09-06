@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "duration",
     srcs = [":_duration#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/util/duration",
     visibility = ["PUBLIC"],
     deps = [],

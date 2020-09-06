@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "protoiface",
     srcs = [":_protoiface#go_source"],
+    cover = False,
     import_path = "google.golang.org/protobuf/runtime/protoiface",
     visibility = ["PUBLIC"],
     deps = [

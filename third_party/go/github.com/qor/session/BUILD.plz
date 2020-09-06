@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "session",
     srcs = [":_session#go_source"],
+    cover = False,
     import_path = "github.com/qor/session",
     visibility = ["PUBLIC"],
     deps = [],

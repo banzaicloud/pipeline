@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "api",
     srcs = [":_api#go_source"],
+    cover = False,
     import_path = "k8s.io/cluster-bootstrap/token/api",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/k8s.io/api/core/v1"],

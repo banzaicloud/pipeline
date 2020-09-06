@@ -21,6 +21,7 @@ fileexport(
 go_library(
     name = "swarm",
     srcs = [":_swarm#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker/api/types/swarm",
     visibility = ["PUBLIC"],
     deps = [

@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "engine",
     srcs = [":_engine#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/pkg/engine",
     visibility = ["PUBLIC"],
     deps = [

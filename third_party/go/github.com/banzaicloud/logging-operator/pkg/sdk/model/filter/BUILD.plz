@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "filter",
     srcs = [":_filter#go_source"],
+    cover = False,
     import_path = "github.com/banzaicloud/logging-operator/pkg/sdk/model/filter",
     visibility = ["PUBLIC"],
     deps = [

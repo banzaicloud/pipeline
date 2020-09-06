@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "pbkdf2",
     srcs = [":_pbkdf2#go_source"],
+    cover = False,
     import_path = "golang.org/x/crypto/pbkdf2",
     visibility = ["PUBLIC"],
     deps = [],

@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "xmlutil",
     srcs = [":_xmlutil#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil",
     visibility = ["PUBLIC"],
     deps = [

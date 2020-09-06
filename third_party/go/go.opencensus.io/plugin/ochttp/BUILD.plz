@@ -20,6 +20,7 @@ fileexport(
 go_library(
     name = "ochttp",
     srcs = [":_ochttp#go_source"],
+    cover = False,
     import_path = "go.opencensus.io/plugin/ochttp",
     visibility = ["PUBLIC"],
     deps = [

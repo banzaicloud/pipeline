@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "diskcache",
     srcs = [":_diskcache#go_source"],
+    cover = False,
     import_path = "github.com/gregjones/httpcache/diskcache",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/peterbourgon/diskv"],

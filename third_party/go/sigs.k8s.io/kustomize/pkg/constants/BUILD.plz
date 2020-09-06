@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "constants",
     srcs = [":_constants#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kustomize/pkg/constants",
     visibility = ["PUBLIC"],
     deps = [],

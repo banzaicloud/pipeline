@@ -22,6 +22,7 @@ fileexport(
 go_library(
     name = "cqrs",
     srcs = [":_cqrs#go_source"],
+    cover = False,
     import_path = "github.com/ThreeDotsLabs/watermill/components/cqrs",
     visibility = ["PUBLIC"],
     deps = [

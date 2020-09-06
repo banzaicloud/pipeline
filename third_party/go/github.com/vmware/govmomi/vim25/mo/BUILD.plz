@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "mo",
     srcs = [":_mo#go_source"],
+    cover = False,
     import_path = "github.com/vmware/govmomi/vim25/mo",
     visibility = ["PUBLIC"],
     deps = [

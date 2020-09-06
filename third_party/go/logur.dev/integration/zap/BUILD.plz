@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "zap",
     srcs = [":_zap#go_source"],
+    cover = False,
     import_path = "logur.dev/integration/zap",
     visibility = ["PUBLIC"],
     deps = [

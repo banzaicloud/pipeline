@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "resource",
     srcs = [":_resource#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kustomize/pkg/resource",
     visibility = ["PUBLIC"],
     deps = [

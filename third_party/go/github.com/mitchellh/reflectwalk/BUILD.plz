@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "reflectwalk",
     srcs = [":_reflectwalk#go_source"],
+    cover = False,
     import_path = "github.com/mitchellh/reflectwalk",
     visibility = ["PUBLIC"],
     deps = [],

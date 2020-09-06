@@ -29,6 +29,7 @@ fileexport(
 go_library(
     name = "go-metrics",
     srcs = [":_go-metrics#go_source"],
+    cover = False,
     import_path = "github.com/docker/go-metrics",
     visibility = ["PUBLIC"],
     deps = [

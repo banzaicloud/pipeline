@@ -27,6 +27,7 @@ fileexport(
 go_library(
     name = "value",
     srcs = [":_value#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/structured-merge-diff/v3/value",
     visibility = ["PUBLIC"],
     deps = [

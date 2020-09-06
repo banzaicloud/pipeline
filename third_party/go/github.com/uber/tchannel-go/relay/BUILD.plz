@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "relay",
     srcs = [":_relay#go_source"],
+    cover = False,
     import_path = "github.com/uber/tchannel-go/relay",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/uber/tchannel-go/thrift/arg2"],

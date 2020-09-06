@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "go.opencensus.io",
     srcs = [":_go.opencensus.io#go_source"],
+    cover = False,
     import_path = "go.opencensus.io",
     visibility = ["PUBLIC"],
     deps = [],

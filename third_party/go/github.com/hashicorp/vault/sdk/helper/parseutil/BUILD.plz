@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "parseutil",
     srcs = [":_parseutil#go_source"],
+    cover = False,
     import_path = "github.com/hashicorp/vault/sdk/helper/parseutil",
     visibility = ["PUBLIC"],
     deps = [

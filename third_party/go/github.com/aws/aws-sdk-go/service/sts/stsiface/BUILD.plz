@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "stsiface",
     srcs = [":_stsiface#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/service/sts/stsiface",
     visibility = ["PUBLIC"],
     deps = [

@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "content",
     srcs = [":_content#go_source"],
+    cover = False,
     import_path = "github.com/containerd/containerd/content",
     visibility = ["PUBLIC"],
     deps = [

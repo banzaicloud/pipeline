@@ -81,6 +81,7 @@ fileexport(
 go_library(
     name = "network",
     srcs = [":_network#go_source"],
+    cover = False,
     import_path = "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network",
     visibility = ["PUBLIC"],
     deps = [

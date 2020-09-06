@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "images",
     srcs = [":_images#go_source"],
+    cover = False,
     import_path = "github.com/containerd/containerd/images",
     visibility = ["PUBLIC"],
     deps = [

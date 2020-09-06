@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "autoscalingv1",
     srcs = [":_autoscalingv1#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/scale/scheme/autoscalingv1",
     visibility = ["PUBLIC"],
     deps = [

@@ -21,6 +21,7 @@ fileexport(
 go_library(
     name = "html",
     srcs = [":_html#go_source"],
+    cover = False,
     import_path = "golang.org/x/net/html",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/golang.org/x/net/html/atom"],

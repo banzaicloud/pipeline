@@ -18,9 +18,11 @@ fileexport(
         "autorest.go",
         "client.go",
         "error.go",
+        "go_mod_tidy_hack.go",
         "preparer.go",
         "responder.go",
         "retriablerequest.go",
+        "retriablerequest_1.7.go",
         "retriablerequest_1.8.go",
         "sender.go",
         "utility.go",
@@ -33,6 +35,7 @@ fileexport(
 go_library(
     name = "autorest",
     srcs = [":_autorest#go_source"],
+    cover = False,
     import_path = "github.com/Azure/go-autorest/autorest",
     visibility = ["PUBLIC"],
     deps = [

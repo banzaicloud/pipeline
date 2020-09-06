@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "specs-go",
     srcs = [":_specs-go#go_source"],
+    cover = False,
     import_path = "github.com/opencontainers/image-spec/specs-go",
     visibility = ["PUBLIC"],
     deps = [],

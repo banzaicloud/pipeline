@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "jwt",
     srcs = [":_jwt#go_source"],
+    cover = False,
     import_path = "golang.org/x/oauth2/jwt",
     visibility = ["PUBLIC"],
     deps = [

@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "glob",
     srcs = [":_glob#go_source"],
+    cover = False,
     import_path = "github.com/gobwas/glob",
     visibility = ["PUBLIC"],
     deps = [

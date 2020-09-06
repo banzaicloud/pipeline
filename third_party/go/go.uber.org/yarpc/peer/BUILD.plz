@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "peer",
     srcs = [":_peer#go_source"],
+    cover = False,
     import_path = "go.uber.org/yarpc/peer",
     visibility = ["PUBLIC"],
     deps = [

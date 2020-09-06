@@ -8,6 +8,7 @@ fileexport(
         "pkg/ioutils/fswriters.go",
         "pkg/ioutils/readers.go",
         "pkg/ioutils/temp_unix.go",
+        "pkg/ioutils/temp_windows.go",
         "pkg/ioutils/writeflusher.go",
         "pkg/ioutils/writers.go",
     ],
@@ -18,6 +19,7 @@ fileexport(
 go_library(
     name = "ioutils",
     srcs = [":_ioutils#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker/pkg/ioutils",
     visibility = ["PUBLIC"],
     deps = [],

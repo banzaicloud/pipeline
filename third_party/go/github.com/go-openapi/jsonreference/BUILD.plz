@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "jsonreference",
     srcs = [":_jsonreference#go_source"],
+    cover = False,
     import_path = "github.com/go-openapi/jsonreference",
     visibility = ["PUBLIC"],
     deps = [

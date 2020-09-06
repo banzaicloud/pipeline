@@ -17,6 +17,7 @@ fileexport(
 go_library(
     name = "oras",
     srcs = [":_oras#go_source"],
+    cover = False,
     import_path = "github.com/deislabs/oras/pkg/oras",
     visibility = ["PUBLIC"],
     deps = [

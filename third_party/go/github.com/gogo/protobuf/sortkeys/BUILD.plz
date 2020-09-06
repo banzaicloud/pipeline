@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "sortkeys",
     srcs = [":_sortkeys#go_source"],
+    cover = False,
     import_path = "github.com/gogo/protobuf/sortkeys",
     visibility = ["PUBLIC"],
     deps = [],

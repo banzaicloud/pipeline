@@ -22,6 +22,7 @@ fileexport(
 go_library(
     name = "core",
     srcs = [":_core#go_source"],
+    cover = False,
     import_path = "k8s.io/kubernetes/pkg/apis/core",
     visibility = ["PUBLIC"],
     deps = [

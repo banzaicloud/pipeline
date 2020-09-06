@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "auth_identity",
     srcs = [":_auth_identity#go_source"],
+    cover = False,
     import_path = "github.com/qor/auth/auth_identity",
     visibility = ["PUBLIC"],
     deps = [

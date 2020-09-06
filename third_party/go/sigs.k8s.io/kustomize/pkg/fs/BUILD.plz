@@ -18,6 +18,7 @@ fileexport(
 go_library(
     name = "fs",
     srcs = [":_fs#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kustomize/pkg/fs",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/sigs.k8s.io/kustomize/pkg/constants"],

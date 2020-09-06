@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "serviceconfig",
     srcs = [":_serviceconfig#go_source"],
+    cover = False,
     import_path = "google.golang.org/grpc/serviceconfig",
     visibility = ["PUBLIC"],
     deps = [],

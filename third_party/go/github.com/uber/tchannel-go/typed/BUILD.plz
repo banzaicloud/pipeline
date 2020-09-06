@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "typed",
     srcs = [":_typed#go_source"],
+    cover = False,
     import_path = "github.com/uber/tchannel-go/typed",
     visibility = ["PUBLIC"],
     deps = [],

@@ -356,6 +356,7 @@ fileexport(
 go_library(
     name = "core",
     srcs = [":_core#go_source"],
+    cover = False,
     import_path = "github.com/oracle/oci-go-sdk/core",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/oracle/oci-go-sdk/common"],

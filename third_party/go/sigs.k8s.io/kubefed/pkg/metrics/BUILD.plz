@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "metrics",
     srcs = [":_metrics#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kubefed/pkg/metrics",
     visibility = ["PUBLIC"],
     deps = [

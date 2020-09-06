@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "nfc",
     srcs = [":_nfc#go_source"],
+    cover = False,
     import_path = "github.com/vmware/govmomi/nfc",
     visibility = ["PUBLIC"],
     deps = [

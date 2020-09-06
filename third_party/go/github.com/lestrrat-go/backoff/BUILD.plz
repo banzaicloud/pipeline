@@ -26,6 +26,7 @@ fileexport(
 go_library(
     name = "backoff",
     srcs = [":_backoff#go_source"],
+    cover = False,
     import_path = "github.com/lestrrat-go/backoff",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/pkg/errors"],

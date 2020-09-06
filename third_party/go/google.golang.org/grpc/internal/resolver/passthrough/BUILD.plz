@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "passthrough",
     srcs = [":_passthrough#go_source"],
+    cover = False,
     import_path = "google.golang.org/grpc/internal/resolver/passthrough",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/google.golang.org/grpc/resolver"],

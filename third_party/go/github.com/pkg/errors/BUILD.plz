@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "errors",
     srcs = [":_errors#go_source"],
+    cover = False,
     import_path = "github.com/pkg/errors",
     visibility = ["PUBLIC"],
     deps = [],

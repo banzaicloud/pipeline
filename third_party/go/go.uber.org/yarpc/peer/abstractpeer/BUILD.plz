@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "abstractpeer",
     srcs = [":_abstractpeer#go_source"],
+    cover = False,
     import_path = "go.uber.org/yarpc/peer/abstractpeer",
     visibility = ["PUBLIC"],
     deps = [

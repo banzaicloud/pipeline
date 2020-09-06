@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "b3",
     srcs = [":_b3#go_source"],
+    cover = False,
     import_path = "go.opencensus.io/plugin/ochttp/propagation/b3",
     visibility = ["PUBLIC"],
     deps = [

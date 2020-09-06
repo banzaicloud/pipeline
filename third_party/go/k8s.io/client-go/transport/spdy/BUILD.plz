@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "spdy",
     srcs = [":_spdy#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/transport/spdy",
     visibility = ["PUBLIC"],
     deps = [

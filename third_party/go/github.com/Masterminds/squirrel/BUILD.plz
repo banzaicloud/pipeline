@@ -28,6 +28,7 @@ fileexport(
         "statement.go",
         "stmtcacher.go",
         "stmtcacher_ctx.go",
+        "stmtcacher_noctx.go",
         "update.go",
         "update_ctx.go",
         "where.go",
@@ -39,6 +40,7 @@ fileexport(
 go_library(
     name = "squirrel",
     srcs = [":_squirrel#go_source"],
+    cover = False,
     import_path = "github.com/Masterminds/squirrel",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/lann/builder"],

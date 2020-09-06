@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "latest",
     srcs = [":_latest#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/tools/clientcmd/api/latest",
     visibility = ["PUBLIC"],
     deps = [

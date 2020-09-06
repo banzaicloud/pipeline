@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "route53iface",
     srcs = [":_route53iface#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/service/route53/route53iface",
     visibility = ["PUBLIC"],
     deps = [

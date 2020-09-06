@@ -5,7 +5,9 @@ fileexport(
     srcs = [
         "internal/channelz/funcs.go",
         "internal/channelz/types.go",
+        "internal/channelz/types_linux.go",
         "internal/channelz/types_nonlinux.go",
+        "internal/channelz/util_linux.go",
         "internal/channelz/util_nonlinux.go",
     ],
     tag = "go_source",
@@ -15,6 +17,7 @@ fileexport(
 go_library(
     name = "channelz",
     srcs = [":_channelz#go_source"],
+    cover = False,
     import_path = "google.golang.org/grpc/internal/channelz",
     visibility = ["PUBLIC"],
     deps = [

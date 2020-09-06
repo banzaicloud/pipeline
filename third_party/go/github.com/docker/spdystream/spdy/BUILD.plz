@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "spdy",
     srcs = [":_spdy#go_source"],
+    cover = False,
     import_path = "github.com/docker/spdystream/spdy",
     visibility = ["PUBLIC"],
     deps = [],

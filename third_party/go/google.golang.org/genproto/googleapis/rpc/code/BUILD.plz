@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "code",
     srcs = [":_code#go_source"],
+    cover = False,
     import_path = "google.golang.org/genproto/googleapis/rpc/code",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/golang/protobuf/proto"],

@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "googleapi",
     srcs = [":_googleapi#go_source"],
+    cover = False,
     import_path = "google.golang.org/api/googleapi",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/google.golang.org/api/internal/third_party/uritemplates"],

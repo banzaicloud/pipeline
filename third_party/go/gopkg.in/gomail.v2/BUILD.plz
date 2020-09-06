@@ -16,6 +16,7 @@ fileexport(
         "doc.go",
         "message.go",
         "mime.go",
+        "mime_go14.go",
         "send.go",
         "smtp.go",
         "writeto.go",
@@ -27,6 +28,7 @@ fileexport(
 go_library(
     name = "gomail.v2",
     srcs = [":_gomail.v2#go_source"],
+    cover = False,
     import_path = "gopkg.in/gomail.v2",
     visibility = ["PUBLIC"],
     deps = [],

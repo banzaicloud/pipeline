@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "anypb",
     srcs = [":_anypb#go_source"],
+    cover = False,
     import_path = "google.golang.org/protobuf/types/known/anypb",
     visibility = ["PUBLIC"],
     deps = [

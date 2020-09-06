@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "awserr",
     srcs = [":_awserr#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/aws/awserr",
     visibility = ["PUBLIC"],
     deps = [],

@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "grpc",
     srcs = [":_grpc#go_source"],
+    cover = False,
     import_path = "github.com/go-kit/kit/transport/grpc",
     visibility = ["PUBLIC"],
     deps = [

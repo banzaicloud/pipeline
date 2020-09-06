@@ -26,6 +26,7 @@ fileexport(
 go_library(
     name = "distribution",
     srcs = [":_distribution#go_source"],
+    cover = False,
     import_path = "github.com/docker/distribution",
     visibility = ["PUBLIC"],
     deps = [

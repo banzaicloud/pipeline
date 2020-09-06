@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "integer",
     srcs = [":_integer#go_source"],
+    cover = False,
     import_path = "k8s.io/utils/integer",
     visibility = ["PUBLIC"],
     deps = [],

@@ -6,6 +6,7 @@ fileexport(
         "encoding/japanese/all.go",
         "encoding/japanese/eucjp.go",
         "encoding/japanese/iso2022jp.go",
+        "encoding/japanese/maketables.go",
         "encoding/japanese/shiftjis.go",
         "encoding/japanese/tables.go",
     ],
@@ -16,6 +17,7 @@ fileexport(
 go_library(
     name = "japanese",
     srcs = [":_japanese#go_source"],
+    cover = False,
     import_path = "golang.org/x/text/encoding/japanese",
     visibility = ["PUBLIC"],
     deps = [

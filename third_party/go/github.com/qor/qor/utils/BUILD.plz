@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "utils",
     srcs = [":_utils#go_source"],
+    cover = False,
     import_path = "github.com/qor/qor/utils",
     visibility = ["PUBLIC"],
     deps = [

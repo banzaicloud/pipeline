@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "ptypes",
     srcs = [":_ptypes#go_source"],
+    cover = False,
     import_path = "github.com/golang/protobuf/ptypes",
     visibility = ["PUBLIC"],
     deps = [

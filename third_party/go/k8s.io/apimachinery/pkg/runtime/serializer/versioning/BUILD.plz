@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "versioning",
     srcs = [":_versioning#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/runtime/serializer/versioning",
     visibility = ["PUBLIC"],
     deps = [

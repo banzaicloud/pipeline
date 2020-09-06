@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "errors",
     srcs = [":_errors#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/util/errors",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/k8s.io/apimachinery/pkg/util/sets"],

@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "descriptor",
     srcs = [":_descriptor#go_source"],
+    cover = False,
     import_path = "github.com/golang/protobuf/protoc-gen-go/descriptor",
     visibility = ["PUBLIC"],
     deps = [

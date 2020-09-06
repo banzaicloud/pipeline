@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "simplelru",
     srcs = [":_simplelru#go_source"],
+    cover = False,
     import_path = "github.com/hashicorp/golang-lru/simplelru",
     visibility = ["PUBLIC"],
     deps = [],

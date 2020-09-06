@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "git",
     srcs = [":_git#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kustomize/pkg/git",
     visibility = ["PUBLIC"],
     deps = [

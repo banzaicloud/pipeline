@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "config",
     srcs = [":_config#go_source"],
+    cover = False,
     import_path = "github.com/docker/cli/cli/config",
     visibility = ["PUBLIC"],
     deps = [

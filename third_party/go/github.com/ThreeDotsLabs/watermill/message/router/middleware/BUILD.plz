@@ -21,6 +21,7 @@ fileexport(
 go_library(
     name = "middleware",
     srcs = [":_middleware#go_source"],
+    cover = False,
     import_path = "github.com/ThreeDotsLabs/watermill/message/router/middleware",
     visibility = ["PUBLIC"],
     deps = [

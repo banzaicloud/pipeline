@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "endpoint",
     srcs = [":_endpoint#go_source"],
+    cover = False,
     import_path = "github.com/go-kit/kit/endpoint",
     visibility = ["PUBLIC"],
     deps = [],

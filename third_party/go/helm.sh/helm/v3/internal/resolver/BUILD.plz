@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "resolver",
     srcs = [":_resolver#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/internal/resolver",
     visibility = ["PUBLIC"],
     deps = [

@@ -24,6 +24,7 @@ fileexport(
 go_library(
     name = "logfmt",
     srcs = [":_logfmt#go_source"],
+    cover = False,
     import_path = "github.com/go-logfmt/logfmt",
     visibility = ["PUBLIC"],
     deps = [],

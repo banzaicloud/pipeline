@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "status",
     srcs = [":_status#go_source"],
+    cover = False,
     import_path = "google.golang.org/grpc/status",
     visibility = ["PUBLIC"],
     deps = [

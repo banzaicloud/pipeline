@@ -5,6 +5,7 @@ fileexport(
     srcs = [
         "pkg/util/term/resize.go",
         "pkg/util/term/resizeevents.go",
+        "pkg/util/term/resizeevents_windows.go",
         "pkg/util/term/term.go",
         "pkg/util/term/term_writer.go",
     ],
@@ -15,6 +16,7 @@ fileexport(
 go_library(
     name = "term",
     srcs = [":_term#go_source"],
+    cover = False,
     import_path = "k8s.io/kubectl/pkg/util/term",
     visibility = ["PUBLIC"],
     deps = [

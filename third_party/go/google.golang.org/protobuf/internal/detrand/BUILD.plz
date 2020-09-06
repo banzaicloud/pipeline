@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "detrand",
     srcs = [":_detrand#go_source"],
+    cover = False,
     import_path = "google.golang.org/protobuf/internal/detrand",
     visibility = ["PUBLIC"],
     deps = [],

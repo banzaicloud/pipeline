@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "fake",
     srcs = [":_fake#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/discovery/fake",
     visibility = ["PUBLIC"],
     deps = [

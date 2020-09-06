@@ -20,6 +20,7 @@ fileexport(
 go_library(
     name = "workflow",
     srcs = [":_workflow#go_source"],
+    cover = False,
     import_path = "go.uber.org/cadence/workflow",
     visibility = ["PUBLIC"],
     deps = [

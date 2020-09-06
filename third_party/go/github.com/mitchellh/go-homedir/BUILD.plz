@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "go-homedir",
     srcs = [":_go-homedir#go_source"],
+    cover = False,
     import_path = "github.com/mitchellh/go-homedir",
     visibility = ["PUBLIC"],
     deps = [],

@@ -10,6 +10,7 @@ fileexport(
         "aws/endpoints/endpoints.go",
         "aws/endpoints/legacy_regions.go",
         "aws/endpoints/v3model.go",
+        "aws/endpoints/v3model_codegen.go",
     ],
     tag = "go_source",
     deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
@@ -18,6 +19,7 @@ fileexport(
 go_library(
     name = "endpoints",
     srcs = [":_endpoints#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/aws/endpoints",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/aws/aws-sdk-go/aws/awserr"],

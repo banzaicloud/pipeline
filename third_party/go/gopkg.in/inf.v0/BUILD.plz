@@ -22,6 +22,7 @@ fileexport(
 go_library(
     name = "inf.v0",
     srcs = [":_inf.v0#go_source"],
+    cover = False,
     import_path = "gopkg.in/inf.v0",
     visibility = ["PUBLIC"],
     deps = [],

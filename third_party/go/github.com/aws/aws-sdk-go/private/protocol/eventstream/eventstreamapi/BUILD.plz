@@ -17,6 +17,7 @@ fileexport(
 go_library(
     name = "eventstreamapi",
     srcs = [":_eventstreamapi#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/private/protocol/eventstream/eventstreamapi",
     visibility = ["PUBLIC"],
     deps = [

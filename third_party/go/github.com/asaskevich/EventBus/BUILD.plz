@@ -24,6 +24,7 @@ fileexport(
 go_library(
     name = "EventBus",
     srcs = [":_EventBus#go_source"],
+    cover = False,
     import_path = "github.com/asaskevich/EventBus",
     visibility = ["PUBLIC"],
     deps = [],

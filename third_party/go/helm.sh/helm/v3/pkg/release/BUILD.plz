@@ -17,6 +17,7 @@ fileexport(
 go_library(
     name = "release",
     srcs = [":_release#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/pkg/release",
     visibility = ["PUBLIC"],
     deps = [

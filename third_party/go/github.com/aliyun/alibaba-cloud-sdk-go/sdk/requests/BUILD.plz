@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "requests",
     srcs = [":_requests#go_source"],
+    cover = False,
     import_path = "github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests",
     visibility = ["PUBLIC"],
     deps = [

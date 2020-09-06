@@ -33,6 +33,7 @@ fileexport(
 go_library(
     name = "yaml.v2",
     srcs = [":_yaml.v2#go_source"],
+    cover = False,
     import_path = "gopkg.in/yaml.v2",
     visibility = ["PUBLIC"],
     deps = [],

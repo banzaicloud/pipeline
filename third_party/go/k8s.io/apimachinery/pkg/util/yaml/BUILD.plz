@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "yaml",
     srcs = [":_yaml#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/util/yaml",
     visibility = ["PUBLIC"],
     deps = [

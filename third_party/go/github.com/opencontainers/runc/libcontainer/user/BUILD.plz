@@ -5,6 +5,7 @@ fileexport(
     srcs = [
         "libcontainer/user/lookup.go",
         "libcontainer/user/lookup_unix.go",
+        "libcontainer/user/lookup_windows.go",
         "libcontainer/user/user.go",
     ],
     tag = "go_source",
@@ -14,6 +15,7 @@ fileexport(
 go_library(
     name = "user",
     srcs = [":_user#go_source"],
+    cover = False,
     import_path = "github.com/opencontainers/runc/libcontainer/user",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/golang.org/x/sys/unix"],

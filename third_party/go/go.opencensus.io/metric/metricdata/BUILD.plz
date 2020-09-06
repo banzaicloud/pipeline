@@ -18,6 +18,7 @@ fileexport(
 go_library(
     name = "metricdata",
     srcs = [":_metricdata#go_source"],
+    cover = False,
     import_path = "go.opencensus.io/metric/metricdata",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/go.opencensus.io/resource"],

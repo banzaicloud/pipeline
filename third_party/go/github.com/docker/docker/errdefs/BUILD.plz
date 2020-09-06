@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "errdefs",
     srcs = [":_errdefs#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker/errdefs",
     visibility = ["PUBLIC"],
     deps = [

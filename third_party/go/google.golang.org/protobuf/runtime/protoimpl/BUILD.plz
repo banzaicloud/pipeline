@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "protoimpl",
     srcs = [":_protoimpl#go_source"],
+    cover = False,
     import_path = "google.golang.org/protobuf/runtime/protoimpl",
     visibility = ["PUBLIC"],
     deps = [

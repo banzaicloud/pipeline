@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "gorp.v1",
     srcs = [":_gorp.v1#go_source"],
+    cover = False,
     import_path = "gopkg.in/gorp.v1",
     visibility = ["PUBLIC"],
     deps = [],

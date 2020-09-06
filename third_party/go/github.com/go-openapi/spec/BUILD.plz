@@ -46,6 +46,7 @@ fileexport(
 go_library(
     name = "spec",
     srcs = [":_spec#go_source"],
+    cover = False,
     import_path = "github.com/go-openapi/spec",
     visibility = ["PUBLIC"],
     deps = [

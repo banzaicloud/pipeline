@@ -13,6 +13,7 @@ fileexport(
         "http2/gotrack.go",
         "http2/headermap.go",
         "http2/http2.go",
+        "http2/not_go111.go",
         "http2/pipe.go",
         "http2/server.go",
         "http2/transport.go",
@@ -28,6 +29,7 @@ fileexport(
 go_library(
     name = "http2",
     srcs = [":_http2#go_source"],
+    cover = False,
     import_path = "golang.org/x/net/http2",
     visibility = ["PUBLIC"],
     deps = [

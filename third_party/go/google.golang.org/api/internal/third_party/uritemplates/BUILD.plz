@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "uritemplates",
     srcs = [":_uritemplates#go_source"],
+    cover = False,
     import_path = "google.golang.org/api/internal/third_party/uritemplates",
     visibility = ["PUBLIC"],
     deps = [],

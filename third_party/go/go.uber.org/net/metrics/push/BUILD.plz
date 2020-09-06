@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "push",
     srcs = [":_push#go_source"],
+    cover = False,
     import_path = "go.uber.org/net/metrics/push",
     visibility = ["PUBLIC"],
     deps = [],

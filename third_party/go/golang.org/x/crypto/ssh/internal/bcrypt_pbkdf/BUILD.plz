@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "bcrypt_pbkdf",
     srcs = [":_bcrypt_pbkdf#go_source"],
+    cover = False,
     import_path = "golang.org/x/crypto/ssh/internal/bcrypt_pbkdf",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/golang.org/x/crypto/blowfish"],

@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "plugin",
     srcs = [":_plugin#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/pkg/plugin",
     visibility = ["PUBLIC"],
     deps = [

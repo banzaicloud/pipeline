@@ -30,6 +30,7 @@ fileexport(
 go_library(
     name = "ini.v1",
     srcs = [":_ini.v1#go_source"],
+    cover = False,
     import_path = "gopkg.in/ini.v1",
     visibility = ["PUBLIC"],
     deps = [],

@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "util",
     srcs = [":_util#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/internal/third_party/k8s.io/kubernetes/deployment/util",
     visibility = ["PUBLIC"],
     deps = [

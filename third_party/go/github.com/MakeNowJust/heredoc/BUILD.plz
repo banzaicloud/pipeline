@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "heredoc",
     srcs = [":_heredoc#go_source"],
+    cover = False,
     import_path = "github.com/MakeNowJust/heredoc",
     visibility = ["PUBLIC"],
     deps = [],

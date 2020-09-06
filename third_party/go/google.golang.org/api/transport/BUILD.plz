@@ -6,6 +6,7 @@ fileexport(
         "transport/dial.go",
         "transport/doc.go",
         "transport/go19.go",
+        "transport/not_go19.go",
     ],
     tag = "go_source",
     deps = ["//third_party/go/google.golang.org/api:_api#download"],
@@ -14,6 +15,7 @@ fileexport(
 go_library(
     name = "transport",
     srcs = [":_transport#go_source"],
+    cover = False,
     import_path = "google.golang.org/api/transport",
     visibility = ["PUBLIC"],
     deps = [

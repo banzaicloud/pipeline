@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "portforward",
     srcs = [":_portforward#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/tools/portforward",
     visibility = ["PUBLIC"],
     deps = [

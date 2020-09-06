@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "s3err",
     srcs = [":_s3err#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/internal/s3err",
     visibility = ["PUBLIC"],
     deps = [

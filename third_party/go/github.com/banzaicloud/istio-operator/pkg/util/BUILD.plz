@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "util",
     srcs = [":_util#go_source"],
+    cover = False,
     import_path = "github.com/banzaicloud/istio-operator/pkg/util",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/k8s.io/apimachinery/pkg/util/intstr"],

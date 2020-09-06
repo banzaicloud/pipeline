@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "cipher",
     srcs = [":_cipher#go_source"],
+    cover = False,
     import_path = "gopkg.in/square/go-jose.v2/cipher",
     visibility = ["PUBLIC"],
     deps = [],

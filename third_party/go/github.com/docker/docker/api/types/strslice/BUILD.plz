@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "strslice",
     srcs = [":_strslice#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker/api/types/strslice",
     visibility = ["PUBLIC"],
     deps = [],

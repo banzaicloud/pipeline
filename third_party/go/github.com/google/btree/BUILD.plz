@@ -11,7 +11,10 @@ go_module_download(
 
 fileexport(
     name = "btree",
-    srcs = ["btree.go"],
+    srcs = [
+        "btree.go",
+        "btree_mem.go",
+    ],
     tag = "go_source",
     deps = [":_btree#download"],
 )
@@ -19,6 +22,7 @@ fileexport(
 go_library(
     name = "btree",
     srcs = [":_btree#go_source"],
+    cover = False,
     import_path = "github.com/google/btree",
     visibility = ["PUBLIC"],
     deps = [],

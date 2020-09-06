@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "resumable",
     srcs = [":_resumable#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker/registry/resumable",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/sirupsen/logrus"],

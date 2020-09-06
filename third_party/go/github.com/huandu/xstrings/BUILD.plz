@@ -27,6 +27,7 @@ fileexport(
 go_library(
     name = "xstrings",
     srcs = [":_xstrings#go_source"],
+    cover = False,
     import_path = "github.com/huandu/xstrings",
     visibility = ["PUBLIC"],
     deps = [],

@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "getter",
     srcs = [":_getter#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/pkg/getter",
     visibility = ["PUBLIC"],
     deps = [

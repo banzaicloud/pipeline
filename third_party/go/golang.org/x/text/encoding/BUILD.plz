@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "encoding",
     srcs = [":_encoding#go_source"],
+    cover = False,
     import_path = "golang.org/x/text/encoding",
     visibility = ["PUBLIC"],
     deps = [

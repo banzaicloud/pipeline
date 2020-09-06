@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "build",
     srcs = [":_build#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kustomize/pkg/commands/build",
     visibility = ["PUBLIC"],
     deps = [

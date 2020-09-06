@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "featuregate",
     srcs = [":_featuregate#go_source"],
+    cover = False,
     import_path = "k8s.io/component-base/featuregate",
     visibility = ["PUBLIC"],
     deps = [

@@ -17,6 +17,7 @@ fileexport(
 go_library(
     name = "endpoints",
     srcs = [":_endpoints#go_source"],
+    cover = False,
     import_path = "github.com/aliyun/alibaba-cloud-sdk-go/sdk/endpoints",
     visibility = ["PUBLIC"],
     deps = [

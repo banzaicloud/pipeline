@@ -4,6 +4,7 @@ fileexport(
     name = "cmp",
     srcs = [
         "cmp/compare.go",
+        "cmp/export_panic.go",
         "cmp/export_unsafe.go",
         "cmp/options.go",
         "cmp/path.go",
@@ -21,6 +22,7 @@ fileexport(
 go_library(
     name = "cmp",
     srcs = [":_cmp#go_source"],
+    cover = False,
     import_path = "github.com/google/go-cmp/cmp",
     visibility = ["PUBLIC"],
     deps = [

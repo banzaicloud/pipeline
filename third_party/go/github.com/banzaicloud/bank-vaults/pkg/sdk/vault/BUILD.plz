@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "vault",
     srcs = [":_vault#go_source"],
+    cover = False,
     import_path = "github.com/banzaicloud/bank-vaults/pkg/sdk/vault",
     visibility = ["PUBLIC"],
     deps = [

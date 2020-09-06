@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "addr",
     srcs = [":_addr#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/testing_frameworks/integration/addr",
     visibility = ["PUBLIC"],
     deps = [],

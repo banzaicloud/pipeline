@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "reference",
     srcs = [":_reference#go_source"],
+    cover = False,
     import_path = "github.com/docker/distribution/reference",
     visibility = ["PUBLIC"],
     deps = [

@@ -13,6 +13,7 @@ fileexport(
         "service/s3/endpoint_errors.go",
         "service/s3/errors.go",
         "service/s3/host_style_bucket.go",
+        "service/s3/platform_handlers.go",
         "service/s3/platform_handlers_go1.6.go",
         "service/s3/service.go",
         "service/s3/sse.go",
@@ -27,6 +28,7 @@ fileexport(
 go_library(
     name = "s3",
     srcs = [":_s3#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/service/s3",
     visibility = ["PUBLIC"],
     deps = [

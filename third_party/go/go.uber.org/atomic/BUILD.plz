@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "atomic",
     srcs = [":_atomic#go_source"],
+    cover = False,
     import_path = "go.uber.org/atomic",
     visibility = ["PUBLIC"],
     deps = [],

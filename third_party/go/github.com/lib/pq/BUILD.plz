@@ -25,8 +25,10 @@ fileexport(
         "rows.go",
         "ssl.go",
         "ssl_permissions.go",
+        "ssl_windows.go",
         "url.go",
         "user_posix.go",
+        "user_windows.go",
         "uuid.go",
     ],
     tag = "go_source",
@@ -36,6 +38,7 @@ fileexport(
 go_library(
     name = "pq",
     srcs = [":_pq#go_source"],
+    cover = False,
     import_path = "github.com/lib/pq",
     visibility = ["PUBLIC"],
     deps = [

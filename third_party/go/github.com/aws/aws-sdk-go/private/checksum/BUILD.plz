@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "checksum",
     srcs = [":_checksum#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/private/checksum",
     visibility = ["PUBLIC"],
     deps = [

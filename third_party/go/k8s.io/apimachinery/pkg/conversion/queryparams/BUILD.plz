@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "queryparams",
     srcs = [":_queryparams#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/conversion/queryparams",
     visibility = ["PUBLIC"],
     deps = [],

@@ -15,6 +15,7 @@ fileexport(
         "collection.go",
         "constraints.go",
         "doc.go",
+        "fuzz.go",
         "version.go",
     ],
     tag = "go_source",
@@ -24,6 +25,7 @@ fileexport(
 go_library(
     name = "v3",
     srcs = [":_v3#go_source"],
+    cover = False,
     import_path = "github.com/Masterminds/semver/v3",
     visibility = ["PUBLIC"],
     deps = [],

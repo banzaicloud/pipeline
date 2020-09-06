@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "common",
     srcs = [":_common#go_source"],
+    cover = False,
     import_path = "go.uber.org/cadence/internal/common",
     visibility = ["PUBLIC"],
     deps = [

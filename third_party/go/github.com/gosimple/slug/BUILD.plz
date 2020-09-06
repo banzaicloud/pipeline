@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "slug",
     srcs = [":_slug#go_source"],
+    cover = False,
     import_path = "github.com/gosimple/slug",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/rainycape/unidecode"],

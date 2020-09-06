@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "singleflight",
     srcs = [":_singleflight#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/internal/sync/singleflight",
     visibility = ["PUBLIC"],
     deps = [],

@@ -20,6 +20,7 @@ fileexport(
 go_library(
     name = "resources",
     srcs = [":_resources#go_source"],
+    cover = False,
     import_path = "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources",
     visibility = ["PUBLIC"],
     deps = [

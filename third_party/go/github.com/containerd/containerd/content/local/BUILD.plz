@@ -7,6 +7,7 @@ fileexport(
         "content/local/readerat.go",
         "content/local/store.go",
         "content/local/store_unix.go",
+        "content/local/store_windows.go",
         "content/local/writer.go",
     ],
     tag = "go_source",
@@ -16,6 +17,7 @@ fileexport(
 go_library(
     name = "local",
     srcs = [":_local#go_source"],
+    cover = False,
     import_path = "github.com/containerd/containerd/content/local",
     visibility = ["PUBLIC"],
     deps = [

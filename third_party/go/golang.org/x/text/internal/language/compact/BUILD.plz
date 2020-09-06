@@ -4,6 +4,9 @@ fileexport(
     name = "compact",
     srcs = [
         "internal/language/compact/compact.go",
+        "internal/language/compact/gen.go",
+        "internal/language/compact/gen_index.go",
+        "internal/language/compact/gen_parents.go",
         "internal/language/compact/language.go",
         "internal/language/compact/parents.go",
         "internal/language/compact/tables.go",
@@ -16,6 +19,7 @@ fileexport(
 go_library(
     name = "compact",
     srcs = [":_compact#go_source"],
+    cover = False,
     import_path = "golang.org/x/text/internal/language/compact",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/golang.org/x/text/internal/language"],

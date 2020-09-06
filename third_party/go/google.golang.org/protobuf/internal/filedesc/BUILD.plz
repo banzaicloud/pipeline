@@ -18,6 +18,7 @@ fileexport(
 go_library(
     name = "filedesc",
     srcs = [":_filedesc#go_source"],
+    cover = False,
     import_path = "google.golang.org/protobuf/internal/filedesc",
     visibility = ["PUBLIC"],
     deps = [

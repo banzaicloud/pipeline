@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "labels",
     srcs = [":_labels#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/labels",
     visibility = ["PUBLIC"],
     deps = [

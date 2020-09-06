@@ -5,6 +5,8 @@ fileexport(
     srcs = [
         "language/coverage.go",
         "language/doc.go",
+        "language/gen.go",
+        "language/go1_1.go",
         "language/go1_2.go",
         "language/language.go",
         "language/match.go",
@@ -19,6 +21,7 @@ fileexport(
 go_library(
     name = "language",
     srcs = [":_language#go_source"],
+    cover = False,
     import_path = "golang.org/x/text/language",
     visibility = ["PUBLIC"],
     deps = [

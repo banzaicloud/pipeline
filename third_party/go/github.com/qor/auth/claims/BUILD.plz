@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "claims",
     srcs = [":_claims#go_source"],
+    cover = False,
     import_path = "github.com/qor/auth/claims",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/dgrijalva/jwt-go"],

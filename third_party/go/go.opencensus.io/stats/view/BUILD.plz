@@ -20,6 +20,7 @@ fileexport(
 go_library(
     name = "view",
     srcs = [":_view#go_source"],
+    cover = False,
     import_path = "go.opencensus.io/stats/view",
     visibility = ["PUBLIC"],
     deps = [

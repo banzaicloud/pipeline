@@ -22,6 +22,7 @@ fileexport(
 go_library(
     name = "multierr",
     srcs = [":_multierr#go_source"],
+    cover = False,
     import_path = "go.uber.org/multierr",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/go.uber.org/atomic"],

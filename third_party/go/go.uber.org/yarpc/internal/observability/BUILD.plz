@@ -18,6 +18,7 @@ fileexport(
 go_library(
     name = "observability",
     srcs = [":_observability#go_source"],
+    cover = False,
     import_path = "go.uber.org/yarpc/internal/observability",
     visibility = ["PUBLIC"],
     deps = [

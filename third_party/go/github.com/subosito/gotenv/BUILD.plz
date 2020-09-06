@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "gotenv",
     srcs = [":_gotenv#go_source"],
+    cover = False,
     import_path = "github.com/subosito/gotenv",
     visibility = ["PUBLIC"],
     deps = [],

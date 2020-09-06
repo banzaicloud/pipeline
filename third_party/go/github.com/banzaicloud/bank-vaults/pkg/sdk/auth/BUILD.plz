@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "auth",
     srcs = [":_auth#go_source"],
+    cover = False,
     import_path = "github.com/banzaicloud/bank-vaults/pkg/sdk/auth",
     visibility = ["PUBLIC"],
     deps = [

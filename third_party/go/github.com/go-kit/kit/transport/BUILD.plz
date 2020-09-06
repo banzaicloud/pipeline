@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "transport",
     srcs = [":_transport#go_source"],
+    cover = False,
     import_path = "github.com/go-kit/kit/transport",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/go-kit/kit/log"],

@@ -46,6 +46,7 @@ fileexport(
 go_library(
     name = "gorm",
     srcs = [":_gorm#go_source"],
+    cover = False,
     import_path = "github.com/jinzhu/gorm",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/jinzhu/inflection"],

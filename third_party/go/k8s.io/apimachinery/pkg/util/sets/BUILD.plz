@@ -18,6 +18,7 @@ fileexport(
 go_library(
     name = "sets",
     srcs = [":_sets#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/util/sets",
     visibility = ["PUBLIC"],
     deps = [],

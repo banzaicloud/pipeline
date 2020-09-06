@@ -9,6 +9,7 @@ fileexport(
         "internal/ini/doc.go",
         "internal/ini/empty_token.go",
         "internal/ini/expression.go",
+        "internal/ini/fuzz.go",
         "internal/ini/ini.go",
         "internal/ini/ini_lexer.go",
         "internal/ini/ini_parser.go",
@@ -33,6 +34,7 @@ fileexport(
 go_library(
     name = "ini",
     srcs = [":_ini#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/internal/ini",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/aws/aws-sdk-go/aws/awserr"],

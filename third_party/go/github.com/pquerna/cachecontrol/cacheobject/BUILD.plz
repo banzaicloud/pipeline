@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "cacheobject",
     srcs = [":_cacheobject#go_source"],
+    cover = False,
     import_path = "github.com/pquerna/cachecontrol/cacheobject",
     visibility = ["PUBLIC"],
     deps = [],

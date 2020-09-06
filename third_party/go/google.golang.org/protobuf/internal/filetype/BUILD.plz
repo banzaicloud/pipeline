@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "filetype",
     srcs = [":_filetype#go_source"],
+    cover = False,
     import_path = "google.golang.org/protobuf/internal/filetype",
     visibility = ["PUBLIC"],
     deps = [

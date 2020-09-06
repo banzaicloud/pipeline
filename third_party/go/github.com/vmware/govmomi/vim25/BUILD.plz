@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "vim25",
     srcs = [":_vim25#go_source"],
+    cover = False,
     import_path = "github.com/vmware/govmomi/vim25",
     visibility = ["PUBLIC"],
     deps = [

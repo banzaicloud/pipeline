@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "timestamp",
     srcs = [":_timestamp#go_source"],
+    cover = False,
     import_path = "github.com/golang/protobuf/ptypes/timestamp",
     visibility = ["PUBLIC"],
     deps = [

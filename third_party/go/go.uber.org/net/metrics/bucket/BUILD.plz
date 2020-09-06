@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "bucket",
     srcs = [":_bucket#go_source"],
+    cover = False,
     import_path = "go.uber.org/net/metrics/bucket",
     visibility = ["PUBLIC"],
     deps = [],

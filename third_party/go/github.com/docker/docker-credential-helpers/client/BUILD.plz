@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "client",
     srcs = [":_client#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker-credential-helpers/client",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/docker/docker-credential-helpers/credentials"],

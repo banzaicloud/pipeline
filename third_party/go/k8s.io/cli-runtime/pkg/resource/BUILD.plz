@@ -25,6 +25,7 @@ fileexport(
 go_library(
     name = "resource",
     srcs = [":_resource#go_source"],
+    cover = False,
     import_path = "k8s.io/cli-runtime/pkg/resource",
     visibility = ["PUBLIC"],
     deps = [

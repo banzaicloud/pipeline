@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "json",
     srcs = [":_json#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/third_party/forked/golang/json",
     visibility = ["PUBLIC"],
     deps = [],

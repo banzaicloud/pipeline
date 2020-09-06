@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "lb",
     srcs = [":_lb#go_source"],
+    cover = False,
     import_path = "github.com/go-kit/kit/sd/lb",
     visibility = ["PUBLIC"],
     deps = [

@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "timeseries",
     srcs = [":_timeseries#go_source"],
+    cover = False,
     import_path = "golang.org/x/net/internal/timeseries",
     visibility = ["PUBLIC"],
     deps = [],

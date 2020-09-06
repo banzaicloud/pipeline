@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "uitable",
     srcs = [":_uitable#go_source"],
+    cover = False,
     import_path = "github.com/gosuri/uitable",
     visibility = ["PUBLIC"],
     deps = [

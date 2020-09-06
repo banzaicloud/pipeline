@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "cli",
     srcs = [":_cli#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/pkg/cli",
     visibility = ["PUBLIC"],
     deps = [

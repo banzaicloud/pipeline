@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "remotes",
     srcs = [":_remotes#go_source"],
+    cover = False,
     import_path = "github.com/containerd/containerd/remotes",
     visibility = ["PUBLIC"],
     deps = [

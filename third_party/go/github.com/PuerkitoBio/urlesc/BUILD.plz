@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "urlesc",
     srcs = [":_urlesc#go_source"],
+    cover = False,
     import_path = "github.com/PuerkitoBio/urlesc",
     visibility = ["PUBLIC"],
     deps = [],

@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "template",
     srcs = [":_template#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/third_party/forked/golang/template",
     visibility = ["PUBLIC"],
     deps = [],

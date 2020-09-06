@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "responder",
     srcs = [":_responder#go_source"],
+    cover = False,
     import_path = "github.com/qor/responder",
     visibility = ["PUBLIC"],
     deps = [],

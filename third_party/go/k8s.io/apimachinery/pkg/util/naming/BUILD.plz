@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "naming",
     srcs = [":_naming#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/util/naming",
     visibility = ["PUBLIC"],
     deps = [],

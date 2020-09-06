@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "queryutil",
     srcs = [":_queryutil#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/private/protocol/query/queryutil",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/aws/aws-sdk-go/private/protocol"],

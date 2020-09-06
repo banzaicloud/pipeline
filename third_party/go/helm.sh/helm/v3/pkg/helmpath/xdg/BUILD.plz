@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "xdg",
     srcs = [":_xdg#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/pkg/helmpath/xdg",
     visibility = ["PUBLIC"],
     deps = [],

@@ -20,6 +20,7 @@ fileexport(
 go_library(
     name = "authorization",
     srcs = [":_authorization#go_source"],
+    cover = False,
     import_path = "github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization",
     visibility = ["PUBLIC"],
     deps = [

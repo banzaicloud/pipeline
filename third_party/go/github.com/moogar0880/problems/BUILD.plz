@@ -24,6 +24,7 @@ fileexport(
 go_library(
     name = "problems",
     srcs = [":_problems#go_source"],
+    cover = False,
     import_path = "github.com/moogar0880/problems",
     visibility = ["PUBLIC"],
     deps = [],

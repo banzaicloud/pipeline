@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "rc2",
     srcs = [":_rc2#go_source"],
+    cover = False,
     import_path = "golang.org/x/crypto/pkcs12/internal/rc2",
     visibility = ["PUBLIC"],
     deps = [],

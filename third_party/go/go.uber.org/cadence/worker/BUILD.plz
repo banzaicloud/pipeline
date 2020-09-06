@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "worker",
     srcs = [":_worker#go_source"],
+    cover = False,
     import_path = "go.uber.org/cadence/worker",
     visibility = ["PUBLIC"],
     deps = [

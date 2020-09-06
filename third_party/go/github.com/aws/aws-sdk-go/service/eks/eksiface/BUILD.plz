@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "eksiface",
     srcs = [":_eksiface#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/service/eks/eksiface",
     visibility = ["PUBLIC"],
     deps = [

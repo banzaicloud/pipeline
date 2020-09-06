@@ -6,6 +6,7 @@ fileexport(
         "expfmt/decode.go",
         "expfmt/encode.go",
         "expfmt/expfmt.go",
+        "expfmt/fuzz.go",
         "expfmt/openmetrics_create.go",
         "expfmt/text_create.go",
         "expfmt/text_parse.go",
@@ -17,6 +18,7 @@ fileexport(
 go_library(
     name = "expfmt",
     srcs = [":_expfmt#go_source"],
+    cover = False,
     import_path = "github.com/prometheus/common/expfmt",
     visibility = ["PUBLIC"],
     deps = [

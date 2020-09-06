@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "trace",
     srcs = [":_trace#go_source"],
+    cover = False,
     import_path = "k8s.io/utils/trace",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/k8s.io/klog/v2"],

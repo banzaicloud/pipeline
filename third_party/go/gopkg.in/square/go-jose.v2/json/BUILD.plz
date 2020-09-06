@@ -17,6 +17,7 @@ fileexport(
 go_library(
     name = "json",
     srcs = [":_json#go_source"],
+    cover = False,
     import_path = "gopkg.in/square/go-jose.v2/json",
     visibility = ["PUBLIC"],
     deps = [],

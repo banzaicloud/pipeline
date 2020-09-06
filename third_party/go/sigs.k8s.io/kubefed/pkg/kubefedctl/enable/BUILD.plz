@@ -17,6 +17,7 @@ fileexport(
 go_library(
     name = "enable",
     srcs = [":_enable#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kubefed/pkg/kubefedctl/enable",
     visibility = ["PUBLIC"],
     deps = [

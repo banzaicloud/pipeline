@@ -18,6 +18,7 @@ fileexport(
 go_library(
     name = "workqueue",
     srcs = [":_workqueue#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/util/workqueue",
     visibility = ["PUBLIC"],
     deps = [

@@ -20,6 +20,7 @@ fileexport(
 go_library(
     name = "v1beta1",
     srcs = [":_v1beta1#go_source"],
+    cover = False,
     import_path = "github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1",
     visibility = ["PUBLIC"],
     deps = [

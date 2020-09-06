@@ -13,6 +13,7 @@ fileexport(
     name = "securecookie",
     srcs = [
         "doc.go",
+        "fuzz.go",
         "securecookie.go",
     ],
     tag = "go_source",
@@ -22,6 +23,7 @@ fileexport(
 go_library(
     name = "securecookie",
     srcs = [":_securecookie#go_source"],
+    cover = False,
     import_path = "github.com/gorilla/securecookie",
     visibility = ["PUBLIC"],
     deps = [],

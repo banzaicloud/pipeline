@@ -24,6 +24,7 @@ fileexport(
 go_library(
     name = "goutils",
     srcs = [":_goutils#go_source"],
+    cover = False,
     import_path = "github.com/Masterminds/goutils",
     visibility = ["PUBLIC"],
     deps = [],

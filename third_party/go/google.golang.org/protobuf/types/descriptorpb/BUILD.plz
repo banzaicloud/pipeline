@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "descriptorpb",
     srcs = [":_descriptorpb#go_source"],
+    cover = False,
     import_path = "google.golang.org/protobuf/types/descriptorpb",
     visibility = ["PUBLIC"],
     deps = [

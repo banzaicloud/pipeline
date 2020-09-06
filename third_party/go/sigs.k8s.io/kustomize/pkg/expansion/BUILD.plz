@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "expansion",
     srcs = [":_expansion#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kustomize/pkg/expansion",
     visibility = ["PUBLIC"],
     deps = [],

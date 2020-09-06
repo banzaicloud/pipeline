@@ -17,6 +17,7 @@ fileexport(
         "doc.go",
         "encode.go",
         "encoding_types.go",
+        "encoding_types_1.1.go",
         "lex.go",
         "parse.go",
         "type_check.go",
@@ -29,6 +30,7 @@ fileexport(
 go_library(
     name = "toml",
     srcs = [":_toml#go_source"],
+    cover = False,
     import_path = "github.com/BurntSushi/toml",
     visibility = ["PUBLIC"],
     deps = [],

@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "watch",
     srcs = [":_watch#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/rest/watch",
     visibility = ["PUBLIC"],
     deps = [

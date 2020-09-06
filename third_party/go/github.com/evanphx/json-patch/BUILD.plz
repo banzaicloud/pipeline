@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "json-patch",
     srcs = [":_json-patch#go_source"],
+    cover = False,
     import_path = "github.com/evanphx/json-patch",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/pkg/errors"],

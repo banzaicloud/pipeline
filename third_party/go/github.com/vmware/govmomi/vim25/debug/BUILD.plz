@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "debug",
     srcs = [":_debug#go_source"],
+    cover = False,
     import_path = "github.com/vmware/govmomi/vim25/debug",
     visibility = ["PUBLIC"],
     deps = [],

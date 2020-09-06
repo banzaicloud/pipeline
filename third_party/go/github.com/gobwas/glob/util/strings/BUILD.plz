@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "strings",
     srcs = [":_strings#go_source"],
+    cover = False,
     import_path = "github.com/gobwas/glob/util/strings",
     visibility = ["PUBLIC"],
     deps = [],

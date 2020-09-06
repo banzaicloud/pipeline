@@ -32,6 +32,7 @@ fileexport(
 go_library(
     name = "util",
     srcs = [":_util#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kubefed/pkg/controller/util",
     visibility = ["PUBLIC"],
     deps = [

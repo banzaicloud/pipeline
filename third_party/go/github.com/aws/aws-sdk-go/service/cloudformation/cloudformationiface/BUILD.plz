@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "cloudformationiface",
     srcs = [":_cloudformationiface#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface",
     visibility = ["PUBLIC"],
     deps = [

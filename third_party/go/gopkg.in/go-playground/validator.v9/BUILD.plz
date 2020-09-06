@@ -31,6 +31,7 @@ fileexport(
 go_library(
     name = "validator.v9",
     srcs = [":_validator.v9#go_source"],
+    cover = False,
     import_path = "gopkg.in/go-playground/validator.v9",
     visibility = ["PUBLIC"],
     deps = [

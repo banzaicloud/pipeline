@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "responses",
     srcs = [":_responses#go_source"],
+    cover = False,
     import_path = "github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses",
     visibility = ["PUBLIC"],
     deps = [

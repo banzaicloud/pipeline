@@ -17,6 +17,7 @@ fileexport(
 go_library(
     name = "v1alpha1",
     srcs = [":_v1alpha1#go_source"],
+    cover = False,
     import_path = "k8s.io/api/scheduling/v1alpha1",
     visibility = ["PUBLIC"],
     deps = [

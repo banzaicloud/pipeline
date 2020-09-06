@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "cors",
     srcs = [":_cors#go_source"],
+    cover = False,
     import_path = "github.com/gin-contrib/cors",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/gin-gonic/gin"],

@@ -32,6 +32,7 @@ fileexport(
 go_library(
     name = "match",
     srcs = [":_match#go_source"],
+    cover = False,
     import_path = "github.com/gobwas/glob/match",
     visibility = ["PUBLIC"],
     deps = [

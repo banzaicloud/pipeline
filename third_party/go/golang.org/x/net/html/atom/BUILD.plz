@@ -4,6 +4,7 @@ fileexport(
     name = "atom",
     srcs = [
         "html/atom/atom.go",
+        "html/atom/gen.go",
         "html/atom/table.go",
     ],
     tag = "go_source",
@@ -13,6 +14,7 @@ fileexport(
 go_library(
     name = "atom",
     srcs = [":_atom#go_source"],
+    cover = False,
     import_path = "golang.org/x/net/html/atom",
     visibility = ["PUBLIC"],
     deps = [],

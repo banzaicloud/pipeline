@@ -13,7 +13,12 @@ fileexport(
     name = "go-isatty",
     srcs = [
         "doc.go",
+        "isatty_android.go",
         "isatty_bsd.go",
+        "isatty_others.go",
+        "isatty_solaris.go",
+        "isatty_tcgets.go",
+        "isatty_windows.go",
     ],
     tag = "go_source",
     deps = [":_go-isatty#download"],
@@ -22,6 +27,7 @@ fileexport(
 go_library(
     name = "go-isatty",
     srcs = [":_go-isatty#go_source"],
+    cover = False,
     import_path = "github.com/mattn/go-isatty",
     visibility = ["PUBLIC"],
     deps = [],

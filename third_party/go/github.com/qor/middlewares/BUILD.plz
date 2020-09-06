@@ -24,6 +24,7 @@ fileexport(
 go_library(
     name = "middlewares",
     srcs = [":_middlewares#go_source"],
+    cover = False,
     import_path = "github.com/qor/middlewares",
     visibility = ["PUBLIC"],
     deps = [],

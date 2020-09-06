@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "watermill",
     srcs = [":_watermill#go_source"],
+    cover = False,
     import_path = "github.com/ThreeDotsLabs/watermill",
     visibility = ["PUBLIC"],
     deps = [

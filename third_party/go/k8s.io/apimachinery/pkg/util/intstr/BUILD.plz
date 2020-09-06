@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "intstr",
     srcs = [":_intstr#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/util/intstr",
     visibility = ["PUBLIC"],
     deps = [

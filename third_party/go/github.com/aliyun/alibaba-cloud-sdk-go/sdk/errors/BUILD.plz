@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "errors",
     srcs = [":_errors#go_source"],
+    cover = False,
     import_path = "github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors",
     visibility = ["PUBLIC"],
     deps = [

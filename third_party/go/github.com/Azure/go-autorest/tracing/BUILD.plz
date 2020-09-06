@@ -11,7 +11,10 @@ go_module_download(
 
 fileexport(
     name = "tracing",
-    srcs = ["tracing.go"],
+    srcs = [
+        "go_mod_tidy_hack.go",
+        "tracing.go",
+    ],
     tag = "go_source",
     deps = [":_tracing#download"],
 )
@@ -19,6 +22,7 @@ fileexport(
 go_library(
     name = "tracing",
     srcs = [":_tracing#go_source"],
+    cover = False,
     import_path = "github.com/Azure/go-autorest/tracing",
     visibility = ["PUBLIC"],
     deps = [],

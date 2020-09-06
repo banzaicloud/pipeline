@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "diskv",
     srcs = [":_diskv#go_source"],
+    cover = False,
     import_path = "github.com/peterbourgon/diskv",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/google/btree"],

@@ -17,6 +17,7 @@ fileexport(
 go_library(
     name = "encoding",
     srcs = [":_encoding#go_source"],
+    cover = False,
     import_path = "go.uber.org/yarpc/api/encoding",
     visibility = ["PUBLIC"],
     deps = [

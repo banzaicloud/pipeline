@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "resmap",
     srcs = [":_resmap#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kustomize/pkg/resmap",
     visibility = ["PUBLIC"],
     deps = [

@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "semaphore",
     srcs = [":_semaphore#go_source"],
+    cover = False,
     import_path = "golang.org/x/sync/semaphore",
     visibility = ["PUBLIC"],
     deps = [],

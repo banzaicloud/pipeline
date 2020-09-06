@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "version",
     srcs = [":_version#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kubefed/pkg/version",
     visibility = ["PUBLIC"],
     deps = [],

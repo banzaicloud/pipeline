@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "options",
     srcs = [":_options#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kubefed/pkg/kubefedctl/options",
     visibility = ["PUBLIC"],
     deps = [

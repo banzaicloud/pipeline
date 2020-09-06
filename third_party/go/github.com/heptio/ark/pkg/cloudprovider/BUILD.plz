@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "cloudprovider",
     srcs = [":_cloudprovider#go_source"],
+    cover = False,
     import_path = "github.com/heptio/ark/pkg/cloudprovider",
     visibility = ["PUBLIC"],
     deps = [

@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "thriftreflect",
     srcs = [":_thriftreflect#go_source"],
+    cover = False,
     import_path = "go.uber.org/thriftrw/thriftreflect",
     visibility = ["PUBLIC"],
     deps = [],

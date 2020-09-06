@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "locales",
     srcs = [":_locales#go_source"],
+    cover = False,
     import_path = "github.com/go-playground/locales",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/go-playground/locales/currency"],

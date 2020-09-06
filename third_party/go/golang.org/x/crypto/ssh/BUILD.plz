@@ -32,6 +32,7 @@ fileexport(
 go_library(
     name = "ssh",
     srcs = [":_ssh#go_source"],
+    cover = False,
     import_path = "golang.org/x/crypto/ssh",
     visibility = ["PUBLIC"],
     deps = [

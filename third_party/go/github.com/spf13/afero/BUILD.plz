@@ -16,6 +16,7 @@ fileexport(
         "basepath.go",
         "cacheOnReadFs.go",
         "const_bsds.go",
+        "const_win_unix.go",
         "copyOnWriteFs.go",
         "httpFs.go",
         "ioutil.go",
@@ -36,6 +37,7 @@ fileexport(
 go_library(
     name = "afero",
     srcs = [":_afero#go_source"],
+    cover = False,
     import_path = "github.com/spf13/afero",
     visibility = ["PUBLIC"],
     deps = [

@@ -32,6 +32,7 @@ fileexport(
 go_library(
     name = "auth",
     srcs = [":_auth#go_source"],
+    cover = False,
     import_path = "github.com/qor/auth",
     visibility = ["PUBLIC"],
     deps = [

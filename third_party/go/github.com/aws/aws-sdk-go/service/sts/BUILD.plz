@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "sts",
     srcs = [":_sts#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/service/sts",
     visibility = ["PUBLIC"],
     deps = [

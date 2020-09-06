@@ -11,7 +11,10 @@ go_module_download(
 
 fileexport(
     name = "logger",
-    srcs = ["logger.go"],
+    srcs = [
+        "go_mod_tidy_hack.go",
+        "logger.go",
+    ],
     tag = "go_source",
     deps = [":_logger#download"],
 )
@@ -19,6 +22,7 @@ fileexport(
 go_library(
     name = "logger",
     srcs = [":_logger#go_source"],
+    cover = False,
     import_path = "github.com/Azure/go-autorest/logger",
     visibility = ["PUBLIC"],
     deps = [],

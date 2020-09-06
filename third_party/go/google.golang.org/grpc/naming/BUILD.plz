@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "naming",
     srcs = [":_naming#go_source"],
+    cover = False,
     import_path = "google.golang.org/grpc/naming",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/google.golang.org/grpc/grpclog"],

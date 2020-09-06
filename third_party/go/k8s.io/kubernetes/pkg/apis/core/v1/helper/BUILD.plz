@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "helper",
     srcs = [":_helper#go_source"],
+    cover = False,
     import_path = "k8s.io/kubernetes/pkg/apis/core/v1/helper",
     visibility = ["PUBLIC"],
     deps = [

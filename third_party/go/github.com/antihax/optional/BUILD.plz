@@ -41,6 +41,7 @@ fileexport(
 go_library(
     name = "optional",
     srcs = [":_optional#go_source"],
+    cover = False,
     import_path = "github.com/antihax/optional",
     visibility = ["PUBLIC"],
     deps = [],

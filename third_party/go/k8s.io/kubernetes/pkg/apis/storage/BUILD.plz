@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "storage",
     srcs = [":_storage#go_source"],
+    cover = False,
     import_path = "k8s.io/kubernetes/pkg/apis/storage",
     visibility = ["PUBLIC"],
     deps = [

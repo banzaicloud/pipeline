@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "ec2query",
     srcs = [":_ec2query#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/private/protocol/ec2query",
     visibility = ["PUBLIC"],
     deps = [

@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "redirect_back",
     srcs = [":_redirect_back#go_source"],
+    cover = False,
     import_path = "github.com/qor/redirect_back",
     visibility = ["PUBLIC"],
     deps = [

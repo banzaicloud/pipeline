@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "restxml",
     srcs = [":_restxml#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/private/protocol/restxml",
     visibility = ["PUBLIC"],
     deps = [

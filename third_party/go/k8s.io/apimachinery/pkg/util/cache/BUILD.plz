@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "cache",
     srcs = [":_cache#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/util/cache",
     visibility = ["PUBLIC"],
     deps = [

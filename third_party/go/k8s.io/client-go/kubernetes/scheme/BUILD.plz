@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "scheme",
     srcs = [":_scheme#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/kubernetes/scheme",
     visibility = ["PUBLIC"],
     deps = [

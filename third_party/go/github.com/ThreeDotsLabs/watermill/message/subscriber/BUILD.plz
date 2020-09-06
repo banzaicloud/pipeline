@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "subscriber",
     srcs = [":_subscriber#go_source"],
+    cover = False,
     import_path = "github.com/ThreeDotsLabs/watermill/message/subscriber",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/ThreeDotsLabs/watermill/message"],

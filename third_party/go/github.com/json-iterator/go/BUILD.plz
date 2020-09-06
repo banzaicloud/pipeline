@@ -33,6 +33,7 @@ fileexport(
         "iter_int.go",
         "iter_object.go",
         "iter_skip.go",
+        "iter_skip_sloppy.go",
         "iter_skip_strict.go",
         "iter_str.go",
         "jsoniter.go",
@@ -62,6 +63,7 @@ fileexport(
 go_library(
     name = "go",
     srcs = [":_go#go_source"],
+    cover = False,
     import_path = "github.com/json-iterator/go",
     visibility = ["PUBLIC"],
     deps = [

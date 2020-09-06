@@ -14,6 +14,7 @@ fileexport(
     srcs = [
         "executor.go",
         "go_above_19.go",
+        "go_below_19.go",
         "log.go",
         "unbounded_executor.go",
     ],
@@ -24,6 +25,7 @@ fileexport(
 go_library(
     name = "concurrent",
     srcs = [":_concurrent#go_source"],
+    cover = False,
     import_path = "github.com/modern-go/concurrent",
     visibility = ["PUBLIC"],
     deps = [],

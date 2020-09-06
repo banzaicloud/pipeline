@@ -24,6 +24,7 @@ fileexport(
 go_library(
     name = "flag",
     srcs = [":_flag#go_source"],
+    cover = False,
     import_path = "k8s.io/component-base/cli/flag",
     visibility = ["PUBLIC"],
     deps = [

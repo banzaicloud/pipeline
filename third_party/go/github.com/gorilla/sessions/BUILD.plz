@@ -12,9 +12,11 @@ go_module_download(
 fileexport(
     name = "sessions",
     srcs = [
+        "cookie.go",
         "cookie_go111.go",
         "doc.go",
         "lex.go",
+        "options.go",
         "options_go111.go",
         "sessions.go",
         "store.go",
@@ -26,6 +28,7 @@ fileexport(
 go_library(
     name = "sessions",
     srcs = [":_sessions#go_source"],
+    cover = False,
     import_path = "github.com/gorilla/sessions",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/gorilla/securecookie"],

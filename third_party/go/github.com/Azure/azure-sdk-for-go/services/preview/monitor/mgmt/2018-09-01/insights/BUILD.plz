@@ -33,6 +33,7 @@ fileexport(
 go_library(
     name = "insights",
     srcs = [":_insights#go_source"],
+    cover = False,
     import_path = "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-09-01/insights",
     visibility = ["PUBLIC"],
     deps = [

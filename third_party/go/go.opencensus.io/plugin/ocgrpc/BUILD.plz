@@ -20,6 +20,7 @@ fileexport(
 go_library(
     name = "ocgrpc",
     srcs = [":_ocgrpc#go_source"],
+    cover = False,
     import_path = "go.opencensus.io/plugin/ocgrpc",
     visibility = ["PUBLIC"],
     deps = [

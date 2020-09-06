@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "metrics",
     srcs = [":_metrics#go_source"],
+    cover = False,
     import_path = "go.uber.org/cadence/internal/common/metrics",
     visibility = ["PUBLIC"],
     deps = [

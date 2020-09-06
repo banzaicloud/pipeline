@@ -20,6 +20,7 @@ fileexport(
 go_library(
     name = "wire",
     srcs = [":_wire#go_source"],
+    cover = False,
     import_path = "go.uber.org/thriftrw/wire",
     visibility = ["PUBLIC"],
     deps = [],

@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "strutil",
     srcs = [":_strutil#go_source"],
+    cover = False,
     import_path = "github.com/hashicorp/vault/sdk/helper/strutil",
     visibility = ["PUBLIC"],
     deps = [

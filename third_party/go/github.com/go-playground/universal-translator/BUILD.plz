@@ -24,6 +24,7 @@ fileexport(
 go_library(
     name = "universal-translator",
     srcs = [":_universal-translator#go_source"],
+    cover = False,
     import_path = "github.com/go-playground/universal-translator",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/go-playground/locales"],

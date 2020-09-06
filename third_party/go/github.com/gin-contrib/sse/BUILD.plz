@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "sse",
     srcs = [":_sse#go_source"],
+    cover = False,
     import_path = "github.com/gin-contrib/sse",
     visibility = ["PUBLIC"],
     deps = [],

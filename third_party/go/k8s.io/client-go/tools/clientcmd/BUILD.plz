@@ -21,6 +21,7 @@ fileexport(
 go_library(
     name = "clientcmd",
     srcs = [":_clientcmd#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/tools/clientcmd",
     visibility = ["PUBLIC"],
     deps = [

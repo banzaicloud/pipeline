@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "version",
     srcs = [":_version#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/util/version",
     visibility = ["PUBLIC"],
     deps = [],

@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "token",
     srcs = [":_token#go_source"],
+    cover = False,
     import_path = "github.com/hashicorp/hcl/json/token",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/hashicorp/hcl/hcl/token"],

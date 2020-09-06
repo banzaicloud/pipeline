@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "balancer",
     srcs = [":_balancer#go_source"],
+    cover = False,
     import_path = "google.golang.org/grpc/balancer",
     visibility = ["PUBLIC"],
     deps = [

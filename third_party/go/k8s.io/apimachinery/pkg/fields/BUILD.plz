@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "fields",
     srcs = [":_fields#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/fields",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/k8s.io/apimachinery/pkg/selection"],

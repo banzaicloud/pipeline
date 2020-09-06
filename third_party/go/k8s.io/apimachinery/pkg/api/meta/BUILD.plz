@@ -21,6 +21,7 @@ fileexport(
 go_library(
     name = "meta",
     srcs = [":_meta#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/api/meta",
     visibility = ["PUBLIC"],
     deps = [

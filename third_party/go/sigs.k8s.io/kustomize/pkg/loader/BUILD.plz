@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "loader",
     srcs = [":_loader#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kustomize/pkg/loader",
     visibility = ["PUBLIC"],
     deps = [

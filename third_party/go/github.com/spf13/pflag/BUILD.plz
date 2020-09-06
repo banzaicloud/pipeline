@@ -56,6 +56,7 @@ fileexport(
 go_library(
     name = "pflag",
     srcs = [":_pflag#go_source"],
+    cover = False,
     import_path = "github.com/spf13/pflag",
     visibility = ["PUBLIC"],
     deps = [],

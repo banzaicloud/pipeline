@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "mysql",
     srcs = [":_mysql#go_source"],
+    cover = False,
     import_path = "github.com/jinzhu/gorm/dialects/mysql",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/go-sql-driver/mysql"],

@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "strconv",
     srcs = [":_strconv#go_source"],
+    cover = False,
     import_path = "github.com/hashicorp/hcl/hcl/strconv",
     visibility = ["PUBLIC"],
     deps = [],

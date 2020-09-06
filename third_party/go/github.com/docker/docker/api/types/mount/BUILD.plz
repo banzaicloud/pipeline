@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "mount",
     srcs = [":_mount#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker/api/types/mount",
     visibility = ["PUBLIC"],
     deps = [],

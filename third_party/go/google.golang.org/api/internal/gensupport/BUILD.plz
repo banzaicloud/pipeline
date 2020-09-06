@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "gensupport",
     srcs = [":_gensupport#go_source"],
+    cover = False,
     import_path = "google.golang.org/api/internal/gensupport",
     visibility = ["PUBLIC"],
     deps = [

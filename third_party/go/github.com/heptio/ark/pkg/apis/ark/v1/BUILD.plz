@@ -25,6 +25,7 @@ fileexport(
 go_library(
     name = "v1",
     srcs = [":_v1#go_source"],
+    cover = False,
     import_path = "github.com/heptio/ark/pkg/apis/ark/v1",
     visibility = ["PUBLIC"],
     deps = [

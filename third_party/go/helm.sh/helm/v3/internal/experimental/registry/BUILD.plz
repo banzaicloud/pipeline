@@ -20,6 +20,7 @@ fileexport(
 go_library(
     name = "registry",
     srcs = [":_registry#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/internal/experimental/registry",
     visibility = ["PUBLIC"],
     deps = [

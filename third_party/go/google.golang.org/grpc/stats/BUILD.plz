@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "stats",
     srcs = [":_stats#go_source"],
+    cover = False,
     import_path = "google.golang.org/grpc/stats",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/google.golang.org/grpc/metadata"],

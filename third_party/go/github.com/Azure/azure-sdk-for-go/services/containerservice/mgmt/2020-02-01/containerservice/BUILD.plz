@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "containerservice",
     srcs = [":_containerservice#go_source"],
+    cover = False,
     import_path = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice",
     visibility = ["PUBLIC"],
     deps = [

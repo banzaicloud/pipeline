@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "consts",
     srcs = [":_consts#go_source"],
+    cover = False,
     import_path = "github.com/hashicorp/vault/sdk/helper/consts",
     visibility = ["PUBLIC"],
     deps = [],

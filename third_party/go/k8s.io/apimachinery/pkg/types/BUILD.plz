@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "types",
     srcs = [":_types#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/types",
     visibility = ["PUBLIC"],
     deps = [],

@@ -24,6 +24,7 @@ fileexport(
         "context.go",
         "context_builder.go",
         "context_header.go",
+        "dial_16.go",
         "dial_17.go",
         "doc.go",
         "errors.go",
@@ -57,6 +58,7 @@ fileexport(
         "retryon_string.go",
         "root_peer_list.go",
         "sockio_darwin.go",
+        "sockio_linux.go",
         "stats.go",
         "subchannel.go",
         "systemerrcode_string.go",
@@ -71,6 +73,7 @@ fileexport(
 go_library(
     name = "tchannel-go",
     srcs = [":_tchannel-go#go_source"],
+    cover = False,
     import_path = "github.com/uber/tchannel-go",
     visibility = ["PUBLIC"],
     deps = [

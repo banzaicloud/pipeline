@@ -17,6 +17,7 @@ fileexport(
 go_library(
     name = "mocks",
     srcs = [":_mocks#go_source"],
+    cover = False,
     import_path = "go.uber.org/cadence/mocks",
     visibility = ["PUBLIC"],
     deps = [

@@ -24,6 +24,7 @@ fileexport(
 go_library(
     name = "golang-lru",
     srcs = [":_golang-lru#go_source"],
+    cover = False,
     import_path = "github.com/hashicorp/golang-lru",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/hashicorp/golang-lru/simplelru"],

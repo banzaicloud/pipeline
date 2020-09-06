@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "ec2metadata",
     srcs = [":_ec2metadata#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/aws/ec2metadata",
     visibility = ["PUBLIC"],
     deps = [

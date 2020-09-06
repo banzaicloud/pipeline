@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "go",
     srcs = [":_go#go_source"],
+    cover = False,
     import_path = "github.com/prometheus/client_model/go",
     visibility = ["PUBLIC"],
     deps = [

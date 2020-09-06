@@ -13,6 +13,7 @@ fileexport(
     name = "validation",
     srcs = [
         "error.go",
+        "go_mod_tidy_hack.go",
         "validation.go",
     ],
     tag = "go_source",
@@ -22,6 +23,7 @@ fileexport(
 go_library(
     name = "validation",
     srcs = [":_validation#go_source"],
+    cover = False,
     import_path = "github.com/Azure/go-autorest/autorest/validation",
     visibility = ["PUBLIC"],
     deps = [],

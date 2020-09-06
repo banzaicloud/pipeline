@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "metadata",
     srcs = [":_metadata#go_source"],
+    cover = False,
     import_path = "google.golang.org/grpc/metadata",
     visibility = ["PUBLIC"],
     deps = [],

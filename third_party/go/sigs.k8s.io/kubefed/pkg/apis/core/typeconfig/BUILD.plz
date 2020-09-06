@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "typeconfig",
     srcs = [":_typeconfig#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kubefed/pkg/apis/core/typeconfig",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1"],

@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "bipartitegraph",
     srcs = [":_bipartitegraph#go_source"],
+    cover = False,
     import_path = "github.com/onsi/gomega/matchers/support/goraph/bipartitegraph",
     visibility = ["PUBLIC"],
     deps = [

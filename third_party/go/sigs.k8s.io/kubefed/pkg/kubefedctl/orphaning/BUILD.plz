@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "orphaning",
     srcs = [":_orphaning#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kubefed/pkg/kubefedctl/orphaning",
     visibility = ["PUBLIC"],
     deps = [

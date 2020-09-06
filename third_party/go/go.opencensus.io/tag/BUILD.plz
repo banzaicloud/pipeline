@@ -10,6 +10,7 @@ fileexport(
         "tag/map_codec.go",
         "tag/metadata.go",
         "tag/profile_19.go",
+        "tag/profile_not19.go",
         "tag/validate.go",
     ],
     tag = "go_source",
@@ -19,6 +20,7 @@ fileexport(
 go_library(
     name = "tag",
     srcs = [":_tag#go_source"],
+    cover = False,
     import_path = "go.opencensus.io/tag",
     visibility = ["PUBLIC"],
     deps = [],

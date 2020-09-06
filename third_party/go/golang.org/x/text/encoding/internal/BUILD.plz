@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "internal",
     srcs = [":_internal#go_source"],
+    cover = False,
     import_path = "golang.org/x/text/encoding/internal",
     visibility = ["PUBLIC"],
     deps = [

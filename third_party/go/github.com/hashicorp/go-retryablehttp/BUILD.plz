@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "go-retryablehttp",
     srcs = [":_go-retryablehttp#go_source"],
+    cover = False,
     import_path = "github.com/hashicorp/go-retryablehttp",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/hashicorp/go-cleanhttp"],

@@ -30,6 +30,7 @@ fileexport(
 go_library(
     name = "objx",
     srcs = [":_objx#go_source"],
+    cover = False,
     import_path = "github.com/stretchr/objx",
     visibility = ["PUBLIC"],
     deps = [],

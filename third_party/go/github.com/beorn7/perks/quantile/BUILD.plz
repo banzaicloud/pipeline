@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "quantile",
     srcs = [":_quantile#go_source"],
+    cover = False,
     import_path = "github.com/beorn7/perks/quantile",
     visibility = ["PUBLIC"],
     deps = [],

@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "go-cleanhttp",
     srcs = [":_go-cleanhttp#go_source"],
+    cover = False,
     import_path = "github.com/hashicorp/go-cleanhttp",
     visibility = ["PUBLIC"],
     deps = [],

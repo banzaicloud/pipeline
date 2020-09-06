@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "protobuf",
     srcs = [":_protobuf#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/runtime/serializer/protobuf",
     visibility = ["PUBLIC"],
     deps = [

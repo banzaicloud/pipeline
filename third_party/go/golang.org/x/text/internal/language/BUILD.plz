@@ -7,6 +7,8 @@ fileexport(
         "internal/language/compact.go",
         "internal/language/compose.go",
         "internal/language/coverage.go",
+        "internal/language/gen.go",
+        "internal/language/gen_common.go",
         "internal/language/language.go",
         "internal/language/lookup.go",
         "internal/language/match.go",
@@ -21,6 +23,7 @@ fileexport(
 go_library(
     name = "language",
     srcs = [":_language#go_source"],
+    cover = False,
     import_path = "golang.org/x/text/internal/language",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/golang.org/x/text/internal/tag"],

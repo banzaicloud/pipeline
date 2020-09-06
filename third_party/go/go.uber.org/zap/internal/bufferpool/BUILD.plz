@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "bufferpool",
     srcs = [":_bufferpool#go_source"],
+    cover = False,
     import_path = "go.uber.org/zap/internal/bufferpool",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/go.uber.org/zap/buffer"],

@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "session",
     srcs = [":_session#go_source"],
+    cover = False,
     import_path = "github.com/vmware/govmomi/session",
     visibility = ["PUBLIC"],
     deps = [

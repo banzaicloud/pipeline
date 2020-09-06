@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "patch",
     srcs = [":_patch#go_source"],
+    cover = False,
     import_path = "k8s.io/cli-runtime/pkg/kustomize/k8sdeps/transformer/patch",
     visibility = ["PUBLIC"],
     deps = [

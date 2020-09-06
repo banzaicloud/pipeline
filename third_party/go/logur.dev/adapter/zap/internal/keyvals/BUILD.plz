@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "keyvals",
     srcs = [":_keyvals#go_source"],
+    cover = False,
     import_path = "logur.dev/adapter/zap/internal/keyvals",
     visibility = ["PUBLIC"],
     deps = [],

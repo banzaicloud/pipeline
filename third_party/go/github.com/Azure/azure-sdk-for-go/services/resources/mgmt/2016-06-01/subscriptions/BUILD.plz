@@ -17,6 +17,7 @@ fileexport(
 go_library(
     name = "subscriptions",
     srcs = [":_subscriptions#go_source"],
+    cover = False,
     import_path = "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions",
     visibility = ["PUBLIC"],
     deps = [

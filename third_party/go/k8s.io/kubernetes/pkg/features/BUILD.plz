@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "features",
     srcs = [":_features#go_source"],
+    cover = False,
     import_path = "k8s.io/kubernetes/pkg/features",
     visibility = ["PUBLIC"],
     deps = [

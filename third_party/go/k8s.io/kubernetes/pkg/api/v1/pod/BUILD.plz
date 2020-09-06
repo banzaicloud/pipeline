@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "pod",
     srcs = [":_pod#go_source"],
+    cover = False,
     import_path = "k8s.io/kubernetes/pkg/api/v1/pod",
     visibility = ["PUBLIC"],
     deps = [

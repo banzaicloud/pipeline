@@ -18,6 +18,7 @@ fileexport(
 go_library(
     name = "bpf",
     srcs = [":_bpf#go_source"],
+    cover = False,
     import_path = "golang.org/x/net/bpf",
     visibility = ["PUBLIC"],
     deps = [],

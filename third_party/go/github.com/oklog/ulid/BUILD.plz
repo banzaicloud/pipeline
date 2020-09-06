@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "ulid",
     srcs = [":_ulid#go_source"],
+    cover = False,
     import_path = "github.com/oklog/ulid",
     visibility = ["PUBLIC"],
     deps = [],

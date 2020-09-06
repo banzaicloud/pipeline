@@ -22,6 +22,7 @@ fileexport(
 go_library(
     name = "clockwork",
     srcs = [":_clockwork#go_source"],
+    cover = False,
     import_path = "github.com/jonboulle/clockwork",
     visibility = ["PUBLIC"],
     deps = [],

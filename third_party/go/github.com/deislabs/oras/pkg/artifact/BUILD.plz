@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "artifact",
     srcs = [":_artifact#go_source"],
+    cover = False,
     import_path = "github.com/deislabs/oras/pkg/artifact",
     visibility = ["PUBLIC"],
     deps = [],

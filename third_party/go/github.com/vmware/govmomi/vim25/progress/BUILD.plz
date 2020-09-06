@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "progress",
     srcs = [":_progress#go_source"],
+    cover = False,
     import_path = "github.com/vmware/govmomi/vim25/progress",
     visibility = ["PUBLIC"],
     deps = [],

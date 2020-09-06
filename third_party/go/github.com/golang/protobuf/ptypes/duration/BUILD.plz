@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "duration",
     srcs = [":_duration#go_source"],
+    cover = False,
     import_path = "github.com/golang/protobuf/ptypes/duration",
     visibility = ["PUBLIC"],
     deps = [

@@ -24,6 +24,7 @@ fileexport(
 go_library(
     name = "go-oidc",
     srcs = [":_go-oidc#go_source"],
+    cover = False,
     import_path = "github.com/coreos/go-oidc",
     visibility = ["PUBLIC"],
     deps = [

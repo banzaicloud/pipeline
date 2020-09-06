@@ -18,6 +18,7 @@ fileexport(
 go_library(
     name = "pkcs12",
     srcs = [":_pkcs12#go_source"],
+    cover = False,
     import_path = "golang.org/x/crypto/pkcs12",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/golang.org/x/crypto/pkcs12/internal/rc2"],

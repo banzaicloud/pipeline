@@ -12,7 +12,9 @@ go_module_download(
 fileexport(
     name = "go-colorable",
     srcs = [
+        "colorable_appengine.go",
         "colorable_others.go",
+        "colorable_windows.go",
         "noncolorable.go",
     ],
     tag = "go_source",
@@ -22,6 +24,7 @@ fileexport(
 go_library(
     name = "go-colorable",
     srcs = [":_go-colorable#go_source"],
+    cover = False,
     import_path = "github.com/mattn/go-colorable",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/mattn/go-isatty"],

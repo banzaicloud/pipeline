@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "cert",
     srcs = [":_cert#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/util/cert",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/k8s.io/client-go/util/keyutil"],

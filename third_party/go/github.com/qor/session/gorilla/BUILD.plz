@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "gorilla",
     srcs = [":_gorilla#go_source"],
+    cover = False,
     import_path = "github.com/qor/session/gorilla",
     visibility = ["PUBLIC"],
     deps = [

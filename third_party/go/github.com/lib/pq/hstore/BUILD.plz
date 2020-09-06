@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "hstore",
     srcs = [":_hstore#go_source"],
+    cover = False,
     import_path = "github.com/lib/pq/hstore",
     visibility = ["PUBLIC"],
     deps = [],

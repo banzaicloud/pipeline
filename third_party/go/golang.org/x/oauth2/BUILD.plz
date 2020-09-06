@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "oauth2",
     srcs = [":_oauth2#go_source"],
+    cover = False,
     import_path = "golang.org/x/oauth2",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/golang.org/x/oauth2/internal"],

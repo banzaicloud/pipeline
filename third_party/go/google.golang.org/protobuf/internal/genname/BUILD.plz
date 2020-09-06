@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "genname",
     srcs = [":_genname#go_source"],
+    cover = False,
     import_path = "google.golang.org/protobuf/internal/genname",
     visibility = ["PUBLIC"],
     deps = [],

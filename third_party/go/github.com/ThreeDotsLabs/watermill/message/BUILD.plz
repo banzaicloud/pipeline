@@ -18,6 +18,7 @@ fileexport(
 go_library(
     name = "message",
     srcs = [":_message#go_source"],
+    cover = False,
     import_path = "github.com/ThreeDotsLabs/watermill/message",
     visibility = ["PUBLIC"],
     deps = [

@@ -3,6 +3,7 @@ subinclude("///pleasegomod//:build_defs")
 fileexport(
     name = "internal",
     srcs = [
+        "internal/client_appengine.go",
         "internal/doc.go",
         "internal/oauth2.go",
         "internal/token.go",
@@ -15,6 +16,7 @@ fileexport(
 go_library(
     name = "internal",
     srcs = [":_internal#go_source"],
+    cover = False,
     import_path = "golang.org/x/oauth2/internal",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/golang.org/x/net/context/ctxhttp"],

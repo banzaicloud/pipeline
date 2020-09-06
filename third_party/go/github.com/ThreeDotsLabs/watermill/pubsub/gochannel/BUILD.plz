@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "gochannel",
     srcs = [":_gochannel#go_source"],
+    cover = False,
     import_path = "github.com/ThreeDotsLabs/watermill/pubsub/gochannel",
     visibility = ["PUBLIC"],
     deps = [

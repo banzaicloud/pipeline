@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "apis",
     srcs = [":_apis#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kubefed/pkg/apis",
     visibility = ["PUBLIC"],
     deps = [

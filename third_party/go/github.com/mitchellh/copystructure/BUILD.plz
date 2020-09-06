@@ -22,6 +22,7 @@ fileexport(
 go_library(
     name = "copystructure",
     srcs = [":_copystructure#go_source"],
+    cover = False,
     import_path = "github.com/mitchellh/copystructure",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/mitchellh/reflectwalk"],

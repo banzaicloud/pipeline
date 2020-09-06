@@ -41,6 +41,7 @@ fileexport(
 go_library(
     name = "action",
     srcs = [":_action#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/pkg/action",
     visibility = ["PUBLIC"],
     deps = [

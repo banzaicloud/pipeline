@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "annotations",
     srcs = [":_annotations#go_source"],
+    cover = False,
     import_path = "google.golang.org/genproto/googleapis/api/annotations",
     visibility = ["PUBLIC"],
     deps = [

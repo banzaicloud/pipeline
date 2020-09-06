@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "jsonmessage",
     srcs = [":_jsonmessage#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker/pkg/jsonmessage",
     visibility = ["PUBLIC"],
     deps = [

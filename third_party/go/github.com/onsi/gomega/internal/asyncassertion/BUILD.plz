@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "asyncassertion",
     srcs = [":_asyncassertion#go_source"],
+    cover = False,
     import_path = "github.com/onsi/gomega/internal/asyncassertion",
     visibility = ["PUBLIC"],
     deps = [

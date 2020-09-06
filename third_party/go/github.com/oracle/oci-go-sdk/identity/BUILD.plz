@@ -141,6 +141,7 @@ fileexport(
 go_library(
     name = "identity",
     srcs = [":_identity#go_source"],
+    cover = False,
     import_path = "github.com/oracle/oci-go-sdk/identity",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/oracle/oci-go-sdk/common"],

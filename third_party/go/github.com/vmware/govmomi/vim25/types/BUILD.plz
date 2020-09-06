@@ -18,6 +18,7 @@ fileexport(
 go_library(
     name = "types",
     srcs = [":_types#go_source"],
+    cover = False,
     import_path = "github.com/vmware/govmomi/vim25/types",
     visibility = ["PUBLIC"],
     deps = [],

@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "arg2",
     srcs = [":_arg2#go_source"],
+    cover = False,
     import_path = "github.com/uber/tchannel-go/thrift/arg2",
     visibility = ["PUBLIC"],
     deps = [],

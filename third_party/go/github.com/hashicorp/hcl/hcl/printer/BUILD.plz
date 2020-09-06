@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "printer",
     srcs = [":_printer#go_source"],
+    cover = False,
     import_path = "github.com/hashicorp/hcl/hcl/printer",
     visibility = ["PUBLIC"],
     deps = [

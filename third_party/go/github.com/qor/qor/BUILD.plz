@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "qor",
     srcs = [":_qor#go_source"],
+    cover = False,
     import_path = "github.com/qor/qor",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/jinzhu/gorm"],

@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "armor",
     srcs = [":_armor#go_source"],
+    cover = False,
     import_path = "golang.org/x/crypto/openpgp/armor",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/golang.org/x/crypto/openpgp/errors"],

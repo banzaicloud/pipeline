@@ -3,6 +3,7 @@ subinclude("///pleasegomod//:build_defs")
 fileexport(
     name = "htmlindex",
     srcs = [
+        "encoding/htmlindex/gen.go",
         "encoding/htmlindex/htmlindex.go",
         "encoding/htmlindex/map.go",
         "encoding/htmlindex/tables.go",
@@ -14,6 +15,7 @@ fileexport(
 go_library(
     name = "htmlindex",
     srcs = [":_htmlindex#go_source"],
+    cover = False,
     import_path = "golang.org/x/text/encoding/htmlindex",
     visibility = ["PUBLIC"],
     deps = [

@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "scheme",
     srcs = [":_scheme#go_source"],
+    cover = False,
     import_path = "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/scheme",
     visibility = ["PUBLIC"],
     deps = [

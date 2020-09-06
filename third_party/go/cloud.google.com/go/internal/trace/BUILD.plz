@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "trace",
     srcs = [":_trace#go_source"],
+    cover = False,
     import_path = "cloud.google.com/go/internal/trace",
     visibility = ["PUBLIC"],
     deps = [

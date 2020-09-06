@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "hpack",
     srcs = [":_hpack#go_source"],
+    cover = False,
     import_path = "golang.org/x/net/http2/hpack",
     visibility = ["PUBLIC"],
     deps = [],

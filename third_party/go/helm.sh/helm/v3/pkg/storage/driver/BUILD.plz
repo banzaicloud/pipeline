@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "driver",
     srcs = [":_driver#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/pkg/storage/driver",
     visibility = ["PUBLIC"],
     deps = [

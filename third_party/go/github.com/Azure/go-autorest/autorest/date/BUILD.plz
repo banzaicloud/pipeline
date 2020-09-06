@@ -13,6 +13,7 @@ fileexport(
     name = "date",
     srcs = [
         "date.go",
+        "go_mod_tidy_hack.go",
         "time.go",
         "timerfc1123.go",
         "unixtime.go",
@@ -25,6 +26,7 @@ fileexport(
 go_library(
     name = "date",
     srcs = [":_date#go_source"],
+    cover = False,
     import_path = "github.com/Azure/go-autorest/autorest/date",
     visibility = ["PUBLIC"],
     deps = [],

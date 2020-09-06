@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "workflowservicetest",
     srcs = [":_workflowservicetest#go_source"],
+    cover = False,
     import_path = "go.uber.org/cadence/.gen/go/cadence/workflowservicetest",
     visibility = ["PUBLIC"],
     deps = [

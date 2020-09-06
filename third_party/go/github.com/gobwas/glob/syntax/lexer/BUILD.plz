@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "lexer",
     srcs = [":_lexer#go_source"],
+    cover = False,
     import_path = "github.com/gobwas/glob/syntax/lexer",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/gobwas/glob/util/runes"],

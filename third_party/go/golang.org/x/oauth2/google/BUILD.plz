@@ -4,6 +4,7 @@ fileexport(
     name = "google",
     srcs = [
         "google/appengine.go",
+        "google/appengine_gen1.go",
         "google/appengine_gen2_flex.go",
         "google/default.go",
         "google/doc.go",
@@ -18,6 +19,7 @@ fileexport(
 go_library(
     name = "google",
     srcs = [":_google#go_source"],
+    cover = False,
     import_path = "golang.org/x/oauth2/google",
     visibility = ["PUBLIC"],
     deps = [

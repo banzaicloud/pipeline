@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "request",
     srcs = [":_request#go_source"],
+    cover = False,
     import_path = "github.com/dgrijalva/jwt-go/request",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/dgrijalva/jwt-go"],

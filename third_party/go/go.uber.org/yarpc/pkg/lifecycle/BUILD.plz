@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "lifecycle",
     srcs = [":_lifecycle#go_source"],
+    cover = False,
     import_path = "go.uber.org/yarpc/pkg/lifecycle",
     visibility = ["PUBLIC"],
     deps = [

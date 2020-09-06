@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "logr",
     srcs = [":_logr#go_source"],
+    cover = False,
     import_path = "github.com/go-logr/logr",
     visibility = ["PUBLIC"],
     deps = [],

@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "inflection",
     srcs = [":_inflection#go_source"],
+    cover = False,
     import_path = "github.com/jinzhu/inflection",
     visibility = ["PUBLIC"],
     deps = [],

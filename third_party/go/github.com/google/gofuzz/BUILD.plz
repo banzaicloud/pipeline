@@ -22,6 +22,7 @@ fileexport(
 go_library(
     name = "gofuzz",
     srcs = [":_gofuzz#go_source"],
+    cover = False,
     import_path = "github.com/google/gofuzz",
     visibility = ["PUBLIC"],
     deps = [],

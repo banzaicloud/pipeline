@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "jwalterweatherman",
     srcs = [":_jwalterweatherman#go_source"],
+    cover = False,
     import_path = "github.com/spf13/jwalterweatherman",
     visibility = ["PUBLIC"],
     deps = [],

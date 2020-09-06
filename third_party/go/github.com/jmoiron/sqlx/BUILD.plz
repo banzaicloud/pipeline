@@ -26,6 +26,7 @@ fileexport(
 go_library(
     name = "sqlx",
     srcs = [":_sqlx#go_source"],
+    cover = False,
     import_path = "github.com/jmoiron/sqlx",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/jmoiron/sqlx/reflectx"],

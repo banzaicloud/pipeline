@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "match",
     srcs = [":_match#go_source"],
+    cover = False,
     import_path = "emperror.dev/errors/match",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/emperror.dev/errors"],

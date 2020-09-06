@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "find",
     srcs = [":_find#go_source"],
+    cover = False,
     import_path = "github.com/vmware/govmomi/find",
     visibility = ["PUBLIC"],
     deps = [

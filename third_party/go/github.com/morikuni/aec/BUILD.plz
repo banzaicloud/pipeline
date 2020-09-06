@@ -24,6 +24,7 @@ fileexport(
 go_library(
     name = "aec",
     srcs = [":_aec#go_source"],
+    cover = False,
     import_path = "github.com/morikuni/aec",
     visibility = ["PUBLIC"],
     deps = [],

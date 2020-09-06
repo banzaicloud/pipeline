@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "scram",
     srcs = [":_scram#go_source"],
+    cover = False,
     import_path = "github.com/lib/pq/scram",
     visibility = ["PUBLIC"],
     deps = [],

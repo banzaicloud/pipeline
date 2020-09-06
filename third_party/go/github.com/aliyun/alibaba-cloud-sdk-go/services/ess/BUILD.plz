@@ -119,6 +119,7 @@ fileexport(
 go_library(
     name = "ess",
     srcs = [":_ess#go_source"],
+    cover = False,
     import_path = "github.com/aliyun/alibaba-cloud-sdk-go/services/ess",
     visibility = ["PUBLIC"],
     deps = [

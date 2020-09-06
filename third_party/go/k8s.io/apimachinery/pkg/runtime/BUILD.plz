@@ -31,6 +31,7 @@ fileexport(
 go_library(
     name = "runtime",
     srcs = [":_runtime#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/runtime",
     visibility = ["PUBLIC"],
     deps = [

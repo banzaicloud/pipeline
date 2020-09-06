@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "memory",
     srcs = [":_memory#go_source"],
+    cover = False,
     import_path = "github.com/docker/distribution/registry/storage/cache/memory",
     visibility = ["PUBLIC"],
     deps = [

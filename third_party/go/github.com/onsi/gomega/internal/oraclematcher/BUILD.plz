@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "oraclematcher",
     srcs = [":_oraclematcher#go_source"],
+    cover = False,
     import_path = "github.com/onsi/gomega/internal/oraclematcher",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/onsi/gomega/types"],

@@ -22,6 +22,7 @@ fileexport(
 go_library(
     name = "go-urn",
     srcs = [":_go-urn#go_source"],
+    cover = False,
     import_path = "github.com/leodido/go-urn",
     visibility = ["PUBLIC"],
     deps = [],

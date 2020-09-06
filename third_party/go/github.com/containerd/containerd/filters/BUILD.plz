@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "filters",
     srcs = [":_filters#go_source"],
+    cover = False,
     import_path = "github.com/containerd/containerd/filters",
     visibility = ["PUBLIC"],
     deps = [

@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "set",
     srcs = [":_set#go_source"],
+    cover = False,
     import_path = "google.golang.org/protobuf/internal/set",
     visibility = ["PUBLIC"],
     deps = [],

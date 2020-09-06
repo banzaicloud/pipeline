@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "schema1",
     srcs = [":_schema1#go_source"],
+    cover = False,
     import_path = "github.com/containerd/containerd/remotes/docker/schema1",
     visibility = ["PUBLIC"],
     deps = [

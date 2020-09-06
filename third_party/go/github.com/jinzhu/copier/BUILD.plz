@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "copier",
     srcs = [":_copier#go_source"],
+    cover = False,
     import_path = "github.com/jinzhu/copier",
     visibility = ["PUBLIC"],
     deps = [],

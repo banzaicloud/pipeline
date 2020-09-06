@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "scrypt",
     srcs = [":_scrypt#go_source"],
+    cover = False,
     import_path = "golang.org/x/crypto/scrypt",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/golang.org/x/crypto/pbkdf2"],

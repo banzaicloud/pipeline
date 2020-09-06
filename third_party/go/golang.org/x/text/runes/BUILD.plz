@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "runes",
     srcs = [":_runes#go_source"],
+    cover = False,
     import_path = "golang.org/x/text/runes",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/golang.org/x/text/transform"],

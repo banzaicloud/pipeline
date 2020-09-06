@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "selection",
     srcs = [":_selection#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/selection",
     visibility = ["PUBLIC"],
     deps = [],

@@ -17,6 +17,7 @@ fileexport(
 go_library(
     name = "csm",
     srcs = [":_csm#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/aws/csm",
     visibility = ["PUBLIC"],
     deps = [

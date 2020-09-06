@@ -9,9 +9,11 @@ fileexport(
         "internal/impl/codec_field.go",
         "internal/impl/codec_gen.go",
         "internal/impl/codec_map.go",
+        "internal/impl/codec_map_go111.go",
         "internal/impl/codec_map_go112.go",
         "internal/impl/codec_message.go",
         "internal/impl/codec_messageset.go",
+        "internal/impl/codec_reflect.go",
         "internal/impl/codec_tables.go",
         "internal/impl/codec_unsafe.go",
         "internal/impl/convert.go",
@@ -32,6 +34,7 @@ fileexport(
         "internal/impl/message_reflect.go",
         "internal/impl/message_reflect_field.go",
         "internal/impl/message_reflect_gen.go",
+        "internal/impl/pointer_reflect.go",
         "internal/impl/pointer_unsafe.go",
         "internal/impl/validate.go",
         "internal/impl/weak.go",
@@ -43,6 +46,7 @@ fileexport(
 go_library(
     name = "impl",
     srcs = [":_impl#go_source"],
+    cover = False,
     import_path = "google.golang.org/protobuf/internal/impl",
     visibility = ["PUBLIC"],
     deps = [

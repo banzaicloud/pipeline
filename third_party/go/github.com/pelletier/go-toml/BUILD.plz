@@ -13,6 +13,7 @@ fileexport(
     name = "go-toml",
     srcs = [
         "doc.go",
+        "fuzz.go",
         "keysparsing.go",
         "lexer.go",
         "localtime.go",
@@ -31,6 +32,7 @@ fileexport(
 go_library(
     name = "go-toml",
     srcs = [":_go-toml#go_source"],
+    cover = False,
     import_path = "github.com/pelletier/go-toml",
     visibility = ["PUBLIC"],
     deps = [],

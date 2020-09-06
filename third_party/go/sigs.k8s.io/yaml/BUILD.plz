@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "yaml",
     srcs = [":_yaml#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/yaml",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/gopkg.in/yaml.v2"],

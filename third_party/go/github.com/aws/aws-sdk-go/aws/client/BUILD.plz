@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "client",
     srcs = [":_client#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/aws/client",
     visibility = ["PUBLIC"],
     deps = [

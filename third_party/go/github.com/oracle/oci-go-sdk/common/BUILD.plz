@@ -21,6 +21,7 @@ fileexport(
 go_library(
     name = "common",
     srcs = [":_common#go_source"],
+    cover = False,
     import_path = "github.com/oracle/oci-go-sdk/common",
     visibility = ["PUBLIC"],
     deps = [],

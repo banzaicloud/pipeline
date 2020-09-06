@@ -8,8 +8,10 @@ fileexport(
         "aws/request/http_request.go",
         "aws/request/offset_reader.go",
         "aws/request/request.go",
+        "aws/request/request_1_7.go",
         "aws/request/request_1_8.go",
         "aws/request/request_context.go",
+        "aws/request/request_context_1_6.go",
         "aws/request/request_pagination.go",
         "aws/request/retryer.go",
         "aws/request/timeout_read_closer.go",
@@ -23,6 +25,7 @@ fileexport(
 go_library(
     name = "request",
     srcs = [":_request#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/aws/request",
     visibility = ["PUBLIC"],
     deps = [

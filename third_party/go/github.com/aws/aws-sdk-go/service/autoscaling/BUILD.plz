@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "autoscaling",
     srcs = [":_autoscaling#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/service/autoscaling",
     visibility = ["PUBLIC"],
     deps = [

@@ -17,6 +17,7 @@ fileexport(
 go_library(
     name = "error",
     srcs = [":_error#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kustomize/pkg/internal/error",
     visibility = ["PUBLIC"],
     deps = [],

@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "gojsonreference",
     srcs = [":_gojsonreference#go_source"],
+    cover = False,
     import_path = "github.com/xeipuuv/gojsonreference",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/xeipuuv/gojsonpointer"],

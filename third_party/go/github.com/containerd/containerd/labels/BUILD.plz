@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "labels",
     srcs = [":_labels#go_source"],
+    cover = False,
     import_path = "github.com/containerd/containerd/labels",
     visibility = ["PUBLIC"],
     deps = [

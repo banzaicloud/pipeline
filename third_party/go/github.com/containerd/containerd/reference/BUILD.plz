@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "reference",
     srcs = [":_reference#go_source"],
+    cover = False,
     import_path = "github.com/containerd/containerd/reference",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/opencontainers/go-digest"],

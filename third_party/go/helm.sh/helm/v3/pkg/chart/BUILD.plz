@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "chart",
     srcs = [":_chart#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/pkg/chart",
     visibility = ["PUBLIC"],
     deps = [],

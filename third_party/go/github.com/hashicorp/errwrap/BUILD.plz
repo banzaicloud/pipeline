@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "errwrap",
     srcs = [":_errwrap#go_source"],
+    cover = False,
     import_path = "github.com/hashicorp/errwrap",
     visibility = ["PUBLIC"],
     deps = [],

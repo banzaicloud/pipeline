@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "cloudformation",
     srcs = [":_cloudformation#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/service/cloudformation",
     visibility = ["PUBLIC"],
     deps = [

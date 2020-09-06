@@ -15,6 +15,7 @@ fileexport(
         "proto/messageset.go",
         "proto/proto.go",
         "proto/proto_methods.go",
+        "proto/proto_reflect.go",
         "proto/reset.go",
         "proto/size.go",
         "proto/size_gen.go",
@@ -27,6 +28,7 @@ fileexport(
 go_library(
     name = "proto",
     srcs = [":_proto#go_source"],
+    cover = False,
     import_path = "google.golang.org/protobuf/proto",
     visibility = ["PUBLIC"],
     deps = [

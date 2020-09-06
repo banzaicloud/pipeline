@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "transformer",
     srcs = [":_transformer#go_source"],
+    cover = False,
     import_path = "k8s.io/cli-runtime/pkg/kustomize/k8sdeps/transformer",
     visibility = ["PUBLIC"],
     deps = [

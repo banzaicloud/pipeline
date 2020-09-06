@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "tls",
     srcs = [":_tls#go_source"],
+    cover = False,
     import_path = "github.com/banzaicloud/bank-vaults/pkg/sdk/tls",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/emperror.dev/errors"],

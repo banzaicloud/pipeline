@@ -7,6 +7,7 @@ fileexport(
         "protocol/binary/doc.go",
         "protocol/binary/envelope.go",
         "protocol/binary/error.go",
+        "protocol/binary/fuzz.go",
         "protocol/binary/lazy_list.go",
         "protocol/binary/reader.go",
         "protocol/binary/writer.go",
@@ -18,6 +19,7 @@ fileexport(
 go_library(
     name = "binary",
     srcs = [":_binary#go_source"],
+    cover = False,
     import_path = "go.uber.org/thriftrw/protocol/binary",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/go.uber.org/thriftrw/wire"],

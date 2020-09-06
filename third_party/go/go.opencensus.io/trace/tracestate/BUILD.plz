@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "tracestate",
     srcs = [":_tracestate#go_source"],
+    cover = False,
     import_path = "go.opencensus.io/trace/tracestate",
     visibility = ["PUBLIC"],
     deps = [],

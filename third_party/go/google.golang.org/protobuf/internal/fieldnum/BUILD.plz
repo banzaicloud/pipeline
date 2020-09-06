@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "fieldnum",
     srcs = [":_fieldnum#go_source"],
+    cover = False,
     import_path = "google.golang.org/protobuf/internal/fieldnum",
     visibility = ["PUBLIC"],
     deps = [],

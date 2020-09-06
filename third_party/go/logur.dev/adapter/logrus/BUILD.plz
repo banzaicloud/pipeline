@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "logrus",
     srcs = [":_logrus#go_source"],
+    cover = False,
     import_path = "logur.dev/adapter/logrus",
     visibility = ["PUBLIC"],
     deps = [

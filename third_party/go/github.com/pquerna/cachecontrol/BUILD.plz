@@ -22,6 +22,7 @@ fileexport(
 go_library(
     name = "cachecontrol",
     srcs = [":_cachecontrol#go_source"],
+    cover = False,
     import_path = "github.com/pquerna/cachecontrol",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/pquerna/cachecontrol/cacheobject"],

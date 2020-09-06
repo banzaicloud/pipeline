@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "registry",
     srcs = [":_registry#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker/api/types/registry",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/opencontainers/image-spec/specs-go/v1"],

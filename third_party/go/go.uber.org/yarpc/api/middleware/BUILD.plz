@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "middleware",
     srcs = [":_middleware#go_source"],
+    cover = False,
     import_path = "go.uber.org/yarpc/api/middleware",
     visibility = ["PUBLIC"],
     deps = [

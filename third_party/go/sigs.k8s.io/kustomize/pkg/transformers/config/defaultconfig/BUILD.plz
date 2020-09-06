@@ -18,6 +18,7 @@ fileexport(
 go_library(
     name = "defaultconfig",
     srcs = [":_defaultconfig#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kustomize/pkg/transformers/config/defaultconfig",
     visibility = ["PUBLIC"],
     deps = [],

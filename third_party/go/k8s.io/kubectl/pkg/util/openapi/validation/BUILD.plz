@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "validation",
     srcs = [":_validation#go_source"],
+    cover = False,
     import_path = "k8s.io/kubectl/pkg/util/openapi/validation",
     visibility = ["PUBLIC"],
     deps = [

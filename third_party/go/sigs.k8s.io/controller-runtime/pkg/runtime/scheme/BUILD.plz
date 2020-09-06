@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "scheme",
     srcs = [":_scheme#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/controller-runtime/pkg/runtime/scheme",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/sigs.k8s.io/controller-runtime/pkg/scheme"],

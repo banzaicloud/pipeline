@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "jwriter",
     srcs = [":_jwriter#go_source"],
+    cover = False,
     import_path = "github.com/mailru/easyjson/jwriter",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/mailru/easyjson/buffer"],

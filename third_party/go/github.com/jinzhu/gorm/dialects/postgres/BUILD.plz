@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "postgres",
     srcs = [":_postgres#go_source"],
+    cover = False,
     import_path = "github.com/jinzhu/gorm/dialects/postgres",
     visibility = ["PUBLIC"],
     deps = [

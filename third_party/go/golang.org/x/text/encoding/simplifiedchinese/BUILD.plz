@@ -6,6 +6,7 @@ fileexport(
         "encoding/simplifiedchinese/all.go",
         "encoding/simplifiedchinese/gbk.go",
         "encoding/simplifiedchinese/hzgb2312.go",
+        "encoding/simplifiedchinese/maketables.go",
         "encoding/simplifiedchinese/tables.go",
     ],
     tag = "go_source",
@@ -15,6 +16,7 @@ fileexport(
 go_library(
     name = "simplifiedchinese",
     srcs = [":_simplifiedchinese#go_source"],
+    cover = False,
     import_path = "golang.org/x/text/encoding/simplifiedchinese",
     visibility = ["PUBLIC"],
     deps = [

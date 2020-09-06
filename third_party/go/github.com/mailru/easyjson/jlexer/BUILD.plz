@@ -4,6 +4,7 @@ fileexport(
     name = "jlexer",
     srcs = [
         "jlexer/bytestostr.go",
+        "jlexer/bytestostr_nounsafe.go",
         "jlexer/error.go",
         "jlexer/lexer.go",
     ],
@@ -14,6 +15,7 @@ fileexport(
 go_library(
     name = "jlexer",
     srcs = [":_jlexer#go_source"],
+    cover = False,
     import_path = "github.com/mailru/easyjson/jlexer",
     visibility = ["PUBLIC"],
     deps = [],

@@ -4,6 +4,8 @@ fileexport(
     name = "session",
     srcs = [
         "aws/session/cabundle_transport.go",
+        "aws/session/cabundle_transport_1_5.go",
+        "aws/session/cabundle_transport_1_6.go",
         "aws/session/credentials.go",
         "aws/session/doc.go",
         "aws/session/env_config.go",
@@ -17,6 +19,7 @@ fileexport(
 go_library(
     name = "session",
     srcs = [":_session#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/aws/session",
     visibility = ["PUBLIC"],
     deps = [

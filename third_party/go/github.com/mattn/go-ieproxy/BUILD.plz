@@ -14,10 +14,15 @@ fileexport(
     srcs = [
         "ieproxy.go",
         "ieproxy_unix.go",
+        "ieproxy_windows.go",
+        "kernel32_data_windows.go",
         "pac_unix.go",
+        "pac_windows.go",
         "proxy_middleman.go",
         "proxy_middleman_unix.go",
+        "proxy_middleman_windows.go",
         "utils.go",
+        "winhttp_data_windows.go",
     ],
     tag = "go_source",
     deps = [":_go-ieproxy#download"],
@@ -26,6 +31,7 @@ fileexport(
 go_library(
     name = "go-ieproxy",
     srcs = [":_go-ieproxy#go_source"],
+    cover = False,
     import_path = "github.com/mattn/go-ieproxy",
     visibility = ["PUBLIC"],
     deps = [],

@@ -48,6 +48,7 @@ fileexport(
 go_library(
     name = "cadence",
     srcs = [":_cadence#go_source"],
+    cover = False,
     import_path = "go.uber.org/cadence/.gen/go/cadence",
     visibility = ["PUBLIC"],
     deps = [

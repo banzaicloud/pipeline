@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "optional",
     srcs = [":_optional#go_source"],
+    cover = False,
     import_path = "cloud.google.com/go/internal/optional",
     visibility = ["PUBLIC"],
     deps = [],

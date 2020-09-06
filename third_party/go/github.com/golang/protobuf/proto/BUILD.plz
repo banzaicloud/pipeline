@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "proto",
     srcs = [":_proto#go_source"],
+    cover = False,
     import_path = "github.com/golang/protobuf/proto",
     visibility = ["PUBLIC"],
     deps = [

@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "templates",
     srcs = [":_templates#go_source"],
+    cover = False,
     import_path = "k8s.io/kubectl/pkg/util/templates",
     visibility = ["PUBLIC"],
     deps = [

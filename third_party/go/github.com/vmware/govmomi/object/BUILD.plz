@@ -63,6 +63,7 @@ fileexport(
 go_library(
     name = "object",
     srcs = [":_object#go_source"],
+    cover = False,
     import_path = "github.com/vmware/govmomi/object",
     visibility = ["PUBLIC"],
     deps = [

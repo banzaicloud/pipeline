@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "spdy",
     srcs = [":_spdy#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/util/httpstream/spdy",
     visibility = ["PUBLIC"],
     deps = [

@@ -21,6 +21,7 @@ fileexport(
 go_library(
     name = "thrift",
     srcs = [":_thrift#go_source"],
+    cover = False,
     import_path = "go.uber.org/yarpc/encoding/thrift",
     visibility = ["PUBLIC"],
     deps = [

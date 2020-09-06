@@ -18,6 +18,7 @@ fileexport(
 go_library(
     name = "storage",
     srcs = [":_storage#go_source"],
+    cover = False,
     import_path = "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage",
     visibility = ["PUBLIC"],
     deps = [

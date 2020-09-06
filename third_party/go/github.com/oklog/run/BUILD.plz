@@ -22,6 +22,7 @@ fileexport(
 go_library(
     name = "run",
     srcs = [":_run#go_source"],
+    cover = False,
     import_path = "github.com/oklog/run",
     visibility = ["PUBLIC"],
     deps = [],

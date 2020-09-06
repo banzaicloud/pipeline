@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "keyval",
     srcs = [":_keyval#go_source"],
+    cover = False,
     import_path = "emperror.dev/errors/utils/keyval",
     visibility = ["PUBLIC"],
     deps = [],

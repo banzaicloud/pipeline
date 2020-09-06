@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "task",
     srcs = [":_task#go_source"],
+    cover = False,
     import_path = "github.com/vmware/govmomi/task",
     visibility = ["PUBLIC"],
     deps = [

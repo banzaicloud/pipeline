@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "request",
     srcs = [":_request#go_source"],
+    cover = False,
     import_path = "go.uber.org/yarpc/internal/request",
     visibility = ["PUBLIC"],
     deps = [

@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "types",
     srcs = [":_types#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kustomize/pkg/types",
     visibility = ["PUBLIC"],
     deps = [

@@ -589,6 +589,7 @@ fileexport(
 go_library(
     name = "ecs",
     srcs = [":_ecs#go_source"],
+    cover = False,
     import_path = "github.com/aliyun/alibaba-cloud-sdk-go/services/ecs",
     visibility = ["PUBLIC"],
     deps = [

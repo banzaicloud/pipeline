@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "transformer",
     srcs = [":_transformer#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kustomize/pkg/patch/transformer",
     visibility = ["PUBLIC"],
     deps = [

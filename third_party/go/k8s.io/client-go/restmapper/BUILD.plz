@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "restmapper",
     srcs = [":_restmapper#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/restmapper",
     visibility = ["PUBLIC"],
     deps = [

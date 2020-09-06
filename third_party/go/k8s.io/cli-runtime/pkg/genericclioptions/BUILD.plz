@@ -25,6 +25,7 @@ fileexport(
 go_library(
     name = "genericclioptions",
     srcs = [":_genericclioptions#go_source"],
+    cover = False,
     import_path = "k8s.io/cli-runtime/pkg/genericclioptions",
     visibility = ["PUBLIC"],
     deps = [

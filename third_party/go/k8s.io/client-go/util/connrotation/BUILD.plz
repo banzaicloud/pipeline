@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "connrotation",
     srcs = [":_connrotation#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/util/connrotation",
     visibility = ["PUBLIC"],
     deps = [],

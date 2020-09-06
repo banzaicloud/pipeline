@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "conformance",
     srcs = [":_conformance#go_source"],
+    cover = False,
     import_path = "logur.dev/logur/conformance",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/logur.dev/logur"],

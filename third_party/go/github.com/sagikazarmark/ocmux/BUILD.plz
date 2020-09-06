@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "ocmux",
     srcs = [":_ocmux#go_source"],
+    cover = False,
     import_path = "github.com/sagikazarmark/ocmux",
     visibility = ["PUBLIC"],
     deps = [

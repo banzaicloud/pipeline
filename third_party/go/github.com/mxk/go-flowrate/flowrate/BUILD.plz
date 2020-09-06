@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "flowrate",
     srcs = [":_flowrate#go_source"],
+    cover = False,
     import_path = "github.com/mxk/go-flowrate/flowrate",
     visibility = ["PUBLIC"],
     deps = [],

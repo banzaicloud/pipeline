@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "rootless",
     srcs = [":_rootless#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker/rootless",
     visibility = ["PUBLIC"],
     deps = [],

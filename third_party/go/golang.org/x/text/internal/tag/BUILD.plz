@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "tag",
     srcs = [":_tag#go_source"],
+    cover = False,
     import_path = "golang.org/x/text/internal/tag",
     visibility = ["PUBLIC"],
     deps = [],

@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "charset",
     srcs = [":_charset#go_source"],
+    cover = False,
     import_path = "golang.org/x/net/html/charset",
     visibility = ["PUBLIC"],
     deps = [

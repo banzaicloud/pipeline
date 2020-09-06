@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "rest",
     srcs = [":_rest#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/rest",
     visibility = ["PUBLIC"],
     deps = [

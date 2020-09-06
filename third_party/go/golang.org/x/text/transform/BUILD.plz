@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "transform",
     srcs = [":_transform#go_source"],
+    cover = False,
     import_path = "golang.org/x/text/transform",
     visibility = ["PUBLIC"],
     deps = [],

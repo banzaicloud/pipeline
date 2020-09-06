@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "tarsum",
     srcs = [":_tarsum#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker/pkg/tarsum",
     visibility = ["PUBLIC"],
     deps = [],

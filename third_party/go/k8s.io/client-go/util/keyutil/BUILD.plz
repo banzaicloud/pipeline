@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "keyutil",
     srcs = [":_keyutil#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/util/keyutil",
     visibility = ["PUBLIC"],
     deps = [],

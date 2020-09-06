@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "propagation",
     srcs = [":_propagation#go_source"],
+    cover = False,
     import_path = "go.opencensus.io/trace/propagation",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/go.opencensus.io/trace"],

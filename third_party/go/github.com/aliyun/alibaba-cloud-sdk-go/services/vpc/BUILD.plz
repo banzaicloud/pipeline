@@ -401,6 +401,7 @@ fileexport(
 go_library(
     name = "vpc",
     srcs = [":_vpc#go_source"],
+    cover = False,
     import_path = "github.com/aliyun/alibaba-cloud-sdk-go/services/vpc",
     visibility = ["PUBLIC"],
     deps = [

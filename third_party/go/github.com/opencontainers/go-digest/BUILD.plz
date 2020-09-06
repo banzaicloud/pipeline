@@ -25,6 +25,7 @@ fileexport(
 go_library(
     name = "go-digest",
     srcs = [":_go-digest#go_source"],
+    cover = False,
     import_path = "github.com/opencontainers/go-digest",
     visibility = ["PUBLIC"],
     deps = [],

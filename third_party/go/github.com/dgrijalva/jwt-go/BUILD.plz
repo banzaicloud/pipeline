@@ -34,6 +34,7 @@ fileexport(
 go_library(
     name = "jwt-go",
     srcs = [":_jwt-go#go_source"],
+    cover = False,
     import_path = "github.com/dgrijalva/jwt-go",
     visibility = ["PUBLIC"],
     deps = [],

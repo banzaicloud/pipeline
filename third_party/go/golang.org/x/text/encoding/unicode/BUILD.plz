@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "unicode",
     srcs = [":_unicode#go_source"],
+    cover = False,
     import_path = "golang.org/x/text/encoding/unicode",
     visibility = ["PUBLIC"],
     deps = [

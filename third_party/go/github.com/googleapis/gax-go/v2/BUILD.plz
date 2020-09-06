@@ -24,6 +24,7 @@ fileexport(
 go_library(
     name = "v2",
     srcs = [":_v2#go_source"],
+    cover = False,
     import_path = "github.com/googleapis/gax-go/v2",
     visibility = ["PUBLIC"],
     deps = [

@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "lint",
     srcs = [":_lint#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/pkg/lint",
     visibility = ["PUBLIC"],
     deps = [

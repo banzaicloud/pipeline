@@ -34,6 +34,7 @@ fileexport(
 go_library(
     name = "v3",
     srcs = [":_v3#go_source"],
+    cover = False,
     import_path = "github.com/Masterminds/sprig/v3",
     visibility = ["PUBLIC"],
     deps = [

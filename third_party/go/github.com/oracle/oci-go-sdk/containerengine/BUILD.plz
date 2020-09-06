@@ -58,6 +58,7 @@ fileexport(
 go_library(
     name = "containerengine",
     srcs = [":_containerengine#go_source"],
+    cover = False,
     import_path = "github.com/oracle/oci-go-sdk/containerengine",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/oracle/oci-go-sdk/common"],

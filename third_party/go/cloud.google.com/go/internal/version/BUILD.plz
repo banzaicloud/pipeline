@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "version",
     srcs = [":_version#go_source"],
+    cover = False,
     import_path = "cloud.google.com/go/internal/version",
     visibility = ["PUBLIC"],
     deps = [],

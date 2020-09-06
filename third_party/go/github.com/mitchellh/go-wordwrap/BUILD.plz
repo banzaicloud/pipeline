@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "go-wordwrap",
     srcs = [":_go-wordwrap#go_source"],
+    cover = False,
     import_path = "github.com/mitchellh/go-wordwrap",
     visibility = ["PUBLIC"],
     deps = [],

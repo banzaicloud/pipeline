@@ -28,6 +28,7 @@ fileexport(
 go_library(
     name = "zapcore",
     srcs = [":_zapcore#go_source"],
+    cover = False,
     import_path = "go.uber.org/zap/zapcore",
     visibility = ["PUBLIC"],
     deps = [

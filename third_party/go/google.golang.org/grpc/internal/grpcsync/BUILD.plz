@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "grpcsync",
     srcs = [":_grpcsync#go_source"],
+    cover = False,
     import_path = "google.golang.org/grpc/internal/grpcsync",
     visibility = ["PUBLIC"],
     deps = [],

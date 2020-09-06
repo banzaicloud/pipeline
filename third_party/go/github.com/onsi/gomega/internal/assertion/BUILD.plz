@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "assertion",
     srcs = [":_assertion#go_source"],
+    cover = False,
     import_path = "github.com/onsi/gomega/internal/assertion",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/onsi/gomega/types"],

@@ -13,6 +13,7 @@ fileexport(
     name = "unidecode",
     srcs = [
         "decode.go",
+        "make_table.go",
         "table.go",
         "unidecode.go",
     ],
@@ -23,6 +24,7 @@ fileexport(
 go_library(
     name = "unidecode",
     srcs = [":_unidecode#go_source"],
+    cover = False,
     import_path = "github.com/rainycape/unidecode",
     visibility = ["PUBLIC"],
     deps = [],

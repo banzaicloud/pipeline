@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "logrus-runtime-formatter",
     srcs = [":_logrus-runtime-formatter#go_source"],
+    cover = False,
     import_path = "github.com/banzaicloud/logrus-runtime-formatter",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/sirupsen/logrus"],

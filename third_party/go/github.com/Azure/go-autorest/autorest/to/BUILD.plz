@@ -11,7 +11,10 @@ go_module_download(
 
 fileexport(
     name = "to",
-    srcs = ["convert.go"],
+    srcs = [
+        "convert.go",
+        "go_mod_tidy_hack.go",
+    ],
     tag = "go_source",
     deps = [":_to#download"],
 )
@@ -19,6 +22,7 @@ fileexport(
 go_library(
     name = "to",
     srcs = [":_to#go_source"],
+    cover = False,
     import_path = "github.com/Azure/go-autorest/autorest/to",
     visibility = ["PUBLIC"],
     deps = [],

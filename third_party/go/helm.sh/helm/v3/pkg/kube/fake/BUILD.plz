@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "fake",
     srcs = [":_fake#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/pkg/kube/fake",
     visibility = ["PUBLIC"],
     deps = [

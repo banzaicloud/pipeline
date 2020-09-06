@@ -22,6 +22,7 @@ fileexport(
 go_library(
     name = "watermill",
     srcs = [":_watermill#go_source"],
+    cover = False,
     import_path = "logur.dev/integration/watermill",
     visibility = ["PUBLIC"],
     deps = [

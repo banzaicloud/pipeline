@@ -14,6 +14,7 @@ fileexport(
     srcs = [
         "auth.go",
         "context.go",
+        "context_appengine.go",
         "debug.go",
         "deprecated.go",
         "doc.go",
@@ -38,6 +39,7 @@ fileexport(
 go_library(
     name = "gin",
     srcs = [":_gin#go_source"],
+    cover = False,
     import_path = "github.com/gin-gonic/gin",
     visibility = ["PUBLIC"],
     deps = [

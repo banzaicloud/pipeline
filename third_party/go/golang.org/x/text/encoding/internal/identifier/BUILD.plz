@@ -3,6 +3,7 @@ subinclude("///pleasegomod//:build_defs")
 fileexport(
     name = "identifier",
     srcs = [
+        "encoding/internal/identifier/gen.go",
         "encoding/internal/identifier/identifier.go",
         "encoding/internal/identifier/mib.go",
     ],
@@ -13,6 +14,7 @@ fileexport(
 go_library(
     name = "identifier",
     srcs = [":_identifier#go_source"],
+    cover = False,
     import_path = "golang.org/x/text/encoding/internal/identifier",
     visibility = ["PUBLIC"],
     deps = [],

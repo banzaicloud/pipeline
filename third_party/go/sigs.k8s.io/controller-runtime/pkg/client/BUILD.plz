@@ -22,6 +22,7 @@ fileexport(
 go_library(
     name = "client",
     srcs = [":_client#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/controller-runtime/pkg/client",
     visibility = ["PUBLIC"],
     deps = [

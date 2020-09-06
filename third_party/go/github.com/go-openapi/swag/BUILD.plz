@@ -22,6 +22,8 @@ fileexport(
         "path.go",
         "post_go18.go",
         "post_go19.go",
+        "pre_go18.go",
+        "pre_go19.go",
         "split.go",
         "util.go",
         "yaml.go",
@@ -33,6 +35,7 @@ fileexport(
 go_library(
     name = "swag",
     srcs = [":_swag#go_source"],
+    cover = False,
     import_path = "github.com/go-openapi/swag",
     visibility = ["PUBLIC"],
     deps = [

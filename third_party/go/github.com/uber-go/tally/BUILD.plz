@@ -28,6 +28,7 @@ fileexport(
 go_library(
     name = "tally",
     srcs = [":_tally#go_source"],
+    cover = False,
     import_path = "github.com/uber-go/tally",
     visibility = ["PUBLIC"],
     deps = [],

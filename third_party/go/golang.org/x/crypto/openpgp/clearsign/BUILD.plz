@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "clearsign",
     srcs = [":_clearsign#go_source"],
+    cover = False,
     import_path = "golang.org/x/crypto/openpgp/clearsign",
     visibility = ["PUBLIC"],
     deps = [

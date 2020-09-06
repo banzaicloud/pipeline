@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "openapi",
     srcs = [":_openapi#go_source"],
+    cover = False,
     import_path = "k8s.io/kubectl/pkg/util/openapi",
     visibility = ["PUBLIC"],
     deps = [

@@ -56,6 +56,7 @@ fileexport(
 go_library(
     name = "objectstorage",
     srcs = [":_objectstorage#go_source"],
+    cover = False,
     import_path = "github.com/oracle/oci-go-sdk/objectstorage",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/oracle/oci-go-sdk/common"],

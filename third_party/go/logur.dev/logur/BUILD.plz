@@ -29,6 +29,7 @@ fileexport(
 go_library(
     name = "logur",
     srcs = [":_logur#go_source"],
+    cover = False,
     import_path = "logur.dev/logur",
     visibility = ["PUBLIC"],
     deps = [],

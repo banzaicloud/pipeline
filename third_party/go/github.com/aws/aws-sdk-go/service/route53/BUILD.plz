@@ -18,6 +18,7 @@ fileexport(
 go_library(
     name = "route53",
     srcs = [":_route53#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/service/route53",
     visibility = ["PUBLIC"],
     deps = [

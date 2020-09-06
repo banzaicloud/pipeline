@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "cast5",
     srcs = [":_cast5#go_source"],
+    cover = False,
     import_path = "golang.org/x/crypto/cast5",
     visibility = ["PUBLIC"],
     deps = [],

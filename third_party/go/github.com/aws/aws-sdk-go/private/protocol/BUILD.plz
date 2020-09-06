@@ -20,6 +20,7 @@ fileexport(
 go_library(
     name = "protocol",
     srcs = [":_protocol#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/private/protocol",
     visibility = ["PUBLIC"],
     deps = [

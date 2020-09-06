@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "firstoutboundmiddleware",
     srcs = [":_firstoutboundmiddleware#go_source"],
+    cover = False,
     import_path = "go.uber.org/yarpc/internal/firstoutboundmiddleware",
     visibility = ["PUBLIC"],
     deps = [

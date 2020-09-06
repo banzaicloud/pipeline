@@ -14,6 +14,7 @@ fileexport(
     srcs = [
         "config.go",
         "devicetoken.go",
+        "go_mod_tidy_hack.go",
         "persist.go",
         "sender.go",
         "token.go",
@@ -26,6 +27,7 @@ fileexport(
 go_library(
     name = "adal",
     srcs = [":_adal#go_source"],
+    cover = False,
     import_path = "github.com/Azure/go-autorest/autorest/adal",
     visibility = ["PUBLIC"],
     deps = [

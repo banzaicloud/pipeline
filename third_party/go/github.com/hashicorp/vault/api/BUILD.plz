@@ -51,6 +51,7 @@ fileexport(
 go_library(
     name = "api",
     srcs = [":_api#go_source"],
+    cover = False,
     import_path = "github.com/hashicorp/vault/api",
     visibility = ["PUBLIC"],
     deps = [

@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "grpc_binarylog_v1",
     srcs = [":_grpc_binarylog_v1#go_source"],
+    cover = False,
     import_path = "google.golang.org/grpc/binarylog/grpc_binarylog_v1",
     visibility = ["PUBLIC"],
     deps = [

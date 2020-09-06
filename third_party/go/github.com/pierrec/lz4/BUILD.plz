@@ -13,9 +13,11 @@ fileexport(
     name = "lz4",
     srcs = [
         "block.go",
+        "debug.go",
         "debug_stub.go",
         "lz4.go",
         "lz4_go1.10.go",
+        "lz4_notgo1.10.go",
         "reader.go",
         "writer.go",
     ],
@@ -26,6 +28,7 @@ fileexport(
 go_library(
     name = "lz4",
     srcs = [":_lz4#go_source"],
+    cover = False,
     import_path = "github.com/pierrec/lz4",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/pierrec/lz4/internal/xxh32"],

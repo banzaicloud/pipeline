@@ -37,6 +37,7 @@ fileexport(
 go_library(
     name = "gojsonschema",
     srcs = [":_gojsonschema#go_source"],
+    cover = False,
     import_path = "github.com/xeipuuv/gojsonschema",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/xeipuuv/gojsonreference"],

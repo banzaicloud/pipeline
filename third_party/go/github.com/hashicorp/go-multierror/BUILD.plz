@@ -26,6 +26,7 @@ fileexport(
 go_library(
     name = "go-multierror",
     srcs = [":_go-multierror#go_source"],
+    cover = False,
     import_path = "github.com/hashicorp/go-multierror",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/hashicorp/errwrap"],

@@ -12,6 +12,7 @@ go_module_download(
 fileexport(
     name = "cli",
     srcs = [
+        "go_mod_tidy_hack.go",
         "profile.go",
         "token.go",
     ],
@@ -22,6 +23,7 @@ fileexport(
 go_library(
     name = "cli",
     srcs = [":_cli#go_source"],
+    cover = False,
     import_path = "github.com/Azure/go-autorest/autorest/azure/cli",
     visibility = ["PUBLIC"],
     deps = [

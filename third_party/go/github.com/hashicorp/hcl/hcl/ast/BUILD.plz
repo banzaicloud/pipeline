@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "ast",
     srcs = [":_ast#go_source"],
+    cover = False,
     import_path = "github.com/hashicorp/hcl/hcl/ast",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/hashicorp/hcl/hcl/token"],

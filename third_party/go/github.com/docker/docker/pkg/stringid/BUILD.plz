@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "stringid",
     srcs = [":_stringid#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker/pkg/stringid",
     visibility = ["PUBLIC"],
     deps = [],

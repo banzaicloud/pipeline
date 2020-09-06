@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "kunstruct",
     srcs = [":_kunstruct#go_source"],
+    cover = False,
     import_path = "k8s.io/cli-runtime/pkg/kustomize/k8sdeps/kunstruct",
     visibility = ["PUBLIC"],
     deps = [

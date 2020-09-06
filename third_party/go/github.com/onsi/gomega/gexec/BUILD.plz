@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "gexec",
     srcs = [":_gexec#go_source"],
+    cover = False,
     import_path = "github.com/onsi/gomega/gexec",
     visibility = ["PUBLIC"],
     deps = [

@@ -17,6 +17,7 @@ fileexport(
         "cobra.go",
         "command.go",
         "command_notwin.go",
+        "command_win.go",
         "custom_completions.go",
         "fish_completions.go",
         "powershell_completions.go",
@@ -30,6 +31,7 @@ fileexport(
 go_library(
     name = "cobra",
     srcs = [":_cobra#go_source"],
+    cover = False,
     import_path = "github.com/spf13/cobra",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/spf13/pflag"],

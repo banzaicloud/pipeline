@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "lru",
     srcs = [":_lru#go_source"],
+    cover = False,
     import_path = "github.com/golang/groupcache/lru",
     visibility = ["PUBLIC"],
     deps = [],

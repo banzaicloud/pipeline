@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "content",
     srcs = [":_content#go_source"],
+    cover = False,
     import_path = "github.com/deislabs/oras/pkg/content",
     visibility = ["PUBLIC"],
     deps = [

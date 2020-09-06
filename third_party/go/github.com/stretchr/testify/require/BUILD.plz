@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "require",
     srcs = [":_require#go_source"],
+    cover = False,
     import_path = "github.com/stretchr/testify/require",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/stretchr/testify/assert"],

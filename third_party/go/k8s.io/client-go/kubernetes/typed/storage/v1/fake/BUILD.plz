@@ -17,6 +17,7 @@ fileexport(
 go_library(
     name = "fake",
     srcs = [":_fake#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/kubernetes/typed/storage/v1/fake",
     visibility = ["PUBLIC"],
     deps = [

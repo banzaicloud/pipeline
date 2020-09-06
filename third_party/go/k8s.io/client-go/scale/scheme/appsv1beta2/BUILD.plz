@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "appsv1beta2",
     srcs = [":_appsv1beta2#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/scale/scheme/appsv1beta2",
     visibility = ["PUBLIC"],
     deps = [

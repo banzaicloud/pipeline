@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "format",
     srcs = [":_format#go_source"],
+    cover = False,
     import_path = "github.com/onsi/gomega/format",
     visibility = ["PUBLIC"],
     deps = [],

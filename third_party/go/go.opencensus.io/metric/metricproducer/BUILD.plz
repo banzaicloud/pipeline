@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "metricproducer",
     srcs = [":_metricproducer#go_source"],
+    cover = False,
     import_path = "go.opencensus.io/metric/metricproducer",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/go.opencensus.io/metric/metricdata"],

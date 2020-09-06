@@ -22,6 +22,7 @@ fileexport(
 go_library(
     name = "go-cache",
     srcs = [":_go-cache#go_source"],
+    cover = False,
     import_path = "github.com/patrickmn/go-cache",
     visibility = ["PUBLIC"],
     deps = [],

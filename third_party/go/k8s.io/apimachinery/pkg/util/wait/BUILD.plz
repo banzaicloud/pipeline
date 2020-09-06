@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "wait",
     srcs = [":_wait#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/util/wait",
     visibility = ["PUBLIC"],
     deps = [

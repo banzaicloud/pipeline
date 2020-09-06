@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "volume",
     srcs = [":_volume#go_source"],
+    cover = False,
     import_path = "github.com/banzaicloud/operator-tools/pkg/volume",
     visibility = ["PUBLIC"],
     deps = [

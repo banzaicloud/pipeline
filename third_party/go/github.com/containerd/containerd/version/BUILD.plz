@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "version",
     srcs = [":_version#go_source"],
+    cover = False,
     import_path = "github.com/containerd/containerd/version",
     visibility = ["PUBLIC"],
     deps = [],

@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "scheme",
     srcs = [":_scheme#go_source"],
+    cover = False,
     import_path = "github.com/heptio/ark/pkg/generated/clientset/versioned/scheme",
     visibility = ["PUBLIC"],
     deps = [

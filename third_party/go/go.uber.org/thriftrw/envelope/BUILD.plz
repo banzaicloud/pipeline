@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "envelope",
     srcs = [":_envelope#go_source"],
+    cover = False,
     import_path = "go.uber.org/thriftrw/envelope",
     visibility = ["PUBLIC"],
     deps = [

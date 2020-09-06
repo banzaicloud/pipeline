@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "jws",
     srcs = [":_jws#go_source"],
+    cover = False,
     import_path = "golang.org/x/oauth2/jws",
     visibility = ["PUBLIC"],
     deps = [],

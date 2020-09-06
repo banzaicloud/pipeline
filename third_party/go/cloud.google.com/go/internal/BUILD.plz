@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "internal",
     srcs = [":_internal#go_source"],
+    cover = False,
     import_path = "cloud.google.com/go/internal",
     visibility = ["PUBLIC"],
     deps = [

@@ -31,6 +31,7 @@ fileexport(
 go_library(
     name = "go-jose.v2",
     srcs = [":_go-jose.v2#go_source"],
+    cover = False,
     import_path = "gopkg.in/square/go-jose.v2",
     visibility = ["PUBLIC"],
     deps = [

@@ -24,6 +24,7 @@ fileexport(
 go_library(
     name = "moniker",
     srcs = [":_moniker#go_source"],
+    cover = False,
     import_path = "github.com/technosophos/moniker",
     visibility = ["PUBLIC"],
     deps = [],

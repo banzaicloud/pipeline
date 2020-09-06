@@ -11,6 +11,7 @@ fileexport(
         "api/types/container/container_wait.go",
         "api/types/container/host_config.go",
         "api/types/container/hostconfig_unix.go",
+        "api/types/container/hostconfig_windows.go",
         "api/types/container/waitcondition.go",
     ],
     tag = "go_source",
@@ -20,6 +21,7 @@ fileexport(
 go_library(
     name = "container",
     srcs = [":_container#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker/api/types/container",
     visibility = ["PUBLIC"],
     deps = [

@@ -4,6 +4,7 @@ fileexport(
     name = "flags",
     srcs = [
         "cmp/internal/flags/flags.go",
+        "cmp/internal/flags/toolchain_legacy.go",
         "cmp/internal/flags/toolchain_recent.go",
     ],
     tag = "go_source",
@@ -13,6 +14,7 @@ fileexport(
 go_library(
     name = "flags",
     srcs = [":_flags#go_source"],
+    cover = False,
     import_path = "github.com/google/go-cmp/cmp/internal/flags",
     visibility = ["PUBLIC"],
     deps = [],

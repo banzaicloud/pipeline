@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "federate",
     srcs = [":_federate#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kubefed/pkg/kubefedctl/federate",
     visibility = ["PUBLIC"],
     deps = [

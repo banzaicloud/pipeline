@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "tagencoding",
     srcs = [":_tagencoding#go_source"],
+    cover = False,
     import_path = "go.opencensus.io/internal/tagencoding",
     visibility = ["PUBLIC"],
     deps = [],

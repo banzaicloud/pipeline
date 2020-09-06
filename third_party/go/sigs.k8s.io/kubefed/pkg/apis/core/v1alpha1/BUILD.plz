@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "v1alpha1",
     srcs = [":_v1alpha1#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kubefed/pkg/apis/core/v1alpha1",
     visibility = ["PUBLIC"],
     deps = [

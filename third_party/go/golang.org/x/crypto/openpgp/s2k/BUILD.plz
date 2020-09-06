@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "s2k",
     srcs = [":_s2k#go_source"],
+    cover = False,
     import_path = "golang.org/x/crypto/openpgp/s2k",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/golang.org/x/crypto/openpgp/errors"],

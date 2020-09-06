@@ -8,6 +8,7 @@ fileexport(
         "platforms/database.go",
         "platforms/defaults.go",
         "platforms/defaults_unix.go",
+        "platforms/defaults_windows.go",
         "platforms/platforms.go",
     ],
     tag = "go_source",
@@ -17,6 +18,7 @@ fileexport(
 go_library(
     name = "platforms",
     srcs = [":_platforms#go_source"],
+    cover = False,
     import_path = "github.com/containerd/containerd/platforms",
     visibility = ["PUBLIC"],
     deps = [

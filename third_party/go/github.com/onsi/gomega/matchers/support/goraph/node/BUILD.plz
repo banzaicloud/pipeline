@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "node",
     srcs = [":_node#go_source"],
+    cover = False,
     import_path = "github.com/onsi/gomega/matchers/support/goraph/node",
     visibility = ["PUBLIC"],
     deps = [],

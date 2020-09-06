@@ -17,6 +17,7 @@ fileexport(
 go_library(
     name = "v1beta1",
     srcs = [":_v1beta1#go_source"],
+    cover = False,
     import_path = "k8s.io/api/admissionregistration/v1beta1",
     visibility = ["PUBLIC"],
     deps = [

@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "compression",
     srcs = [":_compression#go_source"],
+    cover = False,
     import_path = "github.com/containerd/containerd/archive/compression",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/containerd/containerd/log"],

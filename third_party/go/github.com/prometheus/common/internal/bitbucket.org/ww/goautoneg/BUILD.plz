@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "goautoneg",
     srcs = [":_goautoneg#go_source"],
+    cover = False,
     import_path = "github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg",
     visibility = ["PUBLIC"],
     deps = [],

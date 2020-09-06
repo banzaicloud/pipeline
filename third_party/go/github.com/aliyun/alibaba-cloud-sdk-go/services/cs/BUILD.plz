@@ -40,6 +40,7 @@ fileexport(
 go_library(
     name = "cs",
     srcs = [":_cs#go_source"],
+    cover = False,
     import_path = "github.com/aliyun/alibaba-cloud-sdk-go/services/cs",
     visibility = ["PUBLIC"],
     deps = [

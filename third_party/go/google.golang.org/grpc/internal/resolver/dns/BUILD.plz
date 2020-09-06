@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "dns",
     srcs = [":_dns#go_source"],
+    cover = False,
     import_path = "google.golang.org/grpc/internal/resolver/dns",
     visibility = ["PUBLIC"],
     deps = [

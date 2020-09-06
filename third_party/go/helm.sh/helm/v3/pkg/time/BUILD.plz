@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "time",
     srcs = [":_time#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/pkg/time",
     visibility = ["PUBLIC"],
     deps = [],

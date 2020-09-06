@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "internal",
     srcs = [":_internal#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/testing_frameworks/integration/internal",
     visibility = ["PUBLIC"],
     deps = [

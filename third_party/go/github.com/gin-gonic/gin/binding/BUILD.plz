@@ -24,6 +24,7 @@ fileexport(
 go_library(
     name = "binding",
     srcs = [":_binding#go_source"],
+    cover = False,
     import_path = "github.com/gin-gonic/gin/binding",
     visibility = ["PUBLIC"],
     deps = [

@@ -35,6 +35,7 @@ fileexport(
 go_library(
     name = "yarpc",
     srcs = [":_yarpc#go_source"],
+    cover = False,
     import_path = "go.uber.org/yarpc",
     visibility = ["PUBLIC"],
     deps = [

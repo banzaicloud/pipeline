@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "db",
     srcs = [":_db#go_source"],
+    cover = False,
     import_path = "github.com/banzaicloud/bank-vaults/pkg/sdk/db",
     visibility = ["PUBLIC"],
     deps = [

@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "clientauthentication",
     srcs = [":_clientauthentication#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/pkg/apis/clientauthentication",
     visibility = ["PUBLIC"],
     deps = [

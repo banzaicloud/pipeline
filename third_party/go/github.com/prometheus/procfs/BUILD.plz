@@ -14,6 +14,17 @@ fileexport(
     srcs = [
         "arp.go",
         "buddyinfo.go",
+        "cpuinfo.go",
+        "cpuinfo_arm.go",
+        "cpuinfo_arm64.go",
+        "cpuinfo_default.go",
+        "cpuinfo_mips.go",
+        "cpuinfo_mips64.go",
+        "cpuinfo_mips64le.go",
+        "cpuinfo_mipsle.go",
+        "cpuinfo_ppc64.go",
+        "cpuinfo_ppc64le.go",
+        "cpuinfo_s390x.go",
         "crypto.go",
         "doc.go",
         "fs.go",
@@ -57,6 +68,7 @@ fileexport(
 go_library(
     name = "procfs",
     srcs = [":_procfs#go_source"],
+    cover = False,
     import_path = "github.com/prometheus/procfs",
     visibility = ["PUBLIC"],
     deps = [

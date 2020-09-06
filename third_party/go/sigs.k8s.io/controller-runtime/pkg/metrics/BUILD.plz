@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "metrics",
     srcs = [":_metrics#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/controller-runtime/pkg/metrics",
     visibility = ["PUBLIC"],
     deps = [

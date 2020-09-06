@@ -24,6 +24,7 @@ fileexport(
 go_library(
     name = "mergo",
     srcs = [":_mergo#go_source"],
+    cover = False,
     import_path = "github.com/imdario/mergo",
     visibility = ["PUBLIC"],
     deps = [],

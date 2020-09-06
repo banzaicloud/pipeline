@@ -27,6 +27,7 @@ fileexport(
 go_library(
     name = "mux",
     srcs = [":_mux#go_source"],
+    cover = False,
     import_path = "github.com/gorilla/mux",
     visibility = ["PUBLIC"],
     deps = [],

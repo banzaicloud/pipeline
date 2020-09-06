@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "utfbom",
     srcs = [":_utfbom#go_source"],
+    cover = False,
     import_path = "github.com/dimchansky/utfbom",
     visibility = ["PUBLIC"],
     deps = [],

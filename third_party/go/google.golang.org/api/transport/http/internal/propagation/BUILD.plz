@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "propagation",
     srcs = [":_propagation#go_source"],
+    cover = False,
     import_path = "google.golang.org/api/transport/http/internal/propagation",
     visibility = ["PUBLIC"],
     deps = [

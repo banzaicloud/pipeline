@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "proxy",
     srcs = [":_proxy#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/util/proxy",
     visibility = ["PUBLIC"],
     deps = [

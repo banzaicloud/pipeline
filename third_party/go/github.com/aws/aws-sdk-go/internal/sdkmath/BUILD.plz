@@ -2,7 +2,10 @@ subinclude("///pleasegomod//:build_defs")
 
 fileexport(
     name = "sdkmath",
-    srcs = ["internal/sdkmath/floor.go"],
+    srcs = [
+        "internal/sdkmath/floor.go",
+        "internal/sdkmath/floor_go1.9.go",
+    ],
     tag = "go_source",
     deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
 )
@@ -10,6 +13,7 @@ fileexport(
 go_library(
     name = "sdkmath",
     srcs = [":_sdkmath#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/internal/sdkmath",
     visibility = ["PUBLIC"],
     deps = [],

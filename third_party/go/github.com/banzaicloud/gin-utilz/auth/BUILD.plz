@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "auth",
     srcs = [":_auth#go_source"],
+    cover = False,
     import_path = "github.com/banzaicloud/gin-utilz/auth",
     visibility = ["PUBLIC"],
     deps = [

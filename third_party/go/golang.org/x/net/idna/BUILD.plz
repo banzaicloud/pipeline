@@ -4,8 +4,12 @@ fileexport(
     name = "idna",
     srcs = [
         "idna/idna10.0.0.go",
+        "idna/idna9.0.0.go",
         "idna/punycode.go",
+        "idna/tables10.0.0.go",
+        "idna/tables11.0.0.go",
         "idna/tables12.00.go",
+        "idna/tables9.0.0.go",
         "idna/trie.go",
         "idna/trieval.go",
     ],
@@ -16,6 +20,7 @@ fileexport(
 go_library(
     name = "idna",
     srcs = [":_idna#go_source"],
+    cover = False,
     import_path = "golang.org/x/net/idna",
     visibility = ["PUBLIC"],
     deps = [

@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "client",
     srcs = [":_client#go_source"],
+    cover = False,
     import_path = "github.com/docker/distribution/registry/client",
     visibility = ["PUBLIC"],
     deps = [

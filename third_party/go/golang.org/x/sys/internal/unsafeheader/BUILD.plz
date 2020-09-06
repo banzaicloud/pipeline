@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "unsafeheader",
     srcs = [":_unsafeheader#go_source"],
+    cover = False,
     import_path = "golang.org/x/sys/internal/unsafeheader",
     visibility = ["PUBLIC"],
     deps = [],

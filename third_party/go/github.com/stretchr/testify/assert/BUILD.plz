@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "assert",
     srcs = [":_assert#go_source"],
+    cover = False,
     import_path = "github.com/stretchr/testify/assert",
     visibility = ["PUBLIC"],
     deps = [

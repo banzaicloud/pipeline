@@ -28,6 +28,7 @@ fileexport(
 go_library(
     name = "go-jmespath",
     srcs = [":_go-jmespath#go_source"],
+    cover = False,
     import_path = "github.com/jmespath/go-jmespath",
     visibility = ["PUBLIC"],
     deps = [],

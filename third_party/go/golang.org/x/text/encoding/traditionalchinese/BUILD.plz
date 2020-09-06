@@ -4,6 +4,7 @@ fileexport(
     name = "traditionalchinese",
     srcs = [
         "encoding/traditionalchinese/big5.go",
+        "encoding/traditionalchinese/maketables.go",
         "encoding/traditionalchinese/tables.go",
     ],
     tag = "go_source",
@@ -13,6 +14,7 @@ fileexport(
 go_library(
     name = "traditionalchinese",
     srcs = [":_traditionalchinese#go_source"],
+    cover = False,
     import_path = "golang.org/x/text/encoding/traditionalchinese",
     visibility = ["PUBLIC"],
     deps = [

@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "reflectx",
     srcs = [":_reflectx#go_source"],
+    cover = False,
     import_path = "github.com/jmoiron/sqlx/reflectx",
     visibility = ["PUBLIC"],
     deps = [],

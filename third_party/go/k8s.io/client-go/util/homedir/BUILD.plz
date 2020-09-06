@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "homedir",
     srcs = [":_homedir#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/util/homedir",
     visibility = ["PUBLIC"],
     deps = [],

@@ -11,7 +11,10 @@ go_module_download(
 
 fileexport(
     name = "auth",
-    srcs = ["auth.go"],
+    srcs = [
+        "auth.go",
+        "go_mod_tidy_hack.go",
+    ],
     tag = "go_source",
     deps = [":_auth#download"],
 )
@@ -19,6 +22,7 @@ fileexport(
 go_library(
     name = "auth",
     srcs = [":_auth#go_source"],
+    cover = False,
     import_path = "github.com/Azure/go-autorest/autorest/azure/auth",
     visibility = ["PUBLIC"],
     deps = [

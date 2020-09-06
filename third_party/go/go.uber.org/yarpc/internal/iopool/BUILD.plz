@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "iopool",
     srcs = [":_iopool#go_source"],
+    cover = False,
     import_path = "go.uber.org/yarpc/internal/iopool",
     visibility = ["PUBLIC"],
     deps = [],

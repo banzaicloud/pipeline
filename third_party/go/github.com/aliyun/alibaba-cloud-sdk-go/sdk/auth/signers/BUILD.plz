@@ -21,6 +21,7 @@ fileexport(
 go_library(
     name = "signers",
     srcs = [":_signers#go_source"],
+    cover = False,
     import_path = "github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/signers",
     visibility = ["PUBLIC"],
     deps = [

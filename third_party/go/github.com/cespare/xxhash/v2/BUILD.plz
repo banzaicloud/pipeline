@@ -14,6 +14,8 @@ fileexport(
     srcs = [
         "xxhash.go",
         "xxhash_amd64.go",
+        "xxhash_other.go",
+        "xxhash_safe.go",
         "xxhash_unsafe.go",
     ],
     tag = "go_source",
@@ -31,6 +33,7 @@ go_library(
     name = "v2",
     srcs = [":_v2#go_source"],
     asm_srcs = [":_v2#s_source"],
+    cover = False,
     import_path = "github.com/cespare/xxhash/v2",
     visibility = ["PUBLIC"],
     deps = [],

@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "internal",
     srcs = [":_internal#go_source"],
+    cover = False,
     import_path = "go.uber.org/yarpc/transport/tchannel/internal",
     visibility = ["PUBLIC"],
     deps = [],

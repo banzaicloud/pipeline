@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "fileutil",
     srcs = [":_fileutil#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/internal/fileutil",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/helm.sh/helm/v3/internal/third_party/dep/fs"],

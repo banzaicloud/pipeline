@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "api",
     srcs = [":_api#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/tools/clientcmd/api",
     visibility = ["PUBLIC"],
     deps = [

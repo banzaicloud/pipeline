@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "recognizer",
     srcs = [":_recognizer#go_source"],
+    cover = False,
     import_path = "k8s.io/apimachinery/pkg/runtime/serializer/recognizer",
     visibility = ["PUBLIC"],
     deps = [

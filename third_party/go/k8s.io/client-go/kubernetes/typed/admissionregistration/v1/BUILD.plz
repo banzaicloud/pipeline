@@ -16,6 +16,7 @@ fileexport(
 go_library(
     name = "v1",
     srcs = [":_v1#go_source"],
+    cover = False,
     import_path = "k8s.io/client-go/kubernetes/typed/admissionregistration/v1",
     visibility = ["PUBLIC"],
     deps = [

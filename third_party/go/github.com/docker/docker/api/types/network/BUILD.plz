@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "network",
     srcs = [":_network#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker/api/types/network",
     visibility = ["PUBLIC"],
     deps = [

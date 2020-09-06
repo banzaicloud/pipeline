@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "prom2json",
     srcs = [":_prom2json#go_source"],
+    cover = False,
     import_path = "github.com/prometheus/prom2json",
     visibility = ["PUBLIC"],
     deps = [

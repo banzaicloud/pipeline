@@ -17,6 +17,7 @@ fileexport(
         "hash.go",
         "marshal.go",
         "node.go",
+        "node_js.go",
         "node_net.go",
         "sql.go",
         "time.go",
@@ -32,6 +33,7 @@ fileexport(
 go_library(
     name = "uuid",
     srcs = [":_uuid#go_source"],
+    cover = False,
     import_path = "github.com/google/uuid",
     visibility = ["PUBLIC"],
     deps = [],

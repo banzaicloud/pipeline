@@ -23,6 +23,7 @@ fileexport(
 go_library(
     name = "viper",
     srcs = [":_viper#go_source"],
+    cover = False,
     import_path = "github.com/spf13/viper",
     visibility = ["PUBLIC"],
     deps = [

@@ -17,6 +17,7 @@ fileexport(
 go_library(
     name = "binarylog",
     srcs = [":_binarylog#go_source"],
+    cover = False,
     import_path = "google.golang.org/grpc/internal/binarylog",
     visibility = ["PUBLIC"],
     deps = [

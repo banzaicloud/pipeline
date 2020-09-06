@@ -22,6 +22,7 @@ fileexport(
 go_library(
     name = "cast",
     srcs = [":_cast#go_source"],
+    cover = False,
     import_path = "github.com/spf13/cast",
     visibility = ["PUBLIC"],
     deps = [],

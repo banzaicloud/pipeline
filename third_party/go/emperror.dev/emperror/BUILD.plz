@@ -23,6 +23,7 @@ fileexport(
         "handler_filter.go",
         "handler_testing.go",
         "panic.go",
+        "panic_go1_11.go",
         "panic_go1_12.go",
         "unwrap.go",
         "wrap.go",
@@ -34,6 +35,7 @@ fileexport(
 go_library(
     name = "emperror",
     srcs = [":_emperror#go_source"],
+    cover = False,
     import_path = "emperror.dev/emperror",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/emperror.dev/errors"],

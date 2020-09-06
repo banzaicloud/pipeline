@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "sdkuri",
     srcs = [":_sdkuri#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/internal/sdkuri",
     visibility = ["PUBLIC"],
     deps = [],

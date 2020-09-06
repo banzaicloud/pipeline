@@ -5,6 +5,7 @@ fileexport(
     srcs = [
         "aws/signer/v4/header_rules.go",
         "aws/signer/v4/options.go",
+        "aws/signer/v4/request_context_go1.5.go",
         "aws/signer/v4/request_context_go1.7.go",
         "aws/signer/v4/stream.go",
         "aws/signer/v4/uri_path.go",
@@ -17,6 +18,7 @@ fileexport(
 go_library(
     name = "v4",
     srcs = [":_v4#go_source"],
+    cover = False,
     import_path = "github.com/aws/aws-sdk-go/aws/signer/v4",
     visibility = ["PUBLIC"],
     deps = [

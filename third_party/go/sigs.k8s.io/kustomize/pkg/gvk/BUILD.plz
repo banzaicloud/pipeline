@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "gvk",
     srcs = [":_gvk#go_source"],
+    cover = False,
     import_path = "sigs.k8s.io/kustomize/pkg/gvk",
     visibility = ["PUBLIC"],
     deps = [],

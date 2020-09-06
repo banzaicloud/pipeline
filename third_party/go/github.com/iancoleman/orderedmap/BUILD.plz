@@ -19,6 +19,7 @@ fileexport(
 go_library(
     name = "orderedmap",
     srcs = [":_orderedmap#go_source"],
+    cover = False,
     import_path = "github.com/iancoleman/orderedmap",
     visibility = ["PUBLIC"],
     deps = [],

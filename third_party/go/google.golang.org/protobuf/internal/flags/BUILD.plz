@@ -5,6 +5,7 @@ fileexport(
     srcs = [
         "internal/flags/flags.go",
         "internal/flags/proto_legacy_disable.go",
+        "internal/flags/proto_legacy_enable.go",
     ],
     tag = "go_source",
     deps = ["//third_party/go/google.golang.org/protobuf:_protobuf#download"],
@@ -13,6 +14,7 @@ fileexport(
 go_library(
     name = "flags",
     srcs = [":_flags#go_source"],
+    cover = False,
     import_path = "google.golang.org/protobuf/internal/flags",
     visibility = ["PUBLIC"],
     deps = [],

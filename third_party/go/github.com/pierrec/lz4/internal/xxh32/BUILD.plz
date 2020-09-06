@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "xxh32",
     srcs = [":_xxh32#go_source"],
+    cover = False,
     import_path = "github.com/pierrec/lz4/internal/xxh32",
     visibility = ["PUBLIC"],
     deps = [],

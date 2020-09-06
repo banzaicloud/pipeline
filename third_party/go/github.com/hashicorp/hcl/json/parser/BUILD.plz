@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "parser",
     srcs = [":_parser#go_source"],
+    cover = False,
     import_path = "github.com/hashicorp/hcl/json/parser",
     visibility = ["PUBLIC"],
     deps = [

@@ -15,6 +15,7 @@ fileexport(
 go_library(
     name = "docker",
     srcs = [":_docker#go_source"],
+    cover = False,
     import_path = "github.com/deislabs/oras/pkg/auth/docker",
     visibility = ["PUBLIC"],
     deps = [

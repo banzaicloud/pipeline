@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "digester",
     srcs = [":_digester#go_source"],
+    cover = False,
     import_path = "go.uber.org/yarpc/internal/digester",
     visibility = ["PUBLIC"],
     deps = [],

@@ -28,6 +28,7 @@ fileexport(
 go_library(
     name = "properties",
     srcs = [":_properties#go_source"],
+    cover = False,
     import_path = "github.com/magiconair/properties",
     visibility = ["PUBLIC"],
     deps = [],

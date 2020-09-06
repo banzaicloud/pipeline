@@ -20,6 +20,7 @@ fileexport(
 go_library(
     name = "kube",
     srcs = [":_kube#go_source"],
+    cover = False,
     import_path = "helm.sh/helm/v3/pkg/kube",
     visibility = ["PUBLIC"],
     deps = [

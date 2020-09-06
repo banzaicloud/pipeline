@@ -6,6 +6,7 @@ fileexport(
         "registry/auth.go",
         "registry/config.go",
         "registry/config_unix.go",
+        "registry/config_windows.go",
         "registry/endpoint_v1.go",
         "registry/errors.go",
         "registry/registry.go",
@@ -21,6 +22,7 @@ fileexport(
 go_library(
     name = "registry",
     srcs = [":_registry#go_source"],
+    cover = False,
     import_path = "github.com/docker/docker/registry",
     visibility = ["PUBLIC"],
     deps = [

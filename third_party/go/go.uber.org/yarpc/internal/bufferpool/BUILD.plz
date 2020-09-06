@@ -13,6 +13,7 @@ fileexport(
 go_library(
     name = "bufferpool",
     srcs = [":_bufferpool#go_source"],
+    cover = False,
     import_path = "go.uber.org/yarpc/internal/bufferpool",
     visibility = ["PUBLIC"],
     deps = [],

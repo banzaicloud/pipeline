@@ -14,6 +14,7 @@ fileexport(
 go_library(
     name = "trace",
     srcs = [":_trace#go_source"],
+    cover = False,
     import_path = "golang.org/x/net/trace",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go/golang.org/x/net/internal/timeseries"],

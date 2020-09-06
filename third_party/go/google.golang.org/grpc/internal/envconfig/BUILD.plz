@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "envconfig",
     srcs = [":_envconfig#go_source"],
+    cover = False,
     import_path = "google.golang.org/grpc/internal/envconfig",
     visibility = ["PUBLIC"],
     deps = [],

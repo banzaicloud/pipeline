@@ -10,6 +10,7 @@ fileexport(
 go_library(
     name = "hostport",
     srcs = [":_hostport#go_source"],
+    cover = False,
     import_path = "go.uber.org/yarpc/peer/hostport",
     visibility = ["PUBLIC"],
     deps = [

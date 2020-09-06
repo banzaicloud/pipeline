@@ -22,6 +22,7 @@ fileexport(
 go_library(
     name = "now",
     srcs = [":_now#go_source"],
+    cover = False,
     import_path = "github.com/jinzhu/now",
     visibility = ["PUBLIC"],
     deps = [],
