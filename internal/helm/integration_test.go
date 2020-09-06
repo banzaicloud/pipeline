@@ -41,10 +41,9 @@ type Values struct {
 }
 
 const (
-	noOrgID = 0 // implicitly means platform helm env
+	noOrgID   = 0 // implicitly means platform helm env
+	clusterId = uint(123)
 )
-
-var clusterId = uint(123) // nolint:gochecknoglobals
 
 func TestIntegration(t *testing.T) {
 	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
