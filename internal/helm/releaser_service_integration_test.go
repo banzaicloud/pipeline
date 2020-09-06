@@ -115,12 +115,12 @@ func getHelmFacade(t *testing.T) helm.Service {
 func testInstallRelease(ctx context.Context, helmFacade helm.Service, releaseInput helm.Release, options helm.Options) func(t *testing.T) {
 	return func(t *testing.T) {
 		t.Logf("installing release %#v", releaseInput)
-		if _, err := helmFacade.InstallRelease(ctx, 1, 1, releaseInput, options); err != nil {
+		if _, err := helmFacade.InstallRelease(ctx, 1, 123, releaseInput, options); err != nil {
 			t.Fatalf("failed to install release %#v", releaseInput)
 		}
 
 		// assertions
-		rel, err := helmFacade.GetRelease(ctx, 1, 1, releaseInput.ReleaseName, options)
+		rel, err := helmFacade.GetRelease(ctx, 1, 123, releaseInput.ReleaseName, options)
 		assert.Nil(t, err)
 		assert.Equal(t, "deployed", rel.ReleaseInfo.Status)
 	}
@@ -130,7 +130,7 @@ func testListReleaseWithFilter(ctx context.Context, helmFacade helm.Service, fil
 	return func(t *testing.T) {
 		t.Logf("listing releases; filter: %#v", filter)
 
-		releases, err := helmFacade.ListReleases(ctx, 1, 1, filter, options)
+		releases, err := helmFacade.ListReleases(ctx, 1, 123, filter, options)
 		if err != nil {
 			t.Fatalf("failed to list releases; filter %#v", filter)
 		}
@@ -141,7 +141,7 @@ func testListReleaseWithFilter(ctx context.Context, helmFacade helm.Service, fil
 		// fake filter
 		inexistingFilter := "InexistingReleaseName"
 		filter.Filter = &inexistingFilter
-		releases, notFound := helmFacade.ListReleases(ctx, 1, 1, filter, options)
+		releases, notFound := helmFacade.ListReleases(ctx, 1, 123, filter, options)
 
 		assert.Nil(t, notFound)
 		assert.Equal(t, 0, len(releases), "no release should match the filter")
@@ -153,20 +153,24 @@ func testDeleteRelease(ctx context.Context, helmFacade helm.Service, releaseName
 		t.Logf("deleting release %#v", releaseName)
 		if err := helmFacade.DeleteRelease(ctx, 1, 123, releaseName, options); err != nil {
 			if !errReleaseNotFound(err) {
-				t.Fatalf("failed to delete release %#v", releaseName)
+				t.Fatalf("failed to delete release %q: %s", releaseName, err)
 			}
 		}
 
 		// the release can't be found
-		_, err := helmFacade.GetRelease(ctx, 1, 1, releaseName, options)
-		assert.True(t, errReleaseNotFound(err))
+		_, err := helmFacade.GetRelease(ctx, 1, 123, releaseName, options)
+		if err == nil {
+			t.Fatalf("release %q is not deleted", releaseName)
+		} else if !errReleaseNotFound(err) {
+			t.Fatalf("failed to check if release %q is deleted: %s", releaseName, err)
+		}
 	}
 }
 
 func testGetRelease(ctx context.Context, helmFacade helm.Service, releaseName string, options helm.Options) func(t *testing.T) {
 	return func(t *testing.T) {
 		t.Logf("deleting release %#v", releaseName)
-		release, err := helmFacade.GetRelease(ctx, 1, 1, releaseName, options)
+		release, err := helmFacade.GetRelease(ctx, 1, 123, releaseName, options)
 		if err != nil {
 			t.Fatalf("failed to retrieve release %#v", releaseName)
 		}
