@@ -16,8 +16,6 @@ package helm_test
 
 import (
 	"context"
-	"flag"
-	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,69 +26,56 @@ import (
 	testing2 "github.com/banzaicloud/pipeline/internal/helm/testing"
 )
 
-func TestEnvresolver(t *testing.T) {
-	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
-		t.Skip("skipping as execution was not requested explicitly using go test -run")
-	}
+func testPlatformEnvResolver(t *testing.T) {
+	logger := common.NoopLogger{}
+	testCtx := context.Background()
+	db := testing2.SetupDatabase(t)
+	helmConfig := setUpHelmConfig(t)
+	secretStore := helmadapter.NewSecretStore(testing2.SetupSecretStore(), logger)
+	repoStore := helmadapter.NewHelmRepoStore(db, logger)
+	envResolver := helm.NewHelm3EnvResolver(helmConfig.Home, setupOrgService(testCtx, t), logger)
+	envService := helmadapter.NewHelm3EnvService(secretStore, logger)
+	ensuringEnvResolver := helm.NewEnsuringEnvResolver(envResolver, envService, repoStore, helmConfig.Repositories, logger)
 
-	t.Run("platformEnvResolver", testPlatformEnvResolver())
-	t.Run("orgEnvResolver", testOrgEnvResolver())
+	assert.NoFileExists(t, helmConfig.Home, "the helm home must not exist")
+	helmEnv, err := ensuringEnvResolver.ResolvePlatformEnv(testCtx)
+
+	assert.Nil(t, err)
+	assert.FileExists(t, helmEnv.GetHome(), "the platform helm home must have been created")
+
+	platformRepos, err := envService.ListRepositories(testCtx, helmEnv)
+	assert.Nil(t, err, "the list repositories call must succeed")
+
+	assert.Equal(t, len(helmConfig.Repositories), len(platformRepos), "default repositories must be installed")
 }
 
-func testPlatformEnvResolver() func(t *testing.T) {
-	return func(t *testing.T) {
-		logger := common.NoopLogger{}
-		testCtx := context.Background()
-		db := testing2.SetupDatabase(t)
-		helmConfig := setUpHelmConfig(t)
-		secretStore := helmadapter.NewSecretStore(testing2.SetupSecretStore(), logger)
-		repoStore := helmadapter.NewHelmRepoStore(db, logger)
-		envResolver := helm.NewHelm3EnvResolver(helmConfig.Home, setupOrgService(testCtx, t), logger)
-		envService := helmadapter.NewHelm3EnvService(secretStore, logger)
-		ensuringEnvResolver := helm.NewEnsuringEnvResolver(envResolver, envService, repoStore, helmConfig.Repositories, logger)
+func testOrgEnvResolver(t *testing.T) {
+	logger := common.NoopLogger{}
+	testCtx := context.Background()
+	db := testing2.SetupDatabase(t)
+	helmConfig := setUpHelmConfig(t)
+	secretStore := helmadapter.NewSecretStore(testing2.SetupSecretStore(), logger)
+	repoStore := helmadapter.NewHelmRepoStore(db, logger)
+	envResolver := helm.NewHelm3EnvResolver(helmConfig.Home, setupOrgService(testCtx, t), logger)
+	envService := helmadapter.NewHelm3EnvService(secretStore, logger)
+	ensuringEnvResolver := helm.NewEnsuringEnvResolver(envResolver, envService, repoStore, helmConfig.Repositories, logger)
 
-		assert.NoFileExists(t, helmConfig.Home, "the helm home must not exist")
-		helmEnv, err := ensuringEnvResolver.ResolvePlatformEnv(testCtx)
-
-		assert.Nil(t, err)
-		assert.FileExists(t, helmEnv.GetHome(), "the platform helm home must have been created")
-
-		platformRepos, err := envService.ListRepositories(testCtx, helmEnv)
-		assert.Nil(t, err, "the list repositories call must succeed")
-
-		assert.Equal(t, len(helmConfig.Repositories), len(platformRepos), "default repositories must be installed")
+	// add (one) user-defined repository to the database
+	if err := repoStore.Create(testCtx, 1, helm.Repository{
+		Name: "banzai-stable",
+		URL:  "https://kubernetes-charts.banzaicloud.com",
+	}); err != nil {
+		t.Fatal("failed to setup database for testing")
 	}
-}
 
-func testOrgEnvResolver() func(t *testing.T) {
-	return func(t *testing.T) {
-		logger := common.NoopLogger{}
-		testCtx := context.Background()
-		db := testing2.SetupDatabase(t)
-		helmConfig := setUpHelmConfig(t)
-		secretStore := helmadapter.NewSecretStore(testing2.SetupSecretStore(), logger)
-		repoStore := helmadapter.NewHelmRepoStore(db, logger)
-		envResolver := helm.NewHelm3EnvResolver(helmConfig.Home, setupOrgService(testCtx, t), logger)
-		envService := helmadapter.NewHelm3EnvService(secretStore, logger)
-		ensuringEnvResolver := helm.NewEnsuringEnvResolver(envResolver, envService, repoStore, helmConfig.Repositories, logger)
+	assert.NoFileExists(t, helmConfig.Home, "the helm home must not exist")
+	helmEnv, err := ensuringEnvResolver.ResolveHelmEnv(testCtx, 1)
 
-		// add (one) user-defined repository to the database
-		if err := repoStore.Create(testCtx, 1, helm.Repository{
-			Name: "banzai-stable",
-			URL:  "https://kubernetes-charts.banzaicloud.com",
-		}); err != nil {
-			t.Fatal("failed to setup database for testing")
-		}
+	assert.Nil(t, err)
+	assert.FileExists(t, helmEnv.GetHome(), "the platform helm home must have been created")
 
-		assert.NoFileExists(t, helmConfig.Home, "the helm home must not exist")
-		helmEnv, err := ensuringEnvResolver.ResolveHelmEnv(testCtx, 1)
+	platformRepos, err := envService.ListRepositories(testCtx, helmEnv)
+	assert.Nil(t, err, "the list repositories call must succeed")
 
-		assert.Nil(t, err)
-		assert.FileExists(t, helmEnv.GetHome(), "the platform helm home must have been created")
-
-		platformRepos, err := envService.ListRepositories(testCtx, helmEnv)
-		assert.Nil(t, err, "the list repositories call must succeed")
-
-		assert.Equal(t, len(helmConfig.Repositories)+1, len(platformRepos), "default repositories must be installed along with the user registered ones")
-	}
+	assert.Equal(t, len(helmConfig.Repositories)+1, len(platformRepos), "default repositories must be installed along with the user registered ones")
 }

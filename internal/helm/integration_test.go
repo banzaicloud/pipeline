@@ -51,108 +51,112 @@ func TestIntegration(t *testing.T) {
 		t.Skip("skipping as execution was not requested explicitly using go test -run")
 	}
 
-	helmHome := helmtesting.HelmHome(t)
-
 	// istio install/delete use cases, now also used by federation
-	t.Run("helmV3", testIntegration(helmHome, "istiofeature-helm-v3"))
+	t.Run("helm", testIntegration)
 
 	// cluster setup and posthook style use cases
-	t.Run("helmInstallV3", testIntegrationInstall(helmHome, "helm-v3-install"))
+	t.Run("helmInstall", testIntegrationInstall)
 
 	// covers the federation use case for adding a custom platform repository on the fly
-	t.Run("addPlatformRepositoryV3", testAddPlatformRepository(helmHome))
+	t.Run("addPlatformRepository", testAddPlatformRepository)
+
+	// Env resolver
+	t.Run("platformEnvResolver", testPlatformEnvResolver)
+	t.Run("orgEnvResolver", testOrgEnvResolver)
+
+	// Releaser
+	t.Run("testReleaserHelm", testReleaserHelm)
 }
 
-func testAddPlatformRepository(home string) func(t *testing.T) {
-	return func(t *testing.T) {
-		db := helmtesting.SetupDatabase(t)
-		secretStore := helmtesting.SetupSecretStore()
-		_, clusterService := helmtesting.ClusterKubeConfig(t, clusterId)
-		config := helm.Config{
-			Home: home,
-			Repositories: map[string]string{
-				"stable": "https://kubernetes-charts.storage.googleapis.com",
-			},
-		}
-
-		logger := common.NoopLogger{}
-		helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
-
-		for i := 0; i < 2; i++ {
-			err := helmService.AddRepositoryIfNotExists(helm.Repository{
-				Name: "kubefed",
-				URL:  "https://raw.githubusercontent.com/kubernetes-sigs/kubefed/master/charts",
-			})
-			if err != nil {
-				t.Fatalf("%+v", err)
-			}
-		}
+func testAddPlatformRepository(t *testing.T) {
+	home := helmtesting.HelmHome(t)
+	db := helmtesting.SetupDatabase(t)
+	secretStore := helmtesting.SetupSecretStore()
+	_, clusterService := helmtesting.ClusterKubeConfig(t, clusterId)
+	config := helm.Config{
+		Home: home,
+		Repositories: map[string]string{
+			"stable": "https://kubernetes-charts.storage.googleapis.com",
+		},
 	}
-}
 
-func testIntegration(home, testNamespace string) func(t *testing.T) {
-	return func(t *testing.T) {
-		db := helmtesting.SetupDatabase(t)
-		secretStore := helmtesting.SetupSecretStore()
-		kubeConfig, clusterService := helmtesting.ClusterKubeConfig(t, clusterId)
+	logger := common.NoopLogger{}
+	helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
 
-		config := helm.Config{
-			Home: home,
-			Repositories: map[string]string{
-				"stable": "https://kubernetes-charts.storage.googleapis.com",
-			},
-		}
-
-		logger := common.NoopLogger{}
-		helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
-
-		t.Run("testDeleteChartBeforeSuite", testDeleteChart(helmService, kubeConfig, testNamespace))
-		t.Run("testCreateChart", testCreateChart(helmService, kubeConfig, testNamespace))
-		t.Run("testUpgradeChart", testUpgradeChart(helmService, kubeConfig, testNamespace))
-		t.Run("testHandleFailedDeployment", testUpgradeFailedChart(helmService, kubeConfig, testNamespace))
-		t.Run("testDeleteChartAfterSuite", testDeleteChart(helmService, kubeConfig, testNamespace))
-	}
-}
-
-func testIntegrationInstall(home, testNamespace string) func(t *testing.T) {
-	return func(t *testing.T) {
-		db := helmtesting.SetupDatabase(t)
-		secretStore := helmtesting.SetupSecretStore()
-		_, clusterService := helmtesting.ClusterKubeConfig(t, clusterId)
-
-		config := helm.Config{
-			Home: home,
-			Repositories: map[string]string{
-				"stable":             "https://kubernetes-charts.storage.googleapis.com",
-				"banzaicloud-stable": "https://kubernetes-charts.banzaicloud.com",
-			},
-		}
-
-		t.Run("helmv3install", func(t *testing.T) {
-			logger := common.NoopLogger{}
-			releaser, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
-
-			err := releaser.InstallDeployment(
-				context.Background(),
-				clusterId,
-				testNamespace,
-				"banzaicloud-stable/banzaicloud-docs",
-				"helm-service-test-v3",
-				[]byte{},
-				"0.1.2",
-				true,
-			)
-			require.NoError(t, err)
-
-			err = releaser.DeleteDeployment(
-				context.Background(),
-				clusterId,
-				"helm-service-test-v3",
-				testNamespace,
-			)
-			require.NoError(t, err)
+	for i := 0; i < 2; i++ {
+		err := helmService.AddRepositoryIfNotExists(helm.Repository{
+			Name: "kubefed",
+			URL:  "https://raw.githubusercontent.com/kubernetes-sigs/kubefed/master/charts",
 		})
+		if err != nil {
+			t.Fatalf("%+v", err)
+		}
 	}
+}
+
+func testIntegration(t *testing.T) {
+	home := helmtesting.HelmHome(t)
+	db := helmtesting.SetupDatabase(t)
+	secretStore := helmtesting.SetupSecretStore()
+	kubeConfig, clusterService := helmtesting.ClusterKubeConfig(t, clusterId)
+
+	config := helm.Config{
+		Home: home,
+		Repositories: map[string]string{
+			"stable": "https://kubernetes-charts.storage.googleapis.com",
+		},
+	}
+
+	const testNamespace = "istiofeature-helm"
+
+	logger := common.NoopLogger{}
+	helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
+
+	t.Run("testDeleteChartBeforeSuite", testDeleteChart(helmService, kubeConfig, testNamespace))
+	t.Run("testCreateChart", testCreateChart(helmService, kubeConfig, testNamespace))
+	t.Run("testUpgradeChart", testUpgradeChart(helmService, kubeConfig, testNamespace))
+	t.Run("testHandleFailedDeployment", testUpgradeFailedChart(helmService, kubeConfig, testNamespace))
+	t.Run("testDeleteChartAfterSuite", testDeleteChart(helmService, kubeConfig, testNamespace))
+}
+
+func testIntegrationInstall(t *testing.T) {
+	home := helmtesting.HelmHome(t)
+	db := helmtesting.SetupDatabase(t)
+	secretStore := helmtesting.SetupSecretStore()
+	_, clusterService := helmtesting.ClusterKubeConfig(t, clusterId)
+
+	config := helm.Config{
+		Home: home,
+		Repositories: map[string]string{
+			"stable":             "https://kubernetes-charts.storage.googleapis.com",
+			"banzaicloud-stable": "https://kubernetes-charts.banzaicloud.com",
+		},
+	}
+
+	const testNamespace = "helm-install"
+
+	logger := common.NoopLogger{}
+	releaser, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
+
+	err := releaser.InstallDeployment(
+		context.Background(),
+		clusterId,
+		testNamespace,
+		"banzaicloud-stable/banzaicloud-docs",
+		"helm-service-test",
+		[]byte{},
+		"0.1.2",
+		true,
+	)
+	require.NoError(t, err)
+
+	err = releaser.DeleteDeployment(
+		context.Background(),
+		clusterId,
+		"helm-service-test",
+		testNamespace,
+	)
+	require.NoError(t, err)
 }
 
 func testDeleteChart(helmService helm.UnifiedReleaser, kubeConfig []byte, testNamespace string) func(*testing.T) {

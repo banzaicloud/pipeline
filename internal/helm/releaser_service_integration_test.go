@@ -16,9 +16,7 @@ package helm_test
 
 import (
 	"context"
-	"flag"
 	"io/ioutil"
-	"regexp"
 	"strings"
 	"testing"
 
@@ -31,44 +29,32 @@ import (
 	helmtesting "github.com/banzaicloud/pipeline/internal/helm/testing"
 )
 
-// TestReleaser integration test for releaser operations
-func TestReleaser(t *testing.T) {
-	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
-		t.Skip("skipping as execution was not requested explicitly using go test -run")
+func testReleaserHelm(t *testing.T) {
+	helmFacade := getHelmFacade(t)
+	hasRun := t.Run("deleteReleaseBefore", testDeleteRelease(context.Background(), helmFacade, getTestReleases()[0].ReleaseName, helm.Options{}))
+	if !hasRun {
+		t.Fatal("failed to delete release")
 	}
 
-	// TODO try to test the helm 2 operations as well
-	t.Run("testReleaserHelmV3", testReleaserHelmV3())
-}
+	hasRun = t.Run("installRelease", testInstallRelease(context.Background(), helmFacade, getTestReleases()[0], helm.Options{}))
+	if !hasRun {
+		t.Fatal("failed to install release")
+	}
 
-func testReleaserHelmV3() func(t *testing.T) {
-	return func(t *testing.T) {
-		helmFacade := getHelmFacade(t)
-		hasRun := t.Run("deleteReleaseBefore", testDeleteRelease(context.Background(), helmFacade, getTestReleases()[0].ReleaseName, helm.Options{}))
-		if !hasRun {
-			t.Fatal("failed to delete release")
-		}
+	hasRun = t.Run("getRelease", testGetRelease(context.Background(), helmFacade, getTestReleases()[0].ReleaseName, helm.Options{}))
+	if !hasRun {
+		t.Fatal("failed to get release")
+	}
 
-		hasRun = t.Run("installRelease", testInstallRelease(context.Background(), helmFacade, getTestReleases()[0], helm.Options{}))
-		if !hasRun {
-			t.Fatal("failed to install release")
-		}
+	filter := "a"
+	hasRun = t.Run("listReleasesWithFilter", testListReleaseWithFilter(context.Background(), helmFacade, helm.ReleaseFilter{Filter: &filter}, helm.Options{}))
+	if !hasRun {
+		t.Fatal("failed list release with filter")
+	}
 
-		hasRun = t.Run("getRelease", testGetRelease(context.Background(), helmFacade, getTestReleases()[0].ReleaseName, helm.Options{}))
-		if !hasRun {
-			t.Fatal("failed to get release")
-		}
-
-		filter := "a"
-		hasRun = t.Run("listReleasesWithFilter", testListReleaseWithFilter(context.Background(), helmFacade, helm.ReleaseFilter{Filter: &filter}, helm.Options{}))
-		if !hasRun {
-			t.Fatal("failed list release with filter")
-		}
-
-		hasRun = t.Run("deleteReleaseAfter", testDeleteRelease(context.Background(), helmFacade, getTestReleases()[0].ReleaseName, helm.Options{}))
-		if !hasRun {
-			t.Fatal("failed to delete release")
-		}
+	hasRun = t.Run("deleteReleaseAfter", testDeleteRelease(context.Background(), helmFacade, getTestReleases()[0].ReleaseName, helm.Options{}))
+	if !hasRun {
+		t.Fatal("failed to delete release")
 	}
 }
 
