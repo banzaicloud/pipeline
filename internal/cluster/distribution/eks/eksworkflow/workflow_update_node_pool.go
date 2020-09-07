@@ -130,6 +130,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			StackName:       input.StackName,
 			NodePoolName:    input.NodePoolName,
 			NodePoolVersion: nodePoolVersion,
+			NodeVolumeSize:  0,
 			NodeImage:       input.NodeImage,
 			MaxBatchSize:    input.Options.MaxBatchSize,
 			ClusterTags:     input.ClusterTags,
