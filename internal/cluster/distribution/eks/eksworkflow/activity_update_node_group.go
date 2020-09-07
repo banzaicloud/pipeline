@@ -57,6 +57,7 @@ type UpdateNodeGroupActivityInput struct {
 	NodePoolName    string
 	NodePoolVersion string
 
+	NodeVolumeSize  int
 	NodeImage       string
 	DesiredCapacity int64
 
@@ -135,10 +136,11 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			input.DesiredCapacity > 0,
 			fmt.Sprintf("%d", input.DesiredCapacity),
 		),
-		{
-			ParameterKey:     aws.String("NodeVolumeSize"),
-			UsePreviousValue: aws.Bool(true),
-		},
+		sdkCloudFormation.NewOptionalStackParameter(
+			"NodeVolumeSize",
+			input.NodeVolumeSize > 0,
+			fmt.Sprintf("%d", input.NodeVolumeSize),
+		),
 		{
 			ParameterKey:     aws.String("ClusterName"),
 			UsePreviousValue: aws.Bool(true),
