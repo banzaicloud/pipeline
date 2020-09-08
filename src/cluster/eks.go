@@ -125,6 +125,7 @@ func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId ui
 			NodeMinCount:     nodePool.MinCount,
 			NodeMaxCount:     nodePool.MaxCount,
 			Count:            nodePool.Count,
+			NodeVolumeSize:   0,
 			NodeImage:        nodePool.Image,
 			NodeInstanceType: nodePool.InstanceType,
 			Labels:           nodePool.Labels,
