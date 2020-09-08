@@ -119,6 +119,7 @@ type NodePool struct {
 	MinCount     int               `json:"minCount" yaml:"minCount"`
 	MaxCount     int               `json:"maxCount" yaml:"maxCount"`
 	Count        int               `json:"count" yaml:"count"`
+	VolumeSize   int               `json:"volumeSize" yaml:"volumeSize"`
 	Image        string            `json:"image" yaml:"image"`
 	Labels       map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 	// Subnet for worker nodes of this node pool. If not specified than worker nodes
