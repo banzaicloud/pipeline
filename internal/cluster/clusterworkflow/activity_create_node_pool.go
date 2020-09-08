@@ -191,7 +191,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 				ctx,
 				eksworkflow.SelectVolumeSizeActivityInput{
 					AMISize:            amiSize,
-					OptionalVolumeSize: 0,
+					OptionalVolumeSize: nodePool.VolumeSize,
 				},
 			)
 			if err != nil {
