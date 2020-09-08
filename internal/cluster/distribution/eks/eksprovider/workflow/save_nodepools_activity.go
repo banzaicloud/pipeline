@@ -80,7 +80,9 @@ func (a SaveNodePoolsActivity) Execute(ctx context.Context, input SaveNodePoolsA
 				NodeMinCount:     asg.NodeMinCount,
 				NodeMaxCount:     asg.NodeMaxCount,
 				Count:            asg.Count,
-				Delete:           false,
+				// NodeVolumeSize:   asg.NodeVolumeSize, // Note: not stored in DB.
+				// Labels:           asg.Labels, // Note: not stored in DB.
+				Delete: false,
 			}
 			updatedNodepools = append(updatedNodepools, np)
 		}

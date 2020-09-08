@@ -136,6 +136,7 @@ type AmazonNodePoolsModel struct {
 	NodeMinCount     int
 	NodeMaxCount     int
 	Count            int
+	NodeVolumeSize   int `gorm:"-"` // Note: not stored in DB.
 	NodeImage        string
 	NodeInstanceType string
 	Labels           map[string]string `gorm:"-"`
@@ -157,6 +158,8 @@ func (m AmazonNodePoolsModel) String() string {
 		m.NodeMaxCount,
 		m.Count,
 		m.NodeImage,
+		// m.NodeVolumeSize, // Note: not stored in DB.
+		// m.Labels, // Note: Not stored in DB.
 	)
 }
 
