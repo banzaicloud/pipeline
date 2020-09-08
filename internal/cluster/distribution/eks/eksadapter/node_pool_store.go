@@ -53,6 +53,8 @@ func (s nodePoolStore) CreateNodePool(
 		NodeMinCount:     nodePool.Autoscaling.MinSize,
 		NodeMaxCount:     nodePool.Autoscaling.MaxSize,
 		Count:            nodePool.Size,
+		// NodeVolumeSize:   nodePool.VolumeSize, // Note: not stored in DB.
+		// Labels:           nodePool.Labels, // Note: not stored in DB.
 	}
 
 	err := s.db.Save(nodePoolModel).Error
