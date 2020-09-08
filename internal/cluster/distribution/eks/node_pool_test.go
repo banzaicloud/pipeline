@@ -27,6 +27,7 @@ func TestNodePoolSizeValidation(t *testing.T) {
 	base := NewNodePool{
 		Name:         "pool",
 		InstanceType: "c5.large",
+		VolumeSize:   50,
 		Image:        "ami",
 	}
 

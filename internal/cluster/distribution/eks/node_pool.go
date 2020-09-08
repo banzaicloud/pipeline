@@ -32,6 +32,7 @@ type NewNodePool struct {
 		MinSize int  `mapstructure:"minSize"`
 		MaxSize int  `mapstructure:"maxSize"`
 	} `mapstructure:"autoscaling"`
+	VolumeSize   int    `mapstructure:"volumeSize"`
 	InstanceType string `mapstructure:"instanceType"`
 	Image        string `mapstructure:"image"`
 	SpotPrice    string `mapstructure:"spotPrice"`
