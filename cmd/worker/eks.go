@@ -51,6 +51,7 @@ func registerEKSWorkflows(config configuration, secretStore eksworkflow.SecretSt
 	workflow.RegisterWithOptions(eksworkflow.CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: eksworkflow.CreateInfraWorkflowName})
 
 	awsSessionFactory := eksworkflow.NewAWSSessionFactory(secretStore)
+	cloudFormationFactory := eksworkflow.NewCloudFormationFactory()
 	ec2Factory := eksworkflow.NewEC2Factory()
 	eksFactory := eksworkflow.NewEKSFactory()
 
@@ -152,7 +153,7 @@ func registerEKSWorkflows(config configuration, secretStore eksworkflow.SecretSt
 	activity.RegisterWithOptions(saveNodePoolsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveNodePoolsActivityName})
 
 	// Node pool upgrade
-	eksworkflow2.NewUpdateNodePoolWorkflow(processlog.New()).Register()
+	eksworkflow2.NewUpdateNodePoolWorkflow(awsSessionFactory, cloudFormationFactory, processlog.New()).Register()
 
 	eksworkflow2.NewCalculateNodePoolVersionActivity().Register()
 	eksworkflow2.NewUpdateNodeGroupActivity(awsSessionFactory, nodePoolTemplate).Register()

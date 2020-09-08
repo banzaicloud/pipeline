@@ -93,7 +93,8 @@ func (n nodePoolManager) UpdateNodePool(
 		NodePoolName:    nodePoolName,
 		OrganizationID:  c.OrganizationID,
 
-		NodeImage: nodePoolUpdate.Image,
+		NodeVolumeSize: 0,
+		NodeImage:      nodePoolUpdate.Image,
 
 		Options: eks.NodePoolUpdateOptions{
 			MaxSurge:       nodePoolUpdate.Options.MaxSurge,
