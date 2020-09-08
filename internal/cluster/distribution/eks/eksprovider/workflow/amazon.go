@@ -192,6 +192,7 @@ type AutoscaleGroup struct {
 	NodeMinCount     int
 	NodeMaxCount     int
 	Count            int
+	NodeVolumeSize   int
 	NodeImage        string
 	NodeInstanceType string
 	Labels           map[string]string

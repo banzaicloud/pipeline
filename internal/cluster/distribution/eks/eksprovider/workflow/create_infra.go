@@ -356,7 +356,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 		{
 			activityInput := SelectVolumeSizeActivityInput{
 				AMISize:            amiSize,
-				OptionalVolumeSize: 0,
+				OptionalVolumeSize: asg.NodeVolumeSize,
 			}
 			var activityOutput SelectVolumeSizeActivityOutput
 			err = workflow.ExecuteActivity(ctx, SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)

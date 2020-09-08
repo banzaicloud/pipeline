@@ -208,6 +208,7 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 			NodeMinCount:     np.NodeMinCount,
 			NodeMaxCount:     np.NodeMaxCount,
 			Count:            np.Count,
+			NodeVolumeSize:   0,
 			NodeImage:        np.NodeImage,
 			NodeInstanceType: np.NodeInstanceType,
 			Labels:           np.Labels,
