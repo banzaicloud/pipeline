@@ -48,7 +48,8 @@ func TestCalculateNodePoolVersionActivity(t *testing.T) {
 	env := (&testsuite.WorkflowTestSuite{}).NewTestActivityEnvironment()
 
 	input := CalculateNodePoolVersionActivityInput{
-		Image: "ami-xxxxxxxxxxxxx",
+		Image:      "ami-xxxxxxxxxxxxx",
+		VolumeSize: 50,
 	}
 
 	v, err := env.ExecuteActivity(CalculateNodePoolVersionActivityName, input)
@@ -62,7 +63,7 @@ func TestCalculateNodePoolVersionActivity(t *testing.T) {
 	assert.Equal(
 		t,
 		CalculateNodePoolVersionActivityOutput{
-			Version: "c1d358c1b8d475f98c04d12b674c6f770ae41d09",
+			Version: "ded58f7cde1bcf3a39227af824dab18086487c4c",
 		},
 		output,
 	)

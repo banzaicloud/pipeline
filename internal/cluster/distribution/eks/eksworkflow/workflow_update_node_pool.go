@@ -23,21 +23,32 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 	"github.com/banzaicloud/pipeline/pkg/sdk/cadence/lib/pipeline/processlog"
+	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
+	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
 )
 
 const UpdateNodePoolWorkflowName = "eks-update-node-pool"
 
 type UpdateNodePoolWorkflow struct {
-	processLogger processlog.ProcessLogger
+	awsFactory            eksWorkflow.AWSFactory
+	cloudFormationFactory eksWorkflow.CloudFormationAPIFactory
+	processLogger         processlog.ProcessLogger
 }
 
 // NewUpdateNodePoolWorkflow returns a new UpdateNodePoolWorkflow.
-func NewUpdateNodePoolWorkflow(processLogger processlog.ProcessLogger) UpdateNodePoolWorkflow {
+func NewUpdateNodePoolWorkflow(
+	awsFactory eksWorkflow.AWSFactory,
+	cloudFormationFactory eksWorkflow.CloudFormationAPIFactory,
+	processLogger processlog.ProcessLogger,
+) UpdateNodePoolWorkflow {
 	return UpdateNodePoolWorkflow{
-		processLogger: processLogger,
+		awsFactory:            awsFactory,
+		cloudFormationFactory: cloudFormationFactory,
+		processLogger:         processLogger,
 	}
 }
 
@@ -53,7 +64,8 @@ type UpdateNodePoolWorkflowInput struct {
 	ClusterName     string
 	NodePoolName    string
 
-	NodeImage string
+	NodeVolumeSize int
+	NodeImage      string
 
 	Options eks.NodePoolUpdateOptions
 
@@ -66,7 +78,14 @@ func (w UpdateNodePoolWorkflow) Register() {
 
 func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePoolWorkflowInput) (err error) {
 	activityOptions := workflow.ActivityOptions{
+		RetryPolicy: &cadence.RetryPolicy{
+			InitialInterval:    10 * time.Second,
+			BackoffCoefficient: 1.01,
+			MaximumAttempts:    10,
+			MaximumInterval:    10 * time.Minute,
+		},
 		ScheduleToStartTimeout: time.Duration(workflow.GetInfo(ctx).ExecutionStartToCloseTimeoutSeconds) * time.Second,
+		StartToCloseTimeout:    5 * time.Minute,
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, activityOptions)
@@ -93,30 +112,104 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		_ = setClusterStatus(ctx, input.ClusterID, status, statusMessage)
 	}()
 
+	providerSecretID, err := brn.Parse(input.ProviderSecretID)
+	if err != nil {
+		return err
+	}
+
+	eksActivityInput := eksWorkflow.EKSActivityInput{
+		OrganizationID:            input.OrganizationID,
+		SecretID:                  providerSecretID.ResourceID,
+		Region:                    input.Region,
+		ClusterName:               input.ClusterName,
+		AWSClientRequestTokenBase: sdkAmazon.NewNormalizedClientRequestToken(workflow.GetInfo(ctx).WorkflowExecution.ID),
+	}
+
+	effectiveImage := input.NodeImage
+	effectiveVolumeSize := input.NodeVolumeSize
+	if effectiveImage == "" ||
+		effectiveVolumeSize == 0 { // Note: needing CF stack for original information for version.
+		getCFStackInput := eksWorkflow.GetCFStackActivityInput{
+			EKSActivityInput: eksActivityInput,
+			StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, input.NodePoolName),
+		}
+		var getCFStackOutput eksWorkflow.GetCFStackActivityOutput
+		processActivity := process.StartActivity(ctx, eksWorkflow.GetCFStackActivityName)
+		err = workflow.ExecuteActivity(ctx, eksWorkflow.GetCFStackActivityName, getCFStackInput).Get(ctx, &getCFStackOutput)
+		processActivity.Finish(ctx, err)
+		if err != nil {
+			return err
+		}
+
+		var parameters struct {
+			NodeImageID    string `mapstructure:"NodeImageId"`
+			NodeVolumeSize int    `mapstructure:"NodeVolumeSize"`
+		}
+		err = sdkCloudFormation.ParseStackParameters(getCFStackOutput.Stack.Parameters, &parameters)
+		if err != nil {
+			return err
+		}
+
+		if effectiveImage == "" {
+			effectiveImage = parameters.NodeImageID
+		}
+
+		if effectiveVolumeSize == 0 {
+			effectiveVolumeSize = parameters.NodeVolumeSize
+		}
+	}
+
+	var volumeSize int
+	if input.NodeVolumeSize > 0 {
+		var amiSize int
+		{
+			activityInput := eksWorkflow.GetAMISizeActivityInput{
+				EKSActivityInput: eksActivityInput,
+				ImageID:          effectiveImage,
+			}
+			var activityOutput eksWorkflow.GetAMISizeActivityOutput
+			processActivity := process.StartActivity(ctx, eksWorkflow.GetAMISizeActivityName)
+			err = workflow.ExecuteActivity(ctx, eksWorkflow.GetAMISizeActivityName, activityInput).Get(ctx, &activityOutput)
+			processActivity.Finish(ctx, err)
+			if err != nil {
+				return err
+			}
+
+			amiSize = activityOutput.AMISize
+		}
+
+		{
+			activityInput := eksWorkflow.SelectVolumeSizeActivityInput{
+				AMISize:            amiSize,
+				OptionalVolumeSize: input.NodeVolumeSize,
+			}
+			var activityOutput eksWorkflow.SelectVolumeSizeActivityOutput
+			processActivity := process.StartActivity(ctx, eksWorkflow.SelectVolumeSizeActivityName)
+			err = workflow.ExecuteActivity(ctx, eksWorkflow.SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
+			processActivity.Finish(ctx, err)
+			if err != nil {
+				return err
+			}
+
+			volumeSize = activityOutput.VolumeSize
+			effectiveVolumeSize = volumeSize
+		}
+	}
+
 	var nodePoolVersion string
 	{
 		activityInput := CalculateNodePoolVersionActivityInput{
-			Image: input.NodeImage,
-		}
-
-		activityOptions := activityOptions
-		activityOptions.StartToCloseTimeout = 30 * time.Second
-		activityOptions.RetryPolicy = &cadence.RetryPolicy{
-			InitialInterval:    10 * time.Second,
-			BackoffCoefficient: 1.01,
-			MaximumAttempts:    10,
-			MaximumInterval:    10 * time.Minute,
+			Image:      effectiveImage,
+			VolumeSize: effectiveVolumeSize,
 		}
 
 		var output CalculateNodePoolVersionActivityOutput
 
-		err = workflow.ExecuteActivity(
-			workflow.WithActivityOptions(ctx, activityOptions),
-			CalculateNodePoolVersionActivityName,
-			activityInput,
-		).Get(ctx, &output)
+		processActivity := process.StartActivity(ctx, CalculateNodePoolVersionActivityName)
+		err = workflow.ExecuteActivity(ctx, CalculateNodePoolVersionActivityName, activityInput).Get(ctx, &output)
+		processActivity.Finish(ctx, err)
 		if err != nil {
-			return
+			return err
 		}
 
 		nodePoolVersion = output.Version
@@ -130,7 +223,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			StackName:       input.StackName,
 			NodePoolName:    input.NodePoolName,
 			NodePoolVersion: nodePoolVersion,
-			NodeVolumeSize:  0,
+			NodeVolumeSize:  volumeSize,
 			NodeImage:       input.NodeImage,
 			MaxBatchSize:    input.Options.MaxBatchSize,
 			ClusterTags:     input.ClusterTags,
