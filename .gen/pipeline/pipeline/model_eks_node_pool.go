@@ -26,6 +26,9 @@ type EksNodePool struct {
 
 	Labels map[string]string `json:"labels,omitempty"`
 
+	// Size of the EBS volume in GBs of the nodes in the pool.
+	VolumeSize int32 `json:"volumeSize,omitempty"`
+
 	Image string `json:"image,omitempty"`
 
 	Subnet EksSubnet `json:"subnet,omitempty"`
