@@ -93,7 +93,7 @@ func (n nodePoolManager) UpdateNodePool(
 		NodePoolName:    nodePoolName,
 		OrganizationID:  c.OrganizationID,
 
-		NodeVolumeSize: 0,
+		NodeVolumeSize: nodePoolUpdate.VolumeSize,
 		NodeImage:      nodePoolUpdate.Image,
 
 		Options: eks.NodePoolUpdateOptions{
