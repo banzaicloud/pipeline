@@ -89,6 +89,7 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 				NodeMinCount:     nodePool.MinCount,
 				NodeMaxCount:     nodePool.MaxCount,
 				Count:            nodePool.Count,
+				NodeVolumeSize:   nodePool.VolumeSize,
 				Labels:           nodePool.Labels,
 				Delete:           false,
 			})
@@ -122,6 +123,7 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 				NodeMinCount:     nodePool.MinCount,
 				NodeMaxCount:     nodePool.MaxCount,
 				Count:            nodePool.Count,
+				NodeVolumeSize:   nodePool.VolumeSize,
 				Delete:           false,
 				Labels:           nodePool.Labels,
 			})
@@ -296,6 +298,7 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 			NodeMinCount:     np.NodeMinCount,
 			NodeMaxCount:     np.NodeMaxCount,
 			Count:            np.Count,
+			NodeVolumeSize:   np.NodeVolumeSize,
 			NodeImage:        np.NodeImage,
 			NodeInstanceType: np.NodeInstanceType,
 			Labels:           np.Labels,
