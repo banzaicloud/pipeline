@@ -124,7 +124,10 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	// we only add node pool name here, all other labels will be added by NodePoolLabelSet operator
 	nodeLabels := []string{
 		fmt.Sprintf("%v=%v", cluster.NodePoolNameLabelKey, input.Name),
-		fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, eks.CalculateNodePoolVersion(input.NodeImage)),
+		fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, eks.CalculateNodePoolVersion(
+			input.NodeImage,
+			fmt.Sprintf("%d", input.NodeVolumeSize),
+		)),
 	}
 
 	var subnetIDs []string
