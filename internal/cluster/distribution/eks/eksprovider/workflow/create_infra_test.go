@@ -138,6 +138,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 				NodeMinCount:     2,
 				NodeMaxCount:     3,
 				Count:            2,
+				NodeVolumeSize:   0,
 				NodeImage:        "ami-test1",
 				NodeInstanceType: "vm-type1-test",
 				Labels: map[string]string{
@@ -152,6 +153,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 				NodeMinCount:     3,
 				NodeMaxCount:     3,
 				Count:            3,
+				NodeVolumeSize:   12,
 				NodeImage:        "ami-test2",
 				NodeInstanceType: "vm-type2-test",
 			},
@@ -343,8 +345,8 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 
 	s.env.OnActivity(SelectVolumeSizeActivityName, mock.Anything, SelectVolumeSizeActivityInput{
 		AMISize:            8,
-		OptionalVolumeSize: 0,
-	}).Return(&SelectVolumeSizeActivityOutput{VolumeSize: 50}, nil)
+		OptionalVolumeSize: 12,
+	}).Return(&SelectVolumeSizeActivityOutput{VolumeSize: 12}, nil)
 
 	s.env.OnActivity(CreateAsgActivityName, mock.Anything, CreateAsgActivityInput{
 		EKSActivityInput:    eksActivity,
@@ -360,7 +362,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 		NodeMinCount:        3,
 		NodeMaxCount:        3,
 		Count:               3,
-		NodeVolumeSize:      50,
+		NodeVolumeSize:      12,
 		NodeImage:           "ami-test2",
 		NodeInstanceType:    "vm-type2-test",
 		Subnets: []Subnet{
@@ -444,6 +446,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
 				NodeMinCount:     2,
 				NodeMaxCount:     3,
 				Count:            2,
+				NodeVolumeSize:   0,
 				NodeImage:        "ami-test1",
 				NodeInstanceType: "vm-type1-test",
 				Labels: map[string]string{
@@ -458,6 +461,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
 				NodeMinCount:     3,
 				NodeMaxCount:     3,
 				Count:            3,
+				NodeVolumeSize:   12,
 				NodeImage:        "ami-test2",
 				NodeInstanceType: "vm-type2-test",
 			},
