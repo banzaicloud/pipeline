@@ -297,8 +297,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	}).Return(&GetAMISizeActivityOutput{AMISize: 4}, nil)
 
 	s.env.OnActivity(SelectVolumeSizeActivityName, mock.Anything, SelectVolumeSizeActivityInput{
-		EKSActivityInput: eksActivity,
-		AMISize:          4,
+		AMISize: 4,
 	}).Return(&SelectVolumeSizeActivityOutput{VolumeSize: 50}, nil)
 
 	s.env.OnActivity(CreateAsgActivityName, mock.Anything, CreateAsgActivityInput{
@@ -342,8 +341,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	}).Return(&GetAMISizeActivityOutput{AMISize: 8}, nil)
 
 	s.env.OnActivity(SelectVolumeSizeActivityName, mock.Anything, SelectVolumeSizeActivityInput{
-		EKSActivityInput: eksActivity,
-		AMISize:          8,
+		AMISize: 8,
 	}).Return(&SelectVolumeSizeActivityOutput{VolumeSize: 50}, nil)
 
 	s.env.OnActivity(CreateAsgActivityName, mock.Anything, CreateAsgActivityInput{
