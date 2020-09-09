@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-sdk-go v1.34.4
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/golang/mock v1.4.3 // indirect
+	github.com/mitchellh/mapstructure v1.1.2
 	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.5.0 // indirect

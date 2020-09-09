@@ -16,11 +16,9 @@ package eksadapter
 
 import (
 	"context"
-	"strconv"
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/client"
 
@@ -29,6 +27,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
+	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
 )
 
 const (
@@ -162,27 +161,18 @@ func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Clus
 			)
 		}
 
-		stack := stackDescriptions.Stacks[0]
-
-		parameterMap := make(map[string]string, len(stack.Parameters))
-		for _, parameter := range stack.Parameters {
-			parameterMap[aws.StringValue(parameter.ParameterKey)] = aws.StringValue(parameter.ParameterValue)
+		var nodePoolParameters struct {
+			ClusterAutoscalerEnabled    bool   `mapstructure:"ClusterAutoscalerEnabled"`
+			NodeAutoScalingGroupMaxSize int    `mapstructure:"NodeAutoScalingGroupMaxSize"`
+			NodeAutoScalingGroupMinSize int    `mapstructure:"NodeAutoScalingGroupMinSize"`
+			NodeAutoScalingInitSize     int    `mapstructure:"NodeAutoScalingInitSize"`
+			NodeImageID                 string `mapstructure:"NodeImageId"`
+			NodeInstanceType            string `mapstructure:"NodeInstanceType"`
+			NodeSpotPrice               string `mapstructure:"NodeSpotPrice"`
+			NodeVolumeSize              int    `mapstructure:"NodeVolumeSize"`
 		}
 
-		var clusterAutoscalerEnabled bool
-		var nodeAutoScalingGroupMaxSize int
-		var nodeAutoScalingGroupMinSize int
-		var nodeAutoScalingInitSize int
-		var nodeVolumeSize int
-		nodePoolParameters := map[string]interface{}{
-			"ClusterAutoscalerEnabled":    &clusterAutoscalerEnabled,
-			"NodeAutoScalingGroupMaxSize": &nodeAutoScalingGroupMaxSize,
-			"NodeAutoScalingGroupMinSize": &nodeAutoScalingGroupMinSize,
-			"NodeAutoScalingInitSize":     &nodeAutoScalingInitSize,
-			"NodeVolumeSize":              &nodeVolumeSize,
-		}
-
-		err = parseStackParameters(parameterMap, nodePoolParameters)
+		err = sdkCloudFormation.ParseStackParameters(stackDescriptions.Stacks[0].Parameters, &nodePoolParameters)
 		if err != nil {
 			return nil, errors.WrapWithDetails(err, "parsing node pool stack parameters failed",
 				"stackName", stackName)
@@ -191,72 +181,20 @@ func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Clus
 		nodePool := eks.NodePool{
 			Name:   nodePoolName,
 			Labels: labelSets[nodePoolName],
-			Size:   nodeAutoScalingInitSize,
+			Size:   nodePoolParameters.NodeAutoScalingInitSize,
 			Autoscaling: eks.Autoscaling{
-				Enabled: clusterAutoscalerEnabled,
-				MinSize: nodeAutoScalingGroupMinSize,
-				MaxSize: nodeAutoScalingGroupMaxSize,
+				Enabled: nodePoolParameters.ClusterAutoscalerEnabled,
+				MinSize: nodePoolParameters.NodeAutoScalingGroupMinSize,
+				MaxSize: nodePoolParameters.NodeAutoScalingGroupMaxSize,
 			},
-			VolumeSize:   nodeVolumeSize,
-			InstanceType: parameterMap["NodeInstanceType"],
-			Image:        parameterMap["NodeImageId"],
-			SpotPrice:    parameterMap["NodeSpotPrice"],
+			VolumeSize:   nodePoolParameters.NodeVolumeSize,
+			InstanceType: nodePoolParameters.NodeInstanceType,
+			Image:        nodePoolParameters.NodeImageID,
+			SpotPrice:    nodePoolParameters.NodeSpotPrice,
 		}
 
 		nodePools = append(nodePools, nodePool)
 	}
 
 	return nodePools, nil
-}
-
-func parseStackParameters(parameterMap map[string]string, resultPointerMap map[string]interface{}) (err error) {
-	parseErrors := make([]error, 0)
-	for parameterKey, resultPointer := range resultPointerMap {
-		parameterRawValue, isExisting := parameterMap[parameterKey]
-		if !isExisting {
-			parseErrors = append(parseErrors, errors.NewWithDetails("missing stack parameter",
-				"parameterKey", parameterKey))
-		}
-
-		err = parseStringValue(parameterRawValue, resultPointer)
-		if err != nil {
-			parseErrors = append(parseErrors, errors.WrapWithDetails(err, "parsing node pool cloudformation stack parameter failed",
-				"parameterKey", parameterKey))
-		}
-	}
-
-	if len(parseErrors) != 0 {
-		return errors.Combine(parseErrors...)
-	}
-
-	return nil
-}
-
-// parseStringValue parses a string value to a strongly typed target result
-// object or returns error on failure.
-func parseStringValue(rawValue string, resultPointer interface{}) (err error) {
-	switch typedPointer := resultPointer.(type) {
-	case *bool:
-		if typedPointer == nil {
-			return errors.NewWithDetails("parsing raw string value received nil result pointer", "type", "bool")
-		}
-
-		*typedPointer, err = strconv.ParseBool(rawValue)
-		if err != nil {
-			return errors.NewWithDetails("parsing raw string value failed", "rawValue", rawValue, "type", "bool")
-		}
-	case *int:
-		if typedPointer == nil {
-			return errors.NewWithDetails("parsing raw string value received nil result pointer", "type", "int")
-		}
-
-		*typedPointer, err = strconv.Atoi(rawValue)
-		if err != nil {
-			return errors.NewWithDetails("parsing raw string value failed", "rawValue", rawValue, "type", "int")
-		}
-	default:
-		return errors.NewWithDetails("parsing raw string value type not implemented")
-	}
-
-	return nil
 }
