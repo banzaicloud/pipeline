@@ -30,9 +30,9 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
+	sdkCloudformation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
 )
 
 const UpdateAsgActivityName = "eks-update-asg"
@@ -56,11 +56,13 @@ type UpdateAsgActivityInput struct {
 	StackName        string
 	ScaleEnabled     bool
 	Name             string
+	Version          string
 	NodeSpotPrice    string
 	Autoscaling      bool
 	NodeMinCount     int
 	NodeMaxCount     int
 	Count            int
+	NodeVolumeSize   int
 	NodeImage        string
 	NodeInstanceType string
 	Labels           map[string]string
@@ -175,7 +177,10 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 
 	nodeLabels := []string{
 		fmt.Sprintf("%v=%v", cluster.NodePoolNameLabelKey, input.Name),
-		fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, eks.CalculateNodePoolVersion(input.NodeImage)),
+	}
+
+	if input.Version != "" {
+		nodeLabels = append(nodeLabels, fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, input.Version))
 	}
 
 	stackParams := []*cloudformation.Parameter{
@@ -207,10 +212,11 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 			ParameterKey:   aws.String("NodeAutoScalingInitSize"),
 			ParameterValue: aws.String(fmt.Sprintf("%d", input.Count)),
 		},
-		{
-			ParameterKey:     aws.String("NodeVolumeSize"),
-			UsePreviousValue: aws.Bool(true),
-		},
+		sdkCloudformation.NewOptionalStackParameter(
+			"NodeVolumeSize",
+			input.NodeVolumeSize > 0,
+			fmt.Sprintf("%d", input.NodeVolumeSize),
+		),
 		{
 			ParameterKey:     aws.String("ClusterName"),
 			UsePreviousValue: aws.Bool(true),

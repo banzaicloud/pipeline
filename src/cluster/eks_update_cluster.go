@@ -23,10 +23,12 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
+	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
 )
 
 const EKSUpdateClusterWorkflowName = "eks-update-cluster"
@@ -196,6 +198,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				var activityOutput eksWorkflow.GetAMISizeActivityOutput
 				err = workflow.ExecuteActivity(ctx, eksWorkflow.GetAMISizeActivityName, activityInput).Get(ctx, &activityOutput)
 				if err != nil {
+					eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
 					return err
 				}
 
@@ -211,6 +214,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				var activityOutput eksWorkflow.SelectVolumeSizeActivityOutput
 				err = workflow.ExecuteActivity(ctx, eksWorkflow.SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
 				if err != nil {
+					eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
 					return err
 				}
 
@@ -254,16 +258,118 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 			log.Info("node pool will be updated")
 			nodePoolsToUpdate[nodePool.Name] = nodePool
 
+			effectiveImage := nodePool.NodeImage
+			effectiveVolumeSize := nodePool.NodeVolumeSize
+			if effectiveImage == "" ||
+				effectiveVolumeSize == 0 { // Note: needing CF stack for original information for version.
+				getCFStackInput := eksWorkflow.GetCFStackActivityInput{
+					EKSActivityInput: commonActivityInput,
+					StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
+				}
+				var getCFStackOutput eksWorkflow.GetCFStackActivityOutput
+				err = workflow.ExecuteActivity(ctx, eksWorkflow.GetCFStackActivityName, getCFStackInput).Get(ctx, &getCFStackOutput)
+				if err != nil {
+					eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
+					return err
+				}
+
+				var parameters struct {
+					NodeImageID    string `mapstructure:"NodeImageId"`
+					NodeVolumeSize int    `mapstructure:"NodeVolumeSize"`
+				}
+				err = sdkCloudFormation.ParseStackParameters(getCFStackOutput.Stack.Parameters, &parameters)
+				if err != nil {
+					eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
+					return err
+				}
+
+				if effectiveImage == "" {
+					effectiveImage = parameters.NodeImageID
+				}
+
+				if effectiveVolumeSize == 0 {
+					effectiveVolumeSize = parameters.NodeVolumeSize
+				}
+			}
+
+			var volumeSize int
+			if nodePool.NodeVolumeSize > 0 {
+				var amiSize int
+				{
+					activityInput := eksWorkflow.GetAMISizeActivityInput{
+						EKSActivityInput: commonActivityInput,
+						ImageID:          effectiveImage,
+					}
+					var activityOutput eksWorkflow.GetAMISizeActivityOutput
+					err = workflow.ExecuteActivity(ctx, eksWorkflow.GetAMISizeActivityName, activityInput).Get(ctx, &activityOutput)
+					if err != nil {
+						eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
+						return err
+					}
+
+					amiSize = activityOutput.AMISize
+				}
+
+				{
+					activityInput := eksWorkflow.SelectVolumeSizeActivityInput{
+						AMISize:            amiSize,
+						OptionalVolumeSize: 0,
+					}
+					var activityOutput eksWorkflow.SelectVolumeSizeActivityOutput
+					err = workflow.ExecuteActivity(ctx, eksWorkflow.SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
+					if err != nil {
+						eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
+						return err
+					}
+
+					volumeSize = activityOutput.VolumeSize
+					effectiveVolumeSize = volumeSize
+				}
+			}
+
+			var nodePoolVersion string
+			{
+				activityInput := eksworkflow.CalculateNodePoolVersionActivityInput{
+					Image:      effectiveImage,
+					VolumeSize: effectiveVolumeSize,
+				}
+
+				activityOptions := ao
+				activityOptions.StartToCloseTimeout = 30 * time.Second
+				activityOptions.RetryPolicy = &cadence.RetryPolicy{
+					InitialInterval:    10 * time.Second,
+					BackoffCoefficient: 1.01,
+					MaximumAttempts:    10,
+					MaximumInterval:    10 * time.Minute,
+				}
+
+				var output eksworkflow.CalculateNodePoolVersionActivityOutput
+
+				err = workflow.ExecuteActivity(
+					workflow.WithActivityOptions(ctx, activityOptions),
+					eksworkflow.CalculateNodePoolVersionActivityName,
+					activityInput,
+				).Get(ctx, &output)
+				if err != nil {
+					eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
+					return err
+				}
+
+				nodePoolVersion = output.Version
+			}
+
 			activityInput := eksWorkflow.UpdateAsgActivityInput{
 				EKSActivityInput: commonActivityInput,
 				StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
 				ScaleEnabled:     input.ScaleEnabled,
 				Name:             nodePool.Name,
+				Version:          nodePoolVersion,
 				NodeSpotPrice:    nodePool.NodeSpotPrice,
 				Autoscaling:      nodePool.Autoscaling,
 				NodeMinCount:     nodePool.NodeMinCount,
 				NodeMaxCount:     nodePool.NodeMaxCount,
 				Count:            nodePool.Count,
+				NodeVolumeSize:   volumeSize,
 				NodeImage:        nodePool.NodeImage,
 				NodeInstanceType: nodePool.NodeInstanceType,
 				Labels:           nodePool.Labels,
