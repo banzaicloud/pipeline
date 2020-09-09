@@ -36,7 +36,6 @@ type SelectVolumeSizeActivity struct {
 }
 
 type SelectVolumeSizeActivityInput struct {
-	EKSActivityInput
 	AMISize int
 }
 
