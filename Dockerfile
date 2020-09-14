@@ -62,5 +62,6 @@ COPY --from=builder /build/templates /templates/
 COPY --from=builder /build/build/release/pipeline /
 COPY --from=builder /build/build/release/worker /
 COPY --from=builder /build/build/release/pipelinectl /
+COPY config/anchore/policies/ /policies/
 
 CMD ["/pipeline"]
