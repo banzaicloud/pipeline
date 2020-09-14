@@ -110,6 +110,20 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
+	// create IAM role validate activity
+	if input.ClusterRoleID != "" {
+		{
+			activityInput := &ValidateIAMRoleActivityInput{
+				EKSActivityInput: commonActivityInput,
+				ClusterRoleID:    input.ClusterRoleID,
+			}
+			validateIAMRoleActivityOutput := ValidateIAMRoleActivityOutput{}
+			if err := workflow.ExecuteActivity(ctx, ValidateIAMRoleActivityName, activityInput).Get(ctx, &validateIAMRoleActivityOutput); err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	// create IAM roles activity
 	var iamRolesCreateActivityFuture workflow.Future
 	{

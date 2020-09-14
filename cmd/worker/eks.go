@@ -54,6 +54,9 @@ func registerEKSWorkflows(config configuration, secretStore eksworkflow.SecretSt
 	ec2Factory := eksworkflow.NewEC2Factory()
 	eksFactory := eksworkflow.NewEKSFactory()
 
+	validateRoleNameActivity := eksworkflow.NewValidateIAMRoleActivity(awsSessionFactory)
+	activity.RegisterWithOptions(validateRoleNameActivity.Execute, activity.RegisterOptions{Name: eksworkflow.ValidateIAMRoleActivityName})
+
 	createVPCActivity := eksworkflow.NewCreateVPCActivity(awsSessionFactory, vpcTemplate)
 	activity.RegisterWithOptions(createVPCActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateVpcActivityName})
 
