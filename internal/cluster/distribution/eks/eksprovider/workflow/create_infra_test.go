@@ -74,6 +74,9 @@ func TestCreateInfraWorkflowTestSuite(t *testing.T) {
 	saveClusterActivity := NewSaveNetworkDetailsActivity(nil)
 	activity.RegisterWithOptions(saveClusterActivity.Execute, activity.RegisterOptions{Name: SaveNetworkDetailsActivityName})
 
+	validateIAMRoleActivity := NewValidateIAMRoleActivity(nil)
+	activity.RegisterWithOptions(validateIAMRoleActivity.Execute, activity.RegisterOptions{Name: ValidateIAMRoleActivityName})
+
 	suite.Run(t, new(CreateInfraWorkflowTestSuite))
 }
 
@@ -163,6 +166,11 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 		ClusterName:               workflowInput.ClusterName,
 		AWSClientRequestTokenBase: "default-test-workflow-id",
 	}
+
+	s.env.OnActivity(ValidateIAMRoleActivityName, mock.Anything, ValidateIAMRoleActivityInput{
+		EKSActivityInput: eksActivity,
+		ClusterRoleID:    workflowInput.ClusterRoleID,
+	}).Return(&ValidateIAMRoleActivityOutput{}, nil)
 
 	s.env.OnActivity(CreateIamRolesActivityName, mock.Anything, CreateIamRolesActivityInput{
 		EKSActivityInput:   eksActivity,
@@ -456,6 +464,19 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
 		},
 		UseGeneratedSSHKey: true,
 	}
+
+	eksActivity := EKSActivityInput{
+		OrganizationID:            workflowInput.OrganizationID,
+		SecretID:                  workflowInput.SecretID,
+		Region:                    workflowInput.Region,
+		ClusterName:               workflowInput.ClusterName,
+		AWSClientRequestTokenBase: "default-test-workflow-id",
+	}
+
+	s.env.OnActivity(ValidateIAMRoleActivityName, mock.Anything, ValidateIAMRoleActivityInput{
+		EKSActivityInput: eksActivity,
+		ClusterRoleID:    workflowInput.ClusterRoleID,
+	}).Return(&ValidateIAMRoleActivityOutput{}, nil)
 
 	s.env.OnActivity(CreateIamRolesActivityName, mock.Anything, mock.Anything).Return(&CreateIamRolesActivityOutput{
 		ClusterRoleArn:      "cluster-role-arn",
