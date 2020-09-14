@@ -78,7 +78,7 @@ services:
 
 # Uncomment the following two services to enable Anchore.
 #    anchore-engine:
-#        image: docker.io/anchore/anchore-engine:v0.5.1
+#        image: docker.io/anchore/anchore-engine:v0.8.0
 #        depends_on:
 #            - postgres
 #        environment:
@@ -89,7 +89,7 @@ services:
 #            - "8338:8338"
 #        volumes:
 #            - ./etc/config/anchore.yaml:/config/config.yaml:z
-
+#
 #     ldap:
 #         image: osixia/openldap:1.3.0
 #         ports:

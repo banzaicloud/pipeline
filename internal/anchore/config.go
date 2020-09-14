@@ -22,10 +22,11 @@ import (
 
 // Config holds configuration required for connecting the Anchore API.
 type Config struct {
-	Endpoint string
-	User     string
-	Password string
-	Insecure bool
+	Endpoint   string
+	User       string
+	Password   string
+	Insecure   bool
+	PolicyPath string
 }
 
 // ErrConfigNotFound is returned by config providers to indicate it couldn't find any configuration.

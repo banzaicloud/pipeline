@@ -56,10 +56,11 @@ func (s integratedServiceSpec) Validate(pipelineNamespace string) error {
 }
 
 type anchoreSpec struct {
-	Enabled  bool   `json:"enabled" mapstructure:"enabled"`
-	Url      string `json:"url" mapstructure:"url"`
-	SecretID string `json:"secretId" mapstructure:"secretId"`
-	Insecure bool   `json:"insecure" mapstructure:"insecure"`
+	Enabled    bool   `json:"enabled" mapstructure:"enabled"`
+	Url        string `json:"url" mapstructure:"url"`
+	SecretID   string `json:"secretId" mapstructure:"secretId"`
+	Insecure   bool   `json:"insecure" mapstructure:"insecure"`
+	PolicyPath string `json:"policyPath" mapstructure:"policyPath"`
 }
 
 func (a anchoreSpec) Validate() error {
