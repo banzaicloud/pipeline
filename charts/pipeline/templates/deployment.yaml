@@ -108,8 +108,6 @@ spec:
         volumeMounts:
           - name: config-volume
             mountPath: /config
-          - name: policies-volume
-            mountPath: /policies
           - name: pipeline-tls
             mountPath: /tls
           {{- if .Values.extraVolumeMounts }}
@@ -119,9 +117,6 @@ spec:
         - name: config-volume
           configMap:
             name: {{ include "pipeline.fullname" . }}
-        - name: policies-volume
-          configMap:
-            name: {{ include "pipeline.fullname" . }}-policies
         - name: pipeline-tls
           secret:
             secretName: {{ include "pipeline-tls-secret-name" . }}

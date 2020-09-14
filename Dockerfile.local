@@ -27,5 +27,6 @@ COPY build/release/worker /
 COPY build/release/pipelinectl /
 COPY views /views/
 COPY templates/ /templates/
+COPY config/anchore/policies/ /policies/
 
 CMD ["/pipeline"]

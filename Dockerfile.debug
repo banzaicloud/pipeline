@@ -30,5 +30,6 @@ COPY build/debug/worker /
 COPY build/debug/pipelinectl /
 COPY views /views/
 COPY templates /templates
+COPY config/anchore/policies/ /policies/
 
 ENTRYPOINT ["/dlv", "--listen=:40000", "--headless=true", "--api-version=2", "--log", "exec", "/pipeline-debug"]
