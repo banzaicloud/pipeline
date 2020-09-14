@@ -260,6 +260,8 @@ dex:
 #            user: ""
 #            password: ""
 #            insecure: false
+#            # The path of the directory that contains Banzaicloud default policies
+#            policyPath: "/policies"
 #
 #    expiry:
 #        enabled: true
