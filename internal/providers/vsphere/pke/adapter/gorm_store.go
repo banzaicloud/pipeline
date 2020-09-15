@@ -65,8 +65,8 @@ type nodePoolModel struct {
 	Size          int
 	MaxSize       uint
 	MinSize       uint
-	VCPU          int `gorm:"column:vcpu"`
-	RAM           int
+	VCPU          int        `gorm:"column:vcpu"`
+	RAM           int        // MiB
 	Name          string     `gorm:"unique_index:idx_vsphere_pke_np_cluster_id_name"`
 	Roles         rolesModel `gorm:"type:json"`
 	AdminUsername string

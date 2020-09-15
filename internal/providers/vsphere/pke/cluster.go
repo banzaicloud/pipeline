@@ -28,7 +28,7 @@ type NodePool struct {
 	CreatedBy     uint
 	Size          int
 	VCPU          int
-	RAM           int
+	RAM           int // MiB
 	Name          string
 	Roles         []string
 	AdminUsername string
