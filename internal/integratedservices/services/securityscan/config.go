@@ -168,10 +168,11 @@ func (p CustomAnchoreConfigProvider) GetConfiguration(ctx context.Context, clust
 	}
 
 	return anchore.Config{
-		Endpoint: spec.CustomAnchore.Url,
-		User:     secret[secrettype.Username],
-		Password: secret[secrettype.Password],
-		Insecure: spec.CustomAnchore.Insecure,
+		Endpoint:   spec.CustomAnchore.Url,
+		User:       secret[secrettype.Username],
+		Password:   secret[secrettype.Password],
+		Insecure:   spec.CustomAnchore.Insecure,
+		PolicyPath: spec.CustomAnchore.PolicyPath,
 	}, nil
 }
 

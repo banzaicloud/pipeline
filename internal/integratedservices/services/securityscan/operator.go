@@ -17,6 +17,8 @@ package securityscan
 import (
 	"context"
 	"encoding/json"
+	"io/ioutil"
+	"path/filepath"
 
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
@@ -166,6 +168,10 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 			return errors.WrapIf(err, "failed to create policy")
 		}
 		activePolicyID = policyID
+	}
+
+	if err := op.createDefaultPolicyBundles(ctx, anchoreClient); err != nil {
+		return errors.WrapIf(err, "failed to create default policy bundles")
 	}
 
 	if err := anchoreClient.ActivatePolicy(ctx, activePolicyID); err != nil {
@@ -348,6 +354,35 @@ func (op *IntegratedServiceOperator) applyLabelsForSecurityScan(ctx context.Cont
 
 	if err := op.namespaceService.LabelNamespaces(ctx, clusterID, whConfig.Namespaces, labeMap); err != nil {
 		return errors.WrapIf(err, "failed to label namespaces")
+	}
+
+	return nil
+}
+
+func (op IntegratedServiceOperator) createDefaultPolicyBundles(ctx context.Context, anchoreClient anchore.AnchoreClient) error {
+	files, err := ioutil.ReadDir(op.config.Anchore.PolicyPath)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to read policy bundle directory", "directory", op.config.Anchore.PolicyPath)
+	}
+
+	for _, file := range files {
+		op.logger.Debug("default policy list", map[string]interface{}{
+			"policyFilename": file.Name(),
+		})
+		rawPolicy, err := ioutil.ReadFile(filepath.Join(op.config.Anchore.PolicyPath, file.Name()))
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to read default policy bundle file", "filename", file.Name())
+		}
+		policyBundle := make(map[string]interface{})
+		err = json.Unmarshal(rawPolicy, &policyBundle)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to unmarshal default policy bundle", "filename", file.Name())
+		}
+
+		_, err = anchoreClient.CreatePolicy(ctx, policyBundle)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to create default policy bundle", "filename", file.Name())
+		}
 	}
 
 	return nil

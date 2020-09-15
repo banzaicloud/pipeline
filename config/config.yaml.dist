@@ -260,6 +260,9 @@ dex:
 #            user: ""
 #            password: ""
 #            insecure: false
+#            # The path of the directory that contains Banzai Cloud default policies
+#            # The Pipeline docker image contains the /policies directory
+#            policyPath: "/policies"
 #
 #    expiry:
 #        enabled: true

@@ -188,6 +188,7 @@ done
 
 If you need to access local anchore server, uncomment the related services in `docker-compose.override.yml`
 and restart the environment with `make start`.
+You can specify your own default Anchore policy bundle by adding a `json` file to the `config/anchore/policies` directory.
 
 #### Accessing Pipeline API from the cluster
 

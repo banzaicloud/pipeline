@@ -707,6 +707,7 @@ rbac:
 	//		"pullPolicy": "IfNotPresent",
 	//	},
 	// })
+	v.SetDefault("cluster::securityScan::anchore::policyPath", "/policies")
 
 	v.SetDefault("cluster::expiry::enabled", true)
 
