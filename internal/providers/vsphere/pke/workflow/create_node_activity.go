@@ -73,7 +73,7 @@ type CreateNodeActivityInput struct {
 type Node struct {
 	AdminUsername          string
 	VCPU                   int
-	RAM                    int
+	RAM                    int // MiB
 	Name                   string
 	SSHPublicKey           string
 	UserDataScriptParams   map[string]string
@@ -122,7 +122,11 @@ func generateVMConfigs(input CreateNodeActivityInput) (*types.VirtualMachineConf
 		return nil, err
 	}
 
-	vmConfig := types.VirtualMachineConfigSpec{}
+	vmConfig := types.VirtualMachineConfigSpec{
+		NumCPUs:           int32(input.VCPU),
+		NumCoresPerSocket: int32(input.VCPU),
+		MemoryMB:          int64(input.RAM),
+	}
 	vmConfig.ExtraConfig = append(vmConfig.ExtraConfig,
 		&types.OptionValue{Key: "disk.enableUUID", Value: "true"}, // needed for pv mounting
 		&types.OptionValue{Key: "guestinfo.userdata.encoding", Value: "gzip+base64"},

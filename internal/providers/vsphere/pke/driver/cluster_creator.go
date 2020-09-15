@@ -96,7 +96,7 @@ type NodePool struct {
 	Size          int
 	AdminUsername string
 	VCPU          int
-	RAM           int
+	RAM           int // MiB
 	TemplateName  string
 }
 

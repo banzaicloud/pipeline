@@ -87,6 +87,13 @@ func (p NodePoolPreparer) Prepare(ctx context.Context, nodePool *NodePool) error
 		return validationErrorf("%s.Name must be specified", p.namespace)
 	}
 
+	if nodePool.RAM < 4 || nodePool.RAM > 6128<<10 {
+		return validationErrorf("%s.RAM must be between 4 MiB and 6128 GiB", p.namespace)
+	}
+	if nodePool.RAM%4 != 0 {
+		return validationErrorf("%s.RAM must be multiple of 4 (MiB)", p.namespace)
+	}
+
 	if nodePool.hasRole(pkgPKE.RoleMaster) && nodePool.Size == 0 {
 		p.logger.Debug("Master node pool size should be >= 0, defaulting to 1")
 		nodePool.Size = 1
