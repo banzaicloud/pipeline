@@ -368,7 +368,7 @@ workflows:
                         dlc: true
                     deploy: false
                     image: banzaicloud/pipeline
-                    tag: ${CIRCLE_BRANCH//\//_}
+                    tag: ${CIRCLE_BRANCH//[\/,]/_}
                     filters:
                         branches:
                             ignore: master
