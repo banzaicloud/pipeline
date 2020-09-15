@@ -362,7 +362,7 @@ func (op *IntegratedServiceOperator) applyLabelsForSecurityScan(ctx context.Cont
 func (op IntegratedServiceOperator) createDefaultPolicyBundles(ctx context.Context, anchoreClient anchore.AnchoreClient) error {
 	files, err := ioutil.ReadDir(op.config.Anchore.PolicyPath)
 	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to read policy bundle directory", op.config.Anchore.PolicyPath)
+		return errors.WrapIfWithDetails(err, "failed to read policy bundle directory", "directory", op.config.Anchore.PolicyPath)
 	}
 
 	for _, file := range files {
@@ -371,17 +371,17 @@ func (op IntegratedServiceOperator) createDefaultPolicyBundles(ctx context.Conte
 		})
 		rawPolicy, err := ioutil.ReadFile(filepath.Join(op.config.Anchore.PolicyPath, file.Name()))
 		if err != nil {
-			return errors.WrapIfWithDetails(err, "failed to read default policy bundle file", file.Name())
+			return errors.WrapIfWithDetails(err, "failed to read default policy bundle file", "filename", file.Name())
 		}
 		policyBundle := make(map[string]interface{})
 		err = json.Unmarshal(rawPolicy, &policyBundle)
 		if err != nil {
-			return errors.WrapIfWithDetails(err, "failed to unmarshal default policy bundle", file.Name())
+			return errors.WrapIfWithDetails(err, "failed to unmarshal default policy bundle", "filename", file.Name())
 		}
 
 		_, err = anchoreClient.CreatePolicy(ctx, policyBundle)
 		if err != nil {
-			return errors.WrapIfWithDetails(err, "failed to create default policy bundle", file.Name())
+			return errors.WrapIfWithDetails(err, "failed to create default policy bundle", "filename", file.Name())
 		}
 	}
 
