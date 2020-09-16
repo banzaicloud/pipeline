@@ -162,7 +162,7 @@ func (NodePoolNotFoundError) ServiceError() bool {
 // NodePoolStore provides an interface to node pool persistence.
 type NodePoolStore interface {
 	// NodePoolExists checks if a node pool exists.
-	NodePoolExists(ctx context.Context, clusterID uint, name string) (bool, error)
+	NodePoolExists(ctx context.Context, clusterID uint, name string) (isExisting bool, storedName string, err error)
 
 	// DeleteNodePool deletes a node pool.
 	DeleteNodePool(ctx context.Context, clusterID uint, name string) error
@@ -213,7 +213,7 @@ func (s service) CreateNodePool(
 		return err
 	}
 
-	exists, err := s.nodePools.NodePoolExists(ctx, clusterID, rawNodePool.GetName())
+	exists, nodePoolStoredName, err := s.nodePools.NodePoolExists(ctx, clusterID, rawNodePool.GetName())
 	if err != nil {
 		return err
 	}
@@ -221,7 +221,7 @@ func (s service) CreateNodePool(
 	if exists {
 		return errors.WithStack(NodePoolAlreadyExistsError{
 			ClusterID: clusterID,
-			NodePool:  rawNodePool.GetName(),
+			NodePool:  nodePoolStoredName,
 		})
 	}
 
@@ -264,7 +264,7 @@ func (s service) UpdateNodePool(
 	}
 
 	// TODO: move this to distribution level
-	exists, err := s.nodePools.NodePoolExists(ctx, clusterID, nodePoolName)
+	exists, nodePoolStoredName, err := s.nodePools.NodePoolExists(ctx, clusterID, nodePoolName)
 	if err != nil {
 		return "", err
 	}
@@ -276,7 +276,7 @@ func (s service) UpdateNodePool(
 		})
 	}
 
-	return service.UpdateNodePool(ctx, clusterID, nodePoolName, rawNodePoolUpdate)
+	return service.UpdateNodePool(ctx, clusterID, nodePoolStoredName, rawNodePoolUpdate)
 }
 
 func (s service) DeleteNodePool(ctx context.Context, clusterID uint, name string) (bool, error) {
@@ -289,7 +289,7 @@ func (s service) DeleteNodePool(ctx context.Context, clusterID uint, name string
 		return false, err
 	}
 
-	exists, err := s.nodePools.NodePoolExists(ctx, clusterID, name)
+	exists, nodePoolStoredName, err := s.nodePools.NodePoolExists(ctx, clusterID, name)
 	if err != nil {
 		return false, err
 	}
@@ -304,7 +304,7 @@ func (s service) DeleteNodePool(ctx context.Context, clusterID uint, name string
 		return false, err
 	}
 
-	err = s.nodePoolManager.DeleteNodePool(ctx, clusterID, name)
+	err = s.nodePoolManager.DeleteNodePool(ctx, clusterID, nodePoolStoredName)
 	if err != nil {
 		return false, err
 	}

@@ -273,7 +273,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		}
 
 		nodePoolStore := new(MockNodePoolStore)
-		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(true, nil)
+		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(true, nodePoolName, nil)
 
 		validator := new(MockNodePoolValidator)
 		validator.On("ValidateNew", ctx, cluster, rawNewNodePool).Return(nil)
@@ -320,7 +320,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		}
 
 		nodePoolStore := new(MockNodePoolStore)
-		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(false, nil)
+		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(false, "", nil)
 
 		validator := new(MockNodePoolValidator)
 		validator.On("ValidateNew", ctx, cluster, rawNewNodePool).Return(nil)
@@ -436,7 +436,7 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 
 		nodePoolStore := new(MockNodePoolStore)
 
-		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(false, nil)
+		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(false, "", nil)
 
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
@@ -483,7 +483,7 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 
 		nodePoolStore := new(MockNodePoolStore)
 
-		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(true, nil)
+		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(true, nodePoolName, nil)
 
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
@@ -537,7 +537,7 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 
 		nodePoolStore := new(MockNodePoolStore)
 
-		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(true, nil)
+		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(true, nodePoolName, nil)
 
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
@@ -653,7 +653,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		const nodePoolName = "pool0"
 
 		nodePoolStore := new(MockNodePoolStore)
-		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(false, nil)
+		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(false, "", nil)
 
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
@@ -694,7 +694,7 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		const nodePoolName = "pool0"
 
 		nodePoolStore := new(MockNodePoolStore)
-		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(true, nil)
+		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(true, nodePoolName, nil)
 
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
