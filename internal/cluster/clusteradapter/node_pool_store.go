@@ -39,10 +39,10 @@ func NewNodePoolStore(db *gorm.DB, clusters cluster.Store) cluster.NodePoolStore
 	}
 }
 
-func (s nodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name string) (bool, error) {
+func (s nodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name string) (isExisting bool, storedName string, err error) {
 	c, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
-		return false, err
+		return false, "", err
 	}
 
 	switch {
@@ -54,13 +54,13 @@ func (s nodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name 
 			Preload("NodePools", "name = ?", name).
 			First(&eksCluster).Error
 		if gorm.IsRecordNotFoundError(err) {
-			return false, errors.NewWithDetails(
+			return false, "", errors.NewWithDetails(
 				"cluster model is inconsistent",
 				"clusterId", clusterID,
 			)
 		}
 		if err != nil {
-			return false, errors.WrapWithDetails(
+			return false, "", errors.WrapWithDetails(
 				err, "failed to check if node pool exists",
 				"clusterId", clusterID,
 				"nodePoolName", name,
@@ -68,11 +68,12 @@ func (s nodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name 
 		}
 
 		if len(eksCluster.NodePools) == 0 {
-			return false, nil
+			return false, "", nil
 		}
 
+		storedName = eksCluster.NodePools[0].Name
 	default:
-		return false, errors.WithStack(cluster.NotSupportedDistributionError{
+		return false, "", errors.WithStack(cluster.NotSupportedDistributionError{
 			ID:           c.ID,
 			Cloud:        c.Cloud,
 			Distribution: c.Distribution,
@@ -81,7 +82,7 @@ func (s nodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name 
 		})
 	}
 
-	return true, nil
+	return true, storedName, nil
 }
 
 func (s nodePoolStore) DeleteNodePool(ctx context.Context, clusterID uint, name string) error {
