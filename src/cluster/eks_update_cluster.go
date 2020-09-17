@@ -26,7 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
+	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
 const EKSUpdateClusterWorkflowName = "eks-update-cluster"
@@ -106,7 +106,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 		SecretID:                  input.SecretID,
 		Region:                    input.Region,
 		ClusterName:               input.ClusterName,
-		AWSClientRequestTokenBase: pkgAmazon.NewNormalizedClientRequestToken(workflow.GetInfo(ctx).WorkflowExecution.ID),
+		AWSClientRequestTokenBase: sdkAmazon.NewNormalizedClientRequestToken(workflow.GetInfo(ctx).WorkflowExecution.ID),
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)

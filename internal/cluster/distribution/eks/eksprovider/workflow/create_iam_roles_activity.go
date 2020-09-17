@@ -23,7 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/iam"
 
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
+	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
 const CreateIamRolesActivityName = "eks-create-iam-roles"
@@ -118,7 +118,7 @@ func (a *CreateIamRolesActivity) Execute(ctx context.Context, input CreateIamRol
 
 	cloudformationClient := cloudformation.New(session)
 
-	clientRequestToken := pkgAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateIamRolesActivityName)
+	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateIamRolesActivityName)
 
 	createStackInput := &cloudformation.CreateStackInput{
 		ClientRequestToken: aws.String(clientRequestToken),

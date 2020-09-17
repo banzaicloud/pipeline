@@ -27,7 +27,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
+	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
 const CreateAsgActivityName = "eks-create-asg"
@@ -209,7 +209,7 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 			ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v'", strings.Join(nodeLabels, ","))),
 		},
 	}
-	clientRequestToken := pkgAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateAsgActivityName)
+	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateAsgActivityName)
 
 	createStackInput := &cloudformation.CreateStackInput{
 		ClientRequestToken: aws.String(clientRequestToken),

@@ -28,8 +28,8 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	pkgCloudFormation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
+	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
 )
 
@@ -183,7 +183,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 
 	// we don't reuse the creation time template, since it may have changed
 	updateStackInput := &cloudformation.UpdateStackInput{
-		ClientRequestToken: aws.String(pkgAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID)),
+		ClientRequestToken: aws.String(sdkAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID)),
 		StackName:          aws.String(input.StackName),
 		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
 		Parameters:         stackParams,

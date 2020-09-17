@@ -25,8 +25,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
 
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
+	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
 const DeleteVPCActivityName = "pke-delete-vpc-activity"
@@ -65,7 +65,7 @@ func (a *DeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCActivity
 	clusterName := c.GetName()
 	stackName := "pke-vpc-" + clusterName
 	stackInput := &cloudformation.DeleteStackInput{
-		ClientRequestToken: aws.String(pkgAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID)),
+		ClientRequestToken: aws.String(sdkAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID)),
 		StackName:          &stackName,
 	}
 
