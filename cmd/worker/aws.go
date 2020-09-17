@@ -40,7 +40,13 @@ func registerAwsWorkflows(
 	)
 
 	workflow.RegisterWithOptions(pkeworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.DeleteClusterWorkflowName})
-	workflow.RegisterWithOptions(pkeworkflow.UpdateClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.UpdateClusterWorkflowName})
+
+	updateClusterWorkflow := pkeworkflow.UpdateClusterWorkflow{
+		DefaultNodeVolumeSize: config.Distribution.PKE.Amazon.DefaultNodeVolumeSize,
+	}
+	workflow.RegisterWithOptions(
+		updateClusterWorkflow.Execute, workflow.RegisterOptions{Name: pkeworkflow.UpdateClusterWorkflowName},
+	)
 
 	awsClientFactory := pkeworkflow.NewAWSClientFactory(secretStore)
 	ec2Factory := pkeworkflow.NewEC2Factory()

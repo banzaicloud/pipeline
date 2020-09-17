@@ -40,7 +40,11 @@ type UpdateClusterWorkflowInput struct {
 	SubnetIDs                   []string
 }
 
-func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInput) error {
+type UpdateClusterWorkflow struct {
+	DefaultNodeVolumeSize int
+}
+
+func (w UpdateClusterWorkflow) Execute(ctx workflow.Context, input UpdateClusterWorkflowInput) error {
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 5 * time.Minute,
 		StartToCloseTimeout:    10 * time.Minute,
@@ -193,7 +197,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			nodePool.InstanceType,
 			nodePool.ImageID,
 			nodePool.VolumeSize,
-			0,
+			w.DefaultNodeVolumeSize,
 		)
 
 		return err
