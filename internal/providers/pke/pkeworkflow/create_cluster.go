@@ -44,7 +44,8 @@ type CreateClusterWorkflowInput struct {
 }
 
 type CreateClusterWorkflow struct {
-	GlobalRegion string
+	DefaultNodeVolumeSize int
+	GlobalRegion          string
 }
 
 func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateClusterWorkflowInput) error {
@@ -128,7 +129,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 			nodePool.InstanceType,
 			nodePool.ImageID,
 			nodePool.VolumeSize,
-			0,
+			w.DefaultNodeVolumeSize,
 		)
 
 		return err

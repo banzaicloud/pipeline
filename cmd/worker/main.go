@@ -378,11 +378,7 @@ func main() {
 		}
 
 		// Register amazon specific workflows and activities
-		registerAwsWorkflows(clusters, tokenGenerator, secretStore, imageSelector,
-			config.Distribution.PKE.Amazon.GlobalRegion,
-			config.Pipeline.External.URL,
-			config.Pipeline.External.Insecure,
-		)
+		registerAwsWorkflows(config, clusters, tokenGenerator, secretStore, imageSelector)
 
 		azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonadapter.NewLogger(logger))
 
