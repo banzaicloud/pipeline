@@ -31,8 +31,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
+	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
 const UpdateAsgActivityName = "eks-update-asg"
@@ -253,7 +253,7 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		},
 	}
 
-	clientRequestToken := pkgAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, UpdateAsgActivityName)
+	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, UpdateAsgActivityName)
 
 	// we don't reuse the creation time template, since it may have changed
 	updateStackInput := &cloudformation.UpdateStackInput{

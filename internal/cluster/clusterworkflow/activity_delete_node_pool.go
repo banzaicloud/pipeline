@@ -24,7 +24,7 @@ import (
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/providers"
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
+	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
 const DeleteNodePoolActivityName = "delete-node-pool"
@@ -67,7 +67,7 @@ func (a DeleteNodePoolActivity) Execute(ctx context.Context, input DeleteNodePoo
 				SecretID:                  c.SecretID.ResourceID,
 				Region:                    c.Location,
 				ClusterName:               c.Name,
-				AWSClientRequestTokenBase: pkgAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID),
+				AWSClientRequestTokenBase: sdkAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID),
 			},
 			StackName: eksworkflow.GenerateNodePoolStackName(c.Name, input.NodePoolName),
 		}

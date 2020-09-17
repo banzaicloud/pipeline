@@ -25,8 +25,8 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
+	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
 const CreateVpcActivityName = "eks-create-vpc"
@@ -121,7 +121,7 @@ func (a *CreateVpcActivity) Execute(ctx context.Context, input CreateVpcActivity
 	}
 	cloudformationClient := cloudformation.New(session)
 
-	clientRequestToken := pkgAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateVpcActivityName)
+	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateVpcActivityName)
 	createStackInput := &cloudformation.CreateStackInput{
 		ClientRequestToken: aws.String(clientRequestToken),
 		DisableRollback:    aws.Bool(true),

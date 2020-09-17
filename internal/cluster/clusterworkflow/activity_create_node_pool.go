@@ -29,7 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/providers"
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
+	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	"github.com/banzaicloud/pipeline/src/model"
 )
 
@@ -139,7 +139,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			SecretID:                  c.SecretID.ResourceID, // TODO: the underlying secret store is the legacy one
 			Region:                    c.Location,
 			ClusterName:               c.Name,
-			AWSClientRequestTokenBase: pkgAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID),
+			AWSClientRequestTokenBase: sdkAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID),
 		}
 
 		if activityInformation.Attempt == 0 {

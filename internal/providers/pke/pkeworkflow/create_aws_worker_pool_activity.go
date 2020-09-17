@@ -29,8 +29,8 @@ import (
 	cloudformation2 "github.com/banzaicloud/pipeline/internal/cloudformation"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
-	pkgAmazon "github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
+	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
 const CreateWorkerPoolActivityName = "pke-create-aws-worker-pool-activity"
@@ -125,7 +125,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 	stackInput := &cloudformation.CreateStackInput{
 		StackName:          aws.String(stackName),
 		TemplateBody:       aws.String(template),
-		ClientRequestToken: aws.String(pkgAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID)),
+		ClientRequestToken: aws.String(sdkAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID)),
 		Parameters: []*cloudformation.Parameter{
 			{
 				ParameterKey:   aws.String("ClusterName"),
