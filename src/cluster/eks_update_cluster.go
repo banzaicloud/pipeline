@@ -209,7 +209,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 			{
 				activityInput := eksWorkflow.SelectVolumeSizeActivityInput{
 					AMISize:            amiSize,
-					OptionalVolumeSize: 0,
+					OptionalVolumeSize: nodePool.NodeVolumeSize,
 				}
 				var activityOutput eksWorkflow.SelectVolumeSizeActivityOutput
 				err = workflow.ExecuteActivity(ctx, eksWorkflow.SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
@@ -313,7 +313,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				{
 					activityInput := eksWorkflow.SelectVolumeSizeActivityInput{
 						AMISize:            amiSize,
-						OptionalVolumeSize: 0,
+						OptionalVolumeSize: nodePool.NodeVolumeSize,
 					}
 					var activityOutput eksWorkflow.SelectVolumeSizeActivityOutput
 					err = workflow.ExecuteActivity(ctx, eksWorkflow.SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
