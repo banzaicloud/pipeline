@@ -128,6 +128,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 			nodePool.InstanceType,
 			nodePool.ImageID,
 			nodePool.VolumeSize,
+			0,
 		)
 
 		return err

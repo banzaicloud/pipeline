@@ -193,6 +193,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			nodePool.InstanceType,
 			nodePool.ImageID,
 			nodePool.VolumeSize,
+			0,
 		)
 
 		return err

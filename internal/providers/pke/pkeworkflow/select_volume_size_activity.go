@@ -24,7 +24,6 @@ import (
 
 const (
 	SelectVolumeSizeActivityName = "pke-select-volume-size-activity"
-	MinimalVolumeSize            = 50 // TODO make this a config
 )
 
 type SelectVolumeSizeActivity struct {
