@@ -77,6 +77,7 @@ type Config struct {
 				GlobalRegion           string
 				DefaultImages          map[string]string
 				DefaultNetworkProvider string
+				DefaultNodeVolumeSize  int
 			}
 		}
 	}

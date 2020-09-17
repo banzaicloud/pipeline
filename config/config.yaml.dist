@@ -448,6 +448,7 @@ dex:
 #            globalRegion: us-east-1
 #            defaultImages: {}
 #            defaultNetworkProvider: "cilium"
+#            defaultNodeVolumeSize: 0 # GiB, 0/fallback: max(50, AMISize)
 
 cloudinfo:
     # Format: {baseUrl}/api/v1
