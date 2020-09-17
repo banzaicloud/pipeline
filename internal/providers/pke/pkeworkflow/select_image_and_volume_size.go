@@ -22,6 +22,12 @@ import (
 	"go.uber.org/cadence/workflow"
 )
 
+const (
+	// fallbackVolumeSize is the substituted value for 0/unspecified default
+	// volume size.
+	fallbackVolumeSize = 50
+)
+
 // SelectImageAndVolumeSize returns an image ID and a volume size for the
 // specified arguments after determining an image to use and the required volume
 // size for it.
@@ -32,6 +38,7 @@ func SelectImageAndVolumeSize(
 	instanceType string,
 	optionalImageID string,
 	optionalVolumeSize int,
+	defaultVolumeSize int,
 ) (selectedImageID string, selectedVolumeSize int, err error) {
 	selectedImageID = optionalImageID
 	if selectedImageID == "" {
@@ -59,15 +66,24 @@ func SelectImageAndVolumeSize(
 			return "", 0, err
 		}
 
-		if optionalVolumeSize == 0 {
-			selectedVolumeSize = int(math.Max(float64(MinimalVolumeSize), float64(activityOutput.VolumeSize)))
-		} else if optionalVolumeSize < activityOutput.VolumeSize { // && optionalVolumeSize != 0 {
-			return "", 0, errors.New(fmt.Sprintf(
-				"specified volume size of %dGB for %q instance type using %s image is less than the AMI image size of %dGB",
-				optionalVolumeSize, instanceType, selectedImageID, activityOutput.VolumeSize,
-			))
-		} else { // if optionalVolumeSize != 0 && optionalVolumeSize >= activityOutput.VolumeSize {
+		valueSource := ""
+		if optionalVolumeSize > 0 {
 			selectedVolumeSize = optionalVolumeSize
+			valueSource = "explicitly set"
+		} else if defaultVolumeSize > 0 {
+			selectedVolumeSize = defaultVolumeSize
+			valueSource = "default configured"
+		} else {
+			selectedVolumeSize = int(math.Max(float64(fallbackVolumeSize), float64(activityOutput.VolumeSize)))
+			valueSource = "fallback value"
+		}
+
+		if selectedVolumeSize < activityOutput.VolumeSize {
+			return "", 0, errors.New(fmt.Sprintf(
+				"selected volume size of %d GiB (source: %s) for %q instance type using %s image"+
+					" is less than the AMI size of %d GiB",
+				selectedVolumeSize, valueSource, instanceType, selectedImageID, activityOutput.VolumeSize,
+			))
 		}
 	}
 
