@@ -72,7 +72,7 @@ func (m clusterManager) UpdateCluster(
 
 	_, err := m.workflowClient.StartWorkflow(ctx, workflowOptions, workflowName, input)
 	if err != nil {
-		return errors.WrapWithDetails(err, "failed to start workflow", "workflow", eksworkflow.UpdateNodePoolWorkflowName)
+		return errors.WrapWithDetails(err, "failed to start workflow", "workflow", workflowName)
 	}
 
 	return nil

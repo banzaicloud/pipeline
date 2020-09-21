@@ -88,6 +88,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksadapter"
 	eksDriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	pkeDistribution "github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	prometheusMetrics "github.com/banzaicloud/pipeline/internal/cluster/metrics/adapters/prometheus"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
@@ -852,6 +854,14 @@ func main() {
 									workflow.NewAWSSessionFactory(secret.Store),
 									workflow.NewCloudFormationFactory(),
 									dynamicClientFactory,
+									config.Pipeline.Enterprise,
+									config.Cluster.Namespace,
+									workflowClient,
+								),
+							)),
+							"pkeaws": clusteradapter.NewPKEService(pkeDistribution.NewService(
+								clusterStore,
+								pkeawsadapter.NewNodePoolManager(
 									config.Pipeline.Enterprise,
 									config.Cluster.Namespace,
 									workflowClient,
