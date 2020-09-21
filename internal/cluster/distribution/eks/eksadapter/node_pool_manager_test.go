@@ -85,6 +85,7 @@ func TestListNodePools(t *testing.T) {
 		"NodeInstanceType":            "node pool instance type",
 		"NodeImageId":                 "node pool image ID",
 		"NodeSpotPrice":               "node pool spot price",
+		"Subnets":                     "subnet-0123456789",
 	}
 	var exampleWorkflowClient client.Client
 	//
@@ -146,6 +147,7 @@ func TestListNodePools(t *testing.T) {
 		InstanceType: exampleStackParameters["NodeInstanceType"].(string),
 		Image:        exampleStackParameters["NodeImageId"].(string),
 		SpotPrice:    exampleStackParameters["NodeSpotPrice"].(string),
+		SubnetID:     exampleStackParameters["Subnets"].(string),
 	}
 	//
 	exampleUnstructuredList := make([]unstructured.Unstructured, len(exampleNodePoolNames))
