@@ -171,6 +171,7 @@ func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Clus
 			NodeInstanceType            string `mapstructure:"NodeInstanceType"`
 			NodeSpotPrice               string `mapstructure:"NodeSpotPrice"`
 			NodeVolumeSize              int    `mapstructure:"NodeVolumeSize"`
+			Subnets                     string `mapstructure:"Subnets"`
 		}
 
 		err = sdkCloudFormation.ParseStackParameters(stackDescriptions.Stacks[0].Parameters, &nodePoolParameters)
@@ -192,6 +193,7 @@ func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Clus
 			InstanceType: nodePoolParameters.NodeInstanceType,
 			Image:        nodePoolParameters.NodeImageID,
 			SpotPrice:    nodePoolParameters.NodeSpotPrice,
+			SubnetID:     nodePoolParameters.Subnets, // Note: currently we ensure exactly 1 value at creation.
 		}
 
 		nodePools = append(nodePools, nodePool)

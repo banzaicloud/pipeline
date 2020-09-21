@@ -93,6 +93,7 @@ type NodePool struct {
 	InstanceType string            `mapstructure:"instanceType"`
 	Image        string            `mapstructure:"image"`
 	SpotPrice    string            `mapstructure:"spotPrice"`
+	SubnetID     string            `mapstructure:"subnetId"`
 }
 
 // Autoscaling describes the EKS node pool's autoscaling settings.
