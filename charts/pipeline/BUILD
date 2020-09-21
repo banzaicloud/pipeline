@@ -6,4 +6,5 @@ helm_package(
 
 helm_lint(
     name = "lint",
+    chart = ":pipeline",
 )
