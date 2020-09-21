@@ -16,6 +16,7 @@ package pkeawsadapter
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"emperror.dev/errors"
@@ -105,7 +106,7 @@ func (n nodePoolManager) UpdateNodePool(
 
 // TODO: this is temporary
 func generateNodePoolStackName(clusterName string, poolName string) string {
-	return nodePoolStackNamePrefix + clusterName + "-" + poolName
+	return fmt.Sprintf("pke-pool-%s-worker-%s", clusterName, poolName)
 }
 
 // ListNodePools lists node pools from a cluster.
