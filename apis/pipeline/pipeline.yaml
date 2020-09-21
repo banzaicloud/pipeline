@@ -4672,6 +4672,7 @@ components:
                 # https://github.com/OpenAPITools/openapi-generator/pull/2897 
                 - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
                 - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
+                - $ref: '#/components/schemas/PkeAwsUpdateNodePoolRequest'
 
         UpdateNodePoolResponse:
             type: object
@@ -4704,6 +4705,35 @@ components:
 
         EksUpdateNodePoolRequest:
             description: Node pool update request object for an EKS cluster.
+            type: object
+            allOf:
+                - $ref: '#/components/schemas/BaseUpdateNodePoolRequest'
+                -
+                    type: object
+                    properties:
+                        autoscaling:
+                            $ref: '#/components/schemas/NodePoolAutoScaling'
+                        volumeSize:
+                            description: Size of the EBS volume in GBs of the nodes in the pool.
+                            type: integer
+                            example: 50
+                        instanceType:
+                            description: The instance type to use for your node pool.
+                            type: string
+                            example: m4.xlarge
+                        image:
+                            description: The instance AMI to use for your node pool.
+                            type: string
+                            example: ami-06d1667f
+                        spotPrice:
+                            description: The upper limit price for the requested spot instance. If this field is empty or 0 on-demand instances are used instead of spot instances.
+                            type: string
+                            example: "0.2"
+                        options:
+                            $ref: '#/components/schemas/BaseUpdateNodePoolOptions'
+
+        PkeAwsUpdateNodePoolRequest:
+            description: Node pool update request object for an PKE AWS cluster.
             type: object
             allOf:
                 - $ref: '#/components/schemas/BaseUpdateNodePoolRequest'

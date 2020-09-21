@@ -19065,7 +19065,7 @@ components:
     UpdateNodePoolRequest:
       oneOf:
       - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
-      - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
+      - $ref: '#/components/schemas/PkeAwsUpdateNodePoolRequest'
     UpdateNodePoolResponse:
       example:
         processId: processId
@@ -19099,6 +19099,12 @@ components:
       - $ref: '#/components/schemas/BaseUpdateNodePoolRequest'
       - $ref: '#/components/schemas/EksUpdateNodePoolRequest_allOf'
       description: Node pool update request object for an EKS cluster.
+      type: object
+    PkeAwsUpdateNodePoolRequest:
+      allOf:
+      - $ref: '#/components/schemas/BaseUpdateNodePoolRequest'
+      - $ref: '#/components/schemas/EksUpdateNodePoolRequest_allOf'
+      description: Node pool update request object for an PKE AWS cluster.
       type: object
     BaseUpdateNodePoolOptions:
       description: Base node pool update options object for all cluster distributions.

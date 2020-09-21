@@ -27,12 +27,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
 )
 
-const (
-	// nodePoolStackNamePrefix is the prefix of CloudFormation stack names of
-	// node pools managed by the pipeline.
-	nodePoolStackNamePrefix = "pipeline-pke-nodepool-"
-)
-
 type nodePoolManager struct {
 	enterprise     bool
 	namespace      string
