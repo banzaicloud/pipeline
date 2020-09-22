@@ -523,6 +523,14 @@ func main() {
 			activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.SetClusterStatusActivityName})
 		}
 
+		systemNamespaces := []string{"kube-system"}
+
+		k8sHealthCheckActivity := intClusterWorkflow.MakeK8sHealthCheckActivity(
+			intClusterK8s.MakeK8sHealthChecker(systemNamespaces),
+			kubernetes.NewClientFactory(configFactory),
+		)
+		activity.RegisterWithOptions(k8sHealthCheckActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.K8sHealthCheckActivityName})
+
 		k8sConfigGetter := kubesecret.MakeKubeSecretStore(secret.Store)
 
 		// Register vsphere specific workflows
@@ -557,9 +565,6 @@ func main() {
 
 		deleteNamespaceServicesActivity := intClusterWorkflow.MakeDeleteNamespaceServicesActivity(intClusterK8s.MakeNamespaceServicesDeleter(logrusLogger), k8sConfigGetter)
 		activity.RegisterWithOptions(deleteNamespaceServicesActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteNamespaceServicesActivityName})
-
-		k8sHealthCheckActivity := intClusterWorkflow.MakeK8sHealthCheckActivity(intClusterK8s.MakeK8sHealthChecker(logrusLogger), k8sConfigGetter)
-		activity.RegisterWithOptions(k8sHealthCheckActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.K8sHealthCheckActivityName})
 
 		clusterDNSRecordsDeleter, err := intClusterDNS.MakeDefaultRecordsDeleter()
 		emperror.Panic(errors.WrapIf(err, "failed to create default cluster DNS records deleter"))

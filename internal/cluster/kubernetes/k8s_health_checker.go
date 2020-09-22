@@ -18,35 +18,29 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 type K8sHealthChecker struct {
-	logger logrus.FieldLogger
+	namespaces []string
 }
 
-func MakeK8sHealthChecker(logger logrus.FieldLogger) K8sHealthChecker {
+func MakeK8sHealthChecker(namespaces []string) K8sHealthChecker {
 	return K8sHealthChecker{
-		logger: logger,
+		namespaces: namespaces,
 	}
 }
 
-func (c K8sHealthChecker) Check(ctx context.Context, organizationID uint, clusterName string, k8sConfig []byte) error {
-	logger := c.logger.WithField("organizationID", organizationID).WithField("clusterName", clusterName)
-
-	client, err := k8sclient.NewClientFromKubeConfig(k8sConfig)
-	if err != nil {
-		return errors.WrapIf(err, "failed to create k8s client")
-	}
-
-	logger.Info("getting nodelist")
-
+func (c K8sHealthChecker) Check(ctx context.Context, organizationID uint, clusterName string, client kubernetes.Interface) error {
 	nodeList, err := client.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return errors.WrapIf(err, "could not list nodes")
+	}
+
+	if len(nodeList.Items) == 0 {
+		return errors.New("nodelist is empty")
 	}
 
 	for _, node := range nodeList.Items {
@@ -54,6 +48,8 @@ func (c K8sHealthChecker) Check(ctx context.Context, organizationID uint, cluste
 			return errors.WrapIf(err, "not all nodes are Ready")
 		}
 	}
+
+	// TODO namespces to check system pods
 
 	return nil
 }
@@ -72,3 +68,8 @@ func checkNodeStatus(node corev1.Node) error {
 
 	return nil
 }
+
+// func checkSystemPods() error {
+
+// 	return nil
+// }

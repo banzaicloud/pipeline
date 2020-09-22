@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2029 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,16 @@
 
 package workflow
 
-type K8sConfigGetter interface {
-	Get(organizationID uint, k8sSecretID string) ([]byte, error)
+import (
+	"context"
+
+	"k8s.io/client-go/kubernetes"
+)
+
+// +testify:mock:testOnly=true
+
+// ClientFactory returns a Kubernetes client.
+type ClientFactory interface {
+	// FromSecret creates a Kubernetes client for a cluster from a secret.
+	FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error)
 }
