@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,8 +14,20 @@
 
 package workflow
 
-// +testify:mock:testOnly=true
+import (
+	"context"
 
-type K8sConfigGetter interface {
-	Get(organizationID uint, k8sSecretID string) ([]byte, error)
+	"go.uber.org/cadence/activity"
+)
+
+// nolint: gochecknoglobals
+var k8sHealthCheckActivityTestActivity = K8sHealthCheckActivity{}
+
+func testK8sHealthCheckActivityExecute(ctx context.Context, input K8sHealthCheckActivityInput) error {
+	return k8sHealthCheckActivityTestActivity.Execute(ctx, input)
+}
+
+// nolint: gochecknoinits
+func init() {
+	activity.RegisterWithOptions(testK8sHealthCheckActivityExecute, activity.RegisterOptions{Name: K8sHealthCheckActivityName})
 }
