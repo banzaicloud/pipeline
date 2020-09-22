@@ -859,7 +859,7 @@ func main() {
 									workflowClient,
 								),
 							)),
-							"pkeaws": clusteradapter.NewPKEService(pkeDistribution.NewService(
+							"pkeamazon": clusteradapter.NewPKEService(pkeDistribution.NewService(
 								clusterStore,
 								pkeawsadapter.NewNodePoolManager(
 									config.Pipeline.Enterprise,
