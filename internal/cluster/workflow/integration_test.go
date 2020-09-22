@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,16 @@
 
 package workflow
 
-type K8sConfigGetter interface {
-	Get(organizationID uint, k8sSecretID string) ([]byte, error)
+import (
+	"flag"
+	"regexp"
+	"testing"
+)
+
+func TestIntegration(t *testing.T) {
+	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
+		t.Skip("skipping as execution was not requested explicitly using go test -run")
+	}
+
+	t.Run("K8sHealthCheckActivity", testK8sHealthCheckActivity)
 }

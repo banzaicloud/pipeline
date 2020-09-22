@@ -15,10 +15,13 @@
 package kubernetes
 
 import (
+	"context"
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/fake"
 )
 
 func TestCheckNodeStatus(t *testing.T) {
@@ -93,6 +96,149 @@ func TestCheckNodeStatus(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := checkNodeStatus(tt.args.node); (err != nil) != tt.wantErr {
 				t.Errorf("checkNodeStatus() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestK8sHealthChecker(t *testing.T) {
+	typeMeta := metav1.TypeMeta{Kind: "Node", APIVersion: "v1"}
+
+	node1Ready := corev1.Node{
+		TypeMeta: typeMeta,
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "node1",
+		},
+		Status: corev1.NodeStatus{
+			Conditions: []corev1.NodeCondition{
+				{
+					Type:   corev1.NodeReady,
+					Status: corev1.ConditionTrue,
+				},
+			},
+		},
+	}
+
+	node2NotReady := corev1.Node{
+		TypeMeta: typeMeta,
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "node2",
+		},
+		Status: corev1.NodeStatus{
+			Conditions: []corev1.NodeCondition{
+				{
+					Type:   corev1.NodeReady,
+					Status: corev1.ConditionFalse,
+				},
+			},
+		},
+	}
+
+	node3Ready := corev1.Node{
+		TypeMeta: typeMeta,
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "node3",
+		},
+		Status: corev1.NodeStatus{
+			Conditions: []corev1.NodeCondition{
+				{
+					Type:   corev1.NodeReady,
+					Status: corev1.ConditionTrue,
+				},
+			},
+		},
+	}
+
+	clientNotReady := fake.NewSimpleClientset(
+		&corev1.NodeList{
+			Items: []corev1.Node{
+				node1Ready,
+				node2NotReady,
+				node3Ready,
+			},
+		},
+	)
+
+	clientReady := fake.NewSimpleClientset(
+		&corev1.NodeList{
+			Items: []corev1.Node{
+				node1Ready,
+				node3Ready,
+			},
+		},
+	)
+
+	clientEmptyNodeList := fake.NewSimpleClientset(
+		&corev1.NodeList{},
+	)
+
+	namespaces := []string{"kube-system"}
+	clustername := "test"
+	organizationid := uint(1)
+
+	type fields struct {
+		namespaces []string
+	}
+	type args struct {
+		ctx            context.Context
+		organizationID uint
+		clusterName    string
+		client         kubernetes.Interface
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "not all nodes are Ready",
+			fields: fields{
+				namespaces: namespaces,
+			},
+			args: args{
+				ctx:            context.Background(),
+				organizationID: organizationid,
+				clusterName:    clustername,
+				client:         clientNotReady,
+			},
+			wantErr: true,
+		},
+		{
+			name: "all nodes are Ready",
+			fields: fields{
+				namespaces: namespaces,
+			},
+			args: args{
+				ctx:            context.Background(),
+				organizationID: organizationid,
+				clusterName:    clustername,
+				client:         clientReady,
+			},
+			wantErr: false,
+		},
+		{
+			name: "empty nodelist",
+			fields: fields{
+				namespaces: namespaces,
+			},
+			args: args{
+				ctx:            context.Background(),
+				organizationID: organizationid,
+				clusterName:    clustername,
+				client:         clientEmptyNodeList,
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := K8sHealthChecker{
+				namespaces: tt.fields.namespaces,
+			}
+			if err := c.Check(tt.args.ctx, tt.args.organizationID, tt.args.clusterName, tt.args.client); (err != nil) != tt.wantErr {
+				t.Errorf("K8sHealthChecker.Check() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

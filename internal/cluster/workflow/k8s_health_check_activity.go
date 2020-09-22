@@ -17,8 +17,7 @@ package workflow
 import (
 	"context"
 
-	"emperror.dev/errors"
-	"github.com/sirupsen/logrus"
+	"k8s.io/client-go/kubernetes"
 )
 
 const K8sHealthCheckActivityName = "k8s-health-check"
@@ -30,28 +29,30 @@ type K8sHealthCheckActivityInput struct {
 }
 
 type K8sHealthCheckActivity struct {
-	checker         K8sHealthChecker
-	k8sConfigGetter K8sConfigGetter
-	logger          logrus.FieldLogger
+	checker       K8sHealthChecker
+	clientFactory ClientFactory
 }
 
 type K8sHealthChecker interface {
-	Check(ctx context.Context, organizationID uint, clusterName string, k8sConfig []byte) error
+	Check(ctx context.Context, organizationID uint, clusterName string, client kubernetes.Interface) error
 }
 
-func MakeK8sHealthCheckActivity(checker K8sHealthChecker, k8sConfigGetter K8sConfigGetter) K8sHealthCheckActivity {
+// MakeK8sHealthCheckActivity returns a new K8sHealthCheckActivity.
+func MakeK8sHealthCheckActivity(
+	checker K8sHealthChecker, clientFactory ClientFactory,
+) K8sHealthCheckActivity {
 	return K8sHealthCheckActivity{
-		checker:         checker,
-		k8sConfigGetter: k8sConfigGetter,
+		checker:       checker,
+		clientFactory: clientFactory,
 	}
 }
 
 func (a K8sHealthCheckActivity) Execute(ctx context.Context, input K8sHealthCheckActivityInput) error {
-	k8sConfig, err := a.k8sConfigGetter.Get(input.OrganizationID, input.K8sSecretID)
+	client, err := a.clientFactory.FromSecret(ctx, input.K8sSecretID)
 	if err != nil {
-		return errors.WrapIf(err, "failed to get k8s config")
+		return err
 	}
 
-	err = a.checker.Check(ctx, input.OrganizationID, input.ClusterName, k8sConfig)
+	err = a.checker.Check(ctx, input.OrganizationID, input.ClusterName, client)
 	return err
 }
