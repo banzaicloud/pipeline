@@ -30,8 +30,9 @@ type UpdateNodePoolWorkflowInput struct {
 	ClusterName     string
 	NodePoolName    string
 
-	NodeVolumeSize int
-	NodeImage      string
+	NodeImage string
+
+	Version string
 
 	Options pke.NodePoolUpdateOptions
 

@@ -67,6 +67,8 @@ type ClusterUpdate struct {
 type NodePoolUpdate struct {
 	Image string `mapstructure:"image"`
 
+	Version string `mapstructure:"version"`
+
 	Options NodePoolUpdateOptions `mapstructure:"options"`
 }
 

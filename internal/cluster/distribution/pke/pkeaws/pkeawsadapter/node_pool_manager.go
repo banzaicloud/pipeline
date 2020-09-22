@@ -76,6 +76,7 @@ func (n nodePoolManager) UpdateNodePool(
 		OrganizationID:  c.OrganizationID,
 
 		NodeImage: nodePoolUpdate.Image,
+		Version:   nodePoolUpdate.Version,
 
 		Options: pke.NodePoolUpdateOptions{
 			MaxSurge:       nodePoolUpdate.Options.MaxSurge,

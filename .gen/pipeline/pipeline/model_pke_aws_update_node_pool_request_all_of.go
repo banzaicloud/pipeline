@@ -10,13 +10,7 @@
 
 package pipeline
 
-type UpdateNodePoolRequest struct {
-
-	// Node pool size.
-	Size int32 `json:"size"`
-
-	// Node pool labels.
-	Labels map[string]string `json:"labels,omitempty"`
+type PkeAwsUpdateNodePoolRequestAllOf struct {
 
 	Autoscaling NodePoolAutoScaling `json:"autoscaling,omitempty"`
 
@@ -29,11 +23,11 @@ type UpdateNodePoolRequest struct {
 	// The instance AMI to use for your node pool.
 	Image string `json:"image,omitempty"`
 
+	// The Kubernetes version to use for your node pool.
+	Version string `json:"version,omitempty"`
+
 	// The upper limit price for the requested spot instance. If this field is empty or 0 on-demand instances are used instead of spot instances.
 	SpotPrice string `json:"spotPrice,omitempty"`
 
 	Options BaseUpdateNodePoolOptions `json:"options,omitempty"`
-
-	// The Kubernetes version to use for your node pool.
-	Version string `json:"version,omitempty"`
 }
