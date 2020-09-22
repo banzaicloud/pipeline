@@ -330,7 +330,7 @@ func (s service) checkClusterForNodePoolChange(cluster Cluster) error {
 
 func (s service) nodePoolSupported(cluster Cluster) error {
 	switch {
-	case cluster.Cloud == cloud.Amazon && (cluster.Distribution == "eks" || cluster.Distribution == "pke"):
+	case cluster.Cloud == cloud.Amazon && cluster.Distribution == "eks":
 		return nil
 	}
 
