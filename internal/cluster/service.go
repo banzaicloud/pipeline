@@ -366,7 +366,7 @@ func (s service) getDistributionService(cluster Cluster) (Service, error) {
 			Cloud:        cluster.Cloud,
 			Distribution: cluster.Distribution,
 
-			Message: "not supported distribution: " + key,
+			Message: "not supported distribution",
 		})
 	}
 

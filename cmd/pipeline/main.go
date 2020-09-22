@@ -866,6 +866,7 @@ func main() {
 									config.Cluster.Namespace,
 									workflowClient,
 								),
+								config.Pipeline.Enterprise,
 							)),
 						},
 						clusteradapter.NewNodePoolStore(db, clusterStore),
