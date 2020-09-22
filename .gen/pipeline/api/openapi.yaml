@@ -19076,8 +19076,26 @@ components:
       type: object
     ListNodePoolsResponse:
       items:
-        $ref: '#/components/schemas/NodePool'
+        $ref: '#/components/schemas/NodePoolSummary'
       type: array
+    NodePoolSummary:
+      allOf:
+      - $ref: '#/components/schemas/NodePool'
+      - $ref: '#/components/schemas/NodePoolStatusInformation'
+      description: A summary of information about the node pool.
+      type: object
+    NodePoolStatusInformation:
+      description: Current status and its reason of the node pool.
+      properties:
+        status:
+          description: Current status of the node pool.
+          example: ERROR
+          type: string
+        statusMessage:
+          description: Details and reasoning about the status value.
+          example: 'Creating node pool failed: the specified volume size is invalid.'
+          type: string
+      type: object
     BaseUpdateNodePoolRequest:
       description: Base node pool update request object for all cluster distributions.
       properties:
