@@ -18933,8 +18933,10 @@ components:
     CreateClusterRequestV2:
       allOf:
       - $ref: '#/components/schemas/CreateClusterRequestBase'
+      - $ref: '#/components/schemas/CreateClusterRequestBase'
     NodePool:
       oneOf:
+      - $ref: '#/components/schemas/EksNodePool'
       - $ref: '#/components/schemas/EksNodePool'
     GenericNodePool:
       description: Generic node pool object for all cluster distributions.
@@ -19062,6 +19064,7 @@ components:
       type: object
     UpdateNodePoolRequest:
       oneOf:
+      - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
       - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
     UpdateNodePoolResponse:
       example:
@@ -20674,6 +20677,7 @@ components:
             token_uri: string
             auth_provider_x509_cert_url: string
             client_x509_cert_url: string
+          type: object
       required:
       - name
       - type
@@ -21562,6 +21566,7 @@ components:
     PostHooks:
       oneOf:
       - $ref: '#/components/schemas/BasePostHook'
+      - $ref: '#/components/schemas/BasePostHook'
     ReRunPostHook:
       example:
         InstallIngressController: null
@@ -22029,6 +22034,7 @@ components:
       type: object
     UpdateClusterRequest:
       oneOf:
+      - $ref: '#/components/schemas/EksUpdateClusterRequest'
       - $ref: '#/components/schemas/EksUpdateClusterRequest'
     EksUpdateClusterRequest:
       properties:
