@@ -27,19 +27,3 @@ type ClientFactory interface {
 	// FromSecret creates a Kubernetes client for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (kubernetes.Interface, error)
 }
-
-// NewSimpleClientFactory returns a new ClientFactory that always returns the same clientset.
-// It is mostly useful in simple unit tests.
-func NewSimpleClientFactory(clientset kubernetes.Interface) ClientFactory {
-	return simpleClientFactory{
-		clientset: clientset,
-	}
-}
-
-type simpleClientFactory struct {
-	clientset kubernetes.Interface
-}
-
-func (f simpleClientFactory) FromSecret(_ context.Context, _ string) (kubernetes.Interface, error) {
-	return f.clientset, nil
-}

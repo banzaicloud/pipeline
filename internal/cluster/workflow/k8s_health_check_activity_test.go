@@ -19,18 +19,15 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/testing_frameworks/integration"
 
-	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
@@ -92,55 +89,18 @@ func (s *K8sHealthCheckActivityTestSuite) SetupTest() {
 }
 
 func (s *K8sHealthCheckActivityTestSuite) Test_Execute() {
-	typeMeta := metav1.TypeMeta{Kind: "Node", APIVersion: "v1"}
+	clientFactory := new(MockClientFactory)
+	clientFactory.On("FromSecret", mock.Anything, "secret").Return(s.client, nil)
 
-	node1Ready := corev1.Node{
-		TypeMeta: typeMeta,
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "node1",
-		},
-		Status: corev1.NodeStatus{
-			Conditions: []corev1.NodeCondition{
-				{
-					Type:   corev1.NodeReady,
-					Status: corev1.ConditionTrue,
-				},
-			},
-		},
-	}
+	k8sHealthChecker := new(MockK8sHealthChecker)
+	k8sHealthChecker.On("Check", mock.Anything, mock.Anything).Return(nil)
 
-	node2Ready := corev1.Node{
-		TypeMeta: typeMeta,
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "node2",
-		},
-		Status: corev1.NodeStatus{
-			Conditions: []corev1.NodeCondition{
-				{
-					Type:   corev1.NodeReady,
-					Status: corev1.ConditionTrue,
-				},
-			},
-		},
-	}
-
-	clientFactory := NewSimpleClientFactory(fake.NewSimpleClientset(
-		&corev1.NodeList{
-			Items: []corev1.Node{
-				node1Ready,
-				node2Ready,
-			},
-		},
-	))
-
-	k8sHealthCheckTestActivity = MakeK8sHealthCheckActivity(intClusterK8s.MakeK8sHealthChecker([]string{"kube-system"}), clientFactory)
+	k8sHealthCheckTestActivity = MakeK8sHealthCheckActivity(k8sHealthChecker, clientFactory)
 
 	_, err := s.env.ExecuteActivity(
 		K8sHealthCheckActivityName,
 		K8sHealthCheckActivityInput{
-			OrganizationID: 1,
-			ClusterName:    "test",
-			K8sSecretID:    "secret",
+			K8sSecretID: "secret",
 		},
 	)
 
