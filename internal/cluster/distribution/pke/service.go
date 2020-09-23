@@ -22,18 +22,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
-type sentinel string
-
-func (e sentinel) Error() string {
-	return string(e)
-}
-
-func (e sentinel) ServiceError() bool {
-	return true
-}
-
-const notPipelineEnterpriseError = sentinel("pke nodepool update is supported only in Pipeline Enterprise")
-
 // +testify:mock
 
 // Service provides an interface to PKE AWS clusters.
@@ -176,10 +164,6 @@ func (s service) UpdateNodePool(
 	nodePoolName string,
 	nodePoolUpdate NodePoolUpdate,
 ) (string, error) {
-	if !s.enterprise {
-		return "", notPipelineEnterpriseError
-	}
-
 	c, err := s.genericClusters.GetCluster(ctx, clusterID)
 	if err != nil {
 		return "", err
