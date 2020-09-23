@@ -6,7 +6,7 @@ importpath = github.com/banzaicloud/pipeline
 
 [buildconfig]
 golangci-lint-version = 1.30.0
-openapi-generator-version = v4.2.3
+openapi-generator-version = v4.3.1
 gotestsum-version = 0.4.1
 mga-version = 0.4.2
 licensei-version = 0.2.0
