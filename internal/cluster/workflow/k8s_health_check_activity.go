@@ -23,9 +23,7 @@ import (
 const K8sHealthCheckActivityName = "k8s-health-check"
 
 type K8sHealthCheckActivityInput struct {
-	OrganizationID uint
-	ClusterName    string
-	K8sSecretID    string
+	K8sSecretID string
 }
 
 type K8sHealthCheckActivity struct {
@@ -33,8 +31,11 @@ type K8sHealthCheckActivity struct {
 	clientFactory ClientFactory
 }
 
+// +testify:mock:testOnly=true
+
+// K8sHealthChecker returns the result of the healthcheck
 type K8sHealthChecker interface {
-	Check(ctx context.Context, organizationID uint, clusterName string, client kubernetes.Interface) error
+	Check(ctx context.Context, client kubernetes.Interface) error
 }
 
 // MakeK8sHealthCheckActivity returns a new K8sHealthCheckActivity.
@@ -53,6 +54,6 @@ func (a K8sHealthCheckActivity) Execute(ctx context.Context, input K8sHealthChec
 		return err
 	}
 
-	err = a.checker.Check(ctx, input.OrganizationID, input.ClusterName, client)
+	err = a.checker.Check(ctx, client)
 	return err
 }
