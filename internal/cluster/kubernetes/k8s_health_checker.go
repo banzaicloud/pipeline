@@ -23,43 +23,89 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-type K8sHealthChecker struct {
+type HealthChecker struct {
 	namespaces []string
 }
 
-func MakeK8sHealthChecker(namespaces []string) K8sHealthChecker {
-	return K8sHealthChecker{
+func MakeHealthChecker(namespaces []string) HealthChecker {
+	return HealthChecker{
 		namespaces: namespaces,
 	}
 }
 
-func (c K8sHealthChecker) Check(ctx context.Context, organizationID uint, clusterName string, client kubernetes.Interface) error {
+func (c HealthChecker) Check(ctx context.Context, client kubernetes.Interface) error {
+	// TODO pagination
 	nodeList, err := client.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return errors.WrapIf(err, "could not list nodes")
 	}
 
-	if len(nodeList.Items) == 0 {
+	if len(nodeList.Items) < 1 {
 		return errors.New("nodelist is empty")
 	}
 
 	for _, node := range nodeList.Items {
 		if err := checkNodeStatus(node); err != nil {
-			return errors.WrapIf(err, "not all nodes are Ready")
+			return err
 		}
 	}
 
 	// TODO namespces to check system pods
+	for _, namespace := range c.namespaces {
+		// TODO pagination
+		podList, err := client.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{})
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "could not list pods", map[string]interface{}{
+				"namespace": namespace,
+			})
+		}
+		if err := checkSystemPods(podList); err != nil {
+			return errors.WrapIfWithDetails(err, "not all pods are ready", map[string]interface{}{
+				"namespace": namespace,
+			})
+		}
+	}
 
 	return nil
 }
 
 func checkNodeStatus(node corev1.Node) error {
 	for _, condition := range node.Status.Conditions {
-		if condition.Type == corev1.NodeReady {
+		if condition.Type != corev1.NodeReady {
+			continue
+		}
+		if condition.Status != corev1.ConditionTrue {
+			return errors.NewWithDetails("node is not Ready", map[string]interface{}{
+				"node":      node.Name,
+				"condition": condition.Status,
+			})
+		}
+	}
+
+	return nil
+}
+
+func checkSystemPods(podList *corev1.PodList) error {
+	if len(podList.Items) < 1 {
+		return errors.New("podlist is empty")
+	}
+
+	// TODO check system pods are exist, check status of daemonsets?
+
+	for _, pod := range podList.Items {
+		if pod.Status.Phase != corev1.PodRunning {
+			return errors.NewWithDetails("pod is not Running", map[string]interface{}{
+				"pod":   pod.Name,
+				"phase": pod.Status.Phase,
+			})
+		}
+		for _, condition := range pod.Status.Conditions {
+			if condition.Type != corev1.PodReady {
+				continue
+			}
 			if condition.Status != corev1.ConditionTrue {
-				return errors.NewWithDetails("node is not Ready", map[string]interface{}{
-					"node":      node.Name,
+				return errors.NewWithDetails("pod is not Ready", map[string]interface{}{
+					"pod":       pod.Name,
 					"condition": condition.Status,
 				})
 			}
@@ -68,8 +114,3 @@ func checkNodeStatus(node corev1.Node) error {
 
 	return nil
 }
-
-// func checkSystemPods() error {
-
-// 	return nil
-// }

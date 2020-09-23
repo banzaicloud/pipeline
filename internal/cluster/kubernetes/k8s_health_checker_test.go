@@ -46,6 +46,10 @@ func TestCheckNodeStatus(t *testing.T) {
 								Type:   corev1.NodeReady,
 								Status: corev1.ConditionTrue,
 							},
+							{
+								Type:   corev1.NodeMemoryPressure,
+								Status: corev1.ConditionFalse,
+							},
 						},
 					},
 				},
@@ -101,11 +105,14 @@ func TestCheckNodeStatus(t *testing.T) {
 	}
 }
 
-func TestK8sHealthChecker(t *testing.T) {
-	typeMeta := metav1.TypeMeta{Kind: "Node", APIVersion: "v1"}
+func TestHealthChecker(t *testing.T) {
+	typeMetaNode := metav1.TypeMeta{Kind: "Node", APIVersion: "v1"}
+	typeMetaPod := metav1.TypeMeta{Kind: "Pod", APIVersion: "v1"}
+
+	namespaces := []string{"kube-system"}
 
 	node1Ready := corev1.Node{
-		TypeMeta: typeMeta,
+		TypeMeta: typeMetaNode,
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "node1",
 		},
@@ -120,7 +127,7 @@ func TestK8sHealthChecker(t *testing.T) {
 	}
 
 	node2NotReady := corev1.Node{
-		TypeMeta: typeMeta,
+		TypeMeta: typeMetaNode,
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "node2",
 		},
@@ -135,7 +142,7 @@ func TestK8sHealthChecker(t *testing.T) {
 	}
 
 	node3Ready := corev1.Node{
-		TypeMeta: typeMeta,
+		TypeMeta: typeMetaNode,
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "node3",
 		},
@@ -149,12 +156,60 @@ func TestK8sHealthChecker(t *testing.T) {
 		},
 	}
 
-	clientNotReady := fake.NewSimpleClientset(
+	pod1Ready := corev1.Pod{
+		TypeMeta: typeMetaPod,
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "pod1",
+			Namespace: namespaces[0],
+		},
+		Status: corev1.PodStatus{
+			Conditions: []corev1.PodCondition{
+				{
+					Type:   corev1.PodReady,
+					Status: corev1.ConditionTrue,
+				},
+			},
+			Phase: corev1.PodRunning,
+		},
+	}
+
+	pod2NotReady := corev1.Pod{
+		TypeMeta: typeMetaPod,
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "pod2",
+			Namespace: namespaces[0],
+		},
+		Status: corev1.PodStatus{
+			Conditions: []corev1.PodCondition{
+				{
+					Type:   corev1.PodReady,
+					Status: corev1.ConditionFalse,
+				},
+			},
+			Phase: corev1.PodRunning,
+		},
+	}
+
+	pod3NotRunning := corev1.Pod{
+		TypeMeta: typeMetaPod,
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "pod2",
+			Namespace: namespaces[0],
+		},
+		Status: corev1.PodStatus{},
+	}
+
+	clientNodeNotReady := fake.NewSimpleClientset(
 		&corev1.NodeList{
 			Items: []corev1.Node{
 				node1Ready,
 				node2NotReady,
 				node3Ready,
+			},
+		},
+		&corev1.PodList{
+			Items: []corev1.Pod{
+				pod1Ready,
 			},
 		},
 	)
@@ -166,24 +221,61 @@ func TestK8sHealthChecker(t *testing.T) {
 				node3Ready,
 			},
 		},
+		&corev1.PodList{
+			Items: []corev1.Pod{
+				pod1Ready,
+			},
+		},
+	)
+
+	clientPodNotReady := fake.NewSimpleClientset(
+		&corev1.NodeList{
+			Items: []corev1.Node{
+				node1Ready,
+				node3Ready,
+			},
+		},
+		&corev1.PodList{
+			Items: []corev1.Pod{
+				pod2NotReady,
+			},
+		},
+	)
+
+	clientPodNotRunning := fake.NewSimpleClientset(
+		&corev1.NodeList{
+			Items: []corev1.Node{
+				node1Ready,
+				node3Ready,
+			},
+		},
+		&corev1.PodList{
+			Items: []corev1.Pod{
+				pod3NotRunning,
+			},
+		},
 	)
 
 	clientEmptyNodeList := fake.NewSimpleClientset(
 		&corev1.NodeList{},
 	)
 
-	namespaces := []string{"kube-system"}
-	clustername := "test"
-	organizationid := uint(1)
+	clientEmptyPodList := fake.NewSimpleClientset(
+		&corev1.NodeList{
+			Items: []corev1.Node{
+				node1Ready,
+				node3Ready,
+			},
+		},
+		&corev1.PodList{},
+	)
 
 	type fields struct {
 		namespaces []string
 	}
 	type args struct {
-		ctx            context.Context
-		organizationID uint
-		clusterName    string
-		client         kubernetes.Interface
+		ctx    context.Context
+		client kubernetes.Interface
 	}
 	tests := []struct {
 		name    string
@@ -197,25 +289,43 @@ func TestK8sHealthChecker(t *testing.T) {
 				namespaces: namespaces,
 			},
 			args: args{
-				ctx:            context.Background(),
-				organizationID: organizationid,
-				clusterName:    clustername,
-				client:         clientNotReady,
+				ctx:    context.Background(),
+				client: clientNodeNotReady,
 			},
 			wantErr: true,
 		},
 		{
-			name: "all nodes are Ready",
+			name: "all nodes and pods are Ready",
 			fields: fields{
 				namespaces: namespaces,
 			},
 			args: args{
-				ctx:            context.Background(),
-				organizationID: organizationid,
-				clusterName:    clustername,
-				client:         clientReady,
+				ctx:    context.Background(),
+				client: clientReady,
 			},
 			wantErr: false,
+		},
+		{
+			name: "not all pods are Ready",
+			fields: fields{
+				namespaces: namespaces,
+			},
+			args: args{
+				ctx:    context.Background(),
+				client: clientPodNotReady,
+			},
+			wantErr: true,
+		},
+		{
+			name: "not all pods are Running",
+			fields: fields{
+				namespaces: namespaces,
+			},
+			args: args{
+				ctx:    context.Background(),
+				client: clientPodNotRunning,
+			},
+			wantErr: true,
 		},
 		{
 			name: "empty nodelist",
@@ -223,10 +333,19 @@ func TestK8sHealthChecker(t *testing.T) {
 				namespaces: namespaces,
 			},
 			args: args{
-				ctx:            context.Background(),
-				organizationID: organizationid,
-				clusterName:    clustername,
-				client:         clientEmptyNodeList,
+				ctx:    context.Background(),
+				client: clientEmptyNodeList,
+			},
+			wantErr: true,
+		},
+		{
+			name: "empty podlist",
+			fields: fields{
+				namespaces: namespaces,
+			},
+			args: args{
+				ctx:    context.Background(),
+				client: clientEmptyPodList,
 			},
 			wantErr: true,
 		},
@@ -234,10 +353,10 @@ func TestK8sHealthChecker(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := K8sHealthChecker{
+			c := HealthChecker{
 				namespaces: tt.fields.namespaces,
 			}
-			if err := c.Check(tt.args.ctx, tt.args.organizationID, tt.args.clusterName, tt.args.client); (err != nil) != tt.wantErr {
+			if err := c.Check(tt.args.ctx, tt.args.client); (err != nil) != tt.wantErr {
 				t.Errorf("K8sHealthChecker.Check() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
