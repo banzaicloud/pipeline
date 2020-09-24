@@ -25,5 +25,5 @@ func TestIntegration(t *testing.T) {
 		t.Skip("skipping as execution was not requested explicitly using go test -run")
 	}
 
-	t.Run("K8sHealthCheckActivity", testK8sHealthCheckActivity)
+	t.Run("K8sHealthCheckActivity", testHealthCheckActivity)
 }

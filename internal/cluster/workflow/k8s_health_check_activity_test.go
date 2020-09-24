@@ -32,18 +32,18 @@ import (
 )
 
 // nolint: gochecknoglobals
-var k8sHealthCheckTestActivity = K8sHealthCheckActivity{}
+var healthCheckTestActivity = HealthCheckActivity{}
 
-func testK8sHealthCheckActivityExecute(ctx context.Context, input K8sHealthCheckActivityInput) error {
-	return k8sHealthCheckTestActivity.Execute(ctx, input)
+func testHealthCheckActivityExecute(ctx context.Context, input HealthCheckActivityInput) error {
+	return healthCheckTestActivity.Execute(ctx, input)
 }
 
 // nolint: gochecknoinits
 func init() {
-	activity.RegisterWithOptions(testK8sHealthCheckActivityExecute, activity.RegisterOptions{Name: K8sHealthCheckActivityName})
+	activity.RegisterWithOptions(testHealthCheckActivityExecute, activity.RegisterOptions{Name: HealthCheckActivityName})
 }
 
-type K8sHealthCheckActivityTestSuite struct {
+type HealthCheckActivityTestSuite struct {
 	suite.Suite
 	testsuite.WorkflowTestSuite
 
@@ -54,26 +54,26 @@ type K8sHealthCheckActivityTestSuite struct {
 	client kubernetes.Interface
 }
 
-func testK8sHealthCheckActivity(t *testing.T) {
+func testHealthCheckActivity(t *testing.T) {
 	if os.Getenv("TEST_ASSET_KUBE_APISERVER") == "" || os.Getenv("TEST_ASSET_ETCD") == "" {
 		t.Skip("control plane binaries are missing")
 	}
 
-	suite.Run(t, new(K8sHealthCheckActivityTestSuite))
+	suite.Run(t, new(HealthCheckActivityTestSuite))
 }
 
-func (s *K8sHealthCheckActivityTestSuite) SetupSuite() {
+func (s *HealthCheckActivityTestSuite) SetupSuite() {
 	s.controlPlane = &integration.ControlPlane{}
 
 	err := s.controlPlane.Start()
 	s.Require().NoError(err)
 }
 
-func (s *K8sHealthCheckActivityTestSuite) TearDownSuite() {
+func (s *HealthCheckActivityTestSuite) TearDownSuite() {
 	_ = s.controlPlane.Stop()
 }
 
-func (s *K8sHealthCheckActivityTestSuite) SetupTest() {
+func (s *HealthCheckActivityTestSuite) SetupTest() {
 	s.env = s.NewTestActivityEnvironment()
 
 	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
@@ -88,18 +88,18 @@ func (s *K8sHealthCheckActivityTestSuite) SetupTest() {
 	s.client = client
 }
 
-func (s *K8sHealthCheckActivityTestSuite) Test_Execute() {
+func (s *HealthCheckActivityTestSuite) Test_Execute() {
 	clientFactory := new(MockClientFactory)
 	clientFactory.On("FromSecret", mock.Anything, "secret").Return(s.client, nil)
 
-	k8sHealthChecker := new(MockK8sHealthChecker)
-	k8sHealthChecker.On("Check", mock.Anything, mock.Anything).Return(nil)
+	healthChecker := new(MockHealthChecker)
+	healthChecker.On("Check", mock.Anything, mock.Anything).Return(nil)
 
-	k8sHealthCheckTestActivity = MakeK8sHealthCheckActivity(k8sHealthChecker, clientFactory)
+	healthCheckTestActivity = MakeHealthCheckActivity(healthChecker, clientFactory)
 
 	_, err := s.env.ExecuteActivity(
-		K8sHealthCheckActivityName,
-		K8sHealthCheckActivityInput{
+		HealthCheckActivityName,
+		HealthCheckActivityInput{
 			SecretID: "brn:1:secret:secret",
 		},
 	)
