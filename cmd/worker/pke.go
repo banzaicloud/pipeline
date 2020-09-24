@@ -15,17 +15,33 @@
 package main
 
 import (
+	"emperror.dev/errors"
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/cloudformation"
+	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
 	pkeworkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
 )
 
-func registerPKEWorkflows(passwordSecrets pkeworkflow.PasswordSecretStore) {
+const PKECloudFormationTemplateBasePath = "templates/pke"
+const WorkerCloudFormationTemplate = "worker.cf.yaml"
+
+func registerPKEWorkflows(passwordSecrets pkeworkflow.PasswordSecretStore, secretStore eksworkflow.SecretStore) error {
+	awsSessionFactory := eksworkflow.NewAWSSessionFactory(secretStore)
+
+	nodePoolTemplate, err := cloudformation.GetCloudFormationTemplate(PKECloudFormationTemplateBasePath, WorkerCloudFormationTemplate)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get CloudFormation template for node pools")
+	}
+
 	{
 		a := pkeworkflow.NewAssembleHTTPProxySettingsActivity(passwordSecrets)
 		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: pkeworkflow.AssembleHTTPProxySettingsActivityName})
 	}
 
 	pkeawsworkflow.NewUpdateNodePoolWorkflow().Register()
+	pkeawsworkflow.NewUpdateNodeGroupActivity(awsSessionFactory, nodePoolTemplate).Register()
+
+	return nil
 }

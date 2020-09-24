@@ -17,10 +17,53 @@ package pkeawsworkflow
 import (
 	"time"
 
+	"emperror.dev/errors"
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
+
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
+	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
+	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
+
+// AWSSessionFactory creates an AWS session.
+type AWSSessionFactory interface {
+	// NewSession creates an AWS session.
+	NewSession(secretID string, region string) (*session.Session, error)
+}
+
+// getStackTags returns the tags that are placed onto CF template stacks.
+// These tags  are propagated onto the resources created by the CF template.
+func getStackTags(clusterName, stackType string, clusterTags map[string]string) []*cloudformation.Tag {
+	tags := make([]*cloudformation.Tag, 0)
+
+	for k, v := range clusterTags {
+		tags = append(tags, &cloudformation.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		})
+	}
+	tags = append(tags, []*cloudformation.Tag{
+		{Key: aws.String("banzaicloud-pipeline-cluster-name"), Value: aws.String(clusterName)},
+		{Key: aws.String("banzaicloud-pipeline-stack-type"), Value: aws.String(stackType)},
+	}...)
+	tags = append(tags, internalAmazon.PipelineTags()...)
+	return tags
+}
+
+func getNodePoolStackTags(clusterName string, clusterTags map[string]string) []*cloudformation.Tag {
+	return getStackTags(clusterName, "nodepool", clusterTags)
+}
+
+// ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure
+// TODO: this is temporary
+const ErrReasonStackFailed = "CLOUDFORMATION_STACK_FAILED"
 
 // TODO: this is temporary
 func setClusterStatus(ctx workflow.Context, clusterID uint, status, statusMessage string) error {
@@ -35,4 +78,20 @@ func setClusterStatus(ctx workflow.Context, clusterID uint, status, statusMessag
 		Status:        status,
 		StatusMessage: statusMessage,
 	}).Get(ctx, nil)
+}
+
+// TODO: this is temporary
+func packageCFError(err error, stackName string, clientRequestToken string, cloudformationClient *cloudformation.CloudFormation, errMessage string) error {
+	var awsErr awserr.Error
+	if errors.As(err, &awsErr) {
+		if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
+			err = pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cloudformationClient)
+			err = errors.WrapIfWithDetails(err, errMessage, "stackName", stackName)
+			if pkgCloudformation.IsErrorFinal(err) {
+				return cadence.NewCustomError(ErrReasonStackFailed, err.Error())
+			}
+			return err
+		}
+	}
+	return err
 }
