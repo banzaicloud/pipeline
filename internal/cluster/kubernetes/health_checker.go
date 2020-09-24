@@ -27,8 +27,8 @@ import (
 )
 
 const (
-	backoffDelaySeconds = 5
-	backoffMaxretries   = 10
+	backoffDelay      = time.Duration(5) * time.Second
+	backoffMaxRetries = 10
 )
 
 // HealthChecker implements Check
@@ -123,8 +123,8 @@ func checkPodStatus(podList *corev1.PodList) error {
 
 func listNodes(ctx context.Context, client kubernetes.Interface) (*corev1.NodeList, error) {
 	backoffConfig := backoff.ConstantBackoffConfig{
-		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
-		MaxRetries: backoffMaxretries,
+		Delay:      backoffDelay,
+		MaxRetries: backoffMaxRetries,
 	}
 	backoffPolicy := backoff.NewConstantBackoffPolicy(backoffConfig)
 	var nodeList *corev1.NodeList
@@ -142,8 +142,8 @@ func listNodes(ctx context.Context, client kubernetes.Interface) (*corev1.NodeLi
 
 func listSystemPods(ctx context.Context, client kubernetes.Interface, namespace string) (*corev1.PodList, error) {
 	backoffConfig := backoff.ConstantBackoffConfig{
-		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
-		MaxRetries: backoffMaxretries,
+		Delay:      backoffDelay,
+		MaxRetries: backoffMaxRetries,
 	}
 	backoffPolicy := backoff.NewConstantBackoffPolicy(backoffConfig)
 	var podList *corev1.PodList
