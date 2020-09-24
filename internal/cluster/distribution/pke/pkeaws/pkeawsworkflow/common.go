@@ -17,19 +17,13 @@ package pkeawsworkflow
 import (
 	"time"
 
-	"emperror.dev/errors"
-	"go.uber.org/cadence"
-	"go.uber.org/cadence/workflow"
-
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
-	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
 // AWSSessionFactory creates an AWS session.
@@ -78,20 +72,4 @@ func setClusterStatus(ctx workflow.Context, clusterID uint, status, statusMessag
 		Status:        status,
 		StatusMessage: statusMessage,
 	}).Get(ctx, nil)
-}
-
-// TODO: this is temporary
-func packageCFError(err error, stackName string, clientRequestToken string, cloudformationClient *cloudformation.CloudFormation, errMessage string) error {
-	var awsErr awserr.Error
-	if errors.As(err, &awsErr) {
-		if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
-			err = pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cloudformationClient)
-			err = errors.WrapIfWithDetails(err, errMessage, "stackName", stackName)
-			if pkgCloudformation.IsErrorFinal(err) {
-				return cadence.NewCustomError(ErrReasonStackFailed, err.Error())
-			}
-			return err
-		}
-	}
-	return err
 }
