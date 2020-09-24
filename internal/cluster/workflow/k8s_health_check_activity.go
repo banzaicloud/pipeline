@@ -20,35 +20,35 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-const K8sHealthCheckActivityName = "k8s-health-check"
+const HealthCheckActivityName = "k8s-health-check"
 
-type K8sHealthCheckActivityInput struct {
+type HealthCheckActivityInput struct {
 	SecretID string
 }
 
-type K8sHealthCheckActivity struct {
-	checker       K8sHealthChecker
+type HealthCheckActivity struct {
+	checker       HealthChecker
 	clientFactory ClientFactory
 }
 
 // +testify:mock:testOnly=true
 
-// K8sHealthChecker returns the result of the healthcheck
-type K8sHealthChecker interface {
+// HealthChecker returns the result of the healthcheck
+type HealthChecker interface {
 	Check(ctx context.Context, client kubernetes.Interface) error
 }
 
-// MakeK8sHealthCheckActivity returns a new K8sHealthCheckActivity.
-func MakeK8sHealthCheckActivity(
-	checker K8sHealthChecker, clientFactory ClientFactory,
-) K8sHealthCheckActivity {
-	return K8sHealthCheckActivity{
+// MakeHealthCheckActivity returns a new HealthCheckActivity.
+func MakeHealthCheckActivity(
+	checker HealthChecker, clientFactory ClientFactory,
+) HealthCheckActivity {
+	return HealthCheckActivity{
 		checker:       checker,
 		clientFactory: clientFactory,
 	}
 }
 
-func (a K8sHealthCheckActivity) Execute(ctx context.Context, input K8sHealthCheckActivityInput) error {
+func (a HealthCheckActivity) Execute(ctx context.Context, input HealthCheckActivityInput) error {
 	client, err := a.clientFactory.FromSecret(ctx, input.SecretID)
 	if err != nil {
 		return err

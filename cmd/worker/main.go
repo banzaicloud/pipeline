@@ -529,11 +529,11 @@ func main() {
 
 		systemNamespaces := []string{"kube-system"}
 
-		k8sHealthCheckActivity := intClusterWorkflow.MakeK8sHealthCheckActivity(
+		healthCheckActivity := intClusterWorkflow.MakeHealthCheckActivity(
 			intClusterK8s.MakeHealthChecker(systemNamespaces),
 			kubernetes.NewClientFactory(configFactory),
 		)
-		activity.RegisterWithOptions(k8sHealthCheckActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.K8sHealthCheckActivityName})
+		activity.RegisterWithOptions(healthCheckActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.HealthCheckActivityName})
 
 		k8sConfigGetter := kubesecret.MakeKubeSecretStore(secret.Store)
 
