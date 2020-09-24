@@ -1,24 +1,7 @@
 github_repo(
     name = "pleasings2",
     repo = "sagikazarmark/mypleasings",
-    revision = "93eb8ce8d3929be926e68953debd5d7efbda46f6",
-)
-
-genrule(
-    name = "go.mod",
-    srcs = ["go.mod"],
-    outs = ["go.mod"],
-    cmd = [
-        """export GO=$(cat "$SRC" | grep '^go .*$') && cat > $OUT << EOF
-module plz-out
-
-$GO
-EOF
-      """,
-    ],
-    labels = [
-        "link:plz-out/",
-    ],
+    revision = "e4fd643c798334dd577fc8bf28d599843bb94fc1",
 )
 
 genrule(
