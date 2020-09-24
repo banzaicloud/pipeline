@@ -79,6 +79,9 @@ func registerAwsWorkflows(
 	createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters, tokenGenerator)
 	activity.RegisterWithOptions(createWorkerPoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateWorkerPoolActivityName})
 
+	updateNodePoolActivity := pkeworkflow.NewUpdateNodeGroupActivity(awsClientFactory)
+	activity.RegisterWithOptions(updateNodePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateNodeGroupActivityName})
+
 	deletePoolActivity := pkeworkflow.NewDeletePoolActivity(clusters)
 	activity.RegisterWithOptions(deletePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeletePoolActivityName})
 

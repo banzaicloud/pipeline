@@ -17,47 +17,10 @@ package pkeawsworkflow
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
-	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 )
-
-// AWSSessionFactory creates an AWS session.
-type AWSSessionFactory interface {
-	// NewSession creates an AWS session.
-	NewSession(secretID string, region string) (*session.Session, error)
-}
-
-// getStackTags returns the tags that are placed onto CF template stacks.
-// These tags  are propagated onto the resources created by the CF template.
-func getStackTags(clusterName, stackType string, clusterTags map[string]string) []*cloudformation.Tag {
-	tags := make([]*cloudformation.Tag, 0)
-
-	for k, v := range clusterTags {
-		tags = append(tags, &cloudformation.Tag{
-			Key:   aws.String(k),
-			Value: aws.String(v),
-		})
-	}
-	tags = append(tags, []*cloudformation.Tag{
-		{Key: aws.String("banzaicloud-pipeline-cluster-name"), Value: aws.String(clusterName)},
-		{Key: aws.String("banzaicloud-pipeline-stack-type"), Value: aws.String(stackType)},
-	}...)
-	tags = append(tags, internalAmazon.PipelineTags()...)
-	return tags
-}
-
-func getNodePoolStackTags(clusterName string, clusterTags map[string]string) []*cloudformation.Tag {
-	return getStackTags(clusterName, "nodepool", clusterTags)
-}
-
-// ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure
-// TODO: this is temporary
-const ErrReasonStackFailed = "CLOUDFORMATION_STACK_FAILED"
 
 // TODO: this is temporary
 func setClusterStatus(ctx workflow.Context, clusterID uint, status, statusMessage string) error {

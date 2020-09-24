@@ -24,7 +24,6 @@ import (
 
 	cloudformation2 "github.com/banzaicloud/pipeline/internal/cloudformation"
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
-	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 )
 
 const CreateSubnetActivityName = "pke-create-subnet"
@@ -158,15 +157,4 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 	}
 
 	return nil, nil
-}
-
-func getSubnetStackTags(clusterName string) []*cloudformation.Tag {
-	return getStackTags(clusterName, "subnet")
-}
-
-func getStackTags(clusterName, stackType string) []*cloudformation.Tag {
-	return append([]*cloudformation.Tag{
-		{Key: aws.String("banzaicloud-pipeline-cluster-name"), Value: aws.String(clusterName)},
-		{Key: aws.String("banzaicloud-pipeline-stack-type"), Value: aws.String(stackType)},
-	}, internalAmazon.PipelineTags()...)
 }

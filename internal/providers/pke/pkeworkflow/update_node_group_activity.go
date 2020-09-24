@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkeawsworkflow
+package pkeworkflow
 
 import (
 	"context"
@@ -27,6 +27,7 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 
+	cloudformation2 "github.com/banzaicloud/pipeline/internal/cloudformation"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	pkgCloudFormation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
@@ -39,16 +40,15 @@ const UpdateNodeGroupActivityName = "pkeaws-update-node-group"
 
 // UpdateNodeGroupActivity updates an existing node group.
 type UpdateNodeGroupActivity struct {
-	sessionFactory AWSSessionFactory
-
-	// body of the cloud formation template
-	cloudFormationTemplate string
+	sessionFactory AWSFactory
 }
 
 // UpdateNodeGroupActivityInput holds the parameters for the node group update.
 type UpdateNodeGroupActivityInput struct {
 	SecretID string
 	Region   string
+
+	OrganizationID uint
 
 	ClusterName string
 
@@ -72,10 +72,9 @@ type UpdateNodeGroupActivityOutput struct {
 }
 
 // NewUpdateNodeGroupActivity creates a new UpdateNodeGroupActivity instance.
-func NewUpdateNodeGroupActivity(sessionFactory AWSSessionFactory, cloudFormationTemplate string) UpdateNodeGroupActivity {
+func NewUpdateNodeGroupActivity(sessionFactory AWSFactory) UpdateNodeGroupActivity {
 	return UpdateNodeGroupActivity{
-		sessionFactory:         sessionFactory,
-		cloudFormationTemplate: cloudFormationTemplate,
+		sessionFactory: sessionFactory,
 	}
 }
 
@@ -86,9 +85,14 @@ func (a UpdateNodeGroupActivity) Register() {
 
 // Execute is the main body of the activity, returns true if there was any update and that was successful.
 func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGroupActivityInput) (UpdateNodeGroupActivityOutput, error) {
-	sess, err := a.sessionFactory.NewSession(input.SecretID, input.Region)
+	sess, err := a.sessionFactory.New(input.OrganizationID, input.SecretID, input.Region)
 	if err = errors.WrapIf(err, "failed to create AWS session"); err != nil { // internal error?
 		return UpdateNodeGroupActivityOutput{}, err
+	}
+
+	template, err := cloudformation2.GetCloudFormationTemplate(PKECloudFormationTemplateBasePath, WorkerCloudFormationTemplate)
+	if err != nil {
+		return UpdateNodeGroupActivityOutput{}, errors.WrapIf(err, "loading CF template")
 	}
 
 	cloudformationClient := cloudformation.New(sess)
@@ -181,6 +185,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		{
 			ParameterKey:     aws.String("PkeCommand"),
 			UsePreviousValue: aws.Bool(true),
+			// '--kubernetes-node-labels %v'", strings.Join(nodeLabels, ",")
 		},
 		{
 			ParameterKey:     aws.String("PkeVersion"),
@@ -195,7 +200,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
 		Parameters:         stackParams,
 		Tags:               getNodePoolStackTags(input.ClusterName, input.ClusterTags),
-		TemplateBody:       aws.String(a.cloudFormationTemplate),
+		TemplateBody:       aws.String(template),
 	}
 
 	_, err = cloudformationClient.UpdateStack(updateStackInput)
