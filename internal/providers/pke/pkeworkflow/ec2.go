@@ -20,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 )
 

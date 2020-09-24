@@ -28,7 +28,8 @@ import (
 	"go.uber.org/cadence/activity"
 
 	cloudformation2 "github.com/banzaicloud/pipeline/internal/cloudformation"
-	"github.com/banzaicloud/pipeline/internal/cluster"
+	pkgCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCloudFormation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
@@ -41,6 +42,11 @@ const UpdateNodeGroupActivityName = "pkeaws-update-node-group"
 // UpdateNodeGroupActivity updates an existing node group.
 type UpdateNodeGroupActivity struct {
 	sessionFactory AWSFactory
+	clusters       Clusters
+	tokenGenerator TokenGenerator
+
+	externalBaseURL         string
+	externalBaseURLInsecure bool
 }
 
 // UpdateNodeGroupActivityInput holds the parameters for the node group update.
@@ -51,6 +57,7 @@ type UpdateNodeGroupActivityInput struct {
 	OrganizationID uint
 
 	ClusterName string
+	ClusterID   uint
 
 	StackName string
 
@@ -72,9 +79,19 @@ type UpdateNodeGroupActivityOutput struct {
 }
 
 // NewUpdateNodeGroupActivity creates a new UpdateNodeGroupActivity instance.
-func NewUpdateNodeGroupActivity(sessionFactory AWSFactory) UpdateNodeGroupActivity {
+func NewUpdateNodeGroupActivity(
+	sessionFactory AWSFactory,
+	clusters Clusters,
+	tokenGenerator TokenGenerator,
+	externalBaseURL string,
+	externalBaseURLInsecure bool,
+) UpdateNodeGroupActivity {
 	return UpdateNodeGroupActivity{
-		sessionFactory: sessionFactory,
+		sessionFactory:          sessionFactory,
+		clusters:                clusters,
+		tokenGenerator:          tokenGenerator,
+		externalBaseURL:         externalBaseURL,
+		externalBaseURLInsecure: externalBaseURLInsecure,
 	}
 }
 
@@ -85,9 +102,47 @@ func (a UpdateNodeGroupActivity) Register() {
 
 // Execute is the main body of the activity, returns true if there was any update and that was successful.
 func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGroupActivityInput) (UpdateNodeGroupActivityOutput, error) {
-	sess, err := a.sessionFactory.New(input.OrganizationID, input.SecretID, input.Region)
+	providerSecret, err := brn.Parse(input.SecretID)
+	if err != nil {
+		return UpdateNodeGroupActivityOutput{}, errors.WrapIf(err, "failed to parse secret BRN")
+	}
+	sess, err := a.sessionFactory.New(providerSecret.OrganizationID, providerSecret.ResourceID, input.Region)
 	if err = errors.WrapIf(err, "failed to create AWS session"); err != nil { // internal error?
 		return UpdateNodeGroupActivityOutput{}, err
+	}
+
+	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
+	if err != nil {
+		return UpdateNodeGroupActivityOutput{}, err
+	}
+
+	awsCluster, ok := cluster.(AWSCluster)
+	if !ok {
+		return UpdateNodeGroupActivityOutput{}, errors.New(fmt.Sprintf("can't get AWS client for %t", cluster))
+	}
+
+	_, signedToken, err := a.tokenGenerator.GenerateClusterToken(input.OrganizationID, input.ClusterID)
+	if err != nil {
+		return UpdateNodeGroupActivityOutput{}, errors.WrapIf(err, "can't generate Pipeline token")
+	}
+
+	nodeLabels := []string{
+		fmt.Sprintf("%v=%v", pkgCluster.NodePoolNameLabelKey, input.NodePoolName),
+	}
+
+	if input.NodePoolVersion != "" {
+		nodeLabels = append(nodeLabels, fmt.Sprintf("%v=%v", pkgCluster.NodePoolVersionLabelKey, input.NodePoolVersion))
+	}
+
+	bootstrapCommand, err := awsCluster.GetBootstrapCommand(
+		input.NodePoolName,
+		a.externalBaseURL,
+		a.externalBaseURLInsecure,
+		signedToken,
+		nodeLabels,
+	)
+	if err != nil {
+		return UpdateNodeGroupActivityOutput{}, errors.WrapIf(err, "failed to fetch bootstrap command")
 	}
 
 	template, err := cloudformation2.GetCloudFormationTemplate(PKECloudFormationTemplateBasePath, WorkerCloudFormationTemplate)
@@ -96,14 +151,6 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 	}
 
 	cloudformationClient := cloudformation.New(sess)
-
-	nodeLabels := []string{
-		fmt.Sprintf("%v=%v", cluster.NodePoolNameLabelKey, input.NodePoolName),
-	}
-
-	if input.NodePoolVersion != "" {
-		nodeLabels = append(nodeLabels, fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, input.NodePoolVersion))
-	}
 
 	stackParams := []*cloudformation.Parameter{
 		{
@@ -183,8 +230,8 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			UsePreviousValue: aws.Bool(true),
 		},
 		{
-			ParameterKey:     aws.String("PkeCommand"),
-			UsePreviousValue: aws.Bool(true),
+			ParameterKey:   aws.String("PkeCommand"),
+			ParameterValue: aws.String(bootstrapCommand),
 			// '--kubernetes-node-labels %v'", strings.Join(nodeLabels, ",")
 		},
 		{
