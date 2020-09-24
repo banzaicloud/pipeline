@@ -16,28 +16,38 @@ package kubernetes
 
 import (
 	"context"
+	"time"
 
 	"emperror.dev/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/banzaicloud/pipeline/pkg/backoff"
 )
 
+const (
+	backoffDelaySeconds = 5
+	backoffMaxretries   = 10
+)
+
+// HealthChecker implements Check
 type HealthChecker struct {
 	namespaces []string
 }
 
+// MakeHealthChecker returns HealthChecker
 func MakeHealthChecker(namespaces []string) HealthChecker {
 	return HealthChecker{
 		namespaces: namespaces,
 	}
 }
 
+// Check cheks nodes and system pods
 func (c HealthChecker) Check(ctx context.Context, client kubernetes.Interface) error {
-	// TODO pagination
-	nodeList, err := client.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
+	nodeList, err := listNodes(ctx, client)
 	if err != nil {
-		return errors.WrapIf(err, "could not list nodes")
+		return err
 	}
 
 	if len(nodeList.Items) < 1 {
@@ -50,16 +60,13 @@ func (c HealthChecker) Check(ctx context.Context, client kubernetes.Interface) e
 		}
 	}
 
-	// TODO namespces to check system pods
 	for _, namespace := range c.namespaces {
-		// TODO pagination
-		podList, err := client.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{})
+		podList, err := listSystemPods(ctx, client, namespace)
 		if err != nil {
-			return errors.WrapIfWithDetails(err, "could not list pods", map[string]interface{}{
-				"namespace": namespace,
-			})
+			return err
 		}
-		if err := checkSystemPods(podList); err != nil {
+
+		if err := checkPodStatus(podList); err != nil {
 			return errors.WrapIfWithDetails(err, "not all pods are ready", map[string]interface{}{
 				"namespace": namespace,
 			})
@@ -85,13 +92,12 @@ func checkNodeStatus(node corev1.Node) error {
 	return nil
 }
 
-func checkSystemPods(podList *corev1.PodList) error {
+func checkPodStatus(podList *corev1.PodList) error {
 	if len(podList.Items) < 1 {
 		return errors.New("podlist is empty")
 	}
 
 	// TODO check system pods are exist, check status of daemonsets?
-
 	for _, pod := range podList.Items {
 		if pod.Status.Phase != corev1.PodRunning {
 			return errors.NewWithDetails("pod is not Running", map[string]interface{}{
@@ -113,4 +119,44 @@ func checkSystemPods(podList *corev1.PodList) error {
 	}
 
 	return nil
+}
+
+func listNodes(ctx context.Context, client kubernetes.Interface) (*corev1.NodeList, error) {
+	backoffConfig := backoff.ConstantBackoffConfig{
+		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
+		MaxRetries: backoffMaxretries,
+	}
+	backoffPolicy := backoff.NewConstantBackoffPolicy(backoffConfig)
+	var nodeList *corev1.NodeList
+
+	return nodeList, backoff.Retry(func() error {
+		var err error
+		nodeList, err = client.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
+		if err != nil {
+			return errors.WrapIf(err, "could not list nodes")
+		}
+
+		return nil
+	}, backoffPolicy)
+}
+
+func listSystemPods(ctx context.Context, client kubernetes.Interface, namespace string) (*corev1.PodList, error) {
+	backoffConfig := backoff.ConstantBackoffConfig{
+		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
+		MaxRetries: backoffMaxretries,
+	}
+	backoffPolicy := backoff.NewConstantBackoffPolicy(backoffConfig)
+	var podList *corev1.PodList
+
+	return podList, backoff.Retry(func() error {
+		var err error
+		podList, err = client.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{})
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "could not list pods", map[string]interface{}{
+				"namespace": namespace,
+			})
+		}
+
+		return nil
+	}, backoffPolicy)
 }
