@@ -100,9 +100,7 @@ func (s *K8sHealthCheckActivityTestSuite) Test_Execute() {
 	_, err := s.env.ExecuteActivity(
 		K8sHealthCheckActivityName,
 		K8sHealthCheckActivityInput{
-			OrganizationID: 1,
-			ClusterName:    "test",
-			K8sSecretBRN:   "brn:1:secret:secret",
+			SecretID: "brn:1:secret:secret",
 		},
 	)
 
