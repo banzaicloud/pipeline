@@ -90,7 +90,7 @@ func (s *HealthCheckActivityTestSuite) SetupTest() {
 
 func (s *HealthCheckActivityTestSuite) Test_Execute() {
 	clientFactory := new(MockClientFactory)
-	clientFactory.On("FromSecret", mock.Anything, "secret").Return(s.client, nil)
+	clientFactory.On("FromSecret", mock.Anything, "brn:1:secret:secret").Return(s.client, nil)
 
 	healthChecker := new(MockHealthChecker)
 	healthChecker.On("Check", mock.Anything, mock.Anything).Return(nil)
