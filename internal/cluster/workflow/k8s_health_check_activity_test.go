@@ -102,7 +102,7 @@ func (s *K8sHealthCheckActivityTestSuite) Test_Execute() {
 		K8sHealthCheckActivityInput{
 			OrganizationID: 1,
 			ClusterName:    "test",
-			K8sSecretID:    "secret",
+			K8sSecretBRN:   "brn:1:secret:secret",
 		},
 	)
 
