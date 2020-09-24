@@ -25,7 +25,7 @@ const K8sHealthCheckActivityName = "k8s-health-check"
 type K8sHealthCheckActivityInput struct {
 	OrganizationID uint
 	ClusterName    string
-	K8sSecretID    string
+	K8sSecretBRN   string
 }
 
 type K8sHealthCheckActivity struct {
@@ -51,7 +51,7 @@ func MakeK8sHealthCheckActivity(
 }
 
 func (a K8sHealthCheckActivity) Execute(ctx context.Context, input K8sHealthCheckActivityInput) error {
-	client, err := a.clientFactory.FromSecret(ctx, input.K8sSecretID)
+	client, err := a.clientFactory.FromSecret(ctx, input.K8sSecretBRN)
 	if err != nil {
 		return err
 	}
