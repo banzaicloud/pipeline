@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "getter",
+    srcs = [
+        "pkg/getter/doc.go",
+        "pkg/getter/getter.go",
+        "pkg/getter/httpgetter.go",
+        "pkg/getter/plugingetter.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/helm.sh/helm/v3:_v3#download"],
+)
+
+go_library(
+    name = "getter",
+    srcs = [":_getter#go_source"],
+    cover = False,
+    import_path = "helm.sh/helm/v3/pkg/getter",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/helm.sh/helm/v3/internal/tlsutil",
+        "//third_party/go/helm.sh/helm/v3/internal/urlutil",
+        "//third_party/go/helm.sh/helm/v3/internal/version",
+        "//third_party/go/helm.sh/helm/v3/pkg/cli",
+        "//third_party/go/helm.sh/helm/v3/pkg/plugin",
+    ],
+)

@@ -1,0 +1,36 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "exec",
+    srcs = [
+        "plugin/pkg/client/auth/exec/exec.go",
+        "plugin/pkg/client/auth/exec/metrics.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "exec",
+    srcs = [":_exec#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/plugin/pkg/client/auth/exec",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/davecgh/go-spew/spew",
+        "//third_party/go/golang.org/x/crypto/ssh/terminal",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/serializer",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/runtime",
+        "//third_party/go/k8s.io/client-go/pkg/apis/clientauthentication",
+        "//third_party/go/k8s.io/client-go/pkg/apis/clientauthentication/v1alpha1",
+        "//third_party/go/k8s.io/client-go/pkg/apis/clientauthentication/v1beta1",
+        "//third_party/go/k8s.io/client-go/tools/clientcmd/api",
+        "//third_party/go/k8s.io/client-go/tools/metrics",
+        "//third_party/go/k8s.io/client-go/transport",
+        "//third_party/go/k8s.io/client-go/util/connrotation",
+        "//third_party/go/k8s.io/klog",
+    ],
+)

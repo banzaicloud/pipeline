@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "descriptorpb",
+    srcs = ["types/descriptorpb/descriptor.pb.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/protobuf:_protobuf#download"],
+)
+
+go_library(
+    name = "descriptorpb",
+    srcs = [":_descriptorpb#go_source"],
+    cover = False,
+    import_path = "google.golang.org/protobuf/types/descriptorpb",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/google.golang.org/protobuf/reflect/protoreflect",
+        "//third_party/go/google.golang.org/protobuf/runtime/protoiface",
+        "//third_party/go/google.golang.org/protobuf/runtime/protoimpl",
+    ],
+)

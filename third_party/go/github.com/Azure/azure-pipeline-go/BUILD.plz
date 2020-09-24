@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "azure-pipeline-go",
+    module = "github.com/Azure/azure-pipeline-go",
+    sum = "h1:7U9HBg1JFK3jHl5qmo4CTZKFTVgMwdFHMVtCdfBE21U=",
+    tag = "download",
+    version = "v0.2.3",
+    visibility = ["//third_party/go/github.com/Azure/azure-pipeline-go/..."],
+)

@@ -1,0 +1,33 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "containerservice",
+    srcs = [
+        "services/containerservice/mgmt/2020-02-01/containerservice/agentpools.go",
+        "services/containerservice/mgmt/2020-02-01/containerservice/client.go",
+        "services/containerservice/mgmt/2020-02-01/containerservice/containerservices.go",
+        "services/containerservice/mgmt/2020-02-01/containerservice/managedclusters.go",
+        "services/containerservice/mgmt/2020-02-01/containerservice/models.go",
+        "services/containerservice/mgmt/2020-02-01/containerservice/openshiftmanagedclusters.go",
+        "services/containerservice/mgmt/2020-02-01/containerservice/operations.go",
+        "services/containerservice/mgmt/2020-02-01/containerservice/version.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/Azure/azure-sdk-for-go:_azure-sdk-for-go#download"],
+)
+
+go_library(
+    name = "containerservice",
+    srcs = [":_containerservice#go_source"],
+    cover = False,
+    import_path = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/version",
+        "//third_party/go/github.com/Azure/go-autorest/autorest",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/azure",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/to",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/validation",
+        "//third_party/go/github.com/Azure/go-autorest/tracing",
+    ],
+)

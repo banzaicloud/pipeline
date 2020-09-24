@@ -1,0 +1,48 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "types",
+    srcs = [
+        "api/types/auth.go",
+        "api/types/client.go",
+        "api/types/configs.go",
+        "api/types/error_response.go",
+        "api/types/error_response_ext.go",
+        "api/types/graph_driver_data.go",
+        "api/types/id_response.go",
+        "api/types/image_delete_response_item.go",
+        "api/types/image_summary.go",
+        "api/types/plugin.go",
+        "api/types/plugin_device.go",
+        "api/types/plugin_env.go",
+        "api/types/plugin_interface_type.go",
+        "api/types/plugin_mount.go",
+        "api/types/plugin_responses.go",
+        "api/types/port.go",
+        "api/types/seccomp.go",
+        "api/types/service_update_response.go",
+        "api/types/stats.go",
+        "api/types/types.go",
+        "api/types/volume.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/docker/docker:_docker#download"],
+)
+
+go_library(
+    name = "types",
+    srcs = [":_types#go_source"],
+    cover = False,
+    import_path = "github.com/docker/docker/api/types",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/docker/docker/api/types/container",
+        "//third_party/go/github.com/docker/docker/api/types/filters",
+        "//third_party/go/github.com/docker/docker/api/types/mount",
+        "//third_party/go/github.com/docker/docker/api/types/network",
+        "//third_party/go/github.com/docker/docker/api/types/registry",
+        "//third_party/go/github.com/docker/docker/api/types/swarm",
+        "//third_party/go/github.com/docker/go-connections/nat",
+        "//third_party/go/github.com/docker/go-units",
+    ],
+)

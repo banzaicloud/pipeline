@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "appsv1beta2",
+    srcs = [
+        "scale/scheme/appsv1beta2/conversion.go",
+        "scale/scheme/appsv1beta2/doc.go",
+        "scale/scheme/appsv1beta2/register.go",
+        "scale/scheme/appsv1beta2/zz_generated.conversion.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "appsv1beta2",
+    srcs = [":_appsv1beta2#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/scale/scheme/appsv1beta2",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/api/apps/v1beta2",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/conversion",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/client-go/scale/scheme",
+    ],
+)

@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "transport",
+    srcs = [
+        "registry/client/transport/http_reader.go",
+        "registry/client/transport/transport.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/docker/distribution:_distribution#download"],
+)
+
+go_library(
+    name = "transport",
+    srcs = [":_transport#go_source"],
+    cover = False,
+    import_path = "github.com/docker/distribution/registry/client/transport",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

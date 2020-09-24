@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "apiutil",
+    srcs = [
+        "pkg/client/apiutil/apimachinery.go",
+        "pkg/client/apiutil/dynamicrestmapper.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/controller-runtime:_controller-runtime#download"],
+)
+
+go_library(
+    name = "apiutil",
+    srcs = [":_apiutil#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/controller-runtime/pkg/client/apiutil",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/time/rate",
+        "//third_party/go/k8s.io/apimachinery/pkg/api/meta",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/serializer",
+        "//third_party/go/k8s.io/client-go/discovery",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/k8s.io/client-go/restmapper",
+    ],
+)

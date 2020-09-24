@@ -1,0 +1,24 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "http",
+    srcs = [
+        "transport/http/problem_converter.go",
+        "transport/http/problems.go",
+        "transport/http/problems_validation.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/sagikazarmark/appkit:_appkit#download"],
+)
+
+go_library(
+    name = "http",
+    srcs = [":_http#go_source"],
+    cover = False,
+    import_path = "github.com/sagikazarmark/appkit/transport/http",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/moogar0880/problems",
+        "//third_party/go/github.com/sagikazarmark/appkit/errors",
+    ],
+)

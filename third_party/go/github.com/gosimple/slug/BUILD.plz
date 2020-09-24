@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "slug",
+    module = "github.com/gosimple/slug",
+    sum = "h1:r5vDcYrFz9BmfIAMC829un9hq7hKM4cHUrsv36LbEqs=",
+    tag = "download",
+    version = "v1.9.0",
+    visibility = ["//third_party/go/github.com/gosimple/slug/..."],
+)
+
+fileexport(
+    name = "slug",
+    srcs = [
+        "doc.go",
+        "languages_substitution.go",
+        "slug.go",
+    ],
+    tag = "go_source",
+    deps = [":_slug#download"],
+)
+
+go_library(
+    name = "slug",
+    srcs = [":_slug#go_source"],
+    cover = False,
+    import_path = "github.com/gosimple/slug",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/rainycape/unidecode"],
+)

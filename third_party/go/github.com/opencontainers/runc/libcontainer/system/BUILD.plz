@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "system",
+    srcs = [
+        "libcontainer/system/linux.go",
+        "libcontainer/system/proc.go",
+        "libcontainer/system/syscall_linux_32.go",
+        "libcontainer/system/syscall_linux_64.go",
+        "libcontainer/system/sysconfig.go",
+        "libcontainer/system/sysconfig_notcgo.go",
+        "libcontainer/system/unsupported.go",
+        "libcontainer/system/xattrs_linux.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/opencontainers/runc:_runc#download"],
+)
+
+go_library(
+    name = "system",
+    srcs = [":_system#go_source"],
+    cover = False,
+    import_path = "github.com/opencontainers/runc/libcontainer/system",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/opencontainers/runc/libcontainer/user"],
+)

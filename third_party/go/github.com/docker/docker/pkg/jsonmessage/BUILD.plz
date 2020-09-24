@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "jsonmessage",
+    srcs = ["pkg/jsonmessage/jsonmessage.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/docker/docker:_docker#download"],
+)
+
+go_library(
+    name = "jsonmessage",
+    srcs = [":_jsonmessage#go_source"],
+    cover = False,
+    import_path = "github.com/docker/docker/pkg/jsonmessage",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/docker/docker/pkg/term",
+        "//third_party/go/github.com/docker/go-units",
+        "//third_party/go/github.com/morikuni/aec",
+    ],
+)

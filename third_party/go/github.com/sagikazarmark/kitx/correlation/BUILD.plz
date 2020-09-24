@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "correlation",
+    srcs = [
+        "correlation/correlation.go",
+        "correlation/middleware.go",
+        "correlation/transport.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/sagikazarmark/kitx:_kitx#download"],
+)
+
+go_library(
+    name = "correlation",
+    srcs = [":_correlation#go_source"],
+    cover = False,
+    import_path = "github.com/sagikazarmark/kitx/correlation",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/go-kit/kit/endpoint",
+        "//third_party/go/github.com/go-kit/kit/transport/grpc",
+        "//third_party/go/github.com/go-kit/kit/transport/http",
+        "//third_party/go/google.golang.org/grpc/metadata",
+    ],
+)

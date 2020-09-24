@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "v1alpha1",
+    srcs = [
+        "pkg/apis/multiclusterdns/v1alpha1/dnsendpoint_types.go",
+        "pkg/apis/multiclusterdns/v1alpha1/domain_types.go",
+        "pkg/apis/multiclusterdns/v1alpha1/groupversion_info.go",
+        "pkg/apis/multiclusterdns/v1alpha1/ingressdnsrecord_types.go",
+        "pkg/apis/multiclusterdns/v1alpha1/servicednsrecord_types.go",
+        "pkg/apis/multiclusterdns/v1alpha1/zz_generated.deepcopy.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kubefed:_kubefed#download"],
+)
+
+go_library(
+    name = "v1alpha1",
+    srcs = [":_v1alpha1#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kubefed/pkg/apis/multiclusterdns/v1alpha1",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/api/core/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/sigs.k8s.io/controller-runtime/pkg/scheme",
+    ],
+)

@@ -1,0 +1,25 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "mock",
+    srcs = [
+        "mock/doc.go",
+        "mock/mock.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/stretchr/testify:_testify#download"],
+)
+
+go_library(
+    name = "mock",
+    srcs = [":_mock#go_source"],
+    cover = False,
+    import_path = "github.com/stretchr/testify/mock",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/davecgh/go-spew/spew",
+        "//third_party/go/github.com/pmezard/go-difflib/difflib",
+        "//third_party/go/github.com/stretchr/objx",
+        "//third_party/go/github.com/stretchr/testify/assert",
+    ],
+)

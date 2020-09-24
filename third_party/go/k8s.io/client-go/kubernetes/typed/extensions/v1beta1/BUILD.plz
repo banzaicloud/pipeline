@@ -1,0 +1,35 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "v1beta1",
+    srcs = [
+        "kubernetes/typed/extensions/v1beta1/daemonset.go",
+        "kubernetes/typed/extensions/v1beta1/deployment.go",
+        "kubernetes/typed/extensions/v1beta1/deployment_expansion.go",
+        "kubernetes/typed/extensions/v1beta1/doc.go",
+        "kubernetes/typed/extensions/v1beta1/extensions_client.go",
+        "kubernetes/typed/extensions/v1beta1/generated_expansion.go",
+        "kubernetes/typed/extensions/v1beta1/ingress.go",
+        "kubernetes/typed/extensions/v1beta1/networkpolicy.go",
+        "kubernetes/typed/extensions/v1beta1/podsecuritypolicy.go",
+        "kubernetes/typed/extensions/v1beta1/replicaset.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "v1beta1",
+    srcs = [":_v1beta1#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/kubernetes/typed/extensions/v1beta1",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/api/extensions/v1beta1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/types",
+        "//third_party/go/k8s.io/apimachinery/pkg/watch",
+        "//third_party/go/k8s.io/client-go/kubernetes/scheme",
+        "//third_party/go/k8s.io/client-go/rest",
+    ],
+)

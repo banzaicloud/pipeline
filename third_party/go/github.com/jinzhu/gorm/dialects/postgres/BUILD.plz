@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "postgres",
+    srcs = ["dialects/postgres/postgres.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/jinzhu/gorm:_gorm#download"],
+)
+
+go_library(
+    name = "postgres",
+    srcs = [":_postgres#go_source"],
+    cover = False,
+    import_path = "github.com/jinzhu/gorm/dialects/postgres",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/lib/pq",
+        "//third_party/go/github.com/lib/pq/hstore",
+    ],
+)

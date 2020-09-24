@@ -1,0 +1,28 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "stats",
+    srcs = [
+        "stats/doc.go",
+        "stats/measure.go",
+        "stats/measure_float64.go",
+        "stats/measure_int64.go",
+        "stats/record.go",
+        "stats/units.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.opencensus.io:_go.opencensus.io#download"],
+)
+
+go_library(
+    name = "stats",
+    srcs = [":_stats#go_source"],
+    cover = False,
+    import_path = "go.opencensus.io/stats",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.opencensus.io/metric/metricdata",
+        "//third_party/go/go.opencensus.io/stats/internal",
+        "//third_party/go/go.opencensus.io/tag",
+    ],
+)

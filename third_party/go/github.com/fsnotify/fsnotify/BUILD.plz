@@ -1,0 +1,35 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "fsnotify",
+    module = "github.com/fsnotify/fsnotify",
+    sum = "h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=",
+    tag = "download",
+    version = "v1.4.9",
+    visibility = ["//third_party/go/github.com/fsnotify/fsnotify/..."],
+)
+
+fileexport(
+    name = "fsnotify",
+    srcs = [
+        "fen.go",
+        "fsnotify.go",
+        "inotify.go",
+        "inotify_poller.go",
+        "kqueue.go",
+        "open_mode_bsd.go",
+        "open_mode_darwin.go",
+        "windows.go",
+    ],
+    tag = "go_source",
+    deps = [":_fsnotify#download"],
+)
+
+go_library(
+    name = "fsnotify",
+    srcs = [":_fsnotify#go_source"],
+    cover = False,
+    import_path = "github.com/fsnotify/fsnotify",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/golang.org/x/sys/unix"],
+)

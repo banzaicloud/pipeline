@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "strings",
+    srcs = ["internal/strings/strings.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "strings",
+    srcs = [":_strings#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/internal/strings",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

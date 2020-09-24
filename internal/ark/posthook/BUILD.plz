@@ -1,0 +1,16 @@
+go_library(
+    name = "posthook",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/ark",
+        "//internal/ark/api",
+        "//internal/ark/sync",
+        "//src/auth",
+        "//third_party/go/emperror.dev/emperror",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/jinzhu/gorm",
+        "//third_party/go/github.com/sirupsen/logrus",
+        "//third_party/go/k8s.io/apimachinery/pkg/labels",
+    ],
+)

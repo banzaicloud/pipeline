@@ -1,0 +1,27 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "net",
+    srcs = [
+        "pkg/util/net/http.go",
+        "pkg/util/net/interface.go",
+        "pkg/util/net/port_range.go",
+        "pkg/util/net/port_split.go",
+        "pkg/util/net/util.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "net",
+    srcs = [":_net#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/pkg/util/net",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/net/http2",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/sets",
+        "//third_party/go/k8s.io/klog",
+    ],
+)

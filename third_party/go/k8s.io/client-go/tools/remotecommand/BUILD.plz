@@ -1,0 +1,37 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "remotecommand",
+    srcs = [
+        "tools/remotecommand/doc.go",
+        "tools/remotecommand/errorstream.go",
+        "tools/remotecommand/reader.go",
+        "tools/remotecommand/remotecommand.go",
+        "tools/remotecommand/resize.go",
+        "tools/remotecommand/v1.go",
+        "tools/remotecommand/v2.go",
+        "tools/remotecommand/v3.go",
+        "tools/remotecommand/v4.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "remotecommand",
+    srcs = [":_remotecommand#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/tools/remotecommand",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/api/core/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/httpstream",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/remotecommand",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/runtime",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/k8s.io/client-go/transport/spdy",
+        "//third_party/go/k8s.io/client-go/util/exec",
+        "//third_party/go/k8s.io/klog",
+    ],
+)

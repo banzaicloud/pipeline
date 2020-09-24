@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "transport",
+    srcs = [
+        "transport/cache.go",
+        "transport/cert_rotation.go",
+        "transport/config.go",
+        "transport/round_trippers.go",
+        "transport/token_source.go",
+        "transport/transport.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "transport",
+    srcs = [":_transport#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/transport",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/oauth2",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/net",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/wait",
+        "//third_party/go/k8s.io/client-go/util/connrotation",
+        "//third_party/go/k8s.io/client-go/util/workqueue",
+        "//third_party/go/k8s.io/klog",
+    ],
+)

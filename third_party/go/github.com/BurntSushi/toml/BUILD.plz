@@ -1,0 +1,37 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "toml",
+    module = "github.com/BurntSushi/toml",
+    sum = "h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=",
+    tag = "download",
+    version = "v0.3.1",
+    visibility = ["//third_party/go/github.com/BurntSushi/toml/..."],
+)
+
+fileexport(
+    name = "toml",
+    srcs = [
+        "decode.go",
+        "decode_meta.go",
+        "doc.go",
+        "encode.go",
+        "encoding_types.go",
+        "encoding_types_1.1.go",
+        "lex.go",
+        "parse.go",
+        "type_check.go",
+        "type_fields.go",
+    ],
+    tag = "go_source",
+    deps = [":_toml#download"],
+)
+
+go_library(
+    name = "toml",
+    srcs = [":_toml#go_source"],
+    cover = False,
+    import_path = "github.com/BurntSushi/toml",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

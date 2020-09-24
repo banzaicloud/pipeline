@@ -1,0 +1,28 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "common",
+    srcs = [
+        "common/client.go",
+        "common/common.go",
+        "common/configuration.go",
+        "common/errors.go",
+        "common/helpers.go",
+        "common/http.go",
+        "common/http_signer.go",
+        "common/log.go",
+        "common/retry.go",
+        "common/version.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/oracle/oci-go-sdk:_oci-go-sdk#download"],
+)
+
+go_library(
+    name = "common",
+    srcs = [":_common#go_source"],
+    cover = False,
+    import_path = "github.com/oracle/oci-go-sdk/common",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "universal-translator",
+    module = "github.com/go-playground/universal-translator",
+    sum = "h1:X++omBR/4cE2MNg91AoC3rmGrCjJ8eAeUP/K/EKx4DM=",
+    tag = "download",
+    version = "v0.16.0",
+    visibility = ["//third_party/go/github.com/go-playground/universal-translator/..."],
+)
+
+fileexport(
+    name = "universal-translator",
+    srcs = [
+        "errors.go",
+        "import_export.go",
+        "translator.go",
+        "universal_translator.go",
+    ],
+    tag = "go_source",
+    deps = [":_universal-translator#download"],
+)
+
+go_library(
+    name = "universal-translator",
+    srcs = [":_universal-translator#go_source"],
+    cover = False,
+    import_path = "github.com/go-playground/universal-translator",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/go-playground/locales"],
+)

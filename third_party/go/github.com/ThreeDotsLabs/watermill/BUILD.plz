@@ -1,0 +1,34 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "watermill",
+    module = "github.com/ThreeDotsLabs/watermill",
+    sum = "h1:RWVfySGHEaK4TZhr8L/rKkYkSbyzWRzE8ut7QP7esLY=",
+    tag = "download",
+    version = "v1.1.0",
+    visibility = ["//third_party/go/github.com/ThreeDotsLabs/watermill/..."],
+)
+
+fileexport(
+    name = "watermill",
+    srcs = [
+        "doc.go",
+        "log.go",
+        "uuid.go",
+    ],
+    tag = "go_source",
+    deps = [":_watermill#download"],
+)
+
+go_library(
+    name = "watermill",
+    srcs = [":_watermill#go_source"],
+    cover = False,
+    import_path = "github.com/ThreeDotsLabs/watermill",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/google/uuid",
+        "//third_party/go/github.com/lithammer/shortuuid/v3",
+        "//third_party/go/github.com/oklog/ulid",
+    ],
+)

@@ -1,0 +1,57 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "spec",
+    module = "github.com/go-openapi/spec",
+    sum = "h1:0XRyw8kguri6Yw4SxhsQA/atC88yqrk0+G4YhI2wabc=",
+    tag = "download",
+    version = "v0.19.3",
+    visibility = ["//third_party/go/github.com/go-openapi/spec/..."],
+)
+
+fileexport(
+    name = "spec",
+    srcs = [
+        "bindata.go",
+        "cache.go",
+        "contact_info.go",
+        "debug.go",
+        "expander.go",
+        "external_docs.go",
+        "header.go",
+        "info.go",
+        "items.go",
+        "license.go",
+        "normalizer.go",
+        "operation.go",
+        "parameter.go",
+        "path_item.go",
+        "paths.go",
+        "ref.go",
+        "response.go",
+        "responses.go",
+        "schema.go",
+        "schema_loader.go",
+        "security_scheme.go",
+        "spec.go",
+        "swagger.go",
+        "tag.go",
+        "unused.go",
+        "xml_object.go",
+    ],
+    tag = "go_source",
+    deps = [":_spec#download"],
+)
+
+go_library(
+    name = "spec",
+    srcs = [":_spec#go_source"],
+    cover = False,
+    import_path = "github.com/go-openapi/spec",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/go-openapi/jsonpointer",
+        "//third_party/go/github.com/go-openapi/jsonreference",
+        "//third_party/go/github.com/go-openapi/swag",
+    ],
+)

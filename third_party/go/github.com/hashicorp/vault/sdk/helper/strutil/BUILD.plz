@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "strutil",
+    srcs = ["helper/strutil/strutil.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/hashicorp/vault/sdk:_sdk#download"],
+)
+
+go_library(
+    name = "strutil",
+    srcs = [":_strutil#go_source"],
+    cover = False,
+    import_path = "github.com/hashicorp/vault/sdk/helper/strutil",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/hashicorp/errwrap",
+        "//third_party/go/github.com/ryanuber/go-glob",
+    ],
+)

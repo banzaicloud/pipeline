@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "charset",
+    srcs = ["html/charset/charset.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/net:_net#download"],
+)
+
+go_library(
+    name = "charset",
+    srcs = [":_charset#go_source"],
+    cover = False,
+    import_path = "golang.org/x/net/html/charset",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/net/html",
+        "//third_party/go/golang.org/x/text/encoding",
+        "//third_party/go/golang.org/x/text/encoding/charmap",
+        "//third_party/go/golang.org/x/text/encoding/htmlindex",
+        "//third_party/go/golang.org/x/text/transform",
+    ],
+)

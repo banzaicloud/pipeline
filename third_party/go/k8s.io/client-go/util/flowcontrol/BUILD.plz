@@ -1,0 +1,24 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "flowcontrol",
+    srcs = [
+        "util/flowcontrol/backoff.go",
+        "util/flowcontrol/throttle.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "flowcontrol",
+    srcs = [":_flowcontrol#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/util/flowcontrol",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/time/rate",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/clock",
+        "//third_party/go/k8s.io/utils/integer",
+    ],
+)

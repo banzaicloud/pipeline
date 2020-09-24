@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "locales",
+    module = "github.com/go-playground/locales",
+    sum = "h1:2FITxuFt/xuCNP1Acdhv62OzaCiviiE4kotfhkmOqEc=",
+    tag = "download",
+    version = "v0.12.1",
+    visibility = ["//third_party/go/github.com/go-playground/locales/..."],
+)
+
+fileexport(
+    name = "locales",
+    srcs = ["rules.go"],
+    tag = "go_source",
+    deps = [":_locales#download"],
+)
+
+go_library(
+    name = "locales",
+    srcs = [":_locales#go_source"],
+    cover = False,
+    import_path = "github.com/go-playground/locales",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/go-playground/locales/currency"],
+)

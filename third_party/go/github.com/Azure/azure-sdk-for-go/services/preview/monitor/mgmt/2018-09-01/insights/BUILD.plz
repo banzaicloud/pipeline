@@ -1,0 +1,48 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "insights",
+    srcs = [
+        "services/preview/monitor/mgmt/2018-09-01/insights/actiongroups.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/activitylogalerts.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/activitylogs.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/alertruleincidents.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/alertrules.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/autoscalesettings.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/client.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/diagnosticsettings.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/diagnosticsettingscategory.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/eventcategories.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/logprofiles.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/metricalerts.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/metricalertsstatus.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/metricbaseline.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/metricdefinitions.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/metricnamespaces.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/metrics.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/models.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/operations.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/scheduledqueryrules.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/tenantactivitylogs.go",
+        "services/preview/monitor/mgmt/2018-09-01/insights/version.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/Azure/azure-sdk-for-go:_azure-sdk-for-go#download"],
+)
+
+go_library(
+    name = "insights",
+    srcs = [":_insights#go_source"],
+    cover = False,
+    import_path = "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-09-01/insights",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/version",
+        "//third_party/go/github.com/Azure/go-autorest/autorest",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/azure",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/date",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/to",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/validation",
+        "//third_party/go/github.com/Azure/go-autorest/tracing",
+    ],
+)

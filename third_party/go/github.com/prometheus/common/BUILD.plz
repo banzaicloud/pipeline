@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "common",
+    module = "github.com/prometheus/common",
+    sum = "h1:RyRA7RzGXQZiW+tGMr7sxa85G1z0yOpM1qq5c8lNawc=",
+    tag = "download",
+    version = "v0.10.0",
+    visibility = ["//third_party/go/github.com/prometheus/common/..."],
+)

@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "difflib",
+    srcs = ["difflib/difflib.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/pmezard/go-difflib:_go-difflib#download"],
+)
+
+go_library(
+    name = "difflib",
+    srcs = [":_difflib#go_source"],
+    cover = False,
+    import_path = "github.com/pmezard/go-difflib/difflib",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

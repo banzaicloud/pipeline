@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "wait",
+    srcs = [
+        "pkg/util/wait/doc.go",
+        "pkg/util/wait/wait.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "wait",
+    srcs = [":_wait#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/pkg/util/wait",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/apimachinery/pkg/util/clock",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/runtime",
+    ],
+)

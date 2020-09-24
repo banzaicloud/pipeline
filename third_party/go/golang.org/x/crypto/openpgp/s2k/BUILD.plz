@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "s2k",
+    srcs = ["openpgp/s2k/s2k.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/crypto:_crypto#download"],
+)
+
+go_library(
+    name = "s2k",
+    srcs = [":_s2k#go_source"],
+    cover = False,
+    import_path = "golang.org/x/crypto/openpgp/s2k",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/golang.org/x/crypto/openpgp/errors"],
+)

@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "lb",
+    srcs = [
+        "sd/lb/balancer.go",
+        "sd/lb/doc.go",
+        "sd/lb/random.go",
+        "sd/lb/retry.go",
+        "sd/lb/round_robin.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/go-kit/kit:_kit#download"],
+)
+
+go_library(
+    name = "lb",
+    srcs = [":_lb#go_source"],
+    cover = False,
+    import_path = "github.com/go-kit/kit/sd/lb",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/go-kit/kit/endpoint",
+        "//third_party/go/github.com/go-kit/kit/sd",
+    ],
+)

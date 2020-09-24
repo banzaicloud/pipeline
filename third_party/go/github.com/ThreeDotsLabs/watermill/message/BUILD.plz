@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "message",
+    srcs = [
+        "message/decorator.go",
+        "message/message.go",
+        "message/messages.go",
+        "message/metadata.go",
+        "message/pubsub.go",
+        "message/router.go",
+        "message/router_context.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/ThreeDotsLabs/watermill:_watermill#download"],
+)
+
+go_library(
+    name = "message",
+    srcs = [":_message#go_source"],
+    cover = False,
+    import_path = "github.com/ThreeDotsLabs/watermill/message",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/ThreeDotsLabs/watermill",
+        "//third_party/go/github.com/ThreeDotsLabs/watermill/internal",
+        "//third_party/go/github.com/ThreeDotsLabs/watermill/pubsub/sync",
+        "//third_party/go/github.com/pkg/errors",
+    ],
+)

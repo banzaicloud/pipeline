@@ -1,0 +1,6 @@
+go_library(
+    name = "cadence",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/go.uber.org/cadence"],
+)

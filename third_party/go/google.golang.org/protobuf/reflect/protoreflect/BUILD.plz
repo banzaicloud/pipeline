@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "protoreflect",
+    srcs = [
+        "reflect/protoreflect/methods.go",
+        "reflect/protoreflect/proto.go",
+        "reflect/protoreflect/source.go",
+        "reflect/protoreflect/type.go",
+        "reflect/protoreflect/value.go",
+        "reflect/protoreflect/value_pure.go",
+        "reflect/protoreflect/value_union.go",
+        "reflect/protoreflect/value_unsafe.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/protobuf:_protobuf#download"],
+)
+
+go_library(
+    name = "protoreflect",
+    srcs = [":_protoreflect#go_source"],
+    cover = False,
+    import_path = "google.golang.org/protobuf/reflect/protoreflect",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/google.golang.org/protobuf/encoding/protowire",
+        "//third_party/go/google.golang.org/protobuf/internal/pragma",
+    ],
+)

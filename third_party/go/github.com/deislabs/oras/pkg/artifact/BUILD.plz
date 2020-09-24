@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "artifact",
+    srcs = ["pkg/artifact/consts.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/deislabs/oras:_oras#download"],
+)
+
+go_library(
+    name = "artifact",
+    srcs = [":_artifact#go_source"],
+    cover = False,
+    import_path = "github.com/deislabs/oras/pkg/artifact",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

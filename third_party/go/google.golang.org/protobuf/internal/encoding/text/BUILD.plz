@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "text",
+    srcs = [
+        "internal/encoding/text/decode.go",
+        "internal/encoding/text/decode_number.go",
+        "internal/encoding/text/decode_string.go",
+        "internal/encoding/text/decode_token.go",
+        "internal/encoding/text/doc.go",
+        "internal/encoding/text/encode.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/protobuf:_protobuf#download"],
+)
+
+go_library(
+    name = "text",
+    srcs = [":_text#go_source"],
+    cover = False,
+    import_path = "google.golang.org/protobuf/internal/encoding/text",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/google.golang.org/protobuf/internal/detrand",
+        "//third_party/go/google.golang.org/protobuf/internal/errors",
+        "//third_party/go/google.golang.org/protobuf/internal/flags",
+        "//third_party/go/google.golang.org/protobuf/internal/strs",
+    ],
+)

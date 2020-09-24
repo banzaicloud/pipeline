@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "json",
+    srcs = [
+        "pkg/runtime/serializer/json/json.go",
+        "pkg/runtime/serializer/json/meta.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "json",
+    srcs = [":_json#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/pkg/runtime/serializer/json",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/json-iterator/go",
+        "//third_party/go/github.com/modern-go/reflect2",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/serializer/recognizer",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/framer",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/yaml",
+        "//third_party/go/k8s.io/klog",
+        "//third_party/go/sigs.k8s.io/yaml",
+    ],
+)

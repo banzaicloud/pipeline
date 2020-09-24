@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "balancerload",
+    srcs = ["internal/balancerload/load.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/grpc:_grpc#download"],
+)
+
+go_library(
+    name = "balancerload",
+    srcs = [":_balancerload#go_source"],
+    cover = False,
+    import_path = "google.golang.org/grpc/internal/balancerload",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/google.golang.org/grpc/metadata"],
+)

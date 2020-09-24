@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "find",
+    srcs = [
+        "find/doc.go",
+        "find/error.go",
+        "find/finder.go",
+        "find/recurser.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/vmware/govmomi:_govmomi#download"],
+)
+
+go_library(
+    name = "find",
+    srcs = [":_find#go_source"],
+    cover = False,
+    import_path = "github.com/vmware/govmomi/find",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/vmware/govmomi/list",
+        "//third_party/go/github.com/vmware/govmomi/object",
+        "//third_party/go/github.com/vmware/govmomi/property",
+        "//third_party/go/github.com/vmware/govmomi/vim25",
+        "//third_party/go/github.com/vmware/govmomi/vim25/mo",
+        "//third_party/go/github.com/vmware/govmomi/vim25/types",
+    ],
+)

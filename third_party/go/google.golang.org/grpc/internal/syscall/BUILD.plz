@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "syscall",
+    srcs = [
+        "internal/syscall/syscall_linux.go",
+        "internal/syscall/syscall_nonlinux.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/grpc:_grpc#download"],
+)
+
+go_library(
+    name = "syscall",
+    srcs = [":_syscall#go_source"],
+    cover = False,
+    import_path = "google.golang.org/grpc/internal/syscall",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/google.golang.org/grpc/grpclog"],
+)

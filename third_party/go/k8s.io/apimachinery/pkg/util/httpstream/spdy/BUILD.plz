@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "spdy",
+    srcs = [
+        "pkg/util/httpstream/spdy/connection.go",
+        "pkg/util/httpstream/spdy/roundtripper.go",
+        "pkg/util/httpstream/spdy/upgrade.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "spdy",
+    srcs = [":_spdy#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/pkg/util/httpstream/spdy",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/docker/spdystream",
+        "//third_party/go/k8s.io/apimachinery/pkg/api/errors",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/serializer",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/httpstream",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/net",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/runtime",
+        "//third_party/go/k8s.io/apimachinery/third_party/forked/golang/netutil",
+        "//third_party/go/k8s.io/klog",
+    ],
+)

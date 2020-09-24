@@ -1,0 +1,46 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "autorest",
+    module = "github.com/Azure/go-autorest/autorest",
+    sum = "h1:BR5GoSGobeiMwGOOIxXuvNKNPy+HMGdteKB8kJUDnBE=",
+    tag = "download",
+    version = "v0.11.2",
+    visibility = ["//third_party/go/github.com/Azure/go-autorest/autorest/..."],
+)
+
+fileexport(
+    name = "autorest",
+    srcs = [
+        "authorization.go",
+        "authorization_sas.go",
+        "authorization_storage.go",
+        "autorest.go",
+        "client.go",
+        "error.go",
+        "go_mod_tidy_hack.go",
+        "preparer.go",
+        "responder.go",
+        "retriablerequest.go",
+        "retriablerequest_1.7.go",
+        "retriablerequest_1.8.go",
+        "sender.go",
+        "utility.go",
+        "version.go",
+    ],
+    tag = "go_source",
+    deps = [":_autorest#download"],
+)
+
+go_library(
+    name = "autorest",
+    srcs = [":_autorest#go_source"],
+    cover = False,
+    import_path = "github.com/Azure/go-autorest/autorest",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/Azure/go-autorest/autorest/adal",
+        "//third_party/go/github.com/Azure/go-autorest/logger",
+        "//third_party/go/github.com/Azure/go-autorest/tracing",
+    ],
+)

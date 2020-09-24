@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "gexec",
+    srcs = [
+        "gexec/build.go",
+        "gexec/exit_matcher.go",
+        "gexec/prefixed_writer.go",
+        "gexec/session.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/onsi/gomega:_gomega#download"],
+)
+
+go_library(
+    name = "gexec",
+    srcs = [":_gexec#go_source"],
+    cover = False,
+    import_path = "github.com/onsi/gomega/gexec",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/onsi/gomega",
+        "//third_party/go/github.com/onsi/gomega/format",
+        "//third_party/go/github.com/onsi/gomega/gbytes",
+    ],
+)

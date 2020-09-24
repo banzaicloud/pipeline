@@ -1,0 +1,44 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "viper",
+    module = "github.com/spf13/viper",
+    sum = "h1:xVKxvI7ouOI5I+U9s2eeiUfMaWBVoXA3AWskkrqK0VM=",
+    tag = "download",
+    version = "v1.7.0",
+    visibility = ["//third_party/go/github.com/spf13/viper/..."],
+)
+
+fileexport(
+    name = "viper",
+    srcs = [
+        "flags.go",
+        "util.go",
+        "viper.go",
+    ],
+    tag = "go_source",
+    deps = [":_viper#download"],
+)
+
+go_library(
+    name = "viper",
+    srcs = [":_viper#go_source"],
+    cover = False,
+    import_path = "github.com/spf13/viper",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/fsnotify/fsnotify",
+        "//third_party/go/github.com/hashicorp/hcl",
+        "//third_party/go/github.com/hashicorp/hcl/hcl/printer",
+        "//third_party/go/github.com/magiconair/properties",
+        "//third_party/go/github.com/mitchellh/mapstructure",
+        "//third_party/go/github.com/pelletier/go-toml",
+        "//third_party/go/github.com/spf13/afero",
+        "//third_party/go/github.com/spf13/cast",
+        "//third_party/go/github.com/spf13/jwalterweatherman",
+        "//third_party/go/github.com/spf13/pflag",
+        "//third_party/go/github.com/subosito/gotenv",
+        "//third_party/go/gopkg.in/ini.v1",
+        "//third_party/go/gopkg.in/yaml.v2",
+    ],
+)

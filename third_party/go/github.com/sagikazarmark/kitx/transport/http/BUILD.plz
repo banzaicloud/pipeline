@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "http",
+    srcs = [
+        "transport/http/encode_decode.go",
+        "transport/http/factory.go",
+        "transport/http/server.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/sagikazarmark/kitx:_kitx#download"],
+)
+
+go_library(
+    name = "http",
+    srcs = [":_http#go_source"],
+    cover = False,
+    import_path = "github.com/sagikazarmark/kitx/transport/http",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/go-kit/kit/endpoint",
+        "//third_party/go/github.com/go-kit/kit/transport/http",
+        "//third_party/go/github.com/moogar0880/problems",
+        "//third_party/go/github.com/pkg/errors",
+    ],
+)

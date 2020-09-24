@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "aws-sdk-go",
+    module = "github.com/aws/aws-sdk-go",
+    sum = "h1:Yx49/+ZMCD9YqIVsO3CsiMs4hnUnokd9otKvWYFjnYw=",
+    tag = "download",
+    version = "v1.34.4",
+    visibility = ["//third_party/go/github.com/aws/aws-sdk-go/..."],
+)

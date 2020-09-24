@@ -1,0 +1,34 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "util",
+    srcs = [
+        "pkg/scheduler/util/clock.go",
+        "pkg/scheduler/util/error_channel.go",
+        "pkg/scheduler/util/non_zero.go",
+        "pkg/scheduler/util/topologies.go",
+        "pkg/scheduler/util/utils.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/kubernetes:_kubernetes#download"],
+)
+
+go_library(
+    name = "util",
+    srcs = [":_util#go_source"],
+    cover = False,
+    import_path = "k8s.io/kubernetes/pkg/scheduler/util",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/api/core/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/labels",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/sets",
+        "//third_party/go/k8s.io/apiserver/pkg/util/feature",
+        "//third_party/go/k8s.io/klog",
+        "//third_party/go/k8s.io/kube-scheduler/extender/v1",
+        "//third_party/go/k8s.io/kubernetes/pkg/api/v1/pod",
+        "//third_party/go/k8s.io/kubernetes/pkg/apis/core/v1/helper",
+        "//third_party/go/k8s.io/kubernetes/pkg/features",
+    ],
+)

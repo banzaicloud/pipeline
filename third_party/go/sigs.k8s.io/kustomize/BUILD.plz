@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "kustomize",
+    module = "sigs.k8s.io/kustomize",
+    sum = "h1:JUufWFNlI44MdtnjUqVnvh29rR37PQFzPbLXqhyOyX0=",
+    tag = "download",
+    version = "v2.0.3+incompatible",
+    visibility = ["//third_party/go/sigs.k8s.io/kustomize/..."],
+)

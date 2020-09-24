@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "model",
+    srcs = [
+        "model/alert.go",
+        "model/fingerprinting.go",
+        "model/fnv.go",
+        "model/labels.go",
+        "model/labelset.go",
+        "model/metric.go",
+        "model/model.go",
+        "model/signature.go",
+        "model/silence.go",
+        "model/time.go",
+        "model/value.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/prometheus/common:_common#download"],
+)
+
+go_library(
+    name = "model",
+    srcs = [":_model#go_source"],
+    cover = False,
+    import_path = "github.com/prometheus/common/model",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "status",
+    srcs = ["status/status.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/grpc:_grpc#download"],
+)
+
+go_library(
+    name = "status",
+    srcs = [":_status#go_source"],
+    cover = False,
+    import_path = "google.golang.org/grpc/status",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/golang/protobuf/proto",
+        "//third_party/go/github.com/golang/protobuf/ptypes",
+        "//third_party/go/google.golang.org/genproto/googleapis/rpc/status",
+        "//third_party/go/google.golang.org/grpc/codes",
+        "//third_party/go/google.golang.org/grpc/internal",
+    ],
+)

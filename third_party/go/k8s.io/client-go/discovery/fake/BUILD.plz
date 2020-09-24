@@ -1,0 +1,25 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "fake",
+    srcs = ["discovery/fake/discovery.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "fake",
+    srcs = [":_fake#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/discovery/fake",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/googleapis/gnostic/OpenAPIv2",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/version",
+        "//third_party/go/k8s.io/client-go/pkg/version",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/k8s.io/client-go/testing",
+    ],
+)

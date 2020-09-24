@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "util",
+    srcs = [
+        "internal/util/parse.go",
+        "internal/util/readfile.go",
+        "internal/util/sysreadfile.go",
+        "internal/util/sysreadfile_compat.go",
+        "internal/util/valueparser.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/prometheus/procfs:_procfs#download"],
+)
+
+go_library(
+    name = "util",
+    srcs = [":_util#go_source"],
+    cover = False,
+    import_path = "github.com/prometheus/procfs/internal/util",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

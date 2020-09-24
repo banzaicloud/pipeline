@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "cacheobject",
+    srcs = [
+        "cacheobject/directive.go",
+        "cacheobject/lex.go",
+        "cacheobject/object.go",
+        "cacheobject/reasons.go",
+        "cacheobject/warning.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/pquerna/cachecontrol:_cachecontrol#download"],
+)
+
+go_library(
+    name = "cacheobject",
+    srcs = [":_cacheobject#go_source"],
+    cover = False,
+    import_path = "github.com/pquerna/cachecontrol/cacheobject",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -1,0 +1,33 @@
+go_library(
+    name = "deployment",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/clustergroup/api",
+        "//internal/global",
+        "//internal/helm",
+        "//pkg/jsonstructure",
+        "//src/helm",
+        "//third_party/go/emperror.dev/emperror",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/ghodss/yaml",
+        "//third_party/go/github.com/jinzhu/gorm",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/github.com/sirupsen/logrus",
+        "//third_party/go/github.com/technosophos/moniker",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*_test.go"]),
+    external = True,
+    deps = [
+        ":deployment",
+        "//internal/cmd",
+        "//internal/common",
+        "//internal/helm",
+        "//internal/helm/testing",
+        "//third_party/go/github.com/stretchr/testify/assert",
+    ],
+)

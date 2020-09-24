@@ -1,0 +1,43 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-jose.v2",
+    module = "gopkg.in/square/go-jose.v2",
+    sum = "h1:SK5KegNXmKmqE342YYN2qPHEnUYeoMiXXl1poUlI+o4=",
+    tag = "download",
+    version = "v2.3.1",
+    visibility = ["//third_party/go/gopkg.in/square/go-jose.v2/..."],
+)
+
+fileexport(
+    name = "go-jose.v2",
+    srcs = [
+        "asymmetric.go",
+        "crypter.go",
+        "doc.go",
+        "encoding.go",
+        "jwe.go",
+        "jwk.go",
+        "jws.go",
+        "opaque.go",
+        "shared.go",
+        "signing.go",
+        "symmetric.go",
+    ],
+    tag = "go_source",
+    deps = [":_go-jose.v2#download"],
+)
+
+go_library(
+    name = "go-jose.v2",
+    srcs = [":_go-jose.v2#go_source"],
+    cover = False,
+    import_path = "gopkg.in/square/go-jose.v2",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/crypto/ed25519",
+        "//third_party/go/golang.org/x/crypto/pbkdf2",
+        "//third_party/go/gopkg.in/square/go-jose.v2/cipher",
+        "//third_party/go/gopkg.in/square/go-jose.v2/json",
+    ],
+)

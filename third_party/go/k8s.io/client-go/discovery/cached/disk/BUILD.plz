@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "disk",
+    srcs = [
+        "discovery/cached/disk/cached_discovery.go",
+        "discovery/cached/disk/round_tripper.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "disk",
+    srcs = [":_disk#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/discovery/cached/disk",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/googleapis/gnostic/OpenAPIv2",
+        "//third_party/go/github.com/gregjones/httpcache",
+        "//third_party/go/github.com/gregjones/httpcache/diskcache",
+        "//third_party/go/github.com/peterbourgon/diskv",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/version",
+        "//third_party/go/k8s.io/client-go/discovery",
+        "//third_party/go/k8s.io/client-go/kubernetes/scheme",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/k8s.io/klog",
+    ],
+)

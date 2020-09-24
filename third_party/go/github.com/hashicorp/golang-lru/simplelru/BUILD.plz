@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "simplelru",
+    srcs = [
+        "simplelru/lru.go",
+        "simplelru/lru_interface.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/hashicorp/golang-lru:_golang-lru#download"],
+)
+
+go_library(
+    name = "simplelru",
+    srcs = [":_simplelru#go_source"],
+    cover = False,
+    import_path = "github.com/hashicorp/golang-lru/simplelru",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

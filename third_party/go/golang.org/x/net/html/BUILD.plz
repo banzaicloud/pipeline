@@ -1,0 +1,28 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "html",
+    srcs = [
+        "html/const.go",
+        "html/doc.go",
+        "html/doctype.go",
+        "html/entity.go",
+        "html/escape.go",
+        "html/foreign.go",
+        "html/node.go",
+        "html/parse.go",
+        "html/render.go",
+        "html/token.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/net:_net#download"],
+)
+
+go_library(
+    name = "html",
+    srcs = [":_html#go_source"],
+    cover = False,
+    import_path = "golang.org/x/net/html",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/golang.org/x/net/html/atom"],
+)

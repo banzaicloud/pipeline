@@ -1,0 +1,47 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "squirrel",
+    module = "github.com/Masterminds/squirrel",
+    sum = "h1:K1NhbTO21BWG47IVR0OnIZuE0LZcXAYqywrC3Ko53KI=",
+    tag = "download",
+    version = "v1.2.0",
+    visibility = ["//third_party/go/github.com/Masterminds/squirrel/..."],
+)
+
+fileexport(
+    name = "squirrel",
+    srcs = [
+        "case.go",
+        "delete.go",
+        "delete_ctx.go",
+        "expr.go",
+        "insert.go",
+        "insert_ctx.go",
+        "part.go",
+        "placeholder.go",
+        "row.go",
+        "select.go",
+        "select_ctx.go",
+        "squirrel.go",
+        "squirrel_ctx.go",
+        "statement.go",
+        "stmtcacher.go",
+        "stmtcacher_ctx.go",
+        "stmtcacher_noctx.go",
+        "update.go",
+        "update_ctx.go",
+        "where.go",
+    ],
+    tag = "go_source",
+    deps = [":_squirrel#download"],
+)
+
+go_library(
+    name = "squirrel",
+    srcs = [":_squirrel#go_source"],
+    cover = False,
+    import_path = "github.com/Masterminds/squirrel",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/lann/builder"],
+)

@@ -1,0 +1,13 @@
+go_library(
+    name = "manager",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/common",
+        "//pkg/providers/oracle/model",
+        "//pkg/providers/oracle/oci",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/oracle/oci-go-sdk/common",
+        "//third_party/go/github.com/oracle/oci-go-sdk/containerengine",
+    ],
+)

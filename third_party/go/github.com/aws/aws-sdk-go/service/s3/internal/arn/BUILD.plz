@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "arn",
+    srcs = [
+        "service/s3/internal/arn/accesspoint_arn.go",
+        "service/s3/internal/arn/arn.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "arn",
+    srcs = [":_arn#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/service/s3/internal/arn",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go/aws/arn"],
+)

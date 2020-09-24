@@ -1,0 +1,36 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "govalidator",
+    module = "github.com/asaskevich/govalidator",
+    sum = "h1:zV3ejI06GQ59hwDQAvmK1qxOQGB3WuVTRoY0okPTAv0=",
+    tag = "download",
+    version = "v0.0.0-20200108200545-475eaeb16496",
+    visibility = ["//third_party/go/github.com/asaskevich/govalidator/..."],
+)
+
+fileexport(
+    name = "govalidator",
+    srcs = [
+        "arrays.go",
+        "converter.go",
+        "doc.go",
+        "error.go",
+        "numerics.go",
+        "patterns.go",
+        "types.go",
+        "utils.go",
+        "validator.go",
+    ],
+    tag = "go_source",
+    deps = [":_govalidator#download"],
+)
+
+go_library(
+    name = "govalidator",
+    srcs = [":_govalidator#go_source"],
+    cover = False,
+    import_path = "github.com/asaskevich/govalidator",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

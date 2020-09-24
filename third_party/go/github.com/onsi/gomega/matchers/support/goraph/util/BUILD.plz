@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "util",
+    srcs = ["matchers/support/goraph/util/util.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/onsi/gomega:_gomega#download"],
+)
+
+go_library(
+    name = "util",
+    srcs = [":_util#go_source"],
+    cover = False,
+    import_path = "github.com/onsi/gomega/matchers/support/goraph/util",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

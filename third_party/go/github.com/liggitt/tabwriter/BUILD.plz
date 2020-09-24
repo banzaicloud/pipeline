@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "tabwriter",
+    module = "github.com/liggitt/tabwriter",
+    sum = "h1:9TO3cAIGXtEhnIaL+V+BEER86oLrvS+kWobKpbJuye0=",
+    tag = "download",
+    version = "v0.0.0-20181228230101-89fcab3d43de",
+    visibility = ["//third_party/go/github.com/liggitt/tabwriter/..."],
+)
+
+fileexport(
+    name = "tabwriter",
+    srcs = ["tabwriter.go"],
+    tag = "go_source",
+    deps = [":_tabwriter#download"],
+)
+
+go_library(
+    name = "tabwriter",
+    srcs = [":_tabwriter#go_source"],
+    cover = False,
+    import_path = "github.com/liggitt/tabwriter",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

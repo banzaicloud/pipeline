@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "text",
+    module = "golang.org/x/text",
+    sum = "h1:cokOdA+Jmi5PJGXLlLllQSgYigAEfHXJAERHVMaCc2k=",
+    tag = "download",
+    version = "v0.3.3",
+    visibility = ["//third_party/go/golang.org/x/text/..."],
+)

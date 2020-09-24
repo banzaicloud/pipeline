@@ -1,0 +1,27 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "restmapper",
+    srcs = [
+        "restmapper/category_expansion.go",
+        "restmapper/discovery.go",
+        "restmapper/shortcut.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "restmapper",
+    srcs = [":_restmapper#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/restmapper",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/apimachinery/pkg/api/meta",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/client-go/discovery",
+        "//third_party/go/k8s.io/klog",
+    ],
+)

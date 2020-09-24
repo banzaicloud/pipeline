@@ -1,0 +1,22 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "tls",
+    srcs = [
+        "tls/tls.go",
+        "tls/tls_client.go",
+        "tls/tls_peer.go",
+        "tls/tls_server.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/banzaicloud/bank-vaults/pkg/sdk:_sdk#download"],
+)
+
+go_library(
+    name = "tls",
+    srcs = [":_tls#go_source"],
+    cover = False,
+    import_path = "github.com/banzaicloud/bank-vaults/pkg/sdk/tls",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/emperror.dev/errors"],
+)

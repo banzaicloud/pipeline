@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "glob",
+    module = "github.com/gobwas/glob",
+    sum = "h1:A4xDbljILXROh+kObIiy5kIaPYD8e96x1tgBhUI5J+Y=",
+    tag = "download",
+    version = "v0.2.3",
+    visibility = ["//third_party/go/github.com/gobwas/glob/..."],
+)
+
+fileexport(
+    name = "glob",
+    srcs = ["glob.go"],
+    tag = "go_source",
+    deps = [":_glob#download"],
+)
+
+go_library(
+    name = "glob",
+    srcs = [":_glob#go_source"],
+    cover = False,
+    import_path = "github.com/gobwas/glob",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/gobwas/glob/compiler",
+        "//third_party/go/github.com/gobwas/glob/syntax",
+    ],
+)

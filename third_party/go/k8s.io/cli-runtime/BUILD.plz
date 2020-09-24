@@ -1,0 +1,11 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "cli-runtime",
+    module = "k8s.io/cli-runtime",
+    replace = "k8s.io/cli-runtime",
+    sum = "h1:I8BkH5NyqMQ4zqUBmpXJ1LxIqpCH88H/1edPkPVWzjQ=",
+    tag = "download",
+    version = "v0.18.6",
+    visibility = ["//third_party/go/k8s.io/cli-runtime/..."],
+)

@@ -1,0 +1,38 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "resty.v1",
+    module = "gopkg.in/resty.v1",
+    sum = "h1:CuXP0Pjfw9rOuY6EP+UvtNvt5DSqHpIxILZKT/quCZI=",
+    tag = "download",
+    version = "v1.12.0",
+    visibility = ["//third_party/go/gopkg.in/resty.v1/..."],
+)
+
+fileexport(
+    name = "resty.v1",
+    srcs = [
+        "client.go",
+        "default.go",
+        "middleware.go",
+        "redirect.go",
+        "request.go",
+        "request16.go",
+        "request17.go",
+        "response.go",
+        "resty.go",
+        "retry.go",
+        "util.go",
+    ],
+    tag = "go_source",
+    deps = [":_resty.v1#download"],
+)
+
+go_library(
+    name = "resty.v1",
+    srcs = [":_resty.v1#go_source"],
+    cover = False,
+    import_path = "gopkg.in/resty.v1",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/golang.org/x/net/publicsuffix"],
+)

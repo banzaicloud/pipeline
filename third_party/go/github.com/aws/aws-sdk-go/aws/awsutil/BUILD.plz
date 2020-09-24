@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "awsutil",
+    srcs = [
+        "aws/awsutil/copy.go",
+        "aws/awsutil/equal.go",
+        "aws/awsutil/path_value.go",
+        "aws/awsutil/prettify.go",
+        "aws/awsutil/string_value.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "awsutil",
+    srcs = [":_awsutil#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/aws/awsutil",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/jmespath/go-jmespath"],
+)

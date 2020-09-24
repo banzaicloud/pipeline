@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "logger",
+    module = "github.com/Azure/go-autorest/logger",
+    sum = "h1:e4RVHVZKC5p6UANLJHkM4OfR1UKZPj8Wt8Pcx+3oqrE=",
+    tag = "download",
+    version = "v0.2.0",
+    visibility = ["//third_party/go/github.com/Azure/go-autorest/logger/..."],
+)
+
+fileexport(
+    name = "logger",
+    srcs = [
+        "go_mod_tidy_hack.go",
+        "logger.go",
+    ],
+    tag = "go_source",
+    deps = [":_logger#download"],
+)
+
+go_library(
+    name = "logger",
+    srcs = [":_logger#go_source"],
+    cover = False,
+    import_path = "github.com/Azure/go-autorest/logger",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

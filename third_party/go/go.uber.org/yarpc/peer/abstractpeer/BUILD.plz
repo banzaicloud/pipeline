@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "abstractpeer",
+    srcs = ["peer/abstractpeer/peer.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/yarpc:_yarpc#download"],
+)
+
+go_library(
+    name = "abstractpeer",
+    srcs = [":_abstractpeer#go_source"],
+    cover = False,
+    import_path = "go.uber.org/yarpc/peer/abstractpeer",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.uber.org/atomic",
+        "//third_party/go/go.uber.org/yarpc/api/peer",
+    ],
+)

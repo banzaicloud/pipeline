@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "pbkdf2",
+    srcs = ["pbkdf2/pbkdf2.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/crypto:_crypto#download"],
+)
+
+go_library(
+    name = "pbkdf2",
+    srcs = [":_pbkdf2#go_source"],
+    cover = False,
+    import_path = "golang.org/x/crypto/pbkdf2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

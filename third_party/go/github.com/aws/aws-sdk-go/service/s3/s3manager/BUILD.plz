@@ -1,0 +1,43 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "s3manager",
+    srcs = [
+        "service/s3/s3manager/batch.go",
+        "service/s3/s3manager/bucket_region.go",
+        "service/s3/s3manager/buffered_read_seeker.go",
+        "service/s3/s3manager/default_read_seeker_write_to.go",
+        "service/s3/s3manager/default_read_seeker_write_to_windows.go",
+        "service/s3/s3manager/default_writer_read_from.go",
+        "service/s3/s3manager/default_writer_read_from_windows.go",
+        "service/s3/s3manager/doc.go",
+        "service/s3/s3manager/download.go",
+        "service/s3/s3manager/pool.go",
+        "service/s3/s3manager/read_seeker_write_to.go",
+        "service/s3/s3manager/upload.go",
+        "service/s3/s3manager/upload_input.go",
+        "service/s3/s3manager/writer_read_from.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "s3manager",
+    srcs = [":_s3manager#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/service/s3/s3manager",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/awserr",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/awsutil",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/client",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/corehandlers",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/credentials",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/request",
+        "//third_party/go/github.com/aws/aws-sdk-go/internal/sdkio",
+        "//third_party/go/github.com/aws/aws-sdk-go/service/s3",
+        "//third_party/go/github.com/aws/aws-sdk-go/service/s3/s3iface",
+    ],
+)

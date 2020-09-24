@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "tagencoding",
+    srcs = ["internal/tagencoding/tagencoding.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/go.opencensus.io:_go.opencensus.io#download"],
+)
+
+go_library(
+    name = "tagencoding",
+    srcs = [":_tagencoding#go_source"],
+    cover = False,
+    import_path = "go.opencensus.io/internal/tagencoding",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

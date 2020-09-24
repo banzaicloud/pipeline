@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "cloudprovider",
+    srcs = [
+        "pkg/cloudprovider/backup_cache.go",
+        "pkg/cloudprovider/backup_service.go",
+        "pkg/cloudprovider/snapshot_service.go",
+        "pkg/cloudprovider/storage_interfaces.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/heptio/ark:_ark#download"],
+)
+
+go_library(
+    name = "cloudprovider",
+    srcs = [":_cloudprovider#go_source"],
+    cover = False,
+    import_path = "github.com/heptio/ark/pkg/cloudprovider",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/heptio/ark/pkg/apis/ark/v1",
+        "//third_party/go/github.com/heptio/ark/pkg/generated/clientset/versioned/scheme",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/github.com/sirupsen/logrus",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/errors",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/wait",
+    ],
+)

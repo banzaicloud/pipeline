@@ -1,0 +1,34 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "ochttp",
+    srcs = [
+        "plugin/ochttp/client.go",
+        "plugin/ochttp/client_stats.go",
+        "plugin/ochttp/doc.go",
+        "plugin/ochttp/route.go",
+        "plugin/ochttp/server.go",
+        "plugin/ochttp/span_annotating_client_trace.go",
+        "plugin/ochttp/stats.go",
+        "plugin/ochttp/trace.go",
+        "plugin/ochttp/wrapped_body.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.opencensus.io:_go.opencensus.io#download"],
+)
+
+go_library(
+    name = "ochttp",
+    srcs = [":_ochttp#go_source"],
+    cover = False,
+    import_path = "go.opencensus.io/plugin/ochttp",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.opencensus.io/plugin/ochttp/propagation/b3",
+        "//third_party/go/go.opencensus.io/stats",
+        "//third_party/go/go.opencensus.io/stats/view",
+        "//third_party/go/go.opencensus.io/tag",
+        "//third_party/go/go.opencensus.io/trace",
+        "//third_party/go/go.opencensus.io/trace/propagation",
+    ],
+)

@@ -1,0 +1,52 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "compute",
+    srcs = [
+        "services/compute/mgmt/2018-10-01/compute/availabilitysets.go",
+        "services/compute/mgmt/2018-10-01/compute/client.go",
+        "services/compute/mgmt/2018-10-01/compute/containerservices.go",
+        "services/compute/mgmt/2018-10-01/compute/disks.go",
+        "services/compute/mgmt/2018-10-01/compute/galleries.go",
+        "services/compute/mgmt/2018-10-01/compute/galleryimages.go",
+        "services/compute/mgmt/2018-10-01/compute/galleryimageversions.go",
+        "services/compute/mgmt/2018-10-01/compute/images.go",
+        "services/compute/mgmt/2018-10-01/compute/loganalytics.go",
+        "services/compute/mgmt/2018-10-01/compute/models.go",
+        "services/compute/mgmt/2018-10-01/compute/operations.go",
+        "services/compute/mgmt/2018-10-01/compute/proximityplacementgroups.go",
+        "services/compute/mgmt/2018-10-01/compute/resourceskus.go",
+        "services/compute/mgmt/2018-10-01/compute/snapshots.go",
+        "services/compute/mgmt/2018-10-01/compute/usage.go",
+        "services/compute/mgmt/2018-10-01/compute/version.go",
+        "services/compute/mgmt/2018-10-01/compute/virtualmachineextensionimages.go",
+        "services/compute/mgmt/2018-10-01/compute/virtualmachineextensions.go",
+        "services/compute/mgmt/2018-10-01/compute/virtualmachineimages.go",
+        "services/compute/mgmt/2018-10-01/compute/virtualmachineruncommands.go",
+        "services/compute/mgmt/2018-10-01/compute/virtualmachines.go",
+        "services/compute/mgmt/2018-10-01/compute/virtualmachinescalesetextensions.go",
+        "services/compute/mgmt/2018-10-01/compute/virtualmachinescalesetrollingupgrades.go",
+        "services/compute/mgmt/2018-10-01/compute/virtualmachinescalesets.go",
+        "services/compute/mgmt/2018-10-01/compute/virtualmachinescalesetvms.go",
+        "services/compute/mgmt/2018-10-01/compute/virtualmachinesizes.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/Azure/azure-sdk-for-go:_azure-sdk-for-go#download"],
+)
+
+go_library(
+    name = "compute",
+    srcs = [":_compute#go_source"],
+    cover = False,
+    import_path = "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/version",
+        "//third_party/go/github.com/Azure/go-autorest/autorest",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/azure",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/date",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/to",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/validation",
+        "//third_party/go/github.com/Azure/go-autorest/tracing",
+    ],
+)

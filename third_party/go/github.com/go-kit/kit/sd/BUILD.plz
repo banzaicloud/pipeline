@@ -1,0 +1,27 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "sd",
+    srcs = [
+        "sd/doc.go",
+        "sd/endpoint_cache.go",
+        "sd/endpointer.go",
+        "sd/factory.go",
+        "sd/instancer.go",
+        "sd/registrar.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/go-kit/kit:_kit#download"],
+)
+
+go_library(
+    name = "sd",
+    srcs = [":_sd#go_source"],
+    cover = False,
+    import_path = "github.com/go-kit/kit/sd",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/go-kit/kit/endpoint",
+        "//third_party/go/github.com/go-kit/kit/log",
+    ],
+)

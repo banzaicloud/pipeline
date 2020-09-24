@@ -1,0 +1,45 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "ssh",
+    srcs = [
+        "ssh/buffer.go",
+        "ssh/certs.go",
+        "ssh/channel.go",
+        "ssh/cipher.go",
+        "ssh/client.go",
+        "ssh/client_auth.go",
+        "ssh/common.go",
+        "ssh/connection.go",
+        "ssh/doc.go",
+        "ssh/handshake.go",
+        "ssh/kex.go",
+        "ssh/keys.go",
+        "ssh/mac.go",
+        "ssh/messages.go",
+        "ssh/mux.go",
+        "ssh/server.go",
+        "ssh/session.go",
+        "ssh/ssh_gss.go",
+        "ssh/streamlocal.go",
+        "ssh/tcpip.go",
+        "ssh/transport.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/crypto:_crypto#download"],
+)
+
+go_library(
+    name = "ssh",
+    srcs = [":_ssh#go_source"],
+    cover = False,
+    import_path = "golang.org/x/crypto/ssh",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/crypto/chacha20",
+        "//third_party/go/golang.org/x/crypto/curve25519",
+        "//third_party/go/golang.org/x/crypto/ed25519",
+        "//third_party/go/golang.org/x/crypto/poly1305",
+        "//third_party/go/golang.org/x/crypto/ssh/internal/bcrypt_pbkdf",
+    ],
+)

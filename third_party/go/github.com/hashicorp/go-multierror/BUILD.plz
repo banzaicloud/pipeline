@@ -1,0 +1,33 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-multierror",
+    module = "github.com/hashicorp/go-multierror",
+    sum = "h1:iVjPR7a6H0tWELX5NxNe7bYopibicUzc7uPribsnS6o=",
+    tag = "download",
+    version = "v1.0.0",
+    visibility = ["//third_party/go/github.com/hashicorp/go-multierror/..."],
+)
+
+fileexport(
+    name = "go-multierror",
+    srcs = [
+        "append.go",
+        "flatten.go",
+        "format.go",
+        "multierror.go",
+        "prefix.go",
+        "sort.go",
+    ],
+    tag = "go_source",
+    deps = [":_go-multierror#download"],
+)
+
+go_library(
+    name = "go-multierror",
+    srcs = [":_go-multierror#go_source"],
+    cover = False,
+    import_path = "github.com/hashicorp/go-multierror",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/hashicorp/errwrap"],
+)

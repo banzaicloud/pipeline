@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "mysql",
+    srcs = ["dialects/mysql/mysql.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/jinzhu/gorm:_gorm#download"],
+)
+
+go_library(
+    name = "mysql",
+    srcs = [":_mysql#go_source"],
+    cover = False,
+    import_path = "github.com/jinzhu/gorm/dialects/mysql",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/go-sql-driver/mysql"],
+)

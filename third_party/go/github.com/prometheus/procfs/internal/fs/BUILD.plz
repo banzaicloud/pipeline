@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "fs",
+    srcs = ["internal/fs/fs.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/prometheus/procfs:_procfs#download"],
+)
+
+go_library(
+    name = "fs",
+    srcs = [":_fs#go_source"],
+    cover = False,
+    import_path = "github.com/prometheus/procfs/internal/fs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "v1beta1",
+    srcs = [
+        "authorization/v1beta1/doc.go",
+        "authorization/v1beta1/generated.pb.go",
+        "authorization/v1beta1/register.go",
+        "authorization/v1beta1/types.go",
+        "authorization/v1beta1/types_swagger_doc_generated.go",
+        "authorization/v1beta1/zz_generated.deepcopy.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/api:_api#download"],
+)
+
+go_library(
+    name = "v1beta1",
+    srcs = [":_v1beta1#go_source"],
+    cover = False,
+    import_path = "k8s.io/api/authorization/v1beta1",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/gogo/protobuf/proto",
+        "//third_party/go/github.com/gogo/protobuf/sortkeys",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+    ],
+)

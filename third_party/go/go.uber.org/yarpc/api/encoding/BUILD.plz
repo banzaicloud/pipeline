@@ -1,0 +1,28 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "encoding",
+    srcs = [
+        "api/encoding/call.go",
+        "api/encoding/call_option.go",
+        "api/encoding/doc.go",
+        "api/encoding/inbound_call.go",
+        "api/encoding/outbound_call.go",
+        "api/encoding/stream.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/yarpc:_yarpc#download"],
+)
+
+go_library(
+    name = "encoding",
+    srcs = [":_encoding#go_source"],
+    cover = False,
+    import_path = "go.uber.org/yarpc/api/encoding",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.uber.org/yarpc/api/transport",
+        "//third_party/go/go.uber.org/yarpc/internal/inboundcall",
+        "//third_party/go/go.uber.org/yarpc/yarpcerrors",
+    ],
+)

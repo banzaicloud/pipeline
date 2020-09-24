@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "oid",
+    srcs = [
+        "oid/doc.go",
+        "oid/gen.go",
+        "oid/types.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/lib/pq:_pq#download"],
+)
+
+go_library(
+    name = "oid",
+    srcs = [":_oid#go_source"],
+    cover = False,
+    import_path = "github.com/lib/pq/oid",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

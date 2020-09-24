@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "EventBus",
+    module = "github.com/asaskevich/EventBus",
+    sum = "h1:Shem5lRG4gJyrrg9YMIl7dOQazyWCq0Daz4LjompZ28=",
+    tag = "download",
+    version = "v0.0.0-20180315140547-d46933a94f05",
+    visibility = ["//third_party/go/github.com/asaskevich/EventBus/..."],
+)
+
+fileexport(
+    name = "EventBus",
+    srcs = [
+        "client.go",
+        "event_bus.go",
+        "network_bus.go",
+        "server.go",
+    ],
+    tag = "go_source",
+    deps = [":_EventBus#download"],
+)
+
+go_library(
+    name = "EventBus",
+    srcs = [":_EventBus#go_source"],
+    cover = False,
+    import_path = "github.com/asaskevich/EventBus",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

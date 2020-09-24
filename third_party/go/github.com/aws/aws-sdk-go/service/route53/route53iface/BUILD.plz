@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "route53iface",
+    srcs = ["service/route53/route53iface/interface.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "route53iface",
+    srcs = [":_route53iface#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/service/route53/route53iface",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/request",
+        "//third_party/go/github.com/aws/aws-sdk-go/service/route53",
+    ],
+)

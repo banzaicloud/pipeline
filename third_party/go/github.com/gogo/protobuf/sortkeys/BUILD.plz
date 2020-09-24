@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "sortkeys",
+    srcs = ["sortkeys/sortkeys.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/gogo/protobuf:_protobuf#download"],
+)
+
+go_library(
+    name = "sortkeys",
+    srcs = [":_sortkeys#go_source"],
+    cover = False,
+    import_path = "github.com/gogo/protobuf/sortkeys",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

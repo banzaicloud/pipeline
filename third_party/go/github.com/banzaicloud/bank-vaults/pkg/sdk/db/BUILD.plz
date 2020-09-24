@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "db",
+    srcs = ["db/database.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/banzaicloud/bank-vaults/pkg/sdk:_sdk#download"],
+)
+
+go_library(
+    name = "db",
+    srcs = [":_db#go_source"],
+    cover = False,
+    import_path = "github.com/banzaicloud/bank-vaults/pkg/sdk/db",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/banzaicloud/bank-vaults/pkg/sdk/vault",
+        "//third_party/go/github.com/hashicorp/vault/api",
+    ],
+)

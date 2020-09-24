@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "width",
+    srcs = [
+        "width/gen.go",
+        "width/gen_common.go",
+        "width/gen_trieval.go",
+        "width/kind_string.go",
+        "width/tables10.0.0.go",
+        "width/tables11.0.0.go",
+        "width/tables12.0.0.go",
+        "width/tables9.0.0.go",
+        "width/transform.go",
+        "width/trieval.go",
+        "width/width.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/text:_text#download"],
+)
+
+go_library(
+    name = "width",
+    srcs = [":_width#go_source"],
+    cover = False,
+    import_path = "golang.org/x/text/width",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/golang.org/x/text/transform"],
+)

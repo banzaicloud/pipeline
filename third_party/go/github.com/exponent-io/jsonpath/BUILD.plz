@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "jsonpath",
+    module = "github.com/exponent-io/jsonpath",
+    sum = "h1:105gxyaGwCFad8crR9dcMQWvV9Hvulu6hwUh4tWPJnM=",
+    tag = "download",
+    version = "v0.0.0-20151013193312-d6023ce2651d",
+    visibility = ["//third_party/go/github.com/exponent-io/jsonpath/..."],
+)
+
+fileexport(
+    name = "jsonpath",
+    srcs = [
+        "decoder.go",
+        "path.go",
+        "pathaction.go",
+    ],
+    tag = "go_source",
+    deps = [":_jsonpath#download"],
+)
+
+go_library(
+    name = "jsonpath",
+    srcs = [":_jsonpath#go_source"],
+    cover = False,
+    import_path = "github.com/exponent-io/jsonpath",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -1,0 +1,41 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "validator.v9",
+    module = "gopkg.in/go-playground/validator.v9",
+    sum = "h1:SvGtYmN60a5CVKTOzMSyfzWDeZRxRuGvRQyEAKbw1xc=",
+    tag = "download",
+    version = "v9.29.1",
+    visibility = ["//third_party/go/gopkg.in/go-playground/validator.v9/..."],
+)
+
+fileexport(
+    name = "validator.v9",
+    srcs = [
+        "baked_in.go",
+        "cache.go",
+        "doc.go",
+        "errors.go",
+        "field_level.go",
+        "regexes.go",
+        "struct_level.go",
+        "translations.go",
+        "util.go",
+        "validator.go",
+        "validator_instance.go",
+    ],
+    tag = "go_source",
+    deps = [":_validator.v9#download"],
+)
+
+go_library(
+    name = "validator.v9",
+    srcs = [":_validator.v9#go_source"],
+    cover = False,
+    import_path = "gopkg.in/go-playground/validator.v9",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/go-playground/universal-translator",
+        "//third_party/go/github.com/leodido/go-urn",
+    ],
+)

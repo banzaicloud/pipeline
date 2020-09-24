@@ -1,0 +1,9 @@
+go_library(
+    name = "backoff",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/lestrrat-go/backoff",
+    ],
+)

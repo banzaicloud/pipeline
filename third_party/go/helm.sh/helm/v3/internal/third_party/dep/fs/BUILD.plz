@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "fs",
+    srcs = [
+        "internal/third_party/dep/fs/fs.go",
+        "internal/third_party/dep/fs/rename.go",
+        "internal/third_party/dep/fs/rename_windows.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/helm.sh/helm/v3:_v3#download"],
+)
+
+go_library(
+    name = "fs",
+    srcs = [":_fs#go_source"],
+    cover = False,
+    import_path = "helm.sh/helm/v3/internal/third_party/dep/fs",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/pkg/errors"],
+)

@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-retryablehttp",
+    module = "github.com/hashicorp/go-retryablehttp",
+    sum = "h1:1BZvpawXoJCWX6pNtow9+rpEj+3itIlutiqnntI6jOE=",
+    tag = "download",
+    version = "v0.5.4",
+    visibility = ["//third_party/go/github.com/hashicorp/go-retryablehttp/..."],
+)
+
+fileexport(
+    name = "go-retryablehttp",
+    srcs = ["client.go"],
+    tag = "go_source",
+    deps = [":_go-retryablehttp#download"],
+)
+
+go_library(
+    name = "go-retryablehttp",
+    srcs = [":_go-retryablehttp#go_source"],
+    cover = False,
+    import_path = "github.com/hashicorp/go-retryablehttp",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/hashicorp/go-cleanhttp"],
+)

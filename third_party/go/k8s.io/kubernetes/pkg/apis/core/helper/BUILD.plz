@@ -1,0 +1,27 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "helper",
+    srcs = ["pkg/apis/core/helper/helpers.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/kubernetes:_kubernetes#download"],
+)
+
+go_library(
+    name = "helper",
+    srcs = [":_helper#go_source"],
+    cover = False,
+    import_path = "k8s.io/kubernetes/pkg/apis/core/helper",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/apimachinery/pkg/api/resource",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/conversion",
+        "//third_party/go/k8s.io/apimachinery/pkg/fields",
+        "//third_party/go/k8s.io/apimachinery/pkg/labels",
+        "//third_party/go/k8s.io/apimachinery/pkg/selection",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/sets",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/validation",
+        "//third_party/go/k8s.io/kubernetes/pkg/apis/core",
+    ],
+)

@@ -1,0 +1,45 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "snappy",
+    module = "github.com/golang/snappy",
+    sum = "h1:Qgr9rKW7uDUkrbSmQeiDsGa8SjGyCOGtuasMWwvp2P4=",
+    tag = "download",
+    version = "v0.0.1",
+    visibility = ["//third_party/go/github.com/golang/snappy/..."],
+)
+
+fileexport(
+    name = "snappy",
+    srcs = [
+        "decode.go",
+        "decode_amd64.go",
+        "decode_other.go",
+        "encode.go",
+        "encode_amd64.go",
+        "encode_other.go",
+        "snappy.go",
+    ],
+    tag = "go_source",
+    deps = [":_snappy#download"],
+)
+
+fileexport(
+    name = "snappy",
+    srcs = [
+        "decode_amd64.s",
+        "encode_amd64.s",
+    ],
+    tag = "s_source",
+    deps = [":_snappy#download"],
+)
+
+go_library(
+    name = "snappy",
+    srcs = [":_snappy#go_source"],
+    asm_srcs = [":_snappy#s_source"],
+    cover = False,
+    import_path = "github.com/golang/snappy",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -4,6 +4,11 @@ github_repo(
     revision = "e4fd643c798334dd577fc8bf28d599843bb94fc1",
 )
 
+http_archive(
+    name = "pleasegomod",
+    urls = [f"https://github.com/sagikazarmark/please-go-modules/releases/download/v0.0.7/gogetgen_{CONFIG.HOSTOS}_{CONFIG.HOSTARCH}.tar.gz"],
+)
+
 genrule(
     name = "docker-compose.override.yml",
     srcs = ["docker-compose.override.yml.dist"],

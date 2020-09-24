@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "chart",
+    srcs = [
+        "pkg/chart/chart.go",
+        "pkg/chart/dependency.go",
+        "pkg/chart/errors.go",
+        "pkg/chart/file.go",
+        "pkg/chart/metadata.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/helm.sh/helm/v3:_v3#download"],
+)
+
+go_library(
+    name = "chart",
+    srcs = [":_chart#go_source"],
+    cover = False,
+    import_path = "helm.sh/helm/v3/pkg/chart",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

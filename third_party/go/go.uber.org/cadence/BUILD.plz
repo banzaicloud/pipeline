@@ -1,0 +1,33 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "cadence",
+    module = "go.uber.org/cadence",
+    sum = "h1:gEjiRQHx2+GmQv0ZK/Fi/+/gRIO3QpRb1Wr/ZOxXO2Y=",
+    tag = "download",
+    version = "v0.10.5",
+    visibility = ["//third_party/go/go.uber.org/cadence/..."],
+)
+
+fileexport(
+    name = "cadence",
+    srcs = [
+        "cadence.go",
+        "error.go",
+        "version.go",
+    ],
+    tag = "go_source",
+    deps = [":_cadence#download"],
+)
+
+go_library(
+    name = "cadence",
+    srcs = [":_cadence#go_source"],
+    cover = False,
+    import_path = "go.uber.org/cadence",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.uber.org/cadence/internal",
+        "//third_party/go/go.uber.org/cadence/workflow",
+    ],
+)

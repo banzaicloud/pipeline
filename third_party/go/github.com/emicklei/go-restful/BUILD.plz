@@ -1,0 +1,56 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-restful",
+    module = "github.com/emicklei/go-restful",
+    sum = "h1:spTtZBk5DYEvbxMVutUuTyh1Ao2r4iyvLdACqsl/Ljk=",
+    tag = "download",
+    version = "v2.9.5+incompatible",
+    visibility = ["//third_party/go/github.com/emicklei/go-restful/..."],
+)
+
+fileexport(
+    name = "go-restful",
+    srcs = [
+        "compress.go",
+        "compressor_cache.go",
+        "compressor_pools.go",
+        "compressors.go",
+        "constants.go",
+        "container.go",
+        "cors_filter.go",
+        "curly.go",
+        "curly_route.go",
+        "doc.go",
+        "entity_accessors.go",
+        "filter.go",
+        "json.go",
+        "jsoniter.go",
+        "jsr311.go",
+        "logger.go",
+        "mime.go",
+        "options_filter.go",
+        "parameter.go",
+        "path_expression.go",
+        "path_processor.go",
+        "request.go",
+        "response.go",
+        "route.go",
+        "route_builder.go",
+        "router.go",
+        "service_error.go",
+        "web_service.go",
+        "web_service_container.go",
+    ],
+    tag = "go_source",
+    deps = [":_go-restful#download"],
+)
+
+go_library(
+    name = "go-restful",
+    srcs = [":_go-restful#go_source"],
+    cover = False,
+    import_path = "github.com/emicklei/go-restful",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/emicklei/go-restful/log"],
+)

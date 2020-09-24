@@ -1,0 +1,19 @@
+go_library(
+    name = "autoscaling",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/providers/amazon",
+        "//pkg/providers/amazon/ec2",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/awserr",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/session",
+        "//third_party/go/github.com/aws/aws-sdk-go/service/autoscaling",
+        "//third_party/go/github.com/aws/aws-sdk-go/service/cloudformation",
+        "//third_party/go/github.com/aws/aws-sdk-go/service/ec2",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/github.com/prometheus/client_golang/prometheus",
+        "//third_party/go/logur.dev/logur",
+    ],
+)

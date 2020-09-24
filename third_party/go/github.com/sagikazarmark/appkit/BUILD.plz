@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "appkit",
+    module = "github.com/sagikazarmark/appkit",
+    sum = "h1:/Nv3L9SfbAa/2uM1+jWBPAnfo52Ei/ylwm/Ow1moHkA=",
+    tag = "download",
+    version = "v0.8.0",
+    visibility = ["//third_party/go/github.com/sagikazarmark/appkit/..."],
+)

@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "internal",
+    srcs = ["internal/internal.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/xerrors:_xerrors#download"],
+)
+
+go_library(
+    name = "internal",
+    srcs = [":_internal#go_source"],
+    cover = False,
+    import_path = "golang.org/x/xerrors/internal",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

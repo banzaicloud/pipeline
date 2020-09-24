@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "oraclematcher",
+    srcs = ["internal/oraclematcher/oracle_matcher.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/onsi/gomega:_gomega#download"],
+)
+
+go_library(
+    name = "oraclematcher",
+    srcs = [":_oraclematcher#go_source"],
+    cover = False,
+    import_path = "github.com/onsi/gomega/internal/oraclematcher",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/onsi/gomega/types"],
+)

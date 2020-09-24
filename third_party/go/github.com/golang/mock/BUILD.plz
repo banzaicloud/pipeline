@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "mock",
+    module = "github.com/golang/mock",
+    sum = "h1:GV+pQPG/EUUbkh47niozDcADz6go/dUwhVzdUQHIVRw=",
+    tag = "download",
+    version = "v1.4.3",
+    visibility = ["//third_party/go/github.com/golang/mock/..."],
+)

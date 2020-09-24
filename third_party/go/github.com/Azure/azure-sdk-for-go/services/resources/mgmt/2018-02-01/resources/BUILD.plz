@@ -1,0 +1,35 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "resources",
+    srcs = [
+        "services/resources/mgmt/2018-02-01/resources/client.go",
+        "services/resources/mgmt/2018-02-01/resources/deploymentoperations.go",
+        "services/resources/mgmt/2018-02-01/resources/deployments.go",
+        "services/resources/mgmt/2018-02-01/resources/groups.go",
+        "services/resources/mgmt/2018-02-01/resources/models.go",
+        "services/resources/mgmt/2018-02-01/resources/providers.go",
+        "services/resources/mgmt/2018-02-01/resources/resources.go",
+        "services/resources/mgmt/2018-02-01/resources/tags.go",
+        "services/resources/mgmt/2018-02-01/resources/version.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/Azure/azure-sdk-for-go:_azure-sdk-for-go#download"],
+)
+
+go_library(
+    name = "resources",
+    srcs = [":_resources#go_source"],
+    cover = False,
+    import_path = "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/version",
+        "//third_party/go/github.com/Azure/go-autorest/autorest",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/azure",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/date",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/to",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/validation",
+        "//third_party/go/github.com/Azure/go-autorest/tracing",
+    ],
+)

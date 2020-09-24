@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "auth_identity",
+    srcs = [
+        "auth_identity/auth_identity.go",
+        "auth_identity/sign_logs.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/qor/auth:_auth#download"],
+)
+
+go_library(
+    name = "auth_identity",
+    srcs = [":_auth_identity#go_source"],
+    cover = False,
+    import_path = "github.com/qor/auth/auth_identity",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/jinzhu/gorm",
+        "//third_party/go/github.com/qor/auth/claims",
+    ],
+)

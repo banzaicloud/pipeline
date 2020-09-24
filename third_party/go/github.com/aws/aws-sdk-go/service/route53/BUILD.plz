@@ -1,0 +1,36 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "route53",
+    srcs = [
+        "service/route53/api.go",
+        "service/route53/customizations.go",
+        "service/route53/doc.go",
+        "service/route53/errors.go",
+        "service/route53/service.go",
+        "service/route53/unmarshal_error.go",
+        "service/route53/waiters.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "route53",
+    srcs = [":_route53#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/service/route53",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/awserr",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/awsutil",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/client",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/client/metadata",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/request",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/signer/v4",
+        "//third_party/go/github.com/aws/aws-sdk-go/private/protocol",
+        "//third_party/go/github.com/aws/aws-sdk-go/private/protocol/restxml",
+        "//third_party/go/github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil",
+    ],
+)

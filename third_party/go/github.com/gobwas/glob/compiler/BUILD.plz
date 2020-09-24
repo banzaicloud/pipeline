@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "compiler",
+    srcs = ["compiler/compiler.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/gobwas/glob:_glob#download"],
+)
+
+go_library(
+    name = "compiler",
+    srcs = [":_compiler#go_source"],
+    cover = False,
+    import_path = "github.com/gobwas/glob/compiler",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/gobwas/glob/match",
+        "//third_party/go/github.com/gobwas/glob/syntax/ast",
+        "//third_party/go/github.com/gobwas/glob/util/runes",
+    ],
+)

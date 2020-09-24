@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-gin-prometheus",
+    module = "github.com/banzaicloud/go-gin-prometheus",
+    sum = "h1:zetacN1k3svVc7DtzGfpHA49uO0G8cwsiP5qSuUUQKs=",
+    tag = "download",
+    version = "v0.1.0",
+    visibility = ["//third_party/go/github.com/banzaicloud/go-gin-prometheus/..."],
+)
+
+fileexport(
+    name = "go-gin-prometheus",
+    srcs = ["middleware.go"],
+    tag = "go_source",
+    deps = [":_go-gin-prometheus#download"],
+)
+
+go_library(
+    name = "go-gin-prometheus",
+    srcs = [":_go-gin-prometheus#go_source"],
+    cover = False,
+    import_path = "github.com/banzaicloud/go-gin-prometheus",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/gin-gonic/gin",
+        "//third_party/go/github.com/prometheus/client_golang/prometheus",
+        "//third_party/go/github.com/prometheus/client_golang/prometheus/promhttp",
+        "//third_party/go/github.com/sirupsen/logrus",
+    ],
+)

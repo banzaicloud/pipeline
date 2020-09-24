@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "oci-go-sdk",
+    module = "github.com/oracle/oci-go-sdk",
+    sum = "h1:XKS5XdG4ZGCXsvS0WcqBn/qOGo4EIfL4egx9jo3ackM=",
+    tag = "download",
+    version = "v2.0.0+incompatible",
+    visibility = ["//third_party/go/github.com/oracle/oci-go-sdk/..."],
+)

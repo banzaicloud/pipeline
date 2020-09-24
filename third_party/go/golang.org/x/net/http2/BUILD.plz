@@ -1,0 +1,40 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "http2",
+    srcs = [
+        "http2/ciphers.go",
+        "http2/client_conn_pool.go",
+        "http2/databuffer.go",
+        "http2/errors.go",
+        "http2/flow.go",
+        "http2/frame.go",
+        "http2/go111.go",
+        "http2/gotrack.go",
+        "http2/headermap.go",
+        "http2/http2.go",
+        "http2/not_go111.go",
+        "http2/pipe.go",
+        "http2/server.go",
+        "http2/transport.go",
+        "http2/write.go",
+        "http2/writesched.go",
+        "http2/writesched_priority.go",
+        "http2/writesched_random.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/net:_net#download"],
+)
+
+go_library(
+    name = "http2",
+    srcs = [":_http2#go_source"],
+    cover = False,
+    import_path = "golang.org/x/net/http2",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/net/http/httpguts",
+        "//third_party/go/golang.org/x/net/http2/hpack",
+        "//third_party/go/golang.org/x/net/idna",
+    ],
+)

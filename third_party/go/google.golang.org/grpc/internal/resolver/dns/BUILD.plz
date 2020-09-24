@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "dns",
+    srcs = [
+        "internal/resolver/dns/dns_resolver.go",
+        "internal/resolver/dns/go113.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/grpc:_grpc#download"],
+)
+
+go_library(
+    name = "dns",
+    srcs = [":_dns#go_source"],
+    cover = False,
+    import_path = "google.golang.org/grpc/internal/resolver/dns",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/google.golang.org/grpc/grpclog",
+        "//third_party/go/google.golang.org/grpc/internal/envconfig",
+        "//third_party/go/google.golang.org/grpc/internal/grpcrand",
+        "//third_party/go/google.golang.org/grpc/resolver",
+        "//third_party/go/google.golang.org/grpc/serviceconfig",
+    ],
+)

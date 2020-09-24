@@ -1,0 +1,47 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "client",
+    srcs = [
+        "pkg/client/client.go",
+        "pkg/client/client_cache.go",
+        "pkg/client/codec.go",
+        "pkg/client/doc.go",
+        "pkg/client/dryrun.go",
+        "pkg/client/interfaces.go",
+        "pkg/client/options.go",
+        "pkg/client/patch.go",
+        "pkg/client/split.go",
+        "pkg/client/typed_client.go",
+        "pkg/client/unstructured_client.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/controller-runtime:_controller-runtime#download"],
+)
+
+go_library(
+    name = "client",
+    srcs = [":_client#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/controller-runtime/pkg/client",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/evanphx/json-patch",
+        "//third_party/go/k8s.io/apimachinery/pkg/api/errors",
+        "//third_party/go/k8s.io/apimachinery/pkg/api/meta",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
+        "//third_party/go/k8s.io/apimachinery/pkg/conversion/queryparams",
+        "//third_party/go/k8s.io/apimachinery/pkg/fields",
+        "//third_party/go/k8s.io/apimachinery/pkg/labels",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/serializer",
+        "//third_party/go/k8s.io/apimachinery/pkg/selection",
+        "//third_party/go/k8s.io/apimachinery/pkg/types",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/json",
+        "//third_party/go/k8s.io/client-go/kubernetes/scheme",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/sigs.k8s.io/controller-runtime/pkg/client/apiutil",
+    ],
+)

@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "sql-migrate",
+    module = "github.com/rubenv/sql-migrate",
+    sum = "h1:xkBtI5JktwbW/vf4vopBbhYsRFTGfQWHYXzC0/qYwxI=",
+    tag = "download",
+    version = "v0.0.0-20200212082348-64f95ea68aa3",
+    visibility = ["//third_party/go/github.com/rubenv/sql-migrate/..."],
+)
+
+fileexport(
+    name = "sql-migrate",
+    srcs = [
+        "doc.go",
+        "migrate.go",
+    ],
+    tag = "go_source",
+    deps = [":_sql-migrate#download"],
+)
+
+go_library(
+    name = "sql-migrate",
+    srcs = [":_sql-migrate#go_source"],
+    cover = False,
+    import_path = "github.com/rubenv/sql-migrate",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/rubenv/sql-migrate/sqlparse",
+        "//third_party/go/gopkg.in/gorp.v1",
+    ],
+)

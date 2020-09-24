@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "cache",
+    srcs = [
+        "internal/common/cache/cache.go",
+        "internal/common/cache/lru.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/cadence:_cadence#download"],
+)
+
+go_library(
+    name = "cache",
+    srcs = [":_cache#go_source"],
+    cover = False,
+    import_path = "go.uber.org/cadence/internal/common/cache",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

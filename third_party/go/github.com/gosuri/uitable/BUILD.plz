@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "uitable",
+    module = "github.com/gosuri/uitable",
+    sum = "h1:IG2xLKRvErL3uhY6e1BylFzG+aJiwQviDDTfOKeKTpY=",
+    tag = "download",
+    version = "v0.0.4",
+    visibility = ["//third_party/go/github.com/gosuri/uitable/..."],
+)
+
+fileexport(
+    name = "uitable",
+    srcs = ["table.go"],
+    tag = "go_source",
+    deps = [":_uitable#download"],
+)
+
+go_library(
+    name = "uitable",
+    srcs = [":_uitable#go_source"],
+    cover = False,
+    import_path = "github.com/gosuri/uitable",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/fatih/color",
+        "//third_party/go/github.com/gosuri/uitable/util/strutil",
+        "//third_party/go/github.com/gosuri/uitable/util/wordwrap",
+    ],
+)

@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "internalversion",
+    srcs = [
+        "pkg/apis/meta/internalversion/doc.go",
+        "pkg/apis/meta/internalversion/register.go",
+        "pkg/apis/meta/internalversion/types.go",
+        "pkg/apis/meta/internalversion/zz_generated.conversion.go",
+        "pkg/apis/meta/internalversion/zz_generated.deepcopy.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "internalversion",
+    srcs = [":_internalversion#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/pkg/apis/meta/internalversion",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1beta1",
+        "//third_party/go/k8s.io/apimachinery/pkg/conversion",
+        "//third_party/go/k8s.io/apimachinery/pkg/fields",
+        "//third_party/go/k8s.io/apimachinery/pkg/labels",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+    ],
+)

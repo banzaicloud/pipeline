@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "exit",
+    srcs = ["internal/exit/exit.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/zap:_zap#download"],
+)
+
+go_library(
+    name = "exit",
+    srcs = [":_exit#go_source"],
+    cover = False,
+    import_path = "go.uber.org/zap/internal/exit",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

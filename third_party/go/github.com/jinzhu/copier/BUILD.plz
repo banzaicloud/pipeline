@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "copier",
+    module = "github.com/jinzhu/copier",
+    sum = "h1:zPPuIq2jAWWPTrGt70eK/BSch+gFAGrNzecsoENgu2o=",
+    tag = "download",
+    version = "v0.0.0-20190924061706-b57f9002281a",
+    visibility = ["//third_party/go/github.com/jinzhu/copier/..."],
+)
+
+fileexport(
+    name = "copier",
+    srcs = ["copier.go"],
+    tag = "go_source",
+    deps = [":_copier#download"],
+)
+
+go_library(
+    name = "copier",
+    srcs = [":_copier#go_source"],
+    cover = False,
+    import_path = "github.com/jinzhu/copier",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "sync",
+    module = "golang.org/x/sync",
+    sum = "h1:vcxGaoTs7kV8m5Np9uUNQin4BrLOthgV7252N8V+FwY=",
+    tag = "download",
+    version = "v0.0.0-20190911185100-cd5d95a43a6e",
+    visibility = ["//third_party/go/golang.org/x/sync/..."],
+)

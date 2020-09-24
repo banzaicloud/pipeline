@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "httpcache",
+    module = "github.com/gregjones/httpcache",
+    sum = "h1:pdN6V1QBWetyv/0+wjACpqVH+eVULgEjkurDLq3goeM=",
+    tag = "download",
+    version = "v0.0.0-20180305231024-9cad4c3443a7",
+    visibility = ["//third_party/go/github.com/gregjones/httpcache/..."],
+)
+
+fileexport(
+    name = "httpcache",
+    srcs = ["httpcache.go"],
+    tag = "go_source",
+    deps = [":_httpcache#download"],
+)
+
+go_library(
+    name = "httpcache",
+    srcs = [":_httpcache#go_source"],
+    cover = False,
+    import_path = "github.com/gregjones/httpcache",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

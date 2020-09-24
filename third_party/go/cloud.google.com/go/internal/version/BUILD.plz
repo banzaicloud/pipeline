@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "version",
+    srcs = ["internal/version/version.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/cloud.google.com/go:_go#download"],
+)
+
+go_library(
+    name = "version",
+    srcs = [":_version#go_source"],
+    cover = False,
+    import_path = "cloud.google.com/go/internal/version",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

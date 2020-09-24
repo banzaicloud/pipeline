@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "iam",
+    srcs = ["iam/iam.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/cloud.google.com/go:_go#download"],
+)
+
+go_library(
+    name = "iam",
+    srcs = [":_iam#go_source"],
+    cover = False,
+    import_path = "cloud.google.com/go/iam",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/googleapis/gax-go/v2",
+        "//third_party/go/google.golang.org/genproto/googleapis/iam/v1",
+        "//third_party/go/google.golang.org/grpc",
+        "//third_party/go/google.golang.org/grpc/codes",
+        "//third_party/go/google.golang.org/grpc/metadata",
+    ],
+)

@@ -1,0 +1,42 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "match",
+    srcs = [
+        "match/any.go",
+        "match/any_of.go",
+        "match/btree.go",
+        "match/contains.go",
+        "match/every_of.go",
+        "match/list.go",
+        "match/match.go",
+        "match/max.go",
+        "match/min.go",
+        "match/nothing.go",
+        "match/prefix.go",
+        "match/prefix_any.go",
+        "match/prefix_suffix.go",
+        "match/range.go",
+        "match/row.go",
+        "match/segments.go",
+        "match/single.go",
+        "match/suffix.go",
+        "match/suffix_any.go",
+        "match/super.go",
+        "match/text.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/gobwas/glob:_glob#download"],
+)
+
+go_library(
+    name = "match",
+    srcs = [":_match#go_source"],
+    cover = False,
+    import_path = "github.com/gobwas/glob/match",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/gobwas/glob/util/runes",
+        "//third_party/go/github.com/gobwas/glob/util/strings",
+    ],
+)

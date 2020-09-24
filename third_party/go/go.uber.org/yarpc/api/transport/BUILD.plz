@@ -1,0 +1,43 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "transport",
+    srcs = [
+        "api/transport/ack.go",
+        "api/transport/clientconfig.go",
+        "api/transport/compression.go",
+        "api/transport/errors.go",
+        "api/transport/handler.go",
+        "api/transport/handler_invoker.go",
+        "api/transport/header.go",
+        "api/transport/inbound.go",
+        "api/transport/lifecycle.go",
+        "api/transport/outbound.go",
+        "api/transport/outboundconfig.go",
+        "api/transport/propagation.go",
+        "api/transport/request.go",
+        "api/transport/response.go",
+        "api/transport/router.go",
+        "api/transport/stream.go",
+        "api/transport/transport.go",
+        "api/transport/type_string.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/yarpc:_yarpc#download"],
+)
+
+go_library(
+    name = "transport",
+    srcs = [":_transport#go_source"],
+    cover = False,
+    import_path = "go.uber.org/yarpc/api/transport",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/opentracing/opentracing-go",
+        "//third_party/go/github.com/opentracing/opentracing-go/ext",
+        "//third_party/go/github.com/opentracing/opentracing-go/log",
+        "//third_party/go/go.uber.org/yarpc/yarpcerrors",
+        "//third_party/go/go.uber.org/zap",
+        "//third_party/go/go.uber.org/zap/zapcore",
+    ],
+)

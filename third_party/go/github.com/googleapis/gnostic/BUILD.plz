@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "gnostic",
+    module = "github.com/googleapis/gnostic",
+    sum = "h1:WeAefnSUHlBb0iJKwxFDZdbfGwkd7xRNuV+IpXMJhYk=",
+    tag = "download",
+    version = "v0.3.1",
+    visibility = ["//third_party/go/github.com/googleapis/gnostic/..."],
+)

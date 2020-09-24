@@ -1,0 +1,50 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "runtime",
+    srcs = [
+        "pkg/runtime/codec.go",
+        "pkg/runtime/codec_check.go",
+        "pkg/runtime/conversion.go",
+        "pkg/runtime/converter.go",
+        "pkg/runtime/doc.go",
+        "pkg/runtime/embedded.go",
+        "pkg/runtime/error.go",
+        "pkg/runtime/extension.go",
+        "pkg/runtime/generated.pb.go",
+        "pkg/runtime/helper.go",
+        "pkg/runtime/interfaces.go",
+        "pkg/runtime/mapper.go",
+        "pkg/runtime/negotiate.go",
+        "pkg/runtime/register.go",
+        "pkg/runtime/scheme.go",
+        "pkg/runtime/scheme_builder.go",
+        "pkg/runtime/swagger_doc_generator.go",
+        "pkg/runtime/types.go",
+        "pkg/runtime/types_proto.go",
+        "pkg/runtime/zz_generated.deepcopy.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "runtime",
+    srcs = [":_runtime#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/pkg/runtime",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/gogo/protobuf/proto",
+        "//third_party/go/k8s.io/apimachinery/pkg/conversion",
+        "//third_party/go/k8s.io/apimachinery/pkg/conversion/queryparams",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/errors",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/json",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/naming",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/sets",
+        "//third_party/go/k8s.io/klog",
+        "//third_party/go/sigs.k8s.io/structured-merge-diff/v3/value",
+    ],
+)

@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "tracing",
+    module = "github.com/Azure/go-autorest/tracing",
+    sum = "h1:TYi4+3m5t6K48TGI9AUdb+IzbnSxvnvUMfuitfgcfuo=",
+    tag = "download",
+    version = "v0.6.0",
+    visibility = ["//third_party/go/github.com/Azure/go-autorest/tracing/..."],
+)
+
+fileexport(
+    name = "tracing",
+    srcs = [
+        "go_mod_tidy_hack.go",
+        "tracing.go",
+    ],
+    tag = "go_source",
+    deps = [":_tracing#download"],
+)
+
+go_library(
+    name = "tracing",
+    srcs = [":_tracing#go_source"],
+    cover = False,
+    import_path = "github.com/Azure/go-autorest/tracing",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

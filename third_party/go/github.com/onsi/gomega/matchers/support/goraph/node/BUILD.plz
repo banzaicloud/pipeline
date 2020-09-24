@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "node",
+    srcs = ["matchers/support/goraph/node/node.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/onsi/gomega:_gomega#download"],
+)
+
+go_library(
+    name = "node",
+    srcs = [":_node#go_source"],
+    cover = False,
+    import_path = "github.com/onsi/gomega/matchers/support/goraph/node",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

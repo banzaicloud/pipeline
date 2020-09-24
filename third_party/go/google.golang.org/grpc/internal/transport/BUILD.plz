@@ -1,0 +1,46 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "transport",
+    srcs = [
+        "internal/transport/bdp_estimator.go",
+        "internal/transport/controlbuf.go",
+        "internal/transport/defaults.go",
+        "internal/transport/flowcontrol.go",
+        "internal/transport/handler_server.go",
+        "internal/transport/http2_client.go",
+        "internal/transport/http2_server.go",
+        "internal/transport/http_util.go",
+        "internal/transport/log.go",
+        "internal/transport/transport.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/grpc:_grpc#download"],
+)
+
+go_library(
+    name = "transport",
+    srcs = [":_transport#go_source"],
+    cover = False,
+    import_path = "google.golang.org/grpc/internal/transport",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/golang/protobuf/proto",
+        "//third_party/go/golang.org/x/net/http2",
+        "//third_party/go/golang.org/x/net/http2/hpack",
+        "//third_party/go/google.golang.org/genproto/googleapis/rpc/status",
+        "//third_party/go/google.golang.org/grpc/codes",
+        "//third_party/go/google.golang.org/grpc/credentials",
+        "//third_party/go/google.golang.org/grpc/grpclog",
+        "//third_party/go/google.golang.org/grpc/internal",
+        "//third_party/go/google.golang.org/grpc/internal/channelz",
+        "//third_party/go/google.golang.org/grpc/internal/grpcrand",
+        "//third_party/go/google.golang.org/grpc/internal/syscall",
+        "//third_party/go/google.golang.org/grpc/keepalive",
+        "//third_party/go/google.golang.org/grpc/metadata",
+        "//third_party/go/google.golang.org/grpc/peer",
+        "//third_party/go/google.golang.org/grpc/stats",
+        "//third_party/go/google.golang.org/grpc/status",
+        "//third_party/go/google.golang.org/grpc/tap",
+    ],
+)

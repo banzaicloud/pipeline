@@ -1,0 +1,27 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "protobuf",
+    srcs = [
+        "pkg/runtime/serializer/protobuf/doc.go",
+        "pkg/runtime/serializer/protobuf/protobuf.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "protobuf",
+    srcs = [":_protobuf#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/pkg/runtime/serializer/protobuf",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/gogo/protobuf/proto",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/serializer/recognizer",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/framer",
+    ],
+)

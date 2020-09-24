@@ -1,0 +1,33 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "mailer",
+    module = "github.com/qor/mailer",
+    sum = "h1:xD5EB1F5pmi1J48juHXdlOdLrhu/i7c7zvHdzgLMEJ4=",
+    tag = "download",
+    version = "v0.0.0-20170814094430-1e6ac7106955",
+    visibility = ["//third_party/go/github.com/qor/mailer/..."],
+)
+
+fileexport(
+    name = "mailer",
+    srcs = [
+        "email.go",
+        "mailer.go",
+        "template.go",
+    ],
+    tag = "go_source",
+    deps = [":_mailer#download"],
+)
+
+go_library(
+    name = "mailer",
+    srcs = [":_mailer#go_source"],
+    cover = False,
+    import_path = "github.com/qor/mailer",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/qor/assetfs",
+        "//third_party/go/github.com/qor/render",
+    ],
+)

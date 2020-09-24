@@ -1,0 +1,22 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "spdy",
+    srcs = [
+        "spdy/dictionary.go",
+        "spdy/read.go",
+        "spdy/types.go",
+        "spdy/write.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/docker/spdystream:_spdystream#download"],
+)
+
+go_library(
+    name = "spdy",
+    srcs = [":_spdy#go_source"],
+    cover = False,
+    import_path = "github.com/docker/spdystream/spdy",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

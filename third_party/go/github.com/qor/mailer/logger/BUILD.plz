@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "logger",
+    srcs = ["logger/logger.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/qor/mailer:_mailer#download"],
+)
+
+go_library(
+    name = "logger",
+    srcs = [":_logger#go_source"],
+    cover = False,
+    import_path = "github.com/qor/mailer/logger",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/qor/mailer",
+        "//third_party/go/gopkg.in/gomail.v2",
+    ],
+)

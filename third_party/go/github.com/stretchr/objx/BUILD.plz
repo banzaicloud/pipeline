@@ -1,0 +1,37 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "objx",
+    module = "github.com/stretchr/objx",
+    sum = "h1:Hbg2NidpLE8veEBkEZTL3CvlkUIVzuU9jDplZO54c48=",
+    tag = "download",
+    version = "v0.2.0",
+    visibility = ["//third_party/go/github.com/stretchr/objx/..."],
+)
+
+fileexport(
+    name = "objx",
+    srcs = [
+        "accessors.go",
+        "conversions.go",
+        "doc.go",
+        "map.go",
+        "mutations.go",
+        "security.go",
+        "tests.go",
+        "type_specific.go",
+        "type_specific_codegen.go",
+        "value.go",
+    ],
+    tag = "go_source",
+    deps = [":_objx#download"],
+)
+
+go_library(
+    name = "objx",
+    srcs = [":_objx#go_source"],
+    cover = False,
+    import_path = "github.com/stretchr/objx",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "inf.v0",
+    module = "gopkg.in/inf.v0",
+    sum = "h1:73M5CoZyi3ZLMOyDlQh031Cx6N9NDJ2Vvfl76EDAgDc=",
+    tag = "download",
+    version = "v0.9.1",
+    visibility = ["//third_party/go/gopkg.in/inf.v0/..."],
+)
+
+fileexport(
+    name = "inf.v0",
+    srcs = [
+        "dec.go",
+        "rounder.go",
+    ],
+    tag = "go_source",
+    deps = [":_inf.v0#download"],
+)
+
+go_library(
+    name = "inf.v0",
+    srcs = [":_inf.v0#go_source"],
+    cover = False,
+    import_path = "gopkg.in/inf.v0",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

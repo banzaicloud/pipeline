@@ -1,0 +1,37 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "ini.v1",
+    module = "gopkg.in/ini.v1",
+    sum = "h1:AQvPpx3LzTDM0AjnIRlVFwFFGC+npRopjZxLJj6gdno=",
+    tag = "download",
+    version = "v1.51.0",
+    visibility = ["//third_party/go/gopkg.in/ini.v1/..."],
+)
+
+fileexport(
+    name = "ini.v1",
+    srcs = [
+        "data_source.go",
+        "deprecated.go",
+        "error.go",
+        "file.go",
+        "helper.go",
+        "ini.go",
+        "key.go",
+        "parser.go",
+        "section.go",
+        "struct.go",
+    ],
+    tag = "go_source",
+    deps = [":_ini.v1#download"],
+)
+
+go_library(
+    name = "ini.v1",
+    srcs = [":_ini.v1#go_source"],
+    cover = False,
+    import_path = "gopkg.in/ini.v1",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

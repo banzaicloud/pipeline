@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "requests",
+    srcs = [
+        "sdk/requests/acs_request.go",
+        "sdk/requests/common_request.go",
+        "sdk/requests/roa_request.go",
+        "sdk/requests/rpc_request.go",
+        "sdk/requests/types.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go:_alibaba-cloud-sdk-go#download"],
+)
+
+go_library(
+    name = "requests",
+    srcs = [":_requests#go_source"],
+    cover = False,
+    import_path = "github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils",
+    ],
+)

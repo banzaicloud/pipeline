@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "generic",
+    srcs = ["pkg/client/generic/genericclient.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kubefed:_kubefed#download"],
+)
+
+go_library(
+    name = "generic",
+    srcs = [":_generic#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kubefed/pkg/client/generic",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/apimachinery/pkg/api/meta",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/sigs.k8s.io/controller-runtime/pkg/client",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/client/generic/scheme",
+    ],
+)

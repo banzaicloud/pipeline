@@ -1,0 +1,28 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "util",
+    srcs = [
+        "pkg/kubefedctl/util/util.go",
+        "pkg/kubefedctl/util/yaml_writer.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kubefed:_kubefed#download"],
+)
+
+go_library(
+    name = "util",
+    srcs = [":_util#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kubefed/pkg/kubefedctl/util",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/ghodss/yaml",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
+        "//third_party/go/k8s.io/client-go/kubernetes",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/k8s.io/client-go/tools/clientcmd",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/kubefedctl/options",
+    ],
+)

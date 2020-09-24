@@ -1,0 +1,34 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "mux",
+    module = "github.com/gorilla/mux",
+    sum = "h1:gnP5JzjVOuiZD07fKKToCAOjS0yOpj/qPETTXCCS6hw=",
+    tag = "download",
+    version = "v1.7.3",
+    visibility = ["//third_party/go/github.com/gorilla/mux/..."],
+)
+
+fileexport(
+    name = "mux",
+    srcs = [
+        "context.go",
+        "doc.go",
+        "middleware.go",
+        "mux.go",
+        "regexp.go",
+        "route.go",
+        "test_helpers.go",
+    ],
+    tag = "go_source",
+    deps = [":_mux#download"],
+)
+
+go_library(
+    name = "mux",
+    srcs = [":_mux#go_source"],
+    cover = False,
+    import_path = "github.com/gorilla/mux",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

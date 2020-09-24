@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "resmap",
+    srcs = [
+        "pkg/resmap/factory.go",
+        "pkg/resmap/idslice.go",
+        "pkg/resmap/resmap.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kustomize:_kustomize#download"],
+)
+
+go_library(
+    name = "resmap",
+    srcs = [":_resmap#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kustomize/pkg/resmap",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/ghodss/yaml",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/ifc",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/internal/error",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/resid",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/resource",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/types",
+    ],
+)

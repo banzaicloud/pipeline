@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "jsonutil",
+    srcs = ["helper/jsonutil/json.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/hashicorp/vault/sdk:_sdk#download"],
+)
+
+go_library(
+    name = "jsonutil",
+    srcs = [":_jsonutil#go_source"],
+    cover = False,
+    import_path = "github.com/hashicorp/vault/sdk/helper/jsonutil",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/hashicorp/errwrap",
+        "//third_party/go/github.com/hashicorp/vault/sdk/helper/compressutil",
+    ],
+)

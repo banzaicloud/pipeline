@@ -1,0 +1,24 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "introspection",
+    srcs = [
+        "internal/introspection/chooser.go",
+        "internal/introspection/dispatcher.go",
+        "internal/introspection/inbound.go",
+        "internal/introspection/outbound.go",
+        "internal/introspection/package.go",
+        "internal/introspection/router.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/yarpc:_yarpc#download"],
+)
+
+go_library(
+    name = "introspection",
+    srcs = [":_introspection#go_source"],
+    cover = False,
+    import_path = "go.uber.org/yarpc/internal/introspection",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/go.uber.org/yarpc/api/transport"],
+)

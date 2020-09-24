@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "gofuzz",
+    module = "github.com/google/gofuzz",
+    sum = "h1:Hsa8mG0dQ46ij8Sl2AYJDUv1oA9/d6Vk+3LG99Oe02g=",
+    tag = "download",
+    version = "v1.1.0",
+    visibility = ["//third_party/go/github.com/google/gofuzz/..."],
+)
+
+fileexport(
+    name = "gofuzz",
+    srcs = [
+        "doc.go",
+        "fuzz.go",
+    ],
+    tag = "go_source",
+    deps = [":_gofuzz#download"],
+)
+
+go_library(
+    name = "gofuzz",
+    srcs = [":_gofuzz#go_source"],
+    cover = False,
+    import_path = "github.com/google/gofuzz",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

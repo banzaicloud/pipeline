@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "transformer",
+    srcs = [
+        "pkg/patch/transformer/factory.go",
+        "pkg/patch/transformer/patchjson6902json.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kustomize:_kustomize#download"],
+)
+
+go_library(
+    name = "transformer",
+    srcs = [":_transformer#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kustomize/pkg/patch/transformer",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/evanphx/json-patch",
+        "//third_party/go/github.com/ghodss/yaml",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/gvk",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/ifc",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/patch",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/resid",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/resmap",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/resource",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/transformers",
+    ],
+)

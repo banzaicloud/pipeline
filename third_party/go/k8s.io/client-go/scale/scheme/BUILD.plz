@@ -1,0 +1,27 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "scheme",
+    srcs = [
+        "scale/scheme/doc.go",
+        "scale/scheme/register.go",
+        "scale/scheme/types.go",
+        "scale/scheme/zz_generated.deepcopy.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "scheme",
+    srcs = [":_scheme#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/scale/scheme",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/api/autoscaling/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+    ],
+)

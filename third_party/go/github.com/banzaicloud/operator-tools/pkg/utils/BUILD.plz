@@ -1,0 +1,27 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "utils",
+    srcs = [
+        "pkg/utils/log.go",
+        "pkg/utils/types.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/banzaicloud/operator-tools:_operator-tools#download"],
+)
+
+go_library(
+    name = "utils",
+    srcs = [":_utils#go_source"],
+    cover = False,
+    import_path = "github.com/banzaicloud/operator-tools/pkg/utils",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/go-logr/logr",
+        "//third_party/go/github.com/iancoleman/orderedmap",
+        "//third_party/go/github.com/spf13/cast",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/types",
+    ],
+)

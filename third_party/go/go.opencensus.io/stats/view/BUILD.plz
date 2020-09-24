@@ -1,0 +1,34 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "view",
+    srcs = [
+        "stats/view/aggregation.go",
+        "stats/view/aggregation_data.go",
+        "stats/view/collector.go",
+        "stats/view/doc.go",
+        "stats/view/export.go",
+        "stats/view/view.go",
+        "stats/view/view_to_metric.go",
+        "stats/view/worker.go",
+        "stats/view/worker_commands.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.opencensus.io:_go.opencensus.io#download"],
+)
+
+go_library(
+    name = "view",
+    srcs = [":_view#go_source"],
+    cover = False,
+    import_path = "go.opencensus.io/stats/view",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.opencensus.io/internal/tagencoding",
+        "//third_party/go/go.opencensus.io/metric/metricdata",
+        "//third_party/go/go.opencensus.io/metric/metricproducer",
+        "//third_party/go/go.opencensus.io/stats",
+        "//third_party/go/go.opencensus.io/stats/internal",
+        "//third_party/go/go.opencensus.io/tag",
+    ],
+)

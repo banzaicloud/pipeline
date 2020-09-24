@@ -1,0 +1,38 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "proto",
+    srcs = [
+        "proto/buffer.go",
+        "proto/defaults.go",
+        "proto/deprecated.go",
+        "proto/discard.go",
+        "proto/extensions.go",
+        "proto/properties.go",
+        "proto/proto.go",
+        "proto/registry.go",
+        "proto/text_decode.go",
+        "proto/text_encode.go",
+        "proto/wire.go",
+        "proto/wrappers.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/golang/protobuf:_protobuf#download"],
+)
+
+go_library(
+    name = "proto",
+    srcs = [":_proto#go_source"],
+    cover = False,
+    import_path = "github.com/golang/protobuf/proto",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/google.golang.org/protobuf/encoding/prototext",
+        "//third_party/go/google.golang.org/protobuf/encoding/protowire",
+        "//third_party/go/google.golang.org/protobuf/proto",
+        "//third_party/go/google.golang.org/protobuf/reflect/protoreflect",
+        "//third_party/go/google.golang.org/protobuf/reflect/protoregistry",
+        "//third_party/go/google.golang.org/protobuf/runtime/protoiface",
+        "//third_party/go/google.golang.org/protobuf/runtime/protoimpl",
+    ],
+)

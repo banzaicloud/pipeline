@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "watermill",
+    module = "logur.dev/integration/watermill",
+    sum = "h1:y9MhXxJB7Igm712L24mSEUvEdsfa8KQ7ZTT4vObROUg=",
+    tag = "download",
+    version = "v0.4.2",
+    visibility = ["//third_party/go/logur.dev/integration/watermill/..."],
+)
+
+fileexport(
+    name = "watermill",
+    srcs = [
+        "error.go",
+        "logger.go",
+    ],
+    tag = "go_source",
+    deps = [":_watermill#download"],
+)
+
+go_library(
+    name = "watermill",
+    srcs = [":_watermill#go_source"],
+    cover = False,
+    import_path = "logur.dev/integration/watermill",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/ThreeDotsLabs/watermill",
+        "//third_party/go/logur.dev/logur",
+    ],
+)

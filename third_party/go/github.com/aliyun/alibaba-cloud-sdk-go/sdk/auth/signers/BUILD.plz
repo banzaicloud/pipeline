@@ -1,0 +1,34 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "signers",
+    srcs = [
+        "sdk/auth/signers/algorithms.go",
+        "sdk/auth/signers/credential_updater.go",
+        "sdk/auth/signers/session_credential.go",
+        "sdk/auth/signers/signer_access_key.go",
+        "sdk/auth/signers/signer_bearer_token.go",
+        "sdk/auth/signers/signer_ecs_ram_role.go",
+        "sdk/auth/signers/signer_key_pair.go",
+        "sdk/auth/signers/signer_ram_role_arn.go",
+        "sdk/auth/signers/signer_sts_token.go",
+        "sdk/auth/signers/signer_v2.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go:_alibaba-cloud-sdk-go#download"],
+)
+
+go_library(
+    name = "signers",
+    srcs = [":_signers#go_source"],
+    cover = False,
+    import_path = "github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/signers",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses",
+        "//third_party/go/github.com/jmespath/go-jmespath",
+    ],
+)

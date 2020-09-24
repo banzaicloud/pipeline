@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "interpolate",
+    srcs = [
+        "internal/interpolate/doc.go",
+        "internal/interpolate/parse.go",
+        "internal/interpolate/types.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/yarpc:_yarpc#download"],
+)
+
+go_library(
+    name = "interpolate",
+    srcs = [":_interpolate#go_source"],
+    cover = False,
+    import_path = "go.uber.org/yarpc/internal/interpolate",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

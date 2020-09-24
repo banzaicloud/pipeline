@@ -1,0 +1,11 @@
+go_library(
+    name = "hollowtrees",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/banzaicloud/gin-utilz/auth",
+        "//third_party/go/github.com/dgrijalva/jwt-go",
+        "//third_party/go/github.com/gofrs/uuid",
+        "//third_party/go/github.com/pkg/errors",
+    ],
+)

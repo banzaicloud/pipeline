@@ -1,0 +1,27 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "wire",
+    srcs = [
+        "wire/doc.go",
+        "wire/envelope.go",
+        "wire/evaluate.go",
+        "wire/lazy_list.go",
+        "wire/type.go",
+        "wire/type_string.go",
+        "wire/unsafe.go",
+        "wire/value.go",
+        "wire/value_equals.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/thriftrw:_thriftrw#download"],
+)
+
+go_library(
+    name = "wire",
+    srcs = [":_wire#go_source"],
+    cover = False,
+    import_path = "go.uber.org/thriftrw/wire",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

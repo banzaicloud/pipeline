@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "idna",
+    srcs = [
+        "idna/idna10.0.0.go",
+        "idna/idna9.0.0.go",
+        "idna/punycode.go",
+        "idna/tables10.0.0.go",
+        "idna/tables11.0.0.go",
+        "idna/tables12.00.go",
+        "idna/tables9.0.0.go",
+        "idna/trie.go",
+        "idna/trieval.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/net:_net#download"],
+)
+
+go_library(
+    name = "idna",
+    srcs = [":_idna#go_source"],
+    cover = False,
+    import_path = "golang.org/x/net/idna",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/text/secure/bidirule",
+        "//third_party/go/golang.org/x/text/unicode/bidi",
+        "//third_party/go/golang.org/x/text/unicode/norm",
+    ],
+)

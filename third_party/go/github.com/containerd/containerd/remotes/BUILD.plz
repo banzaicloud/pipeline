@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "remotes",
+    srcs = [
+        "remotes/handlers.go",
+        "remotes/resolver.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/containerd/containerd:_containerd#download"],
+)
+
+go_library(
+    name = "remotes",
+    srcs = [":_remotes#go_source"],
+    cover = False,
+    import_path = "github.com/containerd/containerd/remotes",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/containerd/containerd/content",
+        "//third_party/go/github.com/containerd/containerd/errdefs",
+        "//third_party/go/github.com/containerd/containerd/images",
+        "//third_party/go/github.com/containerd/containerd/log",
+        "//third_party/go/github.com/containerd/containerd/platforms",
+        "//third_party/go/github.com/opencontainers/image-spec/specs-go/v1",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/github.com/sirupsen/logrus",
+    ],
+)

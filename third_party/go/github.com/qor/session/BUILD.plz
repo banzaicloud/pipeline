@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "session",
+    module = "github.com/qor/session",
+    sum = "h1:8l21EEdlZ9R0AA3FbeUAANc5NAx8Y3tn1VKbyAgjYlI=",
+    tag = "download",
+    version = "v0.0.0-20170907035918-8206b0adab70",
+    visibility = ["//third_party/go/github.com/qor/session/..."],
+)
+
+fileexport(
+    name = "session",
+    srcs = ["session_manager.go"],
+    tag = "go_source",
+    deps = [":_session#download"],
+)
+
+go_library(
+    name = "session",
+    srcs = [":_session#go_source"],
+    cover = False,
+    import_path = "github.com/qor/session",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

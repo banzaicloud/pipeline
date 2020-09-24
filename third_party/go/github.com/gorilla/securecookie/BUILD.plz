@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "securecookie",
+    module = "github.com/gorilla/securecookie",
+    sum = "h1:miw7JPhV+b/lAHSXz4qd/nN9jRiAFV5FwjeKyCS8BvQ=",
+    tag = "download",
+    version = "v1.1.1",
+    visibility = ["//third_party/go/github.com/gorilla/securecookie/..."],
+)
+
+fileexport(
+    name = "securecookie",
+    srcs = [
+        "doc.go",
+        "fuzz.go",
+        "securecookie.go",
+    ],
+    tag = "go_source",
+    deps = [":_securecookie#download"],
+)
+
+go_library(
+    name = "securecookie",
+    srcs = [":_securecookie#go_source"],
+    cover = False,
+    import_path = "github.com/gorilla/securecookie",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

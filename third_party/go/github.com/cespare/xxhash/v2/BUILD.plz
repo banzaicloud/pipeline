@@ -1,0 +1,40 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "v2",
+    module = "github.com/cespare/xxhash/v2",
+    sum = "h1:6MnRN8NT7+YBpUIWxHtefFZOKTAPgGjpQSxqLNn0+qY=",
+    tag = "download",
+    version = "v2.1.1",
+    visibility = ["//third_party/go/github.com/cespare/xxhash/v2/..."],
+)
+
+fileexport(
+    name = "v2",
+    srcs = [
+        "xxhash.go",
+        "xxhash_amd64.go",
+        "xxhash_other.go",
+        "xxhash_safe.go",
+        "xxhash_unsafe.go",
+    ],
+    tag = "go_source",
+    deps = [":_v2#download"],
+)
+
+fileexport(
+    name = "v2",
+    srcs = ["xxhash_amd64.s"],
+    tag = "s_source",
+    deps = [":_v2#download"],
+)
+
+go_library(
+    name = "v2",
+    srcs = [":_v2#go_source"],
+    asm_srcs = [":_v2#s_source"],
+    cover = False,
+    import_path = "github.com/cespare/xxhash/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

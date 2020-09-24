@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "defaults",
+    srcs = [
+        "aws/defaults/defaults.go",
+        "aws/defaults/shared_config.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "defaults",
+    srcs = [":_defaults#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/aws/defaults",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/awserr",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/corehandlers",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/credentials",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/credentials/endpointcreds",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/ec2metadata",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/endpoints",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/request",
+        "//third_party/go/github.com/aws/aws-sdk-go/internal/shareddefaults",
+    ],
+)

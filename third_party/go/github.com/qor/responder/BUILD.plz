@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "responder",
+    module = "github.com/qor/responder",
+    sum = "h1:g77aB9KGnuMC2kNSUWO2KN8k2RzgbI0HqOvWA+AlKX8=",
+    tag = "download",
+    version = "v0.0.0-20160314063933-ecae0be66c1a",
+    visibility = ["//third_party/go/github.com/qor/responder/..."],
+)
+
+fileexport(
+    name = "responder",
+    srcs = ["responder.go"],
+    tag = "go_source",
+    deps = [":_responder#download"],
+)
+
+go_library(
+    name = "responder",
+    srcs = [":_responder#go_source"],
+    cover = False,
+    import_path = "github.com/qor/responder",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

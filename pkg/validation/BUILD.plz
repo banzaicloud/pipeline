@@ -1,0 +1,9 @@
+go_library(
+    name = "validation",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/validation",
+    ],
+)

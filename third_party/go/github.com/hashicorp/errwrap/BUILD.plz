@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "errwrap",
+    module = "github.com/hashicorp/errwrap",
+    sum = "h1:hLrqtEDnRye3+sgx6z4qVLNuviH3MR5aQ0ykNJa/UYA=",
+    tag = "download",
+    version = "v1.0.0",
+    visibility = ["//third_party/go/github.com/hashicorp/errwrap/..."],
+)
+
+fileexport(
+    name = "errwrap",
+    srcs = ["errwrap.go"],
+    tag = "go_source",
+    deps = [":_errwrap#download"],
+)
+
+go_library(
+    name = "errwrap",
+    srcs = [":_errwrap#go_source"],
+    cover = False,
+    import_path = "github.com/hashicorp/errwrap",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

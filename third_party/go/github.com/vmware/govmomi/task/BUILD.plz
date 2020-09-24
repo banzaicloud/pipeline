@@ -1,0 +1,24 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "task",
+    srcs = [
+        "task/error.go",
+        "task/wait.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/vmware/govmomi:_govmomi#download"],
+)
+
+go_library(
+    name = "task",
+    srcs = [":_task#go_source"],
+    cover = False,
+    import_path = "github.com/vmware/govmomi/task",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/vmware/govmomi/property",
+        "//third_party/go/github.com/vmware/govmomi/vim25/progress",
+        "//third_party/go/github.com/vmware/govmomi/vim25/types",
+    ],
+)

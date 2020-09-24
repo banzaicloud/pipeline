@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "lexer",
+    srcs = [
+        "syntax/lexer/lexer.go",
+        "syntax/lexer/token.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/gobwas/glob:_glob#download"],
+)
+
+go_library(
+    name = "lexer",
+    srcs = [":_lexer#go_source"],
+    cover = False,
+    import_path = "github.com/gobwas/glob/syntax/lexer",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/gobwas/glob/util/runes"],
+)

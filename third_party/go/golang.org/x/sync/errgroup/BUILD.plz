@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "errgroup",
+    srcs = ["errgroup/errgroup.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/sync:_sync#download"],
+)
+
+go_library(
+    name = "errgroup",
+    srcs = [":_errgroup#go_source"],
+    cover = False,
+    import_path = "golang.org/x/sync/errgroup",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

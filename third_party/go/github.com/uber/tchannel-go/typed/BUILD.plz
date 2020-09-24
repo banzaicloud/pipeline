@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "typed",
+    srcs = [
+        "typed/buffer.go",
+        "typed/reader.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/uber/tchannel-go:_tchannel-go#download"],
+)
+
+go_library(
+    name = "typed",
+    srcs = [":_typed#go_source"],
+    cover = False,
+    import_path = "github.com/uber/tchannel-go/typed",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

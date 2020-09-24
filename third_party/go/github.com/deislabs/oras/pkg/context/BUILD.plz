@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "context",
+    srcs = [
+        "pkg/context/context.go",
+        "pkg/context/logger.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/deislabs/oras:_oras#download"],
+)
+
+go_library(
+    name = "context",
+    srcs = [":_context#go_source"],
+    cover = False,
+    import_path = "github.com/deislabs/oras/pkg/context",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/containerd/containerd/log",
+        "//third_party/go/github.com/sirupsen/logrus",
+    ],
+)

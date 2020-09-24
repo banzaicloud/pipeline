@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "aec",
+    module = "github.com/morikuni/aec",
+    sum = "h1:nP9CBfwrvYnBRgY6qfDQkygYDmYwOilePFkwzv4dU8A=",
+    tag = "download",
+    version = "v1.0.0",
+    visibility = ["//third_party/go/github.com/morikuni/aec/..."],
+)
+
+fileexport(
+    name = "aec",
+    srcs = [
+        "aec.go",
+        "ansi.go",
+        "builder.go",
+        "sgr.go",
+    ],
+    tag = "go_source",
+    deps = [":_aec#download"],
+)
+
+go_library(
+    name = "aec",
+    srcs = [":_aec#go_source"],
+    cover = False,
+    import_path = "github.com/morikuni/aec",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

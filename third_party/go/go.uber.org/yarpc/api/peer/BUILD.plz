@@ -1,0 +1,25 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "peer",
+    srcs = [
+        "api/peer/connectionstatus_string.go",
+        "api/peer/doc.go",
+        "api/peer/errors.go",
+        "api/peer/list.go",
+        "api/peer/peer.go",
+        "api/peer/status_stringer.go",
+        "api/peer/transport.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/yarpc:_yarpc#download"],
+)
+
+go_library(
+    name = "peer",
+    srcs = [":_peer#go_source"],
+    cover = False,
+    import_path = "go.uber.org/yarpc/api/peer",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/go.uber.org/yarpc/api/transport"],
+)

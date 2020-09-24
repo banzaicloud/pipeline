@@ -1,0 +1,25 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "volume",
+    srcs = [
+        "pkg/volume/volume_types.go",
+        "pkg/volume/zz_generated.deepcopy.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/banzaicloud/operator-tools:_operator-tools#download"],
+)
+
+go_library(
+    name = "volume",
+    srcs = [":_volume#go_source"],
+    cover = False,
+    import_path = "github.com/banzaicloud/operator-tools/pkg/volume",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/k8s.io/api/apps/v1",
+        "//third_party/go/k8s.io/api/core/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+    ],
+)

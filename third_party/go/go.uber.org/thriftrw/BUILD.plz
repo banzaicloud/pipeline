@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "thriftrw",
+    module = "go.uber.org/thriftrw",
+    sum = "h1:jdVWqCcoT8V9eh4XGaLdGsbFxXtX2huYcBbeXWBjS/w=",
+    tag = "download",
+    version = "v1.23.0",
+    visibility = ["//third_party/go/go.uber.org/thriftrw/..."],
+)

@@ -1,0 +1,11 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "kubectl",
+    module = "k8s.io/kubectl",
+    replace = "k8s.io/kubectl",
+    sum = "h1:IFPNuLPkZ59vSGQzynXY8XGz9yuOSRpkJupnobdYvO4=",
+    tag = "download",
+    version = "v0.18.6",
+    visibility = ["//third_party/go/k8s.io/kubectl/..."],
+)

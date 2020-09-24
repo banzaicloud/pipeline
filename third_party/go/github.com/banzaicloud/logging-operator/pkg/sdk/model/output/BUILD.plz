@@ -1,0 +1,43 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "output",
+    srcs = [
+        "model/output/azurestore.go",
+        "model/output/buffer.go",
+        "model/output/cloudwatch.go",
+        "model/output/elasticsearch.go",
+        "model/output/file.go",
+        "model/output/format.go",
+        "model/output/forward.go",
+        "model/output/gcs.go",
+        "model/output/http.go",
+        "model/output/kafka.go",
+        "model/output/kinesis_stream.go",
+        "model/output/logz.go",
+        "model/output/loki.go",
+        "model/output/newrelic.go",
+        "model/output/null.go",
+        "model/output/oss.go",
+        "model/output/s3.go",
+        "model/output/splunk_hec.go",
+        "model/output/sumologic.go",
+        "model/output/zz_generated.deepcopy.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/banzaicloud/logging-operator/pkg/sdk:_sdk#download"],
+)
+
+go_library(
+    name = "output",
+    srcs = [":_output#go_source"],
+    cover = False,
+    import_path = "github.com/banzaicloud/logging-operator/pkg/sdk/model/output",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/banzaicloud/logging-operator/pkg/sdk/model/common",
+        "//third_party/go/github.com/banzaicloud/logging-operator/pkg/sdk/model/types",
+        "//third_party/go/github.com/banzaicloud/operator-tools/pkg/secret",
+        "//third_party/go/github.com/banzaicloud/operator-tools/pkg/utils",
+    ],
+)

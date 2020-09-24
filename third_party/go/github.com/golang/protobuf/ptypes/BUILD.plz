@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "ptypes",
+    srcs = [
+        "ptypes/any.go",
+        "ptypes/doc.go",
+        "ptypes/duration.go",
+        "ptypes/timestamp.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/golang/protobuf:_protobuf#download"],
+)
+
+go_library(
+    name = "ptypes",
+    srcs = [":_ptypes#go_source"],
+    cover = False,
+    import_path = "github.com/golang/protobuf/ptypes",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/golang/protobuf/proto",
+        "//third_party/go/github.com/golang/protobuf/ptypes/any",
+        "//third_party/go/github.com/golang/protobuf/ptypes/duration",
+        "//third_party/go/github.com/golang/protobuf/ptypes/timestamp",
+        "//third_party/go/google.golang.org/protobuf/reflect/protoreflect",
+        "//third_party/go/google.golang.org/protobuf/reflect/protoregistry",
+    ],
+)

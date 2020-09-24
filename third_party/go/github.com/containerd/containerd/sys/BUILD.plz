@@ -1,0 +1,38 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "sys",
+    srcs = [
+        "sys/env.go",
+        "sys/epoll.go",
+        "sys/fds.go",
+        "sys/filesys_unix.go",
+        "sys/filesys_windows.go",
+        "sys/mount_linux.go",
+        "sys/oom_unix.go",
+        "sys/oom_windows.go",
+        "sys/proc.go",
+        "sys/reaper.go",
+        "sys/reaper_linux.go",
+        "sys/socket_unix.go",
+        "sys/socket_windows.go",
+        "sys/stat_bsd.go",
+        "sys/stat_unix.go",
+        "sys/subprocess_unsafe_linux.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/containerd/containerd:_containerd#download"],
+)
+
+go_library(
+    name = "sys",
+    srcs = [":_sys#go_source"],
+    cover = False,
+    import_path = "github.com/containerd/containerd/sys",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/opencontainers/runc/libcontainer/system",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/golang.org/x/sys/unix",
+    ],
+)

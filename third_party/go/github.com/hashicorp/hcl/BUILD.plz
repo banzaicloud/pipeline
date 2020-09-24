@@ -1,0 +1,36 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "hcl",
+    module = "github.com/hashicorp/hcl",
+    sum = "h1:0Anlzjpi4vEasTeNFn2mLJgTSwt0+6sfsiTG8qcWGx4=",
+    tag = "download",
+    version = "v1.0.0",
+    visibility = ["//third_party/go/github.com/hashicorp/hcl/..."],
+)
+
+fileexport(
+    name = "hcl",
+    srcs = [
+        "decoder.go",
+        "hcl.go",
+        "lex.go",
+        "parse.go",
+    ],
+    tag = "go_source",
+    deps = [":_hcl#download"],
+)
+
+go_library(
+    name = "hcl",
+    srcs = [":_hcl#go_source"],
+    cover = False,
+    import_path = "github.com/hashicorp/hcl",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/hashicorp/hcl/hcl/ast",
+        "//third_party/go/github.com/hashicorp/hcl/hcl/parser",
+        "//third_party/go/github.com/hashicorp/hcl/hcl/token",
+        "//third_party/go/github.com/hashicorp/hcl/json/parser",
+    ],
+)

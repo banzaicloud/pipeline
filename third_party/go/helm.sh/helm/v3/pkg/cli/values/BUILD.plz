@@ -1,0 +1,22 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "values",
+    srcs = ["pkg/cli/values/options.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/helm.sh/helm/v3:_v3#download"],
+)
+
+go_library(
+    name = "values",
+    srcs = [":_values#go_source"],
+    cover = False,
+    import_path = "helm.sh/helm/v3/pkg/cli/values",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/helm.sh/helm/v3/pkg/getter",
+        "//third_party/go/helm.sh/helm/v3/pkg/strvals",
+        "//third_party/go/sigs.k8s.io/yaml",
+    ],
+)

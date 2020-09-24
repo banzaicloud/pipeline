@@ -1,0 +1,48 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "genericclioptions",
+    srcs = [
+        "pkg/genericclioptions/builder_flags.go",
+        "pkg/genericclioptions/builder_flags_fake.go",
+        "pkg/genericclioptions/config_flags.go",
+        "pkg/genericclioptions/config_flags_fake.go",
+        "pkg/genericclioptions/doc.go",
+        "pkg/genericclioptions/filename_flags.go",
+        "pkg/genericclioptions/io_options.go",
+        "pkg/genericclioptions/json_yaml_flags.go",
+        "pkg/genericclioptions/jsonpath_flags.go",
+        "pkg/genericclioptions/kube_template_flags.go",
+        "pkg/genericclioptions/name_flags.go",
+        "pkg/genericclioptions/print_flags.go",
+        "pkg/genericclioptions/record_flags.go",
+        "pkg/genericclioptions/template_flags.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/cli-runtime:_cli-runtime#download"],
+)
+
+go_library(
+    name = "genericclioptions",
+    srcs = [":_genericclioptions#go_source"],
+    cover = False,
+    import_path = "k8s.io/cli-runtime/pkg/genericclioptions",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/evanphx/json-patch",
+        "//third_party/go/github.com/spf13/cobra",
+        "//third_party/go/github.com/spf13/pflag",
+        "//third_party/go/k8s.io/apimachinery/pkg/api/meta",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/json",
+        "//third_party/go/k8s.io/cli-runtime/pkg/printers",
+        "//third_party/go/k8s.io/cli-runtime/pkg/resource",
+        "//third_party/go/k8s.io/client-go/discovery",
+        "//third_party/go/k8s.io/client-go/discovery/cached/disk",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/k8s.io/client-go/restmapper",
+        "//third_party/go/k8s.io/client-go/tools/clientcmd",
+        "//third_party/go/k8s.io/client-go/tools/clientcmd/api",
+        "//third_party/go/k8s.io/client-go/util/homedir",
+    ],
+)

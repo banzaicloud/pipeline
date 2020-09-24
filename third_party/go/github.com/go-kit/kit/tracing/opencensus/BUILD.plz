@@ -1,0 +1,36 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "opencensus",
+    srcs = [
+        "tracing/opencensus/doc.go",
+        "tracing/opencensus/endpoint.go",
+        "tracing/opencensus/endpoint_options.go",
+        "tracing/opencensus/grpc.go",
+        "tracing/opencensus/http.go",
+        "tracing/opencensus/tracer_options.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/go-kit/kit:_kit#download"],
+)
+
+go_library(
+    name = "opencensus",
+    srcs = [":_opencensus#go_source"],
+    cover = False,
+    import_path = "github.com/go-kit/kit/tracing/opencensus",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/go-kit/kit/endpoint",
+        "//third_party/go/github.com/go-kit/kit/sd/lb",
+        "//third_party/go/github.com/go-kit/kit/transport/grpc",
+        "//third_party/go/github.com/go-kit/kit/transport/http",
+        "//third_party/go/go.opencensus.io/plugin/ochttp",
+        "//third_party/go/go.opencensus.io/plugin/ochttp/propagation/b3",
+        "//third_party/go/go.opencensus.io/trace",
+        "//third_party/go/go.opencensus.io/trace/propagation",
+        "//third_party/go/google.golang.org/grpc/codes",
+        "//third_party/go/google.golang.org/grpc/metadata",
+        "//third_party/go/google.golang.org/grpc/status",
+    ],
+)

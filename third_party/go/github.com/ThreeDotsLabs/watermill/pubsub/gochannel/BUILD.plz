@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "gochannel",
+    srcs = [
+        "pubsub/gochannel/doc.go",
+        "pubsub/gochannel/fanout.go",
+        "pubsub/gochannel/pubsub.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/ThreeDotsLabs/watermill:_watermill#download"],
+)
+
+go_library(
+    name = "gochannel",
+    srcs = [":_gochannel#go_source"],
+    cover = False,
+    import_path = "github.com/ThreeDotsLabs/watermill/pubsub/gochannel",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/ThreeDotsLabs/watermill",
+        "//third_party/go/github.com/ThreeDotsLabs/watermill/message",
+        "//third_party/go/github.com/lithammer/shortuuid/v3",
+        "//third_party/go/github.com/pkg/errors",
+    ],
+)

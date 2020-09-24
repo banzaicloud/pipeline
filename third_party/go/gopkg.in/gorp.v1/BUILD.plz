@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "gorp.v1",
+    module = "gopkg.in/gorp.v1",
+    sum = "h1:j3DWlAyGVv8whO7AcIWznQ2Yj7yJkn34B8s63GViAAw=",
+    tag = "download",
+    version = "v1.7.2",
+    visibility = ["//third_party/go/gopkg.in/gorp.v1/..."],
+)
+
+fileexport(
+    name = "gorp.v1",
+    srcs = [
+        "dialect.go",
+        "errors.go",
+        "gorp.go",
+    ],
+    tag = "go_source",
+    deps = [":_gorp.v1#download"],
+)
+
+go_library(
+    name = "gorp.v1",
+    srcs = [":_gorp.v1#go_source"],
+    cover = False,
+    import_path = "gopkg.in/gorp.v1",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

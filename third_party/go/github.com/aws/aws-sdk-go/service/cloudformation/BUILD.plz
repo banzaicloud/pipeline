@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "cloudformation",
+    srcs = [
+        "service/cloudformation/api.go",
+        "service/cloudformation/doc.go",
+        "service/cloudformation/errors.go",
+        "service/cloudformation/service.go",
+        "service/cloudformation/waiters.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "cloudformation",
+    srcs = [":_cloudformation#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/service/cloudformation",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/awsutil",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/client",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/client/metadata",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/request",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/signer/v4",
+        "//third_party/go/github.com/aws/aws-sdk-go/private/protocol",
+        "//third_party/go/github.com/aws/aws-sdk-go/private/protocol/query",
+    ],
+)

@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "v3",
+    module = "github.com/lithammer/shortuuid/v3",
+    sum = "h1:uj4xhotfY92Y1Oa6n6HUiFn87CdoEHYUlTy0+IgbLrs=",
+    tag = "download",
+    version = "v3.0.4",
+    visibility = ["//third_party/go/github.com/lithammer/shortuuid/v3/..."],
+)
+
+fileexport(
+    name = "v3",
+    srcs = [
+        "alphabet.go",
+        "base57.go",
+        "shortuuid.go",
+    ],
+    tag = "go_source",
+    deps = [":_v3#download"],
+)
+
+go_library(
+    name = "v3",
+    srcs = [":_v3#go_source"],
+    cover = False,
+    import_path = "github.com/lithammer/shortuuid/v3",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/google/uuid"],
+)

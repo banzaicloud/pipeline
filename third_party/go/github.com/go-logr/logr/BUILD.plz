@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "logr",
+    module = "github.com/go-logr/logr",
+    sum = "h1:M1Tv3VzNlEHg6uyACnRdtrploV2P7wZqH8BoQMtz0cg=",
+    tag = "download",
+    version = "v0.1.0",
+    visibility = ["//third_party/go/github.com/go-logr/logr/..."],
+)
+
+fileexport(
+    name = "logr",
+    srcs = ["logr.go"],
+    tag = "go_source",
+    deps = [":_logr#download"],
+)
+
+go_library(
+    name = "logr",
+    srcs = [":_logr#go_source"],
+    cover = False,
+    import_path = "github.com/go-logr/logr",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

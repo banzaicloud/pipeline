@@ -1,0 +1,34 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "mapdecode",
+    module = "github.com/uber-go/mapdecode",
+    sum = "h1:euUEFM9KnuCa1OBixz1xM+FIXmpixyay5DLymceOVrU=",
+    tag = "download",
+    version = "v1.0.0",
+    visibility = ["//third_party/go/github.com/uber-go/mapdecode/..."],
+)
+
+fileexport(
+    name = "mapdecode",
+    srcs = [
+        "decode.go",
+        "decoder.go",
+        "hooks.go",
+        "yaml.go",
+    ],
+    tag = "go_source",
+    deps = [":_mapdecode#download"],
+)
+
+go_library(
+    name = "mapdecode",
+    srcs = [":_mapdecode#go_source"],
+    cover = False,
+    import_path = "github.com/uber-go/mapdecode",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/uber-go/mapdecode/internal/mapstructure",
+        "//third_party/go/go.uber.org/multierr",
+    ],
+)

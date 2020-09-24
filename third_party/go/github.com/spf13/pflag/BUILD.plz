@@ -1,0 +1,63 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "pflag",
+    module = "github.com/spf13/pflag",
+    sum = "h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=",
+    tag = "download",
+    version = "v1.0.5",
+    visibility = ["//third_party/go/github.com/spf13/pflag/..."],
+)
+
+fileexport(
+    name = "pflag",
+    srcs = [
+        "bool.go",
+        "bool_slice.go",
+        "bytes.go",
+        "count.go",
+        "duration.go",
+        "duration_slice.go",
+        "flag.go",
+        "float32.go",
+        "float32_slice.go",
+        "float64.go",
+        "float64_slice.go",
+        "golangflag.go",
+        "int.go",
+        "int16.go",
+        "int32.go",
+        "int32_slice.go",
+        "int64.go",
+        "int64_slice.go",
+        "int8.go",
+        "int_slice.go",
+        "ip.go",
+        "ip_slice.go",
+        "ipmask.go",
+        "ipnet.go",
+        "string.go",
+        "string_array.go",
+        "string_slice.go",
+        "string_to_int.go",
+        "string_to_int64.go",
+        "string_to_string.go",
+        "uint.go",
+        "uint16.go",
+        "uint32.go",
+        "uint64.go",
+        "uint8.go",
+        "uint_slice.go",
+    ],
+    tag = "go_source",
+    deps = [":_pflag#download"],
+)
+
+go_library(
+    name = "pflag",
+    srcs = [":_pflag#go_source"],
+    cover = False,
+    import_path = "github.com/spf13/pflag",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

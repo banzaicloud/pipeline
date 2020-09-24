@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "stringid",
+    srcs = ["pkg/stringid/stringid.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/docker/docker:_docker#download"],
+)
+
+go_library(
+    name = "stringid",
+    srcs = [":_stringid#go_source"],
+    cover = False,
+    import_path = "github.com/docker/docker/pkg/stringid",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

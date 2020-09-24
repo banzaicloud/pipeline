@@ -1,0 +1,50 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "kubefedctl",
+    srcs = [
+        "pkg/kubefedctl/disable.go",
+        "pkg/kubefedctl/join.go",
+        "pkg/kubefedctl/kubefedctl.go",
+        "pkg/kubefedctl/unjoin.go",
+        "pkg/kubefedctl/version.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kubefed:_kubefed#download"],
+)
+
+go_library(
+    name = "kubefedctl",
+    srcs = [":_kubefedctl#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kubefed/pkg/kubefedctl",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/github.com/spf13/cobra",
+        "//third_party/go/github.com/spf13/pflag",
+        "//third_party/go/k8s.io/api/core/v1",
+        "//third_party/go/k8s.io/api/rbac/v1",
+        "//third_party/go/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1",
+        "//third_party/go/k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1",
+        "//third_party/go/k8s.io/apimachinery/pkg/api/errors",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/wait",
+        "//third_party/go/k8s.io/client-go/kubernetes",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/k8s.io/client-go/tools/clientcmd",
+        "//third_party/go/k8s.io/component-base/cli/flag",
+        "//third_party/go/k8s.io/klog",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/apis/core/typeconfig",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/apis/core/v1beta1",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/client/generic",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/controller/util",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/kubefedctl/enable",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/kubefedctl/federate",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/kubefedctl/options",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/kubefedctl/orphaning",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/kubefedctl/util",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/metrics",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/version",
+    ],
+)

@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "promhttp",
+    srcs = [
+        "prometheus/promhttp/delegator.go",
+        "prometheus/promhttp/http.go",
+        "prometheus/promhttp/instrument_client.go",
+        "prometheus/promhttp/instrument_server.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/prometheus/client_golang:_client_golang#download"],
+)
+
+go_library(
+    name = "promhttp",
+    srcs = [":_promhttp#go_source"],
+    cover = False,
+    import_path = "github.com/prometheus/client_golang/prometheus/promhttp",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/prometheus/client_golang/prometheus",
+        "//third_party/go/github.com/prometheus/client_model/go",
+        "//third_party/go/github.com/prometheus/common/expfmt",
+    ],
+)

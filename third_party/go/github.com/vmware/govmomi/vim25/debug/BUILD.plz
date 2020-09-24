@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "debug",
+    srcs = [
+        "vim25/debug/debug.go",
+        "vim25/debug/file.go",
+        "vim25/debug/log.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/vmware/govmomi:_govmomi#download"],
+)
+
+go_library(
+    name = "debug",
+    srcs = [":_debug#go_source"],
+    cover = False,
+    import_path = "github.com/vmware/govmomi/vim25/debug",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

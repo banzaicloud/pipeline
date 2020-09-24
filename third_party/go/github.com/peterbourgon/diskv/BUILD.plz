@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "diskv",
+    module = "github.com/peterbourgon/diskv",
+    sum = "h1:UBdAOUP5p4RWqPBg048CAvpKN+vxiaj6gdUUzhl4XmI=",
+    tag = "download",
+    version = "v2.0.1+incompatible",
+    visibility = ["//third_party/go/github.com/peterbourgon/diskv/..."],
+)
+
+fileexport(
+    name = "diskv",
+    srcs = [
+        "compression.go",
+        "diskv.go",
+        "index.go",
+    ],
+    tag = "go_source",
+    deps = [":_diskv#download"],
+)
+
+go_library(
+    name = "diskv",
+    srcs = [":_diskv#go_source"],
+    cover = False,
+    import_path = "github.com/peterbourgon/diskv",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/google/btree"],
+)

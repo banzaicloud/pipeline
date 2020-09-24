@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "testify",
+    module = "github.com/stretchr/testify",
+    sum = "h1:hDPOHmpOpP40lSULcqw7IrRb/u7w6RpDC9399XyoNd0=",
+    tag = "download",
+    version = "v1.6.1",
+    visibility = ["//third_party/go/github.com/stretchr/testify/..."],
+)

@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "goutils",
+    module = "github.com/Masterminds/goutils",
+    sum = "h1:zukEsf/1JZwCMgHiK3GZftabmxiCw4apj3a28RPBiVg=",
+    tag = "download",
+    version = "v1.1.0",
+    visibility = ["//third_party/go/github.com/Masterminds/goutils/..."],
+)
+
+fileexport(
+    name = "goutils",
+    srcs = [
+        "cryptorandomstringutils.go",
+        "randomstringutils.go",
+        "stringutils.go",
+        "wordutils.go",
+    ],
+    tag = "go_source",
+    deps = [":_goutils#download"],
+)
+
+go_library(
+    name = "goutils",
+    srcs = [":_goutils#go_source"],
+    cover = False,
+    import_path = "github.com/Masterminds/goutils",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

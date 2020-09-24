@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "now",
+    module = "github.com/jinzhu/now",
+    sum = "h1:g39TucaRWyV3dwDO++eEc6qf8TVIQ/Da48WmqjZ3i7E=",
+    tag = "download",
+    version = "v1.1.1",
+    visibility = ["//third_party/go/github.com/jinzhu/now/..."],
+)
+
+fileexport(
+    name = "now",
+    srcs = [
+        "main.go",
+        "now.go",
+    ],
+    tag = "go_source",
+    deps = [":_now#download"],
+)
+
+go_library(
+    name = "now",
+    srcs = [":_now#go_source"],
+    cover = False,
+    import_path = "github.com/jinzhu/now",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

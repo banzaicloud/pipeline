@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "ulid",
+    module = "github.com/oklog/ulid",
+    sum = "h1:EGfNDEx6MqHz8B3uNV6QAib1UR2Lm97sHi3ocA6ESJ4=",
+    tag = "download",
+    version = "v1.3.1",
+    visibility = ["//third_party/go/github.com/oklog/ulid/..."],
+)
+
+fileexport(
+    name = "ulid",
+    srcs = ["ulid.go"],
+    tag = "go_source",
+    deps = [":_ulid#download"],
+)
+
+go_library(
+    name = "ulid",
+    srcs = [":_ulid#go_source"],
+    cover = False,
+    import_path = "github.com/oklog/ulid",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

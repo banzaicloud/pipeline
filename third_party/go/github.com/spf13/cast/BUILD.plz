@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "cast",
+    module = "github.com/spf13/cast",
+    sum = "h1:nFm6S0SMdyzrzcmThSipiEubIDy8WEXKNZ0UOgiRpng=",
+    tag = "download",
+    version = "v1.3.1",
+    visibility = ["//third_party/go/github.com/spf13/cast/..."],
+)
+
+fileexport(
+    name = "cast",
+    srcs = [
+        "cast.go",
+        "caste.go",
+    ],
+    tag = "go_source",
+    deps = [":_cast#download"],
+)
+
+go_library(
+    name = "cast",
+    srcs = [":_cast#go_source"],
+    cover = False,
+    import_path = "github.com/spf13/cast",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

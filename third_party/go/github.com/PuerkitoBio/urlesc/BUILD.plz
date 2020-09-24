@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "urlesc",
+    module = "github.com/PuerkitoBio/urlesc",
+    sum = "h1:d+Bc7a5rLufV/sSk/8dngufqelfh6jnri85riMAaF/M=",
+    tag = "download",
+    version = "v0.0.0-20170810143723-de5bf2ad4578",
+    visibility = ["//third_party/go/github.com/PuerkitoBio/urlesc/..."],
+)
+
+fileexport(
+    name = "urlesc",
+    srcs = ["urlesc.go"],
+    tag = "go_source",
+    deps = [":_urlesc#download"],
+)
+
+go_library(
+    name = "urlesc",
+    srcs = [":_urlesc#go_source"],
+    cover = False,
+    import_path = "github.com/PuerkitoBio/urlesc",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

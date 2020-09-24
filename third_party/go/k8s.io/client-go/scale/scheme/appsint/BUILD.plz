@@ -1,0 +1,25 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "appsint",
+    srcs = [
+        "scale/scheme/appsint/doc.go",
+        "scale/scheme/appsint/register.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "appsint",
+    srcs = [":_appsint#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/scale/scheme/appsint",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/api/apps/v1beta2",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/client-go/scale/scheme",
+    ],
+)

@@ -1,0 +1,34 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "xerrors",
+    module = "golang.org/x/xerrors",
+    sum = "h1:E7g+9GITq07hpfrRu66IVDexMakfv52eLZ2CXBWiKr4=",
+    tag = "download",
+    version = "v0.0.0-20191204190536-9bdfabe68543",
+    visibility = ["//third_party/go/golang.org/x/xerrors/..."],
+)
+
+fileexport(
+    name = "xerrors",
+    srcs = [
+        "adaptor.go",
+        "doc.go",
+        "errors.go",
+        "fmt.go",
+        "format.go",
+        "frame.go",
+        "wrap.go",
+    ],
+    tag = "go_source",
+    deps = [":_xerrors#download"],
+)
+
+go_library(
+    name = "xerrors",
+    srcs = [":_xerrors#go_source"],
+    cover = False,
+    import_path = "golang.org/x/xerrors",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/golang.org/x/xerrors/internal"],
+)

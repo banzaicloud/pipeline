@@ -1,0 +1,24 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "activity",
+    srcs = [
+        "activity/activity.go",
+        "activity/doc.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/cadence:_cadence#download"],
+)
+
+go_library(
+    name = "activity",
+    srcs = [":_activity#go_source"],
+    cover = False,
+    import_path = "go.uber.org/cadence/activity",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/uber-go/tally",
+        "//third_party/go/go.uber.org/cadence/internal",
+        "//third_party/go/go.uber.org/zap",
+    ],
+)

@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "atomic",
+    module = "go.uber.org/atomic",
+    sum = "h1:Ezj3JGmsOnG1MoRWQkPBsKLe9DwWD9QeXzTRzzldNVk=",
+    tag = "download",
+    version = "v1.6.0",
+    visibility = ["//third_party/go/go.uber.org/atomic/..."],
+)
+
+fileexport(
+    name = "atomic",
+    srcs = [
+        "atomic.go",
+        "error.go",
+        "string.go",
+    ],
+    tag = "go_source",
+    deps = [":_atomic#download"],
+)
+
+go_library(
+    name = "atomic",
+    srcs = [":_atomic#go_source"],
+    cover = False,
+    import_path = "go.uber.org/atomic",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

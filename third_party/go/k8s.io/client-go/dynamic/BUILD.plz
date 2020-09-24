@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "dynamic",
+    srcs = [
+        "dynamic/interface.go",
+        "dynamic/scheme.go",
+        "dynamic/simple.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "dynamic",
+    srcs = [":_dynamic#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/dynamic",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/apimachinery/pkg/api/meta",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/serializer",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/serializer/json",
+        "//third_party/go/k8s.io/apimachinery/pkg/types",
+        "//third_party/go/k8s.io/apimachinery/pkg/watch",
+        "//third_party/go/k8s.io/client-go/rest",
+    ],
+)

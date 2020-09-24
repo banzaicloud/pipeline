@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "sdk",
+    module = "github.com/banzaicloud/logging-operator/pkg/sdk",
+    sum = "h1:96DCkcHkbDgaCLpvzrdyQ/lzzntOSp/Wklg6MTYI5GQ=",
+    tag = "download",
+    version = "v0.3.15",
+    visibility = ["//third_party/go/github.com/banzaicloud/logging-operator/pkg/sdk/..."],
+)

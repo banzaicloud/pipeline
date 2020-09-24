@@ -1,0 +1,42 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "clientcmd",
+    srcs = [
+        "tools/clientcmd/auth_loaders.go",
+        "tools/clientcmd/client_config.go",
+        "tools/clientcmd/config.go",
+        "tools/clientcmd/doc.go",
+        "tools/clientcmd/flag.go",
+        "tools/clientcmd/helpers.go",
+        "tools/clientcmd/loader.go",
+        "tools/clientcmd/merged_client_builder.go",
+        "tools/clientcmd/overrides.go",
+        "tools/clientcmd/validation.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "clientcmd",
+    srcs = [":_clientcmd#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/tools/clientcmd",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/imdario/mergo",
+        "//third_party/go/github.com/spf13/pflag",
+        "//third_party/go/golang.org/x/crypto/ssh/terminal",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/errors",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/validation",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/k8s.io/client-go/tools/auth",
+        "//third_party/go/k8s.io/client-go/tools/clientcmd/api",
+        "//third_party/go/k8s.io/client-go/tools/clientcmd/api/latest",
+        "//third_party/go/k8s.io/client-go/util/homedir",
+        "//third_party/go/k8s.io/klog",
+    ],
+)

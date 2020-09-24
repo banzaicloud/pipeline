@@ -1,0 +1,22 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "tag",
+    srcs = ["internal/encoding/tag/tag.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/protobuf:_protobuf#download"],
+)
+
+go_library(
+    name = "tag",
+    srcs = [":_tag#go_source"],
+    cover = False,
+    import_path = "google.golang.org/protobuf/internal/encoding/tag",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/google.golang.org/protobuf/internal/encoding/defval",
+        "//third_party/go/google.golang.org/protobuf/internal/filedesc",
+        "//third_party/go/google.golang.org/protobuf/internal/strs",
+        "//third_party/go/google.golang.org/protobuf/reflect/protoreflect",
+    ],
+)

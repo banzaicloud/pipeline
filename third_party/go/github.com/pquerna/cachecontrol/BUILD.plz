@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "cachecontrol",
+    module = "github.com/pquerna/cachecontrol",
+    sum = "h1:0XM1XL/OFFJjXsYXlG30spTkV/E9+gmd5GD1w2HE8xM=",
+    tag = "download",
+    version = "v0.0.0-20171018203845-0dec1b30a021",
+    visibility = ["//third_party/go/github.com/pquerna/cachecontrol/..."],
+)
+
+fileexport(
+    name = "cachecontrol",
+    srcs = [
+        "api.go",
+        "doc.go",
+    ],
+    tag = "go_source",
+    deps = [":_cachecontrol#download"],
+)
+
+go_library(
+    name = "cachecontrol",
+    srcs = [":_cachecontrol#go_source"],
+    cover = False,
+    import_path = "github.com/pquerna/cachecontrol",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/pquerna/cachecontrol/cacheobject"],
+)

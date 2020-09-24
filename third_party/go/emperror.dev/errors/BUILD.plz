@@ -1,0 +1,37 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "errors",
+    module = "emperror.dev/errors",
+    sum = "h1:vf0gZ0j9BJCXQYm0M21DPKeXy9PUjvX1YHXhNzIsqOY=",
+    tag = "download",
+    version = "v0.7.0",
+    visibility = ["//third_party/go/emperror.dev/errors/..."],
+)
+
+fileexport(
+    name = "errors",
+    srcs = [
+        "error_details.go",
+        "errors.go",
+        "errors_multi.go",
+        "stack.go",
+        "wrap.go",
+        "wrap_go1_12.go",
+        "wrap_go1_13.go",
+    ],
+    tag = "go_source",
+    deps = [":_errors#download"],
+)
+
+go_library(
+    name = "errors",
+    srcs = [":_errors#go_source"],
+    cover = False,
+    import_path = "emperror.dev/errors",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/go.uber.org/multierr",
+    ],
+)

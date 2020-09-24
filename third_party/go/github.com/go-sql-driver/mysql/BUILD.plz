@@ -1,0 +1,49 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "mysql",
+    module = "github.com/go-sql-driver/mysql",
+    sum = "h1:ozyZYNQW3x3HtqT1jira07DN2PArx2v7/mN66gGcHOs=",
+    tag = "download",
+    version = "v1.5.0",
+    visibility = ["//third_party/go/github.com/go-sql-driver/mysql/..."],
+)
+
+fileexport(
+    name = "mysql",
+    srcs = [
+        "auth.go",
+        "buffer.go",
+        "collations.go",
+        "conncheck.go",
+        "conncheck_dummy.go",
+        "connection.go",
+        "connector.go",
+        "const.go",
+        "driver.go",
+        "dsn.go",
+        "errors.go",
+        "fields.go",
+        "infile.go",
+        "nulltime.go",
+        "nulltime_go113.go",
+        "nulltime_legacy.go",
+        "packets.go",
+        "result.go",
+        "rows.go",
+        "statement.go",
+        "transaction.go",
+        "utils.go",
+    ],
+    tag = "go_source",
+    deps = [":_mysql#download"],
+)
+
+go_library(
+    name = "mysql",
+    srcs = [":_mysql#go_source"],
+    cover = False,
+    import_path = "github.com/go-sql-driver/mysql",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

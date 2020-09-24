@@ -1,0 +1,49 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "metrics",
+    module = "go.uber.org/net/metrics",
+    sum = "h1:iRLPuVecNYf/wIV+mQaA4IgN8ghifu3q1B4IT6HfwyY=",
+    tag = "download",
+    version = "v1.3.0",
+    visibility = ["//third_party/go/go.uber.org/net/metrics/..."],
+)
+
+fileexport(
+    name = "metrics",
+    srcs = [
+        "core.go",
+        "counter.go",
+        "doc.go",
+        "gauge.go",
+        "histogram.go",
+        "metadata.go",
+        "metrics.go",
+        "push.go",
+        "root.go",
+        "scope.go",
+        "snapshot.go",
+        "spec.go",
+        "tag.go",
+        "tools.go",
+        "value.go",
+        "version.go",
+    ],
+    tag = "go_source",
+    deps = [":_metrics#download"],
+)
+
+go_library(
+    name = "metrics",
+    srcs = [":_metrics#go_source"],
+    cover = False,
+    import_path = "go.uber.org/net/metrics",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/prometheus/client_golang/prometheus",
+        "//third_party/go/github.com/prometheus/client_golang/prometheus/promhttp",
+        "//third_party/go/github.com/prometheus/client_model/go",
+        "//third_party/go/go.uber.org/atomic",
+        "//third_party/go/go.uber.org/net/metrics/push",
+    ],
+)

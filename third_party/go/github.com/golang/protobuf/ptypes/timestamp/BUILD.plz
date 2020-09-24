@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "timestamp",
+    srcs = ["ptypes/timestamp/timestamp.pb.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/golang/protobuf:_protobuf#download"],
+)
+
+go_library(
+    name = "timestamp",
+    srcs = [":_timestamp#go_source"],
+    cover = False,
+    import_path = "github.com/golang/protobuf/ptypes/timestamp",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/google.golang.org/protobuf/reflect/protoreflect",
+        "//third_party/go/google.golang.org/protobuf/runtime/protoimpl",
+        "//third_party/go/google.golang.org/protobuf/types/known/timestamppb",
+    ],
+)

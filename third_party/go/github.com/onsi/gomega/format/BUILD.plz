@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "format",
+    srcs = ["format/format.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/onsi/gomega:_gomega#download"],
+)
+
+go_library(
+    name = "format",
+    srcs = [":_format#go_source"],
+    cover = False,
+    import_path = "github.com/onsi/gomega/format",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

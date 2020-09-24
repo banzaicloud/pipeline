@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "expfmt",
+    srcs = [
+        "expfmt/decode.go",
+        "expfmt/encode.go",
+        "expfmt/expfmt.go",
+        "expfmt/fuzz.go",
+        "expfmt/openmetrics_create.go",
+        "expfmt/text_create.go",
+        "expfmt/text_parse.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/prometheus/common:_common#download"],
+)
+
+go_library(
+    name = "expfmt",
+    srcs = [":_expfmt#go_source"],
+    cover = False,
+    import_path = "github.com/prometheus/common/expfmt",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/golang/protobuf/proto",
+        "//third_party/go/github.com/golang/protobuf/ptypes",
+        "//third_party/go/github.com/matttproud/golang_protobuf_extensions/pbutil",
+        "//third_party/go/github.com/prometheus/client_model/go",
+        "//third_party/go/github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg",
+        "//third_party/go/github.com/prometheus/common/model",
+    ],
+)

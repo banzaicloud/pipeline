@@ -1,0 +1,35 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "gomega",
+    module = "github.com/onsi/gomega",
+    sum = "h1:o0+MgICZLuZ7xjH7Vx6zS/zcu93/BEp1VwkIW1mEXCE=",
+    tag = "download",
+    version = "v1.10.1",
+    visibility = ["//third_party/go/github.com/onsi/gomega/..."],
+)
+
+fileexport(
+    name = "gomega",
+    srcs = [
+        "gomega_dsl.go",
+        "matchers.go",
+    ],
+    tag = "go_source",
+    deps = [":_gomega#download"],
+)
+
+go_library(
+    name = "gomega",
+    srcs = [":_gomega#go_source"],
+    cover = False,
+    import_path = "github.com/onsi/gomega",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/onsi/gomega/internal/assertion",
+        "//third_party/go/github.com/onsi/gomega/internal/asyncassertion",
+        "//third_party/go/github.com/onsi/gomega/internal/testingtsupport",
+        "//third_party/go/github.com/onsi/gomega/matchers",
+        "//third_party/go/github.com/onsi/gomega/types",
+    ],
+)

@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "plugin",
+    srcs = [
+        "pkg/plugin/hooks.go",
+        "pkg/plugin/plugin.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/helm.sh/helm/v3:_v3#download"],
+)
+
+go_library(
+    name = "plugin",
+    srcs = [":_plugin#go_source"],
+    cover = False,
+    import_path = "helm.sh/helm/v3/pkg/plugin",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/helm.sh/helm/v3/pkg/cli",
+        "//third_party/go/sigs.k8s.io/yaml",
+    ],
+)

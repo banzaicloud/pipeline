@@ -1,0 +1,22 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "v1",
+    srcs = ["cloudresourcemanager/v1/cloudresourcemanager-gen.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/api:_api#download"],
+)
+
+go_library(
+    name = "v1",
+    srcs = [":_v1#go_source"],
+    cover = False,
+    import_path = "google.golang.org/api/cloudresourcemanager/v1",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/google.golang.org/api/googleapi",
+        "//third_party/go/google.golang.org/api/internal/gensupport",
+        "//third_party/go/google.golang.org/api/option",
+        "//third_party/go/google.golang.org/api/transport/http",
+    ],
+)

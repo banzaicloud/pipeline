@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "jsonreference",
+    module = "github.com/go-openapi/jsonreference",
+    sum = "h1:5cxNfTy0UVC3X8JL5ymxzyoUZmo8iZb+jeTWn7tUa8o=",
+    tag = "download",
+    version = "v0.19.3",
+    visibility = ["//third_party/go/github.com/go-openapi/jsonreference/..."],
+)
+
+fileexport(
+    name = "jsonreference",
+    srcs = ["reference.go"],
+    tag = "go_source",
+    deps = [":_jsonreference#download"],
+)
+
+go_library(
+    name = "jsonreference",
+    srcs = [":_jsonreference#go_source"],
+    cover = False,
+    import_path = "github.com/go-openapi/jsonreference",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/PuerkitoBio/purell",
+        "//third_party/go/github.com/go-openapi/jsonpointer",
+    ],
+)

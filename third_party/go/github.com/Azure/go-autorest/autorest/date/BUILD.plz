@@ -1,0 +1,33 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "date",
+    module = "github.com/Azure/go-autorest/autorest/date",
+    sum = "h1:7gUk1U5M/CQbp9WoqinNzJar+8KY+LPI6wiWrP/myHw=",
+    tag = "download",
+    version = "v0.3.0",
+    visibility = ["//third_party/go/github.com/Azure/go-autorest/autorest/date/..."],
+)
+
+fileexport(
+    name = "date",
+    srcs = [
+        "date.go",
+        "go_mod_tidy_hack.go",
+        "time.go",
+        "timerfc1123.go",
+        "unixtime.go",
+        "utility.go",
+    ],
+    tag = "go_source",
+    deps = [":_date#download"],
+)
+
+go_library(
+    name = "date",
+    srcs = [":_date#go_source"],
+    cover = False,
+    import_path = "github.com/Azure/go-autorest/autorest/date",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

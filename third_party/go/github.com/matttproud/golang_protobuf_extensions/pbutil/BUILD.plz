@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "pbutil",
+    srcs = [
+        "pbutil/decode.go",
+        "pbutil/doc.go",
+        "pbutil/encode.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/matttproud/golang_protobuf_extensions:_golang_protobuf_extensions#download"],
+)
+
+go_library(
+    name = "pbutil",
+    srcs = [":_pbutil#go_source"],
+    cover = False,
+    import_path = "github.com/matttproud/golang_protobuf_extensions/pbutil",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/golang/protobuf/proto"],
+)

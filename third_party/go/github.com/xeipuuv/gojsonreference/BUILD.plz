@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "gojsonreference",
+    module = "github.com/xeipuuv/gojsonreference",
+    sum = "h1:EzJWgHovont7NscjpAxXsDA8S8BMYve8Y5+7cuRE7R0=",
+    tag = "download",
+    version = "v0.0.0-20180127040603-bd5ef7bd5415",
+    visibility = ["//third_party/go/github.com/xeipuuv/gojsonreference/..."],
+)
+
+fileexport(
+    name = "gojsonreference",
+    srcs = ["reference.go"],
+    tag = "go_source",
+    deps = [":_gojsonreference#download"],
+)
+
+go_library(
+    name = "gojsonreference",
+    srcs = [":_gojsonreference#go_source"],
+    cover = False,
+    import_path = "github.com/xeipuuv/gojsonreference",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/xeipuuv/gojsonpointer"],
+)

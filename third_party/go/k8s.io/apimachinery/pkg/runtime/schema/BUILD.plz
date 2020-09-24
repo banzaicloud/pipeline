@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "schema",
+    srcs = [
+        "pkg/runtime/schema/generated.pb.go",
+        "pkg/runtime/schema/group_version.go",
+        "pkg/runtime/schema/interfaces.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "schema",
+    srcs = [":_schema#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/pkg/runtime/schema",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/gogo/protobuf/proto"],
+)

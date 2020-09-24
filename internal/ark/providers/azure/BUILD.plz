@@ -1,0 +1,15 @@
+go_library(
+    name = "azure",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/providers",
+        "//internal/secret/secrettype",
+        "//pkg/objectstore",
+        "//pkg/providers/azure",
+        "//pkg/providers/azure/objectstore",
+        "//src/secret",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/heptio/ark/pkg/cloudprovider",
+    ],
+)

@@ -1,0 +1,25 @@
+go_library(
+    name = "objectstore",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/errors",
+        "//pkg/providers/oracle/oci",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/oracle/oci-go-sdk/common",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//pkg/errors",
+        "//pkg/providers/oracle/oci",
+        "//third_party/go/emperror.dev/emperror",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/oracle/oci-go-sdk/common",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/github.com/stretchr/testify/assert",
+    ],
+)

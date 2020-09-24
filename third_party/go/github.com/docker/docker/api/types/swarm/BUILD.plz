@@ -1,0 +1,33 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "swarm",
+    srcs = [
+        "api/types/swarm/common.go",
+        "api/types/swarm/config.go",
+        "api/types/swarm/container.go",
+        "api/types/swarm/network.go",
+        "api/types/swarm/node.go",
+        "api/types/swarm/runtime.go",
+        "api/types/swarm/secret.go",
+        "api/types/swarm/service.go",
+        "api/types/swarm/swarm.go",
+        "api/types/swarm/task.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/docker/docker:_docker#download"],
+)
+
+go_library(
+    name = "swarm",
+    srcs = [":_swarm#go_source"],
+    cover = False,
+    import_path = "github.com/docker/docker/api/types/swarm",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/docker/docker/api/types/container",
+        "//third_party/go/github.com/docker/docker/api/types/mount",
+        "//third_party/go/github.com/docker/docker/api/types/network",
+        "//third_party/go/github.com/docker/docker/api/types/swarm/runtime",
+    ],
+)

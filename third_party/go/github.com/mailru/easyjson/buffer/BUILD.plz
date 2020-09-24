@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "buffer",
+    srcs = ["buffer/pool.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/mailru/easyjson:_easyjson#download"],
+)
+
+go_library(
+    name = "buffer",
+    srcs = [":_buffer#go_source"],
+    cover = False,
+    import_path = "github.com/mailru/easyjson/buffer",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

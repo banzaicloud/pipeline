@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "color",
+    module = "github.com/fatih/color",
+    sum = "h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=",
+    tag = "download",
+    version = "v1.7.0",
+    visibility = ["//third_party/go/github.com/fatih/color/..."],
+)
+
+fileexport(
+    name = "color",
+    srcs = [
+        "color.go",
+        "doc.go",
+    ],
+    tag = "go_source",
+    deps = [":_color#download"],
+)
+
+go_library(
+    name = "color",
+    srcs = [":_color#go_source"],
+    cover = False,
+    import_path = "github.com/fatih/color",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/mattn/go-colorable",
+        "//third_party/go/github.com/mattn/go-isatty",
+    ],
+)

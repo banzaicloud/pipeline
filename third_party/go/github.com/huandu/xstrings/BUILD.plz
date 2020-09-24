@@ -1,0 +1,34 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "xstrings",
+    module = "github.com/huandu/xstrings",
+    sum = "h1:4jgBlKK6tLKFvO8u5pmYjG91cqytmDCDvGh7ECVFfFs=",
+    tag = "download",
+    version = "v1.3.1",
+    visibility = ["//third_party/go/github.com/huandu/xstrings/..."],
+)
+
+fileexport(
+    name = "xstrings",
+    srcs = [
+        "common.go",
+        "convert.go",
+        "count.go",
+        "doc.go",
+        "format.go",
+        "manipulate.go",
+        "translate.go",
+    ],
+    tag = "go_source",
+    deps = [":_xstrings#download"],
+)
+
+go_library(
+    name = "xstrings",
+    srcs = [":_xstrings#go_source"],
+    cover = False,
+    import_path = "github.com/huandu/xstrings",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

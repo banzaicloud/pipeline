@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "xdg",
+    srcs = ["pkg/helmpath/xdg/xdg.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/helm.sh/helm/v3:_v3#download"],
+)
+
+go_library(
+    name = "xdg",
+    srcs = [":_xdg#go_source"],
+    cover = False,
+    import_path = "helm.sh/helm/v3/pkg/helmpath/xdg",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

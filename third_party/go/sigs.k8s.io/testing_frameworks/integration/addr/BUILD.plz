@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "addr",
+    srcs = ["integration/addr/manager.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/testing_frameworks:_testing_frameworks#download"],
+)
+
+go_library(
+    name = "addr",
+    srcs = [":_addr#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/testing_frameworks/integration/addr",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

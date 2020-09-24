@@ -1,0 +1,35 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "orphaning",
+    srcs = [
+        "pkg/kubefedctl/orphaning/disable.go",
+        "pkg/kubefedctl/orphaning/enable.go",
+        "pkg/kubefedctl/orphaning/orphaning.go",
+        "pkg/kubefedctl/orphaning/status.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kubefed:_kubefed#download"],
+)
+
+go_library(
+    name = "orphaning",
+    srcs = [":_orphaning#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kubefed/pkg/kubefedctl/orphaning",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/github.com/spf13/cobra",
+        "//third_party/go/github.com/spf13/pflag",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
+        "//third_party/go/k8s.io/client-go/dynamic",
+        "//third_party/go/k8s.io/klog",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/apis/core/typeconfig",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/controller/util",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/kubefedctl/enable",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/kubefedctl/options",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/kubefedctl/util",
+    ],
+)

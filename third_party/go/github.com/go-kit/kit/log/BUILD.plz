@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "log",
+    srcs = [
+        "log/doc.go",
+        "log/json_logger.go",
+        "log/log.go",
+        "log/logfmt_logger.go",
+        "log/nop_logger.go",
+        "log/stdlib.go",
+        "log/sync.go",
+        "log/value.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/go-kit/kit:_kit#download"],
+)
+
+go_library(
+    name = "log",
+    srcs = [":_log#go_source"],
+    cover = False,
+    import_path = "github.com/go-kit/kit/log",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/go-logfmt/logfmt"],
+)

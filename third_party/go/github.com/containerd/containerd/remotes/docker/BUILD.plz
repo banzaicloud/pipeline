@@ -1,0 +1,45 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "docker",
+    srcs = [
+        "remotes/docker/auth.go",
+        "remotes/docker/authorizer.go",
+        "remotes/docker/converter.go",
+        "remotes/docker/fetcher.go",
+        "remotes/docker/handler.go",
+        "remotes/docker/httpreadseeker.go",
+        "remotes/docker/pusher.go",
+        "remotes/docker/registry.go",
+        "remotes/docker/resolver.go",
+        "remotes/docker/scope.go",
+        "remotes/docker/status.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/containerd/containerd:_containerd#download"],
+)
+
+go_library(
+    name = "docker",
+    srcs = [":_docker#go_source"],
+    cover = False,
+    import_path = "github.com/containerd/containerd/remotes/docker",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/containerd/containerd/content",
+        "//third_party/go/github.com/containerd/containerd/errdefs",
+        "//third_party/go/github.com/containerd/containerd/images",
+        "//third_party/go/github.com/containerd/containerd/labels",
+        "//third_party/go/github.com/containerd/containerd/log",
+        "//third_party/go/github.com/containerd/containerd/reference",
+        "//third_party/go/github.com/containerd/containerd/remotes",
+        "//third_party/go/github.com/containerd/containerd/remotes/docker/schema1",
+        "//third_party/go/github.com/containerd/containerd/version",
+        "//third_party/go/github.com/docker/distribution/registry/api/errcode",
+        "//third_party/go/github.com/opencontainers/go-digest",
+        "//third_party/go/github.com/opencontainers/image-spec/specs-go/v1",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/github.com/sirupsen/logrus",
+        "//third_party/go/golang.org/x/net/context/ctxhttp",
+    ],
+)

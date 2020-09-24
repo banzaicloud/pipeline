@@ -1,0 +1,27 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "types",
+    srcs = [
+        "model/types/builder.go",
+        "model/types/flow.go",
+        "model/types/router.go",
+        "model/types/stringmaps.go",
+        "model/types/types.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/banzaicloud/logging-operator/pkg/sdk:_sdk#download"],
+)
+
+go_library(
+    name = "types",
+    srcs = [":_types#go_source"],
+    cover = False,
+    import_path = "github.com/banzaicloud/logging-operator/pkg/sdk/model/types",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/banzaicloud/operator-tools/pkg/secret",
+        "//third_party/go/github.com/banzaicloud/operator-tools/pkg/utils",
+    ],
+)

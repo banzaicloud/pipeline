@@ -1,0 +1,11 @@
+go_library(
+    name = "watermill",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/ThreeDotsLabs/watermill/message",
+        "//third_party/go/github.com/ThreeDotsLabs/watermill/pubsub/gochannel",
+        "//third_party/go/logur.dev/integration/watermill",
+        "//third_party/go/logur.dev/logur",
+    ],
+)

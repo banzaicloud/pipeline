@@ -1,0 +1,24 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "v1",
+    srcs = [
+        "extender/v1/doc.go",
+        "extender/v1/types.go",
+        "extender/v1/zz_generated.deepcopy.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/kube-scheduler:_kube-scheduler#download"],
+)
+
+go_library(
+    name = "v1",
+    srcs = [":_v1#go_source"],
+    cover = False,
+    import_path = "k8s.io/kube-scheduler/extender/v1",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/api/core/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/types",
+    ],
+)

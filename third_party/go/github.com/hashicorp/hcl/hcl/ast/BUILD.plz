@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "ast",
+    srcs = [
+        "hcl/ast/ast.go",
+        "hcl/ast/walk.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/hashicorp/hcl:_hcl#download"],
+)
+
+go_library(
+    name = "ast",
+    srcs = [":_ast#go_source"],
+    cover = False,
+    import_path = "github.com/hashicorp/hcl/hcl/ast",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/hashicorp/hcl/hcl/token"],
+)

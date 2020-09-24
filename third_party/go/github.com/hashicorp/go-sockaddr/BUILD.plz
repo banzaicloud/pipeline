@@ -1,0 +1,46 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-sockaddr",
+    module = "github.com/hashicorp/go-sockaddr",
+    sum = "h1:ztczhD1jLxIRjVejw8gFomI1BQZOe2WoVOu0SyteCQc=",
+    tag = "download",
+    version = "v1.0.2",
+    visibility = ["//third_party/go/github.com/hashicorp/go-sockaddr/..."],
+)
+
+fileexport(
+    name = "go-sockaddr",
+    srcs = [
+        "doc.go",
+        "ifaddr.go",
+        "ifaddrs.go",
+        "ifattr.go",
+        "ipaddr.go",
+        "ipaddrs.go",
+        "ipv4addr.go",
+        "ipv6addr.go",
+        "rfc.go",
+        "route_info.go",
+        "route_info_android.go",
+        "route_info_bsd.go",
+        "route_info_default.go",
+        "route_info_linux.go",
+        "route_info_solaris.go",
+        "route_info_windows.go",
+        "sockaddr.go",
+        "sockaddrs.go",
+        "unixsock.go",
+    ],
+    tag = "go_source",
+    deps = [":_go-sockaddr#download"],
+)
+
+go_library(
+    name = "go-sockaddr",
+    srcs = [":_go-sockaddr#go_source"],
+    cover = False,
+    import_path = "github.com/hashicorp/go-sockaddr",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

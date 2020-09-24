@@ -1,0 +1,25 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "fs",
+    srcs = [
+        "pkg/fs/confirmeddir.go",
+        "pkg/fs/fakefile.go",
+        "pkg/fs/fakefileinfo.go",
+        "pkg/fs/fakefs.go",
+        "pkg/fs/fs.go",
+        "pkg/fs/realfile.go",
+        "pkg/fs/realfs.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kustomize:_kustomize#download"],
+)
+
+go_library(
+    name = "fs",
+    srcs = [":_fs#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kustomize/pkg/fs",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/sigs.k8s.io/kustomize/pkg/constants"],
+)

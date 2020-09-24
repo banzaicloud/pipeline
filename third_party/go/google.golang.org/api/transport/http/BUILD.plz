@@ -1,0 +1,27 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "http",
+    srcs = [
+        "transport/http/dial.go",
+        "transport/http/dial_appengine.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/api:_api#download"],
+)
+
+go_library(
+    name = "http",
+    srcs = [":_http#go_source"],
+    cover = False,
+    import_path = "google.golang.org/api/transport/http",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.opencensus.io/plugin/ochttp",
+        "//third_party/go/golang.org/x/oauth2",
+        "//third_party/go/google.golang.org/api/googleapi/transport",
+        "//third_party/go/google.golang.org/api/internal",
+        "//third_party/go/google.golang.org/api/option",
+        "//third_party/go/google.golang.org/api/transport/http/internal/propagation",
+    ],
+)

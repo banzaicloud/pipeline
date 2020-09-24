@@ -1,0 +1,40 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "yaml.v3",
+    module = "gopkg.in/yaml.v3",
+    sum = "h1:dUUwHk2QECo/6vqA44rthZ8ie2QXMNeKRTHCNY2nXvo=",
+    tag = "download",
+    version = "v3.0.0-20200313102051-9f266ea9e77c",
+    visibility = ["//third_party/go/gopkg.in/yaml.v3/..."],
+)
+
+fileexport(
+    name = "yaml.v3",
+    srcs = [
+        "apic.go",
+        "decode.go",
+        "emitterc.go",
+        "encode.go",
+        "parserc.go",
+        "readerc.go",
+        "resolve.go",
+        "scannerc.go",
+        "sorter.go",
+        "writerc.go",
+        "yaml.go",
+        "yamlh.go",
+        "yamlprivateh.go",
+    ],
+    tag = "go_source",
+    deps = [":_yaml.v3#download"],
+)
+
+go_library(
+    name = "yaml.v3",
+    srcs = [":_yaml.v3#go_source"],
+    cover = False,
+    import_path = "gopkg.in/yaml.v3",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

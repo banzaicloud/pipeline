@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "connrotation",
+    srcs = ["util/connrotation/connrotation.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "connrotation",
+    srcs = [":_connrotation#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/util/connrotation",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

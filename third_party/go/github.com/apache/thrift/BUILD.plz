@@ -1,0 +1,11 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "thrift",
+    module = "github.com/apache/thrift",
+    replace = "github.com/apache/thrift",
+    sum = "h1:vhEK14bs3+zQEDMftA8BVc7uwAIkoqK/kGtoqs8kjks=",
+    tag = "download",
+    version = "v0.0.0-20151001171628-53dd39833a08",
+    visibility = ["//third_party/go/github.com/apache/thrift/..."],
+)

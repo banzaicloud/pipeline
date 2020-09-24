@@ -22,6 +22,10 @@ cmd = export outputs -o .
 desc = Runs linters for this repo
 cmd = run ///pleasings2//tools/go:golangci-lint -- run
 
+[alias "godeps"]
+desc = Generate third-party dependency rules for a Go project
+cmd = run ///pleasegomod//:gogetgen -- -dir third_party/go -clean -genpkg -subinclude "///pleasegomod//:build_defs"
+
 [alias "up"]
 desc = Set up and start the development environment
 cmd = run :up

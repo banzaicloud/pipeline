@@ -1,5 +1,3 @@
-subinclude("///pleasings2//go:compat")
-
 go_library(
     name = "pipeline",
     srcs = glob(

@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "context",
+    srcs = [
+        "context/context.go",
+        "context/go17.go",
+        "context/go19.go",
+        "context/pre_go17.go",
+        "context/pre_go19.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/net:_net#download"],
+)
+
+go_library(
+    name = "context",
+    srcs = [":_context#go_source"],
+    cover = False,
+    import_path = "golang.org/x/net/context",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

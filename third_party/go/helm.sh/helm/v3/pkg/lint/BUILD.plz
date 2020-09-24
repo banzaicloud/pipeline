@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "lint",
+    srcs = ["pkg/lint/lint.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/helm.sh/helm/v3:_v3#download"],
+)
+
+go_library(
+    name = "lint",
+    srcs = [":_lint#go_source"],
+    cover = False,
+    import_path = "helm.sh/helm/v3/pkg/lint",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/helm.sh/helm/v3/pkg/lint/rules",
+        "//third_party/go/helm.sh/helm/v3/pkg/lint/support",
+    ],
+)

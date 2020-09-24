@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "kv",
+    srcs = ["pkg/kustomize/k8sdeps/kv/kv.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/cli-runtime:_cli-runtime#download"],
+)
+
+go_library(
+    name = "kv",
+    srcs = [":_kv#go_source"],
+    cover = False,
+    import_path = "k8s.io/cli-runtime/pkg/kustomize/k8sdeps/kv",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/k8s.io/apimachinery/pkg/util/validation"],
+)

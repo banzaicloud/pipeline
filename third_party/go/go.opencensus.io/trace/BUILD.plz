@@ -1,0 +1,36 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "trace",
+    srcs = [
+        "trace/basetypes.go",
+        "trace/config.go",
+        "trace/doc.go",
+        "trace/evictedqueue.go",
+        "trace/export.go",
+        "trace/lrumap.go",
+        "trace/sampling.go",
+        "trace/spanbucket.go",
+        "trace/spanstore.go",
+        "trace/status_codes.go",
+        "trace/trace.go",
+        "trace/trace_go11.go",
+        "trace/trace_nongo11.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.opencensus.io:_go.opencensus.io#download"],
+)
+
+go_library(
+    name = "trace",
+    srcs = [":_trace#go_source"],
+    cover = False,
+    import_path = "go.opencensus.io/trace",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/golang/groupcache/lru",
+        "//third_party/go/go.opencensus.io/internal",
+        "//third_party/go/go.opencensus.io/trace/internal",
+        "//third_party/go/go.opencensus.io/trace/tracestate",
+    ],
+)

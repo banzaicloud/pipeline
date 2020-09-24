@@ -1,0 +1,35 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "gomail.v2",
+    module = "gopkg.in/gomail.v2",
+    sum = "h1:n7WqCuqOuCbNr617RXOY0AWRXxgwEyPp2z+p0+hgMuE=",
+    tag = "download",
+    version = "v2.0.0-20160411212932-81ebce5c23df",
+    visibility = ["//third_party/go/gopkg.in/gomail.v2/..."],
+)
+
+fileexport(
+    name = "gomail.v2",
+    srcs = [
+        "auth.go",
+        "doc.go",
+        "message.go",
+        "mime.go",
+        "mime_go14.go",
+        "send.go",
+        "smtp.go",
+        "writeto.go",
+    ],
+    tag = "go_source",
+    deps = [":_gomail.v2#download"],
+)
+
+go_library(
+    name = "gomail.v2",
+    srcs = [":_gomail.v2#go_source"],
+    cover = False,
+    import_path = "gopkg.in/gomail.v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

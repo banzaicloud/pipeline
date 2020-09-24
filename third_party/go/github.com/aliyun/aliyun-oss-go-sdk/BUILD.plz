@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "aliyun-oss-go-sdk",
+    module = "github.com/aliyun/aliyun-oss-go-sdk",
+    sum = "h1:A3oZlWPD/Poa19FvNbw+Zu4yKAurDBTjlRDilYGBiS4=",
+    tag = "download",
+    version = "v2.0.5+incompatible",
+    visibility = ["//third_party/go/github.com/aliyun/aliyun-oss-go-sdk/..."],
+)

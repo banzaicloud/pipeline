@@ -1,0 +1,37 @@
+go_library(
+    name = "tokendriver",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/app/pipeline/auth/token",
+        "//internal/platform/appkit/transport/http",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/emperror.dev/errors/match",
+        "//third_party/go/github.com/go-kit/kit/endpoint",
+        "//third_party/go/github.com/go-kit/kit/transport/http",
+        "//third_party/go/github.com/gorilla/mux",
+        "//third_party/go/github.com/sagikazarmark/appkit/transport/http",
+        "//third_party/go/github.com/sagikazarmark/kitx/endpoint",
+        "//third_party/go/github.com/sagikazarmark/kitx/transport/http",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/app/pipeline/auth/token",
+        "//internal/platform/appkit/transport/http",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/emperror.dev/errors/match",
+        "//third_party/go/github.com/go-kit/kit/endpoint",
+        "//third_party/go/github.com/go-kit/kit/transport/http",
+        "//third_party/go/github.com/gorilla/mux",
+        "//third_party/go/github.com/sagikazarmark/appkit/transport/http",
+        "//third_party/go/github.com/sagikazarmark/kitx/endpoint",
+        "//third_party/go/github.com/sagikazarmark/kitx/transport/http",
+        "//third_party/go/github.com/stretchr/testify/assert",
+        "//third_party/go/github.com/stretchr/testify/mock",
+        "//third_party/go/github.com/stretchr/testify/require",
+    ],
+)

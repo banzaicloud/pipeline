@@ -1,0 +1,24 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "bipartitegraph",
+    srcs = [
+        "matchers/support/goraph/bipartitegraph/bipartitegraph.go",
+        "matchers/support/goraph/bipartitegraph/bipartitegraphmatching.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/onsi/gomega:_gomega#download"],
+)
+
+go_library(
+    name = "bipartitegraph",
+    srcs = [":_bipartitegraph#go_source"],
+    cover = False,
+    import_path = "github.com/onsi/gomega/matchers/support/goraph/bipartitegraph",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/onsi/gomega/matchers/support/goraph/edge",
+        "//third_party/go/github.com/onsi/gomega/matchers/support/goraph/node",
+        "//third_party/go/github.com/onsi/gomega/matchers/support/goraph/util",
+    ],
+)

@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "cors",
+    module = "github.com/gin-contrib/cors",
+    sum = "h1:PolezCc89peu+NgkIWt9OB01Kbzt6IP0J/JvkG6xxlg=",
+    tag = "download",
+    version = "v1.3.0",
+    visibility = ["//third_party/go/github.com/gin-contrib/cors/..."],
+)
+
+fileexport(
+    name = "cors",
+    srcs = [
+        "config.go",
+        "cors.go",
+        "utils.go",
+    ],
+    tag = "go_source",
+    deps = [":_cors#download"],
+)
+
+go_library(
+    name = "cors",
+    srcs = [":_cors#go_source"],
+    cover = False,
+    import_path = "github.com/gin-contrib/cors",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/gin-gonic/gin"],
+)

@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "clock",
+    module = "github.com/facebookgo/clock",
+    sum = "h1:yDWHCSQ40h88yih2JAcL6Ls/kVkSE8GFACTGVnMPruw=",
+    tag = "download",
+    version = "v0.0.0-20150410010913-600d898af40a",
+    visibility = ["//third_party/go/github.com/facebookgo/clock/..."],
+)
+
+fileexport(
+    name = "clock",
+    srcs = ["clock.go"],
+    tag = "go_source",
+    deps = [":_clock#download"],
+)
+
+go_library(
+    name = "clock",
+    srcs = [":_clock#go_source"],
+    cover = False,
+    import_path = "github.com/facebookgo/clock",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -1,0 +1,41 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "jwt-go",
+    module = "github.com/dgrijalva/jwt-go",
+    sum = "h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=",
+    tag = "download",
+    version = "v3.2.0+incompatible",
+    visibility = ["//third_party/go/github.com/dgrijalva/jwt-go/..."],
+)
+
+fileexport(
+    name = "jwt-go",
+    srcs = [
+        "claims.go",
+        "doc.go",
+        "ecdsa.go",
+        "ecdsa_utils.go",
+        "errors.go",
+        "hmac.go",
+        "map_claims.go",
+        "none.go",
+        "parser.go",
+        "rsa.go",
+        "rsa_pss.go",
+        "rsa_utils.go",
+        "signing_method.go",
+        "token.go",
+    ],
+    tag = "go_source",
+    deps = [":_jwt-go#download"],
+)
+
+go_library(
+    name = "jwt-go",
+    srcs = [":_jwt-go#go_source"],
+    cover = False,
+    import_path = "github.com/dgrijalva/jwt-go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

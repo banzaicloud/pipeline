@@ -1,0 +1,35 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "testing",
+    srcs = [
+        "testing/actions.go",
+        "testing/fake.go",
+        "testing/fixture.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "testing",
+    srcs = [":_testing#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/testing",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/evanphx/json-patch",
+        "//third_party/go/k8s.io/apimachinery/pkg/api/errors",
+        "//third_party/go/k8s.io/apimachinery/pkg/api/meta",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/fields",
+        "//third_party/go/k8s.io/apimachinery/pkg/labels",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/types",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/json",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/strategicpatch",
+        "//third_party/go/k8s.io/apimachinery/pkg/watch",
+        "//third_party/go/k8s.io/client-go/rest",
+    ],
+)

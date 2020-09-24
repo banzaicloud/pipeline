@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "kit",
+    module = "github.com/go-kit/kit",
+    sum = "h1:dXFJfIHVvUcpSgDOV+Ne6t7jXri8Tfv2uOLHUZ2XNuo=",
+    tag = "download",
+    version = "v0.10.0",
+    visibility = ["//third_party/go/github.com/go-kit/kit/..."],
+)

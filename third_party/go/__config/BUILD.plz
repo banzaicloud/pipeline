@@ -1,0 +1,11 @@
+package(default_visibility = ["PUBLIC"])
+
+config_setting(
+    name = "linux",
+    values = {"os": "linux"},
+)
+
+config_setting(
+    name = "darwin",
+    values = {"os": "darwin"},
+)

@@ -1,0 +1,41 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "scale",
+    srcs = [
+        "scale/client.go",
+        "scale/doc.go",
+        "scale/interfaces.go",
+        "scale/util.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "scale",
+    srcs = [":_scale#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/scale",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/api/autoscaling/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/api/meta",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/serializer",
+        "//third_party/go/k8s.io/apimachinery/pkg/types",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/runtime",
+        "//third_party/go/k8s.io/client-go/discovery",
+        "//third_party/go/k8s.io/client-go/dynamic",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/k8s.io/client-go/scale/scheme",
+        "//third_party/go/k8s.io/client-go/scale/scheme/appsint",
+        "//third_party/go/k8s.io/client-go/scale/scheme/appsv1beta1",
+        "//third_party/go/k8s.io/client-go/scale/scheme/appsv1beta2",
+        "//third_party/go/k8s.io/client-go/scale/scheme/autoscalingv1",
+        "//third_party/go/k8s.io/client-go/scale/scheme/extensionsint",
+        "//third_party/go/k8s.io/client-go/scale/scheme/extensionsv1beta1",
+    ],
+)

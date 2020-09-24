@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-homedir",
+    module = "github.com/mitchellh/go-homedir",
+    sum = "h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=",
+    tag = "download",
+    version = "v1.1.0",
+    visibility = ["//third_party/go/github.com/mitchellh/go-homedir/..."],
+)
+
+fileexport(
+    name = "go-homedir",
+    srcs = ["homedir.go"],
+    tag = "go_source",
+    deps = [":_go-homedir#download"],
+)
+
+go_library(
+    name = "go-homedir",
+    srcs = [":_go-homedir#go_source"],
+    cover = False,
+    import_path = "github.com/mitchellh/go-homedir",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -1,0 +1,21 @@
+go_library(
+    name = "http",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/problems",
+        "//third_party/go/github.com/sagikazarmark/appkit/errors",
+        "//third_party/go/github.com/sagikazarmark/appkit/transport/http",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//pkg/problems",
+        "//third_party/go/github.com/sagikazarmark/appkit/errors",
+        "//third_party/go/github.com/sagikazarmark/appkit/transport/http",
+        "//third_party/go/github.com/stretchr/testify/assert",
+    ],
+)

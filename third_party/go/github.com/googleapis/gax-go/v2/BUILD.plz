@@ -1,0 +1,35 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "v2",
+    module = "github.com/googleapis/gax-go/v2",
+    sum = "h1:sjZBwGj9Jlw33ImPtvFviGYvseOtDM7hkSKB7+Tv3SM=",
+    tag = "download",
+    version = "v2.0.5",
+    visibility = ["//third_party/go/github.com/googleapis/gax-go/v2/..."],
+)
+
+fileexport(
+    name = "v2",
+    srcs = [
+        "call_option.go",
+        "gax.go",
+        "header.go",
+        "invoke.go",
+    ],
+    tag = "go_source",
+    deps = [":_v2#download"],
+)
+
+go_library(
+    name = "v2",
+    srcs = [":_v2#go_source"],
+    cover = False,
+    import_path = "github.com/googleapis/gax-go/v2",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/google.golang.org/grpc",
+        "//third_party/go/google.golang.org/grpc/codes",
+        "//third_party/go/google.golang.org/grpc/status",
+    ],
+)

@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "binarylog",
+    srcs = [
+        "internal/binarylog/binarylog.go",
+        "internal/binarylog/binarylog_testutil.go",
+        "internal/binarylog/env_config.go",
+        "internal/binarylog/method_logger.go",
+        "internal/binarylog/sink.go",
+        "internal/binarylog/util.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/grpc:_grpc#download"],
+)
+
+go_library(
+    name = "binarylog",
+    srcs = [":_binarylog#go_source"],
+    cover = False,
+    import_path = "google.golang.org/grpc/internal/binarylog",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/golang/protobuf/proto",
+        "//third_party/go/github.com/golang/protobuf/ptypes",
+        "//third_party/go/google.golang.org/grpc/binarylog/grpc_binarylog_v1",
+        "//third_party/go/google.golang.org/grpc/grpclog",
+        "//third_party/go/google.golang.org/grpc/metadata",
+        "//third_party/go/google.golang.org/grpc/status",
+    ],
+)

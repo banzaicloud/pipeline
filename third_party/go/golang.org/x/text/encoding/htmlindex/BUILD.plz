@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "htmlindex",
+    srcs = [
+        "encoding/htmlindex/gen.go",
+        "encoding/htmlindex/htmlindex.go",
+        "encoding/htmlindex/map.go",
+        "encoding/htmlindex/tables.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/text:_text#download"],
+)
+
+go_library(
+    name = "htmlindex",
+    srcs = [":_htmlindex#go_source"],
+    cover = False,
+    import_path = "golang.org/x/text/encoding/htmlindex",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/text/encoding",
+        "//third_party/go/golang.org/x/text/encoding/charmap",
+        "//third_party/go/golang.org/x/text/encoding/internal/identifier",
+        "//third_party/go/golang.org/x/text/encoding/japanese",
+        "//third_party/go/golang.org/x/text/encoding/korean",
+        "//third_party/go/golang.org/x/text/encoding/simplifiedchinese",
+        "//third_party/go/golang.org/x/text/encoding/traditionalchinese",
+        "//third_party/go/golang.org/x/text/encoding/unicode",
+        "//third_party/go/golang.org/x/text/language",
+    ],
+)

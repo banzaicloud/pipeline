@@ -1,0 +1,37 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "binding",
+    srcs = [
+        "binding/binding.go",
+        "binding/default_validator.go",
+        "binding/form.go",
+        "binding/form_mapping.go",
+        "binding/header.go",
+        "binding/json.go",
+        "binding/msgpack.go",
+        "binding/multipart_form_mapping.go",
+        "binding/protobuf.go",
+        "binding/query.go",
+        "binding/uri.go",
+        "binding/xml.go",
+        "binding/yaml.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/gin-gonic/gin:_gin#download"],
+)
+
+go_library(
+    name = "binding",
+    srcs = [":_binding#go_source"],
+    cover = False,
+    import_path = "github.com/gin-gonic/gin/binding",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/gin-gonic/gin/internal/json",
+        "//third_party/go/github.com/golang/protobuf/proto",
+        "//third_party/go/github.com/ugorji/go/codec",
+        "//third_party/go/gopkg.in/go-playground/validator.v9",
+        "//third_party/go/gopkg.in/yaml.v2",
+    ],
+)

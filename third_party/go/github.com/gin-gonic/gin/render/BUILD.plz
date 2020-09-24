@@ -1,0 +1,34 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "render",
+    srcs = [
+        "render/data.go",
+        "render/html.go",
+        "render/json.go",
+        "render/msgpack.go",
+        "render/protobuf.go",
+        "render/reader.go",
+        "render/redirect.go",
+        "render/render.go",
+        "render/text.go",
+        "render/xml.go",
+        "render/yaml.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/gin-gonic/gin:_gin#download"],
+)
+
+go_library(
+    name = "render",
+    srcs = [":_render#go_source"],
+    cover = False,
+    import_path = "github.com/gin-gonic/gin/render",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/gin-gonic/gin/internal/json",
+        "//third_party/go/github.com/golang/protobuf/proto",
+        "//third_party/go/github.com/ugorji/go/codec",
+        "//third_party/go/gopkg.in/yaml.v2",
+    ],
+)

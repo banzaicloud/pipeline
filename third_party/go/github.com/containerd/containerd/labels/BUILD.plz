@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "labels",
+    srcs = ["labels/validate.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/containerd/containerd:_containerd#download"],
+)
+
+go_library(
+    name = "labels",
+    srcs = [":_labels#go_source"],
+    cover = False,
+    import_path = "github.com/containerd/containerd/labels",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/containerd/containerd/errdefs",
+        "//third_party/go/github.com/pkg/errors",
+    ],
+)

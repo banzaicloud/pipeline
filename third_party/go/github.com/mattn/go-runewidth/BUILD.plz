@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-runewidth",
+    module = "github.com/mattn/go-runewidth",
+    sum = "h1:2BvfKmzob6Bmd4YsL0zygOqfdFnK7GR4QL06Do4/p7Y=",
+    tag = "download",
+    version = "v0.0.4",
+    visibility = ["//third_party/go/github.com/mattn/go-runewidth/..."],
+)
+
+fileexport(
+    name = "go-runewidth",
+    srcs = [
+        "runewidth.go",
+        "runewidth_appengine.go",
+        "runewidth_js.go",
+        "runewidth_posix.go",
+        "runewidth_windows.go",
+    ],
+    tag = "go_source",
+    deps = [":_go-runewidth#download"],
+)
+
+go_library(
+    name = "go-runewidth",
+    srcs = [":_go-runewidth#go_source"],
+    cover = False,
+    import_path = "github.com/mattn/go-runewidth",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

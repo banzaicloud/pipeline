@@ -1,0 +1,41 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "packet",
+    srcs = [
+        "openpgp/packet/compressed.go",
+        "openpgp/packet/config.go",
+        "openpgp/packet/encrypted_key.go",
+        "openpgp/packet/literal.go",
+        "openpgp/packet/ocfb.go",
+        "openpgp/packet/one_pass_signature.go",
+        "openpgp/packet/opaque.go",
+        "openpgp/packet/packet.go",
+        "openpgp/packet/private_key.go",
+        "openpgp/packet/public_key.go",
+        "openpgp/packet/public_key_v3.go",
+        "openpgp/packet/reader.go",
+        "openpgp/packet/signature.go",
+        "openpgp/packet/signature_v3.go",
+        "openpgp/packet/symmetric_key_encrypted.go",
+        "openpgp/packet/symmetrically_encrypted.go",
+        "openpgp/packet/userattribute.go",
+        "openpgp/packet/userid.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/crypto:_crypto#download"],
+)
+
+go_library(
+    name = "packet",
+    srcs = [":_packet#go_source"],
+    cover = False,
+    import_path = "golang.org/x/crypto/openpgp/packet",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/crypto/cast5",
+        "//third_party/go/golang.org/x/crypto/openpgp/elgamal",
+        "//third_party/go/golang.org/x/crypto/openpgp/errors",
+        "//third_party/go/golang.org/x/crypto/openpgp/s2k",
+    ],
+)

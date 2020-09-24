@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "context",
+    module = "github.com/gorilla/context",
+    sum = "h1:AWwleXJkX/nhcU9bZSnZoi3h/qGYqQAGhq6zZe/aQW8=",
+    tag = "download",
+    version = "v1.1.1",
+    visibility = ["//third_party/go/github.com/gorilla/context/..."],
+)
+
+fileexport(
+    name = "context",
+    srcs = [
+        "context.go",
+        "doc.go",
+    ],
+    tag = "go_source",
+    deps = [":_context#download"],
+)
+
+go_library(
+    name = "context",
+    srcs = [":_context#go_source"],
+    cover = False,
+    import_path = "github.com/gorilla/context",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

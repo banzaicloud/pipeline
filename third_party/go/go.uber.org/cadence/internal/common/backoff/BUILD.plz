@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "backoff",
+    srcs = [
+        "internal/common/backoff/retry.go",
+        "internal/common/backoff/retrypolicy.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/cadence:_cadence#download"],
+)
+
+go_library(
+    name = "backoff",
+    srcs = [":_backoff#go_source"],
+    cover = False,
+    import_path = "go.uber.org/cadence/internal/common/backoff",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

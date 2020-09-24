@@ -1,0 +1,35 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "transformers",
+    srcs = [
+        "pkg/transformers/image.go",
+        "pkg/transformers/labelsandannotations.go",
+        "pkg/transformers/multitransformer.go",
+        "pkg/transformers/mutatefield.go",
+        "pkg/transformers/namereference.go",
+        "pkg/transformers/namespace.go",
+        "pkg/transformers/nooptransformer.go",
+        "pkg/transformers/prefixsuffixname.go",
+        "pkg/transformers/refvars.go",
+        "pkg/transformers/transformer.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kustomize:_kustomize#download"],
+)
+
+go_library(
+    name = "transformers",
+    srcs = [":_transformers#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kustomize/pkg/transformers",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/expansion",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/gvk",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/image",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/resmap",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/resource",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/transformers/config",
+    ],
+)

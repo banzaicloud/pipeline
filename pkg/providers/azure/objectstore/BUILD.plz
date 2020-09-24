@@ -1,0 +1,36 @@
+go_library(
+    name = "objectstore",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/errors",
+        "//pkg/providers/azure",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/Azure/azure-pipeline-go/pipeline",
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources",
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage",
+        "//third_party/go/github.com/Azure/azure-storage-blob-go/azblob",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/azure/auth",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/to",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/github.com/sirupsen/logrus",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//pkg/errors",
+        "//pkg/providers/azure",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/Azure/azure-pipeline-go/pipeline",
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources",
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage",
+        "//third_party/go/github.com/Azure/azure-storage-blob-go/azblob",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/azure/auth",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/to",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/github.com/sirupsen/logrus",
+    ],
+)

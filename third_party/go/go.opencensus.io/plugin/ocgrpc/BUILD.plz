@@ -1,0 +1,39 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "ocgrpc",
+    srcs = [
+        "plugin/ocgrpc/client.go",
+        "plugin/ocgrpc/client_metrics.go",
+        "plugin/ocgrpc/client_stats_handler.go",
+        "plugin/ocgrpc/doc.go",
+        "plugin/ocgrpc/server.go",
+        "plugin/ocgrpc/server_metrics.go",
+        "plugin/ocgrpc/server_stats_handler.go",
+        "plugin/ocgrpc/stats_common.go",
+        "plugin/ocgrpc/trace_common.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.opencensus.io:_go.opencensus.io#download"],
+)
+
+go_library(
+    name = "ocgrpc",
+    srcs = [":_ocgrpc#go_source"],
+    cover = False,
+    import_path = "go.opencensus.io/plugin/ocgrpc",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.opencensus.io/metric/metricdata",
+        "//third_party/go/go.opencensus.io/stats",
+        "//third_party/go/go.opencensus.io/stats/view",
+        "//third_party/go/go.opencensus.io/tag",
+        "//third_party/go/go.opencensus.io/trace",
+        "//third_party/go/go.opencensus.io/trace/propagation",
+        "//third_party/go/google.golang.org/grpc/codes",
+        "//third_party/go/google.golang.org/grpc/grpclog",
+        "//third_party/go/google.golang.org/grpc/metadata",
+        "//third_party/go/google.golang.org/grpc/stats",
+        "//third_party/go/google.golang.org/grpc/status",
+    ],
+)

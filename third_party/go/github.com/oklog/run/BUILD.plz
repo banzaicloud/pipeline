@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "run",
+    module = "github.com/oklog/run",
+    sum = "h1:GEenZ1cK0+q0+wsJew9qUg/DyD8k3JzYsZAi5gYi2mA=",
+    tag = "download",
+    version = "v1.1.0",
+    visibility = ["//third_party/go/github.com/oklog/run/..."],
+)
+
+fileexport(
+    name = "run",
+    srcs = [
+        "actors.go",
+        "group.go",
+    ],
+    tag = "go_source",
+    deps = [":_run#download"],
+)
+
+go_library(
+    name = "run",
+    srcs = [":_run#go_source"],
+    cover = False,
+    import_path = "github.com/oklog/run",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

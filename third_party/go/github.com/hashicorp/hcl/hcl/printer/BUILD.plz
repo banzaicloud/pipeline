@@ -1,0 +1,24 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "printer",
+    srcs = [
+        "hcl/printer/nodes.go",
+        "hcl/printer/printer.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/hashicorp/hcl:_hcl#download"],
+)
+
+go_library(
+    name = "printer",
+    srcs = [":_printer#go_source"],
+    cover = False,
+    import_path = "github.com/hashicorp/hcl/hcl/printer",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/hashicorp/hcl/hcl/ast",
+        "//third_party/go/github.com/hashicorp/hcl/hcl/parser",
+        "//third_party/go/github.com/hashicorp/hcl/hcl/token",
+    ],
+)

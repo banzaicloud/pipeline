@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "version",
+    srcs = [
+        "version/no_check.go",
+        "version/version.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/thriftrw:_thriftrw#download"],
+)
+
+go_library(
+    name = "version",
+    srcs = [":_version#go_source"],
+    cover = False,
+    import_path = "go.uber.org/thriftrw/version",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

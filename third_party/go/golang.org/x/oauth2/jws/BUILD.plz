@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "jws",
+    srcs = ["jws/jws.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/oauth2:_oauth2#download"],
+)
+
+go_library(
+    name = "jws",
+    srcs = [":_jws#go_source"],
+    cover = False,
+    import_path = "golang.org/x/oauth2/jws",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

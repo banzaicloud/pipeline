@@ -1,0 +1,35 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "tally",
+    module = "github.com/uber-go/tally",
+    sum = "h1:9hLSgNBP28CjIaDmAuRTq9qV+UZY+9PcvAkXO4nNMwg=",
+    tag = "download",
+    version = "v3.3.15+incompatible",
+    visibility = ["//third_party/go/github.com/uber-go/tally/..."],
+)
+
+fileexport(
+    name = "tally",
+    srcs = [
+        "histogram.go",
+        "key_gen.go",
+        "pool.go",
+        "reporter.go",
+        "sanitize.go",
+        "scope.go",
+        "stats.go",
+        "types.go",
+    ],
+    tag = "go_source",
+    deps = [":_tally#download"],
+)
+
+go_library(
+    name = "tally",
+    srcs = [":_tally#go_source"],
+    cover = False,
+    import_path = "github.com/uber-go/tally",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

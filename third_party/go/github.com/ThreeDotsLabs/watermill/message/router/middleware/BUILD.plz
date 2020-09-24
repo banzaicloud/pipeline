@@ -1,0 +1,34 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "middleware",
+    srcs = [
+        "message/router/middleware/correlation.go",
+        "message/router/middleware/duplicator.go",
+        "message/router/middleware/ignore_errors.go",
+        "message/router/middleware/instant_ack.go",
+        "message/router/middleware/poison.go",
+        "message/router/middleware/randomfail.go",
+        "message/router/middleware/recoverer.go",
+        "message/router/middleware/retry.go",
+        "message/router/middleware/throttle.go",
+        "message/router/middleware/timeout.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/ThreeDotsLabs/watermill:_watermill#download"],
+)
+
+go_library(
+    name = "middleware",
+    srcs = [":_middleware#go_source"],
+    cover = False,
+    import_path = "github.com/ThreeDotsLabs/watermill/message/router/middleware",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/ThreeDotsLabs/watermill",
+        "//third_party/go/github.com/ThreeDotsLabs/watermill/message",
+        "//third_party/go/github.com/cenkalti/backoff/v3",
+        "//third_party/go/github.com/hashicorp/go-multierror",
+        "//third_party/go/github.com/pkg/errors",
+    ],
+)

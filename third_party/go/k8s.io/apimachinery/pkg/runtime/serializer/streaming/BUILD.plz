@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "streaming",
+    srcs = ["pkg/runtime/serializer/streaming/streaming.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "streaming",
+    srcs = [":_streaming#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/pkg/runtime/serializer/streaming",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+    ],
+)

@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "assert",
+    srcs = [
+        "assert/assertion_compare.go",
+        "assert/assertion_format.go",
+        "assert/assertion_forward.go",
+        "assert/assertions.go",
+        "assert/doc.go",
+        "assert/errors.go",
+        "assert/forward_assertions.go",
+        "assert/http_assertions.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/stretchr/testify:_testify#download"],
+)
+
+go_library(
+    name = "assert",
+    srcs = [":_assert#go_source"],
+    cover = False,
+    import_path = "github.com/stretchr/testify/assert",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/davecgh/go-spew/spew",
+        "//third_party/go/github.com/pmezard/go-difflib/difflib",
+        "//third_party/go/gopkg.in/yaml.v3",
+    ],
+)

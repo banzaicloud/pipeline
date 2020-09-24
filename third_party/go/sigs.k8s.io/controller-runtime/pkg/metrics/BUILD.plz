@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "metrics",
+    srcs = [
+        "pkg/metrics/client_go_adapter.go",
+        "pkg/metrics/doc.go",
+        "pkg/metrics/listener.go",
+        "pkg/metrics/registry.go",
+        "pkg/metrics/workqueue.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/controller-runtime:_controller-runtime#download"],
+)
+
+go_library(
+    name = "metrics",
+    srcs = [":_metrics#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/controller-runtime/pkg/metrics",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/prometheus/client_golang/prometheus",
+        "//third_party/go/k8s.io/client-go/tools/cache",
+        "//third_party/go/k8s.io/client-go/tools/metrics",
+        "//third_party/go/k8s.io/client-go/util/workqueue",
+        "//third_party/go/sigs.k8s.io/controller-runtime/pkg/internal/log",
+    ],
+)

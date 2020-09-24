@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go",
+    module = "cloud.google.com/go",
+    sum = "h1:PvKAVQWCtlGUSlZkGW3QLelKaWq7KYv/MW1EboG8bfM=",
+    tag = "download",
+    version = "v0.51.0",
+    visibility = ["//third_party/go/cloud.google.com/go/..."],
+)

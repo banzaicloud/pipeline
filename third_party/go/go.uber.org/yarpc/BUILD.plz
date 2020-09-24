@@ -1,0 +1,67 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "yarpc",
+    module = "go.uber.org/yarpc",
+    sum = "h1:lyOdulfJ6i9C2jdFd+6Qoj1RiDwv64hCHOZYXD8ofhU=",
+    tag = "download",
+    version = "v1.45.0",
+    visibility = ["//third_party/go/go.uber.org/yarpc/..."],
+)
+
+fileexport(
+    name = "yarpc",
+    srcs = [
+        "ack.go",
+        "call.go",
+        "client_config.go",
+        "config.go",
+        "dispatcher.go",
+        "dispatcher_startup.go",
+        "doc.go",
+        "errors.go",
+        "header.go",
+        "inject.go",
+        "introspection.go",
+        "middleware.go",
+        "router.go",
+        "tracing.go",
+        "version.go",
+    ],
+    tag = "go_source",
+    deps = [":_yarpc#download"],
+)
+
+go_library(
+    name = "yarpc",
+    srcs = [":_yarpc#go_source"],
+    cover = False,
+    import_path = "go.uber.org/yarpc",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/opentracing/opentracing-go",
+        "//third_party/go/github.com/uber-go/tally",
+        "//third_party/go/github.com/uber/tchannel-go",
+        "//third_party/go/go.uber.org/atomic",
+        "//third_party/go/go.uber.org/multierr",
+        "//third_party/go/go.uber.org/net/metrics",
+        "//third_party/go/go.uber.org/net/metrics/tallypush",
+        "//third_party/go/go.uber.org/thriftrw/version",
+        "//third_party/go/go.uber.org/yarpc/api/encoding",
+        "//third_party/go/go.uber.org/yarpc/api/middleware",
+        "//third_party/go/go.uber.org/yarpc/api/transport",
+        "//third_party/go/go.uber.org/yarpc/internal",
+        "//third_party/go/go.uber.org/yarpc/internal/errorsync",
+        "//third_party/go/go.uber.org/yarpc/internal/firstoutboundmiddleware",
+        "//third_party/go/go.uber.org/yarpc/internal/humanize",
+        "//third_party/go/go.uber.org/yarpc/internal/inboundmiddleware",
+        "//third_party/go/go.uber.org/yarpc/internal/introspection",
+        "//third_party/go/go.uber.org/yarpc/internal/observability",
+        "//third_party/go/go.uber.org/yarpc/internal/outboundmiddleware",
+        "//third_party/go/go.uber.org/yarpc/internal/request",
+        "//third_party/go/go.uber.org/yarpc/pkg/lifecycle",
+        "//third_party/go/go.uber.org/yarpc/yarpcerrors",
+        "//third_party/go/go.uber.org/zap",
+        "//third_party/go/go.uber.org/zap/zapcore",
+    ],
+)

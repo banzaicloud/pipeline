@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "grpclog",
+    srcs = [
+        "grpclog/grpclog.go",
+        "grpclog/logger.go",
+        "grpclog/loggerv2.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/grpc:_grpc#download"],
+)
+
+go_library(
+    name = "grpclog",
+    srcs = [":_grpclog#go_source"],
+    cover = False,
+    import_path = "google.golang.org/grpc/grpclog",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

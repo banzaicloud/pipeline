@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "flock",
+    module = "github.com/gofrs/flock",
+    sum = "h1:DP+LD/t0njgoPBvT5MJLeliUIVQR03hiKR6vezdwHlc=",
+    tag = "download",
+    version = "v0.7.1",
+    visibility = ["//third_party/go/github.com/gofrs/flock/..."],
+)
+
+fileexport(
+    name = "flock",
+    srcs = [
+        "flock.go",
+        "flock_unix.go",
+        "flock_winapi.go",
+        "flock_windows.go",
+    ],
+    tag = "go_source",
+    deps = [":_flock#download"],
+)
+
+go_library(
+    name = "flock",
+    srcs = [":_flock#go_source"],
+    cover = False,
+    import_path = "github.com/gofrs/flock",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "push",
+    srcs = [
+        "push/nop.go",
+        "push/push.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/net/metrics:_metrics#download"],
+)
+
+go_library(
+    name = "push",
+    srcs = [":_push#go_source"],
+    cover = False,
+    import_path = "go.uber.org/net/metrics/push",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

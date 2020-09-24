@@ -1,0 +1,28 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "csm",
+    srcs = [
+        "aws/csm/doc.go",
+        "aws/csm/enable.go",
+        "aws/csm/metric.go",
+        "aws/csm/metric_chan.go",
+        "aws/csm/metric_exception.go",
+        "aws/csm/reporter.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "csm",
+    srcs = [":_csm#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/aws/csm",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/awserr",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/request",
+    ],
+)

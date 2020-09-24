@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "kubefed",
+    module = "sigs.k8s.io/kubefed",
+    sum = "h1:eNZ5SpblUBQEzPHs8XtAjEwmkbs498IhrGvqzdynHOY=",
+    tag = "download",
+    version = "v0.4.0",
+    visibility = ["//third_party/go/sigs.k8s.io/kubefed/..."],
+)

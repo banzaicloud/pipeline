@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "challenge",
+    srcs = [
+        "registry/client/auth/challenge/addr.go",
+        "registry/client/auth/challenge/authchallenge.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/docker/distribution:_distribution#download"],
+)
+
+go_library(
+    name = "challenge",
+    srcs = [":_challenge#go_source"],
+    cover = False,
+    import_path = "github.com/docker/distribution/registry/client/auth/challenge",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

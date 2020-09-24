@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "spdystream",
+    module = "github.com/docker/spdystream",
+    sum = "h1:cenwrSVm+Z7QLSV/BsnenAOcDXdX4cMv4wP0B/5QbPg=",
+    tag = "download",
+    version = "v0.0.0-20160310174837-449fdfce4d96",
+    visibility = ["//third_party/go/github.com/docker/spdystream/..."],
+)
+
+fileexport(
+    name = "spdystream",
+    srcs = [
+        "connection.go",
+        "handlers.go",
+        "priority.go",
+        "stream.go",
+        "utils.go",
+    ],
+    tag = "go_source",
+    deps = [":_spdystream#download"],
+)
+
+go_library(
+    name = "spdystream",
+    srcs = [":_spdystream#go_source"],
+    cover = False,
+    import_path = "github.com/docker/spdystream",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/docker/spdystream/spdy"],
+)

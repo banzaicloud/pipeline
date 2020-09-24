@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-spew",
+    module = "github.com/davecgh/go-spew",
+    sum = "h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=",
+    tag = "download",
+    version = "v1.1.1",
+    visibility = ["//third_party/go/github.com/davecgh/go-spew/..."],
+)

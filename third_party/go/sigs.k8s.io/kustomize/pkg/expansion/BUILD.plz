@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "expansion",
+    srcs = ["pkg/expansion/expand.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kustomize:_kustomize#download"],
+)
+
+go_library(
+    name = "expansion",
+    srcs = [":_expansion#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kustomize/pkg/expansion",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

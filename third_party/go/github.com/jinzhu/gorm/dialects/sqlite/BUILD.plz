@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "sqlite",
+    srcs = ["dialects/sqlite/sqlite.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/jinzhu/gorm:_gorm#download"],
+)
+
+go_library(
+    name = "sqlite",
+    srcs = [":_sqlite#go_source"],
+    cover = False,
+    import_path = "github.com/jinzhu/gorm/dialects/sqlite",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/mattn/go-sqlite3"],
+)

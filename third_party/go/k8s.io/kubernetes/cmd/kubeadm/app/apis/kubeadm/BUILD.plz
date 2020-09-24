@@ -1,0 +1,35 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "kubeadm",
+    srcs = [
+        "cmd/kubeadm/app/apis/kubeadm/apiendpoint.go",
+        "cmd/kubeadm/app/apis/kubeadm/bootstraptokenhelpers.go",
+        "cmd/kubeadm/app/apis/kubeadm/bootstraptokenstring.go",
+        "cmd/kubeadm/app/apis/kubeadm/doc.go",
+        "cmd/kubeadm/app/apis/kubeadm/register.go",
+        "cmd/kubeadm/app/apis/kubeadm/types.go",
+        "cmd/kubeadm/app/apis/kubeadm/zz_generated.deepcopy.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/kubernetes:_kubernetes#download"],
+)
+
+go_library(
+    name = "kubeadm",
+    srcs = [":_kubeadm#go_source"],
+    cover = False,
+    import_path = "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/k8s.io/api/core/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/cluster-bootstrap/token/api",
+        "//third_party/go/k8s.io/cluster-bootstrap/token/util",
+        "//third_party/go/k8s.io/cluster-bootstrap/util/secrets",
+        "//third_party/go/k8s.io/kubernetes/cmd/kubeadm/app/features",
+    ],
+)

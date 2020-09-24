@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "problems",
+    module = "github.com/moogar0880/problems",
+    sum = "h1:bktLhq8NDG/czU2ZziYNigBFksx13RaYe5AVdNmHDT4=",
+    tag = "download",
+    version = "v0.1.1",
+    visibility = ["//third_party/go/github.com/moogar0880/problems/..."],
+)
+
+fileexport(
+    name = "problems",
+    srcs = [
+        "doc.go",
+        "errors.go",
+        "problem.go",
+        "web.go",
+    ],
+    tag = "go_source",
+    deps = [":_problems#download"],
+)
+
+go_library(
+    name = "problems",
+    srcs = [":_problems#go_source"],
+    cover = False,
+    import_path = "github.com/moogar0880/problems",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

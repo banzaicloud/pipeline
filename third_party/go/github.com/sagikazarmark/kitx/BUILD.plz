@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "kitx",
+    module = "github.com/sagikazarmark/kitx",
+    sum = "h1:19phhwBe4iVOy1Kam4dqGuxFT59/Wlp0xI239PhpaiQ=",
+    tag = "download",
+    version = "v0.12.0",
+    visibility = ["//third_party/go/github.com/sagikazarmark/kitx/..."],
+)

@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "fake",
+    srcs = [
+        "kubernetes/typed/authorization/v1/fake/doc.go",
+        "kubernetes/typed/authorization/v1/fake/fake_authorization_client.go",
+        "kubernetes/typed/authorization/v1/fake/fake_localsubjectaccessreview.go",
+        "kubernetes/typed/authorization/v1/fake/fake_selfsubjectaccessreview.go",
+        "kubernetes/typed/authorization/v1/fake/fake_selfsubjectrulesreview.go",
+        "kubernetes/typed/authorization/v1/fake/fake_subjectaccessreview.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "fake",
+    srcs = [":_fake#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/kubernetes/typed/authorization/v1/fake",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/api/authorization/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/client-go/kubernetes/typed/authorization/v1",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/k8s.io/client-go/testing",
+    ],
+)

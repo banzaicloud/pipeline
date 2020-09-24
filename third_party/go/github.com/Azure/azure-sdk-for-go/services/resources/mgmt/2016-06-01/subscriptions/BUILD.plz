@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "subscriptions",
+    srcs = [
+        "services/resources/mgmt/2016-06-01/subscriptions/client.go",
+        "services/resources/mgmt/2016-06-01/subscriptions/models.go",
+        "services/resources/mgmt/2016-06-01/subscriptions/operations.go",
+        "services/resources/mgmt/2016-06-01/subscriptions/subscriptions.go",
+        "services/resources/mgmt/2016-06-01/subscriptions/tenants.go",
+        "services/resources/mgmt/2016-06-01/subscriptions/version.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/Azure/azure-sdk-for-go:_azure-sdk-for-go#download"],
+)
+
+go_library(
+    name = "subscriptions",
+    srcs = [":_subscriptions#go_source"],
+    cover = False,
+    import_path = "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/version",
+        "//third_party/go/github.com/Azure/go-autorest/autorest",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/azure",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/to",
+        "//third_party/go/github.com/Azure/go-autorest/tracing",
+    ],
+)

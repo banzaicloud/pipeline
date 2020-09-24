@@ -1,0 +1,35 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "properties",
+    module = "github.com/magiconair/properties",
+    sum = "h1:ZC2Vc7/ZFkGmsVC9KvOjumD+G5lXy2RtTKyzRKO2BQ4=",
+    tag = "download",
+    version = "v1.8.1",
+    visibility = ["//third_party/go/github.com/magiconair/properties/..."],
+)
+
+fileexport(
+    name = "properties",
+    srcs = [
+        "decode.go",
+        "doc.go",
+        "integrate.go",
+        "lex.go",
+        "load.go",
+        "parser.go",
+        "properties.go",
+        "rangecheck.go",
+    ],
+    tag = "go_source",
+    deps = [":_properties#download"],
+)
+
+go_library(
+    name = "properties",
+    srcs = [":_properties#go_source"],
+    cover = False,
+    import_path = "github.com/magiconair/properties",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

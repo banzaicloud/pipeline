@@ -1,0 +1,10 @@
+go_library(
+    name = "correlationid",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/gin-gonic/gin",
+        "//third_party/go/github.com/gofrs/uuid",
+        "//third_party/go/github.com/sirupsen/logrus",
+    ],
+)

@@ -1,0 +1,53 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "gorm",
+    module = "github.com/jinzhu/gorm",
+    replace = "github.com/jinzhu/gorm",
+    sum = "h1:lDSDtsCt5AGGSKTs8AHlSDbbgif4G4+CKJ8ETBDVHTA=",
+    tag = "download",
+    version = "v1.9.1",
+    visibility = ["//third_party/go/github.com/jinzhu/gorm/..."],
+)
+
+fileexport(
+    name = "gorm",
+    srcs = [
+        "association.go",
+        "callback.go",
+        "callback_create.go",
+        "callback_delete.go",
+        "callback_query.go",
+        "callback_query_preload.go",
+        "callback_row_query.go",
+        "callback_save.go",
+        "callback_update.go",
+        "dialect.go",
+        "dialect_common.go",
+        "dialect_mysql.go",
+        "dialect_postgres.go",
+        "dialect_sqlite3.go",
+        "errors.go",
+        "field.go",
+        "interface.go",
+        "join_table_handler.go",
+        "logger.go",
+        "main.go",
+        "model.go",
+        "model_struct.go",
+        "scope.go",
+        "search.go",
+        "utils.go",
+    ],
+    tag = "go_source",
+    deps = [":_gorm#download"],
+)
+
+go_library(
+    name = "gorm",
+    srcs = [":_gorm#go_source"],
+    cover = False,
+    import_path = "github.com/jinzhu/gorm",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/jinzhu/inflection"],
+)

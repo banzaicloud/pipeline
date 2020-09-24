@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "exec",
+    srcs = [
+        "exec/doc.go",
+        "exec/exec.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/utils:_utils#download"],
+)
+
+go_library(
+    name = "exec",
+    srcs = [":_exec#go_source"],
+    cover = False,
+    import_path = "k8s.io/utils/exec",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

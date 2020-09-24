@@ -1,0 +1,52 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "prometheus",
+    srcs = [
+        "prometheus/build_info.go",
+        "prometheus/build_info_pre_1.12.go",
+        "prometheus/collector.go",
+        "prometheus/counter.go",
+        "prometheus/desc.go",
+        "prometheus/doc.go",
+        "prometheus/expvar_collector.go",
+        "prometheus/fnv.go",
+        "prometheus/gauge.go",
+        "prometheus/go_collector.go",
+        "prometheus/histogram.go",
+        "prometheus/labels.go",
+        "prometheus/metric.go",
+        "prometheus/observer.go",
+        "prometheus/process_collector.go",
+        "prometheus/process_collector_other.go",
+        "prometheus/process_collector_windows.go",
+        "prometheus/registry.go",
+        "prometheus/summary.go",
+        "prometheus/timer.go",
+        "prometheus/untyped.go",
+        "prometheus/value.go",
+        "prometheus/vec.go",
+        "prometheus/wrap.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/prometheus/client_golang:_client_golang#download"],
+)
+
+go_library(
+    name = "prometheus",
+    srcs = [":_prometheus#go_source"],
+    cover = False,
+    import_path = "github.com/prometheus/client_golang/prometheus",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/beorn7/perks/quantile",
+        "//third_party/go/github.com/cespare/xxhash/v2",
+        "//third_party/go/github.com/golang/protobuf/proto",
+        "//third_party/go/github.com/golang/protobuf/ptypes",
+        "//third_party/go/github.com/prometheus/client_golang/prometheus/internal",
+        "//third_party/go/github.com/prometheus/client_model/go",
+        "//third_party/go/github.com/prometheus/common/expfmt",
+        "//third_party/go/github.com/prometheus/common/model",
+        "//third_party/go/github.com/prometheus/procfs",
+    ],
+)

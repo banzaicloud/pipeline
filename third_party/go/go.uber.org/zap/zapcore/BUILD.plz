@@ -1,0 +1,42 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "zapcore",
+    srcs = [
+        "zapcore/console_encoder.go",
+        "zapcore/core.go",
+        "zapcore/doc.go",
+        "zapcore/encoder.go",
+        "zapcore/entry.go",
+        "zapcore/error.go",
+        "zapcore/field.go",
+        "zapcore/hook.go",
+        "zapcore/increase_level.go",
+        "zapcore/json_encoder.go",
+        "zapcore/level.go",
+        "zapcore/level_strings.go",
+        "zapcore/marshaler.go",
+        "zapcore/memory_encoder.go",
+        "zapcore/sampler.go",
+        "zapcore/tee.go",
+        "zapcore/write_syncer.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/zap:_zap#download"],
+)
+
+go_library(
+    name = "zapcore",
+    srcs = [":_zapcore#go_source"],
+    cover = False,
+    import_path = "go.uber.org/zap/zapcore",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.uber.org/atomic",
+        "//third_party/go/go.uber.org/multierr",
+        "//third_party/go/go.uber.org/zap/buffer",
+        "//third_party/go/go.uber.org/zap/internal/bufferpool",
+        "//third_party/go/go.uber.org/zap/internal/color",
+        "//third_party/go/go.uber.org/zap/internal/exit",
+    ],
+)

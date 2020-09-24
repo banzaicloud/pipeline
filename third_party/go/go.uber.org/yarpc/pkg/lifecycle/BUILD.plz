@@ -1,0 +1,24 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "lifecycle",
+    srcs = [
+        "pkg/lifecycle/doc.go",
+        "pkg/lifecycle/once.go",
+        "pkg/lifecycle/state_string.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/yarpc:_yarpc#download"],
+)
+
+go_library(
+    name = "lifecycle",
+    srcs = [":_lifecycle#go_source"],
+    cover = False,
+    import_path = "go.uber.org/yarpc/pkg/lifecycle",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.uber.org/atomic",
+        "//third_party/go/go.uber.org/yarpc/yarpcerrors",
+    ],
+)

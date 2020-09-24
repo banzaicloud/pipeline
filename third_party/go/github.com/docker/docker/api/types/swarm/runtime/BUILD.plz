@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "runtime",
+    srcs = [
+        "api/types/swarm/runtime/gen.go",
+        "api/types/swarm/runtime/plugin.pb.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/docker/docker:_docker#download"],
+)
+
+go_library(
+    name = "runtime",
+    srcs = [":_runtime#go_source"],
+    cover = False,
+    import_path = "github.com/docker/docker/api/types/swarm/runtime",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/gogo/protobuf/proto"],
+)

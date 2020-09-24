@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "logur",
+    module = "emperror.dev/handler/logur",
+    sum = "h1:mo12Nr3Ke3llow2lNi9PuS0h4vy24yDoAQ8bw98v1pY=",
+    tag = "download",
+    version = "v0.4.0",
+    visibility = ["//third_party/go/emperror.dev/handler/logur/..."],
+)
+
+fileexport(
+    name = "logur",
+    srcs = ["handler.go"],
+    tag = "go_source",
+    deps = [":_logur#download"],
+)
+
+go_library(
+    name = "logur",
+    srcs = [":_logur#go_source"],
+    cover = False,
+    import_path = "emperror.dev/handler/logur",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/emperror.dev/errors/utils/keyval",
+        "//third_party/go/logur.dev/logur",
+    ],
+)

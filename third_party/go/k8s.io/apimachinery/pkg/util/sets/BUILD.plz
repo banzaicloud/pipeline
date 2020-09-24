@@ -1,0 +1,25 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "sets",
+    srcs = [
+        "pkg/util/sets/byte.go",
+        "pkg/util/sets/doc.go",
+        "pkg/util/sets/empty.go",
+        "pkg/util/sets/int.go",
+        "pkg/util/sets/int32.go",
+        "pkg/util/sets/int64.go",
+        "pkg/util/sets/string.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "sets",
+    srcs = [":_sets#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/pkg/util/sets",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

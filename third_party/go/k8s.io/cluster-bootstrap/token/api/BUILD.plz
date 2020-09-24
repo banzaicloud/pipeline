@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "api",
+    srcs = [
+        "token/api/doc.go",
+        "token/api/types.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/cluster-bootstrap:_cluster-bootstrap#download"],
+)
+
+go_library(
+    name = "api",
+    srcs = [":_api#go_source"],
+    cover = False,
+    import_path = "k8s.io/cluster-bootstrap/token/api",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/k8s.io/api/core/v1"],
+)

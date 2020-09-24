@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "grpc",
+    srcs = [
+        "transport/grpc/dial.go",
+        "transport/grpc/dial_appengine.go",
+        "transport/grpc/dial_socketopt.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/api:_api#download"],
+)
+
+go_library(
+    name = "grpc",
+    srcs = [":_grpc#go_source"],
+    cover = False,
+    import_path = "google.golang.org/api/transport/grpc",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.opencensus.io/plugin/ocgrpc",
+        "//third_party/go/golang.org/x/oauth2",
+        "//third_party/go/google.golang.org/api/internal",
+        "//third_party/go/google.golang.org/api/option",
+        "//third_party/go/google.golang.org/grpc",
+        "//third_party/go/google.golang.org/grpc/balancer/grpclb",
+        "//third_party/go/google.golang.org/grpc/credentials",
+        "//third_party/go/google.golang.org/grpc/credentials/google",
+        "//third_party/go/google.golang.org/grpc/credentials/oauth",
+    ],
+)

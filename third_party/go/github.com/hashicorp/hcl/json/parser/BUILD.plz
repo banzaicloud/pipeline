@@ -1,0 +1,25 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "parser",
+    srcs = [
+        "json/parser/flatten.go",
+        "json/parser/parser.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/hashicorp/hcl:_hcl#download"],
+)
+
+go_library(
+    name = "parser",
+    srcs = [":_parser#go_source"],
+    cover = False,
+    import_path = "github.com/hashicorp/hcl/json/parser",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/hashicorp/hcl/hcl/ast",
+        "//third_party/go/github.com/hashicorp/hcl/hcl/token",
+        "//third_party/go/github.com/hashicorp/hcl/json/scanner",
+        "//third_party/go/github.com/hashicorp/hcl/json/token",
+    ],
+)

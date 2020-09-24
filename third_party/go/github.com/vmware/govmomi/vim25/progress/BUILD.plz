@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "progress",
+    srcs = [
+        "vim25/progress/aggregator.go",
+        "vim25/progress/doc.go",
+        "vim25/progress/prefix.go",
+        "vim25/progress/reader.go",
+        "vim25/progress/report.go",
+        "vim25/progress/scale.go",
+        "vim25/progress/sinker.go",
+        "vim25/progress/tee.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/vmware/govmomi:_govmomi#download"],
+)
+
+go_library(
+    name = "progress",
+    srcs = [":_progress#go_source"],
+    cover = False,
+    import_path = "github.com/vmware/govmomi/vim25/progress",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

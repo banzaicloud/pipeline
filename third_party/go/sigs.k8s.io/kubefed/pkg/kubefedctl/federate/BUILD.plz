@@ -1,0 +1,43 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "federate",
+    srcs = [
+        "pkg/kubefedctl/federate/federate.go",
+        "pkg/kubefedctl/federate/util.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kubefed:_kubefed#download"],
+)
+
+go_library(
+    name = "federate",
+    srcs = [":_federate#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kubefed/pkg/kubefedctl/federate",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/github.com/spf13/cobra",
+        "//third_party/go/github.com/spf13/pflag",
+        "//third_party/go/k8s.io/apimachinery/pkg/api/errors",
+        "//third_party/go/k8s.io/apimachinery/pkg/api/meta",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/validation",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/wait",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/yaml",
+        "//third_party/go/k8s.io/apimachinery/pkg/version",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/k8s.io/klog",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/apis/core/typeconfig",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/apis/core/v1beta1",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/client/generic",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/controller/util",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/kubefedctl/enable",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/kubefedctl/options",
+        "//third_party/go/sigs.k8s.io/kubefed/pkg/kubefedctl/util",
+        "//third_party/go/sigs.k8s.io/yaml",
+    ],
+)

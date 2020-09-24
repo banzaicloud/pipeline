@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "copystructure",
+    module = "github.com/mitchellh/copystructure",
+    sum = "h1:Laisrj+bAB6b/yJwB5Bt3ITZhGJdqmxquMKeZ+mmkFQ=",
+    tag = "download",
+    version = "v1.0.0",
+    visibility = ["//third_party/go/github.com/mitchellh/copystructure/..."],
+)
+
+fileexport(
+    name = "copystructure",
+    srcs = [
+        "copier_time.go",
+        "copystructure.go",
+    ],
+    tag = "go_source",
+    deps = [":_copystructure#download"],
+)
+
+go_library(
+    name = "copystructure",
+    srcs = [":_copystructure#go_source"],
+    cover = False,
+    import_path = "github.com/mitchellh/copystructure",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/mitchellh/reflectwalk"],
+)

@@ -1,0 +1,61 @@
+go_library(
+    name = "helm",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//pkg/helm",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/ghodss/yaml",
+        "//third_party/go/github.com/mitchellh/mapstructure",
+        "//third_party/go/sigs.k8s.io/yaml",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(
+        ["*_test.go"],
+        exclude = [
+            "integration_test.go",
+            "*_integration_test.go",
+            "*_external_test.go",
+        ],
+    ),
+    deps = [
+        ":helm",
+        "//internal/common",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/stretchr/testify/mock",
+    ],
+)
+
+go_test(
+    name = "integration_test",
+    srcs = glob([
+        "integration_test.go",
+        "*_integration_test.go",
+        "zz_generated.mock_external_test.go",
+    ]),
+    external = True,
+    labels = [
+        "manual",
+        "integration",
+    ],
+    deps = [
+        ":helm",
+        "//internal/cmd",
+        "//internal/common",
+        "//internal/helm/helmadapter",
+        "//internal/helm/testing",
+        "//internal/testing",
+        "//pkg/k8sclient",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/jinzhu/gorm/dialects/sqlite",
+        "//third_party/go/github.com/stretchr/testify/assert",
+        "//third_party/go/github.com/stretchr/testify/mock",
+        "//third_party/go/github.com/stretchr/testify/require",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/client-go/kubernetes",
+    ],
+)

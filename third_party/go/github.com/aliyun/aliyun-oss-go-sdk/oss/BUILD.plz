@@ -1,0 +1,43 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "oss",
+    srcs = [
+        "oss/auth.go",
+        "oss/bucket.go",
+        "oss/client.go",
+        "oss/conf.go",
+        "oss/conn.go",
+        "oss/const.go",
+        "oss/crc.go",
+        "oss/download.go",
+        "oss/error.go",
+        "oss/limit_reader_1_6.go",
+        "oss/limit_reader_1_7.go",
+        "oss/livechannel.go",
+        "oss/mime.go",
+        "oss/model.go",
+        "oss/multicopy.go",
+        "oss/multipart.go",
+        "oss/option.go",
+        "oss/progress.go",
+        "oss/select_object.go",
+        "oss/select_object_type.go",
+        "oss/transport_1_6.go",
+        "oss/transport_1_7.go",
+        "oss/type.go",
+        "oss/upload.go",
+        "oss/utils.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aliyun/aliyun-oss-go-sdk:_aliyun-oss-go-sdk#download"],
+)
+
+go_library(
+    name = "oss",
+    srcs = [":_oss#go_source"],
+    cover = False,
+    import_path = "github.com/aliyun/aliyun-oss-go-sdk/oss",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/golang.org/x/time/rate"],
+)

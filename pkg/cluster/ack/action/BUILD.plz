@@ -1,0 +1,22 @@
+go_library(
+    name = "action",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/global",
+        "//internal/providers/alibaba/alibabaadapter",
+        "//internal/secret/ssh/sshadapter",
+        "//pkg/cluster/ack",
+        "//pkg/errors",
+        "//pkg/providers/alibaba",
+        "//src/secret",
+        "//third_party/go/emperror.dev/emperror",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/services/cs",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/services/ecs",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/services/ess",
+        "//third_party/go/github.com/sirupsen/logrus",
+    ],
+)

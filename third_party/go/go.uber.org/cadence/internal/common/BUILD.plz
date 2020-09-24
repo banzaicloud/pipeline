@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "common",
+    srcs = [
+        "internal/common/convert.go",
+        "internal/common/thrift_util.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/cadence:_cadence#download"],
+)
+
+go_library(
+    name = "common",
+    srcs = [":_common#go_source"],
+    cover = False,
+    import_path = "go.uber.org/cadence/internal/common",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/apache/thrift/lib/go/thrift",
+        "//third_party/go/go.uber.org/cadence/.gen/go/shared",
+    ],
+)

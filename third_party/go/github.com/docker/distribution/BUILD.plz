@@ -1,0 +1,37 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "distribution",
+    module = "github.com/docker/distribution",
+    sum = "h1:a5mlkVzth6W5A4fOsS3D2EO5BUmsJpcB+cRlLU7cSug=",
+    tag = "download",
+    version = "v2.7.1+incompatible",
+    visibility = ["//third_party/go/github.com/docker/distribution/..."],
+)
+
+fileexport(
+    name = "distribution",
+    srcs = [
+        "blobs.go",
+        "doc.go",
+        "errors.go",
+        "manifests.go",
+        "registry.go",
+        "tags.go",
+    ],
+    tag = "go_source",
+    deps = [":_distribution#download"],
+)
+
+go_library(
+    name = "distribution",
+    srcs = [":_distribution#go_source"],
+    cover = False,
+    import_path = "github.com/docker/distribution",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/docker/distribution/reference",
+        "//third_party/go/github.com/opencontainers/go-digest",
+        "//third_party/go/github.com/opencontainers/image-spec/specs-go/v1",
+    ],
+)

@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "scanner",
+    srcs = ["json/scanner/scanner.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/hashicorp/hcl:_hcl#download"],
+)
+
+go_library(
+    name = "scanner",
+    srcs = [":_scanner#go_source"],
+    cover = False,
+    import_path = "github.com/hashicorp/hcl/json/scanner",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/hashicorp/hcl/json/token"],
+)

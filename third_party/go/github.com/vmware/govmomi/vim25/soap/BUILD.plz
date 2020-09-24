@@ -1,0 +1,27 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "soap",
+    srcs = [
+        "vim25/soap/client.go",
+        "vim25/soap/debug.go",
+        "vim25/soap/error.go",
+        "vim25/soap/soap.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/vmware/govmomi:_govmomi#download"],
+)
+
+go_library(
+    name = "soap",
+    srcs = [":_soap#go_source"],
+    cover = False,
+    import_path = "github.com/vmware/govmomi/vim25/soap",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/vmware/govmomi/vim25/debug",
+        "//third_party/go/github.com/vmware/govmomi/vim25/progress",
+        "//third_party/go/github.com/vmware/govmomi/vim25/types",
+        "//third_party/go/github.com/vmware/govmomi/vim25/xml",
+    ],
+)

@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "corehandlers",
+    srcs = [
+        "aws/corehandlers/handlers.go",
+        "aws/corehandlers/param_validator.go",
+        "aws/corehandlers/user_agent.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "corehandlers",
+    srcs = [":_corehandlers#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/aws/corehandlers",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/awserr",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/credentials",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/request",
+    ],
+)

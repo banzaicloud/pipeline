@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "kube-openapi",
+    module = "k8s.io/kube-openapi",
+    sum = "h1:Oh3Mzx5pJ+yIumsAD0MOECPVeXsVot0UkiaCGVyfGQY=",
+    tag = "download",
+    version = "v0.0.0-20200410145947-61e04a5be9a6",
+    visibility = ["//third_party/go/k8s.io/kube-openapi/..."],
+)

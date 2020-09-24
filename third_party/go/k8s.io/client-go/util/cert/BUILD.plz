@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "cert",
+    srcs = [
+        "util/cert/cert.go",
+        "util/cert/csr.go",
+        "util/cert/io.go",
+        "util/cert/pem.go",
+        "util/cert/server_inspection.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "cert",
+    srcs = [":_cert#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/util/cert",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/k8s.io/client-go/util/keyutil"],
+)

@@ -1,0 +1,46 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "grpclb",
+    srcs = [
+        "balancer/grpclb/grpclb.go",
+        "balancer/grpclb/grpclb_config.go",
+        "balancer/grpclb/grpclb_picker.go",
+        "balancer/grpclb/grpclb_remote_balancer.go",
+        "balancer/grpclb/grpclb_util.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/grpc:_grpc#download"],
+)
+
+go_library(
+    name = "grpclb",
+    srcs = [":_grpclb#go_source"],
+    cover = False,
+    import_path = "google.golang.org/grpc/balancer/grpclb",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/golang/protobuf/proto",
+        "//third_party/go/github.com/golang/protobuf/ptypes/duration",
+        "//third_party/go/github.com/golang/protobuf/ptypes/timestamp",
+        "//third_party/go/github.com/google/go-cmp/cmp",
+        "//third_party/go/google.golang.org/grpc",
+        "//third_party/go/google.golang.org/grpc/balancer",
+        "//third_party/go/google.golang.org/grpc/balancer/grpclb/grpc_lb_v1",
+        "//third_party/go/google.golang.org/grpc/balancer/roundrobin",
+        "//third_party/go/google.golang.org/grpc/codes",
+        "//third_party/go/google.golang.org/grpc/connectivity",
+        "//third_party/go/google.golang.org/grpc/credentials",
+        "//third_party/go/google.golang.org/grpc/grpclog",
+        "//third_party/go/google.golang.org/grpc/internal",
+        "//third_party/go/google.golang.org/grpc/internal/backoff",
+        "//third_party/go/google.golang.org/grpc/internal/channelz",
+        "//third_party/go/google.golang.org/grpc/internal/grpcrand",
+        "//third_party/go/google.golang.org/grpc/internal/resolver/dns",
+        "//third_party/go/google.golang.org/grpc/keepalive",
+        "//third_party/go/google.golang.org/grpc/metadata",
+        "//third_party/go/google.golang.org/grpc/resolver",
+        "//third_party/go/google.golang.org/grpc/serviceconfig",
+        "//third_party/go/google.golang.org/grpc/status",
+    ],
+)

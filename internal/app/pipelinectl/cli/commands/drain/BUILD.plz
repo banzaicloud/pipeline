@@ -1,0 +1,10 @@
+go_library(
+    name = "drain",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/github.com/spf13/cobra",
+        "//third_party/go/github.com/spf13/viper",
+    ],
+)

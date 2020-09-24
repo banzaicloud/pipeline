@@ -1,0 +1,12 @@
+go_library(
+    name = "pkeworkflowadapter",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/providers/pke/pkeworkflow",
+        "//src/cluster",
+        "//src/secret",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/session",
+        "//third_party/go/github.com/pkg/errors",
+    ],
+)

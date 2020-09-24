@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "strconv",
+    srcs = ["hcl/strconv/quote.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/hashicorp/hcl:_hcl#download"],
+)
+
+go_library(
+    name = "strconv",
+    srcs = [":_strconv#go_source"],
+    cover = False,
+    import_path = "github.com/hashicorp/hcl/hcl/strconv",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

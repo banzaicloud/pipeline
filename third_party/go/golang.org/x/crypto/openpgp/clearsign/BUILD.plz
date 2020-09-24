@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "clearsign",
+    srcs = ["openpgp/clearsign/clearsign.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/crypto:_crypto#download"],
+)
+
+go_library(
+    name = "clearsign",
+    srcs = [":_clearsign#go_source"],
+    cover = False,
+    import_path = "golang.org/x/crypto/openpgp/clearsign",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/crypto/openpgp/armor",
+        "//third_party/go/golang.org/x/crypto/openpgp/errors",
+        "//third_party/go/golang.org/x/crypto/openpgp/packet",
+    ],
+)

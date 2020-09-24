@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "errdefs",
+    srcs = [
+        "errdefs/defs.go",
+        "errdefs/doc.go",
+        "errdefs/helpers.go",
+        "errdefs/http_helpers.go",
+        "errdefs/is.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/docker/docker:_docker#download"],
+)
+
+go_library(
+    name = "errdefs",
+    srcs = [":_errdefs#go_source"],
+    cover = False,
+    import_path = "github.com/docker/docker/errdefs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/containerd/containerd/errdefs",
+        "//third_party/go/github.com/docker/distribution/registry/api/errcode",
+        "//third_party/go/github.com/sirupsen/logrus",
+        "//third_party/go/google.golang.org/grpc/codes",
+        "//third_party/go/google.golang.org/grpc/status",
+    ],
+)

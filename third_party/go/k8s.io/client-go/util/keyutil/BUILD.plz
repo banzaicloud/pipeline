@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "keyutil",
+    srcs = ["util/keyutil/key.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "keyutil",
+    srcs = [":_keyutil#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/util/keyutil",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

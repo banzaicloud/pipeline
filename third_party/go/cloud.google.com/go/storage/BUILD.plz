@@ -1,0 +1,54 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "storage",
+    module = "cloud.google.com/go/storage",
+    sum = "h1:VV2nUM3wwLLGh9lSABFgZMjInyUbJeaRSE64WuAIQ+4=",
+    tag = "download",
+    version = "v1.0.0",
+    visibility = ["//third_party/go/cloud.google.com/go/storage/..."],
+)
+
+fileexport(
+    name = "storage",
+    srcs = [
+        "acl.go",
+        "bucket.go",
+        "copy.go",
+        "doc.go",
+        "go110.go",
+        "go_mod_tidy_hack.go",
+        "hmac.go",
+        "iam.go",
+        "invoke.go",
+        "not_go110.go",
+        "notifications.go",
+        "reader.go",
+        "storage.go",
+        "writer.go",
+    ],
+    tag = "go_source",
+    deps = [":_storage#download"],
+)
+
+go_library(
+    name = "storage",
+    srcs = [":_storage#go_source"],
+    cover = False,
+    import_path = "cloud.google.com/go/storage",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/cloud.google.com/go/iam",
+        "//third_party/go/cloud.google.com/go/internal",
+        "//third_party/go/cloud.google.com/go/internal/optional",
+        "//third_party/go/cloud.google.com/go/internal/trace",
+        "//third_party/go/cloud.google.com/go/internal/version",
+        "//third_party/go/github.com/googleapis/gax-go/v2",
+        "//third_party/go/google.golang.org/api/googleapi",
+        "//third_party/go/google.golang.org/api/iterator",
+        "//third_party/go/google.golang.org/api/option",
+        "//third_party/go/google.golang.org/api/storage/v1",
+        "//third_party/go/google.golang.org/api/transport/http",
+        "//third_party/go/google.golang.org/genproto/googleapis/iam/v1",
+    ],
+)

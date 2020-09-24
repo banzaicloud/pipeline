@@ -1,0 +1,34 @@
+go_library(
+    name = "k8sclient",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/global",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/yaml",
+        "//third_party/go/k8s.io/client-go/kubernetes",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/k8s.io/client-go/tools/clientcmd",
+        "//third_party/go/k8s.io/client-go/tools/clientcmd/api",
+        "//third_party/go/sigs.k8s.io/controller-runtime/pkg/client",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/global",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/stretchr/testify/suite",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/yaml",
+        "//third_party/go/k8s.io/client-go/kubernetes",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/k8s.io/client-go/tools/clientcmd",
+        "//third_party/go/k8s.io/client-go/tools/clientcmd/api",
+        "//third_party/go/sigs.k8s.io/controller-runtime/pkg/client",
+        "//third_party/go/sigs.k8s.io/testing_frameworks/integration",
+    ],
+)

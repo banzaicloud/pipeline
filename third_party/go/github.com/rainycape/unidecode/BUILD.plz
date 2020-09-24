@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "unidecode",
+    module = "github.com/rainycape/unidecode",
+    sum = "h1:ta7tUOvsPHVHGom5hKW5VXNc2xZIkfCKP8iaqOyYtUQ=",
+    tag = "download",
+    version = "v0.0.0-20150907023854-cb7f23ec59be",
+    visibility = ["//third_party/go/github.com/rainycape/unidecode/..."],
+)
+
+fileexport(
+    name = "unidecode",
+    srcs = [
+        "decode.go",
+        "make_table.go",
+        "table.go",
+        "unidecode.go",
+    ],
+    tag = "go_source",
+    deps = [":_unidecode#download"],
+)
+
+go_library(
+    name = "unidecode",
+    srcs = [":_unidecode#go_source"],
+    cover = False,
+    import_path = "github.com/rainycape/unidecode",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

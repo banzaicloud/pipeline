@@ -1,0 +1,48 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "registry",
+    srcs = [
+        "registry/auth.go",
+        "registry/config.go",
+        "registry/config_unix.go",
+        "registry/config_windows.go",
+        "registry/endpoint_v1.go",
+        "registry/errors.go",
+        "registry/registry.go",
+        "registry/service.go",
+        "registry/service_v2.go",
+        "registry/session.go",
+        "registry/types.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/docker/docker:_docker#download"],
+)
+
+go_library(
+    name = "registry",
+    srcs = [":_registry#go_source"],
+    cover = False,
+    import_path = "github.com/docker/docker/registry",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/docker/distribution/reference",
+        "//third_party/go/github.com/docker/distribution/registry/api/errcode",
+        "//third_party/go/github.com/docker/distribution/registry/client/auth",
+        "//third_party/go/github.com/docker/distribution/registry/client/auth/challenge",
+        "//third_party/go/github.com/docker/distribution/registry/client/transport",
+        "//third_party/go/github.com/docker/docker/api/types",
+        "//third_party/go/github.com/docker/docker/api/types/registry",
+        "//third_party/go/github.com/docker/docker/errdefs",
+        "//third_party/go/github.com/docker/docker/pkg/homedir",
+        "//third_party/go/github.com/docker/docker/pkg/ioutils",
+        "//third_party/go/github.com/docker/docker/pkg/jsonmessage",
+        "//third_party/go/github.com/docker/docker/pkg/stringid",
+        "//third_party/go/github.com/docker/docker/pkg/tarsum",
+        "//third_party/go/github.com/docker/docker/registry/resumable",
+        "//third_party/go/github.com/docker/docker/rootless",
+        "//third_party/go/github.com/docker/go-connections/tlsconfig",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/github.com/sirupsen/logrus",
+    ],
+)

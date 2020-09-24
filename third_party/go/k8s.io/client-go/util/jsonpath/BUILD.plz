@@ -1,0 +1,22 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "jsonpath",
+    srcs = [
+        "util/jsonpath/doc.go",
+        "util/jsonpath/jsonpath.go",
+        "util/jsonpath/node.go",
+        "util/jsonpath/parser.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "jsonpath",
+    srcs = [":_jsonpath#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/util/jsonpath",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/k8s.io/client-go/third_party/forked/golang/template"],
+)

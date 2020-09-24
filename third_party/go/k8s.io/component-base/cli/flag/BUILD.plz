@@ -1,0 +1,35 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "flag",
+    srcs = [
+        "cli/flag/ciphersuites_flag.go",
+        "cli/flag/colon_separated_multimap_string_string.go",
+        "cli/flag/configuration_map.go",
+        "cli/flag/flags.go",
+        "cli/flag/langle_separated_map_string_string.go",
+        "cli/flag/map_string_bool.go",
+        "cli/flag/map_string_string.go",
+        "cli/flag/namedcertkey_flag.go",
+        "cli/flag/noop.go",
+        "cli/flag/omitempty.go",
+        "cli/flag/sectioned.go",
+        "cli/flag/string_flag.go",
+        "cli/flag/tristate.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/component-base:_component-base#download"],
+)
+
+go_library(
+    name = "flag",
+    srcs = [":_flag#go_source"],
+    cover = False,
+    import_path = "k8s.io/component-base/cli/flag",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/spf13/pflag",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/sets",
+        "//third_party/go/k8s.io/klog",
+    ],
+)

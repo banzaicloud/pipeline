@@ -1,0 +1,138 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-sqlite3",
+    module = "github.com/mattn/go-sqlite3",
+    sum = "h1:gXHsfypPkaMZrKbD5209QV9jbUTJKjyR5WD3HYQSd+U=",
+    tag = "download",
+    version = "v2.0.3+incompatible",
+    visibility = ["//third_party/go/github.com/mattn/go-sqlite3/..."],
+)
+
+fileexport(
+    name = "go-sqlite3",
+    srcs = [
+        "convert.go",
+        "doc.go",
+        "sqlite3_func_crypt.go",
+        "sqlite3_go18.go",
+        "sqlite3_libsqlite3.go",
+        "sqlite3_load_extension_omit.go",
+        "sqlite3_opt_allow_uri_authority.go",
+        "sqlite3_opt_app_armor.go",
+        "sqlite3_opt_foreign_keys.go",
+        "sqlite3_opt_fts5.go",
+        "sqlite3_opt_icu.go",
+        "sqlite3_opt_introspect.go",
+        "sqlite3_opt_json1.go",
+        "sqlite3_opt_preupdate.go",
+        "sqlite3_opt_preupdate_hook.go",
+        "sqlite3_opt_preupdate_omit.go",
+        "sqlite3_opt_secure_delete.go",
+        "sqlite3_opt_secure_delete_fast.go",
+        "sqlite3_opt_stat4.go",
+        "sqlite3_opt_unlock_notify.go",
+        "sqlite3_opt_userauth.go",
+        "sqlite3_opt_vacuum_full.go",
+        "sqlite3_opt_vacuum_incr.go",
+        "sqlite3_opt_vtable.go",
+        "sqlite3_solaris.go",
+        "sqlite3_trace.go",
+        "sqlite3_usleep_windows.go",
+        "sqlite3_windows.go",
+        "static_mock.go",
+    ],
+    tag = "go_source",
+    deps = [":_go-sqlite3#download"],
+)
+
+fileexport(
+    name = "go-sqlite3",
+    srcs = [
+        "backup.go",
+        "callback.go",
+        "error.go",
+        "sqlite3.go",
+        "sqlite3_context.go",
+        "sqlite3_load_extension.go",
+        "sqlite3_opt_userauth_omit.go",
+        "sqlite3_other.go",
+        "sqlite3_type.go",
+    ],
+    tag = "cgo_source",
+    deps = [":_go-sqlite3#download"],
+)
+
+fileexport(
+    name = "go-sqlite3",
+    srcs = [
+        "sqlite3-binding.c",
+        "sqlite3_opt_unlock_notify.c",
+    ],
+    tag = "c_source",
+    deps = [":_go-sqlite3#download"],
+)
+
+fileexport(
+    name = "go-sqlite3",
+    srcs = [
+        "sqlite3-binding.h",
+        "sqlite3ext.h",
+    ],
+    tag = "h_source",
+    deps = [":_go-sqlite3#download"],
+)
+
+cgo_library(
+    name = "go-sqlite3",
+    srcs = [":_go-sqlite3#cgo_source"],
+    hdrs = [":_go-sqlite3#h_source"],
+    c_srcs = [":_go-sqlite3#c_source"],
+    compiler_flags = select({
+        "//third_party/go/__config:linux": [
+            "-std=gnu99",
+            "-DSQLITE_ENABLE_RTREE",
+            "-DSQLITE_THREADSAFE=1",
+            "-DHAVE_USLEEP=1",
+            "-DSQLITE_ENABLE_FTS3",
+            "-DSQLITE_ENABLE_FTS3_PARENTHESIS",
+            "-DSQLITE_ENABLE_FTS4_UNICODE61",
+            "-DSQLITE_TRACE_SIZE_LIMIT=15",
+            "-DSQLITE_OMIT_DEPRECATED",
+            "-DSQLITE_DISABLE_INTRINSIC",
+            "-DSQLITE_DEFAULT_WAL_SYNCHRONOUS=1",
+            "-DSQLITE_ENABLE_UPDATE_DELETE_LIMIT",
+            "-Wno-deprecated-declarations",
+            "-DHAVE_PREAD64=1",
+            "-DHAVE_PWRITE64=1",
+            "-I ${PKG}",
+        ],
+        "//third_party/go/__config:darwin": [
+            "-std=gnu99",
+            "-DSQLITE_ENABLE_RTREE",
+            "-DSQLITE_THREADSAFE=1",
+            "-DHAVE_USLEEP=1",
+            "-DSQLITE_ENABLE_FTS3",
+            "-DSQLITE_ENABLE_FTS3_PARENTHESIS",
+            "-DSQLITE_ENABLE_FTS4_UNICODE61",
+            "-DSQLITE_TRACE_SIZE_LIMIT=15",
+            "-DSQLITE_OMIT_DEPRECATED",
+            "-DSQLITE_DISABLE_INTRINSIC",
+            "-DSQLITE_DEFAULT_WAL_SYNCHRONOUS=1",
+            "-DSQLITE_ENABLE_UPDATE_DELETE_LIMIT",
+            "-Wno-deprecated-declarations",
+            "-I ${PKG}",
+        ],
+    }),
+    go_srcs = [":_go-sqlite3#go_source"],
+    import_path = "github.com/mattn/go-sqlite3",
+    linker_flags = select({
+        "//third_party/go/__config:darwin": [
+        ],
+        "//third_party/go/__config:linux": [
+            "-ldl",
+        ],
+    }),
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "metrics",
+    srcs = ["pkg/metrics/metrics.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kubefed:_kubefed#download"],
+)
+
+go_library(
+    name = "metrics",
+    srcs = [":_metrics#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kubefed/pkg/metrics",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/prometheus/client_golang/prometheus",
+        "//third_party/go/k8s.io/klog",
+        "//third_party/go/sigs.k8s.io/controller-runtime/pkg/metrics",
+    ],
+)

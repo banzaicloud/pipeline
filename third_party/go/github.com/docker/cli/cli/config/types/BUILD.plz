@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "types",
+    srcs = ["cli/config/types/authconfig.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/docker/cli:_cli#download"],
+)
+
+go_library(
+    name = "types",
+    srcs = [":_types#go_source"],
+    cover = False,
+    import_path = "github.com/docker/cli/cli/config/types",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

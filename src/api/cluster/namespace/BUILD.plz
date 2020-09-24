@@ -1,0 +1,15 @@
+go_library(
+    name = "namespace",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/brn",
+        "//pkg/common",
+        "//src/api/common",
+        "//third_party/go/emperror.dev/emperror",
+        "//third_party/go/github.com/gin-gonic/gin",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/k8s.io/apimachinery/pkg/api/errors",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+    ],
+)

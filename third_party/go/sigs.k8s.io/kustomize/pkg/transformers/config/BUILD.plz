@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "config",
+    srcs = [
+        "pkg/transformers/config/factory.go",
+        "pkg/transformers/config/factorycrd.go",
+        "pkg/transformers/config/fieldspec.go",
+        "pkg/transformers/config/namebackreferences.go",
+        "pkg/transformers/config/transformerconfig.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kustomize:_kustomize#download"],
+)
+
+go_library(
+    name = "config",
+    srcs = [":_config#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kustomize/pkg/transformers/config",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/ghodss/yaml",
+        "//third_party/go/github.com/go-openapi/spec",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/k8s.io/kube-openapi/pkg/common",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/gvk",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/ifc",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/transformers/config/defaultconfig",
+    ],
+)

@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "japanese",
+    srcs = [
+        "encoding/japanese/all.go",
+        "encoding/japanese/eucjp.go",
+        "encoding/japanese/iso2022jp.go",
+        "encoding/japanese/maketables.go",
+        "encoding/japanese/shiftjis.go",
+        "encoding/japanese/tables.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/text:_text#download"],
+)
+
+go_library(
+    name = "japanese",
+    srcs = [":_japanese#go_source"],
+    cover = False,
+    import_path = "golang.org/x/text/encoding/japanese",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/text/encoding",
+        "//third_party/go/golang.org/x/text/encoding/internal",
+        "//third_party/go/golang.org/x/text/encoding/internal/identifier",
+        "//third_party/go/golang.org/x/text/transform",
+    ],
+)

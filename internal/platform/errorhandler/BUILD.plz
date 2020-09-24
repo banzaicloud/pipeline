@@ -1,0 +1,10 @@
+go_library(
+    name = "errorhandler",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/emperror.dev/emperror",
+        "//third_party/go/emperror.dev/handler/logur",
+        "//third_party/go/logur.dev/logur",
+    ],
+)

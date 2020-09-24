@@ -1,0 +1,46 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "logrus",
+    module = "github.com/sirupsen/logrus",
+    sum = "h1:UBcNElsrwanuuMsnGSlYmtmgbb23qDR5dG+6X6Oo89I=",
+    tag = "download",
+    version = "v1.6.0",
+    visibility = ["//third_party/go/github.com/sirupsen/logrus/..."],
+)
+
+fileexport(
+    name = "logrus",
+    srcs = [
+        "alt_exit.go",
+        "doc.go",
+        "entry.go",
+        "exported.go",
+        "formatter.go",
+        "hooks.go",
+        "json_formatter.go",
+        "logger.go",
+        "logrus.go",
+        "terminal_check_appengine.go",
+        "terminal_check_bsd.go",
+        "terminal_check_js.go",
+        "terminal_check_no_terminal.go",
+        "terminal_check_notappengine.go",
+        "terminal_check_solaris.go",
+        "terminal_check_unix.go",
+        "terminal_check_windows.go",
+        "text_formatter.go",
+        "writer.go",
+    ],
+    tag = "go_source",
+    deps = [":_logrus#download"],
+)
+
+go_library(
+    name = "logrus",
+    srcs = [":_logrus#go_source"],
+    cover = False,
+    import_path = "github.com/sirupsen/logrus",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/golang.org/x/sys/unix"],
+)

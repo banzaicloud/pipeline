@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "autoscaling",
+    srcs = [
+        "service/autoscaling/api.go",
+        "service/autoscaling/doc.go",
+        "service/autoscaling/errors.go",
+        "service/autoscaling/service.go",
+        "service/autoscaling/waiters.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "autoscaling",
+    srcs = [":_autoscaling#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/service/autoscaling",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/awsutil",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/client",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/client/metadata",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/request",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/signer/v4",
+        "//third_party/go/github.com/aws/aws-sdk-go/private/protocol",
+        "//third_party/go/github.com/aws/aws-sdk-go/private/protocol/query",
+    ],
+)

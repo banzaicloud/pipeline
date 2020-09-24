@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "featuregate",
+    srcs = ["featuregate/feature_gate.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/component-base:_component-base#download"],
+)
+
+go_library(
+    name = "featuregate",
+    srcs = [":_featuregate#go_source"],
+    cover = False,
+    import_path = "k8s.io/component-base/featuregate",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/spf13/pflag",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/naming",
+        "//third_party/go/k8s.io/klog",
+    ],
+)

@@ -1,0 +1,53 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "cs",
+    srcs = [
+        "services/cs/attach_instances.go",
+        "services/cs/check_aliyun_cs_service_role.go",
+        "services/cs/client.go",
+        "services/cs/create_cluster.go",
+        "services/cs/create_cluster_by_resources_group.go",
+        "services/cs/create_trigger_hook.go",
+        "services/cs/delete_cluster.go",
+        "services/cs/delete_cluster_node.go",
+        "services/cs/delete_cluster_nodes.go",
+        "services/cs/describe_api_version.go",
+        "services/cs/describe_cluster_addons_version.go",
+        "services/cs/describe_cluster_certs.go",
+        "services/cs/describe_cluster_detail.go",
+        "services/cs/describe_cluster_endpoints.go",
+        "services/cs/describe_cluster_logs.go",
+        "services/cs/describe_cluster_nodes.go",
+        "services/cs/describe_cluster_user_kubeconfig.go",
+        "services/cs/describe_clusters.go",
+        "services/cs/describe_edge_cluster_attach_scripts.go",
+        "services/cs/describe_kubernetes_version_metadata.go",
+        "services/cs/download_cluster_node_certs.go",
+        "services/cs/get_cluster_cert_info.go",
+        "services/cs/pre_check_for_create_cluster.go",
+        "services/cs/reset_cluster_node.go",
+        "services/cs/revoke_cluster_token.go",
+        "services/cs/scale_cluster.go",
+        "services/cs/scale_out_cluster.go",
+        "services/cs/upgrade_cluster_addons.go",
+        "services/cs/upgrade_cluster_components.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go:_alibaba-cloud-sdk-go#download"],
+)
+
+go_library(
+    name = "cs",
+    srcs = [":_cs#go_source"],
+    cover = False,
+    import_path = "github.com/aliyun/alibaba-cloud-sdk-go/services/cs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials/provider",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses",
+    ],
+)

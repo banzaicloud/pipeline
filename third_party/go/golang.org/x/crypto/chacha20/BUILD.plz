@@ -1,0 +1,24 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "chacha20",
+    srcs = [
+        "chacha20/chacha_arm64.go",
+        "chacha20/chacha_generic.go",
+        "chacha20/chacha_noasm.go",
+        "chacha20/chacha_ppc64le.go",
+        "chacha20/chacha_s390x.go",
+        "chacha20/xor.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/crypto:_crypto#download"],
+)
+
+go_library(
+    name = "chacha20",
+    srcs = [":_chacha20#go_source"],
+    cover = False,
+    import_path = "golang.org/x/crypto/chacha20",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/golang.org/x/crypto/internal/subtle"],
+)

@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "asyncassertion",
+    srcs = ["internal/asyncassertion/async_assertion.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/onsi/gomega:_gomega#download"],
+)
+
+go_library(
+    name = "asyncassertion",
+    srcs = [":_asyncassertion#go_source"],
+    cover = False,
+    import_path = "github.com/onsi/gomega/internal/asyncassertion",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/onsi/gomega/internal/oraclematcher",
+        "//third_party/go/github.com/onsi/gomega/types",
+    ],
+)

@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "envelope",
+    srcs = ["envelope/envelope.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/thriftrw:_thriftrw#download"],
+)
+
+go_library(
+    name = "envelope",
+    srcs = [":_envelope#go_source"],
+    cover = False,
+    import_path = "go.uber.org/thriftrw/envelope",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.uber.org/thriftrw/internal/envelope/exception",
+        "//third_party/go/go.uber.org/thriftrw/protocol",
+        "//third_party/go/go.uber.org/thriftrw/wire",
+    ],
+)

@@ -1,0 +1,24 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "validation",
+    srcs = ["pkg/util/openapi/validation/validation.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/kubectl:_kubectl#download"],
+)
+
+go_library(
+    name = "validation",
+    srcs = [":_validation#go_source"],
+    cover = False,
+    import_path = "k8s.io/kubectl/pkg/util/openapi/validation",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/errors",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/json",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/yaml",
+        "//third_party/go/k8s.io/kube-openapi/pkg/util/proto/validation",
+        "//third_party/go/k8s.io/kubectl/pkg/util/openapi",
+    ],
+)

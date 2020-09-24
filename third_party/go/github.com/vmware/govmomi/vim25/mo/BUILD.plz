@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "mo",
+    srcs = [
+        "vim25/mo/ancestors.go",
+        "vim25/mo/entity.go",
+        "vim25/mo/extra.go",
+        "vim25/mo/mo.go",
+        "vim25/mo/reference.go",
+        "vim25/mo/registry.go",
+        "vim25/mo/retrieve.go",
+        "vim25/mo/type_info.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/vmware/govmomi:_govmomi#download"],
+)
+
+go_library(
+    name = "mo",
+    srcs = [":_mo#go_source"],
+    cover = False,
+    import_path = "github.com/vmware/govmomi/vim25/mo",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/vmware/govmomi/vim25/methods",
+        "//third_party/go/github.com/vmware/govmomi/vim25/soap",
+        "//third_party/go/github.com/vmware/govmomi/vim25/types",
+    ],
+)

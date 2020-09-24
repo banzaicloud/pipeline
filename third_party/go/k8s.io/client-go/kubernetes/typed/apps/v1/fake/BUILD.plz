@@ -1,0 +1,36 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "fake",
+    srcs = [
+        "kubernetes/typed/apps/v1/fake/doc.go",
+        "kubernetes/typed/apps/v1/fake/fake_apps_client.go",
+        "kubernetes/typed/apps/v1/fake/fake_controllerrevision.go",
+        "kubernetes/typed/apps/v1/fake/fake_daemonset.go",
+        "kubernetes/typed/apps/v1/fake/fake_deployment.go",
+        "kubernetes/typed/apps/v1/fake/fake_replicaset.go",
+        "kubernetes/typed/apps/v1/fake/fake_statefulset.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/client-go:_client-go#download"],
+)
+
+go_library(
+    name = "fake",
+    srcs = [":_fake#go_source"],
+    cover = False,
+    import_path = "k8s.io/client-go/kubernetes/typed/apps/v1/fake",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/api/apps/v1",
+        "//third_party/go/k8s.io/api/autoscaling/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/labels",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/types",
+        "//third_party/go/k8s.io/apimachinery/pkg/watch",
+        "//third_party/go/k8s.io/client-go/kubernetes/typed/apps/v1",
+        "//third_party/go/k8s.io/client-go/rest",
+        "//third_party/go/k8s.io/client-go/testing",
+    ],
+)

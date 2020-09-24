@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "auth",
+    srcs = ["pkg/auth/client.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/deislabs/oras:_oras#download"],
+)
+
+go_library(
+    name = "auth",
+    srcs = [":_auth#go_source"],
+    cover = False,
+    import_path = "github.com/deislabs/oras/pkg/auth",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/containerd/containerd/remotes"],
+)

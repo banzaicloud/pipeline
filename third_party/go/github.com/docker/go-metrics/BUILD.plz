@@ -1,0 +1,39 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-metrics",
+    module = "github.com/docker/go-metrics",
+    sum = "h1:yWHOI+vFjEsAakUTSrtqc/SAHrhSkmn48pqjidZX3QA=",
+    tag = "download",
+    version = "v0.0.0-20180209012529-399ea8c73916",
+    visibility = ["//third_party/go/github.com/docker/go-metrics/..."],
+)
+
+fileexport(
+    name = "go-metrics",
+    srcs = [
+        "counter.go",
+        "docs.go",
+        "gauge.go",
+        "handler.go",
+        "helpers.go",
+        "namespace.go",
+        "register.go",
+        "timer.go",
+        "unit.go",
+    ],
+    tag = "go_source",
+    deps = [":_go-metrics#download"],
+)
+
+go_library(
+    name = "go-metrics",
+    srcs = [":_go-metrics#go_source"],
+    cover = False,
+    import_path = "github.com/docker/go-metrics",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/prometheus/client_golang/prometheus",
+        "//third_party/go/github.com/prometheus/client_golang/prometheus/promhttp",
+    ],
+)

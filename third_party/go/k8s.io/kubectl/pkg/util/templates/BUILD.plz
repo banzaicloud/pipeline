@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "templates",
+    srcs = [
+        "pkg/util/templates/command_groups.go",
+        "pkg/util/templates/markdown.go",
+        "pkg/util/templates/normalizers.go",
+        "pkg/util/templates/templater.go",
+        "pkg/util/templates/templates.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/kubectl:_kubectl#download"],
+)
+
+go_library(
+    name = "templates",
+    srcs = [":_templates#go_source"],
+    cover = False,
+    import_path = "k8s.io/kubectl/pkg/util/templates",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/MakeNowJust/heredoc",
+        "//third_party/go/github.com/russross/blackfriday",
+        "//third_party/go/github.com/spf13/cobra",
+        "//third_party/go/github.com/spf13/pflag",
+        "//third_party/go/k8s.io/kubectl/pkg/util/term",
+    ],
+)

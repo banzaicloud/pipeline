@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "client_golang",
+    module = "github.com/prometheus/client_golang",
+    sum = "h1:NTGy1Ja9pByO+xAeH/qiWnLrKtr3hJPNjaVUwnjpdpA=",
+    tag = "download",
+    version = "v1.7.1",
+    visibility = ["//third_party/go/github.com/prometheus/client_golang/..."],
+)

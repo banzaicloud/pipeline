@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "stats",
+    srcs = [
+        "stats/handlers.go",
+        "stats/stats.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/grpc:_grpc#download"],
+)
+
+go_library(
+    name = "stats",
+    srcs = [":_stats#go_source"],
+    cover = False,
+    import_path = "google.golang.org/grpc/stats",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/google.golang.org/grpc/metadata"],
+)

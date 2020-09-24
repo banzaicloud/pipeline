@@ -1,0 +1,51 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "zap",
+    module = "go.uber.org/zap",
+    sum = "h1:nYDKopTbvAPq/NrUVZwT15y2lpROBiLLyoRTbXOYWOo=",
+    tag = "download",
+    version = "v1.14.1",
+    visibility = ["//third_party/go/go.uber.org/zap/..."],
+)
+
+fileexport(
+    name = "zap",
+    srcs = [
+        "array.go",
+        "config.go",
+        "doc.go",
+        "encoder.go",
+        "error.go",
+        "field.go",
+        "flag.go",
+        "global.go",
+        "global_go112.go",
+        "global_prego112.go",
+        "http_handler.go",
+        "level.go",
+        "logger.go",
+        "options.go",
+        "sink.go",
+        "stacktrace.go",
+        "sugar.go",
+        "time.go",
+        "writer.go",
+    ],
+    tag = "go_source",
+    deps = [":_zap#download"],
+)
+
+go_library(
+    name = "zap",
+    srcs = [":_zap#go_source"],
+    cover = False,
+    import_path = "go.uber.org/zap",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.uber.org/atomic",
+        "//third_party/go/go.uber.org/multierr",
+        "//third_party/go/go.uber.org/zap/internal/bufferpool",
+        "//third_party/go/go.uber.org/zap/zapcore",
+    ],
+)

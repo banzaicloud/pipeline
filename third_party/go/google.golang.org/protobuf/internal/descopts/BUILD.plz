@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "descopts",
+    srcs = ["internal/descopts/options.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/protobuf:_protobuf#download"],
+)
+
+go_library(
+    name = "descopts",
+    srcs = [":_descopts#go_source"],
+    cover = False,
+    import_path = "google.golang.org/protobuf/internal/descopts",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/google.golang.org/protobuf/reflect/protoreflect"],
+)

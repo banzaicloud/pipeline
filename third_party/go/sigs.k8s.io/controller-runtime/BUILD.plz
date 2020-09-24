@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "controller-runtime",
+    module = "sigs.k8s.io/controller-runtime",
+    sum = "h1:jkAnfdTYBpFwlmBn3pS5HFO06SfxvnTZ1p5PeEF/zAA=",
+    tag = "download",
+    version = "v0.6.2",
+    visibility = ["//third_party/go/sigs.k8s.io/controller-runtime/..."],
+)

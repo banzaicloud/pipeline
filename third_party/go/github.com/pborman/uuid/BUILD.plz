@@ -1,0 +1,38 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "uuid",
+    module = "github.com/pborman/uuid",
+    sum = "h1:J7Q5mO4ysT1dv8hyrUGHb9+ooztCXu1D8MY8DZYsu3g=",
+    tag = "download",
+    version = "v1.2.0",
+    visibility = ["//third_party/go/github.com/pborman/uuid/..."],
+)
+
+fileexport(
+    name = "uuid",
+    srcs = [
+        "dce.go",
+        "doc.go",
+        "hash.go",
+        "marshal.go",
+        "node.go",
+        "sql.go",
+        "time.go",
+        "util.go",
+        "uuid.go",
+        "version1.go",
+        "version4.go",
+    ],
+    tag = "go_source",
+    deps = [":_uuid#download"],
+)
+
+go_library(
+    name = "uuid",
+    srcs = [":_uuid#go_source"],
+    cover = False,
+    import_path = "github.com/pborman/uuid",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/google/uuid"],
+)

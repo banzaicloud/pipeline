@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "gojsonpointer",
+    module = "github.com/xeipuuv/gojsonpointer",
+    sum = "h1:J9EGpcZtP0E/raorCMxlFGSTBrsSlaDGf3jU/qvAE2c=",
+    tag = "download",
+    version = "v0.0.0-20180127040702-4e3ac2762d5f",
+    visibility = ["//third_party/go/github.com/xeipuuv/gojsonpointer/..."],
+)
+
+fileexport(
+    name = "gojsonpointer",
+    srcs = ["pointer.go"],
+    tag = "go_source",
+    deps = [":_gojsonpointer#download"],
+)
+
+go_library(
+    name = "gojsonpointer",
+    srcs = [":_gojsonpointer#go_source"],
+    cover = False,
+    import_path = "github.com/xeipuuv/gojsonpointer",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

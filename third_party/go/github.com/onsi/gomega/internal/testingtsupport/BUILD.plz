@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "testingtsupport",
+    srcs = ["internal/testingtsupport/testing_t_support.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/onsi/gomega:_gomega#download"],
+)
+
+go_library(
+    name = "testingtsupport",
+    srcs = [":_testingtsupport#go_source"],
+    cover = False,
+    import_path = "github.com/onsi/gomega/internal/testingtsupport",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/onsi/gomega/types"],
+)

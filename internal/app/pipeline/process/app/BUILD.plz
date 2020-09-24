@@ -1,0 +1,22 @@
+go_library(
+    name = "app",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/app/pipeline/process",
+        "//internal/app/pipeline/process/processadapter",
+        "//internal/app/pipeline/process/processdriver",
+        "//internal/platform/appkit/transport/http",
+        "//third_party/go/github.com/go-kit/kit/endpoint",
+        "//third_party/go/github.com/go-kit/kit/tracing/opencensus",
+        "//third_party/go/github.com/go-kit/kit/transport/http",
+        "//third_party/go/github.com/gorilla/mux",
+        "//third_party/go/github.com/jinzhu/gorm",
+        "//third_party/go/github.com/sagikazarmark/appkit/endpoint",
+        "//third_party/go/github.com/sagikazarmark/kitx/correlation",
+        "//third_party/go/github.com/sagikazarmark/kitx/endpoint",
+        "//third_party/go/github.com/sagikazarmark/kitx/transport",
+        "//third_party/go/github.com/sagikazarmark/kitx/transport/http",
+        "//third_party/go/go.uber.org/cadence/client",
+    ],
+)

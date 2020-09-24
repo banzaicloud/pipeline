@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "filepath-securejoin",
+    module = "github.com/cyphar/filepath-securejoin",
+    sum = "h1:jCwT2GTP+PY5nBz3c/YL5PAIbusElVrPujOBSCj8xRg=",
+    tag = "download",
+    version = "v0.2.2",
+    visibility = ["//third_party/go/github.com/cyphar/filepath-securejoin/..."],
+)
+
+fileexport(
+    name = "filepath-securejoin",
+    srcs = [
+        "join.go",
+        "vfs.go",
+    ],
+    tag = "go_source",
+    deps = [":_filepath-securejoin#download"],
+)
+
+go_library(
+    name = "filepath-securejoin",
+    srcs = [":_filepath-securejoin#go_source"],
+    cover = False,
+    import_path = "github.com/cyphar/filepath-securejoin",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/pkg/errors"],
+)

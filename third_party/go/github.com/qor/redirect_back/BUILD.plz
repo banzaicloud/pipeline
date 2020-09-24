@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "redirect_back",
+    module = "github.com/qor/redirect_back",
+    sum = "h1:p8fFfW3hQzNMqXxr+LBrr82MIXoUi1HCXbeM8oCgfnw=",
+    tag = "download",
+    version = "v0.0.0-20170907030740-b4161ed6f848",
+    visibility = ["//third_party/go/github.com/qor/redirect_back/..."],
+)
+
+fileexport(
+    name = "redirect_back",
+    srcs = ["redirect_back.go"],
+    tag = "go_source",
+    deps = [":_redirect_back#download"],
+)
+
+go_library(
+    name = "redirect_back",
+    srcs = [":_redirect_back#go_source"],
+    cover = False,
+    import_path = "github.com/qor/redirect_back",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/qor/middlewares",
+        "//third_party/go/github.com/qor/qor/utils",
+        "//third_party/go/github.com/qor/session",
+        "//third_party/go/github.com/qor/session/manager",
+    ],
+)

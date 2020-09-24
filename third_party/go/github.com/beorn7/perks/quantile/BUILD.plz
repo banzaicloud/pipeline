@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "quantile",
+    srcs = ["quantile/stream.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/beorn7/perks:_perks#download"],
+)
+
+go_library(
+    name = "quantile",
+    srcs = [":_quantile#go_source"],
+    cover = False,
+    import_path = "github.com/beorn7/perks/quantile",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

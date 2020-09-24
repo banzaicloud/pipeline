@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "zap",
+    module = "logur.dev/integration/zap",
+    sum = "h1:fz3Bjuqn0mcxfas7ff12rS+frH1KnBsZI3ye6+8e5T8=",
+    tag = "download",
+    version = "v0.3.2",
+    visibility = ["//third_party/go/logur.dev/integration/zap/..."],
+)
+
+fileexport(
+    name = "zap",
+    srcs = ["logger.go"],
+    tag = "go_source",
+    deps = [":_zap#download"],
+)
+
+go_library(
+    name = "zap",
+    srcs = [":_zap#go_source"],
+    cover = False,
+    import_path = "logur.dev/integration/zap",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.uber.org/zap",
+        "//third_party/go/go.uber.org/zap/zapcore",
+        "//third_party/go/logur.dev/logur",
+    ],
+)

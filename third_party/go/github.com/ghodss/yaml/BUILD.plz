@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "yaml",
+    module = "github.com/ghodss/yaml",
+    sum = "h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=",
+    tag = "download",
+    version = "v1.0.0",
+    visibility = ["//third_party/go/github.com/ghodss/yaml/..."],
+)
+
+fileexport(
+    name = "yaml",
+    srcs = [
+        "fields.go",
+        "yaml.go",
+    ],
+    tag = "go_source",
+    deps = [":_yaml#download"],
+)
+
+go_library(
+    name = "yaml",
+    srcs = [":_yaml#go_source"],
+    cover = False,
+    import_path = "github.com/ghodss/yaml",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/gopkg.in/yaml.v2"],
+)

@@ -1,0 +1,13 @@
+go_library(
+    name = "nodepools",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/providers/amazon/autoscaling",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/awserr",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/session",
+        "//third_party/go/github.com/sirupsen/logrus",
+        "//third_party/go/logur.dev/adapter/logrus",
+    ],
+)

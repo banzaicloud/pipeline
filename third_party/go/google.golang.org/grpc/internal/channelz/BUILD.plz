@@ -1,0 +1,28 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "channelz",
+    srcs = [
+        "internal/channelz/funcs.go",
+        "internal/channelz/types.go",
+        "internal/channelz/types_linux.go",
+        "internal/channelz/types_nonlinux.go",
+        "internal/channelz/util_linux.go",
+        "internal/channelz/util_nonlinux.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/grpc:_grpc#download"],
+)
+
+go_library(
+    name = "channelz",
+    srcs = [":_channelz#go_source"],
+    cover = False,
+    import_path = "google.golang.org/grpc/internal/channelz",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/google.golang.org/grpc/connectivity",
+        "//third_party/go/google.golang.org/grpc/credentials",
+        "//third_party/go/google.golang.org/grpc/grpclog",
+    ],
+)

@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "mocks",
+    srcs = [
+        "mocks/Client.go",
+        "mocks/DomainClient.go",
+        "mocks/HistoryEventIterator.go",
+        "mocks/Value.go",
+        "mocks/WorkflowRun.go",
+        "mocks/verify.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/cadence:_cadence#download"],
+)
+
+go_library(
+    name = "mocks",
+    srcs = [":_mocks#go_source"],
+    cover = False,
+    import_path = "go.uber.org/cadence/mocks",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/stretchr/testify/mock",
+        "//third_party/go/go.uber.org/cadence/.gen/go/shared",
+        "//third_party/go/go.uber.org/cadence/client",
+        "//third_party/go/go.uber.org/cadence/encoded",
+        "//third_party/go/go.uber.org/cadence/internal",
+        "//third_party/go/go.uber.org/cadence/workflow",
+    ],
+)

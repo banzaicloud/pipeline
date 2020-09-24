@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-digest",
+    module = "github.com/opencontainers/go-digest",
+    sum = "h1:WzifXhOVOEOuFYOJAW6aQqW0TooG2iki3E3Ii+WN7gQ=",
+    tag = "download",
+    version = "v1.0.0-rc1",
+    visibility = ["//third_party/go/github.com/opencontainers/go-digest/..."],
+)
+
+fileexport(
+    name = "go-digest",
+    srcs = [
+        "algorithm.go",
+        "digest.go",
+        "digester.go",
+        "doc.go",
+        "verifiers.go",
+    ],
+    tag = "go_source",
+    deps = [":_go-digest#download"],
+)
+
+go_library(
+    name = "go-digest",
+    srcs = [":_go-digest#go_source"],
+    cover = False,
+    import_path = "github.com/opencontainers/go-digest",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

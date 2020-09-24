@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "azure",
+    srcs = [
+        "azure/async.go",
+        "azure/azure.go",
+        "azure/environments.go",
+        "azure/metadata_environment.go",
+        "azure/rp.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/Azure/go-autorest/autorest:_autorest#download"],
+)
+
+go_library(
+    name = "azure",
+    srcs = [":_azure#go_source"],
+    cover = False,
+    import_path = "github.com/Azure/go-autorest/autorest/azure",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/Azure/go-autorest/autorest",
+        "//third_party/go/github.com/Azure/go-autorest/tracing",
+    ],
+)

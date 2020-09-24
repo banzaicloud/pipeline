@@ -1,0 +1,20 @@
+go_library(
+    name = "azure",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/secret/secrettype",
+        "//pkg/cluster",
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization",
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute",
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice",
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network",
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-09-01/insights",
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions",
+        "//third_party/go/github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources",
+        "//third_party/go/github.com/Azure/go-autorest/autorest",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/adal",
+        "//third_party/go/github.com/Azure/go-autorest/autorest/azure",
+        "//third_party/go/github.com/gofrs/uuid",
+    ],
+)

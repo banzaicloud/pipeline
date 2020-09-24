@@ -1,0 +1,38 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "aws",
+    srcs = [
+        "aws/config.go",
+        "aws/context_1_5.go",
+        "aws/context_1_9.go",
+        "aws/context_background_1_5.go",
+        "aws/context_background_1_7.go",
+        "aws/context_sleep.go",
+        "aws/convert_types.go",
+        "aws/doc.go",
+        "aws/errors.go",
+        "aws/jsonvalue.go",
+        "aws/logger.go",
+        "aws/types.go",
+        "aws/url.go",
+        "aws/url_1_7.go",
+        "aws/version.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "aws",
+    srcs = [":_aws#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/aws",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/awserr",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/credentials",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/endpoints",
+        "//third_party/go/github.com/aws/aws-sdk-go/internal/sdkio",
+    ],
+)

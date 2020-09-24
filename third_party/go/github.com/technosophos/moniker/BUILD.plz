@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "moniker",
+    module = "github.com/technosophos/moniker",
+    sum = "h1:DNVk+NIkGS0RbLkjQOLCJb/759yfCysThkMbl7EXxyY=",
+    tag = "download",
+    version = "v0.0.0-20180509230615-a5dbd03a2245",
+    visibility = ["//third_party/go/github.com/technosophos/moniker/..."],
+)
+
+fileexport(
+    name = "moniker",
+    srcs = [
+        "animals_list.go",
+        "descriptors_list.go",
+        "moniker.go",
+        "words.go",
+    ],
+    tag = "go_source",
+    deps = [":_moniker#download"],
+)
+
+go_library(
+    name = "moniker",
+    srcs = [":_moniker#go_source"],
+    cover = False,
+    import_path = "github.com/technosophos/moniker",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

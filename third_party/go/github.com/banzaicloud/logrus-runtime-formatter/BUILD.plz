@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "logrus-runtime-formatter",
+    module = "github.com/banzaicloud/logrus-runtime-formatter",
+    sum = "h1:WeGZeO6I+lI1IG2vm1iXTeMrHLcMUjfoYm+rubBM5c4=",
+    tag = "download",
+    version = "v0.0.0-20180617171254-12df4a18567f",
+    visibility = ["//third_party/go/github.com/banzaicloud/logrus-runtime-formatter/..."],
+)
+
+fileexport(
+    name = "logrus-runtime-formatter",
+    srcs = ["formatter.go"],
+    tag = "go_source",
+    deps = [":_logrus-runtime-formatter#download"],
+)
+
+go_library(
+    name = "logrus-runtime-formatter",
+    srcs = [":_logrus-runtime-formatter#go_source"],
+    cover = False,
+    import_path = "github.com/banzaicloud/logrus-runtime-formatter",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/sirupsen/logrus"],
+)

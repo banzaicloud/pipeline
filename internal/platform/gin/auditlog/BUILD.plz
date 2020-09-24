@@ -1,0 +1,25 @@
+go_library(
+    name = "auditlog",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//internal/platform/gin/correlationid",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/gin-gonic/gin",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/common",
+        "//internal/platform/gin/correlationid",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/gin-gonic/gin",
+        "//third_party/go/github.com/jonboulle/clockwork",
+        "//third_party/go/github.com/stretchr/testify/assert",
+        "//third_party/go/github.com/stretchr/testify/require",
+    ],
+)

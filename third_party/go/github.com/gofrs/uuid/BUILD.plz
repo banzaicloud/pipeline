@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "uuid",
+    module = "github.com/gofrs/uuid",
+    sum = "h1:y12jRkkFxsd7GpqdSZ+/KCs/fJbqpEXSGd4+jfEaewE=",
+    tag = "download",
+    version = "v3.2.0+incompatible",
+    visibility = ["//third_party/go/github.com/gofrs/uuid/..."],
+)
+
+fileexport(
+    name = "uuid",
+    srcs = [
+        "codec.go",
+        "fuzz.go",
+        "generator.go",
+        "sql.go",
+        "uuid.go",
+    ],
+    tag = "go_source",
+    deps = [":_uuid#download"],
+)
+
+go_library(
+    name = "uuid",
+    srcs = [":_uuid#go_source"],
+    cover = False,
+    import_path = "github.com/gofrs/uuid",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

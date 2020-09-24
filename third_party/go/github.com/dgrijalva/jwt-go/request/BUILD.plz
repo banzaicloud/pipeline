@@ -1,0 +1,22 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "request",
+    srcs = [
+        "request/doc.go",
+        "request/extractor.go",
+        "request/oauth2.go",
+        "request/request.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/dgrijalva/jwt-go:_jwt-go#download"],
+)
+
+go_library(
+    name = "request",
+    srcs = [":_request#go_source"],
+    cover = False,
+    import_path = "github.com/dgrijalva/jwt-go/request",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/dgrijalva/jwt-go"],
+)

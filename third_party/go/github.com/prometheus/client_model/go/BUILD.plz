@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "go",
+    srcs = ["go/metrics.pb.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/prometheus/client_model:_client_model#download"],
+)
+
+go_library(
+    name = "go",
+    srcs = [":_go#go_source"],
+    cover = False,
+    import_path = "github.com/prometheus/client_model/go",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/golang/protobuf/proto",
+        "//third_party/go/github.com/golang/protobuf/ptypes/timestamp",
+    ],
+)

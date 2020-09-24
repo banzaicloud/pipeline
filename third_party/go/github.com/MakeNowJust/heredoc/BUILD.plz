@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "heredoc",
+    module = "github.com/MakeNowJust/heredoc",
+    sum = "h1:cXCdzVdstXyiTqTvfqk9SDHpKNjxuom+DOlyEeQ4pzQ=",
+    tag = "download",
+    version = "v1.0.0",
+    visibility = ["//third_party/go/github.com/MakeNowJust/heredoc/..."],
+)
+
+fileexport(
+    name = "heredoc",
+    srcs = ["heredoc.go"],
+    tag = "go_source",
+    deps = [":_heredoc#download"],
+)
+
+go_library(
+    name = "heredoc",
+    srcs = [":_heredoc#go_source"],
+    cover = False,
+    import_path = "github.com/MakeNowJust/heredoc",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

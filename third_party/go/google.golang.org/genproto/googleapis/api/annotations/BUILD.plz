@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "annotations",
+    srcs = [
+        "googleapis/api/annotations/annotations.pb.go",
+        "googleapis/api/annotations/client.pb.go",
+        "googleapis/api/annotations/field_behavior.pb.go",
+        "googleapis/api/annotations/http.pb.go",
+        "googleapis/api/annotations/resource.pb.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/genproto:_genproto#download"],
+)
+
+go_library(
+    name = "annotations",
+    srcs = [":_annotations#go_source"],
+    cover = False,
+    import_path = "google.golang.org/genproto/googleapis/api/annotations",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/golang/protobuf/proto",
+        "//third_party/go/github.com/golang/protobuf/protoc-gen-go/descriptor",
+    ],
+)

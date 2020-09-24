@@ -1,0 +1,23 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "protocol",
+    srcs = [
+        "protocol/binary.go",
+        "protocol/protocol.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/thriftrw:_thriftrw#download"],
+)
+
+go_library(
+    name = "protocol",
+    srcs = [":_protocol#go_source"],
+    cover = False,
+    import_path = "go.uber.org/thriftrw/protocol",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.uber.org/thriftrw/protocol/binary",
+        "//third_party/go/go.uber.org/thriftrw/wire",
+    ],
+)

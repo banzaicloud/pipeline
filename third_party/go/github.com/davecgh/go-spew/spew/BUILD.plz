@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "spew",
+    srcs = [
+        "spew/bypass.go",
+        "spew/bypasssafe.go",
+        "spew/common.go",
+        "spew/config.go",
+        "spew/doc.go",
+        "spew/dump.go",
+        "spew/format.go",
+        "spew/spew.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/davecgh/go-spew:_go-spew#download"],
+)
+
+go_library(
+    name = "spew",
+    srcs = [":_spew#go_source"],
+    cover = False,
+    import_path = "github.com/davecgh/go-spew/spew",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

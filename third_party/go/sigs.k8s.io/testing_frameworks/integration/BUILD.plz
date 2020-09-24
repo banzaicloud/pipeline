@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "integration",
+    srcs = [
+        "integration/apiserver.go",
+        "integration/control_plane.go",
+        "integration/doc.go",
+        "integration/etcd.go",
+        "integration/kubectl.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/testing_frameworks:_testing_frameworks#download"],
+)
+
+go_library(
+    name = "integration",
+    srcs = [":_integration#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/testing_frameworks/integration",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/sigs.k8s.io/testing_frameworks/integration/addr",
+        "//third_party/go/sigs.k8s.io/testing_frameworks/integration/internal",
+    ],
+)

@@ -1,0 +1,34 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "target",
+    srcs = [
+        "pkg/target/kusttarget.go",
+        "pkg/target/resaccumulator.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kustomize:_kustomize#download"],
+)
+
+go_library(
+    name = "target",
+    srcs = [":_target#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kustomize/pkg/target",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/ghodss/yaml",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/constants",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/ifc",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/ifc/transformer",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/internal/error",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/patch/transformer",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/resid",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/resmap",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/resource",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/transformers",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/transformers/config",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/types",
+    ],
+)

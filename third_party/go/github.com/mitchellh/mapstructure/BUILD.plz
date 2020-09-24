@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "mapstructure",
+    module = "github.com/mitchellh/mapstructure",
+    sum = "h1:fmNYVwqnSfB9mZU6OS2O6GsXM+wcskZDuKQzvN1EDeE=",
+    tag = "download",
+    version = "v1.1.2",
+    visibility = ["//third_party/go/github.com/mitchellh/mapstructure/..."],
+)
+
+fileexport(
+    name = "mapstructure",
+    srcs = [
+        "decode_hooks.go",
+        "error.go",
+        "mapstructure.go",
+    ],
+    tag = "go_source",
+    deps = [":_mapstructure#download"],
+)
+
+go_library(
+    name = "mapstructure",
+    srcs = [":_mapstructure#go_source"],
+    cover = False,
+    import_path = "github.com/mitchellh/mapstructure",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

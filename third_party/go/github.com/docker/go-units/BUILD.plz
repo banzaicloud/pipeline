@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-units",
+    module = "github.com/docker/go-units",
+    sum = "h1:3uh0PgVws3nIA0Q+MwDC8yjEPf9zjRfZZWXZYDct3Tw=",
+    tag = "download",
+    version = "v0.4.0",
+    visibility = ["//third_party/go/github.com/docker/go-units/..."],
+)
+
+fileexport(
+    name = "go-units",
+    srcs = [
+        "duration.go",
+        "size.go",
+        "ulimit.go",
+    ],
+    tag = "go_source",
+    deps = [":_go-units#download"],
+)
+
+go_library(
+    name = "go-units",
+    srcs = [":_go-units#go_source"],
+    cover = False,
+    import_path = "github.com/docker/go-units",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

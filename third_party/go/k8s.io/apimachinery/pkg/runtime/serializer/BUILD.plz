@@ -1,0 +1,27 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "serializer",
+    srcs = [
+        "pkg/runtime/serializer/codec_factory.go",
+        "pkg/runtime/serializer/negotiated_codec.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "serializer",
+    srcs = [":_serializer#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/pkg/runtime/serializer",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/serializer/json",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/serializer/protobuf",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/serializer/recognizer",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/serializer/versioning",
+    ],
+)

@@ -1,0 +1,41 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "ini",
+    srcs = [
+        "internal/ini/ast.go",
+        "internal/ini/comma_token.go",
+        "internal/ini/comment_token.go",
+        "internal/ini/doc.go",
+        "internal/ini/empty_token.go",
+        "internal/ini/expression.go",
+        "internal/ini/fuzz.go",
+        "internal/ini/ini.go",
+        "internal/ini/ini_lexer.go",
+        "internal/ini/ini_parser.go",
+        "internal/ini/literal_tokens.go",
+        "internal/ini/newline_token.go",
+        "internal/ini/number_helper.go",
+        "internal/ini/op_tokens.go",
+        "internal/ini/parse_error.go",
+        "internal/ini/parse_stack.go",
+        "internal/ini/sep_tokens.go",
+        "internal/ini/skipper.go",
+        "internal/ini/statement.go",
+        "internal/ini/value_util.go",
+        "internal/ini/visitor.go",
+        "internal/ini/walker.go",
+        "internal/ini/ws_token.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "ini",
+    srcs = [":_ini#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/internal/ini",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go/aws/awserr"],
+)

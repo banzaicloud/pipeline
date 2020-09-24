@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "v2",
+    srcs = [
+        "registry/api/v2/descriptors.go",
+        "registry/api/v2/doc.go",
+        "registry/api/v2/errors.go",
+        "registry/api/v2/headerparser.go",
+        "registry/api/v2/routes.go",
+        "registry/api/v2/urls.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/docker/distribution:_distribution#download"],
+)
+
+go_library(
+    name = "v2",
+    srcs = [":_v2#go_source"],
+    cover = False,
+    import_path = "github.com/docker/distribution/registry/api/v2",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/docker/distribution/reference",
+        "//third_party/go/github.com/docker/distribution/registry/api/errcode",
+        "//third_party/go/github.com/gorilla/mux",
+        "//third_party/go/github.com/opencontainers/go-digest",
+    ],
+)

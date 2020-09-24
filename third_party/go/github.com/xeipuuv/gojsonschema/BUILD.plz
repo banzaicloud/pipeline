@@ -1,0 +1,44 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "gojsonschema",
+    module = "github.com/xeipuuv/gojsonschema",
+    sum = "h1:ngVtJC9TY/lg0AA/1k48FYhBrhRoFlEmWzsehpNAaZg=",
+    tag = "download",
+    version = "v1.1.0",
+    visibility = ["//third_party/go/github.com/xeipuuv/gojsonschema/..."],
+)
+
+fileexport(
+    name = "gojsonschema",
+    srcs = [
+        "draft.go",
+        "errors.go",
+        "format_checkers.go",
+        "internalLog.go",
+        "jsonContext.go",
+        "jsonLoader.go",
+        "locales.go",
+        "result.go",
+        "schema.go",
+        "schemaLoader.go",
+        "schemaPool.go",
+        "schemaReferencePool.go",
+        "schemaType.go",
+        "subSchema.go",
+        "types.go",
+        "utils.go",
+        "validation.go",
+    ],
+    tag = "go_source",
+    deps = [":_gojsonschema#download"],
+)
+
+go_library(
+    name = "gojsonschema",
+    srcs = [":_gojsonschema#go_source"],
+    cover = False,
+    import_path = "github.com/xeipuuv/gojsonschema",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/xeipuuv/gojsonreference"],
+)

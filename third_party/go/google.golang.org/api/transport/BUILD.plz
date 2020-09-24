@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "transport",
+    srcs = [
+        "transport/dial.go",
+        "transport/doc.go",
+        "transport/go19.go",
+        "transport/not_go19.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/api:_api#download"],
+)
+
+go_library(
+    name = "transport",
+    srcs = [":_transport#go_source"],
+    cover = False,
+    import_path = "google.golang.org/api/transport",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/oauth2/google",
+        "//third_party/go/google.golang.org/api/internal",
+        "//third_party/go/google.golang.org/api/option",
+        "//third_party/go/google.golang.org/api/transport/grpc",
+        "//third_party/go/google.golang.org/api/transport/http",
+        "//third_party/go/google.golang.org/grpc",
+    ],
+)

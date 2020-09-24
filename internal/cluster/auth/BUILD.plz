@@ -1,0 +1,17 @@
+go_library(
+    name = "auth",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster/clustersecret",
+        "//internal/global",
+        "//internal/secret/secrettype",
+        "//src/secret",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/dexidp/dex/api/v2",
+        "//third_party/go/google.golang.org/grpc",
+        "//third_party/go/google.golang.org/grpc/credentials",
+        "//third_party/go/k8s.io/client-go/tools/clientcmd",
+        "//third_party/go/k8s.io/client-go/tools/clientcmd/api",
+    ],
+)

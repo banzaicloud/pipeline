@@ -1,0 +1,17 @@
+go_library(
+    name = "client",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/ark/api",
+        "//pkg/k8sclient",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/heptio/ark/pkg/apis/ark/v1",
+        "//third_party/go/github.com/sirupsen/logrus",
+        "//third_party/go/k8s.io/apimachinery/pkg/api/errors",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/types",
+        "//third_party/go/k8s.io/client-go/kubernetes/scheme",
+        "//third_party/go/sigs.k8s.io/controller-runtime/pkg/client",
+    ],
+)

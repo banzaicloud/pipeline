@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "digestset",
+    srcs = ["digestset/set.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/docker/distribution:_distribution#download"],
+)
+
+go_library(
+    name = "digestset",
+    srcs = [":_digestset#go_source"],
+    cover = False,
+    import_path = "github.com/docker/distribution/digestset",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/opencontainers/go-digest"],
+)

@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "reflect",
+    srcs = ["third_party/forked/golang/reflect/deep_equal.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "reflect",
+    srcs = [":_reflect#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/third_party/forked/golang/reflect",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

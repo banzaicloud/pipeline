@@ -1,0 +1,25 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "types",
+    srcs = [
+        "vim25/types/base.go",
+        "vim25/types/enum.go",
+        "vim25/types/fault.go",
+        "vim25/types/helpers.go",
+        "vim25/types/if.go",
+        "vim25/types/registry.go",
+        "vim25/types/types.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/vmware/govmomi:_govmomi#download"],
+)
+
+go_library(
+    name = "types",
+    srcs = [":_types#go_source"],
+    cover = False,
+    import_path = "github.com/vmware/govmomi/vim25/types",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

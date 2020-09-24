@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "unstructured",
+    srcs = [
+        "pkg/apis/meta/v1/unstructured/helpers.go",
+        "pkg/apis/meta/v1/unstructured/unstructured.go",
+        "pkg/apis/meta/v1/unstructured/unstructured_list.go",
+        "pkg/apis/meta/v1/unstructured/zz_generated.deepcopy.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "unstructured",
+    srcs = [":_unstructured#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/types",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/json",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/runtime",
+        "//third_party/go/k8s.io/klog",
+    ],
+)

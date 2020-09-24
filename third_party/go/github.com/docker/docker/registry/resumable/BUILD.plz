@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "resumable",
+    srcs = ["registry/resumable/resumablerequestreader.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/docker/docker:_docker#download"],
+)
+
+go_library(
+    name = "resumable",
+    srcs = [":_resumable#go_source"],
+    cover = False,
+    import_path = "github.com/docker/docker/registry/resumable",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/sirupsen/logrus"],
+)

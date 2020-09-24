@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "tag",
+    srcs = ["internal/tag/tag.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/text:_text#download"],
+)
+
+go_library(
+    name = "tag",
+    srcs = [":_tag#go_source"],
+    cover = False,
+    import_path = "golang.org/x/text/internal/tag",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "gotenv",
+    module = "github.com/subosito/gotenv",
+    sum = "h1:Slr1R9HxAlEKefgq5jn9U+DnETlIUa6HfgEzj0g5d7s=",
+    tag = "download",
+    version = "v1.2.0",
+    visibility = ["//third_party/go/github.com/subosito/gotenv/..."],
+)
+
+fileexport(
+    name = "gotenv",
+    srcs = ["gotenv.go"],
+    tag = "go_source",
+    deps = [":_gotenv#download"],
+)
+
+go_library(
+    name = "gotenv",
+    srcs = [":_gotenv#go_source"],
+    cover = False,
+    import_path = "github.com/subosito/gotenv",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

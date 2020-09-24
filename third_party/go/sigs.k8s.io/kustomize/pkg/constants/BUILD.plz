@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "constants",
+    srcs = ["pkg/constants/constants.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kustomize:_kustomize#download"],
+)
+
+go_library(
+    name = "constants",
+    srcs = [":_constants#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kustomize/pkg/constants",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

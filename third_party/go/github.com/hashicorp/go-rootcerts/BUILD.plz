@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-rootcerts",
+    module = "github.com/hashicorp/go-rootcerts",
+    sum = "h1:DMo4fmknnz0E0evoNYnV48RjWndOsmd6OW+09R3cEP8=",
+    tag = "download",
+    version = "v1.0.1",
+    visibility = ["//third_party/go/github.com/hashicorp/go-rootcerts/..."],
+)
+
+fileexport(
+    name = "go-rootcerts",
+    srcs = [
+        "doc.go",
+        "rootcerts.go",
+        "rootcerts_base.go",
+        "rootcerts_darwin.go",
+    ],
+    tag = "go_source",
+    deps = [":_go-rootcerts#download"],
+)
+
+go_library(
+    name = "go-rootcerts",
+    srcs = [":_go-rootcerts#go_source"],
+    cover = False,
+    import_path = "github.com/hashicorp/go-rootcerts",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/mitchellh/go-homedir"],
+)

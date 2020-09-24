@@ -1,0 +1,35 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "prototext",
+    srcs = [
+        "encoding/prototext/decode.go",
+        "encoding/prototext/doc.go",
+        "encoding/prototext/encode.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/protobuf:_protobuf#download"],
+)
+
+go_library(
+    name = "prototext",
+    srcs = [":_prototext#go_source"],
+    cover = False,
+    import_path = "google.golang.org/protobuf/encoding/prototext",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/google.golang.org/protobuf/encoding/protowire",
+        "//third_party/go/google.golang.org/protobuf/internal/encoding/messageset",
+        "//third_party/go/google.golang.org/protobuf/internal/encoding/text",
+        "//third_party/go/google.golang.org/protobuf/internal/errors",
+        "//third_party/go/google.golang.org/protobuf/internal/fieldnum",
+        "//third_party/go/google.golang.org/protobuf/internal/flags",
+        "//third_party/go/google.golang.org/protobuf/internal/mapsort",
+        "//third_party/go/google.golang.org/protobuf/internal/pragma",
+        "//third_party/go/google.golang.org/protobuf/internal/set",
+        "//third_party/go/google.golang.org/protobuf/internal/strs",
+        "//third_party/go/google.golang.org/protobuf/proto",
+        "//third_party/go/google.golang.org/protobuf/reflect/protoreflect",
+        "//third_party/go/google.golang.org/protobuf/reflect/protoregistry",
+    ],
+)

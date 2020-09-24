@@ -1,0 +1,25 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "defaultconfig",
+    srcs = [
+        "pkg/transformers/config/defaultconfig/commonannotations.go",
+        "pkg/transformers/config/defaultconfig/commonlabels.go",
+        "pkg/transformers/config/defaultconfig/defaultconfig.go",
+        "pkg/transformers/config/defaultconfig/nameprefix.go",
+        "pkg/transformers/config/defaultconfig/namereference.go",
+        "pkg/transformers/config/defaultconfig/namespace.go",
+        "pkg/transformers/config/defaultconfig/varreference.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kustomize:_kustomize#download"],
+)
+
+go_library(
+    name = "defaultconfig",
+    srcs = [":_defaultconfig#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kustomize/pkg/transformers/config/defaultconfig",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

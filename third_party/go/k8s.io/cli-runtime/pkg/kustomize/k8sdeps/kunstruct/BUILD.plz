@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "kunstruct",
+    srcs = [
+        "pkg/kustomize/k8sdeps/kunstruct/factory.go",
+        "pkg/kustomize/k8sdeps/kunstruct/helper.go",
+        "pkg/kustomize/k8sdeps/kunstruct/kunstruct.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/cli-runtime:_cli-runtime#download"],
+)
+
+go_library(
+    name = "kunstruct",
+    srcs = [":_kunstruct#go_source"],
+    cover = False,
+    import_path = "k8s.io/cli-runtime/pkg/kustomize/k8sdeps/kunstruct",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/yaml",
+        "//third_party/go/k8s.io/cli-runtime/pkg/kustomize/k8sdeps/configmapandsecret",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/gvk",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/ifc",
+        "//third_party/go/sigs.k8s.io/kustomize/pkg/types",
+    ],
+)

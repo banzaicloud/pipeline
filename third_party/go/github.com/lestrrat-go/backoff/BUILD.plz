@@ -1,0 +1,33 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "backoff",
+    module = "github.com/lestrrat-go/backoff",
+    sum = "h1:nR+UgAhdhwfw2i+xznuHRlj81oMYa7u3lXun0xcsXUU=",
+    tag = "download",
+    version = "v1.0.0",
+    visibility = ["//third_party/go/github.com/lestrrat-go/backoff/..."],
+)
+
+fileexport(
+    name = "backoff",
+    srcs = [
+        "backoff.go",
+        "constant.go",
+        "doc.go",
+        "exponential.go",
+        "interface.go",
+        "option.go",
+    ],
+    tag = "go_source",
+    deps = [":_backoff#download"],
+)
+
+go_library(
+    name = "backoff",
+    srcs = [":_backoff#go_source"],
+    cover = False,
+    import_path = "github.com/lestrrat-go/backoff",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/pkg/errors"],
+)

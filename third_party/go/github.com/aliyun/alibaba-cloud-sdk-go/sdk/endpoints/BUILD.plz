@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "endpoints",
+    srcs = [
+        "sdk/endpoints/endpoints_config.go",
+        "sdk/endpoints/local_global_resolver.go",
+        "sdk/endpoints/local_regional_resolver.go",
+        "sdk/endpoints/location_resolver.go",
+        "sdk/endpoints/mapping_resolver.go",
+        "sdk/endpoints/resolver.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go:_alibaba-cloud-sdk-go#download"],
+)
+
+go_library(
+    name = "endpoints",
+    srcs = [":_endpoints#go_source"],
+    cover = False,
+    import_path = "github.com/aliyun/alibaba-cloud-sdk-go/sdk/endpoints",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses",
+        "//third_party/go/github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils",
+        "//third_party/go/github.com/jmespath/go-jmespath",
+    ],
+)

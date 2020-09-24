@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "log",
+    srcs = [
+        "log/field.go",
+        "log/util.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/opentracing/opentracing-go:_opentracing-go#download"],
+)
+
+go_library(
+    name = "log",
+    srcs = [":_log#go_source"],
+    cover = False,
+    import_path = "github.com/opentracing/opentracing-go/log",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

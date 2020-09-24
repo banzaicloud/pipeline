@@ -1,0 +1,32 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "v4",
+    srcs = [
+        "aws/signer/v4/header_rules.go",
+        "aws/signer/v4/options.go",
+        "aws/signer/v4/request_context_go1.5.go",
+        "aws/signer/v4/request_context_go1.7.go",
+        "aws/signer/v4/stream.go",
+        "aws/signer/v4/uri_path.go",
+        "aws/signer/v4/v4.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "v4",
+    srcs = [":_v4#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/aws/signer/v4",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/credentials",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/request",
+        "//third_party/go/github.com/aws/aws-sdk-go/internal/sdkio",
+        "//third_party/go/github.com/aws/aws-sdk-go/internal/strings",
+        "//third_party/go/github.com/aws/aws-sdk-go/private/protocol/rest",
+    ],
+)

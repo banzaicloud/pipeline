@@ -1,0 +1,25 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "protoimpl",
+    srcs = [
+        "runtime/protoimpl/impl.go",
+        "runtime/protoimpl/version.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/protobuf:_protobuf#download"],
+)
+
+go_library(
+    name = "protoimpl",
+    srcs = [":_protoimpl#go_source"],
+    cover = False,
+    import_path = "google.golang.org/protobuf/runtime/protoimpl",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/google.golang.org/protobuf/internal/filedesc",
+        "//third_party/go/google.golang.org/protobuf/internal/filetype",
+        "//third_party/go/google.golang.org/protobuf/internal/impl",
+        "//third_party/go/google.golang.org/protobuf/internal/version",
+    ],
+)

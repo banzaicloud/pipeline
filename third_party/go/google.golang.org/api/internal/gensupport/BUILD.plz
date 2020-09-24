@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "gensupport",
+    srcs = [
+        "internal/gensupport/buffer.go",
+        "internal/gensupport/doc.go",
+        "internal/gensupport/json.go",
+        "internal/gensupport/jsonfloat.go",
+        "internal/gensupport/media.go",
+        "internal/gensupport/params.go",
+        "internal/gensupport/resumable.go",
+        "internal/gensupport/send.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/api:_api#download"],
+)
+
+go_library(
+    name = "gensupport",
+    srcs = [":_gensupport#go_source"],
+    cover = False,
+    import_path = "google.golang.org/api/internal/gensupport",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/googleapis/gax-go/v2",
+        "//third_party/go/google.golang.org/api/googleapi",
+    ],
+)

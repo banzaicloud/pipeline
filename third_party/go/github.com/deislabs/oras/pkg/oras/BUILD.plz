@@ -1,0 +1,36 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "oras",
+    srcs = [
+        "pkg/oras/errors.go",
+        "pkg/oras/pull.go",
+        "pkg/oras/pull_opts.go",
+        "pkg/oras/push.go",
+        "pkg/oras/push_opts.go",
+        "pkg/oras/store.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/deislabs/oras:_oras#download"],
+)
+
+go_library(
+    name = "oras",
+    srcs = [":_oras#go_source"],
+    cover = False,
+    import_path = "github.com/deislabs/oras/pkg/oras",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/containerd/containerd/content",
+        "//third_party/go/github.com/containerd/containerd/images",
+        "//third_party/go/github.com/containerd/containerd/log",
+        "//third_party/go/github.com/containerd/containerd/remotes",
+        "//third_party/go/github.com/deislabs/oras/pkg/artifact",
+        "//third_party/go/github.com/deislabs/oras/pkg/content",
+        "//third_party/go/github.com/opencontainers/go-digest",
+        "//third_party/go/github.com/opencontainers/image-spec/specs-go",
+        "//third_party/go/github.com/opencontainers/image-spec/specs-go/v1",
+        "//third_party/go/github.com/pkg/errors",
+        "//third_party/go/golang.org/x/sync/semaphore",
+    ],
+)

@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "fieldnum",
+    srcs = [
+        "internal/fieldnum/any_gen.go",
+        "internal/fieldnum/api_gen.go",
+        "internal/fieldnum/descriptor_gen.go",
+        "internal/fieldnum/doc.go",
+        "internal/fieldnum/duration_gen.go",
+        "internal/fieldnum/empty_gen.go",
+        "internal/fieldnum/field_mask_gen.go",
+        "internal/fieldnum/source_context_gen.go",
+        "internal/fieldnum/struct_gen.go",
+        "internal/fieldnum/timestamp_gen.go",
+        "internal/fieldnum/type_gen.go",
+        "internal/fieldnum/wrappers_gen.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/protobuf:_protobuf#download"],
+)
+
+go_library(
+    name = "fieldnum",
+    srcs = [":_fieldnum#go_source"],
+    cover = False,
+    import_path = "google.golang.org/protobuf/internal/fieldnum",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

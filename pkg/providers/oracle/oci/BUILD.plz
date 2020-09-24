@@ -1,0 +1,14 @@
+go_library(
+    name = "oci",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/oracle/oci-go-sdk/common",
+        "//third_party/go/github.com/oracle/oci-go-sdk/containerengine",
+        "//third_party/go/github.com/oracle/oci-go-sdk/core",
+        "//third_party/go/github.com/oracle/oci-go-sdk/identity",
+        "//third_party/go/github.com/oracle/oci-go-sdk/objectstorage",
+        "//third_party/go/github.com/sirupsen/logrus",
+    ],
+)

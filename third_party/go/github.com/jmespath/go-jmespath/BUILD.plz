@@ -1,0 +1,35 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-jmespath",
+    module = "github.com/jmespath/go-jmespath",
+    sum = "h1:OS12ieG61fsCg5+qLJ+SsW9NicxNkg3b25OyT2yCeUc=",
+    tag = "download",
+    version = "v0.3.0",
+    visibility = ["//third_party/go/github.com/jmespath/go-jmespath/..."],
+)
+
+fileexport(
+    name = "go-jmespath",
+    srcs = [
+        "api.go",
+        "astnodetype_string.go",
+        "functions.go",
+        "interpreter.go",
+        "lexer.go",
+        "parser.go",
+        "toktype_string.go",
+        "util.go",
+    ],
+    tag = "go_source",
+    deps = [":_go-jmespath#download"],
+)
+
+go_library(
+    name = "go-jmespath",
+    srcs = [":_go-jmespath#go_source"],
+    cover = False,
+    import_path = "github.com/jmespath/go-jmespath",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

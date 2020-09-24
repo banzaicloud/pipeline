@@ -1,0 +1,9 @@
+go_library(
+    name = "prometheus",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster/metrics",
+        "//third_party/go/github.com/prometheus/client_golang/prometheus",
+    ],
+)

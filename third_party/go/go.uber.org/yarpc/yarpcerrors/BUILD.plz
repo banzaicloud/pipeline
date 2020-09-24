@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "yarpcerrors",
+    srcs = [
+        "yarpcerrors/codes.go",
+        "yarpcerrors/errors.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/yarpc:_yarpc#download"],
+)
+
+go_library(
+    name = "yarpcerrors",
+    srcs = [":_yarpcerrors#go_source"],
+    cover = False,
+    import_path = "go.uber.org/yarpc/yarpcerrors",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

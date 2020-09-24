@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "token",
+    srcs = [
+        "json/token/position.go",
+        "json/token/token.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/hashicorp/hcl:_hcl#download"],
+)
+
+go_library(
+    name = "token",
+    srcs = [":_token#go_source"],
+    cover = False,
+    import_path = "github.com/hashicorp/hcl/json/token",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/hashicorp/hcl/hcl/token"],
+)

@@ -1,0 +1,31 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "language",
+    srcs = [
+        "language/coverage.go",
+        "language/doc.go",
+        "language/gen.go",
+        "language/go1_1.go",
+        "language/go1_2.go",
+        "language/language.go",
+        "language/match.go",
+        "language/parse.go",
+        "language/tables.go",
+        "language/tags.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/golang.org/x/text:_text#download"],
+)
+
+go_library(
+    name = "language",
+    srcs = [":_language#go_source"],
+    cover = False,
+    import_path = "golang.org/x/text/language",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/golang.org/x/text/internal/language",
+        "//third_party/go/golang.org/x/text/internal/language/compact",
+    ],
+)

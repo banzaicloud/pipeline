@@ -1,0 +1,38 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "request",
+    srcs = [
+        "aws/request/connection_reset_error.go",
+        "aws/request/handlers.go",
+        "aws/request/http_request.go",
+        "aws/request/offset_reader.go",
+        "aws/request/request.go",
+        "aws/request/request_1_7.go",
+        "aws/request/request_1_8.go",
+        "aws/request/request_context.go",
+        "aws/request/request_context_1_6.go",
+        "aws/request/request_pagination.go",
+        "aws/request/retryer.go",
+        "aws/request/timeout_read_closer.go",
+        "aws/request/validation.go",
+        "aws/request/waiter.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "request",
+    srcs = [":_request#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/aws/request",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/awserr",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/awsutil",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/client/metadata",
+        "//third_party/go/github.com/aws/aws-sdk-go/internal/sdkio",
+    ],
+)

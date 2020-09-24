@@ -1,0 +1,24 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "workflowserviceclient",
+    srcs = [".gen/go/cadence/workflowserviceclient/client.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/cadence:_cadence#download"],
+)
+
+go_library(
+    name = "workflowserviceclient",
+    srcs = [":_workflowserviceclient#go_source"],
+    cover = False,
+    import_path = "go.uber.org/cadence/.gen/go/cadence/workflowserviceclient",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.uber.org/cadence/.gen/go/cadence",
+        "//third_party/go/go.uber.org/cadence/.gen/go/shared",
+        "//third_party/go/go.uber.org/thriftrw/wire",
+        "//third_party/go/go.uber.org/yarpc",
+        "//third_party/go/go.uber.org/yarpc/api/transport",
+        "//third_party/go/go.uber.org/yarpc/encoding/thrift",
+    ],
+)

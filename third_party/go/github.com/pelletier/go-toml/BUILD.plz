@@ -1,0 +1,39 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-toml",
+    module = "github.com/pelletier/go-toml",
+    sum = "h1:aetoXYr0Tv7xRU/V4B4IZJ2QcbtMUFoNb3ORp7TzIK4=",
+    tag = "download",
+    version = "v1.6.0",
+    visibility = ["//third_party/go/github.com/pelletier/go-toml/..."],
+)
+
+fileexport(
+    name = "go-toml",
+    srcs = [
+        "doc.go",
+        "fuzz.go",
+        "keysparsing.go",
+        "lexer.go",
+        "localtime.go",
+        "marshal.go",
+        "parser.go",
+        "position.go",
+        "token.go",
+        "toml.go",
+        "tomltree_create.go",
+        "tomltree_write.go",
+    ],
+    tag = "go_source",
+    deps = [":_go-toml#download"],
+)
+
+go_library(
+    name = "go-toml",
+    srcs = [":_go-toml#go_source"],
+    cover = False,
+    import_path = "github.com/pelletier/go-toml",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

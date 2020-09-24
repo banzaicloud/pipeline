@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "orderedmap",
+    module = "github.com/iancoleman/orderedmap",
+    sum = "h1:i462o439ZjprVSFSZLZxcsoAe592sZB1rci2Z8j4wdk=",
+    tag = "download",
+    version = "v0.0.0-20190318233801-ac98e3ecb4b0",
+    visibility = ["//third_party/go/github.com/iancoleman/orderedmap/..."],
+)
+
+fileexport(
+    name = "orderedmap",
+    srcs = ["orderedmap.go"],
+    tag = "go_source",
+    deps = [":_orderedmap#download"],
+)
+
+go_library(
+    name = "orderedmap",
+    srcs = [":_orderedmap#go_source"],
+    cover = False,
+    import_path = "github.com/iancoleman/orderedmap",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

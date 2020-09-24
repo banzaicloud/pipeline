@@ -1,0 +1,41 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "thrift",
+    srcs = [
+        "encoding/thrift/constants.go",
+        "encoding/thrift/doc.go",
+        "encoding/thrift/envelope.go",
+        "encoding/thrift/inbound.go",
+        "encoding/thrift/inject.go",
+        "encoding/thrift/multiplex.go",
+        "encoding/thrift/options.go",
+        "encoding/thrift/outbound.go",
+        "encoding/thrift/register.go",
+        "encoding/thrift/response.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/yarpc:_yarpc#download"],
+)
+
+go_library(
+    name = "thrift",
+    srcs = [":_thrift#go_source"],
+    cover = False,
+    import_path = "go.uber.org/yarpc/encoding/thrift",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.uber.org/thriftrw/envelope",
+        "//third_party/go/go.uber.org/thriftrw/protocol",
+        "//third_party/go/go.uber.org/thriftrw/thriftreflect",
+        "//third_party/go/go.uber.org/thriftrw/wire",
+        "//third_party/go/go.uber.org/yarpc",
+        "//third_party/go/go.uber.org/yarpc/api/encoding",
+        "//third_party/go/go.uber.org/yarpc/api/transport",
+        "//third_party/go/go.uber.org/yarpc/encoding/thrift/internal",
+        "//third_party/go/go.uber.org/yarpc/internal/bufferpool",
+        "//third_party/go/go.uber.org/yarpc/pkg/encoding",
+        "//third_party/go/go.uber.org/yarpc/pkg/errors",
+        "//third_party/go/go.uber.org/yarpc/pkg/procedure",
+    ],
+)

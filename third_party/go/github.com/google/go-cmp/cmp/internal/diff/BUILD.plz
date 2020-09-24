@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "diff",
+    srcs = [
+        "cmp/internal/diff/debug_disable.go",
+        "cmp/internal/diff/debug_enable.go",
+        "cmp/internal/diff/diff.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/google/go-cmp:_go-cmp#download"],
+)
+
+go_library(
+    name = "diff",
+    srcs = [":_diff#go_source"],
+    cover = False,
+    import_path = "github.com/google/go-cmp/cmp/internal/diff",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

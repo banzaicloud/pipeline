@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "queryparams",
+    srcs = [
+        "pkg/conversion/queryparams/convert.go",
+        "pkg/conversion/queryparams/doc.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "queryparams",
+    srcs = [":_queryparams#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/pkg/conversion/queryparams",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

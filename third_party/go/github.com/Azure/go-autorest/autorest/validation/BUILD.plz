@@ -1,0 +1,30 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "validation",
+    module = "github.com/Azure/go-autorest/autorest/validation",
+    sum = "h1:3I9AAI63HfcLtphd9g39ruUwRI+Ca+z/f36KHPFRUss=",
+    tag = "download",
+    version = "v0.3.0",
+    visibility = ["//third_party/go/github.com/Azure/go-autorest/autorest/validation/..."],
+)
+
+fileexport(
+    name = "validation",
+    srcs = [
+        "error.go",
+        "go_mod_tidy_hack.go",
+        "validation.go",
+    ],
+    tag = "go_source",
+    deps = [":_validation#download"],
+)
+
+go_library(
+    name = "validation",
+    srcs = [":_validation#go_source"],
+    cover = False,
+    import_path = "github.com/Azure/go-autorest/autorest/validation",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

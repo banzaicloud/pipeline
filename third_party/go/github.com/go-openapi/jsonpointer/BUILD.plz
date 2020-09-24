@@ -1,0 +1,26 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "jsonpointer",
+    module = "github.com/go-openapi/jsonpointer",
+    sum = "h1:gihV7YNZK1iK6Tgwwsxo2rJbD1GTbdm72325Bq8FI3w=",
+    tag = "download",
+    version = "v0.19.3",
+    visibility = ["//third_party/go/github.com/go-openapi/jsonpointer/..."],
+)
+
+fileexport(
+    name = "jsonpointer",
+    srcs = ["pointer.go"],
+    tag = "go_source",
+    deps = [":_jsonpointer#download"],
+)
+
+go_library(
+    name = "jsonpointer",
+    srcs = [":_jsonpointer#go_source"],
+    cover = False,
+    import_path = "github.com/go-openapi/jsonpointer",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go/github.com/go-openapi/swag"],
+)

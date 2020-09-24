@@ -1,0 +1,33 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "render",
+    module = "github.com/qor/render",
+    sum = "h1:4aq245m+d7ulq2cMQitfRP32qII5MwgE5tEe+UjfcEw=",
+    tag = "download",
+    version = "v0.0.0-20171201033449-63566e46f01b",
+    visibility = ["//third_party/go/github.com/qor/render/..."],
+)
+
+fileexport(
+    name = "render",
+    srcs = [
+        "render.go",
+        "template.go",
+        "utils.go",
+    ],
+    tag = "go_source",
+    deps = [":_render#download"],
+)
+
+go_library(
+    name = "render",
+    srcs = [":_render#go_source"],
+    cover = False,
+    import_path = "github.com/qor/render",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/qor/assetfs",
+        "//third_party/go/github.com/qor/qor/utils",
+    ],
+)

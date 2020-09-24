@@ -1,0 +1,33 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "observability",
+    srcs = [
+        "internal/observability/call.go",
+        "internal/observability/codes.go",
+        "internal/observability/doc.go",
+        "internal/observability/extractor.go",
+        "internal/observability/graph.go",
+        "internal/observability/middleware.go",
+        "internal/observability/stream.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/yarpc:_yarpc#download"],
+)
+
+go_library(
+    name = "observability",
+    srcs = [":_observability#go_source"],
+    cover = False,
+    import_path = "go.uber.org/yarpc/internal/observability",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.uber.org/net/metrics",
+        "//third_party/go/go.uber.org/net/metrics/bucket",
+        "//third_party/go/go.uber.org/yarpc/api/transport",
+        "//third_party/go/go.uber.org/yarpc/internal/digester",
+        "//third_party/go/go.uber.org/yarpc/yarpcerrors",
+        "//third_party/go/go.uber.org/zap",
+        "//third_party/go/go.uber.org/zap/zapcore",
+    ],
+)

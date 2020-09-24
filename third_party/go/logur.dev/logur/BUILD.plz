@@ -1,0 +1,36 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "logur",
+    module = "logur.dev/logur",
+    sum = "h1:q4MxivaiTXiDHrQyeCH5WkwBLUrd6rM2lZlyztYvi4o=",
+    tag = "download",
+    version = "v0.16.2",
+    visibility = ["//third_party/go/logur.dev/logur/..."],
+)
+
+fileexport(
+    name = "logur",
+    srcs = [
+        "doc.go",
+        "levels.go",
+        "logger.go",
+        "logger_context.go",
+        "logger_fields.go",
+        "logger_testing.go",
+        "standard_logger.go",
+        "utils.go",
+        "writer.go",
+    ],
+    tag = "go_source",
+    deps = [":_logur#download"],
+)
+
+go_library(
+    name = "logur",
+    srcs = [":_logur#go_source"],
+    cover = False,
+    import_path = "logur.dev/logur",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -1,0 +1,48 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "afero",
+    module = "github.com/spf13/afero",
+    sum = "h1:5jhuqJyZCZf2JRofRvN/nIFgIWNzPa3/Vz8mYylgbWc=",
+    tag = "download",
+    version = "v1.2.2",
+    visibility = ["//third_party/go/github.com/spf13/afero/..."],
+)
+
+fileexport(
+    name = "afero",
+    srcs = [
+        "afero.go",
+        "basepath.go",
+        "cacheOnReadFs.go",
+        "const_bsds.go",
+        "const_win_unix.go",
+        "copyOnWriteFs.go",
+        "httpFs.go",
+        "ioutil.go",
+        "lstater.go",
+        "match.go",
+        "memmap.go",
+        "os.go",
+        "path.go",
+        "readonlyfs.go",
+        "regexpfs.go",
+        "unionFile.go",
+        "util.go",
+    ],
+    tag = "go_source",
+    deps = [":_afero#download"],
+)
+
+go_library(
+    name = "afero",
+    srcs = [":_afero#go_source"],
+    cover = False,
+    import_path = "github.com/spf13/afero",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/spf13/afero/mem",
+        "//third_party/go/golang.org/x/text/transform",
+        "//third_party/go/golang.org/x/text/unicode/norm",
+    ],
+)

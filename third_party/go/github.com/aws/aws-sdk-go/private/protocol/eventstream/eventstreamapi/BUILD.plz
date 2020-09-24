@@ -1,0 +1,28 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "eventstreamapi",
+    srcs = [
+        "private/protocol/eventstream/eventstreamapi/error.go",
+        "private/protocol/eventstream/eventstreamapi/reader.go",
+        "private/protocol/eventstream/eventstreamapi/shared.go",
+        "private/protocol/eventstream/eventstreamapi/signer.go",
+        "private/protocol/eventstream/eventstreamapi/stream_writer.go",
+        "private/protocol/eventstream/eventstreamapi/writer.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
+)
+
+go_library(
+    name = "eventstreamapi",
+    srcs = [":_eventstreamapi#go_source"],
+    cover = False,
+    import_path = "github.com/aws/aws-sdk-go/private/protocol/eventstream/eventstreamapi",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/private/protocol",
+        "//third_party/go/github.com/aws/aws-sdk-go/private/protocol/eventstream",
+    ],
+)

@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-connections",
+    module = "github.com/docker/go-connections",
+    sum = "h1:El9xVISelRB7BuFusrZozjnkIM5YnzCViNKohAFqRJQ=",
+    tag = "download",
+    version = "v0.4.0",
+    visibility = ["//third_party/go/github.com/docker/go-connections/..."],
+)

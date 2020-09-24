@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "recognizer",
+    srcs = ["pkg/runtime/serializer/recognizer/recognizer.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "recognizer",
+    srcs = [":_recognizer#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/pkg/runtime/serializer/recognizer",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+    ],
+)

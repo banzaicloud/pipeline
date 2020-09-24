@@ -1,0 +1,29 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "btree",
+    module = "github.com/google/btree",
+    sum = "h1:0udJVsspx3VBr5FwtLhQQtuAsVc79tTq0ocGIPAU6qo=",
+    tag = "download",
+    version = "v1.0.0",
+    visibility = ["//third_party/go/github.com/google/btree/..."],
+)
+
+fileexport(
+    name = "btree",
+    srcs = [
+        "btree.go",
+        "btree_mem.go",
+    ],
+    tag = "go_source",
+    deps = [":_btree#download"],
+)
+
+go_library(
+    name = "btree",
+    srcs = [":_btree#go_source"],
+    cover = False,
+    import_path = "github.com/google/btree",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

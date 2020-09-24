@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "tracestate",
+    srcs = ["trace/tracestate/tracestate.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/go.opencensus.io:_go.opencensus.io#download"],
+)
+
+go_library(
+    name = "tracestate",
+    srcs = [":_tracestate#go_source"],
+    cover = False,
+    import_path = "go.opencensus.io/trace/tracestate",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

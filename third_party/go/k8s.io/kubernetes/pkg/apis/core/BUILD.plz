@@ -1,0 +1,37 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "core",
+    srcs = [
+        "pkg/apis/core/annotation_key_constants.go",
+        "pkg/apis/core/doc.go",
+        "pkg/apis/core/field_constants.go",
+        "pkg/apis/core/json.go",
+        "pkg/apis/core/objectreference.go",
+        "pkg/apis/core/register.go",
+        "pkg/apis/core/resource.go",
+        "pkg/apis/core/taint.go",
+        "pkg/apis/core/toleration.go",
+        "pkg/apis/core/types.go",
+        "pkg/apis/core/zz_generated.deepcopy.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/kubernetes:_kubernetes#download"],
+)
+
+go_library(
+    name = "core",
+    srcs = [":_core#go_source"],
+    cover = False,
+    import_path = "k8s.io/kubernetes/pkg/apis/core",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/apimachinery/pkg/api/resource",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/internalversion",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime",
+        "//third_party/go/k8s.io/apimachinery/pkg/runtime/schema",
+        "//third_party/go/k8s.io/apimachinery/pkg/types",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/intstr",
+    ],
+)

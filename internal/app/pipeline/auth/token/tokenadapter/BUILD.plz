@@ -1,0 +1,22 @@
+go_library(
+    name = "tokenadapter",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/app/pipeline/auth/token",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/banzaicloud/bank-vaults/pkg/sdk/auth",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/app/pipeline/auth/token",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/banzaicloud/bank-vaults/pkg/sdk/auth",
+        "//third_party/go/github.com/stretchr/testify/assert",
+        "//third_party/go/github.com/stretchr/testify/require",
+    ],
+)

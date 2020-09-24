@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "azure-sdk-for-go",
+    module = "github.com/Azure/azure-sdk-for-go",
+    sum = "h1:d0WY8HTXhnurVBAkLXzv4bRpd+P5r3U/W17Z88PJWiI=",
+    tag = "download",
+    version = "v44.2.0+incompatible",
+    visibility = ["//third_party/go/github.com/Azure/azure-sdk-for-go/..."],
+)

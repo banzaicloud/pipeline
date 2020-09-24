@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "image",
+    srcs = [
+        "pkg/image/deprecatedimage.go",
+        "pkg/image/image.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/sigs.k8s.io/kustomize:_kustomize#download"],
+)
+
+go_library(
+    name = "image",
+    srcs = [":_image#go_source"],
+    cover = False,
+    import_path = "sigs.k8s.io/kustomize/pkg/image",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

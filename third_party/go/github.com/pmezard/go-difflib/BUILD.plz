@@ -1,0 +1,10 @@
+subinclude("///pleasegomod//:build_defs")
+
+go_module_download(
+    name = "go-difflib",
+    module = "github.com/pmezard/go-difflib",
+    sum = "h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=",
+    tag = "download",
+    version = "v1.0.0",
+    visibility = ["//third_party/go/github.com/pmezard/go-difflib/..."],
+)

@@ -1,0 +1,24 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "util",
+    srcs = ["internal/third_party/k8s.io/kubernetes/deployment/util/deploymentutil.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/helm.sh/helm/v3:_v3#download"],
+)
+
+go_library(
+    name = "util",
+    srcs = [":_util#go_source"],
+    cover = False,
+    import_path = "helm.sh/helm/v3/internal/third_party/k8s.io/kubernetes/deployment/util",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/k8s.io/api/apps/v1",
+        "//third_party/go/k8s.io/api/core/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/api/equality",
+        "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
+        "//third_party/go/k8s.io/apimachinery/pkg/util/intstr",
+        "//third_party/go/k8s.io/client-go/kubernetes/typed/apps/v1",
+    ],
+)

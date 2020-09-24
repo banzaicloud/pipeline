@@ -1,0 +1,20 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "propagation",
+    srcs = ["transport/http/internal/propagation/http.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/google.golang.org/api:_api#download"],
+)
+
+go_library(
+    name = "propagation",
+    srcs = [":_propagation#go_source"],
+    cover = False,
+    import_path = "google.golang.org/api/transport/http/internal/propagation",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.opencensus.io/trace",
+        "//third_party/go/go.opencensus.io/trace/propagation",
+    ],
+)

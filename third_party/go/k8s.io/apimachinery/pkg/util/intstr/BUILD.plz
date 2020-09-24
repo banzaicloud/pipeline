@@ -1,0 +1,24 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "intstr",
+    srcs = [
+        "pkg/util/intstr/generated.pb.go",
+        "pkg/util/intstr/intstr.go",
+    ],
+    tag = "go_source",
+    deps = ["//third_party/go/k8s.io/apimachinery:_apimachinery#download"],
+)
+
+go_library(
+    name = "intstr",
+    srcs = [":_intstr#go_source"],
+    cover = False,
+    import_path = "k8s.io/apimachinery/pkg/util/intstr",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/github.com/gogo/protobuf/proto",
+        "//third_party/go/github.com/google/gofuzz",
+        "//third_party/go/k8s.io/klog",
+    ],
+)
