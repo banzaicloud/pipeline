@@ -23,7 +23,9 @@ import (
 const K8sHealthCheckActivityName = "k8s-health-check"
 
 type K8sHealthCheckActivityInput struct {
-	K8sSecretID string
+	OrganizationID uint
+	ClusterName    string
+	K8sSecretID    string
 }
 
 type K8sHealthCheckActivity struct {
