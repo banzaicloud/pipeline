@@ -16,8 +16,10 @@ package eks
 
 import (
 	"context"
+	"strings"
 
 	"emperror.dev/errors"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
@@ -85,15 +87,71 @@ type NodePoolUpdateDrainOptions struct {
 
 // NodePool encapsulates information about a cluster node pool.
 type NodePool struct {
-	Name         string            `mapstructure:"name"`
-	Labels       map[string]string `mapstructure:"labels"`
-	Size         int               `mapstructure:"size"`
-	Autoscaling  Autoscaling       `mapstructure:"autoscaling"`
-	VolumeSize   int               `mapstructure:"volumeSize"`
-	InstanceType string            `mapstructure:"instanceType"`
-	Image        string            `mapstructure:"image"`
-	SpotPrice    string            `mapstructure:"spotPrice"`
-	SubnetID     string            `mapstructure:"subnetId"`
+	Name          string            `mapstructure:"name"`
+	Labels        map[string]string `mapstructure:"labels"`
+	Size          int               `mapstructure:"size"`
+	Autoscaling   Autoscaling       `mapstructure:"autoscaling"`
+	VolumeSize    int               `mapstructure:"volumeSize"`
+	InstanceType  string            `mapstructure:"instanceType"`
+	Image         string            `mapstructure:"image"`
+	SpotPrice     string            `mapstructure:"spotPrice"`
+	SubnetID      string            `mapstructure:"subnetId"`
+	Status        NodePoolStatus    `mapstructure:"status"`
+	StatusMessage string            `mapstructure:"statusMessage"`
+}
+
+// NodePoolStatus represents the possible states of a node pool.
+type NodePoolStatus string
+
+const (
+	// NodePoolStatusCreating is the status used when the node pool resources
+	// are being provisioned.
+	NodePoolStatusCreating NodePoolStatus = "CREATING"
+
+	// NodePoolStatusDeleting is the status used when the node pool resources
+	// are being removed.
+	NodePoolStatusDeleting NodePoolStatus = "DELETING"
+
+	// NodePoolStatusCreating is the status returned when the node pool
+	// is in an invalid state or an operation cannot be performed on it.
+	NodePoolStatusError NodePoolStatus = "ERROR"
+
+	// NodePoolStatusCreating is the status returned when the node pool
+	// is in a healthy, idle state.
+	NodePoolStatusReady NodePoolStatus = "READY"
+
+	// NodePoolStatusUnknown is the status returned when the node pool cannot be
+	// examined.
+	NodePoolStatusUnknown NodePoolStatus = "UNKNOWN"
+
+	// NodePoolStatusUpdating is the status returned when the node pool
+	// resources are being changed.
+	NodePoolStatusUpdating NodePoolStatus = "UPDATING"
+)
+
+// NewNodePoolStatusFromCFStackStatus translates a CloudFormation stack status
+// into a node pool status.
+func NewNodePoolStatusFromCFStackStatus(cfStackStatus string) (nodePoolStatus NodePoolStatus) {
+	switch {
+	case strings.HasSuffix(cfStackStatus, "_COMPLETE"):
+		if cfStackStatus == cloudformation.StackStatusDeleteComplete { // Note: CF stack is deleted, but DB entry is still existing.
+			return NodePoolStatusDeleting
+		}
+
+		return NodePoolStatusReady
+	case strings.HasSuffix(cfStackStatus, "_FAILED"):
+		return NodePoolStatusError
+	case strings.HasSuffix(cfStackStatus, "_IN_PROGRESS"):
+		if cfStackStatus == cloudformation.StackStatusCreateInProgress {
+			return NodePoolStatusCreating
+		} else if cfStackStatus == cloudformation.StackStatusDeleteInProgress {
+			return NodePoolStatusDeleting
+		}
+
+		return NodePoolStatusUpdating
+	default:
+		return NodePoolStatusUnknown
+	}
 }
 
 // Autoscaling describes the EKS node pool's autoscaling settings.

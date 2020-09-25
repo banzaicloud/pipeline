@@ -307,9 +307,9 @@ func encodeDeleteNodePoolHTTPResponse(_ context.Context, w http.ResponseWriter, 
 func encodeListNodePoolsHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	resp := response.(ListNodePoolsResponse)
 
-	var apiResp []pipeline.NodePool
+	var apiResp []pipeline.NodePoolSummary
 	for _, nodePool := range resp.NodePoolList {
-		var result pipeline.NodePool
+		var result pipeline.NodePoolSummary
 		err := mapstructure.Decode(nodePool, &result)
 		if err != nil {
 			return errors.Wrap(err, "failed to decode service response")
