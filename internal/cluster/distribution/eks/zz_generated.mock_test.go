@@ -55,22 +55,22 @@ func (_m *MockNodePoolStore) CreateNodePool(ctx context.Context, clusterID uint,
 	return r0
 }
 
-// ListNodePoolNames provides a mock function.
-func (_m *MockNodePoolStore) ListNodePoolNames(ctx context.Context, clusterID uint) (nodePoolNames []string, err error) {
-	ret := _m.Called(ctx, clusterID)
+// ListNodePools provides a mock function.
+func (_m *MockNodePoolStore) ListNodePools(ctx context.Context, organizationID uint, clusterID uint, clusterName string) (existingNodePools map[string]ExistingNodePool, err error) {
+	ret := _m.Called(ctx, organizationID, clusterID, clusterName)
 
-	var r0 []string
-	if rf, ok := ret.Get(0).(func(context.Context, uint) []string); ok {
-		r0 = rf(ctx, clusterID)
+	var r0 map[string]ExistingNodePool
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, string) map[string]ExistingNodePool); ok {
+		r0 = rf(ctx, organizationID, clusterID, clusterName)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
+			r0 = ret.Get(0).(map[string]ExistingNodePool)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
-		r1 = rf(ctx, clusterID)
+	if rf, ok := ret.Get(1).(func(context.Context, uint, uint, string) error); ok {
+		r1 = rf(ctx, organizationID, clusterID, clusterName)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -112,12 +112,12 @@ type MockNodePoolManager struct {
 }
 
 // ListNodePools provides a mock function.
-func (_m *MockNodePoolManager) ListNodePools(ctx context.Context, c cluster.Cluster, nodePoolNames []string) (_result_0 []NodePool, _result_1 error) {
-	ret := _m.Called(ctx, c, nodePoolNames)
+func (_m *MockNodePoolManager) ListNodePools(ctx context.Context, c cluster.Cluster, existingNodePools map[string]ExistingNodePool) (_result_0 []NodePool, _result_1 error) {
+	ret := _m.Called(ctx, c, existingNodePools)
 
 	var r0 []NodePool
-	if rf, ok := ret.Get(0).(func(context.Context, cluster.Cluster, []string) []NodePool); ok {
-		r0 = rf(ctx, c, nodePoolNames)
+	if rf, ok := ret.Get(0).(func(context.Context, cluster.Cluster, map[string]ExistingNodePool) []NodePool); ok {
+		r0 = rf(ctx, c, existingNodePools)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]NodePool)
@@ -125,8 +125,8 @@ func (_m *MockNodePoolManager) ListNodePools(ctx context.Context, c cluster.Clus
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, cluster.Cluster, []string) error); ok {
-		r1 = rf(ctx, c, nodePoolNames)
+	if rf, ok := ret.Get(1).(func(context.Context, cluster.Cluster, map[string]ExistingNodePool) error); ok {
+		r1 = rf(ctx, c, existingNodePools)
 	} else {
 		r1 = ret.Error(1)
 	}

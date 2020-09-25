@@ -347,12 +347,12 @@ func (s service) nodePoolSupported(cluster Cluster) error {
 func (s service) ListNodePools(ctx context.Context, clusterID uint) (nodePoolList RawNodePoolList, err error) {
 	cluster, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
-		return nil, errors.WrapWithDetails(err, "retrieving cluster failed", "clusterID", clusterID)
+		return nil, err
 	}
 
 	distributionService, err := s.getDistributionService(cluster)
 	if err != nil {
-		return nil, errors.WrapWithDetails(err, "retrieving distribution service failed", "cluster", cluster)
+		return nil, err
 	}
 
 	return distributionService.ListNodePools(ctx, clusterID)

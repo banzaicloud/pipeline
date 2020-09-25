@@ -25,12 +25,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/cadence/client"
 	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/dynamic"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
@@ -38,317 +35,625 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/brn"
 )
 
-// newFakeUnstructuredObjectWithSpec creates an unstructured Kubernetes resource object
-// for test fake purposes with the specified necessary and optional information.
-func newFakeUnstructuredObjectWithSpec(apiVersion, kind, name, optionalNamespace string, optionalSpec map[string]interface{}) (object unstructured.Unstructured) {
-	if optionalNamespace == "" {
-		optionalNamespace = "default"
-	}
-
-	return unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"apiVersion": apiVersion,
-			"kind":       kind,
-			"metadata": map[string]interface{}{
-				"namespace": optionalNamespace,
-				"name":      name,
-			},
-			"spec": optionalSpec,
-		},
-	}
-}
-
 func TestListNodePools(t *testing.T) {
-	exampleAWSClient := &session.Session{}
-	exampleClusterID := uint(0)
-	exampleContext := context.Background()
-	var exampleEnterprise bool
-	exampleLabels := map[string]string{
-		"label-key": "value",
-	}
-	exampleNamespace := "namespace"
-	exampleNodePoolNames := []string{
-		"node-pool-name-1",
-	}
-	exampleOrganizationID := uint(1)
-	exampleSchemaGroupVersionResource := schema.GroupVersionResource{
-		Group:    "labels.banzaicloud.io",
-		Version:  "v1alpha1",
-		Resource: "nodepoollabelsets",
-	}
-	exampleStackParameters := map[string]interface{}{
-		"ClusterAutoscalerEnabled":    true,
-		"NodeAutoScalingGroupMaxSize": 1,
-		"NodeAutoScalingGroupMinSize": 3,
-		"NodeAutoScalingInitSize":     2,
-		"NodeVolumeSize":              50,
-		"NodeInstanceType":            "node pool instance type",
-		"NodeImageId":                 "node pool image ID",
-		"NodeSpotPrice":               "node pool spot price",
-		"Subnets":                     "subnet-0123456789",
-	}
-	var exampleWorkflowClient client.Client
-	//
-	exampleCluster := cluster.Cluster{
-		ID:             exampleClusterID,
-		UID:            "cluster UID",
-		Name:           "cluster name",
-		OrganizationID: exampleOrganizationID,
-		Status:         "cluster status",
-		StatusMessage:  "cluster status message",
-		Cloud:          "cluster cloud",
-		Distribution:   "cluster distribution",
-		Location:       "cluster location",
-		SecretID: brn.ResourceName{
-			Scheme:         "cluster secret ID scheme",
-			OrganizationID: exampleOrganizationID,
-			ResourceType:   "cluster secret ID resource type",
-			ResourceID:     "cluster secret ID resource ID",
-		},
-		ConfigSecretID: brn.ResourceName{
-			Scheme:         "cluster config secret ID scheme",
-			OrganizationID: exampleOrganizationID,
-			ResourceType:   "cluster config secret ID resource type",
-			ResourceID:     "cluster config secret ID resource ID",
-		},
-		Tags: map[string]string{
-			"cluster-tag": "cluster tag value",
-		},
-	}
-	exampleDescribeStacksOutput := &cloudformation.DescribeStacksOutput{
-		Stacks: []*cloudformation.Stack{
-			{
-				Parameters:        []*cloudformation.Parameter{},
-				StackStatus:       aws.String(cloudformation.StackStatusCreateComplete),
-				StackStatusReason: aws.String(""),
-			},
-		},
-	}
-	for parameterKey, parameterValue := range exampleStackParameters {
-		parameterKeyString := parameterKey // Note: Parameters requires a string pointer which shouldn't be the iterator.
-		parameterValueString := fmt.Sprintf("%+v", parameterValue)
-		exampleDescribeStacksOutput.Stacks[0].Parameters = append(exampleDescribeStacksOutput.Stacks[0].Parameters, &cloudformation.Parameter{
-			ParameterKey:   &parameterKeyString,
-			ParameterValue: &parameterValueString,
-		})
-	}
-	exampleLabelsWithInterface := make(map[string]interface{}, len(exampleLabels))
-	for key, value := range exampleLabels {
-		exampleLabelsWithInterface[key] = value
-	}
-	exampleNodePool := eks.NodePool{
-		Name:   "node-pool-name-1",
-		Labels: exampleLabels,
-		Size:   exampleStackParameters["NodeAutoScalingInitSize"].(int),
-		Autoscaling: eks.Autoscaling{
-			Enabled: exampleStackParameters["ClusterAutoscalerEnabled"].(bool),
-			MinSize: exampleStackParameters["NodeAutoScalingGroupMinSize"].(int),
-			MaxSize: exampleStackParameters["NodeAutoScalingGroupMaxSize"].(int),
-		},
-		VolumeSize:    exampleStackParameters["NodeVolumeSize"].(int),
-		InstanceType:  exampleStackParameters["NodeInstanceType"].(string),
-		Image:         exampleStackParameters["NodeImageId"].(string),
-		SpotPrice:     exampleStackParameters["NodeSpotPrice"].(string),
-		SubnetID:      exampleStackParameters["Subnets"].(string),
-		Status:        eks.NodePoolStatusReady,
-		StatusMessage: "",
-	}
-	//
-	exampleUnstructuredList := make([]unstructured.Unstructured, len(exampleNodePoolNames))
-	for nodePoolNameIndex, nodePoolName := range exampleNodePoolNames {
-		exampleUnstructuredList[nodePoolNameIndex] = newFakeUnstructuredObjectWithSpec(
-			fmt.Sprintf("%s/%s", exampleSchemaGroupVersionResource.Group, exampleSchemaGroupVersionResource.Version),
-			exampleSchemaGroupVersionResource.Resource,
-			nodePoolName,
-			exampleNamespace,
-			map[string]interface{}{
-				"labels": exampleLabelsWithInterface, // Note: the client cannot deep copy map[string]string for some reason.
-			},
-		)
-	}
-	exampleNodePools := make([]eks.NodePool, len(exampleNodePoolNames))
-	for nodePoolIndex, nodePoolName := range exampleNodePoolNames {
-		exampleNodePools[nodePoolIndex] = exampleNodePool
-		exampleNodePools[nodePoolIndex].Name = nodePoolName
-	}
-	//
-	exampleClusterClientObjects := make([]runtime.Object, len(exampleUnstructuredList))
-	for objectIndex, object := range exampleUnstructuredList {
-		object := object
-		exampleClusterClientObjects[objectIndex] = &object
+	type inputType struct {
+		cluster   cluster.Cluster
+		manager   nodePoolManager
+		nodePools map[string]eks.ExistingNodePool
 	}
 
-	type constructionArgumentType struct {
-		awsFactory            workflow.AWSFactory
-		cloudFormationFactory workflow.CloudFormationAPIFactory
-		dynamicClientFactory  cluster.DynamicKubeClientFactory
-		enterprise            bool
-		namespace             string
-		workflowClient        client.Client
+	type intermediateDataType struct {
+		nodePoolLabels       map[string]map[string]string
+		nodePoolDescriptions map[string]*cloudformation.DescribeStacksOutput
 	}
-	type functionCallArgumentType struct {
-		ctx           context.Context
-		cluster       cluster.Cluster
-		nodePoolNames []string
+
+	type outputType struct {
+		expectedError     error
+		expectedNodePools []eks.NodePool
 	}
+
+	mockMethods := func(
+		t *testing.T,
+		input inputType,
+		intermediateData intermediateDataType,
+		mockErrors map[string]error,
+	) {
+		if mockErrors == nil {
+			mockErrors = map[string]error{} // Note: defaulting to nil errors.
+		}
+
+		awsSession := &session.Session{}
+		cloudFormationAPIClient := &workflow.MockcloudFormationAPI{}
+		dynamicInterfaceMock := &cluster.MockdynamicInterface{}
+		dynamicResourceInterfaceMock := &cluster.MockdynamicNamespaceableResourceInterface{}
+
+		schemaGroupVersionResource := schema.GroupVersionResource{
+			Group:    "labels.banzaicloud.io",
+			Version:  "v1alpha1",
+			Resource: "nodepoollabelsets",
+		}
+
+		unstructuredList := make([]unstructured.Unstructured, 0, len(input.nodePools))
+		for _, nodePool := range input.nodePools {
+			labels := intermediateData.nodePoolLabels[nodePool.Name]
+			// Note: the client cannot deep copy map[string]string for some reason.
+			interfaceLabels := make(map[string]interface{}, len(labels))
+			for key, value := range labels {
+				interfaceLabels[key] = value
+			}
+
+			unstructuredList = append(unstructuredList, unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"apiVersion": fmt.Sprintf("%s/%s", schemaGroupVersionResource.Group, schemaGroupVersionResource.Version),
+					"kind":       schemaGroupVersionResource.Resource,
+					"metadata": map[string]interface{}{
+						"namespace": input.manager.namespace,
+						"name":      nodePool.Name,
+					},
+					"spec": map[string]interface{}{
+						"labels": interfaceLabels,
+					},
+				},
+			})
+		}
+
+		mocks := make([]string, 0, 6+len(input.nodePools))
+		mocks = append(mocks, "DynamicClientFactory.FromSecret")
+		mocks = append(mocks, "dynamicInterface.Resource")
+		mocks = append(mocks, "dynamicNamespaceableResourceInterface.Namespace")
+		mocks = append(mocks, "dynamicNamespaceableResourceInterface.List")
+		mocks = append(mocks, "AWSFactory.New")
+		mocks = append(mocks, "CloudFormationFactory.New")
+		for range input.nodePools {
+			mocks = append(mocks, "cloudFormationAPI.DescribeStacks")
+		}
+
+		previousMockCounts := make(map[string]int, len(mocks))
+		for _, mockID := range mocks {
+			switch mockID {
+			case "AWSFactory.New":
+				mock := input.manager.awsFactory.(*workflow.MockAWSFactory).Mock.
+					On("New", input.cluster.OrganizationID, input.cluster.SecretID.ResourceID, input.cluster.Location)
+
+				err := mockErrors[mockID]
+				if err == nil {
+					mock.Return(awsSession, nil).Once()
+				} else {
+					mock.Return(nil, err).Once()
+				}
+			case "cloudFormationAPI.DescribeStacks":
+				for _, nodePool := range input.nodePools {
+					stackIdentifier := nodePool.StackID
+					if stackIdentifier == "" {
+						stackIdentifier = generateNodePoolStackName(input.cluster.Name, nodePool.Name)
+					}
+
+					mock := cloudFormationAPIClient.Mock.
+						On("DescribeStacks", &cloudformation.DescribeStacksInput{
+							StackName: aws.String(stackIdentifier),
+						})
+
+					err := mockErrors[mockID]
+					if err == nil {
+						mock.Return(intermediateData.nodePoolDescriptions[nodePool.Name], nil).Once()
+					} else {
+						mock.Return(nil, err).Once()
+					}
+				}
+			case "CloudFormationFactory.New":
+				input.manager.cloudFormationFactory.(*workflow.MockCloudFormationAPIFactory).Mock.
+					On("New", awsSession).
+					Return(cloudFormationAPIClient).Once()
+			case "DynamicClientFactory.FromSecret":
+				mock := input.manager.dynamicClientFactory.(*cluster.MockDynamicKubeClientFactory).Mock.
+					On("FromSecret", context.Background(), input.cluster.ConfigSecretID.String())
+
+				err := mockErrors[mockID]
+				if err == nil {
+					mock.Return(dynamicInterfaceMock, nil).Once()
+				} else {
+					mock.Return(nil, err).Once()
+				}
+			case "dynamicInterface.Resource":
+				dynamicInterfaceMock.Mock.
+					On("Resource", schemaGroupVersionResource).
+					Return(dynamicResourceInterfaceMock).Once()
+			case "dynamicNamespaceableResourceInterface.List":
+				mock := dynamicResourceInterfaceMock.Mock.
+					On("List", mock.Anything, k8smetav1.ListOptions{})
+
+				err := mockErrors[mockID]
+				if err == nil {
+					mock.Return(
+						&unstructured.UnstructuredList{
+							Items: unstructuredList,
+						},
+						nil,
+					).Once()
+				} else {
+					mock.Return(nil, err).Once()
+				}
+			case "dynamicNamespaceableResourceInterface.Namespace":
+				dynamicResourceInterfaceMock.Mock.
+					On("Namespace", input.manager.namespace).
+					Return(dynamicResourceInterfaceMock).Once()
+			default:
+				t.Errorf(
+					"unexpected mock call, no mock method is available for this mock ID,"+
+						" mock ID: '%s', ordered mock ID occurrences: '%+v'",
+					mockID, mocks,
+				)
+				t.FailNow()
+				return
+			}
+
+			previousMockCounts[mockID] += 1
+		}
+	}
+
 	testCases := []struct {
-		caseName              string
-		constructionArguments constructionArgumentType
-		expectedNodePools     []eks.NodePool
-		expectedNotNilError   bool
-		functionCallArguments functionCallArgumentType
-		setupMocks            func(constructionArgumentType, functionCallArgumentType)
+		caseName         string
+		input            inputType
+		intermediateData intermediateDataType
+		mockErrors       map[string]error
+		output           outputType
 	}{
 		{
-			caseName: "DynamicKubeClientFactoryFromSecretError",
-			constructionArguments: constructionArgumentType{
-				workflowClient:        exampleWorkflowClient,
-				enterprise:            exampleEnterprise,
-				dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
-				awsFactory:            &workflow.MockAWSFactory{},
-				cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
-				namespace:             exampleNamespace,
+			caseName: "empty cluster config secret ID error",
+			input: inputType{
+				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "")},
+				manager: nodePoolManager{
+					awsFactory:            &workflow.MockAWSFactory{},
+					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
+				},
 			},
-			expectedNodePools:   nil,
-			expectedNotNilError: true,
-			functionCallArguments: functionCallArgumentType{
-				ctx:           exampleContext,
-				cluster:       exampleCluster,
-				nodePoolNames: exampleNodePoolNames,
-			},
-			setupMocks: func(constructionArguments constructionArgumentType, functionCallArguments functionCallArgumentType) {
-				dynamicClientFactoryMock := constructionArguments.dynamicClientFactory.(*cluster.MockDynamicKubeClientFactory)
-				dynamicClientFactoryMock.On("FromSecret", functionCallArguments.ctx, functionCallArguments.cluster.ConfigSecretID.String()).Return(dynamic.Interface(nil), errors.NewWithDetails("DynamicKubeClientFactoryFromSecretError"))
+			output: outputType{
+				expectedError:     errors.New("cluster is not ready"),
+				expectedNodePools: nil,
 			},
 		},
 		{
-			caseName: "NodePoolLabelSetManagerGetAllError",
-			constructionArguments: constructionArgumentType{
-				workflowClient:        exampleWorkflowClient,
-				enterprise:            exampleEnterprise,
-				dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
-				awsFactory:            &workflow.MockAWSFactory{},
-				cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
-				namespace:             exampleNamespace,
+			caseName: "DynamicClientFactory.FromSecret error",
+			input: inputType{
+				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
+				manager: nodePoolManager{
+					awsFactory:            &workflow.MockAWSFactory{},
+					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
+				},
 			},
-			expectedNodePools:   nil,
-			expectedNotNilError: true,
-			functionCallArguments: functionCallArgumentType{
-				ctx:           exampleContext,
-				cluster:       exampleCluster,
-				nodePoolNames: exampleNodePoolNames,
+			mockErrors: map[string]error{
+				"DynamicClientFactory.FromSecret": errors.New("test error: DynamicClientFactory.FromSecret"),
 			},
-			setupMocks: func(constructionArguments constructionArgumentType, functionCallArguments functionCallArgumentType) {
-				dynamicResourceInterfaceMock := &cluster.MockdynamicNamespaceableResourceInterface{}
-				dynamicResourceInterfaceMock.On("Namespace", exampleNamespace).Return(dynamicResourceInterfaceMock)
-				dynamicResourceInterfaceMock.On("List", mock.Anything, k8smetav1.ListOptions{}).Return(nil, errors.NewWithDetails("NodePoolLabelSetManagerGetAllError"))
-
-				dynamicInterfaceMock := &cluster.MockdynamicInterface{}
-				dynamicInterfaceMock.On("Resource", exampleSchemaGroupVersionResource).Return(dynamicResourceInterfaceMock)
-
-				dynamicClientFactoryMock := constructionArguments.dynamicClientFactory.(*cluster.MockDynamicKubeClientFactory)
-				dynamicClientFactoryMock.On("FromSecret", functionCallArguments.ctx, functionCallArguments.cluster.ConfigSecretID.String()).Return(dynamicInterfaceMock, (error)(nil))
+			output: outputType{
+				expectedError:     errors.New("creating dynamic Kubernetes client factory failed: test error: DynamicClientFactory.FromSecret"),
+				expectedNodePools: nil,
 			},
 		},
 		{
-			caseName: "AWSClientFactoryNewError",
-			constructionArguments: constructionArgumentType{
-				workflowClient:        exampleWorkflowClient,
-				enterprise:            exampleEnterprise,
-				dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
-				awsFactory:            &workflow.MockAWSFactory{},
-				cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
-				namespace:             exampleNamespace,
+			caseName: "nodePoolLabelSetManager.GetAll error",
+			input: inputType{
+				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
+				manager: nodePoolManager{
+					awsFactory:            &workflow.MockAWSFactory{},
+					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
+				},
 			},
-			expectedNodePools:   nil,
-			expectedNotNilError: true,
-			functionCallArguments: functionCallArgumentType{
-				ctx:           exampleContext,
-				cluster:       exampleCluster,
-				nodePoolNames: exampleNodePoolNames,
+			mockErrors: map[string]error{
+				"dynamicNamespaceableResourceInterface.List": errors.New("test error: nodePoolLabelSetManager.GetAll"),
 			},
-			setupMocks: func(constructionArguments constructionArgumentType, functionCallArguments functionCallArgumentType) {
-				dynamicResourceInterfaceMock := &cluster.MockdynamicNamespaceableResourceInterface{}
-				dynamicResourceInterfaceMock.On("Namespace", exampleNamespace).Return(dynamicResourceInterfaceMock)
-				dynamicResourceInterfaceMock.On("List", mock.Anything, k8smetav1.ListOptions{}).Return(&unstructured.UnstructuredList{Items: exampleUnstructuredList}, (error)(nil))
-
-				dynamicInterfaceMock := &cluster.MockdynamicInterface{}
-				dynamicInterfaceMock.On("Resource", exampleSchemaGroupVersionResource).Return(dynamicResourceInterfaceMock)
-
-				dynamicClientFactoryMock := constructionArguments.dynamicClientFactory.(*cluster.MockDynamicKubeClientFactory)
-				dynamicClientFactoryMock.On("FromSecret", functionCallArguments.ctx, functionCallArguments.cluster.ConfigSecretID.String()).Return(dynamicInterfaceMock, (error)(nil))
-
-				awsFactoryMock := constructionArguments.awsFactory.(*workflow.MockAWSFactory)
-				awsFactoryMock.On("New", functionCallArguments.cluster.OrganizationID, functionCallArguments.cluster.SecretID.ResourceID, functionCallArguments.cluster.Location).Return((*session.Session)(nil), errors.NewWithDetails("AWSClientFactoryNewError"))
+			output: outputType{
+				expectedError:     errors.New("retrieving node pool label sets failed: test error: nodePoolLabelSetManager.GetAll"),
+				expectedNodePools: nil,
 			},
 		},
 		{
-			caseName: "ListNodePoolsSuccess",
-			constructionArguments: constructionArgumentType{
-				workflowClient:        exampleWorkflowClient,
-				enterprise:            exampleEnterprise,
-				dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
-				awsFactory:            &workflow.MockAWSFactory{},
-				cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
-				namespace:             exampleNamespace,
+			caseName: "AWSFactory.New error",
+			input: inputType{
+				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
+				manager: nodePoolManager{
+					awsFactory:            &workflow.MockAWSFactory{},
+					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
+				},
 			},
-			expectedNodePools:   exampleNodePools,
-			expectedNotNilError: false,
-			functionCallArguments: functionCallArgumentType{
-				ctx:           exampleContext,
-				cluster:       exampleCluster,
-				nodePoolNames: exampleNodePoolNames,
+			mockErrors: map[string]error{
+				"AWSFactory.New": errors.New("test error: AWSFactory.New"),
 			},
-			setupMocks: func(constructionArguments constructionArgumentType, functionCallArguments functionCallArgumentType) {
-				dynamicResourceInterfaceMock := &cluster.MockdynamicNamespaceableResourceInterface{}
-				dynamicResourceInterfaceMock.On("Namespace", exampleNamespace).Return(dynamicResourceInterfaceMock)
-				dynamicResourceInterfaceMock.On("List", mock.Anything, k8smetav1.ListOptions{}).Return(&unstructured.UnstructuredList{Items: exampleUnstructuredList}, (error)(nil))
-
-				dynamicInterfaceMock := &cluster.MockdynamicInterface{}
-				dynamicInterfaceMock.On("Resource", exampleSchemaGroupVersionResource).Return(dynamicResourceInterfaceMock)
-
-				dynamicClientFactoryMock := constructionArguments.dynamicClientFactory.(*cluster.MockDynamicKubeClientFactory)
-				dynamicClientFactoryMock.On("FromSecret", functionCallArguments.ctx, functionCallArguments.cluster.ConfigSecretID.String()).Return(dynamicInterfaceMock, (error)(nil))
-
-				awsFactoryMock := constructionArguments.awsFactory.(*workflow.MockAWSFactory)
-				awsFactoryMock.On("New", functionCallArguments.cluster.OrganizationID, functionCallArguments.cluster.SecretID.ResourceID, functionCallArguments.cluster.Location).Return(exampleAWSClient, (error)(nil))
-
-				stackName0 := generateNodePoolStackName(functionCallArguments.cluster.Name, exampleNodePoolNames[0])
-				describeStacksInput0 := &cloudformation.DescribeStacksInput{
-					StackName: &stackName0,
-				}
-
-				cloudFormationAPIMock := &workflow.MockcloudFormationAPI{}
-				cloudFormationAPIMock.On("DescribeStacks", describeStacksInput0).Return(exampleDescribeStacksOutput, (error)(nil))
-
-				cloudFormationFactoryMock := constructionArguments.cloudFormationFactory.(*workflow.MockCloudFormationAPIFactory)
-				cloudFormationFactoryMock.On("New", exampleAWSClient).Return(cloudFormationAPIMock)
+			output: outputType{
+				expectedError:     errors.New("creating aws factory failed: test error: AWSFactory.New"),
+				expectedNodePools: nil,
+			},
+		},
+		{
+			caseName: "older node pool, missing stack ID and status success",
+			input: inputType{
+				cluster: cluster.Cluster{
+					Name:           "cluster",
+					Status:         "UPDATING",
+					ConfigSecretID: brn.New(1, "secret", "config-secret-id"),
+				},
+				manager: nodePoolManager{
+					awsFactory:            &workflow.MockAWSFactory{},
+					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
+				},
+				nodePools: map[string]eks.ExistingNodePool{
+					"older-node-pool-without-stack-id-or-status": {
+						Name:          "older-node-pool-without-stack-id-or-status",
+						StackID:       "",
+						Status:        eks.NodePoolStatusEmpty,
+						StatusMessage: "",
+					},
+				},
+			},
+			mockErrors: map[string]error{
+				"cloudFormationAPI.DescribeStacks": errors.New(
+					"test error: older node pool, missing stack ID and status success",
+				),
+			},
+			output: outputType{
+				expectedError: nil,
+				expectedNodePools: []eks.NodePool{
+					{
+						Name:          "older-node-pool-without-stack-id-or-status",
+						Labels:        map[string]string{},
+						Status:        eks.NodePoolStatusDeleting,
+						StatusMessage: "",
+					},
+				},
+			},
+		},
+		{
+			caseName: "node pool creating success",
+			input: inputType{
+				cluster: cluster.Cluster{
+					Name:           "cluster",
+					Status:         "UPDATING",
+					ConfigSecretID: brn.New(1, "secret", "config-secret-id"),
+				},
+				manager: nodePoolManager{
+					awsFactory:            &workflow.MockAWSFactory{},
+					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
+				},
+				nodePools: map[string]eks.ExistingNodePool{
+					"creating-pre-stack": {
+						Name:          "creating-pre-stack",
+						StackID:       "",
+						Status:        eks.NodePoolStatusCreating,
+						StatusMessage: "",
+					},
+				},
+			},
+			mockErrors: map[string]error{
+				"cloudFormationAPI.DescribeStacks": errors.New("test error: node pool creating pre-stack"),
+			},
+			output: outputType{
+				expectedError: nil,
+				expectedNodePools: []eks.NodePool{
+					{
+						Name:          "creating-pre-stack",
+						Labels:        map[string]string{},
+						Status:        eks.NodePoolStatusCreating,
+						StatusMessage: "",
+					},
+				},
+			},
+		},
+		{
+			caseName: "node pool unknown describe failure success",
+			input: inputType{
+				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
+				manager: nodePoolManager{
+					awsFactory:            &workflow.MockAWSFactory{},
+					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
+				},
+				nodePools: map[string]eks.ExistingNodePool{
+					"unknown-describe-failed": {
+						Name:          "unknown-describe-failed",
+						StackID:       "unknown-describe-failed/stack-id",
+						Status:        eks.NodePoolStatusEmpty,
+						StatusMessage: "",
+					},
+				},
+			},
+			mockErrors: map[string]error{
+				"cloudFormationAPI.DescribeStacks": errors.New("test error: node pool unknown describe failure"),
+			},
+			output: outputType{
+				expectedError: nil,
+				expectedNodePools: []eks.NodePool{
+					{
+						Name:          "unknown-describe-failed",
+						Labels:        map[string]string{},
+						Status:        eks.NodePoolStatusUnknown,
+						StatusMessage: "Retrieving node pool information failed: test error: node pool unknown describe failure",
+					},
+				},
+			},
+		},
+		{
+			caseName: "node pool error stack not found success",
+			input: inputType{
+				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
+				manager: nodePoolManager{
+					awsFactory:            &workflow.MockAWSFactory{},
+					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
+				},
+				nodePools: map[string]eks.ExistingNodePool{
+					"error-stack-not-found": {
+						Name:          "error-stack-not-found",
+						StackID:       "error-stack-not-found/stack-id",
+						Status:        eks.NodePoolStatusEmpty,
+						StatusMessage: "",
+					},
+				},
+			},
+			intermediateData: intermediateDataType{
+				nodePoolDescriptions: map[string]*cloudformation.DescribeStacksOutput{
+					"error-stack-not-found": {},
+				},
+			},
+			output: outputType{
+				expectedError: nil,
+				expectedNodePools: []eks.NodePool{
+					{
+						Name:          "error-stack-not-found",
+						Labels:        map[string]string{},
+						Status:        eks.NodePoolStatusUnknown,
+						StatusMessage: "Retrieving node pool information failed: node pool not found.",
+					},
+				},
+			},
+		},
+		{
+			caseName: "node pool invalid parameters success",
+			input: inputType{
+				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
+				manager: nodePoolManager{
+					awsFactory:            &workflow.MockAWSFactory{},
+					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
+				},
+				nodePools: map[string]eks.ExistingNodePool{
+					"error-invalid-parameters": {
+						Name:          "error-invalid-parameters",
+						StackID:       "error-invalid-parameters/stack-id",
+						Status:        eks.NodePoolStatusEmpty,
+						StatusMessage: "",
+					},
+				},
+			},
+			intermediateData: intermediateDataType{
+				nodePoolDescriptions: map[string]*cloudformation.DescribeStacksOutput{
+					"error-invalid-parameters": {
+						Stacks: []*cloudformation.Stack{
+							{
+								Parameters: []*cloudformation.Parameter{},
+							},
+						},
+					},
+				},
+			},
+			output: outputType{
+				expectedError: nil,
+				expectedNodePools: []eks.NodePool{
+					{
+						Name:   "error-invalid-parameters",
+						Labels: map[string]string{},
+						Status: eks.NodePoolStatusError,
+						StatusMessage: "Retrieving node pool information failed:" +
+							" invalid CloudFormation stack parameters:" +
+							" missing requested parameter 'ClusterAutoscalerEnabled';" +
+							" missing requested parameter 'NodeAutoScalingGroupMaxSize';" +
+							" missing requested parameter 'NodeAutoScalingGroupMinSize';" +
+							" missing requested parameter 'NodeAutoScalingInitSize';" +
+							" missing requested parameter 'NodeImageId';" +
+							" missing requested parameter 'NodeInstanceType';" +
+							" missing requested parameter 'NodeSpotPrice';" +
+							" missing requested parameter 'NodeVolumeSize';" +
+							" missing requested parameter 'Subnets'",
+					},
+				},
+			},
+		},
+		{
+			caseName: "multiple node pools ready, updating success",
+			input: inputType{
+				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
+				manager: nodePoolManager{
+					awsFactory:            &workflow.MockAWSFactory{},
+					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
+				},
+				nodePools: map[string]eks.ExistingNodePool{
+					"ready": {
+						Name:          "ready",
+						StackID:       "ready/stack-id",
+						Status:        eks.NodePoolStatusEmpty,
+						StatusMessage: "",
+					},
+					"updating": {
+						Name:          "updating",
+						StackID:       "updating/stack-id",
+						Status:        eks.NodePoolStatusEmpty,
+						StatusMessage: "",
+					},
+				},
+			},
+			intermediateData: intermediateDataType{
+				nodePoolLabels: map[string]map[string]string{
+					"ready": {
+						"label-key-1": "label-value-1",
+						"label-key-2": "label-value-2",
+					},
+					"updating": {
+						"label-key-3": "label-value-3",
+						"label-key-4": "label-value-4",
+					},
+				},
+				nodePoolDescriptions: map[string]*cloudformation.DescribeStacksOutput{
+					"ready": {
+						Stacks: []*cloudformation.Stack{
+							{
+								Parameters: []*cloudformation.Parameter{
+									{
+										ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
+										ParameterValue: aws.String("true"),
+									},
+									{
+										ParameterKey:   aws.String("NodeAutoScalingGroupMaxSize"),
+										ParameterValue: aws.String("2"),
+									},
+									{
+										ParameterKey:   aws.String("NodeAutoScalingGroupMinSize"),
+										ParameterValue: aws.String("1"),
+									},
+									{
+										ParameterKey:   aws.String("NodeAutoScalingInitSize"),
+										ParameterValue: aws.String("1"),
+									},
+									{
+										ParameterKey:   aws.String("NodeImageId"),
+										ParameterValue: aws.String("ami-0123456789"),
+									},
+									{
+										ParameterKey:   aws.String("NodeInstanceType"),
+										ParameterValue: aws.String("t2.small"),
+									},
+									{
+										ParameterKey:   aws.String("NodeSpotPrice"),
+										ParameterValue: aws.String("0.02"),
+									},
+									{
+										ParameterKey:   aws.String("NodeVolumeSize"),
+										ParameterValue: aws.String("20"),
+									},
+									{
+										ParameterKey:   aws.String("Subnets"),
+										ParameterValue: aws.String("subnet-0123456789"),
+									},
+								},
+								StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+							},
+						},
+					},
+					"updating": {
+						Stacks: []*cloudformation.Stack{
+							{
+								Parameters: []*cloudformation.Parameter{
+									{
+										ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
+										ParameterValue: aws.String("false"),
+									},
+									{
+										ParameterKey:   aws.String("NodeAutoScalingGroupMaxSize"),
+										ParameterValue: aws.String("0"),
+									},
+									{
+										ParameterKey:   aws.String("NodeAutoScalingGroupMinSize"),
+										ParameterValue: aws.String("0"),
+									},
+									{
+										ParameterKey:   aws.String("NodeAutoScalingInitSize"),
+										ParameterValue: aws.String("5"),
+									},
+									{
+										ParameterKey:   aws.String("NodeImageId"),
+										ParameterValue: aws.String("ami-1234567890"),
+									},
+									{
+										ParameterKey:   aws.String("NodeInstanceType"),
+										ParameterValue: aws.String("t2.medium"),
+									},
+									{
+										ParameterKey:   aws.String("NodeSpotPrice"),
+										ParameterValue: aws.String("0.01"),
+									},
+									{
+										ParameterKey:   aws.String("NodeVolumeSize"),
+										ParameterValue: aws.String("25"),
+									},
+									{
+										ParameterKey:   aws.String("Subnets"),
+										ParameterValue: aws.String("subnet-1234567890"),
+									},
+								},
+								StackStatus: aws.String(cloudformation.StackStatusUpdateInProgress),
+							},
+						},
+					},
+				},
+			},
+			output: outputType{
+				expectedError: nil,
+				expectedNodePools: []eks.NodePool{
+					{
+						Name: "ready",
+						Labels: map[string]string{
+							"label-key-1": "label-value-1",
+							"label-key-2": "label-value-2",
+						},
+						Size: 1,
+						Autoscaling: eks.Autoscaling{
+							Enabled: true,
+							MinSize: 1,
+							MaxSize: 2,
+						},
+						VolumeSize:    20,
+						InstanceType:  "t2.small",
+						Image:         "ami-0123456789",
+						SpotPrice:     "0.02",
+						SubnetID:      "subnet-0123456789",
+						Status:        eks.NodePoolStatusReady,
+						StatusMessage: "",
+					},
+					{
+						Name: "updating",
+						Labels: map[string]string{
+							"label-key-3": "label-value-3",
+							"label-key-4": "label-value-4",
+						},
+						Size: 5,
+						Autoscaling: eks.Autoscaling{
+							Enabled: false,
+							MinSize: 0,
+							MaxSize: 0,
+						},
+						VolumeSize:    25,
+						InstanceType:  "t2.medium",
+						Image:         "ami-1234567890",
+						SpotPrice:     "0.01",
+						SubnetID:      "subnet-1234567890",
+						Status:        eks.NodePoolStatusUpdating,
+						StatusMessage: "",
+					},
+				},
 			},
 		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.caseName, func(t *testing.T) {
-			testCase.setupMocks(testCase.constructionArguments, testCase.functionCallArguments)
+			mockMethods(t, testCase.input, testCase.intermediateData, testCase.mockErrors)
 
-			nodePoolManager := nodePoolManager{
-				workflowClient:        testCase.constructionArguments.workflowClient,
-				enterprise:            testCase.constructionArguments.enterprise,
-				dynamicClientFactory:  testCase.constructionArguments.dynamicClientFactory,
-				awsFactory:            testCase.constructionArguments.awsFactory,
-				cloudFormationFactory: testCase.constructionArguments.cloudFormationFactory,
-				namespace:             testCase.constructionArguments.namespace,
-			}
-
-			got, err := nodePoolManager.ListNodePools(
-				testCase.functionCallArguments.ctx,
-				testCase.functionCallArguments.cluster,
-				testCase.functionCallArguments.nodePoolNames,
+			actualNodePools, actualError := testCase.input.manager.ListNodePools(
+				context.Background(),
+				testCase.input.cluster,
+				testCase.input.nodePools,
 			)
 
-			require.Truef(t, (err != nil) == testCase.expectedNotNilError,
-				"error value doesn't match the expectation, is expected: %+v, actual error value: %+v", testCase.expectedNotNilError, err)
-			require.Equal(t, testCase.expectedNodePools, got)
+			if testCase.output.expectedError == nil {
+				require.NoError(t, actualError)
+			} else {
+				require.EqualError(t, actualError, testCase.output.expectedError.Error())
+			}
+			require.Equal(t, testCase.output.expectedNodePools, actualNodePools)
 		})
 	}
 }

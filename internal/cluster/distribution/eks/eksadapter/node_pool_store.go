@@ -112,7 +112,7 @@ func (s nodePoolStore) UpdateNodePoolStackID(
 		return cluster.NodePoolNotFoundError{
 			ClusterID: clusterID,
 			NodePool:  nodePoolName,
-	}
+		}
 	}
 
 	nodePoolModel.StackID = nodePoolStackID
@@ -198,22 +198,44 @@ func (s nodePoolStore) UpdateNodePoolStatus(
 	return nil
 }
 
-// ListNodePoolNames retrieves the node pool names for the cluster specified by
-// its cluster ID.
-func (s nodePoolStore) ListNodePoolNames(ctx context.Context, clusterID uint) (nodePoolNames []string, err error) {
+// ListNodePools retrieves the node pools for the cluster specified by its
+// cluster ID.
+func (s nodePoolStore) ListNodePools(
+	ctx context.Context,
+	organizationID uint,
+	clusterID uint,
+	clusterName string,
+) (existingNodePools map[string]eks.ExistingNodePool, err error) {
 	var eksCluster eksmodel.EKSClusterModel
 	err = s.db.
 		Where(eksmodel.EKSClusterModel{ClusterID: clusterID}).
 		Preload("NodePools").
 		First(&eksCluster).Error
 	if err != nil {
-		return nil, errors.WrapWithDetails(err, "fetching node pools from database failed", "clusterID", clusterID)
+		if gorm.IsRecordNotFoundError(err) {
+			return nil, cluster.NotFoundError{
+				OrganizationID: organizationID,
+				ClusterID:      clusterID,
+				ClusterName:    clusterName,
+			}
+		}
+
+		return nil, errors.WrapWithDetails(err, "fetching node pools from database failed",
+			"organizationId", organizationID,
+			"clusterId", clusterID,
+			"clusterName", clusterName,
+		)
 	}
 
-	nodePoolNames = make([]string, 0, len(eksCluster.NodePools))
+	existingNodePools = make(map[string]eks.ExistingNodePool, len(eksCluster.NodePools))
 	for _, nodePoolModel := range eksCluster.NodePools {
-		nodePoolNames = append(nodePoolNames, nodePoolModel.Name)
+		existingNodePools[nodePoolModel.Name] = eks.ExistingNodePool{
+			Name:          nodePoolModel.Name,
+			StackID:       nodePoolModel.StackID,
+			Status:        nodePoolModel.Status,
+			StatusMessage: nodePoolModel.StatusMessage,
+		}
 	}
 
-	return nodePoolNames, nil
+	return existingNodePools, nil
 }
