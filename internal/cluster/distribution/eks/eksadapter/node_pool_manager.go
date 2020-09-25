@@ -16,9 +16,11 @@ package eksadapter
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/client"
 
@@ -147,20 +149,28 @@ func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Clus
 	describeStacksInput := cloudformation.DescribeStacksInput{}
 	nodePools := make([]eks.NodePool, 0, len(nodePoolNames))
 	for _, nodePoolName := range nodePoolNames {
+		nodePools = append(nodePools, eks.NodePool{
+			Name:   nodePoolName,
+			Labels: labelSets[nodePoolName],
+		})
+		nodePool := &nodePools[len(nodePools)-1]
+
 		stackName := generateNodePoolStackName(cluster.Name, nodePoolName)
 		describeStacksInput.StackName = &stackName
 		stackDescriptions, err := cfClient.DescribeStacks(&describeStacksInput)
 		if err != nil {
-			return nil, errors.WrapWithDetails(err, "retrieving node pool cloudformation stack failed",
-				"cluster", cluster,
-				"input", describeStacksInput,
-			)
+			nodePool.Status = eks.NodePoolStatusUnknown
+			nodePool.StatusMessage = fmt.Sprintf("Retrieving node pool information failed: %s", err)
+
+			continue
 		} else if len(stackDescriptions.Stacks) == 0 {
-			return nil, errors.NewWithDetails("missing required node pool cloudformation stack",
-				"cluster", cluster,
-				"stackName", stackName,
-			)
+			nodePool.Status = eks.NodePoolStatusUnknown
+			nodePool.StatusMessage = "Retrieving node pool information failed: node pool not found."
+
+			continue
 		}
+
+		stack := stackDescriptions.Stacks[0]
 
 		var nodePoolParameters struct {
 			ClusterAutoscalerEnabled    bool   `mapstructure:"ClusterAutoscalerEnabled"`
@@ -174,29 +184,27 @@ func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Clus
 			Subnets                     string `mapstructure:"Subnets"`
 		}
 
-		err = sdkCloudFormation.ParseStackParameters(stackDescriptions.Stacks[0].Parameters, &nodePoolParameters)
+		err = sdkCloudFormation.ParseStackParameters(stack.Parameters, &nodePoolParameters)
 		if err != nil {
-			return nil, errors.WrapWithDetails(err, "parsing node pool stack parameters failed",
-				"stackName", stackName)
+			nodePool.Status = eks.NodePoolStatusError
+			nodePool.StatusMessage = "Retrieving node pool information failed: invalid CloudFormation stack parameters."
+
+			continue
 		}
 
-		nodePool := eks.NodePool{
-			Name:   nodePoolName,
-			Labels: labelSets[nodePoolName],
-			Size:   nodePoolParameters.NodeAutoScalingInitSize,
-			Autoscaling: eks.Autoscaling{
-				Enabled: nodePoolParameters.ClusterAutoscalerEnabled,
-				MinSize: nodePoolParameters.NodeAutoScalingGroupMinSize,
-				MaxSize: nodePoolParameters.NodeAutoScalingGroupMaxSize,
-			},
-			VolumeSize:   nodePoolParameters.NodeVolumeSize,
-			InstanceType: nodePoolParameters.NodeInstanceType,
-			Image:        nodePoolParameters.NodeImageID,
-			SpotPrice:    nodePoolParameters.NodeSpotPrice,
-			SubnetID:     nodePoolParameters.Subnets, // Note: currently we ensure exactly 1 value at creation.
+		nodePool.Size = nodePoolParameters.NodeAutoScalingInitSize
+		nodePool.Autoscaling = eks.Autoscaling{
+			Enabled: nodePoolParameters.ClusterAutoscalerEnabled,
+			MinSize: nodePoolParameters.NodeAutoScalingGroupMinSize,
+			MaxSize: nodePoolParameters.NodeAutoScalingGroupMaxSize,
 		}
-
-		nodePools = append(nodePools, nodePool)
+		nodePool.VolumeSize = nodePoolParameters.NodeVolumeSize
+		nodePool.InstanceType = nodePoolParameters.NodeInstanceType
+		nodePool.Image = nodePoolParameters.NodeImageID
+		nodePool.SpotPrice = nodePoolParameters.NodeSpotPrice
+		nodePool.SubnetID = nodePoolParameters.Subnets // Note: currently we ensure a single value at creation.
+		nodePool.Status = eks.NewNodePoolStatusFromCFStackStatus(aws.StringValue(stack.StackStatus))
+		nodePool.StatusMessage = aws.StringValue(stack.StackStatusReason)
 	}
 
 	return nodePools, nil
