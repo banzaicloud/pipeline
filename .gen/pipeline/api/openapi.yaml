@@ -9885,6 +9885,143 @@ paths:
       summary: Report to Pipeline that a new node is ready (to be called by PKE installer)
       tags:
       - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/pke/status:
+    post:
+      operationId: ReportPKENodeStatus
+      parameters:
+      - description: Organization identifier
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Cluster identifier
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportPKENodeStatusRequest'
+        required: true
+      responses:
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportPKENodeStatusResponse'
+          description: Success
+        default:
+          content:
+            application/json:
+              examples:
+                BadRequest:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: Failed to parse request.
+                Unauthorized:
+                  value:
+                    code: 401
+                    message: Unauthorized
+                    error: Unauthorized
+                OrganizationNotFound:
+                  value:
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+            application/problem+json:
+              examples:
+                BadRequest:
+                  value:
+                    type: about:blank
+                    title: Invalid request
+                    status: 400
+                    detail: Failed to parse request.
+                    instance: ""
+                    code: 400
+                    message: Failed to parse request.
+                    error: Invalid request
+                Unauthorized:
+                  value:
+                    type: about:blank
+                    title: Unauthorized
+                    status: 401
+                    detail: You are unauthorized to access this resource.
+                    instance: ""
+                    code: 401
+                    message: You are unauthorized to access this resource.
+                    error: Unauthorized
+                AccessDenied:
+                  value:
+                    type: about:blank
+                    title: Access denied
+                    status: 403
+                    detail: You are unauthorized to perform this action access this
+                      resource.
+                    instance: ""
+                    code: 403
+                    message: You are unauthorized to perform this action access this
+                      resource.
+                    error: Access denied
+                OrganizationNotFound:
+                  value:
+                    type: about:blank
+                    title: Organization not found
+                    status: 404
+                    detail: Organization not found
+                    instance: ""
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    type: about:blank
+                    title: Secret already exists
+                    status: 409
+                    detail: Secret already exists
+                    instance: ""
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    type: about:blank
+                    title: Internal server error
+                    status: 500
+                    detail: Something went wrong
+                    instance: ""
+                    code: 500
+                    message: Something went wrong
+                    error: Internal server error
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Report to Pipeline the progress of the bootstrapping of a new node
+        (to be called by PKE installer)
+      tags:
+      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/pke/commands:
     get:
       description: Get the commands to use for bootstrapping nodes of a PKE cluster
@@ -19078,6 +19215,14 @@ components:
       items:
         $ref: '#/components/schemas/NodePoolSummary'
       type: array
+    ReportPKENodeStatusResponse:
+      example:
+        processId: processId
+      properties:
+        processId:
+          description: ID of the registered process
+          type: string
+      type: object
     NodePoolSummary:
       allOf:
       - $ref: '#/components/schemas/NodePool'
@@ -22036,6 +22181,45 @@ components:
           example: false
           type: boolean
       type: object
+    ReportPKENodeStatusRequest:
+      properties:
+        name:
+          description: name of node
+          example: my-node
+          type: string
+        nodePool:
+          description: name of nodepool
+          example: master
+          type: string
+        ip:
+          description: ip address of node (where the other nodes can reach it)
+          example: 127.0.0.1
+          type: string
+        message:
+          description: detailed description about the current bootstrapping status
+            (including the cause of the failure)
+          example: installing docker daemon
+          type: string
+        phase:
+          description: the current phase of the bootstrap process
+          example: pre-flight
+          type: string
+        final:
+          description: if this is the final status report, that describes the conclusion
+            of the whole process
+          type: boolean
+        status:
+          $ref: '#/components/schemas/ProcessStatus'
+        timestamp:
+          description: exact time of event
+          format: date-time
+          nullable: true
+          type: string
+        processId:
+          description: ID of the process registered earlier (register new process
+            if empty)
+          type: string
+      type: object
     PKEClusterReadinessResponse:
       example:
         master:
@@ -23235,6 +23419,7 @@ components:
           id: 6
           type: type
           timestamp: 2000-01-23T04:56:07.000+00:00
+        resourceType: resourceType
         finishedAt: 2000-01-23T04:56:07.000+00:00
       properties:
         id:
@@ -23248,6 +23433,8 @@ components:
         log:
           type: string
         resourceId:
+          type: string
+        resourceType:
           type: string
         status:
           $ref: '#/components/schemas/ProcessStatus'
