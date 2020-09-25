@@ -1,0 +1,1 @@
+ALTER TABLE "amazon_node_pools" DROP COLUMN "stack_id";
