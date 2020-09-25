@@ -2339,6 +2339,35 @@ paths:
                 default:
                     $ref: '#/components/responses/Error'
 
+
+    /api/v1/orgs/{orgId}/clusters/{id}/pke/status:
+        parameters:
+            - $ref: '#/components/parameters/orgId'
+            - $ref: '#/components/parameters/clusterId'
+
+        post:
+            security:
+                - bearerAuth: []
+            tags:
+                - clusters
+            summary: Report to Pipeline the progress of the bootstrapping of a new node (to be called by PKE installer)
+            operationId: ReportPKENodeStatus
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ReportPKENodeStatusRequest'
+            responses:
+                202:
+                    description: "Success"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ReportPKENodeStatusResponse'
+                default:
+                    $ref: '#/components/responses/Error'
+
     /api/v1/orgs/{orgId}/clusters/{id}/pke/commands:
         get:
             security:
@@ -4673,6 +4702,14 @@ components:
             type: array
             items:
                 $ref: '#/components/schemas/NodePoolSummary'
+
+
+        ReportPKENodeStatusResponse:
+            type: object
+            properties:
+                processId:
+                    description: ID of the registered process
+                    type: string
 
         NodePoolSummary:
             allOf:
@@ -7581,7 +7618,6 @@ components:
               additionalProperties:
                 type: string
                 example: "pke-installer install --pipeline-url=\"http://127.0.0.1:9090\" --pipeline-token=XXX --pipeline-org-id=3 --pipeline-cluster-id=19 --node-pool=\"distrMaster\" --role=master"
-
         PostReadyPKENodeRequest:
             type: object
             properties:
@@ -7609,6 +7645,43 @@ components:
                 type: boolean
                 description: if this node is a worker node
                 example: false
+
+        ReportPKENodeStatusRequest:
+            type: object
+            properties:
+              name:
+                type: string
+                example: my-node
+                description: name of node
+              nodePool:
+                type: string
+                example: master
+                description: name of nodepool
+              ip:
+                type: string
+                example: 127.0.0.1
+                description: ip address of node (where the other nodes can reach it)
+              message:
+                type: string
+                example: installing docker daemon
+                description: detailed description about the current bootstrapping status (including the cause of the failure)
+              phase:
+                type: string
+                description: the current phase of the bootstrap process
+                example: pre-flight
+              final:
+                type: boolean
+                description: if this is the final status report, that describes the conclusion of the whole process
+              status:
+                $ref: '#/components/schemas/ProcessStatus'
+              timestamp:
+                type: string
+                nullable: true
+                format: date-time
+                description: exact time of event
+              processId:
+                description: ID of the process registered earlier (register new process if empty)
+                type: string
 
         PKEClusterReadinessResponse:
             type: object
@@ -8443,6 +8516,8 @@ components:
                 log:
                     type: string
                 resourceId:
+                    type: string
+                resourceType:
                     type: string
                 status:
                     $ref: '#/components/schemas/ProcessStatus'
