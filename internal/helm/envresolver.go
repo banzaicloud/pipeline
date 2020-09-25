@@ -30,7 +30,7 @@ const (
 	orgsHomeDir = "orgs"
 )
 
-// +testify:mock:testOnly=true
+// +testify:mock:testOnly=true,external=true
 
 // OrgService interface for decoupling organization related operations
 type OrgService interface {
