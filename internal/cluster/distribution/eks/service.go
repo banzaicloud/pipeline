@@ -18,7 +18,6 @@ import (
 	"context"
 	"strings"
 
-	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -196,7 +195,11 @@ type NodePoolManager interface {
 	UpdateNodePool(ctx context.Context, c cluster.Cluster, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
 
 	// ListNodePools lists node pools from a cluster.
-	ListNodePools(ctx context.Context, c cluster.Cluster, nodePoolNames []string) ([]NodePool, error)
+	ListNodePools(
+		ctx context.Context,
+		c cluster.Cluster,
+		existingNodePools map[string]ExistingNodePool,
+	) ([]NodePool, error)
 }
 
 // ClusterManager is responsible for managing clusters.
@@ -248,20 +251,15 @@ func (s service) UpdateNodePool(
 func (s service) ListNodePools(ctx context.Context, clusterID uint) ([]NodePool, error) {
 	c, err := s.genericClusters.GetCluster(ctx, clusterID)
 	if err != nil {
-		return nil, errors.WrapWithDetails(err, "retrieving cluster failed", "clusterID", clusterID)
+		return nil, err
 	}
 
-	nodePoolNames, err := s.nodePools.ListNodePoolNames(ctx, clusterID)
+	existingNodePools, err := s.nodePools.ListNodePools(ctx, c.OrganizationID, c.ID, c.Name)
 	if err != nil {
-		return nil, errors.WrapWithDetails(err, "listing node pool names failed", "clusterID", clusterID)
+		return nil, err
 	}
 
-	nodePools, err := s.nodePoolManager.ListNodePools(ctx, c, nodePoolNames)
-	if err != nil {
-		return nil, errors.WrapWithDetails(err, "listing node pools failed", "cluster", c, "nodePoolNames", nodePoolNames)
-	}
-
-	return nodePools, nil
+	return s.nodePoolManager.ListNodePools(ctx, c, existingNodePools)
 }
 
 // +testify:mock:testOnly=true

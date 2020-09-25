@@ -26,7 +26,7 @@ import (
 )
 
 func TestServiceListNodePools(t *testing.T) {
-	exampleClusterID := uint(0)
+	exampleClusterID := uint(1)
 	exampleOrganizationID := uint(1)
 	exampleCluster := cluster.Cluster{
 		ID:             exampleClusterID,
@@ -54,9 +54,19 @@ func TestServiceListNodePools(t *testing.T) {
 			"cluster-tag": "cluster tag value",
 		},
 	}
-	exampleNodePoolNames := []string{
-		"cluster-node-pool-name-2",
-		"cluster-node-pool-name-3",
+	exampleExistingNodePools := map[string]ExistingNodePool{
+		"cluster-node-pool-name-2": {
+			Name:          "cluster-node-pool-name-2",
+			StackID:       "cluster-node-pool-name-2/stack-id",
+			Status:        NodePoolStatusReady,
+			StatusMessage: "",
+		},
+		"cluster-node-pool-name-3": {
+			Name:          "cluster-node-pool-name-3",
+			StackID:       "cluster-node-pool-name-3/stack-id",
+			Status:        NodePoolStatusReady,
+			StatusMessage: "",
+		},
 	}
 	exampleNodePools := []NodePool{
 		{
@@ -129,7 +139,7 @@ func TestServiceListNodePools(t *testing.T) {
 			},
 		},
 		{
-			caseName: "NodePoolNamesError",
+			caseName: "ExistingNodePoolsError",
 			constructionArguments: constructionArgumentType{
 				genericClusters: &MockStore{},
 				nodePools:       &MockNodePoolStore{},
@@ -146,7 +156,12 @@ func TestServiceListNodePools(t *testing.T) {
 				genericClustersMock.On("GetCluster", functionCallArguments.ctx, functionCallArguments.clusterID).Return(exampleCluster, nil)
 
 				nodePoolStoreMock := constructionArguments.nodePools.(*MockNodePoolStore)
-				nodePoolStoreMock.On("ListNodePoolNames", functionCallArguments.ctx, functionCallArguments.clusterID).Return([]string{}, errors.New("NodePoolNamesError"))
+				nodePoolStoreMock.On("ListNodePools",
+					functionCallArguments.ctx,
+					exampleCluster.OrganizationID,
+					exampleCluster.ID,
+					exampleCluster.Name,
+				).Return(map[string]ExistingNodePool{}, errors.New("ExistingNodePoolsError"))
 			},
 		},
 		{
@@ -167,10 +182,15 @@ func TestServiceListNodePools(t *testing.T) {
 				genericClustersMock.On("GetCluster", functionCallArguments.ctx, functionCallArguments.clusterID).Return(exampleCluster, nil)
 
 				nodePoolStoreMock := constructionArguments.nodePools.(*MockNodePoolStore)
-				nodePoolStoreMock.On("ListNodePoolNames", functionCallArguments.ctx, functionCallArguments.clusterID).Return(exampleNodePoolNames, nil)
+				nodePoolStoreMock.On("ListNodePools",
+					functionCallArguments.ctx,
+					exampleCluster.OrganizationID,
+					exampleCluster.ID,
+					exampleCluster.Name,
+				).Return(exampleExistingNodePools, nil)
 
 				nodePoolManagerMock := constructionArguments.nodePoolManager.(*MockNodePoolManager)
-				nodePoolManagerMock.On("ListNodePools", functionCallArguments.ctx, exampleCluster, exampleNodePoolNames).Return([]NodePool{}, errors.New("NodePoolsError"))
+				nodePoolManagerMock.On("ListNodePools", functionCallArguments.ctx, exampleCluster, exampleExistingNodePools).Return(nil, errors.New("NodePoolsError"))
 			},
 		},
 		{
@@ -191,10 +211,15 @@ func TestServiceListNodePools(t *testing.T) {
 				genericClustersMock.On("GetCluster", functionCallArguments.ctx, functionCallArguments.clusterID).Return(exampleCluster, nil)
 
 				nodePoolStoreMock := constructionArguments.nodePools.(*MockNodePoolStore)
-				nodePoolStoreMock.On("ListNodePoolNames", functionCallArguments.ctx, functionCallArguments.clusterID).Return(exampleNodePoolNames, nil)
+				nodePoolStoreMock.On("ListNodePools",
+					functionCallArguments.ctx,
+					exampleCluster.OrganizationID,
+					exampleCluster.ID,
+					exampleCluster.Name,
+				).Return(exampleExistingNodePools, nil)
 
 				nodePoolManagerMock := constructionArguments.nodePoolManager.(*MockNodePoolManager)
-				nodePoolManagerMock.On("ListNodePools", functionCallArguments.ctx, exampleCluster, exampleNodePoolNames).Return(exampleNodePools, nil)
+				nodePoolManagerMock.On("ListNodePools", functionCallArguments.ctx, exampleCluster, exampleExistingNodePools).Return(exampleNodePools, nil)
 			},
 		},
 	}

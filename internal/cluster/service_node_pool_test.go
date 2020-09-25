@@ -851,6 +851,39 @@ func TestNodePoolService_ListNodePools(t *testing.T) {
 			},
 		},
 		{
+			caseName: "NodePoolServiceListNodePoolsError",
+			constructionArguments: constructionArgumentType{
+				clusters:            &MockStore{},
+				clusterManager:      &MockManager{},
+				clusterGroupManager: &MockClusterGroupManager{},
+				distributions: map[string]Service{
+					"eks": &MockService{},
+				},
+				nodePools:         &MockNodePoolStore{},
+				nodePoolValidator: &MockNodePoolValidator{},
+				nodePoolProcessor: &MockNodePoolProcessor{},
+				nodePoolManager:   &MockNodePoolManager{},
+			},
+			expectedNodePools:   nil,
+			expectedNotNilError: true,
+			functionCallArguments: functionCallArgumentType{
+				ctx:       context.Background(),
+				clusterID: 1,
+			},
+			setupMockFunction: func(
+				constructionArguments constructionArgumentType,
+				functionCallArguments functionCallArgumentType,
+			) {
+				clustersMock := constructionArguments.clusters.(*MockStore)
+				clustersMock.On("GetCluster", functionCallArguments.ctx, functionCallArguments.clusterID).Return(exampleCluster, (error)(nil))
+
+				distributionServiceMock := constructionArguments.distributions[exampleCluster.Distribution].(*MockService)
+				distributionServiceMock.On(
+					"ListNodePools", functionCallArguments.ctx, functionCallArguments.clusterID,
+				).Return(nil, errors.New("test error: NodePoolServiceListNodePoolsError"))
+			},
+		},
+		{
 			caseName: "NodePoolServiceListNodePoolsSuccess",
 			constructionArguments: constructionArgumentType{
 				clusters:            &MockStore{},
