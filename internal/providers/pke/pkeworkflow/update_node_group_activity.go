@@ -102,6 +102,10 @@ func (a UpdateNodeGroupActivity) Register() {
 
 // Execute is the main body of the activity, returns true if there was any update and that was successful.
 func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGroupActivityInput) (UpdateNodeGroupActivityOutput, error) {
+	if input.NodePoolName == "master" {
+		return UpdateNodeGroupActivityOutput{}, errors.New("updating master node pool is not yet supported")
+	}
+
 	providerSecret, err := brn.Parse(input.SecretID)
 	if err != nil {
 		return UpdateNodeGroupActivityOutput{}, errors.WrapIf(err, "failed to parse secret BRN")
