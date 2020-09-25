@@ -140,6 +140,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		a.externalBaseURLInsecure,
 		signedToken,
 		nodeLabels,
+		input.Version,
 	)
 	if err != nil {
 		return UpdateNodeGroupActivityOutput{}, errors.WrapIf(err, "failed to fetch bootstrap command")
@@ -232,7 +233,6 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		{
 			ParameterKey:   aws.String("PkeCommand"),
 			ParameterValue: aws.String(bootstrapCommand),
-			// '--kubernetes-node-labels %v'", strings.Join(nodeLabels, ",")
 		},
 		{
 			ParameterKey:     aws.String("PkeVersion"),

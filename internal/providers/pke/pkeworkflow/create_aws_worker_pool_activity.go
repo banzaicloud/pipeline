@@ -85,7 +85,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		return "", errors.WrapIf(err, "can't generate Pipeline token")
 	}
 
-	bootstrapCommand, err := awsCluster.GetBootstrapCommand(input.Pool.Name, input.ExternalBaseUrl, input.ExternalBaseUrlInsecure, signedToken, nil)
+	bootstrapCommand, err := awsCluster.GetBootstrapCommand(input.Pool.Name, input.ExternalBaseUrl, input.ExternalBaseUrlInsecure, signedToken, nil, "")
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to fetch bootstrap command")
 	}

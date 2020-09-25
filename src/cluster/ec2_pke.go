@@ -783,7 +783,14 @@ func (c *EC2ClusterPKE) GetPipelineToken(tokenGenerator interface{}) (string, er
 }
 
 // GetBootstrapCommand returns a command line to use to install a node in the given nodepool
-func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecure bool, token string, labels []string) (string, error) {
+func (c *EC2ClusterPKE) GetBootstrapCommand(
+	nodePoolName string,
+	url string,
+	urlInsecure bool,
+	token string,
+	labels []string,
+	version string,
+) (string, error) {
 	subcommand := "worker"
 	var np *internalPke.NodePool
 	for _, nodePool := range c.model.NodePools {
@@ -814,7 +821,9 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		return "", errors.WrapIfWithDetails(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
 	}
 
-	version := c.model.Kubernetes.Version
+	if version == "" {
+		version = c.model.Kubernetes.Version
+	}
 	if version == "" {
 		version = defaultK8sVersion
 	}
