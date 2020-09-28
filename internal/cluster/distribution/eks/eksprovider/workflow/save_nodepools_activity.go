@@ -17,6 +17,7 @@ package workflow
 import (
 	"context"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 )
 
@@ -38,6 +39,7 @@ type SaveNodePoolsActivityInput struct {
 	NodePoolsToDelete map[string]AutoscaleGroup
 	NodePoolsToUpdate map[string]AutoscaleGroup
 	NodePoolsToCreate map[string]AutoscaleGroup
+	NodePoolsToKeep   map[string]bool
 }
 
 func (a SaveNodePoolsActivity) Execute(ctx context.Context, input SaveNodePoolsActivityInput) error {
@@ -50,9 +52,17 @@ func (a SaveNodePoolsActivity) Execute(ctx context.Context, input SaveNodePoolsA
 		GetModel() *eksmodel.EKSClusterModel
 	}); ok {
 		modelCluster := eksCluster.GetModel()
-		updatedNodepools := make([]*eksmodel.AmazonNodePoolsModel, 0)
+		nodePoolCount := len(input.NodePoolsToCreate) + len(input.NodePoolsToDelete) + len(input.NodePoolsToKeep) +
+			len(input.NodePoolsToUpdate)
+		updatedNodepools := make([]*eksmodel.AmazonNodePoolsModel, 0, nodePoolCount)
 
 		for _, np := range modelCluster.NodePools {
+			if input.NodePoolsToKeep[np.Name] {
+				updatedNodepools = append(updatedNodepools, np)
+
+				continue
+			}
+
 			_, ok := input.NodePoolsToDelete[np.Name]
 			if ok {
 				np.Delete = true
@@ -73,6 +83,7 @@ func (a SaveNodePoolsActivity) Execute(ctx context.Context, input SaveNodePoolsA
 			np := &eksmodel.AmazonNodePoolsModel{
 				CreatedBy:        asg.CreatedBy,
 				Name:             asg.Name,
+				StackID:          "",
 				NodeInstanceType: asg.NodeInstanceType,
 				NodeImage:        asg.NodeImage,
 				NodeSpotPrice:    asg.NodeSpotPrice,
@@ -80,6 +91,8 @@ func (a SaveNodePoolsActivity) Execute(ctx context.Context, input SaveNodePoolsA
 				NodeMinCount:     asg.NodeMinCount,
 				NodeMaxCount:     asg.NodeMaxCount,
 				Count:            asg.Count,
+				Status:           eks.NodePoolStatusCreating,
+				StatusMessage:    "",
 				// NodeVolumeSize:   asg.NodeVolumeSize, // Note: not stored in DB.
 				// Labels:           asg.Labels, // Note: not stored in DB.
 				Delete: false,

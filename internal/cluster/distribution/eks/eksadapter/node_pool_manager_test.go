@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"emperror.dev/errors"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/stretchr/testify/mock"
@@ -68,7 +69,6 @@ func TestListNodePools(t *testing.T) {
 	exampleNamespace := "namespace"
 	exampleNodePoolNames := []string{
 		"node-pool-name-1",
-		"node-pool-name-2",
 	}
 	exampleOrganizationID := uint(1)
 	exampleSchemaGroupVersionResource := schema.GroupVersionResource{
@@ -118,7 +118,9 @@ func TestListNodePools(t *testing.T) {
 	exampleDescribeStacksOutput := &cloudformation.DescribeStacksOutput{
 		Stacks: []*cloudformation.Stack{
 			{
-				Parameters: []*cloudformation.Parameter{},
+				Parameters:        []*cloudformation.Parameter{},
+				StackStatus:       aws.String(cloudformation.StackStatusCreateComplete),
+				StackStatusReason: aws.String(""),
 			},
 		},
 	}
@@ -135,7 +137,7 @@ func TestListNodePools(t *testing.T) {
 		exampleLabelsWithInterface[key] = value
 	}
 	exampleNodePool := eks.NodePool{
-		Name:   "replace me",
+		Name:   "node-pool-name-1",
 		Labels: exampleLabels,
 		Size:   exampleStackParameters["NodeAutoScalingInitSize"].(int),
 		Autoscaling: eks.Autoscaling{
@@ -143,11 +145,13 @@ func TestListNodePools(t *testing.T) {
 			MinSize: exampleStackParameters["NodeAutoScalingGroupMinSize"].(int),
 			MaxSize: exampleStackParameters["NodeAutoScalingGroupMaxSize"].(int),
 		},
-		VolumeSize:   exampleStackParameters["NodeVolumeSize"].(int),
-		InstanceType: exampleStackParameters["NodeInstanceType"].(string),
-		Image:        exampleStackParameters["NodeImageId"].(string),
-		SpotPrice:    exampleStackParameters["NodeSpotPrice"].(string),
-		SubnetID:     exampleStackParameters["Subnets"].(string),
+		VolumeSize:    exampleStackParameters["NodeVolumeSize"].(int),
+		InstanceType:  exampleStackParameters["NodeInstanceType"].(string),
+		Image:         exampleStackParameters["NodeImageId"].(string),
+		SpotPrice:     exampleStackParameters["NodeSpotPrice"].(string),
+		SubnetID:      exampleStackParameters["Subnets"].(string),
+		Status:        eks.NodePoolStatusReady,
+		StatusMessage: "",
 	}
 	//
 	exampleUnstructuredList := make([]unstructured.Unstructured, len(exampleNodePoolNames))
@@ -279,143 +283,6 @@ func TestListNodePools(t *testing.T) {
 			},
 		},
 		{
-			caseName: "CloudFormationDescribeStacksError",
-			constructionArguments: constructionArgumentType{
-				workflowClient:        exampleWorkflowClient,
-				enterprise:            exampleEnterprise,
-				dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
-				awsFactory:            &workflow.MockAWSFactory{},
-				cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
-				namespace:             exampleNamespace,
-			},
-			expectedNodePools:   nil,
-			expectedNotNilError: true,
-			functionCallArguments: functionCallArgumentType{
-				ctx:           exampleContext,
-				cluster:       exampleCluster,
-				nodePoolNames: exampleNodePoolNames,
-			},
-			setupMocks: func(constructionArguments constructionArgumentType, functionCallArguments functionCallArgumentType) {
-				dynamicResourceInterfaceMock := &cluster.MockdynamicNamespaceableResourceInterface{}
-				dynamicResourceInterfaceMock.On("Namespace", exampleNamespace).Return(dynamicResourceInterfaceMock)
-				dynamicResourceInterfaceMock.On("List", mock.Anything, k8smetav1.ListOptions{}).Return(&unstructured.UnstructuredList{Items: exampleUnstructuredList}, (error)(nil))
-
-				dynamicInterfaceMock := &cluster.MockdynamicInterface{}
-				dynamicInterfaceMock.On("Resource", exampleSchemaGroupVersionResource).Return(dynamicResourceInterfaceMock)
-
-				dynamicClientFactoryMock := constructionArguments.dynamicClientFactory.(*cluster.MockDynamicKubeClientFactory)
-				dynamicClientFactoryMock.On("FromSecret", functionCallArguments.ctx, functionCallArguments.cluster.ConfigSecretID.String()).Return(dynamicInterfaceMock, (error)(nil))
-
-				awsFactoryMock := constructionArguments.awsFactory.(*workflow.MockAWSFactory)
-				awsFactoryMock.On("New", functionCallArguments.cluster.OrganizationID, functionCallArguments.cluster.SecretID.ResourceID, functionCallArguments.cluster.Location).Return(exampleAWSClient, (error)(nil))
-
-				stackName := generateNodePoolStackName(functionCallArguments.cluster.Name, exampleNodePoolNames[0])
-				describeStacksInput := &cloudformation.DescribeStacksInput{
-					StackName: &stackName,
-				}
-
-				cloudFormationAPIMock := &workflow.MockcloudFormationAPI{}
-				cloudFormationAPIMock.On("DescribeStacks", describeStacksInput).Return(nil, errors.NewWithDetails("CloudFormationDescribeStacksError"))
-
-				cloudFormationFactoryMock := constructionArguments.cloudFormationFactory.(*workflow.MockCloudFormationAPIFactory)
-				cloudFormationFactoryMock.On("New", exampleAWSClient).Return(cloudFormationAPIMock)
-			},
-		},
-		{
-			caseName: "CloudFormationDescribeStacksNotFoundError",
-			constructionArguments: constructionArgumentType{
-				workflowClient:        exampleWorkflowClient,
-				enterprise:            exampleEnterprise,
-				dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
-				awsFactory:            &workflow.MockAWSFactory{},
-				cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
-				namespace:             exampleNamespace,
-			},
-			expectedNodePools:   nil,
-			expectedNotNilError: true,
-			functionCallArguments: functionCallArgumentType{
-				ctx:           exampleContext,
-				cluster:       exampleCluster,
-				nodePoolNames: exampleNodePoolNames,
-			},
-			setupMocks: func(constructionArguments constructionArgumentType, functionCallArguments functionCallArgumentType) {
-				dynamicResourceInterfaceMock := &cluster.MockdynamicNamespaceableResourceInterface{}
-				dynamicResourceInterfaceMock.On("Namespace", exampleNamespace).Return(dynamicResourceInterfaceMock)
-				dynamicResourceInterfaceMock.On("List", mock.Anything, k8smetav1.ListOptions{}).Return(&unstructured.UnstructuredList{Items: exampleUnstructuredList}, (error)(nil))
-
-				dynamicInterfaceMock := &cluster.MockdynamicInterface{}
-				dynamicInterfaceMock.On("Resource", exampleSchemaGroupVersionResource).Return(dynamicResourceInterfaceMock)
-
-				dynamicClientFactoryMock := constructionArguments.dynamicClientFactory.(*cluster.MockDynamicKubeClientFactory)
-				dynamicClientFactoryMock.On("FromSecret", functionCallArguments.ctx, functionCallArguments.cluster.ConfigSecretID.String()).Return(dynamicInterfaceMock, (error)(nil))
-
-				awsFactoryMock := constructionArguments.awsFactory.(*workflow.MockAWSFactory)
-				awsFactoryMock.On("New", functionCallArguments.cluster.OrganizationID, functionCallArguments.cluster.SecretID.ResourceID, functionCallArguments.cluster.Location).Return(exampleAWSClient, (error)(nil))
-
-				stackName := generateNodePoolStackName(functionCallArguments.cluster.Name, exampleNodePoolNames[0])
-				describeStacksInput := &cloudformation.DescribeStacksInput{
-					StackName: &stackName,
-				}
-
-				cloudFormationAPIMock := &workflow.MockcloudFormationAPI{}
-				cloudFormationAPIMock.On("DescribeStacks", describeStacksInput).Return(&cloudformation.DescribeStacksOutput{}, (error)(nil))
-
-				cloudFormationFactoryMock := constructionArguments.cloudFormationFactory.(*workflow.MockCloudFormationAPIFactory)
-				cloudFormationFactoryMock.On("New", exampleAWSClient).Return(cloudFormationAPIMock)
-			},
-		},
-		{
-			caseName: "CloudFormationStackParameterError",
-			constructionArguments: constructionArgumentType{
-				workflowClient:        exampleWorkflowClient,
-				enterprise:            exampleEnterprise,
-				dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
-				awsFactory:            &workflow.MockAWSFactory{},
-				cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
-				namespace:             exampleNamespace,
-			},
-			expectedNodePools:   nil,
-			expectedNotNilError: true,
-			functionCallArguments: functionCallArgumentType{
-				ctx:           exampleContext,
-				cluster:       exampleCluster,
-				nodePoolNames: exampleNodePoolNames,
-			},
-			setupMocks: func(constructionArguments constructionArgumentType, functionCallArguments functionCallArgumentType) {
-				dynamicResourceInterfaceMock := &cluster.MockdynamicNamespaceableResourceInterface{}
-				dynamicResourceInterfaceMock.On("Namespace", exampleNamespace).Return(dynamicResourceInterfaceMock)
-				dynamicResourceInterfaceMock.On("List", mock.Anything, k8smetav1.ListOptions{}).Return(&unstructured.UnstructuredList{Items: exampleUnstructuredList}, (error)(nil))
-
-				dynamicInterfaceMock := &cluster.MockdynamicInterface{}
-				dynamicInterfaceMock.On("Resource", exampleSchemaGroupVersionResource).Return(dynamicResourceInterfaceMock)
-
-				dynamicClientFactoryMock := constructionArguments.dynamicClientFactory.(*cluster.MockDynamicKubeClientFactory)
-				dynamicClientFactoryMock.On("FromSecret", functionCallArguments.ctx, functionCallArguments.cluster.ConfigSecretID.String()).Return(dynamicInterfaceMock, (error)(nil))
-
-				awsFactoryMock := constructionArguments.awsFactory.(*workflow.MockAWSFactory)
-				awsFactoryMock.On("New", functionCallArguments.cluster.OrganizationID, functionCallArguments.cluster.SecretID.ResourceID, functionCallArguments.cluster.Location).Return(exampleAWSClient, (error)(nil))
-
-				stackName := generateNodePoolStackName(functionCallArguments.cluster.Name, exampleNodePoolNames[0])
-				describeStacksInput := &cloudformation.DescribeStacksInput{
-					StackName: &stackName,
-				}
-
-				cloudFormationAPIMock := &workflow.MockcloudFormationAPI{}
-				cloudFormationAPIMock.On("DescribeStacks", describeStacksInput).Return(&cloudformation.DescribeStacksOutput{
-					Stacks: []*cloudformation.Stack{
-						{
-							Parameters: []*cloudformation.Parameter{
-								{},
-							},
-						},
-					},
-				}, (error)(nil))
-
-				cloudFormationFactoryMock := constructionArguments.cloudFormationFactory.(*workflow.MockCloudFormationAPIFactory)
-				cloudFormationFactoryMock.On("New", exampleAWSClient).Return(cloudFormationAPIMock)
-			},
-		},
-		{
 			caseName: "ListNodePoolsSuccess",
 			constructionArguments: constructionArgumentType{
 				workflowClient:        exampleWorkflowClient,
@@ -447,17 +314,12 @@ func TestListNodePools(t *testing.T) {
 				awsFactoryMock.On("New", functionCallArguments.cluster.OrganizationID, functionCallArguments.cluster.SecretID.ResourceID, functionCallArguments.cluster.Location).Return(exampleAWSClient, (error)(nil))
 
 				stackName0 := generateNodePoolStackName(functionCallArguments.cluster.Name, exampleNodePoolNames[0])
-				stackName1 := generateNodePoolStackName(functionCallArguments.cluster.Name, exampleNodePoolNames[1])
 				describeStacksInput0 := &cloudformation.DescribeStacksInput{
 					StackName: &stackName0,
-				}
-				describeStacksInput1 := &cloudformation.DescribeStacksInput{
-					StackName: &stackName1,
 				}
 
 				cloudFormationAPIMock := &workflow.MockcloudFormationAPI{}
 				cloudFormationAPIMock.On("DescribeStacks", describeStacksInput0).Return(exampleDescribeStacksOutput, (error)(nil))
-				cloudFormationAPIMock.On("DescribeStacks", describeStacksInput1).Return(exampleDescribeStacksOutput, (error)(nil))
 
 				cloudFormationFactoryMock := constructionArguments.cloudFormationFactory.(*workflow.MockCloudFormationAPIFactory)
 				cloudFormationFactoryMock.On("New", exampleAWSClient).Return(cloudFormationAPIMock)

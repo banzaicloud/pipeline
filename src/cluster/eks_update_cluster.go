@@ -15,6 +15,8 @@
 package cluster
 
 import (
+	"context"
+	"fmt"
 	"time"
 
 	"emperror.dev/errors"
@@ -22,6 +24,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
 	"github.com/banzaicloud/pipeline/pkg/brn"
@@ -56,6 +59,16 @@ type EKSUpdateClusterstructureWorkflowInput struct {
 	UseGeneratedSSHKey bool
 }
 
+type EKSUpdateClusterWorkflow struct {
+	nodePoolStore eks.NodePoolStore
+}
+
+func NewEKSUpdateClusterWorkflow(nodePoolStore eks.NodePoolStore) (eksUpdateClusterWorkflow *EKSUpdateClusterWorkflow) {
+	return &EKSUpdateClusterWorkflow{
+		nodePoolStore: nodePoolStore,
+	}
+}
+
 func waitForActivities(asgFutures []workflow.Future, ctx workflow.Context, clusterID uint) error {
 	errs := make([]error, len(asgFutures))
 	for i, future := range asgFutures {
@@ -70,7 +83,7 @@ func waitForActivities(asgFutures []workflow.Future, ctx workflow.Context, clust
 }
 
 // UpdateClusterstructureWorkflow executes the Cadence workflow responsible for updating EKS worker nodes
-func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstructureWorkflowInput) error {
+func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateClusterstructureWorkflowInput) error {
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 10 * time.Minute,
 		StartToCloseTimeout:    5 * time.Minute,
@@ -189,6 +202,32 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				}
 			}
 
+			// Note: we need to add the node pools created to the database, so the stack ID can be set at creation.
+			{
+				// Note: deleted and updated node pools are saved later to the database.
+				nodePoolsToKeep := make(map[string]bool, len(nodePoolsToDelete)+len(nodePoolsToUpdate))
+				for _, nodePoolToDelete := range nodePoolsToDelete {
+					nodePoolsToKeep[nodePoolToDelete.Name] = true
+				}
+				for _, nodePoolToUpdate := range nodePoolsToUpdate {
+					nodePoolsToKeep[nodePoolToUpdate.Name] = true
+				}
+
+				activityInput := eksWorkflow.SaveNodePoolsActivityInput{
+					ClusterID:         input.ClusterID,
+					NodePoolsToCreate: nodePoolsToCreate,
+					NodePoolsToUpdate: nil,
+					NodePoolsToDelete: nil,
+					NodePoolsToKeep:   nodePoolsToKeep,
+				}
+
+				err := workflow.ExecuteActivity(ctx, eksWorkflow.SaveNodePoolsActivityName, activityInput).Get(ctx, nil)
+				if err != nil {
+					eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
+					return err
+				}
+			}
+
 			var amiSize int
 			{
 				activityInput := eksWorkflow.GetAMISizeActivityInput{
@@ -198,7 +237,17 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				var activityOutput eksWorkflow.GetAMISizeActivityOutput
 				err = workflow.ExecuteActivity(ctx, eksWorkflow.GetAMISizeActivityName, activityInput).Get(ctx, &activityOutput)
 				if err != nil {
+					_ = w.nodePoolStore.UpdateNodePoolStatus(
+						context.Background(),
+						input.OrganizationID,
+						input.ClusterID,
+						input.ClusterName,
+						nodePool.Name,
+						eks.NodePoolStatusError,
+						fmt.Sprintf("Validation failed: retrieving AMI size failed: %s", err),
+					)
 					eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
+
 					return err
 				}
 
@@ -214,7 +263,17 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 				var activityOutput eksWorkflow.SelectVolumeSizeActivityOutput
 				err = workflow.ExecuteActivity(ctx, eksWorkflow.SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
 				if err != nil {
+					_ = w.nodePoolStore.UpdateNodePoolStatus(
+						context.Background(),
+						input.OrganizationID,
+						input.ClusterID,
+						input.ClusterName,
+						nodePool.Name,
+						eks.NodePoolStatusError,
+						fmt.Sprintf("Validation failed: selecting volume size failed: %s", err),
+					)
 					eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
+
 					return err
 				}
 
@@ -223,6 +282,7 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 
 			activityInput := eksWorkflow.CreateAsgActivityInput{
 				EKSActivityInput: commonActivityInput,
+				ClusterID:        input.ClusterID,
 				StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
 
 				ScaleEnabled: input.ScaleEnabled,
@@ -389,11 +449,19 @@ func EKSUpdateClusterWorkflow(ctx workflow.Context, input EKSUpdateClusterstruct
 
 	// delete, update, create node pools
 	{
+		// Note: created node pools are saved earlier to the database to be able
+		// to set the stack ID at creation.
+		nodePoolsToKeep := make(map[string]bool, len(nodePoolsToCreate))
+		for _, nodePoolToCreate := range nodePoolsToCreate {
+			nodePoolsToKeep[nodePoolToCreate.Name] = true
+		}
+
 		activityInput := eksWorkflow.SaveNodePoolsActivityInput{
 			ClusterID:         input.ClusterID,
-			NodePoolsToCreate: nodePoolsToCreate,
+			NodePoolsToCreate: nil,
 			NodePoolsToUpdate: nodePoolsToUpdate,
 			NodePoolsToDelete: nodePoolsToDelete,
+			NodePoolsToKeep:   nodePoolsToKeep,
 		}
 
 		err := workflow.ExecuteActivity(ctx, eksWorkflow.SaveNodePoolsActivityName, activityInput).Get(ctx, nil)

@@ -22,6 +22,7 @@ import (
 	"testing"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 
 	//  SQLite driver used for integration test
@@ -29,6 +30,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 )
 
@@ -174,4 +176,290 @@ func TestListNodePoolNames(t *testing.T) {
 	actualNonExistentClusterNodePoolNames, err := store.ListNodePoolNames(context.Background(), clusterID3)
 	require.Error(t, err)
 	require.Nil(t, actualNonExistentClusterNodePoolNames)
+}
+
+func TestNodePoolStoreUpdateNodePoolStackID(t *testing.T) {
+	type inputType struct {
+		clusterID       uint
+		clusterName     string
+		clusters        []eksmodel.EKSClusterModel
+		nodePoolName    string
+		nodePoolStackID string
+		organizationID  uint
+	}
+
+	type outputType struct {
+		expectedClusters []eksmodel.EKSClusterModel
+		expectedError    error
+	}
+
+	type caseType struct {
+		caseName string
+		input    inputType
+		output   outputType
+	}
+
+	testCases := []caseType{
+		{
+			caseName: "cluster not found error",
+			input: inputType{
+				clusterID:       1,
+				clusterName:     "cluster-1",
+				clusters:        []eksmodel.EKSClusterModel{},
+				nodePoolName:    "1-pool-1",
+				nodePoolStackID: "1-pool-1/stack-id",
+				organizationID:  1,
+			},
+			output: outputType{
+				expectedClusters: []eksmodel.EKSClusterModel{},
+				expectedError:    errors.New("cluster not found"),
+			},
+		},
+		{
+			caseName: "success",
+			input: inputType{
+				clusterID:   1,
+				clusterName: "cluster-2",
+				clusters: []eksmodel.EKSClusterModel{
+					{
+						ID:        2,
+						ClusterID: 1,
+						NodePools: []*eksmodel.AmazonNodePoolsModel{
+							{
+								ID:            1,
+								ClusterID:     2,
+								Name:          "1-pool-1",
+								StackID:       "",
+								Status:        eks.NodePoolStatusCreating,
+								StatusMessage: "",
+							},
+							{
+								ID:            2,
+								ClusterID:     2,
+								Name:          "1-pool-2",
+								StackID:       "",
+								Status:        eks.NodePoolStatusCreating,
+								StatusMessage: "",
+							},
+						},
+					},
+				},
+				nodePoolName:    "1-pool-2",
+				nodePoolStackID: "1-pool-2/stack-id",
+				organizationID:  1,
+			},
+			output: outputType{
+				expectedClusters: []eksmodel.EKSClusterModel{
+					{
+						ID:        2,
+						ClusterID: 1,
+						NodePools: []*eksmodel.AmazonNodePoolsModel{
+							{
+								ID:            1,
+								ClusterID:     2,
+								Name:          "1-pool-1",
+								StackID:       "",
+								Status:        eks.NodePoolStatusCreating,
+								StatusMessage: "",
+							},
+							{
+								ID:            2,
+								ClusterID:     2,
+								Name:          "1-pool-2",
+								StackID:       "1-pool-2/stack-id",
+								Status:        eks.NodePoolStatusEmpty,
+								StatusMessage: "",
+							},
+						},
+						SSHGenerated: true,
+					},
+				},
+				expectedError: nil,
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+
+		t.Run(testCase.caseName, func(t *testing.T) {
+			database := setUpDatabase(t)
+			for clusterIndex := range testCase.input.clusters {
+				err := database.Save(&testCase.input.clusters[clusterIndex]).Error
+				require.NoError(t, err)
+			}
+
+			nodePoolStore := NewNodePoolStore(database)
+
+			actualError := nodePoolStore.UpdateNodePoolStackID(
+				context.Background(),
+				testCase.input.organizationID,
+				testCase.input.clusterID,
+				testCase.input.clusterName,
+				testCase.input.nodePoolName,
+				testCase.input.nodePoolStackID,
+			)
+
+			var actualClusters []eksmodel.EKSClusterModel
+			err := database.Preload("NodePools").Find(&actualClusters).Error
+			require.NoError(t, err)
+			for clusterIndex := range actualClusters {
+				for nodePoolIndex := range actualClusters[clusterIndex].NodePools {
+					actualClusters[clusterIndex].NodePools[nodePoolIndex].CreatedAt = time.Time{}
+				}
+			}
+
+			if testCase.output.expectedError == nil {
+				require.NoError(t, actualError)
+			} else {
+				require.EqualError(t, actualError, testCase.output.expectedError.Error())
+			}
+			require.Equal(t, testCase.output.expectedClusters, actualClusters)
+		})
+	}
+}
+
+func TestNodePoolStoreUpdateNodePoolStatus(t *testing.T) {
+	type inputType struct {
+		clusterID             uint
+		clusterName           string
+		clusters              []eksmodel.EKSClusterModel
+		nodePoolName          string
+		nodePoolStatus        eks.NodePoolStatus
+		nodePoolStatusMessage string
+		organizationID        uint
+	}
+
+	type outputType struct {
+		expectedClusters []eksmodel.EKSClusterModel
+		expectedError    error
+	}
+
+	type caseType struct {
+		caseName string
+		input    inputType
+		output   outputType
+	}
+
+	testCases := []caseType{
+		{
+			caseName: "cluster not found error",
+			input: inputType{
+				clusterID:             1,
+				clusterName:           "cluster-1",
+				clusters:              []eksmodel.EKSClusterModel{},
+				nodePoolName:          "1-pool-1",
+				nodePoolStatus:        eks.NodePoolStatusUnknown,
+				nodePoolStatusMessage: "",
+				organizationID:        1,
+			},
+			output: outputType{
+				expectedClusters: []eksmodel.EKSClusterModel{},
+				expectedError:    errors.New("cluster not found"),
+			},
+		},
+		{
+			caseName: "success",
+			input: inputType{
+				clusterID:   1,
+				clusterName: "cluster-1",
+				clusters: []eksmodel.EKSClusterModel{
+					{
+						ID:        2,
+						ClusterID: 1,
+						NodePools: []*eksmodel.AmazonNodePoolsModel{
+							{
+								ID:            1,
+								ClusterID:     2,
+								Name:          "1-pool-1",
+								StackID:       "",
+								Status:        eks.NodePoolStatusCreating,
+								StatusMessage: "",
+							},
+							{
+								ID:            2,
+								ClusterID:     2,
+								Name:          "1-pool-2",
+								StackID:       "",
+								Status:        eks.NodePoolStatusCreating,
+								StatusMessage: "",
+							},
+						},
+					},
+				},
+				nodePoolName:          "1-pool-2",
+				nodePoolStatus:        eks.NodePoolStatusError,
+				nodePoolStatusMessage: "test AWS error",
+				organizationID:        1,
+			},
+			output: outputType{
+				expectedClusters: []eksmodel.EKSClusterModel{
+					{
+						ID:        2,
+						ClusterID: 1,
+						NodePools: []*eksmodel.AmazonNodePoolsModel{
+							{
+								ID:            1,
+								ClusterID:     2,
+								Name:          "1-pool-1",
+								StackID:       "",
+								Status:        eks.NodePoolStatusCreating,
+								StatusMessage: "",
+							},
+							{
+								ID:            2,
+								ClusterID:     2,
+								Name:          "1-pool-2",
+								StackID:       "",
+								Status:        eks.NodePoolStatusError,
+								StatusMessage: "test AWS error",
+							},
+						},
+						SSHGenerated: true,
+					},
+				},
+				expectedError: nil,
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+
+		t.Run(testCase.caseName, func(t *testing.T) {
+			database := setUpDatabase(t)
+			for clusterIndex := range testCase.input.clusters {
+				err := database.Save(&testCase.input.clusters[clusterIndex]).Error
+				require.NoError(t, err)
+			}
+
+			nodePoolStore := NewNodePoolStore(database)
+
+			actualError := nodePoolStore.UpdateNodePoolStatus(
+				context.Background(),
+				testCase.input.organizationID,
+				testCase.input.clusterID,
+				testCase.input.clusterName,
+				testCase.input.nodePoolName,
+				testCase.input.nodePoolStatus,
+				testCase.input.nodePoolStatusMessage,
+			)
+
+			var actualClusters []eksmodel.EKSClusterModel
+			err := database.Preload("NodePools").Find(&actualClusters).Error
+			require.NoError(t, err)
+			for clusterIndex := range actualClusters {
+				for nodePoolIndex := range actualClusters[clusterIndex].NodePools {
+					actualClusters[clusterIndex].NodePools[nodePoolIndex].CreatedAt = time.Time{}
+				}
+			}
+
+			if testCase.output.expectedError == nil {
+				require.NoError(t, actualError)
+			} else {
+				require.EqualError(t, actualError, testCase.output.expectedError.Error())
+			}
+			require.Equal(t, testCase.output.expectedClusters, actualClusters)
+		})
+	}
 }

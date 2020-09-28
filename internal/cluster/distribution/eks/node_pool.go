@@ -86,6 +86,29 @@ type NodePoolStore interface {
 	// ListNodePoolNames retrieves the node pool names for the cluster specified
 	// by its cluster ID.
 	ListNodePoolNames(ctx context.Context, clusterID uint) (nodePoolNames []string, err error)
+
+	// UpdateNodePoolStackID sets the stack ID in the node pool storage to the
+	// specified value.
+	UpdateNodePoolStackID(
+		ctx context.Context,
+		organizationID uint,
+		clusterID uint,
+		clusterName string,
+		nodePoolName string,
+		nodePoolStackID string,
+	) (err error)
+
+	// UpdateNodePoolStackID sets the status and status message in the node pool
+	// storage to the specified value.
+	UpdateNodePoolStatus(
+		ctx context.Context,
+		organizationID uint,
+		clusterID uint,
+		clusterName string,
+		nodePoolName string,
+		nodePoolStatus NodePoolStatus,
+		nodePoolStatusMessage string,
+	) (err error)
 }
 
 func CalculateNodePoolVersion(input ...string) string {
