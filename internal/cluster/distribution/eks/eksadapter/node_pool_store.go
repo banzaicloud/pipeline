@@ -20,6 +20,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 )
@@ -46,6 +47,7 @@ func (s nodePoolStore) CreateNodePool(
 		ClusterID:        clusterID,
 		CreatedBy:        createdBy,
 		Name:             nodePool.Name,
+		StackID:          "",
 		NodeInstanceType: nodePool.InstanceType,
 		NodeImage:        nodePool.Image,
 		NodeSpotPrice:    nodePool.SpotPrice,
@@ -53,6 +55,8 @@ func (s nodePoolStore) CreateNodePool(
 		NodeMinCount:     nodePool.Autoscaling.MinSize,
 		NodeMaxCount:     nodePool.Autoscaling.MaxSize,
 		Count:            nodePool.Size,
+		Status:           eks.NodePoolStatusCreating,
+		StatusMessage:    "",
 		// NodeVolumeSize:   nodePool.VolumeSize, // Note: not stored in DB.
 		// Labels:           nodePool.Labels, // Note: not stored in DB.
 	}
@@ -60,6 +64,135 @@ func (s nodePoolStore) CreateNodePool(
 	err := s.db.Save(nodePoolModel).Error
 	if err != nil {
 		return errors.Wrap(err, "failed to save node pool")
+	}
+
+	return nil
+}
+
+// UpdateNodePoolStackID sets the stack ID in the node pool storage to the
+// specified value.
+func (s nodePoolStore) UpdateNodePoolStackID(
+	ctx context.Context,
+	organizationID uint,
+	clusterID uint,
+	clusterName string,
+	nodePoolName string,
+	nodePoolStackID string,
+) (err error) {
+	var eksCluster eksmodel.EKSClusterModel
+	err = s.db.
+		Where(eksmodel.EKSClusterModel{ClusterID: clusterID}).
+		Preload("NodePools").
+		First(&eksCluster).Error
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return cluster.NotFoundError{
+				OrganizationID: organizationID,
+				ClusterID:      clusterID,
+				ClusterName:    clusterName,
+			}
+		}
+
+		return errors.WrapWithDetails(err, "fetching cluster from database failed",
+			"organizationId", organizationID,
+			"clusterId", clusterID,
+			"clusterName", clusterName,
+			"nodePool", nodePoolName,
+		)
+	}
+
+	var nodePoolModel *eksmodel.AmazonNodePoolsModel
+	for _, clusterNodePoolModel := range eksCluster.NodePools {
+		if nodePoolName == clusterNodePoolModel.Name {
+			nodePoolModel = clusterNodePoolModel
+			break
+		}
+	}
+	if nodePoolModel == nil {
+		return cluster.NodePoolNotFoundError{
+			ClusterID: clusterID,
+			NodePool:  nodePoolName,
+	}
+	}
+
+	nodePoolModel.StackID = nodePoolStackID
+
+	if nodePoolStackID != "" { // Note: using CF stack status from now on as long as it exists.
+		nodePoolModel.Status = eks.NodePoolStatusEmpty
+		nodePoolModel.StatusMessage = ""
+	}
+
+	err = s.db.Save(nodePoolModel).Error
+	if err != nil {
+		return errors.WrapWithDetails(err, "updating node pool in database failed",
+			"organizationId", organizationID,
+			"clusterId", clusterID,
+			"clusterName", clusterName,
+			"nodePoolName", nodePoolName,
+		)
+	}
+
+	return nil
+}
+
+// UpdateNodePoolStackID sets the status and status message in the node pool
+// storage to the specified value.
+func (s nodePoolStore) UpdateNodePoolStatus(
+	ctx context.Context,
+	organizationID uint,
+	clusterID uint,
+	clusterName string,
+	nodePoolName string,
+	nodePoolStatus eks.NodePoolStatus,
+	nodePoolStatusMessage string,
+) (err error) {
+	var eksCluster eksmodel.EKSClusterModel
+	err = s.db.
+		Where(eksmodel.EKSClusterModel{ClusterID: clusterID}).
+		Preload("NodePools").
+		First(&eksCluster).Error
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return cluster.NotFoundError{
+				OrganizationID: organizationID,
+				ClusterID:      clusterID,
+				ClusterName:    clusterName,
+			}
+		}
+
+		return errors.WrapWithDetails(err, "fetching cluster from database failed",
+			"organizationId", organizationID,
+			"clusterId", clusterID,
+			"clusterName", clusterName,
+			"nodePoolName", nodePoolName,
+		)
+	}
+
+	var nodePoolModel *eksmodel.AmazonNodePoolsModel
+	for _, clusterNodePoolModel := range eksCluster.NodePools {
+		if nodePoolName == clusterNodePoolModel.Name {
+			nodePoolModel = clusterNodePoolModel
+			break
+		}
+	}
+	if nodePoolModel == nil {
+		return cluster.NodePoolNotFoundError{
+			ClusterID: clusterID,
+			NodePool:  nodePoolName,
+		}
+	}
+
+	nodePoolModel.Status = nodePoolStatus
+	nodePoolModel.StatusMessage = nodePoolStatusMessage
+
+	err = s.db.Save(nodePoolModel).Error
+	if err != nil {
+		return errors.WrapWithDetails(err, "updating node pool in database failed",
+			"organizationId", organizationID,
+			"clusterId", clusterID,
+			"clusterName", clusterName,
+			"nodePoolName", nodePoolName,
+		)
 	}
 
 	return nil

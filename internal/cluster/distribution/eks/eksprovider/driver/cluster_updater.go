@@ -82,9 +82,12 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 				CreatedAt:        currentNodePoolMap[nodePoolName].CreatedAt,
 				ClusterID:        currentNodePoolMap[nodePoolName].ClusterID,
 				Name:             nodePoolName,
+				StackID:          currentNodePoolMap[nodePoolName].StackID,
 				NodeInstanceType: currentNodePoolMap[nodePoolName].NodeInstanceType,
 				NodeImage:        currentNodePoolMap[nodePoolName].NodeImage,
 				NodeSpotPrice:    currentNodePoolMap[nodePoolName].NodeSpotPrice,
+				Status:           currentNodePoolMap[nodePoolName].Status,
+				StatusMessage:    currentNodePoolMap[nodePoolName].StatusMessage,
 				Autoscaling:      nodePool.Autoscaling,
 				NodeMinCount:     nodePool.MinCount,
 				NodeMaxCount:     nodePool.MaxCount,
@@ -116,9 +119,12 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 			updatedNodePools = append(updatedNodePools, &eksmodel.AmazonNodePoolsModel{
 				CreatedBy:        userId,
 				Name:             nodePoolName,
+				StackID:          "",
 				NodeInstanceType: nodePool.InstanceType,
 				NodeImage:        nodePool.Image,
 				NodeSpotPrice:    nodePool.SpotPrice,
+				Status:           eks.NodePoolStatusCreating,
+				StatusMessage:    "",
 				Autoscaling:      nodePool.Autoscaling,
 				NodeMinCount:     nodePool.MinCount,
 				NodeMaxCount:     nodePool.MaxCount,
@@ -133,12 +139,15 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 	for _, nodePool := range eksCluster.GetModel().NodePools {
 		if requestedNodePools[nodePool.Name] == nil {
 			updatedNodePools = append(updatedNodePools, &eksmodel.AmazonNodePoolsModel{
-				ID:        nodePool.ID,
-				ClusterID: nodePool.ClusterID,
-				Name:      nodePool.Name,
-				Labels:    nodePool.Labels,
-				CreatedAt: nodePool.CreatedAt,
-				Delete:    true,
+				ID:            nodePool.ID,
+				ClusterID:     nodePool.ClusterID,
+				Name:          nodePool.Name,
+				StackID:       nodePool.StackID,
+				Status:        eks.NodePoolStatusDeleting,
+				StatusMessage: "",
+				Labels:        nodePool.Labels,
+				CreatedAt:     nodePool.CreatedAt,
+				Delete:        true,
 			})
 		}
 	}

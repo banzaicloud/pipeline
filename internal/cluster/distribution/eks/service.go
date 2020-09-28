@@ -112,6 +112,11 @@ const (
 	// are being removed.
 	NodePoolStatusDeleting NodePoolStatus = "DELETING"
 
+	// NodePoolStatusEmpty is the status used when the node pool status needs to
+	// be explicitly set to an empty value. This is also the type's default
+	// value.
+	NodePoolStatusEmpty NodePoolStatus = ""
+
 	// NodePoolStatusCreating is the status returned when the node pool
 	// is in an invalid state or an operation cannot be performed on it.
 	NodePoolStatusError NodePoolStatus = "ERROR"

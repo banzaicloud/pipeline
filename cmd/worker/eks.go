@@ -19,6 +19,7 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	eksworkflow2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
@@ -26,7 +27,12 @@ import (
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
-func registerEKSWorkflows(config configuration, secretStore eksworkflow.SecretStore, clusterManager *adapter.ClusterManagerAdapter) error {
+func registerEKSWorkflows(
+	config configuration,
+	secretStore eksworkflow.SecretStore,
+	clusterManager *adapter.ClusterManagerAdapter,
+	nodePoolStore eks.NodePoolStore,
+) error {
 	vpcTemplate, err := eksworkflow.GetVPCTemplate()
 	if err != nil {
 		return errors.WrapIf(err, "failed to get CloudFormation template for VPC")
@@ -48,7 +54,9 @@ func registerEKSWorkflows(config configuration, secretStore eksworkflow.SecretSt
 	}
 
 	workflow.RegisterWithOptions(cluster.EKSCreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSCreateClusterWorkflowName})
-	workflow.RegisterWithOptions(eksworkflow.CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: eksworkflow.CreateInfraWorkflowName})
+
+	createInfrastructureWorkflow := eksworkflow.NewCreateInfrastructureWorkflow(nodePoolStore)
+	workflow.RegisterWithOptions(createInfrastructureWorkflow.Execute, workflow.RegisterOptions{Name: eksworkflow.CreateInfraWorkflowName})
 
 	awsSessionFactory := eksworkflow.NewAWSSessionFactory(secretStore)
 	cloudFormationFactory := eksworkflow.NewCloudFormationFactory()
@@ -82,7 +90,7 @@ func registerEKSWorkflows(config configuration, secretStore eksworkflow.SecretSt
 	saveClusterVersionActivity := eksworkflow.NewSaveClusterVersionActivity(clusterManager)
 	activity.RegisterWithOptions(saveClusterVersionActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveClusterVersionActivityName})
 
-	createAsgActivity := eksworkflow.NewCreateAsgActivity(awsSessionFactory, nodePoolTemplate)
+	createAsgActivity := eksworkflow.NewCreateAsgActivity(awsSessionFactory, nodePoolTemplate, nodePoolStore)
 	activity.RegisterWithOptions(createAsgActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateAsgActivityName})
 
 	updateAsgActivity := eksworkflow.NewUpdateAsgActivity(awsSessionFactory, nodePoolTemplate)
@@ -98,7 +106,8 @@ func registerEKSWorkflows(config configuration, secretStore eksworkflow.SecretSt
 	activity.RegisterWithOptions(saveK8sConfigActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveK8sConfigActivityName})
 
 	// update cluster workflow
-	workflow.RegisterWithOptions(cluster.EKSUpdateClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSUpdateClusterWorkflowName})
+	eksUpdateClusterWorkflow := cluster.NewEKSUpdateClusterWorkflow(nodePoolStore)
+	workflow.RegisterWithOptions(eksUpdateClusterWorkflow.Execute, workflow.RegisterOptions{Name: cluster.EKSUpdateClusterWorkflowName})
 
 	// delete cluster workflow
 	workflow.RegisterWithOptions(cluster.EKSDeleteClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSDeleteClusterWorkflowName})

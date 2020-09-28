@@ -24,6 +24,7 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/global"
 )
 
@@ -131,6 +132,7 @@ type AmazonNodePoolsModel struct {
 	CreatedBy        uint
 	ClusterID        uint   `gorm:"unique_index:idx_amazon_node_pools_cluster_id_name"`
 	Name             string `gorm:"unique_index:idx_amazon_node_pools_cluster_id_name"`
+	StackID          string
 	NodeSpotPrice    string
 	Autoscaling      bool
 	NodeMinCount     int
@@ -139,8 +141,10 @@ type AmazonNodePoolsModel struct {
 	NodeVolumeSize   int `gorm:"-"` // Note: not stored in DB.
 	NodeImage        string
 	NodeInstanceType string
-	Labels           map[string]string `gorm:"-"`
-	Delete           bool              `gorm:"-"`
+	Status           eks.NodePoolStatus // Note: stored status info is only used when CF stack is not existing.
+	StatusMessage    string             `gorm:"type:text"`
+	Labels           map[string]string  `gorm:"-"`
+	Delete           bool               `gorm:"-"`
 }
 
 // TableName sets AmazonNodePoolsModel's table name
@@ -149,8 +153,9 @@ func (AmazonNodePoolsModel) TableName() string {
 }
 
 func (m AmazonNodePoolsModel) String() string {
-	return fmt.Sprintf("NodePool Name: %s, Autoscaling: %v, InstanceType: %s, Spot price: %s, Min count: %d, Max count: %d, Count: %d, Node image: %s",
+	return fmt.Sprintf("NodePool Name: %s, Stack ID: %s, Autoscaling: %v, InstanceType: %s, Spot price: %s, Min count: %d, Max count: %d, Count: %d, Node image: %s, Status: %s, StatusMessage: %s",
 		m.Name,
+		m.StackID,
 		m.Autoscaling,
 		m.NodeInstanceType,
 		m.NodeSpotPrice,
@@ -158,6 +163,8 @@ func (m AmazonNodePoolsModel) String() string {
 		m.NodeMaxCount,
 		m.Count,
 		m.NodeImage,
+		m.Status,
+		m.StatusMessage,
 		// m.NodeVolumeSize, // Note: not stored in DB.
 		// m.Labels, // Note: Not stored in DB.
 	)

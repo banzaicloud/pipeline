@@ -120,6 +120,7 @@ func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId ui
 		modelNodePools[i] = &eksmodel.AmazonNodePoolsModel{
 			CreatedBy:        userId,
 			Name:             nodePoolName,
+			StackID:          "",
 			NodeSpotPrice:    nodePool.SpotPrice,
 			Autoscaling:      nodePool.Autoscaling,
 			NodeMinCount:     nodePool.MinCount,
@@ -128,6 +129,8 @@ func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId ui
 			NodeVolumeSize:   nodePool.VolumeSize,
 			NodeImage:        nodePool.Image,
 			NodeInstanceType: nodePool.InstanceType,
+			Status:           eks2.NodePoolStatusCreating,
+			StatusMessage:    "",
 			Labels:           nodePool.Labels,
 			Delete:           false,
 		}

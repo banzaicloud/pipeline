@@ -16,6 +16,7 @@ package clusterworkflow
 
 import (
 	"context"
+	"fmt"
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
@@ -151,14 +152,14 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 
 		var vpcActivityOutput *eksworkflow.GetVpcConfigActivityOutput
 		{
-			input := eksworkflow.GetVpcConfigActivityInput{
+			activityInput := eksworkflow.GetVpcConfigActivityInput{
 				EKSActivityInput: commonActivityInput,
 				StackName:        eksworkflow.GenerateStackNameForCluster(c.Name),
 			}
 
 			var err error
 
-			vpcActivityOutput, err = eksworkflow.NewGetVpcConfigActivity(a.awsSessionFactory).Execute(ctx, input)
+			vpcActivityOutput, err = eksworkflow.NewGetVpcConfigActivity(a.awsSessionFactory).Execute(ctx, activityInput)
 			if err != nil {
 				return err
 			}
@@ -177,6 +178,16 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 				},
 			)
 			if err != nil {
+				_ = a.eksNodePools.UpdateNodePoolStatus(
+					ctx,
+					c.OrganizationID,
+					c.ID,
+					c.Name,
+					nodePool.Name,
+					eks.NodePoolStatusError,
+					fmt.Sprintf("Validation failed: retrieving AMI size failed: %s", err),
+				)
+
 				return err
 			}
 
@@ -195,6 +206,16 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 				},
 			)
 			if err != nil {
+				_ = a.eksNodePools.UpdateNodePoolStatus(
+					ctx,
+					c.OrganizationID,
+					c.ID,
+					c.Name,
+					nodePool.Name,
+					eks.NodePoolStatusError,
+					fmt.Sprintf("Validation failed: selecting volume size failed: %s", err),
+				)
+
 				return err
 			}
 
@@ -203,6 +224,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 
 		subinput := eksworkflow.CreateAsgActivityInput{
 			EKSActivityInput: commonActivityInput,
+			ClusterID:        input.ClusterID,
 			StackName:        eksworkflow.GenerateNodePoolStackName(c.Name, nodePool.Name),
 
 			ScaleEnabled: commonCluster.ScaleOptions.Enabled,
@@ -241,7 +263,9 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			return errors.WrapIf(err, "failed to get CloudFormation template for node pools")
 		}
 
-		_, err = eksworkflow.NewCreateAsgActivity(a.awsSessionFactory, nodePoolTemplate).Execute(ctx, subinput)
+		_, err = eksworkflow.NewCreateAsgActivity(
+			a.awsSessionFactory, nodePoolTemplate, a.eksNodePools,
+		).Execute(ctx, subinput)
 		if err != nil {
 			return cadence.WrapClientError(err)
 		}

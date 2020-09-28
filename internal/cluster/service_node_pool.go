@@ -129,7 +129,7 @@ func (NodePoolAlreadyExistsError) ServiceError() bool {
 	return true
 }
 
-// NodePoolNotFoundError is returned when a node pool already exists.
+// NodePoolNotFoundError is returned when a node pool cannot be found.
 type NodePoolNotFoundError struct {
 	ClusterID uint
 	NodePool  string
