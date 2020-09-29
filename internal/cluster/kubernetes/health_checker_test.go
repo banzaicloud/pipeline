@@ -193,10 +193,27 @@ func TestHealthChecker(t *testing.T) {
 	pod3NotRunning := corev1.Pod{
 		TypeMeta: typeMetaPod,
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "pod2",
+			Name:      "pod3",
 			Namespace: namespaces[0],
 		},
 		Status: corev1.PodStatus{},
+	}
+
+	pod4Completed := corev1.Pod{
+		TypeMeta: typeMetaPod,
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "pod4",
+			Namespace: namespaces[0],
+		},
+		Status: corev1.PodStatus{
+			Conditions: []corev1.PodCondition{
+				{
+					Type:   corev1.PodReady,
+					Status: corev1.ConditionFalse,
+				},
+			},
+			Phase: corev1.PodSucceeded,
+		},
 	}
 
 	clientNodeNotReady := fake.NewSimpleClientset(
@@ -224,6 +241,7 @@ func TestHealthChecker(t *testing.T) {
 		&corev1.PodList{
 			Items: []corev1.Pod{
 				pod1Ready,
+				pod4Completed,
 			},
 		},
 	)
