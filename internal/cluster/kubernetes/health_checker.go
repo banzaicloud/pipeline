@@ -99,8 +99,8 @@ func checkPodStatus(podList *corev1.PodList) error {
 
 	// TODO check system pods are exist, check status of daemonsets?
 	for _, pod := range podList.Items {
-		if pod.Status.Phase != corev1.PodRunning {
-			return errors.NewWithDetails("pod is not Running", map[string]interface{}{
+		if !(pod.Status.Phase == corev1.PodRunning || pod.Status.Phase == corev1.PodSucceeded) {
+			return errors.NewWithDetails("pod is not Running or Succeeded", map[string]interface{}{
 				"pod":   pod.Name,
 				"phase": pod.Status.Phase,
 			})
@@ -109,7 +109,7 @@ func checkPodStatus(podList *corev1.PodList) error {
 			if condition.Type != corev1.PodReady {
 				continue
 			}
-			if condition.Status != corev1.ConditionTrue {
+			if condition.Status != corev1.ConditionTrue && pod.Status.Phase != corev1.PodSucceeded {
 				return errors.NewWithDetails("pod is not Ready", map[string]interface{}{
 					"pod":       pod.Name,
 					"condition": condition.Status,
