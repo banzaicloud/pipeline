@@ -65,6 +65,12 @@ func (conflictStub) Conflict() bool {
 	return true
 }
 
+type internalErrorStub struct{}
+
+func (internalErrorStub) Error() string {
+	return "something went wrong"
+}
+
 func TestDefaultProblemMatchers(t *testing.T) {
 	tests := []struct {
 		err            error
@@ -85,6 +91,10 @@ func TestDefaultProblemMatchers(t *testing.T) {
 		{
 			err:            conflictStub{},
 			expectedStatus: http.StatusConflict,
+		},
+		{
+			err:            internalErrorStub{},
+			expectedStatus: http.StatusInternalServerError,
 		},
 	}
 
@@ -163,4 +173,42 @@ func TestDefaultProblemMatchers_ValidationWithViolations(t *testing.T) {
 	}
 
 	assert.ElementsMatch(t, err.Violations(), problem.Violations)
+}
+
+type serviceErrorStub struct{}
+
+func (serviceErrorStub) Error() string {
+	return "service error"
+}
+
+func (serviceErrorStub) ServiceError() bool {
+	return true
+}
+
+func TestDefaultProblemMatchers_Service(t *testing.T) {
+	converter := NewDefaultProblemConverter()
+
+	err := serviceErrorStub{}
+
+	problem := converter.NewProblem(context.Background(), err).(*problems.DefaultProblem)
+
+	if want, have := http.StatusInternalServerError, problem.Status; want != have {
+		t.Errorf("unexpected status\nexpected: %d\nactual:   %d", want, have)
+	}
+
+	if want, have := http.StatusInternalServerError, problem.Code; want != have {
+		t.Errorf("unexpected code\nexpected: %d\nactual:   %d", want, have)
+	}
+
+	if want, have := err.Error(), problem.Detail; want != have {
+		t.Errorf("unexpected detail\nexpected: %s\nactual:   %s", want, have)
+	}
+
+	if want, have := err.Error(), problem.Message; want != have {
+		t.Errorf("unexpected message\nexpected: %s\nactual:   %s", want, have)
+	}
+
+	if want, have := err.Error(), problem.Error; want != have {
+		t.Errorf("unexpected error\nexpected: %s\nactual:   %s", want, have)
+	}
 }
