@@ -20,6 +20,12 @@ import (
 
 // DefaultProblemMatchers is a list of default ProblemMatchers.
 // nolint: gochecknoglobals
-var DefaultProblemMatchers = append([]appkithttp.ProblemMatcher{
-	NewValidationWithViolationsProblemMatcher(),
-}, appkithttp.DefaultProblemMatchers...)
+var DefaultProblemMatchers = append(
+	[]appkithttp.ProblemMatcher{
+		NewValidationWithViolationsProblemMatcher(),
+	},
+	append(
+		appkithttp.DefaultProblemMatchers,
+		NewServiceProblemMatcher(),
+	)...,
+)
