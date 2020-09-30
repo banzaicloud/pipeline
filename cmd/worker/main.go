@@ -387,10 +387,7 @@ func main() {
 
 		{
 			passwordSecrets := intpkeworkflowadapter.NewPasswordSecretStore(commonSecretStore)
-			err = registerPKEWorkflows(passwordSecrets)
-			if err != nil {
-				emperror.Panic(errors.WrapIf(err, "failed to register PKE workflows"))
-			}
+			registerPKEWorkflows(passwordSecrets)
 		}
 
 		// Register azure specific workflows

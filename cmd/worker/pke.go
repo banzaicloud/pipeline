@@ -21,13 +21,11 @@ import (
 	pkeworkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
 )
 
-func registerPKEWorkflows(passwordSecrets pkeworkflow.PasswordSecretStore) error {
+func registerPKEWorkflows(passwordSecrets pkeworkflow.PasswordSecretStore) {
 	{
 		a := pkeworkflow.NewAssembleHTTPProxySettingsActivity(passwordSecrets)
 		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: pkeworkflow.AssembleHTTPProxySettingsActivityName})
 	}
 
 	pkeawsworkflow.NewUpdateNodePoolWorkflow().Register()
-
-	return nil
 }
