@@ -17,15 +17,9 @@ package pkeworkflow
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-
-	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 )
-
-// ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure
-const ErrReasonStackFailed = "CLOUDFORMATION_STACK_FAILED"
 
 // EC2APIFactory provides an interface for instantiating AWS EC2 API objects.
 type EC2APIFactory interface {
@@ -52,31 +46,4 @@ func (factory *EC2Factory) New(
 	configs ...*aws.Config,
 ) (ec2API ec2iface.EC2API) {
 	return ec2.New(configProvider, configs...)
-}
-
-// getStackTags returns the tags that are placed onto CF template stacks.
-// These tags  are propagated onto the resources created by the CF template.
-func getStackTags(clusterName, stackType string, clusterTags map[string]string) []*cloudformation.Tag {
-	tags := make([]*cloudformation.Tag, 0)
-
-	for k, v := range clusterTags {
-		tags = append(tags, &cloudformation.Tag{
-			Key:   aws.String(k),
-			Value: aws.String(v),
-		})
-	}
-	tags = append(tags, []*cloudformation.Tag{
-		{Key: aws.String("banzaicloud-pipeline-cluster-name"), Value: aws.String(clusterName)},
-		{Key: aws.String("banzaicloud-pipeline-stack-type"), Value: aws.String(stackType)},
-	}...)
-	tags = append(tags, internalAmazon.PipelineTags()...)
-	return tags
-}
-
-func getNodePoolStackTags(clusterName string, clusterTags map[string]string) []*cloudformation.Tag {
-	return getStackTags(clusterName, "nodepool", clusterTags)
-}
-
-func getSubnetStackTags(clusterName string) []*cloudformation.Tag {
-	return getStackTags(clusterName, "subnet", map[string]string{})
 }
