@@ -38,8 +38,8 @@ type HealthChecker interface {
 	Check(ctx context.Context, client kubernetes.Interface) error
 }
 
-// MakeHealthCheckActivity returns a new HealthCheckActivity.
-func MakeHealthCheckActivity(
+// NewHealthCheckActivity returns a new HealthCheckActivity.
+func NewHealthCheckActivity(
 	checker HealthChecker, clientFactory ClientFactory,
 ) HealthCheckActivity {
 	return HealthCheckActivity{

@@ -36,8 +36,8 @@ type HealthChecker struct {
 	namespaces []string
 }
 
-// MakeHealthChecker returns HealthChecker
-func MakeHealthChecker(namespaces []string) HealthChecker {
+// NewHealthChecker returns HealthChecker
+func NewHealthChecker(namespaces []string) HealthChecker {
 	return HealthChecker{
 		namespaces: namespaces,
 	}

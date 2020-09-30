@@ -95,7 +95,7 @@ func (s *HealthCheckActivityTestSuite) Test_Execute() {
 	healthChecker := new(MockHealthChecker)
 	healthChecker.On("Check", mock.Anything, mock.Anything).Return(nil)
 
-	healthCheckTestActivity = MakeHealthCheckActivity(healthChecker, clientFactory)
+	healthCheckTestActivity = NewHealthCheckActivity(healthChecker, clientFactory)
 
 	_, err := s.env.ExecuteActivity(
 		HealthCheckActivityName,
