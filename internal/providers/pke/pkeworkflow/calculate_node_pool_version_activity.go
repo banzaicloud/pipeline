@@ -16,11 +16,10 @@ package pkeworkflow
 
 import (
 	"context"
+	"crypto/sha1"
 	"fmt"
 
 	"go.uber.org/cadence/activity"
-
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 )
 
 const CalculateNodePoolVersionActivityName = "pke-calculate-node-pool-version"
@@ -54,10 +53,20 @@ func (a CalculateNodePoolVersionActivity) Execute(
 	input CalculateNodePoolVersionActivityInput,
 ) (CalculateNodePoolVersionActivityOutput, error) {
 	return CalculateNodePoolVersionActivityOutput{
-		Version: eks.CalculateNodePoolVersion(
+		Version: calculateNodePoolVersion(
 			input.Image,
 			fmt.Sprint(input.VolumeSize),
 			input.Version,
 		),
 	}, nil
+}
+
+func calculateNodePoolVersion(input ...string) string {
+	h := sha1.New() // #nosec
+
+	for _, i := range input {
+		_, _ = h.Write([]byte(i))
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
