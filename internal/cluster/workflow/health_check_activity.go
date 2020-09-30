@@ -54,6 +54,5 @@ func (a HealthCheckActivity) Execute(ctx context.Context, input HealthCheckActiv
 		return err
 	}
 
-	err = a.checker.Check(ctx, client)
-	return err
+	return a.checker.Check(ctx, client)
 }
