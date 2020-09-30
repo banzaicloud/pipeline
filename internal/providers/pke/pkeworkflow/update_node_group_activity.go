@@ -37,7 +37,7 @@ import (
 
 const awsNoUpdatesError = "No updates are to be performed."
 
-const UpdateNodeGroupActivityName = "pkeaws-update-node-group"
+const UpdateNodeGroupActivityName = "pke-aws-update-node-group"
 
 // UpdateNodeGroupActivity updates an existing node group.
 type UpdateNodeGroupActivity struct {

@@ -23,7 +23,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
 )
 
-const UpdateNodePoolWorkflowName = "pkeaws-update-node-pool"
+const UpdateNodePoolWorkflowName = "pke-aws-update-node-pool"
 
 type UpdateNodePoolWorkflowInput struct {
 	ProviderSecretID string
