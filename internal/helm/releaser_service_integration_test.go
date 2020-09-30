@@ -76,7 +76,7 @@ func setUpHelmConfig(t *testing.T) helm.Config {
 // setupOrgService mocks the org service
 func setupOrgService(ctx context.Context, t *testing.T) helm.OrgService {
 	t.Log("set up org service mock...")
-	orgService := &helm.MockOrgService{}
+	orgService := &MockOrgService{}
 	orgService.On("GetOrgNameByOrgID", ctx, uint(1)).Return("test_org", nil)
 	return orgService
 }

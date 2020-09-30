@@ -15,7 +15,11 @@ go_library(
 
 go_test(
     name = "test",
-    srcs = glob(["*_test.go"]),
+    srcs = glob(["*_test.go"], exclude = [
+        "integration_test.go",
+        "*_integration_test.go",
+        "zz_generated.mock_external_test.go",
+    ]),
     deps = [
         ":helm",
         "//internal/cmd",
@@ -29,7 +33,11 @@ go_test(
 
 go_test(
     name = "integration_test",
-    srcs = glob(["*_test.go"]),
+    srcs = glob([
+        "integration_test.go",
+        "*_integration_test.go",
+        "zz_generated.mock_external_test.go",
+    ]),
     flags = "-test.run ^TestIntegration$",
     labels = ["integration"],
     deps = [

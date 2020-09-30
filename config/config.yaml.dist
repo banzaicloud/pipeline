@@ -387,7 +387,7 @@ dex:
 #                  generateTLS: true
 #
 #        dashboard:
-#            enabled: true
+#            enabled: false
 #            chart: "banzaicloud-stable/kubernetes-dashboard"
 #            version: "0.9.1"
 #

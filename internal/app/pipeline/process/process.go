@@ -32,8 +32,8 @@ type ProcessEvent = pipeline.ProcessEvent
 // ProcessStatus represents an pipeline process/event status.
 type ProcessStatus = pipeline.ProcessStatus
 
-//go:generate mga gen mockery --name Service --inpkg
 // +kit:endpoint:errorStrategy=service
+// +testify:mock
 
 // Service provides access to pipeline processes.
 type Service interface {

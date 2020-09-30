@@ -723,7 +723,7 @@ traefik:
 `)
 
 	// Kubernetes Dashboard
-	v.SetDefault("cluster::posthook::dashboard::enabled", true)
+	v.SetDefault("cluster::posthook::dashboard::enabled", false)
 	v.SetDefault("cluster::posthook::dashboard::chart", "banzaicloud-stable/kubernetes-dashboard")
 	v.SetDefault("cluster::posthook::dashboard::version", "0.9.2")
 
