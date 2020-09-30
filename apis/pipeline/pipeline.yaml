@@ -4671,7 +4671,6 @@ components:
                 # Pull request:
                 # https://github.com/OpenAPITools/openapi-generator/pull/2897 
                 - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
-                - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
                 - $ref: '#/components/schemas/PkeAwsUpdateNodePoolRequest'
 
         UpdateNodePoolResponse:

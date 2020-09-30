@@ -23388,6 +23388,10 @@ components:
           description: The instance AMI to use for your node pool.
           example: ami-06d1667f
           type: string
+        version:
+          description: The Kubernetes version to use for your node pool.
+          example: 1.18.6
+          type: string
         spotPrice:
           description: The upper limit price for the requested spot instance. If this
             field is empty or 0 on-demand instances are used instead of spot instances.
@@ -23410,10 +23414,6 @@ components:
         image:
           description: The instance AMI to use for your node pool.
           example: ami-06d1667f
-          type: string
-        version:
-          description: The Kubernetes version to use for your node pool.
-          example: 1.18.6
           type: string
         spotPrice:
           description: The upper limit price for the requested spot instance. If this
