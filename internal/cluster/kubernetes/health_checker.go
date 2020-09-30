@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	backoffDelay      = time.Duration(5) * time.Second
+	backoffDelay      = 5 * time.Second
 	backoffMaxRetries = 10
 )
 
@@ -97,7 +97,6 @@ func checkPodStatus(podList *corev1.PodList) error {
 		return errors.New("podlist is empty")
 	}
 
-	// TODO check system pods are exist, check status of daemonsets?
 	for _, pod := range podList.Items {
 		if !(pod.Status.Phase == corev1.PodRunning || pod.Status.Phase == corev1.PodSucceeded) {
 			return errors.NewWithDetails("pod is not Running or Succeeded", map[string]interface{}{
