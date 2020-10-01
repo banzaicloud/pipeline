@@ -51,6 +51,12 @@ func (e SecretNotFoundError) Details() []interface{} {
 	return []interface{}{"secretId", e.SecretID}
 }
 
+// NotFound tells a client that this error is related to a resource being not
+// found. Can be used to translate the error to eg. status code.
+func (SecretNotFoundError) NotFound() bool {
+	return true
+}
+
 // ServiceError tells the consumer whether this error is caused by invalid input supplied by the client.
 // Client errors are usually returned to the consumer without retrying the operation.
 func (SecretNotFoundError) ServiceError() bool {
