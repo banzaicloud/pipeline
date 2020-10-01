@@ -474,6 +474,10 @@ type MismatchError struct {
 	ValidType  string
 }
 
+func (MismatchError) BadRequest() bool {
+	return true
+}
+
 func (m MismatchError) Error() string {
 	if m.Err == nil {
 		return fmt.Sprintf("missmatch secret type %s versus %s", m.SecretType, m.ValidType)
