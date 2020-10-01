@@ -183,11 +183,6 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			ParameterKey:     aws.String("MaxSize"),
 			UsePreviousValue: aws.Bool(true),
 		},
-		// sdkCloudFormation.NewOptionalStackParameter(
-		// 	"NodeAutoScalingGroupMaxBatchSize",
-		// 	input.MaxBatchSize > 0,
-		// 	fmt.Sprintf("%d", input.MaxBatchSize),
-		// ),
 		sdkCloudFormation.NewOptionalStackParameter(
 			"DesiredCapacity",
 			input.DesiredCapacity > 0,
