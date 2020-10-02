@@ -7,6 +7,8 @@ approved = [
 ]
 
 ignored = [
+  "github.com/banzaicloud/pipeline/pkg/sdk", #go submodule
+
   "github.com/aliyun/aliyun-oss-go-sdk",
   "github.com/ghodss/yaml",
   "sigs.k8s.io/yaml", # Forked from above
@@ -16,6 +18,7 @@ ignored = [
   "github.com/fatih/structtag", # BSD-3
   "github.com/samuel/go-thrift", # BSD-3
   "github.com/uber-go/tally", # MIT
+  "github.com/leodido/go-urn", # MIT
 
   "github.com/davecgh/go-spew", # ISC license
   "github.com/oracle/oci-go-sdk", # UPL-1.0
