@@ -16,11 +16,14 @@ package eks
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
 )
 
 // +testify:mock
@@ -97,6 +100,79 @@ type NodePool struct {
 	SubnetID      string            `mapstructure:"subnetId"`
 	Status        NodePoolStatus    `mapstructure:"status"`
 	StatusMessage string            `mapstructure:"statusMessage"`
+}
+
+// NewNodePoolFromCFStack initializes a node pool object from a CloudFormation
+// stack.
+func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudformation.Stack) (nodePool NodePool) {
+	var nodePoolParameters struct {
+		ClusterAutoscalerEnabled    bool   `mapstructure:"ClusterAutoscalerEnabled"`
+		NodeAutoScalingGroupMaxSize int    `mapstructure:"NodeAutoScalingGroupMaxSize"`
+		NodeAutoScalingGroupMinSize int    `mapstructure:"NodeAutoScalingGroupMinSize"`
+		NodeAutoScalingInitSize     int    `mapstructure:"NodeAutoScalingInitSize"`
+		NodeImageID                 string `mapstructure:"NodeImageId"`
+		NodeInstanceType            string `mapstructure:"NodeInstanceType"`
+		NodeSpotPrice               string `mapstructure:"NodeSpotPrice"`
+		NodeVolumeSize              int    `mapstructure:"NodeVolumeSize"`
+		Subnets                     string `mapstructure:"Subnets"`
+	}
+
+	err := sdkCloudFormation.ParseStackParameters(stack.Parameters, &nodePoolParameters)
+	if err != nil {
+		return NewNodePoolWithNoValues(name, NodePoolStatusError, err.Error())
+	}
+
+	nodePool.Name = name
+	nodePool.Labels = labels
+	nodePool.Size = nodePoolParameters.NodeAutoScalingInitSize
+	nodePool.Autoscaling = Autoscaling{
+		Enabled: nodePoolParameters.ClusterAutoscalerEnabled,
+		MinSize: nodePoolParameters.NodeAutoScalingGroupMinSize,
+		MaxSize: nodePoolParameters.NodeAutoScalingGroupMaxSize,
+	}
+	nodePool.VolumeSize = nodePoolParameters.NodeVolumeSize
+	nodePool.InstanceType = nodePoolParameters.NodeInstanceType
+	nodePool.Image = nodePoolParameters.NodeImageID
+	nodePool.SpotPrice = nodePoolParameters.NodeSpotPrice
+	nodePool.SubnetID = nodePoolParameters.Subnets // Note: currently we ensure a single value at creation.
+	nodePool.Status = NewNodePoolStatusFromCFStackStatus(aws.StringValue(stack.StackStatus))
+	nodePool.StatusMessage = aws.StringValue(stack.StackStatusReason)
+
+	return nodePool
+}
+
+// NewNodePoolFromCFStackDescriptionError initializes a node pool with the
+// information derived from the CloudFormation stack description error.
+func NewNodePoolFromCFStackDescriptionError(err error, existingNodePool ExistingNodePool) (nodePool NodePool) {
+	if existingNodePool.StackID == "" &&
+		existingNodePool.Status == NodePoolStatusEmpty &&
+		existingNodePool.StatusMessage == "" {
+		// Note: older node pool with no stored stack ID, status or
+		// status message and DescribeStacks() doesn't work with stack
+		// name for deleting stacks.
+		return NewNodePoolWithNoValues(existingNodePool.Name, NodePoolStatusDeleting, "")
+	} else if existingNodePool.StackID == "" &&
+		existingNodePool.Status != NodePoolStatusEmpty {
+		// Note: node pool is in the database already, but the stack is
+		// not existing thus it is either being created, failed
+		// creation with error before CloudFormation stack creation
+		// would have been started.
+		return NewNodePoolWithNoValues(existingNodePool.Name, existingNodePool.Status, existingNodePool.StatusMessage)
+	}
+
+	return NewNodePoolWithNoValues( // Note: unexpected failure.
+		existingNodePool.Name,
+		NodePoolStatusUnknown,
+		fmt.Sprintf("retrieving node pool information failed: %s", err),
+	)
+}
+
+func NewNodePoolWithNoValues(name string, status NodePoolStatus, statusMessage string) (nodePool NodePool) {
+	return NodePool{
+		Name:          name,
+		Status:        status,
+		StatusMessage: statusMessage,
+	}
 }
 
 // NodePoolStatus represents the possible states of a node pool.
