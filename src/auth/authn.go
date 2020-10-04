@@ -36,9 +36,7 @@ import (
 	"github.com/qor/auth/claims"
 	"github.com/qor/session"
 	"github.com/qor/session/gorilla"
-	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/internal/global"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 )
 
@@ -83,17 +81,6 @@ var (
 
 	oidcProvider *OIDCProvider
 )
-
-// nolint: gochecknoglobals
-var log logrus.FieldLogger
-
-func init() {
-	log = global.LogrusLogger()
-
-	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
-		log = l
-	})
-}
 
 type cookieExtractor struct {
 	sessionStorer *BanzaiSessionStorer
