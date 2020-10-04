@@ -21,7 +21,6 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/database/sql/json"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -91,11 +90,11 @@ func (m ClusterModel) String() string {
 // TODO: please move this to the cluster delete flow
 // this should not have been added here in the first place!!!!!!!
 func (m ClusterModel) BeforeDelete(tx *gorm.DB) (err error) {
-	logger := log.WithFields(logrus.Fields{"organization": m.OrganizationID, "cluster": m.ID})
+	logger := log.WithFields(map[string]interface{}{"organization": m.OrganizationID, "cluster": m.ID})
 
 	logger.Info("Delete unused cluster secrets")
 	if err := secret.Store.DeleteByClusterUID(m.OrganizationID, m.UID); err != nil {
-		logger.Errorf("Error during deleting secret: %s", err.Error())
+		logger.Error(fmt.Sprintf("Error during deleting secret: %s", err.Error()))
 	}
 
 	return
