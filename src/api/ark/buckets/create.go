@@ -32,7 +32,7 @@ import (
 
 // Create creates an ARK backup bucket
 func Create(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 	logger.Info("creating bucket")
 
 	var request api.CreateBucketRequest

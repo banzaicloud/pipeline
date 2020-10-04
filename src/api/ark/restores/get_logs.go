@@ -25,7 +25,7 @@ import (
 
 // GetLogs get logs for an ARK restore
 func GetLogs(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 
 	restoreID, ok := ginutils.UintParam(c, IDParamName)
 	if !ok {

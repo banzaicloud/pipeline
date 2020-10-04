@@ -72,7 +72,7 @@ func filterEmpty(strings []string) (result []string) {
 
 // ListVPCNetworks lists all VPC networks of the specified organization
 func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
-	logger := correlationid.Logger(a.logger, ctx)
+	logger := correlationid.LogrusLogger(a.logger, ctx)
 
 	organization := auth.GetCurrentOrganization(ctx.Request)
 	provider, ok := getRequiredProviderFromContext(ctx, logger)
@@ -136,7 +136,7 @@ func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 
 // ListVPCSubnets lists all subnetworks of the specified VPC network
 func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
-	logger := correlationid.Logger(a.logger, ctx)
+	logger := correlationid.LogrusLogger(a.logger, ctx)
 
 	organization := auth.GetCurrentOrganization(ctx.Request)
 	provider, ok := getRequiredProviderFromContext(ctx, logger)
@@ -203,7 +203,7 @@ func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
 
 // ListRouteTables lists all route tables of the specified VPC network
 func (a *NetworkAPI) ListRouteTables(ctx *gin.Context) {
-	logger := correlationid.Logger(a.logger, ctx)
+	logger := correlationid.LogrusLogger(a.logger, ctx)
 
 	organization := auth.GetCurrentOrganization(ctx.Request)
 	provider, ok := getRequiredProviderFromContext(ctx, logger)

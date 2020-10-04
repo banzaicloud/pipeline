@@ -27,7 +27,7 @@ import (
 
 // Create creates an ARK backup
 func Create(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 	logger.Info("creating backup")
 
 	var req arkAPI.CreateBackupRequest

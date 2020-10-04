@@ -34,7 +34,7 @@ type orgBackups struct {
 
 // List lists every ARK backup for the organization
 func (b *orgBackups) List(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 	logger.Info("getting backups")
 
 	backups, err := ark.BackupsServiceFactory(auth.GetCurrentOrganization(c.Request), global.DB(), logger).List()

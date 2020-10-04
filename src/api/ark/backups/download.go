@@ -25,7 +25,7 @@ import (
 
 // Download downloads an ARK backup contents from object store
 func Download(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 
 	backupID, ok := ginutils.UintParam(c, IDParamName)
 	if !ok {

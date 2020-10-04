@@ -34,7 +34,7 @@ import (
 // Enable create an ARK service deployment and adding a base scheduled full backup
 func Enable(helmService helm.UnifiedReleaser) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		logger := correlationid.Logger(common.Log, c)
+		logger := correlationid.LogrusLogger(common.Log, c)
 		logger.Debug("deploying backup service to cluster")
 
 		svc := common.GetARKService(c.Request)
