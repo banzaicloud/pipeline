@@ -15,6 +15,7 @@
 package dns
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -71,7 +72,7 @@ func newExternalDnsServiceClientInstance() {
 	errCreate = nil
 
 	if !global.Config.Cluster.DNS.Enabled {
-		log.Infoln("DNS is not enabled")
+		log.Info("DNS is not enabled")
 		return
 	}
 
@@ -83,13 +84,13 @@ func newExternalDnsServiceClientInstance() {
 
 	secret, err := global.Vault().RawClient().Logical().Read(awsCredentialsPath)
 	if err != nil {
-		log.Errorf("Failed to read AWS credentials from Vault: %s", err.Error())
+		log.Error(fmt.Sprintf("Failed to read AWS credentials from Vault: %s", err.Error()))
 		errCreate = err
 		return
 	}
 
 	if secret == nil {
-		log.Infoln("No AWS credentials for Route53 provided in Vault")
+		log.Info("No AWS credentials for Route53 provided in Vault")
 		return
 	}
 
@@ -99,12 +100,12 @@ func newExternalDnsServiceClientInstance() {
 	awsSecretKey := awsCredentials[secrettype.AwsSecretAccessKey]
 
 	if len(region) == 0 || len(awsSecretId) == 0 || len(awsSecretKey) == 0 {
-		log.Infoln("No AWS credentials for Route53 provided in Vault")
+		log.Info("No AWS credentials for Route53 provided in Vault")
 		return
 	}
 
 	if global.Config.Cluster.DNS.BaseDomain == "" {
-		log.Infoln("No base domain for Banzai DNS")
+		log.Info("No base domain for Banzai DNS")
 		return
 	}
 
@@ -203,7 +204,7 @@ func observeDnsEvents() {
 	}
 
 	for event := range dnsNotificationsChannel {
-		log.Debugf("DNS event observer: received event %v", event)
+		log.Debug(fmt.Sprintf("DNS event observer: received event %v", event))
 		notifySubscribers(event)
 	}
 }
@@ -212,7 +213,7 @@ func notifySubscribers(event interface{}) {
 	mux.RLock()
 	defer mux.RUnlock()
 
-	log.Debugf("DNS event observer: publishing event %v to subscribers", event)
+	log.Debug(fmt.Sprintf("DNS event observer: publishing event %v to subscribers", event))
 	for _, eventsChannel := range dnsEventsConsumers {
 		eventsChannel <- event
 	}
