@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/validation"
 
 	"github.com/banzaicloud/pipeline/internal/secret"
@@ -114,7 +113,7 @@ func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
 		return errors.New("clusterUID is empty")
 	}
 
-	log := log.WithFields(logrus.Fields{"organization": orgID, "clusterUID": clusterUID})
+	log := log.WithFields(map[string]interface{}{"organization": orgID, "clusterUID": clusterUID})
 
 	clusterUIDTag := clusterUIDTag(clusterUID)
 	secrets, err := ss.List(orgID,
@@ -122,17 +121,17 @@ func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
 			Tags: []string{clusterUIDTag},
 		})
 	if err != nil {
-		log.Errorf("Error during list secrets: %s", err.Error())
+		log.Error(fmt.Sprintf("Error during list secrets: %s", err.Error()))
 		return err
 	}
 
 	for _, s := range secrets {
-		log := log.WithFields(logrus.Fields{"secret": s.ID, "secretName": s.Name})
+		log := log.WithFields(map[string]interface{}{"secret": s.ID, "secretName": s.Name})
 		err := ss.Delete(orgID, s.ID)
 		if err != nil {
-			log.Errorf("Error during delete secret: %s", err.Error())
+			log.Error(fmt.Sprintf("Error during delete secret: %s", err.Error()))
 		}
-		log.Infoln("Secret Deleted")
+		log.Info("Secret Deleted")
 	}
 
 	return nil
@@ -140,10 +139,10 @@ func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
 
 // Delete secret secret/orgs/:orgid:/:id: scope
 func (ss *secretStore) Delete(organizationID uint, secretID string) error {
-	log.WithFields(logrus.Fields{
+	log.Debug("deleting secret", map[string]interface{}{
 		"organizationId": organizationID,
 		"secretId":       secretID,
-	}).Debugln("deleting secret")
+	})
 
 	s, err := ss.Get(organizationID, secretID)
 	if err == ErrSecretNotExists { // Already deleted
@@ -275,10 +274,10 @@ func (ss *secretStore) Update(organizationID uint, secretID string, request *Cre
 		}
 	}
 
-	log.WithFields(logrus.Fields{
+	log.Debug("updating secret", map[string]interface{}{
 		"organizationId": organizationID,
 		"secretId":       secretID,
-	}).Debugln("updating secret")
+	})
 
 	model := secret.Model{
 		ID:        secretID,
@@ -302,14 +301,14 @@ func (ss *secretStore) GetOrCreate(organizationID uint, value *CreateSecretReque
 
 	// Try to get the secret version first
 	if secret, err := ss.Get(organizationID, secretID); err != nil && err != ErrSecretNotExists {
-		log.Errorf("Error during checking secret: %s", err.Error())
+		log.Error(fmt.Sprintf("Error during checking secret: %s", err.Error()))
 		return "", err
 	} else if secret != nil {
 		return secret.ID, nil
 	} else {
 		secretID, err = ss.Store(organizationID, value)
 		if err != nil {
-			log.Errorf("Error during storing secret: %s", err.Error())
+			log.Error(fmt.Sprintf("Error during storing secret: %s", err.Error()))
 			return "", err
 		}
 	}
@@ -322,18 +321,18 @@ func (ss *secretStore) CreateOrUpdate(organizationID uint, value *CreateSecretRe
 
 	// Try to get the secret version first
 	if secret, err := ss.Get(organizationID, secretID); err != nil && err != ErrSecretNotExists {
-		log.Errorf("Error during checking secret: %s", err.Error())
+		log.Error(fmt.Sprintf("Error during checking secret: %s", err.Error()))
 		return "", err
 	} else if secret != nil {
 		err := ss.Update(organizationID, secretID, value)
 		if err != nil {
-			log.Errorf("Error during updating secret: %s", err.Error())
+			log.Error(fmt.Sprintf("Error during updating secret: %s", err.Error()))
 			return "", err
 		}
 	} else {
 		secretID, err = ss.Store(organizationID, value)
 		if err != nil {
-			log.Errorf("Error during storing secret: %s", err.Error())
+			log.Error(fmt.Sprintf("Error during storing secret: %s", err.Error()))
 			return "", err
 		}
 	}
@@ -370,7 +369,7 @@ func (ss *secretStore) GetByName(organizationID uint, name string) (*SecretItemR
 
 // List secret secret/orgs/:orgid:/ scope
 func (ss *secretStore) List(orgid uint, query *ListSecretsQuery) ([]*SecretItemResponse, error) {
-	log.Debugf("Searching for secrets [orgid: %d, query: %#v]", orgid, query)
+	log.Debug(fmt.Sprintf("Searching for secrets [orgid: %d, query: %#v]", orgid, query))
 
 	if query.Type != "" {
 		secretType := ss.Types.Type(query.Type)
@@ -396,7 +395,7 @@ func (ss *secretStore) List(orgid uint, query *ListSecretsQuery) ([]*SecretItemR
 	} else {
 		models, err = ss.SecretStore.List(context.Background(), orgid)
 		if err != nil {
-			log.Errorf("Error listing secrets: %s", err.Error())
+			log.Error(fmt.Sprintf("Error listing secrets: %s", err.Error()))
 
 			return nil, err
 		}
