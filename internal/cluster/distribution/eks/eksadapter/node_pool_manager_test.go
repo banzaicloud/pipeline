@@ -227,7 +227,11 @@ func TestListNodePools(t *testing.T) {
 				"DynamicClientFactory.FromSecret": errors.New("test error: DynamicClientFactory.FromSecret"),
 			},
 			output: outputType{
-				expectedError:     errors.New("creating dynamic Kubernetes client factory failed: test error: DynamicClientFactory.FromSecret"),
+				expectedError: errors.New(
+					"retrieving node pool label sets failed" +
+						": creating dynamic Kubernetes client factory failed" +
+						": test error: DynamicClientFactory.FromSecret",
+				),
 				expectedNodePools: nil,
 			},
 		},
@@ -245,7 +249,11 @@ func TestListNodePools(t *testing.T) {
 				"dynamicNamespaceableResourceInterface.List": errors.New("test error: nodePoolLabelSetManager.GetAll"),
 			},
 			output: outputType{
-				expectedError:     errors.New("retrieving node pool label sets failed: test error: nodePoolLabelSetManager.GetAll"),
+				expectedError: errors.New(
+					"retrieving node pool label sets failed" +
+						": listing node pool label sets failed" +
+						": test error: nodePoolLabelSetManager.GetAll",
+				),
 				expectedNodePools: nil,
 			},
 		},
@@ -263,7 +271,11 @@ func TestListNodePools(t *testing.T) {
 				"AWSFactory.New": errors.New("test error: AWSFactory.New"),
 			},
 			output: outputType{
-				expectedError:     errors.New("creating aws factory failed: test error: AWSFactory.New"),
+				expectedError: errors.New(
+					"instantiating CloudFormation client failed" +
+						": creating aws factory failed" +
+						": test error: AWSFactory.New",
+				),
 				expectedNodePools: nil,
 			},
 		},
@@ -299,7 +311,6 @@ func TestListNodePools(t *testing.T) {
 				expectedNodePools: []eks.NodePool{
 					{
 						Name:          "older-node-pool-without-stack-id-or-status",
-						Labels:        map[string]string{},
 						Status:        eks.NodePoolStatusDeleting,
 						StatusMessage: "",
 					},
@@ -336,7 +347,6 @@ func TestListNodePools(t *testing.T) {
 				expectedNodePools: []eks.NodePool{
 					{
 						Name:          "creating-pre-stack",
-						Labels:        map[string]string{},
 						Status:        eks.NodePoolStatusCreating,
 						StatusMessage: "",
 					},
@@ -369,9 +379,8 @@ func TestListNodePools(t *testing.T) {
 				expectedNodePools: []eks.NodePool{
 					{
 						Name:          "unknown-describe-failed",
-						Labels:        map[string]string{},
 						Status:        eks.NodePoolStatusUnknown,
-						StatusMessage: "Retrieving node pool information failed: test error: node pool unknown describe failure",
+						StatusMessage: "retrieving node pool information failed: test error: node pool unknown describe failure",
 					},
 				},
 			},
@@ -404,15 +413,14 @@ func TestListNodePools(t *testing.T) {
 				expectedNodePools: []eks.NodePool{
 					{
 						Name:          "error-stack-not-found",
-						Labels:        map[string]string{},
 						Status:        eks.NodePoolStatusUnknown,
-						StatusMessage: "Retrieving node pool information failed: node pool not found.",
+						StatusMessage: "retrieving node pool information failed: node pool not found",
 					},
 				},
 			},
 		},
 		{
-			caseName: "node pool invalid parameters success",
+			caseName: "node pool error multiple stacks found success",
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
 				manager: nodePoolManager{
@@ -421,9 +429,9 @@ func TestListNodePools(t *testing.T) {
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
 				nodePools: map[string]eks.ExistingNodePool{
-					"error-invalid-parameters": {
-						Name:          "error-invalid-parameters",
-						StackID:       "error-invalid-parameters/stack-id",
+					"error-multiple-stacks-found": {
+						Name:          "error-multiple-stacks-found",
+						StackID:       "error-multiple-stacks-found/stack-id",
 						Status:        eks.NodePoolStatusEmpty,
 						StatusMessage: "",
 					},
@@ -431,11 +439,10 @@ func TestListNodePools(t *testing.T) {
 			},
 			intermediateData: intermediateDataType{
 				nodePoolDescriptions: map[string]*cloudformation.DescribeStacksOutput{
-					"error-invalid-parameters": {
+					"error-multiple-stacks-found": {
 						Stacks: []*cloudformation.Stack{
-							{
-								Parameters: []*cloudformation.Parameter{},
-							},
+							{},
+							{},
 						},
 					},
 				},
@@ -444,20 +451,9 @@ func TestListNodePools(t *testing.T) {
 				expectedError: nil,
 				expectedNodePools: []eks.NodePool{
 					{
-						Name:   "error-invalid-parameters",
-						Labels: map[string]string{},
-						Status: eks.NodePoolStatusError,
-						StatusMessage: "Retrieving node pool information failed:" +
-							" invalid CloudFormation stack parameters:" +
-							" missing requested parameter 'ClusterAutoscalerEnabled';" +
-							" missing requested parameter 'NodeAutoScalingGroupMaxSize';" +
-							" missing requested parameter 'NodeAutoScalingGroupMinSize';" +
-							" missing requested parameter 'NodeAutoScalingInitSize';" +
-							" missing requested parameter 'NodeImageId';" +
-							" missing requested parameter 'NodeInstanceType';" +
-							" missing requested parameter 'NodeSpotPrice';" +
-							" missing requested parameter 'NodeVolumeSize';" +
-							" missing requested parameter 'Subnets'",
+						Name:          "error-multiple-stacks-found",
+						Status:        eks.NodePoolStatusUnknown,
+						StatusMessage: "retrieving node pool information failed: multiple node pools found",
 					},
 				},
 			},

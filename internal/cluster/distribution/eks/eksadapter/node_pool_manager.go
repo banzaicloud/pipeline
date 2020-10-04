@@ -16,13 +16,13 @@ package eksadapter
 
 import (
 	"context"
-	"fmt"
 	"sort"
 	"time"
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -30,7 +30,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
-	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
 )
 
 const (
@@ -66,6 +65,95 @@ func NewNodePoolManager(
 		namespace:             namespace,
 		workflowClient:        workflowClient,
 	}
+}
+
+// getLabelSets retrieves the Kubernetes label sets of the node pools.
+func (n nodePoolManager) getLabelSets(
+	ctx context.Context, c cluster.Cluster,
+) (labelSets map[string]map[string]string, err error) {
+	clusterClient, err := n.dynamicClientFactory.FromSecret(ctx, c.ConfigSecretID.String())
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "creating dynamic Kubernetes client factory failed",
+			"configSecretId", c.ConfigSecretID.String(),
+		)
+	}
+
+	manager := npls.NewManager(clusterClient, n.namespace)
+	labelSets, err = manager.GetAll(ctx)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "listing node pool label sets failed",
+			"namespace", n.namespace,
+		)
+	}
+
+	return labelSets, nil
+}
+
+// ListNodePools lists node pools from a cluster.
+func (n nodePoolManager) ListNodePools(
+	ctx context.Context,
+	c cluster.Cluster,
+	existingNodePools map[string]eks.ExistingNodePool,
+) (nodePools []eks.NodePool, err error) {
+	if c.ConfigSecretID.ResourceID == "" || // Note: cluster is being created or errorred before k8s secret would be available.
+		c.Status == cluster.Deleting {
+		return nil, cluster.NotReadyError{
+			OrganizationID: c.OrganizationID,
+			ID:             c.ID,
+			Name:           c.Name,
+		}
+	}
+
+	labelSets, err := n.getLabelSets(ctx, c)
+	if err != nil {
+		return nil, errors.WrapIfWithDetails(err, "retrieving node pool label sets failed",
+			"organizationId", c.OrganizationID,
+			"clusterId", c.ID,
+			"clusterName", c.Name,
+		)
+	}
+
+	cloudFormationClient, err := n.newCloudFormationClient(ctx, c)
+	if err != nil {
+		return nil, errors.WrapIfWithDetails(err, "instantiating CloudFormation client failed",
+			"organizationId", c.OrganizationID,
+			"clusterId", c.ID,
+			"clusterName", c.Name,
+		)
+	}
+
+	nodePools = make([]eks.NodePool, 0, len(nodePools))
+	for _, existingNodePool := range existingNodePools {
+		nodePools = append(nodePools, newNodePoolFromCloudFormation(
+			cloudFormationClient,
+			existingNodePool,
+			generateNodePoolStackName(c.Name, existingNodePool.Name),
+			labelSets[existingNodePool.Name],
+		))
+	}
+
+	sort.Slice(nodePools, func(firstIndex, secondIndex int) (isLessThan bool) {
+		return nodePools[firstIndex].Name < nodePools[secondIndex].Name
+	})
+
+	return nodePools, nil
+}
+
+// newCloudFormationClient instantiates a CloudFormation client from the
+// manager's factories.
+func (n nodePoolManager) newCloudFormationClient(
+	ctx context.Context, c cluster.Cluster,
+) (cloudFormationClient cloudformationiface.CloudFormationAPI, err error) {
+	awsClient, err := n.awsFactory.New(c.OrganizationID, c.SecretID.ResourceID, c.Location)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "creating aws factory failed",
+			"organizationId", c.OrganizationID,
+			"location", c.Location,
+			"secretId", c.SecretID.ResourceID,
+		)
+	}
+
+	return n.cloudFormationFactory.New(awsClient), nil
 }
 
 func (n nodePoolManager) UpdateNodePool(
@@ -125,140 +213,38 @@ func generateNodePoolStackName(clusterName string, poolName string) string {
 	return nodePoolStackNamePrefix + clusterName + "-" + poolName
 }
 
-// ListNodePools lists node pools from a cluster.
-func (n nodePoolManager) ListNodePools(
-	ctx context.Context,
-	c cluster.Cluster,
-	existingNodePools map[string]eks.ExistingNodePool,
-) (nodePools []eks.NodePool, err error) {
-	if c.ConfigSecretID.ResourceID == "" || // Note: cluster is being created or errorred before k8s secret would be available.
-		c.Status == cluster.Deleting {
-		return nil, cluster.NotReadyError{
-			OrganizationID: c.OrganizationID,
-			ID:             c.ID,
-			Name:           c.Name,
-		}
+// newNodePoolFromCloudFormation tries to describe the node pool's stack and
+// return all available information about it or a descriptive status and status
+// message.
+func newNodePoolFromCloudFormation(
+	cfClient cloudformationiface.CloudFormationAPI,
+	existingNodePool eks.ExistingNodePool,
+	stackName string, // Note: temporary until we eliminate stack name usage.
+	labels map[string]string,
+) (nodePool eks.NodePool) {
+	stackIdentifier := existingNodePool.StackID
+	if stackIdentifier == "" { // Note: CloudFormation stack creation not started yet.
+		stackIdentifier = stackName
 	}
 
-	clusterClient, err := n.dynamicClientFactory.FromSecret(ctx, c.ConfigSecretID.String())
-	if err != nil {
-		return nil, errors.WrapWithDetails(err, "creating dynamic Kubernetes client factory failed",
-			"organizationId", c.OrganizationID,
-			"clusterId", c.ID,
-			"clusterName", c.Name,
-			"configSecretId", c.ConfigSecretID.String(),
-		)
-	}
-
-	manager := npls.NewManager(clusterClient, n.namespace)
-	labelSets, err := manager.GetAll(ctx)
-	if err != nil {
-		return nil, errors.WrapWithDetails(err, "retrieving node pool label sets failed",
-			"organizationId", c.OrganizationID,
-			"clusterId", c.ID,
-			"clusterName", c.Name,
-			"namespace", n.namespace,
-		)
-	}
-
-	awsClient, err := n.awsFactory.New(c.OrganizationID, c.SecretID.ResourceID, c.Location)
-	if err != nil {
-		return nil, errors.WrapWithDetails(err, "creating aws factory failed",
-			"organizationId", c.OrganizationID,
-			"clusterId", c.ID,
-			"clusterName", c.Name,
-		)
-	}
-
-	cfClient := n.cloudFormationFactory.New(awsClient)
-	describeStacksInput := cloudformation.DescribeStacksInput{}
-	nodePools = make([]eks.NodePool, 0, len(nodePools))
-	for _, existingNodePool := range existingNodePools {
-		nodePools = append(nodePools, eks.NodePool{
-			Name:   existingNodePool.Name,
-			Labels: labelSets[existingNodePool.Name],
-		})
-		nodePool := &nodePools[len(nodePools)-1]
-
-		stackIdentifier := existingNodePool.StackID
-		if stackIdentifier == "" { // Note: CloudFormation stack creation not started yet.
-			stackIdentifier = generateNodePoolStackName(c.Name, existingNodePool.Name)
-		}
-
-		describeStacksInput.StackName = aws.String(stackIdentifier)
-		stackDescriptions, err := cfClient.DescribeStacks(&describeStacksInput)
-		if err != nil {
-			if existingNodePool.StackID == "" &&
-				existingNodePool.Status == eks.NodePoolStatusEmpty &&
-				existingNodePool.StatusMessage == "" {
-				// Note: older node pool with no stored stack ID, status or
-				// status message and DescribeStacks() doesn't work with stack
-				// name for deleting stacks.
-				nodePool.Status = eks.NodePoolStatusDeleting
-			} else if existingNodePool.StackID == "" &&
-				existingNodePool.Status != eks.NodePoolStatusEmpty {
-				// Note: node pool is in the database already, but the stack is
-				// not existing thus it is either being created, failed
-				// creation with error before CloudFormation stack creation
-				// would have been started.
-				nodePool.Status = existingNodePool.Status
-				nodePool.StatusMessage = existingNodePool.StatusMessage
-			} else {
-				// Note: unexpected failure.
-				nodePool.Status = eks.NodePoolStatusUnknown
-				nodePool.StatusMessage = fmt.Sprintf("Retrieving node pool information failed: %s", err)
-			}
-
-			continue
-		} else if len(stackDescriptions.Stacks) == 0 {
-			nodePool.Status = eks.NodePoolStatusUnknown
-			nodePool.StatusMessage = "Retrieving node pool information failed: node pool not found."
-
-			continue
-		}
-
-		stack := stackDescriptions.Stacks[0]
-
-		var nodePoolParameters struct {
-			ClusterAutoscalerEnabled    bool   `mapstructure:"ClusterAutoscalerEnabled"`
-			NodeAutoScalingGroupMaxSize int    `mapstructure:"NodeAutoScalingGroupMaxSize"`
-			NodeAutoScalingGroupMinSize int    `mapstructure:"NodeAutoScalingGroupMinSize"`
-			NodeAutoScalingInitSize     int    `mapstructure:"NodeAutoScalingInitSize"`
-			NodeImageID                 string `mapstructure:"NodeImageId"`
-			NodeInstanceType            string `mapstructure:"NodeInstanceType"`
-			NodeSpotPrice               string `mapstructure:"NodeSpotPrice"`
-			NodeVolumeSize              int    `mapstructure:"NodeVolumeSize"`
-			Subnets                     string `mapstructure:"Subnets"`
-		}
-
-		err = sdkCloudFormation.ParseStackParameters(stack.Parameters, &nodePoolParameters)
-		if err != nil {
-			nodePool.Status = eks.NodePoolStatusError
-			nodePool.StatusMessage = fmt.Sprintf(
-				"Retrieving node pool information failed: invalid CloudFormation stack parameters: %s", err,
-			)
-
-			continue
-		}
-
-		nodePool.Size = nodePoolParameters.NodeAutoScalingInitSize
-		nodePool.Autoscaling = eks.Autoscaling{
-			Enabled: nodePoolParameters.ClusterAutoscalerEnabled,
-			MinSize: nodePoolParameters.NodeAutoScalingGroupMinSize,
-			MaxSize: nodePoolParameters.NodeAutoScalingGroupMaxSize,
-		}
-		nodePool.VolumeSize = nodePoolParameters.NodeVolumeSize
-		nodePool.InstanceType = nodePoolParameters.NodeInstanceType
-		nodePool.Image = nodePoolParameters.NodeImageID
-		nodePool.SpotPrice = nodePoolParameters.NodeSpotPrice
-		nodePool.SubnetID = nodePoolParameters.Subnets // Note: currently we ensure a single value at creation.
-		nodePool.Status = eks.NewNodePoolStatusFromCFStackStatus(aws.StringValue(stack.StackStatus))
-		nodePool.StatusMessage = aws.StringValue(stack.StackStatusReason)
-	}
-
-	sort.Slice(nodePools, func(firstIndex, secondIndex int) (isLessThan bool) {
-		return nodePools[firstIndex].Name < nodePools[secondIndex].Name
+	stackDescriptions, err := cfClient.DescribeStacks(&cloudformation.DescribeStacksInput{
+		StackName: aws.String(stackIdentifier),
 	})
+	if err != nil {
+		return eks.NewNodePoolFromCFStackDescriptionError(err, existingNodePool)
+	} else if len(stackDescriptions.Stacks) == 0 {
+		return eks.NewNodePoolWithNoValues(
+			existingNodePool.Name,
+			eks.NodePoolStatusUnknown,
+			"retrieving node pool information failed: node pool not found",
+		)
+	} else if len(stackDescriptions.Stacks) > 1 {
+		return eks.NewNodePoolWithNoValues(
+			existingNodePool.Name,
+			eks.NodePoolStatusUnknown,
+			"retrieving node pool information failed: multiple node pools found",
+		)
+	}
 
-	return nodePools, nil
+	return eks.NewNodePoolFromCFStack(existingNodePool.Name, labels, stackDescriptions.Stacks[0])
 }
