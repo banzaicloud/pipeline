@@ -51,7 +51,7 @@ func InstallSecretToCluster(c *gin.Context) {
 		return
 	}
 
-	logger := correlationid.Logger(log, c)
+	logger := correlationid.LogrusLogger(log, c)
 
 	var request InstallSecretRequest
 	if err := c.BindJSON(&request); err != nil {
@@ -143,7 +143,7 @@ func MergeSecretInCluster(c *gin.Context) {
 		return
 	}
 
-	logger := correlationid.Logger(log, c)
+	logger := correlationid.LogrusLogger(log, c)
 
 	var request InstallSecretRequest
 	if err := c.BindJSON(&request); err != nil {

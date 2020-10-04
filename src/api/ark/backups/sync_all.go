@@ -30,7 +30,7 @@ import (
 
 // Sync syncs ARK backups for the organization
 func (b *orgBackups) Sync(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 	logger.Info("syncing backups")
 
 	org := auth.GetCurrentOrganization(c.Request)

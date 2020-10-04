@@ -29,7 +29,7 @@ import (
 
 // Sync synchronizes ARK buckets
 func Sync(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 	logger.Info("syncing backups from buckets")
 
 	org := auth.GetCurrentOrganization(c.Request)

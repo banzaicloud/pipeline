@@ -58,7 +58,7 @@ func (g *clusterGetter) GetClusterFromRequest(c *gin.Context) (cluster.CommonClu
 	var cl cluster.CommonCluster
 	var err error
 
-	logger := correlationid.Logger(g.logger, c)
+	logger := correlationid.LogrusLogger(g.logger, c)
 
 	ctx := ginutils.Context(context.Background(), c)
 

@@ -21,8 +21,8 @@ import (
 
 const correlationIdField = "correlation-id"
 
-// Logger returns a new logger instance with a correlation ID in it.
-func Logger(logger logrus.FieldLogger, ctx *gin.Context) logrus.FieldLogger {
+// LogrusLogger returns a new logger instance with a correlation ID in it.
+func LogrusLogger(logger logrus.FieldLogger, ctx *gin.Context) logrus.FieldLogger {
 	cid := ctx.GetString(ContextKey)
 
 	if cid == "" {

@@ -28,7 +28,7 @@ import (
 
 // List lists ARK backups
 func List(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 	logger.Info("getting backups")
 
 	cluserID, ok := ginutils.UintParam(c, ClusterIDParamName)
