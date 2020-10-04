@@ -15,18 +15,17 @@
 package eksmodel
 
 import (
-	"github.com/sirupsen/logrus"
-
+	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // nolint: gochecknoglobals
-var log logrus.FieldLogger
+var log common.Logger
 
 func init() {
-	log = global.LogrusLogger()
+	log = global.Logger()
 
-	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
+	global.SubscribeLogger(func(l common.Logger) {
 		log = l
 	})
 }
