@@ -64,7 +64,7 @@ func (EKSClusterModel) TableName() string {
 
 // AfterUpdate removes marked node pool(s)
 func (cm *EKSClusterModel) AfterUpdate(tx *gorm.DB) error {
-	log.WithField("clusterId", cm.ClusterID).Debug("remove node pools marked for deletion")
+	log.Debug("remove node pools marked for deletion", map[string]interface{}{"clusterId": cm.ClusterID})
 
 	for _, nodePoolModel := range cm.NodePools {
 		if nodePoolModel.Delete {
