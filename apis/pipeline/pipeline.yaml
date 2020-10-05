@@ -4659,17 +4659,6 @@ components:
 
         UpdateNodePoolRequest:
             oneOf:
-                # Note: in OpenAPI generator 4.3.1 single reference
-                # allOf/anyOf/oneOf schemas are generating empty Golang model
-                # types. The workaround is to add a second reference which does
-                # not modify the actual structure of the resulting type by using
-                # duplicate fields or even duplicate schemas.
-                #
-                # Issue:
-                # https://github.com/OpenAPITools/openapi-generator/issues/2164
-                # 
-                # Pull request:
-                # https://github.com/OpenAPITools/openapi-generator/pull/2897 
                 - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
                 - $ref: '#/components/schemas/PkeAwsUpdateNodePoolRequest'
 
