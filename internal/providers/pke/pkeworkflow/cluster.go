@@ -38,7 +38,7 @@ type Cluster interface {
 
 type AWSCluster interface {
 	GetAWSClient() (*session.Session, error)
-	GetBootstrapCommand(string, string, bool, string) (string, error)
+	GetBootstrapCommand(string, string, bool, string, []string, string) (string, error)
 	GetKubernetesVersion() (string, error)
 	GetKubernetesContainerRuntime() (string, error)
 	GetKubernetesNetworkProvider() (string, error)

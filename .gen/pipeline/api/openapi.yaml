@@ -19065,7 +19065,7 @@ components:
     UpdateNodePoolRequest:
       oneOf:
       - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
-      - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
+      - $ref: '#/components/schemas/PkeAwsUpdateNodePoolRequest'
     UpdateNodePoolResponse:
       example:
         processId: processId
@@ -19099,6 +19099,12 @@ components:
       - $ref: '#/components/schemas/BaseUpdateNodePoolRequest'
       - $ref: '#/components/schemas/EksUpdateNodePoolRequest_allOf'
       description: Node pool update request object for an EKS cluster.
+      type: object
+    PkeAwsUpdateNodePoolRequest:
+      allOf:
+      - $ref: '#/components/schemas/BaseUpdateNodePoolRequest'
+      - $ref: '#/components/schemas/PkeAwsUpdateNodePoolRequest_allOf'
+      description: Node pool update request object for an PKE AWS cluster.
       type: object
     BaseUpdateNodePoolOptions:
       description: Base node pool update options object for all cluster distributions.
@@ -23367,6 +23373,33 @@ components:
       required:
       - instanceType
     EksUpdateNodePoolRequest_allOf:
+      properties:
+        autoscaling:
+          $ref: '#/components/schemas/NodePoolAutoScaling'
+        volumeSize:
+          description: Size of the EBS volume in GBs of the nodes in the pool.
+          example: 50
+          type: integer
+        instanceType:
+          description: The instance type to use for your node pool.
+          example: m4.xlarge
+          type: string
+        image:
+          description: The instance AMI to use for your node pool.
+          example: ami-06d1667f
+          type: string
+        version:
+          description: The Kubernetes version to use for your node pool.
+          example: 1.18.6
+          type: string
+        spotPrice:
+          description: The upper limit price for the requested spot instance. If this
+            field is empty or 0 on-demand instances are used instead of spot instances.
+          example: "0.2"
+          type: string
+        options:
+          $ref: '#/components/schemas/BaseUpdateNodePoolOptions'
+    PkeAwsUpdateNodePoolRequest_allOf:
       properties:
         autoscaling:
           $ref: '#/components/schemas/NodePoolAutoScaling'

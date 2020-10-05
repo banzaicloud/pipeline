@@ -17,6 +17,7 @@ package main
 import (
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
 	pkeworkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
 )
 
@@ -25,4 +26,6 @@ func registerPKEWorkflows(passwordSecrets pkeworkflow.PasswordSecretStore) {
 		a := pkeworkflow.NewAssembleHTTPProxySettingsActivity(passwordSecrets)
 		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: pkeworkflow.AssembleHTTPProxySettingsActivityName})
 	}
+
+	pkeawsworkflow.NewUpdateNodePoolWorkflow().Register()
 }

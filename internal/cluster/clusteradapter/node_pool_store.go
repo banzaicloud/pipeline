@@ -22,6 +22,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
+	"github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )
 
@@ -72,6 +73,33 @@ func (s nodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name 
 		}
 
 		storedName = eksCluster.NodePools[0].Name
+
+	case c.Cloud == providers.Amazon && c.Distribution == "pke":
+		var pkeCluster pke.EC2PKEClusterModel
+
+		err := s.db.
+			Where(pke.EC2PKEClusterModel{ClusterID: clusterID}).
+			Preload("NodePools", "name = ?", name).
+			First(&pkeCluster).Error
+		if gorm.IsRecordNotFoundError(err) {
+			return false, "", errors.NewWithDetails(
+				"cluster model is inconsistent",
+				"clusterId", clusterID,
+			)
+		}
+		if err != nil {
+			return false, "", errors.WrapWithDetails(
+				err, "failed to check if node pool exists",
+				"clusterId", clusterID,
+				"nodePoolName", name,
+			)
+		}
+
+		if len(pkeCluster.NodePools) == 0 {
+			return false, "", nil
+		}
+
+		storedName = pkeCluster.NodePools[0].Name
 	default:
 		return false, "", errors.WithStack(cluster.NotSupportedDistributionError{
 			ID:           c.ID,

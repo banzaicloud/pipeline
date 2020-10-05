@@ -29,6 +29,8 @@ func registerAwsWorkflows(
 	secretStore pkeworkflow.SecretStore,
 	imageSelector pkeaws.ImageSelector,
 	pkeGlobalRegion string,
+	pipelineExternalURL string,
+	pipelineExternalURLInsecure bool,
 ) {
 	workflow.RegisterWithOptions(pkeworkflow.CreateClusterWorkflow{GlobalRegion: pkeGlobalRegion}.Execute, workflow.RegisterOptions{Name: pkeworkflow.CreateClusterWorkflowName})
 	workflow.RegisterWithOptions(pkeworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.DeleteClusterWorkflowName})
@@ -78,6 +80,12 @@ func registerAwsWorkflows(
 
 	createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters, tokenGenerator)
 	activity.RegisterWithOptions(createWorkerPoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateWorkerPoolActivityName})
+
+	updateNodePoolActivity := pkeworkflow.NewUpdateNodeGroupActivity(awsClientFactory, clusters, tokenGenerator, pipelineExternalURL, pipelineExternalURLInsecure)
+	activity.RegisterWithOptions(updateNodePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateNodeGroupActivityName})
+
+	calculateNodePoolVersionActivity := pkeworkflow.NewCalculateNodePoolVersionActivity()
+	activity.RegisterWithOptions(calculateNodePoolVersionActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CalculateNodePoolVersionActivityName})
 
 	deletePoolActivity := pkeworkflow.NewDeletePoolActivity(clusters)
 	activity.RegisterWithOptions(deletePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeletePoolActivityName})

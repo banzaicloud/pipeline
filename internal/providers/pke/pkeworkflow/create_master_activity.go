@@ -82,7 +82,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 		return "", errors.WrapIf(err, "can't generate Pipeline token")
 	}
 
-	bootstrapCommand, err := awsCluster.GetBootstrapCommand("master", input.ExternalBaseUrl, input.ExternalBaseUrlInsecure, signedToken)
+	bootstrapCommand, err := awsCluster.GetBootstrapCommand("master", input.ExternalBaseUrl, input.ExternalBaseUrlInsecure, signedToken, nil, "")
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to fetch bootstrap command")
 	}

@@ -783,7 +783,14 @@ func (c *EC2ClusterPKE) GetPipelineToken(tokenGenerator interface{}) (string, er
 }
 
 // GetBootstrapCommand returns a command line to use to install a node in the given nodepool
-func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecure bool, token string) (string, error) {
+func (c *EC2ClusterPKE) GetBootstrapCommand(
+	nodePoolName string,
+	url string,
+	urlInsecure bool,
+	token string,
+	labels []string,
+	version string,
+) (string, error) {
 	subcommand := "worker"
 	var np *internalPke.NodePool
 	for _, nodePool := range c.model.NodePools {
@@ -814,7 +821,9 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		return "", errors.WrapIfWithDetails(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
 	}
 
-	version := c.model.Kubernetes.Version
+	if version == "" {
+		version = c.model.Kubernetes.Version
+	}
 	if version == "" {
 		version = defaultK8sVersion
 	}
@@ -849,6 +858,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 			"--kubernetes-cloud-provider=aws "+
 			"--kubernetes-version=%q "+
 			"--kubernetes-container-runtime=%q "+
+			"--kubernetes-node-labels=%q "+
 			"--kubernetes-network-provider=%q "+
 			"--kubernetes-service-cidr=10.10.0.0/16 "+
 			"--kubernetes-pod-network-cidr=10.20.0.0/16 "+
@@ -866,6 +876,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 			nodePoolName,
 			version,
 			c.model.CRI.Runtime,
+			strings.Join(labels, ","),
 			kubernetesNetworkProvider,
 			apiAddress,
 			c.GetName(),
@@ -911,6 +922,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		"--kubernetes-cloud-provider=aws "+
 		"--kubernetes-version=%q "+
 		"--kubernetes-container-runtime=%q "+
+		"--kubernetes-node-labels=%q "+
 		"--kubernetes-infrastructure-cidr=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)/32 ",
 		subcommand,
 		url,
@@ -921,6 +933,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		nodePoolName,
 		version,
 		cri,
+		strings.Join(labels, ","),
 	), nil
 }
 
