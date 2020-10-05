@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,21 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package helm
+package auth
 
 import (
-	"github.com/sirupsen/logrus"
-
+	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // nolint: gochecknoglobals
-var log logrus.FieldLogger
+var log common.Logger
 
 func init() {
-	log = global.LogrusLogger()
+	log = global.Logger()
 
-	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
+	global.SubscribeLogger(func(l common.Logger) {
 		log = l
 	})
 }

@@ -31,7 +31,7 @@ import (
 
 // Delete deletes an ARK backup bucket
 func Delete(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 
 	bucketID, ok := ginutils.UintParam(c, IDParamName)
 	if !ok {

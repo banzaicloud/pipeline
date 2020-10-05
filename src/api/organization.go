@@ -148,7 +148,7 @@ func (a *OrganizationAPI) GetOrganizations(c *gin.Context) {
 
 // SyncOrganizations synchronizes github organizations.
 func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
-	logger := correlationid.Logger(log, c)
+	logger := correlationid.LogrusLogger(log, c)
 
 	logger.Info("synchronizing organizations")
 

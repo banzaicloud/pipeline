@@ -29,7 +29,7 @@ import (
 
 // List lists ARK backup buckets
 func List(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 	logger.Info("getting buckets")
 
 	bs := ark.BucketsServiceFactory(auth.GetCurrentOrganization(c.Request), global.DB(), logger)

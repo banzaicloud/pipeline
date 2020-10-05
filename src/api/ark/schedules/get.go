@@ -28,7 +28,7 @@ import (
 func Get(c *gin.Context) {
 	scheduleName := c.Param("name")
 
-	logger := correlationid.Logger(common.Log, c).WithField("schedule", scheduleName)
+	logger := correlationid.LogrusLogger(common.Log, c).WithField("schedule", scheduleName)
 	logger.Info("getting schedule")
 
 	schedule, err := common.GetARKService(c.Request).GetSchedulesService().GetByName(scheduleName)

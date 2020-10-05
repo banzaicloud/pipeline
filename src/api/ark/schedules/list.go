@@ -26,7 +26,7 @@ import (
 
 // List lists ARK schedules
 func List(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 	logger.Info("getting schedules")
 
 	schedules, err := common.GetARKService(c.Request).GetSchedulesService().List()

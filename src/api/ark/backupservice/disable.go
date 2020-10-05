@@ -29,7 +29,7 @@ import (
 // Disable removes ARK deployment from the cluster
 func Disable(helmService helm.UnifiedReleaser) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		logger := correlationid.Logger(common.Log, c)
+		logger := correlationid.LogrusLogger(common.Log, c)
 		logger.Info("removing backup service from cluster")
 
 		err := common.GetARKService(c.Request).GetDeploymentsService().Remove(helmService)

@@ -25,7 +25,7 @@ import (
 
 // GetLogs gets ARK backup logs from object store
 func GetLogs(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 
 	backupID, ok := ginutils.UintParam(c, IDParamName)
 	if !ok {

@@ -15,6 +15,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -204,7 +205,7 @@ func (c *Cluster) RemoveNodePools() error {
 		ClusterID: c.ID,
 	}).Find(&nodePools).Delete(&nodePools).Error
 	if err != nil {
-		log.Errorf("Error during deleting saved nodepools: %s", err.Error())
+		log.Error(fmt.Sprintf("Error during deleting saved nodepools: %s", err.Error()))
 	}
 
 	return nil
