@@ -17,12 +17,25 @@ package correlationid
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
 const correlationIdField = "correlation-id"
 
 // Logger returns a new logger instance with a correlation ID in it.
-func Logger(logger logrus.FieldLogger, ctx *gin.Context) logrus.FieldLogger {
+func Logger(logger common.Logger, ctx *gin.Context) common.Logger {
+	cid := ctx.GetString(ContextKey)
+
+	if cid == "" {
+		return logger
+	}
+
+	return logger.WithFields(map[string]interface{}{correlationIdField: cid})
+}
+
+// LogrusLogger returns a new logger instance with a correlation ID in it.
+func LogrusLogger(logger logrus.FieldLogger, ctx *gin.Context) logrus.FieldLogger {
 	cid := ctx.GetString(ContextKey)
 
 	if cid == "" {

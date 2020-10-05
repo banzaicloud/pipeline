@@ -4659,19 +4659,8 @@ components:
 
         UpdateNodePoolRequest:
             oneOf:
-                # Note: in OpenAPI generator 4.3.1 single reference
-                # allOf/anyOf/oneOf schemas are generating empty Golang model
-                # types. The workaround is to add a second reference which does
-                # not modify the actual structure of the resulting type by using
-                # duplicate fields or even duplicate schemas.
-                #
-                # Issue:
-                # https://github.com/OpenAPITools/openapi-generator/issues/2164
-                # 
-                # Pull request:
-                # https://github.com/OpenAPITools/openapi-generator/pull/2897 
                 - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
-                - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
+                - $ref: '#/components/schemas/PkeAwsUpdateNodePoolRequest'
 
         UpdateNodePoolResponse:
             type: object
@@ -4704,6 +4693,39 @@ components:
 
         EksUpdateNodePoolRequest:
             description: Node pool update request object for an EKS cluster.
+            type: object
+            allOf:
+                - $ref: '#/components/schemas/BaseUpdateNodePoolRequest'
+                -
+                    type: object
+                    properties:
+                        autoscaling:
+                            $ref: '#/components/schemas/NodePoolAutoScaling'
+                        volumeSize:
+                            description: Size of the EBS volume in GBs of the nodes in the pool.
+                            type: integer
+                            example: 50
+                        instanceType:
+                            description: The instance type to use for your node pool.
+                            type: string
+                            example: m4.xlarge
+                        image:
+                            description: The instance AMI to use for your node pool.
+                            type: string
+                            example: ami-06d1667f
+                        version:
+                            description: The Kubernetes version to use for your node pool.
+                            type: string
+                            example: "1.18.6"
+                        spotPrice:
+                            description: The upper limit price for the requested spot instance. If this field is empty or 0 on-demand instances are used instead of spot instances.
+                            type: string
+                            example: "0.2"
+                        options:
+                            $ref: '#/components/schemas/BaseUpdateNodePoolOptions'
+
+        PkeAwsUpdateNodePoolRequest:
+            description: Node pool update request object for an PKE AWS cluster.
             type: object
             allOf:
                 - $ref: '#/components/schemas/BaseUpdateNodePoolRequest'

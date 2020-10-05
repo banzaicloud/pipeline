@@ -27,7 +27,7 @@ import (
 
 // Create creates a new ARK restore
 func Create(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 	logger.Info("creating restore")
 
 	var req arkAPI.CreateRestoreRequest

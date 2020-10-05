@@ -26,7 +26,7 @@ import (
 
 // List lists ARK restores
 func List(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 	logger.Info("getting restores")
 
 	restores, err := common.GetARKService(c.Request).GetRestoresService().List()

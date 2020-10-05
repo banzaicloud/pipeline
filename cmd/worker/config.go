@@ -51,7 +51,8 @@ type configuration struct {
 	Pipeline struct {
 		Enterprise bool
 		External   struct {
-			URL string
+			URL      string
+			Insecure bool
 		}
 		UUID string
 	}
@@ -142,4 +143,5 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("pipeline::uuid", "")
 	v.SetDefault("pipeline::enterprise", false)
 	v.SetDefault("pipeline::external::url", "")
+	v.SetDefault("pipeline::external::insecure", false)
 }

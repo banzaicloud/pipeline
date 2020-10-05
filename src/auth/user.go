@@ -274,7 +274,7 @@ func GetUserNickNameById(userId uint) (userName string) {
 	}
 
 	if user, err := GetUserById(userId); err != nil {
-		log.Warnf("Error during getting user name: %s", err.Error())
+		log.Warn(fmt.Sprintf("Error during getting user name: %s", err.Error()))
 	} else {
 		userName = user.Login
 	}

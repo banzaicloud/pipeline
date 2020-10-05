@@ -29,7 +29,7 @@ import (
 
 // Sync synchronizes ARK restores
 func Sync(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 	logger.Info("syncing restores")
 
 	arkSvc := common.GetARKService(c.Request)

@@ -30,7 +30,7 @@ import (
 
 // Get gets an ARK backup bucket
 func Get(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 
 	bucketID, ok := ginutils.UintParam(c, IDParamName)
 	if !ok {

@@ -70,7 +70,7 @@ type BucketResponseItem struct {
 // ListAllBuckets handles 	bucket list requests. The handler method directs the flow to the appropriate retrieval
 // strategy based on the request header details
 func ListAllBuckets(c *gin.Context) {
-	logger := correlationid.Logger(log, c)
+	logger := correlationid.LogrusLogger(log, c)
 
 	if hasSecret(c) {
 		// fallback to the initial implementation
@@ -87,7 +87,7 @@ func ListAllBuckets(c *gin.Context) {
 // ListBuckets returns the list of object storage buckets (object storage container in case of Azure)
 // that can be accessed with the credentials from the given secret.
 func ListBuckets(c *gin.Context) {
-	logger := correlationid.Logger(log, c)
+	logger := correlationid.LogrusLogger(log, c)
 
 	organization, secretItem, cloudType, ok := getBucketContext(c, logger)
 	if !ok {
@@ -136,7 +136,7 @@ func ListBuckets(c *gin.Context) {
 
 // ListManagedBuckets lists managed buckets for the user when no secret is provided
 func ListManagedBuckets(c *gin.Context) {
-	logger := correlationid.Logger(log, c)
+	logger := correlationid.LogrusLogger(log, c)
 	organization := auth.GetCurrentOrganization(c.Request)
 
 	allProviders := []string{
@@ -187,7 +187,7 @@ func ListManagedBuckets(c *gin.Context) {
 // and also creates all requirements for them (eg.; ResourceGroup and StorageAccount in case of Azure).
 // These information are also stored to a database.
 func CreateBucket(c *gin.Context) {
-	logger := correlationid.Logger(log, c)
+	logger := correlationid.LogrusLogger(log, c)
 
 	organization := auth.GetCurrentOrganization(c.Request)
 
@@ -310,7 +310,7 @@ func CreateBucket(c *gin.Context) {
 
 // CheckBucket checks if the given there is a bucket exists with the given name
 func CheckBucket(c *gin.Context) {
-	logger := correlationid.Logger(log, c)
+	logger := correlationid.LogrusLogger(log, c)
 
 	bucketName := c.Param("name")
 	logger = logger.WithField("bucket", bucketName)
@@ -390,7 +390,7 @@ func DeleteBucket(c *gin.Context) {
 
 	force, _ := strconv.ParseBool(c.Query(forceQueryKey))
 
-	logger := correlationid.Logger(log, c)
+	logger := correlationid.LogrusLogger(log, c)
 
 	bucketName := c.Param("name")
 	logger = logger.WithField("bucket", bucketName)
@@ -581,7 +581,7 @@ type bucketController struct {
 // GetBucket handler for retrieving bucket details by name
 // it retrieves all the managed buckets and filters them by name
 func GetBucket(c *gin.Context) {
-	logger := correlationid.Logger(log, c)
+	logger := correlationid.LogrusLogger(log, c)
 
 	bucketName := c.Param("name")
 	if bucketName == "" {

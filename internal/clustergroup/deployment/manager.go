@@ -176,7 +176,7 @@ func (m CGDeploymentManager) upgradeDeploymentOnCluster(orgID uint, apiCluster a
 		return fmt.Errorf("error deploying chart: %v", err)
 	}
 
-	log.Info("upgrading cluster group deployment succeeded")
+	m.logger.Info("upgrading cluster group deployment succeeded")
 	return nil
 }
 
@@ -704,7 +704,7 @@ func (m CGDeploymentManager) CreateDeployment(clusterGroup *api.ClusterGroup, or
 	}
 
 	if cgDeployment.Namespace == "" {
-		log.Warn("Deployment namespace was not set failing back to default")
+		m.logger.Warn("Deployment namespace was not set failing back to default")
 		cgDeployment.Namespace = helm.DefaultNamespace
 	}
 
@@ -738,7 +738,7 @@ func (m CGDeploymentManager) UpdateDeployment(clusterGroup *api.ClusterGroup, or
 	}
 
 	if cgDeployment.Namespace == "" {
-		log.Warn("Deployment namespace was not set failing back to default")
+		m.logger.Warn("Deployment namespace was not set failing back to default")
 		cgDeployment.Namespace = helm.DefaultNamespace
 	}
 

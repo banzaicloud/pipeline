@@ -29,7 +29,7 @@ import (
 // StatusDeprecated gets an ARK backup deployment status by trying to create ARK client
 // Deprecated: use GET method instead
 func StatusDeprecated(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 	logger.Debug("checking ARK deployment status")
 
 	schedulesSvc := common.GetARKService(c.Request).GetSchedulesService()
@@ -48,7 +48,7 @@ func StatusDeprecated(c *gin.Context) {
 
 // Status gets an ARK backup deployment status by trying to create ARK client
 func Status(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
+	logger := correlationid.LogrusLogger(common.Log, c)
 	logger.Debug("checking ARK deployment status")
 
 	schedulesSvc := common.GetARKService(c.Request).GetSchedulesService()
