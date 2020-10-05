@@ -61,7 +61,6 @@ type NodePoolUpdate struct {
 }
 
 type NodePoolUpdateOptions struct {
-
 	// Maximum number of extra nodes that can be created during the update.
 	MaxSurge int `mapstructure:"maxSurge"`
 
