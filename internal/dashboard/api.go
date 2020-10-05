@@ -28,7 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/kubernetes/pkg/scheduler/nodeinfo"
+	schedulerframework "k8s.io/kubernetes/pkg/scheduler/framework/v1alpha1"
 
 	clusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/oidc"
@@ -164,13 +164,13 @@ func (d *DashboardAPI) GetClusterDashboard(c *gin.Context) {
 	c.JSON(http.StatusOK, clusterInfo)
 }
 
-func createNodeInfoMap(pods []v1.Pod, nodes []v1.Node) map[string]*nodeinfo.NodeInfo {
-	nodeInfoMap := make(map[string]*nodeinfo.NodeInfo)
+func createNodeInfoMap(pods []v1.Pod, nodes []v1.Node) map[string]*schedulerframework.NodeInfo {
+	nodeInfoMap := make(map[string]*schedulerframework.NodeInfo)
 	for _, pod := range pods {
 		nodeName := pod.Spec.NodeName
 		if len(nodeName) > 0 {
 			if _, ok := nodeInfoMap[nodeName]; !ok {
-				nodeInfoMap[nodeName] = nodeinfo.NewNodeInfo()
+				nodeInfoMap[nodeName] = schedulerframework.NewNodeInfo()
 			}
 			nodeInfoMap[nodeName].AddPod(pod.DeepCopy())
 		}
@@ -373,7 +373,7 @@ func (d *DashboardAPI) getClusterDashboardInfo(ctx context.Context, logger *logr
 func calculateNodeResourceUsage(
 	resourceName v1.ResourceName,
 	node v1.Node,
-	nodeInfoMap map[string]*nodeinfo.NodeInfo,
+	nodeInfoMap map[string]*schedulerframework.NodeInfo,
 	clusterResourceRequestMap map[v1.ResourceName]resource.Quantity,
 	clusterResourceAllocatableMap map[v1.ResourceName]resource.Quantity,
 ) (float64, string, string) {
@@ -398,8 +398,8 @@ func calculateNodeResourceUsage(
 	podsRequest := resource.MustParse("0")
 	nodeInfo := nodeInfoMap[node.Name]
 	if nodeInfo != nil {
-		for _, pod := range nodeInfo.Pods() {
-			for _, container := range pod.Spec.Containers {
+		for _, pod := range nodeInfo.Pods {
+			for _, container := range pod.Pod.Spec.Containers {
 				if resourceValue, found := container.Resources.Requests[resourceName]; found {
 					podsRequest.Add(resourceValue)
 				}
