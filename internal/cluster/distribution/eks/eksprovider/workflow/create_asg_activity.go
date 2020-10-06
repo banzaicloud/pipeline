@@ -37,11 +37,15 @@ type CreateAsgActivity struct {
 	awsSessionFactory AWSFactory
 	// body of the cloud formation template for setting up the VPC
 	cloudFormationTemplate string
+
+	nodePoolStore eks.NodePoolStore
 }
 
 // CreateAsgActivityInput holds data needed for setting up IAM roles
 type CreateAsgActivityInput struct {
 	EKSActivityInput
+
+	ClusterID uint
 
 	// name of the cloud formation template stack
 	StackName string
@@ -73,10 +77,15 @@ type CreateAsgActivityOutput struct {
 }
 
 // CreateAsgActivity instantiates a new CreateAsgActivity
-func NewCreateAsgActivity(awsSessionFactory AWSFactory, cloudFormationTemplate string) *CreateAsgActivity {
+func NewCreateAsgActivity(
+	awsSessionFactory AWSFactory,
+	cloudFormationTemplate string,
+	nodePoolStore eks.NodePoolStore,
+) *CreateAsgActivity {
 	return &CreateAsgActivity{
 		awsSessionFactory:      awsSessionFactory,
 		cloudFormationTemplate: cloudFormationTemplate,
+		nodePoolStore:          nodePoolStore,
 	}
 }
 
@@ -224,9 +233,24 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		TemplateBody:       aws.String(a.cloudFormationTemplate),
 		TimeoutInMinutes:   aws.Int64(10),
 	}
-	_, err = cloudformationClient.CreateStack(createStackInput)
+	createStackOutput, err := cloudformationClient.CreateStack(createStackInput)
 	if err != nil {
 		return nil, errors.WrapIff(err, "could not create '%s' CF stack", input.StackName)
+	} else if createStackOutput == nil {
+		return nil, errors.WrapIff(err, "missing stack ID for '%s' CF stack", input.StackName)
+	}
+
+	stackID := aws.StringValue(createStackOutput.StackId)
+	err = a.nodePoolStore.UpdateNodePoolStackID(
+		ctx,
+		input.EKSActivityInput.OrganizationID,
+		input.ClusterID,
+		input.EKSActivityInput.ClusterName,
+		input.Name,
+		stackID,
+	)
+	if err != nil {
+		return nil, errors.WrapIf(err, "updating stack ID failed")
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}

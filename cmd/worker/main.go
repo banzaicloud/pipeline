@@ -394,7 +394,7 @@ func main() {
 		registerAzureWorkflows(secretStore, tokenGenerator, azurePKEClusterStore)
 
 		// Register EKS specific workflows
-		err = registerEKSWorkflows(config, secret.Store, eksClusters)
+		err = registerEKSWorkflows(config, secret.Store, eksClusters, eksadapter.NewNodePoolStore(db))
 		if err != nil {
 			emperror.Panic(errors.WrapIf(err, "failed to register EKS workflows"))
 		}

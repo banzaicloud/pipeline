@@ -15,12 +15,15 @@
 package workflow
 
 import (
+	"context"
+	"fmt"
 	"time"
 
 	"emperror.dev/errors"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -70,9 +73,19 @@ type CreateInfrastructureWorkflowOutput struct {
 	ConfigSecretID     string
 }
 
-// CreateInfrastructureWorkflow executes the Cadence workflow responsible for creating EKS
+type CreateInfrastructureWorkflow struct {
+	nodePoolStore eks.NodePoolStore
+}
+
+func NewCreateInfrastructureWorkflow(nodePoolStore eks.NodePoolStore) (createInfrastructureWorkflow *CreateInfrastructureWorkflow) {
+	return &CreateInfrastructureWorkflow{
+		nodePoolStore: nodePoolStore,
+	}
+}
+
+// Execute executes the Cadence workflow responsible for creating EKS
 // cluster infrastructure such as VPC, subnets, EKS master nodes, worker nodes, etc
-func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructureWorkflowInput) (*CreateInfrastructureWorkflowOutput, error) {
+func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input CreateInfrastructureWorkflowInput) (*CreateInfrastructureWorkflowOutput, error) {
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 10 * time.Minute,
 		StartToCloseTimeout:    5 * time.Minute,
@@ -346,6 +359,16 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			var activityOutput GetAMISizeActivityOutput
 			err = workflow.ExecuteActivity(ctx, GetAMISizeActivityName, activityInput).Get(ctx, &activityOutput)
 			if err != nil {
+				_ = w.nodePoolStore.UpdateNodePoolStatus(
+					context.Background(),
+					input.OrganizationID,
+					input.ClusterID,
+					input.ClusterName,
+					asg.Name,
+					eks.NodePoolStatusError,
+					fmt.Sprintf("Validation failed: retrieving AMI size failed: %s", err),
+				)
+
 				return nil, err
 			}
 
@@ -361,6 +384,16 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 			var activityOutput SelectVolumeSizeActivityOutput
 			err = workflow.ExecuteActivity(ctx, SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
 			if err != nil {
+				_ = w.nodePoolStore.UpdateNodePoolStatus(
+					context.Background(),
+					input.OrganizationID,
+					input.ClusterID,
+					input.ClusterName,
+					asg.Name,
+					eks.NodePoolStatusError,
+					fmt.Sprintf("Validation failed: selecting volume size failed: %s", err),
+				)
+
 				return nil, err
 			}
 
@@ -369,6 +402,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateInfrastructu
 
 		activityInput := CreateAsgActivityInput{
 			EKSActivityInput: commonActivityInput,
+			ClusterID:        input.ClusterID,
 			StackName:        GenerateNodePoolStackName(input.ClusterName, asg.Name),
 
 			ScaleEnabled: input.ScaleEnabled,

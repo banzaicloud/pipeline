@@ -33,7 +33,8 @@ type CreateInfraWorkflowTestSuite struct {
 }
 
 func TestCreateInfraWorkflowTestSuite(t *testing.T) {
-	workflow.RegisterWithOptions(CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: CreateInfraWorkflowName})
+	createInfrastructureWorkflow := NewCreateInfrastructureWorkflow(nil)
+	workflow.RegisterWithOptions(createInfrastructureWorkflow.Execute, workflow.RegisterOptions{Name: CreateInfraWorkflowName})
 
 	createVPCActivity := NewCreateVPCActivity(nil, "")
 	activity.RegisterWithOptions(createVPCActivity.Execute, activity.RegisterOptions{Name: CreateVpcActivityName})
@@ -62,7 +63,7 @@ func TestCreateInfraWorkflowTestSuite(t *testing.T) {
 	selectVolumeSizeActivity := NewSelectVolumeSizeActivity(0)
 	activity.RegisterWithOptions(selectVolumeSizeActivity.Execute, activity.RegisterOptions{Name: SelectVolumeSizeActivityName})
 
-	createAsgActivity := NewCreateAsgActivity(nil, "")
+	createAsgActivity := NewCreateAsgActivity(nil, "", nil)
 	activity.RegisterWithOptions(createAsgActivity.Execute, activity.RegisterOptions{Name: CreateAsgActivityName})
 
 	createUserAccessKeyActivity := NewCreateClusterUserAccessKeyActivity(nil)
@@ -305,6 +306,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 
 	s.env.OnActivity(CreateAsgActivityName, mock.Anything, CreateAsgActivityInput{
 		EKSActivityInput:    eksActivity,
+		ClusterID:           1,
 		StackName:           "pipeline-eks-nodepool-test-cluster-name-pool1",
 		VpcID:               "new-vpc-id",
 		SecurityGroupID:     "test-eks-controlplane-security-group-id",
@@ -350,6 +352,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 
 	s.env.OnActivity(CreateAsgActivityName, mock.Anything, CreateAsgActivityInput{
 		EKSActivityInput:    eksActivity,
+		ClusterID:           1,
 		StackName:           "pipeline-eks-nodepool-test-cluster-name-pool2",
 		VpcID:               "new-vpc-id",
 		SecurityGroupID:     "test-eks-controlplane-security-group-id",
