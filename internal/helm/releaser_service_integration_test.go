@@ -30,7 +30,6 @@ import (
 )
 
 func testReleaserHelm(t *testing.T) {
-	t.Skip("FIXME: failing test")
 
 	helmFacade := getHelmFacade(t)
 	hasRun := t.Run("deleteReleaseBefore", testDeleteRelease(context.Background(), helmFacade, getTestReleases()[0].ReleaseName, helm.Options{}))
@@ -48,7 +47,7 @@ func testReleaserHelm(t *testing.T) {
 		t.Fatal("failed to get release")
 	}
 
-	filter := "a"
+	filter := "release"
 	hasRun = t.Run("listReleasesWithFilter", testListReleaseWithFilter(context.Background(), helmFacade, helm.ReleaseFilter{Filter: &filter}, helm.Options{}))
 	if !hasRun {
 		t.Fatal("failed list release with filter")
@@ -83,8 +82,8 @@ func setupOrgService(ctx context.Context, t *testing.T) helm.OrgService {
 
 func getTestReleases() []helm.Release {
 	return []helm.Release{
-		{ReleaseName: "release-abc", ChartName: "stable/mysql", Namespace: "default", Values: nil, Version: "5.7.28"},
-		{ReleaseName: "release-efg", ChartName: "stable/mysql", Namespace: "default", Values: nil, Version: "5.7.28"},
+		{ReleaseName: "release-abc", ChartName: "stable/mysql", Namespace: "default", Values: nil, Version: "1.6.6"},
+		{ReleaseName: "release-efg", ChartName: "stable/mysql", Namespace: "default", Values: nil, Version: "1.6.6"},
 	}
 }
 
