@@ -30,7 +30,6 @@ import (
 )
 
 func testReleaserHelm(t *testing.T) {
-
 	helmFacade := getHelmFacade(t)
 	hasRun := t.Run("deleteReleaseBefore", testDeleteRelease(context.Background(), helmFacade, getTestReleases()[0].ReleaseName, helm.Options{}))
 	if !hasRun {
