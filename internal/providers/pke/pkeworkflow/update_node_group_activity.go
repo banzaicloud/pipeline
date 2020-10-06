@@ -102,10 +102,6 @@ func (a UpdateNodeGroupActivity) Register() {
 
 // Execute is the main body of the activity, returns true if there was any update and that was successful.
 func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGroupActivityInput) (UpdateNodeGroupActivityOutput, error) {
-	if input.NodePoolName == "master" {
-		return UpdateNodeGroupActivityOutput{}, errors.New("updating master node pool is not yet supported")
-	}
-
 	providerSecret, err := brn.Parse(input.SecretID)
 	if err != nil {
 		return UpdateNodeGroupActivityOutput{}, errors.WrapIf(err, "failed to parse secret BRN")
@@ -118,6 +114,12 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
 		return UpdateNodeGroupActivityOutput{}, err
+	}
+
+	for _, np := range cluster.GetNodePools() {
+		if input.NodePoolName == np.Name && np.Master {
+			return UpdateNodeGroupActivityOutput{}, errors.New("updating master node pool is not yet supported")
+		}
 	}
 
 	awsCluster, ok := cluster.(AWSCluster)
