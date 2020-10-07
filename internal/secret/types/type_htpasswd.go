@@ -40,7 +40,7 @@ func (HtpasswdType) Name() string {
 func (HtpasswdType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
-			{Name: FieldHtpasswdUsername, Required: true, Opaque: true, Description: "Your username"},
+			{Name: FieldHtpasswdUsername, Required: true, IsSafeToDisplay: true, Opaque: true, Description: "Your username"},
 			{Name: FieldHtpasswdPassword, Required: false, Opaque: true, Description: "Your password"},
 			{Name: FieldHtpasswdFile, Required: false},
 		},

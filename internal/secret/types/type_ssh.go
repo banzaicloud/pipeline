@@ -37,10 +37,10 @@ func (SSHType) Name() string {
 func (SSHType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
-			{Name: FieldSSHUser, Required: true},
-			{Name: FieldSSHIdentifier, Required: true},
-			{Name: FieldSSHPublicKeyData, Required: true},
-			{Name: FieldSSHPublicKeyFingerprint, Required: true},
+			{Name: FieldSSHUser, Required: true, IsSafeToDisplay: true},
+			{Name: FieldSSHIdentifier, Required: true, IsSafeToDisplay: true},
+			{Name: FieldSSHPublicKeyData, Required: true, IsSafeToDisplay: true},
+			{Name: FieldSSHPublicKeyFingerprint, Required: true, IsSafeToDisplay: true},
 			{Name: FieldSSHPrivateKeyData, Required: true},
 		},
 	}

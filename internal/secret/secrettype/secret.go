@@ -16,10 +16,11 @@ package secrettype
 
 // FieldMeta describes how a secret field should be validated
 type FieldMeta struct {
-	Name        string `json:"name"`
-	Required    bool   `json:"required"`
-	Opaque      bool   `json:"opaque,omitempty"`
-	Description string `json:"description,omitempty"`
+	Name            string `json:"name"`
+	Required        bool   `json:"required"`
+	Opaque          bool   `json:"opaque,omitempty"`
+	Description     string `json:"description,omitempty"`
+	IsSafeToDisplay bool   `json:"isSafeToDisplay,omitempty"`
 }
 
 // Meta describes how a secret is built up and how it should be sourced
@@ -225,38 +226,38 @@ const (
 var DefaultRules = map[string]Meta{
 	Alibaba: {
 		Fields: []FieldMeta{
-			{Name: AlibabaRegion, Required: false, Description: "Alibaba Cloud region"},
-			{Name: AlibabaAccessKeyId, Required: true, Description: "Your Alibaba Cloud access key id"},
+			{Name: AlibabaRegion, Required: false, IsSafeToDisplay: true, Description: "Alibaba Cloud region"},
+			{Name: AlibabaAccessKeyId, Required: true, IsSafeToDisplay: true, Description: "Your Alibaba Cloud access key id"},
 			{Name: AlibabaSecretAccessKey, Required: true, Description: "Your Alibaba Cloud secret access key id"},
 		},
 	},
 	Amazon: {
 		Fields: []FieldMeta{
-			{Name: AwsRegion, Required: false, Description: "Amazon Cloud region"},
-			{Name: AwsAccessKeyId, Required: true, Description: "Your Amazon Cloud access key id"},
+			{Name: AwsRegion, Required: false, IsSafeToDisplay: true, Description: "Amazon Cloud region"},
+			{Name: AwsAccessKeyId, Required: true, IsSafeToDisplay: true, Description: "Your Amazon Cloud access key id"},
 			{Name: AwsSecretAccessKey, Required: true, Description: "Your Amazon Cloud secret access key id"},
 		},
 	},
 	Azure: {
 		Fields: []FieldMeta{
-			{Name: AzureClientID, Required: true, Description: "Your application client id"},
+			{Name: AzureClientID, Required: true, IsSafeToDisplay: true, Description: "Your application client id"},
 			{Name: AzureClientSecret, Required: true, Description: "Your client secret id"},
-			{Name: AzureTenantID, Required: true, Description: "Your tenant id"},
-			{Name: AzureSubscriptionID, Required: true, Description: "Your subscription id"},
+			{Name: AzureTenantID, Required: true, IsSafeToDisplay: true, Description: "Your tenant id"},
+			{Name: AzureSubscriptionID, Required: true, IsSafeToDisplay: true, Description: "Your subscription id"},
 		},
 	},
 	Google: {
 		Fields: []FieldMeta{
-			{Name: Type, Required: true, Description: "service_account"},
-			{Name: ProjectId, Required: true, Description: "Google Could Project Id. Find more about, Google Cloud secret fields here: https://banzaicloud.com/docs/pipeline/secrets/providers/gke_auth_credentials/#method-2-command-line"},
-			{Name: PrivateKeyId, Required: true, Description: "Id of you private key"},
+			{Name: Type, Required: true, IsSafeToDisplay: true, Description: "service_account"},
+			{Name: ProjectId, Required: true, IsSafeToDisplay: true, Description: "Google Could Project Id. Find more about, Google Cloud secret fields here: https://banzaicloud.com/docs/pipeline/secrets/providers/gke_auth_credentials/#method-2-command-line"},
+			{Name: PrivateKeyId, Required: true, IsSafeToDisplay: true, Description: "Id of you private key"},
 			{Name: PrivateKey, Required: true, Description: "Your private key "},
-			{Name: ClientEmail, Required: true, Description: "Google service account client email"},
-			{Name: ClientId, Required: true, Description: "Client Id"},
-			{Name: AuthUri, Required: true, Description: "OAuth2 authentatication IRU"},
-			{Name: TokenUri, Required: true, Description: "OAuth2 token URI"},
-			{Name: AuthX509Url, Required: true, Description: "OAuth2 provider ceritficate URL"},
-			{Name: ClientX509Url, Required: true, Description: "OAuth2 client ceritficate URL"},
+			{Name: ClientEmail, Required: true, IsSafeToDisplay: true, Description: "Google service account client email"},
+			{Name: ClientId, Required: true, IsSafeToDisplay: true, Description: "Client Id"},
+			{Name: AuthUri, Required: true, IsSafeToDisplay: true, Description: "OAuth2 authentatication IRU"},
+			{Name: TokenUri, Required: true, IsSafeToDisplay: true, Description: "OAuth2 token URI"},
+			{Name: AuthX509Url, Required: true, IsSafeToDisplay: true, Description: "OAuth2 provider ceritficate URL"},
+			{Name: ClientX509Url, Required: true, IsSafeToDisplay: true, Description: "OAuth2 client ceritficate URL"},
 		},
 	},
 	Kubernetes: {
@@ -266,40 +267,40 @@ var DefaultRules = map[string]Meta{
 	},
 	Oracle: {
 		Fields: []FieldMeta{
-			{Name: OracleUserOCID, Required: true, Description: "Your Oracle user OCID. Find more about, generating public key and fingerprint here: https://banzaicloud.com/docs/pipeline/secrets/providers/oci_auth_credentials/"},
-			{Name: OracleTenancyOCID, Required: true, Description: "Your tenancy OCID"},
-			{Name: OracleAPIKey, Required: true, Description: "Your public key"},
-			{Name: OracleAPIKeyFingerprint, Required: true, Description: "Fingerprint of you public key"},
-			{Name: OracleRegion, Required: true, Description: "Oracle region"},
-			{Name: OracleCompartmentOCID, Required: true, Description: "Your compartment OCID"},
+			{Name: OracleUserOCID, Required: true, IsSafeToDisplay: true, Description: "Your Oracle user OCID. Find more about, generating public key and fingerprint here: https://banzaicloud.com/docs/pipeline/secrets/providers/oci_auth_credentials/"},
+			{Name: OracleTenancyOCID, Required: true, IsSafeToDisplay: true, Description: "Your tenancy OCID"},
+			{Name: OracleAPIKey, Required: true, IsSafeToDisplay: true, Description: "Your public key"},
+			{Name: OracleAPIKeyFingerprint, Required: true, IsSafeToDisplay: true, Description: "Fingerprint of you public key"},
+			{Name: OracleRegion, Required: true, IsSafeToDisplay: true, Description: "Oracle region"},
+			{Name: OracleCompartmentOCID, Required: true, IsSafeToDisplay: true, Description: "Your compartment OCID"},
 		},
 	},
 	Vsphere: {
 		Fields: []FieldMeta{
-			{Name: VsphereURL, Required: true, Description: "The URL endpoint of the vSphere instance to use (don't include auth info)"},
-			{Name: VsphereUser, Required: true, Description: "Username to use for vSphere authentication"},
+			{Name: VsphereURL, Required: true, IsSafeToDisplay: true, Description: "The URL endpoint of the vSphere instance to use (don't include auth info)"},
+			{Name: VsphereUser, Required: true, IsSafeToDisplay: true, Description: "Username to use for vSphere authentication"},
 			{Name: VspherePassword, Required: true, Description: "Password to use for vSphere authentication"},
-			{Name: VsphereFingerprint, Required: true, Description: "Fingerprint of the server certificate of vCenter"},
-			{Name: VsphereDatacenter, Required: true, Description: "Datacenter to use to store persistent volumes"},
-			{Name: VsphereDatastore, Required: true, Description: "Datastore that is in the given datacenter, and is available on all nodes"},
-			{Name: VsphereResourcePool, Required: true, Description: "Resource pool to create  VMs"},
-			{Name: VsphereFolder, Required: true, Description: "The name of the folder (aka blue folder) to create VMs"},
-			{Name: VsphereDefaultNodeTemplate, Required: true, Description: "The name of the default template name for VMs"},
+			{Name: VsphereFingerprint, Required: true, IsSafeToDisplay: true, Description: "Fingerprint of the server certificate of vCenter"},
+			{Name: VsphereDatacenter, Required: true, IsSafeToDisplay: true, Description: "Datacenter to use to store persistent volumes"},
+			{Name: VsphereDatastore, Required: true, IsSafeToDisplay: true, Description: "Datastore that is in the given datacenter, and is available on all nodes"},
+			{Name: VsphereResourcePool, Required: true, IsSafeToDisplay: true, Description: "Resource pool to create  VMs"},
+			{Name: VsphereFolder, Required: true, IsSafeToDisplay: true, Description: "The name of the folder (aka blue folder) to create VMs"},
+			{Name: VsphereDefaultNodeTemplate, Required: true, IsSafeToDisplay: true, Description: "The name of the default template name for VMs"},
 		},
 	},
 	SSHSecretType: {
 		Fields: []FieldMeta{
-			{Name: User, Required: true},
-			{Name: Identifier, Required: true},
-			{Name: PublicKeyData, Required: true},
-			{Name: PublicKeyFingerprint, Required: true},
+			{Name: User, Required: true, IsSafeToDisplay: true},
+			{Name: Identifier, Required: true, IsSafeToDisplay: true},
+			{Name: PublicKeyData, Required: true, IsSafeToDisplay: true},
+			{Name: PublicKeyFingerprint, Required: true, IsSafeToDisplay: true},
 			{Name: PrivateKeyData, Required: true},
 		},
 	},
 	TLSSecretType: {
 		Fields: []FieldMeta{
-			{Name: TLSHosts, Required: true},
-			{Name: TLSValidity, Required: false},
+			{Name: TLSHosts, Required: true, IsSafeToDisplay: true},
+			{Name: TLSValidity, Required: false, IsSafeToDisplay: true},
 			{Name: CACert, Required: false},
 			{Name: CAKey, Required: false},
 			{Name: ServerKey, Required: false},
@@ -338,13 +339,13 @@ var DefaultRules = map[string]Meta{
 	},
 	PasswordSecretType: {
 		Fields: []FieldMeta{
-			{Name: Username, Required: true, Description: "Your username"},
+			{Name: Username, Required: true, IsSafeToDisplay: true, Description: "Your username"},
 			{Name: Password, Required: false, Description: "Your password"},
 		},
 	},
 	HtpasswdSecretType: {
 		Fields: []FieldMeta{
-			{Name: Username, Required: true, Opaque: true, Description: "Your username"},
+			{Name: Username, Required: true, IsSafeToDisplay: true, Opaque: true, Description: "Your username"},
 			{Name: Password, Required: false, Opaque: true, Description: "Your password"},
 			{Name: HtpasswdFile, Required: false},
 		},
@@ -352,7 +353,7 @@ var DefaultRules = map[string]Meta{
 	CloudFlareSecretType: {
 		Fields: []FieldMeta{
 			{Name: CfApiKey, Required: true, Opaque: true, Description: "Your API key"},
-			{Name: CfApiEmail, Required: true, Opaque: true, Description: "Your API E-mail"},
+			{Name: CfApiEmail, Required: true, IsSafeToDisplay: true, Opaque: true, Description: "Your API E-mail"},
 		},
 	},
 	DigitalOceanSecretType: {
@@ -367,7 +368,7 @@ var DefaultRules = map[string]Meta{
 	},
 	SlackSecretType: {
 		Fields: []FieldMeta{
-			{Name: SlackApiUrl, Required: true, Opaque: true, Description: "Slack URL to send alerts to"},
+			{Name: SlackApiUrl, Required: true, IsSafeToDisplay: true, Opaque: true, Description: "Slack URL to send alerts to"},
 		},
 	},
 	PagerDutySecretType: {

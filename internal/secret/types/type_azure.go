@@ -44,10 +44,10 @@ func (AzureType) Name() string {
 func (AzureType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
-			{Name: FieldAzureClientID, Required: true, Description: "Your application client id"},
+			{Name: FieldAzureClientID, Required: true, IsSafeToDisplay: true, Description: "Your application client id"},
 			{Name: FieldAzureClientSecret, Required: true, Description: "Your client secret id"},
-			{Name: FieldAzureTenantID, Required: true, Description: "Your tenant id"},
-			{Name: FieldAzureSubscriptionID, Required: true, Description: "Your subscription id"},
+			{Name: FieldAzureTenantID, Required: true, IsSafeToDisplay: true, Description: "Your tenant id"},
+			{Name: FieldAzureSubscriptionID, Required: true, IsSafeToDisplay: true, Description: "Your subscription id"},
 		},
 	}
 }

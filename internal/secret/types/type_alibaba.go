@@ -42,8 +42,8 @@ func (AlibabaType) Name() string {
 func (AlibabaType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
-			{Name: FieldAlibabaRegion, Required: false, Description: "Alibaba Cloud region"},
-			{Name: FieldAlibabaAccessKeyId, Required: true, Description: "Your Alibaba Cloud access key id"},
+			{Name: FieldAlibabaRegion, Required: false, IsSafeToDisplay: true, Description: "Alibaba Cloud region"},
+			{Name: FieldAlibabaAccessKeyId, Required: true, IsSafeToDisplay: true, Description: "Your Alibaba Cloud access key id"},
 			{Name: FieldAlibabaSecretAccessKey, Required: true, Description: "Your Alibaba Cloud secret access key id"},
 		},
 	}

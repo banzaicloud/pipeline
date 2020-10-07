@@ -35,7 +35,7 @@ func (CloudflareType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
 			{Name: FieldCloudflareApiKey, Required: true, Opaque: true, Description: "Your API key"},
-			{Name: FieldCloudflareApiEmail, Required: true, Opaque: true, Description: "Your API E-mail"},
+			{Name: FieldCloudflareApiEmail, Required: true, IsSafeToDisplay: true, Opaque: true, Description: "Your API E-mail"},
 		},
 	}
 }

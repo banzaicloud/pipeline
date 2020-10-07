@@ -41,15 +41,15 @@ func (VsphereType) Name() string {
 func (VsphereType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
-			{Name: FieldVsphereURL, Required: true, Description: "The URL endpoint of the vSphere instance to use (don't include auth info)"},
-			{Name: FieldVsphereUser, Required: true, Description: "Username to use for vSphere authentication"},
+			{Name: FieldVsphereURL, Required: true, IsSafeToDisplay: true, Description: "The URL endpoint of the vSphere instance to use (don't include auth info)"},
+			{Name: FieldVsphereUser, Required: true, IsSafeToDisplay: true, Description: "Username to use for vSphere authentication"},
 			{Name: FieldVspherePassword, Required: true, Description: "Password to use for vSphere authentication"},
-			{Name: FieldVsphereFingerprint, Required: true, Description: "Fingerprint of the server certificate of vCenter"},
-			{Name: FieldVsphereDatacenter, Required: true, Description: "Datacenter to use to store persistent volumes"},
-			{Name: FieldVsphereDatastore, Required: true, Description: "Datastore that is in the given datacenter, and is available on all nodes"},
-			{Name: FieldVsphereResourcePool, Required: true, Description: "Resource pool to create  VMs"},
-			{Name: FieldVsphereFolder, Required: true, Description: "The name of the folder (aka blue folder) to create VMs"},
-			{Name: FieldVsphereDefaultNodeTemplate, Required: true, Description: "The name of the default template name for VMs"},
+			{Name: FieldVsphereFingerprint, Required: true, IsSafeToDisplay: true, Description: "Fingerprint of the server certificate of vCenter"},
+			{Name: FieldVsphereDatacenter, Required: true, IsSafeToDisplay: true, Description: "Datacenter to use to store persistent volumes"},
+			{Name: FieldVsphereDatastore, Required: true, IsSafeToDisplay: true, Description: "Datastore that is in the given datacenter, and is available on all nodes"},
+			{Name: FieldVsphereResourcePool, Required: true, IsSafeToDisplay: true, Description: "Resource pool to create  VMs"},
+			{Name: FieldVsphereFolder, Required: true, IsSafeToDisplay: true, Description: "The name of the folder (aka blue folder) to create VMs"},
+			{Name: FieldVsphereDefaultNodeTemplate, Required: true, IsSafeToDisplay: true, Description: "The name of the default template name for VMs"},
 		},
 	}
 }

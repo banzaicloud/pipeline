@@ -4474,9 +4474,9 @@ components:
                 #
                 # Issue:
                 # https://github.com/OpenAPITools/openapi-generator/issues/2164
-                # 
+                #
                 # Pull request:
-                # https://github.com/OpenAPITools/openapi-generator/pull/2897 
+                # https://github.com/OpenAPITools/openapi-generator/pull/2897
                 - $ref: '#/components/schemas/CreateClusterRequestBase'
                 - $ref: '#/components/schemas/CreateClusterRequestBase'
             # oneOf:
@@ -4498,9 +4498,9 @@ components:
                 #
                 # Issue:
                 # https://github.com/OpenAPITools/openapi-generator/issues/2164
-                # 
+                #
                 # Pull request:
-                # https://github.com/OpenAPITools/openapi-generator/pull/2897 
+                # https://github.com/OpenAPITools/openapi-generator/pull/2897
                 - $ref: '#/components/schemas/EksNodePool'
                 - $ref: '#/components/schemas/EksNodePool'
 
@@ -6627,6 +6627,8 @@ components:
                                 type: string
                             required:
                                 type: boolean
+                            isSafeToDisplay:
+                                type: boolean
                             description:
                                 type: string
 
@@ -7211,9 +7213,9 @@ components:
                 #
                 # Issue:
                 # https://github.com/OpenAPITools/openapi-generator/issues/2164
-                # 
+                #
                 # Pull request:
-                # https://github.com/OpenAPITools/openapi-generator/pull/2897 
+                # https://github.com/OpenAPITools/openapi-generator/pull/2897
                 - $ref: '#/components/schemas/BasePostHook'
                 - $ref: '#/components/schemas/BasePostHook'
 
@@ -7641,9 +7643,9 @@ components:
                 #
                 # Issue:
                 # https://github.com/OpenAPITools/openapi-generator/issues/2164
-                # 
+                #
                 # Pull request:
-                # https://github.com/OpenAPITools/openapi-generator/pull/2897 
+                # https://github.com/OpenAPITools/openapi-generator/pull/2897
                 - $ref: '#/components/schemas/EksUpdateClusterRequest'
                 - $ref: '#/components/schemas/EksUpdateClusterRequest'
 
