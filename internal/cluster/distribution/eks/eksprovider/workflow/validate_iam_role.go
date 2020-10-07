@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 )
 
@@ -56,7 +57,7 @@ func (a *ValidateIAMRoleActivity) Execute(ctx context.Context, input ValidateIAM
 
 	iamSession := iam.New(awsSession)
 	if _, err := iamSession.GetRole(&iam.GetRoleInput{
-		RoleName: &id,
+		RoleName: aws.String(id),
 	}); err != nil {
 		return nil, errors.WrapIfWithDetails(err, "invalid cluster role ID", "roleID", input.ClusterRoleID)
 	}
