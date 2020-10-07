@@ -52,9 +52,11 @@ func (a *ValidateIAMRoleActivity) Execute(ctx context.Context, input ValidateIAM
 		return nil, err
 	}
 
+	id, _ := splitResourceId(input.ClusterRoleID)
+
 	iamSession := iam.New(awsSession)
 	if _, err := iamSession.GetRole(&iam.GetRoleInput{
-		RoleName: &input.ClusterRoleID,
+		RoleName: &id,
 	}); err != nil {
 		return nil, errors.WrapIfWithDetails(err, "invalid cluster role ID", "roleID", input.ClusterRoleID)
 	}
