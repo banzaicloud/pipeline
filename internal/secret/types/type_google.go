@@ -55,16 +55,16 @@ func (GoogleType) Name() string {
 func (GoogleType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
-			{Name: FieldGoogleType, Required: true, Description: "service_account"},
-			{Name: FieldGoogleProjectId, Required: true, Description: "Google Could Project Id. Find more about, Google Cloud secret fields here: https://banzaicloud.com/docs/pipeline/secrets/providers/gke_auth_credentials/#method-2-command-line"},
-			{Name: FieldGooglePrivateKeyId, Required: true, Description: "Id of you private key"},
+			{Name: FieldGoogleType, Required: true, IsSafeToDisplay: true, Description: "service_account"},
+			{Name: FieldGoogleProjectId, Required: true, IsSafeToDisplay: true, Description: "Google Could Project Id. Find more about, Google Cloud secret fields here: https://banzaicloud.com/docs/pipeline/secrets/providers/gke_auth_credentials/#method-2-command-line"},
+			{Name: FieldGooglePrivateKeyId, Required: true, IsSafeToDisplay: true, Description: "Id of you private key"},
 			{Name: FieldGooglePrivateKey, Required: true, Description: "Your private key "},
-			{Name: FieldGoogleClientEmail, Required: true, Description: "Google service account client email"},
-			{Name: FieldGoogleClientId, Required: true, Description: "Client Id"},
-			{Name: FieldGoogleAuthUri, Required: true, Description: "OAuth2 authentatication IRU"},
-			{Name: FieldGoogleTokenUri, Required: true, Description: "OAuth2 token URI"},
-			{Name: FieldGoogleAuthX509Url, Required: true, Description: "OAuth2 provider ceritficate URL"},
-			{Name: FieldGoogleClientX509Url, Required: true, Description: "OAuth2 client ceritficate URL"},
+			{Name: FieldGoogleClientEmail, Required: true, IsSafeToDisplay: true, Description: "Google service account client email"},
+			{Name: FieldGoogleClientId, Required: true, IsSafeToDisplay: true, Description: "Client Id"},
+			{Name: FieldGoogleAuthUri, Required: true, IsSafeToDisplay: true, Description: "OAuth2 authentatication IRU"},
+			{Name: FieldGoogleTokenUri, Required: true, IsSafeToDisplay: true, Description: "OAuth2 token URI"},
+			{Name: FieldGoogleAuthX509Url, Required: true, IsSafeToDisplay: true, Description: "OAuth2 provider ceritficate URL"},
+			{Name: FieldGoogleClientX509Url, Required: true, IsSafeToDisplay: true, Description: "OAuth2 client ceritficate URL"},
 		},
 	}
 }

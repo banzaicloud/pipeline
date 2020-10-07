@@ -16,5 +16,7 @@ type SecretTypeResponseFields struct {
 
 	Required bool `json:"required,omitempty"`
 
+	IsSafeToDisplay bool `json:"isSafeToDisplay,omitempty"`
+
 	Description string `json:"description,omitempty"`
 }

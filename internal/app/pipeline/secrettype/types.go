@@ -29,10 +29,11 @@ type TypeDefinition struct {
 
 // TypeField represents the fields in a secret.
 type TypeField struct {
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	Required    bool   `json:"required"`
-	Opaque      bool   `json:"opaque,omitempty"`
+	Name            string `json:"name"`
+	Description     string `json:"description,omitempty"`
+	Required        bool   `json:"required"`
+	IsSafeToDisplay bool   `json:"isSafeToDisplay,omitempty"`
+	Opaque          bool   `json:"opaque,omitempty"`
 }
 
 // +kit:endpoint:errorStrategy=service

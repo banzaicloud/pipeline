@@ -39,12 +39,12 @@ func (OracleType) Name() string {
 func (OracleType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
-			{Name: FieldOracleUserOCID, Required: true, Description: "Your Oracle user OCID. Find more about, generating public key and fingerprint here: https://banzaicloud.com/docs/pipeline/secrets/providers/oci_auth_credentials/"},
-			{Name: FieldOracleTenancyOCID, Required: true, Description: "Your tenancy OCID"},
-			{Name: FieldOracleAPIKey, Required: true, Description: "Your public key"},
-			{Name: FieldOracleAPIKeyFingerprint, Required: true, Description: "Fingerprint of you public key"},
-			{Name: FieldOracleRegion, Required: true, Description: "Oracle region"},
-			{Name: FieldOracleCompartmentOCID, Required: true, Description: "Your compartment OCID"},
+			{Name: FieldOracleUserOCID, Required: true, IsSafeToDisplay: true, Description: "Your Oracle user OCID. Find more about, generating public key and fingerprint here: https://banzaicloud.com/docs/pipeline/secrets/providers/oci_auth_credentials/"},
+			{Name: FieldOracleTenancyOCID, Required: true, IsSafeToDisplay: true, Description: "Your tenancy OCID"},
+			{Name: FieldOracleAPIKey, Required: true, IsSafeToDisplay: true, Description: "Your public key"},
+			{Name: FieldOracleAPIKeyFingerprint, Required: true, IsSafeToDisplay: true, Description: "Fingerprint of you public key"},
+			{Name: FieldOracleRegion, Required: true, IsSafeToDisplay: true, Description: "Oracle region"},
+			{Name: FieldOracleCompartmentOCID, Required: true, IsSafeToDisplay: true, Description: "Your compartment OCID"},
 		},
 	}
 }

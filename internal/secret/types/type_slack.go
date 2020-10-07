@@ -33,7 +33,7 @@ func (SlackType) Name() string {
 func (SlackType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
-			{Name: FieldSlackApiUrl, Required: true, Opaque: true, Description: "Slack URL to send alerts to"},
+			{Name: FieldSlackApiUrl, Required: true, IsSafeToDisplay: true, Opaque: true, Description: "Slack URL to send alerts to"},
 		},
 	}
 }

@@ -33,7 +33,7 @@ func (DigitalOceanType) Name() string {
 func (DigitalOceanType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
-			{Name: FieldDigitalOceanToken, Required: true, Opaque: true, Description: "Your API Token"},
+			{Name: FieldDigitalOceanToken, Required: true, IsSafeToDisplay: true, Opaque: true, Description: "Your API Token"},
 		},
 	}
 }

@@ -20883,9 +20883,11 @@ components:
       example:
         fields:
         - name: name
+          isSafeToDisplay: true
           description: description
           required: true
         - name: name
+          isSafeToDisplay: true
           description: description
           required: true
       properties:
@@ -24117,12 +24119,15 @@ components:
     SecretTypeResponse_fields:
       example:
         name: name
+        isSafeToDisplay: true
         description: description
         required: true
       properties:
         name:
           type: string
         required:
+          type: boolean
+        isSafeToDisplay:
           type: boolean
         description:
           type: string

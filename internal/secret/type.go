@@ -35,10 +35,11 @@ type TypeDefinition struct {
 
 // FieldDefinition describes a secret field.
 type FieldDefinition struct {
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	Required    bool   `json:"required"`
-	Opaque      bool   `json:"opaque,omitempty"`
+	Name            string `json:"name"`
+	Description     string `json:"description,omitempty"`
+	Required        bool   `json:"required"`
+	IsSafeToDisplay bool   `json:"IsSafeToDisplay,omitempty"`
+	Opaque          bool   `json:"opaque,omitempty"`
 }
 
 // GeneratorType can be implemented by a secret type that adds secret generation abilities to the type.

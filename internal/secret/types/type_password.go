@@ -41,7 +41,7 @@ func (PasswordType) Name() string {
 func (PasswordType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
-			{Name: FieldPasswordUsername, Required: true, Description: "Your username"},
+			{Name: FieldPasswordUsername, Required: true, IsSafeToDisplay: true, Description: "Your username"},
 			{Name: FieldPasswordPassword, Required: false, Description: "Your password"},
 		},
 	}

@@ -34,7 +34,7 @@ func (AzureStorageAccountType) Name() string {
 func (AzureStorageAccountType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
-			{Name: FieldAzureStorageAccount, Required: true},
+			{Name: FieldAzureStorageAccount, IsSafeToDisplay: true, Required: true},
 			{Name: FieldAzureStorageAccountAccessKey, Required: true},
 		},
 	}

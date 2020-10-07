@@ -43,8 +43,8 @@ func (AmazonType) Name() string {
 func (AmazonType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
-			{Name: FieldAmazonRegion, Required: false, Description: "Amazon Cloud region"},
-			{Name: FieldAmazonAccessKeyId, Required: true, Description: "Your Amazon Cloud access key id"},
+			{Name: FieldAmazonRegion, Required: false, IsSafeToDisplay: true, Description: "Amazon Cloud region"},
+			{Name: FieldAmazonAccessKeyId, Required: true, IsSafeToDisplay: true, Description: "Your Amazon Cloud access key id"},
 			{Name: FieldAmazonSecretAccessKey, Required: true, Description: "Your Amazon Cloud secret access key id"},
 		},
 	}

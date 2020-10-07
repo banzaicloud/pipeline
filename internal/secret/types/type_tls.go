@@ -51,8 +51,8 @@ func (TLSType) Name() string {
 func (TLSType) Definition() secret.TypeDefinition {
 	return secret.TypeDefinition{
 		Fields: []secret.FieldDefinition{
-			{Name: FieldTLSHosts, Required: true},
-			{Name: FieldTLSValidity, Required: false},
+			{Name: FieldTLSHosts, Required: true, IsSafeToDisplay: true},
+			{Name: FieldTLSValidity, Required: false, IsSafeToDisplay: true},
 			{Name: FieldTLSCACert, Required: false},
 			{Name: FieldTLSCAKey, Required: false},
 			{Name: FieldTLSServerKey, Required: false},
