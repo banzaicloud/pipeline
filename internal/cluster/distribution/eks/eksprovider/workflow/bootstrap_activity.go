@@ -149,31 +149,8 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 
 	logger.Debug("creating aws-auth configmap")
 
-	mapRoles := fmt.Sprintf(mapRolesTemplate, input.NodeInstanceRoleArn)
-
-	// The aws-iam-authenticator doesn't handle path currently in role mappings:
-	// https://github.com/kubernetes-sigs/aws-iam-authenticator/issues/268
-	// Once this bug gets fixed our code won't work, so we are making it future
-	// compatible by adding the role id with and without path to the mapping.
-	roleMeta, roleResource := findResourceInRoleARN(input.NodeInstanceRoleArn)
-	roleID, rolePath := splitResourceId(roleResource)
-	if rolePath != "/" {
-		mapRoles += fmt.Sprintf(mapRolesTemplate, roleMeta+"/"+roleID)
-	}
-
-	mapUsers := fmt.Sprintf(mapUsersTemplate, input.ClusterUserArn, userNameFromArn(input.ClusterUserArn))
-	defaultAWSConfigMap := fmt.Sprintf(`apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: aws-auth
-  namespace: kube-system
-data:
-  mapRoles: |
-%s
-  mapUsers: |
-%s`, mapRoles, mapUsers)
-
-	mergedConfigMap, err := mergeAuthConfigMaps(defaultAWSConfigMap, input.AuthConfigMap)
+	defaultAWSAuthConfigMap := newDefaultAWSAuthConfigMap(input.ClusterUserArn, input.NodeInstanceRoleArn)
+	mergedConfigMap, err := mergeAuthConfigMaps(defaultAWSAuthConfigMap, input.AuthConfigMap)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to merge config map")
 	}
@@ -395,4 +372,33 @@ func mergeDefaultMapWithInput(key, defaultData, inputData string) ([]byte, error
 	}
 
 	return result, nil
+}
+
+// newDefaultAWSAuthConfigMap constructs an AWS auth config map from the
+// specified cluster user and node instance role.
+func newDefaultAWSAuthConfigMap(clusterUserARN, nodeInstanceRoleARN string) (defaultAWSAuthConfigMap string) {
+	mapRoles := fmt.Sprintf(mapRolesTemplate, nodeInstanceRoleARN)
+
+	// The aws-iam-authenticator doesn't handle path currently in role mappings:
+	// https://github.com/kubernetes-sigs/aws-iam-authenticator/issues/268
+	// Once this bug gets fixed our code won't work, so we are making it future
+	// compatible by adding the role id with and without path to the mapping.
+	roleMeta, roleResource := findResourceInRoleARN(nodeInstanceRoleARN)
+	roleID, rolePath := splitResourceId(roleResource)
+	if rolePath != "/" {
+		mapRoles += fmt.Sprintf(mapRolesTemplate, roleMeta+"/"+roleID)
+	}
+
+	mapUsers := fmt.Sprintf(mapUsersTemplate, clusterUserARN, userNameFromArn(clusterUserARN))
+
+	return fmt.Sprintf(`apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
+data:
+  mapRoles: |
+%s
+  mapUsers: |
+%s`, mapRoles, mapUsers)
 }
