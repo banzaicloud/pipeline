@@ -43,14 +43,14 @@ import (
 
 const BootstrapActivityName = "eks-bootstrap"
 
-const mapRolesTemplate = `- rolearn: %s
+const mapRolesTemplate = `    - rolearn: %s
       username: system:node:{{EC2PrivateDNSName}}
       groups:
       - system:bootstrappers
       - system:nodes
 `
 
-const mapUsersTemplate = `- userarn: %s
+const mapUsersTemplate = `    - userarn: %s
       username: %s
       groups:
       - system:masters
@@ -169,9 +169,9 @@ metadata:
   namespace: kube-system
 data:
   mapRoles: |
-    %s
+%s
   mapUsers: |
-    %s`, mapRoles, mapUsers)
+%s`, mapRoles, mapUsers)
 
 	mergedConfigMap, err := mergeAuthConfigMaps(defaultAWSConfigMap, input.AuthConfigMap)
 	if err != nil {
