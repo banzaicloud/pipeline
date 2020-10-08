@@ -1,9 +1,13 @@
 name: CI
 
 on:
+  schedule:
+    - cron: '0 5 * * *' # everyday at 5 am UTC
   push:
     branches:
       - master
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
   pull_request:
 
 jobs:
