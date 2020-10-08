@@ -109,9 +109,9 @@ require (
 	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/yaml.v2 v2.3.0
 	helm.sh/helm/v3 v3.2.4
-	k8s.io/api v0.18.6
+	k8s.io/api v0.19.2
 	k8s.io/apiextensions-apiserver v0.18.6
-	k8s.io/apimachinery v0.18.6
+	k8s.io/apimachinery v0.19.2
 	k8s.io/cli-runtime v0.18.6
 	k8s.io/client-go v0.18.6
 	k8s.io/cluster-bootstrap v0.18.6
