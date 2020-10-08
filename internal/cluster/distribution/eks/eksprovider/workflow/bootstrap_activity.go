@@ -18,9 +18,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
-	"regexp"
-	"strings"
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
@@ -33,36 +30,15 @@ import (
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/scheme"
 	storageUtil "k8s.io/kubernetes/pkg/apis/storage/util"
 
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	sdkeks "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/eks"
 )
 
 const BootstrapActivityName = "eks-bootstrap"
-
-const mapRolesTemplate = `    - rolearn: %s
-      username: system:node:{{EC2PrivateDNSName}}
-      groups:
-      - system:bootstrappers
-      - system:nodes
-`
-
-const mapUsersTemplate = `    - userarn: %s
-      username: %s
-      groups:
-      - system:masters
-`
-
-// nolint: gochecknoglobals
-var iamRoleARNRegexp = regexp.MustCompile("arn:aws:iam::([0-9]{12}):role")
-
-func findResourceInRoleARN(iamRoleARN string) (string, string) {
-	arnMeta := iamRoleARNRegexp.Find([]byte(iamRoleARN))
-	return string(arnMeta), strings.TrimPrefix(iamRoleARN, string(arnMeta))
-}
 
 // CreateEksControlPlaneActivity creates aws-auth map & default StorageClass on cluster
 type BootstrapActivity struct {
@@ -149,8 +125,8 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 
 	logger.Debug("creating aws-auth configmap")
 
-	defaultAWSAuthConfigMap := newDefaultAWSAuthConfigMap(input.ClusterUserArn, input.NodeInstanceRoleArn)
-	mergedConfigMap, err := mergeAuthConfigMaps(defaultAWSAuthConfigMap, input.AuthConfigMap)
+	defaultAWSAuthConfigMap := sdkeks.NewDefaultAWSAuthConfigMap(input.ClusterUserArn, input.NodeInstanceRoleArn)
+	mergedConfigMap, err := sdkeks.MergeAuthConfigMaps(defaultAWSAuthConfigMap, input.AuthConfigMap)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to merge config map")
 	}
@@ -281,124 +257,4 @@ func createDefaultStorageClass(ctx context.Context, kubernetesClient *kubernetes
 	}
 
 	return nil
-}
-
-func userNameFromArn(arn string) string {
-	idx := strings.LastIndex(arn, "/")
-
-	return arn[idx+1:]
-}
-
-type mergeFunc func(key, defaultData, inputData string) ([]byte, error)
-
-func mergeAuthConfigMaps(defaultConfigMap, inputConfigMap string) (*v1.ConfigMap, error) {
-	var defaultAWSConfigMap v1.ConfigMap
-	_, _, err := scheme.Codecs.UniversalDeserializer().Decode([]byte(defaultConfigMap), nil, &defaultAWSConfigMap)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to decode default config map")
-	}
-
-	var inputAWSConfigMap v1.ConfigMap
-	_, _, err = scheme.Codecs.UniversalDeserializer().Decode([]byte(inputConfigMap), nil, &inputAWSConfigMap)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to decode input config map")
-	}
-
-	mergedConfigMap := defaultAWSConfigMap
-
-	functions := map[string]mergeFunc{
-		"mapUsers":    mergeDefaultMapWithInput,
-		"mapRoles":    mergeDefaultMapWithInput,
-		"mapAccounts": mergeDefaultStrArrayWithInput,
-	}
-
-	for key, merge := range functions {
-		mergedValue, err := merge(key, defaultAWSConfigMap.Data[key], inputAWSConfigMap.Data[key])
-		if err != nil {
-			return nil, errors.WrapIf(err, "failed to merge "+key+" default value and input")
-		}
-
-		mergedConfigMap.Data[key] = string(mergedValue)
-	}
-
-	return &mergedConfigMap, nil
-}
-
-func mergeDefaultStrArrayWithInput(key, defaultData, inputData string) ([]byte, error) {
-	var defaultValue []string
-	err := yaml.Unmarshal([]byte(defaultData), &defaultValue)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to unmarshal "+key+" from: "+defaultData)
-	}
-
-	var inputValue []string
-	err = yaml.Unmarshal([]byte(inputData), &inputValue)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to unmarshal "+key+" from: "+inputData)
-	}
-
-	var result []byte
-	value := append(defaultValue, inputValue...)
-	if value != nil {
-		result, err = yaml.Marshal(value)
-		if err != nil {
-			return nil, errors.WrapIf(err, "failed to marshal "+key+" to yaml")
-		}
-	}
-
-	return result, nil
-}
-
-func mergeDefaultMapWithInput(key, defaultData, inputData string) ([]byte, error) {
-	var defaultValue []map[string]interface{}
-	err := yaml.Unmarshal([]byte(defaultData), &defaultValue)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to unmarshal "+key+" from: "+defaultData)
-	}
-
-	var inputValue []map[string]interface{}
-	err = yaml.Unmarshal([]byte(inputData), &inputValue)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to unmarshal "+key+" from: "+inputData)
-	}
-
-	var result []byte
-	value := append(defaultValue, inputValue...)
-	if value != nil {
-		result, err = yaml.Marshal(value)
-		if err != nil {
-			return nil, errors.WrapIf(err, "failed to marshal "+key+" to yaml")
-		}
-	}
-
-	return result, nil
-}
-
-// newDefaultAWSAuthConfigMap constructs an AWS auth config map from the
-// specified cluster user and node instance role.
-func newDefaultAWSAuthConfigMap(clusterUserARN, nodeInstanceRoleARN string) (defaultAWSAuthConfigMap string) {
-	mapRoles := fmt.Sprintf(mapRolesTemplate, nodeInstanceRoleARN)
-
-	// The aws-iam-authenticator doesn't handle path currently in role mappings:
-	// https://github.com/kubernetes-sigs/aws-iam-authenticator/issues/268
-	// Once this bug gets fixed our code won't work, so we are making it future
-	// compatible by adding the role id with and without path to the mapping.
-	roleMeta, roleResource := findResourceInRoleARN(nodeInstanceRoleARN)
-	roleID, rolePath := splitResourceId(roleResource)
-	if rolePath != "/" {
-		mapRoles += fmt.Sprintf(mapRolesTemplate, roleMeta+"/"+roleID)
-	}
-
-	mapUsers := fmt.Sprintf(mapUsersTemplate, clusterUserARN, userNameFromArn(clusterUserARN))
-
-	return fmt.Sprintf(`apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: aws-auth
-  namespace: kube-system
-data:
-  mapRoles: |
-%s
-  mapUsers: |
-%s`, mapRoles, mapUsers)
 }
