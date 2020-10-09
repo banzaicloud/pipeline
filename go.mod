@@ -63,7 +63,7 @@ require (
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/microcosm-cc/bluemonday v1.0.2
 	github.com/mitchellh/copystructure v1.0.0
-	github.com/mitchellh/mapstructure v1.1.2
+	github.com/mitchellh/mapstructure v1.3.3
 	github.com/moogar0880/problems v0.1.1
 	github.com/oklog/run v1.1.0
 	github.com/oracle/oci-go-sdk v2.0.0+incompatible
