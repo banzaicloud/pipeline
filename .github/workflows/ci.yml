@@ -214,8 +214,9 @@ jobs:
       - name: Docker build info
         id: info
         run: |
-          DOCKER_IMAGE=ghcr.io/banzaicloud/pipeline
+          DOCKER_IMAGES="ghcr.io/banzaicloud/pipeline banzaicloud/pipeline"
           VERSION=noop
+
           if [ "${{ github.event_name }}" = "schedule" ]; then
             VERSION=nightly
           elif [[ $GITHUB_REF == refs/tags/* ]]; then
@@ -228,10 +229,16 @@ jobs:
           elif [[ $GITHUB_REF == refs/pull/* ]]; then
             VERSION=pr-${{ github.event.number }}
           fi
-          TAGS="${DOCKER_IMAGE}:${VERSION}"
-          if [[ $VERSION =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            TAGS="$TAGS,${DOCKER_IMAGE}:latest"
-          fi
+
+          TAGS=""
+          for image in $DOCKER_IMAGES; do
+            TAGS="$TAGS,${image}:${VERSION}"
+            if [[ $VERSION =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              TAGS="$TAGS,${image}:latest"
+            fi
+          done
+
+          TAGS="$(echo ${TAGS} | sed -e 's/^,*//')"
 
           echo ::set-output name=version::${VERSION}
           echo ::set-output name=tags::${TAGS}
@@ -249,6 +256,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.CR_PAT }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push
         id: docker_build
