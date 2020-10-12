@@ -35,12 +35,10 @@ import (
 	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
 )
 
-const awsNoUpdatesError = "No updates are to be performed."
+const UpdateMasterNodeGroupActivityName = "pke-aws-update-master-node-group"
 
-const UpdateNodeGroupActivityName = "pke-aws-update-node-group"
-
-// UpdateNodeGroupActivity updates an existing node group.
-type UpdateNodeGroupActivity struct {
+// UpdateMasterNodeGroupActivity updates a master node group.
+type UpdateMasterNodeGroupActivity struct {
 	sessionFactory AWSFactory
 	clusters       Clusters
 	tokenGenerator TokenGenerator
@@ -49,8 +47,8 @@ type UpdateNodeGroupActivity struct {
 	externalBaseURLInsecure bool
 }
 
-// UpdateNodeGroupActivityInput holds the parameters for the node group update.
-type UpdateNodeGroupActivityInput struct {
+// UpdateMasterNodeGroupActivityInput holds the parameters for the node group update.
+type UpdateMasterNodeGroupActivityInput struct {
 	SecretID string
 	Region   string
 
@@ -69,24 +67,22 @@ type UpdateNodeGroupActivityInput struct {
 	Version         string
 	DesiredCapacity int64
 
-	MaxBatchSize int
-
 	ClusterTags map[string]string
 }
 
-type UpdateNodeGroupActivityOutput struct {
+type UpdateMasterNodeGroupActivityOutput struct {
 	NodePoolChanged bool
 }
 
-// NewUpdateNodeGroupActivity creates a new UpdateNodeGroupActivity instance.
-func NewUpdateNodeGroupActivity(
+// NewUpdateMasterNodeGroupActivity creates a new UpdateMasterNodeGroupActivity instance.
+func NewUpdateMasterNodeGroupActivity(
 	sessionFactory AWSFactory,
 	clusters Clusters,
 	tokenGenerator TokenGenerator,
 	externalBaseURL string,
 	externalBaseURLInsecure bool,
-) UpdateNodeGroupActivity {
-	return UpdateNodeGroupActivity{
+) UpdateMasterNodeGroupActivity {
+	return UpdateMasterNodeGroupActivity{
 		sessionFactory:          sessionFactory,
 		clusters:                clusters,
 		tokenGenerator:          tokenGenerator,
@@ -96,40 +92,42 @@ func NewUpdateNodeGroupActivity(
 }
 
 // Register registers the activity in the worker.
-func (a UpdateNodeGroupActivity) Register() {
-	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: UpdateNodeGroupActivityName})
+func (a UpdateMasterNodeGroupActivity) Register() {
+	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: UpdateMasterNodeGroupActivityName})
 }
 
 // Execute is the main body of the activity, returns true if there was any update and that was successful.
-func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGroupActivityInput) (UpdateNodeGroupActivityOutput, error) {
+func (a UpdateMasterNodeGroupActivity) Execute(ctx context.Context, input UpdateMasterNodeGroupActivityInput) (UpdateMasterNodeGroupActivityOutput, error) {
 	providerSecret, err := brn.Parse(input.SecretID)
 	if err != nil {
-		return UpdateNodeGroupActivityOutput{}, errors.WrapIf(err, "failed to parse secret BRN")
+		return UpdateMasterNodeGroupActivityOutput{}, errors.WrapIf(err, "failed to parse secret BRN")
 	}
 	sess, err := a.sessionFactory.New(providerSecret.OrganizationID, providerSecret.ResourceID, input.Region)
 	if err = errors.WrapIf(err, "failed to create AWS session"); err != nil { // internal error?
-		return UpdateNodeGroupActivityOutput{}, err
+		return UpdateMasterNodeGroupActivityOutput{}, err
 	}
 
 	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
-		return UpdateNodeGroupActivityOutput{}, err
+		return UpdateMasterNodeGroupActivityOutput{}, err
 	}
 
+	var isMultiMaster bool
 	for _, np := range cluster.GetNodePools() {
 		if input.NodePoolName == np.Name && np.Master {
-			return UpdateNodeGroupActivityOutput{}, errors.New("updating master node pool is not supported with this activity")
+			isMultiMaster = np.Count > 1
+			break
 		}
 	}
 
 	awsCluster, ok := cluster.(AWSCluster)
 	if !ok {
-		return UpdateNodeGroupActivityOutput{}, errors.Errorf("can't cast to AWS cluster %t", cluster)
+		return UpdateMasterNodeGroupActivityOutput{}, errors.Errorf("can't cast to AWS cluster %t", cluster)
 	}
 
 	_, signedToken, err := a.tokenGenerator.GenerateClusterToken(input.OrganizationID, input.ClusterID)
 	if err != nil {
-		return UpdateNodeGroupActivityOutput{}, errors.WrapIf(err, "can't generate Pipeline token")
+		return UpdateMasterNodeGroupActivityOutput{}, errors.WrapIf(err, "can't generate Pipeline token")
 	}
 
 	nodeLabels := []string{
@@ -149,66 +147,28 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		input.Version,
 	)
 	if err != nil {
-		return UpdateNodeGroupActivityOutput{}, errors.WrapIf(err, "failed to fetch bootstrap command")
+		return UpdateMasterNodeGroupActivityOutput{}, errors.WrapIf(err, "failed to fetch bootstrap command")
 	}
 
-	template, err := cloudformation2.GetCloudFormationTemplate(PKECloudFormationTemplateBasePath, WorkerCloudFormationTemplate)
+	templateFile := "master.cf.yaml"
+	if isMultiMaster {
+		templateFile = "masters.cf.yaml"
+	}
+
+	template, err := cloudformation2.GetCloudFormationTemplate(PKECloudFormationTemplateBasePath, templateFile)
 	if err != nil {
-		return UpdateNodeGroupActivityOutput{}, errors.WrapIf(err, "loading CF template")
+		return UpdateMasterNodeGroupActivityOutput{}, errors.WrapIf(err, "loading CF template")
 	}
 
 	cloudformationClient := cloudformation.New(sess)
 
 	stackParams := []*cloudformation.Parameter{
 		{
-			ParameterKey:     aws.String("KeyName"),
-			UsePreviousValue: aws.Bool(true),
-		},
-		sdkCloudFormation.NewOptionalStackParameter(
-			"ImageId",
-			input.NodeImage != "",
-			input.NodeImage,
-		),
-		{
-			ParameterKey:     aws.String("InstanceType"),
-			UsePreviousValue: aws.Bool(true),
-		},
-		{
-			ParameterKey:     aws.String("NodeSpotPrice"),
-			UsePreviousValue: aws.Bool(true),
-		},
-		{
-			ParameterKey:     aws.String("MinSize"),
-			UsePreviousValue: aws.Bool(true),
-		},
-		{
-			ParameterKey:     aws.String("MaxSize"),
-			UsePreviousValue: aws.Bool(true),
-		},
-		sdkCloudFormation.NewOptionalStackParameter(
-			"DesiredCapacity",
-			input.DesiredCapacity > 0,
-			fmt.Sprint(input.DesiredCapacity),
-		),
-		sdkCloudFormation.NewOptionalStackParameter(
-			"VolumeSize",
-			input.NodeVolumeSize > 0,
-			fmt.Sprint(input.NodeVolumeSize),
-		),
-		{
 			ParameterKey:     aws.String("ClusterName"),
 			UsePreviousValue: aws.Bool(true),
 		},
 		{
-			ParameterKey:     aws.String("NodeGroupName"),
-			UsePreviousValue: aws.Bool(true),
-		},
-		{
-			ParameterKey:     aws.String("VPCDefaultSecurityGroupId"),
-			UsePreviousValue: aws.Bool(true),
-		},
-		{
-			ParameterKey:     aws.String("ClusterSecurityGroup"),
+			ParameterKey:     aws.String("InstanceType"),
 			UsePreviousValue: aws.Bool(true),
 		},
 		{
@@ -216,19 +176,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			UsePreviousValue: aws.Bool(true),
 		},
 		{
-			ParameterKey:     aws.String("SSHLocation"),
-			UsePreviousValue: aws.Bool(true),
-		},
-		{
-			ParameterKey:     aws.String("SubnetIds"),
-			UsePreviousValue: aws.Bool(true),
-		},
-		{
-			ParameterKey:     aws.String("IamInstanceProfile"),
-			UsePreviousValue: aws.Bool(true),
-		},
-		{
-			ParameterKey:     aws.String("ClusterAutoscalerEnabled"),
+			ParameterKey:     aws.String("VPCDefaultSecurityGroupId"),
 			UsePreviousValue: aws.Bool(true),
 		},
 		{
@@ -236,16 +184,58 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			ParameterValue: aws.String(bootstrapCommand),
 		},
 		{
+			ParameterKey:     aws.String("IamInstanceProfile"),
+			UsePreviousValue: aws.Bool(true),
+		},
+		sdkCloudFormation.NewOptionalStackParameter(
+			"ImageId",
+			input.NodeImage != "",
+			input.NodeImage,
+		),
+		sdkCloudFormation.NewOptionalStackParameter(
+			"VolumeSize",
+			input.NodeVolumeSize > 0,
+			fmt.Sprint(input.NodeVolumeSize),
+		),
+		{
 			ParameterKey:     aws.String("PkeVersion"),
 			UsePreviousValue: aws.Bool(true),
 		},
+		{
+			ParameterKey:     aws.String("KeyName"),
+			UsePreviousValue: aws.Bool(true),
+		},
+	}
+
+	if isMultiMaster {
+		stackParams = append(stackParams,
+			[]*cloudformation.Parameter{
+				{
+					ParameterKey:     aws.String("TargetGroup"),
+					UsePreviousValue: aws.Bool(true),
+				}, {
+					ParameterKey:     aws.String("SubnetIds"),
+					UsePreviousValue: aws.Bool(true),
+				},
+			}...)
+	} else {
+		stackParams = append(stackParams,
+			[]*cloudformation.Parameter{
+				{
+					ParameterKey:     aws.String("EIPAllocationId"),
+					UsePreviousValue: aws.Bool(true),
+				}, {
+					ParameterKey:     aws.String("SubnetId"),
+					UsePreviousValue: aws.Bool(true),
+				},
+			}...)
 	}
 
 	// we don't reuse the creation time template, since it may have changed
 	updateStackInput := &cloudformation.UpdateStackInput{
 		ClientRequestToken: aws.String(sdkAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID)),
 		StackName:          aws.String(input.StackName),
-		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
+		Capabilities:       aws.StringSlice([]string{cloudformation.CapabilityCapabilityAutoExpand}),
 		Parameters:         stackParams,
 		Tags:               getNodePoolStackTags(input.ClusterName, input.ClusterTags),
 		TemplateBody:       aws.String(template),
@@ -254,7 +244,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 	_, err = cloudformationClient.UpdateStack(updateStackInput)
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ValidationError" && strings.HasPrefix(awsErr.Message(), awsNoUpdatesError) {
-			return UpdateNodeGroupActivityOutput{}, nil
+			return UpdateMasterNodeGroupActivityOutput{}, nil
 		}
 
 		var awsErr awserr.Error
@@ -263,12 +253,12 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 				err = pkgCloudFormation.NewAwsStackFailure(err, input.StackName, aws.StringValue(updateStackInput.ClientRequestToken), cloudformationClient)
 				err = errors.WrapIff(err, "waiting for %q CF stack update operation to complete failed", input.StackName)
 				if pkgCloudFormation.IsErrorFinal(err) {
-					return UpdateNodeGroupActivityOutput{}, cadence.NewCustomError(ErrReasonStackFailed, err.Error())
+					return UpdateMasterNodeGroupActivityOutput{}, cadence.NewCustomError(ErrReasonStackFailed, err.Error())
 				}
-				return UpdateNodeGroupActivityOutput{}, errors.WrapIff(err, "waiting for %q CF stack update operation to complete failed", input.StackName)
+				return UpdateMasterNodeGroupActivityOutput{}, errors.WrapIff(err, "waiting for %q CF stack update operation to complete failed", input.StackName)
 			}
 		}
 	}
 
-	return UpdateNodeGroupActivityOutput{NodePoolChanged: true}, nil
+	return UpdateMasterNodeGroupActivityOutput{NodePoolChanged: true}, nil
 }

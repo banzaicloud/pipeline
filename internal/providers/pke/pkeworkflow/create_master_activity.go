@@ -74,7 +74,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 
 	awsCluster, ok := cluster.(AWSCluster)
 	if !ok {
-		return "", errors.New(fmt.Sprintf("can't create VPC for cluster type %t", cluster))
+		return "", errors.Errorf("can't cast to AWS cluster %t", cluster)
 	}
 
 	_, signedToken, err := a.tokenGenerator.GenerateClusterToken(cluster.GetOrganizationId(), cluster.GetID())
@@ -108,11 +108,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 	params := []*cloudformation.Parameter{
 		{
 			ParameterKey:   aws.String("ClusterName"),
-			ParameterValue: &clusterName,
-		},
-		{
-			ParameterKey:   aws.String("PkeCommand"),
-			ParameterValue: &bootstrapCommand,
+			ParameterValue: aws.String(clusterName),
 		},
 		{
 			ParameterKey:   aws.String("InstanceType"),
@@ -120,19 +116,19 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 		},
 		{
 			ParameterKey:   aws.String("VPCId"),
-			ParameterValue: &input.VPCID,
+			ParameterValue: aws.String(input.VPCID),
 		},
 		{
 			ParameterKey:   aws.String("VPCDefaultSecurityGroupId"),
-			ParameterValue: &input.VPCDefaultSecurityGroupID,
+			ParameterValue: aws.String(input.VPCDefaultSecurityGroupID),
 		},
 		{
 			ParameterKey:   aws.String("PkeCommand"),
-			ParameterValue: &bootstrapCommand,
+			ParameterValue: aws.String(bootstrapCommand),
 		},
 		{
 			ParameterKey:   aws.String("IamInstanceProfile"),
-			ParameterValue: &input.MasterInstanceProfile,
+			ParameterValue: aws.String(input.MasterInstanceProfile),
 		},
 		{
 			ParameterKey:   aws.String("ImageId"),
@@ -180,7 +176,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 
 	stackInput := &cloudformation.CreateStackInput{
 		Capabilities: aws.StringSlice([]string{cloudformation.CapabilityCapabilityAutoExpand}),
-		StackName:    &stackName,
+		StackName:    aws.String(stackName),
 		TemplateBody: aws.String(string(buf)),
 		Parameters:   params,
 		Tags:         amazon.PipelineTags(),
