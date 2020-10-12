@@ -108,12 +108,12 @@ require (
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/yaml.v2 v2.3.0
-	helm.sh/helm/v3 v3.2.4
+	helm.sh/helm/v3 v3.3.4
 	k8s.io/api v0.19.2
-	k8s.io/apiextensions-apiserver v0.18.6
+	k8s.io/apiextensions-apiserver v0.18.8
 	k8s.io/apimachinery v0.19.2
-	k8s.io/cli-runtime v0.18.6
-	k8s.io/client-go v0.18.6
+	k8s.io/cli-runtime v0.18.8
+	k8s.io/client-go v0.18.8
 	k8s.io/cluster-bootstrap v0.18.6
 	k8s.io/klog v1.0.0
 	k8s.io/kubernetes v1.18.6
@@ -136,9 +136,6 @@ replace (
 
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
 	github.com/qor/auth => github.com/banzaicloud/auth v0.1.3
-
-	// https://github.com/helm/helm/compare/release-3.2...banzaicloud:release-3.2.4
-	helm.sh/helm/v3 => github.com/banzaicloud/helm/v3 v3.0.0-20200728185519-26acd29df4fb
 
 	// Kubernetes
 	k8s.io/api => k8s.io/api v0.18.6
