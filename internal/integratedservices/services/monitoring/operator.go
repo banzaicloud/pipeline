@@ -291,7 +291,7 @@ func (op IntegratedServiceOperator) installPrometheusOperator(
 				Repository: op.config.Images.Operator.Repository,
 				Tag:        op.config.Images.Operator.Tag,
 			},
-			CleanupCustomResource: true,
+			CleanupCustomResource: false,
 			CreateCustomResource:  true,
 		},
 		Grafana:      valuesManager.generateGrafanaChartValues(spec.Grafana, grafanaUser, grafanaPass, op.config.Images.Grafana),
