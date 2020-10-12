@@ -23,6 +23,8 @@ import (
 	"github.com/mitchellh/copystructure"
 	"github.com/mitchellh/mapstructure"
 	"k8s.io/api/storage/v1beta1"
+	v1beta12 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/banzaicloud/pipeline/internal/common"
@@ -212,6 +214,11 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 	// delete prometheus pushgateway deployment
 	if err := op.helmService.DeleteDeployment(ctx, clusterID, prometheusPushgatewayReleaseName, op.config.Namespace); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to delete deployment", "release", prometheusPushgatewayReleaseName)
+	}
+
+	//delete custom resources
+	if err := op.cleanupCRDs(ctx, clusterID); err != nil {
+		op.logger.Warn("failed to delete CRDs", map[string]interface{}{"failures": err})
 	}
 
 	return nil
@@ -787,4 +794,33 @@ func (op IntegratedServiceOperator) getDefaultStorageClassName(ctx context.Conte
 		}
 	}
 	return defaultStorageClassName, nil
+}
+
+// cleanupCRDs deletes CRDs after the release is deleted
+func (op IntegratedServiceOperator) cleanupCRDs(ctx context.Context, clusterID uint) error {
+
+	// list with the monitoring related CRDs
+	crdNames := []string{
+		"alertmanagers.monitoring.coreos.com",
+		"podmonitors.monitoring.coreos.com",
+		"prometheuses.monitoring.coreos.com",
+		"prometheusrules.monitoring.coreos.com",
+		"servicemonitors.monitoring.coreos.com",
+		"thanosrulers.monitoring.coreos.com",
+	}
+
+	var failures error
+	for _, crdName := range crdNames {
+		crd := v1beta12.CustomResourceDefinition{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: crdName,
+			},
+		}
+		op.logger.Debug("deleting CRD", map[string]interface{}{"name": crdName})
+		if err := op.kubernetesService.DeleteObject(ctx, clusterID, &crd); err != nil {
+			failures = errors.Append(failures, err)
+		}
+	}
+	return failures
+
 }
