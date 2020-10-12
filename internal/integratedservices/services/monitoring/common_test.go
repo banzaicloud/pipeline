@@ -188,6 +188,10 @@ func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, rel
 type dummyKubernetesService struct {
 }
 
+func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+	return nil
+}
+
 func (s *dummyKubernetesService) List(ctx context.Context, clusterID uint, labels map[string]string, o runtime.Object) error {
 	return nil
 }

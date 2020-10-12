@@ -23,4 +23,7 @@ import (
 type KubernetesService interface {
 	// List lists Objects on specific cluster.
 	List(ctx context.Context, clusterID uint, labels map[string]string, o runtime.Object) error
+
+	// DeleteObject deletes the passed in object from the  cluster
+	DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error
 }
