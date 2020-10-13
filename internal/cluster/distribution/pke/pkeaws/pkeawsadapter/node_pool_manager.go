@@ -17,20 +17,29 @@ package pkeawsadapter
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
+	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
 )
 
 type nodePoolManager struct {
-	enterprise     bool
-	namespace      string
-	workflowClient client.Client
+	enterprise            bool
+	namespace             string
+	workflowClient        client.Client
+	awsFactory            workflow.AWSFactory
+	cloudFormationFactory workflow.CloudFormationAPIFactory
+	dynamicClientFactory  cluster.DynamicKubeClientFactory
 }
 
 // NewNodePoolManager returns a new pke.NodePoolManager
@@ -39,11 +48,17 @@ func NewNodePoolManager(
 	enterprise bool,
 	namespace string,
 	workflowClient client.Client,
+	awsFactory workflow.AWSFactory,
+	cloudFormationFactory workflow.CloudFormationAPIFactory,
+	dynamicClientFactory cluster.DynamicKubeClientFactory,
 ) pke.NodePoolManager {
 	return nodePoolManager{
-		enterprise:     enterprise,
-		namespace:      namespace,
-		workflowClient: workflowClient,
+		enterprise:            enterprise,
+		namespace:             namespace,
+		workflowClient:        workflowClient,
+		awsFactory:            awsFactory,
+		cloudFormationFactory: cloudFormationFactory,
+		dynamicClientFactory:  dynamicClientFactory,
 	}
 }
 
@@ -105,6 +120,126 @@ func generateNodePoolStackName(clusterName string, poolName string) string {
 }
 
 // ListNodePools lists node pools from a cluster.
-func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Cluster, nodePoolNames []string) ([]pke.NodePool, error) {
-	panic("implement me")
+func (n nodePoolManager) ListNodePools(
+	ctx context.Context,
+	c cluster.Cluster,
+	existingNodePools map[string]pke.ExistingNodePool,
+) (nodePools []pke.NodePool, err error) {
+	if c.ConfigSecretID.ResourceID == "" || // Note: cluster is being created or errorred before k8s secret would be available.
+		c.Status == cluster.Deleting {
+		return nil, cluster.NotReadyError{
+			OrganizationID: c.OrganizationID,
+			ID:             c.ID,
+			Name:           c.Name,
+		}
+	}
+
+	labelSets, err := n.getLabelSets(ctx, c)
+	if err != nil {
+		return nil, errors.WrapIfWithDetails(err, "retrieving node pool label sets failed",
+			"organizationId", c.OrganizationID,
+			"clusterId", c.ID,
+			"clusterName", c.Name,
+		)
+	}
+
+	cloudFormationClient, err := n.newCloudFormationClient(ctx, c)
+	if err != nil {
+		return nil, errors.WrapIfWithDetails(err, "instantiating CloudFormation client failed",
+			"organizationId", c.OrganizationID,
+			"clusterId", c.ID,
+			"clusterName", c.Name,
+		)
+	}
+
+	nodePools = make([]pke.NodePool, 0, len(nodePools))
+	for _, existingNodePool := range existingNodePools {
+		nodePools = append(nodePools, newNodePoolFromCloudFormation(
+			cloudFormationClient,
+			existingNodePool,
+			generateNodePoolStackName(c.Name, existingNodePool.Name),
+			labelSets[existingNodePool.Name],
+		))
+	}
+
+	sort.Slice(nodePools, func(firstIndex, secondIndex int) (isLessThan bool) {
+		return nodePools[firstIndex].Name < nodePools[secondIndex].Name
+	})
+
+	return nodePools, nil
+}
+
+// newCloudFormationClient instantiates a CloudFormation client from the
+// manager's factories.
+func (n nodePoolManager) newCloudFormationClient(
+	ctx context.Context, c cluster.Cluster,
+) (cloudFormationClient cloudformationiface.CloudFormationAPI, err error) {
+	awsClient, err := n.awsFactory.New(c.OrganizationID, c.SecretID.ResourceID, c.Location)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "creating aws factory failed",
+			"organizationId", c.OrganizationID,
+			"location", c.Location,
+			"secretId", c.SecretID.ResourceID,
+		)
+	}
+
+	return n.cloudFormationFactory.New(awsClient), nil
+}
+
+// getLabelSets retrieves the Kubernetes label sets of the node pools.
+func (n nodePoolManager) getLabelSets(
+	ctx context.Context, c cluster.Cluster,
+) (labelSets map[string]map[string]string, err error) {
+	clusterClient, err := n.dynamicClientFactory.FromSecret(ctx, c.ConfigSecretID.String())
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "creating dynamic Kubernetes client factory failed",
+			"configSecretId", c.ConfigSecretID.String(),
+		)
+	}
+
+	manager := npls.NewManager(clusterClient, n.namespace)
+	labelSets, err = manager.GetAll(ctx)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "listing node pool label sets failed",
+			"namespace", n.namespace,
+		)
+	}
+
+	return labelSets, nil
+}
+
+// newNodePoolFromCloudFormation tries to describe the node pool's stack and
+// return all available information about it or a descriptive status and status
+// message.
+func newNodePoolFromCloudFormation(
+	cfClient cloudformationiface.CloudFormationAPI,
+	existingNodePool pke.ExistingNodePool,
+	stackName string, // Note: temporary until we eliminate stack name usage.
+	labels map[string]string,
+) (nodePool pke.NodePool) {
+	stackIdentifier := existingNodePool.StackID
+	if stackIdentifier == "" { // Note: CloudFormation stack creation not started yet.
+		stackIdentifier = stackName
+	}
+
+	stackDescriptions, err := cfClient.DescribeStacks(&cloudformation.DescribeStacksInput{
+		StackName: aws.String(stackIdentifier),
+	})
+	if err != nil {
+		return pke.NewNodePoolFromCFStackDescriptionError(err, existingNodePool)
+	} else if len(stackDescriptions.Stacks) == 0 {
+		return pke.NewNodePoolWithNoValues(
+			existingNodePool.Name,
+			pke.NodePoolStatusUnknown,
+			"retrieving node pool information failed: node pool not found",
+		)
+	} else if len(stackDescriptions.Stacks) > 1 {
+		return pke.NewNodePoolWithNoValues(
+			existingNodePool.Name,
+			pke.NodePoolStatusUnknown,
+			"retrieving node pool information failed: multiple node pools found",
+		)
+	}
+
+	return pke.NewNodePoolFromCFStack(existingNodePool.Name, labels, stackDescriptions.Stacks[0])
 }

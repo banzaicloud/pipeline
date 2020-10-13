@@ -16,10 +16,15 @@ package pke
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"emperror.dev/errors"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
 )
 
 // +testify:mock
@@ -84,16 +89,52 @@ type NodePoolUpdateDrainOptions struct {
 
 // NodePool encapsulates information about a cluster node pool.
 type NodePool struct {
-	Name         string            `mapstructure:"name"`
-	Labels       map[string]string `mapstructure:"labels"`
-	Size         int               `mapstructure:"size"`
-	Autoscaling  Autoscaling       `mapstructure:"autoscaling"`
-	VolumeSize   int               `mapstructure:"volumeSize"`
-	InstanceType string            `mapstructure:"instanceType"`
-	Image        string            `mapstructure:"image"`
-	SpotPrice    string            `mapstructure:"spotPrice"`
-	SubnetID     string            `mapstructure:"subnetId"`
+	Name          string            `mapstructure:"name"`
+	Labels        map[string]string `mapstructure:"labels"`
+	Size          int               `mapstructure:"size"`
+	Autoscaling   Autoscaling       `mapstructure:"autoscaling"`
+	VolumeSize    int               `mapstructure:"volumeSize"`
+	InstanceType  string            `mapstructure:"instanceType"`
+	Image         string            `mapstructure:"image"`
+	SpotPrice     string            `mapstructure:"spotPrice"`
+	SubnetID      string            `mapstructure:"subnetId"`
+	Status        NodePoolStatus    `mapstructure:"status"`
+	StatusMessage string            `mapstructure:"statusMessage"`
 }
+
+// NodePoolStatus represents the possible states of a node pool.
+type NodePoolStatus string
+
+const (
+	// NodePoolStatusCreating is the status used when the node pool resources
+	// are being provisioned.
+	NodePoolStatusCreating NodePoolStatus = "CREATING"
+
+	// NodePoolStatusDeleting is the status used when the node pool resources
+	// are being removed.
+	NodePoolStatusDeleting NodePoolStatus = "DELETING"
+
+	// NodePoolStatusEmpty is the status used when the node pool status needs to
+	// be explicitly set to an empty value. This is also the type's default
+	// value.
+	NodePoolStatusEmpty NodePoolStatus = ""
+
+	// NodePoolStatusCreating is the status returned when the node pool
+	// is in an invalid state or an operation cannot be performed on it.
+	NodePoolStatusError NodePoolStatus = "ERROR"
+
+	// NodePoolStatusCreating is the status returned when the node pool
+	// is in a healthy, idle state.
+	NodePoolStatusReady NodePoolStatus = "READY"
+
+	// NodePoolStatusUnknown is the status returned when the node pool cannot be
+	// examined.
+	NodePoolStatusUnknown NodePoolStatus = "UNKNOWN"
+
+	// NodePoolStatusUpdating is the status returned when the node pool
+	// resources are being changed.
+	NodePoolStatusUpdating NodePoolStatus = "UPDATING"
+)
 
 // Autoscaling describes the EC2 node pool's autoscaling settings.
 type Autoscaling struct {
@@ -107,11 +148,13 @@ func NewService(
 	genericClusters Store,
 	nodePoolManager NodePoolManager,
 	enterprise bool,
+	nodePools NodePoolStore,
 ) Service {
 	return service{
 		enterprise:      enterprise,
 		genericClusters: genericClusters,
 		nodePoolManager: nodePoolManager,
+		nodePools:       nodePools,
 	}
 }
 
@@ -120,6 +163,7 @@ type service struct {
 	genericClusters Store
 	clusterManager  ClusterManager
 	nodePoolManager NodePoolManager
+	nodePools       NodePoolStore
 }
 
 // +testify:mock:testOnly=true
@@ -130,7 +174,11 @@ type NodePoolManager interface {
 	UpdateNodePool(ctx context.Context, c cluster.Cluster, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
 
 	// ListNodePools lists node pools from a cluster.
-	ListNodePools(ctx context.Context, c cluster.Cluster, nodePoolNames []string) ([]NodePool, error)
+	ListNodePools(
+		ctx context.Context,
+		c cluster.Cluster,
+		existingNodePools map[string]ExistingNodePool,
+	) ([]NodePool, error)
 }
 
 // ClusterManager is responsible for managing clusters.
@@ -178,12 +226,17 @@ func (s service) UpdateNodePool(
 
 // ListNodePools lists node pools from a cluster.
 func (s service) ListNodePools(ctx context.Context, clusterID uint) ([]NodePool, error) {
-	_, err := s.genericClusters.GetCluster(ctx, clusterID)
+	c, err := s.genericClusters.GetCluster(ctx, clusterID)
 	if err != nil {
 		return nil, errors.WrapWithDetails(err, "retrieving cluster failed", "clusterID", clusterID)
 	}
 
-	panic("not implemented")
+	existingNodePools, err := s.nodePools.ListNodePools(ctx, c.OrganizationID, c.ID, c.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.nodePoolManager.ListNodePools(ctx, c, existingNodePools)
 }
 
 // +testify:mock:testOnly=true
@@ -196,4 +249,102 @@ type Store interface {
 
 	// SetStatus sets the cluster status.
 	SetStatus(ctx context.Context, id uint, status string, statusMessage string) error
+}
+
+// NewNodePoolFromCFStack initializes a node pool object from a CloudFormation
+// stack.
+func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudformation.Stack) (nodePool NodePool) {
+	var nodePoolParameters struct {
+		ClusterAutoscalerEnabled    bool   `mapstructure:"ClusterAutoscalerEnabled"`
+		NodeAutoScalingGroupMaxSize int    `mapstructure:"NodeAutoScalingGroupMaxSize"`
+		NodeAutoScalingGroupMinSize int    `mapstructure:"NodeAutoScalingGroupMinSize"`
+		NodeAutoScalingInitSize     int    `mapstructure:"NodeAutoScalingInitSize"`
+		NodeImageID                 string `mapstructure:"NodeImageId"`
+		NodeInstanceType            string `mapstructure:"NodeInstanceType"`
+		NodeSpotPrice               string `mapstructure:"NodeSpotPrice"`
+		NodeVolumeSize              int    `mapstructure:"NodeVolumeSize"`
+		Subnets                     string `mapstructure:"Subnets"`
+	}
+
+	err := sdkCloudFormation.ParseStackParameters(stack.Parameters, &nodePoolParameters)
+	if err != nil {
+		return NewNodePoolWithNoValues(name, NodePoolStatusError, err.Error())
+	}
+
+	nodePool.Name = name
+	nodePool.Labels = labels
+	nodePool.Size = nodePoolParameters.NodeAutoScalingInitSize
+	nodePool.Autoscaling = Autoscaling{
+		Enabled: nodePoolParameters.ClusterAutoscalerEnabled,
+		MinSize: nodePoolParameters.NodeAutoScalingGroupMinSize,
+		MaxSize: nodePoolParameters.NodeAutoScalingGroupMaxSize,
+	}
+	nodePool.VolumeSize = nodePoolParameters.NodeVolumeSize
+	nodePool.InstanceType = nodePoolParameters.NodeInstanceType
+	nodePool.Image = nodePoolParameters.NodeImageID
+	nodePool.SpotPrice = nodePoolParameters.NodeSpotPrice
+	nodePool.SubnetID = nodePoolParameters.Subnets // Note: currently we ensure a single value at creation.
+	nodePool.Status = NewNodePoolStatusFromCFStackStatus(aws.StringValue(stack.StackStatus))
+	nodePool.StatusMessage = aws.StringValue(stack.StackStatusReason)
+
+	return nodePool
+}
+
+// NewNodePoolStatusFromCFStackStatus translates a CloudFormation stack status
+// into a node pool status.
+func NewNodePoolStatusFromCFStackStatus(cfStackStatus string) (nodePoolStatus NodePoolStatus) {
+	switch {
+	case strings.HasSuffix(cfStackStatus, "_COMPLETE"):
+		if cfStackStatus == cloudformation.StackStatusDeleteComplete { // Note: CF stack is deleted, but DB entry is still existing.
+			return NodePoolStatusDeleting
+		}
+
+		return NodePoolStatusReady
+	case strings.HasSuffix(cfStackStatus, "_FAILED"):
+		return NodePoolStatusError
+	case strings.HasSuffix(cfStackStatus, "_IN_PROGRESS"):
+		if cfStackStatus == cloudformation.StackStatusCreateInProgress {
+			return NodePoolStatusCreating
+		} else if cfStackStatus == cloudformation.StackStatusDeleteInProgress {
+			return NodePoolStatusDeleting
+		}
+
+		return NodePoolStatusUpdating
+	default:
+		return NodePoolStatusUnknown
+	}
+}
+
+// NewNodePoolFromCFStackDescriptionError initializes a node pool with the
+// information derived from the CloudFormation stack description error.
+func NewNodePoolFromCFStackDescriptionError(err error, existingNodePool ExistingNodePool) (nodePool NodePool) {
+	if existingNodePool.StackID == "" &&
+		existingNodePool.Status == NodePoolStatusEmpty &&
+		existingNodePool.StatusMessage == "" {
+		// Note: older node pool with no stored stack ID, status or
+		// status message and DescribeStacks() doesn't work with stack
+		// name for deleting stacks.
+		return NewNodePoolWithNoValues(existingNodePool.Name, NodePoolStatusDeleting, "")
+	} else if existingNodePool.StackID == "" &&
+		existingNodePool.Status != NodePoolStatusEmpty {
+		// Note: node pool is in the database already, but the stack is
+		// not existing thus it is either being created, failed
+		// creation with error before CloudFormation stack creation
+		// would have been started.
+		return NewNodePoolWithNoValues(existingNodePool.Name, existingNodePool.Status, existingNodePool.StatusMessage)
+	}
+
+	return NewNodePoolWithNoValues( // Note: unexpected failure.
+		existingNodePool.Name,
+		NodePoolStatusUnknown,
+		fmt.Sprintf("retrieving node pool information failed: %s", err),
+	)
+}
+
+func NewNodePoolWithNoValues(name string, status NodePoolStatus, statusMessage string) (nodePool NodePool) {
+	return NodePool{
+		Name:          name,
+		Status:        status,
+		StatusMessage: statusMessage,
+	}
 }

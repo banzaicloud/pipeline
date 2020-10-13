@@ -47,6 +47,7 @@ require (
 	github.com/gofrs/flock v0.7.1
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.4.2
+	github.com/google/martian v2.1.0+incompatible
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/sessions v1.2.0
 	github.com/gosimple/slug v1.9.0 // indirect
