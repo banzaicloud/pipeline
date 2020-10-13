@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.51.0
 	cloud.google.com/go/storage v1.0.0
 	emperror.dev/emperror v0.32.0
-	emperror.dev/errors v0.7.0
+	emperror.dev/errors v0.8.0
 	emperror.dev/handler/logur v0.4.0
 	github.com/Azure/azure-pipeline-go v0.2.3
 	github.com/Azure/azure-sdk-for-go v44.2.0+incompatible
@@ -31,9 +31,9 @@ require (
 	github.com/banzaicloud/gin-utilz v0.2.0
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
 	github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4
-	github.com/banzaicloud/logging-operator/pkg/sdk v0.3.15
+	github.com/banzaicloud/logging-operator/pkg/sdk v0.5.0
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
-	github.com/banzaicloud/operator-tools v0.10.2
+	github.com/banzaicloud/operator-tools v0.15.0
 	github.com/banzaicloud/pipeline/pkg/sdk v0.0.1
 	github.com/coreos/go-oidc v2.1.0+incompatible
 	github.com/denisenkom/go-mssqldb v0.0.0-20200206145737-bbfc9a55622e // indirect
@@ -44,8 +44,6 @@ require (
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-kit/kit v0.10.0
-	github.com/go-logr/logr v0.2.1 // indirect
-	github.com/go-logr/zapr v0.2.0 // indirect
 	github.com/gofrs/flock v0.7.1
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.4.2
@@ -118,6 +116,7 @@ require (
 	k8s.io/client-go v0.19.2
 	k8s.io/cluster-bootstrap v0.19.2
 	k8s.io/klog v1.0.0
+	k8s.io/klog/v2 v2.3.0 // indirect
 	k8s.io/kubernetes v1.19.2
 	logur.dev/adapter/logrus v0.4.1
 	logur.dev/adapter/zap v0.4.1
