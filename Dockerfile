@@ -20,6 +20,8 @@ COPY pkg/sdk/go.* /build/pkg/sdk/
 RUN go mod download
 
 ARG VERSION
+ARG COMMIT_HASH
+ARG BUILD_DATE
 
 COPY . /build
 RUN make build-release

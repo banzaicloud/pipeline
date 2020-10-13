@@ -232,7 +232,8 @@ jobs:
 
           echo ::set-output name=version::${VERSION}
           echo ::set-output name=tags::$(IFS=,; echo "${TAGS[*]}")
-          echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          echo ::set-output name=commit_hash::${GITHUB_SHA::8}
+          echo ::set-output name=build_date::$(git show -s --format=%cI)
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -260,13 +261,15 @@ jobs:
           tags: ${{ steps.tags.outputs.tags }}
           build-args: |
             VERSION=${{ steps.tags.outputs.version }}
+            COMMIT_HASH=${{ steps.tags.outputs.commit_hash }}
+            BUILD_DATE=${{ steps.tags.outputs.build_date }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
             org.opencontainers.image.url=${{ github.event.repository.html_url }}
             org.opencontainers.image.source=${{ github.event.repository.clone_url }}
             org.opencontainers.image.version=${{ steps.tags.outputs.version }}
-            org.opencontainers.image.created=${{ steps.tags.outputs.created }}
+            org.opencontainers.image.created=${{ steps.tags.outputs.build_date }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
             org.opencontainers.image.vendor=Banzai Cloud
