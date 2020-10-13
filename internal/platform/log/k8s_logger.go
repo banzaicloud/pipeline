@@ -19,6 +19,8 @@ import (
 	logurhandler "emperror.dev/handler/logur"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/klog"
+	klogv2 "k8s.io/klog/v2"
+	logrintegration "logur.dev/integration/logr"
 	"logur.dev/logur"
 )
 
@@ -35,6 +37,8 @@ func SetK8sLogger(logger logur.Logger) {
 
 		handler.Handle(e)
 	}
+
+	klogv2.SetLogger(logrintegration.New(logger))
 
 	// TODO: use SetLogger once it's released
 	klog.SetOutputBySeverity("INFO", logur.NewLevelWriter(logger, logur.Info))

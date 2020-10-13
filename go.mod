@@ -116,13 +116,14 @@ require (
 	k8s.io/client-go v0.19.2
 	k8s.io/cluster-bootstrap v0.19.2
 	k8s.io/klog v1.0.0
-	k8s.io/klog/v2 v2.3.0 // indirect
+	k8s.io/klog/v2 v2.3.0
 	k8s.io/kubernetes v1.19.2
 	logur.dev/adapter/logrus v0.4.1
 	logur.dev/adapter/zap v0.4.1
+	logur.dev/integration/logr v0.4.0
 	logur.dev/integration/watermill v0.4.2
 	logur.dev/integration/zap v0.3.2
-	logur.dev/logur v0.16.2
+	logur.dev/logur v0.17.0
 	rsc.io/letsencrypt v0.0.3 // indirect
 	sigs.k8s.io/controller-runtime v0.6.2
 	sigs.k8s.io/kubefed v0.4.0
