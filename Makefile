@@ -13,7 +13,7 @@ OPENAPI_DESCRIPTOR = apis/pipeline/pipeline.yaml
 BUILD_DIR ?= build
 BUILD_PACKAGE = ${PACKAGE}/cmd/pipeline
 TEMPORARY_DIRECTORY = tmp
-VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || git symbolic-ref -q --short HEAD)
+VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || echo "`git describe --tags`-`git symbolic-ref -q --short HEAD 2>/dev/null || git describe --all --exact-match | sed 's!heads/!!'`")
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 HELM_VERSION = $(shell cat go.mod | grep helm.sh/helm/v3 | grep -v "=>" | cut -d" " -f2 | sed s/^v//)
