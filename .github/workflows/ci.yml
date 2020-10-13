@@ -203,45 +203,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Repo metadata
-        id: repo
-        uses: actions/github-script@v3
-        with:
-          script: |
-            const repo = await github.repos.get(context.repo)
-            return repo.data
-
-      - name: Docker build info
-        id: info
+      - name: Calculate Docker image tags
+        id: tags
+        env:
+          DOCKER_IMAGES: "ghcr.io/banzaicloud/pipeline banzaicloud/pipeline"
         run: |
-          DOCKER_IMAGES="ghcr.io/banzaicloud/pipeline banzaicloud/pipeline"
           VERSION=noop
 
-          if [ "${{ github.event_name }}" = "schedule" ]; then
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
             VERSION=nightly
-          elif [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/}
-          elif [[ $GITHUB_REF == refs/heads/* ]]; then
-            VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
-            if [ "${{ github.event.repository.default_branch }}" = "$VERSION" ]; then
-              VERSION=edge
-            fi
-          elif [[ $GITHUB_REF == refs/pull/* ]]; then
-            VERSION=pr-${{ github.event.number }}
+          else
+            case $GITHUB_REF in
+              refs/tags/*)  VERSION=${GITHUB_REF#refs/tags/};;
+              refs/heads/*) VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g');;
+              refs/pull/*)  VERSION=pr-${{ github.event.number }};;
+              *)            VERSION=sha-${GITHUB_SHA::8};;
+            esac
           fi
 
-          TAGS=""
+          TAGS=()
           for image in $DOCKER_IMAGES; do
-            TAGS="$TAGS,${image}:${VERSION}"
-            if [[ $VERSION =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              TAGS="$TAGS,${image}:latest"
+            TAGS+=("${image}:${VERSION}")
+
+            if [[ "${{ github.event.repository.default_branch }}" == "$VERSION" ]]; then
+              TAGS+=("${image}:latest")
             fi
           done
 
-          TAGS="$(echo ${TAGS} | sed -e 's/^,*//')"
-
           echo ::set-output name=version::${VERSION}
-          echo ::set-output name=tags::${TAGS}
+          echo ::set-output name=tags::$(IFS=,; echo "${TAGS[*]}")
           echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
       - name: Set up QEMU
@@ -260,26 +250,24 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
-          registry: docker.io
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push
-        id: docker_build
         uses: docker/build-push-action@v2
         with:
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.info.outputs.tags }}
+          push: ${{ github.event_name == 'push' }}
+          tags: ${{ steps.tags.outputs.tags }}
           build-args: |
-            VERSION=${{ steps.info.outputs.version }}
+            VERSION=${{ steps.tags.outputs.version }}
           labels: |
-            org.opencontainers.image.title=${{ fromJson(steps.repo.outputs.result).name }}
-            org.opencontainers.image.description=${{ fromJson(steps.repo.outputs.result).description }}
-            org.opencontainers.image.vendor=Banzai Cloud
-            org.opencontainers.image.url=${{ fromJson(steps.repo.outputs.result).html_url }}
-            org.opencontainers.image.documentation=https://banzaicloud.com/docs/pipeline/overview/
-            org.opencontainers.image.source=${{ fromJson(steps.repo.outputs.result).clone_url }}
-            org.opencontainers.image.version=${{ steps.info.outputs.version }}
-            org.opencontainers.image.created=${{ steps.info.outputs.created }}
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
+            org.opencontainers.image.version=${{ steps.tags.outputs.version }}
+            org.opencontainers.image.created=${{ steps.tags.outputs.created }}
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.licenses=${{ fromJson(steps.repo.outputs.result).license.spdx_id }}
+            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
+            org.opencontainers.image.vendor=Banzai Cloud
+            org.opencontainers.image.documentation=https://banzaicloud.com/docs/pipeline/overview/
