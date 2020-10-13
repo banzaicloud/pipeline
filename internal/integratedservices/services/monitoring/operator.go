@@ -216,7 +216,7 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 		return errors.WrapIfWithDetails(err, "failed to delete deployment", "release", prometheusPushgatewayReleaseName)
 	}
 
-	//delete custom resources
+	// delete custom resources
 	if err := op.cleanupCRDs(ctx, clusterID); err != nil {
 		op.logger.Warn("failed to delete CRDs", map[string]interface{}{"failures": err})
 	}
@@ -798,7 +798,6 @@ func (op IntegratedServiceOperator) getDefaultStorageClassName(ctx context.Conte
 
 // cleanupCRDs deletes CRDs after the release is deleted
 func (op IntegratedServiceOperator) cleanupCRDs(ctx context.Context, clusterID uint) error {
-
 	// list with the monitoring related CRDs
 	crdNames := []string{
 		"alertmanagers.monitoring.coreos.com",
@@ -822,5 +821,4 @@ func (op IntegratedServiceOperator) cleanupCRDs(ctx context.Context, clusterID u
 		}
 	}
 	return failures
-
 }
