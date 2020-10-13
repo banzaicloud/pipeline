@@ -19,6 +19,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 )
@@ -38,6 +39,7 @@ func registerAwsWorkflows(
 
 	awsClientFactory := pkeworkflow.NewAWSClientFactory(secretStore)
 	ec2Factory := pkeworkflow.NewEC2Factory()
+	elbv2Factory := pkeawsworkflow.NewELBV2Factory()
 
 	createAWSRolesActivity := pkeworkflow.NewCreateAWSRolesActivity(awsClientFactory)
 	activity.RegisterWithOptions(createAWSRolesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateAWSRolesActivityName})
@@ -122,4 +124,6 @@ func registerAwsWorkflows(
 
 	selectVolumeSizeActivity := pkeworkflow.NewSelectVolumeSizeActivity(awsClientFactory, ec2Factory)
 	activity.RegisterWithOptions(selectVolumeSizeActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SelectVolumeSizeActivityName})
+
+	pkeawsworkflow.NewHealthCheckActivity(awsClientFactory, elbv2Factory).Register()
 }
