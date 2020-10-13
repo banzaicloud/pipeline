@@ -39,7 +39,7 @@ type DeleteSshKeyActivityInput struct {
 type DeleteSshKeyActivityOutput struct {
 }
 
-//   DeleteStackActivity instantiates a new DeleteStackActivity
+// NewDeleteSshKeyActivity instantiates a new DeleteSshKeyActivity.
 func NewDeleteSshKeyActivity(awsSessionFactory *AWSSessionFactory) *DeleteSshKeyActivity {
 	return &DeleteSshKeyActivity{
 		awsSessionFactory: awsSessionFactory,
