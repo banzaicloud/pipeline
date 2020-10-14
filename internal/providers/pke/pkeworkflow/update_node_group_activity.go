@@ -124,12 +124,12 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 
 	awsCluster, ok := cluster.(AWSCluster)
 	if !ok {
-		return UpdateNodeGroupActivityOutput{}, errors.Errorf("can't cast to AWS cluster %t", cluster)
+		return UpdateNodeGroupActivityOutput{}, errors.Errorf("failed to cast to AWSCluster %t", cluster)
 	}
 
 	_, signedToken, err := a.tokenGenerator.GenerateClusterToken(input.OrganizationID, input.ClusterID)
 	if err != nil {
-		return UpdateNodeGroupActivityOutput{}, errors.WrapIf(err, "can't generate Pipeline token")
+		return UpdateNodeGroupActivityOutput{}, errors.WrapIf(err, "failed to generate Pipeline token")
 	}
 
 	nodeLabels := []string{
