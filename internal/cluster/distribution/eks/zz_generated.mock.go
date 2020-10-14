@@ -6,6 +6,7 @@ package eks
 
 import (
 	"context"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -15,15 +16,15 @@ type MockService struct {
 }
 
 // ListNodePools provides a mock function.
-func (_m *MockService) ListNodePools(ctx context.Context, clusterID uint) (_result_0 []NodePool, _result_1 error) {
+func (_m *MockService) ListNodePools(ctx context.Context, clusterID uint) (_result_0 []awscommon.NodePool, _result_1 error) {
 	ret := _m.Called(ctx, clusterID)
 
-	var r0 []NodePool
-	if rf, ok := ret.Get(0).(func(context.Context, uint) []NodePool); ok {
+	var r0 []awscommon.NodePool
+	if rf, ok := ret.Get(0).(func(context.Context, uint) []awscommon.NodePool); ok {
 		r0 = rf(ctx, clusterID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]NodePool)
+			r0 = ret.Get(0).([]awscommon.NodePool)
 		}
 	}
 

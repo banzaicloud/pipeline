@@ -179,7 +179,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 
 	s.env.OnActivity(CreateIamRolesActivityName, mock.Anything, CreateIamRolesActivityInput{
 		AWSCommonActivityInput: eksActivity,
-		StackName:              "pipeline-eks-iam-test-cluster-name",
+		StackName:              "pipeline-aws-common-iam-test-cluster-name",
 		DefaultUser:            workflowInput.DefaultUser,
 		ClusterRoleID:          workflowInput.ClusterRoleID,
 		NodeInstanceRoleID:     workflowInput.NodeInstanceRoleID,
@@ -200,13 +200,13 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 
 	s.env.OnActivity(UploadSSHKeyActivityName, mock.Anything, UploadSSHKeyActivityInput{
 		AWSCommonActivityInput: eksActivity,
-		SSHKeyName:             "pipeline-eks-ssh-test-cluster-name",
+		SSHKeyName:             "pipeline-aws-common-ssh-test-cluster-name",
 		SSHSecretID:            "ssh-secret-id",
 	}).Return(&UploadSSHKeyActivityOutput{}, nil)
 
 	s.env.OnActivity(CreateVpcActivityName, mock.Anything, CreateVpcActivityInput{
 		AWSCommonActivityInput: eksActivity,
-		StackName:              "pipeline-eks-test-cluster-name",
+		StackName:              "pipeline-aws-common-test-cluster-name",
 	}).Return(&CreateVpcActivityOutput{
 		VpcID:               "new-vpc-id",
 		RouteTableID:        "new-route-table-id",
@@ -218,7 +218,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 		AWSCommonActivityInput: eksActivity,
 		Cidr:                   "cidr1",
 		AvailabilityZone:       "az1",
-		StackName:              "pipeline-eks-subnet-test-cluster-name-cidr1",
+		StackName:              "pipeline-aws-common-subnet-test-cluster-name-cidr1",
 		VpcID:                  "new-vpc-id",
 		RouteTableID:           "new-route-table-id",
 	}).Return(&CreateSubnetActivityOutput{
@@ -231,7 +231,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 		AWSCommonActivityInput: eksActivity,
 		Cidr:                   "cidr2",
 		AvailabilityZone:       "az2",
-		StackName:              "pipeline-eks-subnet-test-cluster-name-cidr2",
+		StackName:              "pipeline-aws-common-subnet-test-cluster-name-cidr2",
 		VpcID:                  "new-vpc-id",
 		RouteTableID:           "new-route-table-id",
 	}).Return(&CreateSubnetActivityOutput{
@@ -309,12 +309,12 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	s.env.OnActivity(CreateAsgActivityName, mock.Anything, CreateAsgActivityInput{
 		AWSCommonActivityInput: eksActivity,
 		ClusterID:              1,
-		StackName:              "pipeline-eks-nodepool-test-cluster-name-pool1",
+		StackName:              "pipeline-aws-common-nodepool-test-cluster-name-pool1",
 		VpcID:                  "new-vpc-id",
 		SecurityGroupID:        "test-eks-controlplane-security-group-id",
 		NodeSecurityGroupID:    "test-node-securitygroup-id",
 		NodeInstanceRoleID:     "node-instance-role-id",
-		SSHKeyName:             "pipeline-eks-ssh-test-cluster-name",
+		SSHKeyName:             "pipeline-aws-common-ssh-test-cluster-name",
 		Name:                   "pool1",
 		NodeSpotPrice:          "0.2",
 		Autoscaling:            true,
@@ -355,12 +355,12 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	s.env.OnActivity(CreateAsgActivityName, mock.Anything, CreateAsgActivityInput{
 		AWSCommonActivityInput: eksActivity,
 		ClusterID:              1,
-		StackName:              "pipeline-eks-nodepool-test-cluster-name-pool2",
+		StackName:              "pipeline-aws-common-nodepool-test-cluster-name-pool2",
 		VpcID:                  "new-vpc-id",
 		SecurityGroupID:        "test-eks-controlplane-security-group-id",
 		NodeSecurityGroupID:    "test-node-securitygroup-id",
 		NodeInstanceRoleID:     "node-instance-role-id",
-		SSHKeyName:             "pipeline-eks-ssh-test-cluster-name",
+		SSHKeyName:             "pipeline-aws-common-ssh-test-cluster-name",
 		Name:                   "pool2",
 		NodeSpotPrice:          "0.0",
 		Autoscaling:            false,

@@ -73,24 +73,24 @@ func GetNodePoolStackTags(clusterName string, customTagsMap map[string]string) [
 }
 
 func GenerateStackNameForCluster(clusterName string) string {
-	return "pipeline-aws-common--" + clusterName
+	return "pipeline-aws-common-" + clusterName
 }
 
 func GenerateStackNameForSubnet(clusterName, subnetCidr string) string {
 	r := strings.NewReplacer(".", "-", "/", "-")
-	return fmt.Sprintf("pipeline-aws-common--subnet-%s-%s", clusterName, r.Replace(subnetCidr))
+	return fmt.Sprintf("pipeline-aws-common-subnet-%s-%s", clusterName, r.Replace(subnetCidr))
 }
 
 func GenerateStackNameForIam(clusterName string) string {
-	return "pipeline-aws-common--iam-" + clusterName
+	return "pipeline-aws-common-iam-" + clusterName
 }
 
 func GenerateSSHKeyNameForCluster(clusterName string) string {
-	return "pipeline-aws-common--ssh-" + clusterName
+	return "pipeline-aws-common-ssh-" + clusterName
 }
 
 func GenerateNodePoolStackName(clusterName string, poolName string) string {
-	return "pipeline-aws-common--nodepool-" + clusterName + "-" + poolName
+	return "pipeline-aws-common-nodepool-" + clusterName + "-" + poolName
 }
 
 // getSecretName returns the name that identifies the  cluster user access key in Vault

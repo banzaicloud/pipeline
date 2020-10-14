@@ -360,7 +360,7 @@ func TestServiceListNodePools(t *testing.T) {
 			StatusMessage: "",
 		},
 	}
-	exampleNodePools := []NodePool{
+	exampleNodePools := []awscommon.NodePool{
 		{
 			Name: "cluster-node-pool-name-2",
 			Labels: map[string]string{
@@ -368,7 +368,7 @@ func TestServiceListNodePools(t *testing.T) {
 				"label-2": "value-2",
 			},
 			Size: 4,
-			Autoscaling: Autoscaling{
+			Autoscaling: awscommon.Autoscaling{
 				Enabled: true,
 				MinSize: 1,
 				MaxSize: 2,
@@ -384,7 +384,7 @@ func TestServiceListNodePools(t *testing.T) {
 				"label-3": "value-3",
 			},
 			Size: 6,
-			Autoscaling: Autoscaling{
+			Autoscaling: awscommon.Autoscaling{
 				Enabled: false,
 				MinSize: 0,
 				MaxSize: 0,
@@ -407,7 +407,7 @@ func TestServiceListNodePools(t *testing.T) {
 	testCases := []struct {
 		caseName              string
 		constructionArguments constructionArgumentType
-		expectedNodePools     []NodePool
+		expectedNodePools     []awscommon.NodePool
 		expectedNotNilError   bool
 		functionCallArguments functionCallArgumentType
 		setupMocks            func(constructionArgumentType, functionCallArgumentType)

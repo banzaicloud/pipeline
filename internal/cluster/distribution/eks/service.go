@@ -42,7 +42,7 @@ type Service interface {
 	UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
 
 	// ListNodePools lists node pools from a cluster.
-	ListNodePools(ctx context.Context, clusterID uint) ([]NodePool, error)
+	ListNodePools(ctx context.Context, clusterID uint) ([]awscommon.NodePool, error)
 }
 
 // ClusterUpdate describes a cluster update request.
@@ -242,7 +242,7 @@ type NodePoolManager interface {
 		ctx context.Context,
 		c cluster.Cluster,
 		existingNodePools map[string]awscommon.ExistingNodePool,
-	) ([]NodePool, error)
+	) ([]awscommon.NodePool, error)
 }
 
 // ClusterManager is responsible for managing clusters.
@@ -291,7 +291,7 @@ func (s service) UpdateNodePool(
 }
 
 // ListNodePools lists node pools from a cluster.
-func (s service) ListNodePools(ctx context.Context, clusterID uint) ([]NodePool, error) {
+func (s service) ListNodePools(ctx context.Context, clusterID uint) ([]awscommon.NodePool, error) {
 	c, err := s.genericClusters.GetCluster(ctx, clusterID)
 	if err != nil {
 		return nil, err

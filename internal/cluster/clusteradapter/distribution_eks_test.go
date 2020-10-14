@@ -22,11 +22,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 )
 
 func TestEksServiceListNodePools(t *testing.T) {
-	exampleEKSNodePools := []eks.NodePool{
+	exampleEKSNodePools := []awscommon.NodePool{
 		{
 			Name: "cluster-node-pool-name-2",
 			Labels: map[string]string{
@@ -34,7 +35,7 @@ func TestEksServiceListNodePools(t *testing.T) {
 				"label-2": "value-2",
 			},
 			Size: 4,
-			Autoscaling: eks.Autoscaling{
+			Autoscaling: awscommon.Autoscaling{
 				Enabled: true,
 				MinSize: 1,
 				MaxSize: 2,
@@ -50,7 +51,7 @@ func TestEksServiceListNodePools(t *testing.T) {
 				"label-3": "value-3",
 			},
 			Size: 6,
-			Autoscaling: eks.Autoscaling{
+			Autoscaling: awscommon.Autoscaling{
 				Enabled: false,
 				MinSize: 0,
 				MaxSize: 0,
@@ -97,7 +98,7 @@ func TestEksServiceListNodePools(t *testing.T) {
 				functionCallArguments functionCallArgumentType,
 			) {
 				eksServiceMock := constructionArguments.service.(*eks.MockService)
-				eksServiceMock.On("ListNodePools", functionCallArguments.ctx, functionCallArguments.clusterID).Return(([]eks.NodePool)(nil), errors.NewPlain("ServiceListNodePoolsFailed"))
+				eksServiceMock.On("ListNodePools", functionCallArguments.ctx, functionCallArguments.clusterID).Return(([]awscommon.NodePool)(nil), errors.NewPlain("ServiceListNodePoolsFailed"))
 			},
 		},
 		{

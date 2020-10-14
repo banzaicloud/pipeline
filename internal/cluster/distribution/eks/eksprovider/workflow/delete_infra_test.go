@@ -97,7 +97,7 @@ func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
 
 	s.env.OnActivity(GetVpcConfigActivityName, mock.Anything, GetVpcConfigActivityInput{
 		AWSCommonActivityInput: eksActivityInput,
-		StackName:              "pipeline-eks-test-cluster-name",
+		StackName:              "pipeline-aws-common-test-cluster-name",
 	}).Return(&GetVpcConfigActivityOutput{
 		VpcID:               "test-vpc-id",
 		SecurityGroupID:     "test-control-plane-sg-id",

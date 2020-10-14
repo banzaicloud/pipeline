@@ -43,15 +43,15 @@ type MockNodePoolManager struct {
 }
 
 // ListNodePools provides a mock function.
-func (_m *MockNodePoolManager) ListNodePools(ctx context.Context, c cluster.Cluster, existingNodePools map[string]awscommon.ExistingNodePool) (_result_0 []NodePool, _result_1 error) {
+func (_m *MockNodePoolManager) ListNodePools(ctx context.Context, c cluster.Cluster, existingNodePools map[string]awscommon.ExistingNodePool) (_result_0 []awscommon.NodePool, _result_1 error) {
 	ret := _m.Called(ctx, c, existingNodePools)
 
-	var r0 []NodePool
-	if rf, ok := ret.Get(0).(func(context.Context, cluster.Cluster, map[string]awscommon.ExistingNodePool) []NodePool); ok {
+	var r0 []awscommon.NodePool
+	if rf, ok := ret.Get(0).(func(context.Context, cluster.Cluster, map[string]awscommon.ExistingNodePool) []awscommon.NodePool); ok {
 		r0 = rf(ctx, c, existingNodePools)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]NodePool)
+			r0 = ret.Get(0).([]awscommon.NodePool)
 		}
 	}
 

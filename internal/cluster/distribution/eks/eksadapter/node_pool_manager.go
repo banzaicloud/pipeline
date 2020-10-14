@@ -95,7 +95,7 @@ func (n nodePoolManager) ListNodePools(
 	ctx context.Context,
 	c cluster.Cluster,
 	existingNodePools map[string]awscommon.ExistingNodePool,
-) (nodePools []eks.NodePool, err error) {
+) (nodePools []awscommon.NodePool, err error) {
 	if c.ConfigSecretID.ResourceID == "" || // Note: cluster is being created or errorred before k8s secret would be available.
 		c.Status == cluster.Deleting {
 		return nil, cluster.NotReadyError{
@@ -123,7 +123,7 @@ func (n nodePoolManager) ListNodePools(
 		)
 	}
 
-	nodePools = make([]eks.NodePool, 0, len(nodePools))
+	nodePools = make([]awscommon.NodePool, 0, len(nodePools))
 	for _, existingNodePool := range existingNodePools {
 		nodePools = append(nodePools, newNodePoolFromCloudFormation(
 			cloudFormationClient,
@@ -222,7 +222,7 @@ func newNodePoolFromCloudFormation(
 	existingNodePool awscommon.ExistingNodePool,
 	stackName string, // Note: temporary until we eliminate stack name usage.
 	labels map[string]string,
-) (nodePool eks.NodePool) {
+) (nodePool awscommon.NodePool) {
 	stackIdentifier := existingNodePool.StackID
 	if stackIdentifier == "" { // Note: CloudFormation stack creation not started yet.
 		stackIdentifier = stackName
@@ -232,20 +232,20 @@ func newNodePoolFromCloudFormation(
 		StackName: aws.String(stackIdentifier),
 	})
 	if err != nil {
-		return eks.NewNodePoolFromCFStackDescriptionError(err, existingNodePool)
+		return awscommon.NewNodePoolFromCFStackDescriptionError(err, existingNodePool)
 	} else if len(stackDescriptions.Stacks) == 0 {
-		return eks.NewNodePoolWithNoValues(
+		return awscommon.NewNodePoolWithNoValues(
 			existingNodePool.Name,
 			awscommon.NodePoolStatusUnknown,
 			"retrieving node pool information failed: node pool not found",
 		)
 	} else if len(stackDescriptions.Stacks) > 1 {
-		return eks.NewNodePoolWithNoValues(
+		return awscommon.NewNodePoolWithNoValues(
 			existingNodePool.Name,
 			awscommon.NodePoolStatusUnknown,
 			"retrieving node pool information failed: multiple node pools found",
 		)
 	}
 
-	return eks.NewNodePoolFromCFStack(existingNodePool.Name, labels, stackDescriptions.Stacks[0])
+	return awscommon.NewNodePoolFromCFStack(existingNodePool.Name, labels, stackDescriptions.Stacks[0])
 }
