@@ -112,11 +112,9 @@ func (a UpdateMasterNodeGroupActivity) Execute(ctx context.Context, input Update
 		return UpdateMasterNodeGroupActivityOutput{}, err
 	}
 
-	var isMultiMaster bool
 	for _, np := range cluster.GetNodePools() {
-		if input.NodePoolName == np.Name && np.Master {
-			isMultiMaster = np.Count > 1
-			break
+		if input.NodePoolName == np.Name && np.Master && np.Count == 1 {
+			return UpdateMasterNodeGroupActivityOutput{}, errors.Errorf("updating single master clusters is prohibited")
 		}
 	}
 
@@ -150,12 +148,7 @@ func (a UpdateMasterNodeGroupActivity) Execute(ctx context.Context, input Update
 		return UpdateMasterNodeGroupActivityOutput{}, errors.WrapIf(err, "failed to fetch bootstrap command")
 	}
 
-	templateFile := "master.cf.yaml"
-	if isMultiMaster {
-		templateFile = "masters.cf.yaml"
-	}
-
-	template, err := cloudformation2.GetCloudFormationTemplate(PKECloudFormationTemplateBasePath, templateFile)
+	template, err := cloudformation2.GetCloudFormationTemplate(PKECloudFormationTemplateBasePath, "masters.cf.yaml")
 	if err != nil {
 		return UpdateMasterNodeGroupActivityOutput{}, errors.WrapIf(err, "loading CF template")
 	}
@@ -205,30 +198,13 @@ func (a UpdateMasterNodeGroupActivity) Execute(ctx context.Context, input Update
 			ParameterKey:     aws.String("KeyName"),
 			UsePreviousValue: aws.Bool(true),
 		},
-	}
-
-	if isMultiMaster {
-		stackParams = append(stackParams,
-			[]*cloudformation.Parameter{
-				{
-					ParameterKey:     aws.String("TargetGroup"),
-					UsePreviousValue: aws.Bool(true),
-				}, {
-					ParameterKey:     aws.String("SubnetIds"),
-					UsePreviousValue: aws.Bool(true),
-				},
-			}...)
-	} else {
-		stackParams = append(stackParams,
-			[]*cloudformation.Parameter{
-				{
-					ParameterKey:     aws.String("EIPAllocationId"),
-					UsePreviousValue: aws.Bool(true),
-				}, {
-					ParameterKey:     aws.String("SubnetId"),
-					UsePreviousValue: aws.Bool(true),
-				},
-			}...)
+		{
+			ParameterKey:     aws.String("TargetGroup"),
+			UsePreviousValue: aws.Bool(true),
+		}, {
+			ParameterKey:     aws.String("SubnetIds"),
+			UsePreviousValue: aws.Bool(true),
+		},
 	}
 
 	// we don't reuse the creation time template, since it may have changed
