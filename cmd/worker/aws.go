@@ -84,6 +84,9 @@ func registerAwsWorkflows(
 	updateNodePoolActivity := pkeworkflow.NewUpdateNodeGroupActivity(awsClientFactory, clusters, tokenGenerator, pipelineExternalURL, pipelineExternalURLInsecure)
 	activity.RegisterWithOptions(updateNodePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateNodeGroupActivityName})
 
+	updateMasterNodePoolActivity := pkeworkflow.NewUpdateMasterNodeGroupActivity(awsClientFactory, clusters, tokenGenerator, pipelineExternalURL, pipelineExternalURLInsecure)
+	activity.RegisterWithOptions(updateMasterNodePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateMasterNodeGroupActivityName})
+
 	calculateNodePoolVersionActivity := pkeworkflow.NewCalculateNodePoolVersionActivity()
 	activity.RegisterWithOptions(calculateNodePoolVersionActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CalculateNodePoolVersionActivityName})
 
