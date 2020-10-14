@@ -201,7 +201,8 @@ func (a UpdateMasterNodeGroupActivity) Execute(ctx context.Context, input Update
 		{
 			ParameterKey:     aws.String("TargetGroup"),
 			UsePreviousValue: aws.Bool(true),
-		}, {
+		},
+		{
 			ParameterKey:     aws.String("SubnetIds"),
 			UsePreviousValue: aws.Bool(true),
 		},
