@@ -22,8 +22,8 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
 )
 
 type nodePoolValidator struct {
@@ -47,7 +47,7 @@ func (v nodePoolValidator) ValidateNew(
 	c cluster.Cluster,
 	rawNodePool cluster.NewRawNodePool,
 ) error {
-	var nodePool eks.NewNodePool
+	var nodePool awscommon.NewNodePool
 
 	err := mapstructure.Decode(rawNodePool, &nodePool)
 	if err != nil {
@@ -63,10 +63,10 @@ func (v nodePoolValidator) ValidateNew(
 		violations = err.Violations()
 	}
 
-	var eksCluster eksmodel.EKSClusterModel
+	var eksCluster awscommonmodel.AWSCommonClusterModel
 
 	err = v.db.
-		Where(eksmodel.EKSClusterModel{ClusterID: c.ID}).
+		Where(awscommonmodel.AWSCommonClusterModel{ClusterID: c.ID}).
 		Preload("Subnets").
 		First(&eksCluster).Error
 	if gorm.IsRecordNotFoundError(err) {

@@ -17,17 +17,19 @@ package workflow
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
+
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const SaveNodePoolsActivityName = "eks-save-node-pools"
 
 type SaveNodePoolsActivity struct {
-	manager Clusters
+	manager awscommonworkflow.Clusters
 }
 
-func NewSaveNodePoolsActivity(manager Clusters) SaveNodePoolsActivity {
+func NewSaveNodePoolsActivity(manager awscommonworkflow.Clusters) SaveNodePoolsActivity {
 	return SaveNodePoolsActivity{
 		manager: manager,
 	}
@@ -36,9 +38,9 @@ func NewSaveNodePoolsActivity(manager Clusters) SaveNodePoolsActivity {
 type SaveNodePoolsActivityInput struct {
 	ClusterID uint
 
-	NodePoolsToDelete map[string]AutoscaleGroup
-	NodePoolsToUpdate map[string]AutoscaleGroup
-	NodePoolsToCreate map[string]AutoscaleGroup
+	NodePoolsToDelete map[string]awscommonworkflow.AutoscaleGroup
+	NodePoolsToUpdate map[string]awscommonworkflow.AutoscaleGroup
+	NodePoolsToCreate map[string]awscommonworkflow.AutoscaleGroup
 	NodePoolsToKeep   map[string]bool
 }
 
@@ -49,12 +51,12 @@ func (a SaveNodePoolsActivity) Execute(ctx context.Context, input SaveNodePoolsA
 	}
 
 	if eksCluster, ok := cluster.(interface {
-		GetModel() *eksmodel.EKSClusterModel
+		GetModel() *awscommonmodel.AWSCommonClusterModel
 	}); ok {
 		modelCluster := eksCluster.GetModel()
 		nodePoolCount := len(input.NodePoolsToCreate) + len(input.NodePoolsToDelete) + len(input.NodePoolsToKeep) +
 			len(input.NodePoolsToUpdate)
-		updatedNodepools := make([]*eksmodel.AmazonNodePoolsModel, 0, nodePoolCount)
+		updatedNodepools := make([]*awscommonmodel.AmazonNodePoolsModel, 0, nodePoolCount)
 
 		for _, np := range modelCluster.NodePools {
 			if input.NodePoolsToKeep[np.Name] {
@@ -80,7 +82,7 @@ func (a SaveNodePoolsActivity) Execute(ctx context.Context, input SaveNodePoolsA
 		}
 
 		for _, asg := range input.NodePoolsToCreate {
-			np := &eksmodel.AmazonNodePoolsModel{
+			np := &awscommonmodel.AmazonNodePoolsModel{
 				CreatedBy:        asg.CreatedBy,
 				Name:             asg.Name,
 				StackID:          "",
@@ -91,7 +93,7 @@ func (a SaveNodePoolsActivity) Execute(ctx context.Context, input SaveNodePoolsA
 				NodeMinCount:     asg.NodeMinCount,
 				NodeMaxCount:     asg.NodeMaxCount,
 				Count:            asg.Count,
-				Status:           eks.NodePoolStatusCreating,
+				Status:           awscommon.NodePoolStatusCreating,
 				StatusMessage:    "",
 				// NodeVolumeSize:   asg.NodeVolumeSize, // Note: not stored in DB.
 				// Labels:           asg.Labels, // Note: not stored in DB.

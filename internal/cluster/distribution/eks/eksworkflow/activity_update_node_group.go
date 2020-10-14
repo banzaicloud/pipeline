@@ -28,6 +28,7 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	pkgCloudFormation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
@@ -189,7 +190,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		StackName:          aws.String(input.StackName),
 		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
 		Parameters:         stackParams,
-		Tags:               getNodePoolStackTags(input.ClusterName, input.ClusterTags),
+		Tags:               awscommonworkflow.GetNodePoolStackTags(input.ClusterName, input.ClusterTags),
 		TemplateBody:       aws.String(a.cloudFormationTemplate),
 	}
 

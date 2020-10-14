@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"go.uber.org/cadence/activity"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 )
 
@@ -30,7 +31,7 @@ const UpdateClusterVersionActivityName = "eks-update-version"
 
 // UpdateClusterVersionActivity responsible for updating an EKS cluster
 type UpdateClusterVersionActivity struct {
-	awsSessionFactory workflow.AWSFactory
+	awsSessionFactory awscommonworkflow.AWSFactory
 	eksFactory        workflow.EKSAPIFactory
 }
 
@@ -51,7 +52,8 @@ type UpdateClusterVersionActivityOutput struct {
 }
 
 // NewUpdateClusterVersionActivity instantiates a new EKS version update
-func NewUpdateClusterVersionActivity(awsSessionFactory workflow.AWSFactory, eksFactory workflow.EKSAPIFactory) *UpdateClusterVersionActivity {
+func NewUpdateClusterVersionActivity(
+	awsSessionFactory awscommonworkflow.AWSFactory, eksFactory workflow.EKSAPIFactory) *UpdateClusterVersionActivity {
 	return &UpdateClusterVersionActivity{
 		awsSessionFactory: awsSessionFactory,
 		eksFactory:        eksFactory,
@@ -63,7 +65,8 @@ func (a UpdateClusterVersionActivity) Register() {
 	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: UpdateClusterVersionActivityName})
 }
 
-func (a *UpdateClusterVersionActivity) Execute(ctx context.Context, input UpdateClusterVersionActivityInput) (*UpdateClusterVersionActivityOutput, error) {
+func (a *UpdateClusterVersionActivity) Execute(
+	ctx context.Context, input UpdateClusterVersionActivityInput) (*UpdateClusterVersionActivityOutput, error) {
 	session, err := a.awsSessionFactory.New(input.OrganizationID, input.ProviderSecretID, input.Region)
 	if err = errors.WrapIf(err, "failed to create AWS session"); err != nil {
 		return nil, err

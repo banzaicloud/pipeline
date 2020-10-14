@@ -20,7 +20,7 @@ import (
 
 	"go.uber.org/cadence/activity"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
 )
 
 const CalculateNodePoolVersionActivityName = "eks-calculate-node-pool-version"
@@ -53,7 +53,7 @@ func (a CalculateNodePoolVersionActivity) Execute(
 	input CalculateNodePoolVersionActivityInput,
 ) (CalculateNodePoolVersionActivityOutput, error) {
 	return CalculateNodePoolVersionActivityOutput{
-		Version: eks.CalculateNodePoolVersion(
+		Version: awscommon.CalculateNodePoolVersion(
 			input.Image,
 			fmt.Sprintf("%d", input.VolumeSize),
 		),

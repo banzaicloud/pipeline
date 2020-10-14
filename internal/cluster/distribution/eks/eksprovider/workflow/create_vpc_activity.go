@@ -25,6 +25,7 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -33,7 +34,7 @@ const CreateVpcActivityName = "eks-create-vpc"
 
 // CreateVpcActivity responsible for setting up a VPC for an EKS cluster
 type CreateVpcActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 	// body of the cloud formation template for setting up the VPC
 	cloudFormationTemplate string
 }
@@ -41,7 +42,7 @@ type CreateVpcActivity struct {
 // CreateVpcActivityInput holds data needed for setting up
 // VPC for EKS cluster
 type CreateVpcActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 
 	// name of the cloud formation template stack
 	StackName string
@@ -67,14 +68,16 @@ type CreateVpcActivityOutput struct {
 }
 
 // NewCreateVPCActivity instantiates a new CreateVpcActivity
-func NewCreateVPCActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *CreateVpcActivity {
+func NewCreateVPCActivity(
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory, cloudFormationTemplate string) *CreateVpcActivity {
 	return &CreateVpcActivity{
 		awsSessionFactory:      awsSessionFactory,
 		cloudFormationTemplate: cloudFormationTemplate,
 	}
 }
 
-func (a *CreateVpcActivity) Execute(ctx context.Context, input CreateVpcActivityInput) (*CreateVpcActivityOutput, error) {
+func (a *CreateVpcActivity) Execute(
+	ctx context.Context, input CreateVpcActivityInput) (*CreateVpcActivityOutput, error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
@@ -137,14 +140,16 @@ func (a *CreateVpcActivity) Execute(ctx context.Context, input CreateVpcActivity
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-	err = WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
+	err = awscommonworkflow.WaitUntilStackCreateCompleteWithContext(
+		cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
 		var awsErr awserr.Error
 		if errors.As(err, &awsErr) {
 			if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
-				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient)
+				err = pkgCloudformation.NewAwsStackFailure(
+					err, input.StackName, clientRequestToken, cloudformationClient)
 				if pkgCloudformation.IsErrorFinal(err) {
-					return nil, cadence.NewCustomError(ErrReasonStackFailed, err.Error())
+					return nil, cadence.NewCustomError(awscommonworkflow.ErrReasonStackFailed, err.Error())
 				}
 				return nil, err
 			}
@@ -175,5 +180,5 @@ func (a *CreateVpcActivity) Execute(ctx context.Context, input CreateVpcActivity
 }
 
 func getVPCStackTags(clusterName string, customTagsMap map[string]string) []*cloudformation.Tag {
-	return getStackTags(clusterName, "vpc", customTagsMap)
+	return awscommonworkflow.GetStackTags(clusterName, "vpc", customTagsMap)
 }

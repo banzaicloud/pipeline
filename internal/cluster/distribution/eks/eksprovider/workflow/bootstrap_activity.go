@@ -36,18 +36,20 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	sdkeks "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/eks"
+
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const BootstrapActivityName = "eks-bootstrap"
 
 // CreateEksControlPlaneActivity creates aws-auth map & default StorageClass on cluster
 type BootstrapActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 }
 
 // BootstrapActivityInput holds input data
 type BootstrapActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 
 	KubernetesVersion   string
 	NodeInstanceRoleArn string
@@ -60,7 +62,7 @@ type BootstrapActivityOutput struct {
 }
 
 // BootstrapActivity instantiates a new BootstrapActivity
-func NewBootstrapActivity(awsSessionFactory *AWSSessionFactory) *BootstrapActivity {
+func NewBootstrapActivity(awsSessionFactory *awscommonworkflow.AWSSessionFactory) *BootstrapActivity {
 	return &BootstrapActivity{
 		awsSessionFactory: awsSessionFactory,
 	}
@@ -214,7 +216,7 @@ func (a *BootstrapActivity) getKubeClient(eksSvc *eks.EKS, input BootstrapActivi
 		return nil, err
 	}
 
-	k8sCfg := generateK8sConfig(input.ClusterName, apiEndpoint, certificateAuthorityData, awsCredsFields.AccessKeyID, awsCredsFields.SecretAccessKey)
+	k8sCfg := awscommonworkflow.GenerateK8sConfig(input.ClusterName, apiEndpoint, certificateAuthorityData, awsCredsFields.AccessKeyID, awsCredsFields.SecretAccessKey)
 	kubeConfig, err := yaml.Marshal(k8sCfg)
 	if err != nil {
 		return nil, err

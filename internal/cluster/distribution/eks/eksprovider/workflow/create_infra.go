@@ -23,7 +23,8 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -46,20 +47,20 @@ type CreateInfrastructureWorkflowInput struct {
 	ScaleEnabled bool
 	Tags         map[string]string
 
-	Subnets          []Subnet
-	ASGSubnetMapping map[string][]Subnet
+	Subnets          []awscommonworkflow.Subnet
+	ASGSubnetMapping map[string][]awscommonworkflow.Subnet
 
 	DefaultUser        bool
 	ClusterRoleID      string
 	NodeInstanceRoleID string
 
 	KubernetesVersion     string
-	EncryptionConfig      []EncryptionConfig
+	EncryptionConfig      []awscommonworkflow.EncryptionConfig
 	EndpointPrivateAccess bool
 	EndpointPublicAccess  bool
 
 	LogTypes []string
-	AsgList  []AutoscaleGroup
+	AsgList  []awscommonworkflow.AutoscaleGroup
 
 	UseGeneratedSSHKey bool
 
@@ -69,15 +70,16 @@ type CreateInfrastructureWorkflowInput struct {
 type CreateInfrastructureWorkflowOutput struct {
 	VpcID              string
 	NodeInstanceRoleID string
-	Subnets            []Subnet
+	Subnets            []awscommonworkflow.Subnet
 	ConfigSecretID     string
 }
 
 type CreateInfrastructureWorkflow struct {
-	nodePoolStore eks.NodePoolStore
+	nodePoolStore awscommon.NodePoolStore
 }
 
-func NewCreateInfrastructureWorkflow(nodePoolStore eks.NodePoolStore) (createInfrastructureWorkflow *CreateInfrastructureWorkflow) {
+func NewCreateInfrastructureWorkflow(
+	nodePoolStore awscommon.NodePoolStore) (createInfrastructureWorkflow *CreateInfrastructureWorkflow) {
 	return &CreateInfrastructureWorkflow{
 		nodePoolStore: nodePoolStore,
 	}
@@ -85,7 +87,8 @@ func NewCreateInfrastructureWorkflow(nodePoolStore eks.NodePoolStore) (createInf
 
 // Execute executes the Cadence workflow responsible for creating EKS
 // cluster infrastructure such as VPC, subnets, EKS master nodes, worker nodes, etc
-func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input CreateInfrastructureWorkflowInput) (*CreateInfrastructureWorkflowOutput, error) {
+func (w CreateInfrastructureWorkflow) Execute(
+	ctx workflow.Context, input CreateInfrastructureWorkflowInput) (*CreateInfrastructureWorkflowOutput, error) {
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 10 * time.Minute,
 		StartToCloseTimeout:    5 * time.Minute,
@@ -95,7 +98,7 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 			BackoffCoefficient:       1.5,
 			MaximumInterval:          30 * time.Second,
 			MaximumAttempts:          5,
-			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", ErrReasonStackFailed},
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", awscommonworkflow.ErrReasonStackFailed},
 		},
 	}
 
@@ -109,11 +112,11 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 			BackoffCoefficient:       1.5,
 			MaximumInterval:          30 * time.Second,
 			MaximumAttempts:          5,
-			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", ErrReasonStackFailed},
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", awscommonworkflow.ErrReasonStackFailed},
 		},
 	}
 
-	commonActivityInput := EKSActivityInput{
+	commonActivityInput := awscommonworkflow.AWSCommonActivityInput{
 		OrganizationID:            input.OrganizationID,
 		SecretID:                  input.SecretID,
 		Region:                    input.Region,
@@ -127,11 +130,12 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	if input.ClusterRoleID != "" {
 		{
 			activityInput := &ValidateIAMRoleActivityInput{
-				EKSActivityInput: commonActivityInput,
-				ClusterRoleID:    input.ClusterRoleID,
+				AWSCommonActivityInput: commonActivityInput,
+				ClusterRoleID:          input.ClusterRoleID,
 			}
 			validateIAMRoleActivityOutput := ValidateIAMRoleActivityOutput{}
-			if err := workflow.ExecuteActivity(ctx, ValidateIAMRoleActivityName, activityInput).Get(ctx, &validateIAMRoleActivityOutput); err != nil {
+			if err := workflow.ExecuteActivity(
+				ctx, ValidateIAMRoleActivityName, activityInput).Get(ctx, &validateIAMRoleActivityOutput); err != nil {
 				return nil, err
 			}
 		}
@@ -141,26 +145,26 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	var iamRolesCreateActivityFuture workflow.Future
 	{
 		activityInput := &CreateIamRolesActivityInput{
-			EKSActivityInput:   commonActivityInput,
-			StackName:          generateStackNameForIam(input.ClusterName),
-			DefaultUser:        input.DefaultUser,
-			ClusterRoleID:      input.ClusterRoleID,
-			NodeInstanceRoleID: input.NodeInstanceRoleID,
-			Tags:               input.Tags,
+			AWSCommonActivityInput: commonActivityInput,
+			StackName:              awscommonworkflow.GenerateStackNameForIam(input.ClusterName),
+			DefaultUser:            input.DefaultUser,
+			ClusterRoleID:          input.ClusterRoleID,
+			NodeInstanceRoleID:     input.NodeInstanceRoleID,
+			Tags:                   input.Tags,
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		iamRolesCreateActivityFuture = workflow.ExecuteActivity(ctx, CreateIamRolesActivityName, activityInput)
 	}
 
 	// upload SSH key activity
-	sshKeyName := GenerateSSHKeyNameForCluster(input.ClusterName)
+	sshKeyName := awscommonworkflow.GenerateSSHKeyNameForCluster(input.ClusterName)
 	var uploadSSHKeyActivityFeature workflow.Future
 	if input.UseGeneratedSSHKey {
 		{
 			activityInput := &UploadSSHKeyActivityInput{
-				EKSActivityInput: commonActivityInput,
-				SSHKeyName:       GenerateSSHKeyNameForCluster(input.ClusterName),
-				SSHSecretID:      input.SSHSecretID,
+				AWSCommonActivityInput: commonActivityInput,
+				SSHKeyName:             awscommonworkflow.GenerateSSHKeyNameForCluster(input.ClusterName),
+				SSHSecretID:            input.SSHSecretID,
 			}
 			uploadSSHKeyActivityFeature = workflow.ExecuteActivity(ctx, UploadSSHKeyActivityName, activityInput)
 		}
@@ -170,12 +174,12 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	var vpcActivityOutput CreateVpcActivityOutput
 	{
 		activityInput := &CreateVpcActivityInput{
-			EKSActivityInput: commonActivityInput,
-			VpcID:            input.VpcID,
-			RouteTableID:     input.RouteTableID,
-			VpcCidr:          input.VpcCidr,
-			StackName:        GenerateStackNameForCluster(input.ClusterName),
-			Tags:             input.Tags,
+			AWSCommonActivityInput: commonActivityInput,
+			VpcID:                  input.VpcID,
+			RouteTableID:           input.RouteTableID,
+			VpcCidr:                input.VpcCidr,
+			StackName:              awscommonworkflow.GenerateStackNameForCluster(input.ClusterName),
+			Tags:                   input.Tags,
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		if err := workflow.ExecuteActivity(ctx, CreateVpcActivityName, activityInput).Get(ctx, &vpcActivityOutput); err != nil {
@@ -194,16 +198,16 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	var userAccessKeyActivityFeature workflow.Future
 	{
 		activityInput := &CreateClusterUserAccessKeyActivityInput{
-			EKSActivityInput: commonActivityInput,
-			UserName:         input.ClusterName,
-			UseDefaultUser:   input.DefaultUser,
-			ClusterUID:       input.ClusterUID,
+			AWSCommonActivityInput: commonActivityInput,
+			UserName:               input.ClusterName,
+			UseDefaultUser:         input.DefaultUser,
+			ClusterUID:             input.ClusterUID,
 		}
 		userAccessKeyActivityFeature = workflow.ExecuteActivity(ctx, CreateClusterUserAccessKeyActivityName, activityInput)
 	}
 
 	// create Subnets activities, gather subnet details for existing subnets activities
-	var existingAndNewSubnets []Subnet
+	var existingAndNewSubnets []awscommonworkflow.Subnet
 	{
 		var createSubnetFutures []workflow.Future
 		var existingSubnetsIDs []string
@@ -212,17 +216,18 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 			if subnet.SubnetID == "" && subnet.Cidr != "" {
 				// create new subnet
 				activityInput := &CreateSubnetActivityInput{
-					EKSActivityInput: commonActivityInput,
-					VpcID:            vpcActivityOutput.VpcID,
-					RouteTableID:     vpcActivityOutput.RouteTableID,
-					SubnetID:         subnet.SubnetID,
-					Cidr:             subnet.Cidr,
-					AvailabilityZone: subnet.AvailabilityZone,
-					StackName:        generateStackNameForSubnet(input.ClusterName, subnet.Cidr),
-					Tags:             input.Tags,
+					AWSCommonActivityInput: commonActivityInput,
+					VpcID:                  vpcActivityOutput.VpcID,
+					RouteTableID:           vpcActivityOutput.RouteTableID,
+					SubnetID:               subnet.SubnetID,
+					Cidr:                   subnet.Cidr,
+					AvailabilityZone:       subnet.AvailabilityZone,
+					StackName:              awscommonworkflow.GenerateStackNameForSubnet(input.ClusterName, subnet.Cidr),
+					Tags:                   input.Tags,
 				}
 				ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
-				createSubnetFutures = append(createSubnetFutures, workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput))
+				createSubnetFutures = append(
+					createSubnetFutures, workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput))
 			} else if subnet.SubnetID != "" {
 				existingSubnetsIDs = append(existingSubnetsIDs, subnet.SubnetID)
 			}
@@ -247,7 +252,7 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 
 			errs[i] = pkgCadence.UnwrapError(future.Get(ctx, &activityOutput))
 			if errs[i] == nil {
-				existingAndNewSubnets = append(existingAndNewSubnets, Subnet{
+				existingAndNewSubnets = append(existingAndNewSubnets, awscommonworkflow.Subnet{
 					SubnetID:         activityOutput.SubnetID,
 					Cidr:             activityOutput.Cidr,
 					AvailabilityZone: activityOutput.AvailabilityZone,
@@ -267,7 +272,7 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 		}
 
 		for _, subnet := range getSubnetsDetailsActivityOutput.Subnets {
-			existingAndNewSubnets = append(existingAndNewSubnets, Subnet{
+			existingAndNewSubnets = append(existingAndNewSubnets, awscommonworkflow.Subnet{
 				SubnetID:         subnet.SubnetID,
 				Cidr:             subnet.Cidr,
 				AvailabilityZone: subnet.AvailabilityZone,
@@ -291,16 +296,16 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	{
 		activityOutput := CreateEksControlPlaneActivityOutput{}
 		activityInput := &CreateEksControlPlaneActivityInput{
-			EKSActivityInput:      commonActivityInput,
-			KubernetesVersion:     input.KubernetesVersion,
-			EncryptionConfig:      input.EncryptionConfig,
-			EndpointPrivateAccess: input.EndpointPrivateAccess,
-			EndpointPublicAccess:  input.EndpointPublicAccess,
-			ClusterRoleArn:        iamRolesActivityOutput.ClusterRoleArn,
-			SecurityGroupID:       vpcActivityOutput.SecurityGroupID,
-			LogTypes:              input.LogTypes,
-			Subnets:               existingAndNewSubnets,
-			Tags:                  input.Tags,
+			AWSCommonActivityInput: commonActivityInput,
+			KubernetesVersion:      input.KubernetesVersion,
+			EncryptionConfig:       input.EncryptionConfig,
+			EndpointPrivateAccess:  input.EndpointPrivateAccess,
+			EndpointPublicAccess:   input.EndpointPublicAccess,
+			ClusterRoleArn:         iamRolesActivityOutput.ClusterRoleArn,
+			SecurityGroupID:        vpcActivityOutput.SecurityGroupID,
+			LogTypes:               input.LogTypes,
+			Subnets:                existingAndNewSubnets,
+			Tags:                   input.Tags,
 		}
 
 		ao := workflow.ActivityOptions{
@@ -317,7 +322,8 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 			},
 		}
 		ctx := workflow.WithActivityOptions(ctx, ao)
-		if err := workflow.ExecuteActivity(ctx, CreateEksControlPlaneActivityName, activityInput).Get(ctx, &activityOutput); err != nil {
+		if err := workflow.ExecuteActivity(
+			ctx, CreateEksControlPlaneActivityName, activityInput).Get(ctx, &activityOutput); err != nil {
 			return nil, err
 		}
 	}
@@ -326,11 +332,11 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	var bootstrapActivityFeature workflow.Future
 	{
 		activityInput := &BootstrapActivityInput{
-			EKSActivityInput:    commonActivityInput,
-			KubernetesVersion:   input.KubernetesVersion,
-			NodeInstanceRoleArn: iamRolesActivityOutput.NodeInstanceRoleArn,
-			ClusterUserArn:      iamRolesActivityOutput.ClusterUserArn,
-			AuthConfigMap:       input.AuthConfigMap,
+			AWSCommonActivityInput: commonActivityInput,
+			KubernetesVersion:      input.KubernetesVersion,
+			NodeInstanceRoleArn:    iamRolesActivityOutput.NodeInstanceRoleArn,
+			ClusterUserArn:         iamRolesActivityOutput.ClusterUserArn,
+			AuthConfigMap:          input.AuthConfigMap,
 		}
 		bootstrapActivityFeature = workflow.ExecuteActivity(ctx, BootstrapActivityName, activityInput)
 	}
@@ -353,8 +359,8 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 		var amiSize int
 		{
 			activityInput := GetAMISizeActivityInput{
-				EKSActivityInput: commonActivityInput,
-				ImageID:          asg.NodeImage,
+				AWSCommonActivityInput: commonActivityInput,
+				ImageID:                asg.NodeImage,
 			}
 			var activityOutput GetAMISizeActivityOutput
 			err = workflow.ExecuteActivity(ctx, GetAMISizeActivityName, activityInput).Get(ctx, &activityOutput)
@@ -365,7 +371,7 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 					input.ClusterID,
 					input.ClusterName,
 					asg.Name,
-					eks.NodePoolStatusError,
+					awscommon.NodePoolStatusError,
 					fmt.Sprintf("Validation failed: retrieving AMI size failed: %s", err),
 				)
 
@@ -390,7 +396,7 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 					input.ClusterID,
 					input.ClusterName,
 					asg.Name,
-					eks.NodePoolStatusError,
+					awscommon.NodePoolStatusError,
 					fmt.Sprintf("Validation failed: selecting volume size failed: %s", err),
 				)
 
@@ -401,9 +407,9 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 		}
 
 		activityInput := CreateAsgActivityInput{
-			EKSActivityInput: commonActivityInput,
-			ClusterID:        input.ClusterID,
-			StackName:        GenerateNodePoolStackName(input.ClusterName, asg.Name),
+			AWSCommonActivityInput: commonActivityInput,
+			ClusterID:              input.ClusterID,
+			StackName:              awscommonworkflow.GenerateNodePoolStackName(input.ClusterName, asg.Name),
 
 			ScaleEnabled: input.ScaleEnabled,
 

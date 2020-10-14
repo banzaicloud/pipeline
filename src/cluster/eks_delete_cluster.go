@@ -20,6 +20,7 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
 )
@@ -66,7 +67,7 @@ func EKSDeleteClusterWorkflow(ctx workflow.Context, input EKSDeleteClusterWorkfl
 			BackoffCoefficient:       1.5,
 			MaximumInterval:          30 * time.Second,
 			MaximumAttempts:          5,
-			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", eksWorkflow.ErrReasonStackFailed},
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", awscommonworkflow.ErrReasonStackFailed},
 		},
 	}
 

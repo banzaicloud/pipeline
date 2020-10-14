@@ -19,7 +19,8 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	eksworkflow2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
@@ -29,9 +30,9 @@ import (
 
 func registerEKSWorkflows(
 	config configuration,
-	secretStore eksworkflow.SecretStore,
+	secretStore awscommonworkflow.SecretStore,
 	clusterManager *adapter.ClusterManagerAdapter,
-	nodePoolStore eks.NodePoolStore,
+	nodePoolStore awscommon.NodePoolStore,
 ) error {
 	vpcTemplate, err := eksworkflow.GetVPCTemplate()
 	if err != nil {
@@ -58,8 +59,8 @@ func registerEKSWorkflows(
 	createInfrastructureWorkflow := eksworkflow.NewCreateInfrastructureWorkflow(nodePoolStore)
 	workflow.RegisterWithOptions(createInfrastructureWorkflow.Execute, workflow.RegisterOptions{Name: eksworkflow.CreateInfraWorkflowName})
 
-	awsSessionFactory := eksworkflow.NewAWSSessionFactory(secretStore)
-	cloudFormationFactory := eksworkflow.NewCloudFormationFactory()
+	awsSessionFactory := awscommonworkflow.NewAWSSessionFactory(secretStore)
+	cloudFormationFactory := awscommonworkflow.NewCloudFormationFactory()
 	ec2Factory := eksworkflow.NewEC2Factory()
 	eksFactory := eksworkflow.NewEKSFactory()
 

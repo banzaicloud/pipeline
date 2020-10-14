@@ -20,18 +20,20 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
+
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const ValidateIAMRoleActivityName = "eks-validate-iam-role"
 
 //  ValidateIAMRoleActivity responsible for validating IAM role
 type ValidateIAMRoleActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 }
 
 //  ValidateIAMRoleActivityInput holds data needed to validate IAM Role
 type ValidateIAMRoleActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 
 	ClusterRoleID string
 }
@@ -41,13 +43,14 @@ type ValidateIAMRoleActivityOutput struct {
 }
 
 //  NewValidateIAMRoleActivity instantiates a new  ValidateIAMRoleActivity
-func NewValidateIAMRoleActivity(awsSessionFactory *AWSSessionFactory) *ValidateIAMRoleActivity {
+func NewValidateIAMRoleActivity(awsSessionFactory *awscommonworkflow.AWSSessionFactory) *ValidateIAMRoleActivity {
 	return &ValidateIAMRoleActivity{
 		awsSessionFactory: awsSessionFactory,
 	}
 }
 
-func (a *ValidateIAMRoleActivity) Execute(ctx context.Context, input ValidateIAMRoleActivityInput) (*ValidateIAMRoleActivityOutput, error) {
+func (a *ValidateIAMRoleActivity) Execute(
+	ctx context.Context, input ValidateIAMRoleActivityInput) (*ValidateIAMRoleActivityOutput, error) {
 	awsSession, err := a.awsSessionFactory.New(input.OrganizationID, input.SecretID, input.Region)
 	if err = errors.WrapIf(err, "failed to create AWS session"); err != nil {
 		return nil, err

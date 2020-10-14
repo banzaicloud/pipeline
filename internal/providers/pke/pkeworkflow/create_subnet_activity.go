@@ -23,7 +23,7 @@ import (
 	"go.uber.org/cadence/activity"
 
 	cloudformation2 "github.com/banzaicloud/pipeline/internal/cloudformation"
-	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const CreateSubnetActivityName = "pke-create-subnet"
@@ -128,7 +128,7 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 		}
 
 		describeStacksInput := &cloudformation.DescribeStacksInput{StackName: stackName}
-		err = eksWorkflow.WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
+		err = awscommonworkflow.WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
 
 		if err != nil {
 			return nil, err

@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"go.uber.org/cadence/activity"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
@@ -34,12 +35,12 @@ const CreateClusterUserAccessKeyActivityName = "eks-create-cluster-user-access-k
 // CreateClusterUserAccessKeyActivity responsible for creating IAM user access key for the cluster user
 // and storing the access in secret store
 type CreateClusterUserAccessKeyActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 }
 
 // CreateClusterUserAccessKeyActivityInput holds data needed for setting up IAM user access key for the cluster user
 type CreateClusterUserAccessKeyActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 
 	UserName       string
 	UseDefaultUser bool
@@ -51,13 +52,16 @@ type CreateClusterUserAccessKeyActivityOutput struct {
 }
 
 // NewCreateClusterUserAccessKeyActivity instantiates a CreateClusterUserAccessKeyActivity
-func NewCreateClusterUserAccessKeyActivity(awsSessionFactory *AWSSessionFactory) *CreateClusterUserAccessKeyActivity {
+func NewCreateClusterUserAccessKeyActivity(
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory) *CreateClusterUserAccessKeyActivity {
 	return &CreateClusterUserAccessKeyActivity{
 		awsSessionFactory: awsSessionFactory,
 	}
 }
 
-func (a *CreateClusterUserAccessKeyActivity) Execute(ctx context.Context, input CreateClusterUserAccessKeyActivityInput) (*CreateClusterUserAccessKeyActivityOutput, error) {
+func (a *CreateClusterUserAccessKeyActivity) Execute(
+	ctx context.Context, input CreateClusterUserAccessKeyActivityInput,
+) (*CreateClusterUserAccessKeyActivityOutput, error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
@@ -66,11 +70,12 @@ func (a *CreateClusterUserAccessKeyActivity) Execute(ctx context.Context, input 
 
 	var accessKey *iam.AccessKey
 
-	secretName := getSecretName(input.UserName)
+	secretName := awscommonworkflow.GetSecretName(input.UserName)
 
 	clusterUserAccessKeySecret, err := a.awsSessionFactory.GetSecretStore().GetByName(input.OrganizationID, secretName)
 	if err != nil && err != secret.ErrSecretNotExists {
-		return nil, errors.WrapIfWithDetails(err, "failed to verify if secret exists in secret store", "secretName", secretName)
+		return nil, errors.WrapIfWithDetails(
+			err, "failed to verify if secret exists in secret store", "secretName", secretName)
 	}
 
 	if !input.UseDefaultUser {
@@ -85,7 +90,8 @@ func (a *CreateClusterUserAccessKeyActivity) Execute(ctx context.Context, input 
 		createNewAccessKey := true
 
 		userAccessKeys, err := amazon.GetUserAccessKeys(iamSvc, clusterUserName)
-		if err = errors.WrapIfWithDetails(err, "failed to retrieve IAM user access keys for user", "user", input.UserName); err != nil {
+		if err = errors.WrapIfWithDetails(
+			err, "failed to retrieve IAM user access keys for user", "user", input.UserName); err != nil {
 			return nil, err
 		}
 
@@ -100,7 +106,8 @@ func (a *CreateClusterUserAccessKeyActivity) Execute(ctx context.Context, input 
 		if clusterUserAccessKeySecret != nil {
 			if clusterUserAwsAccessKeyId, ok := clusterUserAccessKeySecret.Values[secrettype.AwsAccessKeyId]; ok {
 				if _, ok := userAccessKeyMap[clusterUserAwsAccessKeyId]; ok {
-					createNewAccessKey = false // the access key in Amazon and Vault matches, no need to create a new onw
+					// the access key in Amazon and Vault matches, no need to create a new onw
+					createNewAccessKey = false
 				}
 			}
 		}
@@ -110,7 +117,13 @@ func (a *CreateClusterUserAccessKeyActivity) Execute(ctx context.Context, input 
 				// IAM user can not have more than 2 access keys
 				for k := range userAccessKeyMap {
 					err = amazon.DeleteUserAccessKey(iamSvc, clusterUserName, aws.String(k))
-					if err = errors.WrapIfWithDetails(err, "couldn't delete IAM user access key", "user", input.UserName, "accessKeyID", k); err != nil {
+					if err = errors.WrapIfWithDetails(
+						err,
+						"couldn't delete IAM user access key",
+						"user",
+						input.UserName,
+						"accessKeyID",
+						k); err != nil {
 						return nil, err
 					}
 				}
@@ -119,7 +132,8 @@ func (a *CreateClusterUserAccessKeyActivity) Execute(ctx context.Context, input 
 			logger.Info("creating IAM user access key")
 
 			accessKey, err = amazon.CreateUserAccessKey(iamSvc, clusterUserName)
-			if err = errors.WrapIfWithDetails(err, "failed to create IAM user access key for user", "user", input.UserName); err != nil {
+			if err = errors.WrapIfWithDetails(
+				err, "failed to create IAM user access key for user", "user", input.UserName); err != nil {
 				return nil, err
 			}
 		} else {
@@ -166,7 +180,8 @@ func (a *CreateClusterUserAccessKeyActivity) Execute(ctx context.Context, input 
 
 	var secretID string
 	if clusterUserAccessKeySecret != nil {
-		if err = a.awsSessionFactory.GetSecretStore().Update(input.OrganizationID, clusterUserAccessKeySecret.ID, &secretRequest); err != nil {
+		if err = a.awsSessionFactory.GetSecretStore().Update(
+			input.OrganizationID, clusterUserAccessKeySecret.ID, &secretRequest); err != nil {
 			return nil, errors.WrapIff(err, "failed to update secret: %s", secretName)
 		}
 		secretID = clusterUserAccessKeySecret.ID

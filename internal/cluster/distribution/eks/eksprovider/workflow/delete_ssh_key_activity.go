@@ -23,16 +23,18 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"go.uber.org/cadence/activity"
+
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const DeleteSshKeyActivityName = "eks-delete-ssh-key"
 
 type DeleteSshKeyActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 }
 
 type DeleteSshKeyActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 	SSHKeyName string
 }
 
@@ -40,7 +42,7 @@ type DeleteSshKeyActivityOutput struct {
 }
 
 // NewDeleteSshKeyActivity instantiates a new DeleteSshKeyActivity.
-func NewDeleteSshKeyActivity(awsSessionFactory *AWSSessionFactory) *DeleteSshKeyActivity {
+func NewDeleteSshKeyActivity(awsSessionFactory *awscommonworkflow.AWSSessionFactory) *DeleteSshKeyActivity {
 	return &DeleteSshKeyActivity{
 		awsSessionFactory: awsSessionFactory,
 	}

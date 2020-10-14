@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
@@ -29,7 +30,7 @@ const CreateSubnetActivityName = "eks-create-subnet"
 
 // CreateSubnetActivity responsible for setting up a Subnet for an EKS cluster
 type CreateSubnetActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 	// body of the cloud formation template for setting up the Subnet
 	cloudFormationTemplate string
 }
@@ -37,7 +38,7 @@ type CreateSubnetActivity struct {
 // CreateSubnetActivityInput holds data needed for setting up
 // a Subnet for EKS cluster
 type CreateSubnetActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 
 	// the ID of the VPC to create the subnet into
 	VpcID string
@@ -68,14 +69,16 @@ type CreateSubnetActivityOutput struct {
 }
 
 // NewCreateSubnetActivity instantiates a new CreateSubnetActivity
-func NewCreateSubnetActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *CreateSubnetActivity {
+func NewCreateSubnetActivity(
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory, cloudFormationTemplate string) *CreateSubnetActivity {
 	return &CreateSubnetActivity{
 		awsSessionFactory:      awsSessionFactory,
 		cloudFormationTemplate: cloudFormationTemplate,
 	}
 }
 
-func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetActivityInput) (*CreateSubnetActivityOutput, error) {
+func (a *CreateSubnetActivity) Execute(
+	ctx context.Context, input CreateSubnetActivityInput) (*CreateSubnetActivityOutput, error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
@@ -133,10 +136,11 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 		}
 
 		describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-		err = WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
+		err = awscommonworkflow.WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
 
 		if err != nil {
-			return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "failed to create subnet with cidr")
+			return nil, awscommonworkflow.PackageCFError(
+				err, input.StackName, clientRequestToken, cloudformationClient, "failed to create subnet with cidr")
 		}
 
 		describeStacksOutput, err := cloudformationClient.DescribeStacks(describeStacksInput)
@@ -165,5 +169,5 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 }
 
 func getSubnetStackTags(clusterName string, customTagsMap map[string]string) []*cloudformation.Tag {
-	return getStackTags(clusterName, "subnet", customTagsMap)
+	return awscommonworkflow.GetStackTags(clusterName, "subnet", customTagsMap)
 }

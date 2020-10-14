@@ -35,6 +35,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
+	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
@@ -44,13 +45,13 @@ const ErrReasonStackFailed = "CLOUDFORMATION_STACK_FAILED"
 const (
 	asgWaitLoopSleep           = 5 * time.Second
 	asgFulfillmentTimeout      = 2 * time.Minute
-	asgFulfillmentWaitAttempts = asgFulfillmentTimeout / asgWaitLoopSleep
-	asgFulfillmentWaitInterval = asgWaitLoopSleep
+	AsgFulfillmentWaitAttempts = asgFulfillmentTimeout / asgWaitLoopSleep
+	AsgFulfillmentWaitInterval = asgWaitLoopSleep
 )
 
 // getStackTags returns the tags that are placed onto CF template stacks.
 // These tags  are propagated onto the resources created by the CF template.
-func getStackTags(clusterName, stackType string, customTagsMap map[string]string) []*cloudformation.Tag {
+func GetStackTags(clusterName, stackType string, customTagsMap map[string]string) []*cloudformation.Tag {
 	tags := make([]*cloudformation.Tag, 0)
 
 	for k, v := range customTagsMap {
@@ -67,20 +68,20 @@ func getStackTags(clusterName, stackType string, customTagsMap map[string]string
 	return tags
 }
 
-func getNodePoolStackTags(clusterName string, customTagsMap map[string]string) []*cloudformation.Tag {
-	return getStackTags(clusterName, "nodepool", customTagsMap)
+func GetNodePoolStackTags(clusterName string, customTagsMap map[string]string) []*cloudformation.Tag {
+	return GetStackTags(clusterName, "nodepool", customTagsMap)
 }
 
 func GenerateStackNameForCluster(clusterName string) string {
 	return "pipeline-aws-common--" + clusterName
 }
 
-func generateStackNameForSubnet(clusterName, subnetCidr string) string {
+func GenerateStackNameForSubnet(clusterName, subnetCidr string) string {
 	r := strings.NewReplacer(".", "-", "/", "-")
 	return fmt.Sprintf("pipeline-aws-common--subnet-%s-%s", clusterName, r.Replace(subnetCidr))
 }
 
-func generateStackNameForIam(clusterName string) string {
+func GenerateStackNameForIam(clusterName string) string {
 	return "pipeline-aws-common--iam-" + clusterName
 }
 
@@ -93,11 +94,11 @@ func GenerateNodePoolStackName(clusterName string, poolName string) string {
 }
 
 // getSecretName returns the name that identifies the  cluster user access key in Vault
-func getSecretName(userName string) string {
+func GetSecretName(userName string) string {
 	return fmt.Sprintf("%s-key", strings.ToLower(userName))
 }
 
-func generateK8sConfig(clusterName string, apiEndpoint string, certificateAuthorityData []byte,
+func GenerateK8sConfig(clusterName string, apiEndpoint string, certificateAuthorityData []byte,
 	awsAccessKeyID string, awsSecretAccessKey string) *clientcmdapi.Config {
 	return &clientcmdapi.Config{
 		APIVersion: "v1",
@@ -140,7 +141,7 @@ func generateK8sConfig(clusterName string, apiEndpoint string, certificateAuthor
 	}
 }
 
-func packageCFError(err error, stackName string, clientRequestToken string, cloudformationClient *cloudformation.CloudFormation, errMessage string) error {
+func PackageCFError(err error, stackName string, clientRequestToken string, cloudformationClient *cloudformation.CloudFormation, errMessage string) error {
 	var awsErr awserr.Error
 	if errors.As(err, &awsErr) {
 		if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
@@ -422,14 +423,14 @@ func WaitForASGToBeFulfilled(
 		Logger: zapadapter.New(logger.Desugar()),
 	})
 
-	ticker := time.NewTicker(asgFulfillmentWaitInterval)
+	ticker := time.NewTicker(AsgFulfillmentWaitInterval)
 	defer ticker.Stop()
 
 	i := 0
 	for {
 		select {
 		case <-ticker.C:
-			if i <= int(asgFulfillmentWaitAttempts) {
+			if i <= int(AsgFulfillmentWaitAttempts) {
 				i++
 				activity.RecordHeartbeat(ctx, i)
 
@@ -446,7 +447,12 @@ func WaitForASGToBeFulfilled(
 				ok, err := asGroup.IsHealthy()
 				if err != nil {
 					if autoscaling.IsErrorFinal(err) {
-						return errors.WithDetails(err, "nodePoolName", nodePoolName, "stackName", aws.StringValue(asGroup.AutoScalingGroupName))
+						return errors.WithDetails(
+							err,
+							"nodePoolName",
+							nodePoolName,
+							"stackName",
+							aws.StringValue(asGroup.AutoScalingGroupName))
 					}
 					// log.Debug(err)
 					continue
@@ -456,7 +462,10 @@ func WaitForASGToBeFulfilled(
 					return nil
 				}
 			} else {
-				return errors.Errorf("waiting for ASG to be fulfilled timed out after %d x %s", asgFulfillmentWaitAttempts, asgFulfillmentWaitInterval)
+				return errors.Errorf(
+					"waiting for ASG to be fulfilled timed out after %d x %s",
+					AsgFulfillmentWaitAttempts,
+					AsgFulfillmentWaitInterval)
 			}
 		case <-ctx.Done(): // wait for ASG fulfillment cancelled
 			return nil

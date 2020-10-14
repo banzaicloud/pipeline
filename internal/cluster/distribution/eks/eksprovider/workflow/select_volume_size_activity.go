@@ -50,7 +50,8 @@ func NewSelectVolumeSizeActivity(defaultVolumeSize int) (activity *SelectVolumeS
 	}
 }
 
-func (activity *SelectVolumeSizeActivity) Execute(ctx context.Context, input SelectVolumeSizeActivityInput) (output *SelectVolumeSizeActivityOutput, err error) {
+func (activity *SelectVolumeSizeActivity) Execute(
+	ctx context.Context, input SelectVolumeSizeActivityInput) (output *SelectVolumeSizeActivityOutput, err error) {
 	output = &SelectVolumeSizeActivityOutput{}
 	valueSource := ""
 	if input.OptionalVolumeSize > 0 {

@@ -21,6 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
@@ -29,24 +30,25 @@ const GetSubnetStacksActivityName = "eks-get-subnet-stacks"
 
 // GetSubnetStacksActivity collects all subnet stack names
 type GetSubnetStacksActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 }
 
 type GetSubnetStacksActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 }
 
 type GetSubnetStacksActivityOutput struct {
 	StackNames []string
 }
 
-func NewGetSubnetStacksActivity(awsSessionFactory *AWSSessionFactory) *GetSubnetStacksActivity {
+func NewGetSubnetStacksActivity(awsSessionFactory *awscommonworkflow.AWSSessionFactory) *GetSubnetStacksActivity {
 	return &GetSubnetStacksActivity{
 		awsSessionFactory: awsSessionFactory,
 	}
 }
 
-func (a *GetSubnetStacksActivity) Execute(ctx context.Context, input GetSubnetStacksActivityInput) (*GetSubnetStacksActivityOutput, error) {
+func (a *GetSubnetStacksActivity) Execute(
+	ctx context.Context, input GetSubnetStacksActivityInput) (*GetSubnetStacksActivityOutput, error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"region", input.Region,

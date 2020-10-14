@@ -26,7 +26,8 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
@@ -34,16 +35,16 @@ const CreateAsgActivityName = "eks-create-asg"
 
 // CreateAsgActivity responsible for creating IAM roles
 type CreateAsgActivity struct {
-	awsSessionFactory AWSFactory
+	awsSessionFactory awscommonworkflow.AWSFactory
 	// body of the cloud formation template for setting up the VPC
 	cloudFormationTemplate string
 
-	nodePoolStore eks.NodePoolStore
+	nodePoolStore awscommon.NodePoolStore
 }
 
 // CreateAsgActivityInput holds data needed for setting up IAM roles
 type CreateAsgActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 
 	ClusterID uint
 
@@ -64,7 +65,7 @@ type CreateAsgActivityInput struct {
 	NodeInstanceType string
 	Labels           map[string]string
 
-	Subnets             []Subnet
+	Subnets             []awscommonworkflow.Subnet
 	VpcID               string
 	SecurityGroupID     string
 	NodeSecurityGroupID string
@@ -78,9 +79,9 @@ type CreateAsgActivityOutput struct {
 
 // CreateAsgActivity instantiates a new CreateAsgActivity
 func NewCreateAsgActivity(
-	awsSessionFactory AWSFactory,
+	awsSessionFactory awscommonworkflow.AWSFactory,
 	cloudFormationTemplate string,
-	nodePoolStore eks.NodePoolStore,
+	nodePoolStore awscommon.NodePoolStore,
 ) *CreateAsgActivity {
 	return &CreateAsgActivity{
 		awsSessionFactory:      awsSessionFactory,
@@ -126,14 +127,14 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		terminationDetachEnabled = true
 	}
 
-	tags := getNodePoolStackTags(input.ClusterName, input.Tags)
+	tags := awscommonworkflow.GetNodePoolStackTags(input.ClusterName, input.Tags)
 	var stackParams []*cloudformation.Parameter
 
 	// do not update node labels via kubelet boostrap params as that induces node reboot or replacement
 	// we only add node pool name here, all other labels will be added by NodePoolLabelSet operator
 	nodeLabels := []string{
 		fmt.Sprintf("%v=%v", cluster.NodePoolNameLabelKey, input.Name),
-		fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, eks.CalculateNodePoolVersion(
+		fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, awscommon.CalculateNodePoolVersion(
 			input.NodeImage,
 			fmt.Sprintf("%d", input.NodeVolumeSize),
 		)),
@@ -243,9 +244,9 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	stackID := aws.StringValue(createStackOutput.StackId)
 	err = a.nodePoolStore.UpdateNodePoolStackID(
 		ctx,
-		input.EKSActivityInput.OrganizationID,
+		input.AWSCommonActivityInput.OrganizationID,
 		input.ClusterID,
-		input.EKSActivityInput.ClusterName,
+		input.AWSCommonActivityInput.ClusterName,
 		input.Name,
 		stackID,
 	)
@@ -254,13 +255,18 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-	err = WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
+	err = awscommonworkflow.WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
-		return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "waiting for CF stack create operation to complete failed")
+		return nil, awscommonworkflow.PackageCFError(
+			err,
+			input.StackName,
+			clientRequestToken,
+			cloudformationClient,
+			"waiting for CF stack create operation to complete failed")
 	}
 
 	// wait for ASG fulfillment
-	err = WaitForASGToBeFulfilled(ctx, logger, awsSession, input.StackName, input.Name)
+	err = awscommonworkflow.WaitForASGToBeFulfilled(ctx, logger, awsSession, input.StackName, input.Name)
 	if err != nil {
 		return nil, errors.WrapIff(err, "node pool %q ASG not fulfilled", input.Name)
 	}

@@ -21,15 +21,17 @@ import (
 
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const SetClusterStatusActivityName = "eks-set-cluster-status"
 
 type SetClusterStatusActivity struct {
-	manager Clusters
+	manager awscommonworkflow.Clusters
 }
 
-func NewSetClusterStatusActivity(manager Clusters) SetClusterStatusActivity {
+func NewSetClusterStatusActivity(manager awscommonworkflow.Clusters) SetClusterStatusActivity {
 	return SetClusterStatusActivity{
 		manager: manager,
 	}

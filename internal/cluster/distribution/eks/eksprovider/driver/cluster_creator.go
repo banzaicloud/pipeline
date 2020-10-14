@@ -31,6 +31,7 @@ import (
 	"go.uber.org/cadence/client"
 	logrusadapter "logur.dev/adapter/logrus"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	pkgEks "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
@@ -101,7 +102,7 @@ func NewEksClusterCreator(
 	}
 }
 
-func getNodePoolsForSubnet(subnetMapping map[string][]*pkgEks.Subnet, eksSubnet workflow.Subnet) []string {
+func getNodePoolsForSubnet(subnetMapping map[string][]*pkgEks.Subnet, eksSubnet awscommonworkflow.Subnet) []string {
 	var nodePools []string
 	for np, subnets := range subnetMapping {
 		for _, subnet := range subnets {
@@ -155,10 +156,10 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 		OrganizationName: org.Name,
 	}
 
-	encryptionConfig := make([]workflow.EncryptionConfig, 0, len(eksCluster.EncryptionConfig))
+	encryptionConfig := make([]awscommonworkflow.EncryptionConfig, 0, len(eksCluster.EncryptionConfig))
 	for _, encryptionConfigItem := range eksCluster.EncryptionConfig {
-		encryptionConfig = append(encryptionConfig, workflow.EncryptionConfig{
-			Provider: workflow.Provider{
+		encryptionConfig = append(encryptionConfig, awscommonworkflow.EncryptionConfig{
+			Provider: awscommonworkflow.Provider{
 				KeyARN: encryptionConfigItem.Provider.KeyARN,
 			},
 			Resources: encryptionConfigItem.Resources,
@@ -175,10 +176,10 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 		}
 	}
 
-	subnets := make([]workflow.Subnet, 0)
-	subnetMapping := make(map[string][]workflow.Subnet)
+	subnets := make([]awscommonworkflow.Subnet, 0)
+	subnetMapping := make(map[string][]awscommonworkflow.Subnet)
 	for _, eksSubnetModel := range modelCluster.Subnets {
-		subnet := workflow.Subnet{
+		subnet := awscommonworkflow.Subnet{
 			SubnetID:         aws.StringValue(eksSubnetModel.SubnetId),
 			Cidr:             aws.StringValue(eksSubnetModel.Cidr),
 			AvailabilityZone: aws.StringValue(eksSubnetModel.AvailabilityZone),
@@ -197,11 +198,11 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 	input.Subnets = subnets
 	input.ASGSubnetMapping = subnetMapping
 
-	asgList := make([]workflow.AutoscaleGroup, 0)
+	asgList := make([]awscommonworkflow.AutoscaleGroup, 0)
 	nodePoolLabels := make([]cluster.NodePoolLabels, 0)
 
 	for _, np := range modelCluster.NodePools {
-		asg := workflow.AutoscaleGroup{
+		asg := awscommonworkflow.AutoscaleGroup{
 			Name:             np.Name,
 			NodeSpotPrice:    np.NodeSpotPrice,
 			Autoscaling:      np.Autoscaling,

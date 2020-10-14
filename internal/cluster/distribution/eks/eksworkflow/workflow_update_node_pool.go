@@ -22,8 +22,10 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 	"github.com/banzaicloud/pipeline/pkg/sdk/cadence/lib/pipeline/processlog"
@@ -34,15 +36,15 @@ import (
 const UpdateNodePoolWorkflowName = "eks-update-node-pool"
 
 type UpdateNodePoolWorkflow struct {
-	awsFactory            eksWorkflow.AWSFactory
-	cloudFormationFactory eksWorkflow.CloudFormationAPIFactory
+	awsFactory            awscommonworkflow.AWSFactory
+	cloudFormationFactory awscommonworkflow.CloudFormationAPIFactory
 	processLogger         processlog.ProcessLogger
 }
 
 // NewUpdateNodePoolWorkflow returns a new UpdateNodePoolWorkflow.
 func NewUpdateNodePoolWorkflow(
-	awsFactory eksWorkflow.AWSFactory,
-	cloudFormationFactory eksWorkflow.CloudFormationAPIFactory,
+	awsFactory awscommonworkflow.AWSFactory,
+	cloudFormationFactory awscommonworkflow.CloudFormationAPIFactory,
 	processLogger processlog.ProcessLogger,
 ) UpdateNodePoolWorkflow {
 	return UpdateNodePoolWorkflow{
@@ -117,7 +119,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		return err
 	}
 
-	eksActivityInput := eksWorkflow.EKSActivityInput{
+	eksActivityInput := awscommonworkflow.AWSCommonActivityInput{
 		OrganizationID:            input.OrganizationID,
 		SecretID:                  providerSecretID.ResourceID,
 		Region:                    input.Region,
@@ -130,8 +132,8 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 	if effectiveImage == "" ||
 		effectiveVolumeSize == 0 { // Note: needing CF stack for original information for version.
 		getCFStackInput := eksWorkflow.GetCFStackActivityInput{
-			EKSActivityInput: eksActivityInput,
-			StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, input.NodePoolName),
+			AWSCommonActivityInput: eksActivityInput,
+			StackName:              awscommonworkflow.GenerateNodePoolStackName(input.ClusterName, input.NodePoolName),
 		}
 		var getCFStackOutput eksWorkflow.GetCFStackActivityOutput
 		processActivity := process.StartActivity(ctx, eksWorkflow.GetCFStackActivityName)
@@ -164,8 +166,8 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		var amiSize int
 		{
 			activityInput := eksWorkflow.GetAMISizeActivityInput{
-				EKSActivityInput: eksActivityInput,
-				ImageID:          effectiveImage,
+				AWSCommonActivityInput: eksActivityInput,
+				ImageID:                effectiveImage,
 			}
 			var activityOutput eksWorkflow.GetAMISizeActivityOutput
 			processActivity := process.StartActivity(ctx, eksWorkflow.GetAMISizeActivityName)

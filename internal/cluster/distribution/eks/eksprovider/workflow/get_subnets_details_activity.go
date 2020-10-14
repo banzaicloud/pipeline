@@ -23,6 +23,7 @@ import (
 	"go.uber.org/cadence/activity"
 	zapadapter "logur.dev/adapter/zap"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 )
 
@@ -30,7 +31,7 @@ const GetSubnetsDetailsActivityName = "eks-get-subnets-details"
 
 // GetSubnetsDetailsActivity retrieves cidr and az for subnets given their ID
 type GetSubnetsDetailsActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 }
 
 // GetSubnetsDetailsActivityInput holds IDs
@@ -44,17 +45,18 @@ type GetSubnetsDetailsActivityInput struct {
 }
 
 type GetSubnetsDetailsActivityOutput struct {
-	Subnets []Subnet
+	Subnets []awscommonworkflow.Subnet
 }
 
 // NewGetSubnetsDetailsActivity instantiates a new NewGetSubnetsDetailsActivity
-func NewGetSubnetsDetailsActivity(awsSessionFactory *AWSSessionFactory) *GetSubnetsDetailsActivity {
+func NewGetSubnetsDetailsActivity(awsSessionFactory *awscommonworkflow.AWSSessionFactory) *GetSubnetsDetailsActivity {
 	return &GetSubnetsDetailsActivity{
 		awsSessionFactory: awsSessionFactory,
 	}
 }
 
-func (a *GetSubnetsDetailsActivity) Execute(ctx context.Context, input GetSubnetsDetailsActivityInput) (*GetSubnetsDetailsActivityOutput, error) {
+func (a *GetSubnetsDetailsActivity) Execute(
+	ctx context.Context, input GetSubnetsDetailsActivityInput) (*GetSubnetsDetailsActivityOutput, error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"region", input.Region,
@@ -79,7 +81,7 @@ func (a *GetSubnetsDetailsActivity) Execute(ctx context.Context, input GetSubnet
 	}
 
 	for _, ec2Subnet := range ec2Subnets {
-		output.Subnets = append(output.Subnets, Subnet{
+		output.Subnets = append(output.Subnets, awscommonworkflow.Subnet{
 			SubnetID:         aws.StringValue(ec2Subnet.SubnetId),
 			Cidr:             aws.StringValue(ec2Subnet.CidrBlock),
 			AvailabilityZone: aws.StringValue(ec2Subnet.AvailabilityZone),

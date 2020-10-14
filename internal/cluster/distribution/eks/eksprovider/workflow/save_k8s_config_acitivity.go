@@ -29,6 +29,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/utils"
+
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const SaveK8sConfigActivityName = "eks-save-k8s-config"
@@ -45,11 +47,12 @@ type SaveK8sConfigActivityInput struct {
 }
 
 type SaveK8sConfigActivity struct {
-	awsSessionFactory *AWSSessionFactory
-	manager           Clusters
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
+	manager           awscommonworkflow.Clusters
 }
 
-func NewSaveK8sConfigActivity(awsSessionFactory *AWSSessionFactory, manager Clusters) SaveK8sConfigActivity {
+func NewSaveK8sConfigActivity(
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory, manager awscommonworkflow.Clusters) SaveK8sConfigActivity {
 	return SaveK8sConfigActivity{
 		awsSessionFactory: awsSessionFactory,
 		manager:           manager,
@@ -134,7 +137,12 @@ func (a *SaveK8sConfigActivity) getK8sConfig(eksSvc *eks.EKS, input SaveK8sConfi
 		return nil, err
 	}
 
-	k8sCfg := generateK8sConfig(input.ClusterName, apiEndpoint, certificateAuthorityData, awsCredsFields.AccessKeyID, awsCredsFields.SecretAccessKey)
+	k8sCfg := awscommonworkflow.GenerateK8sConfig(
+		input.ClusterName,
+		apiEndpoint,
+		certificateAuthorityData,
+		awsCredsFields.AccessKeyID,
+		awsCredsFields.SecretAccessKey)
 	kubeConfig, err := yaml.Marshal(k8sCfg)
 	if err != nil {
 		return nil, err
@@ -142,7 +150,8 @@ func (a *SaveK8sConfigActivity) getK8sConfig(eksSvc *eks.EKS, input SaveK8sConfi
 	return kubeConfig, nil
 }
 
-func (a *SaveK8sConfigActivity) storeConfig(logger *zap.SugaredLogger, cluster EksCluster, raw []byte, input SaveK8sConfigActivityInput) error {
+func (a *SaveK8sConfigActivity) storeConfig(
+	logger *zap.SugaredLogger, cluster awscommonworkflow.AWSCommonCluster, raw []byte, input SaveK8sConfigActivityInput) error {
 	configYaml := string(raw)
 	encodedConfig := utils.EncodeStringToBase64(configYaml)
 

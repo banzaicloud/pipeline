@@ -22,6 +22,7 @@ import (
 	"go.uber.org/cadence/activity"
 	zapadapter "logur.dev/adapter/zap"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 )
 
@@ -29,11 +30,11 @@ const DeleteOrphanNICActivityName = "eks-delete-orphan-nic"
 
 // DeleteOrphanNICActivity responsible for deleting asg
 type DeleteOrphanNICActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 }
 
 type DeleteOrphanNICActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 	NicID string
 }
 
@@ -41,7 +42,7 @@ type DeleteOrphanNICActivityOutput struct {
 }
 
 //   DeleteOrphanNICActivity instantiates a new DeleteOrphanNICActivity
-func NewDeleteOrphanNICActivity(awsSessionFactory *AWSSessionFactory) *DeleteOrphanNICActivity {
+func NewDeleteOrphanNICActivity(awsSessionFactory *awscommonworkflow.AWSSessionFactory) *DeleteOrphanNICActivity {
 	return &DeleteOrphanNICActivity{
 		awsSessionFactory: awsSessionFactory,
 	}

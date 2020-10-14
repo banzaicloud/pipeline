@@ -17,7 +17,7 @@ package adapter
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
@@ -34,7 +34,7 @@ func NewClusterManagerAdapter(clusterManager *cluster.Manager) *ClusterManagerAd
 }
 
 // GetCluster returns a Cluster.
-func (a *ClusterManagerAdapter) GetCluster(ctx context.Context, id uint) (workflow.EksCluster, error) {
+func (a *ClusterManagerAdapter) GetCluster(ctx context.Context, id uint) (awscommonworkflow.AWSCommonCluster, error) {
 	commonCluster, err := a.clusterManager.GetClusterByIDOnly(ctx, id)
 	if err != nil {
 		return nil, err
@@ -47,4 +47,4 @@ type Cluster struct {
 	cluster.EKSCluster
 }
 
-var _ workflow.EksCluster = (*Cluster)(nil)
+var _ awscommonworkflow.AWSCommonCluster = (*Cluster)(nil)

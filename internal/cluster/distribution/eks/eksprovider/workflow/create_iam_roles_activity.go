@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/iam"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
@@ -30,14 +31,14 @@ const CreateIamRolesActivityName = "eks-create-iam-roles"
 
 // CreateIamRolesActivity responsible for creating IAM roles
 type CreateIamRolesActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 	// body of the cloud formation template for setting up the VPC
 	cloudFormationTemplate string
 }
 
 // CreateIamRolesActivityInput holds data needed for setting up IAM roles
 type CreateIamRolesActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 
 	// name of the cloud formation template stack
 	StackName string
@@ -57,14 +58,16 @@ type CreateIamRolesActivityOutput struct {
 }
 
 // CreateIamRolesActivity instantiates a new CreateIamRolesActivity
-func NewCreateIamRolesActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *CreateIamRolesActivity {
+func NewCreateIamRolesActivity(
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory, cloudFormationTemplate string) *CreateIamRolesActivity {
 	return &CreateIamRolesActivity{
 		awsSessionFactory:      awsSessionFactory,
 		cloudFormationTemplate: cloudFormationTemplate,
 	}
 }
 
-func (a *CreateIamRolesActivity) Execute(ctx context.Context, input CreateIamRolesActivityInput) (*CreateIamRolesActivityOutput, error) {
+func (a *CreateIamRolesActivity) Execute(
+	ctx context.Context, input CreateIamRolesActivityInput) (*CreateIamRolesActivityOutput, error) {
 	session, err := a.awsSessionFactory.New(input.OrganizationID, input.SecretID, input.Region)
 	if err = errors.WrapIf(err, "failed to create AWS session"); err != nil {
 		return nil, err
@@ -118,7 +121,8 @@ func (a *CreateIamRolesActivity) Execute(ctx context.Context, input CreateIamRol
 
 	cloudformationClient := cloudformation.New(session)
 
-	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateIamRolesActivityName)
+	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(
+		input.AWSClientRequestTokenBase, CreateIamRolesActivityName)
 
 	createStackInput := &cloudformation.CreateStackInput{
 		ClientRequestToken: aws.String(clientRequestToken),
@@ -139,9 +143,10 @@ func (a *CreateIamRolesActivity) Execute(ctx context.Context, input CreateIamRol
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-	err = WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
+	err = awscommonworkflow.WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
-		return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "failed to describe stack")
+		return nil, awscommonworkflow.PackageCFError(
+			err, input.StackName, clientRequestToken, cloudformationClient, "failed to describe stack")
 	}
 
 	describeStacksOutput, err := cloudformationClient.DescribeStacks(describeStacksInput)

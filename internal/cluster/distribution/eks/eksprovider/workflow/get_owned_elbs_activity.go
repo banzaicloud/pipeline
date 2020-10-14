@@ -21,19 +21,21 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"go.uber.org/cadence/activity"
+
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const GetOwnedELBsActivityName = "eks-get-owned-elbs"
 
 // GetOwnedELBsActivity collects all ELBs that were created by the EKS cluster
 type GetOwnedELBsActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 }
 
 // GetOwnedELBsActivityInput holds fields needed to retrieve all ELBs provisioned by
 // an EKS cluster
 type GetOwnedELBsActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 
 	VpcID string
 }
@@ -43,13 +45,14 @@ type GetOwnedELBsActivityOutput struct {
 }
 
 // NewGetOwnedELBsActivity instantiates a new GetOwnedELBsActivity
-func NewGetOwnedELBsActivity(awsSessionFactory *AWSSessionFactory) *GetOwnedELBsActivity {
+func NewGetOwnedELBsActivity(awsSessionFactory *awscommonworkflow.AWSSessionFactory) *GetOwnedELBsActivity {
 	return &GetOwnedELBsActivity{
 		awsSessionFactory: awsSessionFactory,
 	}
 }
 
-func (a *GetOwnedELBsActivity) Execute(ctx context.Context, input GetOwnedELBsActivityInput) (*GetOwnedELBsActivityOutput, error) {
+func (a *GetOwnedELBsActivity) Execute(
+	ctx context.Context, input GetOwnedELBsActivityInput) (*GetOwnedELBsActivityOutput, error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"region", input.Region,
@@ -112,7 +115,8 @@ func (a *GetOwnedELBsActivity) Execute(ctx context.Context, input GetOwnedELBsAc
 		for _, tagDescription := range describeTagsOutput.TagDescriptions {
 			for _, tag := range tagDescription.Tags {
 				if aws.StringValue(tag.Key) == clusterTag {
-					output.LoadBalancerNames = append(output.LoadBalancerNames, aws.StringValue(tagDescription.LoadBalancerName))
+					output.LoadBalancerNames = append(
+						output.LoadBalancerNames, aws.StringValue(tagDescription.LoadBalancerName))
 				}
 			}
 		}

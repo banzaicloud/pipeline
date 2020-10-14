@@ -48,10 +48,10 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonadapter"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	eksClusterAdapter "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
 	eksClusterDriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
-	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsadapter"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
@@ -394,7 +394,7 @@ func main() {
 		registerAzureWorkflows(secretStore, tokenGenerator, azurePKEClusterStore)
 
 		// Register EKS specific workflows
-		err = registerEKSWorkflows(config, secret.Store, eksClusters, eksadapter.NewNodePoolStore(db))
+		err = registerEKSWorkflows(config, secret.Store, eksClusters, awscommonadapter.NewNodePoolStore(db))
 		if err != nil {
 			emperror.Panic(errors.WrapIf(err, "failed to register EKS workflows"))
 		}
@@ -497,8 +497,8 @@ func main() {
 				db,
 				config.Distribution.EKS.DefaultNodeVolumeSize,
 				clusteradapter.NewNodePoolStore(db, clusterStore),
-				eksadapter.NewNodePoolStore(db),
-				eksworkflow.NewAWSSessionFactory(secret.Store),
+				awscommonadapter.NewNodePoolStore(db),
+				awscommonworkflow.NewAWSSessionFactory(secret.Store),
 			)
 			activity.RegisterWithOptions(createNodePoolActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.CreateNodePoolActivityName})
 
@@ -513,7 +513,7 @@ func main() {
 			deleteNodePoolActivity := clusterworkflow.NewDeleteNodePoolActivity(
 				clusterStore,
 				clusteradapter.NewNodePoolStore(db, clusterStore),
-				eksworkflow.NewAWSSessionFactory(secret.Store),
+				awscommonworkflow.NewAWSSessionFactory(secret.Store),
 			)
 			activity.RegisterWithOptions(deleteNodePoolActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.DeleteNodePoolActivityName})
 

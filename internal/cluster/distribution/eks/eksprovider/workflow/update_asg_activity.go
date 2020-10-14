@@ -30,6 +30,7 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkCloudformation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
@@ -41,7 +42,7 @@ const awsNoUpdatesError = "No updates are to be performed."
 
 // UpdateAsgActivity responsible for creating IAM roles
 type UpdateAsgActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 	// body of the cloud formation template for setting up the VPC
 	cloudFormationTemplate     string
 	asgFulfillmentWaitAttempts int
@@ -50,7 +51,7 @@ type UpdateAsgActivity struct {
 
 // UpdateAsgActivityInput holds data needed for setting up IAM roles
 type UpdateAsgActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 
 	// name of the cloud formation template stack
 	StackName        string
@@ -74,16 +75,19 @@ type UpdateAsgActivityOutput struct {
 }
 
 // UpdateAsgActivity instantiates a new UpdateAsgActivity
-func NewUpdateAsgActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *UpdateAsgActivity {
+func NewUpdateAsgActivity(
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory, cloudFormationTemplate string) *UpdateAsgActivity {
 	return &UpdateAsgActivity{
 		awsSessionFactory:          awsSessionFactory,
 		cloudFormationTemplate:     cloudFormationTemplate,
-		asgFulfillmentWaitAttempts: int(asgFulfillmentWaitAttempts),
-		asgFulfillmentWaitInterval: asgFulfillmentWaitInterval,
+		asgFulfillmentWaitAttempts: int(awscommonworkflow.AsgFulfillmentWaitAttempts),
+		asgFulfillmentWaitInterval: awscommonworkflow.AsgFulfillmentWaitInterval,
 	}
 }
 
-func getAutoScalingGroup(cloudformationSrv *cloudformation.CloudFormation, autoscalingSrv *autoscaling.AutoScaling, stackName string) (*autoscaling.Group, error) {
+func getAutoScalingGroup(
+	cloudformationSrv *cloudformation.CloudFormation, autoscalingSrv *autoscaling.AutoScaling, stackName string,
+) (*autoscaling.Group, error) {
 	describeStackResourceInput := &cloudformation.DescribeStackResourcesInput{
 		StackName: aws.String(stackName),
 	}
@@ -117,7 +121,8 @@ func getAutoScalingGroup(cloudformationSrv *cloudformation.CloudFormation, autos
 	return describeAutoScalingGroupsOutput.AutoScalingGroups[0], nil
 }
 
-func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivityInput) (*UpdateAsgActivityOutput, error) {
+func (a *UpdateAsgActivity) Execute(
+	ctx context.Context, input UpdateAsgActivityInput) (*UpdateAsgActivityOutput, error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
@@ -153,7 +158,8 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 			} else if input.Count > input.NodeMaxCount {
 				input.Count = input.NodeMaxCount
 			}
-			activity.GetLogger(ctx).Info(fmt.Sprintf("DesiredCapacity for %v will be: %v", aws.StringValue(asg.AutoScalingGroupARN), input.Count))
+			activity.GetLogger(ctx).Info(fmt.Sprintf(
+				"DesiredCapacity for %v will be: %v", aws.StringValue(asg.AutoScalingGroupARN), input.Count))
 		}
 	}
 
@@ -173,7 +179,7 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		terminationDetachEnabled = true
 	}
 
-	tags := getNodePoolStackTags(input.ClusterName, input.Tags)
+	tags := awscommonworkflow.GetNodePoolStackTags(input.ClusterName, input.Tags)
 
 	nodeLabels := []string{
 		fmt.Sprintf("%v=%v", cluster.NodePoolNameLabelKey, input.Name),
@@ -254,12 +260,14 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 			ParameterValue: aws.String(fmt.Sprint(terminationDetachEnabled)),
 		},
 		{
-			ParameterKey:   aws.String("BootstrapArguments"),
-			ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v'", strings.Join(nodeLabels, ","))),
+			ParameterKey: aws.String("BootstrapArguments"),
+			ParameterValue: aws.String(fmt.Sprintf(
+				"--kubelet-extra-args '--node-labels %v'", strings.Join(nodeLabels, ","))),
 		},
 	}
 
-	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, UpdateAsgActivityName)
+	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(
+		input.AWSClientRequestTokenBase, UpdateAsgActivityName)
 
 	// we don't reuse the creation time template, since it may have changed
 	updateStackInput := &cloudformation.UpdateStackInput{
@@ -275,7 +283,9 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 
 	_, err = cloudformationClient.UpdateStack(updateStackInput)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ValidationError" && strings.HasPrefix(awsErr.Message(), awsNoUpdatesError) {
+		if awsErr, ok := err.(awserr.Error); ok &&
+			awsErr.Code() == "ValidationError" &&
+			strings.HasPrefix(awsErr.Message(), awsNoUpdatesError) {
 			// Get error details
 			activity.GetLogger(ctx).Warn("nothing changed during update!")
 			return &outParams, nil
@@ -284,24 +294,32 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		var awsErr awserr.Error
 		if errors.As(err, &awsErr) {
 			if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
-				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient)
-				err = errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
+				err = pkgCloudformation.NewAwsStackFailure(
+					err, input.StackName, clientRequestToken, cloudformationClient)
+				err = errors.WrapIff(
+					err, "waiting for %q CF stack create operation to complete failed", input.StackName)
 				if pkgCloudformation.IsErrorFinal(err) {
-					return nil, cadence.NewCustomError(ErrReasonStackFailed, err.Error())
+					return nil, cadence.NewCustomError(awscommonworkflow.ErrReasonStackFailed, err.Error())
 				}
-				return nil, errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
+				return nil, errors.WrapIff(
+					err, "waiting for %q CF stack create operation to complete failed", input.StackName)
 			}
 		}
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-	err = WaitUntilStackUpdateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
+	err = awscommonworkflow.WaitUntilStackUpdateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
-		return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "waiting for CF stack create operation to complete failed")
+		return nil, awscommonworkflow.PackageCFError(
+			err,
+			input.StackName,
+			clientRequestToken,
+			cloudformationClient,
+			"waiting for CF stack create operation to complete failed")
 	}
 
 	// wait for ASG fulfillment
-	err = WaitForASGToBeFulfilled(ctx, logger, awsSession, input.StackName, input.Name)
+	err = awscommonworkflow.WaitForASGToBeFulfilled(ctx, logger, awsSession, input.StackName, input.Name)
 	if err != nil {
 		return nil, errors.WrapIff(err, "node pool %q ASG not fulfilled", input.Name)
 	}

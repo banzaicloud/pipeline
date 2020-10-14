@@ -40,7 +40,7 @@ type AWSCommonClusterModel struct {
 	VpcId        *string                 `gorm:"size:32"`
 	VpcCidr      *string                 `gorm:"size:18"`
 	RouteTableId *string                 `gorm:"size:32"`
-	Subnets      []*AWSComonSubnetModel  `gorm:"foreignkey:ClusterID"`
+	Subnets      []*AWSCommonSubnetModel `gorm:"foreignkey:ClusterID"`
 
 	// IAM settings
 	DefaultUser        bool
@@ -170,8 +170,8 @@ func (m AmazonNodePoolsModel) String() string {
 	)
 }
 
-// AWSComonSubnetModel describes the model of subnets used for creating an AWS cluster
-type AWSComonSubnetModel struct {
+// AWSCommonSubnetModel describes the model of subnets used for creating an AWS cluster
+type AWSCommonSubnetModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
 	AWSCluster       AWSCommonClusterModel
@@ -181,8 +181,8 @@ type AWSComonSubnetModel struct {
 	AvailabilityZone *string `gorm:"size:25"`
 }
 
-// TableName sets database table name for AWSComonSubnetModel
-func (AWSComonSubnetModel) TableName() string {
+// TableName sets database table name for AWSCommonSubnetModel
+func (AWSCommonSubnetModel) TableName() string {
 	return "amazon_aws_subnets"
 }
 

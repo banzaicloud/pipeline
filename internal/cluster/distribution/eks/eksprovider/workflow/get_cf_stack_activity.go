@@ -20,6 +20,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const (
@@ -27,12 +29,12 @@ const (
 )
 
 type GetCFStackActivity struct {
-	awsFactory            AWSFactory
-	cloudFormationFactory CloudFormationAPIFactory
+	awsFactory            awscommonworkflow.AWSFactory
+	cloudFormationFactory awscommonworkflow.CloudFormationAPIFactory
 }
 
 type GetCFStackActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 	StackName string
 }
 
@@ -40,14 +42,17 @@ type GetCFStackActivityOutput struct {
 	Stack *cloudformation.Stack
 }
 
-func NewGetCFStackActivity(awsFactory AWSFactory, cloudFormationFactory CloudFormationAPIFactory) *GetCFStackActivity {
+func NewGetCFStackActivity(
+	awsFactory awscommonworkflow.AWSFactory, cloudFormationFactory awscommonworkflow.CloudFormationAPIFactory,
+) *GetCFStackActivity {
 	return &GetCFStackActivity{
 		awsFactory:            awsFactory,
 		cloudFormationFactory: cloudFormationFactory,
 	}
 }
 
-func (a *GetCFStackActivity) Execute(ctx context.Context, input GetCFStackActivityInput) (output *GetCFStackActivityOutput, err error) {
+func (a *GetCFStackActivity) Execute(
+	ctx context.Context, input GetCFStackActivityInput) (output *GetCFStackActivityOutput, err error) {
 	if a == nil {
 		return nil, errors.New("activity is nil")
 	}

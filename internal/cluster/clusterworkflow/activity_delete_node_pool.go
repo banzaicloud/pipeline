@@ -21,6 +21,7 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -62,14 +63,14 @@ func (a DeleteNodePoolActivity) Execute(ctx context.Context, input DeleteNodePoo
 	switch {
 	case c.Cloud == providers.Amazon && c.Distribution == "eks":
 		input := eksworkflow.DeleteStackActivityInput{
-			EKSActivityInput: eksworkflow.EKSActivityInput{
+			AWSCommonActivityInput: awscommonworkflow.AWSCommonActivityInput{
 				OrganizationID:            c.OrganizationID,
 				SecretID:                  c.SecretID.ResourceID,
 				Region:                    c.Location,
 				ClusterName:               c.Name,
 				AWSClientRequestTokenBase: sdkAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID),
 			},
-			StackName: eksworkflow.GenerateNodePoolStackName(c.Name, input.NodePoolName),
+			StackName: awscommonworkflow.GenerateNodePoolStackName(c.Name, input.NodePoolName),
 		}
 
 		err := eksworkflow.NewDeleteStackActivity(a.awsSessionFactory).Execute(ctx, input)

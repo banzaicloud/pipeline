@@ -84,10 +84,11 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterdriver"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonadapter"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksadapter"
 	eksDriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	pkeDistribution "github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
@@ -849,10 +850,10 @@ func main() {
 							"eks": clusteradapter.NewEKSService(eks.NewService(
 								clusterStore,
 								eksadapter.NewClusterManager(workflowClient, config.Pipeline.Enterprise),
-								eksadapter.NewNodePoolStore(db),
+								awscommonadapter.NewNodePoolStore(db),
 								eksadapter.NewNodePoolManager(
-									workflow.NewAWSSessionFactory(secret.Store),
-									workflow.NewCloudFormationFactory(),
+									awscommonworkflow.NewAWSSessionFactory(secret.Store),
+									awscommonworkflow.NewCloudFormationFactory(),
 									dynamicClientFactory,
 									config.Pipeline.Enterprise,
 									config.Cluster.Namespace,
@@ -865,12 +866,12 @@ func main() {
 									config.Pipeline.Enterprise,
 									config.Cluster.Namespace,
 									workflowClient,
-									workflow.NewAWSSessionFactory(secret.Store),
-									workflow.NewCloudFormationFactory(),
+									awscommonworkflow.NewAWSSessionFactory(secret.Store),
+									awscommonworkflow.NewCloudFormationFactory(),
 									dynamicClientFactory,
 								),
 								config.Pipeline.Enterprise,
-								pkeawsadapter.NewNodePoolStore(db),
+								awscommonadapter.NewNodePoolStore(db),
 							)),
 						},
 						clusteradapter.NewNodePoolStore(db, clusterStore),

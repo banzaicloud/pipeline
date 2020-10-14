@@ -25,6 +25,7 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -33,11 +34,11 @@ const DeleteStackActivityName = "eks-delete-stack"
 
 // DeleteStackActivity responsible for deleting asg
 type DeleteStackActivity struct {
-	awsSessionFactory AWSFactory
+	awsSessionFactory awscommonworkflow.AWSFactory
 }
 
 type DeleteStackActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 
 	// name of the cloud formation template stack
 	StackName string
@@ -48,7 +49,7 @@ type DeleteStackActivityOutput struct {
 }
 
 // NewDeleteStackActivity instantiates a new DeleteStackActivity
-func NewDeleteStackActivity(awsSessionFactory AWSFactory) *DeleteStackActivity {
+func NewDeleteStackActivity(awsSessionFactory awscommonworkflow.AWSFactory) *DeleteStackActivity {
 	return &DeleteStackActivity{
 		awsSessionFactory: awsSessionFactory,
 	}
@@ -70,7 +71,8 @@ func (a *DeleteStackActivity) Execute(ctx context.Context, input DeleteStackActi
 
 	logger.Info("deleting stack")
 
-	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, DeleteStackActivityName)
+	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(
+		input.AWSClientRequestTokenBase, DeleteStackActivityName)
 	deleteStackInput := &cloudformation.DeleteStackInput{
 		ClientRequestToken: aws.String(clientRequestToken),
 		StackName:          aws.String(input.StackName),
@@ -86,17 +88,20 @@ func (a *DeleteStackActivity) Execute(ctx context.Context, input DeleteStackActi
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
-	err = WaitUntilStackDeleteCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
+	err = awscommonworkflow.WaitUntilStackDeleteCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
 		var awsErr awserr.Error
 		if errors.As(err, &awsErr) {
 			if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
-				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient)
-				err = errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
+				err = pkgCloudformation.NewAwsStackFailure(
+					err, input.StackName, clientRequestToken, cloudformationClient)
+				err = errors.WrapIff(
+					err, "waiting for %q CF stack create operation to complete failed", input.StackName)
 				if pkgCloudformation.IsErrorFinal(err) {
-					return cadence.NewCustomError(ErrReasonStackFailed, err.Error())
+					return cadence.NewCustomError(awscommonworkflow.ErrReasonStackFailed, err.Error())
 				}
-				return errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
+				return errors.WrapIff(
+					err, "waiting for %q CF stack create operation to complete failed", input.StackName)
 			}
 		}
 	}

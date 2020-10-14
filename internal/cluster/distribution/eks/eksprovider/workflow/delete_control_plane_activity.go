@@ -24,17 +24,19 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"go.uber.org/cadence/activity"
+
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const DeleteControlPlaneActivityName = "eks-delete-control-plane"
 
 // DeleteControlPlaneActivity responsible for deleting asg
 type DeleteControlPlaneActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 }
 
 type DeleteControlPlaneActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 }
 
 //   DeleteControlPlaneActivityOutput holds the output data of the DeleteControlPlaneActivity
@@ -42,7 +44,8 @@ type DeleteControlPlaneActivityOutput struct {
 }
 
 //   DeleteControlPlaneActivity instantiates a new DeleteControlPlaneActivity
-func NewDeleteControlPlaneActivity(awsSessionFactory *AWSSessionFactory) *DeleteControlPlaneActivity {
+func NewDeleteControlPlaneActivity(
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory) *DeleteControlPlaneActivity {
 	return &DeleteControlPlaneActivity{
 		awsSessionFactory: awsSessionFactory,
 	}

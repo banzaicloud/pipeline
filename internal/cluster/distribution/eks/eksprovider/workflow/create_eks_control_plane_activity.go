@@ -27,6 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"go.uber.org/cadence/activity"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -35,21 +36,21 @@ const CreateEksControlPlaneActivityName = "eks-create-control-plane"
 
 // CreateEksControlPlaneActivity responsible for creating EKS control plane
 type CreateEksControlPlaneActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 }
 
 // CreateEksControlPlaneActivityInput holds data needed for setting up EKS control plane
 type CreateEksControlPlaneActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 
 	KubernetesVersion     string
-	EncryptionConfig      []EncryptionConfig
+	EncryptionConfig      []awscommonworkflow.EncryptionConfig
 	EndpointPrivateAccess bool
 	EndpointPublicAccess  bool
 	ClusterRoleArn        string
 	SecurityGroupID       string
 	LogTypes              []string
-	Subnets               []Subnet
+	Subnets               []awscommonworkflow.Subnet
 	Tags                  map[string]string
 }
 
@@ -58,13 +59,15 @@ type CreateEksControlPlaneActivityOutput struct {
 }
 
 // CreateEksControlPlaneActivity instantiates a new CreateEksControlPlaneActivity
-func NewCreateEksClusterActivity(awsSessionFactory *AWSSessionFactory) *CreateEksControlPlaneActivity {
+func NewCreateEksClusterActivity(
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory) *CreateEksControlPlaneActivity {
 	return &CreateEksControlPlaneActivity{
 		awsSessionFactory: awsSessionFactory,
 	}
 }
 
-func (a *CreateEksControlPlaneActivity) Execute(ctx context.Context, input CreateEksControlPlaneActivityInput) (*CreateEksControlPlaneActivityOutput, error) {
+func (a *CreateEksControlPlaneActivity) Execute(
+	ctx context.Context, input CreateEksControlPlaneActivityInput) (*CreateEksControlPlaneActivityOutput, error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
@@ -101,22 +104,32 @@ func (a *CreateEksControlPlaneActivity) Execute(ctx context.Context, input Creat
 			if awsErr.Code() == eks.ErrCodeResourceNotFoundException {
 				createCluster = true
 			} else {
-				// sometimes error is different then ErrCodeResourceNotFoundException and Cluster is nil in describeClusterOutput
+				// sometimes error is different then
+				// ErrCodeResourceNotFoundException and Cluster is nil in describeClusterOutput
 				if describeClusterOutput.Cluster == nil {
-					return nil, errors.WrapIff(err, "could not get the status of EKS cluster %s in region %s", input.ClusterName, input.Region)
+					return nil, errors.WrapIff(
+						err,
+						"could not get the status of EKS cluster %s in region %s",
+						input.ClusterName,
+						input.Region)
 				}
 				switch clusterStatus := aws.StringValue(describeClusterOutput.Cluster.Status); clusterStatus {
 				case eks.ClusterStatusActive:
 					logger.Infof("EKS cluster is in %s state", clusterStatus)
 					return &outParams, nil
 				case eks.ClusterStatusDeleting, eks.ClusterStatusFailed:
-					return nil, errors.Errorf("EKS cluster with name %s already exists in region %s, state=%s", input.ClusterName, input.Region, clusterStatus)
+					return nil, errors.Errorf(
+						"EKS cluster with name %s already exists in region %s, state=%s",
+						input.ClusterName,
+						input.Region,
+						clusterStatus)
 				default:
 					logger.Infof("EKS cluster is in %s state", clusterStatus)
 				}
 			}
 		} else {
-			return nil, errors.WrapIff(err, "could not get the status of EKS cluster %s in region %s", input.ClusterName, input.Region)
+			return nil, errors.WrapIff(
+				err, "could not get the status of EKS cluster %s in region %s", input.ClusterName, input.Region)
 		}
 	}
 
@@ -150,7 +163,8 @@ func (a *CreateEksControlPlaneActivity) Execute(ctx context.Context, input Creat
 			tags[k] = aws.String(v)
 		}
 
-		requestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateEksControlPlaneActivityName)
+		requestToken := sdkAmazon.NewNormalizedClientRequestToken(
+			input.AWSClientRequestTokenBase, CreateEksControlPlaneActivityName)
 
 		logger.Info("create EKS cluster")
 		logger.Debug("clientRequestToken: ", requestToken)
@@ -204,7 +218,8 @@ func (a *CreateEksControlPlaneActivity) Execute(ctx context.Context, input Creat
 	return &outParams, nil
 }
 
-func waitUntilClusterCreateCompleteWithContext(eksSvc *eks.EKS, ctx aws.Context, input *eks.DescribeClusterInput, opts ...request.WaiterOption) error {
+func waitUntilClusterCreateCompleteWithContext(
+	eksSvc *eks.EKS, ctx aws.Context, input *eks.DescribeClusterInput, opts ...request.WaiterOption) error {
 	// wait for 15 mins
 	count := 0
 	w := request.Waiter{

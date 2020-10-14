@@ -24,8 +24,9 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
@@ -41,7 +42,7 @@ type CreateNodePoolActivity struct {
 	db                *gorm.DB
 	defaultVolumeSize int
 	nodePools         cluster.NodePoolStore
-	eksNodePools      eks.NodePoolStore
+	eksNodePools      awscommon.NodePoolStore
 	awsSessionFactory AWSSessionFactory
 }
 
@@ -51,7 +52,7 @@ func NewCreateNodePoolActivity(
 	db *gorm.DB,
 	defaultVolumeSize int,
 	nodePools cluster.NodePoolStore,
-	eksNodePools eks.NodePoolStore,
+	eksNodePools awscommon.NodePoolStore,
 	awsSessionFactory AWSSessionFactory,
 ) CreateNodePoolActivity {
 	return CreateNodePoolActivity{
@@ -80,7 +81,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 
 	switch {
 	case c.Cloud == providers.Amazon && c.Distribution == "eks":
-		var nodePool eks.NewNodePool
+		var nodePool awscommon.NewNodePool
 
 		err := mapstructure.Decode(input.RawNodePool, &nodePool)
 		if err != nil {
@@ -106,10 +107,10 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			)
 		}
 
-		var eksCluster eksmodel.EKSClusterModel
+		var eksCluster awscommonmodel.AWSCommonClusterModel
 
 		err = a.db.
-			Where(eksmodel.EKSClusterModel{ClusterID: c.ID}).
+			Where(awscommonmodel.AWSCommonClusterModel{ClusterID: c.ID}).
 			Preload("Subnets").
 			Preload("Cluster").
 			First(&eksCluster).Error
@@ -135,7 +136,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			maxSize = nodePool.Autoscaling.MaxSize
 		}
 
-		commonActivityInput := eksworkflow.EKSActivityInput{
+		commonActivityInput := awscommonworkflow.AWSCommonActivityInput{
 			OrganizationID:            c.OrganizationID,
 			SecretID:                  c.SecretID.ResourceID, // TODO: the underlying secret store is the legacy one
 			Region:                    c.Location,
@@ -153,8 +154,8 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 		var vpcActivityOutput *eksworkflow.GetVpcConfigActivityOutput
 		{
 			activityInput := eksworkflow.GetVpcConfigActivityInput{
-				EKSActivityInput: commonActivityInput,
-				StackName:        eksworkflow.GenerateStackNameForCluster(c.Name),
+				AWSCommonActivityInput: commonActivityInput,
+				StackName:              awscommonworkflow.GenerateStackNameForCluster(c.Name),
 			}
 
 			var err error
@@ -173,8 +174,8 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 			).Execute(
 				ctx,
 				eksworkflow.GetAMISizeActivityInput{
-					EKSActivityInput: commonActivityInput,
-					ImageID:          nodePool.Image,
+					AWSCommonActivityInput: commonActivityInput,
+					ImageID:                nodePool.Image,
 				},
 			)
 			if err != nil {
@@ -184,7 +185,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 					c.ID,
 					c.Name,
 					nodePool.Name,
-					eks.NodePoolStatusError,
+					awscommon.NodePoolStatusError,
 					fmt.Sprintf("Validation failed: retrieving AMI size failed: %s", err),
 				)
 
@@ -212,7 +213,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 					c.ID,
 					c.Name,
 					nodePool.Name,
-					eks.NodePoolStatusError,
+					awscommon.NodePoolStatusError,
 					fmt.Sprintf("Validation failed: selecting volume size failed: %s", err),
 				)
 
@@ -223,13 +224,13 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 		}
 
 		subinput := eksworkflow.CreateAsgActivityInput{
-			EKSActivityInput: commonActivityInput,
-			ClusterID:        input.ClusterID,
-			StackName:        eksworkflow.GenerateNodePoolStackName(c.Name, nodePool.Name),
+			AWSCommonActivityInput: commonActivityInput,
+			ClusterID:              input.ClusterID,
+			StackName:              awscommonworkflow.GenerateNodePoolStackName(c.Name, nodePool.Name),
 
 			ScaleEnabled: commonCluster.ScaleOptions.Enabled,
 
-			Subnets: []eksworkflow.Subnet{
+			Subnets: []awscommonworkflow.Subnet{
 				{
 					SubnetID: nodePool.SubnetID,
 				},
@@ -255,7 +256,7 @@ func (a CreateNodePoolActivity) Execute(ctx context.Context, input CreateNodePoo
 
 		eksConfig := global.Config.Distribution.EKS
 		if eksConfig.SSH.Generate {
-			subinput.SSHKeyName = eksworkflow.GenerateSSHKeyNameForCluster(c.Name)
+			subinput.SSHKeyName = awscommonworkflow.GenerateSSHKeyNameForCluster(c.Name)
 		}
 
 		nodePoolTemplate, err := eksworkflow.GetNodePoolTemplate()

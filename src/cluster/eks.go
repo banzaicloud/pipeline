@@ -31,10 +31,11 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
 	eks2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	pkgEks "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster/nodepools"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/global/globaleks"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -69,7 +70,7 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to convert config map to string")
 	}
-	cluster.model = &eksmodel.EKSClusterModel{
+	cluster.model = &awscommonmodel.AWSCommonClusterModel{
 		Cluster: clustermodel.ClusterModel{
 			Name:           request.Name,
 			Location:       request.Location,
@@ -113,11 +114,11 @@ func createAPIServerAccessPointsFromRequest(request *pkgCluster.CreateClusterReq
 	return []string{"public"}
 }
 
-func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId uint) []*eksmodel.AmazonNodePoolsModel {
-	modelNodePools := make([]*eksmodel.AmazonNodePoolsModel, len(nodePools))
+func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId uint) []*awscommonmodel.AmazonNodePoolsModel {
+	modelNodePools := make([]*awscommonmodel.AmazonNodePoolsModel, len(nodePools))
 	i := 0
 	for nodePoolName, nodePool := range nodePools {
-		modelNodePools[i] = &eksmodel.AmazonNodePoolsModel{
+		modelNodePools[i] = &awscommonmodel.AmazonNodePoolsModel{
 			CreatedBy:        userId,
 			Name:             nodePoolName,
 			StackID:          "",
@@ -129,7 +130,7 @@ func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId ui
 			NodeVolumeSize:   nodePool.VolumeSize,
 			NodeImage:        nodePool.Image,
 			NodeInstanceType: nodePool.InstanceType,
-			Status:           eks2.NodePoolStatusCreating,
+			Status:           awscommon.NodePoolStatusCreating,
 			StatusMessage:    "",
 			Labels:           nodePool.Labels,
 			Delete:           false,
@@ -140,7 +141,7 @@ func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId ui
 }
 
 // createSubnetsFromRequest collects distinct existing (subnetid !=0) and to be created subnets from the request
-func createSubnetsFromRequest(eksRequest *pkgEks.CreateClusterEKS) []*eksmodel.EKSSubnetModel {
+func createSubnetsFromRequest(eksRequest *pkgEks.CreateClusterEKS) []*awscommonmodel.AWSCommonSubnetModel {
 	if eksRequest == nil {
 		return nil
 	}
@@ -158,16 +159,16 @@ func createSubnetsFromRequest(eksRequest *pkgEks.CreateClusterEKS) []*eksmodel.E
 		}
 	}
 
-	uniqueSubnets := make(map[string]*eksmodel.EKSSubnetModel, 0)
+	uniqueSubnets := make(map[string]*awscommonmodel.AWSCommonSubnetModel, 0)
 	for _, subnet := range subnetsFromRequest {
 		if subnet != nil {
 			if subnet.SubnetId != "" {
 				if _, ok := uniqueSubnets[subnet.SubnetId]; !ok {
-					uniqueSubnets[subnet.SubnetId] = &eksmodel.EKSSubnetModel{SubnetId: &subnet.SubnetId}
+					uniqueSubnets[subnet.SubnetId] = &awscommonmodel.AWSCommonSubnetModel{SubnetId: &subnet.SubnetId}
 				}
 			} else if subnet.Cidr != "" {
 				if _, ok := uniqueSubnets[subnet.Cidr]; !ok {
-					uniqueSubnets[subnet.Cidr] = &eksmodel.EKSSubnetModel{
+					uniqueSubnets[subnet.Cidr] = &awscommonmodel.AWSCommonSubnetModel{
 						Cidr:             &subnet.Cidr,
 						AvailabilityZone: &subnet.AvailabilityZone,
 					}
@@ -176,7 +177,7 @@ func createSubnetsFromRequest(eksRequest *pkgEks.CreateClusterEKS) []*eksmodel.E
 		}
 	}
 
-	var modelSubnets []*eksmodel.EKSSubnetModel
+	var modelSubnets []*awscommonmodel.AWSCommonSubnetModel
 	for _, subnet := range uniqueSubnets {
 		modelSubnets = append(modelSubnets, subnet)
 	}
@@ -207,19 +208,19 @@ func (r dbEKSClusterRepository) DeleteClusterModel(model *clustermodel.ClusterMo
 	return r.db.Delete(model).Error
 }
 
-func (r dbEKSClusterRepository) DeleteModel(model *eksmodel.EKSClusterModel) error {
+func (r dbEKSClusterRepository) DeleteModel(model *awscommonmodel.AWSCommonClusterModel) error {
 	return r.db.Delete(model).Error
 }
 
-func (r dbEKSClusterRepository) DeleteNodePool(model *eksmodel.AmazonNodePoolsModel) error {
+func (r dbEKSClusterRepository) DeleteNodePool(model *awscommonmodel.AmazonNodePoolsModel) error {
 	return r.db.Delete(model).Error
 }
 
-func (r dbEKSClusterRepository) DeleteSubnet(model *eksmodel.EKSSubnetModel) error {
+func (r dbEKSClusterRepository) DeleteSubnet(model *awscommonmodel.AWSCommonSubnetModel) error {
 	return r.db.Delete(model).Error
 }
 
-func (r dbEKSClusterRepository) SaveModel(model *eksmodel.EKSClusterModel) error {
+func (r dbEKSClusterRepository) SaveModel(model *awscommonmodel.AWSCommonClusterModel) error {
 	return r.db.Save(model).Error
 }
 
@@ -240,10 +241,10 @@ func NewDBEKSClusterRepository(db *gorm.DB) (EKSClusterRepository, error) {
 // EKSClusterRepository describes a EKS cluster's persistent storage repository
 type EKSClusterRepository interface {
 	DeleteClusterModel(model *clustermodel.ClusterModel) error
-	DeleteModel(model *eksmodel.EKSClusterModel) error
-	DeleteNodePool(model *eksmodel.AmazonNodePoolsModel) error
-	DeleteSubnet(model *eksmodel.EKSSubnetModel) error
-	SaveModel(model *eksmodel.EKSClusterModel) error
+	DeleteModel(model *awscommonmodel.AWSCommonClusterModel) error
+	DeleteNodePool(model *awscommonmodel.AmazonNodePoolsModel) error
+	DeleteSubnet(model *awscommonmodel.AWSCommonSubnetModel) error
+	SaveModel(model *awscommonmodel.AWSCommonClusterModel) error
 	SaveStatusHistory(model *clustermodel.StatusHistoryModel) error
 }
 
@@ -251,7 +252,7 @@ type EKSClusterRepository interface {
 type EKSCluster struct {
 	EncryptionConfig []pkgEks.EncryptionConfig
 	repository       EKSClusterRepository
-	model            *eksmodel.EKSClusterModel
+	model            *awscommonmodel.AWSCommonClusterModel
 
 	// maps node pools to subnets. The subnets identified by the "default" key represent the subnets provided in
 	// request.Properties.CreateClusterEKS.Subnets
@@ -327,7 +328,7 @@ func (c *EKSCluster) GetAPIEndpoint() (string, error) {
 func CreateEKSClusterFromModel(clusterModel *model.ClusterModel) (*EKSCluster, error) {
 	db := global.DB()
 
-	m := eksmodel.EKSClusterModel{
+	m := awscommonmodel.AWSCommonClusterModel{
 		ClusterID: clusterModel.ID,
 	}
 
@@ -522,7 +523,7 @@ func (c *EKSCluster) GetUID() string {
 }
 
 // GetModel returns the DB model of this cluster
-func (c *EKSCluster) GetModel() *eksmodel.EKSClusterModel {
+func (c *EKSCluster) GetModel() *awscommonmodel.AWSCommonClusterModel {
 	return c.model
 }
 
@@ -766,7 +767,7 @@ func (c *EKSCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 }
 
 // GetEKSNodePools returns EKS node pools from a common cluster.
-func GetEKSNodePools(cluster CommonCluster) ([]*eksmodel.AmazonNodePoolsModel, error) {
+func GetEKSNodePools(cluster CommonCluster) ([]*awscommonmodel.AmazonNodePoolsModel, error) {
 	ekscluster, ok := cluster.(*EKSCluster)
 	if !ok {
 		return nil, ErrInvalidClusterInstance

@@ -22,18 +22,20 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const GetVpcConfigActivityName = "eks-get-vpc-cfg"
 
 // GetVpcConfigActivity responsible for creating IAM roles
 type GetVpcConfigActivity struct {
-	awsSessionFactory AWSFactory
+	awsSessionFactory awscommonworkflow.AWSFactory
 }
 
 // GetVpcConfigActivityInput holds data needed for setting up IAM roles
 type GetVpcConfigActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 
 	// name of the cloud formation template stack
 	StackName string
@@ -47,14 +49,15 @@ type GetVpcConfigActivityOutput struct {
 }
 
 // GetVpcConfigActivity instantiates a new GetVpcConfigActivity
-func NewGetVpcConfigActivity(awsSessionFactory AWSFactory) *GetVpcConfigActivity {
+func NewGetVpcConfigActivity(awsSessionFactory awscommonworkflow.AWSFactory) *GetVpcConfigActivity {
 	return &GetVpcConfigActivity{
 		awsSessionFactory: awsSessionFactory,
 	}
 }
 
 // return with empty output fields in case VPC stack doesn't exists anymore
-func (a *GetVpcConfigActivity) Execute(ctx context.Context, input GetVpcConfigActivityInput) (*GetVpcConfigActivityOutput, error) {
+func (a *GetVpcConfigActivity) Execute(
+	ctx context.Context, input GetVpcConfigActivityInput) (*GetVpcConfigActivityOutput, error) {
 	output := GetVpcConfigActivityOutput{}
 
 	session, err := a.awsSessionFactory.New(input.OrganizationID, input.SecretID, input.Region)

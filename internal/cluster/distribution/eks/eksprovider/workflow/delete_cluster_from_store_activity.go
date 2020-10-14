@@ -16,15 +16,17 @@ package workflow
 
 import (
 	"context"
+
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const DeleteClusterFromStoreActivityName = "eks-delete-cluster-from-store"
 
 type DeleteClusterFromStoreActivity struct {
-	manager Clusters
+	manager awscommonworkflow.Clusters
 }
 
-func NewDeleteClusterFromStoreActivity(manager Clusters) DeleteClusterFromStoreActivity {
+func NewDeleteClusterFromStoreActivity(manager awscommonworkflow.Clusters) DeleteClusterFromStoreActivity {
 	return DeleteClusterFromStoreActivity{
 		manager: manager,
 	}

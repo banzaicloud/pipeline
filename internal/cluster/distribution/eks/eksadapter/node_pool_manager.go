@@ -26,8 +26,9 @@ import (
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
 )
@@ -39,8 +40,8 @@ const (
 )
 
 type nodePoolManager struct {
-	awsFactory            workflow.AWSFactory
-	cloudFormationFactory workflow.CloudFormationAPIFactory
+	awsFactory            awscommonworkflow.AWSFactory
+	cloudFormationFactory awscommonworkflow.CloudFormationAPIFactory
 	dynamicClientFactory  cluster.DynamicKubeClientFactory
 	enterprise            bool
 	namespace             string
@@ -50,8 +51,8 @@ type nodePoolManager struct {
 // NewNodePoolManager returns a new eks.NodePoolManager
 // that manages node pools asynchronously via Cadence workflows.
 func NewNodePoolManager(
-	awsFactory workflow.AWSFactory,
-	cloudFormationFactory workflow.CloudFormationAPIFactory,
+	awsFactory awscommonworkflow.AWSFactory,
+	cloudFormationFactory awscommonworkflow.CloudFormationAPIFactory,
 	dynamicClientFactory cluster.DynamicKubeClientFactory,
 	enterprise bool,
 	namespace string,
@@ -93,7 +94,7 @@ func (n nodePoolManager) getLabelSets(
 func (n nodePoolManager) ListNodePools(
 	ctx context.Context,
 	c cluster.Cluster,
-	existingNodePools map[string]eks.ExistingNodePool,
+	existingNodePools map[string]awscommon.ExistingNodePool,
 ) (nodePools []eks.NodePool, err error) {
 	if c.ConfigSecretID.ResourceID == "" || // Note: cluster is being created or errorred before k8s secret would be available.
 		c.Status == cluster.Deleting {
@@ -218,7 +219,7 @@ func generateNodePoolStackName(clusterName string, poolName string) string {
 // message.
 func newNodePoolFromCloudFormation(
 	cfClient cloudformationiface.CloudFormationAPI,
-	existingNodePool eks.ExistingNodePool,
+	existingNodePool awscommon.ExistingNodePool,
 	stackName string, // Note: temporary until we eliminate stack name usage.
 	labels map[string]string,
 ) (nodePool eks.NodePool) {
@@ -235,13 +236,13 @@ func newNodePoolFromCloudFormation(
 	} else if len(stackDescriptions.Stacks) == 0 {
 		return eks.NewNodePoolWithNoValues(
 			existingNodePool.Name,
-			eks.NodePoolStatusUnknown,
+			awscommon.NodePoolStatusUnknown,
 			"retrieving node pool information failed: node pool not found",
 		)
 	} else if len(stackDescriptions.Stacks) > 1 {
 		return eks.NewNodePoolWithNoValues(
 			existingNodePool.Name,
-			eks.NodePoolStatusUnknown,
+			awscommon.NodePoolStatusUnknown,
 			"retrieving node pool information failed: multiple node pools found",
 		)
 	}

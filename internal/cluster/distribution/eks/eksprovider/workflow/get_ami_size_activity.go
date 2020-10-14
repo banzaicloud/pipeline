@@ -20,6 +20,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const (
@@ -27,12 +29,12 @@ const (
 )
 
 type GetAMISizeActivity struct {
-	awsFactory AWSFactory
+	awsFactory awscommonworkflow.AWSFactory
 	ec2Factory EC2APIFactory
 }
 
 type GetAMISizeActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 	ImageID string
 }
 
@@ -40,14 +42,15 @@ type GetAMISizeActivityOutput struct {
 	AMISize int
 }
 
-func NewGetAMISizeActivity(awsFactory AWSFactory, ec2Factory EC2APIFactory) *GetAMISizeActivity {
+func NewGetAMISizeActivity(awsFactory awscommonworkflow.AWSFactory, ec2Factory EC2APIFactory) *GetAMISizeActivity {
 	return &GetAMISizeActivity{
 		awsFactory: awsFactory,
 		ec2Factory: ec2Factory,
 	}
 }
 
-func (a *GetAMISizeActivity) Execute(ctx context.Context, input GetAMISizeActivityInput) (*GetAMISizeActivityOutput, error) {
+func (a *GetAMISizeActivity) Execute(
+	ctx context.Context, input GetAMISizeActivityInput) (*GetAMISizeActivityOutput, error) {
 	awsClient, err := a.awsFactory.New(input.OrganizationID, input.SecretID, input.Region)
 	if err != nil {
 		return nil, err

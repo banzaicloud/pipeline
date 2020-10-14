@@ -31,7 +31,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
 		&awscommonmodel.AmazonNodePoolsModel{},
 		&awscommonmodel.AWSCommonClusterModel{},
-		&awscommonmodel.AWSComonSubnetModel{},
+		&awscommonmodel.AWSCommonSubnetModel{},
 	}
 
 	var tableNames string
@@ -55,7 +55,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	err = gormhelper.AddForeignKey(
-		db, logger, &awscommonmodel.AWSCommonClusterModel{}, &awscommonmodel.AWSComonSubnetModel{}, "ClusterID")
+		db, logger, &awscommonmodel.AWSCommonClusterModel{}, &awscommonmodel.AWSCommonSubnetModel{}, "ClusterID")
 	if err != nil {
 		return err
 	}

@@ -25,10 +25,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	pkgEks "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/src/cluster"
@@ -65,18 +66,20 @@ func NewEksClusterUpdater(logger logrus.FieldLogger, workflowClient client.Clien
 	}
 }
 
-func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedNodePools map[string]*pkgEks.NodePool, userId uint) ([]*eksmodel.AmazonNodePoolsModel, error) {
-	currentNodePoolMap := make(map[string]*eksmodel.AmazonNodePoolsModel, len(eksCluster.GetModel().NodePools))
+func createNodePoolsFromUpdateRequest(
+	eksCluster *cluster.EKSCluster, requestedNodePools map[string]*pkgEks.NodePool, userId uint,
+) ([]*awscommonmodel.AmazonNodePoolsModel, error) {
+	currentNodePoolMap := make(map[string]*awscommonmodel.AmazonNodePoolsModel, len(eksCluster.GetModel().NodePools))
 	for _, nodePool := range eksCluster.GetModel().NodePools {
 		currentNodePoolMap[nodePool.Name] = nodePool
 	}
 
-	updatedNodePools := make([]*eksmodel.AmazonNodePoolsModel, 0, len(requestedNodePools))
+	updatedNodePools := make([]*awscommonmodel.AmazonNodePoolsModel, 0, len(requestedNodePools))
 
 	for nodePoolName, nodePool := range requestedNodePools {
 		if currentNodePoolMap[nodePoolName] != nil {
 			// update existing node pool
-			updatedNodePools = append(updatedNodePools, &eksmodel.AmazonNodePoolsModel{
+			updatedNodePools = append(updatedNodePools, &awscommonmodel.AmazonNodePoolsModel{
 				ID:               currentNodePoolMap[nodePoolName].ID,
 				CreatedBy:        currentNodePoolMap[nodePoolName].CreatedBy,
 				CreatedAt:        currentNodePoolMap[nodePoolName].CreatedAt,
@@ -116,14 +119,14 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 				nodePool.SpotPrice = eks.DefaultSpotPrice
 			}
 
-			updatedNodePools = append(updatedNodePools, &eksmodel.AmazonNodePoolsModel{
+			updatedNodePools = append(updatedNodePools, &awscommonmodel.AmazonNodePoolsModel{
 				CreatedBy:        userId,
 				Name:             nodePoolName,
 				StackID:          "",
 				NodeInstanceType: nodePool.InstanceType,
 				NodeImage:        nodePool.Image,
 				NodeSpotPrice:    nodePool.SpotPrice,
-				Status:           eks.NodePoolStatusCreating,
+				Status:           awscommon.NodePoolStatusCreating,
 				StatusMessage:    "",
 				Autoscaling:      nodePool.Autoscaling,
 				NodeMinCount:     nodePool.MinCount,
@@ -138,12 +141,12 @@ func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedN
 
 	for _, nodePool := range eksCluster.GetModel().NodePools {
 		if requestedNodePools[nodePool.Name] == nil {
-			updatedNodePools = append(updatedNodePools, &eksmodel.AmazonNodePoolsModel{
+			updatedNodePools = append(updatedNodePools, &awscommonmodel.AmazonNodePoolsModel{
 				ID:            nodePool.ID,
 				ClusterID:     nodePool.ClusterID,
 				Name:          nodePool.Name,
 				StackID:       nodePool.StackID,
-				Status:        eks.NodePoolStatusDeleting,
+				Status:        awscommon.NodePoolStatusDeleting,
 				StatusMessage: "",
 				Labels:        nodePool.Labels,
 				CreatedAt:     nodePool.CreatedAt,
@@ -248,16 +251,16 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 
 	modelCluster := eksCluster.GetModel()
 
-	subnets := make([]workflow.Subnet, 0)
+	subnets := make([]awscommonworkflow.Subnet, 0)
 	for _, subnet := range modelCluster.Subnets {
-		subnets = append(subnets, workflow.Subnet{
+		subnets = append(subnets, awscommonworkflow.Subnet{
 			SubnetID:         aws.StringValue(subnet.SubnetId),
 			Cidr:             aws.StringValue(subnet.Cidr),
 			AvailabilityZone: aws.StringValue(subnet.AvailabilityZone),
 		})
 	}
 
-	subnetMapping := make(map[string][]workflow.Subnet)
+	subnetMapping := make(map[string][]awscommonworkflow.Subnet)
 	for _, nodePool := range modelNodePools {
 		// set subnets only for node pools to be updated
 		if nodePool.Delete || nodePool.ID != 0 {
@@ -298,9 +301,9 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 	input.Subnets = subnets
 	input.ASGSubnetMapping = subnetMapping
 
-	asgList := make([]workflow.AutoscaleGroup, 0)
+	asgList := make([]awscommonworkflow.AutoscaleGroup, 0)
 	for _, np := range modelNodePools {
-		asg := workflow.AutoscaleGroup{
+		asg := awscommonworkflow.AutoscaleGroup{
 			Name:             np.Name,
 			NodeSpotPrice:    np.NodeSpotPrice,
 			Autoscaling:      np.Autoscaling,

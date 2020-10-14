@@ -22,6 +22,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 )
@@ -49,7 +50,7 @@ func (p nodePoolProcessor) ProcessNew(
 	cluster cluster.Cluster,
 	rawNodePool cluster.NewRawNodePool,
 ) (cluster.NewRawNodePool, error) {
-	var nodePool eks.NewNodePool
+	var nodePool awscommon.NewNodePool
 
 	err := mapstructure.Decode(rawNodePool, &nodePool)
 	if err != nil {

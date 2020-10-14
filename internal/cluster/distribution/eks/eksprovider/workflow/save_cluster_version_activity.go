@@ -17,16 +17,17 @@ package workflow
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const SaveClusterVersionActivityName = "eks-save-cluster-version"
 
 type SaveClusterVersionActivity struct {
-	manager Clusters
+	manager awscommonworkflow.Clusters
 }
 
-func NewSaveClusterVersionActivity(manager Clusters) SaveClusterVersionActivity {
+func NewSaveClusterVersionActivity(manager awscommonworkflow.Clusters) SaveClusterVersionActivity {
 	return SaveClusterVersionActivity{
 		manager: manager,
 	}
@@ -44,7 +45,7 @@ func (a SaveClusterVersionActivity) Execute(ctx context.Context, input SaveClust
 	}
 
 	if eksCluster, ok := cluster.(interface {
-		GetModel() *eksmodel.EKSClusterModel
+		GetModel() *awscommonmodel.AWSCommonClusterModel
 	}); ok {
 		modelCluster := eksCluster.GetModel()
 		modelCluster.Version = input.Version

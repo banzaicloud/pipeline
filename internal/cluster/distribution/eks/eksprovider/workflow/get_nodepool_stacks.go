@@ -21,6 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
@@ -28,11 +29,11 @@ import (
 const GetNodepoolStacksActivityName = "eks-get-nodepool-stacks"
 
 type GetNodepoolStacksActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 }
 
 type GetNodepoolStacksActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 	NodePoolNames []string
 }
 
@@ -40,13 +41,14 @@ type GetNodepoolStacksActivityOutput struct {
 	StackNames []string
 }
 
-func NewGetNodepoolStacksActivity(awsSessionFactory *AWSSessionFactory) *GetNodepoolStacksActivity {
+func NewGetNodepoolStacksActivity(awsSessionFactory *awscommonworkflow.AWSSessionFactory) *GetNodepoolStacksActivity {
 	return &GetNodepoolStacksActivity{
 		awsSessionFactory: awsSessionFactory,
 	}
 }
 
-func (a *GetNodepoolStacksActivity) Execute(ctx context.Context, input GetNodepoolStacksActivityInput) (*GetNodepoolStacksActivityOutput, error) {
+func (a *GetNodepoolStacksActivity) Execute(
+	ctx context.Context, input GetNodepoolStacksActivityInput) (*GetNodepoolStacksActivityOutput, error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
@@ -61,7 +63,7 @@ func (a *GetNodepoolStacksActivity) Execute(ctx context.Context, input GetNodepo
 	uniqueMap := make(map[string]bool, 0)
 
 	for _, nodePool := range input.NodePoolNames {
-		nodePoolStackName := GenerateNodePoolStackName(input.ClusterName, nodePool)
+		nodePoolStackName := awscommonworkflow.GenerateNodePoolStackName(input.ClusterName, nodePool)
 		stackNames = append(stackNames, nodePoolStackName)
 		uniqueMap[nodePoolStackName] = true
 	}

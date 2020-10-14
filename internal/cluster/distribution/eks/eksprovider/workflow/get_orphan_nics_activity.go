@@ -22,17 +22,18 @@ import (
 	"go.uber.org/cadence/activity"
 	zapadapter "logur.dev/adapter/zap"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 )
 
 const GetOrphanNICsActivityName = "eks-get-orphan-nics"
 
 type GetOrphanNICsActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 }
 
 type GetOrphanNICsActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 
 	VpcID            string
 	SecurityGroupIDs []string
@@ -42,13 +43,14 @@ type GetOrphanNICsActivityOutput struct {
 	NicList []string
 }
 
-func NewGetOrphanNICsActivity(awsSessionFactory *AWSSessionFactory) *GetOrphanNICsActivity {
+func NewGetOrphanNICsActivity(awsSessionFactory *awscommonworkflow.AWSSessionFactory) *GetOrphanNICsActivity {
 	return &GetOrphanNICsActivity{
 		awsSessionFactory: awsSessionFactory,
 	}
 }
 
-func (a *GetOrphanNICsActivity) Execute(ctx context.Context, input GetOrphanNICsActivityInput) (*GetOrphanNICsActivityOutput, error) {
+func (a *GetOrphanNICsActivity) Execute(
+	ctx context.Context, input GetOrphanNICsActivityInput) (*GetOrphanNICsActivityOutput, error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,

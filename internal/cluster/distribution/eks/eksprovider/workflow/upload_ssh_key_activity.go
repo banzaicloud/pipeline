@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"go.uber.org/cadence/activity"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
 )
 
@@ -30,12 +31,12 @@ const UploadSSHKeyActivityName = "eks-upload-ssh-key"
 
 //  UploadSSHKeyActivity responsible for uploading SSH key
 type UploadSSHKeyActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awscommonworkflow.AWSSessionFactory
 }
 
 //  UploadSSHKeyActivityInput holds data needed to upload SSH key
 type UploadSSHKeyActivityInput struct {
-	EKSActivityInput
+	awscommonworkflow.AWSCommonActivityInput
 	SSHKeyName  string
 	SSHSecretID string
 }
@@ -45,13 +46,14 @@ type UploadSSHKeyActivityOutput struct {
 }
 
 //  UploadSSHKeyActivity instantiates a new  UploadSSHKeyActivity
-func NewUploadSSHKeyActivity(awsSessionFactory *AWSSessionFactory) *UploadSSHKeyActivity {
+func NewUploadSSHKeyActivity(awsSessionFactory *awscommonworkflow.AWSSessionFactory) *UploadSSHKeyActivity {
 	return &UploadSSHKeyActivity{
 		awsSessionFactory: awsSessionFactory,
 	}
 }
 
-func (a *UploadSSHKeyActivity) Execute(ctx context.Context, input UploadSSHKeyActivityInput) (*UploadSSHKeyActivityOutput, error) {
+func (a *UploadSSHKeyActivity) Execute(
+	ctx context.Context, input UploadSSHKeyActivityInput) (*UploadSSHKeyActivityOutput, error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,

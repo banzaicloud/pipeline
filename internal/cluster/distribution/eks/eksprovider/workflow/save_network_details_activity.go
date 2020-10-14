@@ -19,16 +19,17 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const SaveNetworkDetailsActivityName = "eks-save-network-details"
 
 type SaveNetworkDetailsActivity struct {
-	manager Clusters
+	manager awscommonworkflow.Clusters
 }
 
-func NewSaveNetworkDetailsActivity(manager Clusters) SaveNetworkDetailsActivity {
+func NewSaveNetworkDetailsActivity(manager awscommonworkflow.Clusters) SaveNetworkDetailsActivity {
 	return SaveNetworkDetailsActivity{
 		manager: manager,
 	}
@@ -39,7 +40,7 @@ type SaveNetworkDetailsInput struct {
 
 	VpcID              string
 	NodeInstanceRoleID string
-	Subnets            []Subnet
+	Subnets            []awscommonworkflow.Subnet
 }
 
 func (a SaveNetworkDetailsActivity) Execute(ctx context.Context, input SaveNetworkDetailsInput) error {
@@ -49,7 +50,7 @@ func (a SaveNetworkDetailsActivity) Execute(ctx context.Context, input SaveNetwo
 	}
 
 	if eksCluster, ok := cluster.(interface {
-		GetModel() *eksmodel.EKSClusterModel
+		GetModel() *awscommonmodel.AWSCommonClusterModel
 	}); ok {
 		modelCluster := eksCluster.GetModel()
 		modelCluster.NodeInstanceRoleId = input.NodeInstanceRoleID
