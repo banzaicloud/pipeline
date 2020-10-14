@@ -117,6 +117,9 @@ func (n nodePoolManager) UpdateNodePool(
 
 // TODO: this is temporary
 func generateNodePoolStackName(clusterName string, poolName string) string {
+	if poolName == "master" {
+		return fmt.Sprintf("pke-master-%s", clusterName)
+	}
 	return fmt.Sprintf("pke-pool-%s-worker-%s", clusterName, poolName)
 }
 
