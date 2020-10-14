@@ -30,8 +30,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 )
 
@@ -39,7 +39,7 @@ func TestListNodePools(t *testing.T) {
 	type inputType struct {
 		cluster   cluster.Cluster
 		manager   nodePoolManager
-		nodePools map[string]eks.ExistingNodePool
+		nodePools map[string]awscommon.ExistingNodePool
 	}
 
 	type intermediateDataType struct {
@@ -49,7 +49,7 @@ func TestListNodePools(t *testing.T) {
 
 	type outputType struct {
 		expectedError     error
-		expectedNodePools []eks.NodePool
+		expectedNodePools []awscommon.NodePool
 	}
 
 	mockMethods := func(
@@ -63,7 +63,7 @@ func TestListNodePools(t *testing.T) {
 		}
 
 		awsSession := &session.Session{}
-		cloudFormationAPIClient := &workflow.MockcloudFormationAPI{}
+		cloudFormationAPIClient := &awscommonworkflow.MockcloudFormationAPI{}
 		dynamicInterfaceMock := &cluster.MockdynamicInterface{}
 		dynamicResourceInterfaceMock := &cluster.MockdynamicNamespaceableResourceInterface{}
 
@@ -112,7 +112,7 @@ func TestListNodePools(t *testing.T) {
 		for _, mockID := range mocks {
 			switch mockID {
 			case "AWSFactory.New":
-				mock := input.manager.awsFactory.(*workflow.MockAWSFactory).Mock.
+				mock := input.manager.awsFactory.(*awscommonworkflow.MockAWSFactory).Mock.
 					On("New", input.cluster.OrganizationID, input.cluster.SecretID.ResourceID, input.cluster.Location)
 
 				err := mockErrors[mockID]
@@ -141,7 +141,7 @@ func TestListNodePools(t *testing.T) {
 					}
 				}
 			case "CloudFormationFactory.New":
-				input.manager.cloudFormationFactory.(*workflow.MockCloudFormationAPIFactory).Mock.
+				input.manager.cloudFormationFactory.(*awscommonworkflow.MockCloudFormationAPIFactory).Mock.
 					On("New", awsSession).
 					Return(cloudFormationAPIClient).Once()
 			case "DynamicClientFactory.FromSecret":
@@ -203,8 +203,8 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awscommonworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awscommonworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
 			},
@@ -218,8 +218,8 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awscommonworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awscommonworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
 			},
@@ -240,8 +240,8 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awscommonworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awscommonworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
 			},
@@ -262,8 +262,8 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awscommonworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awscommonworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
 			},
@@ -288,15 +288,15 @@ func TestListNodePools(t *testing.T) {
 					ConfigSecretID: brn.New(1, "secret", "config-secret-id"),
 				},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awscommonworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awscommonworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
-				nodePools: map[string]eks.ExistingNodePool{
+				nodePools: map[string]awscommon.ExistingNodePool{
 					"older-node-pool-without-stack-id-or-status": {
 						Name:          "older-node-pool-without-stack-id-or-status",
 						StackID:       "",
-						Status:        eks.NodePoolStatusEmpty,
+						Status:        awscommon.NodePoolStatusEmpty,
 						StatusMessage: "",
 					},
 				},
@@ -308,10 +308,10 @@ func TestListNodePools(t *testing.T) {
 			},
 			output: outputType{
 				expectedError: nil,
-				expectedNodePools: []eks.NodePool{
+				expectedNodePools: []awscommon.NodePool{
 					{
 						Name:          "older-node-pool-without-stack-id-or-status",
-						Status:        eks.NodePoolStatusDeleting,
+						Status:        awscommon.NodePoolStatusDeleting,
 						StatusMessage: "",
 					},
 				},
@@ -326,15 +326,15 @@ func TestListNodePools(t *testing.T) {
 					ConfigSecretID: brn.New(1, "secret", "config-secret-id"),
 				},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awscommonworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awscommonworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
-				nodePools: map[string]eks.ExistingNodePool{
+				nodePools: map[string]awscommon.ExistingNodePool{
 					"creating-pre-stack": {
 						Name:          "creating-pre-stack",
 						StackID:       "",
-						Status:        eks.NodePoolStatusCreating,
+						Status:        awscommon.NodePoolStatusCreating,
 						StatusMessage: "",
 					},
 				},
@@ -344,10 +344,10 @@ func TestListNodePools(t *testing.T) {
 			},
 			output: outputType{
 				expectedError: nil,
-				expectedNodePools: []eks.NodePool{
+				expectedNodePools: []awscommon.NodePool{
 					{
 						Name:          "creating-pre-stack",
-						Status:        eks.NodePoolStatusCreating,
+						Status:        awscommon.NodePoolStatusCreating,
 						StatusMessage: "",
 					},
 				},
@@ -358,15 +358,15 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awscommonworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awscommonworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
-				nodePools: map[string]eks.ExistingNodePool{
+				nodePools: map[string]awscommon.ExistingNodePool{
 					"unknown-describe-failed": {
 						Name:          "unknown-describe-failed",
 						StackID:       "unknown-describe-failed/stack-id",
-						Status:        eks.NodePoolStatusEmpty,
+						Status:        awscommon.NodePoolStatusEmpty,
 						StatusMessage: "",
 					},
 				},
@@ -376,10 +376,10 @@ func TestListNodePools(t *testing.T) {
 			},
 			output: outputType{
 				expectedError: nil,
-				expectedNodePools: []eks.NodePool{
+				expectedNodePools: []awscommon.NodePool{
 					{
 						Name:          "unknown-describe-failed",
-						Status:        eks.NodePoolStatusUnknown,
+						Status:        awscommon.NodePoolStatusUnknown,
 						StatusMessage: "retrieving node pool information failed: test error: node pool unknown describe failure",
 					},
 				},
@@ -390,15 +390,15 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awscommonworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awscommonworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
-				nodePools: map[string]eks.ExistingNodePool{
+				nodePools: map[string]awscommon.ExistingNodePool{
 					"error-stack-not-found": {
 						Name:          "error-stack-not-found",
 						StackID:       "error-stack-not-found/stack-id",
-						Status:        eks.NodePoolStatusEmpty,
+						Status:        awscommon.NodePoolStatusEmpty,
 						StatusMessage: "",
 					},
 				},
@@ -410,10 +410,10 @@ func TestListNodePools(t *testing.T) {
 			},
 			output: outputType{
 				expectedError: nil,
-				expectedNodePools: []eks.NodePool{
+				expectedNodePools: []awscommon.NodePool{
 					{
 						Name:          "error-stack-not-found",
-						Status:        eks.NodePoolStatusUnknown,
+						Status:        awscommon.NodePoolStatusUnknown,
 						StatusMessage: "retrieving node pool information failed: node pool not found",
 					},
 				},
@@ -424,15 +424,15 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awscommonworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awscommonworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
-				nodePools: map[string]eks.ExistingNodePool{
+				nodePools: map[string]awscommon.ExistingNodePool{
 					"error-multiple-stacks-found": {
 						Name:          "error-multiple-stacks-found",
 						StackID:       "error-multiple-stacks-found/stack-id",
-						Status:        eks.NodePoolStatusEmpty,
+						Status:        awscommon.NodePoolStatusEmpty,
 						StatusMessage: "",
 					},
 				},
@@ -449,10 +449,10 @@ func TestListNodePools(t *testing.T) {
 			},
 			output: outputType{
 				expectedError: nil,
-				expectedNodePools: []eks.NodePool{
+				expectedNodePools: []awscommon.NodePool{
 					{
 						Name:          "error-multiple-stacks-found",
-						Status:        eks.NodePoolStatusUnknown,
+						Status:        awscommon.NodePoolStatusUnknown,
 						StatusMessage: "retrieving node pool information failed: multiple node pools found",
 					},
 				},
@@ -463,21 +463,21 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awscommonworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awscommonworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
-				nodePools: map[string]eks.ExistingNodePool{
+				nodePools: map[string]awscommon.ExistingNodePool{
 					"ready": {
 						Name:          "ready",
 						StackID:       "ready/stack-id",
-						Status:        eks.NodePoolStatusEmpty,
+						Status:        awscommon.NodePoolStatusEmpty,
 						StatusMessage: "",
 					},
 					"updating": {
 						Name:          "updating",
 						StackID:       "updating/stack-id",
-						Status:        eks.NodePoolStatusEmpty,
+						Status:        awscommon.NodePoolStatusEmpty,
 						StatusMessage: "",
 					},
 				},
@@ -588,7 +588,7 @@ func TestListNodePools(t *testing.T) {
 			},
 			output: outputType{
 				expectedError: nil,
-				expectedNodePools: []eks.NodePool{
+				expectedNodePools: []awscommon.NodePool{
 					{
 						Name: "ready",
 						Labels: map[string]string{
@@ -596,7 +596,7 @@ func TestListNodePools(t *testing.T) {
 							"label-key-2": "label-value-2",
 						},
 						Size: 1,
-						Autoscaling: eks.Autoscaling{
+						Autoscaling: awscommon.Autoscaling{
 							Enabled: true,
 							MinSize: 1,
 							MaxSize: 2,
@@ -606,7 +606,7 @@ func TestListNodePools(t *testing.T) {
 						Image:         "ami-0123456789",
 						SpotPrice:     "0.02",
 						SubnetID:      "subnet-0123456789",
-						Status:        eks.NodePoolStatusReady,
+						Status:        awscommon.NodePoolStatusReady,
 						StatusMessage: "",
 					},
 					{
@@ -616,7 +616,7 @@ func TestListNodePools(t *testing.T) {
 							"label-key-4": "label-value-4",
 						},
 						Size: 5,
-						Autoscaling: eks.Autoscaling{
+						Autoscaling: awscommon.Autoscaling{
 							Enabled: false,
 							MinSize: 0,
 							MaxSize: 0,
@@ -626,7 +626,7 @@ func TestListNodePools(t *testing.T) {
 						Image:         "ami-1234567890",
 						SpotPrice:     "0.01",
 						SubnetID:      "subnet-1234567890",
-						Status:        eks.NodePoolStatusUpdating,
+						Status:        awscommon.NodePoolStatusUpdating,
 						StatusMessage: "",
 					},
 				},

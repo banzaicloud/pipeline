@@ -148,6 +148,46 @@ type NodePoolManager interface {
 	) ([]NodePool, error)
 }
 
+// +testify:mock:testOnly=true
+
+// NodePoolStore provides an interface for EKS node pool persistence.
+type NodePoolStore interface {
+	// CreateNodePool saves a new node pool.
+	CreateNodePool(ctx context.Context, clusterID uint, createdBy uint, nodePool awscommon.NewNodePool) error
+
+	// ListNodePools retrieves the node pools for the cluster specified by its
+	// cluster ID.
+	ListNodePools(
+		ctx context.Context,
+		organizationID uint,
+		clusterID uint,
+		clusterName string,
+	) (existingNodePools map[string]awscommon.ExistingNodePool, err error)
+
+	// UpdateNodePoolStackID sets the stack ID in the node pool storage to the
+	// specified value.
+	UpdateNodePoolStackID(
+		ctx context.Context,
+		organizationID uint,
+		clusterID uint,
+		clusterName string,
+		nodePoolName string,
+		nodePoolStackID string,
+	) (err error)
+
+	// UpdateNodePoolStackID sets the status and status message in the node pool
+	// storage to the specified value.
+	UpdateNodePoolStatus(
+		ctx context.Context,
+		organizationID uint,
+		clusterID uint,
+		clusterName string,
+		nodePoolName string,
+		nodePoolStatus awscommon.NodePoolStatus,
+		nodePoolStatusMessage string,
+	) (err error)
+}
+
 // ClusterManager is responsible for managing clusters.
 type ClusterManager interface {
 	// UpdateCluster updates an existing cluster.

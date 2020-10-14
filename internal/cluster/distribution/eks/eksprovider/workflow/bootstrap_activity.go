@@ -32,12 +32,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 	storageUtil "k8s.io/kubernetes/pkg/apis/storage/util"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	sdkeks "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/eks"
-
-	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 const BootstrapActivityName = "eks-bootstrap"

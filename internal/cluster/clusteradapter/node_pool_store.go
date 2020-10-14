@@ -21,7 +21,6 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
 	"github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/pkg/providers"

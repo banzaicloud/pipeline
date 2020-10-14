@@ -18,8 +18,8 @@ import (
 	"reflect"
 	"testing"
 
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
-	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 )
 
 func TestGetNodePoolsForSubnet(t *testing.T) {
@@ -57,26 +57,26 @@ func TestGetNodePoolsForSubnet(t *testing.T) {
 
 	testCases := []struct {
 		name              string
-		subnet            eksworkflow.Subnet
+		subnet            awscommonworkflow.Subnet
 		expectedNodePools []string
 	}{
 		{
 			name: "get node pools by subnet cidr",
-			subnet: eksworkflow.Subnet{
+			subnet: awscommonworkflow.Subnet{
 				Cidr: "192.168.64.0/20",
 			},
 			expectedNodePools: []string{"default", "pool1"},
 		},
 		{
 			name: "get node pools by subnet subnet id",
-			subnet: eksworkflow.Subnet{
+			subnet: awscommonworkflow.Subnet{
 				SubnetID: "subnet0",
 			},
 			expectedNodePools: []string{"default", "pool3"},
 		},
 		{
 			name: "no matching subnet mapping",
-			subnet: eksworkflow.Subnet{
+			subnet: awscommonworkflow.Subnet{
 				SubnetID: "subnetx",
 			},
 			expectedNodePools: nil,

@@ -19,7 +19,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
-
 	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 

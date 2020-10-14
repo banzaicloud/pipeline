@@ -24,12 +24,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
+
+	awscommonworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonproviders/workflow"
 )
 
 func TestNewGetCFStackActivity(t *testing.T) {
 	type inputType struct {
-		awsFactory            AWSFactory
-		cloudFormationFactory CloudFormationAPIFactory
+		awsFactory            awscommonworkflow.AWSFactory
+		cloudFormationFactory awscommonworkflow.CloudFormationAPIFactory
 	}
 
 	type outputType struct {
@@ -60,24 +62,24 @@ func TestNewGetCFStackActivity(t *testing.T) {
 			caseName: "nil AWS factory, not nil CloudFormation factory",
 			input: inputType{
 				awsFactory:            nil,
-				cloudFormationFactory: NewCloudFormationFactory(),
+				cloudFormationFactory: awscommonworkflow.NewCloudFormationFactory(),
 			},
 			output: outputType{
 				expectedActivity: &GetCFStackActivity{
 					awsFactory:            nil,
-					cloudFormationFactory: NewCloudFormationFactory(),
+					cloudFormationFactory: awscommonworkflow.NewCloudFormationFactory(),
 				},
 			},
 		},
 		{
 			caseName: "not nil AWS factory, nil CloudFormation factory",
 			input: inputType{
-				awsFactory:            NewAWSSessionFactory(nil),
+				awsFactory:            awscommonworkflow.NewAWSSessionFactory(nil),
 				cloudFormationFactory: nil,
 			},
 			output: outputType{
 				expectedActivity: &GetCFStackActivity{
-					awsFactory:            NewAWSSessionFactory(nil),
+					awsFactory:            awscommonworkflow.NewAWSSessionFactory(nil),
 					cloudFormationFactory: nil,
 				},
 			},
@@ -85,13 +87,13 @@ func TestNewGetCFStackActivity(t *testing.T) {
 		{
 			caseName: "not nil AWS factory, not nil CloudFormation factory",
 			input: inputType{
-				awsFactory:            NewAWSSessionFactory(nil),
-				cloudFormationFactory: NewCloudFormationFactory(),
+				awsFactory:            awscommonworkflow.NewAWSSessionFactory(nil),
+				cloudFormationFactory: awscommonworkflow.NewCloudFormationFactory(),
 			},
 			output: outputType{
 				expectedActivity: &GetCFStackActivity{
-					awsFactory:            NewAWSSessionFactory(nil),
-					cloudFormationFactory: NewCloudFormationFactory(),
+					awsFactory:            awscommonworkflow.NewAWSSessionFactory(nil),
+					cloudFormationFactory: awscommonworkflow.NewCloudFormationFactory(),
 				},
 			},
 		},
@@ -132,8 +134,8 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 			input: inputType{
 				activity: nil,
 				input: GetCFStackActivityInput{
-					EKSActivityInput: EKSActivityInput{},
-					StackName:        "stack-name",
+					AWSCommonActivityInput: awscommonworkflow.AWSCommonActivityInput{},
+					StackName:              "stack-name",
 				},
 			},
 			output: outputType{
@@ -145,10 +147,11 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 		{
 			caseName: "AWS factory error",
 			input: inputType{
-				activity: NewGetCFStackActivity(&MockAWSFactory{}, &MockCloudFormationAPIFactory{}),
+				activity: NewGetCFStackActivity(
+					&awscommonworkflow.MockAWSFactory{}, &awscommonworkflow.MockCloudFormationAPIFactory{}),
 				input: GetCFStackActivityInput{
-					EKSActivityInput: EKSActivityInput{},
-					StackName:        "stack-name",
+					AWSCommonActivityInput: awscommonworkflow.AWSCommonActivityInput{},
+					StackName:              "stack-name",
 				},
 			},
 			output: outputType{
@@ -156,7 +159,7 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 				expectedOutput: nil,
 			},
 			setupMocks: func(input inputType, output outputType) {
-				mockAWSFactory, isOk := input.activity.awsFactory.(*MockAWSFactory)
+				mockAWSFactory, isOk := input.activity.awsFactory.(*awscommonworkflow.MockAWSFactory)
 				require.True(t, isOk, "test AWS factory is not a mock")
 
 				mockAWSFactory.On(
@@ -170,10 +173,11 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 		{
 			caseName: "invalid stack name error",
 			input: inputType{
-				activity: NewGetCFStackActivity(&MockAWSFactory{}, &MockCloudFormationAPIFactory{}),
+				activity: NewGetCFStackActivity(
+					&awscommonworkflow.MockAWSFactory{}, &awscommonworkflow.MockCloudFormationAPIFactory{}),
 				input: GetCFStackActivityInput{
-					EKSActivityInput: EKSActivityInput{},
-					StackName:        "stack-name",
+					AWSCommonActivityInput: awscommonworkflow.AWSCommonActivityInput{},
+					StackName:              "stack-name",
 				},
 			},
 			output: outputType{
@@ -181,7 +185,7 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 				expectedOutput: nil,
 			},
 			setupMocks: func(input inputType, output outputType) {
-				mockAWSFactory, isOk := input.activity.awsFactory.(*MockAWSFactory)
+				mockAWSFactory, isOk := input.activity.awsFactory.(*awscommonworkflow.MockAWSFactory)
 				require.True(t, isOk, "test AWS factory is not a mock")
 
 				mockAWSSession := &session.Session{}
@@ -192,10 +196,10 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 					input.input.Region,
 				).Return(mockAWSSession, nil)
 
-				mockCFFactory, isOk := input.activity.cloudFormationFactory.(*MockCloudFormationAPIFactory)
+				mockCFFactory, isOk := input.activity.cloudFormationFactory.(*awscommonworkflow.MockCloudFormationAPIFactory)
 				require.True(t, isOk, "test CloudFormation factory is not a mock")
 
-				mockCFClient := &MockcloudFormationAPI{}
+				mockCFClient := &awscommonworkflow.MockcloudFormationAPI{}
 				mockCFFactory.On(
 					"New",
 					mockAWSSession,
@@ -212,10 +216,11 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 		{
 			caseName: "stack not found error",
 			input: inputType{
-				activity: NewGetCFStackActivity(&MockAWSFactory{}, &MockCloudFormationAPIFactory{}),
+				activity: NewGetCFStackActivity(
+					&awscommonworkflow.MockAWSFactory{}, &awscommonworkflow.MockCloudFormationAPIFactory{}),
 				input: GetCFStackActivityInput{
-					EKSActivityInput: EKSActivityInput{},
-					StackName:        "stack-name",
+					AWSCommonActivityInput: awscommonworkflow.AWSCommonActivityInput{},
+					StackName:              "stack-name",
 				},
 			},
 			output: outputType{
@@ -223,7 +228,7 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 				expectedOutput: nil,
 			},
 			setupMocks: func(input inputType, output outputType) {
-				mockAWSFactory, isOk := input.activity.awsFactory.(*MockAWSFactory)
+				mockAWSFactory, isOk := input.activity.awsFactory.(*awscommonworkflow.MockAWSFactory)
 				require.True(t, isOk, "test AWS factory is not a mock")
 
 				mockAWSSession := &session.Session{}
@@ -234,10 +239,10 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 					input.input.Region,
 				).Return(mockAWSSession, nil)
 
-				mockCFFactory, isOk := input.activity.cloudFormationFactory.(*MockCloudFormationAPIFactory)
+				mockCFFactory, isOk := input.activity.cloudFormationFactory.(*awscommonworkflow.MockCloudFormationAPIFactory)
 				require.True(t, isOk, "test CloudFormation factory is not a mock")
 
-				mockCFClient := &MockcloudFormationAPI{}
+				mockCFClient := &awscommonworkflow.MockcloudFormationAPI{}
 				mockCFFactory.On(
 					"New",
 					mockAWSSession,
@@ -257,10 +262,11 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 		{
 			caseName: "success",
 			input: inputType{
-				activity: NewGetCFStackActivity(&MockAWSFactory{}, &MockCloudFormationAPIFactory{}),
+				activity: NewGetCFStackActivity(
+					&awscommonworkflow.MockAWSFactory{}, &awscommonworkflow.MockCloudFormationAPIFactory{}),
 				input: GetCFStackActivityInput{
-					EKSActivityInput: EKSActivityInput{},
-					StackName:        "stack-name",
+					AWSCommonActivityInput: awscommonworkflow.AWSCommonActivityInput{},
+					StackName:              "stack-name",
 				},
 			},
 			output: outputType{
@@ -272,7 +278,7 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 				},
 			},
 			setupMocks: func(input inputType, output outputType) {
-				mockAWSFactory, isOk := input.activity.awsFactory.(*MockAWSFactory)
+				mockAWSFactory, isOk := input.activity.awsFactory.(*awscommonworkflow.MockAWSFactory)
 				require.True(t, isOk, "test AWS factory is not a mock")
 
 				mockAWSSession := &session.Session{}
@@ -283,10 +289,10 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 					input.input.Region,
 				).Return(mockAWSSession, nil)
 
-				mockCFFactory, isOk := input.activity.cloudFormationFactory.(*MockCloudFormationAPIFactory)
+				mockCFFactory, isOk := input.activity.cloudFormationFactory.(*awscommonworkflow.MockCloudFormationAPIFactory)
 				require.True(t, isOk, "test CloudFormation factory is not a mock")
 
-				mockCFClient := &MockcloudFormationAPI{}
+				mockCFClient := &awscommonworkflow.MockcloudFormationAPI{}
 				mockCFFactory.On(
 					"New",
 					mockAWSSession,

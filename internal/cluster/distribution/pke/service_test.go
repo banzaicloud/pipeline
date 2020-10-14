@@ -25,13 +25,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 )
 
 func TestNewNodePoolFromCFStackDescriptionError(t *testing.T) {
 	type inputType struct {
 		err              error
-		existingNodePool ExistingNodePool
+		existingNodePool awscommon.ExistingNodePool
 	}
 
 	type outputType struct {
@@ -47,17 +48,17 @@ func TestNewNodePoolFromCFStackDescriptionError(t *testing.T) {
 			caseName: "old node pool, no stored information description failure success",
 			input: inputType{
 				err: fmt.Errorf("test error"),
-				existingNodePool: ExistingNodePool{
+				existingNodePool: awscommon.ExistingNodePool{
 					Name:          "node-pool-name",
 					StackID:       "",
-					Status:        NodePoolStatusEmpty,
+					Status:        awscommon.NodePoolStatusEmpty,
 					StatusMessage: "",
 				},
 			},
 			output: outputType{
 				expectedNodePool: NodePool{
 					Name:          "node-pool-name",
-					Status:        NodePoolStatusDeleting,
+					Status:        awscommon.NodePoolStatusDeleting,
 					StatusMessage: "",
 				},
 			},
@@ -66,17 +67,17 @@ func TestNewNodePoolFromCFStackDescriptionError(t *testing.T) {
 			caseName: "pre-stack node pool description failure success",
 			input: inputType{
 				err: fmt.Errorf("test error"),
-				existingNodePool: ExistingNodePool{
+				existingNodePool: awscommon.ExistingNodePool{
 					Name:          "node-pool-name-2",
 					StackID:       "",
-					Status:        NodePoolStatusCreating,
+					Status:        awscommon.NodePoolStatusCreating,
 					StatusMessage: "status message",
 				},
 			},
 			output: outputType{
 				expectedNodePool: NodePool{
 					Name:          "node-pool-name-2",
-					Status:        NodePoolStatusCreating,
+					Status:        awscommon.NodePoolStatusCreating,
 					StatusMessage: "status message",
 				},
 			},
@@ -85,17 +86,17 @@ func TestNewNodePoolFromCFStackDescriptionError(t *testing.T) {
 			caseName: "unknown description failure success",
 			input: inputType{
 				err: fmt.Errorf("test error"),
-				existingNodePool: ExistingNodePool{
+				existingNodePool: awscommon.ExistingNodePool{
 					Name:          "node-pool-name-3",
 					StackID:       "node-pool-name-3/stack-id",
-					Status:        NodePoolStatusCreating,
+					Status:        awscommon.NodePoolStatusCreating,
 					StatusMessage: "status message",
 				},
 			},
 			output: outputType{
 				expectedNodePool: NodePool{
 					Name:          "node-pool-name-3",
-					Status:        NodePoolStatusUnknown,
+					Status:        awscommon.NodePoolStatusUnknown,
 					StatusMessage: "retrieving node pool information failed: test error",
 				},
 			},
@@ -180,7 +181,7 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 			output: outputType{
 				expectedNodePool: NodePool{
 					Name:          "node-pool",
-					Status:        NodePoolStatusError,
+					Status:        awscommon.NodePoolStatusError,
 					StatusMessage: "parsing cloudformation stack parameter failed: strconv.ParseBool: parsing \"not-a-bool\": invalid syntax",
 				},
 			},
@@ -252,7 +253,7 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 					Image:         "ami-0123456789",
 					SpotPrice:     "0.02",
 					SubnetID:      "subnet-0123456789",
-					Status:        NodePoolStatusReady,
+					Status:        awscommon.NodePoolStatusReady,
 					StatusMessage: "this is a test",
 				},
 			},
@@ -273,7 +274,7 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 func TestNewNodePoolWithNoValues(t *testing.T) {
 	type inputType struct {
 		name          string
-		status        NodePoolStatus
+		status        awscommon.NodePoolStatus
 		statusMessage string
 	}
 
@@ -290,13 +291,13 @@ func TestNewNodePoolWithNoValues(t *testing.T) {
 			caseName: "arbitrary message success",
 			input: inputType{
 				name:          "node-pool",
-				status:        NodePoolStatusError,
+				status:        awscommon.NodePoolStatusError,
 				statusMessage: "status message",
 			},
 			output: outputType{
 				expectedNodePool: NodePool{
 					Name:          "node-pool",
-					Status:        NodePoolStatusError,
+					Status:        awscommon.NodePoolStatusError,
 					StatusMessage: "status message",
 				},
 			},
@@ -345,17 +346,17 @@ func TestServiceListNodePools(t *testing.T) {
 			"cluster-tag": "cluster tag value",
 		},
 	}
-	exampleExistingNodePools := map[string]ExistingNodePool{
+	exampleExistingNodePools := map[string]awscommon.ExistingNodePool{
 		"cluster-node-pool-name-2": {
 			Name:          "cluster-node-pool-name-2",
 			StackID:       "cluster-node-pool-name-2/stack-id",
-			Status:        NodePoolStatusReady,
+			Status:        awscommon.NodePoolStatusReady,
 			StatusMessage: "",
 		},
 		"cluster-node-pool-name-3": {
 			Name:          "cluster-node-pool-name-3",
 			StackID:       "cluster-node-pool-name-3/stack-id",
-			Status:        NodePoolStatusReady,
+			Status:        awscommon.NodePoolStatusReady,
 			StatusMessage: "",
 		},
 	}
@@ -396,7 +397,7 @@ func TestServiceListNodePools(t *testing.T) {
 
 	type constructionArgumentType struct {
 		genericClusters Store
-		nodePools       NodePoolStore
+		nodePools       awscommon.NodePoolStore
 		nodePoolManager NodePoolManager
 	}
 	type functionCallArgumentType struct {
@@ -452,7 +453,7 @@ func TestServiceListNodePools(t *testing.T) {
 					exampleCluster.OrganizationID,
 					exampleCluster.ID,
 					exampleCluster.Name,
-				).Return(map[string]ExistingNodePool{}, errors.New("ExistingNodePoolsError"))
+				).Return(map[string]awscommon.ExistingNodePool{}, errors.New("ExistingNodePoolsError"))
 			},
 		},
 		{

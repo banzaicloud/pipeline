@@ -23,15 +23,13 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
 	"github.com/jinzhu/gorm"
-
-	//  SQLite driver used for integration test
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
-
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
+	//  SQLite driver used for integration test
 )
 
 func setUpDatabase(t *testing.T) *gorm.DB {
