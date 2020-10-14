@@ -22,15 +22,16 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
 	"github.com/banzaicloud/pipeline/pkg/gormhelper"
 )
 
 // Migrate executes the table migrations for the application models.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
-		&AmazonNodePoolsModel{},
-		&EKSClusterModel{},
-		&EKSSubnetModel{},
+		&awscommonmodel.AmazonNodePoolsModel{},
+		&awscommonmodel.AWSCommonClusterModel{},
+		&awscommonmodel.AWSComonSubnetModel{},
 	}
 
 	var tableNames string
@@ -47,12 +48,14 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		return err
 	}
 
-	err = gormhelper.AddForeignKey(db, logger, &clustermodel.ClusterModel{}, &EKSClusterModel{}, "ClusterID")
+	err = gormhelper.AddForeignKey(
+		db, logger, &clustermodel.ClusterModel{}, &awscommonmodel.AWSCommonClusterModel{}, "ClusterID")
 	if err != nil {
 		return err
 	}
 
-	err = gormhelper.AddForeignKey(db, logger, &EKSClusterModel{}, &EKSSubnetModel{}, "ClusterID")
+	err = gormhelper.AddForeignKey(
+		db, logger, &awscommonmodel.AWSCommonClusterModel{}, &awscommonmodel.AWSComonSubnetModel{}, "ClusterID")
 	if err != nil {
 		return err
 	}

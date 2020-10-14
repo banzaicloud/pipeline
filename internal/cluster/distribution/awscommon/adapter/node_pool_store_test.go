@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package eksadapter
+package awscommonadapter
 
 import (
 	"context"
@@ -30,8 +30,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
 )
 
 func setUpDatabase(t *testing.T) *gorm.DB {
@@ -42,8 +42,8 @@ func setUpDatabase(t *testing.T) *gorm.DB {
 	logger.SetOutput(ioutil.Discard)
 
 	tables := []interface{}{
-		&eksmodel.AmazonNodePoolsModel{},
-		&eksmodel.EKSClusterModel{},
+		&awscommonmodel.AmazonNodePoolsModel{},
+		&awscommonmodel.AWSCommonClusterModel{},
 	}
 
 	var tableNames string
@@ -63,7 +63,7 @@ func setUpDatabase(t *testing.T) *gorm.DB {
 
 func TestNodePoolStoreListNodePools(t *testing.T) {
 	type inputType struct {
-		cluster        eksmodel.EKSClusterModel
+		cluster        awscommonmodel.AWSCommonClusterModel
 		clusterID      uint
 		clusterName    string
 		organizationID uint
@@ -71,7 +71,7 @@ func TestNodePoolStoreListNodePools(t *testing.T) {
 
 	type outputType struct {
 		expectedError             error
-		expectedExistingNodePools map[string]eks.ExistingNodePool
+		expectedExistingNodePools map[string]awscommon.ExistingNodePool
 	}
 
 	type caseType struct {
@@ -84,7 +84,7 @@ func TestNodePoolStoreListNodePools(t *testing.T) {
 		{
 			caseName: "cluster not found error",
 			input: inputType{
-				cluster:        eksmodel.EKSClusterModel{},
+				cluster:        awscommonmodel.AWSCommonClusterModel{},
 				clusterID:      1,
 				clusterName:    "cluster-1",
 				organizationID: 1,
@@ -97,19 +97,19 @@ func TestNodePoolStoreListNodePools(t *testing.T) {
 		{
 			caseName: "success",
 			input: inputType{
-				cluster: eksmodel.EKSClusterModel{
+				cluster: awscommonmodel.AWSCommonClusterModel{
 					ClusterID: 2,
-					NodePools: []*eksmodel.AmazonNodePoolsModel{
+					NodePools: []*awscommonmodel.AmazonNodePoolsModel{
 						{
 							Name:          "2-pool-1",
 							StackID:       "2-pool-1/stack-id",
-							Status:        eks.NodePoolStatusCreating,
+							Status:        awscommon.NodePoolStatusCreating,
 							StatusMessage: "",
 						},
 						{
 							Name:          "2-pool-2",
 							StackID:       "2-pool-2/stack-id",
-							Status:        eks.NodePoolStatusError,
+							Status:        awscommon.NodePoolStatusError,
 							StatusMessage: "AWS test error",
 						},
 					},
@@ -120,17 +120,17 @@ func TestNodePoolStoreListNodePools(t *testing.T) {
 			},
 			output: outputType{
 				expectedError: nil,
-				expectedExistingNodePools: map[string]eks.ExistingNodePool{
+				expectedExistingNodePools: map[string]awscommon.ExistingNodePool{
 					"2-pool-1": {
 						Name:          "2-pool-1",
 						StackID:       "2-pool-1/stack-id",
-						Status:        eks.NodePoolStatusCreating,
+						Status:        awscommon.NodePoolStatusCreating,
 						StatusMessage: "",
 					},
 					"2-pool-2": {
 						Name:          "2-pool-2",
 						StackID:       "2-pool-2/stack-id",
-						Status:        eks.NodePoolStatusError,
+						Status:        awscommon.NodePoolStatusError,
 						StatusMessage: "AWS test error",
 					},
 				},
@@ -169,14 +169,14 @@ func TestNodePoolStoreUpdateNodePoolStackID(t *testing.T) {
 	type inputType struct {
 		clusterID       uint
 		clusterName     string
-		clusters        []eksmodel.EKSClusterModel
+		clusters        []awscommonmodel.AWSCommonClusterModel
 		nodePoolName    string
 		nodePoolStackID string
 		organizationID  uint
 	}
 
 	type outputType struct {
-		expectedClusters []eksmodel.EKSClusterModel
+		expectedClusters []awscommonmodel.AWSCommonClusterModel
 		expectedError    error
 	}
 
@@ -192,13 +192,13 @@ func TestNodePoolStoreUpdateNodePoolStackID(t *testing.T) {
 			input: inputType{
 				clusterID:       1,
 				clusterName:     "cluster-1",
-				clusters:        []eksmodel.EKSClusterModel{},
+				clusters:        []awscommonmodel.AWSCommonClusterModel{},
 				nodePoolName:    "1-pool-1",
 				nodePoolStackID: "1-pool-1/stack-id",
 				organizationID:  1,
 			},
 			output: outputType{
-				expectedClusters: []eksmodel.EKSClusterModel{},
+				expectedClusters: []awscommonmodel.AWSCommonClusterModel{},
 				expectedError:    errors.New("cluster not found"),
 			},
 		},
@@ -207,17 +207,17 @@ func TestNodePoolStoreUpdateNodePoolStackID(t *testing.T) {
 			input: inputType{
 				clusterID:   1,
 				clusterName: "cluster-2",
-				clusters: []eksmodel.EKSClusterModel{
+				clusters: []awscommonmodel.AWSCommonClusterModel{
 					{
 						ID:        2,
 						ClusterID: 1,
-						NodePools: []*eksmodel.AmazonNodePoolsModel{
+						NodePools: []*awscommonmodel.AmazonNodePoolsModel{
 							{
 								ID:            1,
 								ClusterID:     2,
 								Name:          "1-pool-1",
 								StackID:       "",
-								Status:        eks.NodePoolStatusCreating,
+								Status:        awscommon.NodePoolStatusCreating,
 								StatusMessage: "",
 							},
 							{
@@ -225,7 +225,7 @@ func TestNodePoolStoreUpdateNodePoolStackID(t *testing.T) {
 								ClusterID:     2,
 								Name:          "1-pool-2",
 								StackID:       "",
-								Status:        eks.NodePoolStatusCreating,
+								Status:        awscommon.NodePoolStatusCreating,
 								StatusMessage: "",
 							},
 						},
@@ -236,17 +236,17 @@ func TestNodePoolStoreUpdateNodePoolStackID(t *testing.T) {
 				organizationID:  1,
 			},
 			output: outputType{
-				expectedClusters: []eksmodel.EKSClusterModel{
+				expectedClusters: []awscommonmodel.AWSCommonClusterModel{
 					{
 						ID:        2,
 						ClusterID: 1,
-						NodePools: []*eksmodel.AmazonNodePoolsModel{
+						NodePools: []*awscommonmodel.AmazonNodePoolsModel{
 							{
 								ID:            1,
 								ClusterID:     2,
 								Name:          "1-pool-1",
 								StackID:       "",
-								Status:        eks.NodePoolStatusCreating,
+								Status:        awscommon.NodePoolStatusCreating,
 								StatusMessage: "",
 							},
 							{
@@ -254,7 +254,7 @@ func TestNodePoolStoreUpdateNodePoolStackID(t *testing.T) {
 								ClusterID:     2,
 								Name:          "1-pool-2",
 								StackID:       "1-pool-2/stack-id",
-								Status:        eks.NodePoolStatusEmpty,
+								Status:        awscommon.NodePoolStatusEmpty,
 								StatusMessage: "",
 							},
 						},
@@ -287,7 +287,7 @@ func TestNodePoolStoreUpdateNodePoolStackID(t *testing.T) {
 				testCase.input.nodePoolStackID,
 			)
 
-			var actualClusters []eksmodel.EKSClusterModel
+			var actualClusters []awscommonmodel.AWSCommonClusterModel
 			err := database.Preload("NodePools").Find(&actualClusters).Error
 			require.NoError(t, err)
 			for clusterIndex := range actualClusters {
@@ -310,15 +310,15 @@ func TestNodePoolStoreUpdateNodePoolStatus(t *testing.T) {
 	type inputType struct {
 		clusterID             uint
 		clusterName           string
-		clusters              []eksmodel.EKSClusterModel
+		clusters              []awscommonmodel.AWSCommonClusterModel
 		nodePoolName          string
-		nodePoolStatus        eks.NodePoolStatus
+		nodePoolStatus        awscommon.NodePoolStatus
 		nodePoolStatusMessage string
 		organizationID        uint
 	}
 
 	type outputType struct {
-		expectedClusters []eksmodel.EKSClusterModel
+		expectedClusters []awscommonmodel.AWSCommonClusterModel
 		expectedError    error
 	}
 
@@ -334,14 +334,14 @@ func TestNodePoolStoreUpdateNodePoolStatus(t *testing.T) {
 			input: inputType{
 				clusterID:             1,
 				clusterName:           "cluster-1",
-				clusters:              []eksmodel.EKSClusterModel{},
+				clusters:              []awscommonmodel.AWSCommonClusterModel{},
 				nodePoolName:          "1-pool-1",
-				nodePoolStatus:        eks.NodePoolStatusUnknown,
+				nodePoolStatus:        awscommon.NodePoolStatusUnknown,
 				nodePoolStatusMessage: "",
 				organizationID:        1,
 			},
 			output: outputType{
-				expectedClusters: []eksmodel.EKSClusterModel{},
+				expectedClusters: []awscommonmodel.AWSCommonClusterModel{},
 				expectedError:    errors.New("cluster not found"),
 			},
 		},
@@ -350,17 +350,17 @@ func TestNodePoolStoreUpdateNodePoolStatus(t *testing.T) {
 			input: inputType{
 				clusterID:   1,
 				clusterName: "cluster-1",
-				clusters: []eksmodel.EKSClusterModel{
+				clusters: []awscommonmodel.AWSCommonClusterModel{
 					{
 						ID:        2,
 						ClusterID: 1,
-						NodePools: []*eksmodel.AmazonNodePoolsModel{
+						NodePools: []*awscommonmodel.AmazonNodePoolsModel{
 							{
 								ID:            1,
 								ClusterID:     2,
 								Name:          "1-pool-1",
 								StackID:       "",
-								Status:        eks.NodePoolStatusCreating,
+								Status:        awscommon.NodePoolStatusCreating,
 								StatusMessage: "",
 							},
 							{
@@ -368,29 +368,29 @@ func TestNodePoolStoreUpdateNodePoolStatus(t *testing.T) {
 								ClusterID:     2,
 								Name:          "1-pool-2",
 								StackID:       "",
-								Status:        eks.NodePoolStatusCreating,
+								Status:        awscommon.NodePoolStatusCreating,
 								StatusMessage: "",
 							},
 						},
 					},
 				},
 				nodePoolName:          "1-pool-2",
-				nodePoolStatus:        eks.NodePoolStatusError,
+				nodePoolStatus:        awscommon.NodePoolStatusError,
 				nodePoolStatusMessage: "test AWS error",
 				organizationID:        1,
 			},
 			output: outputType{
-				expectedClusters: []eksmodel.EKSClusterModel{
+				expectedClusters: []awscommonmodel.AWSCommonClusterModel{
 					{
 						ID:        2,
 						ClusterID: 1,
-						NodePools: []*eksmodel.AmazonNodePoolsModel{
+						NodePools: []*awscommonmodel.AmazonNodePoolsModel{
 							{
 								ID:            1,
 								ClusterID:     2,
 								Name:          "1-pool-1",
 								StackID:       "",
-								Status:        eks.NodePoolStatusCreating,
+								Status:        awscommon.NodePoolStatusCreating,
 								StatusMessage: "",
 							},
 							{
@@ -398,7 +398,7 @@ func TestNodePoolStoreUpdateNodePoolStatus(t *testing.T) {
 								ClusterID:     2,
 								Name:          "1-pool-2",
 								StackID:       "",
-								Status:        eks.NodePoolStatusError,
+								Status:        awscommon.NodePoolStatusError,
 								StatusMessage: "test AWS error",
 							},
 						},
@@ -432,7 +432,7 @@ func TestNodePoolStoreUpdateNodePoolStatus(t *testing.T) {
 				testCase.input.nodePoolStatusMessage,
 			)
 
-			var actualClusters []eksmodel.EKSClusterModel
+			var actualClusters []awscommonmodel.AWSCommonClusterModel
 			err := database.Preload("NodePools").Find(&actualClusters).Error
 			require.NoError(t, err)
 			for clusterIndex := range actualClusters {

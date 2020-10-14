@@ -22,8 +22,8 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 )
 
 type nodePoolProcessor struct {
@@ -56,10 +56,10 @@ func (p nodePoolProcessor) ProcessNew(
 		return rawNodePool, errors.Wrap(err, "failed to decode node pool")
 	}
 
-	var eksCluster eksmodel.EKSClusterModel
+	var eksCluster awscommonmodel.AWSCommonClusterModel
 
 	err = p.db.
-		Where(eksmodel.EKSClusterModel{ClusterID: cluster.ID}).
+		Where(awscommonmodel.AWSCommonClusterModel{ClusterID: cluster.ID}).
 		Preload("Subnets").
 		First(&eksCluster).Error
 	if gorm.IsRecordNotFoundError(err) {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package eksmodel
+package awscommonmodel
 
 import (
 	"database/sql/driver"
@@ -24,32 +24,32 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
 	"github.com/banzaicloud/pipeline/internal/global"
 )
 
-// EKSClusterModel describes the EKS cluster model
-type EKSClusterModel struct {
+// AWSCommonClusterModel describes the AWS cluster model
+type AWSCommonClusterModel struct {
 	ID      uint                      `gorm:"primary_key"`
 	Cluster clustermodel.ClusterModel `gorm:"foreignkey:ClusterID"`
 
 	Version string
 
-	ClusterID    uint                    `gorm:"unique_index:idx_eks_clusters_cluster_id"`
+	ClusterID    uint                    `gorm:"unique_index:idx_aws_clusters_cluster_id"`
 	NodePools    []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
 	VpcId        *string                 `gorm:"size:32"`
 	VpcCidr      *string                 `gorm:"size:18"`
 	RouteTableId *string                 `gorm:"size:32"`
-	Subnets      []*EKSSubnetModel       `gorm:"foreignkey:ClusterID"`
+	Subnets      []*AWSComonSubnetModel  `gorm:"foreignkey:ClusterID"`
 
 	// IAM settings
 	DefaultUser        bool
 	ClusterRoleId      string
 	NodeInstanceRoleId string
 
-	LogTypes EKSLogTypes `sql:"type:json"`
+	LogTypes AWSCommonLogTypes `sql:"type:json"`
 
-	APIServerAccessPoints EKSAPIServerAccessPoints `sql:"type:json"`
+	APIServerAccessPoints AWSAPIServerAccessPoints `sql:"type:json"`
 
 	CurrentWorkflowID string
 
@@ -58,13 +58,13 @@ type EKSClusterModel struct {
 	AuthConfigMap string `gorm:"type:text"`
 }
 
-// TableName sets EKSClusterModel's table name
-func (EKSClusterModel) TableName() string {
-	return "amazon_eks_clusters"
+// TableName sets AWSCommonClusterModel's table name
+func (AWSCommonClusterModel) TableName() string {
+	return "amazon_aws_clusters"
 }
 
 // AfterUpdate removes marked node pool(s)
-func (cm *EKSClusterModel) AfterUpdate(tx *gorm.DB) error {
+func (cm *AWSCommonClusterModel) AfterUpdate(tx *gorm.DB) error {
 	log.Debug("remove node pools marked for deletion", map[string]interface{}{"clusterId": cm.ClusterID})
 
 	for _, nodePoolModel := range cm.NodePools {
@@ -85,7 +85,7 @@ func (cm *EKSClusterModel) AfterUpdate(tx *gorm.DB) error {
 }
 
 // SetCurrentWorkflowID sets currentWorkflowID
-func (cm *EKSClusterModel) SetCurrentWorkflowID(workflowID string) error {
+func (cm *AWSCommonClusterModel) SetCurrentWorkflowID(workflowID string) error {
 	cm.CurrentWorkflowID = workflowID
 	fields := map[string]interface{}{
 		"currentWorkflowID": cm.CurrentWorkflowID,
@@ -94,12 +94,12 @@ func (cm *EKSClusterModel) SetCurrentWorkflowID(workflowID string) error {
 	db := global.DB()
 	err := db.Model(&cm).Updates(fields).Error
 	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to update currentWorkflowID for EKS cluster", "cluster_id", cm.ClusterID)
+		return errors.WrapIfWithDetails(err, "failed to update currentWorkflowID for AWS cluster", "cluster_id", cm.ClusterID)
 	}
 	return nil
 }
 
-func (cm *EKSClusterModel) PersistSSHGenerate(sshGenerated bool) error {
+func (cm *AWSCommonClusterModel) PersistSSHGenerate(sshGenerated bool) error {
 	cm.SSHGenerated = sshGenerated
 	fields := map[string]interface{}{
 		"sshGenerated": cm.SSHGenerated,
@@ -108,16 +108,16 @@ func (cm *EKSClusterModel) PersistSSHGenerate(sshGenerated bool) error {
 	db := global.DB()
 	err := db.Model(&cm).Updates(fields).Error
 	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to update sshGenerated field for EKS cluster", "cluster_id", cm.ClusterID)
+		return errors.WrapIfWithDetails(err, "failed to update sshGenerated field for AWS cluster", "cluster_id", cm.ClusterID)
 	}
 	return nil
 }
 
-func (cm EKSClusterModel) IsSSHGenerated() bool {
+func (cm AWSCommonClusterModel) IsSSHGenerated() bool {
 	return cm.SSHGenerated
 }
 
-func (cm EKSClusterModel) String() string {
+func (cm AWSCommonClusterModel) String() string {
 	return fmt.Sprintf("%s, Master version: %s, Node pools: %s",
 		cm.Cluster,
 		cm.Version,
@@ -141,10 +141,10 @@ type AmazonNodePoolsModel struct {
 	NodeVolumeSize   int `gorm:"-"` // Note: not stored in DB.
 	NodeImage        string
 	NodeInstanceType string
-	Status           eks.NodePoolStatus // Note: stored status info is only used when CF stack is not existing.
-	StatusMessage    string             `gorm:"type:text"`
-	Labels           map[string]string  `gorm:"-"`
-	Delete           bool               `gorm:"-"`
+	Status           awscommon.NodePoolStatus // Note: stored status info is only used when CF stack is not existing.
+	StatusMessage    string                   `gorm:"type:text"`
+	Labels           map[string]string        `gorm:"-"`
+	Delete           bool                     `gorm:"-"`
 }
 
 // TableName sets AmazonNodePoolsModel's table name
@@ -170,25 +170,25 @@ func (m AmazonNodePoolsModel) String() string {
 	)
 }
 
-// EKSSubnetModel describes the model of subnets used for creating an EKS cluster
-type EKSSubnetModel struct {
+// AWSComonSubnetModel describes the model of subnets used for creating an AWS cluster
+type AWSComonSubnetModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
-	EKSCluster       EKSClusterModel
-	ClusterID        uint    `gorm:"index:idx_eks_subnets_cluster_id"`
+	AWSCluster       AWSCommonClusterModel
+	ClusterID        uint    `gorm:"index:idx_aws_subnets_cluster_id"`
 	SubnetId         *string `gorm:"size:32"`
 	Cidr             *string `gorm:"size:18"`
 	AvailabilityZone *string `gorm:"size:25"`
 }
 
-// TableName sets database table name for EKSSubnetModel
-func (EKSSubnetModel) TableName() string {
-	return "amazon_eks_subnets"
+// TableName sets database table name for AWSComonSubnetModel
+func (AWSComonSubnetModel) TableName() string {
+	return "amazon_aws_subnets"
 }
 
-type EKSLogTypes = JSONStringArray
+type AWSCommonLogTypes = JSONStringArray
 
-type EKSAPIServerAccessPoints = JSONStringArray
+type AWSAPIServerAccessPoints = JSONStringArray
 
 // JSONStringArray is a special type, that represents a JSON array of strings in SQL databases
 type JSONStringArray []string

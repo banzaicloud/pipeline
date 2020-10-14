@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package eks
+package awscommon
 
 import (
 	"context"
@@ -23,13 +23,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
 	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
 )
 
 // +testify:mock
 
-// Service provides an interface to EKS clusters.
+// Service provides an interface to AWS clusters.
 type Service interface {
 	// UpdateCluster updates a cluster.
 	//
@@ -90,17 +89,17 @@ type NodePoolUpdateDrainOptions struct {
 
 // NodePool encapsulates information about a cluster node pool.
 type NodePool struct {
-	Name          string                   `mapstructure:"name"`
-	Labels        map[string]string        `mapstructure:"labels"`
-	Size          int                      `mapstructure:"size"`
-	Autoscaling   Autoscaling              `mapstructure:"autoscaling"`
-	VolumeSize    int                      `mapstructure:"volumeSize"`
-	InstanceType  string                   `mapstructure:"instanceType"`
-	Image         string                   `mapstructure:"image"`
-	SpotPrice     string                   `mapstructure:"spotPrice"`
-	SubnetID      string                   `mapstructure:"subnetId"`
-	Status        awscommon.NodePoolStatus `mapstructure:"status"`
-	StatusMessage string                   `mapstructure:"statusMessage"`
+	Name          string            `mapstructure:"name"`
+	Labels        map[string]string `mapstructure:"labels"`
+	Size          int               `mapstructure:"size"`
+	Autoscaling   Autoscaling       `mapstructure:"autoscaling"`
+	VolumeSize    int               `mapstructure:"volumeSize"`
+	InstanceType  string            `mapstructure:"instanceType"`
+	Image         string            `mapstructure:"image"`
+	SpotPrice     string            `mapstructure:"spotPrice"`
+	SubnetID      string            `mapstructure:"subnetId"`
+	Status        NodePoolStatus    `mapstructure:"status"`
+	StatusMessage string            `mapstructure:"statusMessage"`
 }
 
 // NewNodePoolFromCFStack initializes a node pool object from a CloudFormation
@@ -120,7 +119,7 @@ func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudf
 
 	err := sdkCloudFormation.ParseStackParameters(stack.Parameters, &nodePoolParameters)
 	if err != nil {
-		return NewNodePoolWithNoValues(name, awscommon.NodePoolStatusError, err.Error())
+		return NewNodePoolWithNoValues(name, NodePoolStatusError, err.Error())
 	}
 
 	nodePool.Name = name
@@ -144,16 +143,16 @@ func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudf
 
 // NewNodePoolFromCFStackDescriptionError initializes a node pool with the
 // information derived from the CloudFormation stack description error.
-func NewNodePoolFromCFStackDescriptionError(err error, existingNodePool awscommon.ExistingNodePool) (nodePool NodePool) {
+func NewNodePoolFromCFStackDescriptionError(err error, existingNodePool ExistingNodePool) (nodePool NodePool) {
 	if existingNodePool.StackID == "" &&
-		existingNodePool.Status == awscommon.NodePoolStatusEmpty &&
+		existingNodePool.Status == NodePoolStatusEmpty &&
 		existingNodePool.StatusMessage == "" {
 		// Note: older node pool with no stored stack ID, status or
 		// status message and DescribeStacks() doesn't work with stack
 		// name for deleting stacks.
-		return NewNodePoolWithNoValues(existingNodePool.Name, awscommon.NodePoolStatusDeleting, "")
+		return NewNodePoolWithNoValues(existingNodePool.Name, NodePoolStatusDeleting, "")
 	} else if existingNodePool.StackID == "" &&
-		existingNodePool.Status != awscommon.NodePoolStatusEmpty {
+		existingNodePool.Status != NodePoolStatusEmpty {
 		// Note: node pool is in the database already, but the stack is
 		// not existing thus it is either being created, failed
 		// creation with error before CloudFormation stack creation
@@ -163,12 +162,12 @@ func NewNodePoolFromCFStackDescriptionError(err error, existingNodePool awscommo
 
 	return NewNodePoolWithNoValues( // Note: unexpected failure.
 		existingNodePool.Name,
-		awscommon.NodePoolStatusUnknown,
+		NodePoolStatusUnknown,
 		fmt.Sprintf("retrieving node pool information failed: %s", err),
 	)
 }
 
-func NewNodePoolWithNoValues(name string, status awscommon.NodePoolStatus, statusMessage string) (nodePool NodePool) {
+func NewNodePoolWithNoValues(name string, status NodePoolStatus, statusMessage string) (nodePool NodePool) {
 	return NodePool{
 		Name:          name,
 		Status:        status,
@@ -212,30 +211,30 @@ const (
 
 // NewNodePoolStatusFromCFStackStatus translates a CloudFormation stack status
 // into a node pool status.
-func NewNodePoolStatusFromCFStackStatus(cfStackStatus string) (nodePoolStatus awscommon.NodePoolStatus) {
+func NewNodePoolStatusFromCFStackStatus(cfStackStatus string) (nodePoolStatus NodePoolStatus) {
 	switch {
 	case strings.HasSuffix(cfStackStatus, "_COMPLETE"):
 		if cfStackStatus == cloudformation.StackStatusDeleteComplete { // Note: CF stack is deleted, but DB entry is still existing.
-			return awscommon.NodePoolStatusDeleting
+			return NodePoolStatusDeleting
 		}
 
-		return awscommon.NodePoolStatusReady
+		return NodePoolStatusReady
 	case strings.HasSuffix(cfStackStatus, "_FAILED"):
-		return awscommon.NodePoolStatusError
+		return NodePoolStatusError
 	case strings.HasSuffix(cfStackStatus, "_IN_PROGRESS"):
 		if cfStackStatus == cloudformation.StackStatusCreateInProgress {
-			return awscommon.NodePoolStatusCreating
+			return NodePoolStatusCreating
 		} else if cfStackStatus == cloudformation.StackStatusDeleteInProgress {
-			return awscommon.NodePoolStatusDeleting
+			return NodePoolStatusDeleting
 		}
 
-		return awscommon.NodePoolStatusUpdating
+		return NodePoolStatusUpdating
 	default:
-		return awscommon.NodePoolStatusUnknown
+		return NodePoolStatusUnknown
 	}
 }
 
-// Autoscaling describes the EKS node pool's autoscaling settings.
+// Autoscaling describes the AWS node pool's autoscaling settings.
 type Autoscaling struct {
 	Enabled bool `mapstructure:"enabled"`
 	MinSize int  `mapstructure:"minSize"`
@@ -246,7 +245,7 @@ type Autoscaling struct {
 func NewService(
 	genericClusters Store,
 	clusterManager ClusterManager,
-	nodePools awscommon.NodePoolStore,
+	nodePools NodePoolStore,
 	nodePoolManager NodePoolManager,
 ) Service {
 	return service{
@@ -260,7 +259,7 @@ func NewService(
 type service struct {
 	genericClusters Store
 	clusterManager  ClusterManager
-	nodePools       awscommon.NodePoolStore
+	nodePools       NodePoolStore
 	nodePoolManager NodePoolManager
 }
 
@@ -275,7 +274,7 @@ type NodePoolManager interface {
 	ListNodePools(
 		ctx context.Context,
 		c cluster.Cluster,
-		existingNodePools map[string]awscommon.ExistingNodePool,
+		existingNodePools map[string]ExistingNodePool,
 	) ([]NodePool, error)
 }
 

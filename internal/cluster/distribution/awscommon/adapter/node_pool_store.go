@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package eksadapter
+package awscommonadapter
 
 import (
 	"context"
@@ -21,17 +21,17 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
 )
 
 type nodePoolStore struct {
 	db *gorm.DB
 }
 
-// NewNodePoolStore returns a new eks.NodePoolStore
-// that provides an interface to EKS node pool persistence.
-func NewNodePoolStore(db *gorm.DB) eks.NodePoolStore {
+// NewNodePoolStore returns a new AWSCommon.NodePoolStore
+// that provides an interface to AWS node pool persistence.
+func NewNodePoolStore(db *gorm.DB) awscommon.NodePoolStore {
 	return nodePoolStore{
 		db: db,
 	}
@@ -41,9 +41,9 @@ func (s nodePoolStore) CreateNodePool(
 	_ context.Context,
 	clusterID uint,
 	createdBy uint,
-	nodePool eks.NewNodePool,
+	nodePool awscommon.NewNodePool,
 ) error {
-	nodePoolModel := &eksmodel.AmazonNodePoolsModel{
+	nodePoolModel := &awscommonmodel.AmazonNodePoolsModel{
 		ClusterID:        clusterID,
 		CreatedBy:        createdBy,
 		Name:             nodePool.Name,
@@ -55,7 +55,7 @@ func (s nodePoolStore) CreateNodePool(
 		NodeMinCount:     nodePool.Autoscaling.MinSize,
 		NodeMaxCount:     nodePool.Autoscaling.MaxSize,
 		Count:            nodePool.Size,
-		Status:           eks.NodePoolStatusCreating,
+		Status:           awscommon.NodePoolStatusCreating,
 		StatusMessage:    "",
 		// NodeVolumeSize:   nodePool.VolumeSize, // Note: not stored in DB.
 		// Labels:           nodePool.Labels, // Note: not stored in DB.
@@ -79,11 +79,11 @@ func (s nodePoolStore) UpdateNodePoolStackID(
 	nodePoolName string,
 	nodePoolStackID string,
 ) (err error) {
-	var eksCluster eksmodel.EKSClusterModel
+	var pkeAwsCluster awscommonmodel.AWSCommonClusterModel
 	err = s.db.
-		Where(eksmodel.EKSClusterModel{ClusterID: clusterID}).
+		Where(awscommonmodel.AWSCommonClusterModel{ClusterID: clusterID}).
 		Preload("NodePools").
-		First(&eksCluster).Error
+		First(&pkeAwsCluster).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return cluster.NotFoundError{
@@ -101,8 +101,8 @@ func (s nodePoolStore) UpdateNodePoolStackID(
 		)
 	}
 
-	var nodePoolModel *eksmodel.AmazonNodePoolsModel
-	for _, clusterNodePoolModel := range eksCluster.NodePools {
+	var nodePoolModel *awscommonmodel.AmazonNodePoolsModel
+	for _, clusterNodePoolModel := range pkeAwsCluster.NodePools {
 		if nodePoolName == clusterNodePoolModel.Name {
 			nodePoolModel = clusterNodePoolModel
 			break
@@ -118,7 +118,7 @@ func (s nodePoolStore) UpdateNodePoolStackID(
 	nodePoolModel.StackID = nodePoolStackID
 
 	if nodePoolStackID != "" { // Note: using CF stack status from now on as long as it exists.
-		nodePoolModel.Status = eks.NodePoolStatusEmpty
+		nodePoolModel.Status = awscommon.NodePoolStatusEmpty
 		nodePoolModel.StatusMessage = ""
 	}
 
@@ -143,14 +143,14 @@ func (s nodePoolStore) UpdateNodePoolStatus(
 	clusterID uint,
 	clusterName string,
 	nodePoolName string,
-	nodePoolStatus eks.NodePoolStatus,
+	nodePoolStatus awscommon.NodePoolStatus,
 	nodePoolStatusMessage string,
 ) (err error) {
-	var eksCluster eksmodel.EKSClusterModel
+	var pkeCluster awscommonmodel.AWSCommonClusterModel
 	err = s.db.
-		Where(eksmodel.EKSClusterModel{ClusterID: clusterID}).
+		Where(awscommonmodel.AWSCommonClusterModel{ClusterID: clusterID}).
 		Preload("NodePools").
-		First(&eksCluster).Error
+		First(&pkeCluster).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return cluster.NotFoundError{
@@ -168,8 +168,8 @@ func (s nodePoolStore) UpdateNodePoolStatus(
 		)
 	}
 
-	var nodePoolModel *eksmodel.AmazonNodePoolsModel
-	for _, clusterNodePoolModel := range eksCluster.NodePools {
+	var nodePoolModel *awscommonmodel.AmazonNodePoolsModel
+	for _, clusterNodePoolModel := range pkeCluster.NodePools {
 		if nodePoolName == clusterNodePoolModel.Name {
 			nodePoolModel = clusterNodePoolModel
 			break
@@ -205,12 +205,12 @@ func (s nodePoolStore) ListNodePools(
 	organizationID uint,
 	clusterID uint,
 	clusterName string,
-) (existingNodePools map[string]eks.ExistingNodePool, err error) {
-	var eksCluster eksmodel.EKSClusterModel
+) (existingNodePools map[string]awscommon.ExistingNodePool, err error) {
+	var pkeCluster awscommonmodel.AWSCommonClusterModel
 	err = s.db.
-		Where(eksmodel.EKSClusterModel{ClusterID: clusterID}).
+		Where(awscommonmodel.AWSCommonClusterModel{ClusterID: clusterID}).
 		Preload("NodePools").
-		First(&eksCluster).Error
+		First(&pkeCluster).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return nil, cluster.NotFoundError{
@@ -227,9 +227,9 @@ func (s nodePoolStore) ListNodePools(
 		)
 	}
 
-	existingNodePools = make(map[string]eks.ExistingNodePool, len(eksCluster.NodePools))
-	for _, nodePoolModel := range eksCluster.NodePools {
-		existingNodePools[nodePoolModel.Name] = eks.ExistingNodePool{
+	existingNodePools = make(map[string]awscommon.ExistingNodePool, len(pkeCluster.NodePools))
+	for _, nodePoolModel := range pkeCluster.NodePools {
+		existingNodePools[nodePoolModel.Name] = awscommon.ExistingNodePool{
 			Name:          nodePoolModel.Name,
 			StackID:       nodePoolModel.StackID,
 			Status:        nodePoolModel.Status,

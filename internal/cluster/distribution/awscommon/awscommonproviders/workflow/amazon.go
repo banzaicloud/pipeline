@@ -32,10 +32,9 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
 	zapadapter "logur.dev/adapter/zap"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/awscommon/awscommonmodel"
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
-	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
@@ -73,24 +72,24 @@ func getNodePoolStackTags(clusterName string, customTagsMap map[string]string) [
 }
 
 func GenerateStackNameForCluster(clusterName string) string {
-	return "pipeline-eks-" + clusterName
+	return "pipeline-aws-common--" + clusterName
 }
 
 func generateStackNameForSubnet(clusterName, subnetCidr string) string {
 	r := strings.NewReplacer(".", "-", "/", "-")
-	return fmt.Sprintf("pipeline-eks-subnet-%s-%s", clusterName, r.Replace(subnetCidr))
+	return fmt.Sprintf("pipeline-aws-common--subnet-%s-%s", clusterName, r.Replace(subnetCidr))
 }
 
 func generateStackNameForIam(clusterName string) string {
-	return "pipeline-eks-iam-" + clusterName
+	return "pipeline-aws-common--iam-" + clusterName
 }
 
 func GenerateSSHKeyNameForCluster(clusterName string) string {
-	return "pipeline-eks-ssh-" + clusterName
+	return "pipeline-aws-common--ssh-" + clusterName
 }
 
 func GenerateNodePoolStackName(clusterName string, poolName string) string {
-	return "pipeline-eks-nodepool-" + clusterName + "-" + poolName
+	return "pipeline-aws-common--nodepool-" + clusterName + "-" + poolName
 }
 
 // getSecretName returns the name that identifies the  cluster user access key in Vault
@@ -115,14 +114,14 @@ func generateK8sConfig(clusterName string, apiEndpoint string, certificateAuthor
 			{
 				Name: clusterName,
 				Context: clientcmdapi.Context{
-					AuthInfo: "eks",
+					AuthInfo: "aws-common-",
 					Cluster:  clusterName,
 				},
 			},
 		},
 		AuthInfos: []clientcmdapi.NamedAuthInfo{
 			{
-				Name: "eks",
+				Name: "aws-common-",
 				AuthInfo: clientcmdapi.AuthInfo{
 					Exec: &clientcmdapi.ExecConfig{
 						APIVersion: "client.authentication.k8s.io/v1alpha1",
@@ -156,8 +155,8 @@ func packageCFError(err error, stackName string, clientRequestToken string, clou
 	return err
 }
 
-// EKSActivityInput holds common input data for all activities
-type EKSActivityInput struct {
+// AWSCommonActivityInput holds common input data for all activities
+type AWSCommonActivityInput struct {
 	OrganizationID uint
 	SecretID       string
 
@@ -210,11 +209,11 @@ type SecretStore interface {
 }
 
 type Clusters interface {
-	GetCluster(ctx context.Context, id uint) (EksCluster, error)
+	GetCluster(ctx context.Context, id uint) (AWSCommonCluster, error)
 }
 
-type EksCluster interface {
-	GetModel() *eksmodel.EKSClusterModel
+type AWSCommonCluster interface {
+	GetModel() *awscommonmodel.AWSCommonClusterModel
 	Persist() error
 	SetStatus(string, string) error
 	DeleteFromDatabase() error
