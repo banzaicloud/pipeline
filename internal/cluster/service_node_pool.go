@@ -279,7 +279,7 @@ func (s service) UpdateNodePool(
 	return service.UpdateNodePool(ctx, clusterID, nodePoolStoredName, rawNodePoolUpdate)
 }
 
-func (s service) DeleteNodePool(ctx context.Context, clusterID uint, name string) (bool, error) {
+func (s service) DeleteNodePool(ctx context.Context, clusterID uint, nodePoolName string) (isDeleted bool, err error) {
 	cluster, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
 		return false, err
@@ -289,7 +289,8 @@ func (s service) DeleteNodePool(ctx context.Context, clusterID uint, name string
 		return false, err
 	}
 
-	exists, nodePoolStoredName, err := s.nodePools.NodePoolExists(ctx, clusterID, name)
+	// TODO: move this to distribution level
+	exists, nodePoolStoredName, err := s.nodePools.NodePoolExists(ctx, clusterID, nodePoolName)
 	if err != nil {
 		return false, err
 	}
@@ -299,17 +300,12 @@ func (s service) DeleteNodePool(ctx context.Context, clusterID uint, name string
 		return true, nil
 	}
 
-	err = s.clusters.SetStatus(ctx, clusterID, Updating, "deleting node pool")
+	distributionService, err := s.getDistributionService(cluster)
 	if err != nil {
 		return false, err
 	}
 
-	err = s.nodePoolManager.DeleteNodePool(ctx, clusterID, nodePoolStoredName)
-	if err != nil {
-		return false, err
-	}
-
-	return false, nil
+	return distributionService.DeleteNodePool(ctx, clusterID, nodePoolStoredName)
 }
 
 func (s service) checkCluster(cluster Cluster) error {
