@@ -18,6 +18,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 )
 
+// +testify:mock:testOnly=true
+
 type AWSSessionFactory interface {
 	New(organizationID uint, secretID string, region string) (*session.Session, error)
 }
