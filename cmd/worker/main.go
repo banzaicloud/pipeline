@@ -394,12 +394,14 @@ func main() {
 		registerAzureWorkflows(secretStore, tokenGenerator, azurePKEClusterStore)
 
 		// Register EKS specific workflows
-		err = registerEKSWorkflows(config, secret.Store, eksClusters, eksadapter.NewNodePoolStore(db))
+		clusterStore := clusteradapter.NewStore(db, clusteradapter.NewClusters(db))
+		clusterDynamicClientFactory := cluster2.NewDynamicClientFactory(clusterStore, kubernetes.NewDynamicClientFactory(configFactory))
+
+		err = registerEKSWorkflows(config, secret.Store, eksClusters, eksadapter.NewNodePoolStore(db), clusterDynamicClientFactory)
 		if err != nil {
 			emperror.Panic(errors.WrapIf(err, "failed to register EKS workflows"))
 		}
 
-		clusterStore := clusteradapter.NewStore(db, clusteradapter.NewClusters(db))
 		vsphereClusterStore := vsphereadapter.NewClusterStore(db)
 
 		cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)

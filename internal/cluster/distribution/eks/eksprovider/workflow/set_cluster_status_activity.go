@@ -16,6 +16,7 @@ package workflow
 
 import (
 	"context"
+	"time"
 
 	"go.uber.org/cadence/workflow"
 
@@ -50,6 +51,12 @@ func (a SetClusterStatusActivity) Execute(ctx context.Context, input SetClusterS
 }
 
 func SetClusterStatus(ctx workflow.Context, clusterID uint, status, statusMessage string) error {
+	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		ScheduleToStartTimeout: 10 * time.Minute,
+		StartToCloseTimeout:    2 * time.Minute,
+		WaitForCancellation:    true,
+	})
+
 	return workflow.ExecuteActivity(ctx, SetClusterStatusActivityName, SetClusterStatusActivityInput{
 		ClusterID:     clusterID,
 		Status:        status,

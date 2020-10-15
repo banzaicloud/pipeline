@@ -61,6 +61,135 @@ func setUpDatabase(t *testing.T) *gorm.DB {
 	return db
 }
 
+func TestNodePoolStoreDeleteNodePool(t *testing.T) {
+	type inputType struct {
+		clusterID      uint
+		clusterName    string
+		clusters       []eksmodel.EKSClusterModel
+		nodePoolName   string
+		organizationID uint
+	}
+
+	type outputType struct {
+		expectedClusters []eksmodel.EKSClusterModel
+		expectedError    error
+	}
+
+	type caseType struct {
+		caseName string
+		input    inputType
+		output   outputType
+	}
+
+	testCases := []caseType{
+		{
+			caseName: "cluster not found error",
+			input: inputType{
+				clusterID:      1,
+				clusterName:    "cluster-1",
+				clusters:       []eksmodel.EKSClusterModel{},
+				nodePoolName:   "1-pool-1",
+				organizationID: 1,
+			},
+			output: outputType{
+				expectedClusters: []eksmodel.EKSClusterModel{},
+				expectedError:    errors.New("cluster not found"),
+			},
+		},
+		{
+			caseName: "success",
+			input: inputType{
+				clusterID:   1,
+				clusterName: "cluster-3",
+				clusters: []eksmodel.EKSClusterModel{
+					{
+						ID:        2,
+						ClusterID: 1,
+						NodePools: []*eksmodel.AmazonNodePoolsModel{
+							{
+								ID:            1,
+								ClusterID:     2,
+								Name:          "1-pool-1",
+								StackID:       "",
+								Status:        eks.NodePoolStatusCreating,
+								StatusMessage: "",
+							},
+							{
+								ID:            2,
+								ClusterID:     2,
+								Name:          "1-pool-2",
+								StackID:       "",
+								Status:        eks.NodePoolStatusCreating,
+								StatusMessage: "",
+							},
+						},
+					},
+				},
+				nodePoolName:   "1-pool-2",
+				organizationID: 1,
+			},
+			output: outputType{
+				expectedClusters: []eksmodel.EKSClusterModel{
+					{
+						ID:        2,
+						ClusterID: 1,
+						NodePools: []*eksmodel.AmazonNodePoolsModel{
+							{
+								ID:            1,
+								ClusterID:     2,
+								Name:          "1-pool-1",
+								StackID:       "",
+								Status:        eks.NodePoolStatusCreating,
+								StatusMessage: "",
+							},
+						},
+						SSHGenerated: true,
+					},
+				},
+				expectedError: nil,
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+
+		t.Run(testCase.caseName, func(t *testing.T) {
+			database := setUpDatabase(t)
+			for clusterIndex := range testCase.input.clusters {
+				err := database.Save(&testCase.input.clusters[clusterIndex]).Error
+				require.NoError(t, err)
+			}
+
+			nodePoolStore := NewNodePoolStore(database)
+
+			actualError := nodePoolStore.DeleteNodePool(
+				context.Background(),
+				testCase.input.organizationID,
+				testCase.input.clusterID,
+				testCase.input.clusterName,
+				testCase.input.nodePoolName,
+			)
+
+			var actualClusters []eksmodel.EKSClusterModel
+			err := database.Preload("NodePools").Find(&actualClusters).Error
+			require.NoError(t, err)
+			for clusterIndex := range actualClusters {
+				for nodePoolIndex := range actualClusters[clusterIndex].NodePools {
+					actualClusters[clusterIndex].NodePools[nodePoolIndex].CreatedAt = time.Time{}
+				}
+			}
+
+			if testCase.output.expectedError == nil {
+				require.NoError(t, actualError)
+			} else {
+				require.EqualError(t, actualError, testCase.output.expectedError.Error())
+			}
+			require.Equal(t, testCase.output.expectedClusters, actualClusters)
+		})
+	}
+}
+
 func TestNodePoolStoreListNodePools(t *testing.T) {
 	type inputType struct {
 		cluster        eksmodel.EKSClusterModel

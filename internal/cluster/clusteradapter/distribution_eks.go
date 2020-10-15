@@ -67,8 +67,10 @@ func (s eksService) UpdateNodePool(ctx context.Context, clusterID uint, nodePool
 	return s.service.UpdateNodePool(ctx, clusterID, nodePoolName, nodePoolUpdate)
 }
 
-func (s eksService) DeleteNodePool(ctx context.Context, clusterID uint, name string) (deleted bool, err error) {
-	panic("implement me")
+func (s eksService) DeleteNodePool(
+	ctx context.Context, clusterID uint, nodePoolName string,
+) (isDeleted bool, err error) {
+	return s.service.DeleteNodePool(ctx, clusterID, nodePoolName)
 }
 
 // ListNodePools lists node pools from a cluster.

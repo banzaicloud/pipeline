@@ -32,43 +32,43 @@ type DeleteClusterInfraWorkflowTestSuite struct {
 }
 
 func TestDeleteClusterInfraWorkflowTestSuite(t *testing.T) {
-	workflow.RegisterWithOptions(DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: DeleteInfraWorkflowName})
-
-	getVpcConfigActivity := NewGetVpcConfigActivity(nil)
-	activity.RegisterWithOptions(getVpcConfigActivity.Execute, activity.RegisterOptions{Name: GetVpcConfigActivityName})
-
-	getOwnedELBsActivity := NewGetOwnedELBsActivity(nil)
-	activity.RegisterWithOptions(getOwnedELBsActivity.Execute, activity.RegisterOptions{Name: GetOwnedELBsActivityName})
-
-	waitELBsDeletionActivity := NewWaitELBsDeletionActivity(nil)
-	activity.RegisterWithOptions(waitELBsDeletionActivity.Execute, activity.RegisterOptions{Name: WaitELBsDeletionActivityName})
-
-	getNodepoolStacksActivity := NewGetNodepoolStacksActivity(nil)
-	activity.RegisterWithOptions(getNodepoolStacksActivity.Execute, activity.RegisterOptions{Name: GetNodepoolStacksActivityName})
-
-	deleteStackActivity := NewDeleteStackActivity(nil)
-	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: DeleteStackActivityName})
-
-	deleteControlPlaneActivity := NewDeleteControlPlaneActivity(nil)
-	activity.RegisterWithOptions(deleteControlPlaneActivity.Execute, activity.RegisterOptions{Name: DeleteControlPlaneActivityName})
-
-	deleteSshKeyActivity := NewDeleteSshKeyActivity(nil)
-	activity.RegisterWithOptions(deleteSshKeyActivity.Execute, activity.RegisterOptions{Name: DeleteSshKeyActivityName})
-
-	getOrphanNicsActivity := NewGetOrphanNICsActivity(nil)
-	activity.RegisterWithOptions(getOrphanNicsActivity.Execute, activity.RegisterOptions{Name: GetOrphanNICsActivityName})
-
-	deleteOrphanNicActivity := NewDeleteOrphanNICActivity(nil)
-	activity.RegisterWithOptions(deleteOrphanNicActivity.Execute, activity.RegisterOptions{Name: DeleteOrphanNICActivityName})
-
-	getSubnetStacksActivity := NewGetSubnetStacksActivity(nil)
-	activity.RegisterWithOptions(getSubnetStacksActivity.Execute, activity.RegisterOptions{Name: GetSubnetStacksActivityName})
-
 	suite.Run(t, new(DeleteClusterInfraWorkflowTestSuite))
 }
 
 func (s *DeleteClusterInfraWorkflowTestSuite) SetupTest() {
 	s.env = s.NewTestWorkflowEnvironment()
+
+	s.env.RegisterWorkflowWithOptions(DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: DeleteInfraWorkflowName})
+
+	getVpcConfigActivity := NewGetVpcConfigActivity(nil)
+	s.env.RegisterActivityWithOptions(getVpcConfigActivity.Execute, activity.RegisterOptions{Name: GetVpcConfigActivityName})
+
+	getOwnedELBsActivity := NewGetOwnedELBsActivity(nil)
+	s.env.RegisterActivityWithOptions(getOwnedELBsActivity.Execute, activity.RegisterOptions{Name: GetOwnedELBsActivityName})
+
+	waitELBsDeletionActivity := NewWaitELBsDeletionActivity(nil)
+	s.env.RegisterActivityWithOptions(waitELBsDeletionActivity.Execute, activity.RegisterOptions{Name: WaitELBsDeletionActivityName})
+
+	getNodepoolStacksActivity := NewGetNodepoolStacksActivity(nil)
+	s.env.RegisterActivityWithOptions(getNodepoolStacksActivity.Execute, activity.RegisterOptions{Name: GetNodepoolStacksActivityName})
+
+	deleteStackActivity := NewDeleteStackActivity(nil)
+	s.env.RegisterActivityWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: DeleteStackActivityName})
+
+	deleteControlPlaneActivity := NewDeleteControlPlaneActivity(nil)
+	s.env.RegisterActivityWithOptions(deleteControlPlaneActivity.Execute, activity.RegisterOptions{Name: DeleteControlPlaneActivityName})
+
+	deleteSshKeyActivity := NewDeleteSshKeyActivity(nil)
+	s.env.RegisterActivityWithOptions(deleteSshKeyActivity.Execute, activity.RegisterOptions{Name: DeleteSshKeyActivityName})
+
+	getOrphanNicsActivity := NewGetOrphanNICsActivity(nil)
+	s.env.RegisterActivityWithOptions(getOrphanNicsActivity.Execute, activity.RegisterOptions{Name: GetOrphanNICsActivityName})
+
+	deleteOrphanNicActivity := NewDeleteOrphanNICActivity(nil)
+	s.env.RegisterActivityWithOptions(deleteOrphanNicActivity.Execute, activity.RegisterOptions{Name: DeleteOrphanNICActivityName})
+
+	getSubnetStacksActivity := NewGetSubnetStacksActivity(nil)
+	s.env.RegisterActivityWithOptions(getSubnetStacksActivity.Execute, activity.RegisterOptions{Name: GetSubnetStacksActivityName})
 }
 
 func (s *DeleteClusterInfraWorkflowTestSuite) AfterTest(suiteName, testName string) {

@@ -83,12 +83,15 @@ type ExistingNodePool struct {
 	StatusMessage string
 }
 
-// +testify:mock:testOnly=true
+// +testify:mock
 
 // NodePoolStore provides an interface for EKS node pool persistence.
 type NodePoolStore interface {
 	// CreateNodePool saves a new node pool.
 	CreateNodePool(ctx context.Context, clusterID uint, createdBy uint, nodePool NewNodePool) error
+
+	// DeleteNodePool deletes an existing node pool from the storage.
+	DeleteNodePool(ctx context.Context, organizationID, clusterID uint, clusterName string, nodePoolName string) error
 
 	// ListNodePools retrieves the node pools for the cluster specified by its
 	// cluster ID.

@@ -67,6 +67,33 @@ func NewNodePoolManager(
 	}
 }
 
+// DeleteNodePool deletes an existing node pool in a cluster.
+func (n nodePoolManager) DeleteNodePool(
+	ctx context.Context, c cluster.Cluster, existingNodePool eks.ExistingNodePool, shouldUpdateClusterStatus bool,
+) (err error) {
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,
+	}
+
+	input := workflow.DeleteNodePoolWorkflowInput{
+		ClusterID:                 c.ID,
+		ClusterName:               c.Name,
+		NodePoolName:              existingNodePool.Name,
+		OrganizationID:            c.OrganizationID,
+		Region:                    c.Location,
+		SecretID:                  c.SecretID.ResourceID,
+		ShouldUpdateClusterStatus: shouldUpdateClusterStatus,
+	}
+
+	_, err = n.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.DeleteNodePoolWorkflowName, input)
+	if err != nil {
+		return errors.WrapWithDetails(err, "failed to start workflow", "workflow", workflow.DeleteNodePoolWorkflowName)
+	}
+
+	return nil
+}
+
 // getLabelSets retrieves the Kubernetes label sets of the node pools.
 func (n nodePoolManager) getLabelSets(
 	ctx context.Context, c cluster.Cluster,
