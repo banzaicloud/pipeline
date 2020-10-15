@@ -9,7 +9,7 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/common",
-        "//pkg/brn",
+        "//pkg/sdk/brn",
         "//src/secret",
     ],
 )

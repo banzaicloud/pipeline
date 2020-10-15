@@ -8,7 +8,7 @@ go_library(
     ),
     visibility = ["PUBLIC"],
     deps = [
-        "//pkg/brn",
+        "//pkg/sdk/brn",
         "//pkg/cloud",
     ],
 )
@@ -18,7 +18,7 @@ go_test(
     srcs = glob(["*_test.go"]),
     deps = [
         ":cluster",
-        "//pkg/brn",
+        "//pkg/sdk/brn",
         "//pkg/cloud",
     ],
 )

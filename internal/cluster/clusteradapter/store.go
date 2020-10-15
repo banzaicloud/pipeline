@@ -22,7 +22,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
-	"github.com/banzaicloud/pipeline/pkg/brn"
+	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 	"github.com/banzaicloud/pipeline/src/model"
 )
 

@@ -50,7 +50,7 @@ go_library(
         "//internal/secret/ssh/sshadapter",
         "//internal/secret/ssh/sshdriver",
         "//pkg/any",
-        "//pkg/brn",
+        "//pkg/sdk/brn",
         "//pkg/cadence",
         "//pkg/cluster",
         "//pkg/cluster/ack",

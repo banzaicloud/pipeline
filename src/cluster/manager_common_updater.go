@@ -27,11 +27,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/pkg/brn"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
+	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 )
 
 // DynamicClientFactory returns a dynamic Kubernetes client.

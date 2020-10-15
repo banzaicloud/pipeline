@@ -34,7 +34,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
-	"github.com/banzaicloud/pipeline/pkg/brn"
+	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 )
 
 func TestNodePoolManagerCreateNodePool(t *testing.T) {

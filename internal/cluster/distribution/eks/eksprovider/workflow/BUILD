@@ -16,7 +16,7 @@ go_library(
         "//internal/providers/amazon",
         "//internal/secret/secrettype",
         "//internal/secret/ssh/sshadapter",
-        "//pkg/brn",
+        "//pkg/sdk/brn",
         "//pkg/cadence",
         "//pkg/cluster",
         "//pkg/k8sclient",

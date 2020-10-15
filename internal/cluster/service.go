@@ -19,7 +19,7 @@ import (
 
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/pkg/brn"
+	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 )
 
 // Cluster status constants

@@ -20,7 +20,7 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/pkg/brn"
+	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 

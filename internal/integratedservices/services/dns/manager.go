@@ -21,7 +21,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/pkg/any"
-	"github.com/banzaicloud/pipeline/pkg/brn"
+	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 )
 
 // IntegratedServiceManager implements the DNS integrated service manager

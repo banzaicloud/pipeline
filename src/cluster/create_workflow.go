@@ -29,10 +29,10 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
-	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 )
 
 // ClientFactory returns a Kubernetes client.

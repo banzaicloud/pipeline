@@ -22,7 +22,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/pke/workflow"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	"github.com/banzaicloud/pipeline/pkg/brn"
+	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 )
 
 type PasswordSecretStore struct {
