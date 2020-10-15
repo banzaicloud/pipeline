@@ -55,28 +55,3 @@ func TestNodePoolManager_CreateNodePool(t *testing.T) {
 
 	client.AssertExpectations(t)
 }
-
-func TestNodePoolManager_DeleteNodePool(t *testing.T) {
-	ctx := context.Background()
-	const clusterID = uint(1)
-	const nodePoolName = "pool0"
-
-	client := new(mocks.Client)
-	client.On(
-		"StartWorkflow",
-		ctx,
-		mock.Anything,
-		clusterworkflow.DeleteNodePoolWorkflowName,
-		clusterworkflow.DeleteNodePoolWorkflowInput{
-			ClusterID:    clusterID,
-			NodePoolName: nodePoolName,
-		},
-	).Return(nil, nil)
-
-	manager := NewNodePoolManager(client, func(ctx context.Context) uint { return 1 })
-
-	err := manager.DeleteNodePool(ctx, clusterID, nodePoolName)
-	require.NoError(t, err)
-
-	client.AssertExpectations(t)
-}

@@ -163,9 +163,6 @@ func (NodePoolNotFoundError) ServiceError() bool {
 type NodePoolStore interface {
 	// NodePoolExists checks if a node pool exists.
 	NodePoolExists(ctx context.Context, clusterID uint, name string) (isExisting bool, storedName string, err error)
-
-	// DeleteNodePool deletes a node pool.
-	DeleteNodePool(ctx context.Context, clusterID uint, name string) error
 }
 
 // +testify:mock:testOnly=true
@@ -190,9 +187,6 @@ type NodePoolProcessor interface {
 type NodePoolManager interface {
 	// CreateNodePool creates a new node pool in a cluster.
 	CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) error
-
-	// DeleteNodePool deletes a node pool from a cluster.
-	DeleteNodePool(ctx context.Context, clusterID uint, name string) error
 }
 
 func (s service) CreateNodePool(

@@ -174,20 +174,6 @@ type MockNodePoolStore struct {
 	mock.Mock
 }
 
-// DeleteNodePool provides a mock function.
-func (_m *MockNodePoolStore) DeleteNodePool(ctx context.Context, clusterID uint, name string) (_result_0 error) {
-	ret := _m.Called(ctx, clusterID, name)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint, string) error); ok {
-		r0 = rf(ctx, clusterID, name)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // NodePoolExists provides a mock function.
 func (_m *MockNodePoolStore) NodePoolExists(ctx context.Context, clusterID uint, name string) (isExisting bool, storedName string, err error) {
 	ret := _m.Called(ctx, clusterID, name)
@@ -275,20 +261,6 @@ func (_m *MockNodePoolManager) CreateNodePool(ctx context.Context, clusterID uin
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, uint, NewRawNodePool) error); ok {
 		r0 = rf(ctx, clusterID, rawNodePool)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// DeleteNodePool provides a mock function.
-func (_m *MockNodePoolManager) DeleteNodePool(ctx context.Context, clusterID uint, name string) (_result_0 error) {
-	ret := _m.Called(ctx, clusterID, name)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint, string) error); ok {
-		r0 = rf(ctx, clusterID, name)
 	} else {
 		r0 = ret.Error(0)
 	}
