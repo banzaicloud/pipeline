@@ -30,6 +30,9 @@ import (
 
 // Service provides an interface to EKS clusters.
 type Service interface {
+	// DeleteNodePool deletes an existing node pool.
+	DeleteNodePool(ctx context.Context, clusterID uint, nodePoolName string) (isDeleted bool, err error)
+
 	// UpdateCluster updates a cluster.
 	//
 	// This method accepts a partial body representation.
@@ -267,6 +270,11 @@ type service struct {
 
 // NodePoolManager is responsible for managing node pools.
 type NodePoolManager interface {
+	// DeleteNodePool deletes an existing node pool in a cluster.
+	DeleteNodePool(
+		ctx context.Context, c cluster.Cluster, existingNodePool ExistingNodePool, shouldUpdateClusterStatus bool,
+	) (err error)
+
 	// UpdateNodePool updates an existing node pool in a cluster.
 	UpdateNodePool(ctx context.Context, c cluster.Cluster, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
 
@@ -282,6 +290,35 @@ type NodePoolManager interface {
 type ClusterManager interface {
 	// UpdateCluster updates an existing cluster.
 	UpdateCluster(ctx context.Context, c cluster.Cluster, clusterUpdate ClusterUpdate) error
+}
+
+func (s service) DeleteNodePool(ctx context.Context, clusterID uint, nodePoolName string) (isDeleted bool, err error) {
+	c, err := s.genericClusters.GetCluster(ctx, clusterID)
+	if err != nil {
+		return false, err
+	}
+
+	existingNodePools, err := s.nodePools.ListNodePools(ctx, c.OrganizationID, c.ID, c.Name)
+	if err != nil {
+		return false, err
+	}
+
+	existingNodePool, isExisting := existingNodePools[nodePoolName]
+	if !isExisting {
+		return true, nil
+	}
+
+	err = s.genericClusters.SetStatus(ctx, clusterID, cluster.Updating, "deleting node pool")
+	if err != nil {
+		return false, err
+	}
+
+	err = s.nodePoolManager.DeleteNodePool(ctx, c, existingNodePool, true)
+	if err != nil {
+		return false, err
+	}
+
+	return false, nil
 }
 
 func (s service) UpdateCluster(

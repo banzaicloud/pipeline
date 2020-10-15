@@ -19,6 +19,7 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
+	cluster2 "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
@@ -32,6 +33,7 @@ func registerEKSWorkflows(
 	secretStore eksworkflow.SecretStore,
 	clusterManager *adapter.ClusterManagerAdapter,
 	nodePoolStore eks.NodePoolStore,
+	clusterDynamicClientFactory cluster2.DynamicClientFactory,
 ) error {
 	vpcTemplate, err := eksworkflow.GetVPCTemplate()
 	if err != nil {
@@ -113,6 +115,9 @@ func registerEKSWorkflows(
 	workflow.RegisterWithOptions(cluster.EKSDeleteClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSDeleteClusterWorkflowName})
 	workflow.RegisterWithOptions(eksworkflow.DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: eksworkflow.DeleteInfraWorkflowName})
 
+	// delete node pool workflow
+	eksworkflow.NewDeleteNodePoolWorkflow().Register()
+
 	getAMISizeActivity := eksworkflow.NewGetAMISizeActivity(awsSessionFactory, ec2Factory)
 	activity.RegisterWithOptions(getAMISizeActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetAMISizeActivityName})
 
@@ -128,8 +133,24 @@ func registerEKSWorkflows(
 	getNodepoolStacksActivity := eksworkflow.NewGetNodepoolStacksActivity(awsSessionFactory)
 	activity.RegisterWithOptions(getNodepoolStacksActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetNodepoolStacksActivityName})
 
+	deleteNodePoolLabelSetActivity := eksworkflow.NewDeleteNodePoolLabelSetActivity(
+		clusterDynamicClientFactory,
+		config.Cluster.Labels.Namespace,
+	)
+	activity.RegisterWithOptions(
+		deleteNodePoolLabelSetActivity.Execute,
+		activity.RegisterOptions{
+			Name: eksworkflow.DeleteNodePoolLabelSetActivityName,
+		},
+	)
+
 	deleteStackActivity := eksworkflow.NewDeleteStackActivity(awsSessionFactory)
 	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteStackActivityName})
+
+	deleteStoredNodePoolActivity := eksworkflow.NewDeleteStoredNodePoolActivity(nodePoolStore)
+	activity.RegisterWithOptions(deleteStoredNodePoolActivity.Execute, activity.RegisterOptions{
+		Name: eksworkflow.DeleteStoredNodePoolActivityName,
+	})
 
 	deleteControlPlaneActivity := eksworkflow.NewDeleteControlPlaneActivity(awsSessionFactory)
 	activity.RegisterWithOptions(deleteControlPlaneActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteControlPlaneActivityName})

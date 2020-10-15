@@ -25,6 +25,89 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 )
 
+func TestEksServiceDeleteNodePool(t *testing.T) {
+	type inputType struct {
+		clusterID    uint
+		nodePoolName string
+		service      eksService
+	}
+
+	type outputType struct {
+		expectedError     error
+		expectedIsDeleted bool
+	}
+
+	testCases := []struct {
+		caseName string
+		input    inputType
+		output   outputType
+	}{
+		{
+			caseName: "error",
+			input: inputType{
+				clusterID:    1,
+				nodePoolName: "node-pool-name",
+				service: eksService{
+					service: &eks.MockService{},
+				},
+			},
+			output: outputType{
+				expectedError:     errors.New("test error: GetCluster"),
+				expectedIsDeleted: false,
+			},
+		},
+		{
+			caseName: "already deleted",
+			input: inputType{
+				clusterID:    1,
+				nodePoolName: "node-pool-name",
+				service: eksService{
+					service: &eks.MockService{},
+				},
+			},
+			output: outputType{
+				expectedError:     nil,
+				expectedIsDeleted: true,
+			},
+		},
+		{
+			caseName: "deleting",
+			input: inputType{
+				clusterID:    1,
+				nodePoolName: "node-pool-name",
+				service: eksService{
+					service: &eks.MockService{},
+				},
+			},
+			output: outputType{
+				expectedError:     nil,
+				expectedIsDeleted: false,
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.caseName, func(t *testing.T) {
+			testCase.input.service.service.(*eks.MockService).On(
+				"DeleteNodePool", context.Background(), testCase.input.clusterID, testCase.input.nodePoolName,
+			).Return(testCase.output.expectedIsDeleted, testCase.output.expectedError).Once()
+
+			actualIsDeleted, actualError := testCase.input.service.DeleteNodePool(
+				context.Background(),
+				testCase.input.clusterID,
+				testCase.input.nodePoolName,
+			)
+
+			if testCase.output.expectedError == nil {
+				require.NoError(t, actualError)
+			} else {
+				require.EqualError(t, actualError, testCase.output.expectedError.Error())
+			}
+			require.Equal(t, testCase.output.expectedIsDeleted, actualIsDeleted)
+		})
+	}
+}
+
 func TestEksServiceListNodePools(t *testing.T) {
 	exampleEKSNodePools := []eks.NodePool{
 		{

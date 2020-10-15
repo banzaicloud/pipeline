@@ -69,6 +69,42 @@ func (s nodePoolStore) CreateNodePool(
 	return nil
 }
 
+func (s nodePoolStore) DeleteNodePool(
+	ctx context.Context, organizationID, clusterID uint, clusterName string, nodePoolName string,
+) error {
+	var eksCluster eksmodel.EKSClusterModel
+	err := s.db.
+		Where(eksmodel.EKSClusterModel{ClusterID: clusterID}).
+		First(&eksCluster).Error
+	if err != nil && gorm.IsRecordNotFoundError(err) {
+		return cluster.NotFoundError{
+			OrganizationID: organizationID,
+			ClusterID:      clusterID,
+			ClusterName:    clusterName,
+		}
+	} else if err != nil {
+		return errors.WrapWithDetails(err, "fetching cluster from database failed",
+			"organizationId", organizationID,
+			"clusterId", clusterID,
+			"clusterName", clusterName,
+		)
+	}
+
+	err = s.db.
+		Where(eksmodel.AmazonNodePoolsModel{ClusterID: eksCluster.ID, Name: nodePoolName}).
+		Delete(eksmodel.AmazonNodePoolsModel{}).Error
+	if err != nil {
+		return errors.WrapWithDetails(err, "deleting node pool from database failed",
+			"organizationId", organizationID,
+			"clusterId", clusterID,
+			"clusterName", clusterName,
+			"nodePoolName", nodePoolName,
+		)
+	}
+
+	return nil
+}
+
 // UpdateNodePoolStackID sets the stack ID in the node pool storage to the
 // specified value.
 func (s nodePoolStore) UpdateNodePoolStackID(

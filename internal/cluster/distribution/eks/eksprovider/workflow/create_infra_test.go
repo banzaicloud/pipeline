@@ -33,56 +33,56 @@ type CreateInfraWorkflowTestSuite struct {
 }
 
 func TestCreateInfraWorkflowTestSuite(t *testing.T) {
-	createInfrastructureWorkflow := NewCreateInfrastructureWorkflow(nil)
-	workflow.RegisterWithOptions(createInfrastructureWorkflow.Execute, workflow.RegisterOptions{Name: CreateInfraWorkflowName})
-
-	createVPCActivity := NewCreateVPCActivity(nil, "")
-	activity.RegisterWithOptions(createVPCActivity.Execute, activity.RegisterOptions{Name: CreateVpcActivityName})
-
-	createSubnetActivity := NewCreateSubnetActivity(nil, "")
-	activity.RegisterWithOptions(createSubnetActivity.Execute, activity.RegisterOptions{Name: CreateSubnetActivityName})
-
-	getSubnetsDetailsActivity := NewGetSubnetsDetailsActivity(nil)
-	activity.RegisterWithOptions(getSubnetsDetailsActivity.Execute, activity.RegisterOptions{Name: GetSubnetsDetailsActivityName})
-
-	createIamRolesActivity := NewCreateIamRolesActivity(nil, "")
-	activity.RegisterWithOptions(createIamRolesActivity.Execute, activity.RegisterOptions{Name: CreateIamRolesActivityName})
-
-	uploadSSHActivityActivity := NewUploadSSHKeyActivity(nil)
-	activity.RegisterWithOptions(uploadSSHActivityActivity.Execute, activity.RegisterOptions{Name: UploadSSHKeyActivityName})
-
-	createEksClusterActivity := NewCreateEksClusterActivity(nil)
-	activity.RegisterWithOptions(createEksClusterActivity.Execute, activity.RegisterOptions{Name: CreateEksControlPlaneActivityName})
-
-	saveK8sConfigActivity := NewSaveK8sConfigActivity(nil, nil)
-	activity.RegisterWithOptions(saveK8sConfigActivity.Execute, activity.RegisterOptions{Name: SaveK8sConfigActivityName})
-
-	getAMISizeActivity := NewGetAMISizeActivity(nil, nil)
-	activity.RegisterWithOptions(getAMISizeActivity.Execute, activity.RegisterOptions{Name: GetAMISizeActivityName})
-
-	selectVolumeSizeActivity := NewSelectVolumeSizeActivity(0)
-	activity.RegisterWithOptions(selectVolumeSizeActivity.Execute, activity.RegisterOptions{Name: SelectVolumeSizeActivityName})
-
-	createAsgActivity := NewCreateAsgActivity(nil, "", nil)
-	activity.RegisterWithOptions(createAsgActivity.Execute, activity.RegisterOptions{Name: CreateAsgActivityName})
-
-	createUserAccessKeyActivity := NewCreateClusterUserAccessKeyActivity(nil)
-	activity.RegisterWithOptions(createUserAccessKeyActivity.Execute, activity.RegisterOptions{Name: CreateClusterUserAccessKeyActivityName})
-
-	bootstrapActivity := NewBootstrapActivity(nil)
-	activity.RegisterWithOptions(bootstrapActivity.Execute, activity.RegisterOptions{Name: BootstrapActivityName})
-
-	saveClusterActivity := NewSaveNetworkDetailsActivity(nil)
-	activity.RegisterWithOptions(saveClusterActivity.Execute, activity.RegisterOptions{Name: SaveNetworkDetailsActivityName})
-
-	validateIAMRoleActivity := NewValidateIAMRoleActivity(nil)
-	activity.RegisterWithOptions(validateIAMRoleActivity.Execute, activity.RegisterOptions{Name: ValidateIAMRoleActivityName})
-
 	suite.Run(t, new(CreateInfraWorkflowTestSuite))
 }
 
 func (s *CreateInfraWorkflowTestSuite) SetupTest() {
 	s.env = s.NewTestWorkflowEnvironment()
+
+	createInfrastructureWorkflow := NewCreateInfrastructureWorkflow(nil)
+	s.env.RegisterWorkflowWithOptions(createInfrastructureWorkflow.Execute, workflow.RegisterOptions{Name: CreateInfraWorkflowName})
+
+	createVPCActivity := NewCreateVPCActivity(nil, "")
+	s.env.RegisterActivityWithOptions(createVPCActivity.Execute, activity.RegisterOptions{Name: CreateVpcActivityName})
+
+	createSubnetActivity := NewCreateSubnetActivity(nil, "")
+	s.env.RegisterActivityWithOptions(createSubnetActivity.Execute, activity.RegisterOptions{Name: CreateSubnetActivityName})
+
+	getSubnetsDetailsActivity := NewGetSubnetsDetailsActivity(nil)
+	s.env.RegisterActivityWithOptions(getSubnetsDetailsActivity.Execute, activity.RegisterOptions{Name: GetSubnetsDetailsActivityName})
+
+	createIamRolesActivity := NewCreateIamRolesActivity(nil, "")
+	s.env.RegisterActivityWithOptions(createIamRolesActivity.Execute, activity.RegisterOptions{Name: CreateIamRolesActivityName})
+
+	uploadSSHActivityActivity := NewUploadSSHKeyActivity(nil)
+	s.env.RegisterActivityWithOptions(uploadSSHActivityActivity.Execute, activity.RegisterOptions{Name: UploadSSHKeyActivityName})
+
+	createEksClusterActivity := NewCreateEksClusterActivity(nil)
+	s.env.RegisterActivityWithOptions(createEksClusterActivity.Execute, activity.RegisterOptions{Name: CreateEksControlPlaneActivityName})
+
+	saveK8sConfigActivity := NewSaveK8sConfigActivity(nil, nil)
+	s.env.RegisterActivityWithOptions(saveK8sConfigActivity.Execute, activity.RegisterOptions{Name: SaveK8sConfigActivityName})
+
+	getAMISizeActivity := NewGetAMISizeActivity(nil, nil)
+	s.env.RegisterActivityWithOptions(getAMISizeActivity.Execute, activity.RegisterOptions{Name: GetAMISizeActivityName})
+
+	selectVolumeSizeActivity := NewSelectVolumeSizeActivity(0)
+	s.env.RegisterActivityWithOptions(selectVolumeSizeActivity.Execute, activity.RegisterOptions{Name: SelectVolumeSizeActivityName})
+
+	createAsgActivity := NewCreateAsgActivity(nil, "", nil)
+	s.env.RegisterActivityWithOptions(createAsgActivity.Execute, activity.RegisterOptions{Name: CreateAsgActivityName})
+
+	createUserAccessKeyActivity := NewCreateClusterUserAccessKeyActivity(nil)
+	s.env.RegisterActivityWithOptions(createUserAccessKeyActivity.Execute, activity.RegisterOptions{Name: CreateClusterUserAccessKeyActivityName})
+
+	bootstrapActivity := NewBootstrapActivity(nil)
+	s.env.RegisterActivityWithOptions(bootstrapActivity.Execute, activity.RegisterOptions{Name: BootstrapActivityName})
+
+	saveClusterActivity := NewSaveNetworkDetailsActivity(nil)
+	s.env.RegisterActivityWithOptions(saveClusterActivity.Execute, activity.RegisterOptions{Name: SaveNetworkDetailsActivityName})
+
+	validateIAMRoleActivity := NewValidateIAMRoleActivity(nil)
+	s.env.RegisterActivityWithOptions(validateIAMRoleActivity.Execute, activity.RegisterOptions{Name: ValidateIAMRoleActivityName})
 }
 
 func (s *CreateInfraWorkflowTestSuite) AfterTest(suiteName, testName string) {
