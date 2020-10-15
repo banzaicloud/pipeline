@@ -21,6 +21,18 @@ import (
 	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 )
 
+// +testify:mock:testOnly=true
+
+// cloudFormationAPI redefines the elbv2iface.ELBV2API
+// interface in order to generate mock for it.
+// nolint:deadcode // Used for mock generation and only the original interface
+// is referenced.
+type elbv2API interface {
+	elbv2iface.ELBV2API
+}
+
+// +testify:mock:testOnly=true
+
 // ELBV2APIFactory provides an interface for instantiating AWS ELBV2 API objects.
 type ELBV2APIFactory interface {
 	// New instantiates an AWS ELBV2 API object based on the specified
