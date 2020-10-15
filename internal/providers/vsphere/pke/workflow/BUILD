@@ -16,7 +16,7 @@ go_library(
         "//internal/providers/pke/pkeworkflow/pkeworkflowadapter",
         "//internal/providers/vsphere/pke",
         "//internal/secret/secrettype",
-        "//pkg/brn",
+        "//pkg/sdk/brn",
         "//pkg/cluster",
         "//pkg/k8sclient",
         "//src/cluster",

@@ -28,7 +28,7 @@ go_library(
         "//internal/providers/vsphere/pke/driver",
         "//internal/secret/restricted",
         "//internal/security",
-        "//pkg/brn",
+        "//pkg/sdk/brn",
         "//pkg/cloudinfo",
         "//pkg/cluster",
         "//pkg/common",

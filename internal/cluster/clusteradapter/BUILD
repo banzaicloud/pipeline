@@ -13,7 +13,7 @@ go_library(
         "//internal/cluster/clusterworkflow",
         "//internal/cluster/distribution/eks",
         "//internal/cluster/distribution/eks/eksmodel",
-        "//pkg/brn",
+        "//pkg/sdk/brn",
         "//pkg/cloudinfo",
         "//pkg/providers",
         "//src/model",

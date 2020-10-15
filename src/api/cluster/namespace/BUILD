@@ -8,7 +8,7 @@ go_library(
     ),
     visibility = ["PUBLIC"],
     deps = [
-        "//pkg/brn",
+        "//pkg/sdk/brn",
         "//pkg/common",
         "//src/api/common",
     ],

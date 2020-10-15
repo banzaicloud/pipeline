@@ -16,7 +16,7 @@ go_library(
         "//internal/providers/azure/pke",
         "//internal/providers/pke/pkeworkflow",
         "//internal/providers/pke/pkeworkflow/pkeworkflowadapter",
-        "//pkg/brn",
+        "//pkg/sdk/brn",
         "//pkg/cluster",
         "//pkg/cluster/pke",
         "//pkg/providers/azure",

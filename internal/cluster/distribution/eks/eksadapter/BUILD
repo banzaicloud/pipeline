@@ -26,6 +26,6 @@ go_test(
         "//internal/cluster/distribution/eks",
         "//internal/cluster/distribution/eks/eksmodel",
         "//internal/cluster/distribution/eks/eksprovider/workflow",
-        "//pkg/brn",
+        "//pkg/sdk/brn",
     ],
 )

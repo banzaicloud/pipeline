@@ -24,9 +24,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	intPKEWorkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
-	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 )
 
 const UpdateClusterWorkflowName = "pke-vsphere-update-cluster"

@@ -16,6 +16,6 @@ go_test(
     deps = [
         ":eks",
         "//internal/cluster",
-        "//pkg/brn",
+        "//pkg/sdk/brn",
     ],
 )

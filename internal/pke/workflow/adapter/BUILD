@@ -10,6 +10,6 @@ go_library(
     deps = [
         "//internal/pke/workflow",
         "//internal/secret/secrettype",
-        "//pkg/brn",
+        "//pkg/sdk/brn",
     ],
 )

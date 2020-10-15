@@ -30,8 +30,8 @@ import (
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	intPKEWorkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
-	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 

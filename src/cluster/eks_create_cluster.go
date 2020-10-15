@@ -21,8 +21,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
-	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 )
 
 const EKSCreateClusterWorkflowName = "eks-create-cluster"
