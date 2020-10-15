@@ -62,22 +62,3 @@ func (n nodePoolManager) CreateNodePool(
 
 	return nil
 }
-
-func (n nodePoolManager) DeleteNodePool(ctx context.Context, clusterID uint, name string) error {
-	workflowOptions := client.StartWorkflowOptions{
-		TaskList:                     "pipeline",
-		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,
-	}
-
-	input := clusterworkflow.DeleteNodePoolWorkflowInput{
-		ClusterID:    clusterID,
-		NodePoolName: name,
-	}
-
-	_, err := n.workflowClient.StartWorkflow(ctx, workflowOptions, clusterworkflow.DeleteNodePoolWorkflowName, input)
-	if err != nil {
-		return errors.WrapWithDetails(err, "failed to start workflow", "workflow", clusterworkflow.DeleteNodePoolWorkflowName)
-	}
-
-	return nil
-}
