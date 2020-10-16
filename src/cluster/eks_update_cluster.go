@@ -72,8 +72,7 @@ func NewEKSUpdateClusterWorkflow(nodePoolStore eks.NodePoolStore) (eksUpdateClus
 func waitForActivities(asgFutures []workflow.Future, ctx workflow.Context, clusterID uint) error {
 	errs := make([]error, len(asgFutures))
 	for i, future := range asgFutures {
-		var activityOutput eksWorkflow.CreateAsgActivityOutput
-		errs[i] = pkgCadence.UnwrapError(future.Get(ctx, &activityOutput))
+		errs[i] = pkgCadence.UnwrapError(future.Get(ctx, nil))
 	}
 	if err := errors.Combine(errs...); err != nil {
 		_ = eksWorkflow.SetClusterStatus(ctx, clusterID, pkgCluster.Warning, err.Error())
