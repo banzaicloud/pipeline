@@ -859,7 +859,7 @@ func main() {
 
 					pkeServices := clusteradapter.NewPKEServices(
 						map[string]pkeDistribution.Service{
-							"aws": pkeDistribution.NewService(
+							"amazon": pkeDistribution.NewService(
 								clusterStore,
 								pkeawsadapter.NewNodePoolManager(
 									config.Pipeline.Enterprise,
