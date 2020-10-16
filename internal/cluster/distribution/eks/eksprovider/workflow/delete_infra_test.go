@@ -40,6 +40,9 @@ func (s *DeleteClusterInfraWorkflowTestSuite) SetupTest() {
 
 	s.env.RegisterWorkflowWithOptions(DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: DeleteInfraWorkflowName})
 
+	deleteNodePoolWorkflow := NewDeleteNodePoolWorkflow()
+	s.env.RegisterWorkflowWithOptions(deleteNodePoolWorkflow.Execute, workflow.RegisterOptions{Name: DeleteNodePoolWorkflowName})
+
 	getVpcConfigActivity := NewGetVpcConfigActivity(nil)
 	s.env.RegisterActivityWithOptions(getVpcConfigActivity.Execute, activity.RegisterOptions{Name: GetVpcConfigActivityName})
 
@@ -48,9 +51,6 @@ func (s *DeleteClusterInfraWorkflowTestSuite) SetupTest() {
 
 	waitELBsDeletionActivity := NewWaitELBsDeletionActivity(nil)
 	s.env.RegisterActivityWithOptions(waitELBsDeletionActivity.Execute, activity.RegisterOptions{Name: WaitELBsDeletionActivityName})
-
-	getNodepoolStacksActivity := NewGetNodepoolStacksActivity(nil)
-	s.env.RegisterActivityWithOptions(getNodepoolStacksActivity.Execute, activity.RegisterOptions{Name: GetNodepoolStacksActivityName})
 
 	deleteStackActivity := NewDeleteStackActivity(nil)
 	s.env.RegisterActivityWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: DeleteStackActivityName})
@@ -80,6 +80,7 @@ func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
 		Region:           "us-west-1",
 		OrganizationID:   1,
 		SecretID:         "my-secret-id",
+		ClusterID:        1,
 		ClusterName:      "test-cluster-name",
 		NodePoolNames:    []string{"pool1", "pool2"},
 		GeneratedSSHUsed: true,
@@ -114,24 +115,17 @@ func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
 		LoadBalancerNames: []string{"test-lb-1", "test-lb-2"},
 	}).Return(nil)
 
-	s.env.OnActivity(GetNodepoolStacksActivityName, mock.Anything, GetNodepoolStacksActivityInput{
-		EKSActivityInput: eksActivityInput,
-		NodePoolNames:    []string{"pool1", "pool2"},
-	}).Return(&GetNodepoolStacksActivityOutput{
-		StackNames: []string{
-			GenerateNodePoolStackName(eksActivityInput.ClusterName, "pool1"),
-			GenerateNodePoolStackName(eksActivityInput.ClusterName, "pool2"),
-		},
-	}, nil).Once()
-
-	s.env.OnActivity(DeleteStackActivityName, mock.Anything, DeleteStackActivityInput{
-		EKSActivityInput: eksActivityInput,
-		StackName:        GenerateNodePoolStackName(eksActivityInput.ClusterName, "pool1"),
-	}).Return(nil).Once()
-	s.env.OnActivity(DeleteStackActivityName, mock.Anything, DeleteStackActivityInput{
-		EKSActivityInput: eksActivityInput,
-		StackName:        GenerateNodePoolStackName(eksActivityInput.ClusterName, "pool2"),
-	}).Return(nil).Once()
+	for _, nodePoolName := range workflowInput.NodePoolNames {
+		s.env.OnWorkflow(DeleteNodePoolWorkflowName, mock.Anything, DeleteNodePoolWorkflowInput{
+			ClusterID:                 workflowInput.ClusterID,
+			ClusterName:               workflowInput.ClusterName,
+			NodePoolName:              nodePoolName,
+			OrganizationID:            workflowInput.OrganizationID,
+			Region:                    workflowInput.Region,
+			SecretID:                  workflowInput.SecretID,
+			ShouldUpdateClusterStatus: false,
+		}).Return(nil).Once()
+	}
 
 	s.env.OnActivity(DeleteControlPlaneActivityName, mock.Anything, DeleteControlPlaneActivityInput{
 		EKSActivityInput: eksActivityInput,

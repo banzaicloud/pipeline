@@ -32,6 +32,7 @@ type DeleteInfrastructureWorkflowInput struct {
 	SecretID         string
 	Region           string
 	ClusterName      string
+	ClusterID        uint
 	ClusterUID       string
 	NodePoolNames    []string
 	DefaultUser      bool
@@ -125,30 +126,22 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 		}
 	}
 
-	// retrieve node pool stack names
-	var getNodepoolStacksActivityOutput GetNodepoolStacksActivityOutput
-	{
-		activityInput := GetNodepoolStacksActivityInput{
-			EKSActivityInput: eksActivityInput,
-			NodePoolNames:    input.NodePoolNames,
-		}
-
-		if err := workflow.ExecuteActivity(ctx, GetNodepoolStacksActivityName, activityInput).Get(ctx, &getNodepoolStacksActivityOutput); err != nil {
-			return err
-		}
-	}
-
 	// delete node pool stacks
 	asgDeleteFutures := make([]workflow.Future, 0)
-	for _, stackName := range getNodepoolStacksActivityOutput.StackNames {
-		logger.With("nodePoolStackName", stackName).Info("node pool stack will be deleted")
+	for _, nodePoolName := range input.NodePoolNames {
+		logger.With("nodePoolName", nodePoolName).Info("node pool stack will be deleted")
 
-		activityInput := DeleteStackActivityInput{
-			EKSActivityInput: eksActivityInput,
-			StackName:        stackName,
+		activityInput := DeleteNodePoolWorkflowInput{
+			ClusterID:                 input.ClusterID,
+			ClusterName:               input.ClusterName,
+			NodePoolName:              nodePoolName,
+			OrganizationID:            input.OrganizationID,
+			Region:                    input.Region,
+			SecretID:                  input.SecretID,
+			ShouldUpdateClusterStatus: false,
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
-		f := workflow.ExecuteActivity(ctx, DeleteStackActivityName, activityInput)
+		f := workflow.ExecuteChildWorkflow(ctx, DeleteNodePoolWorkflowName, activityInput)
 		asgDeleteFutures = append(asgDeleteFutures, f)
 	}
 

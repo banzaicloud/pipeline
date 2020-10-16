@@ -130,9 +130,6 @@ func registerEKSWorkflows(
 	waitELBsDeletionActivity := eksworkflow.NewWaitELBsDeletionActivity(awsSessionFactory)
 	activity.RegisterWithOptions(waitELBsDeletionActivity.Execute, activity.RegisterOptions{Name: eksworkflow.WaitELBsDeletionActivityName})
 
-	getNodepoolStacksActivity := eksworkflow.NewGetNodepoolStacksActivity(awsSessionFactory)
-	activity.RegisterWithOptions(getNodepoolStacksActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetNodepoolStacksActivityName})
-
 	deleteNodePoolLabelSetActivity := eksworkflow.NewDeleteNodePoolLabelSetActivity(
 		clusterDynamicClientFactory,
 		config.Cluster.Labels.Namespace,
