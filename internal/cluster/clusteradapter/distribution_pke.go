@@ -87,7 +87,6 @@ func (s pkeService) ListNodePools(ctx context.Context, clusterID uint) (nodePool
 }
 
 func NewPKEServices(services map[string]pke.Service) map[string]cluster.Service {
-
 	clusterServices := make(map[string]cluster.Service)
 	for v, svc := range services {
 		clusterServices["pke"+v] = NewPKEService(svc)
