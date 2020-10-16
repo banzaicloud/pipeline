@@ -114,6 +114,7 @@ func EKSDeleteClusterWorkflow(ctx workflow.Context, input EKSDeleteClusterWorkfl
 			OrganizationID:   input.OrganizationID,
 			SecretID:         input.SecretID,
 			Region:           input.Region,
+			ClusterID:        input.ClusterID,
 			ClusterUID:       input.ClusterUID,
 			ClusterName:      input.ClusterName,
 			NodePoolNames:    input.NodePoolNames,
