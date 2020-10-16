@@ -841,25 +841,25 @@ func main() {
 					// Used by legacy cluster create and update code
 					globaleks.SetImageSelector(eks.NewDefaultImageSelector())
 
-					service := intCluster.NewService(
-						clusterStore,
-						clusteradapter.NewCadenceClusterManager(workflowClient),
-						clusterGroupManager,
-						map[string]intCluster.Service{
-							"eks": clusteradapter.NewEKSService(eks.NewService(
-								clusterStore,
-								eksadapter.NewClusterManager(workflowClient, config.Pipeline.Enterprise),
-								eksadapter.NewNodePoolStore(db),
-								eksadapter.NewNodePoolManager(
-									workflow.NewAWSSessionFactory(secret.Store),
-									workflow.NewCloudFormationFactory(),
-									dynamicClientFactory,
-									config.Pipeline.Enterprise,
-									config.Cluster.Namespace,
-									workflowClient,
-								),
-							)),
-							"pkeamazon": clusteradapter.NewPKEService(pkeDistribution.NewService(
+					services := map[string]intCluster.Service{
+						"eks": clusteradapter.NewEKSService(eks.NewService(
+							clusterStore,
+							eksadapter.NewClusterManager(workflowClient, config.Pipeline.Enterprise),
+							eksadapter.NewNodePoolStore(db),
+							eksadapter.NewNodePoolManager(
+								workflow.NewAWSSessionFactory(secret.Store),
+								workflow.NewCloudFormationFactory(),
+								dynamicClientFactory,
+								config.Pipeline.Enterprise,
+								config.Cluster.Namespace,
+								workflowClient,
+							),
+						)),
+					}
+
+					pkeServices := clusteradapter.NewPKEServices(
+						map[string]pkeDistribution.Service{
+							"aws": pkeDistribution.NewService(
 								clusterStore,
 								pkeawsadapter.NewNodePoolManager(
 									config.Pipeline.Enterprise,
@@ -867,8 +867,18 @@ func main() {
 									workflowClient,
 								),
 								config.Pipeline.Enterprise,
-							)),
-						},
+							),
+						})
+
+					for v, s := range pkeServices {
+						services[v] = s
+					}
+
+					service := intCluster.NewService(
+						clusterStore,
+						clusteradapter.NewCadenceClusterManager(workflowClient),
+						clusterGroupManager,
+						services,
 						clusteradapter.NewNodePoolStore(db, clusterStore),
 						intCluster.NodePoolValidators{
 							intCluster.NewCommonNodePoolValidator(labelValidator),
