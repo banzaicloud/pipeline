@@ -158,6 +158,11 @@ func registerEKSWorkflows(
 	getOrphanNicsActivity := eksworkflow.NewGetOrphanNICsActivity(awsSessionFactory)
 	activity.RegisterWithOptions(getOrphanNicsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetOrphanNICsActivityName})
 
+	listStoredNodePoolsActivity := eksworkflow.NewListStoredNodePoolsActivity(nodePoolStore)
+	activity.RegisterWithOptions(listStoredNodePoolsActivity.Execute, activity.RegisterOptions{
+		Name: eksworkflow.ListStoredNodePoolsActivityName,
+	})
+
 	deleteOrphanNicActivity := eksworkflow.NewDeleteOrphanNICActivity(awsSessionFactory)
 	activity.RegisterWithOptions(deleteOrphanNicActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteOrphanNICActivityName})
 
