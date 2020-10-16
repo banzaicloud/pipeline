@@ -356,9 +356,6 @@ func (NotSupportedDistributionError) ServiceError() bool {
 
 func (s service) getDistributionService(cluster Cluster) (Service, error) {
 	key := cluster.Distribution
-	if key == "pke" {
-		key += cluster.Cloud
-	}
 	service, ok := s.distributions[key]
 	if !ok {
 		return nil, errors.WithStack(NotSupportedDistributionError{
