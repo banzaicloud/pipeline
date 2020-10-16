@@ -26,6 +26,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	pkgcadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	sdkamazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -53,6 +54,9 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) SetupTest() {
 	deleteStoredNodePoolActivity := NewDeleteStoredNodePoolActivity(nil)
 	workflowTestSuite.environment.RegisterActivityWithOptions(deleteStoredNodePoolActivity.Execute, activity.RegisterOptions{Name: DeleteStoredNodePoolActivityName})
 
+	listStoredNodePoolsActivity := NewListStoredNodePoolsActivity(nil)
+	workflowTestSuite.environment.RegisterActivityWithOptions(listStoredNodePoolsActivity.Execute, activity.RegisterOptions{Name: ListStoredNodePoolsActivityName})
+
 	setClusterStatusActivity := NewSetClusterStatusActivity(nil)
 	workflowTestSuite.environment.RegisterActivityWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: SetClusterStatusActivityName})
 }
@@ -67,16 +71,28 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 		workflow *DeleteNodePoolWorkflow
 	}
 
+	type intermediateDataType struct {
+		StackID string
+	}
+
 	mockMethods := func(
 		t *testing.T,
 		input inputType,
+		intermediateData intermediateDataType,
 		mockErrors map[string]error,
 	) {
 		if mockErrors == nil {
 			mockErrors = map[string]error{} // Note: defaulting to nil errors.
 		}
 
-		mocks := make([]string, 0, 5)
+		errorAttemptCount := 31
+
+		mocks := make([]string, 0, 6)
+		mocks = append(mocks, ListStoredNodePoolsActivityName)
+		if input.input.ShouldUpdateClusterStatus &&
+			mockErrors[ListStoredNodePoolsActivityName] != nil {
+			mocks = append(mocks, SetClusterStatusActivityName)
+		}
 		mocks = append(mocks, DeleteStackActivityName)
 		if input.input.ShouldUpdateClusterStatus &&
 			mockErrors[DeleteStackActivityName] != nil {
@@ -111,7 +127,7 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 
 				attempts := 1
 				if mockErrors[mockID] != nil {
-					attempts = 31
+					attempts = errorAttemptCount
 				}
 
 				workflowTestSuite.environment.OnActivity(mockID, mock.Anything, activityInput).
@@ -132,6 +148,7 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 							"default-test-workflow-id",
 						),
 					},
+					StackID: intermediateData.StackID,
 					StackName: GenerateNodePoolStackName(
 						input.input.ClusterName, input.input.NodePoolName,
 					),
@@ -139,7 +156,7 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 
 				attempts := 1
 				if mockErrors[mockID] != nil {
-					attempts = 31
+					attempts = errorAttemptCount
 				}
 
 				workflowTestSuite.environment.OnActivity(mockID, mock.Anything, activityInput).
@@ -159,11 +176,42 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 
 				attempts := 1
 				if mockErrors[mockID] != nil {
-					attempts = 31
+					attempts = errorAttemptCount
 				}
 
 				workflowTestSuite.environment.OnActivity(mockID, mock.Anything, activityInput).
 					Return(mockErrors[mockID]).Times(attempts)
+
+				if mockErrors[mockID] != nil &&
+					!input.input.ShouldUpdateClusterStatus {
+					return
+				}
+			case ListStoredNodePoolsActivityName:
+				activityInput := ListStoredNodePoolsActivityInput{
+					ClusterID:                   input.input.ClusterID,
+					ClusterName:                 input.input.ClusterName,
+					OptionalListedNodePoolNames: []string{input.input.NodePoolName},
+					OrganizationID:              input.input.OrganizationID,
+				}
+
+				mock := workflowTestSuite.environment.OnActivity(mockID, mock.Anything, activityInput)
+
+				err := mockErrors[mockID]
+				if err == nil {
+					mock.Return(
+						&ListStoredNodePoolsActivityOutput{
+							NodePools: map[string]eks.ExistingNodePool{
+								input.input.NodePoolName: {
+									Name:    input.input.NodePoolName,
+									StackID: intermediateData.StackID,
+								},
+							},
+						},
+						nil,
+					).Once()
+				} else {
+					mock.Return(nil, err).Times(errorAttemptCount)
+				}
 
 				if mockErrors[mockID] != nil &&
 					!input.input.ShouldUpdateClusterStatus {
@@ -193,7 +241,7 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 
 					attempts := 1
 					if mockErrors[mockID] != nil {
-						attempts = 31
+						attempts = errorAttemptCount
 					}
 
 					workflowTestSuite.environment.OnActivity(mockID, mock.Anything, activityInput).
@@ -218,17 +266,51 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 	}
 
 	testCases := []struct {
-		caseName      string
-		expectedError error
-		input         inputType
-		mockErrors    map[string]error
+		caseName         string
+		expectedError    error
+		input            inputType
+		intermediateData intermediateDataType
+		mockErrors       map[string]error
 	}{
+		{
+			caseName:      "ListStoredNodePoolsActivity error",
+			expectedError: errors.New("test error: ListStoredNodePoolsActivity"),
+			input: inputType{
+				input:    DeleteNodePoolWorkflowInput{},
+				workflow: &DeleteNodePoolWorkflow{},
+			},
+			intermediateData: intermediateDataType{
+				StackID: "stack-id",
+			},
+			mockErrors: map[string]error{
+				ListStoredNodePoolsActivityName: errors.New("test error: ListStoredNodePoolsActivity"),
+			},
+		},
+		{
+			caseName:      "ListStoredNodePoolsActivity with cluster status update error",
+			expectedError: errors.New("test error: ListStoredNodePoolsActivity"),
+			input: inputType{
+				input: DeleteNodePoolWorkflowInput{
+					ShouldUpdateClusterStatus: true,
+				},
+				workflow: &DeleteNodePoolWorkflow{},
+			},
+			intermediateData: intermediateDataType{
+				StackID: "stack-id",
+			},
+			mockErrors: map[string]error{
+				ListStoredNodePoolsActivityName: errors.New("test error: ListStoredNodePoolsActivity"),
+			},
+		},
 		{
 			caseName:      "DeleteStackActivity error",
 			expectedError: errors.New("test error: DeleteStackActivity"),
 			input: inputType{
 				input:    DeleteNodePoolWorkflowInput{},
 				workflow: &DeleteNodePoolWorkflow{},
+			},
+			intermediateData: intermediateDataType{
+				StackID: "stack-id",
 			},
 			mockErrors: map[string]error{
 				DeleteStackActivityName: errors.New("test error: DeleteStackActivity"),
@@ -243,6 +325,9 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				},
 				workflow: &DeleteNodePoolWorkflow{},
 			},
+			intermediateData: intermediateDataType{
+				StackID: "stack-id",
+			},
 			mockErrors: map[string]error{
 				DeleteStackActivityName: errors.New("test error: DeleteStackActivity"),
 			},
@@ -253,6 +338,9 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 			input: inputType{
 				input:    DeleteNodePoolWorkflowInput{},
 				workflow: &DeleteNodePoolWorkflow{},
+			},
+			intermediateData: intermediateDataType{
+				StackID: "stack-id",
 			},
 			mockErrors: map[string]error{
 				DeleteStoredNodePoolActivityName: errors.New("test error: DeleteStoredNodePool"),
@@ -267,6 +355,9 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				},
 				workflow: &DeleteNodePoolWorkflow{},
 			},
+			intermediateData: intermediateDataType{
+				StackID: "stack-id",
+			},
 			mockErrors: map[string]error{
 				DeleteStoredNodePoolActivityName: errors.New("test error: DeleteStoredNodePool"),
 			},
@@ -277,6 +368,9 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 			input: inputType{
 				input:    DeleteNodePoolWorkflowInput{},
 				workflow: &DeleteNodePoolWorkflow{},
+			},
+			intermediateData: intermediateDataType{
+				StackID: "stack-id",
 			},
 			mockErrors: map[string]error{
 				DeleteNodePoolLabelSetActivityName: errors.New(
@@ -293,6 +387,9 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				},
 				workflow: &DeleteNodePoolWorkflow{},
 			},
+			intermediateData: intermediateDataType{
+				StackID: "stack-id",
+			},
 			mockErrors: map[string]error{
 				DeleteNodePoolLabelSetActivityName: errors.New(
 					"test error: DeleteNodePoolLabelSetActivityInput",
@@ -308,6 +405,9 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				},
 				workflow: &DeleteNodePoolWorkflow{},
 			},
+			intermediateData: intermediateDataType{
+				StackID: "stack-id",
+			},
 			mockErrors: map[string]error{
 				SetClusterStatusActivityName: errors.New("test error: SetClusterStatus"),
 			},
@@ -319,6 +419,9 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				input:    DeleteNodePoolWorkflowInput{},
 				workflow: &DeleteNodePoolWorkflow{},
 			},
+			intermediateData: intermediateDataType{
+				StackID: "stack-id",
+			},
 		},
 		{
 			caseName:      "cluster status update success",
@@ -329,6 +432,9 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				},
 				workflow: &DeleteNodePoolWorkflow{},
 			},
+			intermediateData: intermediateDataType{
+				StackID: "stack-id",
+			},
 		},
 	}
 
@@ -338,7 +444,7 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 
 		workflowTestSuite.T().Run(testCase.caseName, func(t *testing.T) {
 			workflow.RegisterWithOptions(testCase.input.workflow.Execute, workflow.RegisterOptions{Name: t.Name()})
-			mockMethods(t, testCase.input, testCase.mockErrors)
+			mockMethods(t, testCase.input, testCase.intermediateData, testCase.mockErrors)
 
 			workflowTestSuite.environment.ExecuteWorkflow(t.Name(), testCase.input.input)
 			workflowTestSuite.environment.CancelWorkflow()

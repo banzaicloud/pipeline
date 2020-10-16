@@ -38,6 +38,7 @@ type DeleteStackActivity struct {
 
 type DeleteStackActivityInput struct {
 	EKSActivityInput
+	StackID string
 
 	// name of the cloud formation template stack
 	StackName string
@@ -68,6 +69,34 @@ func (a *DeleteStackActivity) Execute(ctx context.Context, input DeleteStackActi
 
 	cloudformationClient := cloudformation.New(awsSession)
 
+	// Note: simplify this part when stack name can be thrown out.
+	stackIdentifier := input.StackName
+	if input.StackID != "" {
+		stackIdentifier = input.StackID
+	}
+
+	describeStacksInput := &cloudformation.DescribeStacksInput{
+		StackName: aws.String(stackIdentifier),
+	}
+	describeStacksOutput, err := cloudformationClient.DescribeStacks(describeStacksInput)
+	if err != nil {
+		if awsErr, ok := err.(awserr.Error); ok {
+			if awsErr.Code() == cloudformation.ErrCodeStackInstanceNotFoundException {
+				// Note: no stack found for the corresponding stack name.
+				return nil
+			}
+		}
+
+		return err
+	}
+
+	if len(describeStacksOutput.Stacks) == 0 ||
+		aws.StringValue(describeStacksOutput.Stacks[0].StackStatus) == cloudformation.StackStatusDeleteInProgress ||
+		aws.StringValue(describeStacksOutput.Stacks[0].StackStatus) == cloudformation.StackStatusDeleteComplete {
+		// Note: stack is already (being) deleted.
+		return nil
+	}
+
 	logger.Info("deleting stack")
 
 	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, DeleteStackActivityName)
@@ -85,7 +114,6 @@ func (a *DeleteStackActivity) Execute(ctx context.Context, input DeleteStackActi
 		return err
 	}
 
-	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
 	err = WaitUntilStackDeleteCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
 		var awsErr awserr.Error

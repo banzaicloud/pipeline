@@ -82,6 +82,24 @@ func (w DeleteNodePoolWorkflow) Execute(ctx workflow.Context, input DeleteNodePo
 		}()
 	}
 
+	var nodePoolStackID string
+	{
+		activityInput := ListStoredNodePoolsActivityInput{
+			ClusterID:                   input.ClusterID,
+			ClusterName:                 input.ClusterName,
+			OptionalListedNodePoolNames: []string{input.NodePoolName},
+			OrganizationID:              input.OrganizationID,
+		}
+
+		var activityOutput *ListStoredNodePoolsActivityOutput
+		err := workflow.ExecuteActivity(ctx, ListStoredNodePoolsActivityName, activityInput).Get(ctx, &activityOutput)
+		if err != nil {
+			return err
+		}
+
+		nodePoolStackID = activityOutput.NodePools[input.NodePoolName].StackID
+	}
+
 	{
 		activityInput := DeleteStackActivityInput{
 			EKSActivityInput: EKSActivityInput{
@@ -93,6 +111,7 @@ func (w DeleteNodePoolWorkflow) Execute(ctx workflow.Context, input DeleteNodePo
 					workflow.GetInfo(ctx).WorkflowExecution.ID,
 				),
 			},
+			StackID:   nodePoolStackID,
 			StackName: GenerateNodePoolStackName(input.ClusterName, input.NodePoolName),
 		}
 
