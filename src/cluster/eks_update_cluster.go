@@ -166,12 +166,17 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 			log.Info("node pool will be deleted")
 			nodePoolsToDelete[nodePool.Name] = nodePool
 
-			activityInput := eksWorkflow.DeleteStackActivityInput{
-				EKSActivityInput: commonActivityInput,
-				StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
+			activityInput := eksWorkflow.DeleteNodePoolWorkflowInput{
+				ClusterID:                 input.ClusterID,
+				ClusterName:               input.ClusterName,
+				NodePoolName:              nodePool.Name,
+				OrganizationID:            input.OrganizationID,
+				Region:                    input.Region,
+				SecretID:                  input.SecretID,
+				ShouldUpdateClusterStatus: false,
 			}
 			ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
-			f := workflow.ExecuteActivity(ctx, eksWorkflow.DeleteStackActivityName, activityInput)
+			f := workflow.ExecuteChildWorkflow(ctx, eksWorkflow.DeleteNodePoolWorkflowName, activityInput)
 			asgFutures = append(asgFutures, f)
 		}
 	}
