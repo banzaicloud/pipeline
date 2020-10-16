@@ -18,6 +18,7 @@ package api
 type CreateBucketRequest struct {
 	Cloud      string `json:"cloud" binding:"required"`
 	BucketName string `json:"bucketName" binding:"required"`
+	Prefix     string `json:"prefix"`
 	SecretID   string `json:"secretId" binding:"required"`
 	Location   string `json:"location"`
 
@@ -41,6 +42,7 @@ type FindBucketRequest struct {
 type Bucket struct {
 	ID       uint   `json:"id"`
 	Name     string `json:"name"`
+	Prefix   string `json:"prefix"`
 	Cloud    string `json:"cloud"`
 	SecretID string `json:"secretId"`
 	Location string `json:"location,omitempty"`

@@ -15,8 +15,8 @@
 package ark
 
 import (
-	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	"github.com/sirupsen/logrus"
+	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/ark/client"

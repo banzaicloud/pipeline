@@ -40,32 +40,47 @@ type Secret struct {
 }
 
 // GetSecretForBucket gets formatted secret for ARK backup bucket
-func GetSecretForBucket(secret *secret.SecretItemResponse, storageAccount string, resourceGroup string) (Secret, error) {
+func GetSecretForBucket(secret *secret.SecretItemResponse, storageAccount string, resourceGroup string) (string, error) {
 	s := getSecret(secret)
 	s.StorageAccount = storageAccount
 	s.ResourceGroup = resourceGroup
 
 	storageAccountClient, err := azureObjectstore.NewAuthorizedStorageAccountClientFromSecret(*azure.NewCredentials(secret.Values))
 	if err != nil {
-		return Secret{}, errors.WrapIf(err, "failed to create storage account client")
+		return "", errors.WrapIf(err, "failed to create storage account client")
 	}
 
 	key, err := storageAccountClient.GetStorageAccountKey(resourceGroup, storageAccount)
 	if err != nil {
-		return Secret{}, err
+		return "", err
 	}
 
 	s.StorageKey = key
 
-	return s, nil
+	secretStr := fmt.Sprintf(
+		"AZURE_CLIENT_ID=%s\nAZURE_CLIENT_SECRET=%s\nAZURE_SUBSCRIPTION_ID=%s\n"+
+			"AZURE_TENANT_ID=%s\nAZURE_RESOURCE_GROUP=%s\nAZURE_CLOUD_NAME=AzurePublicCloud\n"+
+			"AZURE_STORAGE_ACCOUNT_ID=%s\nAZURE_STORAGE_KEY=%s\n",
+		s.ClientID, s.ClientSecret, s.SubscriptionID,
+		s.TenantID, s.ResourceGroup,
+		s.StorageAccount, s.StorageKey,
+	)
+
+	return secretStr, nil
 }
 
 // GetSecretForCluster gets formatted secret for cluster
-func GetSecretForCluster(secret *secret.SecretItemResponse, clusterName, location, resourceGroup string) (Secret, error) {
+func GetSecretForCluster(secret *secret.SecretItemResponse, clusterName, location, resourceGroup string) (string, error) {
 	s := getSecret(secret)
 	s.ResourceGroup = fmt.Sprintf("MC_%s_%s_%s", resourceGroup, clusterName, location)
 
-	return s, nil
+	secretStr := fmt.Sprintf(
+		"AZURE_CLIENT_ID=%s\nAZURE_CLIENT_SECRET=%s\nAZURE_SUBSCRIPTION_ID=%s\n"+
+			"AZURE_TENANT_ID=%s\nAZURE_RESOURCE_GROUP=%s\nAZURE_CLOUD_NAME=AzurePublicCloud\n",
+		s.ClientID, s.ClientSecret, s.SubscriptionID,
+		s.TenantID, s.ResourceGroup,
+	)
+	return secretStr, nil
 }
 
 // getSecret gets formatted secret for ARK

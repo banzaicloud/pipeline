@@ -264,6 +264,29 @@ func (s *objectStore) ListObjectKeyPrefixes(bucketName string, delimiter string)
 	return prefixes, nil
 }
 
+func (s *objectStore) ListObjectKeyPrefixesStartingWithPrefix(bucketName string, prefix string, delimiter string) ([]string, error) {
+	var prefixes []string
+
+	err := s.client.ListObjectsV2Pages(&s3.ListObjectsV2Input{
+		Bucket:    &bucketName,
+		Delimiter: &delimiter,
+		Prefix:    &prefix,
+	}, func(page *s3.ListObjectsV2Output, lastPage bool) bool {
+		var p string
+		for _, prefix := range page.CommonPrefixes {
+			p = *prefix.Prefix
+			prefixes = append(prefixes, p[0:strings.LastIndex(p, delimiter)])
+		}
+		return !lastPage
+	})
+	if err != nil {
+		err = s.convertError(err)
+		return nil, errors.WrapIfWithDetails(err, "error getting prefixes for bucket", "bucket", bucketName, "delimeter", delimiter)
+	}
+
+	return prefixes, nil
+}
+
 // GetObject retrieves the object by it's key from the given bucket
 func (s *objectStore) GetObject(bucketName string, key string) (io.ReadCloser, error) {
 	output, err := s.client.GetObject(&s3.GetObjectInput{

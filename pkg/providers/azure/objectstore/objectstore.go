@@ -282,6 +282,33 @@ func (o *objectStore) ListObjectKeyPrefixes(bucketName string, delimiter string)
 	return prefixes, nil
 }
 
+func (o *objectStore) ListObjectKeyPrefixesStartingWithPrefix(bucketName string, prefix string, delimiter string) ([]string, error) {
+	var prefixes []string
+
+	p, err := o.createAzurePipeline()
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to create azure pipeline")
+	}
+
+	URL, err := url.Parse(fmt.Sprintf(containerUrlTemplate, o.config.StorageAccount, bucketName))
+	if err != nil {
+		return nil, err
+	}
+	containerURL := azblob.NewContainerURL(*URL, p)
+
+	list, err := containerURL.ListBlobsHierarchySegment(context.TODO(), azblob.Marker{}, delimiter, azblob.ListBlobsSegmentOptions{Prefix: prefix})
+	if err != nil {
+		err = o.convertError(err)
+		return nil, errors.WrapIfWithDetails(err, "error getting prefixes for bucket", "bucket", bucketName, "delimiter", delimiter)
+	}
+
+	for _, prefix := range list.Segment.BlobPrefixes {
+		prefixes = append(prefixes, prefix.Name)
+	}
+
+	return prefixes, nil
+}
+
 // GetObject retrieves the object by it's key from the given bucket
 func (o *objectStore) GetObject(bucketName string, key string) (io.ReadCloser, error) {
 	p, err := o.createAzurePipeline()

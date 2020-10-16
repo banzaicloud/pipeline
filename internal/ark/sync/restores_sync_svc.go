@@ -20,9 +20,9 @@ import (
 	"encoding/json"
 
 	"emperror.dev/errors"
-	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/api"

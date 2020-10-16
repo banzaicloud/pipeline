@@ -82,6 +82,7 @@ func Enable(helmService helm.UnifiedReleaser) func(c *gin.Context) {
 		bucket, err := bucketService.FindOrCreateBucket(&api.CreateBucketRequest{
 			Cloud:      request.Cloud,
 			BucketName: request.BucketName,
+			Prefix:     svc.GetCluster().GetName(),
 			Location:   request.Location,
 			SecretID:   request.SecretID,
 			AzureBucketProperties: api.AzureBucketProperties{

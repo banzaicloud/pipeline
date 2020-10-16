@@ -16,9 +16,9 @@ package ark
 
 import (
 	"emperror.dev/errors"
-	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"

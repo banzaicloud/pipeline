@@ -19,7 +19,7 @@ import (
 	"strconv"
 	"time"
 
-	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
+	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/kubernetes/pkg/apis/core"
@@ -52,19 +52,20 @@ type PersistBackupRequest struct {
 
 // Backup describes an ARK backup
 type Backup struct {
-	ID               uint                                `json:"id"`
-	UID              string                              `json:"uid"`
-	Name             string                              `json:"name"`
-	TTL              metav1.Duration                     `json:"ttl"`
-	Labels           labels.Set                          `json:"labels"`
-	Cloud            string                              `json:"cloud"`
-	Distribution     string                              `json:"distribution"`
-	Options          BackupOptions                       `json:"options,omitempty"`
-	Status           string                              `json:"status"`
-	StartAt          time.Time                           `json:"startAt"`
-	ExpireAt         time.Time                           `json:"expireAt"`
-	VolumeBackups    map[string]*arkAPI.VolumeBackupInfo `json:"volumeBackups,omitempty"`
-	ValidationErrors []string                            `json:"validationErrors,omitempty"`
+	ID           uint            `json:"id"`
+	UID          string          `json:"uid"`
+	Name         string          `json:"name"`
+	TTL          metav1.Duration `json:"ttl"`
+	Labels       labels.Set      `json:"labels"`
+	Cloud        string          `json:"cloud"`
+	Distribution string          `json:"distribution"`
+	Options      BackupOptions   `json:"options,omitempty"`
+	Status       string          `json:"status"`
+	StartAt      time.Time       `json:"startAt"`
+	ExpireAt     time.Time       `json:"expireAt"`
+	// not available anymore in status
+	// VolumeBackups    map[string]*arkAPI.VolumeBackupInfo `json:"volumeBackups,omitempty"`
+	ValidationErrors []string `json:"validationErrors,omitempty"`
 
 	ClusterID       uint    `json:"clusterId,omitempty"`
 	ActiveClusterID uint    `json:"activeClusterId,omitempty"`

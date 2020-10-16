@@ -16,7 +16,7 @@ package client
 
 import (
 	"emperror.dev/errors"
-	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
+	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes/scheme"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"

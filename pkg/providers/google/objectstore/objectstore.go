@@ -233,6 +233,26 @@ func (o *objectStore) ListObjectKeyPrefixes(bucketName string, delimiter string)
 	return prefixes, nil
 }
 
+func (o *objectStore) ListObjectKeyPrefixesStartingWithPrefix(bucketName string, prefix string, delimiter string) ([]string, error) {
+	var prefixes []string
+
+	objects, err := o.listObjectsWithQuery(bucketName, &storage.Query{
+		Delimiter: delimiter,
+		Prefix:    prefix,
+	})
+	if err != nil {
+		return nil, errors.WrapIfWithDetails(o.convertBucketError(err, bucketName), "could not list object key prefixes", "delimeter", delimiter)
+	}
+
+	for _, object := range objects {
+		if object.Prefix != "" {
+			prefixes = append(prefixes, object.Prefix)
+		}
+	}
+
+	return prefixes, nil
+}
+
 // GetObject retrieves the object by it's key from the given bucket
 func (o *objectStore) GetObject(bucketName string, key string) (io.ReadCloser, error) {
 	r, err := o.client.Bucket(bucketName).Object(key).NewReader(context.Background())

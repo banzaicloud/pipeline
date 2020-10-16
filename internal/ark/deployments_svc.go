@@ -137,10 +137,10 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 			},
 		},
 		ClusterSecret: clusterSecret,
-
 		Bucket: bucketConfig{
 			Provider: bucket.Cloud,
 			Name:     bucket.BucketName,
+			Prefix:   bucket.Prefix,
 			Location: bucket.Location,
 			azureBucketConfig: azureBucketConfig{
 				StorageAccount: bucket.StorageAccount,
@@ -148,8 +148,7 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 			},
 		},
 		BucketSecret: bucketSecret,
-
-		RestoreMode: restoreMode,
+		RestoreMode:  restoreMode,
 	})
 	if err != nil {
 		return errors.Wrap(err, "error service getting config")

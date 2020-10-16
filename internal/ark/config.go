@@ -15,6 +15,8 @@
 package ark
 
 import (
+	v1 "k8s.io/api/core/v1"
+
 	"github.com/banzaicloud/pipeline/internal/ark/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/ark/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/ark/providers/google"
@@ -35,10 +37,11 @@ type ChartConfig struct {
 
 // ValueOverrides describes values to be overridden in a deployment
 type ValueOverrides struct {
-	Configuration configuration `json:"configuration"`
-	Credentials   credentials   `json:"credentials"`
-	Image         image         `json:"image"`
-	RBAC          rbac          `json:"rbac"`
+	Configuration  configuration  `json:"configuration"`
+	Credentials    credentials    `json:"credentials"`
+	Image          image          `json:"image"`
+	RBAC           rbac           `json:"rbac"`
+	InitContainers []v1.Container `json:"initContainers"`
 }
 
 type rbac struct {
@@ -57,37 +60,46 @@ type credentials struct {
 
 type secretContents struct {
 	azure.Secret
+	// formerly Bucket
+	Cloud   string `json:"cloud,omitempty"`
 	Cluster string `json:"cluster,omitempty"`
-	Bucket  string `json:"bucket,omitempty"`
 }
 
 type configuration struct {
-	PersistentVolumeProvider persistentVolumeProvider `json:"persistentVolumeProvider"`
-	BackupStorageProvider    backupStorageProvider    `json:"backupStorageProvider"`
-	RestoreOnlyMode          bool                     `json:"restoreOnlyMode"`
+	Provider               string                 `json:"provider"`
+	VolumeSnapshotLocation volumeSnapshotLocation `json:"volumeSnapshotLocation"`
+	BackupStorageLocation  backupStorageLocation  `json:"backupStorageLocation"`
+	RestoreOnlyMode        bool                   `json:"restoreOnlyMode"`
+	LogLevel               string                 `json:"logLevel"`
 }
 
-type persistentVolumeProvider struct {
-	Name   string                         `json:"name"`
-	Config persistentVolumeProviderConfig `json:"config,omitempty"`
+type volumeSnapshotLocation struct {
+	Name     string                       `json:"name"`
+	Provider string                       `json:"provider"`
+	Config   volumeSnapshotLocationConfig `json:"config,omitempty"`
 }
 
-type persistentVolumeProviderConfig struct {
+type volumeSnapshotLocationConfig struct {
 	Region     string `json:"region,omitempty"`
 	ApiTimeout string `json:"apiTimeout,omitempty"`
 }
 
-type backupStorageProvider struct {
-	Name   string                      `json:"name"`
-	Bucket string                      `json:"bucket"`
-	Config backupStorageProviderConfig `json:"config,omitempty"`
+type backupStorageLocation struct {
+	Name     string                      `json:"name"`
+	Provider string                      `json:"provider"`
+	Bucket   string                      `json:"bucket"`
+	Prefix   string                      `json:"prefix"`
+	Config   backupStorageLocationConfig `json:"config,omitempty"`
 }
 
-type backupStorageProviderConfig struct {
-	Region           string `json:"region,omitempty"`
-	S3ForcePathStyle string `json:"s3ForcePathStyle,omitempty"`
-	S3Url            string `json:"s3Url,omitempty"`
-	KMSKeyId         string `json:"kmsKeyId,omitempty"`
+type backupStorageLocationConfig struct {
+	Region                  string `json:"region,omitempty"`
+	S3ForcePathStyle        string `json:"s3ForcePathStyle,omitempty"`
+	S3Url                   string `json:"s3Url,omitempty"`
+	KMSKeyId                string `json:"kmsKeyId,omitempty"`
+	ResourceGroup           string `json:"resourceGroup,omitempty"`
+	StorageAccount          string `json:"storageAccount,omitempty"`
+	StorageAccountKeyEnvVar string `json:"storageAccountKeyEnvVar,omitempty"`
 }
 
 // ConfigRequest describes an ARK config request
@@ -115,6 +127,7 @@ type azureClusterConfig struct {
 
 type bucketConfig struct {
 	Name     string
+	Prefix   string
 	Provider string
 	Location string
 
@@ -138,12 +151,24 @@ func GetChartConfig() ChartConfig {
 
 // Get gets helm deployment value overrides
 func (req ConfigRequest) Get() (values ValueOverrides, err error) {
-	pvp, err := req.getPVPConfig()
+	var provider string
+	switch req.Bucket.Provider {
+	case providers.Amazon:
+		provider = amazon.BackupStorageProvider
+	case providers.Azure:
+		provider = azure.BackupStorageProvider
+	case providers.Google:
+		provider = google.BackupStorageProvider
+	default:
+		return values, pkgErrors.ErrorNotSupportedCloudType
+	}
+
+	pvp, err := req.getPVLConfig()
 	if err != nil {
 		return values, err
 	}
 
-	bsp, err := req.getBSPConfig()
+	bsp, err := req.getBSLConfig()
 	if err != nil {
 		return values, err
 	}
@@ -153,11 +178,57 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 		return values, err
 	}
 
+	initContainers := make([]v1.Container, 0, 2)
+
+	if bsp.Provider == amazon.BackupStorageProvider || pvp.Provider == amazon.PersistentVolumeProvider {
+		initContainers = append(initContainers, v1.Container{
+			Name:            "velero-plugin-for-aws",
+			Image:           "velero/velero-plugin-for-aws:v1.1.0",
+			ImagePullPolicy: v1.PullIfNotPresent,
+			VolumeMounts: []v1.VolumeMount{
+				{
+					Name:      "plugins",
+					MountPath: "/target",
+				},
+			},
+		})
+	}
+
+	if bsp.Provider == google.BackupStorageProvider || pvp.Provider == google.PersistentVolumeProvider {
+		initContainers = append(initContainers, v1.Container{
+			Name:            "velero-plugin-for-gcp",
+			Image:           "velero/velero-plugin-for-gcp:v1.1.0",
+			ImagePullPolicy: v1.PullIfNotPresent,
+			VolumeMounts: []v1.VolumeMount{
+				{
+					Name:      "plugins",
+					MountPath: "/target",
+				},
+			},
+		})
+	}
+
+	if bsp.Provider == azure.BackupStorageProvider || pvp.Provider == azure.PersistentVolumeProvider {
+		initContainers = append(initContainers, v1.Container{
+			Name:            "velero-plugin-for-azure",
+			Image:           "velero/velero-plugin-for-microsoft-azure:v1.1.0",
+			ImagePullPolicy: v1.PullIfNotPresent,
+			VolumeMounts: []v1.VolumeMount{
+				{
+					Name:      "plugins",
+					MountPath: "/target",
+				},
+			},
+		})
+	}
+
 	return ValueOverrides{
 		Configuration: configuration{
-			PersistentVolumeProvider: pvp,
-			BackupStorageProvider:    bsp,
-			RestoreOnlyMode:          req.RestoreMode,
+			Provider:               provider,
+			VolumeSnapshotLocation: pvp,
+			BackupStorageLocation:  bsp,
+			RestoreOnlyMode:        req.RestoreMode,
+			LogLevel:               "debug",
 		},
 		RBAC: rbac{
 			Create: req.Cluster.RBACEnabled,
@@ -168,57 +239,58 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 			Tag:        global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.Tag,
 			PullPolicy: global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.PullPolicy,
 		},
+		InitContainers: initContainers,
 	}, nil
 }
 
-func (req ConfigRequest) getPVPConfig() (persistentVolumeProvider, error) {
-	var config persistentVolumeProvider
-	var pvc string
+func (req ConfigRequest) getPVLConfig() (volumeSnapshotLocation, error) {
+	var config volumeSnapshotLocation
+	var vslconfig volumeSnapshotLocationConfig
+	var pvcProvider string
 
 	switch req.Cluster.Provider {
 	case providers.Amazon:
-		pvc = amazon.PersistentVolumeProvider
+		pvcProvider = amazon.PersistentVolumeProvider
+		vslconfig.Region = req.Cluster.Location
 	case providers.Azure:
-		pvc = azure.PersistentVolumeProvider
+		pvcProvider = azure.PersistentVolumeProvider
+		vslconfig.ApiTimeout = "3m0s"
 	case providers.Google:
-		pvc = google.PersistentVolumeProvider
+		pvcProvider = google.PersistentVolumeProvider
 	default:
 		return config, pkgErrors.ErrorNotSupportedCloudType
 	}
 
-	return persistentVolumeProvider{
-		Name: pvc,
-		Config: persistentVolumeProviderConfig{
-			Region:     req.Cluster.Location,
-			ApiTimeout: "3m0s",
-		},
+	return volumeSnapshotLocation{
+		Name:     "default",
+		Provider: pvcProvider,
+		Config:   vslconfig,
 	}, nil
 }
 
-func (req ConfigRequest) getBSPConfig() (backupStorageProvider, error) {
-	var config backupStorageProvider
-	var bsp string
+func (req ConfigRequest) getBSLConfig() (backupStorageLocation, error) {
+	config := backupStorageLocation{
+		Name:   "default",
+		Bucket: req.Bucket.Name,
+		Prefix: req.Bucket.Prefix,
+	}
 
 	switch req.Bucket.Provider {
 	case providers.Amazon:
-		bsp = amazon.BackupStorageProvider
+		config.Provider = amazon.BackupStorageProvider
+		config.Config.Region = req.Bucket.Location
+
 	case providers.Azure:
-		bsp = azure.BackupStorageProvider
+		config.Provider = azure.BackupStorageProvider
+		config.Config.StorageAccount = req.Bucket.StorageAccount
+		config.Config.ResourceGroup = req.Bucket.ResourceGroup
+		config.Config.StorageAccountKeyEnvVar = "AZURE_STORAGE_KEY"
+
 	case providers.Google:
-		bsp = google.BackupStorageProvider
+		config.Provider = google.BackupStorageProvider
+
 	default:
 		return config, pkgErrors.ErrorNotSupportedCloudType
-	}
-
-	config = backupStorageProvider{
-		Name:   bsp,
-		Bucket: req.Bucket.Name,
-	}
-
-	if req.Bucket.Location != "" {
-		config.Config = backupStorageProviderConfig{
-			Region: req.Bucket.Location,
-		}
 	}
 
 	return config, nil
@@ -226,8 +298,8 @@ func (req ConfigRequest) getBSPConfig() (backupStorageProvider, error) {
 
 func (req ConfigRequest) getCredentials() (credentials, error) {
 	var config credentials
-	var azureSecret azure.Secret
-	var BucketSecretContents, ClusterSecretContents string
+	var BucketSecretContents string
+	var ClusterSecretContents string
 	var err error
 
 	switch req.Cluster.Provider {
@@ -242,7 +314,7 @@ func (req ConfigRequest) getCredentials() (credentials, error) {
 			return config, err
 		}
 	case providers.Azure:
-		azureSecret, err = azure.GetSecretForCluster(req.ClusterSecret, req.Cluster.Name, req.Cluster.Location, req.Cluster.ResourceGroup)
+		ClusterSecretContents, err = azure.GetSecretForCluster(req.ClusterSecret, req.Cluster.Name, req.Cluster.Location, req.Cluster.ResourceGroup)
 		if err != nil {
 			return config, err
 		}
@@ -262,7 +334,7 @@ func (req ConfigRequest) getCredentials() (credentials, error) {
 			return config, err
 		}
 	case providers.Azure:
-		azureSecret, err = azure.GetSecretForBucket(req.BucketSecret, req.Bucket.StorageAccount, req.Bucket.ResourceGroup)
+		BucketSecretContents, err = azure.GetSecretForBucket(req.BucketSecret, req.Bucket.StorageAccount, req.Bucket.ResourceGroup)
 		if err != nil {
 			return config, err
 		}
@@ -272,9 +344,8 @@ func (req ConfigRequest) getCredentials() (credentials, error) {
 
 	return credentials{
 		SecretContents: secretContents{
-			Secret:  azureSecret,
 			Cluster: ClusterSecretContents,
-			Bucket:  BucketSecretContents,
+			Cloud:   BucketSecretContents,
 		},
 	}, err
 }

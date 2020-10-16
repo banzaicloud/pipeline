@@ -747,18 +747,18 @@ traefik:
 	v.SetDefault("cluster::posthook::autoscaler::enabled", true)
 
 	// v.SetDefault("cluster::disasterRecovery::enabled", true)
-	v.SetDefault("cluster::disasterRecovery::namespace", "")
+	v.SetDefault("cluster::disasterRecovery::namespace", "pipeline-system")
 	v.SetDefault("cluster::disasterRecovery::ark::syncEnabled", true)
 	v.SetDefault("cluster::disasterRecovery::ark::bucketSyncInterval", "10m")
 	v.SetDefault("cluster::disasterRecovery::ark::restoreSyncInterval", "20s")
 	v.SetDefault("cluster::disasterRecovery::ark::backupSyncInterval", "20s")
 	v.SetDefault("cluster::disasterRecovery::ark::restoreWaitTimeout", "5m")
-	v.SetDefault("cluster::disasterRecovery::charts::ark::chart", "banzaicloud-stable/ark")
-	v.SetDefault("cluster::disasterRecovery::charts::ark::version", "1.2.3")
+	v.SetDefault("cluster::disasterRecovery::charts::ark::chart", "banzaicloud-stable/velero")
+	v.SetDefault("cluster::disasterRecovery::charts::ark::version", "2.13.3-bnz1")
 	v.SetDefault("cluster::disasterRecovery::charts::ark::values", map[string]interface{}{
 		"image": map[string]interface{}{
-			"repository": "banzaicloud/ark",
-			"tag":        "v0.9.11",
+			"repository": "velero/velero",
+			"tag":        "v1.5.1",
 			"pullPolicy": "IfNotPresent",
 		},
 	})

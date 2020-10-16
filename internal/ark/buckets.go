@@ -57,7 +57,8 @@ func ValidateCreateBucketRequest(req *api.CreateBucketRequest, org *auth.Organiz
 		return errors.WrapIf(err, "error validating create bucket request")
 	}
 
-	_, err = os.ListCommonPrefixes(req.BucketName, "/")
+	// find only backups starting with the given prefix
+	_, err = os.ListCommonPrefixes(req.BucketName, req.Prefix, "/")
 	if err != nil {
 		return errors.WrapIf(err, "error validating create bucket request")
 	}
