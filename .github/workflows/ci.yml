@@ -235,9 +235,6 @@ jobs:
           echo ::set-output name=commit_hash::${GITHUB_SHA::8}
           echo ::set-output name=build_date::$(git show -s --format=%cI)
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
