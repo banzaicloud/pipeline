@@ -7,9 +7,13 @@ mergeable:
           regex: '^(\[wip\]|wip:)'
           message: 'WIP tag in PR title'
       - do: label
-        must_exclude:
-          regex: 'wip'
-          message: 'WIP label on PR'
+        and:
+          - must_exclude:
+            regex: 'wip'
+            message: 'WIP label on PR'
+          - must_include:
+            regex: 'kind|area'
+            message: 'Please add at least kind and area labels to the pull request. Consider adding as many as fits the contents of this PR.'
       - do: description
         and:
           - must_exclude:
@@ -21,3 +25,16 @@ mergeable:
         no_empty:
           enabled: true
           message: 'Description matter and should not be empty. Provide detail with **what** was changed, **why** it was changed, and **how** it was changed.'
+
+  - when: issues.opened
+    validate:
+      - do: label
+        and:
+          - must_include:
+            regex: '^kind/'
+          - must_include:
+            regex: '^area/'
+    fail:
+      - do: comment
+        payload:
+          body: Please add labels to your pull request.
