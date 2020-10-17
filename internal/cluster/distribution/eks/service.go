@@ -186,6 +186,10 @@ const (
 	// are being provisioned.
 	NodePoolStatusCreating NodePoolStatus = "CREATING"
 
+	// NodePoolStatusDeleted is the status used when the node pool resources
+	// are already removed.
+	NodePoolStatusDeleted NodePoolStatus = "DELETED"
+
 	// NodePoolStatusDeleting is the status used when the node pool resources
 	// are being removed.
 	NodePoolStatusDeleting NodePoolStatus = "DELETING"
@@ -216,21 +220,17 @@ const (
 // into a node pool status.
 func NewNodePoolStatusFromCFStackStatus(cfStackStatus string) (nodePoolStatus NodePoolStatus) {
 	switch {
+	case cfStackStatus == cloudformation.StackStatusCreateInProgress:
+		return NodePoolStatusCreating
+	case cfStackStatus == cloudformation.StackStatusDeleteComplete:
+		return NodePoolStatusDeleted // Note: CF stack is deleted, but DB entry is still existing.
+	case cfStackStatus == cloudformation.StackStatusDeleteInProgress:
+		return NodePoolStatusDeleting
 	case strings.HasSuffix(cfStackStatus, "_COMPLETE"):
-		if cfStackStatus == cloudformation.StackStatusDeleteComplete { // Note: CF stack is deleted, but DB entry is still existing.
-			return NodePoolStatusDeleting
-		}
-
 		return NodePoolStatusReady
 	case strings.HasSuffix(cfStackStatus, "_FAILED"):
 		return NodePoolStatusError
 	case strings.HasSuffix(cfStackStatus, "_IN_PROGRESS"):
-		if cfStackStatus == cloudformation.StackStatusCreateInProgress {
-			return NodePoolStatusCreating
-		} else if cfStackStatus == cloudformation.StackStatusDeleteInProgress {
-			return NodePoolStatusDeleting
-		}
-
 		return NodePoolStatusUpdating
 	default:
 		return NodePoolStatusUnknown

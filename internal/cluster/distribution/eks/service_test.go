@@ -271,6 +271,64 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 	}
 }
 
+func TestNewNodePoolStatusFromCFStackStatus(t *testing.T) {
+	testCases := map[string]NodePoolStatus{ // Note: copy defined statuses from cloudformation.StackStatus_Values().
+		"":                      NodePoolStatusUnknown,
+		"not-a-cf-stack-status": NodePoolStatusUnknown,
+		cloudformation.StackStatusCreateInProgress:                        NodePoolStatusCreating,
+		cloudformation.StackStatusCreateFailed:                            NodePoolStatusError,
+		cloudformation.StackStatusCreateComplete:                          NodePoolStatusReady,
+		cloudformation.StackStatusRollbackInProgress:                      NodePoolStatusUpdating,
+		cloudformation.StackStatusRollbackFailed:                          NodePoolStatusError,
+		cloudformation.StackStatusRollbackComplete:                        NodePoolStatusReady,
+		cloudformation.StackStatusDeleteInProgress:                        NodePoolStatusDeleting,
+		cloudformation.StackStatusDeleteFailed:                            NodePoolStatusError,
+		cloudformation.StackStatusDeleteComplete:                          NodePoolStatusDeleted,
+		cloudformation.StackStatusUpdateInProgress:                        NodePoolStatusUpdating,
+		cloudformation.StackStatusUpdateCompleteCleanupInProgress:         NodePoolStatusUpdating,
+		cloudformation.StackStatusUpdateComplete:                          NodePoolStatusReady,
+		cloudformation.StackStatusUpdateRollbackInProgress:                NodePoolStatusUpdating,
+		cloudformation.StackStatusUpdateRollbackFailed:                    NodePoolStatusError,
+		cloudformation.StackStatusUpdateRollbackCompleteCleanupInProgress: NodePoolStatusUpdating,
+		cloudformation.StackStatusUpdateRollbackComplete:                  NodePoolStatusReady,
+		cloudformation.StackStatusReviewInProgress:                        NodePoolStatusUpdating,
+		cloudformation.StackStatusImportInProgress:                        NodePoolStatusUpdating,
+		cloudformation.StackStatusImportComplete:                          NodePoolStatusReady,
+		cloudformation.StackStatusImportRollbackInProgress:                NodePoolStatusUpdating,
+		cloudformation.StackStatusImportRollbackFailed:                    NodePoolStatusError,
+		cloudformation.StackStatusImportRollbackComplete:                  NodePoolStatusReady,
+	}
+
+	cfStackStatuses := cloudformation.StackStatus_Values()
+	missingStatuses := []string{}
+	for _, cfStackStatus := range cfStackStatuses {
+		if _, isExisting := testCases[cfStackStatus]; !isExisting {
+			missingStatuses = append(missingStatuses, cfStackStatus)
+		}
+	}
+	require.Lenf(t, missingStatuses, 0,
+		"some CloudFormation stack statuses are missing from the test cases"+
+			", missing statuses: %+v, expected statuses: %+v, actual statuses: %+v",
+		missingStatuses, cfStackStatuses, testCases,
+	)
+	require.Lenf(t, testCases, len(cfStackStatuses)+2,
+		"test cases are expected to be CloudFormation statuses + 2 (empty and invalid stack status values)"+
+			", actual statuses: %+v", testCases,
+	)
+
+	for inputCFStackStatus, expectedNodePoolStatus := range testCases {
+		inputCFStackStatus := inputCFStackStatus
+		expectedNodePoolStatus := expectedNodePoolStatus
+		caseName := fmt.Sprintf("%s -> %s success", inputCFStackStatus, expectedNodePoolStatus)
+
+		t.Run(caseName, func(t *testing.T) {
+			actualNodePoolStatus := NewNodePoolStatusFromCFStackStatus(inputCFStackStatus)
+
+			require.Equal(t, expectedNodePoolStatus, actualNodePoolStatus)
+		})
+	}
+}
+
 func TestNewNodePoolWithNoValues(t *testing.T) {
 	type inputType struct {
 		name          string
