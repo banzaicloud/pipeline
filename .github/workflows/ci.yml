@@ -203,6 +203,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
       - name: Calculate Docker image tags
         id: tags
         env:
@@ -256,6 +264,8 @@ jobs:
         with:
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
           build-args: |
             VERSION=${{ steps.tags.outputs.version }}
             COMMIT_HASH=${{ steps.tags.outputs.commit_hash }}
