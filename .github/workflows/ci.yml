@@ -128,7 +128,7 @@ jobs:
       - name: Start kind cluster
         run: |
           ./pleasew -p --profile ci run ///pleasings2//tools/k8s:kind -- create cluster --kubeconfig $HOME/.kube/config
-          echo "::set-env name=KUBECONFIG::$HOME/.kube/config"
+          echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
 
       - name: Test
         run: |
