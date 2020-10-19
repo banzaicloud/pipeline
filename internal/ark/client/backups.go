@@ -25,6 +25,11 @@ import (
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 )
 
+const (
+	DefaultVolumeSnapshotLocationName = "default"
+	DefaultBackupStorageLocationName = "default"
+)
+
 // CreateBackup creates an ARK backup by a CreateBackupRequest
 func (c *Client) CreateBackup(spec api.CreateBackupRequest) (*arkAPI.Backup, error) {
 	backup := arkAPI.Backup{
@@ -42,6 +47,8 @@ func (c *Client) CreateBackup(spec api.CreateBackupRequest) (*arkAPI.Backup, err
 			IncludeClusterResources: spec.Options.IncludeClusterResources,
 			LabelSelector:           spec.Options.LabelSelector,
 			SnapshotVolumes:         spec.Options.SnapshotVolumes,
+			StorageLocation:         DefaultBackupStorageLocationName,
+			VolumeSnapshotLocations: []string{DefaultVolumeSnapshotLocationName},
 		},
 	}
 

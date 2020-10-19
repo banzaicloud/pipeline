@@ -199,6 +199,23 @@ func (s *RestoresService) Create(req api.CreateRestoreRequest) (*api.Restore, er
 		return nil, errors.WrapIf(err, "error getting ark client")
 	}
 
+	// latest Velero restore needs the Backup resource to exist
+	_, err = client.GetBackupByName(req.BackupName)
+	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			s.logger.Debugf("create backup resource %s", req.BackupName)
+			_, err := client.CreateBackup(api.CreateBackupRequest{
+				Name:   req.BackupName,
+				Labels: req.Labels,
+			})
+			if err != nil {
+				return nil, errors.WrapIf(err, "error creating backup resource necessary for restore")
+			}
+		} else {
+			return nil, errors.WrapIf(err, "error finding backup resource necessary for restore")
+		}
+	}
+
 	restore, err := client.CreateRestore(req)
 	if err != nil {
 		return nil, errors.WrapIf(err, "error creating restore")

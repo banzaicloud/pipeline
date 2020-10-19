@@ -17,6 +17,7 @@ package ark
 import (
 	v1 "k8s.io/api/core/v1"
 
+	"github.com/banzaicloud/pipeline/internal/ark/client"
 	"github.com/banzaicloud/pipeline/internal/ark/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/ark/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/ark/providers/google"
@@ -42,6 +43,7 @@ type ValueOverrides struct {
 	Image          image          `json:"image"`
 	RBAC           rbac           `json:"rbac"`
 	InitContainers []v1.Container `json:"initContainers"`
+	CleanUpCRDs    bool           `json:"cleanUpCRDs"`
 }
 
 type rbac struct {
@@ -163,12 +165,12 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 		return values, pkgErrors.ErrorNotSupportedCloudType
 	}
 
-	pvp, err := req.getPVLConfig()
+	vsl, err := req.getVolumeSnapshotLocation()
 	if err != nil {
 		return values, err
 	}
 
-	bsp, err := req.getBSLConfig()
+	bsp, err := req.getBackupStorageLocation()
 	if err != nil {
 		return values, err
 	}
@@ -180,7 +182,7 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 
 	initContainers := make([]v1.Container, 0, 2)
 
-	if bsp.Provider == amazon.BackupStorageProvider || pvp.Provider == amazon.PersistentVolumeProvider {
+	if bsp.Provider == amazon.BackupStorageProvider || vsl.Provider == amazon.PersistentVolumeProvider {
 		initContainers = append(initContainers, v1.Container{
 			Name:            "velero-plugin-for-aws",
 			Image:           "velero/velero-plugin-for-aws:v1.1.0",
@@ -194,7 +196,7 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 		})
 	}
 
-	if bsp.Provider == google.BackupStorageProvider || pvp.Provider == google.PersistentVolumeProvider {
+	if bsp.Provider == google.BackupStorageProvider || vsl.Provider == google.PersistentVolumeProvider {
 		initContainers = append(initContainers, v1.Container{
 			Name:            "velero-plugin-for-gcp",
 			Image:           "velero/velero-plugin-for-gcp:v1.1.0",
@@ -208,7 +210,7 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 		})
 	}
 
-	if bsp.Provider == azure.BackupStorageProvider || pvp.Provider == azure.PersistentVolumeProvider {
+	if bsp.Provider == azure.BackupStorageProvider || vsl.Provider == azure.PersistentVolumeProvider {
 		initContainers = append(initContainers, v1.Container{
 			Name:            "velero-plugin-for-azure",
 			Image:           "velero/velero-plugin-for-microsoft-azure:v1.1.0",
@@ -225,7 +227,7 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 	return ValueOverrides{
 		Configuration: configuration{
 			Provider:               provider,
-			VolumeSnapshotLocation: pvp,
+			VolumeSnapshotLocation: vsl,
 			BackupStorageLocation:  bsp,
 			RestoreOnlyMode:        req.RestoreMode,
 			LogLevel:               "debug",
@@ -240,10 +242,11 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 			PullPolicy: global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.PullPolicy,
 		},
 		InitContainers: initContainers,
+		CleanUpCRDs:    true,
 	}, nil
 }
 
-func (req ConfigRequest) getPVLConfig() (volumeSnapshotLocation, error) {
+func (req ConfigRequest) getVolumeSnapshotLocation() (volumeSnapshotLocation, error) {
 	var config volumeSnapshotLocation
 	var vslconfig volumeSnapshotLocationConfig
 	var pvcProvider string
@@ -262,15 +265,15 @@ func (req ConfigRequest) getPVLConfig() (volumeSnapshotLocation, error) {
 	}
 
 	return volumeSnapshotLocation{
-		Name:     "default",
+		Name:     client.DefaultVolumeSnapshotLocationName,
 		Provider: pvcProvider,
 		Config:   vslconfig,
 	}, nil
 }
 
-func (req ConfigRequest) getBSLConfig() (backupStorageLocation, error) {
+func (req ConfigRequest) getBackupStorageLocation() (backupStorageLocation, error) {
 	config := backupStorageLocation{
-		Name:   "default",
+		Name:   client.DefaultBackupStorageLocationName,
 		Bucket: req.Bucket.Name,
 		Prefix: req.Bucket.Prefix,
 	}
