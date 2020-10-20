@@ -175,7 +175,7 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 		true,
 	)
 	if err != nil {
-		err = errors.Wrap(err, "error deploying ark")
+		err = errors.Wrap(err, "error deploying velero")
 		_ = s.repository.UpdateStatus(deployment, "ERROR", err.Error())
 		_ = s.repository.Delete(deployment)
 		return err

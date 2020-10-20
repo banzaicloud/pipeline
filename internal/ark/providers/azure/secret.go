@@ -40,17 +40,21 @@ type Secret struct {
 }
 
 // GetSecretForBucket gets formatted secret for ARK backup bucket
-func GetSecretForBucket(secret *secret.SecretItemResponse, storageAccount string, resourceGroup string) (string, error) {
+func GetSecretForBucket(secret *secret.SecretItemResponse, storageAccount string,
+	bucketResourceGroup string, clusterResourceGroup string, clusterName string, location string) (string, error) {
 	s := getSecret(secret)
 	s.StorageAccount = storageAccount
-	s.ResourceGroup = resourceGroup
+
+	// resource group in Azure secret has to be set always to cluster resource group, because this is used
+	// to get disks. Resource group for Object Storage will be set separately in backupStorageLocation config
+	s.ResourceGroup = fmt.Sprintf("MC_%s_%s_%s", clusterResourceGroup, clusterName, location)
 
 	storageAccountClient, err := azureObjectstore.NewAuthorizedStorageAccountClientFromSecret(*azure.NewCredentials(secret.Values))
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to create storage account client")
 	}
 
-	key, err := storageAccountClient.GetStorageAccountKey(resourceGroup, storageAccount)
+	key, err := storageAccountClient.GetStorageAccountKey(bucketResourceGroup, storageAccount)
 	if err != nil {
 		return "", err
 	}

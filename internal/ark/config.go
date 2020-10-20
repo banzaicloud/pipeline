@@ -15,6 +15,8 @@
 package ark
 
 import (
+	"fmt"
+
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark/client"
@@ -82,8 +84,9 @@ type volumeSnapshotLocation struct {
 }
 
 type volumeSnapshotLocationConfig struct {
-	Region     string `json:"region,omitempty"`
-	ApiTimeout string `json:"apiTimeout,omitempty"`
+	Region        string `json:"region,omitempty"`
+	ApiTimeout    string `json:"apiTimeout,omitempty"`
+	ResourceGroup string `json:"resourceGroup,omitempty"`
 }
 
 type backupStorageLocation struct {
@@ -258,6 +261,8 @@ func (req ConfigRequest) getVolumeSnapshotLocation() (volumeSnapshotLocation, er
 	case providers.Azure:
 		pvcProvider = azure.PersistentVolumeProvider
 		vslconfig.ApiTimeout = "3m0s"
+		rg := fmt.Sprintf("MC_%s_%s_%s", req.Cluster.ResourceGroup, req.Cluster.Name, req.Cluster.Location)
+		vslconfig.ResourceGroup = rg
 	case providers.Google:
 		pvcProvider = google.PersistentVolumeProvider
 	default:
@@ -337,7 +342,8 @@ func (req ConfigRequest) getCredentials() (credentials, error) {
 			return config, err
 		}
 	case providers.Azure:
-		BucketSecretContents, err = azure.GetSecretForBucket(req.BucketSecret, req.Bucket.StorageAccount, req.Bucket.ResourceGroup)
+		BucketSecretContents, err = azure.GetSecretForBucket(req.BucketSecret, req.Bucket.StorageAccount,
+			req.Bucket.ResourceGroup, req.Cluster.ResourceGroup, req.Cluster.Name, req.Cluster.Location)
 		if err != nil {
 			return config, err
 		}
