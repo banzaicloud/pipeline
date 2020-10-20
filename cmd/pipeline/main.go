@@ -875,6 +875,7 @@ func main() {
 									config.Cluster.Namespace,
 									workflowClient,
 								),
+								pkeawsadapter.NewNodePoolStore(db),
 								config.Pipeline.Enterprise,
 							)),
 						},

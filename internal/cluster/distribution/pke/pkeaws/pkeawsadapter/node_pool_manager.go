@@ -111,3 +111,10 @@ func generateNodePoolStackName(clusterName string, poolName string) string {
 func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Cluster, nodePoolNames []string) ([]pke.NodePool, error) {
 	panic("implement me")
 }
+
+// DeleteNodePool deletes an existing node pool in a cluster.
+func (n nodePoolManager) DeleteNodePool(
+	ctx context.Context, c cluster.Cluster, existingNodePool pke.ExistingNodePool, shouldUpdateClusterStatus bool,
+) (err error) {
+	panic("implement me")
+}
