@@ -144,7 +144,7 @@ type azureBucketConfig struct {
 // GetChartConfig get a ChartConfig
 func GetChartConfig() ChartConfig {
 	return ChartConfig{
-		Name:      "ark",
+		Name:      "velero",
 		Namespace: global.Config.Cluster.DisasterRecovery.Namespace,
 		Chart:     global.Config.Cluster.DisasterRecovery.Charts.Ark.Chart,
 		Version:   global.Config.Cluster.DisasterRecovery.Charts.Ark.Version,

@@ -20,6 +20,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
@@ -138,7 +139,8 @@ func (s *BackupsSyncService) SyncBackupsForCluster(cluster api.Cluster) error {
 			continue
 		}
 
-		if persitedBackup != nil && persitedBackup.ContentChecked != true && backup.Status.Phase == "Completed" {
+		if persitedBackup != nil && persitedBackup.ContentChecked != true &&
+			(backup.Status.Phase == arkAPI.BackupPhaseCompleted || backup.Status.Phase == arkAPI.BackupPhasePartiallyFailed) {
 			nodes, err := s.bucketsSvc.GetNodesFromBackupContents(bucket, backup.Name)
 			if err != nil {
 				log.Warning(err.Error())

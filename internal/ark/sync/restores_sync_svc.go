@@ -120,7 +120,8 @@ func (s *RestoresSyncService) syncRestore(
 	}
 
 	// get results for completed restores
-	if restore.Status.Phase == arkAPI.RestorePhaseCompleted {
+	if restore.Status.Phase == arkAPI.RestorePhaseCompleted ||
+		restore.Status.Phase == arkAPI.RestorePhasePartiallyFailed {
 		result, err := s.getRestoreResultFromObjectStore(req)
 		if err != nil {
 			s.logger.Error(err)
