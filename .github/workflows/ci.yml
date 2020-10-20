@@ -266,8 +266,8 @@ jobs:
         with:
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.tags.outputs.tags }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          cache-from: type=local,mode=max,src=/tmp/.buildx-cache
+          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
           build-args: |
             VERSION=${{ steps.tags.outputs.version }}
             COMMIT_HASH=${{ steps.tags.outputs.commit_hash }}
