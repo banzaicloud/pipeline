@@ -24,6 +24,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
 )
 
@@ -116,5 +117,25 @@ func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Clus
 func (n nodePoolManager) DeleteNodePool(
 	ctx context.Context, c cluster.Cluster, existingNodePool pke.ExistingNodePool, shouldUpdateClusterStatus bool,
 ) (err error) {
-	panic("implement me")
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,
+	}
+
+	input := workflow.DeleteNodePoolWorkflowInput{
+		ClusterID:                 c.ID,
+		ClusterName:               c.Name,
+		NodePoolName:              existingNodePool.Name,
+		OrganizationID:            c.OrganizationID,
+		Region:                    c.Location,
+		SecretID:                  c.SecretID.ResourceID,
+		ShouldUpdateClusterStatus: shouldUpdateClusterStatus,
+	}
+
+	_, err = n.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.DeleteNodePoolWorkflowName, input)
+	if err != nil {
+		return errors.WrapWithDetails(err, "failed to start workflow", "workflow", workflow.DeleteNodePoolWorkflowName)
+	}
+
+	return nil
 }

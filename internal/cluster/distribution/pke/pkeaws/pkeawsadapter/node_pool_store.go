@@ -17,36 +17,60 @@ package pkeawsadapter
 import (
 	"context"
 
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
+	pkeprovider "github.com/banzaicloud/pipeline/internal/providers/pke"
 )
 
 type nodePoolStore struct {
 	db *gorm.DB
 }
 
-// NewNodePoolStore returns a new eks.NodePoolStore
-// that provides an interface to EKS node pool persistence.
+// NewNodePoolStore returns a new pke.NodePoolStore
+// that provides an interface to pke node pool persistence.
 func NewNodePoolStore(db *gorm.DB) pke.NodePoolStore {
 	return nodePoolStore{
 		db: db,
 	}
 }
 
-func (s nodePoolStore) CreateNodePool(
-	_ context.Context,
-	clusterID uint,
-	createdBy uint,
-	nodePool pke.NewNodePool,
-) error {
-	panic("not implemented")
-}
-
 func (s nodePoolStore) DeleteNodePool(
 	ctx context.Context, organizationID, clusterID uint, clusterName string, nodePoolName string,
 ) error {
-	panic("not implemented")
+	var pkeAWSCluster pkeprovider.EC2PKEClusterModel
+	err := s.db.
+		Where(pkeprovider.EC2PKEClusterModel{ClusterID: clusterID}).
+		First(&pkeAWSCluster).Error
+	if err != nil && gorm.IsRecordNotFoundError(err) {
+		return cluster.NotFoundError{
+			OrganizationID: organizationID,
+			ClusterID:      clusterID,
+			ClusterName:    clusterName,
+		}
+	} else if err != nil {
+		return errors.WrapWithDetails(err, "fetching cluster from database failed",
+			"organizationId", organizationID,
+			"clusterId", clusterID,
+			"clusterName", clusterName,
+		)
+	}
+
+	err = s.db.
+		Where(pkeprovider.NodePool{ClusterID: pkeAWSCluster.ID, Name: nodePoolName}).
+		Delete(pkeprovider.NodePool{}).Error
+	if err != nil {
+		return errors.WrapWithDetails(err, "deleting node pool from database failed",
+			"organizationId", organizationID,
+			"clusterId", clusterID,
+			"clusterName", clusterName,
+			"nodePoolName", nodePoolName,
+		)
+	}
+
+	return nil
 }
 
 // ListNodePools retrieves the node pools for the cluster specified by its

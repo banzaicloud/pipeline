@@ -17,15 +17,50 @@ package main
 import (
 	"go.uber.org/cadence/activity"
 
+	cluster2 "github.com/banzaicloud/pipeline/internal/cluster"
+	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
 	pkeworkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
 )
 
-func registerPKEWorkflows(passwordSecrets pkeworkflow.PasswordSecretStore) {
+func registerPKEWorkflows(
+	passwordSecrets pkeworkflow.PasswordSecretStore,
+	config configuration,
+	secretStore workflow.SecretStore,
+	nodePoolStore pke.NodePoolStore,
+	clusterDynamicClientFactory cluster2.DynamicClientFactory,
+) {
 	{
 		a := pkeworkflow.NewAssembleHTTPProxySettingsActivity(passwordSecrets)
 		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: pkeworkflow.AssembleHTTPProxySettingsActivityName})
 	}
 
 	pkeawsworkflow.NewUpdateNodePoolWorkflow().Register()
+
+	awsSessionFactory := workflow.NewAWSSessionFactory(secretStore)
+
+	// delete node pool workflow
+	workflow.NewDeleteNodePoolWorkflow().Register()
+
+	// node pool delete helper activities
+	deleteNodePoolLabelSetActivity := workflow.NewDeleteNodePoolLabelSetActivity(
+		clusterDynamicClientFactory,
+		config.Cluster.Labels.Namespace,
+	)
+	activity.RegisterWithOptions(
+		deleteNodePoolLabelSetActivity.Execute,
+		activity.RegisterOptions{
+			Name: eksworkflow.DeleteNodePoolLabelSetActivityName,
+		},
+	)
+
+	deleteStackActivity := eksworkflow.NewDeleteStackActivity(awsSessionFactory)
+	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteStackActivityName})
+
+	deleteStoredNodePoolActivity := workflow.NewDeleteStoredNodePoolActivity(nodePoolStore)
+	activity.RegisterWithOptions(deleteStoredNodePoolActivity.Execute, activity.RegisterOptions{
+		Name: eksworkflow.DeleteStoredNodePoolActivityName,
+	})
 }
