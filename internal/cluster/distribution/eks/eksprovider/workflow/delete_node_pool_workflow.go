@@ -21,7 +21,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	commonWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/common/workflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -138,13 +138,13 @@ func (w DeleteNodePoolWorkflow) Execute(ctx workflow.Context, input DeleteNodePo
 	}
 
 	{
-		activityInput := commonWorkflow.DeleteNodePoolLabelSetActivityInput{
+		activityInput := clusterworkflow.DeleteNodePoolLabelSetActivityInput{
 			ClusterID:    input.ClusterID,
 			NodePoolName: input.NodePoolName,
 		}
 
 		err := workflow.ExecuteActivity(
-			ctx, commonWorkflow.DeleteNodePoolLabelSetActivityName, activityInput,
+			ctx, clusterworkflow.DeleteNodePoolLabelSetActivityName, activityInput,
 		).Get(ctx, nil)
 		if err != nil {
 			return err
