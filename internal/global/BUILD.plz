@@ -3,6 +3,8 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
     deps = [
+        "//internal/common",
+        "//internal/global/commonadapter",
         "//internal/platform/log",
         "//third_party/go/emperror.dev/emperror",
         "//third_party/go/emperror.dev/handler/logur",

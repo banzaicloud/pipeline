@@ -3,6 +3,52 @@
 Go has a strong built-in concept of packages so it's probably a good idea to match Please
 rules to Go packages.
 """
+def go_toolchain(name:str, url:str|dict = '', version:str = '', hashes:list = [], visibility:list = ["PUBLIC"]):
+    """
+    Downloads Go and exposes :<name>|go and :<name>|gofmt as entry points. To use this rule add the
+    following to your .plzconfig:
+
+    [go]
+    GoTool = //.../<name>|go
+
+    Args:
+      name (str): Name of the rule.
+      url (str | dict): The URL used to download Go. Can be a single string or a dictionary mapping
+                        GOOS-GOARCH to URLs i.e. linux-amd64: 'https://...'. Either provide url or version, but not both.
+      version (str): The version of Go to download. Go will be downloaded from https://golang.org/dl/...
+                     and the rule will use the current platforms GOOS and GOARCH setting. Either provide url or version,
+                     but not both.
+      hashes (list): A list of possible hashes for the downloaded archive. Optional.
+      visibility (list): Visibility specification. Defaults to public.
+    """
+    if url and version:
+        raise ParseError("Either version or url should be provided but not both")
+
+    if version:
+        sdk_url = f'https://golang.org/dl/go{version}.{CONFIG.GOOS}-{CONFIG.GOARCH}.tar.gz'
+    else:
+        sdk_url = url if isinstance(sdk_url, str) else url[f'{CONFIG.GOOS}-{CONFIG.GOARCH}']
+
+    download = remote_file(
+        name = name,
+        _tag = 'download',
+        url = sdk_url,
+        hashes = hashes,
+    )
+
+    # TODO(jpoole): optionally build the stdlib from source for cross compilation/race detector etc.
+    return build_rule(
+        name = name,
+        srcs = [download],
+        cmd = 'tar -xf $SRCS && mv go $OUT && chmod +x $OUT/bin/*',
+        outs = [name],
+        entry_points = {
+            'go': f'{name}/bin/go',
+            'gofmt': f'{name}/bin/gofmt',
+        },
+        binary = True,
+        visibility = visibility,
+    )
 
 
 def go_library(name:str, srcs:list, asm_srcs:list=None, hdrs:list=None, out:str=None, deps:list=[],
@@ -192,7 +238,6 @@ def _generate_pkg_import_cfg_cmd(out, pkg_location, handle_basename_eq_dirname=F
         format_packagefile_directive = 'xargs -I{} echo "packagefile {}=' + pkg_location + '/{}.a"'
 
     return f'{find_archives} | {remove_pkg_location} | {remove_ext} | {format_packagefile_directive} > {out}'
-
 def _aggregate_import_cfg_cmd():
     return 'find . -name "*.importconfig" | xargs -I{} cat {} >> importconfig'
 
@@ -209,15 +254,23 @@ def _trim_import_path(pkg):
 def _write_import_config_cmd(out, import_path):
     name = out.removesuffix(".a")
     pkg = package_name()
-    if not import_path:
-        if CONFIG.GO_IMPORT_PATH:
-            import_path = f'{CONFIG.GO_IMPORT_PATH}/{pkg}'
-        else:
-            import_path = pkg
+    import_path = _get_import_path(import_path)
 
-    cmd = f'echo packagefile {import_path}=$PKG_DIR/{out} >> $OUT'
-
+    cmd = f'echo packagefile {import_path}/{name}=$PKG_DIR/{out} > $OUT'
+    if pkg.endswith(name):
+        cmd = f'{cmd} && echo packagefile {import_path}=$PKG_DIR/{out} >> $OUT'
     return cmd
+
+def _get_import_path(import_path):
+    if import_path:
+        return import_path
+
+    pkg = package_name()
+
+    if CONFIG.GO_IMPORT_PATH:
+        return f'{CONFIG.GO_IMPORT_PATH}/{pkg}'
+
+    return pkg
 
 def cgo_library(name:str, srcs:list, go_srcs:list=[], c_srcs:list=[], hdrs:list=[],
                 out:str=None, compiler_flags:list&cflags=[], linker_flags:list&ldflags=[], pkg_config:list=[],
@@ -253,9 +306,24 @@ def cgo_library(name:str, srcs:list, go_srcs:list=[], c_srcs:list=[], hdrs:list=
       test_only (bool): If True, is only visible to test rules.
       import_path (str): If set, this will override the import path of the generated go package.
     """
+    if not srcs:
+        return go_library(
+            name = name,
+            srcs = go_srcs,
+            out = out,
+            deps = deps,
+            import_path = import_path,
+            visibility = visibility,
+            test_only = test_only,
+        )
+
     file_srcs = [src for src in srcs if not src.startswith('/') and not src.startswith(':')]
     post_build = lambda rule, output: [add_out(rule, 'c' if line.endswith('.c') else 'go', line) for line in output]
     subdir2 = (subdir + '/') if subdir and not subdir.endswith('/') else subdir
+
+    # Resolve the import_path early
+    # _write_import_config_cmd won't resolve it again
+    import_path = _get_import_path(import_path)
 
     cgo_rule = build_rule(
         name = name,
@@ -270,7 +338,7 @@ def cgo_library(name:str, srcs:list, go_srcs:list=[], c_srcs:list=[], hdrs:list=
             (f'OUT_DIR="$TMP_DIR/{subdir}"') if subdir else 'OUT_DIR="$TMP_DIR"',
             'mkdir -p "$OUT_DIR"',
             'cd $PKG_DIR/' + subdir,
-            '$TOOL tool cgo -objdir "$OUT_DIR" -importpath ${PKG_DIR#*src/} *.go',
+            f'$TOOL tool cgo -objdir "$OUT_DIR" -importpath {import_path} *.go',
             # Remove the .o file which BSD sed gets upset about in the next command
             'rm -f "$OUT_DIR"/_cgo_.o "$OUT_DIR"/_cgo_main.c',
             # cgo leaves absolute paths in these files which we must get rid of :(
@@ -860,7 +928,7 @@ def go_get(name:str, get:str|list, repo:str='', deps:list=[], exported_deps:list
             deps = [a_rule],
             visibility = visibility,
             test_only = test_only,
-            cmd = _generate_pkg_import_cfg_cmd("$OUT", '$PKG_DIR', True),
+            cmd = _generate_pkg_import_cfg_cmd('"$OUT"', '"$PKG_DIR"', True),
             outs = [f'{name}.importconfig'],
         )
         exported_deps = exported_deps + [import_config] if exported_deps else [import_config]
@@ -979,8 +1047,13 @@ def _go_github_repo_cmd(name, get, repo, revision, module_major_version):
 
 def _set_go_env():
     if CONFIG.GOROOT:
-        return f'export GOPATH=$TMP_DIR && export GOROOT={CONFIG.GOROOT}'
-    return 'export GOPATH=$TMP_DIR && eval $("$TOOLS_GO" env)'
+        go_root = CONFIG.GOROOT
+    elif CONFIG.GO_TOOL.startswith(":") or CONFIG.GO_TOOL.startswith("//"):
+        label, _, _ = CONFIG.GO_TOOL.rpartition('|')
+        go_root = f'$(location {label})'
+    else:
+        go_root = '$("$TOOLS_GO" env GOROOT)'
+    return f'export GOPATH=$TMP_DIR && export GOROOT={go_root}'
 
 def _go_library_cmds(complete=True, all_srcs=False, cover=True, filter_srcs=True, abi=False):
     """Returns the commands to run for building a Go library."""
@@ -990,9 +1063,9 @@ def _go_library_cmds(complete=True, all_srcs=False, cover=True, filter_srcs=True
     out_cmd = ' -o "$OUTS_O" -symabis $SRCS_ABI -asmhdr "$OUTS_H"' if abi else ' -o "$OUT"'
     compile_cmd = f'"$TOOLS_GO" tool compile -importcfg importconfig -trimpath "$TMP_DIR" {complete_flag} -pack {out_cmd}'
     # Annotates files for coverage.
-    cover_cmd = 'for SRC in $SRCS; do BN=$(basename $SRC); go tool cover -mode=set -var=GoCover_${BN//[.-]/_} $SRC > _tmp.go && mv -f _tmp.go $SRC; done'
+    cover_cmd = 'for SRC in $SRCS; do BN=$(basename $SRC); "$TOOLS_GO" tool cover -mode=set -var=GoCover_${BN//[.-]/_} $SRC > _tmp.go && mv -f _tmp.go $SRC; done'
 
-    gen_import_cfg = _set_go_env() + ' && ' + _generate_pkg_import_cfg_cmd("goroot.importconfig", '$GOROOT')
+    gen_import_cfg = _set_go_env() + ' && ' + _generate_pkg_import_cfg_cmd("goroot.importconfig", '"$GOROOT"')
     gen_import_cfg += ' && ' + _aggregate_import_cfg_cmd()
     prefix = ('export SRCS="$PKG_DIR/*.go"; ' + gen_import_cfg) if all_srcs else gen_import_cfg
     cmds = {
@@ -1009,7 +1082,7 @@ def _go_binary_cmds(static=False, ldflags='', pkg_config='', definitions=None, g
 
     _link_cmd = f'"$TOOLS_GO" tool link -importcfg importconfig -tmpdir "$TMP_DIR" -extld "$TOOLS_LD" -o "$OUT"'
 
-    gen_import_cfg = _set_go_env() + ' && ' + _generate_pkg_import_cfg_cmd("goroot.importconfig", '$GOROOT')
+    gen_import_cfg = _set_go_env() + ' && ' + _generate_pkg_import_cfg_cmd("goroot.importconfig", '"$GOROOT"')
     gen_import_cfg += ' && ' + _aggregate_import_cfg_cmd()
 
     linkerdefs = []

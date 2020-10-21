@@ -28,19 +28,24 @@ fileexport(
 
 fileexport(
     name = "system",
+    srcs = [],
     tag = "c_source",
     deps = ["//third_party/go/github.com/opencontainers/runc:_runc#download"],
 )
 
 fileexport(
     name = "system",
+    srcs = [],
     tag = "h_source",
     deps = ["//third_party/go/github.com/opencontainers/runc:_runc#download"],
 )
 
 cgo_library(
     name = "system",
-    srcs = [":_system#cgo_source"],
+    srcs = select({
+        "//third_party/go/__config:linux_amd64": [":_system#cgo_source"],
+        "default": [],
+    }),
     hdrs = [":_system#h_source"],
     c_srcs = [":_system#c_source"],
     compiler_flags = [],

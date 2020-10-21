@@ -1,0 +1,43 @@
+go_library(
+    name = "pkeawsworkflow",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster",
+        "//internal/cluster/clusterworkflow",
+        "//internal/cluster/distribution/pke",
+        "//pkg/backoff",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/client",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/session",
+        "//third_party/go/github.com/aws/aws-sdk-go/service/elbv2",
+        "//third_party/go/github.com/aws/aws-sdk-go/service/elbv2/elbv2iface",
+        "//third_party/go/go.uber.org/cadence/activity",
+        "//third_party/go/go.uber.org/cadence/workflow",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/cluster",
+        "//internal/cluster/clusterworkflow",
+        "//internal/cluster/distribution/pke",
+        "//internal/providers/pke/pkeworkflow",
+        "//pkg/backoff",
+        "//third_party/go/emperror.dev/errors",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/client",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/request",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws/session",
+        "//third_party/go/github.com/aws/aws-sdk-go/service/elbv2",
+        "//third_party/go/github.com/aws/aws-sdk-go/service/elbv2/elbv2iface",
+        "//third_party/go/github.com/stretchr/testify/mock",
+        "//third_party/go/github.com/stretchr/testify/require",
+        "//third_party/go/go.uber.org/cadence/activity",
+        "//third_party/go/go.uber.org/cadence/testsuite",
+        "//third_party/go/go.uber.org/cadence/workflow",
+    ],
+)

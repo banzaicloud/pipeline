@@ -1,3 +1,9 @@
+filegroup(
+    name = "config.dev.yaml",
+    srcs = ["config.dev.yaml"],
+    visibility = ["PUBLIC"],
+)
+
 genrule(
     name = "config.yaml",
     srcs = ["config.dev.yaml"],

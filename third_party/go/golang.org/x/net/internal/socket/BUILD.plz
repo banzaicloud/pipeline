@@ -56,7 +56,10 @@ fileexport(
 go_library(
     name = "socket",
     srcs = [":_socket#go_source"],
-    asm_srcs = [":_socket#s_source"],
+    asm_srcs = select({
+        "//third_party/go/__config:darwin_amd64": [":_socket#s_source"],
+        "default": [],
+    }),
     cover = False,
     import_path = "golang.org/x/net/internal/socket",
     visibility = ["PUBLIC"],

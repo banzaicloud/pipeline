@@ -4,9 +4,12 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/cluster",
+        "//pkg/sdk/providers/amazon/cloudformation",
         "//third_party/go/emperror.dev/emperror",
         "//third_party/go/emperror.dev/errors",
         "//third_party/go/github.com/Masterminds/semver/v3",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/service/cloudformation",
         "//third_party/go/github.com/stretchr/testify/mock",
     ],
 )
@@ -17,9 +20,12 @@ go_test(
     deps = [
         "//internal/cluster",
         "//pkg/brn",
+        "//pkg/sdk/providers/amazon/cloudformation",
         "//third_party/go/emperror.dev/emperror",
         "//third_party/go/emperror.dev/errors",
         "//third_party/go/github.com/Masterminds/semver/v3",
+        "//third_party/go/github.com/aws/aws-sdk-go/aws",
+        "//third_party/go/github.com/aws/aws-sdk-go/service/cloudformation",
         "//third_party/go/github.com/stretchr/testify/assert",
         "//third_party/go/github.com/stretchr/testify/mock",
         "//third_party/go/github.com/stretchr/testify/require",

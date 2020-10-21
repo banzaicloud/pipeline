@@ -40,7 +40,10 @@ fileexport(
 go_library(
     name = "sys",
     srcs = [":_sys#go_source"],
-    asm_srcs = [":_sys#s_source"],
+    asm_srcs = select({
+        "//third_party/go/__config:linux_amd64": [":_sys#s_source"],
+        "default": [],
+    }),
     cover = False,
     import_path = "github.com/containerd/containerd/sys",
     visibility = ["PUBLIC"],

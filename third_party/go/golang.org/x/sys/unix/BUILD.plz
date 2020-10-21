@@ -79,7 +79,11 @@ fileexport(
 go_library(
     name = "unix",
     srcs = [":_unix#go_source"],
-    asm_srcs = [":_unix#s_source"],
+    asm_srcs = select({
+        "//third_party/go/__config:darwin_amd64": [":_unix#s_source"],
+        "//third_party/go/__config:linux_amd64": [":_unix#s_source"],
+        "default": [],
+    }),
     cover = False,
     import_path = "golang.org/x/sys/unix",
     visibility = ["PUBLIC"],

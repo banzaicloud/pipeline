@@ -57,6 +57,8 @@ go_binary(
         "//internal/cluster/distribution/eks/eksmodel",
         "//internal/cluster/distribution/eks/eksprovider/driver",
         "//internal/cluster/distribution/eks/eksprovider/workflow",
+        "//internal/cluster/distribution/pke",
+        "//internal/cluster/distribution/pke/pkeaws/pkeawsadapter",
         "//internal/cluster/endpoints",
         "//internal/cluster/metrics/adapters/prometheus",
         "//internal/clustergroup",
@@ -187,6 +189,7 @@ go_binary(
 go_test(
     name = "test",
     srcs = glob(["*.go"], exclude = ["automigrate.go"]),
+    data = ["//config:config.dev.yaml"],
     deps = [
         "//.gen/cloudinfo",
         "//internal/anchore",
@@ -219,6 +222,8 @@ go_test(
         "//internal/cluster/distribution/eks/eksmodel",
         "//internal/cluster/distribution/eks/eksprovider/driver",
         "//internal/cluster/distribution/eks/eksprovider/workflow",
+        "//internal/cluster/distribution/pke",
+        "//internal/cluster/distribution/pke/pkeaws/pkeawsadapter",
         "//internal/cluster/endpoints",
         "//internal/cluster/metrics/adapters/prometheus",
         "//internal/clustergroup",

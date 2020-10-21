@@ -15,6 +15,9 @@ go_library(
 go_test(
     name = "test",
     srcs = glob(["*.go"]),
+    data = [
+        "//internal/app/pipelinectl/cli/commands/telemetry/testdata",
+    ],
     deps = [
         "//third_party/go/emperror.dev/errors",
         "//third_party/go/github.com/MakeNowJust/heredoc",

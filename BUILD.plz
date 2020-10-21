@@ -6,7 +6,7 @@ github_repo(
 
 http_archive(
     name = "pleasegomod",
-    urls = [f"https://github.com/sagikazarmark/please-go-modules/releases/download/v0.0.12/godeps_{CONFIG.HOSTOS}_{CONFIG.HOSTARCH}.tar.gz"],
+    urls = [f"https://github.com/sagikazarmark/please-go-modules/releases/download/v0.0.13/godeps_{CONFIG.HOSTOS}_{CONFIG.HOSTARCH}.tar.gz"],
 )
 
 genrule(

@@ -4,6 +4,8 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/cluster/clusteradapter/clustermodel",
+        "//internal/cluster/distribution/eks",
+        "//internal/common",
         "//internal/global",
         "//pkg/gormhelper",
         "//third_party/go/emperror.dev/errors",

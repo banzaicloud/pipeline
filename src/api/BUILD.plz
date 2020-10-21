@@ -77,10 +77,13 @@ go_library(
 
 go_test(
     name = "test",
-    srcs = glob([
-        "*.go",
-        "*_test.go",
-    ], exclude = ["secrets_test.go"]),
+    srcs = glob(
+        [
+            "*.go",
+            "*_test.go",
+        ],
+        exclude = ["secrets_test.go"],
+    ),
     deps = [
         "//.gen/pipeline/pipeline",
         "//internal/anchore",

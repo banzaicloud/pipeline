@@ -3,10 +3,10 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
     deps = [
+        "//internal/common",
         "//internal/global",
         "//pkg/cluster",
         "//pkg/errors",
         "//pkg/providers/oracle/cluster",
-        "//third_party/go/github.com/sirupsen/logrus",
     ],
 )

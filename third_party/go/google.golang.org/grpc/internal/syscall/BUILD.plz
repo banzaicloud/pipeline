@@ -11,15 +11,14 @@ fileexport(
     deps = ["//third_party/go/google.golang.org/grpc:_grpc#download"],
 )
 
-go_library(
-    name = "syscall",
-    srcs = [":_syscall#go_source"],
-    cover = False,
-    import_path = "google.golang.org/grpc/internal/syscall",
-    visibility = ["PUBLIC"],
-    deps = ["//third_party/go/google.golang.org/grpc/grpclog"] + select({
-        "//third_party/go/__config:darwin_amd64": [],
-        "//third_party/go/__config:linux_amd64": ["//third_party/go/golang.org/x/sys/unix"],
-        "default": [],
-    }),
-)
+if select_config([
+    {
+        "os": "linux",
+        "cpu": "amd64",
+    },
+    {
+        "os": "darwin",
+        "cpu": "amd64",
+    },
+]):
+    go_library(name = "syscall", srcs = [":_syscall#go_source"], cover = False, import_path = "google.golang.org/grpc/internal/syscall", visibility = ["PUBLIC"], deps = ["//third_party/go/google.golang.org/grpc/grpclog"] + select({"//third_party/go/__config:darwin_amd64": [], "//third_party/go/__config:linux_amd64": ["//third_party/go/golang.org/x/sys/unix"], "default": []}))
