@@ -46,7 +46,7 @@ func TestDeleteNodePoolWorkflowTestSuite(t *testing.T) {
 func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) SetupTest() {
 	workflowTestSuite.environment = workflowTestSuite.NewTestWorkflowEnvironment()
 
-	deleteNodePoolLabelSetActivity := NewDeleteNodePoolLabelSetActivity(nil, "")
+	deleteNodePoolLabelSetActivity := commonWorkflow.NewDeleteNodePoolLabelSetActivity(nil, "")
 	workflowTestSuite.environment.RegisterActivityWithOptions(deleteNodePoolLabelSetActivity.Execute, activity.RegisterOptions{Name: commonWorkflow.DeleteNodePoolLabelSetActivityName})
 
 	deleteStackActivity := NewDeleteStackActivity(nil)
@@ -121,7 +121,7 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 		for mockIndex, mockID := range mocks {
 			switch mockID {
 			case commonWorkflow.DeleteNodePoolLabelSetActivityName:
-				activityInput := DeleteNodePoolLabelSetActivityInput{
+				activityInput := commonWorkflow.DeleteNodePoolLabelSetActivityInput{
 					ClusterID:    input.input.ClusterID,
 					NodePoolName: input.input.NodePoolName,
 				}
