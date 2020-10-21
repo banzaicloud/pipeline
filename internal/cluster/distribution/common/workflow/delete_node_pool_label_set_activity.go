@@ -21,7 +21,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
 )
 
-const DeleteNodePoolLabelSetActivityName = "eks-delete-node-pool-label-set"
+const DeleteNodePoolLabelSetActivityName = "delete-node-pool-label-set"
 
 type DeleteNodePoolLabelSetActivity struct {
 	dynamicClientFactory DynamicClientFactory
