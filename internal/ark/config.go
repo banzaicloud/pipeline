@@ -15,8 +15,6 @@
 package ark
 
 import (
-	"fmt"
-
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark/client"
@@ -118,10 +116,11 @@ type ConfigRequest struct {
 }
 
 type clusterConfig struct {
-	Name        string
-	Provider    string
-	Location    string
-	RBACEnabled bool
+	Name         string
+	Provider     string
+	Distribution string
+	Location     string
+	RBACEnabled  bool
 
 	azureClusterConfig
 }
@@ -261,8 +260,7 @@ func (req ConfigRequest) getVolumeSnapshotLocation() (volumeSnapshotLocation, er
 	case providers.Azure:
 		pvcProvider = azure.PersistentVolumeProvider
 		vslconfig.ApiTimeout = "3m0s"
-		rg := fmt.Sprintf("MC_%s_%s_%s", req.Cluster.ResourceGroup, req.Cluster.Name, req.Cluster.Location)
-		vslconfig.ResourceGroup = rg
+		vslconfig.ResourceGroup = azure.GetAzureClusterResourceGroupName(req.Cluster.Distribution, req.Cluster.ResourceGroup, req.Cluster.Name, req.Cluster.Location)
 	case providers.Google:
 		pvcProvider = google.PersistentVolumeProvider
 	default:
@@ -322,7 +320,8 @@ func (req ConfigRequest) getCredentials() (credentials, error) {
 			return config, err
 		}
 	case providers.Azure:
-		ClusterSecretContents, err = azure.GetSecretForCluster(req.ClusterSecret, req.Cluster.Name, req.Cluster.Location, req.Cluster.ResourceGroup)
+		crgName := azure.GetAzureClusterResourceGroupName(req.Cluster.Distribution, req.Cluster.ResourceGroup, req.Cluster.Name, req.Cluster.Location)
+		ClusterSecretContents, err = azure.GetSecretForCluster(req.ClusterSecret, crgName)
 		if err != nil {
 			return config, err
 		}
@@ -342,8 +341,8 @@ func (req ConfigRequest) getCredentials() (credentials, error) {
 			return config, err
 		}
 	case providers.Azure:
-		BucketSecretContents, err = azure.GetSecretForBucket(req.BucketSecret, req.Bucket.StorageAccount,
-			req.Bucket.ResourceGroup, req.Cluster.ResourceGroup, req.Cluster.Name, req.Cluster.Location)
+		crgName := azure.GetAzureClusterResourceGroupName(req.Cluster.Distribution, req.Cluster.ResourceGroup, req.Cluster.Name, req.Cluster.Location)
+		BucketSecretContents, err = azure.GetSecretForBucket(req.BucketSecret, req.Bucket.StorageAccount, req.Bucket.ResourceGroup, crgName)
 		if err != nil {
 			return config, err
 		}
