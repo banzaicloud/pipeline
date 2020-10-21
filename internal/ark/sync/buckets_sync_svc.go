@@ -64,7 +64,7 @@ func (s *BucketsSyncService) SyncBackupsFromBuckets() error {
 			log.Warning(err.Error())
 		}
 
-		log.Debug("removing deleted backups from database")
+		log.Debugf("removing deleted backups from database: %+q", backupIDS)
 		err = s.backupsSvc.DeleteNonExistingBackupsByBucketAndKeys(bucket.ID, backupIDS)
 		if err != nil {
 			log.Error(err.Error())
