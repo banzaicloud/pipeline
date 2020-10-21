@@ -25,6 +25,7 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
@@ -44,7 +45,7 @@ func NewNodePoolCreator(
 	defaultVolumeSize int,
 	eksNodePools eks.NodePoolStore,
 	awsSessionFactory LegacyAWSSessionFactory,
-) eksNodePoolCreator {
+) clusterworkflow.NodePoolCreator {
 	return eksNodePoolCreator{
 		db:                db,
 		defaultVolumeSize: defaultVolumeSize,

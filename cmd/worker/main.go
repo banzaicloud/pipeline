@@ -52,6 +52,7 @@ import (
 	eksClusterAdapter "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
 	eksClusterDriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	eksworkflow2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsadapter"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
@@ -494,11 +495,12 @@ func main() {
 		{
 			createNodePoolActivity := clusterworkflow.NewCreateNodePoolActivity(
 				clusterStore,
-				db,
-				config.Distribution.EKS.DefaultNodeVolumeSize,
-				clusteradapter.NewNodePoolStore(db, clusterStore),
-				eksadapter.NewNodePoolStore(db),
-				eksworkflow.NewAWSSessionFactory(secret.Store),
+				eksworkflow2.NewNodePoolCreator(
+					db,
+					config.Distribution.EKS.DefaultNodeVolumeSize,
+					eksadapter.NewNodePoolStore(db),
+					eksworkflow.NewAWSSessionFactory(secret.Store),
+				),
 			)
 			activity.RegisterWithOptions(createNodePoolActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.CreateNodePoolActivityName})
 
