@@ -4,7 +4,6 @@ fileexport(
     name = "jlexer",
     srcs = [
         "jlexer/bytestostr.go",
-        "jlexer/bytestostr_nounsafe.go",
         "jlexer/error.go",
         "jlexer/lexer.go",
     ],

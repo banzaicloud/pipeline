@@ -4,7 +4,6 @@ fileexport(
     name = "traditionalchinese",
     srcs = [
         "encoding/traditionalchinese/big5.go",
-        "encoding/traditionalchinese/maketables.go",
         "encoding/traditionalchinese/tables.go",
     ],
     tag = "go_source",

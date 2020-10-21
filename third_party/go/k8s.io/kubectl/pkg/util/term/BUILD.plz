@@ -5,7 +5,6 @@ fileexport(
     srcs = [
         "pkg/util/term/resize.go",
         "pkg/util/term/resizeevents.go",
-        "pkg/util/term/resizeevents_windows.go",
         "pkg/util/term/term.go",
         "pkg/util/term/term_writer.go",
     ],

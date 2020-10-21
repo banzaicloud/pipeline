@@ -14,8 +14,6 @@ fileexport(
     srcs = [
         "go_above_17.go",
         "go_above_19.go",
-        "go_below_17.go",
-        "go_below_19.go",
         "reflect2.go",
         "reflect2_kind.go",
         "safe_field.go",

@@ -1,0 +1,17 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "ptr",
+    srcs = ["ptr/ptr.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/thriftrw:_thriftrw#download"],
+)
+
+go_library(
+    name = "ptr",
+    srcs = [":_ptr#go_source"],
+    cover = False,
+    import_path = "go.uber.org/thriftrw/ptr",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

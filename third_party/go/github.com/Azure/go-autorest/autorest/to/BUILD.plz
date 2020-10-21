@@ -11,10 +11,7 @@ go_module_download(
 
 fileexport(
     name = "to",
-    srcs = [
-        "convert.go",
-        "go_mod_tidy_hack.go",
-    ],
+    srcs = ["convert.go"],
     tag = "go_source",
     deps = [":_to#download"],
 )

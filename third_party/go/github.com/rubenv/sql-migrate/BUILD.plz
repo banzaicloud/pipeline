@@ -3,9 +3,9 @@ subinclude("///pleasegomod//:build_defs")
 go_module_download(
     name = "sql-migrate",
     module = "github.com/rubenv/sql-migrate",
-    sum = "h1:xkBtI5JktwbW/vf4vopBbhYsRFTGfQWHYXzC0/qYwxI=",
+    sum = "h1:HXr/qUllAWv9riaI4zh2eXWKmCSDqVS/XH1MRHLKRwk=",
     tag = "download",
-    version = "v0.0.0-20200212082348-64f95ea68aa3",
+    version = "v0.0.0-20200616145509-8d140a17f351",
     visibility = ["//third_party/go/github.com/rubenv/sql-migrate/..."],
 )
 

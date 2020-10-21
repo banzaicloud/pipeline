@@ -11,15 +11,11 @@ go_module_download(
 
 fileexport(
     name = "go-isatty",
-    srcs = [
-        "doc.go",
-        "isatty_android.go",
-        "isatty_bsd.go",
-        "isatty_others.go",
-        "isatty_solaris.go",
-        "isatty_tcgets.go",
-        "isatty_windows.go",
-    ],
+    srcs = ["doc.go"] + select({
+        "//third_party/go/__config:darwin_amd64": ["isatty_bsd.go"],
+        "//third_party/go/__config:linux_amd64": ["isatty_tcgets.go"],
+        "default": [],
+    }),
     tag = "go_source",
     deps = [":_go-isatty#download"],
 )
@@ -30,5 +26,9 @@ go_library(
     cover = False,
     import_path = "github.com/mattn/go-isatty",
     visibility = ["PUBLIC"],
-    deps = [],
+    deps = select({
+        "//third_party/go/__config:darwin_amd64": [],
+        "//third_party/go/__config:linux_amd64": ["//third_party/go/golang.org/x/sys/unix"],
+        "default": [],
+    }),
 )

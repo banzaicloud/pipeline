@@ -6,7 +6,6 @@ fileexport(
         "internal/channel.go",
         "internal/name.go",
         "internal/norace.go",
-        "internal/race.go",
     ],
     tag = "go_source",
     deps = ["//third_party/go/github.com/ThreeDotsLabs/watermill:_watermill#download"],

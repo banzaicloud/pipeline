@@ -14,8 +14,6 @@ fileexport(
     srcs = [
         "xxhash.go",
         "xxhash_amd64.go",
-        "xxhash_other.go",
-        "xxhash_safe.go",
         "xxhash_unsafe.go",
     ],
     tag = "go_source",

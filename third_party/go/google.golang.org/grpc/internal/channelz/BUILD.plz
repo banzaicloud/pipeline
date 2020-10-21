@@ -5,11 +5,17 @@ fileexport(
     srcs = [
         "internal/channelz/funcs.go",
         "internal/channelz/types.go",
-        "internal/channelz/types_linux.go",
-        "internal/channelz/types_nonlinux.go",
-        "internal/channelz/util_linux.go",
-        "internal/channelz/util_nonlinux.go",
-    ],
+    ] + select({
+        "//third_party/go/__config:darwin_amd64": [
+            "internal/channelz/types_nonlinux.go",
+            "internal/channelz/util_nonlinux.go",
+        ],
+        "//third_party/go/__config:linux_amd64": [
+            "internal/channelz/types_linux.go",
+            "internal/channelz/util_linux.go",
+        ],
+        "default": [],
+    }),
     tag = "go_source",
     deps = ["//third_party/go/google.golang.org/grpc:_grpc#download"],
 )
@@ -24,5 +30,9 @@ go_library(
         "//third_party/go/google.golang.org/grpc/connectivity",
         "//third_party/go/google.golang.org/grpc/credentials",
         "//third_party/go/google.golang.org/grpc/grpclog",
-    ],
+    ] + select({
+        "//third_party/go/__config:darwin_amd64": [],
+        "//third_party/go/__config:linux_amd64": ["//third_party/go/golang.org/x/sys/unix"],
+        "default": [],
+    }),
 )

@@ -7,11 +7,12 @@ fileexport(
         "pkg/term/proxy.go",
         "pkg/term/tc.go",
         "pkg/term/term.go",
-        "pkg/term/term_windows.go",
-        "pkg/term/termios_bsd.go",
-        "pkg/term/termios_linux.go",
         "pkg/term/winsize.go",
-    ],
+    ] + select({
+        "//third_party/go/__config:darwin_amd64": ["pkg/term/termios_bsd.go"],
+        "//third_party/go/__config:linux_amd64": ["pkg/term/termios_linux.go"],
+        "default": [],
+    }),
     tag = "go_source",
     deps = ["//third_party/go/github.com/docker/docker:_docker#download"],
 )

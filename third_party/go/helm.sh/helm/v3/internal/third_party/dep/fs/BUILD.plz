@@ -5,7 +5,6 @@ fileexport(
     srcs = [
         "internal/third_party/dep/fs/fs.go",
         "internal/third_party/dep/fs/rename.go",
-        "internal/third_party/dep/fs/rename_windows.go",
     ],
     tag = "go_source",
     deps = ["//third_party/go/helm.sh/helm/v3:_v3#download"],

@@ -4,7 +4,6 @@ fileexport(
     name = "spew",
     srcs = [
         "spew/bypass.go",
-        "spew/bypasssafe.go",
         "spew/common.go",
         "spew/config.go",
         "spew/doc.go",

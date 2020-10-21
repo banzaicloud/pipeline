@@ -11,16 +11,17 @@ go_module_download(
 
 fileexport(
     name = "fsnotify",
-    srcs = [
-        "fen.go",
-        "fsnotify.go",
-        "inotify.go",
-        "inotify_poller.go",
-        "kqueue.go",
-        "open_mode_bsd.go",
-        "open_mode_darwin.go",
-        "windows.go",
-    ],
+    srcs = ["fsnotify.go"] + select({
+        "//third_party/go/__config:darwin_amd64": [
+            "kqueue.go",
+            "open_mode_darwin.go",
+        ],
+        "//third_party/go/__config:linux_amd64": [
+            "inotify.go",
+            "inotify_poller.go",
+        ],
+        "default": [],
+    }),
     tag = "go_source",
     deps = [":_fsnotify#download"],
 )

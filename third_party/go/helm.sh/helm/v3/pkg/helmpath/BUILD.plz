@@ -5,10 +5,11 @@ fileexport(
     srcs = [
         "pkg/helmpath/home.go",
         "pkg/helmpath/lazypath.go",
-        "pkg/helmpath/lazypath_darwin.go",
-        "pkg/helmpath/lazypath_unix.go",
-        "pkg/helmpath/lazypath_windows.go",
-    ],
+    ] + select({
+        "//third_party/go/__config:darwin_amd64": ["pkg/helmpath/lazypath_darwin.go"],
+        "//third_party/go/__config:linux_amd64": ["pkg/helmpath/lazypath_unix.go"],
+        "default": [],
+    }),
     tag = "go_source",
     deps = ["//third_party/go/helm.sh/helm/v3:_v3#download"],
 )

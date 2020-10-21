@@ -10,7 +10,6 @@ fileexport(
         "tag/map_codec.go",
         "tag/metadata.go",
         "tag/profile_19.go",
-        "tag/profile_not19.go",
         "tag/validate.go",
     ],
     tag = "go_source",

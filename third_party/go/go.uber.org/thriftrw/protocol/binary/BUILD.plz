@@ -7,7 +7,6 @@ fileexport(
         "protocol/binary/doc.go",
         "protocol/binary/envelope.go",
         "protocol/binary/error.go",
-        "protocol/binary/fuzz.go",
         "protocol/binary/lazy_list.go",
         "protocol/binary/reader.go",
         "protocol/binary/writer.go",

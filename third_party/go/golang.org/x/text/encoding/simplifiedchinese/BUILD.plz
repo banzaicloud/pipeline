@@ -6,7 +6,6 @@ fileexport(
         "encoding/simplifiedchinese/all.go",
         "encoding/simplifiedchinese/gbk.go",
         "encoding/simplifiedchinese/hzgb2312.go",
-        "encoding/simplifiedchinese/maketables.go",
         "encoding/simplifiedchinese/tables.go",
     ],
     tag = "go_source",

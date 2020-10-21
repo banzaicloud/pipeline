@@ -12,7 +12,6 @@ go_module_download(
 fileexport(
     name = "cli",
     srcs = [
-        "go_mod_tidy_hack.go",
         "profile.go",
         "token.go",
     ],

@@ -14,7 +14,6 @@ fileexport(
     srcs = [
         "auth.go",
         "context.go",
-        "context_appengine.go",
         "debug.go",
         "deprecated.go",
         "doc.go",

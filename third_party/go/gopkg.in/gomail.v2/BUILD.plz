@@ -16,7 +16,6 @@ fileexport(
         "doc.go",
         "message.go",
         "mime.go",
-        "mime_go14.go",
         "send.go",
         "smtp.go",
         "writeto.go",

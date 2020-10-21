@@ -3,9 +3,9 @@ subinclude("///pleasegomod//:build_defs")
 go_module_download(
     name = "mapstructure",
     module = "github.com/mitchellh/mapstructure",
-    sum = "h1:fmNYVwqnSfB9mZU6OS2O6GsXM+wcskZDuKQzvN1EDeE=",
+    sum = "h1:SzB1nHZ2Xi+17FP0zVQBHIZqvwRN9408fJO8h+eeNA8=",
     tag = "download",
-    version = "v1.1.2",
+    version = "v1.3.3",
     visibility = ["//third_party/go/github.com/mitchellh/mapstructure/..."],
 )
 

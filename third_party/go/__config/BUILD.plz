@@ -1,11 +1,17 @@
 package(default_visibility = ["PUBLIC"])
 
 config_setting(
-    name = "linux",
-    values = {"os": "linux"},
+    name = "linux_amd64",
+    values = {
+        "os": "linux",
+        "cpu": "amd64",
+    },
 )
 
 config_setting(
-    name = "darwin",
-    values = {"os": "darwin"},
+    name = "darwin_amd64",
+    values = {
+        "os": "darwin",
+        "cpu": "amd64",
+    },
 )

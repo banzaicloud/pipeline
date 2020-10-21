@@ -18,8 +18,6 @@ fileexport(
         "proto/lib.go",
         "proto/lib_gogo.go",
         "proto/message_set.go",
-        "proto/pointer_reflect.go",
-        "proto/pointer_reflect_gogo.go",
         "proto/pointer_unsafe.go",
         "proto/pointer_unsafe_gogo.go",
         "proto/properties.go",

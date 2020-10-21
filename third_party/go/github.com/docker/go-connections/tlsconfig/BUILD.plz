@@ -4,10 +4,8 @@ fileexport(
     name = "tlsconfig",
     srcs = [
         "tlsconfig/certpool_go17.go",
-        "tlsconfig/certpool_other.go",
         "tlsconfig/config.go",
         "tlsconfig/config_client_ciphers.go",
-        "tlsconfig/config_legacy_client_ciphers.go",
     ],
     tag = "go_source",
     deps = ["//third_party/go/github.com/docker/go-connections:_go-connections#download"],

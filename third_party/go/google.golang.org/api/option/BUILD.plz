@@ -4,7 +4,6 @@ fileexport(
     name = "option",
     srcs = [
         "option/credentials_go19.go",
-        "option/credentials_notgo19.go",
         "option/option.go",
     ],
     tag = "go_source",

@@ -6,7 +6,6 @@ fileexport(
         "encoding/japanese/all.go",
         "encoding/japanese/eucjp.go",
         "encoding/japanese/iso2022jp.go",
-        "encoding/japanese/maketables.go",
         "encoding/japanese/shiftjis.go",
         "encoding/japanese/tables.go",
     ],

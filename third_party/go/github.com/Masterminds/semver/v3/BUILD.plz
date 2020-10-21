@@ -15,7 +15,6 @@ fileexport(
         "collection.go",
         "constraints.go",
         "doc.go",
-        "fuzz.go",
         "version.go",
     ],
     tag = "go_source",

@@ -3,9 +3,9 @@ subinclude("///pleasegomod//:build_defs")
 go_module_download(
     name = "gojsonschema",
     module = "github.com/xeipuuv/gojsonschema",
-    sum = "h1:ngVtJC9TY/lg0AA/1k48FYhBrhRoFlEmWzsehpNAaZg=",
+    sum = "h1:LhYJRs+L4fBtjZUfuSZIKGeVu0QRy8e5Xi7D17UxZ74=",
     tag = "download",
-    version = "v1.1.0",
+    version = "v1.2.0",
     visibility = ["//third_party/go/github.com/xeipuuv/gojsonschema/..."],
 )
 

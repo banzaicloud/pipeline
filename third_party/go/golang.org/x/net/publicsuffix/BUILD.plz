@@ -3,7 +3,6 @@ subinclude("///pleasegomod//:build_defs")
 fileexport(
     name = "publicsuffix",
     srcs = [
-        "publicsuffix/gen.go",
         "publicsuffix/list.go",
         "publicsuffix/table.go",
     ],

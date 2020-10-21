@@ -3,9 +3,8 @@ subinclude("///pleasegomod//:build_defs")
 go_module_download(
     name = "v3",
     module = "helm.sh/helm/v3",
-    replace = "github.com/banzaicloud/helm/v3",
-    sum = "h1:R03HtvdF2WFq7hSrLJvcBOcXELy23yxLVzHsQFrCx0Q=",
+    sum = "h1:tbad6WQVMxEw1HlVBvI2rQqOblmI5lgXOrWAMwJ198M=",
     tag = "download",
-    version = "v3.0.0-20200728185519-26acd29df4fb",
+    version = "v3.3.4",
     visibility = ["//third_party/go/helm.sh/helm/v3/..."],
 )

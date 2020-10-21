@@ -2,25 +2,55 @@ subinclude("///pleasegomod//:build_defs")
 
 fileexport(
     name = "system",
-    srcs = [
-        "libcontainer/system/linux.go",
-        "libcontainer/system/proc.go",
-        "libcontainer/system/syscall_linux_32.go",
-        "libcontainer/system/syscall_linux_64.go",
-        "libcontainer/system/sysconfig.go",
-        "libcontainer/system/sysconfig_notcgo.go",
-        "libcontainer/system/unsupported.go",
-        "libcontainer/system/xattrs_linux.go",
-    ],
+    srcs = ["libcontainer/system/proc.go"] + select({
+        "//third_party/go/__config:darwin_amd64": ["libcontainer/system/unsupported.go"],
+        "//third_party/go/__config:linux_amd64": [
+            "libcontainer/system/linux.go",
+            "libcontainer/system/syscall_linux_64.go",
+            "libcontainer/system/xattrs_linux.go",
+        ],
+        "default": [],
+    }),
     tag = "go_source",
     deps = ["//third_party/go/github.com/opencontainers/runc:_runc#download"],
 )
 
-go_library(
+fileexport(
     name = "system",
-    srcs = [":_system#go_source"],
-    cover = False,
+    srcs = select({
+        "//third_party/go/__config:darwin_amd64": [],
+        "//third_party/go/__config:linux_amd64": ["libcontainer/system/sysconfig.go"],
+        "default": [],
+    }),
+    tag = "cgo_source",
+    deps = ["//third_party/go/github.com/opencontainers/runc:_runc#download"],
+)
+
+fileexport(
+    name = "system",
+    tag = "c_source",
+    deps = ["//third_party/go/github.com/opencontainers/runc:_runc#download"],
+)
+
+fileexport(
+    name = "system",
+    tag = "h_source",
+    deps = ["//third_party/go/github.com/opencontainers/runc:_runc#download"],
+)
+
+cgo_library(
+    name = "system",
+    srcs = [":_system#cgo_source"],
+    hdrs = [":_system#h_source"],
+    c_srcs = [":_system#c_source"],
+    compiler_flags = [],
+    go_srcs = [":_system#go_source"],
     import_path = "github.com/opencontainers/runc/libcontainer/system",
+    linker_flags = [],
     visibility = ["PUBLIC"],
-    deps = ["//third_party/go/github.com/opencontainers/runc/libcontainer/user"],
+    deps = ["//third_party/go/github.com/opencontainers/runc/libcontainer/user"] + select({
+        "//third_party/go/__config:darwin_amd64": [],
+        "//third_party/go/__config:linux_amd64": ["//third_party/go/golang.org/x/sys/unix"],
+        "default": [],
+    }),
 )

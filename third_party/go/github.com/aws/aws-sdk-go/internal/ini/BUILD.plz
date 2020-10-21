@@ -9,7 +9,6 @@ fileexport(
         "internal/ini/doc.go",
         "internal/ini/empty_token.go",
         "internal/ini/expression.go",
-        "internal/ini/fuzz.go",
         "internal/ini/ini.go",
         "internal/ini/ini_lexer.go",
         "internal/ini/ini_parser.go",

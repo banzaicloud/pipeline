@@ -4,7 +4,6 @@ fileexport(
     name = "sdkio",
     srcs = [
         "internal/sdkio/byte.go",
-        "internal/sdkio/io_go1.6.go",
         "internal/sdkio/io_go1.7.go",
     ],
     tag = "go_source",

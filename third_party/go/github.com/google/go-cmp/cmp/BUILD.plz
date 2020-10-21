@@ -4,7 +4,6 @@ fileexport(
     name = "cmp",
     srcs = [
         "cmp/compare.go",
-        "cmp/export_panic.go",
         "cmp/export_unsafe.go",
         "cmp/options.go",
         "cmp/path.go",

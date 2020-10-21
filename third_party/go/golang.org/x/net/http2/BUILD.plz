@@ -13,7 +13,6 @@ fileexport(
         "http2/gotrack.go",
         "http2/headermap.go",
         "http2/http2.go",
-        "http2/not_go111.go",
         "http2/pipe.go",
         "http2/server.go",
         "http2/transport.go",

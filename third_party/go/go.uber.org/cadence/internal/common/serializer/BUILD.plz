@@ -1,0 +1,21 @@
+subinclude("///pleasegomod//:build_defs")
+
+fileexport(
+    name = "serializer",
+    srcs = ["internal/common/serializer/history_serializer.go"],
+    tag = "go_source",
+    deps = ["//third_party/go/go.uber.org/cadence:_cadence#download"],
+)
+
+go_library(
+    name = "serializer",
+    srcs = [":_serializer#go_source"],
+    cover = False,
+    import_path = "go.uber.org/cadence/internal/common/serializer",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go/go.uber.org/cadence/.gen/go/shared",
+        "//third_party/go/go.uber.org/thriftrw/protocol",
+        "//third_party/go/go.uber.org/thriftrw/wire",
+    ],
+)

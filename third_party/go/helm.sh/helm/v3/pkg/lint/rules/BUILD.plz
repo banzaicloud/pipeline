@@ -4,6 +4,7 @@ fileexport(
     name = "rules",
     srcs = [
         "pkg/lint/rules/chartfile.go",
+        "pkg/lint/rules/deprecations.go",
         "pkg/lint/rules/template.go",
         "pkg/lint/rules/values.go",
     ],

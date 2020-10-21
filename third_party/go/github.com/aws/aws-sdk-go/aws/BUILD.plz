@@ -4,9 +4,7 @@ fileexport(
     name = "aws",
     srcs = [
         "aws/config.go",
-        "aws/context_1_5.go",
         "aws/context_1_9.go",
-        "aws/context_background_1_5.go",
         "aws/context_background_1_7.go",
         "aws/context_sleep.go",
         "aws/convert_types.go",
@@ -16,7 +14,6 @@ fileexport(
         "aws/logger.go",
         "aws/types.go",
         "aws/url.go",
-        "aws/url_1_7.go",
         "aws/version.go",
     ],
     tag = "go_source",

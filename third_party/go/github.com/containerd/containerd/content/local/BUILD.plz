@@ -7,7 +7,6 @@ fileexport(
         "content/local/readerat.go",
         "content/local/store.go",
         "content/local/store_unix.go",
-        "content/local/store_windows.go",
         "content/local/writer.go",
     ],
     tag = "go_source",

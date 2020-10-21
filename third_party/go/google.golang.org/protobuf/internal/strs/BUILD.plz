@@ -4,7 +4,6 @@ fileexport(
     name = "strs",
     srcs = [
         "internal/strs/strings.go",
-        "internal/strs/strings_pure.go",
         "internal/strs/strings_unsafe.go",
     ],
     tag = "go_source",

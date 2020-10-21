@@ -22,8 +22,6 @@ fileexport(
         "path.go",
         "post_go18.go",
         "post_go19.go",
-        "pre_go18.go",
-        "pre_go19.go",
         "split.go",
         "util.go",
         "yaml.go",

@@ -17,6 +17,7 @@ go_library(
     import_path = "helm.sh/helm/v3/pkg/plugin",
     visibility = ["PUBLIC"],
     deps = [
+        "//third_party/go/github.com/pkg/errors",
         "//third_party/go/helm.sh/helm/v3/pkg/cli",
         "//third_party/go/sigs.k8s.io/yaml",
     ],

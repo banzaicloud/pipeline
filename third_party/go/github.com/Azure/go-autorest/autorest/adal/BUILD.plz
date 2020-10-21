@@ -14,7 +14,6 @@ fileexport(
     srcs = [
         "config.go",
         "devicetoken.go",
-        "go_mod_tidy_hack.go",
         "persist.go",
         "sender.go",
         "token.go",

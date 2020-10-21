@@ -17,7 +17,6 @@ fileexport(
         "errors_multi.go",
         "stack.go",
         "wrap.go",
-        "wrap_go1_12.go",
         "wrap_go1_13.go",
     ],
     tag = "go_source",

@@ -5,7 +5,6 @@ fileexport(
     srcs = [
         "libcontainer/user/lookup.go",
         "libcontainer/user/lookup_unix.go",
-        "libcontainer/user/lookup_windows.go",
         "libcontainer/user/user.go",
     ],
     tag = "go_source",

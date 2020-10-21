@@ -2,11 +2,11 @@ subinclude("///pleasegomod//:build_defs")
 
 fileexport(
     name = "grpc",
-    srcs = [
-        "transport/grpc/dial.go",
-        "transport/grpc/dial_appengine.go",
-        "transport/grpc/dial_socketopt.go",
-    ],
+    srcs = ["transport/grpc/dial.go"] + select({
+        "//third_party/go/__config:darwin_amd64": [],
+        "//third_party/go/__config:linux_amd64": ["transport/grpc/dial_socketopt.go"],
+        "default": [],
+    }),
     tag = "go_source",
     deps = ["//third_party/go/google.golang.org/api:_api#download"],
 )
@@ -27,5 +27,9 @@ go_library(
         "//third_party/go/google.golang.org/grpc/credentials",
         "//third_party/go/google.golang.org/grpc/credentials/google",
         "//third_party/go/google.golang.org/grpc/credentials/oauth",
-    ],
+    ] + select({
+        "//third_party/go/__config:darwin_amd64": [],
+        "//third_party/go/__config:linux_amd64": ["//third_party/go/golang.org/x/sys/unix"],
+        "default": [],
+    }),
 )

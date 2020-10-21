@@ -16,7 +16,6 @@ go_library(
     deps = [
         "//third_party/go/github.com/spf13/pflag",
         "//third_party/go/helm.sh/helm/v3/pkg/helmpath",
-        "//third_party/go/helm.sh/helm/v3/pkg/kube",
         "//third_party/go/k8s.io/cli-runtime/pkg/genericclioptions",
     ],
 )

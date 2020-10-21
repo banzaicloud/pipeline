@@ -6,7 +6,6 @@ fileexport(
         "expfmt/decode.go",
         "expfmt/encode.go",
         "expfmt/expfmt.go",
-        "expfmt/fuzz.go",
         "expfmt/openmetrics_create.go",
         "expfmt/text_create.go",
         "expfmt/text_parse.go",

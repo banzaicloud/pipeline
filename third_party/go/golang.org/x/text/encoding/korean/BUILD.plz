@@ -4,7 +4,6 @@ fileexport(
     name = "korean",
     srcs = [
         "encoding/korean/euckr.go",
-        "encoding/korean/maketables.go",
         "encoding/korean/tables.go",
     ],
     tag = "go_source",

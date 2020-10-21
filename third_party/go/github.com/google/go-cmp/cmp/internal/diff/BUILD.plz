@@ -4,7 +4,6 @@ fileexport(
     name = "diff",
     srcs = [
         "cmp/internal/diff/debug_disable.go",
-        "cmp/internal/diff/debug_enable.go",
         "cmp/internal/diff/diff.go",
     ],
     tag = "go_source",

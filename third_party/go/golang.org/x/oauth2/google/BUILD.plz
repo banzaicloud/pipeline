@@ -4,7 +4,6 @@ fileexport(
     name = "google",
     srcs = [
         "google/appengine.go",
-        "google/appengine_gen1.go",
         "google/appengine_gen2_flex.go",
         "google/default.go",
         "google/doc.go",

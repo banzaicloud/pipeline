@@ -3,7 +3,6 @@ subinclude("///pleasegomod//:build_defs")
 fileexport(
     name = "htmlindex",
     srcs = [
-        "encoding/htmlindex/gen.go",
         "encoding/htmlindex/htmlindex.go",
         "encoding/htmlindex/map.go",
         "encoding/htmlindex/tables.go",

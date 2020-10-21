@@ -2,12 +2,11 @@ subinclude("///pleasegomod//:build_defs")
 
 fileexport(
     name = "homedir",
-    srcs = [
-        "pkg/homedir/homedir_linux.go",
-        "pkg/homedir/homedir_others.go",
-        "pkg/homedir/homedir_unix.go",
-        "pkg/homedir/homedir_windows.go",
-    ],
+    srcs = ["pkg/homedir/homedir_unix.go"] + select({
+        "//third_party/go/__config:darwin_amd64": ["pkg/homedir/homedir_others.go"],
+        "//third_party/go/__config:linux_amd64": ["pkg/homedir/homedir_linux.go"],
+        "default": [],
+    }),
     tag = "go_source",
     deps = ["//third_party/go/github.com/docker/docker:_docker#download"],
 )

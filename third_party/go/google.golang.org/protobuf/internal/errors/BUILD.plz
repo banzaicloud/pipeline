@@ -4,7 +4,6 @@ fileexport(
     name = "errors",
     srcs = [
         "internal/errors/errors.go",
-        "internal/errors/is_go112.go",
         "internal/errors/is_go113.go",
     ],
     tag = "go_source",

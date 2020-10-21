@@ -13,11 +13,9 @@ fileexport(
     name = "lz4",
     srcs = [
         "block.go",
-        "debug.go",
         "debug_stub.go",
         "lz4.go",
         "lz4_go1.10.go",
-        "lz4_notgo1.10.go",
         "reader.go",
         "writer.go",
     ],

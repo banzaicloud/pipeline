@@ -6,7 +6,6 @@ fileexport(
         "registry/auth.go",
         "registry/config.go",
         "registry/config_unix.go",
-        "registry/config_windows.go",
         "registry/endpoint_v1.go",
         "registry/errors.go",
         "registry/registry.go",

@@ -13,7 +13,6 @@ fileexport(
     name = "unidecode",
     srcs = [
         "decode.go",
-        "make_table.go",
         "table.go",
         "unidecode.go",
     ],

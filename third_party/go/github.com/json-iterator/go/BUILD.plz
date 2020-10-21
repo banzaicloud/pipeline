@@ -33,7 +33,6 @@ fileexport(
         "iter_int.go",
         "iter_object.go",
         "iter_skip.go",
-        "iter_skip_sloppy.go",
         "iter_skip_strict.go",
         "iter_str.go",
         "jsoniter.go",

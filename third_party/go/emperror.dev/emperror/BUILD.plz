@@ -23,7 +23,6 @@ fileexport(
         "handler_filter.go",
         "handler_testing.go",
         "panic.go",
-        "panic_go1_11.go",
         "panic_go1_12.go",
         "unwrap.go",
         "wrap.go",

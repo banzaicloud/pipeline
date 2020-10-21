@@ -1,12 +1,12 @@
 github_repo(
     name = "pleasings2",
     repo = "sagikazarmark/mypleasings",
-    revision = "e4fd643c798334dd577fc8bf28d599843bb94fc1",
+    revision = "3b689dc496fea3e3eb5e7d632286109bf9a8fb1e",
 )
 
 http_archive(
     name = "pleasegomod",
-    urls = [f"https://github.com/sagikazarmark/please-go-modules/releases/download/v0.0.7/gogetgen_{CONFIG.HOSTOS}_{CONFIG.HOSTARCH}.tar.gz"],
+    urls = [f"https://github.com/sagikazarmark/please-go-modules/releases/download/v0.0.12/godeps_{CONFIG.HOSTOS}_{CONFIG.HOSTARCH}.tar.gz"],
 )
 
 genrule(

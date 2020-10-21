@@ -14,8 +14,6 @@ fileexport(
     srcs = [
         "flock.go",
         "flock_unix.go",
-        "flock_winapi.go",
-        "flock_windows.go",
     ],
     tag = "go_source",
     deps = [":_flock#download"],

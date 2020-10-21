@@ -3,9 +3,9 @@ subinclude("///pleasegomod//:build_defs")
 go_module_download(
     name = "squirrel",
     module = "github.com/Masterminds/squirrel",
-    sum = "h1:K1NhbTO21BWG47IVR0OnIZuE0LZcXAYqywrC3Ko53KI=",
+    sum = "h1:he5i/EXixZxrBUWcxzDYMiju9WZ3ld/l7QBNuo/eN3w=",
     tag = "download",
-    version = "v1.2.0",
+    version = "v1.4.0",
     visibility = ["//third_party/go/github.com/Masterminds/squirrel/..."],
 )
 
@@ -28,7 +28,6 @@ fileexport(
         "statement.go",
         "stmtcacher.go",
         "stmtcacher_ctx.go",
-        "stmtcacher_noctx.go",
         "update.go",
         "update_ctx.go",
         "where.go",

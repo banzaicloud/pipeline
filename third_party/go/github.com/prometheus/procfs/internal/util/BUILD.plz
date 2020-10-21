@@ -5,10 +5,12 @@ fileexport(
     srcs = [
         "internal/util/parse.go",
         "internal/util/readfile.go",
-        "internal/util/sysreadfile.go",
-        "internal/util/sysreadfile_compat.go",
         "internal/util/valueparser.go",
-    ],
+    ] + select({
+        "//third_party/go/__config:darwin_amd64": ["internal/util/sysreadfile_compat.go"],
+        "//third_party/go/__config:linux_amd64": ["internal/util/sysreadfile.go"],
+        "default": [],
+    }),
     tag = "go_source",
     deps = ["//third_party/go/github.com/prometheus/procfs:_procfs#download"],
 )

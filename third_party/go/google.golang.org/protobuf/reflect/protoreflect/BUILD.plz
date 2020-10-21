@@ -8,7 +8,6 @@ fileexport(
         "reflect/protoreflect/source.go",
         "reflect/protoreflect/type.go",
         "reflect/protoreflect/value.go",
-        "reflect/protoreflect/value_pure.go",
         "reflect/protoreflect/value_union.go",
         "reflect/protoreflect/value_unsafe.go",
     ],

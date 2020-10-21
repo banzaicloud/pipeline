@@ -15,7 +15,6 @@ fileexport(
         "proto/messageset.go",
         "proto/proto.go",
         "proto/proto_methods.go",
-        "proto/proto_reflect.go",
         "proto/reset.go",
         "proto/size.go",
         "proto/size_gen.go",

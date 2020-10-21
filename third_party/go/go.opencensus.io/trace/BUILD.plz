@@ -15,7 +15,6 @@ fileexport(
         "trace/status_codes.go",
         "trace/trace.go",
         "trace/trace_go11.go",
-        "trace/trace_nongo11.go",
     ],
     tag = "go_source",
     deps = ["//third_party/go/go.opencensus.io:_go.opencensus.io#download"],

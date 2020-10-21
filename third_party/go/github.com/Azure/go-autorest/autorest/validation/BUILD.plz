@@ -13,7 +13,6 @@ fileexport(
     name = "validation",
     srcs = [
         "error.go",
-        "go_mod_tidy_hack.go",
         "validation.go",
     ],
     tag = "go_source",

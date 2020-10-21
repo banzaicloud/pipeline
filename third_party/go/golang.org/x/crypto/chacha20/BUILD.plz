@@ -3,11 +3,8 @@ subinclude("///pleasegomod//:build_defs")
 fileexport(
     name = "chacha20",
     srcs = [
-        "chacha20/chacha_arm64.go",
         "chacha20/chacha_generic.go",
         "chacha20/chacha_noasm.go",
-        "chacha20/chacha_ppc64le.go",
-        "chacha20/chacha_s390x.go",
         "chacha20/xor.go",
     ],
     tag = "go_source",

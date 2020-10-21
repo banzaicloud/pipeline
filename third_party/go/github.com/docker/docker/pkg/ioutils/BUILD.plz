@@ -8,7 +8,6 @@ fileexport(
         "pkg/ioutils/fswriters.go",
         "pkg/ioutils/readers.go",
         "pkg/ioutils/temp_unix.go",
-        "pkg/ioutils/temp_windows.go",
         "pkg/ioutils/writeflusher.go",
         "pkg/ioutils/writers.go",
     ],

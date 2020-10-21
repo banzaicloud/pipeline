@@ -4,7 +4,6 @@ fileexport(
     name = "atom",
     srcs = [
         "html/atom/atom.go",
-        "html/atom/gen.go",
         "html/atom/table.go",
     ],
     tag = "go_source",

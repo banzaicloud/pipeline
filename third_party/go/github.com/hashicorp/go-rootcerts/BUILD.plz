@@ -14,9 +14,11 @@ fileexport(
     srcs = [
         "doc.go",
         "rootcerts.go",
-        "rootcerts_base.go",
-        "rootcerts_darwin.go",
-    ],
+    ] + select({
+        "//third_party/go/__config:darwin_amd64": ["rootcerts_darwin.go"],
+        "//third_party/go/__config:linux_amd64": ["rootcerts_base.go"],
+        "default": [],
+    }),
     tag = "go_source",
     deps = [":_go-rootcerts#download"],
 )
@@ -27,5 +29,9 @@ go_library(
     cover = False,
     import_path = "github.com/hashicorp/go-rootcerts",
     visibility = ["PUBLIC"],
-    deps = ["//third_party/go/github.com/mitchellh/go-homedir"],
+    deps = select({
+        "//third_party/go/__config:darwin_amd64": ["//third_party/go/github.com/mitchellh/go-homedir"],
+        "//third_party/go/__config:linux_amd64": [],
+        "default": [],
+    }),
 )

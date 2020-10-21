@@ -12,9 +12,7 @@ go_module_download(
 fileexport(
     name = "go-colorable",
     srcs = [
-        "colorable_appengine.go",
         "colorable_others.go",
-        "colorable_windows.go",
         "noncolorable.go",
     ],
     tag = "go_source",

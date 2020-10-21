@@ -6,7 +6,6 @@ fileexport(
         "pipeline/core.go",
         "pipeline/defaultlog.go",
         "pipeline/defaultlog_syslog.go",
-        "pipeline/defaultlog_windows.go",
         "pipeline/doc.go",
         "pipeline/error.go",
         "pipeline/progress.go",

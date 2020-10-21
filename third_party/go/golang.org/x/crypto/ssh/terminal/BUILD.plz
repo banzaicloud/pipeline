@@ -5,13 +5,11 @@ fileexport(
     srcs = [
         "ssh/terminal/terminal.go",
         "ssh/terminal/util.go",
-        "ssh/terminal/util_aix.go",
-        "ssh/terminal/util_bsd.go",
-        "ssh/terminal/util_linux.go",
-        "ssh/terminal/util_plan9.go",
-        "ssh/terminal/util_solaris.go",
-        "ssh/terminal/util_windows.go",
-    ],
+    ] + select({
+        "//third_party/go/__config:darwin_amd64": ["ssh/terminal/util_bsd.go"],
+        "//third_party/go/__config:linux_amd64": ["ssh/terminal/util_linux.go"],
+        "default": [],
+    }),
     tag = "go_source",
     deps = ["//third_party/go/golang.org/x/crypto:_crypto#download"],
 )

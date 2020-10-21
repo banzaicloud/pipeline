@@ -5,7 +5,6 @@ fileexport(
     srcs = [
         "cli/config/configfile/file.go",
         "cli/config/configfile/file_unix.go",
-        "cli/config/configfile/file_windows.go",
     ],
     tag = "go_source",
     deps = ["//third_party/go/github.com/docker/cli:_cli#download"],

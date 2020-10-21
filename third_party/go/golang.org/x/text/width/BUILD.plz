@@ -3,14 +3,8 @@ subinclude("///pleasegomod//:build_defs")
 fileexport(
     name = "width",
     srcs = [
-        "width/gen.go",
-        "width/gen_common.go",
-        "width/gen_trieval.go",
         "width/kind_string.go",
-        "width/tables10.0.0.go",
-        "width/tables11.0.0.go",
         "width/tables12.0.0.go",
-        "width/tables9.0.0.go",
         "width/transform.go",
         "width/trieval.go",
         "width/width.go",

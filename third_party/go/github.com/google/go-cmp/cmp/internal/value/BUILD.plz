@@ -3,7 +3,6 @@ subinclude("///pleasegomod//:build_defs")
 fileexport(
     name = "value",
     srcs = [
-        "cmp/internal/value/pointer_purego.go",
         "cmp/internal/value/pointer_unsafe.go",
         "cmp/internal/value/sort.go",
         "cmp/internal/value/zero.go",

@@ -4,7 +4,6 @@ fileexport(
     name = "oid",
     srcs = [
         "oid/doc.go",
-        "oid/gen.go",
         "oid/types.go",
     ],
     tag = "go_source",

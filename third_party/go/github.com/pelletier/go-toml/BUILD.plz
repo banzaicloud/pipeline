@@ -13,7 +13,6 @@ fileexport(
     name = "go-toml",
     srcs = [
         "doc.go",
-        "fuzz.go",
         "keysparsing.go",
         "lexer.go",
         "localtime.go",

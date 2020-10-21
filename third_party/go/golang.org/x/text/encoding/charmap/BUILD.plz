@@ -4,7 +4,6 @@ fileexport(
     name = "charmap",
     srcs = [
         "encoding/charmap/charmap.go",
-        "encoding/charmap/maketables.go",
         "encoding/charmap/tables.go",
     ],
     tag = "go_source",

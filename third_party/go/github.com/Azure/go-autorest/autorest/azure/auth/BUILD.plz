@@ -11,10 +11,7 @@ go_module_download(
 
 fileexport(
     name = "auth",
-    srcs = [
-        "auth.go",
-        "go_mod_tidy_hack.go",
-    ],
+    srcs = ["auth.go"],
     tag = "go_source",
     deps = [":_auth#download"],
 )

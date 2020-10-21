@@ -25,7 +25,6 @@ fileexport(
         "snapshot.go",
         "spec.go",
         "tag.go",
-        "tools.go",
         "value.go",
         "version.go",
     ],

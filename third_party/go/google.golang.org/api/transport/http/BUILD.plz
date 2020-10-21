@@ -2,10 +2,7 @@ subinclude("///pleasegomod//:build_defs")
 
 fileexport(
     name = "http",
-    srcs = [
-        "transport/http/dial.go",
-        "transport/http/dial_appengine.go",
-    ],
+    srcs = ["transport/http/dial.go"],
     tag = "go_source",
     deps = ["//third_party/go/google.golang.org/api:_api#download"],
 )

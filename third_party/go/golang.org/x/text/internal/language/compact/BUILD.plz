@@ -4,9 +4,6 @@ fileexport(
     name = "compact",
     srcs = [
         "internal/language/compact/compact.go",
-        "internal/language/compact/gen.go",
-        "internal/language/compact/gen_index.go",
-        "internal/language/compact/gen_parents.go",
         "internal/language/compact/language.go",
         "internal/language/compact/parents.go",
         "internal/language/compact/tables.go",

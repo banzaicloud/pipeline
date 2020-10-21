@@ -14,10 +14,8 @@ fileexport(
     srcs = [
         "decode.go",
         "decode_amd64.go",
-        "decode_other.go",
         "encode.go",
         "encode_amd64.go",
-        "encode_other.go",
         "snappy.go",
     ],
     tag = "go_source",

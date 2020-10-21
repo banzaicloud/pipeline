@@ -13,7 +13,6 @@ fileexport(
     name = "date",
     srcs = [
         "date.go",
-        "go_mod_tidy_hack.go",
         "time.go",
         "timerfc1123.go",
         "unixtime.go",

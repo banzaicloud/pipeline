@@ -13,7 +13,6 @@ fileexport(
     name = "securecookie",
     srcs = [
         "doc.go",
-        "fuzz.go",
         "securecookie.go",
     ],
     tag = "go_source",

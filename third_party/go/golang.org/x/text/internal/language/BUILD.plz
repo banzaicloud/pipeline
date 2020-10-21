@@ -7,8 +7,6 @@ fileexport(
         "internal/language/compact.go",
         "internal/language/compose.go",
         "internal/language/coverage.go",
-        "internal/language/gen.go",
-        "internal/language/gen_common.go",
         "internal/language/language.go",
         "internal/language/lookup.go",
         "internal/language/match.go",

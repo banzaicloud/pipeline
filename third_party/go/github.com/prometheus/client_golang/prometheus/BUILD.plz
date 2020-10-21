@@ -4,7 +4,6 @@ fileexport(
     name = "prometheus",
     srcs = [
         "prometheus/build_info.go",
-        "prometheus/build_info_pre_1.12.go",
         "prometheus/collector.go",
         "prometheus/counter.go",
         "prometheus/desc.go",
@@ -19,7 +18,6 @@ fileexport(
         "prometheus/observer.go",
         "prometheus/process_collector.go",
         "prometheus/process_collector_other.go",
-        "prometheus/process_collector_windows.go",
         "prometheus/registry.go",
         "prometheus/summary.go",
         "prometheus/timer.go",

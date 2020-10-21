@@ -15,8 +15,6 @@ fileexport(
         "afero.go",
         "basepath.go",
         "cacheOnReadFs.go",
-        "const_bsds.go",
-        "const_win_unix.go",
         "copyOnWriteFs.go",
         "httpFs.go",
         "ioutil.go",
@@ -29,7 +27,11 @@ fileexport(
         "regexpfs.go",
         "unionFile.go",
         "util.go",
-    ],
+    ] + select({
+        "//third_party/go/__config:darwin_amd64": ["const_bsds.go"],
+        "//third_party/go/__config:linux_amd64": ["const_win_unix.go"],
+        "default": [],
+    }),
     tag = "go_source",
     deps = [":_afero#download"],
 )

@@ -4,7 +4,6 @@ fileexport(
     name = "flags",
     srcs = [
         "cmp/internal/flags/flags.go",
-        "cmp/internal/flags/toolchain_legacy.go",
         "cmp/internal/flags/toolchain_recent.go",
     ],
     tag = "go_source",

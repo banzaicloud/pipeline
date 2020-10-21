@@ -4,29 +4,43 @@ fileexport(
     name = "sys",
     srcs = [
         "sys/env.go",
-        "sys/epoll.go",
-        "sys/fds.go",
+        "sys/filesys.go",
         "sys/filesys_unix.go",
-        "sys/filesys_windows.go",
-        "sys/mount_linux.go",
         "sys/oom_unix.go",
-        "sys/oom_windows.go",
-        "sys/proc.go",
         "sys/reaper.go",
-        "sys/reaper_linux.go",
         "sys/socket_unix.go",
-        "sys/socket_windows.go",
-        "sys/stat_bsd.go",
-        "sys/stat_unix.go",
-        "sys/subprocess_unsafe_linux.go",
-    ],
+    ] + select({
+        "//third_party/go/__config:darwin_amd64": ["sys/stat_bsd.go"],
+        "//third_party/go/__config:linux_amd64": [
+            "sys/epoll.go",
+            "sys/fds.go",
+            "sys/mount_linux.go",
+            "sys/proc.go",
+            "sys/reaper_linux.go",
+            "sys/stat_unix.go",
+            "sys/subprocess_unsafe_linux.go",
+        ],
+        "default": [],
+    }),
     tag = "go_source",
+    deps = ["//third_party/go/github.com/containerd/containerd:_containerd#download"],
+)
+
+fileexport(
+    name = "sys",
+    srcs = select({
+        "//third_party/go/__config:darwin_amd64": [],
+        "//third_party/go/__config:linux_amd64": ["sys/subprocess_unsafe_linux.s"],
+        "default": [],
+    }),
+    tag = "s_source",
     deps = ["//third_party/go/github.com/containerd/containerd:_containerd#download"],
 )
 
 go_library(
     name = "sys",
     srcs = [":_sys#go_source"],
+    asm_srcs = [":_sys#s_source"],
     cover = False,
     import_path = "github.com/containerd/containerd/sys",
     visibility = ["PUBLIC"],
@@ -34,5 +48,9 @@ go_library(
         "//third_party/go/github.com/opencontainers/runc/libcontainer/system",
         "//third_party/go/github.com/pkg/errors",
         "//third_party/go/golang.org/x/sys/unix",
-    ],
+    ] + select({
+        "//third_party/go/__config:darwin_amd64": [],
+        "//third_party/go/__config:linux_amd64": ["//third_party/go/github.com/containerd/containerd/log"],
+        "default": [],
+    }),
 )

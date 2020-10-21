@@ -17,7 +17,6 @@ fileexport(
         "doc.go",
         "encode.go",
         "encoding_types.go",
-        "encoding_types_1.1.go",
         "lex.go",
         "parse.go",
         "type_check.go",

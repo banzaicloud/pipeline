@@ -13,10 +13,7 @@ fileexport(
     name = "go-runewidth",
     srcs = [
         "runewidth.go",
-        "runewidth_appengine.go",
-        "runewidth_js.go",
         "runewidth_posix.go",
-        "runewidth_windows.go",
     ],
     tag = "go_source",
     deps = [":_go-runewidth#download"],

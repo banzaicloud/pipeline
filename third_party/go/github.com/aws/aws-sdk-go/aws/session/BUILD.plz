@@ -4,8 +4,6 @@ fileexport(
     name = "session",
     srcs = [
         "aws/session/cabundle_transport.go",
-        "aws/session/cabundle_transport_1_5.go",
-        "aws/session/cabundle_transport_1_6.go",
         "aws/session/credentials.go",
         "aws/session/doc.go",
         "aws/session/env_config.go",

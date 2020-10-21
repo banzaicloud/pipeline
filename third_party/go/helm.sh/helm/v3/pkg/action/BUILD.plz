@@ -76,7 +76,6 @@ go_library(
         "//third_party/go/k8s.io/apimachinery/pkg/apis/meta/v1",
         "//third_party/go/k8s.io/apimachinery/pkg/runtime",
         "//third_party/go/k8s.io/apimachinery/pkg/types",
-        "//third_party/go/k8s.io/apimachinery/pkg/util/errors",
         "//third_party/go/k8s.io/apimachinery/pkg/watch",
         "//third_party/go/k8s.io/cli-runtime/pkg/genericclioptions",
         "//third_party/go/k8s.io/cli-runtime/pkg/resource",

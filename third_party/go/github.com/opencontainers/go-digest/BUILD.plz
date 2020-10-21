@@ -3,9 +3,9 @@ subinclude("///pleasegomod//:build_defs")
 go_module_download(
     name = "go-digest",
     module = "github.com/opencontainers/go-digest",
-    sum = "h1:WzifXhOVOEOuFYOJAW6aQqW0TooG2iki3E3Ii+WN7gQ=",
+    sum = "",
     tag = "download",
-    version = "v1.0.0-rc1",
+    version = "v1.0.0",
     visibility = ["//third_party/go/github.com/opencontainers/go-digest/..."],
 )
 

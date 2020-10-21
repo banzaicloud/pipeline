@@ -8,7 +8,6 @@ fileexport(
         "platforms/database.go",
         "platforms/defaults.go",
         "platforms/defaults_unix.go",
-        "platforms/defaults_windows.go",
         "platforms/platforms.go",
     ],
     tag = "go_source",

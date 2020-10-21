@@ -5,7 +5,6 @@ fileexport(
     srcs = [
         "internal/sdkrand/locked_source.go",
         "internal/sdkrand/read.go",
-        "internal/sdkrand/read_1_5.go",
     ],
     tag = "go_source",
     deps = ["//third_party/go/github.com/aws/aws-sdk-go:_aws-sdk-go#download"],
