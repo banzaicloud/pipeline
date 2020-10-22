@@ -319,7 +319,7 @@ dex:
 #        namespace: ""
 #
 #        ark:
-#            syncEnabled: true
+#            syncEnabled: true ̰
 #            bucketSyncInterval: "10m"
 #            restoreSyncInterval: "20s"
 #            backupSyncInterval: "20s"
@@ -330,7 +330,7 @@ dex:
 #                chart: "banzaicloud-stable/ark"
 #                version: "1.2.2"
 #
-#                # See https://github.com/banzaicloud/banzai-charts/tree/master/ark for details
+#                # See https://github.com/banzaicloud/velero-helm-chart for details
 #                values: {}
 #
 #    backyards:

@@ -205,7 +205,7 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 
 	if bsp.Provider == google.BackupStorageProvider || vsl.Provider == google.PersistentVolumeProvider {
 		pluginImage := fmt.Sprintf("%s/%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.GcpPluginImage.Repository,
-			global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AwsPluginImage.Tag)
+			global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.GcpPluginImage.Tag)
 
 		initContainers = append(initContainers, v1.Container{
 			Name:            "velero-plugin-for-gcp",
@@ -222,7 +222,7 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 
 	if bsp.Provider == azure.BackupStorageProvider || vsl.Provider == azure.PersistentVolumeProvider {
 		pluginImage := fmt.Sprintf("%s/%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AzurePluginImage.Repository,
-			global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AwsPluginImage.Tag)
+			global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AzurePluginImage.Tag)
 
 		initContainers = append(initContainers, v1.Container{
 			Name:            "velero-plugin-for-azure",
