@@ -1,5 +1,8 @@
 filegroup(
     name = "testdata",
-    srcs = glob(["*.example", "*.golden"]),
+    srcs = glob([
+        "*.example",
+        "*.golden",
+    ]),
     visibility = ["PUBLIC"],
 )

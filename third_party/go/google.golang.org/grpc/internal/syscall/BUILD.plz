@@ -13,11 +13,11 @@ fileexport(
 
 if select_config([
     {
-        "os": "linux",
+        "os": "darwin",
         "cpu": "amd64",
     },
     {
-        "os": "darwin",
+        "os": "linux",
         "cpu": "amd64",
     },
 ]):
