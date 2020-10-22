@@ -26,6 +26,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	pkgcadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	sdkamazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
@@ -45,8 +46,8 @@ func TestDeleteNodePoolWorkflowTestSuite(t *testing.T) {
 func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) SetupTest() {
 	workflowTestSuite.environment = workflowTestSuite.NewTestWorkflowEnvironment()
 
-	deleteNodePoolLabelSetActivity := NewDeleteNodePoolLabelSetActivity(nil, "")
-	workflowTestSuite.environment.RegisterActivityWithOptions(deleteNodePoolLabelSetActivity.Execute, activity.RegisterOptions{Name: DeleteNodePoolLabelSetActivityName})
+	deleteNodePoolLabelSetActivity := clusterworkflow.NewDeleteNodePoolLabelSetActivity(nil, "")
+	workflowTestSuite.environment.RegisterActivityWithOptions(deleteNodePoolLabelSetActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.DeleteNodePoolLabelSetActivityName})
 
 	deleteStackActivity := NewDeleteStackActivity(nil)
 	workflowTestSuite.environment.RegisterActivityWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: DeleteStackActivityName})
@@ -103,9 +104,9 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 			mockErrors[DeleteStoredNodePoolActivityName] != nil {
 			mocks = append(mocks, SetClusterStatusActivityName)
 		}
-		mocks = append(mocks, DeleteNodePoolLabelSetActivityName)
+		mocks = append(mocks, clusterworkflow.DeleteNodePoolLabelSetActivityName)
 		if input.input.ShouldUpdateClusterStatus &&
-			mockErrors[DeleteNodePoolLabelSetActivityName] != nil {
+			mockErrors[clusterworkflow.DeleteNodePoolLabelSetActivityName] != nil {
 			mocks = append(mocks, SetClusterStatusActivityName)
 		}
 		if input.input.ShouldUpdateClusterStatus { // Note: final cluster status setting.
@@ -119,8 +120,8 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 		previousMockCounts := make(map[string]int, len(mocks))
 		for mockIndex, mockID := range mocks {
 			switch mockID {
-			case DeleteNodePoolLabelSetActivityName:
-				activityInput := DeleteNodePoolLabelSetActivityInput{
+			case clusterworkflow.DeleteNodePoolLabelSetActivityName:
+				activityInput := clusterworkflow.DeleteNodePoolLabelSetActivityInput{
 					ClusterID:    input.input.ClusterID,
 					NodePoolName: input.input.NodePoolName,
 				}
@@ -373,7 +374,7 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				StackID: "stack-id",
 			},
 			mockErrors: map[string]error{
-				DeleteNodePoolLabelSetActivityName: errors.New(
+				clusterworkflow.DeleteNodePoolLabelSetActivityName: errors.New(
 					"test error: DeleteNodePoolLabelSetActivityInput",
 				),
 			},
@@ -391,7 +392,7 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				StackID: "stack-id",
 			},
 			mockErrors: map[string]error{
-				DeleteNodePoolLabelSetActivityName: errors.New(
+				clusterworkflow.DeleteNodePoolLabelSetActivityName: errors.New(
 					"test error: DeleteNodePoolLabelSetActivityInput",
 				),
 			},

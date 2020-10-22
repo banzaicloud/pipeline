@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package workflow
+package clusterworkflow
 
 import (
 	"context"
@@ -21,7 +21,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
 )
 
-const DeleteNodePoolLabelSetActivityName = "eks-delete-node-pool-label-set"
+const DeleteNodePoolLabelSetActivityName = "delete-node-pool-label-set"
 
 type DeleteNodePoolLabelSetActivity struct {
 	dynamicClientFactory DynamicClientFactory
