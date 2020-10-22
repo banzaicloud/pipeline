@@ -57,16 +57,19 @@ func (a *UserAPI) GetCurrentUser(c *gin.Context) {
 		return
 	}
 
-	err := a.db.Find(user).Error
-	if err != nil {
-		message := "failed to fetch user"
-		a.errorHandler.Handle(errors.WrapIf(err, message))
-		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: message,
-			Error:   message,
-		})
-		return
+	// virtual users are not persisted to db
+	if user.ID != 0 {
+		err := a.db.Find(user).Error
+		if err != nil {
+			message := "failed to fetch user"
+			a.errorHandler.Handle(errors.WrapIf(err, message))
+			c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: message,
+				Error:   message,
+			})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, user)
