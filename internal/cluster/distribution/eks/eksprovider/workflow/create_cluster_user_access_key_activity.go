@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
@@ -34,7 +35,7 @@ const CreateClusterUserAccessKeyActivityName = "eks-create-cluster-user-access-k
 // CreateClusterUserAccessKeyActivity responsible for creating IAM user access key for the cluster user
 // and storing the access in secret store
 type CreateClusterUserAccessKeyActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awsworkflow.AWSSessionFactory
 }
 
 // CreateClusterUserAccessKeyActivityInput holds data needed for setting up IAM user access key for the cluster user
@@ -51,7 +52,7 @@ type CreateClusterUserAccessKeyActivityOutput struct {
 }
 
 // NewCreateClusterUserAccessKeyActivity instantiates a CreateClusterUserAccessKeyActivity
-func NewCreateClusterUserAccessKeyActivity(awsSessionFactory *AWSSessionFactory) *CreateClusterUserAccessKeyActivity {
+func NewCreateClusterUserAccessKeyActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *CreateClusterUserAccessKeyActivity {
 	return &CreateClusterUserAccessKeyActivity{
 		awsSessionFactory: awsSessionFactory,
 	}

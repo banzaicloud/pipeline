@@ -22,13 +22,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
 
 const GetVpcConfigActivityName = "eks-get-vpc-cfg"
 
 // GetVpcConfigActivity responsible for creating IAM roles
 type GetVpcConfigActivity struct {
-	awsSessionFactory AWSFactory
+	awsSessionFactory awsworkflow.AWSFactory
 }
 
 // GetVpcConfigActivityInput holds data needed for setting up IAM roles
@@ -47,7 +49,7 @@ type GetVpcConfigActivityOutput struct {
 }
 
 // GetVpcConfigActivity instantiates a new GetVpcConfigActivity
-func NewGetVpcConfigActivity(awsSessionFactory AWSFactory) *GetVpcConfigActivity {
+func NewGetVpcConfigActivity(awsSessionFactory awsworkflow.AWSFactory) *GetVpcConfigActivity {
 	return &GetVpcConfigActivity{
 		awsSessionFactory: awsSessionFactory,
 	}

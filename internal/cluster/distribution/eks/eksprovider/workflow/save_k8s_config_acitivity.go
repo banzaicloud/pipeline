@@ -26,6 +26,7 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/zap"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/utils"
@@ -45,11 +46,11 @@ type SaveK8sConfigActivityInput struct {
 }
 
 type SaveK8sConfigActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awsworkflow.AWSSessionFactory
 	manager           Clusters
 }
 
-func NewSaveK8sConfigActivity(awsSessionFactory *AWSSessionFactory, manager Clusters) SaveK8sConfigActivity {
+func NewSaveK8sConfigActivity(awsSessionFactory *awsworkflow.AWSSessionFactory, manager Clusters) SaveK8sConfigActivity {
 	return SaveK8sConfigActivity{
 		awsSessionFactory: awsSessionFactory,
 		manager:           manager,

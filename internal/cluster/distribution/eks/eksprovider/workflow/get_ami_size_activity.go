@@ -20,6 +20,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
 
 const (
@@ -27,7 +29,7 @@ const (
 )
 
 type GetAMISizeActivity struct {
-	awsFactory AWSFactory
+	awsFactory awsworkflow.AWSFactory
 	ec2Factory EC2APIFactory
 }
 
@@ -40,7 +42,7 @@ type GetAMISizeActivityOutput struct {
 	AMISize int
 }
 
-func NewGetAMISizeActivity(awsFactory AWSFactory, ec2Factory EC2APIFactory) *GetAMISizeActivity {
+func NewGetAMISizeActivity(awsFactory awsworkflow.AWSFactory, ec2Factory EC2APIFactory) *GetAMISizeActivity {
 	return &GetAMISizeActivity{
 		awsFactory: awsFactory,
 		ec2Factory: ec2Factory,

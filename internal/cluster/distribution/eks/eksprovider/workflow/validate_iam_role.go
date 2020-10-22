@@ -20,13 +20,15 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
+
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
 
 const ValidateIAMRoleActivityName = "eks-validate-iam-role"
 
 //  ValidateIAMRoleActivity responsible for validating IAM role
 type ValidateIAMRoleActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awsworkflow.AWSSessionFactory
 }
 
 //  ValidateIAMRoleActivityInput holds data needed to validate IAM Role
@@ -41,7 +43,7 @@ type ValidateIAMRoleActivityOutput struct {
 }
 
 //  NewValidateIAMRoleActivity instantiates a new  ValidateIAMRoleActivity
-func NewValidateIAMRoleActivity(awsSessionFactory *AWSSessionFactory) *ValidateIAMRoleActivity {
+func NewValidateIAMRoleActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *ValidateIAMRoleActivity {
 	return &ValidateIAMRoleActivity{
 		awsSessionFactory: awsSessionFactory,
 	}

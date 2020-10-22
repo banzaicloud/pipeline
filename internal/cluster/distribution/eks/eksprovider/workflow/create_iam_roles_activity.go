@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/iam"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
@@ -30,7 +31,7 @@ const CreateIamRolesActivityName = "eks-create-iam-roles"
 
 // CreateIamRolesActivity responsible for creating IAM roles
 type CreateIamRolesActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awsworkflow.AWSSessionFactory
 	// body of the cloud formation template for setting up the VPC
 	cloudFormationTemplate string
 }
@@ -57,7 +58,7 @@ type CreateIamRolesActivityOutput struct {
 }
 
 // CreateIamRolesActivity instantiates a new CreateIamRolesActivity
-func NewCreateIamRolesActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *CreateIamRolesActivity {
+func NewCreateIamRolesActivity(awsSessionFactory *awsworkflow.AWSSessionFactory, cloudFormationTemplate string) *CreateIamRolesActivity {
 	return &CreateIamRolesActivity{
 		awsSessionFactory:      awsSessionFactory,
 		cloudFormationTemplate: cloudFormationTemplate,

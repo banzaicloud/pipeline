@@ -30,6 +30,7 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkCloudformation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
@@ -41,7 +42,7 @@ const awsNoUpdatesError = "No updates are to be performed."
 
 // UpdateAsgActivity responsible for creating IAM roles
 type UpdateAsgActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awsworkflow.AWSSessionFactory
 	// body of the cloud formation template for setting up the VPC
 	cloudFormationTemplate     string
 	asgFulfillmentWaitAttempts int
@@ -74,7 +75,7 @@ type UpdateAsgActivityOutput struct {
 }
 
 // UpdateAsgActivity instantiates a new UpdateAsgActivity
-func NewUpdateAsgActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *UpdateAsgActivity {
+func NewUpdateAsgActivity(awsSessionFactory *awsworkflow.AWSSessionFactory, cloudFormationTemplate string) *UpdateAsgActivity {
 	return &UpdateAsgActivity{
 		awsSessionFactory:          awsSessionFactory,
 		cloudFormationTemplate:     cloudFormationTemplate,
