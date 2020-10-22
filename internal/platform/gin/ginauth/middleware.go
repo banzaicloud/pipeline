@@ -17,6 +17,7 @@ package ginauth
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"emperror.dev/emperror"
@@ -28,7 +29,7 @@ import (
 
 // Enforcer checks if the current user has access to the organization resource under path with method
 type Enforcer interface {
-	Enforce(org *auth.Organization, user *auth.User, path, method string) (bool, error)
+	Enforce(org *auth.Organization, user *auth.User, path, method string, query url.Values) (bool, error)
 }
 
 // NewMiddleware returns a new gin middleware that checks user authorization.
@@ -65,6 +66,7 @@ func (m *middleware) CheckPermission(r *http.Request) (bool, error) {
 	user := auth.GetCurrentUser(r)
 	method := r.Method
 	path := r.URL.Path
+	query := r.URL.Query()
 
 	if user == nil {
 		return false, nil
@@ -74,7 +76,7 @@ func (m *middleware) CheckPermission(r *http.Request) (bool, error) {
 		path = strings.TrimPrefix(path, m.basePath)
 	}
 
-	granted, err := m.enforcer.Enforce(org, user, path, method)
+	granted, err := m.enforcer.Enforce(org, user, path, method, query)
 
 	return granted, err
 }

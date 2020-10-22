@@ -15,6 +15,7 @@
 package auth
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,7 +28,7 @@ import (
 func TestRbacEnforcer_Enforce_NoOrgIsAllowed(t *testing.T) {
 	enforcer := NewRbacEnforcer(nil, NewServiceAccountService(), common.NoopLogger{})
 
-	ok, err := enforcer.Enforce(nil, &User{}, "/", "GET")
+	ok, err := enforcer.Enforce(nil, &User{}, "/", "GET", nil)
 	require.NoError(t, err)
 
 	assert.True(t, ok)
@@ -36,7 +37,7 @@ func TestRbacEnforcer_Enforce_NoOrgIsAllowed(t *testing.T) {
 func TestRbacEnforcer_Enforce_NoUserIsNotAllowed(t *testing.T) {
 	enforcer := NewRbacEnforcer(nil, NewServiceAccountService(), common.NoopLogger{})
 
-	ok, err := enforcer.Enforce(&Organization{}, nil, "/", "GET")
+	ok, err := enforcer.Enforce(&Organization{}, nil, "/", "GET", nil)
 	require.NoError(t, err)
 
 	assert.False(t, ok)
@@ -51,15 +52,52 @@ func TestRbacEnforcer_Enforce_VirtualUser(t *testing.T) {
 	tests := []struct {
 		organization Organization
 		user         User
-		expected     bool
+		path         string
+		query        url.Values
 	}{
 		{
 			organization: org,
 			user: User{
 				ID:    0,
-				Login: "clusters/1",
+				Login: "clusters/1/2",
 			},
-			expected: true,
+			path: "/api/v1/orgs/1/clusters/2/pke/status",
+		},
+		{
+			organization: org,
+			user: User{
+				ID:    0,
+				Login: "clusters/1/2",
+			},
+			path: "/api/v1/orgs/1/clusters/2/pke/ready",
+		},
+		{
+			organization: org,
+			user: User{
+				ID:    0,
+				Login: "clusters/1/2",
+			},
+			path: "/api/v1/orgs/1/clusters/2/pke/leader",
+		},
+		{
+			organization: org,
+			user: User{
+				ID:    0,
+				Login: "clusters/1/2",
+			},
+			path: "/api/v1/orgs/1/clusters/2/bootstrap",
+		},
+		{
+			organization: org,
+			user: User{
+				ID:    0,
+				Login: "clusters/1/2",
+			},
+			path: "/api/v1/orgs/1/secrets",
+			query: url.Values{
+				"tags": []string{"clusterID:2"},
+				"type": []string{"pkecert"},
+			},
 		},
 		{
 			organization: org,
@@ -67,7 +105,6 @@ func TestRbacEnforcer_Enforce_VirtualUser(t *testing.T) {
 				ID:    0,
 				Login: "example",
 			},
-			expected: true,
 		},
 		{
 			organization: org,
@@ -76,7 +113,6 @@ func TestRbacEnforcer_Enforce_VirtualUser(t *testing.T) {
 				Login:          "pipeline",
 				ServiceAccount: true,
 			},
-			expected: true,
 		},
 	}
 
@@ -86,7 +122,7 @@ func TestRbacEnforcer_Enforce_VirtualUser(t *testing.T) {
 		t.Run("", func(t *testing.T) {
 			enforcer := NewRbacEnforcer(nil, NewServiceAccountService(), common.NoopLogger{})
 
-			ok, err := enforcer.Enforce(&test.organization, &test.user, "/", "GET")
+			ok, err := enforcer.Enforce(&test.organization, &test.user, test.path, "GET", test.query)
 			require.NoError(t, err)
 
 			assert.True(t, ok)
@@ -103,13 +139,15 @@ func TestRbacEnforcer_Enforce_VirtualUser_Invalid(t *testing.T) {
 	tests := []struct {
 		organization Organization
 		user         User
+		path         string
 		error        bool
+		query        url.Values
 	}{
 		{
 			organization: org,
 			user: User{
 				ID:    0,
-				Login: "clusters/",
+				Login: "clusters/1",
 			},
 			error: false,
 		},
@@ -117,7 +155,99 @@ func TestRbacEnforcer_Enforce_VirtualUser_Invalid(t *testing.T) {
 			organization: org,
 			user: User{
 				ID:    0,
-				Login: "clusters/example",
+				Login: "clusters/1/2",
+			},
+			path:  "/api/v1/orgs/1/clusters/3/pke/status",
+			error: false,
+		},
+		{
+			organization: org,
+			user: User{
+				ID:    0,
+				Login: "clusters/1/2",
+			},
+			path:  "/api/v1/orgs/1/clusters/2/pke/somethingwild",
+			error: false,
+		},
+		{
+			organization: org,
+			user: User{
+				ID:    0,
+				Login: "clusters/1/2",
+			},
+			path:  "/api/v1/orgs/1/clusters/2",
+			error: false,
+		},
+		{
+			organization: org,
+			user: User{
+				ID:    0,
+				Login: "clusters/1/2",
+			},
+			path:  "/api/v1/orgs/1/clusters/2/config",
+			error: false,
+		},
+		{
+			organization: org,
+			user: User{
+				ID:    0,
+				Login: "clusters/1/2",
+			},
+			path:  "/api/v1/orgs/1",
+			error: false,
+		},
+		{
+			organization: org,
+			user: User{
+				ID:    0,
+				Login: "clusters/1/2",
+			},
+			path:  "/api/v1/orgs/1/secrets",
+			error: false,
+		},
+		{
+			organization: org,
+			user: User{
+				ID:    0,
+				Login: "clusters/1/2",
+			},
+			path: "/api/v1/orgs/1/secrets",
+			query: url.Values{
+				"tags": []string{"clusterID:2"},
+			},
+			error: false,
+		},
+		{
+			organization: org,
+			user: User{
+				ID:    0,
+				Login: "clusters/1/2",
+			},
+			path: "/api/v1/orgs/1/secrets",
+			query: url.Values{
+				"tags": []string{"clusterID:2"},
+				"type": []string{"config"},
+			},
+			error: false,
+		},
+		{
+			organization: org,
+			user: User{
+				ID:    0,
+				Login: "clusters/1/2",
+			},
+			path: "/api/v1/orgs/1/secrets",
+			query: url.Values{
+				"tags:": []string{"clusterID:3"},
+				"type":  []string{"pkecert"},
+			},
+			error: false,
+		},
+		{
+			organization: org,
+			user: User{
+				ID:    0,
+				Login: "clusters/example/2",
 			},
 			error: true,
 		},
@@ -126,10 +256,10 @@ func TestRbacEnforcer_Enforce_VirtualUser_Invalid(t *testing.T) {
 	for _, test := range tests {
 		test := test
 
-		t.Run("", func(t *testing.T) {
+		t.Run(test.user.Login, func(t *testing.T) {
 			enforcer := NewRbacEnforcer(nil, NewServiceAccountService(), common.NoopLogger{})
 
-			ok, err := enforcer.Enforce(&test.organization, &test.user, "/", "GET")
+			ok, err := enforcer.Enforce(&test.organization, &test.user, test.path, "GET", test.query)
 			if test.error {
 				require.Error(t, err)
 			}
@@ -155,7 +285,7 @@ func TestRbacEnforcer_Enforce_NotAMember(t *testing.T) {
 
 	enforcer := NewRbacEnforcer(roleSource, NewServiceAccountService(), common.NoopLogger{})
 
-	ok, err := enforcer.Enforce(&org, &user, "/", "GET")
+	ok, err := enforcer.Enforce(&org, &user, "/", "GET", nil)
 	require.NoError(t, err)
 
 	assert.False(t, ok)
@@ -255,7 +385,7 @@ func TestRbacEnforcer_Enforce(t *testing.T) {
 
 			enforcer := NewRbacEnforcer(roleSource, NewServiceAccountService(), common.NoopLogger{})
 
-			ok, err := enforcer.Enforce(&org, &user, test.path, test.method)
+			ok, err := enforcer.Enforce(&org, &user, test.path, test.method, nil)
 			require.NoError(t, err)
 
 			assert.Equal(t, test.expected, ok)

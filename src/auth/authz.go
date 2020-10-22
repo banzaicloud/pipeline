@@ -16,7 +16,9 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -52,7 +54,7 @@ func NewRbacEnforcer(roleSource RoleSource, serviceAccountService ServiceAccount
 }
 
 // Enforce makes authorization decisions.
-func (e RbacEnforcer) Enforce(org *Organization, user *User, path, method string) (bool, error) {
+func (e RbacEnforcer) Enforce(org *Organization, user *User, path, method string, query url.Values) (bool, error) {
 	// Non-organizational resources are always allowed.
 	// TODO: this shouldn't be decided here, remove it!
 	if org == nil {
@@ -78,16 +80,41 @@ func (e RbacEnforcer) Enforce(org *Organization, user *User, path, method string
 
 		if strings.HasPrefix(user.Login, "clusters/") {
 			segments := strings.Split(user.Login, "/")
-			if len(segments) < 2 {
+			if len(segments) < 3 {
 				return false, nil
 			}
 
 			orgID, err := strconv.Atoi(segments[1])
 			if err != nil {
-				return false, errors.WrapIf(err, "failed to parse user token")
+				return false, errors.WrapIf(err, "failed to parse orgID from cluster token")
 			}
 
-			return org.ID == uint(orgID), nil
+			clusterID, err := strconv.Atoi(segments[2])
+			if err != nil {
+				return false, errors.WrapIf(err, "failed to parse clusterID from cluster token")
+			}
+
+			// do a shortcut
+			if uint(orgID) != org.ID {
+				return false, nil
+			}
+
+			// PKE cluster tokens have limited privileges for some PKE calls
+			if ok, _ := regexp.MatchString(fmt.Sprintf(`^/api/v1/orgs/%d/clusters/%d/pke/(status|leader|ready)$`, orgID, clusterID), path); ok {
+				return true, nil
+			}
+
+			if ok, _ := regexp.MatchString(fmt.Sprintf(`^/api/v1/orgs/%d/clusters/%d/bootstrap$`, orgID, clusterID), path); ok {
+				return true, nil
+			}
+
+			if ok, _ := regexp.MatchString(fmt.Sprintf(`^/api/v1/orgs/%d/secrets$`, orgID), path); ok && query != nil {
+				if query.Get("tags") == fmt.Sprintf("clusterID:%d", clusterID) && query.Get("type") == "pkecert" {
+					return true, nil
+				}
+			}
+
+			return false, nil
 		}
 
 		orgName := GetOrgNameFromVirtualUser(user.Login)
@@ -119,12 +146,12 @@ func (e RbacEnforcer) Enforce(org *Organization, user *User, path, method string
 	case RoleMember:
 		// Members can only read organization resources
 		if ok, err := regexp.MatchString(`^/api/v1/orgs(?:/.*)?$`, path); err != nil || (ok && method != http.MethodGet && method != http.MethodHead) {
-			return false, nil
+			return false, errors.WithStackIf(err)
 		}
 
 		// Members cannot download admin kube config
 		if ok, err := regexp.MatchString(`^/api/v1/orgs/\d+/clusters/[^/]+/config$`, path); err != nil || ok {
-			return false, nil
+			return false, errors.WithStackIf(err)
 		}
 
 		// Members cannot access secrets at all

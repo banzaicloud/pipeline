@@ -18,6 +18,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"emperror.dev/emperror"
@@ -37,7 +38,7 @@ type enforcerStub struct {
 	}
 }
 
-func (e *enforcerStub) Enforce(org *auth.Organization, user *auth.User, path, method string) (bool, error) {
+func (e *enforcerStub) Enforce(org *auth.Organization, user *auth.User, path, method string, query url.Values) (bool, error) {
 	for _, rule := range e.rules {
 		userID := user.IDString()
 		if user.ID == 0 {
