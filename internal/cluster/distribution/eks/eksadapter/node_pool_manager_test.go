@@ -33,6 +33,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 )
 
@@ -154,7 +155,7 @@ func TestListNodePools(t *testing.T) {
 		}
 
 		awsSession := &session.Session{}
-		cloudFormationAPIClient := &workflow.MockcloudFormationAPI{}
+		cloudFormationAPIClient := &awsworkflow.MockcloudFormationAPI{}
 		dynamicInterfaceMock := &cluster.MockdynamicInterface{}
 		dynamicResourceInterfaceMock := &cluster.MockdynamicNamespaceableResourceInterface{}
 
@@ -203,7 +204,7 @@ func TestListNodePools(t *testing.T) {
 		for _, mockID := range mocks {
 			switch mockID {
 			case "AWSFactory.New":
-				mock := input.manager.awsFactory.(*workflow.MockAWSFactory).Mock.
+				mock := input.manager.awsFactory.(*awsworkflow.MockAWSFactory).Mock.
 					On("New", input.cluster.OrganizationID, input.cluster.SecretID.ResourceID, input.cluster.Location)
 
 				err := mockErrors[mockID]
@@ -232,7 +233,7 @@ func TestListNodePools(t *testing.T) {
 					}
 				}
 			case "CloudFormationFactory.New":
-				input.manager.cloudFormationFactory.(*workflow.MockCloudFormationAPIFactory).Mock.
+				input.manager.cloudFormationFactory.(*awsworkflow.MockCloudFormationAPIFactory).Mock.
 					On("New", awsSession).
 					Return(cloudFormationAPIClient).Once()
 			case "DynamicClientFactory.FromSecret":
@@ -294,8 +295,8 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awsworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awsworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
 			},
@@ -309,8 +310,8 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awsworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awsworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
 			},
@@ -331,8 +332,8 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awsworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awsworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
 			},
@@ -353,8 +354,8 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awsworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awsworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
 			},
@@ -379,8 +380,8 @@ func TestListNodePools(t *testing.T) {
 					ConfigSecretID: brn.New(1, "secret", "config-secret-id"),
 				},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awsworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awsworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
 				nodePools: map[string]eks.ExistingNodePool{
@@ -417,8 +418,8 @@ func TestListNodePools(t *testing.T) {
 					ConfigSecretID: brn.New(1, "secret", "config-secret-id"),
 				},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awsworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awsworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
 				nodePools: map[string]eks.ExistingNodePool{
@@ -449,8 +450,8 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awsworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awsworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
 				nodePools: map[string]eks.ExistingNodePool{
@@ -481,8 +482,8 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awsworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awsworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
 				nodePools: map[string]eks.ExistingNodePool{
@@ -515,8 +516,8 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awsworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awsworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
 				nodePools: map[string]eks.ExistingNodePool{
@@ -554,8 +555,8 @@ func TestListNodePools(t *testing.T) {
 			input: inputType{
 				cluster: cluster.Cluster{ConfigSecretID: brn.New(1, "secret", "config-secret-id")},
 				manager: nodePoolManager{
-					awsFactory:            &workflow.MockAWSFactory{},
-					cloudFormationFactory: &workflow.MockCloudFormationAPIFactory{},
+					awsFactory:            &awsworkflow.MockAWSFactory{},
+					cloudFormationFactory: &awsworkflow.MockCloudFormationAPIFactory{},
 					dynamicClientFactory:  &cluster.MockDynamicKubeClientFactory{},
 				},
 				nodePools: map[string]eks.ExistingNodePool{
