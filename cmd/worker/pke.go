@@ -45,17 +45,6 @@ func registerPKEWorkflows(
 	workflow.NewDeleteNodePoolWorkflow().Register()
 
 	// node pool delete helper activities
-	deleteNodePoolLabelSetActivity := workflow.NewDeleteNodePoolLabelSetActivity(
-		clusterDynamicClientFactory,
-		config.Cluster.Labels.Namespace,
-	)
-	activity.RegisterWithOptions(
-		deleteNodePoolLabelSetActivity.Execute,
-		activity.RegisterOptions{
-			Name: eksworkflow.DeleteNodePoolLabelSetActivityName,
-		},
-	)
-
 	deleteStackActivity := eksworkflow.NewDeleteStackActivity(awsSessionFactory)
 	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteStackActivityName})
 
