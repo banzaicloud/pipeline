@@ -15,6 +15,8 @@
 package ark
 
 import (
+	"fmt"
+
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark/client"
@@ -185,10 +187,13 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 	initContainers := make([]v1.Container, 0, 2)
 
 	if bsp.Provider == amazon.BackupStorageProvider || vsl.Provider == amazon.PersistentVolumeProvider {
+		pluginImage := fmt.Sprintf("%s/%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AwsPluginImage.Repository,
+			global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AwsPluginImage.Tag)
+
 		initContainers = append(initContainers, v1.Container{
 			Name:            "velero-plugin-for-aws",
-			Image:           "velero/velero-plugin-for-aws:v1.1.0",
-			ImagePullPolicy: v1.PullIfNotPresent,
+			Image:           pluginImage,
+			ImagePullPolicy: getPullPolicy(global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AwsPluginImage.PullPolicy),
 			VolumeMounts: []v1.VolumeMount{
 				{
 					Name:      "plugins",
@@ -199,10 +204,13 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 	}
 
 	if bsp.Provider == google.BackupStorageProvider || vsl.Provider == google.PersistentVolumeProvider {
+		pluginImage := fmt.Sprintf("%s/%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.GcpPluginImage.Repository,
+			global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AwsPluginImage.Tag)
+
 		initContainers = append(initContainers, v1.Container{
 			Name:            "velero-plugin-for-gcp",
-			Image:           "velero/velero-plugin-for-gcp:v1.1.0",
-			ImagePullPolicy: v1.PullIfNotPresent,
+			Image:           pluginImage,
+			ImagePullPolicy: getPullPolicy(global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.GcpPluginImage.PullPolicy),
 			VolumeMounts: []v1.VolumeMount{
 				{
 					Name:      "plugins",
@@ -213,10 +221,13 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 	}
 
 	if bsp.Provider == azure.BackupStorageProvider || vsl.Provider == azure.PersistentVolumeProvider {
+		pluginImage := fmt.Sprintf("%s/%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AzurePluginImage.Repository,
+			global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AwsPluginImage.Tag)
+
 		initContainers = append(initContainers, v1.Container{
 			Name:            "velero-plugin-for-azure",
-			Image:           "velero/velero-plugin-for-microsoft-azure:v1.1.0",
-			ImagePullPolicy: v1.PullIfNotPresent,
+			Image:           pluginImage,
+			ImagePullPolicy: getPullPolicy(global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AzurePluginImage.PullPolicy),
 			VolumeMounts: []v1.VolumeMount{
 				{
 					Name:      "plugins",
@@ -356,4 +367,16 @@ func (req ConfigRequest) getCredentials() (credentials, error) {
 			Cloud:   BucketSecretContents,
 		},
 	}, err
+}
+
+func getPullPolicy(pullPolicy string) v1.PullPolicy {
+	switch pullPolicy {
+	case string(v1.PullAlways):
+		return v1.PullAlways
+
+	case string(v1.PullNever):
+		return v1.PullNever
+	default:
+		return v1.PullIfNotPresent
+	}
 }
