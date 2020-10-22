@@ -22,13 +22,14 @@ import (
 	"go.uber.org/cadence/activity"
 	zapadapter "logur.dev/adapter/zap"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 )
 
 const GetOrphanNICsActivityName = "eks-get-orphan-nics"
 
 type GetOrphanNICsActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awsworkflow.AWSSessionFactory
 }
 
 type GetOrphanNICsActivityInput struct {
@@ -42,7 +43,7 @@ type GetOrphanNICsActivityOutput struct {
 	NicList []string
 }
 
-func NewGetOrphanNICsActivity(awsSessionFactory *AWSSessionFactory) *GetOrphanNICsActivity {
+func NewGetOrphanNICsActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *GetOrphanNICsActivity {
 	return &GetOrphanNICsActivity{
 		awsSessionFactory: awsSessionFactory,
 	}

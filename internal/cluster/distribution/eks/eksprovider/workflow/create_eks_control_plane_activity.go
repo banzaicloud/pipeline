@@ -27,6 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -35,7 +36,7 @@ const CreateEksControlPlaneActivityName = "eks-create-control-plane"
 
 // CreateEksControlPlaneActivity responsible for creating EKS control plane
 type CreateEksControlPlaneActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awsworkflow.AWSSessionFactory
 }
 
 // CreateEksControlPlaneActivityInput holds data needed for setting up EKS control plane
@@ -58,7 +59,7 @@ type CreateEksControlPlaneActivityOutput struct {
 }
 
 // CreateEksControlPlaneActivity instantiates a new CreateEksControlPlaneActivity
-func NewCreateEksClusterActivity(awsSessionFactory *AWSSessionFactory) *CreateEksControlPlaneActivity {
+func NewCreateEksClusterActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *CreateEksControlPlaneActivity {
 	return &CreateEksControlPlaneActivity{
 		awsSessionFactory: awsSessionFactory,
 	}

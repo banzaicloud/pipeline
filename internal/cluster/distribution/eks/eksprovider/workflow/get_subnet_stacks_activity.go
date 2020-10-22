@@ -21,6 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
 	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
@@ -29,7 +30,7 @@ const GetSubnetStacksActivityName = "eks-get-subnet-stacks"
 
 // GetSubnetStacksActivity collects all subnet stack names
 type GetSubnetStacksActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awsworkflow.AWSSessionFactory
 }
 
 type GetSubnetStacksActivityInput struct {
@@ -40,7 +41,7 @@ type GetSubnetStacksActivityOutput struct {
 	StackNames []string
 }
 
-func NewGetSubnetStacksActivity(awsSessionFactory *AWSSessionFactory) *GetSubnetStacksActivity {
+func NewGetSubnetStacksActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *GetSubnetStacksActivity {
 	return &GetSubnetStacksActivity{
 		awsSessionFactory: awsSessionFactory,
 	}

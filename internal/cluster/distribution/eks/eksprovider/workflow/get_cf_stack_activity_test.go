@@ -24,12 +24,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
+
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
 )
 
 func TestNewGetCFStackActivity(t *testing.T) {
 	type inputType struct {
-		awsFactory            AWSFactory
-		cloudFormationFactory CloudFormationAPIFactory
+		awsFactory            awsworkflow.AWSFactory
+		cloudFormationFactory awsworkflow.CloudFormationAPIFactory
 	}
 
 	type outputType struct {
@@ -60,24 +62,24 @@ func TestNewGetCFStackActivity(t *testing.T) {
 			caseName: "nil AWS factory, not nil CloudFormation factory",
 			input: inputType{
 				awsFactory:            nil,
-				cloudFormationFactory: NewCloudFormationFactory(),
+				cloudFormationFactory: awsworkflow.NewCloudFormationFactory(),
 			},
 			output: outputType{
 				expectedActivity: &GetCFStackActivity{
 					awsFactory:            nil,
-					cloudFormationFactory: NewCloudFormationFactory(),
+					cloudFormationFactory: awsworkflow.NewCloudFormationFactory(),
 				},
 			},
 		},
 		{
 			caseName: "not nil AWS factory, nil CloudFormation factory",
 			input: inputType{
-				awsFactory:            NewAWSSessionFactory(nil),
+				awsFactory:            awsworkflow.NewAWSSessionFactory(nil),
 				cloudFormationFactory: nil,
 			},
 			output: outputType{
 				expectedActivity: &GetCFStackActivity{
-					awsFactory:            NewAWSSessionFactory(nil),
+					awsFactory:            awsworkflow.NewAWSSessionFactory(nil),
 					cloudFormationFactory: nil,
 				},
 			},
@@ -85,13 +87,13 @@ func TestNewGetCFStackActivity(t *testing.T) {
 		{
 			caseName: "not nil AWS factory, not nil CloudFormation factory",
 			input: inputType{
-				awsFactory:            NewAWSSessionFactory(nil),
-				cloudFormationFactory: NewCloudFormationFactory(),
+				awsFactory:            awsworkflow.NewAWSSessionFactory(nil),
+				cloudFormationFactory: awsworkflow.NewCloudFormationFactory(),
 			},
 			output: outputType{
 				expectedActivity: &GetCFStackActivity{
-					awsFactory:            NewAWSSessionFactory(nil),
-					cloudFormationFactory: NewCloudFormationFactory(),
+					awsFactory:            awsworkflow.NewAWSSessionFactory(nil),
+					cloudFormationFactory: awsworkflow.NewCloudFormationFactory(),
 				},
 			},
 		},

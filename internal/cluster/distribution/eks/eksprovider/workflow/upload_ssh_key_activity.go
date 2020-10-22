@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshadapter"
 )
 
@@ -30,7 +31,7 @@ const UploadSSHKeyActivityName = "eks-upload-ssh-key"
 
 //  UploadSSHKeyActivity responsible for uploading SSH key
 type UploadSSHKeyActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awsworkflow.AWSSessionFactory
 }
 
 //  UploadSSHKeyActivityInput holds data needed to upload SSH key
@@ -45,7 +46,7 @@ type UploadSSHKeyActivityOutput struct {
 }
 
 //  UploadSSHKeyActivity instantiates a new  UploadSSHKeyActivity
-func NewUploadSSHKeyActivity(awsSessionFactory *AWSSessionFactory) *UploadSSHKeyActivity {
+func NewUploadSSHKeyActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *UploadSSHKeyActivity {
 	return &UploadSSHKeyActivity{
 		awsSessionFactory: awsSessionFactory,
 	}

@@ -87,7 +87,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksadapter"
 	eksDriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
 	pkeDistribution "github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
@@ -851,8 +851,8 @@ func main() {
 								eksadapter.NewClusterManager(workflowClient, config.Pipeline.Enterprise),
 								eksadapter.NewNodePoolStore(db),
 								eksadapter.NewNodePoolManager(
-									workflow.NewAWSSessionFactory(secret.Store),
-									workflow.NewCloudFormationFactory(),
+									awsworkflow.NewAWSSessionFactory(secret.Store),
+									awsworkflow.NewCloudFormationFactory(),
 									dynamicClientFactory,
 									config.Pipeline.Enterprise,
 									config.Cluster.Namespace,

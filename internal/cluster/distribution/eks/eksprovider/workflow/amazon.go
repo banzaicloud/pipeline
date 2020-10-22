@@ -36,7 +36,6 @@ import (
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
-	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure
@@ -199,14 +198,6 @@ type AutoscaleGroup struct {
 	Delete           bool
 	Create           bool
 	CreatedBy        uint
-}
-
-type SecretStore interface {
-	Get(orgnaizationID uint, secretID string) (*secret.SecretItemResponse, error)
-	GetByName(orgnaizationID uint, secretID string) (*secret.SecretItemResponse, error)
-	Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
-	Delete(organizationID uint, secretID string) error
-	Update(organizationID uint, secretID string, request *secret.CreateSecretRequest) error
 }
 
 type Clusters interface {

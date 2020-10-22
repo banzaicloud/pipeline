@@ -25,13 +25,14 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	eksworkflow2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
 	"github.com/banzaicloud/pipeline/pkg/sdk/cadence/lib/pipeline/processlog"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 func registerEKSWorkflows(
 	config configuration,
-	secretStore eksworkflow.SecretStore,
+	secretStore awsworkflow.SecretStore,
 	clusterManager *adapter.ClusterManagerAdapter,
 	nodePoolStore eks.NodePoolStore,
 	clusterDynamicClientFactory cluster2.DynamicClientFactory,
@@ -61,8 +62,8 @@ func registerEKSWorkflows(
 	createInfrastructureWorkflow := eksworkflow.NewCreateInfrastructureWorkflow(nodePoolStore)
 	workflow.RegisterWithOptions(createInfrastructureWorkflow.Execute, workflow.RegisterOptions{Name: eksworkflow.CreateInfraWorkflowName})
 
-	awsSessionFactory := eksworkflow.NewAWSSessionFactory(secretStore)
-	cloudFormationFactory := eksworkflow.NewCloudFormationFactory()
+	awsSessionFactory := awsworkflow.NewAWSSessionFactory(secretStore)
+	cloudFormationFactory := awsworkflow.NewCloudFormationFactory()
 	ec2Factory := eksworkflow.NewEC2Factory()
 	eksFactory := eksworkflow.NewEKSFactory()
 

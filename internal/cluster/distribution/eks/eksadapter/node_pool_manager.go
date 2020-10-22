@@ -29,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
 )
 
@@ -39,8 +40,8 @@ const (
 )
 
 type nodePoolManager struct {
-	awsFactory            workflow.AWSFactory
-	cloudFormationFactory workflow.CloudFormationAPIFactory
+	awsFactory            awsworkflow.AWSFactory
+	cloudFormationFactory awsworkflow.CloudFormationAPIFactory
 	dynamicClientFactory  cluster.DynamicKubeClientFactory
 	enterprise            bool
 	namespace             string
@@ -50,8 +51,8 @@ type nodePoolManager struct {
 // NewNodePoolManager returns a new eks.NodePoolManager
 // that manages node pools asynchronously via Cadence workflows.
 func NewNodePoolManager(
-	awsFactory workflow.AWSFactory,
-	cloudFormationFactory workflow.CloudFormationAPIFactory,
+	awsFactory awsworkflow.AWSFactory,
+	cloudFormationFactory awsworkflow.CloudFormationAPIFactory,
 	dynamicClientFactory cluster.DynamicKubeClientFactory,
 	enterprise bool,
 	namespace string,

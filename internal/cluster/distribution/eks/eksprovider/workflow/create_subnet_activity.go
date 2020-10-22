@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
@@ -29,7 +30,7 @@ const CreateSubnetActivityName = "eks-create-subnet"
 
 // CreateSubnetActivity responsible for setting up a Subnet for an EKS cluster
 type CreateSubnetActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awsworkflow.AWSSessionFactory
 	// body of the cloud formation template for setting up the Subnet
 	cloudFormationTemplate string
 }
@@ -68,7 +69,7 @@ type CreateSubnetActivityOutput struct {
 }
 
 // NewCreateSubnetActivity instantiates a new CreateSubnetActivity
-func NewCreateSubnetActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *CreateSubnetActivity {
+func NewCreateSubnetActivity(awsSessionFactory *awsworkflow.AWSSessionFactory, cloudFormationTemplate string) *CreateSubnetActivity {
 	return &CreateSubnetActivity{
 		awsSessionFactory:      awsSessionFactory,
 		cloudFormationTemplate: cloudFormationTemplate,

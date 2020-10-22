@@ -27,6 +27,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
@@ -34,7 +35,7 @@ const CreateAsgActivityName = "eks-create-asg"
 
 // CreateAsgActivity responsible for creating IAM roles
 type CreateAsgActivity struct {
-	awsSessionFactory AWSFactory
+	awsSessionFactory awsworkflow.AWSFactory
 	// body of the cloud formation template for setting up the VPC
 	cloudFormationTemplate string
 
@@ -78,7 +79,7 @@ type CreateAsgActivityOutput struct {
 
 // CreateAsgActivity instantiates a new CreateAsgActivity
 func NewCreateAsgActivity(
-	awsSessionFactory AWSFactory,
+	awsSessionFactory awsworkflow.AWSFactory,
 	cloudFormationTemplate string,
 	nodePoolStore eks.NodePoolStore,
 ) *CreateAsgActivity {
