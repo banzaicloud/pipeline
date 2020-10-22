@@ -25,7 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	eksworkflow2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	"github.com/banzaicloud/pipeline/pkg/sdk/cadence/lib/pipeline/processlog"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )

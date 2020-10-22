@@ -24,7 +24,7 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
 
 const UpdateClusterVersionActivityName = "eks-update-version"

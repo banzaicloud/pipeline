@@ -25,7 +25,7 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
 
 func TestNewGetCFStackActivity(t *testing.T) {

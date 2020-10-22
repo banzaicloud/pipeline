@@ -27,7 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"go.uber.org/cadence/activity"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )

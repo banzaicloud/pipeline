@@ -22,7 +22,7 @@ import (
 	"go.uber.org/cadence/activity"
 	zapadapter "logur.dev/adapter/zap"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 )
 

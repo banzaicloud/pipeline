@@ -22,7 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb"
 	"go.uber.org/cadence/activity"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/infrastructure/aws/awsworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
 
 const GetOwnedELBsActivityName = "eks-get-owned-elbs"
