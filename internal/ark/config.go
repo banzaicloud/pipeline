@@ -187,7 +187,7 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 	initContainers := make([]v1.Container, 0, 2)
 
 	if bsp.Provider == amazon.BackupStorageProvider || vsl.Provider == amazon.PersistentVolumeProvider {
-		pluginImage := fmt.Sprintf("%s/%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AwsPluginImage.Repository,
+		pluginImage := fmt.Sprintf("%s:%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AwsPluginImage.Repository,
 			global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AwsPluginImage.Tag)
 
 		initContainers = append(initContainers, v1.Container{
@@ -204,7 +204,7 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 	}
 
 	if bsp.Provider == google.BackupStorageProvider || vsl.Provider == google.PersistentVolumeProvider {
-		pluginImage := fmt.Sprintf("%s/%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.GcpPluginImage.Repository,
+		pluginImage := fmt.Sprintf("%s:%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.GcpPluginImage.Repository,
 			global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.GcpPluginImage.Tag)
 
 		initContainers = append(initContainers, v1.Container{
@@ -221,7 +221,7 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 	}
 
 	if bsp.Provider == azure.BackupStorageProvider || vsl.Provider == azure.PersistentVolumeProvider {
-		pluginImage := fmt.Sprintf("%s/%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AzurePluginImage.Repository,
+		pluginImage := fmt.Sprintf("%s:%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AzurePluginImage.Repository,
 			global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AzurePluginImage.Tag)
 
 		initContainers = append(initContainers, v1.Container{
