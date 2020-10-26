@@ -22,6 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkeworkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
 )
 
@@ -39,7 +40,7 @@ func registerPKEWorkflows(
 
 	pkeawsworkflow.NewUpdateNodePoolWorkflow().Register()
 
-	awsSessionFactory := workflow.NewAWSSessionFactory(secretStore)
+	awsSessionFactory := awsworkflow.NewAWSSessionFactory(secretStore)
 
 	// delete node pool workflow
 	workflow.NewDeleteNodePoolWorkflow().Register()

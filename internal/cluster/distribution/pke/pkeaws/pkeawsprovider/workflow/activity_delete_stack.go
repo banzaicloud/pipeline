@@ -25,6 +25,7 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -33,7 +34,7 @@ const DeleteStackActivityName = "pke-aws-delete-stack"
 
 // DeleteStackActivity responsible for deleting asg
 type DeleteStackActivity struct {
-	awsSessionFactory AWSFactory
+	awsSessionFactory awsworkflow.AWSFactory
 }
 
 type DeleteStackActivityInput struct {
@@ -49,7 +50,7 @@ type DeleteStackActivityOutput struct {
 }
 
 // NewDeleteStackActivity instantiates a new DeleteStackActivity
-func NewDeleteStackActivity(awsSessionFactory AWSFactory) *DeleteStackActivity {
+func NewDeleteStackActivity(awsSessionFactory awsworkflow.AWSFactory) *DeleteStackActivity {
 	return &DeleteStackActivity{
 		awsSessionFactory: awsSessionFactory,
 	}
