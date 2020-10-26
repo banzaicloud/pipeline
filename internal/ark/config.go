@@ -371,11 +371,8 @@ func (req ConfigRequest) getCredentials() (credentials, error) {
 
 func getPullPolicy(pullPolicy string) v1.PullPolicy {
 	switch pullPolicy {
-	case string(v1.PullAlways):
-		return v1.PullAlways
-
-	case string(v1.PullNever):
-		return v1.PullNever
+	case string(v1.PullAlways), string(v1.PullIfNotPresent), string(v1.PullNever): // Note: known values.
+		return v1.PullPolicy(pullPolicy)
 	default:
 		return v1.PullIfNotPresent
 	}
