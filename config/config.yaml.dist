@@ -319,7 +319,7 @@ dex:
 #        namespace: ""
 #
 #        ark:
-#            syncEnabled: true ̰
+#            syncEnabled: true
 #            bucketSyncInterval: "10m"
 #            restoreSyncInterval: "20s"
 #            backupSyncInterval: "20s"
