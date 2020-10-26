@@ -24,9 +24,10 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/coreos/go-oidc"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
+	"gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2/jwt"
 	k8sClient "k8s.io/client-go/tools/clientcmd"
 	k8sClientApi "k8s.io/client-go/tools/clientcmd/api"
 
@@ -151,17 +152,20 @@ func (api *ClusterAuthAPI) dexCallback(c *gin.Context) {
 		}
 
 		// stateRaw parseJWT -> state
-		stateClaims := stateClaims{}
-		_, err = jwt.ParseWithClaims(stateRaw, &stateClaims, func(token *jwt.Token) (interface{}, error) {
-			return api.tokenSigningKey, nil
-		})
-
+		stateToken, err := jwt.ParseSigned(stateRaw)
 		if err != nil {
 			_ = c.AbortWithError(http.StatusBadRequest, fmt.Errorf("failed to parse state token: %q", err.Error()))
 			return
 		}
 
-		if err := stateClaims.Valid(); err != nil {
+		var stateClaims stateClaims
+		err = stateToken.Claims(api.tokenSigningKey, &stateClaims)
+		if err != nil {
+			_ = c.AbortWithError(http.StatusBadRequest, fmt.Errorf("failed extract state token claims: %q", err.Error()))
+			return
+		}
+
+		if err := stateClaims.Validate(jwt.Expected{Time: time.Now()}); err != nil {
 			_ = c.AbortWithError(http.StatusBadRequest, fmt.Errorf("state token is invalid: %q", err.Error()))
 			return
 		}
@@ -254,7 +258,7 @@ func (api *ClusterAuthAPI) dexCallback(c *gin.Context) {
 type stateClaims struct {
 	ClusterID uint   `json:"clusterID"`
 	ClientID  string `json:"clientID"`
-	jwt.StandardClaims
+	jwt.Claims
 }
 
 func (api *ClusterAuthAPI) loginHandler(c *gin.Context) {
@@ -277,15 +281,27 @@ func (api *ClusterAuthAPI) loginHandler(c *gin.Context) {
 
 	// Create the stateClaims
 	claims := stateClaims{
-		cluster.GetID(),
-		secret.ClientID,
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(1 * time.Minute).Unix(),
+		ClusterID: cluster.GetID(),
+		ClientID:  secret.ClientID,
+		Claims: jwt.Claims{
+			Expiry: jwt.NewNumericDate(time.Now().Add(1 * time.Minute)),
 		},
 	}
 
-	stateToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	state, err := stateToken.SignedString(api.tokenSigningKey)
+	signer, err := jose.NewSigner(jose.SigningKey{
+		Algorithm: jose.HS256,
+		Key:       api.tokenSigningKey,
+	}, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "error creating state token signer",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	stateToken, err := jwt.Signed(signer).Claims(claims).CompactSerialize()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -299,9 +315,9 @@ func (api *ClusterAuthAPI) loginHandler(c *gin.Context) {
 	scopes = append(scopes, "groups", "openid", "profile", "email")
 	if api.offlineAsScope {
 		scopes = append(scopes, "offline_access")
-		authCodeURL = api.oauth2Config(secret, scopes).AuthCodeURL(state)
+		authCodeURL = api.oauth2Config(secret, scopes).AuthCodeURL(stateToken)
 	} else {
-		authCodeURL = api.oauth2Config(secret, scopes).AuthCodeURL(state, oauth2.AccessTypeOffline)
+		authCodeURL = api.oauth2Config(secret, scopes).AuthCodeURL(stateToken, oauth2.AccessTypeOffline)
 	}
 
 	c.Redirect(http.StatusSeeOther, authCodeURL)
@@ -312,7 +328,7 @@ type claim struct {
 	Email         string `json:"email"`
 	EmailVerified bool   `json:"email_verified"`
 	Name          string `json:"name"`
-	jwt.StandardClaims
+	jwt.Claims
 }
 
 func (api *ClusterAuthAPI) oauth2Config(clientSecret auth.ClusterClientSecret, scopes []string) *oauth2.Config {

@@ -146,11 +146,6 @@ func newOIDCProvider(config *OIDCProviderConfig, refreshTokenStore RefreshTokenS
 					return nil, err
 				}
 
-				if err := claims.Valid(); err != nil {
-					err = fmt.Errorf("failed to validate state claims: %s", err.Error())
-					return nil, err
-				}
-
 				if claims.Subject != "state" {
 					err = fmt.Errorf("state parameter doesn't match: %s", claims.Subject)
 					return nil, err
@@ -322,7 +317,11 @@ func (provider OIDCProvider) OAuthConfig(context *auth.Context) *oauth2.Config {
 func (provider OIDCProvider) Login(context *auth.Context) {
 	claims := claims.Claims{}
 	claims.Subject = "state"
-	signedToken := context.Auth.SessionStorer.SignedToken(&claims)
+	signedToken, err := context.Auth.SessionStorer.SignedToken(&claims)
+	if err != nil {
+		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	url := provider.OAuthConfig(context).AuthCodeURL(signedToken)
 	http.Redirect(context.Writer, context.Request, url, http.StatusFound)

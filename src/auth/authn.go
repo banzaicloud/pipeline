@@ -27,7 +27,6 @@ import (
 	"emperror.dev/errors"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	ginauth "github.com/banzaicloud/gin-utilz/auth"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
@@ -36,6 +35,7 @@ import (
 	"github.com/qor/auth/claims"
 	"github.com/qor/session"
 	"github.com/qor/session/gorilla"
+	"gopkg.in/square/go-jose.v2"
 
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 )
@@ -129,7 +129,7 @@ func Init(db *gorm.DB, config Config, tokenStore bauth.TokenStore, tokenManager 
 		SessionStorer: auth.SessionStorer{
 			SessionName:    "_auth_session",
 			SessionManager: SessionManager,
-			SigningMethod:  jwt.SigningMethodHS256,
+			SigningMethod:  jose.HS256,
 			SignedString:   base32.StdEncoding.EncodeToString(signingKeyBytes),
 		},
 		tokenManager: tokenManager,
@@ -289,7 +289,7 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 
 	_, cookieToken, err := sessionStorer.tokenManager.GenerateToken(
 		claims.UserID,
-		&expiresAt,
+		expiresAt,
 		UserTokenType,
 		currentUser.Login,
 		SessionCookieName,

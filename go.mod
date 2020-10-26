@@ -28,7 +28,7 @@ require (
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-00010101000000-000000000000 // indirect
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
 	github.com/banzaicloud/bank-vaults/pkg/sdk v0.4.0
-	github.com/banzaicloud/gin-utilz v0.2.0
+	github.com/banzaicloud/gin-utilz v0.2.1-0.20201027093430-7dbe8399a109
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
 	github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4
 	github.com/banzaicloud/logging-operator/pkg/sdk v0.5.0
@@ -38,7 +38,6 @@ require (
 	github.com/coreos/go-oidc v2.1.0+incompatible
 	github.com/denisenkom/go-mssqldb v0.0.0-20200206145737-bbfc9a55622e // indirect
 	github.com/dexidp/dex/api/v2 v2.0.0
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cors v1.3.0
@@ -107,6 +106,7 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/resty.v1 v1.12.0
+	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v2 v2.3.0
 	helm.sh/helm/v3 v3.4.0
 	k8s.io/api v0.19.3
@@ -139,7 +139,7 @@ replace (
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
 
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.0-rc10
-	github.com/qor/auth => github.com/banzaicloud/auth v0.1.3
+	github.com/qor/auth => github.com/banzaicloud/auth v0.1.4-0.20201027115559-4fc81d59575e
 
 	google.golang.org/grpc => google.golang.org/grpc v1.27.1
 

@@ -37,7 +37,7 @@ type TokenManager interface {
 	// GenerateToken generates a token and stores it in the token store.
 	GenerateToken(
 		sub string,
-		expiresAt *time.Time,
+		expiresAt time.Time,
 		tokenType auth.TokenType,
 		tokenText string,
 		tokenName string,
@@ -65,5 +65,5 @@ func (g ClusterTokenGenerator) GenerateClusterToken(orgID uint, clusterID uint) 
 		}
 	}
 
-	return g.tokenManager.GenerateToken(userID, nil, ClusterToken, userID, userID, true)
+	return g.tokenManager.GenerateToken(userID, time.Time{}, ClusterToken, userID, userID, true)
 }

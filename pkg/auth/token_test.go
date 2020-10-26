@@ -53,7 +53,7 @@ func TestJWTTokenGenerator_GenerateToken(t *testing.T) {
 	tokenID, signedToken, err := generator.GenerateToken("user", NoExpiration, "token", "my_text")
 	require.NoError(t, err)
 
-	const expectedSignedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWRpZW5jZSIsImp0aSI6ImlkIiwiaWF0IjoxNTY4OTkwNjQwLCJpc3MiOiJpc3N1ZXIiLCJzdWIiOiJ1c2VyIiwic2NvcGUiOiJhcGk6aW52b2tlIiwidHlwZSI6InRva2VuIiwidGV4dCI6Im15X3RleHQifQ.MmDG43-5P0H-o9yP3I4SXhinAuauXj27K2b4DazmmIs"
+	const expectedSignedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJpZCIsImF1ZCI6ImF1ZGllbmNlIiwiaXNzIjoiaXNzdWVyIiwic3ViIjoidXNlciIsImlhdCI6MTU2ODk5MDY0MCwic2NvcGUiOiJhcGk6aW52b2tlIiwidHlwZSI6InRva2VuIiwidGV4dCI6Im15X3RleHQifQ.DZMiDYr8hIuegx2FvKeg1HCsg2LyxMNT4Kc0hVcLI3E"
 
 	assert.Equal(t, "id", tokenID)
 	assert.Equal(t, expectedSignedToken, signedToken)
@@ -72,7 +72,7 @@ func TestTokenManager_GenerateToken(t *testing.T) {
 
 	manager := NewTokenManager(generator, store)
 
-	tokenID, signedToken, err := manager.GenerateToken(sub, nil, tokenType, tokenText, "tokenName", true)
+	tokenID, signedToken, err := manager.GenerateToken(sub, NoExpiration, tokenType, tokenText, "tokenName", true)
 	require.NoError(t, err)
 
 	assert.Equal(t, "id", tokenID)
@@ -101,7 +101,7 @@ func TestTokenManager_GenerateToken_NoStoreSecret(t *testing.T) {
 
 	manager := NewTokenManager(generator, store)
 
-	tokenID, signedToken, err := manager.GenerateToken(sub, nil, tokenType, tokenText, "tokenName", false)
+	tokenID, signedToken, err := manager.GenerateToken(sub, NoExpiration, tokenType, tokenText, "tokenName", false)
 	require.NoError(t, err)
 
 	assert.Equal(t, "id", tokenID)

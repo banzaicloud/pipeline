@@ -18,7 +18,8 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	"github.com/dgrijalva/jwt-go"
+	"gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2/jwt"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	k8srest "k8s.io/client-go/rest"
@@ -172,7 +173,11 @@ func (s *dummyKubernetesService) EnsureObject(ctx context.Context, clusterID uin
 	case *corev1.ServiceAccount:
 		v.Secrets = []corev1.ObjectReference{{Name: "some-token-1234", Namespace: "default"}}
 	case *corev1.Secret:
-		token, err := jwt.New(jwt.SigningMethodHS256).SignedString([]byte("random-key"))
+		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.HS256, Key: []byte("random-key")}, nil)
+		if err != nil {
+			return err
+		}
+		token, err := jwt.Signed(signer).CompactSerialize()
 		if err != nil {
 			return err
 		}
