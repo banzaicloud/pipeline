@@ -25,6 +25,7 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -33,7 +34,7 @@ const CreateVpcActivityName = "eks-create-vpc"
 
 // CreateVpcActivity responsible for setting up a VPC for an EKS cluster
 type CreateVpcActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awsworkflow.AWSSessionFactory
 	// body of the cloud formation template for setting up the VPC
 	cloudFormationTemplate string
 }
@@ -67,7 +68,7 @@ type CreateVpcActivityOutput struct {
 }
 
 // NewCreateVPCActivity instantiates a new CreateVpcActivity
-func NewCreateVPCActivity(awsSessionFactory *AWSSessionFactory, cloudFormationTemplate string) *CreateVpcActivity {
+func NewCreateVPCActivity(awsSessionFactory *awsworkflow.AWSSessionFactory, cloudFormationTemplate string) *CreateVpcActivity {
 	return &CreateVpcActivity{
 		awsSessionFactory:      awsSessionFactory,
 		cloudFormationTemplate: cloudFormationTemplate,

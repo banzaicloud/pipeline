@@ -32,6 +32,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	storageUtil "k8s.io/kubernetes/pkg/apis/storage/util"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -42,7 +43,7 @@ const BootstrapActivityName = "eks-bootstrap"
 
 // CreateEksControlPlaneActivity creates aws-auth map & default StorageClass on cluster
 type BootstrapActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awsworkflow.AWSSessionFactory
 }
 
 // BootstrapActivityInput holds input data
@@ -60,7 +61,7 @@ type BootstrapActivityOutput struct {
 }
 
 // BootstrapActivity instantiates a new BootstrapActivity
-func NewBootstrapActivity(awsSessionFactory *AWSSessionFactory) *BootstrapActivity {
+func NewBootstrapActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *BootstrapActivity {
 	return &BootstrapActivity{
 		awsSessionFactory: awsSessionFactory,
 	}

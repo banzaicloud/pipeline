@@ -23,6 +23,7 @@ import (
 	"go.uber.org/cadence/activity"
 	zapadapter "logur.dev/adapter/zap"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 )
 
@@ -30,7 +31,7 @@ const GetSubnetsDetailsActivityName = "eks-get-subnets-details"
 
 // GetSubnetsDetailsActivity retrieves cidr and az for subnets given their ID
 type GetSubnetsDetailsActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awsworkflow.AWSSessionFactory
 }
 
 // GetSubnetsDetailsActivityInput holds IDs
@@ -48,7 +49,7 @@ type GetSubnetsDetailsActivityOutput struct {
 }
 
 // NewGetSubnetsDetailsActivity instantiates a new NewGetSubnetsDetailsActivity
-func NewGetSubnetsDetailsActivity(awsSessionFactory *AWSSessionFactory) *GetSubnetsDetailsActivity {
+func NewGetSubnetsDetailsActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *GetSubnetsDetailsActivity {
 	return &GetSubnetsDetailsActivity{
 		awsSessionFactory: awsSessionFactory,
 	}

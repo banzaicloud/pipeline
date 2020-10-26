@@ -24,6 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 	"github.com/banzaicloud/pipeline/pkg/sdk/cadence/lib/pipeline/processlog"
@@ -34,15 +35,15 @@ import (
 const UpdateNodePoolWorkflowName = "eks-update-node-pool"
 
 type UpdateNodePoolWorkflow struct {
-	awsFactory            eksWorkflow.AWSFactory
-	cloudFormationFactory eksWorkflow.CloudFormationAPIFactory
+	awsFactory            awsworkflow.AWSFactory
+	cloudFormationFactory awsworkflow.CloudFormationAPIFactory
 	processLogger         processlog.ProcessLogger
 }
 
 // NewUpdateNodePoolWorkflow returns a new UpdateNodePoolWorkflow.
 func NewUpdateNodePoolWorkflow(
-	awsFactory eksWorkflow.AWSFactory,
-	cloudFormationFactory eksWorkflow.CloudFormationAPIFactory,
+	awsFactory awsworkflow.AWSFactory,
+	cloudFormationFactory awsworkflow.CloudFormationAPIFactory,
 	processLogger processlog.ProcessLogger,
 ) UpdateNodePoolWorkflow {
 	return UpdateNodePoolWorkflow{

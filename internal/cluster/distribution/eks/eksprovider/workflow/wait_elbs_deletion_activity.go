@@ -23,13 +23,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"go.uber.org/cadence/activity"
+
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
 
 const WaitELBsDeletionActivityName = "eks-wait-elbs-deletion"
 
 // WaitELBsDeletionActivity waits for the deletion of a list of ELBs identified by name
 type WaitELBsDeletionActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awsworkflow.AWSSessionFactory
 }
 
 // WaitELBsDeletionActivity holds the names of the ELBs to wait for to be deleted
@@ -39,7 +41,7 @@ type WaitELBsDeletionActivityActivityInput struct {
 }
 
 // NewWaitELBsDeletionActivity instantiates a new NewWaitELBsDeletionActivity
-func NewWaitELBsDeletionActivity(awsSessionFactory *AWSSessionFactory) *WaitELBsDeletionActivity {
+func NewWaitELBsDeletionActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *WaitELBsDeletionActivity {
 	return &WaitELBsDeletionActivity{
 		awsSessionFactory: awsSessionFactory,
 	}

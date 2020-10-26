@@ -20,6 +20,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
 
 const (
@@ -27,8 +29,8 @@ const (
 )
 
 type GetCFStackActivity struct {
-	awsFactory            AWSFactory
-	cloudFormationFactory CloudFormationAPIFactory
+	awsFactory            awsworkflow.AWSFactory
+	cloudFormationFactory awsworkflow.CloudFormationAPIFactory
 }
 
 type GetCFStackActivityInput struct {
@@ -40,7 +42,9 @@ type GetCFStackActivityOutput struct {
 	Stack *cloudformation.Stack
 }
 
-func NewGetCFStackActivity(awsFactory AWSFactory, cloudFormationFactory CloudFormationAPIFactory) *GetCFStackActivity {
+func NewGetCFStackActivity(
+	awsFactory awsworkflow.AWSFactory, cloudFormationFactory awsworkflow.CloudFormationAPIFactory,
+) *GetCFStackActivity {
 	return &GetCFStackActivity{
 		awsFactory:            awsFactory,
 		cloudFormationFactory: cloudFormationFactory,

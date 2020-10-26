@@ -22,7 +22,7 @@ services:
             - ./etc/config/vault.hcl:/vault/config/vault.hcl
 
     vault-unsealer:
-        image: banzaicloud/bank-vaults:1.3.1
+        image: banzaicloud/bank-vaults:1.7.0
         depends_on:
             - vault
         restart: on-failure
@@ -33,7 +33,7 @@ services:
             - ./etc/config/vault-config.yml:/vault-config.yml
 
     vault-configurer:
-        image: banzaicloud/bank-vaults:1.3.1
+        image: banzaicloud/bank-vaults:1.7.0
         depends_on:
             - vault
             - vault-unsealer

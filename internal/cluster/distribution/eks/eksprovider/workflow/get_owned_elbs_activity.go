@@ -21,13 +21,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"go.uber.org/cadence/activity"
+
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
 
 const GetOwnedELBsActivityName = "eks-get-owned-elbs"
 
 // GetOwnedELBsActivity collects all ELBs that were created by the EKS cluster
 type GetOwnedELBsActivity struct {
-	awsSessionFactory *AWSSessionFactory
+	awsSessionFactory *awsworkflow.AWSSessionFactory
 }
 
 // GetOwnedELBsActivityInput holds fields needed to retrieve all ELBs provisioned by
@@ -43,7 +45,7 @@ type GetOwnedELBsActivityOutput struct {
 }
 
 // NewGetOwnedELBsActivity instantiates a new GetOwnedELBsActivity
-func NewGetOwnedELBsActivity(awsSessionFactory *AWSSessionFactory) *GetOwnedELBsActivity {
+func NewGetOwnedELBsActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *GetOwnedELBsActivity {
 	return &GetOwnedELBsActivity{
 		awsSessionFactory: awsSessionFactory,
 	}

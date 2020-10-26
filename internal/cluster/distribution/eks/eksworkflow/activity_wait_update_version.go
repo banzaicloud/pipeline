@@ -24,13 +24,14 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
 
 const WaitUpdateClusterVersionActivityName = "eks-wait-update-version"
 
 // WaitUpdateClusterVersionActivity responsible for updating an EKS cluster
 type WaitUpdateClusterVersionActivity struct {
-	awsSessionFactory workflow.AWSFactory
+	awsSessionFactory awsworkflow.AWSFactory
 	eksFactory        workflow.EKSAPIFactory
 }
 
@@ -45,7 +46,9 @@ type WaitUpdateClusterVersionActivityInput struct {
 }
 
 // NewWaitUpdateClusterVersionActivity instantiates a new EKS version update waiting activity
-func NewWaitUpdateClusterVersionActivity(awsSessionFactory workflow.AWSFactory, eksFactory workflow.EKSAPIFactory) *WaitUpdateClusterVersionActivity {
+func NewWaitUpdateClusterVersionActivity(
+	awsSessionFactory awsworkflow.AWSFactory, eksFactory workflow.EKSAPIFactory,
+) *WaitUpdateClusterVersionActivity {
 	return &WaitUpdateClusterVersionActivity{
 		awsSessionFactory: awsSessionFactory,
 		eksFactory:        eksFactory,
