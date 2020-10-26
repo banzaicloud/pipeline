@@ -58,8 +58,8 @@ type AuthIdentity struct {
 // User struct
 type User struct {
 	ID             uint           `gorm:"primary_key" json:"id"`
-	CreatedAt      time.Time      `json:"createdAt"`
-	UpdatedAt      time.Time      `json:"updatedAt"`
+	CreatedAt      *time.Time     `json:"createdAt,omitempty"`
+	UpdatedAt      *time.Time     `json:"updatedAt,omitempty"`
 	Name           string         `form:"name" json:"name,omitempty"`
 	Email          string         `form:"email" json:"email,omitempty"`
 	Login          string         `gorm:"unique;not null" form:"login" json:"login"`

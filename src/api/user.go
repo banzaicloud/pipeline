@@ -57,6 +57,14 @@ func (a *UserAPI) GetCurrentUser(c *gin.Context) {
 		return
 	}
 
+	// Virtual users are not persisted to db. Return
+	// a reduced amount, but still some information
+	// about the user, like login name.
+	if user.ID == 0 {
+		c.JSON(http.StatusOK, user)
+		return
+	}
+
 	err := a.db.Find(user).Error
 	if err != nil {
 		message := "failed to fetch user"
