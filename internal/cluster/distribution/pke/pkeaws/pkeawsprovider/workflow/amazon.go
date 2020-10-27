@@ -33,9 +33,6 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-// ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure
-const ErrReasonStackFailed = "CLOUDFORMATION_STACK_FAILED"
-
 const (
 	asgWaitLoopSleep           = 5 * time.Second
 	asgFulfillmentTimeout      = 2 * time.Minute
@@ -53,19 +50,6 @@ func GenerateSSHKeyNameForCluster(clusterName string) string {
 
 func GenerateNodePoolStackName(clusterName string, poolName string) string {
 	return "pipeline-eks-nodepool-" + clusterName + "-" + poolName
-}
-
-// EKSActivityInput holds common input data for all activities
-type EKSActivityInput struct {
-	OrganizationID uint
-	SecretID       string
-
-	Region string
-
-	ClusterName string
-
-	// 64 chars length unique unique identifier that identifies the create CloudFormation
-	AWSClientRequestTokenBase string
 }
 
 type EncryptionConfig struct {
@@ -216,75 +200,6 @@ func WaitUntilStackUpdateCompleteWithContext(cf *cloudformation.CloudFormation, 
 				State:    request.FailureWaiterState,
 				Matcher:  request.ErrorWaiterMatch,
 				Expected: "ValidationError",
-			},
-		},
-		Logger: cf.Config.Logger,
-		NewRequest: func(opts []request.Option) (*request.Request, error) {
-			count++
-			activity.RecordHeartbeat(ctx, count)
-
-			var inCpy *cloudformation.DescribeStacksInput
-			if input != nil {
-				tmp := *input
-				inCpy = &tmp
-			}
-			req, _ := cf.DescribeStacksRequest(inCpy)
-			req.SetContext(ctx)
-			req.ApplyOptions(opts...)
-			return req, nil
-		},
-	}
-	w.ApplyOptions(opts...)
-
-	return w.WaitWithContext(ctx)
-}
-
-func WaitUntilStackDeleteCompleteWithContext(cf *cloudformation.CloudFormation, ctx aws.Context, input *cloudformation.DescribeStacksInput, opts ...request.WaiterOption) error {
-	count := 0
-	w := request.Waiter{
-		Name:        "WaitUntilStackDeleteComplete",
-		MaxAttempts: 120,
-		Delay:       request.ConstantWaiterDelay(30 * time.Second),
-		Acceptors: []request.WaiterAcceptor{
-			{
-				State:   request.SuccessWaiterState,
-				Matcher: request.PathAllWaiterMatch, Argument: "Stacks[].StackStatus",
-				Expected: "DELETE_COMPLETE",
-			},
-			{
-				State:    request.SuccessWaiterState,
-				Matcher:  request.ErrorWaiterMatch,
-				Expected: "ValidationError",
-			},
-			{
-				State:   request.FailureWaiterState,
-				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
-				Expected: "DELETE_FAILED",
-			},
-			{
-				State:   request.FailureWaiterState,
-				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
-				Expected: "CREATE_FAILED",
-			},
-			{
-				State:   request.FailureWaiterState,
-				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
-				Expected: "ROLLBACK_FAILED",
-			},
-			{
-				State:   request.FailureWaiterState,
-				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
-				Expected: "UPDATE_ROLLBACK_IN_PROGRESS",
-			},
-			{
-				State:   request.FailureWaiterState,
-				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
-				Expected: "UPDATE_ROLLBACK_FAILED",
-			},
-			{
-				State:   request.FailureWaiterState,
-				Matcher: request.PathAnyWaiterMatch, Argument: "Stacks[].StackStatus",
-				Expected: "UPDATE_ROLLBACK_COMPLETE",
 			},
 		},
 		Logger: cf.Config.Logger,
