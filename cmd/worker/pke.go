@@ -17,8 +17,7 @@ package main
 import (
 	"go.uber.org/cadence/activity"
 
-	cluster2 "github.com/banzaicloud/pipeline/internal/cluster"
-	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
@@ -31,7 +30,7 @@ func registerPKEWorkflows(
 	config configuration,
 	secretStore workflow.SecretStore,
 	nodePoolStore pke.NodePoolStore,
-	clusterDynamicClientFactory cluster2.DynamicClientFactory,
+	clusterDynamicClientFactory cluster.DynamicClientFactory,
 ) {
 	{
 		a := pkeworkflow.NewAssembleHTTPProxySettingsActivity(passwordSecrets)
@@ -46,11 +45,11 @@ func registerPKEWorkflows(
 	workflow.NewDeleteNodePoolWorkflow().Register()
 
 	// node pool delete helper activities
-	deleteStackActivity := eksworkflow.NewDeleteStackActivity(awsSessionFactory)
-	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteStackActivityName})
+	deleteStackActivity := workflow.NewDeleteStackActivity(awsSessionFactory)
+	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: workflow.DeleteStackActivityName})
 
 	deleteStoredNodePoolActivity := workflow.NewDeleteStoredNodePoolActivity(nodePoolStore)
 	activity.RegisterWithOptions(deleteStoredNodePoolActivity.Execute, activity.RegisterOptions{
-		Name: eksworkflow.DeleteStoredNodePoolActivityName,
+		Name: workflow.DeleteStoredNodePoolActivityName,
 	})
 }
