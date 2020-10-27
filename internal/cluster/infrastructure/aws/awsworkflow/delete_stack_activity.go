@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package workflow
+package awsworkflow
 
 import (
 	"context"
@@ -25,20 +25,19 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
-const DeleteStackActivityName = "eks-delete-stack"
+const DeleteStackActivityName = "aws-common-delete-stack"
 
 // DeleteStackActivity responsible for deleting asg
 type DeleteStackActivity struct {
-	awsSessionFactory awsworkflow.AWSFactory
+	awsSessionFactory AWSFactory
 }
 
 type DeleteStackActivityInput struct {
-	EKSActivityInput
+	AWSCommonActivityInput
 	StackID string
 
 	// name of the cloud formation template stack
@@ -50,7 +49,7 @@ type DeleteStackActivityOutput struct {
 }
 
 // NewDeleteStackActivity instantiates a new DeleteStackActivity
-func NewDeleteStackActivity(awsSessionFactory awsworkflow.AWSFactory) *DeleteStackActivity {
+func NewDeleteStackActivity(awsSessionFactory AWSFactory) *DeleteStackActivity {
 	return &DeleteStackActivity{
 		awsSessionFactory: awsSessionFactory,
 	}
