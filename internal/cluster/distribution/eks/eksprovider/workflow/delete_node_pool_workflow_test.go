@@ -28,6 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgcadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	sdkamazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -49,8 +50,9 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) SetupTest() {
 	deleteNodePoolLabelSetActivity := clusterworkflow.NewDeleteNodePoolLabelSetActivity(nil, "")
 	workflowTestSuite.environment.RegisterActivityWithOptions(deleteNodePoolLabelSetActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.DeleteNodePoolLabelSetActivityName})
 
-	deleteStackActivity := NewDeleteStackActivity(nil)
-	workflowTestSuite.environment.RegisterActivityWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: DeleteStackActivityName})
+	deleteStackActivity := awsworkflow.NewDeleteStackActivity(nil)
+	workflowTestSuite.environment.RegisterActivityWithOptions(
+		deleteStackActivity.Execute, activity.RegisterOptions{Name: awsworkflow.DeleteStackActivityName})
 
 	deleteStoredNodePoolActivity := NewDeleteStoredNodePoolActivity(nil)
 	workflowTestSuite.environment.RegisterActivityWithOptions(deleteStoredNodePoolActivity.Execute, activity.RegisterOptions{Name: DeleteStoredNodePoolActivityName})
@@ -94,9 +96,9 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 			mockErrors[ListStoredNodePoolsActivityName] != nil {
 			mocks = append(mocks, SetClusterStatusActivityName)
 		}
-		mocks = append(mocks, DeleteStackActivityName)
+		mocks = append(mocks, awsworkflow.DeleteStackActivityName)
 		if input.input.ShouldUpdateClusterStatus &&
-			mockErrors[DeleteStackActivityName] != nil {
+			mockErrors[awsworkflow.DeleteStackActivityName] != nil {
 			mocks = append(mocks, SetClusterStatusActivityName)
 		}
 		mocks = append(mocks, DeleteStoredNodePoolActivityName)
@@ -138,9 +140,9 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 					!input.input.ShouldUpdateClusterStatus {
 					return
 				}
-			case DeleteStackActivityName:
-				activityInput := DeleteStackActivityInput{
-					EKSActivityInput: EKSActivityInput{
+			case awsworkflow.DeleteStackActivityName:
+				activityInput := awsworkflow.DeleteStackActivityInput{
+					AWSCommonActivityInput: awsworkflow.AWSCommonActivityInput{
 						OrganizationID: input.input.OrganizationID,
 						SecretID:       input.input.SecretID,
 						Region:         input.input.Region,
@@ -314,7 +316,7 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				StackID: "stack-id",
 			},
 			mockErrors: map[string]error{
-				DeleteStackActivityName: errors.New("test error: DeleteStackActivity"),
+				awsworkflow.DeleteStackActivityName: errors.New("test error: DeleteStackActivity"),
 			},
 		},
 		{
@@ -330,7 +332,7 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				StackID: "stack-id",
 			},
 			mockErrors: map[string]error{
-				DeleteStackActivityName: errors.New("test error: DeleteStackActivity"),
+				awsworkflow.DeleteStackActivityName: errors.New("test error: DeleteStackActivity"),
 			},
 		},
 		{

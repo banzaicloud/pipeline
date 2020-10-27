@@ -20,8 +20,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/banzaicloud/pipeline/src/secret"
 	"go.uber.org/cadence/activity"
+
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // ErrReasonStackFailed cadence custom error reason that denotes a stack operation that resulted a stack failure

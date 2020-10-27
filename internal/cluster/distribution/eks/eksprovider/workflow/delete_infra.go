@@ -21,6 +21,7 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
@@ -77,6 +78,14 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	eksActivityInput := EKSActivityInput{
+		OrganizationID:            input.OrganizationID,
+		SecretID:                  input.SecretID,
+		Region:                    input.Region,
+		ClusterName:               input.ClusterName,
+		AWSClientRequestTokenBase: sdkAmazon.NewNormalizedClientRequestToken(workflow.GetInfo(ctx).WorkflowExecution.ID),
+	}
+
+	awsCommonActivityInput := awsworkflow.AWSCommonActivityInput{
 		OrganizationID:            input.OrganizationID,
 		SecretID:                  input.SecretID,
 		Region:                    input.Region,
@@ -235,12 +244,12 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	// delete subnets
 	deleteSubnetFutures := make([]workflow.Future, 0)
 	for _, subnetStackName := range subnetStackOutput.StackNames {
-		activityInput := DeleteStackActivityInput{
-			EKSActivityInput: eksActivityInput,
-			StackName:        subnetStackName,
+		activityInput := awsworkflow.DeleteStackActivityInput{
+			AWSCommonActivityInput: awsCommonActivityInput,
+			StackName:              subnetStackName,
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
-		f := workflow.ExecuteActivity(ctx, DeleteStackActivityName, activityInput)
+		f := workflow.ExecuteActivity(ctx, awsworkflow.DeleteStackActivityName, activityInput)
 		deleteSubnetFutures = append(deleteSubnetFutures, f)
 	}
 
@@ -255,24 +264,26 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 
 	// delete cluster stack (VPC, etc)
 	{
-		activityInput := DeleteStackActivityInput{
-			EKSActivityInput: eksActivityInput,
-			StackName:        GenerateStackNameForCluster(input.ClusterName),
+		activityInput := awsworkflow.DeleteStackActivityInput{
+			AWSCommonActivityInput: awsCommonActivityInput,
+			StackName:              GenerateStackNameForCluster(input.ClusterName),
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
-		if err := workflow.ExecuteActivity(ctx, DeleteStackActivityName, activityInput).Get(ctx, nil); err != nil {
+		if err := workflow.ExecuteActivity(
+			ctx, awsworkflow.DeleteStackActivityName, activityInput).Get(ctx, nil); err != nil {
 			return err
 		}
 	}
 
 	// delete IAM user and roles
 	{
-		activityInput := DeleteStackActivityInput{
-			EKSActivityInput: eksActivityInput,
-			StackName:        generateStackNameForIam(input.ClusterName),
+		activityInput := awsworkflow.DeleteStackActivityInput{
+			AWSCommonActivityInput: awsCommonActivityInput,
+			StackName:              generateStackNameForIam(input.ClusterName),
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
-		if err := workflow.ExecuteActivity(ctx, DeleteStackActivityName, activityInput).Get(ctx, nil); err != nil {
+		if err := workflow.ExecuteActivity(
+			ctx, awsworkflow.DeleteStackActivityName, activityInput).Get(ctx, nil); err != nil {
 			return err
 		}
 	}
