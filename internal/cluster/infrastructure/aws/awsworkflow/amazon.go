@@ -18,6 +18,19 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
+// AWSCommonActivityInput holds common input data for all activities
+type AWSCommonActivityInput struct {
+	OrganizationID uint
+	SecretID       string
+
+	Region string
+
+	ClusterName string
+
+	// 64 chars length unique unique identifier that identifies the create CloudFormation
+	AWSClientRequestTokenBase string
+}
+
 type SecretStore interface {
 	Get(orgnaizationID uint, secretID string) (*secret.SecretItemResponse, error)
 	GetByName(orgnaizationID uint, secretID string) (*secret.SecretItemResponse, error)
