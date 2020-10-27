@@ -143,8 +143,8 @@ func registerEKSWorkflows(
 		},
 	)
 
-	deleteStackActivity := eksworkflow.NewDeleteStackActivity(awsSessionFactory)
-	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteStackActivityName})
+	deleteStackActivity := awsworkflow.NewDeleteStackActivity(awsSessionFactory)
+	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: awsworkflow.DeleteStackActivityName})
 
 	deleteStoredNodePoolActivity := eksworkflow.NewDeleteStoredNodePoolActivity(nodePoolStore)
 	activity.RegisterWithOptions(deleteStoredNodePoolActivity.Execute, activity.RegisterOptions{

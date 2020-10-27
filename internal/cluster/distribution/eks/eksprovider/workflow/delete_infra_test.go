@@ -22,6 +22,8 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
 	"go.uber.org/cadence/workflow"
+
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
 
 type DeleteClusterInfraWorkflowTestSuite struct {
@@ -52,8 +54,8 @@ func (s *DeleteClusterInfraWorkflowTestSuite) SetupTest() {
 	waitELBsDeletionActivity := NewWaitELBsDeletionActivity(nil)
 	s.env.RegisterActivityWithOptions(waitELBsDeletionActivity.Execute, activity.RegisterOptions{Name: WaitELBsDeletionActivityName})
 
-	deleteStackActivity := NewDeleteStackActivity(nil)
-	s.env.RegisterActivityWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: DeleteStackActivityName})
+	deleteStackActivity := awsworkflow.NewDeleteStackActivity(nil)
+	s.env.RegisterActivityWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: awsworkflow.DeleteStackActivityName})
 
 	deleteControlPlaneActivity := NewDeleteControlPlaneActivity(nil)
 	s.env.RegisterActivityWithOptions(deleteControlPlaneActivity.Execute, activity.RegisterOptions{Name: DeleteControlPlaneActivityName})
@@ -87,6 +89,14 @@ func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
 	}
 
 	eksActivityInput := EKSActivityInput{
+		OrganizationID:            workflowInput.OrganizationID,
+		SecretID:                  workflowInput.SecretID,
+		Region:                    workflowInput.Region,
+		ClusterName:               workflowInput.ClusterName,
+		AWSClientRequestTokenBase: "default-test-workflow-id",
+	}
+
+	awsCommonActivityInput := awsworkflow.AWSCommonActivityInput{
 		OrganizationID:            workflowInput.OrganizationID,
 		SecretID:                  workflowInput.SecretID,
 		Region:                    workflowInput.Region,
@@ -159,19 +169,19 @@ func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
 		},
 	}, nil).Once()
 
-	s.env.OnActivity(DeleteStackActivityName, mock.Anything, DeleteStackActivityInput{
-		EKSActivityInput: eksActivityInput,
-		StackName:        "subnetStackName",
+	s.env.OnActivity(awsworkflow.DeleteStackActivityName, mock.Anything, awsworkflow.DeleteStackActivityInput{
+		AWSCommonActivityInput: awsCommonActivityInput,
+		StackName:              "subnetStackName",
 	}).Return(nil).Once()
 
-	s.env.OnActivity(DeleteStackActivityName, mock.Anything, DeleteStackActivityInput{
-		EKSActivityInput: eksActivityInput,
-		StackName:        GenerateStackNameForCluster(eksActivityInput.ClusterName),
+	s.env.OnActivity(awsworkflow.DeleteStackActivityName, mock.Anything, awsworkflow.DeleteStackActivityInput{
+		AWSCommonActivityInput: awsCommonActivityInput,
+		StackName:              GenerateStackNameForCluster(eksActivityInput.ClusterName),
 	}).Return(nil).Once()
 
-	s.env.OnActivity(DeleteStackActivityName, mock.Anything, DeleteStackActivityInput{
-		EKSActivityInput: eksActivityInput,
-		StackName:        generateStackNameForIam(eksActivityInput.ClusterName),
+	s.env.OnActivity(awsworkflow.DeleteStackActivityName, mock.Anything, awsworkflow.DeleteStackActivityInput{
+		AWSCommonActivityInput: awsCommonActivityInput,
+		StackName:              generateStackNameForIam(awsCommonActivityInput.ClusterName),
 	}).Return(nil).Once()
 
 	s.env.ExecuteWorkflow(DeleteInfraWorkflowName, workflowInput)

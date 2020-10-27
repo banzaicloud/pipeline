@@ -22,6 +22,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -102,8 +103,8 @@ func (w DeleteNodePoolWorkflow) Execute(ctx workflow.Context, input DeleteNodePo
 	}
 
 	{
-		activityInput := DeleteStackActivityInput{
-			EKSActivityInput: EKSActivityInput{
+		activityInput := awsworkflow.DeleteStackActivityInput{
+			AWSCommonActivityInput: awsworkflow.AWSCommonActivityInput{
 				OrganizationID: input.OrganizationID,
 				SecretID:       input.SecretID,
 				Region:         input.Region,
@@ -116,7 +117,7 @@ func (w DeleteNodePoolWorkflow) Execute(ctx workflow.Context, input DeleteNodePo
 			StackName: GenerateNodePoolStackName(input.ClusterName, input.NodePoolName),
 		}
 
-		err := workflow.ExecuteActivity(ctx, DeleteStackActivityName, activityInput).Get(ctx, nil)
+		err := workflow.ExecuteActivity(ctx, awsworkflow.DeleteStackActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
