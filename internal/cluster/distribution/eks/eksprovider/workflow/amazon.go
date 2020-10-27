@@ -156,7 +156,7 @@ func packageCFError(err error, stackName string, clientRequestToken string, clou
 }
 
 // EKSActivityInput holds common input data for all activities
-// Deprecated! Use the AWSCommonActivityInput in "github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow" instead
+// Deprecated! Use the AWSCommonActivityInput from "github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow" instead
 type EKSActivityInput struct {
 	OrganizationID uint
 	SecretID       string
