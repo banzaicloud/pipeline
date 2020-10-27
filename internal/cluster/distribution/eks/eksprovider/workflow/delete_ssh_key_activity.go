@@ -34,7 +34,7 @@ type DeleteSshKeyActivity struct {
 }
 
 type DeleteSshKeyActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 	SSHKeyName string
 }
 

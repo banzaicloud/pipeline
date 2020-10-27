@@ -44,7 +44,7 @@ type CreateAsgActivity struct {
 
 // CreateAsgActivityInput holds data needed for setting up IAM roles
 type CreateAsgActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 
 	ClusterID uint
 
@@ -244,9 +244,9 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	stackID := aws.StringValue(createStackOutput.StackId)
 	err = a.nodePoolStore.UpdateNodePoolStackID(
 		ctx,
-		input.EKSActivityInput.OrganizationID,
+		input.AWSCommonActivityInput.OrganizationID,
 		input.ClusterID,
-		input.EKSActivityInput.ClusterName,
+		input.AWSCommonActivityInput.ClusterName,
 		input.Name,
 		stackID,
 	)

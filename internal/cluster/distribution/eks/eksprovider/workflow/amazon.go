@@ -155,19 +155,6 @@ func packageCFError(err error, stackName string, clientRequestToken string, clou
 	return err
 }
 
-// EKSActivityInput holds common input data for all activities
-type EKSActivityInput struct {
-	OrganizationID uint
-	SecretID       string
-
-	Region string
-
-	ClusterName string
-
-	// 64 chars length unique unique identifier that identifies the create CloudFormation
-	AWSClientRequestTokenBase string
-}
-
 type EncryptionConfig struct {
 	Provider  Provider
 	Resources []string

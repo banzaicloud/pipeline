@@ -42,7 +42,7 @@ type CreateVpcActivity struct {
 // CreateVpcActivityInput holds data needed for setting up
 // VPC for EKS cluster
 type CreateVpcActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 
 	// name of the cloud formation template stack
 	StackName string

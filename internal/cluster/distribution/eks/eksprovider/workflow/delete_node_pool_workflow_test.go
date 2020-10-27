@@ -28,6 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgcadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	sdkamazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -140,7 +141,7 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				}
 			case DeleteStackActivityName:
 				activityInput := DeleteStackActivityInput{
-					EKSActivityInput: EKSActivityInput{
+					AWSCommonActivityInput: awsworkflow.AWSCommonActivityInput{
 						OrganizationID: input.input.OrganizationID,
 						SecretID:       input.input.SecretID,
 						Region:         input.input.Region,

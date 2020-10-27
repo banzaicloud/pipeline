@@ -24,6 +24,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -113,7 +114,7 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 		},
 	}
 
-	commonActivityInput := EKSActivityInput{
+	commonActivityInput := awsworkflow.AWSCommonActivityInput{
 		OrganizationID:            input.OrganizationID,
 		SecretID:                  input.SecretID,
 		Region:                    input.Region,
@@ -127,8 +128,8 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	if input.ClusterRoleID != "" {
 		{
 			activityInput := &ValidateIAMRoleActivityInput{
-				EKSActivityInput: commonActivityInput,
-				ClusterRoleID:    input.ClusterRoleID,
+				AWSCommonActivityInput: commonActivityInput,
+				ClusterRoleID:          input.ClusterRoleID,
 			}
 			validateIAMRoleActivityOutput := ValidateIAMRoleActivityOutput{}
 			if err := workflow.ExecuteActivity(ctx, ValidateIAMRoleActivityName, activityInput).Get(ctx, &validateIAMRoleActivityOutput); err != nil {
@@ -141,12 +142,12 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	var iamRolesCreateActivityFuture workflow.Future
 	{
 		activityInput := &CreateIamRolesActivityInput{
-			EKSActivityInput:   commonActivityInput,
-			StackName:          generateStackNameForIam(input.ClusterName),
-			DefaultUser:        input.DefaultUser,
-			ClusterRoleID:      input.ClusterRoleID,
-			NodeInstanceRoleID: input.NodeInstanceRoleID,
-			Tags:               input.Tags,
+			AWSCommonActivityInput: commonActivityInput,
+			StackName:              generateStackNameForIam(input.ClusterName),
+			DefaultUser:            input.DefaultUser,
+			ClusterRoleID:          input.ClusterRoleID,
+			NodeInstanceRoleID:     input.NodeInstanceRoleID,
+			Tags:                   input.Tags,
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		iamRolesCreateActivityFuture = workflow.ExecuteActivity(ctx, CreateIamRolesActivityName, activityInput)
@@ -158,9 +159,9 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	if input.UseGeneratedSSHKey {
 		{
 			activityInput := &UploadSSHKeyActivityInput{
-				EKSActivityInput: commonActivityInput,
-				SSHKeyName:       GenerateSSHKeyNameForCluster(input.ClusterName),
-				SSHSecretID:      input.SSHSecretID,
+				AWSCommonActivityInput: commonActivityInput,
+				SSHKeyName:             GenerateSSHKeyNameForCluster(input.ClusterName),
+				SSHSecretID:            input.SSHSecretID,
 			}
 			uploadSSHKeyActivityFeature = workflow.ExecuteActivity(ctx, UploadSSHKeyActivityName, activityInput)
 		}
@@ -170,12 +171,12 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	var vpcActivityOutput CreateVpcActivityOutput
 	{
 		activityInput := &CreateVpcActivityInput{
-			EKSActivityInput: commonActivityInput,
-			VpcID:            input.VpcID,
-			RouteTableID:     input.RouteTableID,
-			VpcCidr:          input.VpcCidr,
-			StackName:        GenerateStackNameForCluster(input.ClusterName),
-			Tags:             input.Tags,
+			AWSCommonActivityInput: commonActivityInput,
+			VpcID:                  input.VpcID,
+			RouteTableID:           input.RouteTableID,
+			VpcCidr:                input.VpcCidr,
+			StackName:              GenerateStackNameForCluster(input.ClusterName),
+			Tags:                   input.Tags,
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		if err := workflow.ExecuteActivity(ctx, CreateVpcActivityName, activityInput).Get(ctx, &vpcActivityOutput); err != nil {
@@ -194,10 +195,10 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	var userAccessKeyActivityFeature workflow.Future
 	{
 		activityInput := &CreateClusterUserAccessKeyActivityInput{
-			EKSActivityInput: commonActivityInput,
-			UserName:         input.ClusterName,
-			UseDefaultUser:   input.DefaultUser,
-			ClusterUID:       input.ClusterUID,
+			AWSCommonActivityInput: commonActivityInput,
+			UserName:               input.ClusterName,
+			UseDefaultUser:         input.DefaultUser,
+			ClusterUID:             input.ClusterUID,
 		}
 		userAccessKeyActivityFeature = workflow.ExecuteActivity(ctx, CreateClusterUserAccessKeyActivityName, activityInput)
 	}
@@ -212,14 +213,14 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 			if subnet.SubnetID == "" && subnet.Cidr != "" {
 				// create new subnet
 				activityInput := &CreateSubnetActivityInput{
-					EKSActivityInput: commonActivityInput,
-					VpcID:            vpcActivityOutput.VpcID,
-					RouteTableID:     vpcActivityOutput.RouteTableID,
-					SubnetID:         subnet.SubnetID,
-					Cidr:             subnet.Cidr,
-					AvailabilityZone: subnet.AvailabilityZone,
-					StackName:        generateStackNameForSubnet(input.ClusterName, subnet.Cidr),
-					Tags:             input.Tags,
+					AWSCommonActivityInput: commonActivityInput,
+					VpcID:                  vpcActivityOutput.VpcID,
+					RouteTableID:           vpcActivityOutput.RouteTableID,
+					SubnetID:               subnet.SubnetID,
+					Cidr:                   subnet.Cidr,
+					AvailabilityZone:       subnet.AvailabilityZone,
+					StackName:              generateStackNameForSubnet(input.ClusterName, subnet.Cidr),
+					Tags:                   input.Tags,
 				}
 				ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 				createSubnetFutures = append(createSubnetFutures, workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput))
@@ -291,16 +292,16 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	{
 		activityOutput := CreateEksControlPlaneActivityOutput{}
 		activityInput := &CreateEksControlPlaneActivityInput{
-			EKSActivityInput:      commonActivityInput,
-			KubernetesVersion:     input.KubernetesVersion,
-			EncryptionConfig:      input.EncryptionConfig,
-			EndpointPrivateAccess: input.EndpointPrivateAccess,
-			EndpointPublicAccess:  input.EndpointPublicAccess,
-			ClusterRoleArn:        iamRolesActivityOutput.ClusterRoleArn,
-			SecurityGroupID:       vpcActivityOutput.SecurityGroupID,
-			LogTypes:              input.LogTypes,
-			Subnets:               existingAndNewSubnets,
-			Tags:                  input.Tags,
+			AWSCommonActivityInput: commonActivityInput,
+			KubernetesVersion:      input.KubernetesVersion,
+			EncryptionConfig:       input.EncryptionConfig,
+			EndpointPrivateAccess:  input.EndpointPrivateAccess,
+			EndpointPublicAccess:   input.EndpointPublicAccess,
+			ClusterRoleArn:         iamRolesActivityOutput.ClusterRoleArn,
+			SecurityGroupID:        vpcActivityOutput.SecurityGroupID,
+			LogTypes:               input.LogTypes,
+			Subnets:                existingAndNewSubnets,
+			Tags:                   input.Tags,
 		}
 
 		ao := workflow.ActivityOptions{
@@ -326,11 +327,11 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	var bootstrapActivityFeature workflow.Future
 	{
 		activityInput := &BootstrapActivityInput{
-			EKSActivityInput:    commonActivityInput,
-			KubernetesVersion:   input.KubernetesVersion,
-			NodeInstanceRoleArn: iamRolesActivityOutput.NodeInstanceRoleArn,
-			ClusterUserArn:      iamRolesActivityOutput.ClusterUserArn,
-			AuthConfigMap:       input.AuthConfigMap,
+			AWSCommonActivityInput: commonActivityInput,
+			KubernetesVersion:      input.KubernetesVersion,
+			NodeInstanceRoleArn:    iamRolesActivityOutput.NodeInstanceRoleArn,
+			ClusterUserArn:         iamRolesActivityOutput.ClusterUserArn,
+			AuthConfigMap:          input.AuthConfigMap,
 		}
 		bootstrapActivityFeature = workflow.ExecuteActivity(ctx, BootstrapActivityName, activityInput)
 	}
@@ -353,8 +354,8 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 		var amiSize int
 		{
 			activityInput := GetAMISizeActivityInput{
-				EKSActivityInput: commonActivityInput,
-				ImageID:          asg.NodeImage,
+				AWSCommonActivityInput: commonActivityInput,
+				ImageID:                asg.NodeImage,
 			}
 			var activityOutput GetAMISizeActivityOutput
 			err = workflow.ExecuteActivity(ctx, GetAMISizeActivityName, activityInput).Get(ctx, &activityOutput)
@@ -401,9 +402,9 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 		}
 
 		activityInput := CreateAsgActivityInput{
-			EKSActivityInput: commonActivityInput,
-			ClusterID:        input.ClusterID,
-			StackName:        GenerateNodePoolStackName(input.ClusterName, asg.Name),
+			AWSCommonActivityInput: commonActivityInput,
+			ClusterID:              input.ClusterID,
+			StackName:              GenerateNodePoolStackName(input.ClusterName, asg.Name),
 
 			ScaleEnabled: input.ScaleEnabled,
 

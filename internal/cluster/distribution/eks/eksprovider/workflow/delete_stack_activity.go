@@ -38,7 +38,7 @@ type DeleteStackActivity struct {
 }
 
 type DeleteStackActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 	StackID string
 
 	// name of the cloud formation template stack

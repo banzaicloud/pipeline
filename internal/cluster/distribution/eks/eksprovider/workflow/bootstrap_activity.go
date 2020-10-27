@@ -48,7 +48,7 @@ type BootstrapActivity struct {
 
 // BootstrapActivityInput holds input data
 type BootstrapActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 
 	KubernetesVersion   string
 	NodeInstanceRoleArn string

@@ -38,7 +38,7 @@ type CreateIamRolesActivity struct {
 
 // CreateIamRolesActivityInput holds data needed for setting up IAM roles
 type CreateIamRolesActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 
 	// name of the cloud formation template stack
 	StackName string

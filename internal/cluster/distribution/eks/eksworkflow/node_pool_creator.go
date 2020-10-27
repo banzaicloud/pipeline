@@ -29,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/cadence"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
@@ -122,7 +123,7 @@ func (c eksNodePoolCreator) CreateNodePool(
 		maxSize = nodePool.Autoscaling.MaxSize
 	}
 
-	commonActivityInput := eksworkflow.EKSActivityInput{
+	commonActivityInput := awsworkflow.AWSCommonActivityInput{
 		OrganizationID:            cl.OrganizationID,
 		SecretID:                  cl.SecretID.ResourceID, // TODO: the underlying secret store is the legacy one
 		Region:                    cl.Location,
@@ -141,8 +142,8 @@ func (c eksNodePoolCreator) CreateNodePool(
 	var vpcActivityOutput *eksworkflow.GetVpcConfigActivityOutput
 	{
 		activityInput := eksworkflow.GetVpcConfigActivityInput{
-			EKSActivityInput: commonActivityInput,
-			StackName:        eksworkflow.GenerateStackNameForCluster(cl.Name),
+			AWSCommonActivityInput: commonActivityInput,
+			StackName:              eksworkflow.GenerateStackNameForCluster(cl.Name),
 		}
 
 		var err error
@@ -161,8 +162,8 @@ func (c eksNodePoolCreator) CreateNodePool(
 		).Execute(
 			ctx,
 			eksworkflow.GetAMISizeActivityInput{
-				EKSActivityInput: commonActivityInput,
-				ImageID:          nodePool.Image,
+				AWSCommonActivityInput: commonActivityInput,
+				ImageID:                nodePool.Image,
 			},
 		)
 		if err != nil {
@@ -211,9 +212,9 @@ func (c eksNodePoolCreator) CreateNodePool(
 	}
 
 	subinput := eksworkflow.CreateAsgActivityInput{
-		EKSActivityInput: commonActivityInput,
-		ClusterID:        cl.ID,
-		StackName:        eksworkflow.GenerateNodePoolStackName(cl.Name, nodePool.Name),
+		AWSCommonActivityInput: commonActivityInput,
+		ClusterID:              cl.ID,
+		StackName:              eksworkflow.GenerateNodePoolStackName(cl.Name, nodePool.Name),
 
 		ScaleEnabled: commonCluster.ScaleOptions.Enabled,
 

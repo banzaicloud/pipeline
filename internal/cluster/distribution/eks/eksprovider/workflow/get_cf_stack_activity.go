@@ -34,7 +34,7 @@ type GetCFStackActivity struct {
 }
 
 type GetCFStackActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 	StackName string
 }
 

@@ -36,7 +36,7 @@ type UploadSSHKeyActivity struct {
 
 //  UploadSSHKeyActivityInput holds data needed to upload SSH key
 type UploadSSHKeyActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 	SSHKeyName  string
 	SSHSecretID string
 }

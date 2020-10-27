@@ -22,6 +22,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -103,7 +104,7 @@ func (w DeleteNodePoolWorkflow) Execute(ctx workflow.Context, input DeleteNodePo
 
 	{
 		activityInput := DeleteStackActivityInput{
-			EKSActivityInput: EKSActivityInput{
+			AWSCommonActivityInput: awsworkflow.AWSCommonActivityInput{
 				OrganizationID: input.OrganizationID,
 				SecretID:       input.SecretID,
 				Region:         input.Region,

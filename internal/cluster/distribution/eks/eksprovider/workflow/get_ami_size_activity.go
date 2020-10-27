@@ -34,7 +34,7 @@ type GetAMISizeActivity struct {
 }
 
 type GetAMISizeActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 	ImageID string
 }
 

@@ -33,7 +33,7 @@ type ValidateIAMRoleActivity struct {
 
 //  ValidateIAMRoleActivityInput holds data needed to validate IAM Role
 type ValidateIAMRoleActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 
 	ClusterRoleID string
 }

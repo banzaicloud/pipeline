@@ -35,7 +35,7 @@ type GetOwnedELBsActivity struct {
 // GetOwnedELBsActivityInput holds fields needed to retrieve all ELBs provisioned by
 // an EKS cluster
 type GetOwnedELBsActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 
 	VpcID string
 }

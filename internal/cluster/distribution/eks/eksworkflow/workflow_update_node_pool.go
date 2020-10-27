@@ -118,7 +118,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		return err
 	}
 
-	eksActivityInput := eksWorkflow.EKSActivityInput{
+	AWSCommonActivityInput := awsworkflow.AWSCommonActivityInput{
 		OrganizationID:            input.OrganizationID,
 		SecretID:                  providerSecretID.ResourceID,
 		Region:                    input.Region,
@@ -131,8 +131,8 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 	if effectiveImage == "" ||
 		effectiveVolumeSize == 0 { // Note: needing CF stack for original information for version.
 		getCFStackInput := eksWorkflow.GetCFStackActivityInput{
-			EKSActivityInput: eksActivityInput,
-			StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, input.NodePoolName),
+			AWSCommonActivityInput: AWSCommonActivityInput,
+			StackName:              eksWorkflow.GenerateNodePoolStackName(input.ClusterName, input.NodePoolName),
 		}
 		var getCFStackOutput eksWorkflow.GetCFStackActivityOutput
 		processActivity := process.StartActivity(ctx, eksWorkflow.GetCFStackActivityName)
@@ -165,8 +165,8 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		var amiSize int
 		{
 			activityInput := eksWorkflow.GetAMISizeActivityInput{
-				EKSActivityInput: eksActivityInput,
-				ImageID:          effectiveImage,
+				AWSCommonActivityInput: AWSCommonActivityInput,
+				ImageID:                effectiveImage,
 			}
 			var activityOutput eksWorkflow.GetAMISizeActivityOutput
 			processActivity := process.StartActivity(ctx, eksWorkflow.GetAMISizeActivityName)

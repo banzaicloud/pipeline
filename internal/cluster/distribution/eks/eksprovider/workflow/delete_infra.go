@@ -21,6 +21,7 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
@@ -76,7 +77,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	eksActivityInput := EKSActivityInput{
+	AWSCommonActivityInput := awsworkflow.AWSCommonActivityInput{
 		OrganizationID:            input.OrganizationID,
 		SecretID:                  input.SecretID,
 		Region:                    input.Region,
@@ -88,8 +89,8 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	var getVpcConfigActivityOutput GetVpcConfigActivityOutput
 	{
 		activityInput := GetVpcConfigActivityInput{
-			EKSActivityInput: eksActivityInput,
-			StackName:        GenerateStackNameForCluster(input.ClusterName),
+			AWSCommonActivityInput: AWSCommonActivityInput,
+			StackName:              GenerateStackNameForCluster(input.ClusterName),
 		}
 
 		if err := workflow.ExecuteActivity(ctx, GetVpcConfigActivityName, activityInput).Get(ctx, &getVpcConfigActivityOutput); err != nil {
@@ -102,8 +103,8 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 		var ownedELBsOutput GetOwnedELBsActivityOutput
 		{
 			activityInput := GetOwnedELBsActivityInput{
-				EKSActivityInput: eksActivityInput,
-				VpcID:            getVpcConfigActivityOutput.VpcID,
+				AWSCommonActivityInput: AWSCommonActivityInput,
+				VpcID:                  getVpcConfigActivityOutput.VpcID,
 			}
 
 			if err := workflow.ExecuteActivity(ctx, GetOwnedELBsActivityName, activityInput).Get(ctx, &ownedELBsOutput); err != nil {
@@ -115,8 +116,8 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 		{
 			if len(ownedELBsOutput.LoadBalancerNames) > 0 {
 				activityInput := WaitELBsDeletionActivityActivityInput{
-					EKSActivityInput:  eksActivityInput,
-					LoadBalancerNames: ownedELBsOutput.LoadBalancerNames,
+					AWSCommonActivityInput: AWSCommonActivityInput,
+					LoadBalancerNames:      ownedELBsOutput.LoadBalancerNames,
 				}
 
 				if err := workflow.ExecuteActivity(ctx, WaitELBsDeletionActivityName, activityInput).Get(ctx, nil); err != nil {
@@ -157,7 +158,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	// delete EKS control plane
 	{
 		activityInput := DeleteControlPlaneActivityInput{
-			EKSActivityInput: eksActivityInput,
+			AWSCommonActivityInput: AWSCommonActivityInput,
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		if err := workflow.ExecuteActivity(ctx, DeleteControlPlaneActivityName, activityInput).Get(ctx, nil); err != nil {
@@ -170,8 +171,8 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	if input.GeneratedSSHUsed {
 		{
 			activityInput := DeleteSshKeyActivityInput{
-				EKSActivityInput: eksActivityInput,
-				SSHKeyName:       GenerateSSHKeyNameForCluster(input.ClusterName),
+				AWSCommonActivityInput: AWSCommonActivityInput,
+				SSHKeyName:             GenerateSSHKeyNameForCluster(input.ClusterName),
 			}
 			deleteSSHKeyActivityFeature = workflow.ExecuteActivity(ctx, DeleteSshKeyActivityName, activityInput)
 		}
@@ -183,9 +184,9 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 		{
 			securityGroups := []string{getVpcConfigActivityOutput.NodeSecurityGroupID, getVpcConfigActivityOutput.SecurityGroupID}
 			activityInput := GetOrphanNICsActivityInput{
-				EKSActivityInput: eksActivityInput,
-				VpcID:            getVpcConfigActivityOutput.VpcID,
-				SecurityGroupIDs: securityGroups,
+				AWSCommonActivityInput: AWSCommonActivityInput,
+				VpcID:                  getVpcConfigActivityOutput.VpcID,
+				SecurityGroupIDs:       securityGroups,
 			}
 
 			if err := workflow.ExecuteActivity(ctx, GetOrphanNICsActivityName, activityInput).Get(ctx, &getNicsOutput); err != nil {
@@ -197,8 +198,8 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 		deleteNICFutures := make([]workflow.Future, 0)
 		for _, nicID := range getNicsOutput.NicList {
 			activityInput := DeleteOrphanNICActivityInput{
-				EKSActivityInput: eksActivityInput,
-				NicID:            nicID,
+				AWSCommonActivityInput: AWSCommonActivityInput,
+				NicID:                  nicID,
 			}
 			f := workflow.ExecuteActivity(ctx, DeleteOrphanNICActivityName, activityInput)
 			deleteNICFutures = append(deleteNICFutures, f)
@@ -224,7 +225,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	var subnetStackOutput GetSubnetStacksActivityOutput
 	{
 		activityInput := GetSubnetStacksActivityInput{
-			eksActivityInput,
+			AWSCommonActivityInput,
 		}
 
 		if err := workflow.ExecuteActivity(ctx, GetSubnetStacksActivityName, activityInput).Get(ctx, &subnetStackOutput); err != nil {
@@ -236,8 +237,8 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	deleteSubnetFutures := make([]workflow.Future, 0)
 	for _, subnetStackName := range subnetStackOutput.StackNames {
 		activityInput := DeleteStackActivityInput{
-			EKSActivityInput: eksActivityInput,
-			StackName:        subnetStackName,
+			AWSCommonActivityInput: AWSCommonActivityInput,
+			StackName:              subnetStackName,
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		f := workflow.ExecuteActivity(ctx, DeleteStackActivityName, activityInput)
@@ -256,8 +257,8 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	// delete cluster stack (VPC, etc)
 	{
 		activityInput := DeleteStackActivityInput{
-			EKSActivityInput: eksActivityInput,
-			StackName:        GenerateStackNameForCluster(input.ClusterName),
+			AWSCommonActivityInput: AWSCommonActivityInput,
+			StackName:              GenerateStackNameForCluster(input.ClusterName),
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		if err := workflow.ExecuteActivity(ctx, DeleteStackActivityName, activityInput).Get(ctx, nil); err != nil {
@@ -268,8 +269,8 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	// delete IAM user and roles
 	{
 		activityInput := DeleteStackActivityInput{
-			EKSActivityInput: eksActivityInput,
-			StackName:        generateStackNameForIam(input.ClusterName),
+			AWSCommonActivityInput: AWSCommonActivityInput,
+			StackName:              generateStackNameForIam(input.ClusterName),
 		}
 		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
 		if err := workflow.ExecuteActivity(ctx, DeleteStackActivityName, activityInput).Get(ctx, nil); err != nil {

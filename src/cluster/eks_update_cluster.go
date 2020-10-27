@@ -27,6 +27,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -115,7 +116,7 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 		"cluster", input.ClusterName,
 	)
 
-	commonActivityInput := eksWorkflow.EKSActivityInput{
+	commonActivityInput := awsworkflow.AWSCommonActivityInput{
 		OrganizationID:            input.OrganizationID,
 		SecretID:                  input.SecretID,
 		Region:                    input.Region,
@@ -142,8 +143,8 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 	var vpcActivityOutput eksWorkflow.GetVpcConfigActivityOutput
 	{
 		activityInput := &eksWorkflow.GetVpcConfigActivityInput{
-			EKSActivityInput: commonActivityInput,
-			StackName:        eksWorkflow.GenerateStackNameForCluster(input.ClusterName),
+			AWSCommonActivityInput: commonActivityInput,
+			StackName:              eksWorkflow.GenerateStackNameForCluster(input.ClusterName),
 		}
 		err := workflow.ExecuteActivity(ctx, eksWorkflow.GetVpcConfigActivityName, activityInput).Get(ctx, &vpcActivityOutput)
 		if err != nil {
@@ -235,8 +236,8 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 			var amiSize int
 			{
 				activityInput := eksWorkflow.GetAMISizeActivityInput{
-					EKSActivityInput: commonActivityInput,
-					ImageID:          nodePool.NodeImage,
+					AWSCommonActivityInput: commonActivityInput,
+					ImageID:                nodePool.NodeImage,
 				}
 				var activityOutput eksWorkflow.GetAMISizeActivityOutput
 				err = workflow.ExecuteActivity(ctx, eksWorkflow.GetAMISizeActivityName, activityInput).Get(ctx, &activityOutput)
@@ -285,9 +286,9 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 			}
 
 			activityInput := eksWorkflow.CreateAsgActivityInput{
-				EKSActivityInput: commonActivityInput,
-				ClusterID:        input.ClusterID,
-				StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
+				AWSCommonActivityInput: commonActivityInput,
+				ClusterID:              input.ClusterID,
+				StackName:              eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
 
 				ScaleEnabled: input.ScaleEnabled,
 
@@ -327,8 +328,8 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 			if effectiveImage == "" ||
 				effectiveVolumeSize == 0 { // Note: needing CF stack for original information for version.
 				getCFStackInput := eksWorkflow.GetCFStackActivityInput{
-					EKSActivityInput: commonActivityInput,
-					StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
+					AWSCommonActivityInput: commonActivityInput,
+					StackName:              eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
 				}
 				var getCFStackOutput eksWorkflow.GetCFStackActivityOutput
 				err = workflow.ExecuteActivity(ctx, eksWorkflow.GetCFStackActivityName, getCFStackInput).Get(ctx, &getCFStackOutput)
@@ -361,8 +362,8 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 				var amiSize int
 				{
 					activityInput := eksWorkflow.GetAMISizeActivityInput{
-						EKSActivityInput: commonActivityInput,
-						ImageID:          effectiveImage,
+						AWSCommonActivityInput: commonActivityInput,
+						ImageID:                effectiveImage,
 					}
 					var activityOutput eksWorkflow.GetAMISizeActivityOutput
 					err = workflow.ExecuteActivity(ctx, eksWorkflow.GetAMISizeActivityName, activityInput).Get(ctx, &activityOutput)
@@ -423,21 +424,21 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 			}
 
 			activityInput := eksWorkflow.UpdateAsgActivityInput{
-				EKSActivityInput: commonActivityInput,
-				StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
-				ScaleEnabled:     input.ScaleEnabled,
-				Name:             nodePool.Name,
-				Version:          nodePoolVersion,
-				NodeSpotPrice:    nodePool.NodeSpotPrice,
-				Autoscaling:      nodePool.Autoscaling,
-				NodeMinCount:     nodePool.NodeMinCount,
-				NodeMaxCount:     nodePool.NodeMaxCount,
-				Count:            nodePool.Count,
-				NodeVolumeSize:   volumeSize,
-				NodeImage:        nodePool.NodeImage,
-				NodeInstanceType: nodePool.NodeInstanceType,
-				Labels:           nodePool.Labels,
-				Tags:             input.Tags,
+				AWSCommonActivityInput: commonActivityInput,
+				StackName:              eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
+				ScaleEnabled:           input.ScaleEnabled,
+				Name:                   nodePool.Name,
+				Version:                nodePoolVersion,
+				NodeSpotPrice:          nodePool.NodeSpotPrice,
+				Autoscaling:            nodePool.Autoscaling,
+				NodeMinCount:           nodePool.NodeMinCount,
+				NodeMaxCount:           nodePool.NodeMaxCount,
+				Count:                  nodePool.Count,
+				NodeVolumeSize:         volumeSize,
+				NodeImage:              nodePool.NodeImage,
+				NodeInstanceType:       nodePool.NodeInstanceType,
+				Labels:                 nodePool.Labels,
+				Tags:                   input.Tags,
 			}
 			ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
 			f := workflow.ExecuteActivity(ctx, eksWorkflow.UpdateAsgActivityName, activityInput)

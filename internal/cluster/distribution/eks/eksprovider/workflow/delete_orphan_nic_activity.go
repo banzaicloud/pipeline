@@ -34,7 +34,7 @@ type DeleteOrphanNICActivity struct {
 }
 
 type DeleteOrphanNICActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 	NicID string
 }
 

@@ -134,8 +134,8 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 			input: inputType{
 				activity: nil,
 				input: GetCFStackActivityInput{
-					EKSActivityInput: EKSActivityInput{},
-					StackName:        "stack-name",
+					AWSCommonActivityInput: awsworkflow.AWSCommonActivityInput{},
+					StackName:              "stack-name",
 				},
 			},
 			output: outputType{
@@ -149,8 +149,8 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 			input: inputType{
 				activity: NewGetCFStackActivity(&awsworkflow.MockAWSFactory{}, &awsworkflow.MockCloudFormationAPIFactory{}),
 				input: GetCFStackActivityInput{
-					EKSActivityInput: EKSActivityInput{},
-					StackName:        "stack-name",
+					AWSCommonActivityInput: awsworkflow.AWSCommonActivityInput{},
+					StackName:              "stack-name",
 				},
 			},
 			output: outputType{
@@ -174,8 +174,8 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 			input: inputType{
 				activity: NewGetCFStackActivity(&awsworkflow.MockAWSFactory{}, &awsworkflow.MockCloudFormationAPIFactory{}),
 				input: GetCFStackActivityInput{
-					EKSActivityInput: EKSActivityInput{},
-					StackName:        "stack-name",
+					AWSCommonActivityInput: awsworkflow.AWSCommonActivityInput{},
+					StackName:              "stack-name",
 				},
 			},
 			output: outputType{
@@ -216,8 +216,8 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 			input: inputType{
 				activity: NewGetCFStackActivity(&awsworkflow.MockAWSFactory{}, &awsworkflow.MockCloudFormationAPIFactory{}),
 				input: GetCFStackActivityInput{
-					EKSActivityInput: EKSActivityInput{},
-					StackName:        "stack-name",
+					AWSCommonActivityInput: awsworkflow.AWSCommonActivityInput{},
+					StackName:              "stack-name",
 				},
 			},
 			output: outputType{
@@ -261,8 +261,8 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 			input: inputType{
 				activity: NewGetCFStackActivity(&awsworkflow.MockAWSFactory{}, &awsworkflow.MockCloudFormationAPIFactory{}),
 				input: GetCFStackActivityInput{
-					EKSActivityInput: EKSActivityInput{},
-					StackName:        "stack-name",
+					AWSCommonActivityInput: awsworkflow.AWSCommonActivityInput{},
+					StackName:              "stack-name",
 				},
 			},
 			output: outputType{

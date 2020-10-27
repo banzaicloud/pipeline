@@ -23,6 +23,8 @@ import (
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
 	"go.uber.org/cadence/workflow"
+
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
 
 type CreateInfraWorkflowTestSuite struct {
@@ -162,7 +164,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 		UseGeneratedSSHKey: true,
 	}
 
-	eksActivity := EKSActivityInput{
+	eksActivity := awsworkflow.AWSCommonActivityInput{
 		OrganizationID:            workflowInput.OrganizationID,
 		SecretID:                  workflowInput.SecretID,
 		Region:                    workflowInput.Region,
@@ -171,16 +173,16 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	}
 
 	s.env.OnActivity(ValidateIAMRoleActivityName, mock.Anything, ValidateIAMRoleActivityInput{
-		EKSActivityInput: eksActivity,
-		ClusterRoleID:    workflowInput.ClusterRoleID,
+		AWSCommonActivityInput: eksActivity,
+		ClusterRoleID:          workflowInput.ClusterRoleID,
 	}).Return(&ValidateIAMRoleActivityOutput{}, nil)
 
 	s.env.OnActivity(CreateIamRolesActivityName, mock.Anything, CreateIamRolesActivityInput{
-		EKSActivityInput:   eksActivity,
-		StackName:          "pipeline-eks-iam-test-cluster-name",
-		DefaultUser:        workflowInput.DefaultUser,
-		ClusterRoleID:      workflowInput.ClusterRoleID,
-		NodeInstanceRoleID: workflowInput.NodeInstanceRoleID,
+		AWSCommonActivityInput: eksActivity,
+		StackName:              "pipeline-eks-iam-test-cluster-name",
+		DefaultUser:            workflowInput.DefaultUser,
+		ClusterRoleID:          workflowInput.ClusterRoleID,
+		NodeInstanceRoleID:     workflowInput.NodeInstanceRoleID,
 	},
 	).Return(&CreateIamRolesActivityOutput{
 		ClusterRoleArn:      "cluster-role-arn",
@@ -190,21 +192,21 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	}, nil)
 
 	s.env.OnActivity(CreateClusterUserAccessKeyActivityName, mock.Anything, CreateClusterUserAccessKeyActivityInput{
-		EKSActivityInput: eksActivity,
-		UserName:         "test-cluster-name",
-		UseDefaultUser:   false,
-		ClusterUID:       "cluster-id",
+		AWSCommonActivityInput: eksActivity,
+		UserName:               "test-cluster-name",
+		UseDefaultUser:         false,
+		ClusterUID:             "cluster-id",
 	}).Return(&CreateClusterUserAccessKeyActivityOutput{SecretID: "userSecretId"}, nil)
 
 	s.env.OnActivity(UploadSSHKeyActivityName, mock.Anything, UploadSSHKeyActivityInput{
-		EKSActivityInput: eksActivity,
-		SSHKeyName:       "pipeline-eks-ssh-test-cluster-name",
-		SSHSecretID:      "ssh-secret-id",
+		AWSCommonActivityInput: eksActivity,
+		SSHKeyName:             "pipeline-eks-ssh-test-cluster-name",
+		SSHSecretID:            "ssh-secret-id",
 	}).Return(&UploadSSHKeyActivityOutput{}, nil)
 
 	s.env.OnActivity(CreateVpcActivityName, mock.Anything, CreateVpcActivityInput{
-		EKSActivityInput: eksActivity,
-		StackName:        "pipeline-eks-test-cluster-name",
+		AWSCommonActivityInput: eksActivity,
+		StackName:              "pipeline-eks-test-cluster-name",
 	}).Return(&CreateVpcActivityOutput{
 		VpcID:               "new-vpc-id",
 		RouteTableID:        "new-route-table-id",
@@ -213,12 +215,12 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	}, nil)
 
 	s.env.OnActivity(CreateSubnetActivityName, mock.Anything, CreateSubnetActivityInput{
-		EKSActivityInput: eksActivity,
-		Cidr:             "cidr1",
-		AvailabilityZone: "az1",
-		StackName:        "pipeline-eks-subnet-test-cluster-name-cidr1",
-		VpcID:            "new-vpc-id",
-		RouteTableID:     "new-route-table-id",
+		AWSCommonActivityInput: eksActivity,
+		Cidr:                   "cidr1",
+		AvailabilityZone:       "az1",
+		StackName:              "pipeline-eks-subnet-test-cluster-name-cidr1",
+		VpcID:                  "new-vpc-id",
+		RouteTableID:           "new-route-table-id",
 	}).Return(&CreateSubnetActivityOutput{
 		SubnetID:         "subnet1",
 		Cidr:             "cidr1",
@@ -226,12 +228,12 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	}, nil).Once()
 
 	s.env.OnActivity(CreateSubnetActivityName, mock.Anything, CreateSubnetActivityInput{
-		EKSActivityInput: eksActivity,
-		Cidr:             "cidr2",
-		AvailabilityZone: "az2",
-		StackName:        "pipeline-eks-subnet-test-cluster-name-cidr2",
-		VpcID:            "new-vpc-id",
-		RouteTableID:     "new-route-table-id",
+		AWSCommonActivityInput: eksActivity,
+		Cidr:                   "cidr2",
+		AvailabilityZone:       "az2",
+		StackName:              "pipeline-eks-subnet-test-cluster-name-cidr2",
+		VpcID:                  "new-vpc-id",
+		RouteTableID:           "new-route-table-id",
 	}).Return(&CreateSubnetActivityOutput{
 		SubnetID:         "subnet2",
 		Cidr:             "cidr2",
@@ -256,8 +258,8 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	}, nil).Once()
 
 	s.env.OnActivity(CreateEksControlPlaneActivityName, mock.Anything, CreateEksControlPlaneActivityInput{
-		EKSActivityInput:  eksActivity,
-		KubernetesVersion: "1.14",
+		AWSCommonActivityInput: eksActivity,
+		KubernetesVersion:      "1.14",
 		EncryptionConfig: []EncryptionConfig{
 			{
 				Provider: Provider{
@@ -295,8 +297,8 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	}).Return(&CreateEksControlPlaneActivityOutput{}, nil)
 
 	s.env.OnActivity(GetAMISizeActivityName, mock.Anything, GetAMISizeActivityInput{
-		EKSActivityInput: eksActivity,
-		ImageID:          "ami-test1",
+		AWSCommonActivityInput: eksActivity,
+		ImageID:                "ami-test1",
 	}).Return(&GetAMISizeActivityOutput{AMISize: 4}, nil)
 
 	s.env.OnActivity(SelectVolumeSizeActivityName, mock.Anything, SelectVolumeSizeActivityInput{
@@ -305,23 +307,23 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	}).Return(&SelectVolumeSizeActivityOutput{VolumeSize: 50}, nil)
 
 	s.env.OnActivity(CreateAsgActivityName, mock.Anything, CreateAsgActivityInput{
-		EKSActivityInput:    eksActivity,
-		ClusterID:           1,
-		StackName:           "pipeline-eks-nodepool-test-cluster-name-pool1",
-		VpcID:               "new-vpc-id",
-		SecurityGroupID:     "test-eks-controlplane-security-group-id",
-		NodeSecurityGroupID: "test-node-securitygroup-id",
-		NodeInstanceRoleID:  "node-instance-role-id",
-		SSHKeyName:          "pipeline-eks-ssh-test-cluster-name",
-		Name:                "pool1",
-		NodeSpotPrice:       "0.2",
-		Autoscaling:         true,
-		NodeMinCount:        2,
-		NodeMaxCount:        3,
-		Count:               2,
-		NodeVolumeSize:      50,
-		NodeImage:           "ami-test1",
-		NodeInstanceType:    "vm-type1-test",
+		AWSCommonActivityInput: eksActivity,
+		ClusterID:              1,
+		StackName:              "pipeline-eks-nodepool-test-cluster-name-pool1",
+		VpcID:                  "new-vpc-id",
+		SecurityGroupID:        "test-eks-controlplane-security-group-id",
+		NodeSecurityGroupID:    "test-node-securitygroup-id",
+		NodeInstanceRoleID:     "node-instance-role-id",
+		SSHKeyName:             "pipeline-eks-ssh-test-cluster-name",
+		Name:                   "pool1",
+		NodeSpotPrice:          "0.2",
+		Autoscaling:            true,
+		NodeMinCount:           2,
+		NodeMaxCount:           3,
+		Count:                  2,
+		NodeVolumeSize:         50,
+		NodeImage:              "ami-test1",
+		NodeInstanceType:       "vm-type1-test",
 		Labels: map[string]string{
 			"test-label1":         "test-value1",
 			"test-label2.io/name": "test-value2",
@@ -341,8 +343,8 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	}).Return(&CreateAsgActivityOutput{}, nil).Once()
 
 	s.env.OnActivity(GetAMISizeActivityName, mock.Anything, GetAMISizeActivityInput{
-		EKSActivityInput: eksActivity,
-		ImageID:          "ami-test2",
+		AWSCommonActivityInput: eksActivity,
+		ImageID:                "ami-test2",
 	}).Return(&GetAMISizeActivityOutput{AMISize: 8}, nil)
 
 	s.env.OnActivity(SelectVolumeSizeActivityName, mock.Anything, SelectVolumeSizeActivityInput{
@@ -351,23 +353,23 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	}).Return(&SelectVolumeSizeActivityOutput{VolumeSize: 12}, nil)
 
 	s.env.OnActivity(CreateAsgActivityName, mock.Anything, CreateAsgActivityInput{
-		EKSActivityInput:    eksActivity,
-		ClusterID:           1,
-		StackName:           "pipeline-eks-nodepool-test-cluster-name-pool2",
-		VpcID:               "new-vpc-id",
-		SecurityGroupID:     "test-eks-controlplane-security-group-id",
-		NodeSecurityGroupID: "test-node-securitygroup-id",
-		NodeInstanceRoleID:  "node-instance-role-id",
-		SSHKeyName:          "pipeline-eks-ssh-test-cluster-name",
-		Name:                "pool2",
-		NodeSpotPrice:       "0.0",
-		Autoscaling:         false,
-		NodeMinCount:        3,
-		NodeMaxCount:        3,
-		Count:               3,
-		NodeVolumeSize:      12,
-		NodeImage:           "ami-test2",
-		NodeInstanceType:    "vm-type2-test",
+		AWSCommonActivityInput: eksActivity,
+		ClusterID:              1,
+		StackName:              "pipeline-eks-nodepool-test-cluster-name-pool2",
+		VpcID:                  "new-vpc-id",
+		SecurityGroupID:        "test-eks-controlplane-security-group-id",
+		NodeSecurityGroupID:    "test-node-securitygroup-id",
+		NodeInstanceRoleID:     "node-instance-role-id",
+		SSHKeyName:             "pipeline-eks-ssh-test-cluster-name",
+		Name:                   "pool2",
+		NodeSpotPrice:          "0.0",
+		Autoscaling:            false,
+		NodeMinCount:           3,
+		NodeMaxCount:           3,
+		Count:                  3,
+		NodeVolumeSize:         12,
+		NodeImage:              "ami-test2",
+		NodeInstanceType:       "vm-type2-test",
 		Subnets: []Subnet{
 			{
 				SubnetID:         "subnet3",
@@ -378,10 +380,10 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	}).Return(&CreateAsgActivityOutput{}, nil).Once()
 
 	s.env.OnActivity(BootstrapActivityName, mock.Anything, BootstrapActivityInput{
-		EKSActivityInput:    eksActivity,
-		KubernetesVersion:   "1.14",
-		NodeInstanceRoleArn: "node-instance-role-arn",
-		ClusterUserArn:      "cluster-user-arn",
+		AWSCommonActivityInput: eksActivity,
+		KubernetesVersion:      "1.14",
+		NodeInstanceRoleArn:    "node-instance-role-arn",
+		ClusterUserArn:         "cluster-user-arn",
 	}).Return(&BootstrapActivityOutput{}, nil)
 
 	s.env.OnActivity(SaveK8sConfigActivityName, mock.Anything, SaveK8sConfigActivityInput{
@@ -472,7 +474,7 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
 		UseGeneratedSSHKey: true,
 	}
 
-	eksActivity := EKSActivityInput{
+	eksActivity := awsworkflow.AWSCommonActivityInput{
 		OrganizationID:            workflowInput.OrganizationID,
 		SecretID:                  workflowInput.SecretID,
 		Region:                    workflowInput.Region,
@@ -481,8 +483,8 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
 	}
 
 	s.env.OnActivity(ValidateIAMRoleActivityName, mock.Anything, ValidateIAMRoleActivityInput{
-		EKSActivityInput: eksActivity,
-		ClusterRoleID:    workflowInput.ClusterRoleID,
+		AWSCommonActivityInput: eksActivity,
+		ClusterRoleID:          workflowInput.ClusterRoleID,
 	}).Return(&ValidateIAMRoleActivityOutput{}, nil)
 
 	s.env.OnActivity(CreateIamRolesActivityName, mock.Anything, mock.Anything).Return(&CreateIamRolesActivityOutput{

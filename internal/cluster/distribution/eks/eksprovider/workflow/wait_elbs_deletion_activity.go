@@ -36,7 +36,7 @@ type WaitELBsDeletionActivity struct {
 
 // WaitELBsDeletionActivity holds the names of the ELBs to wait for to be deleted
 type WaitELBsDeletionActivityActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 	LoadBalancerNames []string
 }
 

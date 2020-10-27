@@ -33,7 +33,7 @@ type GetOrphanNICsActivity struct {
 }
 
 type GetOrphanNICsActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 
 	VpcID            string
 	SecurityGroupIDs []string

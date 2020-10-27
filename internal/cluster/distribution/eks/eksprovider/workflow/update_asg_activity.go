@@ -51,7 +51,7 @@ type UpdateAsgActivity struct {
 
 // UpdateAsgActivityInput holds data needed for setting up IAM roles
 type UpdateAsgActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 
 	// name of the cloud formation template stack
 	StackName        string

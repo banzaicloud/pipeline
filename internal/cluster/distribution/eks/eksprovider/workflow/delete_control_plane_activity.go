@@ -36,7 +36,7 @@ type DeleteControlPlaneActivity struct {
 }
 
 type DeleteControlPlaneActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 }
 
 //   DeleteControlPlaneActivityOutput holds the output data of the DeleteControlPlaneActivity

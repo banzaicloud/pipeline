@@ -41,7 +41,7 @@ type CreateEksControlPlaneActivity struct {
 
 // CreateEksControlPlaneActivityInput holds data needed for setting up EKS control plane
 type CreateEksControlPlaneActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 
 	KubernetesVersion     string
 	EncryptionConfig      []EncryptionConfig

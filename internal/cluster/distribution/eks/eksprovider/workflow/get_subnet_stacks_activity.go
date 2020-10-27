@@ -34,7 +34,7 @@ type GetSubnetStacksActivity struct {
 }
 
 type GetSubnetStacksActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 }
 
 type GetSubnetStacksActivityOutput struct {

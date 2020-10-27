@@ -35,7 +35,7 @@ type GetVpcConfigActivity struct {
 
 // GetVpcConfigActivityInput holds data needed for setting up IAM roles
 type GetVpcConfigActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 
 	// name of the cloud formation template stack
 	StackName string

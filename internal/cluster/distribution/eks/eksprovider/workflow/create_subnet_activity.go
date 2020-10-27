@@ -38,7 +38,7 @@ type CreateSubnetActivity struct {
 // CreateSubnetActivityInput holds data needed for setting up
 // a Subnet for EKS cluster
 type CreateSubnetActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 
 	// the ID of the VPC to create the subnet into
 	VpcID string

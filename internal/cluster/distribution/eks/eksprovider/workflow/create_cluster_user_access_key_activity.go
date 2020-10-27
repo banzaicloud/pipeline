@@ -40,7 +40,7 @@ type CreateClusterUserAccessKeyActivity struct {
 
 // CreateClusterUserAccessKeyActivityInput holds data needed for setting up IAM user access key for the cluster user
 type CreateClusterUserAccessKeyActivityInput struct {
-	EKSActivityInput
+	awsworkflow.AWSCommonActivityInput
 
 	UserName       string
 	UseDefaultUser bool
