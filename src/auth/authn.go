@@ -183,7 +183,7 @@ func Init(db *gorm.DB, config Config, tokenStore bauth.TokenStore, tokenManager 
 			return ctx.Value(auth.CurrentUser)
 		},
 		ginauth.TokenStoreOption(tokenStore),
-		ginauth.ExtractorOption(cookieExtractor{sessionStorer}),
+		ginauth.TokenExtractorOption(cookieExtractor{sessionStorer}),
 		ginauth.ErrorHandlerOption(emperror.MakeContextAware(errorHandler)),
 	)
 
