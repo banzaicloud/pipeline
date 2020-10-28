@@ -16,7 +16,6 @@ package pkeawsadapter
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"emperror.dev/errors"
@@ -24,6 +23,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
 )
@@ -48,6 +48,38 @@ func NewNodePoolManager(
 	}
 }
 
+// DeleteNodePool deletes an existing node pool in a cluster.
+func (n nodePoolManager) DeleteNodePool(
+	ctx context.Context, c cluster.Cluster, existingNodePool pke.ExistingNodePool, shouldUpdateClusterStatus bool,
+) (err error) {
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,
+	}
+
+	input := workflow.DeleteNodePoolWorkflowInput{
+		ClusterID:                 c.ID,
+		ClusterName:               c.Name,
+		NodePoolName:              existingNodePool.Name,
+		OrganizationID:            c.OrganizationID,
+		Region:                    c.Location,
+		SecretID:                  c.SecretID.ResourceID,
+		ShouldUpdateClusterStatus: shouldUpdateClusterStatus,
+	}
+
+	_, err = n.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.DeleteNodePoolWorkflowName, input)
+	if err != nil {
+		return errors.WrapWithDetails(err, "failed to start workflow", "workflow", workflow.DeleteNodePoolWorkflowName)
+	}
+
+	return nil
+}
+
+// ListNodePools lists node pools from a cluster.
+func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Cluster, nodePoolNames []string) ([]pke.NodePool, error) {
+	panic("implement me")
+}
+
 func (n nodePoolManager) UpdateNodePool(
 	ctx context.Context,
 	c cluster.Cluster,
@@ -68,7 +100,7 @@ func (n nodePoolManager) UpdateNodePool(
 		ProviderSecretID: c.SecretID.String(),
 		Region:           c.Location,
 
-		StackName: generateNodePoolStackName(c.Name, nodePoolName),
+		StackName: pkeaws.GenerateNodePoolStackName(c.Name, nodePoolName),
 
 		ClusterID:       c.ID,
 		ClusterSecretID: c.ConfigSecretID.String(),
@@ -98,44 +130,4 @@ func (n nodePoolManager) UpdateNodePool(
 	}
 
 	return e.ID, nil
-}
-
-// TODO: this is temporary
-func generateNodePoolStackName(clusterName string, poolName string) string {
-	if poolName == "master" {
-		return fmt.Sprintf("pke-master-%s", clusterName)
-	}
-	return fmt.Sprintf("pke-pool-%s-worker-%s", clusterName, poolName)
-}
-
-// ListNodePools lists node pools from a cluster.
-func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Cluster, nodePoolNames []string) ([]pke.NodePool, error) {
-	panic("implement me")
-}
-
-// DeleteNodePool deletes an existing node pool in a cluster.
-func (n nodePoolManager) DeleteNodePool(
-	ctx context.Context, c cluster.Cluster, existingNodePool pke.ExistingNodePool, shouldUpdateClusterStatus bool,
-) (err error) {
-	workflowOptions := client.StartWorkflowOptions{
-		TaskList:                     "pipeline",
-		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,
-	}
-
-	input := workflow.DeleteNodePoolWorkflowInput{
-		ClusterID:                 c.ID,
-		ClusterName:               c.Name,
-		NodePoolName:              existingNodePool.Name,
-		OrganizationID:            c.OrganizationID,
-		Region:                    c.Location,
-		SecretID:                  c.SecretID.ResourceID,
-		ShouldUpdateClusterStatus: shouldUpdateClusterStatus,
-	}
-
-	_, err = n.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.DeleteNodePoolWorkflowName, input)
-	if err != nil {
-		return errors.WrapWithDetails(err, "failed to start workflow", "workflow", workflow.DeleteNodePoolWorkflowName)
-	}
-
-	return nil
 }

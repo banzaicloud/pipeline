@@ -22,6 +22,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
@@ -97,7 +98,7 @@ func (w DeleteNodePoolWorkflow) Execute(ctx workflow.Context, input DeleteNodePo
 				),
 			},
 			StackID:   "",
-			StackName: GenerateNodePoolStackName(input.ClusterName, input.NodePoolName),
+			StackName: pkeaws.GenerateNodePoolStackName(input.ClusterName, input.NodePoolName),
 		}
 
 		err := workflow.ExecuteActivity(ctx, awsworkflow.DeleteStackActivityName, activityInput).Get(ctx, nil)

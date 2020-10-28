@@ -15,6 +15,8 @@
 package pkeaws
 
 import (
+	"fmt"
+
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
@@ -32,3 +34,11 @@ type ErrorHandler = common.ErrorHandler
 
 // NoopErrorHandler is an error handler that discards every error.
 type NoopErrorHandler = common.NoopErrorHandler
+
+// TODO: this is temporary
+func GenerateNodePoolStackName(clusterName string, poolName string) string {
+	if poolName == "master" {
+		return fmt.Sprintf("pke-master-%s", clusterName)
+	}
+	return fmt.Sprintf("pke-pool-%s-worker-%s", clusterName, poolName)
+}
