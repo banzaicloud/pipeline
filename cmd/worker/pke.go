@@ -45,9 +45,4 @@ func registerPKEWorkflows(
 	activity.RegisterWithOptions(deleteStoredNodePoolActivity.Execute, activity.RegisterOptions{
 		Name: workflow.DeleteStoredNodePoolActivityName,
 	})
-
-	listStoredNodePoolsActivity := workflow.NewListStoredNodePoolsActivity(nodePoolStore)
-	activity.RegisterWithOptions(listStoredNodePoolsActivity.Execute, activity.RegisterOptions{
-		Name: workflow.ListStoredNodePoolsActivityName,
-	})
 }
