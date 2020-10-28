@@ -21,14 +21,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
-	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkeworkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
 )
 
 func registerPKEWorkflows(
 	passwordSecrets pkeworkflow.PasswordSecretStore,
 	config configuration,
-	secretStore awsworkflow.SecretStore,
 	nodePoolStore pke.NodePoolStore,
 	clusterDynamicClientFactory cluster.DynamicClientFactory,
 ) {
@@ -39,15 +37,10 @@ func registerPKEWorkflows(
 
 	pkeawsworkflow.NewUpdateNodePoolWorkflow().Register()
 
-	awsSessionFactory := awsworkflow.NewAWSSessionFactory(secretStore)
-
 	// delete node pool workflow
 	workflow.NewDeleteNodePoolWorkflow().Register()
 
 	// node pool delete helper activities
-	deleteStackActivity := awsworkflow.NewDeleteStackActivity(awsSessionFactory)
-	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: awsworkflow.DeleteStackActivityName})
-
 	deleteStoredNodePoolActivity := workflow.NewDeleteStoredNodePoolActivity(nodePoolStore)
 	activity.RegisterWithOptions(deleteStoredNodePoolActivity.Execute, activity.RegisterOptions{
 		Name: workflow.DeleteStoredNodePoolActivityName,
