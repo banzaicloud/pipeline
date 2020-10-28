@@ -133,11 +133,19 @@ type service struct {
 type NodePoolManager interface {
 	// DeleteNodePool deletes an existing node pool in a cluster.
 	DeleteNodePool(
-		ctx context.Context, c cluster.Cluster, existingNodePool ExistingNodePool, shouldUpdateClusterStatus bool,
+		ctx context.Context,
+		c cluster.Cluster,
+		existingNodePool ExistingNodePool,
+		shouldUpdateClusterStatus bool,
 	) (err error)
 
 	// UpdateNodePool updates an existing node pool in a cluster.
-	UpdateNodePool(ctx context.Context, c cluster.Cluster, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
+	UpdateNodePool(
+		ctx context.Context,
+		c cluster.Cluster,
+		nodePoolName string,
+		nodePoolUpdate NodePoolUpdate,
+	) (string, error)
 }
 
 // ClusterManager is responsible for managing clusters.
