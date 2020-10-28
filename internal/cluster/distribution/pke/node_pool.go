@@ -19,17 +19,12 @@ import (
 )
 
 type ExistingNodePool struct {
-	Name          string
-	StackID       string
-	Status        NodePoolStatus
-	StatusMessage string
+	Name string
 }
-
-type NodePoolStatus string
 
 // +testify:mock
 
-// NodePoolStore provides an interface for EKS node pool persistence.
+// NodePoolStore provides an interface for PKE node pool persistence.
 type NodePoolStore interface {
 	// DeleteNodePool deletes an existing node pool from the storage.
 	DeleteNodePool(ctx context.Context, organizationID, clusterID uint, clusterName string, nodePoolName string) error

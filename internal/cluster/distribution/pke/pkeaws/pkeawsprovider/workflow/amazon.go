@@ -41,15 +41,15 @@ const (
 )
 
 func GenerateStackNameForCluster(clusterName string) string {
-	return "pipeline-eks-" + clusterName
+	return "pipeline-pke-aws-" + clusterName
 }
 
 func GenerateSSHKeyNameForCluster(clusterName string) string {
-	return "pipeline-eks-ssh-" + clusterName
+	return "pipeline-pke-aws-ssh-" + clusterName
 }
 
 func GenerateNodePoolStackName(clusterName string, poolName string) string {
-	return "pipeline-eks-nodepool-" + clusterName + "-" + poolName
+	return "pipeline-pke-aws-nodepool-" + clusterName + "-" + poolName
 }
 
 type EncryptionConfig struct {

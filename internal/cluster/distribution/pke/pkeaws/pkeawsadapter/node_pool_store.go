@@ -81,5 +81,33 @@ func (s nodePoolStore) ListNodePools(
 	clusterID uint,
 	clusterName string,
 ) (existingNodePools map[string]pke.ExistingNodePool, err error) {
-	panic("not implemented")
+	var pkeAWSCluster pkeprovider.EC2PKEClusterModel
+	err = s.db.
+		Where(pkeprovider.EC2PKEClusterModel{ClusterID: clusterID}).
+		Preload("NodePools").
+		First(&pkeAWSCluster).Error
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return nil, cluster.NotFoundError{
+				OrganizationID: organizationID,
+				ClusterID:      clusterID,
+				ClusterName:    clusterName,
+			}
+		}
+
+		return nil, errors.WrapWithDetails(err, "fetching node pools from database failed",
+			"organizationId", organizationID,
+			"clusterId", clusterID,
+			"clusterName", clusterName,
+		)
+	}
+
+	existingNodePools = make(map[string]pke.ExistingNodePool, len(pkeAWSCluster.NodePools))
+	for _, nodePoolModel := range pkeAWSCluster.NodePools {
+		existingNodePools[nodePoolModel.Name] = pke.ExistingNodePool{
+			Name: nodePoolModel.Name,
+		}
+	}
+
+	return existingNodePools, nil
 }
