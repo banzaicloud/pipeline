@@ -65,5 +65,5 @@ func (g ClusterTokenGenerator) GenerateClusterToken(orgID uint, clusterID uint) 
 		}
 	}
 
-	return g.tokenManager.GenerateToken(userID, time.Time{}, ClusterToken, userID, userID, true)
+	return g.tokenManager.GenerateToken(userID, auth.NoExpiration, ClusterToken, userID, userID, true)
 }
