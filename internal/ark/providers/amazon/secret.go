@@ -22,7 +22,7 @@ import (
 )
 
 type secretContents struct {
-	Credentials credentials `toml:"default"`
+	Credentials credentials `toml:"bucket"`
 }
 
 type credentials struct {

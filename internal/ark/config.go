@@ -99,6 +99,7 @@ type backupStorageLocation struct {
 
 type backupStorageLocationConfig struct {
 	Region                  string `json:"region,omitempty"`
+	Profile                 string `json:"profile,omitempty"`
 	S3ForcePathStyle        string `json:"s3ForcePathStyle,omitempty"`
 	S3Url                   string `json:"s3Url,omitempty"`
 	KMSKeyId                string `json:"kmsKeyId,omitempty"`
@@ -296,6 +297,7 @@ func (req ConfigRequest) getBackupStorageLocation() (backupStorageLocation, erro
 	case providers.Amazon:
 		config.Provider = amazon.BackupStorageProvider
 		config.Config.Region = req.Bucket.Location
+		config.Config.Profile = "bucket"
 
 	case providers.Azure:
 		config.Provider = azure.BackupStorageProvider
@@ -321,9 +323,10 @@ func (req ConfigRequest) getCredentials() (credentials, error) {
 
 	switch req.Cluster.Provider {
 	case providers.Amazon:
-		ClusterSecretContents, err = amazon.GetSecret(req.ClusterSecret)
+		// no need for secret in case of Amazon since we use instance profile to create volume snapshots
+		ClusterSecretContents = ""
 		if err != nil {
-			return config, err
+			return config, nil
 		}
 	case providers.Google:
 		ClusterSecretContents, err = google.GetSecret(req.ClusterSecret)

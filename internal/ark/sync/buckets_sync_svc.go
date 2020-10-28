@@ -15,6 +15,8 @@
 package sync
 
 import (
+	"fmt"
+
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
@@ -63,8 +65,12 @@ func (s *BucketsSyncService) SyncBackupsFromBuckets() error {
 		if err != nil {
 			log.Warning(err.Error())
 		}
+		ids := ""
+		for _, id := range backupIDS  {
+			ids = ids + ", " + fmt.Sprint(id)
+		}
 
-		log.Debugf("removing deleted backups from database: %+q", backupIDS)
+		log.Debugf("removing non-existing backups from database in bucket %s (%v) : %+s", bucket.Name, bucket.ID, ids)
 		err = s.backupsSvc.DeleteNonExistingBackupsByBucketAndKeys(bucket.ID, backupIDS)
 		if err != nil {
 			log.Error(err.Error())

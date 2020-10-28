@@ -43,6 +43,12 @@ Resources:
               'autoscaling:CompleteLifecycleAction',
               'autoscaling:DeleteLifecycleHook',
               'autoscaling:DetachInstances',
+              'ec2:DescribeVolumes',
+              'ec2:DescribeSnapshots',
+              'ec2:CreateTags',
+              'ec2:CreateVolume',
+              'ec2:CreateSnapshot',
+              'ec2:DeleteSnapshot',
               ]
               Effect: Allow
               Resource: '*'
