@@ -72,7 +72,7 @@ func (w UpdateNodePoolWorkflow) Register() {
 func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePoolWorkflowInput) (string, error) {
 	statusMessage := fmt.Sprintf("failed to update node pool: %s", notPipelineEnterpriseError.Error())
 
-	_ = setClusterStatus(ctx, input.ClusterID, cluster.Warning, statusMessage)
+	_ = SetClusterStatus(ctx, input.ClusterID, cluster.Warning, statusMessage)
 
 	return "", notPipelineEnterpriseError
 }

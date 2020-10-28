@@ -55,7 +55,7 @@ func CreateNodePoolWorkflow(ctx workflow.Context, input CreateNodePoolWorkflowIn
 
 		err := workflow.ExecuteActivity(ctx, CreateNodePoolLabelSetActivityName, input).Get(ctx, nil)
 		if err != nil {
-			_ = SetClusterStatus(_ctx, input.ClusterID, cluster.Warning, pkgCadence.UnwrapError(err).Error())
+			_ = setClusterStatus(_ctx, input.ClusterID, cluster.Warning, pkgCadence.UnwrapError(err).Error())
 
 			return err
 		}
@@ -70,7 +70,7 @@ func CreateNodePoolWorkflow(ctx workflow.Context, input CreateNodePoolWorkflowIn
 
 		err := workflow.ExecuteActivity(ctx, CreateNodePoolActivityName, input).Get(ctx, nil)
 		if err != nil {
-			_ = SetClusterStatus(_ctx, input.ClusterID, cluster.Warning, pkgCadence.UnwrapError(err).Error())
+			_ = setClusterStatus(_ctx, input.ClusterID, cluster.Warning, pkgCadence.UnwrapError(err).Error())
 
 			return err
 		}
@@ -85,7 +85,7 @@ func CreateNodePoolWorkflow(ctx workflow.Context, input CreateNodePoolWorkflowIn
 
 		err := workflow.ExecuteActivity(ctx, SetClusterStatusActivityName, input).Get(ctx, nil)
 		if err != nil {
-			_ = SetClusterStatus(_ctx, input.ClusterID, cluster.Warning, pkgCadence.UnwrapError(err).Error())
+			_ = setClusterStatus(_ctx, input.ClusterID, cluster.Warning, pkgCadence.UnwrapError(err).Error())
 
 			return err
 		}

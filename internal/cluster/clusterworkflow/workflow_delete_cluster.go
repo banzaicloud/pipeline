@@ -42,7 +42,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 		err := workflow.ExecuteActivity(ctx, RemoveClusterFromGroupActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			_ = SetClusterStatus(ctx, input.ClusterID, cluster.Error, pkgCadence.UnwrapError(err).Error())
+			_ = setClusterStatus(ctx, input.ClusterID, cluster.Error, pkgCadence.UnwrapError(err).Error())
 			return err
 		}
 	}
@@ -59,7 +59,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 		err := workflow.ExecuteActivity(ctx, DeleteClusterActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			_ = SetClusterStatus(ctx, input.ClusterID, cluster.Error, pkgCadence.UnwrapError(err).Error())
+			_ = setClusterStatus(ctx, input.ClusterID, cluster.Error, pkgCadence.UnwrapError(err).Error())
 			return err
 		}
 	}

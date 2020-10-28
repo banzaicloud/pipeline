@@ -23,7 +23,7 @@ import (
 )
 
 // TODO: this is temporary
-func setClusterStatus(ctx workflow.Context, clusterID uint, status, statusMessage string) error {
+func SetClusterStatus(ctx workflow.Context, clusterID uint, status, statusMessage string) error {
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		ScheduleToStartTimeout: 10 * time.Minute,
 		StartToCloseTimeout:    2 * time.Minute,
