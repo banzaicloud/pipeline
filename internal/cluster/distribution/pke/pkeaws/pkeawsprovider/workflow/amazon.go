@@ -14,18 +14,6 @@
 
 package workflow
 
-import (
-	"github.com/banzaicloud/pipeline/src/secret"
-)
-
 func GenerateNodePoolStackName(clusterName string, poolName string) string {
 	return "pipeline-pke-aws-nodepool-" + clusterName + "-" + poolName
-}
-
-type SecretStore interface {
-	Get(orgnaizationID uint, secretID string) (*secret.SecretItemResponse, error)
-	GetByName(orgnaizationID uint, secretID string) (*secret.SecretItemResponse, error)
-	Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
-	Delete(organizationID uint, secretID string) error
-	Update(organizationID uint, secretID string, request *secret.CreateSecretRequest) error
 }

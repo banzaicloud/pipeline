@@ -28,7 +28,7 @@ import (
 func registerPKEWorkflows(
 	passwordSecrets pkeworkflow.PasswordSecretStore,
 	config configuration,
-	secretStore workflow.SecretStore,
+	secretStore awsworkflow.SecretStore,
 	nodePoolStore pke.NodePoolStore,
 	clusterDynamicClientFactory cluster.DynamicClientFactory,
 ) {
