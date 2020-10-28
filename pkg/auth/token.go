@@ -28,7 +28,7 @@ import (
 type TokenType string
 
 // NoExpiration can be passed to the generator to indicate no expiration time.
-var NoExpiration time.Time
+var NoExpiration time.Time //nolint:gochecknoglobals
 
 // JWTTokenGenerator generates an API token.
 type JWTTokenGenerator struct {

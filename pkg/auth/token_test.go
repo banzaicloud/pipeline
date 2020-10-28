@@ -53,7 +53,7 @@ func TestJWTTokenGenerator_GenerateToken(t *testing.T) {
 	tokenID, signedToken, err := generator.GenerateToken("user", NoExpiration, "token", "my_text")
 	require.NoError(t, err)
 
-	const expectedSignedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJpZCIsImF1ZCI6ImF1ZGllbmNlIiwiaXNzIjoiaXNzdWVyIiwic3ViIjoidXNlciIsImlhdCI6MTU2ODk5MDY0MCwic2NvcGUiOiJhcGk6aW52b2tlIiwidHlwZSI6InRva2VuIiwidGV4dCI6Im15X3RleHQifQ.DZMiDYr8hIuegx2FvKeg1HCsg2LyxMNT4Kc0hVcLI3E"
+	const expectedSignedToken = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOlsiYXVkaWVuY2UiXSwiaWF0IjoxNTY4OTkwNjQwLCJpc3MiOiJpc3N1ZXIiLCJqdGkiOiJpZCIsInNjb3BlIjoiYXBpOmludm9rZSIsInN1YiI6InVzZXIiLCJ0ZXh0IjoibXlfdGV4dCIsInR5cGUiOiJ0b2tlbiJ9.s1bPhRcl-tZpsxyFs9LACRrXVWwCmN5Q3PYH2EtscPc"
 
 	assert.Equal(t, "id", tokenID)
 	assert.Equal(t, expectedSignedToken, signedToken)

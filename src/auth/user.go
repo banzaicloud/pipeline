@@ -24,13 +24,13 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	helper "github.com/banzaicloud/gin-utilz/auth"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/qor/utils"
 
-	helper "github.com/banzaicloud/gin-utilz/auth"
 	"github.com/banzaicloud/pipeline/internal/global"
 )
 
