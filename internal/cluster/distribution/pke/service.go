@@ -138,9 +138,6 @@ type NodePoolManager interface {
 
 	// UpdateNodePool updates an existing node pool in a cluster.
 	UpdateNodePool(ctx context.Context, c cluster.Cluster, nodePoolName string, nodePoolUpdate NodePoolUpdate) (string, error)
-
-	// ListNodePools lists node pools from a cluster.
-	ListNodePools(ctx context.Context, c cluster.Cluster, nodePoolNames []string) ([]NodePool, error)
 }
 
 // ClusterManager is responsible for managing clusters.

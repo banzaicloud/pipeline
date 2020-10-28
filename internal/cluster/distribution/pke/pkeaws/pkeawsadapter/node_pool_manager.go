@@ -75,11 +75,6 @@ func (n nodePoolManager) DeleteNodePool(
 	return nil
 }
 
-// ListNodePools lists node pools from a cluster.
-func (n nodePoolManager) ListNodePools(ctx context.Context, cluster cluster.Cluster, nodePoolNames []string) ([]pke.NodePool, error) {
-	panic("implement me")
-}
-
 func (n nodePoolManager) UpdateNodePool(
 	ctx context.Context,
 	c cluster.Cluster,
