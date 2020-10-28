@@ -47,10 +47,9 @@ require (
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.4.2
 	github.com/gorilla/mux v1.7.3
-	github.com/gorilla/sessions v1.2.0
-	github.com/gosimple/slug v1.9.0 // indirect
+	github.com/gorilla/sessions v1.2.1
 	github.com/hashicorp/vault/api v1.0.4
-	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
+	github.com/jinzhu/copier v0.0.0-20201025035756-632e723a6687
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.1
@@ -59,7 +58,7 @@ require (
 	github.com/json-iterator/go v1.1.10
 	github.com/lestrrat-go/backoff v1.0.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
-	github.com/microcosm-cc/bluemonday v1.0.2
+	github.com/microcosm-cc/bluemonday v1.0.3
 	github.com/mitchellh/copystructure v1.0.0
 	github.com/mitchellh/mapstructure v1.3.3
 	github.com/moogar0880/problems v0.1.1
@@ -72,14 +71,8 @@ require (
 	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common v0.10.0
 	github.com/prometheus/prom2json v1.3.0
-	github.com/qor/assetfs v0.0.0-20170713023933-ff57fdc13a14 // indirect
 	github.com/qor/auth v0.0.0-20190103025640-46aae9fa92fa
-	github.com/qor/mailer v0.0.0-20170814094430-1e6ac7106955 // indirect
-	github.com/qor/middlewares v0.0.0-20170822143614-781378b69454 // indirect
-	github.com/qor/qor v0.0.0-20190319081902-186b0237364b
-	github.com/qor/redirect_back v0.0.0-20170907030740-b4161ed6f848 // indirect
-	github.com/qor/render v0.0.0-20171201033449-63566e46f01b // indirect
-	github.com/qor/responder v0.0.0-20160314063933-ecae0be66c1a // indirect
+	github.com/qor/qor v0.0.0-20200729071734-d587cffbbb93
 	github.com/qor/session v0.0.0-20170907035918-8206b0adab70
 	github.com/sagikazarmark/appkit v0.8.0
 	github.com/sagikazarmark/kitx v0.12.0
@@ -97,14 +90,12 @@ require (
 	go.uber.org/cadence v0.13.4
 	go.uber.org/yarpc v1.45.0
 	go.uber.org/zap v1.14.1
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
-	golang.org/x/net v0.0.0-20200707034311-ab3426394381
+	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
+	golang.org/x/net v0.0.0-20200822124328-c89045814202
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.15.1
 	google.golang.org/genproto v0.0.0-20200731012542-8145dea6a485
 	google.golang.org/grpc v1.31.0
-	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v2 v2.3.0
@@ -139,7 +130,7 @@ replace (
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
 
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.0-rc10
-	github.com/qor/auth => github.com/banzaicloud/auth v0.2.0
+	github.com/qor/auth => github.com/banzaicloud/auth v0.3.0
 
 	google.golang.org/grpc => google.golang.org/grpc v1.27.1
 

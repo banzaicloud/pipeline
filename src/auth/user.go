@@ -53,7 +53,6 @@ type AuthIdentity struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	auth_identity.Basic
-	auth_identity.SignLogs
 }
 
 // User struct
