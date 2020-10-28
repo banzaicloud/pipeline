@@ -769,7 +769,7 @@ traefik:
 	v.SetDefault("cluster::disasterRecovery::ark::backupSyncInterval", "20s")
 	v.SetDefault("cluster::disasterRecovery::ark::restoreWaitTimeout", "5m")
 	v.SetDefault("cluster::disasterRecovery::charts::ark::chart", "banzaicloud-stable/velero")
-	v.SetDefault("cluster::disasterRecovery::charts::ark::version", "2.13.3-bnz1")
+	v.SetDefault("cluster::disasterRecovery::charts::ark::version", "2.13.3-bc.1")
 	v.SetDefault("cluster::disasterRecovery::charts::ark::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"repository": "velero/velero",
