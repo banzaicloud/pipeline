@@ -29,29 +29,6 @@ func (_m *MockNodePoolManager) DeleteNodePool(ctx context.Context, c cluster.Clu
 	return r0
 }
 
-// ListNodePools provides a mock function.
-func (_m *MockNodePoolManager) ListNodePools(ctx context.Context, c cluster.Cluster, nodePoolNames []string) (_result_0 []NodePool, _result_1 error) {
-	ret := _m.Called(ctx, c, nodePoolNames)
-
-	var r0 []NodePool
-	if rf, ok := ret.Get(0).(func(context.Context, cluster.Cluster, []string) []NodePool); ok {
-		r0 = rf(ctx, c, nodePoolNames)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]NodePool)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, cluster.Cluster, []string) error); ok {
-		r1 = rf(ctx, c, nodePoolNames)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // UpdateNodePool provides a mock function.
 func (_m *MockNodePoolManager) UpdateNodePool(ctx context.Context, c cluster.Cluster, nodePoolName string, nodePoolUpdate NodePoolUpdate) (_result_0 string, _result_1 error) {
 	ret := _m.Called(ctx, c, nodePoolName, nodePoolUpdate)
