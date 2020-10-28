@@ -80,7 +80,7 @@ func (w DeleteNodePoolWorkflow) Execute(ctx workflow.Context, input DeleteNodePo
 				return
 			}
 
-			_ = SetClusterStatus(_ctx, input.ClusterID, cluster.Warning, pkgCadence.UnwrapError(err).Error())
+			_ = clusterworkflow.SetClusterStatus(_ctx, input.ClusterID, cluster.Warning, pkgCadence.UnwrapError(err).Error())
 		}()
 	}
 
@@ -135,13 +135,13 @@ func (w DeleteNodePoolWorkflow) Execute(ctx workflow.Context, input DeleteNodePo
 	}
 
 	if input.ShouldUpdateClusterStatus {
-		input := SetClusterStatusActivityInput{
+		input := clusterworkflow.SetClusterStatusActivityInput{
 			ClusterID:     input.ClusterID,
 			Status:        cluster.Running,
 			StatusMessage: cluster.RunningMessage,
 		}
 
-		err := workflow.ExecuteActivity(ctx, SetClusterStatusActivityName, input).Get(ctx, nil)
+		err := workflow.ExecuteActivity(ctx, clusterworkflow.SetClusterStatusActivityName, input).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
