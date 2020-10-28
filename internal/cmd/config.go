@@ -106,6 +106,11 @@ type Config struct {
 
 	// Telemetry configuration
 	Telemetry TelemetryConfig
+
+	// temporary switch to control the integrated service implementation
+	IntegratedService struct {
+		V2 bool
+	}
 }
 
 func (c Config) Validate() error {
@@ -881,4 +886,6 @@ traefik:
 	_ = v.BindPFlag("telemetry::addr", p.Lookup("telemetry-addr"))
 	v.SetDefault("telemetry::addr", "127.0.0.1:9900")
 	v.SetDefault("telemetry::debug", true)
+
+	v.SetDefault("integratedservice::v2", false)
 }

@@ -916,94 +916,99 @@ func main() {
 			// Cluster IntegratedService API
 			var integratedServicesService integratedservices.Service
 			{
-				featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
-				clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
-				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
-				endpointManager := endpoints.NewEndpointManager(commonLogger)
-				integratedServiceManagers := []integratedservices.IntegratedServiceManager{
-					securityscan.MakeIntegratedServiceManager(commonLogger, config.Cluster.SecurityScan.Config),
-				}
+				if config.IntegratedService.V2 {
+					// todo integrated service v2 is under development
+					integratedServicesService = integratedservices.NewISServiceV2(commonLogger)
+				} else {
+					featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
+					clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
+					clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
+					endpointManager := endpoints.NewEndpointManager(commonLogger)
+					integratedServiceManagers := []integratedservices.IntegratedServiceManager{
+						securityscan.MakeIntegratedServiceManager(commonLogger, config.Cluster.SecurityScan.Config),
+					}
 
-				if config.Cluster.DNS.Enabled {
-					integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
-				}
+					if config.Cluster.DNS.Enabled {
+						integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
+					}
 
-				if config.Cluster.Vault.Enabled {
-					integratedServiceManagers = append(integratedServiceManagers, integratedServiceVault.MakeIntegratedServiceManager(clusterGetter, commonSecretStore, config.Cluster.Vault.Config, commonLogger))
-				}
+					if config.Cluster.Vault.Enabled {
+						integratedServiceManagers = append(integratedServiceManagers, integratedServiceVault.MakeIntegratedServiceManager(clusterGetter, commonSecretStore, config.Cluster.Vault.Config, commonLogger))
+					}
 
-				if config.Cluster.Monitoring.Enabled {
-					integratedServiceManagers = append(integratedServiceManagers, featureMonitoring.MakeIntegratedServiceManager(
-						clusterGetter,
-						commonSecretStore,
-						endpointManager,
-						unifiedHelmReleaser,
-						config.Cluster.Monitoring.Config,
-						commonLogger,
-					))
-				}
-
-				if config.Cluster.Logging.Enabled {
-					integratedServiceManagers = append(integratedServiceManagers, integratedServiceLogging.MakeIntegratedServiceManager(
-						clusterGetter,
-						commonSecretStore,
-						endpointManager,
-						config.Cluster.Logging.Config,
-						commonLogger,
-					))
-				}
-
-				if config.Cluster.SecurityScan.Enabled {
-					customAnchoreConfigProvider := securityscan.NewCustomAnchoreConfigProvider(
-						featureRepository,
-						commonSecretStore,
-						commonLogger,
-					)
-
-					configProvider := anchore2.ConfigProviderChain{customAnchoreConfigProvider}
-
-					if config.Cluster.SecurityScan.Anchore.Enabled {
-						configProvider = append(configProvider, securityscan.NewClusterAnchoreConfigProvider(
-							config.Cluster.SecurityScan.Anchore.Endpoint,
-							securityscanadapter.NewUserNameGenerator(securityscanadapter.NewClusterService(clusterManager)),
-							securityscanadapter.NewUserSecretStore(commonSecretStore),
-							config.Cluster.SecurityScan.Anchore.Insecure,
+					if config.Cluster.Monitoring.Enabled {
+						integratedServiceManagers = append(integratedServiceManagers, featureMonitoring.MakeIntegratedServiceManager(
+							clusterGetter,
+							commonSecretStore,
+							endpointManager,
+							unifiedHelmReleaser,
+							config.Cluster.Monitoring.Config,
+							commonLogger,
 						))
 					}
 
-					securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, commonErrorHandler, commonLogger)
+					if config.Cluster.Logging.Enabled {
+						integratedServiceManagers = append(integratedServiceManagers, integratedServiceLogging.MakeIntegratedServiceManager(
+							clusterGetter,
+							commonSecretStore,
+							endpointManager,
+							config.Cluster.Logging.Config,
+							commonLogger,
+						))
+					}
 
-					anchoreProxy := api.NewAnchoreProxy(basePath, configProvider, commonErrorHandler, commonLogger)
-					proxyHandler := anchoreProxy.Proxy()
+					if config.Cluster.SecurityScan.Enabled {
+						customAnchoreConfigProvider := securityscan.NewCustomAnchoreConfigProvider(
+							featureRepository,
+							commonSecretStore,
+							commonLogger,
+						)
 
-					// forthcoming endpoint for all requests proxied to Anchore
-					cRouter.Any("/anchore/*proxyPath", proxyHandler)
+						configProvider := anchore2.ConfigProviderChain{customAnchoreConfigProvider}
 
-					// these are cluster resources
-					cRouter.GET("/scanlog", securityApiHandler.ListScanLogs)
-					cRouter.GET("/scanlog/:releaseName", securityApiHandler.GetScanLogs)
+						if config.Cluster.SecurityScan.Anchore.Enabled {
+							configProvider = append(configProvider, securityscan.NewClusterAnchoreConfigProvider(
+								config.Cluster.SecurityScan.Anchore.Endpoint,
+								securityscanadapter.NewUserNameGenerator(securityscanadapter.NewClusterService(clusterManager)),
+								securityscanadapter.NewUserSecretStore(commonSecretStore),
+								config.Cluster.SecurityScan.Anchore.Insecure,
+							))
+						}
 
-					cRouter.GET("/whitelists", securityApiHandler.GetWhiteLists)
-					cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
-					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
+						securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, commonErrorHandler, commonLogger)
+
+						anchoreProxy := api.NewAnchoreProxy(basePath, configProvider, commonErrorHandler, commonLogger)
+						proxyHandler := anchoreProxy.Proxy()
+
+						// forthcoming endpoint for all requests proxied to Anchore
+						cRouter.Any("/anchore/*proxyPath", proxyHandler)
+
+						// these are cluster resources
+						cRouter.GET("/scanlog", securityApiHandler.ListScanLogs)
+						cRouter.GET("/scanlog/:releaseName", securityApiHandler.GetScanLogs)
+
+						cRouter.GET("/whitelists", securityApiHandler.GetWhiteLists)
+						cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
+						cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
+					}
+
+					if config.Cluster.Expiry.Enabled {
+						integratedServiceManagers = append(integratedServiceManagers,
+							expiry.NewExpiryServiceManager(services.BindIntegratedServiceSpec))
+					}
+
+					if config.Cluster.Ingress.Enabled {
+						integratedServiceManagers = append(integratedServiceManagers, ingress.NewManager(
+							config.Cluster.Ingress.Config,
+							unifiedHelmReleaser,
+							commonLogger,
+						))
+					}
+
+					integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
+					integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
+					integratedServicesService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, commonLogger)
 				}
-
-				if config.Cluster.Expiry.Enabled {
-					integratedServiceManagers = append(integratedServiceManagers,
-						expiry.NewExpiryServiceManager(services.BindIntegratedServiceSpec))
-				}
-
-				if config.Cluster.Ingress.Enabled {
-					integratedServiceManagers = append(integratedServiceManagers, ingress.NewManager(
-						config.Cluster.Ingress.Config,
-						unifiedHelmReleaser,
-						commonLogger,
-					))
-				}
-
-				integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
-				integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
-				integratedServicesService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, commonLogger)
 				endpoints := integratedservicesdriver.MakeEndpoints(
 					integratedServicesService,
 					kitxendpoint.Combine(endpointMiddleware...),
